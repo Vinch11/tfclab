@@ -2087,3 +2087,308 @@ function StaffCompassSection({
     </div>
   );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FTP/VMA TARGETS REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function FtpVmaTargetsReportSection({
+  objectif,
+  ftp,
+  poids,
+  athleteAge,
+  snapshot,
+}: {
+  objectif: string;
+  ftp: number | null;
+  poids: number | null;
+  athleteAge?: number | null;
+  snapshot?: DbSnapshot | null;
+}) {
+  const isRunning = ["Marathon", "Semi", "Course", "Trail", "10km"].some(o => objectif.includes(o));
+  const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
+  const vma = snapshot?.vma ?? null;
+
+  if (isRunning) {
+    // VMA targets for running
+    return (
+      <>
+        <Separator />
+        <div className="print:break-inside-avoid">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            CIBLES VMA PAR NIVEAU
+          </h3>
+          <div className="p-4 rounded-lg bg-muted/30 border">
+            {vma !== null && (
+              <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">VMA actuelle</span>
+                  <span className="font-mono font-bold text-primary text-lg">{vma.toFixed(1)} km/h</span>
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "🎯 Plausible", range: objectif === "Marathon" ? "16-18" : "17-19" },
+                { label: "🔥 Ambitieux", range: objectif === "Marathon" ? "18-20" : "19-21" },
+                { label: "👑 Elite", range: objectif === "Marathon" ? "20-22+" : "21-23+" },
+              ].map((t, i) => (
+                <div key={i} className="p-3 rounded bg-background/50 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">{t.label}</p>
+                  <p className="font-mono font-bold">{t.range} km/h</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // FTP/kg targets for cycling
+  const targets = getFtpKgLevelTargets(objectif, athleteAge, ftpKg);
+
+  return (
+    <>
+      <Separator />
+      <div className="print:break-inside-avoid">
+        <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+          <Target className="h-4 w-4" />
+          CIBLES FTP/kg PAR NIVEAU
+        </h3>
+        <div className="p-4 rounded-lg bg-muted/30 border">
+          {ftpKg !== null && (
+            <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/30">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">FTP/kg actuel</span>
+                <span className="font-mono font-bold text-primary text-lg">{ftpKg.toFixed(2)} W/kg</span>
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "🎯 Plausible", zone: targets.plausible },
+              { label: "🔥 Ambitieux", zone: targets.ambitieux },
+              { label: "👑 Elite", zone: targets.eliteImprobable },
+            ].map((t, i) => (
+              <div key={i} className="p-3 rounded bg-background/50 text-center">
+                <p className="text-xs text-muted-foreground mb-1">{t.label}</p>
+                <p className="font-mono font-bold">{t.zone.min.toFixed(1)}–{t.zone.max.toFixed(1)} W/kg</p>
+                <p className="text-[10px] text-muted-foreground">{t.zone.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RUNNING ECONOMY REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function RunningEconomyReportSection({
+  snapshot,
+  objectif,
+  tteMin,
+}: {
+  snapshot?: DbSnapshot | null;
+  objectif: string;
+  tteMin: number | null;
+}) {
+  const isRunning = ["Marathon", "Semi", "Course", "Trail", "10km", "IM", "Ironman", "70.3"].some(o => objectif.includes(o));
+  if (!isRunning) return null;
+
+  const economyV2 = computeRunningEconomyV2({
+    fcMax: snapshot?.fc_max ?? null,
+    fcEndurance: snapshot?.run_hr_ref_bpm ?? null,
+    paceEndurance: snapshot?.run_pace_ref_sec_per_km ? snapshot.run_pace_ref_sec_per_km / 60 : null,
+    powerThreshold: snapshot?.running_power_threshold ?? null,
+    hrDriftPct: snapshot?.run_hr_drift_pct ?? null,
+    tteMin,
+    weightKg: snapshot?.weight_kg ?? null,
+    objectif,
+    sport: "course",
+  });
+
+  if (!economyV2 || !economyV2.isApplicable) return null;
+
+  return (
+    <>
+      <Separator />
+      <div className="print:break-inside-avoid">
+        <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+          🦶 ÉCONOMIE DE COURSE
+          <Badge variant="outline" className="text-[10px]">
+            {economyV2.levelEmoji} {economyV2.levelLabel}
+          </Badge>
+        </h3>
+        <div className="p-4 rounded-lg bg-muted/30 border">
+          <div className="grid grid-cols-3 gap-4 text-center mb-4">
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs text-muted-foreground mb-1">Indice Économie</p>
+              <p className="text-lg font-bold">{economyV2.index}/100</p>
+            </div>
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs text-muted-foreground mb-1">Dérive Cardiaque</p>
+              <p className="text-lg font-bold">{economyV2.hrDrift !== null ? `${economyV2.hrDrift.toFixed(1)}%` : "—"}</p>
+              <p className="text-[10px] text-muted-foreground">{economyV2.hrDriftLabel}</p>
+            </div>
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs text-muted-foreground mb-1">Coût O₂</p>
+              <p className="text-lg font-bold">
+                {economyV2.estimatedO2Cost ? `${Math.round(economyV2.estimatedO2Cost.value)}` : "—"}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                {economyV2.estimatedO2Cost ? `ml/kg/km • ${economyV2.estimatedO2Cost.levelLabel}` : "Non disponible"}
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-3 mb-3">
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Impact Performance</p>
+              <p className="text-xs">{economyV2.performanceImpact.description}</p>
+            </div>
+            <div className="p-3 rounded bg-background/50">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Impact Risque Blessure</p>
+              <p className="text-xs">{economyV2.injuryRiskImpact.description}</p>
+            </div>
+          </div>
+          
+          {economyV2.optimizationLevers.length > 0 && (
+            <div className="p-3 rounded bg-primary/5 border border-primary/20">
+              <p className="text-xs font-medium text-primary mb-1">Leviers d'optimisation :</p>
+              <ul className="text-xs space-y-0.5">
+                {economyV2.optimizationLevers.slice(0, 3).map((l, i) => (
+                  <li key={i}>• {l}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADAPTATION PREDICTOR™ REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function AdaptationPredictorReportSection({
+  snapshot,
+  objectif,
+  lorangInput,
+}: {
+  snapshot?: DbSnapshot | null;
+  objectif: string;
+  lorangInput?: LorangStrategyInput | null;
+}) {
+  if (!snapshot) return null;
+
+  // Compute limiter from lorang if available
+  let limiterId: string | null = null;
+  let limiterLabel: string | null = null;
+  if (lorangInput) {
+    try {
+      const result = computeLorangStrategy(lorangInput);
+      limiterId = result.primaryLimiter;
+      limiterLabel = result.limiterLabel;
+    } catch { /* fallback */ }
+  }
+
+  const predictionResult = computeAdaptationPrediction({
+    snapshot: snapshot as unknown as Record<string, unknown>,
+    limiterId,
+    limiterLabel,
+    objectif,
+  });
+
+  // Show only the best scenario and top 2 alternatives
+  const bestScenario = predictionResult.scenarios.find(s => s.lever.id === predictionResult.bestScenarioId);
+  const otherScenarios = predictionResult.scenarios
+    .filter(s => s.lever.id !== predictionResult.bestScenarioId)
+    .sort((a, b) => b.overallImpactScore - a.overallImpactScore)
+    .slice(0, 2);
+
+  if (!bestScenario) return null;
+
+  return (
+    <div className="print:break-inside-avoid">
+      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+        🔮 TFCL ADAPTATION PREDICTOR™
+        <Badge variant="outline" className="text-[10px]">Projection 4-6 semaines</Badge>
+      </h3>
+      
+      {/* Best scenario */}
+      <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 mb-3">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xl">{bestScenario.lever.emoji}</span>
+          <div>
+            <p className="font-bold text-sm">{bestScenario.lever.label}</p>
+            <p className="text-xs text-muted-foreground">{bestScenario.lever.description}</p>
+          </div>
+          <Badge variant="outline" className={cn("text-[10px] ml-auto", getImpactScoreBgColor(bestScenario.overallImpactScore))}>
+            {bestScenario.impactLabel} ({bestScenario.overallImpactScore}/100)
+          </Badge>
+        </div>
+        
+        {/* Key metric deltas */}
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          {bestScenario.metrics.filter(m => m.available && m.significance !== "none").slice(0, 4).map(m => (
+            <div key={m.id} className="p-2 rounded bg-background/50 text-center">
+              <p className="text-[10px] text-muted-foreground">{m.label}</p>
+              <p className={cn("text-xs font-bold", m.direction === "up" ? "text-emerald-600" : m.direction === "down" ? "text-destructive" : "text-muted-foreground")}>
+                {m.deltaMidPct > 0 ? "+" : ""}{m.deltaMidPct.toFixed(1)}%
+              </p>
+            </div>
+          ))}
+        </div>
+        
+        {/* Performance predictions */}
+        <div className="grid grid-cols-3 gap-2">
+          {bestScenario.performancePredictions.map(pp => (
+            <div key={pp.distance} className="p-2 rounded bg-background/50 text-center">
+              <p className="text-[10px] text-muted-foreground">{pp.distance}</p>
+              <p className={cn("text-xs font-bold", pp.improvementPct > 0 ? "text-emerald-600" : "text-muted-foreground")}>
+                {pp.improvementPct > 0 ? "+" : ""}{pp.improvementPct}%
+              </p>
+            </div>
+          ))}
+        </div>
+        
+        <p className="text-xs text-muted-foreground mt-2">{bestScenario.recommendation}</p>
+      </div>
+      
+      {/* Reason for best selection */}
+      <p className="text-xs text-muted-foreground mb-3">
+        <strong>Pourquoi ce levier :</strong> {predictionResult.bestScenarioReason}
+      </p>
+      
+      {/* Alternatives */}
+      {otherScenarios.length > 0 && (
+        <div className="grid md:grid-cols-2 gap-2">
+          {otherScenarios.map(s => (
+            <div key={s.lever.id} className="p-3 rounded-lg bg-muted/30 border">
+              <div className="flex items-center gap-2 mb-1">
+                <span>{s.lever.emoji}</span>
+                <span className="text-xs font-medium">{s.lever.label}</span>
+                <Badge variant="outline" className="text-[9px] ml-auto">
+                  {s.overallImpactScore}/100
+                </Badge>
+              </div>
+              <p className="text-[10px] text-muted-foreground">{s.recommendation}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <p className="text-[10px] text-muted-foreground mt-2 italic">
+        💡 Projections basées sur le profil physiologique actuel. Résultats dépendants de l'observance et de la récupération.
+      </p>
+    </div>
+  );
+}
