@@ -80,6 +80,12 @@ import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
 import { computeFatigueEffectif } from "@/engines/diagnostic";
 import { computeLactateThresholdsTFCL } from "@/lib/thresholds/computeLactateThresholdsTFCL";
+import {
+  analyzeCriticalPower,
+  generateRecoveryTable,
+  effectiveWprime,
+  type CriticalPowerResult,
+} from "@/lib/v2/criticalPowerModel";
 
 interface StaffReportProps {
   athleteName: string;
@@ -740,6 +746,13 @@ export function StaffReport({
           snapshot={snapshot}
           objectif={objectif}
           tteMin={tteEffectif.tte_min}
+        />
+
+        {/* 4d️⃣ CP / W' & W'BAL RECOVERY */}
+        <CpWprimeReportSection
+          snapshot={snapshot}
+          ftp={ftp}
+          poids={poids}
         />
 
         <Separator />
@@ -2389,6 +2402,151 @@ function AdaptationPredictorReportSection({
       <p className="text-[10px] text-muted-foreground mt-2 italic">
         💡 Projections basées sur le profil physiologique actuel. Résultats dépendants de l'observance et de la récupération.
       </p>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CP / W' & W'BAL RECOVERY REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function CpWprimeReportSection({
+  snapshot,
+  ftp,
+  poids,
+}: {
+  snapshot?: DbSnapshot | null;
+  ftp: number | null;
+  poids: number | null;
+}) {
+  const pmax5s = snapshot?.pmax_5s ?? null;
+  const p30s = (snapshot as unknown as Record<string, unknown>)?.p30s_w as number | null ?? null;
+  const p60s = (snapshot as unknown as Record<string, unknown>)?.p60s_w as number | null ?? null;
+  const map5min = (snapshot as unknown as Record<string, unknown>)?.map5min_w as number | null ?? null;
+
+  const cpResult = analyzeCriticalPower({
+    pmax_5s: pmax5s,
+    p30s_w: p30s,
+    p60s_w: p60s,
+    map5min_w: map5min,
+    ftp,
+    weight_kg: poids,
+  });
+
+  if (!cpResult) return null;
+
+  const recoveryTable = generateRecoveryTable(cpResult.effectiveCP, cpResult.wprime, poids ?? undefined);
+  const wprimeEff = effectiveWprime(cpResult.wprime);
+
+  return (
+    <div className="print:break-inside-avoid">
+      <Separator className="my-4" />
+      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+        ⚡ PUISSANCE CRITIQUE & W' — REPOS OPTIMAUX W'bal
+        <Badge
+          variant="outline"
+          className={cn(
+            "text-[10px]",
+            cpResult.dataQuality === "good" && "border-emerald-500/50 text-emerald-600",
+            cpResult.dataQuality === "suspect" && "border-amber-500/50 text-amber-600",
+            cpResult.dataQuality === "implausible" && "border-red-500/50 text-red-600"
+          )}
+        >
+          Qualité {cpResult.dataQuality === "good" ? "✓" : cpResult.dataQuality === "suspect" ? "⚠" : "✗"}
+        </Badge>
+      </h3>
+
+      <div className="p-4 rounded-lg border bg-muted/30 space-y-4">
+        {/* Main metrics */}
+        <div className="grid grid-cols-4 gap-3 text-center">
+          <div className="p-3 rounded bg-background/50">
+            <p className="text-xs text-muted-foreground mb-1">Critical Power</p>
+            <p className="text-lg font-bold font-mono text-primary">{cpResult.effectiveCP}W</p>
+            {cpResult.cpBounded && (
+              <p className="text-[10px] text-amber-600">Borné FTP ({cpResult.cp}W brut)</p>
+            )}
+            {cpResult.cpWkg && (
+              <p className="text-[10px] text-muted-foreground">{cpResult.effectiveCPWkg ?? cpResult.cpWkg} W/kg</p>
+            )}
+          </div>
+          <div className="p-3 rounded bg-background/50">
+            <p className="text-xs text-muted-foreground mb-1">W' (Cap. Anaérobie)</p>
+            <p className="text-lg font-bold font-mono text-destructive">{cpResult.wprimeKJ} kJ</p>
+            {cpResult.wprimeJkg && (
+              <p className="text-[10px] text-muted-foreground">{cpResult.wprimeJkg} J/kg</p>
+            )}
+            {wprimeEff > cpResult.wprime && (
+              <p className="text-[10px] text-amber-600">Plancher 10kJ appliqué</p>
+            )}
+          </div>
+          <div className="p-3 rounded bg-background/50">
+            <p className="text-xs text-muted-foreground mb-1">R² Modèle</p>
+            <p className={cn(
+              "text-lg font-bold font-mono",
+              cpResult.r2 > 0.95 ? "text-emerald-600" : cpResult.r2 > 0.9 ? "text-amber-600" : "text-red-600"
+            )}>
+              {cpResult.r2.toFixed(3)}
+            </p>
+          </div>
+          <div className="p-3 rounded bg-background/50">
+            <p className="text-xs text-muted-foreground mb-1">FTP/CP</p>
+            <p className="text-lg font-bold font-mono">
+              {cpResult.ftpCpRatio ? cpResult.ftpCpRatio.toFixed(2) : "—"}
+            </p>
+          </div>
+        </div>
+
+        {/* Diagnostics */}
+        {cpResult.diagnostics.length > 0 && (
+          <div className="space-y-1">
+            {cpResult.diagnostics.map((d, i) => (
+              <div key={i} className={cn(
+                "flex items-start gap-2 text-xs p-2 rounded",
+                d.severity === "critical" ? "bg-red-500/10 text-red-700 dark:text-red-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+              )}>
+                <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
+                <span>{d.message}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* W'bal Recovery Table */}
+        {recoveryTable && recoveryTable.length > 0 && (
+          <>
+            <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+              🔄 Repos Optimaux W'bal (Skiba 2012)
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">Format</th>
+                    <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">Puissance</th>
+                    <th className="text-left py-1.5 px-2 text-muted-foreground font-medium">Repos optimal</th>
+                    <th className="text-right py-1.5 px-2 text-muted-foreground font-medium">Reps max</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recoveryTable.map((row, i) => (
+                    <tr key={i} className="border-b border-border/50">
+                      <td className="py-1.5 px-2 font-medium">{row.format}</td>
+                      <td className="py-1.5 px-2 font-mono text-primary">{row.intervalPower}</td>
+                      <td className="py-1.5 px-2 font-mono">{row.optimalRest}</td>
+                      <td className="py-1.5 px-2 font-mono text-right">×{row.maxReps}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        <p className="text-[10px] text-muted-foreground italic">
+          Durées calibrées sur W' individuel ({cpResult.wprimeKJ} kJ) et CP effectif ({cpResult.effectiveCP}W).
+          Modèle : reconstitution exponentielle W'bal — Skiba et al. (2012).
+        </p>
+      </div>
     </div>
   );
 }
