@@ -2565,3 +2565,137 @@ function CpWprimeReportSection({
     </div>
   );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// METABOLIC ZONES INSCYD REPORT SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const ZONE_COLORS_REPORT = [
+  { color: "hsl(217, 91%, 60%)" },
+  { color: "hsl(142, 71%, 45%)" },
+  { color: "hsl(45, 93%, 47%)" },
+  { color: "hsl(30, 95%, 50%)" },
+  { color: "hsl(0, 84%, 60%)" },
+  { color: "hsl(280, 87%, 60%)" },
+];
+
+function MetabolicZonesReportSection({
+  vo2max,
+  vlamax,
+  ftp,
+  weight = 75,
+}: {
+  vo2max: number | null;
+  vlamax: number | null;
+  ftp: number | null;
+  weight?: number;
+}) {
+  if (!vo2max || !vlamax || !ftp || vo2max <= 0 || vlamax <= 0 || ftp <= 0) return null;
+
+  const profile: MaderProfile = { vo2max, vlamax, weight };
+  const lt = findLactateThresholds(profile);
+  const fm = findFatMax(profile);
+  const efficiency = 0.23;
+
+  const intensityToPower = (intensity: number): number => {
+    const vo2LMin = (vo2max * weight / 1000) * (intensity / 100);
+    return Math.round((vo2LMin * 20.9 * 1000 / 60) * efficiency);
+  };
+
+  const getZoneData = (midPct: number) => {
+    const lactate = findSteadyStateLactate(midPct, vo2max, vlamax);
+    const fatGmin = calculateFatOxidation(midPct, vo2max, vlamax, weight);
+    const carbGmin = calculateCarbOxidation(midPct, vo2max, vlamax, weight);
+    const fatKcalH = fatGmin * 9 * 60;
+    const carbKcalH = carbGmin * 4 * 60;
+    const totalKcalH = fatKcalH + carbKcalH;
+    const fatPct = totalKcalH > 0 ? (fatKcalH / totalKcalH) * 100 : 0;
+    return { lactate, fatGmin, carbGmin, fatKcalH, carbKcalH, totalKcalH, fatPct };
+  };
+
+  const lt1 = lt.lt1Intensity;
+  const lt2 = lt.lt2Intensity;
+
+  const zoneDefs = [
+    { id: "Z1", label: "Récupération", min: 30, max: Math.round(lt1 * 0.75), colorIdx: 0, effect: "↓ stress, récupération" },
+    { id: "Z2", label: "Endurance", min: Math.round(lt1 * 0.75), max: lt1, colorIdx: 1, effect: "↓ VLamax, ↑ TTE" },
+    { id: "Z3", label: "Tempo", min: lt1, max: Math.round(lt1 + (lt2 - lt1) * 0.5), colorIdx: 2, effect: "Stabilise VLamax, ↑ durabilité" },
+    { id: "Z4", label: "Sweet Spot", min: Math.round(lt1 + (lt2 - lt1) * 0.5), max: lt2, colorIdx: 3, effect: "↑ TTE, ↓ VLamax modéré" },
+    { id: "Z5", label: "Seuil (MLSS)", min: lt2, max: Math.min(100, lt2 + 6), colorIdx: 4, effect: "↑ TTE direct" },
+    { id: "Z6", label: "VO₂max", min: Math.min(100, lt2 + 6), max: 110, colorIdx: 5, effect: "↑↑ VO₂max, ↑ VLamax" },
+  ];
+
+  const zones = zoneDefs.map(z => {
+    const midPct = Math.round((z.min + z.max) / 2);
+    const data = getZoneData(midPct);
+    return { ...z, ...data, wattsMin: intensityToPower(z.min), wattsMax: intensityToPower(z.max) };
+  });
+
+  return (
+    <div className="print:break-inside-avoid">
+      <Separator className="my-4" />
+      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+        🏋️ ZONES MÉTABOLIQUES — Mader-derived (INSCYD)
+        <Badge variant="outline" className="text-[10px]">6 zones</Badge>
+      </h3>
+
+      <div className="p-4 rounded-lg border bg-muted/30">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="text-left py-1.5 px-1.5 text-muted-foreground font-medium">Zone</th>
+                <th className="text-left py-1.5 px-1.5 text-muted-foreground font-medium">Puissance</th>
+                <th className="text-right py-1.5 px-1.5 text-muted-foreground font-medium">[La] mmol</th>
+                <th className="text-right py-1.5 px-1.5 text-muted-foreground font-medium">Fat g/min</th>
+                <th className="text-right py-1.5 px-1.5 text-muted-foreground font-medium">CHO g/min</th>
+                <th className="text-right py-1.5 px-1.5 text-muted-foreground font-medium">%Fat</th>
+                <th className="text-left py-1.5 px-1.5 text-muted-foreground font-medium">Effet</th>
+              </tr>
+            </thead>
+            <tbody>
+              {zones.map((z) => (
+                <tr key={z.id} className="border-b border-border/50">
+                  <td className="py-1.5 px-1.5">
+                    <span className="inline-block w-2 h-2 rounded-full mr-1" style={{ backgroundColor: ZONE_COLORS_REPORT[z.colorIdx].color }} />
+                    <span className="font-semibold">{z.id}</span>
+                    <span className="text-muted-foreground ml-1">{z.label}</span>
+                  </td>
+                  <td className="py-1.5 px-1.5 font-mono text-primary">{z.wattsMin}–{z.wattsMax}W</td>
+                  <td className="py-1.5 px-1.5 font-mono text-right">{Math.min(20, z.lactate).toFixed(1)}</td>
+                  <td className="py-1.5 px-1.5 font-mono text-right text-emerald-600">{z.fatGmin.toFixed(2)}</td>
+                  <td className="py-1.5 px-1.5 font-mono text-right text-amber-600">{z.carbGmin.toFixed(2)}</td>
+                  <td className="py-1.5 px-1.5 font-mono text-right">{z.fatPct.toFixed(0)}%</td>
+                  <td className="py-1.5 px-1.5 text-muted-foreground">{z.effect}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-3 text-center">
+          <div className="p-2 rounded bg-background/50">
+            <p className="text-[10px] text-muted-foreground">LT1 (Seuil aérobie)</p>
+            <p className="text-sm font-bold font-mono">{lt1}% VO₂max</p>
+            <p className="text-[10px] text-muted-foreground">{intensityToPower(lt1)}W</p>
+          </div>
+          <div className="p-2 rounded bg-background/50">
+            <p className="text-[10px] text-muted-foreground">LT2 (Seuil anaérobie)</p>
+            <p className="text-sm font-bold font-mono">{lt2}% VO₂max</p>
+            <p className="text-[10px] text-muted-foreground">{intensityToPower(lt2)}W</p>
+          </div>
+          <div className="p-2 rounded bg-background/50">
+            <p className="text-[10px] text-muted-foreground">FatMax</p>
+            <p className="text-sm font-bold font-mono">{fm.fatMaxIntensity}% VO₂max</p>
+            <p className="text-[10px] text-muted-foreground">{intensityToPower(fm.fatMaxIntensity)}W</p>
+          </div>
+        </div>
+
+        <p className="text-[10px] text-muted-foreground mt-3 italic">
+          Zones dérivées du modèle Mader-Heck (VO₂max {vo2max} ml/kg/min, VLamax {vlamax.toFixed(2)} mmol/L/s).
+          Substrats calculés au point médian de chaque zone.
+        </p>
+      </div>
+    </div>
+  );
+}
