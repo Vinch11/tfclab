@@ -285,12 +285,7 @@ export default function DashboardPage() {
     
     // athleteAge déjà calculé plus haut pour Potentiel Physiologique
     
-    // Convertir fatigue_state du snapshot en score numérique (1-10)
-    // fresh=2, ok=4, fatigued=6, high=8, injured=10
-    const fatigueStateToPercue: Record<string, number> = {
-      fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10
-    };
-    const fatiguePercueFromSnapshot = fatigueStateToPercue[activeSnapshot.fatigue_state || "ok"] ?? 4;
+    const fatiguePercueFromSnapshot = fatigueStateToScoreOrDefault(activeSnapshot.fatigue_state);
     
     // Fatigue Effectif (source unique - combine objectif + subjectif)
     const fatigueEffectif = computeFatigueEffectif({

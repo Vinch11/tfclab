@@ -161,10 +161,7 @@ export default function RunningProfilePage() {
 
   // Fatigue Effectif — snapshot-centric (fatigue_state → score numérique)
   const fatigueResult = useMemo(() => {
-    const fatigueStateToPercue: Record<string, number> = {
-      fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10
-    };
-    const fatiguePercue = fatigueStateToPercue[effectiveCloudSnapshot?.fatigue_state || "ok"] ?? 4;
+    const fatiguePercue = fatigueStateToScoreOrDefault(effectiveCloudSnapshot?.fatigue_state);
     
     return computeFatigueEffectif({
       tss7d: effectiveCloudSnapshot?.tss_7d ?? null,

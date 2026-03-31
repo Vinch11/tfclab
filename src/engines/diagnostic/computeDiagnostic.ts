@@ -179,14 +179,7 @@ function computeFatigueFromInput(
   tte: TTEEffectif,
   vlamax: VLamaxEffectif
 ): FatigueEffectif {
-  // Convertir fatigue_state du snapshot en score numérique 1-10
-  // pour alimenter le pilier "Signaux subjectifs" (15%)
-  const fatigueStateToPercue: Record<string, number> = {
-    fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10,
-  };
-  const fatiguePercue = input.fatigueState
-    ? fatigueStateToPercue[input.fatigueState] ?? null
-    : null;
+  const fatiguePercue = fatigueStateToScore(input.fatigueState);
 
   return computeFatigueEffectif({
     tss7d: input.tss7d,
