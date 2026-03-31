@@ -50,14 +50,8 @@ const SECTION_ICONS: Record<keyof ReportSections, React.ComponentType<{ classNam
   profilMetabolique: Activity,
   vlamaxZoneConfidence: Zap,
   indicateurs: BarChart3,
-  potentielPhysiologique: Target,
-  disponibiliteTFCL: Zap,
-  raceSimulation: TrendingUp,
   pacingEnvelope: BarChart3,
-  longDistancePacing: TrendingUp,
-  doubleBoucleCAP: Activity,
   potentielPhysiologiqueRunning: Target,
-  pacingEnvelopeRunning: TrendingUp,
   injuryRisk: AlertTriangle,
   nutritionV2: Utensils,
   fatmaxTFCL: Flame,
@@ -82,6 +76,8 @@ const SECTION_ICONS: Record<keyof ReportSections, React.ComponentType<{ classNam
   facteursLimitants: AlertTriangle,
   leviersAction: Settings,
   cpWprimeWbal: Zap,
+  lactateCorrespondence: Activity,
+  cycleIntelligence: TrendingUp,
 };
 
 // Catégories avec couleurs
