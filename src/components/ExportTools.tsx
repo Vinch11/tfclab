@@ -3263,14 +3263,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       profilMetabolique: "profil-metabolique",
       vlamaxZoneConfidence: "vlamax-zone-confidence",
       indicateurs: "indicateurs",
-      potentielPhysiologique: "readiness",
-      disponibiliteTFCL: "disponibilite-tfcl",
-      raceSimulation: "race-simulation",
       pacingEnvelope: "pacing-envelope",
-      longDistancePacing: "long-distance-pacing",
-      doubleBoucleCAP: "double-boucle-cap",
       potentielPhysiologiqueRunning: "potentiel-running",
-      pacingEnvelopeRunning: "pacing-envelope-running",
       injuryRisk: "injury-risk",
       nutritionV2: "nutrition-v2",
       fatmaxTFCL: "fatmax-tfcl",
@@ -3295,6 +3289,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       facteursLimitants: "facteurs-limitants",
       leviersAction: "leviers-action",
       cpWprimeWbal: "cp-wprime-wbal",
+      lactateCorrespondence: "lactate-correspondence",
+      cycleIntelligence: "cycle-intelligence",
     };
     
     const tocRows = visibleSections.map((key, i) => {
