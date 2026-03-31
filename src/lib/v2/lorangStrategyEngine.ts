@@ -600,7 +600,7 @@ function activateLevers(
   // ═══════════════════════════════════════════════════════════════════════════
   const vo2maxIsLimiting = useFallback 
     ? primaryLimiter === 'motor'
-    : (isMetricLimiting("VO2max") || (primaryLimiter === 'motor' && vo2maxLow));
+    : (isMetricLimiting("VO2max") || isMetricFromPrimaryLimiter("VO2max", ['motor']) || (primaryLimiter === 'motor' && vo2maxLow));
   
   if (vo2maxIsLimiting && availability.level !== 'critical' && !context.isRaceWeek) {
     const vo2Gap = getMetricGap("VO2max");
