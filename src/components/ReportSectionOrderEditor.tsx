@@ -51,14 +51,8 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   profilMetabolique: "Profil Métabolique Complet",
   vlamaxZoneConfidence: "⚡ VLamax Zone × Confiance",
   indicateurs: "Indicateurs Clés",
-  potentielPhysiologique: "Potentiel Physiologique",
-  disponibiliteTFCL: "Disponibilité TFCL™",
-  raceSimulation: "Simulation de Course TFCL™",
   pacingEnvelope: "📊 Pacing Envelope™",
-  longDistancePacing: "🏃 Long Distance Pacing Discipline",
-  doubleBoucleCAP: "🔄 Double Boucle CAP",
   potentielPhysiologiqueRunning: "🏃 Potentiel Physiologique CAP",
-  pacingEnvelopeRunning: "🏃 Pacing Envelope™ CAP",
   injuryRisk: "Risque de Blessure CAP",
   nutritionV2: "Nutrition Prédictive V2",
   fatmaxTFCL: "FatMax TFCL™",
@@ -83,6 +77,8 @@ export const SECTION_LABELS: Record<keyof ReportSections, string> = {
   facteursLimitants: "🎯 Facteurs Limitants",
   leviersAction: "🔧 Leviers d'Action",
   cpWprimeWbal: "⚡ CP / W' & Repos W'bal",
+  lactateCorrespondence: "🧪 Correspondances Lactiques TFCL",
+  cycleIntelligence: "🔄 Cycle Intelligence™",
 };
 
 // Catégories pour regroupement visuel
