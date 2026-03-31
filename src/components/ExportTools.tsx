@@ -7097,7 +7097,6 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     evolutionCharts: evolutionChartsHTML,
     ageAdjustment: aaiHTML,
     ambitionLegend: ambitionLegendHTML,
-    ambitionLegend: ambitionLegendHTML,
     zones: zonesHTML,
     historique: snapshotsHTML,
     tests: testsHTML,
