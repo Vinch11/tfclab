@@ -102,14 +102,8 @@ export interface ReportSections {
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   vlamaxZoneConfidence: boolean; // ⚡ VLamax = Zone × Confiance (graphique signature)
   indicateurs: boolean;     // Indicateurs Clés
-  potentielPhysiologique: boolean;   // Potentiel Physiologique
-  disponibiliteTFCL: boolean; // Disponibilité TFCL™
-  raceSimulation: boolean;  // Simulation de Course TFCL™
   pacingEnvelope: boolean;  // Pacing Envelope™ - Discipline Métabolique
-  longDistancePacing: boolean; // Long Distance Pacing Discipline
-  doubleBoucleCAP: boolean; // Double Boucle CAP (Running)
   potentielPhysiologiqueRunning: boolean; // Potentiel Physiologique CAP (Running)
-  pacingEnvelopeRunning: boolean; // Pacing Envelope™ CAP (Running)
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
   fatmaxTFCL: boolean;      // FatMax TFCL
@@ -134,6 +128,8 @@ export interface ReportSections {
   facteursLimitants: boolean; // Facteurs Limitants (moteur unifié)
   leviersAction: boolean;    // Leviers d'Action (moteur unifié)
   cpWprimeWbal: boolean;     // CP / W' & Repos Optimaux W'bal
+  lactateCorrespondence: boolean; // Correspondances Lactiques TFCL
+  cycleIntelligence: boolean; // Cycle Intelligence™
 }
 
 interface ExportOptions {
