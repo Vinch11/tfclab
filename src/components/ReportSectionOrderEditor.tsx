@@ -123,6 +123,7 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   performancePrediction: "Performance",
   facteursLimitants: "Analyse",
   leviersAction: "Entraînement",
+  cpWprimeWbal: "Performance",
 };
 
 // Couleurs par catégorie
