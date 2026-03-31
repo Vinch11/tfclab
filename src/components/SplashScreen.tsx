@@ -54,12 +54,12 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           {/* Outer rotating ring */}
           <div 
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] border-2 border-transparent rounded-full animate-[spin_3s_linear_infinite]"
-            style={{ borderTopColor: 'rgba(59, 130, 246, 0.6)', borderRightColor: 'rgba(6, 182, 212, 0.4)' }}
+            style={{ borderTopColor: 'rgba(0, 180, 216, 0.6)', borderRightColor: 'rgba(230, 150, 30, 0.4)' }}
           />
           {/* Inner rotating ring */}
           <div 
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] h-[360px] border border-transparent rounded-full animate-[spin_2s_linear_infinite_reverse]"
-            style={{ borderBottomColor: 'rgba(59, 130, 246, 0.4)', borderLeftColor: 'rgba(6, 182, 212, 0.3)' }}
+            style={{ borderBottomColor: 'rgba(0, 180, 216, 0.4)', borderLeftColor: 'rgba(230, 150, 30, 0.3)' }}
           />
           {/* Glow behind logo */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-radial from-primary/40 to-transparent rounded-full animate-pulse" />
