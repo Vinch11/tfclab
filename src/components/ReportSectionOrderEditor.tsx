@@ -178,6 +178,7 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "lactateCurve",
   "substrateCurve",
   "performancePrediction",
+  "cpWprimeWbal",
 ];
 
 // Visibilité par défaut (toutes visibles) - Also exported as DEFAULT_REPORT_SECTIONS
