@@ -662,13 +662,13 @@ function activateLevers(
   // ═══════════════════════════════════════════════════════════════════════════
   const tteIsLimiting = useFallback 
     ? primaryLimiter === 'durability'
-    : isMetricLimiting("TTE");
+    : (isMetricLimiting("TTE") || isMetricFromPrimaryLimiter("TTE", ['durability']));
   const vlamaxIsLimiting = useFallback 
     ? primaryLimiter === 'glycolytic'
-    : isMetricLimiting("VLamax");
+    : (isMetricLimiting("VLamax") || isMetricFromPrimaryLimiter("VLamax", ['glycolytic']));
   const fatmaxIsLimiting = useFallback 
     ? primaryLimiter === 'metabolic'
-    : isMetricLimiting("FatMax");
+    : (isMetricLimiting("FatMax") || isMetricFromPrimaryLimiter("FatMax", ['metabolic']));
   
   const shouldActivateZ2 = (tteIsLimiting || vlamaxIsLimiting || fatmaxIsLimiting) 
     && availability.level !== 'critical' && !context.isRaceWeek;
