@@ -2729,8 +2729,8 @@ function buildCycleIntelligenceHTML(payload: ExportPayload): string {
   const metricsRows = result.metrics
     .filter(m => m.available)
     .map(m => {
-      const changeColor = m.evolution === "improved" ? "#16a34a" : m.evolution === "regressed" ? "#dc2626" : "#64748b";
-      const changeIcon = m.evolution === "improved" ? "↑" : m.evolution === "regressed" ? "↓" : "→";
+      const changeColor = m.evolution === "positive" ? "#16a34a" : m.evolution === "negative" ? "#dc2626" : "#64748b";
+      const changeIcon = m.evolution === "positive" ? "↑" : m.evolution === "negative" ? "↓" : "→";
       const isVlamax = m.label.toLowerCase().includes("vlamax");
       const prevVal = m.previousValue != null ? (isVlamax ? m.previousValue.toFixed(2) : m.previousValue.toFixed(1)) : "—";
       const currVal = m.currentValue != null ? (isVlamax ? m.currentValue.toFixed(2) : m.currentValue.toFixed(1)) : "—";
