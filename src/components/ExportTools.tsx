@@ -1318,13 +1318,23 @@ function buildExportPayload(
     : ["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectifForLimiter) ? "tri"
     : "bike";
 
+  // ✅ Compute CP/W' for unified limiter and report
+  const cpResultForPayload = analyzeCriticalPower({
+    pmax_5s: effectiveSnapshot?.pmax_5s ?? null,
+    p30s_w: effectiveSnapshot?.p30s_w ?? null,
+    p60s_w: effectiveSnapshot?.p60s_w ?? null,
+    map5min_w: effectiveSnapshot?.map5min_w ?? null,
+    ftp: effectiveRefs.ftp ?? null,
+    weight_kg: effectiveRefs.weightKg ?? null,
+  });
+
   // ✅ Compute Unified Limiter — IDENTIQUE au dashboard (Index.tsx)
   const unifiedLimiter = detectUnifiedLimiter({
     vo2max: effectiveSnapshot?.vo2max ?? null,
     ftpKg: ftpKg,
     vlamax: vlamax.value,
-    wprimeKj: null,
-    cpDataQuality: null,
+    wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
+    cpDataQuality: cpResultForPayload ? cpResultForPayload.dataQuality : null,
     tte: tte.tte_min,
     fatmax: null,
     economyScore: effectiveSnapshot?.run_economy_score ?? null,
