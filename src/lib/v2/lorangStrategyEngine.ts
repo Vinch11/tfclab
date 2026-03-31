@@ -631,7 +631,7 @@ function activateLevers(
   // ═══════════════════════════════════════════════════════════════════════════
   const ftpKgIsLimiting = useFallback 
     ? (primaryLimiter === 'motor' && ftpKgLow)
-    : (isMetricLimiting("FTP/kg") || isMetricLimiting("VMA") || ftpKgLow);
+    : (isMetricLimiting("FTP/kg") || isMetricLimiting("VMA") || isMetricFromPrimaryLimiter("FTP/kg", ['motor']) || isMetricFromPrimaryLimiter("VMA", ['motor']) || ftpKgLow);
   
   if (ftpKgIsLimiting && availability.level !== 'critical' && !context.isRaceWeek) {
     const ftpGap = getMetricGap("FTP/kg") || getMetricGap("VMA");
