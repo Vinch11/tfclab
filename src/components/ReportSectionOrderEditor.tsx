@@ -88,14 +88,8 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   profilMetabolique: "Analyse",
   vlamaxZoneConfidence: "Analyse",
   indicateurs: "Analyse",
-  potentielPhysiologique: "Performance",
-  disponibiliteTFCL: "Performance",
-  raceSimulation: "Performance",
   pacingEnvelope: "Performance",
-  longDistancePacing: "Performance",
-  doubleBoucleCAP: "Running",
   potentielPhysiologiqueRunning: "Running",
-  pacingEnvelopeRunning: "Running",
   injuryRisk: "Performance",
   nutritionV2: "Nutrition",
   fatmaxTFCL: "Nutrition",
@@ -120,6 +114,8 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, string> = {
   facteursLimitants: "Analyse",
   leviersAction: "Entraînement",
   cpWprimeWbal: "Performance",
+  lactateCorrespondence: "Analyse",
+  cycleIntelligence: "Analyse",
 };
 
 // Couleurs par catégorie
@@ -145,14 +141,8 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "profilMetabolique",
   "vlamaxZoneConfidence",
   "indicateurs",
-  "potentielPhysiologique",
-  "disponibiliteTFCL",
-  "raceSimulation",
   "pacingEnvelope",
-  "longDistancePacing",
-  "doubleBoucleCAP",
   "potentielPhysiologiqueRunning",
-  "pacingEnvelopeRunning",
   "injuryRisk",
   "nutritionV2",
   "fatmaxTFCL",
@@ -175,6 +165,8 @@ export const DEFAULT_SECTION_ORDER: (keyof ReportSections)[] = [
   "substrateCurve",
   "performancePrediction",
   "cpWprimeWbal",
+  "lactateCorrespondence",
+  "cycleIntelligence",
 ];
 
 // Visibilité par défaut (toutes visibles) - Also exported as DEFAULT_REPORT_SECTIONS
@@ -184,14 +176,8 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   profilMetabolique: true,
   vlamaxZoneConfidence: true,
   indicateurs: true,
-  potentielPhysiologique: true,
-  disponibiliteTFCL: true,
-  raceSimulation: true,
   pacingEnvelope: true,
-  longDistancePacing: true,
-  doubleBoucleCAP: true,
   potentielPhysiologiqueRunning: true,
-  pacingEnvelopeRunning: true,
   injuryRisk: true,
   nutritionV2: true,
   fatmaxTFCL: true,
@@ -216,6 +202,8 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   facteursLimitants: true,
   leviersAction: true,
   cpWprimeWbal: true,
+  lactateCorrespondence: true,
+  cycleIntelligence: true,
 };
 
 // Export alias for backward compatibility
