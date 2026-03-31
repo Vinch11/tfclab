@@ -78,6 +78,8 @@ import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
 import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
+import { computeLactateThresholdsTFCL, TFCL_LACTATE_TABLE } from "@/lib/thresholds/computeLactateThresholdsTFCL";
+import { computeCycleIntelligence, snapshotToEngineData } from "@/lib/v2/cycleIntelligence";
 
 // =============================================
 // TYPES
@@ -102,14 +104,8 @@ export interface ReportSections {
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   vlamaxZoneConfidence: boolean; // ⚡ VLamax = Zone × Confiance (graphique signature)
   indicateurs: boolean;     // Indicateurs Clés
-  potentielPhysiologique: boolean;   // Potentiel Physiologique
-  disponibiliteTFCL: boolean; // Disponibilité TFCL™
-  raceSimulation: boolean;  // Simulation de Course TFCL™
   pacingEnvelope: boolean;  // Pacing Envelope™ - Discipline Métabolique
-  longDistancePacing: boolean; // Long Distance Pacing Discipline
-  doubleBoucleCAP: boolean; // Double Boucle CAP (Running)
   potentielPhysiologiqueRunning: boolean; // Potentiel Physiologique CAP (Running)
-  pacingEnvelopeRunning: boolean; // Pacing Envelope™ CAP (Running)
   injuryRisk: boolean;      // Risque de Blessure CAP
   nutritionV2: boolean;     // Nutrition Prédictive V2
   fatmaxTFCL: boolean;      // FatMax TFCL
@@ -134,6 +130,8 @@ export interface ReportSections {
   facteursLimitants: boolean; // Facteurs Limitants (moteur unifié)
   leviersAction: boolean;    // Leviers d'Action (moteur unifié)
   cpWprimeWbal: boolean;     // CP / W' & Repos Optimaux W'bal
+  lactateCorrespondence: boolean; // Correspondances Lactiques TFCL
+  cycleIntelligence: boolean; // Cycle Intelligence™
 }
 
 interface ExportOptions {
@@ -2598,6 +2596,201 @@ function buildCpWprimeWbalHTML(payload: ExportPayload): string {
 }
 
 // =============================================
+// LACTATE CORRESPONDENCE TFCL — HTML REPORT SECTION
+// =============================================
+
+function buildLactateCorrespondenceHTML(payload: ExportPayload): string {
+  const ftp = payload.effectiveRefs.ftp ?? null;
+  const sport = payload.athlete.goal || "IM";
+  const tte = payload.tte;
+  const vlamax = payload.vlamax;
+
+  const thresholds = computeLactateThresholdsTFCL({
+    ftp,
+    sport,
+    tteValue: tte.tte_min,
+    tteSource: tte.source as any,
+    vlamaxValue: vlamax.value,
+    vlamaxSource: vlamax.source as any,
+  });
+
+  if (thresholds.sport === "unknown" || (!thresholds.lt1.watts && !thresholds.lt1.pct_of_ftp && thresholds.lt1.confidence === 0)) {
+    return `
+      <section id="lactate-correspondence" class="section pagebreakAvoid">
+        <h2>🧪 Correspondances Lactiques TFCL</h2>
+        <div class="card" style="padding:16px;">
+          <p class="muted">Données insuffisantes pour estimer LT1/LT2. Renseignez FTP et sport dans le snapshot.</p>
+        </div>
+      </section>
+    `;
+  }
+
+  const confColor = (c: number) => c >= 0.75 ? "#16a34a" : c >= 0.55 ? "#f59e0b" : "#dc2626";
+
+  const lt1Watts = thresholds.lt1.watts ? `${thresholds.lt1.watts}W` : "—";
+  const lt2Watts = thresholds.lt2.watts ? `${thresholds.lt2.watts}W` : "—";
+  const lt1Pct = thresholds.lt1.pct_of_ftp ? `${Math.round(thresholds.lt1.pct_of_ftp * 100)}% FTP` : "";
+  const lt2Pct = thresholds.lt2.pct_of_ftp ? `${Math.round(thresholds.lt2.pct_of_ftp * 100)}% FTP` : "";
+
+  const correspondenceRows = TFCL_LACTATE_TABLE.map(row => `
+    <tr>
+      <td style="padding:6px 8px;font-weight:500;">${htmlEscape(row.element)}</td>
+      <td style="padding:6px 8px;font-family:monospace;color:#2563eb;">${htmlEscape(row.correspondence)}</td>
+      <td style="padding:6px 8px;font-size:10px;color:#64748b;">${htmlEscape(row.dataSource)}</td>
+      <td style="padding:6px 8px;font-size:10px;color:#64748b;">${htmlEscape(row.staffWhy)}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <section id="lactate-correspondence" class="section pagebreakAvoid">
+      <h2>🧪 Correspondances Lactiques TFCL</h2>
+      
+      <div class="card" style="padding:16px;">
+        <!-- LT1 / LT2 Summary -->
+        <div class="grid2" style="gap:12px;margin-bottom:16px;">
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#16a34a;font-weight:600;">LT1 — Seuil Aérobie</div>
+            <div style="font-size:22px;font-weight:700;font-family:monospace;color:#16a34a;">${lt1Watts}</div>
+            ${lt1Pct ? `<div style="font-size:10px;color:#64748b;">${lt1Pct}</div>` : ""}
+            <div style="font-size:10px;margin-top:4px;">
+              <span style="color:${confColor(thresholds.lt1.confidence)};">Confiance: ${Math.round(thresholds.lt1.confidence * 100)}%</span>
+            </div>
+          </div>
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#dc2626;font-weight:600;">LT2 — Seuil Anaérobie (MLSS)</div>
+            <div style="font-size:22px;font-weight:700;font-family:monospace;color:#dc2626;">${lt2Watts}</div>
+            ${lt2Pct ? `<div style="font-size:10px;color:#64748b;">${lt2Pct}</div>` : ""}
+            <div style="font-size:10px;margin-top:4px;">
+              <span style="color:${confColor(thresholds.lt2.confidence)};">Confiance: ${Math.round(thresholds.lt2.confidence * 100)}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Correspondence Table -->
+        <div style="margin-top:12px;">
+          <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;">Table de Correspondance TFCL ↔ Seuils Lactiques</div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <thead>
+              <tr style="border-bottom:2px solid #e2e8f0;">
+                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Élément TFCL</th>
+                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">↔ Seuil</th>
+                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Source</th>
+                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Justification</th>
+              </tr>
+            </thead>
+            <tbody>${correspondenceRows}</tbody>
+          </table>
+        </div>
+
+        ${thresholds.notes.length > 0 ? `
+        <div style="margin-top:12px;font-size:10px;color:#94a3b8;font-style:italic;">
+          ${thresholds.notes.map(n => htmlEscape(n)).join("<br/>")}
+        </div>
+        ` : ""}
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
+// CYCLE INTELLIGENCE™ — HTML REPORT SECTION
+// =============================================
+
+function buildCycleIntelligenceHTML(payload: ExportPayload): string {
+  const snapshots = payload.snapshotHistory;
+  
+  if (snapshots.length < 2) {
+    return `
+      <section id="cycle-intelligence" class="section pagebreakAvoid">
+        <h2>🔄 Cycle Intelligence™</h2>
+        <div class="card" style="padding:16px;">
+          <p class="muted">Minimum 2 snapshots requis pour l'analyse d'évolution. Actuellement : ${snapshots.length} snapshot(s).</p>
+        </div>
+      </section>
+    `;
+  }
+
+  // Sort by date and take the last 2
+  const sorted = [...snapshots].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const prev = sorted[sorted.length - 2];
+  const curr = sorted[sorted.length - 1];
+
+  const prevData = snapshotToEngineData(prev as unknown as Record<string, unknown>);
+  const currData = snapshotToEngineData(curr as unknown as Record<string, unknown>);
+
+  const result = computeCycleIntelligence({
+    previousSnapshot: prevData,
+    currentSnapshot: currData,
+    objectif: payload.athlete.goal || "IM",
+  });
+
+  const scoreColor = result.adaptationScore >= 70 ? "#16a34a" : result.adaptationScore >= 55 ? "#3b82f6" : result.adaptationScore >= 40 ? "#f59e0b" : "#dc2626";
+
+  const metricsRows = result.metrics
+    .filter(m => m.available)
+    .map(m => {
+      const changeColor = m.direction === "improved" ? "#16a34a" : m.direction === "regressed" ? "#dc2626" : "#64748b";
+      const changeIcon = m.direction === "improved" ? "↑" : m.direction === "regressed" ? "↓" : "→";
+      const prevVal = m.previousValue != null ? (m.metric === "VLamax" ? m.previousValue.toFixed(2) : m.previousValue.toFixed(1)) : "—";
+      const currVal = m.currentValue != null ? (m.metric === "VLamax" ? m.currentValue.toFixed(2) : m.currentValue.toFixed(1)) : "—";
+      return `<tr>
+        <td style="padding:6px 8px;font-weight:500;">${htmlEscape(m.metric)}</td>
+        <td style="padding:6px 8px;font-family:monospace;">${prevVal}</td>
+        <td style="padding:6px 8px;font-family:monospace;">${currVal}</td>
+        <td style="padding:6px 8px;font-family:monospace;color:${changeColor};">${changeIcon} ${m.changePct != null ? (m.changePct > 0 ? '+' : '') + m.changePct.toFixed(1) + '%' : '—'}</td>
+        <td style="padding:6px 8px;font-size:10px;color:${changeColor};">${m.significant ? '✓ Significatif' : 'Non significatif'}</td>
+      </tr>`;
+    }).join("");
+
+  return `
+    <section id="cycle-intelligence" class="section pagebreakAvoid">
+      <h2>🔄 Cycle Intelligence™</h2>
+      
+      <div class="card" style="padding:16px;">
+        <!-- Score global -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+          <div style="width:64px;height:64px;border-radius:50%;border:4px solid ${scoreColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:20px;font-weight:700;color:${scoreColor};font-family:monospace;">${result.adaptationScore}</span>
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:700;">${result.verdictEmoji} ${htmlEscape(result.verdictLabel)}</div>
+            <div style="font-size:11px;color:#64748b;">
+              ${htmlEscape(dtStr(prev.date))} → ${htmlEscape(dtStr(curr.date))} (${result.daysBetween} jours)
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics table -->
+        ${metricsRows ? `
+        <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;">
+          <thead>
+            <tr style="border-bottom:2px solid #e2e8f0;">
+              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Métrique</th>
+              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Avant</th>
+              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Après</th>
+              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Δ</th>
+              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Statut</th>
+            </tr>
+          </thead>
+          <tbody>${metricsRows}</tbody>
+        </table>
+        ` : ""}
+
+        <!-- Recommendation -->
+        <div style="background:#f8fafc;border-radius:8px;padding:12px;margin-top:8px;">
+          <div style="font-size:12px;font-weight:600;margin-bottom:4px;">💡 ${htmlEscape(result.recommendationLabel)}</div>
+          <div style="font-size:11px;color:#64748b;">${htmlEscape(result.recommendationDetail)}</div>
+        </div>
+
+        <div style="margin-top:12px;font-size:10px;color:#94a3b8;font-style:italic;">
+          ${htmlEscape(result.staffNote)}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
 
 function buildRoadmapHTML(payload: ExportPayload): string {
   // ✅ Réutilise le limiter unifié du payload (source unique de vérité)
@@ -3267,14 +3460,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       profilMetabolique: "profil-metabolique",
       vlamaxZoneConfidence: "vlamax-zone-confidence",
       indicateurs: "indicateurs",
-      potentielPhysiologique: "readiness",
-      disponibiliteTFCL: "disponibilite-tfcl",
-      raceSimulation: "race-simulation",
       pacingEnvelope: "pacing-envelope",
-      longDistancePacing: "long-distance-pacing",
-      doubleBoucleCAP: "double-boucle-cap",
       potentielPhysiologiqueRunning: "potentiel-running",
-      pacingEnvelopeRunning: "pacing-envelope-running",
       injuryRisk: "injury-risk",
       nutritionV2: "nutrition-v2",
       fatmaxTFCL: "fatmax-tfcl",
@@ -3299,6 +3486,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       facteursLimitants: "facteurs-limitants",
       leviersAction: "leviers-action",
       cpWprimeWbal: "cp-wprime-wbal",
+      lactateCorrespondence: "lactate-correspondence",
+      cycleIntelligence: "cycle-intelligence",
     };
     
     const tocRows = visibleSections.map((key, i) => {
@@ -6964,14 +7153,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     profilMetabolique: profilMetaboliqueHTML,
     vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
     indicateurs: indicateursHTML,
-    potentielPhysiologique: potentielPhysiologiqueHTML,
-    disponibiliteTFCL: disponibiliteTFCLHTML,
-    raceSimulation: buildRaceSimulationHTML(payload, 'pro'),
     pacingEnvelope: buildPacingEnvelopeHTML(payload),
-    longDistancePacing: buildLongDistancePacingHTML(payload),
-    doubleBoucleCAP: buildDoubleBoucleCAPHTML(payload),
     potentielPhysiologiqueRunning: buildPotentielPhysiologiqueRunningHTML(payload),
-    pacingEnvelopeRunning: buildPacingEnvelopeRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
     fatmaxTFCL: buildFatMaxTFCLHTML(payload),
@@ -6996,6 +7179,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     facteursLimitants: buildFacteursLimitantsHTML(payload),
     leviersAction: buildLeviersActionHTML(payload),
     cpWprimeWbal: buildCpWprimeWbalHTML(payload),
+    lactateCorrespondence: buildLactateCorrespondenceHTML(payload),
+    cycleIntelligence: buildCycleIntelligenceHTML(payload),
   };
   
   // Récupérer l'ordre personnalisé des sections
@@ -7480,14 +7665,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       profilMetabolique: false,
       vlamaxZoneConfidence: false,
       indicateurs: false,
-      potentielPhysiologique: false,
-      disponibiliteTFCL: false,
-      raceSimulation: false,
       pacingEnvelope: false,
-      longDistancePacing: false,
-      doubleBoucleCAP: false,
       potentielPhysiologiqueRunning: false,
-      pacingEnvelopeRunning: false,
       injuryRisk: false,
       nutritionV2: false,
       fatmaxTFCL: false,
@@ -7512,6 +7691,9 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       facteursLimitants: false,
       leviersAction: false,
       cpWprimeWbal: false,
+      lactateCorrespondence: false,
+      cycleIntelligence: false,
+    };
     };
     setSections(allFalse);
   };
