@@ -7694,7 +7694,6 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       lactateCorrespondence: false,
       cycleIntelligence: false,
     };
-    };
     setSections(allFalse);
   };
 
