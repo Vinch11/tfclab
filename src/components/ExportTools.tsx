@@ -7468,14 +7468,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       profilMetabolique: false,
       vlamaxZoneConfidence: false,
       indicateurs: false,
-      potentielPhysiologique: false,
-      disponibiliteTFCL: false,
-      raceSimulation: false,
       pacingEnvelope: false,
-      longDistancePacing: false,
-      doubleBoucleCAP: false,
       potentielPhysiologiqueRunning: false,
-      pacingEnvelopeRunning: false,
       injuryRisk: false,
       nutritionV2: false,
       fatmaxTFCL: false,
@@ -7500,6 +7494,9 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       facteursLimitants: false,
       leviersAction: false,
       cpWprimeWbal: false,
+      lactateCorrespondence: false,
+      cycleIntelligence: false,
+    };
     };
     setSections(allFalse);
   };
