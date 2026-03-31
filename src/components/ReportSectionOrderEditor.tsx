@@ -219,6 +219,7 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
   performancePrediction: true,
   facteursLimitants: true,
   leviersAction: true,
+  cpWprimeWbal: true,
 };
 
 // Export alias for backward compatibility

@@ -122,6 +122,7 @@ const SECTION_CATEGORIES: Record<keyof ReportSections, { label: string; color: s
   performancePrediction: { label: "Performance", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
   facteursLimitants: { label: "Analyse", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
   leviersAction: { label: "Entraînement", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
+  cpWprimeWbal: { label: "Performance", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
 };
 
 // Descriptions courtes pour l'aperçu
