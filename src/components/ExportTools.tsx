@@ -7652,7 +7652,6 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       const logoBase64 = await imageToBase64(logoUrl);
       
       const exportOptions: ExportOptions = {
-        includeWahooSuggestions: sections.wahoo,
         sections
       };
       
