@@ -144,7 +144,6 @@ export interface ReportSections {
 }
 
 interface ExportOptions {
-  includeWahooSuggestions: boolean;
   sections: ReportSections;
 }
 
