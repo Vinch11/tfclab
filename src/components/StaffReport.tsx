@@ -71,7 +71,7 @@ import {
   LONG_DISTANCE_PHILOSOPHY,
   type LongDistanceEnvelopeResult 
 } from "@/lib/v2/pacingEnvelopeLongDistance";
-import { computeFatMaxTFCL } from "@/lib/v2/fatmaxTFCL";
+// computeFatMaxTFCL already imported at top
 import type { DbSnapshot } from "@/hooks/useCloudData";
 import { DoubleBoucleCAPSection } from "@/components/StaffReportDoubleBoucleCAP";
 import type { RunningPhysioProfile, RunningWeeklyDecision } from "@/lib/v2/runningDoubleLoop";
