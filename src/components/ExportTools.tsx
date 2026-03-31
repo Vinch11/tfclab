@@ -2729,16 +2729,18 @@ function buildCycleIntelligenceHTML(payload: ExportPayload): string {
   const metricsRows = result.metrics
     .filter(m => m.available)
     .map(m => {
-      const changeColor = m.direction === "improved" ? "#16a34a" : m.direction === "regressed" ? "#dc2626" : "#64748b";
-      const changeIcon = m.direction === "improved" ? "↑" : m.direction === "regressed" ? "↓" : "→";
-      const prevVal = m.previousValue != null ? (m.metric === "VLamax" ? m.previousValue.toFixed(2) : m.previousValue.toFixed(1)) : "—";
-      const currVal = m.currentValue != null ? (m.metric === "VLamax" ? m.currentValue.toFixed(2) : m.currentValue.toFixed(1)) : "—";
+      const changeColor = m.evolution === "improved" ? "#16a34a" : m.evolution === "regressed" ? "#dc2626" : "#64748b";
+      const changeIcon = m.evolution === "improved" ? "↑" : m.evolution === "regressed" ? "↓" : "→";
+      const isVlamax = m.label.toLowerCase().includes("vlamax");
+      const prevVal = m.previousValue != null ? (isVlamax ? m.previousValue.toFixed(2) : m.previousValue.toFixed(1)) : "—";
+      const currVal = m.currentValue != null ? (isVlamax ? m.currentValue.toFixed(2) : m.currentValue.toFixed(1)) : "—";
+      const significant = m.deltaPct != null && Math.abs(m.deltaPct) >= m.threshold;
       return `<tr>
-        <td style="padding:6px 8px;font-weight:500;">${htmlEscape(m.metric)}</td>
+        <td style="padding:6px 8px;font-weight:500;">${htmlEscape(m.label)}</td>
         <td style="padding:6px 8px;font-family:monospace;">${prevVal}</td>
         <td style="padding:6px 8px;font-family:monospace;">${currVal}</td>
-        <td style="padding:6px 8px;font-family:monospace;color:${changeColor};">${changeIcon} ${m.changePct != null ? (m.changePct > 0 ? '+' : '') + m.changePct.toFixed(1) + '%' : '—'}</td>
-        <td style="padding:6px 8px;font-size:10px;color:${changeColor};">${m.significant ? '✓ Significatif' : 'Non significatif'}</td>
+        <td style="padding:6px 8px;font-family:monospace;color:${changeColor};">${changeIcon} ${m.deltaPct != null ? (m.deltaPct > 0 ? '+' : '') + m.deltaPct.toFixed(1) + '%' : '—'}</td>
+        <td style="padding:6px 8px;font-size:10px;color:${changeColor};">${significant ? '✓ Significatif' : 'Non significatif'}</td>
       </tr>`;
     }).join("");
 
