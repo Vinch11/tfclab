@@ -443,10 +443,20 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     const unified = input.unifiedLimiterResult;
     const mappedLimiter = mapUnifiedToLorangLimiter(unified.primaryLimiter);
     
-    // Construire les raisons depuis le gap analysis
-    const reasons = unified.gapAnalysis
+    // Construire les raisons depuis le gap analysis (inclure aussi les gaps "attention" s'il n'y a pas de "limiting")
+    const limitingGapsForReasons = unified.gapAnalysis
       .filter(g => g.status === "limiting")
-      .sort((a, b) => b.weightedImpact - a.weightedImpact)
+      .sort((a, b) => b.weightedImpact - a.weightedImpact);
+    
+    // ✅ FIX: Si aucun gap "limiting" mais un primaryLimiter est identifié,
+    // inclure les gaps "attention" avec un écart significatif
+    const reasonGaps = limitingGapsForReasons.length > 0 
+      ? limitingGapsForReasons 
+      : unified.gapAnalysis
+          .filter(g => g.gapPercent !== 0 && Math.abs(g.gapPercent) >= 5)
+          .sort((a, b) => b.weightedImpact - a.weightedImpact);
+    
+    const reasons = reasonGaps
       .slice(0, 3)
       .map(g => {
         if (g.metric === "VLamax") {
@@ -456,17 +466,21 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
       });
     
     // Calculer la confiance à partir de l'écart entre les 2 premiers limiteurs
-    const limitingGaps = unified.gapAnalysis
-      .filter(g => g.status === "limiting")
-      .sort((a, b) => b.weightedImpact - a.weightedImpact);
-    const gapClarity = limitingGaps.length > 1 
-      ? Math.abs(limitingGaps[0].weightedImpact - limitingGaps[1].weightedImpact) 
-      : 50;
+    const gapClarity = limitingGapsForReasons.length > 1 
+      ? Math.abs(limitingGapsForReasons[0].weightedImpact - limitingGapsForReasons[1].weightedImpact) 
+      : limitingGapsForReasons.length === 1 ? 50 
+      : 30; // Confiance réduite si aucun gap "limiting"
     const confidence: ConfidenceLevel = gapClarity > 20 ? 'high' : gapClarity > 10 ? 'moderate' : 'low';
+    
+    // ✅ FIX: Fallback raison basée sur le limiteur identifié (pas "profil équilibré" quand il y a un limiteur)
+    const limiterDef = LIMITER_DEFINITIONS[mappedLimiter];
+    const fallbackReason = mappedLimiter !== 'motor' || unified.primaryLimiter !== 'none'
+      ? limiterDef.description
+      : "Profil équilibré — pas de limiteur majeur";
     
     return {
       limiter: mappedLimiter,
-      reasons: reasons.length > 0 ? reasons : ["Profil équilibré — pas de limiteur majeur"],
+      reasons: reasons.length > 0 ? reasons : [fallbackReason],
       confidence,
     };
   }
