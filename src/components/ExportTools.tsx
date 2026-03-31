@@ -76,6 +76,8 @@ import {
 import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 // ✅ NEW: Coaching Compass (5 axes)
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
+// ✅ NEW: Import CP/W' model
+import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
 
 // =============================================
 // TYPES
