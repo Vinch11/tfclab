@@ -167,15 +167,7 @@ interface ExportPayload {
   vlamax: VLamaxEffectif;
   tte: TTEEffectif;
   potentielPhysiologique: PotentielPhysiologiqueEffectif;
-  lorang: {
-    priorite: PrioriteType;
-    prioriteLabel: string;
-    alertes: string[];
-    recommandations: string[];
-    seancesCodes: string[];
-    seancesDetails: Array<{ code: string; nom: string; objectif: string }>;
-  };
-  // ✅ NEW: Unified Limiter Result (source de vérité)
+  // Unified Limiter Result (source de vérité)
   unifiedLimiter: UnifiedLimiterResult;
   tests: DbTest[];
   snapshotHistory: DbSnapshot[];
@@ -194,16 +186,10 @@ interface ExportPayload {
     factors: { vlamaxContribution: number; tteContribution: number; chargeContribution: number };
     staffAnalysis: string;
   } | null;
-  // ✅ NEW: CRR et Compass Scores
+  // CRR et Compass Scores
   crr: ChargeRecenteReference;
   chargeScore: ChargeScore;
   compassScores: CompassScores;
-  // ✅ NEW: Wahoo SYSTM Suggestions
-  wahooSuggestions: {
-    suggestions: WahooSuggestion[];
-    diagnosticSummary: string;
-    hasRecommendations: boolean;
-  };
   // ✅ NEW: Age Adjustment Index
   ageAdjustment: {
     age: number | null;
