@@ -7,79 +7,79 @@
 @layer base {
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     THEME: DARK — Refined deep navy, soft teal accents, editorial clarity
+     THEME: DARK — Electric cyan + amber gold, inspired by TFC Lab logo
      DEFAULT THEME
      ═══════════════════════════════════════════════════════════════════════════ */
   :root,
   .dark {
-    --background: 225 30% 7%;
-    --foreground: 220 15% 93%;
+    --background: 220 40% 5%;
+    --foreground: 210 20% 93%;
 
-    --card: 225 25% 10%;
-    --card-foreground: 220 15% 93%;
+    --card: 220 35% 8%;
+    --card-foreground: 210 20% 93%;
 
-    --popover: 225 25% 10%;
-    --popover-foreground: 220 15% 93%;
+    --popover: 220 35% 8%;
+    --popover-foreground: 210 20% 93%;
 
-    --primary: 175 55% 48%;
-    --primary-foreground: 225 30% 7%;
+    --primary: 192 80% 50%;
+    --primary-foreground: 220 40% 5%;
 
-    --secondary: 225 20% 16%;
-    --secondary-foreground: 220 15% 88%;
+    --secondary: 220 25% 14%;
+    --secondary-foreground: 210 20% 88%;
 
-    --muted: 225 18% 14%;
-    --muted-foreground: 220 12% 52%;
+    --muted: 220 22% 12%;
+    --muted-foreground: 215 15% 50%;
 
-    --accent: 28 70% 52%;
-    --accent-foreground: 225 30% 7%;
+    --accent: 32 85% 52%;
+    --accent-foreground: 220 40% 5%;
 
-    --destructive: 0 55% 50%;
-    --destructive-foreground: 220 15% 95%;
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 210 20% 95%;
 
-    --success: 160 50% 42%;
-    --success-foreground: 220 15% 95%;
+    --success: 155 55% 42%;
+    --success-foreground: 210 20% 95%;
 
-    --warning: 42 65% 50%;
-    --warning-foreground: 225 30% 7%;
+    --warning: 42 70% 52%;
+    --warning-foreground: 220 40% 5%;
 
-    --border: 225 18% 18%;
-    --input: 225 18% 16%;
-    --ring: 175 55% 48%;
+    --border: 220 22% 16%;
+    --input: 220 22% 14%;
+    --ring: 192 80% 50%;
 
     --radius: 0.625rem;
 
-    /* Chart colors — muted, editorial palette */
-    --chart-1: 175 55% 48%;
-    --chart-2: 160 50% 42%;
-    --chart-3: 28 70% 55%;
-    --chart-4: 270 40% 58%;
-    --chart-5: 345 45% 55%;
-    --chart-6: 50 60% 50%;
+    /* Chart colors — vibrant, logo-matched */
+    --chart-1: 192 80% 50%;
+    --chart-2: 155 55% 42%;
+    --chart-3: 32 85% 55%;
+    --chart-4: 270 45% 58%;
+    --chart-5: 345 50% 55%;
+    --chart-6: 50 65% 52%;
 
-    /* Refined gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(175 55% 48%) 0%, hsl(190 50% 42%) 100%);
-    --gradient-card: linear-gradient(160deg, hsl(225 25% 11%) 0%, hsl(225 25% 9%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(28 70% 52%) 0%, hsl(18 65% 46%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(225 25% 10%) 0%, hsl(225 30% 5%) 100%);
+    /* Gradients — electric cyan to deep blue */
+    --gradient-primary: linear-gradient(135deg, hsl(192 80% 50%) 0%, hsl(210 70% 40%) 100%);
+    --gradient-card: linear-gradient(160deg, hsl(220 35% 9%) 0%, hsl(220 35% 7%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(32 85% 52%) 0%, hsl(22 80% 46%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(220 35% 8%) 0%, hsl(220 40% 4%) 100%);
 
-    /* Shadows — subtle, layered */
-    --shadow-glow: 0 0 30px hsl(175 55% 48% / 0.1);
-    --shadow-card: 0 1px 3px hsl(225 30% 4% / 0.3), 0 4px 16px hsl(225 30% 4% / 0.2);
-    --shadow-elevated: 0 2px 6px hsl(225 30% 4% / 0.3), 0 12px 32px hsl(225 30% 4% / 0.4);
+    /* Shadows — cyan glow */
+    --shadow-glow: 0 0 30px hsl(192 80% 50% / 0.12);
+    --shadow-card: 0 1px 3px hsl(220 40% 3% / 0.4), 0 4px 16px hsl(220 40% 3% / 0.25);
+    --shadow-elevated: 0 2px 6px hsl(220 40% 3% / 0.4), 0 12px 32px hsl(220 40% 3% / 0.5);
 
     /* Typography */
     --font-heading: 'DM Sans', sans-serif;
     --font-body: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
-    --sidebar-background: 225 30% 7%;
-    --sidebar-foreground: 220 15% 88%;
-    --sidebar-primary: 175 55% 48%;
+    --sidebar-background: 220 40% 5%;
+    --sidebar-foreground: 210 20% 88%;
+    --sidebar-primary: 192 80% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 20% 14%;
-    --sidebar-accent-foreground: 220 15% 88%;
-    --sidebar-border: 225 18% 18%;
-    --sidebar-ring: 175 55% 48%;
+    --sidebar-accent: 220 25% 12%;
+    --sidebar-accent-foreground: 210 20% 88%;
+    --sidebar-border: 220 22% 16%;
+    --sidebar-ring: 192 80% 50%;
   }
 
 
