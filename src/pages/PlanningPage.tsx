@@ -11,6 +11,7 @@ import {
   Sparkles,
   BookOpen,
   Library,
+  Archive,
   ArrowRight,
   CalendarDays,
   RefreshCw,
