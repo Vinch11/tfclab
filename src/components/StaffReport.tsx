@@ -1,7 +1,13 @@
 import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
+import { computeFatMaxTFCL, type FatMaxTFCLResult, type FatMaxObjectif, FATMAX_DEFINITIONS } from "@/lib/v2/fatmaxTFCL";
+import { computeAdaptationPrediction, type AdaptationPredictorResult, type AdaptationScenario, getImpactScoreColor, getImpactScoreBgColor } from "@/lib/v2/adaptationPredictor";
+import { computeRunningEconomyV2, type RunningEconomyV2 } from "@/lib/v2/runningEconomyV2";
+import { getFtpKgLevelTargets } from "@/lib/scoreEnvelope";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Composant UI
+ * Synthèse d'une page, lisible en < 2 minutes
+ */
  * Synthèse d'une page, lisible en < 2 minutes
  */
 
