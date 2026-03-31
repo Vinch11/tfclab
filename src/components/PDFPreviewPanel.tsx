@@ -81,6 +81,7 @@ const SECTION_ICONS: Record<keyof ReportSections, React.ComponentType<{ classNam
   performancePrediction: Target,
   facteursLimitants: AlertTriangle,
   leviersAction: Settings,
+  cpWprimeWbal: Zap,
 };
 
 // Catégories avec couleurs
