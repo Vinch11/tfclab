@@ -2738,10 +2738,10 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 // et explicitement non dogmatique
 // =============================================
 
-function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { includeWahooSuggestions: true, sections: DEFAULT_REPORT_SECTIONS }, calibrationEvidences: CalibrationEvidence[] = []): string {
+function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { sections: DEFAULT_REPORT_SECTIONS }, calibrationEvidences: CalibrationEvidence[] = []): string {
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
-    vlamax, tte, potentielPhysiologique, lorang,
+    vlamax, tte, potentielPhysiologique,
     tests, snapshotHistory, checkins, completude, reportDate,
     nutritionEstimate, capInjuryRisk, ageAdjustment, ambition
   } = payload;
