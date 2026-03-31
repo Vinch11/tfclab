@@ -43,16 +43,7 @@ import { buildChartePageHTML } from "@/data/charteInterpretation";
 // ✅ NEW: Import Compass Scoring et CRR
 import { computeCRR, computeChargeScore, getCRRTargets, type ChargeRecenteReference, type ChargeScore } from "@/lib/chargeRecenteReference";
 import { computeCompassScores, type CompassScores, type CompassAxisScore } from "@/lib/compassScoring";
-// ✅ NEW: Import Wahoo Suggestion Engine
-import { 
-  suggestWahooWorkouts, 
-  formatSuggestionsForPDF,
-  type SuggestionEngineContext,
-  type SuggestionEngineOutput,
-  type WahooSuggestion 
-} from "@/lib/wahoo/wahooSuggestionEngine";
 import { computeCAPInjuryRisk as computeCAPInjuryRiskEngine } from "@/lib/capInjuryRisk";
-import { getTemplateById, PROGRAM_TEMPLATES } from "@/data/programTemplates";
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
 // ✅ NEW: Import FatMax TFCL et Nutrition V2
 import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
