@@ -2486,7 +2486,7 @@ function buildCpWprimeWbalHTML(payload: ExportPayload): string {
 
   // Data points badges
   const pointsBadges = cpResult.points.map(pt => {
-    const isOverlay = pt.isOverlay;
+    const isOverlay = 'regressionPoint' in pt ? !(pt as any).regressionPoint : false;
     const style = isOverlay
       ? "background:#f1f5f9;color:#64748b;border:1px dashed #94a3b8;"
       : "background:#eff6ff;color:#2563eb;border:1px solid #93c5fd;";
