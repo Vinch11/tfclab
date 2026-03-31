@@ -32,6 +32,7 @@ import { computeDecisionTFCL, type PotentielV2Result } from "@/lib/v2/potentielT
 import { getTargetsForAmbition, normalizeObjective, getVLamaxRange } from "@/lib/physiologicalTargets";
 import type { CompassScores, CompassAxisScore } from "@/lib/compassScoring";
 import { computeRunInjuryRisk, type RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
+import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ORCHESTRATEUR PRINCIPAL

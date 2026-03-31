@@ -1,3 +1,4 @@
+import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { type AvailabilityRun, computePotentielRun } from "@/lib/v2/potentielTypes";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════

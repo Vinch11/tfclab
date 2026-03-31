@@ -1,3 +1,4 @@
+import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Composant UI

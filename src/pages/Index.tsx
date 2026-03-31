@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { MetricCard } from "@/components/MetricCard";

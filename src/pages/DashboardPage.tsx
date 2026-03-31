@@ -1,3 +1,4 @@
+import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScoreColor, getPotentielTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
 // =============================================
 // DASHBOARD STAFF - Two For Coaching Lab
