@@ -81,9 +81,9 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
         {/* Loading indicator */}
         <div className="flex flex-col items-center gap-5 mt-2">
           <div className="flex gap-2">
-            <div className="w-3 h-3 bg-gradient-to-r from-primary to-cyan-500 rounded-full animate-bounce shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ animationDelay: "0ms" }} />
-            <div className="w-3 h-3 bg-gradient-to-r from-primary to-cyan-500 rounded-full animate-bounce shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ animationDelay: "200ms" }} />
-            <div className="w-3 h-3 bg-gradient-to-r from-primary to-cyan-500 rounded-full animate-bounce shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ animationDelay: "400ms" }} />
+            <div className="w-3 h-3 bg-gradient-to-r from-primary to-accent rounded-full animate-bounce shadow-[0_0_10px_rgba(0,180,216,0.5)]" style={{ animationDelay: "0ms" }} />
+            <div className="w-3 h-3 bg-gradient-to-r from-primary to-accent rounded-full animate-bounce shadow-[0_0_10px_rgba(0,180,216,0.5)]" style={{ animationDelay: "200ms" }} />
+            <div className="w-3 h-3 bg-gradient-to-r from-primary to-accent rounded-full animate-bounce shadow-[0_0_10px_rgba(0,180,216,0.5)]" style={{ animationDelay: "400ms" }} />
           </div>
           <p className="text-sm text-muted-foreground animate-pulse tracking-widest uppercase">
             Chargement...
