@@ -1441,38 +1441,6 @@ function buildExportPayload(
   };
   const fatigueScore = fatigueStateToScore[effectiveSnapshot?.fatigue_state || "ok"] ?? 4;
 
-  // ✅ NEW: Calculer les suggestions Wahoo SYSTM
-  // Context identique à DashboardRecommendationsCard pour cohérence
-  const wahooContext: SuggestionEngineContext = {
-    objectif,
-    sportFocus,
-    vlamaxEffectif: {
-      value: vlamax.value,
-      confidence: vlamax.confidence,
-      source: vlamax.source,
-    },
-    tteEffectif: {
-      value: tte.tte_min,
-      confidence: tte.confidence,
-      source: tte.source,
-    },
-    ftpKg, // ✅ Ajouté - manquait dans l'export
-    potentielPhysiologique: {
-      score: potentielPhysiologique.score,
-      details: potentielPhysiologique.details, // ✅ Simplifié comme dans le dashboard
-    },
-    CRR: { 
-      value: effectiveSnapshot?.tss_7d ?? null, // ✅ Cohérent avec le dashboard
-      confidence: effectiveSnapshot?.tss_7d ? 0.8 : 0.3,
-    },
-    injuryRiskRun,
-    fatigueScore, // ✅ Ajouté - manquait dans l'export
-    forceDevelopmentMode: effectiveSnapshot?.force_development_mode ?? false,
-    lowCRRJustification: effectiveSnapshot?.low_crr_justification as any,
-  };
-  
-  const wahooOutput = suggestWahooWorkouts(wahooContext);
-  
   return {
     athlete: {
       id: athlete.id,
@@ -1485,14 +1453,6 @@ function buildExportPayload(
     vlamax,
     tte,
     potentielPhysiologique,
-    lorang: {
-      priorite: analysisResult.priorite,
-      prioriteLabel: getPrioriteLabel(analysisResult.priorite),
-      alertes: analysisResult.alertes,
-      recommandations: getRecommandationsPriorite(analysisResult.priorite),
-      seancesCodes,
-      seancesDetails
-    },
     unifiedLimiter,
     tests: athleteTests,
     snapshotHistory: athleteSnapshots,
@@ -1504,11 +1464,6 @@ function buildExportPayload(
     crr,
     chargeScore,
     compassScores,
-    wahooSuggestions: {
-      suggestions: wahooOutput.suggestions,
-      diagnosticSummary: wahooOutput.diagnosticSummary,
-      hasRecommendations: wahooOutput.suggestions.length > 0,
-    },
     // ✅ NEW: Age Adjustment
     ageAdjustment: (() => {
       const age = athleteAge;
