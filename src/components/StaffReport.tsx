@@ -1,3 +1,4 @@
+import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
 /**
  * RAPPORT STAFF PRÉ-COURSE - Composant UI
@@ -2009,8 +2010,7 @@ function StaffCompassSection({
   }
 
   // Compute fatigue
-  const fatigueStateToPercue: Record<string, number> = { fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10 };
-  const fatiguePercue = fatigueStateToPercue[(snapshot as any)?.fatigue_state || "ok"] ?? 4;
+  const fatiguePercue = fatigueStateToScoreOrDefault((snapshot as any)?.fatigue_state);
   const fatigueEff = computeFatigueEffectif({
     tss7d,
     tss7dHabituel: null,

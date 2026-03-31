@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { MetricCard } from "@/components/MetricCard";
@@ -648,8 +649,7 @@ const Index = () => {
   // ✅ FATIGUE EFFECTIF — Pour Coaching Compass
   const fatigueEffectifForCompass = useMemo<FatigueEffectif | null>(() => {
     if (!effectiveCloudSnapshot || !currentAthlete) return null;
-    const fatigueStateToPercue: Record<string, number> = { fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10 };
-    const fatiguePercue = fatigueStateToPercue[effectiveCloudSnapshot.fatigue_state || "ok"] ?? 4;
+    const fatiguePercue = fatigueStateToScoreOrDefault(effectiveCloudSnapshot.fatigue_state);
     return computeFatigueEffectif({
       tss7d: effectiveCloudSnapshot.tss_7d ?? null,
       tss7dHabituel: null,
