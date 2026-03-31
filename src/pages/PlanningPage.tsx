@@ -11,6 +11,7 @@ import {
   Sparkles,
   BookOpen,
   Library,
+  Archive,
   ArrowRight,
   CalendarDays,
   RefreshCw,
@@ -46,6 +47,15 @@ const sections = [
     route: "/planning/library",
     color: "text-emerald-500",
     bgColor: "bg-emerald-500/10",
+  },
+  {
+    id: "plan-library",
+    title: "Plans IA Sauvegardés",
+    description: "Historique de tous vos plans IA avec restauration et détail par semaine",
+    icon: Archive,
+    route: "/planning/plan-library",
+    color: "text-amber-500",
+    bgColor: "bg-amber-500/10",
   },
 ];
 
