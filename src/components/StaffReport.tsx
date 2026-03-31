@@ -908,70 +908,21 @@ export function StaffReport({
         </div>
 
         <Separator />
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            INTERPRÉTATION STAFF
-          </h3>
-          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <p className="font-medium text-sm">{report.staffInterpretation.mainMessage}</p>
-            {report.staffInterpretation.secondaryMessages.length > 0 && (
-              <ul className="mt-3 space-y-1">
-                {report.staffInterpretation.secondaryMessages.map((msg, index) => (
-                  <li key={index} className="text-xs text-muted-foreground flex items-start gap-2">
-                    <span className="text-primary mt-0.5">•</span>
-                    {msg}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
 
-        {/* 5️⃣ STRATÉGIE DE COURSE */}
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* À FAIRE */}
-          <div className="p-4 rounded-lg bg-green-500/5 border border-green-500/20">
-            <h4 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-3 flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              À FAIRE
-            </h4>
-            <ul className="space-y-2">
-              {report.raceStrategy.toDo.map((item, index) => (
-                <li key={index} className="text-xs flex items-start gap-2">
-                  <span className="text-green-600 mt-0.5">✓</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
+        {/* 5️⃣ SEUILS LACTIQUES TFCL — LT1/LT2 */}
+        <LactateThresholdsReportSection
+          vlamaxEffectif={vlamaxEffectif}
+          tteEffectif={tteEffectif}
+          ftp={ftp}
+          sport={snapshot?.sport_main ?? objectif}
+        />
 
-          {/* À ÉVITER */}
-          <div className="p-4 rounded-lg bg-red-500/5 border border-red-500/20">
-            <h4 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2">
-              <XCircle className="h-4 w-4" />
-              À ÉVITER
-            </h4>
-            <ul className="space-y-2">
-              {report.raceStrategy.toAvoid.map((item, index) => (
-                <li key={index} className="text-xs flex items-start gap-2">
-                  <span className="text-red-600 mt-0.5">✗</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Fenêtre nutritionnelle critique */}
-        {report.raceStrategy.criticalNutritionWindow && (
-          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <span className="font-medium text-amber-700 dark:text-amber-400">
-              {report.raceStrategy.criticalNutritionWindow}
-            </span>
-          </div>
-        )}
+        {/* 5b️⃣ ZONES D'ENTRAÎNEMENT HR/WATTS */}
+        <TrainingZonesReportSection
+          ftp={ftp}
+          fcMax={fcMax}
+          snapshot={snapshot}
+        />
 
         <Separator />
 
