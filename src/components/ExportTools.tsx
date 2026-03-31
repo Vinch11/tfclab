@@ -314,24 +314,6 @@ function buildReportTargetsFromUnifiedLimiter(
   };
 }
 
-function getRecommandationsPriorite(priorite: PrioriteType): string[] {
-  switch (priorite) {
-    case "VLAMAX_DOWN":
-      return ["Privilégier les sorties longues Z2 (4-6h)", "Éviter les sprints et intervalles courts", "Séances tempo longues (sweet spot 2x30-40min)"];
-    case "VLAMAX_UP":
-      return ["Ajouter des sprints courts (5-10s max)", "Intervalles courts haute intensité", "Séances de force explosive"];
-    case "TTE_UP":
-      return ["Séances au seuil prolongées (2x20-30min)", "Intervalles longs à 95-105% FTP", "Sorties tempo soutenues"];
-    case "FTP_UTIL":
-      return ["Blocs de travail au seuil (sweet spot)", "Intervalles VO2max (3-5min à 105-115% FTP)", "Progression du volume au seuil"];
-    case "ENDURANCE_UP":
-      return ["Augmenter le volume Z2", "Sorties longues progressives", "Travail au tempo"];
-    case "VITESSE_UP":
-      return ["Intervalles courts à haute intensité", "Travail de VMA/VO2max", "Séances de côtes"];
-    default:
-      return ["Maintenir l'équilibre actuel", "Affûtage pré-compétition", "Récupération et fraîcheur"];
-  }
-}
 
 function zoneAbs(metricKey: string, sportKey: string, zoneKey: string, refs: AthleteRefsForZones): string {
   const metric = ZonesConfig[metricKey];
