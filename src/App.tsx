@@ -87,6 +87,7 @@ export default function App() {
                 <Route path="/planning/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
                 <Route path="/planning/running-guidance" element={<ProtectedRoute><RunningGuidancePage /></ProtectedRoute>} />
                 <Route path="/planning/library" element={<ProtectedRoute><WorkoutLibraryBrowserPage /></ProtectedRoute>} />
+                <Route path="/planning/plan-library" element={<ProtectedRoute><PlanLibraryPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 5 — SIMULATION                     */}
