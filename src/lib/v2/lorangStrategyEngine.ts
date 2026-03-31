@@ -578,6 +578,12 @@ function activateLevers(
   
   // Helper: vérifier si une métrique est en gap limiting
   const isMetricLimiting = (metric: string) => limitingGaps.some(g => g.metric === metric);
+  // ✅ FIX: Helper étendu — aussi considérer les gaps "attention" si c'est le limiteur principal
+  const isMetricFromPrimaryLimiter = (metric: string, limiterTypes: LorangLimiter[]) => {
+    if (!limiterTypes.includes(primaryLimiter)) return false;
+    const gap = gaps.find(g => g.metric === metric);
+    return gap != null && gap.gapPercent !== 0;
+  };
   const getMetricGap = (metric: string) => gaps.find(g => g.metric === metric);
   
   // Déterminer le détail de faiblesse aérobie
