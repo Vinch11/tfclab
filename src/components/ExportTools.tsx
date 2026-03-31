@@ -78,6 +78,8 @@ import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
 import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
+import { computeLactateThresholdsTFCL, TFCL_LACTATE_TABLE } from "@/lib/thresholds/computeLactateThresholdsTFCL";
+import { computeCycleIntelligence, snapshotToEngineData } from "@/lib/v2/cycleIntelligence";
 
 // =============================================
 // TYPES
