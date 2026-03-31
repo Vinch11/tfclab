@@ -62,7 +62,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
             style={{ borderBottomColor: 'rgba(0, 180, 216, 0.4)', borderLeftColor: 'rgba(230, 150, 30, 0.3)' }}
           />
           {/* Glow behind logo */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-radial from-primary/40 to-transparent rounded-full animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-radial from-[hsl(192,80%,50%)]/40 to-transparent rounded-full animate-pulse" />
           {/* Logo ping effect */}
           <div className="absolute inset-0 animate-ping opacity-10">
             <img
