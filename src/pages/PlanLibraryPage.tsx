@@ -342,28 +342,81 @@ export default function PlanLibraryPage() {
                     </div>
 
                     {/* Expanded detail */}
-                    {isExpanded && summary && (
+                    {isExpanded && (
                       <div className="mt-3 pt-3 border-t border-border">
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Contenu du plan</p>
-                        <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Détail complet du plan</p>
+                        <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
                           {(v.plan_json?.weeks || []).map((week: any, wi: number) => (
-                            <div key={wi} className="text-xs bg-muted/50 rounded-md p-2">
-                              <span className="font-medium">
-                                S{week.weekNumber || wi + 1}
-                                {week.theme ? ` — ${week.theme}` : ""}
-                              </span>
-                              <span className="text-muted-foreground ml-2">
-                                {(week.sessions || []).filter((s: any) => !s.isRest).length} séance(s)
-                              </span>
-                              {week.sessions && (
-                                <div className="mt-1 ml-3 space-y-0.5">
-                                  {week.sessions.filter((s: any) => !s.isRest).map((s: any, si: number) => (
-                                    <div key={si} className="text-muted-foreground">
-                                      J{s.day || si + 1}: <span className="text-foreground">{s.sport} — {s.title}</span>
-                                    </div>
-                                  ))}
+                            <div key={wi} className="text-xs rounded-lg border border-border overflow-hidden">
+                              {/* Week header */}
+                              <div className="bg-muted/70 px-3 py-2 flex items-center justify-between">
+                                <span className="font-semibold text-foreground">
+                                  Semaine {week.weekNumber || wi + 1}
+                                  {week.theme ? ` — ${week.theme}` : ""}
+                                </span>
+                                <div className="flex gap-1.5">
+                                  {week.phase && (
+                                    <Badge variant="outline" className="text-[9px]">{week.phase}</Badge>
+                                  )}
+                                  <Badge variant="secondary" className="text-[9px]">
+                                    {(week.sessions || []).filter((s: any) => !s.isRest).length} séance(s)
+                                  </Badge>
                                 </div>
-                              )}
+                              </div>
+                              {/* Sessions */}
+                              <div className="divide-y divide-border">
+                                {(week.sessions || []).map((s: any, si: number) => {
+                                  if (s.isRest) {
+                                    return (
+                                      <div key={si} className="px-3 py-1.5 bg-muted/30 text-muted-foreground italic">
+                                        J{s.day || si + 1} — Repos
+                                      </div>
+                                    );
+                                  }
+                                  const sportColors: Record<string, string> = {
+                                    natation: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
+                                    swim: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
+                                    vélo: "bg-green-500/15 text-green-700 dark:text-green-300",
+                                    bike: "bg-green-500/15 text-green-700 dark:text-green-300",
+                                    course: "bg-orange-500/15 text-orange-700 dark:text-orange-300",
+                                    run: "bg-orange-500/15 text-orange-700 dark:text-orange-300",
+                                    cap: "bg-orange-500/15 text-orange-700 dark:text-orange-300",
+                                    force: "bg-purple-500/15 text-purple-700 dark:text-purple-300",
+                                    renfo: "bg-purple-500/15 text-purple-700 dark:text-purple-300",
+                                    brick: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+                                  };
+                                  const sportKey = (s.sport || "").toLowerCase();
+                                  const sportClass = sportColors[sportKey] || "bg-muted/50 text-foreground";
+
+                                  return (
+                                    <div key={si} className="px-3 py-2 space-y-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-muted-foreground font-mono w-5 shrink-0">J{s.day || si + 1}</span>
+                                        <Badge className={cn("text-[9px] font-medium", sportClass)}>
+                                          {s.sport || "Autre"}
+                                        </Badge>
+                                        <span className="font-medium text-foreground truncate">{s.title || "Séance"}</span>
+                                        {s.duration && (
+                                          <span className="text-muted-foreground ml-auto shrink-0">{s.duration}</span>
+                                        )}
+                                        {s.intensity && (
+                                          <Badge variant="outline" className="text-[9px] shrink-0">{s.intensity}</Badge>
+                                        )}
+                                      </div>
+                                      {s.details && (
+                                        <p className="text-[11px] text-muted-foreground ml-7 whitespace-pre-line leading-relaxed">
+                                          {s.details}
+                                        </p>
+                                      )}
+                                      {s.zones && (
+                                        <p className="text-[10px] text-muted-foreground/70 ml-7">
+                                          Zones : {s.zones}
+                                        </p>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           ))}
                         </div>
