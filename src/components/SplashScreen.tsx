@@ -74,7 +74,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           <img
             src={logo}
             alt="Two For Coaching Lab"
-            className="relative w-[300px] h-[300px] object-contain animate-[fadeInScale_0.8s_ease-out] drop-shadow-[0_0_30px_rgba(59,130,246,0.5)]"
+            className="relative w-[300px] h-[300px] object-contain animate-[fadeInScale_0.8s_ease-out] drop-shadow-[0_0_30px_rgba(0,180,216,0.5)]"
           />
         </div>
 
