@@ -755,6 +755,14 @@ export function StaffReport({
           poids={poids}
         />
 
+        {/* 4e️⃣ ZONES MÉTABOLIQUES INSCYD (Mader-derived) */}
+        <MetabolicZonesReportSection
+          vo2max={vo2max ?? null}
+          vlamax={vlamaxEffectif.value}
+          ftp={ftp}
+          weight={poids ?? undefined}
+        />
+
         <Separator />
 
         {/* TFCL REFERENCE WEEK — QUALITÉ DES TESTS */}
