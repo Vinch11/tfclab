@@ -80,6 +80,12 @@ import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
 import { computeFatigueEffectif } from "@/engines/diagnostic";
 import { computeLactateThresholdsTFCL } from "@/lib/thresholds/computeLactateThresholdsTFCL";
+import {
+  analyzeCriticalPower,
+  generateRecoveryTable,
+  effectiveWprime,
+  type CriticalPowerResult,
+} from "@/lib/v2/criticalPowerModel";
 
 interface StaffReportProps {
   athleteName: string;
