@@ -1605,7 +1605,7 @@ function buildExportPayload(
         },
         strategyResult: null,
         lactateThresholds: null,
-        wprimeKj: null,
+        wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
         objectif: athlete.goal || "IM",
         ambition: ambition,
         sportFocus: (effectiveSnapshot?.sport_main as any) ?? "bike",
