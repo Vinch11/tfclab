@@ -557,6 +557,115 @@ const Index = () => {
     });
   }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveCloudSnapshot, currentAmbition]);
 
+  // ✅ DIAGNOSTIC & PRESCRIPTION UNIFIÉS — Source unique pour TOUS les onglets
+  const { dashDiagnostic, dashPrescription } = useMemo(() => {
+    if (!currentAthlete || !effectiveCloudSnapshot) {
+      return { dashDiagnostic: null, dashPrescription: null };
+    }
+    const age = currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null;
+    const athleteCheckins = getCheckinsForAthlete(currentAthlete.id);
+    const sortedCheckins = [...athleteCheckins].sort((a, b) =>
+      new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+    );
+    const latestCheckin = sortedCheckins[0] || null;
+
+    const diagnosticInput: DiagnosticInput = {
+      athleteId: currentAthlete.id,
+      athleteName: currentAthlete.name,
+      age,
+      sex: (currentAthlete.sex === "M" || currentAthlete.sex === "F") ? currentAthlete.sex : null,
+      weightKg: effectiveCloudSnapshot.weight_kg ?? null,
+      objectif: currentAthlete.goal || "IM",
+      ambition: currentAmbition,
+      sportFocus: isRunningOnly ? "run" : "bike",
+      vo2max: effectiveCloudSnapshot.vo2max ?? null,
+      ftp: effectiveCloudSnapshot.ftp ?? null,
+      ftpKg: ftp_kg,
+      pmax5s: effectiveCloudSnapshot.pmax_5s ?? null,
+      p30sW: effectiveCloudSnapshot.p30s_w ?? null,
+      p60sW: effectiveCloudSnapshot.p60s_w ?? null,
+      map5minW: effectiveCloudSnapshot.map5min_w ?? null,
+      vma: effectiveCloudSnapshot.vma ?? null,
+      css: effectiveCloudSnapshot.css ?? null,
+      vlamax: effectiveCloudSnapshot.vlamax ?? null,
+      vlamaxRun: effectiveCloudSnapshot.vlamax_run ?? null,
+      vlamaxSource: effectiveCloudSnapshot.vlamax_source ?? null,
+      vlamaxProtocol: effectiveCloudSnapshot.vlamax_protocol ?? null,
+      vlamaxIsReference: effectiveCloudSnapshot.vlamax_is_reference ?? false,
+      tteObservedMin: effectiveCloudSnapshot.tte_observed_min ?? null,
+      tteMode: effectiveCloudSnapshot.tte_mode ?? null,
+      tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+      fatigueState: effectiveCloudSnapshot.fatigue_state ?? null,
+      runEconomyScore: effectiveCloudSnapshot.run_economy_score ?? null,
+      runHrDriftPct: effectiveCloudSnapshot.run_hr_drift_pct ?? null,
+      paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
+      runningPower1s: effectiveCloudSnapshot.running_power_1s ?? null,
+      runningPower5s: effectiveCloudSnapshot.running_power_5s ?? null,
+      runningPower30s: effectiveCloudSnapshot.running_power_30s ?? null,
+      runningPower60s: effectiveCloudSnapshot.running_power_60s ?? null,
+      runningPower5min: effectiveCloudSnapshot.running_power_5min ?? null,
+      runningPowerThreshold: effectiveCloudSnapshot.running_power_threshold ?? null,
+      sprint15sDistance: effectiveCloudSnapshot.sprint_15s_distance ?? null,
+      bikeCadenceRpm: effectiveCloudSnapshot.bike_cadence_rpm ?? null,
+      bikeHrDriftFlag: effectiveCloudSnapshot.bike_hr_drift_flag ?? false,
+      protocolQuality: effectiveCloudSnapshot.protocol_quality ?? null,
+      wprimeKj: wprimeKjForLimiter,
+      cpDataQuality: cpResultForLimiter?.dataQuality ?? null,
+      fatmax: vlamaxEffectif.value != null ? Math.max(0, 65 - (vlamaxEffectif.value - 0.3) * 80) : null,
+      forceDevMode: effectiveCloudSnapshot.force_development_mode ?? false,
+      giIssuesFlag: effectiveCloudSnapshot.gi_issues_flag ?? false,
+      checkinData: latestCheckin ? {
+        sleep: latestCheckin.sleep,
+        fatigue: latestCheckin.fatigue,
+        soreness: latestCheckin.soreness,
+        stress: latestCheckin.stress,
+        motivation: latestCheckin.motivation,
+        painFlag: latestCheckin.pain_flag ?? false,
+      } : undefined,
+    };
+
+    const diagnostic = computeDiagnostic(diagnosticInput);
+    const prescription = computeDecision({
+      diagnostic,
+      context: { daysToRace: null, isRaceWeek: false, currentPhase: "build" },
+      load: {
+        tss7d: effectiveCloudSnapshot.tss_7d ?? null,
+        tss28d: effectiveCloudSnapshot.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null,
+      },
+    });
+
+    return { dashDiagnostic: diagnostic, dashPrescription: prescription };
+  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, unifiedLimiterResult]);
+
+  // ✅ VLamax & TTE alignés sur le diagnostic unifié (fallback legacy si pas de diagnostic)
+  const alignedVlamaxEffectif = useMemo(() => {
+    if (dashDiagnostic) {
+      return {
+        value: dashDiagnostic.effectifs.vlamax.value,
+        confidence: dashDiagnostic.effectifs.vlamax.confidence,
+        source: dashDiagnostic.effectifs.vlamax.source,
+        label: `VLamax (${dashDiagnostic.effectifs.vlamax.source})`,
+      } as VLamaxEffectif;
+    }
+    return vlamaxEffectif;
+  }, [dashDiagnostic, vlamaxEffectif]);
+
+  const alignedTteEffectif = useMemo(() => {
+    if (dashDiagnostic) {
+      return {
+        tte_min: dashDiagnostic.effectifs.tte.tte_min,
+        confidence: dashDiagnostic.effectifs.tte.confidence,
+        source: dashDiagnostic.effectifs.tte.source,
+        label: `TTE (${dashDiagnostic.effectifs.tte.source})`,
+      } as TTEEffectif;
+    }
+    return tteEffectif;
+  }, [dashDiagnostic, tteEffectif]);
+
+  const alignedLimiterResult = useMemo(() => {
+    return dashDiagnostic ? dashDiagnostic.limiter : unifiedLimiterResult;
+  }, [dashDiagnostic, unifiedLimiterResult]);
+
 
   // ✅ NUTRITION ESTIMATE - Pour rapport staff
   const nutritionEstimate = useMemo(() => {
