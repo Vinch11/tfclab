@@ -1347,6 +1347,64 @@ function buildExportPayload(
     sportFocus: sportFocusForLimiter,
   });
 
+  // ✅ Compute Lorang Strategy — IDENTIQUE au dashboard (Index.tsx)
+  let lorangResult: LorangStrategyResult | null = null;
+  try {
+    const vlamaxTarget = ambition === "elite" ? 0.35 : ambition === "competitor" ? 0.45 : 0.55;
+    const vo2maxTarget = ambition === "elite" ? 70 : ambition === "competitor" ? 62 : 55;
+    const tteTarget = ambition === "elite" ? 50 : ambition === "competitor" ? 40 : 35;
+    const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
+      'IM': 'IM', 'Ironman': 'IM', '70.3': '703', 'Ironman70.3': '703',
+      'Marathon': 'marathon', 'Semi': 'semi', '10K': '10k', '5K': '10k',
+      'Trail': 'trail', 'TrailLong': 'trail',
+    };
+    const discipline = disciplineMap[athlete.goal || 'IM'] || 'IM';
+    const ambitionMap: Record<string, 'finisher' | 'age_group' | 'competitor' | 'elite'> = {
+      finisher: 'finisher', age_group: 'age_group', competitor: 'competitor', elite: 'elite',
+    };
+    const lorangAmbition = ambitionMap[ambition] || 'age_group';
+    const fatigueStateToScoreLorang: Record<string, number> = { fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10 };
+    const fatigueScoreLorang = fatigueStateToScoreLorang[effectiveSnapshot?.fatigue_state || "ok"] ?? 4;
+    const availabilityScore = Math.max(0, 100 - fatigueScoreLorang * 10);
+    
+    lorangResult = computeLorangStrategy({
+      physiology: {
+        vo2max: effectiveSnapshot?.vo2max ?? null,
+        vo2maxTarget,
+        ftpKg: ftpKg,
+        ftpKgTarget: null,
+        vlamax: vlamax.value,
+        vlamaxTarget,
+        tte: tte.tte_min,
+        tteTarget,
+        fatmax: null,
+        fatmaxTarget: 0,
+        economy: effectiveSnapshot?.run_economy_score ?? null,
+      },
+      athlete: {
+        age: athleteAge,
+        discipline,
+        ambition: lorangAmbition,
+        hasGIIssues: effectiveSnapshot?.gi_issues_flag ?? false,
+      },
+      availability: {
+        score: availabilityScore,
+        level: availabilityScore >= 80 ? 'high' : availabilityScore >= 60 ? 'moderate' : availabilityScore >= 40 ? 'low' : 'critical',
+        hasAlerts: false,
+        hrvOutOfRange2Days: false,
+      },
+      context: {
+        daysToRace: null,
+        isRaceWeek: false,
+        currentPhase: 'build',
+      },
+      load: {
+        tss7d: effectiveSnapshot?.tss_7d ?? null,
+        tss28d: effectiveSnapshot?.tss_7d ? effectiveSnapshot.tss_7d * 4 : null,
+      },
+    });
+  } catch { /* fallback null */ }
+
   // Calculer complétude
   const completude = calculateCompletude(effectiveRefs, effectiveSnapshot, athleteTests, vlamax, tte);
   
