@@ -297,6 +297,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       metabolic_score: score,
       fatigue_state: formData.fatigue_state || "ok",
       coach_notes: formData.coach_notes || null,
+      // ✅ Semaine test → vlamax_is_reference
+      ...((formData as any).vlamax_is_reference === "true" && { vlamax_is_reference: true } as Record<string, unknown>),
     });
 
     resetForm();
