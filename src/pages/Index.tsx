@@ -715,6 +715,12 @@ const Index = () => {
           tss7d: effectiveCloudSnapshot.tss_7d ?? null,
           tss28d: effectiveCloudSnapshot.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null,
         },
+        // ✅ Passer le résultat du moteur unifié pour cohérence maximale
+        unifiedLimiterResult: unifiedLimiterResult ? {
+          primaryLimiter: unifiedLimiterResult.primaryLimiter,
+          gapAnalysis: unifiedLimiterResult.gapAnalysis,
+          aerobicWeaknessDetail: unifiedLimiterResult.aerobicWeaknessDetail,
+        } : undefined,
       });
     } catch { return null; }
   }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, ftp_kg, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass]);
