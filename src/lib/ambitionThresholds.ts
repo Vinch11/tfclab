@@ -11,7 +11,7 @@
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { getTargetsForAmbition } from "@/lib/physiologicalTargets";
 import { scoreRelativeToTarget, scoreRelativeToTargetInverse } from "@/lib/coachingCompass";
-import { getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
+import { getPerformanceAgeFactor, getTTEAgeFactor, getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
 
 export type MetricStatus = "ok" | "warning" | "critical" | "neutral";
 
@@ -98,17 +98,9 @@ export function evaluateVO2max(
   ambition: AmbitionLevel = DEFAULT_AMBITION,
   athleteAge?: number | null,
 ): MetricEvaluation {
-  const vo2Targets: Record<AmbitionLevel, number> = {
-    finisher: 45,
-    age_group: 52,
-    competitor: 58,
-    elite: 65,
-  };
-  
-  const isLong = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong"].includes(objectif);
-  const bonus = isLong ? 3 : 0;
-  const ageFactor = getPerformanceAgeFactor(athleteAge ?? null);
-  const target = Math.round((vo2Targets[ambition] + bonus) * ageFactor * 10) / 10;
+  // Use the SAME per-objective, per-ambition, age-adjusted VO2max target
+  // as the Unified Limiter Detection engine for full consistency
+  const target = getVo2maxTarget(objectif, ambition, athleteAge ?? null);
 
   if (value === null) return { status: "neutral", target: `≥ ${target} ml/kg/min`, targetValue: target, score: 0 };
 
