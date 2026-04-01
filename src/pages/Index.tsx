@@ -1464,26 +1464,16 @@ const Index = () => {
               />
             ) : null,
           },
-          // ✅ 5. SYNTHÈSE EXECUTIVE — Vue stratégique consolidée (alignée sur dashDiagnostic)
+          // ✅ 5. SYNTHÈSE EXECUTIVE — Alignée sur le diagnostic unifié
           {
             id: "synthese-executive-dashboard",
             render: () => currentAthlete ? (
               <SyntheseExecutiveCard
                 athleteName={currentAthlete.name}
                 objectif={currentAthlete.goal || "IM"}
-                vlamaxEffectif={dashDiagnostic ? {
-                  value: dashDiagnostic.effectifs.vlamax.value,
-                  confidence: dashDiagnostic.effectifs.vlamax.confidence,
-                  source: dashDiagnostic.effectifs.vlamax.source,
-                  label: `VLamax (${dashDiagnostic.effectifs.vlamax.source})`,
-                } : vlamaxEffectif}
-                tteEffectif={dashDiagnostic ? {
-                  tte_min: dashDiagnostic.effectifs.tte.tte_min,
-                  confidence: dashDiagnostic.effectifs.tte.confidence,
-                  source: dashDiagnostic.effectifs.tte.source,
-                  label: `TTE (${dashDiagnostic.effectifs.tte.source})`,
-                } : tteEffectif}
-                limiterResult={dashDiagnostic ? dashDiagnostic.limiter : unifiedLimiterResult}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
+                limiterResult={alignedLimiterResult}
                 ftp={ftp}
                 poids={poids ?? null}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
