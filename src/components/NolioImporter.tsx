@@ -43,6 +43,12 @@ export interface NolioImportResult {
   running_power_max?: string;
   running_power_threshold?: string;
   vlamax_run?: string; // VLamax CAP calculée
+  // ✅ Running power granulaires (Score G CAP)
+  running_power_1s?: string;
+  running_power_5s?: string;
+  running_power_30s?: string;
+  running_power_60s?: string;
+  running_power_5min?: string;
   // Meta
   date?: string;
   coach_notes?: string;
