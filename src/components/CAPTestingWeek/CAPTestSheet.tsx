@@ -200,7 +200,7 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
         }
         if (tteObserved) {
           snapshotUpdates.tte_observed_min = parseInt(tteObserved);
-          snapshotUpdates.tte_mode = "observed";
+          snapshotUpdates.tte_mode = "OBSERVED";
           rawData.tteObserved = parseInt(tteObserved);
         }
         if (runPowerMax) {
@@ -227,7 +227,8 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
 
       // 1. Update snapshot with profile data
       if (snapshot && Object.keys(snapshotUpdates).length > 1) {
-        await updateSnapshot(snapshot.id, snapshotUpdates);
+        const snapshotUpdated = await updateSnapshot(snapshot.id, snapshotUpdates);
+        if (!snapshotUpdated) return;
       }
       
       // 2. Save as test entry for calibration (only for main test days)
