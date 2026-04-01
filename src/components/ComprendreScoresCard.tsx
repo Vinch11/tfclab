@@ -41,11 +41,12 @@ interface ComprendreScoresCardProps {
   potentielScore: number | null;
   objectif: string;
   ambition?: AmbitionLevel;
+  athleteAge?: number | null;
   className?: string;
 }
 
 export function ComprendreScoresCard({
-  vlamaxValue, tteMin, ftpKg, vo2max, potentielScore, objectif, ambition = DEFAULT_AMBITION, className
+  vlamaxValue, tteMin, ftpKg, vo2max, potentielScore, objectif, ambition = DEFAULT_AMBITION, athleteAge, className
 }: ComprendreScoresCardProps) {
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -78,9 +79,9 @@ export function ComprendreScoresCard({
   const ambDef = getAmbitionDefinition(ambition);
 
   // Évaluations dynamiques par ambition
-  const vlamaxEval = evaluateVLamax(vlamaxValue, objectif, ambition);
-  const tteEval = evaluateTTE(tteMin || null, objectif, ambition);
-  const ftpKgEval = evaluateFtpKg(ftpKg, objectif, ambition);
+  const vlamaxEval = evaluateVLamax(vlamaxValue, objectif, ambition, athleteAge);
+  const tteEval = evaluateTTE(tteMin || null, objectif, ambition, athleteAge);
+  const ftpKgEval = evaluateFtpKg(ftpKg, objectif, ambition, athleteAge);
   const potentielEval = evaluateReadiness(potentielScore, ambition);
 
   const scores: ScoreExplanation[] = [
@@ -127,7 +128,7 @@ export function ComprendreScoresCard({
   ];
 
   if (vo2max !== null) {
-    const vo2Eval = evaluateVO2max(vo2max, objectif, ambition);
+    const vo2Eval = evaluateVO2max(vo2max, objectif, ambition, athleteAge);
     scores.splice(2, 0, {
       id: "vo2max",
       icon: <Activity className="h-4 w-4" />,

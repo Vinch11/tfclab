@@ -3,11 +3,15 @@
  * 
  * Uses the SAME scoring functions as the Coaching Compass
  * to ensure consistency across all UI components.
+ * 
+ * ✅ V2: Age adjustment applied to FTP/kg, VMA, TTE, VO2max targets
+ *    (aligned with Compass and Unified Limiter)
  */
 
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { getTargetsForAmbition } from "@/lib/physiologicalTargets";
 import { scoreRelativeToTarget, scoreRelativeToTargetInverse } from "@/lib/coachingCompass";
+import { getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 
 export type MetricStatus = "ok" | "warning" | "critical" | "neutral";
 
@@ -27,11 +31,13 @@ function statusFromScore(score: number): MetricStatus {
 
 /**
  * Évalue le statut VLamax par rapport aux cibles ambition
+ * Note: VLamax n'est PAS ajusté par l'âge (profil métabolique cible identique)
  */
 export function evaluateVLamax(
   value: number | null,
   objectif: string,
-  ambition: AmbitionLevel = DEFAULT_AMBITION
+  ambition: AmbitionLevel = DEFAULT_AMBITION,
+  _athleteAge?: number | null, // ignored — VLamax has no age adjustment
 ): MetricEvaluation {
   const targets = getTargetsForAmbition(objectif, ambition);
   const optimal = targets.vlamax.optimal;
@@ -44,14 +50,17 @@ export function evaluateVLamax(
 
 /**
  * Évalue le statut TTE par rapport aux cibles ambition
+ * ✅ Ajusté par l'âge via getTTEAgeFactor (déclin modéré)
  */
 export function evaluateTTE(
   value: number | null,
   objectif: string,
-  ambition: AmbitionLevel = DEFAULT_AMBITION
+  ambition: AmbitionLevel = DEFAULT_AMBITION,
+  athleteAge?: number | null,
 ): MetricEvaluation {
   const targets = getTargetsForAmbition(objectif, ambition);
-  const target = targets.tte_min;
+  const tteAgeFactor = getTTEAgeFactor(athleteAge ?? null);
+  const target = Math.round(targets.tte_min * tteAgeFactor);
 
   if (value === null || value === 0) return { status: "neutral", target: `≥ ${target} min`, targetValue: target, score: 0 };
 
@@ -61,14 +70,17 @@ export function evaluateTTE(
 
 /**
  * Évalue le statut FTP/kg par rapport aux cibles ambition
+ * ✅ Ajusté par l'âge via getPerformanceAgeFactor (déclin ~5-7% / décennie)
  */
 export function evaluateFtpKg(
   value: number | null,
   objectif: string,
-  ambition: AmbitionLevel = DEFAULT_AMBITION
+  ambition: AmbitionLevel = DEFAULT_AMBITION,
+  athleteAge?: number | null,
 ): MetricEvaluation {
   const targets = getTargetsForAmbition(objectif, ambition);
-  const target = targets.ftp_kg_min;
+  const ageFactor = getPerformanceAgeFactor(athleteAge ?? null);
+  const target = Math.round(targets.ftp_kg_min * ageFactor * 100) / 100;
 
   if (value === null) return { status: "neutral", target: `≥ ${target.toFixed(1)} W/kg`, targetValue: target, score: 0 };
 
@@ -78,11 +90,13 @@ export function evaluateFtpKg(
 
 /**
  * Évalue le statut VO2max (seuils basés sur ambition + distance)
+ * ✅ Ajusté par l'âge via getPerformanceAgeFactor
  */
 export function evaluateVO2max(
   value: number | null,
   objectif: string,
-  ambition: AmbitionLevel = DEFAULT_AMBITION
+  ambition: AmbitionLevel = DEFAULT_AMBITION,
+  athleteAge?: number | null,
 ): MetricEvaluation {
   const vo2Targets: Record<AmbitionLevel, number> = {
     finisher: 45,
@@ -93,7 +107,8 @@ export function evaluateVO2max(
   
   const isLong = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong"].includes(objectif);
   const bonus = isLong ? 3 : 0;
-  const target = vo2Targets[ambition] + bonus;
+  const ageFactor = getPerformanceAgeFactor(athleteAge ?? null);
+  const target = Math.round((vo2Targets[ambition] + bonus) * ageFactor * 10) / 10;
 
   if (value === null) return { status: "neutral", target: `≥ ${target} ml/kg/min`, targetValue: target, score: 0 };
 
