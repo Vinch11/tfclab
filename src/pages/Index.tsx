@@ -56,6 +56,7 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 
 // ✅ VLamax TFCL V2 - Carte unifiée (Phase 1 UX)
 import { VLamaxUnifiedCard } from "@/components/VLamaxUnifiedCard";
+import { NolioAnalysisCard } from "@/components/NolioAnalysisCard";
 import { VLamaxZoneConfidenceChart } from "@/components/charts/VLamaxZoneConfidenceChart";
 import { VLamaxEstimationWidget } from "@/components/charts/VLamaxEstimationWidget";
 import { Phase3Dashboard } from "@/components/Phase3Dashboard";
