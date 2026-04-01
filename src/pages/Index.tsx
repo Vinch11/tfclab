@@ -1817,6 +1817,7 @@ const Index = () => {
                 potentielScore={potentielPhysiologiqueEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
                 ambition={currentAmbition}
+                athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
               />
             ),
           },

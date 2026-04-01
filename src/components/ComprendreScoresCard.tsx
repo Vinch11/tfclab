@@ -128,7 +128,7 @@ export function ComprendreScoresCard({
   ];
 
   if (vo2max !== null) {
-    const vo2Eval = evaluateVO2max(vo2max, objectif, ambition);
+    const vo2Eval = evaluateVO2max(vo2max, objectif, ambition, athleteAge);
     scores.splice(2, 0, {
       id: "vo2max",
       icon: <Activity className="h-4 w-4" />,
