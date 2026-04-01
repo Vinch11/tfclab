@@ -295,6 +295,9 @@ export function CAPTestingWeekPage() {
           />
         )}
 
+        {/* Interactive Guide */}
+        <CAPGuide />
+
         {/* Description */}
         <Alert>
           <Info className="h-4 w-4" />
