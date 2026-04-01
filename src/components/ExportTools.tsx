@@ -49,7 +49,7 @@ import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplate
 import { computeFatMaxTFCL, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
 // ✅ NEW: Strategic Roadmap Engine
-import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase } from "@/engines/decision";
+import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase, computeLorangStrategy, type LorangStrategyResult, type LorangLeverActivation, type LorangProhibitionRule } from "@/engines/decision";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/engines/diagnostic";
 import { User, Shield } from "lucide-react";
 import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS } from "./ReportSectionOrderEditor";
@@ -223,6 +223,8 @@ interface ExportPayload {
   };
   // ✅ NEW: Coaching Compass (5 axes)
   coachingCompass: TFCLCoachingCompassResult;
+  // ✅ NEW: Lorang Strategy (leviers dynamiques — cohérence dashboard)
+  lorangResult: LorangStrategyResult | null;
 }
 
 // =============================================
@@ -1345,6 +1347,64 @@ function buildExportPayload(
     sportFocus: sportFocusForLimiter,
   });
 
+  // ✅ Compute Lorang Strategy — IDENTIQUE au dashboard (Index.tsx)
+  let lorangResult: LorangStrategyResult | null = null;
+  try {
+    const vlamaxTarget = ambition === "elite" ? 0.35 : ambition === "competitor" ? 0.45 : 0.55;
+    const vo2maxTarget = ambition === "elite" ? 70 : ambition === "competitor" ? 62 : 55;
+    const tteTarget = ambition === "elite" ? 50 : ambition === "competitor" ? 40 : 35;
+    const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
+      'IM': 'IM', 'Ironman': 'IM', '70.3': '703', 'Ironman70.3': '703',
+      'Marathon': 'marathon', 'Semi': 'semi', '10K': '10k', '5K': '10k',
+      'Trail': 'trail', 'TrailLong': 'trail',
+    };
+    const discipline = disciplineMap[athlete.goal || 'IM'] || 'IM';
+    const ambitionMap: Record<string, 'finisher' | 'age_group' | 'competitor' | 'elite'> = {
+      finisher: 'finisher', age_group: 'age_group', competitor: 'competitor', elite: 'elite',
+    };
+    const lorangAmbition = ambitionMap[ambition] || 'age_group';
+    const fatigueStateToScoreLorang: Record<string, number> = { fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10 };
+    const fatigueScoreLorang = fatigueStateToScoreLorang[effectiveSnapshot?.fatigue_state || "ok"] ?? 4;
+    const availabilityScore = Math.max(0, 100 - fatigueScoreLorang * 10);
+    
+    lorangResult = computeLorangStrategy({
+      physiology: {
+        vo2max: effectiveSnapshot?.vo2max ?? null,
+        vo2maxTarget,
+        ftpKg: ftpKg,
+        ftpKgTarget: null,
+        vlamax: vlamax.value,
+        vlamaxTarget,
+        tte: tte.tte_min,
+        tteTarget,
+        fatmax: null,
+        fatmaxTarget: 0,
+        economy: effectiveSnapshot?.run_economy_score ?? null,
+      },
+      athlete: {
+        age: athleteAge,
+        discipline,
+        ambition: lorangAmbition,
+        hasGIIssues: effectiveSnapshot?.gi_issues_flag ?? false,
+      },
+      availability: {
+        score: availabilityScore,
+        level: availabilityScore >= 80 ? 'high' : availabilityScore >= 60 ? 'moderate' : availabilityScore >= 40 ? 'low' : 'critical',
+        hasAlerts: false,
+        hrvOutOfRange2Days: false,
+      },
+      context: {
+        daysToRace: null,
+        isRaceWeek: false,
+        currentPhase: 'build',
+      },
+      load: {
+        tss7d: effectiveSnapshot?.tss_7d ?? null,
+        tss28d: effectiveSnapshot?.tss_7d ? effectiveSnapshot.tss_7d * 4 : null,
+      },
+    });
+  } catch { /* fallback null */ }
+
   // Calculer complétude
   const completude = calculateCompletude(effectiveRefs, effectiveSnapshot, athleteTests, vlamax, tte);
   
@@ -1601,7 +1661,7 @@ function buildExportPayload(
           label: potentielPhysiologique.label,
           color: potentielPhysiologique.color,
         },
-        strategyResult: null,
+        strategyResult: lorangResult,
         lactateThresholds: null,
         wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
         objectif: athlete.goal || "IM",
@@ -1611,6 +1671,8 @@ function buildExportPayload(
       };
       return computeCoachingCompass(compassInput);
     })(),
+    // ✅ NEW: Lorang Strategy Result (cohérence dashboard)
+    lorangResult,
   };
 }
 
@@ -2352,63 +2414,104 @@ function buildFacteursLimitantsHTML(payload: ExportPayload): string {
 
 function buildLeviersActionHTML(payload: ExportPayload): string {
   const ul = payload.unifiedLimiter;
+  const lr = payload.lorangResult;
   const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult: ul });
   
-  // Construire les recommandations opérationnelles basées sur le levier
-  const leverActions: Record<string, { do: string[]; avoid: string[] }> = {
-    volume_z2: {
-      do: ["Augmenter le volume en Zone 2 (60-75% FTP)", "Sorties longues progressives (+10%/sem)", "Travail en endurance fondamentale"],
-      avoid: ["Excès d'intensité haute", "Sessions VO2max fréquentes", "Négligence du volume de base"]
-    },
-    threshold_work: {
-      do: ["Intervalles au seuil (FTP ±5%)", "Sweet Spot (88-93% FTP)", "Tempo prolongé"],
-      avoid: ["Sprints courts répétés", "Travail anaérobie pur", "Sessions trop courtes"]
-    },
-    vo2max_intervals: {
-      do: ["Intervalles VO2max (105-120% FTP)", "3-5min à intensité MAP", "Hill repeats"],
-      avoid: ["Volume excessif sans intensité", "Sprints neuromusculaires", "Endurance seule"]
-    },
-    reduce_vlamax: {
-      do: ["Volume Z2 prolongé (>2h)", "Travail en fat max", "Baisser la glycolyse par le volume"],
-      avoid: ["Sprints courts (<30s)", "Travail anaérobie", "HIIT très court"]
-    },
-    build_wprime: {
-      do: ["Intervalles 30s-2min supra-max", "Sprints répétés avec récupération", "Travail anaérobie ciblé"],
-      avoid: ["Volume seul sans intensité", "Sessions exclusivement Z2"]
-    },
-    neuromuscular: {
-      do: ["Sprints courts (5-15s) récupération complète", "Travail de force sur vélo", "Cadence variée"],
-      avoid: ["Fatigue excessive avant sprints", "Volume sans qualité neuromusculaire"]
-    },
-    maintain: {
-      do: ["Maintenir l'équilibre actuel", "Micro-ajustements selon la forme", "Périodisation classique"],
-      avoid: ["Changements drastiques", "Surcharge de volume ou d'intensité"]
-    }
-  };
+  // ✅ Utiliser le Lorang Strategy Engine (identique au dashboard)
+  const levers = lr?.activatedLevers || [];
+  const prohibitions = lr?.prohibitions || [];
+  const summary = lr?.summary;
+  const templateSuggestion = lr?.templateSuggestion;
 
-  const actions = leverActions[ul.primaryLever] || leverActions.maintain;
+  const priorityBadge = (p: number) => p === 1 
+    ? '<span class="badge" style="background:#3b82f620;color:#3b82f6;font-size:10px;">P1 — Prioritaire</span>'
+    : p === 2 
+      ? '<span class="badge" style="background:#f59e0b20;color:#f59e0b;font-size:10px;">P2 — Secondaire</span>'
+      : '<span class="badge" style="background:#6b728020;color:#6b7280;font-size:10px;">P3 — Tertiaire</span>';
 
   return `
     <section id="leviers-action" class="section pagebreakAvoid">
       <h2>🔧 Leviers d'Action</h2>
       
-      <div class="card cardHighlight">
-        <h3>${ul.leverEmoji} Levier Prioritaire : ${htmlEscape(ul.leverLabel)}</h3>
-        <div class="grid2 mt">
-          <div>
-            <h4 style="color:#16a34a;">✅ À FAIRE (DO)</h4>
-            <ul>
-              ${actions.do.map(a => `<li>${htmlEscape(a)}</li>`).join("")}
-            </ul>
+      ${lr ? `
+        <!-- Synthèse décisionnelle Lorang -->
+        <div class="card cardHighlight">
+          <div class="grid2">
+            <div>
+              <h3>${lr.limiterIcon} Limiteur : ${htmlEscape(lr.limiterLabel)}</h3>
+              <p class="muted" style="font-size:12px;">${htmlEscape(lr.limiterExplanation)}</p>
+            </div>
+            <div>
+              <p style="font-size:13px;"><b>Action principale :</b> ${htmlEscape(summary?.mainAction || "—")}</p>
+              <p class="muted" style="font-size:11px;margin-top:4px;"><b>Pourquoi :</b> ${htmlEscape(summary?.whyThis || "—")}</p>
+              <p class="muted" style="font-size:11px;"><b>Pourquoi pas autre chose :</b> ${htmlEscape(summary?.whyNotOthers || "—")}</p>
+            </div>
           </div>
-          <div>
-            <h4 style="color:#dc2626;">🚫 À ÉVITER (AVOID)</h4>
-            <ul>
-              ${actions.avoid.map(a => `<li>${htmlEscape(a)}</li>`).join("")}
-            </ul>
+          ${templateSuggestion ? `
+            <div style="margin-top:12px;padding:8px 12px;background:var(--muted-bg, #f1f5f9);border-radius:6px;">
+              <span style="font-size:11px;color:var(--muted);">💡 Type de semaine suggéré : <b>${htmlEscape(templateSuggestion.weekLabel)}</b> — ${htmlEscape(templateSuggestion.reasoning)}</span>
+            </div>
+          ` : ""}
+          <div style="margin-top:8px;">
+            <span class="badge" style="background:${lr.confidence === 'high' ? '#16a34a' : lr.confidence === 'moderate' ? '#f59e0b' : '#dc2626'}20;color:${lr.confidence === 'high' ? '#16a34a' : lr.confidence === 'moderate' ? '#f59e0b' : '#dc2626'};font-size:10px;">
+              Confiance : ${htmlEscape(lr.confidenceLabel)}
+            </span>
           </div>
         </div>
-      </div>
+
+        <!-- Leviers activés (dynamiques, identiques au dashboard) -->
+        ${levers.length > 0 ? `
+          <div class="card mt">
+            <h3>⚡ Leviers Activés (${levers.length})</h3>
+            ${levers.map(lever => `
+              <div style="padding:12px;margin:8px 0;border-radius:8px;border:1px solid ${lever.priority === 1 ? 'var(--primary, #3b82f6)' : '#e5e7eb'};background:${lever.priority === 1 ? 'rgba(59,130,246,0.05)' : '#fafafa'};">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <span style="font-size:20px;">${lever.icon}</span>
+                  <span style="font-size:14px;font-weight:600;">${htmlEscape(lever.label)}</span>
+                  ${priorityBadge(lever.priority)}
+                  ${lever.isStaffOnly ? '<span class="badge" style="background:#6b728020;color:#6b7280;font-size:9px;">🛡️ Staff</span>' : ''}
+                </div>
+                <p class="muted" style="font-size:12px;margin-top:4px;">${htmlEscape(lever.reason)}</p>
+                ${lever.prescription.length > 0 ? `
+                  <div style="margin-top:8px;">
+                    <p style="font-size:11px;font-weight:600;color:#16a34a;">Prescription :</p>
+                    <ul style="margin:4px 0 0 16px;font-size:12px;">
+                      ${lever.prescription.map(p => `<li style="color:#16a34a;">• ${htmlEscape(p)}</li>`).join("")}
+                    </ul>
+                  </div>
+                ` : ""}
+                ${lever.warnings.length > 0 ? `
+                  <div style="margin-top:6px;">
+                    <p style="font-size:11px;font-weight:600;color:#f59e0b;">⚠️ Précautions :</p>
+                    <ul style="margin:4px 0 0 16px;font-size:12px;">
+                      ${lever.warnings.map(w => `<li style="color:#f59e0b;">• ${htmlEscape(w)}</li>`).join("")}
+                    </ul>
+                  </div>
+                ` : ""}
+              </div>
+            `).join("")}
+          </div>
+        ` : ""}
+
+        <!-- Interdictions -->
+        ${prohibitions.length > 0 ? `
+          <div class="card mt">
+            <h3>🚫 Interdictions Actives</h3>
+            ${prohibitions.map(p => `
+              <div class="alert alertWarning" style="margin:6px 0;">
+                <b>${htmlEscape(p.label)}</b><br>
+                <span class="muted" style="font-size:11px;">${htmlEscape(p.reason)} — ${htmlEscape(p.explanation)}</span>
+              </div>
+            `).join("")}
+          </div>
+        ` : ""}
+      ` : `
+        <!-- Fallback si Lorang non disponible -->
+        <div class="card cardHighlight">
+          <h3>${ul.leverEmoji} Levier Prioritaire : ${htmlEscape(ul.leverLabel)}</h3>
+          <p class="muted">${htmlEscape(ul.limiterExplanation)}</p>
+        </div>
+      `}
 
       ${roadmap.phases.length > 0 ? `
         <div class="card mt">
