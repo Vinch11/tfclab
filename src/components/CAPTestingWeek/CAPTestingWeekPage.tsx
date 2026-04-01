@@ -31,6 +31,7 @@ import { CAP_TESTING_WEEK, computeCAPCompletion } from "@/data/capTestingWeek";
 import { CAPDayCard } from "./CAPDayCard";
 import { CAPTestSheet } from "./CAPTestSheet";
 import { CAPCompletionSummary } from "./CAPCompletionSummary";
+import { CAPGuide } from "./CAPGuide";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
 
