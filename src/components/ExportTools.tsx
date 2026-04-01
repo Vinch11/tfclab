@@ -1402,6 +1402,12 @@ function buildExportPayload(
         tss7d: effectiveSnapshot?.tss_7d ?? null,
         tss28d: effectiveSnapshot?.tss_7d ? effectiveSnapshot.tss_7d * 4 : null,
       },
+      // ✅ Passer le résultat du moteur unifié pour cohérence maximale
+      unifiedLimiterResult: {
+        primaryLimiter: unifiedLimiter.primaryLimiter,
+        gapAnalysis: unifiedLimiter.gapAnalysis,
+        aerobicWeaknessDetail: unifiedLimiter.aerobicWeaknessDetail,
+      },
     });
   } catch { /* fallback null */ }
 
