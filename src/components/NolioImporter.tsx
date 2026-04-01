@@ -43,6 +43,12 @@ export interface NolioImportResult {
   running_power_max?: string;
   running_power_threshold?: string;
   vlamax_run?: string; // VLamax CAP calculée
+  // ✅ Running power granulaires (Score G CAP)
+  running_power_1s?: string;
+  running_power_5s?: string;
+  running_power_30s?: string;
+  running_power_60s?: string;
+  running_power_5min?: string;
   // Meta
   date?: string;
   coach_notes?: string;
@@ -277,6 +283,12 @@ export function NolioImporter({ onImport, variant = "inline", previousVLamax, cu
       }
       if (runEx.run_power_max) values.running_power_max = String(Math.round(runEx.run_power_max));
       if (runEx.run_power_threshold) values.running_power_threshold = String(Math.round(runEx.run_power_threshold));
+      // ✅ Running power granulaires pour Score G CAP
+      if (runEx.run_power_max) values.running_power_1s = String(Math.round(runEx.run_power_max));
+      if (runEx.run_power_5s) values.running_power_5s = String(Math.round(runEx.run_power_5s));
+      if (runEx.run_power_30s) values.running_power_30s = String(Math.round(runEx.run_power_30s));
+      if (runEx.run_power_1min) values.running_power_60s = String(Math.round(runEx.run_power_1min));
+      if (runEx.run_power_5min) values.running_power_5min = String(Math.round(runEx.run_power_5min));
       if (runEx.vma) notes.push(`VMA: ${runEx.vma.toFixed(1)} km/h`);
       if (runEx.run_power_max) notes.push(`Pmax run: ${runEx.run_power_max}W`);
       if (runEx.run_power_threshold) notes.push(`Pseuil run: ${runEx.run_power_threshold}W`);
