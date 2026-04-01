@@ -41,11 +41,12 @@ interface ComprendreScoresCardProps {
   potentielScore: number | null;
   objectif: string;
   ambition?: AmbitionLevel;
+  athleteAge?: number | null;
   className?: string;
 }
 
 export function ComprendreScoresCard({
-  vlamaxValue, tteMin, ftpKg, vo2max, potentielScore, objectif, ambition = DEFAULT_AMBITION, className
+  vlamaxValue, tteMin, ftpKg, vo2max, potentielScore, objectif, ambition = DEFAULT_AMBITION, athleteAge, className
 }: ComprendreScoresCardProps) {
   const [openId, setOpenId] = useState<string | null>(null);
 
