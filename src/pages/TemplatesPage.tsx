@@ -1,4 +1,5 @@
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 /**
  * Templates de Programmation Page
  * Displays training templates with optional staff annotations

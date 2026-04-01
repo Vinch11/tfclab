@@ -1,4 +1,5 @@
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
+import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 // =============================================
 // FATIGUE COMPARISON CHART - Snapshot fatigue_state vs Calculée
 // Modèle centré snapshot: compare l'état déclaré dans chaque snapshot

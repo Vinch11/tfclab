@@ -48,6 +48,7 @@ import {
 } from "@/lib/wahoo/wahooSuggestionEngine";
 import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
 import { computeCAPInjuryRisk } from "@/lib/capInjuryRisk";
+import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 
 const AXIS_CONFIG: Record<string, { icon: typeof Zap; color: string; label: string }> = {
   VLAMAX: { icon: Zap, color: "text-amber-500", label: "VLamax ↓" },
