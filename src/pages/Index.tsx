@@ -1454,6 +1454,7 @@ const Index = () => {
                   tte_min: dashDiagnostic.effectifs.tte.tte_min,
                   confidence: dashDiagnostic.effectifs.tte.confidence,
                   source: dashDiagnostic.effectifs.tte.source,
+                  label: `TTE (${dashDiagnostic.effectifs.tte.source})`,
                 } : tteEffectif}
                 limiterResult={dashDiagnostic ? dashDiagnostic.limiter : unifiedLimiterResult}
                 ftp={ftp}
