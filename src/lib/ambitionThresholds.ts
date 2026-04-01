@@ -11,7 +11,7 @@
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { getTargetsForAmbition } from "@/lib/physiologicalTargets";
 import { scoreRelativeToTarget, scoreRelativeToTargetInverse } from "@/lib/coachingCompass";
-import { getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
+import { getPerformanceAgeFactor, getTTEAgeFactor, getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
 
 export type MetricStatus = "ok" | "warning" | "critical" | "neutral";
 
