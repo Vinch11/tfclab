@@ -400,7 +400,7 @@ export function useCloudData() {
     const { error } = await supabase.from("snapshots").update(updates).eq("id", id);
     if (error) {
       toast.error("Erreur lors de la mise à jour du profil");
-      if (import.meta.env.DEV) console.error("Update snapshot error");
+      console.error("Update snapshot error:", error.message, error.details, error.code, JSON.stringify(updates));
       return false;
     }
     setSnapshots((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
