@@ -1,5 +1,6 @@
 import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScoreColor, getPotentielTargets, getTargets, getWeightsBySport, generateAthleteReadiness, computePillarCalculations, type PotentielInput, type PotentielResult, computePotentielSignature } from "@/lib/potentielPhysiologiqueEffectif";
+import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 // =============================================
 // DASHBOARD STAFF - Two For Coaching Lab
 // Tour de contrôle décisionnelle - Lisible en < 10 secondes
@@ -229,23 +230,7 @@ export default function DashboardPage() {
         type: t.type,
         name: t.name,
       })),
-      snapshots: athleteSnapshots.map(s => ({
-        id: s.id,
-        athlete_id: s.athlete_id,
-        date: s.date,
-        vlamax: s.vlamax,
-        ftp: s.ftp,
-        pmax_5s: s.pmax_5s,
-        weight_kg: s.weight_kg,
-        sport_main: s.sport_main,
-        p30s_w: s.p30s_w,
-        p60s_w: s.p60s_w,
-        map5min_w: s.map5min_w,
-        tte_observed_min: s.tte_observed_min,
-        protocol_quality: s.protocol_quality,
-        objectif: s.objectif,
-        vo2max: s.vo2max,
-      })),
+      snapshots: athleteSnapshots.map(mapSnapshotToV2),
     });
     
     // TTE Effectif (source unique)
