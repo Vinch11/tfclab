@@ -223,6 +223,8 @@ interface ExportPayload {
   };
   // ✅ NEW: Coaching Compass (5 axes)
   coachingCompass: TFCLCoachingCompassResult;
+  // ✅ NEW: Lorang Strategy (leviers dynamiques — cohérence dashboard)
+  lorangResult: LorangStrategyResult | null;
 }
 
 // =============================================
