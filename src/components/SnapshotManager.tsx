@@ -412,6 +412,17 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       ...(values.ftp && { ftp: values.ftp }),
       ...(values.pace_threshold && { pace_threshold: values.pace_threshold }),
       ...(values.vlamax_run && { vlamax_run: values.vlamax_run }),
+      // ✅ FIX: Champs manquants — VMA, running power granulaires, meta
+      ...(values.vma && { vma: values.vma }),
+      ...(values.running_power_max && { run_power_max: values.running_power_max }),
+      ...(values.running_power_threshold && { run_power_threshold: values.running_power_threshold }),
+      ...(values.running_power_1s && { run_power_1s: values.running_power_1s }),
+      ...(values.running_power_5s && { run_power_5s: values.running_power_5s }),
+      ...(values.running_power_30s && { run_power_30s: values.running_power_30s }),
+      ...(values.running_power_60s && { run_power_60s: values.running_power_60s }),
+      ...(values.running_power_5min && { run_power_5min: values.running_power_5min }),
+      ...(values.protocol_quality != null && { protocol_quality: String(values.protocol_quality) }),
+      ...(values.is_semaine_test && { vlamax_is_reference: "true" }),
       ...(values.coach_notes && { coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${values.coach_notes}` : values.coach_notes }),
     }));
   };
