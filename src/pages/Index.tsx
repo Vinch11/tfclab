@@ -1444,6 +1444,7 @@ const Index = () => {
                   return { score: Math.max(0, 100 - missing.length * 10), manquants: missing };
                 })()}
                 ambition={currentAmbition}
+                athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
               />
             ) : null,
           },
