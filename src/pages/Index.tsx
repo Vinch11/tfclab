@@ -1528,6 +1528,18 @@ const Index = () => {
               />
             ),
           },
+          // ✅ Analyse Nolio persistante (édition + recalcul V2 live)
+          {
+            id: "nolio-analysis",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <NolioAnalysisCard
+                snapshot={effectiveCloudSnapshot}
+                staffMode={staffMode}
+                objectif={currentAthlete.goal || "IM"}
+                onSnapshotUpdated={() => loadData()}
+              />
+            ),
+          },
           // Évolution des snapshots
           {
             id: "evolution-chart",
