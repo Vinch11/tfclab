@@ -79,9 +79,9 @@ export function ComprendreScoresCard({
   const ambDef = getAmbitionDefinition(ambition);
 
   // Évaluations dynamiques par ambition
-  const vlamaxEval = evaluateVLamax(vlamaxValue, objectif, ambition);
-  const tteEval = evaluateTTE(tteMin || null, objectif, ambition);
-  const ftpKgEval = evaluateFtpKg(ftpKg, objectif, ambition);
+  const vlamaxEval = evaluateVLamax(vlamaxValue, objectif, ambition, athleteAge);
+  const tteEval = evaluateTTE(tteMin || null, objectif, ambition, athleteAge);
+  const ftpKgEval = evaluateFtpKg(ftpKg, objectif, ambition, athleteAge);
   const potentielEval = evaluateReadiness(potentielScore, ambition);
 
   const scores: ScoreExplanation[] = [
