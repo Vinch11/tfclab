@@ -1757,7 +1757,7 @@ const Index = () => {
 
       case "strategie": {
         const strategieSections = [
-          // Synthèse Executive (alignée sur dashDiagnostic)
+          // Synthèse Executive
           {
             id: "synthese-executive",
             render: () => currentAthlete && (
