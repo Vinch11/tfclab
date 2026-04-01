@@ -1774,16 +1774,16 @@ const Index = () => {
 
       case "strategie": {
         const strategieSections = [
-          // Synthèse Executive
+          // Synthèse Executive — Alignée sur le diagnostic unifié
           {
             id: "synthese-executive",
             render: () => currentAthlete && (
               <SyntheseExecutiveCard
                 athleteName={currentAthlete.name}
                 objectif={currentAthlete.goal || "IM"}
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
-                limiterResult={unifiedLimiterResult}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
+                limiterResult={alignedLimiterResult}
                 ftp={ftp}
                 poids={poids ?? null}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
