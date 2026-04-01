@@ -1756,16 +1756,25 @@ const Index = () => {
 
       case "strategie": {
         const strategieSections = [
-          // Synthèse Executive
+          // Synthèse Executive (alignée sur dashDiagnostic)
           {
             id: "synthese-executive",
             render: () => currentAthlete && (
               <SyntheseExecutiveCard
                 athleteName={currentAthlete.name}
                 objectif={currentAthlete.goal || "IM"}
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
-                limiterResult={unifiedLimiterResult}
+                vlamaxEffectif={dashDiagnostic ? {
+                  value: dashDiagnostic.effectifs.vlamax.value,
+                  confidence: dashDiagnostic.effectifs.vlamax.confidence,
+                  source: dashDiagnostic.effectifs.vlamax.source,
+                  label: `VLamax (${dashDiagnostic.effectifs.vlamax.source})`,
+                } : vlamaxEffectif}
+                tteEffectif={dashDiagnostic ? {
+                  tte_min: dashDiagnostic.effectifs.tte.tte_min,
+                  confidence: dashDiagnostic.effectifs.tte.confidence,
+                  source: dashDiagnostic.effectifs.tte.source,
+                } : tteEffectif}
+                limiterResult={dashDiagnostic ? dashDiagnostic.limiter : unifiedLimiterResult}
                 ftp={ftp}
                 poids={poids ?? null}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
