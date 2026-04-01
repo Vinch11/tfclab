@@ -1661,7 +1661,7 @@ function buildExportPayload(
           label: potentielPhysiologique.label,
           color: potentielPhysiologique.color,
         },
-        strategyResult: null,
+        strategyResult: lorangResult,
         lactateThresholds: null,
         wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
         objectif: athlete.goal || "IM",
