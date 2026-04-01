@@ -397,10 +397,13 @@ export function useCloudData() {
   };
 
   const updateSnapshot = async (id: string, updates: Partial<DbSnapshot>) => {
-    const { error } = await supabase.from("snapshots").update(updates).eq("id", id);
+    // Strip non-DB fields before sending to Supabase
+    const { id: _id, created_at: _ca, updated_at: _ua, ...cleanUpdates } = updates as any;
+    const { error } = await supabase.from("snapshots").update(cleanUpdates).eq("id", id);
     if (error) {
-      toast.error("Erreur lors de la mise à jour du profil");
-      console.error("Update snapshot error:", error.message, error.details, error.code, JSON.stringify(updates));
+      const detail = error.details || error.message || "Erreur inconnue";
+      toast.error(`Mise à jour snapshot échouée : ${detail}`);
+      console.error("Update snapshot error:", error.message, error.details, error.code, JSON.stringify(cleanUpdates));
       return false;
     }
     setSnapshots((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
