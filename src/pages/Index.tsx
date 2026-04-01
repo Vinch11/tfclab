@@ -488,6 +488,16 @@ const Index = () => {
         protocol_quality: s.protocol_quality,
         objectif: s.objectif,
         vo2max: s.vo2max,
+        // CAP V2 Enhanced — données Nolio/Stryd/Garmin
+        vma: s.vma,
+        pace_threshold_sec_per_km: s.pace_threshold_sec_per_km,
+        running_power_threshold: s.running_power_threshold,
+        running_power_max: s.running_power_max,
+        running_power_1s: s.running_power_1s,
+        running_power_5s: s.running_power_5s,
+        running_power_30s: s.running_power_30s,
+        running_power_60s: s.running_power_60s,
+        running_power_5min: s.running_power_5min,
       })),
     });
   }, [currentAthlete, tests, snapshots]);
