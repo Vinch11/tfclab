@@ -33,6 +33,7 @@ interface SyntheseExecutiveCardProps {
   vo2max: number | null;
   completude: { score: number; manquants: string[] };
   ambition?: AmbitionLevel;
+  athleteAge?: number | null;
 }
 
 // Map metric names from gapAnalysis to pillar groups
