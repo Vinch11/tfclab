@@ -723,7 +723,7 @@ const Index = () => {
         } : undefined,
       });
     } catch { return null; }
-  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, ftp_kg, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass]);
+  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, ftp_kg, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult]);
 
   // ✅ LACTATE THRESHOLDS — Pour Coaching Compass
   const lactateThresholdsForCompass = useMemo(() => {
