@@ -140,22 +140,22 @@ export function SyntheseExecutiveCard({
   const items: { label: string; value: string; status: MetricStatus; source: string; target: string }[] = [];
   
   if (vlamaxEffectif.value !== null) {
-    const eval_ = evaluateVLamax(vlamaxEffectif.value, objectif, ambition);
+    const eval_ = evaluateVLamax(vlamaxEffectif.value, objectif, ambition, athleteAge);
     items.push({ label: "VLamax", value: `${vlamaxEffectif.value.toFixed(2)} mmol/L/s`, status: eval_.status, source: vlamaxEffectif.source, target: eval_.target });
   }
   
   if (tteEffectif.tte_min > 0) {
-    const eval_ = evaluateTTE(tteEffectif.tte_min, objectif, ambition);
+    const eval_ = evaluateTTE(tteEffectif.tte_min, objectif, ambition, athleteAge);
     items.push({ label: "TTE", value: `${tteEffectif.tte_min} min`, status: eval_.status, source: tteEffectif.source, target: eval_.target });
   }
   
   if (ftpKgStr) {
-    const eval_ = evaluateFtpKg(ftpKg, objectif, ambition);
+    const eval_ = evaluateFtpKg(ftpKg, objectif, ambition, athleteAge);
     items.push({ label: "FTP/kg", value: `${ftpKgStr} W/kg`, status: eval_.status, source: "snapshot", target: eval_.target });
   }
   
   if (vo2max) {
-    const eval_ = evaluateVO2max(vo2max, objectif, ambition);
+    const eval_ = evaluateVO2max(vo2max, objectif, ambition, athleteAge);
     items.push({ label: "VO₂max", value: `${vo2max} ml/kg/min`, status: eval_.status, source: "snapshot", target: eval_.target });
   }
 
