@@ -1671,6 +1671,8 @@ function buildExportPayload(
       };
       return computeCoachingCompass(compassInput);
     })(),
+    // ✅ NEW: Lorang Strategy Result (cohérence dashboard)
+    lorangResult,
   };
 }
 
