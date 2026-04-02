@@ -257,6 +257,36 @@ function AICoachingCard({
       vlamaxConfidenceLabel,
       vlamaxFormula,
       vlamaxWarnings,
+      // Coaching Compass context
+      compassLimiter: compassResult?.limiter ? {
+        type: compassResult.limiter.type,
+        label: compassResult.limiter.label,
+        description: compassResult.limiter.description,
+        impactScore: compassResult.limiter.impactScore,
+        confidence: compassResult.limiter.confidence,
+      } : null,
+      compassLeverage: compassResult?.leverage ? {
+        type: compassResult.leverage.type,
+        label: compassResult.leverage.label,
+        description: compassResult.leverage.description,
+        expectedAdaptations: compassResult.leverage.expectedAdaptations,
+        workoutExamples: compassResult.leverage.workoutExamples,
+        priority: compassResult.leverage.priority,
+      } : null,
+      compassDecision: compassResult?.decision ? {
+        recommendedBlock: compassResult.decision.recommendedBlock,
+        durationWeeks: compassResult.decision.durationWeeks,
+        primaryWorkouts: compassResult.decision.primaryWorkouts,
+        physiologicalTargets: compassResult.decision.physiologicalTargets,
+        prohibitions: compassResult.decision.prohibitions,
+        athleteMessage: compassResult.decision.athleteMessage,
+        coachRationale: compassResult.decision.coachRationale,
+      } : null,
+      compassReadiness: compassResult?.readiness ? {
+        potential: compassResult.readiness.potential,
+        availability: compassResult.readiness.availability,
+        governingFactor: compassResult.readiness.governingFactor,
+      } : null,
     });
   };
 
