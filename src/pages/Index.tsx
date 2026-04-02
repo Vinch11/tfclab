@@ -1638,8 +1638,8 @@ const Index = () => {
             id: "fatmax-tfcl-profil",
             render: () => currentAthlete && (
               <MetabolicZonesUnifiedCard
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
                 objectif={currentAthlete.goal || "IM"}
                 ftp={ftp}
                 staffMode={staffMode}
