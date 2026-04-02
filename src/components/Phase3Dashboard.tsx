@@ -25,6 +25,7 @@ import type { AICoachingAthleteContext } from "@/hooks/useAICoaching";
 import { computeVLamaxBikeV2Enhanced } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import type { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
+import type { TFCLCoachingCompassResult } from "@/lib/coachingCompass";
 
 // ── Props ──────────────────────────────────────────────────────
 
@@ -47,6 +48,7 @@ export interface Phase3DashboardProps {
     fc_max?: number | null;
   } | null;
   ambition?: AmbitionLevel;
+  compassResult?: TFCLCoachingCompassResult | null;
 }
 
 // ── Main Component ─────────────────────────────────────────────
@@ -170,11 +172,13 @@ function AICoachingCard({
   snapshot,
   snapshotCount,
   ambition,
+  compassResult,
 }: {
   athlete: DbAthlete;
   snapshot: Phase3DashboardProps["effectiveSnapshot"];
   snapshotCount: number;
   ambition?: AmbitionLevel;
+  compassResult?: TFCLCoachingCompassResult | null;
 }) {
   const { response, isLoading, generateRecommendations, reset } = useAICoaching();
   const [hasGenerated, setHasGenerated] = useState(false);
@@ -253,6 +257,36 @@ function AICoachingCard({
       vlamaxConfidenceLabel,
       vlamaxFormula,
       vlamaxWarnings,
+      // Coaching Compass context
+      compassLimiter: compassResult?.limiter ? {
+        type: compassResult.limiter.type,
+        label: compassResult.limiter.label,
+        description: compassResult.limiter.description,
+        impactScore: compassResult.limiter.impactScore,
+        confidence: compassResult.limiter.confidence,
+      } : null,
+      compassLeverage: compassResult?.leverage ? {
+        type: compassResult.leverage.type,
+        label: compassResult.leverage.label,
+        description: compassResult.leverage.description,
+        expectedAdaptations: compassResult.leverage.expectedAdaptations,
+        workoutExamples: compassResult.leverage.workoutExamples,
+        priority: compassResult.leverage.priority,
+      } : null,
+      compassDecision: compassResult?.decision ? {
+        recommendedBlock: compassResult.decision.recommendedBlock,
+        durationWeeks: compassResult.decision.durationWeeks,
+        primaryWorkouts: compassResult.decision.primaryWorkouts,
+        physiologicalTargets: compassResult.decision.physiologicalTargets,
+        prohibitions: compassResult.decision.prohibitions,
+        athleteMessage: compassResult.decision.athleteMessage,
+        coachRationale: compassResult.decision.coachRationale,
+      } : null,
+      compassReadiness: compassResult?.readiness ? {
+        potential: compassResult.readiness.potential,
+        availability: compassResult.readiness.availability,
+        governingFactor: compassResult.readiness.governingFactor,
+      } : null,
     });
   };
 
