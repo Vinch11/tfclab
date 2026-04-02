@@ -1249,8 +1249,8 @@ function buildExportPayload(
   const athleteTests = tests.filter(t => t.athlete_id === athlete.id);
   const athleteCheckins = checkins.filter(c => c.athlete_id === athlete.id);
   
-  // Calculer VLamax effectif
-  const vlamax = computeVLamaxEffectif({
+  // Calculer VLamax effectif (legacy)
+  const vlamaxLegacy = computeVLamaxEffectif({
     athleteId: athlete.id,
     objectif: athlete.goal || "IM",
     activeSnapshotId: athlete.active_snapshot_id,
@@ -1264,14 +1264,115 @@ function buildExportPayload(
     snapshots: athleteSnapshots.map(mapSnapshotToV2)
   });
   
-  // Calculer TTE effectif
-  const tte = computeTTEEffectif({
+  // Calculer TTE effectif (legacy)
+  const tteLegacy = computeTTEEffectif({
     ftp: effectiveRefs.ftp,
     tss_7d: effectiveSnapshot?.tss_7d,
     tte_mode: effectiveSnapshot?.tte_mode,
     tte_observed_min: effectiveSnapshot?.tte_observed_min,
     objectif: athlete.goal || "IM"
   });
+
+  // ✅ Diagnostic Engine unifié — Source unique de vérité (identique au dashboard)
+  const athleteBirthDate = athlete.birth_date ?? ((athlete as unknown as { dateNaissance?: string | null }).dateNaissance ?? null);
+  const athleteAge = calculateAge(athleteBirthDate);
+  const objectifForLimiter = athlete.goal || "IM";
+  const sportFocusForLimiter: "run" | "bike" | "tri" = 
+    ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course", "10K", "5K", "StartToRun"].includes(objectifForLimiter) ? "run"
+    : ["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectifForLimiter) ? "tri"
+    : "bike";
+  const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
+    ? effectiveRefs.ftp / effectiveRefs.weightKg
+    : 4.0;
+  const cpResultForPayload = analyzeCriticalPower({
+    pmax_5s: effectiveSnapshot?.pmax_5s ?? null,
+    p30s_w: effectiveSnapshot?.p30s_w ?? null,
+    p60s_w: effectiveSnapshot?.p60s_w ?? null,
+    map5min_w: effectiveSnapshot?.map5min_w ?? null,
+    ftp: effectiveRefs.ftp ?? null,
+    weight_kg: effectiveRefs.weightKg ?? null,
+  });
+  const wprimeKjForPayload = cpResultForPayload ? cpResultForPayload.wprimeKJ : null;
+
+  // Checkin le plus récent
+  const sortedCheckins = [...athleteCheckins].sort((a, b) =>
+    new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime()
+  );
+  const latestCheckin = sortedCheckins[0] || null;
+
+  let diagnostic: ReturnType<typeof computeDiagnostic> | null = null;
+  if (effectiveSnapshot) {
+    const diagnosticInput: DiagnosticInput = {
+      athleteId: athlete.id,
+      athleteName: athlete.name,
+      age: athleteAge,
+      sex: (athlete.sex === "M" || athlete.sex === "F") ? athlete.sex : null,
+      weightKg: effectiveSnapshot.weight_kg ?? null,
+      objectif: objectifForLimiter,
+      ambition: ambition,
+      sportFocus: sportFocusForLimiter === "tri" ? "bike" : sportFocusForLimiter,
+      vo2max: effectiveSnapshot.vo2max ?? null,
+      ftp: effectiveSnapshot.ftp ?? null,
+      ftpKg,
+      pmax5s: effectiveSnapshot.pmax_5s ?? null,
+      p30sW: effectiveSnapshot.p30s_w ?? null,
+      p60sW: effectiveSnapshot.p60s_w ?? null,
+      map5minW: effectiveSnapshot.map5min_w ?? null,
+      vma: effectiveSnapshot.vma ?? null,
+      css: effectiveSnapshot.css ?? null,
+      vlamax: effectiveSnapshot.vlamax ?? null,
+      vlamaxRun: effectiveSnapshot.vlamax_run ?? null,
+      vlamaxSource: effectiveSnapshot.vlamax_source ?? null,
+      vlamaxProtocol: effectiveSnapshot.vlamax_protocol ?? null,
+      vlamaxIsReference: effectiveSnapshot.vlamax_is_reference ?? false,
+      tteObservedMin: effectiveSnapshot.tte_observed_min ?? null,
+      tteMode: effectiveSnapshot.tte_mode ?? null,
+      tss7d: effectiveSnapshot.tss_7d ?? null,
+      fatigueState: effectiveSnapshot.fatigue_state ?? null,
+      runEconomyScore: effectiveSnapshot.run_economy_score ?? null,
+      runHrDriftPct: effectiveSnapshot.run_hr_drift_pct ?? null,
+      paceThresholdSecPerKm: effectiveSnapshot.pace_threshold_sec_per_km ?? null,
+      runningPower1s: effectiveSnapshot.running_power_1s ?? null,
+      runningPower5s: effectiveSnapshot.running_power_5s ?? null,
+      runningPower30s: effectiveSnapshot.running_power_30s ?? null,
+      runningPower60s: effectiveSnapshot.running_power_60s ?? null,
+      runningPower5min: effectiveSnapshot.running_power_5min ?? null,
+      runningPowerThreshold: effectiveSnapshot.running_power_threshold ?? null,
+      sprint15sDistance: effectiveSnapshot.sprint_15s_distance ?? null,
+      bikeCadenceRpm: effectiveSnapshot.bike_cadence_rpm ?? null,
+      bikeHrDriftFlag: effectiveSnapshot.bike_hr_drift_flag ?? false,
+      protocolQuality: effectiveSnapshot.protocol_quality ?? null,
+      wprimeKj: wprimeKjForPayload,
+      cpDataQuality: cpResultForPayload?.dataQuality ?? null,
+      fatmax: vlamaxLegacy.value != null ? Math.max(0, 65 - (vlamaxLegacy.value - 0.3) * 80) : null,
+      forceDevMode: effectiveSnapshot.force_development_mode ?? false,
+      giIssuesFlag: effectiveSnapshot.gi_issues_flag ?? false,
+      checkinData: latestCheckin ? {
+        sleep: latestCheckin.sleep,
+        fatigue: latestCheckin.fatigue,
+        soreness: latestCheckin.soreness,
+        stress: latestCheckin.stress,
+        motivation: latestCheckin.motivation,
+        painFlag: latestCheckin.pain_flag ?? false,
+      } : undefined,
+    };
+    diagnostic = computeDiagnostic(diagnosticInput);
+  }
+
+  // ✅ Valeurs alignées sur le diagnostic unifié (cohérence totale Dashboard ↔ PDF)
+  const vlamax: VLamaxEffectif = diagnostic ? {
+    value: diagnostic.effectifs.vlamax.value,
+    confidence: diagnostic.effectifs.vlamax.confidence,
+    source: diagnostic.effectifs.vlamax.source,
+    label: `VLamax (${diagnostic.effectifs.vlamax.source})`,
+  } : vlamaxLegacy;
+
+  const tte: TTEEffectif = diagnostic ? {
+    tte_min: diagnostic.effectifs.tte.tte_min,
+    confidence: diagnostic.effectifs.tte.confidence,
+    source: diagnostic.effectifs.tte.source,
+    label: `TTE (${diagnostic.effectifs.tte.source})`,
+  } : tteLegacy;
   
   // Calculer l'âge (supporte aussi l'ancien champ dateNaissance)
   const athleteBirthDate = athlete.birth_date ?? ((athlete as unknown as { dateNaissance?: string | null }).dateNaissance ?? null);
