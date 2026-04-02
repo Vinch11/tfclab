@@ -25,6 +25,7 @@ import type { AICoachingAthleteContext } from "@/hooks/useAICoaching";
 import { computeVLamaxBikeV2Enhanced } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import type { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
+import type { TFCLCoachingCompassResult } from "@/lib/coachingCompass";
 
 // ── Props ──────────────────────────────────────────────────────
 
