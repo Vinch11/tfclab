@@ -1860,8 +1860,8 @@ const Index = () => {
             id: "comprendre-scores",
             render: () => currentAthlete && (
               <ComprendreScoresCard
-                vlamaxValue={vlamaxEffectif.value}
-                tteMin={tteEffectif.tte_min}
+                vlamaxValue={alignedVlamaxEffectif.value}
+                tteMin={alignedTteEffectif.tte_min}
                 ftpKg={ftp_kg}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 potentielScore={potentielPhysiologiqueEffectif.score}
