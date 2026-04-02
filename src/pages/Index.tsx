@@ -1663,9 +1663,9 @@ const Index = () => {
             id: "scientific-charts-profil",
             render: () => currentAthlete && effectiveCloudSnapshot && staffMode && (
               <ScientificChartsDashboard
-                vlamaxValue={vlamaxEffectif.value}
-                vlamaxSource={vlamaxEffectif.source}
-                vlamaxConfidence={vlamaxEffectif.confidence}
+                vlamaxValue={alignedVlamaxEffectif.value}
+                vlamaxSource={alignedVlamaxEffectif.source}
+                vlamaxConfidence={alignedVlamaxEffectif.confidence}
                 tteValue={tteEffectif.tte_min}
                 tteSource={tteEffectif.source}
                 tteConfidence={tteEffectif.confidence}
