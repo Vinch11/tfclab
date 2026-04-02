@@ -1804,7 +1804,7 @@ const Index = () => {
                 vlamaxValue={alignedVlamaxEffectif.value}
                 vlamaxConfidence={alignedVlamaxEffectif.confidence}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
-                tteMin={tteEffectif.tte_min}
+                tteMin={alignedTteEffectif.tte_min}
                 sport={isRunningOnly ? "cap" : "velo"}
                 objectif={currentAthlete.goal || "IM"}
                 weightKg={poids ?? null}
