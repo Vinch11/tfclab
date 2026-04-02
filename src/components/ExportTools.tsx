@@ -1373,10 +1373,6 @@ function buildExportPayload(
     source: diagnostic.effectifs.tte.source,
     label: `TTE (${diagnostic.effectifs.tte.source})`,
   } : tteLegacy;
-  
-  // Calculer l'âge (supporte aussi l'ancien champ dateNaissance)
-  const athleteBirthDate = athlete.birth_date ?? ((athlete as unknown as { dateNaissance?: string | null }).dateNaissance ?? null);
-  const athleteAge = calculateAge(athleteBirthDate);
 
   // Calculer Potentiel Physiologique
   
@@ -1392,27 +1388,6 @@ function buildExportPayload(
     // ✅ FIX: Ajout âge ET ambition pour synchronisation parfaite avec l'UI
     athleteAge,
     ambition,
-  });
-
-  const ftpKg = effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0
-    ? effectiveRefs.ftp / effectiveRefs.weightKg
-    : 4.0;
-
-  // ✅ Calculer sportFocus AVANT le moteur unifié (cohérence dashboard)
-  const objectifForLimiter = athlete.goal || "IM";
-  const sportFocusForLimiter: "run" | "bike" | "tri" = 
-    ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course", "10K", "5K", "StartToRun"].includes(objectifForLimiter) ? "run"
-    : ["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectifForLimiter) ? "tri"
-    : "bike";
-
-  // ✅ Compute CP/W' for unified limiter and report
-  const cpResultForPayload = analyzeCriticalPower({
-    pmax_5s: effectiveSnapshot?.pmax_5s ?? null,
-    p30s_w: effectiveSnapshot?.p30s_w ?? null,
-    p60s_w: effectiveSnapshot?.p60s_w ?? null,
-    map5min_w: effectiveSnapshot?.map5min_w ?? null,
-    ftp: effectiveRefs.ftp ?? null,
-    weight_kg: effectiveRefs.weightKg ?? null,
   });
 
   // ✅ Compute Unified Limiter — IDENTIQUE au dashboard (Index.tsx)
