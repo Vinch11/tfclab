@@ -241,34 +241,58 @@ function GaugeRow({ label, value, refMin, refMax, eliteMin, eliteMax, unit, icon
 }
 
 /**
- * Maps limiter → justified sport ratio deviations based on physiological logic:
- * - aerobic_engine → +Bike (FTP), +Run (VO2max intervals)
- * - glycolytic → +Bike (long Z2 to suppress VLamax)
- * - metabolic_efficiency → +Bike (Z2 fat oxidation)
- * - specific_endurance → +Bike (sweet spot volume)
- * - neuromuscular → +Run (economy drills, cadence work)
+ * Maps limiter → justified sport ratio deviations based on physiological logic.
+ * Each limiter covers BOTH directions (above/below) for all 3 sports to avoid
+ * false "non justifié" warnings when the plan legitimately adjusts ratios.
  */
 const LIMITER_SPORT_JUSTIFICATIONS: Record<string, { sport: string; direction: GaugeStatus; reason: string }[]> = {
   aerobic_engine: [
     { sport: "Vélo", direction: "above", reason: "FTP/VO2max: +volume vélo justifié" },
+    { sport: "Vélo", direction: "below", reason: "Moteur aérobie: report volume sur CAP/nage" },
     { sport: "Course", direction: "above", reason: "VO2max: +intervalles CAP justifié" },
+    { sport: "Course", direction: "below", reason: "Moteur aérobie: report volume sur vélo" },
     { sport: "Natation", direction: "below", reason: "Priorité moteur aérobie vélo/CAP" },
+    { sport: "Natation", direction: "above", reason: "Aérobie nage: développement base aérobie" },
   ],
   glycolytic: [
-    { sport: "Vélo", direction: "above", reason: "VLamax↓: +Z2 vélo justifié" },
+    { sport: "Vélo", direction: "above", reason: "VLamax↓: +Z2 vélo longue durée justifié" },
+    { sport: "Vélo", direction: "below", reason: "VLamax↓: report Z2 sur CAP/nage" },
     { sport: "Course", direction: "below", reason: "VLamax↓: priorité volume Z2 vélo" },
+    { sport: "Course", direction: "above", reason: "VLamax↓: +endurance fondamentale CAP" },
+    { sport: "Natation", direction: "above", reason: "VLamax↓: +Z2 nage aérobie justifié" },
+    { sport: "Natation", direction: "below", reason: "VLamax↓: priorité vélo/CAP Z2" },
   ],
   metabolic_efficiency: [
     { sport: "Vélo", direction: "above", reason: "FatMax↑: +Z2 vélo long justifié" },
+    { sport: "Vélo", direction: "below", reason: "FatMax↑: report sur CAP longue" },
     { sport: "Course", direction: "below", reason: "FatMax↑: priorité vélo Z2" },
+    { sport: "Course", direction: "above", reason: "FatMax↑: +sortie longue CAP justifié" },
+    { sport: "Natation", direction: "below", reason: "FatMax↑: priorité sports porteurs" },
+    { sport: "Natation", direction: "above", reason: "FatMax↑: +endurance nage aérobie" },
   ],
   specific_endurance: [
     { sport: "Vélo", direction: "above", reason: "TTE↑: +sweet spot vélo justifié" },
-    { sport: "Course", direction: "above", reason: "TTE↑: +tempo CAP justifié" },
+    { sport: "Vélo", direction: "below", reason: "TTE↑: report tempo sur CAP" },
+    { sport: "Course", direction: "above", reason: "TTE↑: +tempo/seuil CAP justifié" },
+    { sport: "Course", direction: "below", reason: "TTE↑: report sweet spot sur vélo" },
+    { sport: "Natation", direction: "above", reason: "TTE↑: +seuil nage justifié" },
+    { sport: "Natation", direction: "below", reason: "TTE↑: priorité vélo/CAP au seuil" },
   ],
   neuromuscular: [
-    { sport: "Course", direction: "above", reason: "Économie: +drills/cadence CAP" },
-    { sport: "Natation", direction: "above", reason: "Économie: +technique nage" },
+    { sport: "Course", direction: "above", reason: "Économie: +drills/cadence CAP justifié" },
+    { sport: "Course", direction: "below", reason: "Économie: report technique sur nage" },
+    { sport: "Natation", direction: "above", reason: "Économie: +technique nage justifié" },
+    { sport: "Natation", direction: "below", reason: "Économie: priorité drills CAP" },
+    { sport: "Vélo", direction: "above", reason: "Économie: +cadence/force vélo justifié" },
+    { sport: "Vélo", direction: "below", reason: "Économie: report sur CAP/nage technique" },
+  ],
+  durability: [
+    { sport: "Vélo", direction: "above", reason: "Durabilité: +volume Z2 vélo long justifié" },
+    { sport: "Vélo", direction: "below", reason: "Durabilité: report endurance sur CAP" },
+    { sport: "Course", direction: "above", reason: "Durabilité: +sortie longue CAP justifié" },
+    { sport: "Course", direction: "below", reason: "Durabilité: report endurance sur vélo" },
+    { sport: "Natation", direction: "above", reason: "Durabilité: +nage endurance justifié" },
+    { sport: "Natation", direction: "below", reason: "Durabilité: priorité vélo/CAP long" },
   ],
 };
 
@@ -280,15 +304,28 @@ function getDeviationJustification(
   const limiter = limiterResult.primaryLimiter;
   if (limiter === "none") return null;
 
+  // Check primary limiter rules
   const rules = LIMITER_SPORT_JUSTIFICATIONS[limiter];
-  if (!rules) return null;
-
-  const match = rules.find(r => r.sport === sport && r.direction === status);
-  if (match) {
-    return { justified: true, reason: match.reason };
+  if (rules) {
+    const match = rules.find(r => r.sport === sport && r.direction === status);
+    if (match) {
+      return { justified: true, reason: match.reason };
+    }
   }
 
-  // Deviation exists but NOT justified by limiter
+  // Check secondary limiter if available (L2 can also justify deviations)
+  const l2 = (limiterResult as any).secondaryLimiter;
+  if (l2 && l2 !== "none" && l2 !== limiter) {
+    const l2Rules = LIMITER_SPORT_JUSTIFICATIONS[l2];
+    if (l2Rules) {
+      const l2Match = l2Rules.find(r => r.sport === sport && r.direction === status);
+      if (l2Match) {
+        return { justified: true, reason: `L2: ${l2Match.reason}` };
+      }
+    }
+  }
+
+  // Deviation exists but NOT justified by any limiter
   const deviation = status === "above" ? "Excès" : "Déficit";
   return {
     justified: false,
