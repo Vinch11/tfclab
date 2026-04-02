@@ -21,6 +21,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { calculateStreaks, getLevelName, getLevelIcon } from "@/lib/streaksEngine";
 import { useAICoaching } from "@/hooks/useAICoaching";
+import type { AICoachingAthleteContext } from "@/hooks/useAICoaching";
+import { computeVLamaxBikeV2Enhanced } from "@/lib/v2/vlamaxBikeV2Enhanced";
 import type { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
