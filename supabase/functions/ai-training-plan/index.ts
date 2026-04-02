@@ -164,18 +164,26 @@ function getSportDistributionConstraint(objective: string, ambition: string, lim
   if (!ref) return null;
 
   const lines: string[] = [];
-  lines.push(`\n### 📊 CONTRAINTE DE RÉPARTITION SPORTIVE (RÉFÉRENTIEL TFCL™ ${ambKey.toUpperCase()} — ${objKey})`);
-  lines.push(`⚠️ Les ratios ci-dessous sont des CIBLES OBLIGATOIRES calculées par le référentiel TFCL™ pour ce niveau d'ambition.`);
-  lines.push(`Une tolérance de ±5% est admise UNIQUEMENT si elle est justifiée par le limiteur principal de l'athlète.\n`);
+  lines.push(`\n### 🚨📊 CONTRAINTE CRITIQUE DE RÉPARTITION SPORTIVE (RÉFÉRENTIEL TFCL™ ${ambKey.toUpperCase()} — ${objKey})`);
+  lines.push(`⛔ RÈGLE NON NÉGOCIABLE : Les ratios ci-dessous sont des CIBLES ABSOLUES. Tout plan qui ne les respecte pas sera REJETÉ.`);
+  lines.push(`Le non-respect de ces ratios est l'erreur la plus fréquente et la plus grave dans les plans générés.\n`);
 
   if (ref.swimPct && ref.bikePct && ref.runPct) {
-    lines.push(`| Discipline | Cible % volume | Tolérance |`);
-    lines.push(`|------------|---------------|-----------|`);
-    lines.push(`| 🏊 Natation | ${ref.swimPct[0]}-${ref.swimPct[1]}% | ±5% si limiteur natation |`);
-    lines.push(`| 🚴 Vélo | ${ref.bikePct[0]}-${ref.bikePct[1]}% | ±5% si limiteur vélo/FTP/SFR |`);
-    lines.push(`| 🏃 Course | ${ref.runPct[0]}-${ref.runPct[1]}% | ±5% si limiteur CAP/économie |`);
+    lines.push(`| Discipline | Cible % volume | Minimum absolu | Maximum absolu |`);
+    lines.push(`|------------|---------------|----------------|----------------|`);
+    lines.push(`| 🏊 Natation | ${ref.swimPct[0]}-${ref.swimPct[1]}% | ${Math.max(ref.swimPct[0] - 3, 5)}% | ${ref.swimPct[1] + 3}% |`);
+    lines.push(`| 🚴 Vélo | ${ref.bikePct[0]}-${ref.bikePct[1]}% | ${ref.bikePct[0] - 3}% | ${ref.bikePct[1] + 3}% |`);
+    lines.push(`| 🏃 Course | ${ref.runPct[0]}-${ref.runPct[1]}% | ${ref.runPct[0] - 3}% | ${ref.runPct[1] + 3}% |`);
+    lines.push(``);
+    lines.push(`**⛔ ERREURS TYPIQUES À ÉVITER ABSOLUMENT :**`);
+    lines.push(`- ❌ Natation > ${ref.swimPct[1] + 5}% → INTERDIT (erreur fréquente : trop de séances natation courtes)`);
+    lines.push(`- ❌ Vélo < ${ref.bikePct[0] - 5}% → INTERDIT (le vélo est le sport dominant en triathlon, pas la natation)`);
+    lines.push(`- ❌ Course < ${ref.runPct[0] - 5}% → INTERDIT (la CAP est le 2e sport en volume, pas le 3e)`);
+    lines.push(``);
+    lines.push(`**📐 MÉTHODE DE CALCUL :** Compte le nombre TOTAL de minutes par discipline sur l'ensemble du bloc. Divise chaque sport par le total. Vérifie que les % sont dans les fourchettes ci-dessus AVANT de finaliser.`);
+    lines.push(`**💡 ASTUCE :** En triathlon, le Vélo = sport DOMINANT (40-55%), la Course = 2e (25-40%), la Natation = 3e (15-20%). Ne mets JAMAIS plus de natation que de course.`);
     lines.push(`\n**Règle** : La somme Natation + Vélo + Course = 100% (hors Renfo/Prévention qui s'ajoute en surplus).`);
-    lines.push(`Si le limiteur principal justifie un dépassement, CITE EXPLICITEMENT la raison dans l'en-tête du bloc concerné (ex: "Renforcement Vélo +5% car FTP/kg limiteur #1").`);
+    lines.push(`Si le limiteur principal justifie un dépassement de ±3%, CITE EXPLICITEMENT la raison dans l'en-tête du bloc concerné.`);
   }
 
   lines.push(`\n**Cibles structurelles :**`);
@@ -186,7 +194,18 @@ function getSportDistributionConstraint(objective: string, ambition: string, lim
 
   if (limiters && limiters.length > 0) {
     lines.push(`\n**Limiteur(s) identifié(s) pour cet athlète :** ${limiters.join(", ")}`);
-    lines.push(`→ Si un limiteur justifie une déviation des ratios ci-dessus (ex: +5% vélo car FTP insuffisant), tu DOIS le mentionner explicitement dans le Récapitulatif Stratégique ET dans l'en-tête du bloc concerné.`);
+    lines.push(`→ Un limiteur peut justifier un ajustement de ±3% MAXIMUM sur un sport. Au-delà, c'est une erreur.`);
+    lines.push(`→ Si tu ajustes un ratio pour un limiteur, tu DOIS le mentionner dans le Récapitulatif Stratégique ET dans l'en-tête du bloc.`);
+  }
+
+  // Self-check instruction
+  lines.push(`\n**🔍 AUTO-VÉRIFICATION OBLIGATOIRE :**`);
+  lines.push(`Avant de soumettre chaque bloc, VÉRIFIE :`);
+  lines.push(`1. Compte les séances Natation, Vélo, Course`);
+  lines.push(`2. Calcule les durées totales par sport`);
+  lines.push(`3. Vérifie que les % respectent le tableau ci-dessus`);
+  if (ref.swimPct && ref.bikePct && ref.runPct) {
+    lines.push(`4. Si Natation > ${ref.swimPct[1] + 3}% ou Vélo < ${ref.bikePct[0] - 3}% ou Course < ${ref.runPct[0] - 3}% → CORRIGE avant de soumettre`);
   }
 
   return lines.join("\n");
