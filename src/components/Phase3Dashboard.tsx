@@ -172,11 +172,13 @@ function AICoachingCard({
   snapshot,
   snapshotCount,
   ambition,
+  compassResult,
 }: {
   athlete: DbAthlete;
   snapshot: Phase3DashboardProps["effectiveSnapshot"];
   snapshotCount: number;
   ambition?: AmbitionLevel;
+  compassResult?: TFCLCoachingCompassResult | null;
 }) {
   const { response, isLoading, generateRecommendations, reset } = useAICoaching();
   const [hasGenerated, setHasGenerated] = useState(false);
