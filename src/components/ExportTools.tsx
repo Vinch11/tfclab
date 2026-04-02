@@ -1877,10 +1877,11 @@ function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string 
 // =============================================
 
 function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
-  const { effectiveSnapshot, potentielPhysiologique, athlete } = payload;
+  const { effectiveSnapshot, potentielPhysiologique, athlete, vlamax: alignedVlamax } = payload;
   
   const threshold_pace = effectiveSnapshot?.pace_threshold_sec_per_km ?? null;
-  const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
+  // ✅ Utiliser la VLamax alignée du diagnostic unifié
+  const vlamax_run = alignedVlamax.value;
   const potentielScore = potentielPhysiologique.score;
   
   const goal = athlete.goal || "Marathon";
