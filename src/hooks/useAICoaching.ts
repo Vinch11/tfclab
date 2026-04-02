@@ -53,6 +53,37 @@ export interface AICoachingAthleteContext {
   primaryLimiterGap?: number | null;
   secondaryLimiters?: string[];
   primaryLever?: string | null;
+
+  // Coaching Compass context
+  compassLimiter?: {
+    type: string;
+    label: string;
+    description: string;
+    impactScore: number;
+    confidence: string;
+  } | null;
+  compassLeverage?: {
+    type: string;
+    label: string;
+    description: string;
+    expectedAdaptations: string[];
+    workoutExamples: string[];
+    priority: number;
+  } | null;
+  compassDecision?: {
+    recommendedBlock: string;
+    durationWeeks: number;
+    primaryWorkouts: string[];
+    physiologicalTargets: string[];
+    prohibitions: string[];
+    athleteMessage: string;
+    coachRationale: string;
+  } | null;
+  compassReadiness?: {
+    potential: number;
+    availability: number;
+    governingFactor: string;
+  } | null;
 }
 
 export function useAICoaching() {
