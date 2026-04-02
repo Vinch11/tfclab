@@ -1535,7 +1535,7 @@ const Index = () => {
               <AthleteProfile
                 athlete={legacyAthlete}
                 onUpdate={() => {}}
-                vlamaxEffectif={vlamaxEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={tteEffectif}
                 onOpenSnapshots={() => setShowSnapshots(true)}
               />
