@@ -1602,7 +1602,7 @@ const Index = () => {
             id: "vlamax-v2-calibration-profil",
             render: () => currentAthlete && (
               <VLamaxUnifiedCard
-                vlamaxEffectif={vlamaxEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
                 objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
                 ambition={currentAmbition}
