@@ -1547,8 +1547,8 @@ const Index = () => {
             render: () => legacyAthlete && (
               <TwoForCoachingAnalysis
                 athlete={legacyAthlete}
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
                 readiness={potentielPhysiologiqueEffectif}
                 onGoToSnapshots={() => setShowSnapshots(true)}
                 unifiedLimiterResult={unifiedLimiterResult}
