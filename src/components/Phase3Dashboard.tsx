@@ -183,7 +183,52 @@ function AICoachingCard({
   const handleGenerate = () => {
     setHasGenerated(true);
 
-    const lastSnapshotAge = snapshotCount > 0 ? undefined : undefined; // Could be computed
+    // Compute VLamax V2 Enhanced for diagnostic context
+    let vlamaxComponents: AICoachingAthleteContext["vlamaxComponents"] = null;
+    let vlamaxConfidence: number | null = null;
+    let vlamaxConfidenceLabel: string | null = null;
+    let vlamaxFormula: string | null = null;
+    let vlamaxWarnings: string[] = [];
+
+    if (snapshot?.ftp && snapshot.ftp > 0 && snapshot?.pmax_5s) {
+      try {
+        const v2Result = computeVLamaxBikeV2Enhanced({
+          ftp: snapshot.ftp,
+          p30s_w: snapshot.p30s_w ?? null,
+          p60s_w: snapshot.p60s_w ?? null,
+          map5min_w: snapshot.map5min_w ?? null,
+          tte_min: snapshot.tte_observed_min ?? null,
+          pmax_5s: snapshot.pmax_5s ?? null,
+          weight_kg: snapshot.weight_kg ?? null,
+          vo2max: snapshot.vo2max ?? null,
+          objectif: athlete.goal || undefined,
+        });
+
+        if (v2Result.components) {
+          vlamaxComponents = {
+            mader_mlss: v2Result.components.mader_mlss,
+            mader_tte: v2Result.components.mader_tte,
+            scoreG: v2Result.components.scoreG,
+            vlamax_from_wprime: v2Result.components.vlamax_from_wprime,
+            fusion_method: v2Result.components.fusion_method,
+            divergence: v2Result.components.divergence,
+            S_pmax: v2Result.components.S_pmax,
+            S30: v2Result.components.S30,
+            S60: v2Result.components.S60,
+            E: v2Result.components.E,
+            D: v2Result.components.D,
+            W: v2Result.components.W,
+            wprimeKJ: v2Result.components.wprimeKJ,
+          };
+        }
+        vlamaxConfidence = v2Result.confidence;
+        vlamaxConfidenceLabel = v2Result.confidenceLabel;
+        vlamaxFormula = v2Result.formula;
+        vlamaxWarnings = v2Result.warnings;
+      } catch (e) {
+        console.warn("VLamax V2 computation for AI context failed:", e);
+      }
+    }
 
     generateRecommendations({
       nom: athlete.name,
@@ -203,6 +248,11 @@ function AICoachingCard({
       p60s: snapshot?.p60s_w,
       map5min: snapshot?.map5min_w,
       snapshotCount,
+      vlamaxComponents,
+      vlamaxConfidence,
+      vlamaxConfidenceLabel,
+      vlamaxFormula,
+      vlamaxWarnings,
     });
   };
 
