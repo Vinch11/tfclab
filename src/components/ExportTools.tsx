@@ -2256,11 +2256,12 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
 // =============================================
 
 function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
-  const { effectiveSnapshot, potentielPhysiologique, athlete, vlamax } = payload;
+  const { effectiveSnapshot, potentielPhysiologique, athlete, vlamax, tte: alignedTte } = payload;
   
-  const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
+  // ✅ Utiliser les valeurs alignées du diagnostic unifié (pas le snapshot brut)
+  const vlamax_run = vlamax.value;
   const vo2max = effectiveSnapshot?.vo2max ?? null;
-  const durability = effectiveSnapshot?.tte_observed_min ?? 45;
+  const durability = alignedTte.tte_min ?? 45;
   const objectif = athlete.goal || "Marathon";
   
   // Déterminer si c'est un objectif CAP
