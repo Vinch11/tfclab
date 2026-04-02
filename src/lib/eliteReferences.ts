@@ -43,7 +43,7 @@ const ELITE_REFS: EliteReference[] = [
   { objective: "10K", ambition: "AGE_GROUP", label: "10K Age Group", weeklyHours: [4, 6], weeklyKmRun: [35, 55], sessionsPerWeek: [4, 5], doublesPerWeek: [0, 0], keySessions: [1, 2], progressionPct: [3, 5], loadPattern: "3:1", longRunMax: "14-16km" },
 
   // FINISHER
-  { objective: "IM", ambition: "FINISHER", label: "Ironman Finisher", weeklyHours: [8, 12], weeklyKmRun: [20, 35], sessionsPerWeek: [5, 7], doublesPerWeek: [0, 0], keySessions: [1, 2], progressionPct: [3, 3], loadPattern: "2:1", swimPct: [15, 20], bikePct: [45, 55], runPct: [25, 30], longRunMax: "3h vélo" },
+  { objective: "IM", ambition: "FINISHER", label: "Ironman Finisher", weeklyHours: [8, 12], weeklyKmRun: [20, 35], sessionsPerWeek: [5, 7], doublesPerWeek: [0, 0], keySessions: [1, 2], progressionPct: [3, 3], loadPattern: "2:1", swimPct: [15, 20], bikePct: [45, 55], runPct: [25, 35], longRunMax: "3h vélo" },
   { objective: "703", ambition: "FINISHER", label: "70.3 Finisher", weeklyHours: [6, 10], weeklyKmRun: [25, 40], sessionsPerWeek: [4, 6], doublesPerWeek: [0, 0], keySessions: [1, 2], progressionPct: [3, 3], loadPattern: "2:1", swimPct: [15, 20], bikePct: [40, 50], runPct: [30, 40], longRunMax: "2h vélo" },
   { objective: "Marathon", ambition: "FINISHER", label: "Marathon Finisher", weeklyHours: [4, 7], weeklyKmRun: [35, 60], sessionsPerWeek: [4, 5], doublesPerWeek: [0, 0], keySessions: [1, 2], progressionPct: [3, 3], loadPattern: "2:1", longRunMax: "22-25km" },
   { objective: "Semi", ambition: "FINISHER", label: "Semi Finisher", weeklyHours: [3, 5], weeklyKmRun: [25, 45], sessionsPerWeek: [3, 4], doublesPerWeek: [0, 0], keySessions: [1, 1], progressionPct: [3, 3], loadPattern: "2:1", longRunMax: "14-16km" },
