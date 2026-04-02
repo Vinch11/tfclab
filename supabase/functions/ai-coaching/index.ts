@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { athleteData } = await req.json();
+    const { athleteData, messages: chatMessages } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -113,6 +113,22 @@ Les niveaux de confiance de la VLamax dépendent de :
 
     const userPrompt = buildUserPrompt(athleteData);
 
+    // Build messages: system + context + conversation history OR single-shot
+    const aiMessages: Array<{ role: string; content: string }> = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ];
+
+    if (chatMessages && Array.isArray(chatMessages) && chatMessages.length > 0) {
+      // First assistant response was the initial analysis, then Q&A follows
+      aiMessages.push({ role: "assistant", content: "J'ai analysé le profil complet de l'athlète. Posez-moi vos questions sur les métriques, le diagnostic ou les recommandations." });
+      for (const msg of chatMessages) {
+        if (msg.role === "user" || msg.role === "assistant") {
+          aiMessages.push({ role: msg.role, content: msg.content });
+        }
+      }
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -121,10 +137,7 @@ Les niveaux de confiance de la VLamax dépendent de :
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        messages: aiMessages,
         stream: true,
       }),
     });

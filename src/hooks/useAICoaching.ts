@@ -1,8 +1,8 @@
 /**
- * Hook for streaming AI coaching recommendations
+ * Hook for streaming AI coaching recommendations + Q&A chat
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-coaching`;
@@ -86,105 +86,158 @@ export interface AICoachingAthleteContext {
   } | null;
 }
 
-export function useAICoaching() {
-  const [response, setResponse] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+export type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
 
+async function streamFromEdge(
+  body: Record<string, unknown>,
+  onDelta: (chunk: string) => void,
+  onError: (status: number) => void,
+) {
+  const resp = await fetch(CHAT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (resp.status === 429 || resp.status === 402 || !resp.ok || !resp.body) {
+    onError(resp.status);
+    return;
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let textBuffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    textBuffer += decoder.decode(value, { stream: true });
+
+    let newlineIndex: number;
+    while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+      let line = textBuffer.slice(0, newlineIndex);
+      textBuffer = textBuffer.slice(newlineIndex + 1);
+
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (line.startsWith(":") || line.trim() === "") continue;
+      if (!line.startsWith("data: ")) continue;
+
+      const jsonStr = line.slice(6).trim();
+      if (jsonStr === "[DONE]") return;
+
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+        if (content) onDelta(content);
+      } catch {
+        textBuffer = line + "\n" + textBuffer;
+        break;
+      }
+    }
+  }
+
+  // Flush remaining buffer
+  if (textBuffer.trim()) {
+    for (let raw of textBuffer.split("\n")) {
+      if (!raw) continue;
+      if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+      if (raw.startsWith(":") || raw.trim() === "") continue;
+      if (!raw.startsWith("data: ")) continue;
+      const jsonStr = raw.slice(6).trim();
+      if (jsonStr === "[DONE]") continue;
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+        if (content) onDelta(content);
+      } catch { /* ignore */ }
+    }
+  }
+}
+
+export function useAICoaching() {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const athleteDataRef = useRef<AICoachingAthleteContext | null>(null);
+
+  const handleError = useCallback((status: number) => {
+    if (status === 429) toast.error("Rate limit dépassé, réessayez dans quelques instants.");
+    else if (status === 402) toast.error("Crédits IA épuisés. Ajoutez des crédits dans les paramètres.");
+    else toast.error("Erreur du service IA");
+  }, []);
+
+  // Initial analysis (one-shot)
   const generateRecommendations = useCallback(async (athleteData: AICoachingAthleteContext) => {
-    setResponse("");
+    athleteDataRef.current = athleteData;
+    setMessages([]);
     setIsLoading(true);
 
+    let fullText = "";
     try {
-      const resp = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      await streamFromEdge(
+        { athleteData },
+        (chunk) => {
+          fullText += chunk;
+          setMessages([{ role: "assistant", content: fullText }]);
         },
-        body: JSON.stringify({ athleteData }),
-      });
-
-      if (resp.status === 429) {
-        toast.error("Rate limit dépassé, réessayez dans quelques instants.");
-        setIsLoading(false);
-        return;
-      }
-      if (resp.status === 402) {
-        toast.error("Crédits IA épuisés. Ajoutez des crédits dans les paramètres.");
-        setIsLoading(false);
-        return;
-      }
-      if (!resp.ok || !resp.body) {
-        throw new Error("Erreur du service IA");
-      }
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = "";
-      let fullText = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              fullText += content;
-              setResponse(fullText);
-            }
-          } catch {
-            textBuffer = line + "\n" + textBuffer;
-            break;
-          }
-        }
-      }
-
-      // Flush remaining buffer
-      if (textBuffer.trim()) {
-        for (let raw of textBuffer.split("\n")) {
-          if (!raw) continue;
-          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
-          if (raw.startsWith(":") || raw.trim() === "") continue;
-          if (!raw.startsWith("data: ")) continue;
-          const jsonStr = raw.slice(6).trim();
-          if (jsonStr === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              fullText += content;
-              setResponse(fullText);
-            }
-          } catch { /* ignore */ }
-        }
-      }
+        (status) => { handleError(status); setIsLoading(false); },
+      );
     } catch (e) {
       console.error("AI coaching error:", e);
       toast.error("Impossible de générer les recommandations IA");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [handleError]);
+
+  // Follow-up Q&A question
+  const askFollowUp = useCallback(async (question: string) => {
+    if (!athleteDataRef.current) return;
+
+    const userMsg: ChatMessage = { role: "user", content: question };
+    setMessages(prev => [...prev, userMsg]);
+    setIsLoading(true);
+
+    // Build conversation history for the edge function (skip initial assistant analysis)
+    const chatHistory = [...messages.slice(1), userMsg]; // slice(1) = skip initial analysis response
+
+    let fullText = "";
+    try {
+      await streamFromEdge(
+        { athleteData: athleteDataRef.current, messages: chatHistory },
+        (chunk) => {
+          fullText += chunk;
+          setMessages(prev => {
+            const last = prev[prev.length - 1];
+            if (last?.role === "assistant" && prev.length > 1 && prev[prev.length - 2]?.role === "user" && prev[prev.length - 2]?.content === question) {
+              return [...prev.slice(0, -1), { role: "assistant", content: fullText }];
+            }
+            return [...prev, { role: "assistant", content: fullText }];
+          });
+        },
+        (status) => { handleError(status); setIsLoading(false); },
+      );
+    } catch (e) {
+      console.error("AI coaching follow-up error:", e);
+      toast.error("Impossible de répondre à la question");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [messages, handleError]);
 
   const reset = useCallback(() => {
-    setResponse("");
+    setMessages([]);
     setIsLoading(false);
+    athleteDataRef.current = null;
   }, []);
 
-  return { response, isLoading, generateRecommendations, reset };
+  // Legacy compat: response = first assistant message content
+  const response = messages.length > 0 && messages[0].role === "assistant" ? messages[0].content : "";
+
+  return { response, messages, isLoading, generateRecommendations, askFollowUp, reset };
 }

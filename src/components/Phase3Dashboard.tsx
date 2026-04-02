@@ -6,16 +6,17 @@
  * ═══════════════════════════════════════════════════════════════
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
-  Brain, Flame, Sparkles, Trophy, Target, Loader2, RotateCcw,
+  Brain, Flame, Sparkles, Trophy, Target, Loader2, RotateCcw, Send, MessageCircle, User,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -180,9 +181,15 @@ function AICoachingCard({
   ambition?: AmbitionLevel;
   compassResult?: TFCLCoachingCompassResult | null;
 }) {
-  const { response, isLoading, generateRecommendations, reset } = useAICoaching();
+  const { response, messages, isLoading, generateRecommendations, askFollowUp, reset } = useAICoaching();
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
+  const [questionInput, setQuestionInput] = useState("");
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleGenerate = () => {
     setHasGenerated(true);
@@ -257,7 +264,6 @@ function AICoachingCard({
       vlamaxConfidenceLabel,
       vlamaxFormula,
       vlamaxWarnings,
-      // Coaching Compass context
       compassLimiter: compassResult?.limiter ? {
         type: compassResult.limiter.type,
         label: compassResult.limiter.label,
@@ -290,6 +296,27 @@ function AICoachingCard({
     });
   };
 
+  const handleAskQuestion = () => {
+    const q = questionInput.trim();
+    if (!q || isLoading) return;
+    setQuestionInput("");
+    askFollowUp(q);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleAskQuestion();
+    }
+  };
+
+  const quickQuestions = [
+    "Pourquoi cette VLamax ?",
+    "Comment améliorer le TTE ?",
+    "Quel est le limiteur principal ?",
+    "Séances recommandées ?",
+  ];
+
   return (
     <Card className={cn("overflow-hidden border-primary/20 transition-opacity", !isEnabled && "opacity-60")}>
       <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 via-primary/10 to-transparent border-b">
@@ -306,6 +333,7 @@ function AICoachingCard({
                 onClick={() => {
                   reset();
                   setHasGenerated(false);
+                  setQuestionInput("");
                 }}
                 className="h-8 text-xs gap-1"
               >
@@ -317,7 +345,7 @@ function AICoachingCard({
               checked={isEnabled}
               onCheckedChange={(v) => {
                 setIsEnabled(v);
-                if (!v) { reset(); setHasGenerated(false); }
+                if (!v) { reset(); setHasGenerated(false); setQuestionInput(""); }
               }}
               aria-label="Activer TFCL™ Guidance"
             />
@@ -350,7 +378,7 @@ function AICoachingCard({
                       <strong>{athlete.name}</strong>
                     </p>
                     <p className="text-xs text-muted-foreground/70 mb-4">
-                      Limiteur prioritaire · Levier opérationnel · Recommandations
+                      Limiteur prioritaire · Levier opérationnel · Q&A illimité
                     </p>
                     <Button onClick={handleGenerate} className="gap-2">
                       <Sparkles className="h-4 w-4" />
@@ -359,25 +387,103 @@ function AICoachingCard({
                   </motion.div>
                 ) : (
                   <motion.div
-                    key="response"
+                    key="chat"
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col"
                   >
-                    {isLoading && !response && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Analyse en cours...
+                    {/* Chat messages */}
+                    <div className="max-h-[500px] overflow-y-auto space-y-3 pb-3">
+                      {messages.map((msg, i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "flex gap-2",
+                            msg.role === "user" ? "justify-end" : "justify-start"
+                          )}
+                        >
+                          {msg.role === "assistant" && (
+                            <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-1">
+                              <Brain className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                          )}
+                          <div
+                            className={cn(
+                              "rounded-lg px-3 py-2 text-sm max-w-[85%]",
+                              msg.role === "user"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted"
+                            )}
+                          >
+                            {msg.role === "assistant" ? (
+                              <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
+                                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                              </div>
+                            ) : (
+                              <p>{msg.content}</p>
+                            )}
+                          </div>
+                          {msg.role === "user" && (
+                            <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
+                              <User className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {isLoading && messages.length === 0 && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Analyse en cours...
+                        </div>
+                      )}
+
+                      {isLoading && messages.length > 0 && messages[messages.length - 1]?.role === "user" && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                          </div>
+                          <span className="text-xs">Réflexion en cours...</span>
+                        </div>
+                      )}
+
+                      <div ref={chatEndRef} />
+                    </div>
+
+                    {/* Quick questions after initial analysis */}
+                    {messages.length === 1 && !isLoading && (
+                      <div className="flex flex-wrap gap-1.5 py-2 border-t border-border/50">
+                        {quickQuestions.map((q) => (
+                          <button
+                            key={q}
+                            onClick={() => askFollowUp(q)}
+                            className="text-xs px-2.5 py-1 rounded-full border border-primary/20 text-primary hover:bg-primary/5 transition-colors"
+                          >
+                            {q}
+                          </button>
+                        ))}
                       </div>
                     )}
-                    {response && (
-                      <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed">
-                        <ReactMarkdown>{response}</ReactMarkdown>
-                      </div>
-                    )}
-                    {isLoading && response && (
-                      <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        <span>Génération en cours...</span>
+
+                    {/* Q&A input */}
+                    {messages.length > 0 && (
+                      <div className="flex gap-2 pt-2 border-t border-border/50">
+                        <Input
+                          value={questionInput}
+                          onChange={(e) => setQuestionInput(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="Posez une question sur les métriques..."
+                          disabled={isLoading}
+                          className="text-sm h-9"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleAskQuestion}
+                          disabled={!questionInput.trim() || isLoading}
+                          className="h-9 px-3"
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     )}
                   </motion.div>
