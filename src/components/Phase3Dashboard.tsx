@@ -48,6 +48,7 @@ export interface Phase3DashboardProps {
     fc_max?: number | null;
   } | null;
   ambition?: AmbitionLevel;
+  compassResult?: TFCLCoachingCompassResult | null;
 }
 
 // ── Main Component ─────────────────────────────────────────────
