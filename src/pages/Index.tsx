@@ -1535,8 +1535,8 @@ const Index = () => {
               <AthleteProfile
                 athlete={legacyAthlete}
                 onUpdate={() => {}}
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
                 onOpenSnapshots={() => setShowSnapshots(true)}
               />
             ),
@@ -1547,8 +1547,8 @@ const Index = () => {
             render: () => legacyAthlete && (
               <TwoForCoachingAnalysis
                 athlete={legacyAthlete}
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
                 readiness={potentielPhysiologiqueEffectif}
                 onGoToSnapshots={() => setShowSnapshots(true)}
                 unifiedLimiterResult={unifiedLimiterResult}
@@ -1589,8 +1589,8 @@ const Index = () => {
             id: "lactate-thresholds-profil",
             render: () => currentAthlete && (
               <LactateCorrespondenceCard
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
                 ftp={ftp}
                 sport={effectiveCloudSnapshot?.sport_main || "velo"}
                 staffMode={staffMode}
@@ -1602,7 +1602,7 @@ const Index = () => {
             id: "vlamax-v2-calibration-profil",
             render: () => currentAthlete && (
               <VLamaxUnifiedCard
-                vlamaxEffectif={vlamaxEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
                 objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
                 ambition={currentAmbition}
@@ -1622,7 +1622,7 @@ const Index = () => {
                   currentVma={effectiveCloudSnapshot?.vma ?? null}
                   age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                   vo2max={effectiveCloudSnapshot?.vo2max ?? null}
-                  vlamax={vlamaxEffectif.value}
+                  vlamax={alignedVlamaxEffectif.value}
                 />
               ) : (
                 <FtpKgTargetsCard
@@ -1638,8 +1638,8 @@ const Index = () => {
             id: "fatmax-tfcl-profil",
             render: () => currentAthlete && (
               <MetabolicZonesUnifiedCard
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
                 objectif={currentAthlete.goal || "IM"}
                 ftp={ftp}
                 staffMode={staffMode}
@@ -1663,12 +1663,12 @@ const Index = () => {
             id: "scientific-charts-profil",
             render: () => currentAthlete && effectiveCloudSnapshot && staffMode && (
               <ScientificChartsDashboard
-                vlamaxValue={vlamaxEffectif.value}
-                vlamaxSource={vlamaxEffectif.source}
-                vlamaxConfidence={vlamaxEffectif.confidence}
-                tteValue={tteEffectif.tte_min}
-                tteSource={tteEffectif.source}
-                tteConfidence={tteEffectif.confidence}
+                vlamaxValue={alignedVlamaxEffectif.value}
+                vlamaxSource={alignedVlamaxEffectif.source}
+                vlamaxConfidence={alignedVlamaxEffectif.confidence}
+                tteValue={alignedTteEffectif.tte_min}
+                tteSource={alignedTteEffectif.source}
+                tteConfidence={alignedTteEffectif.confidence}
                 potentielScore={potentielPhysiologiqueEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
                 vo2max={effectiveCloudSnapshot.vo2max ?? null}
@@ -1801,10 +1801,10 @@ const Index = () => {
             id: "nutrition-v2",
             render: () => currentAthlete && (
               <NutritionUnifiedCard
-                vlamaxValue={vlamaxEffectif.value}
-                vlamaxConfidence={vlamaxEffectif.confidence}
+                vlamaxValue={alignedVlamaxEffectif.value}
+                vlamaxConfidence={alignedVlamaxEffectif.confidence}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
-                tteMin={tteEffectif.tte_min}
+                tteMin={alignedTteEffectif.tte_min}
                 sport={isRunningOnly ? "cap" : "velo"}
                 objectif={currentAthlete.goal || "IM"}
                 weightKg={poids ?? null}
@@ -1818,8 +1818,8 @@ const Index = () => {
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <PacingEnvelopeCard
                 input={{
-                  vlamaxEffectif,
-                  tteEffectif,
+                  vlamaxEffectif: alignedVlamaxEffectif,
+                  tteEffectif: alignedTteEffectif,
                   fatmax: null,
                   potentielPhysiologiqueScore: potentielPhysiologiqueEffectif.score,
                   fatigueIndex: null,
@@ -1847,8 +1847,8 @@ const Index = () => {
             id: "lactate-correspondence",
             render: () => currentAthlete && (
               <LactateCorrespondenceCard
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
                 ftp={ftp}
                 sport={effectiveCloudSnapshot?.sport_main || "velo"}
                 staffMode={staffMode}
@@ -1860,8 +1860,8 @@ const Index = () => {
             id: "comprendre-scores",
             render: () => currentAthlete && (
               <ComprendreScoresCard
-                vlamaxValue={vlamaxEffectif.value}
-                tteMin={tteEffectif.tte_min}
+                vlamaxValue={alignedVlamaxEffectif.value}
+                tteMin={alignedTteEffectif.tte_min}
                 ftpKg={ftp_kg}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 potentielScore={potentielPhysiologiqueEffectif.score}
