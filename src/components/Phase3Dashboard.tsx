@@ -181,10 +181,323 @@ function AICoachingCard({
   ambition?: AmbitionLevel;
   compassResult?: TFCLCoachingCompassResult | null;
 }) {
-  const { response, isLoading, generateRecommendations, reset } = useAICoaching();
+  const { response, messages, isLoading, generateRecommendations, askFollowUp, reset } = useAICoaching();
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
+  const [questionInput, setQuestionInput] = useState("");
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleGenerate = () => {
+    setHasGenerated(true);
+
+    // Compute VLamax V2 Enhanced for diagnostic context
+    let vlamaxComponents: AICoachingAthleteContext["vlamaxComponents"] = null;
+    let vlamaxConfidence: number | null = null;
+    let vlamaxConfidenceLabel: string | null = null;
+    let vlamaxFormula: string | null = null;
+    let vlamaxWarnings: string[] = [];
+
+    if (snapshot?.ftp && snapshot.ftp > 0 && snapshot?.pmax_5s) {
+      try {
+        const v2Result = computeVLamaxBikeV2Enhanced({
+          ftp: snapshot.ftp,
+          p30s_w: snapshot.p30s_w ?? null,
+          p60s_w: snapshot.p60s_w ?? null,
+          map5min_w: snapshot.map5min_w ?? null,
+          tte_min: snapshot.tte_observed_min ?? null,
+          pmax_5s: snapshot.pmax_5s ?? null,
+          weight_kg: snapshot.weight_kg ?? null,
+          vo2max: snapshot.vo2max ?? null,
+          objectif: athlete.goal || undefined,
+        });
+
+        if (v2Result.components) {
+          vlamaxComponents = {
+            mader_mlss: v2Result.components.mader_mlss,
+            mader_tte: v2Result.components.mader_tte,
+            scoreG: v2Result.components.scoreG,
+            vlamax_from_wprime: v2Result.components.vlamax_from_wprime,
+            fusion_method: v2Result.components.fusion_method,
+            divergence: v2Result.components.divergence,
+            S_pmax: v2Result.components.S_pmax,
+            S30: v2Result.components.S30,
+            S60: v2Result.components.S60,
+            E: v2Result.components.E,
+            D: v2Result.components.D,
+            W: v2Result.components.W,
+            wprimeKJ: v2Result.components.wprimeKJ,
+          };
+        }
+        vlamaxConfidence = v2Result.confidence;
+        vlamaxConfidenceLabel = v2Result.confidenceLabel;
+        vlamaxFormula = v2Result.formula;
+        vlamaxWarnings = v2Result.warnings;
+      } catch (e) {
+        console.warn("VLamax V2 computation for AI context failed:", e);
+      }
+    }
+
+    generateRecommendations({
+      nom: athlete.name,
+      objectif: athlete.goal || undefined,
+      ambition,
+      ftp: snapshot?.ftp,
+      weightKg: snapshot?.weight_kg,
+      vlamax: snapshot?.vlamax,
+      vlamaxRun: snapshot?.vlamax_run,
+      vo2max: snapshot?.vo2max,
+      vma: snapshot?.vma,
+      css: snapshot?.css,
+      fcMax: snapshot?.fc_max,
+      tte: snapshot?.tte_observed_min,
+      pmax5s: snapshot?.pmax_5s,
+      p30s: snapshot?.p30s_w,
+      p60s: snapshot?.p60s_w,
+      map5min: snapshot?.map5min_w,
+      snapshotCount,
+      vlamaxComponents,
+      vlamaxConfidence,
+      vlamaxConfidenceLabel,
+      vlamaxFormula,
+      vlamaxWarnings,
+      compassLimiter: compassResult?.limiter ? {
+        type: compassResult.limiter.type,
+        label: compassResult.limiter.label,
+        description: compassResult.limiter.description,
+        impactScore: compassResult.limiter.impactScore,
+        confidence: compassResult.limiter.confidence,
+      } : null,
+      compassLeverage: compassResult?.leverage ? {
+        type: compassResult.leverage.type,
+        label: compassResult.leverage.label,
+        description: compassResult.leverage.description,
+        expectedAdaptations: compassResult.leverage.expectedAdaptations,
+        workoutExamples: compassResult.leverage.workoutExamples,
+        priority: compassResult.leverage.priority,
+      } : null,
+      compassDecision: compassResult?.decision ? {
+        recommendedBlock: compassResult.decision.recommendedBlock,
+        durationWeeks: compassResult.decision.durationWeeks,
+        primaryWorkouts: compassResult.decision.primaryWorkouts,
+        physiologicalTargets: compassResult.decision.physiologicalTargets,
+        prohibitions: compassResult.decision.prohibitions,
+        athleteMessage: compassResult.decision.athleteMessage,
+        coachRationale: compassResult.decision.coachRationale,
+      } : null,
+      compassReadiness: compassResult?.readiness ? {
+        potential: compassResult.readiness.potential,
+        availability: compassResult.readiness.availability,
+        governingFactor: compassResult.readiness.governingFactor,
+      } : null,
+    });
+  };
+
+  const handleAskQuestion = () => {
+    const q = questionInput.trim();
+    if (!q || isLoading) return;
+    setQuestionInput("");
+    askFollowUp(q);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleAskQuestion();
+    }
+  };
+
+  const quickQuestions = [
+    "Pourquoi cette VLamax ?",
+    "Comment améliorer le TTE ?",
+    "Quel est le limiteur principal ?",
+    "Séances recommandées ?",
+  ];
+
+  return (
+    <Card className={cn("overflow-hidden border-primary/20 transition-opacity", !isEnabled && "opacity-60")}>
+      <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 via-primary/10 to-transparent border-b">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Brain className="h-5 w-5 text-primary" />
+            TFCL™ Guidance
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {hasGenerated && isEnabled && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  reset();
+                  setHasGenerated(false);
+                  setQuestionInput("");
+                }}
+                className="h-8 text-xs gap-1"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Réinitialiser
+              </Button>
+            )}
+            <Switch
+              checked={isEnabled}
+              onCheckedChange={(v) => {
+                setIsEnabled(v);
+                if (!v) { reset(); setHasGenerated(false); setQuestionInput(""); }
+              }}
+              aria-label="Activer TFCL™ Guidance"
+            />
+          </div>
+        </div>
+      </CardHeader>
+
+      <AnimatePresence>
+        {isEnabled && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <CardContent className="pt-4">
+              <AnimatePresence mode="wait">
+                {!hasGenerated ? (
+                  <motion.div
+                    key="prompt"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    className="text-center py-6"
+                  >
+                    <Brain className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Analyse TFCL™ personnalisée pour{" "}
+                      <strong>{athlete.name}</strong>
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 mb-4">
+                      Limiteur prioritaire · Levier opérationnel · Q&A illimité
+                    </p>
+                    <Button onClick={handleGenerate} className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Lancer l'analyse TFCL™
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="chat"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col"
+                  >
+                    {/* Chat messages */}
+                    <div className="max-h-[500px] overflow-y-auto space-y-3 pb-3">
+                      {messages.map((msg, i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "flex gap-2",
+                            msg.role === "user" ? "justify-end" : "justify-start"
+                          )}
+                        >
+                          {msg.role === "assistant" && (
+                            <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-1">
+                              <Brain className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                          )}
+                          <div
+                            className={cn(
+                              "rounded-lg px-3 py-2 text-sm max-w-[85%]",
+                              msg.role === "user"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted"
+                            )}
+                          >
+                            {msg.role === "assistant" ? (
+                              <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
+                                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                              </div>
+                            ) : (
+                              <p>{msg.content}</p>
+                            )}
+                          </div>
+                          {msg.role === "user" && (
+                            <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mt-1">
+                              <User className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {isLoading && messages.length === 0 && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Analyse en cours...
+                        </div>
+                      )}
+
+                      {isLoading && messages.length > 0 && messages[messages.length - 1]?.role === "user" && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                          </div>
+                          <span className="text-xs">Réflexion en cours...</span>
+                        </div>
+                      )}
+
+                      <div ref={chatEndRef} />
+                    </div>
+
+                    {/* Quick questions after initial analysis */}
+                    {messages.length === 1 && !isLoading && (
+                      <div className="flex flex-wrap gap-1.5 py-2 border-t border-border/50">
+                        {quickQuestions.map((q) => (
+                          <button
+                            key={q}
+                            onClick={() => askFollowUp(q)}
+                            className="text-xs px-2.5 py-1 rounded-full border border-primary/20 text-primary hover:bg-primary/5 transition-colors"
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Q&A input */}
+                    {messages.length > 0 && (
+                      <div className="flex gap-2 pt-2 border-t border-border/50">
+                        <Input
+                          value={questionInput}
+                          onChange={(e) => setQuestionInput(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="Posez une question sur les métriques..."
+                          disabled={isLoading}
+                          className="text-sm h-9"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleAskQuestion}
+                          disabled={!questionInput.trim() || isLoading}
+                          className="h-9 px-3"
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
+  );
+}
+
+export default Phase3Dashboard;
   const handleGenerate = () => {
     setHasGenerated(true);
 
