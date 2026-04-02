@@ -1847,8 +1847,8 @@ const Index = () => {
             id: "lactate-correspondence",
             render: () => currentAthlete && (
               <LactateCorrespondenceCard
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
                 ftp={ftp}
                 sport={effectiveCloudSnapshot?.sport_main || "velo"}
                 staffMode={staffMode}
