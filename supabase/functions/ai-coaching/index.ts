@@ -247,6 +247,45 @@ function buildUserPrompt(data: any): string {
     lines.push(`\n### 🔧 Levier TFCL™ recommandé: ${data.primaryLever}`);
   }
 
+  // ── Coaching Compass™ Context ──
+  if (data.compassLimiter) {
+    const cl = data.compassLimiter;
+    lines.push(`\n### 🧭 Coaching Compass™ — Limiteur`);
+    lines.push(`- Type: ${cl.type}`);
+    lines.push(`- Label: ${cl.label}`);
+    lines.push(`- Description: ${cl.description}`);
+    lines.push(`- Impact score: ${(cl.impactScore * 100).toFixed(0)}%`);
+    lines.push(`- Confiance: ${cl.confidence}`);
+  }
+  if (data.compassLeverage) {
+    const lv = data.compassLeverage;
+    lines.push(`\n### 🧭 Coaching Compass™ — Levier Prioritaire`);
+    lines.push(`- Type: ${lv.type}`);
+    lines.push(`- Label: ${lv.label}`);
+    lines.push(`- Description: ${lv.description}`);
+    if (lv.expectedAdaptations?.length) lines.push(`- Adaptations attendues: ${lv.expectedAdaptations.join("; ")}`);
+    if (lv.workoutExamples?.length) lines.push(`- Exemples de séances: ${lv.workoutExamples.join("; ")}`);
+    lines.push(`- Priorité: ${lv.priority}`);
+  }
+  if (data.compassDecision) {
+    const cd = data.compassDecision;
+    lines.push(`\n### 🧭 Coaching Compass™ — Décision`);
+    lines.push(`- Bloc recommandé: ${cd.recommendedBlock}`);
+    lines.push(`- Durée: ${cd.durationWeeks} semaines`);
+    if (cd.primaryWorkouts?.length) lines.push(`- Séances clés: ${cd.primaryWorkouts.join("; ")}`);
+    if (cd.physiologicalTargets?.length) lines.push(`- Cibles physio: ${cd.physiologicalTargets.join("; ")}`);
+    if (cd.prohibitions?.length) lines.push(`- Interdictions: ${cd.prohibitions.join("; ")}`);
+    lines.push(`- Message athlète: ${cd.athleteMessage}`);
+    lines.push(`- Justification coach: ${cd.coachRationale}`);
+  }
+  if (data.compassReadiness) {
+    const cr = data.compassReadiness;
+    lines.push(`\n### 🧭 Coaching Compass™ — Potentiel Physiologique`);
+    lines.push(`- Potentiel: ${cr.potential}/100`);
+    lines.push(`- Disponibilité: ${cr.availability}/100`);
+    lines.push(`- Facteur gouvernant: ${cr.governingFactor}`);
+  }
+
   if (data.snapshotCount) lines.push(`\n**Historique:** ${data.snapshotCount} snapshot(s) enregistré(s)`);
   if (data.lastSnapshotAge !== undefined) lines.push(`**Fraîcheur données:** dernier snapshot il y a ${data.lastSnapshotAge} jours`);
 
