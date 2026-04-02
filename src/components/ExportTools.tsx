@@ -1390,24 +1390,26 @@ function buildExportPayload(
     ambition,
   });
 
-  // ✅ Compute Unified Limiter — IDENTIQUE au dashboard (Index.tsx)
-  const unifiedLimiter = detectUnifiedLimiter({
-    vo2max: effectiveSnapshot?.vo2max ?? null,
-    ftpKg: ftpKg,
-    vlamax: vlamax.value,
-    wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
-    cpDataQuality: cpResultForPayload ? cpResultForPayload.dataQuality : null,
-    tte: tte.tte_min,
-    fatmax: null,
-    economyScore: effectiveSnapshot?.run_economy_score ?? null,
-    availabilityScore: null,
-    hasHealthAlerts: false,
-    objectif: objectifForLimiter,
-    ambition: (ambition as any) || "competitive",
-    age: athleteAge,
-    vma: effectiveSnapshot?.vma ?? null,
-    sportFocus: sportFocusForLimiter,
-  });
+  // ✅ Unified Limiter — directement depuis le diagnostic engine (cohérence totale Dashboard ↔ PDF)
+  const unifiedLimiter: UnifiedLimiterResult = diagnostic
+    ? diagnostic.limiter
+    : detectUnifiedLimiter({
+        vo2max: effectiveSnapshot?.vo2max ?? null,
+        ftpKg: ftpKg,
+        vlamax: vlamax.value,
+        wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
+        cpDataQuality: cpResultForPayload ? cpResultForPayload.dataQuality : null,
+        tte: tte.tte_min,
+        fatmax: null,
+        economyScore: effectiveSnapshot?.run_economy_score ?? null,
+        availabilityScore: null,
+        hasHealthAlerts: false,
+        objectif: objectifForLimiter,
+        ambition: (ambition as any) || "competitive",
+        age: athleteAge,
+        vma: effectiveSnapshot?.vma ?? null,
+        sportFocus: sportFocusForLimiter,
+      });
 
   // ✅ Compute Lorang Strategy — IDENTIQUE au dashboard (Index.tsx)
   let lorangResult: LorangStrategyResult | null = null;
