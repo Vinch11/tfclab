@@ -1818,8 +1818,8 @@ const Index = () => {
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <PacingEnvelopeCard
                 input={{
-                  vlamaxEffectif,
-                  tteEffectif,
+                  vlamaxEffectif: alignedVlamaxEffectif,
+                  tteEffectif: alignedTteEffectif,
                   fatmax: null,
                   potentielPhysiologiqueScore: potentielPhysiologiqueEffectif.score,
                   fatigueIndex: null,
