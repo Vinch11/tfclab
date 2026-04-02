@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-coaching`;
 
-interface AthleteContext {
+export interface AICoachingAthleteContext {
   nom?: string;
   objectif?: string;
   ambition?: string;
@@ -26,13 +26,40 @@ interface AthleteContext {
   map5min?: number | null;
   snapshotCount?: number;
   lastSnapshotAge?: number;
+
+  // VLamax V2 components (diagnostic context)
+  vlamaxComponents?: {
+    mader_mlss: number | null;
+    mader_tte: number | null;
+    scoreG: number | null;
+    vlamax_from_wprime: number | null;
+    fusion_method: string | null;
+    divergence: number | null;
+    S_pmax: number | null;
+    S30: number | null;
+    S60: number | null;
+    E: number | null;
+    D: number | null;
+    W: number | null;
+    wprimeKJ: number | null;
+  } | null;
+  vlamaxConfidence?: number | null;
+  vlamaxConfidenceLabel?: string | null;
+  vlamaxFormula?: string | null;
+  vlamaxWarnings?: string[];
+
+  // Limiter & lever context
+  primaryLimiter?: string | null;
+  primaryLimiterGap?: number | null;
+  secondaryLimiters?: string[];
+  primaryLever?: string | null;
 }
 
 export function useAICoaching() {
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const generateRecommendations = useCallback(async (athleteData: AthleteContext) => {
+  const generateRecommendations = useCallback(async (athleteData: AICoachingAthleteContext) => {
     setResponse("");
     setIsLoading(true);
 
