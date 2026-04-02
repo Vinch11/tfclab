@@ -1789,10 +1789,11 @@ async function imageToBase64(url: string): Promise<string> {
 // =============================================
 
 function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string {
-  const { effectiveSnapshot, potentielPhysiologique, athlete } = payload;
+  const { effectiveSnapshot, potentielPhysiologique, athlete, vlamax: alignedVlamax, tte: alignedTte } = payload;
   
-  const vlamax_run = effectiveSnapshot?.vlamax_run ?? effectiveSnapshot?.vlamax ?? null;
-  const durability = effectiveSnapshot?.tte_observed_min ?? 45;
+  // ✅ Utiliser les valeurs alignées du diagnostic unifié (pas le snapshot brut)
+  const vlamax_run = alignedVlamax.value;
+  const durability = alignedTte.tte_min ?? 45;
   const vo2max = effectiveSnapshot?.vo2max ?? null;
   const potentielScore = potentielPhysiologique.score;
   
