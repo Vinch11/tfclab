@@ -1666,9 +1666,9 @@ const Index = () => {
                 vlamaxValue={alignedVlamaxEffectif.value}
                 vlamaxSource={alignedVlamaxEffectif.source}
                 vlamaxConfidence={alignedVlamaxEffectif.confidence}
-                tteValue={tteEffectif.tte_min}
-                tteSource={tteEffectif.source}
-                tteConfidence={tteEffectif.confidence}
+                tteValue={alignedTteEffectif.tte_min}
+                tteSource={alignedTteEffectif.source}
+                tteConfidence={alignedTteEffectif.confidence}
                 potentielScore={potentielPhysiologiqueEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
                 vo2max={effectiveCloudSnapshot.vo2max ?? null}
