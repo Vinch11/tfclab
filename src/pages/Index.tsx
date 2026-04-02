@@ -1589,8 +1589,8 @@ const Index = () => {
             id: "lactate-thresholds-profil",
             render: () => currentAthlete && (
               <LactateCorrespondenceCard
-                vlamaxEffectif={vlamaxEffectif}
-                tteEffectif={tteEffectif}
+                vlamaxEffectif={alignedVlamaxEffectif}
+                tteEffectif={alignedTteEffectif}
                 ftp={ftp}
                 sport={effectiveCloudSnapshot?.sport_main || "velo"}
                 staffMode={staffMode}
