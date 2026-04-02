@@ -13,9 +13,10 @@ import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
-  Brain, Flame, Sparkles, Trophy, Target, Loader2, RotateCcw,
+  Brain, Flame, Sparkles, Trophy, Target, Loader2, RotateCcw, Send, MessageCircle, User,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
