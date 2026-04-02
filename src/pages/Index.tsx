@@ -1801,8 +1801,8 @@ const Index = () => {
             id: "nutrition-v2",
             render: () => currentAthlete && (
               <NutritionUnifiedCard
-                vlamaxValue={vlamaxEffectif.value}
-                vlamaxConfidence={vlamaxEffectif.confidence}
+                vlamaxValue={alignedVlamaxEffectif.value}
+                vlamaxConfidence={alignedVlamaxEffectif.confidence}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
                 tteMin={tteEffectif.tte_min}
                 sport={isRunningOnly ? "cap" : "velo"}
