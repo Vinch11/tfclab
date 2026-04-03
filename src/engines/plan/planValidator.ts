@@ -829,6 +829,34 @@ function validateProhibitionCompliance(
 // MAIN VALIDATOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// RACE DAY PRESENCE VALIDATION (Rule 9)
+const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|compétition|épreuve\s*(objectif|cible)|jour\s*de\s*(course|compétition)/i;
+
+function validateRaceDayPresence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (plan.weeks.length === 0) return { issues, score: 100 };
+
+  const lastWeek = plan.weeks[plan.weeks.length - 1];
+  const allSessions = lastWeek.sessions || [];
+  const hasRaceDay = allSessions.some(s => {
+    const text = `${s.title || ""} ${s.description || ""} ${s.type || ""}`;
+    return RACE_DAY_PATTERNS.test(text);
+  });
+
+  if (!hasRaceDay) {
+    issues.push({
+      rule: "race_day",
+      severity: "error",
+      week: plan.weeks.length,
+      message: `🏁 Jour de course absent — la dernière semaine (S${plan.weeks.length}) ne contient aucune séance "Jour J" ou "🏁 COURSE OBJECTIF"`,
+      detail: "La dernière semaine doit inclure le jour de la compétition avec stratégie de pacing et consignes nutrition",
+    });
+    return { issues, score: 0 };
+  }
+
+  return { issues, score: 100 };
+}
+
 export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[]): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
@@ -842,6 +870,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const catalogRatio = validateCatalogRatio(plan);
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
   const phaseCoherence = validatePhaseCoherence(plan);
+  const raceDayPresence = validateRaceDayPresence(plan);
 
   // Combine all issues
   const allIssues = [
@@ -853,18 +882,20 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     ...catalogRatio.issues,
     ...prohibitionCompliance.issues,
     ...phaseCoherence.issues,
+    ...raceDayPresence.issues,
   ];
 
-  // Weighted score (8 rules)
+  // Weighted score (9 rules)
   const weights = {
-    polarization: 0.18,
-    loadPattern: 0.12,
-    keySessions: 0.12,
-    progression: 0.10,
-    sportRatio: 0.10,
-    catalogRatio: 0.08,
-    prohibitionCompliance: 0.18,
-    phaseCoherence: 0.12,
+    polarization: 0.16,
+    loadPattern: 0.11,
+    keySessions: 0.11,
+    progression: 0.09,
+    sportRatio: 0.09,
+    catalogRatio: 0.07,
+    prohibitionCompliance: 0.17,
+    phaseCoherence: 0.11,
+    raceDayPresence: 0.09,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -874,7 +905,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     sportRatio.score * weights.sportRatio +
     catalogRatio.score * weights.catalogRatio +
     prohibitionCompliance.score * weights.prohibitionCompliance +
-    phaseCoherence.score * weights.phaseCoherence
+    phaseCoherence.score * weights.phaseCoherence +
+    raceDayPresence.score * weights.raceDayPresence
   );
 
   // Grade
@@ -885,8 +917,11 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const warningCount = allIssues.filter(i => i.severity === "warning").length;
   const prohibitionViolations = prohibitionCompliance.issues.filter(i => i.severity === "error").length;
   const phaseErrors = phaseCoherence.issues.filter(i => i.severity === "error").length;
+  const raceDayMissing = raceDayPresence.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : raceDayMissing > 0
+    ? `🏁 Jour de course absent de la dernière semaine — le plan doit inclure le Jour J`
     : phaseErrors > 0
     ? `⚠️ ${phaseErrors} incohérence(s) de phase détectée(s) — périodisation à corriger`
     : errorCount === 0 && warningCount === 0
@@ -909,6 +944,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
       catalogRatioScore: catalogRatio.score,
       prohibitionComplianceScore: prohibitionCompliance.score,
       phaseCoherenceScore: phaseCoherence.score,
+      raceDayScore: raceDayPresence.score,
       overallComment,
     },
   };
