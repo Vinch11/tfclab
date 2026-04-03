@@ -220,29 +220,69 @@ function formatLimitersForPrompt(
 // PROHIBITIONS
 // ═══════════════════════════════════════════════════════════════════════════════
 
+function isLongDistanceObjective(objectif: string): boolean {
+  const lower = objectif.toLowerCase();
+  return (
+    lower.includes("ironman") ||
+    lower.includes("70.3") ||
+    lower === "im" ||
+    lower === "703" ||
+    lower.includes("marathon") ||
+    lower.includes("trail") ||
+    lower.includes("ultra")
+  );
+}
+
+function isShortDistanceObjective(objectif: string): boolean {
+  const lower = objectif.toLowerCase();
+  return (
+    lower.includes("semi") ||
+    lower.includes("10k") ||
+    lower.includes("10km") ||
+    lower.includes("5k") ||
+    lower.includes("5km")
+  );
+}
+
 function buildProhibitions(
   limiterResult: UnifiedLimiterResult,
   objectif: string,
   ambition: string
 ): string[] {
   const prohibitions: string[] = [];
-  const obj = objectif.toUpperCase();
   const amb = ambition.toLowerCase();
-  const isLongDistance = ['IM', '703', 'MARATHON', 'TRAIL', 'TRAILULTRA', 'IRONMAN', 'IRONMAN 70.3'].includes(obj);
+  const isLD = isLongDistanceObjective(objectif);
   const isFinisher = amb === 'finisher';
   
-  // Sprint Ban: only for long distance + non-finisher + VLamax too high
-  if (isLongDistance && !isFinisher) {
-    const vlamaxGap = limiterResult.gapAnalysis.find(g => g.metric === "VLamax");
-    if (vlamaxGap && vlamaxGap.status === "limiting") {
-      prohibitions.push("🚫 SPRINT BAN : VLamax trop haute pour cet objectif. Interdire sprints, micro-intervalles explosifs (<20s all-out), et efforts erratiques.");
-    }
+  const vlamaxGap = limiterResult.gapAnalysis.find(g => g.metric === "VLamax");
+  const vlamaxIsLimiting = vlamaxGap && vlamaxGap.status === "limiting";
+
+  // Sprint Ban: long distance + non-finisher + VLamax too high
+  if (isLD && !isFinisher && vlamaxIsLimiting) {
+    prohibitions.push(
+      "🚫 SPRINT BAN STRICT — VLamax trop haute pour cet objectif longue distance. " +
+      "INTERDITS : sprints all-out, Tabata, micro-intervalles explosifs (<20s), " +
+      "sprints neuromusculaires (6×10s, 8×20s, etc.), pliométrie explosive (drop jumps, hurdle rebounds), " +
+      "efforts erratiques non-structurés. " +
+      "Ces formats AUGMENTENT la VLamax et sont CONTRE-PRODUCTIFS pour l'endurance."
+    );
+
+    // Also restrict heavy VO2max blocks when VLamax is high
+    prohibitions.push(
+      "🚫 RESTRICTION VO2max LOURD — Avec une VLamax élevée, les blocs VO2max longs (≥5min @>110% FTP) " +
+      "stimulent excessivement la glycolyse et aggravent le problème. " +
+      "AUTORISÉ : intervalles VO2max COURTS et CONTRÔLÉS (3-4×3min @105-110% FTP max, repos longs ≥4min). " +
+      "INTERDIT : 5×5min @115% FTP, Tabata VO2max, 30/30 longs. " +
+      "PRIORITÉ : Sweet Spot prolongé (2×20min @88-92% FTP), seuil Norvégien, Z2 volume."
+    );
   }
   
   // For semi/10K/5K: sprints are BENEFICIAL
-  const isShortDistance = ['SEMI', '10K', '10KM', '5K', 'SEMI-MARATHON'].includes(obj);
-  if (isShortDistance) {
-    prohibitions.push("✅ SPRINTS AUTORISÉS : objectif courte/moyenne distance — les sprints et la pliométrie sont bénéfiques pour l'économie de course et la puissance neuromusculaire.");
+  if (isShortDistanceObjective(objectif)) {
+    prohibitions.push(
+      "✅ SPRINTS AUTORISÉS : objectif courte/moyenne distance — les sprints et la pliométrie " +
+      "sont bénéfiques pour l'économie de course et la puissance neuromusculaire."
+    );
   }
 
   return prohibitions;
