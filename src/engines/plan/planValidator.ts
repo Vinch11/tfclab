@@ -840,7 +840,7 @@ function validateRaceDayPresence(plan: ParsedPlan): { issues: ValidationIssue[];
   const lastWeek = plan.weeks[plan.weeks.length - 1];
   const allSessions = lastWeek.sessions || [];
   const hasRaceDay = allSessions.some(s => {
-    const text = `${s.title || ""} ${s.description || ""} ${s.type || ""}`;
+    const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
     return RACE_DAY_PATTERNS.test(text);
   });
 
