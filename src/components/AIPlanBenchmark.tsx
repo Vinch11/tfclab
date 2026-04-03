@@ -18,6 +18,7 @@ import {
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { getEliteReference, getEliteCeilingReference, type EliteReference } from "@/lib/eliteReferences";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
+import { validatePlan } from "@/engines/plan/planValidator";
 
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
@@ -25,6 +26,7 @@ interface AIPlanBenchmarkProps {
   ambition: string;
   athleteName?: string;
   limiterResult?: UnifiedLimiterResult | null;
+  prohibitions?: string[];
 }
 
 interface MetricGauge {
