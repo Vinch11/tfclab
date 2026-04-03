@@ -3850,11 +3850,13 @@ function buildUserPrompt(data: any, config: any): string {
     lines.push("Les leviers actifs doivent être intégrés dans les séances clés 🔑 et les consignes coach.");
   }
 
-  // --- Prohibitions (Sprint Ban, etc.) ---
+  // --- Prohibitions (Sprint Ban, VO2max restrictions, etc.) ---
   if (config.prohibitions && config.prohibitions.length > 0) {
-    lines.push("\n### 🚨 INTERDICTIONS / AUTORISATIONS SPÉCIFIQUES À CET ATHLÈTE");
+    lines.push("\n### 🚨 INTERDICTIONS / AUTORISATIONS SPÉCIFIQUES À CET ATHLÈTE — PRIORITÉ ABSOLUE");
+    lines.push("⚠️ Ces règles sont calculées par le moteur TFCL™ en fonction de l'objectif, l'ambition et le profil métabolique.");
+    lines.push("Tu DOIS les respecter IMPÉRATIVEMENT. Elles PRIMENT sur les recommandations générales de périodisation.");
+    lines.push("Toute séance qui viole ces interdictions sera rejetée par le moteur de validation.");
     config.prohibitions.forEach((p: string) => lines.push(`- ${p}`));
-    lines.push("Ces règles sont calculées par l'app en fonction de l'objectif, l'ambition et le profil métabolique. Tu DOIS les respecter.");
   }
 
   // --- Adaptation Predictor Projections ---
