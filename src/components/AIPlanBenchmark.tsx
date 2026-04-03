@@ -634,7 +634,28 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
           </div>
         )}
 
-        {/* Phase Gantt Timeline */}
+        {/* Race Day presence */}
+        {validationResult.summary.raceDayScore < 100 && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-red-600 dark:text-red-400 flex items-center gap-1">
+                🏁 Jour de course
+              </h4>
+              <Badge variant="outline" className="text-[9px] border-red-500/50 text-red-600 dark:text-red-400">
+                Absent
+              </Badge>
+            </div>
+            {validationResult.issues
+              .filter(i => i.rule === "race_day")
+              .slice(0, 3)
+              .map((issue, idx) => (
+                <p key={idx} className="text-[10px] text-red-700/80 dark:text-red-300/80 bg-red-500/5 rounded p-1.5">
+                  {issue.message}
+                </p>
+              ))}
+          </div>
+        )}
+
         {plan.phases && plan.phases.length >= 2 && (
           <PhaseGanttTimeline phases={plan.phases} totalWeeks={plan.totalWeeks} />
         )}
