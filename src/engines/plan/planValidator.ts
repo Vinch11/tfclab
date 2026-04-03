@@ -60,6 +60,7 @@ export interface PlanValidationResult {
     progressionScore: number;
     sportRatioScore: number;
     catalogRatioScore: number;
+    prohibitionComplianceScore: number;
     overallComment: string;
   };
 }
