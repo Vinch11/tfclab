@@ -62,6 +62,7 @@ export interface PlanValidationResult {
     catalogRatioScore: number;
     prohibitionComplianceScore: number;
     phaseCoherenceScore: number;
+    raceDayScore: number;
     overallComment: string;
   };
 }
