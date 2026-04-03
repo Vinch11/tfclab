@@ -198,15 +198,43 @@ function getSportDistributionConstraint(objective: string, ambition: string, lim
     lines.push(`→ Si tu ajustes un ratio pour un limiteur, tu DOIS le mentionner dans le Récapitulatif Stratégique ET dans l'en-tête du bloc.`);
   }
 
-  // Self-check instruction
-  lines.push(`\n**🔍 AUTO-VÉRIFICATION OBLIGATOIRE :**`);
-  lines.push(`Avant de soumettre chaque bloc, VÉRIFIE :`);
-  lines.push(`1. Compte les séances Natation, Vélo, Course`);
-  lines.push(`2. Calcule les durées totales par sport`);
-  lines.push(`3. Vérifie que les % respectent le tableau ci-dessus`);
+  // ── MANDATORY RATIO VERIFICATION TABLE ──
+  lines.push(`\n## 🚨🚨🚨 PROCÉDURE DE VÉRIFICATION DES RATIOS — OBLIGATOIRE 🚨🚨🚨`);
+  lines.push(`⛔ Tu NE PEUX PAS soumettre un bloc sans avoir PRODUIT le tableau ci-dessous dans ta réponse.`);
+  lines.push(`Ce tableau DOIT apparaître à la FIN de CHAQUE BLOC de semaines, AVANT le séparateur "---".`);
+  lines.push(``);
+  lines.push(`### FORMAT OBLIGATOIRE DU TABLEAU DE VÉRIFICATION :`);
+  lines.push(`\`\`\``);
+  lines.push(`📊 VÉRIFICATION RATIOS — Bloc [N] (Semaines X à Y)`);
+  lines.push(`| Discipline | Minutes totales | % du total | Cible TFCL™ | ✅/❌ |`);
+  lines.push(`|------------|----------------|------------|-------------|-------|`);
   if (ref.swimPct && ref.bikePct && ref.runPct) {
-    lines.push(`4. Si Natation > ${ref.swimPct[1] + 3}% ou Vélo < ${ref.bikePct[0] - 3}% ou Course < ${ref.runPct[0] - 3}% → CORRIGE avant de soumettre`);
+    lines.push(`| 🏊 Natation | [NNN] min | [XX]% | ${ref.swimPct[0]}-${ref.swimPct[1]}% | ✅/❌ |`);
+    lines.push(`| 🚴 Vélo    | [NNN] min | [XX]% | ${ref.bikePct[0]}-${ref.bikePct[1]}% | ✅/❌ |`);
+    lines.push(`| 🏃 Course  | [NNN] min | [XX]% | ${ref.runPct[0]}-${ref.runPct[1]}% | ✅/❌ |`);
   }
+  lines.push(`| TOTAL      | [NNN] min | 100% |             |       |`);
+  lines.push(`\`\`\``);
+  lines.push(``);
+  lines.push(`### RÈGLES D'APPLICATION :`);
+  lines.push(`1. **CALCULE RÉELLEMENT** les minutes en additionnant CHAQUE séance du bloc (ne devine pas, compte).`);
+  lines.push(`2. **Si un ratio est ❌** : tu DOIS réécrire les semaines concernées AVANT de soumettre le bloc.`);
+  lines.push(`3. **Tolérance maximale** : ±3% par rapport à la fourchette cible. Au-delà = rejet.`);
+  if (ref.swimPct && ref.bikePct && ref.runPct) {
+    lines.push(`4. **Seuils de rejet automatique** :`);
+    lines.push(`   - Natation > ${ref.swimPct[1] + 3}% → REJETÉ (erreur la plus fréquente)`);
+    lines.push(`   - Vélo < ${ref.bikePct[0] - 3}% → REJETÉ (le vélo est le sport DOMINANT)`);
+    lines.push(`   - Course < ${ref.runPct[0] - 3}% → REJETÉ (la course est le 2e sport en volume)`);
+    lines.push(`   - Natation > Course → REJETÉ (la natation ne doit JAMAIS dépasser la course en triathlon)`);
+  }
+  lines.push(`5. **Si le limiteur justifie un écart** : CITE le limiteur et la raison dans la colonne "✅/❌" avec "⚠️ Justifié par [limiteur]".`);
+  lines.push(`6. **Hiérarchie stricte (triathlon)** : Vélo > Course > Natation. Cette hiérarchie est INVIOLABLE.`);
+  lines.push(``);
+  lines.push(`### PROCÉDURE EN CAS DE ❌ :`);
+  lines.push(`- Natation trop haute → REMPLACE 1-2 séances natation par du vélo Z2 ou de la course EF`);
+  lines.push(`- Vélo trop bas → AJOUTE du volume vélo Z2 (SL vélo, Z2 vallonné, commute training)`);
+  lines.push(`- Course trop basse → AJOUTE du volume course (EF, fartlek, SL progressive)`);
+  lines.push(`- Ne jamais "tricher" en gonflant artificiellement les durées d'une discipline`);
 
   return lines.join("\n");
 }
