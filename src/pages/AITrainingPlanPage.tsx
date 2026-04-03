@@ -1545,6 +1545,7 @@ export default function AITrainingPlanPage() {
                         ambition={ambition}
                         athleteName={currentAthlete?.nom}
                         limiterResult={athleteContext?.diagnostic.limiter ?? null}
+                        prohibitions={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.prohibitions : undefined}
                       />
                       <RacePaceSimulation
                         objective={objective}

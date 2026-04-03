@@ -60,6 +60,7 @@ export interface PlanValidationResult {
     progressionScore: number;
     sportRatioScore: number;
     catalogRatioScore: number;
+    prohibitionComplianceScore: number;
     overallComment: string;
   };
 }
@@ -395,8 +396,26 @@ const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [num
   Semi:     { run: [85, 100] },
   "10K":    { run: [85, 100] },
   Trail:    { run: [70, 85] },
+  TrailShort: { run: [70, 85] },
+  TrailMountain: { run: [65, 80] },
   TrailUltra: { run: [65, 80] },
 };
+
+/** Normalize objective string to a known key (mirrors edge function logic) */
+function normalizeObjectiveKey(obj: string): string {
+  const lower = obj.toLowerCase();
+  if (lower.includes("70.3") || lower === "703") return "703";
+  if (lower.includes("ironman") || lower === "im") return "IM";
+  if (lower.includes("semi")) return "Semi";
+  if (lower.includes("marathon")) return "Marathon";
+  if (lower.includes("trail") && lower.includes("ultra")) return "TrailUltra";
+  if (lower.includes("trail") && (lower.includes("montagne") || lower.includes("mountain"))) return "TrailMountain";
+  if (lower.includes("trail") && (lower.includes("court") || lower.includes("short"))) return "TrailShort";
+  if (lower.includes("trail")) return "Trail";
+  if (lower.includes("10")) return "10K";
+  if (lower.includes("5k") || lower === "5km") return "5K";
+  return obj;
+}
 
 function validateSportRatio(
   metrics: WeekMetrics[],
@@ -428,9 +447,9 @@ function validateSportRatio(
   const bikePct = Math.round((bikeAdj / primaryTotal) * 100);
   const runPct = Math.round((run / primaryTotal) * 100);
 
-  // Find target ratios
-  const obj = (objective || "").replace(/\s/g, "");
-  const target = SPORT_RATIO_TARGETS[obj] || SPORT_RATIO_TARGETS[obj.toUpperCase()];
+  // Find target ratios using proper normalization
+  const objKey = normalizeObjectiveKey(objective || "");
+  const target = SPORT_RATIO_TARGETS[objKey];
 
   if (!target) {
     // No specific target — just check basic diversity for triathlon-like plans
@@ -558,10 +577,74 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// PROHIBITION VIOLATION DETECTION (Rule 7)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Patterns that indicate Sprint Ban violations */
+const SPRINT_BAN_VIOLATION_PATTERNS = /tabata|sprint\s*(all[- ]out|neuro|max)|(\d+\s*[×x]\s*\d{1,2}s\s*(sprint|all[- ]out))|micro[- ]interv|drop\s*jump|hurdle\s*rebound|band\s*sprint|plyo\s*explo/i;
+/** Patterns that indicate heavy VO2max violations (≥5min @>110% FTP) */
+const VO2MAX_HEAVY_VIOLATION_PATTERNS = /[5-9]\s*[×x]\s*5\s*(?:min|')\s*@?\s*(?:1[1-9]\d|115|120)\s*%\s*FTP|tabata\s*vo2|30\/30\s*(?:long|×\s*[2-9]\d)/i;
+
+function validateProhibitionCompliance(
+  plan: ParsedPlan,
+  prohibitions?: string[]
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  if (!prohibitions || prohibitions.length === 0) {
+    return { issues: [], score: 100 };
+  }
+
+  const hasSprintBan = prohibitions.some(p => /sprint\s*ban/i.test(p));
+  const hasVO2Restriction = prohibitions.some(p => /restriction\s*vo2/i.test(p));
+
+  if (!hasSprintBan && !hasVO2Restriction) {
+    return { issues: [], score: 100 };
+  }
+
+  let violations = 0;
+
+  for (const week of plan.weeks) {
+    for (const session of week.sessions) {
+      if (session.isRest) continue;
+      const text = `${session.title} ${session.details}`.toLowerCase();
+
+      if (hasSprintBan && SPRINT_BAN_VIOLATION_PATTERNS.test(text)) {
+        violations++;
+        issues.push({
+          rule: "prohibition_compliance",
+          severity: "error",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: 🚫 VIOLATION SPRINT BAN — "${session.title}" contient des sprints/Tabata/pliométrie explosive interdits`,
+          detail: `Le profil VLamax élevé interdit ce type de séance. Remplacer par Sweet Spot, seuil ou Z2 volume.`,
+        });
+      }
+
+      if (hasVO2Restriction && VO2MAX_HEAVY_VIOLATION_PATTERNS.test(text)) {
+        violations++;
+        issues.push({
+          rule: "prohibition_compliance",
+          severity: "error",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: 🚫 VIOLATION VO2max LOURD — "${session.title}" programme des blocs VO2max ≥5min @>110% FTP`,
+          detail: `Seuls les intervalles courts (3-4×3min @105-110% FTP) sont autorisés. Remplacer par sweet spot ou seuil.`,
+        });
+      }
+    }
+  }
+
+  const totalSessions = plan.weeks.reduce((sum, w) => sum + w.sessions.filter(s => !s.isRest).length, 0);
+  const violationRate = totalSessions > 0 ? violations / totalSessions : 0;
+  const score = violations === 0 ? 100 : violationRate < 0.05 ? 60 : violationRate < 0.1 ? 30 : 0;
+
+  return { issues, score };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN VALIDATOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidationResult {
+export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[]): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
@@ -572,6 +655,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
   const progression = validateProgression(weekMetrics);
   const sportRatio = validateSportRatio(weekMetrics, objective);
   const catalogRatio = validateCatalogRatio(plan);
+  const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
 
   // Combine all issues
   const allIssues = [
@@ -581,16 +665,18 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
     ...progression.issues,
     ...sportRatio.issues,
     ...catalogRatio.issues,
+    ...prohibitionCompliance.issues,
   ];
 
-  // Weighted score (6 rules now)
+  // Weighted score (7 rules)
   const weights = {
-    polarization: 0.25,
-    loadPattern: 0.20,
-    keySessions: 0.20,
-    progression: 0.15,
+    polarization: 0.20,
+    loadPattern: 0.15,
+    keySessions: 0.15,
+    progression: 0.10,
     sportRatio: 0.10,
     catalogRatio: 0.10,
+    prohibitionCompliance: 0.20,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -598,7 +684,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
     keySessions.score * weights.keySessions +
     progression.score * weights.progression +
     sportRatio.score * weights.sportRatio +
-    catalogRatio.score * weights.catalogRatio
+    catalogRatio.score * weights.catalogRatio +
+    prohibitionCompliance.score * weights.prohibitionCompliance
   );
 
   // Grade
@@ -607,7 +694,10 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
   // Summary comment
   const errorCount = allIssues.filter(i => i.severity === "error").length;
   const warningCount = allIssues.filter(i => i.severity === "warning").length;
-  const overallComment = errorCount === 0 && warningCount === 0
+  const prohibitionViolations = prohibitionCompliance.issues.filter(i => i.severity === "error").length;
+  const overallComment = prohibitionViolations > 0
+    ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : errorCount === 0 && warningCount === 0
     ? "✅ Plan conforme aux standards élite TFCL™"
     : errorCount === 0
     ? `⚠️ ${warningCount} avertissement(s) mineur(s) — plan globalement conforme`
@@ -625,6 +715,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string): PlanValidati
       progressionScore: progression.score,
       sportRatioScore: sportRatio.score,
       catalogRatioScore: catalogRatio.score,
+      prohibitionComplianceScore: prohibitionCompliance.score,
       overallComment,
     },
   };
@@ -646,6 +737,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| Progression volume | ${result.summary.progressionScore}/100 | ${result.summary.progressionScore >= 75 ? "✅" : result.summary.progressionScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Ratio sportif | ${result.summary.sportRatioScore}/100 | ${result.summary.sportRatioScore >= 75 ? "✅" : result.summary.sportRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Catalogue TFCL™ | ${result.summary.catalogRatioScore}/100 | ${result.summary.catalogRatioScore >= 75 ? "✅" : result.summary.catalogRatioScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| 🚫 Conformité prohibitions | ${result.summary.prohibitionComplianceScore}/100 | ${result.summary.prohibitionComplianceScore >= 75 ? "✅" : result.summary.prohibitionComplianceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
@@ -653,12 +745,19 @@ export function formatValidationReport(result: PlanValidationResult): string {
     lines.push("");
     lines.push("### Détails");
     
-    const errors = result.issues.filter(i => i.severity === "error");
+    // Prohibition violations first (most critical)
+    const prohibitionErrors = result.issues.filter(i => i.rule === "prohibition_compliance");
+    const otherErrors = result.issues.filter(i => i.severity === "error" && i.rule !== "prohibition_compliance");
     const warnings = result.issues.filter(i => i.severity === "warning");
 
-    if (errors.length > 0) {
+    if (prohibitionErrors.length > 0) {
+      lines.push("\n**🚫 Violations de prohibition (CRITIQUE — incohérence avec le diagnostic) :**");
+      prohibitionErrors.forEach(e => lines.push(`- ${e.message}`));
+      if (prohibitionErrors[0]?.detail) lines.push(`  → ${prohibitionErrors[0].detail}`);
+    }
+    if (otherErrors.length > 0) {
       lines.push("\n**❌ Erreurs critiques :**");
-      errors.forEach(e => lines.push(`- ${e.message}`));
+      otherErrors.forEach(e => lines.push(`- ${e.message}`));
     }
     if (warnings.length > 0) {
       lines.push("\n**⚠️ Avertissements :**");

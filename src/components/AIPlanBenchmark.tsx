@@ -18,6 +18,7 @@ import {
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { getEliteReference, getEliteCeilingReference, type EliteReference } from "@/lib/eliteReferences";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
+import { validatePlan } from "@/engines/plan/planValidator";
 
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
@@ -25,6 +26,7 @@ interface AIPlanBenchmarkProps {
   ambition: string;
   athleteName?: string;
   limiterResult?: UnifiedLimiterResult | null;
+  prohibitions?: string[];
 }
 
 interface MetricGauge {
@@ -327,10 +329,11 @@ function getDeviationJustification(
   };
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult }: AIPlanBenchmarkProps) {
+export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult, prohibitions }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
+  const validationResult = useMemo(() => validatePlan(plan, objective, prohibitions), [plan, objective, prohibitions]);
 
   if (!metrics || !ref) return null;
   const elite = eliteRef || ref;
@@ -483,6 +486,44 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
             )}
             <span className="text-xs text-muted-foreground">Réf: {ref.loadPattern}</span>
           </div>
+        </div>
+
+        {/* Prohibition compliance */}
+        {validationResult.summary.prohibitionComplianceScore < 100 && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-destructive flex items-center gap-1">
+                🚫 Conformité prohibitions
+              </h4>
+              <Badge variant="destructive" className="text-[9px]">
+                {validationResult.summary.prohibitionComplianceScore}/100
+              </Badge>
+            </div>
+            {validationResult.issues
+              .filter(i => i.rule === "prohibition_compliance")
+              .slice(0, 5)
+              .map((issue, idx) => (
+                <p key={idx} className="text-[10px] text-destructive/80 bg-destructive/5 rounded p-1.5">
+                  {issue.message}
+                </p>
+              ))}
+          </div>
+        )}
+
+        {/* Validation grade */}
+        <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
+          <span className="text-muted-foreground">Grade qualité TFCL™</span>
+          <Badge
+            variant="outline"
+            className={`text-xs ${
+              validationResult.grade === "A" ? "border-green-500/50 text-green-700 dark:text-green-300" :
+              validationResult.grade === "B" ? "border-blue-500/50 text-blue-700 dark:text-blue-300" :
+              validationResult.grade === "C" ? "border-amber-500/50 text-amber-700 dark:text-amber-300" :
+              "border-destructive/50 text-destructive"
+            }`}
+          >
+            {validationResult.grade} ({validationResult.score}/100)
+          </Badge>
         </div>
 
         {/* Summary */}
