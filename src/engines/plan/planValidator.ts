@@ -994,6 +994,10 @@ export function formatValidationReport(result: PlanValidationResult): string {
       phaseErrors.forEach(e => lines.push(`- ${e.message}`));
       if (phaseErrors[0]?.detail) lines.push(`  → ${phaseErrors[0].detail}`);
     }
+    if (raceDayErrors.length > 0) {
+      lines.push("\n**🏁 Jour de course manquant :**");
+      raceDayErrors.forEach(e => lines.push(`- ${e.message}`));
+    }
     if (otherErrors.length > 0) {
       lines.push("\n**❌ Erreurs critiques :**");
       otherErrors.forEach(e => lines.push(`- ${e.message}`));
