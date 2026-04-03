@@ -329,6 +329,108 @@ function getDeviationJustification(
   };
 }
 
+// Phase colors mapped by index (1=Fondation → 5=Affûtage)
+const PHASE_COLORS: Record<number, string> = {
+  1: "#3b82f6", // Fondation — blue
+  2: "#f97316", // Chantier — orange
+  3: "#a855f7", // Consolidation — purple
+  4: "#1e3a5f", // Race-Specific — dark navy
+  5: "#86efac", // Affûtage — green
+};
+
+const PHASE_INDEX_MAP: Record<string, number> = {
+  fondation: 1, adaptation: 1, base: 1,
+  chantier: 2, build: 2, développement: 2, developpement: 2, intensification: 2,
+  consolidation: 3, transition: 3,
+  "race-specific": 4, spécifique: 4, specifique: 4, compétition: 4, competition: 4,
+  affûtage: 5, affutage: 5, taper: 5, tapering: 5, récupération: 5,
+};
+
+function getPhaseColorIdx(name: string): number {
+  const lower = name.toLowerCase().trim();
+  for (const [key, idx] of Object.entries(PHASE_INDEX_MAP)) {
+    if (lower.includes(key)) return idx;
+  }
+  return 0;
+}
+
+function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; weeks: string; objective?: string }[]; totalWeeks: number }) {
+  // Parse week ranges from phase data
+  const parsed = phases.map(p => {
+    const match = p.weeks.match(/(\d+)\s*[-–àto]\s*(\d+)/);
+    const start = match ? parseInt(match[1]) : 1;
+    const end = match ? parseInt(match[2]) : start;
+    const colorIdx = getPhaseColorIdx(p.name);
+    const color = PHASE_COLORS[colorIdx] || "#94a3b8";
+    return { ...p, start, end, color, colorIdx };
+  });
+
+  if (parsed.length < 2) return null;
+
+  return (
+    <div className="space-y-2 pt-2 border-t border-border">
+      <h4 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+        📊 Timeline de périodisation
+      </h4>
+      <div className="space-y-1">
+        {parsed.map((phase, i) => {
+          const leftPct = ((phase.start - 1) / totalWeeks) * 100;
+          const widthPct = ((phase.end - phase.start + 1) / totalWeeks) * 100;
+          const isDark = phase.colorIdx === 4;
+          const isGreen = phase.colorIdx === 5;
+          return (
+            <TooltipProvider key={i}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="relative h-7 cursor-help">
+                    <div
+                      className="absolute rounded-md transition-all"
+                      style={{
+                        marginLeft: `${leftPct}%`,
+                        width: `${widthPct}%`,
+                        backgroundColor: phase.color,
+                        height: "100%",
+                      }}
+                    >
+                      <div className="flex items-center justify-center h-full px-1.5">
+                        <span
+                          className="text-[9px] sm:text-[10px] font-semibold truncate"
+                          style={{ color: isDark ? "#ffffff" : isGreen ? "#1e3a5f" : "#1e293b" }}
+                        >
+                          {phase.name}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <p className="font-semibold text-xs">{phase.name}</p>
+                  <p className="text-[10px] text-muted-foreground">Semaines {phase.start}–{phase.end} ({phase.end - phase.start + 1} sem)</p>
+                  {phase.objective && <p className="text-[10px] text-muted-foreground mt-0.5">{phase.objective}</p>}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
+      </div>
+      {/* Week axis */}
+      <div className="relative h-4">
+        {Array.from({ length: totalWeeks }, (_, i) => i + 1)
+          .filter(w => totalWeeks <= 12 || w % 2 === 1)
+          .map(w => (
+            <span
+              key={w}
+              className="absolute text-[8px] text-muted-foreground"
+              style={{ left: `${((w - 0.5) / totalWeeks) * 100}%`, transform: "translateX(-50%)" }}
+            >
+              S{w}
+            </span>
+          ))}
+      </div>
+    </div>
+  );
+}
+
 export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult, prohibitions }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
