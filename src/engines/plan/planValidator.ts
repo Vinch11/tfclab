@@ -840,6 +840,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const sportRatio = validateSportRatio(weekMetrics, objective);
   const catalogRatio = validateCatalogRatio(plan);
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
+  const phaseCoherence = validatePhaseCoherence(plan);
 
   // Combine all issues
   const allIssues = [
@@ -850,17 +851,19 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     ...sportRatio.issues,
     ...catalogRatio.issues,
     ...prohibitionCompliance.issues,
+    ...phaseCoherence.issues,
   ];
 
-  // Weighted score (7 rules)
+  // Weighted score (8 rules)
   const weights = {
-    polarization: 0.20,
-    loadPattern: 0.15,
-    keySessions: 0.15,
+    polarization: 0.18,
+    loadPattern: 0.12,
+    keySessions: 0.12,
     progression: 0.10,
     sportRatio: 0.10,
-    catalogRatio: 0.10,
-    prohibitionCompliance: 0.20,
+    catalogRatio: 0.08,
+    prohibitionCompliance: 0.18,
+    phaseCoherence: 0.12,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -869,7 +872,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     progression.score * weights.progression +
     sportRatio.score * weights.sportRatio +
     catalogRatio.score * weights.catalogRatio +
-    prohibitionCompliance.score * weights.prohibitionCompliance
+    prohibitionCompliance.score * weights.prohibitionCompliance +
+    phaseCoherence.score * weights.phaseCoherence
   );
 
   // Grade
@@ -879,8 +883,11 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const errorCount = allIssues.filter(i => i.severity === "error").length;
   const warningCount = allIssues.filter(i => i.severity === "warning").length;
   const prohibitionViolations = prohibitionCompliance.issues.filter(i => i.severity === "error").length;
+  const phaseErrors = phaseCoherence.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : phaseErrors > 0
+    ? `⚠️ ${phaseErrors} incohérence(s) de phase détectée(s) — périodisation à corriger`
     : errorCount === 0 && warningCount === 0
     ? "✅ Plan conforme aux standards élite TFCL™"
     : errorCount === 0
@@ -900,6 +907,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
       sportRatioScore: sportRatio.score,
       catalogRatioScore: catalogRatio.score,
       prohibitionComplianceScore: prohibitionCompliance.score,
+      phaseCoherenceScore: phaseCoherence.score,
       overallComment,
     },
   };
@@ -922,6 +930,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| Ratio sportif | ${result.summary.sportRatioScore}/100 | ${result.summary.sportRatioScore >= 75 ? "✅" : result.summary.sportRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Catalogue TFCL™ | ${result.summary.catalogRatioScore}/100 | ${result.summary.catalogRatioScore >= 75 ? "✅" : result.summary.catalogRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| 🚫 Conformité prohibitions | ${result.summary.prohibitionComplianceScore}/100 | ${result.summary.prohibitionComplianceScore >= 75 ? "✅" : result.summary.prohibitionComplianceScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| 📦 Cohérence des phases | ${result.summary.phaseCoherenceScore}/100 | ${result.summary.phaseCoherenceScore >= 75 ? "✅" : result.summary.phaseCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
@@ -931,13 +940,19 @@ export function formatValidationReport(result: PlanValidationResult): string {
     
     // Prohibition violations first (most critical)
     const prohibitionErrors = result.issues.filter(i => i.rule === "prohibition_compliance");
-    const otherErrors = result.issues.filter(i => i.severity === "error" && i.rule !== "prohibition_compliance");
+    const phaseErrors = result.issues.filter(i => i.rule === "phase_coherence" && i.severity === "error");
+    const otherErrors = result.issues.filter(i => i.severity === "error" && i.rule !== "prohibition_compliance" && i.rule !== "phase_coherence");
     const warnings = result.issues.filter(i => i.severity === "warning");
 
     if (prohibitionErrors.length > 0) {
       lines.push("\n**🚫 Violations de prohibition (CRITIQUE — incohérence avec le diagnostic) :**");
       prohibitionErrors.forEach(e => lines.push(`- ${e.message}`));
       if (prohibitionErrors[0]?.detail) lines.push(`  → ${prohibitionErrors[0].detail}`);
+    }
+    if (phaseErrors.length > 0) {
+      lines.push("\n**📦 Incohérences de phase (CRITIQUE — périodisation non conforme) :**");
+      phaseErrors.forEach(e => lines.push(`- ${e.message}`));
+      if (phaseErrors[0]?.detail) lines.push(`  → ${phaseErrors[0].detail}`);
     }
     if (otherErrors.length > 0) {
       lines.push("\n**❌ Erreurs critiques :**");
