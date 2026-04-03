@@ -7,8 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Trophy, TrendingUp, TrendingDown, Minus, AlertTriangle,
-  CheckCircle2, Target, BarChart3, Zap,
+  CheckCircle2, Target, BarChart3, Zap, Info,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { getEliteReference, getEliteCeilingReference, type EliteReference } from "@/lib/eliteReferences";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
