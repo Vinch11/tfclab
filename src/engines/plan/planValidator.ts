@@ -980,7 +980,8 @@ export function formatValidationReport(result: PlanValidationResult): string {
     // Prohibition violations first (most critical)
     const prohibitionErrors = result.issues.filter(i => i.rule === "prohibition_compliance");
     const phaseErrors = result.issues.filter(i => i.rule === "phase_coherence" && i.severity === "error");
-    const otherErrors = result.issues.filter(i => i.severity === "error" && i.rule !== "prohibition_compliance" && i.rule !== "phase_coherence");
+    const raceDayErrors = result.issues.filter(i => i.rule === "race_day");
+    const otherErrors = result.issues.filter(i => i.severity === "error" && !["prohibition_compliance", "phase_coherence", "race_day"].includes(i.rule));
     const warnings = result.issues.filter(i => i.severity === "warning");
 
     if (prohibitionErrors.length > 0) {
