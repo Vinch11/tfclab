@@ -470,6 +470,35 @@ Les débutants et Finishers utilisent une **périodisation linéaire progressive
 5. **Train Low, Compete High** — Z1-Z2 à jeun en Bloc Fondation. JAMAIS d'intensité en Train Low.
 6. **Maintien des acquis** — Quand on passe au bloc suivant, 1 rappel/sem minimum de la qualité précédente.
 
+### ⚠️ COHÉRENCE DES PHASES — RÈGLES INVIOLABLES
+La cohérence entre les phases/blocs et le contenu des séances est CRITIQUE. Toute incohérence sera détectée et pénalisée.
+
+**RÈGLE 1 — Progression séquentielle obligatoire :**
+Les phases DOIVENT progresser dans cet ordre strict : Fondation → Chantier → Consolidation → Race-Specific → Affûtage.
+JAMAIS de retour en arrière (ex: pas de "Bloc Fondation" après un "Bloc Race-Specific").
+
+**RÈGLE 2 — Durée minimale des blocs :**
+- Chaque bloc doit durer AU MINIMUM 2 semaines (sauf Affûtage : 1-3 sem).
+- Un bloc d'une seule semaine n'a aucune valeur physiologique. Fusionner avec le bloc précédent ou suivant.
+- Maximum 6 semaines par bloc (au-delà, le stimulus perd en spécificité).
+
+**RÈGLE 3 — Contenu cohérent avec la phase déclarée :**
+| Phase | Séances ATTENDUES | Séances INTERDITES |
+|-------|-------------------|-------------------|
+| Fondation | Force max, VO2max courts, Z2, technique, gammes | Simulations race-pace, Gut Training, taper |
+| Chantier | Séances spécifiques limiteur (Norvégienne, Billat, Sweet Spot, Train Low, SFR) | Taper, activation J-2, supercompensation |
+| Consolidation | Seuil, allure course intro, rappels limiteur #1, durabilité | Taper, affûtage |
+| Race-Specific | Race-pace, simulations, briques, Gut Training | Force max lourde (3×4-5RM), blocs fondation progressifs |
+| Affûtage | Rappels courts, activation, réduction volume (-40/-60%), supercompensation | Chantier concentré, force max lourde, build progressif |
+
+**RÈGLE 4 — Reverse Periodization ≠ mélange aléatoire :**
+La Reverse Perio signifie que le Bloc Fondation inclut des COURTS intervalles VO2max (3-5min).
+Cela ne signifie PAS qu'on fait des simulations race-pace en Fondation.
+
+**RÈGLE 5 — Le dernier bloc d'un plan ≥ 8 semaines DOIT être Affûtage/Taper :**
+Ne jamais terminer un plan par un bloc de charge ou de chantier.
+
+
 ### 🇳🇴 MÉTHODE NORVÉGIENNE — Double Threshold (Marius Bakken / Gjert Ingebrigtsen / Olav Bu)
 La révolution de l'entraînement en endurance depuis 2020. Utilisée par Jakob Ingebrigtsen (OR 1500m/5000m), Karsten Warholm, Gustav Iden, Kristian Blummenfelt.
 
