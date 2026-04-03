@@ -395,8 +395,26 @@ const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [num
   Semi:     { run: [85, 100] },
   "10K":    { run: [85, 100] },
   Trail:    { run: [70, 85] },
+  TrailShort: { run: [70, 85] },
+  TrailMountain: { run: [65, 80] },
   TrailUltra: { run: [65, 80] },
 };
+
+/** Normalize objective string to a known key (mirrors edge function logic) */
+function normalizeObjectiveKey(obj: string): string {
+  const lower = obj.toLowerCase();
+  if (lower.includes("70.3") || lower === "703") return "703";
+  if (lower.includes("ironman") || lower === "im") return "IM";
+  if (lower.includes("semi")) return "Semi";
+  if (lower.includes("marathon")) return "Marathon";
+  if (lower.includes("trail") && lower.includes("ultra")) return "TrailUltra";
+  if (lower.includes("trail") && (lower.includes("montagne") || lower.includes("mountain"))) return "TrailMountain";
+  if (lower.includes("trail") && (lower.includes("court") || lower.includes("short"))) return "TrailShort";
+  if (lower.includes("trail")) return "Trail";
+  if (lower.includes("10")) return "10K";
+  if (lower.includes("5k") || lower === "5km") return "5K";
+  return obj;
+}
 
 function validateSportRatio(
   metrics: WeekMetrics[],
@@ -428,9 +446,9 @@ function validateSportRatio(
   const bikePct = Math.round((bikeAdj / primaryTotal) * 100);
   const runPct = Math.round((run / primaryTotal) * 100);
 
-  // Find target ratios
-  const obj = (objective || "").replace(/\s/g, "");
-  const target = SPORT_RATIO_TARGETS[obj] || SPORT_RATIO_TARGETS[obj.toUpperCase()];
+  // Find target ratios using proper normalization
+  const objKey = normalizeObjectiveKey(objective || "");
+  const target = SPORT_RATIO_TARGETS[objKey];
 
   if (!target) {
     // No specific target — just check basic diversity for triathlon-like plans
