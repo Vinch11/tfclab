@@ -687,11 +687,21 @@ Règles doubles séances :
 - La 2e/3e séance est toujours de moindre intensité (Z1-Z2, technique, renfo, mobilité).
 - Renfo/core en 2e séance 2-3x/sem.
 
-### Règles de Sécurité
+### Règles de Sécurité Métabolique
 - **Sprint Ban** : s'applique UNIQUEMENT si l'app le spécifie explicitement dans les prohibitions. Ne PAS l'appliquer par défaut.
   → Pour semi/10K/5K : les sprints et la pliométrie SONT bénéfiques (économie, recrutement neuromusculaire)
   → Pour Finisher : pas d'optimisation VLamax, sprints autorisés en modération
-  → Sprint Ban actif = interdire sprints all-out, micro-intervalles <20s, efforts erratiques
+  → Sprint Ban actif = interdire STRICTEMENT :
+    • Sprints all-out (6×10s, 8×20s, etc.)
+    • Tabata et micro-intervalles explosifs (<30s @max)
+    • Pliométrie explosive (drop jumps, hurdle rebounds, band sprints)
+    • Blocs VO2max lourds (≥5min @>110% FTP) — stimulent excessivement la glycolyse
+  → Sprint Ban actif = AUTORISER :
+    • Intervalles VO2max courts et contrôlés (3-4×3min @105-110% FTP, repos ≥4min)
+    • Sweet Spot prolongé (2×20min @88-92% FTP)
+    • Seuil Norvégien (4-5×6min alternance seuil/Z1)
+    • Accélérations progressives contrôlées (strides 100m, non all-out)
+- **RÈGLE ABSOLUE** : Si les prohibitions de l'athlète contiennent "SPRINT BAN" ou "RESTRICTION VO2max", tu NE DOIS PAS programmer de séances interdites, même si la périodisation standard le suggère.
 - VLamax vélo > 0.50 longue distance → priorité Z2 volume, limiter intensité courte
 - TTE < 40 min → TTE↑ avant intensité
 - Décharge -30-40% volume toutes les 3-4 sem
