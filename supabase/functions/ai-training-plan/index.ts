@@ -7,6 +7,28 @@ const corsHeaders = {
 };
 
 // === RÉFÉRENTIEL ÉLITE : RATIOS DE RÉPARTITION SPORTIVE ===
+// Sources scientifiques :
+// - Muñoz et al. 2014 (EJSS) : Distribution d'entraînement chez triathlètes élite IM/70.3
+// - Etxebarria et al. 2019 (IJSPP) : Training volume distribution in elite triathletes
+// - Frontiers 2024 : Optimal training load in age-group triathletes
+// - Seiler 2010 (SJMSS) : Polarized training intensity distribution
+// - Haugen et al. 2022 (Sports Med) : Marathon training in elite runners
+// - Billat et al. 2001 (Med Sci Sports Exerc) : Interval training at VO2max
+// - Mujika 2010 (Int J Sports Physiol Perform) : Tapering for competition
+// - Issurin 2010 (Sports Med) : Block periodization principles
+// - Tjelta 2016 (IJSPP) : Training characteristics of elite distance runners
+
+interface SessionDurationGuide {
+  swimMin?: [number, number];   // min duration range (minutes)
+  bikeMin?: [number, number];   // min duration range (minutes)
+  runMin?: [number, number];    // min duration range (minutes)
+  longBikeMin?: [number, number]; // sortie longue vélo (minutes)
+  longRunMin?: [number, number];  // sortie longue CAP (minutes)
+  longSwimM?: [number, number];   // distance sortie longue natation (mètres)
+  weeklyKmRun?: [number, number]; // km/sem CAP (Haugen 2022, Tjelta 2016)
+  weeklyKmBike?: [number, number]; // km/sem vélo
+}
+
 interface SportRatioRef {
   swimPct?: [number, number];
   bikePct?: [number, number];
@@ -15,62 +37,106 @@ interface SportRatioRef {
   sessionsPerWeek: [number, number];
   keySessions: [number, number];
   progressionPct: [number, number];
+  durations?: SessionDurationGuide;
 }
 
 const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
+  // ═══ IRONMAN ═══ (Muñoz 2014: Bike 45-55%, Run 25-30%, Swim 15-20%)
+  // Frodeno peak: 30h/sem, Lange: 25-28h/sem (Lorang 2018)
   IM: {
-    elite:      { weeklyHours: [20,30], sessionsPerWeek: [12,16], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35] },
-    competitor: { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [45,55], runPct: [25,35] },
-    age_group:  { weeklyHours: [10,15], sessionsPerWeek: [6,9],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [45,55], runPct: [25,35] },
-    finisher:   { weeklyHours: [8,12],  sessionsPerWeek: [5,7],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [45,55], runPct: [25,35] },
+    elite:      { weeklyHours: [20,30], sessionsPerWeek: [12,16], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { swimMin: [45,75], bikeMin: [60,180], runMin: [40,90], longBikeMin: [240,360], longRunMin: [120,150], longSwimM: [4000,5000], weeklyKmRun: [60,120], weeklyKmBike: [300,550] } },
+    competitor: { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { swimMin: [40,60], bikeMin: [60,150], runMin: [40,75], longBikeMin: [180,300], longRunMin: [90,135], longSwimM: [3000,4000], weeklyKmRun: [40,80], weeklyKmBike: [200,400] } },
+    age_group:  { weeklyHours: [10,15], sessionsPerWeek: [6,9],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { swimMin: [35,50], bikeMin: [50,120], runMin: [35,60], longBikeMin: [150,240], longRunMin: [75,120], longSwimM: [2500,3500], weeklyKmRun: [30,55], weeklyKmBike: [150,280] } },
+    finisher:   { weeklyHours: [8,12],  sessionsPerWeek: [5,7],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { swimMin: [30,45], bikeMin: [45,90], runMin: [30,50], longBikeMin: [120,210], longRunMin: [60,105], longSwimM: [2000,3000], weeklyKmRun: [20,40], weeklyKmBike: [100,200] } },
   },
+  // ═══ 70.3 ═══ (Etxebarria 2019: Bike 40-48%, Run 30-35%, Swim 15-20%)
   "703": {
-    elite:      { weeklyHours: [15,22], sessionsPerWeek: [10,14], keySessions: [3,3], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40] },
-    competitor: { weeklyHours: [10,16], sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [40,50], runPct: [30,40] },
-    age_group:  { weeklyHours: [8,12],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [40,50], runPct: [30,40] },
-    finisher:   { weeklyHours: [6,10],  sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [40,50], runPct: [30,40] },
+    elite:      { weeklyHours: [15,22], sessionsPerWeek: [10,14], keySessions: [3,3], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { swimMin: [40,60], bikeMin: [60,150], runMin: [40,75], longBikeMin: [180,270], longRunMin: [90,120], longSwimM: [3500,4500], weeklyKmRun: [50,90], weeklyKmBike: [250,450] } },
+    competitor: { weeklyHours: [10,16], sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { swimMin: [35,55], bikeMin: [50,120], runMin: [35,65], longBikeMin: [150,240], longRunMin: [75,105], longSwimM: [3000,4000], weeklyKmRun: [35,65], weeklyKmBike: [180,350] } },
+    age_group:  { weeklyHours: [8,12],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { swimMin: [30,45], bikeMin: [45,90], runMin: [30,55], longBikeMin: [120,180], longRunMin: [60,90], longSwimM: [2500,3500], weeklyKmRun: [25,45], weeklyKmBike: [120,250] } },
+    finisher:   { weeklyHours: [6,10],  sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { swimMin: [25,40], bikeMin: [40,75], runMin: [25,45], longBikeMin: [90,150], longRunMin: [50,75], longSwimM: [2000,3000], weeklyKmRun: [15,30], weeklyKmBike: [80,180] } },
   },
+  // ═══ MARATHON ═══ (Haugen 2022: Elite 160-220km/sem, Tjelta 2016: 80% Z1-Z2)
   Marathon: {
-    elite:      { weeklyHours: [12,16], sessionsPerWeek: [10,13], keySessions: [3,3], progressionPct: [5,8] },
-    competitor: { weeklyHours: [8,12],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7] },
-    age_group:  { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5] },
-    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3] },
+    elite:      { weeklyHours: [12,16], sessionsPerWeek: [10,13], keySessions: [3,3], progressionPct: [5,8],
+      durations: { runMin: [40,90], longRunMin: [135,165], weeklyKmRun: [130,220] } },
+    competitor: { weeklyHours: [8,12],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { runMin: [40,75], longRunMin: [105,150], weeklyKmRun: [70,130] } },
+    age_group:  { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { runMin: [35,60], longRunMin: [90,120], weeklyKmRun: [45,80] } },
+    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { runMin: [30,50], longRunMin: [75,105], weeklyKmRun: [25,50] } },
   },
+  // ═══ SEMI-MARATHON ═══ (Tjelta 2016, Billat 2001)
   Semi: {
-    elite:      { weeklyHours: [10,14], sessionsPerWeek: [8,11],  keySessions: [3,3], progressionPct: [5,8] },
-    competitor: { weeklyHours: [7,10],  sessionsPerWeek: [6,8],   keySessions: [2,2], progressionPct: [5,7] },
-    age_group:  { weeklyHours: [5,7],   sessionsPerWeek: [4,6],   keySessions: [2,2], progressionPct: [3,5] },
-    finisher:   { weeklyHours: [3,5],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3] },
+    elite:      { weeklyHours: [10,14], sessionsPerWeek: [8,11],  keySessions: [3,3], progressionPct: [5,8],
+      durations: { runMin: [35,75], longRunMin: [90,120], weeklyKmRun: [100,160] } },
+    competitor: { weeklyHours: [7,10],  sessionsPerWeek: [6,8],   keySessions: [2,2], progressionPct: [5,7],
+      durations: { runMin: [35,65], longRunMin: [75,105], weeklyKmRun: [55,100] } },
+    age_group:  { weeklyHours: [5,7],   sessionsPerWeek: [4,6],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { runMin: [30,55], longRunMin: [60,90], weeklyKmRun: [35,60] } },
+    finisher:   { weeklyHours: [3,5],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3],
+      durations: { runMin: [25,45], longRunMin: [50,75], weeklyKmRun: [20,40] } },
   },
+  // ═══ 10K ═══ (Billat 2001: VO2max intervals 3-5min optimal)
   "10K": {
-    elite:      { weeklyHours: [9,12],  sessionsPerWeek: [8,10],  keySessions: [2,3], progressionPct: [5,7] },
-    competitor: { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [5,5] },
-    age_group:  { weeklyHours: [4,6],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,5] },
-    finisher:   { weeklyHours: [3,4],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3] },
+    elite:      { weeklyHours: [9,12],  sessionsPerWeek: [8,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { runMin: [30,70], longRunMin: [75,100], weeklyKmRun: [90,140] } },
+    competitor: { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [5,5],
+      durations: { runMin: [30,60], longRunMin: [65,90], weeklyKmRun: [50,90] } },
+    age_group:  { weeklyHours: [4,6],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,5],
+      durations: { runMin: [25,50], longRunMin: [50,75], weeklyKmRun: [30,55] } },
+    finisher:   { weeklyHours: [3,4],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3],
+      durations: { runMin: [20,40], longRunMin: [40,60], weeklyKmRun: [15,35] } },
   },
+  // ═══ TRAIL ═══
   Trail: {
-    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7] },
-    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7] },
-    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5] },
-    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3] },
+    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { runMin: [40,90], longRunMin: [150,210], weeklyKmRun: [80,140] } },
+    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
+      durations: { runMin: [35,75], longRunMin: [120,180], weeklyKmRun: [50,90] } },
+    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { runMin: [30,60], longRunMin: [90,150], weeklyKmRun: [35,60] } },
+    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { runMin: [25,50], longRunMin: [75,120], weeklyKmRun: [20,40] } },
   },
   TrailShort: {
-    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7] },
-    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7] },
-    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5] },
-    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3] },
+    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { runMin: [40,90], longRunMin: [150,210], weeklyKmRun: [80,140] } },
+    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
+      durations: { runMin: [35,75], longRunMin: [120,180], weeklyKmRun: [50,90] } },
+    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { runMin: [30,60], longRunMin: [90,150], weeklyKmRun: [35,60] } },
+    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { runMin: [25,50], longRunMin: [75,120], weeklyKmRun: [20,40] } },
   },
   TrailMountain: {
-    elite:      { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8] },
-    competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7] },
-    age_group:  { weeklyHours: [7,12],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5] },
-    finisher:   { weeklyHours: [5,8],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3] },
+    elite:      { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8],
+      durations: { runMin: [45,120], longRunMin: [180,300], weeklyKmRun: [70,120] } },
+    competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { runMin: [40,90], longRunMin: [150,240], weeklyKmRun: [45,80] } },
+    age_group:  { weeklyHours: [7,12],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { runMin: [35,75], longRunMin: [120,180], weeklyKmRun: [30,55] } },
+    finisher:   { weeklyHours: [5,8],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { runMin: [30,60], longRunMin: [90,150], weeklyKmRun: [20,40] } },
   },
   TrailUltra: {
-    elite:      { weeklyHours: [15,22], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8] },
-    competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7] },
-    age_group:  { weeklyHours: [8,13],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5] },
-    finisher:   { weeklyHours: [5,9],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3] },
+    elite:      { weeklyHours: [15,22], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8],
+      durations: { runMin: [50,120], longRunMin: [240,420], weeklyKmRun: [80,150] } },
+    competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { runMin: [40,90], longRunMin: [180,300], weeklyKmRun: [50,100] } },
+    age_group:  { weeklyHours: [8,13],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { runMin: [35,75], longRunMin: [150,240], weeklyKmRun: [35,70] } },
+    finisher:   { weeklyHours: [5,9],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { runMin: [30,60], longRunMin: [120,180], weeklyKmRun: [25,50] } },
   },
 };
 
