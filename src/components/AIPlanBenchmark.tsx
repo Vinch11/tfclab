@@ -488,6 +488,44 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
           </div>
         </div>
 
+        {/* Prohibition compliance */}
+        {validationResult.summary.prohibitionComplianceScore < 100 && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-destructive flex items-center gap-1">
+                🚫 Conformité prohibitions
+              </h4>
+              <Badge variant="destructive" className="text-[9px]">
+                {validationResult.summary.prohibitionComplianceScore}/100
+              </Badge>
+            </div>
+            {validationResult.issues
+              .filter(i => i.rule === "prohibition_compliance")
+              .slice(0, 5)
+              .map((issue, idx) => (
+                <p key={idx} className="text-[10px] text-destructive/80 bg-destructive/5 rounded p-1.5">
+                  {issue.message}
+                </p>
+              ))}
+          </div>
+        )}
+
+        {/* Validation grade */}
+        <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
+          <span className="text-muted-foreground">Grade qualité TFCL™</span>
+          <Badge
+            variant="outline"
+            className={`text-xs ${
+              validationResult.grade === "A" ? "border-green-500/50 text-green-700 dark:text-green-300" :
+              validationResult.grade === "B" ? "border-blue-500/50 text-blue-700 dark:text-blue-300" :
+              validationResult.grade === "C" ? "border-amber-500/50 text-amber-700 dark:text-amber-300" :
+              "border-destructive/50 text-destructive"
+            }`}
+          >
+            {validationResult.grade} ({validationResult.score}/100)
+          </Badge>
+        </div>
+
         {/* Summary */}
         <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
           <p><strong>{metrics.totalSessions}</strong> séances sur <strong>{metrics.totalWeeks}</strong> semaines · <strong>{metrics.deloadWeeks}</strong> semaines de décharge</p>
