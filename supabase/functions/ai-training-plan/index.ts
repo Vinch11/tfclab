@@ -2611,6 +2611,26 @@ Avant de soumettre chaque semaine, VÉRIFIE :
 - [ ] Au moins 1 séance de renfo a un format différent de la semaine précédente
 - [ ] La progression en volume/intensité est visible par rapport à la semaine précédente
 - [ ] En semaine de décharge, le volume baisse mais les formats restent variés (pas de copier-coller raccourci)
+
+## 🚨 DERNIÈRE VÉRIFICATION AVANT SOUMISSION — GATE KEEPER RATIOS 🚨
+
+⛔ **AVANT DE SOUMETTRE CHAQUE BLOC, TU DOIS :**
+1. Additionner les minutes exactes de chaque sport (Natation, Vélo, Course) pour le bloc
+2. Calculer le % de chaque sport
+3. Vérifier que : Vélo > Course > Natation (en triathlon)
+4. Vérifier que chaque % est dans la fourchette cible ±3%
+5. Produire le tableau "📊 VÉRIFICATION RATIOS" dans ta réponse
+6. Si un ratio est hors cible → RÉÉCRIRE les semaines du bloc AVANT de soumettre
+
+**⚠️ ERREUR #1 LA PLUS FRÉQUENTE : Natation surreprésentée (>23%)**
+Si tu programmes 3 séances de natation de 60min par semaine et 2 séances de vélo de 90min, la natation représente déjà 180min/360min = 50%. C'est INACCEPTABLE.
+
+**Technique pour respecter les ratios :**
+- En triathlon, programme TOUJOURS plus de séances vélo que de natation
+- Les séances natation doivent être COURTES (30-45min) sauf SL natation spécifique
+- Les séances vélo doivent être LONGUES (1h30-4h en SL, 1h-1h30 en semaine)
+- La course à pied a des durées MOYENNES (45min-2h30 en SL, 40-60min en semaine)
+- Un plan 70.3 typique : 2-3 nata (30-45min), 3-4 vélo (1h-3h), 3-4 CAP (40min-1h30)
 `;
     let userPrompt: string;
     if (regenerateWeek) {
