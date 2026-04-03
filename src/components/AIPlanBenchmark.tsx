@@ -418,7 +418,24 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
         {/* Sport distribution for triathlon */}
         {sportComparisons && (
           <div className="space-y-2 pt-2 border-t border-border">
-            <h4 className="text-xs font-semibold text-muted-foreground">Répartition sportive</h4>
+            <div className="flex items-center gap-1.5">
+              <h4 className="text-xs font-semibold text-muted-foreground">Répartition sportive</h4>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs text-[10px] leading-relaxed">
+                    <p className="font-semibold mb-1">Ratios basés sur la littérature :</p>
+                    <ul className="list-disc pl-3 space-y-0.5">
+                      <li>Muñoz et al. (2014) — Training intensification in triathlon: distribution &amp; performance outcomes</li>
+                      <li>Frontiers in Physiology (2024) — Optimal volume distribution in long-distance triathlon</li>
+                      <li>Etxebarria et al. (2019) — Training periodisation of elite triathletes</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="grid grid-cols-3 gap-3">
               {sportComparisons.map(sc => {
                 const status = getGaugeStatus(sc.pct, sc.refMin, sc.refMax);
