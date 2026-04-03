@@ -3149,10 +3149,8 @@ function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): strin
     lines.push(`\n⚡ Leviers actifs: ${config.activeLevers.join(", ")}`);
   }
   
-  // Prohibitions
-  if (config?.prohibitions && config.prohibitions.length > 0) {
-    lines.push(`\n🚫 Interdictions: ${config.prohibitions.join(" | ")}`);
-  }
+  // Prohibitions — injected in detail later (see L3853+), only add brief reminder here
+  // (detailed injection with PRIORITÉ ABSOLUE is done below in the athlete profile section)
   
   // Volume constraints
   if (config?.weeklyHours) lines.push(`\n📊 Volume: ${config.weeklyHours}h/sem`);
