@@ -532,6 +532,11 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
           </div>
         )}
 
+        {/* Phase Gantt Timeline */}
+        {plan.phases && plan.phases.length >= 2 && (
+          <PhaseGanttTimeline phases={plan.phases} totalWeeks={plan.totalWeeks} />
+        )}
+
         <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
           <span className="text-muted-foreground">Grade qualité TFCL™</span>
           <Badge
