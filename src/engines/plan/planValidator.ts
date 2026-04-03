@@ -715,6 +715,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
       progressionScore: progression.score,
       sportRatioScore: sportRatio.score,
       catalogRatioScore: catalogRatio.score,
+      prohibitionComplianceScore: prohibitionCompliance.score,
       overallComment,
     },
   };
@@ -736,6 +737,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| Progression volume | ${result.summary.progressionScore}/100 | ${result.summary.progressionScore >= 75 ? "✅" : result.summary.progressionScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Ratio sportif | ${result.summary.sportRatioScore}/100 | ${result.summary.sportRatioScore >= 75 ? "✅" : result.summary.sportRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Catalogue TFCL™ | ${result.summary.catalogRatioScore}/100 | ${result.summary.catalogRatioScore >= 75 ? "✅" : result.summary.catalogRatioScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| 🚫 Conformité prohibitions | ${result.summary.prohibitionComplianceScore}/100 | ${result.summary.prohibitionComplianceScore >= 75 ? "✅" : result.summary.prohibitionComplianceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
@@ -743,12 +745,19 @@ export function formatValidationReport(result: PlanValidationResult): string {
     lines.push("");
     lines.push("### Détails");
     
-    const errors = result.issues.filter(i => i.severity === "error");
+    // Prohibition violations first (most critical)
+    const prohibitionErrors = result.issues.filter(i => i.rule === "prohibition_compliance");
+    const otherErrors = result.issues.filter(i => i.severity === "error" && i.rule !== "prohibition_compliance");
     const warnings = result.issues.filter(i => i.severity === "warning");
 
-    if (errors.length > 0) {
+    if (prohibitionErrors.length > 0) {
+      lines.push("\n**🚫 Violations de prohibition (CRITIQUE — incohérence avec le diagnostic) :**");
+      prohibitionErrors.forEach(e => lines.push(`- ${e.message}`));
+      if (prohibitionErrors[0]?.detail) lines.push(`  → ${prohibitionErrors[0].detail}`);
+    }
+    if (otherErrors.length > 0) {
       lines.push("\n**❌ Erreurs critiques :**");
-      errors.forEach(e => lines.push(`- ${e.message}`));
+      otherErrors.forEach(e => lines.push(`- ${e.message}`));
     }
     if (warnings.length > 0) {
       lines.push("\n**⚠️ Avertissements :**");
