@@ -258,6 +258,47 @@ function getSportDistributionConstraint(objective: string, ambition: string, lim
   lines.push(`- Séances clés 🔑 : ${ref.keySessions[0]}-${ref.keySessions[1]}/semaine`);
   lines.push(`- Progression volume : +${ref.progressionPct[0]}-${ref.progressionPct[1]}%/semaine max`);
 
+  // ── SESSION DURATION MATRIX (evidence-based) ──
+  if (ref.durations) {
+    const d = ref.durations;
+    lines.push(`\n### 📏 MATRICE DURÉES DE SÉANCE × VOLUME — ${ambKey.toUpperCase()} / ${objKey}`);
+    lines.push(`📚 Sources : Muñoz 2014 (EJSS), Etxebarria 2019 (IJSPP), Haugen 2022 (Sports Med), Tjelta 2016 (IJSPP), Frontiers 2024`);
+    lines.push(`⚠️ Ces durées sont CALIBRÉES pour le niveau ${ambKey.toUpperCase()}. Les dépasser ou les sous-estimer crée un décalage volume/ratio.\n`);
+
+    lines.push(`| Paramètre | Fourchette cible | Justification scientifique |`);
+    lines.push(`|-----------|-----------------|---------------------------|`);
+    if (d.swimMin) {
+      lines.push(`| 🏊 Séance natation standard | ${d.swimMin[0]}-${d.swimMin[1]} min | Muñoz 2014 : volume natation constant, technique > volume |`);
+    }
+    if (d.bikeMin) {
+      lines.push(`| 🚴 Séance vélo standard | ${d.bikeMin[0]}-${d.bikeMin[1]} min | Etxebarria 2019 : dominance vélo = séances plus longues |`);
+    }
+    if (d.runMin) {
+      lines.push(`| 🏃 Séance CAP standard | ${d.runMin[0]}-${d.runMin[1]} min | Tjelta 2016 : 80% Z1-Z2, fréquence > durée unitaire |`);
+    }
+    if (d.longBikeMin) {
+      lines.push(`| 🚴 Sortie longue vélo (SL) | ${d.longBikeMin[0]}-${d.longBikeMin[1]} min | Lorang : SL = pilier endurance spécifique, progression +15min/sem |`);
+    }
+    if (d.longRunMin) {
+      lines.push(`| 🏃 Sortie longue CAP (SL) | ${d.longRunMin[0]}-${d.longRunMin[1]} min | Haugen 2022 : SL CAP plafonnée pour limiter risque blessure |`);
+    }
+    if (d.longSwimM) {
+      lines.push(`| 🏊 Séance longue natation | ${d.longSwimM[0]}-${d.longSwimM[1]} m | Muñoz 2014 : volume technique, CSS + endurance aérobie |`);
+    }
+    if (d.weeklyKmRun) {
+      lines.push(`| 🏃 Volume hebdo CAP | ${d.weeklyKmRun[0]}-${d.weeklyKmRun[1]} km/sem | Haugen 2022, Tjelta 2016 : corrélation volume-performance |`);
+    }
+    if (d.weeklyKmBike) {
+      lines.push(`| 🚴 Volume hebdo vélo | ${d.weeklyKmBike[0]}-${d.weeklyKmBike[1]} km/sem | Etxebarria 2019 : volume vélo proportionnel au ratio cible |`);
+    }
+    lines.push(``);
+    lines.push(`**⚠️ RÈGLES DURÉES :**`);
+    lines.push(`- Les séances standard doivent rester dans la fourchette ci-dessus. Les SL augmentent PROGRESSIVEMENT (+10-15%/sem).`);
+    lines.push(`- Pour un ${ambKey === 'finisher' ? 'Finisher' : ambKey === 'age_group' ? 'Age Group' : ambKey === 'competitor' ? 'Competitor' : 'Élite'}, des séances trop longues = risque blessure. Des séances trop courtes = ratio sport faussé.`);
+    lines.push(`- La durée des séances DOIT être cohérente avec le volume hebdomadaire cible (${ref.weeklyHours[0]}-${ref.weeklyHours[1]}h).`);
+    lines.push(`- VÉRIFICATION : nb séances × durée moyenne ≈ volume hebdo. Si ça ne colle pas, ajuste les durées.`);
+  }
+
   if (limiters && limiters.length > 0) {
     lines.push(`\n**Limiteur(s) identifié(s) pour cet athlète :** ${limiters.join(", ")}`);
     lines.push(`→ Un limiteur peut justifier un ajustement de ±3% MAXIMUM sur un sport. Au-delà, c'est une erreur.`);
