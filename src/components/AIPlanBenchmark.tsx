@@ -329,10 +329,11 @@ function getDeviationJustification(
   };
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult }: AIPlanBenchmarkProps) {
+export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult, prohibitions }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
+  const validationResult = useMemo(() => validatePlan(plan, objective, prohibitions), [plan, objective, prohibitions]);
 
   if (!metrics || !ref) return null;
   const elite = eliteRef || ref;
