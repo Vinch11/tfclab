@@ -259,16 +259,19 @@ const LIMITER_SPORT_JUSTIFICATIONS: Record<string, { sport: string; direction: G
     { sport: "Vélo", direction: "above", reason: "FTP/VO2max: +volume vélo justifié" },
     { sport: "Course", direction: "above", reason: "VO2max: +intervalles CAP justifié" },
     { sport: "Natation", direction: "below", reason: "Priorité moteur aérobie vélo/CAP" },
+    { sport: "Natation", direction: "above", reason: "Z2 nage contribue au volume aérobie total (toléré ≤3%)" },
   ],
   // VLamax trop haute → +Vélo Z2 long, +Natation Z2, -Course haute intensité
   glycolytic: [
     { sport: "Vélo", direction: "above", reason: "VLamax↓: +Z2 vélo longue durée justifié" },
     { sport: "Natation", direction: "above", reason: "VLamax↓: +Z2 nage aérobie justifié" },
     { sport: "Course", direction: "below", reason: "VLamax↓: priorité volume Z2 vélo/nage" },
+    { sport: "Course", direction: "above", reason: "VLamax↓: +course Z2 lente contribue à baisser VLamax" },
   ],
-  // FatMax insuffisant → +Vélo Z2 long, -Natation, -Course (moindre impact)
+  // FatMax insuffisant → +Vélo Z2 long, +Course Z2, -Natation
   metabolic_efficiency: [
     { sport: "Vélo", direction: "above", reason: "FatMax↑: +Z2 vélo long justifié" },
+    { sport: "Course", direction: "above", reason: "FatMax↑: +SL CAP Z2 fat burn justifié" },
     { sport: "Course", direction: "below", reason: "FatMax↑: priorité vélo Z2 fat oxydation" },
     { sport: "Natation", direction: "below", reason: "FatMax↑: priorité sports porteurs" },
   ],
@@ -277,12 +280,14 @@ const LIMITER_SPORT_JUSTIFICATIONS: Record<string, { sport: string; direction: G
     { sport: "Vélo", direction: "above", reason: "TTE↑: +sweet spot vélo justifié" },
     { sport: "Course", direction: "above", reason: "TTE↑: +tempo/seuil CAP justifié" },
     { sport: "Natation", direction: "below", reason: "TTE↑: priorité vélo/CAP au seuil" },
+    { sport: "Natation", direction: "above", reason: "TTE↑: +CSS nage longue pour TTE aquatique (toléré ≤3%)" },
   ],
   // Économie faible → +Course drills, +Natation technique, -Vélo
   neuromuscular: [
     { sport: "Course", direction: "above", reason: "Économie: +drills/cadence CAP justifié" },
     { sport: "Natation", direction: "above", reason: "Économie: +technique nage justifié" },
     { sport: "Vélo", direction: "below", reason: "Économie: priorité CAP/nage technique" },
+    { sport: "Vélo", direction: "above", reason: "Économie: +SFR/force vélo neuromusculaire" },
   ],
   // Durabilité faible → +Vélo long, +Course longue, -Natation
   durability: [
