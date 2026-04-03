@@ -498,6 +498,16 @@ Cela ne signifie PAS qu'on fait des simulations race-pace en Fondation.
 **RÈGLE 5 — Le dernier bloc d'un plan ≥ 8 semaines DOIT être Affûtage/Taper :**
 Ne jamais terminer un plan par un bloc de charge ou de chantier.
 
+**RÈGLE 6 — JOUR DE COURSE OBLIGATOIRE :**
+La DERNIÈRE semaine du plan DOIT inclure une séance "🏁 COURSE OBJECTIF" ou "🏁 Jour J" le jour de la compétition (généralement Dimanche).
+Cette séance contient :
+- Le nom de la course et la date exacte
+- La stratégie de pacing résumée (allures cibles par segment)
+- Les consignes nutrition jour de course
+- Un rappel mental ("Discipline > ambition", "Exécuter le plan")
+JAMAIS terminer le plan au samedi (activation pré-course) sans inclure le dimanche de course.
+Si la course a lieu un autre jour que dimanche, adapter en conséquence.
+
 
 ### 🇳🇴 MÉTHODE NORVÉGIENNE — Double Threshold (Marius Bakken / Gjert Ingebrigtsen / Olav Bu)
 La révolution de l'entraînement en endurance depuis 2020. Utilisée par Jakob Ingebrigtsen (OR 1500m/5000m), Karsten Warholm, Gustav Iden, Kristian Blummenfelt.
