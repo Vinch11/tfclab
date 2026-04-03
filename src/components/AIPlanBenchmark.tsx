@@ -510,7 +510,28 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
           </div>
         )}
 
-        {/* Validation grade */}
+        {/* Phase coherence */}
+        {validationResult.summary.phaseCoherenceScore < 80 && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                📦 Cohérence des phases
+              </h4>
+              <Badge variant="outline" className="text-[9px] border-amber-500/50 text-amber-600 dark:text-amber-400">
+                {validationResult.summary.phaseCoherenceScore}/100
+              </Badge>
+            </div>
+            {validationResult.issues
+              .filter(i => i.rule === "phase_coherence")
+              .slice(0, 5)
+              .map((issue, idx) => (
+                <p key={idx} className="text-[10px] text-amber-700/80 dark:text-amber-300/80 bg-amber-500/5 rounded p-1.5">
+                  {issue.message}
+                </p>
+              ))}
+          </div>
+        )}
+
         <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
           <span className="text-muted-foreground">Grade qualité TFCL™</span>
           <Badge

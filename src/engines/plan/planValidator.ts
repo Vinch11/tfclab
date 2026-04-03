@@ -61,6 +61,7 @@ export interface PlanValidationResult {
     sportRatioScore: number;
     catalogRatioScore: number;
     prohibitionComplianceScore: number;
+    phaseCoherenceScore: number;
     overallComment: string;
   };
 }
@@ -577,6 +578,190 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// PHASE COHERENCE VALIDATION (Rule 8)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Canonical phase ordering for TFCL™ Hybride Lorang periodization.
+ * Higher index = later in the plan. Phases must not regress.
+ */
+const PHASE_ORDER: Record<string, number> = {
+  // Metabolic naming (preferred)
+  "fondation": 1, "adaptation": 1,
+  "chantier": 2, "développement": 2, "build": 2,
+  "consolidation": 3,
+  "race-specific": 4, "race specific": 4, "spécifique": 4, "specific": 4,
+  "affûtage": 5, "taper": 5, "affutage": 5,
+};
+
+/** Phase-specific session patterns — sessions expected in each phase */
+const PHASE_SESSION_SIGNATURES: Record<number, { expected: RegExp; forbidden: RegExp }> = {
+  1: { // Fondation: Force max, VO2max courts, Z2 volume, technique
+    expected: /force\s*max|z2|endurance|technique|drill|gammes|éducatif|VO2.{0,10}court|reverse/i,
+    forbidden: /race.?pace|simulation\s*(ironman|marathon|70\.3|course)|gut\s*train|affûtage|taper/i,
+  },
+  2: { // Chantier: Limiteur-specific concentrated work
+    expected: /chantier|limiteur|norvégi|billat|sweet\s*spot|train\s*low|sfr|seuil/i,
+    forbidden: /taper|affûtage|supercomp|activation\s*j-?2/i,
+  },
+  3: { // Consolidation: Limiter #2, maintain #1, volume toward peak
+    expected: /consolid|maintien|rappel|seuil|allure|durabilité/i,
+    forbidden: /taper|affûtage|supercomp/i,
+  },
+  4: { // Race-Specific: Race-pace, simulations, Gut Training
+    expected: /race.?pace|simulation|brique|gut\s*train|allure\s*course|spécifique/i,
+    forbidden: /force\s*max\s*3.?[45]|adaptation|fondation.*progressi/i,
+  },
+  5: { // Affûtage/Taper: Volume reduction, activation, rappels courts
+    expected: /taper|affûtage|rappel|activation|supercomp|-\d{2,3}%\s*vol|réduction/i,
+    forbidden: /chantier|force\s*max|blocs?\s*concentré|build/i,
+  },
+};
+
+/** Acceptable phase duration range in weeks */
+const PHASE_DURATION_RANGE: Record<number, [number, number]> = {
+  1: [2, 6],   // Fondation
+  2: [2, 6],   // Chantier
+  3: [2, 6],   // Consolidation
+  4: [2, 6],   // Race-Specific
+  5: [1, 3],   // Affûtage
+};
+
+function getPhaseIndex(phaseName: string): number | null {
+  const lower = phaseName.toLowerCase().trim();
+  for (const [key, idx] of Object.entries(PHASE_ORDER)) {
+    if (lower.includes(key)) return idx;
+  }
+  return null;
+}
+
+function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  if (!plan.phases || plan.phases.length < 2) {
+    // Can't validate if no phases parsed
+    if (plan.weeks.length >= 6) {
+      issues.push({
+        rule: "phase_coherence",
+        severity: "warning",
+        message: `Plan de ${plan.weeks.length} semaines sans structure de phases/blocs détectée — périodisation incertaine`,
+      });
+      return { issues, score: 50 };
+    }
+    return { issues: [], score: 80 };
+  }
+
+  let score = 100;
+
+  // 1. Phase ordering — no regression
+  let lastPhaseIdx = 0;
+  for (const phase of plan.phases) {
+    const idx = getPhaseIndex(phase.name);
+    if (idx === null) continue;
+    if (idx < lastPhaseIdx) {
+      issues.push({
+        rule: "phase_coherence",
+        severity: "error",
+        message: `Régression de phase détectée : "${phase.name}" (${phase.weeks}) apparaît APRÈS une phase plus avancée`,
+        detail: `La périodisation doit progresser : Fondation → Chantier → Consolidation → Race-Specific → Affûtage. Pas de retour en arrière.`,
+      });
+      score -= 25;
+    }
+    lastPhaseIdx = idx;
+  }
+
+  // 2. Phase durations — check each phase's week count
+  for (const phase of plan.phases) {
+    const idx = getPhaseIndex(phase.name);
+    if (idx === null) continue;
+    const range = PHASE_DURATION_RANGE[idx];
+    if (!range) continue;
+
+    // Parse weeks range like "S1-S4" or "Semaines 1-4"
+    const weekMatch = phase.weeks.match(/(\d+)\s*[-–àto]\s*(\d+)/);
+    if (weekMatch) {
+      const duration = parseInt(weekMatch[2]) - parseInt(weekMatch[1]) + 1;
+      if (duration < range[0]) {
+        issues.push({
+          rule: "phase_coherence",
+          severity: "warning",
+          message: `Phase "${phase.name}" trop courte : ${duration} sem (minimum ${range[0]})`,
+          detail: `Un bloc de ${duration} semaine(s) ne permet pas d'adaptations physiologiques significatives.`,
+        });
+        score -= 10;
+      } else if (duration > range[1]) {
+        issues.push({
+          rule: "phase_coherence",
+          severity: "warning",
+          message: `Phase "${phase.name}" trop longue : ${duration} sem (maximum recommandé ${range[1]})`,
+          detail: `Les blocs concentrés > ${range[1]} sem perdent en spécificité. Considérer un découpage.`,
+        });
+        score -= 5;
+      }
+    }
+  }
+
+  // 3. Session-phase alignment — check that session content matches declared phase
+  for (const week of plan.weeks) {
+    const phaseIdx = getPhaseIndex(week.phase);
+    if (phaseIdx === null) continue;
+    const signatures = PHASE_SESSION_SIGNATURES[phaseIdx];
+    if (!signatures) continue;
+
+    for (const session of week.sessions) {
+      if (session.isRest) continue;
+      const text = `${session.title} ${session.details}`;
+
+      if (signatures.forbidden.test(text)) {
+        issues.push({
+          rule: "phase_coherence",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber}: "${session.title}" inadapté en phase "${week.phase}" — contenu typique d'une phase différente`,
+          detail: `Vérifier la cohérence entre le contenu de séance et la phase déclarée.`,
+        });
+        score -= 3;
+      }
+    }
+  }
+
+  // 4. Final phase should be Affûtage/Taper for plans ≥ 8 weeks
+  if (plan.weeks.length >= 8 && plan.phases.length >= 2) {
+    const lastPhase = plan.phases[plan.phases.length - 1];
+    const lastIdx = getPhaseIndex(lastPhase.name);
+    if (lastIdx !== null && lastIdx < 5) {
+      issues.push({
+        rule: "phase_coherence",
+        severity: "warning",
+        message: `Le plan se termine par "${lastPhase.name}" — un bloc d'affûtage est attendu pour les plans ≥ 8 semaines`,
+      });
+      score -= 10;
+    }
+  }
+
+  // 5. Reverse Periodization check — Fondation should contain some intensity
+  if (plan.phases.length >= 2) {
+    const fondationPhase = plan.phases.find(p => getPhaseIndex(p.name) === 1);
+    if (fondationPhase) {
+      const fondationWeeks = plan.weeks.filter(w => getPhaseIndex(w.phase) === 1);
+      const hasIntensity = fondationWeeks.some(w =>
+        w.sessions.some(s => /vo2|interval|force\s*max|VO2max|fractionné/i.test(`${s.title} ${s.details}`))
+      );
+      if (!hasIntensity && fondationWeeks.length >= 2) {
+        issues.push({
+          rule: "phase_coherence",
+          severity: "info",
+          message: `Bloc Fondation sans intensité détectée — la Reverse Periodization Lorang recommande des blocs VO2max courts dès la phase 1`,
+        });
+        score -= 5;
+      }
+    }
+  }
+
+  return { issues, score: Math.max(0, Math.min(100, score)) };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // PROHIBITION VIOLATION DETECTION (Rule 7)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -656,6 +841,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const sportRatio = validateSportRatio(weekMetrics, objective);
   const catalogRatio = validateCatalogRatio(plan);
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
+  const phaseCoherence = validatePhaseCoherence(plan);
 
   // Combine all issues
   const allIssues = [
@@ -666,17 +852,19 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     ...sportRatio.issues,
     ...catalogRatio.issues,
     ...prohibitionCompliance.issues,
+    ...phaseCoherence.issues,
   ];
 
-  // Weighted score (7 rules)
+  // Weighted score (8 rules)
   const weights = {
-    polarization: 0.20,
-    loadPattern: 0.15,
-    keySessions: 0.15,
+    polarization: 0.18,
+    loadPattern: 0.12,
+    keySessions: 0.12,
     progression: 0.10,
     sportRatio: 0.10,
-    catalogRatio: 0.10,
-    prohibitionCompliance: 0.20,
+    catalogRatio: 0.08,
+    prohibitionCompliance: 0.18,
+    phaseCoherence: 0.12,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -685,7 +873,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     progression.score * weights.progression +
     sportRatio.score * weights.sportRatio +
     catalogRatio.score * weights.catalogRatio +
-    prohibitionCompliance.score * weights.prohibitionCompliance
+    prohibitionCompliance.score * weights.prohibitionCompliance +
+    phaseCoherence.score * weights.phaseCoherence
   );
 
   // Grade
@@ -695,8 +884,11 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const errorCount = allIssues.filter(i => i.severity === "error").length;
   const warningCount = allIssues.filter(i => i.severity === "warning").length;
   const prohibitionViolations = prohibitionCompliance.issues.filter(i => i.severity === "error").length;
+  const phaseErrors = phaseCoherence.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : phaseErrors > 0
+    ? `⚠️ ${phaseErrors} incohérence(s) de phase détectée(s) — périodisation à corriger`
     : errorCount === 0 && warningCount === 0
     ? "✅ Plan conforme aux standards élite TFCL™"
     : errorCount === 0
@@ -716,6 +908,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
       sportRatioScore: sportRatio.score,
       catalogRatioScore: catalogRatio.score,
       prohibitionComplianceScore: prohibitionCompliance.score,
+      phaseCoherenceScore: phaseCoherence.score,
       overallComment,
     },
   };
@@ -738,6 +931,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| Ratio sportif | ${result.summary.sportRatioScore}/100 | ${result.summary.sportRatioScore >= 75 ? "✅" : result.summary.sportRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| Catalogue TFCL™ | ${result.summary.catalogRatioScore}/100 | ${result.summary.catalogRatioScore >= 75 ? "✅" : result.summary.catalogRatioScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| 🚫 Conformité prohibitions | ${result.summary.prohibitionComplianceScore}/100 | ${result.summary.prohibitionComplianceScore >= 75 ? "✅" : result.summary.prohibitionComplianceScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| 📦 Cohérence des phases | ${result.summary.phaseCoherenceScore}/100 | ${result.summary.phaseCoherenceScore >= 75 ? "✅" : result.summary.phaseCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
@@ -747,13 +941,19 @@ export function formatValidationReport(result: PlanValidationResult): string {
     
     // Prohibition violations first (most critical)
     const prohibitionErrors = result.issues.filter(i => i.rule === "prohibition_compliance");
-    const otherErrors = result.issues.filter(i => i.severity === "error" && i.rule !== "prohibition_compliance");
+    const phaseErrors = result.issues.filter(i => i.rule === "phase_coherence" && i.severity === "error");
+    const otherErrors = result.issues.filter(i => i.severity === "error" && i.rule !== "prohibition_compliance" && i.rule !== "phase_coherence");
     const warnings = result.issues.filter(i => i.severity === "warning");
 
     if (prohibitionErrors.length > 0) {
       lines.push("\n**🚫 Violations de prohibition (CRITIQUE — incohérence avec le diagnostic) :**");
       prohibitionErrors.forEach(e => lines.push(`- ${e.message}`));
       if (prohibitionErrors[0]?.detail) lines.push(`  → ${prohibitionErrors[0].detail}`);
+    }
+    if (phaseErrors.length > 0) {
+      lines.push("\n**📦 Incohérences de phase (CRITIQUE — périodisation non conforme) :**");
+      phaseErrors.forEach(e => lines.push(`- ${e.message}`));
+      if (phaseErrors[0]?.detail) lines.push(`  → ${phaseErrors[0].detail}`);
     }
     if (otherErrors.length > 0) {
       lines.push("\n**❌ Erreurs critiques :**");
