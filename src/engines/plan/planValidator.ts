@@ -1124,6 +1124,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     issues: allIssues,
     weekMetrics,
     limiterCoverage: limiterCoherence.coverage,
+    catalogStats: catalogRatio.catalogStats,
     summary: {
       polarizationScore: polarization.score,
       loadPatternScore: loadPattern.score,
