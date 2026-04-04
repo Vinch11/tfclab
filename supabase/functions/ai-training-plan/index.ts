@@ -42,27 +42,33 @@ interface SportRatioRef {
 
 const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   // ═══ IRONMAN ═══ (Muñoz 2014: Bike 45-55%, Run 25-30%, Swim 15-20%)
+  // Race: 3.8km Swim + 180km Bike (5-7h) + 42.2km Run (3.5-5h+)
   // Frodeno peak: 30h/sem, Lange: 25-28h/sem (Lorang 2018)
+  // SL Bike doit simuler la durée de course ou 70-80% de celle-ci (Neal 2020, Laursen 2002)
+  // SL Run = max 2.5-3h pour limiter le risque blessure (Mujika 2018, Billat 2001)
   IM: {
     elite:      { weeklyHours: [20,30], sessionsPerWeek: [12,16], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
-      durations: { swimMin: [45,75], bikeMin: [60,180], runMin: [40,90], longBikeMin: [240,360], longRunMin: [120,150], longSwimM: [4000,5000], weeklyKmRun: [60,120], weeklyKmBike: [300,550] } },
+      durations: { swimMin: [45,75], bikeMin: [60,180], runMin: [45,100], longBikeMin: [300,420], longRunMin: [135,180], longSwimM: [4000,5000], weeklyKmRun: [60,120], weeklyKmBike: [300,550] } },
     competitor: { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
-      durations: { swimMin: [40,60], bikeMin: [60,150], runMin: [40,75], longBikeMin: [180,300], longRunMin: [90,135], longSwimM: [3000,4000], weeklyKmRun: [40,80], weeklyKmBike: [200,400] } },
+      durations: { swimMin: [40,60], bikeMin: [60,150], runMin: [40,80], longBikeMin: [240,360], longRunMin: [110,150], longSwimM: [3000,4000], weeklyKmRun: [40,80], weeklyKmBike: [200,400] } },
     age_group:  { weeklyHours: [10,15], sessionsPerWeek: [6,9],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
-      durations: { swimMin: [35,50], bikeMin: [50,120], runMin: [35,60], longBikeMin: [150,240], longRunMin: [75,120], longSwimM: [2500,3500], weeklyKmRun: [30,55], weeklyKmBike: [150,280] } },
+      durations: { swimMin: [35,55], bikeMin: [50,120], runMin: [40,70], longBikeMin: [210,300], longRunMin: [90,135], longSwimM: [2500,3500], weeklyKmRun: [30,55], weeklyKmBike: [150,280] } },
     finisher:   { weeklyHours: [8,12],  sessionsPerWeek: [5,7],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
-      durations: { swimMin: [30,45], bikeMin: [45,90], runMin: [30,50], longBikeMin: [120,210], longRunMin: [60,105], longSwimM: [2000,3000], weeklyKmRun: [20,40], weeklyKmBike: [100,200] } },
+      durations: { swimMin: [30,45], bikeMin: [45,90], runMin: [35,60], longBikeMin: [180,270], longRunMin: [75,120], longSwimM: [2000,3000], weeklyKmRun: [20,40], weeklyKmBike: [100,200] } },
   },
   // ═══ 70.3 ═══ (Etxebarria 2019: Bike 40-48%, Run 30-35%, Swim 15-20%)
+  // Race: 1.9km Swim + 90km Bike (2.5-3.5h) + 21.1km Run (1.5-2.5h)
+  // SL Bike = 80-100% de la durée course visée (Laursen 2002)
+  // SL Run = 1.5-2h suffisant pour les adaptations LD (Seiler 2010, Billat 2001)
   "703": {
     elite:      { weeklyHours: [15,22], sessionsPerWeek: [10,14], keySessions: [3,3], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
-      durations: { swimMin: [40,60], bikeMin: [60,150], runMin: [40,75], longBikeMin: [180,270], longRunMin: [90,120], longSwimM: [3500,4500], weeklyKmRun: [50,90], weeklyKmBike: [250,450] } },
+      durations: { swimMin: [40,65], bikeMin: [60,150], runMin: [40,80], longBikeMin: [210,300], longRunMin: [100,135], longSwimM: [3500,4500], weeklyKmRun: [50,90], weeklyKmBike: [250,450] } },
     competitor: { weeklyHours: [10,16], sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
-      durations: { swimMin: [35,55], bikeMin: [50,120], runMin: [35,65], longBikeMin: [150,240], longRunMin: [75,105], longSwimM: [3000,4000], weeklyKmRun: [35,65], weeklyKmBike: [180,350] } },
+      durations: { swimMin: [35,55], bikeMin: [50,120], runMin: [35,70], longBikeMin: [180,270], longRunMin: [90,120], longSwimM: [3000,4000], weeklyKmRun: [35,65], weeklyKmBike: [180,350] } },
     age_group:  { weeklyHours: [8,12],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
-      durations: { swimMin: [30,45], bikeMin: [45,90], runMin: [30,55], longBikeMin: [120,180], longRunMin: [60,90], longSwimM: [2500,3500], weeklyKmRun: [25,45], weeklyKmBike: [120,250] } },
+      durations: { swimMin: [30,45], bikeMin: [45,100], runMin: [35,60], longBikeMin: [150,240], longRunMin: [75,105], longSwimM: [2500,3500], weeklyKmRun: [25,45], weeklyKmBike: [120,250] } },
     finisher:   { weeklyHours: [6,10],  sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
-      durations: { swimMin: [25,40], bikeMin: [40,75], runMin: [25,45], longBikeMin: [90,150], longRunMin: [50,75], longSwimM: [2000,3000], weeklyKmRun: [15,30], weeklyKmBike: [80,180] } },
+      durations: { swimMin: [25,40], bikeMin: [40,80], runMin: [30,50], longBikeMin: [120,180], longRunMin: [60,90], longSwimM: [2000,3000], weeklyKmRun: [15,30], weeklyKmBike: [80,180] } },
   },
   // ═══ MARATHON ═══ (Haugen 2022: Elite 160-220km/sem, Tjelta 2016: 80% Z1-Z2)
   Marathon: {
