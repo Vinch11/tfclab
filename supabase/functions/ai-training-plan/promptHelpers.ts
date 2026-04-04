@@ -880,7 +880,8 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
   // Double sessions reminder based on ambition
   const ambition = (config.ambition || "").toLowerCase();
-  const isTriathlon = ["IM", "703"].includes(obj);
+  const objKeyForTriCheck = normalizeObjKey(config.objective || "");
+  const isTriathlon = ["IM", "703"].includes(objKeyForTriCheck);
   if (isTriathlon) {
     lines.push("\n### 🔥🔥🔥 DOUBLES/TRIPLES SÉANCES — RÈGLE #1 LA PLUS IMPORTANTE 🔥🔥🔥");
     lines.push("Un plan triathlon IM/70.3 n'est PAS un plan de course à pied. Un triathlète s'entraîne PLUSIEURS FOIS PAR JOUR.");
