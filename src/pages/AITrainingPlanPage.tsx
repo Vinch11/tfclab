@@ -386,21 +386,13 @@ export default function AITrainingPlanPage() {
   }, [raceDate, raceGoals, planStartDate]);
 
   // Parse AI response into structured plan
-  const parsedPlan = useMemo<ParsedPlan | null>(() => {
+  const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!response || isLoading) return null;
     try {
       const plan = parseAIPlan(response);
-      if (athleteContext) {
-        const config = buildConfigFromDiag(athleteContext.diagnostic);
-        postProcessParsedPlan(plan, {
-          ...config,
-          weeksAvailable: config.weeksAvailable ?? plan.weeks.length,
-          mode: "ai",
-        });
-      }
       return plan.weeks.length > 0 ? plan : null;
     } catch { return null; }
-  }, [response, isLoading, athleteContext, buildConfigFromDiag]);
+  }, [response, isLoading]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD PLAN CONFIG — Delegates to Plan Engine
@@ -462,6 +454,33 @@ export default function AITrainingPlanPage() {
 
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
   }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder]);
+
+  const parsedPlan = useMemo<ParsedPlan | null>(() => {
+    if (!rawParsedPlan) return null;
+    if (!athleteContext) return rawParsedPlan;
+
+    const clonedPlan: ParsedPlan = {
+      ...rawParsedPlan,
+      phases: rawParsedPlan.phases.map((phase) => ({ ...phase })),
+      weeks: rawParsedPlan.weeks.map((week) => ({
+        ...week,
+        sessions: week.sessions.map((session) => ({ ...session })),
+      })),
+      strategicRecap: rawParsedPlan.strategicRecap
+        ? {
+            limiters: rawParsedPlan.strategicRecap.limiters.map((limiter) => ({ ...limiter })),
+            synergies: [...rawParsedPlan.strategicRecap.synergies],
+          }
+        : undefined,
+    };
+
+    const config = buildConfigFromDiag(athleteContext.diagnostic);
+    return postProcessParsedPlan(clonedPlan, {
+      ...config,
+      weeksAvailable: config.weeksAvailable ?? clonedPlan.weeks.length,
+      mode: "ai",
+    });
+  }, [rawParsedPlan, athleteContext, buildConfigFromDiag]);
 
   const { archiveCurrentPlan } = usePlanSnapshotSync();
 
@@ -1569,7 +1588,7 @@ export default function AITrainingPlanPage() {
                         plan={parsedPlan}
                         startDate={planStartDate}
                         raceGoals={[
-                          { priority: "A", objective, raceName: raceName || undefined, raceDate: raceDate || undefined },
+                          { priority: "A" as const, objective, raceName: raceName || undefined, raceDate: raceDate || undefined },
                           ...raceGoals,
                         ].filter(goal => goal.raceDate)}
                         onSaveToPlan={handleSaveToPlan}
