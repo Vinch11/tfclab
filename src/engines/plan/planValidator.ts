@@ -849,17 +849,22 @@ function validateProhibitionCompliance(
 // LIMITER ↔ SESSION COHERENCE VALIDATION (Rule 10)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/** Maps limiter keywords to expected session content patterns */
+/** Maps limiter keywords to expected session content patterns.
+ * IMPORTANT: Patterns must be specific enough to avoid false positives.
+ * - VLAMAX_DOWN sessions must explicitly reference glycolytic reduction concepts, not just "Z2"
+ * - TTE sessions include sustained threshold work, not just any "seuil" mention
+ * - A session matching L1 is NOT double-counted for L2/L3/L4 (priority dedup in validator)
+ */
 const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
-  "vo2max": /vo2|vma|billat|30\/30|interval|fractionn|1[01]\d%\s*ftp|pma/i,
-  "vlamax": /z2|endurance|train\s*low|sweet\s*spot|tempo|aérobie|fondament|long/i,
-  "tte": /seuil|threshold|norv[ée]gi|mlss|tempo\s*long|continu/i,
-  "fatmax": /train\s*low|[àa]\s*jeun|z[12].*long|lipid|fat/i,
-  "économie": /c[ôo]te|sfr|r[øo]nnestad|force|plio|strides|gammes|drill|cadence/i,
-  "ftp": /sweet\s*spot|over.under|norv[ée]gi|seuil|ftp|threshold/i,
-  "durabilit": /sortie\s*longue|sl\b|long\s*run|brick|endurance|z2.*long|finish.*rapide/i,
-  "sprint": /sprint|neuro|explo|plyo|force\s*max|vitesse/i,
-  "pmax": /sprint|force\s*max|r[øo]nnestad|explo|plyo|pmax/i,
+  "vo2max": /vo2|vma|billat|30\/30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma|🔑.*(?:vo2|vma|pma)/i,
+  "vlamax": /train\s*low|[àa]\s*jeun|sweet\s*spot.*(?:long|progressi)|z2.*(?:long|>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|fat\s*(?:max|ox)|lipid|glycoly|aérobie\s*(?:pur|fondament|base)|🔑.*(?:z2.*long|train.low|fondament)/i,
+  "tte": /seuil|threshold|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|continu.*(?:seuil|z[45])|sweet\s*spot|over.?under|ftp\s*(?:interval|bloc|continu)|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|🔑.*(?:seuil|threshold|tte|tempo)/i,
+  "fatmax": /train\s*low|[àa]\s*jeun|z[12].*long.*(?:low|jeun)|lipid|fat\s*(?:max|ox)|glycogène/i,
+  "économie": /c[ôo]te|sfr|r[øo]nnestad|force|plio|strides|gammes|drill|cadence|technique|éducatif|🔑.*(?:force|économie|technique)/i,
+  "ftp": /sweet\s*spot|over.?under|norv[ée]gi|seuil.*(?:puissance|watts|ftp)|ftp|threshold.*(?:power|puissance)|z[45].*(?:interval|bloc)|🔑.*(?:ftp|puissance|seuil)/i,
+  "durabilit": /sortie\s*longue|sl\b|long\s*run|brick|z2.*(?:>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|finish.*rapide|durabilité|🔑.*(?:sortie.*longue|durabilité|endurance)/i,
+  "sprint": /sprint|neuro|explo|plyo|force\s*max|vitesse|🔑.*(?:sprint|force.*max|neuro)/i,
+  "pmax": /sprint|force\s*max|r[øo]nnestad|explo|plyo|pmax|🔑.*(?:pmax|sprint|force.*max)/i,
 };
 
 function detectLimiterKeyFromText(limiterText: string): string | null {
@@ -897,6 +902,7 @@ function validateLimiterCoherence(
   if (limiterKeys.length === 0) return { issues, score: 80, coverage };
 
   // Count sessions that match each limiter's expected patterns
+  // Priority dedup: each session is assigned to the HIGHEST-PRIORITY limiter it matches (L1 > L2 > L3 > L4)
   const limiterHits: Record<string, number> = {};
   let totalKeySessions = 0;
 
@@ -907,10 +913,12 @@ function validateLimiterCoherence(
       if (!KEY_SESSION_PATTERNS.test(text)) continue;
       totalKeySessions++;
 
+      // Assign to highest-priority matching limiter only
       for (const lKey of limiterKeys) {
         const pattern = LIMITER_SESSION_PATTERNS[lKey];
         if (pattern && pattern.test(text)) {
           limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
+          break; // Priority dedup: stop at first (highest-rank) match
         }
       }
     }
