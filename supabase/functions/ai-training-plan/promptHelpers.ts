@@ -785,7 +785,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (obj === "IM") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE IRONMAN");
     lines.push("Objectif IRONMAN → applique les ratios Lorang/Frodeno :");
-    lines.push("- Vélo 45-55% | CAP 20-25% | Natation 15-20% | Renfo 5-10%");
+    lines.push("- Vélo 45-55% | CAP 25-35% | Natation 15-20% | Renfo 5-10%");
     lines.push("- Min 3 natation/sem (technique + CSS + OWS), 4 vélo/sem, 3 CAP/sem");
     lines.push("- Briques vélo→CAP 1-2x/sem en phase spécifique");
     lines.push("- Train Low 2-3x/sem en phase base");
@@ -793,7 +793,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   } else if (obj === "703") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE 70.3");
     lines.push("Objectif 70.3 → applique les ratios Lorang/Haug :");
-    lines.push("- Vélo 40-48% | CAP 25-30% | Natation 15-20% | Renfo 5-10%");
+    lines.push("- Vélo 40-50% | CAP 30-40% | Natation 15-20% | Renfo 5-10%");
     lines.push("- Min 3 natation/sem, 3 vélo/sem, 3 CAP/sem");
     lines.push("- Plus d'intensité seuil/tempo qu'en IM");
   } else if (obj === "MARATHON") {
