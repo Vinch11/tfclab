@@ -62,13 +62,13 @@ const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   // SL Run = 1.5-2h suffisant pour les adaptations LD (Seiler 2010, Billat 2001)
   "703": {
     elite:      { weeklyHours: [15,22], sessionsPerWeek: [10,14], keySessions: [3,3], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
-      durations: { swimMin: [40,65], bikeMin: [60,150], runMin: [40,80], longBikeMin: [210,300], longRunMin: [100,135], longSwimM: [3500,4500], weeklyKmRun: [50,90], weeklyKmBike: [250,450] } },
+      durations: { longBikeMin: [210,300], longRunMin: [100,135], longSwimM: [3500,4500], weeklyKmRun: [50,90], weeklyKmBike: [250,450] } },
     competitor: { weeklyHours: [10,16], sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
-      durations: { swimMin: [35,55], bikeMin: [50,120], runMin: [35,70], longBikeMin: [180,270], longRunMin: [90,120], longSwimM: [3000,4000], weeklyKmRun: [35,65], weeklyKmBike: [180,350] } },
+      durations: { longBikeMin: [180,270], longRunMin: [90,120], longSwimM: [3000,4000], weeklyKmRun: [35,65], weeklyKmBike: [180,350] } },
     age_group:  { weeklyHours: [8,12],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
-      durations: { swimMin: [30,45], bikeMin: [45,100], runMin: [35,60], longBikeMin: [150,240], longRunMin: [75,105], longSwimM: [2500,3500], weeklyKmRun: [25,45], weeklyKmBike: [120,250] } },
+      durations: { longBikeMin: [150,240], longRunMin: [75,105], longSwimM: [2500,3500], weeklyKmRun: [25,45], weeklyKmBike: [120,250] } },
     finisher:   { weeklyHours: [6,10],  sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
-      durations: { swimMin: [25,40], bikeMin: [40,80], runMin: [30,50], longBikeMin: [120,180], longRunMin: [60,90], longSwimM: [2000,3000], weeklyKmRun: [15,30], weeklyKmBike: [80,180] } },
+      durations: { longBikeMin: [120,180], longRunMin: [60,90], longSwimM: [2000,3000], weeklyKmRun: [15,30], weeklyKmBike: [80,180] } },
   },
   // ═══ MARATHON ═══ (Haugen 2022: Elite 160-220km/sem, Tjelta 2016: 80% Z1-Z2)
   Marathon: {
