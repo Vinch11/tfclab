@@ -58,12 +58,21 @@ export interface LimiterCoverageItem {
   status: "ok" | "low" | "absent";
 }
 
+export interface CatalogUsageStats {
+  uniqueCatalogIds: number;
+  catalogSessions: number;
+  customSessions: number;
+  totalKeySessions: number;
+  untaggedSessions: number;
+}
+
 export interface PlanValidationResult {
   score: number; // 0-100
   grade: "A" | "B" | "C" | "D" | "F";
   issues: ValidationIssue[];
   weekMetrics: WeekMetrics[];
   limiterCoverage: LimiterCoverageItem[];
+  catalogStats: CatalogUsageStats;
   summary: {
     polarizationScore: number;
     loadPatternScore: number;
