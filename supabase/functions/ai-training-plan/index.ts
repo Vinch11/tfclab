@@ -583,6 +583,28 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
     }
 
     // === SINGLE GENERATION for short plans / regenerateWeek ===
+    // FIX: Inject race week obligation for single-gen plans too
+    let singleGenPrompt = userPrompt;
+    if (!regenerateWeek && planConfig?.raceGoals && planConfig.raceGoals.length > 0) {
+      const raceGoalReminders: string[] = [];
+      for (const goal of planConfig.raceGoals) {
+        if (!goal.raceDate || !planConfig.planStartDate) continue;
+        const startMs = parseIsoDateUtc(planConfig.planStartDate);
+        const raceMs = parseIsoDateUtc(goal.raceDate);
+        if (startMs === undefined || raceMs === undefined) continue;
+        const days = Math.round((raceMs - startMs) / (24 * 3600 * 1000));
+        const goalWeek = days >= 0 ? Math.floor(days / 7) + 1 : 0;
+        if (goalWeek >= 1 && goalWeek <= totalWeeks) {
+          const prio = goal.priority === "A" ? "🅰️" : goal.priority === "B" ? "🅱️" : "🆎";
+          raceGoalReminders.push(`${prio} ${goal.objective || goal.raceName || "Course"} : S${goalWeek} DOIT inclure "🏁 COURSE OBJECTIF" le ${goal.raceDate}. Minimum 5 séances réelles. Race Week complète obligatoire.`);
+        }
+      }
+      if (raceGoalReminders.length > 0) {
+        singleGenPrompt += `\n\n🚨 RACE WEEK OBLIGATION (PRIORITÉ ABSOLUE) :\n${raceGoalReminders.join("\n")}`;
+      }
+    }
+    singleGenPrompt += wbalReminder;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -593,7 +615,7 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: singleGenPrompt },
         ],
         stream: true,
         max_tokens: 65536,
