@@ -226,6 +226,12 @@ export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: st
     competitor: { M: "7h – 9h",        F: "7h45 – 10h" },
     elite:      { M: "Sub 6h30",       F: "Sub 7h10" },
   },
+  TrailUltra: {
+    finisher:   { M: "30h – 46h",      F: "33h – 50h" },
+    age_group:  { M: "22h – 30h",      F: "24h – 33h" },
+    competitor: { M: "18h – 22h",      F: "20h – 24h" },
+    elite:      { M: "Sub 17h",        F: "Sub 19h" },
+  },
 };
 
 export function getTimeTargetHint(objective: string, ambition: string, sex?: string): string | null {
