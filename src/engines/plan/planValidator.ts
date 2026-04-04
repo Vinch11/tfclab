@@ -479,11 +479,11 @@ function validateSportRatio(
 
   if (target.bike) {
     checks++;
-    if (bikePct < target.bike[0] - 5 || bikePct > target.bike[1] + 5) {
+    if (bikePct < target.bike[0] - 3 || bikePct > target.bike[1] + 3) {
       issues.push({
         rule: "sport_ratio",
-        severity: bikePct < target.bike[0] - 10 || bikePct > target.bike[1] + 10 ? "error" : "warning",
-        message: `Vélo ${bikePct}% (cible ${target.bike[0]}-${target.bike[1]}%)`,
+        severity: bikePct < target.bike[0] - 8 || bikePct > target.bike[1] + 8 ? "error" : "warning",
+        message: `Vélo ${bikePct}% (cible ${target.bike[0]}-${target.bike[1]}%, tolérance ±3%)`,
         detail: `Total: Nat ${swimPct}%, Vélo ${bikePct}%, Course ${runPct}%`,
       });
       deviations++;
@@ -492,11 +492,11 @@ function validateSportRatio(
 
   if (target.run) {
     checks++;
-    if (runPct < target.run[0] - 5 || runPct > target.run[1] + 5) {
+    if (runPct < target.run[0] - 3 || runPct > target.run[1] + 3) {
       issues.push({
         rule: "sport_ratio",
-        severity: runPct < target.run[0] - 10 || runPct > target.run[1] + 10 ? "error" : "warning",
-        message: `Course ${runPct}% (cible ${target.run[0]}-${target.run[1]}%)`,
+        severity: runPct < target.run[0] - 8 || runPct > target.run[1] + 8 ? "error" : "warning",
+        message: `Course ${runPct}% (cible ${target.run[0]}-${target.run[1]}%, tolérance ±3%)`,
         detail: `Total: Nat ${swimPct}%, Vélo ${bikePct}%, Course ${runPct}%`,
       });
       deviations++;
