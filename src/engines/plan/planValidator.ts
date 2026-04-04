@@ -466,11 +466,11 @@ function validateSportRatio(
 
   if (target.swim) {
     checks++;
-    if (swimPct < target.swim[0] - 5 || swimPct > target.swim[1] + 5) {
+    if (swimPct < target.swim[0] - 3 || swimPct > target.swim[1] + 3) {
       issues.push({
         rule: "sport_ratio",
-        severity: swimPct < target.swim[0] - 10 || swimPct > target.swim[1] + 10 ? "error" : "warning",
-        message: `Natation ${swimPct}% (cible ${target.swim[0]}-${target.swim[1]}%)`,
+        severity: swimPct < target.swim[0] - 8 || swimPct > target.swim[1] + 8 ? "error" : "warning",
+        message: `Natation ${swimPct}% (cible ${target.swim[0]}-${target.swim[1]}%, tolérance ±3%)`,
         detail: `Total: Nat ${swimPct}%, Vélo ${bikePct}%, Course ${runPct}%`,
       });
       deviations++;
