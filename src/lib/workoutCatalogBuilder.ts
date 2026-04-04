@@ -157,11 +157,13 @@ export function buildWorkoutCatalog(
     maxItems?: number;
     /** Chunk index for rotation — different chunks get different secondary sessions */
     chunkIndex?: number;
+    /** IDs already selected in previous chunks — avoid repeats */
+    excludeIds?: Set<string>;
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
   const phases = phasesForWeekRange(weekStart, weekEnd, totalWeeks);
-  const maxItems = options?.maxItems || 60; // ↑ from 40 to 60
+  const maxItems = options?.maxItems || 80; // ↑ from 60 to 80
 
   // Score and sort all workouts
   const scored = WorkoutLibrary
@@ -169,6 +171,8 @@ export function buildWorkoutCatalog(
       if (options?.sportFilter && options.sportFilter.length > 0) {
         if (!options.sportFilter.includes(w.sport)) return false;
       }
+      // Exclude IDs already selected in prior chunks
+      if (options?.excludeIds?.has(w.id)) return false;
       return true;
     })
     .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases) }))
@@ -179,20 +183,19 @@ export function buildWorkoutCatalog(
   const sportCounts: Record<string, number> = {};
   const catCounts: Record<string, number> = {};
 
-  const mainSlots = Math.floor(maxItems * 0.80); // 80% for top-scored
-  const diversitySlots = maxItems - mainSlots;    // 20% reserved for V5/V6
+  const mainSlots = Math.floor(maxItems * 0.75); // 75% for top-scored
+  const diversitySlots = maxItems - mainSlots;    // 25% reserved for V5/V6 + rotation
 
   // ─── Pass 1: Top scored items with relaxed caps ───
   for (const { workout, score } of scored) {
     if (selected.length >= mainSlots) break;
-    if (score < 0) continue;
 
     const sport = workout.sport;
     const cat = workout.cat;
     
-    // Relaxed caps: 20/sport, 12/category (up from 15/10)
-    if ((sportCounts[sport] || 0) >= 20) continue;
-    if ((catCounts[cat] || 0) >= 12) continue;
+    // Relaxed caps: 25/sport, 15/category
+    if ((sportCounts[sport] || 0) >= 25) continue;
+    if ((catCounts[cat] || 0) >= 15) continue;
 
     selected.push(workout);
     selectedIds.add(workout.id);
@@ -209,7 +212,7 @@ export function buildWorkoutCatalog(
   const chunkIdx = options?.chunkIndex || 0;
   const rotationOffset = chunkIdx * 4; // Shift selection window by 4 per chunk
 
-  for (let i = 0; i < eliteSessions.length && selected.length < maxItems; i++) {
+  for (let i = 0; i < eliteSessions.length && selected.length < mainSlots + Math.floor(diversitySlots * 0.6); i++) {
     const idx = (i + rotationOffset) % eliteSessions.length;
     const w = eliteSessions[idx];
     if (selectedIds.has(w.id)) continue;
@@ -217,7 +220,21 @@ export function buildWorkoutCatalog(
     selectedIds.add(w.id);
   }
 
-  // ─── Pass 3: Backfill — ensure minimum 3 sessions per sport present ───
+  // ─── Pass 3: Fill remaining diversity slots with lowest-exposure sessions ───
+  // These are sessions that score >= 0 but didn't make the top cut
+  const remaining = scored
+    .filter(({ workout }) => !selectedIds.has(workout.id) && !isEliteOrAntiMonotony(workout))
+    .map(s => s.workout);
+  
+  // Use chunk-based rotation to cycle through remaining sessions
+  const rotStart = (chunkIdx * 15) % Math.max(remaining.length, 1);
+  for (let i = 0; i < remaining.length && selected.length < maxItems; i++) {
+    const idx = (i + rotStart) % remaining.length;
+    selected.push(remaining[idx]);
+    selectedIds.add(remaining[idx].id);
+  }
+
+  // ─── Pass 4: Backfill — ensure minimum 3 sessions per sport present ───
   const finalSportCounts: Record<string, number> = {};
   for (const w of selected) {
     finalSportCounts[w.sport] = (finalSportCounts[w.sport] || 0) + 1;
