@@ -597,6 +597,51 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
           </div>
         </div>
 
+        {/* Catalog usage stats */}
+        {validationResult.catalogStats.totalKeySessions > 0 && (() => {
+          const cs = validationResult.catalogStats;
+          const catalogPct = Math.round((cs.catalogSessions / cs.totalKeySessions) * 100);
+          const statusColor = catalogPct >= 80 ? "text-green-600 dark:text-green-400" 
+            : catalogPct >= 50 ? "text-amber-600 dark:text-amber-400" 
+            : "text-destructive";
+          const barColor = catalogPct >= 80 ? "bg-green-500" 
+            : catalogPct >= 50 ? "bg-amber-500" 
+            : "bg-destructive";
+          return (
+            <div className="space-y-2 pt-2 border-t border-border">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                  📚 Utilisation du catalogue TFCL™
+                </h4>
+                <Badge variant="outline" className={`text-[9px] ${statusColor}`}>
+                  {catalogPct}% catalogue
+                </Badge>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-muted/50 rounded p-2">
+                  <div className="text-lg font-bold text-primary">{cs.uniqueCatalogIds}</div>
+                  <div className="text-[10px] text-muted-foreground">Séances uniques</div>
+                </div>
+                <div className="bg-muted/50 rounded p-2">
+                  <div className="text-lg font-bold text-foreground">{cs.catalogSessions}</div>
+                  <div className="text-[10px] text-muted-foreground">Catalogue</div>
+                </div>
+                <div className="bg-muted/50 rounded p-2">
+                  <div className="text-lg font-bold text-foreground">{cs.customSessions}</div>
+                  <div className="text-[10px] text-muted-foreground">Custom</div>
+                </div>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${catalogPct}%` }} />
+              </div>
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>{cs.catalogSessions} catalogue + {cs.customSessions} custom + {cs.untaggedSessions} non-tagué = {cs.totalKeySessions} clés</span>
+                <span>Cible ≥80%</span>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Prohibition compliance */}
         {validationResult.summary.prohibitionComplianceScore < 100 && (
           <div className="space-y-2 pt-2 border-t border-border">
