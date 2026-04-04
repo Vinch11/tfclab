@@ -821,45 +821,55 @@ function validateProhibitionCompliance(
 // RACE DAY PRESENCE VALIDATION (Rule 9)
 const RACE_DAY_PATTERNS = /🏁|jour\s*j|course\s*objectif|race\s*day|compétition|épreuve\s*(objectif|cible)|jour\s*de\s*(course|compétition)/i;
 
-function validateRaceDayPresence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
+function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
   if (plan.weeks.length === 0) return { issues, score: 100 };
 
-  const lastWeek = plan.weeks[plan.weeks.length - 1];
-  const allSessions = lastWeek.sessions || [];
-  const realSessions = allSessions.filter(s => !s.isRest);
-  const hasRaceDay = allSessions.some(s => {
-    const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
-    return RACE_DAY_PATTERNS.test(text);
-  });
+  // Determine which weeks should contain a race day
+  const targetWeeks: number[] = raceWeekNumbers && raceWeekNumbers.length > 0
+    ? raceWeekNumbers
+    : [plan.weeks[plan.weeks.length - 1].weekNumber]; // fallback: last week
 
   let score = 100;
+  const penaltyPerMissing = Math.floor(100 / targetWeeks.length);
 
-  if (!hasRaceDay) {
-    issues.push({
-      rule: "race_day",
-      severity: "error",
-      week: plan.weeks.length,
-      message: `🏁 Jour de course absent — la dernière semaine (S${plan.weeks.length}) ne contient aucune séance "Jour J" ou "🏁 COURSE OBJECTIF"`,
-      detail: "La dernière semaine doit inclure le jour de la compétition avec stratégie de pacing et consignes nutrition",
+  for (const weekNum of targetWeeks) {
+    const week = plan.weeks.find(w => w.weekNumber === weekNum);
+    if (!week) continue;
+
+    const allSessions = week.sessions || [];
+    const realSessions = allSessions.filter(s => !s.isRest);
+    const hasRaceDay = allSessions.some(s => {
+      const text = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
+      return RACE_DAY_PATTERNS.test(text);
     });
-    score = 0;
+
+    if (!hasRaceDay) {
+      issues.push({
+        rule: "race_day",
+        severity: "error",
+        week: weekNum,
+        message: `🏁 Jour de course absent — S${weekNum} ne contient aucune séance "Jour J" ou "🏁 COURSE OBJECTIF"`,
+        detail: "Cette semaine doit inclure le jour de la compétition avec stratégie de pacing et consignes nutrition",
+      });
+      score -= penaltyPerMissing;
+    }
+
+    // Race Week completeness: minimum 5 real sessions expected
+    const MIN_RACE_WEEK_SESSIONS = 5;
+    if (realSessions.length < MIN_RACE_WEEK_SESSIONS) {
+      issues.push({
+        rule: "race_day",
+        severity: "warning",
+        week: weekNum,
+        message: `⚠️ Race Week sous-peuplée — S${weekNum} : seulement ${realSessions.length} séance(s) réelle(s) sur ${MIN_RACE_WEEK_SESSIONS} attendues`,
+        detail: "La semaine de course doit inclure rappels race-pace, activation pré-course et Jour J",
+      });
+      score = Math.min(score, 50);
+    }
   }
 
-  // Race Week completeness: minimum 5 real sessions expected
-  const MIN_RACE_WEEK_SESSIONS = 5;
-  if (realSessions.length < MIN_RACE_WEEK_SESSIONS) {
-    issues.push({
-      rule: "race_day",
-      severity: "warning",
-      week: plan.weeks.length,
-      message: `⚠️ Race Week sous-peuplée — seulement ${realSessions.length} séance(s) réelle(s) sur ${MIN_RACE_WEEK_SESSIONS} attendues`,
-      detail: "La semaine de course doit inclure rappels race-pace (natation, vélo, CAP), activation pré-course et Jour J",
-    });
-    score = Math.min(score, 50);
-  }
-
-  return { issues, score };
+  return { issues, score: Math.max(0, score) };
 }
 
 export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[]): PlanValidationResult {
