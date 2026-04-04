@@ -858,9 +858,9 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (config.raceGoals && config.raceGoals.length > 1) {
     const otherGoals = config.raceGoals.filter((g: any) => g.priority !== "A");
     for (const goal of otherGoals) {
-      const goalObj = (goal.objective || "").toUpperCase();
+      const goalObjKey = normalizeObjKey(goal.objective || "");
       const goalName = goal.raceName ? ` (${goal.raceName})` : "";
-      if (goalObj.includes("MARATHON") || goalObj === "SEMI") {
+      if (["Marathon", "Semi"].includes(goalObjKey)) {
         lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
         lines.push(`- Les semaines précédant cette course B doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
         lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
