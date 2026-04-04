@@ -781,8 +781,10 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   }
 
   // Sport coherence reminder based on objective
-  const obj = (config.objective || "").toUpperCase();
-  if (obj === "IM") {
+  // FIX: Use normalizeObjKey for reliable matching (was using strict === on uppercase string,
+  // which NEVER matched objectives like "Ironman", "Ironman 70.3", "Semi-marathon", etc.)
+  const objKeyForRappel = normalizeObjKey(config.objective || "");
+  if (objKeyForRappel === "IM") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE IRONMAN");
     lines.push("Objectif IRONMAN → applique les ratios Lorang/Frodeno :");
     lines.push("- Vélo 45-55% | CAP 25-35% | Natation 15-20% | Renfo 5-10%");
@@ -790,25 +792,25 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Briques vélo→CAP 1-2x/sem en phase spécifique");
     lines.push("- Train Low 2-3x/sem en phase base");
     lines.push("- Gut Training progressif obligatoire");
-  } else if (obj === "703") {
+  } else if (objKeyForRappel === "703") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE 70.3");
     lines.push("Objectif 70.3 → applique les ratios Lorang/Haug :");
     lines.push("- Vélo 40-50% | CAP 30-40% | Natation 15-20% | Renfo 5-10%");
     lines.push("- Min 3 natation/sem, 3 vélo/sem, 3 CAP/sem");
     lines.push("- Plus d'intensité seuil/tempo qu'en IM");
-  } else if (obj === "MARATHON") {
+  } else if (objKeyForRappel === "Marathon") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE MARATHON");
-    lines.push("- CAP 75-85% | Renfo 10-15% | Vélo cross-training Z1-Z2 max 5-10%");
+    lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
     lines.push("- Minimum 5 séances CAP/sem : EF, tempo, seuil, SL, fartlek/côtes");
-    lines.push("- Vélo optionnel : max 1-2x/sem, 45-60min Z1-Z2 uniquement (récupération active)");
-  } else if (obj === "SEMI") {
+    lines.push("- Vélo optionnel : max 1-2x/sem, 45-60min Z1-Z2 uniquement (récupération active, cross-training)");
+  } else if (objKeyForRappel === "Semi") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI-MARATHON");
-    lines.push("- CAP 75-85% | Renfo 10-15% | Vélo cross-training Z1-Z2 max 5-10%");
+    lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- Accent VMA + seuil. Minimum 4-5 séances CAP/sem.");
     lines.push("- Séances types : EF Z2, Tempo allure semi, VMA 30/30, Seuil 2×20min, SL 15-20km, Fartlek, Côtes");
     lines.push("- Vélo optionnel : max 1-2x/sem, 45-60min Z1-Z2 uniquement");
-  } else if (obj === "TRAILULTRA") {
+  } else if (objKeyForRappel === "TrailUltra") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL ULTRA (>80km)");
     lines.push("- CAP/Trail 65-75% | Renfo 15-20% | Vélo cross-training Z1 5-10%");
     lines.push("- D+ progressif : base 1500m/sem → build 4000m/sem → peak 5000-6000m/sem");
@@ -819,7 +821,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Gut Training progressif 40→90g/h testé en simulation");
     lines.push("- Bâtons : entraînement spécifique si utilisés en course");
     lines.push("- Taper ultra = 14-21j (plus long que route)");
-  } else if (obj === "TRAILMOUNTAIN") {
+  } else if (objKeyForRappel === "TrailMountain") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL MONTAGNE (42-80km)");
     lines.push("- CAP/Trail 70-80% | Renfo 15-20% | Vélo cross-training Z1 5-10%");
     lines.push("- D+ progressif : base 1000m/sem → build 3000m/sem → peak 4000m/sem");
@@ -828,7 +830,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Force excentrique lourd 2x/sem + proprioception");
     lines.push("- Simulation nuit : 1-2 sorties en Peak");
     lines.push("- Gut Training progressif 40→70g/h");
-  } else if (["TRAIL", "TRAILSHORT"].includes(obj)) {
+  } else if (["Trail", "TrailShort"].includes(objKeyForRappel)) {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE TRAIL COURT (<42km)");
     lines.push("- CAP/Trail 70-80% | Renfo 20-25% | Vélo Z1 optionnel 0-5%");
     lines.push("- D+ progressif : base 500m/sem → build 1500m/sem → peak 2000m/sem");
@@ -836,12 +838,12 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Force excentrique prioritaire (prévention quadriceps)");
     lines.push("- Proprioception obligatoire (Bosu, single leg, terrain instable)");
     lines.push("- Séances TOUJOURS en terrain trail/sentier, jamais route");
-  } else if (["10K", "10KM", "5K"].includes(obj)) {
-    lines.push(`\n### ⚠️ RAPPEL COHÉRENCE ${obj}`);
-    lines.push("- CAP 75-85% | Renfo 10-15% | Vélo cross-training Z1-Z2 max 5-10%");
+  } else if (["10K", "5K"].includes(objKeyForRappel)) {
+    lines.push(`\n### ⚠️ RAPPEL COHÉRENCE ${objKeyForRappel}`);
+    lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- 1 seuil/tempo + 1 VMA + 1 sortie longue/sem + EF Z2");
     lines.push("- Vélo optionnel : max 1x/sem, 45min Z1-Z2 uniquement");
-  } else if (obj === "STARTTORUN") {
+  } else if (objKeyForRappel === "StartToRun") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE START TO RUN (DÉBUTANT)");
     lines.push("- PROGRAMME DÉBUTANT : alternance marche/course progressive.");
     lines.push("- Sem 1-4 : 70% marche / 30% course. Sem 5-8 : 50/50. Sem 9-12 : 70% course.");

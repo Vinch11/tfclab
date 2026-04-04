@@ -39,7 +39,7 @@ Spécificités : Train Low 2-3x/sem en base. Gut Training progressif 30→90g/h.
 ### 70.3 — Modèle Lorang/Haug (12-18h/sem)
 | Sport | % Volume | Séances/sem | Clés |
 |-------|----------|-------------|------|
-| Vélo | 40-48% | 3-4 | Sorties longues 3-4h, intervalles seuil 2x20min@85-90% FTP |
+| Vélo | 40-50% | 3-4 | Sorties longues 3-4h, intervalles seuil 2x20min@85-90% FTP |
 | CAP | 30-40% | 3-4 | Plus d'intensité qu'IM. Allure 70.3 = 85-90% VMA |
 | Natation | 15-20% | 3-4 | 2.5-3.5km/séance. Départ rapide + CSS |
 | Renfo | 5-10% | 2 | Force + pliométrie légère |
