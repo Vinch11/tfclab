@@ -19,6 +19,10 @@ import type {
   PlanInput,
   PlanOutput,
   PlanInjectedContext,
+  PlanGenerationConfig,
+  ParsedPlan,
+  ParsedWeek,
+  ParsedSession,
 } from "./types";
 import { PLAN_ENGINE_VERSION, PLAN_ENGINE_DISCLAIMER } from "./types";
 import type { TrainingPrescription } from "@/engines/decision";
