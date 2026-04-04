@@ -227,7 +227,49 @@ function normalizeAmbKey(amb: string): string {
   return "age_group"; // safer default than "finisher"
 }
 
-function getSportDistributionConstraint(objective: string, ambition: string, limiters?: string[]): string | null {
+// === AMBITION SCALING FACTORS for deriving standard session durations from catalog ===
+// Elite uses full catalog range, lower levels scale down proportionally
+const AMBITION_SCALE: Record<string, number> = {
+  elite: 1.0,
+  competitor: 0.85,
+  age_group: 0.70,
+  finisher: 0.55,
+};
+
+interface CatalogDurationStats {
+  [sport: string]: { minDur: number; maxDur: number; medianDur: number; count: number };
+}
+
+/**
+ * Derive standard session durations from catalog stats + ambition scaling.
+ * Returns formatted lines for the prompt, or empty array if no stats available.
+ */
+function derivedSessionDurations(
+  catalogStats: CatalogDurationStats | null,
+  ambKey: string
+): string[] {
+  if (!catalogStats || Object.keys(catalogStats).length === 0) return [];
+  const scale = AMBITION_SCALE[ambKey] ?? 0.70;
+  const lines: string[] = [];
+
+  const sportMap: Record<string, string> = {
+    swim: "🏊 Natation standard",
+    bike: "🚴 Vélo standard",
+    run: "🏃 CAP standard",
+    strength: "💪 Renfo/Force",
+  };
+
+  for (const [sport, stats] of Object.entries(catalogStats)) {
+    const label = sportMap[sport];
+    if (!label) continue;
+    const lo = Math.round(stats.minDur * scale);
+    const hi = Math.round(stats.maxDur * scale);
+    lines.push(`| ${label} | ${lo}-${hi} min | Dérivé du catalogue TFCL™ (${stats.count} séances, médiane ${stats.medianDur}min) × facteur ${ambKey} |`);
+  }
+  return lines;
+}
+
+function getSportDistributionConstraint(objective: string, ambition: string, limiters?: string[], catalogStats?: CatalogDurationStats | null): string | null {
   const objKey = normalizeObjKey(objective);
   const ambKey = normalizeAmbKey(ambition);
   const ref = SPORT_RATIO_REFS[objKey]?.[ambKey];
