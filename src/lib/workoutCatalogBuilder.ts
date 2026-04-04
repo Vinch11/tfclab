@@ -68,12 +68,26 @@ export function phasesForWeekRange(
 /** Detect if a workout belongs to V5 (Elite) or V6 (Anti-monotony) modules */
 function isEliteOrAntiMonotony(w: LibraryWorkout): boolean {
   const id = w.id.toUpperCase();
-  // V5 elite: isometric, nordic, heat, lactate shuttle, respiratory, PAP, swim cord, mental
-  if (w.tags?.some(t => ["elite", "anti-monotony", "pyramid", "descending", "fartlek", "circuit"].includes(t))) return true;
-  // V6 anti-monotony patterns
-  if (id.includes("PYRAMID") || id.includes("DESCENDING") || id.includes("FARTLEK_LIBRE") || id.includes("CIRCUIT_CARDIO")) return true;
-  // V5 elite patterns
-  if (id.includes("ISOMETRIC") || id.includes("NORDIC") || id.includes("HEAT_ACC") || id.includes("LACTATE_SHUTTLE") || id.includes("IMT_RESPIRATORY") || id.includes("PAP_") || id.includes("SWIM_CORD") || id.includes("MENTAL_REHEARSAL")) return true;
+
+  // Tag-based detection (fastest path)
+  if (w.tags?.some(t => [
+    "elite", "anti-monotony",
+    "pyramid", "descending", "fartlek", "circuit",
+    "isometric", "nordic", "heat", "PAP", "swim-cord",
+    "respiratory", "mental", "lactate-shuttle"
+  ].includes(t))) return true;
+
+  // V6 anti-monotony ID patterns
+  if (id.includes("PYRAMID") || id.includes("DESCENDING") ||
+      id.includes("FARTLEK") || id.includes("CIRCUIT_CARDIO")) return true;
+
+  // V5 elite ID patterns — aligned with actual enrichedWorkoutsV5 IDs
+  if (id.includes("ISOMETRIC") || id.includes("NORDIC") ||
+      id.includes("HEAT_ACCLIM") || id.includes("LACTATE_SHUTTLE") ||
+      id.includes("RESP_INSPIRATORY") || id.includes("IMT_RESPIRATORY") ||
+      id.includes("PAP_") || id.includes("SWIM_CORD") ||
+      id.includes("MENTAL_RACE") || id.includes("MENTAL_REHEARSAL")) return true;
+
   return false;
 }
 
