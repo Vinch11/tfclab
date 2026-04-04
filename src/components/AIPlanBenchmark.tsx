@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Trophy, TrendingUp, TrendingDown, Minus, AlertTriangle,
-  CheckCircle2, Target, BarChart3, Zap, Info,
+  CheckCircle2, Target, BarChart3, Zap, Info, Crosshair,
 } from "lucide-react";
 import {
   Tooltip,
@@ -18,7 +18,7 @@ import {
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { getEliteReference, getEliteCeilingReference, type EliteReference } from "@/lib/eliteReferences";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
-import { validatePlan } from "@/engines/plan/planValidator";
+import { validatePlan, type LimiterCoverageItem } from "@/engines/plan/planValidator";
 
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
@@ -660,6 +660,82 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
                   {issue.message}
                 </p>
               ))}
+          </div>
+        )}
+
+        {/* Limiter Coverage Breakdown (L1→L4) */}
+        {validationResult.limiterCoverage.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                <Crosshair className="h-3 w-3" />
+                Couverture Limiteurs ↔ Séances clés
+              </h4>
+              <Badge
+                variant="outline"
+                className={`text-[9px] ${
+                  validationResult.summary.limiterCoherenceScore >= 80
+                    ? "border-green-500/50 text-green-700 dark:text-green-300"
+                    : validationResult.summary.limiterCoherenceScore >= 50
+                    ? "border-amber-500/50 text-amber-700 dark:text-amber-300"
+                    : "border-destructive/50 text-destructive"
+                }`}
+              >
+                {validationResult.summary.limiterCoherenceScore}/100
+              </Badge>
+            </div>
+            <div className="space-y-1.5">
+              {validationResult.limiterCoverage.map((item) => {
+                const barColor =
+                  item.status === "ok"
+                    ? "bg-green-500"
+                    : item.status === "low"
+                    ? "bg-amber-500"
+                    : "bg-destructive";
+                const bgColor =
+                  item.status === "ok"
+                    ? "bg-green-500/10"
+                    : item.status === "low"
+                    ? "bg-amber-500/10"
+                    : "bg-destructive/10";
+                const textColor =
+                  item.status === "ok"
+                    ? "text-green-700 dark:text-green-300"
+                    : item.status === "low"
+                    ? "text-amber-700 dark:text-amber-300"
+                    : "text-destructive";
+                const rankLabel = item.rank <= 2 ? (item.rank === 1 ? "🎯 L1" : "⚡ L2") : `📋 L${item.rank}`;
+                return (
+                  <div key={item.key} className={`rounded p-1.5 ${bgColor}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[10px] font-semibold ${textColor}`}>
+                        {rankLabel} — {item.key.toUpperCase()}
+                      </span>
+                      <span className={`text-[10px] font-bold tabular-nums ${textColor}`}>
+                        {item.pct}% ({item.hits}/{item.totalKeySessions})
+                      </span>
+                    </div>
+                    <div className="relative h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`absolute h-full rounded-full ${barColor} transition-all`}
+                        style={{ width: `${Math.min(item.pct, 100)}%` }}
+                      />
+                      {/* Target marker */}
+                      <div
+                        className="absolute h-full w-0.5 bg-foreground/40"
+                        style={{ left: `${Math.min(item.target, 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[9px] text-muted-foreground mt-0.5">
+                      <span>Cible ≥{item.target}%</span>
+                      <span>
+                        {item.status === "ok" ? "✅ Conforme" : item.status === "low" ? "⚠️ Sous-couvert" : "❌ Absent"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
