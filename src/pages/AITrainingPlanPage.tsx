@@ -1573,6 +1573,21 @@ export default function AITrainingPlanPage() {
                         athleteName={currentAthlete?.nom}
                         limiterResult={athleteContext?.diagnostic.limiter ?? null}
                         prohibitions={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.prohibitions : undefined}
+                        raceWeekNumbers={(() => {
+                          const allGoals = [
+                            { raceDate: raceDate, priority: "A" as const },
+                            ...raceGoals,
+                          ];
+                          const nums: number[] = [];
+                          for (const g of allGoals) {
+                            if (!g.raceDate) continue;
+                            try {
+                              const days = differenceInCalendarDays(parseISO(g.raceDate), planStartDate);
+                              if (days >= 0) nums.push(Math.floor(days / 7) + 1);
+                            } catch {}
+                          }
+                          return nums.length > 0 ? nums : undefined;
+                        })()}
                       />
                       <RacePaceSimulation
                         objective={objective}
