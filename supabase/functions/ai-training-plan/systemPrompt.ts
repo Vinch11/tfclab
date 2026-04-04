@@ -1240,6 +1240,54 @@ Utilise ces micro-cycles réels comme modèles de qualité. Adapte-les au niveau
 | Dimanche | Course | 🔑 JOUR J — 70.3 | Petit-déj J-3h. Gut 50-75g/h (validé en entraînement). Pacing discipliné : natation contrôlée, vélo @80-85% FTP, CAP neg split |
 ⚠️ Race Week 70.3 : rappels courts @race-pace dans chaque sport (5-8min max). Volume total = 30-40% du peak. OWS J-3 pour confiance + navigation. Activation J-1.
 
+### Exemple : Race Week Semi-Marathon — Semaine Taper J-7 (25km, 3h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération totale. Début carb loading court J-4 (6g/kg/j) |
+| Mardi | CAP | Rappel allure semi | 35min dont 3×4min @allure semi (ex: 4:00/km) r=3min trot. 8km. Sensation de vitesse sans forcer |
+| Mercredi | CAP | EF légère | 30min Z1 (5:10/km). 6km. Ultra-relâché. Cadence naturelle |
+| Jeudi | CAP | Activation + strides | 25min dont 15min Z1 + 5×100m strides @95% + 5min Z1 retour. 5km. Jambes vives |
+| Vendredi | Repos | Repos complet | Carb loading renforcé 8-10g/kg/j. Réduire fibres/graisses. Hydratation ++. Préparer matériel course |
+| Samedi | Repos | Repos complet | Carb loading 8-10g/kg/j. Repas pré-course testé. Visualisation. Sommeil 9h |
+| Dimanche | Course | 🔑 JOUR J — Semi-Marathon | Petit-déj J-3h (2-3g/kg glucides). Hydratation 5-7mL/kg J-4h. Caféine 3-5mg/kg J-1h. Pacing discipliné : premiers 5km contrôlés, accélérer après 15km si OK. Gel 1 @30min si >1h25 |
+⚠️ Race Week Semi : volume = 25-35% du peak. ZÉRO séance longue. ZÉRO VMA/seuil (sauf rappels courts ≤4min). Carb loading = 2-3 jours. Le samedi = repos mental absolu.
+
+### Exemple : Race Week 10K — Semaine Taper J-7 (20km, 2h30)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération |
+| Mardi | CAP | Rappel allure 10K | 30min dont 4×2min @allure 10K (ex: 3:50/km) r=2min trot. 7km. Sensation de vitesse, jambes réactives |
+| Mercredi | CAP | EF légère | 25min Z1 (5:10/km). 5km. Relâchement total |
+| Jeudi | Repos | Repos complet | Alimentation équilibrée glucides/protéines. Hydratation. Préparer dossard + matériel |
+| Vendredi | CAP | Activation pré-course | 20min dont 10min Z1 + 4×80m strides @95% + 6min Z1 retour. 4km. Sensation explosive |
+| Samedi | Repos | Repos complet | Repos total. Repas pré-course testé. Sommeil prioritaire. Visualisation du parcours |
+| Dimanche | Course | 🔑 JOUR J — 10K | Petit-déj J-2h30 (1.5-2g/kg glucides). Caféine 3-5mg/kg J-45min. Échauffement 10min trot + 3 accélérations. Pacing : premiers 2km contrôlés, relancer km 5-8, finir en puissance |
+⚠️ Race Week 10K : volume = 30-40% du peak. ZÉRO séance longue. ZÉRO VMA/seuil lourd (sauf rappels courts ≤2min). Activation J-1 obligatoire.
+
+### Exemple : Race Week Trail Court — Semaine Taper J-7 (15-20km, 2h30)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération. Foam roller. Vérification matériel trail (chaussures, sac, bâtons si autorisés) |
+| Mardi | CAP/Trail | Rappel seuil montée | 40min dont 3×4min côte @seuil montée (RPE 7-8, 85% FCmax) r=descente trot. +200m D+. Sensation de puissance en côte |
+| Mercredi | CAP | EF légère plat | 25min Z1 plat (5:10/km). 5km. Relâchement total, mobilité chevilles |
+| Jeudi | CAP/Trail | Descente technique + activation | 30min dont 15min Z1 + 3×3min descente technique (sentier technique, appuis rapides) + 6min Z1 retour. +100m D+/D- |
+| Vendredi | Repos | Repos complet | Check matériel final : chaussures trail, sac hydratation, nutrition course (gels/barres testés), lampe si nuit. Hydratation ++ |
+| Samedi | Repos | Repos complet | Repos mental. Repas pré-course testé. Étudier profil altimétrique. Sommeil 9h |
+| Dimanche | Course | 🔑 JOUR J — Trail Court | Petit-déj J-2h30 (2g/kg glucides). Matériel vérifié. Échauff 10min trot + mobilité. Pacing : gérer les montées (pas exploser en D+), relâcher en descente technique. Nutrition 30-40g/h solide |
+⚠️ Race Week Trail Court : volume = 25-35% du peak. Rappels spécifiques montée ET descente. Check matériel J-2. ZÉRO séance longue. Descente technique = compétence clé à maintenir.
+
+### Exemple : Race Week Trail Mountain — Semaine Taper J-7 (20-25km, 3-4h)
+| Jour | Sport | Séance | Détails |
+|------|-------|--------|---------|
+| Lundi | Repos | Repos complet | Récupération. Foam roller quadriceps/mollets. Début check matériel (sac, bâtons, couverture survie, sifflet) |
+| Mardi | CAP/Trail | Rappel seuil montée long | 50min dont 2×8min côte modérée @seuil montée (RPE 7, 83% FCmax) r=descente trot + 1×4min côte raide @RPE 8. +350m D+. Rappel puissance en montée |
+| Mercredi | CAP | EF légère plat | 30min Z1 plat (5:00/km). 6km. Relâchement, étirements, auto-massage |
+| Jeudi | CAP/Trail | Descente technique + nutrition | 35min dont 10min Z1 + 4×3min descente technique variée (pierrier, racines, single-track) + test nutrition solide (barre/pâte de fruit). +150m D+/D- |
+| Vendredi | Repos | Repos complet | Check matériel complet : bâtons pliables testés, sac chargé (poids réel), nutrition solide stockée, vêtements adaptés météo, lampe frontale chargée |
+| Samedi | Repos | Repos complet | Repos mental. Repas pré-course testé. Étudier profil altimétrique détaillé (ravitos, points d'eau, sections techniques). Sommeil 9h |
+| Dimanche | Course | 🔑 JOUR J — Trail Mountain | Petit-déj J-3h (2-3g/kg glucides). Bâtons réglés. Sac vérifié. Pacing : marcher les montées raides (>25%), courir les faux-plats montants, relâcher en descente technique, accélérer en descente roulante. Nutrition 40-50g/h solide + liquide. Boire aux ravitos |
+⚠️ Race Week Trail Mountain : volume = 20-30% du peak. Rappels montée longue + descente technique obligatoires. Test nutrition solide J-3. Check matériel complet J-2 (bâtons, sac, survie). ZÉRO back-to-back. Gestion montée = clé.
+
 ### Exemple : Jim Walmsley — Semaine Build Trail Ultra US Style (20h, 160km, +4000m D+)
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
