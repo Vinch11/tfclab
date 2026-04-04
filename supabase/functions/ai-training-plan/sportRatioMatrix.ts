@@ -97,6 +97,17 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
     finisher:   { weeklyHours: [3,4],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3],
       durations: { longRunMin: [40,60], weeklyKmRun: [15,35] } },
   },
+  // ═══ 5K ═══ (Tjelta 2016: Elite 80-120km/sem, high VO2max focus)
+  "5K": {
+    elite:      { weeklyHours: [8,11],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [60,80], weeklyKmRun: [80,120] } },
+    competitor: { weeklyHours: [5,8],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [5,5],
+      durations: { longRunMin: [50,70], weeklyKmRun: [40,75] } },
+    age_group:  { weeklyHours: [3,5],   sessionsPerWeek: [3,5],   keySessions: [1,2], progressionPct: [3,5],
+      durations: { longRunMin: [40,60], weeklyKmRun: [20,45] } },
+    finisher:   { weeklyHours: [2,4],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3],
+      durations: { longRunMin: [30,50], weeklyKmRun: [10,25] } },
+  },
   // ═══ TRAIL ═══
   Trail: {
     elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
