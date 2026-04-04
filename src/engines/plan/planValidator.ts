@@ -404,21 +404,8 @@ const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [num
   TrailUltra: { run: [65, 80] },
 };
 
-/** Normalize objective string to a known key (mirrors edge function logic) */
-function normalizeObjectiveKey(obj: string): string {
-  const lower = obj.toLowerCase();
-  if (lower.includes("70.3") || lower === "703") return "703";
-  if (lower.includes("ironman") || lower === "im") return "IM";
-  if (lower.includes("semi")) return "Semi";
-  if (lower.includes("marathon")) return "Marathon";
-  if (lower.includes("trail") && lower.includes("ultra")) return "TrailUltra";
-  if (lower.includes("trail") && (lower.includes("montagne") || lower.includes("mountain"))) return "TrailMountain";
-  if (lower.includes("trail") && (lower.includes("court") || lower.includes("short"))) return "TrailShort";
-  if (lower.includes("trail")) return "Trail";
-  if (lower.includes("10")) return "10K";
-  if (lower.includes("5k") || lower === "5km") return "5K";
-  return obj;
-}
+// Use shared normalizer — keep edge function's copy in sync manually
+import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 
 function validateSportRatio(
   metrics: WeekMetrics[],
