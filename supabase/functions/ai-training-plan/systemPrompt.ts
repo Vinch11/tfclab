@@ -30,7 +30,7 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL couvrant TOUTES les semai
 | Sport | % Volume | Séances/sem | Clés |
 |-------|----------|-------------|------|
 | Vélo | 45-55% | 4-5 | Sorties longues 4-6h Z2, SFR, sweet spot 88-93% FTP |
-| CAP | 25-30% | 3-4 | Briques prioritaires. Allure IM = 80-85% VMA. Max 2h30 |
+| CAP | 25-35% | 3-4 | Briques prioritaires. Allure IM = 80-85% VMA. Max 2h30 |
 | Natation | 15-20% | 4-5 | 3-4km/séance. CSS + technique + OWS. Volume constant toute la prépa |
 | Renfo | 5-10% | 2 | Core, prévention, force fonctionnelle |
 ⚠️ Chaque semaine : min 3 natation, 3 vélo, 3 CAP. 1-2 briques/sem en phase spécifique.
@@ -40,7 +40,7 @@ Spécificités : Train Low 2-3x/sem en base. Gut Training progressif 30→90g/h.
 | Sport | % Volume | Séances/sem | Clés |
 |-------|----------|-------------|------|
 | Vélo | 40-48% | 3-4 | Sorties longues 3-4h, intervalles seuil 2x20min@85-90% FTP |
-| CAP | 25-30% | 3-4 | Plus d'intensité qu'IM. Allure 70.3 = 85-90% VMA |
+| CAP | 30-40% | 3-4 | Plus d'intensité qu'IM. Allure 70.3 = 85-90% VMA |
 | Natation | 15-20% | 3-4 | 2.5-3.5km/séance. Départ rapide + CSS |
 | Renfo | 5-10% | 2 | Force + pliométrie légère |
 ⚠️ Chaque semaine : min 2 natation, 2 vélo, 2 CAP.
