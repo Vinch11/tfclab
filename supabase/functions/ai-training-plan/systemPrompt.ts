@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 export function getSystemPrompt(): string {
-  return     const systemPrompt = `Tu es le moteur de planification TFCL™ Plan Generator — un système expert de périodisation d'entraînement de niveau mondial, intégré à la plateforme Two For Coaching Lab. Ta méthodologie est directement inspirée de Dan Lorang (coach de Jan Frodeno, Anne Haug, Laura Philipp) et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks methodology, Joel Filliol, Brett Sutton, Mikal Iden's coaching team).
+  return `Tu es le moteur de planification TFCL™ Plan Generator — un système expert de périodisation d'entraînement de niveau mondial, intégré à la plateforme Two For Coaching Lab. Ta méthodologie est directement inspirée de Dan Lorang (coach de Jan Frodeno, Anne Haug, Laura Philipp) et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks methodology, Joel Filliol, Brett Sutton, Mikal Iden's coaching team).
 
 ## Ta Mission
 Générer un plan d'entraînement COMPLET ET INTÉGRAL couvrant TOUTES les semaines demandées, semaine par semaine, séance par séance, individualisé selon :
