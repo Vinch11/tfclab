@@ -97,13 +97,15 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     // Use smaller chunks for triathlon (very verbose output with multi-session days)
     const obj = (planConfig?.objective || "").toUpperCase();
     // Detect verbose plans: triathlon multi-sport plans generate much more text per week
-    const isVerbosePlan = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
-    // Dynamic chunk sizing: larger chunks = fewer API calls + better context retention
-    // Gemini Flash supports 65k output tokens; ~3-4k tokens/week (verbose) or ~1.5-2k (standard)
-    const CHUNK_SIZE = isVerbosePlan ? 5 : 8;
-    // Triathlon plans are very verbose (doubles/triples sessions, 3 sports) — chunk earlier
-    // to avoid token exhaustion that causes incomplete Race Weeks
-    const chunkThreshold = isVerbosePlan ? 6 : 12;
+    // Verbose tier 1: Triathlon (doubles/triples, 3 sports) — most verbose
+    const isTriVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
+    // Verbose tier 2: Trail Ultra/Mountain (D+, back-to-back, nutrition descriptions)
+    const isTrailVerbose = /TRAIL\s*(ULTRA|MOUNTAIN|MONT|UTMB|CCC|OCC|LONG)/i.test(obj) || (/TRAIL/i.test(obj) && totalWeeks >= 12);
+    const isVerbosePlan = isTriVerbose || isTrailVerbose;
+    // Dynamic chunk sizing based on verbosity tier
+    const CHUNK_SIZE = isTriVerbose ? 5 : isTrailVerbose ? 6 : 8;
+    // Chunk earlier for verbose plans to avoid token exhaustion → incomplete Race Weeks
+    const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 12;
     const needsChunking = !regenerateWeek && totalWeeks > chunkThreshold;
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
