@@ -11,7 +11,7 @@ import {
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
   RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle,
 } from "lucide-react";
-import { format, addDays, startOfWeek } from "date-fns";
+import { format, addDays, startOfWeek, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
@@ -498,7 +498,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
                     </div>
                     {goal.raceDate && (
                       <span className="text-muted-foreground">
-                        {format(new Date(goal.raceDate), "EEE d MMM yyyy", { locale: fr })}
+                        {format(parseISO(goal.raceDate), "EEE d MMM yyyy", { locale: fr })}
                       </span>
                     )}
                   </div>
