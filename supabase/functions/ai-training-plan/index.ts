@@ -48,13 +48,13 @@ const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   // SL Run = max 2.5-3h pour limiter le risque blessure (Mujika 2018, Billat 2001)
   IM: {
     elite:      { weeklyHours: [20,30], sessionsPerWeek: [12,16], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
-      durations: { swimMin: [45,75], bikeMin: [60,180], runMin: [45,100], longBikeMin: [300,420], longRunMin: [135,180], longSwimM: [4000,5000], weeklyKmRun: [60,120], weeklyKmBike: [300,550] } },
+      durations: { longBikeMin: [300,420], longRunMin: [135,180], longSwimM: [4000,5000], weeklyKmRun: [60,120], weeklyKmBike: [300,550] } },
     competitor: { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
-      durations: { swimMin: [40,60], bikeMin: [60,150], runMin: [40,80], longBikeMin: [240,360], longRunMin: [110,150], longSwimM: [3000,4000], weeklyKmRun: [40,80], weeklyKmBike: [200,400] } },
+      durations: { longBikeMin: [240,360], longRunMin: [110,150], longSwimM: [3000,4000], weeklyKmRun: [40,80], weeklyKmBike: [200,400] } },
     age_group:  { weeklyHours: [10,15], sessionsPerWeek: [6,9],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
-      durations: { swimMin: [35,55], bikeMin: [50,120], runMin: [40,70], longBikeMin: [210,300], longRunMin: [90,135], longSwimM: [2500,3500], weeklyKmRun: [30,55], weeklyKmBike: [150,280] } },
+      durations: { longBikeMin: [210,300], longRunMin: [90,135], longSwimM: [2500,3500], weeklyKmRun: [30,55], weeklyKmBike: [150,280] } },
     finisher:   { weeklyHours: [8,12],  sessionsPerWeek: [5,7],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
-      durations: { swimMin: [30,45], bikeMin: [45,90], runMin: [35,60], longBikeMin: [180,270], longRunMin: [75,120], longSwimM: [2000,3000], weeklyKmRun: [20,40], weeklyKmBike: [100,200] } },
+      durations: { longBikeMin: [180,270], longRunMin: [75,120], longSwimM: [2000,3000], weeklyKmRun: [20,40], weeklyKmBike: [100,200] } },
   },
   // ═══ 70.3 ═══ (Etxebarria 2019: Bike 40-48%, Run 30-35%, Swim 15-20%)
   // Race: 1.9km Swim + 90km Bike (2.5-3.5h) + 21.1km Run (1.5-2.5h)
