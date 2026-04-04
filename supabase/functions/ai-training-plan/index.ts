@@ -32,7 +32,7 @@ serve(async (req) => {
 Contexte : ${regenerateWeek.phase || "Phase inconnue"}, thème "${regenerateWeek.theme || "Standard"}".
 Plan total : ${regenerateWeek.totalWeeks} semaines.
 
-${buildUserPrompt(athleteData, planConfig)}
+${buildUserPrompt(athleteData, planConfig, catalogDurationStats)}
 
 IMPORTANT : Ne génère QUE la Semaine ${regenerateWeek.weekNumber} au format tableau obligatoire. Pas les autres semaines.
 
