@@ -1573,6 +1573,7 @@ export default function AITrainingPlanPage() {
                         athleteName={currentAthlete?.nom}
                         limiterResult={athleteContext?.diagnostic.limiter ?? null}
                         prohibitions={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.prohibitions : undefined}
+                        identifiedLimiters={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.identifiedLimiters : undefined}
                         raceWeekNumbers={(() => {
                           const allGoals = [
                             { raceDate: raceDate, priority: "A" as const },

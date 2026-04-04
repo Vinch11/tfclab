@@ -108,8 +108,27 @@ export function buildPlanConfigFromDiagnostic(
   // ── Limiteurs enrichis ────────────────────────────────────────────────────
   const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
 
-  // ── Leviers ───────────────────────────────────────────────────────────────
-  const levers = [limiterResult.primaryLever]
+  // ── Leviers (L1 + L2) ──────────────────────────────────────────────────────
+  const leverIds: string[] = [limiterResult.primaryLever];
+  // Add secondary lever from L2 gap if different from L1
+  const l2Gap = limiterResult.gapAnalysis
+    .filter(g => g.weightedImpact > 0)
+    .sort((a, b) => b.weightedImpact - a.weightedImpact)[1];
+  if (l2Gap) {
+    const l2LeverMap: Record<string, string> = {
+      "VO2max": "increase_vo2max",
+      "FTP/kg": "increase_ftp_kg",
+      "VLamax": "decrease_vlamax",
+      "TTE": "increase_tte",
+      "FatMax": "increase_fat_oxidation",
+      "Économie": "force_endurance",
+    };
+    const l2Lever = l2LeverMap[l2Gap.metric];
+    if (l2Lever && l2Lever !== limiterResult.primaryLever) {
+      leverIds.push(l2Lever);
+    }
+  }
+  const levers = leverIds
     .map(l => LEVER_LABELS[l] || l)
     .filter(Boolean);
 
@@ -136,6 +155,7 @@ export function buildPlanConfigFromDiagnostic(
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     adaptationProjections: projections.length > 0 ? projections : undefined,
+    _athleteSex: diagnostic._rawInput.sex ?? null,
   };
 }
 

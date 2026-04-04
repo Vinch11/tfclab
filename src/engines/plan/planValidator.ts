@@ -63,6 +63,7 @@ export interface PlanValidationResult {
     prohibitionComplianceScore: number;
     phaseCoherenceScore: number;
     raceDayScore: number;
+    limiterCoherenceScore: number;
     overallComment: string;
   };
 }
@@ -815,6 +816,121 @@ function validateProhibitionCompliance(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// LIMITER ↔ SESSION COHERENCE VALIDATION (Rule 10)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Maps limiter keywords to expected session content patterns */
+const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
+  "vo2max": /vo2|vma|billat|30\/30|interval|fractionn|1[01]\d%\s*ftp|pma/i,
+  "vlamax": /z2|endurance|train\s*low|sweet\s*spot|tempo|aérobie|fondament|long/i,
+  "tte": /seuil|threshold|norv[ée]gi|mlss|tempo\s*long|continu/i,
+  "fatmax": /train\s*low|[àa]\s*jeun|z[12].*long|lipid|fat/i,
+  "économie": /c[ôo]te|sfr|r[øo]nnestad|force|plio|strides|gammes|drill|cadence/i,
+  "ftp": /sweet\s*spot|over.under|norv[ée]gi|seuil|ftp|threshold/i,
+  "durabilit": /sortie\s*longue|sl\b|long\s*run|brick|endurance|z2.*long|finish.*rapide/i,
+  "sprint": /sprint|neuro|explo|plyo|force\s*max|vitesse/i,
+  "pmax": /sprint|force\s*max|r[øo]nnestad|explo|plyo|pmax/i,
+};
+
+function detectLimiterKeyFromText(limiterText: string): string | null {
+  const lower = limiterText.toLowerCase();
+  if (/vo2max/i.test(lower)) return "vo2max";
+  if (/vlamax/i.test(lower)) return "vlamax";
+  if (/tte|time.to.exhaust/i.test(lower)) return "tte";
+  if (/fatmax|fat\s*ox|lipid/i.test(lower)) return "fatmax";
+  if (/[ée]conom/i.test(lower)) return "économie";
+  if (/ftp.*kg|ftp\/kg|puissance.*a[ée]rob/i.test(lower)) return "ftp";
+  if (/durabilit/i.test(lower)) return "durabilit";
+  if (/sprint|pmax|neuro/i.test(lower)) return "sprint";
+  return null;
+}
+
+function validateLimiterCoherence(
+  plan: ParsedPlan,
+  identifiedLimiters?: string[]
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  if (!identifiedLimiters || identifiedLimiters.length === 0 || plan.weeks.length < 3) {
+    return { issues, score: 100 };
+  }
+
+  // Extract top 2 limiter keys from the identified limiters text
+  const limiterKeys: string[] = [];
+  for (const limText of identifiedLimiters) {
+    const key = detectLimiterKeyFromText(limText);
+    if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
+    if (limiterKeys.length >= 2) break;
+  }
+
+  if (limiterKeys.length === 0) return { issues, score: 80 };
+
+  // Count sessions that match each limiter's expected patterns
+  const limiterHits: Record<string, number> = {};
+  let totalKeySessions = 0;
+
+  for (const week of plan.weeks) {
+    for (const session of week.sessions) {
+      if (session.isRest) continue;
+      const text = `${session.title} ${session.details}`;
+      if (!KEY_SESSION_PATTERNS.test(text)) continue;
+      totalKeySessions++;
+
+      for (const lKey of limiterKeys) {
+        const pattern = LIMITER_SESSION_PATTERNS[lKey];
+        if (pattern && pattern.test(text)) {
+          limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
+        }
+      }
+    }
+  }
+
+  if (totalKeySessions === 0) return { issues, score: 50 };
+
+  let score = 100;
+
+  // L1 should have ≥30% of key sessions matching
+  const L1Key = limiterKeys[0];
+  const L1Hits = limiterHits[L1Key] || 0;
+  const L1Pct = Math.round((L1Hits / totalKeySessions) * 100);
+  if (L1Pct < 15) {
+    issues.push({
+      rule: "limiter_coherence",
+      severity: "error",
+      message: `Limiteur #1 (${L1Key}) quasi-absent des séances clés : ${L1Pct}% de correspondance (cible ≥30%)`,
+      detail: `Le plan ne travaille pas suffisamment le limiteur principal détecté par le diagnostic. ${L1Hits}/${totalKeySessions} séances clés ciblent ce limiteur.`,
+    });
+    score -= 40;
+  } else if (L1Pct < 30) {
+    issues.push({
+      rule: "limiter_coherence",
+      severity: "warning",
+      message: `Limiteur #1 (${L1Key}) sous-représenté dans les séances clés : ${L1Pct}% (cible ≥30%)`,
+      detail: `${L1Hits}/${totalKeySessions} séances clés ciblent ce limiteur.`,
+    });
+    score -= 15;
+  }
+
+  // L2 should have ≥15% if present
+  if (limiterKeys.length >= 2) {
+    const L2Key = limiterKeys[1];
+    const L2Hits = limiterHits[L2Key] || 0;
+    const L2Pct = Math.round((L2Hits / totalKeySessions) * 100);
+    if (L2Pct < 5) {
+      issues.push({
+        rule: "limiter_coherence",
+        severity: "warning",
+        message: `Limiteur #2 (${L2Key}) absent des séances clés : ${L2Pct}% (cible ≥15%)`,
+        detail: `${L2Hits}/${totalKeySessions} séances clés ciblent ce limiteur secondaire.`,
+      });
+      score -= 15;
+    }
+  }
+
+  return { issues, score: Math.max(0, score) };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN VALIDATOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -872,7 +988,7 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
   return { issues, score: Math.max(0, score) };
 }
 
-export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[], raceWeekNumbers?: number[]): PlanValidationResult {
+export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[], raceWeekNumbers?: number[], identifiedLimiters?: string[]): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
@@ -886,6 +1002,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
   const phaseCoherence = validatePhaseCoherence(plan);
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
+  const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters);
 
   // Combine all issues
   const allIssues = [
@@ -898,19 +1015,21 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     ...prohibitionCompliance.issues,
     ...phaseCoherence.issues,
     ...raceDayPresence.issues,
+    ...limiterCoherence.issues,
   ];
 
-  // Weighted score (9 rules)
+  // Weighted score (10 rules)
   const weights = {
-    polarization: 0.16,
-    loadPattern: 0.11,
-    keySessions: 0.11,
-    progression: 0.09,
-    sportRatio: 0.09,
-    catalogRatio: 0.07,
-    prohibitionCompliance: 0.17,
-    phaseCoherence: 0.11,
-    raceDayPresence: 0.09,
+    polarization: 0.14,
+    loadPattern: 0.10,
+    keySessions: 0.10,
+    progression: 0.08,
+    sportRatio: 0.08,
+    catalogRatio: 0.06,
+    prohibitionCompliance: 0.15,
+    phaseCoherence: 0.10,
+    raceDayPresence: 0.08,
+    limiterCoherence: 0.11,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -921,7 +1040,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     catalogRatio.score * weights.catalogRatio +
     prohibitionCompliance.score * weights.prohibitionCompliance +
     phaseCoherence.score * weights.phaseCoherence +
-    raceDayPresence.score * weights.raceDayPresence
+    raceDayPresence.score * weights.raceDayPresence +
+    limiterCoherence.score * weights.limiterCoherence
   );
 
   // Grade
@@ -933,8 +1053,11 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const prohibitionViolations = prohibitionCompliance.issues.filter(i => i.severity === "error").length;
   const phaseErrors = phaseCoherence.issues.filter(i => i.severity === "error").length;
   const raceDayMissing = raceDayPresence.issues.filter(i => i.severity === "error").length;
+  const limiterErrors = limiterCoherence.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : limiterErrors > 0
+    ? `⚠️ ${limiterErrors} incohérence(s) limiteur↔séances — le plan ne cible pas les limiteurs détectés par le diagnostic`
     : raceDayMissing > 0
     ? `🏁 Jour de course absent de la dernière semaine — le plan doit inclure le Jour J`
     : phaseErrors > 0
@@ -960,6 +1083,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
       prohibitionComplianceScore: prohibitionCompliance.score,
       phaseCoherenceScore: phaseCoherence.score,
       raceDayScore: raceDayPresence.score,
+      limiterCoherenceScore: limiterCoherence.score,
       overallComment,
     },
   };
@@ -984,6 +1108,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| 🚫 Conformité prohibitions | ${result.summary.prohibitionComplianceScore}/100 | ${result.summary.prohibitionComplianceScore >= 75 ? "✅" : result.summary.prohibitionComplianceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| 📦 Cohérence des phases | ${result.summary.phaseCoherenceScore}/100 | ${result.summary.phaseCoherenceScore >= 75 ? "✅" : result.summary.phaseCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| 🏁 Jour de course | ${result.summary.raceDayScore}/100 | ${result.summary.raceDayScore >= 100 ? "✅" : "❌"} |`);
+  lines.push(`| 🎯 Cohérence limiteurs↔séances | ${result.summary.limiterCoherenceScore}/100 | ${result.summary.limiterCoherenceScore >= 75 ? "✅" : result.summary.limiterCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
