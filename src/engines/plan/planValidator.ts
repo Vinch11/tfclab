@@ -885,7 +885,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const catalogRatio = validateCatalogRatio(plan);
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
   const phaseCoherence = validatePhaseCoherence(plan);
-  const raceDayPresence = validateRaceDayPresence(plan);
+  const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
 
   // Combine all issues
   const allIssues = [
