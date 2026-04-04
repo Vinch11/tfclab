@@ -12,6 +12,7 @@ import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";

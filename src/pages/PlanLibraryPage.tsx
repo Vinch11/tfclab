@@ -34,6 +34,7 @@ import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { extractCatalogId } from "@/lib/catalogIdExtractor";
 
 interface PlanVersion {
   id: string;
