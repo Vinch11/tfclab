@@ -4432,9 +4432,16 @@ import { EnrichedWorkoutsV4 } from "./enrichedWorkoutsV4";
 WorkoutLibrary.push(...EnrichedWorkoutsV4);
 
 // =============================================
+// ENRICHED WORKOUTS V5 — Méthodologies Élite
+// Isométrique, Nordic, Heat, Lactate Shuttle, Respiratory, PAP, Swim Cord, Mental
+// =============================================
+import { EnrichedWorkoutsV5 } from "./enrichedWorkoutsV5";
+WorkoutLibrary.push(...EnrichedWorkoutsV5);
+
+// =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]
 // =============================================
 import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
 enrichWorkoutGoals(WorkoutLibrary);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | Total: ${WorkoutLibrary.length}`);
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | Total: ${WorkoutLibrary.length}`);
