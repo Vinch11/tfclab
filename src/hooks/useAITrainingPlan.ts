@@ -118,6 +118,7 @@ export function useAITrainingPlan() {
 
       // Compute catalog duration stats from all phases combined
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
+      const usedIds = new Set<string>();
 
       for (let i = 0; i < phaseRanges.length; i++) {
         const pr = phaseRanges[i];
@@ -126,10 +127,10 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           totalWeeks,
-          { maxItems: 60, chunkIndex: i }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
-        allCatalogEntries = allCatalogEntries.concat(catalog);
+        catalog.forEach(e => { allCatalogEntries.push(e); usedIds.add(e.id); });
       }
 
       // Derive duration stats from the actual library — sent to edge function
