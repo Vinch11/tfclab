@@ -65,31 +65,45 @@ export function phasesForWeekRange(
   return phases.length > 0 ? phases : ["base", "build"];
 }
 
+/** Detect if a workout belongs to V5 (Elite) or V6 (Anti-monotony) modules */
+function isEliteOrAntiMonotony(w: LibraryWorkout): boolean {
+  const id = w.id.toUpperCase();
+  // V5 elite: isometric, nordic, heat, lactate shuttle, respiratory, PAP, swim cord, mental
+  if (w.tags?.some(t => ["elite", "anti-monotony", "pyramid", "descending", "fartlek", "circuit"].includes(t))) return true;
+  // V6 anti-monotony patterns
+  if (id.includes("PYRAMID") || id.includes("DESCENDING") || id.includes("FARTLEK_LIBRE") || id.includes("CIRCUIT_CARDIO")) return true;
+  // V5 elite patterns
+  if (id.includes("ISOMETRIC") || id.includes("NORDIC") || id.includes("HEAT_ACC") || id.includes("LACTATE_SHUTTLE") || id.includes("IMT_RESPIRATORY") || id.includes("PAP_") || id.includes("SWIM_CORD") || id.includes("MENTAL_REHEARSAL")) return true;
+  return false;
+}
+
 /** Score a workout for relevance to the given goal + phases */
 function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[]): number {
   let score = 0;
 
-  // Goal match
+  // Goal match — reduced penalty for unmatched to avoid excluding universal sessions
   if (w.goals && w.goals.length > 0) {
     const goalMatch = w.goals.some(g => goals.includes(g));
     if (goalMatch) {
       score += 10;
-      // P4: Specificity bonus — sessions with fewer goals are more targeted
       if (w.goals.length <= 2) score += 4;
       else if (w.goals.length <= 4) score += 2;
-      // Extra bonus if ALL goals match (highly specific)
       const allMatch = w.goals.every(g => goals.includes(g));
       if (allMatch) score += 3;
     } else {
-      score -= 5;
+      // Reduced penalty: -2 instead of -5 to keep useful sessions visible
+      score -= 2;
     }
+  } else {
+    // No goals defined = universal session, slight bonus
+    score += 2;
   }
 
-  // Phase match
+  // Phase match — reduced penalty
   if (w.phase && w.phase.length > 0) {
     const phaseMatch = w.phase.some(p => phases.includes(p));
     if (phaseMatch) score += 8;
-    else score -= 3;
+    else score -= 1; // Reduced from -3
   }
 
   // Bonus for obligatory sessions
@@ -100,6 +114,9 @@ function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[
   const isTrailGoal = goals.some(g => g.startsWith("trail_"));
   if (isTrailGoal && w.tags?.some(t => t === "trail")) score += 5;
   if (isTrailGoal && w.dPlusTargetM) score += 3;
+
+  // P5: Diversity bonus — Elite (V5) and Anti-monotony (V6) sessions get a boost
+  if (isEliteOrAntiMonotony(w)) score += 4;
 
   return score;
 }
