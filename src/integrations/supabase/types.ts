@@ -993,15 +993,7 @@ export type Database = {
           updated_at?: string
           workout_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "training_plan_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: false
-            referencedRelation: "workouts_library"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       workouts_library: {
         Row: {
