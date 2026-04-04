@@ -42,7 +42,7 @@ RAPPEL W'bal OBLIGATOIRE : Pour CHAQUE séance d'intervalles de cette semaine, t
 3. Étiqueter les efforts supra-CP quand la puissance prescrite dépasse CP
 Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le profil athlète ci-dessus.`;
     } else {
-      userPrompt = buildUserPrompt(athleteData, planConfig);
+      userPrompt = buildUserPrompt(athleteData, planConfig, catalogDurationStats);
     }
 
     // Resolve workout catalog for injection — phase-specific catalogs take priority

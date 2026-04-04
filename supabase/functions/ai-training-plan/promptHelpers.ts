@@ -345,7 +345,7 @@ export function buildCPWprimeSection(data: any): string | null {
   return lines.join("\n");
 }
 
-export function buildUserPrompt(data: any, config: any): string {
+export function buildUserPrompt(data: any, config: any, catalogDurationStats?: CatalogDurationStats | null): string {
   const lines: string[] = ["## Demande de Plan d'Entraînement TFCL™\n"];
 
   const parseIsoDateUtc = (iso?: string): number | undefined => {
