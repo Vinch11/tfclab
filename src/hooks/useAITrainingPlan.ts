@@ -70,6 +70,7 @@ export interface PlanConfig {
   activeLevers?: string[];
   prohibitions?: string[];
   adaptationProjections?: AdaptationProjection[];
+  _athleteSex?: string | null;
 }
 
 export interface ChunkProgress {
