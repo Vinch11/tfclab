@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Trophy, TrendingUp, TrendingDown, Minus, AlertTriangle,
-  CheckCircle2, Target, BarChart3, Zap, Info,
+  CheckCircle2, Target, BarChart3, Zap, Info, Crosshair,
 } from "lucide-react";
 import {
   Tooltip,
@@ -18,7 +18,7 @@ import {
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { getEliteReference, getEliteCeilingReference, type EliteReference } from "@/lib/eliteReferences";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
-import { validatePlan } from "@/engines/plan/planValidator";
+import { validatePlan, type LimiterCoverageItem } from "@/engines/plan/planValidator";
 
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
