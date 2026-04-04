@@ -85,6 +85,11 @@ export function useAITrainingPlan() {
   const [chunkProgress, setChunkProgress] = useState<ChunkProgress | null>(null);
 
   const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig) => {
+    // Guard against double-fire
+    if (isLoading) {
+      console.warn("Plan generation already in progress — ignoring duplicate call");
+      return;
+    }
     setResponse("");
     setIsLoading(true);
 
