@@ -859,11 +859,12 @@ function detectLimiterKeyFromText(limiterText: string): string | null {
 function validateLimiterCoherence(
   plan: ParsedPlan,
   identifiedLimiters?: string[]
-): { issues: ValidationIssue[]; score: number } {
+): { issues: ValidationIssue[]; score: number; coverage: LimiterCoverageItem[] } {
   const issues: ValidationIssue[] = [];
+  const coverage: LimiterCoverageItem[] = [];
 
   if (!identifiedLimiters || identifiedLimiters.length === 0 || plan.weeks.length < 3) {
-    return { issues, score: 100 };
+    return { issues, score: 100, coverage };
   }
 
   // Extract up to 4 limiter keys from the identified limiters text
@@ -874,7 +875,7 @@ function validateLimiterCoherence(
     if (limiterKeys.length >= 4) break;
   }
 
-  if (limiterKeys.length === 0) return { issues, score: 80 };
+  if (limiterKeys.length === 0) return { issues, score: 80, coverage };
 
   // Count sessions that match each limiter's expected patterns
   const limiterHits: Record<string, number> = {};
@@ -896,65 +897,68 @@ function validateLimiterCoherence(
     }
   }
 
-  if (totalKeySessions === 0) return { issues, score: 50 };
+  if (totalKeySessions === 0) return { issues, score: 50, coverage };
 
+  // Target thresholds per rank
+  const TARGET_BY_RANK = [30, 15, 5, 5];
   let score = 100;
 
-  // L1 should have ≥30% of key sessions matching
-  const L1Key = limiterKeys[0];
-  const L1Hits = limiterHits[L1Key] || 0;
-  const L1Pct = Math.round((L1Hits / totalKeySessions) * 100);
-  if (L1Pct < 15) {
-    issues.push({
-      rule: "limiter_coherence",
-      severity: "error",
-      message: `Limiteur #1 (${L1Key}) quasi-absent des séances clés : ${L1Pct}% de correspondance (cible ≥30%)`,
-      detail: `Le plan ne travaille pas suffisamment le limiteur principal détecté par le diagnostic. ${L1Hits}/${totalKeySessions} séances clés ciblent ce limiteur.`,
-    });
-    score -= 40;
-  } else if (L1Pct < 30) {
-    issues.push({
-      rule: "limiter_coherence",
-      severity: "warning",
-      message: `Limiteur #1 (${L1Key}) sous-représenté dans les séances clés : ${L1Pct}% (cible ≥30%)`,
-      detail: `${L1Hits}/${totalKeySessions} séances clés ciblent ce limiteur.`,
-    });
-    score -= 15;
-  }
-
-  // L2 should have ≥15% if present
-  if (limiterKeys.length >= 2) {
-    const L2Key = limiterKeys[1];
-    const L2Hits = limiterHits[L2Key] || 0;
-    const L2Pct = Math.round((L2Hits / totalKeySessions) * 100);
-    if (L2Pct < 5) {
-      issues.push({
-        rule: "limiter_coherence",
-        severity: "warning",
-        message: `Limiteur #2 (${L2Key}) absent des séances clés : ${L2Pct}% (cible ≥15%)`,
-        detail: `${L2Hits}/${totalKeySessions} séances clés ciblent ce limiteur secondaire.`,
-      });
-      score -= 15;
-    }
-  }
-
-  // L3/L4: validation seule — couverture minimale ~5% pour ne pas être totalement ignorés
-  for (let i = 2; i < Math.min(limiterKeys.length, 4); i++) {
+  for (let i = 0; i < limiterKeys.length; i++) {
     const lKey = limiterKeys[i];
-    const lHits = limiterHits[lKey] || 0;
-    const lPct = Math.round((lHits / totalKeySessions) * 100);
-    if (lPct < 5) {
-      issues.push({
-        rule: "limiter_coherence",
-        severity: "info",
-        message: `Limiteur #${i + 1} (${lKey}) non ciblé : ${lPct}% des séances clés (recommandé ≥5%)`,
-        detail: `${lHits}/${totalKeySessions} séances clés. Non injecté dans le prompt — couverture attendue via synergies ou séances secondaires.`,
-      });
-      score -= 5;
+    const hits = limiterHits[lKey] || 0;
+    const pct = Math.round((hits / totalKeySessions) * 100);
+    const target = TARGET_BY_RANK[i] ?? 5;
+    const rank = i + 1;
+    const status: LimiterCoverageItem["status"] = pct >= target ? "ok" : pct >= target / 3 ? "low" : "absent";
+
+    coverage.push({ rank, key: lKey, hits, totalKeySessions, pct, target, status });
+
+    // Scoring & issues
+    if (i === 0) {
+      // L1
+      if (pct < 15) {
+        issues.push({
+          rule: "limiter_coherence",
+          severity: "error",
+          message: `Limiteur #1 (${lKey}) quasi-absent des séances clés : ${pct}% de correspondance (cible ≥${target}%)`,
+          detail: `Le plan ne travaille pas suffisamment le limiteur principal détecté par le diagnostic. ${hits}/${totalKeySessions} séances clés ciblent ce limiteur.`,
+        });
+        score -= 40;
+      } else if (pct < target) {
+        issues.push({
+          rule: "limiter_coherence",
+          severity: "warning",
+          message: `Limiteur #1 (${lKey}) sous-représenté dans les séances clés : ${pct}% (cible ≥${target}%)`,
+          detail: `${hits}/${totalKeySessions} séances clés ciblent ce limiteur.`,
+        });
+        score -= 15;
+      }
+    } else if (i === 1) {
+      // L2
+      if (pct < 5) {
+        issues.push({
+          rule: "limiter_coherence",
+          severity: "warning",
+          message: `Limiteur #2 (${lKey}) absent des séances clés : ${pct}% (cible ≥${target}%)`,
+          detail: `${hits}/${totalKeySessions} séances clés ciblent ce limiteur secondaire.`,
+        });
+        score -= 15;
+      }
+    } else {
+      // L3/L4
+      if (pct < 5) {
+        issues.push({
+          rule: "limiter_coherence",
+          severity: "info",
+          message: `Limiteur #${rank} (${lKey}) non ciblé : ${pct}% des séances clés (recommandé ≥${target}%)`,
+          detail: `${hits}/${totalKeySessions} séances clés. Non injecté dans le prompt — couverture attendue via synergies ou séances secondaires.`,
+        });
+        score -= 5;
+      }
     }
   }
 
-  return { issues, score: Math.max(0, score) };
+  return { issues, score: Math.max(0, score), coverage };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
