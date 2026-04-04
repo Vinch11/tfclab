@@ -3,7 +3,8 @@
  */
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { buildWorkoutCatalog, serializeCatalogForPrompt } from "@/lib/workoutCatalogBuilder";
+import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats } from "@/lib/workoutCatalogBuilder";
+import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
@@ -106,6 +107,9 @@ export function useAITrainingPlan() {
         { phase: "taper", start: Math.ceil(totalWeeks * 0.80), end: totalWeeks },
       ];
 
+      // Compute catalog duration stats from all phases combined
+      let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
+
       for (const pr of phaseRanges) {
         const catalog = buildWorkoutCatalog(
           planConfig.objective || "",
@@ -115,7 +119,11 @@ export function useAITrainingPlan() {
           { maxItems: 40 }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
+        allCatalogEntries = allCatalogEntries.concat(catalog);
       }
+
+      // Derive duration stats from the actual library — sent to edge function
+      const catalogDurationStats = computeCatalogDurationStats(allCatalogEntries);
 
       const resp = await fetch(PLAN_URL, {
         method: "POST",
@@ -123,7 +131,7 @@ export function useAITrainingPlan() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ athleteData, planConfig, phaseCatalogs }),
+        body: JSON.stringify({ athleteData, planConfig, phaseCatalogs, catalogDurationStats }),
       });
 
       if (resp.status === 429) {
