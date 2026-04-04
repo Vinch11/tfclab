@@ -262,17 +262,53 @@ Cela ne signifie PAS qu'on fait des simulations race-pace en Fondation.
 Ne jamais terminer un plan par un bloc de charge ou de chantier.
 
 **RÈGLE 6 — RACE WEEK COMPLÈTE OBLIGATOIRE (PRIORITÉ MAXIMALE) :**
-La DERNIÈRE semaine du plan est la PLUS IMPORTANTE. Elle DOIT être COMPLÈTE avec un MINIMUM de 6 séances :
+La DERNIÈRE semaine du plan est la PLUS IMPORTANTE. Elle DOIT être COMPLÈTE avec un MINIMUM de 6 séances.
+Utilise la checklist correspondant à la discipline de l'objectif :
+
+**🏊‍♂️🚴‍♂️🏃‍♂️ TRIATHLON (IM / 70.3) — Checklist Race Week :**
 1. ✅ Rappel natation court @race-pace (ex: 3×200m CSS)
 2. ✅ Rappel vélo court @race-pace (ex: 2×6min @80% FTP)
 3. ✅ Rappel CAP court @allure cible (ex: 2×5min)
 4. ✅ Activation pré-course J-1 (brique légère ou vélo+CAP Z2)
 5. ✅ Repos stratégiques (J-2 ou J-3)
-6. ✅ Séance "🏁 COURSE OBJECTIF" ou "🏁 Jour J" le jour de la compétition
-Cette séance Jour J contient :
+6. ✅ Séance "🏁 COURSE OBJECTIF" ou "🏁 Jour J" — pacing 3 segments + nutrition 50-90g/h
+
+**🏃‍♂️ MARATHON — Checklist Race Week :**
+1. ✅ Rappel allure marathon court (ex: 3×8min @AM ou 2×3km @AM)
+2. ✅ EF récupération (6-8km très léger)
+3. ✅ Repos J-2 ou J-3 complet
+4. ✅ Activation J-2 ou J-1 : 20min dont 8-10min @AM + strides
+5. ✅ Carb loading J-3 → J-1 (10-12g/kg/j glucides, repas testé en entraînement)
+6. ✅ Séance "🏁 COURSE OBJECTIF" — pacing (neg split ou even), nutrition 30-60g/h, caféine 3-5mg/kg J-1h
+
+**🏃‍♂️ SEMI-MARATHON — Checklist Race Week :**
+1. ✅ Rappel allure semi court (ex: 2×5min @allure semi ou 3×1km)
+2. ✅ EF récupération (6-8km très léger)
+3. ✅ Repos J-2 ou J-3 complet
+4. ✅ Activation J-1 : 5km EF + strides
+5. ✅ Carb loading J-2 → J-1 (8-10g/kg/j)
+6. ✅ Séance "🏁 COURSE OBJECTIF" — pacing (even ou léger neg split), hydratation
+
+**⛰️ TRAIL (Court / Mountain / Ultra) — Checklist Race Week :**
+1. ✅ Rappel seuil montée court (ex: 2×8min en côte @seuil)
+2. ✅ Rappel technique descente court (15-20min descente technique fluide)
+3. ✅ EF récupération terrain plat ou vallonné léger
+4. ✅ Repos J-2 ou J-3 complet
+5. ✅ Activation J-1 : 30-40min vallonné Z1 + 4×30s accélérations
+6. ✅ Check matériel + nutrition solide testée en SL (gels/barres, flasques, bâtons si ultra)
+7. ✅ Séance "🏁 COURSE OBJECTIF" — stratégie D+/D-, allure montée, gestion ravitaillements, découpage effort par section
+
+**🏃‍♂️ 10K / 5K — Checklist Race Week :**
+1. ✅ Rappel allure course court (ex: 4×800m @allure 10K ou 3×600m @allure 5K)
+2. ✅ EF récupération (5-6km très léger)
+3. ✅ Repos J-2 complet
+4. ✅ Activation J-1 : 4km EF + strides (4×100m)
+5. ✅ Séance "🏁 COURSE OBJECTIF" — pacing, stratégie de course
+
+Cette séance Jour J contient TOUJOURS :
 - Le nom de la course et la date exacte
 - La stratégie de pacing résumée (allures cibles par segment)
-- Les consignes nutrition jour de course
+- Les consignes nutrition jour de course (adaptées à la discipline)
 - Un rappel mental ("Discipline > ambition", "Exécuter le plan")
 ⚠️ JAMAIS de Race Week avec moins de 5 séances. JAMAIS terminer au samedi sans le dimanche de course.
 ⚠️ Si tu manques de tokens, RACCOURCIS les semaines intermédiaires mais JAMAIS la Race Week.

@@ -91,9 +91,12 @@ export function useAITrainingPlan() {
     const totalWeeks = planConfig.weeksAvailable || 12;
     // Match edge function's chunk sizing
     const obj = (planConfig.objective || "").toUpperCase();
-    const isVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
-    const CHUNK_SIZE = isVerbose ? 6 : 8;
-    const needsChunking = totalWeeks > 12;
+    const isTriVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
+    const isTrailVerbose = /TRAIL\s*(ULTRA|MOUNTAIN|MONT|UTMB|CCC|OCC|LONG)/i.test(obj) || (/TRAIL/i.test(obj) && totalWeeks >= 12);
+    const isVerbose = isTriVerbose || isTrailVerbose;
+    const CHUNK_SIZE = isTriVerbose ? 5 : isTrailVerbose ? 6 : 8;
+    const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 12;
+    const needsChunking = totalWeeks > chunkThreshold;
     const totalChunks = needsChunking ? Math.ceil(totalWeeks / CHUNK_SIZE) : 1;
     setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
 
