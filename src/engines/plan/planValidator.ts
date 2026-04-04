@@ -514,11 +514,12 @@ function validateSportRatio(
 const CATALOG_ID_PATTERN = /\b[A-Z]{1,3}_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY)[A-Z0-9_]+/g;
 const CUSTOM_PATTERN = /\[Custom\]/gi;
 
-function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number; catalogPct: number } {
+function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number; catalogPct: number; catalogStats: CatalogUsageStats } {
   const issues: ValidationIssue[] = [];
   let catalogSessions = 0;
   let customSessions = 0;
   let totalKeySessions = 0;
+  const uniqueCatalogIds = new Set<string>();
 
   for (const week of plan.weeks) {
     for (const session of week.sessions) {
@@ -528,22 +529,31 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
       if (!isKey) continue;
 
       totalKeySessions++;
-      const hasCatalogId = CATALOG_ID_PATTERN.test(text);
+      CATALOG_ID_PATTERN.lastIndex = 0;
+      const match = CATALOG_ID_PATTERN.exec(text);
       const isCustom = CUSTOM_PATTERN.test(text);
 
-      if (hasCatalogId) {
+      if (match) {
         catalogSessions++;
+        uniqueCatalogIds.add(match[0]);
       } else if (isCustom) {
         customSessions++;
       }
-      // Reset regex lastIndex
       CATALOG_ID_PATTERN.lastIndex = 0;
       CUSTOM_PATTERN.lastIndex = 0;
     }
   }
 
+  const stats: CatalogUsageStats = {
+    uniqueCatalogIds: uniqueCatalogIds.size,
+    catalogSessions,
+    customSessions,
+    totalKeySessions,
+    untaggedSessions: totalKeySessions - catalogSessions - customSessions,
+  };
+
   if (totalKeySessions === 0 || plan.weeks.length < 4) {
-    return { issues: [], score: 70, catalogPct: 0 };
+    return { issues: [], score: 70, catalogPct: 0, catalogStats: stats };
   }
 
   const catalogPct = Math.round((catalogSessions / totalKeySessions) * 100);
@@ -575,7 +585,7 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
   }
 
   const score = catalogPct >= 80 ? 100 : catalogPct >= 60 ? 75 : catalogPct >= 40 ? 50 : 30;
-  return { issues, score, catalogPct };
+  return { issues, score, catalogPct, catalogStats: stats };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
