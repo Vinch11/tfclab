@@ -855,12 +855,12 @@ function validateLimiterCoherence(
     return { issues, score: 100 };
   }
 
-  // Extract top 2 limiter keys from the identified limiters text
+  // Extract up to 4 limiter keys from the identified limiters text
   const limiterKeys: string[] = [];
   for (const limText of identifiedLimiters) {
     const key = detectLimiterKeyFromText(limText);
     if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-    if (limiterKeys.length >= 2) break;
+    if (limiterKeys.length >= 4) break;
   }
 
   if (limiterKeys.length === 0) return { issues, score: 80 };
@@ -924,6 +924,22 @@ function validateLimiterCoherence(
         detail: `${L2Hits}/${totalKeySessions} séances clés ciblent ce limiteur secondaire.`,
       });
       score -= 15;
+    }
+  }
+
+  // L3/L4: validation seule — couverture minimale ~5% pour ne pas être totalement ignorés
+  for (let i = 2; i < Math.min(limiterKeys.length, 4); i++) {
+    const lKey = limiterKeys[i];
+    const lHits = limiterHits[lKey] || 0;
+    const lPct = Math.round((lHits / totalKeySessions) * 100);
+    if (lPct < 5) {
+      issues.push({
+        rule: "limiter_coherence",
+        severity: "info",
+        message: `Limiteur #${i + 1} (${lKey}) non ciblé : ${lPct}% des séances clés (recommandé ≥5%)`,
+        detail: `${lHits}/${totalKeySessions} séances clés. Non injecté dans le prompt — couverture attendue via synergies ou séances secondaires.`,
+      });
+      score -= 5;
     }
   }
 
