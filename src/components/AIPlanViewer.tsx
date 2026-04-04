@@ -17,6 +17,7 @@ import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/li
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
+import type { RaceGoal } from "@/hooks/useAITrainingPlan";
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase();
@@ -408,6 +409,7 @@ function WeekView({ week, startDate }: WeekViewProps) {
 interface AIPlanViewerProps {
   plan: ParsedPlan;
   startDate?: Date;
+  raceGoals?: RaceGoal[];
   onSaveToPlan?: () => void;
   isSaving?: boolean;
   isSaved?: boolean;
@@ -418,11 +420,15 @@ interface AIPlanViewerProps {
   currentWeekNumber?: number;
 }
 
-export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, currentWeekNumber }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, currentWeekNumber }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
 
   const currentWeek = plan.weeks[selectedWeek];
+  const sortedRaceGoals = useMemo(
+    () => [...(raceGoals || [])].sort((a, b) => (a.raceDate || "").localeCompare(b.raceDate || "")),
+    [raceGoals]
+  );
 
   const handleExportPDF = () => {
     exportAIPlanToPDF(plan, athleteName, startDate);
@@ -473,6 +479,33 @@ export function AIPlanViewer({ plan, startDate, onSaveToPlan, isSaving, isSaved,
               </Badge>
             ))}
           </div>
+
+          {sortedRaceGoals.length > 0 && (
+            <div className="p-3 rounded-lg bg-muted/50 border border-border space-y-2">
+              <p className="text-xs font-semibold flex items-center gap-1">
+                <Target className="h-3 w-3 text-primary" /> Jalons objectifs
+              </p>
+              <div className="space-y-1.5">
+                {sortedRaceGoals.map((goal, index) => (
+                  <div key={`${goal.priority}-${goal.raceDate}-${index}`} className="flex items-center justify-between gap-2 text-xs flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="secondary" className="text-[10px]">
+                        Objectif {goal.priority}
+                      </Badge>
+                      <span className="font-medium text-foreground">
+                        {goal.objective}{goal.raceName ? ` — ${goal.raceName}` : ""}
+                      </span>
+                    </div>
+                    {goal.raceDate && (
+                      <span className="text-muted-foreground">
+                        {format(new Date(goal.raceDate), "EEE d MMM yyyy", { locale: fr })}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {plan.diagnostic && (
             <div className="p-3 rounded-lg bg-muted/50 border border-border">

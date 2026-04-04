@@ -30,7 +30,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
-import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, type PlanFormConfig } from "@/engines/plan";
+import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel } from "@/types/ambitionLevel";
@@ -390,9 +390,17 @@ export default function AITrainingPlanPage() {
     if (!response || isLoading) return null;
     try {
       const plan = parseAIPlan(response);
+      if (athleteContext) {
+        const config = buildConfigFromDiag(athleteContext.diagnostic);
+        postProcessParsedPlan(plan, {
+          ...config,
+          weeksAvailable: config.weeksAvailable ?? plan.weeks.length,
+          mode: "ai",
+        });
+      }
       return plan.weeks.length > 0 ? plan : null;
     } catch { return null; }
-  }, [response, isLoading]);
+  }, [response, isLoading, athleteContext, buildConfigFromDiag]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD PLAN CONFIG — Delegates to Plan Engine
@@ -1560,6 +1568,10 @@ export default function AITrainingPlanPage() {
                       <AIPlanViewer
                         plan={parsedPlan}
                         startDate={planStartDate}
+                        raceGoals={[
+                          { priority: "A", objective, raceName: raceName || undefined, raceDate: raceDate || undefined },
+                          ...raceGoals,
+                        ].filter(goal => goal.raceDate)}
                         onSaveToPlan={handleSaveToPlan}
                         isSaving={isSaving}
                         isSaved={isSaved}
