@@ -71,7 +71,7 @@ export function buildEnrichedPlanConfig(input: PlanInput): PlanConfig {
     sessionsPerWeek: config.sessionsPerWeek,
     maxSessionsPerDay: config.maxSessionsPerDay,
     strengthSessionsPerWeek: config.strengthSessionsPerWeek,
-    ambition: input.prescription.meta.diagnosticVersion, // Will be overridden
+    ambition: config.ambition ?? input.prescription.strategy.weekLabel,
     constraints: config.constraints,
     
     // Injection décisionnelle

@@ -58,6 +58,9 @@ export interface PlanGenerationConfig {
   /** Contraintes textuelles du coach */
   constraints?: string;
   
+  /** Niveau d'ambition (Elite, Competitor, Age Group, Finisher) */
+  ambition?: string;
+  
   /** Mode de génération */
   mode: "ai" | "template";
   

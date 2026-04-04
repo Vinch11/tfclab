@@ -397,27 +397,15 @@ const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [num
   Marathon: { run: [85, 100] },
   Semi:     { run: [85, 100] },
   "10K":    { run: [85, 100] },
+  "5K":     { run: [85, 100] },
   Trail:    { run: [70, 85] },
   TrailShort: { run: [70, 85] },
   TrailMountain: { run: [65, 80] },
   TrailUltra: { run: [65, 80] },
 };
 
-/** Normalize objective string to a known key (mirrors edge function logic) */
-function normalizeObjectiveKey(obj: string): string {
-  const lower = obj.toLowerCase();
-  if (lower.includes("70.3") || lower === "703") return "703";
-  if (lower.includes("ironman") || lower === "im") return "IM";
-  if (lower.includes("semi")) return "Semi";
-  if (lower.includes("marathon")) return "Marathon";
-  if (lower.includes("trail") && lower.includes("ultra")) return "TrailUltra";
-  if (lower.includes("trail") && (lower.includes("montagne") || lower.includes("mountain"))) return "TrailMountain";
-  if (lower.includes("trail") && (lower.includes("court") || lower.includes("short"))) return "TrailShort";
-  if (lower.includes("trail")) return "Trail";
-  if (lower.includes("10")) return "10K";
-  if (lower.includes("5k") || lower === "5km") return "5K";
-  return obj;
-}
+// Use shared normalizer — keep edge function's copy in sync manually
+import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 
 function validateSportRatio(
   metrics: WeekMetrics[],
@@ -466,11 +454,11 @@ function validateSportRatio(
 
   if (target.swim) {
     checks++;
-    if (swimPct < target.swim[0] - 5 || swimPct > target.swim[1] + 5) {
+    if (swimPct < target.swim[0] - 3 || swimPct > target.swim[1] + 3) {
       issues.push({
         rule: "sport_ratio",
-        severity: swimPct < target.swim[0] - 10 || swimPct > target.swim[1] + 10 ? "error" : "warning",
-        message: `Natation ${swimPct}% (cible ${target.swim[0]}-${target.swim[1]}%)`,
+        severity: swimPct < target.swim[0] - 8 || swimPct > target.swim[1] + 8 ? "error" : "warning",
+        message: `Natation ${swimPct}% (cible ${target.swim[0]}-${target.swim[1]}%, tolérance ±3%)`,
         detail: `Total: Nat ${swimPct}%, Vélo ${bikePct}%, Course ${runPct}%`,
       });
       deviations++;
@@ -479,11 +467,11 @@ function validateSportRatio(
 
   if (target.bike) {
     checks++;
-    if (bikePct < target.bike[0] - 5 || bikePct > target.bike[1] + 5) {
+    if (bikePct < target.bike[0] - 3 || bikePct > target.bike[1] + 3) {
       issues.push({
         rule: "sport_ratio",
-        severity: bikePct < target.bike[0] - 10 || bikePct > target.bike[1] + 10 ? "error" : "warning",
-        message: `Vélo ${bikePct}% (cible ${target.bike[0]}-${target.bike[1]}%)`,
+        severity: bikePct < target.bike[0] - 8 || bikePct > target.bike[1] + 8 ? "error" : "warning",
+        message: `Vélo ${bikePct}% (cible ${target.bike[0]}-${target.bike[1]}%, tolérance ±3%)`,
         detail: `Total: Nat ${swimPct}%, Vélo ${bikePct}%, Course ${runPct}%`,
       });
       deviations++;
@@ -492,11 +480,11 @@ function validateSportRatio(
 
   if (target.run) {
     checks++;
-    if (runPct < target.run[0] - 5 || runPct > target.run[1] + 5) {
+    if (runPct < target.run[0] - 3 || runPct > target.run[1] + 3) {
       issues.push({
         rule: "sport_ratio",
-        severity: runPct < target.run[0] - 10 || runPct > target.run[1] + 10 ? "error" : "warning",
-        message: `Course ${runPct}% (cible ${target.run[0]}-${target.run[1]}%)`,
+        severity: runPct < target.run[0] - 8 || runPct > target.run[1] + 8 ? "error" : "warning",
+        message: `Course ${runPct}% (cible ${target.run[0]}-${target.run[1]}%, tolérance ±3%)`,
         detail: `Total: Nat ${swimPct}%, Vélo ${bikePct}%, Course ${runPct}%`,
       });
       deviations++;
