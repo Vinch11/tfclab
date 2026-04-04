@@ -28,6 +28,7 @@ interface AIPlanBenchmarkProps {
   limiterResult?: UnifiedLimiterResult | null;
   prohibitions?: string[];
   raceWeekNumbers?: number[];
+  identifiedLimiters?: string[];
 }
 
 interface MetricGauge {
