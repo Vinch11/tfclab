@@ -1,0 +1,408 @@
+// ═══════════════════════════════════════════════════════════════
+// SPORT RATIO MATRIX — Types, references, normalizers, constraints
+// ═══════════════════════════════════════════════════════════════
+
+// === RÉFÉRENTIEL ÉLITE : RATIOS DE RÉPARTITION SPORTIVE ===
+// Sources scientifiques :
+// - Muñoz et al. 2014 (EJSS) : Distribution d'entraînement chez triathlètes élite IM/70.3
+// - Etxebarria et al. 2019 (IJSPP) : Training volume distribution in elite triathletes
+// - Frontiers 2024 : Optimal training load in age-group triathletes
+// - Seiler 2010 (SJMSS) : Polarized training intensity distribution
+// - Haugen et al. 2022 (Sports Med) : Marathon training in elite runners
+// - Billat et al. 2001 (Med Sci Sports Exerc) : Interval training at VO2max
+// - Mujika 2010 (Int J Sports Physiol Perform) : Tapering for competition
+// - Issurin 2010 (Sports Med) : Block periodization principles
+// - Tjelta 2016 (IJSPP) : Training characteristics of elite distance runners
+
+export interface SessionDurationGuide {
+  // Standard session durations (swimMin/bikeMin/runMin) are now DERIVED
+  // from the workout catalog stats + ambition scaling. Only race-specific
+  // values that can't be derived from the library are kept here.
+  longBikeMin?: [number, number]; // sortie longue vélo (minutes) — race-specific
+  longRunMin?: [number, number];  // sortie longue CAP (minutes) — race-specific
+  longSwimM?: [number, number];   // distance sortie longue natation (mètres)
+  weeklyKmRun?: [number, number]; // km/sem CAP (Haugen 2022, Tjelta 2016)
+  weeklyKmBike?: [number, number]; // km/sem vélo
+}
+
+export interface SportRatioRef {
+  swimPct?: [number, number];
+  bikePct?: [number, number];
+  runPct?: [number, number];
+  weeklyHours: [number, number];
+  sessionsPerWeek: [number, number];
+  keySessions: [number, number];
+  progressionPct: [number, number];
+  durations?: SessionDurationGuide;
+}
+
+export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
+  // ═══ IRONMAN ═══ (Muñoz 2014: Bike 45-55%, Run 25-30%, Swim 15-20%)
+  // Race: 3.8km Swim + 180km Bike (5-7h) + 42.2km Run (3.5-5h+)
+  // Frodeno peak: 30h/sem, Lange: 25-28h/sem (Lorang 2018)
+  // SL Bike doit simuler la durée de course ou 70-80% de celle-ci (Neal 2020, Laursen 2002)
+  // SL Run = max 2.5-3h pour limiter le risque blessure (Mujika 2018, Billat 2001)
+  IM: {
+    elite:      { weeklyHours: [20,30], sessionsPerWeek: [12,16], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { longBikeMin: [300,420], longRunMin: [135,180], longSwimM: [4000,5000], weeklyKmRun: [60,120], weeklyKmBike: [300,550] } },
+    competitor: { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { longBikeMin: [240,360], longRunMin: [110,150], longSwimM: [3000,4000], weeklyKmRun: [40,80], weeklyKmBike: [200,400] } },
+    age_group:  { weeklyHours: [10,15], sessionsPerWeek: [6,9],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { longBikeMin: [210,300], longRunMin: [90,135], longSwimM: [2500,3500], weeklyKmRun: [30,55], weeklyKmBike: [150,280] } },
+    finisher:   { weeklyHours: [8,12],  sessionsPerWeek: [5,7],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { longBikeMin: [180,270], longRunMin: [75,120], longSwimM: [2000,3000], weeklyKmRun: [20,40], weeklyKmBike: [100,200] } },
+  },
+  // ═══ 70.3 ═══ (Etxebarria 2019: Bike 40-48%, Run 30-35%, Swim 15-20%)
+  // Race: 1.9km Swim + 90km Bike (2.5-3.5h) + 21.1km Run (1.5-2.5h)
+  // SL Bike = 80-100% de la durée course visée (Laursen 2002)
+  // SL Run = 1.5-2h suffisant pour les adaptations LD (Seiler 2010, Billat 2001)
+  "703": {
+    elite:      { weeklyHours: [15,22], sessionsPerWeek: [10,14], keySessions: [3,3], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { longBikeMin: [210,300], longRunMin: [100,135], longSwimM: [3500,4500], weeklyKmRun: [50,90], weeklyKmBike: [250,450] } },
+    competitor: { weeklyHours: [10,16], sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { longBikeMin: [180,270], longRunMin: [90,120], longSwimM: [3000,4000], weeklyKmRun: [35,65], weeklyKmBike: [180,350] } },
+    age_group:  { weeklyHours: [8,12],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { longBikeMin: [150,240], longRunMin: [75,105], longSwimM: [2500,3500], weeklyKmRun: [25,45], weeklyKmBike: [120,250] } },
+    finisher:   { weeklyHours: [6,10],  sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { longBikeMin: [120,180], longRunMin: [60,90], longSwimM: [2000,3000], weeklyKmRun: [15,30], weeklyKmBike: [80,180] } },
+  },
+  // ═══ MARATHON ═══ (Haugen 2022: Elite 160-220km/sem, Tjelta 2016: 80% Z1-Z2)
+  Marathon: {
+    elite:      { weeklyHours: [12,16], sessionsPerWeek: [10,13], keySessions: [3,3], progressionPct: [5,8],
+      durations: { longRunMin: [135,165], weeklyKmRun: [130,220] } },
+    competitor: { weeklyHours: [8,12],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [105,150], weeklyKmRun: [70,130] } },
+    age_group:  { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { longRunMin: [90,120], weeklyKmRun: [45,80] } },
+    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { longRunMin: [75,105], weeklyKmRun: [25,50] } },
+  },
+  Semi: {
+    elite:      { weeklyHours: [10,14], sessionsPerWeek: [8,11],  keySessions: [3,3], progressionPct: [5,8],
+      durations: { longRunMin: [90,120], weeklyKmRun: [100,160] } },
+    competitor: { weeklyHours: [7,10],  sessionsPerWeek: [6,8],   keySessions: [2,2], progressionPct: [5,7],
+      durations: { longRunMin: [75,105], weeklyKmRun: [55,100] } },
+    age_group:  { weeklyHours: [5,7],   sessionsPerWeek: [4,6],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { longRunMin: [60,90], weeklyKmRun: [35,60] } },
+    finisher:   { weeklyHours: [3,5],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3],
+      durations: { longRunMin: [50,75], weeklyKmRun: [20,40] } },
+  },
+  "10K": {
+    elite:      { weeklyHours: [9,12],  sessionsPerWeek: [8,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [75,100], weeklyKmRun: [90,140] } },
+    competitor: { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [5,5],
+      durations: { longRunMin: [65,90], weeklyKmRun: [50,90] } },
+    age_group:  { weeklyHours: [4,6],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,5],
+      durations: { longRunMin: [50,75], weeklyKmRun: [30,55] } },
+    finisher:   { weeklyHours: [3,4],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3],
+      durations: { longRunMin: [40,60], weeklyKmRun: [15,35] } },
+  },
+  // ═══ TRAIL ═══
+  Trail: {
+    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [150,210], weeklyKmRun: [80,140] } },
+    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [120,180], weeklyKmRun: [50,90] } },
+    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { longRunMin: [90,150], weeklyKmRun: [35,60] } },
+    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
+  },
+  TrailShort: {
+    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [150,210], weeklyKmRun: [80,140] } },
+    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [120,180], weeklyKmRun: [50,90] } },
+    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { longRunMin: [90,150], weeklyKmRun: [35,60] } },
+    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
+  },
+  TrailMountain: {
+    elite:      { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8],
+      durations: { longRunMin: [180,300], weeklyKmRun: [70,120] } },
+    competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [150,240], weeklyKmRun: [45,80] } },
+    age_group:  { weeklyHours: [7,12],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { longRunMin: [120,180], weeklyKmRun: [30,55] } },
+    finisher:   { weeklyHours: [5,8],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { longRunMin: [90,150], weeklyKmRun: [20,40] } },
+  },
+  TrailUltra: {
+    elite:      { weeklyHours: [15,22], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8],
+      durations: { longRunMin: [240,420], weeklyKmRun: [80,150] } },
+    competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [180,300], weeklyKmRun: [50,100] } },
+    age_group:  { weeklyHours: [8,13],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { longRunMin: [150,240], weeklyKmRun: [35,70] } },
+    finisher:   { weeklyHours: [5,9],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { longRunMin: [120,180], weeklyKmRun: [25,50] } },
+  },
+};
+
+// FIX #2-obj: Order matters — check "70.3" BEFORE "ironman" to avoid "Ironman 70.3" → "IM"
+export function normalizeObjKey(obj: string): string {
+  const lower = obj.toLowerCase();
+  if (lower.includes("70.3") || lower === "703") return "703";
+  if (lower.includes("ironman") || lower === "im") return "IM";
+  if (lower.includes("semi")) return "Semi";
+  if (lower.includes("marathon")) return "Marathon";
+  if (lower.includes("trail") && lower.includes("ultra")) return "TrailUltra";
+  if (lower.includes("trail") && (lower.includes("montagne") || lower.includes("mountain"))) return "TrailMountain";
+  if (lower.includes("trail") && (lower.includes("court") || lower.includes("short"))) return "TrailShort";
+  if (lower.includes("trailmountain")) return "TrailMountain";
+  if (lower.includes("trailshort")) return "TrailShort";
+  if (lower.includes("trail")) return "Trail";
+  if (lower.includes("10")) return "10K";
+  if (lower.includes("5k") || lower === "5km") return "5K";
+  if (lower.includes("start")) return "StartToRun";
+  return obj;
+}
+
+// === TIME TARGET HINTS BY OBJECTIVE × AMBITION × SEX ===
+export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: string }>> = {
+  Marathon: {
+    finisher:   { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
+    age_group:  { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
+    competitor: { M: "3h00 – 3h30",    F: "3h18 – 3h50" },
+    elite:      { M: "Sub 2h45",       F: "Sub 3h05" },
+  },
+  Semi: {
+    finisher:   { M: "2h00 – 2h30",    F: "2h10 – 2h45" },
+    age_group:  { M: "1h35 – 1h55",    F: "1h44 – 2h06" },
+    competitor: { M: "1h20 – 1h35",    F: "1h28 – 1h44" },
+    elite:      { M: "Sub 1h18",       F: "Sub 1h26" },
+  },
+  "10K": {
+    finisher:   { M: "55' – 1h10",     F: "1h00 – 1h17" },
+    age_group:  { M: "45' – 52'",      F: "49' – 57'" },
+    competitor: { M: "38' – 44'",      F: "42' – 48'" },
+    elite:      { M: "Sub 36'",        F: "Sub 40'" },
+  },
+  "5K": {
+    finisher:   { M: "28' – 35'",      F: "30' – 38'" },
+    age_group:  { M: "22' – 26'",      F: "24' – 29'" },
+    competitor: { M: "18' – 21'",      F: "20' – 23'" },
+    elite:      { M: "Sub 17'",        F: "Sub 19'" },
+  },
+  Trail: {
+    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+  },
+  TrailShort: {
+    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+  },
+  TrailMountain: {
+    finisher:   { M: "12h – 16h",      F: "13h – 17h30" },
+    age_group:  { M: "9h – 11h30",     F: "10h – 12h40" },
+    competitor: { M: "7h – 9h",        F: "7h45 – 10h" },
+    elite:      { M: "Sub 6h30",       F: "Sub 7h10" },
+  },
+};
+
+export function getTimeTargetHint(objective: string, ambition: string, sex?: string): string | null {
+  const objKey = normalizeObjKey(objective);
+  const ambKey = normalizeAmbKey(ambition);
+  const entry = TIME_TARGET_HINTS[objKey]?.[ambKey];
+  if (!entry) return null;
+  return entry[sex === "F" ? "F" : "M"];
+}
+
+// FIX #2-amb: Normalize accented chars (é→e, è→e) before matching
+export function normalizeAmbKey(amb: string): string {
+  const lower = amb.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z_]/g, "");
+  if (lower.includes("elite") || lower.includes("pro") || lower.includes("qualif")) return "elite";
+  if (lower.includes("compet") || lower.includes("comp")) return "competitor";
+  if (lower.includes("age") || lower.includes("group") || lower.includes("intermediaire")) return "age_group";
+  if (lower.includes("finisher") || lower.includes("fin")) return "finisher";
+  return "age_group"; // safer default than "finisher"
+}
+
+// === AMBITION SCALING FACTORS for deriving standard session durations from catalog ===
+// Elite uses full catalog range, lower levels scale down proportionally
+export const AMBITION_SCALE: Record<string, number> = {
+  elite: 1.0,
+  competitor: 0.85,
+  age_group: 0.70,
+  finisher: 0.55,
+};
+
+export interface CatalogDurationStats {
+  [sport: string]: { minDur: number; maxDur: number; medianDur: number; count: number };
+}
+
+/**
+ * Derive standard session durations from catalog stats + ambition scaling.
+ * Returns formatted lines for the prompt, or empty array if no stats available.
+ */
+export function derivedSessionDurations(
+  catalogStats: CatalogDurationStats | null,
+  ambKey: string
+): string[] {
+  if (!catalogStats || Object.keys(catalogStats).length === 0) return [];
+  const scale = AMBITION_SCALE[ambKey] ?? 0.70;
+  const lines: string[] = [];
+
+  const sportMap: Record<string, string> = {
+    swim: "🏊 Natation standard",
+    bike: "🚴 Vélo standard",
+    run: "🏃 CAP standard",
+    strength: "💪 Renfo/Force",
+  };
+
+  for (const [sport, stats] of Object.entries(catalogStats)) {
+    const label = sportMap[sport];
+    if (!label) continue;
+    const lo = Math.round(stats.minDur * scale);
+    const hi = Math.round(stats.maxDur * scale);
+    lines.push(`| ${label} | ${lo}-${hi} min | Dérivé du catalogue TFCL™ (${stats.count} séances, médiane ${stats.medianDur}min) × facteur ${ambKey} |`);
+  }
+  return lines;
+}
+
+export function getSportDistributionConstraint(objective: string, ambition: string, limiters?: string[], catalogStats?: CatalogDurationStats | null): string | null {
+  const objKey = normalizeObjKey(objective);
+  const ambKey = normalizeAmbKey(ambition);
+  const ref = SPORT_RATIO_REFS[objKey]?.[ambKey];
+  if (!ref) return null;
+
+  const lines: string[] = [];
+  lines.push(`\n### 🚨📊 CONTRAINTE CRITIQUE DE RÉPARTITION SPORTIVE (RÉFÉRENTIEL TFCL™ ${ambKey.toUpperCase()} — ${objKey})`);
+  lines.push(`⛔ RÈGLE NON NÉGOCIABLE : Les ratios ci-dessous sont des CIBLES ABSOLUES. Tout plan qui ne les respecte pas sera REJETÉ.`);
+  lines.push(`Le non-respect de ces ratios est l'erreur la plus fréquente et la plus grave dans les plans générés.\n`);
+
+  if (ref.swimPct && ref.bikePct && ref.runPct) {
+    lines.push(`| Discipline | Cible % volume | Minimum absolu | Maximum absolu |`);
+    lines.push(`|------------|---------------|----------------|----------------|`);
+    lines.push(`| 🏊 Natation | ${ref.swimPct[0]}-${ref.swimPct[1]}% | ${Math.max(ref.swimPct[0] - 3, 5)}% | ${ref.swimPct[1] + 3}% |`);
+    lines.push(`| 🚴 Vélo | ${ref.bikePct[0]}-${ref.bikePct[1]}% | ${ref.bikePct[0] - 3}% | ${ref.bikePct[1] + 3}% |`);
+    lines.push(`| 🏃 Course | ${ref.runPct[0]}-${ref.runPct[1]}% | ${ref.runPct[0] - 3}% | ${ref.runPct[1] + 3}% |`);
+    lines.push(``);
+    lines.push(`**⛔ ERREURS TYPIQUES À ÉVITER ABSOLUMENT :**`);
+    lines.push(`- ❌ Natation > ${ref.swimPct[1] + 5}% → INTERDIT (erreur fréquente : trop de séances natation courtes)`);
+    lines.push(`- ❌ Vélo < ${ref.bikePct[0] - 5}% → INTERDIT (le vélo est le sport dominant en triathlon, pas la natation)`);
+    lines.push(`- ❌ Course < ${ref.runPct[0] - 5}% → INTERDIT (la CAP est le 2e sport en volume, pas le 3e)`);
+    lines.push(``);
+    lines.push(`**📐 MÉTHODE DE CALCUL :** Compte le nombre TOTAL de minutes par discipline sur l'ensemble du bloc. Divise chaque sport par le total. Vérifie que les % sont dans les fourchettes ci-dessus AVANT de finaliser.`);
+    lines.push(`**💡 ASTUCE :** En triathlon, le Vélo = sport DOMINANT (40-55%), la Course = 2e (25-40%), la Natation = 3e (15-20%). Ne mets JAMAIS plus de natation que de course.`);
+    lines.push(`\n**Règle** : La somme Natation + Vélo + Course = 100% (hors Renfo/Prévention qui s'ajoute en surplus).`);
+    lines.push(`Si le limiteur principal justifie un dépassement de ±3%, CITE EXPLICITEMENT la raison dans l'en-tête du bloc concerné.`);
+  }
+
+  lines.push(`\n**Cibles structurelles :**`);
+  lines.push(`- Volume hebdomadaire : ${ref.weeklyHours[0]}-${ref.weeklyHours[1]}h`);
+  lines.push(`- Séances/semaine : ${ref.sessionsPerWeek[0]}-${ref.sessionsPerWeek[1]}`);
+  lines.push(`- Séances clés 🔑 : ${ref.keySessions[0]}-${ref.keySessions[1]}/semaine`);
+  lines.push(`- Progression volume : +${ref.progressionPct[0]}-${ref.progressionPct[1]}%/semaine max`);
+
+  // ── SESSION DURATION MATRIX (hybrid: catalog-derived + race-specific) ──
+  if (ref.durations || catalogStats) {
+    const d = ref.durations;
+    lines.push(`\n### 📏 MATRICE DURÉES DE SÉANCE × VOLUME — ${ambKey.toUpperCase()} / ${objKey}`);
+    lines.push(`📚 Sources : Catalogue TFCL™ (durées dérivées de la bibliothèque de séances) + littérature (SL race-specific)`);
+    lines.push(`⚠️ Ces durées sont CALIBRÉES pour le niveau ${ambKey.toUpperCase()}. Les dépasser ou les sous-estimer crée un décalage volume/ratio.\n`);
+
+    lines.push(`| Paramètre | Fourchette cible | Justification scientifique |`);
+    lines.push(`|-----------|-----------------|---------------------------|`);
+
+    // Standard session durations — DERIVED from catalog stats
+    const derivedLines = derivedSessionDurations(catalogStats ?? null, ambKey);
+    if (derivedLines.length > 0) {
+      lines.push(...derivedLines);
+    }
+
+    // Race-specific values — kept hardcoded (can't be derived from library)
+    if (d?.longBikeMin) {
+      lines.push(`| 🚴 Sortie longue vélo (SL) | ${d.longBikeMin[0]}-${d.longBikeMin[1]} min | Lorang : SL = pilier endurance spécifique, progression +15min/sem |`);
+    }
+    if (d?.longRunMin) {
+      lines.push(`| 🏃 Sortie longue CAP (SL) | ${d.longRunMin[0]}-${d.longRunMin[1]} min | Haugen 2022 : SL CAP plafonnée pour limiter risque blessure |`);
+    }
+    if (d?.longSwimM) {
+      lines.push(`| 🏊 Séance longue natation | ${d.longSwimM[0]}-${d.longSwimM[1]} m | Muñoz 2014 : volume technique, CSS + endurance aérobie |`);
+    }
+    if (d?.weeklyKmRun) {
+      lines.push(`| 🏃 Volume hebdo CAP | ${d.weeklyKmRun[0]}-${d.weeklyKmRun[1]} km/sem | Haugen 2022, Tjelta 2016 : corrélation volume-performance |`);
+    }
+    if (d?.weeklyKmBike) {
+      lines.push(`| 🚴 Volume hebdo vélo | ${d.weeklyKmBike[0]}-${d.weeklyKmBike[1]} km/sem | Etxebarria 2019 : volume vélo proportionnel au ratio cible |`);
+    }
+    lines.push(``);
+    lines.push(`**⚠️ RÈGLES DURÉES :**`);
+    lines.push(`- Les séances standard sont dérivées du catalogue TFCL™ et ajustées au niveau ${ambKey.toUpperCase()}. Les SL augmentent PROGRESSIVEMENT (+10-15%/sem).`);
+    lines.push(`- Pour un ${ambKey === 'finisher' ? 'Finisher' : ambKey === 'age_group' ? 'Age Group' : ambKey === 'competitor' ? 'Competitor' : 'Élite'}, des séances trop longues = risque blessure. Des séances trop courtes = ratio sport faussé.`);
+    lines.push(`- La durée des séances DOIT être cohérente avec le volume hebdomadaire cible (${ref.weeklyHours[0]}-${ref.weeklyHours[1]}h).`);
+    lines.push(`- VÉRIFICATION : nb séances × durée moyenne ≈ volume hebdo. Si ça ne colle pas, ajuste les durées.`);
+  }
+
+  if (limiters && limiters.length > 0) {
+    lines.push(`\n**Limiteur(s) identifié(s) pour cet athlète :** ${limiters.join(", ")}`);
+    lines.push(`→ Un limiteur peut justifier un ajustement de ±3% MAXIMUM sur un sport. Au-delà, c'est une erreur.`);
+    lines.push(`→ Si tu ajustes un ratio pour un limiteur, tu DOIS le mentionner dans le Récapitulatif Stratégique ET dans l'en-tête du bloc.`);
+  }
+
+  // ── MANDATORY RATIO VERIFICATION TABLE ──
+  lines.push(`\n## 🚨🚨🚨 PROCÉDURE DE VÉRIFICATION DES RATIOS — OBLIGATOIRE 🚨🚨🚨`);
+  lines.push(`⛔ Tu NE PEUX PAS soumettre un bloc sans avoir PRODUIT le tableau ci-dessous dans ta réponse.`);
+  lines.push(`Ce tableau DOIT apparaître à la FIN de CHAQUE BLOC de semaines, AVANT le séparateur "---".`);
+  lines.push(``);
+  lines.push(`### FORMAT OBLIGATOIRE DU TABLEAU DE VÉRIFICATION :`);
+  lines.push(`\`\`\``);
+  lines.push(`📊 VÉRIFICATION RATIOS — Bloc [N] (Semaines X à Y)`);
+  lines.push(`| Discipline | Minutes totales | % du total | Cible TFCL™ | ✅/❌ |`);
+  lines.push(`|------------|----------------|------------|-------------|-------|`);
+  if (ref.swimPct && ref.bikePct && ref.runPct) {
+    lines.push(`| 🏊 Natation | [NNN] min | [XX]% | ${ref.swimPct[0]}-${ref.swimPct[1]}% | ✅/❌ |`);
+    lines.push(`| 🚴 Vélo    | [NNN] min | [XX]% | ${ref.bikePct[0]}-${ref.bikePct[1]}% | ✅/❌ |`);
+    lines.push(`| 🏃 Course  | [NNN] min | [XX]% | ${ref.runPct[0]}-${ref.runPct[1]}% | ✅/❌ |`);
+  }
+  lines.push(`| TOTAL      | [NNN] min | 100% |             |       |`);
+  lines.push(`\`\`\``);
+  lines.push(``);
+  lines.push(`### RÈGLES D'APPLICATION :`);
+  lines.push(`1. **CALCULE RÉELLEMENT** les minutes en additionnant CHAQUE séance du bloc (ne devine pas, compte).`);
+  lines.push(`2. **Si un ratio est ❌** : tu DOIS réécrire les semaines concernées AVANT de soumettre le bloc.`);
+  lines.push(`3. **Tolérance maximale** : ±3% par rapport à la fourchette cible. Au-delà = rejet.`);
+  if (ref.swimPct && ref.bikePct && ref.runPct) {
+    lines.push(`4. **Seuils de rejet automatique** :`);
+    lines.push(`   - Natation > ${ref.swimPct[1] + 3}% → REJETÉ (erreur la plus fréquente)`);
+    lines.push(`   - Vélo < ${ref.bikePct[0] - 3}% → REJETÉ (le vélo est le sport DOMINANT)`);
+    lines.push(`   - Course < ${ref.runPct[0] - 3}% → REJETÉ (la course est le 2e sport en volume)`);
+    lines.push(`   - Natation > Course → REJETÉ (la natation ne doit JAMAIS dépasser la course en triathlon)`);
+  }
+  lines.push(`5. **Si le limiteur justifie un écart** : CITE le limiteur et la raison dans la colonne "✅/❌" avec "⚠️ Justifié par [limiteur]".`);
+  lines.push(`6. **Hiérarchie stricte (triathlon)** : Vélo > Course > Natation. Cette hiérarchie est INVIOLABLE.`);
+  lines.push(``);
+  lines.push(`### PROCÉDURE EN CAS DE ❌ :`);
+  lines.push(`- Natation trop haute → REMPLACE 1-2 séances natation par du vélo Z2 ou de la course EF`);
+  lines.push(`- Vélo trop bas → AJOUTE du volume vélo Z2 (SL vélo, Z2 vallonné, commute training)`);
+  lines.push(`- Course trop basse → AJOUTE du volume course (EF, fartlek, SL progressive)`);
+  lines.push(`- Ne jamais "tricher" en gonflant artificiellement les durées d'une discipline`);
+
+  return lines.join("\n");
+}
+
+// === FIX M3: Extract keywords from a limiter name for session matching ===
+export function extractLimiterKeywords(limiterName: string): string[] {
+  const kw: string[] = [];
+  const l = limiterName.toLowerCase();
+  if (/vlamax/i.test(l)) kw.push("vlamax", "sprint", "glycoly", "anaérobie", "force", "sfr", "neuromuscul");
+  if (/tte|time.to.exhaust/i.test(l)) kw.push("tte", "seuil", "tempo", "sweet spot", "threshold", "ss");
+  if (/durabilit/i.test(l)) kw.push("durabilit", "endurance", "z2", "fatmax", "long", "aérobie");
+  if (/fatmax|lipid|fat.ox/i.test(l)) kw.push("fatmax", "z2", "endurance", "lipid", "oxydation", "fasted");
+  if (/econom|running.econ/i.test(l)) kw.push("économie", "cadence", "technique", "gammes", "foulée", "strides");
+  if (/ftp|puissance.seuil/i.test(l)) kw.push("ftp", "seuil", "sweet spot", "ss", "tempo", "threshold");
+  if (/vo2|vo2max|pma/i.test(l)) kw.push("vo2", "pma", "interval", "30/30", "3min", "5min", "hiit");
+  if (/vma/i.test(l)) kw.push("vma", "interval", "fractionné", "30/30", "piste");
+  if (/force|renfo/i.test(l)) kw.push("force", "renfo", "muscul", "côte", "sfr");
+  if (/natation|swim|css/i.test(l)) kw.push("natation", "swim", "css", "crawl", "pull");
+  if (kw.length === 0) {
+    kw.push(...l.split(/[\s/,()]+/).filter(w => w.length > 3));
+  }
+  return kw;
+}
