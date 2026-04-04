@@ -48,11 +48,22 @@ export interface WeekMetrics {
   keySessions: number;
 }
 
+export interface LimiterCoverageItem {
+  rank: number;        // 1-4
+  key: string;         // e.g. "vo2max", "vlamax"
+  hits: number;
+  totalKeySessions: number;
+  pct: number;         // 0-100
+  target: number;      // expected min %
+  status: "ok" | "low" | "absent";
+}
+
 export interface PlanValidationResult {
   score: number; // 0-100
   grade: "A" | "B" | "C" | "D" | "F";
   issues: ValidationIssue[];
   weekMetrics: WeekMetrics[];
+  limiterCoverage: LimiterCoverageItem[];
   summary: {
     polarizationScore: number;
     loadPatternScore: number;
