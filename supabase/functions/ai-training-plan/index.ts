@@ -3886,7 +3886,7 @@ function buildUserPrompt(data: any, config: any): string {
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
 
   // === CONTRAINTE EXPLICITE : RATIOS DE RÉPARTITION SPORTIVE PAR NIVEAU D'AMBITION ===
-  const sportRatios = getSportDistributionConstraint((config.objective || "").toUpperCase(), (config.ambition || "").toLowerCase(), config.identifiedLimiters);
+  const sportRatios = getSportDistributionConstraint((config.objective || "").toUpperCase(), (config.ambition || "").toLowerCase(), config.identifiedLimiters, catalogDurationStats);
   if (sportRatios) {
     lines.push(sportRatios);
   }
