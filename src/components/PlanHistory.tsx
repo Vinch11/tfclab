@@ -111,6 +111,7 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
             custom_workout_description: session.details || null,
             status: "PLANNED",
             notes: week.theme ? `Semaine ${week.weekNumber}: ${week.theme}` : null,
+            workout_id: extractCatalogId(session.title, session.details),
           });
         }
       }
