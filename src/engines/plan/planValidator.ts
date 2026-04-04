@@ -902,6 +902,7 @@ function validateLimiterCoherence(
   if (limiterKeys.length === 0) return { issues, score: 80, coverage };
 
   // Count sessions that match each limiter's expected patterns
+  // Priority dedup: each session is assigned to the HIGHEST-PRIORITY limiter it matches (L1 > L2 > L3 > L4)
   const limiterHits: Record<string, number> = {};
   let totalKeySessions = 0;
 
@@ -912,10 +913,12 @@ function validateLimiterCoherence(
       if (!KEY_SESSION_PATTERNS.test(text)) continue;
       totalKeySessions++;
 
+      // Assign to highest-priority matching limiter only
       for (const lKey of limiterKeys) {
         const pattern = LIMITER_SESSION_PATTERNS[lKey];
         if (pattern && pattern.test(text)) {
           limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
+          break; // Priority dedup: stop at first (highest-rank) match
         }
       }
     }
