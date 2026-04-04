@@ -872,7 +872,7 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
   return { issues, score: Math.max(0, score) };
 }
 
-export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[]): PlanValidationResult {
+export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[], raceWeekNumbers?: number[]): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
