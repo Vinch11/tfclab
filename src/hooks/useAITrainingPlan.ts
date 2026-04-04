@@ -264,7 +264,7 @@ export function useAITrainingPlan() {
       setIsLoading(false);
       setChunkProgress(null);
     }
-  }, []);
+  }, [isLoading]);
 
   const reset = useCallback(() => {
     setResponse("");
