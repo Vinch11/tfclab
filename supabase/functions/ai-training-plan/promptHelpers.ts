@@ -785,7 +785,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (obj === "IM") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE IRONMAN");
     lines.push("Objectif IRONMAN → applique les ratios Lorang/Frodeno :");
-    lines.push("- Vélo 45-55% | CAP 20-25% | Natation 15-20% | Renfo 5-10%");
+    lines.push("- Vélo 45-55% | CAP 25-35% | Natation 15-20% | Renfo 5-10%");
     lines.push("- Min 3 natation/sem (technique + CSS + OWS), 4 vélo/sem, 3 CAP/sem");
     lines.push("- Briques vélo→CAP 1-2x/sem en phase spécifique");
     lines.push("- Train Low 2-3x/sem en phase base");
