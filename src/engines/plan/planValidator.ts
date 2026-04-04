@@ -988,7 +988,7 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
   return { issues, score: Math.max(0, score) };
 }
 
-export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[], raceWeekNumbers?: number[]): PlanValidationResult {
+export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[], raceWeekNumbers?: number[], identifiedLimiters?: string[]): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
@@ -1002,6 +1002,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
   const phaseCoherence = validatePhaseCoherence(plan);
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
+  const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters);
 
   // Combine all issues
   const allIssues = [
@@ -1014,19 +1015,21 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     ...prohibitionCompliance.issues,
     ...phaseCoherence.issues,
     ...raceDayPresence.issues,
+    ...limiterCoherence.issues,
   ];
 
-  // Weighted score (9 rules)
+  // Weighted score (10 rules)
   const weights = {
-    polarization: 0.16,
-    loadPattern: 0.11,
-    keySessions: 0.11,
-    progression: 0.09,
-    sportRatio: 0.09,
-    catalogRatio: 0.07,
-    prohibitionCompliance: 0.17,
-    phaseCoherence: 0.11,
-    raceDayPresence: 0.09,
+    polarization: 0.14,
+    loadPattern: 0.10,
+    keySessions: 0.10,
+    progression: 0.08,
+    sportRatio: 0.08,
+    catalogRatio: 0.06,
+    prohibitionCompliance: 0.15,
+    phaseCoherence: 0.10,
+    raceDayPresence: 0.08,
+    limiterCoherence: 0.11,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -1037,7 +1040,8 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
     catalogRatio.score * weights.catalogRatio +
     prohibitionCompliance.score * weights.prohibitionCompliance +
     phaseCoherence.score * weights.phaseCoherence +
-    raceDayPresence.score * weights.raceDayPresence
+    raceDayPresence.score * weights.raceDayPresence +
+    limiterCoherence.score * weights.limiterCoherence
   );
 
   // Grade
@@ -1049,8 +1053,11 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const prohibitionViolations = prohibitionCompliance.issues.filter(i => i.severity === "error").length;
   const phaseErrors = phaseCoherence.issues.filter(i => i.severity === "error").length;
   const raceDayMissing = raceDayPresence.issues.filter(i => i.severity === "error").length;
+  const limiterErrors = limiterCoherence.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : limiterErrors > 0
+    ? `⚠️ ${limiterErrors} incohérence(s) limiteur↔séances — le plan ne cible pas les limiteurs détectés par le diagnostic`
     : raceDayMissing > 0
     ? `🏁 Jour de course absent de la dernière semaine — le plan doit inclure le Jour J`
     : phaseErrors > 0
@@ -1076,6 +1083,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
       prohibitionComplianceScore: prohibitionCompliance.score,
       phaseCoherenceScore: phaseCoherence.score,
       raceDayScore: raceDayPresence.score,
+      limiterCoherenceScore: limiterCoherence.score,
       overallComment,
     },
   };
