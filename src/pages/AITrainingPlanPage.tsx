@@ -686,6 +686,7 @@ export default function AITrainingPlanPage() {
           custom_workout_description: session.details || null,
           status: "PLANNED",
           notes: session.weekTheme ? `Semaine ${session.weekNumber}: ${session.weekTheme}` : null,
+          workout_id: extractCatalogId(session.title, session.details),
         }));
 
       if (rows.length === 0) {
