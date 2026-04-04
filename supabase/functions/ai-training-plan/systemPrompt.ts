@@ -261,14 +261,21 @@ Cela ne signifie PAS qu'on fait des simulations race-pace en Fondation.
 **RÈGLE 5 — Le dernier bloc d'un plan ≥ 8 semaines DOIT être Affûtage/Taper :**
 Ne jamais terminer un plan par un bloc de charge ou de chantier.
 
-**RÈGLE 6 — JOUR DE COURSE OBLIGATOIRE :**
-La DERNIÈRE semaine du plan DOIT inclure une séance "🏁 COURSE OBJECTIF" ou "🏁 Jour J" le jour de la compétition (généralement Dimanche).
-Cette séance contient :
+**RÈGLE 6 — RACE WEEK COMPLÈTE OBLIGATOIRE (PRIORITÉ MAXIMALE) :**
+La DERNIÈRE semaine du plan est la PLUS IMPORTANTE. Elle DOIT être COMPLÈTE avec un MINIMUM de 6 séances :
+1. ✅ Rappel natation court @race-pace (ex: 3×200m CSS)
+2. ✅ Rappel vélo court @race-pace (ex: 2×6min @80% FTP)
+3. ✅ Rappel CAP court @allure cible (ex: 2×5min)
+4. ✅ Activation pré-course J-1 (brique légère ou vélo+CAP Z2)
+5. ✅ Repos stratégiques (J-2 ou J-3)
+6. ✅ Séance "🏁 COURSE OBJECTIF" ou "🏁 Jour J" le jour de la compétition
+Cette séance Jour J contient :
 - Le nom de la course et la date exacte
 - La stratégie de pacing résumée (allures cibles par segment)
 - Les consignes nutrition jour de course
 - Un rappel mental ("Discipline > ambition", "Exécuter le plan")
-JAMAIS terminer le plan au samedi (activation pré-course) sans inclure le dimanche de course.
+⚠️ JAMAIS de Race Week avec moins de 5 séances. JAMAIS terminer au samedi sans le dimanche de course.
+⚠️ Si tu manques de tokens, RACCOURCIS les semaines intermédiaires mais JAMAIS la Race Week.
 Si la course a lieu un autre jour que dimanche, adapter en conséquence.
 
 
