@@ -855,12 +855,12 @@ function validateLimiterCoherence(
     return { issues, score: 100 };
   }
 
-  // Extract top 2 limiter keys from the identified limiters text
+  // Extract up to 4 limiter keys from the identified limiters text
   const limiterKeys: string[] = [];
   for (const limText of identifiedLimiters) {
     const key = detectLimiterKeyFromText(limText);
     if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-    if (limiterKeys.length >= 2) break;
+    if (limiterKeys.length >= 4) break;
   }
 
   if (limiterKeys.length === 0) return { issues, score: 80 };
