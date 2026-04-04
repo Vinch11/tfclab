@@ -172,6 +172,18 @@ export function normalizeObjKey(obj: string): string {
 
 // === TIME TARGET HINTS BY OBJECTIVE × AMBITION × SEX ===
 export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: string }>> = {
+  IM: {
+    finisher:   { M: "14h – 17h",       F: "14h30 – 17h30" },
+    age_group:  { M: "10h30 – 13h",     F: "11h – 14h" },
+    competitor: { M: "9h00 – 10h30",    F: "9h30 – 11h" },
+    elite:      { M: "Sub 8h45",        F: "Sub 9h30" },
+  },
+  "703": {
+    finisher:   { M: "6h30 – 8h",       F: "7h00 – 8h30" },
+    age_group:  { M: "5h00 – 6h15",     F: "5h20 – 6h40" },
+    competitor: { M: "4h10 – 5h00",     F: "4h30 – 5h15" },
+    elite:      { M: "Sub 4h05",        F: "Sub 4h25" },
+  },
   Marathon: {
     finisher:   { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
     age_group:  { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
