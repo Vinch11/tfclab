@@ -65,31 +65,45 @@ export function phasesForWeekRange(
   return phases.length > 0 ? phases : ["base", "build"];
 }
 
+/** Detect if a workout belongs to V5 (Elite) or V6 (Anti-monotony) modules */
+function isEliteOrAntiMonotony(w: LibraryWorkout): boolean {
+  const id = w.id.toUpperCase();
+  // V5 elite: isometric, nordic, heat, lactate shuttle, respiratory, PAP, swim cord, mental
+  if (w.tags?.some(t => ["elite", "anti-monotony", "pyramid", "descending", "fartlek", "circuit"].includes(t))) return true;
+  // V6 anti-monotony patterns
+  if (id.includes("PYRAMID") || id.includes("DESCENDING") || id.includes("FARTLEK_LIBRE") || id.includes("CIRCUIT_CARDIO")) return true;
+  // V5 elite patterns
+  if (id.includes("ISOMETRIC") || id.includes("NORDIC") || id.includes("HEAT_ACC") || id.includes("LACTATE_SHUTTLE") || id.includes("IMT_RESPIRATORY") || id.includes("PAP_") || id.includes("SWIM_CORD") || id.includes("MENTAL_REHEARSAL")) return true;
+  return false;
+}
+
 /** Score a workout for relevance to the given goal + phases */
 function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[]): number {
   let score = 0;
 
-  // Goal match
+  // Goal match — reduced penalty for unmatched to avoid excluding universal sessions
   if (w.goals && w.goals.length > 0) {
     const goalMatch = w.goals.some(g => goals.includes(g));
     if (goalMatch) {
       score += 10;
-      // P4: Specificity bonus — sessions with fewer goals are more targeted
       if (w.goals.length <= 2) score += 4;
       else if (w.goals.length <= 4) score += 2;
-      // Extra bonus if ALL goals match (highly specific)
       const allMatch = w.goals.every(g => goals.includes(g));
       if (allMatch) score += 3;
     } else {
-      score -= 5;
+      // Reduced penalty: -2 instead of -5 to keep useful sessions visible
+      score -= 2;
     }
+  } else {
+    // No goals defined = universal session, slight bonus
+    score += 2;
   }
 
-  // Phase match
+  // Phase match — reduced penalty
   if (w.phase && w.phase.length > 0) {
     const phaseMatch = w.phase.some(p => phases.includes(p));
     if (phaseMatch) score += 8;
-    else score -= 3;
+    else score -= 1; // Reduced from -3
   }
 
   // Bonus for obligatory sessions
@@ -100,6 +114,9 @@ function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[
   const isTrailGoal = goals.some(g => g.startsWith("trail_"));
   if (isTrailGoal && w.tags?.some(t => t === "trail")) score += 5;
   if (isTrailGoal && w.dPlusTargetM) score += 3;
+
+  // P5: Diversity bonus — Elite (V5) and Anti-monotony (V6) sessions get a boost
+  if (isEliteOrAntiMonotony(w)) score += 4;
 
   return score;
 }
@@ -125,8 +142,11 @@ function pickVariant(w: LibraryWorkout, goals: WorkoutGoal[]): string | undefine
 }
 
 /**
- * Build a filtered catalog of 20-30 sessions relevant to the given
+ * Build a filtered catalog of sessions relevant to the given
  * objective, current phase range, and optional sport filter.
+ * 
+ * v2: Increased capacity (60 items), diversity slots for V5/V6,
+ * relaxed caps, and guaranteed minimum per sport.
  */
 export function buildWorkoutCatalog(
   objective: string,
@@ -137,16 +157,17 @@ export function buildWorkoutCatalog(
     sportFilter?: TrainingSport[];
     limiters?: string[];
     maxItems?: number;
+    /** Chunk index for rotation — different chunks get different secondary sessions */
+    chunkIndex?: number;
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
   const phases = phasesForWeekRange(weekStart, weekEnd, totalWeeks);
-  const maxItems = options?.maxItems || 40;
+  const maxItems = options?.maxItems || 60; // ↑ from 40 to 60
 
   // Score and sort all workouts
   const scored = WorkoutLibrary
     .filter(w => {
-      // Sport filter
       if (options?.sportFilter && options.sportFilter.length > 0) {
         if (!options.sportFilter.includes(w.sport)) return false;
       }
@@ -155,26 +176,73 @@ export function buildWorkoutCatalog(
     .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases) }))
     .sort((a, b) => b.score - a.score);
 
-  // Ensure sport diversity: pick top items but ensure at least 3 per sport category
   const selected: LibraryWorkout[] = [];
+  const selectedIds = new Set<string>();
   const sportCounts: Record<string, number> = {};
   const catCounts: Record<string, number> = {};
 
-  // First pass: top scored items with diversity constraints
+  const mainSlots = Math.floor(maxItems * 0.80); // 80% for top-scored
+  const diversitySlots = maxItems - mainSlots;    // 20% reserved for V5/V6
+
+  // ─── Pass 1: Top scored items with relaxed caps ───
   for (const { workout, score } of scored) {
-    if (selected.length >= maxItems) break;
+    if (selected.length >= mainSlots) break;
     if (score < 0) continue;
 
     const sport = workout.sport;
     const cat = workout.cat;
     
-    // Cap per sport (max 15) and per category (max 10)
-    if ((sportCounts[sport] || 0) >= 15) continue;
-    if ((catCounts[cat] || 0) >= 10) continue;
+    // Relaxed caps: 20/sport, 12/category (up from 15/10)
+    if ((sportCounts[sport] || 0) >= 20) continue;
+    if ((catCounts[cat] || 0) >= 12) continue;
 
     selected.push(workout);
+    selectedIds.add(workout.id);
     sportCounts[sport] = (sportCounts[sport] || 0) + 1;
     catCounts[cat] = (catCounts[cat] || 0) + 1;
+  }
+
+  // ─── Pass 2: Diversity slots — guarantee V5/V6 representation ───
+  const eliteSessions = scored
+    .filter(({ workout }) => isEliteOrAntiMonotony(workout) && !selectedIds.has(workout.id))
+    .map(s => s.workout);
+
+  // Rotate which V5/V6 sessions are included per chunk
+  const chunkIdx = options?.chunkIndex || 0;
+  const rotationOffset = chunkIdx * 4; // Shift selection window by 4 per chunk
+
+  for (let i = 0; i < eliteSessions.length && selected.length < maxItems; i++) {
+    const idx = (i + rotationOffset) % eliteSessions.length;
+    const w = eliteSessions[idx];
+    if (selectedIds.has(w.id)) continue;
+    selected.push(w);
+    selectedIds.add(w.id);
+  }
+
+  // ─── Pass 3: Backfill — ensure minimum 3 sessions per sport present ───
+  const finalSportCounts: Record<string, number> = {};
+  for (const w of selected) {
+    finalSportCounts[w.sport] = (finalSportCounts[w.sport] || 0) + 1;
+  }
+  
+  const underrepresentedSports = Object.entries(
+    scored.reduce((acc, { workout }) => {
+      acc[workout.sport] = true;
+      return acc;
+    }, {} as Record<string, boolean>)
+  )
+    .map(([sport]) => sport)
+    .filter(sport => (finalSportCounts[sport] || 0) < 3);
+
+  for (const sport of underrepresentedSports) {
+    const candidates = scored
+      .filter(({ workout }) => workout.sport === sport && !selectedIds.has(workout.id))
+      .slice(0, 3 - (finalSportCounts[sport] || 0));
+    for (const { workout } of candidates) {
+      if (selected.length >= maxItems + 5) break; // Allow slight overflow for minimum coverage
+      selected.push(workout);
+      selectedIds.add(workout.id);
+    }
   }
 
   // Convert to compact entries

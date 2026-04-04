@@ -119,13 +119,14 @@ export function useAITrainingPlan() {
       // Compute catalog duration stats from all phases combined
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
 
-      for (const pr of phaseRanges) {
+      for (let i = 0; i < phaseRanges.length; i++) {
+        const pr = phaseRanges[i];
         const catalog = buildWorkoutCatalog(
           planConfig.objective || "",
           pr.start,
           pr.end,
           totalWeeks,
-          { maxItems: 40 }
+          { maxItems: 60, chunkIndex: i }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         allCatalogEntries = allCatalogEntries.concat(catalog);
