@@ -81,7 +81,7 @@ function isEliteOrAntiMonotony(w: LibraryWorkout): boolean {
 function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[]): number {
   let score = 0;
 
-  // Goal match — reduced penalty for unmatched to avoid excluding universal sessions
+  // Goal match — no penalty for unmatched to maximize diversity
   if (w.goals && w.goals.length > 0) {
     const goalMatch = w.goals.some(g => goals.includes(g));
     if (goalMatch) {
@@ -90,20 +90,18 @@ function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[
       else if (w.goals.length <= 4) score += 2;
       const allMatch = w.goals.every(g => goals.includes(g));
       if (allMatch) score += 3;
-    } else {
-      // Reduced penalty: -2 instead of -5 to keep useful sessions visible
-      score -= 2;
     }
+    // No penalty for non-matching goals — let diversity slots handle variety
   } else {
     // No goals defined = universal session, slight bonus
     score += 2;
   }
 
-  // Phase match — reduced penalty
+  // Phase match — no penalty for non-matching phases
   if (w.phase && w.phase.length > 0) {
     const phaseMatch = w.phase.some(p => phases.includes(p));
     if (phaseMatch) score += 8;
-    else score -= 1; // Reduced from -3
+    // No penalty — phases are hints, not hard filters
   }
 
   // Bonus for obligatory sessions
