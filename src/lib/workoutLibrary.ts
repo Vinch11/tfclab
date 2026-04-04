@@ -4439,9 +4439,16 @@ import { EnrichedWorkoutsV5 } from "./enrichedWorkoutsV5";
 WorkoutLibrary.push(...EnrichedWorkoutsV5);
 
 // =============================================
+// ENRICHED WORKOUTS V6 — Formats Anti-Monotonie
+// Pyramide, Dégressif, Fartlek Libre, Circuit Cardio-Technique
+// =============================================
+import { EnrichedWorkoutsV6 } from "./enrichedWorkoutsV6";
+WorkoutLibrary.push(...EnrichedWorkoutsV6);
+
+// =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]
 // =============================================
 import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
 enrichWorkoutGoals(WorkoutLibrary);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | Total: ${WorkoutLibrary.length}`);
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | Total: ${WorkoutLibrary.length}`);
