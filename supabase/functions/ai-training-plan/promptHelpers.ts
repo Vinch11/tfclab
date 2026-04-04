@@ -955,3 +955,6 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   }
 
   lines.push(`\n---\nGénère le plan COMPLET de ${weeks} semaines, semaine par semaine, SANS EN OMETTRE AUCUNE. Chaque semaine a son propre tableau. Ne résume jamais. Chaque séance doit être actionnable immédiatement.`);
+
+  return lines.join("\n");
+}
