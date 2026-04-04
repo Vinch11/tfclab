@@ -399,9 +399,9 @@ const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [num
   "10K":    { run: [85, 100] },
   "5K":     { run: [85, 100] },
   Trail:    { run: [70, 85] },
-  TrailShort: { run: [70, 85] },
+  TrailShort: { run: [70, 80] },
   TrailMountain: { run: [65, 80] },
-  TrailUltra: { run: [65, 80] },
+  TrailUltra: { run: [65, 75] },
 };
 
 // Use shared normalizer — keep edge function's copy in sync manually

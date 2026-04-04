@@ -162,8 +162,6 @@ export function normalizeObjKey(obj: string): string {
   if (lower.includes("trail") && lower.includes("ultra")) return "TrailUltra";
   if (lower.includes("trail") && (lower.includes("montagne") || lower.includes("mountain"))) return "TrailMountain";
   if (lower.includes("trail") && (lower.includes("court") || lower.includes("short"))) return "TrailShort";
-  if (lower.includes("trailmountain")) return "TrailMountain";
-  if (lower.includes("trailshort")) return "TrailShort";
   if (lower.includes("trail")) return "Trail";
   // FIX: "10" was too broad (matched "ironman 10h"). Use "10k"/"10km"/"10 km" like client-side
   if (lower.includes("10k") || lower.includes("10km") || lower.includes("10 km")) return "10K";

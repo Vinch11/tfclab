@@ -858,14 +858,14 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (config.raceGoals && config.raceGoals.length > 1) {
     const otherGoals = config.raceGoals.filter((g: any) => g.priority !== "A");
     for (const goal of otherGoals) {
-      const goalObj = (goal.objective || "").toUpperCase();
+      const goalObjKey = normalizeObjKey(goal.objective || "");
       const goalName = goal.raceName ? ` (${goal.raceName})` : "";
-      if (goalObj.includes("MARATHON") || goalObj === "SEMI") {
+      if (["Marathon", "Semi"].includes(goalObjKey)) {
         lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
         lines.push(`- Les semaines précédant cette course B doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
         lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
         lines.push(`- Post-course : 1 semaine récupération avant relance vers objectif A.`);
-      } else if (["IRONMAN", "IM", "70.3", "703"].some(t => goalObj.includes(t))) {
+      } else if (["IM", "703"].includes(goalObjKey)) {
         lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
         lines.push(`- Intégrer natation + vélo + briques dans la préparation vers cette course B.`);
         lines.push(`- Mini-taper 10-14j avant. Simulation race-pace 2 semaines avant la course B.`);
@@ -880,7 +880,8 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
   // Double sessions reminder based on ambition
   const ambition = (config.ambition || "").toLowerCase();
-  const isTriathlon = ["IM", "703"].includes(obj);
+  const objKeyForTriCheck = normalizeObjKey(config.objective || "");
+  const isTriathlon = ["IM", "703"].includes(objKeyForTriCheck);
   if (isTriathlon) {
     lines.push("\n### 🔥🔥🔥 DOUBLES/TRIPLES SÉANCES — RÈGLE #1 LA PLUS IMPORTANTE 🔥🔥🔥");
     lines.push("Un plan triathlon IM/70.3 n'est PAS un plan de course à pied. Un triathlète s'entraîne PLUSIEURS FOIS PAR JOUR.");
