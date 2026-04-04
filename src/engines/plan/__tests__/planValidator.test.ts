@@ -71,7 +71,12 @@ describe("planValidator", () => {
       makePolarizedWeek(5),
       makePolarizedWeek(6),
       makePolarizedWeek(7),
-      makePolarizedWeek(8, true),
+      makeWeek(8, [
+        { sport: "Course", title: "EF Z2 30min", details: "Activation pré-course" },
+        { sport: "Course", title: "EF Z2 20min", details: "Récupération" },
+        { sport: "Course", title: "🏁 COURSE OBJECTIF", details: "Jour J — Marathon" },
+        { sport: "Repos", title: "Repos", details: "", isRest: true },
+      ], "Affûtage / Course"),
     ];
     const result = validatePlan(makePlan(weeks));
 

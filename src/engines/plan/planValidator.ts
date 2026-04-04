@@ -397,6 +397,7 @@ const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [num
   Marathon: { run: [85, 100] },
   Semi:     { run: [85, 100] },
   "10K":    { run: [85, 100] },
+  "5K":     { run: [85, 100] },
   Trail:    { run: [70, 85] },
   TrailShort: { run: [70, 85] },
   TrailMountain: { run: [65, 80] },
