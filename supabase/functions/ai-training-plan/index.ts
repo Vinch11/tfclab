@@ -100,8 +100,11 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const isVerbosePlan = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
     // Dynamic chunk sizing: larger chunks = fewer API calls + better context retention
     // Gemini Flash supports 65k output tokens; ~3-4k tokens/week (verbose) or ~1.5-2k (standard)
-    const CHUNK_SIZE = isVerbosePlan ? 6 : 8;
-    const needsChunking = !regenerateWeek && totalWeeks > 12;
+    const CHUNK_SIZE = isVerbosePlan ? 5 : 8;
+    // Triathlon plans are very verbose (doubles/triples sessions, 3 sports) — chunk earlier
+    // to avoid token exhaustion that causes incomplete Race Weeks
+    const chunkThreshold = isVerbosePlan ? 6 : 12;
+    const needsChunking = !regenerateWeek && totalWeeks > chunkThreshold;
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
     const cpwResult = computeCPWprime(athleteData);
