@@ -19,11 +19,11 @@ const corsHeaders = {
 // - Tjelta 2016 (IJSPP) : Training characteristics of elite distance runners
 
 interface SessionDurationGuide {
-  swimMin?: [number, number];   // min duration range (minutes)
-  bikeMin?: [number, number];   // min duration range (minutes)
-  runMin?: [number, number];    // min duration range (minutes)
-  longBikeMin?: [number, number]; // sortie longue vélo (minutes)
-  longRunMin?: [number, number];  // sortie longue CAP (minutes)
+  // Standard session durations (swimMin/bikeMin/runMin) are now DERIVED
+  // from the workout catalog stats + ambition scaling. Only race-specific
+  // values that can't be derived from the library are kept here.
+  longBikeMin?: [number, number]; // sortie longue vélo (minutes) — race-specific
+  longRunMin?: [number, number];  // sortie longue CAP (minutes) — race-specific
   longSwimM?: [number, number];   // distance sortie longue natation (mètres)
   weeklyKmRun?: [number, number]; // km/sem CAP (Haugen 2022, Tjelta 2016)
   weeklyKmBike?: [number, number]; // km/sem vélo
