@@ -237,6 +237,18 @@ function buildPacingHint(objective: string): string {
 }
 
 /**
+ * Applique les post-traitements déterministes au plan parsé.
+ * Utile côté UI pour garder la même cohérence que le pipeline moteur.
+ */
+export function postProcessParsedPlan(
+  plan: ParsedPlan,
+  config: PlanGenerationConfig
+): ParsedPlan {
+  anchorRaceDays(plan, config);
+  return plan;
+}
+
+/**
  * Parse le markdown brut de l'IA et produit le PlanOutput final
  */
 export function buildPlanOutput(
@@ -248,7 +260,7 @@ export function buildPlanOutput(
   const context = extractPlanContext(input.prescription);
 
   // POST-TRAITEMENT : Ancrage automatique des jours de course
-  anchorRaceDays(plan, input.config);
+  postProcessParsedPlan(plan, input.config);
 
   return {
     plan,

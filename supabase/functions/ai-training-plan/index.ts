@@ -326,6 +326,28 @@ IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${exp
                         multiObjChunkReminder += ` ⚠️ DANS CE BLOC → Mini-taper S${goalWeek - 1}, Course S${goalWeek}, Récup S${goalWeek + 1}`;
                       }
                     });
+
+                    const inChunkGoals = relevantGoals.filter((g: any) => {
+                      const startMs = parseIsoDateUtc(planConfig.planStartDate);
+                      const raceMs = parseIsoDateUtc(g.raceDate);
+                      const days = (startMs !== undefined && raceMs !== undefined) ? Math.round((raceMs - startMs) / (24 * 3600 * 1000)) : -999;
+                      const goalWeek = days >= 0 ? Math.floor(days / 7) + 1 : 0;
+                      return goalWeek >= chunk.start && goalWeek <= chunk.end;
+                    });
+
+                    if (inChunkGoals.length > 0) {
+                      multiObjChunkReminder += `\n\n🚨 RACE WEEK À GÉNÉRER DANS CE BLOC (OBLIGATION ABSOLUE) :`;
+                      inChunkGoals.forEach((g: any) => {
+                        const startMs = parseIsoDateUtc(planConfig.planStartDate);
+                        const raceMs = parseIsoDateUtc(g.raceDate);
+                        const days = (startMs !== undefined && raceMs !== undefined) ? Math.round((raceMs - startMs) / (24 * 3600 * 1000)) : 0;
+                        const goalWeek = days >= 0 ? Math.floor(days / 7) + 1 : 0;
+                        multiObjChunkReminder += `\n- ${g.priority === "A" ? "🅰️" : g.priority === "B" ? "🅱️" : "🆎"} ${g.objective || g.raceName || "Course"} : la S${goalWeek} DOIT inclure la course à la date exacte ${g.raceDate}.`;
+                        multiObjChunkReminder += `\n  • La S${goalWeek} doit être une vraie Race Week complète : mini-taper + rappels spécifiques + activation + Jour J.`;
+                        multiObjChunkReminder += `\n  • Interdit de produire une semaine vide, ambiguë, ou limitée à 2-3 séances non spécifiques.`;
+                        multiObjChunkReminder += `\n  • Minimum attendu : 5 séances réelles pour cette semaine, dont une séance "🏁 COURSE OBJECTIF" / "🏁 Jour J".`;
+                      });
+                    }
                   }
                 }
 

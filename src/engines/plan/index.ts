@@ -27,6 +27,7 @@ export {
   extractPlanContext,
   buildEnrichedPlanConfig,
   buildPlanOutput,
+  postProcessParsedPlan,
 } from "./computePlan";
 
 // Plan Config Builder (from Diagnostic)

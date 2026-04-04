@@ -30,7 +30,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
-import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, type PlanFormConfig } from "@/engines/plan";
+import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel } from "@/types/ambitionLevel";
@@ -386,7 +386,7 @@ export default function AITrainingPlanPage() {
   }, [raceDate, raceGoals, planStartDate]);
 
   // Parse AI response into structured plan
-  const parsedPlan = useMemo<ParsedPlan | null>(() => {
+  const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!response || isLoading) return null;
     try {
       const plan = parseAIPlan(response);
@@ -454,6 +454,33 @@ export default function AITrainingPlanPage() {
 
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
   }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder]);
+
+  const parsedPlan = useMemo<ParsedPlan | null>(() => {
+    if (!rawParsedPlan) return null;
+    if (!athleteContext) return rawParsedPlan;
+
+    const clonedPlan: ParsedPlan = {
+      ...rawParsedPlan,
+      phases: rawParsedPlan.phases.map((phase) => ({ ...phase })),
+      weeks: rawParsedPlan.weeks.map((week) => ({
+        ...week,
+        sessions: week.sessions.map((session) => ({ ...session })),
+      })),
+      strategicRecap: rawParsedPlan.strategicRecap
+        ? {
+            limiters: rawParsedPlan.strategicRecap.limiters.map((limiter) => ({ ...limiter })),
+            synergies: [...rawParsedPlan.strategicRecap.synergies],
+          }
+        : undefined,
+    };
+
+    const config = buildConfigFromDiag(athleteContext.diagnostic);
+    return postProcessParsedPlan(clonedPlan, {
+      ...config,
+      weeksAvailable: config.weeksAvailable ?? clonedPlan.weeks.length,
+      mode: "ai",
+    });
+  }, [rawParsedPlan, athleteContext, buildConfigFromDiag]);
 
   const { archiveCurrentPlan } = usePlanSnapshotSync();
 
@@ -1560,6 +1587,10 @@ export default function AITrainingPlanPage() {
                       <AIPlanViewer
                         plan={parsedPlan}
                         startDate={planStartDate}
+                        raceGoals={[
+                          { priority: "A" as const, objective, raceName: raceName || undefined, raceDate: raceDate || undefined },
+                          ...raceGoals,
+                        ].filter(goal => goal.raceDate)}
                         onSaveToPlan={handleSaveToPlan}
                         isSaving={isSaving}
                         isSaved={isSaved}
