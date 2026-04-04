@@ -63,6 +63,7 @@ export interface PlanValidationResult {
     prohibitionComplianceScore: number;
     phaseCoherenceScore: number;
     raceDayScore: number;
+    limiterCoherenceScore: number;
     overallComment: string;
   };
 }
