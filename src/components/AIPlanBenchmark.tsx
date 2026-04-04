@@ -738,6 +738,8 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
             </div>
           </div>
         )}
+
+        {plan.phases && plan.phases.length >= 2 && (
           <PhaseGanttTimeline phases={plan.phases} totalWeeks={plan.totalWeeks} />
         )}
 
