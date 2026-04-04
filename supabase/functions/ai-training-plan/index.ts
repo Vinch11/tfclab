@@ -73,35 +73,33 @@ const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   // ═══ MARATHON ═══ (Haugen 2022: Elite 160-220km/sem, Tjelta 2016: 80% Z1-Z2)
   Marathon: {
     elite:      { weeklyHours: [12,16], sessionsPerWeek: [10,13], keySessions: [3,3], progressionPct: [5,8],
-      durations: { runMin: [40,90], longRunMin: [135,165], weeklyKmRun: [130,220] } },
+      durations: { longRunMin: [135,165], weeklyKmRun: [130,220] } },
     competitor: { weeklyHours: [8,12],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
-      durations: { runMin: [40,75], longRunMin: [105,150], weeklyKmRun: [70,130] } },
+      durations: { longRunMin: [105,150], weeklyKmRun: [70,130] } },
     age_group:  { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5],
-      durations: { runMin: [35,60], longRunMin: [90,120], weeklyKmRun: [45,80] } },
+      durations: { longRunMin: [90,120], weeklyKmRun: [45,80] } },
     finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
-      durations: { runMin: [30,50], longRunMin: [75,105], weeklyKmRun: [25,50] } },
+      durations: { longRunMin: [75,105], weeklyKmRun: [25,50] } },
   },
-  // ═══ SEMI-MARATHON ═══ (Tjelta 2016, Billat 2001)
   Semi: {
     elite:      { weeklyHours: [10,14], sessionsPerWeek: [8,11],  keySessions: [3,3], progressionPct: [5,8],
-      durations: { runMin: [35,75], longRunMin: [90,120], weeklyKmRun: [100,160] } },
+      durations: { longRunMin: [90,120], weeklyKmRun: [100,160] } },
     competitor: { weeklyHours: [7,10],  sessionsPerWeek: [6,8],   keySessions: [2,2], progressionPct: [5,7],
-      durations: { runMin: [35,65], longRunMin: [75,105], weeklyKmRun: [55,100] } },
+      durations: { longRunMin: [75,105], weeklyKmRun: [55,100] } },
     age_group:  { weeklyHours: [5,7],   sessionsPerWeek: [4,6],   keySessions: [2,2], progressionPct: [3,5],
-      durations: { runMin: [30,55], longRunMin: [60,90], weeklyKmRun: [35,60] } },
+      durations: { longRunMin: [60,90], weeklyKmRun: [35,60] } },
     finisher:   { weeklyHours: [3,5],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3],
-      durations: { runMin: [25,45], longRunMin: [50,75], weeklyKmRun: [20,40] } },
+      durations: { longRunMin: [50,75], weeklyKmRun: [20,40] } },
   },
-  // ═══ 10K ═══ (Billat 2001: VO2max intervals 3-5min optimal)
   "10K": {
     elite:      { weeklyHours: [9,12],  sessionsPerWeek: [8,10],  keySessions: [2,3], progressionPct: [5,7],
-      durations: { runMin: [30,70], longRunMin: [75,100], weeklyKmRun: [90,140] } },
+      durations: { longRunMin: [75,100], weeklyKmRun: [90,140] } },
     competitor: { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [5,5],
-      durations: { runMin: [30,60], longRunMin: [65,90], weeklyKmRun: [50,90] } },
+      durations: { longRunMin: [65,90], weeklyKmRun: [50,90] } },
     age_group:  { weeklyHours: [4,6],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,5],
-      durations: { runMin: [25,50], longRunMin: [50,75], weeklyKmRun: [30,55] } },
+      durations: { longRunMin: [50,75], weeklyKmRun: [30,55] } },
     finisher:   { weeklyHours: [3,4],   sessionsPerWeek: [3,4],   keySessions: [1,1], progressionPct: [3,3],
-      durations: { runMin: [20,40], longRunMin: [40,60], weeklyKmRun: [15,35] } },
+      durations: { longRunMin: [40,60], weeklyKmRun: [15,35] } },
   },
   // ═══ TRAIL ═══
   Trail: {
