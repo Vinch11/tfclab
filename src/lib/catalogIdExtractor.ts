@@ -1,10 +1,14 @@
 /**
  * Extract workout catalog IDs from AI-generated session text.
- * Matches TFCL™ catalog ID patterns like A_RUN_Z2_EASY, B_BIKE_VO2_BILLAT, etc.
+ * Matches ALL TFCL™ catalog ID patterns including:
+ *   A/B/C/D_BIKE|RUN|SWIM|TR|STR|BR|RECOVERY_*
+ *   A/B/C/D_10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE_*
+ *   BRICK_*, ENR_*, V2_*, V3_*, TPL_*, RS_*
+ *   BR_HALF_*, BR_IM_*, BR_TAPER_*
  * Returns the first matched ID or null.
  */
 
-const CATALOG_ID_PATTERN = /\b[A-Z]{1,3}_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY)[A-Z0-9_]+/g;
+const CATALOG_ID_PATTERN = /\b(?:[A-D]_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY|10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE)[A-Z0-9_]+|(?:BRICK|ENR|V[0-9]|TPL|RS|BR)_[A-Z0-9_]+)/g;
 
 export function extractCatalogId(title: string, details?: string): string | null {
   const text = `${title || ""} ${details || ""}`;
