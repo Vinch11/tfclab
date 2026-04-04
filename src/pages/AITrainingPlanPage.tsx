@@ -35,6 +35,7 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
+import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
@@ -686,6 +687,7 @@ export default function AITrainingPlanPage() {
           custom_workout_description: session.details || null,
           status: "PLANNED",
           notes: session.weekTheme ? `Semaine ${session.weekNumber}: ${session.weekTheme}` : null,
+          workout_id: extractCatalogId(session.title, session.details),
         }));
 
       if (rows.length === 0) {

@@ -12,6 +12,7 @@ import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
@@ -111,6 +112,7 @@ export function PlanHistory({ onRestored }: PlanHistoryProps) {
             custom_workout_description: session.details || null,
             status: "PLANNED",
             notes: week.theme ? `Semaine ${week.weekNumber}: ${week.theme}` : null,
+            workout_id: extractCatalogId(session.title, session.details),
           });
         }
       }
