@@ -850,21 +850,47 @@ function validateProhibitionCompliance(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /** Maps limiter keywords to expected session content patterns.
- * IMPORTANT: Patterns must be specific enough to avoid false positives.
- * - VLAMAX_DOWN sessions must explicitly reference glycolytic reduction concepts, not just "Z2"
- * - TTE sessions include sustained threshold work, not just any "seuil" mention
- * - A session matching L1 is NOT double-counted for L2/L3/L4 (priority dedup in validator)
+ * IMPORTANT: Patterns are MUTUALLY EXCLUSIVE to prevent priority-dedup from starving lower-rank limiters.
+ * Each limiter has its own distinctive patterns that don't overlap with others.
+ * A session matching L1 is NOT double-counted for L2/L3/L4 (priority dedup in validator).
+ *
+ * OVERLAP AUDIT (2026-04-04):
+ * - VLamax vs FatMax: VLamax = glycolytic suppression (train low + Z2 long volume). FatMax = fat oxidation (fat max, lipid, oxydation).
+ * - TTE vs FTP: TTE = sustained threshold endurance (seuil continu LONG, norvégienne, MLSS). FTP = power at threshold (sweet spot, over-under, FTP watts).
+ * - VLamax vs Durabilité: VLamax = metabolic context (train low, glycolytique). Durabilité = distance context (sortie longue, SL, brick, finish rapide).
  */
 const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
+  // VO2max: High-intensity aerobic intervals — VMA, Billat, PMA, short fractionné
   "vo2max": /vo2|vma|billat|30\/30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma|🔑.*(?:vo2|vma|pma)/i,
-  "vlamax": /train\s*low|[àa]\s*jeun|sweet\s*spot.*(?:long|progressi)|z2.*(?:long|>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|fat\s*(?:max|ox)|lipid|glycoly|aérobie\s*(?:pur|fondament|base)|🔑.*(?:z2.*long|train.low|fondament)/i,
-  "tte": /seuil|threshold|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|continu.*(?:seuil|z[45])|sweet\s*spot|over.?under|ftp\s*(?:interval|bloc|continu)|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|🔑.*(?:seuil|threshold|tte|tempo)/i,
-  "fatmax": /train\s*low|[àa]\s*jeun|z[12].*long.*(?:low|jeun)|lipid|fat\s*(?:max|ox)|glycogène/i,
-  "économie": /c[ôo]te|sfr|r[øo]nnestad|force|plio|strides|gammes|drill|cadence|technique|éducatif|🔑.*(?:force|économie|technique)/i,
-  "ftp": /sweet\s*spot|over.?under|norv[ée]gi|seuil.*(?:puissance|watts|ftp)|ftp|threshold.*(?:power|puissance)|z[45].*(?:interval|bloc)|🔑.*(?:ftp|puissance|seuil)/i,
-  "durabilit": /sortie\s*longue|sl\b|long\s*run|brick|z2.*(?:>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|finish.*rapide|durabilité|🔑.*(?:sortie.*longue|durabilité|endurance)/i,
-  "sprint": /sprint|neuro|explo|plyo|force\s*max|vitesse|🔑.*(?:sprint|force.*max|neuro)/i,
-  "pmax": /sprint|force\s*max|r[øo]nnestad|explo|plyo|pmax|🔑.*(?:pmax|sprint|force.*max)/i,
+
+  // VLamax (réduction): Glycolytic suppression via Z2 long + train low + endurance fondamentale
+  // EXCLUDES: fat max/lipid (→ fatmax), sweet spot (→ ftp), sortie longue/SL (→ durabilité)
+  "vlamax": /train\s*low|[àa]\s*jeun|z2.*(?:long|>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|glycoly|aérobie\s*(?:pur|fondament|base)|🔑.*(?:z2.*long|train.low|fondament|vlamax)/i,
+
+  // TTE: Sustained threshold endurance — seuil continu LONG, Norvégienne, MLSS, tempo long soutenu
+  // EXCLUDES: sweet spot (→ ftp), over-under (→ ftp)
+  "tte": /seuil\s*(?:continu|long|2×|1×)|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|continu.*(?:seuil|z[45])|seuil.*(?:\d+min|2[0-9]|3[0-9]|4[0-9]min)|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|🔑.*(?:seuil|threshold|tte|tempo)/i,
+
+  // FatMax: Fat oxidation specific — fat max, lipid, oxydation lipidique, glycogène
+  // EXCLUDES: train low without fat context (→ vlamax), Z2 long without fat context (→ vlamax)
+  "fatmax": /fat\s*(?:max|ox)|lipid|oxydation|glycogène|gut\s*training|nutrition.*course|🔑.*(?:fat\s*max|lipid|oxydation)/i,
+
+  // Économie: Neuromuscular economy — côtes, SFR, Rønnestad, force, plio, strides, drill, technique
+  "économie": /c[ôo]te|sfr|r[øo]nnestad|plio|strides|gammes|drill|cadence|technique|éducatif|🔑.*(?:force|économie|technique)/i,
+
+  // FTP: Power at threshold — sweet spot, over-under, FTP intervals, threshold power
+  // EXCLUDES: seuil continu long (→ tte), norvégienne (→ tte)
+  "ftp": /sweet\s*spot|over.?under|ftp\s*(?:interval|bloc|continu|test)|threshold.*(?:power|puissance)|seuil.*(?:puissance|watts|ftp)|🔑.*(?:ftp|puissance|sweet.spot)/i,
+
+  // Durabilité: Long-distance endurance — sortie longue, SL, long run, brick, finish rapide
+  // EXCLUDES: Z2 long with metabolic context (→ vlamax)
+  "durabilit": /sortie\s*longue|(?:^|\s)sl\b|long\s*(?:run|ride)|brick|finish.*rapide|durabilité|simulation.*course|course.*longue|🔑.*(?:sortie.*longue|durabilité|brick)/i,
+
+  // Sprint: Sprint/neuromuscular power
+  "sprint": /sprint|neuro.*muscul|explo|plyo|force\s*max|vitesse\s*max|🔑.*(?:sprint|force.*max|neuro)/i,
+
+  // Pmax: Peak power (overlaps with sprint — only used if sprint not present)
+  "pmax": /pmax|sprint.*(?:max|all.out)|force\s*max|r[øo]nnestad.*(?:sprint|force)|🔑.*(?:pmax|sprint.*max)/i,
 };
 
 function detectLimiterKeyFromText(limiterText: string): string | null {

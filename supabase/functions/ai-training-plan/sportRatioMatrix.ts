@@ -417,19 +417,24 @@ export function getSportDistributionConstraint(objective: string, ambition: stri
 }
 
 // === FIX M3: Extract keywords from a limiter name for session matching ===
+// AUDIT 2026-04-04: VLamax keywords were INVERTED (sprint/force = increases VLamax).
+// Fixed: VLamax REDUCTION keywords = train low, Z2 long, glycolytique suppression.
+// Keywords are now MUTUALLY EXCLUSIVE to avoid cross-limiter false positives.
 export function extractLimiterKeywords(limiterName: string): string[] {
   const kw: string[] = [];
   const l = limiterName.toLowerCase();
-  if (/vlamax/i.test(l)) kw.push("vlamax", "sprint", "glycoly", "anaérobie", "force", "sfr", "neuromuscul");
-  if (/tte|time.to.exhaust/i.test(l)) kw.push("tte", "seuil", "tempo", "sweet spot", "threshold", "ss");
-  if (/durabilit/i.test(l)) kw.push("durabilit", "endurance", "z2", "fatmax", "long", "aérobie");
-  if (/fatmax|lipid|fat.ox/i.test(l)) kw.push("fatmax", "z2", "endurance", "lipid", "oxydation", "fasted");
-  if (/econom|running.econ/i.test(l)) kw.push("économie", "cadence", "technique", "gammes", "foulée", "strides");
-  if (/ftp|puissance.seuil/i.test(l)) kw.push("ftp", "seuil", "sweet spot", "ss", "tempo", "threshold");
-  if (/vo2|vo2max|pma/i.test(l)) kw.push("vo2", "pma", "interval", "30/30", "3min", "5min", "hiit");
-  if (/vma/i.test(l)) kw.push("vma", "interval", "fractionné", "30/30", "piste");
-  if (/force|renfo/i.test(l)) kw.push("force", "renfo", "muscul", "côte", "sfr");
+  // VLamax (reduction) = glycolytic suppression, NOT sprint/force (which INCREASE VLamax)
+  if (/vlamax/i.test(l)) kw.push("vlamax", "train low", "glycoly", "z2 long", "endurance fond", "aérobie pur", "jeun");
+  if (/tte|time.to.exhaust/i.test(l)) kw.push("tte", "seuil continu", "norvégi", "mlss", "tempo long", "threshold long");
+  if (/durabilit/i.test(l)) kw.push("durabilit", "sortie longue", "long run", "brick", "finish rapide", "simulation");
+  if (/fatmax|lipid|fat.ox/i.test(l)) kw.push("fatmax", "fat max", "lipid", "oxydation", "glycogène", "gut training");
+  if (/econom|running.econ/i.test(l)) kw.push("économie", "cadence", "technique", "gammes", "foulée", "strides", "côte", "sfr");
+  if (/ftp|puissance.seuil/i.test(l)) kw.push("ftp", "sweet spot", "over-under", "threshold power", "seuil puissance");
+  if (/vo2|vo2max|pma/i.test(l)) kw.push("vo2", "pma", "interval", "30/30", "billat", "hiit");
+  if (/vma/i.test(l)) kw.push("vma", "interval", "fractionné", "30/30", "piste", "billat");
+  if (/force|renfo/i.test(l)) kw.push("force", "renfo", "muscul", "côte", "sfr", "rønnestad");
   if (/natation|swim|css/i.test(l)) kw.push("natation", "swim", "css", "crawl", "pull");
+  if (/sprint|pmax|neuro/i.test(l)) kw.push("sprint", "pmax", "neuro", "explo", "plyo", "force max");
   if (kw.length === 0) {
     kw.push(...l.split(/[\s/,()]+/).filter(w => w.length > 3));
   }
