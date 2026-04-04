@@ -109,7 +109,7 @@ export function buildPlanConfigFromDiagnostic(
   const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
 
   // ── Leviers (L1 + L2) ──────────────────────────────────────────────────────
-  const leverIds = [limiterResult.primaryLever];
+  const leverIds: string[] = [limiterResult.primaryLever];
   // Add secondary lever from L2 gap if different from L1
   const l2Gap = limiterResult.gapAnalysis
     .filter(g => g.weightedImpact > 0)
