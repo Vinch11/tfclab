@@ -191,6 +191,51 @@ export function buildWorkoutCatalog(
   }));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// CATALOG DURATION STATS — derivable metadata for the Volume×Ambition matrix
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface CatalogDurationStats {
+  /** Per-sport: min/max/median durations from catalog entries */
+  [sport: string]: {
+    minDur: number;
+    maxDur: number;
+    medianDur: number;
+    count: number;
+  };
+}
+
+/**
+ * Compute duration statistics grouped by sport from a catalog.
+ * Used to derive standard session durations instead of hardcoding them.
+ */
+export function computeCatalogDurationStats(catalog: CatalogEntry[]): CatalogDurationStats {
+  const bySport: Record<string, number[]> = {};
+
+  for (const e of catalog) {
+    const sport = e.sport.toLowerCase();
+    if (!bySport[sport]) bySport[sport] = [];
+    // Use midpoint of duration range
+    const mid = (e.durationMin[0] + e.durationMin[1]) / 2;
+    bySport[sport].push(mid);
+  }
+
+  const stats: CatalogDurationStats = {};
+  for (const [sport, durations] of Object.entries(bySport)) {
+    durations.sort((a, b) => a - b);
+    const mid = durations.length % 2 === 0
+      ? (durations[durations.length / 2 - 1] + durations[durations.length / 2]) / 2
+      : durations[Math.floor(durations.length / 2)];
+    stats[sport] = {
+      minDur: durations[0],
+      maxDur: durations[durations.length - 1],
+      medianDur: Math.round(mid),
+      count: durations.length,
+    };
+  }
+  return stats;
+}
+
 /**
  * Serialize the catalog to a markdown table for prompt injection.
  * Compact format to minimize token usage.
