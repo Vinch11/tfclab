@@ -865,7 +865,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         lines.push(`- Les semaines précédant cette course B doivent inclure des séances spécifiques à l'allure ${goal.objective}.`);
         lines.push(`- Mini-taper 7-10j avant : réduction volume, rappels allure course.`);
         lines.push(`- Post-course : 1 semaine récupération avant relance vers objectif A.`);
-      } else if (["IRONMAN", "IM", "70.3", "703"].some(t => goalObj.includes(t))) {
+      } else if (["IM", "703"].includes(goalObjKey)) {
         lines.push(`\n### ⚠️ RAPPEL : Objectif B${goalName} — ${goal.objective}`);
         lines.push(`- Intégrer natation + vélo + briques dans la préparation vers cette course B.`);
         lines.push(`- Mini-taper 10-14j avant. Simulation race-pace 2 semaines avant la course B.`);
