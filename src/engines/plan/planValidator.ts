@@ -1106,7 +1106,7 @@ function validateLimiterCoherence(
       // If session was assigned to TTE or Économie, also count it for VLamax (if VLamax is a limiter)
       let isLimiterRelevant = assignedKey !== null;
 
-      if (hasVlamaxLimiter && assignedKey !== "vlamax" && (assignedKey === "tte" || assignedKey === "économie")) {
+      if (hasVlamaxLimiter && assignedKey !== "vlamax" && (assignedKey === "tte" || assignedKey === "économie" || assignedKey === "ftp")) {
         if (VLAMAX_CO_CONTRIBUTOR_PATTERNS.test(text)) {
           limiterHits["vlamax"] = (limiterHits["vlamax"] || 0) + 1;
           isLimiterRelevant = true;
