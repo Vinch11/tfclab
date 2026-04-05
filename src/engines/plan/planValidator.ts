@@ -930,6 +930,18 @@ const LIMITER_ALIAS_HINTS: Array<{ pattern: RegExp; aliases: string }> = [
     pattern: /long[\s_-]*run|sortie[\s_-]*longue|brick|race[\s_-]*sim|simulation/i,
     aliases: "sortie longue long run brick durabilité simulation course",
   },
+  {
+    pattern: /fatmax|fat[\s_-]*(?:ox|max)|lipid|oxydation/i,
+    aliases: "fatmax fat max lipid oxydation glycogène train low vlamax",
+  },
+  {
+    pattern: /hill|côte|cote|tech|éducatif|gamme|strides|drill/i,
+    aliases: "côtes technique économie strides drill gammes éducatif",
+  },
+  {
+    pattern: /over[\s_-]*under|over_under/i,
+    aliases: "over under ftp sweet spot seuil puissance threshold power",
+  },
 ];
 
 const FALLBACK_ZONE_MAP: Record<string, RegExp> = {
@@ -938,6 +950,8 @@ const FALLBACK_ZONE_MAP: Record<string, RegExp> = {
   "ftp": /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|race[\s_-]*power/i,
   "durabilit": /sortie\s*longue|\bsl\b|long(?:\s*(?:run|ride))?|brick/i,
   "vlamax": /z2|endurance|ef\b|train[\s_-]*low|fasted/i,
+  "fatmax": /fat[\s_-]*(?:max|ox)|lipid|oxydation|glycogène/i,
+  "économie": /côte|sfr|strides|drill|gammes|technique|éducatif|hill|tech/i,
 };
 
 function buildLimiterMatchText(session: ParsedSession): string {
