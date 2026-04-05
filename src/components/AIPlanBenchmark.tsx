@@ -659,7 +659,7 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
                 🚫 Conformité prohibitions
                 <ChevronDown className="h-3 w-3 transition-transform group-data-[state=open]:rotate-180" />
               </h4>
-              <Badge variant="destructive" className="text-[9px]">
+              <Badge variant="destructive" className="text-[9px] hidden group-data-[state=open]:inline-flex">
                 {validationResult.summary.prohibitionComplianceScore}/100
               </Badge>
             </CollapsibleTrigger>
