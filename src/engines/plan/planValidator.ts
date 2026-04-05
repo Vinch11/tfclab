@@ -940,12 +940,12 @@ const LIMITER_ALIAS_HINTS: Array<{ pattern: RegExp; aliases: string }> = [
 
 const FALLBACK_ZONE_MAP: Record<string, RegExp> = {
   "vo2max": /z[56]|zone\s*[56]|vo2|vma|pma/i,
-  "tte": /seuil|threshold|tempo|z4|zone\s*4|race[\s_-]*pace.*(?:20|min)/i,
-  "ftp": /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|race[\s_-]*power/i,
-  "durabilit": /sortie\s*longue|\bsl\b|long(?:\s*(?:run|ride))?|brick/i,
-  "vlamax": /z2|endurance|ef\b|train[\s_-]*low|fasted/i,
-  "fatmax": /fat[\s_-]*(?:max|ox)|lipid|oxydation|glycogène/i,
-  "économie": /côte|sfr|strides|drill|gammes|technique|éducatif|hill|tech/i,
+  "tte": /seuil|threshold|tempo|z4|zone\s*4|race[\s_-]*pace|allure|css/i,
+  "ftp": /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|race[\s_-]*power|cp/i,
+  "durabilit": /sortie\s*longue|\bsl\b|long(?:\s*(?:run|ride))?|brick|progressive|fartlek|back.to.back|steady/i,
+  "vlamax": /z2|endurance|ef\b|train[\s_-]*low|fasted|heat|altitude/i,
+  "fatmax": /fat[\s_-]*(?:max|ox)|lipid|oxydation|glycogène|gut/i,
+  "économie": /côte|sfr|strides|drill|gammes|technique|éducatif|hill|tech|strength|force|renfo|core|ppg|proprio|mobilit|gainage/i,
 };
 
 function buildLimiterMatchText(session: ParsedSession): string {
