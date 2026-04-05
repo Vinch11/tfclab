@@ -6,8 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Trophy, TrendingUp, TrendingDown, Minus, AlertTriangle,
-  CheckCircle2, Target, BarChart3, Zap, Info, Crosshair,
+  CheckCircle2, Target, BarChart3, Zap, Info, Crosshair, ChevronDown,
 } from "lucide-react";
 import {
   Tooltip,
@@ -646,48 +651,54 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
           );
         })()}
 
-        {/* Prohibition compliance */}
+        {/* Prohibition compliance — collapsible, default closed */}
         {validationResult.summary.prohibitionComplianceScore < 100 && (
-          <div className="space-y-2 pt-2 border-t border-border">
-            <div className="flex items-center justify-between">
+          <Collapsible defaultOpen={false} className="pt-2 border-t border-border">
+            <CollapsibleTrigger className="flex items-center justify-between w-full group">
               <h4 className="text-xs font-semibold text-destructive flex items-center gap-1">
                 🚫 Conformité prohibitions
+                <ChevronDown className="h-3 w-3 transition-transform group-data-[state=open]:rotate-180" />
               </h4>
               <Badge variant="destructive" className="text-[9px]">
                 {validationResult.summary.prohibitionComplianceScore}/100
               </Badge>
-            </div>
-            {validationResult.issues
-              .filter(i => i.rule === "prohibition_compliance")
-              .slice(0, 5)
-              .map((issue, idx) => (
-                <p key={idx} className="text-[10px] text-destructive/80 bg-destructive/5 rounded p-1.5">
-                  {issue.message}
-                </p>
-              ))}
-          </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2 mt-2">
+              {validationResult.issues
+                .filter(i => i.rule === "prohibition_compliance")
+                .slice(0, 5)
+                .map((issue, idx) => (
+                  <p key={idx} className="text-[10px] text-destructive/80 bg-destructive/5 rounded p-1.5">
+                    {issue.message}
+                  </p>
+                ))}
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
-        {/* Phase coherence */}
+        {/* Phase coherence — collapsible, default closed */}
         {validationResult.summary.phaseCoherenceScore < 80 && (
-          <div className="space-y-2 pt-2 border-t border-border">
-            <div className="flex items-center justify-between">
+          <Collapsible defaultOpen={false} className="pt-2 border-t border-border">
+            <CollapsibleTrigger className="flex items-center justify-between w-full group">
               <h4 className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
                 📦 Cohérence des phases
+                <ChevronDown className="h-3 w-3 transition-transform group-data-[state=open]:rotate-180" />
               </h4>
               <Badge variant="outline" className="text-[9px] border-amber-500/50 text-amber-600 dark:text-amber-400">
                 {validationResult.summary.phaseCoherenceScore}/100
               </Badge>
-            </div>
-            {validationResult.issues
-              .filter(i => i.rule === "phase_coherence")
-              .slice(0, 5)
-              .map((issue, idx) => (
-                <p key={idx} className="text-[10px] text-amber-700/80 dark:text-amber-300/80 bg-amber-500/5 rounded p-1.5">
-                  {issue.message}
-                </p>
-              ))}
-          </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2 mt-2">
+              {validationResult.issues
+                .filter(i => i.rule === "phase_coherence")
+                .slice(0, 5)
+                .map((issue, idx) => (
+                  <p key={idx} className="text-[10px] text-amber-700/80 dark:text-amber-300/80 bg-amber-500/5 rounded p-1.5">
+                    {issue.message}
+                  </p>
+                ))}
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
         {/* Race Day presence */}
