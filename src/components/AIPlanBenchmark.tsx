@@ -6,8 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Trophy, TrendingUp, TrendingDown, Minus, AlertTriangle,
-  CheckCircle2, Target, BarChart3, Zap, Info, Crosshair,
+  CheckCircle2, Target, BarChart3, Zap, Info, Crosshair, ChevronDown,
 } from "lucide-react";
 import {
   Tooltip,
