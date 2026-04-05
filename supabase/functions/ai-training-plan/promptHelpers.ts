@@ -57,7 +57,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     // C5: Adjust fondation/build split based on limiter type
     // High VLamax or durability issues → longer Chantier block (more volume work needed)
     // Economy/technique limiters → longer Fondation (motor pattern adaptation is slow)
-    const isVlamaxLimiter = /vlamax|glycoly|sprint|anaerob/i.test(L1);
+    const isVlamaxLimiter = /vlamax|glycoly|anaerob/i.test(L1);
     const isDurabilityLimiter = /durabilit|tte|endurance|fatmax|lipid/i.test(L1);
     const isEconomyLimiter = /econom|technique|cadence|biom[ée]can/i.test(L1);
 
