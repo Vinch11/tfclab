@@ -693,10 +693,11 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("|-------------------|---------------------------|");
     lines.push("| VLamax↓ (Z2 long + Train Low) | → TTE↑, FatMax↑, économie glycogène↑ |");
     lines.push("| VO2max↑ (Billat/VMA) | → FTP/kg↑, vitesse aérobie↑, récupération inter-effort↑ |");
-    lines.push("| TTE↑ (seuil long Norvégienne) | → allure course↑, résistance fatigue↑, endurance durabilité↑ |");
-    lines.push("| Force max (Rønnestad) | → économie↑ (+4.8%), prévention blessures, puissance neuromusculaire↑ |");
+    lines.push("| TTE↑ (seuil long continu) | → VLamax↓ (synergie : déplétion glycolytique via effort soutenu au seuil), allure course↑, résistance fatigue↑ |");
+    lines.push("| SFR / Force basse cadence (40-60rpm) | → VLamax↓ (synergie : recrutement fibres Type I, réduction contribution glycolytique rapide), économie↑ (+4.8%) |");
+    lines.push("| Force max (Rønnestad) | → économie↑, prévention blessures, puissance neuromusculaire↑ |");
     lines.push("| FatMax↑ (Train Low) | → VLamax↓ (synergie), autonomie glycogène↑, durabilité↑ |");
-    lines.push("Quand 2 limiteurs ont une synergie positive, les combiner dans la même phase pour maximiser l'effet.\n");
+    lines.push("⚠️ IMPORTANT : Le seuil long continu et la force basse cadence (SFR) sont des CO-CONTRIBUTEURS prouvés à la réduction de la VLamax. Quand L1=VLamax, prescris ces séances EN PLUS du Z2 long/Train Low pour maximiser la suppression glycolytique.\n");
 
     lines.push("### ⚙️ RÈGLES DE PÉRIODISATION SÉQUENTIELLE STRICTES");
     lines.push("1. **Limiteur #1 (🔴 CRITIQUE)** :");

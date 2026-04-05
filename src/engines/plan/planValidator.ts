@@ -933,8 +933,16 @@ function validateLimiterCoherence(
 
   // Count sessions that match each limiter's expected patterns
   // Priority dedup: each session is assigned to the HIGHEST-PRIORITY limiter it matches (L1 > L2 > L3 > L4)
+  // EXCEPTION: Proven synergies allow double-counting (e.g. seuil long → TTE + VLamax, SFR → Économie + VLamax)
   const limiterHits: Record<string, number> = {};
   let totalKeySessions = 0;
+
+  // Co-contributor patterns: sessions that contribute to VLamax reduction via proven synergies
+  // - Seuil long continu (TTE work) → glycolytic depletion → VLamax↓ (Billat, Bosquet 2002)
+  // - SFR / Force basse cadence → Type I fiber recruitment → VLamax↓ (Rønnestad 2015)
+  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)/i;
+
+  const hasVlamaxLimiter = limiterKeys.includes("vlamax");
 
   for (const week of plan.weeks) {
     for (const session of week.sessions) {
@@ -943,12 +951,22 @@ function validateLimiterCoherence(
       if (!KEY_SESSION_PATTERNS.test(text)) continue;
       totalKeySessions++;
 
-      // Assign to highest-priority matching limiter only
+      // Assign to highest-priority matching limiter
+      let assignedKey: string | null = null;
       for (const lKey of limiterKeys) {
         const pattern = LIMITER_SESSION_PATTERNS[lKey];
         if (pattern && pattern.test(text)) {
           limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
+          assignedKey = lKey;
           break; // Priority dedup: stop at first (highest-rank) match
+        }
+      }
+
+      // Double-counting for proven VLamax co-contributors:
+      // If session was assigned to TTE or Économie, also count it for VLamax (if VLamax is a limiter)
+      if (hasVlamaxLimiter && assignedKey !== "vlamax" && (assignedKey === "tte" || assignedKey === "économie")) {
+        if (VLAMAX_CO_CONTRIBUTOR_PATTERNS.test(text)) {
+          limiterHits["vlamax"] = (limiterHits["vlamax"] || 0) + 1;
         }
       }
     }
