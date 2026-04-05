@@ -861,36 +861,38 @@ function validateProhibitionCompliance(
  */
 const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
   // VO2max: High-intensity aerobic intervals — VMA, Billat, PMA, short fractionné
-  "vo2max": /vo2|vma|billat|30\/30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma|🔑.*(?:vo2|vma|pma)/i,
+  "vo2max": /vo2|vma|billat|30\/30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma/i,
 
   // VLamax (réduction): Glycolytic suppression via Z2 long + train low + endurance fondamentale
+  // Matches EF abbreviation (Endurance Fondamentale) + Z2 long durations + train low + jeûn
   // EXCLUDES: fat max/lipid (→ fatmax), sweet spot (→ ftp), sortie longue/SL (→ durabilité)
-  "vlamax": /train\s*low|[àa]\s*jeun|z2.*(?:long|>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|glycoly|aérobie\s*(?:pur|fondament|base)|🔑.*(?:z2.*long|train.low|fondament|vlamax)/i,
+  "vlamax": /train\s*low|[àa]\s*jeun|z2.*(?:long|>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|ef\b.*(?:long|[89]\d|1[0-9]\d\s*min|z2)|endurance.*(?:fondament|longue|foncier)|fondament|glycoly|aérobie\s*(?:pur|fondament|base)/i,
 
-  // TTE: Sustained threshold endurance — seuil continu LONG, Norvégienne, MLSS, tempo long soutenu
-  // EXCLUDES: sweet spot (→ ftp), over-under (→ ftp)
-  "tte": /seuil\s*(?:continu|long|2×|1×)|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|continu.*(?:seuil|z[45])|seuil.*(?:\d+min|2[0-9]|3[0-9]|4[0-9]min)|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|🔑.*(?:seuil|threshold|tte|tempo)/i,
+  // TTE: Sustained threshold endurance — seuil continu LONG, Norvégienne, MLSS
+  // Only matches "seuil" when combined with duration/continuous context (not bare "seuil")
+  // EXCLUDES: sweet spot (→ ftp), over-under (→ ftp), bare "tempo" (→ generic)
+  "tte": /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|continu.*(?:seuil|z[45])|seuil.*(?:[2-5]\d\s*min)|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil/i,
 
   // FatMax: Fat oxidation specific — fat max, lipid, oxydation lipidique, glycogène
   // EXCLUDES: train low without fat context (→ vlamax), Z2 long without fat context (→ vlamax)
-  "fatmax": /fat\s*(?:max|ox)|lipid|oxydation|glycogène|gut\s*training|nutrition.*course|🔑.*(?:fat\s*max|lipid|oxydation)/i,
+  "fatmax": /fat\s*(?:max|ox)|lipid|oxydation|glycogène|gut\s*training|nutrition.*course/i,
 
   // Économie: Neuromuscular economy — côtes, SFR, Rønnestad, force, plio, strides, drill, technique
-  "économie": /c[ôo]te|sfr|r[øo]nnestad|plio|strides|gammes|drill|cadence|technique|éducatif|🔑.*(?:force|économie|technique)/i,
+  "économie": /c[ôo]te|sfr|r[øo]nnestad|plio|strides|gammes|drill|cadence|technique|éducatif/i,
 
   // FTP: Power at threshold — sweet spot, over-under, FTP intervals, threshold power
   // EXCLUDES: seuil continu long (→ tte), norvégienne (→ tte)
-  "ftp": /sweet\s*spot|over.?under|ftp\s*(?:interval|bloc|continu|test)|threshold.*(?:power|puissance)|seuil.*(?:puissance|watts|ftp)|🔑.*(?:ftp|puissance|sweet.spot)/i,
+  "ftp": /sweet\s*spot|over.?under|ftp\s*(?:interval|bloc|continu|test)|threshold.*(?:power|puissance)|seuil.*(?:puissance|watts|ftp)/i,
 
   // Durabilité: Long-distance endurance — sortie longue, SL, long run, brick, finish rapide
   // EXCLUDES: Z2 long with metabolic context (→ vlamax)
-  "durabilit": /sortie\s*longue|(?:^|\s)sl\b|long\s*(?:run|ride)|brick|finish.*rapide|durabilité|simulation.*course|course.*longue|🔑.*(?:sortie.*longue|durabilité|brick)/i,
+  "durabilit": /sortie\s*longue|\bsl\b|long\s*(?:run|ride)|brick|finish.*rapide|durabilité|simulation.*course|course.*longue/i,
 
   // Sprint: Sprint/neuromuscular power
-  "sprint": /sprint|neuro.*muscul|explo|plyo|force\s*max|vitesse\s*max|🔑.*(?:sprint|force.*max|neuro)/i,
+  "sprint": /sprint|neuro.*muscul|explo|plyo|force\s*max|vitesse\s*max/i,
 
   // Pmax: Peak power (overlaps with sprint — only used if sprint not present)
-  "pmax": /pmax|sprint.*(?:max|all.out)|force\s*max|r[øo]nnestad.*(?:sprint|force)|🔑.*(?:pmax|sprint.*max)/i,
+  "pmax": /pmax|sprint.*(?:max|all.out)|force\s*max|r[øo]nnestad.*(?:sprint|force)/i,
 };
 
 function detectLimiterKeyFromText(limiterText: string): string | null {
