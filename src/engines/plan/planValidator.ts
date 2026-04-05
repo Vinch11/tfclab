@@ -88,7 +88,7 @@ export interface PlanValidationResult {
   };
 }
 
-type LimiterGapLike = {
+export type LimiterGapLike = {
   metric: string;
   weightedImpact: number;
   status?: string;
