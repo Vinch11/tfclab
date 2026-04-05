@@ -680,7 +680,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("| Limiteur | Phase Base (4-6 sem) | Phase Build (4-6 sem) | Phase Spécifique (3-4 sem) | Phase Taper (1-2 sem) |");
     lines.push("|----------|---------------------|----------------------|---------------------------|----------------------|");
     lines.push("| VO2max bas | Billat 30/30 (2×8min), 3×3min @VMA | 5×1200m @100% VMA r=3min, VMA longue 4×4min | VMA courte (200-400m) + rappels race pace | 2×(4×200m) @VMA rappel, volume -60% |");
-    lines.push("| VLamax trop haute | Z2 long 2h-2h30 Train Low, sweet spot 2×20min @88% FTP | Z2 long 2h30-3h à jeun, tempo long 40-50min @Z4a | Simulation course Z2-Z4a progressive, Train Low maintien | Z2 60-90min, 1 rappel tempo court |");
+    lines.push("| VLamax trop haute | Z2 long 2h-2h30 Train Low, EF fondamentale 90min+ | Z2 long 2h30-3h à jeun, EF aérobie pur 2h+, tempo Z3 modéré | Simulation course Z2-Z3 progressive, Train Low maintien | Z2 60-90min, 1 rappel EF long |");
     lines.push("| TTE faible (<45min) | Seuil continu 2×15min @Z5, Norvégienne simple | Seuil 2×20min→1×30min, Double seuil Norvégienne 2x/sem | Seuil long 1×35-40min, Race pace intégré | 1×20min seuil rappel, volume -50% |");
     lines.push("| FTP/kg bas | Sweet spot 3×12min @88-93% FTP, Z3 tempo 45min | Sweet spot 2×20min, over-unders 6×(3min@105%+2min@85%), Norvégienne vélo | FTP test simulation, race power practice | 1×15min sweet spot rappel |");
     lines.push("| Économie basse | Côtes 8×30s, SFR 3×8min @50rpm, Rønnestad force 2x/sem | Côtes longues 6×2min, pliométrie 80 contacts, force maintien 1x/sem | Rappels côtes courtes, strides post-EF | Strides 6×100m, 1 séance force légère |");
