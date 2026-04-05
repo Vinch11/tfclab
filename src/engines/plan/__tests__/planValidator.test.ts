@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validatePlan, type PlanValidationResult } from "../planValidator";
+import { deriveLimiterKeysFromGapAnalysis, validatePlan, type PlanValidationResult } from "../planValidator";
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 
 function makeSession(overrides: Partial<ParsedSession> = {}): ParsedSession {
@@ -133,5 +133,38 @@ describe("planValidator", () => {
     expect(result.weekMetrics[0].weekNumber).toBe(1);
     expect(result.weekMetrics[0].activeSessions).toBeGreaterThan(0);
     expect(result.weekMetrics[0].keySessions).toBeGreaterThan(0);
+  });
+
+  it("derives limiter keys from weighted gap order and coach override", () => {
+    const gaps = [
+      { metric: "TTE", weightedImpact: 18, status: "limiting" },
+      { metric: "VO2max", weightedImpact: 25, status: "limiting" },
+      { metric: "VLamax", weightedImpact: 12, status: "limiting" },
+    ];
+
+    expect(deriveLimiterKeysFromGapAnalysis(gaps)).toEqual(["vo2max", "tte", "vlamax"]);
+    expect(deriveLimiterKeysFromGapAnalysis(gaps, ["VLamax", "VO2max"])).toEqual(["vlamax", "vo2max", "tte"]);
+  });
+
+  it("prioritizes explicit limiter keys over text parsing for limiter coverage", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "VO2max 6x3min", details: "Séance clé 🔑 Z6" },
+        { sport: "Course", title: "EF Z2 45min", details: "Facile" },
+      ]),
+      makeWeek(2, [
+        { sport: "Course", title: "VO2max 5x4min", details: "Séance clé 🔑 Z6" },
+        { sport: "Course", title: "EF Z2 50min", details: "Facile" },
+      ]),
+      makeWeek(3, [
+        { sport: "Course", title: "VO2max 30/30", details: "Séance clé 🔑 Z6" },
+        { sport: "Course", title: "EF Z2 40min", details: "Facile" },
+      ]),
+    ]);
+
+    const result = validatePlan(plan, undefined, undefined, undefined, ["### Limiteur #1 — TTE"], ["vo2max"]);
+
+    expect(result.limiterCoverage[0]?.key).toBe("vo2max");
+    expect(result.limiterCoverage[0]?.pct).toBeGreaterThan(0);
   });
 });
