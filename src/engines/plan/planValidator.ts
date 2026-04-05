@@ -1000,7 +1000,7 @@ function validateLimiterCoherence(
   // Co-contributor patterns: sessions that contribute to VLamax reduction via proven synergies
   // - Seuil long continu (TTE work) → glycolytic depletion → VLamax↓ (Billat, Bosquet 2002)
   // - SFR / Force basse cadence → Type I fiber recruitment → VLamax↓ (Rønnestad 2015)
-  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)/i;
+  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)|seuil.*(?:\d+\s*min)|interval.*seuil/i;
 
   const hasVlamaxLimiter = limiterKeys.includes("vlamax");
 
@@ -1019,6 +1019,25 @@ function validateLimiterCoherence(
           limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
           assignedKey = lKey;
           break; // Priority dedup: stop at first (highest-rank) match
+        }
+      }
+
+      // Fallback: if no limiter matched but session has zone/intensity markers,
+      // try a relaxed match (e.g. "Z5" → vo2max, "seuil" → tte, "sortie longue" → durabilité)
+      if (!assignedKey) {
+        const FALLBACK_ZONE_MAP: Record<string, RegExp> = {
+          "vo2max": /z[56]|zone\s*[56]/i,
+          "tte": /seuil|z4|zone\s*4/i,
+          "durabilit": /sortie\s*longue|\bsl\b|long/i,
+          "vlamax": /z2|endurance|ef\b/i,
+        };
+        for (const lKey of limiterKeys) {
+          const fallback = FALLBACK_ZONE_MAP[lKey];
+          if (fallback && fallback.test(text)) {
+            limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
+            assignedKey = lKey;
+            break;
+          }
         }
       }
 
