@@ -869,40 +869,33 @@ function validateProhibitionCompliance(
  */
 const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
   // VO2max: High-intensity aerobic intervals — VMA, Billat, PMA, short fractionné
-  // Includes Z5/Z6 zone markers and generic "intervalles" with intensity context
-  "vo2max": /vo2|vma|billat|30[\/_ -]?30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma|z[56]|zone\s*[56]|interval.*(?:z[56]|intense|vo2|vma|haute)|r[ée]p[ée]t/i,
+  "vo2max": /vo2|vma|billat|30[\/_ -]?30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma|z[56]|zone\s*[56]|interval.*(?:z[56]|intense|vo2|vma|haute)|r[ée]p[ée]t|lactate[\s_-]*shuttle/i,
 
-  // VLamax (réduction): Glycolytic suppression via Z2 long + train low + endurance fondamentale
-  // Matches EF abbreviation (Endurance Fondamentale) + Z2 long durations + train low + jeûn
-  // Now also matches shorter EF sessions (45min+) since all Z2 contributes to VLamax reduction
-  // SST long sessions are co-contributors (counted via VLAMAX_CO_CONTRIBUTOR_PATTERNS when assigned to FTP)
-  // EXCLUDES: fat max/lipid (→ fatmax), sortie longue/SL (→ durabilité)
-  "vlamax": /train[\s_-]*low|fasted|[àa]\s*jeun|z2.*(?:long|>?\s*[4-9]\d|>?\s*1[0-9]\d\s*min)|z2[\s_-]*long|ef\b.*(?:long|[4-9]\d|1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|endurance[\s_-]*long|fondament|glycoly|a[ée]robie\s*(?:pur|fondament|base)|ef\s+z2\s+(?:[4-9]\d|1\d{2})\s*min/i,
+  // VLamax (réduction): Z2 long + train low + endurance fondamentale + SST long (co-contributor)
+  "vlamax": /train[\s_-]*low|fasted|[àa]\s*jeun|z2.*(?:long|>?\s*[4-9]\d|>?\s*1[0-9]\d\s*min)|z2[\s_-]*long|ef\b.*(?:long|[4-9]\d|1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|endurance[\s_-]*long|fondament|glycoly|a[ée]robie\s*(?:pur|fondament|base)|ef\s+z2\s+(?:[4-9]\d|1\d{2})\s*min|heat[\s_-]*acclim|altitude[\s_-]*easy/i,
 
-  // TTE: Sustained threshold endurance — seuil continu LONG, Norvégienne, MLSS
-  // Now also matches generic "seuil" + any duration, and "Z4 continu/soutenu"
-  // EXCLUDES: sweet spot (→ ftp), over-under (→ ftp), bare "tempo" (→ generic)
-  "tte": /seuil\s*(?:continu|long|prolong|2[×x]|1[×x])|norv[ée]gi|norwegian|mlss|double\s*threshold|tempo\s*(?:long|continu|soutenu)|threshold\s*(?:long|continu|cruise)|cruise(?:\s*interval)?|race[\s_-]*pace.*(?:3[×x]20|2[×x]20|20|min)|continu.*(?:seuil|z[45])|seuil.*(?:\d+\s*(?:min|x))|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|interval.*seuil|seuil.*interval/i,
+  // TTE: Sustained threshold endurance — seuil, threshold (bare), tempo, allure spécifique, race pace
+  // Now matches: "threshold" alone, "tempo" alone, "seuil" alone, "allure" patterns, "race pace" blocks
+  "tte": /seuil|threshold|tempo|allure\s*(?:marathon|semi|course|10k|5k|70\.?3|im\b|ironman|spécifiq|race)|norv[ée]gi|norwegian|mlss|double[\s_-]*threshold|cruise(?:\s*interval)?|race[\s_-]*pace|continu.*z[45]|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|interval.*seuil|marathon[\s_-]*pace|css/i,
 
-  // FatMax: Fat oxidation specific — fat max, lipid, oxydation lipidique, glycogène
-  // EXCLUDES: train low without fat context (→ vlamax), Z2 long without fat context (→ vlamax)
-  "fatmax": /fat\s*(?:max|ox)|lipid|oxydation|glycogène|gut\s*training|nutrition.*course/i,
+  // FatMax: Fat oxidation specific — fat max, lipid, oxydation lipidique, glycogène, gut training
+  "fatmax": /fat\s*(?:max|ox)|lipid|oxydation|glycogène|gut[\s_-]*training|nutrition.*course/i,
 
-  // Économie: Neuromuscular economy — côtes, SFR, Rønnestad, force, plio, strides, drill, technique
-  "économie": /c[ôo]te|sfr|r[øo]nnestad|plio|strides|gammes|drill|cadence|technique|éducatif|low[\s_-]*cadence|force[\s_-]*low[\s_-]*cadence/i,
+  // Économie: Neuromuscular economy — côtes, SFR, force, plio, strides, drill, technique
+  // Now matches: strength, force, renfo, gainage, core, PPG, proprio, mobilité, hill, descente
+  "économie": /c[ôo]te|sfr|r[øo]nnestad|plio|strides|gammes|drill|cadence|technique|éducatif|low[\s_-]*cadence|force[\s_-]*low[\s_-]*cadence|strength|force|renfo|gainage|core\b|ppg|proprio|muscul|pr[ée]vention|mobilit|hip|hanche|eccentric|excentri|descen|a[ée]ro[\s_-]*hold|bilateral|respir|inspirat/i,
 
-  // FTP: Power at threshold — sweet spot, over-under, FTP intervals, threshold power
-  // EXCLUDES: seuil continu long (→ tte), norvégienne (→ tte)
-  "ftp": /\bsst\b|sweet[\s_-]*spot|over.?under|race[\s_-]*power|ftp\s*(?:interval|bloc|continu|test)|threshold.*(?:power|puissance)|seuil.*(?:puissance|watts|ftp)|tempo\s*(?:ftp|power)/i,
+  // FTP: Power at threshold — sweet spot, over-under, FTP intervals
+  "ftp": /\bsst\b|sweet[\s_-]*spot|over.?under|race[\s_-]*power|ftp\s*(?:interval|bloc|continu|test)|threshold.*(?:power|puissance)|seuil.*(?:puissance|watts|ftp)|tempo\s*(?:ftp|power)|cp[\s_-]*w[\s_-]*prime|cp.*test/i,
 
-  // Durabilité: Long-distance endurance — sortie longue, SL, long run, brick, finish rapide
-  // EXCLUDES: Z2 long with metabolic context (→ vlamax)
-  "durabilit": /sortie\s*longue|\bsl\b|long\s*(?:run|ride)|brick|finish.*rapide|durabilité|simulation.*course|course.*longue/i,
+  // Durabilité: Long-distance endurance — sortie longue, long run, brick, simulation, endurance spécifique
+  // Now matches: "long" alone in run/ride context, "endurance" with distance context, "back to back", "progressive", "steady long"
+  "durabilit": /sortie\s*longue|\bsl\b|long\s*(?:run|ride)|brick|finish.*rapide|durabilité|simulation|course.*longue|back[\s_-]*to[\s_-]*back|progressive|steady[\s_-]*long|endurance\s*(?:im|marathon|semi|spécif|longue)|rolling|neg[\s_-]*split|fartlek/i,
 
   // Sprint: Sprint/neuromuscular power
   "sprint": /sprint|neuro.*muscul|explo|plyo|force\s*max|vitesse\s*max/i,
 
-  // Pmax: Peak power (overlaps with sprint — only used if sprint not present)
+  // Pmax: Peak power
   "pmax": /pmax|sprint.*(?:max|all.out)|force\s*max|r[øo]nnestad.*(?:sprint|force)/i,
 };
 
@@ -947,12 +940,12 @@ const LIMITER_ALIAS_HINTS: Array<{ pattern: RegExp; aliases: string }> = [
 
 const FALLBACK_ZONE_MAP: Record<string, RegExp> = {
   "vo2max": /z[56]|zone\s*[56]|vo2|vma|pma/i,
-  "tte": /seuil|threshold|tempo|z4|zone\s*4|race[\s_-]*pace.*(?:20|min)/i,
-  "ftp": /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|race[\s_-]*power/i,
-  "durabilit": /sortie\s*longue|\bsl\b|long(?:\s*(?:run|ride))?|brick/i,
-  "vlamax": /z2|endurance|ef\b|train[\s_-]*low|fasted/i,
-  "fatmax": /fat[\s_-]*(?:max|ox)|lipid|oxydation|glycogène/i,
-  "économie": /côte|sfr|strides|drill|gammes|technique|éducatif|hill|tech/i,
+  "tte": /seuil|threshold|tempo|z4|zone\s*4|race[\s_-]*pace|allure|css/i,
+  "ftp": /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|race[\s_-]*power|cp/i,
+  "durabilit": /sortie\s*longue|\bsl\b|long(?:\s*(?:run|ride))?|brick|progressive|fartlek|back.to.back|steady/i,
+  "vlamax": /z2|endurance|ef\b|train[\s_-]*low|fasted|heat|altitude/i,
+  "fatmax": /fat[\s_-]*(?:max|ox)|lipid|oxydation|glycogène|gut/i,
+  "économie": /côte|sfr|strides|drill|gammes|technique|éducatif|hill|tech|strength|force|renfo|core|ppg|proprio|mobilit|gainage/i,
 };
 
 function buildLimiterMatchText(session: ParsedSession): string {
