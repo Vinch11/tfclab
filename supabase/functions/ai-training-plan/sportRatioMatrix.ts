@@ -424,7 +424,7 @@ export function extractLimiterKeywords(limiterName: string): string[] {
   const kw: string[] = [];
   const l = limiterName.toLowerCase();
   // VLamax (reduction) = glycolytic suppression, NOT sprint/force (which INCREASE VLamax)
-  if (/vlamax/i.test(l)) kw.push("vlamax", "train low", "glycoly", "z2 long", "endurance fond", "aérobie pur", "jeun");
+  if (/vlamax/i.test(l)) kw.push("vlamax", "train low", "glycoly", "z2 long", "endurance fond", "aérobie pur", "jeun", "seuil long", "threshold long", "sfr", "force basse cadence", "low cadence");
   if (/tte|time.to.exhaust/i.test(l)) kw.push("tte", "seuil continu", "norvégi", "mlss", "tempo long", "threshold long");
   if (/durabilit/i.test(l)) kw.push("durabilit", "sortie longue", "long run", "brick", "finish rapide", "simulation");
   if (/fatmax|lipid|fat.ox/i.test(l)) kw.push("fatmax", "fat max", "lipid", "oxydation", "glycogène", "gut training");

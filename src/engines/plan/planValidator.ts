@@ -869,29 +869,29 @@ function validateProhibitionCompliance(
 const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
   // VO2max: High-intensity aerobic intervals — VMA, Billat, PMA, short fractionné
   // Includes Z5/Z6 zone markers and generic "intervalles" with intensity context
-  "vo2max": /vo2|vma|billat|30\/30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma|z[56]|zone\s*[56]|interval.*(?:z[56]|intense|vo2|vma|haute)|r[ée]p[ée]t/i,
+  "vo2max": /vo2|vma|billat|30[\/_ -]?30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma|z[56]|zone\s*[56]|interval.*(?:z[56]|intense|vo2|vma|haute)|r[ée]p[ée]t/i,
 
   // VLamax (réduction): Glycolytic suppression via Z2 long + train low + endurance fondamentale
   // Matches EF abbreviation (Endurance Fondamentale) + Z2 long durations + train low + jeûn
   // Now also matches shorter EF sessions (45min+) since all Z2 contributes to VLamax reduction
   // EXCLUDES: fat max/lipid (→ fatmax), sweet spot (→ ftp), sortie longue/SL (→ durabilité)
-  "vlamax": /train\s*low|[àa]\s*jeun|z2.*(?:long|>?\s*[4-9]\d|>?\s*1[0-9]\d\s*min)|ef\b.*(?:long|[4-9]\d|1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|fondament|glycoly|aérobie\s*(?:pur|fondament|base)|ef\s+z2\s+(?:[4-9]\d|1\d{2})\s*min/i,
+  "vlamax": /train[\s_-]*low|fasted|[àa]\s*jeun|z2.*(?:long|>?\s*[4-9]\d|>?\s*1[0-9]\d\s*min)|z2[\s_-]*long|ef\b.*(?:long|[4-9]\d|1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|endurance[\s_-]*long|fondament|glycoly|a[ée]robie\s*(?:pur|fondament|base)|ef\s+z2\s+(?:[4-9]\d|1\d{2})\s*min/i,
 
   // TTE: Sustained threshold endurance — seuil continu LONG, Norvégienne, MLSS
   // Now also matches generic "seuil" + any duration, and "Z4 continu/soutenu"
   // EXCLUDES: sweet spot (→ ftp), over-under (→ ftp), bare "tempo" (→ generic)
-  "tte": /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|continu.*(?:seuil|z[45])|seuil.*(?:\d+\s*(?:min|x))|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|interval.*seuil|seuil.*interval|threshold/i,
+  "tte": /seuil\s*(?:continu|long|prolong|2[×x]|1[×x])|norv[ée]gi|norwegian|mlss|double\s*threshold|tempo\s*(?:long|continu|soutenu)|threshold\s*(?:long|continu|cruise)|cruise(?:\s*interval)?|race[\s_-]*pace.*(?:3[×x]20|2[×x]20|20|min)|continu.*(?:seuil|z[45])|seuil.*(?:\d+\s*(?:min|x))|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|interval.*seuil|seuil.*interval/i,
 
   // FatMax: Fat oxidation specific — fat max, lipid, oxydation lipidique, glycogène
   // EXCLUDES: train low without fat context (→ vlamax), Z2 long without fat context (→ vlamax)
   "fatmax": /fat\s*(?:max|ox)|lipid|oxydation|glycogène|gut\s*training|nutrition.*course/i,
 
   // Économie: Neuromuscular economy — côtes, SFR, Rønnestad, force, plio, strides, drill, technique
-  "économie": /c[ôo]te|sfr|r[øo]nnestad|plio|strides|gammes|drill|cadence|technique|éducatif/i,
+  "économie": /c[ôo]te|sfr|r[øo]nnestad|plio|strides|gammes|drill|cadence|technique|éducatif|low[\s_-]*cadence|force[\s_-]*low[\s_-]*cadence/i,
 
   // FTP: Power at threshold — sweet spot, over-under, FTP intervals, threshold power
   // EXCLUDES: seuil continu long (→ tte), norvégienne (→ tte)
-  "ftp": /sweet\s*spot|over.?under|ftp\s*(?:interval|bloc|continu|test)|threshold.*(?:power|puissance)|seuil.*(?:puissance|watts|ftp)/i,
+  "ftp": /\bsst\b|sweet[\s_-]*spot|over.?under|race[\s_-]*power|ftp\s*(?:interval|bloc|continu|test)|threshold.*(?:power|puissance)|seuil.*(?:puissance|watts|ftp)|tempo\s*(?:ftp|power)/i,
 
   // Durabilité: Long-distance endurance — sortie longue, SL, long run, brick, finish rapide
   // EXCLUDES: Z2 long with metabolic context (→ vlamax)
@@ -903,6 +903,51 @@ const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
   // Pmax: Peak power (overlaps with sprint — only used if sprint not present)
   "pmax": /pmax|sprint.*(?:max|all.out)|force\s*max|r[øo]nnestad.*(?:sprint|force)/i,
 };
+
+const LIMITER_ALIAS_HINTS: Array<{ pattern: RegExp; aliases: string }> = [
+  {
+    pattern: /norwegian|norv[ée]gi|double[\s_-]*threshold|mlss|threshold[\s_-]*long|tempo[\s_-]*long|cruise/i,
+    aliases: "seuil continu norvégienne mlss threshold long tte",
+  },
+  {
+    pattern: /\bsst\b|sweet[\s_-]*spot|over[\s_-]*under|race[\s_-]*(?:power|pace).*(?:3[\sx_/-]*20|2[\sx_/-]*20|20)|ftp/i,
+    aliases: "sweet spot over under ftp seuil puissance race pace threshold power",
+  },
+  {
+    pattern: /train[\s_-]*low|fasted|z2[\s_-]*long|endurance[\s_-]*long|fondation[\s_-]*z2|aerobic[\s_-]*(?:base|endurance)/i,
+    aliases: "train low à jeun z2 long endurance fondamentale aérobie pure vlamax",
+  },
+  {
+    pattern: /sfr|low[\s_-]*cadence|force[\s_-]*low[\s_-]*cadence|cadence[\s_-]*(?:40|50|60)|r[øo]nnestad/i,
+    aliases: "sfr force basse cadence économie vlamax",
+  },
+  {
+    pattern: /vo2|vma|pma|billat|30[\/_ -]?30/i,
+    aliases: "vo2max vma pma billat",
+  },
+  {
+    pattern: /long[\s_-]*run|sortie[\s_-]*longue|brick|race[\s_-]*sim|simulation/i,
+    aliases: "sortie longue long run brick durabilité simulation course",
+  },
+];
+
+const FALLBACK_ZONE_MAP: Record<string, RegExp> = {
+  "vo2max": /z[56]|zone\s*[56]|vo2|vma|pma/i,
+  "tte": /seuil|threshold|tempo|z4|zone\s*4|race[\s_-]*pace.*(?:20|min)/i,
+  "ftp": /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|race[\s_-]*power/i,
+  "durabilit": /sortie\s*longue|\bsl\b|long(?:\s*(?:run|ride))?|brick/i,
+  "vlamax": /z2|endurance|ef\b|train[\s_-]*low|fasted/i,
+};
+
+function buildLimiterMatchText(session: ParsedSession): string {
+  const rawText = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
+  const aliasText = LIMITER_ALIAS_HINTS
+    .filter(({ pattern }) => pattern.test(rawText))
+    .map(({ aliases }) => aliases)
+    .join(" ");
+
+  return `${rawText} ${aliasText}`.trim();
+}
 
 function detectLimiterKeyFromText(limiterText: string): string | null {
   const lower = limiterText.toLowerCase();
@@ -1007,9 +1052,10 @@ function validateLimiterCoherence(
   for (const week of plan.weeks) {
     for (const session of week.sessions) {
       if (session.isRest) continue;
-      const text = `${session.title} ${session.details}`;
-      if (!KEY_SESSION_PATTERNS.test(text)) continue;
+      const rawText = `${session.title} ${session.details}`;
+      if (!KEY_SESSION_PATTERNS.test(rawText)) continue;
       totalKeySessions++;
+      const text = buildLimiterMatchText(session);
 
       // Assign to highest-priority matching limiter
       let assignedKey: string | null = null;
@@ -1025,12 +1071,6 @@ function validateLimiterCoherence(
       // Fallback: if no limiter matched but session has zone/intensity markers,
       // try a relaxed match (e.g. "Z5" → vo2max, "seuil" → tte, "sortie longue" → durabilité)
       if (!assignedKey) {
-        const FALLBACK_ZONE_MAP: Record<string, RegExp> = {
-          "vo2max": /z[56]|zone\s*[56]/i,
-          "tte": /seuil|z4|zone\s*4/i,
-          "durabilit": /sortie\s*longue|\bsl\b|long/i,
-          "vlamax": /z2|endurance|ef\b/i,
-        };
         for (const lKey of limiterKeys) {
           const fallback = FALLBACK_ZONE_MAP[lKey];
           if (fallback && fallback.test(text)) {

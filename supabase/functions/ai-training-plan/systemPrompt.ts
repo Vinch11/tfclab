@@ -212,7 +212,7 @@ Pour IM/70.3/Marathon Competitor+ :
 | Limiteur #1 | Bloc 1 (Fondation) | Bloc 2 (Chantier) | Bloc 3 (Consolidation) | Bloc 4 (Race-Specific) |
 |-------------|-------------------|-------------------|----------------------|----------------------|
 | VO2max bas | Force + Z2 | **Chantier VO2max** : Billat 2-3x/sem + SL progressives | Seuil + allure course progressive | Simulations race-pace |
-| VLamax haute | Force + VO2max courte | **Chantier VLamax↓** : Z2 long Train Low 2-3x/sem + sweet spot | Seuil + durabilité | Simulations race-pace + Z2 maintien |
+| VLamax haute | Force + VO2max courte | **Chantier VLamax↓** : Z2 long Train Low 2-3x/sem + seuil long continu + SFR basse cadence | Seuil + durabilité | Simulations race-pace + Z2 maintien |
 | TTE faible | Force + VO2max courte | **Chantier TTE↑** : Norvégienne progressive (2×15→1×40min) | Allure course + durabilité | Simulations + seuil long rappels |
 | FTP/kg bas | Force max + VO2max | **Chantier FTP** : Sweet spot + over-unders 2-3x/sem | Seuil + race-power | Simulations race-power |
 | Économie | Force max + plio intensive | **Chantier Économie** : SFR + côtes + force maintien | Seuil + allure course | Simulations + strides rappels |
@@ -1866,7 +1866,7 @@ Le séquençage des blocs détermine l'ordre dans lequel les qualités physiques
 | Limiteur #1 | Bloc 1 (Base) | Bloc 2 (Build) | Bloc 3 (Spécifique) | Bloc 4 (Taper) |
 |-------------|---------------|----------------|---------------------|----------------|
 | VO2max bas | Volume Z2 + Force | VO2max Billat intensive | Race-pace + rappels VO2max | Rappels courts VO2max |
-| VLamax haute | Z2 long Train Low | Z2 + sweet spot long | Race-pace + Z2 maintien | Z2 rappel + race-pace |
+| VLamax haute | Z2 long Train Low | Z2 + seuil long continu + SFR basse cadence | Race-pace + Z2 maintien | Z2 rappel + race-pace |
 | TTE faible | Volume Z2 + Force | Seuil Norvégienne progressive | Seuil long + race-pace | Rappels seuil courts |
 | FTP/kg bas | Force max + Z2 | Sweet spot + over-unders | Race-power + rappels SS | Rappels SS courts |
 | Économie basse | Force max + plio | SFR + côtes + force maintien | Race-pace + strides | Strides + activation |
