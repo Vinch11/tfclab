@@ -12,6 +12,7 @@
  */
 
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
+import { extractCatalogId } from "@/lib/catalogIdExtractor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -526,7 +527,7 @@ function validateSportRatio(
 // CATALOGUE/CUSTOM RATIO VALIDATION (Rule 6)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const CATALOG_ID_PATTERN = /\b(?:[A-D]_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY|10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE)[A-Z0-9_]+|(?:BRICK|ENR|V[0-9]|TPL|RS|BR)_[A-Z0-9_]+)/g;
+const CATALOG_ID_PATTERN = /\b(?:[A-D]_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY|10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE)[A-Za-z0-9_]+|(?:BRICK|ENR|V[0-9]|TPL|RS|BR)_[A-Za-z0-9_]+)/g;
 const CUSTOM_PATTERN = /\[Custom\]/gi;
 
 function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number; catalogPct: number; catalogStats: CatalogUsageStats } {
@@ -941,12 +942,14 @@ const FALLBACK_ZONE_MAP: Record<string, RegExp> = {
 
 function buildLimiterMatchText(session: ParsedSession): string {
   const rawText = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
+  const catalogId = extractCatalogId(session.title, session.details)?.toLowerCase() ?? "";
+  const catalogText = catalogId.replace(/_/g, " ");
   const aliasText = LIMITER_ALIAS_HINTS
-    .filter(({ pattern }) => pattern.test(rawText))
+    .filter(({ pattern }) => pattern.test(rawText) || (catalogText ? pattern.test(catalogText) : false))
     .map(({ aliases }) => aliases)
     .join(" ");
 
-  return `${rawText} ${aliasText}`.trim();
+  return `${rawText} ${catalogText} ${aliasText}`.trim();
 }
 
 function detectLimiterKeyFromText(limiterText: string): string | null {
@@ -1046,8 +1049,11 @@ function validateLimiterCoherence(
   // - Seuil long continu (TTE work) → glycolytic depletion → VLamax↓ (Billat, Bosquet 2002)
   // - SFR / Force basse cadence → Type I fiber recruitment → VLamax↓ (Rønnestad 2015)
   const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)|seuil.*(?:\d+\s*min)|interval.*seuil/i;
+  const TTE_FTP_CROSSOVER_PATTERNS = /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|threshold(?:[\s_-]*(?:power|long|cruise))?|race[\s_-]*(?:pace|power).*(?:2[\sx_/-]*20|3[\sx_/-]*20|20\s*min)|tempo\s*(?:long|continu)|double[\s_-]*threshold|norwegian/i;
 
   const hasVlamaxLimiter = limiterKeys.includes("vlamax");
+  const hasFtpLimiter = limiterKeys.includes("ftp");
+  const hasTteLimiter = limiterKeys.includes("tte");
 
   for (const week of plan.weeks) {
     for (const session of week.sessions) {
@@ -1087,6 +1093,16 @@ function validateLimiterCoherence(
       if (hasVlamaxLimiter && assignedKey !== "vlamax" && (assignedKey === "tte" || assignedKey === "économie")) {
         if (VLAMAX_CO_CONTRIBUTOR_PATTERNS.test(text)) {
           limiterHits["vlamax"] = (limiterHits["vlamax"] || 0) + 1;
+          isLimiterRelevant = true;
+        }
+      }
+
+      if (hasTteLimiter && hasFtpLimiter && TTE_FTP_CROSSOVER_PATTERNS.test(text)) {
+        if (assignedKey === "tte") {
+          limiterHits["ftp"] = (limiterHits["ftp"] || 0) + 1;
+          isLimiterRelevant = true;
+        } else if (assignedKey === "ftp") {
+          limiterHits["tte"] = (limiterHits["tte"] || 0) + 1;
           isLimiterRelevant = true;
         }
       }
