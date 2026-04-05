@@ -852,7 +852,8 @@ function validateProhibitionCompliance(
 /** Maps limiter keywords to expected session content patterns.
  * IMPORTANT: Patterns are MUTUALLY EXCLUSIVE to prevent priority-dedup from starving lower-rank limiters.
  * Each limiter has its own distinctive patterns that don't overlap with others.
- * A session matching L1 is NOT double-counted for L2/L3/L4 (priority dedup in validator).
+ * A session matching L1 is NOT double-counted for L2/L3/L4 (priority dedup in validator),
+ * EXCEPT for proven physiological synergies defined in VLAMAX_CO_CONTRIBUTOR_PATTERNS.
  *
  * OVERLAP AUDIT (2026-04-04):
  * - VLamax vs FatMax: VLamax = glycolytic suppression (train low + Z2 long volume). FatMax = fat oxidation (fat max, lipid, oxydation).
