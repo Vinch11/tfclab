@@ -64,7 +64,7 @@ const LEVER_LABELS: Record<string, string> = {
 
 const METRIC_TO_LIMITER_MAP: Record<string, string> = {
   "VO2max": "VO2max bas",
-  "FTP/kg": "VO2max bas",
+  "FTP/kg": "FTP/kg bas (puissance au seuil)",
   "VLamax": "VLamax trop haute (LD)",
   "TTE": "TTE faible (<40min)",
   "FatMax": "FatMax bas",
