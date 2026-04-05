@@ -1528,7 +1528,7 @@ Dan Lorang structure chaque semaine autour de **séances clés** (Key Sessions) 
 | Limiteur identifié | Séance Clé #1 | Séance Clé #2 | Séance Clé #3 (optionnelle) |
 |---|---|---|---|
 | **VO2max bas** | VMA longue (5×1200m @98% VMA) ou VO2max vélo (5×5min @115% FTP) | Seuil long (2×20min @88% VMA ou @95% FTP) | SL progressive avec finish rapide |
-| **VLamax trop haute (LD)** | Z2 longue à jeun (Train Low 2h+) | Sweet spot continu long (2×30min @88% FTP) | SL progressive neg split |
+| **VLamax trop haute (LD)** | Z2 longue à jeun (Train Low 2h+) | SFR/Force basse cadence (6×5min @75-85% FTP, 50-60 RPM) | Seuil long continu (1×30-40min @seuil) — co-contributeur TTE↑→VLamax↓ |
 | **VLamax trop basse (5K/10K)** | VMA courte explosive (12×400m @VMA, r=60s) | Sprint/pliométrie + côtes | Fartlek intensif (pyramide) |
 | **TTE faible (<40min)** | Seuil continu long (1×30-40min @seuil) | Sweet spot prolongé (2×25min @90% FTP) | Tempo marathon/semi continu |
 | **Économie de course basse** | Côtes/SFR (10×200m côte 8% @VO2max) | Strides + drills techniques post-EF | Force max (squat 4×5 @80%) |
