@@ -59,10 +59,12 @@ export {
 
 // Plan Validator
 export {
+  deriveLimiterKeysFromGapAnalysis,
   validatePlan,
   formatValidationReport,
 } from "./planValidator";
 export type {
+  LimiterGapLike,
   PlanValidationResult,
   ValidationIssue,
   WeekMetrics,

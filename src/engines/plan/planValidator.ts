@@ -88,6 +88,12 @@ export interface PlanValidationResult {
   };
 }
 
+type LimiterGapLike = {
+  metric: string;
+  weightedImpact: number;
+  status?: string;
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // INTENSITY CLASSIFICATION
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -910,23 +916,76 @@ function detectLimiterKeyFromText(limiterText: string): string | null {
   return null;
 }
 
+function detectLimiterKeyFromMetric(metric: string): string | null {
+  const lower = metric.toLowerCase();
+  if (/vo2max|vma/i.test(lower)) return "vo2max";
+  if (/vlamax/i.test(lower)) return "vlamax";
+  if (/tte/i.test(lower)) return "tte";
+  if (/fatmax|fat\s*ox|lipid/i.test(lower)) return "fatmax";
+  if (/[ée]conom/i.test(lower)) return "économie";
+  if (/ftp.*kg|ftp\/kg|puissance.*a[ée]rob/i.test(lower)) return "ftp";
+  if (/durabilit/i.test(lower)) return "durabilit";
+  if (/sprint|pmax|neuro/i.test(lower)) return "sprint";
+  return null;
+}
+
+export function deriveLimiterKeysFromGapAnalysis(
+  gapAnalysis: LimiterGapLike[],
+  coachLimiterOrder?: string[]
+): string[] {
+  if (!gapAnalysis || gapAnalysis.length === 0) return [];
+
+  let rankedGaps = [...gapAnalysis]
+    .filter((gap) => gap.weightedImpact > 0 && gap.status !== "unknown")
+    .sort((a, b) => b.weightedImpact - a.weightedImpact);
+
+  if (coachLimiterOrder && coachLimiterOrder.length > 0) {
+    rankedGaps = rankedGaps.sort((a, b) => {
+      const idxA = coachLimiterOrder.indexOf(a.metric);
+      const idxB = coachLimiterOrder.indexOf(b.metric);
+      const posA = idxA >= 0 ? idxA : 999;
+      const posB = idxB >= 0 ? idxB : 999;
+      if (posA !== posB) return posA - posB;
+      return b.weightedImpact - a.weightedImpact;
+    });
+  }
+
+  const limiterKeys: string[] = [];
+  for (const gap of rankedGaps) {
+    const key = detectLimiterKeyFromMetric(gap.metric);
+    if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
+    if (limiterKeys.length >= 4) break;
+  }
+
+  return limiterKeys;
+}
+
 function validateLimiterCoherence(
   plan: ParsedPlan,
-  identifiedLimiters?: string[]
+  identifiedLimiters?: string[],
+  identifiedLimiterKeys?: string[]
 ): { issues: ValidationIssue[]; score: number; coverage: LimiterCoverageItem[] } {
   const issues: ValidationIssue[] = [];
   const coverage: LimiterCoverageItem[] = [];
 
-  if (!identifiedLimiters || identifiedLimiters.length === 0 || plan.weeks.length < 3) {
+  if (((!identifiedLimiters || identifiedLimiters.length === 0) && (!identifiedLimiterKeys || identifiedLimiterKeys.length === 0)) || plan.weeks.length < 3) {
     return { issues, score: 100, coverage };
   }
 
-  // Extract up to 4 limiter keys from the identified limiters text
   const limiterKeys: string[] = [];
-  for (const limText of identifiedLimiters) {
-    const key = detectLimiterKeyFromText(limText);
-    if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-    if (limiterKeys.length >= 4) break;
+
+  if (identifiedLimiterKeys && identifiedLimiterKeys.length > 0) {
+    for (const key of identifiedLimiterKeys) {
+      if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
+      if (limiterKeys.length >= 4) break;
+    }
+  } else if (identifiedLimiters) {
+    // Fallback for legacy callers: extract from prompt text
+    for (const limText of identifiedLimiters) {
+      const key = detectLimiterKeyFromText(limText);
+      if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
+      if (limiterKeys.length >= 4) break;
+    }
   }
 
   if (limiterKeys.length === 0) return { issues, score: 80, coverage };
@@ -1094,7 +1153,14 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
   return { issues, score: Math.max(0, score) };
 }
 
-export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?: string[], raceWeekNumbers?: number[], identifiedLimiters?: string[]): PlanValidationResult {
+export function validatePlan(
+  plan: ParsedPlan,
+  objective?: string,
+  prohibitions?: string[],
+  raceWeekNumbers?: number[],
+  identifiedLimiters?: string[],
+  identifiedLimiterKeys?: string[]
+): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
@@ -1108,7 +1174,7 @@ export function validatePlan(plan: ParsedPlan, objective?: string, prohibitions?
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
   const phaseCoherence = validatePhaseCoherence(plan);
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
-  const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters);
+  const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, identifiedLimiterKeys);
 
   // Combine all issues
   const allIssues = [
