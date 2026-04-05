@@ -1062,7 +1062,9 @@ function validateLimiterCoherence(
   // Co-contributor patterns: sessions that contribute to VLamax reduction via proven synergies
   // - Seuil long continu (TTE work) → glycolytic depletion → VLamax↓ (Billat, Bosquet 2002)
   // - SFR / Force basse cadence → Type I fiber recruitment → VLamax↓ (Rønnestad 2015)
-  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)|seuil.*(?:\d+\s*min)|interval.*seuil/i;
+  // - Sweet Spot long → forced Type IIa aerobic recruitment + glycogen depletion → VLamax↓
+  //   (especially at low cadence 55-65 RPM: maximal IIa stress in aerobic mode)
+  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)|seuil.*(?:\d+\s*min)|interval.*seuil|\bsst\b|sweet[\s_-]*spot/i;
   const TTE_FTP_CROSSOVER_PATTERNS = /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|threshold(?:[\s_-]*(?:power|long|cruise))?|race[\s_-]*(?:pace|power).*(?:2[\sx_/-]*20|3[\sx_/-]*20|20\s*min)|tempo\s*(?:long|continu)|double[\s_-]*threshold|norwegian/i;
 
   const hasVlamaxLimiter = limiterKeys.includes("vlamax");
