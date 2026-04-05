@@ -659,7 +659,7 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
                 🚫 Conformité prohibitions
                 <ChevronDown className="h-3 w-3 transition-transform group-data-[state=open]:rotate-180" />
               </h4>
-              <Badge variant="destructive" className="text-[9px]">
+              <Badge variant="destructive" className="text-[9px] hidden group-data-[state=open]:inline-flex">
                 {validationResult.summary.prohibitionComplianceScore}/100
               </Badge>
             </CollapsibleTrigger>
@@ -684,7 +684,7 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
                 📦 Cohérence des phases
                 <ChevronDown className="h-3 w-3 transition-transform group-data-[state=open]:rotate-180" />
               </h4>
-              <Badge variant="outline" className="text-[9px] border-amber-500/50 text-amber-600 dark:text-amber-400">
+              <Badge variant="outline" className="text-[9px] border-amber-500/50 text-amber-600 dark:text-amber-400 hidden group-data-[state=open]:inline-flex">
                 {validationResult.summary.phaseCoherenceScore}/100
               </Badge>
             </CollapsibleTrigger>
