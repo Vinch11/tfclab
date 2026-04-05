@@ -1054,7 +1054,6 @@ function validateLimiterCoherence(
       if (session.isRest) continue;
       const rawText = `${session.title} ${session.details}`;
       if (!KEY_SESSION_PATTERNS.test(rawText)) continue;
-      totalKeySessions++;
       const text = buildLimiterMatchText(session);
 
       // Assign to highest-priority matching limiter
@@ -1083,10 +1082,17 @@ function validateLimiterCoherence(
 
       // Double-counting for proven VLamax co-contributors:
       // If session was assigned to TTE or Économie, also count it for VLamax (if VLamax is a limiter)
+      let isLimiterRelevant = assignedKey !== null;
+
       if (hasVlamaxLimiter && assignedKey !== "vlamax" && (assignedKey === "tte" || assignedKey === "économie")) {
         if (VLAMAX_CO_CONTRIBUTOR_PATTERNS.test(text)) {
           limiterHits["vlamax"] = (limiterHits["vlamax"] || 0) + 1;
+          isLimiterRelevant = true;
         }
+      }
+
+      if (isLimiterRelevant) {
+        totalKeySessions++;
       }
     }
   }
