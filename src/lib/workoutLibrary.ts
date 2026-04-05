@@ -4446,9 +4446,16 @@ import { EnrichedWorkoutsV6 } from "./enrichedWorkoutsV6";
 WorkoutLibrary.push(...EnrichedWorkoutsV6);
 
 // =============================================
+// ENRICHED WORKOUTS FATMAX — Oxydation Lipidique
+// Z2 à jeun, Fat oxidation, Gut Training progressif, Sleep Low
+// =============================================
+import { EnrichedWorkoutsFatMax } from "./enrichedWorkoutsFatMax";
+WorkoutLibrary.push(...EnrichedWorkoutsFatMax);
+
+// =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]
 // =============================================
 import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
 enrichWorkoutGoals(WorkoutLibrary);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | Total: ${WorkoutLibrary.length}`);
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | FatMax: ${EnrichedWorkoutsFatMax.length} | Total: ${WorkoutLibrary.length}`);
