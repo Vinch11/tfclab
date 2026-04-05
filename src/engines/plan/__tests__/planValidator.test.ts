@@ -167,4 +167,70 @@ describe("planValidator", () => {
     expect(result.limiterCoverage[0]?.key).toBe("vo2max");
     expect(result.limiterCoverage[0]?.pct).toBeGreaterThan(0);
   });
+
+  it("REGRESSION: L1/L2 coverage reaches minimum thresholds with realistic AI sessions", () => {
+    // Simulates a plan with VLamax as L1, VO2max as L2 — typical AI-generated text
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "EF Z2 60min", details: "Endurance fondamentale 🔑" },
+        { sport: "Course", title: "Intervalles Z5 5x4min", details: "Séance clé 🔑 r3min" },
+        { sport: "Course", title: "EF Z2 45min", details: "Récupération active" },
+        { sport: "Course", title: "Seuil continu 2x15min", details: "Séance clé 🔑 Z4" },
+        { sport: "Course", title: "Sortie longue 25km", details: "SL progressive 🔑" },
+      ]),
+      makeWeek(2, [
+        { sport: "Course", title: "EF Z2 70min à jeun", details: "Train low 🔑" },
+        { sport: "Course", title: "VMA 30/30 x20", details: "Séance clé 🔑 Z6" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance fondamentale" },
+        { sport: "Course", title: "Intervalles seuil 3x12min", details: "Séance clé 🔑" },
+        { sport: "Course", title: "Sortie longue 22km", details: "Endurance longue 🔑" },
+      ]),
+      makeWeek(3, [
+        { sport: "Course", title: "EF Z2 65min", details: "Endurance fondamentale 🔑" },
+        { sport: "Course", title: "Intervalles Z5 6x3min", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2 40min", details: "Récupération" },
+        { sport: "Course", title: "Tempo soutenu 25min", details: "Séance clé 🔑 Z4" },
+        { sport: "Vélo", title: "Z2 90min", details: "Endurance vélo" },
+      ]),
+    ]);
+
+    const result = validatePlan(plan, undefined, undefined, undefined, undefined, ["vlamax", "vo2max", "tte"]);
+
+    // L1 (vlamax) should have meaningful coverage — train low, EF long, seuil co-contributor
+    const l1 = result.limiterCoverage.find(c => c.key === "vlamax");
+    expect(l1).toBeDefined();
+    expect(l1!.pct).toBeGreaterThanOrEqual(15);
+
+    // L2 (vo2max) should have meaningful coverage — Z5, VMA, 30/30
+    const l2 = result.limiterCoverage.find(c => c.key === "vo2max");
+    expect(l2).toBeDefined();
+    expect(l2!.pct).toBeGreaterThanOrEqual(10);
+
+    // L3 (tte) should have some coverage — seuil sessions
+    const l3 = result.limiterCoverage.find(c => c.key === "tte");
+    expect(l3).toBeDefined();
+    expect(l3!.pct).toBeGreaterThan(0);
+  });
+
+  it("REGRESSION: zone-based fallback assigns Z5 sessions to vo2max when L1", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "Intervalles Z5 4x8min", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2 45min", details: "Récup" },
+      ]),
+      makeWeek(2, [
+        { sport: "Course", title: "Fartlek Z5", details: "Séance clé 🔑 intense" },
+        { sport: "Course", title: "EF Z2 50min", details: "Récup" },
+      ]),
+      makeWeek(3, [
+        { sport: "Course", title: "Intervalles Z5 5x3min", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2 40min", details: "Récup" },
+      ]),
+    ]);
+
+    const result = validatePlan(plan, undefined, undefined, undefined, undefined, ["vo2max"]);
+    const l1 = result.limiterCoverage.find(c => c.key === "vo2max");
+    expect(l1).toBeDefined();
+    expect(l1!.pct).toBeGreaterThanOrEqual(30);
+  });
 });

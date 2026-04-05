@@ -868,18 +868,19 @@ function validateProhibitionCompliance(
  */
 const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
   // VO2max: High-intensity aerobic intervals — VMA, Billat, PMA, short fractionné
-  "vo2max": /vo2|vma|billat|30\/30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma/i,
+  // Includes Z5/Z6 zone markers and generic "intervalles" with intensity context
+  "vo2max": /vo2|vma|billat|30\/30|interval.*(?:court|rapide)|fractionn|1[01]\d%\s*ftp|pma|z[56]|zone\s*[56]|interval.*(?:z[56]|intense|vo2|vma|haute)|r[ée]p[ée]t/i,
 
   // VLamax (réduction): Glycolytic suppression via Z2 long + train low + endurance fondamentale
   // Matches EF abbreviation (Endurance Fondamentale) + Z2 long durations + train low + jeûn
-  // REQUIRES duration context (≥60min or "long") to avoid matching short recovery EF sessions
+  // Now also matches shorter EF sessions (45min+) since all Z2 contributes to VLamax reduction
   // EXCLUDES: fat max/lipid (→ fatmax), sweet spot (→ ftp), sortie longue/SL (→ durabilité)
-  "vlamax": /train\s*low|[àa]\s*jeun|z2.*(?:long|>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|ef\b.*(?:long|[89]\d|1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|fondament|glycoly|aérobie\s*(?:pur|fondament|base)/i,
+  "vlamax": /train\s*low|[àa]\s*jeun|z2.*(?:long|>?\s*[4-9]\d|>?\s*1[0-9]\d\s*min)|ef\b.*(?:long|[4-9]\d|1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|fondament|glycoly|aérobie\s*(?:pur|fondament|base)|ef\s+z2\s+(?:[4-9]\d|1\d{2})\s*min/i,
 
   // TTE: Sustained threshold endurance — seuil continu LONG, Norvégienne, MLSS
-  // Only matches "seuil" when combined with duration/continuous context (not bare "seuil")
+  // Now also matches generic "seuil" + any duration, and "Z4 continu/soutenu"
   // EXCLUDES: sweet spot (→ ftp), over-under (→ ftp), bare "tempo" (→ generic)
-  "tte": /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|continu.*(?:seuil|z[45])|seuil.*(?:[2-5]\d\s*min)|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil/i,
+  "tte": /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|continu.*(?:seuil|z[45])|seuil.*(?:\d+\s*(?:min|x))|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|interval.*seuil|seuil.*interval|threshold/i,
 
   // FatMax: Fat oxidation specific — fat max, lipid, oxydation lipidique, glycogène
   // EXCLUDES: train low without fat context (→ vlamax), Z2 long without fat context (→ vlamax)
@@ -999,7 +1000,7 @@ function validateLimiterCoherence(
   // Co-contributor patterns: sessions that contribute to VLamax reduction via proven synergies
   // - Seuil long continu (TTE work) → glycolytic depletion → VLamax↓ (Billat, Bosquet 2002)
   // - SFR / Force basse cadence → Type I fiber recruitment → VLamax↓ (Rønnestad 2015)
-  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)/i;
+  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)|seuil.*(?:\d+\s*min)|interval.*seuil/i;
 
   const hasVlamaxLimiter = limiterKeys.includes("vlamax");
 
@@ -1018,6 +1019,25 @@ function validateLimiterCoherence(
           limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
           assignedKey = lKey;
           break; // Priority dedup: stop at first (highest-rank) match
+        }
+      }
+
+      // Fallback: if no limiter matched but session has zone/intensity markers,
+      // try a relaxed match (e.g. "Z5" → vo2max, "seuil" → tte, "sortie longue" → durabilité)
+      if (!assignedKey) {
+        const FALLBACK_ZONE_MAP: Record<string, RegExp> = {
+          "vo2max": /z[56]|zone\s*[56]/i,
+          "tte": /seuil|z4|zone\s*4/i,
+          "durabilit": /sortie\s*longue|\bsl\b|long/i,
+          "vlamax": /z2|endurance|ef\b/i,
+        };
+        for (const lKey of limiterKeys) {
+          const fallback = FALLBACK_ZONE_MAP[lKey];
+          if (fallback && fallback.test(text)) {
+            limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
+            assignedKey = lKey;
+            break;
+          }
         }
       }
 
