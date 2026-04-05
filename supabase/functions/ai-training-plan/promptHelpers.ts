@@ -680,7 +680,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("| Limiteur | Phase Base (4-6 sem) | Phase Build (4-6 sem) | Phase Spécifique (3-4 sem) | Phase Taper (1-2 sem) |");
     lines.push("|----------|---------------------|----------------------|---------------------------|----------------------|");
     lines.push("| VO2max bas | Billat 30/30 (2×8min), 3×3min @VMA | 5×1200m @100% VMA r=3min, VMA longue 4×4min | VMA courte (200-400m) + rappels race pace | 2×(4×200m) @VMA rappel, volume -60% |");
-    lines.push("| VLamax trop haute | Z2 long 2h-2h30 Train Low, EF fondamentale 90min+ | Z2 long 2h30-3h à jeun, EF aérobie pur 2h+, tempo Z3 modéré | Simulation course Z2-Z3 progressive, Train Low maintien | Z2 60-90min, 1 rappel EF long |");
+    lines.push("| VLamax trop haute | Z2 long 2h-2h30 Train Low, EF fondamentale 90min+, SFR 3×8min @50rpm | Z2 long 2h30-3h à jeun, EF aérobie pur 2h+, Seuil continu long 2×20min (synergie TTE↑→VLamax↓), SFR force basse cadence 40-50rpm | Simulation course Z2-Z3 progressive, Train Low maintien, Seuil long 1×30min rappel | Z2 60-90min, 1 rappel EF long |");
     lines.push("| TTE faible (<45min) | Seuil continu 2×15min @Z5, Norvégienne simple | Seuil 2×20min→1×30min, Double seuil Norvégienne 2x/sem | Seuil long 1×35-40min, Race pace intégré | 1×20min seuil rappel, volume -50% |");
     lines.push("| FTP/kg bas | Sweet spot 3×12min @88-93% FTP, Z3 tempo 45min | Sweet spot 2×20min, over-unders 6×(3min@105%+2min@85%), Norvégienne vélo | FTP test simulation, race power practice | 1×15min sweet spot rappel |");
     lines.push("| Économie basse | Côtes 8×30s, SFR 3×8min @50rpm, Rønnestad force 2x/sem | Côtes longues 6×2min, pliométrie 80 contacts, force maintien 1x/sem | Rappels côtes courtes, strides post-EF | Strides 6×100m, 1 séance force légère |");
@@ -693,10 +693,11 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("|-------------------|---------------------------|");
     lines.push("| VLamax↓ (Z2 long + Train Low) | → TTE↑, FatMax↑, économie glycogène↑ |");
     lines.push("| VO2max↑ (Billat/VMA) | → FTP/kg↑, vitesse aérobie↑, récupération inter-effort↑ |");
-    lines.push("| TTE↑ (seuil long Norvégienne) | → allure course↑, résistance fatigue↑, endurance durabilité↑ |");
-    lines.push("| Force max (Rønnestad) | → économie↑ (+4.8%), prévention blessures, puissance neuromusculaire↑ |");
+    lines.push("| TTE↑ (seuil long continu) | → VLamax↓ (synergie : déplétion glycolytique via effort soutenu au seuil), allure course↑, résistance fatigue↑ |");
+    lines.push("| SFR / Force basse cadence (40-60rpm) | → VLamax↓ (synergie : recrutement fibres Type I, réduction contribution glycolytique rapide), économie↑ (+4.8%) |");
+    lines.push("| Force max (Rønnestad) | → économie↑, prévention blessures, puissance neuromusculaire↑ |");
     lines.push("| FatMax↑ (Train Low) | → VLamax↓ (synergie), autonomie glycogène↑, durabilité↑ |");
-    lines.push("Quand 2 limiteurs ont une synergie positive, les combiner dans la même phase pour maximiser l'effet.\n");
+    lines.push("⚠️ IMPORTANT : Le seuil long continu et la force basse cadence (SFR) sont des CO-CONTRIBUTEURS prouvés à la réduction de la VLamax. Quand L1=VLamax, prescris ces séances EN PLUS du Z2 long/Train Low pour maximiser la suppression glycolytique.\n");
 
     lines.push("### ⚙️ RÈGLES DE PÉRIODISATION SÉQUENTIELLE STRICTES");
     lines.push("1. **Limiteur #1 (🔴 CRITIQUE)** :");
