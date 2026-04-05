@@ -865,8 +865,9 @@ const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
 
   // VLamax (réduction): Glycolytic suppression via Z2 long + train low + endurance fondamentale
   // Matches EF abbreviation (Endurance Fondamentale) + Z2 long durations + train low + jeûn
+  // REQUIRES duration context (≥60min or "long") to avoid matching short recovery EF sessions
   // EXCLUDES: fat max/lipid (→ fatmax), sweet spot (→ ftp), sortie longue/SL (→ durabilité)
-  "vlamax": /train\s*low|[àa]\s*jeun|z2.*(?:long|>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|ef\b.*(?:long|[89]\d|1[0-9]\d\s*min|z2)|endurance.*(?:fondament|longue|foncier)|fondament|glycoly|aérobie\s*(?:pur|fondament|base)/i,
+  "vlamax": /train\s*low|[àa]\s*jeun|z2.*(?:long|>?\s*[89]\d|>?\s*1[0-9]\d\s*min)|ef\b.*(?:long|[89]\d|1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|fondament|glycoly|aérobie\s*(?:pur|fondament|base)/i,
 
   // TTE: Sustained threshold endurance — seuil continu LONG, Norvégienne, MLSS
   // Only matches "seuil" when combined with duration/continuous context (not bare "seuil")
