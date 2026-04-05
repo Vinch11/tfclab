@@ -719,7 +719,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
     lines.push("\n⚠️ RÈGLE SÉANCES CLÉS PAR LIMITEUR (RÉSUMÉ RAPIDE) :");
     lines.push("- Limiteur #1 = 'VO2max bas' → clé #1 = VMA/VO2max (Billat 30/30, 5×1200m).");
-    lines.push("- Limiteur #1 = 'VLamax trop haute' → clé #1 = Z2 long Train Low + seuil long continu + SFR/force basse cadence.");
+    lines.push("- Limiteur #1 = 'VLamax trop haute' → clé #1 = Z2 long Train Low, clé #2 = Sweet Spot long basse cadence (2×20-30min @88-92% FTP, 55-65 RPM), clé #3 = SFR/force basse cadence + seuil long continu.");
     lines.push("- Limiteur #1 = 'TTE faible' → clé #1 = seuil continu long (Norvégienne 2×20min→1×40min).");
     lines.push("- Limiteur #1 = 'Économie basse' → clé #1 = côtes/SFR + force max (Rønnestad).");
     lines.push("- Limiteur #1 = 'FatMax bas' → clé #1 = Z2 longue à jeun Train Low (2h30+).");

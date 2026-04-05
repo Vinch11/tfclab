@@ -875,7 +875,8 @@ const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
   // VLamax (réduction): Glycolytic suppression via Z2 long + train low + endurance fondamentale
   // Matches EF abbreviation (Endurance Fondamentale) + Z2 long durations + train low + jeûn
   // Now also matches shorter EF sessions (45min+) since all Z2 contributes to VLamax reduction
-  // EXCLUDES: fat max/lipid (→ fatmax), sweet spot (→ ftp), sortie longue/SL (→ durabilité)
+  // SST long sessions are co-contributors (counted via VLAMAX_CO_CONTRIBUTOR_PATTERNS when assigned to FTP)
+  // EXCLUDES: fat max/lipid (→ fatmax), sortie longue/SL (→ durabilité)
   "vlamax": /train[\s_-]*low|fasted|[àa]\s*jeun|z2.*(?:long|>?\s*[4-9]\d|>?\s*1[0-9]\d\s*min)|z2[\s_-]*long|ef\b.*(?:long|[4-9]\d|1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|endurance[\s_-]*long|fondament|glycoly|a[ée]robie\s*(?:pur|fondament|base)|ef\s+z2\s+(?:[4-9]\d|1\d{2})\s*min/i,
 
   // TTE: Sustained threshold endurance — seuil continu LONG, Norvégienne, MLSS
@@ -1062,7 +1063,9 @@ function validateLimiterCoherence(
   // Co-contributor patterns: sessions that contribute to VLamax reduction via proven synergies
   // - Seuil long continu (TTE work) → glycolytic depletion → VLamax↓ (Billat, Bosquet 2002)
   // - SFR / Force basse cadence → Type I fiber recruitment → VLamax↓ (Rønnestad 2015)
-  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)|seuil.*(?:\d+\s*min)|interval.*seuil/i;
+  // - Sweet Spot long → forced Type IIa aerobic recruitment + glycogen depletion → VLamax↓
+  //   (especially at low cadence 55-65 RPM: maximal IIa stress in aerobic mode)
+  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)|seuil.*(?:\d+\s*min)|interval.*seuil|\bsst\b|sweet[\s_-]*spot/i;
   const TTE_FTP_CROSSOVER_PATTERNS = /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|threshold(?:[\s_-]*(?:power|long|cruise))?|race[\s_-]*(?:pace|power).*(?:2[\sx_/-]*20|3[\sx_/-]*20|20\s*min)|tempo\s*(?:long|continu)|double[\s_-]*threshold|norwegian/i;
 
   const hasVlamaxLimiter = limiterKeys.includes("vlamax");
@@ -1104,7 +1107,7 @@ function validateLimiterCoherence(
       // If session was assigned to TTE or Économie, also count it for VLamax (if VLamax is a limiter)
       let isLimiterRelevant = assignedKey !== null;
 
-      if (hasVlamaxLimiter && assignedKey !== "vlamax" && (assignedKey === "tte" || assignedKey === "économie")) {
+      if (hasVlamaxLimiter && assignedKey !== "vlamax" && (assignedKey === "tte" || assignedKey === "économie" || assignedKey === "ftp")) {
         if (VLAMAX_CO_CONTRIBUTOR_PATTERNS.test(text)) {
           limiterHits["vlamax"] = (limiterHits["vlamax"] || 0) + 1;
           isLimiterRelevant = true;
