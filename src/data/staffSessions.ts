@@ -17,7 +17,7 @@ export type SessionTag =
   | "METABOLIC"
   | "RACE_SIM";
 
-export type SessionLevel = "staff" | "standard";
+export type SessionLevel = "staff" | "standard" | "beginner" | "elite";
 
 export interface StaffSession {
   id: string;

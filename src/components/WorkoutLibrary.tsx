@@ -70,6 +70,14 @@ const TAGS: { value: "all" | SessionTag; label: string }[] = [
   { value: "RACE_SIM", label: "Simulation course" },
 ];
 
+const LEVELS: { value: "all" | SessionLevel; label: string }[] = [
+  { value: "all", label: "Tous" },
+  { value: "beginner", label: "Débutant" },
+  { value: "standard", label: "Standard" },
+  { value: "staff", label: "Staff" },
+  { value: "elite", label: "Élite" },
+];
+
 export function WorkoutLibrary({ athlete }: WorkoutLibraryProps) {
   const [sport, setSport] = useState<SportType | "all">("all");
   const [tag, setTag] = useState<"all" | SessionTag>("all");
