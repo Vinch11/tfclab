@@ -222,9 +222,12 @@ export function WorkoutLibrary({ athlete }: WorkoutLibraryProps) {
                             <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", sportChipClass[s.sport])}>
                               {sportLabel[s.sport]}
                             </Badge>
-                            {s.level === "staff" && (
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                Staff
+                            {s.level !== "standard" && (
+                              <Badge variant="secondary" className={cn("text-[10px] px-1.5 py-0",
+                                s.level === "elite" && "bg-red-500/10 text-red-500 border-red-500/20",
+                                s.level === "beginner" && "bg-green-500/10 text-green-500 border-green-500/20"
+                              )}>
+                                {s.level === "elite" ? "Élite" : s.level === "beginner" ? "Débutant" : "Staff"}
                               </Badge>
                             )}
                             {typeof s.duration_min === "number" && (
