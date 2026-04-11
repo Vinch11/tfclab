@@ -28,7 +28,7 @@ import { Dumbbell, Bike, PersonStanding, Waves, Search, Sparkles } from "lucide-
 import { cn } from "@/lib/utils";
 
 // ✅ Import des séances staff
-import { getStaffSessions, SportType, SessionTag } from "@/data/staffSessions";
+import { getStaffSessions, SportType, SessionTag, SessionLevel } from "@/data/staffSessions";
 
 // (Optionnel) si ton composant reçoit athlete
 import { Athlete } from "@/types/athlete";
