@@ -82,24 +82,25 @@ export function WorkoutLibrary({ athlete }: WorkoutLibraryProps) {
   const [sport, setSport] = useState<SportType | "all">("all");
   const [tag, setTag] = useState<"all" | SessionTag>("all");
   const [query, setQuery] = useState("");
-  const [onlyStaff, setOnlyStaff] = useState(true);
+  const [levelFilter, setLevelFilter] = useState<"all" | SessionLevel>("all");
 
   const sessions = useMemo(() => {
     return getStaffSessions({
       sport: sport === "all" ? undefined : sport,
       tag: tag === "all" ? undefined : tag,
-      level: onlyStaff ? "staff" : undefined,
+      level: levelFilter === "all" ? undefined : levelFilter,
       query,
     });
-  }, [sport, tag, query, onlyStaff]);
+  }, [sport, tag, query, levelFilter]);
 
   const counts = useMemo(() => {
-    const all = getStaffSessions({ level: onlyStaff ? "staff" : undefined });
-    const velo = getStaffSessions({ sport: "velo", level: onlyStaff ? "staff" : undefined });
-    const course = getStaffSessions({ sport: "course", level: onlyStaff ? "staff" : undefined });
-    const natation = getStaffSessions({ sport: "natation", level: onlyStaff ? "staff" : undefined });
+    const lvl = levelFilter === "all" ? undefined : levelFilter;
+    const all = getStaffSessions({ level: lvl });
+    const velo = getStaffSessions({ sport: "velo", level: lvl });
+    const course = getStaffSessions({ sport: "course", level: lvl });
+    const natation = getStaffSessions({ sport: "natation", level: lvl });
     return { all: all.length, velo: velo.length, course: course.length, natation: natation.length };
-  }, [onlyStaff]);
+  }, [levelFilter]);
 
   return (
     <div className="space-y-4">
@@ -167,19 +168,20 @@ export function WorkoutLibrary({ athlete }: WorkoutLibraryProps) {
                 </SelectContent>
               </Select>
 
-              <div className="flex items-center gap-2 pt-1">
-                <Button
-                  size="sm"
-                  variant={onlyStaff ? "default" : "outline"}
-                  onClick={() => setOnlyStaff((p) => !p)}
-                  className="gap-2"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  {onlyStaff ? "Staff uniquement" : "Tout afficher"}
-                </Button>
-                <Badge variant="outline" className="text-[11px]">
-                  {onlyStaff ? "Mode Staff" : "Mode Mix"}
-                </Badge>
+              <div className="space-y-2 pt-1">
+                <p className="text-xs text-muted-foreground">Niveau</p>
+                <Select value={levelFilter} onValueChange={(v) => setLevelFilter(v as any)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrer par niveau" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LEVELS.map((l) => (
+                      <SelectItem key={l.value} value={l.value}>
+                        {l.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
