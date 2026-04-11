@@ -4453,9 +4453,22 @@ import { EnrichedWorkoutsFatMax } from "./enrichedWorkoutsFatMax";
 WorkoutLibrary.push(...EnrichedWorkoutsFatMax);
 
 // =============================================
+// ENRICHED WORKOUTS RECOVERY — REST, Récup, Mobilité, Activation
+// =============================================
+import { EnrichedWorkoutsRecovery } from "./enrichedWorkoutsRecovery";
+WorkoutLibrary.push(...EnrichedWorkoutsRecovery);
+
+// =============================================
+// ENRICHED WORKOUTS SWIM — Natation supplémentaire
+// Endurance, CSS, VO2, Technique, Race Sim
+// =============================================
+import { EnrichedWorkoutsSwim } from "./enrichedWorkoutsSwim";
+WorkoutLibrary.push(...EnrichedWorkoutsSwim);
+
+// =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]
 // =============================================
 import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
 enrichWorkoutGoals(WorkoutLibrary);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | FatMax: ${EnrichedWorkoutsFatMax.length} | Total: ${WorkoutLibrary.length}`);
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | FatMax: ${EnrichedWorkoutsFatMax.length} | Recovery: ${EnrichedWorkoutsRecovery.length} | Swim+: ${EnrichedWorkoutsSwim.length} | Total: ${WorkoutLibrary.length}`);
