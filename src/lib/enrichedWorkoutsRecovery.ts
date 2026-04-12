@@ -234,4 +234,254 @@ export const EnrichedWorkoutsRecovery: LibraryWorkout[] = [
     goals: [...GOALS_ALL, ...GOALS_TRAIL],
     tags: ["stretching", "recovery", "étirements"]
   },
+
+  // ── ACTIVATION NEUROMUSCUAIRE AVANCÉE ──
+  {
+    id: "D_ACTIVATION_GLUTES",
+    cat: "D", sport: "mixed",
+    objectif: "Activation fessiers — réveil glutéal avant séance clé ou longue sortie",
+    necessite: "Recommandé",
+    when: "Avant séance B/C incluant course ou vélo",
+    phase: ["base", "build", "peak", "taper"],
+    avoid: "N/A",
+    durationMin: [10, 15],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mk([
+      ["Main", "Clam shells 2x15, monster walks bande élastique 2x10, single leg glute bridge 2x12, fire hydrants 2x12", []]
+    ]),
+    variants: { ironman: "Ajouter hip thrusts", half: "Standard", marathon: "Focus single leg", semi: "Express 10'" },
+    goals: [...GOALS_ALL, ...GOALS_TRAIL],
+    tags: ["activation", "glutes", "prévention"]
+  },
+  {
+    id: "D_ACTIVATION_CORE_TAPER",
+    cat: "D", sport: "mixed",
+    objectif: "Gainage léger taper — maintien core sans fatigue musculaire",
+    necessite: "Recommandé",
+    when: "Semaine taper, maintien tonus sans charge",
+    phase: ["taper"],
+    avoid: "Charge lourde en semaine taper",
+    durationMin: [10, 15],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mk([
+      ["Main", "Dead bug 2x10, bird dog 2x10, side plank 2x20\", pallof press bande 2x10, plank 2x30\"", []]
+    ]),
+    variants: { ironman: "15' avec respiration", half: "12'", marathon: "12'", semi: "10'" },
+    goals: [...GOALS_ALL, ...GOALS_TRAIL],
+    tags: ["core", "activation", "taper", "gainage"]
+  },
+  {
+    id: "D_ACTIVATION_ANKLE_FOOT",
+    cat: "D", sport: "course",
+    objectif: "Activation pieds & chevilles — proprioception et prévention entorses/périostites",
+    necessite: "Recommandé",
+    when: "Pré-séance trail ou 2-3x/semaine",
+    phase: ["base", "build", "peak", "taper"],
+    avoid: "N/A",
+    durationMin: [8, 12],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mk([
+      ["Main", "Toe yoga 2x10, heel raises 2x15, single leg balance 2x30\", ankle CARs 2x8, short foot drill 2x12", []]
+    ]),
+    variants: { ironman: "Post-brick", half: "Standard", marathon: "Focus périostite prev.", semi: "Express" },
+    goals: [...GOALS_ALL, ...GOALS_TRAIL],
+    tags: ["activation", "chevilles", "pieds", "proprioception"]
+  },
+
+  // ── MOBILITÉ AVANCÉE ──
+  {
+    id: "D_MOBILITY_HIPS_DEEP",
+    cat: "D", sport: "mixed",
+    objectif: "Mobilité hanches approfondie — déverrouillage psoas, piriforme, adducteurs",
+    necessite: "Recommandé",
+    when: "Post-longue sortie ou jour de repos",
+    phase: ["base", "build", "peak", "taper"],
+    avoid: "N/A",
+    durationMin: [15, 25],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mk([
+      ["Main", "90/90 flow 2x8, pigeon progressif 2x45\", frog stretch 2x30\", couch stretch 2x30\", adductor rocks 2x12", []]
+    ]),
+    variants: { ironman: "Ajouter psoas release balle", half: "Standard", marathon: "Focus psoas+IT band", semi: "15' express" },
+    goals: [...GOALS_ALL, ...GOALS_TRAIL],
+    tags: ["mobility", "hanches", "psoas", "deep"]
+  },
+  {
+    id: "D_MOBILITY_THORACIC",
+    cat: "D", sport: "mixed",
+    objectif: "Mobilité thoracique & épaules — crucial nageurs et posture vélo",
+    necessite: "Recommandé",
+    when: "Post-natation ou post-vélo longue durée",
+    phase: ["base", "build", "peak", "taper"],
+    avoid: "N/A",
+    durationMin: [12, 20],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mk([
+      ["Main", "Thoracic rotations 2x10, open book 2x8, thread the needle 2x8, wall slides 2x10, pec doorway stretch 2x30\"", []]
+    ]),
+    variants: { ironman: "Focus épaules nageur", half: "Focus épaules nageur", marathon: "Focus posture", semi: "Express 12'" },
+    goals: [...GOALS_ALL, ...GOALS_TRAIL],
+    tags: ["mobility", "thoracique", "épaules", "posture"]
+  },
+  {
+    id: "D_MOBILITY_TRAIL_SPECIFIC",
+    cat: "D", sport: "course",
+    objectif: "Mobilité trail — préparation descente, stabilité latérale, flexion dorsale",
+    necessite: "Recommandé",
+    when: "Avant sortie trail technique ou post-descente",
+    phase: ["base", "build", "peak"],
+    avoid: "N/A",
+    durationMin: [15, 20],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mk([
+      ["Main", "Ankle dorsiflexion wall 2x12, cossack squats 2x8, lateral lunges 2x10, single leg RDL 2x8, tibialis raises 2x15", []]
+    ]),
+    variants: {},
+    goals: GOALS_TRAIL,
+    tags: ["mobility", "trail", "descente", "stabilité"]
+  },
+
+  // ── YOGA AVANCÉ ──
+  {
+    id: "D_YOGA_YIN_DEEP",
+    cat: "D", sport: "mixed",
+    objectif: "Yin yoga — postures longues (3-5') pour fascias et tissu conjonctif",
+    necessite: "Optionnel",
+    when: "Jour de repos ou semaine de décharge",
+    phase: ["base", "build", "taper"],
+    avoid: "N/A",
+    durationMin: [30, 50],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mk([
+      ["Main", "Dragon pose 3', sphinx 3', shoelace 3', banana 3', butterfly 3', legs up the wall 5' (30-50')", []]
+    ]),
+    variants: { ironman: "50' post-longue sortie", half: "40'", marathon: "35' focus jambes", semi: "30'" },
+    goals: GOALS_ALL,
+    tags: ["yoga", "yin", "fascia", "recovery", "deep"]
+  },
+  {
+    id: "D_YOGA_POWER_LIGHT",
+    cat: "D", sport: "mixed",
+    objectif: "Power yoga léger — flow dynamique sans fatigue, coordination respiration",
+    necessite: "Optionnel",
+    when: "Matin jour intermédiaire ou pre-séance légère",
+    phase: ["base", "build", "peak"],
+    avoid: "Ne pas faire avant séance clé intense",
+    durationMin: [20, 35],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mk([
+      ["Warm-up", "3' respiration diaphragmatique", []],
+      ["Main", "Sun salutation A x3, warrior II flow, triangle, half moon balance, chair pose flow (15-25')", []],
+      ["Cool-down", "Child's pose + shavasana 5'", []]
+    ]),
+    variants: { ironman: "35' avec équilibre", half: "30'", marathon: "25'", semi: "20'" },
+    goals: [...GOALS_ALL, ...GOALS_TRAIL],
+    tags: ["yoga", "power", "flow", "coordination"]
+  },
+  {
+    id: "D_YOGA_PRERACE",
+    cat: "D", sport: "mixed",
+    objectif: "Yoga pré-compétition — calme mental, ouverture hanches, activation douce",
+    necessite: "Optionnel",
+    when: "J-1 compétition, soir",
+    phase: ["peak", "taper"],
+    avoid: "N/A",
+    durationMin: [15, 25],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mk([
+      ["Main", "Cat-cow 1', low lunge 1'x2, pigeon 1'x2, forward fold 1', legs up the wall 3', body scan meditation 5'", []]
+    ]),
+    variants: { ironman: "Ajouter visualisation parcours", half: "Standard", marathon: "Focus jambes", semi: "15' express" },
+    goals: [...GOALS_ALL, ...GOALS_TRAIL],
+    tags: ["yoga", "pré-compétition", "mental", "calme"]
+  },
+
+  // ── RÉCUP SPÉCIFIQUE TAPER ──
+  {
+    id: "D_TAPER_FLUSH_RUN",
+    cat: "D", sport: "course",
+    objectif: "Footing flush taper — micro-dose pour maintenir sensations sans charge",
+    necessite: "Recommandé",
+    when: "Semaine taper, J-3 à J-2 avant course",
+    phase: ["taper"],
+    avoid: "N/A",
+    durationMin: [15, 20],
+    metricKey: "allure", sportKey: "course",
+    structure: mk([
+      ["Main", "15-20' Z1 très facile + 3x15\" allure course r=45\" marche", ["Z1"]]
+    ]),
+    variants: { ironman: "Avec 2x20\" allure IM", half: "Standard", marathon: "Allure marathon", semi: "Allure semi" },
+    goals: GOALS_ALL,
+    tags: ["taper", "flush", "pré-compétition"]
+  },
+  {
+    id: "D_TAPER_FLUSH_BIKE",
+    cat: "D", sport: "cyclisme",
+    objectif: "Spin taper — openers vélo avant compétition",
+    necessite: "Recommandé",
+    when: "J-2 avant course vélo ou triathlon",
+    phase: ["taper"],
+    avoid: "N/A",
+    durationMin: [20, 30],
+    metricKey: "puissance", sportKey: "cyclisme",
+    structure: mk([
+      ["Main", "20-30' Z1 + 3x30\" à FTP r=1' facile", ["Z1", "Z4"]]
+    ]),
+    variants: { ironman: "Avec 2x1' allure IM", half: "Standard", marathon: "optionnel", semi: "optionnel" },
+    goals: [...GOALS_ALL, ...GOALS_TRAIL],
+    tags: ["taper", "flush", "openers", "vélo"]
+  },
+  {
+    id: "D_TAPER_SWIM_TOUCH",
+    cat: "D", sport: "natation",
+    objectif: "Nage taper — toucher l'eau, garder le feel sans fatigue",
+    necessite: "Recommandé",
+    when: "Semaine taper triathlon",
+    phase: ["taper"],
+    avoid: "N/A",
+    durationMin: [15, 25],
+    metricKey: "allure", sportKey: "natation",
+    structure: mk([
+      ["Main", "300m facile multi-nages + 4x50m allure course r=15\" + 200m cool-down", ["Z1", "Z3"]]
+    ]),
+    variants: { ironman: "Allure IM", half: "Allure 70.3" },
+    goals: GOALS_TRI,
+    tags: ["taper", "natation", "feel", "pré-compétition"]
+  },
+
+  // ── BREATHWORK & MENTAL ──
+  {
+    id: "D_BREATHWORK_BOX",
+    cat: "D", sport: "mixed",
+    objectif: "Box breathing & cohérence cardiaque — gestion stress pré-compétition",
+    necessite: "Optionnel",
+    when: "Soir J-1 ou matin jour de course",
+    phase: ["peak", "taper"],
+    avoid: "N/A",
+    durationMin: [10, 15],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mk([
+      ["Main", "Box breathing 4-4-4-4 x 5 cycles, cohérence cardiaque 5-5 x 5', body scan 3'", []]
+    ]),
+    variants: { ironman: "Ajouter visualisation", half: "Standard", marathon: "Standard", semi: "10' express" },
+    goals: [...GOALS_ALL, ...GOALS_TRAIL],
+    tags: ["breathwork", "mental", "cohérence", "stress"]
+  },
+  {
+    id: "D_COLD_CONTRAST",
+    cat: "D", sport: "mixed",
+    objectif: "Protocole contraste chaud/froid — récupération vasculaire post-charge",
+    necessite: "Optionnel",
+    when: "Post-séance clé ou post-compétition",
+    phase: ["build", "peak"],
+    avoid: "Si problème cardiaque ou Raynaud",
+    durationMin: [15, 20],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mk([
+      ["Main", "3 cycles: douche froide 1' → douche chaude 2' → froide 1'. Finir par froid. Respiration contrôlée", []]
+    ]),
+    variants: { ironman: "Ajouter bain glacé 10°C", half: "Standard", marathon: "Standard", semi: "2 cycles" },
+    goals: GOALS_ALL,
+    tags: ["recovery", "contraste", "froid", "vasculaire"]
+  },
 ];
