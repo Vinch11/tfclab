@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { PDFPreviewPanel } from "./PDFPreviewPanel";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
+import { isRunningFocusModeActive } from "@/lib/runningFocusMode";
 // ✅ NEW: Import Calibration Layer
 import { 
   blendOutputs,
@@ -546,7 +547,11 @@ function generateRaceSegments(goal: string, nutrition: NutritionPredictiveV2): A
 // =============================================
 
 function buildFatMaxTFCLHTML(payload: ExportPayload): string {
-  const { fatmaxTFCL, effectiveRefs } = payload;
+  const { fatmaxTFCL, effectiveRefs, athlete } = payload;
+  // Label de référence dynamique : "Allure Seuil" en mode Running, "FTP" sinon
+  const isRunningMode = isRunningFocusModeActive(athlete?.goal);
+  const refLabel = isRunningMode ? "Allure Seuil" : "FTP";
+  const refLabelShort = isRunningMode ? "Seuil" : "FTP";
   
   if (!fatmaxTFCL) {
     return `
@@ -577,7 +582,7 @@ function buildFatMaxTFCLHTML(payload: ExportPayload): string {
   const svgCenterX = 10 + ((fatmaxTFCL.centerPctFTP - 50) / 40) * 380;
 
   const adjustmentsHTML = fatmaxTFCL.adjustments.map(adj => {
-    const valText = adj.id === 'base' ? adj.value + '% FTP' : (adj.value > 0 ? '+' : '') + adj.value + '%';
+    const valText = adj.id === 'base' ? adj.value + '% ' + refLabelShort : (adj.value > 0 ? '+' : '') + adj.value + '%';
     const dirColor = adj.direction === 'up' ? 'var(--success)' : adj.direction === 'down' ? 'var(--warning)' : 'var(--muted)';
     const dirText = adj.direction === 'up' ? '↑ Hausse' : adj.direction === 'down' ? '↓ Baisse' : '— Neutre';
     return `<tr>
@@ -600,8 +605,8 @@ function buildFatMaxTFCLHTML(payload: ExportPayload): string {
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
           <div>
             <div class="muted" style="font-size:11px;">Zone FatMax estimée</div>
-            <div class="big" style="margin:8px 0;">${fatmaxTFCL.minPctFTP}–${fatmaxTFCL.maxPctFTP}% FTP</div>
-            <div style="font-size:14px;">Centre : <b>${fatmaxTFCL.centerPctFTP}% FTP</b></div>
+            <div class="big" style="margin:8px 0;">${fatmaxTFCL.minPctFTP}–${fatmaxTFCL.maxPctFTP}% ${refLabelShort}</div>
+            <div style="font-size:14px;">Centre : <b>${fatmaxTFCL.centerPctFTP}% ${refLabelShort}</b></div>
             ${wattsInfo}
           </div>
           <div style="text-align:center;">
@@ -643,7 +648,7 @@ function buildFatMaxTFCLHTML(payload: ExportPayload): string {
           </svg>
           <div style="text-align:center;margin-top:8px;">
             <span style="display:inline-block;width:20px;height:12px;background:rgba(34, 197, 94, 0.3);border:2px solid #16a34a;border-radius:2px;margin-right:6px;"></span>
-            <span class="muted" style="font-size:11px;">Zone FatMax (${fatmaxTFCL.minPctFTP}–${fatmaxTFCL.maxPctFTP}% FTP)</span>
+            <span class="muted" style="font-size:11px;">Zone FatMax (${fatmaxTFCL.minPctFTP}–${fatmaxTFCL.maxPctFTP}% ${refLabelShort})</span>
           </div>
         </div>
       </div>
