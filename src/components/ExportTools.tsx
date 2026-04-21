@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { PDFPreviewPanel } from "./PDFPreviewPanel";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
+import { isRunningFocusModeActive } from "@/lib/runningFocusMode";
 // ✅ NEW: Import Calibration Layer
 import { 
   blendOutputs,
