@@ -18,7 +18,7 @@ import { SportType } from "@/types/snapshotNolio";
 import { AthleteImportExport, AthleteExportData } from "@/components/AthleteImportExport";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, Json } from "@/integrations/supabase/types";
 
 export default function AthletesListPage() {
   const navigate = useNavigate();
