@@ -64,10 +64,17 @@ const LIMITER_PEDAGOGY: Record<string, {
 
 export function LimiteursSection({ diagnostic, className }: LimiteursSectionProps) {
   const { limiter } = diagnostic;
-  
-  // Build ranked list of all limiters from gapAnalysis
-  // Group by limiter category and rank by weighted impact
-  const rankedLimiters = buildRankedLimiters(limiter);
+
+  // ✅ HYBRIDE : on consomme directement le categoryRanking calculé par
+  // detectUnifiedLimiter — source unique partagée avec le Coaching Compass.
+  // Garantit que l'ordre et la catégorie #1 sont identiques entre les deux cartes.
+  const rankedLimiters = (limiter.categoryRanking ?? []).map(entry => ({
+    category: entry.category,
+    metrics: entry.metrics,
+    worstGap: entry.worstGap,
+    totalImpact: entry.totalImpact,
+  }));
+
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -214,47 +221,7 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
   );
 }
 
-// Build ranked limiters grouped by category from gap analysis
-function buildRankedLimiters(limiter: AthleteDiagnostic["limiter"]) {
-  type GapItem = AthleteDiagnostic["limiter"]["gapAnalysis"][number];
-  
-  const METRIC_TO_CATEGORY: Record<string, string> = {
-    "VO2max": "aerobic_power",
-    "FTP/kg": "aerobic_power",
-    "VMA": "aerobic_power",
-    "VLamax": "glycolytic",
-    "TTE": "metabolic_endurance",
-    "Robustesse": "durability",
-    "Économie": "neuromuscular",
-    "W'": "neuromuscular",
-    "FatMax": "metabolic_endurance",
-    "Durabilité": "durability",
-  };
+// Le classement par catégorie est désormais centralisé dans
+// `buildCategoryRanking` (src/lib/v2/unifiedLimiterDetection.ts) — source
+// de vérité unique partagée avec le Coaching Compass.
 
-  // Group limiting gaps by category
-  const groups = new Map<string, { metrics: GapItem[]; worstGap: number; totalImpact: number }>();
-  
-  for (const gap of limiter.gapAnalysis) {
-    if (gap.status !== "limiting" && gap.gap >= -3) continue; // skip if at target
-    if (gap.status === "unknown" || gap.value === null) continue; // skip unknowns
-    
-    const category = METRIC_TO_CATEGORY[gap.metric] || "unknown";
-    const existing = groups.get(category);
-    if (existing) {
-      existing.metrics.push(gap);
-      existing.worstGap = Math.min(existing.worstGap, gap.gap);
-      existing.totalImpact += Math.abs(gap.weightedImpact ?? gap.gap);
-    } else {
-      groups.set(category, {
-        metrics: [gap],
-        worstGap: gap.gap,
-        totalImpact: Math.abs(gap.weightedImpact ?? gap.gap),
-      });
-    }
-  }
-
-  // Sort by total impact (highest first)
-  return Array.from(groups.entries())
-    .map(([category, data]) => ({ category, ...data }))
-    .sort((a, b) => b.totalImpact - a.totalImpact);
-}

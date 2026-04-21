@@ -88,6 +88,97 @@ export interface UnifiedGapAnalysis {
   weightedImpact: number; // Gap × weight (pour classement)
 }
 
+/**
+ * Catégorie physiologique de limiteur — regroupement des métriques individuelles.
+ * Utilisé pour aligner Coaching Compass et Carte Facteurs Limitants
+ * sur la même hiérarchie (somme cumulée des impacts par catégorie).
+ */
+export type LimiterCategory =
+  | "aerobic_power"        // VO2max, FTP/kg, VMA
+  | "glycolytic"           // VLamax
+  | "metabolic_endurance"  // TTE, FatMax
+  | "durability"           // Robustesse, Durabilité
+  | "neuromuscular"        // W', Économie
+  | "unknown";
+
+export interface CategoryRankingEntry {
+  category: LimiterCategory;
+  metrics: UnifiedGapAnalysis[];
+  worstGap: number;        // Le pire écart individuel (le plus négatif)
+  totalImpact: number;     // Somme des |weightedImpact| de toutes les métriques limitantes
+}
+
+/**
+ * Mappe une métrique individuelle vers sa catégorie physiologique.
+ * Source unique partagée entre le moteur et la carte Limiteurs.
+ */
+export const METRIC_TO_CATEGORY: Record<string, LimiterCategory> = {
+  "VO2max": "aerobic_power",
+  "FTP/kg": "aerobic_power",
+  "VMA": "aerobic_power",
+  "VLamax": "glycolytic",
+  "TTE": "metabolic_endurance",
+  "FatMax": "metabolic_endurance",
+  "Robustesse": "durability",
+  "Durabilité": "durability",
+  "Économie": "neuromuscular",
+  "W'": "neuromuscular",
+  "W' (kJ)": "neuromuscular",
+};
+
+/**
+ * Mappe une catégorie de limiteur vers le `UnifiedLimiter` correspondant.
+ */
+const CATEGORY_TO_UNIFIED_LIMITER: Record<LimiterCategory, UnifiedLimiter> = {
+  aerobic_power: "aerobic_engine",
+  glycolytic: "glycolytic",
+  metabolic_endurance: "specific_endurance",
+  durability: "specific_endurance",
+  neuromuscular: "neuromuscular",
+  unknown: "none",
+};
+
+const CATEGORY_TO_LEVER: Record<LimiterCategory, UnifiedLever> = {
+  aerobic_power: "increase_vo2max",
+  glycolytic: "decrease_vlamax",
+  metabolic_endurance: "increase_tte",
+  durability: "increase_tte",
+  neuromuscular: "force_endurance",
+  unknown: "maintain",
+};
+
+/**
+ * Construit le classement par catégorie physiologique à partir des gaps individuels.
+ * Source de vérité unique pour Compass + Carte Facteurs Limitants.
+ */
+export function buildCategoryRanking(gapAnalysis: UnifiedGapAnalysis[]): CategoryRankingEntry[] {
+  const groups = new Map<LimiterCategory, CategoryRankingEntry>();
+
+  for (const gap of gapAnalysis) {
+    // On ne retient que les métriques limitantes (ou clairement en dessous de la cible)
+    if (gap.status === "unknown" || gap.value === null) continue;
+    if (gap.status !== "limiting" && gap.gap >= -3) continue;
+
+    const category = METRIC_TO_CATEGORY[gap.metric] ?? "unknown";
+    const impact = Math.abs(gap.weightedImpact ?? gap.gap);
+    const existing = groups.get(category);
+    if (existing) {
+      existing.metrics.push(gap);
+      existing.worstGap = Math.min(existing.worstGap, gap.gap);
+      existing.totalImpact += impact;
+    } else {
+      groups.set(category, {
+        category,
+        metrics: [gap],
+        worstGap: gap.gap,
+        totalImpact: impact,
+      });
+    }
+  }
+
+  return Array.from(groups.values()).sort((a, b) => b.totalImpact - a.totalImpact);
+}
+
 export interface FatigueWarning {
   active: boolean;
   level: "moderate" | "high" | "critical" | null;
@@ -122,7 +213,11 @@ export interface UnifiedLimiterResult {
   
   // Analyse par domaine
   gapAnalysis: UnifiedGapAnalysis[];
-  
+
+  // ✅ Classement hybride par catégorie physiologique (somme des impacts)
+  // Source de vérité partagée Compass + Carte Facteurs Limitants
+  categoryRanking: CategoryRankingEntry[];
+
   // Robustesse de la décision
   isRobust: boolean;           // true si gap clair entre limiteurs
   robustnessScore: number;     // 0-100
@@ -649,41 +744,43 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const physiologicalGaps = sortedGaps.filter(g => g.metric !== "Disponibilité");
   const topPhysioGap = physiologicalGaps[0];
   const secondPhysioGap = physiologicalGaps[1];
-  
+
+  // ✅ HYBRIDE : classement par catégorie cumulée (source unique partagée
+  // avec la Carte Facteurs Limitants — garantit la cohérence d'ordre).
+  const categoryRanking = buildCategoryRanking(physiologicalGaps);
+  const topCategory = categoryRanking[0];
+
   let primaryLimiter: UnifiedLimiter = "none";
   let primaryLever: UnifiedLever = "maintain";
-  
-  if (topPhysioGap && topPhysioGap.weightedImpact > 5) {
-    switch (topPhysioGap.metric) {
-      case "FTP/kg":
-      case "VMA":
-      case "VO2max":
-        primaryLimiter = "aerobic_engine";
-        primaryLever = "increase_vo2max";
-        break;
-      case "VLamax":
-        primaryLimiter = "glycolytic";
-        primaryLever = "decrease_vlamax";
-        break;
-      case "W' (kJ)":
-        primaryLimiter = "anaerobic_capacity";
-        primaryLever = "adjust_anaerobic";
-        break;
-      case "TTE":
-        primaryLimiter = "specific_endurance";
-        primaryLever = "increase_tte";
-        break;
-      case "FatMax":
-        primaryLimiter = "metabolic_efficiency";
-        primaryLever = "increase_fat_oxidation";
-        break;
-      case "Économie":
-        primaryLimiter = "neuromuscular";
-        primaryLever = "force_endurance";
-        break;
+
+  // Le limiteur principal = catégorie dont la SOMME des impacts est maximale.
+  // Seuil de déclenchement aligné sur l'ancienne logique (impact > 5).
+  if (topCategory && topCategory.totalImpact > 5) {
+    primaryLimiter = CATEGORY_TO_UNIFIED_LIMITER[topCategory.category];
+    primaryLever = CATEGORY_TO_LEVER[topCategory.category];
+
+    // Affinage : si la catégorie aérobie est dominante mais qu'une seule
+    // métrique du groupe est FatMax (metabolic_efficiency), on bascule.
+    // (Cas marginal — la catégorie reste prioritaire.)
+    if (
+      topCategory.category === "metabolic_endurance" &&
+      topCategory.metrics.length === 1 &&
+      topCategory.metrics[0].metric === "FatMax"
+    ) {
+      primaryLimiter = "metabolic_efficiency";
+      primaryLever = "increase_fat_oxidation";
+    }
+    // Cas W' isolé dans neuromuscular → capacité anaérobie pure
+    if (
+      topCategory.category === "neuromuscular" &&
+      topCategory.metrics.length === 1 &&
+      (topCategory.metrics[0].metric === "W'" || topCategory.metrics[0].metric === "W' (kJ)")
+    ) {
+      primaryLimiter = "anaerobic_capacity";
+      primaryLever = "adjust_anaerobic";
     }
   }
-  
+
   // Calcul du détail de faiblesse aérobie
   // En mode running : VMA remplace FTP/kg dans l'analyse
   const aerobicExpressionAnalysis = gapAnalysis.find(g => g.metric === "VMA" || g.metric === "FTP/kg");
@@ -783,6 +880,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     leverEmoji: leverInfo.emoji,
     
     gapAnalysis: gapAnalysis.filter(g => g.metric !== "Disponibilité"),
+    categoryRanking,
+
     
     isRobust: insufficientData ? false : isRobust,
     robustnessScore: insufficientData ? 0 : robustnessScore,
