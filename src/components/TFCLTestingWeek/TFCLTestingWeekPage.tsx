@@ -146,6 +146,11 @@ export function TFCLTestingWeekPage() {
           />
         )}
 
+        {/* Threshold Pace Estimator (CAP) */}
+        {selectedAthlete && (
+          <ThresholdPaceEstimator defaultVma={activeSnapshot?.vma ?? null} />
+        )}
+
         {/* Description */}
         <Alert>
           <Info className="h-4 w-4" />
