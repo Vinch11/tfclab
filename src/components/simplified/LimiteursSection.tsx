@@ -64,10 +64,17 @@ const LIMITER_PEDAGOGY: Record<string, {
 
 export function LimiteursSection({ diagnostic, className }: LimiteursSectionProps) {
   const { limiter } = diagnostic;
-  
-  // Build ranked list of all limiters from gapAnalysis
-  // Group by limiter category and rank by weighted impact
-  const rankedLimiters = buildRankedLimiters(limiter);
+
+  // ✅ HYBRIDE : on consomme directement le categoryRanking calculé par
+  // detectUnifiedLimiter — source unique partagée avec le Coaching Compass.
+  // Garantit que l'ordre et la catégorie #1 sont identiques entre les deux cartes.
+  const rankedLimiters = (limiter.categoryRanking ?? []).map(entry => ({
+    category: entry.category,
+    metrics: entry.metrics,
+    worstGap: entry.worstGap,
+    totalImpact: entry.totalImpact,
+  }));
+
 
   return (
     <Card className={cn("overflow-hidden", className)}>
