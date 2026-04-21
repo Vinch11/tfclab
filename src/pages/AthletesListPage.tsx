@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download } from "lucide-react";
+import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +18,7 @@ import { SportType } from "@/types/snapshotNolio";
 import { AthleteImportExport, AthleteExportData } from "@/components/AthleteImportExport";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, Json } from "@/integrations/supabase/types";
 
 export default function AthletesListPage() {
   const navigate = useNavigate();
@@ -47,6 +47,91 @@ export default function AthletesListPage() {
     e.stopPropagation();
     if (confirm("Supprimer cet athlète ?")) {
       deleteAthlete(athleteId);
+    }
+  };
+
+  const handleDuplicateAthlete = async (e: React.MouseEvent, athleteId: string) => {
+    e.stopPropagation();
+    if (!user) {
+      toast.error("Non connecté");
+      return;
+    }
+    const source = dbAthletes.find((a) => a.id === athleteId);
+    if (!source) {
+      toast.error("Athlète introuvable");
+      return;
+    }
+    const defaultName = `${source.name} (copie)`;
+    const newName = window.prompt("Nom du profil dupliqué :", defaultName);
+    if (newName === null) return; // annulé
+    const finalName = newName.trim() || defaultName;
+
+    const toastId = toast.loading(`Duplication de "${source.name}"…`);
+    try {
+      // 1. Création du nouvel athlète
+      const { data: newAthlete, error: athleteError } = await supabase
+        .from("athletes")
+        .insert({
+          coach_id: user.id,
+          name: finalName,
+          goal: source.goal,
+          refs: source.refs as Json,
+          vo2max: source.vo2max,
+          birth_date: source.birth_date,
+          sex: (source as any).sex ?? null,
+        })
+        .select()
+        .single();
+
+      if (athleteError || !newAthlete) {
+        throw new Error(athleteError?.message || "Échec de création");
+      }
+
+      const newAthleteId = newAthlete.id;
+      const oldToNewSnapshotId = new Map<string, string>();
+
+      // 2. Snapshots
+      const srcSnapshots = snapshots.filter((s) => s.athlete_id === athleteId);
+      for (const snap of srcSnapshots) {
+        const fullSnap = snap as unknown as Tables<"snapshots">;
+        const { id: _id, athlete_id: _aid, coach_id: _cid, created_at: _ca, updated_at: _ua, ...snapData } = fullSnap;
+        const { data: newSnap, error: snapError } = await supabase
+          .from("snapshots")
+          .insert({ ...snapData, athlete_id: newAthleteId, coach_id: user.id })
+          .select()
+          .single();
+        if (!snapError && newSnap) {
+          oldToNewSnapshotId.set(snap.id, newSnap.id);
+        }
+      }
+
+      // 3. active_snapshot_id
+      if (source.active_snapshot_id && oldToNewSnapshotId.has(source.active_snapshot_id)) {
+        await supabase
+          .from("athletes")
+          .update({ active_snapshot_id: oldToNewSnapshotId.get(source.active_snapshot_id) })
+          .eq("id", newAthleteId);
+      }
+
+      // 4. Tests
+      const srcTests = tests.filter((t) => t.athlete_id === athleteId);
+      for (const test of srcTests) {
+        const { id: _id, athlete_id: _aid, coach_id: _cid, ...testData } = test as any;
+        await supabase.from("tests").insert({ ...testData, athlete_id: newAthleteId, coach_id: user.id });
+      }
+
+      // 5. Checkins
+      const srcCheckins = checkins.filter((c) => c.athlete_id === athleteId);
+      for (const checkin of srcCheckins) {
+        const { id: _id, athlete_id: _aid, coach_id: _cid, created_at: _ca, updated_at: _ua, ...checkinData } = checkin as any;
+        await supabase.from("checkins").insert({ ...checkinData, athlete_id: newAthleteId, coach_id: user.id });
+      }
+
+      await loadData();
+      await refresh();
+      toast.success(`Profil "${finalName}" dupliqué`, { id: toastId });
+    } catch (err) {
+      toast.error(`Erreur: ${err instanceof Error ? err.message : "inconnue"}`, { id: toastId });
     }
   };
 
@@ -373,10 +458,22 @@ export default function AthletesListPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {!selectionMode && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Dupliquer ce profil"
+                          onClick={(e) => handleDuplicateAthlete(e, athlete.id)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                        title="Supprimer ce profil"
                         onClick={(e) => handleDeleteAthlete(e, athlete.id)}
                       >
                         <Trash2 className="h-4 w-4" />
