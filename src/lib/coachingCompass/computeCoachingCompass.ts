@@ -175,7 +175,7 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
       input.vlamaxEffectif.source, 
       date, "mmol/L/s"
     ),
-    fatmax: makeMetric(fatmaxValue, fatmaxValue ? 0.7 : 0, fatmaxSource, date, "W"),
+    fatmax: makeMetric(fatmaxValue, fatmaxValue ? 0.7 : 0, fatmaxSource, date, "% FTP"),
     lt1: makeMetric(
       input.lactateThresholds?.lt1?.watts ?? null,
       input.lactateThresholds?.lt1?.confidence ?? 0,
