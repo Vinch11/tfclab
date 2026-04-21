@@ -21,6 +21,9 @@ import {
 import { useState } from "react";
 
 import { VLamaxInterpretationPanel } from "@/components/VLamaxInterpretationPanel";
+import { CalculationTraceDisplay } from "@/components/CalculationTraceDisplay";
+import { buildVLamaxRunV2Trace } from "@/lib/v2/vlamaxRunV2Trace";
+import type { VLamaxRunV2EnhancedInput } from "@/lib/v2/vlamaxRunV2Enhanced";
 
 interface VLamaxRunExplainedCardProps {
   vlamax: number | null;
@@ -28,6 +31,8 @@ interface VLamaxRunExplainedCardProps {
   objectif?: string;
   targetVLamax?: { min: number; max: number };
   defaultCollapsed?: boolean;
+  /** Si fourni, affiche la trace de calcul détaillée du moteur V2 Enhanced */
+  traceInput?: VLamaxRunV2EnhancedInput;
 }
 
 export function VLamaxRunExplainedCard({
@@ -36,6 +41,7 @@ export function VLamaxRunExplainedCard({
   objectif = "Marathon",
   targetVLamax,
   defaultCollapsed = false,
+  traceInput,
 }: VLamaxRunExplainedCardProps) {
   const [isOpen, setIsOpen] = useState(!defaultCollapsed);
 
