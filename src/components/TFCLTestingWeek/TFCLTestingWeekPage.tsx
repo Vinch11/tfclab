@@ -27,6 +27,7 @@ import { TFCL_TESTING_WEEK, computeTFCLCompletion } from "@/data/tfclTestingWeek
 import { TFCLDayCard } from "./TFCLDayCard";
 import { TFCLTestSheet } from "./TFCLTestSheet";
 import { TFCLCompletionSummary } from "./TFCLCompletionSummary";
+import { ThresholdPaceEstimator } from "./ThresholdPaceEstimator";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
 
