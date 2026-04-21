@@ -32,6 +32,7 @@ import { CAPDayCard } from "./CAPDayCard";
 import { CAPTestSheet } from "./CAPTestSheet";
 import { CAPCompletionSummary } from "./CAPCompletionSummary";
 import { CAPGuide } from "./CAPGuide";
+import { ThresholdPaceEstimator } from "../TFCLTestingWeek/ThresholdPaceEstimator";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
 
@@ -297,6 +298,13 @@ export function CAPTestingWeekPage() {
 
         {/* Interactive Guide */}
         <CAPGuide />
+
+        {/* Threshold Pace Estimator for Day 5 */}
+        {selectedAthlete && (
+          <ThresholdPaceEstimator 
+            defaultVma={activeSnapshot?.vma || null}
+          />
+        )}
 
         {/* Description */}
         <Alert>
