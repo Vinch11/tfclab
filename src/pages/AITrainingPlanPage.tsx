@@ -1608,11 +1608,30 @@ export default function AITrainingPlanPage() {
                         objective={objective}
                         ambition={ambition}
                         vma={athleteContext?.data?.vma ?? null}
-                        thresholdPace={null}
+                        thresholdPace={athleteContext?.data?.paceThresholdSecPerKm ?? null}
                         vlamaxRun={athleteContext?.data?.vlamaxRun ?? null}
                         vo2max={athleteContext?.data?.vo2max ?? null}
                         weightKg={athleteContext?.data?.weightKg ?? null}
                         athleteName={currentAthlete?.nom}
+                        intensityCenterPct={(() => {
+                          // Centre d'intensité aligné sur les zones du coach IA (méthode TFCL).
+                          // Marathon ≈ 88% seuil, Semi ≈ 93%, modulé par ambition.
+                          const obj = objective.toLowerCase();
+                          let center = obj.includes("marathon") && !obj.includes("semi") ? 88
+                                     : obj.includes("semi") ? 93
+                                     : null;
+                          if (center == null) return null;
+                          const a = (ambition || "").toLowerCase();
+                          if (a.includes("elite") || a.includes("élite")) center += 2;
+                          else if (a.includes("compet") || a.includes("compét")) center += 1;
+                          else if (a.includes("loisir") || a.includes("découverte") || a.includes("decouverte")) center -= 2;
+                          return center;
+                        })()}
+                        calibrationSource={
+                          athleteContext?.data?.paceThresholdSecPerKm
+                            ? "Plan IA · allure seuil mesurée"
+                            : "Plan IA · estimation depuis VMA"
+                        }
                       />
                       <AIPlanViewer
                         plan={parsedPlan}
