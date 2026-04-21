@@ -213,7 +213,11 @@ export interface UnifiedLimiterResult {
   
   // Analyse par domaine
   gapAnalysis: UnifiedGapAnalysis[];
-  
+
+  // ✅ Classement hybride par catégorie physiologique (somme des impacts)
+  // Source de vérité partagée Compass + Carte Facteurs Limitants
+  categoryRanking: CategoryRankingEntry[];
+
   // Robustesse de la décision
   isRobust: boolean;           // true si gap clair entre limiteurs
   robustnessScore: number;     // 0-100
