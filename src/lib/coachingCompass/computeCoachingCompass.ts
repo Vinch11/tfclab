@@ -98,11 +98,27 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
  * Estime FatMax (W) à partir de VLamax + FTP.
  * Heuristique Mader simplifiée : VLamax basse → FatMax% élevé.
  */
+/**
+ * Estime la FatMax en **% FTP/seuil** (échelle 0-100), source unique : VLamax.
+ * Utilise la formule Mader-Heck du moteur officiel `computeFatMaxTFCL`.
+ * 
+ * ⚠️ IMPORTANT : retourne un % (0-100), PAS des watts. Indépendant du FTP,
+ * fonctionne en mode running (pas de FTP vélo nécessaire).
+ * 
+ * Formule (alignée sur fatmaxTFCL.ts):
+ *   FatMax_%FTP = CLAMP(78 - 45 × (VLamax - 0.25), 52, 82)
+ * 
+ * Exemples:
+ *   VLamax 0.30 → 75.75% (profil lipidique)
+ *   VLamax 0.40 → 71.25% (équilibré)
+ *   VLamax 0.55 → 64.50% (cible IM/Marathon)
+ *   VLamax 0.70 → 57.75% (glycolytique dominant)
+ */
 function estimateFatMaxFromProfile(ftp: number | null, vlamax: number | null): number | null {
-  if (!ftp || !vlamax) return null;
-  // VLamax 0.20 → ~68% FTP, VLamax 0.80 → ~42% FTP (linéaire)
-  const fatMaxPct = Math.max(0.35, Math.min(0.72, 0.72 - (vlamax - 0.20) * 0.50));
-  return Math.round(ftp * fatMaxPct);
+  if (!vlamax || !Number.isFinite(vlamax) || vlamax <= 0) return null;
+  const rawCenter = 78 - 45 * (vlamax - 0.25);
+  const fatMaxPct = Math.max(52, Math.min(82, rawCenter));
+  return Math.round(fatMaxPct);
 }
 
 /**
@@ -159,7 +175,7 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
       input.vlamaxEffectif.source, 
       date, "mmol/L/s"
     ),
-    fatmax: makeMetric(fatmaxValue, fatmaxValue ? 0.7 : 0, fatmaxSource, date, "W"),
+    fatmax: makeMetric(fatmaxValue, fatmaxValue ? 0.7 : 0, fatmaxSource, date, "% FTP"),
     lt1: makeMetric(
       input.lactateThresholds?.lt1?.watts ?? null,
       input.lactateThresholds?.lt1?.confidence ?? 0,

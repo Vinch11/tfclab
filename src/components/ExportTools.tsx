@@ -1344,7 +1344,10 @@ function buildExportPayload(
       protocolQuality: effectiveSnapshot.protocol_quality ?? null,
       wprimeKj: wprimeKjForPayload,
       cpDataQuality: cpResultForPayload?.dataQuality ?? null,
-      fatmax: vlamaxLegacy.value != null ? Math.max(0, 65 - (vlamaxLegacy.value - 0.3) * 80) : null,
+      // FatMax en %FTP/seuil dérivée de VLamax (formule Mader, alignée avec computeFatMaxTFCL)
+      fatmax: vlamaxLegacy.value != null
+        ? Math.round(Math.max(52, Math.min(82, 78 - 45 * (vlamaxLegacy.value - 0.25))))
+        : null,
       forceDevMode: effectiveSnapshot.force_development_mode ?? false,
       giIssuesFlag: effectiveSnapshot.gi_issues_flag ?? false,
       checkinData: latestCheckin ? {
