@@ -280,6 +280,8 @@ export function RacePaceSimulation({
   vo2max,
   weightKg,
   athleteName,
+  intensityCenterPct,
+  calibrationSource,
 }: RacePaceSimulationProps) {
   const normalizedObj = useMemo(() => {
     const lower = objective.toLowerCase();
@@ -293,10 +295,18 @@ export function RacePaceSimulation({
     return deriveThresholdPace(vma);
   }, [thresholdPaceProp, vma]);
 
+  // Source effective de la calibration affichée à l'utilisateur
+  const effectiveCalibrationSource = useMemo(() => {
+    if (calibrationSource) return calibrationSource;
+    if (intensityCenterPct != null) return "Plan IA (zones coach)";
+    if (thresholdPaceProp) return "Allure seuil mesurée";
+    return "Estimation depuis VMA (×0.85)";
+  }, [calibrationSource, intensityCenterPct, thresholdPaceProp]);
+
   const segments = useMemo(() => {
     if (!normalizedObj || !thresholdPace) return null;
-    return computeSegments(normalizedObj, thresholdPace, vlamaxRun);
-  }, [normalizedObj, thresholdPace, vlamaxRun]);
+    return computeSegments(normalizedObj, thresholdPace, vlamaxRun, ambition, intensityCenterPct ?? null);
+  }, [normalizedObj, thresholdPace, vlamaxRun, ambition, intensityCenterPct]);
 
   // Don't render for non-running objectives
   if (!normalizedObj || !segments || !thresholdPace) return null;
@@ -331,6 +341,19 @@ export function RacePaceSimulation({
           <Badge variant="outline" className="text-xs">
             Seuil: {formatPace(thresholdPace)}/km
           </Badge>
+        </div>
+        {/* Bandeau d'alignement avec le coach IA */}
+        <div className="mt-2 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-[11px]">
+          <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+          <span className="text-foreground/80">
+            <span className="font-medium">Calibration :</span> {effectiveCalibrationSource}
+            {intensityCenterPct != null && (
+              <> · centre cible <span className="font-mono font-semibold">{Math.round(intensityCenterPct)}% seuil</span></>
+            )}
+            {ambition && (
+              <span className="text-muted-foreground"> · ambition {ambition}</span>
+            )}
+          </span>
         </div>
         <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
