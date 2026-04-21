@@ -570,9 +570,19 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   });
   
   // 4. Analyse FatMax (Metabolic Efficiency)
+  // ⚠️ GUARD COHÉRENCE VLamax↔FatMax (modèle Mader-Heck)
+  // FatMax est physiologiquement DÉRIVÉE de VLamax : une VLamax optimale
+  // implique mécaniquement une FatMax élevée. Si VLamax est ≤ cible (oxydatif),
+  // un gap FatMax négatif révèle un problème de mesure/source, pas un vrai limiteur.
+  // → On neutralise son weightedImpact pour qu'elle ne sorte pas comme limiteur #1.
+  const vlamaxIsOptimal = input.vlamax !== null && input.vlamax <= targets.vlamax.optimal;
   const fatmaxGap = input.fatmax !== null 
     ? (input.fatmax - fatmaxTargets.optimal) / fatmaxTargets.optimal 
     : 0;
+  const fatmaxRawImpact = fatmaxGap < 0 ? Math.abs(fatmaxGap) * weights.fatmax * 100 : 0;
+  // Si VLamax est optimale ET FatMax semble limitante → incohérence du modèle.
+  // On neutralise l'impact (mais on garde la valeur affichée pour transparence).
+  const fatmaxImpactNeutralized = vlamaxIsOptimal && fatmaxGap < 0;
   gapAnalysis.push({
     metric: "FatMax",
     value: input.fatmax,
@@ -580,11 +590,12 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     gap: input.fatmax !== null ? input.fatmax - fatmaxTargets.optimal : 0,
     gapPercent: fatmaxGap * 100,
     status: input.fatmax === null ? "unknown"
+      : fatmaxImpactNeutralized ? "acceptable"  // Cohérence VLamax → pas limitant
       : input.fatmax >= fatmaxTargets.optimal ? "optimal"
       : input.fatmax >= fatmaxTargets.min ? "acceptable"
       : "limiting",
     weight: weights.fatmax,
-    weightedImpact: fatmaxGap < 0 ? Math.abs(fatmaxGap) * weights.fatmax * 100 : 0,
+    weightedImpact: fatmaxImpactNeutralized ? 0 : fatmaxRawImpact,
   });
   
   // 5. Analyse Économie (Neuromuscular)
