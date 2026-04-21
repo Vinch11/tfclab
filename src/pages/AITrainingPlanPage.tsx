@@ -294,6 +294,17 @@ export default function AITrainingPlanPage() {
 
     const age = calculateAge(athlete.birth_date ?? athlete.dateNaissance ?? null);
 
+    // Determine sportFocus from objectif first (running objectives → "run"),
+    // then fall back to snapshot.sport_main. This guarantees that for a runner
+    // (Marathon, Semi, 10km, 5K, Trail, TrailLong, Ultra), the limiter engine
+    // uses VMA instead of FTP/kg as the aerobic-expression metric, even if the
+    // active snapshot still has bike data attached.
+    const RUNNING_OBJECTIVES = ["Marathon", "Semi", "10km", "5K", "Trail", "TrailLong", "Ultra"];
+    const sportFocus: "run" | "bike" =
+      RUNNING_OBJECTIVES.includes(obj) || activeSnap.sport_main === "run"
+        ? "run"
+        : "bike";
+
     // Build DiagnosticInput and delegate to the Diagnostic Engine
     const diagnosticInput: DiagnosticInput = {
       athleteId: athlete.id,
@@ -303,7 +314,7 @@ export default function AITrainingPlanPage() {
       weightKg: refs.weightKg,
       objectif: obj,
       ambition: normalizeAmbitionLevel(amb),
-      sportFocus: activeSnap.sport_main === "run" ? "run" : "bike",
+      sportFocus,
       vo2max: refs.vo2max,
       ftp: refs.ftp,
       ftpKg,

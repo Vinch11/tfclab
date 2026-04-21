@@ -417,10 +417,13 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const fatmaxTargets = getFatmaxTargets(normalized);
   
   // Déterminer si on est en mode running
-  // Mode running = sportFocus "run" OU objectif running-only avec VMA disponible
+  // Mode running = sportFocus "run" OU objectif running-only
+  // (Note: on n'exige PLUS que ftpKg soit null — un coureur peut avoir des
+  // données vélo résiduelles dans son snapshot, on doit quand même utiliser
+  // VMA comme métrique d'expression aérobie pour un objectif course.)
   const RUNNING_OBJECTIVES = ["Marathon", "Semi", "10km", "5K", "Trail", "TrailLong", "Ultra"];
-  const isRunningMode = input.sportFocus === "run" || 
-    (RUNNING_OBJECTIVES.includes(normalized) && input.vma !== null && input.ftpKg === null);
+  const isRunningMode = input.sportFocus === "run" ||
+    (RUNNING_OBJECTIVES.includes(normalized) && input.vma !== null);
   const hasVmaTarget = targets.vma_min !== undefined && targets.vma_min !== null;
   const useVma = isRunningMode && hasVmaTarget;
   
