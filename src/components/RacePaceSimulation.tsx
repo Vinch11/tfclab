@@ -24,6 +24,17 @@ interface RacePaceSimulationProps {
   vo2max: number | null;
   weightKg: number | null;
   athleteName?: string;
+  /**
+   * Centre d'intensité (% du seuil) imposé par le coach IA.
+   * Si fourni, remplace la valeur par défaut basée sur l'objectif et permet d'aligner
+   * la simulation sur les zones de la séance objectif du Plan IA.
+   */
+  intensityCenterPct?: number | null;
+  /**
+   * Source de la calibration (ex: "Plan IA", "Snapshot seuil", "Estimation VMA×0.85")
+   * Affichée dans un bandeau pour transparence.
+   */
+  calibrationSource?: string | null;
 }
 
 interface NutritionCue {
@@ -61,6 +72,19 @@ const BASE_INTENSITY: Record<string, { center: number; low: number; high: number
   Semi: { center: 93, low: 90, high: 96 },
 };
 
+/**
+ * Modulation du centre d'intensité par ambition (méthode TFCL).
+ * Elite/Compétiteur peut soutenir une intensité plus proche du seuil,
+ * un athlète Loisir doit rester plus conservateur.
+ */
+function ambitionCenterDelta(ambition: string): number {
+  const a = ambition.toLowerCase();
+  if (a.includes("elite") || a.includes("élite")) return +2;
+  if (a.includes("compet") || a.includes("compét")) return +1;
+  if (a.includes("loisir") || a.includes("découverte") || a.includes("decouverte")) return -2;
+  return 0;
+}
+
 /** Negative split phases (% of race distance) */
 const PHASE_BOUNDARIES = {
   start: 0.20,    // 0-20%: conservative
@@ -97,9 +121,24 @@ function computeSegments(
   objective: string,
   thresholdPace: number,
   vlamaxRun: number | null,
+  ambition: string,
+  intensityCenterPct: number | null | undefined,
 ): SegmentRow[] {
   const totalKm = DISTANCES[objective] || 21;
-  const base = BASE_INTENSITY[objective] || BASE_INTENSITY.Semi;
+  const baseRaw = BASE_INTENSITY[objective] || BASE_INTENSITY.Semi;
+
+  // Centre effectif: priorité au centre fourni (Plan IA), sinon base + delta ambition
+  const ambitionDelta = ambitionCenterDelta(ambition);
+  const center = intensityCenterPct != null
+    ? intensityCenterPct
+    : baseRaw.center + ambitionDelta;
+  // Recalcul cohérent des bornes autour du nouveau centre
+  const halfWidth = (baseRaw.high - baseRaw.low) / 2;
+  const base = {
+    center,
+    low: center - halfWidth,
+    high: center + halfWidth,
+  };
   const vlaMod = vlamaxModifier(vlamaxRun);
 
   const segments: SegmentRow[] = [];
@@ -241,6 +280,8 @@ export function RacePaceSimulation({
   vo2max,
   weightKg,
   athleteName,
+  intensityCenterPct,
+  calibrationSource,
 }: RacePaceSimulationProps) {
   const normalizedObj = useMemo(() => {
     const lower = objective.toLowerCase();
@@ -254,10 +295,18 @@ export function RacePaceSimulation({
     return deriveThresholdPace(vma);
   }, [thresholdPaceProp, vma]);
 
+  // Source effective de la calibration affichée à l'utilisateur
+  const effectiveCalibrationSource = useMemo(() => {
+    if (calibrationSource) return calibrationSource;
+    if (intensityCenterPct != null) return "Plan IA (zones coach)";
+    if (thresholdPaceProp) return "Allure seuil mesurée";
+    return "Estimation depuis VMA (×0.85)";
+  }, [calibrationSource, intensityCenterPct, thresholdPaceProp]);
+
   const segments = useMemo(() => {
     if (!normalizedObj || !thresholdPace) return null;
-    return computeSegments(normalizedObj, thresholdPace, vlamaxRun);
-  }, [normalizedObj, thresholdPace, vlamaxRun]);
+    return computeSegments(normalizedObj, thresholdPace, vlamaxRun, ambition, intensityCenterPct ?? null);
+  }, [normalizedObj, thresholdPace, vlamaxRun, ambition, intensityCenterPct]);
 
   // Don't render for non-running objectives
   if (!normalizedObj || !segments || !thresholdPace) return null;
@@ -292,6 +341,19 @@ export function RacePaceSimulation({
           <Badge variant="outline" className="text-xs">
             Seuil: {formatPace(thresholdPace)}/km
           </Badge>
+        </div>
+        {/* Bandeau d'alignement avec le coach IA */}
+        <div className="mt-2 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-[11px]">
+          <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+          <span className="text-foreground/80">
+            <span className="font-medium">Calibration :</span> {effectiveCalibrationSource}
+            {intensityCenterPct != null && (
+              <> · centre cible <span className="font-mono font-semibold">{Math.round(intensityCenterPct)}% seuil</span></>
+            )}
+            {ambition && (
+              <span className="text-muted-foreground"> · ambition {ambition}</span>
+            )}
+          </span>
         </div>
         <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">

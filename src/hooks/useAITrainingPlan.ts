@@ -24,6 +24,7 @@ export interface PlanAthleteData {
   p30s?: number | null;
   p60s?: number | null;
   map5min?: number | null;
+  paceThresholdSecPerKm?: number | null;
 }
 
 export interface RaceGoal {
