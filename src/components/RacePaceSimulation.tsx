@@ -24,6 +24,17 @@ interface RacePaceSimulationProps {
   vo2max: number | null;
   weightKg: number | null;
   athleteName?: string;
+  /**
+   * Centre d'intensité (% du seuil) imposé par le coach IA.
+   * Si fourni, remplace la valeur par défaut basée sur l'objectif et permet d'aligner
+   * la simulation sur les zones de la séance objectif du Plan IA.
+   */
+  intensityCenterPct?: number | null;
+  /**
+   * Source de la calibration (ex: "Plan IA", "Snapshot seuil", "Estimation VMA×0.85")
+   * Affichée dans un bandeau pour transparence.
+   */
+  calibrationSource?: string | null;
 }
 
 interface NutritionCue {
@@ -60,6 +71,19 @@ const BASE_INTENSITY: Record<string, { center: number; low: number; high: number
   Marathon: { center: 88, low: 85, high: 92 },
   Semi: { center: 93, low: 90, high: 96 },
 };
+
+/**
+ * Modulation du centre d'intensité par ambition (méthode TFCL).
+ * Elite/Compétiteur peut soutenir une intensité plus proche du seuil,
+ * un athlète Loisir doit rester plus conservateur.
+ */
+function ambitionCenterDelta(ambition: string): number {
+  const a = ambition.toLowerCase();
+  if (a.includes("elite") || a.includes("élite")) return +2;
+  if (a.includes("compet") || a.includes("compét")) return +1;
+  if (a.includes("loisir") || a.includes("découverte") || a.includes("decouverte")) return -2;
+  return 0;
+}
 
 /** Negative split phases (% of race distance) */
 const PHASE_BOUNDARIES = {
