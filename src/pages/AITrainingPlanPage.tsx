@@ -299,9 +299,15 @@ export default function AITrainingPlanPage() {
     // (Marathon, Semi, 10km, 5K, Trail, TrailLong, Ultra), the limiter engine
     // uses VMA instead of FTP/kg as the aerobic-expression metric, even if the
     // active snapshot still has bike data attached.
-    const RUNNING_OBJECTIVES = ["Marathon", "Semi", "10km", "5K", "Trail", "TrailLong", "Ultra"];
+    // Running objectives use raw form values from OBJECTIVE_OPTIONS.
+    // We list both raw + normalized aliases to be robust to upstream changes.
+    const RUNNING_OBJECTIVES = new Set([
+      "Marathon", "Semi", "10K", "10km", "5K",
+      "StartToRun", "starttorun",
+      "Trail", "TrailShort", "TrailMountain", "TrailLong", "TrailUltra", "Ultra",
+    ]);
     const sportFocus: "run" | "bike" =
-      RUNNING_OBJECTIVES.includes(obj) || activeSnap.sport_main === "run"
+      RUNNING_OBJECTIVES.has(obj) || activeSnap.sport_main === "run"
         ? "run"
         : "bike";
 
