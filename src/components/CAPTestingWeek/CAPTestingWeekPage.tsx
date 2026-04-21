@@ -32,6 +32,7 @@ import { CAPDayCard } from "./CAPDayCard";
 import { CAPTestSheet } from "./CAPTestSheet";
 import { CAPCompletionSummary } from "./CAPCompletionSummary";
 import { CAPGuide } from "./CAPGuide";
+import { ThresholdPaceEstimator } from "../TFCLTestingWeek/ThresholdPaceEstimator";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
 
