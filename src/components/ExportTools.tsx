@@ -546,7 +546,7 @@ function generateRaceSegments(goal: string, nutrition: NutritionPredictiveV2): A
 // BUILD FATMAX TFCL HTML SECTION
 // =============================================
 
-function buildFatMaxTFCLHTML(payload: ExportPayload): string {
+export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
   const { fatmaxTFCL, effectiveRefs, athlete } = payload;
   // Label de référence dynamique : "Allure Seuil" en mode Running, "FTP" sinon
   const isRunningMode = isRunningFocusModeActive(athlete?.goal);
