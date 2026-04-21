@@ -711,7 +711,11 @@ const Index = () => {
       protocolQuality: effectiveCloudSnapshot.protocol_quality ?? null,
       wprimeKj: wprimeKjForLimiter,
       cpDataQuality: cpResultForLimiter?.dataQuality ?? null,
-      fatmax: vlamaxEffectif.value != null ? Math.max(0, 65 - (vlamaxEffectif.value - 0.3) * 80) : null,
+      // FatMax en %FTP/seuil dérivée de VLamax (formule Mader, alignée avec computeFatMaxTFCL)
+      // VLamax 0.30→75%, 0.40→71%, 0.55→64%, 0.70→58%
+      fatmax: vlamaxEffectif.value != null
+        ? Math.round(Math.max(52, Math.min(82, 78 - 45 * (vlamaxEffectif.value - 0.25))))
+        : null,
       forceDevMode: effectiveCloudSnapshot.force_development_mode ?? false,
       giIssuesFlag: effectiveCloudSnapshot.gi_issues_flag ?? false,
       checkinData: latestCheckin ? {
