@@ -34,6 +34,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { DbSnapshot } from "@/hooks/useCloudData";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
+import { SprintTimeConverter } from "./SprintTimeConverter";
 
 interface CAPTestSheetProps {
   dayKey: string;
