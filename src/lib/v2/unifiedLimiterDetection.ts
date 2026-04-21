@@ -744,41 +744,43 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const physiologicalGaps = sortedGaps.filter(g => g.metric !== "Disponibilité");
   const topPhysioGap = physiologicalGaps[0];
   const secondPhysioGap = physiologicalGaps[1];
-  
+
+  // ✅ HYBRIDE : classement par catégorie cumulée (source unique partagée
+  // avec la Carte Facteurs Limitants — garantit la cohérence d'ordre).
+  const categoryRanking = buildCategoryRanking(physiologicalGaps);
+  const topCategory = categoryRanking[0];
+
   let primaryLimiter: UnifiedLimiter = "none";
   let primaryLever: UnifiedLever = "maintain";
-  
-  if (topPhysioGap && topPhysioGap.weightedImpact > 5) {
-    switch (topPhysioGap.metric) {
-      case "FTP/kg":
-      case "VMA":
-      case "VO2max":
-        primaryLimiter = "aerobic_engine";
-        primaryLever = "increase_vo2max";
-        break;
-      case "VLamax":
-        primaryLimiter = "glycolytic";
-        primaryLever = "decrease_vlamax";
-        break;
-      case "W' (kJ)":
-        primaryLimiter = "anaerobic_capacity";
-        primaryLever = "adjust_anaerobic";
-        break;
-      case "TTE":
-        primaryLimiter = "specific_endurance";
-        primaryLever = "increase_tte";
-        break;
-      case "FatMax":
-        primaryLimiter = "metabolic_efficiency";
-        primaryLever = "increase_fat_oxidation";
-        break;
-      case "Économie":
-        primaryLimiter = "neuromuscular";
-        primaryLever = "force_endurance";
-        break;
+
+  // Le limiteur principal = catégorie dont la SOMME des impacts est maximale.
+  // Seuil de déclenchement aligné sur l'ancienne logique (impact > 5).
+  if (topCategory && topCategory.totalImpact > 5) {
+    primaryLimiter = CATEGORY_TO_UNIFIED_LIMITER[topCategory.category];
+    primaryLever = CATEGORY_TO_LEVER[topCategory.category];
+
+    // Affinage : si la catégorie aérobie est dominante mais qu'une seule
+    // métrique du groupe est FatMax (metabolic_efficiency), on bascule.
+    // (Cas marginal — la catégorie reste prioritaire.)
+    if (
+      topCategory.category === "metabolic_endurance" &&
+      topCategory.metrics.length === 1 &&
+      topCategory.metrics[0].metric === "FatMax"
+    ) {
+      primaryLimiter = "metabolic_efficiency";
+      primaryLever = "increase_fat_oxidation";
+    }
+    // Cas W' isolé dans neuromuscular → capacité anaérobie pure
+    if (
+      topCategory.category === "neuromuscular" &&
+      topCategory.metrics.length === 1 &&
+      (topCategory.metrics[0].metric === "W'" || topCategory.metrics[0].metric === "W' (kJ)")
+    ) {
+      primaryLimiter = "anaerobic_capacity";
+      primaryLever = "adjust_anaerobic";
     }
   }
-  
+
   // Calcul du détail de faiblesse aérobie
   // En mode running : VMA remplace FTP/kg dans l'analyse
   const aerobicExpressionAnalysis = gapAnalysis.find(g => g.metric === "VMA" || g.metric === "FTP/kg");
