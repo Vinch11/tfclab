@@ -88,6 +88,97 @@ export interface UnifiedGapAnalysis {
   weightedImpact: number; // Gap × weight (pour classement)
 }
 
+/**
+ * Catégorie physiologique de limiteur — regroupement des métriques individuelles.
+ * Utilisé pour aligner Coaching Compass et Carte Facteurs Limitants
+ * sur la même hiérarchie (somme cumulée des impacts par catégorie).
+ */
+export type LimiterCategory =
+  | "aerobic_power"        // VO2max, FTP/kg, VMA
+  | "glycolytic"           // VLamax
+  | "metabolic_endurance"  // TTE, FatMax
+  | "durability"           // Robustesse, Durabilité
+  | "neuromuscular"        // W', Économie
+  | "unknown";
+
+export interface CategoryRankingEntry {
+  category: LimiterCategory;
+  metrics: UnifiedGapAnalysis[];
+  worstGap: number;        // Le pire écart individuel (le plus négatif)
+  totalImpact: number;     // Somme des |weightedImpact| de toutes les métriques limitantes
+}
+
+/**
+ * Mappe une métrique individuelle vers sa catégorie physiologique.
+ * Source unique partagée entre le moteur et la carte Limiteurs.
+ */
+export const METRIC_TO_CATEGORY: Record<string, LimiterCategory> = {
+  "VO2max": "aerobic_power",
+  "FTP/kg": "aerobic_power",
+  "VMA": "aerobic_power",
+  "VLamax": "glycolytic",
+  "TTE": "metabolic_endurance",
+  "FatMax": "metabolic_endurance",
+  "Robustesse": "durability",
+  "Durabilité": "durability",
+  "Économie": "neuromuscular",
+  "W'": "neuromuscular",
+  "W' (kJ)": "neuromuscular",
+};
+
+/**
+ * Mappe une catégorie de limiteur vers le `UnifiedLimiter` correspondant.
+ */
+const CATEGORY_TO_UNIFIED_LIMITER: Record<LimiterCategory, UnifiedLimiter> = {
+  aerobic_power: "aerobic_engine",
+  glycolytic: "glycolytic",
+  metabolic_endurance: "specific_endurance",
+  durability: "specific_endurance",
+  neuromuscular: "neuromuscular",
+  unknown: "none",
+};
+
+const CATEGORY_TO_LEVER: Record<LimiterCategory, UnifiedLever> = {
+  aerobic_power: "increase_vo2max",
+  glycolytic: "decrease_vlamax",
+  metabolic_endurance: "increase_tte",
+  durability: "increase_tte",
+  neuromuscular: "force_endurance",
+  unknown: "maintain",
+};
+
+/**
+ * Construit le classement par catégorie physiologique à partir des gaps individuels.
+ * Source de vérité unique pour Compass + Carte Facteurs Limitants.
+ */
+export function buildCategoryRanking(gapAnalysis: UnifiedGapAnalysis[]): CategoryRankingEntry[] {
+  const groups = new Map<LimiterCategory, CategoryRankingEntry>();
+
+  for (const gap of gapAnalysis) {
+    // On ne retient que les métriques limitantes (ou clairement en dessous de la cible)
+    if (gap.status === "unknown" || gap.value === null) continue;
+    if (gap.status !== "limiting" && gap.gap >= -3) continue;
+
+    const category = METRIC_TO_CATEGORY[gap.metric] ?? "unknown";
+    const impact = Math.abs(gap.weightedImpact ?? gap.gap);
+    const existing = groups.get(category);
+    if (existing) {
+      existing.metrics.push(gap);
+      existing.worstGap = Math.min(existing.worstGap, gap.gap);
+      existing.totalImpact += impact;
+    } else {
+      groups.set(category, {
+        category,
+        metrics: [gap],
+        worstGap: gap.gap,
+        totalImpact: impact,
+      });
+    }
+  }
+
+  return Array.from(groups.values()).sort((a, b) => b.totalImpact - a.totalImpact);
+}
+
 export interface FatigueWarning {
   active: boolean;
   level: "moderate" | "high" | "critical" | null;
