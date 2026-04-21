@@ -302,7 +302,7 @@ export function CAPTestingWeekPage() {
         {/* Threshold Pace Estimator for Day 5 */}
         {selectedAthlete && (
           <ThresholdPaceEstimator 
-            vma={activeSnapshot?.vma || undefined}
+            defaultVma={activeSnapshot?.vma || null}
           />
         )}
 
