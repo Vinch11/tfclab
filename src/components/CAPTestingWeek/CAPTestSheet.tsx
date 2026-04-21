@@ -34,6 +34,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { DbSnapshot } from "@/hooks/useCloudData";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
+import { SprintTimeConverter } from "./SprintTimeConverter";
 
 interface CAPTestSheetProps {
   dayKey: string;
@@ -322,6 +323,27 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
                   </div>
                 </div>
               </div>
+              
+              <SprintTimeConverter
+                onApply={(distance, source) => {
+                  // Fill the first empty slot with the converted value
+                  if (!sprint15s_1) {
+                    setSprint15s_1(distance.toString());
+                  } else if (!sprint15s_2) {
+                    setSprint15s_2(distance.toString());
+                  } else if (!sprint15s_3) {
+                    setSprint15s_3(distance.toString());
+                  } else {
+                    // All filled: replace the smallest value
+                    const values = [sprint15s_1, sprint15s_2, sprint15s_3].map(Number);
+                    const minIdx = values.indexOf(Math.min(...values));
+                    if (minIdx === 0) setSprint15s_1(distance.toString());
+                    else if (minIdx === 1) setSprint15s_2(distance.toString());
+                    else setSprint15s_3(distance.toString());
+                  }
+                  toast.success(`Distance ${distance}m appliquée (estimée depuis sprint ${source})`);
+                }}
+              />
               
               {bestSprint && (
                 <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
