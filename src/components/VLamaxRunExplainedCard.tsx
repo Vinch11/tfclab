@@ -79,6 +79,21 @@ export function VLamaxRunExplainedCard({
               showActions={true}
             />
 
+            {/* Trace de calcul détaillée (transparence TFCL) */}
+            {traceInput && (() => {
+              const { result, steps } = buildVLamaxRunV2Trace(traceInput);
+              return (
+                <CalculationTraceDisplay
+                  trace={steps}
+                  title="Comment ce VLamax a été calculé"
+                  resultLabel={result.formulaLabel}
+                  resultValue={result.value}
+                  resultUnit="mmol/L/s"
+                  confidence={result.confidence}
+                />
+              );
+            })()}
+
             {/* Section Qu'est-ce que VLamax CAP ? */}
             <Collapsible>
               <CollapsibleTrigger asChild>

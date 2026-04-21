@@ -396,6 +396,19 @@ export default function RunningProfilePage() {
             age={athleteAge}
             objectif={athleteGoal}
             defaultCollapsed={false}
+            traceInput={{
+              runPowerThreshold: effectiveCloudSnapshot?.running_power_threshold ?? 0,
+              runPower1s: effectiveCloudSnapshot?.running_power_1s ?? null,
+              runPower5s: effectiveCloudSnapshot?.running_power_5s ?? null,
+              runPower30s: effectiveCloudSnapshot?.running_power_30s ?? null,
+              runPower60s: effectiveCloudSnapshot?.running_power_60s ?? null,
+              runPower5min: effectiveCloudSnapshot?.running_power_5min ?? null,
+              tteMin: effectiveCloudSnapshot?.tte_observed_min ?? null,
+              weightKg: effectiveCloudSnapshot?.weight_kg ?? null,
+              protocolQuality: (effectiveCloudSnapshot?.protocol_quality as 1|2|3|4|5) ?? 3,
+              vma: effectiveCloudSnapshot?.vma ?? null,
+              paceThresholdSecPerKm: effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null,
+            }}
           />
         ),
       },
