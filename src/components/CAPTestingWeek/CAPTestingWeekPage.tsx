@@ -299,6 +299,13 @@ export function CAPTestingWeekPage() {
         {/* Interactive Guide */}
         <CAPGuide />
 
+        {/* Threshold Pace Estimator for Day 5 */}
+        {selectedAthlete && (
+          <ThresholdPaceEstimator 
+            vma={activeSnapshot?.vma || undefined}
+          />
+        )}
+
         {/* Description */}
         <Alert>
           <Info className="h-4 w-4" />
