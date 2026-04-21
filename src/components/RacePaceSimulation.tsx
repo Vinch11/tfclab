@@ -121,9 +121,24 @@ function computeSegments(
   objective: string,
   thresholdPace: number,
   vlamaxRun: number | null,
+  ambition: string,
+  intensityCenterPct: number | null | undefined,
 ): SegmentRow[] {
   const totalKm = DISTANCES[objective] || 21;
-  const base = BASE_INTENSITY[objective] || BASE_INTENSITY.Semi;
+  const baseRaw = BASE_INTENSITY[objective] || BASE_INTENSITY.Semi;
+
+  // Centre effectif: priorité au centre fourni (Plan IA), sinon base + delta ambition
+  const ambitionDelta = ambitionCenterDelta(ambition);
+  const center = intensityCenterPct != null
+    ? intensityCenterPct
+    : baseRaw.center + ambitionDelta;
+  // Recalcul cohérent des bornes autour du nouveau centre
+  const halfWidth = (baseRaw.high - baseRaw.low) / 2;
+  const base = {
+    center,
+    low: center - halfWidth,
+    high: center + halfWidth,
+  };
   const vlaMod = vlamaxModifier(vlamaxRun);
 
   const segments: SegmentRow[] = [];
