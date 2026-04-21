@@ -880,6 +880,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     leverEmoji: leverInfo.emoji,
     
     gapAnalysis: gapAnalysis.filter(g => g.metric !== "Disponibilité"),
+    categoryRanking,
+
     
     isRobust: insufficientData ? false : isRobust,
     robustnessScore: insufficientData ? 0 : robustnessScore,
