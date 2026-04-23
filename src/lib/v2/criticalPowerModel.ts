@@ -417,8 +417,10 @@ export function simulateWbal(
   wprimeJ: number,
   dtSec: number = 1
 ): WbalState[] {
+  // R3: apply physiological floor + ceiling so simulation matches prescription paths
+  const wEff = effectiveWprime(wprimeJ);
   const states: WbalState[] = [];
-  let wbal = wprimeJ;
+  let wbal = wEff;
 
   for (let i = 0; i < powerTrace.length; i++) {
     const power = powerTrace[i];
@@ -429,18 +431,18 @@ export function simulateWbal(
       wbal -= (power - cp) * dtSec;
     } else {
       // Reconstitution phase
-      const tau = calculateTau(wprimeJ, cp, power);
-      wbal = wprimeJ - (wprimeJ - wbal) * Math.exp(-dtSec / tau);
+      const tau = calculateTau(wEff, cp, power);
+      wbal = wEff - (wEff - wbal) * Math.exp(-dtSec / tau);
     }
 
     // Clamp
-    wbal = Math.max(0, Math.min(wprimeJ, wbal));
+    wbal = Math.max(0, Math.min(wEff, wbal));
 
     states.push({
       timeSeconds: time,
       powerWatts: power,
       wbalJoules: Math.round(wbal),
-      wbalPct: Math.round((wbal / wprimeJ) * 100),
+      wbalPct: Math.round((wbal / wEff) * 100),
       depleted: wbal <= 0,
     });
   }
