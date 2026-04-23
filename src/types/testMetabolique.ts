@@ -38,9 +38,6 @@ export const formatTTE = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 };
 
-// Helper to compute W' (anaerobic work capacity)
-export const computeWPrime = (test: TestMetabolique): number => {
-  if (!test.cp || !test.tte || !test.pmax_5s) return 0;
-  // Simplified W' estimation: W' ≈ (Pmax - CP) * TTE_at_Pmax
-  return Math.round((test.pmax_5s - test.cp) * 5);
-};
+// computeWPrime REMOVED — use criticalPowerModel.analyzeCriticalPower() (Monod-Scherrer regression)
+// as the single source of truth for W'. The legacy heuristic (Pmax-CP)*5 produced incoherent
+// results vs the regression model. See src/lib/v2/criticalPowerModel.ts
