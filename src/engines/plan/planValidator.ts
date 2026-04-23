@@ -1378,7 +1378,8 @@ export function validatePlan(
   prohibitions?: string[],
   raceWeekNumbers?: number[],
   identifiedLimiters?: string[],
-  identifiedLimiterKeys?: string[]
+  identifiedLimiterKeys?: string[],
+  athleteData?: PlanAthleteData
 ): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
@@ -1394,6 +1395,7 @@ export function validatePlan(
   const phaseCoherence = validatePhaseCoherence(plan);
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, identifiedLimiterKeys);
+  const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
 
   // Combine all issues
   const allIssues = [
@@ -1407,20 +1409,22 @@ export function validatePlan(
     ...phaseCoherence.issues,
     ...raceDayPresence.issues,
     ...limiterCoherence.issues,
+    ...wbalFeasibility.issues,
   ];
 
-  // Weighted score (10 rules)
+  // Weighted score (11 rules)
   const weights = {
-    polarization: 0.14,
-    loadPattern: 0.10,
-    keySessions: 0.10,
-    progression: 0.08,
-    sportRatio: 0.08,
-    catalogRatio: 0.06,
-    prohibitionCompliance: 0.15,
-    phaseCoherence: 0.10,
-    raceDayPresence: 0.08,
-    limiterCoherence: 0.11,
+    polarization: 0.13,
+    loadPattern: 0.09,
+    keySessions: 0.09,
+    progression: 0.07,
+    sportRatio: 0.07,
+    catalogRatio: 0.05,
+    prohibitionCompliance: 0.14,
+    phaseCoherence: 0.09,
+    raceDayPresence: 0.07,
+    limiterCoherence: 0.10,
+    wbalFeasibility: 0.10,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -1432,7 +1436,8 @@ export function validatePlan(
     prohibitionCompliance.score * weights.prohibitionCompliance +
     phaseCoherence.score * weights.phaseCoherence +
     raceDayPresence.score * weights.raceDayPresence +
-    limiterCoherence.score * weights.limiterCoherence
+    limiterCoherence.score * weights.limiterCoherence +
+    wbalFeasibility.score * weights.wbalFeasibility
   );
 
   // Grade
@@ -1445,8 +1450,11 @@ export function validatePlan(
   const phaseErrors = phaseCoherence.issues.filter(i => i.severity === "error").length;
   const raceDayMissing = raceDayPresence.issues.filter(i => i.severity === "error").length;
   const limiterErrors = limiterCoherence.issues.filter(i => i.severity === "error").length;
+  const wbalErrors = wbalFeasibility.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : wbalErrors > 0
+    ? `⚡ ${wbalErrors} séance(s) infaisable(s) selon le W'bal de l'athlète — intensité, durée ou repos à revoir`
     : limiterErrors > 0
     ? `⚠️ ${limiterErrors} incohérence(s) limiteur↔séances — le plan ne cible pas les limiteurs détectés par le diagnostic`
     : raceDayMissing > 0
@@ -1477,6 +1485,7 @@ export function validatePlan(
       phaseCoherenceScore: phaseCoherence.score,
       raceDayScore: raceDayPresence.score,
       limiterCoherenceScore: limiterCoherence.score,
+      wbalFeasibilityScore: wbalFeasibility.score,
       overallComment,
     },
   };
