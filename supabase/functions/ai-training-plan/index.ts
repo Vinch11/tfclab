@@ -121,6 +121,10 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const INTER_CHUNK_DELAY_MS = 1500;
     const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
+    // AUDIT FIX #6: Model fallback chain — primary fast, fallback robust for long plans
+    const PRIMARY_MODEL = "google/gemini-3-flash-preview";
+    const FALLBACK_MODEL = "google/gemini-2.5-pro";
+
     // AUDIT FIX #1: Track finish_reason to detect truncation (max_tokens reached)
     // generateAndStream returns text + truncation flag for caller-side handling
     let streamError: { code: number; message: string } | null = null;
@@ -128,6 +132,7 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       prompt: string,
       controller: ReadableStreamDefaultController,
       encoder: TextEncoder,
+      model: string = PRIMARY_MODEL,
     ): Promise<{ text: string; truncated: boolean }> {
       const abortCtrl = new AbortController();
       const timeout = setTimeout(() => abortCtrl.abort(), CHUNK_TIMEOUT_MS);
@@ -140,7 +145,7 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
+            model,
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: prompt },
@@ -251,6 +256,10 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             let extractedDiagnostic = "";
             // FIX #1 (audit recap): Capture Récapitulatif Stratégique from chunk 1
             let extractedRecap = "";
+            // AUDIT FIX #4: Global Plan Memory — ultra-condensed, persists across all chunks
+            let globalPlanMemory = "";
+            // AUDIT FIX #5: Anti-redundancy — track key sessions used across all previous chunks
+            const usedKeySessions: Set<string> = new Set();
             // FIX C1 (audit): Initialize activePhase from ambition — finisher starts in "Adaptation", not "Fondation"
             const ambKeyForPhase = normalizeAmbKey(planConfig?.ambition || "");
             let activePhase = (ambKeyForPhase === "finisher") ? "Adaptation" : "Fondation";
@@ -258,6 +267,19 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             for (let s = 1; s <= totalWeeks; s += CHUNK_SIZE) {
               chunks.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
             }
+
+            // AUDIT FIX #4: Append condensed entry to global memory (capped ~2KB)
+            const updateGlobalMemory = (chunkIdx: number, chunkRange: string, phase: string, blocs: string[], topSessions: string[]) => {
+              const blocLine = blocs.length > 0 ? ` | Blocs: ${blocs.join("; ")}` : "";
+              const sessLine = topSessions.length > 0 ? ` | Clés: ${topSessions.slice(0, 4).join(", ")}` : "";
+              const entry = `[Bloc${chunkIdx + 1} ${chunkRange} • ${phase}${blocLine}${sessLine}]`;
+              globalPlanMemory = (globalPlanMemory + " " + entry).trim();
+              if (globalPlanMemory.length > 2000) {
+                const parts = globalPlanMemory.split(/(?=\[Bloc)/);
+                while (parts.length > 1 && parts.join("").length > 2000) parts.shift();
+                globalPlanMemory = parts.join("").trim();
+              }
+            };
 
             const emitChunkBoundary = () => {
               controller.enqueue(
@@ -389,8 +411,15 @@ ${recapSection}${multiObjChunkReminder}
   3. Marque-la avec [Custom] dans le titre pour la distinguer des protocoles validés
 → Ratio cible : ≥80% séances catalogue, ≤20% séances custom. Si tu dépasses 20% custom, justifie pourquoi.
 
-Résumé des blocs précédents (progression récente) :
+🧠 MÉMOIRE GLOBALE DU PLAN (synthèse de TOUS les blocs déjà générés — anti-amnésie) :
+${globalPlanMemory || "(aucun bloc précédent)"}
+
+Résumé détaillé des blocs récents (progression) :
 ${slidingSummary || "Premier bloc de continuation."}
+
+🚫 SÉANCES CLÉS DÉJÀ UTILISÉES (éviter la répétition exacte — varier les protocoles) :
+${usedKeySessions.size > 0 ? Array.from(usedKeySessions).slice(-25).join(" • ") : "(aucune)"}
+→ Tu peux REPRENDRE des familles de séances pour la progression, mais évite de copier le titre exact d'une séance déjà programmée. Varie les durées, intensités, ou structures.
 
 Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}`;
               }
@@ -420,12 +449,24 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
                 await sleep(INTER_CHUNK_DELAY_MS);
                 const retryResult = await generateAndStream(chunkPrompt, controller, encoder);
                 if (!retryResult.text) {
-                  console.error(`Chunk ${ci + 1} retry also failed. Skipping to next chunk.`);
-                  continue;
+                  // AUDIT FIX #6: Fallback model — switch to robust Gemini Pro after 2 failures
+                  console.warn(`⚠️ Chunk ${ci + 1} primary retry failed. Trying FALLBACK model (${FALLBACK_MODEL})...`);
+                  streamError = null;
+                  await sleep(INTER_CHUNK_DELAY_MS);
+                  const fallbackResult = await generateAndStream(chunkPrompt, controller, encoder, FALLBACK_MODEL);
+                  if (!fallbackResult.text) {
+                    console.error(`Chunk ${ci + 1} fallback also failed. Skipping to next chunk.`);
+                    continue;
+                  }
+                  chunkText = fallbackResult.text;
+                  combinedChunkText = chunkText;
+                  chunkTruncated = fallbackResult.truncated;
+                  console.log(`✅ Chunk ${ci + 1} recovered via fallback model.`);
+                } else {
+                  chunkText = retryResult.text;
+                  combinedChunkText = chunkText;
+                  chunkTruncated = retryResult.truncated;
                 }
-                chunkText = retryResult.text;
-                combinedChunkText = chunkText;
-                chunkTruncated = retryResult.truncated;
               }
 
               // AUDIT FIX #1: Log truncation — missing-weeks retry below handles continuation
@@ -612,6 +653,18 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
               }
               
               chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end} [Phase: ${activePhase}${blocInfo}${maxZ2}]: ${summaryLines || "Plan progressif standard"}`);
+
+              // AUDIT FIX #4 + #5: Update global memory + register key sessions for anti-redundancy
+              const blocLabels = blocHeaders.map(h => h.replace(/^##\s*/i, "").trim().slice(0, 50));
+              const topSessions = keySessionMatches_all
+                .map(k => k.replace(/🔑/g, "").replace(/[|]/g, "").trim())
+                .filter(s => s.length > 0)
+                .map(s => s.slice(0, 50));
+              updateGlobalMemory(ci, `S${chunk.start}-S${chunk.end}`, activePhase, blocLabels, topSessions);
+              topSessions.forEach(s => {
+                const norm = s.toLowerCase().replace(/\s+/g, " ").trim();
+                if (norm.length >= 6) usedKeySessions.add(norm);
+              });
             }
 
             // Send final [DONE]
