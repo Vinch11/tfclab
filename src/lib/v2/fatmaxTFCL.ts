@@ -178,25 +178,22 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 2: Ajustement selon objectif
+  // STEP 2: Objectif → décalage de ZONE DE TRAVAIL (PAS de la FatMax physio)
+  // P2 V2: La FatMax est une réalité biologique, elle ne change pas selon l'objectif.
+  // Seule la zone d'entraînement recommandée se décale autour d'elle.
   // ─────────────────────────────────────────────────────────────────────────────
   const normalizedObjectif = (objectif === "IM" ? "Ironman" : objectif) as FatMaxObjectif;
   const objectifOffset = OBJECTIF_OFFSET[normalizedObjectif] ?? 0;
-  
-  if (objectifOffset !== 0) {
-    adjustments.push({
-      id: "objectif",
-      label: `Objectif ${OBJECTIF_LABELS[normalizedObjectif]}`,
-      value: objectifOffset,
-      direction: objectifOffset > 0 ? "up" : "down",
-      explanation: objectifOffset > 0 
-        ? `Distance longue → besoin lipidique accru (+${objectifOffset}%)`
-        : `Distance courte → dépendance glucidique (${objectifOffset}%)`,
-    });
+
+  let workZoneRationale = "Zone de travail centrée sur la FatMax physiologique.";
+  if (objectifOffset > 0) {
+    workZoneRationale = `Objectif ${OBJECTIF_LABELS[normalizedObjectif]} → travail recommandé légèrement au-dessus de FatMax (+${objectifOffset}%) pour habituer au rythme course.`;
+  } else if (objectifOffset < 0) {
+    workZoneRationale = `Objectif ${OBJECTIF_LABELS[normalizedObjectif]} → travail recommandé en-dessous de FatMax (${objectifOffset}%) car distance courte = enjeu glucidique.`;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 3: Ajustement durabilité (TTE)
+  // STEP 3: Ajustement durabilité (TTE) — affecte la FatMax PHYSIO
   // ─────────────────────────────────────────────────────────────────────────────
   let tteOffset = 0;
   if (tteEffectif !== null && Number.isFinite(tteEffectif)) {
@@ -222,7 +219,7 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 4: Ajustement fatigue
+  // STEP 4: Ajustement fatigue — affecte la FatMax PHYSIO
   // ─────────────────────────────────────────────────────────────────────────────
   let fatigueOffset = 0;
   if (fatigueIndex !== null && Number.isFinite(fatigueIndex)) {
@@ -239,13 +236,13 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 5: Calcul final avec ajustements
+  // STEP 5: FatMax PHYSIOLOGIQUE finale (sans offset objectif)
   // ─────────────────────────────────────────────────────────────────────────────
-  const totalOffset = objectifOffset + tteOffset + fatigueOffset;
-  const adjustedCenter = clamp(centerBase + totalOffset, 48, 85);
+  const physioOffset = tteOffset + fatigueOffset;
+  const physioCenter = clamp(centerBase + physioOffset, 48, 85);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 6: Calcul de la PLAGE FatMax
+  // STEP 6: Plage FatMax physiologique
   // ─────────────────────────────────────────────────────────────────────────────
   const globalConfidence = Math.min(
     vlamaxConfidence,
@@ -253,16 +250,20 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
     fatigueIndex !== null ? 0.8 : 0.6
   );
   
-  // Largeur de plage selon confiance
-  let rangeWidth = 4; // ±4% par défaut
+  let rangeWidth = 4;
   if (globalConfidence < 0.55) {
     rangeWidth = 8;
   } else if (globalConfidence < 0.7) {
     rangeWidth = 6;
   }
 
-  const minPctFTP = clamp(adjustedCenter - rangeWidth, 48, 85);
-  const maxPctFTP = clamp(adjustedCenter + rangeWidth, 48, 85);
+  const physioMin = clamp(physioCenter - rangeWidth, 48, 85);
+  const physioMax = clamp(physioCenter + rangeWidth, 48, 85);
+
+  // Zone de travail = FatMax physio + offset objectif
+  const workCenter = clamp(physioCenter + objectifOffset, 48, 92);
+  const workMin = clamp(physioMin + objectifOffset, 48, 92);
+  const workMax = clamp(physioMax + objectifOffset, 48, 92);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 7: Confiance et niveau
@@ -282,15 +283,15 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 8: Zone métabolique
+  // STEP 8: Zone métabolique (basée sur physio)
   // ─────────────────────────────────────────────────────────────────────────────
   let metabolicZone: FatMaxTFCLResult["metabolicZone"];
   let zoneLabel: string;
   
-  if (adjustedCenter >= 72) {
+  if (physioCenter >= 72) {
     metabolicZone = "lipid_dominant";
     zoneLabel = "Profil lipidique dominant";
-  } else if (adjustedCenter <= 62) {
+  } else if (physioCenter <= 62) {
     metabolicZone = "carb_dominant";
     zoneLabel = "Profil glucidique dominant";
   } else {
@@ -299,10 +300,10 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 9: Crossover Zone (8-12% above FatMax)
+  // STEP 9: Crossover Zone (basée sur la FatMax PHYSIO)
   // ─────────────────────────────────────────────────────────────────────────────
   const crossoverZone = calculateCrossoverZone({
-    fatmaxPct: adjustedCenter,
+    fatmaxPct: physioCenter,
     vlamaxValue: vlamaxEffectif,
     confidence: globalConfidence,
   });
@@ -311,13 +312,22 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 10: Textes explicatifs
   // ─────────────────────────────────────────────────────────────────────────────
-  const interpretation = generateAthleteInterpretation(adjustedCenter, metabolicZone, normalizedObjectif);
-  const staffNote = generateStaffNote(input, adjustedCenter, globalConfidence, crossoverZone);
+  const interpretation = generateAthleteInterpretation(physioCenter, metabolicZone, normalizedObjectif);
+  const staffNote = generateStaffNote(input, physioCenter, globalConfidence, crossoverZone);
 
   return {
-    centerPctFTP: Math.round(adjustedCenter),
-    minPctFTP: Math.round(minPctFTP),
-    maxPctFTP: Math.round(maxPctFTP),
+    // Physio (compat: centerPctFTP === physioCenterPctFTP)
+    centerPctFTP: Math.round(physioCenter),
+    minPctFTP: Math.round(physioMin),
+    maxPctFTP: Math.round(physioMax),
+    physioCenterPctFTP: Math.round(physioCenter),
+    physioMinPctFTP: Math.round(physioMin),
+    physioMaxPctFTP: Math.round(physioMax),
+    // Zone de travail (modulée par objectif)
+    workCenterPctFTP: Math.round(workCenter),
+    workMinPctFTP: Math.round(workMin),
+    workMaxPctFTP: Math.round(workMax),
+    workZoneRationale,
     crossoverZone,
     crossoverZoneLabel,
     confidence: globalConfidence,
