@@ -142,6 +142,11 @@ export function WbalRecoveryCard({
                     Plancher 10kJ appliqué pour les repos
                   </div>
                 )}
+                {effectiveWprime(cpResult.wprime) < cpResult.wprime && (
+                  <div className="text-[10px] text-amber-600 font-medium">
+                    Plafond 35kJ appliqué pour les repos
+                  </div>
+                )}
               </div>
             </div>
 

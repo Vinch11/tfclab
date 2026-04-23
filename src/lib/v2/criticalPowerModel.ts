@@ -275,6 +275,15 @@ export function analyzeCriticalPower(snapshot: {
       detail: `La plage physiologique normale de W' est 10-25 kJ. Une valeur de ${result.wprimeKJ} kJ signifie que le modèle "voit" très peu de capacité anaérobie. Cause probable : la courbe de puissance est trop plate — les efforts courts (P30s, P60s) ne sont pas assez supérieurs à MAP5'. Cela arrive quand les tests ne sont pas des efforts maximaux all-out.`,
     });
   }
+  // R4: ceiling — W' > 35 kJ est physiologiquement implausible (max sprinters world-class ~30-35 kJ)
+  if (result.wprimeKJ > 35) {
+    diag.push({
+      code: "WPRIME_HIGH",
+      severity: result.wprimeKJ > 45 ? "critical" : "warning",
+      message: `W' anormalement élevé (${result.wprimeKJ} kJ)`,
+      detail: `Le W' mesuré dépasse 35 kJ, ce qui n'est plausible que pour des sprinters de classe mondiale. Cause probable : P30s ou P60s issus d'un effort très court (sprint pur < 30s) qui surestime la composante anaérobie. Les calculs de prescription (repos, reps, W'bal) sont automatiquement plafonnés à 35 kJ pour éviter les sur-prescriptions.`,
+    });
+  }
 
   // 3. Power curve flatness — P60s should be significantly above MAP5min
   if (snapshot.p60s_w && snapshot.map5min_w && snapshot.p60s_w > 0 && snapshot.map5min_w > 0) {
@@ -351,27 +360,30 @@ export function analyzeCriticalPower(snapshot: {
 //   DCP = CP − recovery_power
 
 // =============================================
-// W' PHYSIOLOGICAL FLOOR
+// W' PHYSIOLOGICAL FLOOR & CEILING (R3 + R4)
 // =============================================
-// When regression gives an implausibly low W' (< 10 kJ), recovery
-// calculations cascade-fail: maxReps=0 for standard VO2max formats,
-// rest durations shrink to near-zero, etc.
-//
+// FLOOR (10 kJ): When regression gives an implausibly low W' (< 10 kJ),
+// recovery calculations cascade-fail (maxReps=0, near-zero rest durations).
 // Root cause: non-maximal short-duration data → flat curve → W' compressed.
-//
 // Fix: for PRESCRIPTION purposes (not display), enforce a physiological floor.
-// Literature: trained cyclists typically 12-25 kJ, untrained ~8-15 kJ.
-// Using 10 kJ as absolute floor prevents absurd prescriptions.
 //
-// The UI still displays the RAW W' so the coach sees the data quality issue.
-const WPRIME_FLOOR_J = 10000; // 10 kJ — physiological minimum for prescriptions
+// CEILING (35 kJ): When regression gives an implausibly high W' (> 35 kJ),
+// recovery calculations over-prescribe (too many reps, too short rests).
+// Root cause: P5s included or sprint power inflated → W' over-estimated.
+// Literature: trained cyclists 12-25 kJ, world-class sprinters max 30-35 kJ.
+// Fix: cap W' at 35 kJ for prescription. UI still shows raw value for transparency.
+//
+// The UI displays the RAW W' so the coach sees the data quality issue;
+// only PRESCRIPTION paths (recovery, intervals, W'bal sim) use the bounded value.
+const WPRIME_FLOOR_J = 10000;   // 10 kJ — physiological minimum for prescriptions
+const WPRIME_CEILING_J = 35000; // 35 kJ — physiological maximum for prescriptions
 
 /**
- * Apply W' floor for prescription purposes.
- * Returns the higher of measured W' and the physiological floor.
+ * Apply W' floor + ceiling for prescription purposes.
+ * Returns the value bounded between physiological floor and ceiling.
  */
 export function effectiveWprime(wprimeJ: number): number {
-  return Math.max(wprimeJ, WPRIME_FLOOR_J);
+  return Math.min(WPRIME_CEILING_J, Math.max(wprimeJ, WPRIME_FLOOR_J));
 }
 
 /**
@@ -414,8 +426,10 @@ export function simulateWbal(
   wprimeJ: number,
   dtSec: number = 1
 ): WbalState[] {
+  // R3: apply physiological floor + ceiling so simulation matches prescription paths
+  const wEff = effectiveWprime(wprimeJ);
   const states: WbalState[] = [];
-  let wbal = wprimeJ;
+  let wbal = wEff;
 
   for (let i = 0; i < powerTrace.length; i++) {
     const power = powerTrace[i];
@@ -426,18 +440,18 @@ export function simulateWbal(
       wbal -= (power - cp) * dtSec;
     } else {
       // Reconstitution phase
-      const tau = calculateTau(wprimeJ, cp, power);
-      wbal = wprimeJ - (wprimeJ - wbal) * Math.exp(-dtSec / tau);
+      const tau = calculateTau(wEff, cp, power);
+      wbal = wEff - (wEff - wbal) * Math.exp(-dtSec / tau);
     }
 
     // Clamp
-    wbal = Math.max(0, Math.min(wprimeJ, wbal));
+    wbal = Math.max(0, Math.min(wEff, wbal));
 
     states.push({
       timeSeconds: time,
       powerWatts: power,
       wbalJoules: Math.round(wbal),
-      wbalPct: Math.round((wbal / wprimeJ) * 100),
+      wbalPct: Math.round((wbal / wEff) * 100),
       depleted: wbal <= 0,
     });
   }
