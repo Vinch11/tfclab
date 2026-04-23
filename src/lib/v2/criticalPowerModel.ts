@@ -439,7 +439,7 @@ export function simulateWbal(
       wbal -= (power - cp) * dtSec;
     } else {
       // Reconstitution phase
-      const tau = calculateTau(wEff, cp, power);
+      const tau = calculateTau(cp, power);
       wbal = wEff - (wEff - wbal) * Math.exp(-dtSec / tau);
     }
 
