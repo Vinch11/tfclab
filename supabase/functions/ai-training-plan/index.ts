@@ -117,14 +117,18 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
 
     // FIX #6: Per-chunk timeout (4 min per chunk call)
     const CHUNK_TIMEOUT_MS = 4 * 60 * 1000;
+    // AUDIT FIX #2: Inter-chunk delay to mitigate rate limits on long plans (>24w)
+    const INTER_CHUNK_DELAY_MS = 1500;
+    const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-    // Helper: call AI and stream response, return full text
+    // AUDIT FIX #1: Track finish_reason to detect truncation (max_tokens reached)
+    // generateAndStream returns text + truncation flag for caller-side handling
     let streamError: { code: number; message: string } | null = null;
     async function generateAndStream(
       prompt: string,
       controller: ReadableStreamDefaultController,
       encoder: TextEncoder,
-    ): Promise<string> {
+    ): Promise<{ text: string; truncated: boolean }> {
       const abortCtrl = new AbortController();
       const timeout = setTimeout(() => abortCtrl.abort(), CHUNK_TIMEOUT_MS);
 
@@ -160,13 +164,14 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             streamError = { code: 500, message: "Erreur du service IA" };
           }
 
-          return "";
+          return { text: "", truncated: false };
         }
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let text = "";
         let buf = "";
+        let truncated = false;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -186,6 +191,12 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             try {
               const p = JSON.parse(json);
               const token = p.choices?.[0]?.delta?.content;
+              // AUDIT FIX #1: Capture finish_reason to detect length-based truncation
+              const finishReason = p.choices?.[0]?.finish_reason;
+              if (finishReason === "length") {
+                truncated = true;
+                console.warn("⚠️ AI response truncated (finish_reason=length). Will trigger continuation logic.");
+              }
               if (token) {
                 text += token;
                 controller.enqueue(encoder.encode(line + "\n\n"));
@@ -193,13 +204,13 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             } catch {}
           }
         }
-        return text;
+        return { text, truncated };
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") {
           console.error("Chunk generation timed out after", CHUNK_TIMEOUT_MS, "ms");
           streamError = { code: 504, message: "Timeout: le bloc a pris trop de temps à générer." };
         }
-        return "";
+        return { text: "", truncated: false };
       } finally {
         clearTimeout(timeout);
       }
@@ -386,28 +397,42 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
 
               if (!isFirst) emitChunkBoundary();
 
+              // AUDIT FIX #2: Inter-chunk delay to mitigate rate limits (skip on first chunk)
+              if (!isFirst) {
+                await sleep(INTER_CHUNK_DELAY_MS);
+              }
+
               // Generate chunk
-              const chunkText = await generateAndStream(chunkPrompt, controller, encoder);
+              const genResult = await generateAndStream(chunkPrompt, controller, encoder);
+              let chunkText = genResult.text;
               let combinedChunkText = chunkText;
+              let chunkTruncated = genResult.truncated;
 
               if (!chunkText) {
-                // If this chunk failed, try to continue with remaining chunks instead of breaking
                 console.error(`Chunk ${ci + 1}/${chunks.length} failed (empty response). StreamError: ${streamError?.message || "none"}`);
                 if (streamError && (streamError.code === 402 || streamError.code === 429)) {
-                  // Credit/rate limit errors — stop entirely
                   const errorPayload = `{"error":"${streamError.message}","code":${streamError.code}}`;
                   controller.enqueue(encoder.encode(`data: ${errorPayload}\n\n`));
                   break;
                 }
-                // For timeouts or transient errors, try one more time with a smaller scope
                 console.log(`Retrying full chunk ${ci + 1} after failure...`);
                 streamError = null;
-                const retryChunkText = await generateAndStream(chunkPrompt, controller, encoder);
-                if (!retryChunkText) {
+                await sleep(INTER_CHUNK_DELAY_MS);
+                const retryResult = await generateAndStream(chunkPrompt, controller, encoder);
+                if (!retryResult.text) {
                   console.error(`Chunk ${ci + 1} retry also failed. Skipping to next chunk.`);
-                  continue; // Skip this chunk, let the gap-filling in parser handle it
+                  continue;
                 }
-                combinedChunkText = retryChunkText;
+                chunkText = retryResult.text;
+                combinedChunkText = chunkText;
+                chunkTruncated = retryResult.truncated;
+              }
+
+              // AUDIT FIX #1: Log truncation — missing-weeks retry below handles continuation
+              if (chunkTruncated) {
+                const generatedSoFar = extractGeneratedWeekNumbers(combinedChunkText);
+                const missingFromTrunc = expectedWeeks.filter(w => !generatedSoFar.includes(w));
+                console.warn(`⚠️ Chunk ${ci + 1} truncated (finish_reason=length). Missing ${missingFromTrunc.length}/${expectedWeeks.length} weeks — continuation will be requested.`);
               }
 
               // === FIRST CHUNK EXTRACTIONS ===
@@ -423,14 +448,33 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
 
                 // FIX #1 (audit recap): Extract Récapitulatif Stratégique
                 extractedRecap = extractStrategicRecap(chunkText);
-                
-                // FIX #6 (audit recap): Validate chunk 1 output quality
-                const validation = validateChunk1HasRecap(chunkText);
-                if (!validation.hasRecap) {
-                  console.warn("⚠️ Chunk 1 is missing Récapitulatif Stratégique section");
+
+                // AUDIT FIX #3: Strict recap enforcement — regenerate chunk 1 once if recap is missing
+                let recapValidation = validateChunk1HasRecap(chunkText);
+                if ((!recapValidation.hasRecap || !recapValidation.hasPhases || !extractedRecap) && chunks.length > 1) {
+                  console.warn("⚠️ Chunk 1 missing strategic recap — forcing one regeneration with reinforced prompt.");
+                  await sleep(INTER_CHUNK_DELAY_MS);
+                  const reinforcedPrompt = `${chunkPrompt}
+
+🚨 CONTRAINTE ABSOLUE — RÉCAPITULATIF STRATÉGIQUE OBLIGATOIRE :
+Tu DOIS produire une section "## 2. Récapitulatif Stratégique" couvrant les ${totalWeeks} semaines du plan AVANT toute semaine.
+Le tableau "Limiteurs → Blocs → Séances Clés" doit comporter au moins 3 phases avec bornes explicites (S1-Sx, Sy-Sz, …) couvrant l'INTÉGRALITÉ des ${totalWeeks} semaines.
+Sans ce récapitulatif structuré, le plan sera rejeté.`;
+                  const reinforcedResult = await generateAndStream(reinforcedPrompt, controller, encoder);
+                  if (reinforcedResult.text) {
+                    combinedChunkText = reinforcedResult.text;
+                    chunkText = reinforcedResult.text;
+                    extractedRecap = extractStrategicRecap(reinforcedResult.text);
+                    recapValidation = validateChunk1HasRecap(reinforcedResult.text);
+                    chunkTruncated = chunkTruncated || reinforcedResult.truncated;
+                  }
                 }
-                if (!validation.hasPhases) {
-                  console.warn("⚠️ Chunk 1 Récapitulatif has no phase boundaries (SN-SM patterns)");
+
+                if (!recapValidation.hasRecap) {
+                  console.warn("⚠️ Chunk 1 still missing Récapitulatif Stratégique after enforcement.");
+                }
+                if (!recapValidation.hasPhases) {
+                  console.warn("⚠️ Chunk 1 Récapitulatif has no phase boundaries (SN-SM patterns) after enforcement.");
                 }
                 if (extractedRecap) {
                   console.log(`✅ Extracted strategic recap (${extractedRecap.length} chars)`);
@@ -476,7 +520,9 @@ ${generatedWeeks.length > 0 ? `Semaines déjà générées dans ce bloc : ${gene
 Assure la CONTINUITÉ de la progression.${wbalReminder}`;
 
                 emitChunkBoundary();
-                const retryText = await generateAndStream(retryPrompt, controller, encoder);
+                await sleep(INTER_CHUNK_DELAY_MS);
+                const retryResult1 = await generateAndStream(retryPrompt, controller, encoder);
+                const retryText = retryResult1.text;
                 let allRetryWeeks: number[] = [];
                 if (retryText) {
                   combinedChunkText += `\n${retryText}`;
@@ -510,7 +556,9 @@ Contexte : ${slidingSummary}
 Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b) => a - b).join(", ")}${wbalReminder}`;
 
                   emitChunkBoundary();
-                  const retry2Text = await generateAndStream(retry2Prompt, controller, encoder);
+                  await sleep(INTER_CHUNK_DELAY_MS);
+                  const retry2Result = await generateAndStream(retry2Prompt, controller, encoder);
+                  const retry2Text = retry2Result.text;
                   if (retry2Text) {
                     combinedChunkText += `\n${retry2Text}`;
                     const retry2Weeks = extractGeneratedWeekNumbers(retry2Text);
