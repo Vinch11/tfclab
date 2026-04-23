@@ -556,7 +556,9 @@ Contexte : ${slidingSummary}
 Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b) => a - b).join(", ")}${wbalReminder}`;
 
                   emitChunkBoundary();
-                  const retry2Text = await generateAndStream(retry2Prompt, controller, encoder);
+                  await sleep(INTER_CHUNK_DELAY_MS);
+                  const retry2Result = await generateAndStream(retry2Prompt, controller, encoder);
+                  const retry2Text = retry2Result.text;
                   if (retry2Text) {
                     combinedChunkText += `\n${retry2Text}`;
                     const retry2Weeks = extractGeneratedWeekNumbers(retry2Text);
