@@ -142,23 +142,54 @@ export function FatMaxTFCLCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Résultat principal */}
+        {/* FatMax PHYSIOLOGIQUE (réalité biologique de l'athlète) */}
         <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
-          <p className="text-xs text-muted-foreground mb-1">Plage FatMax</p>
+          <div className="flex items-center justify-center gap-1.5 mb-1">
+            <p className="text-xs text-muted-foreground">FatMax physiologique</p>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="w-3 h-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">
+                    Réalité biologique de l'athlète, basée sur VLamax + VO2max + TTE + fatigue.
+                    Indépendante de l'objectif de course.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <p className="text-3xl font-bold text-foreground">
-            {formatFatMaxRange(fatmax)}
+            {fatmax.physioMinPctFTP}–{fatmax.physioMaxPctFTP}% {refLabel}
           </p>
-          {wattsRange && (
+          {ftp && (
             <p className="text-sm text-muted-foreground mt-1">
-              {wattsRange}
+              {Math.round(ftp * fatmax.physioMinPctFTP / 100)}–{Math.round(ftp * fatmax.physioMaxPctFTP / 100)} W
             </p>
           )}
           <p className="text-sm font-medium mt-2">
-            Centre: {fatmax.centerPctFTP}% {refLabel}
+            Centre: {fatmax.physioCenterPctFTP}% {refLabel}
           </p>
         </div>
 
-        {/* NOUVEAU: Crossover Zone */}
+        {/* ZONE DE TRAVAIL recommandée (modulée par l'objectif) */}
+        <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary" />
+              <span className="text-sm font-medium">Zone de travail — {fatmax.objectifLabel}</span>
+            </div>
+            <span className="font-mono text-sm font-medium text-primary">
+              {fatmax.workMinPctFTP}–{fatmax.workMaxPctFTP}% {refLabel}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {fatmax.workZoneRationale}
+          </p>
+        </div>
+
+        {/* Crossover Zone */}
         <div className="p-3 bg-amber-50/50 dark:bg-amber-950/20 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
