@@ -403,7 +403,6 @@ export function effectiveWprime(wprimeJ: number): number {
  * of work capacity above critical power. Int J Sports Physiol Perform.
  */
 export function calculateTau(
-  _wprimeJ: number,
   cp: number,
   recoveryPower: number
 ): number {
@@ -440,7 +439,7 @@ export function simulateWbal(
       wbal -= (power - cp) * dtSec;
     } else {
       // Reconstitution phase
-      const tau = calculateTau(wEff, cp, power);
+      const tau = calculateTau(cp, power);
       wbal = wEff - (wEff - wbal) * Math.exp(-dtSec / tau);
     }
 
@@ -500,7 +499,7 @@ export function prescribeIntervalRecovery(
     };
   }
 
-  const tau = calculateTau(wEff, cp, recoveryPowerW);
+  const tau = calculateTau(cp, recoveryPowerW);
   const depleted = wEff - wbalAfterWork;
 
   // Time to reconstitute to X% of W'
@@ -573,13 +572,44 @@ export function prescribeIntervalRecovery(
 }
 
 /**
+ * Recovery power strategy for interval prescriptions.
+ * - "passive": 0W between reps (most conservative — shortest τ)
+ * - "active-light": ~30% CP between reps (Z1, easy spin)
+ * - "active-tempo": ~50% CP between reps (Z2, tempo recovery)
+ *
+ * Note: higher recovery power → longer τ → longer required rest.
+ * Per-format overrides in the formats list still apply when defined.
+ */
+export type RecoveryPowerStrategy = "passive" | "active-light" | "active-tempo";
+
+function resolveRecoveryPower(
+  cp: number,
+  formatRecPower: number,
+  strategy: RecoveryPowerStrategy
+): number {
+  // If a format already specifies an active recovery (>0), keep it (over-under, etc.)
+  if (formatRecPower > 0) return formatRecPower;
+  switch (strategy) {
+    case "active-tempo": return Math.round(cp * 0.50);
+    case "active-light": return Math.round(cp * 0.30);
+    case "passive":
+    default: return 0;
+  }
+}
+
+/**
  * Generate recovery prescriptions for common interval formats.
  * Used to inject into the AI plan generator prompt.
+ *
+ * @param recoveryStrategy R6: configurable inter-rep recovery power
+ *   (default "passive" = 0W, most conservative). Per-format active recoveries
+ *   (e.g. over-under) override this strategy.
  */
 export function generateRecoveryTable(
   cp: number,
   wprimeJ: number,
-  weightKg?: number
+  weightKg?: number,
+  recoveryStrategy: RecoveryPowerStrategy = "passive"
 ): {
   format: string;
   intervalPower: string;
@@ -588,9 +618,8 @@ export function generateRecoveryTable(
   wprimeUsed: number; // Expose which W' was used (raw or floored)
 }[] {
   const wEff = effectiveWprime(wprimeJ);
-  
-  // Recovery power: passive rest (0W) for sprint/VO2max, light spin for threshold
-  // Passive rest gives shortest τ → most conservative (realistic) rest prescription
+
+  // Default recovery power: resolved from strategy unless format overrides
   const formats = [
     { label: "30/30 VO2max", pctCP: 1.20, durSec: 30, recPower: 0 },
     { label: "1min @120%", pctCP: 1.20, durSec: 60, recPower: 0 },
@@ -602,7 +631,8 @@ export function generateRecoveryTable(
 
   return formats.map(f => {
     const power = Math.round(cp * f.pctCP);
-    const rx = prescribeIntervalRecovery(cp, wprimeJ, power, f.durSec, f.recPower);
+    const recPower = resolveRecoveryPower(cp, f.recPower, recoveryStrategy);
+    const rx = prescribeIntervalRecovery(cp, wprimeJ, power, f.durSec, recPower);
     const powerLabel = weightKg ? `${power}W (${(power / weightKg).toFixed(1)}W/kg)` : `${power}W`;
     const formatRest = (sec: number) => sec >= 120 ? `${Math.round(sec / 60)}min` : `${sec}s`;
 
