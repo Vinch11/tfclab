@@ -37,6 +37,7 @@ import {
 interface FatMaxTFCLCardProps {
   vlamaxEffectif: number | null;
   vlamaxConfidence: number;
+  vo2max?: number | null;
   tteEffectif?: number | null;
   tteConfidence?: number;
   fatigueIndex?: number | null;
@@ -49,6 +50,7 @@ interface FatMaxTFCLCardProps {
 export function FatMaxTFCLCard({
   vlamaxEffectif,
   vlamaxConfidence,
+  vo2max = null,
   tteEffectif = null,
   tteConfidence = 0.6,
   fatigueIndex = null,
@@ -69,7 +71,7 @@ export function FatMaxTFCLCard({
     const input: FatMaxTFCLInput = {
       vlamaxEffectif,
       vlamaxConfidence,
-      vo2maxEffectif: null, // Non utilisé dans V2
+      vo2maxEffectif: vo2max,
       tteEffectif,
       tteConfidence,
       fatigueIndex,
@@ -78,7 +80,7 @@ export function FatMaxTFCLCard({
     };
     
     return computeFatMaxTFCL(input);
-  }, [vlamaxEffectif, vlamaxConfidence, tteEffectif, tteConfidence, fatigueIndex, objectif, ftp]);
+  }, [vlamaxEffectif, vlamaxConfidence, vo2max, tteEffectif, tteConfidence, fatigueIndex, objectif, ftp]);
 
   // État indisponible
   if (!fatmax) {
