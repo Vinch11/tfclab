@@ -397,28 +397,42 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
 
               if (!isFirst) emitChunkBoundary();
 
+              // AUDIT FIX #2: Inter-chunk delay to mitigate rate limits (skip on first chunk)
+              if (!isFirst) {
+                await sleep(INTER_CHUNK_DELAY_MS);
+              }
+
               // Generate chunk
-              const chunkText = await generateAndStream(chunkPrompt, controller, encoder);
+              const genResult = await generateAndStream(chunkPrompt, controller, encoder);
+              let chunkText = genResult.text;
               let combinedChunkText = chunkText;
+              let chunkTruncated = genResult.truncated;
 
               if (!chunkText) {
-                // If this chunk failed, try to continue with remaining chunks instead of breaking
                 console.error(`Chunk ${ci + 1}/${chunks.length} failed (empty response). StreamError: ${streamError?.message || "none"}`);
                 if (streamError && (streamError.code === 402 || streamError.code === 429)) {
-                  // Credit/rate limit errors — stop entirely
                   const errorPayload = `{"error":"${streamError.message}","code":${streamError.code}}`;
                   controller.enqueue(encoder.encode(`data: ${errorPayload}\n\n`));
                   break;
                 }
-                // For timeouts or transient errors, try one more time with a smaller scope
                 console.log(`Retrying full chunk ${ci + 1} after failure...`);
                 streamError = null;
-                const retryChunkText = await generateAndStream(chunkPrompt, controller, encoder);
-                if (!retryChunkText) {
+                await sleep(INTER_CHUNK_DELAY_MS);
+                const retryResult = await generateAndStream(chunkPrompt, controller, encoder);
+                if (!retryResult.text) {
                   console.error(`Chunk ${ci + 1} retry also failed. Skipping to next chunk.`);
-                  continue; // Skip this chunk, let the gap-filling in parser handle it
+                  continue;
                 }
-                combinedChunkText = retryChunkText;
+                chunkText = retryResult.text;
+                combinedChunkText = chunkText;
+                chunkTruncated = retryResult.truncated;
+              }
+
+              // AUDIT FIX #1: Log truncation — missing-weeks retry below handles continuation
+              if (chunkTruncated) {
+                const generatedSoFar = extractGeneratedWeekNumbers(combinedChunkText);
+                const missingFromTrunc = expectedWeeks.filter(w => !generatedSoFar.includes(w));
+                console.warn(`⚠️ Chunk ${ci + 1} truncated (finish_reason=length). Missing ${missingFromTrunc.length}/${expectedWeeks.length} weeks — continuation will be requested.`);
               }
 
               // === FIRST CHUNK EXTRACTIONS ===
