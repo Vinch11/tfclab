@@ -21,9 +21,17 @@ export interface MaderPowerDurationPoint {
 
 export interface MaderPowerDurationCurve {
   points: MaderPowerDurationPoint[];
-  cp: number;       // Critical Power (≈ MLSS)
-  wPrime: number;   // W' in kJ
-  pMax: number;     // Neuromuscular peak
+  cp: number;        // Critical Power (≈ MLSS)
+  wPrime: number;    // W' in kJ
+  pMax: number;      // Neuromuscular peak
+  wPrimeSource: "regression" | "heuristic"; // R1: traçabilité de la source du W'
+}
+
+export interface MaderCurveOptions {
+  /** R1: W' (Joules) issu de la régression CP — source de vérité prioritaire */
+  wPrimeJOverride?: number;
+  /** R1: CP (W) issu de la régression — prioritaire sur la MLSS Mader */
+  cpOverride?: number;
 }
 
 /**
