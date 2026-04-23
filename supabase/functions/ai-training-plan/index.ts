@@ -121,6 +121,10 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const INTER_CHUNK_DELAY_MS = 1500;
     const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
+    // AUDIT FIX #6: Model fallback chain — primary fast, fallback robust for long plans
+    const PRIMARY_MODEL = "google/gemini-3-flash-preview";
+    const FALLBACK_MODEL = "google/gemini-2.5-pro";
+
     // AUDIT FIX #1: Track finish_reason to detect truncation (max_tokens reached)
     // generateAndStream returns text + truncation flag for caller-side handling
     let streamError: { code: number; message: string } | null = null;
@@ -128,6 +132,7 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       prompt: string,
       controller: ReadableStreamDefaultController,
       encoder: TextEncoder,
+      model: string = PRIMARY_MODEL,
     ): Promise<{ text: string; truncated: boolean }> {
       const abortCtrl = new AbortController();
       const timeout = setTimeout(() => abortCtrl.abort(), CHUNK_TIMEOUT_MS);
@@ -140,7 +145,7 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
+            model,
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: prompt },
