@@ -71,6 +71,14 @@ export interface PlanConfig {
   activeLevers?: string[];
   prohibitions?: string[];
   adaptationProjections?: AdaptationProjection[];
+  /**
+   * Stratégie de récupération inter-séries utilisée pour calculer les durées
+   * de repos via W'bal (Skiba 2012). Par défaut "passive" (0 W).
+   *  - "passive"      : récup à 0 W (debout/marche)
+   *  - "active-light" : récup à 50% CP (Z1, spinning)
+   *  - "active-tempo" : récup à 70% CP (haut Z2, type over-under)
+   */
+  recoveryStrategy?: "passive" | "active-light" | "active-tempo";
   _athleteSex?: string | null;
 }
 
