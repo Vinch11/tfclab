@@ -256,6 +256,10 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             let extractedDiagnostic = "";
             // FIX #1 (audit recap): Capture Récapitulatif Stratégique from chunk 1
             let extractedRecap = "";
+            // AUDIT FIX #4: Global Plan Memory — ultra-condensed, persists across all chunks
+            let globalPlanMemory = "";
+            // AUDIT FIX #5: Anti-redundancy — track key sessions used across all previous chunks
+            const usedKeySessions: Set<string> = new Set();
             // FIX C1 (audit): Initialize activePhase from ambition — finisher starts in "Adaptation", not "Fondation"
             const ambKeyForPhase = normalizeAmbKey(planConfig?.ambition || "");
             let activePhase = (ambKeyForPhase === "finisher") ? "Adaptation" : "Fondation";
@@ -263,6 +267,19 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             for (let s = 1; s <= totalWeeks; s += CHUNK_SIZE) {
               chunks.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
             }
+
+            // AUDIT FIX #4: Append condensed entry to global memory (capped ~2KB)
+            const updateGlobalMemory = (chunkIdx: number, chunkRange: string, phase: string, blocs: string[], topSessions: string[]) => {
+              const blocLine = blocs.length > 0 ? ` | Blocs: ${blocs.join("; ")}` : "";
+              const sessLine = topSessions.length > 0 ? ` | Clés: ${topSessions.slice(0, 4).join(", ")}` : "";
+              const entry = `[Bloc${chunkIdx + 1} ${chunkRange} • ${phase}${blocLine}${sessLine}]`;
+              globalPlanMemory = (globalPlanMemory + " " + entry).trim();
+              if (globalPlanMemory.length > 2000) {
+                const parts = globalPlanMemory.split(/(?=\[Bloc)/);
+                while (parts.length > 1 && parts.join("").length > 2000) parts.shift();
+                globalPlanMemory = parts.join("").trim();
+              }
+            };
 
             const emitChunkBoundary = () => {
               controller.enqueue(
