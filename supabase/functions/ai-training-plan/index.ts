@@ -449,12 +449,24 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
                 await sleep(INTER_CHUNK_DELAY_MS);
                 const retryResult = await generateAndStream(chunkPrompt, controller, encoder);
                 if (!retryResult.text) {
-                  console.error(`Chunk ${ci + 1} retry also failed. Skipping to next chunk.`);
-                  continue;
+                  // AUDIT FIX #6: Fallback model — switch to robust Gemini Pro after 2 failures
+                  console.warn(`⚠️ Chunk ${ci + 1} primary retry failed. Trying FALLBACK model (${FALLBACK_MODEL})...`);
+                  streamError = null;
+                  await sleep(INTER_CHUNK_DELAY_MS);
+                  const fallbackResult = await generateAndStream(chunkPrompt, controller, encoder, FALLBACK_MODEL);
+                  if (!fallbackResult.text) {
+                    console.error(`Chunk ${ci + 1} fallback also failed. Skipping to next chunk.`);
+                    continue;
+                  }
+                  chunkText = fallbackResult.text;
+                  combinedChunkText = chunkText;
+                  chunkTruncated = fallbackResult.truncated;
+                  console.log(`✅ Chunk ${ci + 1} recovered via fallback model.`);
+                } else {
+                  chunkText = retryResult.text;
+                  combinedChunkText = chunkText;
+                  chunkTruncated = retryResult.truncated;
                 }
-                chunkText = retryResult.text;
-                combinedChunkText = chunkText;
-                chunkTruncated = retryResult.truncated;
               }
 
               // AUDIT FIX #1: Log truncation — missing-weeks retry below handles continuation
