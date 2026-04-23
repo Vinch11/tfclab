@@ -351,27 +351,30 @@ export function analyzeCriticalPower(snapshot: {
 //   DCP = CP − recovery_power
 
 // =============================================
-// W' PHYSIOLOGICAL FLOOR
+// W' PHYSIOLOGICAL FLOOR & CEILING (R3 + R4)
 // =============================================
-// When regression gives an implausibly low W' (< 10 kJ), recovery
-// calculations cascade-fail: maxReps=0 for standard VO2max formats,
-// rest durations shrink to near-zero, etc.
-//
+// FLOOR (10 kJ): When regression gives an implausibly low W' (< 10 kJ),
+// recovery calculations cascade-fail (maxReps=0, near-zero rest durations).
 // Root cause: non-maximal short-duration data → flat curve → W' compressed.
-//
 // Fix: for PRESCRIPTION purposes (not display), enforce a physiological floor.
-// Literature: trained cyclists typically 12-25 kJ, untrained ~8-15 kJ.
-// Using 10 kJ as absolute floor prevents absurd prescriptions.
 //
-// The UI still displays the RAW W' so the coach sees the data quality issue.
-const WPRIME_FLOOR_J = 10000; // 10 kJ — physiological minimum for prescriptions
+// CEILING (35 kJ): When regression gives an implausibly high W' (> 35 kJ),
+// recovery calculations over-prescribe (too many reps, too short rests).
+// Root cause: P5s included or sprint power inflated → W' over-estimated.
+// Literature: trained cyclists 12-25 kJ, world-class sprinters max 30-35 kJ.
+// Fix: cap W' at 35 kJ for prescription. UI still shows raw value for transparency.
+//
+// The UI displays the RAW W' so the coach sees the data quality issue;
+// only PRESCRIPTION paths (recovery, intervals, W'bal sim) use the bounded value.
+const WPRIME_FLOOR_J = 10000;   // 10 kJ — physiological minimum for prescriptions
+const WPRIME_CEILING_J = 35000; // 35 kJ — physiological maximum for prescriptions
 
 /**
- * Apply W' floor for prescription purposes.
- * Returns the higher of measured W' and the physiological floor.
+ * Apply W' floor + ceiling for prescription purposes.
+ * Returns the value bounded between physiological floor and ceiling.
  */
 export function effectiveWprime(wprimeJ: number): number {
-  return Math.max(wprimeJ, WPRIME_FLOOR_J);
+  return Math.min(WPRIME_CEILING_J, Math.max(wprimeJ, WPRIME_FLOOR_J));
 }
 
 /**
