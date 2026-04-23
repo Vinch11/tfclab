@@ -540,8 +540,10 @@ ${slidingSummary || "Premier bloc de continuation."}
 🚫 SÉANCES CLÉS DÉJÀ UTILISÉES (éviter la répétition exacte — varier les protocoles) :
 ${usedKeySessions.size > 0 ? Array.from(usedKeySessions).slice(-25).join(" • ") : "(aucune)"}
 → Tu peux REPRENDRE des familles de séances pour la progression, mais évite de copier le titre exact d'une séance déjà programmée. Varie les durées, intensités, ou structures.
-
+${pendingGuardrails.length > 0 ? `\n🛟 GARDE-FOUS DYNAMIQUES (signaux objectifs du bloc précédent — tu restes maître, confirme ou ajuste) :\n${pendingGuardrails.map(g => `• ${g}`).join("\n")}\n→ Ces signaux sont INFORMATIFS. Tu peux les justifier (adaptation contextuelle valide) ou les corriger dans ce bloc. Ne les ignore pas silencieusement.\n` : ""}
 Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}`;
+                // Reset pending guardrails — they've been delivered
+                pendingGuardrails = [];
               }
 
               if (!isFirst) emitChunkBoundary();
