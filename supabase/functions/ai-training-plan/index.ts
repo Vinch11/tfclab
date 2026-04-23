@@ -442,8 +442,32 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
                 await sleep(INTER_CHUNK_DELAY_MS);
               }
 
+              // ─── OPTIMIZATION #3: Adaptive reasoning ───
+              // Activate medium reasoning for critical chunks where the AI must think harder:
+              //   • Chunk 1 → strategic recap covering ALL totalWeeks (high-stakes structural decision)
+              //   • Chunks containing a Race Week (priority A/B/C) → race day logistics + taper precision
+              const chunkContainsRaceWeek = Array.isArray(planConfig?.raceGoals) && planConfig.raceGoals.some((g: any) => {
+                if (!g.raceDate || !planConfig.planStartDate) return false;
+                const sMs = parseIsoDateUtc(planConfig.planStartDate);
+                const rMs = parseIsoDateUtc(g.raceDate);
+                if (sMs === undefined || rMs === undefined) return false;
+                const days = Math.round((rMs - sMs) / (24 * 3600 * 1000));
+                const goalWeek = days >= 0 ? Math.floor(days / 7) + 1 : 0;
+                return goalWeek >= chunk.start && goalWeek <= chunk.end;
+              });
+              const useReasoning = isFirst || chunkContainsRaceWeek;
+              if (useReasoning) {
+                console.log(`🧠 Adaptive reasoning ENABLED for chunk ${ci + 1} (isFirst=${isFirst}, raceWeek=${chunkContainsRaceWeek})`);
+              }
+
               // Generate chunk
-              const genResult = await generateAndStream(chunkPrompt, controller, encoder);
+              const genResult = await generateAndStream(
+                chunkPrompt,
+                controller,
+                encoder,
+                PRIMARY_MODEL,
+                useReasoning ? "medium" : undefined,
+              );
               let chunkText = genResult.text;
               let combinedChunkText = chunkText;
               let chunkTruncated = genResult.truncated;
