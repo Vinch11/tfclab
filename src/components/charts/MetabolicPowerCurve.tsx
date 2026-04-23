@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { 
   analyzeCriticalPower, 
   generateRecoveryTable,
+  effectiveWprime,
   type CriticalPowerResult 
 } from "@/lib/v2/criticalPowerModel";
 
