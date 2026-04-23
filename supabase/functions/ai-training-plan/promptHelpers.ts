@@ -215,11 +215,15 @@ export function computeCPWprime(data: any): { cpRound: number; effectiveCP: numb
     cpBounded = true;
   }
 
-  // W' floor — minimum 10kJ for prescription reliability (aligned with client-side)
-  const W_PRIME_FLOOR = 10000; // 10 kJ in Joules
-  const wprimeEffJ = Math.max(wprime, W_PRIME_FLOOR);
+  // R8: W' bounds — plancher 10 kJ + plafond 35 kJ (aligné avec effectiveWprime() côté client)
+  // Plancher : fiabilité minimale des prescriptions de repos
+  // Plafond : limite physiologique haute (au-delà : artefact de régression)
+  const W_PRIME_FLOOR = 10000; // 10 kJ
+  const W_PRIME_CEILING = 35000; // 35 kJ
+  const wprimeEffJ = Math.min(Math.max(wprime, W_PRIME_FLOOR), W_PRIME_CEILING);
+  const wprimeCapped = wprime > W_PRIME_CEILING;
 
-  return { cpRound, effectiveCP, wprimeKJ: Math.round(wprime / 100) / 10, wprimeJ: wprime, wprimeEffJ, cpBounded };
+  return { cpRound, effectiveCP, wprimeKJ: Math.round(wprime / 100) / 10, wprimeJ: wprime, wprimeEffJ, cpBounded, wprimeCapped };
 }
 
 // === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
