@@ -26,14 +26,23 @@ export type FatMaxObjectif = "IM" | "70.3" | "Marathon" | "Semi" | "10km" | "Iro
 export type FatMaxConfidenceLevel = "HIGH" | "MEDIUM" | "LOW";
 
 export interface FatMaxTFCLResult {
-  // Plage FatMax (% FTP)
-  centerPctFTP: number;
+  // ─── FatMax PHYSIOLOGIQUE (pure, indépendante de l'objectif) ───
+  // Cette valeur reflète la biologie de l'athlète (VLamax + VO2max + TTE + fatigue)
+  centerPctFTP: number;        // = physioCenterPctFTP (compat ascendante)
   minPctFTP: number;
   maxPctFTP: number;
-  
-  // NOUVEAU: Crossover Zone (50% lipides / 50% glucides)
-  // Zone où l'utilisation des glucides dépasse les lipides
-  // Typiquement 8-12% au-dessus de FatMax
+  physioCenterPctFTP: number;  // alias explicite
+  physioMinPctFTP: number;
+  physioMaxPctFTP: number;
+
+  // ─── ZONE DE TRAVAIL RECOMMANDÉE (modulée par l'objectif) ───
+  // Cette plage indique OÙ entraîner autour de la FatMax selon l'objectif
+  workCenterPctFTP: number;
+  workMinPctFTP: number;
+  workMaxPctFTP: number;
+  workZoneRationale: string;   // Justification du décalage objectif
+
+  // Crossover Zone (50% lipides / 50% glucides) — basée sur la FatMax physiologique
   crossoverZone: [number, number];
   crossoverZoneLabel: string;
   
