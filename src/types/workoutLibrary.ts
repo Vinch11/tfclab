@@ -29,6 +29,55 @@ export type DPlusTarget = number | { min: number; max: number };
 // Goals pour filtrage
 export type WorkoutGoal = "ironman" | "half" | "marathon" | "semi" | "10k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long";
 
+// =============================================
+// PROFIL W'bal — Recalcul automatique des temps de repos
+// =============================================
+// Décrit la structure d'intervalle d'une séance de manière machine-readable
+// pour permettre au W'bal post-processor de prescrire le temps de récupération
+// optimal selon le CP/W' de l'athlète (Skiba 2012), sans dépendre du parsing
+// regex du texte libre.
+//
+// Référentiel d'intensité :
+//   - "FTP" / "CP" : % de la puissance critique / FTP (vélo)
+//   - "MAP"        : % de la puissance aérobie maximale 5min (vélo)
+//   - "VMA"        : % de la VMA (course)
+//   - "CSS"        : % de la Critical Swim Speed (natation)
+//   - "absolute"   : valeur absolue (W ou m/s) — usage avancé
+export type WbalIntensityRef = "FTP" | "CP" | "MAP" | "VMA" | "CSS" | "absolute";
+
+// Stratégie de récupération entre reps (impacte τ Skiba)
+export type WbalRecoveryStrategy = "passive" | "active-light" | "active-tempo";
+
+export interface WbalIntervalBlock {
+  /** Nombre de répétitions */
+  reps: number;
+  /** Durée d'une rep en secondes */
+  durationSec: number;
+  /** Intensité de travail */
+  intensity: number;
+  /** Référentiel de l'intensité (FTP, CP, VMA, CSS, MAP, absolute) */
+  intensityRef: WbalIntensityRef;
+  /** Repos prescrit par défaut entre reps (en secondes) — recalculable via W'bal */
+  defaultRestSec: number;
+  /** Stratégie de récupération entre reps */
+  recoveryStrategy?: WbalRecoveryStrategy;
+  /** Étiquette libre (ex: "VO2max", "Sweet Spot", "Sprint Maximal") */
+  label?: string;
+}
+
+export interface WbalProfile {
+  /** Sport sur lequel s'applique le profil (généralement "bike" pour W'bal CP/W') */
+  sport: TrainingSport;
+  /** Blocs d'intervalles structurés (un workout peut chaîner plusieurs blocs) */
+  blocks: WbalIntervalBlock[];
+  /** Repos entre blocs distincts (sets), en secondes */
+  restBetweenBlocksSec?: number;
+  /** Indique si le repos doit être recalculé automatiquement via W'bal */
+  autoRecalcRest?: boolean;
+  /** Notes spécifiques au profil (ex: "Cadence libre", "Position aéro") */
+  notes?: string;
+}
+
 // Séance de la bibliothèque
 export interface LibraryWorkout {
   id: string;
@@ -52,6 +101,9 @@ export interface LibraryWorkout {
   tags?: string[];
   // Notes additionnelles
   notes?: string;
+  // Profil W'bal optionnel — permet le recalcul automatique des temps de repos
+  // au chargement de la séance, basé sur le CP/W' de l'athlète (Skiba 2012).
+  wbalProfile?: WbalProfile;
 }
 
 // Session planifiée étendue avec référence workout
