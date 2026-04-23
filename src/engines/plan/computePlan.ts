@@ -26,8 +26,9 @@ import type {
 } from "./types";
 import { PLAN_ENGINE_VERSION, PLAN_ENGINE_DISCLAIMER } from "./types";
 import type { TrainingPrescription } from "@/engines/decision";
-import type { PlanConfig } from "@/hooks/useAITrainingPlan";
+import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
 import { parseAIPlan } from "@/lib/aiPlanParser";
+import { applyWbalRecoveryRecalc, type WbalRecalcStats } from "./wbalPostProcessor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // EXTRACTEUR DE CONTEXTE DÉCISIONNEL
@@ -239,13 +240,23 @@ function buildPacingHint(objective: string): string {
 /**
  * Applique les post-traitements déterministes au plan parsé.
  * Utile côté UI pour garder la même cohérence que le pipeline moteur.
+ *
+ * Si `athleteData` est fourni, déclenche aussi le recalcul des temps de
+ * repos via W'bal (Skiba 2012) pour les intervalles cyclistes supra-CP.
  */
 export function postProcessParsedPlan(
   plan: ParsedPlan,
-  config: PlanGenerationConfig
-): ParsedPlan {
+  config: PlanGenerationConfig,
+  athleteData?: PlanAthleteData
+): { plan: ParsedPlan; wbalStats?: WbalRecalcStats } {
   anchorRaceDays(plan, config);
-  return plan;
+
+  let wbalStats: WbalRecalcStats | undefined;
+  if (athleteData) {
+    wbalStats = applyWbalRecoveryRecalc(plan, athleteData);
+  }
+
+  return { plan, wbalStats };
 }
 
 /**
@@ -259,8 +270,14 @@ export function buildPlanOutput(
   const plan = parseAIPlan(rawMarkdown);
   const context = extractPlanContext(input.prescription);
 
-  // POST-TRAITEMENT : Ancrage automatique des jours de course
-  postProcessParsedPlan(plan, input.config);
+  // POST-TRAITEMENT : ancrage course + recalcul W'bal individualisé
+  const { wbalStats } = postProcessParsedPlan(plan, input.config, input.athleteData);
+
+  if (wbalStats && wbalStats.rewritten > 0) {
+    console.info(
+      `[PlanEngine] W'bal recalc — ${wbalStats.rewritten}/${wbalStats.scanned} sessions cyclistes recalculées`
+    );
+  }
 
   return {
     plan,
@@ -278,3 +295,4 @@ export function buildPlanOutput(
     },
   };
 }
+
