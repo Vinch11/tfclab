@@ -1079,6 +1079,7 @@ export default function DashboardPage() {
       <FatMaxTFCLCard
         vlamaxEffectif={vlamaxEffectif.value}
         vlamaxConfidence={vlamaxEffectif.confidence}
+        vo2max={snapshot.vo2max ?? null}
         tteEffectif={tteEffectif.tte_min}
         tteConfidence={tteEffectif.confidence}
         fatigueIndex={fatigueEffectif.score}
@@ -1099,7 +1100,7 @@ export default function DashboardPage() {
     const fatmaxResult = computeFatMaxTFCL({
       vlamaxEffectif: vlamaxEffectif.value,
       vlamaxConfidence: vlamaxEffectif.confidence,
-      vo2maxEffectif: null,
+      vo2maxEffectif: snapshot.vo2max ?? null,
       tteEffectif: tteEffectif.tte_min,
       tteConfidence: tteEffectif.confidence,
       fatigueIndex: fatigueEffectif.score,
