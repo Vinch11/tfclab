@@ -55,8 +55,9 @@ function calculatePowerAtDuration(
   const estimatedFTP = ftp || (vo2max * 0.075 - vlamax * 0.45) * weight;
   
   // Use real CP/W' if available — effectiveCP for physiological bounding
+  // R7: utilise effectiveWprime() pour appliquer plancher 10kJ ET plafond 35kJ (cohérence avec simulateWbal/prescribeIntervalRecovery)
   const cp = cpResult ? cpResult.effectiveCP : estimatedFTP * 0.95;
-  const wPrime = cpResult ? Math.max(cpResult.wprime, 10000) : (15000 + vlamax * 8000) * (weight / 70);
+  const wPrime = cpResult ? effectiveWprime(cpResult.wprime) : (15000 + vlamax * 8000) * (weight / 70);
   
   const alacticCapacity = 5000 * (weight / 70);
   const alacticTimeConstant = 12;
