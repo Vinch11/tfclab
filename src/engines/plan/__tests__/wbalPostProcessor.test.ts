@@ -280,7 +280,7 @@ describe("applyWbalRecoveryRecalc — substitution du repos", () => {
     applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
 
     // Extraction de la valeur de repos prescrite depuis l'annotation W'bal
-    const m = session.details.match(/W'bal:\s*(\d+)(min|s)\s*optimal/i);
+    const m = session.details.match(/→\s*(\d+)(min|s)\s*optimal/i);
     expect(m).not.toBeNull();
     const value = parseInt(m![1], 10);
     const unit = m![2].toLowerCase();
