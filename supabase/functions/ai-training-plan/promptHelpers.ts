@@ -180,8 +180,8 @@ export function validateChunk1HasRecap(chunkText: string): { hasRecap: boolean; 
 
 // === SHARED CP/W' COMPUTATION (used by both buildCPWprimeSection and chunk prompts) ===
 // FIXED: P5s and FTP excluded from regression (Jones 2019) — only P30s, P60s, MAP5min used
-// FIXED: effectiveCP bounding by FTP, W' floor 10kJ (aligned with client-side criticalPowerModel.ts)
-export function computeCPWprime(data: any): { cpRound: number; effectiveCP: number; wprimeKJ: number; wprimeJ: number; wprimeEffJ: number; cpBounded: boolean } | null {
+// FIXED: effectiveCP bounding by FTP, W' bounded [10kJ floor, 35kJ ceiling] (R8 — aligned with client-side criticalPowerModel.ts)
+export function computeCPWprime(data: any): { cpRound: number; effectiveCP: number; wprimeKJ: number; wprimeJ: number; wprimeEffJ: number; cpBounded: boolean; wprimeCapped: boolean } | null {
   // Only use points within the valid 2-parameter model range (~30s–5min)
   const regressionPoints: { dur: number; pow: number }[] = [];
   if (data?.p30s && data.p30s > 0) regressionPoints.push({ dur: 30, pow: data.p30s });
@@ -232,7 +232,7 @@ export function buildCPWprimeSection(data: any): string | null {
   const result = computeCPWprime(data);
   if (!result) return null;
 
-  const { cpRound, effectiveCP, wprimeKJ, wprimeJ: wprime, wprimeEffJ, cpBounded } = result;
+  const { cpRound, effectiveCP, wprimeKJ, wprimeJ: wprime, wprimeEffJ, cpBounded, wprimeCapped } = result;
 
   // All points for display (including overlay-only P5s and FTP)
   const points: { dur: number; pow: number; label: string; regression: boolean }[] = [];
@@ -276,8 +276,11 @@ export function buildCPWprimeSection(data: any): string | null {
   if (wprimeFloored) {
     lines.push(`- **⚠️ W' effectif (plancher physiologique)** : ${wEffKJ} kJ — Le W' mesuré (${wprimeKJ} kJ) est sous le seuil physiologique. Un plancher de 10 kJ est appliqué pour les prescriptions de repos.`);
   }
+  if (wprimeCapped) {
+    lines.push(`- **⚠️ W' effectif (plafond physiologique)** : ${wEffKJ} kJ — Le W' mesuré (${wprimeKJ} kJ) dépasse le plafond physiologique de 35 kJ (artefact de régression probable). Un plafond de 35 kJ est appliqué pour les prescriptions de repos.`);
+  }
   lines.push(`- **Qualité du modèle** : R²=${r2} (${r2 > 0.95 ? "excellent" : r2 > 0.90 ? "bon" : "acceptable"}, ${n} points)`);
-  lines.push(`- **Qualité des données** : ${!cpBounded && !wprimeFloored ? "✅ Cohérent" : "⚠️ Bornes appliquées"}`);
+  lines.push(`- **Qualité des données** : ${!cpBounded && !wprimeFloored && !wprimeCapped ? "✅ Cohérent" : "⚠️ Bornes appliquées"}`);
 
   // CRITICAL: Always prioritize FTP over CP for training intensities
   lines.push(`\n#### 🎯 HIÉRARCHIE D'INTENSITÉ`);
