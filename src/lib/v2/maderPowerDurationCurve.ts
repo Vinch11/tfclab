@@ -48,27 +48,31 @@ export interface MaderCurveOptions {
  */
 export function generateMaderPowerDurationCurve(
   profile: MaderProfile,
-  durations?: number[]
+  durations?: number[],
+  options?: MaderCurveOptions
 ): MaderPowerDurationCurve {
   const { vo2max, vlamax, weight } = profile;
   const efficiency = profile.efficiency ?? 0.23;
 
-  // 1. Critical Power (≈ MLSS from Mader)
-  const cp = findMLSSPower(profile);
+  // 1. Critical Power — priorité à la régression CP (source de vérité), sinon MLSS Mader
+  const cp = options?.cpOverride && options.cpOverride > 0
+    ? options.cpOverride
+    : findMLSSPower(profile);
 
   // 2. W' (anaerobic work capacity in Joules)
-  // W' correlates with VLamax: higher VLamax → larger glycolytic reservoir
-  // Typical range: 15-30 kJ for trained cyclists
-  // W' ≈ VLamax × weight × k (k ≈ 250-400 based on literature)
-  const wPrimeKJ = vlamax * weight * 320;
-  const wPrimeJ = wPrimeKJ * 1000;
+  // R1: priorité au W' issu de la régression CP (criticalPowerModel) pour cohérence avec l'UI.
+  // Fallback heuristique uniquement si aucun override fourni.
+  const heuristicWPrimeJ = vlamax * weight * 320 * 1000;
+  const wPrimeJ = options?.wPrimeJOverride && options.wPrimeJOverride > 0
+    ? options.wPrimeJOverride
+    : heuristicWPrimeJ;
+  const wPrimeKJ = wPrimeJ / 1000;
+  const wPrimeSource: "regression" | "heuristic" =
+    options?.wPrimeJOverride && options.wPrimeJOverride > 0 ? "regression" : "heuristic";
 
   // 3. Pmax (neuromuscular peak power)
-  // Estimated from VO2max contribution + anaerobic peak
-  // MAP (maximal aerobic power)
   const vo2LPerMin = vo2max * weight / 1000;
   const map = Math.round((vo2LPerMin * 20.9 * 1000 / 60) * efficiency);
-  // Pmax is MAP + anaerobic headroom (VLamax dependent)
   const pMax = Math.round(map + vlamax * weight * 8);
 
   // 4. Neuromuscular decay time constant
@@ -78,15 +82,12 @@ export function generateMaderPowerDurationCurve(
   const standardDurations = durations ?? [1, 3, 5, 10, 15, 30, 45, 60, 120, 180, 300, 600, 1200, 1800, 2700, 3600];
 
   const points: MaderPowerDurationPoint[] = standardDurations.map(t => {
-    // 3-component model
     const aerobicSustain = cp;
     const anaerobicContrib = t > 0 ? wPrimeJ / t : 0;
     const neuroContrib = (pMax - map) * Math.exp(-t / tauNeuro);
 
-    // Total power (capped at Pmax for very short durations)
     let power = aerobicSustain + anaerobicContrib + neuroContrib;
     power = Math.min(power, pMax);
-    // Below CP at very long durations (fatigue/glycogen depletion)
     if (t > 3600) {
       const fatigueFactor = 1 - (t - 3600) / 36000 * 0.05;
       power = Math.max(cp * 0.85, power * fatigueFactor);
@@ -100,7 +101,7 @@ export function generateMaderPowerDurationCurve(
     };
   });
 
-  return { points, cp, wPrime: Math.round(wPrimeKJ), pMax };
+  return { points, cp, wPrime: Math.round(wPrimeKJ), pMax, wPrimeSource };
 }
 
 function formatDur(sec: number): string {
