@@ -225,6 +225,8 @@ export function applyWbalRecoveryRecalc(
         original: string;
         replacement: string;
         newRestSec: number;
+        originalRestSec: number;
+        originalRestStr: string;
         maxReps: number;
         reps: number;
         durationSec: number;
@@ -250,8 +252,14 @@ export function applyWbalRecoveryRecalc(
         );
 
         const newRestStr = formatRestSec(prescription.optimalRecoverySec);
+        const originalRestStr = formatRestSec(block.originalRestSec);
         const original = block.fullMatch ?? block.originalRestText;
-        const replacement = rewriteRestInMatch(original, newRestStr);
+
+        // Substitution avec traçabilité inline : "R=NEW (IA: OLD)"
+        // → préserve explicitement la valeur initiale proposée par l'IA à côté
+        //   du repos recalculé via W'bal, pour audit coach.
+        const traceabilitySuffix = ` (IA: ${originalRestStr})`;
+        const replacement = rewriteRestInMatch(original, `${newRestStr}${traceabilitySuffix}`);
 
         if (!replacement) {
           stats.blocksSkipped++;
@@ -262,6 +270,8 @@ export function applyWbalRecoveryRecalc(
           original,
           replacement,
           newRestSec: prescription.optimalRecoverySec,
+          originalRestSec: block.originalRestSec,
+          originalRestStr,
           maxReps: prescription.maxReps,
           reps: block.reps,
           durationSec: block.durationSec,
@@ -278,7 +288,6 @@ export function applyWbalRecoveryRecalc(
       let newDetails = session.details;
       let appliedCount = 0;
       for (const rw of rewrites) {
-        // Substitution littérale de la 1ère occurrence du fullMatch original.
         const idx = newDetails.indexOf(rw.original);
         if (idx === -1) continue;
         newDetails =
@@ -294,14 +303,15 @@ export function applyWbalRecoveryRecalc(
         continue;
       }
 
-      // 5) Annotation synthétique (1 ligne par bloc réécrit)
+      // 5) Annotation synthétique (1 ligne par bloc réécrit) — affiche
+      //    explicitement la transition IA → W'bal pour traçabilité.
       const annotationLines = rewrites.map((rw) => {
         const dur = rw.durationSec >= 60 ? `${rw.durationSec / 60}min` : `${rw.durationSec}s`;
-        return `${rw.reps}×${dur} → repos ${formatRestSec(rw.newRestSec)} (max ${rw.maxReps} reps)`;
+        return `${rw.reps}×${dur}: IA ${rw.originalRestStr} → W'bal ${formatRestSec(rw.newRestSec)} (max ${rw.maxReps} reps)`;
       });
       const annotation =
         rewrites.length === 1
-          ? ` *[W'bal: ${formatRestSec(rewrites[0].newRestSec)} optimal pour ${rewrites[0].maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W]*`
+          ? ` *[W'bal recalc: IA ${rewrites[0].originalRestStr} → ${formatRestSec(rewrites[0].newRestSec)} optimal pour ${rewrites[0].maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W]*`
           : ` *[W'bal multi-blocs (W'=${wKJ}kJ, CP=${cp}W): ${annotationLines.join(" | ")}]*`;
 
       session.details = newDetails + annotation;
