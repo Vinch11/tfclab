@@ -35,6 +35,7 @@ interface AIPlanBenchmarkProps {
   raceWeekNumbers?: number[];
   identifiedLimiters?: string[];
   identifiedLimiterKeys?: string[];
+  athleteData?: import("@/engines/plan/types").PlanAthleteData;
 }
 
 interface MetricGauge {
