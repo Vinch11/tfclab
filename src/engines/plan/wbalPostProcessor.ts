@@ -31,12 +31,14 @@ import {
 //   "5×4min @ 110%FTP, R=3min"
 //   "8 x 3 min à 105% FTP — repos 2min30"
 //   "6×30s @ 130%FTP R=30s"
-const INTERVAL_PATTERN =
-  /(\d{1,2})\s*[x×]\s*(\d{1,3})\s*(min|s|sec|secondes?|minutes?)\s*[@à]?\s*(\d{2,3})\s*%\s*(ftp|cp)[^.]*?(?:r\s*[=:]?|repos|rest)\s*(\d{1,3})\s*(min|s|sec|secondes?|minutes?)?(\d{1,2})?/i;
+//
+// IMPORTANT : utilisé en mode global (g) pour matcher TOUTES les occurrences
+// dans une même session (pyramides, blocs multiples, sets composés).
+const INTERVAL_PATTERN_SOURCE =
+  "(\\d{1,2})\\s*[x×]\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)\\s*[@à]?\\s*(\\d{2,3})\\s*%\\s*(ftp|cp)[^.]*?(?:r\\s*[=:]?|repos|rest)\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)?(\\d{1,2})?";
 
-// Pattern simplifié pour la substitution finale du repos
-const REST_REPLACE_PATTERN =
-  /((?:r\s*[=:]?|repos|rest)\s*)(\d{1,3}(?:min|s|sec|minutes?|secondes?)?(?:\d{1,2})?)/gi;
+const INTERVAL_PATTERN = new RegExp(INTERVAL_PATTERN_SOURCE, "i");
+const INTERVAL_PATTERN_GLOBAL = new RegExp(INTERVAL_PATTERN_SOURCE, "gi");
 
 export interface DetectedInterval {
   reps: number;
@@ -45,6 +47,10 @@ export interface DetectedInterval {
   intensityRef: "FTP" | "CP";
   originalRestSec: number;
   originalRestText: string;
+  /** Index (char) du match dans le texte source — utile pour substitution multi-blocs */
+  matchIndex?: number;
+  /** Texte complet matché (pour substitution ciblée) */
+  fullMatch?: string;
 }
 
 function toSeconds(value: number, unit: string): number {
@@ -53,19 +59,15 @@ function toSeconds(value: number, unit: string): number {
   return value;
 }
 
-export function detectInterval(text: string): DetectedInterval | null {
-  const m = INTERVAL_PATTERN.exec(text);
-  if (!m) return null;
-
+function parseMatch(m: RegExpMatchArray | RegExpExecArray): DetectedInterval | null {
   const reps = parseInt(m[1], 10);
   const durValue = parseInt(m[2], 10);
   const durUnit = m[3];
   const pct = parseInt(m[4], 10);
   const ref = m[5].toUpperCase() as "FTP" | "CP";
   const restValue = parseInt(m[6], 10);
-  const restUnit = m[7] || "min"; // si absent, considéré minutes
+  const restUnit = m[7] || "min";
 
-  // Garde-fous physiologiques
   if (reps < 2 || reps > 30) return null;
   if (pct < 70 || pct > 200) return null;
 
@@ -82,7 +84,33 @@ export function detectInterval(text: string): DetectedInterval | null {
     intensityRef: ref,
     originalRestSec,
     originalRestText: m[0],
+    fullMatch: m[0],
+    matchIndex: (m as RegExpExecArray).index,
   };
+}
+
+export function detectInterval(text: string): DetectedInterval | null {
+  const m = INTERVAL_PATTERN.exec(text);
+  if (!m) return null;
+  return parseMatch(m);
+}
+
+/**
+ * Détecte TOUTES les occurrences d'intervalles dans un texte.
+ * Utile pour les sessions à blocs multiples (pyramides, sets composés).
+ */
+export function detectAllIntervals(text: string): DetectedInterval[] {
+  const results: DetectedInterval[] = [];
+  INTERVAL_PATTERN_GLOBAL.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = INTERVAL_PATTERN_GLOBAL.exec(text)) !== null) {
+    const parsed = parseMatch(m);
+    if (parsed) results.push(parsed);
+    if (m.index === INTERVAL_PATTERN_GLOBAL.lastIndex) {
+      INTERVAL_PATTERN_GLOBAL.lastIndex++;
+    }
+  }
+  return results;
 }
 
 export function isCyclingSession(session: ParsedSession): boolean {
