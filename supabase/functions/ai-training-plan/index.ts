@@ -288,6 +288,115 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               }
             };
 
+            // ─── OPTIMIZATION #4: Dynamic feedback guardrails ───
+            // Track per-chunk metrics (volume, intensity ratio, sport distribution).
+            // After each chunk, compute deviations vs Lorang/Friel norms and feed them
+            // back as NON-PRESCRIPTIVE signals into the NEXT chunk's prompt. The AI
+            // remains in full control — it can confirm, justify, or correct.
+            interface ChunkMetrics {
+              chunkIdx: number;
+              weekRange: string;
+              estimatedTSS: number;          // sum of est. TSS across chunk weeks
+              avgWeeklyHours: number;        // avg duration in hours
+              intensityRatioPct: number;     // % time in Z3+ (high) — target ≤20% polarized
+              sportDist: Record<string, number>; // sport → minutes
+              progressionVsPrevPct: number | null; // %change in TSS vs previous chunk
+            }
+            const chunkMetricsHistory: ChunkMetrics[] = [];
+            // Pending guardrail messages to inject into NEXT chunk
+            let pendingGuardrails: string[] = [];
+
+            // Estimate TSS from a session line: "duration × intensity factor² × 100"
+            // Heuristic-based since we only have text. Conservative IF mapping per category.
+            const estimateSessionTSS = (sessionText: string): number => {
+              const lower = sessionText.toLowerCase();
+              // Extract duration in minutes (formats: "1h30", "90min", "45'")
+              let durMin = 0;
+              const hMatch = lower.match(/(\d+)\s*h\s*(\d{1,2})?/);
+              if (hMatch) {
+                durMin = parseInt(hMatch[1], 10) * 60 + (hMatch[2] ? parseInt(hMatch[2], 10) : 0);
+              } else {
+                const mMatch = lower.match(/(\d{2,3})\s*(?:min|'|′)/);
+                if (mMatch) durMin = parseInt(mMatch[1], 10);
+              }
+              if (durMin === 0) return 0;
+              // IF heuristic by intensity markers
+              let IF = 0.65; // Z2 default
+              if (/sprint|vo2|map\b|z5|z6|110%|120%/.test(lower)) IF = 0.95;
+              else if (/seuil|threshold|ftp\b|css|tempo|z4/.test(lower)) IF = 0.88;
+              else if (/sweet ?spot|z3|sst/.test(lower)) IF = 0.82;
+              else if (/fatmax|endurance|z2|aérobie|easy/.test(lower)) IF = 0.65;
+              else if (/récup|recovery|z1|jog/.test(lower)) IF = 0.50;
+              return Math.round((durMin / 60) * IF * IF * 100);
+            };
+
+            // Compute objective metrics for a chunk's generated text
+            const computeChunkMetrics = (text: string, chunkIdx: number, range: string, prevTSS: number | null): ChunkMetrics => {
+              const weekBlocks = text.match(/(?:^|\n)(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+\b[\s\S]*?(?=(?:\n(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+\b)|$)/gi) || [];
+              let totalTSS = 0;
+              let totalMin = 0;
+              let highIntensityMin = 0;
+              const sportDist: Record<string, number> = {};
+              for (const wb of weekBlocks) {
+                // Each session line typically has duration + zone info
+                const lines = wb.split("\n").filter(l => /\d+\s*(?:h|min|'|′)/.test(l));
+                for (const line of lines) {
+                  const tss = estimateSessionTSS(line);
+                  totalTSS += tss;
+                  const lower = line.toLowerCase();
+                  let durMin = 0;
+                  const hMatch = lower.match(/(\d+)\s*h\s*(\d{1,2})?/);
+                  if (hMatch) durMin = parseInt(hMatch[1], 10) * 60 + (hMatch[2] ? parseInt(hMatch[2], 10) : 0);
+                  else {
+                    const mMatch = lower.match(/(\d{2,3})\s*(?:min|'|′)/);
+                    if (mMatch) durMin = parseInt(mMatch[1], 10);
+                  }
+                  totalMin += durMin;
+                  if (/sprint|vo2|map\b|seuil|threshold|tempo|z3|z4|z5|z6|sst|sweet ?spot/.test(lower)) {
+                    highIntensityMin += durMin;
+                  }
+                  // Sport detection
+                  if (/vélo|bike|cyclisme|home ?trainer|ht\b/.test(lower)) sportDist.bike = (sportDist.bike || 0) + durMin;
+                  else if (/course|run|cap\b|trail|piste/.test(lower)) sportDist.run = (sportDist.run || 0) + durMin;
+                  else if (/nat|swim|piscine|crawl/.test(lower)) sportDist.swim = (sportDist.swim || 0) + durMin;
+                  else if (/musc|force|gym|strength|renf/.test(lower)) sportDist.strength = (sportDist.strength || 0) + durMin;
+                }
+              }
+              const numWeeks = Math.max(weekBlocks.length, 1);
+              const avgWeeklyHours = Math.round((totalMin / 60 / numWeeks) * 10) / 10;
+              const intensityRatioPct = totalMin > 0 ? Math.round((highIntensityMin / totalMin) * 100) : 0;
+              const progressionVsPrevPct = prevTSS !== null && prevTSS > 0
+                ? Math.round(((totalTSS - prevTSS) / prevTSS) * 100)
+                : null;
+              return { chunkIdx, weekRange: range, estimatedTSS: totalTSS, avgWeeklyHours, intensityRatioPct, sportDist, progressionVsPrevPct };
+            };
+
+            // Build feedback guardrail messages from metrics — NON-PRESCRIPTIVE tone
+            const buildFeedbackGuardrails = (m: ChunkMetrics, phase: string): string[] => {
+              const msgs: string[] = [];
+              // Lorang: max +10% load progression between consecutive blocks
+              if (m.progressionVsPrevPct !== null) {
+                if (m.progressionVsPrevPct > 12) {
+                  msgs.push(`📊 Charge bloc précédent (${m.weekRange}) : TSS ${m.estimatedTSS} = +${m.progressionVsPrevPct}% vs bloc N-1. Recommandation Lorang : max +10%/bloc. Confirme ce saut (justifié par adaptation forte ?) ou lisse la progression.`);
+                } else if (m.progressionVsPrevPct < -25 && phase !== "Affûtage" && phase !== "Récupération") {
+                  msgs.push(`📊 Charge bloc précédent : TSS −${Math.abs(m.progressionVsPrevPct)}% vs N-1 hors phase de récup/taper. Si volontaire (semaine de décharge), ignore ce signal. Sinon, vérifie la cohérence.`);
+                }
+              }
+              // Polarized 80/20 — high intensity should be ≤20-25% in base/build
+              if (m.intensityRatioPct > 28 && (phase === "Fondation" || phase === "Adaptation" || phase === "Build" || phase === "Chantier")) {
+                msgs.push(`⚖️ Intensité bloc précédent : ${m.intensityRatioPct}% du temps en Z3+ (cible polarisée 80/20 = ≤20-25% en ${phase}). Si l'athlète a besoin de plus d'intensité (limiteur VLamax/VO2max), justifie. Sinon, rééquilibre vers du Z2/FatMax.`);
+              }
+              // Sport distribution sanity (only flag if multi-sport plan)
+              const totalSportMin = Object.values(m.sportDist).reduce((a, b) => a + b, 0);
+              if (totalSportMin > 60 && Object.keys(m.sportDist).length >= 2) {
+                const dist = Object.entries(m.sportDist)
+                  .map(([s, min]) => `${s}=${Math.round(min / totalSportMin * 100)}%`)
+                  .join(", ");
+                msgs.push(`🏃🚴🏊 Répartition sport bloc précédent : ${dist}. Vérifie que c'est aligné avec l'objectif et la phase active.`);
+              }
+              return msgs;
+            };
+
             const emitChunkBoundary = () => {
               controller.enqueue(
                 encoder.encode('data: {"choices":[{"delta":{"content":"\\n\\n"}}]}\n\n')
@@ -431,8 +540,10 @@ ${slidingSummary || "Premier bloc de continuation."}
 🚫 SÉANCES CLÉS DÉJÀ UTILISÉES (éviter la répétition exacte — varier les protocoles) :
 ${usedKeySessions.size > 0 ? Array.from(usedKeySessions).slice(-25).join(" • ") : "(aucune)"}
 → Tu peux REPRENDRE des familles de séances pour la progression, mais évite de copier le titre exact d'une séance déjà programmée. Varie les durées, intensités, ou structures.
-
+${pendingGuardrails.length > 0 ? `\n🛟 GARDE-FOUS DYNAMIQUES (signaux objectifs du bloc précédent — tu restes maître, confirme ou ajuste) :\n${pendingGuardrails.map(g => `• ${g}`).join("\n")}\n→ Ces signaux sont INFORMATIFS. Tu peux les justifier (adaptation contextuelle valide) ou les corriger dans ce bloc. Ne les ignore pas silencieusement.\n` : ""}
 Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}`;
+                // Reset pending guardrails — they've been delivered
+                pendingGuardrails = [];
               }
 
               if (!isFirst) emitChunkBoundary();
@@ -776,6 +887,19 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
                 const norm = s.toLowerCase().replace(/\s+/g, " ").trim();
                 if (norm.length >= 6) usedKeySessions.add(norm);
               });
+
+              // ─── OPTIMIZATION #4: Compute metrics & build guardrails for NEXT chunk ───
+              const prevTSS = chunkMetricsHistory.length > 0
+                ? chunkMetricsHistory[chunkMetricsHistory.length - 1].estimatedTSS
+                : null;
+              const metrics = computeChunkMetrics(combinedChunkText, ci, `S${chunk.start}-S${chunk.end}`, prevTSS);
+              chunkMetricsHistory.push(metrics);
+              console.log(`📊 Chunk ${ci + 1} metrics: TSS=${metrics.estimatedTSS}, avgH/wk=${metrics.avgWeeklyHours}, intensityZ3+=${metrics.intensityRatioPct}%, prog=${metrics.progressionVsPrevPct ?? "n/a"}%`);
+              const newGuardrails = buildFeedbackGuardrails(metrics, activePhase);
+              if (newGuardrails.length > 0) {
+                console.log(`🛟 ${newGuardrails.length} guardrail(s) queued for chunk ${ci + 2}`);
+                pendingGuardrails.push(...newGuardrails);
+              }
             }
 
             // Send final [DONE]
