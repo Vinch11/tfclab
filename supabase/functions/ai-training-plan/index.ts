@@ -117,14 +117,18 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
 
     // FIX #6: Per-chunk timeout (4 min per chunk call)
     const CHUNK_TIMEOUT_MS = 4 * 60 * 1000;
+    // AUDIT FIX #2: Inter-chunk delay to mitigate rate limits on long plans (>24w)
+    const INTER_CHUNK_DELAY_MS = 1500;
+    const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-    // Helper: call AI and stream response, return full text
+    // AUDIT FIX #1: Track finish_reason to detect truncation (max_tokens reached)
+    // generateAndStream returns text + truncation flag for caller-side handling
     let streamError: { code: number; message: string } | null = null;
     async function generateAndStream(
       prompt: string,
       controller: ReadableStreamDefaultController,
       encoder: TextEncoder,
-    ): Promise<string> {
+    ): Promise<{ text: string; truncated: boolean }> {
       const abortCtrl = new AbortController();
       const timeout = setTimeout(() => abortCtrl.abort(), CHUNK_TIMEOUT_MS);
 
@@ -160,13 +164,14 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             streamError = { code: 500, message: "Erreur du service IA" };
           }
 
-          return "";
+          return { text: "", truncated: false };
         }
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let text = "";
         let buf = "";
+        let truncated = false;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -186,6 +191,12 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             try {
               const p = JSON.parse(json);
               const token = p.choices?.[0]?.delta?.content;
+              // AUDIT FIX #1: Capture finish_reason to detect length-based truncation
+              const finishReason = p.choices?.[0]?.finish_reason;
+              if (finishReason === "length") {
+                truncated = true;
+                console.warn("⚠️ AI response truncated (finish_reason=length). Will trigger continuation logic.");
+              }
               if (token) {
                 text += token;
                 controller.enqueue(encoder.encode(line + "\n\n"));
@@ -193,13 +204,13 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             } catch {}
           }
         }
-        return text;
+        return { text, truncated };
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") {
           console.error("Chunk generation timed out after", CHUNK_TIMEOUT_MS, "ms");
           streamError = { code: 504, message: "Timeout: le bloc a pris trop de temps à générer." };
         }
-        return "";
+        return { text: "", truncated: false };
       } finally {
         clearTimeout(timeout);
       }
