@@ -92,6 +92,7 @@ export interface PlanValidationResult {
     phaseCoherenceScore: number;
     raceDayScore: number;
     limiterCoherenceScore: number;
+    wbalFeasibilityScore: number;
     overallComment: string;
   };
 }
