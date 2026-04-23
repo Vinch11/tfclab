@@ -298,8 +298,12 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               // Sliding window summary — only last N chunks
               const slidingSummary = chunkSummaries.slice(-MAX_SUMMARY_CHUNKS).join("\n");
 
-              // Phase-specific workout catalog for this chunk
-              const chunkPhaseCatalog = getWorkoutCatalogForPhase(activePhase);
+              // Per-chunk filtered catalog (OPTIMIZATION #1): prefer chunk-specific over phase-wide
+              // Reduces cognitive noise: AI sees ~45 ultra-relevant sessions instead of ~80 phase-wide
+              const chunkSpecificCatalog = Array.isArray(chunkCatalogs) && typeof chunkCatalogs[ci] === "string" && chunkCatalogs[ci].length > 0
+                ? chunkCatalogs[ci]
+                : null;
+              const chunkPhaseCatalog = chunkSpecificCatalog || getWorkoutCatalogForPhase(activePhase);
 
               let chunkPrompt: string;
               if (isFirst) {
