@@ -448,14 +448,33 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
 
                 // FIX #1 (audit recap): Extract Récapitulatif Stratégique
                 extractedRecap = extractStrategicRecap(chunkText);
-                
-                // FIX #6 (audit recap): Validate chunk 1 output quality
-                const validation = validateChunk1HasRecap(chunkText);
-                if (!validation.hasRecap) {
-                  console.warn("⚠️ Chunk 1 is missing Récapitulatif Stratégique section");
+
+                // AUDIT FIX #3: Strict recap enforcement — regenerate chunk 1 once if recap is missing
+                let recapValidation = validateChunk1HasRecap(chunkText);
+                if ((!recapValidation.hasRecap || !recapValidation.hasPhases || !extractedRecap) && chunks.length > 1) {
+                  console.warn("⚠️ Chunk 1 missing strategic recap — forcing one regeneration with reinforced prompt.");
+                  await sleep(INTER_CHUNK_DELAY_MS);
+                  const reinforcedPrompt = `${chunkPrompt}
+
+🚨 CONTRAINTE ABSOLUE — RÉCAPITULATIF STRATÉGIQUE OBLIGATOIRE :
+Tu DOIS produire une section "## 2. Récapitulatif Stratégique" couvrant les ${totalWeeks} semaines du plan AVANT toute semaine.
+Le tableau "Limiteurs → Blocs → Séances Clés" doit comporter au moins 3 phases avec bornes explicites (S1-Sx, Sy-Sz, …) couvrant l'INTÉGRALITÉ des ${totalWeeks} semaines.
+Sans ce récapitulatif structuré, le plan sera rejeté.`;
+                  const reinforcedResult = await generateAndStream(reinforcedPrompt, controller, encoder);
+                  if (reinforcedResult.text) {
+                    combinedChunkText = reinforcedResult.text;
+                    chunkText = reinforcedResult.text;
+                    extractedRecap = extractStrategicRecap(reinforcedResult.text);
+                    recapValidation = validateChunk1HasRecap(reinforcedResult.text);
+                    chunkTruncated = chunkTruncated || reinforcedResult.truncated;
+                  }
                 }
-                if (!validation.hasPhases) {
-                  console.warn("⚠️ Chunk 1 Récapitulatif has no phase boundaries (SN-SM patterns)");
+
+                if (!recapValidation.hasRecap) {
+                  console.warn("⚠️ Chunk 1 still missing Récapitulatif Stratégique after enforcement.");
+                }
+                if (!recapValidation.hasPhases) {
+                  console.warn("⚠️ Chunk 1 Récapitulatif has no phase boundaries (SN-SM patterns) after enforcement.");
                 }
                 if (extractedRecap) {
                   console.log(`✅ Extracted strategic recap (${extractedRecap.length} chars)`);
