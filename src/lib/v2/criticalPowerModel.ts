@@ -275,6 +275,15 @@ export function analyzeCriticalPower(snapshot: {
       detail: `La plage physiologique normale de W' est 10-25 kJ. Une valeur de ${result.wprimeKJ} kJ signifie que le modèle "voit" très peu de capacité anaérobie. Cause probable : la courbe de puissance est trop plate — les efforts courts (P30s, P60s) ne sont pas assez supérieurs à MAP5'. Cela arrive quand les tests ne sont pas des efforts maximaux all-out.`,
     });
   }
+  // R4: ceiling — W' > 35 kJ est physiologiquement implausible (max sprinters world-class ~30-35 kJ)
+  if (result.wprimeKJ > 35) {
+    diag.push({
+      code: "WPRIME_HIGH",
+      severity: result.wprimeKJ > 45 ? "critical" : "warning",
+      message: `W' anormalement élevé (${result.wprimeKJ} kJ)`,
+      detail: `Le W' mesuré dépasse 35 kJ, ce qui n'est plausible que pour des sprinters de classe mondiale. Cause probable : P30s ou P60s issus d'un effort très court (sprint pur < 30s) qui surestime la composante anaérobie. Les calculs de prescription (repos, reps, W'bal) sont automatiquement plafonnés à 35 kJ pour éviter les sur-prescriptions.`,
+    });
+  }
 
   // 3. Power curve flatness — P60s should be significantly above MAP5min
   if (snapshot.p60s_w && snapshot.map5min_w && snapshot.p60s_w > 0 && snapshot.map5min_w > 0) {
