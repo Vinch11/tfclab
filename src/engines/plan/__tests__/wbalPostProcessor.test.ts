@@ -163,7 +163,7 @@ describe("applyWbalRecoveryRecalc — substitution du repos", () => {
     expect(stats.rewritten).toBe(1);
     expect(stats.skipped).toBe(0);
     // L'annotation W'bal est ajoutée
-    expect(session.details).toMatch(/\*\[W'bal:.*reps max.*\]\*/);
+    expect(session.details).toMatch(/\*\[W'bal recalc:.*reps max.*\]\*/);
     // Le pattern de repos a bien été substitué (R=... reste mais avec une valeur recalculée)
     expect(session.details).toMatch(/R\s*=\s*\d+(min|s)/i);
   });
