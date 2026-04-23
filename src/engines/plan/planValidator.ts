@@ -12,7 +12,14 @@
  */
 
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
+import type { PlanAthleteData } from "./types";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
+import { detectInterval, isCyclingSession } from "./wbalPostProcessor";
+import {
+  analyzeCriticalPower,
+  effectiveWprime,
+  prescribeIntervalRecovery,
+} from "@/lib/v2/criticalPowerModel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -85,6 +92,7 @@ export interface PlanValidationResult {
     phaseCoherenceScore: number;
     raceDayScore: number;
     limiterCoherenceScore: number;
+    wbalFeasibilityScore: number;
     overallComment: string;
   };
 }
@@ -1245,13 +1253,133 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
   return { issues, score: Math.max(0, score) };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// RULE 11: W'BAL FEASIBILITY (Skiba 2012)
+// Détecte les intervalles cyclistes où la combinaison intensité/durée/repos
+// dépasse la capacité W' de l'athlète (séances physiologiquement infaisables).
+// No-op si l'athlète n'a pas de CP/W' calculable.
+// ═══════════════════════════════════════════════════════════════════════════════
+function validateWbalFeasibility(
+  plan: ParsedPlan,
+  athleteData?: PlanAthleteData
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  if (!athleteData) {
+    return { issues: [], score: 100 };
+  }
+
+  const cpResult = analyzeCriticalPower({
+    pmax_5s: athleteData.pmax5s ?? null,
+    p30s_w: athleteData.p30s ?? null,
+    p60s_w: athleteData.p60s ?? null,
+    map5min_w: athleteData.map5min ?? null,
+    ftp: athleteData.ftp ?? null,
+    weight_kg: athleteData.weightKg ?? null,
+  });
+
+  if (!cpResult) {
+    return { issues: [], score: 100 };
+  }
+
+  const cp = cpResult.effectiveCP;
+  const wprime = effectiveWprime(cpResult.wprime);
+  const ftp = athleteData.ftp ?? cp;
+  const wKJ = Math.round(wprime / 100) / 10;
+
+  let scanned = 0;
+  let infeasible = 0;
+  let tight = 0;
+
+  for (const week of plan.weeks) {
+    for (const session of week.sessions) {
+      if (session.isRest) continue;
+      if (!isCyclingSession(session)) continue;
+
+      const detected = detectInterval(session.details);
+      if (!detected) continue;
+
+      scanned++;
+
+      const refWatts = detected.intensityRef === "FTP" ? ftp : cp;
+      const intervalPowerW = Math.round((refWatts * detected.pctIntensity) / 100);
+
+      // Sub-CP intervals: W' n'est pas drainé → toujours faisable
+      if (intervalPowerW <= cp) continue;
+
+      // Coût d'1 rep vs W' total (cap physiologique strict)
+      const singleRepCostJ = (intervalPowerW - cp) * detected.durationSec;
+      if (singleRepCostJ > wprime) {
+        infeasible++;
+        issues.push({
+          rule: "wbal_feasibility",
+          severity: "error",
+          week: week.weekNumber,
+          message: `S${week.weekNumber} — "${session.title}" : 1 rep dépasse W' disponible`,
+          detail: `Coût ${Math.round(singleRepCostJ / 100) / 10}kJ > W'=${wKJ}kJ (CP=${cp}W, ${intervalPowerW}W = ${detected.pctIntensity}%${detected.intensityRef}, ${detected.durationSec}s). L'athlète atteindra l'épuisement avant la fin du 1er intervalle.`,
+        });
+        continue;
+      }
+
+      // Simulation multi-rep avec le repos prescrit par le plan
+      const prescription = prescribeIntervalRecovery(cp, wprime, intervalPowerW, detected.durationSec, 0);
+      const tau = wprime / Math.max(1, cp); // tau Skiba avec recoveryPower=0
+      const wCostPerRep = singleRepCostJ;
+
+      let simWbal = wprime;
+      let achievableReps = 0;
+      for (let r = 0; r < detected.reps; r++) {
+        simWbal = simWbal - wCostPerRep;
+        if (simWbal <= 0) break;
+        achievableReps++;
+        if (r < detected.reps - 1) {
+          const depletedNow = wprime - simWbal;
+          simWbal = wprime - depletedNow * Math.exp(-detected.originalRestSec / tau);
+        }
+      }
+
+      if (achievableReps < detected.reps) {
+        infeasible++;
+        issues.push({
+          rule: "wbal_feasibility",
+          severity: "error",
+          week: week.weekNumber,
+          message: `S${week.weekNumber} — "${session.title}" : ${achievableReps}/${detected.reps} reps réalisables`,
+          detail: `W'=${wKJ}kJ, CP=${cp}W, ${intervalPowerW}W, repos ${detected.originalRestSec}s → épuisement avant le rep #${achievableReps + 1}. Repos W'bal optimal : ${prescription.optimalRecoverySec}s pour ${prescription.maxReps} reps max.`,
+        });
+      } else if (prescription.maxReps < detected.reps) {
+        // Réalisable au sens strict mais marge W'bal serrée vs optimal
+        tight++;
+        issues.push({
+          rule: "wbal_feasibility",
+          severity: "warning",
+          week: week.weekNumber,
+          message: `S${week.weekNumber} — "${session.title}" : marge W'bal serrée`,
+          detail: `${detected.reps} reps demandés, repos ${detected.originalRestSec}s court. Repos optimal W'bal : ${prescription.optimalRecoverySec}s pour préserver la qualité des derniers intervalles.`,
+        });
+      }
+    }
+  }
+
+  if (scanned === 0) {
+    return { issues: [], score: 100 };
+  }
+
+  const failureRate = infeasible / scanned;
+  const tightRate = tight / scanned;
+  const score = Math.max(0, Math.round(100 - failureRate * 100 - tightRate * 30));
+
+  return { issues, score };
+}
+
 export function validatePlan(
   plan: ParsedPlan,
   objective?: string,
   prohibitions?: string[],
   raceWeekNumbers?: number[],
   identifiedLimiters?: string[],
-  identifiedLimiterKeys?: string[]
+  identifiedLimiterKeys?: string[],
+  athleteData?: PlanAthleteData
 ): PlanValidationResult {
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
@@ -1267,6 +1395,7 @@ export function validatePlan(
   const phaseCoherence = validatePhaseCoherence(plan);
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, identifiedLimiterKeys);
+  const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
 
   // Combine all issues
   const allIssues = [
@@ -1280,20 +1409,22 @@ export function validatePlan(
     ...phaseCoherence.issues,
     ...raceDayPresence.issues,
     ...limiterCoherence.issues,
+    ...wbalFeasibility.issues,
   ];
 
-  // Weighted score (10 rules)
+  // Weighted score (11 rules)
   const weights = {
-    polarization: 0.14,
-    loadPattern: 0.10,
-    keySessions: 0.10,
-    progression: 0.08,
-    sportRatio: 0.08,
-    catalogRatio: 0.06,
-    prohibitionCompliance: 0.15,
-    phaseCoherence: 0.10,
-    raceDayPresence: 0.08,
-    limiterCoherence: 0.11,
+    polarization: 0.13,
+    loadPattern: 0.09,
+    keySessions: 0.09,
+    progression: 0.07,
+    sportRatio: 0.07,
+    catalogRatio: 0.05,
+    prohibitionCompliance: 0.14,
+    phaseCoherence: 0.09,
+    raceDayPresence: 0.07,
+    limiterCoherence: 0.10,
+    wbalFeasibility: 0.10,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -1305,7 +1436,8 @@ export function validatePlan(
     prohibitionCompliance.score * weights.prohibitionCompliance +
     phaseCoherence.score * weights.phaseCoherence +
     raceDayPresence.score * weights.raceDayPresence +
-    limiterCoherence.score * weights.limiterCoherence
+    limiterCoherence.score * weights.limiterCoherence +
+    wbalFeasibility.score * weights.wbalFeasibility
   );
 
   // Grade
@@ -1318,8 +1450,11 @@ export function validatePlan(
   const phaseErrors = phaseCoherence.issues.filter(i => i.severity === "error").length;
   const raceDayMissing = raceDayPresence.issues.filter(i => i.severity === "error").length;
   const limiterErrors = limiterCoherence.issues.filter(i => i.severity === "error").length;
+  const wbalErrors = wbalFeasibility.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : wbalErrors > 0
+    ? `⚡ ${wbalErrors} séance(s) infaisable(s) selon le W'bal de l'athlète — intensité, durée ou repos à revoir`
     : limiterErrors > 0
     ? `⚠️ ${limiterErrors} incohérence(s) limiteur↔séances — le plan ne cible pas les limiteurs détectés par le diagnostic`
     : raceDayMissing > 0
@@ -1350,6 +1485,7 @@ export function validatePlan(
       phaseCoherenceScore: phaseCoherence.score,
       raceDayScore: raceDayPresence.score,
       limiterCoherenceScore: limiterCoherence.score,
+      wbalFeasibilityScore: wbalFeasibility.score,
       overallComment,
     },
   };
@@ -1375,6 +1511,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| 📦 Cohérence des phases | ${result.summary.phaseCoherenceScore}/100 | ${result.summary.phaseCoherenceScore >= 75 ? "✅" : result.summary.phaseCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| 🏁 Jour de course | ${result.summary.raceDayScore}/100 | ${result.summary.raceDayScore >= 100 ? "✅" : "❌"} |`);
   lines.push(`| 🎯 Cohérence limiteurs↔séances | ${result.summary.limiterCoherenceScore}/100 | ${result.summary.limiterCoherenceScore >= 75 ? "✅" : result.summary.limiterCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| ⚡ Faisabilité W'bal | ${result.summary.wbalFeasibilityScore}/100 | ${result.summary.wbalFeasibilityScore >= 90 ? "✅" : result.summary.wbalFeasibilityScore >= 70 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
@@ -1386,13 +1523,22 @@ export function formatValidationReport(result: PlanValidationResult): string {
     const prohibitionErrors = result.issues.filter(i => i.rule === "prohibition_compliance");
     const phaseErrors = result.issues.filter(i => i.rule === "phase_coherence" && i.severity === "error");
     const raceDayErrors = result.issues.filter(i => i.rule === "race_day");
-    const otherErrors = result.issues.filter(i => i.severity === "error" && !["prohibition_compliance", "phase_coherence", "race_day"].includes(i.rule));
+    const wbalErrors = result.issues.filter(i => i.rule === "wbal_feasibility" && i.severity === "error");
+    const otherErrors = result.issues.filter(i => i.severity === "error" && !["prohibition_compliance", "phase_coherence", "race_day", "wbal_feasibility"].includes(i.rule));
     const warnings = result.issues.filter(i => i.severity === "warning");
 
     if (prohibitionErrors.length > 0) {
       lines.push("\n**🚫 Violations de prohibition (CRITIQUE — incohérence avec le diagnostic) :**");
       prohibitionErrors.forEach(e => lines.push(`- ${e.message}`));
       if (prohibitionErrors[0]?.detail) lines.push(`  → ${prohibitionErrors[0].detail}`);
+    }
+    if (wbalErrors.length > 0) {
+      lines.push("\n**⚡ Séances infaisables selon le W'bal de l'athlète (Skiba 2012) :**");
+      wbalErrors.slice(0, 8).forEach(e => {
+        lines.push(`- ${e.message}`);
+        if (e.detail) lines.push(`  → ${e.detail}`);
+      });
+      if (wbalErrors.length > 8) lines.push(`- ... et ${wbalErrors.length - 8} autres séances infaisables`);
     }
     if (phaseErrors.length > 0) {
       lines.push("\n**📦 Incohérences de phase (CRITIQUE — périodisation non conforme) :**");

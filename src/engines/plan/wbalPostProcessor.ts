@@ -38,7 +38,7 @@ const INTERVAL_PATTERN =
 const REST_REPLACE_PATTERN =
   /((?:r\s*[=:]?|repos|rest)\s*)(\d{1,3}(?:min|s|sec|minutes?|secondes?)?(?:\d{1,2})?)/gi;
 
-interface DetectedInterval {
+export interface DetectedInterval {
   reps: number;
   durationSec: number;
   pctIntensity: number;
@@ -53,7 +53,7 @@ function toSeconds(value: number, unit: string): number {
   return value;
 }
 
-function detectInterval(text: string): DetectedInterval | null {
+export function detectInterval(text: string): DetectedInterval | null {
   const m = INTERVAL_PATTERN.exec(text);
   if (!m) return null;
 
@@ -85,7 +85,7 @@ function detectInterval(text: string): DetectedInterval | null {
   };
 }
 
-function isCyclingSession(session: ParsedSession): boolean {
+export function isCyclingSession(session: ParsedSession): boolean {
   const sport = session.sport.toLowerCase();
   return /vélo|velo|bike|cyclisme|cycle/.test(sport);
 }

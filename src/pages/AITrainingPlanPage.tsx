@@ -1599,6 +1599,7 @@ export default function AITrainingPlanPage() {
                         prohibitions={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.prohibitions : undefined}
                         identifiedLimiters={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.identifiedLimiters : undefined}
                         identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(athleteContext.diagnostic.limiter.gapAnalysis, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined) : undefined}
+                        athleteData={athleteContext?.data}
                         raceWeekNumbers={(() => {
                           const allGoals = [
                             { raceDate: raceDate, priority: "A" as const },
