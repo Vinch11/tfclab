@@ -400,3 +400,68 @@ describe("applyWbalRecoveryRecalc — multi-blocs par session", () => {
     expect(stats.rewritten).toBe(2);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 5) TRAÇABILITÉ — préservation explicite de l'ancien repos IA
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("applyWbalRecoveryRecalc — traçabilité IA → W'bal", () => {
+  it("conserve la valeur originale '3min' inline avec '(IA: 3min)' après réécriture", () => {
+    const session = makeSession({ details: "5×4min @ 110%FTP, R=3min" });
+    const plan = makePlan([session]);
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    // L'ancien repos IA est conservé inline juste après le nouveau
+    expect(session.details).toMatch(/R\s*=\s*\d+(min|s)\s*\(IA:\s*3min\)/i);
+  });
+
+  it("conserve la valeur originale '2min' pour le format 'repos 2min'", () => {
+    const session = makeSession({
+      details: "8 x 3 min à 105% FTP — repos 2min",
+    });
+    const plan = makePlan([session]);
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    expect(session.details).toMatch(/repos\s*\d+(min|s)\s*\(IA:\s*2min\)/i);
+  });
+
+  it("conserve la valeur originale '30s' pour le format court", () => {
+    const session = makeSession({ details: "6×30s @ 130%FTP R=30s" });
+    const plan = makePlan([session]);
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    expect(session.details).toMatch(/R\s*=\s*\d+(min|s)\s*\(IA:\s*30s\)/i);
+  });
+
+  it("annotation simple bloc affiche la transition 'IA X → Y optimal'", () => {
+    const session = makeSession({ details: "5×4min @ 110%FTP, R=3min" });
+    const plan = makePlan([session]);
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    expect(session.details).toMatch(
+      /\*\[W'bal recalc: IA \d+(min|s) → \d+(min|s) optimal/i
+    );
+  });
+
+  it("annotation multi-blocs affiche la transition 'IA X → W'bal Y' pour chaque bloc", () => {
+    const session = makeSession({
+      details:
+        "Bloc 1: 5×4min @ 110%FTP, R=3min. Bloc 2: 6×2min @ 120%FTP, R=2min.",
+    });
+    const plan = makePlan([session]);
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    // Annotation multi-blocs avec transitions explicites
+    expect(session.details).toContain("W'bal multi-blocs");
+    expect(session.details).toMatch(/5×4min:\s*IA\s*3min\s*→\s*W'bal/i);
+    expect(session.details).toMatch(/6×2min:\s*IA\s*2min\s*→\s*W'bal/i);
+    // Et inline, chaque bloc conserve son ancien repos
+    expect(session.details).toMatch(/R\s*=\s*\d+(min|s)\s*\(IA:\s*3min\)/i);
+    expect(session.details).toMatch(/R\s*=\s*\d+(min|s)\s*\(IA:\s*2min\)/i);
+  });
+});
