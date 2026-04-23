@@ -647,6 +647,82 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
                 }
               }
 
+              // ─── OPTIMIZATION #2: Surgical per-week regeneration for ANEMIC weeks ───
+              // After missing-weeks retries, scan for weeks that are technically present
+              // but underdeveloped (too few sessions, missing key markers). Regenerate
+              // ONLY those individual weeks instead of the whole chunk.
+              {
+                const minSessionsExpected = isVerbosePlan ? 6 : 4; // tri/trail need more
+                const presentWeeks = extractGeneratedWeekNumbers(combinedChunkText);
+                const anemicWeeks: number[] = [];
+
+                for (const wNum of presentWeeks) {
+                  // Extract this week's block (from "Semaine N" to next "Semaine M" or end)
+                  const wRe = new RegExp(
+                    `(?:^|\\n)(?:#{2,4}\\s*)?\\*{0,2}\\s*Semaine\\s*${wNum}\\b[\\s\\S]*?(?=(?:\\n(?:#{2,4}\\s*)?\\*{0,2}\\s*Semaine\\s*\\d+\\b)|$)`,
+                    "i",
+                  );
+                  const m = combinedChunkText.match(wRe);
+                  if (!m) continue;
+                  const block = m[0];
+
+                  // Heuristics: count table rows (| Lundi |, | Mardi |…) OR session bullet markers
+                  const dayRows = (block.match(/\|\s*(Lundi|Mardi|Mercredi|Jeudi|Vendredi|Samedi|Dimanche)\s*\|/gi) || []).length;
+                  const bulletRows = (block.match(/^\s*[-*]\s+(?:Lundi|Mardi|Mercredi|Jeudi|Vendredi|Samedi|Dimanche)/gim) || []).length;
+                  const sessionCount = Math.max(dayRows, bulletRows);
+                  // A week is anemic if it has too few sessions OR is suspiciously short
+                  const blockLen = block.length;
+                  const isAnemic = (sessionCount < minSessionsExpected && blockLen < 1500) || blockLen < 600;
+                  if (isAnemic) {
+                    anemicWeeks.push(wNum);
+                    console.warn(`🔍 Anemic week detected: S${wNum} (sessions=${sessionCount}, len=${blockLen}, threshold=${minSessionsExpected})`);
+                  }
+                }
+
+                // Surgical regeneration: one week at a time, max 3 to bound cost
+                const weeksToFix = anemicWeeks.slice(0, 3);
+                for (const wNum of weeksToFix) {
+                  console.log(`🩹 Surgical regen of anemic week S${wNum}…`);
+                  const surgicalRecap = extractedRecap
+                    ? `\n📋 RÉCAPITULATIF STRATÉGIQUE (référence) :\n${extractedRecap.slice(0, 1200)}`
+                    : "";
+                  const surgicalPrompt = `${userPrompt}
+
+⚠️ RÉGÉNÉRATION CHIRURGICALE — Régénère UNIQUEMENT la Semaine ${wNum} de manière COMPLÈTE et DÉTAILLÉE.
+Cette semaine était trop pauvre (séances insuffisantes ou structure incomplète) — produis une version riche.
+
+Exigences obligatoires :
+- Minimum ${minSessionsExpected} séances réelles
+- Tableau jour-par-jour complet (Lundi → Dimanche) avec : sport, type, durée, zones cibles, structure
+- Marqueur 🔑 sur les séances clés (alignées L1="${planConfig?.identifiedLimiters?.[0] || "—"}")
+- Justification W'bal pour les séances d'intervalles supra-CP
+- Cohérence de phase : ${activePhase}
+${surgicalRecap}
+
+🚫 SÉANCES CLÉS DÉJÀ UTILISÉES (varier les protocoles) :
+${usedKeySessions.size > 0 ? Array.from(usedKeySessions).slice(-15).join(" • ") : "(aucune)"}
+
+NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${wNum}".${wbalReminder}`;
+
+                  emitChunkBoundary();
+                  await sleep(INTER_CHUNK_DELAY_MS);
+                  // Use medium reasoning for surgical fixes — quality > speed here
+                  const surgicalResult = await generateAndStream(
+                    surgicalPrompt,
+                    controller,
+                    encoder,
+                    PRIMARY_MODEL,
+                    "medium",
+                  );
+                  if (surgicalResult.text) {
+                    combinedChunkText += `\n${surgicalResult.text}`;
+                    console.log(`✅ Week S${wNum} regenerated surgically (${surgicalResult.text.length} chars).`);
+                  } else {
+                    console.warn(`⚠️ Surgical regen failed for S${wNum}.`);
+                  }
+                }
+              }
+
               // FIX M1 (audit): Build ENRICHED summary with limiter progression tracking
               const weekMatches = combinedChunkText.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+[^#\n]*(?:\n(?!#{1,4}\s*\*{0,2}\s*Semaine\s*\d+).*)*/gim) || [];
               const summaryLines = weekMatches.map(w => {
