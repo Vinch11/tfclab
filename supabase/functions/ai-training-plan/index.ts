@@ -133,26 +133,33 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       controller: ReadableStreamDefaultController,
       encoder: TextEncoder,
       model: string = PRIMARY_MODEL,
+      // OPTIMIZATION #3: Adaptive reasoning — enable on critical chunks (Chunk 1, Race Weeks)
+      reasoningEffort?: "minimal" | "low" | "medium" | "high",
     ): Promise<{ text: string; truncated: boolean }> {
       const abortCtrl = new AbortController();
       const timeout = setTimeout(() => abortCtrl.abort(), CHUNK_TIMEOUT_MS);
 
       try {
+        const body: Record<string, unknown> = {
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt },
+          ],
+          stream: true,
+          max_tokens: 65536,
+        };
+        if (reasoningEffort) {
+          body.reasoning = { effort: reasoningEffort };
+        }
+
         const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${LOVABLE_API_KEY}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: prompt },
-            ],
-            stream: true,
-            max_tokens: 65536,
-          }),
+          body: JSON.stringify(body),
           signal: abortCtrl.signal,
         });
 
