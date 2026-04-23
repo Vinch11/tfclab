@@ -499,7 +499,7 @@ export function prescribeIntervalRecovery(
     };
   }
 
-  const tau = calculateTau(wEff, cp, recoveryPowerW);
+  const tau = calculateTau(cp, recoveryPowerW);
   const depleted = wEff - wbalAfterWork;
 
   // Time to reconstitute to X% of W'
