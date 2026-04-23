@@ -653,6 +653,18 @@ Semaines déjà générées : ${[...generatedWeeks, ...allRetryWeeks].sort((a, b
               }
               
               chunkSummaries.push(`Semaines ${chunk.start}-${chunk.end} [Phase: ${activePhase}${blocInfo}${maxZ2}]: ${summaryLines || "Plan progressif standard"}`);
+
+              // AUDIT FIX #4 + #5: Update global memory + register key sessions for anti-redundancy
+              const blocLabels = blocHeaders.map(h => h.replace(/^##\s*/i, "").trim().slice(0, 50));
+              const topSessions = keySessionMatches_all
+                .map(k => k.replace(/🔑/g, "").replace(/[|]/g, "").trim())
+                .filter(s => s.length > 0)
+                .map(s => s.slice(0, 50));
+              updateGlobalMemory(ci, `S${chunk.start}-S${chunk.end}`, activePhase, blocLabels, topSessions);
+              topSessions.forEach(s => {
+                const norm = s.toLowerCase().replace(/\s+/g, " ").trim();
+                if (norm.length >= 6) usedKeySessions.add(norm);
+              });
             }
 
             // Send final [DONE]
