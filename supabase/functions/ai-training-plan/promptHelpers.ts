@@ -227,7 +227,32 @@ export function computeCPWprime(data: any): { cpRound: number; effectiveCP: numb
 }
 
 // === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
-export function buildCPWprimeSection(data: any): string | null {
+// ─── RECOVERY STRATEGY ────────────────────────────────────────────────────
+// Permet au coach de choisir le profil de récupération inter-séries qui sera
+// utilisé pour calculer les durées de repos via le modèle W'bal (Skiba 2012).
+//   - "passive"        : récupération à 0 W (debout/marche, pédalage <50W)
+//   - "active-light"   : récupération à 50% CP (Z1, "spinning" léger)
+//   - "active-tempo"   : récupération à 70% CP (haut Z2 / bas Z3, type over-under)
+// Une récupération active augmente le tau de réplétion W' → repos prescrits
+// plus longs pour atteindre la même qualité de reconstitution.
+export type RecoveryStrategy = "passive" | "active-light" | "active-tempo";
+
+export function resolveRecoveryPower(
+  strategy: RecoveryStrategy,
+  effectiveCP: number
+): { recPow: number; label: string; pctCP: number } {
+  switch (strategy) {
+    case "active-light":
+      return { recPow: Math.round(effectiveCP * 0.50), label: "Active légère (50% CP — Z1, spinning)", pctCP: 50 };
+    case "active-tempo":
+      return { recPow: Math.round(effectiveCP * 0.70), label: "Active tempo (70% CP — haut Z2)", pctCP: 70 };
+    case "passive":
+    default:
+      return { recPow: 0, label: "Passive (0 W — debout/marche)", pctCP: 0 };
+  }
+}
+
+export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrategy = "passive"): string | null {
   // Reuse shared computation
   const result = computeCPWprime(data);
   if (!result) return null;
