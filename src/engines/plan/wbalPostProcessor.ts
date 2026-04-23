@@ -134,14 +134,40 @@ function formatRestSec(sec: number): string {
 // ─── API publique ──────────────────────────────────────────────────────────
 
 export interface WbalRecalcStats {
+  /** Sessions vélo non-repos analysées */
   scanned: number;
+  /** Sessions ayant subi au moins une réécriture */
   rewritten: number;
+  /** Sessions sans aucun bloc d'intervalle réécrit */
   skipped: number;
+  /** Nombre total de blocs d'intervalles détectés (toutes sessions) */
+  blocksDetected: number;
+  /** Nombre total de blocs effectivement réécrits */
+  blocksRewritten: number;
+  /** Nombre de blocs skipped (sub-CP) */
+  blocksSkipped: number;
+}
+
+/**
+ * Réécrit la valeur de repos à l'intérieur d'un texte d'intervalle déjà matché.
+ * Utilise un pattern local pour ne toucher qu'à la portion "R=...|repos ...|rest ..."
+ * située à l'intérieur du fullMatch — préserve le reste (intensité, reps, etc.).
+ */
+function rewriteRestInMatch(matchText: string, newRestStr: string): string | null {
+  // Pattern local non-global : on ne remplace que la 1ère occurrence DANS le match.
+  // Le match d'intervalle ne contient par construction qu'une seule mention de repos.
+  const localRestPattern =
+    /((?:r\s*[=:]?|repos|rest)\s*)(\d{1,3}(?:min|s|sec|minutes?|secondes?)?(?:\d{1,2})?)/i;
+  if (!localRestPattern.test(matchText)) return null;
+  return matchText.replace(localRestPattern, (_full, prefix) => `${prefix}${newRestStr}`);
 }
 
 /**
  * Recalcule les temps de repos via W'bal pour toutes les sessions cyclistes
  * du plan parsé. Mute le plan en place et retourne des statistiques.
+ *
+ * Les sessions à blocs multiples (pyramides, sets composés) voient TOUS
+ * leurs intervalles supra-CP recalculés indépendamment.
  *
  * Si l'athlète n'a pas de CP/W' calculable (P30s, P60s, MAP5min manquants),
  * le post-traitement est un no-op silencieux (les valeurs IA sont conservées).
@@ -150,7 +176,14 @@ export function applyWbalRecoveryRecalc(
   plan: ParsedPlan,
   athleteData: PlanAthleteData
 ): WbalRecalcStats {
-  const stats: WbalRecalcStats = { scanned: 0, rewritten: 0, skipped: 0 };
+  const stats: WbalRecalcStats = {
+    scanned: 0,
+    rewritten: 0,
+    skipped: 0,
+    blocksDetected: 0,
+    blocksRewritten: 0,
+    blocksSkipped: 0,
+  };
 
   // 1) Calculer CP/W' à partir des données athlète
   const cpResult = analyzeCriticalPower({
@@ -163,13 +196,13 @@ export function applyWbalRecoveryRecalc(
   });
 
   if (!cpResult) {
-    // Pas assez de données pour CP/W' → on ne touche pas au plan
     return stats;
   }
 
   const cp = cpResult.effectiveCP;
   const wprime = effectiveWprime(cpResult.wprime); // [10kJ ; 35kJ]
   const ftp = athleteData.ftp ?? cp;
+  const wKJ = Math.round(wprime / 100) / 10;
 
   // 2) Parcourir toutes les sessions
   for (const week of plan.weeks) {
@@ -179,50 +212,100 @@ export function applyWbalRecoveryRecalc(
 
       stats.scanned++;
 
-      const detected = detectInterval(session.details);
-      if (!detected) {
+      const detectedBlocks = detectAllIntervals(session.details);
+      if (detectedBlocks.length === 0) {
         stats.skipped++;
         continue;
       }
 
-      // 3) Calculer la puissance d'intervalle absolue
-      const refWatts = detected.intensityRef === "FTP" ? ftp : cp;
-      const intervalPowerW = Math.round((refWatts * detected.pctIntensity) / 100);
+      stats.blocksDetected += detectedBlocks.length;
 
-      // Skip si supra-CP non atteint (W'bal n'apporte rien sous CP)
-      if (intervalPowerW <= cp) {
+      // 3) Calculer les nouvelles valeurs pour chaque bloc
+      type Rewrite = {
+        original: string;
+        replacement: string;
+        newRestSec: number;
+        maxReps: number;
+        reps: number;
+        durationSec: number;
+      };
+      const rewrites: Rewrite[] = [];
+
+      for (const block of detectedBlocks) {
+        const refWatts = block.intensityRef === "FTP" ? ftp : cp;
+        const intervalPowerW = Math.round((refWatts * block.pctIntensity) / 100);
+
+        // Skip si supra-CP non atteint (W'bal n'apporte rien sous CP)
+        if (intervalPowerW <= cp) {
+          stats.blocksSkipped++;
+          continue;
+        }
+
+        const prescription = prescribeIntervalRecovery(
+          cp,
+          wprime,
+          intervalPowerW,
+          block.durationSec,
+          0
+        );
+
+        const newRestStr = formatRestSec(prescription.optimalRecoverySec);
+        const original = block.fullMatch ?? block.originalRestText;
+        const replacement = rewriteRestInMatch(original, newRestStr);
+
+        if (!replacement || replacement === original) {
+          stats.blocksSkipped++;
+          continue;
+        }
+
+        rewrites.push({
+          original,
+          replacement,
+          newRestSec: prescription.optimalRecoverySec,
+          maxReps: prescription.maxReps,
+          reps: block.reps,
+          durationSec: block.durationSec,
+        });
+      }
+
+      if (rewrites.length === 0) {
         stats.skipped++;
         continue;
       }
 
-      // 4) Prescription W'bal (récup passive par défaut)
-      const prescription = prescribeIntervalRecovery(
-        cp,
-        wprime,
-        intervalPowerW,
-        detected.durationSec,
-        0
-      );
+      // 4) Appliquer toutes les substitutions (chaque match étant unique
+      //    dans le texte source par construction du pattern d'intervalle).
+      let newDetails = session.details;
+      let appliedCount = 0;
+      for (const rw of rewrites) {
+        // Substitution littérale de la 1ère occurrence du fullMatch original.
+        const idx = newDetails.indexOf(rw.original);
+        if (idx === -1) continue;
+        newDetails =
+          newDetails.slice(0, idx) +
+          rw.replacement +
+          newDetails.slice(idx + rw.original.length);
+        appliedCount++;
+        stats.blocksRewritten++;
+      }
 
-      const newRestSec = prescription.optimalRecoverySec;
-      const newRestStr = formatRestSec(newRestSec);
-      const wKJ = Math.round(wprime / 100) / 10;
+      if (appliedCount === 0) {
+        stats.skipped++;
+        continue;
+      }
 
-      // 5) Substituer dans details (1ère occurrence seulement)
-      let replaced = false;
-      const newDetails = session.details.replace(REST_REPLACE_PATTERN, (match, prefix) => {
-        if (replaced) return match;
-        replaced = true;
-        return `${prefix}${newRestStr}`;
+      // 5) Annotation synthétique (1 ligne par bloc réécrit)
+      const annotationLines = rewrites.map((rw) => {
+        const dur = rw.durationSec >= 60 ? `${rw.durationSec / 60}min` : `${rw.durationSec}s`;
+        return `${rw.reps}×${dur} → repos ${formatRestSec(rw.newRestSec)} (max ${rw.maxReps} reps)`;
       });
+      const annotation =
+        rewrites.length === 1
+          ? ` *[W'bal: ${formatRestSec(rewrites[0].newRestSec)} optimal pour ${rewrites[0].maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W]*`
+          : ` *[W'bal multi-blocs (W'=${wKJ}kJ, CP=${cp}W): ${annotationLines.join(" | ")}]*`;
 
-      if (replaced) {
-        const annotation = ` *[W'bal: ${newRestStr} optimal pour ${prescription.maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W]*`;
-        session.details = newDetails + annotation;
-        stats.rewritten++;
-      } else {
-        stats.skipped++;
-      }
+      session.details = newDetails + annotation;
+      stats.rewritten++;
     }
   }
 
