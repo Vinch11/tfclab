@@ -1511,6 +1511,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| 📦 Cohérence des phases | ${result.summary.phaseCoherenceScore}/100 | ${result.summary.phaseCoherenceScore >= 75 ? "✅" : result.summary.phaseCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| 🏁 Jour de course | ${result.summary.raceDayScore}/100 | ${result.summary.raceDayScore >= 100 ? "✅" : "❌"} |`);
   lines.push(`| 🎯 Cohérence limiteurs↔séances | ${result.summary.limiterCoherenceScore}/100 | ${result.summary.limiterCoherenceScore >= 75 ? "✅" : result.summary.limiterCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| ⚡ Faisabilité W'bal | ${result.summary.wbalFeasibilityScore}/100 | ${result.summary.wbalFeasibilityScore >= 90 ? "✅" : result.summary.wbalFeasibilityScore >= 70 ? "⚠️" : "❌"} |`);
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
 
@@ -1522,13 +1523,22 @@ export function formatValidationReport(result: PlanValidationResult): string {
     const prohibitionErrors = result.issues.filter(i => i.rule === "prohibition_compliance");
     const phaseErrors = result.issues.filter(i => i.rule === "phase_coherence" && i.severity === "error");
     const raceDayErrors = result.issues.filter(i => i.rule === "race_day");
-    const otherErrors = result.issues.filter(i => i.severity === "error" && !["prohibition_compliance", "phase_coherence", "race_day"].includes(i.rule));
+    const wbalErrors = result.issues.filter(i => i.rule === "wbal_feasibility" && i.severity === "error");
+    const otherErrors = result.issues.filter(i => i.severity === "error" && !["prohibition_compliance", "phase_coherence", "race_day", "wbal_feasibility"].includes(i.rule));
     const warnings = result.issues.filter(i => i.severity === "warning");
 
     if (prohibitionErrors.length > 0) {
       lines.push("\n**🚫 Violations de prohibition (CRITIQUE — incohérence avec le diagnostic) :**");
       prohibitionErrors.forEach(e => lines.push(`- ${e.message}`));
       if (prohibitionErrors[0]?.detail) lines.push(`  → ${prohibitionErrors[0].detail}`);
+    }
+    if (wbalErrors.length > 0) {
+      lines.push("\n**⚡ Séances infaisables selon le W'bal de l'athlète (Skiba 2012) :**");
+      wbalErrors.slice(0, 8).forEach(e => {
+        lines.push(`- ${e.message}`);
+        if (e.detail) lines.push(`  → ${e.detail}`);
+      });
+      if (wbalErrors.length > 8) lines.push(`- ... et ${wbalErrors.length - 8} autres séances infaisables`);
     }
     if (phaseErrors.length > 0) {
       lines.push("\n**📦 Incohérences de phase (CRITIQUE — périodisation non conforme) :**");
