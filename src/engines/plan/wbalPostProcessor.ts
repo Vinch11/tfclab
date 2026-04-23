@@ -38,7 +38,7 @@ const INTERVAL_PATTERN =
 const REST_REPLACE_PATTERN =
   /((?:r\s*[=:]?|repos|rest)\s*)(\d{1,3}(?:min|s|sec|minutes?|secondes?)?(?:\d{1,2})?)/gi;
 
-interface DetectedInterval {
+export interface DetectedInterval {
   reps: number;
   durationSec: number;
   pctIntensity: number;
