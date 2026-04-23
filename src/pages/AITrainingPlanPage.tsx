@@ -493,11 +493,16 @@ export default function AITrainingPlanPage() {
     };
 
     const config = buildConfigFromDiag(athleteContext.diagnostic);
-    return postProcessParsedPlan(clonedPlan, {
-      ...config,
-      weeksAvailable: config.weeksAvailable ?? clonedPlan.weeks.length,
-      mode: "ai",
-    });
+    const { plan } = postProcessParsedPlan(
+      clonedPlan,
+      {
+        ...config,
+        weeksAvailable: config.weeksAvailable ?? clonedPlan.weeks.length,
+        mode: "ai",
+      },
+      athleteContext.data
+    );
+    return plan;
   }, [rawParsedPlan, athleteContext, buildConfigFromDiag]);
 
   const { archiveCurrentPlan } = usePlanSnapshotSync();
