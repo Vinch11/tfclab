@@ -887,6 +887,19 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
                 const norm = s.toLowerCase().replace(/\s+/g, " ").trim();
                 if (norm.length >= 6) usedKeySessions.add(norm);
               });
+
+              // ─── OPTIMIZATION #4: Compute metrics & build guardrails for NEXT chunk ───
+              const prevTSS = chunkMetricsHistory.length > 0
+                ? chunkMetricsHistory[chunkMetricsHistory.length - 1].estimatedTSS
+                : null;
+              const metrics = computeChunkMetrics(combinedChunkText, ci, `S${chunk.start}-S${chunk.end}`, prevTSS);
+              chunkMetricsHistory.push(metrics);
+              console.log(`📊 Chunk ${ci + 1} metrics: TSS=${metrics.estimatedTSS}, avgH/wk=${metrics.avgWeeklyHours}, intensityZ3+=${metrics.intensityRatioPct}%, prog=${metrics.progressionVsPrevPct ?? "n/a"}%`);
+              const newGuardrails = buildFeedbackGuardrails(metrics, activePhase);
+              if (newGuardrails.length > 0) {
+                console.log(`🛟 ${newGuardrails.length} guardrail(s) queued for chunk ${ci + 2}`);
+                pendingGuardrails.push(...newGuardrails);
+              }
             }
 
             // Send final [DONE]
