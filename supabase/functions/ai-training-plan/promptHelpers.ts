@@ -227,7 +227,32 @@ export function computeCPWprime(data: any): { cpRound: number; effectiveCP: numb
 }
 
 // === CRITICAL POWER / W' INLINE MODEL (Skiba 2012) ===
-export function buildCPWprimeSection(data: any): string | null {
+// ─── RECOVERY STRATEGY ────────────────────────────────────────────────────
+// Permet au coach de choisir le profil de récupération inter-séries qui sera
+// utilisé pour calculer les durées de repos via le modèle W'bal (Skiba 2012).
+//   - "passive"        : récupération à 0 W (debout/marche, pédalage <50W)
+//   - "active-light"   : récupération à 50% CP (Z1, "spinning" léger)
+//   - "active-tempo"   : récupération à 70% CP (haut Z2 / bas Z3, type over-under)
+// Une récupération active augmente le tau de réplétion W' → repos prescrits
+// plus longs pour atteindre la même qualité de reconstitution.
+export type RecoveryStrategy = "passive" | "active-light" | "active-tempo";
+
+export function resolveRecoveryPower(
+  strategy: RecoveryStrategy,
+  effectiveCP: number
+): { recPow: number; label: string; pctCP: number } {
+  switch (strategy) {
+    case "active-light":
+      return { recPow: Math.round(effectiveCP * 0.50), label: "Active légère (50% CP — Z1, spinning)", pctCP: 50 };
+    case "active-tempo":
+      return { recPow: Math.round(effectiveCP * 0.70), label: "Active tempo (70% CP — haut Z2)", pctCP: 70 };
+    case "passive":
+    default:
+      return { recPow: 0, label: "Passive (0 W — debout/marche)", pctCP: 0 };
+  }
+}
+
+export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrategy = "passive"): string | null {
   // Reuse shared computation
   const result = computeCPWprime(data);
   if (!result) return null;
@@ -321,30 +346,47 @@ export function buildCPWprimeSection(data: any): string | null {
 
   const fmtRest = (sec: number) => sec >= 120 ? `${Math.round(sec / 60)}min` : `${sec}s`;
 
-  // FIXED: Recovery power aligned with client-side — passive rest (0W) for VO2max/Sprint
+  // Stratégie de récupération choisie par le coach (par défaut: passive).
+  // Détermine la puissance de récupération entre les répétitions, sauf pour les
+  // formats qui ont une sémantique propre (over-under, 5min Z3-tempo).
+  const baseRecovery = resolveRecoveryPower(recoveryStrategy, effectiveCP);
   const formats = [
-    { label: "30/30 VO2max", pct: 1.20, dur: 30, recPow: 0 },
-    { label: "1min @120%", pct: 1.20, dur: 60, recPow: 0 },
-    { label: "3min @VO2max", pct: 1.15, dur: 180, recPow: 0 },
-    { label: "5min @105%", pct: 1.05, dur: 300, recPow: Math.round(effectiveCP * 0.5) },
-    { label: "Over-under 3min", pct: 1.05, dur: 180, recPow: Math.round(effectiveCP * 0.85) },
-    { label: "Sprint 10s", pct: 2.00, dur: 10, recPow: 0 },
+    { label: "30/30 VO2max", pct: 1.20, dur: 30, recPow: baseRecovery.recPow, fixed: false },
+    { label: "1min @120%", pct: 1.20, dur: 60, recPow: baseRecovery.recPow, fixed: false },
+    { label: "3min @VO2max", pct: 1.15, dur: 180, recPow: baseRecovery.recPow, fixed: false },
+    // 5min @105% : récup mi-active conservée pour éviter un repos > 8min sur passif strict
+    { label: "5min @105%", pct: 1.05, dur: 300, recPow: Math.max(baseRecovery.recPow, Math.round(effectiveCP * 0.5)), fixed: false },
+    // Over-under : la sémantique impose un "under" à 85% CP (intrinsèque au format)
+    { label: "Over-under 3min", pct: 1.05, dur: 180, recPow: Math.round(effectiveCP * 0.85), fixed: true },
+    { label: "Sprint 10s", pct: 2.00, dur: 10, recPow: baseRecovery.recPow, fixed: false },
   ];
 
   lines.push(`\n#### 🔄 Durées de Repos Optimales W'bal (Skiba 2012 — CP effectif ${effectiveCP}W, W' effectif ${wEffKJ}kJ)`);
-  lines.push(`| Format | Puissance | Repos optimal | Reps max |`);
-  lines.push(`|--------|-----------|---------------|----------|`);
+  lines.push(`- **Stratégie de récupération inter-séries** : ${baseRecovery.label}`);
+  if (recoveryStrategy !== "passive") {
+    lines.push(`  → Une récupération active augmente le temps de réplétion W' : les durées de repos ci-dessous sont allongées par rapport à un repos passif.`);
+  }
+  lines.push(`| Format | Puissance | Récup. | Repos optimal | Reps max |`);
+  lines.push(`|--------|-----------|--------|---------------|----------|`);
   for (const f of formats) {
     const pow = Math.round(effectiveCP * f.pct);
     const rec = calcRecovery(pow, f.dur, f.recPow);
     const powLabel = weight ? `${pow}W (${(pow / weight).toFixed(1)}W/kg)` : `${pow}W`;
-    lines.push(`| ${f.label} | ${powLabel} | ${fmtRest(rec.rest)} | ${rec.maxReps} |`);
+    const recPowLabel = f.fixed ? `${f.recPow}W (fixe — over)` : f.recPow === 0 ? "0W (passif)" : `${f.recPow}W`;
+    lines.push(`| ${f.label} | ${powLabel} | ${recPowLabel} | ${fmtRest(rec.rest)} | ${rec.maxReps} |`);
   }
-  lines.push(`\n⚠️ UTILISE CES DURÉES DE REPOS quand tu prescris des intervalles. Elles sont calculées à partir du W' individuel de l'athlète (${wEffKJ} kJ) et du CP effectif (${effectiveCP}W).`);
+  lines.push(`\n⚠️ UTILISE CES DURÉES DE REPOS quand tu prescris des intervalles. Elles sont calculées à partir du W' individuel de l'athlète (${wEffKJ} kJ), du CP effectif (${effectiveCP}W) et de la stratégie de récupération choisie (${baseRecovery.label}).`);
   lines.push(`- Repos trop court = W' non reconstitué → qualité dégradée dès rep 3`);
   lines.push(`- Repos trop long = stimulus insuffisant`);
+  if (recoveryStrategy === "passive") {
+    lines.push(`- Mode passif : prescris explicitement "récup debout/marche" ou "<50W" entre les reps.`);
+  } else if (recoveryStrategy === "active-light") {
+    lines.push(`- Mode actif léger : prescris explicitement "spinning Z1 ~${baseRecovery.recPow}W" entre les reps.`);
+  } else {
+    lines.push(`- Mode actif tempo : prescris explicitement "récup roulée ~${baseRecovery.recPow}W (haut Z2)" entre les reps — typique des séances over-under.`);
+  }
   lines.push(`\n📝 OBLIGATION D'AFFICHAGE W'bal : Dans CHAQUE séance d'intervalles, mentionne explicitement dans la description :`);
-  lines.push(`  1. La durée de repos prescrite ET sa justification W'bal (ex: "Repos 2min30 — calibré W'bal ${wEffKJ}kJ")`);
+  lines.push(`  1. La durée de repos prescrite ET sa justification W'bal (ex: "Repos 2min30 — calibré W'bal ${wEffKJ}kJ, récup ${baseRecovery.recPow}W")`);
   lines.push(`  2. Le nombre de répétitions max soutenable (ex: "×6 reps max avant dégradation W'")`);
   lines.push(`  3. Si le format est supra-CP, précise "effort supra-CP (${effectiveCP}W)" dans le titre ou la description`);
   lines.push(`  Cela garantit au coach la traçabilité physiologique de chaque prescription d'intervalles.`);
@@ -601,7 +643,10 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (data.map5min) lines.push(`- MAP 5min : ${data.map5min}W`);
 
   // === CRITICAL POWER / W' MODEL (Skiba 2012 — individualisé) ===
-  const cpwSection = buildCPWprimeSection(data);
+  const recoveryStrategy: RecoveryStrategy = (config?.recoveryStrategy === "active-light" || config?.recoveryStrategy === "active-tempo")
+    ? config.recoveryStrategy
+    : "passive";
+  const cpwSection = buildCPWprimeSection(data, recoveryStrategy);
   if (cpwSection) lines.push(cpwSection);
 
   lines.push("\n#### Autres Métriques");
