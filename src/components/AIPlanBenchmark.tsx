@@ -445,13 +445,13 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
   );
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys }: AIPlanBenchmarkProps) {
+export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
   const validationResult = useMemo(
-    () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys),
-    [plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys]
+    () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData),
+    [plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData]
   );
 
   if (!metrics || !ref) return null;
