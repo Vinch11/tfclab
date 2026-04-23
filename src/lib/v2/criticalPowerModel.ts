@@ -403,7 +403,6 @@ export function effectiveWprime(wprimeJ: number): number {
  * of work capacity above critical power. Int J Sports Physiol Perform.
  */
 export function calculateTau(
-  _wprimeJ: number,
   cp: number,
   recoveryPower: number
 ): number {
