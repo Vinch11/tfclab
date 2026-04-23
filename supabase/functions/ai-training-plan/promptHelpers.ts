@@ -643,7 +643,10 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (data.map5min) lines.push(`- MAP 5min : ${data.map5min}W`);
 
   // === CRITICAL POWER / W' MODEL (Skiba 2012 — individualisé) ===
-  const cpwSection = buildCPWprimeSection(data);
+  const recoveryStrategy: RecoveryStrategy = (config?.recoveryStrategy === "active-light" || config?.recoveryStrategy === "active-tempo")
+    ? config.recoveryStrategy
+    : "passive";
+  const cpwSection = buildCPWprimeSection(data, recoveryStrategy);
   if (cpwSection) lines.push(cpwSection);
 
   lines.push("\n#### Autres Métriques");
