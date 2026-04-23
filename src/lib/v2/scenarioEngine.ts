@@ -265,10 +265,11 @@ export function calculateCrossoverZone(params: {
   
   const crossoverCenter = fatmaxPct + crossoverOffset;
   
-  return [
-    Math.round(crossoverCenter - zoneWidth / 2),
-    Math.round(crossoverCenter + zoneWidth / 2)
-  ];
+  // Clamp physiologique: la crossover zone ne peut pas dépasser MLSS (~95% FTP)
+  // ni descendre sous 55% FTP (sinon ce n'est plus une transition glucidique)
+  const lo = Math.max(55, Math.round(crossoverCenter - zoneWidth / 2));
+  const hi = Math.min(95, Math.round(crossoverCenter + zoneWidth / 2));
+  return [lo, hi];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -133,6 +133,7 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   const {
     vlamaxEffectif,
     vlamaxConfidence,
+    vo2maxEffectif,
     tteEffectif,
     tteConfidence,
     fatigueIndex,
@@ -147,17 +148,24 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   const adjustments: FatMaxAdjustment[] = [];
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 1: Centre métabolique FatMax (%FTP)
+  // STEP 1: Centre métabolique FatMax (%FTP) — FORMULE OFFICIELLE TFCL V2
+  // FatMax = 78 − 52 × (VLamax − 0.25) + 0.15 × (VO2max − 50)
+  // Borne basse 48% (sprinters purs), borne haute 82% (oxydatifs purs)
   // ─────────────────────────────────────────────────────────────────────────────
-  const rawCenter = 78 - 45 * (vlamaxEffectif - 0.25);
-  const centerBase = clamp(rawCenter, 52, 82);
+  const vo2Term = (vo2maxEffectif !== null && Number.isFinite(vo2maxEffectif) && vo2maxEffectif > 0)
+    ? 0.15 * (vo2maxEffectif - 50)
+    : 0;
+  const rawCenter = 78 - 52 * (vlamaxEffectif - 0.25) + vo2Term;
+  const centerBase = clamp(rawCenter, 48, 82);
   
   adjustments.push({
     id: "base",
     label: "Centre métabolique",
     value: centerBase,
     direction: "neutral",
-    explanation: `VLamax ${vlamaxEffectif.toFixed(2)} → base ${centerBase.toFixed(0)}% FTP`,
+    explanation: vo2maxEffectif
+      ? `VLamax ${vlamaxEffectif.toFixed(2)} + VO2max ${vo2maxEffectif.toFixed(0)} → base ${centerBase.toFixed(0)}% FTP`
+      : `VLamax ${vlamaxEffectif.toFixed(2)} → base ${centerBase.toFixed(0)}% FTP (VO2max indisponible)`,
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -225,7 +233,7 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
   // STEP 5: Calcul final avec ajustements
   // ─────────────────────────────────────────────────────────────────────────────
   const totalOffset = objectifOffset + tteOffset + fatigueOffset;
-  const adjustedCenter = clamp(centerBase + totalOffset, 50, 85);
+  const adjustedCenter = clamp(centerBase + totalOffset, 48, 85);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 6: Calcul de la PLAGE FatMax
@@ -244,8 +252,8 @@ export function computeFatMaxTFCL(input: FatMaxTFCLInput): FatMaxTFCLResult | nu
     rangeWidth = 6;
   }
 
-  const minPctFTP = clamp(adjustedCenter - rangeWidth, 50, 85);
-  const maxPctFTP = clamp(adjustedCenter + rangeWidth, 50, 85);
+  const minPctFTP = clamp(adjustedCenter - rangeWidth, 48, 85);
+  const maxPctFTP = clamp(adjustedCenter + rangeWidth, 48, 85);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 7: Confiance et niveau
