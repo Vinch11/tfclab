@@ -116,7 +116,7 @@ export function useAITrainingPlan() {
     setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
 
     try {
-      // Build phase-specific workout catalogs for AI injection
+      // Build phase-specific workout catalogs for AI injection (fallback for non-chunked plans)
       const phaseCatalogs: Record<string, string> = {};
       const phaseRanges: Array<{ phase: string; start: number; end: number }> = [
         { phase: "base", start: 1, end: Math.ceil(totalWeeks * 0.35) },
@@ -142,6 +142,31 @@ export function useAITrainingPlan() {
         catalog.forEach(e => { allCatalogEntries.push(e); usedIds.add(e.id); });
       }
 
+      // ─── OPTIMIZATION #1: Per-chunk filtered catalogs (40-50 ultra-relevant sessions) ───
+      // Pre-compute one focused catalog per chunk using its EXACT week range.
+      // The edge function will prefer these over phaseCatalogs when chunking.
+      // This reduces cognitive noise: AI sees only sessions relevant to *this* block.
+      const chunkCatalogs: string[] = [];
+      if (needsChunking) {
+        const chunkUsedIds = new Set<string>();
+        for (let ci = 0; ci < totalChunks; ci++) {
+          const cStart = ci * CHUNK_SIZE + 1;
+          const cEnd = Math.min(cStart + CHUNK_SIZE - 1, totalWeeks);
+          // 45 sessions/chunk: enough variety, much less noise than 80 (≈45% reduction)
+          const chunkCatalog = buildWorkoutCatalog(
+            planConfig.objective || "",
+            cStart,
+            cEnd,
+            totalWeeks,
+            { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds }
+          );
+          chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
+          // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity
+          const halfIds = chunkCatalog.slice(0, Math.floor(chunkCatalog.length / 2)).map(e => e.id);
+          halfIds.forEach(id => chunkUsedIds.add(id));
+        }
+      }
+
       // Derive duration stats from the actual library — sent to edge function
       const catalogDurationStats = computeCatalogDurationStats(allCatalogEntries);
 
@@ -151,7 +176,14 @@ export function useAITrainingPlan() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ athleteData, planConfig, phaseCatalogs, catalogDurationStats }),
+        body: JSON.stringify({
+          athleteData,
+          planConfig,
+          phaseCatalogs,
+          chunkCatalogs: chunkCatalogs.length > 0 ? chunkCatalogs : undefined,
+          chunkSize: CHUNK_SIZE,
+          catalogDurationStats,
+        }),
       });
 
       if (resp.status === 429) {
