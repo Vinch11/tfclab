@@ -11,6 +11,7 @@
 import { describe, it, expect } from "vitest";
 import {
   detectInterval,
+  detectAllIntervals,
   isCyclingSession,
   applyWbalRecoveryRecalc,
 } from "../wbalPostProcessor";
