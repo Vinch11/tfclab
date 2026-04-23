@@ -11,6 +11,7 @@
 import { describe, it, expect } from "vitest";
 import {
   detectInterval,
+  detectAllIntervals,
   isCyclingSession,
   applyWbalRecoveryRecalc,
 } from "../wbalPostProcessor";
@@ -287,5 +288,115 @@ describe("applyWbalRecoveryRecalc — substitution du repos", () => {
     // Repos plausible entre 30s et 15min
     expect(restSec).toBeGreaterThanOrEqual(30);
     expect(restSec).toBeLessThanOrEqual(900);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 4) MULTI-BLOCS — détection et substitution de plusieurs intervalles par session
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("detectAllIntervals — multi-blocs", () => {
+  it("détecte 2 blocs distincts dans une même session", () => {
+    const text =
+      "Bloc 1: 5×4min @ 110%FTP, R=3min. Récup 8min. Bloc 2: 6×2min @ 120%FTP, R=2min.";
+    const blocks = detectAllIntervals(text);
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0].reps).toBe(5);
+    expect(blocks[0].durationSec).toBe(240);
+    expect(blocks[1].reps).toBe(6);
+    expect(blocks[1].durationSec).toBe(120);
+    expect(blocks[1].pctIntensity).toBe(120);
+  });
+
+  it("détecte 3 blocs (pyramide ascendante)", () => {
+    const text =
+      "Pyramide: 4×2min @ 115%FTP R=2min puis 3×4min @ 105%FTP R=3min puis 2×8min @ 95%FTP R=4min.";
+    const blocks = detectAllIntervals(text);
+    expect(blocks.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("retourne [] sur du texte sans intervalle", () => {
+    expect(detectAllIntervals("Sortie endurance Z2 90 min")).toEqual([]);
+  });
+});
+
+describe("applyWbalRecoveryRecalc — multi-blocs par session", () => {
+  it("réécrit le repos pour 2 blocs distincts dans la même session", () => {
+    const session = makeSession({
+      details:
+        "Bloc 1: 5×4min @ 110%FTP, R=3min. Récup 8min. Bloc 2: 6×2min @ 120%FTP, R=2min.",
+    });
+    const plan = makePlan([session]);
+
+    const stats = applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    expect(stats.scanned).toBe(1);
+    expect(stats.rewritten).toBe(1); // 1 session réécrite
+    expect(stats.blocksDetected).toBe(2);
+    expect(stats.blocksRewritten).toBe(2);
+    expect(stats.blocksSkipped).toBe(0);
+
+    // Annotation multi-blocs
+    expect(session.details).toContain("W'bal multi-blocs");
+    // Mention des deux blocs (5×4min et 6×2min)
+    expect(session.details).toMatch(/5×4min/);
+    expect(session.details).toMatch(/6×2min/);
+  });
+
+  it("réécrit uniquement les blocs supra-CP, ignore les blocs sub-CP", () => {
+    const session = makeSession({
+      details:
+        "Échauffement: 3×3min @ 80%FTP, R=2min. Bloc principal: 5×4min @ 110%FTP, R=3min.",
+    });
+    const plan = makePlan([session]);
+
+    const stats = applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    expect(stats.blocksDetected).toBe(2);
+    expect(stats.blocksRewritten).toBe(1); // seul le bloc supra-CP
+    expect(stats.blocksSkipped).toBe(1); // bloc sub-CP ignoré
+    expect(stats.rewritten).toBe(1);
+
+    // Le bloc 80% reste intact
+    expect(session.details).toMatch(/3×3min @ 80%FTP, R=2min/);
+  });
+
+  it("préserve l'ordre et le contexte texte autour de chaque bloc", () => {
+    const session = makeSession({
+      details:
+        "Set A: 4×3min @ 115%FTP, R=2min. Pause longue. Set B: 5×2min @ 125%FTP, R=2min.",
+    });
+    const plan = makePlan([session]);
+
+    applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    // Les libellés "Set A" et "Set B" et "Pause longue" sont toujours présents
+    expect(session.details).toContain("Set A");
+    expect(session.details).toContain("Set B");
+    expect(session.details).toContain("Pause longue");
+    // Les intensités initiales sont préservées
+    expect(session.details).toContain("115%FTP");
+    expect(session.details).toContain("125%FTP");
+  });
+
+  it("compte correctement blocksDetected sur l'ensemble du plan", () => {
+    const sessions = [
+      makeSession({
+        details: "5×4min @ 110%FTP, R=3min puis 4×2min @ 120%FTP, R=2min.",
+      }),
+      makeSession({
+        details: "6×30s @ 130%FTP R=30s",
+        dayName: "Jeudi",
+        dayIndex: 3,
+      }),
+    ];
+    const plan = makePlan(sessions);
+
+    const stats = applyWbalRecoveryRecalc(plan, ATHLETE_FULL);
+
+    expect(stats.scanned).toBe(2);
+    expect(stats.blocksDetected).toBe(3); // 2 + 1
+    expect(stats.blocksRewritten).toBe(3);
+    expect(stats.rewritten).toBe(2);
   });
 });
