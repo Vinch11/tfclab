@@ -253,7 +253,7 @@ export function applyWbalRecoveryRecalc(
         const original = block.fullMatch ?? block.originalRestText;
         const replacement = rewriteRestInMatch(original, newRestStr);
 
-        if (!replacement || replacement === original) {
+        if (!replacement) {
           stats.blocksSkipped++;
           continue;
         }
