@@ -520,7 +520,9 @@ ${generatedWeeks.length > 0 ? `Semaines déjà générées dans ce bloc : ${gene
 Assure la CONTINUITÉ de la progression.${wbalReminder}`;
 
                 emitChunkBoundary();
-                const retryText = await generateAndStream(retryPrompt, controller, encoder);
+                await sleep(INTER_CHUNK_DELAY_MS);
+                const retryResult1 = await generateAndStream(retryPrompt, controller, encoder);
+                const retryText = retryResult1.text;
                 let allRetryWeeks: number[] = [];
                 if (retryText) {
                   combinedChunkText += `\n${retryText}`;
