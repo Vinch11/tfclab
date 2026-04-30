@@ -68,10 +68,29 @@ function derivePrioritiesFromUnifiedLimiter(
   const priorites: PrioriteType[] = [];
   const alertes: string[] = [];
   
-  // Trier les gaps par impact pondéré décroissant (les plus limitants en premier)
+  // ✅ Cohérence UI : on remonte comme priorités tout gap "limiting"
+  // ET tout gap "acceptable" où la valeur reste sous la cible affichée.
+  // (Les cartes du dashboard montrent ces métriques en warning dans ce cas,
+  // donc l'absence de priorité créerait une incohérence visuelle.)
+  const isUnderTarget = (g: typeof limiterResult.gapAnalysis[number]): boolean => {
+    if (g.value === null || g.target === null || g.target === undefined) return false;
+    // VLamax: "sous la cible" signifie au-dessus du max (gap positif = excès)
+    if (g.metric === "VLamax") return g.value > g.target;
+    // Autres métriques: plus haut est mieux → sous-cible = value < target
+    return g.value < g.target;
+  };
+
   const limitingGaps = limiterResult.gapAnalysis
-    .filter(g => g.status === "limiting")
-    .sort((a, b) => b.weightedImpact - a.weightedImpact);
+    .filter(g => g.status === "limiting" || (g.status === "acceptable" && isUnderTarget(g)))
+    .sort((a, b) => {
+      // Limiting strict d'abord, puis par impact pondéré (avec fallback sur l'écart relatif)
+      const aPriority = a.status === "limiting" ? 1 : 0;
+      const bPriority = b.status === "limiting" ? 1 : 0;
+      if (aPriority !== bPriority) return bPriority - aPriority;
+      const aImpact = a.weightedImpact || Math.abs(a.gapPercent || 0);
+      const bImpact = b.weightedImpact || Math.abs(b.gapPercent || 0);
+      return bImpact - aImpact;
+    });
   
   for (const gap of limitingGaps) {
     switch (gap.metric) {
