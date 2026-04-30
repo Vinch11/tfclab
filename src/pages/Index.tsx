@@ -1714,8 +1714,8 @@ const Index = () => {
               <CycleIntelligenceCard
                 snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id) as unknown as Array<Record<string, unknown>>}
                 currentSnapshotId={effectiveCloudSnapshot?.id}
-                previousLimiterId={unifiedLimiterResult?.primaryLimiter ?? null}
-                previousLimiterLabel={unifiedLimiterResult?.limiterLabel ?? null}
+                previousLimiterId={alignedLimiterResult?.primaryLimiter ?? null}
+                previousLimiterLabel={alignedLimiterResult?.limiterLabel ?? null}
                 objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
               />
@@ -1727,8 +1727,8 @@ const Index = () => {
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <AdaptationPredictorCard
                 snapshot={effectiveCloudSnapshot as unknown as Record<string, unknown>}
-                limiterId={unifiedLimiterResult?.primaryLimiter ?? null}
-                limiterLabel={unifiedLimiterResult?.limiterLabel ?? null}
+                limiterId={alignedLimiterResult?.primaryLimiter ?? null}
+                limiterLabel={alignedLimiterResult?.limiterLabel ?? null}
                 objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
               />

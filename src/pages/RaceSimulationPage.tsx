@@ -19,8 +19,7 @@ import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
-import { computeVLamaxEffectif } from '@/lib/vlamaxEffectif';
-import { computeTTEEffectif } from '@/lib/tteEffectif';
+import { computeVLamaxEffectif, computeTTEEffectif } from '@/engines/diagnostic';
 import { computeFatMaxTFCL } from '@/lib/v2/fatmaxTFCL';
 import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibiliteTFCL';
 import { computePacingEnvelope } from '@/lib/v2/pacingEnvelopeEngine';
