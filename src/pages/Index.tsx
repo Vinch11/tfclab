@@ -1555,7 +1555,7 @@ const Index = () => {
                 tteEffectif={alignedTteEffectif}
                 readiness={potentielPhysiologiqueEffectif}
                 onGoToSnapshots={() => setShowSnapshots(true)}
-                unifiedLimiterResult={unifiedLimiterResult}
+                unifiedLimiterResult={alignedLimiterResult}
               />
             ),
           },
