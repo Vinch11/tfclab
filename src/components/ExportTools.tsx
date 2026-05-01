@@ -7443,14 +7443,14 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
     : "Forme à reconstruire";
 
   // 2) MAIN MESSAGE : verdict global cohérent avec le limiteur primaire
-  const limiterLabel = unifiedLimiter?.primary?.label || unifiedLimiter?.primary?.type || null;
+  const limiterLabel = unifiedLimiter?.limiterLabel || null;
   const mainMessage = score >= 75
     ? "Tu es dans une fenêtre favorable — ton corps répond bien aux sollicitations."
     : score >= 55
     ? `Globalement tu tiens la route${limiterLabel ? `, mais ${String(limiterLabel).toLowerCase()} freine ta progression` : ""}.`
     : `Ton corps envoie des signaux clairs${limiterLabel ? ` autour de ${String(limiterLabel).toLowerCase()}` : ""}. Il faut prioriser cet axe avant de pousser.`;
 
-  // 3) WELL PREPARED : piliers ≥ 70 (depuis potentielPhysiologique.details si dispo)
+  // 3) WELL PREPARED : piliers ≥ 70
   const wellPrepared: string[] = [];
   const details = potentielPhysiologique?.details;
   if (details) {
@@ -7463,13 +7463,14 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
     wellPrepared.push("Ta régularité d'entraînement reste ton meilleur atout — continue à construire la base.");
   }
 
-  // 4) TO WATCH : depuis limiteurs détectés + risque blessure si élevé + fatigue
+  // 4) TO WATCH : limiteur primaire + 2e du categoryRanking + risque blessure + fatigue
   const toWatch: string[] = [];
-  if (unifiedLimiter?.primary?.label) {
-    toWatch.push(`Limiteur principal : ${unifiedLimiter.primary.label}.`);
+  if (unifiedLimiter?.limiterLabel) {
+    toWatch.push(`Limiteur principal : ${unifiedLimiter.limiterLabel}.`);
   }
-  if (unifiedLimiter?.secondary?.label) {
-    toWatch.push(`À surveiller aussi : ${unifiedLimiter.secondary.label}.`);
+  const secondCategory = unifiedLimiter?.categoryRanking?.[1];
+  if (secondCategory && (secondCategory as any).label) {
+    toWatch.push(`À surveiller aussi : ${(secondCategory as any).label}.`);
   }
   if (capInjuryRisk && capInjuryRisk.level >= 3) {
     toWatch.push(`Risque blessure ${capInjuryRisk.label.toLowerCase()} — sois vigilant sur la récupération.`);
@@ -7486,7 +7487,7 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
 
   // 5) KEY ADVICE : conseil priorisé sur le limiteur primaire
   const keyAdvice = (() => {
-    const primary = unifiedLimiter?.primary?.type;
+    const primary = unifiedLimiter?.primaryLimiter;
     if (!primary) return "Maintiens ta régularité et écoute les signaux de ton corps.";
     const map: Record<string, string> = {
       aerobic_engine: "Concentre-toi sur des séances longues à intensité modérée pour développer ton moteur aérobie.",
@@ -7498,11 +7499,12 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
       economy: "Travaille la technique de course (cadence, posture) pour améliorer ton économie.",
       nutrition: "Ajuste ta stratégie alimentaire — la disponibilité énergétique conditionne tout le reste.",
     };
-    return map[primary] || "Travaille spécifiquement ton limiteur principal avant tout autre axe.";
+    return map[String(primary)] || "Travaille spécifiquement ton limiteur principal avant tout autre axe.";
   })();
 
-  // 6) NUTRITION : prend nutritionV2 en priorité, fallback estimate
-  const choPerH = nutritionV2?.choPerHour ?? nutritionEstimate?.choPerHour ?? null;
+  // 6) NUTRITION
+  const choPerH = nutritionV2?.carbsCentral
+    ?? (nutritionEstimate ? Math.round((nutritionEstimate.carbsMin + nutritionEstimate.carbsMax) / 2) : null);
   const nutritionMessage = choPerH
     ? `Vise environ ${Math.round(choPerH)} g de glucides par heure d'effort soutenu, avec une bonne hydratation.`
     : "Couvre tes besoins en glucides à l'entraînement long et soigne l'hydratation au quotidien.";
