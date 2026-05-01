@@ -590,9 +590,22 @@ function computeGlycogenRemaining(
   plannedCarbsGH: number | null,
   gutTraining: boolean,
   scenarioType?: ScenarioType,
-  readinessModifiers?: SimulationModifiers | null
+  readinessModifiers?: SimulationModifiers | null,
+  totalRaceDurationMin?: number | null,
+  weightKg?: number | null,
+  carbLoaded?: boolean
 ): number {
-  const totalGlycogenG = 450; // grammes de glycogène musculaire + hépatique
+  // ─────────────────────────────────────────────────────────────────
+  // STOCK GLYCOGÉNIQUE DYNAMIQUE (Areta 2018, Burke 2017, Jeukendrup 2014)
+  // Référence: 12-15 g/kg de masse corporelle (musculaire + hépatique)
+  // - Sans carb-loading: ~12 g/kg
+  // - Avec carb-loading (>8 g/kg/j x 2-3j): ~15 g/kg
+  // Fallback à 450g si poids inconnu (athlète ~65 kg non chargé)
+  // ─────────────────────────────────────────────────────────────────
+  const baseGlycogenPerKg = carbLoaded ? 15 : 12;
+  const totalGlycogenG = weightKg && weightKg > 0
+    ? weightKg * baseGlycogenPerKg
+    : 450;
   
   // Appliquer le décalage FatMax si modificateurs présents
   const fatmaxShift = readinessModifiers?.fatmaxShiftPct ?? 0;
