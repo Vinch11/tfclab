@@ -856,7 +856,8 @@ function generateScenario(
       readinessModifiers,
       adjustedDuration,
       input.weight,
-      input.gutTraining // proxy carb-loading (préparation nutritionnelle)
+      input.gutTraining, // proxy carb-loading (préparation nutritionnelle)
+      input.tteMin
     );
     
     // Courbe sans nutrition pour comparaison
