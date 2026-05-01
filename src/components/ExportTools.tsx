@@ -4455,13 +4455,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // Hiérarchisation des 3 indicateurs selon le moteur unifié de limiteurs
   const ul = payload.unifiedLimiter;
   const gapByMetricName = new Map(ul.gapAnalysis.map(g => [g.metric, g]));
-  const vlamaxGap = gapByMetricName.get("VLamax");
-  const tteGap = gapByMetricName.get("TTE");
-  const ftpKgGap = gapByMetricName.get("FTP/kg");
+  const vlamaxGapRank = gapByMetricName.get("VLamax");
+  const tteGapRank = gapByMetricName.get("TTE");
+  const ftpKgGapRank = gapByMetricName.get("FTP/kg");
   const indicatorRanking = [
-    { key: "vlamax", label: "VLamax", impact: vlamaxGap?.weightedImpact ?? 0, gap: vlamaxGap?.gap ?? 0 },
-    { key: "tte", label: "TTE", impact: tteGap?.weightedImpact ?? 0, gap: tteGap?.gap ?? 0 },
-    { key: "ftpkg", label: "FTP/kg", impact: ftpKgGap?.weightedImpact ?? 0, gap: ftpKgGap?.gap ?? 0 },
+    { key: "vlamax", label: "VLamax", impact: vlamaxGapRank?.weightedImpact ?? 0, gap: vlamaxGapRank?.gap ?? 0 },
+    { key: "tte", label: "TTE", impact: tteGapRank?.weightedImpact ?? 0, gap: tteGapRank?.gap ?? 0 },
+    { key: "ftpkg", label: "FTP/kg", impact: ftpKgGapRank?.weightedImpact ?? 0, gap: ftpKgGapRank?.gap ?? 0 },
   ].sort((a, b) => b.impact - a.impact);
   const priorityRankByKey: Record<string, number> = {};
   indicatorRanking.forEach((ind, i) => { priorityRankByKey[ind.key] = i + 1; });
