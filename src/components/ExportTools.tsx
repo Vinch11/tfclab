@@ -1209,31 +1209,63 @@ function calculateCompletude(
   let total = 0;
   let filled = 0;
 
-  // Références essentielles
-  const checks = [
-    { label: "FCmax", value: effectiveRefs.fcMax, weight: 10 },
-    { label: "VMA", value: effectiveRefs.vma, weight: 10 },
-    { label: "FTP", value: effectiveRefs.ftp, weight: 15 },
-    { label: "Poids", value: effectiveRefs.weightKg, weight: 10 },
-    { label: "VO2max", value: effectiveRefs.vo2max, weight: 5 },
-    { label: "TSS 7d", value: effectiveSnapshot?.tss_7d, weight: 10 },
-    { label: "VLamax (test ou mesure)", value: vlamax.source !== "estimated" && vlamax.source !== "unknown" ? vlamax.value : null, weight: 15 },
-    { label: "TTE observé", value: tte.source === "observed" ? tte.tte_min : null, weight: 10 },
-    { label: "Tests VLamax", value: tests.filter(t => t.vlamax != null).length >= 2 ? 1 : null, weight: 15 },
+  // ✅ P2 — Complétude pondérée par la confiance V2 (et non plus binaire présent/absent).
+  // Pour VLamax & TTE, on utilise la confiance retournée par le moteur unifié (0..1) :
+  // une valeur estimée à forte confiance compte partiellement, plutôt que d'être "manquante".
+  const vlamaxIsObserved = vlamax.source !== "estimated" && vlamax.source !== "unknown";
+  const tteIsObserved = tte.source === "observed";
+  const vlamaxConfidence = Math.max(0, Math.min(1, vlamax.confidence ?? 0));
+  const tteConfidence = Math.max(0, Math.min(1, tte.confidence ?? 0));
+  const nbVlamaxTests = tests.filter(t => t.vlamax != null).length;
+
+  type Check = { label: string; weight: number; fillRatio: number; missingLabel?: string };
+  const checks: Check[] = [
+    { label: "FCmax", weight: 10, fillRatio: effectiveRefs.fcMax != null ? 1 : 0 },
+    { label: "VMA", weight: 10, fillRatio: effectiveRefs.vma != null ? 1 : 0 },
+    { label: "FTP", weight: 15, fillRatio: effectiveRefs.ftp != null ? 1 : 0 },
+    { label: "Poids", weight: 10, fillRatio: effectiveRefs.weightKg != null ? 1 : 0 },
+    { label: "VO2max", weight: 5, fillRatio: effectiveRefs.vo2max != null ? 1 : 0 },
+    { label: "TSS 7d", weight: 10, fillRatio: effectiveSnapshot?.tss_7d != null ? 1 : 0 },
+    {
+      label: "VLamax (mesure ou estimation fiable)",
+      weight: 15,
+      // Mesure observée = 100% ; estimation = pondérée par confiance V2 (jusqu'à 80% de crédit)
+      fillRatio: vlamaxIsObserved ? 1 : Math.min(0.8, vlamaxConfidence),
+      missingLabel: vlamaxIsObserved
+        ? undefined
+        : vlamaxConfidence < 0.3
+          ? "VLamax (estimation peu fiable)"
+          : undefined,
+    },
+    {
+      label: "TTE (observé ou estimation fiable)",
+      weight: 10,
+      fillRatio: tteIsObserved ? 1 : Math.min(0.7, tteConfidence),
+      missingLabel: tteIsObserved
+        ? undefined
+        : tteConfidence < 0.3
+          ? "TTE (non observé, fiabilité faible)"
+          : undefined,
+    },
+    {
+      label: "Tests VLamax (≥2 pour calibration)",
+      weight: 15,
+      fillRatio: nbVlamaxTests >= 2 ? 1 : nbVlamaxTests === 1 ? 0.5 : 0,
+      missingLabel: nbVlamaxTests >= 2 ? undefined : `Tests VLamax (${nbVlamaxTests}/2)`,
+    },
   ];
 
   for (const check of checks) {
     total += check.weight;
-    if (check.value != null) {
-      filled += check.weight;
-    } else {
-      manquants.push(check.label);
+    filled += check.weight * check.fillRatio;
+    if (check.fillRatio < 0.5) {
+      manquants.push(check.missingLabel ?? check.label);
     }
   }
 
   return {
     score: Math.round((filled / total) * 100),
-    manquants
+    manquants,
   };
 }
 
@@ -1474,9 +1506,18 @@ function buildExportPayload(
   // ✅ Compute Lorang Strategy — IDENTIQUE au dashboard (Index.tsx)
   let lorangResult: LorangStrategyResult | null = null;
   try {
-    const vlamaxTarget = ambition === "elite" ? 0.35 : ambition === "competitor" ? 0.45 : 0.55;
-    const vo2maxTarget = ambition === "elite" ? 70 : ambition === "competitor" ? 62 : 55;
-    const tteTarget = ambition === "elite" ? 50 : ambition === "competitor" ? 40 : 35;
+    // ✅ P2 — Cibles unifiées (âge + ambition + objectif) issues du moteur Diagnostic V2.
+    // Plus aucune valeur hard-codée par paliers d'ambition : on utilise `diagnostic.targets.current`
+    // (ObjectiveTargets) et `unifiedLimiter.gapAnalysis` (pour VO2max, non couvert par ObjectiveTargets).
+    const objectiveTargets = diagnostic?.targets?.current ?? null;
+    const vo2maxGap = unifiedLimiter.gapAnalysis?.find((g: any) => g.metric === "VO2max");
+    const vlamaxTarget = objectiveTargets?.vlamax.optimal
+      ?? (ambition === "elite" ? 0.35 : ambition === "competitor" ? 0.45 : 0.55);
+    const vo2maxTarget = (typeof vo2maxGap?.target === "number" ? vo2maxGap.target : null)
+      ?? (ambition === "elite" ? 70 : ambition === "competitor" ? 62 : 55);
+    const tteTarget = objectiveTargets?.tte_min
+      ?? (ambition === "elite" ? 50 : ambition === "competitor" ? 40 : 35);
+    const ftpKgTargetUnified = objectiveTargets?.ftp_kg_min ?? null;
     const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
       'IM': 'IM', 'Ironman': 'IM', '70.3': '703', 'Ironman70.3': '703',
       'Marathon': 'marathon', 'Semi': 'semi', '10K': '10k', '5K': '10k',
@@ -1496,7 +1537,7 @@ function buildExportPayload(
         vo2max: effectiveSnapshot?.vo2max ?? null,
         vo2maxTarget,
         ftpKg: ftpKg,
-        ftpKgTarget: null,
+        ftpKgTarget: ftpKgTargetUnified,
         vlamax: vlamax.value,
         vlamaxTarget,
         tte: tte.tte_min,
@@ -1543,7 +1584,7 @@ function buildExportPayload(
     vlamax: vlamax.value,
     objectif: athlete.goal || "IM",
     tteMin: tte.tte_min,
-    tteTarget: tte.target ?? 50,
+    tteTarget: tte.target ?? diagnostic?.targets?.current?.tte_min ?? 50,
     potentielPhysiologique: potentielPhysiologique.score,
     vo2max: effectiveRefs.vo2max,
     weightKg: effectiveRefs.weightKg,
