@@ -242,9 +242,10 @@ export function RaceSimulationModule({
     readinessModifiers: simulationAccess.enabled ? simulationAccess.modifiers : null,
   }), [
     raceType, ambition, heat, terrain, plannedCarbsGH, useNutrition, gutTraining,
+    useAdvancedClimate, ambientTempC, humidityPct, acclimatized,
     vlamaxEffectif, vlamaxConfidence, vlamaxDiscipline, tteMin, tteConfidence,
     fatmax, disponibiliteScore, disponibiliteLevel, injuryRiskLevel, ftp, vma, paceThreshold, weight,
-    simulationAccess // Ajout de la dépendance
+    simulationAccess
   ]);
   
   const proEligibility = useMemo(() => checkProModeEligibility(proInput), [proInput]);
