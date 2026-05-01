@@ -4592,7 +4592,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       })()}
 
       <div class="card pagebreakAvoid">
-        <h3>2️⃣ TTE (Time to Exhaustion)</h3>
+        <h3>2️⃣ TTE (Time to Exhaustion) ${priorityBadge('tte')}</h3>
         <div class="grid2">
           <div>
             <div class="kv">
