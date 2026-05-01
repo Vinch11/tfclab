@@ -1382,21 +1382,73 @@ function buildExportPayload(
     label: `TTE (${diagnostic.effectifs.tte.source})`,
   } : tteLegacy;
 
-  // Calculer Potentiel Physiologique
-  
-  const potentielPhysiologique = computePotentielEffectif({
-    objectif: athlete.goal || "IM",
-    vlamaxEffectif: vlamax,
-    tteEffectif: tte,
-    ftp: effectiveRefs.ftp,
-    poids: effectiveRefs.weightKg,
-    fatigue_ok: true,
-    seance_specifique_validee: false,
-    fcMax: effectiveRefs.fcMax,
-    // ✅ FIX: Ajout âge ET ambition pour synchronisation parfaite avec l'UI
-    athleteAge,
-    ambition,
-  });
+  // ✅ P1 — Score Potentiel Physiologique aligné sur le moteur Diagnostic V2
+  // Source unique de vérité : `diagnostic.readiness` + `diagnostic.synthesis` (mêmes valeurs que le Dashboard).
+  // Fallback sur le stub legacy uniquement si le diagnostic n'a pas pu être calculé (snapshot manquant).
+  let potentielPhysiologique: PotentielPhysiologiqueEffectif;
+  if (diagnostic) {
+    const readinessV2 = diagnostic.readiness;
+    const score = readinessV2.readiness.score;
+    const rawScore = readinessV2.readiness.rawScore;
+    const confidence = readinessV2.readiness.confidenceGlobal;
+    const label = readinessV2.readiness.categoryLabel;
+    // Mappe la catégorie V2 vers le code couleur sémantique attendu par les templates HTML
+    const colorMap: Record<string, string> = {
+      preparation_required: "destructive",
+      in_progress: "warning",
+      solid: "warning",
+      ready: "success",
+      peak: "success",
+    };
+    const color = colorMap[readinessV2.readiness.category] ?? (score >= 80 ? "success" : score >= 60 ? "warning" : "destructive");
+
+    // Mappe les 4 piliers V2 (0-100) vers le format details legacy (sur 25)
+    const sources = readinessV2.potential.sources;
+    const to25 = (v: number) => Math.round((Math.max(0, Math.min(100, v)) / 100) * 25);
+    const details = {
+      vlamax: to25(sources.metabolic.value),     // pilier métabolique = VLamax
+      endurance: to25(sources.tolerance.value),   // pilier tolérance = TTE/endurance
+      puissance: to25(sources.aerobic.value),     // pilier aérobie = puissance/VO2
+      fraicheur: to25(sources.robustness.value),  // pilier robustesse = fraîcheur/fatigue
+    };
+
+    potentielPhysiologique = {
+      score,
+      rawScore,
+      label,
+      color,
+      confidence,
+      isInsufficient: confidence < 0.3,
+      messageStaff: readinessV2.explanation?.why || `Score physiologique: ${score}/100 (${label})`,
+      wasCappedByNutrition: false,
+      nutritionalCapReason: undefined,
+      wasCappedByEconomy: false,
+      economyCapReason: undefined,
+      reasonsMissing: readinessV2.penalties?.reasons ?? [],
+      nutritionalRiskIndex: 0,
+      runningEconomy: undefined,
+      details,
+      // Champs additionnels exposés pour traçabilité (consommés via `[key: string]: any`)
+      potential: readinessV2.potential,
+      availability: readinessV2.availability,
+      governingFactor: readinessV2.potential.mainLimitation ?? null,
+      _source: "diagnostic-v2",
+    };
+  } else {
+    // Fallback legacy — uniquement quand aucun snapshot effectif n'est disponible
+    potentielPhysiologique = computePotentielEffectif({
+      objectif: athlete.goal || "IM",
+      vlamaxEffectif: vlamax,
+      tteEffectif: tte,
+      ftp: effectiveRefs.ftp,
+      poids: effectiveRefs.weightKg,
+      fatigue_ok: true,
+      seance_specifique_validee: false,
+      fcMax: effectiveRefs.fcMax,
+      athleteAge,
+      ambition,
+    });
+  }
 
   // ✅ Unified Limiter — directement depuis le diagnostic engine (cohérence totale Dashboard ↔ PDF)
   const unifiedLimiter: UnifiedLimiterResult = diagnostic
