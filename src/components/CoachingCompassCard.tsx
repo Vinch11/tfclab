@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
+import { LimiterImpactCard } from "@/components/LimiterImpactCard";
 import { getTargetsForAmbition, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
@@ -790,6 +791,12 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
                 💡 {FLOW_PEDAGOGY.limiter}
               </p>
+
+              {/* Pourquoi c'est important ? — impact concret (terrain + mécanisme) */}
+              <div className="mt-2">
+                <LimiterImpactCard limiter={limiter.type} />
+              </div>
+
               {staffMode && (
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   <span className="text-[9px] text-muted-foreground">Impact :</span>
