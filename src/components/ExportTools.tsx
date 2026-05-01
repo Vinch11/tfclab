@@ -7661,7 +7661,7 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
   const {
     potentielPhysiologique, unifiedLimiter, completude,
     nutritionV2, nutritionEstimate, effectiveSnapshot, capInjuryRisk,
-    compassScores
+    compassScores, vlamax, tte
   } = payload;
 
   // 1) SCORE : provient du Potentiel Physiologique (déjà dans payload)
