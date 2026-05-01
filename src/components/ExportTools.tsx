@@ -8668,6 +8668,8 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
           <p>${htmlEscape(athleteReport.keyAdvice)}</p>
         </div>
 
+        ${buildBeginnerEnrichedSectionsHTML(athleteReport)}
+
         <div class="nutri-card">
           <div class="icon">🍎</div>
           <div class="label">Et niveau alimentation ?</div>
