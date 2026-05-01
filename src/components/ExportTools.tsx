@@ -7733,6 +7733,408 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
 }
 
 // =============================================
+// RAPPORT DÉBUTANT — Ultra-pédagogique
+// =============================================
+function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): string {
+  const { athlete, potentielPhysiologique } = payload;
+  const athleteReport = generateAthleteReadiness(
+    potentielPhysiologique,
+    athlete.goal || "IM",
+    null
+  );
+
+  const scoreColors: Record<string, { bg: string; border: string; text: string; emoji: string; verdict: string }> = {
+    green: { bg: "#dcfce7", border: "#16a34a", text: "#166534", emoji: "🟢", verdict: "Tout est au vert !" },
+    orange: { bg: "#fed7aa", border: "#ea580c", text: "#9a3412", emoji: "🟠", verdict: "Encore un petit effort" },
+    red: { bg: "#fecaca", border: "#dc2626", text: "#991b1b", emoji: "🔴", verdict: "Il faut lever le pied" },
+  };
+
+  const colors = scoreColors[athleteReport.scoreColor] || scoreColors.orange;
+
+  // Analogie pour le score
+  const scoreAnalogy = (() => {
+    const s = athleteReport.score;
+    if (s >= 80) return "Imagine ton corps comme une voiture neuve, le plein d'essence fait, prête pour un long voyage.";
+    if (s >= 60) return "Ton corps fonctionne bien, comme une voiture en bon état avec un peu de poussière à dépoussiérer.";
+    if (s >= 40) return "Ton corps est en mode \"économie d'énergie\". Comme une voiture qui a besoin d'une révision avant un grand trajet.";
+    return "Ton corps tire la langue. Comme une voiture sur le voyant rouge — il faut s'arrêter recharger.";
+  })();
+
+  const wellPreparedHTML = athleteReport.wellPrepared.length > 0 ? athleteReport.wellPrepared.map(item => `
+    <li style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px dashed #e5e7eb;">
+      <span style="font-size:22px;line-height:1;">👍</span>
+      <span style="flex:1;font-size:15px;">${htmlEscape(item)}</span>
+    </li>
+  `).join('') : '<li style="color:#9ca3af;padding:10px 0;font-style:italic;">Pas encore de point fort identifié — continue à t\'entraîner régulièrement.</li>';
+
+  const toWatchHTML = athleteReport.toWatch.length > 0 ? athleteReport.toWatch.map(item => `
+    <li style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px dashed #e5e7eb;">
+      <span style="font-size:22px;line-height:1;">👀</span>
+      <span style="flex:1;font-size:15px;">${htmlEscape(item)}</span>
+    </li>
+  `).join('') : '<li style="color:#16a34a;padding:10px 0;">🎉 Aucun point d\'attention pour le moment — profite de cette belle forme !</li>';
+
+  const reportDate = new Date().toLocaleDateString("fr-FR", {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Mon Rapport Tout Simple — ${htmlEscape(athlete.name)}</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #dbeafe 100%);
+          min-height: 100vh;
+          padding: 32px 16px;
+          line-height: 1.7;
+          color: #1e293b;
+        }
+        .container { max-width: 720px; margin: 0 auto; }
+
+        .hero {
+          background: white;
+          border-radius: 24px;
+          padding: 32px 24px;
+          text-align: center;
+          margin-bottom: 24px;
+          box-shadow: 0 10px 40px -10px rgba(0,0,0,0.15);
+        }
+        .hero img { height: 48px; margin-bottom: 12px; }
+        .hero h1 {
+          font-size: 32px;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 6px;
+        }
+        .hero .welcome {
+          font-size: 16px;
+          color: #475569;
+          margin-bottom: 16px;
+        }
+        .hero .athlete-chip {
+          display: inline-block;
+          background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+          color: white;
+          padding: 8px 20px;
+          border-radius: 24px;
+          font-size: 15px;
+          font-weight: 600;
+          box-shadow: 0 4px 12px -2px rgba(245,158,11,0.4);
+        }
+
+        .verdict-card {
+          background: ${colors.bg};
+          border: 3px solid ${colors.border};
+          border-radius: 20px;
+          padding: 28px 24px;
+          text-align: center;
+          margin-bottom: 24px;
+        }
+        .verdict-card .big-emoji { font-size: 56px; line-height: 1; margin-bottom: 12px; }
+        .verdict-card .verdict-title {
+          font-size: 24px;
+          font-weight: 800;
+          color: ${colors.text};
+          margin-bottom: 8px;
+        }
+        .verdict-card .verdict-msg {
+          font-size: 17px;
+          color: ${colors.text};
+          font-weight: 500;
+        }
+
+        .explain-box {
+          background: white;
+          border-left: 5px solid #6366f1;
+          border-radius: 12px;
+          padding: 18px 20px;
+          margin: 20px 0;
+          font-size: 15px;
+          color: #1e293b;
+        }
+        .explain-box .label {
+          display: inline-block;
+          background: #6366f1;
+          color: white;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 10px;
+        }
+
+        .score-block {
+          background: white;
+          border-radius: 20px;
+          padding: 28px 24px;
+          margin-bottom: 24px;
+          box-shadow: 0 4px 16px -4px rgba(0,0,0,0.08);
+          text-align: center;
+        }
+        .score-circle {
+          width: 130px;
+          height: 130px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, ${colors.border}, ${colors.text});
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 16px;
+          box-shadow: 0 12px 30px -8px ${colors.border}80;
+        }
+        .score-circle span { font-size: 42px; font-weight: 800; color: white; }
+        .score-label {
+          font-size: 14px;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+        .score-text { font-size: 18px; color: #0f172a; font-weight: 600; }
+
+        .section {
+          background: white;
+          border-radius: 20px;
+          padding: 24px;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 16px -4px rgba(0,0,0,0.08);
+        }
+        .section-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+          padding-bottom: 12px;
+          border-bottom: 2px solid #f1f5f9;
+        }
+        .section-header .emoji { font-size: 28px; }
+        .section-header h2 {
+          font-size: 20px;
+          font-weight: 700;
+          color: #0f172a;
+        }
+        .section ul { list-style: none; }
+
+        .advice-big {
+          background: linear-gradient(135deg, #ddd6fe 0%, #fbcfe8 100%);
+          border-radius: 20px;
+          padding: 28px 24px;
+          margin-bottom: 24px;
+          text-align: center;
+        }
+        .advice-big .lightbulb { font-size: 48px; margin-bottom: 12px; }
+        .advice-big .label {
+          font-size: 12px;
+          font-weight: 700;
+          color: #7c3aed;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 8px;
+        }
+        .advice-big p {
+          font-size: 18px;
+          font-weight: 600;
+          color: #4c1d95;
+          line-height: 1.5;
+        }
+
+        .glossary {
+          background: #f8fafc;
+          border-radius: 16px;
+          padding: 24px;
+          margin-bottom: 20px;
+        }
+        .glossary h3 {
+          font-size: 16px;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .gloss-item {
+          padding: 10px 0;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .gloss-item:last-child { border-bottom: none; }
+        .gloss-term {
+          font-weight: 700;
+          color: #0f172a;
+          font-size: 14px;
+          margin-bottom: 4px;
+        }
+        .gloss-def {
+          font-size: 13px;
+          color: #475569;
+          line-height: 1.5;
+        }
+
+        .nutri-card {
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          border-radius: 20px;
+          padding: 24px;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        .nutri-card .icon { font-size: 40px; margin-bottom: 8px; }
+        .nutri-card .label {
+          font-size: 12px;
+          font-weight: 700;
+          color: #b45309;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 8px;
+        }
+        .nutri-card p { font-size: 16px; color: #78350f; font-weight: 500; }
+
+        .encouragement {
+          background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+          border-radius: 20px;
+          padding: 32px 24px;
+          text-align: center;
+          margin-bottom: 24px;
+        }
+        .encouragement .icon { font-size: 56px; margin-bottom: 12px; }
+        .encouragement p {
+          font-size: 18px;
+          color: #065f46;
+          font-weight: 600;
+          line-height: 1.5;
+        }
+
+        .footer {
+          text-align: center;
+          padding: 20px;
+          color: #64748b;
+          font-size: 12px;
+        }
+        .footer .pill {
+          display: inline-block;
+          background: white;
+          padding: 6px 14px;
+          border-radius: 12px;
+          margin-top: 8px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        @media print {
+          body { background: white; padding: 16px; }
+          .hero, .section, .score-block, .glossary, .nutri-card { box-shadow: none; border: 1px solid #e2e8f0; }
+          .verdict-card, .advice-big, .encouragement { box-shadow: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="hero">
+          ${logoBase64 ? `<img src="${logoBase64}" alt="Two For Coaching Lab" />` : ''}
+          <h1>Mon Rapport Tout Simple 🌟</h1>
+          <p class="welcome">Voici comment ton corps va aujourd'hui — expliqué simplement.</p>
+          <span class="athlete-chip">👋 Salut ${htmlEscape(athlete.name)} !</span>
+        </div>
+
+        <div class="verdict-card">
+          <div class="big-emoji">${colors.emoji}</div>
+          <div class="verdict-title">${colors.verdict}</div>
+          <div class="verdict-msg">${htmlEscape(athleteReport.mainMessage)}</div>
+        </div>
+
+        <div class="score-block">
+          <div class="score-label">Ta forme du jour</div>
+          <div class="score-circle"><span>${athleteReport.score}%</span></div>
+          <div class="score-text">${htmlEscape(athleteReport.scoreText)}</div>
+          <div class="explain-box" style="text-align:left;margin-top:20px;">
+            <span class="label">📚 C'est quoi ce score ?</span>
+            <p>Ce chiffre, c'est une note sur 100 qui résume ton état général. Plus c'est haut, mieux ton corps est prêt à s'entraîner. ${scoreAnalogy}</p>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <span class="emoji">💪</span>
+            <h2>Tes points forts</h2>
+          </div>
+          <ul>${wellPreparedHTML}</ul>
+          <div class="explain-box">
+            <span class="label">📚 Pourquoi c'est important ?</span>
+            <p>Ce sont les zones où ton corps répond bien. Continue ce que tu fais sur ces aspects — c'est exactement ce qu'il faut !</p>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <span class="emoji">🔍</span>
+            <h2>À garder à l'œil</h2>
+          </div>
+          <ul>${toWatchHTML}</ul>
+          <div class="explain-box">
+            <span class="label">📚 Pourquoi c'est important ?</span>
+            <p>Ce ne sont pas des problèmes, juste des signaux que ton corps t'envoie. En y prêtant attention, tu éviteras la fatigue ou les blessures.</p>
+          </div>
+        </div>
+
+        <div class="advice-big">
+          <div class="lightbulb">💡</div>
+          <div class="label">Le conseil du jour</div>
+          <p>${htmlEscape(athleteReport.keyAdvice)}</p>
+        </div>
+
+        <div class="nutri-card">
+          <div class="icon">🍎</div>
+          <div class="label">Et niveau alimentation ?</div>
+          <p>${htmlEscape(athleteReport.nutritionMessage)}</p>
+        </div>
+
+        <div class="glossary">
+          <h3>📖 Petit lexique pour comprendre</h3>
+          <div class="gloss-item">
+            <div class="gloss-term">Forme du jour</div>
+            <div class="gloss-def">Une note sur 100 qui dit si ton corps est prêt pour un effort. Plus c'est haut, mieux c'est.</div>
+          </div>
+          <div class="gloss-item">
+            <div class="gloss-term">Récupération</div>
+            <div class="gloss-def">Le temps que ton corps prend pour se réparer après un entraînement. Sans elle, pas de progrès.</div>
+          </div>
+          <div class="gloss-item">
+            <div class="gloss-term">Endurance</div>
+            <div class="gloss-def">La capacité à tenir un effort longtemps sans s'épuiser. C'est ton "moteur" longue distance.</div>
+          </div>
+          <div class="gloss-item">
+            <div class="gloss-term">Charge d'entraînement</div>
+            <div class="gloss-def">La quantité totale d'effort fourni récemment. Trop = fatigue. Pas assez = pas de progrès.</div>
+          </div>
+        </div>
+
+        <div class="encouragement">
+          <div class="icon">🚀</div>
+          <p>${htmlEscape(athleteReport.confidenceMessage)}</p>
+        </div>
+
+        <div class="footer">
+          <div>Rapport généré le ${reportDate}</div>
+          <div class="pill">Two For Coaching Lab™ — Ton coach au quotidien</div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+// =============================================
 // COMPONENT
 // =============================================
 
