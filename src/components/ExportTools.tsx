@@ -7603,6 +7603,33 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
 // READINESS — Source de vérité unifiée pour rapports Athlète & Découverte
 // Branché sur le vrai payload (unifiedLimiter, potentiel, fatigue, completude)
 // =============================================
+interface PhysioMetricRow {
+  label: string;
+  value: string;
+  context: string;       // explication courte ou cible
+  status: "ok" | "warn" | "low" | "info";
+}
+
+interface CompassAxisRow {
+  label: string;
+  score: number;          // 0-100
+  emoji: string;
+  comment: string;
+}
+
+interface AmbitionProgressRow {
+  label: string;
+  icon: string;
+  progressPct: number;    // 0-100
+  isReached: boolean;
+  weeksToReach: number | null;
+}
+
+interface NextActionRow {
+  label: string;
+  why: string;
+}
+
 interface AthleteReadinessReport {
   score: number;                  // 0-100
   scoreColor: "green" | "orange" | "red";
@@ -7613,13 +7640,28 @@ interface AthleteReadinessReport {
   keyAdvice: string;              // 1 conseil prioritaire (issu du limiteur primaire)
   nutritionMessage: string;       // depuis nutritionV2 ou nutritionEstimate
   confidenceMessage: string;      // basé sur completude + confiance
+  // ───── Enrichissements ─────
+  physioMetrics: PhysioMetricRow[];        // FTP, FTP/kg, VLamax, VO2max, TTE, FatMax, VMA, poids…
+  compassAxes: CompassAxisRow[];           // 4 piliers V2 sur /100
+  trainingLoad: {                          // TSS 7j + interprétation
+    tss7d: number | null;
+    label: string;
+    detail: string;
+    status: "ok" | "warn" | "low" | "info";
+  };
+  ambitionProgress: AmbitionProgressRow[]; // progression vs niveaux d'ambition
+  ambitionLabel: string;                   // ambition courante (ex: "Élite")
+  nextActions: NextActionRow[];            // 2-3 leviers prioritaires (Lorang)
+  prohibitions: string[];                  // interdits (ex: sprints)
+  goalLabel: string;                       // objectif lisible
+  recentTests: { name: string; date: string }[]; // 3 derniers tests
 }
 
 function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadinessReport {
   const {
     potentielPhysiologique, unifiedLimiter, completude,
     nutritionV2, nutritionEstimate, effectiveSnapshot, capInjuryRisk,
-    compassScores
+    compassScores, vlamax, tte
   } = payload;
 
   // 1) SCORE : provient du Potentiel Physiologique (déjà dans payload)
@@ -7713,11 +7755,358 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
     ? "Quelques données manquent encore — ajoute des tests pour affiner le diagnostic."
     : "Diagnostic exploratoire — réalise tes tests prioritaires pour gagner en précision.";
 
+  // ═══ Enrichissements ═══
+  const { effectiveRefs, fatmaxTFCL, ambition, lorangResult, athlete, tests } = payload as any;
+  const snap: any = effectiveSnapshot ?? {};
+
+  const physioMetrics: PhysioMetricRow[] = [];
+  const ftp = effectiveRefs?.ftp ?? null;
+  const poids = snap?.poids ?? null;
+  const ftpKg = ftp && poids ? ftp / poids : null;
+  const vo2 = snap?.vo2max ?? null;
+  const vmaVal = effectiveRefs?.vma ?? null;
+  const vlamaxVal = vlamax?.value ?? null;
+  const tteMin = (tte as any)?.tte_min ?? null;
+  const fatmaxVal = fatmaxTFCL?.fatmaxPower ?? snap?.fatmax ?? null;
+
+  if (ftp !== null) physioMetrics.push({ label: "FTP", value: `${Math.round(ftp)} W`, context: "Puissance soutenue ~1h", status: "info" });
+  if (ftpKg !== null) {
+    const tgt = ambition?.targets?.ftp_kg_min ?? null;
+    physioMetrics.push({
+      label: "FTP / kg",
+      value: `${ftpKg.toFixed(2)} W/kg`,
+      context: tgt ? `Cible ≥ ${tgt.toFixed(1)}` : "Indicateur clé endurance",
+      status: tgt ? (ftpKg >= tgt ? "ok" : ftpKg >= tgt * 0.9 ? "warn" : "low") : "info",
+    });
+  }
+  if (vo2 !== null) physioMetrics.push({ label: "VO₂max", value: `${vo2.toFixed(1)} ml/kg/min`, context: "Plafond aérobie", status: "info" });
+  if (vlamaxVal !== null) {
+    const t = ambition?.targets?.vlamax;
+    const inZone = t ? vlamaxVal >= t.min && vlamaxVal <= t.max : true;
+    physioMetrics.push({
+      label: "VLamax",
+      value: `${vlamaxVal.toFixed(2)} mmol/L/s`,
+      context: t ? `Cible ${t.min.toFixed(2)}–${t.max.toFixed(2)}` : "Capacité glycolytique",
+      status: inZone ? "ok" : "warn",
+    });
+  }
+  if (tteMin !== null) {
+    const tgt = ambition?.targets?.tte_min ?? null;
+    physioMetrics.push({
+      label: "TTE @ FTP",
+      value: `${Math.round(tteMin)} min`,
+      context: tgt ? `Cible ≥ ${Math.round(tgt)} min` : "Endurance au seuil",
+      status: tgt ? (tteMin >= tgt ? "ok" : tteMin >= tgt * 0.85 ? "warn" : "low") : "info",
+    });
+  }
+  if (fatmaxVal !== null) physioMetrics.push({ label: "FatMax", value: `${Math.round(Number(fatmaxVal))} W`, context: "Pic d'oxydation lipidique", status: "info" });
+  if (vmaVal !== null) physioMetrics.push({ label: "VMA", value: `${vmaVal.toFixed(1)} km/h`, context: "Vitesse aérobie max", status: "info" });
+  if (poids !== null) physioMetrics.push({ label: "Poids", value: `${poids.toFixed(1)} kg`, context: "Référence corporelle", status: "info" });
+
+  const axisRow = (label: string, score: number | null | undefined, emoji: string): CompassAxisRow | null => {
+    if (score === null || score === undefined) return null;
+    const s = Math.round(score);
+    const comment = s >= 75 ? "Excellent" : s >= 60 ? "Bon niveau" : s >= 45 ? "À développer" : "Priorité de travail";
+    return { label, score: s, emoji, comment };
+  };
+  const compassAxes: CompassAxisRow[] = [
+    axisRow("Capacité aérobie", aerobic, "🫁"),
+    axisRow("Profil métabolique", metabolic, "⚗️"),
+    axisRow("Tolérance à l'effort", endurance, "⏱️"),
+    axisRow("Robustesse / Fraîcheur", robust, "🛡️"),
+  ].filter(Boolean) as CompassAxisRow[];
+
+  const tss7d = snap?.tss_7j ?? snap?.tss_7d ?? null;
+  const trainingLoad = (() => {
+    if (tss7d === null || tss7d === undefined) {
+      return { tss7d: null, label: "Non renseigné", detail: "Ajoute ta charge récente pour un diagnostic plus fin.", status: "info" as const };
+    }
+    const t = Number(tss7d);
+    if (t < 200) return { tss7d: t, label: "Charge basse", detail: "Volume hebdo réduit — bon moment pour relancer la régularité.", status: "low" as const };
+    if (t < 400) return { tss7d: t, label: "Charge modérée", detail: "Volume équilibré, soutenable sur la durée.", status: "ok" as const };
+    if (t < 600) return { tss7d: t, label: "Charge élevée", detail: "Volume soutenu — surveille la récupération.", status: "warn" as const };
+    return { tss7d: t, label: "Charge très élevée", detail: "Volume haut — risque d'accumulation, prévois une décharge.", status: "warn" as const };
+  })();
+
+  const ambitionProgress: AmbitionProgressRow[] = (ambition?.allTargets ?? [])
+    .slice(0, 4)
+    .map((a: any) => ({
+      label: a.label,
+      icon: a.icon,
+      progressPct: Math.round(((a.progress?.global ?? 0) as number) * 100),
+      isReached: !!a.isReached,
+      weeksToReach: a.weeksToReach ?? null,
+    }));
+
+  const nextActions: NextActionRow[] = (lorangResult?.activatedLevers ?? [])
+    .slice(0, 3)
+    .map((lev: any) => ({
+      label: lev.label || String(lev.lever),
+      why: lev.reason || (Array.isArray(lev.prescription) ? lev.prescription[0] : "") || "",
+    }));
+
+  const prohibitions: string[] = (lorangResult?.prohibitions ?? [])
+    .map((p: any) => p?.label || "")
+    .filter((s: string) => !!s);
+
+  const recentTests = ((tests as any[]) || [])
+    .filter((t: any) => t?.athlete_id === athlete.id)
+    .sort((a: any, b: any) => String(b?.created_at || "").localeCompare(String(a?.created_at || "")))
+    .slice(0, 3)
+    .map((t: any) => ({
+      name: String(t?.name || t?.type || "Test"),
+      date: dtStr(t?.created_at),
+    }));
+
   return {
     score, scoreColor, scoreText, mainMessage,
     wellPrepared, toWatch, keyAdvice,
     nutritionMessage, confidenceMessage,
+    physioMetrics, compassAxes, trainingLoad,
+    ambitionProgress,
+    ambitionLabel: ambition?.label ?? "—",
+    nextActions, prohibitions,
+    goalLabel: getObjectifLabel(athlete?.goal ?? null),
+    recentTests,
   };
+}
+
+// =============================================
+// SECTIONS ENRICHIES — partagées Athlete & Beginner
+// =============================================
+const STATUS_DOT: Record<string, string> = {
+  ok: "#16a34a", warn: "#ea580c", low: "#dc2626", info: "#3b82f6",
+};
+
+function buildAthleteEnrichedSectionsHTML(r: AthleteReadinessReport): string {
+  const physioRows = r.physioMetrics.length === 0 ? "" : r.physioMetrics.map(m => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${STATUS_DOT[m.status] || '#94a3b8'};display:inline-block;flex:none;"></span>
+        <div style="min-width:0;">
+          <div style="font-weight:600;color:#0f172a;font-size:14px;">${htmlEscape(m.label)}</div>
+          <div style="font-size:12px;color:#64748b;">${htmlEscape(m.context)}</div>
+        </div>
+      </div>
+      <div style="font-weight:700;color:#0f172a;font-size:15px;white-space:nowrap;">${htmlEscape(m.value)}</div>
+    </div>
+  `).join('');
+
+  const compassRows = r.compassAxes.length === 0 ? "" : r.compassAxes.map(a => `
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:14px;color:#0f172a;font-weight:600;">${a.emoji} ${htmlEscape(a.label)}</span>
+        <span style="font-size:13px;color:#475569;">${a.score}/100 — ${htmlEscape(a.comment)}</span>
+      </div>
+      <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+        <div style="width:${a.score}%;height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);"></div>
+      </div>
+    </div>
+  `).join('');
+
+  const ambitionRows = r.ambitionProgress.length === 0 ? "" : r.ambitionProgress.map(a => `
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px;">
+        <span style="color:#0f172a;font-weight:600;">${a.icon} ${htmlEscape(a.label)}</span>
+        <span style="color:#475569;">${a.isReached ? '✅ Atteint' : `${a.progressPct}%${a.weeksToReach ? ` · ~${a.weeksToReach} sem.` : ''}`}</span>
+      </div>
+      <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+        <div style="width:${Math.min(100, a.progressPct)}%;height:100%;background:${a.isReached ? '#16a34a' : '#f59e0b'};"></div>
+      </div>
+    </div>
+  `).join('');
+
+  const actionsHTML = r.nextActions.length === 0 ? "" : r.nextActions.map((n, i) => `
+    <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9;">
+      <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px;">${i + 1}</div>
+      <div style="min-width:0;">
+        <div style="font-weight:600;color:#0f172a;font-size:14px;">${htmlEscape(n.label)}</div>
+        ${n.why ? `<div style="font-size:12px;color:#64748b;margin-top:2px;">${htmlEscape(n.why)}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  const prohibitionsHTML = r.prohibitions.length === 0 ? "" : `
+    <div style="margin-top:12px;padding:12px;background:#fef2f2;border-left:4px solid #dc2626;border-radius:8px;">
+      <div style="font-size:12px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🚫 À éviter cette période</div>
+      <div style="font-size:13px;color:#7f1d1d;">${r.prohibitions.map(htmlEscape).join(' · ')}</div>
+    </div>
+  `;
+
+  const tlColor = STATUS_DOT[r.trainingLoad.status] || '#94a3b8';
+  const trainingLoadHTML = `
+    <div style="display:flex;align-items:center;gap:14px;padding:14px;background:#f8fafc;border-radius:12px;">
+      <div style="flex:none;width:48px;height:48px;border-radius:50%;background:${tlColor}20;border:2px solid ${tlColor};display:flex;align-items:center;justify-content:center;font-weight:700;color:${tlColor};">
+        ${r.trainingLoad.tss7d !== null ? Math.round(r.trainingLoad.tss7d) : '—'}
+      </div>
+      <div style="min-width:0;">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">TSS 7 jours</div>
+        <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(r.trainingLoad.label)}</div>
+        <div style="font-size:12px;color:#475569;margin-top:2px;">${htmlEscape(r.trainingLoad.detail)}</div>
+      </div>
+    </div>
+  `;
+
+  const testsHTML = r.recentTests.length === 0 ? "" : `
+    <div style="margin-top:12px;padding:12px;background:#f1f5f9;border-radius:8px;">
+      <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Tests récents</div>
+      ${r.recentTests.map(t => `<div style="font-size:13px;color:#0f172a;">• ${htmlEscape(t.name)} <span style="color:#64748b;">— ${htmlEscape(t.date)}</span></div>`).join('')}
+    </div>
+  `;
+
+  return `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+        <h2 style="font-size:18px;font-weight:700;color:#0f172a;">🎯 Mon objectif & ambition</h2>
+        <span style="font-size:13px;color:#475569;">${htmlEscape(r.ambitionLabel)}</span>
+      </div>
+      <div style="font-size:14px;color:#475569;margin-bottom:14px;">Objectif visé : <b style="color:#0f172a;">${htmlEscape(r.goalLabel)}</b></div>
+      ${ambitionRows || '<div style="color:#94a3b8;font-size:13px;">Pas de progression d\'ambition disponible.</div>'}
+    </div>
+
+    ${physioRows ? `
+    <div class="card">
+      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:12px;">📊 Mes chiffres physiologiques</h2>
+      ${physioRows}
+      <div style="font-size:11px;color:#94a3b8;margin-top:10px;font-style:italic;">Le point coloré indique le statut vs ta cible (vert = OK, orange = à surveiller, rouge = sous-cible).</div>
+    </div>` : ''}
+
+    ${compassRows ? `
+    <div class="card">
+      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:14px;">🧭 Mes 4 piliers</h2>
+      ${compassRows}
+    </div>` : ''}
+
+    <div class="card">
+      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:12px;">🏋️ Charge d'entraînement</h2>
+      ${trainingLoadHTML}
+      ${testsHTML}
+    </div>
+
+    ${actionsHTML ? `
+    <div class="card">
+      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px;">🚀 Mes prochaines actions</h2>
+      <div style="font-size:13px;color:#64748b;margin-bottom:8px;">Priorités issues de ton limiteur principal.</div>
+      ${actionsHTML}
+      ${prohibitionsHTML}
+    </div>` : ''}
+  `;
+}
+
+function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
+  const physioRows = r.physioMetrics.length === 0 ? "" : r.physioMetrics.map(m => `
+    <li style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed #e5e7eb;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <span style="width:10px;height:10px;border-radius:50%;background:${STATUS_DOT[m.status] || '#94a3b8'};display:inline-block;flex:none;"></span>
+        <div style="min-width:0;">
+          <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(m.label)}</div>
+          <div style="font-size:13px;color:#64748b;">${htmlEscape(m.context)}</div>
+        </div>
+      </div>
+      <div style="font-weight:800;color:#0f172a;font-size:16px;white-space:nowrap;">${htmlEscape(m.value)}</div>
+    </li>
+  `).join('');
+
+  const compassRows = r.compassAxes.length === 0 ? "" : r.compassAxes.map(a => `
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:15px;color:#0f172a;font-weight:700;">${a.emoji} ${htmlEscape(a.label)}</span>
+        <span style="font-size:13px;color:#475569;font-weight:600;">${a.score}/100</span>
+      </div>
+      <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;">
+        <div style="width:${a.score}%;height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);"></div>
+      </div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px;">${htmlEscape(a.comment)}</div>
+    </div>
+  `).join('');
+
+  const ambitionRows = r.ambitionProgress.length === 0 ? "" : r.ambitionProgress.map(a => `
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
+        <span style="color:#0f172a;font-weight:700;">${a.icon} ${htmlEscape(a.label)}</span>
+        <span style="color:#475569;font-weight:600;">${a.isReached ? '✅ Atteint' : `${a.progressPct}%${a.weeksToReach ? ` · ~${a.weeksToReach} sem.` : ''}`}</span>
+      </div>
+      <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+        <div style="width:${Math.min(100, a.progressPct)}%;height:100%;background:${a.isReached ? '#16a34a' : '#f59e0b'};"></div>
+      </div>
+    </div>
+  `).join('');
+
+  const actionsHTML = r.nextActions.length === 0 ? "" : r.nextActions.map((n, i) => `
+    <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px dashed #e5e7eb;">
+      <div style="flex:none;width:32px;height:32px;border-radius:50%;background:#3b82f6;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px;">${i + 1}</div>
+      <div style="min-width:0;">
+        <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(n.label)}</div>
+        ${n.why ? `<div style="font-size:13px;color:#64748b;margin-top:3px;">${htmlEscape(n.why)}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  const prohibitionsHTML = r.prohibitions.length === 0 ? "" : `
+    <div style="margin-top:14px;padding:14px;background:#fef2f2;border-left:5px solid #dc2626;border-radius:12px;">
+      <div style="font-size:13px;font-weight:800;color:#991b1b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🚫 À éviter cette période</div>
+      <div style="font-size:14px;color:#7f1d1d;">${r.prohibitions.map(htmlEscape).join(' · ')}</div>
+    </div>
+  `;
+
+  const tlColor = STATUS_DOT[r.trainingLoad.status] || '#94a3b8';
+  const trainingLoadHTML = `
+    <div style="display:flex;align-items:center;gap:16px;padding:16px;background:#f8fafc;border-radius:14px;">
+      <div style="flex:none;width:60px;height:60px;border-radius:50%;background:${tlColor}20;border:3px solid ${tlColor};display:flex;align-items:center;justify-content:center;font-weight:800;color:${tlColor};font-size:18px;">
+        ${r.trainingLoad.tss7d !== null ? Math.round(r.trainingLoad.tss7d) : '—'}
+      </div>
+      <div style="min-width:0;">
+        <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Charge cette semaine</div>
+        <div style="font-weight:800;color:#0f172a;font-size:17px;">${htmlEscape(r.trainingLoad.label)}</div>
+        <div style="font-size:13px;color:#475569;margin-top:3px;">${htmlEscape(r.trainingLoad.detail)}</div>
+      </div>
+    </div>
+  `;
+
+  return `
+    <div class="section">
+      <div class="section-header"><span class="emoji">🎯</span><h2>Mon objectif</h2></div>
+      <div style="font-size:15px;color:#475569;margin-bottom:12px;">Tu prépares : <b style="color:#0f172a;">${htmlEscape(r.goalLabel)}</b> — ambition <b style="color:#0f172a;">${htmlEscape(r.ambitionLabel)}</b>.</div>
+      ${ambitionRows || '<div style="color:#94a3b8;font-size:13px;">Pas encore de cibles d\'ambition disponibles.</div>'}
+      <div class="explain-box" style="margin-top:14px;">
+        <span class="label">📚 C'est quoi ?</span>
+        <p>Chaque barre montre où tu en es par rapport à un niveau cible. Plus la barre est remplie, plus tu te rapproches.</p>
+      </div>
+    </div>
+
+    ${physioRows ? `
+    <div class="section">
+      <div class="section-header"><span class="emoji">📊</span><h2>Mes chiffres clés</h2></div>
+      <ul style="list-style:none;">${physioRows}</ul>
+      <div class="explain-box" style="margin-top:12px;">
+        <span class="label">📚 Comment lire ?</span>
+        <p>🟢 Vert = dans la cible. 🟠 Orange = à surveiller. 🔴 Rouge = priorité. 🔵 Bleu = info.</p>
+      </div>
+    </div>` : ''}
+
+    ${compassRows ? `
+    <div class="section">
+      <div class="section-header"><span class="emoji">🧭</span><h2>Mes 4 piliers</h2></div>
+      ${compassRows}
+      <div class="explain-box">
+        <span class="label">📚 À quoi ça sert ?</span>
+        <p>Ces 4 jauges résument ton corps sur les axes essentiels. L'idée : faire monter celles qui sont les plus basses.</p>
+      </div>
+    </div>` : ''}
+
+    <div class="section">
+      <div class="section-header"><span class="emoji">🏋️</span><h2>Ma charge récente</h2></div>
+      ${trainingLoadHTML}
+    </div>
+
+    ${actionsHTML ? `
+    <div class="section">
+      <div class="section-header"><span class="emoji">🚀</span><h2>Mes prochaines actions</h2></div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:8px;">Voici les leviers prioritaires pour avancer :</div>
+      ${actionsHTML}
+      ${prohibitionsHTML}
+    </div>` : ''}
+  `;
 }
 
 function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): string {
@@ -8014,6 +8403,8 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
             <p>${htmlEscape(athleteReport.keyAdvice)}</p>
           </div>
         </div>
+        
+        ${buildAthleteEnrichedSectionsHTML(athleteReport)}
         
         <div class="card nutrition-card">
           <div class="icon">🍎</div>
@@ -8392,6 +8783,8 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
           <div class="label">Le conseil du jour</div>
           <p>${htmlEscape(athleteReport.keyAdvice)}</p>
         </div>
+
+        ${buildBeginnerEnrichedSectionsHTML(athleteReport)}
 
         <div class="nutri-card">
           <div class="icon">🍎</div>
