@@ -4550,7 +4550,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
 
         return `
       <div class="card pagebreakAvoid" style="border-left: 4px solid ${vlamaxProfilColor};">
-        <h3>1️⃣ VLamax (effectif) — Profil Métabolique</h3>
+        <h3>1️⃣ VLamax (effectif) — Profil Métabolique ${priorityBadge('vlamax')}</h3>
         
         <!-- Profil visuel -->
         <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding:12px;border-radius:10px;background:${vlamaxProfilBgColor};">
