@@ -7846,12 +7846,8 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
 // RAPPORT DÉBUTANT — Ultra-pédagogique
 // =============================================
 function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): string {
-  const { athlete, potentielPhysiologique } = payload;
-  const athleteReport = generateAthleteReadiness(
-    potentielPhysiologique,
-    athlete.goal || "IM",
-    null
-  );
+  const { athlete } = payload;
+  const athleteReport = buildAthleteReadinessFromPayload(payload);
 
   const scoreColors: Record<string, { bg: string; border: string; text: string; emoji: string; verdict: string }> = {
     green: { bg: "#dcfce7", border: "#16a34a", text: "#166534", emoji: "🟢", verdict: "Tout est au vert !" },
