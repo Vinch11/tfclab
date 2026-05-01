@@ -8130,10 +8130,15 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
         ${r.trainingLoad.tss7d !== null ? Math.round(r.trainingLoad.tss7d) : '—'}
       </div>
       <div style="min-width:0;">
-        <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Charge cette semaine</div>
+        <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Charge cette semaine (TSS 7j)</div>
         <div style="font-weight:800;color:#0f172a;font-size:17px;">${htmlEscape(r.trainingLoad.label)}</div>
         <div style="font-size:13px;color:#475569;margin-top:3px;">${htmlEscape(r.trainingLoad.detail)}</div>
       </div>
+    </div>
+    <div style="margin-top:10px;padding:10px 12px;background:#f0f9ff;border-left:3px solid #3b82f6;border-radius:8px;">
+      <div style="font-size:12px;color:#1e40af;font-weight:700;margin-bottom:4px;">💡 C'est quoi le TSS ?</div>
+      <div style="font-size:13px;color:#0f172a;line-height:1.5;">Le TSS (Training Stress Score) mesure la "fatigue" accumulée sur 7 jours.</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px;font-style:italic;">Ex : 1h à fond = 100 TSS · &lt; 300/sem = light · 400-700 = solide · &gt; 800 = lourd, attention récup.</div>
     </div>
   `;
 
