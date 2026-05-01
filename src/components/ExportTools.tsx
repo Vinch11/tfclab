@@ -4615,7 +4615,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       </div>
 
       <div class="card pagebreakAvoid">
-        <h3>3️⃣ FTP et FTP/kg</h3>
+        <h3>3️⃣ FTP et FTP/kg ${priorityBadge('ftpkg')}</h3>
         <div class="grid2">
           <div>
             <div class="kv">
