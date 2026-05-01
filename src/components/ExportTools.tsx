@@ -7755,10 +7755,119 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
     ? "Quelques données manquent encore — ajoute des tests pour affiner le diagnostic."
     : "Diagnostic exploratoire — réalise tes tests prioritaires pour gagner en précision.";
 
+  // ═══ Enrichissements ═══
+  const { effectiveRefs, fatmaxTFCL, ambition, lorangResult, athlete, tests } = payload as any;
+  const snap: any = effectiveSnapshot ?? {};
+
+  const physioMetrics: PhysioMetricRow[] = [];
+  const ftp = effectiveRefs?.ftp ?? null;
+  const poids = snap?.poids ?? null;
+  const ftpKg = ftp && poids ? ftp / poids : null;
+  const vo2 = snap?.vo2max ?? null;
+  const vmaVal = effectiveRefs?.vma ?? null;
+  const vlamaxVal = vlamax?.value ?? null;
+  const tteMin = (tte as any)?.tte_min ?? null;
+  const fatmaxVal = fatmaxTFCL?.fatmaxPower ?? snap?.fatmax ?? null;
+
+  if (ftp !== null) physioMetrics.push({ label: "FTP", value: `${Math.round(ftp)} W`, context: "Puissance soutenue ~1h", status: "info" });
+  if (ftpKg !== null) {
+    const tgt = ambition?.targets?.ftp_kg_min ?? null;
+    physioMetrics.push({
+      label: "FTP / kg",
+      value: `${ftpKg.toFixed(2)} W/kg`,
+      context: tgt ? `Cible ≥ ${tgt.toFixed(1)}` : "Indicateur clé endurance",
+      status: tgt ? (ftpKg >= tgt ? "ok" : ftpKg >= tgt * 0.9 ? "warn" : "low") : "info",
+    });
+  }
+  if (vo2 !== null) physioMetrics.push({ label: "VO₂max", value: `${vo2.toFixed(1)} ml/kg/min`, context: "Plafond aérobie", status: "info" });
+  if (vlamaxVal !== null) {
+    const t = ambition?.targets?.vlamax;
+    const inZone = t ? vlamaxVal >= t.min && vlamaxVal <= t.max : true;
+    physioMetrics.push({
+      label: "VLamax",
+      value: `${vlamaxVal.toFixed(2)} mmol/L/s`,
+      context: t ? `Cible ${t.min.toFixed(2)}–${t.max.toFixed(2)}` : "Capacité glycolytique",
+      status: inZone ? "ok" : "warn",
+    });
+  }
+  if (tteMin !== null) {
+    const tgt = ambition?.targets?.tte_min ?? null;
+    physioMetrics.push({
+      label: "TTE @ FTP",
+      value: `${Math.round(tteMin)} min`,
+      context: tgt ? `Cible ≥ ${Math.round(tgt)} min` : "Endurance au seuil",
+      status: tgt ? (tteMin >= tgt ? "ok" : tteMin >= tgt * 0.85 ? "warn" : "low") : "info",
+    });
+  }
+  if (fatmaxVal !== null) physioMetrics.push({ label: "FatMax", value: `${Math.round(Number(fatmaxVal))} W`, context: "Pic d'oxydation lipidique", status: "info" });
+  if (vmaVal !== null) physioMetrics.push({ label: "VMA", value: `${vmaVal.toFixed(1)} km/h`, context: "Vitesse aérobie max", status: "info" });
+  if (poids !== null) physioMetrics.push({ label: "Poids", value: `${poids.toFixed(1)} kg`, context: "Référence corporelle", status: "info" });
+
+  const axisRow = (label: string, score: number | null | undefined, emoji: string): CompassAxisRow | null => {
+    if (score === null || score === undefined) return null;
+    const s = Math.round(score);
+    const comment = s >= 75 ? "Excellent" : s >= 60 ? "Bon niveau" : s >= 45 ? "À développer" : "Priorité de travail";
+    return { label, score: s, emoji, comment };
+  };
+  const compassAxes: CompassAxisRow[] = [
+    axisRow("Capacité aérobie", aerobic, "🫁"),
+    axisRow("Profil métabolique", metabolic, "⚗️"),
+    axisRow("Tolérance à l'effort", endurance, "⏱️"),
+    axisRow("Robustesse / Fraîcheur", robust, "🛡️"),
+  ].filter(Boolean) as CompassAxisRow[];
+
+  const tss7d = snap?.tss_7j ?? snap?.tss_7d ?? null;
+  const trainingLoad = (() => {
+    if (tss7d === null || tss7d === undefined) {
+      return { tss7d: null, label: "Non renseigné", detail: "Ajoute ta charge récente pour un diagnostic plus fin.", status: "info" as const };
+    }
+    const t = Number(tss7d);
+    if (t < 200) return { tss7d: t, label: "Charge basse", detail: "Volume hebdo réduit — bon moment pour relancer la régularité.", status: "low" as const };
+    if (t < 400) return { tss7d: t, label: "Charge modérée", detail: "Volume équilibré, soutenable sur la durée.", status: "ok" as const };
+    if (t < 600) return { tss7d: t, label: "Charge élevée", detail: "Volume soutenu — surveille la récupération.", status: "warn" as const };
+    return { tss7d: t, label: "Charge très élevée", detail: "Volume haut — risque d'accumulation, prévois une décharge.", status: "warn" as const };
+  })();
+
+  const ambitionProgress: AmbitionProgressRow[] = (ambition?.allTargets ?? [])
+    .slice(0, 4)
+    .map((a: any) => ({
+      label: a.label,
+      icon: a.icon,
+      progressPct: Math.round(((a.progress?.global ?? 0) as number) * 100),
+      isReached: !!a.isReached,
+      weeksToReach: a.weeksToReach ?? null,
+    }));
+
+  const nextActions: NextActionRow[] = (lorangResult?.activatedLevers ?? [])
+    .slice(0, 3)
+    .map((lev: any) => ({
+      label: lev.label || String(lev.lever),
+      why: lev.reason || (Array.isArray(lev.prescription) ? lev.prescription[0] : "") || "",
+    }));
+
+  const prohibitions: string[] = (lorangResult?.prohibitions ?? [])
+    .map((p: any) => p?.label || "")
+    .filter((s: string) => !!s);
+
+  const recentTests = ((tests as any[]) || [])
+    .filter((t: any) => t?.athlete_id === athlete.id)
+    .sort((a: any, b: any) => String(b?.created_at || "").localeCompare(String(a?.created_at || "")))
+    .slice(0, 3)
+    .map((t: any) => ({
+      name: String(t?.name || t?.type || "Test"),
+      date: dtStr(t?.created_at),
+    }));
+
   return {
     score, scoreColor, scoreText, mainMessage,
     wellPrepared, toWatch, keyAdvice,
     nutritionMessage, confidenceMessage,
+    physioMetrics, compassAxes, trainingLoad,
+    ambitionProgress,
+    ambitionLabel: ambition?.label ?? "—",
+    nextActions, prohibitions,
+    goalLabel: getObjectifLabel(athlete?.goal ?? null),
+    recentTests,
   };
 }
 
