@@ -54,7 +54,7 @@ import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } 
 import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase, computeLorangStrategy, type LorangStrategyResult, type LorangLeverActivation, type LorangProhibitionRule } from "@/engines/decision";
 import { detectUnifiedLimiter, type UnifiedLimiterResult, computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
-import { User, Shield } from "lucide-react";
+import { User, Shield, Sparkles } from "lucide-react";
 import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS } from "./ReportSectionOrderEditor";
 // ✅ NEW: Import Disponibilité TFCL™
 import { 
@@ -8404,6 +8404,25 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 <div className="text-left flex-1">
                   <div className="font-medium text-sm">Rapport Athlète</div>
                   <div className="text-[10px] text-muted-foreground">Simple, encourageant</div>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-50" />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportBeginnerPDF}
+                disabled={isExporting}
+                className="w-full justify-start gap-3 h-auto py-2.5"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                )}
+                <div className="text-left flex-1">
+                  <div className="font-medium text-sm">Rapport Découverte</div>
+                  <div className="text-[10px] text-muted-foreground">Ultra-pédagogique, pour débutant</div>
                 </div>
                 <ChevronRight className="h-4 w-4 opacity-50" />
               </Button>
