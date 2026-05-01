@@ -8166,6 +8166,8 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
           </div>
         </div>
         
+        ${buildAthleteEnrichedSectionsHTML(athleteReport)}
+        
         <div class="card nutrition-card">
           <div class="icon">🍎</div>
           <div class="label">Nutrition</div>
