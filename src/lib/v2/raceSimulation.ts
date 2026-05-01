@@ -873,7 +873,8 @@ function generateScenario(
       readinessModifiers,
       adjustedDuration,
       input.weight,
-      false
+      false,
+      input.tteMin
     );
     
     // Détecter point de bascule
