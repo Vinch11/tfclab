@@ -1,4 +1,4 @@
-import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getWeightsBySport, generateAthleteReadiness } from "@/lib/potentielPhysiologiqueEffectif";
+import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
@@ -7412,14 +7412,124 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
 // ATHLETE REPORT HTML (Simplified, encouraging)
 // =============================================
 
+// =============================================
+// READINESS — Source de vérité unifiée pour rapports Athlète & Découverte
+// Branché sur le vrai payload (unifiedLimiter, potentiel, fatigue, completude)
+// =============================================
+interface AthleteReadinessReport {
+  score: number;                  // 0-100
+  scoreColor: "green" | "orange" | "red";
+  scoreText: string;              // ex: "Bonne forme générale"
+  mainMessage: string;            // verdict global 1 phrase
+  wellPrepared: string[];         // points forts (issus piliers/compass)
+  toWatch: string[];              // points d'attention (issus limiteurs + fatigue)
+  keyAdvice: string;              // 1 conseil prioritaire (issu du limiteur primaire)
+  nutritionMessage: string;       // depuis nutritionV2 ou nutritionEstimate
+  confidenceMessage: string;      // basé sur completude + confiance
+}
+
+function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadinessReport {
+  const {
+    potentielPhysiologique, unifiedLimiter, completude,
+    nutritionV2, nutritionEstimate, effectiveSnapshot, capInjuryRisk
+  } = payload;
+
+  // 1) SCORE : provient du Potentiel Physiologique (déjà dans payload)
+  const score = Math.max(0, Math.min(100, Math.round(potentielPhysiologique?.score ?? 0)));
+  const scoreColor: "green" | "orange" | "red" = score >= 75 ? "green" : score >= 55 ? "orange" : "red";
+  const scoreText = score >= 80 ? "Excellente forme"
+    : score >= 65 ? "Bonne forme générale"
+    : score >= 50 ? "Forme correcte, points à travailler"
+    : "Forme à reconstruire";
+
+  // 2) MAIN MESSAGE : verdict global cohérent avec le limiteur primaire
+  const limiterLabel = unifiedLimiter?.limiterLabel || null;
+  const mainMessage = score >= 75
+    ? "Tu es dans une fenêtre favorable — ton corps répond bien aux sollicitations."
+    : score >= 55
+    ? `Globalement tu tiens la route${limiterLabel ? `, mais ${String(limiterLabel).toLowerCase()} freine ta progression` : ""}.`
+    : `Ton corps envoie des signaux clairs${limiterLabel ? ` autour de ${String(limiterLabel).toLowerCase()}` : ""}. Il faut prioriser cet axe avant de pousser.`;
+
+  // 3) WELL PREPARED : piliers ≥ 70
+  const wellPrepared: string[] = [];
+  const details = potentielPhysiologique?.details;
+  if (details) {
+    if ((details.endurance ?? 0) >= 70) wellPrepared.push("Endurance solide — tu tiens bien la durée.");
+    if ((details.vlamax ?? 0) >= 70) wellPrepared.push("Profil énergétique adapté à ton objectif.");
+    if ((details.puissance ?? 0) >= 70) wellPrepared.push("Capacité de puissance bien développée.");
+    if ((details.fraicheur ?? 0) >= 70) wellPrepared.push("Niveau de fraîcheur favorable — corps disponible.");
+  }
+  if (wellPrepared.length === 0) {
+    wellPrepared.push("Ta régularité d'entraînement reste ton meilleur atout — continue à construire la base.");
+  }
+
+  // 4) TO WATCH : limiteur primaire + 2e du categoryRanking + risque blessure + fatigue
+  const toWatch: string[] = [];
+  if (unifiedLimiter?.limiterLabel) {
+    toWatch.push(`Limiteur principal : ${unifiedLimiter.limiterLabel}.`);
+  }
+  const secondCategory = unifiedLimiter?.categoryRanking?.[1];
+  if (secondCategory && (secondCategory as any).label) {
+    toWatch.push(`À surveiller aussi : ${(secondCategory as any).label}.`);
+  }
+  if (capInjuryRisk && capInjuryRisk.level >= 3) {
+    toWatch.push(`Risque blessure ${capInjuryRisk.label.toLowerCase()} — sois vigilant sur la récupération.`);
+  }
+  const fatigueState = effectiveSnapshot?.fatigue_state;
+  if (fatigueState === "fatigued" || fatigueState === "high") {
+    toWatch.push("Niveau de fatigue élevé — privilégie le sommeil et l'hydratation.");
+  } else if (fatigueState === "injured") {
+    toWatch.push("Statut blessure actif — ne reprends pas l'intensité tant que ce n'est pas résolu.");
+  }
+  if (details && (details.fraicheur ?? 100) < 50) {
+    toWatch.push("Fraîcheur basse — il manque de la récupération récente.");
+  }
+
+  // 5) KEY ADVICE : conseil priorisé sur le limiteur primaire
+  const keyAdvice = (() => {
+    const primary = unifiedLimiter?.primaryLimiter;
+    if (!primary) return "Maintiens ta régularité et écoute les signaux de ton corps.";
+    const map: Record<string, string> = {
+      aerobic_engine: "Concentre-toi sur des séances longues à intensité modérée pour développer ton moteur aérobie.",
+      glycolytic_excess: "Réduis l'intensité haute la semaine et privilégie l'endurance fondamentale.",
+      glycolytic_deficit: "Intègre des intervalles courts et intenses pour stimuler ta capacité anaérobie.",
+      fatigue: "Priorité absolue à la récupération : sommeil, alimentation, et baisse temporaire du volume.",
+      durability: "Augmente progressivement la durée de tes sorties longues pour gagner en endurance spécifique.",
+      power: "Travaille la force et les sprints courts pour développer ta puissance maximale.",
+      economy: "Travaille la technique de course (cadence, posture) pour améliorer ton économie.",
+      nutrition: "Ajuste ta stratégie alimentaire — la disponibilité énergétique conditionne tout le reste.",
+    };
+    return map[String(primary)] || "Travaille spécifiquement ton limiteur principal avant tout autre axe.";
+  })();
+
+  // 6) NUTRITION
+  const choPerH = nutritionV2?.carbsCentral
+    ?? (nutritionEstimate ? Math.round((nutritionEstimate.carbsMin + nutritionEstimate.carbsMax) / 2) : null);
+  const nutritionMessage = choPerH
+    ? `Vise environ ${Math.round(choPerH)} g de glucides par heure d'effort soutenu, avec une bonne hydratation.`
+    : "Couvre tes besoins en glucides à l'entraînement long et soigne l'hydratation au quotidien.";
+
+  // 7) CONFIDENCE : basé sur la complétude et la confiance du Potentiel
+  const completudeScore = completude?.score ?? 0;
+  const ppConfidence = potentielPhysiologique?.confidence ?? 0;
+  const overallConf = (completudeScore / 100 + ppConfidence) / 2;
+  const confidenceMessage = overallConf >= 0.7
+    ? "Tes données sont fiables — tu peux te baser sur ces conclusions en confiance."
+    : overallConf >= 0.4
+    ? "Quelques données manquent encore — ajoute des tests pour affiner le diagnostic."
+    : "Diagnostic exploratoire — réalise tes tests prioritaires pour gagner en précision.";
+
+  return {
+    score, scoreColor, scoreText, mainMessage,
+    wellPrepared, toWatch, keyAdvice,
+    nutritionMessage, confidenceMessage,
+  };
+}
+
 function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): string {
-  const { athlete, potentielPhysiologique } = payload;
-  const athleteReport = generateAthleteReadiness(
-    potentielPhysiologique,
-    athlete.goal || "IM",
-    null
-  );
-  
+  const { athlete } = payload;
+  const athleteReport = buildAthleteReadinessFromPayload(payload);
+
   const scoreColors: Record<string, { bg: string; border: string; text: string }> = {
     green: { bg: "#dcfce7", border: "#16a34a", text: "#166534" },
     orange: { bg: "#fed7aa", border: "#ea580c", text: "#9a3412" },
@@ -7736,12 +7846,8 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
 // RAPPORT DÉBUTANT — Ultra-pédagogique
 // =============================================
 function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): string {
-  const { athlete, potentielPhysiologique } = payload;
-  const athleteReport = generateAthleteReadiness(
-    potentielPhysiologique,
-    athlete.goal || "IM",
-    null
-  );
+  const { athlete } = payload;
+  const athleteReport = buildAthleteReadinessFromPayload(payload);
 
   const scoreColors: Record<string, { bg: string; border: string; text: string; emoji: string; verdict: string }> = {
     green: { bg: "#dcfce7", border: "#16a34a", text: "#166534", emoji: "🟢", verdict: "Tout est au vert !" },
