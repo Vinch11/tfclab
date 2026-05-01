@@ -7993,7 +7993,7 @@ function buildAthleteEnrichedSectionsHTML(r: AthleteReadinessReport): string {
   `;
 }
 
-
+function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): string {
   const { athlete } = payload;
   const athleteReport = buildAthleteReadinessFromPayload(payload);
 
