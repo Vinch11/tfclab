@@ -629,7 +629,8 @@ function computeGlycogenRemaining(
   readinessModifiers?: SimulationModifiers | null,
   totalRaceDurationMin?: number | null,
   weightKg?: number | null,
-  carbLoaded?: boolean
+  carbLoaded?: boolean,
+  tteMin?: number | null
 ): number {
   // ─────────────────────────────────────────────────────────────────
   // STOCK GLYCOGÉNIQUE DYNAMIQUE (Areta 2018, Burke 2017, Jeukendrup 2014)
