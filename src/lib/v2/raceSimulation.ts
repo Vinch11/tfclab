@@ -684,8 +684,15 @@ function computeGlycogenRemaining(
   // Multiplicateur readiness
   const glycogenDepletionMultiplier = readinessModifiers?.glycogenDepletionRateMultiplier ?? 1.0;
   
-  // Fatigue progressive: +20% de burn rate sur la 2ème moitié
-  const progressionFactor = 1 + (segmentIndex / totalSegments) * 0.2;
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P2: Fatigue progressive MODULÉE PAR DURABILITÉ (TTE)
+  // Référence: Maunder 2021, Clark 2022 — la durabilité (TTE long)
+  // atténue la dérive du coût glucidique en fin de course.
+  //   TTE 60min+ : +8%   |   TTE 45min : +15%   |   TTE 25min : +30%
+  // ─────────────────────────────────────────────────────────────────
+  const tteRef = tteMin ?? 45;
+  const durabilityFactor = clamp(0.40 - (tteRef - 25) * 0.0089, 0.08, 0.35);
+  const progressionFactor = 1 + Math.pow(segmentIndex / totalSegments, 1.2) * durabilityFactor;
   
   // ─────────────────────────────────────────────────────────────────
   // FIX P0: Durée réelle du segment (bug critique corrigé)
