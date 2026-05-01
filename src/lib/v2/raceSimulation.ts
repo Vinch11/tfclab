@@ -788,7 +788,10 @@ function generateScenario(
       input.plannedCarbsGH,
       gutTraining,
       type,
-      readinessModifiers
+      readinessModifiers,
+      adjustedDuration,
+      input.weight,
+      input.gutTraining // proxy carb-loading (préparation nutritionnelle)
     );
     
     // Courbe sans nutrition pour comparaison
@@ -801,7 +804,10 @@ function generateScenario(
       0, // pas d'apport
       false,
       type,
-      readinessModifiers
+      readinessModifiers,
+      adjustedDuration,
+      input.weight,
+      false
     );
     
     // Détecter point de bascule
