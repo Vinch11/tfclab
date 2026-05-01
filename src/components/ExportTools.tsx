@@ -8077,8 +8077,10 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
     return key ? COMPASS_EXPLAINER[key] : null;
   };
 
-  const compassRows = r.compassAxes.length === 0 ? "" : r.compassAxes.map(a => `
-    <div style="margin-bottom:14px;">
+  const compassRows = r.compassAxes.length === 0 ? "" : r.compassAxes.map(a => {
+    const exp = findCompassExplainer(a.label);
+    return `
+    <div style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <span style="font-size:15px;color:#0f172a;font-weight:700;">${a.emoji} ${htmlEscape(a.label)}</span>
         <span style="font-size:13px;color:#475569;font-weight:600;">${a.score}/100</span>
@@ -8087,8 +8089,10 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
         <div style="width:${a.score}%;height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);"></div>
       </div>
       <div style="font-size:12px;color:#64748b;margin-top:4px;">${htmlEscape(a.comment)}</div>
+      ${exp ? `<div style="font-size:12px;color:#1e40af;margin-top:6px;padding:8px 10px;background:#eff6ff;border-radius:6px;line-height:1.5;">${htmlEscape(exp)}</div>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   const ambitionRows = r.ambitionProgress.length === 0 ? "" : r.ambitionProgress.map(a => `
     <div style="margin-bottom:12px;">
