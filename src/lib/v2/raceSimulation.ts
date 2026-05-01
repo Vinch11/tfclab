@@ -44,6 +44,10 @@ export interface RaceSimulationInput {
   distanceKm?: number | null;
   targetDurationMin?: number | null;
   heat: HeatCondition;
+  // Modèle thermique continu optionnel (Périard 2021, Racinais 2015)
+  ambientTempC?: number | null;     // °C — si fourni, écrase le mapping `heat`
+  humidityPct?: number | null;      // 0-100 %
+  acclimatized?: boolean | null;    // 10-14j d'exposition >25°C
   terrain: TerrainType;
   
   // Nutrition
