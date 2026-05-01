@@ -4456,6 +4456,59 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     <section id="indicateurs" class="section">
       <h2>B. Indicateurs clés + Interprétation</h2>
       
+      ${(() => {
+        // ✅ FIX cohérence VLamax : le badge doit refléter la position réelle
+        // de la valeur dans la cible objective affichée (vlamaxMin/Max/Ideal),
+        // pas une heuristique âge × profil qui peut contredire la cible.
+        const v = vlamax.value;
+        const tMin = targets.vlamaxMin;
+        const tMax = targets.vlamaxMax;
+        const tIdeal = targets.vlamaxIdeal;
+        let badgeStatus: 'optimal' | 'acceptable' | 'work_needed' = 'work_needed';
+        let badgeLabel = '⚠ À travailler';
+        let badgeClass = 'badgeError';
+        let riskLevel: 'low' | 'moderate' | 'high' | 'very_high' = 'moderate';
+        let coherentMessage = vlamaxAgeStatus.message;
+        let coherentActions = vlamaxAgeStatus.actions;
+
+        if (v !== null) {
+          const tolerance = Math.max(0.03, (tMax - tMin) * 0.15); // 15% de la fenêtre, min 0.03
+          const inWindow = v >= tMin && v <= tMax;
+          const nearIdeal = Math.abs(v - tIdeal) <= tolerance;
+
+          if (inWindow && nearIdeal) {
+            badgeStatus = 'optimal';
+            badgeLabel = '✓ Optimal';
+            badgeClass = 'badgeSuccess';
+            riskLevel = 'low';
+            coherentMessage = `VLamax ${fmt(v, 2)} dans la cible (${fmt(tMin, 2)}–${fmt(tMax, 2)}, idéal ${fmt(tIdeal, 2)}) — profil ${vlamaxProfilAgeAdjusted.label}. Maintenir.`;
+            coherentActions = ['Maintenir le volume Z2 actuel', 'Conserver l\'équilibre métabolique', 'Surveiller la dérive sur les prochains tests'];
+          } else if (inWindow) {
+            badgeStatus = 'acceptable';
+            badgeLabel = '○ Acceptable';
+            badgeClass = 'badgeWarning';
+            riskLevel = v > tIdeal ? 'moderate' : 'low';
+            const direction = v > tIdeal ? 'légèrement haute' : 'légèrement basse';
+            coherentMessage = `VLamax ${fmt(v, 2)} dans la cible mais ${direction} vs idéal (${fmt(tIdeal, 2)}) — profil ${vlamaxProfilAgeAdjusted.label}.`;
+            coherentActions = v > tIdeal
+              ? ['Densifier le volume Z2 pour rapprocher de l\'idéal', 'Limiter les séances glycolytiques courtes']
+              : ['Maintenir l\'équilibre actuel', 'Surveiller que la VLamax ne descende pas davantage'];
+          } else {
+            // Hors cible — on garde la logique de travail prioritaire
+            badgeStatus = 'work_needed';
+            badgeLabel = '⚠ À travailler';
+            badgeClass = 'badgeError';
+            riskLevel = v > tMax ? (v > tMax + 0.15 ? 'very_high' : 'high') : 'moderate';
+            coherentMessage = v > tMax
+              ? `VLamax ${fmt(v, 2)} au-dessus de la cible (max ${fmt(tMax, 2)}) — réduction prioritaire.`
+              : `VLamax ${fmt(v, 2)} en dessous de la cible (min ${fmt(tMin, 2)}) — manque de capacité glycolytique.`;
+            coherentActions = v > tMax
+              ? ['Bloc 6+ semaines Z2 dominant', 'Réduire intensité haute', 'Train-low ciblé']
+              : ['Réintroduire des intervalles courts maîtrisés', 'Travail force/vitesse'];
+          }
+        }
+
+        return `
       <div class="card pagebreakAvoid" style="border-left: 4px solid ${vlamaxProfilColor};">
         <h3>1️⃣ VLamax (effectif) — Profil Métabolique</h3>
         
@@ -4471,8 +4524,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             ${vlamaxProfilAgeAdjusted.ageContext ? '<div style="font-size:10px;font-style:italic;color:var(--muted);margin-top:4px;">🎂 ' + htmlEscape(vlamaxProfilAgeAdjusted.ageContext) + '</div>' : ''}
           </div>
           <div style="text-align:center;">
-            <span class="badge ${vlamaxAgeStatus.status === 'optimal' ? 'badgeSuccess' : vlamaxAgeStatus.status === 'acceptable' ? 'badgeWarning' : 'badgeError'}" style="font-size:11px;padding:6px 12px;">
-              ${vlamaxAgeStatus.status === 'optimal' ? '✓ Optimal' : vlamaxAgeStatus.status === 'acceptable' ? '○ Acceptable' : '⚠ À travailler'}
+            <span class="badge ${badgeClass}" style="font-size:11px;padding:6px 12px;">
+              ${badgeLabel}
             </span>
           </div>
         </div>
@@ -4480,22 +4533,23 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <div class="grid2">
           <div>
             <div class="kv">
-              <div class="k">Cible (${getObjectifLabel(athlete.goal)})</div><div class="v">${fmt(targets.vlamaxMin, 2)} – ${fmt(targets.vlamaxMax, 2)} (idéal: ${fmt(targets.vlamaxIdeal, 2)})</div>
+              <div class="k">Cible (${getObjectifLabel(athlete.goal)})</div><div class="v">${fmt(tMin, 2)} – ${fmt(tMax, 2)} (idéal: ${fmt(tIdeal, 2)})</div>
               ${ageAdjustment.age !== null && ageAdjustment.age >= 40 ? '<div class="k">Âge athlète</div><div class="v">' + ageAdjustment.age + ' ans (' + ageAdjustment.aai.label + ')</div>' : ''}
-              <div class="k">Niveau risque</div><div class="v">${vlamaxAgeStatus.level === 'low' ? '🟢 Faible' : vlamaxAgeStatus.level === 'moderate' ? '🟡 Modéré' : vlamaxAgeStatus.level === 'high' ? '🟠 Élevé' : '🔴 Très élevé'}</div>
+              <div class="k">Niveau risque</div><div class="v">${riskLevel === 'low' ? '🟢 Faible' : riskLevel === 'moderate' ? '🟡 Modéré' : riskLevel === 'high' ? '🟠 Élevé' : '🔴 Très élevé'}</div>
             </div>
             ${vlamaxAgeStatus.ageImpact ? '<p style="font-size:10px;font-style:italic;color:var(--muted);margin-top:8px;">ℹ️ ' + htmlEscape(vlamaxAgeStatus.ageImpact) + '</p>' : ''}
           </div>
           <div>
             <h4>Interprétation</h4>
-            <p class="muted">${htmlEscape(vlamaxAgeStatus.message)}</p>
+            <p class="muted">${htmlEscape(coherentMessage)}</p>
             <h4>Actions recommandées</h4>
             <ul class="muted">
-              ${vlamaxAgeStatus.actions.map(a => '<li>' + htmlEscape(a) + '</li>').join('')}
+              ${coherentActions.map(a => '<li>' + htmlEscape(a) + '</li>').join('')}
             </ul>
           </div>
         </div>
-      </div>
+      </div>`;
+      })()}
 
       <div class="card pagebreakAvoid">
         <h3>2️⃣ TTE (Time to Exhaustion)</h3>
