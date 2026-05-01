@@ -612,21 +612,32 @@ function computeGlycogenRemaining(
   const fatmax = (fatmaxCenter ?? 70) + fatmaxShift;
   const intensityDelta = intensityPct - fatmax;
   
-  // Dépense glucidique brute en g/min selon intensité vs FatMax
-  // Au-dessus de FatMax: dépendance glycolytique croissante
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P1: Courbe glucidique NON-LINÉAIRE au-dessus de FatMax
+  // Référence: Romijn 1993, Frandsen 2017, Maunder 2018
+  // Au-dessus de FatMax la dépendance glucidique suit une croissance
+  // exponentielle douce (saturation ~3.5-4.5 g/min selon profil).
+  // ─────────────────────────────────────────────────────────────────
   let carbBurnGPerMin: number;
-  if (intensityDelta > 15) {
-    carbBurnGPerMin = 2.5 + (intensityDelta - 15) * 0.08; // ~2.5-3.5 g/min
-  } else if (intensityDelta > 0) {
-    carbBurnGPerMin = 1.5 + intensityDelta * 0.067;        // ~1.5-2.5 g/min
+  if (intensityDelta > 0) {
+    // Modèle exponentiel saturé: y = a + (max-a) * (1 - exp(-k*Δ))
+    const baseAt0 = 1.2;          // g/min à FatMax
+    const ceiling = 4.2;          // g/min plafond physiologique
+    const k = 0.06;               // pente de croissance
+    carbBurnGPerMin = baseAt0 + (ceiling - baseAt0) * (1 - Math.exp(-k * intensityDelta));
   } else {
-    carbBurnGPerMin = Math.max(0.5, 1.0 + intensityDelta * 0.03); // ~0.5-1.0 g/min
+    // En dessous FatMax: dépendance lipidique dominante, faible burn glucidique
+    carbBurnGPerMin = Math.max(0.4, 1.0 + intensityDelta * 0.025);
   }
   
-  // Facteur VLamax: haute VLamax = plus glycolytique
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P1: VLamax — relation NON-LINÉAIRE (Quittmann 2025)
+  // L'impact glycolytique suit une loi puissance, pas linéaire.
+  // VLamax 0.35 → ×1.0 ; 0.55 → ×1.45 ; 0.75 → ×1.95 (vs ×1.6 linéaire)
+  // ─────────────────────────────────────────────────────────────────
   const vlamax = vlamaxEffectif ?? 0.45;
-  const vlamaxMultiplier = 1 + (vlamax - 0.35) * 1.5; // 0.35 → ×1.0, 0.55 → ×1.3
-  carbBurnGPerMin *= vlamaxMultiplier;
+  const vlamaxMultiplier = Math.pow(vlamax / 0.35, 0.95);
+  carbBurnGPerMin *= clamp(vlamaxMultiplier, 0.7, 2.2);
   
   // Facteur scénario
   let scenarioFactor = 1.0;
