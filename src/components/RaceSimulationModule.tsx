@@ -181,6 +181,11 @@ export function RaceSimulationModule({
   const [ambition, setAmbition] = useState<AmbitionLevel>('perf');
   const [heat, setHeat] = useState<HeatCondition>('moderate');
   const [terrain, setTerrain] = useState<TerrainType>('flat');
+  // Conditions thermiques avancées (P1 — modèle continu chaleur+humidité)
+  const [useAdvancedClimate, setUseAdvancedClimate] = useState<boolean>(false);
+  const [ambientTempC, setAmbientTempC] = useState<number>(20);
+  const [humidityPct, setHumidityPct] = useState<number>(50);
+  const [acclimatized, setAcclimatized] = useState<boolean>(false);
   const [plannedCarbsGH, setPlannedCarbsGH] = useState<number>(60);
   const [useNutrition, setUseNutrition] = useState(true);
   const [gutTraining, setGutTraining] = useState(false);
