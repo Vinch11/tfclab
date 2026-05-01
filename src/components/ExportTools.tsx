@@ -4452,9 +4452,49 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // C. INDICATEURS CLÉS + INTERPRÉTATION
   // =============================================
+  // Hiérarchisation des 3 indicateurs selon le moteur unifié de limiteurs
+  const ul = payload.unifiedLimiter;
+  const gapByMetricName = new Map(ul.gapAnalysis.map(g => [g.metric, g]));
+  const vlamaxGapRank = gapByMetricName.get("VLamax");
+  const tteGapRank = gapByMetricName.get("TTE");
+  const ftpKgGapRank = gapByMetricName.get("FTP/kg");
+  const indicatorRanking = [
+    { key: "vlamax", label: "VLamax", impact: vlamaxGapRank?.weightedImpact ?? 0, gap: vlamaxGapRank?.gap ?? 0 },
+    { key: "tte", label: "TTE", impact: tteGapRank?.weightedImpact ?? 0, gap: tteGapRank?.gap ?? 0 },
+    { key: "ftpkg", label: "FTP/kg", impact: ftpKgGapRank?.weightedImpact ?? 0, gap: ftpKgGapRank?.gap ?? 0 },
+  ].sort((a, b) => b.impact - a.impact);
+  const priorityRankByKey: Record<string, number> = {};
+  indicatorRanking.forEach((ind, i) => { priorityRankByKey[ind.key] = i + 1; });
+  const priorityBadge = (key: string) => {
+    const rank = priorityRankByKey[key];
+    const cls = rank === 1 ? 'badgeError' : rank === 2 ? 'badgeWarning' : 'badgeSuccess';
+    const icon = rank === 1 ? '🔴' : rank === 2 ? '🟡' : '🟢';
+    return `<span class="badge ${cls}" style="margin-left:8px;font-size:10px;vertical-align:middle;">${icon} PRIORITÉ #${rank}</span>`;
+  };
+
   const indicateursHTML = `
     <section id="indicateurs" class="section">
       <h2>B. Indicateurs clés + Interprétation</h2>
+
+      <!-- Bannière hiérarchisation : facteur limitant principal -->
+      <div class="alert alertError" style="margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px;">
+          🎯 Facteur limitant principal : ${ul.limiterEmoji} ${htmlEscape(ul.limiterLabel)}
+          <span class="muted" style="font-weight:400;font-size:11px;">(confiance ${Math.round(ul.confidence * 100)}%)</span>
+        </div>
+        <div style="font-size:12px;margin-bottom:8px;">${htmlEscape(ul.limiterExplanation || "")}</div>
+        <div style="font-size:11px;font-weight:600;margin-top:8px;">Hiérarchie des 3 indicateurs (par impact pondéré sur la performance) :</div>
+        <ol style="margin:4px 0 0 20px;font-size:11px;">
+          ${indicatorRanking.map((ind, i) => {
+            const icon = i === 0 ? '🔴' : i === 1 ? '🟡' : '🟢';
+            const tag = i === 0 ? '<b>PRIORITÉ #1</b> — à traiter en premier' : i === 1 ? 'Priorité #2' : 'Priorité #3';
+            return `<li>${icon} <b>${ind.label}</b> — ${tag} <span class="muted">(impact ${(ind.impact * 100).toFixed(0)}%, écart ${(ind.gap * 100).toFixed(0)}%)</span></li>`;
+          }).join('')}
+        </ol>
+        <div style="font-size:10px;font-style:italic;color:var(--muted);margin-top:8px;">
+          ℹ️ Un indicateur "dans la cible" peut quand même apparaître en priorité #2 ou #3 ; seule la priorité #1 doit guider le choix du bloc d'entraînement.
+        </div>
+      </div>
       
       ${(() => {
         // ✅ FIX cohérence VLamax : le badge doit refléter la position réelle
@@ -4510,7 +4550,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
 
         return `
       <div class="card pagebreakAvoid" style="border-left: 4px solid ${vlamaxProfilColor};">
-        <h3>1️⃣ VLamax (effectif) — Profil Métabolique</h3>
+        <h3>1️⃣ VLamax (effectif) — Profil Métabolique ${priorityBadge('vlamax')}</h3>
         
         <!-- Profil visuel -->
         <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding:12px;border-radius:10px;background:${vlamaxProfilBgColor};">
@@ -4552,7 +4592,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       })()}
 
       <div class="card pagebreakAvoid">
-        <h3>2️⃣ TTE (Time to Exhaustion)</h3>
+        <h3>2️⃣ TTE (Time to Exhaustion) ${priorityBadge('tte')}</h3>
         <div class="grid2">
           <div>
             <div class="kv">
@@ -4575,7 +4615,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       </div>
 
       <div class="card pagebreakAvoid">
-        <h3>3️⃣ FTP et FTP/kg</h3>
+        <h3>3️⃣ FTP et FTP/kg ${priorityBadge('ftpkg')}</h3>
         <div class="grid2">
           <div>
             <div class="kv">
