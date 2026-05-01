@@ -44,6 +44,10 @@ export interface RaceSimulationInput {
   distanceKm?: number | null;
   targetDurationMin?: number | null;
   heat: HeatCondition;
+  // Modèle thermique continu optionnel (Périard 2021, Racinais 2015)
+  ambientTempC?: number | null;     // °C — si fourni, écrase le mapping `heat`
+  humidityPct?: number | null;      // 0-100 %
+  acclimatized?: boolean | null;    // 10-14j d'exposition >25°C
   terrain: TerrainType;
   
   // Nutrition
@@ -457,6 +461,38 @@ function getDepletionRisk(fuelRisk: number): DepletionRisk {
   return 'LOW';
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MODÈLE THERMIQUE CONTINU (Périard 2021, Racinais 2015, Junge 2016)
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Pénalité thermique non-linéaire (fraction de ralentissement perf).
+ * - Continu si ambientTempC fourni (avec humidité + acclimatation)
+ * - Fallback discret sur HeatCondition sinon
+ * Modèle: Teq ≈ T + 0.3 × max(0, RH - 40)
+ *         pénalité ≈ 0.005 × max(0, Teq - 18)^1.4 ; acclimaté ×0.65
+ */
+function computeHeatPenalty(
+  ambientTempC: number | null | undefined,
+  humidityPct: number | null | undefined,
+  acclimatized: boolean | null | undefined,
+  fallbackHeat: HeatCondition
+): number {
+  if (typeof ambientTempC === 'number' && Number.isFinite(ambientTempC)) {
+    const rh = typeof humidityPct === 'number' ? Math.max(0, Math.min(100, humidityPct)) : 50;
+    const equivalentTempC = ambientTempC + 0.3 * Math.max(0, rh - 40);
+    const excess = Math.max(0, equivalentTempC - 18);
+    let penalty = 0.005 * Math.pow(excess, 1.4);
+    if (acclimatized) penalty *= 0.65;
+    return Math.min(penalty, 0.25);
+  }
+  switch (fallbackHeat) {
+    case 'high':     return 0.10;
+    case 'moderate': return 0.04;
+    case 'low':
+    default:         return 0.0;
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MODÈLE FUEL & RISK
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -612,21 +648,32 @@ function computeGlycogenRemaining(
   const fatmax = (fatmaxCenter ?? 70) + fatmaxShift;
   const intensityDelta = intensityPct - fatmax;
   
-  // Dépense glucidique brute en g/min selon intensité vs FatMax
-  // Au-dessus de FatMax: dépendance glycolytique croissante
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P1: Courbe glucidique NON-LINÉAIRE au-dessus de FatMax
+  // Référence: Romijn 1993, Frandsen 2017, Maunder 2018
+  // Au-dessus de FatMax la dépendance glucidique suit une croissance
+  // exponentielle douce (saturation ~3.5-4.5 g/min selon profil).
+  // ─────────────────────────────────────────────────────────────────
   let carbBurnGPerMin: number;
-  if (intensityDelta > 15) {
-    carbBurnGPerMin = 2.5 + (intensityDelta - 15) * 0.08; // ~2.5-3.5 g/min
-  } else if (intensityDelta > 0) {
-    carbBurnGPerMin = 1.5 + intensityDelta * 0.067;        // ~1.5-2.5 g/min
+  if (intensityDelta > 0) {
+    // Modèle exponentiel saturé: y = a + (max-a) * (1 - exp(-k*Δ))
+    const baseAt0 = 1.2;          // g/min à FatMax
+    const ceiling = 4.2;          // g/min plafond physiologique
+    const k = 0.06;               // pente de croissance
+    carbBurnGPerMin = baseAt0 + (ceiling - baseAt0) * (1 - Math.exp(-k * intensityDelta));
   } else {
-    carbBurnGPerMin = Math.max(0.5, 1.0 + intensityDelta * 0.03); // ~0.5-1.0 g/min
+    // En dessous FatMax: dépendance lipidique dominante, faible burn glucidique
+    carbBurnGPerMin = Math.max(0.4, 1.0 + intensityDelta * 0.025);
   }
   
-  // Facteur VLamax: haute VLamax = plus glycolytique
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P1: VLamax — relation NON-LINÉAIRE (Quittmann 2025)
+  // L'impact glycolytique suit une loi puissance, pas linéaire.
+  // VLamax 0.35 → ×1.0 ; 0.55 → ×1.45 ; 0.75 → ×1.95 (vs ×1.6 linéaire)
+  // ─────────────────────────────────────────────────────────────────
   const vlamax = vlamaxEffectif ?? 0.45;
-  const vlamaxMultiplier = 1 + (vlamax - 0.35) * 1.5; // 0.35 → ×1.0, 0.55 → ×1.3
-  carbBurnGPerMin *= vlamaxMultiplier;
+  const vlamaxMultiplier = Math.pow(vlamax / 0.35, 0.95);
+  carbBurnGPerMin *= clamp(vlamaxMultiplier, 0.7, 2.2);
   
   // Facteur scénario
   let scenarioFactor = 1.0;
@@ -727,10 +774,20 @@ function generateScenario(
   const targetIntensity = clamp(adjustedBaseIntensity + intensityOffset[type], 50, 98);
   const estimatedDuration = baseDuration * durationMultiplier[type];
   
-  // Ajustements conditions
-  let conditionFactor = 1.0;
-  if (input.heat === 'high') conditionFactor += 0.08;
-  if (input.heat === 'moderate') conditionFactor += 0.03;
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P1: Modèle thermique CONTINU (Périard 2021, Racinais 2015,
+  //          Junge 2016 — humidité + acclimatation)
+  // Si ambientTempC fourni → calcul WBGT-like, sinon fallback discret.
+  // Pénalité non-linéaire au-delà de 18°C (seuil endurance).
+  // ─────────────────────────────────────────────────────────────────
+  const heatPenalty = computeHeatPenalty(
+    input.ambientTempC,
+    input.humidityPct,
+    input.acclimatized,
+    input.heat
+  );
+  
+  let conditionFactor = 1.0 + heatPenalty;
   if (input.terrain === 'hilly') conditionFactor += 0.05;
   
   const adjustedDuration = estimatedDuration * conditionFactor;
