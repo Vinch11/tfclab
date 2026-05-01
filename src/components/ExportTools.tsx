@@ -7994,21 +7994,93 @@ function buildAthleteEnrichedSectionsHTML(r: AthleteReadinessReport): string {
 }
 
 function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
-  const physioRows = r.physioMetrics.length === 0 ? "" : r.physioMetrics.map(m => `
-    <li style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed #e5e7eb;gap:12px;">
-      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-        <span style="width:10px;height:10px;border-radius:50%;background:${STATUS_DOT[m.status] || '#94a3b8'};display:inline-block;flex:none;"></span>
-        <div style="min-width:0;">
-          <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(m.label)}</div>
-          <div style="font-size:13px;color:#64748b;">${htmlEscape(m.context)}</div>
-        </div>
-      </div>
-      <div style="font-weight:800;color:#0f172a;font-size:16px;white-space:nowrap;">${htmlEscape(m.value)}</div>
-    </li>
-  `).join('');
+  // Mini-glossaire ultra-pédagogique : explication courte + exemple concret
+  const BEGINNER_EXPLAINER: Record<string, { what: string; example: string; analogy?: string }> = {
+    "FTP": {
+      what: "C'est la puissance maximale que tu peux tenir environ 1 heure à vélo.",
+      example: "Ex : un FTP de 250 W = tu peux pédaler à 250 W pendant ~1h sans craquer.",
+      analogy: "🚗 C'est ton 'régime de croisière confortable mais soutenu'.",
+    },
+    "FTP/kg": {
+      what: "Ta puissance par kilo de corps. Plus c'est haut, mieux ça monte.",
+      example: "Ex : 280 W / 70 kg = 4.0 W/kg, niveau bon amateur. 5+ W/kg = niveau pro.",
+      analogy: "⛰️ C'est le rapport poids/puissance d'une voiture en montagne.",
+    },
+    "VLamax": {
+      what: "Ta vitesse à produire de l'énergie 'rapide' (sucre + lactate).",
+      example: "Ex : sprinteur ~0.7 mmol/L/s, marathonien ~0.25. Pour l'endurance longue, plus bas = mieux.",
+      analogy: "💥 C'est ton turbo : utile court, pénalisant long.",
+    },
+    "TTE": {
+      what: "Combien de temps tu tiens à ton seuil avant de craquer.",
+      example: "Ex : TTE 45 min = tu maintiens ton FTP 45 min. Au-delà de 40 min, c'est très bon.",
+      analogy: "⏱️ C'est ton 'autonomie' à régime soutenu.",
+    },
+    "VO2max": {
+      what: "Le volume max d'oxygène que ton corps peut utiliser. Ton plafond aérobie.",
+      example: "Ex : 55 ml/kg/min = bon amateur, 70+ = niveau élite.",
+      analogy: "🫁 C'est la cylindrée de ton moteur.",
+    },
+    "VMA": {
+      what: "Ta vitesse de course quand tu atteins ta VO2max.",
+      example: "Ex : VMA 18 km/h → tu peux la tenir ~6 min en course à pied.",
+      analogy: "🏃 C'est ta vitesse de pointe 'aérobie'.",
+    },
+    "FatMax": {
+      what: "L'intensité où tu brûles le plus de graisses (et économises ton sucre).",
+      example: "Ex : FatMax 180 W = idéal pour les sorties longues d'endurance.",
+      analogy: "🔥 C'est ton 'mode économie de carburant'.",
+    },
+  };
 
-  const compassRows = r.compassAxes.length === 0 ? "" : r.compassAxes.map(a => `
-    <div style="margin-bottom:14px;">
+  const findExplainer = (label: string) => {
+    const key = Object.keys(BEGINNER_EXPLAINER).find(k => label.toLowerCase().includes(k.toLowerCase()));
+    return key ? BEGINNER_EXPLAINER[key] : null;
+  };
+
+  const physioRows = r.physioMetrics.length === 0 ? "" : r.physioMetrics.map(m => {
+    const exp = findExplainer(m.label);
+    const explainerHTML = exp ? `
+      <div style="margin-top:10px;padding:10px 12px;background:#f0f9ff;border-left:3px solid #3b82f6;border-radius:8px;">
+        <div style="font-size:12px;color:#1e40af;font-weight:700;margin-bottom:4px;">💡 C'est quoi ?</div>
+        <div style="font-size:13px;color:#0f172a;line-height:1.5;">${htmlEscape(exp.what)}</div>
+        <div style="font-size:12px;color:#475569;margin-top:6px;font-style:italic;">${htmlEscape(exp.example)}</div>
+        ${exp.analogy ? `<div style="font-size:12px;color:#64748b;margin-top:4px;">${htmlEscape(exp.analogy)}</div>` : ''}
+      </div>
+    ` : '';
+    return `
+      <li style="padding:14px 0;border-bottom:1px dashed #e5e7eb;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+            <span style="width:10px;height:10px;border-radius:50%;background:${STATUS_DOT[m.status] || '#94a3b8'};display:inline-block;flex:none;"></span>
+            <div style="min-width:0;">
+              <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(m.label)}</div>
+              <div style="font-size:13px;color:#64748b;">${htmlEscape(m.context)}</div>
+            </div>
+          </div>
+          <div style="font-weight:800;color:#0f172a;font-size:16px;white-space:nowrap;">${htmlEscape(m.value)}</div>
+        </div>
+        ${explainerHTML}
+      </li>
+    `;
+  }).join('');
+
+  // Explications pour les 4 piliers (Compass)
+  const COMPASS_EXPLAINER: Record<string, string> = {
+    "aérobie": "🫁 Capacité de ton corps à utiliser l'oxygène. Ex : tenir une longue sortie sans s'essouffler.",
+    "métabolique": "⚡ Équilibre entre énergie 'rapide' (sucre) et 'lente' (graisse). Ex : ne pas exploser à mi-course.",
+    "endurance": "⏱️ Aptitude à tenir l'effort dans la durée. Ex : finir aussi fort que tu as commencé.",
+    "robustesse": "💪 Résistance à la fatigue et à la blessure. Ex : enchaîner les semaines sans casser.",
+  };
+  const findCompassExplainer = (label: string) => {
+    const key = Object.keys(COMPASS_EXPLAINER).find(k => label.toLowerCase().includes(k));
+    return key ? COMPASS_EXPLAINER[key] : null;
+  };
+
+  const compassRows = r.compassAxes.length === 0 ? "" : r.compassAxes.map(a => {
+    const exp = findCompassExplainer(a.label);
+    return `
+    <div style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <span style="font-size:15px;color:#0f172a;font-weight:700;">${a.emoji} ${htmlEscape(a.label)}</span>
         <span style="font-size:13px;color:#475569;font-weight:600;">${a.score}/100</span>
@@ -8017,8 +8089,10 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
         <div style="width:${a.score}%;height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);"></div>
       </div>
       <div style="font-size:12px;color:#64748b;margin-top:4px;">${htmlEscape(a.comment)}</div>
+      ${exp ? `<div style="font-size:12px;color:#1e40af;margin-top:6px;padding:8px 10px;background:#eff6ff;border-radius:6px;line-height:1.5;">${htmlEscape(exp)}</div>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   const ambitionRows = r.ambitionProgress.length === 0 ? "" : r.ambitionProgress.map(a => `
     <div style="margin-bottom:12px;">
@@ -8056,10 +8130,15 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
         ${r.trainingLoad.tss7d !== null ? Math.round(r.trainingLoad.tss7d) : '—'}
       </div>
       <div style="min-width:0;">
-        <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Charge cette semaine</div>
+        <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Charge cette semaine (TSS 7j)</div>
         <div style="font-weight:800;color:#0f172a;font-size:17px;">${htmlEscape(r.trainingLoad.label)}</div>
         <div style="font-size:13px;color:#475569;margin-top:3px;">${htmlEscape(r.trainingLoad.detail)}</div>
       </div>
+    </div>
+    <div style="margin-top:10px;padding:10px 12px;background:#f0f9ff;border-left:3px solid #3b82f6;border-radius:8px;">
+      <div style="font-size:12px;color:#1e40af;font-weight:700;margin-bottom:4px;">💡 C'est quoi le TSS ?</div>
+      <div style="font-size:13px;color:#0f172a;line-height:1.5;">Le TSS (Training Stress Score) mesure la "fatigue" accumulée sur 7 jours.</div>
+      <div style="font-size:12px;color:#475569;margin-top:4px;font-style:italic;">Ex : 1h à fond = 100 TSS · &lt; 300/sem = light · 400-700 = solide · &gt; 800 = lourd, attention récup.</div>
     </div>
   `;
 
@@ -8105,6 +8184,10 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
       <div style="font-size:13px;color:#64748b;margin-bottom:8px;">Voici les leviers prioritaires pour avancer :</div>
       ${actionsHTML}
       ${prohibitionsHTML}
+      <div class="explain-box" style="margin-top:14px;">
+        <span class="label">📚 Comment l'appliquer ?</span>
+        <p>Chaque action correspond à un type de séance concret. Ex : "Travailler le seuil" = 2×20 min à 90-95% FTP, 1×/sem. "Endurance fondamentale" = 1h30-2h en Z2 (tu peux parler en pédalant).</p>
+      </div>
     </div>` : ''}
   `;
 }
