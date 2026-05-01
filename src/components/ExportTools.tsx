@@ -1474,9 +1474,18 @@ function buildExportPayload(
   // ✅ Compute Lorang Strategy — IDENTIQUE au dashboard (Index.tsx)
   let lorangResult: LorangStrategyResult | null = null;
   try {
-    const vlamaxTarget = ambition === "elite" ? 0.35 : ambition === "competitor" ? 0.45 : 0.55;
-    const vo2maxTarget = ambition === "elite" ? 70 : ambition === "competitor" ? 62 : 55;
-    const tteTarget = ambition === "elite" ? 50 : ambition === "competitor" ? 40 : 35;
+    // ✅ P2 — Cibles unifiées (âge + ambition + objectif) issues du moteur Diagnostic V2.
+    // Plus aucune valeur hard-codée par paliers d'ambition : on utilise `diagnostic.targets.current`
+    // (ObjectiveTargets) et `unifiedLimiter.gapAnalysis` (pour VO2max, non couvert par ObjectiveTargets).
+    const objectiveTargets = diagnostic?.targets?.current ?? null;
+    const vo2maxGap = unifiedLimiter.gapAnalysis?.find((g: any) => g.metric === "VO2max");
+    const vlamaxTarget = objectiveTargets?.vlamax.optimal
+      ?? (ambition === "elite" ? 0.35 : ambition === "competitor" ? 0.45 : 0.55);
+    const vo2maxTarget = (typeof vo2maxGap?.target === "number" ? vo2maxGap.target : null)
+      ?? (ambition === "elite" ? 70 : ambition === "competitor" ? 62 : 55);
+    const tteTarget = objectiveTargets?.tte_min
+      ?? (ambition === "elite" ? 50 : ambition === "competitor" ? 40 : 35);
+    const ftpKgTargetUnified = objectiveTargets?.ftp_kg_min ?? null;
     const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
       'IM': 'IM', 'Ironman': 'IM', '70.3': '703', 'Ironman70.3': '703',
       'Marathon': 'marathon', 'Semi': 'semi', '10K': '10k', '5K': '10k',
