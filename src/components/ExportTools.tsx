@@ -1209,31 +1209,63 @@ function calculateCompletude(
   let total = 0;
   let filled = 0;
 
-  // Références essentielles
-  const checks = [
-    { label: "FCmax", value: effectiveRefs.fcMax, weight: 10 },
-    { label: "VMA", value: effectiveRefs.vma, weight: 10 },
-    { label: "FTP", value: effectiveRefs.ftp, weight: 15 },
-    { label: "Poids", value: effectiveRefs.weightKg, weight: 10 },
-    { label: "VO2max", value: effectiveRefs.vo2max, weight: 5 },
-    { label: "TSS 7d", value: effectiveSnapshot?.tss_7d, weight: 10 },
-    { label: "VLamax (test ou mesure)", value: vlamax.source !== "estimated" && vlamax.source !== "unknown" ? vlamax.value : null, weight: 15 },
-    { label: "TTE observé", value: tte.source === "observed" ? tte.tte_min : null, weight: 10 },
-    { label: "Tests VLamax", value: tests.filter(t => t.vlamax != null).length >= 2 ? 1 : null, weight: 15 },
+  // ✅ P2 — Complétude pondérée par la confiance V2 (et non plus binaire présent/absent).
+  // Pour VLamax & TTE, on utilise la confiance retournée par le moteur unifié (0..1) :
+  // une valeur estimée à forte confiance compte partiellement, plutôt que d'être "manquante".
+  const vlamaxIsObserved = vlamax.source !== "estimated" && vlamax.source !== "unknown";
+  const tteIsObserved = tte.source === "observed";
+  const vlamaxConfidence = Math.max(0, Math.min(1, vlamax.confidence ?? 0));
+  const tteConfidence = Math.max(0, Math.min(1, tte.confidence ?? 0));
+  const nbVlamaxTests = tests.filter(t => t.vlamax != null).length;
+
+  type Check = { label: string; weight: number; fillRatio: number; missingLabel?: string };
+  const checks: Check[] = [
+    { label: "FCmax", weight: 10, fillRatio: effectiveRefs.fcMax != null ? 1 : 0 },
+    { label: "VMA", weight: 10, fillRatio: effectiveRefs.vma != null ? 1 : 0 },
+    { label: "FTP", weight: 15, fillRatio: effectiveRefs.ftp != null ? 1 : 0 },
+    { label: "Poids", weight: 10, fillRatio: effectiveRefs.weightKg != null ? 1 : 0 },
+    { label: "VO2max", weight: 5, fillRatio: effectiveRefs.vo2max != null ? 1 : 0 },
+    { label: "TSS 7d", weight: 10, fillRatio: effectiveSnapshot?.tss_7d != null ? 1 : 0 },
+    {
+      label: "VLamax (mesure ou estimation fiable)",
+      weight: 15,
+      // Mesure observée = 100% ; estimation = pondérée par confiance V2 (jusqu'à 80% de crédit)
+      fillRatio: vlamaxIsObserved ? 1 : Math.min(0.8, vlamaxConfidence),
+      missingLabel: vlamaxIsObserved
+        ? undefined
+        : vlamaxConfidence < 0.3
+          ? "VLamax (estimation peu fiable)"
+          : undefined,
+    },
+    {
+      label: "TTE (observé ou estimation fiable)",
+      weight: 10,
+      fillRatio: tteIsObserved ? 1 : Math.min(0.7, tteConfidence),
+      missingLabel: tteIsObserved
+        ? undefined
+        : tteConfidence < 0.3
+          ? "TTE (non observé, fiabilité faible)"
+          : undefined,
+    },
+    {
+      label: "Tests VLamax (≥2 pour calibration)",
+      weight: 15,
+      fillRatio: nbVlamaxTests >= 2 ? 1 : nbVlamaxTests === 1 ? 0.5 : 0,
+      missingLabel: nbVlamaxTests >= 2 ? undefined : `Tests VLamax (${nbVlamaxTests}/2)`,
+    },
   ];
 
   for (const check of checks) {
     total += check.weight;
-    if (check.value != null) {
-      filled += check.weight;
-    } else {
-      manquants.push(check.label);
+    filled += check.weight * check.fillRatio;
+    if (check.fillRatio < 0.5) {
+      manquants.push(check.missingLabel ?? check.label);
     }
   }
 
   return {
     score: Math.round((filled / total) * 100),
-    manquants
+    manquants,
   };
 }
 
