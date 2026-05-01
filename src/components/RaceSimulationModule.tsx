@@ -181,6 +181,11 @@ export function RaceSimulationModule({
   const [ambition, setAmbition] = useState<AmbitionLevel>('perf');
   const [heat, setHeat] = useState<HeatCondition>('moderate');
   const [terrain, setTerrain] = useState<TerrainType>('flat');
+  // Conditions thermiques avancées (P1 — modèle continu chaleur+humidité)
+  const [useAdvancedClimate, setUseAdvancedClimate] = useState<boolean>(false);
+  const [ambientTempC, setAmbientTempC] = useState<number>(20);
+  const [humidityPct, setHumidityPct] = useState<number>(50);
+  const [acclimatized, setAcclimatized] = useState<boolean>(false);
   const [plannedCarbsGH, setPlannedCarbsGH] = useState<number>(60);
   const [useNutrition, setUseNutrition] = useState(true);
   const [gutTraining, setGutTraining] = useState(false);
@@ -212,6 +217,9 @@ export function RaceSimulationModule({
     targetDurationMin: null,
     heat,
     terrain,
+    ambientTempC: useAdvancedClimate ? ambientTempC : null,
+    humidityPct: useAdvancedClimate ? humidityPct : null,
+    acclimatized: useAdvancedClimate ? acclimatized : null,
     plannedCarbsGH: useNutrition ? plannedCarbsGH : null,
     gutTraining,
     nutritionType: 'mixed',
@@ -234,9 +242,10 @@ export function RaceSimulationModule({
     readinessModifiers: simulationAccess.enabled ? simulationAccess.modifiers : null,
   }), [
     raceType, ambition, heat, terrain, plannedCarbsGH, useNutrition, gutTraining,
+    useAdvancedClimate, ambientTempC, humidityPct, acclimatized,
     vlamaxEffectif, vlamaxConfidence, vlamaxDiscipline, tteMin, tteConfidence,
     fatmax, disponibiliteScore, disponibiliteLevel, injuryRiskLevel, ftp, vma, paceThreshold, weight,
-    simulationAccess // Ajout de la dépendance
+    simulationAccess
   ]);
   
   const proEligibility = useMemo(() => checkProModeEligibility(proInput), [proInput]);
@@ -574,6 +583,81 @@ export function RaceSimulationModule({
           </Select>
         </div>
       </div>
+
+      {/* Conditions climatiques avancées (PRO) — modèle continu T+RH+acclimatation */}
+      {simulationMode === 'pro' && (
+        <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-3">
+          <div className="flex items-center justify-between">
+            <Label className="flex items-center gap-2 text-sm">
+              <ThermometerSun className="w-4 h-4 text-orange-500" />
+              Conditions climatiques précises
+            </Label>
+            <Switch checked={useAdvancedClimate} onCheckedChange={setUseAdvancedClimate} />
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Active un modèle continu (T° + humidité + acclimatation) qui remplace le réglage discret « Chaleur » (Périard 2021).
+          </p>
+
+          {useAdvancedClimate && (
+            <div className="space-y-4 pt-1">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Température ambiante</span>
+                  <span className="font-medium">{ambientTempC} °C</span>
+                </div>
+                <Slider
+                  value={[ambientTempC]}
+                  onValueChange={([v]) => setAmbientTempC(v)}
+                  min={-5}
+                  max={42}
+                  step={1}
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>-5 °C</span><span>42 °C</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Humidité relative</span>
+                  <span className="font-medium">{humidityPct} %</span>
+                </div>
+                <Slider
+                  value={[humidityPct]}
+                  onValueChange={([v]) => setHumidityPct(v)}
+                  min={10}
+                  max={100}
+                  step={5}
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>10 %</span><span>100 %</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-md bg-background/60 p-2">
+                <div>
+                  <Label htmlFor="acclim-switch" className="text-xs cursor-pointer">
+                    Acclimaté à la chaleur
+                  </Label>
+                  <p className="text-[10px] text-muted-foreground">
+                    ≥ 10–14 j d'exposition récente &gt; 25 °C
+                  </p>
+                </div>
+                <Switch
+                  id="acclim-switch"
+                  checked={acclimatized}
+                  onCheckedChange={setAcclimatized}
+                />
+              </div>
+
+              <p className="text-[10px] text-muted-foreground italic">
+                T° équivalente ≈ {Math.round(ambientTempC + 0.3 * Math.max(0, humidityPct - 40))} °C
+                {acclimatized ? ' • pénalité réduite (~-35%)' : ''}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
       
       {/* Nutrition (PRO only) */}
       {simulationMode === 'pro' && (
