@@ -742,10 +742,20 @@ function generateScenario(
   const targetIntensity = clamp(adjustedBaseIntensity + intensityOffset[type], 50, 98);
   const estimatedDuration = baseDuration * durationMultiplier[type];
   
-  // Ajustements conditions
-  let conditionFactor = 1.0;
-  if (input.heat === 'high') conditionFactor += 0.08;
-  if (input.heat === 'moderate') conditionFactor += 0.03;
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P1: Modèle thermique CONTINU (Périard 2021, Racinais 2015,
+  //          Junge 2016 — humidité + acclimatation)
+  // Si ambientTempC fourni → calcul WBGT-like, sinon fallback discret.
+  // Pénalité non-linéaire au-delà de 18°C (seuil endurance).
+  // ─────────────────────────────────────────────────────────────────
+  const heatPenalty = computeHeatPenalty(
+    input.ambientTempC,
+    input.humidityPct,
+    input.acclimatized,
+    input.heat
+  );
+  
+  let conditionFactor = 1.0 + heatPenalty;
   if (input.terrain === 'hilly') conditionFactor += 0.05;
   
   const adjustedDuration = estimatedDuration * conditionFactor;
