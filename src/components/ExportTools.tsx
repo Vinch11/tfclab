@@ -7993,6 +7993,122 @@ function buildAthleteEnrichedSectionsHTML(r: AthleteReadinessReport): string {
   `;
 }
 
+function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
+  const physioRows = r.physioMetrics.length === 0 ? "" : r.physioMetrics.map(m => `
+    <li style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed #e5e7eb;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <span style="width:10px;height:10px;border-radius:50%;background:${STATUS_DOT[m.status] || '#94a3b8'};display:inline-block;flex:none;"></span>
+        <div style="min-width:0;">
+          <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(m.label)}</div>
+          <div style="font-size:13px;color:#64748b;">${htmlEscape(m.context)}</div>
+        </div>
+      </div>
+      <div style="font-weight:800;color:#0f172a;font-size:16px;white-space:nowrap;">${htmlEscape(m.value)}</div>
+    </li>
+  `).join('');
+
+  const compassRows = r.compassAxes.length === 0 ? "" : r.compassAxes.map(a => `
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:15px;color:#0f172a;font-weight:700;">${a.emoji} ${htmlEscape(a.label)}</span>
+        <span style="font-size:13px;color:#475569;font-weight:600;">${a.score}/100</span>
+      </div>
+      <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;">
+        <div style="width:${a.score}%;height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);"></div>
+      </div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px;">${htmlEscape(a.comment)}</div>
+    </div>
+  `).join('');
+
+  const ambitionRows = r.ambitionProgress.length === 0 ? "" : r.ambitionProgress.map(a => `
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
+        <span style="color:#0f172a;font-weight:700;">${a.icon} ${htmlEscape(a.label)}</span>
+        <span style="color:#475569;font-weight:600;">${a.isReached ? '✅ Atteint' : `${a.progressPct}%${a.weeksToReach ? ` · ~${a.weeksToReach} sem.` : ''}`}</span>
+      </div>
+      <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+        <div style="width:${Math.min(100, a.progressPct)}%;height:100%;background:${a.isReached ? '#16a34a' : '#f59e0b'};"></div>
+      </div>
+    </div>
+  `).join('');
+
+  const actionsHTML = r.nextActions.length === 0 ? "" : r.nextActions.map((n, i) => `
+    <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px dashed #e5e7eb;">
+      <div style="flex:none;width:32px;height:32px;border-radius:50%;background:#3b82f6;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px;">${i + 1}</div>
+      <div style="min-width:0;">
+        <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(n.label)}</div>
+        ${n.why ? `<div style="font-size:13px;color:#64748b;margin-top:3px;">${htmlEscape(n.why)}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  const prohibitionsHTML = r.prohibitions.length === 0 ? "" : `
+    <div style="margin-top:14px;padding:14px;background:#fef2f2;border-left:5px solid #dc2626;border-radius:12px;">
+      <div style="font-size:13px;font-weight:800;color:#991b1b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🚫 À éviter cette période</div>
+      <div style="font-size:14px;color:#7f1d1d;">${r.prohibitions.map(htmlEscape).join(' · ')}</div>
+    </div>
+  `;
+
+  const tlColor = STATUS_DOT[r.trainingLoad.status] || '#94a3b8';
+  const trainingLoadHTML = `
+    <div style="display:flex;align-items:center;gap:16px;padding:16px;background:#f8fafc;border-radius:14px;">
+      <div style="flex:none;width:60px;height:60px;border-radius:50%;background:${tlColor}20;border:3px solid ${tlColor};display:flex;align-items:center;justify-content:center;font-weight:800;color:${tlColor};font-size:18px;">
+        ${r.trainingLoad.tss7d !== null ? Math.round(r.trainingLoad.tss7d) : '—'}
+      </div>
+      <div style="min-width:0;">
+        <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Charge cette semaine</div>
+        <div style="font-weight:800;color:#0f172a;font-size:17px;">${htmlEscape(r.trainingLoad.label)}</div>
+        <div style="font-size:13px;color:#475569;margin-top:3px;">${htmlEscape(r.trainingLoad.detail)}</div>
+      </div>
+    </div>
+  `;
+
+  return `
+    <div class="section">
+      <div class="section-header"><span class="emoji">🎯</span><h2>Mon objectif</h2></div>
+      <div style="font-size:15px;color:#475569;margin-bottom:12px;">Tu prépares : <b style="color:#0f172a;">${htmlEscape(r.goalLabel)}</b> — ambition <b style="color:#0f172a;">${htmlEscape(r.ambitionLabel)}</b>.</div>
+      ${ambitionRows || '<div style="color:#94a3b8;font-size:13px;">Pas encore de cibles d\'ambition disponibles.</div>'}
+      <div class="explain-box" style="margin-top:14px;">
+        <span class="label">📚 C'est quoi ?</span>
+        <p>Chaque barre montre où tu en es par rapport à un niveau cible. Plus la barre est remplie, plus tu te rapproches.</p>
+      </div>
+    </div>
+
+    ${physioRows ? `
+    <div class="section">
+      <div class="section-header"><span class="emoji">📊</span><h2>Mes chiffres clés</h2></div>
+      <ul style="list-style:none;">${physioRows}</ul>
+      <div class="explain-box" style="margin-top:12px;">
+        <span class="label">📚 Comment lire ?</span>
+        <p>🟢 Vert = dans la cible. 🟠 Orange = à surveiller. 🔴 Rouge = priorité. 🔵 Bleu = info.</p>
+      </div>
+    </div>` : ''}
+
+    ${compassRows ? `
+    <div class="section">
+      <div class="section-header"><span class="emoji">🧭</span><h2>Mes 4 piliers</h2></div>
+      ${compassRows}
+      <div class="explain-box">
+        <span class="label">📚 À quoi ça sert ?</span>
+        <p>Ces 4 jauges résument ton corps sur les axes essentiels. L'idée : faire monter celles qui sont les plus basses.</p>
+      </div>
+    </div>` : ''}
+
+    <div class="section">
+      <div class="section-header"><span class="emoji">🏋️</span><h2>Ma charge récente</h2></div>
+      ${trainingLoadHTML}
+    </div>
+
+    ${actionsHTML ? `
+    <div class="section">
+      <div class="section-header"><span class="emoji">🚀</span><h2>Mes prochaines actions</h2></div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:8px;">Voici les leviers prioritaires pour avancer :</div>
+      ${actionsHTML}
+      ${prohibitionsHTML}
+    </div>` : ''}
+  `;
+}
+
 function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): string {
   const { athlete } = payload;
   const athleteReport = buildAthleteReadinessFromPayload(payload);
