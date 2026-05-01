@@ -7603,6 +7603,33 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
 // READINESS — Source de vérité unifiée pour rapports Athlète & Découverte
 // Branché sur le vrai payload (unifiedLimiter, potentiel, fatigue, completude)
 // =============================================
+interface PhysioMetricRow {
+  label: string;
+  value: string;
+  context: string;       // explication courte ou cible
+  status: "ok" | "warn" | "low" | "info";
+}
+
+interface CompassAxisRow {
+  label: string;
+  score: number;          // 0-100
+  emoji: string;
+  comment: string;
+}
+
+interface AmbitionProgressRow {
+  label: string;
+  icon: string;
+  progressPct: number;    // 0-100
+  isReached: boolean;
+  weeksToReach: number | null;
+}
+
+interface NextActionRow {
+  label: string;
+  why: string;
+}
+
 interface AthleteReadinessReport {
   score: number;                  // 0-100
   scoreColor: "green" | "orange" | "red";
@@ -7613,6 +7640,21 @@ interface AthleteReadinessReport {
   keyAdvice: string;              // 1 conseil prioritaire (issu du limiteur primaire)
   nutritionMessage: string;       // depuis nutritionV2 ou nutritionEstimate
   confidenceMessage: string;      // basé sur completude + confiance
+  // ───── Enrichissements ─────
+  physioMetrics: PhysioMetricRow[];        // FTP, FTP/kg, VLamax, VO2max, TTE, FatMax, VMA, poids…
+  compassAxes: CompassAxisRow[];           // 4 piliers V2 sur /100
+  trainingLoad: {                          // TSS 7j + interprétation
+    tss7d: number | null;
+    label: string;
+    detail: string;
+    status: "ok" | "warn" | "low" | "info";
+  };
+  ambitionProgress: AmbitionProgressRow[]; // progression vs niveaux d'ambition
+  ambitionLabel: string;                   // ambition courante (ex: "Élite")
+  nextActions: NextActionRow[];            // 2-3 leviers prioritaires (Lorang)
+  prohibitions: string[];                  // interdits (ex: sprints)
+  goalLabel: string;                       // objectif lisible
+  recentTests: { name: string; date: string }[]; // 3 derniers tests
 }
 
 function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadinessReport {
