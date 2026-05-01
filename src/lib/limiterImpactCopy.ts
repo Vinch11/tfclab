@@ -78,9 +78,20 @@ export const LIMITER_IMPACT_COPY: Record<UnifiedLimiter, LimiterImpactCopy> = {
   },
 };
 
+/**
+ * Mapping des alias provenant du Coaching Compass (LimiterType) vers UnifiedLimiter
+ * pour pouvoir partager le même copy quel que soit le moteur d'origine.
+ */
+const LIMITER_ALIASES: Record<string, UnifiedLimiter> = {
+  // Coaching Compass LimiterType → UnifiedLimiter
+  aerobic_power: "aerobic_engine",
+  metabolic_endurance: "metabolic_efficiency",
+  durability: "specific_endurance",
+  unknown: "none",
+};
+
 export function getLimiterImpactCopy(limiter: UnifiedLimiter | string | null | undefined): LimiterImpactCopy {
-  if (!limiter || !(limiter in LIMITER_IMPACT_COPY)) {
-    return LIMITER_IMPACT_COPY.none;
-  }
-  return LIMITER_IMPACT_COPY[limiter as UnifiedLimiter];
+  if (!limiter) return LIMITER_IMPACT_COPY.none;
+  const key = (LIMITER_ALIASES[limiter] ?? limiter) as UnifiedLimiter;
+  return LIMITER_IMPACT_COPY[key] ?? LIMITER_IMPACT_COPY.none;
 }
