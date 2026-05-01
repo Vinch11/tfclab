@@ -639,10 +639,16 @@ function computeGlycogenRemaining(
   // Fatigue progressive: +20% de burn rate sur la 2ème moitié
   const progressionFactor = 1 + (segmentIndex / totalSegments) * 0.2;
   
-  // Dépense brute par segment (g)
-  const segmentDurationMin = 60 / totalSegments; // approximation sur 1h de course; s'ajuste
-  // Pour des courses plus longues, on estime la durée totale
-  // Le totalSegments représente la course complète
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P0: Durée réelle du segment (bug critique corrigé)
+  // Avant: 60/totalSegments → assumait 1h de course quelle que soit la distance
+  // Conséquence: déplétion sous-estimée ~6-10× sur IM/Marathon
+  // Maintenant: durée totale réelle / nombre de segments
+  // ─────────────────────────────────────────────────────────────────
+  const effectiveTotalDurationMin = totalRaceDurationMin && totalRaceDurationMin > 0
+    ? totalRaceDurationMin
+    : 60; // fallback historique
+  const segmentDurationMin = effectiveTotalDurationMin / totalSegments;
   const carbBurnPerSegment = carbBurnGPerMin * segmentDurationMin * scenarioFactor * glycogenDepletionMultiplier * progressionFactor;
   
   // Absorption nette par segment (g) – modèle intestinal réel
