@@ -8198,6 +8198,41 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     }
   };
 
+  const handleExportBeginnerPDF = async () => {
+    if (!exportCheck.ok) {
+      toast.error("Export impossible", { description: exportCheck.reason });
+      return;
+    }
+    if (isExporting) return;
+    setIsExporting(true);
+    const toastId = toast.loading("Préparation de ton rapport...", {
+      description: "Un nouvel onglet va s'ouvrir."
+    });
+    try {
+      const logoBase64 = await imageToBase64(logoUrl);
+      const html = buildBeginnerReportHTML(payload, logoBase64);
+      const fileName = `mon-rapport-simple-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
+      openPrintableHTML(html, {
+        filenameHint: fileName,
+        includeInstructions: true,
+        autoPrint: false,
+      });
+      toast.success("Rapport ouvert", {
+        id: toastId,
+        description: "Utilise Imprimer → Enregistrer en PDF (ou Ctrl/Cmd+P).",
+        duration: 6000,
+      });
+    } catch (error) {
+      console.error("Erreur export Débutant:", error);
+      toast.error("Erreur d'export", {
+        id: toastId,
+        description: error instanceof Error ? error.message : "Une erreur est survenue."
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleExportAthletePDF = async () => {
     if (!exportCheck.ok) {
       toast.error("Export impossible", { description: exportCheck.reason });
