@@ -629,7 +629,8 @@ function computeGlycogenRemaining(
   readinessModifiers?: SimulationModifiers | null,
   totalRaceDurationMin?: number | null,
   weightKg?: number | null,
-  carbLoaded?: boolean
+  carbLoaded?: boolean,
+  tteMin?: number | null
 ): number {
   // ─────────────────────────────────────────────────────────────────
   // STOCK GLYCOGÉNIQUE DYNAMIQUE (Areta 2018, Burke 2017, Jeukendrup 2014)
@@ -683,8 +684,15 @@ function computeGlycogenRemaining(
   // Multiplicateur readiness
   const glycogenDepletionMultiplier = readinessModifiers?.glycogenDepletionRateMultiplier ?? 1.0;
   
-  // Fatigue progressive: +20% de burn rate sur la 2ème moitié
-  const progressionFactor = 1 + (segmentIndex / totalSegments) * 0.2;
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P2: Fatigue progressive MODULÉE PAR DURABILITÉ (TTE)
+  // Référence: Maunder 2021, Clark 2022 — la durabilité (TTE long)
+  // atténue la dérive du coût glucidique en fin de course.
+  //   TTE 60min+ : +8%   |   TTE 45min : +15%   |   TTE 25min : +30%
+  // ─────────────────────────────────────────────────────────────────
+  const tteRef = tteMin ?? 45;
+  const durabilityFactor = clamp(0.40 - (tteRef - 25) * 0.0089, 0.08, 0.35);
+  const progressionFactor = 1 + Math.pow(segmentIndex / totalSegments, 1.2) * durabilityFactor;
   
   // ─────────────────────────────────────────────────────────────────
   // FIX P0: Durée réelle du segment (bug critique corrigé)
@@ -705,7 +713,7 @@ function computeGlycogenRemaining(
   // Déplétion nette cumulée
   let cumulativeDepletion = 0;
   for (let s = 0; s <= segmentIndex; s++) {
-    const segProgression = 1 + (s / totalSegments) * 0.2;
+    const segProgression = 1 + Math.pow(s / totalSegments, 1.2) * durabilityFactor;
     const segBurn = carbBurnGPerMin * segmentDurationMin * scenarioFactor * glycogenDepletionMultiplier * segProgression;
     const netBurn = Math.max(0, segBurn - absorbedPerSegment);
     cumulativeDepletion += netBurn;
@@ -848,7 +856,8 @@ function generateScenario(
       readinessModifiers,
       adjustedDuration,
       input.weight,
-      input.gutTraining // proxy carb-loading (préparation nutritionnelle)
+      input.gutTraining, // proxy carb-loading (préparation nutritionnelle)
+      input.tteMin
     );
     
     // Courbe sans nutrition pour comparaison
@@ -864,7 +873,8 @@ function generateScenario(
       readinessModifiers,
       adjustedDuration,
       input.weight,
-      false
+      false,
+      input.tteMin
     );
     
     // Détecter point de bascule
