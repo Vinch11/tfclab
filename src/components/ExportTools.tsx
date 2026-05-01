@@ -1505,7 +1505,7 @@ function buildExportPayload(
         vo2max: effectiveSnapshot?.vo2max ?? null,
         vo2maxTarget,
         ftpKg: ftpKg,
-        ftpKgTarget: null,
+        ftpKgTarget: ftpKgTargetUnified,
         vlamax: vlamax.value,
         vlamaxTarget,
         tte: tte.tte_min,
