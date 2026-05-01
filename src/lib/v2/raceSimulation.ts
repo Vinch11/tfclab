@@ -713,7 +713,7 @@ function computeGlycogenRemaining(
   // Déplétion nette cumulée
   let cumulativeDepletion = 0;
   for (let s = 0; s <= segmentIndex; s++) {
-    const segProgression = 1 + (s / totalSegments) * 0.2;
+    const segProgression = 1 + Math.pow(s / totalSegments, 1.2) * durabilityFactor;
     const segBurn = carbBurnGPerMin * segmentDurationMin * scenarioFactor * glycogenDepletionMultiplier * segProgression;
     const netBurn = Math.max(0, segBurn - absorbedPerSegment);
     cumulativeDepletion += netBurn;
