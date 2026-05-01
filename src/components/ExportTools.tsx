@@ -8184,6 +8184,10 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
       <div style="font-size:13px;color:#64748b;margin-bottom:8px;">Voici les leviers prioritaires pour avancer :</div>
       ${actionsHTML}
       ${prohibitionsHTML}
+      <div class="explain-box" style="margin-top:14px;">
+        <span class="label">📚 Comment l'appliquer ?</span>
+        <p>Chaque action correspond à un type de séance concret. Ex : "Travailler le seuil" = 2×20 min à 90-95% FTP, 1×/sem. "Endurance fondamentale" = 1h30-2h en Z2 (tu peux parler en pédalant).</p>
+      </div>
     </div>` : ''}
   `;
 }
