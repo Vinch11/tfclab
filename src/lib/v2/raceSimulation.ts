@@ -590,9 +590,22 @@ function computeGlycogenRemaining(
   plannedCarbsGH: number | null,
   gutTraining: boolean,
   scenarioType?: ScenarioType,
-  readinessModifiers?: SimulationModifiers | null
+  readinessModifiers?: SimulationModifiers | null,
+  totalRaceDurationMin?: number | null,
+  weightKg?: number | null,
+  carbLoaded?: boolean
 ): number {
-  const totalGlycogenG = 450; // grammes de glycogène musculaire + hépatique
+  // ─────────────────────────────────────────────────────────────────
+  // STOCK GLYCOGÉNIQUE DYNAMIQUE (Areta 2018, Burke 2017, Jeukendrup 2014)
+  // Référence: 12-15 g/kg de masse corporelle (musculaire + hépatique)
+  // - Sans carb-loading: ~12 g/kg
+  // - Avec carb-loading (>8 g/kg/j x 2-3j): ~15 g/kg
+  // Fallback à 450g si poids inconnu (athlète ~65 kg non chargé)
+  // ─────────────────────────────────────────────────────────────────
+  const baseGlycogenPerKg = carbLoaded ? 15 : 12;
+  const totalGlycogenG = weightKg && weightKg > 0
+    ? weightKg * baseGlycogenPerKg
+    : 450;
   
   // Appliquer le décalage FatMax si modificateurs présents
   const fatmaxShift = readinessModifiers?.fatmaxShiftPct ?? 0;
@@ -626,10 +639,16 @@ function computeGlycogenRemaining(
   // Fatigue progressive: +20% de burn rate sur la 2ème moitié
   const progressionFactor = 1 + (segmentIndex / totalSegments) * 0.2;
   
-  // Dépense brute par segment (g)
-  const segmentDurationMin = 60 / totalSegments; // approximation sur 1h de course; s'ajuste
-  // Pour des courses plus longues, on estime la durée totale
-  // Le totalSegments représente la course complète
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P0: Durée réelle du segment (bug critique corrigé)
+  // Avant: 60/totalSegments → assumait 1h de course quelle que soit la distance
+  // Conséquence: déplétion sous-estimée ~6-10× sur IM/Marathon
+  // Maintenant: durée totale réelle / nombre de segments
+  // ─────────────────────────────────────────────────────────────────
+  const effectiveTotalDurationMin = totalRaceDurationMin && totalRaceDurationMin > 0
+    ? totalRaceDurationMin
+    : 60; // fallback historique
+  const segmentDurationMin = effectiveTotalDurationMin / totalSegments;
   const carbBurnPerSegment = carbBurnGPerMin * segmentDurationMin * scenarioFactor * glycogenDepletionMultiplier * progressionFactor;
   
   // Absorption nette par segment (g) – modèle intestinal réel
@@ -769,7 +788,10 @@ function generateScenario(
       input.plannedCarbsGH,
       gutTraining,
       type,
-      readinessModifiers
+      readinessModifiers,
+      adjustedDuration,
+      input.weight,
+      input.gutTraining // proxy carb-loading (préparation nutritionnelle)
     );
     
     // Courbe sans nutrition pour comparaison
@@ -782,7 +804,10 @@ function generateScenario(
       0, // pas d'apport
       false,
       type,
-      readinessModifiers
+      readinessModifiers,
+      adjustedDuration,
+      input.weight,
+      false
     );
     
     // Détecter point de bascule
@@ -966,16 +991,21 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
   
   timeConfidence = clamp(timeConfidence, 30, 90);
   
-  // Appliquer la précision adaptative - plages resserrées si confiance élevée
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P0: Incertitude alignée sur la littérature scientifique
+  // Avant: ±2% (fausse précision — ~5min sur 4h irréaliste)
+  // Maintenant: plancher ±5% conforme à l'état de l'art
+  // (Maunder 2021, Joyner & Coyle 2008, Skiba 2014)
+  // ─────────────────────────────────────────────────────────────────
   let uncertaintyPct: number;
   if (timeConfidence >= 75) {
-    uncertaintyPct = 0.02; // ±2% (~5min pour 4h)
+    uncertaintyPct = 0.05; // ±5% — plancher scientifique réaliste
   } else if (timeConfidence >= 55) {
-    uncertaintyPct = 0.04; // ±4% (~10min pour 4h)
-  } else if (timeConfidence >= 40) {
     uncertaintyPct = 0.07; // ±7%
-  } else {
+  } else if (timeConfidence >= 40) {
     uncertaintyPct = 0.10; // ±10%
+  } else {
+    uncertaintyPct = 0.15; // ±15% (données très partielles)
   }
   
   // Calculer la plage finale en utilisant l'incertitude
