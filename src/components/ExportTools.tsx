@@ -7524,7 +7524,8 @@ interface AthleteReadinessReport {
 function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadinessReport {
   const {
     potentielPhysiologique, unifiedLimiter, completude,
-    nutritionV2, nutritionEstimate, effectiveSnapshot, capInjuryRisk
+    nutritionV2, nutritionEstimate, effectiveSnapshot, capInjuryRisk,
+    compassScores
   } = payload;
 
   // 1) SCORE : provient du Potentiel Physiologique (déjà dans payload)
@@ -7543,15 +7544,20 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
     ? `Globalement tu tiens la route${limiterLabel ? `, mais ${String(limiterLabel).toLowerCase()} freine ta progression` : ""}.`
     : `Ton corps envoie des signaux clairs${limiterLabel ? ` autour de ${String(limiterLabel).toLowerCase()}` : ""}. Il faut prioriser cet axe avant de pousser.`;
 
-  // 3) WELL PREPARED : piliers ≥ 70
+  // 3) WELL PREPARED : piliers V2 sur /100 (compassScores) — source de vérité unifiée
+  //    FIX: ne plus comparer details.* (échelle /25) avec >=70 (échelle /100)
   const wellPrepared: string[] = [];
-  const details = potentielPhysiologique?.details;
-  if (details) {
-    if ((details.endurance ?? 0) >= 70) wellPrepared.push("Endurance solide — tu tiens bien la durée.");
-    if ((details.vlamax ?? 0) >= 70) wellPrepared.push("Profil énergétique adapté à ton objectif.");
-    if ((details.puissance ?? 0) >= 70) wellPrepared.push("Capacité de puissance bien développée.");
-    if ((details.fraicheur ?? 0) >= 70) wellPrepared.push("Niveau de fraîcheur favorable — corps disponible.");
-  }
+  const aerobic   = compassScores?.capaciteAerobie?.score ?? null;
+  const endurance = compassScores?.toleranceEffort?.score ?? null;
+  const metabolic = compassScores?.profilMetabolique?.score ?? null;
+  const robust    = compassScores?.robustesse?.score ?? null;
+  const STRENGTH_THRESHOLD = 70; // /100
+
+  if (endurance !== null && endurance >= STRENGTH_THRESHOLD) wellPrepared.push("Endurance solide — tu tiens bien la durée.");
+  if (metabolic !== null && metabolic >= STRENGTH_THRESHOLD) wellPrepared.push("Profil énergétique adapté à ton objectif.");
+  if (aerobic   !== null && aerobic   >= STRENGTH_THRESHOLD) wellPrepared.push("Capacité aérobie bien développée.");
+  if (robust    !== null && robust    >= STRENGTH_THRESHOLD) wellPrepared.push("Niveau de fraîcheur favorable — corps disponible.");
+
   if (wellPrepared.length === 0) {
     wellPrepared.push("Ta régularité d'entraînement reste ton meilleur atout — continue à construire la base.");
   }
@@ -7574,7 +7580,8 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
   } else if (fatigueState === "injured") {
     toWatch.push("Statut blessure actif — ne reprends pas l'intensité tant que ce n'est pas résolu.");
   }
-  if (details && (details.fraicheur ?? 100) < 50) {
+  // FIX: robustesse V2 sur /100 (était details.fraicheur sur /25 comparé à <50)
+  if (robust !== null && robust < 50) {
     toWatch.push("Fraîcheur basse — il manque de la récupération récente.");
   }
 
