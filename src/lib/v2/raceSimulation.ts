@@ -991,16 +991,21 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
   
   timeConfidence = clamp(timeConfidence, 30, 90);
   
-  // Appliquer la précision adaptative - plages resserrées si confiance élevée
+  // ─────────────────────────────────────────────────────────────────
+  // FIX P0: Incertitude alignée sur la littérature scientifique
+  // Avant: ±2% (fausse précision — ~5min sur 4h irréaliste)
+  // Maintenant: plancher ±5% conforme à l'état de l'art
+  // (Maunder 2021, Joyner & Coyle 2008, Skiba 2014)
+  // ─────────────────────────────────────────────────────────────────
   let uncertaintyPct: number;
   if (timeConfidence >= 75) {
-    uncertaintyPct = 0.02; // ±2% (~5min pour 4h)
+    uncertaintyPct = 0.05; // ±5% — plancher scientifique réaliste
   } else if (timeConfidence >= 55) {
-    uncertaintyPct = 0.04; // ±4% (~10min pour 4h)
-  } else if (timeConfidence >= 40) {
     uncertaintyPct = 0.07; // ±7%
-  } else {
+  } else if (timeConfidence >= 40) {
     uncertaintyPct = 0.10; // ±10%
+  } else {
+    uncertaintyPct = 0.15; // ±15% (données très partielles)
   }
   
   // Calculer la plage finale en utilisant l'incertitude
