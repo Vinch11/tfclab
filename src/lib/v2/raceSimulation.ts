@@ -461,6 +461,38 @@ function getDepletionRisk(fuelRisk: number): DepletionRisk {
   return 'LOW';
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MODÈLE THERMIQUE CONTINU (Périard 2021, Racinais 2015, Junge 2016)
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Pénalité thermique non-linéaire (fraction de ralentissement perf).
+ * - Continu si ambientTempC fourni (avec humidité + acclimatation)
+ * - Fallback discret sur HeatCondition sinon
+ * Modèle: Teq ≈ T + 0.3 × max(0, RH - 40)
+ *         pénalité ≈ 0.005 × max(0, Teq - 18)^1.4 ; acclimaté ×0.65
+ */
+function computeHeatPenalty(
+  ambientTempC: number | null | undefined,
+  humidityPct: number | null | undefined,
+  acclimatized: boolean | null | undefined,
+  fallbackHeat: HeatCondition
+): number {
+  if (typeof ambientTempC === 'number' && Number.isFinite(ambientTempC)) {
+    const rh = typeof humidityPct === 'number' ? Math.max(0, Math.min(100, humidityPct)) : 50;
+    const equivalentTempC = ambientTempC + 0.3 * Math.max(0, rh - 40);
+    const excess = Math.max(0, equivalentTempC - 18);
+    let penalty = 0.005 * Math.pow(excess, 1.4);
+    if (acclimatized) penalty *= 0.65;
+    return Math.min(penalty, 0.25);
+  }
+  switch (fallbackHeat) {
+    case 'high':     return 0.10;
+    case 'moderate': return 0.04;
+    case 'low':
+    default:         return 0.0;
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MODÈLE FUEL & RISK
 // ═══════════════════════════════════════════════════════════════════════════════
