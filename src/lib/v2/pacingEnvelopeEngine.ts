@@ -30,6 +30,12 @@ export type EnvelopeZone = "UNDEREXPLOITATION" | "OPTIMAL" | "TOLERATED" | "FORB
 export type EnvelopeConfidenceLevel = "HIGH" | "MEDIUM" | "LOW";
 export type PacingProfile = "sensitive" | "balanced" | "tolerant";
 
+/**
+ * Niveau d'ambition — module l'intensité soutenable (Smyth 2022).
+ * Les élites tiennent un %CS plus élevé sur une même durée que les age-groupers.
+ */
+export type AmbitionLevel = "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER";
+
 export interface PacingEnvelopeInput {
   // Sources unifiées TFCL (LECTURE SEULE)
   vlamaxEffectif: VLamaxEffectif | null;
@@ -49,6 +55,18 @@ export interface PacingEnvelopeInput {
   vma?: number | null;                   // km/h
   paceThreshold?: number | null;         // sec/km
   weight?: number | null;                // kg
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CHANTIER A — Inputs scientifiques additionnels (tous optionnels, fallback safe)
+  // ─────────────────────────────────────────────────────────────────────────────
+  /** Niveau d'ambition de l'athlète — défaut COMPETITOR si absent */
+  ambition?: AmbitionLevel | null;
+  /** Critical Power en W/kg — utilisé pour borner la cohérence physiologique */
+  cpWkg?: number | null;
+  /** W' anaérobie en J/kg — détermine la largeur W'/CP de l'enveloppe (Skiba 2024) */
+  wPrimeJkg?: number | null;
+  /** Durée prédite de la course en minutes — si fournie, utilisée à la place du fallback objectif */
+  predictedDurationMin?: number | null;
 }
 
 export type IntensityReferenceBase = 
