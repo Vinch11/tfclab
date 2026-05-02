@@ -101,7 +101,12 @@ export interface EnvelopeBoundary {
   highPct: number;     // % de la référence - limite haute optimale
   toleratedPct: number; // % de la référence - limite zone tolérée
   forbiddenPct: number; // % de la référence - début zone interdite
-  
+
+  // CHANTIER B — Largeurs asymétriques exposées (haut ≠ bas)
+  widthLow: number;     // points % entre center et low
+  widthHigh: number;    // points % entre center et high
+  asymmetryRatio: number; // widthHigh / widthLow (1 = symétrique, <1 = plafond resserré)
+
   // TFCL V2: Référence d'intensité explicite
   referenceBase: IntensityReferenceBase;
   referenceLabel: string;
