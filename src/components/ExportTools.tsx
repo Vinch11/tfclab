@@ -84,6 +84,11 @@ import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type Crit
 import { computeLactateThresholdsTFCL, TFCL_LACTATE_TABLE } from "@/lib/thresholds/computeLactateThresholdsTFCL";
 import { computeCycleIntelligence, snapshotToEngineData } from "@/lib/v2/cycleIntelligence";
 
+// ✅ CHANTIER E — Moteurs Pacing Envelope unifiés (A/B/C/D)
+import { computePacingEnvelope, type PacingEnvelopeResult, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
+import { computePacingEnvelopeRun, PACING_ZONE_COLORS } from "@/lib/v2/pacingEnvelopeRunning";
+import { computeLongDistanceEnvelope, LONG_DISTANCE_THRESHOLD_HOURS, type LongDistanceEnvelopeResult } from "@/lib/v2/pacingEnvelopeLongDistance";
+
 // =============================================
 // TYPES
 // =============================================
@@ -1977,376 +1982,523 @@ function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string 
 // BUILD PACING ENVELOPE RUNNING HTML (CAP)
 // =============================================
 
+// =============================================
+// CHANTIER E — Helpers communs Pacing Envelope
+// =============================================
+
+const RACE_OBJECTIVE_MAP_E: Record<string, RaceObjective> = {
+  "Ironman": "IM", "IM": "IM",
+  "70.3": "70.3", "Ironman 70.3": "70.3",
+  "Marathon": "Marathon",
+  "Semi-Marathon": "Semi", "Semi": "Semi",
+  "10km": "10km", "10K": "10km",
+};
+
+const RACE_DURATION_MIN_E: Record<string, number> = {
+  "Ironman": 600, "IM": 600, "70.3": 300, "Ironman 70.3": 300,
+  "Marathon": 210, "Semi-Marathon": 105, "Semi": 105,
+  "10km": 45, "10K": 45,
+};
+
+const RACE_DURATION_HOURS_E: Record<string, number> = {
+  "Ironman": 10, "IM": 10, "70.3": 5, "Ironman 70.3": 5,
+  "Marathon": 3.5, "Semi-Marathon": 1.75, "Semi": 1.75,
+  "10km": 0.75, "10K": 0.75,
+};
+
+function computePacingEnvelopeForExport(payload: ExportPayload): PacingEnvelopeResult | null {
+  const { effectiveSnapshot, effectiveRefs, vlamax, tte, potentielPhysiologique, athlete, ambition, fatmaxTFCL } = payload;
+  const objectif = athlete.goal || "Marathon";
+  const raceObjective = RACE_OBJECTIVE_MAP_E[objectif] ?? "Marathon";
+  const sport: "bike" | "run" =
+    objectif.includes("km") || objectif.includes("Marathon") || objectif.includes("Semi") || objectif.includes("Trail") || objectif.includes("Ultra")
+      ? "run" : "bike";
+
+  const ftp = effectiveRefs.ftp ?? null;
+  const weight = (effectiveSnapshot as any)?.weight_kg ?? null;
+
+  let cpWkg: number | null = null;
+  let wPrimeJkg: number | null = null;
+  try {
+    const cp = analyzeCriticalPower({
+      ...(effectiveSnapshot as any),
+      weight_kg: weight,
+      ftp,
+    } as any);
+    cpWkg = cp?.cpWkg ?? null;
+    wPrimeJkg = cp?.wprimeJkg ?? null;
+  } catch { /* fallback safe */ }
+
+  return computePacingEnvelope({
+    vlamaxEffectif: vlamax,
+    tteEffectif: tte,
+    fatmax: fatmaxTFCL,
+    potentielPhysiologiqueScore: potentielPhysiologique.score,
+    fatigueIndex: null,
+    raceObjective,
+    sport,
+    ftp: ftp ?? undefined,
+    weight: weight ?? undefined,
+    ambition: ambition?.current ?? null,
+    cpWkg,
+    wPrimeJkg,
+    predictedDurationMin: RACE_DURATION_MIN_E[objectif] ?? 180,
+  });
+}
+
+function computeLongDistanceEnvelopeForExport(
+  payload: ExportPayload,
+  baseEnvelope: PacingEnvelopeResult,
+): LongDistanceEnvelopeResult | null {
+  const { effectiveSnapshot, vlamax, tte, athlete, fatmaxTFCL, ageAdjustment } = payload;
+  const objectif = athlete.goal || "Marathon";
+  const hours = RACE_DURATION_HOURS_E[objectif] ?? 3;
+  if (hours < LONG_DISTANCE_THRESHOLD_HOURS) return null;
+
+  const sport: "run" | "bike" =
+    objectif.includes("km") || objectif.includes("Marathon") || objectif.includes("Semi") || objectif.includes("Trail") || objectif.includes("Ultra")
+      ? "run" : "bike";
+
+  const weight = (effectiveSnapshot as any)?.weight_kg ?? null;
+
+  return computeLongDistanceEnvelope({
+    baseEnvelope,
+    targetDurationHours: hours,
+    vlamaxValue: vlamax.value,
+    vlamaxConfidence: vlamax.confidence,
+    tteConfidence: tte.confidence,
+    athleteAge: ageAdjustment?.age ?? null,
+    fatmaxPct: fatmaxTFCL?.centerPctFTP ?? null,
+    historicalFadePattern: null,
+    glycogenAvailability: null,
+    bodyMassKg: weight,
+    sport,
+    plannedCarbIntakeGph: null,
+    gutTrainingLevel: null,
+    ambientTempC: null,
+    humidityPct: null,
+    heatAcclimationLevel: null,
+  });
+}
+
+// =============================================
+// BUILD PACING ENVELOPE RUNNING HTML — Chantier C unifié
+// =============================================
+
 function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
-  const { effectiveSnapshot, potentielPhysiologique, athlete, vlamax: alignedVlamax } = payload;
-  
+  const { effectiveSnapshot, athlete, vlamax: alignedVlamax, tte, ambition } = payload;
   const threshold_pace = effectiveSnapshot?.pace_threshold_sec_per_km ?? null;
-  // ✅ Utiliser la VLamax alignée du diagnostic unifié
-  const vlamax_run = alignedVlamax.value;
-  const potentielScore = potentielPhysiologique.score;
-  
+  const vo2max_run = (effectiveSnapshot as any)?.vo2max ?? null;
+  const vma = (effectiveSnapshot as any)?.vma ?? null;
+
   const goal = athlete.goal || "Marathon";
   let distance: "10K" | "HM" | "MARATHON" = "MARATHON";
   if (goal.includes("10K") || goal.includes("10k")) distance = "10K";
   else if (goal.includes("Semi") || goal.includes("HM") || goal.includes("21")) distance = "HM";
-  
-  const zones = {
-    MARATHON: { green: [88, 92], orange: [92, 95], red: [95, 105] },
-    HM: { green: [90, 94], orange: [94, 97], red: [97, 105] },
-    "10K": { green: [92, 96], orange: [96, 100], red: [100, 110] },
-  };
-  
-  const zone = zones[distance];
-  
-  const formatPace = (secPerKm: number) => {
-    const min = Math.floor(secPerKm / 60);
-    const sec = Math.round(secPerKm % 60);
-    return `${min}'${sec.toString().padStart(2, '0')}"`;
-  };
-  
-  const greenPace = threshold_pace ? {
-    min: formatPace(threshold_pace / (zone.green[1] / 100)),
-    max: formatPace(threshold_pace / (zone.green[0] / 100)),
-  } : null;
-  
-  const orangePace = threshold_pace ? {
-    min: formatPace(threshold_pace / (zone.orange[1] / 100)),
-    max: formatPace(threshold_pace / (zone.orange[0] / 100)),
-  } : null;
-  
-  const getDisciplineLevel = () => {
-    if (!vlamax_run) return { level: "MODERATE", color: "#d97706" };
-    if (vlamax_run < 0.30) return { level: "VERY_HIGH", color: "#dc2626" };
-    if (vlamax_run < 0.35) return { level: "HIGH", color: "#ea580c" };
-    if (vlamax_run < 0.45) return { level: "MODERATE", color: "#d97706" };
-    return { level: "LOW", color: "#16a34a" };
-  };
-  
-  const discipline = getDisciplineLevel();
-  
-  const scenarios = [
-    { type: "DISCIPLINED", label: "Robuste", pct: zone.green[0], successRate: 95, color: "#16a34a" },
-    { type: "OPTIMISTIC", label: "Standard", pct: (zone.green[1] + zone.orange[0]) / 2, successRate: 75, color: "#d97706" },
-    { type: "AGGRESSIVE", label: "Ambitieux", pct: zone.orange[1], successRate: 50, color: "#dc2626" },
-  ];
-  
+
   const distanceLabels: Record<string, string> = { "10K": "10 km", HM: "Semi-Marathon", MARATHON: "Marathon" };
-  
+
+  if (!threshold_pace) {
+    return `
+      <section id="pacing-envelope-running" class="section pagebreakAvoid">
+        <h2>🏃 Pacing Envelope™ CAP — ${distanceLabels[distance]}</h2>
+        <div class="alert alertWarning"><b>⚠️ Données insuffisantes :</b> Allure seuil manquante.</div>
+      </section>`;
+  }
+
+  const result = computePacingEnvelopeRun({
+    distance,
+    vlamax_run_v2: alignedVlamax.value,
+    vo2max_run,
+    threshold_pace,
+    durability_index: tte?.tte_min ?? null,
+    race_readiness_state: "GREEN",
+    race_readiness_score: payload.potentielPhysiologique.score ?? 70,
+    athlete_experience: "MEDIUM",
+    ambition: ambition?.current ?? null,
+    vma,
+    predictedDurationMin: RACE_DURATION_MIN_E[goal] ?? null,
+  });
+
+  const formatPace = (s: number) => `${Math.floor(s/60)}'${(Math.round(s%60)).toString().padStart(2,'0')}"`;
+
+  const zoneRows = result.zones.map((z) => {
+    const paceStr = z.rangeSecPerKm
+      ? `${formatPace(z.rangeSecPerKm[0])} - ${formatPace(z.rangeSecPerKm[1])}`
+      : "—";
+    const bg = z.zone === "GREEN" ? "rgba(22,163,74,0.1)" : z.zone === "ORANGE" ? "rgba(217,119,6,0.1)" : "rgba(220,38,38,0.1)";
+    const badge = z.zone === "GREEN" ? "badgeSuccess" : z.zone === "ORANGE" ? "badgeWarning" : "badgeError";
+    const riskLabel = z.zone === "GREEN" ? "Faible" : z.zone === "ORANGE" ? "Modéré" : "Élevé";
+    return `
+      <tr style="background:${bg};">
+        <td><span style="color:${z.color};font-weight:700;">${z.zone === "GREEN" ? "🟢" : z.zone === "ORANGE" ? "🟠" : "🔴"} ${z.label}</span></td>
+        <td>${z.rangePctThreshold[0]}-${z.rangePctThreshold[1]}%</td>
+        <td>${paceStr}</td>
+        <td><span class="badge ${badge}">${riskLabel}</span></td>
+        <td style="font-size:11px;">${htmlEscape(z.message)}</td>
+      </tr>`;
+  }).join("");
+
+  const scenarioCards = result.scenarios.map(s => {
+    const color = s.type === "DISCIPLINED" ? "#16a34a" : s.type === "OPTIMISTIC" ? "#d97706" : "#dc2626";
+    return `
+      <div style="padding:12px;border-radius:8px;border:1px solid ${color};background:${color}10;">
+        <div style="font-size:14px;font-weight:700;color:${color};">${htmlEscape(s.label)}</div>
+        <div class="muted" style="font-size:11px;">${htmlEscape(s.description)}</div>
+        <div style="margin-top:8px;font-size:11px;">
+          <div>1er tiers: <b>${s.pacing_profile.first_third_pct}%</b></div>
+          <div>Médian: <b>${s.pacing_profile.middle_third_pct}%</b></div>
+          <div>Final: <b>${s.pacing_profile.last_third_pct}%</b></div>
+        </div>
+        <div class="progressBar" style="height:8px;margin-top:8px;">
+          <div class="progressFill" style="width:${s.estimated_success_rate}%;background:${color};"></div>
+        </div>
+        <div style="font-size:11px;text-align:right;margin-top:4px;">Succès: ${s.estimated_success_rate}%</div>
+        ${s.risk_warning ? `<div class="muted" style="font-size:10px;margin-top:4px;color:${color};">⚠ ${htmlEscape(s.risk_warning)}</div>` : ""}
+      </div>`;
+  }).join("");
+
+  const disciplineColor =
+    result.discipline_level === "VERY_HIGH" ? "#dc2626" :
+    result.discipline_level === "HIGH" ? "#ea580c" :
+    result.discipline_level === "MODERATE" ? "#d97706" : "#16a34a";
+
   return `
     <section id="pacing-envelope-running" class="section pagebreak">
       <h2>🏃 Pacing Envelope™ CAP — ${distanceLabels[distance]}</h2>
-      
+
       <div class="alert alertInfo mb">
-        <b>📋 Concept :</b> Le Pacing Envelope™ définit la plage d'intensité AUTORISÉE sans déclencher un coût métabolique irréversible. 
-        Il délimite ce qui est <b>autorisé / risqué / interdit</b>.
+        <b>📋 Modèle continu Smyth-Skiba :</b> Zones calculées dynamiquement par le moteur unifié TFCL™ (Chantier C) — %CS f(durée, ambition) avec largeur asymétrique W'/CP.
       </div>
-      
+
       <div class="card cardHighlight">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
           <div>
             <div class="muted" style="font-size:11px;">Niveau de discipline requis</div>
-            <div style="font-size:24px;font-weight:700;color:${discipline.color};">${discipline.level}</div>
+            <div style="font-size:24px;font-weight:700;color:${disciplineColor};">${result.discipline_level}</div>
           </div>
-          ${vlamax_run && vlamax_run < 0.35 ? '<div class="badge badgeWarning">⚠️ Profil VLamax Sensible</div>' : ''}
+          <div style="text-align:center;">
+            <div class="muted" style="font-size:11px;">Confiance modèle</div>
+            <div style="font-size:18px;font-weight:600;">${Math.round(result.confidence * 100)}%</div>
+          </div>
           <div style="text-align:right;">
             <div class="muted" style="font-size:11px;">Allure seuil</div>
-            <div style="font-size:18px;font-weight:600;">${threshold_pace ? formatPace(threshold_pace) + '/km' : '—'}</div>
+            <div style="font-size:18px;font-weight:600;">${formatPace(threshold_pace)}/km</div>
           </div>
         </div>
       </div>
-      
+
       <div class="card mt">
-        <h3>🎯 Zones de Pacing</h3>
+        <h3>🎯 Zones de Pacing dynamiques</h3>
         <table>
           <thead>
             <tr><th>Zone</th><th>% Seuil</th><th>Allure</th><th>Risque</th><th>Consigne</th></tr>
           </thead>
-          <tbody>
-            <tr style="background:rgba(22,163,74,0.1);">
-              <td><span style="color:#16a34a;font-weight:700;">🟢 VERTE</span></td>
-              <td>${zone.green[0]}-${zone.green[1]}%</td>
-              <td>${greenPace ? greenPace.min + ' - ' + greenPace.max : '—'}</td>
-              <td><span class="badge badgeSuccess">Faible</span></td>
-              <td>Zone durable — première moitié</td>
-            </tr>
-            <tr style="background:rgba(217,119,6,0.1);">
-              <td><span style="color:#d97706;font-weight:700;">🟠 ORANGE</span></td>
-              <td>${zone.orange[0]}-${zone.orange[1]}%</td>
-              <td>${orangePace ? orangePace.min + ' - ' + orangePace.max : '—'}</td>
-              <td><span class="badge badgeWarning">Modéré</span></td>
-              <td>Conditionnelle — si sensations OK</td>
-            </tr>
-            <tr style="background:rgba(220,38,38,0.1);">
-              <td><span style="color:#dc2626;font-weight:700;">🔴 ROUGE</span></td>
-              <td>>${zone.red[0]}%</td>
-              <td>—</td>
-              <td><span class="badge badgeError">Élevé</span></td>
-              <td><b>INTERDITE</b> — déplétion certaine</td>
-            </tr>
-          </tbody>
+          <tbody>${zoneRows}</tbody>
         </table>
       </div>
-      
+
       <div class="card mt">
-        <h3>📊 Scénarios de Pacing</h3>
-        <div class="grid3">
-          ${scenarios.map(s => `
-            <div style="padding:12px;border-radius:8px;border:1px solid ${s.color};background:${s.color}10;">
-              <div style="font-size:14px;font-weight:700;color:${s.color};">${s.label}</div>
-              <div class="muted" style="font-size:11px;">Intensité: ${s.pct.toFixed(0)}% seuil</div>
-              <div style="margin-top:8px;">
-                <div class="progressBar" style="height:8px;">
-                  <div class="progressFill" style="width:${s.successRate}%;background:${s.color};"></div>
-                </div>
-                <div style="font-size:11px;text-align:right;margin-top:4px;">Succès: ${s.successRate}%</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
+        <h3>📊 3 Scénarios — Discipliné / Optimiste / Ambitieux</h3>
+        <div class="grid3">${scenarioCards}</div>
       </div>
-      
+
       <div class="card mt">
-        <h3>🎯 Règles de Pacing par Tiers</h3>
-        <div class="grid3">
-          <div style="padding:12px;background:rgba(22,163,74,0.1);border-radius:8px;">
-            <div style="font-weight:600;color:#16a34a;">Premier tiers (0-33%)</div>
-            <p class="muted" style="font-size:11px;margin-top:8px;"><b>Max:</b> Zone verte uniquement<br><b>Règle:</b> Conservative</p>
-          </div>
-          <div style="padding:12px;background:rgba(59,130,246,0.1);border-radius:8px;">
-            <div style="font-weight:600;color:#3b82f6;">Tiers médian (33-66%)</div>
-            <p class="muted" style="font-size:11px;margin-top:8px;"><b>Variation:</b> ±2% autorisée<br><b>Règle:</b> Installer le rythme</p>
-          </div>
-          <div style="padding:12px;background:rgba(234,88,12,0.1);border-radius:8px;">
-            <div style="font-weight:600;color:#ea580c;">Dernier tiers (66-100%)</div>
-            <p class="muted" style="font-size:11px;margin-top:8px;"><b>Push:</b> Si glycogène OK<br><b>Règle:</b> Montée progressive</p>
-          </div>
-        </div>
+        <h3>🎯 Briefing athlète</h3>
+        <div style="font-size:14px;font-weight:600;color:#1e40af;">${htmlEscape(result.briefing.key_phrase)}</div>
+        <ul style="font-size:12px;margin-top:8px;">
+          ${result.briefing.rules_max_3.map(r => `<li>${htmlEscape(r)}</li>`).join("")}
+        </ul>
+        <p class="muted" style="font-size:11px;margin-top:8px;font-style:italic;">${htmlEscape(result.briefing.message_to_remember)}</p>
       </div>
-      
-      <div class="alert alertWarning mt" style="font-size:11px;">
-        <b>⚠️ Règles non négociables :</b> Premier tiers conservateur • Ne pas dépasser le plafond • Surveiller dérive FC >5%
-        ${vlamax_run && vlamax_run < 0.35 ? '<br>• <b>Profil sensible:</b> discipline absolue' : ''}
+
+      <div class="alert alertInfo mt" style="font-size:10px;">
+        <b>📚 Méthodologie :</b> ${htmlEscape(result.methodology)}
       </div>
     </section>
   `;
 }
 
 // =============================================
-// BUILD PACING ENVELOPE HTML (Vélo/Tri)
+// BUILD PACING ENVELOPE HTML (Vélo/Tri) — Chantiers A/B unifiés
 // =============================================
 
 function buildPacingEnvelopeHTML(payload: ExportPayload): string {
-  const { effectiveRefs, vlamax, athlete } = payload;
-  
+  const env = computePacingEnvelopeForExport(payload);
+  const { effectiveRefs, vlamax } = payload;
   const ftp = effectiveRefs.ftp ?? null;
-  const vlamaxValue = vlamax.value;
-  
-  if (!ftp || !vlamaxValue) {
+
+  if (!env) {
     return `
       <section id="pacing-envelope" class="section pagebreakAvoid">
         <h2>📊 Pacing Envelope™ — Discipline Métabolique</h2>
-        <div class="alert alertWarning">
-          <b>⚠️ Données insuffisantes :</b> FTP et/ou VLamax manquants pour générer l'enveloppe de pacing.
-        </div>
-      </section>
-    `;
+        <div class="alert alertWarning"><b>⚠️ Données insuffisantes</b> pour générer l'enveloppe (FTP/VLamax/TTE manquants).</div>
+      </section>`;
   }
-  
-  // Calcul des zones basées sur VLamax
-  const safetyMargin = vlamaxValue < 0.35 ? 5 : vlamaxValue < 0.45 ? 3 : 2;
-  const greenZone = { min: 70, max: 85 - safetyMargin };
-  const orangeZone = { min: 85 - safetyMargin, max: 92 - safetyMargin };
-  const redZone = { min: 92 - safetyMargin, max: 100 };
-  
-  const greenWatts = { min: Math.round(ftp * greenZone.min / 100), max: Math.round(ftp * greenZone.max / 100) };
-  const orangeWatts = { min: Math.round(ftp * orangeZone.min / 100), max: Math.round(ftp * orangeZone.max / 100) };
-  const redWatts = { min: Math.round(ftp * redZone.min / 100), max: Math.round(ftp * redZone.max / 100) };
-  
-  const disciplineLevel = vlamaxValue < 0.30 ? "TRÈS ÉLEVÉE" : vlamaxValue < 0.40 ? "ÉLEVÉE" : vlamaxValue < 0.50 ? "MODÉRÉE" : "STANDARD";
-  const disciplineColor = vlamaxValue < 0.30 ? "#dc2626" : vlamaxValue < 0.40 ? "#ea580c" : vlamaxValue < 0.50 ? "#d97706" : "#16a34a";
-  
+
+  const b = env.boundary;
+  const wattRange = (pct: number) => ftp ? Math.round(ftp * pct / 100) : null;
+
+  const zoneRows = env.zones.map(z => {
+    const [pmin, pmax] = z.rangePct;
+    const wmin = wattRange(pmin), wmax = wattRange(pmax);
+    return `
+      <tr style="background:${z.color}15;">
+        <td><span style="color:${z.color};font-weight:700;">${z.label}</span></td>
+        <td>${pmin}-${pmax}% ${b.referenceShortLabel}</td>
+        <td>${wmin && wmax ? `${wmin}-${wmax}W` : "—"}</td>
+        <td>${z.riskLevel}/100</td>
+        <td style="font-size:11px;">${htmlEscape(z.message)}</td>
+      </tr>`;
+  }).join("");
+
+  const asymmetryLabel = b.asymmetryRatio < 0.85
+    ? `Plafond resserré (W' faible)`
+    : b.asymmetryRatio > 1.15
+      ? `Plafond ouvert (W' confortable)`
+      : `Symétrique`;
+  const asymmetryColor = b.asymmetryRatio < 0.85 ? "#dc2626" : b.asymmetryRatio > 1.15 ? "#16a34a" : "#d97706";
+
   return `
     <section id="pacing-envelope" class="section pagebreak">
-      <h2>📊 Pacing Envelope™ — Discipline Métabolique</h2>
-      
+      <h2>📊 Pacing Envelope™ — Modèle Continu Smyth-Skiba</h2>
+
       <div class="alert alertInfo mb">
-        <b>📋 Concept :</b> Le Pacing Envelope™ définit les corridors d'intensité basés sur votre VLamax. 
-        Plus votre VLamax est bas, plus le risque de déplétion glycogénique est élevé → discipline accrue requise.
+        <b>📋 Concept :</b> Enveloppe calculée par le moteur unifié TFCL™ (Chantiers A+B). Le centre suit %CS f(durée, ambition) [Smyth 2022], la largeur est asymétrique pilotée par W'/CP [Skiba 2024, Vanhatalo 2020].
       </div>
-      
-      <div class="card cardHighlight">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
-          <div>
-            <div class="muted" style="font-size:11px;">Niveau de discipline requis</div>
-            <div style="font-size:24px;font-weight:700;color:${disciplineColor};">${disciplineLevel}</div>
-            <div class="muted" style="font-size:11px;margin-top:4px;">VLamax: ${vlamaxValue.toFixed(2)} mmol/L/s</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="muted" style="font-size:11px;">FTP Référence</div>
-            <div style="font-size:18px;font-weight:600;">${ftp}W</div>
-          </div>
+
+      <div class="grid3 mb">
+        <div class="card">
+          <div class="muted" style="font-size:11px;">Profil de Pacing</div>
+          <div style="font-size:18px;font-weight:700;">${htmlEscape(env.pacingProfile.label)}</div>
+          <div class="muted" style="font-size:10px;margin-top:4px;">${htmlEscape(env.pacingProfile.description)}</div>
+        </div>
+        <div class="card">
+          <div class="muted" style="font-size:11px;">Largeur enveloppe</div>
+          <div style="font-size:18px;font-weight:700;">${env.envelopeWidth.toFixed(1)} pts</div>
+          <div class="muted" style="font-size:10px;margin-top:4px;">${htmlEscape(env.envelopeWidthLabel)}</div>
+        </div>
+        <div class="card">
+          <div class="muted" style="font-size:11px;">Confiance</div>
+          <div style="font-size:18px;font-weight:700;">${env.confidenceLevel} (${Math.round(env.confidence * 100)}%)</div>
+          <div class="muted" style="font-size:10px;margin-top:4px;">${htmlEscape(env.confidenceLabel)}</div>
         </div>
       </div>
-      
+
+      <div class="card cardHighlight">
+        <h3>🎯 Centre de l'enveloppe</h3>
+        <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:12px;text-align:center;">
+          <div>
+            <div class="muted" style="font-size:11px;">Plancher (low)</div>
+            <div style="font-size:22px;font-weight:700;color:#16a34a;">${b.lowPct}%</div>
+            ${ftp ? `<div class="muted" style="font-size:11px;">${wattRange(b.lowPct)}W</div>` : ""}
+          </div>
+          <div>
+            <div class="muted" style="font-size:11px;">Centre</div>
+            <div style="font-size:28px;font-weight:800;color:#1e40af;">${b.centerPct}%</div>
+            ${ftp ? `<div class="muted" style="font-size:11px;">${wattRange(b.centerPct)}W</div>` : ""}
+          </div>
+          <div>
+            <div class="muted" style="font-size:11px;">Plafond (high)</div>
+            <div style="font-size:22px;font-weight:700;color:#d97706;">${b.highPct}%</div>
+            ${ftp ? `<div class="muted" style="font-size:11px;">${wattRange(b.highPct)}W</div>` : ""}
+          </div>
+        </div>
+        <div style="margin-top:12px;padding:10px;background:${asymmetryColor}15;border-left:3px solid ${asymmetryColor};border-radius:4px;font-size:12px;">
+          <b style="color:${asymmetryColor};">Asymétrie W'/CP :</b> widthLow ${b.widthLow.toFixed(1)} pts | widthHigh ${b.widthHigh.toFixed(1)} pts | ratio ${b.asymmetryRatio.toFixed(2)} → <b>${asymmetryLabel}</b>
+        </div>
+        <div class="muted" style="font-size:10px;margin-top:6px;">Référence: ${htmlEscape(b.referenceLabel)}${b.isFallbackReference ? " (fallback)" : ""}</div>
+      </div>
+
       <div class="card mt">
-        <h3>🎯 Zones de Pacing</h3>
+        <h3>🎯 Zones d'intensité</h3>
         <table>
-          <thead>
-            <tr><th>Zone</th><th>% FTP</th><th>Puissance</th><th>Risque</th><th>Usage</th></tr>
-          </thead>
-          <tbody>
-            <tr style="background:rgba(22,163,74,0.1);">
-              <td><span style="color:#16a34a;font-weight:700;">🟢 SAFE</span></td>
-              <td>${greenZone.min}-${greenZone.max}%</td>
-              <td>${greenWatts.min}-${greenWatts.max}W</td>
-              <td><span class="badge badgeSuccess">Faible</span></td>
-              <td>Zone principale longue distance</td>
-            </tr>
-            <tr style="background:rgba(217,119,6,0.1);">
-              <td><span style="color:#d97706;font-weight:700;">🟠 RISK</span></td>
-              <td>${orangeZone.min}-${orangeZone.max}%</td>
-              <td>${orangeWatts.min}-${orangeWatts.max}W</td>
-              <td><span class="badge badgeWarning">Modéré</span></td>
-              <td>Conditionnelle — dernière phase</td>
-            </tr>
-            <tr style="background:rgba(220,38,38,0.1);">
-              <td><span style="color:#dc2626;font-weight:700;">🔴 FORBIDDEN</span></td>
-              <td>>${redZone.min}%</td>
-              <td>>${redWatts.min}W</td>
-              <td><span class="badge badgeError">Élevé</span></td>
-              <td><b>INTERDITE</b> — déplétion garantie</td>
-            </tr>
-          </tbody>
+          <thead><tr><th>Zone</th><th>% Réf</th><th>Watts</th><th>Risque</th><th>Message</th></tr></thead>
+          <tbody>${zoneRows}</tbody>
         </table>
       </div>
-      
+
+      ${env.readinessMessage ? `
       <div class="alert alertWarning mt" style="font-size:11px;">
-        <b>⚠️ TFCL Method™ :</b> Ces zones sont calculées dynamiquement à partir de votre profil métabolique. 
-        Un VLamax bas implique une marge de sécurité plus importante pour éviter l'effondrement glycogénique.
+        <b>⚠️ Ajustement Potentiel Physiologique :</b> ${htmlEscape(env.readinessMessage)} (-${env.readinessAdjustment} pts)
+      </div>` : ""}
+
+      ${env.missingData.length > 0 ? `
+      <div class="alert alertInfo mt" style="font-size:10px;">
+        <b>📊 Données manquantes :</b> ${env.missingData.map(htmlEscape).join(", ")}
+      </div>` : ""}
+
+      <div class="alert alertInfo mt" style="font-size:10px;">
+        <b>📚 Méthodologie :</b> ${htmlEscape(env.methodology)}
       </div>
     </section>
   `;
 }
 
 // =============================================
-// BUILD LONG DISTANCE PACING HTML
+// BUILD LONG DISTANCE PACING HTML — Chantier D unifié (glycogène/CHO/thermique)
 // =============================================
 
 function buildLongDistancePacingHTML(payload: ExportPayload): string {
-  const { effectiveRefs, vlamax, athlete, potentielPhysiologique } = payload;
-  
-  const ftp = effectiveRefs.ftp ?? null;
-  const vlamaxValue = vlamax.value;
+  const { athlete } = payload;
   const objectif = athlete.goal || "IM";
-  
-  // Déterminer si c'est un objectif longue distance
-  const isLongDistance = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong", "Ironman Kona"].includes(objectif);
-  
-  if (!isLongDistance) {
+
+  const baseEnv = computePacingEnvelopeForExport(payload);
+  if (!baseEnv) {
     return `
       <section id="long-distance-pacing" class="section pagebreakAvoid">
-        <h2>🏃 Long Distance Pacing Discipline</h2>
+        <h2>🏃 Long Distance Pacing — LDRI</h2>
+        <div class="alert alertWarning"><b>⚠️ Données insuffisantes</b> pour la modélisation longue distance.</div>
+      </section>`;
+  }
+
+  const ld = computeLongDistanceEnvelopeForExport(payload, baseEnv);
+  if (!ld) {
+    return `
+      <section id="long-distance-pacing" class="section pagebreakAvoid">
+        <h2>🏃 Long Distance Pacing — LDRI</h2>
         <div class="alert alertInfo">
-          <b>ℹ️ Note :</b> Cette section s'applique uniquement aux épreuves >90 minutes (Ironman, Marathon, Ultra).
-          L'objectif actuel (${htmlEscape(objectif)}) n'est pas classé comme longue distance.
+          <b>ℹ️ Note :</b> Section réservée aux épreuves ≥ ${LONG_DISTANCE_THRESHOLD_HOURS}h.
+          Objectif actuel (${htmlEscape(objectif)}) hors scope.
         </div>
-      </section>
-    `;
+      </section>`;
   }
-  
-  if (!ftp || !vlamaxValue) {
+
+  const ldriColor = ld.ldri.level === "critical" ? "#dc2626" : ld.ldri.level === "high" ? "#dc2626" : ld.ldri.level === "moderate" ? "#d97706" : "#16a34a";
+
+  // Glycogen Budget (Rapoport 2010)
+  const gb = ld.glycogenBudget;
+  const gbColor = gb?.status === "critical" ? "#dc2626" : gb?.status === "deficit" ? "#dc2626" : gb?.status === "tight" ? "#d97706" : "#16a34a";
+  const glycogenSection = gb ? `
+    <div class="card mt">
+      <h3>🍞 Budget Glycogène — Rapoport 2010</h3>
+      <div class="grid3">
+        <div><div class="muted" style="font-size:11px;">Réserves initiales</div><div style="font-size:18px;font-weight:700;">${gb.initialStoresG}g</div></div>
+        <div><div class="muted" style="font-size:11px;">Burn rate projeté</div><div style="font-size:18px;font-weight:700;">${gb.projectedBurnRateGph} g/h</div></div>
+        <div><div class="muted" style="font-size:11px;">Apport effectif</div><div style="font-size:18px;font-weight:700;">${gb.effectiveCarbIntakeGph} g/h</div></div>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:${gbColor}15;border-left:3px solid ${gbColor};border-radius:4px;">
+        <div style="font-size:12px;"><b style="color:${gbColor};">Statut: ${gb.status.toUpperCase()}</b> — Déplétion nette ${gb.netDepletionGph} g/h</div>
+        <div style="font-size:12px;margin-top:4px;">⏱ Temps avant zone critique (&lt;20%): <b>${gb.timeToCriticalMinutes !== null ? gb.timeToCriticalMinutes + " min" : "—"}</b></div>
+        <div style="font-size:12px;margin-top:4px;">⚠ Risque "bonking": <b>${gb.bonkRisk}/100</b></div>
+        <div class="muted" style="font-size:11px;margin-top:6px;">${htmlEscape(gb.message)}</div>
+      </div>
+    </div>` : "";
+
+  // Carb Strategy (Jeukendrup 2014)
+  const cs = ld.carbStrategy;
+  const csColor = cs?.giRiskLevel === "high" ? "#dc2626" : cs?.giRiskLevel === "moderate" ? "#d97706" : "#16a34a";
+  const carbSection = cs ? `
+    <div class="card mt">
+      <h3>🥤 Stratégie Glucidique — Jeukendrup 2014 / King 2022</h3>
+      <div class="grid3">
+        <div><div class="muted" style="font-size:11px;">Recommandé</div><div style="font-size:18px;font-weight:700;">${cs.recommendedGph} g/h</div></div>
+        <div><div class="muted" style="font-size:11px;">Max absorbable (gut)</div><div style="font-size:18px;font-weight:700;">${cs.maxAbsorbableGph} g/h</div></div>
+        <div><div class="muted" style="font-size:11px;">Ratio glucose:fructose</div><div style="font-size:18px;font-weight:700;">${cs.glucoseFructoseRatio}</div></div>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:${csColor}15;border-left:3px solid ${csColor};border-radius:4px;font-size:12px;">
+        <b style="color:${csColor};">Risque GI: ${cs.giRiskLevel.toUpperCase()}</b>
+        ${cs.plannedVsRecommendedGap !== 0 ? ` — Écart planifié vs reco: ${cs.plannedVsRecommendedGap > 0 ? "+" : ""}${cs.plannedVsRecommendedGap} g/h` : ""}
+        <div class="muted" style="font-size:11px;margin-top:4px;">${htmlEscape(cs.message)}</div>
+      </div>
+    </div>` : "";
+
+  // Thermal Stress (Périard 2021)
+  const ts = ld.thermalStress;
+  const tsColor = ts?.stressLevel === "extreme" ? "#dc2626" : ts?.stressLevel === "high" ? "#dc2626" : ts?.stressLevel === "moderate" ? "#d97706" : "#16a34a";
+  const thermalSection = ts ? `
+    <div class="card mt">
+      <h3>🌡️ Stress Thermique — Périard 2021 / Stull 2011</h3>
+      <div class="grid3">
+        <div><div class="muted" style="font-size:11px;">WBGT estimé</div><div style="font-size:18px;font-weight:700;">${ts.wbgtC.toFixed(1)}°C</div></div>
+        <div><div class="muted" style="font-size:11px;">Pénalité intensité</div><div style="font-size:18px;font-weight:700;">−${ts.intensityPenaltyPct}%</div></div>
+        <div><div class="muted" style="font-size:11px;">Hydratation supp.</div><div style="font-size:18px;font-weight:700;">+${ts.extraFluidNeedMlPerHour} mL/h</div></div>
+      </div>
+      <div style="margin-top:10px;padding:10px;background:${tsColor}15;border-left:3px solid ${tsColor};border-radius:4px;font-size:12px;">
+        <b style="color:${tsColor};">Stress: ${ts.stressLevel.toUpperCase()}</b>
+        <div class="muted" style="font-size:11px;margin-top:4px;">${htmlEscape(ts.message)}</div>
+      </div>
+    </div>` : "";
+
+  // Scénarios long distance
+  const scenarioCards = ld.scenarios.map(s => {
+    const sColor = s.color === "red" ? "#dc2626" : s.color === "orange" ? "#d97706" : "#16a34a";
     return `
-      <section id="long-distance-pacing" class="section pagebreakAvoid">
-        <h2>🏃 Long Distance Pacing Discipline</h2>
-        <div class="alert alertWarning">
-          <b>⚠️ Données insuffisantes :</b> FTP et/ou VLamax manquants.
-        </div>
-      </section>
-    `;
-  }
-  
-  // Calcul LDRI (Long Distance Risk Index)
-  const ldri = Math.max(0, Math.min(100, 
-    100 - (vlamaxValue * 100) - (potentielPhysiologique.score < 70 ? 15 : 0)
-  ));
-  const ldriColor = ldri > 70 ? "#dc2626" : ldri > 50 ? "#d97706" : "#16a34a";
-  const ldriLabel = ldri > 70 ? "ÉLEVÉ" : ldri > 50 ? "MODÉRÉ" : "FAIBLE";
-  
-  // Seuil de collapse glycogénique estimé
-  const collapseThreshold = vlamaxValue < 0.30 ? 82 : vlamaxValue < 0.40 ? 85 : 88;
-  const disciplineTarget = collapseThreshold - 5;
-  
+      <div style="padding:12px;border-radius:8px;border:1px solid ${sColor};background:${sColor}10;">
+        <div style="font-size:14px;font-weight:700;color:${sColor};">${htmlEscape(s.label)}</div>
+        <div class="muted" style="font-size:11px;">Intensité moy: <b>${s.avgIntensityPct}%</b></div>
+        <div class="muted" style="font-size:11px;margin-top:4px;">Décroissance fin: <b>−${s.lateRaceDecayPct}%</b></div>
+        <div class="muted" style="font-size:10px;margin-top:6px;font-style:italic;">"${htmlEscape(s.earlyFeeling)}" → "${htmlEscape(s.lateFeeling)}"</div>
+        <div style="font-size:11px;margin-top:6px;color:${sColor};font-weight:600;">${htmlEscape(s.outcome)}</div>
+      </div>`;
+  }).join("");
+
+  const p = ld.penalties;
+
   return `
     <section id="long-distance-pacing" class="section pagebreak">
-      <h2>🏃 Long Distance Pacing Discipline — LDRI</h2>
-      
+      <h2>🏃 Long Distance Pacing — Glycogène / CHO / Thermique</h2>
+
       <div class="alert alertInfo mb">
-        <b>📋 Concept LDRI :</b> Le Long Distance Risk Index quantifie le risque d'effondrement glycogénique 
-        sur les épreuves >90 minutes. Il intègre le profil VLamax et l'état de préparation.
+        <b>📋 Modèle Chantier D :</b> Module longue distance enrichi avec budget glycogène (Rapoport 2010), stratégie CHO (Jeukendrup 2014), stress thermique WBGT (Périard 2021).
       </div>
-      
+
       <div class="card" style="border-color:${ldriColor};background:${ldriColor}10;">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
           <div>
             <div class="muted" style="font-size:11px;text-transform:uppercase;">Long Distance Risk Index</div>
-            <div style="font-size:42px;font-weight:800;color:${ldriColor};">${ldri.toFixed(0)}</div>
-            <div style="font-size:14px;font-weight:600;color:${ldriColor};">Risque ${ldriLabel}</div>
+            <div style="font-size:42px;font-weight:800;color:${ldriColor};">${ld.ldri.score}</div>
+            <div style="font-size:14px;font-weight:600;color:${ldriColor};">${htmlEscape(ld.ldri.label)}</div>
           </div>
           <div style="text-align:center;padding:16px;background:white;border-radius:8px;">
-            <div class="muted" style="font-size:11px;">Objectif</div>
-            <div style="font-size:16px;font-weight:600;">${htmlEscape(objectif)}</div>
+            <div class="muted" style="font-size:11px;">Durée cible</div>
+            <div style="font-size:16px;font-weight:600;">${ld.targetDurationHours.toFixed(1)}h</div>
+            <div class="muted" style="font-size:10px;">${htmlEscape(objectif)}</div>
           </div>
         </div>
+        <div class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(ld.ldri.message)}</div>
       </div>
-      
+
       <div class="grid2 mt">
         <div class="card">
-          <h3>⚠️ Seuil Glycogen Collapse</h3>
-          <div style="font-size:28px;font-weight:700;color:#dc2626;">${collapseThreshold}% FTP</div>
-          <p class="muted" style="font-size:11px;margin-top:8px;">
-            Au-delà de ce seuil pendant une durée prolongée, le risque d'effondrement métabolique devient significatif.
-          </p>
-          <div class="alert alertError mt" style="font-size:10px;">
-            <b>❌ NE JAMAIS DÉPASSER</b> ce seuil pendant les 2 premiers tiers de la course.
-          </div>
+          <h3>🚨 Seuil Glycogen Collapse</h3>
+          <div style="font-size:28px;font-weight:700;color:#dc2626;">${ld.glycogenThreshold.thresholdPct}% ${baseEnv.boundary.referenceShortLabel}</div>
+          <p class="muted" style="font-size:11px;margin-top:4px;">Max ${ld.glycogenThreshold.maxDurationMinutes}min au-dessus</p>
+          <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(ld.glycogenThreshold.explanation)}</p>
         </div>
-        
         <div class="card">
           <h3>🎯 Cible Discipline</h3>
-          <div style="font-size:28px;font-weight:700;color:#16a34a;">${disciplineTarget}% FTP</div>
-          <p class="muted" style="font-size:11px;margin-top:8px;">
-            Cible recommandée pour le premier tiers de la course (marge de sécurité de 5% sous le seuil).
-          </p>
-          <div class="alert alertSuccess mt" style="font-size:10px;">
-            <b>✅ ZONE SÛRE</b> — Préserve les réserves glycogéniques pour le final.
-          </div>
+          <div style="font-size:28px;font-weight:700;color:#16a34a;">${ld.disciplineBuffer.disciplineTargetPct}% ${baseEnv.boundary.referenceShortLabel}</div>
+          <p class="muted" style="font-size:11px;margin-top:4px;">Marge: ${ld.disciplineBuffer.bufferMarginPct} pts sous le plafond</p>
+          <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(ld.disciplineBuffer.message)}</p>
         </div>
       </div>
-      
+
+      ${glycogenSection}
+      ${carbSection}
+      ${thermalSection}
+
       <div class="card mt">
-        <h3>📈 Stratégie de Pacing Long Distance</h3>
-        <div class="grid3" style="gap:8px;">
-          <div style="padding:12px;background:rgba(22,163,74,0.1);border-radius:8px;text-align:center;">
-            <div style="font-weight:600;color:#16a34a;">Premier tiers</div>
-            <div style="font-size:24px;font-weight:700;color:#16a34a;">${disciplineTarget}%</div>
-            <p class="muted" style="font-size:10px;">Conservateur</p>
-          </div>
-          <div style="padding:12px;background:rgba(217,119,6,0.1);border-radius:8px;text-align:center;">
-            <div style="font-weight:600;color:#d97706;">Deuxième tiers</div>
-            <div style="font-size:24px;font-weight:700;color:#d97706;">${disciplineTarget + 2}%</div>
-            <p class="muted" style="font-size:10px;">Stable</p>
-          </div>
-          <div style="padding:12px;background:rgba(234,88,12,0.1);border-radius:8px;text-align:center;">
-            <div style="font-weight:600;color:#ea580c;">Dernier tiers</div>
-            <div style="font-size:24px;font-weight:700;color:#ea580c;">Push si OK</div>
-            <p class="muted" style="font-size:10px;">Si glycogène préservé</p>
-          </div>
-        </div>
+        <h3>📈 3 Scénarios Long Distance</h3>
+        <div class="grid3">${scenarioCards}</div>
       </div>
-      
+
+      <div class="card mt">
+        <h3>📉 Pénalités appliquées</h3>
+        <table style="font-size:12px;">
+          <tr><td>Pénalité durée</td><td><b>−${p.durationPenaltyPct}%</b></td></tr>
+          <tr><td>Pénalité glycogène</td><td><b>−${p.glycogenPenaltyPct}%</b></td></tr>
+          <tr><td>Pénalité thermique (Chantier D)</td><td><b>−${p.thermalPenaltyPct}%</b></td></tr>
+          <tr><td>Pénalité déficit CHO (Chantier D)</td><td><b>−${p.carbDeficitPenaltyPct}%</b></td></tr>
+          <tr style="background:#fef3c7;font-weight:700;"><td>Total réduction plafond</td><td>−${p.totalReductionPct}%</td></tr>
+        </table>
+      </div>
+
       <div class="alert alertWarning mt" style="font-size:11px;">
-        <b>💡 TFCL Philosophy :</b> "Pour cet athlète, aller plus fort tôt RÉDUIRA la performance finale. 
-        Le succès longue distance se décide AVANT la mi-course."
+        <b>💡 Message coach :</b> ${htmlEscape(ld.keyMessages.coachWarning)}
+      </div>
+      <div class="alert alertInfo mt" style="font-size:11px;">
+        <b>🗣 Message athlète :</b> ${htmlEscape(ld.keyMessages.athleteMessage)}
       </div>
     </section>
   `;
@@ -7526,7 +7678,32 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     profilMetabolique: profilMetaboliqueHTML,
     vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
     indicateurs: indicateursHTML,
-    pacingEnvelope: buildPacingEnvelopeHTML(payload),
+    pacingEnvelope: (() => {
+      const goal = payload.athlete.goal || "";
+      const isRun = goal.includes("km") || goal.includes("Marathon") || goal.includes("Semi") || goal.includes("Trail") || goal.includes("Ultra");
+      const hours = RACE_DURATION_HOURS_E[goal] ?? 0;
+      const isLong = hours >= LONG_DISTANCE_THRESHOLD_HOURS;
+      const main = isRun ? buildPacingEnvelopeRunningHTML(payload) : buildPacingEnvelopeHTML(payload);
+      const ld = isLong ? buildLongDistancePacingHTML(payload) : "";
+      const refs = `
+        <section id="pacing-envelope-references" class="section pagebreakAvoid">
+          <div class="card" style="background:#f8fafc;font-size:10px;">
+            <h3 style="font-size:12px;margin-bottom:6px;">📚 Références scientifiques — Modèle Pacing Envelope™ (Chantiers A→D)</h3>
+            <ul style="font-size:10px;line-height:1.5;padding-left:18px;margin:0;color:#475569;">
+              <li><b>Smyth & Muniz-Pumares (2022)</b> — %CS soutenable décroît log-linéairement avec la durée (25M marathons Strava).</li>
+              <li><b>Jones & Vanhatalo (2017)</b> — Critical Power / W' framework, vCS/vVMA ≈ 0.90.</li>
+              <li><b>Skiba et al. (2012, 2024)</b> — W'-balance dynamics, asymétrie ceiling/floor, reconstitution exponentielle.</li>
+              <li><b>Vanhatalo et al. (2020)</b> — Anaerobic reserve race-day, modulation plafond.</li>
+              <li><b>Maunder et al. (2021)</b> — Domain-based intensity prescription.</li>
+              <li><b>Rapoport (2010)</b> — Modèle de réserves glycogéniques (~6.5 g/kg) et burn rate.</li>
+              <li><b>Jeukendrup (2014) / King (2022)</b> — Intake CHO 30-120 g/h, ratio glucose:fructose, gut training.</li>
+              <li><b>Périard et al. (2021) / Stull (2011)</b> — Stress thermique WBGT, pénalité d'intensité, besoins hydriques.</li>
+              <li><b>Mader & Heck (1991)</b> — Modèle MLSS, courbe lactate/intensité.</li>
+            </ul>
+          </div>
+        </section>`;
+      return main + ld + refs;
+    })(),
     potentielPhysiologiqueRunning: buildPotentielPhysiologiqueRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
