@@ -214,6 +214,26 @@ export function StaffReport({
     ftp: ftp ?? null,
   });
 
+  // CHANTIER A — Récupération CP/W' pour le modèle continu de Pacing Envelope
+  const cpForPacing = (() => {
+    try {
+      return analyzeCriticalPower({
+        ...(snapshot as any),
+        weight_kg: poids ?? (snapshot as any)?.weight_kg ?? null,
+        ftp: ftp ?? null,
+      });
+    } catch {
+      return null;
+    }
+  })();
+
+  // Durée prédite (réutilisée plus bas pour LongDistance)
+  const _raceDurationMapPre: Record<string, number> = {
+    "Ironman": 600, "IM": 600, "70.3": 300, "Ironman 70.3": 300,
+    "Marathon": 210, "Semi-Marathon": 105, "Semi": 105, "10km": 45,
+  };
+  const predictedDurationMinForPacing = _raceDurationMapPre[objectif] ?? 180;
+
   const pacingEnvelope = computePacingEnvelope({
     vlamaxEffectif,
     tteEffectif,
@@ -224,6 +244,11 @@ export function StaffReport({
     sport: pacingSport,
     ftp: ftp ?? undefined,
     weight: poids ?? undefined,
+    // CHANTIER A — modèle continu Smyth/Skiba
+    ambition: ambition ?? null,
+    cpWkg: cpForPacing?.cpWkg ?? null,
+    wPrimeJkg: cpForPacing?.wprimeJkg ?? null,
+    predictedDurationMin: predictedDurationMinForPacing,
   });
 
   // ✅ LONG DISTANCE PACING - Extension pour épreuves > 90min

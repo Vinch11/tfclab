@@ -146,6 +146,13 @@ export default function RaceSimulationPage() {
   }, [disponibilite]);
   
   const envelope = React.useMemo(() => {
+    // CHANTIER A — durée prédite par objectif (fallback simple si pas de prediction TTE)
+    const durationFallback: Record<string, number> = {
+      "IM": 600, "70.3": 300, "Marathon": 210, "Semi": 105, "10km": 45,
+    };
+    const cpWkg = activeSnapshot?.ftp && activeSnapshot?.weight_kg
+      ? (activeSnapshot.ftp * 0.95) / activeSnapshot.weight_kg
+      : null;
     return computePacingEnvelope({
       vlamaxEffectif,
       tteEffectif,
@@ -158,8 +165,13 @@ export default function RaceSimulationPage() {
       vma: activeSnapshot?.vma,
       paceThreshold: activeSnapshot?.pace_threshold_sec_per_km,
       weight: activeSnapshot?.weight_kg,
+      // CHANTIER A
+      ambition: (selectedAthlete as any)?.ambition ?? null,
+      cpWkg,
+      wPrimeJkg: null,
+      predictedDurationMin: durationFallback[raceObjective] ?? 180,
     });
-  }, [vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, latestCheckin, raceObjective, discipline, activeSnapshot]);
+  }, [vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
   
   const rules = React.useMemo(() => {
     if (!envelope) return null;

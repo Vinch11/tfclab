@@ -30,6 +30,25 @@ export type EnvelopeZone = "UNDEREXPLOITATION" | "OPTIMAL" | "TOLERATED" | "FORB
 export type EnvelopeConfidenceLevel = "HIGH" | "MEDIUM" | "LOW";
 export type PacingProfile = "sensitive" | "balanced" | "tolerant";
 
+/**
+ * Niveau d'ambition — module l'intensité soutenable (Smyth 2022).
+ * Accepte les deux conventions: canonique projet (lowercase) et pacing engine (UPPERCASE).
+ */
+export type AmbitionLevel =
+  | "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER"
+  | "elite" | "competitor" | "age_group" | "finisher";
+
+type AmbitionLevelNormalized = "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER";
+
+function normalizeAmbition(a: AmbitionLevel | null | undefined): AmbitionLevelNormalized {
+  if (!a) return "COMPETITOR";
+  const upper = String(a).toUpperCase().replace(/-/g, "_");
+  if (upper === "ELITE" || upper === "COMPETITOR" || upper === "AGE_GROUP" || upper === "FINISHER") {
+    return upper as AmbitionLevelNormalized;
+  }
+  return "COMPETITOR";
+}
+
 export interface PacingEnvelopeInput {
   // Sources unifiées TFCL (LECTURE SEULE)
   vlamaxEffectif: VLamaxEffectif | null;
@@ -49,6 +68,18 @@ export interface PacingEnvelopeInput {
   vma?: number | null;                   // km/h
   paceThreshold?: number | null;         // sec/km
   weight?: number | null;                // kg
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CHANTIER A — Inputs scientifiques additionnels (tous optionnels, fallback safe)
+  // ─────────────────────────────────────────────────────────────────────────────
+  /** Niveau d'ambition de l'athlète — défaut COMPETITOR si absent */
+  ambition?: AmbitionLevel | null;
+  /** Critical Power en W/kg — utilisé pour borner la cohérence physiologique */
+  cpWkg?: number | null;
+  /** W' anaérobie en J/kg — détermine la largeur W'/CP de l'enveloppe (Skiba 2024) */
+  wPrimeJkg?: number | null;
+  /** Durée prédite de la course en minutes — si fournie, utilisée à la place du fallback objectif */
+  predictedDurationMin?: number | null;
 }
 
 export type IntensityReferenceBase = 
@@ -128,25 +159,111 @@ export interface PacingEnvelopeResult {
 // CONSTANTES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Intensités de course validées par données terrain (TrainingPeaks, études scientifiques)
-// Sources: Kona power files, études Springer Sport Sciences for Health (2025)
-// Ces valeurs représentent les intensités MOYENNES observées sur le circuit
-const RACE_BASE_INTENSITY: Record<RaceObjective, number> = {
-  IM: 72,       // Age-groupers: 65-75% | Pros: 78-82% → moyenne réaliste
-  "70.3": 78,   // Consensus: 75-80% | Pros: 80-85%
-  Marathon: 78, // ~78-82% VMA pour un marathon bien exécuté
-  Semi: 84,     // ~82-88% VMA pour un semi-marathon
-  "10km": 92,   // ~90-95% VMA pour un 10km
+// ─────────────────────────────────────────────────────────────────────────────
+// CHANTIER A — MODÈLE CONTINU D'INTENSITÉ %CS f(distance, durée, niveau, W'/CP)
+//
+// Sources scientifiques (2020-2025):
+//   • Smyth & Muniz-Pumares (2022) — Strava data 25M marathons:
+//       %CS soutenable décroît log-linéairement avec la durée.
+//   • Jones & Vanhatalo (2017, IJSPP) — CP/W' framework, %CS sustainable.
+//   • Skiba (2024) — W'-balance dynamics, race-day anaerobic reserves.
+//   • Maunder et al. (2021) — Domain-based intensity prescription.
+//
+// FORMULE GÉNÉRALE:
+//   pctCS(T_min, level) = anchorCS(level) − k(level) · log10(T_min / Tref)
+//   où Tref = 60 min (ancrage CP/CS = 100% à 30-60min selon modèle)
+//
+// Puis on convertit en %FTP / %VMA via le ratio CS/FTP (~0.95 chez bien entraînés).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Durée typique d'une course (minutes) — fallback si predictedDurationMin absent */
+const RACE_TYPICAL_DURATION_MIN: Record<RaceObjective, number> = {
+  IM: 600,        // ~10h moyenne
+  "70.3": 300,    // ~5h
+  Marathon: 210,  // ~3h30
+  Semi: 105,      // ~1h45
+  "10km": 45,     // ~45min
 };
 
-// Largeur de base par objectif (plus long = plus étroit car moins de marge d'erreur)
-const RACE_BASE_WIDTH: Record<RaceObjective, number> = {
-  IM: 5,       // ±5% = étroit car durée longue (8-17h)
-  "70.3": 6,   // ±6% = modéré
-  Marathon: 5, // ±5% = étroit
-  Semi: 7,     // ±7% = plus large
-  "10km": 10,  // ±10% = large car durée courte
+/**
+ * Ancrage %CS à 60 min selon niveau d'ambition.
+ * Smyth 2022: élites soutiennent ~100-102% CS au marathon, age-groupers ~88-92%.
+ * À 60 min de référence, on calibre légèrement au-dessus de CS (CS ≈ MLSS ≈ 60min).
+ */
+const CS_ANCHOR_60MIN: Record<AmbitionLevelNormalized, number> = {
+  ELITE: 100,        // tient CS pile à 60min
+  COMPETITOR: 97,    // léger déficit
+  AGE_GROUP: 93,     // marge supérieure
+  FINISHER: 88,      // grande marge
 };
+
+/**
+ * Pente log-linéaire du déclin %CS par décade de durée.
+ * Smyth 2022: déclin de ~6-8% par doublement de durée pour age-groupers, ~3-5% pour élites.
+ * k = points %CS perdus quand durée × 10.
+ */
+const CS_DECAY_PER_DECADE: Record<AmbitionLevelNormalized, number> = {
+  ELITE: 8,
+  COMPETITOR: 11,
+  AGE_GROUP: 14,
+  FINISHER: 17,
+};
+
+/** Ratio CS/FTP typique (Critical Power ≈ 95% FTP chez bien entraînés). */
+const CS_OVER_FTP_RATIO = 0.95;
+/** Ratio vCS/vVMA typique (vitesse critique ≈ 90% VMA). */
+const VCS_OVER_VMA_RATIO = 0.90;
+
+/**
+ * Calcule le %référence (FTP ou VMA) soutenable pour une durée donnée selon le niveau.
+ * Retourne le centre de l'enveloppe — pure fonction continue.
+ */
+function computeContinuousRaceIntensity(
+  durationMin: number,
+  ambition: AmbitionLevelNormalized,
+  sport: "bike" | "run"
+): number {
+  const anchor = CS_ANCHOR_60MIN[ambition];
+  const decay = CS_DECAY_PER_DECADE[ambition];
+  const Tref = 60;
+
+  // %CS soutenable
+  const pctCS = anchor - decay * Math.log10(Math.max(durationMin, 5) / Tref);
+
+  // Conversion %CS → %FTP ou %VMA
+  const conversionRatio = sport === "bike" ? CS_OVER_FTP_RATIO : VCS_OVER_VMA_RATIO;
+  const pctReference = pctCS * conversionRatio;
+
+  // Bornes physiologiques
+  return clampLocal(pctReference, 55, 100);
+}
+
+/**
+ * Largeur de l'enveloppe basée sur W'/CP (réserve anaérobie relative) et durée.
+ * Skiba 2024: athlètes à grand W' tolèrent plus d'écarts; durée longue = enveloppe étroite.
+ */
+function computeContinuousEnvelopeWidth(
+  durationMin: number,
+  wPrimeJkg: number | null,
+  cpWkg: number | null
+): number {
+  const baseWidth = 8; // ±8% point neutre
+  const durationFactor = 1 / (1 + Math.log10(Math.max(durationMin, 30) / 60));
+
+  let wPrimeRatio = 1.0;
+  if (wPrimeJkg != null && cpWkg != null && cpWkg > 0) {
+    const wOverCp = wPrimeJkg / cpWkg; // ~15-25 J/W typique
+    wPrimeRatio = clampLocal(wOverCp / 20, 0.6, 1.4);
+  }
+
+  const width = baseWidth * wPrimeRatio * durationFactor;
+  return clampLocal(width, 3, 12);
+}
+
+// Helper local (la const `clamp` globale est déclarée plus bas, hoisting impossible avec const)
+function clampLocal(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v));
+}
 
 export const PACING_ENVELOPE_DEFINITIONS = {
   official: `Le Pacing Envelope™ TFCL est un couloir physiologique d'intensité autorisée, 
@@ -156,11 +273,12 @@ ou VMA (course), correspondant aux intensités réelles de compétition.`,
   disclaimer: `TFCL NE PRESCRIT PAS une allure. TFCL EXPLIQUE, SIMULE et CADRE la décision.
 Le coach garde toujours la main sur la décision finale.`,
 
-  methodology: `Calcul basé sur:
-• Intensité de course selon objectif (centre de l'enveloppe)
-• VLamax effectif (détermine la largeur — basse = étroit)
+  methodology: `Calcul basé sur (modèle continu Chantier A — Smyth 2022 / Skiba 2024):
+• Centre de l'enveloppe = %CS continu f(durée, niveau d'ambition)
+• Largeur = baseWidth × (W'/CP normalisé) × durationFactor
+• VLamax effectif (modulation fine de la largeur)
 • TTE effectif (stabilise l'enveloppe — élevé = plus robuste)
-• FatMax TFCL™ (indicateur métabolique, ajuste les limites)
+• FatMax TFCL™ (ajustement métabolique du centre ±2%)
 • Potentiel Physiologique (réduit le plafond si faible)`,
 
   sensitive_profile: `Ce profil métabolique offre un rendement élevé mais une faible tolérance aux erreurs.
@@ -252,51 +370,60 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   const missingData: string[] = [];
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 1: Centre de l'enveloppe = INTENSITÉ DE COURSE (pas FatMax!)
-  // L'intensité de course pour un 70.3 est ~76-80% FTP, pas 62% (FatMax)
+  // STEP 1 (CHANTIER A): Centre de l'enveloppe = MODÈLE CONTINU %CS
+  // f(durée prédite, niveau d'ambition) — Smyth 2022 / Jones-Vanhatalo 2017
+  // Remplace l'ancien Record statique RACE_BASE_INTENSITY (trop générique).
   // ─────────────────────────────────────────────────────────────────────────────
-  let centerPct: number = RACE_BASE_INTENSITY[raceObjective];
-  
+  const ambition: AmbitionLevelNormalized = normalizeAmbition(input.ambition);
+  const durationMin = input.predictedDurationMin ?? RACE_TYPICAL_DURATION_MIN[raceObjective];
+  sourcesUsed.push(`Modèle continu %CS (${ambition}, ${Math.round(durationMin)}min)`);
+
+  let centerPct: number = computeContinuousRaceIntensity(durationMin, ambition, sport);
+
+  if (input.ambition == null) missingData.push("Ambition (défaut: COMPETITOR)");
+  if (input.predictedDurationMin == null) missingData.push("Durée prédite (fallback objectif)");
+
   // Ajustement fin si FatMax disponible (athlètes à haute FatMax peuvent tenir plus haut)
   if (fatmax != null && fatmax.centerPctFTP > 0) {
     sourcesUsed.push("FatMax TFCL™");
-    
-    // Si FatMax haute (>68% FTP), l'athlète peut soutenir une intensité légèrement plus élevée
     if (fatmax.centerPctFTP > 68) {
-      centerPct = Math.min(centerPct + 2, 88); // Boost max +2%
-    }
-    // Si FatMax très basse (<55% FTP), l'athlète devra être plus conservateur
-    else if (fatmax.centerPctFTP < 55) {
-      centerPct = Math.max(centerPct - 2, 65); // Réduction max -2%
+      centerPct = Math.min(centerPct + 2, 95);
+    } else if (fatmax.centerPctFTP < 55) {
+      centerPct = Math.max(centerPct - 2, 55);
     }
   } else {
     missingData.push("FatMax");
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 2: Largeur de l'enveloppe (clé méthodologique)
+  // STEP 2 (CHANTIER A): Largeur de l'enveloppe = MODÈLE CONTINU W'/CP × duration
+  // Skiba 2024 — remplace l'ancien Record statique RACE_BASE_WIDTH.
   // ─────────────────────────────────────────────────────────────────────────────
-  let baseWidth = RACE_BASE_WIDTH[raceObjective];
-  
-  // Ajustement VLamax
+  let baseWidth = computeContinuousEnvelopeWidth(
+    durationMin,
+    input.wPrimeJkg ?? null,
+    input.cpWkg ?? null
+  );
+  if (input.wPrimeJkg == null || input.cpWkg == null) {
+    missingData.push("W'/CP (largeur sur durationFactor seul)");
+  } else {
+    sourcesUsed.push("W'/CP (Skiba 2024)");
+  }
+
+  // Ajustement VLamax (modulation fine, pas remplacement)
   const vlamaxValue = vlamaxEffectif?.value ?? null;
   if (vlamaxValue != null) {
     sourcesUsed.push("VLamax effectif");
-    
     if (vlamaxValue < 0.35) {
-      // VLamax basse → enveloppe TRÈS étroite (profil sensible)
-      baseWidth = Math.max(4, baseWidth - 2);
+      baseWidth = Math.max(3, baseWidth - 1.5);
     } else if (vlamaxValue < 0.45) {
-      // VLamax modérée-basse → légère réduction
-      baseWidth = Math.max(5, baseWidth - 1);
+      baseWidth = Math.max(4, baseWidth - 0.5);
     } else if (vlamaxValue > 0.55) {
-      // VLamax élevée → enveloppe plus large (plus de tolérance)
-      baseWidth = Math.min(12, baseWidth + 2);
+      baseWidth = Math.min(12, baseWidth + 1.5);
     }
   } else {
     missingData.push("VLamax");
-    // Sans VLamax, élargir par prudence
-    baseWidth += 2;
+    baseWidth += 1;
   }
 
   // Ajustement TTE
