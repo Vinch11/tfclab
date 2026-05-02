@@ -32,9 +32,22 @@ export type PacingProfile = "sensitive" | "balanced" | "tolerant";
 
 /**
  * Niveau d'ambition — module l'intensité soutenable (Smyth 2022).
- * Les élites tiennent un %CS plus élevé sur une même durée que les age-groupers.
+ * Accepte les deux conventions: canonique projet (lowercase) et pacing engine (UPPERCASE).
  */
-export type AmbitionLevel = "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER";
+export type AmbitionLevel =
+  | "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER"
+  | "elite" | "competitor" | "age_group" | "finisher";
+
+type AmbitionLevelNormalized = "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER";
+
+function normalizeAmbition(a: AmbitionLevel | null | undefined): AmbitionLevelNormalized {
+  if (!a) return "COMPETITOR";
+  const upper = String(a).toUpperCase().replace(/-/g, "_");
+  if (upper === "ELITE" || upper === "COMPETITOR" || upper === "AGE_GROUP" || upper === "FINISHER") {
+    return upper as AmbitionLevelNormalized;
+  }
+  return "COMPETITOR";
+}
 
 export interface PacingEnvelopeInput {
   // Sources unifiées TFCL (LECTURE SEULE)
