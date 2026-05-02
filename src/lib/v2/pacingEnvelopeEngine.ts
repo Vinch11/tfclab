@@ -659,6 +659,12 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   } else {
     envelopeWidthLabel = "Large (tolérance élevée)";
   }
+  // CHANTIER B — annotation d'asymétrie si plafond significativement plus serré
+  if (boundary.asymmetryRatio < 0.7) {
+    envelopeWidthLabel += ` · Plafond resserré (asym ${boundary.asymmetryRatio})`;
+  } else if (boundary.asymmetryRatio > 1.3) {
+    envelopeWidthLabel += ` · Plafond élargi (asym ${boundary.asymmetryRatio})`;
+  }
 
   return {
     boundary,
