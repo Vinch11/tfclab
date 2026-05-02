@@ -187,11 +187,11 @@ const READINESS_MODIFIERS: Record<ReadinessState, {
 const PACING_TEXTS = {
   disclaimer: `TFCL ne cherche pas l'allure parfaite, mais l'allure la plus robuste jusqu'à la ligne.`,
   
-  methodology: `Le Pacing Envelope™ CAP est calculé à partir de:
-• Distance cible et durée estimée
-• VLamax CAP (détermine la tolérance aux erreurs)
-• Durabilité d'allure (stabilité sur la distance)
-• Potentiel Physiologique (capacité du jour à exprimer le potentiel)`,
+  methodology: `Le Pacing Envelope™ CAP est calculé via le moteur unifié TFCL™ (Chantier C):
+• Centre = modèle continu %CS f(durée, ambition) — Smyth & Muniz-Pumares 2022
+• Largeur asymétrique haut/bas — Skiba 2024 (W'-balance dynamics)
+• Conversion %VMA → %seuil via vCS/vVMA = 0.90 (Jones-Vanhatalo 2017)
+• Modulation VLamax CAP, Durabilité, Potentiel Physiologique`,
   
   lorang_quote: `"Si tu te sens facile au km 5, TU NE CHANGES RIEN. La course commence après le km 30."`,
   
