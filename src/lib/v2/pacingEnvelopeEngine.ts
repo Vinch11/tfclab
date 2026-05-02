@@ -374,7 +374,7 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   // f(durée prédite, niveau d'ambition) — Smyth 2022 / Jones-Vanhatalo 2017
   // Remplace l'ancien Record statique RACE_BASE_INTENSITY (trop générique).
   // ─────────────────────────────────────────────────────────────────────────────
-  const ambition: AmbitionLevel = input.ambition ?? "COMPETITOR";
+  const ambition: AmbitionLevelNormalized = normalizeAmbition(input.ambition);
   const durationMin = input.predictedDurationMin ?? RACE_TYPICAL_DURATION_MIN[raceObjective];
   sourcesUsed.push(`Modèle continu %CS (${ambition}, ${Math.round(durationMin)}min)`);
 
