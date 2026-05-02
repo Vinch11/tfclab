@@ -230,28 +230,28 @@ export function NutritionPredictiveChart({
               <AreaChart data={data} margin={{ top: 10, right: 50, bottom: 30, left: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
                 
-                {/* Zone de risque digestif */}
+                {/* Zone au-dessus du plafond toléré */}
                 <ReferenceArea
-                  y1={digestiveThreshold}
-                  y2={150}
+                  y1={cap}
+                  y2={yMax}
                   fill="hsl(var(--destructive))"
                   fillOpacity={0.12}
                 />
-                
-                {/* Ligne seuil digestif */}
+
+                {/* Ligne plafond gut-trained */}
                 <ReferenceLine
-                  y={digestiveThreshold}
+                  y={cap}
                   stroke="hsl(var(--destructive))"
                   strokeWidth={1.5}
                   strokeDasharray="5 5"
-                  label={{ 
-                    value: `Seuil`, 
-                    position: 'insideTopRight', 
+                  label={{
+                    value: `Plafond ${cap} g/h`,
+                    position: 'insideTopRight',
                     fontSize: 10,
-                    fill: 'hsl(var(--destructive))'
+                    fill: 'hsl(var(--destructive))',
                   }}
                 />
-                
+
                 <XAxis
                   dataKey="intensity"
                   tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
@@ -260,15 +260,15 @@ export function NutritionPredictiveChart({
                   stroke="hsl(var(--border))"
                 />
                 <YAxis
-                  domain={[0, 150]}
+                  domain={[0, yMax]}
                   tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                   tickFormatter={(val) => `${val}`}
                   stroke="hsl(var(--border))"
                   width={30}
                 />
-                
-                <Tooltip content={<CustomTooltip sport={sport} />} />
-                
+
+                <Tooltip content={<CustomTooltip cap={cap} />} />
+
                 {/* Plage acceptable (entre min et max) */}
                 <Area
                   type="monotone"
