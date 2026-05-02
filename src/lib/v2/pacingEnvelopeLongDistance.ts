@@ -213,10 +213,19 @@ export interface LongDistanceEnvelopeResult {
   /** Scénarios */
   scenarios: PacingScenario[];
   
+  /** CHANTIER D — Modèles physiologiques étendus */
+  glycogenBudget: GlycogenBudgetModel | null;
+  carbStrategy: CarbStrategyModel | null;
+  thermalStress: ThermalStressModel | null;
+  
   /** Pénalités appliquées */
   penalties: {
     durationPenaltyPct: number;
     glycogenPenaltyPct: number;
+    /** CHANTIER D — pénalité thermique additionnelle */
+    thermalPenaltyPct: number;
+    /** CHANTIER D — pénalité déficit CHO additionnelle */
+    carbDeficitPenaltyPct: number;
     totalReductionPct: number;
   };
   
