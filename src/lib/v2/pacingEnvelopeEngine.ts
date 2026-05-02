@@ -80,6 +80,12 @@ export interface PacingEnvelopeInput {
   wPrimeJkg?: number | null;
   /** Durée prédite de la course en minutes — si fournie, utilisée à la place du fallback objectif */
   predictedDurationMin?: number | null;
+  /**
+   * CHANTIER B — Fraction de W' projetée disponible pour le finish (0-1).
+   * Pilote l'asymétrie: si réserve faible → plafond se resserre, plancher inchangé.
+   * Défaut 0.5 si non fourni (réserve modérée typique).
+   */
+  wPrimeBalanceRaceDay?: number | null;
 }
 
 export type IntensityReferenceBase = 
@@ -95,7 +101,12 @@ export interface EnvelopeBoundary {
   highPct: number;     // % de la référence - limite haute optimale
   toleratedPct: number; // % de la référence - limite zone tolérée
   forbiddenPct: number; // % de la référence - début zone interdite
-  
+
+  // CHANTIER B — Largeurs asymétriques exposées (haut ≠ bas)
+  widthLow: number;     // points % entre center et low
+  widthHigh: number;    // points % entre center et high
+  asymmetryRatio: number; // widthHigh / widthLow (1 = symétrique, <1 = plafond resserré)
+
   // TFCL V2: Référence d'intensité explicite
   referenceBase: IntensityReferenceBase;
   referenceLabel: string;
@@ -239,15 +250,31 @@ function computeContinuousRaceIntensity(
 }
 
 /**
- * Largeur de l'enveloppe basée sur W'/CP (réserve anaérobie relative) et durée.
- * Skiba 2024: athlètes à grand W' tolèrent plus d'écarts; durée longue = enveloppe étroite.
+ * CHANTIER B — Largeur ASYMÉTRIQUE de l'enveloppe (haut ≠ bas)
+ *
+ * Skiba 2024 + Vanhatalo 2020:
+ *  - Le PLANCHER (low) varie peu avec la durée: même un IM peut descendre de ~5-8 pts sans
+ *    risque (sous-exploitation ≠ rupture).
+ *  - Le PLAFOND (high) se resserre fortement sur les longues durées car chaque % au-dessus
+ *    de CS consomme du W' à un coût exponentiel (W'-balance dynamics).
+ *  - La fraction de W'-balance projetée au finish module l'agressivité tolérée.
+ *
+ * Formule:
+ *   widthLow  = baseLow  × wPrimeRatio × sqrt(durationFactor)   (décroît lentement)
+ *   widthHigh = baseHigh × wPrimeRatio × durationFactor × wBalRaceDay (décroît + balance)
+ *
+ * Résultat typique:
+ *   - 10km elite (45min): low=±7, high=±9   (large vers le haut, surge possible)
+ *   - IM age-group (10h): low=±6, high=±2.5 (plafond très resserré, cap strict)
  */
-function computeContinuousEnvelopeWidth(
+function computeAsymmetricEnvelopeWidth(
   durationMin: number,
   wPrimeJkg: number | null,
-  cpWkg: number | null
-): number {
-  const baseWidth = 8; // ±8% point neutre
+  cpWkg: number | null,
+  wPrimeBalanceRaceDay: number | null
+): { low: number; high: number } {
+  const baseLow = 7;
+  const baseHigh = 8;
   const durationFactor = 1 / (1 + Math.log10(Math.max(durationMin, 30) / 60));
 
   let wPrimeRatio = 1.0;
@@ -256,8 +283,18 @@ function computeContinuousEnvelopeWidth(
     wPrimeRatio = clampLocal(wOverCp / 20, 0.6, 1.4);
   }
 
-  const width = baseWidth * wPrimeRatio * durationFactor;
-  return clampLocal(width, 3, 12);
+  // Race-day W'-balance: 1.0 = pleine réserve, 0 = épuisé. Défaut 0.5.
+  const wBalDay = clampLocal(wPrimeBalanceRaceDay ?? 0.5, 0.1, 1.0);
+  // Module entre 0.7 et 1.15 (réserve faible resserre, pleine réserve élargit modérément)
+  const wBalFactor = 0.7 + 0.45 * wBalDay;
+
+  const widthLow = baseLow * wPrimeRatio * Math.sqrt(durationFactor);
+  const widthHigh = baseHigh * wPrimeRatio * durationFactor * wBalFactor;
+
+  return {
+    low: clampLocal(widthLow, 3, 12),
+    high: clampLocal(widthHigh, 2, 12),
+  };
 }
 
 // Helper local (la const `clamp` globale est déclarée plus bas, hoisting impossible avec const)
@@ -396,46 +433,54 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 2 (CHANTIER A): Largeur de l'enveloppe = MODÈLE CONTINU W'/CP × duration
-  // Skiba 2024 — remplace l'ancien Record statique RACE_BASE_WIDTH.
+  // STEP 2 (CHANTIER B): Largeur ASYMÉTRIQUE — plafond ≠ plancher
+  // Skiba 2024 + Vanhatalo 2020 — pilotée par W'/CP, durée et W'-balance race-day.
   // ─────────────────────────────────────────────────────────────────────────────
-  let baseWidth = computeContinuousEnvelopeWidth(
+  let { low: widthLow, high: widthHigh } = computeAsymmetricEnvelopeWidth(
     durationMin,
     input.wPrimeJkg ?? null,
-    input.cpWkg ?? null
+    input.cpWkg ?? null,
+    input.wPrimeBalanceRaceDay ?? null
   );
   if (input.wPrimeJkg == null || input.cpWkg == null) {
     missingData.push("W'/CP (largeur sur durationFactor seul)");
   } else {
-    sourcesUsed.push("W'/CP (Skiba 2024)");
+    sourcesUsed.push("W'/CP asymétrique (Skiba 2024)");
+  }
+  if (input.wPrimeBalanceRaceDay != null) {
+    sourcesUsed.push(`W'-balance race-day (${Math.round(input.wPrimeBalanceRaceDay * 100)}%)`);
   }
 
-  // Ajustement VLamax (modulation fine, pas remplacement)
+  // Modulation VLamax — affecte SURTOUT le plafond (capacité de surge glycolytique)
   const vlamaxValue = vlamaxEffectif?.value ?? null;
   if (vlamaxValue != null) {
     sourcesUsed.push("VLamax effectif");
     if (vlamaxValue < 0.35) {
-      baseWidth = Math.max(3, baseWidth - 1.5);
+      // Profil sensible: plafond resserré agressivement, plancher peu touché
+      widthHigh = Math.max(2, widthHigh - 1.5);
+      widthLow = Math.max(3, widthLow - 0.5);
     } else if (vlamaxValue < 0.45) {
-      baseWidth = Math.max(4, baseWidth - 0.5);
+      widthHigh = Math.max(3, widthHigh - 0.5);
     } else if (vlamaxValue > 0.55) {
-      baseWidth = Math.min(12, baseWidth + 1.5);
+      // Profil tolérant: élargir surtout le plafond
+      widthHigh = Math.min(12, widthHigh + 1.5);
+      widthLow = Math.min(12, widthLow + 0.5);
     }
   } else {
     missingData.push("VLamax");
-    baseWidth += 1;
+    widthHigh += 0.5;
+    widthLow += 0.5;
   }
 
-  // Ajustement TTE
+  // Modulation TTE — TTE élevé stabilise (resserre symétriquement)
   if (tteEffectif && tteEffectif.source !== "unknown") {
     sourcesUsed.push("TTE effectif");
-    
     if (tteEffectif.tte_min >= 55) {
-      // TTE élevé → plus stable, enveloppe légèrement plus étroite
-      baseWidth = Math.max(4, baseWidth - 1);
+      widthHigh = Math.max(2, widthHigh - 0.5);
+      widthLow = Math.max(3, widthLow - 0.5);
     } else if (tteEffectif.tte_min < 40) {
-      // TTE faible → moins robuste, élargir par prudence
-      baseWidth = Math.min(12, baseWidth + 1);
+      widthHigh = Math.min(12, widthHigh + 1);
+      widthLow = Math.min(12, widthLow + 0.5);
     }
   } else {
     missingData.push("TTE");
@@ -469,13 +514,20 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 5: Calcul des limites
+  // STEP 5: Calcul des limites — utilise widthLow/widthHigh asymétriques
   // ─────────────────────────────────────────────────────────────────────────────
-  const effectiveWidth = Math.max(3, baseWidth);
-  const lowPct = clamp(centerPct - effectiveWidth, 50, 90);
-  const highPct = clamp(centerPct + effectiveWidth - readinessAdjustment, lowPct + 2, 95);
-  const toleratedPct = clamp(highPct + 10, highPct + 5, 100);
+  // Readiness/fatigue n'affectent QUE le plafond (cohérent avec readinessMessage)
+  const effectiveWidthLow = Math.max(3, widthLow);
+  const effectiveWidthHigh = Math.max(2, widthHigh - readinessAdjustment);
+  const lowPct = clamp(centerPct - effectiveWidthLow, 50, 90);
+  const highPct = clamp(centerPct + effectiveWidthHigh, lowPct + 2, 100);
+  const toleratedPct = clamp(highPct + 8, highPct + 4, 105);
   const forbiddenPct = toleratedPct;
+  // Largeur "globale" conservée pour rétro-compat (label envelopeWidth)
+  const effectiveWidth = (effectiveWidthLow + effectiveWidthHigh) / 2;
+  // baseWidth conservé pour rétro-compat dans les éventuels logs
+  const baseWidth = effectiveWidth;
+  void baseWidth;
 
   // TFCL V2: Référence d'intensité explicite
   // Le pacing est TOUJOURS exprimé en % de FTP (vélo) ou VMA (course)
@@ -503,6 +555,12 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
     highPct: Math.round(highPct),
     toleratedPct: Math.round(toleratedPct),
     forbiddenPct: Math.round(forbiddenPct),
+    // CHANTIER B — largeurs asymétriques exposées
+    widthLow: Math.round(effectiveWidthLow * 10) / 10,
+    widthHigh: Math.round(effectiveWidthHigh * 10) / 10,
+    asymmetryRatio: effectiveWidthLow > 0
+      ? Math.round((effectiveWidthHigh / effectiveWidthLow) * 100) / 100
+      : 1,
     referenceBase,
     referenceLabel,
     referenceShortLabel,
@@ -600,6 +658,12 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
     envelopeWidthLabel = "Modéré (discipline standard)";
   } else {
     envelopeWidthLabel = "Large (tolérance élevée)";
+  }
+  // CHANTIER B — annotation d'asymétrie si plafond significativement plus serré
+  if (boundary.asymmetryRatio < 0.7) {
+    envelopeWidthLabel += ` · Plafond resserré (asym ${boundary.asymmetryRatio})`;
+  } else if (boundary.asymmetryRatio > 1.3) {
+    envelopeWidthLabel += ` · Plafond élargi (asym ${boundary.asymmetryRatio})`;
   }
 
   return {
