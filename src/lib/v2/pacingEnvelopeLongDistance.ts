@@ -118,6 +118,55 @@ export interface GlycogenCollapseThreshold {
   explanation: string;
 }
 
+// ─── CHANTIER D — Modèles physiologiques étendus ─────────────────────────────
+
+export interface GlycogenBudgetModel {
+  /** Réserve initiale estimée (g) — Rapoport 2010, ajustée masse */
+  initialStoresG: number;
+  /** Coût glucidique projeté à l'intensité ambitieuse (g/h) */
+  projectedBurnRateGph: number;
+  /** Apport glucidique exogène effectivement absorbable (g/h) */
+  effectiveCarbIntakeGph: number;
+  /** Taux net de déplétion (g/h) — burn − intake */
+  netDepletionGph: number;
+  /** Temps avant atteinte de la zone critique <20% (min) */
+  timeToCriticalMinutes: number | null;
+  /** Risque de "bonking" 0-100 */
+  bonkRisk: number;
+  /** Statut */
+  status: "safe" | "tight" | "deficit" | "critical";
+  /** Message synthétique */
+  message: string;
+}
+
+export interface CarbStrategyModel {
+  /** g/h recommandés selon durée + ambition */
+  recommendedGph: number;
+  /** g/h max physiologiquement absorbables (gut training) */
+  maxAbsorbableGph: number;
+  /** Ratio glucose:fructose recommandé */
+  glucoseFructoseRatio: string;
+  /** Écart entre planifié et recommandé (g/h, négatif = sous-doser) */
+  plannedVsRecommendedGap: number;
+  /** Niveau de risque GI */
+  giRiskLevel: "low" | "moderate" | "high";
+  /** Message */
+  message: string;
+}
+
+export interface ThermalStressModel {
+  /** WBGT estimé (°C) */
+  wbgtC: number;
+  /** Niveau de stress thermique */
+  stressLevel: "neutral" | "moderate" | "high" | "extreme";
+  /** Pénalité de puissance/allure recommandée (%) */
+  intensityPenaltyPct: number;
+  /** Augmentation des besoins fluides (mL/h supplémentaires) */
+  extraFluidNeedMlPerHour: number;
+  /** Message */
+  message: string;
+}
+
 export type PacingScenarioType = "disciplined" | "ambitious" | "aggressive";
 
 export interface PacingScenario {
