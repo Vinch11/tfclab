@@ -80,6 +80,12 @@ export interface PacingEnvelopeInput {
   wPrimeJkg?: number | null;
   /** Durée prédite de la course en minutes — si fournie, utilisée à la place du fallback objectif */
   predictedDurationMin?: number | null;
+  /**
+   * CHANTIER B — Fraction de W' projetée disponible pour le finish (0-1).
+   * Pilote l'asymétrie: si réserve faible → plafond se resserre, plancher inchangé.
+   * Défaut 0.5 si non fourni (réserve modérée typique).
+   */
+  wPrimeBalanceRaceDay?: number | null;
 }
 
 export type IntensityReferenceBase = 
