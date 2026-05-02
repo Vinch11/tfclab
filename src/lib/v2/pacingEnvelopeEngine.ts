@@ -146,26 +146,6 @@ export interface PacingEnvelopeResult {
 // CONSTANTES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Intensités de course validées par données terrain (TrainingPeaks, études scientifiques)
-// Sources: Kona power files, études Springer Sport Sciences for Health (2025)
-// Ces valeurs représentent les intensités MOYENNES observées sur le circuit
-const RACE_BASE_INTENSITY: Record<RaceObjective, number> = {
-  IM: 72,       // Age-groupers: 65-75% | Pros: 78-82% → moyenne réaliste
-  "70.3": 78,   // Consensus: 75-80% | Pros: 80-85%
-  Marathon: 78, // ~78-82% VMA pour un marathon bien exécuté
-  Semi: 84,     // ~82-88% VMA pour un semi-marathon
-  "10km": 92,   // ~90-95% VMA pour un 10km
-};
-
-// Largeur de base par objectif (plus long = plus étroit car moins de marge d'erreur)
-const RACE_BASE_WIDTH: Record<RaceObjective, number> = {
-  IM: 5,       // ±5% = étroit car durée longue (8-17h)
-  "70.3": 6,   // ±6% = modéré
-  Marathon: 5, // ±5% = étroit
-  Semi: 7,     // ±7% = plus large
-  "10km": 10,  // ±10% = large car durée courte
-};
-
 // ─────────────────────────────────────────────────────────────────────────────
 // CHANTIER A — MODÈLE CONTINU D'INTENSITÉ %CS f(distance, durée, niveau, W'/CP)
 //
@@ -241,17 +221,13 @@ function computeContinuousRaceIntensity(
   const conversionRatio = sport === "bike" ? CS_OVER_FTP_RATIO : VCS_OVER_VMA_RATIO;
   const pctReference = pctCS * conversionRatio;
 
-  // Bornes physiologiques (un IM ne peut pas être <55%, un 10km ne peut pas être >100%)
-  return clamp(pctReference, 55, 100);
+  // Bornes physiologiques
+  return clampLocal(pctReference, 55, 100);
 }
 
 /**
  * Largeur de l'enveloppe basée sur W'/CP (réserve anaérobie relative) et durée.
  * Skiba 2024: athlètes à grand W' tolèrent plus d'écarts; durée longue = enveloppe étroite.
- *
- * Formule:  width = baseWidth × (W'/CP normalisé) × durationFactor
- *   - durationFactor = 1 / (1 + log10(T/60)) → diminue avec la durée
- *   - W'/CP: typique 15-25 J/W chez triathlètes, plus haut chez sprinters
  */
 function computeContinuousEnvelopeWidth(
   durationMin: number,
@@ -264,12 +240,36 @@ function computeContinuousEnvelopeWidth(
   let wPrimeRatio = 1.0;
   if (wPrimeJkg != null && cpWkg != null && cpWkg > 0) {
     const wOverCp = wPrimeJkg / cpWkg; // ~15-25 J/W typique
-    wPrimeRatio = clamp(wOverCp / 20, 0.6, 1.4); // normalisé autour de 20 J/W
+    wPrimeRatio = clampLocal(wOverCp / 20, 0.6, 1.4);
   }
 
   const width = baseWidth * wPrimeRatio * durationFactor;
-  return clamp(width, 3, 12);
+  return clampLocal(width, 3, 12);
 }
+
+// Helper local (la const `clamp` globale est déclarée plus bas, hoisting impossible avec const)
+function clampLocal(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v));
+}
+
+export const PACING_ENVELOPE_DEFINITIONS = {
+  official: `Le Pacing Envelope™ TFCL est un couloir physiologique d'intensité autorisée, 
+basé sur le profil métabolique de l'athlète. Les intensités sont exprimées en % de FTP (vélo) 
+ou VMA (course), correspondant aux intensités réelles de compétition.`,
+
+  disclaimer: `TFCL NE PRESCRIT PAS une allure. TFCL EXPLIQUE, SIMULE et CADRE la décision.
+Le coach garde toujours la main sur la décision finale.`,
+
+  methodology: `Calcul basé sur (modèle continu Chantier A — Smyth 2022 / Skiba 2024):
+• Centre de l'enveloppe = %CS continu f(durée, niveau d'ambition)
+• Largeur = baseWidth × (W'/CP normalisé) × durationFactor
+• VLamax effectif (modulation fine de la largeur)
+• TTE effectif (stabilise l'enveloppe — élevé = plus robuste)
+• FatMax TFCL™ (ajustement métabolique du centre ±2%)
+• Potentiel Physiologique (réduit le plafond si faible)`,
+
+  sensitive_profile: `Ce profil métabolique offre un rendement élevé mais une faible tolérance aux erreurs.
+La discipline prime sur la puissance instantanée.`,
 
   lorang_philosophy: `"Les 30 premières minutes sont NON NÉGOCIABLES." — Philosophie Dan Lorang
 L'erreur précoce coûte plus qu'elle ne rapporte. Favoriser TOUJOURS les negative splits.`,
