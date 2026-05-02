@@ -7683,10 +7683,26 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       const isRun = goal.includes("km") || goal.includes("Marathon") || goal.includes("Semi") || goal.includes("Trail") || goal.includes("Ultra");
       const hours = RACE_DURATION_HOURS_E[goal] ?? 0;
       const isLong = hours >= LONG_DISTANCE_THRESHOLD_HOURS;
-      // Sport-specific envelope + long-distance module if applicable
       const main = isRun ? buildPacingEnvelopeRunningHTML(payload) : buildPacingEnvelopeHTML(payload);
       const ld = isLong ? buildLongDistancePacingHTML(payload) : "";
-      return main + ld;
+      const refs = `
+        <section id="pacing-envelope-references" class="section pagebreakAvoid">
+          <div class="card" style="background:#f8fafc;font-size:10px;">
+            <h3 style="font-size:12px;margin-bottom:6px;">📚 Références scientifiques — Modèle Pacing Envelope™ (Chantiers A→D)</h3>
+            <ul style="font-size:10px;line-height:1.5;padding-left:18px;margin:0;color:#475569;">
+              <li><b>Smyth & Muniz-Pumares (2022)</b> — %CS soutenable décroît log-linéairement avec la durée (25M marathons Strava).</li>
+              <li><b>Jones & Vanhatalo (2017)</b> — Critical Power / W' framework, vCS/vVMA ≈ 0.90.</li>
+              <li><b>Skiba et al. (2012, 2024)</b> — W'-balance dynamics, asymétrie ceiling/floor, reconstitution exponentielle.</li>
+              <li><b>Vanhatalo et al. (2020)</b> — Anaerobic reserve race-day, modulation plafond.</li>
+              <li><b>Maunder et al. (2021)</b> — Domain-based intensity prescription.</li>
+              <li><b>Rapoport (2010)</b> — Modèle de réserves glycogéniques (~6.5 g/kg) et burn rate.</li>
+              <li><b>Jeukendrup (2014) / King (2022)</b> — Intake CHO 30-120 g/h, ratio glucose:fructose, gut training.</li>
+              <li><b>Périard et al. (2021) / Stull (2011)</b> — Stress thermique WBGT, pénalité d'intensité, besoins hydriques.</li>
+              <li><b>Mader & Heck (1991)</b> — Modèle MLSS, courbe lactate/intensité.</li>
+            </ul>
+          </div>
+        </section>`;
+      return main + ld + refs;
     })(),
     potentielPhysiologiqueRunning: buildPotentielPhysiologiqueRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
