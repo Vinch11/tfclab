@@ -555,6 +555,12 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
     highPct: Math.round(highPct),
     toleratedPct: Math.round(toleratedPct),
     forbiddenPct: Math.round(forbiddenPct),
+    // CHANTIER B — largeurs asymétriques exposées
+    widthLow: Math.round(effectiveWidthLow * 10) / 10,
+    widthHigh: Math.round(effectiveWidthHigh * 10) / 10,
+    asymmetryRatio: effectiveWidthLow > 0
+      ? Math.round((effectiveWidthHigh / effectiveWidthLow) * 100) / 100
+      : 1,
     referenceBase,
     referenceLabel,
     referenceShortLabel,
