@@ -12,6 +12,7 @@ import type { EnergyDriftResult, EnergyDriftLevel } from "./energyDrift";
 // =============================================
 
 export type DigestiveTolerance = "LOW" | "MEDIUM" | "HIGH";
+export type GutTrainingLevel = "untrained" | "developing" | "trained" | "elite";
 export type NutritionRiskBadge = "OK" | "WATCH" | "HIGH";
 
 export interface NutritionPhase {
@@ -70,6 +71,8 @@ export interface ComputeNutritionTimingParams {
   sport: "velo" | "cap";
   digestiveTolerance: DigestiveTolerance;
   energyDrift: EnergyDriftResult;
+  /** F1 — Niveau d'entraînement digestif (gut training). Default: "trained" */
+  gutTrainingLevel?: GutTrainingLevel;
 }
 
 // =============================================
@@ -127,11 +130,35 @@ function getToleranceAdjustment(tolerance: DigestiveTolerance): number {
   }
 }
 
-function clampCarbs(carbs: number, sport: "velo" | "cap"): number {
-  if (sport === "velo") {
-    return Math.max(50, Math.min(110, carbs));
-  }
-  return Math.max(35, Math.min(85, carbs));
+// F1 — Plafonds glucides selon gut training (King 2022, Viribay 2020, Costa 2023)
+// Vélo : 60 / 90 / 120 / 150 g/h ; CAP -25 % (Pfeiffer 2012)
+const GUT_CAP_BIKE: Record<GutTrainingLevel, number> = {
+  untrained: 60,
+  developing: 90,
+  trained: 120,
+  elite: 150,
+};
+function getCarbCap(sport: "velo" | "cap", level: GutTrainingLevel): number {
+  const base = GUT_CAP_BIKE[level];
+  return sport === "cap" ? Math.round(base * 0.75) : base;
+}
+function getCarbFloor(sport: "velo" | "cap"): number {
+  return sport === "velo" ? 30 : 25;
+}
+
+function clampCarbs(carbs: number, sport: "velo" | "cap", gutLevel: GutTrainingLevel): number {
+  return Math.max(getCarbFloor(sport), Math.min(getCarbCap(sport, gutLevel), carbs));
+}
+
+// F2 — Multiplicateur durée-dépendant sur la cible glucidique
+// Basé sur la fraction exogène recommandée (Stellingwerff 2014, Burke 2019)
+// La base sport (70 vélo / 55 cap) est calibrée pour ~3h ; on la pondère par durée.
+function getDurationMultiplier(durationMin: number): number {
+  if (durationMin < 60) return 0.55;   // <1h : sucres optionnels
+  if (durationMin < 90) return 0.70;   // 60-90 min : 30-50 g/h
+  if (durationMin < 180) return 1.00;  // 90-180 min : cible nominale
+  if (durationMin < 360) return 1.20;  // 3-6h : +20 % (glycogen sparing)
+  return 1.35;                          // >6h : +35 % (ultra)
 }
 
 function getEstimatedDuration(objectif: string, sport: "velo" | "cap"): number {
@@ -401,7 +428,8 @@ function computeRiskBadge(params: {
 
 export function computeNutritionTiming(params: ComputeNutritionTimingParams): NutritionTimingResult {
   const { vlamax, tteMin, tteTarget, objectif, sport, digestiveTolerance, energyDrift } = params;
-  
+  const gutTrainingLevel: GutTrainingLevel = params.gutTrainingLevel ?? "trained";
+
   // Vérification données insuffisantes
   const missingFields: string[] = [];
   if (vlamax === null) missingFields.push("VLamax");
@@ -441,14 +469,18 @@ export function computeNutritionTiming(params: ComputeNutritionTimingParams): Nu
   const vlamaxAdj = getVLamaxCarbFactor(vlamax!);
   const objectifAdj = getObjectifAdjustment(objectif, sport);
   const toleranceAdj = getToleranceAdjustment(digestiveTolerance);
-  
-  let carbsTarget = baseCarbs + vlamaxAdj + objectifAdj + toleranceAdj;
-  carbsTarget = clampCarbs(carbsTarget, sport);
-  
-  // Range (±10 ou ±5 selon tolérance)
+
+  // F2 — Modulation durée-dépendante (Stellingwerff 2014, Burke 2019)
+  const durationMin = getEstimatedDuration(objectif, sport);
+  const durationMult = getDurationMultiplier(durationMin);
+
+  let carbsTarget = (baseCarbs + vlamaxAdj + objectifAdj + toleranceAdj) * durationMult;
+  carbsTarget = Math.round(clampCarbs(carbsTarget, sport, gutTrainingLevel));
+
+  // Range (±10 ou ±5 selon tolérance), bornées par les caps gut
   const range = digestiveTolerance === "LOW" ? 5 : 10;
-  const carbsMin = Math.max(sport === "velo" ? 50 : 35, carbsTarget - range);
-  const carbsMax = Math.min(sport === "velo" ? 110 : 85, carbsTarget + range);
+  const carbsMin = Math.max(getCarbFloor(sport), carbsTarget - range);
+  const carbsMax = Math.min(getCarbCap(sport, gutTrainingLevel), carbsTarget + range);
   
   // Génération des phases
   const phases = generatePhases({
