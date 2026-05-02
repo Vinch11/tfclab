@@ -71,6 +71,8 @@ export interface ComputeNutritionTimingParams {
   sport: "velo" | "cap";
   digestiveTolerance: DigestiveTolerance;
   energyDrift: EnergyDriftResult;
+  /** F1 — Niveau d'entraînement digestif (gut training). Default: "trained" */
+  gutTrainingLevel?: GutTrainingLevel;
 }
 
 // =============================================
