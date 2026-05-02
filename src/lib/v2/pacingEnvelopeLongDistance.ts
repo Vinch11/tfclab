@@ -50,6 +50,22 @@ export interface LongDistanceInput {
   
   /** Disponibilité glycogène modélisée (g, optionnel) */
   glycogenAvailability: number | null;
+
+  // ─── CHANTIER D — Contexte physiologique étendu ────────────────────────────
+  /** Poids athlète (kg) — pour modèles glycogène & CHO */
+  bodyMassKg?: number | null;
+  /** Apport glucidique planifié pendant la course (g/h) */
+  plannedCarbIntakeGph?: number | null;
+  /** Niveau d'entraînement du gut (1=naïf, 2=moyen, 3=trained 90+ g/h) */
+  gutTrainingLevel?: 1 | 2 | 3 | null;
+  /** Température ambiante prévue (°C) */
+  ambientTempC?: number | null;
+  /** Humidité relative prévue (%) */
+  humidityPct?: number | null;
+  /** Niveau d'acclimatation chaleur (0=non, 1=partiel, 2=acclimaté 10-14j) */
+  heatAcclimationLevel?: 0 | 1 | 2 | null;
+  /** Sport (impact thermique différent run vs bike) */
+  sport?: "run" | "bike" | "swim" | null;
 }
 
 export interface HistoricalFade {
