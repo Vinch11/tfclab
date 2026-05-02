@@ -130,11 +130,35 @@ function getToleranceAdjustment(tolerance: DigestiveTolerance): number {
   }
 }
 
-function clampCarbs(carbs: number, sport: "velo" | "cap"): number {
-  if (sport === "velo") {
-    return Math.max(50, Math.min(110, carbs));
-  }
-  return Math.max(35, Math.min(85, carbs));
+// F1 — Plafonds glucides selon gut training (King 2022, Viribay 2020, Costa 2023)
+// Vélo : 60 / 90 / 120 / 150 g/h ; CAP -25 % (Pfeiffer 2012)
+const GUT_CAP_BIKE: Record<GutTrainingLevel, number> = {
+  untrained: 60,
+  developing: 90,
+  trained: 120,
+  elite: 150,
+};
+function getCarbCap(sport: "velo" | "cap", level: GutTrainingLevel): number {
+  const base = GUT_CAP_BIKE[level];
+  return sport === "cap" ? Math.round(base * 0.75) : base;
+}
+function getCarbFloor(sport: "velo" | "cap"): number {
+  return sport === "velo" ? 30 : 25;
+}
+
+function clampCarbs(carbs: number, sport: "velo" | "cap", gutLevel: GutTrainingLevel): number {
+  return Math.max(getCarbFloor(sport), Math.min(getCarbCap(sport, gutLevel), carbs));
+}
+
+// F2 — Multiplicateur durée-dépendant sur la cible glucidique
+// Basé sur la fraction exogène recommandée (Stellingwerff 2014, Burke 2019)
+// La base sport (70 vélo / 55 cap) est calibrée pour ~3h ; on la pondère par durée.
+function getDurationMultiplier(durationMin: number): number {
+  if (durationMin < 60) return 0.55;   // <1h : sucres optionnels
+  if (durationMin < 90) return 0.70;   // 60-90 min : 30-50 g/h
+  if (durationMin < 180) return 1.00;  // 90-180 min : cible nominale
+  if (durationMin < 360) return 1.20;  // 3-6h : +20 % (glycogen sparing)
+  return 1.35;                          // >6h : +35 % (ultra)
 }
 
 function getEstimatedDuration(objectif: string, sport: "velo" | "cap"): number {
