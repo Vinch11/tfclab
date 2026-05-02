@@ -292,6 +292,9 @@ export default function RunningProfilePage() {
       race_readiness_state: potentielPhysiologique.readiness_state,
       race_readiness_score: potentielPhysiologique.readiness_score,
       athlete_experience: "MEDIUM",
+      // CHANTIER C — pont moteur unifié
+      ambition: (currentAthlete as any)?.ambition ?? null,
+      vma: effectiveCloudSnapshot?.vma ?? null,
     });
   }, [potentielPhysiologique, raceType, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, currentAthlete]);
 
