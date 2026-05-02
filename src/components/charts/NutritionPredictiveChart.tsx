@@ -219,6 +219,16 @@ export function NutritionPredictiveChart({
             </p>
           </div>
         )}
+
+        {/* Bandeau contexte F1 : gut training + durée */}
+        <div className="mb-2 flex flex-wrap gap-2 text-[11px]">
+          <span className="px-2 py-0.5 rounded bg-primary/10 text-primary">
+            Gut training : {gutLabel[gutTrainingLevel]} → plafond {cap} g/h
+          </span>
+          <span className="px-2 py-0.5 rounded bg-muted text-muted-foreground">
+            Durée : {durationLabel} → fraction exo {Math.round(exoFraction * 100)} %
+          </span>
+        </div>
         
         <div className="h-48 sm:h-64 flex">
           {/* Y-axis label externe */}
