@@ -21,6 +21,7 @@
 
 import type { PotentielRun, ReadinessState } from "./potentielTypes";
 import type { RunningPhysioProfile } from "./runningDoubleLoop";
+import { computePacingEnvelope, type AmbitionLevel } from "./pacingEnvelopeEngine";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
