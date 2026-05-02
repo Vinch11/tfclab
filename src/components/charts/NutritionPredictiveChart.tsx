@@ -326,13 +326,21 @@ export function NutritionPredictiveChart({
         </div>
         
         {staffMode && (
-          <div className="mt-3 p-2 bg-muted/50 rounded-lg text-xs text-muted-foreground">
+          <div className="mt-3 p-2 bg-muted/50 rounded-lg text-xs text-muted-foreground space-y-1">
             <p>
-              <strong>Modèle:</strong> Mader | 
-              <strong> VLamax:</strong> {vlamaxValue?.toFixed(2) || "—"} | 
-              <strong> VO₂max:</strong> {vo2max ?? "est."} | 
-              <strong> Poids:</strong> {weightKg ?? 70}kg | 
+              <strong>Modèle:</strong> Mader-Heck |
+              <strong> VLamax:</strong> {vlamaxValue?.toFixed(2) || "—"} |
+              <strong> VO₂max:</strong> {vo2max ?? "est."} |
+              <strong> Poids:</strong> {weightKg ?? 70}kg |
               <strong> Sport:</strong> {sportLabel}
+            </p>
+            <p>
+              <strong>F1 — Gut cap:</strong> {cap} g/h ({gutLabel[gutTrainingLevel]}) |
+              <strong> Fraction exo:</strong> {Math.round(exoFraction * 100)}% (durée {effectiveDuration} min) |
+              <strong> G:F:</strong> {getGlucoseFructoseRatio(cap).ratio}
+            </p>
+            <p className="text-[10px]">
+              Réf : Jeukendrup 2014, King 2022, Viribay 2020, Costa 2023, Stellingwerff 2014, Burke 2019.
             </p>
             <p className="mt-1">⚠️ Estimation pédagogique – Ne remplace pas un avis nutritionnel</p>
           </div>
