@@ -7678,7 +7678,16 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     profilMetabolique: profilMetaboliqueHTML,
     vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
     indicateurs: indicateursHTML,
-    pacingEnvelope: buildPacingEnvelopeHTML(payload),
+    pacingEnvelope: (() => {
+      const goal = payload.athlete.goal || "";
+      const isRun = goal.includes("km") || goal.includes("Marathon") || goal.includes("Semi") || goal.includes("Trail") || goal.includes("Ultra");
+      const hours = RACE_DURATION_HOURS_E[goal] ?? 0;
+      const isLong = hours >= LONG_DISTANCE_THRESHOLD_HOURS;
+      // Sport-specific envelope + long-distance module if applicable
+      const main = isRun ? buildPacingEnvelopeRunningHTML(payload) : buildPacingEnvelopeHTML(payload);
+      const ld = isLong ? buildLongDistancePacingHTML(payload) : "";
+      return main + ld;
+    })(),
     potentielPhysiologiqueRunning: buildPotentielPhysiologiqueRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
