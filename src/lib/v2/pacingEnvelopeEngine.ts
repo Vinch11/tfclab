@@ -357,51 +357,60 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   const missingData: string[] = [];
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 1: Centre de l'enveloppe = INTENSITÉ DE COURSE (pas FatMax!)
-  // L'intensité de course pour un 70.3 est ~76-80% FTP, pas 62% (FatMax)
+  // STEP 1 (CHANTIER A): Centre de l'enveloppe = MODÈLE CONTINU %CS
+  // f(durée prédite, niveau d'ambition) — Smyth 2022 / Jones-Vanhatalo 2017
+  // Remplace l'ancien Record statique RACE_BASE_INTENSITY (trop générique).
   // ─────────────────────────────────────────────────────────────────────────────
-  let centerPct: number = RACE_BASE_INTENSITY[raceObjective];
-  
+  const ambition: AmbitionLevel = input.ambition ?? "COMPETITOR";
+  const durationMin = input.predictedDurationMin ?? RACE_TYPICAL_DURATION_MIN[raceObjective];
+  sourcesUsed.push(`Modèle continu %CS (${ambition}, ${Math.round(durationMin)}min)`);
+
+  let centerPct: number = computeContinuousRaceIntensity(durationMin, ambition, sport);
+
+  if (input.ambition == null) missingData.push("Ambition (défaut: COMPETITOR)");
+  if (input.predictedDurationMin == null) missingData.push("Durée prédite (fallback objectif)");
+
   // Ajustement fin si FatMax disponible (athlètes à haute FatMax peuvent tenir plus haut)
   if (fatmax != null && fatmax.centerPctFTP > 0) {
     sourcesUsed.push("FatMax TFCL™");
-    
-    // Si FatMax haute (>68% FTP), l'athlète peut soutenir une intensité légèrement plus élevée
     if (fatmax.centerPctFTP > 68) {
-      centerPct = Math.min(centerPct + 2, 88); // Boost max +2%
-    }
-    // Si FatMax très basse (<55% FTP), l'athlète devra être plus conservateur
-    else if (fatmax.centerPctFTP < 55) {
-      centerPct = Math.max(centerPct - 2, 65); // Réduction max -2%
+      centerPct = Math.min(centerPct + 2, 95);
+    } else if (fatmax.centerPctFTP < 55) {
+      centerPct = Math.max(centerPct - 2, 55);
     }
   } else {
     missingData.push("FatMax");
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 2: Largeur de l'enveloppe (clé méthodologique)
+  // STEP 2 (CHANTIER A): Largeur de l'enveloppe = MODÈLE CONTINU W'/CP × duration
+  // Skiba 2024 — remplace l'ancien Record statique RACE_BASE_WIDTH.
   // ─────────────────────────────────────────────────────────────────────────────
-  let baseWidth = RACE_BASE_WIDTH[raceObjective];
-  
-  // Ajustement VLamax
+  let baseWidth = computeContinuousEnvelopeWidth(
+    durationMin,
+    input.wPrimeJkg ?? null,
+    input.cpWkg ?? null
+  );
+  if (input.wPrimeJkg == null || input.cpWkg == null) {
+    missingData.push("W'/CP (largeur sur durationFactor seul)");
+  } else {
+    sourcesUsed.push("W'/CP (Skiba 2024)");
+  }
+
+  // Ajustement VLamax (modulation fine, pas remplacement)
   const vlamaxValue = vlamaxEffectif?.value ?? null;
   if (vlamaxValue != null) {
     sourcesUsed.push("VLamax effectif");
-    
     if (vlamaxValue < 0.35) {
-      // VLamax basse → enveloppe TRÈS étroite (profil sensible)
-      baseWidth = Math.max(4, baseWidth - 2);
+      baseWidth = Math.max(3, baseWidth - 1.5);
     } else if (vlamaxValue < 0.45) {
-      // VLamax modérée-basse → légère réduction
-      baseWidth = Math.max(5, baseWidth - 1);
+      baseWidth = Math.max(4, baseWidth - 0.5);
     } else if (vlamaxValue > 0.55) {
-      // VLamax élevée → enveloppe plus large (plus de tolérance)
-      baseWidth = Math.min(12, baseWidth + 2);
+      baseWidth = Math.min(12, baseWidth + 1.5);
     }
   } else {
     missingData.push("VLamax");
-    // Sans VLamax, élargir par prudence
-    baseWidth += 2;
+    baseWidth += 1;
   }
 
   // Ajustement TTE
