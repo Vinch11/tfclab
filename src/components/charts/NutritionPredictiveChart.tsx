@@ -117,27 +117,26 @@ const computeNutritionCurve = (
 };
 
 // Zones de risque digestif
-const getDigestiveRiskZone = (gPerHour: number, sport: string): {
+const getDigestiveRiskZone = (gPerHour: number, cap: number): {
   level: string;
   color: string;
 } => {
-  const threshold = sport === "cap" ? 70 : sport === "triathlon" ? 85 : 90;
-  
-  if (gPerHour >= threshold) {
-    return { level: "Risque élevé", color: "hsl(var(--destructive))" };
+  if (gPerHour >= cap) {
+    return { level: "Au plafond toléré", color: "hsl(var(--destructive))" };
   }
-  if (gPerHour >= threshold * 0.85) {
+  if (gPerHour >= cap * 0.85) {
     return { level: "Vigilance", color: "hsl(var(--warning))" };
   }
   return { level: "Zone sûre", color: "hsl(var(--success))" };
 };
 
-const CustomTooltip = ({ active, payload, label, sport }: any) => {
+const CustomTooltip = ({ active, payload, cap }: any) => {
   if (!active || !payload || !payload.length) return null;
-  
+
   const data = payload[0].payload;
-  const riskInfo = getDigestiveRiskZone(data.recommended, sport);
-  
+  const riskInfo = getDigestiveRiskZone(data.recommended, cap);
+  const gf = getGlucoseFructoseRatio(data.recommended);
+
   return (
     <div className="bg-background border border-border rounded-lg p-2 shadow-lg text-xs">
       <p className="font-semibold text-foreground">{data.label}</p>
@@ -148,10 +147,25 @@ const CustomTooltip = ({ active, payload, label, sport }: any) => {
       <p className="text-muted-foreground">
         Oxydation totale : <span className="font-mono">{data.totalOx}</span> g/h
       </p>
+      <p className="text-muted-foreground">
+        Ratio G:F : <span className="font-mono">{gf.ratio}</span>
+      </p>
       <p style={{ color: riskInfo.color }} className="text-xs">{riskInfo.level}</p>
     </div>
   );
 };
+
+// Estimation durée en minutes depuis l'objectif (fallback si non fourni)
+function inferDurationMin(objectif: string, sport: "velo" | "cap" | "triathlon"): number {
+  const o = (objectif || "").toUpperCase();
+  if (o.includes("ULTRA")) return 600;
+  if (o.includes("IM") || o.includes("IRONMAN")) return sport === "cap" ? 210 : 540;
+  if (o.includes("70.3") || o.includes("703") || o.includes("HALF")) return sport === "cap" ? 105 : 270;
+  if (o.includes("MARATHON") && !o.includes("SEMI")) return 210;
+  if (o.includes("TRAIL")) return 240;
+  if (o.includes("SEMI")) return 100;
+  return 120;
+}
 
 export function NutritionPredictiveChart({
   vlamaxValue,
@@ -159,14 +173,20 @@ export function NutritionPredictiveChart({
   sport = "velo",
   vo2max,
   weightKg,
+  durationMin,
+  gutTrainingLevel = "trained",
   staffMode = false,
-  className
+  className,
 }: NutritionPredictiveChartProps) {
   const isDataMissing = vlamaxValue === null;
-  
+
+  const effectiveDuration = durationMin ?? inferDurationMin(objectif, sport);
+  const cap = getCarbCap(sport, gutTrainingLevel);
+  const exoFraction = getExogenousFraction(effectiveDuration);
+
   const data = useMemo(() => {
-    return computeNutritionCurve(vlamaxValue, sport, vo2max, weightKg);
-  }, [vlamaxValue, sport, vo2max, weightKg]);
+    return computeNutritionCurve(vlamaxValue, sport, vo2max, weightKg, effectiveDuration, gutTrainingLevel);
+  }, [vlamaxValue, sport, vo2max, weightKg, effectiveDuration, gutTrainingLevel]);
   
   const digestiveThreshold = sport === "cap" ? 70 : sport === "triathlon" ? 85 : 90;
   const sportLabel = sport === "cap" ? "Course à pied" : sport === "triathlon" ? "Triathlon" : "Vélo";
