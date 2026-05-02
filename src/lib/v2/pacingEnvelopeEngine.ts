@@ -433,46 +433,54 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 2 (CHANTIER A): Largeur de l'enveloppe = MODÈLE CONTINU W'/CP × duration
-  // Skiba 2024 — remplace l'ancien Record statique RACE_BASE_WIDTH.
+  // STEP 2 (CHANTIER B): Largeur ASYMÉTRIQUE — plafond ≠ plancher
+  // Skiba 2024 + Vanhatalo 2020 — pilotée par W'/CP, durée et W'-balance race-day.
   // ─────────────────────────────────────────────────────────────────────────────
-  let baseWidth = computeContinuousEnvelopeWidth(
+  let { low: widthLow, high: widthHigh } = computeAsymmetricEnvelopeWidth(
     durationMin,
     input.wPrimeJkg ?? null,
-    input.cpWkg ?? null
+    input.cpWkg ?? null,
+    input.wPrimeBalanceRaceDay ?? null
   );
   if (input.wPrimeJkg == null || input.cpWkg == null) {
     missingData.push("W'/CP (largeur sur durationFactor seul)");
   } else {
-    sourcesUsed.push("W'/CP (Skiba 2024)");
+    sourcesUsed.push("W'/CP asymétrique (Skiba 2024)");
+  }
+  if (input.wPrimeBalanceRaceDay != null) {
+    sourcesUsed.push(`W'-balance race-day (${Math.round(input.wPrimeBalanceRaceDay * 100)}%)`);
   }
 
-  // Ajustement VLamax (modulation fine, pas remplacement)
+  // Modulation VLamax — affecte SURTOUT le plafond (capacité de surge glycolytique)
   const vlamaxValue = vlamaxEffectif?.value ?? null;
   if (vlamaxValue != null) {
     sourcesUsed.push("VLamax effectif");
     if (vlamaxValue < 0.35) {
-      baseWidth = Math.max(3, baseWidth - 1.5);
+      // Profil sensible: plafond resserré agressivement, plancher peu touché
+      widthHigh = Math.max(2, widthHigh - 1.5);
+      widthLow = Math.max(3, widthLow - 0.5);
     } else if (vlamaxValue < 0.45) {
-      baseWidth = Math.max(4, baseWidth - 0.5);
+      widthHigh = Math.max(3, widthHigh - 0.5);
     } else if (vlamaxValue > 0.55) {
-      baseWidth = Math.min(12, baseWidth + 1.5);
+      // Profil tolérant: élargir surtout le plafond
+      widthHigh = Math.min(12, widthHigh + 1.5);
+      widthLow = Math.min(12, widthLow + 0.5);
     }
   } else {
     missingData.push("VLamax");
-    baseWidth += 1;
+    widthHigh += 0.5;
+    widthLow += 0.5;
   }
 
-  // Ajustement TTE
+  // Modulation TTE — TTE élevé stabilise (resserre symétriquement)
   if (tteEffectif && tteEffectif.source !== "unknown") {
     sourcesUsed.push("TTE effectif");
-    
     if (tteEffectif.tte_min >= 55) {
-      // TTE élevé → plus stable, enveloppe légèrement plus étroite
-      baseWidth = Math.max(4, baseWidth - 1);
+      widthHigh = Math.max(2, widthHigh - 0.5);
+      widthLow = Math.max(3, widthLow - 0.5);
     } else if (tteEffectif.tte_min < 40) {
-      // TTE faible → moins robuste, élargir par prudence
-      baseWidth = Math.min(12, baseWidth + 1);
+      widthHigh = Math.min(12, widthHigh + 1);
+      widthLow = Math.min(12, widthLow + 0.5);
     }
   } else {
     missingData.push("TTE");
@@ -506,13 +514,20 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 5: Calcul des limites
+  // STEP 5: Calcul des limites — utilise widthLow/widthHigh asymétriques
   // ─────────────────────────────────────────────────────────────────────────────
-  const effectiveWidth = Math.max(3, baseWidth);
-  const lowPct = clamp(centerPct - effectiveWidth, 50, 90);
-  const highPct = clamp(centerPct + effectiveWidth - readinessAdjustment, lowPct + 2, 95);
-  const toleratedPct = clamp(highPct + 10, highPct + 5, 100);
+  // Readiness/fatigue n'affectent QUE le plafond (cohérent avec readinessMessage)
+  const effectiveWidthLow = Math.max(3, widthLow);
+  const effectiveWidthHigh = Math.max(2, widthHigh - readinessAdjustment);
+  const lowPct = clamp(centerPct - effectiveWidthLow, 50, 90);
+  const highPct = clamp(centerPct + effectiveWidthHigh, lowPct + 2, 100);
+  const toleratedPct = clamp(highPct + 8, highPct + 4, 105);
   const forbiddenPct = toleratedPct;
+  // Largeur "globale" conservée pour rétro-compat (label envelopeWidth)
+  const effectiveWidth = (effectiveWidthLow + effectiveWidthHigh) / 2;
+  // baseWidth conservé pour rétro-compat dans les éventuels logs
+  const baseWidth = effectiveWidth;
+  void baseWidth;
 
   // TFCL V2: Référence d'intensité explicite
   // Le pacing est TOUJOURS exprimé en % de FTP (vélo) ou VMA (course)
