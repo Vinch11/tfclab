@@ -40,6 +40,20 @@ export interface PacingInputsRun {
   race_readiness_state: ReadinessState;
   race_readiness_score: number;          // 0-100
   athlete_experience: AthleteExperience;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CHANTIER C — Pont vers le moteur unifié (tous optionnels, fallback safe)
+  // ─────────────────────────────────────────────────────────────────────────────
+  /** Niveau d'ambition pour calibrer %CS soutenable (Smyth 2022). Défaut COMPETITOR. */
+  ambition?: AmbitionLevel | null;
+  /** VMA en km/h — sinon estimée depuis threshold_pace */
+  vma?: number | null;
+  /** Critical Power running (W/kg) ou estimation indirecte */
+  cpWkg?: number | null;
+  /** W' anaérobie running (J/kg) */
+  wPrimeJkg?: number | null;
+  /** Durée prédite de la course en minutes — sinon fallback distance */
+  predictedDurationMin?: number | null;
 }
 
 export interface PacingZoneDefinitionRun {
