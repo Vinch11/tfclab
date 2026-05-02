@@ -188,8 +188,19 @@ export function NutritionPredictiveChart({
     return computeNutritionCurve(vlamaxValue, sport, vo2max, weightKg, effectiveDuration, gutTrainingLevel);
   }, [vlamaxValue, sport, vo2max, weightKg, effectiveDuration, gutTrainingLevel]);
   
-  const digestiveThreshold = sport === "cap" ? 70 : sport === "triathlon" ? 85 : 90;
+  const digestiveThreshold = cap;
   const sportLabel = sport === "cap" ? "Course à pied" : sport === "triathlon" ? "Triathlon" : "Vélo";
+  const yMax = Math.max(150, Math.ceil(cap / 30) * 30 + 30);
+  const gutLabel: Record<GutTrainingLevel, string> = {
+    untrained: "Non entraîné",
+    developing: "En développement",
+    trained: "Entraîné",
+    elite: "Élite (gut-trained)",
+  };
+  const durationLabel =
+    effectiveDuration < 90 ? "<90 min" :
+    effectiveDuration < 180 ? "90–180 min" :
+    effectiveDuration < 360 ? "3–6 h" : ">6 h";
 
   return (
     <Card className={cn("overflow-hidden", isDataMissing && "opacity-60", className)}>
