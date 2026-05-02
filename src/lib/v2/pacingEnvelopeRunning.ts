@@ -237,60 +237,80 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
   const missingData: string[] = [];
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 1: Récupérer les bornes de base
+  // CHANTIER C — STEP 1-4 UNIFIÉS via le moteur générique (Smyth/Skiba/W'-balance)
+  // Bornes calculées par computePacingEnvelope, puis converties %VMA → %seuil
+  // via vCS/vVMA = 0.90 (Jones-Vanhatalo 2017).
   // ─────────────────────────────────────────────────────────────────────────────
-  const baseBounds = { ...ZONE_BOUNDARIES[distance] };
-  let green = [...baseBounds.green] as [number, number];
-  let orange = [...baseBounds.orange] as [number, number];
-  let red = [...baseBounds.red] as [number, number];
+  const RACE_OBJ_MAP = { "10K": "10km", HM: "Semi", MARATHON: "Marathon" } as const;
+  const RACE_DURATION_FALLBACK_MIN: Record<RunningDistance, number> = {
+    "10K": 45, HM: 105, MARATHON: 210,
+  };
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 2: Modulation VLamax
-  // ─────────────────────────────────────────────────────────────────────────────
+  const readinessScoreApprox =
+    race_readiness_score > 0
+      ? race_readiness_score
+      : race_readiness_state === "GREEN" ? 80
+      : race_readiness_state === "ORANGE" ? 65
+      : 45;
+
+  const VCS_OVER_VMA = 0.90;
+
+  const vlamaxEffectifBridge =
+    vlamax_run_v2 != null
+      ? { value: vlamax_run_v2, confidence: 0.7, source: "computed" as const }
+      : null;
+  const tteEffectifBridge =
+    durability_index != null
+      ? { tte_min: durability_index, confidence: 0.7, source: "observed" as const }
+      : null;
+
+  const unifiedEnvelope = computePacingEnvelope({
+    vlamaxEffectif: vlamaxEffectifBridge as never,
+    tteEffectif: tteEffectifBridge as never,
+    fatmax: null,
+    potentielPhysiologiqueScore: readinessScoreApprox,
+    fatigueIndex: null,
+    raceObjective: RACE_OBJ_MAP[distance],
+    sport: "run",
+    vma: inputs.vma ?? null,
+    paceThreshold: threshold_pace,
+    ambition: inputs.ambition ?? null,
+    cpWkg: inputs.cpWkg ?? null,
+    wPrimeJkg: inputs.wPrimeJkg ?? null,
+    predictedDurationMin: inputs.predictedDurationMin ?? RACE_DURATION_FALLBACK_MIN[distance],
+  });
+
+  // Conversion %VMA → %seuil (1/0.90 ≈ 1.111). Bornes physiologiques.
+  const toPctSeuil = (pctVMA: number): number => clamp(pctVMA / VCS_OVER_VMA, 60, 115);
+
+  let green: [number, number];
+  let orange: [number, number];
+  let red: [number, number];
   let allowAggressiveFinish = false;
-  
-  if (vlamax_run_v2 != null) {
-    sourcesUsed.push("VLamax CAP");
-    
-    if (vlamax_run_v2 > VLAMAX_MODIFIERS.HIGH.threshold) {
-      // VLamax élevée → rétrécir la zone verte, avancer la zone rouge
-      green = [green[0], green[1] + VLAMAX_MODIFIERS.HIGH.green_shrink];
-      orange = [orange[0] + VLAMAX_MODIFIERS.HIGH.orange_shift, orange[1] + VLAMAX_MODIFIERS.HIGH.orange_shift];
-      red = [red[0] + VLAMAX_MODIFIERS.HIGH.orange_shift, red[1]];
-    } else if (vlamax_run_v2 < VLAMAX_MODIFIERS.LOW.threshold) {
-      // VLamax basse → élargir la zone verte, autoriser finish agressif
-      green = [green[0], green[1] + VLAMAX_MODIFIERS.LOW.green_expand];
-      allowAggressiveFinish = true;
-    }
+
+  if (unifiedEnvelope) {
+    sourcesUsed.push(...unifiedEnvelope.sourcesUsed);
+    missingData.push(...unifiedEnvelope.missingData);
+    const b = unifiedEnvelope.boundary;
+    green = [Math.round(toPctSeuil(b.lowPct)), Math.round(toPctSeuil(b.highPct))];
+    orange = [green[1], Math.round(toPctSeuil(b.toleratedPct))];
+    red = [orange[1], Math.round(Math.min(orange[1] + 8, 115))];
+    // Negative split autorisé si plafond élargi (asym ≥1.0) et VLamax basse
+    allowAggressiveFinish =
+      b.asymmetryRatio >= 1.0 &&
+      vlamax_run_v2 != null &&
+      vlamax_run_v2 < VLAMAX_MODIFIERS.LOW.threshold;
   } else {
-    missingData.push("VLamax CAP");
+    // Fallback ultime: bornes statiques historiques
+    const baseBounds = ZONE_BOUNDARIES[distance];
+    green = [...baseBounds.green] as [number, number];
+    orange = [...baseBounds.orange] as [number, number];
+    red = [...baseBounds.red] as [number, number];
+    missingData.push("Moteur unifié indisponible — fallback statique");
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 3: Modulation Potentiel Physiologique
-  // ─────────────────────────────────────────────────────────────────────────────
+  // Lecture passive Potentiel Physio pour les labels conditionnels (orange_label, etc.)
   const readinessMod = READINESS_MODIFIERS[race_readiness_state];
-  sourcesUsed.push("Potentiel Physiologique");
-  
-  // Réduire le haut de la zone verte
-  green = [green[0], green[1] - readinessMod.green_reduction];
-  
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 4: Modulation Durabilité
-  // ─────────────────────────────────────────────────────────────────────────────
-  if (durability_index != null) {
-    sourcesUsed.push("Durabilité CAP");
-    
-    if (durability_index >= 60) {
-      // Durabilité élevée → légère expansion de la zone verte
-      green = [green[0], Math.min(green[1] + 1, orange[0] - 1)];
-    } else if (durability_index < 45) {
-      // Durabilité faible → rétrécir la zone verte
-      green = [green[0], Math.max(green[1] - 1, green[0] + 2)];
-    }
-  } else {
-    missingData.push("Durabilité");
-  }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 5: Construire les zones
