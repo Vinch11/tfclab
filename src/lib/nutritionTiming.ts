@@ -428,7 +428,8 @@ function computeRiskBadge(params: {
 
 export function computeNutritionTiming(params: ComputeNutritionTimingParams): NutritionTimingResult {
   const { vlamax, tteMin, tteTarget, objectif, sport, digestiveTolerance, energyDrift } = params;
-  
+  const gutTrainingLevel: GutTrainingLevel = params.gutTrainingLevel ?? "trained";
+
   // Vérification données insuffisantes
   const missingFields: string[] = [];
   if (vlamax === null) missingFields.push("VLamax");
@@ -468,14 +469,18 @@ export function computeNutritionTiming(params: ComputeNutritionTimingParams): Nu
   const vlamaxAdj = getVLamaxCarbFactor(vlamax!);
   const objectifAdj = getObjectifAdjustment(objectif, sport);
   const toleranceAdj = getToleranceAdjustment(digestiveTolerance);
-  
-  let carbsTarget = baseCarbs + vlamaxAdj + objectifAdj + toleranceAdj;
-  carbsTarget = clampCarbs(carbsTarget, sport);
-  
-  // Range (±10 ou ±5 selon tolérance)
+
+  // F2 — Modulation durée-dépendante (Stellingwerff 2014, Burke 2019)
+  const durationMin = getEstimatedDuration(objectif, sport);
+  const durationMult = getDurationMultiplier(durationMin);
+
+  let carbsTarget = (baseCarbs + vlamaxAdj + objectifAdj + toleranceAdj) * durationMult;
+  carbsTarget = Math.round(clampCarbs(carbsTarget, sport, gutTrainingLevel));
+
+  // Range (±10 ou ±5 selon tolérance), bornées par les caps gut
   const range = digestiveTolerance === "LOW" ? 5 : 10;
-  const carbsMin = Math.max(sport === "velo" ? 50 : 35, carbsTarget - range);
-  const carbsMax = Math.min(sport === "velo" ? 110 : 85, carbsTarget + range);
+  const carbsMin = Math.max(getCarbFloor(sport), carbsTarget - range);
+  const carbsMax = Math.min(getCarbCap(sport, gutTrainingLevel), carbsTarget + range);
   
   // Génération des phases
   const phases = generatePhases({
