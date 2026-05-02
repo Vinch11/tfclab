@@ -21,7 +21,7 @@
  *   - Tolérance au stress mécanique (running surtout)
  */
 
-import type { GutTrainingLevel } from "./caffeineProtocol"; // unused placeholder, will redefine
+
 
 export type GutLevel = "untrained" | "developing" | "trained" | "elite";
 
