@@ -190,7 +190,7 @@ const RACE_TYPICAL_DURATION_MIN: Record<RaceObjective, number> = {
  * Smyth 2022: élites soutiennent ~100-102% CS au marathon, age-groupers ~88-92%.
  * À 60 min de référence, on calibre légèrement au-dessus de CS (CS ≈ MLSS ≈ 60min).
  */
-const CS_ANCHOR_60MIN: Record<AmbitionLevel, number> = {
+const CS_ANCHOR_60MIN: Record<AmbitionLevelNormalized, number> = {
   ELITE: 100,        // tient CS pile à 60min
   COMPETITOR: 97,    // léger déficit
   AGE_GROUP: 93,     // marge supérieure
@@ -202,7 +202,7 @@ const CS_ANCHOR_60MIN: Record<AmbitionLevel, number> = {
  * Smyth 2022: déclin de ~6-8% par doublement de durée pour age-groupers, ~3-5% pour élites.
  * k = points %CS perdus quand durée × 10.
  */
-const CS_DECAY_PER_DECADE: Record<AmbitionLevel, number> = {
+const CS_DECAY_PER_DECADE: Record<AmbitionLevelNormalized, number> = {
   ELITE: 8,
   COMPETITOR: 11,
   AGE_GROUP: 14,
@@ -220,7 +220,7 @@ const VCS_OVER_VMA_RATIO = 0.90;
  */
 function computeContinuousRaceIntensity(
   durationMin: number,
-  ambition: AmbitionLevel,
+  ambition: AmbitionLevelNormalized,
   sport: "bike" | "run"
 ): number {
   const anchor = CS_ANCHOR_60MIN[ambition];
