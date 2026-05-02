@@ -12,6 +12,7 @@ import type { EnergyDriftResult, EnergyDriftLevel } from "./energyDrift";
 // =============================================
 
 export type DigestiveTolerance = "LOW" | "MEDIUM" | "HIGH";
+export type GutTrainingLevel = "untrained" | "developing" | "trained" | "elite";
 export type NutritionRiskBadge = "OK" | "WATCH" | "HIGH";
 
 export interface NutritionPhase {
