@@ -166,23 +166,110 @@ const RACE_BASE_WIDTH: Record<RaceObjective, number> = {
   "10km": 10,  // ±10% = large car durée courte
 };
 
-export const PACING_ENVELOPE_DEFINITIONS = {
-  official: `Le Pacing Envelope™ TFCL est un couloir physiologique d'intensité autorisée, 
-basé sur le profil métabolique de l'athlète. Les intensités sont exprimées en % de FTP (vélo) 
-ou VMA (course), correspondant aux intensités réelles de compétition.`,
+// ─────────────────────────────────────────────────────────────────────────────
+// CHANTIER A — MODÈLE CONTINU D'INTENSITÉ %CS f(distance, durée, niveau, W'/CP)
+//
+// Sources scientifiques (2020-2025):
+//   • Smyth & Muniz-Pumares (2022) — Strava data 25M marathons:
+//       %CS soutenable décroît log-linéairement avec la durée.
+//   • Jones & Vanhatalo (2017, IJSPP) — CP/W' framework, %CS sustainable.
+//   • Skiba (2024) — W'-balance dynamics, race-day anaerobic reserves.
+//   • Maunder et al. (2021) — Domain-based intensity prescription.
+//
+// FORMULE GÉNÉRALE:
+//   pctCS(T_min, level) = anchorCS(level) − k(level) · log10(T_min / Tref)
+//   où Tref = 60 min (ancrage CP/CS = 100% à 30-60min selon modèle)
+//
+// Puis on convertit en %FTP / %VMA via le ratio CS/FTP (~0.95 chez bien entraînés).
+// ─────────────────────────────────────────────────────────────────────────────
 
-  disclaimer: `TFCL NE PRESCRIT PAS une allure. TFCL EXPLIQUE, SIMULE et CADRE la décision.
-Le coach garde toujours la main sur la décision finale.`,
+/** Durée typique d'une course (minutes) — fallback si predictedDurationMin absent */
+const RACE_TYPICAL_DURATION_MIN: Record<RaceObjective, number> = {
+  IM: 600,        // ~10h moyenne
+  "70.3": 300,    // ~5h
+  Marathon: 210,  // ~3h30
+  Semi: 105,      // ~1h45
+  "10km": 45,     // ~45min
+};
 
-  methodology: `Calcul basé sur:
-• Intensité de course selon objectif (centre de l'enveloppe)
-• VLamax effectif (détermine la largeur — basse = étroit)
-• TTE effectif (stabilise l'enveloppe — élevé = plus robuste)
-• FatMax TFCL™ (indicateur métabolique, ajuste les limites)
-• Potentiel Physiologique (réduit le plafond si faible)`,
+/**
+ * Ancrage %CS à 60 min selon niveau d'ambition.
+ * Smyth 2022: élites soutiennent ~100-102% CS au marathon, age-groupers ~88-92%.
+ * À 60 min de référence, on calibre légèrement au-dessus de CS (CS ≈ MLSS ≈ 60min).
+ */
+const CS_ANCHOR_60MIN: Record<AmbitionLevel, number> = {
+  ELITE: 100,        // tient CS pile à 60min
+  COMPETITOR: 97,    // léger déficit
+  AGE_GROUP: 93,     // marge supérieure
+  FINISHER: 88,      // grande marge
+};
 
-  sensitive_profile: `Ce profil métabolique offre un rendement élevé mais une faible tolérance aux erreurs.
-La discipline prime sur la puissance instantanée.`,
+/**
+ * Pente log-linéaire du déclin %CS par décade de durée.
+ * Smyth 2022: déclin de ~6-8% par doublement de durée pour age-groupers, ~3-5% pour élites.
+ * k = points %CS perdus quand durée × 10.
+ */
+const CS_DECAY_PER_DECADE: Record<AmbitionLevel, number> = {
+  ELITE: 8,
+  COMPETITOR: 11,
+  AGE_GROUP: 14,
+  FINISHER: 17,
+};
+
+/** Ratio CS/FTP typique (Critical Power ≈ 95% FTP chez bien entraînés). */
+const CS_OVER_FTP_RATIO = 0.95;
+/** Ratio vCS/vVMA typique (vitesse critique ≈ 90% VMA). */
+const VCS_OVER_VMA_RATIO = 0.90;
+
+/**
+ * Calcule le %référence (FTP ou VMA) soutenable pour une durée donnée selon le niveau.
+ * Retourne le centre de l'enveloppe — pure fonction continue.
+ */
+function computeContinuousRaceIntensity(
+  durationMin: number,
+  ambition: AmbitionLevel,
+  sport: "bike" | "run"
+): number {
+  const anchor = CS_ANCHOR_60MIN[ambition];
+  const decay = CS_DECAY_PER_DECADE[ambition];
+  const Tref = 60;
+
+  // %CS soutenable
+  const pctCS = anchor - decay * Math.log10(Math.max(durationMin, 5) / Tref);
+
+  // Conversion %CS → %FTP ou %VMA
+  const conversionRatio = sport === "bike" ? CS_OVER_FTP_RATIO : VCS_OVER_VMA_RATIO;
+  const pctReference = pctCS * conversionRatio;
+
+  // Bornes physiologiques (un IM ne peut pas être <55%, un 10km ne peut pas être >100%)
+  return clamp(pctReference, 55, 100);
+}
+
+/**
+ * Largeur de l'enveloppe basée sur W'/CP (réserve anaérobie relative) et durée.
+ * Skiba 2024: athlètes à grand W' tolèrent plus d'écarts; durée longue = enveloppe étroite.
+ *
+ * Formule:  width = baseWidth × (W'/CP normalisé) × durationFactor
+ *   - durationFactor = 1 / (1 + log10(T/60)) → diminue avec la durée
+ *   - W'/CP: typique 15-25 J/W chez triathlètes, plus haut chez sprinters
+ */
+function computeContinuousEnvelopeWidth(
+  durationMin: number,
+  wPrimeJkg: number | null,
+  cpWkg: number | null
+): number {
+  const baseWidth = 8; // ±8% point neutre
+  const durationFactor = 1 / (1 + Math.log10(Math.max(durationMin, 30) / 60));
+
+  let wPrimeRatio = 1.0;
+  if (wPrimeJkg != null && cpWkg != null && cpWkg > 0) {
+    const wOverCp = wPrimeJkg / cpWkg; // ~15-25 J/W typique
+    wPrimeRatio = clamp(wOverCp / 20, 0.6, 1.4); // normalisé autour de 20 J/W
+  }
+
+  const width = baseWidth * wPrimeRatio * durationFactor;
+  return clamp(width, 3, 12);
+}
 
   lorang_philosophy: `"Les 30 premières minutes sont NON NÉGOCIABLES." — Philosophie Dan Lorang
 L'erreur précoce coûte plus qu'elle ne rapporte. Favoriser TOUJOURS les negative splits.`,
