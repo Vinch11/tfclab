@@ -276,6 +276,14 @@ export function StaffReport({
         fatmaxPct: fatmax?.centerPctFTP ?? null,
         historicalFadePattern: null,
         glycogenAvailability: null,
+        // CHANTIER D — contexte physiologique étendu
+        bodyMassKg: poids ?? null,
+        sport: pacingSport,
+        plannedCarbIntakeGph: null,
+        gutTrainingLevel: null,
+        ambientTempC: null,
+        humidityPct: null,
+        heatAcclimationLevel: null,
       })
     : null;
 

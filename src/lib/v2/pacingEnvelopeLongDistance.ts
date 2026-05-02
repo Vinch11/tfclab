@@ -50,6 +50,22 @@ export interface LongDistanceInput {
   
   /** Disponibilité glycogène modélisée (g, optionnel) */
   glycogenAvailability: number | null;
+
+  // ─── CHANTIER D — Contexte physiologique étendu ────────────────────────────
+  /** Poids athlète (kg) — pour modèles glycogène & CHO */
+  bodyMassKg?: number | null;
+  /** Apport glucidique planifié pendant la course (g/h) */
+  plannedCarbIntakeGph?: number | null;
+  /** Niveau d'entraînement du gut (1=naïf, 2=moyen, 3=trained 90+ g/h) */
+  gutTrainingLevel?: 1 | 2 | 3 | null;
+  /** Température ambiante prévue (°C) */
+  ambientTempC?: number | null;
+  /** Humidité relative prévue (%) */
+  humidityPct?: number | null;
+  /** Niveau d'acclimatation chaleur (0=non, 1=partiel, 2=acclimaté 10-14j) */
+  heatAcclimationLevel?: 0 | 1 | 2 | null;
+  /** Sport (impact thermique différent run vs bike) */
+  sport?: "run" | "bike" | "swim" | null;
 }
 
 export interface HistoricalFade {
@@ -102,6 +118,55 @@ export interface GlycogenCollapseThreshold {
   explanation: string;
 }
 
+// ─── CHANTIER D — Modèles physiologiques étendus ─────────────────────────────
+
+export interface GlycogenBudgetModel {
+  /** Réserve initiale estimée (g) — Rapoport 2010, ajustée masse */
+  initialStoresG: number;
+  /** Coût glucidique projeté à l'intensité ambitieuse (g/h) */
+  projectedBurnRateGph: number;
+  /** Apport glucidique exogène effectivement absorbable (g/h) */
+  effectiveCarbIntakeGph: number;
+  /** Taux net de déplétion (g/h) — burn − intake */
+  netDepletionGph: number;
+  /** Temps avant atteinte de la zone critique <20% (min) */
+  timeToCriticalMinutes: number | null;
+  /** Risque de "bonking" 0-100 */
+  bonkRisk: number;
+  /** Statut */
+  status: "safe" | "tight" | "deficit" | "critical";
+  /** Message synthétique */
+  message: string;
+}
+
+export interface CarbStrategyModel {
+  /** g/h recommandés selon durée + ambition */
+  recommendedGph: number;
+  /** g/h max physiologiquement absorbables (gut training) */
+  maxAbsorbableGph: number;
+  /** Ratio glucose:fructose recommandé */
+  glucoseFructoseRatio: string;
+  /** Écart entre planifié et recommandé (g/h, négatif = sous-doser) */
+  plannedVsRecommendedGap: number;
+  /** Niveau de risque GI */
+  giRiskLevel: "low" | "moderate" | "high";
+  /** Message */
+  message: string;
+}
+
+export interface ThermalStressModel {
+  /** WBGT estimé (°C) */
+  wbgtC: number;
+  /** Niveau de stress thermique */
+  stressLevel: "neutral" | "moderate" | "high" | "extreme";
+  /** Pénalité de puissance/allure recommandée (%) */
+  intensityPenaltyPct: number;
+  /** Augmentation des besoins fluides (mL/h supplémentaires) */
+  extraFluidNeedMlPerHour: number;
+  /** Message */
+  message: string;
+}
+
 export type PacingScenarioType = "disciplined" | "ambitious" | "aggressive";
 
 export interface PacingScenario {
@@ -148,10 +213,19 @@ export interface LongDistanceEnvelopeResult {
   /** Scénarios */
   scenarios: PacingScenario[];
   
+  /** CHANTIER D — Modèles physiologiques étendus */
+  glycogenBudget: GlycogenBudgetModel | null;
+  carbStrategy: CarbStrategyModel | null;
+  thermalStress: ThermalStressModel | null;
+  
   /** Pénalités appliquées */
   penalties: {
     durationPenaltyPct: number;
     glycogenPenaltyPct: number;
+    /** CHANTIER D — pénalité thermique additionnelle */
+    thermalPenaltyPct: number;
+    /** CHANTIER D — pénalité déficit CHO additionnelle */
+    carbDeficitPenaltyPct: number;
     totalReductionPct: number;
   };
   
@@ -464,48 +538,320 @@ function generateScenarios(
 // ═══════════════════════════════════════════════════════════════════════════════
 // FONCTION PRINCIPALE
 // ═══════════════════════════════════════════════════════════════════════════════
+// CHANTIER D — MODÈLE GLYCOGÈNE (Rapoport 2010, Hawley & Leckey 2015)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Estime la réserve glycogénique totale (foie + muscles).
+ * Réf: Rapoport 2010 (J. Appl. Physiol.); ~15 g/kg muscle actif + 100 g foie.
+ * Approximation pratique: ~6.5 g/kg masse totale chez athlète bien chargé.
+ */
+function estimateGlycogenStores(bodyMassKg: number, sport: string): number {
+  // Endurance trained ~ 6 à 7 g/kg; cycliste/coureur supplémenté CHO 24h pré-course
+  const perKg = sport === "swim" ? 5.5 : 6.5;
+  return Math.round(bodyMassKg * perKg);
+}
+
+/**
+ * Estime le coût glucidique horaire à une intensité donnée.
+ * Basé sur Romijn 1993 / Achten & Jeukendrup 2004 :
+ * - À 50% VO2max: ~50% lipides, ~50% CHO
+ * - À 65% VO2max (~FatMax): ~40% CHO
+ * - À 75% VO2max: ~70% CHO
+ * - À 85% VO2max: ~90% CHO
+ * Couplé à la dépense énergétique brute (kJ/h).
+ */
+function estimateCarbBurnRate(
+  intensityPctRef: number,
+  fatmaxPct: number,
+  bodyMassKg: number,
+  durationHours: number,
+  sport: string
+): number {
+  // Fraction CHO: sigmoïde centrée sur FatMax
+  const delta = intensityPctRef - fatmaxPct;
+  const choFraction = Math.min(0.95, Math.max(0.30, 0.55 + delta * 0.025));
+  
+  // Dépense énergétique horaire approximée (kcal/h)
+  // Cyclisme ~ 600 kcal/h à 65% FTP pour 70 kg; running ~ 700 kcal/h à allure marathon
+  const baseKcalPerHour = sport === "run"
+    ? bodyMassKg * 10 * (intensityPctRef / 75) // ~10 kcal/kg/h à allure marathon
+    : sport === "bike"
+      ? bodyMassKg * 8 * (intensityPctRef / 70)
+      : bodyMassKg * 9 * (intensityPctRef / 70);
+  
+  const choKcalPerHour = baseKcalPerHour * choFraction;
+  // 1 g glucides = 4 kcal
+  const choGph = choKcalPerHour / 4;
+  
+  // Décroissance liée à la fatigue: l'oxydation lipidique baisse en fin de course
+  // → coût CHO augmente d'environ 5-10% après 3h
+  const fatigueMultiplier = 1 + Math.max(0, durationHours - 3) * 0.03;
+  
+  return Math.round(choGph * fatigueMultiplier);
+}
+
+function computeGlycogenBudget(
+  input: LongDistanceInput,
+  ambitiousIntensityPct: number,
+  effectiveFatmax: number
+): GlycogenBudgetModel | null {
+  const bodyMassKg = input.bodyMassKg;
+  if (bodyMassKg == null || bodyMassKg < 30) return null;
+  
+  const sport = input.sport ?? "bike";
+  const initialStoresG = estimateGlycogenStores(bodyMassKg, sport);
+  const projectedBurnRateGph = estimateCarbBurnRate(
+    ambitiousIntensityPct,
+    effectiveFatmax,
+    bodyMassKg,
+    input.targetDurationHours,
+    sport
+  );
+  
+  // Apport effectif: capé par gut training
+  const planned = input.plannedCarbIntakeGph ?? 60;
+  const gutLevel = input.gutTrainingLevel ?? 2;
+  const maxAbsorbable = gutLevel === 3 ? 100 : gutLevel === 2 ? 75 : 60;
+  const effectiveCarbIntakeGph = Math.min(planned, maxAbsorbable);
+  
+  const netDepletionGph = Math.max(0, projectedBurnRateGph - effectiveCarbIntakeGph);
+  
+  // Zone critique: <20% des réserves (Coyle 1986)
+  const criticalReserveG = initialStoresG * 0.20;
+  const usableG = initialStoresG - criticalReserveG;
+  
+  let timeToCriticalMinutes: number | null = null;
+  if (netDepletionGph > 0) {
+    timeToCriticalMinutes = Math.round((usableG / netDepletionGph) * 60);
+  }
+  
+  // Bonk risk: temps critique vs durée prévue
+  const targetMin = input.targetDurationHours * 60;
+  let bonkRisk = 0;
+  let status: GlycogenBudgetModel["status"];
+  let message: string;
+  
+  if (timeToCriticalMinutes == null || timeToCriticalMinutes >= targetMin * 1.2) {
+    bonkRisk = 10;
+    status = "safe";
+    message = `Budget glycogène confortable: ~${initialStoresG} g de réserves, déplétion nette ${netDepletionGph} g/h.`;
+  } else if (timeToCriticalMinutes >= targetMin) {
+    bonkRisk = 35;
+    status = "tight";
+    message = `Budget serré: épuisement projeté à ${Math.round(timeToCriticalMinutes / 60 * 10) / 10}h vs course de ${input.targetDurationHours}h.`;
+  } else if (timeToCriticalMinutes >= targetMin * 0.75) {
+    bonkRisk = 65;
+    status = "deficit";
+    message = `Déficit projeté: zone critique atteinte ~${Math.round((targetMin - timeToCriticalMinutes))} min avant l'arrivée. Augmenter CHO/h ou réduire intensité.`;
+  } else {
+    bonkRisk = 90;
+    status = "critical";
+    message = `Risque de bonk élevé: réserves épuisées à mi-course. Ajustement nutrition + pacing OBLIGATOIRE.`;
+  }
+  
+  return {
+    initialStoresG,
+    projectedBurnRateGph,
+    effectiveCarbIntakeGph,
+    netDepletionGph,
+    timeToCriticalMinutes,
+    bonkRisk,
+    status,
+    message,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CHANTIER D — STRATÉGIE GLUCIDIQUE (Jeukendrup 2014, King et al. 2022)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function computeCarbStrategy(input: LongDistanceInput): CarbStrategyModel | null {
+  const { targetDurationHours } = input;
+  
+  // Recommandations Jeukendrup 2014 + mises à jour King 2022 (jusqu'à 120 g/h ultra-élites)
+  let recommendedGph: number;
+  let glucoseFructoseRatio: string;
+  
+  if (targetDurationHours < 1.5) {
+    recommendedGph = 30;
+    glucoseFructoseRatio = "1:0";
+  } else if (targetDurationHours < 2.5) {
+    recommendedGph = 60;
+    glucoseFructoseRatio = "2:1";
+  } else if (targetDurationHours < 4) {
+    recommendedGph = 80;
+    glucoseFructoseRatio = "1:0.8";
+  } else if (targetDurationHours < 6) {
+    recommendedGph = 90;
+    glucoseFructoseRatio = "1:0.8";
+  } else {
+    recommendedGph = 100;
+    glucoseFructoseRatio = "1:0.8";
+  }
+  
+  const gutLevel = input.gutTrainingLevel ?? 2;
+  const maxAbsorbableGph = gutLevel === 3 ? 120 : gutLevel === 2 ? 90 : 60;
+  const cappedRecommendation = Math.min(recommendedGph, maxAbsorbableGph);
+  
+  const planned = input.plannedCarbIntakeGph ?? cappedRecommendation;
+  const plannedVsRecommendedGap = planned - cappedRecommendation;
+  
+  // Risque GI: planifier > absorbable
+  let giRiskLevel: CarbStrategyModel["giRiskLevel"] = "low";
+  let message: string;
+  
+  if (planned > maxAbsorbableGph + 10) {
+    giRiskLevel = "high";
+    message = `${planned} g/h dépasse la capacité d'absorption (~${maxAbsorbableGph} g/h). Risque GI élevé — entraîner le gut ou réduire.`;
+  } else if (plannedVsRecommendedGap < -20) {
+    giRiskLevel = "low";
+    message = `Sous-doser de ${Math.abs(plannedVsRecommendedGap)} g/h. Recommandé: ${cappedRecommendation} g/h en ratio ${glucoseFructoseRatio}.`;
+  } else if (planned > 75 && gutLevel < 2) {
+    giRiskLevel = "moderate";
+    message = `Gut peu entraîné: ${planned} g/h risqué. Tester en simulation longue avant la course.`;
+  } else {
+    message = `Stratégie cohérente: ${planned} g/h en ratio ${glucoseFructoseRatio} (cible ${cappedRecommendation} g/h).`;
+  }
+  
+  return {
+    recommendedGph: cappedRecommendation,
+    maxAbsorbableGph,
+    glucoseFructoseRatio,
+    plannedVsRecommendedGap,
+    giRiskLevel,
+    message,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CHANTIER D — STRESS THERMIQUE (Périard 2021, Racinais 2015)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Estimation simplifiée WBGT à partir T° + humidité.
+ * Approximation pour conditions ensoleillées: WBGT ≈ 0.7*Twb + 0.3*Tdb
+ * Ici on utilise une formule pratique (Stull 2011) pour Twb.
+ */
+function estimateWBGT(tempC: number, humidityPct: number): number {
+  const rh = Math.max(5, Math.min(100, humidityPct));
+  // Stull 2011 — bulbe humide
+  const twb = tempC * Math.atan(0.151977 * Math.sqrt(rh + 8.313659))
+    + Math.atan(tempC + rh)
+    - Math.atan(rh - 1.676331)
+    + 0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh)
+    - 4.686035;
+  // WBGT outdoor ~ 0.7 Twb + 0.2 Tg + 0.1 Tdb. Sans globe, approx: 0.7 Twb + 0.3 Tdb
+  return Math.round((0.7 * twb + 0.3 * tempC) * 10) / 10;
+}
+
+function computeThermalStress(input: LongDistanceInput): ThermalStressModel | null {
+  if (input.ambientTempC == null) return null;
+  
+  const tempC = input.ambientTempC;
+  const humidity = input.humidityPct ?? 50;
+  const wbgtC = estimateWBGT(tempC, humidity);
+  const acclim = input.heatAcclimationLevel ?? 0;
+  const sport = input.sport ?? "bike";
+  
+  // Périard 2021: catégories WBGT pour endurance
+  // <18: neutre | 18-23: modéré | 23-28: élevé | >28: extrême
+  let stressLevel: ThermalStressModel["stressLevel"];
+  let basePenalty: number;
+  
+  if (wbgtC < 18) {
+    stressLevel = "neutral";
+    basePenalty = 0;
+  } else if (wbgtC < 23) {
+    stressLevel = "moderate";
+    basePenalty = 2;
+  } else if (wbgtC < 28) {
+    stressLevel = "high";
+    basePenalty = 5;
+  } else {
+    stressLevel = "extreme";
+    basePenalty = 9;
+  }
+  
+  // Running pénalisé +30% (pas de refroidissement convectif comme vélo)
+  if (sport === "run" && basePenalty > 0) {
+    basePenalty = Math.round(basePenalty * 1.3);
+  }
+  
+  // Acclimatation: réduit la pénalité de 30 à 60%
+  const acclimMultiplier = acclim === 2 ? 0.4 : acclim === 1 ? 0.7 : 1.0;
+  const intensityPenaltyPct = Math.round(basePenalty * acclimMultiplier);
+  
+  // Besoins fluides additionnels (Sawka 2007: +200 mL/h par 5°C au-dessus de 20°C)
+  const extraFluidNeedMlPerHour = wbgtC > 20
+    ? Math.round((wbgtC - 20) * 50)
+    : 0;
+  
+  let message: string;
+  if (stressLevel === "neutral") {
+    message = `WBGT ${wbgtC}°C — conditions neutres, pas d'ajustement thermique requis.`;
+  } else if (stressLevel === "extreme") {
+    message = `WBGT ${wbgtC}°C — stress extrême. Pénalité ${intensityPenaltyPct}% sur intensité, +${extraFluidNeedMlPerHour} mL/h de fluides.`;
+  } else {
+    message = `WBGT ${wbgtC}°C — ${stressLevel}. Réduire l'intensité de ${intensityPenaltyPct}%, hydratation +${extraFluidNeedMlPerHour} mL/h.`;
+  }
+  
+  return {
+    wbgtC,
+    stressLevel,
+    intensityPenaltyPct,
+    extraFluidNeedMlPerHour,
+    message,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FONCTION PRINCIPALE
+// ═══════════════════════════════════════════════════════════════════════════════
 
 export function computeLongDistanceEnvelope(input: LongDistanceInput): LongDistanceEnvelopeResult | null {
   const { baseEnvelope, targetDurationHours, fatmaxPct, vlamaxValue } = input;
 
   if (targetDurationHours < LONG_DISTANCE_THRESHOLD_HOURS) {
-    // Pas une épreuve longue distance
     return null;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 1: Calculer LDRI
-  // ─────────────────────────────────────────────────────────────────────────────
+  // STEP 1: LDRI
   const ldri = computeLDRI(input);
 
-  // ─────────────────────────────────────────────────────────────────────────────
   // STEP 2: Pénalités duration-aware
-  // ─────────────────────────────────────────────────────────────────────────────
   let durationPenaltyPct = 0;
   if (targetDurationHours > 2) {
-    // Pénalité non-linéaire après 2h
     durationPenaltyPct = Math.round(Math.pow(targetDurationHours - 2, 1.3) * 1.5);
-    durationPenaltyPct = Math.min(12, durationPenaltyPct); // cap à 12%
+    durationPenaltyPct = Math.min(12, durationPenaltyPct);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 3: Pénalité glycogène
-  // ─────────────────────────────────────────────────────────────────────────────
+  // STEP 3: Pénalité glycogène (heuristique)
   let glycogenPenaltyPct = 0;
   const effectiveFatmax = fatmaxPct ?? 65;
-  
-  // Si le haut de l'enveloppe de base est significativement au-dessus de FatMax
   if (baseEnvelope.boundary.highPct > effectiveFatmax + 15) {
     glycogenPenaltyPct = Math.round((baseEnvelope.boundary.highPct - effectiveFatmax - 15) * 0.5);
     glycogenPenaltyPct = Math.min(8, glycogenPenaltyPct);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 4: Calcul des limites ajustées
-  // ─────────────────────────────────────────────────────────────────────────────
-  const totalReductionPct = durationPenaltyPct + glycogenPenaltyPct;
+  // ─── CHANTIER D — STEP 3b: Modèles physiologiques étendus ──────────────────
+  const carbStrategy = computeCarbStrategy(input);
+  const glycogenBudget = computeGlycogenBudget(input, baseEnvelope.boundary.highPct, effectiveFatmax);
+  const thermalStress = computeThermalStress(input);
+
+  // ─── CHANTIER D — STEP 3c: Pénalités physiologiques additionnelles ─────────
+  let thermalPenaltyPct = thermalStress?.intensityPenaltyPct ?? 0;
   
-  // RÈGLE DURE: Pour > 4h, ne jamais dépasser FatMax + 10-15%
+  let carbDeficitPenaltyPct = 0;
+  if (glycogenBudget) {
+    if (glycogenBudget.status === "critical") carbDeficitPenaltyPct = 6;
+    else if (glycogenBudget.status === "deficit") carbDeficitPenaltyPct = 4;
+    else if (glycogenBudget.status === "tight") carbDeficitPenaltyPct = 2;
+  }
+
+  // STEP 4: Limites ajustées
+  const totalReductionPct = durationPenaltyPct + glycogenPenaltyPct + thermalPenaltyPct + carbDeficitPenaltyPct;
+
   let maxAllowedHigh = baseEnvelope.boundary.highPct - totalReductionPct;
   if (targetDurationHours >= CRITICAL_DURATION_HOURS) {
     const fatmaxCeiling = effectiveFatmax + FATMAX_MAX_OFFSET_LONG;
@@ -513,7 +859,7 @@ export function computeLongDistanceEnvelope(input: LongDistanceInput): LongDista
   }
 
   const adjustedHighPct = Math.max(
-    baseEnvelope.boundary.lowPct + 3, // minimum 3% de largeur
+    baseEnvelope.boundary.lowPct + 3,
     Math.round(maxAllowedHigh)
   );
 
@@ -524,32 +870,31 @@ export function computeLongDistanceEnvelope(input: LongDistanceInput): LongDista
     forbiddenPct: Math.round(adjustedHighPct + 8),
   };
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 5: Discipline Buffer
-  // ─────────────────────────────────────────────────────────────────────────────
+  // STEP 5-7: Discipline / Glycogen Threshold / Scenarios
   const disciplineBuffer = computeDisciplineBuffer(adjustedHighPct, ldri, targetDurationHours);
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 6: Glycogen Collapse Threshold
-  // ─────────────────────────────────────────────────────────────────────────────
   const glycogenThreshold = computeGlycogenThreshold(fatmaxPct, vlamaxValue, targetDurationHours);
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 7: Scénarios
-  // ─────────────────────────────────────────────────────────────────────────────
   const scenarios = generateScenarios(disciplineBuffer.disciplineTargetPct, adjustedHighPct, vlamaxValue);
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // STEP 8: Messages clés
-  // ─────────────────────────────────────────────────────────────────────────────
+  // STEP 8: Messages clés (enrichis CHANTIER D)
+  const physioWarnings: string[] = [];
+  if (thermalStress && thermalStress.stressLevel !== "neutral") {
+    physioWarnings.push(`🌡️ ${thermalStress.message}`);
+  }
+  if (glycogenBudget && (glycogenBudget.status === "deficit" || glycogenBudget.status === "critical")) {
+    physioWarnings.push(`⚠️ ${glycogenBudget.message}`);
+  }
+  if (carbStrategy && carbStrategy.giRiskLevel === "high") {
+    physioWarnings.push(`🍯 ${carbStrategy.message}`);
+  }
+
   const keyMessages = {
     staffReportMessage: `Pour cet athlète, aller plus fort tôt RÉDUIRA la performance finale.
 Le succès longue distance se décide AVANT la mi-course.
-Une intensité exprimée sans référence n'a aucune valeur physiologique.`,
-    
+Une intensité exprimée sans référence n'a aucune valeur physiologique.${physioWarnings.length ? "\n\n" + physioWarnings.join("\n") : ""}`,
+
     athleteMessage: `Cible recommandée: ${disciplineBuffer.disciplineTargetPct}% de ${baseEnvelope.boundary.referenceShortLabel}.
-Rester 'ennuyeux' au départ = finir fort.`,
-    
+Rester 'ennuyeux' au départ = finir fort.${carbStrategy ? `\nNutrition: ${carbStrategy.recommendedGph} g/h CHO.` : ""}`,
+
     coachWarning: ldri.level === "critical" || ldri.level === "high"
       ? `⚠️ LDRI ${ldri.score}/100 — Ce profil ne tolère aucune erreur précoce.`
       : `LDRI ${ldri.score}/100 — ${ldri.label}`,
@@ -562,9 +907,14 @@ Rester 'ennuyeux' au départ = finir fort.`,
     disciplineBuffer,
     glycogenThreshold,
     scenarios,
+    glycogenBudget,
+    carbStrategy,
+    thermalStress,
     penalties: {
       durationPenaltyPct,
       glycogenPenaltyPct,
+      thermalPenaltyPct,
+      carbDeficitPenaltyPct,
       totalReductionPct,
     },
     keyMessages,
@@ -572,6 +922,7 @@ Rester 'ennuyeux' au départ = finir fort.`,
     targetDurationHours,
   };
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ACADEMY CONTENT EXPORT
