@@ -20,56 +20,99 @@ import { AlertTriangle, Utensils, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateCarbOxidation } from "@/lib/v2/maderMetabolicModel";
 
+export type GutTrainingLevel = "untrained" | "developing" | "trained" | "elite";
+
 interface NutritionPredictiveChartProps {
   vlamaxValue: number | null;
   objectif: string;
   sport?: "velo" | "cap" | "triathlon";
   vo2max?: number | null;
   weightKg?: number | null;
+  durationMin?: number | null;
+  gutTrainingLevel?: GutTrainingLevel;
   staffMode?: boolean;
   className?: string;
 }
 
-// Calcul des besoins glucidiques par intensité via Mader
+// ============================================================================
+// F1 — Plafonds dynamiques selon gut training (King 2022, Viribay 2020, Costa 2023)
+// ============================================================================
+// untrained  : 60 g/h (1 transporteur SGLT1 saturé)
+// developing : 90 g/h (introduction fructose 1:0.5)
+// trained    : 120 g/h (ratio 1:0.8 standard élite)
+// elite      : 150 g/h (ultra-endurants, ratio 1:0.8, gut training >6 sem.)
+// CAP : -25% (Pfeiffer 2012) ; Triathlon : -10%
+const GUT_CAP_BIKE: Record<GutTrainingLevel, number> = {
+  untrained: 60,
+  developing: 90,
+  trained: 120,
+  elite: 150,
+};
+
+function getCarbCap(sport: "velo" | "cap" | "triathlon", level: GutTrainingLevel): number {
+  const base = GUT_CAP_BIKE[level];
+  if (sport === "cap") return Math.round(base * 0.75);     // 45 / 68 / 90 / 113
+  if (sport === "triathlon") return Math.round(base * 0.90); // 54 / 81 / 108 / 135
+  return base;
+}
+
+// ============================================================================
+// F1 — Fraction exogène durée-dépendante (Stellingwerff 2014, Burke 2019)
+// <90 min: 0.35 ; 90-180: 0.55 ; 180-360: 0.75 ; >360: 0.90
+// ============================================================================
+function getExogenousFraction(durationMin: number): number {
+  if (durationMin < 90) return 0.35;
+  if (durationMin < 180) return 0.55;
+  if (durationMin < 360) return 0.75;
+  return 0.90;
+}
+
+// ============================================================================
+// F1 — Ratio glucose:fructose recommandé (Jentjens 2004, O'Brien 2013, King 2022)
+// ============================================================================
+function getGlucoseFructoseRatio(gPerHour: number): { ratio: string; note: string } {
+  if (gPerHour <= 60) return { ratio: "Glucose seul OK", note: "1 transporteur SGLT1" };
+  if (gPerHour <= 90) return { ratio: "1 : 0.5", note: "Glucose + fructose nécessaire" };
+  if (gPerHour <= 120) return { ratio: "1 : 0.8", note: "Mix élite standard" };
+  return { ratio: "1 : 0.8 strict", note: "Gut training >6 sem. obligatoire" };
+}
+
 const computeNutritionCurve = (
   vlamax: number | null,
   sport: "velo" | "cap" | "triathlon",
   vo2max: number | null | undefined,
-  weightKg: number | null | undefined
+  weightKg: number | null | undefined,
+  durationMin: number,
+  gutLevel: GutTrainingLevel
 ) => {
   const vlx = vlamax ?? 0.45;
   const vo2 = vo2max ?? (sport === "cap" ? 48 : 50);
   const weight = weightKg ?? 70;
-  
-  // Facteur de réduction pour CAP (tolérance digestive moindre, Pfeiffer 2012)
-  const sportFactor = sport === "cap" ? 0.82 : sport === "triathlon" ? 0.90 : 1.0;
-  const capMax = sport === "cap" ? 75 : sport === "triathlon" ? 85 : 120;
-  
+
+  const capMax = getCarbCap(sport, gutLevel);
+  const exogenousFraction = getExogenousFraction(durationMin);
+
   const data = [];
   for (let intensity = 50; intensity <= 100; intensity += 5) {
-    // Oxydation totale de glucides via Mader (g/min → g/h)
     const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weight);
     const totalOxGh = carbOxGmin * 60;
-    
-    // L'apport exogène recommandé = ~60% de l'oxydation totale
-    // Glycogen sparing : s'alimenter tôt pour préserver les réserves
-    const exogenousFraction = 0.60;
-    const exogenousGh = totalOxGh * exogenousFraction * sportFactor;
-    
+
+    const exogenousGh = totalOxGh * exogenousFraction;
+
     const recommended = Math.round(Math.max(20, Math.min(capMax, exogenousGh)));
     const min = Math.round(Math.max(15, recommended * 0.85));
     const max = Math.round(Math.min(capMax, recommended * 1.15));
-    
+
     data.push({
       intensity,
       min,
       max,
       recommended,
       totalOx: Math.round(totalOxGh),
-      label: `${intensity}% FTP`
+      label: `${intensity}% FTP`,
     });
   }
-  
+
   return data;
 };
 
