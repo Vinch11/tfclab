@@ -250,15 +250,31 @@ function computeContinuousRaceIntensity(
 }
 
 /**
- * Largeur de l'enveloppe basée sur W'/CP (réserve anaérobie relative) et durée.
- * Skiba 2024: athlètes à grand W' tolèrent plus d'écarts; durée longue = enveloppe étroite.
+ * CHANTIER B — Largeur ASYMÉTRIQUE de l'enveloppe (haut ≠ bas)
+ *
+ * Skiba 2024 + Vanhatalo 2020:
+ *  - Le PLANCHER (low) varie peu avec la durée: même un IM peut descendre de ~5-8 pts sans
+ *    risque (sous-exploitation ≠ rupture).
+ *  - Le PLAFOND (high) se resserre fortement sur les longues durées car chaque % au-dessus
+ *    de CS consomme du W' à un coût exponentiel (W'-balance dynamics).
+ *  - La fraction de W'-balance projetée au finish module l'agressivité tolérée.
+ *
+ * Formule:
+ *   widthLow  = baseLow  × wPrimeRatio × sqrt(durationFactor)   (décroît lentement)
+ *   widthHigh = baseHigh × wPrimeRatio × durationFactor × wBalRaceDay (décroît + balance)
+ *
+ * Résultat typique:
+ *   - 10km elite (45min): low=±7, high=±9   (large vers le haut, surge possible)
+ *   - IM age-group (10h): low=±6, high=±2.5 (plafond très resserré, cap strict)
  */
-function computeContinuousEnvelopeWidth(
+function computeAsymmetricEnvelopeWidth(
   durationMin: number,
   wPrimeJkg: number | null,
-  cpWkg: number | null
-): number {
-  const baseWidth = 8; // ±8% point neutre
+  cpWkg: number | null,
+  wPrimeBalanceRaceDay: number | null
+): { low: number; high: number } {
+  const baseLow = 7;
+  const baseHigh = 8;
   const durationFactor = 1 / (1 + Math.log10(Math.max(durationMin, 30) / 60));
 
   let wPrimeRatio = 1.0;
@@ -267,8 +283,18 @@ function computeContinuousEnvelopeWidth(
     wPrimeRatio = clampLocal(wOverCp / 20, 0.6, 1.4);
   }
 
-  const width = baseWidth * wPrimeRatio * durationFactor;
-  return clampLocal(width, 3, 12);
+  // Race-day W'-balance: 1.0 = pleine réserve, 0 = épuisé. Défaut 0.5.
+  const wBalDay = clampLocal(wPrimeBalanceRaceDay ?? 0.5, 0.1, 1.0);
+  // Module entre 0.7 et 1.15 (réserve faible resserre, pleine réserve élargit modérément)
+  const wBalFactor = 0.7 + 0.45 * wBalDay;
+
+  const widthLow = baseLow * wPrimeRatio * Math.sqrt(durationFactor);
+  const widthHigh = baseHigh * wPrimeRatio * durationFactor * wBalFactor;
+
+  return {
+    low: clampLocal(widthLow, 3, 12),
+    high: clampLocal(widthHigh, 2, 12),
+  };
 }
 
 // Helper local (la const `clamp` globale est déclarée plus bas, hoisting impossible avec const)
