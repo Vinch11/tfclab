@@ -40,6 +40,7 @@ import {
 } from "@/lib/v2/staffPacingReport";
 
 import { PacingDisciplineChart } from "@/components/charts/PacingDisciplineChart";
+import { PersonalizedRulesSection } from "@/components/PersonalizedRulesSection";
 
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import type { DisciplineRulesResult } from "@/lib/v2/pacingDisciplineRules";
@@ -203,6 +204,9 @@ export function StaffPacingReportV2({
           </div>
         </CardContent>
       </Card>
+
+      {/* SECTION B.bis: Règles personnalisées (negative split delta calibré, semi GO/CAUTION/HOLD, IM run par ambition) */}
+      <PersonalizedRulesSection rules={rules} variant="full" />
 
       {/* SECTION C: Scénarios d'erreur */}
       <Card>

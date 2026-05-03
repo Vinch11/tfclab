@@ -32,6 +32,7 @@ import {
   type AthleteBriefingInput,
   type RaceDayBriefingResult,
 } from "@/lib/v2/raceDayBriefing";
+import { PersonalizedRulesSection } from "@/components/PersonalizedRulesSection";
 
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import type { DisciplineRulesResult } from "@/lib/v2/pacingDisciplineRules";
@@ -180,6 +181,9 @@ export function RaceDayBriefingMode({
           </p>
         </CardContent>
       </Card>
+
+      {/* BLOC 2.bis: Règles personnalisées (negative split delta calibré, semi finish kick conditionné) */}
+      <PersonalizedRulesSection rules={rules} variant="compact" />
 
       {/* BLOC 3: Règles d'or */}
       <Card>
