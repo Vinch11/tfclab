@@ -49,20 +49,41 @@ export function ErgogenicAidsCard({
   hasRepeatedEfforts = false,
   bicarbTested = false,
   vegetarian = false,
+  discipline,
   className,
   staffMode = false,
 }: ErgogenicAidsCardProps) {
-  const result = useMemo(
-    () =>
-      computeErgogenicAids({
-        weightKg,
-        durationMin,
-        hasRepeatedEfforts,
-        bicarbTested,
-        vegetarian,
-      }),
-    [weightKg, durationMin, hasRepeatedEfforts, bicarbTested, vegetarian]
+  // Preset suggéré automatiquement selon discipline + durée
+  const autoPreset = useMemo<ErgogenicPreset | null>(
+    () => (discipline ? suggestPreset(discipline, durationMin) : null),
+    [discipline, durationMin]
   );
+
+  const availablePresets = useMemo<ErgogenicPreset[]>(
+    () => (discipline ? getPresetsByDiscipline(discipline) : []),
+    [discipline]
+  );
+
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(autoPreset?.id ?? null);
+  const activePreset =
+    availablePresets.find((p) => p.id === selectedPresetId) ?? autoPreset;
+
+  // Fusion des overrides preset > props athlète
+  const effectiveInput = useMemo<ErgogenicAidsInput>(
+    () => ({
+      weightKg,
+      durationMin,
+      hasRepeatedEfforts:
+        activePreset?.overrides.hasRepeatedEfforts ?? hasRepeatedEfforts,
+      bicarbTested:
+        activePreset?.overrides.bicarbTested ?? bicarbTested,
+      vegetarian:
+        activePreset?.overrides.vegetarian ?? vegetarian,
+    }),
+    [weightKg, durationMin, hasRepeatedEfforts, bicarbTested, vegetarian, activePreset]
+  );
+
+  const result = useMemo(() => computeErgogenicAids(effectiveInput), [effectiveInput]);
 
   if (!result.isApplicable) {
     return (
