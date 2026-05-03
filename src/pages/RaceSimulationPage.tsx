@@ -21,6 +21,7 @@ import { CarbLoadingCard } from '@/components/CarbLoadingCard';
 import { GutTrainingCard } from '@/components/GutTrainingCard';
 import { HydrationProtocolCard } from '@/components/HydrationProtocolCard';
 import { RecoveryNutritionCard } from '@/components/RecoveryNutritionCard';
+import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
@@ -347,6 +348,14 @@ export default function RaceSimulationPage() {
                     goal: 'full_recovery_48h',
                     hotConditions: false,
                   }}
+                  staffMode={staffMode}
+                />
+                <ErgogenicAidsCard
+                  weightKg={activeSnapshot.weight_kg}
+                  durationMin={raceDurationMin}
+                  hasRepeatedEfforts={discipline === 'bike' || raceDurationMin <= 60}
+                  bicarbTested={false}
+                  vegetarian={false}
                   staffMode={staffMode}
                 />
               </>
