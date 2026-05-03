@@ -148,16 +148,34 @@ export default function RaceSimulationPage() {
     return 'bike';
   }, [defaultRunObjective, isTriathlon, triDiscipline]);
 
-  // Durée par segment (min) — utilisée par envelope, rules, scenarios
+  // Durée par segment (min) — individualisée à partir du pace seuil de l'athlète
+  // si disponible. Sinon fallback sur des valeurs de format (placeholder).
+  // Modèle TFCL™ :
+  //   • Course post-vélo : pace_threshold × coupling factor × distance
+  //     - 70.3 : coupling 1.05 (semi post-T2)
+  //     - IM   : coupling 1.12 (marathon post-T2, drift important)
+  //   • +2 % de pénalité supplémentaire si VLamax > 0.55 (profil glycolytique)
+  //   • Vélo : on conserve la table de format (à individualiser via CP/FTP en v2)
   const segmentDurationMin = React.useMemo(() => {
+    const paceThr = activeSnapshot?.pace_threshold_sec_per_km ?? null; // sec/km
+    const vlamaxHigh = (vlamaxEffectif?.value ?? 0.4) >= 0.55;
+    const vlamaxPenalty = vlamaxHigh ? 1.02 : 1.0;
+
+    const computeRunMin = (distanceKm: number, couplingFactor: number): number | null => {
+      if (!paceThr || paceThr <= 0) return null;
+      return (paceThr * couplingFactor * vlamaxPenalty * distanceKm) / 60;
+    };
+
     if (raceObjective === 'IM') {
-      return { bike: 300, run: 240 }; // ~5h vélo / 4h run (objectif 9-10h)
+      const runMin = computeRunMin(42.2, 1.12) ?? 240;
+      return { bike: 300, run: Math.round(runMin) };
     }
     if (raceObjective === '70.3') {
-      return { bike: 150, run: 105 }; // ~2h30 vélo / 1h45 run
+      const runMin = computeRunMin(21.1, 1.05) ?? 105;
+      return { bike: 150, run: Math.round(runMin) };
     }
     return { bike: 180, run: 180 };
-  }, [raceObjective]);
+  }, [raceObjective, activeSnapshot, vlamaxEffectif]);
 
   const raceDurationMin = React.useMemo(() => {
     if (isTriathlon) return segmentDurationMin[discipline];
