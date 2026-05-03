@@ -20,6 +20,7 @@ import AthletesListPage from "./pages/AthletesListPage";
 import AITrainingPlanPage from "./pages/AITrainingPlanPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import RaceSimulationPage from "./pages/RaceSimulationPage";
+import PacingAuditPage from "./pages/PacingAuditPage";
 import RunningProfilePage from "./pages/RunningProfilePage";
 import AthleteEditPage from "./pages/AthleteEditPage";
 import NotFound from "./pages/NotFound";
