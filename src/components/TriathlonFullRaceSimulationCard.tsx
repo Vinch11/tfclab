@@ -999,7 +999,7 @@ export function TriathlonFullRaceSimulationCard(props: Props) {
 
         {scenarios.map((s) => (
           <TabsContent key={s.key} value={s.key} className="mt-3">
-            <ScenarioCard scenario={s} isIM={isIM} />
+            <ScenarioCard scenarioKey={s.key} props={props} isIM={isIM} />
           </TabsContent>
         ))}
       </Tabs>
