@@ -531,7 +531,151 @@ function AthleteVerdict({ scenario, isIM }: { scenario: FullRaceScenario; isIM: 
   );
 }
 
-function ScenarioCard({ scenario, isIM }: { scenario: FullRaceScenario; isIM: boolean }) {
+function BikeIntensitySlider({
+  offset,
+  onChange,
+  baseline,
+  current,
+}: {
+  offset: number;
+  onChange: (v: number) => void;
+  baseline: FullRaceScenario;
+  current: FullRaceScenario;
+}) {
+  const deltaTotal = Math.round(current.totalMin - baseline.totalMin);
+  const deltaRisk = current.combinedFailurePct - baseline.combinedFailurePct;
+  const deltaRunRisk = current.runFailurePct - baseline.runFailurePct;
+  const fmtSign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+  const fmtDelta = (m: number) => {
+    if (m === 0) return "0";
+    const s = m > 0 ? "+" : "−";
+    const a = Math.abs(m);
+    if (a >= 60) return `${s}${Math.floor(a / 60)}h${(a % 60).toString().padStart(2, "0")}`;
+    return `${s}${a}min`;
+  };
+  return (
+    <div className="rounded-lg border-2 border-blue-500/30 bg-blue-500/5 p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 font-semibold text-xs text-blue-700 dark:text-blue-400">
+          <Sliders className="h-3.5 w-3.5" />
+          Curseur intensité vélo (live)
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-[11px] font-mono",
+              offset > 0
+                ? "border-red-500/40 text-red-600"
+                : offset < 0
+                ? "border-emerald-500/40 text-emerald-600"
+                : "",
+            )}
+          >
+            {fmtSign(offset)} % vélo
+          </Badge>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2 text-[10px]"
+            onClick={() => onChange(0)}
+            disabled={offset === 0}
+          >
+            <RotateCcw className="h-3 w-3 mr-1" />
+            Reset
+          </Button>
+        </div>
+      </div>
+
+      <Slider
+        value={[offset]}
+        min={-10}
+        max={10}
+        step={1}
+        onValueChange={(v) => onChange(v[0] ?? 0)}
+        className="my-1"
+      />
+      <div className="flex justify-between text-[9px] text-muted-foreground font-mono">
+        <span>−10 % (très conservateur)</span>
+        <span>baseline scénario</span>
+        <span>+10 % (très poussé)</span>
+      </div>
+
+      {/* Live deltas */}
+      <div className="grid grid-cols-3 gap-1.5 pt-1">
+        <div className="rounded border bg-card/60 px-2 py-1 text-center">
+          <div className="text-[9px] uppercase text-muted-foreground">Δ Temps total</div>
+          <div
+            className={cn(
+              "font-mono font-bold text-xs tabular-nums",
+              deltaTotal < 0 ? "text-emerald-600" : deltaTotal > 0 ? "text-red-600" : "",
+            )}
+          >
+            {fmtDelta(deltaTotal)}
+          </div>
+        </div>
+        <div className="rounded border bg-card/60 px-2 py-1 text-center">
+          <div className="text-[9px] uppercase text-muted-foreground">Δ Risque global</div>
+          <div
+            className={cn(
+              "font-mono font-bold text-xs tabular-nums",
+              deltaRisk > 0 ? "text-red-600" : deltaRisk < 0 ? "text-emerald-600" : "",
+            )}
+          >
+            {fmtSign(deltaRisk)} pts
+          </div>
+        </div>
+        <div className="rounded border bg-card/60 px-2 py-1 text-center">
+          <div className="text-[9px] uppercase text-muted-foreground">Δ Risque run</div>
+          <div
+            className={cn(
+              "font-mono font-bold text-xs tabular-nums",
+              deltaRunRisk > 0 ? "text-red-600" : deltaRunRisk < 0 ? "text-emerald-600" : "",
+            )}
+          >
+            {fmtSign(deltaRunRisk)} pts
+          </div>
+        </div>
+      </div>
+      <p className="text-[10px] text-muted-foreground italic leading-snug">
+        Modèle TFCL™ : +1 % d'intensité vélo = −0,6 % de temps vélo, mais +0,8 % de pénalité run,
+        +1,2 pt de fatigue résiduelle et +2 pts de risque sur le run.
+      </p>
+    </div>
+  );
+}
+
+function ScenarioCard({
+  scenarioKey,
+  props,
+  isIM,
+}: {
+  scenarioKey: FullRaceScenarioKey;
+  props: Props;
+  isIM: boolean;
+}) {
+  const [offset, setOffset] = useState<number>(0);
+  const baseline = useMemo(() => buildScenario(scenarioKey, props, 0), [scenarioKey, props]);
+  const scenario = useMemo(
+    () => buildScenario(scenarioKey, props, offset),
+    [scenarioKey, props, offset],
+  );
+  return ScenarioCardInner({ scenario, baseline, isIM, offset, setOffset });
+}
+
+function ScenarioCardInner({
+  scenario,
+  baseline,
+  isIM,
+  offset,
+  setOffset,
+}: {
+  scenario: FullRaceScenario;
+  baseline: FullRaceScenario;
+  isIM: boolean;
+  offset: number;
+  setOffset: (v: number) => void;
+}) {
   const rob = ROBUSTNESS_META[scenario.robustness];
   return (
     <Card className="overflow-hidden">
