@@ -607,7 +607,16 @@ export default function RaceSimulationPage() {
                 paceThreshold={activeSnapshot?.pace_threshold_sec_per_km}
                 weight={activeSnapshot?.weight_kg}
                 staffMode={staffMode}
+                defaultRaceType={raceObjective}
               />
+              {isTriathlon && !staffMode && (
+                <Alert className="text-[11px] sm:text-xs py-2 bg-amber-500/5 border-amber-500/30">
+                  <Info className="h-3.5 w-3.5" />
+                  <AlertDescription>
+                    <strong>Triathlon :</strong> les scénarios ci-dessus simulent le segment <strong>{discipline === 'bike' ? '🚴 vélo' : '🏃 course à pied'}</strong>. Utilise la bascule en haut de l'étape 2 pour comparer les deux moitiés de ta course.
+                  </AlertDescription>
+                </Alert>
+              )}
             </AccordionContent>
           </AccordionItem>
 
