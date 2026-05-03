@@ -26,6 +26,7 @@ import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
 import { computeVLamaxEffectif, computeTTEEffectif } from '@/engines/diagnostic';
+import { computePotentielEffectif } from '@/lib/potentielPhysiologiqueEffectif';
 import { computeFatMaxTFCL } from '@/lib/v2/fatmaxTFCL';
 import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibiliteTFCL';
 import { computePacingEnvelope } from '@/lib/v2/pacingEnvelopeEngine';
@@ -146,10 +147,21 @@ export default function RaceSimulationPage() {
     }
   }, [raceObjective]);
   
+  // Source de vérité : Potentiel Physiologique Effectif (cohérent avec le reste de l'app)
   const potentielPhysiologiqueScore = React.useMemo(() => {
-    if (!disponibilite) return null;
-    return disponibilite.score;
-  }, [disponibilite]);
+    if (!vlamaxEffectif || !tteEffectif) return null;
+    const potentiel = computePotentielEffectif({
+      objectif,
+      vlamaxEffectif: { value: vlamaxEffectif.value ?? 0, confidence: vlamaxEffectif.confidence ?? 0 },
+      tteEffectif: { tte_min: tteEffectif.tte_min ?? 0, confidence: tteEffectif.confidence ?? 0 },
+      ftp: activeSnapshot?.ftp ?? null,
+      poids: activeSnapshot?.weight_kg,
+      athleteAge: (selectedAthlete as any)?.age ?? null,
+      ambition: (selectedAthlete as any)?.ambition ?? undefined,
+      tss7d: activeSnapshot?.tss_7d ?? null,
+    });
+    return potentiel.isInsufficient ? null : potentiel.score;
+  }, [vlamaxEffectif, tteEffectif, objectif, activeSnapshot, selectedAthlete]);
   
   const envelope = React.useMemo(() => {
     // CHANTIER A — durée prédite par objectif (fallback simple si pas de prediction TTE)
