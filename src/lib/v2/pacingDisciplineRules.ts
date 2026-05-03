@@ -16,6 +16,7 @@
 
 import type { PacingEnvelopeResult, RaceObjective } from "./pacingEnvelopeEngine";
 import type { VLamaxEffectif } from "../vlamaxEffectif";
+import { normalizeAmbitionLevel, type AmbitionLevel } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
