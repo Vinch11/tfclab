@@ -234,14 +234,82 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FONCTION PRINCIPALE
+// IRONMAN RUN — RÈGLE EVEN vs NEGATIVE SPLIT CALIBRÉE PAR AMBITION
+// ─────────────────────────────────────────────────────────────────────────────
+// Littérature: Angehrn et al. (2022), Le Meur et al. (2011), Rüst et al. (2013).
+// → Ironman = course glycogène-limitée. Le "negative split agressif" du marathon
+//   pur ne s'applique PAS. La majorité des sub-9 et podiums AG affichent un
+//   ralentissement progressif de 3 à 8 % entre 1ère et 2ème moitié du marathon.
+// → Stratégie optimale : départ retenu (under-pace) pour limiter la casse,
+//   even split visé, le "negative split" n'est réaliste que pour les élites
+//   à VLamax basse + glycogène très bien géré sur le vélo.
 // ═══════════════════════════════════════════════════════════════════════════════
+function buildIronmanRunSplitRule(
+  ambition: AmbitionLevel,
+  vlamaxValue: number | null,
+): DisciplineRule {
+  // Profil "élite-like" : low VLamax + niveau elite/competitor → autorise negative split modeste
+  const eliteLike =
+    (ambition === "elite" || ambition === "competitor") &&
+    (vlamaxValue == null || vlamaxValue < 0.45);
+
+  if (ambition === "elite" && eliteLike) {
+    return {
+      id: "im_run_even_split",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Marathon IM Élite — negative split contrôlé",
+      message:
+        "Premiers 10 km à -3 à -5 % sous l'allure cible (≈ 5–8 sec/km plus lent). Stabiliser à allure cible sur 10–30 km. Push autorisé seulement après 32 km si glycogène et FC tiennent. Référence : Angehrn 2022, podiums Kona sub-8h45.",
+      icon: "🏃",
+      source: "Format Ironman run — Ambition Élite",
+    };
+  }
+
+  if (ambition === "competitor") {
+    return {
+      id: "im_run_even_split",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Marathon IM Compétiteur — even split prioritaire",
+      message:
+        "Premiers 10 km à -4 à -6 % sous l'allure cible (≈ 8–12 sec/km plus lent). Objectif : even split sur les 32 premiers km. Le negative split est un bonus, pas une cible. Tout départ à allure cible = effondrement quasi-garanti après 25 km.",
+      icon: "🏃",
+      source: "Format Ironman run — Ambition Compétiteur",
+    };
+  }
+
+  if (ambition === "age_group") {
+    return {
+      id: "im_run_even_split",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Marathon IM Age-Group — départ retenu obligatoire",
+      message:
+        "Premiers 10 km à -6 à -10 % sous l'allure cible (≈ 12–20 sec/km plus lent). Accepter un léger positive split (≤ +5 %) est physiologique et conforme à la littérature (Angehrn 2022 : 78 % des AG sub-11h ralentissent de 3–8 %). Priorité : éviter la marche après 30 km.",
+      icon: "🏃",
+      source: "Format Ironman run — Ambition Age-Group",
+    };
+  }
+
+  // finisher (et fallback)
+  return {
+    id: "im_run_even_split",
+    category: "non_negotiable",
+    priority: "critical",
+    title: "Marathon IM Finisher — survie & nutrition",
+    message:
+      "Démarrer à -10 à -15 % sous l'allure cible. Marche planifiée à chaque ravitaillement (30 sec). Objectif : finir en courant, pas en marchant. Un positive split de +5 à +10 % est attendu et acceptable.",
+    icon: "🏃",
+    source: "Format Ironman run — Ambition Finisher",
+  };
+}
 
 /**
  * Génère les règles de discipline de pacing basées sur le profil
  */
 export function generateDisciplineRules(input: DisciplineRulesInput): DisciplineRulesResult {
-  const { envelope, vlamaxEffectif, raceObjective, sport, potentielPhysiologiqueScore } = input;
+  const { envelope, vlamaxEffectif, raceObjective, sport, potentielPhysiologiqueScore, ambition } = input;
   
   const rules: DisciplineRule[] = [...UNIVERSAL_RULES];
   
@@ -250,6 +318,13 @@ export function generateDisciplineRules(input: DisciplineRulesInput): Discipline
   // ─────────────────────────────────────────────────────────────────────────────
   const raceRules = RACE_SPECIFIC_RULES[raceObjective] || [];
   rules.push(...raceRules);
+
+  // 1.bis — Injection règle IM run calibrée ambition (uniquement segment run)
+  if (raceObjective === "IM" && sport === "run") {
+    const ambitionLevel = normalizeAmbitionLevel(ambition);
+    rules.push(buildIronmanRunSplitRule(ambitionLevel, vlamaxEffectif?.value ?? null));
+  }
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 2. Règles basées sur VLamax
