@@ -326,6 +326,62 @@ export default function AthleteEditPage() {
           </CardContent>
         </Card>
 
+        {/* F8 — Profil ergogénique */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FlaskConical className="h-5 w-5 text-primary" />
+              Profil ergogénique
+            </CardTitle>
+            <CardDescription>
+              Pilote la sélection des suppléments (nitrates, beta-alanine, créatine, bicarbonate) et les warnings associés.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="repeated-efforts">Efforts répétés / explosifs</Label>
+                <p className="text-xs text-muted-foreground">
+                  Sprints, attaques, côtes courtes — active créatine + beta-alanine.
+                </p>
+              </div>
+              <Switch
+                id="repeated-efforts"
+                checked={hasRepeatedEfforts}
+                onCheckedChange={setHasRepeatedEfforts}
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="bicarb-tested">Bicarbonate déjà testé</Label>
+                <p className="text-xs text-muted-foreground">
+                  Tolérance GI au NaHCO₃ validée à l'entraînement — débloque la recommandation course.
+                </p>
+              </div>
+              <Switch
+                id="bicarb-tested"
+                checked={bicarbTested}
+                onCheckedChange={setBicarbTested}
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="vegetarian">Régime végétarien / vegan</Label>
+                <p className="text-xs text-muted-foreground">
+                  Stocks créatine bas — gain typique +20 % à la supplémentation.
+                </p>
+              </div>
+              <Switch
+                id="vegetarian"
+                checked={vegetarian}
+                onCheckedChange={setVegetarian}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="flex flex-col gap-3">
           <Button onClick={handleSave} variant="outline" className="gap-2">
             <Save className="h-4 w-4" />
