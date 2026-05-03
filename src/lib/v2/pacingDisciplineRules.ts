@@ -128,6 +128,15 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
       icon: "🚫",
       source: "Format Ironman",
     },
+    {
+      id: "im_run_even_split",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Marathon IM — even/negative split",
+      message: "Premiers 10 km du marathon à -3 à -5% sous l'allure cible. Toute dérive positive = effondrement après 30 km.",
+      icon: "🏃",
+      source: "Format Ironman — run",
+    },
   ],
   "70.3": [
     {
@@ -148,16 +157,25 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
       icon: "🔄",
       source: "Format 70.3",
     },
+    {
+      id: "703_run_even_split",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Semi 70.3 — even split minimum",
+      message: "Premiers 5 km à allure cible exacte (pas plus rapide). Push autorisé seulement après 15 km si fraîcheur intacte.",
+      icon: "🏃",
+      source: "Format 70.3 — run",
+    },
   ],
   Marathon: [
     {
       id: "marathon_negative_split",
-      category: "tactical",
-      priority: "important",
-      title: "Negative split",
-      message: "Viser le negative split : 2ème moitié plus rapide que la 1ère.",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Negative split — standard élite",
+      message: "Viser un negative split (2ème moitié 1-3% plus rapide). Modèle confirmé chez 80% des podiums marathon (Hanley 2020, Casado 2021).",
       icon: "📊",
-      source: "Format Marathon",
+      source: "Format Marathon — Littérature élite",
     },
     {
       id: "marathon_30k_wall",
@@ -210,12 +228,12 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
     },
     {
       id: "10k_last_2k",
-      category: "tactical",
+      category: "non_negotiable",
       priority: "important",
-      title: "Finition",
-      message: "Les 2 derniers km permettent le push si le réservoir est intact.",
+      title: "Finish kick — standard",
+      message: "Les 2 derniers km doivent être les plus rapides. Le finish kick est la norme physiologique sur 10K (Hanley 2020), pas un bonus conditionnel.",
       icon: "🏁",
-      source: "Format 10 km",
+      source: "Format 10 km — Littérature élite",
     },
   ],
 };

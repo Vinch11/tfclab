@@ -19,7 +19,7 @@ import type { PacingEnvelopeResult, RaceObjective } from "./pacingEnvelopeEngine
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type ScenarioType = "pacing_error" | "early_push" | "sustained_overdrive" | "glycogen_crisis" | "heat_stress";
+export type ScenarioType = "pacing_error" | "early_push" | "sustained_overdrive" | "glycogen_crisis" | "heat_stress" | "controlled_negative_split";
 export type ConsequenceSeverity = "minor" | "moderate" | "major" | "critical";
 export type RacePhase = "first_third" | "middle_third" | "last_third";
 
@@ -292,6 +292,33 @@ function generateBaseScenarios(input: ScenarioSimulationInput): PacingScenario[]
       color: "orange",
     });
   }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SCÉNARIO 7 (POSITIF): Negative split maîtrisé — modèle de référence
+  // ─────────────────────────────────────────────────────────────────────────────
+  scenarios.push({
+    id: "controlled_negative_split",
+    type: "controlled_negative_split",
+    title: "Negative split maîtrisé (référence)",
+    condition: {
+      description: `Départ à -2 à -4% sous le centre de l'enveloppe, montée progressive vers le plafond vert dans le dernier tiers`,
+      intensityOverPct: -3,
+      durationMinutes: Math.round(raceDurationMin * 0.33),
+      phase: "first_third",
+    },
+    consequence: {
+      description: "Préservation du glycogène en début, capacité à pousser dans les derniers km. Modèle confirmé chez 80% des podiums élite (Hanley 2020, Casado 2021).",
+      severity: "minor",
+      glycogenImpactPct: -8, // épargne
+      performanceLossPct: -2, // gain net
+      breakpointKm: Math.round(raceDistanceKm * 0.66),
+      timeToImpactMin: Math.round(raceDurationMin * 0.66),
+    },
+    pedagogicalMessage: "Le negative split n'est pas une option de prudence : c'est le standard physiologique de la performance optimale sur endurance.",
+    coachAction: "Imposer le départ contenu. Vérifier la sensation 'facile' à mi-course = signal optimal.",
+    icon: "🎯",
+    color: "green",
+  });
 
   return scenarios;
 }

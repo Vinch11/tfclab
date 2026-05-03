@@ -295,11 +295,12 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     green = [Math.round(toPctSeuil(b.lowPct)), Math.round(toPctSeuil(b.highPct))];
     orange = [green[1], Math.round(toPctSeuil(b.toleratedPct))];
     red = [orange[1], Math.round(Math.min(orange[1] + 8, 115))];
-    // Negative split autorisé si plafond élargi (asym ≥1.0) et VLamax basse
+    // Negative split = standard élite (Hanley 2020, Casado 2021).
+    // Autorisé sauf contre-indication forte (readiness RED ou asymétrie défavorable).
     allowAggressiveFinish =
-      b.asymmetryRatio >= 1.0 &&
-      vlamax_run_v2 != null &&
-      vlamax_run_v2 < VLAMAX_MODIFIERS.LOW.threshold;
+      race_readiness_state !== "RED" &&
+      b.asymmetryRatio >= 0.85 &&
+      !(vlamax_run_v2 != null && vlamax_run_v2 > 0.55 && distance === "MARATHON");
   } else {
     // Fallback ultime: bornes statiques historiques
     const baseBounds = ZONE_BOUNDARIES[distance];
@@ -393,12 +394,12 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
   const scenarios: PacingScenarioRun[] = [
     {
       type: "DISCIPLINED",
-      label: "Scénario Discipliné",
-      description: "Reste dans l'enveloppe verte — performance robuste",
+      label: "Scénario Discipliné — Negative Split",
+      description: "Départ contenu, montée progressive vers le haut de l'enveloppe — standard élite (Hanley 2020)",
       pacing_profile: {
-        first_third_pct: green[0] + 1,
+        first_third_pct: green[0],
         middle_third_pct: centerGreen,
-        last_third_pct: green[1] - 1,
+        last_third_pct: green[1],
       },
       estimated_success_rate: race_readiness_state === "GREEN" ? 92 : race_readiness_state === "ORANGE" ? 85 : 70,
       risk_warning: null,
@@ -490,13 +491,14 @@ function generateTrajectory(
   
   switch (type) {
     case "DISCIPLINED":
+      // Negative split: démarrage sous le centre, finition au plafond vert
       return [
-        { distancePct: 0, intensityPct: green[0] + 1 },
-        { distancePct: 10, intensityPct: green[0] + 2 },
-        { distancePct: 33, intensityPct: centerGreen },
+        { distancePct: 0, intensityPct: green[0] },
+        { distancePct: 10, intensityPct: green[0] + 0.5 },
+        { distancePct: 33, intensityPct: green[0] + (centerGreen - green[0]) * 0.6 },
         { distancePct: 50, intensityPct: centerGreen },
-        { distancePct: 66, intensityPct: centerGreen + 1 },
-        { distancePct: 80, intensityPct: green[1] - 1 },
+        { distancePct: 66, intensityPct: centerGreen + (green[1] - centerGreen) * 0.5 },
+        { distancePct: 80, intensityPct: green[1] - 0.5 },
         { distancePct: 100, intensityPct: green[1] },
       ];
     case "OPTIMISTIC":
