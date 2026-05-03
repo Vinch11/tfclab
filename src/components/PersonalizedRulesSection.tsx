@@ -14,7 +14,7 @@ interface Props {
 const PRIORITY_STYLE: Record<DisciplineRule["priority"], string> = {
   critical: "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800",
   important: "bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-800",
-  optional: "bg-muted/30 border-border",
+  recommended: "bg-muted/30 border-border",
 };
 
 function extractConfidence(source?: string): "low" | "medium" | "high" | null {
