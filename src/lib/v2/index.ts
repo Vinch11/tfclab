@@ -664,6 +664,7 @@ export {
   type DisciplineRulesInput,
   type RuleCategory,
   type RulePriority,
+  type SemiLiveSegments,
 } from './pacingDisciplineRules';
 
 // Scenario Simulator
