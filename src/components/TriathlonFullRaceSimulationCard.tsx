@@ -515,8 +515,116 @@ function ScenarioCard({ scenario, isIM }: { scenario: FullRaceScenario; isIM: bo
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Récap format + paramètres synchronisés
+// ──────────────────────────────────────────────────────────────────────────────
+
+function FormatRecap({
+  isIM,
+  scenarios,
+  props,
+}: {
+  isIM: boolean;
+  scenarios: FullRaceScenario[];
+  props: Props;
+}) {
+  const segments = isIM
+    ? [
+        { icon: Waves, label: "Natation", dist: "3.8 km", note: "1 boucle ou 2 selon parcours" },
+        { icon: ChevronRight, label: "T1", dist: "—", note: "Eau → vélo (combi, casque)" },
+        { icon: Bike, label: "Vélo", dist: "180 km", note: "≈ 5 à 7 h selon profil" },
+        { icon: ChevronRight, label: "T2", dist: "—", note: "Vélo → course (jelly legs)" },
+        { icon: Footprints, label: "Marathon", dist: "42.2 km", note: "≈ 3 h 30 à 5 h" },
+      ]
+    : [
+        { icon: Waves, label: "Natation", dist: "1.9 km", note: "1 boucle généralement" },
+        { icon: ChevronRight, label: "T1", dist: "—", note: "Eau → vélo" },
+        { icon: Bike, label: "Vélo", dist: "90 km", note: "≈ 2 h 15 à 3 h" },
+        { icon: ChevronRight, label: "T2", dist: "—", note: "Vélo → course" },
+        { icon: Footprints, label: "Semi", dist: "21.1 km", note: "≈ 1 h 20 à 2 h" },
+      ];
+
+  const totalDist = isIM ? "226 km" : "113 km";
+  const ref = scenarios[0]; // tous partagent swim/T1/T2 de base
+  const synced: { label: string; value: string }[] = [
+    { label: "Natation", value: fmtDuration(ref.swimMin) },
+    { label: "T1 base", value: `${Math.round(ref.t1Min * 60)} s` },
+    { label: "T2 base", value: `${Math.round(ref.t2Min * 60)} s` },
+    { label: "Plafond fueling vélo", value: isIM ? "90 g/h" : "75 g/h" },
+    { label: "Plafond fueling run", value: isIM ? "70 g/h" : "60 g/h" },
+    { label: "Cible hydratation", value: isIM ? "600-800 ml/h" : "500-700 ml/h" },
+    { label: "Drift FC max toléré", value: isIM ? "+8 bpm" : "+6 bpm" },
+    {
+      label: "État de départ",
+      value: props.fatigueState ?? "non renseigné",
+    },
+    {
+      label: "Disponibilité",
+      value: props.disponibiliteScore != null ? `${Math.round(props.disponibiliteScore)}/100` : "—",
+    },
+  ];
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center justify-between gap-2 flex-wrap">
+          <span className="flex items-center gap-1.5">
+            <Info className="h-3 w-3" /> Format simulé : {isIM ? "Ironman 226" : "Half Ironman 113"}
+          </span>
+          <Badge variant="outline" className="text-[10px] font-mono">
+            Total {totalDist} · Paramètres auto-synchronisés
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Timeline segments */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+          {segments.map((s, i) => (
+            <div
+              key={i}
+              className={cn(
+                "rounded-md border p-2 text-[11px] text-center",
+                s.label === "T1" || s.label === "T2"
+                  ? "bg-amber-500/5 border-amber-500/20"
+                  : "bg-muted/30",
+              )}
+            >
+              <div className="flex items-center justify-center gap-1 font-semibold">
+                <s.icon className="h-3 w-3" />
+                {s.label}
+              </div>
+              <div className="font-mono text-[12px] tabular-nums mt-0.5">{s.dist}</div>
+              <div className="text-[10px] text-muted-foreground leading-snug mt-0.5">{s.note}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Paramètres synchronisés */}
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+            Paramètres synchronisés à ton objectif
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+            {synced.map((p) => (
+              <div key={p.label} className="rounded border bg-card/50 px-2 py-1 text-[11px] flex justify-between gap-2">
+                <span className="text-muted-foreground truncate">{p.label}</span>
+                <span className="font-mono font-semibold tabular-nums shrink-0">{p.value}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground italic mt-1.5 leading-snug">
+            Distances, fueling, transitions et seuils de drift sont automatiquement adaptés au format{" "}
+            <strong>{isIM ? "Ironman" : "Half Ironman"}</strong>. Modifie ton objectif de course pour les recalibrer.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Composant principal
 // ──────────────────────────────────────────────────────────────────────────────
+
 
 export function TriathlonFullRaceSimulationCard(props: Props) {
   const isIM = props.raceObjective === "IM";
