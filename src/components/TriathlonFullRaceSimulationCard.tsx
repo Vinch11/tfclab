@@ -732,6 +732,14 @@ function ScenarioCardInner({
       </CardHeader>
 
       <CardContent className="pt-3 space-y-3">
+        {/* Curseur intensité vélo (live) */}
+        <BikeIntensitySlider
+          offset={offset}
+          onChange={setOffset}
+          baseline={baseline}
+          current={scenario}
+        />
+
         {/* Décomposition par segment */}
         <div className="rounded-lg border bg-muted/20 px-3 py-2">
           <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1 flex items-center gap-1">
