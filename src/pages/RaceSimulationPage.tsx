@@ -537,86 +537,51 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
-              {!staffMode && (
-                <div className="space-y-2">
-                  <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
-                    <Info className="h-3.5 w-3.5" />
-                    <AlertDescription>
-                      {isTriathlon ? (
-                        <>On simule <strong>3 plans de course complets</strong> (vélo + run enchaînés). Tu choisis la stratégie la plus adaptée à ta forme du jour, ton expérience et la météo.</>
-                      ) : (
-                        <>On simule <strong>3 plans de course</strong> à partir de ton profil. Chacun a un coût, un risque et une probabilité d'échec chiffrés.</>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2.5">
-                      <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">🛡️ Robuste</div>
-                      <p className="text-[11px] text-muted-foreground leading-snug mt-1">
-                        {isTriathlon
-                          ? "Vélo prudent (bas du couloir), run en negative split. Tu finis fort, sans crampes. À choisir si 1re course longue, doute, chaleur, ou Disponibilité < 60."
-                          : "Tu finis fort, sans casse. Idéal si fatigue, doute, météo difficile, ou 1re course sur la distance."}
-                      </p>
-                    </div>
-                    <div className="rounded-md border border-primary/30 bg-primary/5 p-2.5">
-                      <div className="text-xs font-semibold text-primary">🎯 Ambitieux</div>
-                      <p className="text-[11px] text-muted-foreground leading-snug mt-1">
-                        {isTriathlon
-                          ? "Vélo cible centre du couloir, run en even split à l'allure seuil. Le scénario par défaut quand forme et nutrition sont au rendez-vous."
-                          : "Ton meilleur potentiel si tout aligne (forme, nutrition, parcours). Recommandé si Disponibilité ≥ 75."}
-                      </p>
-                    </div>
-                    <div className="rounded-md border border-red-500/30 bg-red-500/5 p-2.5">
-                      <div className="text-xs font-semibold text-red-700 dark:text-red-400">🔥 Agressif</div>
-                      <p className="text-[11px] text-muted-foreground leading-snug mt-1">
-                        {isTriathlon
-                          ? "Vélo poussé en haut du couloir, run en positive split assumé. Réservé aux athlètes qui visent un podium et acceptent le risque de marcher au run."
-                          : "Quitte ou double. Vise un record. Casse glycogénique probable si nutrition imparfaite."}
-                      </p>
-                    </div>
-                  </div>
-                  <Alert className="text-[11px] sm:text-xs py-2 bg-muted/30">
-                    <Info className="h-3.5 w-3.5" />
-                    <AlertDescription>
-                      <strong>Lecture des chiffres :</strong> « Prob. échec » = % de chances de casser{isTriathlon ? " (marcher, abandonner, perdre + de 10 % d'allure au run)" : ""}. « Coût métabolique »/100 = à quel point ça tape dans tes réserves. « Robustesse » = tenue du plan si une variable bouge (fatigue, chaleur{isTriathlon ? ", T2 ratée" : ""}…).
-                    </AlertDescription>
-                  </Alert>
-                  {isTriathlon && (
-                    <div className="rounded-md border border-border bg-muted/30 p-2.5 text-[11px] leading-snug">
-                      <div className="font-semibold mb-1">⚖️ Comment choisir ton scénario</div>
-                      <ul className="space-y-0.5 text-muted-foreground list-disc pl-4">
-                        <li><strong>Disponibilité ≥ 75 + nutrition rodée</strong> → 🎯 Ambitieux.</li>
-                        <li><strong>Disponibilité 55–75, ou chaleur, ou parcours dur</strong> → 🛡️ Robuste.</li>
-                        <li><strong>Disponibilité {'<'} 55, doute, 1re course sur la distance</strong> → 🛡️ Robuste obligatoire.</li>
-                        <li><strong>🔥 Agressif</strong> uniquement si tu acceptes de potentiellement marcher au run pour viser un podium.</li>
-                      </ul>
+              {!staffMode ? (
+                <>
+                  {envelope ? (
+                    <RaceStrategyPlanCard
+                      envelope={envelope}
+                      raceObjective={raceObjective}
+                      discipline={discipline}
+                      raceDurationMin={raceDurationMin}
+                      ftp={activeSnapshot?.ftp}
+                      paceThresholdSecKm={activeSnapshot?.pace_threshold_sec_per_km}
+                      disponibiliteScore={disponibilite?.score}
+                    />
+                  ) : (
+                    <div className="text-center py-6 text-sm text-muted-foreground">
+                      Données insuffisantes pour générer ton plan de course
                     </div>
                   )}
-                </div>
-              )}
-              <RaceSimulationModule
-                vlamaxEffectif={vlamaxEffectif?.value}
-                vlamaxConfidence={vlamaxEffectif?.confidence ?? 0.5}
-                vlamaxDiscipline={discipline}
-                tteMin={tteEffectif?.tte_min}
-                tteConfidence={tteEffectif?.confidence ?? 0.5}
-                fatmax={fatmax}
-                disponibiliteScore={disponibilite?.score}
-                disponibiliteLevel={disponibilite?.level}
-                ftp={activeSnapshot?.ftp}
-                vma={activeSnapshot?.vma}
-                paceThreshold={activeSnapshot?.pace_threshold_sec_per_km}
-                weight={activeSnapshot?.weight_kg}
-                staffMode={staffMode}
-                defaultRaceType={raceObjective}
-              />
-              {isTriathlon && !staffMode && (
-                <Alert className="text-[11px] sm:text-xs py-2 bg-amber-500/5 border-amber-500/30">
-                  <Info className="h-3.5 w-3.5" />
-                  <AlertDescription>
-                    <strong>Triathlon :</strong> les scénarios ci-dessus simulent le segment <strong>{discipline === 'bike' ? '🚴 vélo' : '🏃 course à pied'}</strong>. Utilise la bascule en haut de l'étape 2 pour comparer les deux moitiés de ta course.
-                  </AlertDescription>
-                </Alert>
+                  {isTriathlon && (
+                    <Alert className="text-[11px] sm:text-xs py-2 bg-amber-500/5 border-amber-500/30">
+                      <Info className="h-3.5 w-3.5" />
+                      <AlertDescription>
+                        <strong>Triathlon :</strong> les 3 plans ci-dessus simulent uniquement le segment{' '}
+                        <strong>{discipline === 'bike' ? '🚴 vélo' : '🏃 course à pied'}</strong>. Utilise la bascule en
+                        haut de l'étape 2 pour comparer l'autre segment.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </>
+              ) : (
+                <RaceSimulationModule
+                  vlamaxEffectif={vlamaxEffectif?.value}
+                  vlamaxConfidence={vlamaxEffectif?.confidence ?? 0.5}
+                  vlamaxDiscipline={discipline}
+                  tteMin={tteEffectif?.tte_min}
+                  tteConfidence={tteEffectif?.confidence ?? 0.5}
+                  fatmax={fatmax}
+                  disponibiliteScore={disponibilite?.score}
+                  disponibiliteLevel={disponibilite?.level}
+                  ftp={activeSnapshot?.ftp}
+                  vma={activeSnapshot?.vma}
+                  paceThreshold={activeSnapshot?.pace_threshold_sec_per_km}
+                  weight={activeSnapshot?.weight_kg}
+                  staffMode={staffMode}
+                  defaultRaceType={raceObjective}
+                />
               )}
             </AccordionContent>
           </AccordionItem>
