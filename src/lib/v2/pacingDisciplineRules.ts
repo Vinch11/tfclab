@@ -193,22 +193,44 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
   ],
   Semi: [
     {
+      id: "semi_even_split_norm",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Semi — quasi-even split / reverse split modeste",
+      message:
+        "Tendance littérature 2020-2024 (Hanley, Casado, Diaz) : sur semi-marathon, 70-80 % des podiums élites affichent un split quasi-symétrique (Δ ≤ ±1 %) ou un léger positive split (+1 à +2 %, dit \"reverse split modéré\"), pas un negative split agressif. Cible : 2ème moitié à allure cible ±1 %.",
+      icon: "⚖️",
+      source: "Format Semi — Littérature élite 2020-2024",
+    },
+    {
       id: "semi_first_5k",
       category: "non_negotiable",
       priority: "critical",
-      title: "5 premiers km",
-      message: "Les 5 premiers km doivent être 5-10 sec/km plus lents que l'objectif.",
+      title: "5 premiers km — allure cible -2 à -3 sec/km",
+      message:
+        "Départ à allure cible MOINS 2-3 sec/km seulement (pas -10). Verrouiller le rythme dès le km 3. Un départ trop conservateur (>5 sec/km plus lent) interdit le retour à allure cible sans sur-coût glycolytique.",
       icon: "🎯",
       source: "Format Semi-Marathon",
     },
     {
-      id: "semi_push_15k",
+      id: "semi_lock_10_18",
+      category: "non_negotiable",
+      priority: "important",
+      title: "Verrou km 10-18",
+      message:
+        "Section km 10 → 18 : maintenir l'allure cible ±1 %. Aucune accélération, aucune dérive. C'est la zone où se joue la performance, pas le finish.",
+      icon: "🔒",
+      source: "Format Semi-Marathon",
+    },
+    {
+      id: "semi_finish_18_21",
       category: "tactical",
       priority: "recommended",
-      title: "Push à partir du 15e km",
-      message: "L'effort réel commence au 15e km. Tout le reste est préparation.",
-      icon: "🚀",
-      source: "Format Semi-Marathon",
+      title: "Finish km 18-21",
+      message:
+        "Push autorisé sur les 3 derniers km uniquement si FC < 95 % FCmax au km 18 et fraîcheur intacte. Sinon : tenir l'allure cible. Le finish kick semi est un bonus, pas un objectif.",
+      icon: "🏁",
+      source: "Format Semi — Littérature élite",
     },
   ],
   "10km": [
