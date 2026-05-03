@@ -431,7 +431,7 @@ function buildIronmanRunSplitRule(
  * Génère les règles de discipline de pacing basées sur le profil
  */
 export function generateDisciplineRules(input: DisciplineRulesInput): DisciplineRulesResult {
-  const { envelope, vlamaxEffectif, raceObjective, sport, potentielPhysiologiqueScore, ambition } = input;
+  const { envelope, vlamaxEffectif, raceObjective, sport, potentielPhysiologiqueScore, ambition, tteMin } = input;
   
   const rules: DisciplineRule[] = [...UNIVERSAL_RULES];
   
@@ -445,6 +445,25 @@ export function generateDisciplineRules(input: DisciplineRulesInput): Discipline
   if (raceObjective === "IM" && sport === "run") {
     const ambitionLevel = normalizeAmbitionLevel(ambition);
     rules.push(buildIronmanRunSplitRule(ambitionLevel, vlamaxEffectif?.value ?? null));
+  }
+
+  // 1.ter — Negative split delta personnalisé (Marathon + 10K)
+  const RACE_DURATION_REF: Partial<Record<RaceObjective, number>> = {
+    Marathon: 210,  // 3h30 référence
+    "10km": 45,     // 45 min référence
+  };
+  if (raceObjective === "Marathon" || raceObjective === "10km") {
+    const delta = computeNegativeSplitDelta(
+      raceObjective,
+      vlamaxEffectif?.value ?? null,
+      tteMin ?? null,
+      RACE_DURATION_REF[raceObjective] ?? 180,
+    );
+    if (raceObjective === "Marathon") {
+      rules.push(buildMarathonNegativeSplitRule(delta));
+    } else {
+      rules.push(build10kFinishKickRule(delta));
+    }
   }
 
 
