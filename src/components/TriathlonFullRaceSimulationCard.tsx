@@ -825,13 +825,16 @@ function ScenarioCardInner({
   isIM,
   offset,
   setOffset,
+  props,
 }: {
   scenario: FullRaceScenario;
   baseline: FullRaceScenario;
   isIM: boolean;
   offset: number;
   setOffset: (v: number) => void;
+  props: Props;
 }) {
+  const { vlamaxValue, fatigueState, disponibiliteScore } = props;
   const rob = ROBUSTNESS_META[scenario.robustness];
   return (
     <Card className="overflow-hidden">
