@@ -549,11 +549,13 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     glycogen = Math.max(0, glycogen - depletionRate);
     glycogenWithNutri = Math.max(0, glycogenWithNutri - depletionRate);
     
-    // Add nutrition replenishment at this segment
+    // Effet d'ÉPARGNE glycogénique (sparing) — pas une "recharge".
+    // Les CHO exogènes oxydés réduisent la déplétion sans recharger les stores.
     const segmentCues = nutritionCues.filter(c => c.distance_pct >= i - 5 && c.distance_pct < i + 5);
     for (const cue of segmentCues) {
-      const replenish = cue.carbs_g * NUTRITION_PARAMS.glycogenReplenishPctPerGram;
-      glycogenWithNutri = Math.min(100, glycogenWithNutri + replenish);
+      const sparing = cue.carbs_g * NUTRITION_PARAMS.glycogenSparingPctPerGram;
+      // Réduit la déplétion appliquée à la courbe "avec nutrition" (cap à initial_pct)
+      glycogenWithNutri = Math.min(GLYCOGEN_PARAMS.initial_pct, glycogenWithNutri + sparing);
     }
     
     if (glycogen <= GLYCOGEN_PARAMS.critical_threshold && depletionPoint === null) {
