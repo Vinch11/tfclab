@@ -491,13 +491,14 @@ function generateTrajectory(
   
   switch (type) {
     case "DISCIPLINED":
+      // Negative split: démarrage sous le centre, finition au plafond vert
       return [
-        { distancePct: 0, intensityPct: green[0] + 1 },
-        { distancePct: 10, intensityPct: green[0] + 2 },
-        { distancePct: 33, intensityPct: centerGreen },
+        { distancePct: 0, intensityPct: green[0] },
+        { distancePct: 10, intensityPct: green[0] + 0.5 },
+        { distancePct: 33, intensityPct: green[0] + (centerGreen - green[0]) * 0.6 },
         { distancePct: 50, intensityPct: centerGreen },
-        { distancePct: 66, intensityPct: centerGreen + 1 },
-        { distancePct: 80, intensityPct: green[1] - 1 },
+        { distancePct: 66, intensityPct: centerGreen + (green[1] - centerGreen) * 0.5 },
+        { distancePct: 80, intensityPct: green[1] - 0.5 },
         { distancePct: 100, intensityPct: green[1] },
       ];
     case "OPTIMISTIC":
