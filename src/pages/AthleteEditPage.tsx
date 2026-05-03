@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, ArrowRight, User, Calendar, Info, Target } from "lucide-react";
+import { Save, ArrowRight, User, Calendar, Info, Target, FlaskConical } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { Athlete, ObjectifType, SexeType, AmbitionLevel } from "@/types/athlete";
 import { toast } from "sonner";
@@ -36,6 +37,17 @@ export default function AthleteEditPage() {
   const [dateNaissance, setDateNaissance] = useState(editingAthlete?.dateNaissance || "");
   const [masseGrasse, setMasseGrasse] = useState(
     editingAthlete?.masse_grasse == null ? "" : String(editingAthlete.masse_grasse),
+  );
+
+  // F8 — Profil ergogénique
+  const [hasRepeatedEfforts, setHasRepeatedEfforts] = useState<boolean>(
+    Boolean(editingAthlete?.refs?.hasRepeatedEfforts),
+  );
+  const [bicarbTested, setBicarbTested] = useState<boolean>(
+    Boolean(editingAthlete?.refs?.bicarbTested),
+  );
+  const [vegetarian, setVegetarian] = useState<boolean>(
+    Boolean(editingAthlete?.refs?.vegetarian),
   );
   
   // Cloud-based race goals
@@ -106,6 +118,10 @@ export default function AthleteEditPage() {
         sexe,
         fatPct: fatPctValue, // ✅ FIX: Clé canonique pour effectiveRefs
         masse_grasse: fatPctValue, // Legacy compat
+        // F8 — Profil ergogénique
+        hasRepeatedEfforts,
+        bicarbTested,
+        vegetarian,
       },
       historique: editingAthlete?.historique || [],
     };
@@ -305,6 +321,62 @@ export default function AthleteEditPage() {
                 max="40"
                 value={masseGrasse}
                 onChange={(e) => setMasseGrasse(e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* F8 — Profil ergogénique */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FlaskConical className="h-5 w-5 text-primary" />
+              Profil ergogénique
+            </CardTitle>
+            <CardDescription>
+              Pilote la sélection des suppléments (nitrates, beta-alanine, créatine, bicarbonate) et les warnings associés.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="repeated-efforts">Efforts répétés / explosifs</Label>
+                <p className="text-xs text-muted-foreground">
+                  Sprints, attaques, côtes courtes — active créatine + beta-alanine.
+                </p>
+              </div>
+              <Switch
+                id="repeated-efforts"
+                checked={hasRepeatedEfforts}
+                onCheckedChange={setHasRepeatedEfforts}
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="bicarb-tested">Bicarbonate déjà testé</Label>
+                <p className="text-xs text-muted-foreground">
+                  Tolérance GI au NaHCO₃ validée à l'entraînement — débloque la recommandation course.
+                </p>
+              </div>
+              <Switch
+                id="bicarb-tested"
+                checked={bicarbTested}
+                onCheckedChange={setBicarbTested}
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="vegetarian">Régime végétarien / vegan</Label>
+                <p className="text-xs text-muted-foreground">
+                  Stocks créatine bas — gain typique +20 % à la supplémentation.
+                </p>
+              </div>
+              <Switch
+                id="vegetarian"
+                checked={vegetarian}
+                onCheckedChange={setVegetarian}
               />
             </div>
           </CardContent>

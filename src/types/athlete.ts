@@ -17,6 +17,10 @@ export interface AthleteRefs {
   vma: number | null;        // VMA en km/h
   ftp: number | null;        // FTP vélo en W
   css: number | null;        // CSS natation en sec/100m
+  // F8 — Profil ergogénique (pilote stack suppléments)
+  hasRepeatedEfforts?: boolean; // Course explosive / sprints répétés
+  bicarbTested?: boolean;       // Tolérance NaHCO₃ déjà testée
+  vegetarian?: boolean;          // Régime végétarien/vegan
 }
 
 // Import des types de tests
