@@ -65,6 +65,35 @@ export interface DisciplineRulesInput {
   ambition?: AmbitionLevel | string | null;
   /** TTE effective (min) — module les deltas de negative split personnalisés */
   tteMin?: number | null;
+  /**
+   * Données live des segments précédents (semi-marathon).
+   * Si fournies, conditionne dynamiquement le finish km 18-21.
+   * Si absentes, fallback sur estimation prédictive via VLamax/TTE/fatigue.
+   */
+  liveSegments?: SemiLiveSegments | null;
+  /** FC max athlète (bpm) — requis pour évaluation finish */
+  fcMaxBpm?: number | null;
+  /** Niveau de fatigue ressenti pré-course 1-10 (mapping standard TFCL) */
+  fatigueLevel?: number | null;
+}
+
+/**
+ * Données live segment-par-segment du semi-marathon.
+ * Toutes les valeurs sont optionnelles : le moteur s'adapte aux données dispo.
+ */
+export interface SemiLiveSegments {
+  /** Allure km 0-5 en sec/km */
+  pace_km0_5_sec?: number | null;
+  /** Allure km 5-10 en sec/km */
+  pace_km5_10_sec?: number | null;
+  /** Allure km 10-18 en sec/km */
+  pace_km10_18_sec?: number | null;
+  /** Allure cible course en sec/km */
+  pace_target_sec?: number | null;
+  /** FC moyenne km 10-18 (bpm) */
+  hr_km10_18_bpm?: number | null;
+  /** FC moyenne km 5-10 (bpm) — pour calculer la dérive cardiaque */
+  hr_km5_10_bpm?: number | null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -216,16 +245,7 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
       icon: "🔒",
       source: "Format Semi-Marathon",
     },
-    {
-      id: "semi_finish_18_21",
-      category: "tactical",
-      priority: "recommended",
-      title: "Finish km 18-21",
-      message:
-        "Push autorisé sur les 3 derniers km uniquement si FC < 95 % FCmax au km 18 et fraîcheur intacte. Sinon : tenir l'allure cible. Le finish kick semi est un bonus, pas un objectif.",
-      icon: "🏁",
-      source: "Format Semi — Littérature élite",
-    },
+    // semi_finish_18_21 injecté dynamiquement (cf. buildSemiFinishKickRule)
   ],
   "10km": [
     {
@@ -466,6 +486,20 @@ export function generateDisciplineRules(input: DisciplineRulesInput): Discipline
     }
   }
 
+  // 1.quater — Semi-marathon finish km 18-21 conditionnel (FC + fatigue)
+  if (raceObjective === "Semi") {
+    const assessment = assessSemiFinishKick(
+      input.liveSegments ?? null,
+      input.fcMaxBpm ?? null,
+      vlamaxEffectif?.value ?? null,
+      tteMin ?? null,
+      input.fatigueLevel ?? null,
+      potentielPhysiologiqueScore ?? null,
+    );
+    rules.push(buildSemiFinishKickRule(assessment));
+  }
+
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 2. Règles basées sur VLamax
@@ -675,4 +709,159 @@ export function getPriorityIcon(priority: RulePriority): string {
     default:
       return "⚪";
   }
+}
+// ═══════════════════════════════════════════════════════════════════════════════
+// SEMI-MARATHON — FINISH KICK CONDITIONNEL
+// ─────────────────────────────────────────────────────────────────────────────
+// Modèle physiologique :
+//   1) Si données live (FC + allures segments précédents) → décision "live"
+//   2) Sinon → estimation prédictive via VLamax + TTE + fatigue pré-course
+//
+// Critères GO finish km 18-21 :
+//   • FC km 10-18 < 95 % FCmax (ou drift FC 5→10 → 10→18 < 4 %)
+//   • Aucune dérive pace > +1.5 % entre km 5-10 et km 10-18
+//   • Niveau fatigue prédit (estimateFatigueLoad) ≤ 7/10
+//
+// Ref. : Hanley 2020, Casado 2021, Saunders 2004 (cardiac drift = proxy fatigue).
+// ═══════════════════════════════════════════════════════════════════════════════
+type FinishDecision = "GO" | "CAUTION" | "HOLD";
+
+interface FinishKickAssessment {
+  decision: FinishDecision;
+  fcLoadPct: number | null;       // % FCmax estimé/observé au km 18
+  hrDriftPct: number | null;      // dérive FC % entre 5-10 et 10-18
+  paceDriftPct: number | null;    // dérive allure % entre 5-10 et 10-18
+  fatigueScore: number;           // 1-10 (estimé ou prédit)
+  source: "live" | "predictive";
+  reasons: string[];
+}
+
+function assessSemiFinishKick(
+  liveSegments: SemiLiveSegments | null | undefined,
+  fcMaxBpm: number | null | undefined,
+  vlamaxValue: number | null,
+  tteMin: number | null,
+  fatigueLevel: number | null | undefined,
+  potentielScore: number | null | undefined,
+): FinishKickAssessment {
+  // ─── Mode LIVE : données segments dispo ───────────────────────────────────
+  const hasLive =
+    liveSegments &&
+    (liveSegments.hr_km10_18_bpm != null ||
+      (liveSegments.pace_km10_18_sec != null && liveSegments.pace_km5_10_sec != null));
+
+  if (hasLive) {
+    const reasons: string[] = [];
+    let fcLoadPct: number | null = null;
+    let hrDriftPct: number | null = null;
+    let paceDriftPct: number | null = null;
+
+    if (liveSegments!.hr_km10_18_bpm != null && fcMaxBpm) {
+      fcLoadPct = (liveSegments!.hr_km10_18_bpm / fcMaxBpm) * 100;
+      reasons.push(`FC km 10-18 = ${Math.round(fcLoadPct)} % FCmax`);
+    }
+    if (liveSegments!.hr_km5_10_bpm && liveSegments!.hr_km10_18_bpm) {
+      hrDriftPct = ((liveSegments!.hr_km10_18_bpm - liveSegments!.hr_km5_10_bpm) / liveSegments!.hr_km5_10_bpm) * 100;
+      reasons.push(`Dérive FC = +${hrDriftPct.toFixed(1)} %`);
+    }
+    if (liveSegments!.pace_km5_10_sec && liveSegments!.pace_km10_18_sec) {
+      paceDriftPct = ((liveSegments!.pace_km10_18_sec - liveSegments!.pace_km5_10_sec) / liveSegments!.pace_km5_10_sec) * 100;
+      reasons.push(`Dérive allure = ${paceDriftPct >= 0 ? "+" : ""}${paceDriftPct.toFixed(1)} %`);
+    }
+
+    let decision: FinishDecision = "GO";
+    if (fcLoadPct != null && fcLoadPct >= 95) { decision = "HOLD"; reasons.push("FC saturée"); }
+    else if (fcLoadPct != null && fcLoadPct >= 92) { decision = "CAUTION"; }
+    if (hrDriftPct != null && hrDriftPct > 5) { decision = decision === "GO" ? "CAUTION" : "HOLD"; reasons.push("Drift cardiaque élevé"); }
+    if (paceDriftPct != null && paceDriftPct > 1.5) { decision = "HOLD"; reasons.push("Pace déjà en perte"); }
+
+    return {
+      decision,
+      fcLoadPct,
+      hrDriftPct,
+      paceDriftPct,
+      fatigueScore: fatigueLevel ?? 5,
+      source: "live",
+      reasons,
+    };
+  }
+
+  // ─── Mode PRÉDICTIF : estimation à partir profil + fatigue pré-course ─────
+  // Estimation FC % FCmax au km 18 (modèle simple) :
+  //   - Base 88 % FCmax (allure cible semi)
+  //   - + drift attendu en fonction VLamax (haute = +2 %, basse = +1 %)
+  //   - + ajustement fatigue (chaque point au-dessus de 4 = +0.7 %)
+  //   - + ajustement readiness (chaque 10 pts sous 80 = +1 %)
+  const baseFc = 88;
+  const vlamaxAdj = vlamaxValue != null ? (vlamaxValue > 0.55 ? 2.5 : vlamaxValue > 0.45 ? 1.8 : 1.2) : 1.5;
+  const fatAdj = Math.max(0, ((fatigueLevel ?? 4) - 4)) * 0.7;
+  const readinessAdj = potentielScore != null ? Math.max(0, (80 - potentielScore) / 10) : 0;
+  const tteAdj = tteMin != null ? (tteMin < 60 ? 1.5 : tteMin < 80 ? 0.5 : 0) : 0.5;
+
+  const predFcLoad = baseFc + vlamaxAdj + fatAdj + readinessAdj + tteAdj;
+
+  // Score fatigue prédit (1-10)
+  const predFatigue = Math.min(
+    10,
+    (fatigueLevel ?? 4) +
+      (potentielScore != null && potentielScore < 70 ? 1.5 : 0) +
+      (tteMin != null && tteMin < 70 ? 1 : 0),
+  );
+
+  let decision: FinishDecision = "GO";
+  const reasons: string[] = [
+    `FC prédite km 18 ≈ ${Math.round(predFcLoad)} % FCmax`,
+    `Fatigue prédite ${predFatigue.toFixed(1)}/10`,
+  ];
+  if (predFcLoad >= 95) { decision = "HOLD"; reasons.push("Saturation cardiaque attendue"); }
+  else if (predFcLoad >= 92 || predFatigue > 7) { decision = "CAUTION"; }
+
+  return {
+    decision,
+    fcLoadPct: predFcLoad,
+    hrDriftPct: null,
+    paceDriftPct: null,
+    fatigueScore: predFatigue,
+    source: "predictive",
+    reasons,
+  };
+}
+
+function buildSemiFinishKickRule(assessment: FinishKickAssessment): DisciplineRule {
+  const sourceLabel = assessment.source === "live" ? "Données live segments" : "Estimation prédictive (profil + fatigue)";
+  const reasonsTxt = assessment.reasons.join(" • ");
+
+  if (assessment.decision === "GO") {
+    return {
+      id: "semi_finish_18_21",
+      category: "tactical",
+      priority: "recommended",
+      title: "Finish km 18-21 — GO ✅",
+      message: `Push autorisé : accélérer progressivement à allure cible -2 à -4 sec/km sur les 3 derniers km. ${reasonsTxt}.`,
+      icon: "🏁",
+      source: `Semi finish — ${sourceLabel}`,
+    };
+  }
+
+  if (assessment.decision === "CAUTION") {
+    return {
+      id: "semi_finish_18_21",
+      category: "non_negotiable",
+      priority: "important",
+      title: "Finish km 18-21 — PRUDENCE ⚠️",
+      message: `Push limité : tenir l'allure cible jusqu'au km 19, push uniquement km 20-21 si la respiration reste contrôlée. ${reasonsTxt}.`,
+      icon: "⚠️",
+      source: `Semi finish — ${sourceLabel}`,
+    };
+  }
+
+  return {
+    id: "semi_finish_18_21",
+    category: "prohibition",
+    priority: "critical",
+    title: "Finish km 18-21 — HOLD 🛑",
+    message: `Push interdit : tenir l'allure cible jusqu'à l'arrivée. Toute accélération aboutirait à un effondrement. ${reasonsTxt}.`,
+    icon: "🛑",
+    source: `Semi finish — ${sourceLabel}`,
+  };
 }

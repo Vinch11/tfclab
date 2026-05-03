@@ -214,8 +214,11 @@ export default function RaceSimulationPage() {
       potentielPhysiologiqueScore,
       ambition: (selectedAthlete as any)?.ambition ?? (selectedAthlete as any)?.refs?.ambition ?? null,
       tteMin: tteEffectif?.tte_min ?? null,
+      fcMaxBpm: activeSnapshot?.fc_max ?? (selectedAthlete as any)?.fcMax ?? null,
+      fatigueLevel: latestCheckin?.fatigue ?? null,
+      liveSegments: null, // Pas de données live en mode pré-course
     });
-  }, [envelope, vlamaxEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete, tteEffectif]);
+  }, [envelope, vlamaxEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete, tteEffectif, activeSnapshot, latestCheckin]);
   
   const scenarios = React.useMemo(() => {
     if (!envelope) return null;
