@@ -118,6 +118,10 @@ export default function AthleteEditPage() {
         sexe,
         fatPct: fatPctValue, // ✅ FIX: Clé canonique pour effectiveRefs
         masse_grasse: fatPctValue, // Legacy compat
+        // F8 — Profil ergogénique
+        hasRepeatedEfforts,
+        bicarbTested,
+        vegetarian,
       },
       historique: editingAthlete?.historique || [],
     };
