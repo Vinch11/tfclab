@@ -213,8 +213,9 @@ export default function RaceSimulationPage() {
       sport: discipline,
       potentielPhysiologiqueScore,
       ambition: (selectedAthlete as any)?.ambition ?? (selectedAthlete as any)?.refs?.ambition ?? null,
+      tteMin: tteEffectif?.tte_min ?? null,
     });
-  }, [envelope, vlamaxEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete]);
+  }, [envelope, vlamaxEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete, tteEffectif]);
   
   const scenarios = React.useMemo(() => {
     if (!envelope) return null;
