@@ -121,13 +121,6 @@ export default function RaceSimulationPage() {
     return computeDisponibiliteTFCL(input);
   }, [activeSnapshot]);
   
-  const discipline: 'bike' | 'run' = React.useMemo(() => {
-    if (objectif.includes('Marathon') || objectif.includes('Semi') || objectif.includes('10km')) {
-      return 'run';
-    }
-    return 'bike';
-  }, [objectif]);
-  
   const raceObjective: RaceObjective = React.useMemo(() => {
     if (objectif.includes('Marathon') && !objectif.includes('Semi')) return 'Marathon';
     if (objectif.includes('Semi')) return 'Semi';
@@ -135,17 +128,39 @@ export default function RaceSimulationPage() {
     if (objectif === '703' || objectif === '70.3' || objectif.includes('70.3')) return '70.3';
     return 'IM';
   }, [objectif]);
-  
+
+  // Triathlon → afficher pacing vélo ET course (segments séparés)
+  const isTriathlon = raceObjective === 'IM' || raceObjective === '70.3';
+
+  // Discipline "principale" pour modules legacy (simulation, nutrition…)
+  const defaultRunObjective = raceObjective === 'Marathon' || raceObjective === 'Semi' || raceObjective === '10km';
+  const [triDiscipline, setTriDiscipline] = useState<'bike' | 'run'>('bike');
+  const discipline: 'bike' | 'run' = React.useMemo(() => {
+    if (defaultRunObjective) return 'run';
+    if (isTriathlon) return triDiscipline;
+    return 'bike';
+  }, [defaultRunObjective, isTriathlon, triDiscipline]);
+
+  // Durée par segment (min) — utilisée par envelope, rules, scenarios
+  const segmentDurationMin = React.useMemo(() => {
+    if (raceObjective === 'IM') {
+      return { bike: 300, run: 240 }; // ~5h vélo / 4h run (objectif 9-10h)
+    }
+    if (raceObjective === '70.3') {
+      return { bike: 150, run: 105 }; // ~2h30 vélo / 1h45 run
+    }
+    return { bike: 180, run: 180 };
+  }, [raceObjective]);
+
   const raceDurationMin = React.useMemo(() => {
+    if (isTriathlon) return segmentDurationMin[discipline];
     switch (raceObjective) {
-      case 'IM': return 300;
-      case '70.3': return 150;
       case 'Marathon': return 210;
       case 'Semi': return 100;
       case '10km': return 45;
       default: return 180;
     }
-  }, [raceObjective]);
+  }, [raceObjective, isTriathlon, segmentDurationMin, discipline]);
   
   // Source de vérité unifiée — voir src/lib/readinessSource.ts
   const readiness = React.useMemo(() => computeUnifiedReadiness({
@@ -267,7 +282,36 @@ export default function RaceSimulationPage() {
             <TabsTrigger value="staff" className="text-[11px] sm:text-sm px-1">Staff</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="envelope" className="mt-3 sm:mt-4">
+          <TabsContent value="envelope" className="mt-3 sm:mt-4 space-y-3">
+            {isTriathlon && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-muted-foreground">Segment :</span>
+                <div className="inline-flex rounded-md border border-border overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setTriDiscipline('bike')}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                      triDiscipline === 'bike'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-background text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    🚴 Vélo ({Math.round(segmentDurationMin.bike / 60 * 10) / 10}h)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTriDiscipline('run')}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                      triDiscipline === 'run'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-background text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    🏃 Course ({Math.round(segmentDurationMin.run / 60 * 10) / 10}h)
+                  </button>
+                </div>
+              </div>
+            )}
             {envelope ? (
               <PacingEnvelopeCard
                 input={{
@@ -290,6 +334,17 @@ export default function RaceSimulationPage() {
               <div className="text-center py-8 text-sm text-muted-foreground">
                 Données insuffisantes pour calculer l'enveloppe
               </div>
+            )}
+            {isTriathlon && (
+              <Alert className="text-[11px] sm:text-xs py-2">
+                <Info className="h-3.5 w-3.5" />
+                <AlertDescription>
+                  <strong>Stratégie {raceObjective} :</strong>{' '}
+                  {triDiscipline === 'bike'
+                    ? "Vélo conservateur — viser la cible basse / centre de l'enveloppe. Ne JAMAIS dépasser le centre dans les 90 premières minutes. Le vélo se gagne à l'arrivée du run, pas pendant."
+                    : "Course en even / negative split — démarrer 3 à 5 % sous l'allure cible (jambes vélo-fatiguées), puis progresser sur la 2e moitié. Cap glycogénique 20 %, surveiller le drift dès le 1er tiers."}
+                </AlertDescription>
+              </Alert>
             )}
           </TabsContent>
           
