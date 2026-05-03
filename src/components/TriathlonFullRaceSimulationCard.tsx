@@ -460,6 +460,40 @@ function ScenarioCard({ scenario, isIM }: { scenario: FullRaceScenario; isIM: bo
           </div>
         </div>
 
+        {/* Fatigue & transitions */}
+        <div className="rounded-md border bg-amber-500/5 border-amber-500/20 p-2.5 text-[11px] space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 font-semibold text-amber-700 dark:text-amber-400">
+              <Flame className="h-3 w-3" /> Fatigue & transitions
+            </div>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              T1 +{scenario.t1ImpactSec}s · T2 +{scenario.t2ImpactSec}s · couplage +{scenario.couplingPenaltyPct}%
+            </span>
+          </div>
+          {/* Barre fatigue résiduelle */}
+          <div>
+            <div className="flex items-center justify-between text-[10px] mb-0.5">
+              <span className="text-muted-foreground">Fatigue résiduelle fin vélo</span>
+              <span className="font-mono font-semibold">{scenario.residualFatigue}/100</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-all",
+                  scenario.residualFatigue > 75
+                    ? "bg-red-500"
+                    : scenario.residualFatigue > 50
+                    ? "bg-amber-500"
+                    : "bg-emerald-500",
+                )}
+                style={{ width: `${scenario.residualFatigue}%` }}
+              />
+            </div>
+          </div>
+          <p className="text-muted-foreground leading-snug">{scenario.transitionNote}</p>
+          <p className="text-muted-foreground leading-snug">{scenario.fatigueNote}</p>
+        </div>
+
         {/* Pour qui + drapeau rouge */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="rounded-md border bg-emerald-500/5 border-emerald-500/20 p-2 text-[11px]">
