@@ -553,6 +553,8 @@ export function TriathlonFullRaceSimulationCard(props: Props) {
 
       {/* Récapitulatif format + paramètres synchronisés */}
       <FormatRecap isIM={isIM} scenarios={scenarios} props={props} />
+
+      <Tabs value={tab} onValueChange={(v) => setTab(v as FullRaceScenarioKey)}>
         <TabsList className="grid grid-cols-3 w-full">
           {scenarios.map((s) => (
             <TabsTrigger key={s.key} value={s.key} className="text-xs">
