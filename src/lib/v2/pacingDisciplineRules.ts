@@ -131,15 +131,7 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
       icon: "🚫",
       source: "Format Ironman",
     },
-    {
-      id: "im_run_even_split",
-      category: "non_negotiable",
-      priority: "critical",
-      title: "Marathon IM — even/negative split",
-      message: "Premiers 10 km du marathon à -3 à -5% sous l'allure cible. Toute dérive positive = effondrement après 30 km.",
-      icon: "🏃",
-      source: "Format Ironman — run",
-    },
+    // Règle "im_run_even_split" injectée dynamiquement selon ambition (voir buildIronmanRunSplitRule).
   ],
   "70.3": [
     {
