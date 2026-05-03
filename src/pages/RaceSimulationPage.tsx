@@ -16,6 +16,11 @@ import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
+import { CaffeineProtocolCard } from '@/components/CaffeineProtocolCard';
+import { CarbLoadingCard } from '@/components/CarbLoadingCard';
+import { GutTrainingCard } from '@/components/GutTrainingCard';
+import { HydrationProtocolCard } from '@/components/HydrationProtocolCard';
+import { RecoveryNutritionCard } from '@/components/RecoveryNutritionCard';
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
@@ -245,10 +250,11 @@ export default function RaceSimulationPage() {
         
         {/* Tabs */}
         <Tabs defaultValue="envelope" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-9 sm:h-10">
+          <TabsList className="grid w-full grid-cols-4 h-9 sm:h-10">
             <TabsTrigger value="envelope" className="text-[11px] sm:text-sm px-1">Envelope</TabsTrigger>
             <TabsTrigger value="simulation" className="text-[11px] sm:text-sm px-1">Simulation</TabsTrigger>
-            <TabsTrigger value="staff" className="text-[11px] sm:text-sm px-1">Staff Report</TabsTrigger>
+            <TabsTrigger value="nutrition" className="text-[11px] sm:text-sm px-1">Nutrition</TabsTrigger>
+            <TabsTrigger value="staff" className="text-[11px] sm:text-sm px-1">Staff</TabsTrigger>
           </TabsList>
           
           <TabsContent value="envelope" className="mt-3 sm:mt-4">
@@ -293,6 +299,58 @@ export default function RaceSimulationPage() {
               weight={activeSnapshot?.weight_kg}
               staffMode
             />
+          </TabsContent>
+
+          <TabsContent value="nutrition" className="mt-3 sm:mt-4 space-y-4">
+            {!activeSnapshot?.weight_kg ? (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                Poids athlète manquant — protocoles nutritionnels indisponibles
+              </div>
+            ) : (
+              <>
+                <CarbLoadingCard
+                  weightKg={activeSnapshot.weight_kg}
+                  durationMin={raceDurationMin}
+                />
+                <CaffeineProtocolCard
+                  weightKg={activeSnapshot.weight_kg}
+                  durationMin={raceDurationMin}
+                  sensitivity="unknown"
+                  habitualUser
+                  staffMode={staffMode}
+                />
+                <HydrationProtocolCard
+                  input={{
+                    weightKg: activeSnapshot.weight_kg,
+                    durationMin: raceDurationMin,
+                    sport: discipline === 'run' ? 'run' : 'bike',
+                    sweatLevel: 'average',
+                    sodiumPhenotype: 'average',
+                    tempC: 22,
+                    humidity: 60,
+                  }}
+                  staffMode={staffMode}
+                />
+                <GutTrainingCard
+                  currentLevel="developing"
+                  targetGph={raceDurationMin >= 240 ? 120 : raceDurationMin >= 150 ? 90 : 70}
+                  weeksAvailable={8}
+                  sport={discipline === 'run' ? 'cap' : 'velo'}
+                  weightKg={activeSnapshot.weight_kg}
+                  staffMode={staffMode}
+                />
+                <RecoveryNutritionCard
+                  input={{
+                    weightKg: activeSnapshot.weight_kg,
+                    durationMin: raceDurationMin,
+                    intensity: raceDurationMin >= 240 ? 'depleting' : 'high',
+                    goal: 'full_recovery_48h',
+                    hotConditions: false,
+                  }}
+                  staffMode={staffMode}
+                />
+              </>
+            )}
           </TabsContent>
           
           <TabsContent value="staff" className="mt-3 sm:mt-4">
