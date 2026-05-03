@@ -20,6 +20,7 @@ import AthletesListPage from "./pages/AthletesListPage";
 import AITrainingPlanPage from "./pages/AITrainingPlanPage";
 import TemplatesPage from "./pages/TemplatesPage";
 import RaceSimulationPage from "./pages/RaceSimulationPage";
+import PacingAuditPage from "./pages/PacingAuditPage";
 import RunningProfilePage from "./pages/RunningProfilePage";
 import AthleteEditPage from "./pages/AthleteEditPage";
 import NotFound from "./pages/NotFound";
@@ -93,6 +94,7 @@ export default function App() {
                 {/* SECTION 5 — SIMULATION                     */}
                 {/* ═══════════════════════════════════════════ */}
                 <Route path="/race" element={<ProtectedRoute><RaceSimulationPage /></ProtectedRoute>} />
+                <Route path="/race/pacing-audit" element={<ProtectedRoute><PacingAuditPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 6 — ACADEMY                        */}
