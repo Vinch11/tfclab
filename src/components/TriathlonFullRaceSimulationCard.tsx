@@ -431,7 +431,12 @@ function ScenarioCard({ scenario, isIM }: { scenario: FullRaceScenario; isIM: bo
               duration={fmtDuration(scenario.swimMin)}
               detail="Effort confortable, sortir frais"
             />
-            <SegmentRow icon={ChevronRight} label="T1" duration={fmtDuration(scenario.t1Min)} />
+            <SegmentRow
+              icon={ChevronRight}
+              label="T1 (eau → vélo)"
+              duration={fmtDuration(scenario.t1Min)}
+              detail={`Surcoût ${scenario.t1ImpactSec}s vs base : casque, chaussures, départ contrôlé.`}
+            />
             <SegmentRow
               icon={Bike}
               label={isIM ? "Vélo 180 km" : "Vélo 90 km"}
@@ -439,7 +444,12 @@ function ScenarioCard({ scenario, isIM }: { scenario: FullRaceScenario; isIM: bo
               detail={scenario.bikeStrategy}
               failurePct={scenario.bikeFailurePct}
             />
-            <SegmentRow icon={ChevronRight} label="T2" duration={fmtDuration(scenario.t2Min)} />
+            <SegmentRow
+              icon={ChevronRight}
+              label="T2 (vélo → course)"
+              duration={fmtDuration(scenario.t2Min)}
+              detail={`Surcoût ${scenario.t2ImpactSec}s : jelly legs + couplage +${scenario.couplingPenaltyPct}% sur 5 premiers km.`}
+            />
             <SegmentRow
               icon={Footprints}
               label={isIM ? "Marathon 42.2 km" : "Semi 21.1 km"}
