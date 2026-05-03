@@ -228,12 +228,12 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
     },
     {
       id: "10k_last_2k",
-      category: "tactical",
+      category: "non_negotiable",
       priority: "important",
-      title: "Finition",
-      message: "Les 2 derniers km permettent le push si le réservoir est intact.",
+      title: "Finish kick — standard",
+      message: "Les 2 derniers km doivent être les plus rapides. Le finish kick est la norme physiologique sur 10K (Hanley 2020), pas un bonus conditionnel.",
       icon: "🏁",
-      source: "Format 10 km",
+      source: "Format 10 km — Littérature élite",
     },
   ],
 };
