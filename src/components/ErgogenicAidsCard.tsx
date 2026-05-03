@@ -123,6 +123,54 @@ export function ErgogenicAidsCard({
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {availablePresets.length > 0 && (
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-2">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium">
+              <Sparkles className="w-3 h-3 text-primary" />
+              <span>Preset suggéré</span>
+              {autoPreset && selectedPresetId === autoPreset.id && (
+                <Badge variant="outline" className="text-[9px] h-4 px-1">auto</Badge>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {availablePresets.map((p) => {
+                const isActive = activePreset?.id === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setSelectedPresetId(p.id)}
+                    className={cn(
+                      "text-[10px] px-2 py-1 rounded border transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-muted hover:border-primary/50"
+                    )}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+            {activePreset && (
+              <div className="text-[10px] text-muted-foreground space-y-1">
+                <p>{activePreset.description}</p>
+                <p className="flex flex-wrap gap-1">
+                  {activePreset.priorityStack.map((s, i) => (
+                    <span key={s} className="inline-flex items-center gap-0.5">
+                      {i > 0 && <span className="opacity-50">→</span>}
+                      <span className="font-medium">{s}</span>
+                    </span>
+                  ))}
+                </p>
+                {staffMode && (
+                  <p className="italic text-primary/80">📋 {activePreset.coachNote}</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {result.aids.map((aid) => (
           <div
             key={aid.name}
