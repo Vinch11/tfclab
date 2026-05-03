@@ -121,13 +121,6 @@ export default function RaceSimulationPage() {
     return computeDisponibiliteTFCL(input);
   }, [activeSnapshot]);
   
-  const discipline: 'bike' | 'run' = React.useMemo(() => {
-    if (objectif.includes('Marathon') || objectif.includes('Semi') || objectif.includes('10km')) {
-      return 'run';
-    }
-    return 'bike';
-  }, [objectif]);
-  
   const raceObjective: RaceObjective = React.useMemo(() => {
     if (objectif.includes('Marathon') && !objectif.includes('Semi')) return 'Marathon';
     if (objectif.includes('Semi')) return 'Semi';
@@ -135,17 +128,39 @@ export default function RaceSimulationPage() {
     if (objectif === '703' || objectif === '70.3' || objectif.includes('70.3')) return '70.3';
     return 'IM';
   }, [objectif]);
-  
+
+  // Triathlon → afficher pacing vélo ET course (segments séparés)
+  const isTriathlon = raceObjective === 'IM' || raceObjective === '70.3';
+
+  // Discipline "principale" pour modules legacy (simulation, nutrition…)
+  const defaultRunObjective = raceObjective === 'Marathon' || raceObjective === 'Semi' || raceObjective === '10km';
+  const [triDiscipline, setTriDiscipline] = useState<'bike' | 'run'>('bike');
+  const discipline: 'bike' | 'run' = React.useMemo(() => {
+    if (defaultRunObjective) return 'run';
+    if (isTriathlon) return triDiscipline;
+    return 'bike';
+  }, [defaultRunObjective, isTriathlon, triDiscipline]);
+
+  // Durée par segment (min) — utilisée par envelope, rules, scenarios
+  const segmentDurationMin = React.useMemo(() => {
+    if (raceObjective === 'IM') {
+      return { bike: 300, run: 240 }; // ~5h vélo / 4h run (objectif 9-10h)
+    }
+    if (raceObjective === '70.3') {
+      return { bike: 150, run: 105 }; // ~2h30 vélo / 1h45 run
+    }
+    return { bike: 180, run: 180 };
+  }, [raceObjective]);
+
   const raceDurationMin = React.useMemo(() => {
+    if (isTriathlon) return segmentDurationMin[discipline];
     switch (raceObjective) {
-      case 'IM': return 300;
-      case '70.3': return 150;
       case 'Marathon': return 210;
       case 'Semi': return 100;
       case '10km': return 45;
       default: return 180;
     }
-  }, [raceObjective]);
+  }, [raceObjective, isTriathlon, segmentDurationMin, discipline]);
   
   // Source de vérité unifiée — voir src/lib/readinessSource.ts
   const readiness = React.useMemo(() => computeUnifiedReadiness({
