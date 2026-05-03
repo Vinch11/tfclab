@@ -319,6 +319,7 @@ export function PacingEnvelopeCard({
       raceObjective: input.raceObjective,
       sport: input.sport,
       potentielPhysiologiqueScore: input.potentielPhysiologiqueScore,
+      ambition: (input as any).ambition ?? null,
     });
   }, [envelope, input]);
   
