@@ -245,26 +245,34 @@ export default function RaceSimulationPage() {
             </p>
           </div>
           
-          {envelope && rules && scenarios && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs sm:text-sm">
-                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden xs:inline">Briefing</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-                <RaceDayBriefingMode
-                  athleteName={selectedAthlete?.name ?? 'Athlète'}
-                  envelope={envelope}
-                  rules={rules}
-                  scenarios={scenarios}
-                  raceObjective={raceObjective}
-                  potentielPhysiologiqueScore={potentielPhysiologiqueScore}
-                />
-              </DialogContent>
-            </Dialog>
-          )}
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="gap-1.5 h-8 text-xs sm:text-sm">
+              <Link to="/race/pacing-audit">
+                <FlaskConical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Audit pacing</span>
+              </Link>
+            </Button>
+            {envelope && rules && scenarios && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs sm:text-sm">
+                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">Briefing</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+                  <RaceDayBriefingMode
+                    athleteName={selectedAthlete?.name ?? 'Athlète'}
+                    envelope={envelope}
+                    rules={rules}
+                    scenarios={scenarios}
+                    raceObjective={raceObjective}
+                    potentielPhysiologiqueScore={potentielPhysiologiqueScore}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
 
         {/* Info banner - compact */}
