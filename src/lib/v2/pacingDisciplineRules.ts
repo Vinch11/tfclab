@@ -63,6 +63,8 @@ export interface DisciplineRulesInput {
   potentielPhysiologiqueScore?: number | null;
   /** Niveau d'ambition athlète — module la règle even/negative split sur l'IM run */
   ambition?: AmbitionLevel | string | null;
+  /** TTE effective (min) — module les deltas de negative split personnalisés */
+  tteMin?: number | null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
