@@ -32,6 +32,7 @@ import {
   type AthleteBriefingInput,
   type RaceDayBriefingResult,
 } from "@/lib/v2/raceDayBriefing";
+import { PersonalizedRulesSection } from "@/components/PersonalizedRulesSection";
 
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import type { DisciplineRulesResult } from "@/lib/v2/pacingDisciplineRules";
