@@ -157,8 +157,9 @@ const GLYCOGEN_PARAMS = {
     ORANGE: 1.35,
     RED: 1.8,
   },
-  vlamax_amplifier: (vlamax: number) => 1 + Math.max(0, (vlamax - 0.35) * 2),
-  critical_threshold: 15,  // % en dessous duquel effondrement
+  // Amplificateur VLamax non-linéaire (Mader-Heck, exposant 0.85)
+  vlamax_amplifier: (vlamax: number) => Math.pow(Math.max(vlamax, 0.1) / 0.35, 0.85),
+  critical_threshold: 20,  // % seuil d'effondrement (Coyle 1986, Rauch 2005 — 20-25%)
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
