@@ -279,7 +279,22 @@ export interface NegativeSplitDelta {
   targetPct: number;     // cible centrale
   rationale: string;     // texte explicatif court
   confidence: "low" | "medium" | "high";
+  /** Origine de chaque entrée : "observed" (athlète) ou "default" (littérature) */
+  vlamaxSource: "observed" | "default";
+  tteSource: "observed" | "default";
+  /** Valeurs effectivement utilisées (utiles pour debug / UI) */
+  vlamaxUsed: number;
+  tteUsedMin: number;
 }
+
+// ─── Valeurs de fallback documentées ───────────────────────────────────────────
+// VLamax défaut : 0.45 mmol/L/s = profil mixte endurant (Mader-Heck, médian
+//   triathlètes/coureurs longue distance — Heck 1985, Hauser 2014).
+// TTE défaut : ratio TTE/durée course = 0.85 (zone "limite" prudente),
+//   correspond à un athlète moyennement entraîné qui arrive à puissance critique
+//   un peu avant la fin (Skiba 2014, Jones 2019).
+const VLAMAX_DEFAULT = 0.45;
+const TTE_RATIO_DEFAULT = 0.85;
 
 export function computeNegativeSplitDelta(
   format: "Marathon" | "10km",
@@ -292,33 +307,41 @@ export function computeNegativeSplitDelta(
     ? { absMin: 0.5, absMax: 4.0, baseMin: 1.0, baseMax: 3.0 }
     : { absMin: 0.3, absMax: 2.5, baseMin: 0.5, baseMax: 2.0 };
 
-  // ─── Modulateur VLamax ─────────────────────────────────────────────────────
-  // Référence: 0.45 mmol/L/s (centre profil mixte)
-  // < 0.35 → -40 % delta ; 0.45 → 0 ; > 0.60 → +40 % delta
-  let vlamaxFactor = 1.0;
-  let vlamaxNote = "VLamax inconnue (estimation médiane)";
-  if (vlamaxValue != null) {
-    if (vlamaxValue < 0.35) { vlamaxFactor = 0.6; vlamaxNote = `VLamax basse (${vlamaxValue.toFixed(2)}) → finish kick limité`; }
-    else if (vlamaxValue < 0.45) { vlamaxFactor = 0.85; vlamaxNote = `VLamax modérée (${vlamaxValue.toFixed(2)})`; }
-    else if (vlamaxValue < 0.55) { vlamaxFactor = 1.0; vlamaxNote = `VLamax équilibrée (${vlamaxValue.toFixed(2)})`; }
-    else if (vlamaxValue < 0.65) { vlamaxFactor = 1.15; vlamaxNote = `VLamax haute (${vlamaxValue.toFixed(2)}) → réserve glycolytique`; }
-    else { vlamaxFactor = 1.3; vlamaxNote = `VLamax très haute (${vlamaxValue.toFixed(2)}) → forte réserve mais coût glycogène`; }
+  // ─── Résolution VLamax avec fallback documenté ─────────────────────────────
+  const vlamaxSource: "observed" | "default" = vlamaxValue != null ? "observed" : "default";
+  const vlamaxUsed = vlamaxValue ?? VLAMAX_DEFAULT;
+
+  let vlamaxFactor: number;
+  let vlamaxNote: string;
+  if (vlamaxUsed < 0.35) { vlamaxFactor = 0.6; vlamaxNote = `VLamax basse (${vlamaxUsed.toFixed(2)}) → finish kick limité`; }
+  else if (vlamaxUsed < 0.45) { vlamaxFactor = 0.85; vlamaxNote = `VLamax modérée (${vlamaxUsed.toFixed(2)})`; }
+  else if (vlamaxUsed < 0.55) { vlamaxFactor = 1.0; vlamaxNote = `VLamax équilibrée (${vlamaxUsed.toFixed(2)})`; }
+  else if (vlamaxUsed < 0.65) { vlamaxFactor = 1.15; vlamaxNote = `VLamax haute (${vlamaxUsed.toFixed(2)}) → réserve glycolytique`; }
+  else { vlamaxFactor = 1.3; vlamaxNote = `VLamax très haute (${vlamaxUsed.toFixed(2)}) → forte réserve mais coût glycogène`; }
+  if (vlamaxSource === "default") {
+    vlamaxNote = `VLamax non mesurée → défaut littérature ${VLAMAX_DEFAULT.toFixed(2)} (Mader-Heck, profil mixte)`;
   }
 
-  // ─── Modulateur TTE / durée course ─────────────────────────────────────────
-  // Ratio TTE / durée course :
-  //   < 0.5 → fatigue précoce → -30 % delta
-  //   0.5–0.8 → marge limitée → -10 %
-  //   0.8–1.1 → marge correcte → 0
-  //   > 1.1  → marge confortable → +15 %
-  let tteFactor = 1.0;
-  let tteNote = "TTE inconnue (durée course référence)";
-  if (tteMin != null && raceDurationMin > 0) {
-    const ratio = tteMin / raceDurationMin;
-    if (ratio < 0.5) { tteFactor = 0.7; tteNote = `TTE faible (${tteMin}min vs ${raceDurationMin}min course) → finish prudent`; }
+  // ─── Résolution TTE avec fallback documenté ────────────────────────────────
+  const tteSource: "observed" | "default" = (tteMin != null && raceDurationMin > 0) ? "observed" : "default";
+  const tteUsedMin = tteSource === "observed"
+    ? (tteMin as number)
+    : Math.round(raceDurationMin * TTE_RATIO_DEFAULT);
+
+  let tteFactor: number;
+  let tteNote: string;
+  if (raceDurationMin > 0) {
+    const ratio = tteUsedMin / raceDurationMin;
+    if (ratio < 0.5) { tteFactor = 0.7; tteNote = `TTE faible (${tteUsedMin}min vs ${raceDurationMin}min course) → finish prudent`; }
     else if (ratio < 0.8) { tteFactor = 0.9; tteNote = `TTE limite (ratio ${ratio.toFixed(2)})`; }
     else if (ratio < 1.1) { tteFactor = 1.0; tteNote = `TTE adéquate (ratio ${ratio.toFixed(2)})`; }
     else { tteFactor = 1.15; tteNote = `TTE confortable (ratio ${ratio.toFixed(2)}) → marge pour push`; }
+  } else {
+    tteFactor = 1.0;
+    tteNote = "TTE non évaluable (durée course manquante)";
+  }
+  if (tteSource === "default") {
+    tteNote = `TTE non mesurée → défaut ratio ${TTE_RATIO_DEFAULT} × durée course (≈ ${tteUsedMin}min, Skiba 2014)`;
   }
 
   // ─── Application combinée ──────────────────────────────────────────────────
@@ -331,12 +354,19 @@ export function computeNegativeSplitDelta(
   maxPct = Math.max(bounds.absMin, Math.min(bounds.absMax, maxPct));
   if (maxPct < minPct + 0.3) maxPct = Math.min(bounds.absMax, minPct + 0.5);
 
+  // Si AUCUN paramètre observé → on resserre la cible vers le centre littérature
+  // pour éviter de présenter une recommandation trop précise basée sur des défauts.
+  if (vlamaxSource === "default" && tteSource === "default") {
+    minPct = bounds.baseMin;
+    maxPct = bounds.baseMax;
+  }
+
   const targetPct = (minPct + maxPct) / 2;
 
   // ─── Confiance ─────────────────────────────────────────────────────────────
   const confidence: NegativeSplitDelta["confidence"] =
-    vlamaxValue != null && tteMin != null ? "high" :
-    vlamaxValue != null || tteMin != null ? "medium" : "low";
+    vlamaxSource === "observed" && tteSource === "observed" ? "high" :
+    vlamaxSource === "observed" || tteSource === "observed" ? "medium" : "low";
 
   return {
     minPct: Math.round(minPct * 10) / 10,
@@ -344,34 +374,54 @@ export function computeNegativeSplitDelta(
     targetPct: Math.round(targetPct * 10) / 10,
     rationale: `${vlamaxNote} • ${tteNote}`,
     confidence,
+    vlamaxSource,
+    tteSource,
+    vlamaxUsed: Math.round(vlamaxUsed * 100) / 100,
+    tteUsedMin,
   };
 }
 
+function sourceTag(delta: NegativeSplitDelta): string {
+  const v = delta.vlamaxSource === "observed" ? "VLamax mesurée" : "VLamax défaut";
+  const t = delta.tteSource === "observed" ? "TTE mesurée" : "TTE défaut";
+  return `${v} + ${t}`;
+}
+
 function buildMarathonNegativeSplitRule(delta: NegativeSplitDelta): DisciplineRule {
+  const fallbackPrefix = delta.confidence === "low"
+    ? "⚠ Calibration générique (aucune donnée athlète) — "
+    : delta.confidence === "medium"
+    ? "Calibration partielle — "
+    : "";
   return {
     id: "marathon_negative_split",
     category: "non_negotiable",
     priority: "critical",
     title: `Negative split personnalisé — cible ${delta.targetPct}%`,
     message:
-      `Viser un negative split de ${delta.minPct}–${delta.maxPct} % (cible ${delta.targetPct} %). ` +
+      `${fallbackPrefix}Viser un negative split de ${delta.minPct}–${delta.maxPct} % (cible ${delta.targetPct} %). ` +
       `Calibration : ${delta.rationale}. Référence : Hanley 2020, Casado 2021 (delta médian podiums marathon = 1.8 %).`,
     icon: "📊",
-    source: `Marathon — Calibré VLamax + TTE [confiance ${delta.confidence}]`,
+    source: `Marathon — ${sourceTag(delta)} [confiance ${delta.confidence}]`,
   };
 }
 
 function build10kFinishKickRule(delta: NegativeSplitDelta): DisciplineRule {
+  const fallbackPrefix = delta.confidence === "low"
+    ? "⚠ Calibration générique (aucune donnée athlète) — "
+    : delta.confidence === "medium"
+    ? "Calibration partielle — "
+    : "";
   return {
     id: "10k_last_2k",
     category: "non_negotiable",
     priority: "important",
     title: `Finish kick personnalisé — ${delta.minPct}–${delta.maxPct}%`,
     message:
-      `Les 2 derniers km doivent être ${delta.minPct}–${delta.maxPct} % plus rapides que les 8 premiers (cible ${delta.targetPct} %). ` +
+      `${fallbackPrefix}Les 2 derniers km doivent être ${delta.minPct}–${delta.maxPct} % plus rapides que les 8 premiers (cible ${delta.targetPct} %). ` +
       `Calibration : ${delta.rationale}. Norme physiologique 10K (Hanley 2020).`,
     icon: "🏁",
-    source: `10K — Calibré VLamax + TTE [confiance ${delta.confidence}]`,
+    source: `10K — ${sourceTag(delta)} [confiance ${delta.confidence}]`,
   };
 }
 
