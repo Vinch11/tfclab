@@ -313,7 +313,7 @@ export default function RaceSimulationPage() {
                         : 'bg-background text-muted-foreground hover:bg-muted'
                     }`}
                   >
-                    🚴 Vélo ({Math.round(segmentDurationMin.bike / 60 * 10) / 10}h)
+                    🚴 Vélo ({`${Math.floor(segmentDurationMin.bike / 60)}h${String(Math.round(segmentDurationMin.bike % 60)).padStart(2, '0')}`})
                   </button>
                   <button
                     type="button"
