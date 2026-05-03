@@ -16,6 +16,11 @@ import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
+import { CaffeineProtocolCard } from '@/components/CaffeineProtocolCard';
+import { CarbLoadingCard } from '@/components/CarbLoadingCard';
+import { GutTrainingCard } from '@/components/GutTrainingCard';
+import { HydrationProtocolCard } from '@/components/HydrationProtocolCard';
+import { RecoveryNutritionCard } from '@/components/RecoveryNutritionCard';
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
