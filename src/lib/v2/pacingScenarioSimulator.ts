@@ -19,7 +19,7 @@ import type { PacingEnvelopeResult, RaceObjective } from "./pacingEnvelopeEngine
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type ScenarioType = "pacing_error" | "early_push" | "sustained_overdrive" | "glycogen_crisis" | "heat_stress";
+export type ScenarioType = "pacing_error" | "early_push" | "sustained_overdrive" | "glycogen_crisis" | "heat_stress" | "controlled_negative_split";
 export type ConsequenceSeverity = "minor" | "moderate" | "major" | "critical";
 export type RacePhase = "first_third" | "middle_third" | "last_third";
 
