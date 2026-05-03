@@ -3,11 +3,11 @@
  * Affiche les suppléments recommandés pour le profil de course
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FlaskConical, AlertTriangle, Check, X, Info } from "lucide-react";
+import { FlaskConical, AlertTriangle, Check, X, Info, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   computeErgogenicAids,
@@ -15,8 +15,16 @@ import {
   type ErgogenicAidsInput,
   type RaceProfile,
 } from "@/lib/ergogenicAidsProtocol";
+import {
+  suggestPreset,
+  getPresetsByDiscipline,
+  type Discipline,
+  type ErgogenicPreset,
+} from "@/lib/ergogenicAidsPresets";
 
 interface ErgogenicAidsCardProps extends ErgogenicAidsInput {
+  /** Discipline pour suggérer un preset adapté */
+  discipline?: Discipline;
   className?: string;
   staffMode?: boolean;
 }
@@ -41,20 +49,41 @@ export function ErgogenicAidsCard({
   hasRepeatedEfforts = false,
   bicarbTested = false,
   vegetarian = false,
+  discipline,
   className,
   staffMode = false,
 }: ErgogenicAidsCardProps) {
-  const result = useMemo(
-    () =>
-      computeErgogenicAids({
-        weightKg,
-        durationMin,
-        hasRepeatedEfforts,
-        bicarbTested,
-        vegetarian,
-      }),
-    [weightKg, durationMin, hasRepeatedEfforts, bicarbTested, vegetarian]
+  // Preset suggéré automatiquement selon discipline + durée
+  const autoPreset = useMemo<ErgogenicPreset | null>(
+    () => (discipline ? suggestPreset(discipline, durationMin) : null),
+    [discipline, durationMin]
   );
+
+  const availablePresets = useMemo<ErgogenicPreset[]>(
+    () => (discipline ? getPresetsByDiscipline(discipline) : []),
+    [discipline]
+  );
+
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(autoPreset?.id ?? null);
+  const activePreset =
+    availablePresets.find((p) => p.id === selectedPresetId) ?? autoPreset;
+
+  // Fusion des overrides preset > props athlète
+  const effectiveInput = useMemo<ErgogenicAidsInput>(
+    () => ({
+      weightKg,
+      durationMin,
+      hasRepeatedEfforts:
+        activePreset?.overrides.hasRepeatedEfforts ?? hasRepeatedEfforts,
+      bicarbTested:
+        activePreset?.overrides.bicarbTested ?? bicarbTested,
+      vegetarian:
+        activePreset?.overrides.vegetarian ?? vegetarian,
+    }),
+    [weightKg, durationMin, hasRepeatedEfforts, bicarbTested, vegetarian, activePreset]
+  );
+
+  const result = useMemo(() => computeErgogenicAids(effectiveInput), [effectiveInput]);
 
   if (!result.isApplicable) {
     return (
@@ -94,6 +123,54 @@ export function ErgogenicAidsCard({
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {availablePresets.length > 0 && (
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-2">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium">
+              <Sparkles className="w-3 h-3 text-primary" />
+              <span>Preset suggéré</span>
+              {autoPreset && selectedPresetId === autoPreset.id && (
+                <Badge variant="outline" className="text-[9px] h-4 px-1">auto</Badge>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {availablePresets.map((p) => {
+                const isActive = activePreset?.id === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setSelectedPresetId(p.id)}
+                    className={cn(
+                      "text-[10px] px-2 py-1 rounded border transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-muted hover:border-primary/50"
+                    )}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+            {activePreset && (
+              <div className="text-[10px] text-muted-foreground space-y-1">
+                <p>{activePreset.description}</p>
+                <p className="flex flex-wrap gap-1">
+                  {activePreset.priorityStack.map((s, i) => (
+                    <span key={s} className="inline-flex items-center gap-0.5">
+                      {i > 0 && <span className="opacity-50">→</span>}
+                      <span className="font-medium">{s}</span>
+                    </span>
+                  ))}
+                </p>
+                {staffMode && (
+                  <p className="italic text-primary/80">📋 {activePreset.coachNote}</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {result.aids.map((aid) => (
           <div
             key={aid.name}
