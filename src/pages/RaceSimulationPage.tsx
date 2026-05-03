@@ -350,6 +350,14 @@ export default function RaceSimulationPage() {
                   }}
                   staffMode={staffMode}
                 />
+                <ErgogenicAidsCard
+                  weightKg={activeSnapshot.weight_kg}
+                  durationMin={raceDurationMin}
+                  hasRepeatedEfforts={discipline === 'bike' || raceDurationMin <= 60}
+                  bicarbTested={false}
+                  vegetarian={false}
+                  staffMode={staffMode}
+                />
               </>
             )}
           </TabsContent>
