@@ -3,11 +3,11 @@
  * Affiche les suppléments recommandés pour le profil de course
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FlaskConical, AlertTriangle, Check, X, Info } from "lucide-react";
+import { FlaskConical, AlertTriangle, Check, X, Info, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   computeErgogenicAids,
@@ -15,8 +15,16 @@ import {
   type ErgogenicAidsInput,
   type RaceProfile,
 } from "@/lib/ergogenicAidsProtocol";
+import {
+  suggestPreset,
+  getPresetsByDiscipline,
+  type Discipline,
+  type ErgogenicPreset,
+} from "@/lib/ergogenicAidsPresets";
 
 interface ErgogenicAidsCardProps extends ErgogenicAidsInput {
+  /** Discipline pour suggérer un preset adapté */
+  discipline?: Discipline;
   className?: string;
   staffMode?: boolean;
 }
