@@ -657,21 +657,48 @@ export default function RaceSimulationPage() {
   );
 }
 
-function ProfileTile({ label, value, unit, confidence }: { label: string; value: string; unit?: string; confidence?: number | null }) {
+function ProfileTile({
+  label, value, unit, confidence, staffMode, athleteHint, staffHint,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  confidence?: number | null;
+  staffMode?: boolean;
+  athleteHint?: string;
+  staffHint?: string;
+}) {
   const conf = confidence == null ? null : Math.round(confidence * 100);
+  const confLabel =
+    conf == null ? null :
+    conf >= 75 ? "Fiable" :
+    conf >= 50 ? "Modérée" : "Indicative";
   const confColor =
     conf == null ? "text-muted-foreground" :
     conf >= 75 ? "text-emerald-600" :
     conf >= 50 ? "text-amber-600" : "text-red-600";
+  const dot =
+    conf == null ? "bg-muted-foreground/40" :
+    conf >= 75 ? "bg-emerald-500" :
+    conf >= 50 ? "bg-amber-500" : "bg-red-500";
+  const hint = staffMode ? staffHint : athleteHint;
   return (
-    <div className="rounded-lg border border-border bg-muted/30 p-2.5">
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-0.5 flex items-baseline gap-1">
-        <span className="text-base sm:text-lg font-bold text-foreground">{value}</span>
+    <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">{label}</div>
+        {confLabel && (
+          <div className={`flex items-center gap-1 text-[10px] ${confColor}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+            {confLabel}
+          </div>
+        )}
+      </div>
+      <div className="flex items-baseline gap-1">
+        <span className="text-xl font-bold text-foreground">{value}</span>
         {unit && <span className="text-[10px] text-muted-foreground">{unit}</span>}
       </div>
-      {conf != null && (
-        <div className={`text-[10px] mt-0.5 ${confColor}`}>fiab. {conf}%</div>
+      {hint && (
+        <p className="text-[11px] leading-snug text-muted-foreground">{hint}</p>
       )}
     </div>
   );
