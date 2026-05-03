@@ -205,6 +205,9 @@ export function StaffPacingReportV2({
         </CardContent>
       </Card>
 
+      {/* SECTION B.bis: Règles personnalisées (negative split delta calibré, semi GO/CAUTION/HOLD, IM run par ambition) */}
+      <PersonalizedRulesSection rules={rules} variant="full" />
+
       {/* SECTION C: Scénarios d'erreur */}
       <Card>
         <CardHeader className="pb-3">
