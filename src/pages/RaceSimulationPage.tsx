@@ -26,7 +26,7 @@ import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
 import { computeVLamaxEffectif, computeTTEEffectif } from '@/engines/diagnostic';
-import { computePotentielEffectif } from '@/lib/potentielPhysiologiqueEffectif';
+import { computeUnifiedReadiness } from '@/lib/readinessSource';
 import { computeFatMaxTFCL } from '@/lib/v2/fatmaxTFCL';
 import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibiliteTFCL';
 import { computePacingEnvelope } from '@/lib/v2/pacingEnvelopeEngine';
