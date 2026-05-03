@@ -747,6 +747,49 @@ import {
   type RaceType,
   type AmbitionLevel as SimAmbitionLevel,
 } from "@/lib/v2/raceSimulation";
+import {
+  buildNutritionProtocolsSectionHTML,
+  type NutritionExportContext,
+} from "@/lib/exportNutritionProtocols";
+
+/** Durée par défaut (min) pour chaque type de course — alimente F3-F8 */
+const DURATION_BY_GOAL: Record<string, number> = {
+  IM: 600,
+  '70.3': 300,
+  Marathon: 210,
+  Semi: 100,
+  '10km': 45,
+  StartToRun: 35,
+  Trail: 240,
+  TrailLong: 480,
+  Ultra: 720,
+  Sprint: 75,
+  Olympic: 150,
+};
+
+function deriveNutritionContext(
+  payload: ExportPayload,
+  goal: RaceType,
+  staffMode: boolean,
+): NutritionExportContext {
+  const refs = (payload.athlete.refs ?? {}) as Record<string, unknown>;
+  const sport: NutritionExportContext['sport'] =
+    goal === 'Marathon' || goal === 'Semi' || goal === '10km'
+      ? 'run'
+      : goal === 'IM' || goal === '70.3'
+      ? 'tri'
+      : 'bike';
+
+  return {
+    weightKg: payload.effectiveRefs.weightKg ?? null,
+    durationMin: DURATION_BY_GOAL[goal] ?? 180,
+    sport,
+    hasRepeatedEfforts: refs.hasRepeatedEfforts === true,
+    bicarbTested: refs.bicarbTested === true,
+    vegetarian: refs.vegetarian === true,
+    staffMode,
+  };
+}
 
 function buildRaceSimulationHTML(
   payload: ExportPayload,
@@ -777,11 +820,13 @@ function buildRaceSimulationHTML(
   });
 
   const actualMode = mode === 'pro' && eligibility.eligible ? 'pro' : 'basic';
+  const nutritionCtx = deriveNutritionContext(payload, goal, actualMode === 'pro');
+  const nutritionHTML = buildNutritionProtocolsSectionHTML(nutritionCtx);
 
   if (actualMode === 'basic') {
-    return buildBasicSimulationHTML(payload, goal, eligibility);
+    return buildBasicSimulationHTML(payload, goal, eligibility) + nutritionHTML;
   } else {
-    return buildProSimulationHTML(payload, goal, eligibility);
+    return buildProSimulationHTML(payload, goal, eligibility) + nutritionHTML;
   }
 }
 
