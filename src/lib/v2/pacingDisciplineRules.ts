@@ -273,7 +273,7 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
 //   • TTE généreux vs durée course → marge → delta ↑
 // Bornes : Marathon 0.5–4 %, 10K 0.3–2.5 %.
 // ═══════════════════════════════════════════════════════════════════════════════
-interface NegativeSplitDelta {
+export interface NegativeSplitDelta {
   minPct: number;        // borne basse delta % (2ème moitié plus rapide)
   maxPct: number;        // borne haute delta %
   targetPct: number;     // cible centrale
@@ -281,7 +281,7 @@ interface NegativeSplitDelta {
   confidence: "low" | "medium" | "high";
 }
 
-function computeNegativeSplitDelta(
+export function computeNegativeSplitDelta(
   format: "Marathon" | "10km",
   vlamaxValue: number | null,
   tteMin: number | null,

@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
+import { NegativeSplitPreviewCard } from '@/components/NegativeSplitPreviewCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
 import { CaffeineProtocolCard } from '@/components/CaffeineProtocolCard';
@@ -348,6 +349,14 @@ export default function RaceSimulationPage() {
               <div className="text-center py-8 text-sm text-muted-foreground">
                 Données insuffisantes pour calculer l'enveloppe
               </div>
+            )}
+            {(raceObjective === 'Marathon' || raceObjective === '10km') && (
+              <NegativeSplitPreviewCard
+                raceObjective={raceObjective}
+                vlamaxValue={vlamaxEffectif?.value ?? null}
+                tteMin={tteEffectif?.tte_min ?? null}
+                raceDurationMin={raceDurationMin}
+              />
             )}
             {isTriathlon && (
               <Alert className="text-[11px] sm:text-xs py-2">
