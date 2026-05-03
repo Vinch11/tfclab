@@ -864,4 +864,4 @@ function buildSemiFinishKickRule(assessment: FinishKickAssessment): DisciplineRu
     icon: "🛑",
     source: `Semi finish — ${sourceLabel}`,
   };
-  }
+}
