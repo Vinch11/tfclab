@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronRight, FlaskConical, BookOpen, Activity } from "lucide-react";
 import { AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
+import { PacingRulesChangelogCard } from "@/components/PacingRulesChangelogCard";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MODÈLE DE DONNÉES — STRATÉGIES DE SPLIT PAR DISCIPLINE
@@ -450,6 +451,9 @@ export default function PacingAuditPage() {
             pour chaque discipline et niveau d'ambition.
           </p>
         </header>
+
+        {/* Changelog — du statique au personnalisé */}
+        <PacingRulesChangelogCard />
 
         {/* Légende des stratégies */}
         <Card>
