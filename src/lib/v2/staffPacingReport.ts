@@ -217,19 +217,23 @@ function generateToleranceProfile(
   tteEffectif: TTEEffectif | null,
   potentielPhysiologiqueScore: number | null
 ): ToleranceProfile {
+  // Utilise la source unifiée — seuils centralisés dans src/lib/readinessSource.ts
+  // pour éviter toute contradiction d'affichage entre la métrique et le badge.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { interpretReadinessScore } = require("../readinessSource") as typeof import("../readinessSource");
+  const readiness = interpretReadinessScore(potentielPhysiologiqueScore);
+
   // Déterminer le résumé
   let summary = PROFILE_SUMMARIES.balanced;
-  let badge: string | null = null;
-  let badgeColor = "gray";
-  
+  let badge: string | null = readiness.badge;
+  let badgeColor: string = readiness.badgeColor;
+
   if (envelope.pacingProfile.type === "sensitive") {
     summary = PROFILE_SUMMARIES.sensitive;
     badge = "🟣 Profil pacing-sensible";
     badgeColor = "purple";
-  } else if (potentielPhysiologiqueScore != null && potentielPhysiologiqueScore < 65) {
+  } else if (readiness.isReduced) {
     summary = PROFILE_SUMMARIES.low_readiness;
-    badge = "⚠️ Readiness réduit";
-    badgeColor = "orange";
   } else if (envelope.pacingProfile.type === "tolerant") {
     summary = PROFILE_SUMMARIES.tolerant;
   }
@@ -259,14 +263,12 @@ function generateToleranceProfile(
     });
   }
   
-  if (potentielPhysiologiqueScore != null) {
-    const readinessStatus = potentielPhysiologiqueScore >= 80 ? "good" 
-      : potentielPhysiologiqueScore >= 65 ? "warning" : "critical";
+  if (readiness.score != null) {
     metrics.push({
-      label: "Potentiel Physiologique",
-      value: `${potentielPhysiologiqueScore}%`,
+      label: readiness.metricLabel,
+      value: `${readiness.score}%`,
       confidence: "—",
-      status: readinessStatus as "good" | "warning" | "critical",
+      status: readiness.status,
     });
   }
 
