@@ -394,12 +394,12 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
   const scenarios: PacingScenarioRun[] = [
     {
       type: "DISCIPLINED",
-      label: "Scénario Discipliné",
-      description: "Reste dans l'enveloppe verte — performance robuste",
+      label: "Scénario Discipliné — Negative Split",
+      description: "Départ contenu, montée progressive vers le haut de l'enveloppe — standard élite (Hanley 2020)",
       pacing_profile: {
-        first_third_pct: green[0] + 1,
+        first_third_pct: green[0],
         middle_third_pct: centerGreen,
-        last_third_pct: green[1] - 1,
+        last_third_pct: green[1],
       },
       estimated_success_rate: race_readiness_state === "GREEN" ? 92 : race_readiness_state === "ORANGE" ? 85 : 70,
       risk_warning: null,
