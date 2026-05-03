@@ -38,6 +38,17 @@ export default function AthleteEditPage() {
   const [masseGrasse, setMasseGrasse] = useState(
     editingAthlete?.masse_grasse == null ? "" : String(editingAthlete.masse_grasse),
   );
+
+  // F8 — Profil ergogénique
+  const [hasRepeatedEfforts, setHasRepeatedEfforts] = useState<boolean>(
+    Boolean(editingAthlete?.refs?.hasRepeatedEfforts),
+  );
+  const [bicarbTested, setBicarbTested] = useState<boolean>(
+    Boolean(editingAthlete?.refs?.bicarbTested),
+  );
+  const [vegetarian, setVegetarian] = useState<boolean>(
+    Boolean(editingAthlete?.refs?.vegetarian),
+  );
   
   // Cloud-based race goals
   const { 
