@@ -886,7 +886,8 @@ function generateScenario(
     
     const notes: string[] = [];
     if (fuelRisk >= 70) notes.push("Zone critique glycogène");
-    if (glycogenRemaining < 30) notes.push("Réserves faibles");
+    if (glycogenRemaining < 20) notes.push("Réserves critiques (< 20% — seuil d'effondrement, Coyle/Rauch)");
+    else if (glycogenRemaining < 30) notes.push("Réserves faibles");
     if (i >= numSegments - 2) notes.push("Phase finale");
     
     segments.push({
