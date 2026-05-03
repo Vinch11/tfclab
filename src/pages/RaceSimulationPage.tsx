@@ -311,7 +311,7 @@ export default function RaceSimulationPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <ProfileTile label="VLamax" value={vlamaxEffectif?.value ? vlamaxEffectif.value.toFixed(2) : "—"} unit="mmol/L/s" confidence={vlamaxEffectif?.confidence} />
                 <ProfileTile label="TTE" value={tteEffectif?.tte_min ? `${Math.round(tteEffectif.tte_min)}` : "—"} unit="min" confidence={tteEffectif?.confidence} />
-                <ProfileTile label="FatMax" value={fatmax?.fatmax_g_per_min ? fatmax.fatmax_g_per_min.toFixed(2) : "—"} unit="g/min" />
+                <ProfileTile label="FatMax" value={fatmax?.centerPctFTP ? `${Math.round(fatmax.centerPctFTP)}` : "—"} unit="% FTP" confidence={fatmax?.confidence} />
                 <ProfileTile label="Disponibilité" value={`${Math.round(potentielPhysiologiqueScore)}`} unit="/100" />
               </div>
               {!staffMode ? (
