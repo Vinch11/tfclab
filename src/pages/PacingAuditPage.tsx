@@ -452,6 +452,9 @@ export default function PacingAuditPage() {
           </p>
         </header>
 
+        {/* Changelog — du statique au personnalisé */}
+        <PacingRulesChangelogCard />
+
         {/* Légende des stratégies */}
         <Card>
           <CardHeader className="pb-2">
