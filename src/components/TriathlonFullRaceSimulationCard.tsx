@@ -816,7 +816,7 @@ function ScenarioCard({
     () => buildScenario(scenarioKey, props, offset),
     [scenarioKey, props, offset],
   );
-  return ScenarioCardInner({ scenario, baseline, isIM, offset, setOffset });
+  return ScenarioCardInner({ scenario, baseline, isIM, offset, setOffset, props });
 }
 
 function ScenarioCardInner({
