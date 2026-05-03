@@ -640,7 +640,21 @@ function buildSemiFinishKickRule(assessment: FinishKickAssessment): DisciplineRu
     icon: "🛑",
     source: `Semi finish — ${sourceLabel}`,
   };
-}
+  }
+
+  // 1.quater — Semi-marathon finish km 18-21 conditionnel (FC + fatigue)
+  if (raceObjective === "Semi") {
+    const assessment = assessSemiFinishKick(
+      input.liveSegments ?? null,
+      input.fcMaxBpm ?? null,
+      vlamaxEffectif?.value ?? null,
+      tteMin ?? null,
+      input.fatigueLevel ?? null,
+      potentielPhysiologiqueScore ?? null,
+    );
+    rules.push(buildSemiFinishKickRule(assessment));
+  }
+} // CLOSE generateDisciplineRules — helpers below need to be moved
 
 
   // ─────────────────────────────────────────────────────────────────────────────
