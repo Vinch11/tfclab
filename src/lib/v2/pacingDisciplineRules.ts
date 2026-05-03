@@ -216,16 +216,7 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
       icon: "🔒",
       source: "Format Semi-Marathon",
     },
-    {
-      id: "semi_finish_18_21",
-      category: "tactical",
-      priority: "recommended",
-      title: "Finish km 18-21",
-      message:
-        "Push autorisé sur les 3 derniers km uniquement si FC < 95 % FCmax au km 18 et fraîcheur intacte. Sinon : tenir l'allure cible. Le finish kick semi est un bonus, pas un objectif.",
-      icon: "🏁",
-      source: "Format Semi — Littérature élite",
-    },
+    // semi_finish_18_21 injecté dynamiquement (cf. buildSemiFinishKickRule)
   ],
   "10km": [
     {
