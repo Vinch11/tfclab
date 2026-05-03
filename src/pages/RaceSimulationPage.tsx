@@ -282,7 +282,36 @@ export default function RaceSimulationPage() {
             <TabsTrigger value="staff" className="text-[11px] sm:text-sm px-1">Staff</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="envelope" className="mt-3 sm:mt-4">
+          <TabsContent value="envelope" className="mt-3 sm:mt-4 space-y-3">
+            {isTriathlon && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-muted-foreground">Segment :</span>
+                <div className="inline-flex rounded-md border border-border overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setTriDiscipline('bike')}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                      triDiscipline === 'bike'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-background text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    🚴 Vélo ({Math.round(segmentDurationMin.bike / 60 * 10) / 10}h)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTriDiscipline('run')}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                      triDiscipline === 'run'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-background text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    🏃 Course ({Math.round(segmentDurationMin.run / 60 * 10) / 10}h)
+                  </button>
+                </div>
+              </div>
+            )}
             {envelope ? (
               <PacingEnvelopeCard
                 input={{
@@ -305,6 +334,17 @@ export default function RaceSimulationPage() {
               <div className="text-center py-8 text-sm text-muted-foreground">
                 Données insuffisantes pour calculer l'enveloppe
               </div>
+            )}
+            {isTriathlon && (
+              <Alert className="text-[11px] sm:text-xs py-2">
+                <Info className="h-3.5 w-3.5" />
+                <AlertDescription>
+                  <strong>Stratégie {raceObjective} :</strong>{' '}
+                  {triDiscipline === 'bike'
+                    ? "Vélo conservateur — viser la cible basse / centre de l'enveloppe. Ne JAMAIS dépasser le centre dans les 90 premières minutes. Le vélo se gagne à l'arrivée du run, pas pendant."
+                    : "Course en even / negative split — démarrer 3 à 5 % sous l'allure cible (jambes vélo-fatiguées), puis progresser sur la 2e moitié. Cap glycogénique 20 %, surveiller le drift dès le 1er tiers."}
+                </AlertDescription>
+              </Alert>
             )}
           </TabsContent>
           
