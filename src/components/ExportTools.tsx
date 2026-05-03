@@ -820,11 +820,13 @@ function buildRaceSimulationHTML(
   });
 
   const actualMode = mode === 'pro' && eligibility.eligible ? 'pro' : 'basic';
+  const nutritionCtx = deriveNutritionContext(payload, goal, actualMode === 'pro');
+  const nutritionHTML = buildNutritionProtocolsSectionHTML(nutritionCtx);
 
   if (actualMode === 'basic') {
-    return buildBasicSimulationHTML(payload, goal, eligibility);
+    return buildBasicSimulationHTML(payload, goal, eligibility) + nutritionHTML;
   } else {
-    return buildProSimulationHTML(payload, goal, eligibility);
+    return buildProSimulationHTML(payload, goal, eligibility) + nutritionHTML;
   }
 }
 
