@@ -220,8 +220,6 @@ function generateToleranceProfile(
 ): ToleranceProfile {
   // Utilise la source unifiée — seuils centralisés dans src/lib/readinessSource.ts
   // pour éviter toute contradiction d'affichage entre la métrique et le badge.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { interpretReadinessScore } = require("../readinessSource") as typeof import("../readinessSource");
   const readiness = interpretReadinessScore(potentielPhysiologiqueScore);
 
   // Déterminer le résumé
