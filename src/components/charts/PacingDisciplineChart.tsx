@@ -273,84 +273,100 @@ export function PacingDisciplineChart({
   const hasCriticalErrors = errorPoints.some(p => p.zone === "FORBIDDEN");
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="pb-2">
+    <Card className={cn("overflow-hidden border-border/60 shadow-sm", className)}>
+      <CardHeader className="pb-3 bg-gradient-to-br from-primary/5 via-transparent to-transparent">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base">
-              TFCL Pacing Discipline Graph™
-            </CardTitle>
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Activity className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-semibold leading-tight">
+                Couloir de pacing
+              </CardTitle>
+              <CardDescription className="text-[11px] mt-0.5">
+                Stratégie negative split — {boundary.referenceShortLabel}
+              </CardDescription>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {pacingProfile.badge && (
-              <Badge variant="outline" className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px]">
+              <Badge variant="outline" className="text-[9px] font-medium border-purple-400/40 bg-purple-500/10 text-purple-700 dark:text-purple-300">
                 {pacingProfile.badge}
               </Badge>
             )}
-            <Badge variant="outline" className="text-[10px]">
+            <Badge variant="outline" className="text-[9px] font-medium">
               {envelope.raceObjective}
             </Badge>
           </div>
         </div>
-        <CardDescription className="text-xs">
-          Couloir: {boundary.lowPct}–{boundary.highPct}% (centre: {boundary.centerPct}%)
-        </CardDescription>
+
+        {/* KPI strip */}
+        <div className="grid grid-cols-3 gap-2 mt-3">
+          <div className="rounded-md border bg-card/50 p-2 text-center">
+            <div className="text-[9px] uppercase tracking-wide text-muted-foreground">Plancher</div>
+            <div className="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400">{boundary.lowPct}%</div>
+          </div>
+          <div className="rounded-md border-2 border-emerald-500/40 bg-emerald-500/10 p-2 text-center">
+            <div className="text-[9px] uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Cible</div>
+            <div className="text-base font-bold font-mono text-emerald-700 dark:text-emerald-400">{boundary.centerPct}%</div>
+          </div>
+          <div className="rounded-md border bg-card/50 p-2 text-center">
+            <div className="text-[9px] uppercase tracking-wide text-muted-foreground">Plafond</div>
+            <div className="text-base font-bold font-mono text-amber-600 dark:text-amber-400">{boundary.highPct}%</div>
+          </div>
+        </div>
       </CardHeader>
 
-      <CardContent className="p-2 sm:p-4">
+      <CardContent className="p-3 sm:p-4 pt-2">
         {/* Alertes */}
         {hasCriticalErrors && showErrors && (
-          <div className="mb-3 p-2 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center gap-2 text-xs text-red-700 dark:text-red-300">
+          <div className="mb-3 p-2.5 rounded-lg border border-red-500/30 bg-red-500/10 flex items-center gap-2 text-xs text-red-700 dark:text-red-300">
             <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-            <span>Dépassements critiques détectés — zone interdite atteinte</span>
+            <span className="font-medium">Dépassements critiques détectés — zone interdite atteinte</span>
           </div>
         )}
 
         {/* Graphique */}
-        <div style={{ height }}>
+        <div style={{ height }} className="w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="pacingGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1} />
+                  <stop offset="0%" stopColor="hsl(142 76% 45%)" stopOpacity={0.55} />
+                  <stop offset="100%" stopColor="hsl(142 76% 45%)" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="optimalBand" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(142 76% 45%)" stopOpacity={0.18} />
+                  <stop offset="100%" stopColor="hsl(142 76% 45%)" stopOpacity={0.08} />
                 </linearGradient>
               </defs>
 
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <CartesianGrid strokeDasharray="2 4" opacity={0.18} vertical={false} />
 
               {/* Zones de référence */}
-              {/* Zone sous-exploitation (bleu) */}
               <ReferenceArea
                 y1={yMin}
                 y2={boundary.lowPct - 5}
-                fill="#3b82f6"
-                fillOpacity={0.1}
+                fill="hsl(217 91% 60%)"
+                fillOpacity={0.06}
               />
-              
-              {/* Zone optimale (vert) */}
               <ReferenceArea
                 y1={boundary.lowPct}
                 y2={boundary.highPct}
-                fill="#22c55e"
-                fillOpacity={0.15}
+                fill="url(#optimalBand)"
               />
-              
-              {/* Zone tolérée (orange) */}
               <ReferenceArea
                 y1={boundary.highPct}
                 y2={boundary.toleratedPct}
-                fill="#f97316"
-                fillOpacity={0.15}
+                fill="hsl(38 92% 50%)"
+                fillOpacity={0.12}
               />
-              
-              {/* Zone interdite (rouge) */}
               <ReferenceArea
                 y1={boundary.toleratedPct}
                 y2={yMax}
-                fill="#ef4444"
-                fillOpacity={0.2}
+                fill="hsl(0 84% 60%)"
+                fillOpacity={0.16}
               />
 
               <XAxis
@@ -363,83 +379,75 @@ export function PacingDisciplineChart({
                   const m = v % 60;
                   return h > 0 ? `${h}h${m > 0 ? m : ""}` : `${m}'`;
                 }}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                 tickCount={6}
+                axisLine={{ stroke: "hsl(var(--border))" }}
+                tickLine={false}
               />
 
               <YAxis
                 domain={[yMin, yMax]}
                 tickFormatter={(v) => `${v}%`}
-                tick={{ fontSize: 10 }}
-                width={40}
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                width={36}
+                axisLine={false}
+                tickLine={false}
               />
 
-              <Tooltip content={<CustomTooltip envelope={envelope} />} />
+              <Tooltip content={<CustomTooltip envelope={envelope} />} cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "3 3" }} />
 
               {/* Lignes de référence */}
               <ReferenceLine
                 y={boundary.centerPct}
-                stroke="#22c55e"
-                strokeDasharray="5 5"
-                strokeWidth={2}
-                label={showZoneLabels && staffMode ? { value: "Centre", position: "right", fontSize: 9 } : undefined}
+                stroke="hsl(142 76% 45%)"
+                strokeDasharray="6 4"
+                strokeWidth={1.5}
+                strokeOpacity={0.7}
+                label={showZoneLabels && staffMode ? { value: "Cible", position: "right", fontSize: 9, fill: "hsl(142 76% 36%)" } : undefined}
               />
               <ReferenceLine
                 y={boundary.highPct}
-                stroke="#f97316"
+                stroke="hsl(38 92% 50%)"
                 strokeDasharray="3 3"
                 strokeWidth={1}
+                strokeOpacity={0.6}
               />
               <ReferenceLine
                 y={boundary.toleratedPct}
-                stroke="#ef4444"
+                stroke="hsl(0 84% 60%)"
                 strokeDasharray="3 3"
                 strokeWidth={1}
+                strokeOpacity={0.6}
               />
 
               {/* Courbe de pacing */}
               <Area
                 type="monotone"
                 dataKey="intensity"
-                stroke="#22c55e"
-                strokeWidth={2}
+                stroke="hsl(142 76% 36%)"
+                strokeWidth={2.5}
                 fill="url(#pacingGradient)"
                 dot={false}
-                activeDot={{ r: 4, fill: "#22c55e" }}
-              />
-
-              <Legend
-                verticalAlign="top"
-                height={25}
-                formatter={(value) => (
-                  <span className="text-[10px] text-muted-foreground">
-                    {value === "intensity" ? "Pacing" : value}
-                  </span>
-                )}
+                activeDot={{ r: 4, fill: "hsl(142 76% 36%)", stroke: "hsl(var(--background))", strokeWidth: 2 }}
               />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Légende des zones */}
+        {/* Légende moderne */}
         {showZoneLabels && (
-          <div className="mt-3 flex flex-wrap gap-2 justify-center">
-            <div className="flex items-center gap-1 text-[10px]">
-              <div className="w-3 h-3 rounded-sm bg-blue-500/30" />
-              <span className="text-muted-foreground">Sous-exploit.</span>
-            </div>
-            <div className="flex items-center gap-1 text-[10px]">
-              <div className="w-3 h-3 rounded-sm bg-green-500/30" />
-              <span className="text-muted-foreground">Optimale</span>
-            </div>
-            <div className="flex items-center gap-1 text-[10px]">
-              <div className="w-3 h-3 rounded-sm bg-orange-500/30" />
-              <span className="text-muted-foreground">Tolérée</span>
-            </div>
-            <div className="flex items-center gap-1 text-[10px]">
-              <div className="w-3 h-3 rounded-sm bg-red-500/30" />
-              <span className="text-muted-foreground">Interdite</span>
-            </div>
+          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5 justify-center">
+            {[
+              { c: "bg-blue-500/40", l: "Sous-exploit." },
+              { c: "bg-emerald-500/50", l: "Optimale" },
+              { c: "bg-amber-500/50", l: "Tolérée" },
+              { c: "bg-red-500/50", l: "Interdite" },
+            ].map((z) => (
+              <div key={z.l} className="flex items-center gap-1.5 text-[10px]">
+                <div className={cn("w-2.5 h-2.5 rounded-full", z.c)} />
+                <span className="text-muted-foreground font-medium">{z.l}</span>
+              </div>
+            ))}
           </div>
         )}
 
