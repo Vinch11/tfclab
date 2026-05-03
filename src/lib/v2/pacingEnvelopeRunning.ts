@@ -295,11 +295,12 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     green = [Math.round(toPctSeuil(b.lowPct)), Math.round(toPctSeuil(b.highPct))];
     orange = [green[1], Math.round(toPctSeuil(b.toleratedPct))];
     red = [orange[1], Math.round(Math.min(orange[1] + 8, 115))];
-    // Negative split autorisé si plafond élargi (asym ≥1.0) et VLamax basse
+    // Negative split = standard élite (Hanley 2020, Casado 2021).
+    // Autorisé sauf contre-indication forte (readiness RED ou asymétrie défavorable).
     allowAggressiveFinish =
-      b.asymmetryRatio >= 1.0 &&
-      vlamax_run_v2 != null &&
-      vlamax_run_v2 < VLAMAX_MODIFIERS.LOW.threshold;
+      race_readiness_state !== "RED" &&
+      b.asymmetryRatio >= 0.85 &&
+      !(vlamax_run_v2 != null && vlamax_run_v2 > 0.55 && distance === "MARATHON");
   } else {
     // Fallback ultime: bornes statiques historiques
     const baseBounds = ZONE_BOUNDARIES[distance];
