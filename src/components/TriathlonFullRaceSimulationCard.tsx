@@ -362,6 +362,177 @@ function SegmentRow({
   );
 }
 
+function MetricBar({
+  label,
+  value,
+  max = 100,
+  suffix = "%",
+  tone,
+}: {
+  label: string;
+  value: number;
+  max?: number;
+  suffix?: string;
+  tone: "good" | "warn" | "bad";
+}) {
+  const pct = Math.min(100, (value / max) * 100);
+  const barCls =
+    tone === "bad" ? "bg-red-500" : tone === "warn" ? "bg-amber-500" : "bg-emerald-500";
+  const txtCls =
+    tone === "bad"
+      ? "text-red-600 dark:text-red-400"
+      : tone === "warn"
+      ? "text-amber-600 dark:text-amber-400"
+      : "text-emerald-600 dark:text-emerald-400";
+  return (
+    <div>
+      <div className="flex items-center justify-between text-[10px] mb-0.5">
+        <span className="text-muted-foreground">{label}</span>
+        <span className={cn("font-mono font-semibold", txtCls)}>
+          {value}
+          {suffix}
+        </span>
+      </div>
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className={cn("h-full transition-all", barCls)} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function tone(value: number, warn: number, bad: number): "good" | "warn" | "bad" {
+  if (value >= bad) return "bad";
+  if (value >= warn) return "warn";
+  return "good";
+}
+
+function BikeVsRunCompare({ scenario }: { scenario: FullRaceScenario }) {
+  // Coût métabolique réparti : vélo porte ~60% du coût en endurance, run le reste + couplage
+  const bikeCost = Math.round(scenario.metabolicCost * 0.55);
+  const runCost = Math.min(100, Math.round(scenario.metabolicCost * 0.45 + scenario.couplingPenaltyPct));
+  const bikeRobust = Math.max(0, 100 - scenario.bikeFailurePct - Math.round(scenario.residualFatigue * 0.2));
+  const runRobust = Math.max(
+    0,
+    100 - scenario.runFailurePct - Math.round(scenario.residualFatigue * 0.4),
+  );
+
+  return (
+    <div className="rounded-lg border bg-card/50 p-3">
+      <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+        <TrendingUp className="h-3 w-3" /> Vélo vs Course — comparatif côte à côte
+      </h4>
+      <div className="grid grid-cols-2 gap-3">
+        {/* Vélo */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 font-semibold text-[11px]">
+            <Bike className="h-3.5 w-3.5 text-blue-500" /> Vélo
+          </div>
+          <MetricBar
+            label="Risque d'échec"
+            value={scenario.bikeFailurePct}
+            tone={tone(scenario.bikeFailurePct, 25, 50)}
+          />
+          <MetricBar
+            label="Coût métabolique"
+            value={bikeCost}
+            tone={tone(bikeCost, 60, 80)}
+          />
+          <MetricBar
+            label="Robustesse"
+            value={bikeRobust}
+            tone={bikeRobust >= 70 ? "good" : bikeRobust >= 50 ? "warn" : "bad"}
+          />
+        </div>
+        {/* Course */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 font-semibold text-[11px]">
+            <Footprints className="h-3.5 w-3.5 text-orange-500" /> Course
+          </div>
+          <MetricBar
+            label="Risque d'échec"
+            value={scenario.runFailurePct}
+            tone={tone(scenario.runFailurePct, 25, 50)}
+          />
+          <MetricBar label="Coût métabolique" value={runCost} tone={tone(runCost, 60, 80)} />
+          <MetricBar
+            label="Robustesse"
+            value={runRobust}
+            tone={runRobust >= 70 ? "good" : runRobust >= 50 ? "warn" : "bad"}
+          />
+        </div>
+      </div>
+      <p className="text-[10px] text-muted-foreground italic mt-2 leading-snug">
+        Le segment <strong>{scenario.runFailurePct > scenario.bikeFailurePct ? "course" : "vélo"}</strong> est
+        celui qui supporte le plus de risque dans ce scénario. C'est lui qui doit dicter la décision.
+      </p>
+    </div>
+  );
+}
+
+function AthleteVerdict({ scenario, isIM }: { scenario: FullRaceScenario; isIM: boolean }) {
+  const r = scenario.combinedFailurePct;
+  const weakest =
+    scenario.runFailurePct > scenario.bikeFailurePct + 5
+      ? "course"
+      : scenario.bikeFailurePct > scenario.runFailurePct + 5
+      ? "vélo"
+      : "équilibrée";
+
+  let verdict: string;
+  let action: string;
+  let cls: string;
+
+  if (r >= 50) {
+    verdict = `🚨 Ce scénario est trop fragile pour ton état actuel : ${r}% de probabilité de casse sur ${isIM ? "l'Ironman" : "le 70.3"}.`;
+    action =
+      weakest === "course"
+        ? "Repli obligatoire sur le scénario inférieur : la course casse avant la fin."
+        : weakest === "vélo"
+        ? "Allège le vélo de 5-10 W : tu n'arrives pas en T2 dans un état viable."
+        : "Repli sur un scénario plus prudent : aucun segment n'est sécurisé.";
+    cls = "border-red-500/40 bg-red-500/5";
+  } else if (r >= 25) {
+    verdict = `⚠️ Scénario tenable mais exigeant : ${r}% de risque, exécution sans erreur exigée.`;
+    action =
+      weakest === "course"
+        ? `Sécurise la course : fueling 60-90 g/h, démarrage prudent 3 km, surveille le drift FC.`
+        : weakest === "vélo"
+        ? `Sécurise le vélo : reste dans le couloir vert, pas d'attaque sur les bosses.`
+        : `Exécute strictement le plan, surveille les drapeaux rouges, n'improvise pas.`;
+    cls = "border-amber-500/40 bg-amber-500/5";
+  } else {
+    verdict = `✅ Scénario maîtrisé : ${r}% de risque global, bon équilibre vélo / course.`;
+    action = `Tu peux exécuter ce plan avec confiance. Garde une marge sur le segment ${weakest === "équilibrée" ? "le plus exposé en cas d'imprévu météo" : weakest} pour absorber un imprévu.`;
+    cls = "border-emerald-500/40 bg-emerald-500/5";
+  }
+
+  return (
+    <div className={cn("rounded-lg border-2 p-3 text-xs space-y-1.5", cls)}>
+      <div className="font-bold text-sm">⚖️ Conclusion pour l'athlète</div>
+      <p className="leading-snug">{verdict}</p>
+      <p className="text-muted-foreground leading-snug">
+        <strong>Action :</strong> {action}
+      </p>
+      <div className="grid grid-cols-3 gap-1.5 pt-1">
+        <div className="rounded border bg-card/50 px-2 py-1 text-center">
+          <div className="text-[9px] uppercase text-muted-foreground">Temps cible</div>
+          <div className="font-mono font-bold tabular-nums">{fmtDuration(scenario.totalMin)}</div>
+        </div>
+        <div className="rounded border bg-card/50 px-2 py-1 text-center">
+          <div className="text-[9px] uppercase text-muted-foreground">Maillon faible</div>
+          <div className="font-semibold capitalize">{weakest}</div>
+        </div>
+        <div className="rounded border bg-card/50 px-2 py-1 text-center">
+          <div className="text-[9px] uppercase text-muted-foreground">Robustesse</div>
+          <div className={cn("font-semibold", ROBUSTNESS_META[scenario.robustness].cls)}>
+            {ROBUSTNESS_META[scenario.robustness].label}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ScenarioCard({ scenario, isIM }: { scenario: FullRaceScenario; isIM: boolean }) {
   const rob = ROBUSTNESS_META[scenario.robustness];
   return (
