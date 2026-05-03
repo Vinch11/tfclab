@@ -17,6 +17,7 @@ import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { NegativeSplitPreviewCard } from '@/components/NegativeSplitPreviewCard';
 import { PacingRulesParityCard } from '@/components/PacingRulesParityCard';
+import { PacingRulesSnapshotsCard } from '@/components/PacingRulesSnapshotsCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
 import { CaffeineProtocolCard } from '@/components/CaffeineProtocolCard';
@@ -352,6 +353,16 @@ export default function RaceSimulationPage() {
               </div>
             )}
             {rules && <PacingRulesParityCard rules={rules} />}
+            {rules && (
+              <PacingRulesSnapshotsCard
+                rules={rules}
+                contextLabel={{
+                  raceObjective,
+                  discipline,
+                  athleteName: selectedAthlete?.name,
+                }}
+              />
+            )}
             {(raceObjective === 'Marathon' || raceObjective === '10km') && (
               <NegativeSplitPreviewCard
                 raceObjective={raceObjective}
