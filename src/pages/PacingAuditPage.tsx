@@ -441,7 +441,7 @@ export default function PacingAuditPage() {
   }, [family]);
 
   return (
-    <SidebarLayout>
+    <SidebarLayout activeTab="simulation" onTabChange={() => {}} staffMode={false} onStaffModeChange={() => {}}>
       <div className="container max-w-5xl mx-auto p-4 space-y-4">
         <header className="space-y-2">
           <h1 className="text-2xl font-bold">Audit visuel — Stratégies de pacing</h1>
