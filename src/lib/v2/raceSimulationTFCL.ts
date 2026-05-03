@@ -157,8 +157,9 @@ const GLYCOGEN_PARAMS = {
     ORANGE: 1.35,
     RED: 1.8,
   },
-  vlamax_amplifier: (vlamax: number) => 1 + Math.max(0, (vlamax - 0.35) * 2),
-  critical_threshold: 15,  // % en dessous duquel effondrement
+  // Amplificateur VLamax non-linéaire (Mader-Heck, exposant 0.85)
+  vlamax_amplifier: (vlamax: number) => Math.pow(Math.max(vlamax, 0.1) / 0.35, 0.85),
+  critical_threshold: 20,  // % seuil d'effondrement (Coyle 1986, Rauch 2005 — 20-25%)
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -178,8 +179,11 @@ const NUTRITION_PARAMS = {
   intakeIntervalMinutes: 25,
   // Distance minimale pour nutrition (pas besoin pour 10K court)
   minDistanceForNutrition: "HM" as RunningDistance,
-  // Glycogen replenishment par g CHO absorbé (en % de réserves)
-  glycogenReplenishPctPerGram: 0.15,  // 1g CHO ≈ 0.15% glycogen stores
+  // Effet d'épargne glycogénique par g CHO exogène absorbé (Coyle, Jeukendrup).
+  // Le glycogène ne se resynthétise PAS pendant l'effort intense ; les glucides
+  // exogènes ÉPARGNENT les réserves en se substituant à l'oxydation endogène.
+  // ~0.15% de réserves épargnées par gramme CHO oxydé.
+  glycogenSparingPctPerGram: 0.15,
 };
 
 const FATIGUE_PARAMS = {
@@ -545,11 +549,13 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     glycogen = Math.max(0, glycogen - depletionRate);
     glycogenWithNutri = Math.max(0, glycogenWithNutri - depletionRate);
     
-    // Add nutrition replenishment at this segment
+    // Effet d'ÉPARGNE glycogénique (sparing) — pas une "recharge".
+    // Les CHO exogènes oxydés réduisent la déplétion sans recharger les stores.
     const segmentCues = nutritionCues.filter(c => c.distance_pct >= i - 5 && c.distance_pct < i + 5);
     for (const cue of segmentCues) {
-      const replenish = cue.carbs_g * NUTRITION_PARAMS.glycogenReplenishPctPerGram;
-      glycogenWithNutri = Math.min(100, glycogenWithNutri + replenish);
+      const sparing = cue.carbs_g * NUTRITION_PARAMS.glycogenSparingPctPerGram;
+      // Réduit la déplétion appliquée à la courbe "avec nutrition" (cap à initial_pct)
+      glycogenWithNutri = Math.min(GLYCOGEN_PARAMS.initial_pct, glycogenWithNutri + sparing);
     }
     
     if (glycogen <= GLYCOGEN_PARAMS.critical_threshold && depletionPoint === null) {
