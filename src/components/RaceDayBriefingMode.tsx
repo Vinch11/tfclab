@@ -182,6 +182,9 @@ export function RaceDayBriefingMode({
         </CardContent>
       </Card>
 
+      {/* BLOC 2.bis: Règles personnalisées (negative split delta calibré, semi finish kick conditionné) */}
+      <PersonalizedRulesSection rules={rules} variant="compact" />
+
       {/* BLOC 3: Règles d'or */}
       <Card>
         <CardHeader className="pb-2">
