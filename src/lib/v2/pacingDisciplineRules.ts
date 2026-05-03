@@ -65,6 +65,35 @@ export interface DisciplineRulesInput {
   ambition?: AmbitionLevel | string | null;
   /** TTE effective (min) — module les deltas de negative split personnalisés */
   tteMin?: number | null;
+  /**
+   * Données live des segments précédents (semi-marathon).
+   * Si fournies, conditionne dynamiquement le finish km 18-21.
+   * Si absentes, fallback sur estimation prédictive via VLamax/TTE/fatigue.
+   */
+  liveSegments?: SemiLiveSegments | null;
+  /** FC max athlète (bpm) — requis pour évaluation finish */
+  fcMaxBpm?: number | null;
+  /** Niveau de fatigue ressenti pré-course 1-10 (mapping standard TFCL) */
+  fatigueLevel?: number | null;
+}
+
+/**
+ * Données live segment-par-segment du semi-marathon.
+ * Toutes les valeurs sont optionnelles : le moteur s'adapte aux données dispo.
+ */
+export interface SemiLiveSegments {
+  /** Allure km 0-5 en sec/km */
+  pace_km0_5_sec?: number | null;
+  /** Allure km 5-10 en sec/km */
+  pace_km5_10_sec?: number | null;
+  /** Allure km 10-18 en sec/km */
+  pace_km10_18_sec?: number | null;
+  /** Allure cible course en sec/km */
+  pace_target_sec?: number | null;
+  /** FC moyenne km 10-18 (bpm) */
+  hr_km10_18_bpm?: number | null;
+  /** FC moyenne km 5-10 (bpm) — pour calculer la dérive cardiaque */
+  hr_km5_10_bpm?: number | null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
