@@ -62,6 +62,13 @@ interface FullRaceScenario {
   runStrategy: string;
   redFlag: string;
   forWho: string;
+  // Fatigue & transitions
+  residualFatigue: number; // 0-100, fatigue accumulée fin de vélo
+  t1ImpactSec: number; // surcoût T1 induit par disponibilité
+  t2ImpactSec: number; // "jelly legs" : surcoût des 2 premiers km de course
+  couplingPenaltyPct: number; // pénalité de couplage vélo→course (% sur les 5 premiers km)
+  transitionNote: string; // explication concrète T1/T2
+  fatigueNote: string; // explication concrète fatigue accumulée
 }
 
 interface Props {
@@ -70,6 +77,7 @@ interface Props {
   runBaselineMin: number;
   disponibiliteScore?: number | null;
   vlamaxValue?: number | null;
+  fatigueState?: "fresh" | "ok" | "fatigued" | "high" | "injured" | null;
   className?: string;
 }
 
