@@ -350,6 +350,14 @@ export default function RaceSimulationPage() {
                 Données insuffisantes pour calculer l'enveloppe
               </div>
             )}
+            {(raceObjective === 'Marathon' || raceObjective === '10km') && (
+              <NegativeSplitPreviewCard
+                raceObjective={raceObjective}
+                vlamaxValue={vlamaxEffectif?.value ?? null}
+                tteMin={tteEffectif?.tte_min ?? null}
+                raceDurationMin={raceDurationMin}
+              />
+            )}
             {isTriathlon && (
               <Alert className="text-[11px] sm:text-xs py-2">
                 <Info className="h-3.5 w-3.5" />
