@@ -492,12 +492,34 @@ export default function RaceSimulationPage() {
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
               {!staffMode && (
-                <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
-                  <Info className="h-3.5 w-3.5" />
-                  <AlertDescription>
-                    On simule 3 scénarios pour toi. <strong>Robuste</strong> = tu finis fort, marge de sécurité. <strong>Ambitieux</strong> = ton meilleur potentiel si tout se passe bien. <strong>Agressif</strong> = quitte ou double, risque de casse élevé.
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-2">
+                  <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
+                    <Info className="h-3.5 w-3.5" />
+                    <AlertDescription>
+                      On simule <strong>3 plans de course</strong> à partir de ton profil. Chacun a un coût, un risque et une probabilité d'échec chiffrés.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2.5">
+                      <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">🛡️ Robuste</div>
+                      <p className="text-[11px] text-muted-foreground leading-snug mt-1">Tu finis fort, sans casse. Idéal si fatigue, doute, météo difficile, ou 1re course sur la distance.</p>
+                    </div>
+                    <div className="rounded-md border border-primary/30 bg-primary/5 p-2.5">
+                      <div className="text-xs font-semibold text-primary">🎯 Ambitieux</div>
+                      <p className="text-[11px] text-muted-foreground leading-snug mt-1">Ton meilleur potentiel si tout aligne (forme, nutrition, parcours). Recommandé si Disponibilité ≥ 75.</p>
+                    </div>
+                    <div className="rounded-md border border-red-500/30 bg-red-500/5 p-2.5">
+                      <div className="text-xs font-semibold text-red-700 dark:text-red-400">🔥 Agressif</div>
+                      <p className="text-[11px] text-muted-foreground leading-snug mt-1">Quitte ou double. Vise un record. Casse glycogénique probable si nutrition imparfaite.</p>
+                    </div>
+                  </div>
+                  <Alert className="text-[11px] sm:text-xs py-2 bg-muted/30">
+                    <Info className="h-3.5 w-3.5" />
+                    <AlertDescription>
+                      <strong>Lecture des chiffres :</strong> « Prob. échec » = % de chances de casser. « Coût métabolique »/100 = à quel point ça tape dans tes réserves. « Robustesse » = tenue du plan si une variable bouge (fatigue, chaleur…).
+                    </AlertDescription>
+                  </Alert>
+                </div>
               )}
               <RaceSimulationModule
                 vlamaxEffectif={vlamaxEffectif?.value}
