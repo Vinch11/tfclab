@@ -320,6 +320,7 @@ export function PacingEnvelopeCard({
       sport: input.sport,
       potentielPhysiologiqueScore: input.potentielPhysiologiqueScore,
       ambition: (input as any).ambition ?? null,
+      tteMin: (input as any).tteEffectif?.tte_min ?? null,
     });
   }, [envelope, input]);
   
