@@ -103,21 +103,33 @@ function combineFailure(...probs: number[]): number {
   return Math.round((1 - p) * 100);
 }
 
-function buildScenarios(props: Props): FullRaceScenario[] {
+/**
+ * Construit un scénario unique. `bikeIntensityOffsetPct` permet à l'utilisateur
+ * de simuler en direct un vélo plus dur (+) ou plus facile (-) que la baseline
+ * du scénario, en pourcentage de puissance/allure relative.
+ *
+ * Effets de l'offset (modèle simplifié calibré TFCL™) :
+ *  • +1 % d'intensité vélo ≈ −0.6 % de temps vélo
+ *  • +1 % d'intensité vélo ≈ +0.8 % de pénalité run (fatigue résiduelle)
+ *  • +1 % d'intensité vélo ≈ +1.2 pts de fatigue résiduelle fin vélo
+ *  • +1 % d'intensité vélo ≈ +1.5 pts de risque vélo, +2 pts de risque run
+ *  • Couplage T2 : +0.4 pt par % d'intensité supplémentaire
+ */
+function buildScenario(
+  key: FullRaceScenarioKey,
+  props: Props,
+  bikeIntensityOffsetPct: number = 0,
+): FullRaceScenario {
   const { raceObjective, bikeBaselineMin, runBaselineMin, vlamaxValue, disponibiliteScore, fatigueState } = props;
   const isIM = raceObjective === "IM";
 
-  // Hypothèses temps natation + transitions de base selon format
   const swimMin = isIM ? 65 : 33;
   const t1BaseMin = isIM ? 6 : 3;
   const t2BaseMin = isIM ? 4 : 2;
 
-  // ── Modificateurs contextuels ──────────────────────────────────────────────
-  // Disponibilité : score 0–100. <60 = pénalisant, >80 = bonus.
   const dispo = disponibiliteScore ?? 70;
-  const dispoFactor = (75 - dispo) / 100; // ex. dispo 60 → +0.15, dispo 90 → -0.15
+  const dispoFactor = (75 - dispo) / 100;
 
-  // État de fatigue déclaré (échelle TFCL 1-10 mappée)
   const fatigueMap: Record<NonNullable<Props["fatigueState"]>, number> = {
     fresh: 0.0,
     ok: 0.02,
@@ -126,67 +138,40 @@ function buildScenarios(props: Props): FullRaceScenario[] {
     injured: 0.15,
   };
   const fatigueAdd = fatigueState ? fatigueMap[fatigueState] : 0.02;
-
-  // VLamax élevé → glycogène cramé plus vite, accentue les pénalités agressives
   const vlamaxHigh = (vlamaxValue ?? 0.4) >= 0.5;
 
-  // Modulation segment vélo selon scénario (% baseline)
   const bikeMod: Record<FullRaceScenarioKey, number> = {
     ROBUST: 1.06,
     AMBITIOUS: 1.0,
     AGGRESSIVE: 0.97,
   };
-
-  // Pénalité au run induite par le choix vélo (fatigue résiduelle)
-  // Augmentée par : dispo basse, fatigue de départ, vlamax élevé
   const baseRunPenalty: Record<FullRaceScenarioKey, number> = {
     ROBUST: 1.00,
     AMBITIOUS: 1.03,
     AGGRESSIVE: isIM ? 1.15 : 1.10,
   };
-
-  // Coût T1 / T2 (en secondes ajoutées à la transition de base)
-  // T1 : sortie d'eau + tenue vélo. Légèrement majoré par fatigue de départ.
-  // T2 : passage vélo→course. Le « jelly legs » coûte beaucoup plus que la transition mécanique.
-  const t1Surcharge: Record<FullRaceScenarioKey, number> = {
-    ROBUST: 0,
-    AMBITIOUS: 10,
-    AGGRESSIVE: 20,
-  };
-  // T2 surcoût = pénalité physiologique (jambes en coton) + erreur d'allure des 2 premiers km
+  const t1Surcharge: Record<FullRaceScenarioKey, number> = { ROBUST: 0, AMBITIOUS: 10, AGGRESSIVE: 20 };
   const t2SurchargeSec: Record<FullRaceScenarioKey, number> = {
     ROBUST: isIM ? 30 : 20,
     AMBITIOUS: isIM ? 75 : 45,
     AGGRESSIVE: isIM ? 150 : 90,
   };
-
-  // Pénalité de couplage vélo→course (% supplémentaire sur les 5 premiers km de run)
   const couplingPenalty: Record<FullRaceScenarioKey, number> = {
     ROBUST: 1.5,
     AMBITIOUS: 4,
     AGGRESSIVE: isIM ? 9 : 7,
   };
-
-  // Probabilités de casse par scénario (calibration empirique TFCL™)
   const failureProbs: Record<FullRaceScenarioKey, { bike: number; run: number }> = {
     ROBUST: { bike: 4, run: 6 },
     AMBITIOUS: { bike: 12, run: isIM ? 22 : 18 },
     AGGRESSIVE: { bike: 28, run: isIM ? 55 : 45 },
   };
-
-  const baseMetabolicCost: Record<FullRaceScenarioKey, number> = {
-    ROBUST: 55,
-    AMBITIOUS: 75,
-    AGGRESSIVE: 95,
-  };
-
-  const robustness: Record<FullRaceScenarioKey, FullRaceScenario["robustness"]> = {
+  const baseMetabolicCost: Record<FullRaceScenarioKey, number> = { ROBUST: 55, AMBITIOUS: 75, AGGRESSIVE: 95 };
+  const robustnessBase: Record<FullRaceScenarioKey, FullRaceScenario["robustness"]> = {
     ROBUST: "ROBUST",
     AMBITIOUS: "FRAGILE",
     AGGRESSIVE: "VERY_FRAGILE",
   };
-
-  // Fatigue résiduelle estimée fin de vélo (0-100)
   const residualFatigueBase: Record<FullRaceScenarioKey, number> = {
     ROBUST: 35,
     AMBITIOUS: 55,
@@ -195,25 +180,21 @@ function buildScenarios(props: Props): FullRaceScenario[] {
 
   const labels: Record<FullRaceScenarioKey, { emoji: string; label: string; desc: string; forWho: string }> = {
     ROBUST: {
-      emoji: "🛡️",
-      label: "Robuste",
+      emoji: "🛡️", label: "Robuste",
       desc: "Vélo conservateur, run en negative split. Tu finis fort, sans casse.",
       forWho: "1re course longue, doute, fatigue, météo difficile, Disponibilité < 60.",
     },
     AMBITIOUS: {
-      emoji: "🎯",
-      label: "Ambitieux",
+      emoji: "🎯", label: "Ambitieux",
       desc: "Vélo centré, run even split à l'allure seuil. Meilleur potentiel si tout aligne.",
       forWho: "Disponibilité ≥ 75, nutrition rodée, parcours connu, conditions clémentes.",
     },
     AGGRESSIVE: {
-      emoji: "🔥",
-      label: "Agressif",
+      emoji: "🔥", label: "Agressif",
       desc: "Vélo poussé, run en positive split assumé. Quitte ou double pour un podium.",
       forWho: "Athlète expérimenté, podium en jeu, conditions parfaites, nutrition millimétrée.",
     },
   };
-
   const bikeStrategy: Record<FullRaceScenarioKey, string> = {
     ROBUST: "Bas du couloir vert. Sortir T2 avec des jambes intactes.",
     AMBITIOUS: "Centre du couloir. Bosses tolérées en haut du vert.",
@@ -230,86 +211,99 @@ function buildScenarios(props: Props): FullRaceScenario[] {
     AGGRESSIVE: "Erreur T2, vent ou chaleur = repli forcé sur Ambitieux/Robuste, voire DNF.",
   };
 
-  return (Object.keys(bikeMod) as FullRaceScenarioKey[]).map((key) => {
-    const bikeMin = bikeBaselineMin * bikeMod[key];
+  // ── Application de l'offset interactif sur l'intensité vélo ───────────────
+  const off = bikeIntensityOffsetPct; // peut être négatif
+  const bikeTimeFactor = bikeMod[key] * (1 - off * 0.006); // +1% intensité ≈ −0.6% temps
+  const bikeMin = bikeBaselineMin * bikeTimeFactor;
 
-    // Pénalité run cumulée : base + fatigue de départ + dispo basse + vlamax (sur AGGRESSIVE)
-    const runPen =
-      baseRunPenalty[key] +
-      fatigueAdd * (key === "ROBUST" ? 0.5 : key === "AMBITIOUS" ? 1 : 1.5) +
-      Math.max(0, dispoFactor) * (key === "AGGRESSIVE" ? 1.2 : 0.6) +
-      (key === "AGGRESSIVE" && vlamaxHigh ? 0.05 : 0);
+  const offRunPenalty = Math.max(0, off) * 0.008 + Math.max(0, -off) * -0.003;
+  const runPen =
+    baseRunPenalty[key] +
+    fatigueAdd * (key === "ROBUST" ? 0.5 : key === "AMBITIOUS" ? 1 : 1.5) +
+    Math.max(0, dispoFactor) * (key === "AGGRESSIVE" ? 1.2 : 0.6) +
+    (key === "AGGRESSIVE" && vlamaxHigh ? 0.05 : 0) +
+    offRunPenalty;
 
-    // Couplage vélo→course : + surcoût sur les 5 premiers km (~1/8 ou 1/4 du run)
-    const couplingExtraMin = (runBaselineMin * (couplingPenalty[key] / 100)) * (isIM ? 0.12 : 0.25);
+  const couplingAdj = Math.max(0, couplingPenalty[key] + off * 0.4);
+  const couplingExtraMin = (runBaselineMin * (couplingAdj / 100)) * (isIM ? 0.12 : 0.25);
 
-    // T1 / T2 ajustés
-    const t1Min = t1BaseMin + t1Surcharge[key] / 60;
-    const t2Min = t2BaseMin + t2SurchargeSec[key] / 60;
+  const t1ExtraSec = t1Surcharge[key] + Math.max(0, off) * 1.5;
+  const t2ExtraSec = t2SurchargeSec[key] + Math.max(0, off) * (isIM ? 8 : 5);
+  const t1Min = t1BaseMin + t1ExtraSec / 60;
+  const t2Min = t2BaseMin + t2ExtraSec / 60;
 
-    const runMin = runBaselineMin * runPen + couplingExtraMin;
-    const totalMin = swimMin + t1Min + bikeMin + t2Min + runMin;
+  const runMin = runBaselineMin * runPen + couplingExtraMin;
+  const totalMin = swimMin + t1Min + bikeMin + t2Min + runMin;
 
-    // Risques ajustés
-    const fp = failureProbs[key];
-    const dispoRisk = Math.max(0, (70 - dispo) / 2); // dispo 50 → +10pts risque run
-    const fatigueRisk = fatigueAdd * 100 * (key === "AGGRESSIVE" ? 1.5 : 1);
-    const adjBike = fp.bike + fatigueRisk * 0.4 + dispoRisk * 0.3;
-    const adjRun = fp.run + fatigueRisk + dispoRisk + (key === "AGGRESSIVE" && vlamaxHigh ? 8 : 0);
+  const fp = failureProbs[key];
+  const dispoRisk = Math.max(0, (70 - dispo) / 2);
+  const fatigueRisk = fatigueAdd * 100 * (key === "AGGRESSIVE" ? 1.5 : 1);
+  const adjBike = fp.bike + fatigueRisk * 0.4 + dispoRisk * 0.3 + Math.max(0, off) * 1.5 + Math.max(0, -off) * -0.6;
+  const adjRun =
+    fp.run + fatigueRisk + dispoRisk +
+    (key === "AGGRESSIVE" && vlamaxHigh ? 8 : 0) +
+    Math.max(0, off) * 2.0 + Math.max(0, -off) * -1.0;
 
-    // Coût métabolique : base + transitions + couplage
-    const metabolicCost = Math.min(
-      100,
-      Math.round(baseMetabolicCost[key] + couplingPenalty[key] * 0.6 + fatigueAdd * 30),
-    );
+  const metabolicCost = Math.min(
+    100,
+    Math.round(baseMetabolicCost[key] + couplingAdj * 0.6 + fatigueAdd * 30 + off * 1.2),
+  );
 
-    const residualFatigue = Math.min(
-      100,
-      Math.round(residualFatigueBase[key] + fatigueAdd * 50 + Math.max(0, dispoFactor) * 30),
-    );
+  const residualFatigue = Math.min(
+    100,
+    Math.max(0, Math.round(residualFatigueBase[key] + fatigueAdd * 50 + Math.max(0, dispoFactor) * 30 + off * 1.2)),
+  );
 
-    const transitionNote =
-      key === "ROBUST"
-        ? `T1 propre, T2 maîtrisée (~${Math.round(t2SurchargeSec[key])}s de surcoût). Jambes utilisables dès le 1er km.`
-        : key === "AMBITIOUS"
-        ? `T2 coûte ~${Math.round(t2SurchargeSec[key])}s : 1 à 2 km à allure dégradée avant verrouillage.`
-        : `T2 brutale : ~${Math.round(t2SurchargeSec[key])}s perdues, jelly legs sur 3-5 km. Risque de panique d'allure.`;
+  // Robustesse dynamique : peut basculer si l'offset est très agressif/conservateur
+  const combined = combineFailure(adjBike, adjRun);
+  let dynamicRobustness: FullRaceScenario["robustness"] = robustnessBase[key];
+  if (combined >= 55) dynamicRobustness = "VERY_FRAGILE";
+  else if (combined >= 30) dynamicRobustness = "FRAGILE";
+  else dynamicRobustness = "ROBUST";
 
-    const fatigueNote =
-      `Fatigue résiduelle estimée fin vélo : ${residualFatigue}/100` +
-      (dispo < 65 ? ` · Disponibilité basse (${Math.round(dispo)}) amplifie le coût` : "") +
-      (fatigueState && fatigueState !== "fresh" && fatigueState !== "ok"
-        ? ` · État de départ « ${fatigueState} » majore la pénalité run`
-        : "");
+  const transitionNote =
+    key === "ROBUST"
+      ? `T1 propre, T2 maîtrisée (~${Math.round(t2ExtraSec)}s de surcoût). Jambes utilisables dès le 1er km.`
+      : key === "AMBITIOUS"
+      ? `T2 coûte ~${Math.round(t2ExtraSec)}s : 1 à 2 km à allure dégradée avant verrouillage.`
+      : `T2 brutale : ~${Math.round(t2ExtraSec)}s perdues, jelly legs sur 3-5 km. Risque de panique d'allure.`;
 
-    return {
-      key,
-      emoji: labels[key].emoji,
-      label: labels[key].label,
-      description: labels[key].desc,
-      swimMin,
-      t1Min,
-      bikeMin,
-      t2Min,
-      runMin,
-      totalMin,
-      bikeFailurePct: Math.round(Math.min(100, adjBike)),
-      runFailurePct: Math.round(Math.min(100, adjRun)),
-      combinedFailurePct: combineFailure(adjBike, adjRun),
-      metabolicCost,
-      robustness: robustness[key],
-      bikeStrategy: bikeStrategy[key],
-      runStrategy: runStrategy[key],
-      redFlag: redFlag[key],
-      forWho: labels[key].forWho,
-      residualFatigue,
-      t1ImpactSec: Math.round(t1Surcharge[key]),
-      t2ImpactSec: Math.round(t2SurchargeSec[key]),
-      couplingPenaltyPct: couplingPenalty[key],
-      transitionNote,
-      fatigueNote,
-    };
-  });
+  const fatigueNote =
+    `Fatigue résiduelle estimée fin vélo : ${residualFatigue}/100` +
+    (off !== 0 ? ` · Offset vélo ${off > 0 ? "+" : ""}${off}% appliqué` : "") +
+    (dispo < 65 ? ` · Disponibilité basse (${Math.round(dispo)}) amplifie le coût` : "") +
+    (fatigueState && fatigueState !== "fresh" && fatigueState !== "ok"
+      ? ` · État de départ « ${fatigueState} » majore la pénalité run`
+      : "");
+
+  return {
+    key,
+    emoji: labels[key].emoji,
+    label: labels[key].label,
+    description: labels[key].desc,
+    swimMin, t1Min, bikeMin, t2Min, runMin, totalMin,
+    bikeFailurePct: Math.round(Math.max(0, Math.min(100, adjBike))),
+    runFailurePct: Math.round(Math.max(0, Math.min(100, adjRun))),
+    combinedFailurePct: combined,
+    metabolicCost,
+    robustness: dynamicRobustness,
+    bikeStrategy: bikeStrategy[key],
+    runStrategy: runStrategy[key],
+    redFlag: redFlag[key],
+    forWho: labels[key].forWho,
+    residualFatigue,
+    t1ImpactSec: Math.round(t1ExtraSec),
+    t2ImpactSec: Math.round(t2ExtraSec),
+    couplingPenaltyPct: Math.round(couplingAdj * 10) / 10,
+    transitionNote,
+    fatigueNote,
+  };
+}
+
+function buildScenarios(props: Props): FullRaceScenario[] {
+  return (["ROBUST", "AMBITIOUS", "AGGRESSIVE"] as FullRaceScenarioKey[]).map((k) =>
+    buildScenario(k, props, 0),
+  );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
