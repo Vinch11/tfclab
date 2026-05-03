@@ -571,6 +571,7 @@ export default function RaceSimulationPage() {
                         runBaselineMin={segmentDurationMin.run}
                         disponibiliteScore={disponibilite?.score}
                         vlamaxValue={vlamaxEffectif?.value ?? null}
+                        fatigueState={(activeSnapshot?.fatigue_state as any) ?? null}
                       />
                     </>
                   )}
