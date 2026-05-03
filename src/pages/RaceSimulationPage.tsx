@@ -353,6 +353,7 @@ export default function RaceSimulationPage() {
                 <ErgogenicAidsCard
                   weightKg={activeSnapshot.weight_kg}
                   durationMin={raceDurationMin}
+                  discipline={discipline}
                   hasRepeatedEfforts={
                     (selectedAthlete as any)?.refs?.hasRepeatedEfforts ?? (discipline === 'bike' || raceDurationMin <= 60)
                   }
