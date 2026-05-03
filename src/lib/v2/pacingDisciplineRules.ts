@@ -165,15 +165,7 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
     },
   ],
   Marathon: [
-    {
-      id: "marathon_negative_split",
-      category: "non_negotiable",
-      priority: "critical",
-      title: "Negative split — standard élite",
-      message: "Viser un negative split (2ème moitié 1-3% plus rapide). Modèle confirmé chez 80% des podiums marathon (Hanley 2020, Casado 2021).",
-      icon: "📊",
-      source: "Format Marathon — Littérature élite",
-    },
+    // marathon_negative_split injecté dynamiquement (delta calibré VLamax + TTE)
     {
       id: "marathon_30k_wall",
       category: "non_negotiable",
