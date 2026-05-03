@@ -418,23 +418,68 @@ export default function RaceSimulationPage() {
                   <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
                     <Info className="h-3.5 w-3.5" />
                     <AlertDescription>
-                      Le <strong>couloir de pacing</strong>, c'est la zone d'effort où ton corps tient sans exploser sur la durée totale prévue.
+                      {isTriathlon ? (
+                        <>
+                          Le <strong>couloir de pacing</strong>, c'est la fourchette d'effort que tu dois tenir sur <strong>ce segment uniquement</strong> ({triDiscipline === 'bike' ? '🚴 vélo' : '🏃 course à pied'}).
+                          {triDiscipline === 'bike'
+                            ? " En triathlon, le vélo prépare le run : chaque watt gagné ici = des minutes perdues au run si tu sors trop chaud."
+                            : " Le run est jugé sur ce qu'il te reste après le vélo. Ton couloir tient compte de la fatigue accumulée en amont."}
+                        </>
+                      ) : (
+                        <>Le <strong>couloir de pacing</strong>, c'est la zone d'effort où ton corps tient sans exploser sur la durée totale prévue.</>
+                      )}
                     </AlertDescription>
                   </Alert>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2">
                       <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">🟢 Vert</div>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Sécurisé. Tu dois te sentir « trop facile » au départ.</p>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                        {isTriathlon
+                          ? (triDiscipline === 'bike'
+                              ? "Cible vélo. Tu dois pouvoir parler. Sortir du vélo avec des jambes fraîches."
+                              : "Allure relâchée des 3 premiers km, le temps que les jambes se libèrent.")
+                          : "Sécurisé. Tu dois te sentir « trop facile » au départ."}
+                      </p>
                     </div>
                     <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2">
                       <div className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">🟠 Orange</div>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Tenable mais coûteux. Réservé à la 2e moitié.</p>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                        {isTriathlon
+                          ? (triDiscipline === 'bike'
+                              ? "Toléré uniquement sur les bosses courtes. Jamais en continu."
+                              : "Allure de croisière du 2e tiers, une fois la transition digérée.")
+                          : "Tenable mais coûteux. Réservé à la 2e moitié."}
+                      </p>
                     </div>
                     <div className="rounded-md border border-red-500/30 bg-red-500/5 p-2">
                       <div className="text-[11px] font-semibold text-red-700 dark:text-red-400">🔴 Rouge</div>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Casse glycogénique quasi assurée si maintenu.</p>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                        {isTriathlon
+                          ? (triDiscipline === 'bike'
+                              ? "Interdit avant T2. Tu paies cash au run (crampes, perte d'allure)."
+                              : "Réservé au sprint final (5 derniers km / dernier kilomètre).")
+                          : "Casse glycogénique quasi assurée si maintenu."}
+                      </p>
                     </div>
                   </div>
+                  {isTriathlon && (
+                    <div className="rounded-md border border-border bg-muted/30 p-2.5 text-[11px] leading-snug">
+                      <div className="font-semibold mb-1">📍 Comment lire ton couloir en course</div>
+                      {triDiscipline === 'bike' ? (
+                        <ul className="space-y-0.5 text-muted-foreground list-disc pl-4">
+                          <li><strong>1er tiers</strong> : reste collé à la borne basse du 🟢 vert. C'est contre-intuitif mais c'est là que se gagne le run.</li>
+                          <li><strong>2e tiers</strong> : autorisé à monter au centre du 🟢 vert. 🟠 orange uniquement sur les bosses {'<'} 2 min.</li>
+                          <li><strong>Dernier tiers</strong> : reviens en bas du 🟢 vert. Objectif : descendre du vélo sans avoir tapé dans tes réserves de glycogène.</li>
+                        </ul>
+                      ) : (
+                        <ul className="space-y-0.5 text-muted-foreground list-disc pl-4">
+                          <li><strong>3 premiers km</strong> : 🟢 vert bas, le temps de retrouver la foulée après le vélo.</li>
+                          <li><strong>Milieu de course</strong> : centre du 🟢 vert, on installe l'allure cible.</li>
+                          <li><strong>Dernier tiers</strong> : autorisé à mordre sur le 🟠 orange si les sensations le permettent. 🔴 rouge uniquement sur le dernier km.</li>
+                        </ul>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
