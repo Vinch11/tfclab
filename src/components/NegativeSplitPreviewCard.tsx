@@ -90,6 +90,22 @@ export function NegativeSplitPreviewCard({ raceObjective, vlamaxValue, tteMin, r
           </div>
         </div>
 
+        {/* Sources VLamax / TTE */}
+        <div className="flex flex-wrap gap-1.5">
+          <Badge
+            variant={delta.vlamaxSource === "observed" ? "default" : "outline"}
+            className="text-[10px] font-normal"
+          >
+            VLamax : {delta.vlamaxSource === "observed" ? `mesurée ${delta.vlamaxUsed}` : `défaut ${delta.vlamaxUsed}`}
+          </Badge>
+          <Badge
+            variant={delta.tteSource === "observed" ? "default" : "outline"}
+            className="text-[10px] font-normal"
+          >
+            TTE : {delta.tteSource === "observed" ? `mesurée ${delta.tteUsedMin}min` : `défaut ${delta.tteUsedMin}min`}
+          </Badge>
+        </div>
+
         {/* Rationale */}
         <div className="rounded-md bg-muted/40 border border-border p-2.5 space-y-1">
           <div className="flex items-center gap-1.5 text-[11px] font-medium text-foreground">
