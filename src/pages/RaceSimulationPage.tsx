@@ -248,7 +248,7 @@ export default function RaceSimulationPage() {
           <div>
             <h1 className="text-lg sm:text-2xl font-bold text-foreground">Simulation</h1>
             <p className="text-xs sm:text-sm text-muted-foreground truncate">
-              {selectedAthlete?.name ?? 'Aucun athlète sélectionné'}
+              {selectedAthlete?.nom ?? 'Aucun athlète sélectionné'}
             </p>
           </div>
           
@@ -269,7 +269,7 @@ export default function RaceSimulationPage() {
                 </DialogTrigger>
                 <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
                   <RaceDayBriefingMode
-                    athleteName={selectedAthlete?.name ?? 'Athlète'}
+                    athleteName={selectedAthlete?.nom ?? 'Athlète'}
                     envelope={envelope}
                     rules={rules}
                     scenarios={scenarios}
@@ -359,7 +359,7 @@ export default function RaceSimulationPage() {
                 contextLabel={{
                   raceObjective,
                   discipline,
-                  athleteName: selectedAthlete?.name,
+                  athleteName: selectedAthlete?.nom,
                 }}
               />
             )}
@@ -468,7 +468,7 @@ export default function RaceSimulationPage() {
           <TabsContent value="staff" className="mt-3 sm:mt-4">
             {envelope && rules && scenarios ? (
               <StaffPacingReportV2
-                athleteName={selectedAthlete?.name ?? 'Athlète'}
+                athleteName={selectedAthlete?.nom ?? 'Athlète'}
                 envelope={envelope}
                 rules={rules}
                 scenarios={scenarios}
