@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FlaskConical, AlertTriangle, Check, X, Info, Sparkles } from "lucide-react";
+import { FlaskConical, AlertTriangle, Check, X, Info, Sparkles, FlaskRound, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   computeErgogenicAids,
@@ -227,7 +227,69 @@ export function ErgogenicAidsCard({
             )}
 
             {staffMode && (
-              <p className="mt-2 text-[10px] text-muted-foreground italic">📚 {aid.source}</p>
+              <div className="mt-3 pt-2 border-t border-dashed border-muted-foreground/20 space-y-2">
+                {/* Mécanisme */}
+                <div className="text-[10px]">
+                  <p className="font-semibold text-muted-foreground flex items-center gap-1 mb-0.5">
+                    <FlaskRound className="w-2.5 h-2.5" /> Mécanisme
+                  </p>
+                  <p className="text-muted-foreground leading-snug">{aid.mechanism}</p>
+                </div>
+
+                {/* Hypothèses */}
+                {aid.assumptions.length > 0 && (
+                  <div className="text-[10px]">
+                    <p className="font-semibold text-muted-foreground mb-0.5">Hypothèses du calcul</p>
+                    <ul className="list-disc pl-3 space-y-0.5 text-muted-foreground">
+                      {aid.assumptions.map((a, i) => (
+                        <li key={i} className="leading-snug">{a}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Citations détaillées avec tags */}
+                <div className="text-[10px]">
+                  <p className="font-semibold text-muted-foreground flex items-center gap-1 mb-1">
+                    <BookOpen className="w-2.5 h-2.5" /> Sources
+                  </p>
+                  <ul className="space-y-1">
+                    {aid.citations.map((c) => (
+                      <li key={c.ref} className="flex flex-wrap items-start gap-1">
+                        <span className="flex gap-0.5 shrink-0">
+                          {c.tags.map((t) => (
+                            <Badge
+                              key={t}
+                              variant="outline"
+                              className={cn(
+                                "text-[8px] h-3.5 px-1 leading-none border",
+                                t === "IOC" && "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30",
+                                t === "ISSN" && "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30",
+                                t === "Meta-analysis" && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                              )}
+                            >
+                              {t}
+                            </Badge>
+                          ))}
+                        </span>
+                        <span className="text-muted-foreground leading-snug">
+                          {c.ref}
+                          {c.doi && (
+                            <a
+                              href={`https://doi.org/${c.doi}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-1 underline hover:text-primary"
+                            >
+                              doi
+                            </a>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             )}
           </div>
         ))}

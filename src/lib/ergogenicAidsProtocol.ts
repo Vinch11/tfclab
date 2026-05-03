@@ -17,11 +17,17 @@
  */
 
 export type RaceProfile = "sprint" | "short" | "middle" | "long" | "ultra";
-//   sprint   : <2 min   (track, crit final)
-//   short    : 2–10 min (5k, 3k, pursuit)
-//   middle   : 10–40 min (10k, 10mile, CX)
-//   long     : 40–240 min (Semi, Marathon, 70.3, Olympic Tri)
-//   ultra    : >240 min (IM, Ultra)
+
+export type SourceTag = "IOC" | "ISSN" | "Meta-analysis" | "RCT" | "BJSM" | "Sports Med";
+
+export interface AidCitation {
+  /** Auteur année — résumé court */
+  ref: string;
+  /** Tags d'autorité affichés en chips (IOC, ISSN…) */
+  tags: SourceTag[];
+  /** DOI ou URL si dispo */
+  doi?: string;
+}
 
 export interface ErgogenicAidsInput {
   weightKg: number | null;
@@ -42,8 +48,15 @@ export interface AidProtocol {
   dose: string | null;
   timing: string | null;
   loadingPhase: string | null;
+  /** Source courte legacy (compat affichage) */
   source: string;
   warnings: string[];
+  /** Hypothèses sous-jacentes (staff mode) */
+  assumptions: string[];
+  /** Citations détaillées avec tags d'autorité (staff mode) */
+  citations: AidCitation[];
+  /** Mécanisme d'action court (staff mode) */
+  mechanism: string;
 }
 
 export interface ErgogenicAidsResult {
@@ -71,7 +84,6 @@ function classifyRace(durationMin: number): RaceProfile {
 // =============================================
 
 function buildNitrates(profile: RaceProfile): AidProtocol {
-  // Bénéfice fort : 4–30 min, modeste sur efforts plus longs
   const recommended = profile === "short" || profile === "middle" || profile === "long";
   return {
     name: "Nitrates (jus de betterave)",
@@ -89,6 +101,31 @@ function buildNitrates(profile: RaceProfile): AidProtocol {
     warnings: [
       "Éviter bain de bouche antiseptique 24h avant (détruit bactéries buccales nécessaires)",
       "Urines/selles colorées : normal et bénin",
+    ],
+    mechanism:
+      "NO₃⁻ → NO₂⁻ (bactéries buccales) → NO : vasodilatation, ↓coût mitochondrial de l'ATP, ↑efficience contractile (fibres II).",
+    assumptions: [
+      "Athlète non-élite (effet réduit chez VO₂max >70 mL/kg/min — Porcelli 2015)",
+      "Microbiote buccal intact (pas d'antiseptique <24h)",
+      "Effort ≥40 % VO₂max (peu d'effet à intensité modérée)",
+      "Statut nitrate alimentaire bas-modéré (légumes verts <200 g/j)",
+    ],
+    citations: [
+      {
+        ref: "Maughan 2018 — IOC Consensus on Dietary Supplements",
+        tags: ["IOC"],
+        doi: "10.1136/bjsports-2018-099027",
+      },
+      {
+        ref: "Jones 2014 — Dietary nitrate and physical performance",
+        tags: ["Sports Med"],
+        doi: "10.1007/s40279-014-0149-y",
+      },
+      {
+        ref: "Domínguez 2017 — Effects of beetroot juice on endurance (meta)",
+        tags: ["Meta-analysis"],
+        doi: "10.3390/nu9010043",
+      },
     ],
   };
 }
@@ -111,6 +148,31 @@ function buildBetaAlanine(profile: RaceProfile, hasRepeated: boolean): AidProtoc
     warnings: [
       "Paresthésies (fourmillements) si dose unique >0.8 g — fractionner",
       "Effet nul si pris uniquement le jour de course",
+    ],
+    mechanism:
+      "Beta-alanine = facteur limitant de la synthèse de carnosine intramusculaire (tampon H⁺ pK 6.83). Saturation après 4–10 sem augmente capacité tampon de 30–80 %.",
+    assumptions: [
+      "Cycle de charge ≥4 semaines avant compétition",
+      "Effort dans la fenêtre 1–10 min (production lactate maximale)",
+      "Pas de co-supplémentation taurine (compétition transport)",
+      "Réponse interindividuelle ±50 % (mesure carnosine non standard)",
+    ],
+    citations: [
+      {
+        ref: "Maughan 2018 — IOC Consensus on Dietary Supplements",
+        tags: ["IOC"],
+        doi: "10.1136/bjsports-2018-099027",
+      },
+      {
+        ref: "Saunders 2017 — Beta-alanine supplementation (meta, n=40 RCTs)",
+        tags: ["Meta-analysis", "BJSM"],
+        doi: "10.1136/bjsports-2016-096396",
+      },
+      {
+        ref: "Trexler 2015 — ISSN Position Stand: Beta-Alanine",
+        tags: ["ISSN"],
+        doi: "10.1186/s12970-015-0090-y",
+      },
     ],
   };
 }
@@ -135,6 +197,31 @@ function buildCreatine(hasRepeated: boolean, vegetarian: boolean): AidProtocol {
     warnings: [
       "Prise de poids 0.5–1.5 kg (rétention hydrique intracellulaire) — peser pour course en montagne",
       "Préférer monohydrate certifié (Creapure®) — formes alternatives non supérieures",
+    ],
+    mechanism:
+      "↑ phosphocréatine intramusculaire → resynthèse ATP plus rapide en effort <30 s. Effet secondaire : signalisation anabolique mTOR.",
+    assumptions: [
+      "Stocks musculaires non saturés au baseline (omnivores : ~120 mmol/kg DM)",
+      "Pas d'insuffisance rénale (créatininémie suivie si charge)",
+      "Hydratation adéquate ≥35 mL/kg/j",
+      "Pas de bénéfice ergogénique direct sur endurance pure (>30 min continu)",
+    ],
+    citations: [
+      {
+        ref: "Maughan 2018 — IOC Consensus on Dietary Supplements",
+        tags: ["IOC"],
+        doi: "10.1136/bjsports-2018-099027",
+      },
+      {
+        ref: "Kreider 2017 — ISSN Position Stand: Creatine",
+        tags: ["ISSN"],
+        doi: "10.1186/s12970-017-0173-z",
+      },
+      {
+        ref: "Cooper 2012 — Creatine and exercise performance review",
+        tags: ["Meta-analysis"],
+        doi: "10.1186/1550-2783-9-33",
+      },
     ],
   };
 }
@@ -162,6 +249,31 @@ function buildBicarbonate(profile: RaceProfile, weightKg: number | null, tested:
       "Apport sodium massif : intégrer dans le bilan hydratation (F6)",
       "Formes gastro-résistantes (capsules entériques) réduisent significativement les troubles GI",
     ],
+    mechanism:
+      "↑ HCO₃⁻ plasmatique → gradient pH transmembranaire → efflux H⁺ et lactate hors du muscle, retarde l'acidose métabolique.",
+    assumptions: [
+      "Tolérance GI validée à l'entraînement (≥2 essais)",
+      "Pas d'HTA non contrôlée ni régime sodé restrictif médical",
+      "Co-ingestion glucides 1–1.5 g/kg pour lisser absorption",
+      "Effort majoritairement glycolytique (lactate >8 mmol/L attendu)",
+    ],
+    citations: [
+      {
+        ref: "Maughan 2018 — IOC Consensus on Dietary Supplements",
+        tags: ["IOC"],
+        doi: "10.1136/bjsports-2018-099027",
+      },
+      {
+        ref: "Grgic 2021 — Sodium bicarbonate meta-analysis",
+        tags: ["Meta-analysis", "Sports Med"],
+        doi: "10.1007/s40279-020-01394-6",
+      },
+      {
+        ref: "McNaughton 2016 — Bicarbonate, performance and side effects review",
+        tags: ["Sports Med"],
+        doi: "10.1007/s40279-016-0509-x",
+      },
+    ],
   };
 }
 
@@ -177,6 +289,7 @@ export function computeErgogenicAids(input: ErgogenicAidsInput): ErgogenicAidsRe
     "Jones 2014 — Dietary nitrate (Sports Med)",
     "Saunders et al. 2017 — Beta-alanine meta-analysis (BJSM)",
     "Kreider et al. 2017 — ISSN Position Stand on Creatine",
+    "Trexler et al. 2015 — ISSN Position Stand on Beta-Alanine",
     "Grgic et al. 2021 — Sodium bicarbonate meta-analysis (Sports Med)",
   ];
 
