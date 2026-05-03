@@ -157,6 +157,15 @@ const RACE_SPECIFIC_RULES: Record<RaceObjective, DisciplineRule[]> = {
       icon: "🔄",
       source: "Format 70.3",
     },
+    {
+      id: "703_run_even_split",
+      category: "non_negotiable",
+      priority: "critical",
+      title: "Semi 70.3 — even split minimum",
+      message: "Premiers 5 km à allure cible exacte (pas plus rapide). Push autorisé seulement après 15 km si fraîcheur intacte.",
+      icon: "🏃",
+      source: "Format 70.3 — run",
+    },
   ],
   Marathon: [
     {
