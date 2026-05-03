@@ -494,7 +494,11 @@ function ScenarioCard({ scenario, isIM }: { scenario: FullRaceScenario; isIM: bo
           <p className="text-muted-foreground leading-snug">{scenario.fatigueNote}</p>
         </div>
 
-        {/* Pour qui + drapeau rouge */}
+        {/* Comparatif côte à côte Vélo vs Course */}
+        <BikeVsRunCompare scenario={scenario} />
+
+        {/* Conclusion unique athlète */}
+        <AthleteVerdict scenario={scenario} isIM={isIM} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="rounded-md border bg-emerald-500/5 border-emerald-500/20 p-2 text-[11px]">
             <div className="flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400 mb-0.5">
