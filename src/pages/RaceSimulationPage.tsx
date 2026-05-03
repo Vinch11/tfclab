@@ -556,14 +556,23 @@ export default function RaceSimulationPage() {
                     </div>
                   )}
                   {isTriathlon && (
-                    <Alert className="text-[11px] sm:text-xs py-2 bg-amber-500/5 border-amber-500/30">
-                      <Info className="h-3.5 w-3.5" />
-                      <AlertDescription>
-                        <strong>Triathlon :</strong> les 3 plans ci-dessus simulent uniquement le segment{' '}
-                        <strong>{discipline === 'bike' ? '🚴 vélo' : '🏃 course à pied'}</strong>. Utilise la bascule en
-                        haut de l'étape 2 pour comparer l'autre segment.
-                      </AlertDescription>
-                    </Alert>
+                    <>
+                      <Alert className="text-[11px] sm:text-xs py-2 bg-amber-500/5 border-amber-500/30">
+                        <Info className="h-3.5 w-3.5" />
+                        <AlertDescription>
+                          <strong>Triathlon :</strong> les 3 plans ci-dessus simulent uniquement le segment{' '}
+                          <strong>{discipline === 'bike' ? '🚴 vélo' : '🏃 course à pied'}</strong>. La simulation
+                          ci-dessous combine les 2 segments pour estimer ta course complète.
+                        </AlertDescription>
+                      </Alert>
+                      <TriathlonFullRaceSimulationCard
+                        raceObjective={raceObjective as 'IM' | '70.3'}
+                        bikeBaselineMin={segmentDurationMin.bike}
+                        runBaselineMin={segmentDurationMin.run}
+                        disponibiliteScore={disponibilite?.score}
+                        vlamaxValue={vlamaxEffectif?.value ?? null}
+                      />
+                    </>
                   )}
                 </>
               ) : (
