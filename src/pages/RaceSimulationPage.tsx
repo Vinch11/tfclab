@@ -16,6 +16,7 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { NegativeSplitPreviewCard } from '@/components/NegativeSplitPreviewCard';
+import { PacingRulesParityCard } from '@/components/PacingRulesParityCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
 import { CaffeineProtocolCard } from '@/components/CaffeineProtocolCard';
@@ -350,6 +351,7 @@ export default function RaceSimulationPage() {
                 Données insuffisantes pour calculer l'enveloppe
               </div>
             )}
+            {rules && <PacingRulesParityCard rules={rules} />}
             {(raceObjective === 'Marathon' || raceObjective === '10km') && (
               <NegativeSplitPreviewCard
                 raceObjective={raceObjective}
