@@ -308,20 +308,61 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <ProfileTile label="VLamax" value={vlamaxEffectif?.value ? vlamaxEffectif.value.toFixed(2) : "—"} unit="mmol/L/s" confidence={vlamaxEffectif?.confidence} />
-                <ProfileTile label="TTE" value={tteEffectif?.tte_min ? `${Math.round(tteEffectif.tte_min)}` : "—"} unit="min" confidence={tteEffectif?.confidence} />
-                <ProfileTile label="FatMax" value={fatmax?.centerPctFTP ? `${Math.round(fatmax.centerPctFTP)}` : "—"} unit="% FTP" confidence={fatmax?.confidence} />
-                <ProfileTile label="Disponibilité" value={`${Math.round(potentielPhysiologiqueScore)}`} unit="/100" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <ProfileTile
+                  label="VLamax"
+                  value={vlamaxEffectif?.value ? vlamaxEffectif.value.toFixed(2) : "—"}
+                  unit="mmol/L/s"
+                  confidence={vlamaxEffectif?.confidence}
+                  staffMode={staffMode}
+                  athleteHint={
+                    vlamaxEffectif?.value == null ? "Non estimable — manque de données récentes."
+                    : vlamaxEffectif.value >= 0.7 ? "Moteur explosif → tu brûles vite ton glycogène. Ravito sucré non négociable."
+                    : vlamaxEffectif.value >= 0.5 ? "Profil mixte → bon compromis vitesse/endurance."
+                    : "Profil endurant → tu économises ton glycogène, idéal pour le long."
+                  }
+                  staffHint="Vitesse de production lactique. ↑ = coût glucidique élevé, FatMax bas."
+                />
+                <ProfileTile
+                  label="TTE (Time-To-Exhaustion)"
+                  value={tteEffectif?.tte_min ? `${Math.round(tteEffectif.tte_min)}` : "—"}
+                  unit="min au seuil"
+                  confidence={tteEffectif?.confidence}
+                  staffMode={staffMode}
+                  athleteHint={
+                    tteEffectif?.tte_min == null ? "Non observé — un test 20–40 min améliorerait la fiabilité."
+                    : tteEffectif.tte_min >= 50 ? "Très bonne tenue au seuil → tu peux pousser longtemps sans casser."
+                    : tteEffectif.tte_min >= 35 ? "Tenue correcte → reste prudent en première moitié de course."
+                    : "Tenue limitée → privilégier scénario robuste."
+                  }
+                  staffHint="Durée soutenable au CP/MLSS. Cap glycogénique = TTE × 0.7 par défaut."
+                />
+                <ProfileTile
+                  label="FatMax"
+                  value={fatmax?.centerPctFTP ? `${Math.round(fatmax.centerPctFTP)}` : "—"}
+                  unit="% FTP"
+                  confidence={fatmax?.confidence}
+                  staffMode={staffMode}
+                  athleteHint={
+                    fatmax?.centerPctFTP == null ? "Non calculable sans VLamax fiable."
+                    : `À ${Math.round(fatmax.centerPctFTP)}% FTP, ton corps brûle un max de gras → c'est ton « rythme tout confort » sur très longue distance.`
+                  }
+                  staffHint="Centre de la zone d'oxydation lipidique. Cible IM = ±5%."
+                />
+                <ProfileTile
+                  label="Disponibilité"
+                  value={`${Math.round(potentielPhysiologiqueScore)}`}
+                  unit="/100 aujourd'hui"
+                  staffMode={staffMode}
+                  athleteHint={
+                    potentielPhysiologiqueScore >= 75 ? "Tu es frais → tu peux viser ton scénario ambitieux."
+                    : potentielPhysiologiqueScore >= 55 ? "Forme correcte → reste sur le scénario robuste."
+                    : "Fatigue / charge élevée → obligatoirement scénario robuste."
+                  }
+                  staffHint="Readiness unifiée (fatigue × charge × récup)."
+                />
               </div>
-              {!staffMode ? (
-                <Alert className="text-[11px] sm:text-xs py-2 bg-muted/40">
-                  <Info className="h-3.5 w-3.5" />
-                  <AlertDescription>
-                    Plus ces 4 indicateurs sont fiables (mesurés, pas estimés), plus ta simulation est précise. La <strong>VLamax</strong> dit comment tu brûles le glycogène, la <strong>TTE</strong> combien de temps tu tiens au seuil, le <strong>FatMax</strong> ton rythme « tout-confort », la <strong>Disponibilité</strong> ta fraîcheur du jour.
-                  </AlertDescription>
-                </Alert>
-              ) : (
+              {staffMode && (
                 <Alert className="text-[11px] sm:text-xs py-2 bg-muted/40">
                   <Info className="h-3.5 w-3.5" />
                   <AlertDescription>
