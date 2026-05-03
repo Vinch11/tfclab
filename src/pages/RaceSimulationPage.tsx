@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
+import { RaceStrategyPlanCard } from '@/components/RaceStrategyPlanCard';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { NegativeSplitPreviewCard } from '@/components/NegativeSplitPreviewCard';
 import { PacingRulesParityCard } from '@/components/PacingRulesParityCard';
