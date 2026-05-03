@@ -94,6 +94,7 @@ export default function App() {
                 {/* SECTION 5 — SIMULATION                     */}
                 {/* ═══════════════════════════════════════════ */}
                 <Route path="/race" element={<ProtectedRoute><RaceSimulationPage /></ProtectedRoute>} />
+                <Route path="/race/pacing-audit" element={<ProtectedRoute><PacingAuditPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 6 — ACADEMY                        */}
