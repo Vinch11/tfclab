@@ -615,3 +615,23 @@ export default function RaceSimulationPage() {
     </SidebarLayout>
   );
 }
+
+function ProfileTile({ label, value, unit, confidence }: { label: string; value: string; unit?: string; confidence?: number | null }) {
+  const conf = confidence == null ? null : Math.round(confidence * 100);
+  const confColor =
+    conf == null ? "text-muted-foreground" :
+    conf >= 75 ? "text-emerald-600" :
+    conf >= 50 ? "text-amber-600" : "text-red-600";
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 p-2.5">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-0.5 flex items-baseline gap-1">
+        <span className="text-base sm:text-lg font-bold text-foreground">{value}</span>
+        {unit && <span className="text-[10px] text-muted-foreground">{unit}</span>}
+      </div>
+      {conf != null && (
+        <div className={`text-[10px] mt-0.5 ${confColor}`}>fiab. {conf}%</div>
+      )}
+    </div>
+  );
+}
