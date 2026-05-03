@@ -974,6 +974,15 @@ function ScenarioCardInner({
         {/* Comparatif côte à côte Vélo vs Course */}
         <BikeVsRunCompare scenario={scenario} />
 
+        {/* Détail maillon faible */}
+        <WeakestLinkDetail
+          scenario={scenario}
+          isIM={isIM}
+          vlamaxValue={vlamaxValue}
+          fatigueState={fatigueState}
+          disponibiliteScore={disponibiliteScore}
+        />
+
         {/* Conclusion unique athlète */}
         <AthleteVerdict scenario={scenario} isIM={isIM} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
