@@ -21,6 +21,7 @@ import { CarbLoadingCard } from '@/components/CarbLoadingCard';
 import { GutTrainingCard } from '@/components/GutTrainingCard';
 import { HydrationProtocolCard } from '@/components/HydrationProtocolCard';
 import { RecoveryNutritionCard } from '@/components/RecoveryNutritionCard';
+import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
