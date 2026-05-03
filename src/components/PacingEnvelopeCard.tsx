@@ -29,26 +29,21 @@ import {
 import { cn } from "@/lib/utils";
 import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 
-import { 
-  computePacingEnvelope, 
-  type PacingEnvelopeInput, 
+import {
+  computePacingEnvelope,
+  type PacingEnvelopeInput,
   type PacingEnvelopeResult,
   PACING_ENVELOPE_DEFINITIONS,
-  formatEnvelopeRange,
 } from "@/lib/v2/pacingEnvelopeEngine";
 
-import { 
-  generateDisciplineRules, 
+import {
+  generateDisciplineRules,
   type DisciplineRulesResult,
-  getCategoryBgColor,
-  getCategoryLabel,
 } from "@/lib/v2/pacingDisciplineRules";
 
-import { 
-  simulatePacingScenarios, 
+import {
+  simulatePacingScenarios,
   type ScenarioSimulationResult,
-  getSeverityBgColor,
-  getSeverityLabel,
 } from "@/lib/v2/pacingScenarioSimulator";
 
 import { PacingDisciplineChart } from "@/components/charts/PacingDisciplineChart";
