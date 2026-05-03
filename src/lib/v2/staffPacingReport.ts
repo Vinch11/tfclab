@@ -20,6 +20,7 @@ import type { DisciplineRulesResult, DisciplineRule } from "./pacingDisciplineRu
 import type { ScenarioSimulationResult, PacingScenario } from "./pacingScenarioSimulator";
 import type { VLamaxEffectif } from "../vlamaxEffectif";
 import type { TTEEffectif } from "../tteEffectif";
+import { interpretReadinessScore } from "../readinessSource";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
