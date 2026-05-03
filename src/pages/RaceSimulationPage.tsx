@@ -308,20 +308,61 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <ProfileTile label="VLamax" value={vlamaxEffectif?.value ? vlamaxEffectif.value.toFixed(2) : "—"} unit="mmol/L/s" confidence={vlamaxEffectif?.confidence} />
-                <ProfileTile label="TTE" value={tteEffectif?.tte_min ? `${Math.round(tteEffectif.tte_min)}` : "—"} unit="min" confidence={tteEffectif?.confidence} />
-                <ProfileTile label="FatMax" value={fatmax?.centerPctFTP ? `${Math.round(fatmax.centerPctFTP)}` : "—"} unit="% FTP" confidence={fatmax?.confidence} />
-                <ProfileTile label="Disponibilité" value={`${Math.round(potentielPhysiologiqueScore)}`} unit="/100" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <ProfileTile
+                  label="VLamax"
+                  value={vlamaxEffectif?.value ? vlamaxEffectif.value.toFixed(2) : "—"}
+                  unit="mmol/L/s"
+                  confidence={vlamaxEffectif?.confidence}
+                  staffMode={staffMode}
+                  athleteHint={
+                    vlamaxEffectif?.value == null ? "Non estimable — manque de données récentes."
+                    : vlamaxEffectif.value >= 0.7 ? "Moteur explosif → tu brûles vite ton glycogène. Ravito sucré non négociable."
+                    : vlamaxEffectif.value >= 0.5 ? "Profil mixte → bon compromis vitesse/endurance."
+                    : "Profil endurant → tu économises ton glycogène, idéal pour le long."
+                  }
+                  staffHint="Vitesse de production lactique. ↑ = coût glucidique élevé, FatMax bas."
+                />
+                <ProfileTile
+                  label="TTE (Time-To-Exhaustion)"
+                  value={tteEffectif?.tte_min ? `${Math.round(tteEffectif.tte_min)}` : "—"}
+                  unit="min au seuil"
+                  confidence={tteEffectif?.confidence}
+                  staffMode={staffMode}
+                  athleteHint={
+                    tteEffectif?.tte_min == null ? "Non observé — un test 20–40 min améliorerait la fiabilité."
+                    : tteEffectif.tte_min >= 50 ? "Très bonne tenue au seuil → tu peux pousser longtemps sans casser."
+                    : tteEffectif.tte_min >= 35 ? "Tenue correcte → reste prudent en première moitié de course."
+                    : "Tenue limitée → privilégier scénario robuste."
+                  }
+                  staffHint="Durée soutenable au CP/MLSS. Cap glycogénique = TTE × 0.7 par défaut."
+                />
+                <ProfileTile
+                  label="FatMax"
+                  value={fatmax?.centerPctFTP ? `${Math.round(fatmax.centerPctFTP)}` : "—"}
+                  unit="% FTP"
+                  confidence={fatmax?.confidence}
+                  staffMode={staffMode}
+                  athleteHint={
+                    fatmax?.centerPctFTP == null ? "Non calculable sans VLamax fiable."
+                    : `À ${Math.round(fatmax.centerPctFTP)}% FTP, ton corps brûle un max de gras → c'est ton « rythme tout confort » sur très longue distance.`
+                  }
+                  staffHint="Centre de la zone d'oxydation lipidique. Cible IM = ±5%."
+                />
+                <ProfileTile
+                  label="Disponibilité"
+                  value={`${Math.round(potentielPhysiologiqueScore)}`}
+                  unit="/100 aujourd'hui"
+                  staffMode={staffMode}
+                  athleteHint={
+                    potentielPhysiologiqueScore >= 75 ? "Tu es frais → tu peux viser ton scénario ambitieux."
+                    : potentielPhysiologiqueScore >= 55 ? "Forme correcte → reste sur le scénario robuste."
+                    : "Fatigue / charge élevée → obligatoirement scénario robuste."
+                  }
+                  staffHint="Readiness unifiée (fatigue × charge × récup)."
+                />
               </div>
-              {!staffMode ? (
-                <Alert className="text-[11px] sm:text-xs py-2 bg-muted/40">
-                  <Info className="h-3.5 w-3.5" />
-                  <AlertDescription>
-                    Plus ces 4 indicateurs sont fiables (mesurés, pas estimés), plus ta simulation est précise. La <strong>VLamax</strong> dit comment tu brûles le glycogène, la <strong>TTE</strong> combien de temps tu tiens au seuil, le <strong>FatMax</strong> ton rythme « tout-confort », la <strong>Disponibilité</strong> ta fraîcheur du jour.
-                  </AlertDescription>
-                </Alert>
-              ) : (
+              {staffMode && (
                 <Alert className="text-[11px] sm:text-xs py-2 bg-muted/40">
                   <Info className="h-3.5 w-3.5" />
                   <AlertDescription>
@@ -373,12 +414,28 @@ export default function RaceSimulationPage() {
               )}
 
               {!staffMode && (
-                <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
-                  <Info className="h-3.5 w-3.5" />
-                  <AlertDescription>
-                    Le <strong>couloir de pacing</strong>, c'est la zone d'effort où ton corps tient sans exploser. Reste dans le vert, flirte avec l'orange en deuxième partie, le rouge = casse glycogénique presque assurée.
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-2">
+                  <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
+                    <Info className="h-3.5 w-3.5" />
+                    <AlertDescription>
+                      Le <strong>couloir de pacing</strong>, c'est la zone d'effort où ton corps tient sans exploser sur la durée totale prévue.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2">
+                      <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">🟢 Vert</div>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Sécurisé. Tu dois te sentir « trop facile » au départ.</p>
+                    </div>
+                    <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2">
+                      <div className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">🟠 Orange</div>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Tenable mais coûteux. Réservé à la 2e moitié.</p>
+                    </div>
+                    <div className="rounded-md border border-red-500/30 bg-red-500/5 p-2">
+                      <div className="text-[11px] font-semibold text-red-700 dark:text-red-400">🔴 Rouge</div>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Casse glycogénique quasi assurée si maintenu.</p>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {envelope ? (
@@ -435,12 +492,34 @@ export default function RaceSimulationPage() {
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
               {!staffMode && (
-                <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
-                  <Info className="h-3.5 w-3.5" />
-                  <AlertDescription>
-                    On simule 3 scénarios pour toi. <strong>Robuste</strong> = tu finis fort, marge de sécurité. <strong>Ambitieux</strong> = ton meilleur potentiel si tout se passe bien. <strong>Agressif</strong> = quitte ou double, risque de casse élevé.
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-2">
+                  <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
+                    <Info className="h-3.5 w-3.5" />
+                    <AlertDescription>
+                      On simule <strong>3 plans de course</strong> à partir de ton profil. Chacun a un coût, un risque et une probabilité d'échec chiffrés.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2.5">
+                      <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">🛡️ Robuste</div>
+                      <p className="text-[11px] text-muted-foreground leading-snug mt-1">Tu finis fort, sans casse. Idéal si fatigue, doute, météo difficile, ou 1re course sur la distance.</p>
+                    </div>
+                    <div className="rounded-md border border-primary/30 bg-primary/5 p-2.5">
+                      <div className="text-xs font-semibold text-primary">🎯 Ambitieux</div>
+                      <p className="text-[11px] text-muted-foreground leading-snug mt-1">Ton meilleur potentiel si tout aligne (forme, nutrition, parcours). Recommandé si Disponibilité ≥ 75.</p>
+                    </div>
+                    <div className="rounded-md border border-red-500/30 bg-red-500/5 p-2.5">
+                      <div className="text-xs font-semibold text-red-700 dark:text-red-400">🔥 Agressif</div>
+                      <p className="text-[11px] text-muted-foreground leading-snug mt-1">Quitte ou double. Vise un record. Casse glycogénique probable si nutrition imparfaite.</p>
+                    </div>
+                  </div>
+                  <Alert className="text-[11px] sm:text-xs py-2 bg-muted/30">
+                    <Info className="h-3.5 w-3.5" />
+                    <AlertDescription>
+                      <strong>Lecture des chiffres :</strong> « Prob. échec » = % de chances de casser. « Coût métabolique »/100 = à quel point ça tape dans tes réserves. « Robustesse » = tenue du plan si une variable bouge (fatigue, chaleur…).
+                    </AlertDescription>
+                  </Alert>
+                </div>
               )}
               <RaceSimulationModule
                 vlamaxEffectif={vlamaxEffectif?.value}
@@ -616,21 +695,48 @@ export default function RaceSimulationPage() {
   );
 }
 
-function ProfileTile({ label, value, unit, confidence }: { label: string; value: string; unit?: string; confidence?: number | null }) {
+function ProfileTile({
+  label, value, unit, confidence, staffMode, athleteHint, staffHint,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  confidence?: number | null;
+  staffMode?: boolean;
+  athleteHint?: string;
+  staffHint?: string;
+}) {
   const conf = confidence == null ? null : Math.round(confidence * 100);
+  const confLabel =
+    conf == null ? null :
+    conf >= 75 ? "Fiable" :
+    conf >= 50 ? "Modérée" : "Indicative";
   const confColor =
     conf == null ? "text-muted-foreground" :
     conf >= 75 ? "text-emerald-600" :
     conf >= 50 ? "text-amber-600" : "text-red-600";
+  const dot =
+    conf == null ? "bg-muted-foreground/40" :
+    conf >= 75 ? "bg-emerald-500" :
+    conf >= 50 ? "bg-amber-500" : "bg-red-500";
+  const hint = staffMode ? staffHint : athleteHint;
   return (
-    <div className="rounded-lg border border-border bg-muted/30 p-2.5">
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-0.5 flex items-baseline gap-1">
-        <span className="text-base sm:text-lg font-bold text-foreground">{value}</span>
+    <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">{label}</div>
+        {confLabel && (
+          <div className={`flex items-center gap-1 text-[10px] ${confColor}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+            {confLabel}
+          </div>
+        )}
+      </div>
+      <div className="flex items-baseline gap-1">
+        <span className="text-xl font-bold text-foreground">{value}</span>
         {unit && <span className="text-[10px] text-muted-foreground">{unit}</span>}
       </div>
-      {conf != null && (
-        <div className={`text-[10px] mt-0.5 ${confColor}`}>fiab. {conf}%</div>
+      {hint && (
+        <p className="text-[11px] leading-snug text-muted-foreground">{hint}</p>
       )}
     </div>
   );
