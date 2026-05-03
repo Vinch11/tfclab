@@ -414,12 +414,28 @@ export default function RaceSimulationPage() {
               )}
 
               {!staffMode && (
-                <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
-                  <Info className="h-3.5 w-3.5" />
-                  <AlertDescription>
-                    Le <strong>couloir de pacing</strong>, c'est la zone d'effort où ton corps tient sans exploser. Reste dans le vert, flirte avec l'orange en deuxième partie, le rouge = casse glycogénique presque assurée.
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-2">
+                  <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
+                    <Info className="h-3.5 w-3.5" />
+                    <AlertDescription>
+                      Le <strong>couloir de pacing</strong>, c'est la zone d'effort où ton corps tient sans exploser sur la durée totale prévue.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2">
+                      <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">🟢 Vert</div>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Sécurisé. Tu dois te sentir « trop facile » au départ.</p>
+                    </div>
+                    <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2">
+                      <div className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">🟠 Orange</div>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Tenable mais coûteux. Réservé à la 2e moitié.</p>
+                    </div>
+                    <div className="rounded-md border border-red-500/30 bg-red-500/5 p-2">
+                      <div className="text-[11px] font-semibold text-red-700 dark:text-red-400">🔴 Rouge</div>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Casse glycogénique quasi assurée si maintenu.</p>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {envelope ? (
