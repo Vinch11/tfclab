@@ -61,6 +61,8 @@ export interface DisciplineRulesInput {
   raceObjective: RaceObjective;
   sport: "bike" | "run";
   potentielPhysiologiqueScore?: number | null;
+  /** Niveau d'ambition athlète — module la règle even/negative split sur l'IM run */
+  ambition?: AmbitionLevel | string | null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
