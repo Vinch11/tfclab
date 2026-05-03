@@ -668,12 +668,13 @@ function computeGlycogenRemaining(
   }
   
   // ─────────────────────────────────────────────────────────────────
-  // FIX P1: VLamax — relation NON-LINÉAIRE (Quittmann 2025)
-  // L'impact glycolytique suit une loi puissance, pas linéaire.
-  // VLamax 0.35 → ×1.0 ; 0.55 → ×1.45 ; 0.75 → ×1.95 (vs ×1.6 linéaire)
+  // FIX P1: VLamax — relation NON-LINÉAIRE (Mader-Heck, Quittmann 2025)
+  // Exposant 0.85 (audit littérature 2024-2025): saturation de l'impact
+  // glycolytique aux VLamax très élevées (au-delà de 0.7 mmol/L/s).
+  // VLamax 0.35 → ×1.0 ; 0.55 → ×1.40 ; 0.75 → ×1.83
   // ─────────────────────────────────────────────────────────────────
   const vlamax = vlamaxEffectif ?? 0.45;
-  const vlamaxMultiplier = Math.pow(vlamax / 0.35, 0.95);
+  const vlamaxMultiplier = Math.pow(vlamax / 0.35, 0.85);
   carbBurnGPerMin *= clamp(vlamaxMultiplier, 0.7, 2.2);
   
   // Facteur scénario
