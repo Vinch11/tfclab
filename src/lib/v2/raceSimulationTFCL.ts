@@ -179,8 +179,11 @@ const NUTRITION_PARAMS = {
   intakeIntervalMinutes: 25,
   // Distance minimale pour nutrition (pas besoin pour 10K court)
   minDistanceForNutrition: "HM" as RunningDistance,
-  // Glycogen replenishment par g CHO absorbé (en % de réserves)
-  glycogenReplenishPctPerGram: 0.15,  // 1g CHO ≈ 0.15% glycogen stores
+  // Effet d'épargne glycogénique par g CHO exogène absorbé (Coyle, Jeukendrup).
+  // Le glycogène ne se resynthétise PAS pendant l'effort intense ; les glucides
+  // exogènes ÉPARGNENT les réserves en se substituant à l'oxydation endogène.
+  // ~0.15% de réserves épargnées par gramme CHO oxydé.
+  glycogenSparingPctPerGram: 0.15,
 };
 
 const FATIGUE_PARAMS = {
