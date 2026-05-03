@@ -531,6 +531,162 @@ function AthleteVerdict({ scenario, isIM }: { scenario: FullRaceScenario; isIM: 
   );
 }
 
+function WeakestLinkDetail({
+  scenario,
+  isIM,
+  vlamaxValue,
+  fatigueState,
+  disponibiliteScore,
+}: {
+  scenario: FullRaceScenario;
+  isIM: boolean;
+  vlamaxValue?: number | null;
+  fatigueState?: Props["fatigueState"];
+  disponibiliteScore?: number | null;
+}) {
+  const bikeRisk = scenario.bikeFailurePct;
+  const runRisk = scenario.runFailurePct;
+  const delta = runRisk - bikeRisk;
+  const weakest: "course" | "vélo" | "équilibrée" =
+    delta > 5 ? "course" : delta < -5 ? "vélo" : "équilibrée";
+
+  // Causes objectives détectées
+  const causes: { label: string; weight: number }[] = [];
+  const vlamaxHigh = (vlamaxValue ?? 0) >= 0.55;
+  const heavyFatigue = fatigueState === "fatigued" || fatigueState === "high";
+  const lowDispo = (disponibiliteScore ?? 100) < 60;
+  const highCoupling = scenario.couplingPenaltyPct >= 6;
+  const highResidual = scenario.residualFatigue >= 55;
+
+  if (weakest === "course") {
+    if (highCoupling) causes.push({ label: `Couplage T2 fort (+${scenario.couplingPenaltyPct} pts les 5 premiers km)`, weight: 3 });
+    if (highResidual) causes.push({ label: `Réserves entamées en T2 (fatigue résiduelle ${scenario.residualFatigue}/100)`, weight: 3 });
+    if (vlamaxHigh) causes.push({ label: `Profil glycolytique (VLamax ${vlamaxValue?.toFixed(2)}) — coût en O₂ élevé sur CAP longue`, weight: 2 });
+    if (heavyFatigue) causes.push({ label: `État de fatigue préalable (${fatigueState})`, weight: 2 });
+    if (scenario.t2ImpactSec >= 25) causes.push({ label: `Jelly legs marqués (+${scenario.t2ImpactSec}s sur les 2 premiers km)`, weight: 1 });
+  } else if (weakest === "vélo") {
+    if (lowDispo) causes.push({ label: `Disponibilité limitée (${disponibiliteScore}/100) — tenue de puissance fragile`, weight: 3 });
+    if (heavyFatigue) causes.push({ label: `État de fatigue (${fatigueState}) — drift puissance attendu`, weight: 2 });
+    if (highResidual) causes.push({ label: `Coût métabolique élevé (${scenario.metabolicCost}/100) en endurance`, weight: 2 });
+    causes.push({ label: `Risque vélo isolé ${bikeRisk}% > risque course ${runRisk}%`, weight: 1 });
+  } else {
+    causes.push({ label: `Risque réparti vélo/course (Δ ${Math.abs(delta)} pts) — exécution = facteur n°1`, weight: 2 });
+    if (vlamaxHigh) causes.push({ label: `Profil VLamax élevé : la moindre erreur d'allure cascade`, weight: 1 });
+    if (lowDispo) causes.push({ label: `Disponibilité ${disponibiliteScore}/100 — peu de marge globale`, weight: 1 });
+  }
+
+  // Ajustements concrets
+  const adjustments: { axis: "Puissance vélo" | "Allure CAP" | "Fueling" | "Transitions"; advice: string }[] = [];
+
+  if (weakest === "course") {
+    const watts = scenario.key === "AGGRESSIVE" ? 15 : scenario.key === "AMBITIOUS" ? 8 : 5;
+    adjustments.push({
+      axis: "Puissance vélo",
+      advice: `Baisse la cible vélo de ${watts} W (≈ -3 à -5% IF). Plafonne les pics côtes à +30 W max, jamais en zone 4.`,
+    });
+    adjustments.push({
+      axis: "Allure CAP",
+      advice: `Démarre 10-15 s/km plus lent que la cible sur 3 km, puis recale. Vise un négatif split sur la 2ᵉ moitié.`,
+    });
+    adjustments.push({
+      axis: "Fueling",
+      advice: `Monte à ${isIM ? "90-110" : "70-90"} g CHO/h sur le vélo (multi-source 2:1 glucose:fructose). 500 mg Na/h. Démarre la CAP avec un gel + 200 mL eau dans les 5 premières minutes.`,
+    });
+    adjustments.push({
+      axis: "Transitions",
+      advice: `T2 : 30 s de marche rapide + cadence 90+ dès le 1ᵉʳ km pour casser le couplage avant de chercher l'allure.`,
+    });
+  } else if (weakest === "vélo") {
+    adjustments.push({
+      axis: "Puissance vélo",
+      advice: `Recule la cible IF de 0.02-0.03 (~ -8 à -12 W). Hold steady : variabilité < 1.05, pas de surge > +20% sur > 30 s.`,
+    });
+    adjustments.push({
+      axis: "Fueling",
+      advice: `Augmente l'apport vélo à ${isIM ? "100-120" : "80-100"} g CHO/h dès le 1ᵉʳ heure (anti-drift). Hydratation 600-800 mL/h selon T°.`,
+    });
+    adjustments.push({
+      axis: "Allure CAP",
+      advice: `Plan CAP inchangé (le vélo est le verrou). Si vélo bien exécuté, marge pour finir +5 s/km au seuil.`,
+    });
+    adjustments.push({
+      axis: "Transitions",
+      advice: `T1 calme (pas d'à-coup cardiaque), monte FC progressivement les 10 premières minutes vélo.`,
+    });
+  } else {
+    adjustments.push({
+      axis: "Puissance vélo",
+      advice: `Tiens la cible IF stricte ±0.01. Aucune attaque, zéro pic > zone 3 sur les bosses.`,
+    });
+    adjustments.push({
+      axis: "Allure CAP",
+      advice: `Premier km +10 s/km, puis cible. Drapeau rouge si FC > seuil + 8 bpm avec allure correcte → ralentis.`,
+    });
+    adjustments.push({
+      axis: "Fueling",
+      advice: `${isIM ? "90" : "75"} g CHO/h dès le départ vélo, 500 mg Na/h. Pas d'expérimentation jour J.`,
+    });
+  }
+
+  const headerCls =
+    weakest === "course"
+      ? "border-orange-500/40 bg-orange-500/5"
+      : weakest === "vélo"
+      ? "border-blue-500/40 bg-blue-500/5"
+      : "border-amber-500/40 bg-amber-500/5";
+
+  const Icon = weakest === "course" ? Footprints : weakest === "vélo" ? Bike : TrendingUp;
+  const iconCls =
+    weakest === "course" ? "text-orange-500" : weakest === "vélo" ? "text-blue-500" : "text-amber-500";
+
+  return (
+    <div className={cn("rounded-lg border-2 p-3 text-xs space-y-2", headerCls)}>
+      <div className="flex items-center gap-2">
+        <Icon className={cn("h-4 w-4", iconCls)} />
+        <div className="font-bold text-sm">
+          🔗 Maillon faible : <span className="capitalize">{weakest}</span>
+          <span className="text-muted-foreground font-normal ml-1.5">
+            (vélo {bikeRisk}% · course {runRisk}%)
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+          Pourquoi
+        </div>
+        <ul className="space-y-0.5 leading-snug">
+          {causes
+            .sort((a, b) => b.weight - a.weight)
+            .slice(0, 4)
+            .map((c, i) => (
+              <li key={i} className="flex gap-1.5">
+                <span className="text-muted-foreground">•</span>
+                <span>{c.label}</span>
+              </li>
+            ))}
+        </ul>
+      </div>
+
+      <div>
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+          Quoi ajuster concrètement
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+          {adjustments.map((a, i) => (
+            <div key={i} className="rounded border bg-card/60 p-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">
+                {a.axis}
+              </div>
+              <div className="leading-snug">{a.advice}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BikeIntensitySlider({
   offset,
   onChange,
