@@ -324,7 +324,7 @@ export default function RaceSimulationPage() {
                         : 'bg-background text-muted-foreground hover:bg-muted'
                     }`}
                   >
-                    🏃 Course ({Math.round(segmentDurationMin.run / 60 * 10) / 10}h)
+                    🏃 Course ({`${Math.floor(segmentDurationMin.run / 60)}h${String(Math.round(segmentDurationMin.run % 60)).padStart(2, '0')}`})
                   </button>
                 </div>
               </div>
