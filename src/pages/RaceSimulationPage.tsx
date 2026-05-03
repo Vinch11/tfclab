@@ -211,8 +211,9 @@ export default function RaceSimulationPage() {
       raceObjective,
       sport: discipline,
       potentielPhysiologiqueScore,
+      ambition: (selectedAthlete as any)?.ambition ?? (selectedAthlete as any)?.refs?.ambition ?? null,
     });
-  }, [envelope, vlamaxEffectif, raceObjective, discipline, potentielPhysiologiqueScore]);
+  }, [envelope, vlamaxEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete]);
   
   const scenarios = React.useMemo(() => {
     if (!envelope) return null;
