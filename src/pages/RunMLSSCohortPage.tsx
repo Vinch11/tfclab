@@ -38,7 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { FlaskConical, Download, Trash2, CheckCircle2, AlertTriangle, XCircle, HelpCircle } from "lucide-react";
+import { FlaskConical, Download, Trash2, CheckCircle2, AlertTriangle, XCircle, HelpCircle, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -54,6 +54,7 @@ import {
   type CohortTestEntry,
 } from "@/lib/v2/runMLSSCohortValidation";
 import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
+import { importCSV, SYNTHETIC_COHORT_ATHLETE_NAME, type ImportRowResult } from "@/lib/v2/runMLSSCohortCSVImporter";
 
 const VERDICT_STYLES = {
   insufficient: { label: "N insuffisant", icon: HelpCircle, cls: "bg-muted text-muted-foreground border" },
