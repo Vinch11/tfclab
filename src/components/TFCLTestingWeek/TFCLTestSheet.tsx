@@ -33,6 +33,8 @@ import {
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import type { DbSnapshot } from "@/hooks/useCloudData";
+import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 interface TFCLTestSheetProps {
   dayKey: string;
