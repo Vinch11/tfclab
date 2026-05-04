@@ -275,6 +275,93 @@ export default function RunMLSSCohortPage() {
     URL.revokeObjectURL(url);
   };
 
+  // ─── Import CSV ──────────────────────────────────────────────────────
+  const [csvText, setCsvText] = useState("");
+  const [importPreview, setImportPreview] = useState<ImportRowResult[] | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  const handleParsePreview = () => {
+    if (!csvText.trim()) {
+      toast.error("Coller un CSV avant de prévisualiser");
+      return;
+    }
+    try {
+      const results = importCSV(csvText);
+      setImportPreview(results);
+      const ok = results.filter((r) => r.status !== "error").length;
+      const ko = results.length - ok;
+      toast.success(`${ok} ligne(s) parsée(s)${ko ? ` · ${ko} rejetée(s)` : ""}`);
+    } catch (e: any) {
+      toast.error(`Échec parsing : ${e?.message ?? "erreur inconnue"}`);
+    }
+  };
+
+  const ensureSyntheticAthleteId = async (): Promise<string> => {
+    if (!user?.id) throw new Error("Non authentifié");
+    const { data: existing, error: selErr } = await supabase
+      .from("athletes")
+      .select("id")
+      .eq("coach_id", user.id)
+      .eq("name", SYNTHETIC_COHORT_ATHLETE_NAME)
+      .maybeSingle();
+    if (selErr) throw selErr;
+    if (existing?.id) return existing.id;
+    const { data: created, error: insErr } = await supabase
+      .from("athletes")
+      .insert({
+        coach_id: user.id,
+        name: SYNTHETIC_COHORT_ATHLETE_NAME,
+        goal: "Référence externe — cohorte validation Modèle C",
+      })
+      .select("id")
+      .single();
+    if (insErr) throw insErr;
+    return created.id;
+  };
+
+  const handleImportCommit = async () => {
+    if (!user?.id || !importPreview) return;
+    const valid = importPreview.filter((r) => r.payload);
+    if (valid.length === 0) {
+      toast.error("Aucune ligne valide à importer");
+      return;
+    }
+    setImporting(true);
+    try {
+      const athleteId = await ensureSyntheticAthleteId();
+      const rows = valid.map((r) => ({
+        athlete_id: athleteId,
+        coach_id: user.id,
+        date: r.payload!.date,
+        source_type: "TEST_PROTOCOL" as any,
+        evidence_type: RUN_MLSS_COHORT_EVIDENCE_TYPE as any,
+        protocol_quality: r.payload!.protocolQuality,
+        validity: "OK" as any,
+        confidence_evidence: r.payload!.confidence,
+        used_in_calibration: false,
+        calibration_weight: 0,
+        notes: r.payload!.notes,
+        raw_values: r.payload!.rawValues as any,
+      }));
+      // Insertion en lots de 50
+      const CHUNK = 50;
+      for (let i = 0; i < rows.length; i += CHUNK) {
+        const chunk = rows.slice(i, i + CHUNK);
+        const { error } = await supabase.from("calibration_evidence").insert(chunk);
+        if (error) throw error;
+      }
+      toast.success(`${valid.length} profil(s) importé(s) dans la cohorte`);
+      setCsvText("");
+      setImportPreview(null);
+      void refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Échec import CSV");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+
   return (
     <SidebarLayout
       activeTab={activeTab}
