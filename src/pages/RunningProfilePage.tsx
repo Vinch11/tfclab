@@ -48,6 +48,7 @@ import { PacingEnvelopeRunCard } from "@/components/PacingEnvelopeRunCard";
 import { VmaTargetsCard } from "@/components/VmaTargetsCard";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 import { MetabolicCompassCAP } from "@/components/charts";
+import { RunMLSSCoherenceCard } from "@/components/RunMLSSCoherenceCard";
 
 // Logique et calculs
 import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
@@ -57,6 +58,11 @@ import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
 import { computeFatigueEffectif } from "@/engines/diagnostic";
 import { computePacingEnvelopeRun, type RunningDistance } from "@/lib/v2/pacingEnvelopeRunning";
 import { getAthleteAmbition } from "@/types/ambitionLevel";
+import {
+  predictRunMLSSPctFromVLaCE,
+  crossValidateRunMLSS,
+} from "@/lib/v2/runMLSSPredictor";
+import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
 export default function RunningProfilePage() {
   const navigate = useNavigate();
