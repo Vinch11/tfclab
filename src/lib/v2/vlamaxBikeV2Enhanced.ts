@@ -367,7 +367,31 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   }
   
   sources.push("FTP");
-  
+
+  // =============================================
+  // P1 — FTP/MAP COHERENCE GUARD
+  // A FTP/MAP5min ratio above ~0.92 is physiologically rare (literature: elite
+  // pros plateau around 0.88–0.90; Coggan/Allen). Above 0.95 it is almost
+  // always an artefact: FTP overestimated (recent test, fresh state, short
+  // protocol) or MAP under-tested. We surface this explicitly so the coach
+  // can re-test rather than blindly trusting the downstream VLamax.
+  // =============================================
+  if (map5min_w != null && map5min_w > 0) {
+    const rfmGlobal = ftp / map5min_w;
+    if (rfmGlobal > 0.95) {
+      warnings.push(
+        `FTP/MAP5min = ${rfmGlobal.toFixed(2)} (anormalement élevé > 0.95). ` +
+        `Probable surestimation FTP ou sous-test MAP. ` +
+        `Recommandation : re-tester FTP (20-min ou ramp) à froid avant de fier la VLamax.`
+      );
+    } else if (rfmGlobal > 0.92) {
+      warnings.push(
+        `FTP/MAP5min = ${rfmGlobal.toFixed(2)} (élevé). ` +
+        `Profil endurance pure ou FTP légèrement surestimé — VLamax dampée en conséquence.`
+      );
+    }
+  }
+
   // =============================================
   // ÉTAPE 1: Calcul Mader MLSS (PRIMARY — gold standard)
   // =============================================
