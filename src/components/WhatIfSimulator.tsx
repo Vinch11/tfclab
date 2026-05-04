@@ -294,10 +294,16 @@ export function WhatIfSimulator({
     const vlamaxForFTP = calibrateVLamaxFromMLSS(targetFTP, current.vo2max, simulated.weight);
     const vlamaxForTTE = calibrateVLamaxFromTTE(targetTTE, current.vo2max, simulated.weight, targetFTP);
     const vlamaxForFatMax = calibrateVLamaxFromFatMax(targetFatMax, current.vo2max, simulated.weight);
-    
-    // Weighted average - TTE is most reliable indicator
-    const avgVlamax = (vlamaxForFTP * 0.3 + vlamaxForTTE * 0.5 + vlamaxForFatMax * 0.2);
-    
+
+    // Weighted average — if TTE estimation failed (returned null), redistribute
+    // its weight onto the other two valid signals instead of biasing the result.
+    let avgVlamax: number;
+    if (vlamaxForTTE !== null) {
+      avgVlamax = vlamaxForFTP * 0.3 + vlamaxForTTE * 0.5 + vlamaxForFatMax * 0.2;
+    } else {
+      avgVlamax = vlamaxForFTP * 0.6 + vlamaxForFatMax * 0.4;
+    }
+
     setSimulated(prev => ({
       ...prev,
       vlamax: Number(avgVlamax.toFixed(3))
