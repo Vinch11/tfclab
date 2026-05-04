@@ -258,24 +258,56 @@ function computeScoreG(
   // Original: S_pmax=0.30, S30=0.20, S60=0.10, E=0.25, D=0.15
   // With W': redistribute to accommodate 0.12 for W'
   //
-  // HIGH FRACTIONAL UTILIZATION DAMPENING:
-  // When FTP/MAP > 0.80, the athlete has a strong aerobic engine.
-  // A high P30s/FTP ratio in such profiles is often neuromuscular
-  // (fast-twitch recruitment) rather than purely glycolytic.
-  // We reduce S30 weight from 0.18 → 0.08 and redistribute +0.05
-  // to E (fractional util) and +0.05 to D (durability) which are
-  // more reliable indicators for these hybrid profiles.
-  const isHighFractionalUtil = rfm !== null && rfm > 0.80;
-  
+  // P1 — TIERED HYBRID PROFILE DAMPENING:
+  // The FTP/MAP5min ratio (rfm) reveals fractional utilization. A high rfm
+  // means the athlete already extracts most of their aerobic ceiling at FTP,
+  // which makes neuromuscular indices (Pmax, P30s) misleading proxies for
+  // glycolytic capacity (they reflect fast-twitch recruitment instead).
+  //
+  //   rfm ≤ 0.80 → "pur"          : weights nominaux
+  //   0.80–0.90  → "hybride"      : S30 dampened, E/D boosted
+  //   0.90–0.95  → "endurance++"  : S30 nearly excluded, S_pmax halved, E/D dominent
+  //   > 0.95     → "rfm suspect"  : FTP probablement surestimé → forcer Mader/E only
+  //
+  // Refs: Spragg 2023 (neuromuscular vs glycolytic dissociation in trained
+  // endurance cyclists); Sitko 2022 (high fractional util in hybrid profiles).
+  const hybridTier =
+    rfm === null            ? "unknown" :
+    rfm > 0.95              ? "rfm_suspect" :
+    rfm > 0.90              ? "endurance_pp" :
+    rfm > 0.80              ? "hybrid" :
+                              "pure";
+
   // CP data quality guard: reduce weight of CP-derived indices when suspect
   const cpSuspectPenalty = cpDataQuality === "suspect" ? 0.5 : 1.0;
-  
-  const w_pmax = 0.25;
-  const w_s30  = (isHighFractionalUtil ? 0.08 : 0.18) * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
-  const w_s60  = 0.09 * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
-  const w_E    = isHighFractionalUtil ? 0.27 : 0.22;
-  const w_D    = isHighFractionalUtil ? 0.19 : 0.14;
-  const w_W    = 0.12;
+
+  // Tiered weights
+  let w_pmax: number, w_s30_base: number, w_s60_base: number, w_E: number, w_D: number, w_W: number;
+  switch (hybridTier) {
+    case "rfm_suspect":
+      // Extreme rfm: FTP almost certainly overestimated (or MAP under-tested).
+      // Lean entirely on E (which captures the rfm itself) and D. Quasi-exclude
+      // P-based indices that would amplify the bias.
+      w_pmax = 0.10; w_s30_base = 0.04; w_s60_base = 0.04;
+      w_E    = 0.40; w_D = 0.30; w_W = 0.12;
+      break;
+    case "endurance_pp":
+      w_pmax = 0.15; w_s30_base = 0.06; w_s60_base = 0.07;
+      w_E    = 0.32; w_D = 0.22; w_W = 0.12;
+      break;
+    case "hybrid":
+      w_pmax = 0.25; w_s30_base = 0.08; w_s60_base = 0.09;
+      w_E    = 0.27; w_D = 0.19; w_W = 0.12;
+      break;
+    case "pure":
+    case "unknown":
+    default:
+      w_pmax = 0.25; w_s30_base = 0.18; w_s60_base = 0.09;
+      w_E    = 0.22; w_D = 0.14; w_W = 0.12;
+  }
+
+  const w_s30 = w_s30_base * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
+  const w_s60 = w_s60_base * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
   
   let scoreG = 0;
   let totalWeight = 0;
