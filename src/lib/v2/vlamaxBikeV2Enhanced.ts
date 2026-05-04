@@ -627,6 +627,16 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     };
   }
   
+  // P1 — Confidence penalty when FTP/MAP suspect (data quality flag, not method divergence)
+  if (map5min_w != null && map5min_w > 0) {
+    const rfmGlobal = ftp / map5min_w;
+    if (rfmGlobal > 0.95) {
+      confidence = Math.max(0.40, confidence - 0.20);
+    } else if (rfmGlobal > 0.92) {
+      confidence = Math.max(0.50, confidence - 0.10);
+    }
+  }
+
   // Clamp final
   finalValue = Number(clamp(finalValue, 0.20, 1.05).toFixed(2));
   
