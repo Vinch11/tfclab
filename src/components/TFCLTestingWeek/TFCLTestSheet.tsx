@@ -102,11 +102,9 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
       }
 
       if (snapshot) {
-        // Update existing snapshot
         await updateSnapshot(snapshot.id, snapshotUpdates as Partial<DbSnapshot>);
         toast.success(`${dayKey} enregistré dans le profil existant`);
       } else {
-        // Create new snapshot
         const newSnapshot = {
           athlete_id: athlete.id,
           coach_id: user.id,
@@ -114,9 +112,52 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
           source: "tfcl_testing_week",
           ...snapshotUpdates
         } as Omit<DbSnapshot, "id" | "created_at" | "updated_at">;
-        
         await addSnapshot(newSnapshot);
         toast.success(`${dayKey} enregistré dans un nouveau profil`);
+      }
+
+      // Save as test entry for continuous calibration (D1/D3/D5)
+      if (["D1", "D3", "D5"].includes(dayKey)) {
+        let testType = "TFCL";
+        let testName = `TFCL ${dayKey}`;
+        const rawData: Record<string, unknown> = {
+          dayKey,
+          category: "TFCL_REFERENCE_WEEK",
+          source: "TFCL_TESTING_WEEK",
+          protocolQuality,
+          ...formData,
+        };
+
+        if (dayKey === "D1") {
+          testType = "VLAMAX";
+          testName = "TFCL D1 — Sprint P30s/P60s";
+          if (formData.p30s_avg) rawData.p30s_w = parseInt(formData.p30s_avg);
+          if (formData.p60s_avg) rawData.p60s_w = parseInt(formData.p60s_avg);
+        } else if (dayKey === "D3") {
+          testType = "MAP";
+          testName = "TFCL D3 — MAP 5min";
+          if (formData.map5min_avg) rawData.map5min_w = parseInt(formData.map5min_avg);
+        } else if (dayKey === "D5") {
+          testType = "TTE";
+          testName = "TFCL D5 — FTP + TTE";
+          if (formData.tte_observed) {
+            rawData.tte_minutes = parseInt(formData.tte_observed);
+            rawData.tteObserved = parseInt(formData.tte_observed);
+          }
+          if (formData.ftp_used) rawData.ftp = parseInt(formData.ftp_used);
+        }
+
+        const reliability = 0.5 + (protocolQuality - 3) * 0.075;
+        await addTest(
+          athlete.id,
+          testType,
+          testName,
+          "bike",
+          reliability,
+          null,
+          rawData as never,
+          `Semaine de Référence TFCL — ${dayKey}`
+        );
       }
 
       await loadData();
