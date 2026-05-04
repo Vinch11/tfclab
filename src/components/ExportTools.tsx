@@ -3547,6 +3547,117 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 }
 
 // =============================================
+// RUN MLSS COHÉRENCE — Modèle C (RMSE 2.64% sur N=14 run)
+// Affiche % MLSS effectif (observé > prédit), source, prédiction, cross-validation
+// =============================================
+function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
+  const runMLSS = payload.runMLSS;
+  const goal = payload.athlete.goal || "";
+  const isRun = goal.includes("km") || goal.includes("Marathon") || goal.includes("Semi") || goal.includes("Trail") || goal.includes("Ultra") || (payload.effectiveSnapshot?.sport_main === "run");
+
+  // Section masquée si pas pertinente (sport non-run, pas de données)
+  if (!isRun && !runMLSS) {
+    return `
+      <section id="run-mlss-coherence" class="section pagebreakAvoid">
+        <h2>🎯 Run MLSS — Cohérence Modèle C</h2>
+        <div class="card" style="font-size:11px;color:#64748b;">
+          Section non pertinente pour cet objectif (cycliste/triathlon non-run-focus).
+        </div>
+      </section>`;
+  }
+
+  if (!runMLSS) {
+    return `
+      <section id="run-mlss-coherence" class="section pagebreakAvoid">
+        <h2>🎯 Run MLSS — Cohérence Modèle C</h2>
+        <div class="alert alertWarning" style="font-size:11px;">
+          <b>Données insuffisantes</b> — Ajoutez VLamax run et économie de course (CE) pour activer la prédiction Modèle C.
+        </div>
+      </section>`;
+  }
+
+  const effectivePct = runMLSS.effectivePct;
+  const effectiveSource = runMLSS.effectiveSource;
+  const observedPct = runMLSS.observedPct;
+  const prediction = runMLSS.prediction;
+  const crossValidation = runMLSS.crossValidation;
+
+  const sourceLabel = effectiveSource === "observed"
+    ? "🎯 Observé (test seuil 30 min terrain)"
+    : effectiveSource === "predicted"
+      ? "🧪 Prédit (Modèle C — RMSE 2.64 %)"
+      : "—";
+
+  const sourceBadgeClass = effectiveSource === "observed" ? "badgeSuccess" : effectiveSource === "predicted" ? "badgeWarning" : "badgeError";
+
+  const xvSeverityClass: Record<string, string> = {
+    ok: "alertSuccess",
+    info: "alertInfo",
+    warning: "alertWarning",
+    critical: "alertError",
+  };
+  const xvAlertClass = crossValidation ? (xvSeverityClass[crossValidation.severity] ?? "alertInfo") : "alertInfo";
+
+  const predBlock = prediction ? `
+    <div class="card" style="padding:10px;">
+      <div style="font-size:10px;color:#64748b;">Prédit Modèle C</div>
+      <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${prediction.mlssPct.toFixed(1)}% VMA</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px;">RMSE ±${prediction.rmsePct.toFixed(2)}%</div>
+    </div>` : `
+    <div class="card" style="padding:10px;">
+      <div style="font-size:10px;color:#64748b;">Prédit Modèle C</div>
+      <div style="font-size:12px;color:#94a3b8;">VLamax run ou CE manquant</div>
+    </div>`;
+
+  const obsBlock = observedPct != null ? `
+    <div class="card" style="padding:10px;">
+      <div style="font-size:10px;color:#64748b;">Observé terrain</div>
+      <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${observedPct.toFixed(1)}% VMA</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px;">Pace seuil / VMA</div>
+    </div>` : `
+    <div class="card" style="padding:10px;">
+      <div style="font-size:10px;color:#64748b;">Observé terrain</div>
+      <div style="font-size:12px;color:#94a3b8;">Pas de test seuil</div>
+    </div>`;
+
+  const xvBlock = crossValidation && observedPct != null && prediction ? `
+    <div class="alert ${xvAlertClass} mt" style="font-size:11px;">
+      <b>🔬 Cross-validation observé vs prédit :</b> Δ = ${crossValidation.deltaPct > 0 ? "+" : ""}${crossValidation.deltaPct.toFixed(1)}% — <b>${crossValidation.severity.toUpperCase()}</b><br>
+      ${crossValidation.message ?? ""}
+    </div>` : "";
+
+  return `
+    <section id="run-mlss-coherence" class="section pagebreakAvoid">
+      <h2>🎯 Run MLSS — Cohérence Modèle C <span style="font-size:11px;font-weight:400;color:#64748b;">(RMSE 2.64% sur N=14 run)</span></h2>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div>
+            <div style="font-size:10px;color:#64748b;">% MLSS effectif (utilisé pour ancrage Z5)</div>
+            <div style="font-size:24px;font-weight:800;font-family:ui-monospace,monospace;">
+              ${effectivePct != null ? `${effectivePct.toFixed(1)}% VMA` : "—"}
+            </div>
+          </div>
+          <span class="badge ${sourceBadgeClass}" style="font-size:11px;padding:5px 12px;">${sourceLabel}</span>
+        </div>
+
+        <div class="grid2">
+          ${obsBlock}
+          ${predBlock}
+        </div>
+
+        ${xvBlock}
+      </div>
+
+      <div class="alert alertInfo mt" style="font-size:10px;">
+        <b>📚 Modèle C (TFCL™ N=14 run) :</b> <code>MLSS_pct = 1 − 0.337·VLa_run − 0.0021·(CE − 200)</code>.
+        Quand un test seuil 30 min est disponible, l'observé prime. Sinon, la prédiction Modèle C ancre Z5 dans le plan IA (à confirmer par un test terrain).
+      </div>
+    </section>
+  `;
+}
+
+// =============================================
 // BUILD STAFF-GRADE REPORT HTML
 // Rapport scientifiquement rigoureux, pédagogiquement clair,
 // et explicitement non dogmatique
