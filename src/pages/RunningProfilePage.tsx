@@ -501,6 +501,12 @@ export default function RunningProfilePage() {
               id: "run-mlss-coherence",
               render: () => <RunMLSSCoherenceCard runMLSS={runMLSS} variant="card" />,
             },
+            {
+              id: "run-mlss-drift",
+              render: () => (
+                <RunMLSSDriftDetectionCard athleteId={currentAthlete.id} />
+              ),
+            },
           ]
         : []),
       {
