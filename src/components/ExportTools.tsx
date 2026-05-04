@@ -7728,6 +7728,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     compass: compassHTML,
     profilMetabolique: profilMetaboliqueHTML,
     vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
+    runMLSSCoherence: buildRunMLSSCoherenceHTML(payload),
     indicateurs: indicateursHTML,
     pacingEnvelope: (() => {
       const goal = payload.athlete.goal || "";
