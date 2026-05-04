@@ -52,6 +52,7 @@ export function VLamaxBikeV2EnhancedCard({
   compact = false,
 }: VLamaxBikeV2EnhancedCardProps) {
   const [showWhy, setShowWhy] = useState(false);
+  const navigate = useNavigate();
 
   const result = computeVLamaxBikeV2Enhanced(input);
 
