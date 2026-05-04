@@ -62,6 +62,10 @@ import {
   predictRunMLSSPctFromVLaCE,
   crossValidateRunMLSS,
 } from "@/lib/v2/runMLSSPredictor";
+import {
+  buildRunMLSSSignature,
+  persistRunMLSSTrace,
+} from "@/lib/v2/runMLSSTracePersistence";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
 export default function RunningProfilePage() {
