@@ -234,6 +234,8 @@ interface ExportPayload {
   coachingCompass: TFCLCoachingCompassResult;
   // ✅ NEW: Lorang Strategy (leviers dynamiques — cohérence dashboard)
   lorangResult: LorangStrategyResult | null;
+  // ✅ NEW: Run MLSS Cohérence (Modèle C — RMSE 2.64% sur N=14 run)
+  runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"] | null;
 }
 
 // =============================================
@@ -1895,6 +1897,8 @@ function buildExportPayload(
     })(),
     // ✅ NEW: Lorang Strategy Result (cohérence dashboard)
     lorangResult,
+    // ✅ NEW: Run MLSS (Modèle C) — directement depuis le diagnostic engine
+    runMLSS: diagnostic?.runMLSS ?? null,
   };
 }
 
