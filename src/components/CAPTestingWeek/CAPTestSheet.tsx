@@ -256,6 +256,29 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
           rawData as Json,
           notes || null
         );
+
+        // Create calibration_evidence row to feed the 42-day continuous calibration window
+        if (user) {
+          const evidenceTypeMap: Record<string, string> = {
+            D1: "SPRINT_15S",
+            D3: "MAP",
+            D5: "TTE_OBS",
+          };
+          await supabase.from("calibration_evidence").insert({
+            athlete_id: athlete.id,
+            coach_id: user.id,
+            date: new Date().toISOString().split("T")[0],
+            source_type: "TEST_PROTOCOL",
+            evidence_type: evidenceTypeMap[dayKey] || "SPRINT_15S",
+            raw_values: rawData as Json,
+            protocol_quality: quality,
+            confidence_evidence: confidence,
+            validity: "OK",
+            notes: notes || null,
+            used_in_calibration: false,
+            calibration_weight: 0,
+          });
+        }
         
         toast.success(
           <div className="space-y-1">
