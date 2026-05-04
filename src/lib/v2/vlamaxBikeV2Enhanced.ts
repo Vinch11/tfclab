@@ -309,16 +309,8 @@ function computeScoreG(
     scoreG = scoreG / totalWeight;
   }
   
-  // VLamax_raw = floor + range * G (recalibrated by hybrid tier)
-  // Pure/hybrid: 0.20 + 0.80*G (full range up to 1.00)
-  // endurance_pp/rfm_suspect: lower the upper coefficient — high rfm profiles
-  // are physiologically biased toward low VLamax (oxidative dominance), so the
-  // empirical score should not be allowed to project them into sprinter territory.
-  const range =
-    hybridTier === "rfm_suspect" ? 0.45 :   // cap ≈ 0.65
-    hybridTier === "endurance_pp" ? 0.55 :  // cap ≈ 0.75
-    0.80;                                    // nominal
-  const vlamax = clamp(0.20 + range * scoreG, 0.20, 1.05);
+  // VLamax_raw = 0.20 + 0.80 × G  (range complète restaurée post-audit)
+  const vlamax = clamp(0.20 + 0.80 * scoreG, 0.20, 1.05);
   
   return {
     scoreG: Number(scoreG.toFixed(3)),
