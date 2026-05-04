@@ -25,9 +25,11 @@ import {
   ChevronDown,
   Target,
   BarChart3,
+  Beaker,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   computeVLamaxBikeV2Enhanced,
@@ -50,6 +52,7 @@ export function VLamaxBikeV2EnhancedCard({
   compact = false,
 }: VLamaxBikeV2EnhancedCardProps) {
   const [showWhy, setShowWhy] = useState(false);
+  const navigate = useNavigate();
 
   const result = computeVLamaxBikeV2Enhanced(input);
 
@@ -114,6 +117,15 @@ export function VLamaxBikeV2EnhancedCard({
             <Badge className={cn("text-[10px]", confidenceBadgeClass)}>
               {result.confidenceLabel}
             </Badge>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2"
+              onClick={() => navigate("/diagnostic/vlamax")}
+              title="Diagnostic VLamax (méthode-par-méthode)"
+            >
+              <Beaker className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
       </CardHeader>
