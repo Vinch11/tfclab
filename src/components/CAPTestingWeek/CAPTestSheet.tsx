@@ -70,13 +70,17 @@ const formatSecsToMMSS = (secs: number): string => {
   return `${min}:${sec.toString().padStart(2, "0")}`;
 };
 
-// Estimate VLamax CAP from sprint 15s distance (simplified model)
+// Estimate VLamax CAP from sprint 15s distance — uses unified V2 estimator
+import { estimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
+
 const estimateVLamaxFromSprint = (distance15s: number): number | null => {
   if (!distance15s || distance15s < 50 || distance15s > 120) return null;
-  // Model: VLamax CAP ~ (distance - 50) / 100 * 0.5 + 0.3
-  // Range: 50m → 0.30, 80m → 0.45, 100m → 0.55, 120m → 0.65
-  const normalized = (distance15s - 50) / 70;
-  return Math.round((0.30 + normalized * 0.40) * 100) / 100;
+  const est = estimateVLamaxCap({
+    vma: null,
+    paceThresholdSecPerKm: null,
+    sprint15sDistance: distance15s,
+  });
+  return est?.value ? Math.round(est.value * 100) / 100 : null;
 };
 
 // Estimate VO2max from VMA
