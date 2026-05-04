@@ -376,7 +376,7 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   const hasMaderData = vo2max != null && vo2max > 0 && weight_kg != null && weight_kg > 0;
   
   if (hasMaderData) {
-    maderMLSS = calibrateVLamaxFromMLSS(ftp, vo2max!, weight_kg!);
+    maderMLSS = calibrateVLamaxFromMLSS(ftp, vo2max!, weight_kg!, map5min_w);
     // Sanity check: Mader should return physiologically plausible values
     if (maderMLSS < 0.10 || maderMLSS > 1.20) {
       warnings.push(`Mader MLSS hors bornes (${maderMLSS.toFixed(2)}) — vérifier VO2max/FTP`);
