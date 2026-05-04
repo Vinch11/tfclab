@@ -385,6 +385,33 @@ export default function RunningProfilePage() {
     return { observedPct, prediction, crossValidation, effectivePct, effectiveSource };
   }, [effectiveCloudSnapshot]);
 
+  // ─── Persistance auto Run MLSS Modèle C → calibration_evidence ────────────
+  // Dédup intra-session via ref (signature) + dédup intra-jour via DB.
+  const persistedRunMLSSSigRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!currentAthlete?.id || !currentAthlete?.coach_id) return;
+    if (!runMLSS || runMLSS.effectiveSource === "none" || runMLSS.effectivePct == null) return;
+
+    const inputs = {
+      vlamaxRun: effectiveCloudSnapshot?.vlamax_run ?? null,
+      runningEconomy: effectiveCloudSnapshot?.run_economy_score ?? null,
+      paceThresholdSecPerKm: effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null,
+      vmaKmh: effectiveCloudSnapshot?.vma ?? null,
+    };
+    const signature = buildRunMLSSSignature(inputs, runMLSS);
+    if (persistedRunMLSSSigRef.current === signature) return;
+    persistedRunMLSSSigRef.current = signature;
+
+    persistRunMLSSTrace({
+      athleteId: currentAthlete.id,
+      coachId: currentAthlete.coach_id,
+      inputs,
+      diag: runMLSS,
+    }).catch((err) => {
+      if (import.meta.env.DEV) console.error("[RunMLSS persist] failed", err);
+    });
+  }, [currentAthlete?.id, currentAthlete?.coach_id, runMLSS, effectiveCloudSnapshot]);
+
   const sectionRenderers = useMemo(() => {
     if (!currentAthlete) return [];
 
