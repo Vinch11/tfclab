@@ -516,11 +516,9 @@ export function calibrateVLamaxFromMLSS(
   observedMAP?: number | null,  // MAP réelle (P5min) si disponible — plus précis que MAP dérivée
 ): number {
   const efficiency = 0.23; // Default gross mechanical efficiency
-  // NOTE: This inverse function uses α=2.5 (audit empirique 2026-05) which is
-  // distinct from findMLSSPower's α=1.98 (refit Nov 2026 sur N=44). The two paths
-  // operate on different denominators (MAP_theoretical vs VO2max_abs*efficiency)
-  // and were calibrated independently against laboratory ground truth.
-  const ALPHA = 2.5;
+  // CRITICAL: must match findMLSSPower α to keep forward/inverse consistency
+  // (round-trip calibrate→predict must converge). Refit Nov 2026 sur N=44.
+  const ALPHA = USE_CALIBRATED_MADER_ALPHA ? MADER_ALPHA_CALIBRATED : 2.5;
 
   // Absolute VO2max in L/min
   const vo2maxAbs = vo2max * weight / 1000;
