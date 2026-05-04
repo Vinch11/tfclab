@@ -48,6 +48,15 @@ function mapCloudTestsToTestData(tests: DbTest[], athleteId: string): TestData[]
       if (testType.includes("tte") || raw?.category === "TTE") {
         if (raw?.tte_minutes !== undefined) {
           value = raw.tte_minutes;
+        } else if (raw?.tteObserved !== undefined) {
+          value = raw.tteObserved;
+        }
+      }
+
+      // === TESTS VMA ===
+      if (testType.includes("vma") || raw?.category === "VMA") {
+        if (raw?.vma !== undefined) {
+          value = raw.vma;
         }
       }
       

@@ -178,6 +178,9 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
         ].filter(v => v !== null);
         rawData.bestDistance = bestSprint;
         rawData.estimatedVlamax = estimatedVlamax;
+        if (estimatedVlamax) {
+          snapshotUpdates.vlamax_run = estimatedVlamax;
+        }
         
       } else if (dayKey === "D3") {
         testType = "VMA";
