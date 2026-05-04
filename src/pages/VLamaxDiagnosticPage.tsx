@@ -312,59 +312,7 @@ export default function VLamaxDiagnosticPage() {
             </Card>
 
             {/* MÉTHODES */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  Décomposition méthode-par-méthode
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {/* Sources actives */}
-                  <div>
-                    <div className="text-xs font-semibold text-muted-foreground mb-1">
-                      Sources fusionnées
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {result.sources.length === 0 && (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                      {result.sources.map((s, i) => (
-                        <Badge key={i} variant="secondary" className="text-xs">
-                          {s}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Components dump (synthétique) */}
-                  {components ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {Object.entries(components).map(([k, v]) => {
-                        if (v === null || v === undefined) return null;
-                        if (typeof v === "object") return null;
-                        return (
-                          <div key={k}>
-                            <div className="text-xs text-muted-foreground">
-                              {k}
-                            </div>
-                            <div className="font-mono text-xs">
-                              {typeof v === "number" ? v.toFixed(3) : String(v)}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-muted-foreground">
-                      Composants indisponibles (formula = {result.formula})
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <MethodsBreakdown result={result} components={components} />
 
             {/* HISTORIQUE */}
             <Card>
