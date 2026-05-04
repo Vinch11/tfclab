@@ -1613,6 +1613,7 @@ const Index = () => {
                 athleteId={currentAthlete.id}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                runMLSS={dashDiagnostic?.runMLSS ?? null}
               />
             ),
           },

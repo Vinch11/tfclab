@@ -81,6 +81,7 @@ import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
 import { useRunningProfileCloud } from "@/hooks/useRunningProfileCloud";
 import { RUNNING_RACE_LABELS, type RunningRaceType } from "@/lib/runningFocusMode";
+import { RunMLSSCoherenceCard } from "@/components/RunMLSSCoherenceCard";
 
 // =============================================
 // TYPES
@@ -117,7 +118,9 @@ export interface VLamaxUnifiedCardProps {
   athleteId?: string;
   vo2max?: number | null;
   economyScore?: number | null;
-  
+  /** Run MLSS coherence (Modèle C) — depuis diagnostic.runMLSS */
+  runMLSS?: import("@/engines/diagnostic").AthleteDiagnostic["runMLSS"];
+
   // Display options
   isTriathlon?: boolean;
   isRunningOnly?: boolean;
@@ -158,6 +161,7 @@ export function VLamaxUnifiedCard({
   athleteId,
   vo2max,
   economyScore,
+  runMLSS,
   isTriathlon = false,
   isRunningOnly = false,
   className,
@@ -321,6 +325,7 @@ export function VLamaxUnifiedCard({
                   vo2max={vo2max}
                   economyScore={economyScore}
                 />
+                {runMLSS && <RunMLSSCoherenceCard runMLSS={runMLSS} variant="card" />}
               </LazyTabsContent>
             )}
             
@@ -345,16 +350,19 @@ export function VLamaxUnifiedCard({
             ambitionLevel={ambition as "finisher" | "performance" | "podium" | "elite"}
           />
         ) : (
-          <RunAnalysisSection
-            vlamax={vlamax}
-            age={age}
-            objectif={objectif}
-            athleteId={athleteId}
-            vlamaxSource={vlamaxEffectif.source}
-            vlamaxConfidence={vlamaxEffectif.confidence}
-            vo2max={vo2max}
-            economyScore={economyScore}
-          />
+          <>
+            <RunAnalysisSection
+              vlamax={vlamax}
+              age={age}
+              objectif={objectif}
+              athleteId={athleteId}
+              vlamaxSource={vlamaxEffectif.source}
+              vlamaxConfidence={vlamaxEffectif.confidence}
+              vo2max={vo2max}
+              economyScore={economyScore}
+            />
+            {runMLSS && <RunMLSSCoherenceCard runMLSS={runMLSS} variant="card" className="mt-3" />}
+          </>
         )}
         
         {/* ═══ ÉDUCATION (collapsible) ═══ */}
