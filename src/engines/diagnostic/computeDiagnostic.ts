@@ -292,7 +292,8 @@ function computeSynthesis(
   readiness: PotentielV2Result,
   fatigue: FatigueEffectif,
   runInjuryRisk: RunInjuryRiskEnvelope | null,
-  input: DiagnosticInput
+  input: DiagnosticInput,
+  runMLSS: AthleteDiagnostic["runMLSS"]
 ): DiagnosticSynthesis {
   const alerts: DiagnosticAlert[] = [];
 
