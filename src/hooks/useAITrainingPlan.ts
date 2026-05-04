@@ -25,6 +25,11 @@ export interface PlanAthleteData {
   p60s?: number | null;
   map5min?: number | null;
   paceThresholdSecPerKm?: number | null;
+  /** Run MLSS effectif (% VMA au seuil) — observé si pace_threshold dispo, sinon prédit Modèle C (VLamax run + CE) */
+  runMLSSEffectivePct?: number | null;
+  runMLSSEffectiveSource?: "observed" | "predicted" | "none" | null;
+  /** Économie de course (Score G, 1-5) utile pour qualifier la prédiction MLSS */
+  runEconomyScore?: number | null;
 }
 
 export interface RaceGoal {
