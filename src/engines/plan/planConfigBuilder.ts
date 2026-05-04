@@ -43,6 +43,11 @@ export function buildPlanAthleteDataFromDiagnostic(
     p30s: raw.p30sW,
     p60s: raw.p60sW,
     map5min: raw.map5minW,
+    paceThresholdSecPerKm: raw.paceThresholdSecPerKm ?? null,
+    runEconomyScore: raw.runEconomyScore ?? null,
+    // Run MLSS Modèle C — fallback effectif si pace_threshold manquant
+    runMLSSEffectivePct: diagnostic.runMLSS?.effectivePct ?? null,
+    runMLSSEffectiveSource: diagnostic.runMLSS?.effectiveSource ?? null,
   };
 }
 
