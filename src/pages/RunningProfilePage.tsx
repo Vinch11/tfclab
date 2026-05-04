@@ -454,6 +454,14 @@ export default function RunningProfilePage() {
           />
         ),
       },
+      ...(runMLSS
+        ? [
+            {
+              id: "run-mlss-coherence",
+              render: () => <RunMLSSCoherenceCard runMLSS={runMLSS} variant="card" />,
+            },
+          ]
+        : []),
       {
         id: "calibration-summary",
         render: () => (
