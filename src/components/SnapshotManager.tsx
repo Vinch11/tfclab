@@ -43,8 +43,9 @@ import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersi
 
 // CAP objectives where running economy is critical
 const CAP_OBJECTIVES = [
-  "Marathon", "Semi", "Course", "Trail", "TrailCourt", "TrailLong", 
-  "TrailMountain", "TrailUltra", "TrailShort", "TriathlonLD", "IM", "Ironman", "70.3"
+  "Marathon", "marathon", "Semi", "semi", "SemiMarathon", "Course", "Trail", "TrailCourt", "TrailLong",
+  "TrailMountain", "TrailUltra", "TrailShort", "TriathlonLD", "TriathlonOD",
+  "IM", "Ironman", "ironman", "70.3", "703", "olympic", "OD"
 ];
 
 function isRunningObjective(goal: string | null | undefined): boolean {
