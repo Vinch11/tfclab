@@ -258,30 +258,62 @@ function computeScoreG(
   // Original: S_pmax=0.30, S30=0.20, S60=0.10, E=0.25, D=0.15
   // With W': redistribute to accommodate 0.12 for W'
   //
-  // HIGH FRACTIONAL UTILIZATION DAMPENING:
-  // When FTP/MAP > 0.80, the athlete has a strong aerobic engine.
-  // A high P30s/FTP ratio in such profiles is often neuromuscular
-  // (fast-twitch recruitment) rather than purely glycolytic.
-  // We reduce S30 weight from 0.18 → 0.08 and redistribute +0.05
-  // to E (fractional util) and +0.05 to D (durability) which are
-  // more reliable indicators for these hybrid profiles.
-  const isHighFractionalUtil = rfm !== null && rfm > 0.80;
-  
+  // P1 — TIERED HYBRID PROFILE DAMPENING:
+  // The FTP/MAP5min ratio (rfm) reveals fractional utilization. A high rfm
+  // means the athlete already extracts most of their aerobic ceiling at FTP,
+  // which makes neuromuscular indices (Pmax, P30s) misleading proxies for
+  // glycolytic capacity (they reflect fast-twitch recruitment instead).
+  //
+  //   rfm ≤ 0.80 → "pur"          : weights nominaux
+  //   0.80–0.90  → "hybride"      : S30 dampened, E/D boosted
+  //   0.90–0.95  → "endurance++"  : S30 nearly excluded, S_pmax halved, E/D dominent
+  //   > 0.95     → "rfm suspect"  : FTP probablement surestimé → forcer Mader/E only
+  //
+  // Refs: Spragg 2023 (neuromuscular vs glycolytic dissociation in trained
+  // endurance cyclists); Sitko 2022 (high fractional util in hybrid profiles).
+  const hybridTier =
+    rfm === null            ? "unknown" :
+    rfm > 0.95              ? "rfm_suspect" :
+    rfm > 0.90              ? "endurance_pp" :
+    rfm > 0.80              ? "hybrid" :
+                              "pure";
+
   // CP data quality guard: reduce weight of CP-derived indices when suspect
   const cpSuspectPenalty = cpDataQuality === "suspect" ? 0.5 : 1.0;
-  
-  const w_pmax = 0.25;
-  const w_s30  = (isHighFractionalUtil ? 0.08 : 0.18) * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
-  const w_s60  = 0.09 * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
-  const w_E    = isHighFractionalUtil ? 0.27 : 0.22;
-  const w_D    = isHighFractionalUtil ? 0.19 : 0.14;
-  const w_W    = 0.12;
+
+  // Tiered weights
+  let w_pmax: number, w_s30_base: number, w_s60_base: number, w_E: number, w_D: number, w_W: number;
+  switch (hybridTier) {
+    case "rfm_suspect":
+      // Extreme rfm: FTP almost certainly overestimated (or MAP under-tested).
+      // Lean entirely on E (which captures the rfm itself) and D. Quasi-exclude
+      // P-based indices that would amplify the bias.
+      w_pmax = 0.10; w_s30_base = 0.04; w_s60_base = 0.04;
+      w_E    = 0.40; w_D = 0.30; w_W = 0.12;
+      break;
+    case "endurance_pp":
+      w_pmax = 0.15; w_s30_base = 0.06; w_s60_base = 0.07;
+      w_E    = 0.32; w_D = 0.22; w_W = 0.12;
+      break;
+    case "hybrid":
+      w_pmax = 0.25; w_s30_base = 0.08; w_s60_base = 0.09;
+      w_E    = 0.27; w_D = 0.19; w_W = 0.12;
+      break;
+    case "pure":
+    case "unknown":
+    default:
+      w_pmax = 0.25; w_s30_base = 0.18; w_s60_base = 0.09;
+      w_E    = 0.22; w_D = 0.14; w_W = 0.12;
+  }
+
+  const w_s30 = w_s30_base * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
+  const w_s60 = w_s60_base * (cpDataQuality === "implausible" ? 0 : cpSuspectPenalty);
   
   let scoreG = 0;
   let totalWeight = 0;
   
   if (S_pmax !== null) { scoreG += w_pmax * S_pmax; totalWeight += w_pmax; sources.push("Pmax5s"); }
-  if (S30 !== null) { scoreG += w_s30 * S30; totalWeight += w_s30; sources.push(isHighFractionalUtil ? "P30s↓" : "P30s"); }
+  if (S30 !== null) { scoreG += w_s30 * S30; totalWeight += w_s30; sources.push(hybridTier === "pure" || hybridTier === "unknown" ? "P30s" : `P30s↓(${hybridTier})`); }
   if (S60 !== null) { scoreG += w_s60 * S60; totalWeight += w_s60; sources.push("P60s"); }
   if (E !== null) { scoreG += w_E * E; totalWeight += w_E; sources.push("MAP5min"); }
   if (D !== null) { scoreG += w_D * D; totalWeight += w_D; sources.push("TTE"); }
@@ -292,8 +324,16 @@ function computeScoreG(
     scoreG = scoreG / totalWeight;
   }
   
-  // VLamax_raw = 0.20 + 0.80 * G (recalibrated: floor at 0.20, range 0.80)
-  const vlamax = clamp(0.20 + 0.80 * scoreG, 0.20, 1.05);
+  // VLamax_raw = floor + range * G (recalibrated by hybrid tier)
+  // Pure/hybrid: 0.20 + 0.80*G (full range up to 1.00)
+  // endurance_pp/rfm_suspect: lower the upper coefficient — high rfm profiles
+  // are physiologically biased toward low VLamax (oxidative dominance), so the
+  // empirical score should not be allowed to project them into sprinter territory.
+  const range =
+    hybridTier === "rfm_suspect" ? 0.45 :   // cap ≈ 0.65
+    hybridTier === "endurance_pp" ? 0.55 :  // cap ≈ 0.75
+    0.80;                                    // nominal
+  const vlamax = clamp(0.20 + range * scoreG, 0.20, 1.05);
   
   return {
     scoreG: Number(scoreG.toFixed(3)),
@@ -327,7 +367,31 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   }
   
   sources.push("FTP");
-  
+
+  // =============================================
+  // P1 — FTP/MAP COHERENCE GUARD
+  // A FTP/MAP5min ratio above ~0.92 is physiologically rare (literature: elite
+  // pros plateau around 0.88–0.90; Coggan/Allen). Above 0.95 it is almost
+  // always an artefact: FTP overestimated (recent test, fresh state, short
+  // protocol) or MAP under-tested. We surface this explicitly so the coach
+  // can re-test rather than blindly trusting the downstream VLamax.
+  // =============================================
+  if (map5min_w != null && map5min_w > 0) {
+    const rfmGlobal = ftp / map5min_w;
+    if (rfmGlobal > 0.95) {
+      warnings.push(
+        `FTP/MAP5min = ${rfmGlobal.toFixed(2)} (anormalement élevé > 0.95). ` +
+        `Probable surestimation FTP ou sous-test MAP. ` +
+        `Recommandation : re-tester FTP (20-min ou ramp) à froid avant de fier la VLamax.`
+      );
+    } else if (rfmGlobal > 0.92) {
+      warnings.push(
+        `FTP/MAP5min = ${rfmGlobal.toFixed(2)} (élevé). ` +
+        `Profil endurance pure ou FTP légèrement surestimé — VLamax dampée en conséquence.`
+      );
+    }
+  }
+
   // =============================================
   // ÉTAPE 1: Calcul Mader MLSS (PRIMARY — gold standard)
   // =============================================
@@ -563,6 +627,16 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     };
   }
   
+  // P1 — Confidence penalty when FTP/MAP suspect (data quality flag, not method divergence)
+  if (map5min_w != null && map5min_w > 0) {
+    const rfmGlobal = ftp / map5min_w;
+    if (rfmGlobal > 0.95) {
+      confidence = Math.max(0.40, confidence - 0.20);
+    } else if (rfmGlobal > 0.92) {
+      confidence = Math.max(0.50, confidence - 0.10);
+    }
+  }
+
   // Clamp final
   finalValue = Number(clamp(finalValue, 0.20, 1.05).toFixed(2));
   
