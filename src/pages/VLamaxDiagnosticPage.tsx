@@ -364,3 +364,224 @@ export default function VLamaxDiagnosticPage() {
     </SidebarLayout>
   );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// METHODS BREAKDOWN — Mader MLSS / Mader TTE / Score G + divergence + reason
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface MethodsBreakdownProps {
+  result: ReturnType<typeof computeVLamaxBikeV2Enhanced>;
+  components: any;
+}
+
+function MethodRow({
+  label,
+  value,
+  finalValue,
+  status,
+  detail,
+}: {
+  label: string;
+  value: number | null;
+  finalValue: number;
+  status: "active" | "excluded" | "unavailable";
+  detail: string;
+}) {
+  const delta =
+    value !== null && status !== "unavailable"
+      ? Math.abs(value - finalValue)
+      : null;
+  const statusClass =
+    status === "active"
+      ? "border-emerald-500/40 bg-emerald-500/5"
+      : status === "excluded"
+      ? "border-amber-500/40 bg-amber-500/5"
+      : "border-muted bg-muted/20 opacity-60";
+  const statusLabel =
+    status === "active" ? "Utilisé" : status === "excluded" ? "Écarté" : "N/D";
+  return (
+    <div className={`border rounded-md p-3 ${statusClass}`}>
+      <div className="flex items-center justify-between mb-1">
+        <div className="font-medium text-sm">{label}</div>
+        <Badge
+          variant="outline"
+          className={
+            status === "active"
+              ? "text-emerald-700 dark:text-emerald-300 border-emerald-500/50"
+              : status === "excluded"
+              ? "text-amber-700 dark:text-amber-300 border-amber-500/50"
+              : ""
+          }
+        >
+          {statusLabel}
+        </Badge>
+      </div>
+      <div className="flex items-baseline justify-between">
+        <div className="font-mono text-2xl font-bold">
+          {value !== null ? value.toFixed(2) : "—"}
+        </div>
+        {delta !== null && (
+          <div className="text-xs text-muted-foreground">
+            Δ vs final : <span className="font-mono">{delta.toFixed(2)}</span>
+          </div>
+        )}
+      </div>
+      <p className="text-xs text-muted-foreground mt-1">{detail}</p>
+    </div>
+  );
+}
+
+function MethodsBreakdown({ result, components }: MethodsBreakdownProps) {
+  const finalValue = result.value;
+  const fusionMethod: string = components?.fusion_method ?? "—";
+  const divergence: number | null = components?.divergence ?? null;
+  const maderMLSS: number | null = components?.mader_mlss ?? null;
+  const maderTTE: number | null = components?.mader_tte ?? null;
+  const scoreG: number | null = components?.scoreG ?? null;
+  // VLamax dérivée du Score G : engine = clamp(0.20 + range*scoreG)
+  // range varie selon tier hybride (0.45 à 0.80) — on prend vlamax_raw quand fusion = scoreG_only,
+  // sinon on affiche la valeur normalisée approximative pour comparaison.
+  const vlamaxFromScoreG: number | null = (() => {
+    if (scoreG === null) return null;
+    if (fusionMethod === "scoreG_only" && components?.vlamax_raw)
+      return Number(components.vlamax_raw);
+    // approximation : range = 0.80 (tier pure/hybrid)
+    return Number((0.2 + 0.8 * scoreG).toFixed(3));
+  })();
+
+  // Statuts
+  const isExcludedByDivergence =
+    divergence !== null && divergence > 0.2 && fusionMethod === "mader_primary";
+
+  const mlssStatus: "active" | "excluded" | "unavailable" =
+    maderMLSS === null ? "unavailable" : "active";
+  const tteStatus: "active" | "excluded" | "unavailable" =
+    maderTTE === null
+      ? "unavailable"
+      : isExcludedByDivergence || fusionMethod === "scoreG_only"
+      ? "excluded"
+      : "active";
+  const scoreGStatus: "active" | "excluded" | "unavailable" =
+    scoreG === null
+      ? "unavailable"
+      : isExcludedByDivergence
+      ? "excluded"
+      : "active";
+
+  // Raison du choix final (texte)
+  const reason = (() => {
+    if (isExcludedByDivergence) {
+      return `Divergence critique entre méthodes (Δmax = ${divergence!.toFixed(
+        2
+      )} > 0.20 mmol/L/s). Repli sur Mader MLSS seul (gold standard physiologique). Les autres méthodes sont écartées car les signaux sont physiologiquement incompatibles.`;
+    }
+    switch (fusionMethod) {
+      case "mader_primary":
+        if (maderTTE !== null && scoreG !== null)
+          return "Triple validation : Mader MLSS (50 %) + Mader TTE (25 %) + Score G (25 %). C'est la fusion la plus robuste, utilisée quand les 3 sources sont disponibles et cohérentes.";
+        if (scoreG !== null)
+          return "Fusion Mader MLSS (65 %) + Score G (35 %). TTE indisponible ou exclu — la cohérence FTP/VO₂max reste validée par les indices de puissance.";
+        return "Mader MLSS seul (TTE et Score G indisponibles).";
+      case "mader_cross":
+        return "Cross-validation Mader MLSS (60 %) + Mader TTE (40 %). Score G indisponible — les deux estimations métaboliques se valident mutuellement.";
+      case "scoreG_only":
+        return "Score G seul (Mader MLSS impossible — données métaboliques insuffisantes ou FTP/VO₂max incohérentes). Fiabilité réduite.";
+      case "pmax_fallback":
+        return "Fallback Pmax 5 s seul (toutes les autres méthodes ont échoué). Estimation grossière à interpréter avec prudence.";
+      default:
+        return "Méthode de fusion non identifiée.";
+    }
+  })();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center justify-between">
+          <span>Décomposition méthode-par-méthode</span>
+          {divergence !== null && (
+            <Badge
+              variant="outline"
+              className={
+                divergence > 0.2
+                  ? "border-red-500/50 text-red-700 dark:text-red-300"
+                  : divergence > 0.1
+                  ? "border-amber-500/50 text-amber-700 dark:text-amber-300"
+                  : "border-emerald-500/50 text-emerald-700 dark:text-emerald-300"
+              }
+            >
+              Δmax = {divergence.toFixed(2)}
+            </Badge>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* 3 méthodes côte-à-côte */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <MethodRow
+            label="Mader MLSS (M1)"
+            value={maderMLSS}
+            finalValue={finalValue}
+            status={mlssStatus}
+            detail="Inverse de l'équation Mader-Heck à partir de FTP, VO₂max, poids. Gold standard physiologique."
+          />
+          <MethodRow
+            label="Mader TTE (M2)"
+            value={maderTTE}
+            finalValue={finalValue}
+            status={tteStatus}
+            detail="Calibration via durabilité glycogénique (TTE observé). Validation croisée Rapoport 2010."
+          />
+          <MethodRow
+            label="Score G (M3)"
+            value={vlamaxFromScoreG}
+            finalValue={finalValue}
+            status={scoreGStatus}
+            detail={`Faisceau d'indices Pmax/FTP/MAP/TTE/W'. Score G normalisé = ${
+              scoreG !== null ? scoreG.toFixed(3) : "—"
+            }.`}
+          />
+        </div>
+
+        <Separator />
+
+        {/* Valeur finale + raison */}
+        <div className="rounded-md border bg-primary/5 p-3 space-y-2">
+          <div className="flex items-baseline justify-between">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Valeur finale retenue
+            </div>
+            <div className="font-mono text-2xl font-bold">
+              {finalValue.toFixed(2)}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground mb-1">
+              Méthode de fusion : {fusionMethod}
+            </div>
+            <p className="text-sm">{reason}</p>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Sources fusionnées */}
+        <div>
+          <div className="text-xs font-semibold text-muted-foreground mb-1">
+            Indices puissance utilisés dans le Score G
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {result.sources.length === 0 && (
+              <span className="text-xs text-muted-foreground">—</span>
+            )}
+            {result.sources.map((s, i) => (
+              <Badge key={i} variant="secondary" className="text-xs">
+                {s}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
