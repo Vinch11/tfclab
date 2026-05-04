@@ -461,14 +461,20 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   }
 
   // =============================================
-  // ÉTAPE 4: FUSION MULTI-INDEX
+  // ÉTAPE 4: FUSION MULTI-INDEX (recalibré post-audit empirique 2026-05)
   //
-  // P0.2 GUARD: When max divergence between methods exceeds 0.20 mmol/L/s, the
-  // methods are physiologically incompatible — averaging produces a non-physical
-  // value. We fall back to Mader MLSS alone (gold standard) with reduced confidence
-  // and explicit warning, instead of polluting the result with diverging signals.
+  // Mader MLSS inversé sous-estime systématiquement la VLamax sur les profils
+  // anaérobies (sprinteurs : prédit ~0.34 vs labo ~0.85). On rééquilibre donc
+  // le poids du Score G vers le haut quand un signal anaérobie FORT est présent
+  // (Pmax/FTP > 3.5 indique un athlète à dominance neuromusculaire).
+  //
+  // Le guard "divergence critique → Mader seul" passe de 0.20 à 0.30 mmol/L/s
+  // car les vrais sprinteurs ont structurellement une grosse divergence Mader/Score G
+  // — l'écraser revient à les pénaliser pour leur physiologie.
   // =============================================
-  const DIVERGENCE_FALLBACK_THRESHOLD = 0.20;
+  const DIVERGENCE_FALLBACK_THRESHOLD = 0.30;
+  const pmaxRatio = pmax_5s != null && pmax_5s > 0 ? pmax_5s / ftp : null;
+  const isAnaerobicProfile = pmaxRatio !== null && pmaxRatio > 3.5;
 
   let finalValue: number;
   let confidence: number;
@@ -493,8 +499,11 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     }
     divergence = candidates.length > 1 ? Number(maxDev.toFixed(3)) : null;
 
-    // P0.2: Hard fallback when methods are physiologically incompatible
-    if (divergence !== null && divergence > DIVERGENCE_FALLBACK_THRESHOLD) {
+    // GUARD: divergence critique (>0.30) ET pas de signal anaérobie fort →
+    // fallback Mader seul (gold standard pour profils aérobies).
+    // Si le profil est anaérobie (Pmax/FTP > 3.5), on garde la fusion : Mader
+    // est connu pour sous-estimer ces profils, donc divergence = info utile.
+    if (divergence !== null && divergence > DIVERGENCE_FALLBACK_THRESHOLD && !isAnaerobicProfile) {
       warnings.push(
         `Divergence critique entre méthodes (Δmax=${divergence.toFixed(2)}) — fallback sur Mader MLSS seul (gold standard). ` +
         `Vérifier la cohérence FTP/VO2max/Pmax/TTE.`
@@ -504,16 +513,23 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
       confidence = 0.50 + 0.05 * qualityFactor;
       formulaLabel = "Mader MLSS seul (divergence critique — autres méthodes écartées)";
     } else if (maderTTE !== null && scoreGValue !== null) {
-      // Triple validation: Mader MLSS (50%) + Mader TTE (25%) + Score G (25%)
-      finalValue = maderMLSS * 0.50 + maderTTE * 0.25 + scoreGValue * 0.25;
+      // Triple validation. Pondération adaptée au profil :
+      //   - Anaérobie (Pmax/FTP>3.5) : Score G dominant (50%) car Mader sous-estime
+      //   - Aérobie nominal           : Mader dominant (50%) car Score G bruité
+      const wMader = isAnaerobicProfile ? 0.30 : 0.50;
+      const wTTE   = isAnaerobicProfile ? 0.20 : 0.25;
+      const wG     = isAnaerobicProfile ? 0.50 : 0.25;
+      finalValue = maderMLSS * wMader + maderTTE * wTTE + scoreGValue * wG;
       fusionMethod = "mader_primary";
       confidence = 0.80 + 0.10 * qualityFactor;
-      formulaLabel = "Mader + TTE + Score G (triple validation)";
+      formulaLabel = isAnaerobicProfile
+        ? "Score G dominant + Mader + TTE (profil anaérobie)"
+        : "Mader + TTE + Score G (triple validation)";
 
-      if (maxDev > 0.15) {
+      if (maxDev > 0.20) {
         warnings.push(`Divergence élevée entre méthodes (Δmax=${maxDev.toFixed(2)}) — vérifier données`);
         confidence = Math.max(0.55, confidence - 0.15);
-      } else if (maxDev > 0.08) {
+      } else if (maxDev > 0.10) {
         warnings.push(`Divergence modérée entre méthodes (Δmax=${maxDev.toFixed(2)})`);
         confidence = Math.max(0.60, confidence - 0.08);
       }
@@ -525,20 +541,26 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
       confidence = 0.78 + 0.10 * qualityFactor;
       formulaLabel = "Mader MLSS + TTE (cross-validation)";
 
-      if (maxDev > 0.12) {
+      if (maxDev > 0.15) {
         warnings.push(`Divergence Mader MLSS vs TTE (Δ=${maxDev.toFixed(2)})`);
         confidence = Math.max(0.55, confidence - 0.12);
       }
 
     } else if (scoreGValue !== null) {
-      // Mader MLSS (65%) + Score G (35%)
-      finalValue = maderMLSS * 0.65 + scoreGValue * 0.35;
+      // Mader + Score G — pondération adaptée au profil.
+      //   - Anaérobie : 35% Mader / 65% Score G (Mader sous-estime systématiquement)
+      //   - Aérobie   : 60% Mader / 40% Score G (Mader gold standard, Score G d'appoint)
+      const wMader = isAnaerobicProfile ? 0.35 : 0.60;
+      const wG     = 1 - wMader;
+      finalValue = maderMLSS * wMader + scoreGValue * wG;
       fusionMethod = "mader_primary";
       confidence = 0.75 + 0.10 * qualityFactor;
-      formulaLabel = "Mader MLSS + Score G";
+      formulaLabel = isAnaerobicProfile
+        ? "Score G dominant + Mader MLSS (profil anaérobie)"
+        : "Mader MLSS + Score G";
 
-      if (maxDev > 0.12) {
-        warnings.push(`Divergence Mader vs Score G (Δ=${maxDev.toFixed(2)}) — Score G utilisé comme pondération secondaire`);
+      if (maxDev > 0.15) {
+        warnings.push(`Divergence Mader vs Score G (Δ=${maxDev.toFixed(2)})`);
         confidence = Math.max(0.55, confidence - 0.10);
       }
 
