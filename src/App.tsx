@@ -29,6 +29,7 @@ import { CAPTestingWeekPage } from "./components/CAPTestingWeek";
 import { RunningGuidancePage } from "./components/RunningWeeklyGuidance";
 import WorkoutLibraryBrowserPage from "./pages/WorkoutLibraryBrowserPage";
 import PlanLibraryPage from "./pages/PlanLibraryPage";
+import VLamaxDiagnosticPage from "./pages/VLamaxDiagnosticPage";
 
 const queryClient = new QueryClient();
 
