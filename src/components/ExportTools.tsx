@@ -111,6 +111,7 @@ export interface ReportSections {
   compass: boolean;         // Metabolic Performance Compass
   profilMetabolique: boolean; // Profil Métabolique Complet (Radar Chart)
   vlamaxZoneConfidence: boolean; // ⚡ VLamax = Zone × Confiance (graphique signature)
+  runMLSSCoherence: boolean; // 🎯 Run MLSS Cohérence (Modèle C — RMSE 2.64%)
   indicateurs: boolean;     // Indicateurs Clés
   pacingEnvelope: boolean;  // Pacing Envelope™ - Discipline Métabolique
   potentielPhysiologiqueRunning: boolean; // Potentiel Physiologique CAP (Running)
