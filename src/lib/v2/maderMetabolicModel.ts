@@ -516,7 +516,9 @@ export function calibrateVLamaxFromMLSS(
   observedMAP?: number | null,  // MAP réelle (P5min) si disponible — plus précis que MAP dérivée
 ): number {
   const efficiency = 0.23; // Default gross mechanical efficiency
-  const ALPHA = 2.5; // Recalibré post-audit empirique 2026-05 (était 3.0 — sous-estimait systématiquement)
+  // CRITICAL: must match findMLSSPower α to keep forward/inverse consistency.
+  // Refit Nov 2026 on N=44 lab profiles → α=1.98 (RMSE 3.7%). See findMLSSPower.
+  const ALPHA = USE_CALIBRATED_MADER_ALPHA ? MADER_ALPHA_CALIBRATED : 2.5;
 
   // Absolute VO2max in L/min
   const vo2maxAbs = vo2max * weight / 1000;
