@@ -3592,7 +3592,6 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
 
   const xvSeverityClass: Record<string, string> = {
     ok: "alertSuccess",
-    info: "alertInfo",
     warning: "alertWarning",
     critical: "alertError",
   };
@@ -3602,7 +3601,7 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
     <div class="card" style="padding:10px;">
       <div style="font-size:10px;color:#64748b;">Prédit Modèle C</div>
       <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${prediction.mlssPct.toFixed(1)}% VMA</div>
-      <div style="font-size:10px;color:#64748b;margin-top:2px;">RMSE ±${prediction.rmsePct.toFixed(2)}%</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px;">RMSE ±${prediction.trace.rmseExpected.toFixed(2)}%</div>
     </div>` : `
     <div class="card" style="padding:10px;">
       <div style="font-size:10px;color:#64748b;">Prédit Modèle C</div>
@@ -3623,7 +3622,7 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
   const xvBlock = crossValidation && observedPct != null && prediction ? `
     <div class="alert ${xvAlertClass} mt" style="font-size:11px;">
       <b>🔬 Cross-validation observé vs prédit :</b> Δ = ${crossValidation.deltaPct > 0 ? "+" : ""}${crossValidation.deltaPct.toFixed(1)}% — <b>${crossValidation.severity.toUpperCase()}</b><br>
-      ${crossValidation.message ?? ""}
+      ${crossValidation.explanation ?? ""}
     </div>` : "";
 
   return `
