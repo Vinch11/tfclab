@@ -229,18 +229,11 @@ export function importCSV(text: string, defaultDate?: string): ImportRowResult[]
     }
 
     // 3) Pace+VMA synthétiques si manquants (pour conformité buildCohortEntry)
-    if (paceSec == null || vma == null) {
-      // On utilise VMA réelle si dispo, sinon on en synthétise une à partir de VO2max ou vDOT
-      const vmaSynth = vma ?? (vo2 != null ? Number((vo2 / 3.5).toFixed(1)) : 16.0);
-      const speedSeuilKmh = vmaSynth * (mlssPct / 100);
-      const paceSynth = Math.round(3600 / speedSeuilKmh);
-      paceSec = paceSec ?? paceSynth;
-      // VMA finale
-      // @ts-expect-error réassignation contrôlée
-      // eslint-disable-next-line no-param-reassign
-      // (vma défini ci-dessous)
+    const vmaFinal = vma ?? (vo2 != null ? Number((vo2 / 3.5).toFixed(1)) : 16.0);
+    if (paceSec == null) {
+      const speedSeuilKmh = vmaFinal * (mlssPct / 100);
+      paceSec = Math.round(3600 / speedSeuilKmh);
     }
-    const vmaFinal = vma ?? (vo2 != null ? Number((vo2 / 3.5).toFixed(1)) : Number(((3600 / paceSec!) / (mlssPct / 100)).toFixed(1)));
 
     // 4) Qualité
     let q: 2 | 3 | 4 | 5;
