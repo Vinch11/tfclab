@@ -526,36 +526,75 @@ export function calibrateVLamaxFromMLSS(
 
 /**
  * Back-calculate VLamax from observed TTE at MLSS
+ *
+ * Returns null if:
+ * - The binary search hits a boundary without converging (TTE incompatible with model)
+ * - The observed TTE falls outside the predictable range for any plausible VLamax
+ *
+ * This prevents the previous silent-failure bug where the upper bound (1.0) was
+ * returned as if it were a real estimate, polluting downstream fusion.
  */
 export function calibrateVLamaxFromTTE(
   observedTTE: number,
   vo2max: number,
   weight: number,
   mlssPower: number
-): number {
-  let lowVlamax = 0.15;
-  let highVlamax = 1.0;
-  
+): number | null {
+  const LOW_BOUND = 0.15;
+  const HIGH_BOUND = 1.0;
+  let lowVlamax = LOW_BOUND;
+  let highVlamax = HIGH_BOUND;
+
   const tolerance = 2; // minutes
-  
+
+  // Pre-check: ensure the observed TTE is within the model's predictable envelope.
+  // If TTE@LOW > observed AND TTE@HIGH > observed → observed is too short, even max VLamax can't reach
+  // If TTE@LOW < observed AND TTE@HIGH < observed → observed is too long, even min VLamax can't reach
+  const tteAtLow = calculateTTE(mlssPower, { vo2max, vlamax: LOW_BOUND, weight });
+  const tteAtHigh = calculateTTE(mlssPower, { vo2max, vlamax: HIGH_BOUND, weight });
+
+  // The function is monotonic decreasing (higher VLamax → shorter TTE).
+  // Observed must lie between [tteAtHigh, tteAtLow].
+  const minPredictable = Math.min(tteAtLow, tteAtHigh);
+  const maxPredictable = Math.max(tteAtLow, tteAtHigh);
+  if (observedTTE < minPredictable - tolerance || observedTTE > maxPredictable + tolerance) {
+    return null; // Observed TTE incompatible with model — refuse to estimate
+  }
+
+  let converged = false;
+
   while (highVlamax - lowVlamax > 0.005) {
     const midVlamax = (lowVlamax + highVlamax) / 2;
     const profile: MaderProfile = { vo2max, vlamax: midVlamax, weight };
     const predictedTTE = calculateTTE(mlssPower, profile);
-    
+
     if (Math.abs(predictedTTE - observedTTE) < tolerance) {
       return Number(midVlamax.toFixed(3));
     }
-    
+
     // Higher VLamax = higher carb burn = shorter TTE
     if (predictedTTE > observedTTE) {
       lowVlamax = midVlamax;
     } else {
       highVlamax = midVlamax;
     }
+    converged = true;
   }
-  
-  return Number(((lowVlamax + highVlamax) / 2).toFixed(3));
+
+  const result = (lowVlamax + highVlamax) / 2;
+
+  // GUARD: refuse boundary-pinned results — they indicate non-convergence,
+  // not a real estimate. This was the root cause of VLamax = 1.00 artifacts.
+  const BOUNDARY_EPSILON = 0.02;
+  if (
+    !converged ||
+    result <= LOW_BOUND + BOUNDARY_EPSILON ||
+    result >= HIGH_BOUND - BOUNDARY_EPSILON
+  ) {
+    return null;
+  }
+
+  return Number(result.toFixed(3));
 }
 
 /**
