@@ -143,7 +143,12 @@ export default function VLamaxDiagnosticPage() {
   })();
 
   return (
-    <SidebarLayout>
+    <SidebarLayout
+      activeTab="diagnostic"
+      onTabChange={(tab) => navigate(`/${tab === "dashboard" ? "" : tab}`)}
+      staffMode={false}
+      onStaffModeChange={() => {}}
+    >
       <div className="container mx-auto p-4 md:p-6 max-w-5xl space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between gap-3">
