@@ -148,34 +148,53 @@ export default function RaceSimulationPage() {
     return 'bike';
   }, [defaultRunObjective, isTriathlon, triDiscipline]);
 
-  // Durée par segment (min) — individualisée à partir du pace seuil de l'athlète
-  // si disponible. Sinon fallback sur des valeurs de format (placeholder).
-  // Modèle TFCL™ :
-  //   • Course post-vélo : pace_threshold × coupling factor × distance
-  //     - 70.3 : coupling 1.05 (semi post-T2)
-  //     - IM   : coupling 1.12 (marathon post-T2, drift important)
-  //   • +2 % de pénalité supplémentaire si VLamax > 0.55 (profil glycolytique)
-  //   • Vélo : on conserve la table de format (à individualiser via CP/FTP en v2)
+  // Durée par segment (min) — individualisée à partir du pace seuil de l'athlète.
+  // Modèle TFCL™ — exprimé en % de la vitesse seuil (vSeuil) :
+  //   pace_run = pace_seuil / (vSeuilFraction)   ⇔   vRun = vSeuilFraction × vSeuil
+  //
+  //   Calibration post-T2 par ambition (allure soutenable sur le segment course) :
+  //     ┌──────────────┬────────── 70.3 (semi) ─┬───────── IM (marathon) ─┐
+  //     │ elite        │ ~95% vSeuil            │ ~89% vSeuil             │
+  //     │ competitor   │ ~88% vSeuil            │ ~82% vSeuil             │
+  //     │ age_group    │ ~82% vSeuil            │ ~76% vSeuil             │
+  //     │ finisher     │ ~75% vSeuil            │ ~70% vSeuil             │
+  //     └──────────────┴────────────────────────┴─────────────────────────┘
+  //   • Pénalité additionnelle −2 pts vSeuil si VLamax ≥ 0.55 (profil glycolytique → drift run accru)
+  //   • Vélo : table de format (à individualiser via CP/FTP en v2)
   const segmentDurationMin = React.useMemo(() => {
-    const paceThr = activeSnapshot?.pace_threshold_sec_per_km ?? null; // sec/km
+    const paceThr = activeSnapshot?.pace_threshold_sec_per_km ?? null; // sec/km au seuil
     const vlamaxHigh = (vlamaxEffectif?.value ?? 0.4) >= 0.55;
-    const vlamaxPenalty = vlamaxHigh ? 1.02 : 1.0;
+    const vlamaxVSeuilPenalty = vlamaxHigh ? 0.02 : 0; // -2% vSeuil si glyco
 
-    const computeRunMin = (distanceKm: number, couplingFactor: number): number | null => {
+    const ambition = ((selectedAthlete as any)?.ambition ?? 'age_group') as
+      | 'finisher' | 'age_group' | 'competitor' | 'elite';
+
+    // Fraction de vSeuil soutenue post-T2
+    const vSeuilFractionByAmbition: Record<typeof ambition, { half: number; full: number }> = {
+      elite:      { half: 0.95, full: 0.89 },
+      competitor: { half: 0.88, full: 0.82 },
+      age_group:  { half: 0.82, full: 0.76 },
+      finisher:   { half: 0.75, full: 0.70 },
+    };
+
+    const computeRunMin = (distanceKm: number, vSeuilFraction: number): number | null => {
       if (!paceThr || paceThr <= 0) return null;
-      return (paceThr * couplingFactor * vlamaxPenalty * distanceKm) / 60;
+      const effectiveFraction = Math.max(0.5, vSeuilFraction - vlamaxVSeuilPenalty);
+      // pace réel = pace_seuil / fraction vSeuil
+      const paceRunSecKm = paceThr / effectiveFraction;
+      return (paceRunSecKm * distanceKm) / 60;
     };
 
     if (raceObjective === 'IM') {
-      const runMin = computeRunMin(42.2, 1.12) ?? 240;
+      const runMin = computeRunMin(42.2, vSeuilFractionByAmbition[ambition].full) ?? 240;
       return { bike: 300, run: Math.round(runMin) };
     }
     if (raceObjective === '70.3') {
-      const runMin = computeRunMin(21.1, 1.05) ?? 105;
+      const runMin = computeRunMin(21.1, vSeuilFractionByAmbition[ambition].half) ?? 105;
       return { bike: 150, run: Math.round(runMin) };
     }
     return { bike: 180, run: 180 };
-  }, [raceObjective, activeSnapshot, vlamaxEffectif]);
+  }, [raceObjective, activeSnapshot, vlamaxEffectif, selectedAthlete]);
 
   const raceDurationMin = React.useMemo(() => {
     if (isTriathlon) return segmentDurationMin[discipline];
