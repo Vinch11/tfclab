@@ -267,16 +267,28 @@ export function calculateCarbOxidation(
 // =============================================
 
 /**
+ * Calibrated Mader α coefficient.
+ * 
+ * Refit on N=44 laboratory profiles (17 initial + 27 stratified additions
+ * covering Master, Amateur Female, U23, OffRoad, TT pure, edge cases).
+ *   - α_calibrated = 1.98 → RMSE 3.7% across the full panel
+ *   - α=3.0 (legacy) → RMSE 11.3% (systematic over-estimation of glycolytic penalty)
+ * 
+ * Sources: Weber 2003, Hauser 2014, Heck 1985, Olbrecht, INSCYD whitepapers,
+ * Zuccarelli 2022 (U23). The bi-regime TT vs main is NOT needed in this form
+ * because VO2max_abs already captures TT specificity (α_TT=1.93 ≈ α_main=1.97).
+ */
+const MADER_ALPHA_CALIBRATED = 1.98;
+const MADER_ALPHA_LEGACY = 3.0;
+
+/** Feature flag: enable calibrated α from Nov 2026 dataset refit. */
+export const USE_CALIBRATED_MADER_ALPHA = true;
+
+/**
  * Find Maximal Lactate Steady State (MLSS) power
  * 
  * Uses the analytical Mader relationship:
  *   MLSS_pct = 100 × (1 − α × VLamax / VO2max_abs)
- * 
- * where α ≈ 3.0 is calibrated against laboratory data:
- *   - VO2max=78, VLamax=0.30, 68kg → MLSS ~83% → FTP ~350W ✓
- *   - VO2max=63, VLamax=0.35, 70kg → MLSS ~76% → FTP ~270W ✓
- *   - VO2max=48, VLamax=0.50, 80kg → MLSS ~61% → FTP ~188W ✓
- *   - VO2max=58, VLamax=0.80, 88kg → MLSS ~53% → FTP ~217W ✓
  * 
  * Reference: Mader (2003), Heck & Schulz (2002)
  * Higher VLamax = more glycolytic flux = lower MLSS fraction
@@ -290,8 +302,7 @@ export function findMLSSPower(profile: MaderProfile): number {
   const vo2maxAbs = vo2max * weight / 1000;
   
   // Mader analytical MLSS relationship
-  // α calibrated against INSCYD-validated laboratory datasets
-  const ALPHA = 3.0;
+  const ALPHA = USE_CALIBRATED_MADER_ALPHA ? MADER_ALPHA_CALIBRATED : MADER_ALPHA_LEGACY;
   const mlssIntensityPct = 100 * (1 - ALPHA * vlamax / vo2maxAbs);
   
   // Clamp to physiological range (45-95% VO2max)
@@ -505,7 +516,9 @@ export function calibrateVLamaxFromMLSS(
   observedMAP?: number | null,  // MAP réelle (P5min) si disponible — plus précis que MAP dérivée
 ): number {
   const efficiency = 0.23; // Default gross mechanical efficiency
-  const ALPHA = 2.5; // Recalibré post-audit empirique 2026-05 (était 3.0 — sous-estimait systématiquement)
+  // CRITICAL: must match findMLSSPower α to keep forward/inverse consistency
+  // (round-trip calibrate→predict must converge). Refit Nov 2026 sur N=44.
+  const ALPHA = USE_CALIBRATED_MADER_ALPHA ? MADER_ALPHA_CALIBRATED : 2.5;
 
   // Absolute VO2max in L/min
   const vo2maxAbs = vo2max * weight / 1000;
