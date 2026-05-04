@@ -348,6 +348,39 @@ export default function RunningProfilePage() {
   // SECTIONS RENDERERS — Pour SortableSectionsContainer
   // ═══════════════════════════════════════════════════════════════════════════════
 
+  // Run MLSS (Modèle C calibré N=14+3) — observed + predicted + cross-validation
+  const runMLSS = useMemo<AthleteDiagnostic["runMLSS"]>(() => {
+    const vlamaxRun = effectiveCloudSnapshot?.vlamax_run ?? null;
+    const ce = effectiveCloudSnapshot?.run_economy_score ?? null;
+    const paceSec = effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null;
+    const vmaKmh = effectiveCloudSnapshot?.vma ?? null;
+
+    let observedPct: number | null = null;
+    if (paceSec && paceSec > 0 && vmaKmh && vmaKmh > 0) {
+      const speedKmh = 3600 / paceSec;
+      const ratio = (speedKmh / vmaKmh) * 100;
+      if (ratio >= 50 && ratio <= 100) observedPct = Number(ratio.toFixed(1));
+    }
+    const prediction = predictRunMLSSPctFromVLaCE(vlamaxRun, ce);
+    const crossValidation =
+      observedPct !== null && prediction
+        ? crossValidateRunMLSS(observedPct, vlamaxRun, ce)
+        : null;
+
+    let effectivePct: number | null = null;
+    let effectiveSource: "observed" | "predicted" | "none" = "none";
+    if (observedPct !== null) {
+      effectivePct = observedPct;
+      effectiveSource = "observed";
+    } else if (prediction) {
+      effectivePct = prediction.mlssPct;
+      effectiveSource = "predicted";
+    }
+
+    if (observedPct === null && prediction === null) return null;
+    return { observedPct, prediction, crossValidation, effectivePct, effectiveSource };
+  }, [effectiveCloudSnapshot]);
+
   const sectionRenderers = useMemo(() => {
     if (!currentAthlete) return [];
 
