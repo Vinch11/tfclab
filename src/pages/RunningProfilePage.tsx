@@ -49,6 +49,7 @@ import { VmaTargetsCard } from "@/components/VmaTargetsCard";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 import { MetabolicCompassCAP } from "@/components/charts";
 import { RunMLSSCoherenceCard } from "@/components/RunMLSSCoherenceCard";
+import { RunMLSSDriftDetectionCard } from "@/components/RunMLSSDriftDetectionCard";
 
 // Logique et calculs
 import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
