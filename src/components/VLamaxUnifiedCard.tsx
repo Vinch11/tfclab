@@ -81,6 +81,7 @@ import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
 import { useRunningProfileCloud } from "@/hooks/useRunningProfileCloud";
 import { RUNNING_RACE_LABELS, type RunningRaceType } from "@/lib/runningFocusMode";
+import { RunMLSSCoherenceCard } from "@/components/RunMLSSCoherenceCard";
 
 // =============================================
 // TYPES
