@@ -49,6 +49,7 @@ import { VmaTargetsCard } from "@/components/VmaTargetsCard";
 import { SortableSectionsContainer } from "@/components/SortableSectionsContainer";
 import { MetabolicCompassCAP } from "@/components/charts";
 import { RunMLSSCoherenceCard } from "@/components/RunMLSSCoherenceCard";
+import { RunMLSSDriftDetectionCard } from "@/components/RunMLSSDriftDetectionCard";
 
 // Logique et calculs
 import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
@@ -407,9 +408,19 @@ export default function RunningProfilePage() {
       coachId: currentAthlete.coach_id,
       inputs,
       diag: runMLSS,
-    }).catch((err) => {
-      if (import.meta.env.DEV) console.error("[RunMLSS persist] failed", err);
-    });
+    })
+      .then((res) => {
+        if (res && typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("runmlss-trace-persisted", {
+              detail: { athleteId: currentAthlete.id },
+            }),
+          );
+        }
+      })
+      .catch((err) => {
+        if (import.meta.env.DEV) console.error("[RunMLSS persist] failed", err);
+      });
   }, [currentAthlete?.id, currentAthlete?.coach_id, runMLSS, effectiveCloudSnapshot]);
 
   const sectionRenderers = useMemo(() => {
@@ -490,6 +501,12 @@ export default function RunningProfilePage() {
             {
               id: "run-mlss-coherence",
               render: () => <RunMLSSCoherenceCard runMLSS={runMLSS} variant="card" />,
+            },
+            {
+              id: "run-mlss-drift",
+              render: () => (
+                <RunMLSSDriftDetectionCard athleteId={currentAthlete.id} />
+              ),
             },
           ]
         : []),
