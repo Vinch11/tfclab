@@ -30,6 +30,7 @@ import { RunningGuidancePage } from "./components/RunningWeeklyGuidance";
 import WorkoutLibraryBrowserPage from "./pages/WorkoutLibraryBrowserPage";
 import PlanLibraryPage from "./pages/PlanLibraryPage";
 import VLamaxDiagnosticPage from "./pages/VLamaxDiagnosticPage";
+import RunMLSSCohortPage from "./pages/RunMLSSCohortPage";
 
 const queryClient = new QueryClient();
 
