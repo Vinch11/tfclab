@@ -33,6 +33,8 @@ import {
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import type { DbSnapshot } from "@/hooks/useCloudData";
+import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 interface TFCLTestSheetProps {
   dayKey: string;
@@ -158,6 +160,27 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
           rawData as never,
           `Semaine de Référence TFCL — ${dayKey}`
         );
+
+        // Create calibration_evidence row to feed the 42-day continuous calibration window
+        const evidenceTypeMap: Record<string, string> = {
+          D1: "P30",
+          D3: "MAP",
+          D5: "TTE_OBS",
+        };
+        await supabase.from("calibration_evidence").insert({
+          athlete_id: athlete.id,
+          coach_id: user.id,
+          date: new Date().toISOString().split("T")[0],
+          source_type: "TEST_PROTOCOL",
+          evidence_type: evidenceTypeMap[dayKey] || "P30",
+          raw_values: rawData as Json,
+          protocol_quality: protocolQuality,
+          confidence_evidence: reliability,
+          validity: "OK",
+          notes: `Semaine de Référence TFCL — ${dayKey}`,
+          used_in_calibration: false,
+          calibration_weight: 0,
+        });
       }
 
       await loadData();
