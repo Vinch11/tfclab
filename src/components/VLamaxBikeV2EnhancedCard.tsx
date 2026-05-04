@@ -25,9 +25,11 @@ import {
   ChevronDown,
   Target,
   BarChart3,
+  Beaker,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   computeVLamaxBikeV2Enhanced,
