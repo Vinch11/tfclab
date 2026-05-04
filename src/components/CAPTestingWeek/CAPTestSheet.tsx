@@ -34,6 +34,8 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { DbSnapshot } from "@/hooks/useCloudData";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { SprintTimeConverter } from "./SprintTimeConverter";
 
 interface CAPTestSheetProps {
