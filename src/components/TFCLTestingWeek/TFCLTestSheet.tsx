@@ -44,8 +44,8 @@ interface TFCLTestSheetProps {
 
 export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TFCLTestSheetProps) {
   const { user } = useAuth();
-  const { addSnapshot, updateSnapshot, loadData } = useCloudDataContext();
-  
+  const { addSnapshot, updateSnapshot, addTest, loadData } = useCloudDataContext();
+
   const day = useMemo(
     () => TFCL_TESTING_WEEK.days.find((d) => d.dayKey === dayKey),
     [dayKey]
