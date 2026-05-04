@@ -258,46 +258,31 @@ function computeScoreG(
   // Original: S_pmax=0.30, S30=0.20, S60=0.10, E=0.25, D=0.15
   // With W': redistribute to accommodate 0.12 for W'
   //
-  // P1 — TIERED HYBRID PROFILE DAMPENING:
-  // The FTP/MAP5min ratio (rfm) reveals fractional utilization. A high rfm
-  // means the athlete already extracts most of their aerobic ceiling at FTP,
-  // which makes neuromuscular indices (Pmax, P30s) misleading proxies for
-  // glycolytic capacity (they reflect fast-twitch recruitment instead).
+  // HYBRID PROFILE TIERING (recalibré post-audit empirique 2026-05):
+  // L'ancien P1 (tiers endurance_pp/rfm_suspect avec dampening fort + re-cap)
+  // sous-estimait systématiquement la VLamax sur 4 profils-types sur 5
+  // (Quentin: 0.24 vs labo ~0.37 ; sprinteurs: 0.34 vs labo ~0.85).
+  // On garde un dampening DOUX pour les profils hybrides mais on supprime
+  // les tiers extrêmes qui amputaient le signal Pmax/P30s.
   //
-  //   rfm ≤ 0.80 → "pur"          : weights nominaux
-  //   0.80–0.90  → "hybride"      : S30 dampened, E/D boosted
-  //   0.90–0.95  → "endurance++"  : S30 nearly excluded, S_pmax halved, E/D dominent
-  //   > 0.95     → "rfm suspect"  : FTP probablement surestimé → forcer Mader/E only
+  //   rfm ≤ 0.85 → "pur"          : weights nominaux
+  //   rfm > 0.85 → "hybrid"       : léger dampening S30, léger boost E/D
   //
-  // Refs: Spragg 2023 (neuromuscular vs glycolytic dissociation in trained
-  // endurance cyclists); Sitko 2022 (high fractional util in hybrid profiles).
+  // Refs: Spragg 2023 (neuromuscular vs glycolytic dissociation).
   const hybridTier =
-    rfm === null            ? "unknown" :
-    rfm > 0.95              ? "rfm_suspect" :
-    rfm > 0.90              ? "endurance_pp" :
-    rfm > 0.80              ? "hybrid" :
-                              "pure";
+    rfm === null  ? "unknown" :
+    rfm > 0.85    ? "hybrid"  :
+                    "pure";
 
   // CP data quality guard: reduce weight of CP-derived indices when suspect
   const cpSuspectPenalty = cpDataQuality === "suspect" ? 0.5 : 1.0;
 
-  // Tiered weights
+  // Tiered weights (douces)
   let w_pmax: number, w_s30_base: number, w_s60_base: number, w_E: number, w_D: number, w_W: number;
   switch (hybridTier) {
-    case "rfm_suspect":
-      // Extreme rfm: FTP almost certainly overestimated (or MAP under-tested).
-      // Lean entirely on E (which captures the rfm itself) and D. Quasi-exclude
-      // P-based indices that would amplify the bias.
-      w_pmax = 0.10; w_s30_base = 0.04; w_s60_base = 0.04;
-      w_E    = 0.40; w_D = 0.30; w_W = 0.12;
-      break;
-    case "endurance_pp":
-      w_pmax = 0.15; w_s30_base = 0.06; w_s60_base = 0.07;
-      w_E    = 0.32; w_D = 0.22; w_W = 0.12;
-      break;
     case "hybrid":
-      w_pmax = 0.25; w_s30_base = 0.08; w_s60_base = 0.09;
-      w_E    = 0.27; w_D = 0.19; w_W = 0.12;
+      w_pmax = 0.25; w_s30_base = 0.12; w_s60_base = 0.09;
+      w_E    = 0.25; w_D = 0.17; w_W = 0.12;
       break;
     case "pure":
     case "unknown":
@@ -324,16 +309,8 @@ function computeScoreG(
     scoreG = scoreG / totalWeight;
   }
   
-  // VLamax_raw = floor + range * G (recalibrated by hybrid tier)
-  // Pure/hybrid: 0.20 + 0.80*G (full range up to 1.00)
-  // endurance_pp/rfm_suspect: lower the upper coefficient — high rfm profiles
-  // are physiologically biased toward low VLamax (oxidative dominance), so the
-  // empirical score should not be allowed to project them into sprinter territory.
-  const range =
-    hybridTier === "rfm_suspect" ? 0.45 :   // cap ≈ 0.65
-    hybridTier === "endurance_pp" ? 0.55 :  // cap ≈ 0.75
-    0.80;                                    // nominal
-  const vlamax = clamp(0.20 + range * scoreG, 0.20, 1.05);
+  // VLamax_raw = 0.20 + 0.80 × G  (range complète restaurée post-audit)
+  const vlamax = clamp(0.20 + 0.80 * scoreG, 0.20, 1.05);
   
   return {
     scoreG: Number(scoreG.toFixed(3)),
@@ -399,7 +376,7 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   const hasMaderData = vo2max != null && vo2max > 0 && weight_kg != null && weight_kg > 0;
   
   if (hasMaderData) {
-    maderMLSS = calibrateVLamaxFromMLSS(ftp, vo2max!, weight_kg!);
+    maderMLSS = calibrateVLamaxFromMLSS(ftp, vo2max!, weight_kg!, map5min_w);
     // Sanity check: Mader should return physiologically plausible values
     if (maderMLSS < 0.10 || maderMLSS > 1.20) {
       warnings.push(`Mader MLSS hors bornes (${maderMLSS.toFixed(2)}) — vérifier VO2max/FTP`);
@@ -484,14 +461,20 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   }
 
   // =============================================
-  // ÉTAPE 4: FUSION MULTI-INDEX
+  // ÉTAPE 4: FUSION MULTI-INDEX (recalibré post-audit empirique 2026-05)
   //
-  // P0.2 GUARD: When max divergence between methods exceeds 0.20 mmol/L/s, the
-  // methods are physiologically incompatible — averaging produces a non-physical
-  // value. We fall back to Mader MLSS alone (gold standard) with reduced confidence
-  // and explicit warning, instead of polluting the result with diverging signals.
+  // Mader MLSS inversé sous-estime systématiquement la VLamax sur les profils
+  // anaérobies (sprinteurs : prédit ~0.34 vs labo ~0.85). On rééquilibre donc
+  // le poids du Score G vers le haut quand un signal anaérobie FORT est présent
+  // (Pmax/FTP > 3.5 indique un athlète à dominance neuromusculaire).
+  //
+  // Le guard "divergence critique → Mader seul" passe de 0.20 à 0.30 mmol/L/s
+  // car les vrais sprinteurs ont structurellement une grosse divergence Mader/Score G
+  // — l'écraser revient à les pénaliser pour leur physiologie.
   // =============================================
-  const DIVERGENCE_FALLBACK_THRESHOLD = 0.20;
+  const DIVERGENCE_FALLBACK_THRESHOLD = 0.30;
+  const pmaxRatio = pmax_5s != null && pmax_5s > 0 ? pmax_5s / ftp : null;
+  const isAnaerobicProfile = pmaxRatio !== null && pmaxRatio > 3.5;
 
   let finalValue: number;
   let confidence: number;
@@ -516,8 +499,11 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     }
     divergence = candidates.length > 1 ? Number(maxDev.toFixed(3)) : null;
 
-    // P0.2: Hard fallback when methods are physiologically incompatible
-    if (divergence !== null && divergence > DIVERGENCE_FALLBACK_THRESHOLD) {
+    // GUARD: divergence critique (>0.30) ET pas de signal anaérobie fort →
+    // fallback Mader seul (gold standard pour profils aérobies).
+    // Si le profil est anaérobie (Pmax/FTP > 3.5), on garde la fusion : Mader
+    // est connu pour sous-estimer ces profils, donc divergence = info utile.
+    if (divergence !== null && divergence > DIVERGENCE_FALLBACK_THRESHOLD && !isAnaerobicProfile) {
       warnings.push(
         `Divergence critique entre méthodes (Δmax=${divergence.toFixed(2)}) — fallback sur Mader MLSS seul (gold standard). ` +
         `Vérifier la cohérence FTP/VO2max/Pmax/TTE.`
@@ -527,16 +513,23 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
       confidence = 0.50 + 0.05 * qualityFactor;
       formulaLabel = "Mader MLSS seul (divergence critique — autres méthodes écartées)";
     } else if (maderTTE !== null && scoreGValue !== null) {
-      // Triple validation: Mader MLSS (50%) + Mader TTE (25%) + Score G (25%)
-      finalValue = maderMLSS * 0.50 + maderTTE * 0.25 + scoreGValue * 0.25;
+      // Triple validation. Pondération adaptée au profil :
+      //   - Anaérobie (Pmax/FTP>3.5) : Score G dominant (50%) car Mader sous-estime
+      //   - Aérobie nominal           : Mader dominant (50%) car Score G bruité
+      const wMader = isAnaerobicProfile ? 0.30 : 0.50;
+      const wTTE   = isAnaerobicProfile ? 0.20 : 0.25;
+      const wG     = isAnaerobicProfile ? 0.50 : 0.25;
+      finalValue = maderMLSS * wMader + maderTTE * wTTE + scoreGValue * wG;
       fusionMethod = "mader_primary";
       confidence = 0.80 + 0.10 * qualityFactor;
-      formulaLabel = "Mader + TTE + Score G (triple validation)";
+      formulaLabel = isAnaerobicProfile
+        ? "Score G dominant + Mader + TTE (profil anaérobie)"
+        : "Mader + TTE + Score G (triple validation)";
 
-      if (maxDev > 0.15) {
+      if (maxDev > 0.20) {
         warnings.push(`Divergence élevée entre méthodes (Δmax=${maxDev.toFixed(2)}) — vérifier données`);
         confidence = Math.max(0.55, confidence - 0.15);
-      } else if (maxDev > 0.08) {
+      } else if (maxDev > 0.10) {
         warnings.push(`Divergence modérée entre méthodes (Δmax=${maxDev.toFixed(2)})`);
         confidence = Math.max(0.60, confidence - 0.08);
       }
@@ -548,20 +541,26 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
       confidence = 0.78 + 0.10 * qualityFactor;
       formulaLabel = "Mader MLSS + TTE (cross-validation)";
 
-      if (maxDev > 0.12) {
+      if (maxDev > 0.15) {
         warnings.push(`Divergence Mader MLSS vs TTE (Δ=${maxDev.toFixed(2)})`);
         confidence = Math.max(0.55, confidence - 0.12);
       }
 
     } else if (scoreGValue !== null) {
-      // Mader MLSS (65%) + Score G (35%)
-      finalValue = maderMLSS * 0.65 + scoreGValue * 0.35;
+      // Mader + Score G — pondération adaptée au profil.
+      //   - Anaérobie : 35% Mader / 65% Score G (Mader sous-estime systématiquement)
+      //   - Aérobie   : 60% Mader / 40% Score G (Mader gold standard, Score G d'appoint)
+      const wMader = isAnaerobicProfile ? 0.35 : 0.60;
+      const wG     = 1 - wMader;
+      finalValue = maderMLSS * wMader + scoreGValue * wG;
       fusionMethod = "mader_primary";
       confidence = 0.75 + 0.10 * qualityFactor;
-      formulaLabel = "Mader MLSS + Score G";
+      formulaLabel = isAnaerobicProfile
+        ? "Score G dominant + Mader MLSS (profil anaérobie)"
+        : "Mader MLSS + Score G";
 
-      if (maxDev > 0.12) {
-        warnings.push(`Divergence Mader vs Score G (Δ=${maxDev.toFixed(2)}) — Score G utilisé comme pondération secondaire`);
+      if (maxDev > 0.15) {
+        warnings.push(`Divergence Mader vs Score G (Δ=${maxDev.toFixed(2)})`);
         confidence = Math.max(0.55, confidence - 0.10);
       }
 

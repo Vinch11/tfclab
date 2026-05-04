@@ -501,26 +501,30 @@ export function predictMaderPerformance(profile: MaderProfile): MaderPredictions
 export function calibrateVLamaxFromMLSS(
   observedMLSSPower: number,
   vo2max: number,
-  weight: number
+  weight: number,
+  observedMAP?: number | null,  // MAP réelle (P5min) si disponible — plus précis que MAP dérivée
 ): number {
   const efficiency = 0.23; // Default gross mechanical efficiency
-  const ALPHA = 3.0;
-  
+  const ALPHA = 2.5; // Recalibré post-audit empirique 2026-05 (était 3.0 — sous-estimait systématiquement)
+
   // Absolute VO2max in L/min
   const vo2maxAbs = vo2max * weight / 1000;
-  
-  // Calculate MAP (maximal aerobic power)
-  const mapWatts = (vo2maxAbs * ENERGY_PER_O2 * 1000 / 60) * efficiency;
-  
+
+  // MAP : préférer la valeur observée (P5min réel) à la MAP théorique dérivée
+  // de VO2max. La MAP théorique surestime souvent (Quentin: 414W théorique vs 279W
+  // réel) → mlssFraction artificiellement haut → VLamax artificiellement bas.
+  const mapTheoretical = (vo2maxAbs * ENERGY_PER_O2 * 1000 / 60) * efficiency;
+  const mapWatts = (observedMAP != null && observedMAP > 0) ? observedMAP : mapTheoretical;
+
   // MLSS as fraction of MAP
   const mlssFraction = observedMLSSPower / mapWatts;
-  
+
   // Direct inverse: VLamax = (1 - mlssFraction) × VO2max_abs / α
   const vlamax = (1 - mlssFraction) * vo2maxAbs / ALPHA;
-  
+
   // Clamp to physiological bounds
   const clamped = Math.max(0.10, Math.min(1.20, vlamax));
-  
+
   return Number(clamped.toFixed(3));
 }
 
