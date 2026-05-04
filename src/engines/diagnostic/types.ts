@@ -23,6 +23,7 @@ import type { RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import type { ObjectiveTargets, VLamaxTargets } from "@/lib/physiologicalTargets";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 import type { DecisionReliabilityResult } from "@/lib/v2/decisionReliabilityEngine";
+import type { RunMLSSPrediction, RunMLSSCrossValidation } from "@/lib/v2/runMLSSPredictor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // INPUT — Ce que le Diagnostic Engine reçoit
@@ -160,6 +161,20 @@ export interface AthleteDiagnostic {
   
   // ─── 6. Fiabilité (DRE) ──────────────────────────
   reliability: DecisionReliabilityResult | null;
+
+  // ─── 6bis. Run MLSS (Modèle C — cross-validator + fallback) ───
+  // null si sportFocus=bike ou si VLamax run / CE indisponibles
+  runMLSS: {
+    /** MLSS_pct observé (dérivé de pace_threshold/VMA), null si pace_threshold absent */
+    observedPct: number | null;
+    /** MLSS_pct prédit par Modèle C depuis VLamax run + CE, null si inputs insuffisants */
+    prediction: RunMLSSPrediction | null;
+    /** Cross-validation (severity ok/warning/critical), null si observed ou prediction manquant */
+    crossValidation: RunMLSSCrossValidation | null;
+    /** Source effective utilisée par les consommateurs : "observed" si pace_threshold dispo, sinon "predicted" (fallback) */
+    effectivePct: number | null;
+    effectiveSource: "observed" | "predicted" | "none";
+  } | null;
   
   // ─── 7. Synthèse Décisionnelle ────────────────────
   synthesis: DiagnosticSynthesis;
