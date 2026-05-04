@@ -83,6 +83,7 @@ export default function App() {
                 <Route path="/diagnostic/testing-week-cap" element={<ProtectedRoute><CAPTestingWeekPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/vlamax" element={<ProtectedRoute><VLamaxDiagnosticPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/vlamax/:athleteId" element={<ProtectedRoute><VLamaxDiagnosticPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/cohort-run-mlss" element={<ProtectedRoute><RunMLSSCohortPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 4 — PLANIFICATION                  */}
