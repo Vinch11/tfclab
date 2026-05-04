@@ -80,6 +80,8 @@ export default function App() {
                 <Route path="/diagnostic/tests" element={<ProtectedRoute><TestsPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/testing-week-tfcl" element={<ProtectedRoute><TFCLTestingWeekPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/testing-week-cap" element={<ProtectedRoute><CAPTestingWeekPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/vlamax" element={<ProtectedRoute><VLamaxDiagnosticPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/vlamax/:athleteId" element={<ProtectedRoute><VLamaxDiagnosticPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 4 — PLANIFICATION                  */}
