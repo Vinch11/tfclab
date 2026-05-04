@@ -167,9 +167,9 @@ export function CAPTestingWeekPage() {
                   <Target className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{selectedAthlete.name}</p>
+                  <p className="font-medium">{(selectedAthlete as any).nom || (selectedAthlete as any).name || "—"}</p>
                   <p className="text-sm text-muted-foreground">
-                    Objectif: {selectedAthlete.goal || "Non défini"}
+                    Objectif: {(selectedAthlete as any).objectif || (selectedAthlete as any).goal || "Non défini"}
                   </p>
                 </div>
                 {capTests.length > 0 && (
