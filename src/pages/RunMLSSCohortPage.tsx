@@ -38,7 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { FlaskConical, Download, Trash2, CheckCircle2, AlertTriangle, XCircle, HelpCircle } from "lucide-react";
+import { FlaskConical, Download, Trash2, CheckCircle2, AlertTriangle, XCircle, HelpCircle, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -54,6 +54,7 @@ import {
   type CohortTestEntry,
 } from "@/lib/v2/runMLSSCohortValidation";
 import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
+import { importCSV, SYNTHETIC_COHORT_ATHLETE_NAME, type ImportRowResult } from "@/lib/v2/runMLSSCohortCSVImporter";
 
 const VERDICT_STYLES = {
   insufficient: { label: "N insuffisant", icon: HelpCircle, cls: "bg-muted text-muted-foreground border" },
@@ -274,6 +275,93 @@ export default function RunMLSSCohortPage() {
     URL.revokeObjectURL(url);
   };
 
+  // ─── Import CSV ──────────────────────────────────────────────────────
+  const [csvText, setCsvText] = useState("");
+  const [importPreview, setImportPreview] = useState<ImportRowResult[] | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  const handleParsePreview = () => {
+    if (!csvText.trim()) {
+      toast.error("Coller un CSV avant de prévisualiser");
+      return;
+    }
+    try {
+      const results = importCSV(csvText);
+      setImportPreview(results);
+      const ok = results.filter((r) => r.status !== "error").length;
+      const ko = results.length - ok;
+      toast.success(`${ok} ligne(s) parsée(s)${ko ? ` · ${ko} rejetée(s)` : ""}`);
+    } catch (e: any) {
+      toast.error(`Échec parsing : ${e?.message ?? "erreur inconnue"}`);
+    }
+  };
+
+  const ensureSyntheticAthleteId = async (): Promise<string> => {
+    if (!user?.id) throw new Error("Non authentifié");
+    const { data: existing, error: selErr } = await supabase
+      .from("athletes")
+      .select("id")
+      .eq("coach_id", user.id)
+      .eq("name", SYNTHETIC_COHORT_ATHLETE_NAME)
+      .maybeSingle();
+    if (selErr) throw selErr;
+    if (existing?.id) return existing.id;
+    const { data: created, error: insErr } = await supabase
+      .from("athletes")
+      .insert({
+        coach_id: user.id,
+        name: SYNTHETIC_COHORT_ATHLETE_NAME,
+        goal: "Référence externe — cohorte validation Modèle C",
+      })
+      .select("id")
+      .single();
+    if (insErr) throw insErr;
+    return created.id;
+  };
+
+  const handleImportCommit = async () => {
+    if (!user?.id || !importPreview) return;
+    const valid = importPreview.filter((r) => r.payload);
+    if (valid.length === 0) {
+      toast.error("Aucune ligne valide à importer");
+      return;
+    }
+    setImporting(true);
+    try {
+      const athleteId = await ensureSyntheticAthleteId();
+      const rows = valid.map((r) => ({
+        athlete_id: athleteId,
+        coach_id: user.id,
+        date: r.payload!.date,
+        source_type: "TEST_PROTOCOL" as any,
+        evidence_type: RUN_MLSS_COHORT_EVIDENCE_TYPE as any,
+        protocol_quality: r.payload!.protocolQuality,
+        validity: "OK" as any,
+        confidence_evidence: r.payload!.confidence,
+        used_in_calibration: false,
+        calibration_weight: 0,
+        notes: r.payload!.notes,
+        raw_values: r.payload!.rawValues as any,
+      }));
+      // Insertion en lots de 50
+      const CHUNK = 50;
+      for (let i = 0; i < rows.length; i += CHUNK) {
+        const chunk = rows.slice(i, i + CHUNK);
+        const { error } = await supabase.from("calibration_evidence").insert(chunk);
+        if (error) throw error;
+      }
+      toast.success(`${valid.length} profil(s) importé(s) dans la cohorte`);
+      setCsvText("");
+      setImportPreview(null);
+      void refresh();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Échec import CSV");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+
   return (
     <SidebarLayout
       activeTab={activeTab}
@@ -430,6 +518,85 @@ export default function RunMLSSCohortPage() {
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* ─── Import CSV en masse ──────────────────────────────────── */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Import CSV (profils de référence externes)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Collez un CSV de profils labo / publication. Les lignes seront rattachées à un athlète
+              synthétique <code className="px-1 rounded bg-muted">{SYNTHETIC_COHORT_ATHLETE_NAME}</code>{" "}
+              (créé automatiquement). <strong>Aucun calcul interne n'est altéré</strong> (used_in_calibration=false).
+            </p>
+            <details className="text-xs text-muted-foreground">
+              <summary className="cursor-pointer hover:text-foreground">Colonnes reconnues (auto-détection)</summary>
+              <ul className="mt-2 ml-4 list-disc space-y-0.5">
+                <li><strong>Obligatoire :</strong> <code>vlamax</code> (alias : vlamax_labo_mmol_l_s, vla)</li>
+                <li><strong>MLSS observé :</strong> <code>mlss_pct_vo2max</code> direct OU (<code>pace</code> + <code>vma</code>/<code>vdot</code>)</li>
+                <li><strong>CE :</strong> <code>running_economy</code> (sinon estimée par inversion Modèle C)</li>
+                <li><strong>Optionnel :</strong> <code>nom_anonymise, date, vo2max, protocol_quality, methode_mesure, source_publication, sport_specialite, sexe, age, poids_kg</code></li>
+              </ul>
+            </details>
+            <Textarea
+              rows={8}
+              value={csvText}
+              onChange={(e) => { setCsvText(e.target.value); setImportPreview(null); }}
+              placeholder={"nom_anonymise,sexe,age,VO2max_mlkgmin,VLamax_labo_mmol_l_s,MLSS_pct_VO2max,methode_mesure,source_publication\nR_AM_M01,M,44,54,0.38,82,Mader_Heck,Jones_2017_SportsMed\n..."}
+              className="font-mono text-xs"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={handleParsePreview} disabled={!csvText.trim()}>
+                Prévisualiser
+              </Button>
+              {importPreview && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleImportCommit}
+                  disabled={importing || importPreview.filter((r) => r.payload).length === 0}
+                >
+                  {importing ? "Import…" : `Importer ${importPreview.filter((r) => r.payload).length} ligne(s)`}
+                </Button>
+              )}
+              {importPreview && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => setImportPreview(null)}>
+                  Annuler preview
+                </Button>
+              )}
+            </div>
+
+            {importPreview && (
+              <div className="rounded-md border border-border/50 bg-muted/20 p-2 max-h-72 overflow-auto">
+                <ul className="text-xs space-y-1">
+                  {importPreview.map((r) => (
+                    <li
+                      key={r.rowIndex}
+                      className={cn(
+                        "flex items-start gap-2 px-2 py-1 rounded",
+                        r.status === "error" ? "bg-destructive/10 text-destructive" :
+                        r.status === "warn" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" :
+                        "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+                      )}
+                    >
+                      <span className="font-mono shrink-0">L{r.rowIndex}</span>
+                      <span className="flex-1">{r.message}</span>
+                      {r.payload && (
+                        <span className="font-mono text-muted-foreground shrink-0">
+                          obs={r.payload.rawValues.observedMLSSPct}%
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
 
