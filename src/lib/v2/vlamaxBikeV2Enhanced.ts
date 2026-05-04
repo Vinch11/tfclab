@@ -346,29 +346,12 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   }
   
   // =============================================
-  // ÉTAPE 2: Calcul Mader TTE (CROSS-VALIDATION)
-  // =============================================
-  let maderTTE: number | null = null;
-  const hasTTEData = hasMaderData && tte_min != null && tte_min > 0;
-  
-  if (hasTTEData) {
-    maderTTE = calibrateVLamaxFromTTE(tte_min!, vo2max!, weight_kg!, ftp);
-    if (maderTTE < 0.10 || maderTTE > 1.20) {
-      warnings.push(`Mader TTE hors bornes (${maderTTE.toFixed(2)})`);
-      maderTTE = null;
-    } else {
-      sources.push("Mader TTE");
-    }
-  }
-  
-  // =============================================
-  // ÉTAPE 2b: CP/W' ANALYSIS (for Score G index + cross-validation)
+  // ÉTAPE 2a: CP/W' ANALYSIS (must run BEFORE Mader TTE so we can guard it)
   // =============================================
   let cpResult: CriticalPowerResult | null = null;
   let wprimeKJ: number | null = null;
   let vlamaxFromWprime: number | null = null;
-  
-  // Run CP analysis if we have enough short-duration power data
+
   cpResult = analyzeCriticalPower({
     pmax_5s: pmax_5s,
     p30s_w: p30s_w,
@@ -377,67 +360,115 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
     ftp: ftp,
     weight_kg: weight_kg,
   });
-  
+
   if (cpResult) {
     wprimeKJ = cpResult.wprimeKJ;
     sources.push("W'bal");
-    
-    // Log CP data quality warnings
+
     if (cpResult.dataQuality === "implausible") {
       warnings.push("Données CP implausibles — W' et indices P30s/P60s exclus du Score G");
     } else if (cpResult.dataQuality === "suspect") {
       warnings.push("Données CP suspectes — poids de W'/P30s/P60s réduit dans le Score G");
     }
-    
-    // Derive VLamax from W' using Mader relationship: W' ≈ VLamax × weight × 320
-    // → VLamax_implied = W' / (weight × 320)
-    // GUARD: Skip cross-validation entirely if CP data is implausible
+
     if (weight_kg && weight_kg > 0 && cpResult.dataQuality !== "implausible") {
       vlamaxFromWprime = Number(clamp(cpResult.wprime / (weight_kg * 320), 0.15, 1.10).toFixed(3));
     }
   }
-  
+
+  // =============================================
+  // ÉTAPE 2b: Calcul Mader TTE (CROSS-VALIDATION)
+  //
+  // P0.3 GUARD: Mader TTE uses the same FTP/VO2max/weight inputs as Mader MLSS.
+  // If CP data is implausible (FTP likely overestimated relative to MAP5min),
+  // Mader TTE will diverge wildly. Skip it entirely in that case.
+  //
+  // P0.1 GUARD: calibrateVLamaxFromTTE now returns null when the binary search
+  // hits a boundary (TTE incompatible with model). We honor that null instead
+  // of treating it as a real estimate.
+  // =============================================
+  let maderTTE: number | null = null;
+  const cpImplausible = cpResult?.dataQuality === "implausible";
+  const hasTTEData = hasMaderData && tte_min != null && tte_min > 0;
+
+  if (hasTTEData && cpImplausible) {
+    warnings.push("Mader TTE désactivé — données CP/FTP incohérentes (TTE n'apporte pas de signal fiable)");
+  } else if (hasTTEData) {
+    const tteResult = calibrateVLamaxFromTTE(tte_min!, vo2max!, weight_kg!, ftp);
+    if (tteResult === null) {
+      warnings.push("Mader TTE non concluant — TTE observée incompatible avec le modèle (écartée)");
+      maderTTE = null;
+    } else if (tteResult < 0.10 || tteResult > 1.20) {
+      warnings.push(`Mader TTE hors bornes (${tteResult.toFixed(2)}) — écartée`);
+      maderTTE = null;
+    } else {
+      maderTTE = tteResult;
+      sources.push("Mader TTE");
+    }
+  }
+
   // =============================================
   // ÉTAPE 3: Score G empirique (CONFIRMATORY — now includes W')
   // =============================================
   const cpDataQuality = cpResult?.dataQuality ?? "good";
   const scoreGResult = computeScoreG(ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s, wprimeKJ, cpDataQuality);
   let scoreGValue: number | null = null;
-  
+
   if (scoreGResult) {
     scoreGValue = scoreGResult.vlamax;
     sources.push(...scoreGResult.sources.filter(s => !sources.includes(s)));
   }
-  
+
   // =============================================
   // ÉTAPE 4: FUSION MULTI-INDEX
+  //
+  // P0.2 GUARD: When max divergence between methods exceeds 0.20 mmol/L/s, the
+  // methods are physiologically incompatible — averaging produces a non-physical
+  // value. We fall back to Mader MLSS alone (gold standard) with reduced confidence
+  // and explicit warning, instead of polluting the result with diverging signals.
   // =============================================
+  const DIVERGENCE_FALLBACK_THRESHOLD = 0.20;
+
   let finalValue: number;
   let confidence: number;
   let fusionMethod: VLamaxBikeV2Components["fusion_method"];
   let divergence: number | null = null;
   let formulaType: VLamaxBikeV2EnhancedResult["formula"];
   let formulaLabel: string;
-  
+
   const qualityFactor = protocol_quality ? (protocol_quality - 1) / 4 : 0.5;
-  
+
   if (maderMLSS !== null) {
-    // ── MADER IS PRIMARY ──
-    if (maderTTE !== null && scoreGValue !== null) {
+    // Compute max divergence across whichever methods are available
+    const candidates: number[] = [maderMLSS];
+    if (maderTTE !== null) candidates.push(maderTTE);
+    if (scoreGValue !== null) candidates.push(scoreGValue);
+
+    let maxDev = 0;
+    for (let i = 0; i < candidates.length; i++) {
+      for (let j = i + 1; j < candidates.length; j++) {
+        maxDev = Math.max(maxDev, Math.abs(candidates[i] - candidates[j]));
+      }
+    }
+    divergence = candidates.length > 1 ? Number(maxDev.toFixed(3)) : null;
+
+    // P0.2: Hard fallback when methods are physiologically incompatible
+    if (divergence !== null && divergence > DIVERGENCE_FALLBACK_THRESHOLD) {
+      warnings.push(
+        `Divergence critique entre méthodes (Δmax=${divergence.toFixed(2)}) — fallback sur Mader MLSS seul (gold standard). ` +
+        `Vérifier la cohérence FTP/VO2max/Pmax/TTE.`
+      );
+      finalValue = maderMLSS;
+      fusionMethod = "mader_primary";
+      confidence = 0.50 + 0.05 * qualityFactor;
+      formulaLabel = "Mader MLSS seul (divergence critique — autres méthodes écartées)";
+    } else if (maderTTE !== null && scoreGValue !== null) {
       // Triple validation: Mader MLSS (50%) + Mader TTE (25%) + Score G (25%)
       finalValue = maderMLSS * 0.50 + maderTTE * 0.25 + scoreGValue * 0.25;
       fusionMethod = "mader_primary";
       confidence = 0.80 + 0.10 * qualityFactor;
       formulaLabel = "Mader + TTE + Score G (triple validation)";
-      
-      // Check divergence
-      const maxDev = Math.max(
-        Math.abs(maderMLSS - maderTTE),
-        Math.abs(maderMLSS - scoreGValue),
-        Math.abs(maderTTE - scoreGValue)
-      );
-      divergence = Number(maxDev.toFixed(3));
-      
+
       if (maxDev > 0.15) {
         warnings.push(`Divergence élevée entre méthodes (Δmax=${maxDev.toFixed(2)}) — vérifier données`);
         confidence = Math.max(0.55, confidence - 0.15);
@@ -445,33 +476,31 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
         warnings.push(`Divergence modérée entre méthodes (Δmax=${maxDev.toFixed(2)})`);
         confidence = Math.max(0.60, confidence - 0.08);
       }
-      
+
     } else if (maderTTE !== null) {
       // Mader MLSS (60%) + Mader TTE (40%)
       finalValue = maderMLSS * 0.60 + maderTTE * 0.40;
       fusionMethod = "mader_cross";
       confidence = 0.78 + 0.10 * qualityFactor;
       formulaLabel = "Mader MLSS + TTE (cross-validation)";
-      divergence = Number(Math.abs(maderMLSS - maderTTE).toFixed(3));
-      
-      if (divergence > 0.12) {
-        warnings.push(`Divergence Mader MLSS vs TTE (Δ=${divergence.toFixed(2)})`);
+
+      if (maxDev > 0.12) {
+        warnings.push(`Divergence Mader MLSS vs TTE (Δ=${maxDev.toFixed(2)})`);
         confidence = Math.max(0.55, confidence - 0.12);
       }
-      
+
     } else if (scoreGValue !== null) {
       // Mader MLSS (65%) + Score G (35%)
       finalValue = maderMLSS * 0.65 + scoreGValue * 0.35;
       fusionMethod = "mader_primary";
       confidence = 0.75 + 0.10 * qualityFactor;
       formulaLabel = "Mader MLSS + Score G";
-      divergence = Number(Math.abs(maderMLSS - scoreGValue).toFixed(3));
-      
-      if (divergence > 0.12) {
-        warnings.push(`Divergence Mader vs Score G (Δ=${divergence.toFixed(2)}) — Score G utilisé comme pondération secondaire`);
+
+      if (maxDev > 0.12) {
+        warnings.push(`Divergence Mader vs Score G (Δ=${maxDev.toFixed(2)}) — Score G utilisé comme pondération secondaire`);
         confidence = Math.max(0.55, confidence - 0.10);
       }
-      
+
     } else {
       // Mader MLSS seul
       finalValue = maderMLSS;
@@ -479,9 +508,9 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
       confidence = 0.72 + 0.10 * qualityFactor;
       formulaLabel = "Mader MLSS (FTP × VO₂max inverse)";
     }
-    
+
     formulaType = "tfcl_v2_mader";
-    
+
   } else if (scoreGValue !== null) {
     // ── PAS DE MADER, SCORE G SEUL ──
     finalValue = scoreGValue;
