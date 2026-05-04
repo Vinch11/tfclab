@@ -505,7 +505,7 @@ export function calibrateVLamaxFromMLSS(
   observedMAP?: number | null,  // MAP réelle (P5min) si disponible — plus précis que MAP dérivée
 ): number {
   const efficiency = 0.23; // Default gross mechanical efficiency
-  const ALPHA = 3.0;
+  const ALPHA = 2.5; // Recalibré post-audit empirique 2026-05 (était 3.0 — sous-estimait systématiquement)
 
   // Absolute VO2max in L/min
   const vo2maxAbs = vo2max * weight / 1000;
