@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import type { CalibrationSnapshot, CalibrationResult } from "@/lib/calibration/vlamaxContinuous";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
+import { RunMLSSCoherenceCard } from "@/components/RunMLSSCoherenceCard";
 
 interface PhysiologicalProfilePanelProps {
   athleteId: string;
@@ -219,6 +220,11 @@ export function PhysiologicalProfilePanel({
               ))}
             </ul>
           </div>
+        )}
+
+        {/* Run MLSS coherence (Modèle C) — affiché seulement si critical */}
+        {diagnostic?.runMLSS && (
+          <RunMLSSCoherenceCard runMLSS={diagnostic.runMLSS} variant="alert-only" />
         )}
       </CardContent>
     </Card>
