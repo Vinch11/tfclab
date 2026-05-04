@@ -521,6 +521,85 @@ export default function RunMLSSCohortPage() {
           </CardContent>
         </Card>
 
+        {/* ─── Import CSV en masse ──────────────────────────────────── */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Import CSV (profils de référence externes)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Collez un CSV de profils labo / publication. Les lignes seront rattachées à un athlète
+              synthétique <code className="px-1 rounded bg-muted">{SYNTHETIC_COHORT_ATHLETE_NAME}</code>{" "}
+              (créé automatiquement). <strong>Aucun calcul interne n'est altéré</strong> (used_in_calibration=false).
+            </p>
+            <details className="text-xs text-muted-foreground">
+              <summary className="cursor-pointer hover:text-foreground">Colonnes reconnues (auto-détection)</summary>
+              <ul className="mt-2 ml-4 list-disc space-y-0.5">
+                <li><strong>Obligatoire :</strong> <code>vlamax</code> (alias : vlamax_labo_mmol_l_s, vla)</li>
+                <li><strong>MLSS observé :</strong> <code>mlss_pct_vo2max</code> direct OU (<code>pace</code> + <code>vma</code>/<code>vdot</code>)</li>
+                <li><strong>CE :</strong> <code>running_economy</code> (sinon estimée par inversion Modèle C)</li>
+                <li><strong>Optionnel :</strong> <code>nom_anonymise, date, vo2max, protocol_quality, methode_mesure, source_publication, sport_specialite, sexe, age, poids_kg</code></li>
+              </ul>
+            </details>
+            <Textarea
+              rows={8}
+              value={csvText}
+              onChange={(e) => { setCsvText(e.target.value); setImportPreview(null); }}
+              placeholder={"nom_anonymise,sexe,age,VO2max_mlkgmin,VLamax_labo_mmol_l_s,MLSS_pct_VO2max,methode_mesure,source_publication\nR_AM_M01,M,44,54,0.38,82,Mader_Heck,Jones_2017_SportsMed\n..."}
+              className="font-mono text-xs"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={handleParsePreview} disabled={!csvText.trim()}>
+                Prévisualiser
+              </Button>
+              {importPreview && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleImportCommit}
+                  disabled={importing || importPreview.filter((r) => r.payload).length === 0}
+                >
+                  {importing ? "Import…" : `Importer ${importPreview.filter((r) => r.payload).length} ligne(s)`}
+                </Button>
+              )}
+              {importPreview && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => setImportPreview(null)}>
+                  Annuler preview
+                </Button>
+              )}
+            </div>
+
+            {importPreview && (
+              <div className="rounded-md border border-border/50 bg-muted/20 p-2 max-h-72 overflow-auto">
+                <ul className="text-xs space-y-1">
+                  {importPreview.map((r) => (
+                    <li
+                      key={r.rowIndex}
+                      className={cn(
+                        "flex items-start gap-2 px-2 py-1 rounded",
+                        r.status === "error" ? "bg-destructive/10 text-destructive" :
+                        r.status === "warn" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" :
+                        "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+                      )}
+                    >
+                      <span className="font-mono shrink-0">L{r.rowIndex}</span>
+                      <span className="flex-1">{r.message}</span>
+                      {r.payload && (
+                        <span className="font-mono text-muted-foreground shrink-0">
+                          obs={r.payload.rawValues.observedMLSSPct}%
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Liste des entrées */}
         <Card>
           <CardHeader className="pb-3 flex-row items-center justify-between space-y-0">
