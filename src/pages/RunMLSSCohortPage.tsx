@@ -383,6 +383,9 @@ export default function RunMLSSCohortPage() {
           </div>
         </div>
 
+        {/* Comparatif RMSE avant/après les 25 profils running externes */}
+        <RunMLSSExternalCohortRMSECard />
+
         {/* Verdict global */}
         {report && (
           <Card>
