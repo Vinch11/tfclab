@@ -94,7 +94,7 @@ export function buildVLamaxTracePayload(
       percentile: result.percentile,
       isOutlier: result.isOutlier,
       cluster: result.cluster
-        ? { id: result.cluster.clusterId ?? "", label: result.cluster.label ?? "" }
+        ? { id: result.cluster.clusterId ?? "", label: result.cluster.clusterLabel ?? "" }
         : null,
     },
     components: result.components,
