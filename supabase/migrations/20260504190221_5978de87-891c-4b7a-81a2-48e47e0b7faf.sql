@@ -1,0 +1,1 @@
+DELETE FROM public.calibration_evidence WHERE evidence_type = 'RUN_MLSS_EXTERNAL_COHORT';
