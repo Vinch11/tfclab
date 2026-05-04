@@ -407,9 +407,19 @@ export default function RunningProfilePage() {
       coachId: currentAthlete.coach_id,
       inputs,
       diag: runMLSS,
-    }).catch((err) => {
-      if (import.meta.env.DEV) console.error("[RunMLSS persist] failed", err);
-    });
+    })
+      .then((res) => {
+        if (res && typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("runmlss-trace-persisted", {
+              detail: { athleteId: currentAthlete.id },
+            }),
+          );
+        }
+      })
+      .catch((err) => {
+        if (import.meta.env.DEV) console.error("[RunMLSS persist] failed", err);
+      });
   }, [currentAthlete?.id, currentAthlete?.coach_id, runMLSS, effectiveCloudSnapshot]);
 
   const sectionRenderers = useMemo(() => {
