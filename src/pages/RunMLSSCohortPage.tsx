@@ -55,6 +55,7 @@ import {
 } from "@/lib/v2/runMLSSCohortValidation";
 import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
 import { importCSV, SYNTHETIC_COHORT_ATHLETE_NAME, type ImportRowResult } from "@/lib/v2/runMLSSCohortCSVImporter";
+import { RunMLSSExternalCohortRMSECard } from "@/components/RunMLSSExternalCohortRMSECard";
 
 const VERDICT_STYLES = {
   insufficient: { label: "N insuffisant", icon: HelpCircle, cls: "bg-muted text-muted-foreground border" },
@@ -381,6 +382,9 @@ export default function RunMLSSCohortPage() {
             </p>
           </div>
         </div>
+
+        {/* Comparatif RMSE avant/après les 25 profils running externes */}
+        <RunMLSSExternalCohortRMSECard />
 
         {/* Verdict global */}
         {report && (
