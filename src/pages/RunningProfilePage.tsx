@@ -689,7 +689,7 @@ export default function RunningProfilePage() {
     currentAthlete, vlamaxEffectif, effectiveCloudSnapshot, athleteAge, athleteGoal,
     windowEvidences, calibrationSnapshot, navigate, effectiveRefs, tteEffectif,
     staffMode, snapshots, capInjuryRisk, handleAvailabilitySubmit, todayCheckin,
-    potentielPhysiologique, raceLabel, pacingEnvelope, targets
+    potentielPhysiologique, raceLabel, pacingEnvelope, targets, runMLSS,
   ]);
 
   // Redirect si pas en Running Focus Mode
