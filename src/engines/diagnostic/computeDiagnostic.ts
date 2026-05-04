@@ -283,9 +283,62 @@ function computeRunInjuryRiskFromInput(
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SYNTHÈSE
-// ═══════════════════════════════════════════════════════════════════════════════
+// ─── Run MLSS (Modèle C) ────────────────────────────────────────────────
+function computeRunMLSSFromInput(
+  input: DiagnosticInput
+): AthleteDiagnostic["runMLSS"] {
+  if (input.sportFocus === "bike") return null;
+
+  // 1. Observed MLSS_pct from pace_threshold + VMA
+  //    speed_threshold_kmh = 3600 / pace_sec_per_km
+  //    MLSS_pct ≈ (speed_threshold / VMA) × 100  (proxy %vVO2max ≈ %VO2max au seuil)
+  let observedPct: number | null = null;
+  if (
+    input.paceThresholdSecPerKm != null &&
+    input.paceThresholdSecPerKm > 0 &&
+    input.vma != null &&
+    input.vma > 0
+  ) {
+    const speedKmh = 3600 / input.paceThresholdSecPerKm;
+    const ratio = (speedKmh / input.vma) * 100;
+    if (ratio >= 50 && ratio <= 100) {
+      observedPct = Number(ratio.toFixed(1));
+    }
+  }
+
+  // 2. Predicted MLSS_pct via Modèle C (VLamax run + CE)
+  const prediction = predictRunMLSSPctFromVLaCE(
+    input.vlamaxRun,
+    input.runEconomyScore
+  );
+
+  // 3. Cross-validation
+  const crossValidation =
+    observedPct !== null && prediction
+      ? crossValidateRunMLSS(observedPct, input.vlamaxRun, input.runEconomyScore)
+      : null;
+
+  // 4. Effective value (observed wins, predicted as fallback)
+  let effectivePct: number | null = null;
+  let effectiveSource: "observed" | "predicted" | "none" = "none";
+  if (observedPct !== null) {
+    effectivePct = observedPct;
+    effectiveSource = "observed";
+  } else if (prediction) {
+    effectivePct = prediction.mlssPct;
+    effectiveSource = "predicted";
+  }
+
+  if (observedPct === null && prediction === null) return null;
+
+  return {
+    observedPct,
+    prediction,
+    crossValidation,
+    effectivePct,
+    effectiveSource,
+  };
+}
 
 function computeSynthesis(
   limiter: UnifiedLimiterResult,
