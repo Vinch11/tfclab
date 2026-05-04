@@ -119,20 +119,10 @@ export const estimerVO2max = (ftp: number, poids: number): number => {
   return (ftp / poids) * 12.0; // approximation cycliste
 };
 
-// Zones d'entraînement
-export interface ZonesEntrainement {
-  zone_aerobie: number;
-  zone_seuil: number;
-  zone_sprint: number;
-}
-
-export const calculerZonesEntrainement = (ftp: number): ZonesEntrainement => {
-  return {
-    zone_aerobie: Math.round(ftp * 0.55),
-    zone_seuil: Math.round(ftp * 0.85),
-    zone_sprint: Math.round(ftp * 1.2),
-  };
-};
+// ⚠️ DEPRECATED — Zones figées (ftp*0.55, ftp*0.85, ftp*1.2) supprimées.
+// Les zones effectives sont désormais dérivées de Mader α=1.98 (MLSS calibré N=44)
+// via `findMLSSPower` (`@/lib/v2/maderMetabolicModel`) et de la prescription du
+// moteur diagnostic. Ne pas réintroduire de coefficients FTP figés.
 
 // Obtenir le dernier snapshot d'un athlète
 export const getDernierSnapshot = (athlete: Athlete): SnapshotNolio | null => {
