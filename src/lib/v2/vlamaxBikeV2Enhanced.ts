@@ -313,7 +313,7 @@ function computeScoreG(
   let totalWeight = 0;
   
   if (S_pmax !== null) { scoreG += w_pmax * S_pmax; totalWeight += w_pmax; sources.push("Pmax5s"); }
-  if (S30 !== null) { scoreG += w_s30 * S30; totalWeight += w_s30; sources.push(isHighFractionalUtil ? "P30s↓" : "P30s"); }
+  if (S30 !== null) { scoreG += w_s30 * S30; totalWeight += w_s30; sources.push(hybridTier === "pure" || hybridTier === "unknown" ? "P30s" : `P30s↓(${hybridTier})`); }
   if (S60 !== null) { scoreG += w_s60 * S60; totalWeight += w_s60; sources.push("P60s"); }
   if (E !== null) { scoreG += w_E * E; totalWeight += w_E; sources.push("MAP5min"); }
   if (D !== null) { scoreG += w_D * D; totalWeight += w_D; sources.push("TTE"); }
