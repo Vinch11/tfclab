@@ -340,6 +340,10 @@ function computeRunMLSSFromInput(
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SYNTHÈSE
+// ═══════════════════════════════════════════════════════════════════════════════
+
 function computeSynthesis(
   limiter: UnifiedLimiterResult,
   readiness: PotentielV2Result,
@@ -371,6 +375,15 @@ function computeSynthesis(
       severity: runInjuryRisk.level === "CRITIQUE" ? "critical" : "warning",
       message: `Risque blessure CAP ${runInjuryRisk.levelLabel} (${runInjuryRisk.score}%)`,
       source: "injuryRisk",
+    });
+  }
+
+  // Alerte cross-validation MLSS run (Modèle C) — silencieuse sauf si critique
+  if (runMLSS?.crossValidation && runMLSS.crossValidation.severity === "critical") {
+    alerts.push({
+      severity: "warning",
+      message: `Incohérence VLamax/CE/seuil run (Δ${runMLSS.crossValidation.deltaPct > 0 ? "+" : ""}${runMLSS.crossValidation.deltaPct}%) — recalibrer`,
+      source: "runMLSS",
     });
   }
 
