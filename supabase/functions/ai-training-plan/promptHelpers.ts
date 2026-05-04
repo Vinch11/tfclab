@@ -713,6 +713,22 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push(`- Allure Semi (Z4b) : ${formatPace(3600 / (vmaKmh * 0.88))}-${formatPace(3600 / (vmaKmh * 0.83))}/km`);
     lines.push(`- Allure Seuil (Z5) : ${formatPace(3600 / (vmaKmh * 0.92))}-${formatPace(3600 / (vmaKmh * 0.88))}/km`);
     lines.push(`- Allure VMA (Z6) : ${formatPace(3600 / (vmaKmh * 1.05))}-${formatPace(3600 / (vmaKmh * 0.95))}/km`);
+
+    // ── ANCRAGE SEUIL RUN INDIVIDUALISÉ (TFCL™ Modèle C, RMSE 2.64%) ───────
+    // Si pace_threshold observé OU prédit via VLamax run + CE → ancrer Z5 sur cette valeur
+    const mlssPct = data.runMLSSEffectivePct ? Number(data.runMLSSEffectivePct) : null;
+    const mlssSource = data.runMLSSEffectiveSource as string | null;
+    const observedPaceSec = data.paceThresholdSecPerKm ? Number(data.paceThresholdSecPerKm) : null;
+    if (observedPaceSec && observedPaceSec > 0) {
+      lines.push(`\n🎯 **Allure seuil INDIVIDUALISÉE (test de terrain observé)** : ${formatPace(observedPaceSec)}/km`);
+      lines.push(`→ Cette valeur PRIME sur la fourchette Z5 générique ci-dessus. Ancrer toutes les séances de seuil long / Norvégienne / MLSS sur cette allure (±5 sec/km).`);
+    } else if (mlssPct && mlssPct > 0 && mlssSource === "predicted") {
+      const predictedSpeedKmh = vmaKmh * mlssPct / 100;
+      const predictedPaceSec = 3600 / predictedSpeedKmh;
+      lines.push(`\n🧪 **Allure seuil ESTIMÉE (Modèle C — VLamax run + Économie, RMSE ±2.64%)** : ${formatPace(predictedPaceSec)}/km (≈ ${mlssPct.toFixed(1)}% VMA)`);
+      lines.push(`→ Pas de test de seuil disponible : utilise cette estimation comme point d'ancrage Z5. À confirmer par un test 30min ou MLSS de terrain.`);
+    }
+
     lines.push(`\n🚨 HIÉRARCHIE INVIOLABLE (du plus lent au plus rapide) : Z2 > Z4a Marathon > Z4b Semi > Z5 Seuil > Z6 VMA`);
     lines.push(`Si une allure spécifique course est plus rapide que le seuil (Z5), c'est une ERREUR. Allure semi TOUJOURS plus lente que seuil.`);
   }
