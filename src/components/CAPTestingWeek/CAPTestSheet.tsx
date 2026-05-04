@@ -94,6 +94,7 @@ const estimateVO2maxFromVMA = (vmaKmh: number): number | null => {
 
 export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAPTestSheetProps) {
   const { updateSnapshot, addTest } = useCloudDataContext();
+  const { user } = useAuth();
   const day = CAP_TESTING_WEEK.days.find((d) => d.dayKey === dayKey);
   
   // Form state based on day
