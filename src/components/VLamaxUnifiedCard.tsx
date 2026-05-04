@@ -117,7 +117,9 @@ export interface VLamaxUnifiedCardProps {
   athleteId?: string;
   vo2max?: number | null;
   economyScore?: number | null;
-  
+  /** Run MLSS coherence (Modèle C) — depuis diagnostic.runMLSS */
+  runMLSS?: import("@/engines/diagnostic").AthleteDiagnostic["runMLSS"];
+
   // Display options
   isTriathlon?: boolean;
   isRunningOnly?: boolean;
@@ -158,6 +160,7 @@ export function VLamaxUnifiedCard({
   athleteId,
   vo2max,
   economyScore,
+  runMLSS,
   isTriathlon = false,
   isRunningOnly = false,
   className,
