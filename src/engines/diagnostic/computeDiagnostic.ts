@@ -33,6 +33,12 @@ import { getTargetsForAmbition, normalizeObjective, getVLamaxRange } from "@/lib
 import type { CompassScores, CompassAxisScore } from "@/lib/compassScoring";
 import { computeRunInjuryRisk, type RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
 import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
+import {
+  predictRunMLSSPctFromVLaCE,
+  crossValidateRunMLSS,
+  type RunMLSSPrediction,
+  type RunMLSSCrossValidation,
+} from "@/lib/v2/runMLSSPredictor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ORCHESTRATEUR PRINCIPAL
@@ -77,8 +83,11 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
   // ── 6. DRE (placeholder — enrichi quand données disponibles) ──────────
   const reliability = null;
 
+  // ── 6bis. Run MLSS (Modèle C — cross-validator silencieux + fallback) ──
+  const runMLSS = computeRunMLSSFromInput(input);
+
   // ── 7. Synthèse ───────────────────────────────────────────────────────────
-  const synthesis = computeSynthesis(limiter, readiness, fatigue, runInjuryRisk, input);
+  const synthesis = computeSynthesis(limiter, readiness, fatigue, runInjuryRisk, input, runMLSS);
 
   // ── 8. Métadonnées ────────────────────────────────────────────────────────
   const confidenceGlobal = Math.min(
@@ -108,6 +117,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
       bike: null, // TODO: Intégrer computeBikeInjuryRisk
     },
     reliability,
+    runMLSS,
     synthesis,
     _rawInput: input,
     meta: {
