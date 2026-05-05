@@ -65,6 +65,7 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
     runningPowerThreshold,
     runEconomyScore,
     runHrDriftPct,
+    vlamaxRunMeasured,
   } = input;
   
   const sources: string[] = [];
@@ -72,28 +73,33 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   let details = "";
   let economyConfidenceAdjustment = 0;
   let economyImpact: { modifier: number; reason: string } | undefined;
+  let hasMeasured = false;
 
   // =============================================
-  // SOURCE 1: Sprint 15s terrain (HAUTE FIABILITÉ)
+  // SOURCE 0: Mesure labo directe (DOMINANTE — P0)
+  // =============================================
+  if (vlamaxRunMeasured != null && vlamaxRunMeasured > 0) {
+    estimates.push({ value: clampCap(vlamaxRunMeasured), weight: 0.70, source: "Mesure labo" });
+    sources.push("Mesure labo");
+    details += `VLamax mesurée: ${vlamaxRunMeasured.toFixed(2)}. `;
+    hasMeasured = true;
+  }
+
+  // =============================================
+  // SOURCE 1: Sprint 15s terrain (P1: poids réduit 0.40 → 0.30)
   // =============================================
   if (sprint15sDistance !== null && sprint15sDistance !== undefined && sprint15sDistance > 0) {
-    /**
-     * Interpolation continue distance 15s → VLamax
-     * 55m → 0.25, 80m → 0.42, 105m → 0.75
-     * Fonction linéaire par morceaux pour continuité
-     */
     let estimated: number;
     if (sprint15sDistance <= 55) estimated = 0.25;
     else if (sprint15sDistance >= 110) estimated = 0.80;
     else if (sprint15sDistance <= 80) {
-      // 55-80m: 0.25 → 0.42 (pente: 0.0068/m)
       estimated = 0.25 + (sprint15sDistance - 55) * 0.0068;
     } else {
-      // 80-110m: 0.42 → 0.80 (pente: 0.0127/m)
       estimated = 0.42 + (sprint15sDistance - 80) * 0.0127;
     }
     
-    estimates.push({ value: estimated, weight: 0.40, source: "Sprint 15s" });
+    const sprintWeight = hasMeasured ? 0.15 : 0.30;
+    estimates.push({ value: estimated, weight: sprintWeight, source: "Sprint 15s" });
     sources.push("Sprint 15s");
     details += `Sprint 15s: ${sprint15sDistance}m → ${estimated.toFixed(3)}. `;
   }
