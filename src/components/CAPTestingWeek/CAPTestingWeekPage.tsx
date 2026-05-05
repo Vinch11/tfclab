@@ -97,13 +97,22 @@ export function CAPTestingWeekPage() {
     return Math.round((done / total) * 100);
   }, [completionStatus, activeSnapshot]);
 
-  // Estimated VLamax from sprint 15s
-  const estimatedVlamax = useMemo(() => {
+  // VLamax CAP : prioriser la valeur effective stockée (moteur unifié multi-sources :
+  // sprint + power + Modèle C inverse), sinon fallback estimation rapide sprint 15s.
+  const vlamaxDisplay = useMemo(() => {
+    const stored = (activeSnapshot as any)?.vlamax_run as number | null | undefined;
+    if (stored != null && stored > 0) {
+      return { value: Math.round(stored * 100) / 100, source: "measured" as const };
+    }
     const dist = activeSnapshot?.sprint_15s_distance;
     if (!dist || dist < 50 || dist > 120) return null;
     const normalized = (dist - 50) / 70;
-    return Math.round((0.30 + normalized * 0.40) * 100) / 100;
+    return {
+      value: Math.round((0.30 + normalized * 0.40) * 100) / 100,
+      source: "estimated" as const,
+    };
   }, [activeSnapshot]);
+  const estimatedVlamax = vlamaxDisplay?.value ?? null;
 
   const handleCloseTestSheet = () => {
     setActiveTestDay(null);
@@ -255,20 +264,26 @@ export function CAPTestingWeekPage() {
               </div>
 
               {/* Estimated VLamax CAP */}
-              {estimatedVlamax && (
+              {vlamaxDisplay && (
                 <div className="p-4 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-5 w-5 text-primary" />
                       <div>
-                        <div className="font-medium">VLamax CAP estimée</div>
+                        <div className="font-medium">
+                          {vlamaxDisplay.source === "measured"
+                            ? "VLamax CAP mesurée"
+                            : "VLamax CAP estimée"}
+                        </div>
                         <div className="text-xs text-muted-foreground">
-                          Basée sur le sprint 15s ({activeSnapshot.sprint_15s_distance}m)
+                          {vlamaxDisplay.source === "measured"
+                            ? "Valeur effective (moteur unifié : sprint + power + Modèle C)"
+                            : `Estimation rapide depuis sprint 15s (${activeSnapshot.sprint_15s_distance}m)`}
                         </div>
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-primary">
-                      {estimatedVlamax.toFixed(2)} <span className="text-sm font-normal">mmol/L/s</span>
+                      {vlamaxDisplay.value.toFixed(2)} <span className="text-sm font-normal">mmol/L/s</span>
                     </div>
                   </div>
                 </div>
