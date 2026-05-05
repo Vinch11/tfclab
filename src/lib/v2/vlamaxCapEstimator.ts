@@ -168,8 +168,9 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
       estimated = 0.72 - (ratio - 0.70) * 2.0;
     }
     
-    // Poids inférieur si on a déjà des sources directes (sprint/puissance)
-    const weight = estimates.length > 0 ? 0.20 : 0.55;
+    // P1: Rééquilibrage — augmenté 0.20 → 0.30 pour ne pas laisser le sprint dominer seul
+    // Si mesure labo présente, on garde un poids modéré (0.15)
+    const weight = hasMeasured ? 0.15 : (estimates.length > 0 ? 0.30 : 0.55);
     estimates.push({ value: estimated, weight, source: "Ratio Seuil/VMA" });
     sources.push("Seuil/VMA");
     details += `Ratio: ${(ratio * 100).toFixed(1)}% → ${estimated.toFixed(3)}. `;
