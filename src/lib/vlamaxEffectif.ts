@@ -134,6 +134,11 @@ interface SnapshotCloud {
   running_power_30s?: number | null;
   running_power_60s?: number | null;
   running_power_5min?: number | null;
+  // CAP — VLamax mesurée (sprint lactate / test CAP terrain)
+  vlamax_run?: number | null;
+  vlamax_source?: string | null;
+  vlamax_protocol?: string | null;
+  sprint_15s_distance?: number | null;
 }
 
 interface ComputeVLamaxEffectifParams {
@@ -198,7 +203,38 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   const sport = snapshotSportToContext(effectiveSnapshot?.sport_main);
 
   // =============================================
-  // A) SOURCE SNAPSHOT STAFF (VLamax mesurée lactate)
+  // A0) SOURCE CAP MESURÉE (vlamax_run — sprint lactate / test CAP terrain)
+  // Priorité absolue pour le sport CAP : si l'athlète a une VLamax run
+  // mesurée (lactate sprint 15s / test CAP), on l'utilise telle quelle.
+  // =============================================
+  if (
+    sport === "cap" &&
+    effectiveSnapshot &&
+    effectiveSnapshot.vlamax_run != null &&
+    effectiveSnapshot.vlamax_run > 0
+  ) {
+    const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+    const protocolLabel = effectiveSnapshot.vlamax_protocol || "Test CAP (sprint lactate)";
+    const isLab = (effectiveSnapshot.vlamax_source || "").toLowerCase().includes("lab");
+    const v2Input: VLamaxV2Input = {
+      rawValue: effectiveSnapshot.vlamax_run,
+      source: isLab ? "test_labo" : "test_terrain",
+      sport,
+      previousEffective,
+      factors: { sourceCount: 1, temporalStability: 0.1, dataAgeDays: ageDays },
+      sourceLabels: [protocolLabel],
+      reason: `VLamax CAP mesurée (${protocolLabel}) — valeur verrouillée`,
+    };
+    const v2 = computeVLamaxV2(v2Input);
+    return wrapV2Result(v2, {
+      testType: isLab ? "LACTATE_LAB" : "CAP_FIELD",
+      date: effectiveSnapshot.date,
+      protocol: protocolLabel,
+    });
+  }
+
+  // =============================================
+  // A) SOURCE SNAPSHOT STAFF (VLamax mesurée lactate — bike/global)
   // =============================================
   if (effectiveSnapshot && effectiveSnapshot.vlamax != null) {
     const ageDays = computeDataAgeDays(effectiveSnapshot.date);

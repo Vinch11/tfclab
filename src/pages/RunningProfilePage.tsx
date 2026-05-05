@@ -157,6 +157,20 @@ export default function RunningProfilePage() {
         protocol_quality: s.protocol_quality,
         objectif: s.objectif,
         vo2max: s.vo2max,
+        vma: (s as any).vma ?? null,
+        pace_threshold_sec_per_km: (s as any).pace_threshold_sec_per_km ?? null,
+        running_power_threshold: (s as any).running_power_threshold ?? null,
+        running_power_max: (s as any).running_power_max ?? null,
+        running_power_1s: (s as any).running_power_1s ?? null,
+        running_power_5s: (s as any).running_power_5s ?? null,
+        running_power_30s: (s as any).running_power_30s ?? null,
+        running_power_60s: (s as any).running_power_60s ?? null,
+        running_power_5min: (s as any).running_power_5min ?? null,
+        // ✅ VLamax CAP mesurée (sprint lactate / test terrain)
+        vlamax_run: (s as any).vlamax_run ?? null,
+        vlamax_source: (s as any).vlamax_source ?? null,
+        vlamax_protocol: (s as any).vlamax_protocol ?? null,
+        sprint_15s_distance: (s as any).sprint_15s_distance ?? null,
       })),
     });
   }, [currentAthlete, tests, snapshots, athleteGoal]);
