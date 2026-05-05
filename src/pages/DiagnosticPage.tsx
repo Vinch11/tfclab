@@ -14,6 +14,7 @@ import {
   Bike,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
 
 const sections = [
   {
@@ -103,6 +104,9 @@ export default function DiagnosticPage() {
             );
           })}
         </div>
+
+        {/* Audit de cohérence des profils athlètes */}
+        <AuditAthletesPanel />
 
         {/* Info - compact on mobile */}
         <Card className="border-dashed border-primary/20 bg-primary/5">

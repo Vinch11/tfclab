@@ -22,6 +22,7 @@ import { getTargetsForAmbition, normalizeObjective } from "@/lib/physiologicalTa
 import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
 import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import { ProfileAuditDialog } from "@/components/ProfileAuditDialog";
 
 interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
@@ -402,15 +403,22 @@ export function TwoForCoachingAnalysis({
           </div>
         </div>
 
-        {/* Race Ready Badge - ✅ FIX 9: Utilise readiness.score >= 80 (source unique) */}
-        <div className={cn("px-4 py-2 rounded-xl flex items-center gap-2", readiness.score >= 80 ? "bg-success/10 border border-success/30" : "bg-secondary/50 border border-border")}>
-          {readiness.score >= 80 ? <>
-              <Trophy className="w-5 h-5 text-success" />
-              <span className="font-semibold text-success">Race Ready</span>
-            </> : <>
-              <Target className="w-5 h-5 text-muted-foreground" />
-              <span className="text-muted-foreground">En préparation</span>
-            </>}
+        {/* Race Ready Badge + bouton audit profil */}
+        <div className="flex items-center gap-2">
+          <ProfileAuditDialog
+            snapshot={getDernierSnapshot(athlete) ?? {}}
+            athleteName={athlete.prenom ?? "Athlète"}
+            variant="compact"
+          />
+          <div className={cn("px-4 py-2 rounded-xl flex items-center gap-2", readiness.score >= 80 ? "bg-success/10 border border-success/30" : "bg-secondary/50 border border-border")}>
+            {readiness.score >= 80 ? <>
+                <Trophy className="w-5 h-5 text-success" />
+                <span className="font-semibold text-success">Race Ready</span>
+              </> : <>
+                <Target className="w-5 h-5 text-muted-foreground" />
+                <span className="text-muted-foreground">En préparation</span>
+              </>}
+          </div>
         </div>
       </div>
 
