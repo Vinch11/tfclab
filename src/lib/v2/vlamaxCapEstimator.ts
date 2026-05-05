@@ -24,6 +24,9 @@ export interface VLamaxCapEstimateInput {
   runPaceRefSecPerKm?: number | null;    // Allure de référence (sec/km)
   // Mesure directe labo (lactate sprint) — source dominante si présente
   vlamaxRunMeasured?: number | null;     // VLamax CAP mesurée (mmol/L/s)
+  // P3 — Cohérence inverse Modèle C MLSS
+  runningEconomyMlPerKgKm?: number | null; // Coût énergétique CE (ml O2/kg/km)
+  vo2max?: number | null;                  // VO2max (ml/kg/min) — pour dériver MLSS_pct observé
 }
 
 export interface VLamaxCapEstimate {
