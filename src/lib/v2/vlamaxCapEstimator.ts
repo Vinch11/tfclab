@@ -22,6 +22,8 @@ export interface VLamaxCapEstimateInput {
   runEconomyScore?: number | null;       // Score 0-100 d'économie de course
   runHrDriftPct?: number | null;         // Dérive cardiaque (%)
   runPaceRefSecPerKm?: number | null;    // Allure de référence (sec/km)
+  // Mesure directe labo (lactate sprint) — source dominante si présente
+  vlamaxRunMeasured?: number | null;     // VLamax CAP mesurée (mmol/L/s)
 }
 
 export interface VLamaxCapEstimate {
