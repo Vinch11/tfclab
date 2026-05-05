@@ -351,8 +351,24 @@ export function useCloudData() {
       return null;
     }
 
+    // P0 — Auto-déduction sport_main depuis l'objectif athlète si non fourni / défaut bike
+    const validated = validation.data as any;
+    const athleteForSport = athletes.find((a) => a.id === validated.athlete_id);
+    const goal = athleteForSport?.goal;
+    const providedSport = validated.sport_main as string | undefined;
+    const { deduceSportMainFromGoal } = await import("@/lib/sportMainDeduction");
+    const deduced = deduceSportMainFromGoal(goal);
+    // Si pas fourni, ou si fourni 'bike' (défaut DB) alors que l'objectif est run/tri, on corrige
+    let finalSport = providedSport;
+    if (!providedSport && deduced) {
+      finalSport = deduced;
+    } else if (providedSport === "bike" && deduced === "run") {
+      finalSport = "run";
+    }
+
     const insertPayload: TablesInsert<"snapshots"> = {
-      ...(validation.data as any),
+      ...validated,
+      ...(finalSport ? { sport_main: finalSport } : {}),
       coach_id: user.id,
     };
 
