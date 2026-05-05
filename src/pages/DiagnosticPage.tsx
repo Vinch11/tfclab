@@ -14,6 +14,7 @@ import {
   Bike,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
 
 const sections = [
   {
