@@ -97,13 +97,22 @@ export function CAPTestingWeekPage() {
     return Math.round((done / total) * 100);
   }, [completionStatus, activeSnapshot]);
 
-  // Estimated VLamax from sprint 15s
-  const estimatedVlamax = useMemo(() => {
+  // VLamax CAP : prioriser la valeur effective stockée (moteur unifié multi-sources :
+  // sprint + power + Modèle C inverse), sinon fallback estimation rapide sprint 15s.
+  const vlamaxDisplay = useMemo(() => {
+    const stored = (activeSnapshot as any)?.vlamax_run as number | null | undefined;
+    if (stored != null && stored > 0) {
+      return { value: Math.round(stored * 100) / 100, source: "measured" as const };
+    }
     const dist = activeSnapshot?.sprint_15s_distance;
     if (!dist || dist < 50 || dist > 120) return null;
     const normalized = (dist - 50) / 70;
-    return Math.round((0.30 + normalized * 0.40) * 100) / 100;
+    return {
+      value: Math.round((0.30 + normalized * 0.40) * 100) / 100,
+      source: "estimated" as const,
+    };
   }, [activeSnapshot]);
+  const estimatedVlamax = vlamaxDisplay?.value ?? null;
 
   const handleCloseTestSheet = () => {
     setActiveTestDay(null);
