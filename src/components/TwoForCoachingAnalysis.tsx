@@ -408,6 +408,7 @@ export function TwoForCoachingAnalysis({
           <ProfileAuditDialog
             snapshot={getDernierSnapshot(athlete) ?? {}}
             athleteName={athlete.prenom ?? "Athlète"}
+            athleteGoal={athlete.objectif}
             variant="compact"
           />
           <div className={cn("px-4 py-2 rounded-xl flex items-center gap-2", readiness.score >= 80 ? "bg-success/10 border border-success/30" : "bg-secondary/50 border border-border")}>
