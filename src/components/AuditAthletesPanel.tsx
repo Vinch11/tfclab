@@ -65,7 +65,7 @@ export function AuditAthletesPanel() {
             .maybeSingle();
           snap = data;
         }
-        const report = snap ? auditProfile(snap, a.name) : null;
+        const report = snap ? auditProfile(snap, a.name, (a as any).goal) : null;
         out.push({
           athleteId: a.id,
           athleteName: a.name,
