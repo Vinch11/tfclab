@@ -22,6 +22,7 @@ import { getTargetsForAmbition, normalizeObjective } from "@/lib/physiologicalTa
 import { normalizeRaceTypeForDisplay } from "@/lib/raceTypeNormalization";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition } from "@/types/ambitionLevel";
 import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import { ProfileAuditDialog } from "@/components/ProfileAuditDialog";
 
 interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
