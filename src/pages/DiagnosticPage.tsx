@@ -105,6 +105,9 @@ export default function DiagnosticPage() {
           })}
         </div>
 
+        {/* Audit de cohérence des profils athlètes */}
+        <AuditAthletesPanel />
+
         {/* Info - compact on mobile */}
         <Card className="border-dashed border-primary/20 bg-primary/5">
           <CardContent className="py-3 sm:py-4 px-3 sm:px-6 text-center">
