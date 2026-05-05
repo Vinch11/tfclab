@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 type Row = {
   athleteId: string;
   athleteName: string;
+  athleteGoal: string | null;
   snapshot: any | null;
   snapshotDate: string | null;
   critical: number;
@@ -34,7 +35,7 @@ export function AuditAthletesPanel() {
       // Charge athlètes
       const { data: athletes } = await supabase
         .from("athletes")
-        .select("id, name, active_snapshot_id")
+        .select("id, name, active_snapshot_id, goal")
         .eq("coach_id", user.id)
         .order("name");
 
