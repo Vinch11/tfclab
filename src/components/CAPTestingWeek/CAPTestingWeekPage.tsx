@@ -264,20 +264,26 @@ export function CAPTestingWeekPage() {
               </div>
 
               {/* Estimated VLamax CAP */}
-              {estimatedVlamax && (
+              {vlamaxDisplay && (
                 <div className="p-4 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-5 w-5 text-primary" />
                       <div>
-                        <div className="font-medium">VLamax CAP estimée</div>
+                        <div className="font-medium">
+                          {vlamaxDisplay.source === "measured"
+                            ? "VLamax CAP mesurée"
+                            : "VLamax CAP estimée"}
+                        </div>
                         <div className="text-xs text-muted-foreground">
-                          Basée sur le sprint 15s ({activeSnapshot.sprint_15s_distance}m)
+                          {vlamaxDisplay.source === "measured"
+                            ? "Valeur effective (moteur unifié : sprint + power + Modèle C)"
+                            : `Estimation rapide depuis sprint 15s (${activeSnapshot.sprint_15s_distance}m)`}
                         </div>
                       </div>
                     </div>
                     <div className="text-2xl font-bold text-primary">
-                      {estimatedVlamax.toFixed(2)} <span className="text-sm font-normal">mmol/L/s</span>
+                      {vlamaxDisplay.value.toFixed(2)} <span className="text-sm font-normal">mmol/L/s</span>
                     </div>
                   </div>
                 </div>
