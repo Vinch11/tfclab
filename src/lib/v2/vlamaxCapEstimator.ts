@@ -347,7 +347,16 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   if (sources.includes("Ratio P")) confidence += 0.10;
   if (sources.includes("Seuil/VMA")) confidence += 0.10;
   if (sources.includes("TTE")) confidence += 0.05;
-  
+  if (sources.includes("Modèle C")) confidence += 0.15;
+
+  // Pénalité d'incohérence : si Sprint 15s et Modèle C divergent > 0.10
+  const sprintEst = estimates.find(e => e.source === "Sprint 15s");
+  const modelCEst = estimates.find(e => e.source === "Modèle C inverse");
+  if (sprintEst && modelCEst && Math.abs(sprintEst.value - modelCEst.value) > 0.10) {
+    confidence -= 0.15;
+    details += `⚠️ Incohérence Sprint vs Modèle C (Δ=${Math.abs(sprintEst.value - modelCEst.value).toFixed(2)}). `;
+  }
+
   // Ajout bonus économie de course
   confidence += economyConfidenceAdjustment;
   confidence = Math.min(0.95, confidence); // Cap légèrement plus haut avec économie
