@@ -14,6 +14,7 @@ import ReactMarkdown from "react-markdown";
 interface ProfileAuditDialogProps {
   snapshot: any;
   athleteName: string;
+  athleteGoal?: string | null;
   trigger?: React.ReactNode;
   variant?: "compact" | "full";
 }
@@ -32,12 +33,12 @@ const verdictConfig = {
   severe: { label: "Incohérence critique", color: "text-destructive", bg: "bg-destructive/10" },
 };
 
-export function ProfileAuditDialog({ snapshot, athleteName, trigger, variant = "compact" }: ProfileAuditDialogProps) {
+export function ProfileAuditDialog({ snapshot, athleteName, athleteGoal, trigger, variant = "compact" }: ProfileAuditDialogProps) {
   const [open, setOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
 
-  const report: ProfileAuditReport = auditProfile(snapshot ?? {}, athleteName);
+  const report: ProfileAuditReport = auditProfile(snapshot ?? {}, athleteName, athleteGoal);
   const verdict = verdictConfig[report.overallVerdict];
 
   const runAIAudit = async () => {

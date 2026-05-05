@@ -61,7 +61,8 @@ type SnapshotLike = {
  */
 export function auditProfile(
   snapshot: SnapshotLike,
-  athleteName = "Athlète"
+  athleteName = "Athlète",
+  athleteGoal?: string | null
 ): ProfileAuditReport {
   const findings: AuditFinding[] = [];
 
@@ -77,7 +78,36 @@ export function auditProfile(
   const tss7d = num(snapshot.tss_7d);
   const conf = num(snapshot.confidence);
   const sport = (snapshot.sport_main ?? "bike").toLowerCase();
+  const sportNorm = sport === "velo" ? "bike" : sport;
   const isBikeSport = sport === "bike" || sport === "both" || sport === "velo";
+
+  // ─── RÈGLE 0: Cohérence sport_main vs objectif athlète ──────────────
+  if (athleteGoal) {
+    const g = athleteGoal.toLowerCase();
+    const isRunGoal = ["semi", "marathon", "starttorun", "5k", "10k"].includes(g) || g.startsWith("trail") || g.includes("ultra");
+    const isTriGoal = g === "im" || g === "703";
+    if (isRunGoal && sportNorm !== "run") {
+      findings.push({
+        id: "sport_goal_mismatch",
+        severity: "critical",
+        title: "Sport principal incohérent avec l'objectif",
+        detail: `Objectif = ${athleteGoal} (course) mais sport_main = "${snapshot.sport_main ?? "bike (défaut)"}". Le dashboard route vers le pipeline ${sportNorm} qui ignore VMA, pace seuil, sprint 15s et puissance course.`,
+        consequence: "VLamax, FatMax et zones affichés divergent des valeurs CAP testing (ex: dashboard 0.44 vs CAP 0.56). Diagnostic et plan IA partent sur le mauvais profil métabolique.",
+        fix: `Passer sport_main du snapshot à "run". Tous les futurs snapshots seront auto-déduits depuis l'objectif.`,
+        fields: ["sport_main"],
+      });
+    } else if (isTriGoal && sportNorm !== "tri" && sportNorm !== "bike") {
+      findings.push({
+        id: "sport_goal_mismatch",
+        severity: "warning",
+        title: "Sport principal possiblement incohérent",
+        detail: `Objectif = ${athleteGoal} (triathlon) mais sport_main = "${snapshot.sport_main}".`,
+        consequence: "Pipeline diagnostic peut ignorer une partie des données disciplines.",
+        fix: `Pour un triathlète, sport_main = "tri" ou "bike" selon la discipline limitante.`,
+        fields: ["sport_main"],
+      });
+    }
+  }
 
   // ─── RÈGLE 1: MAP ≤ FTP (incohérence majeure) ──────────────
   if (isBikeSport && ftp && map) {

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 type Row = {
   athleteId: string;
   athleteName: string;
+  athleteGoal: string | null;
   snapshot: any | null;
   snapshotDate: string | null;
   critical: number;
@@ -34,7 +35,7 @@ export function AuditAthletesPanel() {
       // Charge athlètes
       const { data: athletes } = await supabase
         .from("athletes")
-        .select("id, name, active_snapshot_id")
+        .select("id, name, active_snapshot_id, goal")
         .eq("coach_id", user.id)
         .order("name");
 
@@ -65,10 +66,11 @@ export function AuditAthletesPanel() {
             .maybeSingle();
           snap = data;
         }
-        const report = snap ? auditProfile(snap, a.name) : null;
+        const report = snap ? auditProfile(snap, a.name, (a as any).goal) : null;
         out.push({
           athleteId: a.id,
           athleteName: a.name,
+          athleteGoal: (a as any).goal ?? null,
           snapshot: snap,
           snapshotDate: snap?.date ?? null,
           critical: report?.stats.critical ?? 0,
@@ -153,6 +155,7 @@ export function AuditAthletesPanel() {
                   <ProfileAuditDialog
                     snapshot={r.snapshot}
                     athleteName={r.athleteName}
+                    athleteGoal={r.athleteGoal}
                     trigger={
                       <Button size="sm" variant="outline">Auditer</Button>
                     }
