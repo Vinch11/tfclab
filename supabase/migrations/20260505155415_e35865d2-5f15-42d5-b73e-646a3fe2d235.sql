@@ -1,0 +1,1 @@
+ALTER TABLE public.snapshots ALTER COLUMN sport_main DROP DEFAULT;
