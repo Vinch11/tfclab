@@ -153,6 +153,7 @@ export function AuditAthletesPanel() {
                   <ProfileAuditDialog
                     snapshot={r.snapshot}
                     athleteName={r.athleteName}
+                    athleteGoal={(athletes?.find((a) => a.id === r.athleteId) as any)?.goal}
                     trigger={
                       <Button size="sm" variant="outline">Auditer</Button>
                     }
