@@ -70,6 +70,7 @@ export function AuditAthletesPanel() {
         out.push({
           athleteId: a.id,
           athleteName: a.name,
+          athleteGoal: (a as any).goal ?? null,
           snapshot: snap,
           snapshotDate: snap?.date ?? null,
           critical: report?.stats.critical ?? 0,
@@ -154,7 +155,7 @@ export function AuditAthletesPanel() {
                   <ProfileAuditDialog
                     snapshot={r.snapshot}
                     athleteName={r.athleteName}
-                    athleteGoal={(athletes?.find((a) => a.id === r.athleteId) as any)?.goal}
+                    athleteGoal={r.athleteGoal}
                     trigger={
                       <Button size="sm" variant="outline">Auditer</Button>
                     }
