@@ -291,7 +291,25 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   }
 
   const totalWeight = estimates.reduce((sum, e) => sum + e.weight, 0);
-  const weightedValue = estimates.reduce((sum, e) => sum + e.value * e.weight, 0) / totalWeight;
+  let weightedValue = estimates.reduce((sum, e) => sum + e.value * e.weight, 0) / totalWeight;
+
+  // =============================================
+  // P2: MODIFICATEUR VALEUR via Économie de Course
+  // =============================================
+  // Une excellente économie = signature endurante → VLamax plus basse
+  // Une économie fragile = signature glycolytique/coût élevé → VLamax plus haute
+  // N'applique pas ce shift si on a une mesure labo directe (déjà fiable)
+  if (!hasMeasured && runEconomyScore != null && runEconomyScore > 0) {
+    let valueShift = 0;
+    if (runEconomyScore >= 75) valueShift = -0.03;
+    else if (runEconomyScore >= 55) valueShift = -0.015;
+    else if (runEconomyScore < 40) valueShift = +0.03;
+    if (valueShift !== 0) {
+      weightedValue += valueShift;
+      details += `Économie shift: ${valueShift > 0 ? '+' : ''}${valueShift.toFixed(3)}. `;
+    }
+  }
+
   const value = clampCap(weightedValue);
   
   // Confiance basée sur les sources disponibles
