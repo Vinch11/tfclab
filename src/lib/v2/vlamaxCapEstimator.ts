@@ -24,6 +24,9 @@ export interface VLamaxCapEstimateInput {
   runPaceRefSecPerKm?: number | null;    // Allure de référence (sec/km)
   // Mesure directe labo (lactate sprint) — source dominante si présente
   vlamaxRunMeasured?: number | null;     // VLamax CAP mesurée (mmol/L/s)
+  // P3 — Cohérence inverse Modèle C MLSS
+  runningEconomyMlPerKgKm?: number | null; // Coût énergétique CE (ml O2/kg/km)
+  vo2max?: number | null;                  // VO2max (ml/kg/min) — pour dériver MLSS_pct observé
 }
 
 export interface VLamaxCapEstimate {
@@ -193,6 +196,31 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   }
 
   // =============================================
+  // SOURCE 7: Inversion Modèle C MLSS (P3)
+  // VLa_inv = (1 − MLSS_pct_obs − 0.0021·(CE−200)) / 0.337
+  // MLSS_pct_obs ≈ pace_seuil_kmh / VMA (proxy %vVO2max)
+  // =============================================
+  const ceForInverse = input.runningEconomyMlPerKgKm;
+  if (
+    !hasMeasured &&
+    vma != null && vma > 0 &&
+    paceThresholdSecPerKm != null && paceThresholdSecPerKm > 0 &&
+    ceForInverse != null && ceForInverse > 0
+  ) {
+    const paceKmhInv = 3600 / paceThresholdSecPerKm;
+    const mlssFracObs = clamp(paceKmhInv / vma, 0.55, 0.95);
+    const ceClamped = clamp(ceForInverse, 150, 280);
+    const vlaInverse = (1 - mlssFracObs - 0.0021 * (ceClamped - 200)) / 0.337;
+    if (vlaInverse > 0.10 && vlaInverse < 1.20) {
+      const clamped = clampCap(vlaInverse);
+      // Contrainte physiologique calibrée (RMSE 2.64%) — poids fort
+      estimates.push({ value: clamped, weight: 0.35, source: "Modèle C inverse" });
+      sources.push("Modèle C");
+      details += `Modèle C inv: MLSS_obs=${(mlssFracObs * 100).toFixed(1)}%, CE=${ceClamped.toFixed(0)} → VLa=${clamped.toFixed(3)}. `;
+    }
+  }
+
+  // =============================================
   // MODIFICATEUR TTE (Cross-validation)
   // =============================================
   if (tteMin !== null && tteMin > 0 && estimates.length > 0) {
@@ -319,7 +347,16 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   if (sources.includes("Ratio P")) confidence += 0.10;
   if (sources.includes("Seuil/VMA")) confidence += 0.10;
   if (sources.includes("TTE")) confidence += 0.05;
-  
+  if (sources.includes("Modèle C")) confidence += 0.15;
+
+  // Pénalité d'incohérence : si Sprint 15s et Modèle C divergent > 0.10
+  const sprintEst = estimates.find(e => e.source === "Sprint 15s");
+  const modelCEst = estimates.find(e => e.source === "Modèle C inverse");
+  if (sprintEst && modelCEst && Math.abs(sprintEst.value - modelCEst.value) > 0.10) {
+    confidence -= 0.15;
+    details += `⚠️ Incohérence Sprint vs Modèle C (Δ=${Math.abs(sprintEst.value - modelCEst.value).toFixed(2)}). `;
+  }
+
   // Ajout bonus économie de course
   confidence += economyConfidenceAdjustment;
   confidence = Math.min(0.95, confidence); // Cap légèrement plus haut avec économie
