@@ -134,6 +134,11 @@ interface SnapshotCloud {
   running_power_30s?: number | null;
   running_power_60s?: number | null;
   running_power_5min?: number | null;
+  // CAP — VLamax mesurée (sprint lactate / test CAP terrain)
+  vlamax_run?: number | null;
+  vlamax_source?: string | null;
+  vlamax_protocol?: string | null;
+  sprint_15s_distance?: number | null;
 }
 
 interface ComputeVLamaxEffectifParams {
