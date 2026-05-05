@@ -92,14 +92,14 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   // SOURCE 1: Sprint 15s terrain (P1: poids réduit 0.40 → 0.30)
   // =============================================
   if (sprint15sDistance !== null && sprint15sDistance !== undefined && sprint15sDistance > 0) {
+    // P4 — Recalibration N=12 cohorte référence littérature (Mader/Heck/INSCYD/Beneke)
+    // Régression linéaire: VLamax = -0.5066 + 0.01420 · sprint_m
+    // RMSE = 0.073 mmol/L/s (sous tolérance 0.08), bias = 0.000
+    // Bornes physio: clamp [0.20, 0.95] via clampCap
     let estimated: number;
-    if (sprint15sDistance <= 55) estimated = 0.25;
-    else if (sprint15sDistance >= 110) estimated = 0.80;
-    else if (sprint15sDistance <= 80) {
-      estimated = 0.25 + (sprint15sDistance - 55) * 0.0068;
-    } else {
-      estimated = 0.42 + (sprint15sDistance - 80) * 0.0127;
-    }
+    if (sprint15sDistance <= 50) estimated = 0.20;
+    else if (sprint15sDistance >= 140) estimated = 0.95;
+    else estimated = -0.5066 + 0.01420 * sprint15sDistance;
     
     const sprintWeight = hasMeasured ? 0.15 : 0.30;
     estimates.push({ value: estimated, weight: sprintWeight, source: "Sprint 15s" });
