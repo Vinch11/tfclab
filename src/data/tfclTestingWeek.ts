@@ -232,8 +232,8 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
     },
     {
       dayKey: "D5",
-      title: "TEST FTP + TTE",
-      goal: "Valider/recalibrer le FTP et mesurer le Time To Exhaustion au seuil",
+      title: "TEST FTP + TTE (point long de la régression CP)",
+      goal: "Valider/recalibrer le FTP et mesurer le Time To Exhaustion au seuil. Couplé au MAP 5 min de D3, ce point long alimente la régression Critical Power → CP + W' (≠ MAP seul, qui ne donne que la PAM).",
       sessionType: "TEST",
       durationEstimateMin: 90,
       protocol: {
