@@ -166,8 +166,8 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
     },
     {
       dayKey: "D3",
-      title: "TEST MAP 5 min",
-      goal: "Mesurer la Puissance Aérobie Maximale sur 5 minutes",
+      title: "TEST MAP 5 min (point court de la régression CP)",
+      goal: "Mesurer la Puissance Aérobie Maximale sur 5 min. Combiné au FTP 20 min de D5, il sert de point court pour la régression Critical Power (CP) + W' (modèle Monod-Scherrer).",
       sessionType: "TEST",
       durationEstimateMin: 60,
       protocol: {
@@ -232,8 +232,8 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
     },
     {
       dayKey: "D5",
-      title: "TEST FTP + TTE",
-      goal: "Valider/recalibrer le FTP et mesurer le Time To Exhaustion au seuil",
+      title: "TEST FTP + TTE (point long de la régression CP)",
+      goal: "Valider/recalibrer le FTP et mesurer le Time To Exhaustion au seuil. Couplé au MAP 5 min de D3, ce point long alimente la régression Critical Power → CP + W' (≠ MAP seul, qui ne donne que la PAM).",
       sessionType: "TEST",
       durationEstimateMin: 90,
       protocol: {
