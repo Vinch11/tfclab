@@ -166,8 +166,8 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
     },
     {
       dayKey: "D3",
-      title: "TEST MAP 5 min",
-      goal: "Mesurer la Puissance Aérobie Maximale sur 5 minutes",
+      title: "TEST MAP 5 min (point court de la régression CP)",
+      goal: "Mesurer la Puissance Aérobie Maximale sur 5 min. Combiné au FTP 20 min de D5, il sert de point court pour la régression Critical Power (CP) + W' (modèle Monod-Scherrer).",
       sessionType: "TEST",
       durationEstimateMin: 60,
       protocol: {
