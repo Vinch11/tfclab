@@ -109,6 +109,8 @@ export interface FitTestSaveData {
     sport?: string;
   };
   rawAnalysis: FitAnalysisResult;
+  computedVlamax?: number;
+  computedVlamaxRun?: number;
 }
 
 export interface ProfileUpdates {
