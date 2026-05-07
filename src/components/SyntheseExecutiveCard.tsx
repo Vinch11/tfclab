@@ -67,30 +67,39 @@ const PILLAR_ADVICE: Record<string, string> = {
 function computePillarScore(
   limiter: UnifiedLimiterResult,
   metricNames: readonly string[],
-): number {
-  // For each metric in this pillar, compute a score on /25 based on gap status
+  availableMetrics: Set<string>,
+): number | null {
+  // Missing Data Policy: if NO metric of this pillar is available, return null (insufficient)
+  const hasAnyData = metricNames.some(m => availableMetrics.has(m));
+  if (!hasAnyData) return null;
+
   const gaps = limiter.gapAnalysis.filter(g => metricNames.includes(g.metric));
-  if (gaps.length === 0) return 20; // default "acceptable" if no data
+  if (gaps.length === 0) return null;
 
   let totalScore = 0;
+  let counted = 0;
   for (const gap of gaps) {
+    if (!availableMetrics.has(gap.metric)) continue;
+    counted++;
     if (gap.status === "optimal") totalScore += 25;
     else if (gap.status === "acceptable") totalScore += 18;
     else if (gap.status === "limiting") {
-      // Scale by how far off: more gap = lower score
       const severity = Math.min(1, gap.weightedImpact / 15);
-      totalScore += Math.max(5, Math.round(15 * (1 - severity)));
+      totalScore += Math.max(0, Math.round(15 * (1 - severity)));
     } else {
-      totalScore += 15; // unknown
+      // unknown status → don't fabricate a score
+      counted--;
     }
   }
-  return Math.round(totalScore / gaps.length);
+  if (counted === 0) return null;
+  return Math.round(totalScore / counted);
 }
 
-function computeGlobalScore(pillarScores: number[]): number {
-  if (pillarScores.length === 0) return 0;
-  const total = pillarScores.reduce((s, v) => s + v, 0);
-  const maxTotal = pillarScores.length * 25;
+function computeGlobalScore(pillarScores: (number | null)[]): number {
+  const valid = pillarScores.filter((v): v is number => v !== null);
+  if (valid.length === 0) return 0;
+  const total = valid.reduce((s, v) => s + v, 0);
+  const maxTotal = valid.length * 25;
   return Math.round((total / maxTotal) * 100);
 }
 
@@ -111,8 +120,15 @@ export function SyntheseExecutiveCard({
     }
   };
 
-  // Guard: données insuffisantes
-  const isInsufficient = vlamaxEffectif.value === null && !ftp && !vo2max && completude.score === 0;
+  // Build set of available metrics (used by both guard and pillars)
+  const availableMetrics = new Set<string>();
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.source !== "unknown") availableMetrics.add("VLamax");
+  if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") availableMetrics.add("TTE");
+  if (ftpKg !== null) availableMetrics.add("FTP/kg");
+  if (vo2max) availableMetrics.add("VO2max");
+
+  // Guard: données insuffisantes — aucune métrique mesurée disponible
+  const isInsufficient = availableMetrics.size === 0;
 
   if (isInsufficient || !limiterResult) {
     return (
@@ -139,12 +155,12 @@ export function SyntheseExecutiveCard({
   // Build summary items with ambition-aware thresholds
   const items: { label: string; value: string; status: MetricStatus; source: string; target: string }[] = [];
   
-  if (vlamaxEffectif.value !== null) {
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.source !== "unknown") {
     const eval_ = evaluateVLamax(vlamaxEffectif.value, objectif, ambition, athleteAge);
     items.push({ label: "VLamax", value: `${vlamaxEffectif.value.toFixed(2)} mmol/L/s`, status: eval_.status, source: vlamaxEffectif.source, target: eval_.target });
   }
   
-  if (tteEffectif.tte_min > 0) {
+  if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") {
     const eval_ = evaluateTTE(tteEffectif.tte_min, objectif, ambition, athleteAge);
     items.push({ label: "TTE", value: `${tteEffectif.tte_min} min`, status: eval_.status, source: tteEffectif.source, target: eval_.target });
   }
@@ -162,13 +178,16 @@ export function SyntheseExecutiveCard({
   // V3.0: Pillar scores derived from unified limiter gapAnalysis
   const pillarScores = PILLAR_CONFIG.map(pillar => ({
     ...pillar,
-    score: computePillarScore(limiterResult, pillar.metrics),
+    score: computePillarScore(limiterResult, pillar.metrics, availableMetrics),
   }));
 
   const globalScore = computeGlobalScore(pillarScores.map(p => p.score));
 
-  // The weakest pillar matches the unified limiter's primary analysis
-  const weakestPillar = pillarScores.reduce((min, p) => p.score < min.score ? p : min, pillarScores[0]);
+  // The weakest pillar (parmi ceux ayant des données)
+  const scoredPillars = pillarScores.filter(p => p.score !== null);
+  const weakestPillar = scoredPillars.length > 0
+    ? scoredPillars.reduce((min, p) => (p.score! < min.score! ? p : min), scoredPillars[0])
+    : null;
 
   // Global score labels
   const scoreColor = globalScore >= 80 ? "text-green-600 dark:text-green-400"
@@ -235,8 +254,9 @@ export function SyntheseExecutiveCard({
           </div>
           <div className="space-y-2">
             {pillarScores.map((pillar) => {
-              const pct = Math.min(100, Math.round((pillar.score / 25) * 100));
-              const isWeakest = weakestPillar?.key === pillar.key;
+              const hasData = pillar.score !== null;
+              const pct = hasData ? Math.min(100, Math.round((pillar.score! / 25) * 100)) : 0;
+              const isWeakest = hasData && weakestPillar?.key === pillar.key;
               return (
                 <div key={pillar.key} className="space-y-0.5">
                   <div className="flex items-center justify-between">
@@ -254,7 +274,9 @@ export function SyntheseExecutiveCard({
                         </Badge>
                       )}
                     </div>
-                    <span className="text-xs font-mono font-medium">{pillar.score.toFixed(1)}/25</span>
+                    <span className="text-xs font-mono font-medium">
+                      {hasData ? `${pillar.score!.toFixed(1)}/25` : "— Données insuffisantes"}
+                    </span>
                   </div>
                   <Progress value={pct} className={cn("h-1.5", isWeakest && "[&>div]:bg-amber-500")} />
                   <p className="text-[10px] text-muted-foreground">{pillar.description}</p>
