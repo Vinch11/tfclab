@@ -120,8 +120,15 @@ export function SyntheseExecutiveCard({
     }
   };
 
-  // Guard: données insuffisantes
-  const isInsufficient = vlamaxEffectif.value === null && !ftp && !vo2max && completude.score === 0;
+  // Build set of available metrics (used by both guard and pillars)
+  const availableMetrics = new Set<string>();
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.source !== "unknown") availableMetrics.add("VLamax");
+  if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") availableMetrics.add("TTE");
+  if (ftpKg !== null) availableMetrics.add("FTP/kg");
+  if (vo2max) availableMetrics.add("VO2max");
+
+  // Guard: données insuffisantes — aucune métrique mesurée disponible
+  const isInsufficient = availableMetrics.size === 0;
 
   if (isInsufficient || !limiterResult) {
     return (
@@ -148,12 +155,12 @@ export function SyntheseExecutiveCard({
   // Build summary items with ambition-aware thresholds
   const items: { label: string; value: string; status: MetricStatus; source: string; target: string }[] = [];
   
-  if (vlamaxEffectif.value !== null) {
+  if (vlamaxEffectif.value !== null && vlamaxEffectif.source !== "unknown") {
     const eval_ = evaluateVLamax(vlamaxEffectif.value, objectif, ambition, athleteAge);
     items.push({ label: "VLamax", value: `${vlamaxEffectif.value.toFixed(2)} mmol/L/s`, status: eval_.status, source: vlamaxEffectif.source, target: eval_.target });
   }
   
-  if (tteEffectif.tte_min > 0) {
+  if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") {
     const eval_ = evaluateTTE(tteEffectif.tte_min, objectif, ambition, athleteAge);
     items.push({ label: "TTE", value: `${tteEffectif.tte_min} min`, status: eval_.status, source: tteEffectif.source, target: eval_.target });
   }
@@ -171,13 +178,16 @@ export function SyntheseExecutiveCard({
   // V3.0: Pillar scores derived from unified limiter gapAnalysis
   const pillarScores = PILLAR_CONFIG.map(pillar => ({
     ...pillar,
-    score: computePillarScore(limiterResult, pillar.metrics),
+    score: computePillarScore(limiterResult, pillar.metrics, availableMetrics),
   }));
 
   const globalScore = computeGlobalScore(pillarScores.map(p => p.score));
 
-  // The weakest pillar matches the unified limiter's primary analysis
-  const weakestPillar = pillarScores.reduce((min, p) => p.score < min.score ? p : min, pillarScores[0]);
+  // The weakest pillar (parmi ceux ayant des données)
+  const scoredPillars = pillarScores.filter(p => p.score !== null);
+  const weakestPillar = scoredPillars.length > 0
+    ? scoredPillars.reduce((min, p) => (p.score! < min.score! ? p : min), scoredPillars[0])
+    : null;
 
   // Global score labels
   const scoreColor = globalScore >= 80 ? "text-green-600 dark:text-green-400"
