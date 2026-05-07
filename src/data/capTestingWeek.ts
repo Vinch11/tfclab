@@ -216,10 +216,44 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "RPE (1–10)",
           "Qualité protocole (1–5)"
         ]
+      },
+      treadmillProtocol: {
+        warmup: [
+          { durationMin: 12, intensityLabel: "Footing Z2 tapis (pente 1%)", notes: "Pente 1% obligatoire (Jones 1996) pour compenser absence résistance air" },
+          { durationMin: 5, intensityLabel: "Gammes au sol (hors tapis)", notes: "Activation neuromusculaire à côté du tapis" },
+          { durationMin: 6, intensityLabel: "Progressif tapis", notes: "2×2 min à 90% VMA estimée, pente 1%, récup 2 min marche" },
+          { durationMin: 5, intensityLabel: "Récup", notes: "Marche tapis 5 km/h" }
+        ],
+        main: [
+          { durationMin: 12, intensityLabel: "RAMPE TAPIS — départ 8 km/h, +0.5 km/h/min", notes: "Pente 1%. Protocole rampe (plus fiable que 6 min all-out sur tapis car évite l'inertie de calage). Continuer jusqu'à incapacité de tenir le palier ≥45s. VMA = vitesse du dernier palier complet." }
+        ],
+        recovery: [
+          { durationMin: 10, intensityLabel: "Marche tapis 5 km/h pente 0%", notes: "Retour au calme + descendre du tapis dès récup HR <120" }
+        ],
+        pacingRules: [
+          "Pente fixée à 1% (Jones 1996) — équivalent énergétique terrain",
+          "Ventilateur frontal puissant OBLIGATOIRE (sinon FC artificiellement élevée)",
+          "Température ambiante idéale 16–20°C",
+          "Calibration vitesse tapis : courir 1 km mesuré au préalable et comparer affichage vs distance réelle",
+          "Ne JAMAIS sauter du tapis en mouvement — ralentir progressivement"
+        ],
+        validityCriteria: [
+          "FC ≥95% FCmax au dernier palier",
+          "RPE = 10/10",
+          "Dernier palier tenu ≥45s (sinon prendre l'avant-dernier)",
+          "Pas de fuite de l'effort (tenir la barre = invalide)"
+        ],
+        dataToRecord: [
+          "Vitesse dernier palier complet (km/h) → VMA",
+          "Pente utilisée (%)",
+          "HR max atteinte",
+          "HR moyenne dernière minute",
+          "RPE (1–10)",
+          "Modèle tapis + calibration vitesse (oui/non)",
+          "Qualité protocole (1–5)"
+        ]
       }
     },
-    {
-      dayKey: "D4",
       title: "Repos complet",
       goal: "Récupération totale avant le test seuil",
       sessionType: "REST",
