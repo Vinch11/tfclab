@@ -171,7 +171,7 @@ export function FitImportDialog({
   const [analysis, setAnalysis] = useState<FitAnalysisResult | null>(null);
   const [runningEconomyResult, setRunningEconomyResult] = useState<RunningEconomyFitResult | null>(null);
   const [selectedTestType, setSelectedTestType] = useState<DetectedTestType | null>(null);
-  const [updateProfile, setUpdateProfile] = useState(false);
+  const [updateProfile, setUpdateProfile] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
