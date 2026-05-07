@@ -38,6 +38,7 @@ import { FitImportDialog, type FitTestSaveData, type ProfileUpdates } from "@/co
 
 import { IntegratedTestProtocol, INTEGRATED_TESTS_LIBRARY } from "@/data/testProtocolsLibrary";
 import type { Json } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function TestsPage() {
   const navigate = useNavigate();
