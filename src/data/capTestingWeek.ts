@@ -327,10 +327,48 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "RPE (1–10)",
           "Qualité protocole (1–5)"
         ]
+      },
+      treadmillProtocol: {
+        warmup: [
+          { durationMin: 12, intensityLabel: "Footing Z2 tapis (pente 1%)", notes: "Activation aérobie progressive, ventilateur ON" },
+          { durationMin: 5, intensityLabel: "Gammes au sol", notes: "Hors tapis" },
+          { durationMin: 8, intensityLabel: "Progressif tapis", notes: "2×3 min à 90% allure seuil estimée (pente 1%), récup 2 min marche" },
+          { durationMin: 5, intensityLabel: "Récup", notes: "Marche tapis 5 km/h" }
+        ],
+        main: [
+          { durationMin: 25, intensityLabel: "25 min vitesse seuil FIXÉE (pente 1%)", notes: "Démarrer à 90% VMA. Vitesse imposée par tapis = pacing PARFAIT. Si tenu 'confortablement difficile' = OK." },
+          { durationMin: 5, intensityLabel: "Extension TTE — +0.3 km/h", notes: "Si encore capable de parler en mots courts, augmenter de +0.3 km/h et tenir jusqu'à incapacité (= TTE). Si chute de vitesse impossible sur tapis : test invalide → refaire 0.3 km/h plus bas." }
+        ],
+        recovery: [
+          { durationMin: 10, intensityLabel: "Marche tapis 5 km/h", notes: "Retour au calme + boire" }
+        ],
+        pacingRules: [
+          "Pente 1% obligatoire",
+          "Ventilateur frontal puissant + temp <22°C (sinon FC artificiellement +10 bpm)",
+          "Vitesse FIXÉE — aucune variation autorisée pendant 25 min",
+          "Si vitesse a dû être baissée → test INVALIDE, refaire 0.3 km/h plus bas",
+          "Calibration vitesse tapis vérifiée (1 km mesuré)"
+        ],
+        validityCriteria: [
+          "Vitesse maintenue 25 min sans baisse",
+          "FC dérive +5–10 bpm (acceptable jusqu'à +12 avec chaleur tapis)",
+          "RPE 8–9/10 à la fin",
+          "Sensation confortablement difficile tout au long"
+        ],
+        dataToRecord: [
+          "Vitesse seuil tapis (km/h) → converti en s/km pour pace_threshold_sec_per_km",
+          "Pente (%)",
+          "HR moyenne",
+          "HR max",
+          "HR drift (%)",
+          "TTE total si extension (min)",
+          "RPE (1–10)",
+          "Température salle (°C)",
+          "Ventilateur (oui/non)",
+          "Qualité protocole (1–5)"
+        ]
       }
     },
-    {
-      dayKey: "D6",
       title: "Endurance Validation",
       goal: "Validation de la récupération et cohérence du profil",
       sessionType: "VALIDATION",
