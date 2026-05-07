@@ -369,6 +369,8 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
         ]
       }
     },
+    {
+      dayKey: "D6",
       title: "Endurance Validation",
       goal: "Validation de la récupération et cohérence du profil",
       sessionType: "VALIDATION",
