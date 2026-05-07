@@ -181,7 +181,7 @@ export function FitImportDialog({
     setAnalysis(null);
     setRunningEconomyResult(null);
     setSelectedTestType(null);
-    setUpdateProfile(false);
+    setUpdateProfile(true);
     setShowDetails(false);
     setIsLoading(false);
     setIsSaving(false);
