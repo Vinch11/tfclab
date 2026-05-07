@@ -254,6 +254,8 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
         ]
       }
     },
+    {
+      dayKey: "D4",
       title: "Repos complet",
       goal: "Récupération totale avant le test seuil",
       sessionType: "REST",
