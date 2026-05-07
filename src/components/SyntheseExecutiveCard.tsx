@@ -67,30 +67,39 @@ const PILLAR_ADVICE: Record<string, string> = {
 function computePillarScore(
   limiter: UnifiedLimiterResult,
   metricNames: readonly string[],
-): number {
-  // For each metric in this pillar, compute a score on /25 based on gap status
+  availableMetrics: Set<string>,
+): number | null {
+  // Missing Data Policy: if NO metric of this pillar is available, return null (insufficient)
+  const hasAnyData = metricNames.some(m => availableMetrics.has(m));
+  if (!hasAnyData) return null;
+
   const gaps = limiter.gapAnalysis.filter(g => metricNames.includes(g.metric));
-  if (gaps.length === 0) return 20; // default "acceptable" if no data
+  if (gaps.length === 0) return null;
 
   let totalScore = 0;
+  let counted = 0;
   for (const gap of gaps) {
+    if (!availableMetrics.has(gap.metric)) continue;
+    counted++;
     if (gap.status === "optimal") totalScore += 25;
     else if (gap.status === "acceptable") totalScore += 18;
     else if (gap.status === "limiting") {
-      // Scale by how far off: more gap = lower score
       const severity = Math.min(1, gap.weightedImpact / 15);
-      totalScore += Math.max(5, Math.round(15 * (1 - severity)));
+      totalScore += Math.max(0, Math.round(15 * (1 - severity)));
     } else {
-      totalScore += 15; // unknown
+      // unknown status → don't fabricate a score
+      counted--;
     }
   }
-  return Math.round(totalScore / gaps.length);
+  if (counted === 0) return null;
+  return Math.round(totalScore / counted);
 }
 
-function computeGlobalScore(pillarScores: number[]): number {
-  if (pillarScores.length === 0) return 0;
-  const total = pillarScores.reduce((s, v) => s + v, 0);
-  const maxTotal = pillarScores.length * 25;
+function computeGlobalScore(pillarScores: (number | null)[]): number {
+  const valid = pillarScores.filter((v): v is number => v !== null);
+  if (valid.length === 0) return 0;
+  const total = valid.reduce((s, v) => s + v, 0);
+  const maxTotal = valid.length * 25;
   return Math.round((total / maxTotal) * 100);
 }
 
