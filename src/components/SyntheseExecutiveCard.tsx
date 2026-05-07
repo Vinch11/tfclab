@@ -254,8 +254,9 @@ export function SyntheseExecutiveCard({
           </div>
           <div className="space-y-2">
             {pillarScores.map((pillar) => {
-              const pct = Math.min(100, Math.round((pillar.score / 25) * 100));
-              const isWeakest = weakestPillar?.key === pillar.key;
+              const hasData = pillar.score !== null;
+              const pct = hasData ? Math.min(100, Math.round((pillar.score! / 25) * 100)) : 0;
+              const isWeakest = hasData && weakestPillar?.key === pillar.key;
               return (
                 <div key={pillar.key} className="space-y-0.5">
                   <div className="flex items-center justify-between">
@@ -273,7 +274,9 @@ export function SyntheseExecutiveCard({
                         </Badge>
                       )}
                     </div>
-                    <span className="text-xs font-mono font-medium">{pillar.score.toFixed(1)}/25</span>
+                    <span className="text-xs font-mono font-medium">
+                      {hasData ? `${pillar.score!.toFixed(1)}/25` : "— Données insuffisantes"}
+                    </span>
                   </div>
                   <Progress value={pct} className={cn("h-1.5", isWeakest && "[&>div]:bg-amber-500")} />
                   <p className="text-[10px] text-muted-foreground">{pillar.description}</p>
