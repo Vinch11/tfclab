@@ -128,6 +128,8 @@ export interface ProfileUpdates {
   running_power_60s?: number;
   running_power_5min?: number;
   running_power_max?: number;
+  running_power_threshold?: number;
+  vlamax_run?: number;
   // Common
   fc_max?: number;
   tte_observed_min?: number;
