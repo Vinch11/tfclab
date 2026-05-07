@@ -38,6 +38,7 @@ import { FitImportDialog, type FitTestSaveData, type ProfileUpdates } from "@/co
 
 import { IntegratedTestProtocol, INTEGRATED_TESTS_LIBRARY } from "@/data/testProtocolsLibrary";
 import type { Json } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function TestsPage() {
   const navigate = useNavigate();
@@ -138,7 +139,13 @@ export default function TestsPage() {
   // Handler for FIT import
   const handleSaveFitTest = async (data: FitTestSaveData) => {
     if (!selectedAthlete) return;
-    
+
+    const sportFromFile = (data.fileMeta.sport ?? "").toLowerCase();
+    const sportEffective: "bike" | "run" =
+      sportFromFile.includes("run") || data.type === "RUN_ECONOMY" ? "run" : "bike";
+    const vlamaxToStore =
+      sportEffective === "run" ? data.computedVlamaxRun ?? null : data.computedVlamax ?? null;
+
     const rawData = {
       category: "FIT_IMPORT",
       source: "FIT_IMPORT",
@@ -147,6 +154,7 @@ export default function TestsPage() {
       bestEfforts: data.bestEfforts,
       protocolQuality: data.protocolQuality,
       fileMeta: data.fileMeta,
+      sport: sportEffective,
       // Store key metrics at root level for calibration layer
       ftp: data.metrics.ftp,
       map5min: data.metrics.map,
@@ -154,18 +162,60 @@ export default function TestsPage() {
       p60s: data.metrics.p60s,
       tte_observed_min: data.metrics.tte_observed_min,
       drift_percent: data.metrics.drift_percent,
+      computedVlamax: data.computedVlamax ?? null,
+      computedVlamaxRun: data.computedVlamaxRun ?? null,
     };
 
     await addTest(
       selectedAthlete.id,
       "FIT_IMPORT",
       `Import FIT - ${data.type}`,
-      "bike",
+      sportEffective,
       data.confidence,
-      null,
+      vlamaxToStore,
       rawData as Json,
       `Fichier: ${data.fileMeta.fileName}`
     );
+
+    // Persistance dans calibration_evidence pour la fenêtre glissante 42j
+    try {
+      const evidenceType =
+        data.type === "SPRINT_15S" ? "SPRINT_15S" :
+        data.type === "SPRINT_30S" || data.type === "SPRINT_60S" ? "P30" :
+        data.type === "MAP_5MIN" ? "MAP" :
+        data.type === "Z2_DRIFT" ? "DRIFT" :
+        data.type === "RUN_ECONOMY" ? "ECONOMY" :
+        data.type === "TTE_THRESHOLD" ? "TTE_OBS" :
+        data.type.startsWith("FTP") ? "P60" :
+        "P30";
+
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (userId) {
+        await supabase.from("calibration_evidence").insert({
+          athlete_id: selectedAthlete.id,
+          coach_id: userId,
+          date: data.date,
+          source_type: "FIT_IMPORT",
+          evidence_type: evidenceType,
+          raw_values: {
+            ...data.metrics,
+            sport: sportEffective,
+            file_name: data.fileMeta.fileName,
+            device: data.fileMeta.device ?? null,
+            vlamax_computed: vlamaxToStore,
+            test_type: data.type,
+          } as Json,
+          protocol_quality: Math.max(1, Math.min(5, data.protocolQuality)),
+          validity: "OK",
+          confidence_evidence: data.confidence,
+          used_in_calibration: true,
+          calibration_weight: data.confidence,
+          notes: `FIT ${data.type} • ${data.fileMeta.fileName}`,
+        });
+      }
+    } catch (e) {
+      if (import.meta.env.DEV) console.error("calibration_evidence insert failed", e);
+    }
   };
 
   const handleUpdateProfileFromFit = async (updates: ProfileUpdates) => {
@@ -173,7 +223,7 @@ export default function TestsPage() {
       toast.error("Aucun snapshot actif pour mettre à jour");
       return;
     }
-    
+
     await updateSnapshot(currentSnapshot.id, updates as Record<string, unknown>);
   };
 
