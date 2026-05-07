@@ -430,6 +430,8 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
         ]
       }
     },
+    {
+      dayKey: "D7",
       title: "OFF",
       goal: "Repos complet pour assimilation",
       sessionType: "REST",
