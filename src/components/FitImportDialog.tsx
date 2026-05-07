@@ -350,6 +350,40 @@ export function FitImportDialog({
     setIsSaving(true);
 
     try {
+      // Sport effectif déduit du fichier
+      const sportRaw = (analysis.session.sport ?? "").toLowerCase();
+      const isRun = sportRaw.includes("run") || selectedTestType === "RUN_ECONOMY";
+      const sportEffective: "bike" | "run" = isRun ? "run" : "bike";
+
+      // VLamax dérivée d'un sprint FIT (bike ou run)
+      let computedVlamaxBike: number | null = null;
+      let computedVlamaxRun: number | null = null;
+      if (selectedTestType === "SPRINT_15S" || selectedTestType === "SPRINT_30S" || selectedTestType === "SPRINT_60S") {
+        if (sportEffective === "bike") {
+          const ftpForCalc = analysis.ftpEstimate?.ftpWatts ?? currentSnapshot?.ftp ?? null;
+          if (ftpForCalc) {
+            const r = computeVLamaxBikeV2Enhanced({
+              ftp: ftpForCalc,
+              p30s_w: analysis.bestEfforts.p30s ?? null,
+              p60s_w: analysis.bestEfforts.p60s ?? null,
+              map5min_w: analysis.bestEfforts.p5min ?? null,
+              pmax_5s: analysis.bestEfforts.p5s ?? null,
+              weight_kg: (currentSnapshot as { weight_kg?: number | null } | null)?.weight_kg ?? null,
+            });
+            if (r?.value) computedVlamaxBike = r.value;
+          }
+        } else {
+          // Sprint course → si distance disponible (records)
+          const r = estimateVLamaxCap({
+            vma: null,
+            paceThresholdSecPerKm: null,
+            runningPowerMax: analysis.bestEfforts.p5s ?? analysis.bestEfforts.p15s ?? null,
+            runningPowerThreshold: analysis.bestEfforts.p20min ?? null,
+          });
+          if (r?.value) computedVlamaxRun = r.value;
+        }
+      }
+
       // Préparer les données du test
       const testData: FitTestSaveData = {
         type: selectedTestType,
@@ -372,36 +406,50 @@ export function FitImportDialog({
           fileName: file.name,
           fileSize: file.size,
           device: analysis.session.deviceInfo?.manufacturer,
-          sport: analysis.session.sport,
+          sport: sportEffective,
         },
         rawAnalysis: analysis,
-      };
+        // Ajouts: VLamax calculée + sport effectif (champs additionnels lus côté handler)
+        ...(computedVlamaxBike != null ? { computedVlamax: computedVlamaxBike } : {}),
+        ...(computedVlamaxRun != null ? { computedVlamaxRun } : {}),
+      } as FitTestSaveData;
 
       await onSaveTest(testData);
 
       // Mettre à jour le profil si demandé
       if (updateProfile) {
         const profileUpdates: ProfileUpdates = {};
-        
-        // Données vélo standard
-        if (analysis.bestEfforts.p30s) {
-          profileUpdates.p30s_w = analysis.bestEfforts.p30s;
+
+        if (sportEffective === "bike") {
+          if (analysis.bestEfforts.p5s) profileUpdates.pmax_5s = analysis.bestEfforts.p5s;
+          if (analysis.bestEfforts.p30s) profileUpdates.p30s_w = analysis.bestEfforts.p30s;
+          if (analysis.bestEfforts.p60s) profileUpdates.p60s_w = analysis.bestEfforts.p60s;
+          if (analysis.bestEfforts.p5min) profileUpdates.map5min_w = analysis.bestEfforts.p5min;
+          if (analysis.ftpEstimate) profileUpdates.ftp = analysis.ftpEstimate.ftpWatts;
+          if (computedVlamaxBike != null) profileUpdates.vlamax = Number(computedVlamaxBike.toFixed(3));
+          if (analysis.session.avgCadence) profileUpdates.bike_cadence_rpm = Math.round(analysis.session.avgCadence);
+          if (analysis.driftAnalysis?.isValid) {
+            profileUpdates.bike_hr_drift_flag = analysis.driftAnalysis.driftLevel === "high";
+          }
+        } else {
+          // Best efforts running power (Stryd / Garmin Running Power)
+          if (analysis.bestEfforts.p5s) profileUpdates.running_power_5s = analysis.bestEfforts.p5s;
+          if (analysis.bestEfforts.p30s) profileUpdates.running_power_30s = analysis.bestEfforts.p30s;
+          if (analysis.bestEfforts.p60s) profileUpdates.running_power_60s = analysis.bestEfforts.p60s;
+          if (analysis.bestEfforts.p5min) profileUpdates.running_power_5min = analysis.bestEfforts.p5min;
+          if (analysis.session.maxPower) profileUpdates.running_power_max = analysis.session.maxPower;
+          if (analysis.bestEfforts.p20min) profileUpdates.running_power_threshold = analysis.bestEfforts.p20min as unknown as number;
+          if (computedVlamaxRun != null) profileUpdates.vlamax_run = Number(computedVlamaxRun.toFixed(3)) as unknown as number;
         }
-        if (analysis.bestEfforts.p60s) {
-          profileUpdates.p60s_w = analysis.bestEfforts.p60s;
-        }
-        if (analysis.bestEfforts.p5min) {
-          profileUpdates.map5min_w = analysis.bestEfforts.p5min;
-        }
-        if (analysis.ftpEstimate) {
-          profileUpdates.ftp = analysis.ftpEstimate.ftpWatts;
-        }
+
+        // Common
+        if (analysis.session.maxHeartRate) profileUpdates.fc_max = analysis.session.maxHeartRate;
         if (analysis.tteObservation) {
-          profileUpdates.tte_observed_min = Math.round(
-            analysis.tteObservation.tteMinutes
-          );
+          profileUpdates.tte_observed_min = Math.round(analysis.tteObservation.tteMinutes);
+          profileUpdates.tte_mode = "OBSERVED";
         }
         profileUpdates.protocol_quality = analysis.protocolQuality.score;
+        profileUpdates.sport_main = sportEffective;
 
         // Données économie de course si applicable
         if (selectedTestType === "RUN_ECONOMY" && runningEconomyResult?.isApplicable) {
