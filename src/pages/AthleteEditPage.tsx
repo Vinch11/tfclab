@@ -145,7 +145,7 @@ export default function AthleteEditPage() {
 
   const handleSaveAndContinue = async () => {
     const ok = await handleSave();
-    if (ok) navigate("/snapshot");
+    if (ok) navigate("/diagnostic");
   };
 
   return (
