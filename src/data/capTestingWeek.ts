@@ -25,6 +25,8 @@ export interface CAPTestDay {
   sessionType: "TEST" | "RECOVERY" | "REST" | "VALIDATION";
   durationEstimateMin: number;
   protocol: CAPProtocol;
+  /** Variante indoor sur tapis (treadmill). Métriques de sortie identiques au protocole piste : alimente les mêmes champs (vma, pace_threshold_sec_per_km, tte_observed_min, run_hr_drift_pct…) et donc les mêmes calculs (VLamax CAP, MLSS, économie). */
+  treadmillProtocol?: CAPProtocol;
   icon: "rest" | "sprint" | "threshold" | "vma" | "endurance" | "off";
 }
 
@@ -214,6 +216,42 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "RPE (1–10)",
           "Qualité protocole (1–5)"
         ]
+      },
+      treadmillProtocol: {
+        warmup: [
+          { durationMin: 12, intensityLabel: "Footing Z2 tapis (pente 1%)", notes: "Pente 1% obligatoire (Jones 1996) pour compenser absence résistance air" },
+          { durationMin: 5, intensityLabel: "Gammes au sol (hors tapis)", notes: "Activation neuromusculaire à côté du tapis" },
+          { durationMin: 6, intensityLabel: "Progressif tapis", notes: "2×2 min à 90% VMA estimée, pente 1%, récup 2 min marche" },
+          { durationMin: 5, intensityLabel: "Récup", notes: "Marche tapis 5 km/h" }
+        ],
+        main: [
+          { durationMin: 12, intensityLabel: "RAMPE TAPIS — départ 8 km/h, +0.5 km/h/min", notes: "Pente 1%. Protocole rampe (plus fiable que 6 min all-out sur tapis car évite l'inertie de calage). Continuer jusqu'à incapacité de tenir le palier ≥45s. VMA = vitesse du dernier palier complet." }
+        ],
+        recovery: [
+          { durationMin: 10, intensityLabel: "Marche tapis 5 km/h pente 0%", notes: "Retour au calme + descendre du tapis dès récup HR <120" }
+        ],
+        pacingRules: [
+          "Pente fixée à 1% (Jones 1996) — équivalent énergétique terrain",
+          "Ventilateur frontal puissant OBLIGATOIRE (sinon FC artificiellement élevée)",
+          "Température ambiante idéale 16–20°C",
+          "Calibration vitesse tapis : courir 1 km mesuré au préalable et comparer affichage vs distance réelle",
+          "Ne JAMAIS sauter du tapis en mouvement — ralentir progressivement"
+        ],
+        validityCriteria: [
+          "FC ≥95% FCmax au dernier palier",
+          "RPE = 10/10",
+          "Dernier palier tenu ≥45s (sinon prendre l'avant-dernier)",
+          "Pas de fuite de l'effort (tenir la barre = invalide)"
+        ],
+        dataToRecord: [
+          "Vitesse dernier palier complet (km/h) → VMA",
+          "Pente utilisée (%)",
+          "HR max atteinte",
+          "HR moyenne dernière minute",
+          "RPE (1–10)",
+          "Modèle tapis + calibration vitesse (oui/non)",
+          "Qualité protocole (1–5)"
+        ]
       }
     },
     {
@@ -289,6 +327,46 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "RPE (1–10)",
           "Qualité protocole (1–5)"
         ]
+      },
+      treadmillProtocol: {
+        warmup: [
+          { durationMin: 12, intensityLabel: "Footing Z2 tapis (pente 1%)", notes: "Activation aérobie progressive, ventilateur ON" },
+          { durationMin: 5, intensityLabel: "Gammes au sol", notes: "Hors tapis" },
+          { durationMin: 8, intensityLabel: "Progressif tapis", notes: "2×3 min à 90% allure seuil estimée (pente 1%), récup 2 min marche" },
+          { durationMin: 5, intensityLabel: "Récup", notes: "Marche tapis 5 km/h" }
+        ],
+        main: [
+          { durationMin: 25, intensityLabel: "25 min vitesse seuil FIXÉE (pente 1%)", notes: "Démarrer à 90% VMA. Vitesse imposée par tapis = pacing PARFAIT. Si tenu 'confortablement difficile' = OK." },
+          { durationMin: 5, intensityLabel: "Extension TTE — +0.3 km/h", notes: "Si encore capable de parler en mots courts, augmenter de +0.3 km/h et tenir jusqu'à incapacité (= TTE). Si chute de vitesse impossible sur tapis : test invalide → refaire 0.3 km/h plus bas." }
+        ],
+        recovery: [
+          { durationMin: 10, intensityLabel: "Marche tapis 5 km/h", notes: "Retour au calme + boire" }
+        ],
+        pacingRules: [
+          "Pente 1% obligatoire",
+          "Ventilateur frontal puissant + temp <22°C (sinon FC artificiellement +10 bpm)",
+          "Vitesse FIXÉE — aucune variation autorisée pendant 25 min",
+          "Si vitesse a dû être baissée → test INVALIDE, refaire 0.3 km/h plus bas",
+          "Calibration vitesse tapis vérifiée (1 km mesuré)"
+        ],
+        validityCriteria: [
+          "Vitesse maintenue 25 min sans baisse",
+          "FC dérive +5–10 bpm (acceptable jusqu'à +12 avec chaleur tapis)",
+          "RPE 8–9/10 à la fin",
+          "Sensation confortablement difficile tout au long"
+        ],
+        dataToRecord: [
+          "Vitesse seuil tapis (km/h) → converti en s/km pour pace_threshold_sec_per_km",
+          "Pente (%)",
+          "HR moyenne",
+          "HR max",
+          "HR drift (%)",
+          "TTE total si extension (min)",
+          "RPE (1–10)",
+          "Température salle (°C)",
+          "Ventilateur (oui/non)",
+          "Qualité protocole (1–5)"
+        ]
       }
     },
     {
@@ -320,6 +398,34 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "HR drift (%)",
           "RPE (1–10)",
           "Notes confort/récupération",
+          "Qualité protocole (1–5)"
+        ]
+      },
+      treadmillProtocol: {
+        warmup: [],
+        main: [
+          { durationMin: 50, intensityLabel: "Vitesse FIXE = 70% allure seuil tapis (pente 1%)", notes: "Vitesse imposée 50 min, ventilateur ON. Mesure pure de la dérive cardiaque (HR drift) sans variation pacing — alimente run_hr_drift_pct et run_economy." },
+          { durationMin: 10, intensityLabel: "Marche tapis", notes: "Retour au calme" }
+        ],
+        recovery: [],
+        pacingRules: [
+          "Pente 1% obligatoire",
+          "Ventilateur frontal OBLIGATOIRE (sinon dérive HR faussée par chaleur)",
+          "Vitesse FIXE — aucune variation",
+          "Hydratation autorisée pendant l'effort"
+        ],
+        validityCriteria: [
+          "HR drift < 5% sur 50 min (idéal)",
+          "HR drift < 8% (acceptable avec chaleur tapis)",
+          "RPE ≤ 4/10 stable",
+          "Si drift >8% → ventilation insuffisante, refaire"
+        ],
+        dataToRecord: [
+          "Vitesse imposée (km/h)",
+          "HR moyenne 5 premières min vs 5 dernières min → HR drift %",
+          "RPE début/fin",
+          "Température salle",
+          "Ventilateur (oui/non)",
           "Qualité protocole (1–5)"
         ]
       }
