@@ -110,13 +110,29 @@ export interface FitTestSaveData {
 }
 
 export interface ProfileUpdates {
+  // Bike
+  pmax_5s?: number;
   p30s_w?: number;
   p60s_w?: number;
   map5min_w?: number;
   ftp?: number;
+  vlamax?: number;
+  bike_cadence_rpm?: number;
+  bike_hr_drift_flag?: boolean;
+  // Run powers (Stryd / Garmin)
+  running_power_1s?: number;
+  running_power_5s?: number;
+  running_power_30s?: number;
+  running_power_60s?: number;
+  running_power_5min?: number;
+  running_power_max?: number;
+  // Common
+  fc_max?: number;
   tte_observed_min?: number;
+  tte_mode?: string;
   protocol_quality?: number;
-  // Running Economy fields
+  sport_main?: string;
+  // Running Economy
   run_pace_ref_sec_per_km?: number;
   run_hr_ref_bpm?: number;
   run_duration_min?: number;
