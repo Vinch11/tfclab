@@ -400,10 +400,36 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "Notes confort/récupération",
           "Qualité protocole (1–5)"
         ]
+      },
+      treadmillProtocol: {
+        warmup: [],
+        main: [
+          { durationMin: 50, intensityLabel: "Vitesse FIXE = 70% allure seuil tapis (pente 1%)", notes: "Vitesse imposée 50 min, ventilateur ON. Mesure pure de la dérive cardiaque (HR drift) sans variation pacing — alimente run_hr_drift_pct et run_economy." },
+          { durationMin: 10, intensityLabel: "Marche tapis", notes: "Retour au calme" }
+        ],
+        recovery: [],
+        pacingRules: [
+          "Pente 1% obligatoire",
+          "Ventilateur frontal OBLIGATOIRE (sinon dérive HR faussée par chaleur)",
+          "Vitesse FIXE — aucune variation",
+          "Hydratation autorisée pendant l'effort"
+        ],
+        validityCriteria: [
+          "HR drift < 5% sur 50 min (idéal)",
+          "HR drift < 8% (acceptable avec chaleur tapis)",
+          "RPE ≤ 4/10 stable",
+          "Si drift >8% → ventilation insuffisante, refaire"
+        ],
+        dataToRecord: [
+          "Vitesse imposée (km/h)",
+          "HR moyenne 5 premières min vs 5 dernières min → HR drift %",
+          "RPE début/fin",
+          "Température salle",
+          "Ventilateur (oui/non)",
+          "Qualité protocole (1–5)"
+        ]
       }
     },
-    {
-      dayKey: "D7",
       title: "OFF",
       goal: "Repos complet pour assimilation",
       sessionType: "REST",
