@@ -334,15 +334,20 @@ export default function AthleteEditPage() {
               Profil ergogénique
             </CardTitle>
             <CardDescription>
-              Pilote la sélection des suppléments (nitrates, beta-alanine, créatine, bicarbonate) et les warnings associés.
+              3 questions rapides pour personnaliser les recommandations de suppléments (caféine, bicarbonate, créatine, beta-alanine, nitrates).
+              Répondez par <strong>Oui</strong> ou <strong>Non</strong> — en cas de doute, laissez sur Non.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="repeated-efforts">Efforts répétés / explosifs</Label>
+              <div className="space-y-1">
+                <Label htmlFor="repeated-efforts" className="text-base">
+                  1. Votre course comporte-t-elle des efforts courts et intenses&nbsp;?
+                </Label>
                 <p className="text-xs text-muted-foreground">
-                  Sprints, attaques, côtes courtes — active créatine + beta-alanine.
+                  Exemples&nbsp;: sprints, relances, attaques, côtes raides &lt; 2 min, finish rapide.
+                  <br />
+                  <span className="italic">Si oui → on active créatine + beta-alanine dans le stack.</span>
                 </p>
               </div>
               <Switch
@@ -353,10 +358,14 @@ export default function AthleteEditPage() {
             </div>
 
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="bicarb-tested">Bicarbonate déjà testé</Label>
+              <div className="space-y-1">
+                <Label htmlFor="bicarb-tested" className="text-base">
+                  2. Avez-vous déjà testé le bicarbonate de sodium à l'entraînement&nbsp;?
+                </Label>
                 <p className="text-xs text-muted-foreground">
-                  Tolérance GI au NaHCO₃ validée à l'entraînement — débloque la recommandation course.
+                  Prise de NaHCO₃ (ex&nbsp;: Maurten Bicarb System, gélules) avant une séance, sans troubles digestifs.
+                  <br />
+                  <span className="italic">Si non → on ne le recommandera pas en course (risque GI inconnu).</span>
                 </p>
               </div>
               <Switch
@@ -367,10 +376,14 @@ export default function AthleteEditPage() {
             </div>
 
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="vegetarian">Régime végétarien / vegan</Label>
+              <div className="space-y-1">
+                <Label htmlFor="vegetarian" className="text-base">
+                  3. Suivez-vous un régime végétarien ou vegan&nbsp;?
+                </Label>
                 <p className="text-xs text-muted-foreground">
-                  Stocks créatine bas — gain typique +20 % à la supplémentation.
+                  Pas (ou très peu) de viande / poisson au quotidien.
+                  <br />
+                  <span className="italic">Si oui → la créatine apporte un gain plus important (+20 % typiquement).</span>
                 </p>
               </div>
               <Switch
