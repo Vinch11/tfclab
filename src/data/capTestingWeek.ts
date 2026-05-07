@@ -25,6 +25,8 @@ export interface CAPTestDay {
   sessionType: "TEST" | "RECOVERY" | "REST" | "VALIDATION";
   durationEstimateMin: number;
   protocol: CAPProtocol;
+  /** Variante indoor sur tapis (treadmill). Métriques de sortie identiques au protocole piste : alimente les mêmes champs (vma, pace_threshold_sec_per_km, tte_observed_min, run_hr_drift_pct…) et donc les mêmes calculs (VLamax CAP, MLSS, économie). */
+  treadmillProtocol?: CAPProtocol;
   icon: "rest" | "sprint" | "threshold" | "vma" | "endurance" | "off";
 }
 
