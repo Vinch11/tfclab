@@ -3,7 +3,8 @@
  * Saves results to BOTH snapshots (profile) AND tests table (for calibration)
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { usePersistedString } from "@/hooks/usePersistedFormState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,27 +98,37 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
   const { user } = useAuth();
   const day = CAP_TESTING_WEEK.days.find((d) => d.dayKey === dayKey);
   
-  // Form state based on day
-  const [sprint15s_1, setSprint15s_1] = useState("");
-  const [sprint15s_2, setSprint15s_2] = useState("");
-  const [sprint15s_3, setSprint15s_3] = useState("");
-  const [vma, setVma] = useState(snapshot?.vma?.toString() || "");
-  const [vmaDistance, setVmaDistance] = useState("");
-  const [paceThreshold, setPaceThreshold] = useState(
+  // Form state based on day — persisted to survive iOS sleep / background kill
+  const persistKey = (field: string) => `cap-test:${athlete.id}:${dayKey}:${field}`;
+  const [sprint15s_1, setSprint15s_1, clearSprint1] = usePersistedString(persistKey("sprint15s_1"), "");
+  const [sprint15s_2, setSprint15s_2, clearSprint2] = usePersistedString(persistKey("sprint15s_2"), "");
+  const [sprint15s_3, setSprint15s_3, clearSprint3] = usePersistedString(persistKey("sprint15s_3"), "");
+  const [vma, setVma, clearVma] = usePersistedString(persistKey("vma"), snapshot?.vma?.toString() || "");
+  const [vmaDistance, setVmaDistance, clearVmaDistance] = usePersistedString(persistKey("vmaDistance"), "");
+  const [paceThreshold, setPaceThreshold, clearPaceThreshold] = usePersistedString(
+    persistKey("paceThreshold"),
     snapshot?.pace_threshold_sec_per_km 
       ? formatSecsToMMSS(snapshot.pace_threshold_sec_per_km)
       : ""
   );
-  const [tteObserved, setTteObserved] = useState(snapshot?.tte_observed_min?.toString() || "");
-  const [runPowerMax, setRunPowerMax] = useState(snapshot?.running_power_max?.toString() || "");
-  const [runPowerThreshold, setRunPowerThreshold] = useState(snapshot?.running_power_threshold?.toString() || "");
-  const [hrMax, setHrMax] = useState("");
-  const [hrAvg, setHrAvg] = useState("");
-  const [hrDrift, setHrDrift] = useState("");
-  const [notes, setNotes] = useState("");
+  const [tteObserved, setTteObserved, clearTte] = usePersistedString(persistKey("tteObserved"), snapshot?.tte_observed_min?.toString() || "");
+  const [runPowerMax, setRunPowerMax, clearRunPowerMax] = usePersistedString(persistKey("runPowerMax"), snapshot?.running_power_max?.toString() || "");
+  const [runPowerThreshold, setRunPowerThreshold, clearRunPowerThreshold] = usePersistedString(persistKey("runPowerThreshold"), snapshot?.running_power_threshold?.toString() || "");
+  const [hrMax, setHrMax, clearHrMax] = usePersistedString(persistKey("hrMax"), "");
+  const [hrAvg, setHrAvg, clearHrAvg] = usePersistedString(persistKey("hrAvg"), "");
+  const [hrDrift, setHrDrift, clearHrDrift] = usePersistedString(persistKey("hrDrift"), "");
+  const [notes, setNotes, clearNotes] = usePersistedString(persistKey("notes"), "");
   const snapWithQuality = snapshot as unknown as { protocol_quality?: number | null } | null;
-  const [protocolQuality, setProtocolQuality] = useState(snapWithQuality?.protocol_quality?.toString() || "3");
+  const [protocolQuality, setProtocolQuality, clearProtocolQuality] = usePersistedString(persistKey("protocolQuality"), snapWithQuality?.protocol_quality?.toString() || "3");
   const [saving, setSaving] = useState(false);
+
+  const clearAllPersisted = useCallback(() => {
+    clearSprint1(); clearSprint2(); clearSprint3();
+    clearVma(); clearVmaDistance(); clearPaceThreshold();
+    clearTte(); clearRunPowerMax(); clearRunPowerThreshold();
+    clearHrMax(); clearHrAvg(); clearHrDrift(); clearNotes();
+    clearProtocolQuality();
+  }, [clearSprint1, clearSprint2, clearSprint3, clearVma, clearVmaDistance, clearPaceThreshold, clearTte, clearRunPowerMax, clearRunPowerThreshold, clearHrMax, clearHrAvg, clearHrDrift, clearNotes, clearProtocolQuality]);
 
   // Calculate best sprint from 3 attempts
   const bestSprint = useMemo(() => {
@@ -293,6 +304,7 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
       }
       
       await onSave(snapshotUpdates);
+      clearAllPersisted();
     } catch (error) {
       console.error("Error saving CAP test:", error);
       toast.error("Erreur lors de l'enregistrement");

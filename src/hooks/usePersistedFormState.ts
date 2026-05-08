@@ -92,6 +92,31 @@ export function usePersistedFormState<T extends Record<string, any>>(
 }
 
 /**
+ * Persist a single string value across iOS background kills.
+ * Drop-in replacement for `useState<string>(initial)`.
+ */
+export function usePersistedString(
+  key: string,
+  initial: string = ""
+): [string, React.Dispatch<React.SetStateAction<string>>, () => void] {
+  const [value, setValue] = useState<string>(() => {
+    const stored = getPersistedValue(key);
+    return stored !== null ? stored : initial;
+  });
+
+  useEffect(() => {
+    setPersistedValue(key, value);
+  }, [key, value]);
+
+  const clear = useCallback(() => {
+    removePersistedValue(key);
+    setValue(initial);
+  }, [key, initial]);
+
+  return [value, setValue, clear];
+}
+
+/**
  * Hook to persist dialog open state
  */
 export function usePersistedDialogState(
