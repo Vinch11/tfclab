@@ -204,6 +204,7 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
       }
 
       await loadData();
+      clearPersisted();
       onClose();
     } catch (error) {
       console.error("Error saving test data:", error);
