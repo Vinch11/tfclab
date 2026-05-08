@@ -3,7 +3,8 @@
  * Interactive test sheet with protocol steps, timer, and data entry
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { usePersistedFormState } from "@/hooks/usePersistedFormState";
 import { 
   X, 
   CheckCircle2, 
