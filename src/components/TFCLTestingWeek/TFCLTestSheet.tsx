@@ -54,9 +54,28 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
     [dayKey]
   );
 
-  const [checkedSteps, setCheckedSteps] = useState<Set<string>>(new Set());
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [protocolQuality, setProtocolQuality] = useState<number>(3);
+  // Persisted form state — survives iOS background kill / sleep
+  const persistKey = `tfcl-test:${athlete.id}:${dayKey}`;
+  const [persisted, setPersisted, clearPersisted] = usePersistedFormState<{
+    checkedSteps: string[];
+    formData: Record<string, string>;
+    protocolQuality: number;
+  }>(persistKey, { checkedSteps: [], formData: {}, protocolQuality: 3 });
+
+  const checkedSteps = useMemo(() => new Set(persisted.checkedSteps), [persisted.checkedSteps]);
+  const formData = persisted.formData;
+  const protocolQuality = persisted.protocolQuality;
+
+  const setCheckedSteps = useCallback((updater: (prev: Set<string>) => Set<string>) => {
+    setPersisted((p) => ({ ...p, checkedSteps: Array.from(updater(new Set(p.checkedSteps))) }));
+  }, [setPersisted]);
+  const setFormData = useCallback((updater: (prev: Record<string, string>) => Record<string, string>) => {
+    setPersisted((p) => ({ ...p, formData: updater(p.formData) }));
+  }, [setPersisted]);
+  const setProtocolQuality = useCallback((q: number) => {
+    setPersisted((p) => ({ ...p, protocolQuality: q }));
+  }, [setPersisted]);
+
   const [expandedSection, setExpandedSection] = useState<string | null>("main");
   const [isSaving, setIsSaving] = useState(false);
 
