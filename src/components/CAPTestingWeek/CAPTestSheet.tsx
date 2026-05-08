@@ -304,6 +304,7 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
       }
       
       await onSave(snapshotUpdates);
+      clearAllPersisted();
     } catch (error) {
       console.error("Error saving CAP test:", error);
       toast.error("Erreur lors de l'enregistrement");
