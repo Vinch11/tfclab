@@ -3,7 +3,8 @@
  * Saves results to BOTH snapshots (profile) AND tests table (for calibration)
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { usePersistedString } from "@/hooks/usePersistedFormState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
