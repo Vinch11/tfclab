@@ -35,8 +35,98 @@ export function checkSportGoalCoherence(
   const expected = deduceSportMainFromGoal(goal);
   if (!expected) return null;
   const actual = sportMain.toLowerCase();
-  // Normalise "velo" → "bike"
-  const actualNorm = actual === "velo" ? "bike" : actual;
+  // Normalise "velo" → "bike", "triathlon" → "tri", "cap"/"running" → "run"
+  const actualNorm =
+    actual === "velo" ? "bike" :
+    actual === "triathlon" ? "tri" :
+    (actual === "cap" || actual === "running") ? "run" :
+    actual;
   if (expected === actualNorm) return null;
   return { expected, actual: sportMain };
+}
+
+// =====================================================================
+// CENTRAL SPORT RESOLVER — unique source of truth pour Compass /
+// Dashboard badges / StaffDashboard / Export. Évite les divergences
+// (ex: ExportTools tombait sur "bike" si sport_main null pour un Trail).
+// =====================================================================
+
+export type CanonicalSport = "run" | "bike" | "tri";
+export type CompassSportFocus = "run" | "bike" | "triathlon";
+export type BadgeSport = "cap" | "bike" | "tri";
+
+interface SnapshotLike {
+  sport_main?: string | null;
+}
+interface AthleteLike {
+  goal?: string | null;
+  objectif?: string | null;
+}
+
+/**
+ * Normalise n'importe quelle valeur de sport_main vers la forme canonique.
+ */
+export function normalizeSportMain(raw?: string | null): CanonicalSport | null {
+  if (!raw) return null;
+  const s = raw.toLowerCase().trim();
+  if (s === "run" || s === "cap" || s === "running") return "run";
+  if (s === "bike" || s === "velo" || s === "vélo" || s === "cyclisme" || s === "cycling") return "bike";
+  if (s === "tri" || s === "triathlon") return "tri";
+  return null;
+}
+
+/**
+ * Résout le sport principal en combinant snapshot + objectif athlète.
+ * Priorité : snapshot.sport_main explicite → déduction depuis goal → null.
+ * Émet un warn console en dev si la valeur explicite est incohérente avec le goal.
+ */
+export function resolveSportMain(
+  snapshot?: SnapshotLike | null,
+  athlete?: AthleteLike | null
+): CanonicalSport | null {
+  const explicit = normalizeSportMain(snapshot?.sport_main);
+  const goal = athlete?.goal ?? athlete?.objectif ?? null;
+  const deduced = deduceSportMainFromGoal(goal);
+
+  if (explicit) {
+    if (deduced && deduced !== explicit && typeof console !== "undefined") {
+      console.warn(
+        `[sport_main] Incohérence : snapshot=${snapshot?.sport_main} / goal=${goal} (attendu=${deduced}). On garde la valeur explicite du snapshot.`
+      );
+    }
+    return explicit;
+  }
+  return deduced;
+}
+
+/**
+ * Convertit le sport canonique vers le format attendu par le Coaching Compass.
+ * `tri` → `triathlon`. Default fallback `bike` (compatible avec la signature historique).
+ */
+export function resolveCompassSportFocus(
+  snapshot?: SnapshotLike | null,
+  athlete?: AthleteLike | null,
+  fallback: CompassSportFocus = "bike"
+): CompassSportFocus {
+  const sport = resolveSportMain(snapshot, athlete);
+  if (sport === "run") return "run";
+  if (sport === "tri") return "triathlon";
+  if (sport === "bike") return "bike";
+  return fallback;
+}
+
+/**
+ * Convertit le sport canonique vers le format attendu par les badges VLamax
+ * (`getVlamaxStatusWithLabel`, `getVLamaxRange`) : `run` → `cap`.
+ * Retourne `null` si aucun sport résolu (le badge utilisera alors les targets vélo par défaut).
+ */
+export function resolveBadgeSport(
+  snapshot?: SnapshotLike | null,
+  athlete?: AthleteLike | null
+): BadgeSport | null {
+  const sport = resolveSportMain(snapshot, athlete);
+  if (sport === "run") return "cap";
+  if (sport === "bike") return "bike";
+  if (sport === "tri") return "tri";
+  return null;
 }

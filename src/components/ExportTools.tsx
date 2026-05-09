@@ -1,5 +1,6 @@
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
 // Two For Coaching Lab – Performance & Metabolic Report
@@ -1890,7 +1891,7 @@ function buildExportPayload(
         wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
         objectif: athlete.goal || "IM",
         ambition: ambition,
-        sportFocus: (effectiveSnapshot?.sport_main as any) ?? "bike",
+        sportFocus: resolveCompassSportFocus(effectiveSnapshot, athlete, "bike"),
         athleteAge: athleteAge,
       };
       return computeCoachingCompass(compassInput);

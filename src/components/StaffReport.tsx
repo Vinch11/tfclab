@@ -1,4 +1,5 @@
 import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
+import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
 import { computeFatMaxTFCL, type FatMaxTFCLResult, type FatMaxObjectif, FATMAX_DEFINITIONS } from "@/lib/v2/fatmaxTFCL";
 import { computeAdaptationPrediction, type AdaptationPredictorResult, type AdaptationScenario, getImpactScoreColor, getImpactScoreBgColor } from "@/lib/v2/adaptationPredictor";
@@ -473,7 +474,7 @@ export function StaffReport({
                 ambition: ambition || DEFAULT_AMBITION,
                 athleteAge: athleteAge ?? null,
                 vma: snapshot?.vma ?? null,
-                sportFocus: snapshot?.sport_main === "run" ? "run" : snapshot?.sport_main === "triathlon" ? "triathlon" : "bike",
+                sportFocus: resolveCompassSportFocus(snapshot, { goal: objectif }, "bike"),
               }}
               compact={true}
               className="print:break-inside-avoid"
@@ -2089,7 +2090,7 @@ function StaffCompassSection({
     wprimeKj: null,
     objectif,
     ambition,
-    sportFocus: snapshot?.sport_main === "run" ? "run" : snapshot?.sport_main === "bike" ? "bike" : "triathlon",
+    sportFocus: resolveCompassSportFocus(snapshot, { goal: objectif }, "triathlon"),
     athleteAge,
   };
 
