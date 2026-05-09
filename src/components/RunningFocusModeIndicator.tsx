@@ -84,8 +84,8 @@ export function RunningFocusModeIndicator({
                     <span className="text-muted-foreground">VLamax cible:</span>
                     <span className="font-medium">
                       ≤ {targets.vlamax.optimal.toFixed(2)} mmol/L/s
-                      <span className="text-muted-foreground ml-1">
-                        (plage {targets.vlamax.min.toFixed(2)}–{targets.vlamax.max.toFixed(2)})
+                      <span className="text-muted-foreground/60 text-[10px] ml-1 font-normal">
+                        ({targets.vlamax.min.toFixed(2)}–{targets.vlamax.max.toFixed(2)})
                       </span>
                     </span>
                   </div>
