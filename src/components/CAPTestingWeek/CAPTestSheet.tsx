@@ -200,6 +200,8 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
         rawData.estimatedVlamax = estimatedVlamax;
         if (estimatedVlamax) {
           snapshotUpdates.vlamax_run = estimatedVlamax;
+          snapshotUpdates.vlamax_source = "CAP_FIELD";
+          snapshotUpdates.vlamax_protocol = `Sprint 15s CAP (${bestSprint}m)`;
         }
         
       } else if (dayKey === "D3") {
