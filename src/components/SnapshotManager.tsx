@@ -475,7 +475,33 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             value={formData.cycle_tag}
             onChange={(e) => setFormData({ ...formData, cycle_tag: e.target.value })}
           />
-        </div>
+      </div>
+
+      {/* 🎯 Sport principal — verrouille le routage VLamax (CAP vs vélo) et les cibles */}
+      <div>
+        <Label htmlFor="sport_main" className="flex items-center gap-1.5">
+          Sport principal
+          <span className="text-xs text-muted-foreground font-normal">(détermine quelle VLamax utiliser)</span>
+        </Label>
+        <Select
+          value={formData.sport_main || "auto"}
+          onValueChange={(v) => setFormData({ ...formData, sport_main: v === "auto" ? "" : v })}
+        >
+          <SelectTrigger id="sport_main">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="auto">Auto (depuis l'objectif)</SelectItem>
+            <SelectItem value="run">Course à pied (CAP / Trail / Marathon)</SelectItem>
+            <SelectItem value="bike">Vélo / Cyclisme</SelectItem>
+            <SelectItem value="swim">Natation</SelectItem>
+            <SelectItem value="triathlon">Triathlon</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground mt-1">
+          Pour un athlète CAP/Trail, sélectionnez « Course à pied » pour que le dashboard utilise <code>vlamax_run</code> et les cibles CAP (au lieu de l'estimation FTP/kg vélo).
+        </p>
+      </div>
       </div>
 
       {/* ⚡ État de fatigue au moment du snapshot */}
