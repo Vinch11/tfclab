@@ -566,8 +566,8 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
                     <span className="text-[9px] text-muted-foreground">
                       Cible <span className="font-semibold text-foreground">{formatVal(target, target < 10)}</span> {m.unit}
                       {key === "VLamax" && vlamaxRange && (
-                        <span className="ml-1 opacity-75">
-                          (plage {vlamaxRange.min.toFixed(2)}–{vlamaxRange.max.toFixed(2)})
+                        <span className="ml-1 text-[9px] text-muted-foreground/60 font-normal">
+                          ({vlamaxRange.min.toFixed(2)}–{vlamaxRange.max.toFixed(2)})
                         </span>
                       )}
                     </span>
@@ -633,6 +633,14 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   }
 
   const { limiter, leverage, decision } = compass;
+  const _ambition = (input.ambition || "age_group") as AmbitionLevel;
+  const _objectif = input.objectif || "IM";
+  const _sportForTargets =
+    input.sportFocus === "run" ? "cap" :
+    input.sportFocus === "bike" ? "bike" :
+    input.sportFocus === "triathlon" ? "tri" :
+    undefined;
+  const vlamaxRange = getVLamaxRange(_objectif, _ambition, _sportForTargets);
 
   return (
     <Card className={cn("border-border/50 overflow-hidden print:break-inside-avoid print:shadow-none print:border-0", className)}>
@@ -763,6 +771,11 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                               <span className="text-muted-foreground">Cible</span>
                               <span className="font-bold text-foreground">{formatVal(axis.target as number)}</span>
                               <span className="text-muted-foreground/60">{axis.unit}</span>
+                              {axis.key === "vlamax" && vlamaxRange && (
+                                <span className="ml-1 text-[9px] text-muted-foreground/60 font-normal">
+                                  ({vlamaxRange.min.toFixed(2)}–{vlamaxRange.max.toFixed(2)})
+                                </span>
+                              )}
                             </div>
                             {delta !== null && (
                               <Badge

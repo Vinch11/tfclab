@@ -180,7 +180,7 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
                           <ArrowRight className="h-2.5 w-2.5 text-muted-foreground/50" />
                           <span className="text-muted-foreground">{formatVal(target)}</span>
                           {isVLamax && (
-                            <span className="text-muted-foreground/70">
+                            <span className="text-[9px] text-muted-foreground/60 font-normal">
                               ({diagnostic.targets.vlamaxRange.min.toFixed(2)}–{diagnostic.targets.vlamaxRange.max.toFixed(2)})
                             </span>
                           )}
