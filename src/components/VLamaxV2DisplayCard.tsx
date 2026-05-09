@@ -75,6 +75,7 @@ export function VLamaxV2DisplayCard({
   staffMode = false,
   v2Result,
   ambition = DEFAULT_AMBITION,
+  sport,
 }: VLamaxV2DisplayCardProps) {
   // Valeur manquante ou invalide
   if (!Number.isFinite(vlamax) || vlamax <= 0) {
