@@ -316,7 +316,19 @@ function SortableMetricCard({ id, gap, metricInfo, isReorderMode }: {
 
 export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const { limiter, synthesis } = diagnostic;
-  const gapAnalysis = limiter.gapAnalysis;
+  const gapAnalysis = useMemo<AnalysisGap[]>(
+    () => limiter.gapAnalysis.map((gap) => gap.metric === "VLamax"
+      ? {
+          ...gap,
+          target: diagnostic.targets.vlamaxRange.optimal,
+          targetRange: {
+            min: diagnostic.targets.vlamaxRange.min,
+            max: diagnostic.targets.vlamaxRange.max,
+          },
+        }
+      : gap),
+    [limiter.gapAnalysis, diagnostic.targets.vlamaxRange]
+  );
 
   const [isReorderMode, setIsReorderMode] = useState(false);
 
