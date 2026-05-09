@@ -320,14 +320,16 @@ export function VLamaxV2DisplayCard({
 function VLamaxTargetComparison({ 
   vlamax, 
   objectif, 
-  ambition 
+  ambition,
+  sport,
 }: { 
   vlamax: number; 
   objectif: ObjectifPrincipal; 
   ambition: AmbitionLevel;
+  sport?: string;
 }) {
   const normalizedObj = normalizeObjective(objectif);
-  const targets = getVLamaxRange(normalizedObj, ambition);
+  const targets = getVLamaxRange(normalizedObj, ambition, sport);
   const ambitionDef = getAmbitionDefinition(ambition);
 
   if (!targets) return null;
