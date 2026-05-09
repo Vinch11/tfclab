@@ -2090,7 +2090,7 @@ function StaffCompassSection({
     wprimeKj: null,
     objectif,
     ambition,
-    sportFocus: snapshot?.sport_main === "run" ? "run" : snapshot?.sport_main === "bike" ? "bike" : "triathlon",
+    sportFocus: resolveCompassSportFocus(snapshot, { goal: objectif }, "triathlon"),
     athleteAge,
   };
 
