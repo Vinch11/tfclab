@@ -59,6 +59,7 @@ import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
 import { computeFatigueEffectif } from "@/engines/diagnostic";
 import { computePacingEnvelopeRun, type RunningDistance } from "@/lib/v2/pacingEnvelopeRunning";
 import { getAthleteAmbition } from "@/types/ambitionLevel";
+import { getVLamaxRange } from "@/lib/physiologicalTargets";
 import {
   predictRunMLSSPctFromVLaCE,
   crossValidateRunMLSS,
