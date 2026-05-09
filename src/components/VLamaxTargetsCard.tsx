@@ -52,9 +52,14 @@ interface JustificationItem {
 // HELPER FUNCTIONS
 // =============================================
 
-function getVLamaxLevelTargets(objectif: string, age?: number | null): VLamaxLevelTargets {
-  // Récupérer les cibles de base depuis scoreEnvelope
-  const baseTargets = getContextTargets("vlamax", objectif);
+function getVLamaxLevelTargets(
+  objectif: string,
+  age?: number | null,
+  ambition?: import("@/types/ambitionLevel").AmbitionLevel,
+  sport?: string | null,
+): VLamaxLevelTargets {
+  // Récupérer les cibles de base depuis scoreEnvelope (ambition + sport pris en compte)
+  const baseTargets = getContextTargets("vlamax", objectif, age, sport ?? undefined, ambition);
   
   // Valeurs par défaut si objectif inconnu
   if (!baseTargets) {
