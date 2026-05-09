@@ -16,6 +16,7 @@
 
 import { 
   getTargetsForAmbition, 
+  getVLamaxRange,
   normalizeObjective,
   type ObjectiveTargets 
 } from "@/lib/physiologicalTargets";
@@ -589,22 +590,23 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   
   // 2. Analyse VLamax (Glycolytic)
   // VLamax: plus bas est mieux pour endurance (inversé)
+  const vlamaxRange = getVLamaxRange(normalized, input.ambition, input.sportFocus);
   const vlamaxGap = input.vlamax !== null 
-    ? (input.vlamax - targets.vlamax.optimal) / targets.vlamax.optimal 
+    ? (input.vlamax - vlamaxRange.optimal) / vlamaxRange.optimal 
     : 0;
-  const vlamaxExcess = input.vlamax !== null && input.vlamax > targets.vlamax.max;
+  const vlamaxExcess = input.vlamax !== null && input.vlamax > vlamaxRange.max;
   gapAnalysis.push({
     metric: "VLamax",
     value: input.vlamax,
-    target: targets.vlamax.optimal,
-    gap: input.vlamax !== null ? input.vlamax - targets.vlamax.optimal : 0,
+    target: vlamaxRange.optimal,
+    gap: input.vlamax !== null ? input.vlamax - vlamaxRange.optimal : 0,
     gapPercent: vlamaxGap * 100,
     status: input.vlamax === null ? "unknown"
-      : input.vlamax <= targets.vlamax.optimal ? "optimal"
-      : input.vlamax <= targets.vlamax.max ? "acceptable"
+      : input.vlamax <= vlamaxRange.optimal ? "optimal"
+      : input.vlamax <= vlamaxRange.max ? "acceptable"
       : "limiting",
     weight: weights.glycolytic,
-    weightedImpact: vlamaxExcess ? (input.vlamax! - targets.vlamax.max) * 100 * weights.glycolytic : 0,
+    weightedImpact: vlamaxExcess ? (input.vlamax! - vlamaxRange.max) * 100 * weights.glycolytic : 0,
   });
   
   // 2b. Analyse W' (Capacité Anaérobie absolue)
