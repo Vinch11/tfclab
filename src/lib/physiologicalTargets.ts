@@ -227,7 +227,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
   // =============================================
   Trail: {
     finisher: {
-      vlamax: { min: 0.45, max: 0.70, optimal: 0.55 },
+      vlamax: { min: 0.45, max: 0.65, optimal: 0.55 },
       tte_min: 40,
       ftp_kg_min: 2.8,
       vma_min: 14.0,
@@ -307,7 +307,48 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
   },
 
   // =============================================
-  // ULTRA (100km+)
+  // TRAIL MOUNTAIN (40-80km avec D+ important / altitude)
+  // Intermediaire entre Trail et TrailLong (charge ↑, intensité ↓ vs Trail plat)
+  // =============================================
+  TrailMountain: {
+    finisher: {
+      vlamax: { min: 0.42, max: 0.62, optimal: 0.52 },
+      tte_min: 45,
+      ftp_kg_min: 2.8,
+      vma_min: 14.0,
+      charge_optimale: 340,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 55, max: 85 },
+    },
+    age_group: {
+      vlamax: { min: 0.38, max: 0.58, optimal: 0.48 },
+      tte_min: 52,
+      ftp_kg_min: 3.5,
+      vma_min: 16.0,
+      charge_optimale: 420,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 65, max: 95 },
+    },
+    competitor: {
+      vlamax: { min: 0.32, max: 0.50, optimal: 0.40 },
+      tte_min: 58,
+      ftp_kg_min: 3.8,
+      vma_min: 18.0,
+      charge_optimale: 490,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 80, max: 120 },
+    },
+    elite: {
+      vlamax: { min: 0.26, max: 0.42, optimal: 0.33 },
+      tte_min: 62,
+      ftp_kg_min: 4.2,
+      vma_min: 20.0,
+      charge_optimale: 560,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 100, max: 140 },
+    },
+  },
+
   // =============================================
   Ultra: {
     finisher: {
@@ -526,8 +567,8 @@ const OBJECTIVE_ALIASES: Record<string, string> = {
   "trail": "Trail",
   "TrailCourt": "Trail",
   "TrailShort": "Trail",
-  "TrailMountain": "TrailLong",
-  "trailmountain": "TrailLong",
+  "TrailMountain": "TrailMountain",
+  "trailmountain": "TrailMountain",
   "traillong": "TrailLong",
   "TrailUltra": "Ultra",
   "trailultra": "Ultra",
@@ -583,25 +624,45 @@ export function getTargetsForObjective(
 }
 
 /**
- * Get VLamax range for an objective (uses ambition level)
+ * Sport-aware VLamax offset.
+ * CAP/Run mobilise moins de masse musculaire que le vélo → VLamax mesurée ~+0.05–0.10 mmol/L/s
+ * pour la même capacité glycolytique. On élargit la fenêtre cible vers le haut quand sport === "cap"/"run".
+ * Plafond physiologique réaliste CAP amateur = 0.80 mmol/L/s.
  */
-export function getVLamaxRange(objectif: string, ambition?: AmbitionLevel): VLamaxTargets {
+const VLAMAX_REALISTIC_MAX_CAP = 0.80;
+function applySportOffset(range: VLamaxTargets, sport?: string): VLamaxTargets {
+  if (!sport) return range;
+  const s = sport.toLowerCase();
+  if (s === "cap" || s === "run" || s === "running") {
+    return {
+      min: +(range.min + 0.05).toFixed(2),
+      max: +Math.min(range.max + 0.07, VLAMAX_REALISTIC_MAX_CAP).toFixed(2),
+      optimal: +(range.optimal + 0.06).toFixed(2),
+    };
+  }
+  return range;
+}
+
+/**
+ * Get VLamax range for an objective (uses ambition level + optional sport offset)
+ */
+export function getVLamaxRange(objectif: string, ambition?: AmbitionLevel, sport?: string): VLamaxTargets {
   const targets = getTargetsForAmbition(objectif, ambition || DEFAULT_AMBITION);
-  return targets.vlamax;
+  return applySportOffset(targets.vlamax, sport);
 }
 
 /**
  * Get VLamax threshold (max value) for triggering "too high" alerts
  */
-export function getVLamaxThreshold(objectif: string, ambition?: AmbitionLevel): number {
-  return getVLamaxRange(objectif, ambition).max;
+export function getVLamaxThreshold(objectif: string, ambition?: AmbitionLevel, sport?: string): number {
+  return getVLamaxRange(objectif, ambition, sport).max;
 }
 
 /**
  * Get VLamax optimal value for an objective
  */
-export function getVLamaxOptimal(objectif: string, ambition?: AmbitionLevel): number {
-  return getVLamaxRange(objectif, ambition).optimal;
+export function getVLamaxOptimal(objectif: string, ambition?: AmbitionLevel, sport?: string): number {
+  return getVLamaxRange(objectif, ambition, sport).optimal;
 }
 
 /**
@@ -685,9 +746,9 @@ export const CiblesVLamax: Record<string, VLamaxTargets> = {
 /**
  * Check if VLamax is within acceptable range for objective
  */
-export function isVlamaxInRange(vlamax: number | null, objectif: string, ambition?: AmbitionLevel): boolean {
+export function isVlamaxInRange(vlamax: number | null, objectif: string, ambition?: AmbitionLevel, sport?: string): boolean {
   if (vlamax === null) return true; // No data = no alert
-  const range = getVLamaxRange(objectif, ambition);
+  const range = getVLamaxRange(objectif, ambition, sport);
   return vlamax >= range.min && vlamax <= range.max;
 }
 
@@ -695,9 +756,9 @@ export function isVlamaxInRange(vlamax: number | null, objectif: string, ambitio
  * Get VLamax status for an objective
  * Returns granular status based on distance from optimal target
  */
-export function getVlamaxStatus(vlamax: number | null, objectif: string, ambition?: AmbitionLevel): "low" | "optimal" | "acceptable" | "high" | "unknown" {
+export function getVlamaxStatus(vlamax: number | null, objectif: string, ambition?: AmbitionLevel, sport?: string): "low" | "optimal" | "acceptable" | "high" | "unknown" {
   if (vlamax === null) return "unknown";
-  const range = getVLamaxRange(objectif, ambition);
+  const range = getVLamaxRange(objectif, ambition, sport);
   
   if (vlamax < range.min) return "low";
   if (vlamax > range.max) return "high";
@@ -716,16 +777,17 @@ export function getVlamaxStatus(vlamax: number | null, objectif: string, ambitio
 export function getVlamaxStatusWithLabel(
   vlamax: number | null, 
   objectif: string, 
-  ambition?: AmbitionLevel
+  ambition?: AmbitionLevel,
+  sport?: string
 ): { status: "ok" | "warning" | "critical"; label: string; deviation: number | null } {
   if (vlamax === null) return { status: "critical", label: "Non disponible", deviation: null };
   
-  const range = getVLamaxRange(objectif, ambition);
+  const range = getVLamaxRange(objectif, ambition, sport);
   const deviation = range.optimal > 0 
     ? Math.round(((vlamax - range.optimal) / range.optimal) * 100) 
     : 0;
   
-  const rawStatus = getVlamaxStatus(vlamax, objectif, ambition);
+  const rawStatus = getVlamaxStatus(vlamax, objectif, ambition, sport);
   
   switch (rawStatus) {
     case "low":
