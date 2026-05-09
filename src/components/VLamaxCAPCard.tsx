@@ -21,6 +21,9 @@ import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDis
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
 import { useRunningProfileCloud } from "@/hooks/useRunningProfileCloud";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { getAthleteAmbition } from "@/types/ambitionLevel";
+import { getVLamaxRange } from "@/lib/physiologicalTargets";
 import { 
   RUNNING_RACE_LABELS,
   type RunningRaceType 
