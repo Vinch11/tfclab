@@ -62,6 +62,7 @@ export function VLamaxCAPCard({
   className,
 }: VLamaxCAPCardProps) {
   const { raceType, targets } = useRunningFocusMode();
+  const { currentAthlete } = useAthletes();
   const { 
     liveCalibration, 
     latestSnapshot, 
