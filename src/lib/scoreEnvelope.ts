@@ -2,6 +2,8 @@
 // SCORE ENVELOPE — FORMAT UNIVERSEL STAFF-GRADE
 // Supprime l'illusion de précision, renforce la crédibilité scientifique
 // =============================================
+import { getVLamaxRange, normalizeObjective } from "@/lib/physiologicalTargets";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 /**
  * Source de la donnée
