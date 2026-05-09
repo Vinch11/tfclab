@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit, Save, Calculator, Sparkles, HelpCircle, BookOpen, Bike, PersonStanding, Settings } from "lucide-react";
 import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
 import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
@@ -210,6 +211,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [open, setOpen] = useState(false);
 
   const [date, setDate] = useState(snapshot.date);
+  const [sportMain, setSportMain] = useState<string>(snapshot.sport_main ?? "");
   const [ftp, setFtp] = useState(snapshot.ftp != null ? String(snapshot.ftp) : "");
   const [pmax5s, setPmax5s] = useState(snapshot.pmax_5s != null ? String(snapshot.pmax_5s) : "");
   const [weight, setWeight] = useState(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
@@ -234,6 +236,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const handleSave = async () => {
     await updateSnapshot(snapshot.id, {
       date,
+      sport_main: sportMain || null,
       ftp: numOrNull(ftp) != null ? Math.round(numOrNull(ftp)!) : null,
       pmax_5s: numOrNull(pmax5s) != null ? Math.round(numOrNull(pmax5s)!) : null,
       weight_kg: numOrNull(weight),
@@ -261,6 +264,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const handleOpen = (isOpen: boolean) => {
     if (isOpen) {
       setDate(snapshot.date);
+      setSportMain(snapshot.sport_main ?? "");
       setFtp(snapshot.ftp != null ? String(snapshot.ftp) : "");
       setPmax5s(snapshot.pmax_5s != null ? String(snapshot.pmax_5s) : "");
       setWeight(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
@@ -327,6 +331,22 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">Date</Label>
               <Input className="col-span-3" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Sport principal</Label>
+              <Select value={sportMain || "auto"} onValueChange={(v) => setSportMain(v === "auto" ? "" : v)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Auto (depuis l'objectif)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Auto (depuis l'objectif)</SelectItem>
+                  <SelectItem value="run">Course à pied (CAP / Trail / Marathon)</SelectItem>
+                  <SelectItem value="bike">Vélo / Cyclisme</SelectItem>
+                  <SelectItem value="swim">Natation</SelectItem>
+                  <SelectItem value="triathlon">Triathlon</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
