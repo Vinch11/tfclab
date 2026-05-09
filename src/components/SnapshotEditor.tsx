@@ -334,6 +334,22 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Sport principal</Label>
+              <Select value={sportMain || "auto"} onValueChange={(v) => setSportMain(v === "auto" ? "" : v)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Auto (depuis l'objectif)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Auto (depuis l'objectif)</SelectItem>
+                  <SelectItem value="run">Course à pied (CAP / Trail / Marathon)</SelectItem>
+                  <SelectItem value="bike">Vélo / Cyclisme</SelectItem>
+                  <SelectItem value="swim">Natation</SelectItem>
+                  <SelectItem value="triathlon">Triathlon</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">Poids (kg)</Label>
               <Input className="col-span-3" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} />
             </div>
