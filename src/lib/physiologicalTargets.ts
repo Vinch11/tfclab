@@ -227,7 +227,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
   // =============================================
   Trail: {
     finisher: {
-      vlamax: { min: 0.45, max: 0.70, optimal: 0.55 },
+      vlamax: { min: 0.45, max: 0.65, optimal: 0.55 },
       tte_min: 40,
       ftp_kg_min: 2.8,
       vma_min: 14.0,
