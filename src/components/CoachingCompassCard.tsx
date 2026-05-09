@@ -22,7 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
 import { LimiterImpactCard } from "@/components/LimiterImpactCard";
-import { getTargetsForAmbition, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
+import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -399,6 +399,12 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
   const ambition = (input.ambition || "age_group") as AmbitionLevel;
   const objectif = input.objectif || "IM";
   const targets = getTargetsForAmbition(objectif, ambition);
+  const sportForTargets =
+    input.sportFocus === "run" ? "cap" :
+    input.sportFocus === "bike" ? "bike" :
+    input.sportFocus === "triathlon" ? "tri" :
+    undefined;
+  const vlamaxRange = getVLamaxRange(objectif, ambition, sportForTargets);
   const vmaTarget = getVmaTargetByAmbition(objectif, ambition);
   const isLong = ["IM", "Ironman", "Marathon", "Ultra", "TrailLong"].includes(objectif);
   const vo2Targets: Record<string, number> = { finisher: 45, age_group: 52, competitor: 58, elite: 65 };
@@ -411,7 +417,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   const metricTargets: Record<string, { target: number | null; inverse?: boolean }> = {
     "VO₂max": { target: vo2Target },
-    "VLamax": { target: targets.vlamax.optimal, inverse: true },
+    "VLamax": { target: vlamaxRange.optimal, inverse: true },
     "FTP": { target: input.poids && targets.ftp_kg_min ? Math.round(targets.ftp_kg_min * input.poids) : null },
     "FTP/kg": { target: targets.ftp_kg_min },
     "VMA": { target: vmaTarget },
