@@ -1618,6 +1618,17 @@ const Index = () => {
               />
             ),
           },
+          // Profil VLamax — Échelle par sport (profil)
+          {
+            id: "vlamax-profile-scale-profil",
+            render: () => currentAthlete && (
+              <VLamaxProfileScale
+                vlamax={alignedVlamaxEffectif.value}
+                objectif={currentAthlete.goal || null}
+                sportMain={(effectiveCloudSnapshot as any)?.sport_main ?? null}
+              />
+            ),
+          },
           // FTP/kg or VMA Targets (profil)
           {
             id: "ftp-targets-profil",
