@@ -972,6 +972,7 @@ export default function DashboardPage() {
       currentVlamax={vlamaxEffectif.value}
       currentTTE={tteEffectif.tte_min}
       currentFtpKg={ftpKg}
+      sport={(snapshot as any)?.sport_main ?? null}
     />
   );
 
