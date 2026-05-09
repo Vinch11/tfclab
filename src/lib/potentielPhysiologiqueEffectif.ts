@@ -54,22 +54,50 @@ export interface ComputePotentielPhysiologiqueEffectifParams {
 
 export function computePotentielEffectif(params: ComputePotentielPhysiologiqueEffectifParams): PotentielPhysiologiqueEffectif {
   const { vlamaxEffectif, tteEffectif } = params;
-  const vlamaxScore = vlamaxEffectif.value <= 0.35 ? 90 : vlamaxEffectif.value <= 0.50 ? 70 : 50;
-  const tteScore = tteEffectif.tte_min >= 45 ? 90 : tteEffectif.tte_min >= 30 ? 70 : 50;
-  const score = Math.round((vlamaxScore + tteScore) / 2);
-  const label = score >= 80 ? "Prêt" : score >= 60 ? "En progression" : "À développer";
-  const color = score >= 80 ? "success" : score >= 60 ? "warning" : "destructive";
-  const confidence = Math.min(vlamaxEffectif.confidence, tteEffectif.confidence);
-  
+
+  // Politique projet : "Missing Data → Return 0, display 'Données insuffisantes'".
+  // Confiance < 0.3 = pas de donnée exploitable → score 0 (pas de neutre artificiel).
+  const TTE_UNKNOWN = !tteEffectif || tteEffectif.confidence < 0.3 || !(tteEffectif.tte_min > 0);
+  const VLA_UNKNOWN = !vlamaxEffectif || vlamaxEffectif.confidence < 0.3 || !(vlamaxEffectif.value > 0);
+
+  const vlamaxScore = VLA_UNKNOWN
+    ? 0
+    : vlamaxEffectif.value <= 0.35 ? 90 : vlamaxEffectif.value <= 0.50 ? 70 : 50;
+
+  const tteScore = TTE_UNKNOWN
+    ? 0
+    : tteEffectif.tte_min >= 45 ? 90 : tteEffectif.tte_min >= 30 ? 70 : 50;
+
+  // Si l'un des deux scores est manquant, on n'agrège pas une moyenne trompeuse.
+  const knownScores = [vlamaxScore, tteScore].filter(s => s > 0);
+  const score = knownScores.length === 0
+    ? 0
+    : Math.round(knownScores.reduce((a, b) => a + b, 0) / knownScores.length);
+
+  const isInsufficient = TTE_UNKNOWN || VLA_UNKNOWN;
+  const label = isInsufficient
+    ? "Données insuffisantes"
+    : score >= 80 ? "Prêt" : score >= 60 ? "En progression" : "À développer";
+  const color = isInsufficient
+    ? "muted"
+    : score >= 80 ? "success" : score >= 60 ? "warning" : "destructive";
+  const confidence = Math.min(vlamaxEffectif?.confidence ?? 0, tteEffectif?.confidence ?? 0);
+
+  const reasonsMissing: string[] = [];
+  if (TTE_UNKNOWN) reasonsMissing.push("TTE manquant ou confiance < 0.3");
+  if (VLA_UNKNOWN) reasonsMissing.push("VLamax manquante ou confiance < 0.3");
+
   return {
     score, rawScore: score, label, color, confidence,
-    isInsufficient: confidence < 0.3,
-    messageStaff: `Score physiologique: ${score}/100 (${label})`,
+    isInsufficient,
+    messageStaff: isInsufficient
+      ? `Score non calculable : ${reasonsMissing.join(" ; ")}`
+      : `Score physiologique: ${score}/100 (${label})`,
     wasCappedByNutrition: false, nutritionalCapReason: undefined,
     wasCappedByEconomy: false, economyCapReason: undefined,
-    reasonsMissing: [], nutritionalRiskIndex: 0,
+    reasonsMissing, nutritionalRiskIndex: 0,
     runningEconomy: undefined,
-    details: { vlamax: vlamaxScore, endurance: tteScore, puissance: score, fraicheur: 80 },
+    details: { vlamax: vlamaxScore, endurance: tteScore, puissance: score, fraicheur: TTE_UNKNOWN && VLA_UNKNOWN ? 0 : 80 },
   };
 }
 
