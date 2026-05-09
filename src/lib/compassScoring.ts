@@ -82,7 +82,10 @@ export interface CompassTargets {
  * Build CompassTargets from centralized physiological targets
  * Now uses ambition level AND age for adaptive thresholds
  */
-function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION, age?: number | null): CompassTargets {
+function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION, age?: number | null, sport?: string | null): CompassTargets {
+  // Override sport-aware VLamax range (CAP/run → +0.05/+0.07/+0.06 vs bike baseline)
+  const sportRange = getVLamaxRange(objectif, ambition, sport ?? undefined);
+
   // Si l'âge est fourni, utiliser les cibles ajustées par âge
   if (age !== null && age !== undefined) {
     const ageTargets = getAgeAdjustedTargets(objectif, age, ambition);
@@ -91,21 +94,20 @@ function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION
       ftpKgTarget: ageTargets.ftpKgTarget,
       vmaTarget: ageTargets.vmaTarget ?? getVmaTargetByAmbition(objectif, ambition),
       tteTarget: ageTargets.tteTarget,
-      vlamaxIdeal: ageTargets.vlamaxOptimal,
-      vlamaxMax: ageTargets.vlamaxMax,
+      // Conserver l'ajustement âge mais appliquer offset sport si CAP
+      vlamaxIdeal: sport === "cap" || sport === "run" ? sportRange.optimal : ageTargets.vlamaxOptimal,
+      vlamaxMax: sport === "cap" || sport === "run" ? sportRange.max : ageTargets.vlamaxMax,
       chargeOptimale: getChargeOptimale(objectif, ambition),
     };
   }
 
-  // Sans âge, utiliser les cibles de base
-  const vlamaxRange = getVLamaxRange(objectif, ambition);
   return {
     objectif,
     ftpKgTarget: getFtpKgTargetByAmbition(objectif, ambition),
     vmaTarget: getVmaTargetByAmbition(objectif, ambition),
     tteTarget: getTTETargetByAmbition(objectif, ambition),
-    vlamaxIdeal: vlamaxRange.optimal,
-    vlamaxMax: vlamaxRange.max,
+    vlamaxIdeal: sportRange.optimal,
+    vlamaxMax: sportRange.max,
     chargeOptimale: getChargeOptimale(objectif, ambition),
   };
 }
