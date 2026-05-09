@@ -693,6 +693,9 @@ const Index = () => {
       vlamaxSource: effectiveCloudSnapshot.vlamax_source ?? null,
       vlamaxProtocol: effectiveCloudSnapshot.vlamax_protocol ?? null,
       vlamaxIsReference: effectiveCloudSnapshot.vlamax_is_reference ?? false,
+      // ✅ Cohérence globale : on injecte le VLamax effectif déjà calculé pour
+      // que dashDiagnostic.effectifs.vlamax === vlamaxEffectif partout.
+      vlamaxEffectifPrecomputed: vlamaxEffectif,
       tteObservedMin: effectiveCloudSnapshot.tte_observed_min ?? null,
       tteMode: effectiveCloudSnapshot.tte_mode ?? null,
       tss7d: effectiveCloudSnapshot.tss_7d ?? null,
