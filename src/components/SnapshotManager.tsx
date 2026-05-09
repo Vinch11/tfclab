@@ -73,6 +73,7 @@ interface SnapshotManagerProps {
 const INITIAL_FORM_STATE = {
   date: new Date().toISOString().slice(0, 10),
   cycle_tag: "",
+  sport_main: "", // "" = auto (déduit de l'objectif), "run"/"bike"/"triathlon"/"swim"
   confidence: "",
   fc_max: "",
   vma: "",
