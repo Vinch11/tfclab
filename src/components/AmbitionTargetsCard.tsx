@@ -27,6 +27,7 @@ interface AmbitionTargetsCardProps {
   currentVlamax?: number | null;
   currentTTE?: number | null;
   currentFtpKg?: number | null;
+  sport?: string | null;
   className?: string;
 }
 
