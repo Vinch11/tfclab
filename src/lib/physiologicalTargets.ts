@@ -307,7 +307,48 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
   },
 
   // =============================================
-  // ULTRA (100km+)
+  // TRAIL MOUNTAIN (40-80km avec D+ important / altitude)
+  // Intermediaire entre Trail et TrailLong (charge ↑, intensité ↓ vs Trail plat)
+  // =============================================
+  TrailMountain: {
+    finisher: {
+      vlamax: { min: 0.42, max: 0.62, optimal: 0.52 },
+      tte_min: 45,
+      ftp_kg_min: 2.8,
+      vma_min: 14.0,
+      charge_optimale: 340,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 55, max: 85 },
+    },
+    age_group: {
+      vlamax: { min: 0.38, max: 0.58, optimal: 0.48 },
+      tte_min: 52,
+      ftp_kg_min: 3.5,
+      vma_min: 16.0,
+      charge_optimale: 420,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 65, max: 95 },
+    },
+    competitor: {
+      vlamax: { min: 0.32, max: 0.50, optimal: 0.40 },
+      tte_min: 58,
+      ftp_kg_min: 3.8,
+      vma_min: 18.0,
+      charge_optimale: 490,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 80, max: 120 },
+    },
+    elite: {
+      vlamax: { min: 0.26, max: 0.42, optimal: 0.33 },
+      tte_min: 62,
+      ftp_kg_min: 4.2,
+      vma_min: 20.0,
+      charge_optimale: 560,
+      nutrition_bike_gph: { min: 0, max: 0 },
+      nutrition_run_gph: { min: 100, max: 140 },
+    },
+  },
+
   // =============================================
   Ultra: {
     finisher: {
