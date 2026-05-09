@@ -193,8 +193,8 @@ function MetricCard({ gap, metricInfo, showDragHandle = false, dragHandleProps =
                   <span className="font-bold text-foreground">{formatVal(gap.target as number)}</span>
                   <span className="text-muted-foreground/60">{metricInfo.unit}</span>
                   {gap.targetRange && (
-                    <span className="text-muted-foreground/70">
-                      · plage {gap.targetRange.min.toFixed(2)}–{gap.targetRange.max.toFixed(2)}
+                    <span className="ml-0.5 text-[10px] text-muted-foreground/60 font-normal">
+                      ({gap.targetRange.min.toFixed(2)}–{gap.targetRange.max.toFixed(2)})
                     </span>
                   )}
                 </div>
