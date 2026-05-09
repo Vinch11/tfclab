@@ -705,21 +705,25 @@ export default function RunningProfilePage() {
                 />
               </div>
 
-              {targets && (
+              {targets && (() => {
+                const ambitionLvl = getAthleteAmbition(currentAthlete);
+                const vlamaxUnified = getVLamaxRange(athleteGoal, ambitionLvl, "cap");
+                return (
                 <div className="mt-4 pt-4 border-t">
                   <div className="text-xs text-muted-foreground mb-2">
-                    Cibles {raceLabel}
+                    Cibles {raceLabel} · {ambitionLvl}
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <Badge variant="outline" className="text-xs">
-                      VLamax: {targets.vlamax.optimal.toFixed(2)}–{targets.vlamax.max.toFixed(2)}
+                      VLamax: {vlamaxUnified.optimal.toFixed(2)}–{vlamaxUnified.max.toFixed(2)}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
                       Durabilité: ≥{targets.durabilityMin}min
                     </Badge>
                   </div>
                 </div>
-              )}
+                );
+              })()}
             </CardContent>
           </Card>
         ),
