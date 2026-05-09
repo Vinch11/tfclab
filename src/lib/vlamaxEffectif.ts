@@ -244,8 +244,12 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
 
   // =============================================
   // A) SOURCE SNAPSHOT STAFF (VLamax mesurée lactate — bike/global)
+  // ⚠️ Pour un athlète CAP/Trail, le champ `vlamax` du snapshot représente
+  // la VLamax vélo et n'est PAS représentatif de la glycolyse en course.
+  // On l'ignore donc pour laisser la priorité à la chaîne CAP (vlamax_run
+  // mesurée → estimation CAP V2 via VMA/seuil/sprint/power).
   // =============================================
-  if (effectiveSnapshot && effectiveSnapshot.vlamax != null) {
+  if (sport !== "cap" && effectiveSnapshot && effectiveSnapshot.vlamax != null) {
     const ageDays = computeDataAgeDays(effectiveSnapshot.date);
     const v2Input: VLamaxV2Input = {
       rawValue: effectiveSnapshot.vlamax,
