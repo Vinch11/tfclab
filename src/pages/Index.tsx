@@ -1622,6 +1622,7 @@ const Index = () => {
                 objectif={currentAthlete.goal || "IM"}
                 staffMode={staffMode}
                 ambition={currentAmbition}
+                sport={(effectiveCloudSnapshot as any)?.sport_main ?? undefined}
                 athleteId={currentAthlete.id}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
