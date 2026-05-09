@@ -116,13 +116,14 @@ export function AmbitionTargetsCard({
   currentVlamax,
   currentTTE,
   currentFtpKg,
+  sport,
   className,
 }: AmbitionTargetsCardProps) {
   const ambDef = getAmbitionDefinition(ambition);
   
   const metrics = useMemo((): MetricTarget[] => {
     const targets = getTargetsForAmbition(objectif, ambition);
-    const vlamaxRange = getVLamaxRange(objectif, ambition);
+    const vlamaxRange = getVLamaxRange(objectif, ambition, sport ?? undefined);
     
     return [
       {
@@ -152,7 +153,7 @@ export function AmbitionTargetsCard({
         unit: "W/kg",
       },
     ];
-  }, [objectif, ambition, currentVlamax, currentTTE, currentFtpKg]);
+  }, [objectif, ambition, currentVlamax, currentTTE, currentFtpKg, sport]);
 
   // Calculer le score global
   const globalProgress = useMemo(() => {
