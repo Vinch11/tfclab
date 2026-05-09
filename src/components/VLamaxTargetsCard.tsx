@@ -28,6 +28,8 @@ interface VLamaxTargetsCardProps {
   currentVlamax?: number | null;
   vo2max?: number | null;
   weeklyVolume?: number | null;
+  ambition?: import("@/types/ambitionLevel").AmbitionLevel;
+  sport?: string | null;
   className?: string;
 }
 
