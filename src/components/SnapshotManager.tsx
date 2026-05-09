@@ -250,6 +250,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       date: formData.date,
       source: staffMode && vlamax ? "staff" : "manual", // ✅ Marquer source "staff" si VLamax mesurée
       cycle_tag: formData.cycle_tag || null,
+      sport_main: formData.sport_main || null,
       confidence: parseNum(formData.confidence),
       fc_max: parseNum(formData.fc_max) ? Math.round(parseNum(formData.fc_max)!) : null,
       vma: parseNum(formData.vma),
