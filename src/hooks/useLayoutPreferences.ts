@@ -394,6 +394,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       insertMissing("objective-manager", ["athlete-refs"]);
       insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
       insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);
+      insertMissing("vlamax-profile-scale", ["vlamax-targets", "fatmax-tfcl", "coaching-compass"]);
 
       return [...merged, ...missingConfigs];
     }
