@@ -95,6 +95,8 @@ export interface VLamaxUnifiedCardProps {
   sex?: "H" | "F";
   staffMode?: boolean;
   ambition?: AmbitionLevel;
+  /** Sport principal (cap | bike | tri) pour offset des cibles VLamax */
+  sport?: string;
   
   // Bike-specific
   ftp?: number | null;
