@@ -2,6 +2,8 @@
 // SCORE ENVELOPE — FORMAT UNIVERSEL STAFF-GRADE
 // Supprime l'illusion de précision, renforce la crédibilité scientifique
 // =============================================
+import { getVLamaxRange, normalizeObjective } from "@/lib/physiologicalTargets";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 /**
  * Source de la donnée
@@ -119,20 +121,20 @@ export function getContextTargets(
   metricId: string, 
   objectif: string, 
   age?: number | null,
-  sport?: string
+  sport?: string,
+  ambition?: AmbitionLevel
 ): ContextTarget | null {
-  // VLamax targets
+  // VLamax targets — délègue à la source unique (physiologicalTargets.ts)
+  // pour respecter à la fois l'objectif, le niveau d'ambition et le sport (offset CAP).
   if (metricId === "vlamax") {
-    const targets: Record<string, ContextTarget> = {
-      IM: { min: 0.25, max: 0.45, ideal: 0.32, note: "Ironman: VLamax basse = oxydation lipidique optimale" },
-      Ironman: { min: 0.25, max: 0.45, ideal: 0.32, note: "Ironman: VLamax basse = oxydation lipidique optimale" },
-      "703": { min: 0.28, max: 0.55, ideal: 0.38, note: "70.3: équilibre puissance/endurance" },
-      Half: { min: 0.28, max: 0.55, ideal: 0.38, note: "Half: équilibre puissance/endurance" },
-      Marathon: { min: 0.30, max: 0.55, ideal: 0.40, note: "Marathon: économie + endurance" },
-      Semi: { min: 0.35, max: 0.65, ideal: 0.45, note: "Semi: tolérance lactate modérée acceptable" },
-      Sprint: { min: 0.45, max: 0.80, ideal: 0.55, note: "Sprint: puissance prioritaire" },
+    const range = getVLamaxRange(objectif, ambition, sport);
+    const normalized = normalizeObjective(objectif);
+    return {
+      min: range.min,
+      max: range.max,
+      ideal: range.optimal,
+      note: `Cible VLamax ${normalized}${ambition ? ` (${ambition})` : ""}${sport ? ` — sport ${sport}` : ""}`,
     };
-    return targets[objectif] || targets.IM;
   }
 
   // TTE targets (minutes)

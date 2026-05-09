@@ -28,6 +28,8 @@ interface VLamaxTargetsCardProps {
   currentVlamax?: number | null;
   vo2max?: number | null;
   weeklyVolume?: number | null;
+  ambition?: import("@/types/ambitionLevel").AmbitionLevel;
+  sport?: string | null;
   className?: string;
 }
 
@@ -50,9 +52,14 @@ interface JustificationItem {
 // HELPER FUNCTIONS
 // =============================================
 
-function getVLamaxLevelTargets(objectif: string, age?: number | null): VLamaxLevelTargets {
-  // Récupérer les cibles de base depuis scoreEnvelope
-  const baseTargets = getContextTargets("vlamax", objectif);
+function getVLamaxLevelTargets(
+  objectif: string,
+  age?: number | null,
+  ambition?: import("@/types/ambitionLevel").AmbitionLevel,
+  sport?: string | null,
+): VLamaxLevelTargets {
+  // Récupérer les cibles de base depuis scoreEnvelope (ambition + sport pris en compte)
+  const baseTargets = getContextTargets("vlamax", objectif, age, sport ?? undefined, ambition);
   
   // Valeurs par défaut si objectif inconnu
   if (!baseTargets) {
@@ -358,9 +365,11 @@ export function VLamaxTargetsCard({
   currentVlamax,
   vo2max,
   weeklyVolume,
+  ambition,
+  sport,
   className,
 }: VLamaxTargetsCardProps) {
-  const targets = getVLamaxLevelTargets(objectif, age);
+  const targets = getVLamaxLevelTargets(objectif, age, ambition, sport);
   const currentZone = getCurrentZone(currentVlamax, targets);
   const justifications = buildJustifications({ objectif, age, vo2max, weeklyVolume, currentVlamax });
 
