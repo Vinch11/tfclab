@@ -156,6 +156,7 @@ export function VLamaxUnifiedCard({
   sex = "H",
   staffMode = false,
   ambition = DEFAULT_AMBITION,
+  sport,
   ftp,
   v2Result,
   bikeInput,
