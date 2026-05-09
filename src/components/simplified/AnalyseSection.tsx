@@ -41,6 +41,10 @@ interface AnalyseSectionProps {
   className?: string;
 }
 
+type AnalysisGap = AthleteDiagnostic["limiter"]["gapAnalysis"][number] & {
+  targetRange?: { min: number; max: number };
+};
+
 // Explications pédagogiques enrichies par métrique
 const METRIC_EXPLANATIONS: Record<string, {
   label: string;
@@ -124,7 +128,7 @@ function getGapStatus(gap: number): { label: string; color: string; bgColor: str
 }
 
 function MetricCard({ gap, metricInfo, showDragHandle = false, dragHandleProps = {} }: {
-  gap: { metric: string; gap: number; gapPercent?: number; value?: number | null; target?: number | null; status?: string };
+  gap: AnalysisGap;
   metricInfo: typeof METRIC_EXPLANATIONS[string];
   showDragHandle?: boolean;
   dragHandleProps?: Record<string, any>;
@@ -188,6 +192,11 @@ function MetricCard({ gap, metricInfo, showDragHandle = false, dragHandleProps =
                   <span className="text-muted-foreground">Cible</span>
                   <span className="font-bold text-foreground">{formatVal(gap.target as number)}</span>
                   <span className="text-muted-foreground/60">{metricInfo.unit}</span>
+                  {gap.targetRange && (
+                    <span className="text-muted-foreground/70">
+                      · plage {gap.targetRange.min.toFixed(2)}–{gap.targetRange.max.toFixed(2)}
+                    </span>
+                  )}
                 </div>
                 {delta !== null && (
                   <Badge
@@ -307,7 +316,19 @@ function SortableMetricCard({ id, gap, metricInfo, isReorderMode }: {
 
 export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const { limiter, synthesis } = diagnostic;
-  const gapAnalysis = limiter.gapAnalysis;
+  const gapAnalysis = useMemo<AnalysisGap[]>(
+    () => limiter.gapAnalysis.map((gap) => gap.metric === "VLamax"
+      ? {
+          ...gap,
+          target: diagnostic.targets.vlamaxRange.optimal,
+          targetRange: {
+            min: diagnostic.targets.vlamaxRange.min,
+            max: diagnostic.targets.vlamaxRange.max,
+          },
+        }
+      : gap),
+    [limiter.gapAnalysis, diagnostic.targets.vlamaxRange]
+  );
 
   const [isReorderMode, setIsReorderMode] = useState(false);
 

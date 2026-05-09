@@ -74,8 +74,11 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
 
   // ── 4. Cibles Physiologiques ──────────────────────────────────────────────
   const normalized = normalizeObjective(input.objectif);
-  const currentTargets = getTargetsForAmbition(normalized, input.ambition);
-  const vlamaxRange = getVLamaxRange(input.objectif, input.ambition);
+  const vlamaxRange = getVLamaxRange(input.objectif, input.ambition, input.sportFocus);
+  const currentTargets = {
+    ...getTargetsForAmbition(normalized, input.ambition),
+    vlamax: vlamaxRange,
+  };
 
   // ── 5. Risque Blessure ────────────────────────────────────────────────────
   const runInjuryRisk = computeRunInjuryRiskFromInput(input, fatigue, tte, vlamax);
