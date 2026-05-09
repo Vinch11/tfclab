@@ -59,6 +59,8 @@ export interface DiagnosticInput {
   vlamaxSource: string | null;
   vlamaxProtocol: string | null;
   vlamaxIsReference: boolean;
+  /** Optionnel — VLamax effectif déjà calculé en amont. Si fourni, devient la source unique pour garantir cohérence d'affichage. */
+  vlamaxEffectifPrecomputed?: VLamaxEffectif;
   
   // TTE
   tteObservedMin: number | null;

@@ -135,6 +135,12 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function computeVLamaxFromInput(input: DiagnosticInput): VLamaxEffectif {
+  // ✅ COHÉRENCE GLOBALE : si un VLamax effectif a déjà été calculé en amont
+  // (typiquement Index.tsx avec l'historique complet tests+snapshots), on le
+  // réutilise tel quel pour garantir une valeur identique partout dans l'app.
+  if (input.vlamaxEffectifPrecomputed) {
+    return input.vlamaxEffectifPrecomputed;
+  }
   const snapshotObj = {
     id: "diagnostic-snapshot",
     athlete_id: input.athleteId,
