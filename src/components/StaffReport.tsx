@@ -1,4 +1,5 @@
 import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
+import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, computePillarCalculations } from "@/lib/potentielPhysiologiqueEffectif";
 import { computeFatMaxTFCL, type FatMaxTFCLResult, type FatMaxObjectif, FATMAX_DEFINITIONS } from "@/lib/v2/fatmaxTFCL";
 import { computeAdaptationPrediction, type AdaptationPredictorResult, type AdaptationScenario, getImpactScoreColor, getImpactScoreBgColor } from "@/lib/v2/adaptationPredictor";
