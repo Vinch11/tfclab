@@ -763,6 +763,11 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                               <span className="text-muted-foreground">Cible</span>
                               <span className="font-bold text-foreground">{formatVal(axis.target as number)}</span>
                               <span className="text-muted-foreground/60">{axis.unit}</span>
+                              {axis.key === "vlamax" && vlamaxRange && (
+                                <span className="ml-1 text-[9px] text-muted-foreground/60 font-normal">
+                                  ({vlamaxRange.min.toFixed(2)}–{vlamaxRange.max.toFixed(2)})
+                                </span>
+                              )}
                             </div>
                             {delta !== null && (
                               <Badge
