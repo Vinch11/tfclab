@@ -99,8 +99,13 @@ export function VLamaxCAPCard({
     return null;
   }
   
-  const optimal = targets.vlamax.optimal;
-  const max = targets.vlamax.max;
+  // Cibles unifiées par objectif + ambition (CAP) — remplace les valeurs statiques par race type
+  const ambitionLvl = getAthleteAmbition(currentAthlete);
+  const unifiedRange = currentAthlete?.objectif
+    ? getVLamaxRange(currentAthlete.objectif, ambitionLvl, "cap")
+    : null;
+  const optimal = unifiedRange?.optimal ?? targets.vlamax.optimal;
+  const max = unifiedRange?.max ?? targets.vlamax.max;
   
   // Statut selon les cibles (basé sur valeur calibrée)
   const getStatus = (): { label: string; color: string; icon: string } => {
