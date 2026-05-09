@@ -298,9 +298,10 @@ export function computeToleranceEffort(
 export function computeProfilMetabolique(
   vlamaxEffectif: VLamaxEffectif,
   objectif: string,
-  ambition?: AmbitionLevel
+  ambition?: AmbitionLevel,
+  sport?: string | null
 ): CompassAxisScore {
-  const targets = getTargets(objectif, ambition);
+  const targets = getTargets(objectif, ambition, null, sport);
   const vlamaxValue = vlamaxEffectif.value;
   
   // VLamax inconnu
