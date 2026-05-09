@@ -66,6 +66,7 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
   { id: "adaptation-predictor-profil", label: "Adaptation Predictor™", icon: "Sparkles", category: "analyse", defaultVisible: true },
   { id: "cp-wprime-curve-profil", label: "Courbe CP/W' (Puissance-Durée)", icon: "TrendingDown", category: "analyse", defaultVisible: true },
   { id: "wbal-recovery-profil", label: "Repos W'bal Individualisés", icon: "RotateCcw", category: "analyse", defaultVisible: true },
+  { id: "vlamax-profile-scale-profil", label: "Profil VLamax — Échelle", icon: "Activity", category: "metriques", defaultVisible: true },
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
