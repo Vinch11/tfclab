@@ -474,7 +474,7 @@ export function StaffReport({
                 ambition: ambition || DEFAULT_AMBITION,
                 athleteAge: athleteAge ?? null,
                 vma: snapshot?.vma ?? null,
-                sportFocus: snapshot?.sport_main === "run" ? "run" : snapshot?.sport_main === "triathlon" ? "triathlon" : "bike",
+                sportFocus: resolveCompassSportFocus(snapshot, { goal: objectif }, "bike"),
               }}
               compact={true}
               className="print:break-inside-avoid"
