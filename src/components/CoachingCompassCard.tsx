@@ -566,8 +566,8 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
                     <span className="text-[9px] text-muted-foreground">
                       Cible <span className="font-semibold text-foreground">{formatVal(target, target < 10)}</span> {m.unit}
                       {key === "VLamax" && vlamaxRange && (
-                        <span className="ml-1 opacity-75">
-                          (plage {vlamaxRange.min.toFixed(2)}–{vlamaxRange.max.toFixed(2)})
+                        <span className="ml-1 text-[9px] text-muted-foreground/60 font-normal">
+                          ({vlamaxRange.min.toFixed(2)}–{vlamaxRange.max.toFixed(2)})
                         </span>
                       )}
                     </span>
