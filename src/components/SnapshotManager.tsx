@@ -164,6 +164,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     setFormData({
       date: s.date || new Date().toISOString().slice(0, 10),
       cycle_tag: s.cycle_tag || "",
+      sport_main: (s as any).sport_main || "",
       confidence: s.confidence != null ? String(s.confidence) : "",
       fc_max: s.fc_max != null ? String(s.fc_max) : "",
       vma: s.vma != null ? String(s.vma) : "",
