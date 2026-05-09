@@ -365,9 +365,11 @@ export function VLamaxTargetsCard({
   currentVlamax,
   vo2max,
   weeklyVolume,
+  ambition,
+  sport,
   className,
 }: VLamaxTargetsCardProps) {
-  const targets = getVLamaxLevelTargets(objectif, age);
+  const targets = getVLamaxLevelTargets(objectif, age, ambition, sport);
   const currentZone = getCurrentZone(currentVlamax, targets);
   const justifications = buildJustifications({ objectif, age, vo2max, weeklyVolume, currentVlamax });
 
