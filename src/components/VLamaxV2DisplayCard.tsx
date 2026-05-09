@@ -278,6 +278,7 @@ export function VLamaxV2DisplayCard({
           vlamax={vlamax} 
           objectif={objectif} 
           ambition={ambition} 
+          sport={sport}
         />
 
         {/* Interprétation */}
