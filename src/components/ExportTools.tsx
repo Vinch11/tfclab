@@ -1,5 +1,6 @@
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
 // Two For Coaching Lab – Performance & Metabolic Report
