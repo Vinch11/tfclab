@@ -1890,7 +1890,7 @@ function buildExportPayload(
         wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
         objectif: athlete.goal || "IM",
         ambition: ambition,
-        sportFocus: (effectiveSnapshot?.sport_main as any) ?? "bike",
+        sportFocus: resolveCompassSportFocus(effectiveSnapshot, athlete, "bike"),
         athleteAge: athleteAge,
       };
       return computeCoachingCompass(compassInput);
