@@ -76,6 +76,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "limiteurs-section", label: "Facteurs Limitants", icon: "AlertTriangle", category: "analyse", defaultVisible: true },
   { id: "leviers-section", label: "Leviers & Actions", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "synthese-executive-dashboard", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
+  { id: "vlamax-profile-scale", label: "Profil VLamax — Échelle", icon: "Activity", category: "metriques", defaultVisible: true },
 ];
 
 export const STRATEGIE_SECTIONS: SectionDefinition[] = [
@@ -393,6 +394,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       insertMissing("objective-manager", ["athlete-refs"]);
       insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
       insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);
+      insertMissing("vlamax-profile-scale", ["vlamax-targets", "fatmax-tfcl", "coaching-compass"]);
 
       return [...merged, ...missingConfigs];
     }
