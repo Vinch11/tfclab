@@ -82,7 +82,10 @@ export interface CompassTargets {
  * Build CompassTargets from centralized physiological targets
  * Now uses ambition level AND age for adaptive thresholds
  */
-function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION, age?: number | null): CompassTargets {
+function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION, age?: number | null, sport?: string | null): CompassTargets {
+  // Override sport-aware VLamax range (CAP/run → +0.05/+0.07/+0.06 vs bike baseline)
+  const sportRange = getVLamaxRange(objectif, ambition, sport ?? undefined);
+
   // Si l'âge est fourni, utiliser les cibles ajustées par âge
   if (age !== null && age !== undefined) {
     const ageTargets = getAgeAdjustedTargets(objectif, age, ambition);
@@ -91,21 +94,20 @@ function getTargets(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION
       ftpKgTarget: ageTargets.ftpKgTarget,
       vmaTarget: ageTargets.vmaTarget ?? getVmaTargetByAmbition(objectif, ambition),
       tteTarget: ageTargets.tteTarget,
-      vlamaxIdeal: ageTargets.vlamaxOptimal,
-      vlamaxMax: ageTargets.vlamaxMax,
+      // Conserver l'ajustement âge mais appliquer offset sport si CAP
+      vlamaxIdeal: sport === "cap" || sport === "run" ? sportRange.optimal : ageTargets.vlamaxOptimal,
+      vlamaxMax: sport === "cap" || sport === "run" ? sportRange.max : ageTargets.vlamaxMax,
       chargeOptimale: getChargeOptimale(objectif, ambition),
     };
   }
 
-  // Sans âge, utiliser les cibles de base
-  const vlamaxRange = getVLamaxRange(objectif, ambition);
   return {
     objectif,
     ftpKgTarget: getFtpKgTargetByAmbition(objectif, ambition),
     vmaTarget: getVmaTargetByAmbition(objectif, ambition),
     tteTarget: getTTETargetByAmbition(objectif, ambition),
-    vlamaxIdeal: vlamaxRange.optimal,
-    vlamaxMax: vlamaxRange.max,
+    vlamaxIdeal: sportRange.optimal,
+    vlamaxMax: sportRange.max,
     chargeOptimale: getChargeOptimale(objectif, ambition),
   };
 }
@@ -296,9 +298,10 @@ export function computeToleranceEffort(
 export function computeProfilMetabolique(
   vlamaxEffectif: VLamaxEffectif,
   objectif: string,
-  ambition?: AmbitionLevel
+  ambition?: AmbitionLevel,
+  sport?: string | null
 ): CompassAxisScore {
-  const targets = getTargets(objectif, ambition);
+  const targets = getTargets(objectif, ambition, null, sport);
   const vlamaxValue = vlamaxEffectif.value;
   
   // VLamax inconnu
@@ -420,9 +423,10 @@ export function computeProfilMetaboliqueWithAge(
   vlamaxEffectif: VLamaxEffectif,
   objectif: string,
   ambition?: AmbitionLevel,
-  athleteAge?: number | null
+  athleteAge?: number | null,
+  sport?: string | null
 ): CompassAxisScore {
-  const targets = getTargets(objectif, ambition, athleteAge);
+  const targets = getTargets(objectif, ambition, athleteAge, sport);
   const vlamaxValue = vlamaxEffectif.value;
   
   if (vlamaxEffectif.source === "unknown" || vlamaxValue === null) {
@@ -682,6 +686,8 @@ export function computeCompassScores(params: ComputeCompassParams): CompassScore
   
   // AXE 1 : Running → VMA, sinon → FTP/kg
   const isRunning = sportFocus === "run";
+  // sport pour offset VLamax CAP (cap = +0.05/+0.07/+0.06 vs vélo)
+  const sportForVlamax: string | null = isRunning ? "cap" : null;
   const capaciteAerobieRaw = isRunning && vma != null
     ? computeCapaciteAerobieRunning(vma, objectif, ambition, athleteAge)
     : computeCapaciteAerobie(ftp, poids, objectif, ambition, athleteAge);
@@ -692,7 +698,7 @@ export function computeCompassScores(params: ComputeCompassParams): CompassScore
     : capaciteAerobieRaw;
   
   const toleranceEffort = computeToleranceEffortWithAge(tteEffectif, objectif, ambition, athleteAge);
-  const profilMetabolique = computeProfilMetaboliqueWithAge(vlamaxEffectif, objectif, ambition, athleteAge);
+  const profilMetabolique = computeProfilMetaboliqueWithAge(vlamaxEffectif, objectif, ambition, athleteAge, sportForVlamax);
   const chargeScore = computeChargeScore(crr, objectif);
   
   // Robustesse intègre le risque CAP/fatigue selon le sport

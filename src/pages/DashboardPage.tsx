@@ -503,7 +503,12 @@ export default function DashboardPage() {
 
   const objectif = currentAthlete.objectif || "IM";
   const ambition = getAthleteAmbition(currentAthlete);
-  const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition);
+  // Sport pour offset VLamax CAP : sport_main explicite, sinon déduit de l'objectif running
+  const sportMain = (snapshot as any)?.sport_main as string | null | undefined;
+  const objectifLower = (objectif || "").toLowerCase();
+  const isRunObjective = ["marathon","semi","trail","ultra","run","cap","10km","5k"].some(k => objectifLower.includes(k));
+  const sportForVlamaxBadge = sportMain || (isRunObjective ? "cap" : null);
+  const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition, sportForVlamaxBadge ?? undefined);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
   const readinessStatus = getPotentielStatus(potentielPhysiologique.score);
 
