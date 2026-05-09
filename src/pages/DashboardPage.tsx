@@ -955,6 +955,8 @@ export default function DashboardPage() {
         currentVlamax={vlamaxEffectif.value}
         vo2max={snapshot.vo2max}
         weeklyVolume={null}
+        ambition={getAthleteAmbition(currentAthlete)}
+        sport={(snapshot as any)?.sport_main ?? null}
       />
     );
   };
