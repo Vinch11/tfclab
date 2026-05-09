@@ -155,9 +155,18 @@ interface ComputeVLamaxEffectifParams {
 // HELPERS INTERNES
 // =============================================
 
-function snapshotSportToContext(sportMain?: string | null): SportContext {
+function snapshotSportToContext(sportMain?: string | null, objectif?: string | null): SportContext {
   if (sportMain === "run" || sportMain === "cap" || sportMain === "course") return "cap";
   if (sportMain === "swim" || sportMain === "natation") return "natation";
+  if (sportMain === "bike" || sportMain === "velo" || sportMain === "cycling") return "velo";
+  // Fallback : déduire du goal/objectif quand sport_main est manquant
+  const g = (objectif || "").toLowerCase();
+  if (g) {
+    if (/(trail|marathon|semi|half|10k|5k|run|cap|course|ultra)/.test(g)) return "cap";
+    if (/(swim|natation|nage)/.test(g)) return "natation";
+    if (/(bike|velo|vélo|cycl|gran fondo|granfondo|cyclo)/.test(g)) return "velo";
+    if (/(triathlon|ironman|im|703|70\.3)/.test(g)) return "velo"; // tri = bike-dominant par défaut
+  }
   return "velo";
 }
 
