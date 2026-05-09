@@ -56,6 +56,7 @@ import { SortableSectionsContainer } from "@/components/SortableSectionsContaine
 
 // ✅ VLamax TFCL V2 - Carte unifiée (Phase 1 UX)
 import { VLamaxUnifiedCard } from "@/components/VLamaxUnifiedCard";
+import { VLamaxProfileScale } from "@/components/VLamaxProfileScale";
 import { NolioAnalysisCard } from "@/components/NolioAnalysisCard";
 import { VLamaxZoneConfidenceChart } from "@/components/charts/VLamaxZoneConfidenceChart";
 import { VLamaxEstimationWidget } from "@/components/charts/VLamaxEstimationWidget";
@@ -1614,6 +1615,17 @@ const Index = () => {
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                 age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                 runMLSS={dashDiagnostic?.runMLSS ?? null}
+              />
+            ),
+          },
+          // Profil VLamax — Échelle par sport (profil)
+          {
+            id: "vlamax-profile-scale-profil",
+            render: () => currentAthlete && (
+              <VLamaxProfileScale
+                vlamax={alignedVlamaxEffectif.value}
+                objectif={currentAthlete.goal || null}
+                sportMain={(effectiveCloudSnapshot as any)?.sport_main ?? null}
               />
             ),
           },
