@@ -746,9 +746,9 @@ export const CiblesVLamax: Record<string, VLamaxTargets> = {
 /**
  * Check if VLamax is within acceptable range for objective
  */
-export function isVlamaxInRange(vlamax: number | null, objectif: string, ambition?: AmbitionLevel): boolean {
+export function isVlamaxInRange(vlamax: number | null, objectif: string, ambition?: AmbitionLevel, sport?: string): boolean {
   if (vlamax === null) return true; // No data = no alert
-  const range = getVLamaxRange(objectif, ambition);
+  const range = getVLamaxRange(objectif, ambition, sport);
   return vlamax >= range.min && vlamax <= range.max;
 }
 
@@ -756,9 +756,9 @@ export function isVlamaxInRange(vlamax: number | null, objectif: string, ambitio
  * Get VLamax status for an objective
  * Returns granular status based on distance from optimal target
  */
-export function getVlamaxStatus(vlamax: number | null, objectif: string, ambition?: AmbitionLevel): "low" | "optimal" | "acceptable" | "high" | "unknown" {
+export function getVlamaxStatus(vlamax: number | null, objectif: string, ambition?: AmbitionLevel, sport?: string): "low" | "optimal" | "acceptable" | "high" | "unknown" {
   if (vlamax === null) return "unknown";
-  const range = getVLamaxRange(objectif, ambition);
+  const range = getVLamaxRange(objectif, ambition, sport);
   
   if (vlamax < range.min) return "low";
   if (vlamax > range.max) return "high";
@@ -777,16 +777,17 @@ export function getVlamaxStatus(vlamax: number | null, objectif: string, ambitio
 export function getVlamaxStatusWithLabel(
   vlamax: number | null, 
   objectif: string, 
-  ambition?: AmbitionLevel
+  ambition?: AmbitionLevel,
+  sport?: string
 ): { status: "ok" | "warning" | "critical"; label: string; deviation: number | null } {
   if (vlamax === null) return { status: "critical", label: "Non disponible", deviation: null };
   
-  const range = getVLamaxRange(objectif, ambition);
+  const range = getVLamaxRange(objectif, ambition, sport);
   const deviation = range.optimal > 0 
     ? Math.round(((vlamax - range.optimal) / range.optimal) * 100) 
     : 0;
   
-  const rawStatus = getVlamaxStatus(vlamax, objectif, ambition);
+  const rawStatus = getVlamaxStatus(vlamax, objectif, ambition, sport);
   
   switch (rawStatus) {
     case "low":
