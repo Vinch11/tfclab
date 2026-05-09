@@ -261,7 +261,10 @@ export function VLamaxCAPCard({
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Progression vers l'optimal</span>
-              <span>Cible: ≤ {optimal} mmol/L/s</span>
+              <span>
+                Cible: ≤ {optimal.toFixed(2)} mmol/L/s
+                <span className="ml-1 opacity-75">(plage {(unifiedRange?.min ?? targets.vlamax.min).toFixed(2)}–{max.toFixed(2)})</span>
+              </span>
             </div>
             <Progress value={progressPct} className="h-2" />
           </div>
