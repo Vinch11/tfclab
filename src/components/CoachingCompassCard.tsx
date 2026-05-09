@@ -633,6 +633,14 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   }
 
   const { limiter, leverage, decision } = compass;
+  const _ambition = (input.ambition || "age_group") as AmbitionLevel;
+  const _objectif = input.objectif || "IM";
+  const _sportForTargets =
+    input.sportFocus === "run" ? "cap" :
+    input.sportFocus === "bike" ? "bike" :
+    input.sportFocus === "triathlon" ? "tri" :
+    undefined;
+  const vlamaxRange = getVLamaxRange(_objectif, _ambition, _sportForTargets);
 
   return (
     <Card className={cn("border-border/50 overflow-hidden print:break-inside-avoid print:shadow-none print:border-0", className)}>
