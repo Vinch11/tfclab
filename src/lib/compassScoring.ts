@@ -686,6 +686,8 @@ export function computeCompassScores(params: ComputeCompassParams): CompassScore
   
   // AXE 1 : Running → VMA, sinon → FTP/kg
   const isRunning = sportFocus === "run";
+  // sport pour offset VLamax CAP (cap = +0.05/+0.07/+0.06 vs vélo)
+  const sportForVlamax: string | null = isRunning ? "cap" : null;
   const capaciteAerobieRaw = isRunning && vma != null
     ? computeCapaciteAerobieRunning(vma, objectif, ambition, athleteAge)
     : computeCapaciteAerobie(ftp, poids, objectif, ambition, athleteAge);
@@ -696,7 +698,7 @@ export function computeCompassScores(params: ComputeCompassParams): CompassScore
     : capaciteAerobieRaw;
   
   const toleranceEffort = computeToleranceEffortWithAge(tteEffectif, objectif, ambition, athleteAge);
-  const profilMetabolique = computeProfilMetaboliqueWithAge(vlamaxEffectif, objectif, ambition, athleteAge);
+  const profilMetabolique = computeProfilMetaboliqueWithAge(vlamaxEffectif, objectif, ambition, athleteAge, sportForVlamax);
   const chargeScore = computeChargeScore(crr, objectif);
   
   // Robustesse intègre le risque CAP/fatigue selon le sport
