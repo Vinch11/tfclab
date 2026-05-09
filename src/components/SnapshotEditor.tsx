@@ -236,6 +236,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const handleSave = async () => {
     await updateSnapshot(snapshot.id, {
       date,
+      sport_main: sportMain || null,
       ftp: numOrNull(ftp) != null ? Math.round(numOrNull(ftp)!) : null,
       pmax_5s: numOrNull(pmax5s) != null ? Math.round(numOrNull(pmax5s)!) : null,
       weight_kg: numOrNull(weight),
