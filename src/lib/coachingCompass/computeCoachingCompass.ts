@@ -36,6 +36,7 @@ import type {
 
 import {
   getTargetsForAmbition,
+  getVLamaxRange,
   getVmaTargetByAmbition,
 } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
@@ -536,6 +537,8 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
 
   // ── Récupérer les cibles réelles par objectif + ambition ──
   const targets = getTargetsForAmbition(objectif, ambition);
+  const sportForTargets = isRunning ? "cap" : input.sportFocus === "bike" ? "bike" : input.sportFocus === "triathlon" ? "tri" : undefined;
+  const vlamaxRange = getVLamaxRange(objectif, ambition, sportForTargets);
   const vmaTargetBase = getVmaTargetByAmbition(objectif, ambition);
 
   // ✅ Ajustement par âge — identique à detectUnifiedLimiter
@@ -607,8 +610,8 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
   const economyValue = profile.runningEconomy.value;
 
   // VLamax : inversé (plus bas = mieux pour endurance)
-  const vlamaxScore = vlamaxValue !== null && targets.vlamax.optimal != null
-    ? scoreRelativeToTargetInverse(vlamaxValue, targets.vlamax.optimal)
+  const vlamaxScore = vlamaxValue !== null && vlamaxRange.optimal != null
+    ? scoreRelativeToTargetInverse(vlamaxValue, vlamaxRange.optimal)
     : 0;
 
   const durabilityScore = scoreRelativeToTarget(durabilityValue, durabilityTarget);
@@ -634,7 +637,7 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       icon: "⚡",
       color: "hsl(45, 90%, 50%)",
       value: vlamaxValue,
-      target: targets.vlamax.optimal,
+      target: vlamaxRange.optimal,
       unit: "mmol/L/s",
     },
     aerobicAxis,
