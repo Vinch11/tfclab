@@ -84,6 +84,7 @@ import {
 } from "@/lib/performanceRanges";
 import { PerformanceRangeDisplay } from "@/components/PerformanceRangeDisplay";
 import { resolveBadgeSport } from "@/lib/sportMainDeduction";
+import { VLamaxProfileScale } from "@/components/VLamaxProfileScale";
 
 // =============================================
 // HELPERS
@@ -1188,6 +1189,13 @@ export default function DashboardPage() {
     { id: "fatmax-tfcl", render: renderFatMaxTFCL },
     { id: "fatmax-chart", render: renderFatMaxChart },
     { id: "vlamax-targets", render: renderVLamaxTargets },
+    { id: "vlamax-profile-scale", render: () => (
+      <VLamaxProfileScale
+        vlamax={vlamaxEffectif.value}
+        objectif={objectif}
+        sportMain={(snapshot as any)?.sport_main ?? null}
+      />
+    )},
     { id: "cpw-prime-curve", render: () => (
       <CPWPrimeCurveCard
         ftp={snapshot.ftp}
