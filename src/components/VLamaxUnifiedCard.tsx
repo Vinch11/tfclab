@@ -218,7 +218,9 @@ export function VLamaxUnifiedCard({
   
   // Calibration display
   const normalizedObj = normalizeObjective(objectif as ObjectifPrincipal);
-  const targets = getVLamaxRange(normalizedObj, ambition);
+  // Sport résolu pour les cibles VLamax (run → cap pour offset CAP)
+  const sportForTargets = sport === "run" ? "cap" : sport;
+  const targets = getVLamaxRange(normalizedObj, ambition, sportForTargets);
   const ambitionDef = getAmbitionDefinition(ambition);
   
   return (
