@@ -40,6 +40,7 @@ import { EnergyDriftResult } from "@/lib/energyDrift";
 import { getAgeAdjustedTargets, computeAgeAdjustmentIndex } from "@/lib/ageAdjustment";
 import { AmbitionLevel, DEFAULT_AMBITION, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getVlamaxStatusWithLabel } from "@/lib/physiologicalTargets";
+import { resolveBadgeSport } from "@/lib/sportMainDeduction";
 
 // =============================================
 // TYPES
