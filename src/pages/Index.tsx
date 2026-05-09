@@ -1489,6 +1489,7 @@ const Index = () => {
                 })()}
                 ambition={currentAmbition}
                 athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                sportFocus={dashDiagnostic?.sportFocus ?? (isRunningOnly ? "run" : "bike")}
               />
             ) : null,
           },
@@ -1822,6 +1823,7 @@ const Index = () => {
                 })()}
                 ambition={currentAmbition}
                 athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                sportFocus={dashDiagnostic?.sportFocus ?? (isRunningOnly ? "run" : "bike")}
               />
             ),
           },
