@@ -169,14 +169,21 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {item.metrics.map(m => {
                   const formatVal = (v: number) => v < 1 ? v.toFixed(2) : v < 10 ? v.toFixed(1) : v.toFixed(0);
+                  const isVLamax = m.metric === "VLamax";
+                  const target = isVLamax ? diagnostic.targets.vlamaxRange.optimal : m.target;
                   return (
                     <div key={m.metric} className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-background/80 border border-border/30 text-[10px]">
                       <span className="font-semibold">{m.metric}</span>
-                      {m.value !== null && m.target !== null && (
+                      {m.value !== null && target !== null && (
                         <>
                           <span className="text-muted-foreground">{formatVal(m.value)}</span>
                           <ArrowRight className="h-2.5 w-2.5 text-muted-foreground/50" />
-                          <span className="text-muted-foreground">{formatVal(m.target)}</span>
+                          <span className="text-muted-foreground">{formatVal(target)}</span>
+                          {isVLamax && (
+                            <span className="text-muted-foreground/70">
+                              ({diagnostic.targets.vlamaxRange.min.toFixed(2)}–{diagnostic.targets.vlamaxRange.max.toFixed(2)})
+                            </span>
+                          )}
                         </>
                       )}
                     </div>
