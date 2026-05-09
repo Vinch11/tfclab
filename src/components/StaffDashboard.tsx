@@ -187,11 +187,8 @@ export function StaffDashboard({
   const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, potentielPhysiologique, objectif);
   const phase = getPhaseFromObjectif(objectif);
   
-  // Sport pour offset VLamax CAP : sport_main si dispo, sinon déduit de l'objectif running
-  const sportMain = (snapshot as any)?.sport_main as string | null | undefined;
-  const objectifLower = (objectif || "").toLowerCase();
-  const isRunObjective = ["marathon","semi","trail","ultra","run","cap","10km","5k"].some(k => objectifLower.includes(k));
-  const sportForVlamaxBadge = sportMain || (isRunObjective ? "cap" : null);
+  // Sport pour offset VLamax CAP — résolveur central (snapshot.sport_main → goal)
+  const sportForVlamaxBadge = resolveBadgeSport(snapshot, { goal: objectif });
   const vlamaxStatus = getVlamaxStatusWithLabel(vlamaxEffectif.value, objectif, ambition, sportForVlamaxBadge ?? undefined);
   const tteStatus = getTTEStatus(tteEffectif.tte_min, tteTarget);
   const readinessStatus = { status: potentielPhysiologique.score >= 80 ? "ok" as const : potentielPhysiologique.score >= 60 ? "warning" as const : "critical" as const, label: potentielPhysiologique.label };
