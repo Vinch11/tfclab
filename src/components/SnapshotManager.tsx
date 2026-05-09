@@ -73,6 +73,7 @@ interface SnapshotManagerProps {
 const INITIAL_FORM_STATE = {
   date: new Date().toISOString().slice(0, 10),
   cycle_tag: "",
+  sport_main: "", // "" = auto (déduit de l'objectif), "run"/"bike"/"triathlon"/"swim"
   confidence: "",
   fc_max: "",
   vma: "",
@@ -163,6 +164,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     setFormData({
       date: s.date || new Date().toISOString().slice(0, 10),
       cycle_tag: s.cycle_tag || "",
+      sport_main: (s as any).sport_main || "",
       confidence: s.confidence != null ? String(s.confidence) : "",
       fc_max: s.fc_max != null ? String(s.fc_max) : "",
       vma: s.vma != null ? String(s.vma) : "",
@@ -248,6 +250,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       date: formData.date,
       source: staffMode && vlamax ? "staff" : "manual", // ✅ Marquer source "staff" si VLamax mesurée
       cycle_tag: formData.cycle_tag || null,
+      sport_main: formData.sport_main || null,
       confidence: parseNum(formData.confidence),
       fc_max: parseNum(formData.fc_max) ? Math.round(parseNum(formData.fc_max)!) : null,
       vma: parseNum(formData.vma),
@@ -336,6 +339,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     await updateSnapshot(editingSnapshot.id, {
       date: formData.date,
       cycle_tag: formData.cycle_tag || null,
+      sport_main: formData.sport_main || null,
       confidence: parseNum(formData.confidence),
       fc_max: parseNum(formData.fc_max) ? Math.round(parseNum(formData.fc_max)!) : null,
       vma: parseNum(formData.vma),
@@ -474,6 +478,32 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             onChange={(e) => setFormData({ ...formData, cycle_tag: e.target.value })}
           />
         </div>
+      </div>
+
+      {/* 🎯 Sport principal — verrouille le routage VLamax (CAP vs vélo) et les cibles */}
+      <div>
+        <Label htmlFor="sport_main" className="flex items-center gap-1.5">
+          Sport principal
+          <span className="text-xs text-muted-foreground font-normal">(détermine quelle VLamax utiliser)</span>
+        </Label>
+        <Select
+          value={formData.sport_main || "auto"}
+          onValueChange={(v) => setFormData({ ...formData, sport_main: v === "auto" ? "" : v })}
+        >
+          <SelectTrigger id="sport_main">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="auto">Auto (depuis l'objectif)</SelectItem>
+            <SelectItem value="run">Course à pied (CAP / Trail / Marathon)</SelectItem>
+            <SelectItem value="bike">Vélo / Cyclisme</SelectItem>
+            <SelectItem value="swim">Natation</SelectItem>
+            <SelectItem value="triathlon">Triathlon</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground mt-1">
+          Pour un athlète CAP/Trail, sélectionnez « Course à pied » pour que le dashboard utilise <code>vlamax_run</code> et les cibles CAP (au lieu de l'estimation FTP/kg vélo).
+        </p>
       </div>
 
       {/* ⚡ État de fatigue au moment du snapshot */}
