@@ -339,6 +339,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     await updateSnapshot(editingSnapshot.id, {
       date: formData.date,
       cycle_tag: formData.cycle_tag || null,
+      sport_main: formData.sport_main || null,
       confidence: parseNum(formData.confidence),
       fc_max: parseNum(formData.fc_max) ? Math.round(parseNum(formData.fc_max)!) : null,
       vma: parseNum(formData.vma),
