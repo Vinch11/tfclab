@@ -84,6 +84,7 @@ import {
 } from "@/lib/performanceRanges";
 import { PerformanceRangeDisplay } from "@/components/PerformanceRangeDisplay";
 import { resolveBadgeSport } from "@/lib/sportMainDeduction";
+import { VLamaxProfileScale } from "@/components/VLamaxProfileScale";
 
 // =============================================
 // HELPERS
