@@ -104,15 +104,15 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
     };
   }
 
-  // D) Unknown - Aucune donnée exploitable
+  // D) Unknown - Aucune donnée exploitable (politique projet : pas de neutre artificiel)
   return {
-    tte_min: 45,
+    tte_min: 0,
     source: "unknown",
     confidence: 0.2,
     label: "— (données manquantes)",
     target,
     status: "warning",
-    status_message: "Aucune donnée TTE disponible"
+    status_message: "Aucune donnée TTE disponible (ni mesurée, ni TSS 7j, ni FTP)"
   };
 }
 
