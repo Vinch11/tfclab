@@ -60,6 +60,8 @@ interface VLamaxV2DisplayCardProps {
   v2Result?: VLamaxV2Result;
   /** Niveau d'ambition pour les cibles */
   ambition?: AmbitionLevel;
+  /** Sport principal (cap | bike | tri) pour offset des cibles VLamax */
+  sport?: string;
 }
 
 export function VLamaxV2DisplayCard({
