@@ -1489,6 +1489,16 @@ const Index = () => {
               />
             ) : null,
           },
+          {
+            id: "vlamax-profile-scale",
+            render: () => currentAthlete ? (
+              <VLamaxProfileScale
+                vlamax={alignedVlamaxEffectif.value}
+                objectif={currentAthlete.goal || null}
+                sportMain={(effectiveCloudSnapshot as any)?.sport_main ?? null}
+              />
+            ) : null,
+          },
         ];
 
         return (
