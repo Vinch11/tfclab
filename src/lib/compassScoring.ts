@@ -423,9 +423,10 @@ export function computeProfilMetaboliqueWithAge(
   vlamaxEffectif: VLamaxEffectif,
   objectif: string,
   ambition?: AmbitionLevel,
-  athleteAge?: number | null
+  athleteAge?: number | null,
+  sport?: string | null
 ): CompassAxisScore {
-  const targets = getTargets(objectif, ambition, athleteAge);
+  const targets = getTargets(objectif, ambition, athleteAge, sport);
   const vlamaxValue = vlamaxEffectif.value;
   
   if (vlamaxEffectif.source === "unknown" || vlamaxValue === null) {
