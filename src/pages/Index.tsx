@@ -745,17 +745,12 @@ const Index = () => {
     return { dashDiagnostic: diagnostic, dashPrescription: prescription };
   }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif]);
 
-  // ✅ VLamax & TTE alignés sur le diagnostic unifié (fallback legacy si pas de diagnostic)
-  const alignedVlamaxEffectif = useMemo(() => {
-    if (dashDiagnostic) {
-      return {
-        value: dashDiagnostic.effectifs.vlamax.value,
-        confidence: dashDiagnostic.effectifs.vlamax.confidence,
-        source: dashDiagnostic.effectifs.vlamax.source,
-        label: `VLamax (${dashDiagnostic.effectifs.vlamax.source})`,
-      } as VLamaxEffectif;
-    }
-    return vlamaxEffectif;
+  // ✅ VLamax & TTE alignés sur le diagnostic unifié.
+  // Avec vlamaxEffectifPrecomputed injecté plus haut, la valeur retournée par
+  // dashDiagnostic.effectifs.vlamax est strictement IDENTIQUE à vlamaxEffectif.
+  // → cohérence garantie entre Dashboard, Profil, Compass, Strategie, exports.
+  const alignedVlamaxEffectif = useMemo<VLamaxEffectif>(() => {
+    return (dashDiagnostic?.effectifs.vlamax as VLamaxEffectif | undefined) ?? vlamaxEffectif;
   }, [dashDiagnostic, vlamaxEffectif]);
 
   const alignedTteEffectif = useMemo(() => {
