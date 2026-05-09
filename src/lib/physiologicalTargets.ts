@@ -624,25 +624,45 @@ export function getTargetsForObjective(
 }
 
 /**
- * Get VLamax range for an objective (uses ambition level)
+ * Sport-aware VLamax offset.
+ * CAP/Run mobilise moins de masse musculaire que le vélo → VLamax mesurée ~+0.05–0.10 mmol/L/s
+ * pour la même capacité glycolytique. On élargit la fenêtre cible vers le haut quand sport === "cap"/"run".
+ * Plafond physiologique réaliste CAP amateur = 0.80 mmol/L/s.
  */
-export function getVLamaxRange(objectif: string, ambition?: AmbitionLevel): VLamaxTargets {
+const VLAMAX_REALISTIC_MAX_CAP = 0.80;
+function applySportOffset(range: VLamaxTargets, sport?: string): VLamaxTargets {
+  if (!sport) return range;
+  const s = sport.toLowerCase();
+  if (s === "cap" || s === "run" || s === "running") {
+    return {
+      min: +(range.min + 0.05).toFixed(2),
+      max: +Math.min(range.max + 0.07, VLAMAX_REALISTIC_MAX_CAP).toFixed(2),
+      optimal: +(range.optimal + 0.06).toFixed(2),
+    };
+  }
+  return range;
+}
+
+/**
+ * Get VLamax range for an objective (uses ambition level + optional sport offset)
+ */
+export function getVLamaxRange(objectif: string, ambition?: AmbitionLevel, sport?: string): VLamaxTargets {
   const targets = getTargetsForAmbition(objectif, ambition || DEFAULT_AMBITION);
-  return targets.vlamax;
+  return applySportOffset(targets.vlamax, sport);
 }
 
 /**
  * Get VLamax threshold (max value) for triggering "too high" alerts
  */
-export function getVLamaxThreshold(objectif: string, ambition?: AmbitionLevel): number {
-  return getVLamaxRange(objectif, ambition).max;
+export function getVLamaxThreshold(objectif: string, ambition?: AmbitionLevel, sport?: string): number {
+  return getVLamaxRange(objectif, ambition, sport).max;
 }
 
 /**
  * Get VLamax optimal value for an objective
  */
-export function getVLamaxOptimal(objectif: string, ambition?: AmbitionLevel): number {
-  return getVLamaxRange(objectif, ambition).optimal;
+export function getVLamaxOptimal(objectif: string, ambition?: AmbitionLevel, sport?: string): number {
+  return getVLamaxRange(objectif, ambition, sport).optimal;
 }
 
 /**
