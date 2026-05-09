@@ -169,6 +169,8 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
       // Build snapshot updates
       const snapshotUpdates: Record<string, unknown> = {
         protocol_quality: quality,
+        // Force le routage CAP côté moteur VLamax (sinon le dashboard retombe sur l'estimation vélo)
+        sport_main: "run",
       };
       
       // Build test data for calibration
