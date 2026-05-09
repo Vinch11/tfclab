@@ -264,6 +264,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const handleOpen = (isOpen: boolean) => {
     if (isOpen) {
       setDate(snapshot.date);
+      setSportMain(snapshot.sport_main ?? "");
       setFtp(snapshot.ftp != null ? String(snapshot.ftp) : "");
       setPmax5s(snapshot.pmax_5s != null ? String(snapshot.pmax_5s) : "");
       setWeight(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
