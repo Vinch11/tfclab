@@ -122,14 +122,11 @@ export function getContextTargets(
   objectif: string, 
   age?: number | null,
   sport?: string,
-  ambition?: import("@/types/ambitionLevel").AmbitionLevel
+  ambition?: AmbitionLevel
 ): ContextTarget | null {
   // VLamax targets — délègue à la source unique (physiologicalTargets.ts)
   // pour respecter à la fois l'objectif, le niveau d'ambition et le sport (offset CAP).
   if (metricId === "vlamax") {
-    // Import dynamique pour éviter les cycles d'import
-    // (scoreEnvelope est importé par physiologicalTargets indirectement via d'autres fichiers)
-    const { getVLamaxRange, normalizeObjective } = require("@/lib/physiologicalTargets");
     const range = getVLamaxRange(objectif, ambition, sport);
     const normalized = normalizeObjective(objectif);
     return {
