@@ -117,6 +117,7 @@ import { RoadmapStrategique } from "@/components/RoadmapStrategique";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/engines/diagnostic";
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
 import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
+import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
 
 // ✅ Guide interactif de complétion des données
 import { DataCompletionGuide } from "@/components/DataCompletionGuide";
@@ -923,7 +924,9 @@ const Index = () => {
       wprimeKj: wprimeKjForLimiter ?? null,
       objectif: currentAthlete.goal || "IM",
       ambition: currentAmbition,
-      sportFocus: (isRunningOnly ? "run" : (effectiveCloudSnapshot.sport_main === "run" ? "run" : effectiveCloudSnapshot.sport_main === "bike" ? "bike" : "triathlon")) as "bike" | "run" | "triathlon",
+      sportFocus: isRunningOnly
+        ? "run"
+        : resolveCompassSportFocus(effectiveCloudSnapshot, { goal: currentAthlete.goal }, "triathlon"),
       athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
     };
   }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly]);
