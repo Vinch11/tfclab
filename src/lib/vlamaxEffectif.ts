@@ -209,7 +209,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     }
   }
 
-  const sport = snapshotSportToContext(effectiveSnapshot?.sport_main);
+  const sport = snapshotSportToContext(effectiveSnapshot?.sport_main, objectif);
 
   // =============================================
   // A0) SOURCE CAP MESURÉE (vlamax_run — sprint lactate / test CAP terrain)
