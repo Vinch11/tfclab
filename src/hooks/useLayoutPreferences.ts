@@ -396,6 +396,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
       insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);
       insertMissing("vlamax-profile-scale", ["vlamax-targets", "fatmax-tfcl", "coaching-compass"]);
+      insertMissing("vlamax-profile-scale-profil", ["vlamax-v2-calibration-profil", "fatmax-tfcl-profil", "lactate-thresholds-profil"]);
 
       return [...merged, ...missingConfigs];
     }
