@@ -34,6 +34,7 @@ interface SyntheseExecutiveCardProps {
   completude: { score: number; manquants: string[] };
   ambition?: AmbitionLevel;
   athleteAge?: number | null;
+  sportFocus?: "bike" | "run" | "tri" | string | null;
 }
 
 // Map metric names from gapAnalysis to pillar groups
@@ -105,7 +106,7 @@ function computeGlobalScore(pillarScores: (number | null)[]): number {
 
 export function SyntheseExecutiveCard({
   athleteName, objectif, vlamaxEffectif, tteEffectif, limiterResult,
-  ftp, poids, vo2max, completude, ambition = DEFAULT_AMBITION, athleteAge
+  ftp, poids, vo2max, completude, ambition = DEFAULT_AMBITION, athleteAge, sportFocus
 }: SyntheseExecutiveCardProps) {
   const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
   const ftpKgStr = ftpKg !== null ? ftpKg.toFixed(2) : null;
@@ -156,7 +157,7 @@ export function SyntheseExecutiveCard({
   const items: { label: string; value: string; status: MetricStatus; source: string; target: string }[] = [];
   
   if (vlamaxEffectif.value !== null && vlamaxEffectif.source !== "unknown") {
-    const eval_ = evaluateVLamax(vlamaxEffectif.value, objectif, ambition, athleteAge);
+    const eval_ = evaluateVLamax(vlamaxEffectif.value, objectif, ambition, athleteAge, sportFocus);
     items.push({ label: "VLamax", value: `${vlamaxEffectif.value.toFixed(2)} mmol/L/s`, status: eval_.status, source: vlamaxEffectif.source, target: eval_.target });
   }
   

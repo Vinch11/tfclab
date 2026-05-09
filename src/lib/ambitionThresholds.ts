@@ -9,7 +9,7 @@
  */
 
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
-import { getTargetsForAmbition } from "@/lib/physiologicalTargets";
+import { getTargetsForAmbition, getVLamaxRange } from "@/lib/physiologicalTargets";
 import { scoreRelativeToTarget, scoreRelativeToTargetInverse } from "@/lib/coachingCompass";
 import { getPerformanceAgeFactor, getTTEAgeFactor, getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
 
@@ -38,14 +38,17 @@ export function evaluateVLamax(
   objectif: string,
   ambition: AmbitionLevel = DEFAULT_AMBITION,
   _athleteAge?: number | null, // ignored — VLamax has no age adjustment
+  sport?: string | null,
 ): MetricEvaluation {
-  const targets = getTargetsForAmbition(objectif, ambition);
-  const optimal = targets.vlamax.optimal;
+  const targets = getVLamaxRange(objectif, ambition, sport ?? undefined);
+  const optimal = targets.optimal;
 
-  if (value === null) return { status: "neutral", target: `≤ ${optimal.toFixed(2)}`, targetValue: optimal, score: 0 };
+  const targetLabel = `≤ ${optimal.toFixed(2)} (${targets.min.toFixed(2)}–${targets.max.toFixed(2)})`;
+
+  if (value === null) return { status: "neutral", target: targetLabel, targetValue: optimal, score: 0 };
 
   const score = scoreRelativeToTargetInverse(value, optimal);
-  return { status: statusFromScore(score), target: `≤ ${optimal.toFixed(2)}`, targetValue: optimal, score };
+  return { status: statusFromScore(score), target: targetLabel, targetValue: optimal, score };
 }
 
 /**
