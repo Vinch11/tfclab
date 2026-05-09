@@ -211,6 +211,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [open, setOpen] = useState(false);
 
   const [date, setDate] = useState(snapshot.date);
+  const [sportMain, setSportMain] = useState<string>(snapshot.sport_main ?? "");
   const [ftp, setFtp] = useState(snapshot.ftp != null ? String(snapshot.ftp) : "");
   const [pmax5s, setPmax5s] = useState(snapshot.pmax_5s != null ? String(snapshot.pmax_5s) : "");
   const [weight, setWeight] = useState(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
