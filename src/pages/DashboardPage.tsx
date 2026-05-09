@@ -83,7 +83,7 @@ import {
   type PerformanceRangeContext 
 } from "@/lib/performanceRanges";
 import { PerformanceRangeDisplay } from "@/components/PerformanceRangeDisplay";
-import { resolveBadgeSport, resolveCompassSportFocus } from "@/lib/sportMainDeduction";
+import { resolveBadgeSport } from "@/lib/sportMainDeduction";
 
 // =============================================
 // HELPERS
