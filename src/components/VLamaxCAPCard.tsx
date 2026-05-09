@@ -21,6 +21,9 @@ import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDis
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
 import { useRunningProfileCloud } from "@/hooks/useRunningProfileCloud";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { getAthleteAmbition } from "@/types/ambitionLevel";
+import { getVLamaxRange } from "@/lib/physiologicalTargets";
 import { 
   RUNNING_RACE_LABELS,
   type RunningRaceType 
@@ -59,6 +62,7 @@ export function VLamaxCAPCard({
   className,
 }: VLamaxCAPCardProps) {
   const { raceType, targets } = useRunningFocusMode();
+  const { currentAthlete } = useAthletes();
   const { 
     liveCalibration, 
     latestSnapshot, 
@@ -95,8 +99,13 @@ export function VLamaxCAPCard({
     return null;
   }
   
-  const optimal = targets.vlamax.optimal;
-  const max = targets.vlamax.max;
+  // Cibles unifiées par objectif + ambition (CAP) — remplace les valeurs statiques par race type
+  const ambitionLvl = getAthleteAmbition(currentAthlete);
+  const unifiedRange = currentAthlete?.objectif
+    ? getVLamaxRange(currentAthlete.objectif, ambitionLvl, "cap")
+    : null;
+  const optimal = unifiedRange?.optimal ?? targets.vlamax.optimal;
+  const max = unifiedRange?.max ?? targets.vlamax.max;
   
   // Statut selon les cibles (basé sur valeur calibrée)
   const getStatus = (): { label: string; color: string; icon: string } => {

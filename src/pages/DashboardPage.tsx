@@ -682,6 +682,8 @@ export default function DashboardPage() {
         vo2max={snapshot.vo2max ?? undefined}
         sex={currentAthlete.sexe === "F" ? "F" : "H"}
         age={athleteAge ?? undefined}
+        ambition={ambition}
+        sport={sportForVlamaxBadge ?? undefined}
       />
 
       {/* PILIER 2: TTE Effectif */}

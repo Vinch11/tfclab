@@ -95,6 +95,8 @@ export interface VLamaxUnifiedCardProps {
   sex?: "H" | "F";
   staffMode?: boolean;
   ambition?: AmbitionLevel;
+  /** Sport principal (cap | bike | tri) pour offset des cibles VLamax */
+  sport?: string;
   
   // Bike-specific
   ftp?: number | null;
@@ -154,6 +156,7 @@ export function VLamaxUnifiedCard({
   sex = "H",
   staffMode = false,
   ambition = DEFAULT_AMBITION,
+  sport,
   ftp,
   v2Result,
   bikeInput,
@@ -215,7 +218,9 @@ export function VLamaxUnifiedCard({
   
   // Calibration display
   const normalizedObj = normalizeObjective(objectif as ObjectifPrincipal);
-  const targets = getVLamaxRange(normalizedObj, ambition);
+  // Sport résolu pour les cibles VLamax (run → cap pour offset CAP)
+  const sportForTargets = sport === "run" ? "cap" : sport;
+  const targets = getVLamaxRange(normalizedObj, ambition, sportForTargets);
   const ambitionDef = getAmbitionDefinition(ambition);
   
   return (

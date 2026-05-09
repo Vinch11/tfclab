@@ -60,6 +60,8 @@ interface VLamaxV2DisplayCardProps {
   v2Result?: VLamaxV2Result;
   /** Niveau d'ambition pour les cibles */
   ambition?: AmbitionLevel;
+  /** Sport principal (cap | bike | tri) pour offset des cibles VLamax */
+  sport?: string;
 }
 
 export function VLamaxV2DisplayCard({
@@ -73,6 +75,7 @@ export function VLamaxV2DisplayCard({
   staffMode = false,
   v2Result,
   ambition = DEFAULT_AMBITION,
+  sport,
 }: VLamaxV2DisplayCardProps) {
   // Valeur manquante ou invalide
   if (!Number.isFinite(vlamax) || vlamax <= 0) {
@@ -275,6 +278,7 @@ export function VLamaxV2DisplayCard({
           vlamax={vlamax} 
           objectif={objectif} 
           ambition={ambition} 
+          sport={sport}
         />
 
         {/* Interprétation */}
@@ -316,14 +320,16 @@ export function VLamaxV2DisplayCard({
 function VLamaxTargetComparison({ 
   vlamax, 
   objectif, 
-  ambition 
+  ambition,
+  sport,
 }: { 
   vlamax: number; 
   objectif: ObjectifPrincipal; 
   ambition: AmbitionLevel;
+  sport?: string;
 }) {
   const normalizedObj = normalizeObjective(objectif);
-  const targets = getVLamaxRange(normalizedObj, ambition);
+  const targets = getVLamaxRange(normalizedObj, ambition, sport);
   const ambitionDef = getAmbitionDefinition(ambition);
 
   if (!targets) return null;
