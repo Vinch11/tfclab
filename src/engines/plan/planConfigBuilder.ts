@@ -149,9 +149,24 @@ export function buildPlanConfigFromDiagnostic(
   const projections = buildAdaptationProjections(diagnostic);
 
   // ── Charge Récente de Référence (CRR) ────────────────────────────────────
-  const crr = computeCRR({ tss7d: diagnostic._rawInput.tss7d ?? null });
-  const chargeScore = computeChargeScore(crr, diagnostic.objectif);
+  // Hiérarchie: NOLIO > SNAPSHOT(tss7d) > MANUAL(coach trainingLevel) > UNKNOWN
   const crrTargets = getCRRTargets(diagnostic.objectif);
+  let manualEstimate: number | null = null;
+  if (formConfig.trainingLevel && (diagnostic._rawInput.tss7d ?? null) === null) {
+    // Estimation conservatrice basée sur la cible objectif
+    const { chargeMinimale: mn, chargeOptimale: opt, chargeMaximale: mx } = crrTargets;
+    switch (formConfig.trainingLevel) {
+      case "untrained":      manualEstimate = Math.round(mn * 0.30); break;
+      case "light":          manualEstimate = Math.round(mn * 0.70); break;
+      case "trained":        manualEstimate = Math.round((mn + opt) / 2); break;
+      case "highly_trained": manualEstimate = Math.round((opt + mx) / 2); break;
+    }
+  }
+  const crr = computeCRR({
+    tss7d: diagnostic._rawInput.tss7d ?? null,
+    manualOverride: manualEstimate,
+  });
+  const chargeScore = computeChargeScore(crr, diagnostic.objectif);
   const recentLoad = {
     tss7d: crr.value,
     source: crr.source,
