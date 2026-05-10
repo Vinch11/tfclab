@@ -204,6 +204,7 @@ export default function AITrainingPlanPage() {
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
   const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
+  const [trainingLevel, setTrainingLevel] = useState<string>("auto");
   const [constraints, setConstraints] = useState("");
 
   // Multi-objective state
@@ -236,6 +237,7 @@ export default function AITrainingPlanPage() {
       if (savedState.constraints) setConstraints(savedState.constraints);
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
+      if (savedState.trainingLevel) setTrainingLevel(savedState.trainingLevel);
       if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
     } else {
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
@@ -265,10 +267,11 @@ export default function AITrainingPlanPage() {
       constraints,
       maxSessionsPerDay,
       strengthSessionsPerWeek,
+      trainingLevel,
       raceGoals,
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, raceGoals]);
+  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -468,10 +471,11 @@ export default function AITrainingPlanPage() {
       strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
       ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
       constraints: constraints || undefined,
+      trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
     };
 
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
-  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder]);
+  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel]);
 
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!rawParsedPlan) return null;
@@ -1269,6 +1273,26 @@ export default function AITrainingPlanPage() {
                     </Select>
                   </div>
                 )}
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    Niveau d'entraînement actuel
+                    <span className="text-[10px] text-muted-foreground">(charge récente estimée)</span>
+                  </Label>
+                  <Select value={trainingLevel} onValueChange={setTrainingLevel}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">🤖 Auto (TSS 7j si disponible)</SelectItem>
+                      <SelectItem value="untrained">🛌 Pas du tout entraîné (reprise)</SelectItem>
+                      <SelectItem value="light">🚶 Un peu entraîné (1-3 séances/sem)</SelectItem>
+                      <SelectItem value="trained">🏃 Bien entraîné (régulier)</SelectItem>
+                      <SelectItem value="highly_trained">🔥 Très chargé (en pic de forme)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground">
+                    Utilisé uniquement si le TSS 7j n'est pas renseigné dans le snapshot. Aide l'IA à calibrer la progression initiale.
+                  </p>
+                </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
