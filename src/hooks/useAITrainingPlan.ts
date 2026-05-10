@@ -84,6 +84,19 @@ export interface PlanConfig {
    *  - "active-tempo" : récup à 70% CP (haut Z2, type over-under)
    */
   recoveryStrategy?: "passive" | "active-light" | "active-tempo";
+  /**
+   * Charge récente de référence (CRR) — TSS 7j contextualisé vs cible objectif.
+   * Permet à l'IA de calibrer la progression de volume sans surcharger
+   * un athlète déjà chargé ou sous-stimuler un athlète frais.
+   */
+  recentLoad?: {
+    tss7d: number | null;
+    source: "NOLIO" | "SNAPSHOT" | "MANUAL" | "UNKNOWN";
+    status: "low" | "optimal" | "high" | "overload" | "unknown";
+    label: string;
+    recommendation: string;
+    target: { min: number; opt: number; max: number };
+  };
   _athleteSex?: string | null;
 }
 

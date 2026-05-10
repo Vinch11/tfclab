@@ -14,6 +14,7 @@ import type { AthleteDiagnostic } from "@/engines/diagnostic";
 import type { PlanConfig, PlanAthleteData, RaceGoal, AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
 import { computeAdaptationPrediction, type AdaptationPredictorInput } from "@/lib/v2/adaptationPredictor";
+import { computeCRR, computeChargeScore, getCRRTargets } from "@/lib/chargeRecenteReference";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATHLETE DATA EXTRACTION
@@ -143,6 +144,23 @@ export function buildPlanConfigFromDiagnostic(
   // ── Adaptation Projections ────────────────────────────────────────────────
   const projections = buildAdaptationProjections(diagnostic);
 
+  // ── Charge Récente de Référence (CRR) ────────────────────────────────────
+  const crr = computeCRR({ tss7d: diagnostic._rawInput.tss7d ?? null });
+  const chargeScore = computeChargeScore(crr, diagnostic.objectif);
+  const crrTargets = getCRRTargets(diagnostic.objectif);
+  const recentLoad = {
+    tss7d: crr.value,
+    source: crr.source,
+    status: chargeScore.status,
+    label: crr.label,
+    recommendation: chargeScore.recommendation,
+    target: {
+      min: crrTargets.chargeMinimale,
+      opt: crrTargets.chargeOptimale,
+      max: crrTargets.chargeMaximale,
+    },
+  };
+
   return {
     objective: formConfig.objective,
     raceName: formConfig.raceName,
@@ -160,6 +178,7 @@ export function buildPlanConfigFromDiagnostic(
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     adaptationProjections: projections.length > 0 ? projections : undefined,
+    recentLoad,
     _athleteSex: diagnostic._rawInput.sex ?? null,
   };
 }
