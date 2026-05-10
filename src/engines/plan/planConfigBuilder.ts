@@ -81,6 +81,8 @@ const METRIC_TO_LIMITER_MAP: Record<string, string> = {
 // FORM CONFIG — Ce que la page fournit
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export type CoachTrainingLevel = "untrained" | "light" | "trained" | "highly_trained";
+
 export interface PlanFormConfig {
   objective: string;        // Label (e.g. "Ironman 70.3")
   raceName?: string;
@@ -94,6 +96,8 @@ export interface PlanFormConfig {
   strengthSessionsPerWeek?: number;
   ambition?: string;        // Label (e.g. "Age Group")
   constraints?: string;
+  /** Évaluation rapide du niveau d'entraînement actuel — utilisé comme fallback CRR si TSS 7j absent */
+  trainingLevel?: CoachTrainingLevel;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
