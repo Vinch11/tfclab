@@ -144,6 +144,23 @@ export function buildPlanConfigFromDiagnostic(
   // ── Adaptation Projections ────────────────────────────────────────────────
   const projections = buildAdaptationProjections(diagnostic);
 
+  // ── Charge Récente de Référence (CRR) ────────────────────────────────────
+  const crr = computeCRR({ tss7d: diagnostic._rawInput.tss7d ?? null });
+  const chargeScore = computeChargeScore(crr, diagnostic.objectif);
+  const crrTargets = getCRRTargets(diagnostic.objectif);
+  const recentLoad = {
+    tss7d: crr.value,
+    source: crr.source,
+    status: chargeScore.status,
+    label: crr.label,
+    recommendation: chargeScore.recommendation,
+    target: {
+      min: crrTargets.chargeMinimale,
+      opt: crrTargets.chargeOptimale,
+      max: crrTargets.chargeMaximale,
+    },
+  };
+
   return {
     objective: formConfig.objective,
     raceName: formConfig.raceName,
