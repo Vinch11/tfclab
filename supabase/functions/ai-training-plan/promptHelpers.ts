@@ -606,6 +606,33 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push(sportRatios);
   }
 
+  // === PISTE 2 : CAPS DE DURÉE PROGRESSIFS (dérivés du catalogue réel) ===
+  // Empêche l'IA de prescrire des séances irréalistes (ex: 4h vélo en S1 pour finisher)
+  // ou trop courtes en pic (ex: 1h30 LR en S10 pour elite Ironman).
+  // Les bornes viennent du catalogue TFCL™ validé — pas de chiffres arbitraires.
+  if (catalogDurationStats && Object.keys(catalogDurationStats).length > 0) {
+    const ambKeyDur = normalizeAmbKey(config?.ambition || "");
+    // Ramp factor S1-S2 : finisher démarre plus prudemment, elite peut taper plus haut tôt
+    const startFactor = ambKeyDur === "finisher" ? 0.75 : ambKeyDur === "elite" ? 0.95 : 0.85;
+    const midFactor   = ambKeyDur === "finisher" ? 0.90 : 1.00;
+    lines.push(`\n### ⏱️ CAPS DE DURÉE PROGRESSIFS PAR SÉANCE (dérivés du catalogue, NON-NÉGOCIABLES)`);
+    lines.push(`Chaque séance individuelle DOIT respecter ces bornes selon la phase du plan.`);
+    lines.push(`Objectif : éviter sur-prescription précoce (blessure) et sous-stimulation tardive (sous-performance).\n`);
+    lines.push(`| Sport | S1-S2 (max/séance) | S3-mi-plan (max) | Pic/Race-Specific (max) | Médiane catalogue |`);
+    lines.push(`|-------|--------------------|------------------|-------------------------|-------------------|`);
+    for (const [sport, st] of Object.entries(catalogDurationStats)) {
+      const start = Math.round(st.medianDur * startFactor / 5) * 5;
+      const mid   = Math.round(((st.medianDur + st.maxDur) / 2) * midFactor / 5) * 5;
+      const peak  = st.maxDur;
+      lines.push(`| ${sport} | ${start} min | ${mid} min | ${peak} min | ${st.medianDur} min |`);
+    }
+    lines.push(`\n⚠️ Règles d'application :`);
+    lines.push(`- **NE PAS dépasser** le cap S1-S2 sur les 2 premières semaines, même pour une séance d'endurance.`);
+    lines.push(`- **NE PAS descendre sous 60% du cap pic** sur les semaines de pic/race-specific (sinon stimulus insuffisant).`);
+    lines.push(`- Le **taper** (2 dernières semaines) peut redescendre librement (-30 à -50% du pic).`);
+    lines.push(`- Si une séance du catalogue dépasse ces caps, tu peux la prescrire mais en tronquant à la borne (ex: "réduire à ${ambKeyDur === "finisher" ? "75%" : "85%"} pour S1").`);
+  }
+
   if (config.constraints) lines.push(`- **Contraintes :** ${config.constraints}`);
 
   // === CALENDAR MAPPING: inject exact dates for each week so the AI can anchor races precisely ===
