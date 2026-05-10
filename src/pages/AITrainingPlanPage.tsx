@@ -1274,6 +1274,26 @@ export default function AITrainingPlanPage() {
                   </div>
                 )}
 
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    Niveau d'entraînement actuel
+                    <span className="text-[10px] text-muted-foreground">(charge récente estimée)</span>
+                  </Label>
+                  <Select value={trainingLevel} onValueChange={setTrainingLevel}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">🤖 Auto (TSS 7j si disponible)</SelectItem>
+                      <SelectItem value="untrained">🛌 Pas du tout entraîné (reprise)</SelectItem>
+                      <SelectItem value="light">🚶 Un peu entraîné (1-3 séances/sem)</SelectItem>
+                      <SelectItem value="trained">🏃 Bien entraîné (régulier)</SelectItem>
+                      <SelectItem value="highly_trained">🔥 Très chargé (en pic de forme)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground">
+                    Utilisé uniquement si le TSS 7j n'est pas renseigné dans le snapshot. Aide l'IA à calibrer la progression initiale.
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1">
