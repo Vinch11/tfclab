@@ -204,6 +204,7 @@ export default function AITrainingPlanPage() {
   const [ambition, setAmbition] = useState<string>(DEFAULT_AMBITION);
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
   const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
+  const [trainingLevel, setTrainingLevel] = useState<string>("auto");
   const [constraints, setConstraints] = useState("");
 
   // Multi-objective state
