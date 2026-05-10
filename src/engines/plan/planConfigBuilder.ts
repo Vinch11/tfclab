@@ -178,6 +178,7 @@ export function buildPlanConfigFromDiagnostic(
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     adaptationProjections: projections.length > 0 ? projections : undefined,
+    recentLoad,
     _athleteSex: diagnostic._rawInput.sex ?? null,
   };
 }
