@@ -42,6 +42,26 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
   if (config?.maxSessionsPerDay) lines.push(`📊 Max/jour: ${config.maxSessionsPerDay}`);
 
+  // Charge récente — contexte d'absorption (CTL/ATL proxy via TSS 7j)
+  if (config?.recentLoad) {
+    const rl = config.recentLoad;
+    const statusEmoji =
+      rl.status === "overload" ? "🔴" :
+      rl.status === "high" ? "🟠" :
+      rl.status === "optimal" ? "🟢" :
+      rl.status === "low" ? "🔵" : "⚪";
+    lines.push(`\n${statusEmoji} CHARGE RÉCENTE (TSS 7j) : ${rl.tss7d ?? "N/R"} — statut "${rl.status}" — cible objectif : min ${rl.target.min} / opt ${rl.target.opt} / max ${rl.target.max}`);
+    if (rl.status === "overload" || rl.status === "high") {
+      lines.push(`  ⚠️ Athlète déjà chargé : NE PAS dépasser +5-7 TSS/sem en S1-S2. Prévoir 1 semaine d'allègement avant montée en charge.`);
+    } else if (rl.status === "low") {
+      lines.push(`  ⚠️ Athlète peu chargé : progression +5-7 TSS/sem MAX. Pas de saut brutal de volume sur S1-S2 pour éviter blessure.`);
+    } else if (rl.status === "unknown") {
+      lines.push(`  ⚠️ Charge inconnue : démarrer prudemment au volume cible MIN, monter de +5-7 TSS/sem.`);
+    } else {
+      lines.push(`  ✅ Charge cohérente avec l'objectif. Progression normale +5-7 TSS/sem possible.`);
+    }
+  }
+
   // FIX C5 (audit): Limiter-aware phase heuristics — adapt durations based on L1 type
   if (totalWeeks && totalWeeks > 10) {
     const tw = totalWeeks;
