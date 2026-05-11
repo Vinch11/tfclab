@@ -34,6 +34,9 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
   const [versions, setVersions] = useState<PlanVersion[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [savingRename, setSavingRename] = useState(false);
 
   useEffect(() => {
     if (!currentAthlete) return;
@@ -61,6 +64,37 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
       toast.success("Version supprimée");
     }
     setDeleting(null);
+  };
+
+  const startEdit = (v: PlanVersion, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(v.id);
+    setEditValue(v.plan_json?._label || "");
+  };
+
+  const cancelEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(null);
+    setEditValue("");
+  };
+
+  const saveRename = async (v: PlanVersion, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSavingRename(true);
+    const newJson = { ...(v.plan_json || {}), _label: editValue.trim() || null };
+    const { error } = await supabase
+      .from("plan_versions")
+      .update({ plan_json: newJson })
+      .eq("id", v.id);
+    if (error) {
+      toast.error("Erreur renommage");
+    } else {
+      setVersions(prev => prev.map(p => p.id === v.id ? { ...p, plan_json: newJson } : p));
+      toast.success("Version renommée");
+      setEditingId(null);
+      setEditValue("");
+    }
+    setSavingRename(false);
   };
 
   if (!currentAthlete) return null;
