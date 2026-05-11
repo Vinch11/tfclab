@@ -123,37 +123,98 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
             Aucune sauvegarde pour le moment. Les plans que vous sauvegarderez apparaîtront ici.
           </p>
         ) : (
-          versions.map(v => (
-            <button
-              key={v.id}
-              onClick={() => onLoadVersion(v)}
-              className="w-full text-left flex items-center justify-between rounded-lg border border-border bg-card hover:bg-accent/50 hover:border-primary/40 transition-colors p-3"
-            >
-              <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                <FileText className="h-4 w-4 text-primary shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {format(parseISO(v.created_at), "d MMM yyyy 'à' HH:mm", { locale: fr })}
-                  </p>
-                  <div className="flex gap-1.5 mt-0.5 flex-wrap">
-                    {v.objective && <Badge variant="secondary" className="text-[9px]">{v.objective}</Badge>}
-                    {v.weeks_count && <Badge variant="secondary" className="text-[9px]">{v.weeks_count} sem.</Badge>}
-                    {v.sessions_count && <Badge variant="secondary" className="text-[9px]">{v.sessions_count} séances</Badge>}
+          versions.map(v => {
+            const label = v.plan_json?._label as string | undefined;
+            const dateStr = format(parseISO(v.created_at), "d MMM yyyy 'à' HH:mm", { locale: fr });
+            const isEditing = editingId === v.id;
+            return (
+              <div
+                key={v.id}
+                onClick={() => !isEditing && onLoadVersion(v)}
+                className={`w-full flex items-center justify-between rounded-lg border border-border bg-card transition-colors p-3 ${isEditing ? "" : "cursor-pointer hover:bg-accent/50 hover:border-primary/40"}`}
+              >
+                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                  <FileText className="h-4 w-4 text-primary shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    {isEditing ? (
+                      <Input
+                        autoFocus
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveRename(v, e as any);
+                          if (e.key === "Escape") cancelEdit(e as any);
+                        }}
+                        placeholder="Nom de la version…"
+                        className="h-7 text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium truncate">
+                        {label || dateStr}
+                      </p>
+                    )}
+                    <div className="flex gap-1.5 mt-0.5 flex-wrap items-center">
+                      {label && !isEditing && (
+                        <span className="text-[10px] text-muted-foreground">{dateStr}</span>
+                      )}
+                      {v.objective && <Badge variant="secondary" className="text-[9px]">{v.objective}</Badge>}
+                      {v.weeks_count && <Badge variant="secondary" className="text-[9px]">{v.weeks_count} sem.</Badge>}
+                      {v.sessions_count && <Badge variant="secondary" className="text-[9px]">{v.sessions_count} séances</Badge>}
+                    </div>
                   </div>
                 </div>
+                <div className="flex gap-0.5 shrink-0">
+                  {isEditing ? (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => saveRename(v, e)}
+                        disabled={savingRename}
+                        title="Valider"
+                      >
+                        {savingRename ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5 text-primary" />}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={cancelEdit}
+                        disabled={savingRename}
+                        title="Annuler"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => startEdit(v, e)}
+                        title="Renommer"
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => handleDelete(v.id, e)}
+                        disabled={deleting === v.id}
+                        title="Supprimer cette version"
+                      >
+                        {deleting === v.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5 text-destructive" />}
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0"
-                onClick={(e) => handleDelete(v.id, e)}
-                disabled={deleting === v.id}
-                title="Supprimer cette version"
-              >
-                {deleting === v.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5 text-destructive" />}
-              </Button>
-            </button>
-          ))
+            );
+          })
         )}
       </CardContent>
     </Card>
