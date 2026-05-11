@@ -696,12 +696,32 @@ export default function AITrainingPlanPage() {
 
   const handleLoadVersion = useCallback((version: { plan_json: any }) => {
     const pj = version.plan_json || {};
-    if (pj._markdown) {
-      setResponse(pj._markdown);
-    } else {
-      toast.error("Cette version n'a pas de contenu Markdown sauvegardé");
+    let md: string | null = pj._markdown || null;
+    // Legacy fallback: reconstruct a minimal markdown from the saved parsed plan
+    if (!md && Array.isArray(pj.weeks) && pj.weeks.length > 0) {
+      const lines: string[] = [];
+      if (pj.title) lines.push(`# ${pj.title}`, "");
+      for (const w of pj.weeks) {
+        const theme = w.theme ? ` — ${w.theme}` : "";
+        lines.push(`### Semaine ${w.weekNumber}${theme}`, "");
+        if (w.coachNotes) lines.push(`**Consignes coach :** ${w.coachNotes}`, "");
+        lines.push("| Jour | Sport | Séance | Détails |", "|---|---|---|---|");
+        for (const s of (w.sessions || [])) {
+          const day = s.dayName || "";
+          const sport = (s.sport || "").replace(/\|/g, "/");
+          const title = (s.title || "").replace(/\|/g, "/");
+          const details = (s.details || "").replace(/\|/g, "/").replace(/\n/g, " ");
+          lines.push(`| ${day} | ${sport} | ${title} | ${details} |`);
+        }
+        lines.push("");
+      }
+      md = lines.join("\n");
+    }
+    if (!md) {
+      toast.error("Cette version n'a pas de contenu exploitable");
       return;
     }
+    setResponse(md);
     // planStartDate is derived from raceDate — restoring raceDate is sufficient
     if (pj._objective) setObjective(pj._objective);
     if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
