@@ -701,9 +701,7 @@ export default function AITrainingPlanPage() {
       toast.error("Cette version n'a pas de contenu Markdown sauvegardé");
       return;
     }
-    if (pj._planStartDate) {
-      try { setPlanStartDate(parseISO(pj._planStartDate)); } catch {}
-    }
+    // planStartDate is derived from raceDate — restoring raceDate is sufficient
     if (pj._objective) setObjective(pj._objective);
     if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
     if (pj._raceDate !== undefined) setRaceDate(pj._raceDate || "");
