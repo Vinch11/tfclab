@@ -1691,8 +1691,8 @@ export default function AITrainingPlanPage() {
           </div>
         </div>
 
-        {/* Saved Plan Calendar */}
-        <SavedPlanCalendar />
+        {/* Plan history (saved versions) */}
+        <PlanHistoryCard refreshKey={historyRefreshKey} onLoadVersion={handleLoadVersion} />
       </div>
     </AppLayout>
   );
