@@ -42,7 +42,7 @@ import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
-import { SavedPlanCalendar } from "@/components/SavedPlanCalendar";
+import { PlanHistoryCard } from "@/components/PlanHistoryCard";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RefreshCw } from "lucide-react";
@@ -136,6 +136,7 @@ export default function AITrainingPlanPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
@@ -660,101 +661,55 @@ export default function AITrainingPlanPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
-      let mapped = mapSessionsToDates(parsedPlan.weeks, planStartDate);
+      const sessionsCount = (parsedPlan.weeks || [])
+        .flatMap(w => w.sessions || [])
+        .filter(s => !s.isRest).length;
 
-      // ── Post-processing: correct race dates to match actual race dates ──
-      // The AI sometimes places races in the wrong week despite anchoring instructions
-      const allGoals = [
-        { objective, raceName, raceDate, priority: "A" as const },
-        ...raceGoals,
-      ].filter(g => g.raceDate);
-
-      for (const goal of allGoals) {
-        if (!goal.raceDate) continue;
-        const targetDate = parseISO(goal.raceDate);
-        const targetDateStr = format(targetDate, "yyyy-MM-dd");
-        const goalLabel = (goal.raceName || goal.objective || "").toLowerCase();
-        
-        // Find sessions that look like this race but are on the wrong date
-        for (const entry of mapped) {
-          const title = (entry.session.title || "").toLowerCase();
-          const isRaceSession = 
-            /\bcourse\b|\brace\b|\bcompétition\b/.test(title) ||
-            (goalLabel && goalLabel.length >= 4 && title.includes(goalLabel.slice(0, 8)));
-          
-          if (isRaceSession) {
-            const entryDateStr = format(entry.date, "yyyy-MM-dd");
-            // If this race session is within ±7 days of the target but not on the exact date, fix it
-            const daysDiff = Math.abs(differenceInCalendarDays(entry.date, targetDate));
-            if (daysDiff > 0 && daysDiff <= 7) {
-              console.log(`[TFCL] Race date correction: "${entry.session.title}" moved from ${entryDateStr} to ${targetDateStr}`);
-              entry.date = targetDate;
-            }
-          }
-        }
-      }
-
-      const phaseMap: Record<string, string> = {
-        base: "BASE",
-        build: "PHASE2",
-        peak: "PHASE3",
-        taper: "PHASE4",
-        race: "RACE",
-        off: "OFF",
-      };
-      const rows = mapped
-        .filter(m => !m.session.isRest)
-        .map(({ session, date }) => ({
-          athlete_id: currentAthlete.id,
-          coach_id: user.id,
-          date: format(date, "yyyy-MM-dd"),
-          phase: session.phase ? (phaseMap[session.phase.toLowerCase()] || "BASE") : null,
-          custom_workout_title: `${session.sport} — ${session.title}`,
-          custom_workout_description: session.details || null,
-          status: "PLANNED",
-          notes: session.weekTheme ? `Semaine ${session.weekNumber}: ${session.weekTheme}` : null,
-          workout_id: extractCatalogId(session.title, session.details),
-        }));
-
-      if (rows.length === 0) {
-        toast.warning("Aucune séance à sauvegarder");
-        setIsSaving(false);
-        return;
-      }
-
-      // Delete existing plan entries for this athlete in the date range to avoid duplicates
-      const dates = rows.map(r => r.date);
-      const minDate = dates.reduce((a, b) => a < b ? a : b);
-      const maxDate = dates.reduce((a, b) => a > b ? a : b);
-      await supabase
-        .from("training_plan")
-        .delete()
-        .eq("athlete_id", currentAthlete.id)
-        .gte("date", minDate)
-        .lte("date", maxDate);
-
-      const { error } = await supabase.from("training_plan").insert(rows);
-      if (error) throw error;
-
-      // Archive this plan version for history
-      await supabase.from("plan_versions").insert({
+      // Archive this plan version (history only — no write to training_plan)
+      const { error } = await supabase.from("plan_versions").insert({
         athlete_id: currentAthlete.id,
         coach_id: user.id,
-        plan_json: parsedPlan as any,
-        objective: currentAthlete.goal || null,
+        plan_json: {
+          ...(parsedPlan as any),
+          _markdown: response,
+          _planStartDate: format(planStartDate, "yyyy-MM-dd"),
+          _objective: objective,
+          _raceName: raceName,
+          _raceDate: raceDate,
+        } as any,
+        objective: objective || currentAthlete.goal || null,
         weeks_count: parsedPlan.weeks?.length || null,
-        sessions_count: rows.length,
+        sessions_count: sessionsCount,
       });
+      if (error) throw error;
 
       setIsSaved(true);
-      toast.success(`${rows.length} séances sauvegardées au planning !`);
+      setHistoryRefreshKey(k => k + 1);
+      toast.success("Plan sauvegardé dans l'historique !");
     } catch (err: any) {
       console.error("Save plan error:", err);
       toast.error("Erreur lors de la sauvegarde : " + (err.message || "Inconnu"));
     } finally {
       setIsSaving(false);
     }
-  }, [parsedPlan, currentAthlete, planStartDate]);
+  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate]);
+
+  const handleLoadVersion = useCallback((version: { plan_json: any }) => {
+    const pj = version.plan_json || {};
+    if (pj._markdown) {
+      setResponse(pj._markdown);
+    } else {
+      toast.error("Cette version n'a pas de contenu Markdown sauvegardé");
+      return;
+    }
+    // planStartDate is derived from raceDate — restoring raceDate is sufficient
+    if (pj._objective) setObjective(pj._objective);
+    if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
+    if (pj._raceDate !== undefined) setRaceDate(pj._raceDate || "");
+    setResultView("interactive");
+    setIsSaved(true);
+    toast.success("Version chargée");
+  }, [setResponse]);
 
   // Compute the current week number relative to planStartDate
   const currentWeekNumber = useMemo(() => {
@@ -1736,8 +1691,8 @@ export default function AITrainingPlanPage() {
           </div>
         </div>
 
-        {/* Saved Plan Calendar */}
-        <SavedPlanCalendar />
+        {/* Plan history (saved versions) */}
+        <PlanHistoryCard refreshKey={historyRefreshKey} onLoadVersion={handleLoadVersion} />
       </div>
     </AppLayout>
   );
