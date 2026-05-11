@@ -136,6 +136,7 @@ export default function AITrainingPlanPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
