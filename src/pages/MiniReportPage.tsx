@@ -10,12 +10,14 @@ import { Separator } from "@/components/ui/separator";
 import { FileDown, Sparkles, ArrowLeft, Info, Calculator, ArrowRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   computeMiniReport,
   parseTimeToSec,
   type MiniReportInput,
   type ReferenceRaceType,
   type Sex,
+  type VocabularyMode,
 } from "@/lib/miniReport/computeMiniProfile";
 import { buildMiniReportHTML } from "@/lib/miniReport/buildMiniReportHTML";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
@@ -36,6 +38,7 @@ export default function MiniReportPage() {
   const [sprintMode, setSprintMode] = useState<"direct" | "100m" | "150m">("direct");
   const [time100m, setTime100m] = useState<string>("");
   const [time150m, setTime150m] = useState<string>("");
+  const [vocabularyMode, setVocabularyMode] = useState<VocabularyMode>("expert");
 
   const computedSprintFromTime = useMemo(() => {
     if (sprintMode === "100m") {
@@ -87,6 +90,7 @@ export default function MiniReportPage() {
       referenceTimeSec: refType !== "none" && refTime ? parseTimeToSec(refTime) : null,
       referenceRaceType: refType !== "none" ? refType as ReferenceRaceType : null,
       athleteName: athleteName.trim() || null,
+      vocabularyMode,
     };
 
     const result = computeMiniReport(input);
@@ -321,6 +325,25 @@ export default function MiniReportPage() {
             </div>
 
             <Separator />
+
+            <div className="flex items-start gap-3 p-3 rounded-md border bg-muted/30">
+              <Switch
+                id="vocab-toggle"
+                checked={vocabularyMode === "beginner"}
+                onCheckedChange={(checked) => setVocabularyMode(checked ? "beginner" : "expert")}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <Label htmlFor="vocab-toggle" className="cursor-pointer text-sm font-medium">
+                  Mode débutant — vocabulaire ultra-pédagogique
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {vocabularyMode === "beginner"
+                    ? "✓ Le rapport utilisera des analogies simples (« moteur diesel », « brûlure des jambes »), un mini-lexique et zéro jargon technique."
+                    : "Active ce mode si tu débutes ou si tu veux partager le rapport avec un athlète qui n'est pas familier avec les termes physiologiques (VLamax, MLSS, glycolyse…)."}
+                </p>
+              </div>
+            </div>
 
             <Button
               onClick={handleGenerate}

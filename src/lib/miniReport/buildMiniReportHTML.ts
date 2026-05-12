@@ -39,6 +39,42 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
   const { input, vlamax, profile, profileLabel, ceMlPerKgPerKm, mlssPct,
     paceThresholdSecPerKm, paceObservedSecPerKm, vmaPaceSecPerKm,
     zones, profileNarrative, trainingAdvice, caveats } = result;
+  const isBeginner = input.vocabularyMode === "beginner";
+
+  // Labels adaptés au mode
+  const L = isBeginner ? {
+    sectionProfile: "1. Ton profil de coureur",
+    profileLabel: "Type de coureur",
+    metricVlamax: "Indice de vitesse-puissance",
+    metricVlamaxSub: "(VLamax — capacité à fabriquer de l'énergie rapide)",
+    metricCE: "Énergie consommée par km",
+    metricCESub: "(coût énergétique — plus c'est bas, mieux c'est)",
+    metricMlss: "Allure de seuil",
+    metricMlssSub: "% de ta VMA — l'allure que tu peux tenir ~1h",
+    metricVmaPace: "Allure VMA (vitesse max aérobie)",
+    metricThresholdPace: "Allure de seuil (≈ 1h d'effort)",
+    sectionAdvice: "2. Tes pistes de travail (vulgarisées)",
+    sectionZones: "3. Tes zones d'entraînement (Z1–Z7)",
+    zoneTableObjective: "À quoi ça sert",
+    caveatsTitle: "À garder en tête",
+    glossary: true,
+  } : {
+    sectionProfile: "1. Profil métabolique",
+    profileLabel: "Profil identifié",
+    metricVlamax: "VLamax estimée",
+    metricVlamaxSub: "mmol/L/s — capacité glycolytique max",
+    metricCE: "Coût énergétique",
+    metricCESub: "mL O₂/kg/km (estimé)",
+    metricMlss: "Seuil (MLSS)",
+    metricMlssSub: "de la VMA",
+    metricVmaPace: "Allure VMA (100%)",
+    metricThresholdPace: "Allure au seuil",
+    sectionAdvice: "2. Pistes de travail",
+    sectionZones: "3. Zones d'entraînement (Z1–Z7)",
+    zoneTableObjective: "Objectif principal",
+    caveatsTitle: "⚠ Limites de l'estimation",
+    glossary: false,
+  };
 
   const profileColor = PROFILE_COLORS[profile] || "#3498DB";
   const dateStr = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
@@ -180,40 +216,53 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
   <div class="cell"><div class="k">Sprint 15s</div><div class="v">${input.sprint15sM} m</div></div>
 </div>
 
-<h2>1. Profil métabolique</h2>
+<h2>${L.sectionProfile}</h2>
+
+${L.glossary ? `
+<div style="background:#EBF5FB;border-left:4px solid #2980B9;padding:12px 14px;border-radius:6px;margin:8px 0 14px 0;font-size:12px;color:#1B4F72;">
+  <p style="margin:0 0 6px 0;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;font-size:11px;">📘 Mini-lexique pour comprendre ton rapport</p>
+  <ul style="margin:0;padding-left:18px;line-height:1.55;">
+    <li><strong>VMA</strong> : ta vitesse maximale aérobie — la vitesse à laquelle tu utilises le maximum d'oxygène (≈ vitesse soutenable ~6 min à fond).</li>
+    <li><strong>Seuil</strong> : l'allure que tu peux tenir environ 1h sans exploser (≈ allure semi-marathon rapide).</li>
+    <li><strong>Acide lactique</strong> : ce qui fait "brûler" les jambes en effort intense — ton corps en produit, et il sait aussi le recycler.</li>
+    <li><strong>Endurance fondamentale (Z2)</strong> : allure facile où tu peux discuter — c'est la base qui construit ton "moteur".</li>
+    <li><strong>Profil métabolique</strong> : la "personnalité physiologique" de ton corps (plutôt explosif, équilibré ou endurant).</li>
+  </ul>
+</div>
+` : ""}
 
 <div class="profile-card">
-  <div class="label">Profil identifié</div>
+  <div class="label">${L.profileLabel}</div>
   <div class="value">${escapeHtml(profileLabel)}</div>
   <p>${renderInline(profileNarrative)}</p>
 </div>
 
 <div class="metrics">
   <div class="metric">
-    <div class="k">VLamax estimée</div>
+    <div class="k">${L.metricVlamax}</div>
     <div class="v">${vlamax.toFixed(2)}</div>
-    <div class="sub">mmol/L/s — capacité glycolytique max</div>
+    <div class="sub">${L.metricVlamaxSub}</div>
   </div>
   <div class="metric">
-    <div class="k">Coût énergétique</div>
+    <div class="k">${L.metricCE}</div>
     <div class="v">${ceMlPerKgPerKm}</div>
-    <div class="sub">mL O₂/kg/km (estimé)</div>
+    <div class="sub">${L.metricCESub}</div>
   </div>
   <div class="metric">
-    <div class="k">Seuil (MLSS)</div>
+    <div class="k">${L.metricMlss}</div>
     <div class="v">${Math.round(mlssPct * 100)}%</div>
-    <div class="sub">de la VMA</div>
+    <div class="sub">${L.metricMlssSub}</div>
   </div>
 </div>
 
 <div class="metrics">
   <div class="metric">
-    <div class="k">Allure VMA (100%)</div>
+    <div class="k">${L.metricVmaPace}</div>
     <div class="v">${formatPace(vmaPaceSecPerKm)}</div>
     <div class="sub">/km</div>
   </div>
   <div class="metric">
-    <div class="k">Allure au seuil</div>
+    <div class="k">${L.metricThresholdPace}</div>
     <div class="v">${formatPace(paceThresholdSecPerKm)}</div>
     <div class="sub">/km — soutenable ~1h</div>
   </div>
@@ -232,20 +281,20 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
   `}
 </div>
 
-<h2>2. Pistes de travail</h2>
+<h2>${L.sectionAdvice}</h2>
 <ul class="advice">
   ${adviceHtml}
 </ul>
 
-<h2>3. Zones d'entraînement (Z1–Z7)</h2>
+<h2>${L.sectionZones}</h2>
 <table class="zones">
   <thead>
     <tr>
       <th style="text-align:center;">Zone</th>
-      <th>Filière / Description</th>
+      <th>${isBeginner ? "Type d'effort" : "Filière / Description"}</th>
       <th style="text-align:center;">% VMA</th>
       <th style="text-align:center;">Allure (/km)</th>
-      <th>Objectif principal</th>
+      <th>${L.zoneTableObjective}</th>
     </tr>
   </thead>
   <tbody>
@@ -254,7 +303,7 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
 </table>
 
 <div class="caveats">
-  <p>⚠ Limites de l'estimation</p>
+  <p>${L.caveatsTitle}</p>
   <ul>
     ${caveatsHtml}
   </ul>
