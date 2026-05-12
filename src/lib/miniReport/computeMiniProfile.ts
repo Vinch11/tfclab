@@ -52,10 +52,11 @@ export interface TrainingZone {
 
 export interface MiniReportResult {
   // Entrées normalisées
-  input: Required<Omit<MiniReportInput, "referenceTimeSec" | "referenceRaceType" | "athleteName">> & {
+  input: Required<Omit<MiniReportInput, "referenceTimeSec" | "referenceRaceType" | "athleteName" | "vocabularyMode">> & {
     referenceTimeSec: number | null;
     referenceRaceType: ReferenceRaceType | null;
     athleteName: string | null;
+    vocabularyMode: VocabularyMode;
   };
   // Calculs
   vlamax: number;                    // mmol/L/s (estimée)
