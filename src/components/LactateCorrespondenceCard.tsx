@@ -158,18 +158,18 @@ export function LactateCorrespondenceCard({
                   </div>
 
                   {/* Staff table with Why column */}
-                  <div className="rounded-lg border overflow-hidden">
+                  <div className="rounded-lg border overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/30">
-                          <TableHead className="text-xs">Élément</TableHead>
-                          <TableHead className="text-xs">Justification scientifique</TableHead>
+                          <TableHead className="text-xs whitespace-nowrap">Élément</TableHead>
+                          <TableHead className="text-xs whitespace-nowrap">Justification scientifique</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {TFCL_LACTATE_TABLE.map((row) => (
                           <TableRow key={row.element}>
-                            <TableCell className="text-xs font-medium py-2">{row.element}</TableCell>
+                            <TableCell className="text-xs font-medium py-2 whitespace-nowrap">{row.element}</TableCell>
                             <TableCell className="text-xs text-muted-foreground py-2">{row.staffWhy}</TableCell>
                           </TableRow>
                         ))}
