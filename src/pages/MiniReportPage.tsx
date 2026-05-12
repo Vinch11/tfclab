@@ -33,6 +33,23 @@ export default function MiniReportPage() {
   );
   const [refTime, setRefTime] = useState<string>(params.get("refTime") || "");
   const [athleteName, setAthleteName] = useState<string>(params.get("name") || "");
+  const [sprintMode, setSprintMode] = useState<"direct" | "100m" | "150m">("direct");
+  const [time100m, setTime100m] = useState<string>("");
+  const [time150m, setTime150m] = useState<string>("");
+
+  const computedSprintFromTime = useMemo(() => {
+    if (sprintMode === "100m") {
+      const t = parseFloat(time100m);
+      if (!isFinite(t) || t <= 0) return null;
+      return Math.round((100 / t) * 15 * 0.96 * 10) / 10;
+    }
+    if (sprintMode === "150m") {
+      const t = parseFloat(time150m);
+      if (!isFinite(t) || t <= 0) return null;
+      return Math.round((150 / t) * 15 * 0.94 * 10) / 10;
+    }
+    return null;
+  }, [sprintMode, time100m, time150m]);
 
   const validation = useMemo(() => {
     const errs: Record<string, string> = {};
