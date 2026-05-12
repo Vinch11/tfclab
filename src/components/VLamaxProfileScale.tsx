@@ -121,7 +121,7 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain }: VLamaxProfil
               return (
                 <div
                   key={b.key}
-                  className={`${b.color} ${isCurrent ? "opacity-100" : "opacity-60"} transition-opacity flex items-center justify-center text-[10px] font-medium text-white`}
+                  className={`${b.color} ${isCurrent ? "opacity-100" : "opacity-60"} transition-opacity flex items-center justify-center text-[10px] font-medium text-white overflow-hidden`}
                   style={{ width: `${widthPct}%` }}
                   title={`${b.label} (${b.shortLabel})`}
                 >
@@ -141,12 +141,12 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain }: VLamaxProfil
             </div>
           </div>
           {/* Graduations */}
-          <div className="flex justify-between text-[10px] text-muted-foreground pt-3">
-            <span>0,00</span>
-            <span>0,30</span>
-            <span>0,50</span>
-            <span>0,75</span>
-            <span>1,00</span>
+          <div className="flex justify-between text-[10px] text-muted-foreground pt-3 overflow-hidden">
+            <span className="shrink-0">0,00</span>
+            <span className="shrink-0">0,30</span>
+            <span className="shrink-0">0,50</span>
+            <span className="shrink-0">0,75</span>
+            <span className="shrink-0">1,00</span>
           </div>
         </div>
 
