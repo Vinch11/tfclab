@@ -91,20 +91,28 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   // =============================================
   // SOURCE 1: Sprint 15s terrain (P1: poids réduit 0.40 → 0.30)
   // =============================================
+  // CORRECTIF (cf. mini-rapport) : la calibration P4 (N=15) reflète des protocoles
+  // sprint Wingate / cyclistes. Un sprint 15s départ arrêté en course à pied mobilise
+  // massivement la PCr (filière alactique) et l'efficacité neuromusculaire — pas la
+  // glycolyse. On applique donc :
+  //   - facteur d'atténuation course à pied ×0.80 et offset −0.05
+  //   - bornes physio resserrées [0.20 ; 1.00]
+  //   - poids réduit dès qu'un autre signal existe (pace ratio prend le relais)
   if (sprint15sDistance !== null && sprint15sDistance !== undefined && sprint15sDistance > 0) {
-    // P4 — Recalibration N=12 cohorte référence littérature (Mader/Heck/INSCYD/Beneke)
-    // Régression linéaire: VLamax = -0.5066 + 0.01420 · sprint_m
-    // RMSE = 0.073 mmol/L/s (sous tolérance 0.08), bias = 0.000
-    // Bornes physio: clamp [0.20, 0.95] via clampCap
-    let estimated: number;
-    if (sprint15sDistance <= 50) estimated = 0.20;
-    else if (sprint15sDistance >= 140) estimated = 0.95;
-    else estimated = -0.5066 + 0.01420 * sprint15sDistance;
-    
-    const sprintWeight = hasMeasured ? 0.15 : 0.30;
+    let rawP4: number;
+    if (sprint15sDistance <= 50) rawP4 = 0.20;
+    else if (sprint15sDistance >= 140) rawP4 = 0.95;
+    else rawP4 = -0.5066 + 0.01420 * sprint15sDistance;
+
+    // Atténuation course à pied (alignée mini-rapport)
+    const estimated = clamp(rawP4 * 0.80 - 0.05, 0.20, 1.00);
+
+    // Poids : on baisse quand pace ratio disponible (signal physiologique plus robuste)
+    const hasPaceRatio = vma != null && vma > 0 && paceThresholdSecPerKm != null && paceThresholdSecPerKm > 0;
+    const sprintWeight = hasMeasured ? 0.10 : (hasPaceRatio ? 0.20 : 0.30);
     estimates.push({ value: estimated, weight: sprintWeight, source: "Sprint 15s" });
     sources.push("Sprint 15s");
-    details += `Sprint 15s: ${sprint15sDistance}m → ${estimated.toFixed(3)}. `;
+    details += `Sprint 15s: ${sprint15sDistance}m → ${estimated.toFixed(3)} (P4 ajustée course). `;
   }
 
   // =============================================
