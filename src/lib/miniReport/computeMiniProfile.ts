@@ -332,7 +332,7 @@ function buildTrainingAdvice(profile: ProfileType, mode: VocabularyMode = "exper
       case "equilibre":
         return [
           "**Adapte selon ton objectif** : pour un semi/marathon → privilégie les sorties longues et tempo ; pour un 10k ou un trail court → ajoute des séances de vitesse.",
-          "**Règle simple "80/20"** : 80% du temps en allure facile (tu peux discuter), 20% en allure dure. Ne te trompe pas dans le dosage.",
+          "**Règle simple « 80/20 »** : 80% du temps en allure facile (tu peux discuter), 20% en allure dure. Ne te trompe pas dans le dosage.",
           "**Teste-toi régulièrement** (un 30 min en course officielle, ou un semi de prépa) pour bien caler tes allures d'entraînement — ton profil polyvalent réagit bien à un suivi précis.",
           "**Garde quelques sprints courts** (1 fois par semaine, en fin de sortie facile) pour entretenir ta vitesse maximale et ta foulée.",
           "Suis une logique de progression classique : d'abord du foncier (endurance), puis du seuil, puis de la vitesse, puis du repos avant la course.",
