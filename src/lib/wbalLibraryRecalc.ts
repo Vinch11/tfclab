@@ -62,9 +62,11 @@ function recoveryPowerForStrategy(
 ): number {
   switch (strategy) {
     case "active-tempo":
-      return Math.round(cp * 0.7);
+      // Aligné avec resolveRecoveryPower (criticalPowerModel.ts)
+      return Math.round(cp * 0.50);
     case "active-light":
-      return Math.round(cp * 0.5);
+      // Aligné avec resolveRecoveryPower (criticalPowerModel.ts)
+      return Math.round(cp * 0.30);
     case "passive":
     default:
       return 0;

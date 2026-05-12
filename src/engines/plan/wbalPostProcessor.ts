@@ -34,8 +34,12 @@ import {
 //
 // IMPORTANT : utilisé en mode global (g) pour matcher TOUTES les occurrences
 // dans une même session (pyramides, blocs multiples, sets composés).
+// IMPORTANT : utilisé en mode global (g) pour matcher TOUTES les occurrences
+// dans une même session (pyramides, blocs multiples, sets composés).
+// Le 8ème groupe capture les secondes additionnelles dans un format composé
+// "2min30" → reps=N, mins=2, sec=30 → 150s.
 const INTERVAL_PATTERN_SOURCE =
-  "(\\d{1,2})\\s*[x×]\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)\\s*[@à]?\\s*(\\d{2,3})\\s*%\\s*(ftp|cp)[^.]*?(?:r\\s*[=:]?|repos|rest)\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)?(\\d{1,2})?";
+  "(\\d{1,2})\\s*[x×]\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)\\s*[@à]?\\s*(\\d{2,3})\\s*%\\s*(ftp|cp)[^.]*?(?:r\\s*[=:]?|repos|rest)\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)?\\s*(\\d{1,2})?";
 
 const INTERVAL_PATTERN = new RegExp(INTERVAL_PATTERN_SOURCE, "i");
 const INTERVAL_PATTERN_GLOBAL = new RegExp(INTERVAL_PATTERN_SOURCE, "gi");
@@ -67,12 +71,17 @@ function parseMatch(m: RegExpMatchArray | RegExpExecArray): DetectedInterval | n
   const ref = m[5].toUpperCase() as "FTP" | "CP";
   const restValue = parseInt(m[6], 10);
   const restUnit = m[7] || "min";
+  // m[8] : secondes additionnelles dans un format composé "2min30"
+  const restExtraSec = m[8] ? parseInt(m[8], 10) : 0;
 
   if (reps < 2 || reps > 30) return null;
   if (pct < 70 || pct > 200) return null;
 
   const durationSec = toSeconds(durValue, durUnit);
-  const originalRestSec = toSeconds(restValue, restUnit);
+  const baseRestSec = toSeconds(restValue, restUnit);
+  // N'ajoute les secondes que si l'unité principale est "min" (sinon "30s 30" n'a pas de sens)
+  const isMinUnit = restUnit.toLowerCase().startsWith("min") || restUnit.toLowerCase() === "m";
+  const originalRestSec = baseRestSec + (isMinUnit ? restExtraSec : 0);
 
   if (durationSec < 10 || durationSec > 1800) return null;
   if (originalRestSec < 10 || originalRestSec > 1800) return null;
