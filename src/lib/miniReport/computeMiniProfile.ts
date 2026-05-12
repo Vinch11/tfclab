@@ -405,23 +405,39 @@ export function computeMiniReport(input: MiniReportInput): MiniReportResult {
 
   const paceThresholdSecPerKm = Math.round(vmaPaceSecPerKm / mlssPctEffective);
 
+  const mode: VocabularyMode = input.vocabularyMode ?? "expert";
   const zones = buildZones(input.vmaKmh);
-  const profileNarrative = buildProfileNarrative(profile, vlamax, input.sex, input.age);
-  const trainingAdvice = buildTrainingAdvice(profile);
+  const profileNarrative = buildProfileNarrative(profile, vlamax, input.sex, input.age, mode);
+  const trainingAdvice = buildTrainingAdvice(profile, mode);
 
-  const caveats: string[] = [
-    "Estimation à partir de 4 à 5 paramètres terrain — précision indicative (±5 % sur les allures, ±0.10 mmol/L/s sur la VLamax).",
-    "Pour une analyse fine, un test labo lactate (4-5 paliers) ou un test VLamax dédié est recommandé.",
-  ];
+  const caveats: string[] = mode === "beginner"
+    ? [
+        "Ce rapport est une **estimation rapide** à partir de quelques chiffres terrain. C'est une boussole, pas une mesure de précision.",
+        "Pour un bilan vraiment précis, le mieux reste un **test en laboratoire** (mesure de lactate sur tapis ou vélo) ou un test VLamax dédié.",
+      ]
+    : [
+        "Estimation à partir de 4 à 5 paramètres terrain — précision indicative (±5 % sur les allures, ±0.10 mmol/L/s sur la VLamax).",
+        "Pour une analyse fine, un test labo lactate (4-5 paliers) ou un test VLamax dédié est recommandé.",
+      ];
   if (mlssAnchorSource === "race_anchor") {
     caveats.push(
-      `Allure au seuil ancrée sur ton temps ${input.referenceRaceType === "semi" ? "semi-marathon" : "20 km"} (ratio race→MLSS = 0.90) — plus fiable que l'estimation modèle.`
+      mode === "beginner"
+        ? `Bonne nouvelle : ton allure au seuil a été calée sur ton temps ${input.referenceRaceType === "semi" ? "semi-marathon" : "20 km"} — c'est plus fiable qu'une simple estimation.`
+        : `Allure au seuil ancrée sur ton temps ${input.referenceRaceType === "semi" ? "semi-marathon" : "20 km"} (ratio race→MLSS = 0.90) — plus fiable que l'estimation modèle.`
     );
   }
   if (vlamaxConfidence === "low") {
-    caveats.push("Sprint 15s hors plage validée (70-95 m) — la VLamax estimée est à interpréter avec prudence.");
+    caveats.push(
+      mode === "beginner"
+        ? "Ton sprint 15s est hors de la plage habituelle (entre 70 et 95 m) — l'estimation de ton profil est à prendre avec prudence."
+        : "Sprint 15s hors plage validée (70-95 m) — la VLamax estimée est à interpréter avec prudence."
+    );
   } else if (vlamaxConfidence === "moderate") {
-    caveats.push("Sprint 15s en marge de la plage validée — confiance modérée sur la VLamax.");
+    caveats.push(
+      mode === "beginner"
+        ? "Ton sprint 15s est un peu en marge de la plage habituelle — confiance moyenne sur l'estimation du profil."
+        : "Sprint 15s en marge de la plage validée — confiance modérée sur la VLamax."
+    );
   }
   if (paceObservedSecPerKm && mlssAnchorSource === "model_C") {
     const deltaSec = paceObservedSecPerKm - paceThresholdSecPerKm;
@@ -442,6 +458,7 @@ export function computeMiniReport(input: MiniReportInput): MiniReportResult {
       referenceTimeSec: input.referenceTimeSec ?? null,
       referenceRaceType: input.referenceRaceType ?? null,
       athleteName: input.athleteName ?? null,
+      vocabularyMode: mode,
     },
     vlamax,
     vlamaxConfidence,
