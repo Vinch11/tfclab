@@ -39,6 +39,8 @@ export default function MiniReportPage() {
   const [time100m, setTime100m] = useState<string>("");
   const [time150m, setTime150m] = useState<string>("");
   const [vocabularyMode, setVocabularyMode] = useState<VocabularyMode>("expert");
+
+  const computedSprintFromTime = useMemo(() => {
     if (sprintMode === "100m") {
       const t = parseFloat(time100m);
       if (!isFinite(t) || t <= 0) return null;
