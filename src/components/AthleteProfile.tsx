@@ -149,7 +149,23 @@ export function AthleteProfile({
             <p className="text-sm text-muted-foreground">Données physiologiques</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* Mini Rapport — pré-rempli depuis le snapshot */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const params = new URLSearchParams();
+              if (athlete.nom) params.set("name", athlete.nom);
+              if (athlete.age) params.set("age", String(athlete.age));
+              if (athlete.sexe) params.set("sex", athlete.sexe);
+              if (snapshot?.vma) params.set("vma", String(snapshot.vma));
+              window.open(`/mini-rapport?${params.toString()}`, "_blank");
+            }}
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Mini Rapport
+          </Button>
           {/* ✅ Bouton unique pour gérer les snapshots (Cloud) */}
           {onOpenSnapshots && (
             <Button variant="outline" size="sm" onClick={onOpenSnapshots}>
