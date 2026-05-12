@@ -76,24 +76,35 @@ export interface MiniReportResult {
 //    VLamax = −0.5066 + 0.01420 · sprint_m
 //    Bornes physiologiques [0.20 ; 1.20] mmol/L/s
 // =============================================
+/**
+ * Calibration P4 (N=15) : VLamax = −0.5066 + 0.01420·sprint_m
+ * Spécificité course à pied : un sprint 15 s départ arrêté mobilise massivement
+ * la PCr (filière alactique) — la corrélation sprint→VLamax est plus faible
+ * qu'en sprint cycliste/Wingate. On applique :
+ *   - un facteur correctif global de 0.80 (atténuation course à pied)
+ *   - un offset négatif pour ramener la moyenne d'un coureur d'endurance vers ~0.40
+ *   - bornes physiologiques resserrées [0.20 ; 1.00]
+ */
 export function estimateVLamaxFromSprint(sprint15sM: number): number {
-  const raw = -0.5066 + 0.01420 * sprint15sM;
-  return Math.max(0.20, Math.min(1.20, Math.round(raw * 100) / 100));
+  const rawP4 = -0.5066 + 0.01420 * sprint15sM;
+  const runAdjusted = rawP4 * 0.80 - 0.05;
+  return Math.max(0.20, Math.min(1.00, Math.round(runAdjusted * 100) / 100));
 }
 
 function vlamaxConfidenceFromSprint(sprint15sM: number): "good" | "moderate" | "low" {
-  // Plage de calibration : 60-110m couverts par la cohorte N=15
-  if (sprint15sM >= 65 && sprint15sM <= 110) return "good";
-  if (sprint15sM >= 50 && sprint15sM <= 130) return "moderate";
+  // Plage validée resserrée : 70-95 m couvre le cœur de la cohorte runners.
+  if (sprint15sM >= 70 && sprint15sM <= 95) return "good";
+  if (sprint15sM >= 55 && sprint15sM <= 115) return "moderate";
   return "low";
 }
 
 // =============================================
 // 2. Profil métabolique
 // =============================================
+// Seuils recalibrés pour la course à pied (post-correctif sprint→VLamax)
 export function classifyProfile(vlamax: number): ProfileType {
-  if (vlamax >= 0.55) return "explosif";
-  if (vlamax <= 0.35) return "endurant";
+  if (vlamax >= 0.65) return "explosif";
+  if (vlamax < 0.45) return "endurant";
   return "equilibre";
 }
 
@@ -109,12 +120,14 @@ const PROFILE_LABELS: Record<ProfileType, string> = {
 //    Femmes : +5 mL en moyenne (plus petit pas, foulée plus économe variable)
 //    Vétéran : +10 mL après 45 ans
 // =============================================
+// CE recalé sur runner club/loisir (la version précédente, 210 − 0.6·VMA,
+// reflétait une moyenne élite trop optimiste).
 export function estimateCE(age: number, sex: Sex, vmaKmh: number): number {
-  let ce = 210 - 0.6 * vmaKmh; // proxy : VMA élevée → meilleure économie
+  let ce = 220 - 0.7 * vmaKmh;
   if (sex === "F") ce += 5;
   if (age >= 45) ce += 5;
   if (age >= 60) ce += 5;
-  return Math.round(Math.max(170, Math.min(240, ce)));
+  return Math.round(Math.max(180, Math.min(245, ce)));
 }
 
 // =============================================
