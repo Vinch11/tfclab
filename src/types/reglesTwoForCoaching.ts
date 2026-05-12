@@ -1,5 +1,6 @@
 import { Athlete, getDernierSnapshot, ObjectifType } from "./athlete";
 import { SnapshotNolio, scoreConfiance, estimerTTE } from "./snapshotNolio";
+import { isVlamaxInRange, getVLamaxRange } from "@/lib/physiologicalTargets";
 // Note: calculVLamaxSnapshot is no longer imported here — VLamax is passed as parameter to reglesTwoForCoaching()
 
 export type PrioriteType = "VLAMAX_DOWN" | "VLAMAX_UP" | "TTE_UP" | "FTP_UTIL" | "ENDURANCE_UP" | "VITESSE_UP" | "";
