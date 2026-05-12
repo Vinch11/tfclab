@@ -324,7 +324,7 @@ function buildTrainingAdvice(profile: ProfileType, mode: VocabularyMode = "exper
       case "endurant":
         return [
           "**Continue tes sorties tranquilles** (allure conversationnelle) — c'est ton point fort. Mais ne fais pas QUE ça.",
-          "**Ajoute 1 séance "puissance" par semaine** : 5-6 fois 3 min très rapide (presque tout donné), avec 2 min de footing entre chaque. Ça va développer ton plafond de vitesse.",
+          "**Ajoute 1 séance « puissance » par semaine** : 5-6 fois 3 min très rapide (presque tout donné), avec 2 min de footing entre chaque. Ça va développer ton plafond de vitesse.",
           "**Fais des petits sprints en côte** une fois par semaine : 6 à 8 sprints de 8-12 secondes en montée, avec récupération complète. Ça travaille ta puissance et ta foulée.",
           "**Avant un objectif court** (10 km, cross), ajoute des séances un peu douloureuses : 8-10 fois 1 min à fond, avec 1 min de récup. Ça apprend à ton corps à supporter l'effort intense.",
           "Gainage et exercices de sauts 2 fois par semaine — ça rend ta foulée plus économique.",
