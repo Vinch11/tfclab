@@ -465,22 +465,22 @@ function LactateTabContent({
       </div>
 
       {/* TFCL ↔ Lactate Table */}
-      <div className="rounded-lg border overflow-hidden">
+      <div className="rounded-lg border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead className="text-[10px] font-semibold">Élément TFCL</TableHead>
-              <TableHead className="text-[10px] font-semibold">Correspondance</TableHead>
-              <TableHead className="text-[10px] font-semibold">Source</TableHead>
+              <TableHead className="text-[10px] font-semibold whitespace-nowrap">Élément TFCL</TableHead>
+              <TableHead className="text-[10px] font-semibold whitespace-nowrap">Correspondance</TableHead>
+              <TableHead className="text-[10px] font-semibold whitespace-nowrap">Source</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {TFCL_LACTATE_TABLE.map((row) => (
               <TableRow key={row.element}>
-                <TableCell className="text-xs font-medium py-2">{row.element}</TableCell>
-                <TableCell className="text-xs text-muted-foreground py-2">{row.correspondence}</TableCell>
+                <TableCell className="text-xs font-medium py-2 whitespace-nowrap">{row.element}</TableCell>
+                <TableCell className="text-xs text-muted-foreground py-2 whitespace-nowrap">{row.correspondence}</TableCell>
                 <TableCell className="py-2">
-                  <Badge variant="outline" className="text-[9px] font-normal">
+                  <Badge variant="outline" className="text-[9px] font-normal whitespace-nowrap">
                     {row.dataSource}
                   </Badge>
                 </TableCell>

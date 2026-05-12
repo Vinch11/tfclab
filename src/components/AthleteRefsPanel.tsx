@@ -186,22 +186,22 @@ export function AthleteRefsPanel({
     const isFromSnapshot = source === "snapshot";
 
     return (
-      <div key={field.key} className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label htmlFor={field.profileKey} className="text-sm font-medium">
+      <div key={field.key} className="space-y-1.5 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor={field.profileKey} className="text-sm font-medium truncate">
             {field.label} <span className="text-muted-foreground text-xs">({field.unit})</span>
           </Label>
           <Badge 
             variant="outline" 
-            className={`text-xs ${getSourceBadgeClass(source)}`}
+            className={`text-xs shrink-0 ${getSourceBadgeClass(source)}`}
           >
             {getSourceLabel(source)}
           </Badge>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           {isFromSnapshot && (
-            <div className="flex-1 px-3 py-2 rounded-md bg-success/5 border border-success/20 text-sm font-medium">
+            <div className="flex-1 min-w-0 px-3 py-2 rounded-md bg-success/5 border border-success/20 text-sm font-medium truncate">
               {effectiveValue != null ? effectiveValue.toFixed(field.step === "0.1" ? 1 : 0) : "—"} {field.unit}
             </div>
           )}
@@ -215,13 +215,13 @@ export function AthleteRefsPanel({
             placeholder={field.placeholder}
             value={formValue}
             onChange={(e) => handleChange(field.profileKey, e.target.value)}
-            className={`${isFromSnapshot ? "w-24 text-center" : "flex-1"} bg-secondary/50`}
+            className={`${isFromSnapshot ? "w-24 text-center shrink-0" : "flex-1"} bg-secondary/50 min-w-0`}
             title={isFromSnapshot ? "Valeur profil (snapshot prioritaire)" : undefined}
           />
         </div>
         
         {isFromSnapshot && formValue && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground truncate">
             Profil: {formValue} {field.unit} (snapshot prioritaire)
           </p>
         )}

@@ -112,22 +112,22 @@ export function LactateCorrespondenceCard({
             </div>
 
             {/* Fixed TFCL ↔ Lactate Table */}
-            <div className="rounded-lg border overflow-hidden">
+            <div className="rounded-lg border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/30">
-                    <TableHead className="text-xs font-semibold">Élément TFCL</TableHead>
-                    <TableHead className="text-xs font-semibold">Correspondance lactique</TableHead>
-                    <TableHead className="text-xs font-semibold">Source données</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap">Élément TFCL</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap">Correspondance lactique</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap">Source données</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {TFCL_LACTATE_TABLE.map((row) => (
                     <TableRow key={row.element}>
-                      <TableCell className="text-sm font-medium py-2.5">{row.element}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground py-2.5">{row.correspondence}</TableCell>
+                      <TableCell className="text-sm font-medium py-2.5 whitespace-nowrap">{row.element}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground py-2.5 whitespace-nowrap">{row.correspondence}</TableCell>
                       <TableCell className="py-2.5">
-                        <Badge variant="outline" className="text-[10px] font-normal">
+                        <Badge variant="outline" className="text-[10px] font-normal whitespace-nowrap">
                           {row.dataSource}
                         </Badge>
                       </TableCell>
@@ -158,18 +158,18 @@ export function LactateCorrespondenceCard({
                   </div>
 
                   {/* Staff table with Why column */}
-                  <div className="rounded-lg border overflow-hidden">
+                  <div className="rounded-lg border overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/30">
-                          <TableHead className="text-xs">Élément</TableHead>
-                          <TableHead className="text-xs">Justification scientifique</TableHead>
+                          <TableHead className="text-xs whitespace-nowrap">Élément</TableHead>
+                          <TableHead className="text-xs whitespace-nowrap">Justification scientifique</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {TFCL_LACTATE_TABLE.map((row) => (
                           <TableRow key={row.element}>
-                            <TableCell className="text-xs font-medium py-2">{row.element}</TableCell>
+                            <TableCell className="text-xs font-medium py-2 whitespace-nowrap">{row.element}</TableCell>
                             <TableCell className="text-xs text-muted-foreground py-2">{row.staffWhy}</TableCell>
                           </TableRow>
                         ))}
