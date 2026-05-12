@@ -5,6 +5,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
+import { supabase } from "@/integrations/supabase/client";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
