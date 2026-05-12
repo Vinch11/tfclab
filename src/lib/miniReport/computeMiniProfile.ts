@@ -236,11 +236,46 @@ function buildProfileNarrative(
   profile: ProfileType,
   vlamax: number,
   sex: Sex,
-  age: number
+  age: number,
+  mode: VocabularyMode = "expert"
 ): string {
   const vlamaxStr = vlamax.toFixed(2);
   const ageStr = age >= 45 ? "vétéran" : age >= 35 ? "senior" : "jeune adulte";
   const sexStr = sex === "F" ? "athlète féminine" : "athlète masculin";
+
+  if (mode === "beginner") {
+    switch (profile) {
+      case "explosif":
+        return (
+          `Ton corps est plutôt **type "moteur diesel turbo"** : il sait produire beaucoup d'énergie ` +
+          `très vite (utile pour sprinter, monter une côte, accélérer en fin de course). ` +
+          `En contrepartie, à allure modérée tu fabriques rapidement de **l'acide lactique** ` +
+          `(ce qui brûle les jambes), et ton corps consomme beaucoup d'énergie sur les longues distances. ` +
+          `Concrètement : tu pars vite, mais tu peux "exploser" sur un semi ou un marathon si tu pars trop fort. ` +
+          `Indicateur technique (à titre d'info) : VLamax ≈ ${vlamaxStr} (la moyenne d'un coureur d'endurance est autour de 0.40). ` +
+          `Ton enjeu : **apprendre à courir lentement et longtemps** pour développer ton "moteur d'endurance".`
+        );
+      case "endurant":
+        return (
+          `Ton corps est plutôt **type "diesel longue distance"** : il consomme peu d'énergie à allure ` +
+          `modérée et fabrique très peu d'acide lactique. Tu es naturellement à l'aise sur les longues sorties ` +
+          `(semi, marathon, trail) et tu récupères vite entre tes séances. ` +
+          `En contrepartie, tu manques un peu de "punch" : sur un 5 km ou un 10 km rapide, tu peux te faire ` +
+          `décrocher par des coureurs moins endurants mais plus explosifs. ` +
+          `Indicateur technique (à titre d'info) : VLamax ≈ ${vlamaxStr} (un sprinter dépasse souvent 0.60). ` +
+          `Ton enjeu : **mettre un peu de piquant** dans ton entraînement pour gagner en vitesse.`
+        );
+      case "equilibre":
+        return (
+          `Ton corps est **équilibré** entre vitesse et endurance — tu n'as pas de point faible majeur, ` +
+          `mais pas non plus d'avantage écrasant dans un domaine particulier. ` +
+          `Tu peux performer aussi bien sur du 5 km que sur un semi-marathon, et c'est surtout ` +
+          `**la façon dont tu t'entraînes** qui décidera de tes progrès. ` +
+          `Indicateur technique (à titre d'info) : VLamax ≈ ${vlamaxStr} (zone typique des coureurs polyvalents). ` +
+          `Bon à savoir : tous types d'objectifs te sont accessibles, du moment que ton plan est cohérent avec la cible.`
+        );
+    }
+  }
 
   switch (profile) {
     case "explosif":
@@ -275,7 +310,36 @@ function buildProfileNarrative(
   }
 }
 
-function buildTrainingAdvice(profile: ProfileType): string[] {
+function buildTrainingAdvice(profile: ProfileType, mode: VocabularyMode = "expert"): string[] {
+  if (mode === "beginner") {
+    switch (profile) {
+      case "explosif":
+        return [
+          "**Cours lentement, longtemps** : 60 à 90 min à allure facile (tu dois pouvoir parler en faisant des phrases entières), 2 à 3 fois par semaine. C'est ta priorité n°1 — c'est ce qui va construire ton "moteur d'endurance".",
+          "**Une séance "tempo" par semaine** : 2 × 20 min à allure soutenue mais pas maximale (tu dois pouvoir dire 2-3 mots à la fois). Ça apprend à ton corps à gérer l'acide lactique.",
+          "**Limite les séances très intenses** (sprints, fractionnés courts à fond) : 1 fois toutes les 2 semaines suffit. Tu as déjà la vitesse naturellement — c'est l'endurance qu'il te faut développer.",
+          "**Une sortie longue par semaine** (1h15 à 2h très tranquille). Idéalement le matin avec juste un café — ça apprend à ton corps à brûler les graisses.",
+          "Renforcement musculaire 1 à 2 fois par semaine (gainage, squats, sauts) pour garder ta puissance naturelle.",
+        ];
+      case "endurant":
+        return [
+          "**Continue tes sorties tranquilles** (allure conversationnelle) — c'est ton point fort. Mais ne fais pas QUE ça.",
+          "**Ajoute 1 séance "puissance" par semaine** : 5-6 fois 3 min très rapide (presque tout donné), avec 2 min de footing entre chaque. Ça va développer ton plafond de vitesse.",
+          "**Fais des petits sprints en côte** une fois par semaine : 6 à 8 sprints de 8-12 secondes en montée, avec récupération complète. Ça travaille ta puissance et ta foulée.",
+          "**Avant un objectif court** (10 km, cross), ajoute des séances un peu douloureuses : 8-10 fois 1 min à fond, avec 1 min de récup. Ça apprend à ton corps à supporter l'effort intense.",
+          "Gainage et exercices de sauts 2 fois par semaine — ça rend ta foulée plus économique.",
+        ];
+      case "equilibre":
+        return [
+          "**Adapte selon ton objectif** : pour un semi/marathon → privilégie les sorties longues et tempo ; pour un 10k ou un trail court → ajoute des séances de vitesse.",
+          "**Règle simple "80/20"** : 80% du temps en allure facile (tu peux discuter), 20% en allure dure. Ne te trompe pas dans le dosage.",
+          "**Teste-toi régulièrement** (un 30 min en course officielle, ou un semi de prépa) pour bien caler tes allures d'entraînement — ton profil polyvalent réagit bien à un suivi précis.",
+          "**Garde quelques sprints courts** (1 fois par semaine, en fin de sortie facile) pour entretenir ta vitesse maximale et ta foulée.",
+          "Suis une logique de progression classique : d'abord du foncier (endurance), puis du seuil, puis de la vitesse, puis du repos avant la course.",
+        ];
+    }
+  }
+
   switch (profile) {
     case "explosif":
       return [
