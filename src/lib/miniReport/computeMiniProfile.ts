@@ -23,6 +23,7 @@
 export type ReferenceRaceType = "semi" | "20k";
 export type Sex = "M" | "F";
 export type ProfileType = "explosif" | "equilibre" | "endurant";
+export type VocabularyMode = "expert" | "beginner";
 
 export interface MiniReportInput {
   age: number;
@@ -34,6 +35,8 @@ export interface MiniReportInput {
   referenceRaceType?: ReferenceRaceType | null;
   /** Nom de l'athlète (optionnel — pour le titre du rapport) */
   athleteName?: string | null;
+  /** Mode vocabulaire : 'expert' (défaut, athlète éclairé) ou 'beginner' (ultra-pédagogique) */
+  vocabularyMode?: VocabularyMode;
 }
 
 export interface TrainingZone {
