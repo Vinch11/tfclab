@@ -31,6 +31,7 @@ import WorkoutLibraryBrowserPage from "./pages/WorkoutLibraryBrowserPage";
 import PlanLibraryPage from "./pages/PlanLibraryPage";
 import VLamaxDiagnosticPage from "./pages/VLamaxDiagnosticPage";
 import RunMLSSCohortPage from "./pages/RunMLSSCohortPage";
+import MiniReportPage from "./pages/MiniReportPage";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,9 @@ export default function App() {
                 {/* Auth */}
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/onboarding" element={<AuthGate><OnboardingPage /></AuthGate>} />
+
+                {/* Public — Mini Rapport (formulaire ouvert, sans auth) */}
+                <Route path="/mini-rapport" element={<MiniReportPage />} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 1 — DASHBOARD                      */}
