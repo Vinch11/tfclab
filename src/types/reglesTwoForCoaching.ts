@@ -115,13 +115,8 @@ function getFtpTarget(objectif: ObjectifType): number {
 }
 
 function isVlamaxOk(vlamax: number, objectif: ObjectifType): boolean {
-  switch (objectif) {
-    case "IM": return vlamax >= 0.25 && vlamax <= 0.40;
-    case "703": return vlamax >= 0.25 && vlamax <= 0.45;
-    case "Marathon": return vlamax >= 0.25 && vlamax <= 0.38;
-    case "Semi": return vlamax >= 0.35 && vlamax <= 0.45;
-    default: return vlamax >= 0.25 && vlamax <= 0.45;
-  }
+  // ✅ AUDIT FIX : délégué à la source unique
+  return isVlamaxInRange(vlamax, objectif);
 }
 
 function isTteOk(tte: number, objectif: ObjectifType): boolean {
