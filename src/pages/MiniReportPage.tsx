@@ -326,6 +326,25 @@ export default function MiniReportPage() {
 
             <Separator />
 
+            <div className="flex items-start gap-3 p-3 rounded-md border bg-muted/30">
+              <Switch
+                id="vocab-toggle"
+                checked={vocabularyMode === "beginner"}
+                onCheckedChange={(checked) => setVocabularyMode(checked ? "beginner" : "expert")}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <Label htmlFor="vocab-toggle" className="cursor-pointer text-sm font-medium">
+                  Mode débutant — vocabulaire ultra-pédagogique
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {vocabularyMode === "beginner"
+                    ? "✓ Le rapport utilisera des analogies simples (« moteur diesel », « brûlure des jambes »), un mini-lexique et zéro jargon technique."
+                    : "Active ce mode si tu débutes ou si tu veux partager le rapport avec un athlète qui n'est pas familier avec les termes physiologiques (VLamax, MLSS, glycolyse…)."}
+                </p>
+              </div>
+            </div>
+
             <Button
               onClick={handleGenerate}
               disabled={!isValid}
