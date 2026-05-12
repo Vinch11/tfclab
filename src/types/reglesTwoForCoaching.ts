@@ -37,52 +37,28 @@ export function reglesTwoForCoaching(
   const priorites: PrioriteType[] = [];
   const alertes: string[] = [];
 
-  // Triathlon: VLamax trop élevée pour l'objectif
-  if (
-    (athlete.objectif === "IM" && vlamax > 0.40) ||
-    (athlete.objectif === "703" && vlamax > 0.45)
-  ) {
+  // ✅ AUDIT FIX : utiliser la source unique (objectif × ambition × sport offset)
+  // Ces règles legacy sont conservées pour TwoForCoachingAnalysis — délègue à physiologicalTargets.
+  const vlamaxRange = getVLamaxRange(athlete.objectif);
+
+  if (vlamax > vlamaxRange.max) {
     priorites.push("VLAMAX_DOWN");
-    alertes.push("VLamax trop élevée pour l'objectif");
+    alertes.push(`VLamax (${vlamax.toFixed(2)}) > cible max ${vlamaxRange.max.toFixed(2)} pour ${athlete.objectif}`);
+  } else if (vlamax < vlamaxRange.min) {
+    priorites.push("VLAMAX_UP");
+    alertes.push(`VLamax (${vlamax.toFixed(2)}) < cible min ${vlamaxRange.min.toFixed(2)} pour ${athlete.objectif}`);
   }
 
-  // Marathon: priorité endurance
-  if (athlete.objectif === "Marathon") {
-    if (tte < 60) {
-      priorites.push("ENDURANCE_UP");
-      alertes.push("Endurance insuffisante pour marathon");
-    }
-    if (vlamax > 0.38) {
-      if (!priorites.includes("VLAMAX_DOWN")) {
-        priorites.push("VLAMAX_DOWN");
-      }
-      alertes.push("VLamax trop élevée pour marathon");
-    }
+  // Marathon: priorité endurance (TTE)
+  if (athlete.objectif === "Marathon" && tte < 60) {
+    priorites.push("ENDURANCE_UP");
+    alertes.push("Endurance insuffisante pour marathon");
   }
 
-  // Semi-Marathon: équilibre vitesse/endurance
-  if (athlete.objectif === "Semi") {
-    if (tte < 50) {
-      priorites.push("ENDURANCE_UP");
-      alertes.push("Endurance insuffisante pour semi");
-    }
-    if (vlamax < 0.35) {
-      priorites.push("VITESSE_UP");
-      alertes.push("Capacité glycolytique trop basse pour semi");
-    } else if (vlamax > 0.45) {
-      if (!priorites.includes("VLAMAX_DOWN")) {
-        priorites.push("VLAMAX_DOWN");
-      }
-      alertes.push("VLamax trop élevée pour semi");
-    }
-  }
-
-  // VLamax trop basse (sauf marathon)
-  if (vlamax < 0.28 && athlete.objectif !== "Marathon") {
-    if (!priorites.includes("VLAMAX_UP")) {
-      priorites.push("VLAMAX_UP");
-    }
-    alertes.push("VLamax trop basse (<0.28)");
+  // Semi-Marathon: endurance
+  if (athlete.objectif === "Semi" && tte < 50) {
+    priorites.push("ENDURANCE_UP");
+    alertes.push("Endurance insuffisante pour semi");
   }
 
   // TTE insuffisante (triathlon)
