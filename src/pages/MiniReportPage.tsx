@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { FileDown, Sparkles, ArrowLeft, Info } from "lucide-react";
+import { FileDown, Sparkles, ArrowLeft, Info, Calculator, ArrowRight } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   computeMiniReport,
   parseTimeToSec,
@@ -31,6 +33,23 @@ export default function MiniReportPage() {
   );
   const [refTime, setRefTime] = useState<string>(params.get("refTime") || "");
   const [athleteName, setAthleteName] = useState<string>(params.get("name") || "");
+  const [sprintMode, setSprintMode] = useState<"direct" | "100m" | "150m">("direct");
+  const [time100m, setTime100m] = useState<string>("");
+  const [time150m, setTime150m] = useState<string>("");
+
+  const computedSprintFromTime = useMemo(() => {
+    if (sprintMode === "100m") {
+      const t = parseFloat(time100m);
+      if (!isFinite(t) || t <= 0) return null;
+      return Math.round((100 / t) * 15 * 0.96 * 10) / 10;
+    }
+    if (sprintMode === "150m") {
+      const t = parseFloat(time150m);
+      if (!isFinite(t) || t <= 0) return null;
+      return Math.round((150 / t) * 15 * 0.94 * 10) / 10;
+    }
+    return null;
+  }, [sprintMode, time100m, time150m]);
 
   const validation = useMemo(() => {
     const errs: Record<string, string> = {};
@@ -170,16 +189,102 @@ export default function MiniReportPage() {
                   onChange={(e) => setSprint(e.target.value)}
                   placeholder="ex: 95"
                   className="mt-1"
+                  disabled={sprintMode !== "direct"}
                 />
                 {validation.sprint && <p className="text-xs text-destructive mt-1">{validation.sprint}</p>}
               </div>
+            </div>
+
+            <div className="space-y-2 rounded-md border border-dashed border-primary/30 bg-primary/5 p-3">
+              <div className="flex items-center gap-2">
+                <Calculator className="h-4 w-4 text-primary" />
+                <Label className="text-sm font-medium">Méthode de mesure du sprint</Label>
+                <Badge variant="outline" className="text-xs">Alternative chronométrée</Badge>
+              </div>
+
+              <Tabs value={sprintMode} onValueChange={(v) => setSprintMode(v as "direct" | "100m" | "150m")} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 h-8">
+                  <TabsTrigger value="direct" className="text-xs">Distance 15s</TabsTrigger>
+                  <TabsTrigger value="100m" className="text-xs">Temps 100m</TabsTrigger>
+                  <TabsTrigger value="150m" className="text-xs">Temps 150m</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="direct" className="mt-2">
+                  <p className="text-xs text-muted-foreground">
+                    Saisis directement la distance maximale parcourue en 15 secondes (départ arrêté, à plat).
+                  </p>
+                </TabsContent>
+
+                <TabsContent value="100m" className="mt-2 space-y-2">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label className="text-xs text-muted-foreground">Temps maximal sur 100m (sec)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="ex: 14.5"
+                        value={time100m}
+                        onChange={(e) => setTime100m(e.target.value)}
+                        className="mt-1 h-9"
+                      />
+                    </div>
+                    {computedSprintFromTime !== null && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="h-9"
+                        onClick={() => setSprint(String(Math.round(computedSprintFromTime)))}
+                      >
+                        <ArrowRight className="h-3.5 w-3.5 mr-1" />
+                        Appliquer {computedSprintFromTime} m
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic">
+                    Conversion : (100 / temps) × 15 × 0.96 (correction décélération)
+                  </p>
+                </TabsContent>
+
+                <TabsContent value="150m" className="mt-2 space-y-2">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label className="text-xs text-muted-foreground">Temps maximal sur 150m (sec)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="ex: 22.0"
+                        value={time150m}
+                        onChange={(e) => setTime150m(e.target.value)}
+                        className="mt-1 h-9"
+                      />
+                    </div>
+                    {computedSprintFromTime !== null && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="h-9"
+                        onClick={() => setSprint(String(Math.round(computedSprintFromTime)))}
+                      >
+                        <ArrowRight className="h-3.5 w-3.5 mr-1" />
+                        Appliquer {computedSprintFromTime} m
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic">
+                    Conversion : (150 / temps) × 15 × 0.94 (correction décélération)
+                  </p>
+                </TabsContent>
+              </Tabs>
             </div>
 
             <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground flex gap-2">
               <Info className="w-4 h-4 shrink-0 mt-0.5" />
               <div>
                 <strong>Sprint 15s</strong> : distance maximale parcourue en 15 secondes départ arrêté
-                (course à pied, à plat). Sert à estimer la VLamax (capacité glycolytique).
+                (course à pied, à plat). Comme dans la semaine de tests CAP TFCL, tu peux aussi
+                chronométrer un 100m ou 150m maximal — la distance équivalente sera estimée automatiquement.
               </div>
             </div>
 
