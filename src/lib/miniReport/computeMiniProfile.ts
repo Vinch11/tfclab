@@ -315,8 +315,8 @@ function buildTrainingAdvice(profile: ProfileType, mode: VocabularyMode = "exper
     switch (profile) {
       case "explosif":
         return [
-          "**Cours lentement, longtemps** : 60 à 90 min à allure facile (tu dois pouvoir parler en faisant des phrases entières), 2 à 3 fois par semaine. C'est ta priorité n°1 — c'est ce qui va construire ton "moteur d'endurance".",
-          "**Une séance "tempo" par semaine** : 2 × 20 min à allure soutenue mais pas maximale (tu dois pouvoir dire 2-3 mots à la fois). Ça apprend à ton corps à gérer l'acide lactique.",
+          "**Cours lentement, longtemps** : 60 à 90 min à allure facile (tu dois pouvoir parler en faisant des phrases entières), 2 à 3 fois par semaine. C'est ta priorité n°1 — c'est ce qui va construire ton « moteur d'endurance ».",
+          "**Une séance « tempo » par semaine** : 2 × 20 min à allure soutenue mais pas maximale (tu dois pouvoir dire 2-3 mots à la fois). Ça apprend à ton corps à gérer l'acide lactique.",
           "**Limite les séances très intenses** (sprints, fractionnés courts à fond) : 1 fois toutes les 2 semaines suffit. Tu as déjà la vitesse naturellement — c'est l'endurance qu'il te faut développer.",
           "**Une sortie longue par semaine** (1h15 à 2h très tranquille). Idéalement le matin avec juste un café — ça apprend à ton corps à brûler les graisses.",
           "Renforcement musculaire 1 à 2 fois par semaine (gainage, squats, sauts) pour garder ta puissance naturelle.",
