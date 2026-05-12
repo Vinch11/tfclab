@@ -26,6 +26,7 @@ import { FtpKgTargetsCard } from "@/components/FtpKgTargetsCard";
 import { VmaTargetsCard } from "@/components/VmaTargetsCard";
 import { MetricHelpButton } from "@/components/MetricHelpButton";
 import { calculateAge } from "@/lib/ageAdjustment";
+import { getVLamaxOptimal, getTTETargetByAmbition, getTargetsForAmbition } from "@/lib/physiologicalTargets";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
 
 import { NutritionPredictive } from "@/components/NutritionPredictive";
@@ -789,9 +790,13 @@ const Index = () => {
   // ✅ LORANG STRATEGY — Pour Coaching Compass
   const lorangStrategyForCompass = useMemo<LorangStrategyResult | null>(() => {
     if (!currentAthlete || !effectiveCloudSnapshot) return null;
-    const vlamaxTarget = currentAmbition === "elite" ? 0.35 : currentAmbition === "competitor" ? 0.45 : 0.55;
-    const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : 55;
-    const tteTarget = currentAmbition === "elite" ? 50 : currentAmbition === "competitor" ? 40 : 35;
+    // ✅ AUDIT FIX : cibles VLamax/TTE/VO2max issues de la source unique (objectif × ambition × sport)
+    const sportForTargets = isRunningOnly ? "run" : "bike";
+    const goalForTargets = currentAthlete.goal || "IM";
+    const vlamaxTarget = getVLamaxOptimal(goalForTargets, currentAmbition, sportForTargets);
+    const tteTarget = getTTETargetByAmbition(goalForTargets, currentAmbition);
+    // VO2max target reste indicatif (pas géré par physiologicalTargets) — barème ambition uniquement
+    const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : currentAmbition === "age_group" ? 58 : 52;
     const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
       'IM': 'IM', 'Ironman': 'IM', '70.3': '703', 'Ironman70.3': '703',
       'Marathon': 'marathon', 'Semi': 'semi', '10K': '10k', '5K': '10k',

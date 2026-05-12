@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, type CatalogDurationStats } from "./sportRatioMatrix.ts";
+import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
 
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
 // Builds a compact structured block from planConfig for re-injection in chunks
@@ -682,6 +683,21 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   lines.push("\n#### Glycolytique");
   if (data.vlamax) lines.push(`- VLamax vélo : ${data.vlamax} mmol/L/s`);
   if (data.vlamaxRun) lines.push(`- VLamax course : ${data.vlamaxRun} mmol/L/s`);
+
+  // ✅ AUDIT FIX : injection dynamique de la cible VLamax (objectif × ambition × sport)
+  const sportForVlamax = (data.sport_main || data.sportMain || (config?.objective?.startsWith?.("Marathon") || config?.objective?.startsWith?.("Semi") || config?.objective === "Trail" ? "run" : null)) ?? null;
+  const vlmRange = getVLamaxRangeForPlan(config?.objective, config?.ambition, sportForVlamax);
+  const vlmCurrent = data.vlamaxRun ?? data.vlamax;
+  const vlmStatus = vlmCurrent == null
+    ? "non renseignée"
+    : vlmCurrent < vlmRange.min
+      ? `🔻 SOUS la cible (${(vlmRange.min - vlmCurrent).toFixed(2)} en dessous) → travail de capacité glycolytique requis`
+      : vlmCurrent > vlmRange.max
+        ? `🔺 AU-DESSUS de la cible (+${(vlmCurrent - vlmRange.max).toFixed(2)}) → priorité VLamax↓ (Z2 long, Train Low, SFR, seuil long continu)`
+        : `✅ DANS la cible`;
+  lines.push(`- 🎯 **Cible VLamax pour ${config?.objective || "?"} (${config?.ambition || "age_group"}${sportForVlamax ? `, ${sportForVlamax}` : ""}) :** min ${vlmRange.min.toFixed(2)} / optimal ${vlmRange.optimal.toFixed(2)} / max ${vlmRange.max.toFixed(2)} mmol/L/s`);
+  lines.push(`- État actuel : ${vlmStatus}`);
+  lines.push(`- ⚠️ RÈGLE : N'utilise QUE cette fenêtre cible pour juger « VLamax trop haute / trop basse ». Ignore toute valeur générique du prompt système.`);
 
   lines.push("\n#### Neuromusculaire");
   if (data.pmax5s) lines.push(`- Pmax 5s : ${data.pmax5s}W`);

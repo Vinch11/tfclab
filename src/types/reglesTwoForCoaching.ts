@@ -1,5 +1,6 @@
 import { Athlete, getDernierSnapshot, ObjectifType } from "./athlete";
 import { SnapshotNolio, scoreConfiance, estimerTTE } from "./snapshotNolio";
+import { isVlamaxInRange, getVLamaxRange } from "@/lib/physiologicalTargets";
 // Note: calculVLamaxSnapshot is no longer imported here — VLamax is passed as parameter to reglesTwoForCoaching()
 
 export type PrioriteType = "VLAMAX_DOWN" | "VLAMAX_UP" | "TTE_UP" | "FTP_UTIL" | "ENDURANCE_UP" | "VITESSE_UP" | "";
@@ -36,52 +37,28 @@ export function reglesTwoForCoaching(
   const priorites: PrioriteType[] = [];
   const alertes: string[] = [];
 
-  // Triathlon: VLamax trop élevée pour l'objectif
-  if (
-    (athlete.objectif === "IM" && vlamax > 0.40) ||
-    (athlete.objectif === "703" && vlamax > 0.45)
-  ) {
+  // ✅ AUDIT FIX : utiliser la source unique (objectif × ambition × sport offset)
+  // Ces règles legacy sont conservées pour TwoForCoachingAnalysis — délègue à physiologicalTargets.
+  const vlamaxRange = getVLamaxRange(athlete.objectif);
+
+  if (vlamax > vlamaxRange.max) {
     priorites.push("VLAMAX_DOWN");
-    alertes.push("VLamax trop élevée pour l'objectif");
+    alertes.push(`VLamax (${vlamax.toFixed(2)}) > cible max ${vlamaxRange.max.toFixed(2)} pour ${athlete.objectif}`);
+  } else if (vlamax < vlamaxRange.min) {
+    priorites.push("VLAMAX_UP");
+    alertes.push(`VLamax (${vlamax.toFixed(2)}) < cible min ${vlamaxRange.min.toFixed(2)} pour ${athlete.objectif}`);
   }
 
-  // Marathon: priorité endurance
-  if (athlete.objectif === "Marathon") {
-    if (tte < 60) {
-      priorites.push("ENDURANCE_UP");
-      alertes.push("Endurance insuffisante pour marathon");
-    }
-    if (vlamax > 0.38) {
-      if (!priorites.includes("VLAMAX_DOWN")) {
-        priorites.push("VLAMAX_DOWN");
-      }
-      alertes.push("VLamax trop élevée pour marathon");
-    }
+  // Marathon: priorité endurance (TTE)
+  if (athlete.objectif === "Marathon" && tte < 60) {
+    priorites.push("ENDURANCE_UP");
+    alertes.push("Endurance insuffisante pour marathon");
   }
 
-  // Semi-Marathon: équilibre vitesse/endurance
-  if (athlete.objectif === "Semi") {
-    if (tte < 50) {
-      priorites.push("ENDURANCE_UP");
-      alertes.push("Endurance insuffisante pour semi");
-    }
-    if (vlamax < 0.35) {
-      priorites.push("VITESSE_UP");
-      alertes.push("Capacité glycolytique trop basse pour semi");
-    } else if (vlamax > 0.45) {
-      if (!priorites.includes("VLAMAX_DOWN")) {
-        priorites.push("VLAMAX_DOWN");
-      }
-      alertes.push("VLamax trop élevée pour semi");
-    }
-  }
-
-  // VLamax trop basse (sauf marathon)
-  if (vlamax < 0.28 && athlete.objectif !== "Marathon") {
-    if (!priorites.includes("VLAMAX_UP")) {
-      priorites.push("VLAMAX_UP");
-    }
-    alertes.push("VLamax trop basse (<0.28)");
+  // Semi-Marathon: endurance
+  if (athlete.objectif === "Semi" && tte < 50) {
+    priorites.push("ENDURANCE_UP");
+    alertes.push("Endurance insuffisante pour semi");
   }
 
   // TTE insuffisante (triathlon)
@@ -138,13 +115,8 @@ function getFtpTarget(objectif: ObjectifType): number {
 }
 
 function isVlamaxOk(vlamax: number, objectif: ObjectifType): boolean {
-  switch (objectif) {
-    case "IM": return vlamax >= 0.25 && vlamax <= 0.40;
-    case "703": return vlamax >= 0.25 && vlamax <= 0.45;
-    case "Marathon": return vlamax >= 0.25 && vlamax <= 0.38;
-    case "Semi": return vlamax >= 0.35 && vlamax <= 0.45;
-    default: return vlamax >= 0.25 && vlamax <= 0.45;
-  }
+  // ✅ AUDIT FIX : délégué à la source unique
+  return isVlamaxInRange(vlamax, objectif);
 }
 
 function isTteOk(tte: number, objectif: ObjectifType): boolean {
