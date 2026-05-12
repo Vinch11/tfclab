@@ -4,7 +4,7 @@ import type { CoachingCompassInput } from "@/lib/coachingCompass";
 import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot } from "@/types/athlete";
