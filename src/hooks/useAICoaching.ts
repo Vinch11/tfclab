@@ -5,6 +5,8 @@
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
+import { supabase } from "@/integrations/supabase/client";
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-coaching`;
 
 export interface AICoachingAthleteContext {
@@ -96,11 +98,17 @@ async function streamFromEdge(
   onDelta: (chunk: string) => void,
   onError: (status: number) => void,
 ) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) {
+    onError(401);
+    return;
+  }
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(body),
   });
