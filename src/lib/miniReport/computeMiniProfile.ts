@@ -463,7 +463,21 @@ export function computeMiniReport(input: MiniReportInput): MiniReportResult {
   const mode: VocabularyMode = input.vocabularyMode ?? "expert";
   const zones = buildZones(input.vmaKmh);
   const profileNarrative = buildProfileNarrative(profile, vlamax, input.sex, input.age, mode);
-  const trainingAdvice = buildTrainingAdvice(profile, mode);
+  const paceZ2Min = Math.round(vmaPaceSecPerKm / 0.75); // borne rapide Z2 (à 75% VMA)
+  const paceZ2Max = Math.round(vmaPaceSecPerKm / 0.60); // borne lente Z2 (à 60% VMA)
+  const paceVO2 = Math.round(vmaPaceSecPerKm / 0.95);
+  const trainingAdvice = buildTrainingAdvice(profile, mode, {
+    vlamax,
+    vmaKmh: input.vmaKmh,
+    mlssPct: mlssPctEffective,
+    ce,
+    age: input.age,
+    sex: input.sex,
+    paceZ2Min,
+    paceZ2Max,
+    paceThreshold: paceThresholdSecPerKm,
+    paceVO2,
+  });
 
   const caveats: string[] = mode === "beginner"
     ? [
