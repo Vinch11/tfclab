@@ -225,6 +225,19 @@ const AuthPage = () => {
           </CardContent>
         </Card>
 
+        <div className="mt-4 sm:mt-6 text-center">
+          <Button
+            variant="outline"
+            className="w-full h-11 sm:h-10"
+            onClick={() => navigate("/mini-rapport")}
+          >
+            🎯 Générer mon Mini Rapport Physiologique (gratuit)
+          </Button>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-2 px-4">
+            Profil + zones d'entraînement Z1-Z7 en 2 minutes, sans compte.
+          </p>
+        </div>
+
         <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-4 sm:mt-6 px-4">
           Two For Coaching Lab • Analyse physiologique & décision coaching
         </p>
