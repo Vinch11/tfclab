@@ -157,7 +157,7 @@ export function AthleteProfile({
             onClick={() => {
               const params = new URLSearchParams();
               if (athlete.nom) params.set("name", athlete.nom);
-              if (athlete.age) params.set("age", String(athlete.age));
+              if ((athlete as any).age) params.set("age", String((athlete as any).age));
               if (athlete.sexe) params.set("sex", athlete.sexe);
               if (snapshot?.vma) params.set("vma", String(snapshot.vma));
               window.open(`/mini-rapport?${params.toString()}`, "_blank");
