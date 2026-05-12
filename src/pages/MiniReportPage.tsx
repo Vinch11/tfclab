@@ -90,6 +90,7 @@ export default function MiniReportPage() {
       referenceTimeSec: refType !== "none" && refTime ? parseTimeToSec(refTime) : null,
       referenceRaceType: refType !== "none" ? refType as ReferenceRaceType : null,
       athleteName: athleteName.trim() || null,
+      vocabularyMode,
     };
 
     const result = computeMiniReport(input);
