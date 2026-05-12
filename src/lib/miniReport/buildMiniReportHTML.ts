@@ -39,6 +39,42 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
   const { input, vlamax, profile, profileLabel, ceMlPerKgPerKm, mlssPct,
     paceThresholdSecPerKm, paceObservedSecPerKm, vmaPaceSecPerKm,
     zones, profileNarrative, trainingAdvice, caveats } = result;
+  const isBeginner = input.vocabularyMode === "beginner";
+
+  // Labels adaptés au mode
+  const L = isBeginner ? {
+    sectionProfile: "1. Ton profil de coureur",
+    profileLabel: "Type de coureur",
+    metricVlamax: "Indice de vitesse-puissance",
+    metricVlamaxSub: "(VLamax — capacité à fabriquer de l'énergie rapide)",
+    metricCE: "Énergie consommée par km",
+    metricCESub: "(coût énergétique — plus c'est bas, mieux c'est)",
+    metricMlss: "Allure de seuil",
+    metricMlssSub: "% de ta VMA — l'allure que tu peux tenir ~1h",
+    metricVmaPace: "Allure VMA (vitesse max aérobie)",
+    metricThresholdPace: "Allure de seuil (≈ 1h d'effort)",
+    sectionAdvice: "2. Tes pistes de travail (vulgarisées)",
+    sectionZones: "3. Tes zones d'entraînement (Z1–Z7)",
+    zoneTableObjective: "À quoi ça sert",
+    caveatsTitle: "À garder en tête",
+    glossary: true,
+  } : {
+    sectionProfile: "1. Profil métabolique",
+    profileLabel: "Profil identifié",
+    metricVlamax: "VLamax estimée",
+    metricVlamaxSub: "mmol/L/s — capacité glycolytique max",
+    metricCE: "Coût énergétique",
+    metricCESub: "mL O₂/kg/km (estimé)",
+    metricMlss: "Seuil (MLSS)",
+    metricMlssSub: "de la VMA",
+    metricVmaPace: "Allure VMA (100%)",
+    metricThresholdPace: "Allure au seuil",
+    sectionAdvice: "2. Pistes de travail",
+    sectionZones: "3. Zones d'entraînement (Z1–Z7)",
+    zoneTableObjective: "Objectif principal",
+    caveatsTitle: "⚠ Limites de l'estimation",
+    glossary: false,
+  };
 
   const profileColor = PROFILE_COLORS[profile] || "#3498DB";
   const dateStr = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
