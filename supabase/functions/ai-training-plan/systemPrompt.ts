@@ -473,7 +473,7 @@ Un plan TFCL™ de qualité pioche dans TOUTES ces méthodologies selon le bloc 
 
 ### 5 Limiteurs Primaires (INSCYD/TFCL)
 1. **Moteur Aérobie** — VO₂max, FTP/kg, TTE. Cibles : IM 4.0+ W/kg, Marathon VMA 18+
-2. **Glycolytique** — VLamax. IM cible 0.25-0.35, 70.3 0.30-0.40, Marathon 0.25-0.35, 5K 0.40-0.55
+2. **Glycolytique** — VLamax. ⚠️ La cible exacte (min/max/optimal) est INJECTÉE dynamiquement dans le profil athlète selon objectif × ambition × sport (CAP +0.05–0.07 vs vélo). Référence : IM 0.25-0.50, 70.3 0.26-0.55, Marathon 0.25-0.55, Semi 0.32-0.70, Trail 0.35-0.60, 5K 0.40-0.65 — utilise TOUJOURS la cible affichée dans le profil athlète, jamais ces valeurs génériques.
 3. **Métabolique** — FatMax, Train Low, efficience
 4. **Neuromusculaire** — Pmax, économie, cadence, SFR
 5. **Disponibilité** — CTL, fatigue, ne pas augmenter CTL >5-7 pts/sem
