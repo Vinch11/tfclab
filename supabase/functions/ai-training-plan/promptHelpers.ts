@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, type CatalogDurationStats } from "./sportRatioMatrix.ts";
+import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
 
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
 // Builds a compact structured block from planConfig for re-injection in chunks
