@@ -76,24 +76,35 @@ export interface MiniReportResult {
 //    VLamax = −0.5066 + 0.01420 · sprint_m
 //    Bornes physiologiques [0.20 ; 1.20] mmol/L/s
 // =============================================
+/**
+ * Calibration P4 (N=15) : VLamax = −0.5066 + 0.01420·sprint_m
+ * Spécificité course à pied : un sprint 15 s départ arrêté mobilise massivement
+ * la PCr (filière alactique) — la corrélation sprint→VLamax est plus faible
+ * qu'en sprint cycliste/Wingate. On applique :
+ *   - un facteur correctif global de 0.80 (atténuation course à pied)
+ *   - un offset négatif pour ramener la moyenne d'un coureur d'endurance vers ~0.40
+ *   - bornes physiologiques resserrées [0.20 ; 1.00]
+ */
 export function estimateVLamaxFromSprint(sprint15sM: number): number {
-  const raw = -0.5066 + 0.01420 * sprint15sM;
-  return Math.max(0.20, Math.min(1.20, Math.round(raw * 100) / 100));
+  const rawP4 = -0.5066 + 0.01420 * sprint15sM;
+  const runAdjusted = rawP4 * 0.80 - 0.05;
+  return Math.max(0.20, Math.min(1.00, Math.round(runAdjusted * 100) / 100));
 }
 
 function vlamaxConfidenceFromSprint(sprint15sM: number): "good" | "moderate" | "low" {
-  // Plage de calibration : 60-110m couverts par la cohorte N=15
-  if (sprint15sM >= 65 && sprint15sM <= 110) return "good";
-  if (sprint15sM >= 50 && sprint15sM <= 130) return "moderate";
+  // Plage validée resserrée : 70-95 m couvre le cœur de la cohorte runners.
+  if (sprint15sM >= 70 && sprint15sM <= 95) return "good";
+  if (sprint15sM >= 55 && sprint15sM <= 115) return "moderate";
   return "low";
 }
 
 // =============================================
 // 2. Profil métabolique
 // =============================================
+// Seuils recalibrés pour la course à pied (post-correctif sprint→VLamax)
 export function classifyProfile(vlamax: number): ProfileType {
-  if (vlamax >= 0.55) return "explosif";
-  if (vlamax <= 0.35) return "endurant";
+  if (vlamax >= 0.65) return "explosif";
+  if (vlamax < 0.45) return "endurant";
   return "equilibre";
 }
 
@@ -109,12 +120,14 @@ const PROFILE_LABELS: Record<ProfileType, string> = {
 //    Femmes : +5 mL en moyenne (plus petit pas, foulée plus économe variable)
 //    Vétéran : +10 mL après 45 ans
 // =============================================
+// CE recalé sur runner club/loisir (la version précédente, 210 − 0.6·VMA,
+// reflétait une moyenne élite trop optimiste).
 export function estimateCE(age: number, sex: Sex, vmaKmh: number): number {
-  let ce = 210 - 0.6 * vmaKmh; // proxy : VMA élevée → meilleure économie
+  let ce = 220 - 0.7 * vmaKmh;
   if (sex === "F") ce += 5;
   if (age >= 45) ce += 5;
   if (age >= 60) ce += 5;
-  return Math.round(Math.max(170, Math.min(240, ce)));
+  return Math.round(Math.max(180, Math.min(245, ce)));
 }
 
 // =============================================
@@ -262,27 +275,27 @@ function buildTrainingAdvice(profile: ProfileType): string[] {
   switch (profile) {
     case "explosif":
       return [
-        "**Privilégier l'endurance fondamentale (Z2)** : 60 à 90 min à 65-72 % VMA, 2 à 3 fois par semaine. C'est ton chantier prioritaire pour gagner en économie.",
-        "**Travail sub-seuil (Z3)** plutôt que Z6 : 2 × 20 min ou 3 × 15 min à 78-83 % VMA pour habituer ton corps à clairer le lactate à intensité modérée.",
-        "**Réduire la part de séances très intenses** (Z6/Z7) à 1 fois toutes les 2 semaines max, sinon tu renforces ton biais glycolytique.",
-        "**Sortie longue à jeun 1×/semaine** (45-75 min en Z1-Z2) pour stimuler la lipolyse et la fonction mitochondriale.",
-        "Surveiller la nutrition : éviter les pics de glycémie pré-séance Z2 — un café noir + un peu de gras suffisent.",
+        "**Construire la base aérobie en Z2** : 60 à 90 min à 65-72 % VMA, 2 à 3 fois par semaine. Chantier prioritaire pour gagner en économie et baisser la production de lactate à intensité modérée.",
+        "**Travail sub-seuil (Z3) et seuil (Z4)** : 2 × 20 min ou 3 × 15 min à 80-88 % VMA pour entraîner la clairance lactate — ce que ton profil glycolytique pénalise.",
+        "**Limiter (sans supprimer) les séances très intenses** Z6/Z7 : 1×/2 sem max sur cycles d'endurance. Tu as déjà la puissance, c'est l'aérobie qu'il faut renforcer.",
+        "**Sortie longue 1×/sem** (75-120 min en Z1-Z2, idéalement à jeun léger) pour stimuler la lipolyse et la densité mitochondriale.",
+        "Force/pliométrie 1-2×/sem pour exploiter ton avantage neuromusculaire sans dérouter la base aérobie.",
       ];
     case "endurant":
       return [
-        "**Ajouter 1 séance VO2max (Z5) par semaine** : 5-6 × 3 min à 95-100 % VMA, récup 2 min trot. Tu en as besoin pour élever ton plafond.",
-        "**Travail de force-vitesse** : sprints courts 6-8 × 10 s en côte, récup complète. Stimule le recrutement neuromusculaire.",
-        "**Tolérance lactique (Z6)** ponctuellement : 8-10 × 1 min à 105-110 % VMA, récup 1 min — utile avant un objectif 10k.",
-        "**Conserver le volume Z2** comme socle, mais ne pas en faire à 100 % de l'entraînement : sinon tu plafonnes vite.",
-        "Travail de gainage et pliométrie 2×/sem pour économiser ta foulée.",
+        "**Préserver le socle Z2** (60-75 % VMA) qui est ton point fort, mais ne pas y consacrer 100 % du volume.",
+        "**Ajouter 1 séance VO2max (Z5)** par semaine en cycle dur : 5-6 × 3 min à 95-100 % VMA, récup 2 min trot. Sert à élever ton plafond.",
+        "**Travail de force-vitesse hebdo** : 6-8 sprints courts 8-12 s en côte, récup complète. Stimule le recrutement et préserve la foulée.",
+        "**Tolérance lactique (Z6)** ponctuellement avant un objectif court (10k, cross) : 8-10 × 1 min à 105-110 % VMA, récup 1 min.",
+        "Gainage et pliométrie 2×/sem pour économiser ta foulée — la marge de progression ici est souvent plus grande que sur le métabolique.",
       ];
     case "equilibre":
       return [
-        "**Cibler ton objectif** : pour un semi/marathon, charger en Z2-Z3-Z4 ; pour un 10k ou trail court, ajouter Z5-Z6.",
-        "**Une séance qualité « basse intensité » + une « haute intensité » par semaine** (modèle polarisé 80/20).",
-        "**Tester ton MLSS** régulièrement (ex : 30 min all-out lactate steady) pour calibrer tes zones avec précision.",
-        "**Ne pas négliger les sprints courts** (Z7) : 1×/sem en fin de Z2 pour entretenir la vitesse maximale.",
-        "Profil qui répond bien à la périodisation classique : phase aérobie → seuil → VO2max → affûtage.",
+        "**Adapter le mix selon l'objectif** : semi/marathon → charger Z2-Z3-Z4 ; 10k ou trail court → ajouter Z5-Z6.",
+        "**Modèle polarisé 80/20** : 1 séance qualité basse intensité + 1 séance haute intensité par semaine, le reste en Z1-Z2.",
+        "**Tester ton seuil régulièrement** (30 min CP, ou semi de prépa) pour caler tes zones avec précision — ton profil polyvalent répond bien à un calage fin.",
+        "**Conserver les sprints courts (Z7)** 1×/sem en fin de Z2 pour entretenir vitesse maximale et économie.",
+        "Périodisation classique adaptée : phase aérobie → seuil → VO2max → affûtage.",
       ];
   }
 }
@@ -295,17 +308,34 @@ export function computeMiniReport(input: MiniReportInput): MiniReportResult {
   const vlamaxConfidence = vlamaxConfidenceFromSprint(input.sprint15sM);
   const profile = classifyProfile(vlamax);
   const ce = estimateCE(input.age, input.sex, input.vmaKmh);
-  const mlssPct = estimateMLSSPct(vlamax, ce);
+  const mlssPctModel = estimateMLSSPct(vlamax, ce);
 
   const vmaPaceSecPerKm = vmaToPaceSecPerKm(input.vmaKmh);
-  const paceThresholdSecPerKm = Math.round(vmaPaceSecPerKm / mlssPct);
 
   // Allure observée depuis temps semi/20k (si fourni)
   let paceObservedSecPerKm: number | null = null;
+  let mlssPctEffective = mlssPctModel;
+  let mlssAnchorSource: "model_C" | "race_anchor" = "model_C";
+
   if (input.referenceTimeSec && input.referenceRaceType) {
     const distanceKm = input.referenceRaceType === "semi" ? 21.0975 : 20;
     paceObservedSecPerKm = paceFromTimeAndDistance(input.referenceTimeSec, distanceKm);
+
+    // Ratio race→MLSS : un coureur entraîné soutient ~90 % MLSS sur semi/20k.
+    // → vMLSS_kmh = vRace_kmh / 0.90  ; mlssPct = vMLSS / VMA
+    const RACE_TO_MLSS_RATIO = 0.90;
+    const vRaceKmh = (distanceKm / input.referenceTimeSec) * 3600;
+    const vMlssKmh = vRaceKmh / RACE_TO_MLSS_RATIO;
+    const mlssPctFromRace = vMlssKmh / input.vmaKmh;
+
+    // Sanity bounds : on n'accepte le recalage que si plausible
+    if (mlssPctFromRace >= 0.75 && mlssPctFromRace <= 0.95) {
+      mlssPctEffective = Math.round(mlssPctFromRace * 1000) / 1000;
+      mlssAnchorSource = "race_anchor";
+    }
   }
+
+  const paceThresholdSecPerKm = Math.round(vmaPaceSecPerKm / mlssPctEffective);
 
   const zones = buildZones(input.vmaKmh);
   const profileNarrative = buildProfileNarrative(profile, vlamax, input.sex, input.age);
@@ -315,15 +345,22 @@ export function computeMiniReport(input: MiniReportInput): MiniReportResult {
     "Estimation à partir de 4 à 5 paramètres terrain — précision indicative (±5 % sur les allures, ±0.10 mmol/L/s sur la VLamax).",
     "Pour une analyse fine, un test labo lactate (4-5 paliers) ou un test VLamax dédié est recommandé.",
   ];
-  if (vlamaxConfidence === "low") {
-    caveats.push("Sprint 15s hors plage de calibration — la VLamax estimée est à interpréter avec prudence.");
+  if (mlssAnchorSource === "race_anchor") {
+    caveats.push(
+      `Allure au seuil ancrée sur ton temps ${input.referenceRaceType === "semi" ? "semi-marathon" : "20 km"} (ratio race→MLSS = 0.90) — plus fiable que l'estimation modèle.`
+    );
   }
-  if (paceObservedSecPerKm) {
+  if (vlamaxConfidence === "low") {
+    caveats.push("Sprint 15s hors plage validée (70-95 m) — la VLamax estimée est à interpréter avec prudence.");
+  } else if (vlamaxConfidence === "moderate") {
+    caveats.push("Sprint 15s en marge de la plage validée — confiance modérée sur la VLamax.");
+  }
+  if (paceObservedSecPerKm && mlssAnchorSource === "model_C") {
     const deltaSec = paceObservedSecPerKm - paceThresholdSecPerKm;
     if (Math.abs(deltaSec) > 15) {
       caveats.push(
-        `Écart entre allure ${input.referenceRaceType === "semi" ? "semi" : "20k"} (${formatPace(paceObservedSecPerKm)}/km) ` +
-        `et seuil estimé (${formatPace(paceThresholdSecPerKm)}/km) supérieur à 15 s/km — ta VMA ou ton VLamax pourraient être à recalibrer.`
+        `Écart marqué entre allure ${input.referenceRaceType === "semi" ? "semi" : "20k"} (${formatPace(paceObservedSecPerKm)}/km) ` +
+        `et seuil estimé (${formatPace(paceThresholdSecPerKm)}/km) — VMA ou sprint 15s peut-être à recalibrer.`
       );
     }
   }
@@ -343,7 +380,7 @@ export function computeMiniReport(input: MiniReportInput): MiniReportResult {
     profile,
     profileLabel: PROFILE_LABELS[profile],
     ceMlPerKgPerKm: ce,
-    mlssPct,
+    mlssPct: mlssPctEffective,
     paceThresholdSecPerKm,
     paceObservedSecPerKm,
     vmaPaceSecPerKm,
