@@ -71,12 +71,17 @@ function parseMatch(m: RegExpMatchArray | RegExpExecArray): DetectedInterval | n
   const ref = m[5].toUpperCase() as "FTP" | "CP";
   const restValue = parseInt(m[6], 10);
   const restUnit = m[7] || "min";
+  // m[8] : secondes additionnelles dans un format composé "2min30"
+  const restExtraSec = m[8] ? parseInt(m[8], 10) : 0;
 
   if (reps < 2 || reps > 30) return null;
   if (pct < 70 || pct > 200) return null;
 
   const durationSec = toSeconds(durValue, durUnit);
-  const originalRestSec = toSeconds(restValue, restUnit);
+  const baseRestSec = toSeconds(restValue, restUnit);
+  // N'ajoute les secondes que si l'unité principale est "min" (sinon "30s 30" n'a pas de sens)
+  const isMinUnit = restUnit.toLowerCase().startsWith("min") || restUnit.toLowerCase() === "m";
+  const originalRestSec = baseRestSec + (isMinUnit ? restExtraSec : 0);
 
   if (durationSec < 10 || durationSec > 1800) return null;
   if (originalRestSec < 10 || originalRestSec > 1800) return null;
