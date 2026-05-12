@@ -3,6 +3,7 @@
 // Analyse contextuelle nuancée du snapshot + findings statiques
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
