@@ -310,62 +310,117 @@ function buildProfileNarrative(
   }
 }
 
-function buildTrainingAdvice(profile: ProfileType, mode: VocabularyMode = "expert"): string[] {
+interface AdviceContext {
+  vlamax: number;
+  vmaKmh: number;
+  mlssPct: number;
+  ce: number;
+  age: number;
+  sex: Sex;
+  paceZ2Min: number; // sec/km à 75% VMA (borne rapide Z2)
+  paceZ2Max: number; // sec/km à 60% VMA (borne lente Z2)
+  paceThreshold: number; // sec/km au seuil
+  paceVO2: number; // sec/km à 95% VMA
+}
+
+function buildTrainingAdvice(
+  profile: ProfileType,
+  mode: VocabularyMode,
+  ctx: AdviceContext
+): string[] {
+  const { vlamax, vmaKmh, mlssPct, ce, age, paceZ2Min, paceZ2Max, paceThreshold, paceVO2 } = ctx;
+  const z2 = `${formatPace(paceZ2Max)}–${formatPace(paceZ2Min)}/km`;
+  const seuil = `${formatPace(paceThreshold)}/km`;
+  const vo2 = `${formatPace(paceVO2)}/km`;
+  const isVet = age >= 45;
+  const isMaster = age >= 55;
+  const lowVMA = vmaKmh < 14;
+  const highVMA = vmaKmh >= 18;
+  const highCE = ce >= 215; // économie médiocre
+  const goodCE = ce <= 195; // bonne économie
+  const highMLSS = mlssPct >= 0.88;
+  const lowMLSS = mlssPct <= 0.83;
+
+  const advice: string[] = [];
+
   if (mode === "beginner") {
-    switch (profile) {
-      case "explosif":
-        return [
-          "**Cours lentement, longtemps** : 60 à 90 min à allure facile (tu dois pouvoir parler en faisant des phrases entières), 2 à 3 fois par semaine. C'est ta priorité n°1 — c'est ce qui va construire ton « moteur d'endurance ».",
-          "**Une séance « tempo » par semaine** : 2 × 20 min à allure soutenue mais pas maximale (tu dois pouvoir dire 2-3 mots à la fois). Ça apprend à ton corps à gérer l'acide lactique.",
-          "**Limite les séances très intenses** (sprints, fractionnés courts à fond) : 1 fois toutes les 2 semaines suffit. Tu as déjà la vitesse naturellement — c'est l'endurance qu'il te faut développer.",
-          "**Une sortie longue par semaine** (1h15 à 2h très tranquille). Idéalement le matin avec juste un café — ça apprend à ton corps à brûler les graisses.",
-          "Renforcement musculaire 1 à 2 fois par semaine (gainage, squats, sauts) pour garder ta puissance naturelle.",
-        ];
-      case "endurant":
-        return [
-          "**Continue tes sorties tranquilles** (allure conversationnelle) — c'est ton point fort. Mais ne fais pas QUE ça.",
-          "**Ajoute 1 séance « puissance » par semaine** : 5-6 fois 3 min très rapide (presque tout donné), avec 2 min de footing entre chaque. Ça va développer ton plafond de vitesse.",
-          "**Fais des petits sprints en côte** une fois par semaine : 6 à 8 sprints de 8-12 secondes en montée, avec récupération complète. Ça travaille ta puissance et ta foulée.",
-          "**Avant un objectif court** (10 km, cross), ajoute des séances un peu douloureuses : 8-10 fois 1 min à fond, avec 1 min de récup. Ça apprend à ton corps à supporter l'effort intense.",
-          "Gainage et exercices de sauts 2 fois par semaine — ça rend ta foulée plus économique.",
-        ];
-      case "equilibre":
-        return [
-          "**Adapte selon ton objectif** : pour un semi/marathon → privilégie les sorties longues et tempo ; pour un 10k ou un trail court → ajoute des séances de vitesse.",
-          "**Règle simple « 80/20 »** : 80% du temps en allure facile (tu peux discuter), 20% en allure dure. Ne te trompe pas dans le dosage.",
-          "**Teste-toi régulièrement** (un 30 min en course officielle, ou un semi de prépa) pour bien caler tes allures d'entraînement — ton profil polyvalent réagit bien à un suivi précis.",
-          "**Garde quelques sprints courts** (1 fois par semaine, en fin de sortie facile) pour entretenir ta vitesse maximale et ta foulée.",
-          "Suis une logique de progression classique : d'abord du foncier (endurance), puis du seuil, puis de la vitesse, puis du repos avant la course.",
-        ];
+    if (profile === "explosif") {
+      advice.push(
+        `**Cours lentement, longtemps** : 60 à 90 min en allure facile (${z2}), 2 à 3 fois par semaine — c'est ta priorité absolue pour construire ton moteur d'endurance.`,
+        `**Une séance « tempo » par semaine** : 2 × 15 à 20 min autour de ${seuil} (allure soutenue, 2-3 mots à la fois). Ça apprend à ton corps à recycler le lactate que tu produis facilement.`,
+        `**Lève le pied sur les fractionnés très intenses** : 1 séance toutes les 2 semaines suffit. Tu as déjà la vitesse — c'est inutile d'en rajouter.`,
+        `**Une sortie longue par semaine** (1h15 à 2h très tranquille). Idéalement le matin avec juste un café — ça apprend à ton corps à brûler les graisses au lieu du sucre.`,
+      );
+      if (highCE) advice.push(`**Travaille ta foulée** : 4 à 6 lignes droites de 80 m relâchées + éducatifs (talons-fesses, montées de genoux) en fin de footing. Ton coût énergétique (${ce} mL O₂/kg/km) est élevé — tu peux gagner gratuitement quelques secondes au km.`);
+      else advice.push(`Renforcement musculaire 1 à 2 fois par semaine (gainage, squats, fentes) pour préserver ta puissance naturelle sans perdre l'endurance.`);
+    } else if (profile === "endurant") {
+      advice.push(
+        `**Continue tes sorties tranquilles** (${z2}) — c'est ton point fort, ne le sacrifie pas. Mais ne fais PAS que ça.`,
+        `**Une séance VO2max par semaine** : 5 à 6 fois 3 min à ${vo2} (très rapide, presque tout donné), avec 2 min de footing entre. Ça relève ton plafond de vitesse, qui est ton vrai frein.`,
+        `**Sprints courts en côte** une fois par semaine : 6 à 8 sprints de 8 à 12 secondes en montée pentue, récup complète en marchant. Ça réveille tes fibres rapides sans te casser.`,
+        `**Avant un objectif court** (10 km, cross), bascule sur de la tolérance lactique : 8 à 10 fois 1 min très rapide, 1 min de récup. Court mais douloureux — c'est exactement ce qui te manque.`,
+      );
+      advice.push(isVet
+        ? `Pliométrie douce (sauts à la corde, petits bonds) 2 fois par semaine — à ${age} ans, ton système nerveux a besoin de stimulation pour rester réactif.`
+        : `Gainage et exercices de sauts 2 fois par semaine pour rendre ta foulée plus économique et explosive.`);
+    } else {
+      // équilibré
+      advice.push(
+        `**Adapte selon ton objectif principal** : pour un semi/marathon → priorité aux sorties longues et au tempo (${seuil}) ; pour un 10 km ou un trail court → ajoute du VO2max (${vo2}).`,
+        `**Alterne les semaines** : une semaine « volume » (beaucoup de footing facile en ${z2}, une seule séance dure), une semaine « qualité » (deux séances dures, volume réduit). Ton profil polyvalent répond très bien à cette ondulation.`,
+        `**Teste-toi tous les 6 à 8 semaines** : un 30 min en course officielle ou un test sur 5 km bien préparé — ça te permet de recaler tes allures et de visualiser tes progrès.`,
+        `**Garde quelques sprints courts** (6 × 10 s en fin de footing facile, 1 fois par semaine) : tu entretiens ta vitesse maximale sans fatigue, et ta foulée reste vive.`,
+      );
+      advice.push(lowMLSS
+        ? `**Ton seuil est encore bas** (${Math.round(mlssPct * 100)} % VMA) : insiste sur du tempo continu de 25 à 35 min à ${seuil} toutes les semaines pendant 6 à 8 semaines, c'est ta plus grosse marge de progrès.`
+        : `Suis une logique de progression classique : d'abord du foncier (4 à 6 sem), puis du seuil (3 à 4 sem), puis de la VO2max (3 à 4 sem), puis du repos avant la course.`);
     }
+    return advice;
   }
 
-  switch (profile) {
-    case "explosif":
-      return [
-        "**Construire la base aérobie en Z2** : 60 à 90 min à 65-72 % VMA, 2 à 3 fois par semaine. Chantier prioritaire pour gagner en économie et baisser la production de lactate à intensité modérée.",
-        "**Travail sub-seuil (Z3) et seuil (Z4)** : 2 × 20 min ou 3 × 15 min à 80-88 % VMA pour entraîner la clairance lactate — ce que ton profil glycolytique pénalise.",
-        "**Limiter (sans supprimer) les séances très intenses** Z6/Z7 : 1×/2 sem max sur cycles d'endurance. Tu as déjà la puissance, c'est l'aérobie qu'il faut renforcer.",
-        "**Sortie longue 1×/sem** (75-120 min en Z1-Z2, idéalement à jeun léger) pour stimuler la lipolyse et la densité mitochondriale.",
-        "Force/pliométrie 1-2×/sem pour exploiter ton avantage neuromusculaire sans dérouter la base aérobie.",
-      ];
-    case "endurant":
-      return [
-        "**Préserver le socle Z2** (60-75 % VMA) qui est ton point fort, mais ne pas y consacrer 100 % du volume.",
-        "**Ajouter 1 séance VO2max (Z5)** par semaine en cycle dur : 5-6 × 3 min à 95-100 % VMA, récup 2 min trot. Sert à élever ton plafond.",
-        "**Travail de force-vitesse hebdo** : 6-8 sprints courts 8-12 s en côte, récup complète. Stimule le recrutement et préserve la foulée.",
-        "**Tolérance lactique (Z6)** ponctuellement avant un objectif court (10k, cross) : 8-10 × 1 min à 105-110 % VMA, récup 1 min.",
-        "Gainage et pliométrie 2×/sem pour économiser ta foulée — la marge de progression ici est souvent plus grande que sur le métabolique.",
-      ];
-    case "equilibre":
-      return [
-        "**Adapter le mix selon l'objectif** : semi/marathon → charger Z2-Z3-Z4 ; 10k ou trail court → ajouter Z5-Z6.",
-        "**Modèle polarisé 80/20** : 1 séance qualité basse intensité + 1 séance haute intensité par semaine, le reste en Z1-Z2.",
-        "**Tester ton seuil régulièrement** (30 min CP, ou semi de prépa) pour caler tes zones avec précision — ton profil polyvalent répond bien à un calage fin.",
-        "**Conserver les sprints courts (Z7)** 1×/sem en fin de Z2 pour entretenir vitesse maximale et économie.",
-        "Périodisation classique adaptée : phase aérobie → seuil → VO2max → affûtage.",
-      ];
+  // ===== EXPERT =====
+  if (profile === "explosif") {
+    advice.push(
+      `**Bâtir le socle Z2** : 60 à 90 min à ${z2} (65–72 % VMA), 2 à 3×/sem. Chantier prioritaire — la VLamax élevée (${vlamax.toFixed(2)}) doit être compensée par une oxydation lipidique solide.`,
+      `**Sub-seuil continu plutôt que fractions courtes** : 2 × 20 min ou 1 × 35-40 min à ${seuil} (≈ ${Math.round(mlssPct * 100)} % VMA). Cible la clairance lactate, pas la production — privilégie le continu sur l'intermittent.`,
+      `**Plafonner l'intensité Z6/Z7 à 1×/2 sem** sur cycles d'endurance. Tu produis déjà beaucoup de lactate naturellement, en rajouter ne fait que dégrader la base.`,
+      `**Sortie longue progressive** (75-120 min en Z1-Z2, finir 15 dernières min en Z3) — stimule lipolyse + densité mitochondriale + gestion de l'acidose en fin d'effort.`,
+    );
+    advice.push(highCE
+      ? `**Économie de course** : 6-8 lignes droites 80-100 m relâchées + éducatifs (skipping, foulées bondissantes) 2×/sem. CE = ${ce} mL O₂/kg/km, marge nette à récupérer.`
+      : `Force-pliométrie 1-2×/sem (squats lourds 3-5 reps, bondissements alternés) pour valoriser ton gain neuromusculaire sans détourner la base aérobie.`);
+  } else if (profile === "endurant") {
+    advice.push(
+      `**Préserver le socle Z2** (${z2}) — c'est ton ADN, pas le réduire. Mais cesser d'y consacrer 100 % du volume.`,
+      `**Bloc VO2max prioritaire** : 1×/sem minimum, idéalement 2× en cycle dur. 5-6 × 3 min à ${vo2} (95-100 % VMA), récup 2 min trot. Plafond aérobie = ton vrai limiteur.`,
+      `**Force-vitesse hebdomadaire** : 6-8 × 8-12 s en côte (8-12 % de pente), récup complète. Recrutement neuromusculaire et raideur tendineuse, sans dette glycolytique.`,
+      `**Bloc tolérance lactique ponctuel** (4-6 sem avant 10k/cross) : 8-10 × 1 min à 105-110 % VMA, récup 1 min — ce que ta VLamax basse (${vlamax.toFixed(2)}) ne te donne pas naturellement.`,
+    );
+    advice.push(isMaster
+      ? `Pliométrie douce + mobilité 2×/sem (corde à sauter, drills cheville) — préserver la raideur tendineuse devient critique après ${age} ans.`
+      : `Pliométrie + gainage profond 2×/sem — gain en économie probablement supérieur à toute optimisation métabolique chez ton profil.`);
+  } else {
+    // équilibré
+    advice.push(
+      `**Spécifier le mix selon objectif** : semi/marathon → bloc Z2-Z3 long + tempo seuil (${seuil}) ; 10 km/cross → ajout Z5 (${vo2}) et Z6 court ; trail → Z2 vallonné + force excentrique en descente.`,
+      `**Distribution pyramidale** : 70 % Z1-Z2, 15-20 % Z3-Z4 (sub-seuil/seuil), 10-15 % Z5+ — supérieure au polarisé strict pour un profil polyvalent qui répond aux deux extrêmes.`,
+      `**Calage régulier du seuil** : test 30 min CP ou semi de prépa toutes les 6-8 sem. MLSS estimée à ${Math.round(mlssPct * 100)} % VMA — la précision du calage conditionne tout le plan.`,
+      `**Maintenir Z7** 1×/sem (6 × 10 s en fin de Z2) — entretient vitesse max et foulée à coût neuro/métabolique nul.`,
+    );
+    advice.push(highMLSS
+      ? `**Périodisation centrée sur le plafond** : ton MLSS (${Math.round(mlssPct * 100)} % VMA) est déjà élevé — la marge est sur la VMA elle-même via VO2max long (5-8 min) et CV.`
+      : lowMLSS
+        ? `**Périodisation seuil-dominante** sur 6-8 sem (3× tempo continu/sem) : ton MLSS à ${Math.round(mlssPct * 100)} % VMA laisse une marge nette avant de basculer sur la VO2max.`
+        : `Périodisation classique : aérobie (4-6 sem) → seuil (3-4 sem) → VO2max (3-4 sem) → affûtage (2 sem).`);
   }
+
+  if (lowVMA && profile !== "explosif") {
+    advice.push(`**VMA modeste (${vmaKmh.toFixed(1)} km/h)** : intègre 1×/sem un format VO2max court type 30/30 ou 1 min/1 min — c'est le levier le plus rentable pour ton niveau actuel.`);
+  } else if (highVMA && profile !== "endurant") {
+    advice.push(`**VMA élevée (${vmaKmh.toFixed(1)} km/h)** : la marge est désormais sur la spécificité (allure cible) plus que sur la VMA brute — privilégie les blocs longs à allure compétition.`);
+  }
+
+  return advice;
 }
 
 // =============================================
@@ -408,7 +463,21 @@ export function computeMiniReport(input: MiniReportInput): MiniReportResult {
   const mode: VocabularyMode = input.vocabularyMode ?? "expert";
   const zones = buildZones(input.vmaKmh);
   const profileNarrative = buildProfileNarrative(profile, vlamax, input.sex, input.age, mode);
-  const trainingAdvice = buildTrainingAdvice(profile, mode);
+  const paceZ2Min = Math.round(vmaPaceSecPerKm / 0.75); // borne rapide Z2 (à 75% VMA)
+  const paceZ2Max = Math.round(vmaPaceSecPerKm / 0.60); // borne lente Z2 (à 60% VMA)
+  const paceVO2 = Math.round(vmaPaceSecPerKm / 0.95);
+  const trainingAdvice = buildTrainingAdvice(profile, mode, {
+    vlamax,
+    vmaKmh: input.vmaKmh,
+    mlssPct: mlssPctEffective,
+    ce,
+    age: input.age,
+    sex: input.sex,
+    paceZ2Min,
+    paceZ2Max,
+    paceThreshold: paceThresholdSecPerKm,
+    paceVO2,
+  });
 
   const caveats: string[] = mode === "beginner"
     ? [
