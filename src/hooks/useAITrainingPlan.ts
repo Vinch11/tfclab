@@ -189,11 +189,18 @@ export function useAITrainingPlan() {
       // Derive duration stats from the actual library — sent to edge function
       const catalogDurationStats = computeCatalogDurationStats(allCatalogEntries);
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        toast.error("Session expirée, reconnectez-vous.");
+        setIsLoading(false);
+        return;
+      }
       const resp = await fetch(PLAN_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           athleteData,
