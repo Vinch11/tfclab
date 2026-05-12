@@ -4,7 +4,7 @@ import type { CoachingCompassInput } from "@/lib/coachingCompass";
 import { CoachingCompassCard } from "@/components/CoachingCompassCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { User, Save, Target, Scale, Activity, Percent, Camera, Info, Loader2, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Athlete, ObjectifType, SexeType, getObjectifLabel, getDernierSnapshot } from "@/types/athlete";
@@ -149,7 +149,23 @@ export function AthleteProfile({
             <p className="text-sm text-muted-foreground">Données physiologiques</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* Mini Rapport — pré-rempli depuis le snapshot */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const params = new URLSearchParams();
+              if (athlete.nom) params.set("name", athlete.nom);
+              if ((athlete as any).age) params.set("age", String((athlete as any).age));
+              if (athlete.sexe) params.set("sex", athlete.sexe);
+              if (snapshot?.vma) params.set("vma", String(snapshot.vma));
+              window.open(`/mini-rapport?${params.toString()}`, "_blank");
+            }}
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Mini Rapport
+          </Button>
           {/* ✅ Bouton unique pour gérer les snapshots (Cloud) */}
           {onOpenSnapshots && (
             <Button variant="outline" size="sm" onClick={onOpenSnapshots}>
