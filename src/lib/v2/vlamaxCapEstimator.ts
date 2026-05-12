@@ -179,9 +179,12 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
       estimated = 0.72 - (ratio - 0.70) * 2.0;
     }
     
-    // P1: Rééquilibrage — augmenté 0.20 → 0.30 pour ne pas laisser le sprint dominer seul
-    // Si mesure labo présente, on garde un poids modéré (0.15)
-    const weight = hasMeasured ? 0.15 : (estimates.length > 0 ? 0.30 : 0.55);
+    // Pace ratio = signal physiologique le plus fiable en l'absence de labo/puissance.
+    // En l'absence de labo et de puissance running, on lui donne le poids dominant.
+    const hasPowerData =
+      (runningPowerMax != null && runningPowerMax > 0) ||
+      (runningPowerThreshold != null && runningPowerThreshold > 0);
+    const weight = hasMeasured ? 0.15 : (hasPowerData ? 0.30 : 0.65);
     estimates.push({ value: estimated, weight, source: "Ratio Seuil/VMA" });
     sources.push("Seuil/VMA");
     details += `Ratio: ${(ratio * 100).toFixed(1)}% → ${estimated.toFixed(3)}. `;
