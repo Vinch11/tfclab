@@ -150,21 +150,35 @@ export function AthleteProfile({
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
-          {/* Mini Rapport — pré-rempli depuis le snapshot */}
+          {/* Mini Rapport — pré-rempli depuis l'athlète + dernier snapshot */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => {
               const params = new URLSearchParams();
-              if (athlete.nom) params.set("name", athlete.nom);
-              if ((athlete as any).age) params.set("age", String((athlete as any).age));
-              if (athlete.sexe) params.set("sex", athlete.sexe);
-              if (snapshot?.vma) params.set("vma", String(snapshot.vma));
+              const a: any = athlete;
+              const s: any = snapshot || {};
+              if (a.nom) params.set("name", a.nom);
+              // Âge : champ direct sinon calculé depuis birth_date
+              let age: number | undefined = a.age;
+              if (!age && a.birth_date) {
+                const bd = new Date(a.birth_date);
+                if (!isNaN(bd.getTime())) {
+                  const diff = Date.now() - bd.getTime();
+                  age = Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+                }
+              }
+              if (age) params.set("age", String(age));
+              if (a.sexe || a.sex) params.set("sex", a.sexe || a.sex);
+              if (s.vma) params.set("vma", String(s.vma));
+              // Sprint 15s : distance en mètres (depuis snapshot cloud si dispo)
+              const sprint = s.sprint_15s_distance ?? s.sprint_15s_m ?? s.distSprint1;
+              if (sprint) params.set("sprint", String(Math.round(sprint)));
               window.open(`/mini-rapport?${params.toString()}`, "_blank");
             }}
           >
             <FileText className="w-4 h-4 mr-2" />
-            Mini Rapport
+            Générer mon mini rapport
           </Button>
           {/* ✅ Bouton unique pour gérer les snapshots (Cloud) */}
           {onOpenSnapshots && (
