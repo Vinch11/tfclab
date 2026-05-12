@@ -34,8 +34,12 @@ import {
 //
 // IMPORTANT : utilisé en mode global (g) pour matcher TOUTES les occurrences
 // dans une même session (pyramides, blocs multiples, sets composés).
+// IMPORTANT : utilisé en mode global (g) pour matcher TOUTES les occurrences
+// dans une même session (pyramides, blocs multiples, sets composés).
+// Le 8ème groupe capture les secondes additionnelles dans un format composé
+// "2min30" → reps=N, mins=2, sec=30 → 150s.
 const INTERVAL_PATTERN_SOURCE =
-  "(\\d{1,2})\\s*[x×]\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)\\s*[@à]?\\s*(\\d{2,3})\\s*%\\s*(ftp|cp)[^.]*?(?:r\\s*[=:]?|repos|rest)\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)?(\\d{1,2})?";
+  "(\\d{1,2})\\s*[x×]\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)\\s*[@à]?\\s*(\\d{2,3})\\s*%\\s*(ftp|cp)[^.]*?(?:r\\s*[=:]?|repos|rest)\\s*(\\d{1,3})\\s*(min|s|sec|secondes?|minutes?)?\\s*(\\d{1,2})?";
 
 const INTERVAL_PATTERN = new RegExp(INTERVAL_PATTERN_SOURCE, "i");
 const INTERVAL_PATTERN_GLOBAL = new RegExp(INTERVAL_PATTERN_SOURCE, "gi");
