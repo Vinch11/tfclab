@@ -10,12 +10,14 @@ import { Separator } from "@/components/ui/separator";
 import { FileDown, Sparkles, ArrowLeft, Info, Calculator, ArrowRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   computeMiniReport,
   parseTimeToSec,
   type MiniReportInput,
   type ReferenceRaceType,
   type Sex,
+  type VocabularyMode,
 } from "@/lib/miniReport/computeMiniProfile";
 import { buildMiniReportHTML } from "@/lib/miniReport/buildMiniReportHTML";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
