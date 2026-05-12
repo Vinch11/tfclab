@@ -30,6 +30,19 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    // Role check: only STAFF_COACH can sync the shared library
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (profileError || profile?.role !== "STAFF_COACH") {
+      return new Response(JSON.stringify({ error: "Forbidden: staff role required" }), {
+        status: 403, headers: corsHeaders,
+      });
+    }
+
+
     const { workouts } = await req.json();
 
     if (!Array.isArray(workouts) || workouts.length === 0) {
