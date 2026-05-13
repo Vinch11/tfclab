@@ -62,7 +62,10 @@ export function generateMaderPowerDurationCurve(
   // 2. W' (anaerobic work capacity in Joules)
   // R1: priorité au W' issu de la régression CP (criticalPowerModel) pour cohérence avec l'UI.
   // Fallback heuristique uniquement si aucun override fourni.
-  const heuristicWPrimeJ = vlamax * weight * 320 * 1000;
+  // Heuristique: W' (J) ≈ 320 · VLamax · poids → ~10–25 kJ pour la plage physiologique
+  // (VLamax 0.30–0.70, poids 60–80 kg). Borné dans [8 000 ; 35 000] J pour rester plausible.
+  const rawHeuristicJ = vlamax * weight * 320;
+  const heuristicWPrimeJ = Math.min(35000, Math.max(8000, rawHeuristicJ));
   const wPrimeJ = options?.wPrimeJOverride && options.wPrimeJOverride > 0
     ? options.wPrimeJOverride
     : heuristicWPrimeJ;
