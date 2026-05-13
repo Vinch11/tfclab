@@ -245,6 +245,9 @@ ${L.glossary ? `
     <div class="k">${L.metricVlamax}</div>
     <div class="v">${vlamax.toFixed(2)}</div>
     <div class="sub">${L.metricVlamaxSub}</div>
+    <div style="margin-top:6px;display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#0e7c4a;background:#e7f7ee;border:1px solid #b6e5c8;border-radius:4px;padding:2px 6px;">
+      Source : VLamax CAP (run) — sprint 15 s
+    </div>
   </div>
   <div class="metric">
     <div class="k">${L.metricCE}</div>

@@ -250,11 +250,29 @@ export function VLamaxUnifiedCard({
         </div>
         
         {/* Valeur principale compacte */}
-        <div className="flex items-center gap-3 mt-2">
+        <div className="flex items-center gap-3 mt-2 flex-wrap">
           <span className="text-3xl font-bold tracking-tight font-mono">
             {displayValue}
           </span>
           <span className="text-xs text-muted-foreground">mmol/L/s</span>
+          {/* Badge source claire : CAP run vs Vélo */}
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-[10px] gap-1",
+              isOnRunTab
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300"
+                : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300"
+            )}
+            title={
+              isOnRunTab
+                ? "Source : VLamax CAP (run) — estimée depuis sprint course / V2 run"
+                : "Source : VLamax vélo — estimée depuis Pmax / FTP / sprint vélo"
+            }
+          >
+            {isOnRunTab ? <Footprints className="h-3 w-3" /> : <Bike className="h-3 w-3" />}
+            Source : {isOnRunTab ? "VLamax CAP (run)" : "VLamax vélo"}
+          </Badge>
           {staffMode && v2Result && (
             <Badge 
               variant="outline" 
