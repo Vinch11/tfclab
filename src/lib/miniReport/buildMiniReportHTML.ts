@@ -4,6 +4,7 @@
  */
 
 import { formatPace, formatTime, type MiniReportResult } from "./computeMiniProfile";
+import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
 
 function escapeHtml(s: string): string {
   return s
