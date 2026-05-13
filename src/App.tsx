@@ -31,6 +31,7 @@ import WorkoutLibraryBrowserPage from "./pages/WorkoutLibraryBrowserPage";
 import PlanLibraryPage from "./pages/PlanLibraryPage";
 import VLamaxDiagnosticPage from "./pages/VLamaxDiagnosticPage";
 import RunMLSSCohortPage from "./pages/RunMLSSCohortPage";
+import LiteratureCohortPage from "./pages/LiteratureCohortPage";
 import MiniReportPage from "./pages/MiniReportPage";
 
 const queryClient = new QueryClient();
@@ -88,6 +89,7 @@ export default function App() {
                 <Route path="/diagnostic/vlamax" element={<ProtectedRoute><VLamaxDiagnosticPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/vlamax/:athleteId" element={<ProtectedRoute><VLamaxDiagnosticPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/cohort-run-mlss" element={<ProtectedRoute><RunMLSSCohortPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/cohort-literature" element={<ProtectedRoute><LiteratureCohortPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 4 — PLANIFICATION                  */}

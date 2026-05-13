@@ -468,6 +468,137 @@ export type Database = {
         }
         Relationships: []
       }
+      literature_cohort_profiles: {
+        Row: {
+          age_mean: number | null
+          cohort_label: string | null
+          cp_w: number | null
+          created_at: string
+          ftp_w: number | null
+          ftp_w_kg: number | null
+          height_cm: number | null
+          id: string
+          level: string | null
+          mlss_pct: number | null
+          notes: string | null
+          pace_threshold_sec_per_km: number | null
+          pmax_5s: number | null
+          raw_payload: Json
+          running_economy: number | null
+          sex: string | null
+          sport: string
+          study_author: string
+          study_doi: string | null
+          study_title: string | null
+          study_year: number | null
+          version_id: string
+          vlamax: number | null
+          vma_kmh: number | null
+          vo2max: number | null
+          w_prime_j: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          age_mean?: number | null
+          cohort_label?: string | null
+          cp_w?: number | null
+          created_at?: string
+          ftp_w?: number | null
+          ftp_w_kg?: number | null
+          height_cm?: number | null
+          id?: string
+          level?: string | null
+          mlss_pct?: number | null
+          notes?: string | null
+          pace_threshold_sec_per_km?: number | null
+          pmax_5s?: number | null
+          raw_payload?: Json
+          running_economy?: number | null
+          sex?: string | null
+          sport: string
+          study_author: string
+          study_doi?: string | null
+          study_title?: string | null
+          study_year?: number | null
+          version_id: string
+          vlamax?: number | null
+          vma_kmh?: number | null
+          vo2max?: number | null
+          w_prime_j?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          age_mean?: number | null
+          cohort_label?: string | null
+          cp_w?: number | null
+          created_at?: string
+          ftp_w?: number | null
+          ftp_w_kg?: number | null
+          height_cm?: number | null
+          id?: string
+          level?: string | null
+          mlss_pct?: number | null
+          notes?: string | null
+          pace_threshold_sec_per_km?: number | null
+          pmax_5s?: number | null
+          raw_payload?: Json
+          running_economy?: number | null
+          sex?: string | null
+          sport?: string
+          study_author?: string
+          study_doi?: string | null
+          study_title?: string | null
+          study_year?: number | null
+          version_id?: string
+          vlamax?: number | null
+          vma_kmh?: number | null
+          vo2max?: number | null
+          w_prime_j?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "literature_cohort_profiles_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "literature_cohort_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      literature_cohort_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          model: string
+          total_profiles: number
+          total_studies: number
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          model: string
+          total_profiles?: number
+          total_studies?: number
+          version: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          model?: string
+          total_profiles?: number
+          total_studies?: number
+          version?: string
+        }
+        Relationships: []
+      }
       plan_versions: {
         Row: {
           athlete_id: string
