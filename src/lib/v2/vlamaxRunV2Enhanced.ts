@@ -280,8 +280,8 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
   const qualityFactor = protocolQuality ? (protocolQuality - 1) / 4 : 0.5;
   
   if (vlamaxFromPace !== null && vlamaxFromScoreG !== null) {
-    // DUAL VALIDATION: VMA/Seuil (40%) + Score G (60%)
-    finalValue = vlamaxFromPace * 0.40 + vlamaxFromScoreG * 0.60;
+    // DUAL VALIDATION: VMA/Seuil (50%) + Score G (50%) — recalibré N=40
+    finalValue = vlamaxFromPace * 0.50 + vlamaxFromScoreG * 0.50;
     fusionMethod = "dual_validation";
     divergence = Number(Math.abs(vlamaxFromPace - vlamaxFromScoreG).toFixed(3));
     
