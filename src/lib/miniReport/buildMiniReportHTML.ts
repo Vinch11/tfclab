@@ -25,15 +25,17 @@ const PROFILE_COLORS: Record<string, string> = {
   endurant: "#27AE60",
 };
 
-const ZONE_COLORS = [
-  "#A8E6CF", // Z1
-  "#7FCDCD", // Z2
-  "#FFD93D", // Z3
-  "#FF9F43", // Z4
-  "#FF6B6B", // Z5
-  "#C44569", // Z6
-  "#6C5CE7", // Z7
-];
+// Couleurs alignées sur la grille officielle Z1 → Z7 (Z4 dédoublée a/b)
+const ZONE_COLORS: Record<string, string> = {
+  Z1: "#A8E6CF",
+  Z2: "#7FCDCD",
+  Z3: "#FFD93D",
+  Z4a: "#FFB347",
+  Z4b: "#FF8C42",
+  Z5: "#FF6B6B",
+  Z6: "#C44569",
+  Z7: "#6C5CE7",
+};
 
 export function buildMiniReportHTML(result: MiniReportResult): string {
   const { input, vlamax, profile, profileLabel, ceMlPerKgPerKm, mlssPct,
