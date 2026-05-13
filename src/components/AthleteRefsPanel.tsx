@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import { useCloudData, DbAthlete, DbSnapshot } from "@/contexts/CloudDataContext";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
 import { 
   getEffectiveRefs, 
@@ -101,7 +101,7 @@ export function AthleteRefsPanel({
   onNavigateToTFCLTest,
   compact = false 
 }: AthleteRefsPanelProps) {
-  const { updateAthlete } = useCloudData();
+  const { updateAthlete } = useCloudDataContext();
   
   // Détection mode running
   const isRunningGoal = ["Marathon", "Semi", "5K", "10K", "StartToRun", "Trail", "TrailShort", "TrailMountain", "TrailUltra"].includes(athleteGoal);

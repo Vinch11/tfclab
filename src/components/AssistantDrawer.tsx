@@ -26,7 +26,7 @@ import {
   Database,
   Trash2
 } from "lucide-react";
-import { useCloudData } from "@/hooks/useCloudData";
+import { useCloudData } from "@/contexts/CloudDataContext";
 import { 
   getAssistantContext, 
   formatContextForPrompt, 
@@ -270,7 +270,7 @@ export function AssistantDrawer({
   const inputRef = useRef<HTMLInputElement>(null);
   
   // Données Cloud
-  const { athletes, snapshots, tests } = useCloudData();
+  const { athletes, snapshots, tests } = useCloudDataContext();
   
   // Context Packet runtime
   const contextPacket = useMemo<AssistantContextPacket>(() => {

@@ -45,7 +45,7 @@ import type { RaceObjective } from '@/lib/v2/pacingEnvelopeEngine';
 export default function RaceSimulationPage() {
   const navigate = useNavigate();
   const { currentAthlete: selectedAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudData();
+  const { snapshots, tests, checkins } = useCloudDataContext();
   const [activeTab, setActiveTab] = useState("simulation");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
 

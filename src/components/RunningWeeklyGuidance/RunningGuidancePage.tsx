@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { useCloudData } from "@/hooks/useCloudData";
+import { useCloudData } from "@/contexts/CloudDataContext";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { LockedProfileCard } from "./LockedProfileCard";
@@ -44,7 +44,7 @@ import { computeDisponibiliteTFCL } from "@/lib/v2/disponibiliteTFCL";
 export function RunningGuidancePage() {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudData();
+  const { snapshots, tests, checkins } = useCloudDataContext();
   const { isRunningOnly, raceType, raceLabel } = useRunningFocusMode();
   
   // État local pour simulation (en prod, viendrait de la DB)

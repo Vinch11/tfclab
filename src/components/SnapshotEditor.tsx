@@ -14,7 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit, Save, Calculator, Sparkles, HelpCircle, BookOpen, Bike, PersonStanding, Settings } from "lucide-react";
-import { useCloudData, DbSnapshot } from "@/hooks/useCloudData";
+import { useCloudData, DbSnapshot } from "@/contexts/CloudDataContext";
 import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
 import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
 import { RunningTestProtocolsGuide } from "@/components/RunningTestProtocolsGuide";
@@ -207,7 +207,7 @@ function VLamaxCapField({
 
 
 export function SnapshotEditor({ snapshot, trigger, staffMode = false }: SnapshotEditorProps) {
-  const { updateSnapshot } = useCloudData();
+  const { updateSnapshot } = useCloudDataContext();
   const [open, setOpen] = useState(false);
 
   const [date, setDate] = useState(snapshot.date);

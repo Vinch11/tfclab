@@ -14,7 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ClipboardCheck, Plus, Trash2, Edit, AlertTriangle, TrendingUp, Moon, Battery, Activity } from "lucide-react";
-import { DbCheckin, useCloudData } from "@/hooks/useCloudData";
+import { DbCheckin, useCloudData } from "@/contexts/CloudDataContext";
 
 interface CheckinManagerProps {
   athleteId: string;
@@ -63,7 +63,7 @@ function getDefaultWeekTag(): string {
 }
 
 export function CheckinManager({ athleteId, athleteName }: CheckinManagerProps) {
-  const { getCheckinsForAthlete, addCheckin, updateCheckin, deleteCheckin } = useCloudData();
+  const { getCheckinsForAthlete, addCheckin, updateCheckin, deleteCheckin } = useCloudDataContext();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingCheckin, setEditingCheckin] = useState<DbCheckin | null>(null);
