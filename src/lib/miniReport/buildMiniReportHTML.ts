@@ -87,9 +87,9 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
   const adviceHtml = trainingAdvice.map((a) => `<li>${renderInline(a)}</li>`).join("");
   const caveatsHtml = caveats.map((c) => `<li>${escapeHtml(c)}</li>`).join("");
 
-  const zonesHtml = zones.map((z, i) => `
+  const zonesHtml = zones.map((z) => `
     <tr>
-      <td style="background:${ZONE_COLORS[i]};color:#000;font-weight:700;text-align:center;width:50px;">${z.id}</td>
+      <td style="background:${ZONE_COLORS[z.id] || "#999"};color:#000;font-weight:700;text-align:center;width:50px;">${z.id}</td>
       <td><strong>${escapeHtml(z.label)}</strong><br/><span style="font-size:11px;color:#666;">${escapeHtml(z.description)}</span></td>
       <td style="text-align:center;font-variant-numeric:tabular-nums;">${z.pctVmaMin}–${z.pctVmaMax}%</td>
       <td style="text-align:center;font-variant-numeric:tabular-nums;">${formatPace(z.paceMinSecPerKm)}–${formatPace(z.paceMaxSecPerKm)}</td>
