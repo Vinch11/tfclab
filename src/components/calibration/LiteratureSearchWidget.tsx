@@ -103,19 +103,25 @@ export function LiteratureSearchWidget() {
           ))}
         </div>
 
-        <Button onClick={run} disabled={loading || !query.trim()} className="w-full">
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Recherche en cours...
-            </>
-          ) : (
-            <>
-              <Search className="w-4 h-4 mr-2" />
-              Lancer la recherche
-            </>
-          )}
-        </Button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Button onClick={run} disabled={loading || autoLoading || !query.trim()} variant="outline">
+            {loading ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Recherche...</>
+            ) : (
+              <><Search className="w-4 h-4 mr-2" />Lancer la recherche</>
+            )}
+          </Button>
+          <Button onClick={runAutoExtract} disabled={loading || autoLoading}>
+            {autoLoading ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Extraction auto...</>
+            ) : (
+              <><Sparkles className="w-4 h-4 mr-2" />Recherche + Extraction auto</>
+            )}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          💡 <strong>Recherche</strong> : synthèse + sources web. <strong>Extraction auto</strong> : trouve des études récentes ET ajoute les cohortes à ta base (utilise le champ ci-dessus comme focus, ou un focus général si vide).
+        </p>
 
         {answer && (
           <div className="space-y-3 pt-4 border-t">
