@@ -17,6 +17,7 @@ import {
   type ProtocolQualityInput,
   type FullDREInput
 } from "@/engines/diagnostic";
+import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
 
 export interface ReliabilityScore {
   id: string;
