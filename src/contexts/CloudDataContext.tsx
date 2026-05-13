@@ -4,7 +4,7 @@
  */
 
 import { createContext, useContext, ReactNode } from "react";
-import { useCloudData, DbAthlete, DbSnapshot, DbCheckin } from "@/hooks/useCloudData";
+import { useCloudData as useCloudDataInternal, DbAthlete, DbSnapshot, DbCheckin } from "@/hooks/useCloudData";
 import type { Tables, TablesInsert, TablesUpdate, Json } from "@/integrations/supabase/types";
 
 // Re-export types so consumers can import everything from CloudDataContext
