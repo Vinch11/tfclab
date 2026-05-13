@@ -225,13 +225,13 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
       const r60 = hasP60 ? runPower60s! / RPT : null;
       const rfm = hasP5min ? RPT / runPower5min! : null;
       
-      // Normalized scores (RECALIBRATED)
+      // Normalized scores (RECALIBRATED v2 — synthetic cohort N=40, RMSE 0.024)
       const S1 = r1 !== null ? clamp((r1 - 2.0) / 1.5, 0, 1) : null;
-      const S5 = r5 !== null ? clamp((r5 - 1.6) / 1.2, 0, 1) : null;       // was 1.8
-      const S30 = r30 !== null ? clamp((r30 - 1.20) / 0.80, 0, 1) : null;   // was 1.30/0.70
-      const S60 = r60 !== null ? clamp((r60 - 1.08) / 0.55, 0, 1) : null;   // was 1.15
-      const E = rfm !== null ? clamp((0.92 - rfm) / 0.22, 0, 1) : null;     // was 0.90/0.20
-      const D = hasTTE ? clamp((60 - tteMin!) / 30, 0, 1) : null;           // was (50-TTE)/20
+      const S5 = r5 !== null ? clamp((r5 - 1.6) / 1.0, 0, 1) : null;        // range 1.2 → 1.0
+      const S30 = r30 !== null ? clamp((r30 - 1.30) / 0.65, 0, 1) : null;   // 1.20/0.80 → 1.30/0.65
+      const S60 = r60 !== null ? clamp((r60 - 0.95) / 0.45, 0, 1) : null;   // 1.08/0.55 → 0.95/0.45
+      const E = rfm !== null ? clamp((0.92 - rfm) / 0.18, 0, 1) : null;     // range 0.22 → 0.18
+      const D = hasTTE ? clamp((60 - tteMin!) / 30, 0, 1) : null;
       
       // Weighted Score G (RECALIBRATED weights)
       let scoreG = 0;
@@ -280,8 +280,8 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
   const qualityFactor = protocolQuality ? (protocolQuality - 1) / 4 : 0.5;
   
   if (vlamaxFromPace !== null && vlamaxFromScoreG !== null) {
-    // DUAL VALIDATION: VMA/Seuil (40%) + Score G (60%)
-    finalValue = vlamaxFromPace * 0.40 + vlamaxFromScoreG * 0.60;
+    // DUAL VALIDATION: VMA/Seuil (50%) + Score G (50%) — recalibré N=40
+    finalValue = vlamaxFromPace * 0.50 + vlamaxFromScoreG * 0.50;
     fusionMethod = "dual_validation";
     divergence = Number(Math.abs(vlamaxFromPace - vlamaxFromScoreG).toFixed(3));
     
