@@ -399,6 +399,7 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
  * Formate l'estimation pour affichage
  */
 export function formatVLamaxCapEstimate(estimate: VLamaxCapEstimate): string {
+  if (estimate.method === "insufficient" || estimate.value <= 0) return "Données insuffisantes";
   const label = estimate.confidence >= 0.8 ? "Fiabilité élevée" : estimate.confidence >= 0.6 ? "Fiabilité modérée" : "Fiabilité limitée";
   return `${estimate.value.toFixed(2)} mmol/L/s (${label})`;
 }
