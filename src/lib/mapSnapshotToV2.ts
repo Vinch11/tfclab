@@ -41,6 +41,8 @@ export function mapSnapshotToV2(s: DbSnapshot) {
     running_power_30s: s.running_power_30s,
     running_power_60s: s.running_power_60s,
     running_power_5min: s.running_power_5min,
+    // CAP unifié — sprint terrain (vlamaxCapEstimator)
+    sprint_15s_distance: (s as any).sprint_15s_distance ?? null,
   };
 }
 
