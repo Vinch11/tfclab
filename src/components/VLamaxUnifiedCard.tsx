@@ -92,7 +92,7 @@ export interface VLamaxUnifiedCardProps {
   vlamaxEffectif: VLamaxEffectif;
   objectif: string;
   age?: number | null;
-  sex?: "H" | "F";
+  sex?: "H" | "M" | "F";
   staffMode?: boolean;
   ambition?: AmbitionLevel;
   /** Sport principal (cap | bike | tri) pour offset des cibles VLamax */
@@ -172,22 +172,27 @@ export function VLamaxUnifiedCard({
   const [showEducation, setShowEducation] = useState(false);
   const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
   
-  const vlamax = vlamaxEffectif.value;
-  
+  const vlamaxBike = vlamaxEffectif.value;
+
   // Determine available tabs
   const showBike = !isRunningOnly;
   const showRun = isTriathlon || isRunningOnly;
-  const showComparison = isTriathlon && vlamax !== null && vlamaxRun !== null;
-  
+  const showComparison = isTriathlon && vlamaxBike !== null && vlamaxRun != null;
+
   const defaultTab = isRunningOnly ? "run" : "bike";
   const effectiveTab = activeTab ?? defaultTab;
-  
-  // Profile for header
+
+  // ✅ Cohérence: la valeur affichée et la cible suivent l'onglet actif.
+  // En triathlon, l'onglet CAP doit refléter vlamaxRun, pas vlamaxBike.
+  const isOnRunTab = effectiveTab === "run";
+  const vlamax = isOnRunTab && vlamaxRun != null ? vlamaxRun : vlamaxBike;
+
+  // Profile for header (basé sur la valeur de l'onglet actif)
   const { profil } = useMemo(
     () => getAgeAdjustedVLamaxProfil(vlamax, age),
     [vlamax, age]
   );
-  
+
   const profileConfig = PROFILE_CONFIG[profil];
   
   // Unavailable state
@@ -211,15 +216,14 @@ export function VLamaxUnifiedCard({
     );
   }
   
-  // Display value
-  const displayValue = v2Result
+  // Display value — utilise v2Result uniquement sur l'onglet Vélo (v2Result est calibré vélo)
+  const displayValue = v2Result && !isOnRunTab
     ? (staffMode ? formatVLamaxStaff(v2Result) : formatVLamaxAthlete(v2Result))
     : (staffMode ? `${vlamax.toFixed(2)}` : `≈ ${vlamax.toFixed(2)}`);
-  
-  // Calibration display
+
+  // Cibles alignées sur l'onglet actif (Vélo vs CAP)
   const normalizedObj = normalizeObjective(objectif as ObjectifPrincipal);
-  // Sport résolu pour les cibles VLamax (run → cap pour offset CAP)
-  const sportForTargets = sport === "run" ? "cap" : sport;
+  const sportForTargets = isOnRunTab ? "cap" : (sport === "run" ? "cap" : sport);
   const targets = getVLamaxRange(normalizedObj, ambition, sportForTargets);
   const ambitionDef = getAmbitionDefinition(ambition);
   

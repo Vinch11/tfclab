@@ -1622,19 +1622,31 @@ const Index = () => {
           // VLamax V2 Calibration (profil)
           {
             id: "vlamax-v2-calibration-profil",
-            render: () => currentAthlete && (
-              <VLamaxUnifiedCard
-                vlamaxEffectif={alignedVlamaxEffectif}
-                objectif={currentAthlete.goal || "IM"}
-                staffMode={staffMode}
-                ambition={currentAmbition}
-                sport={(effectiveCloudSnapshot as any)?.sport_main ?? undefined}
-                athleteId={currentAthlete.id}
-                vo2max={effectiveCloudSnapshot?.vo2max ?? null}
-                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
-                runMLSS={dashDiagnostic?.runMLSS ?? null}
-              />
-            ),
+            render: () => {
+              if (!currentAthlete) return null;
+              const goal = currentAthlete.goal || "IM";
+              const isTriGoal = ["IM", "Ironman", "70.3", "703", "TriathlonLD"].includes(goal);
+              const sportMain = (effectiveCloudSnapshot as any)?.sport_main ?? undefined;
+              return (
+                <VLamaxUnifiedCard
+                  vlamaxEffectif={alignedVlamaxEffectif}
+                  objectif={goal}
+                  staffMode={staffMode}
+                  ambition={currentAmbition}
+                  sport={sportMain ?? (isRunningOnly ? "cap" : isTriGoal ? "tri" : "bike")}
+                  sex={currentAthlete.sex === "F" ? "F" : "H"}
+                  ftp={ftp}
+                  athleteId={currentAthlete.id}
+                  vo2max={effectiveCloudSnapshot?.vo2max ?? null}
+                  age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+                  vlamaxRun={(effectiveCloudSnapshot as any)?.vlamax_run ?? null}
+                  economyScore={effectiveCloudSnapshot?.run_economy_score ?? null}
+                  isRunningOnly={isRunningOnly}
+                  isTriathlon={isTriGoal && !isRunningOnly}
+                  runMLSS={dashDiagnostic?.runMLSS ?? null}
+                />
+              );
+            },
           },
           // Profil VLamax — Échelle par sport (profil)
           {
