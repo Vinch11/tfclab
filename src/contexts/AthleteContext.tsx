@@ -150,6 +150,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
       athlete.objectif || "IM",
       refs as Json,
       athlete.vo2max ?? null,
+      athlete.sexe || refs.sexe || null, // ✅ FIX: Passer le sexe à la création
     );
     if (created?.id) setSelectedAthleteId(created.id);
     return created;
