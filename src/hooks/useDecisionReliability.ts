@@ -131,14 +131,20 @@ export function useDecisionReliability(
     try {
       // Cast to extended snapshot to access optional DB fields
       const extSnapshot = snapshot as ExtendedSnapshot;
-      
+
+      // ✅ VLamax adaptée à l'objectif (run/trail → vlamax_run, sinon vlamax vélo)
+      const goalVlamax = resolveVlamaxForGoal(
+        snapshot as any,
+        { goal: extSnapshot.objectif ?? null }
+      ).value;
+
       // Build full DRE input
       const dreInput: FullDREInput = {
         snapshotId: snapshot.id,
         athleteId: snapshot.athlete_id,
         coachId: user.id,
         objective: extSnapshot.objectif ?? "IM",
-        vlamax: snapshot.vlamax ?? null,
+        vlamax: goalVlamax,
         vlamaxConfidence: 0.7, // Default confidence
         tteMin: snapshot.tte_observed_min ?? null,
         tteConfidence: 0.7, // Default confidence
