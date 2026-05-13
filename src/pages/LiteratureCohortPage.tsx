@@ -139,6 +139,19 @@ export default function LiteratureCohortPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: "Général", value: "endurance général : cyclisme + course + triathlon, tous niveaux", n: 30 },
+              { label: "Run / CAP (combler trous)", value: "course à pied — VMA, vVO2max, économie de course (mlO2/kg/km), MLSS run, VLamax run, sprint anaérobie 6-30s, pace seuil", n: 40 },
+              { label: "Bike anchors", value: "cyclisme — FTP, VLamax bike, MLSS, Pmax 5s, profil de puissance critique CP/W'", n: 30 },
+              { label: "Triathlon LD", value: "triathlon longue distance — durabilité, FTP, VLamax bike, économie de course, fractional utilization", n: 30 },
+            ].map((p) => (
+              <Button key={p.label} variant="outline" size="sm" type="button"
+                onClick={() => { setFocus(p.value); setTargetCount(p.n); }}>
+                {p.label}
+              </Button>
+            ))}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="md:col-span-2">
               <Label>Focus thématique</Label>
