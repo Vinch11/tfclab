@@ -105,7 +105,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
         // legacy compat :
         historique: [],
         masse_grasse: refs.masse_grasse ?? null,
-        sexe: refs.sexe ?? null,
+        sexe: a.sex ?? refs.sexe ?? null, // ✅ FIX: Priorité colonne DB, fallback refs
       };
     });
   }, [dbAthletes]);
