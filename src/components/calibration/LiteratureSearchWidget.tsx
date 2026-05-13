@@ -18,6 +18,7 @@ export function LiteratureSearchWidget() {
   const { toast } = useToast();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [autoLoading, setAutoLoading] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
   const [citations, setCitations] = useState<string[]>([]);
 
@@ -42,6 +43,31 @@ export function LiteratureSearchWidget() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const runAutoExtract = async () => {
+    setAutoLoading(true);
+    try {
+      const focus = query.trim() || undefined;
+      const { data, error } = await supabase.functions.invoke("auto-extract-recent-literature", {
+        body: focus ? { focus } : {},
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const d = data as any;
+      toast({
+        title: "Extraction réussie ✅",
+        description: `Version ${d.version} : ${d.total_profiles} profils, ${d.total_studies} études ajoutés à la cohorte.`,
+      });
+    } catch (e: any) {
+      toast({
+        title: "Extraction échouée",
+        description: e.message || "Erreur inconnue",
+        variant: "destructive",
+      });
+    } finally {
+      setAutoLoading(false);
     }
   };
 
