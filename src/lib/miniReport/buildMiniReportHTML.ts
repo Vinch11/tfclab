@@ -305,6 +305,18 @@ ${L.glossary ? `
   </tbody>
 </table>
 
+<div style="background:#F8F9FA;border:1px solid #E5E5E5;border-radius:6px;padding:12px 14px;margin:10px 0 4px 0;">
+  <p style="margin:0 0 8px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#1a1a1a;">📖 Légende des zones — à quoi sert chaque intensité</p>
+  <ul style="margin:0;padding-left:0;list-style:none;font-size:11.5px;line-height:1.55;color:#333;">
+    ${TRAINING_ZONES.map((z) => `
+      <li style="margin:4px 0;display:flex;gap:8px;align-items:flex-start;">
+        <span style="display:inline-block;min-width:34px;text-align:center;padding:2px 6px;border-radius:4px;background:${ZONE_COLORS[z.id] || "#999"};color:#000;font-weight:700;font-size:10px;">${z.id}</span>
+        <span><strong>${escapeHtml(z.label)}</strong> — ${escapeHtml(z.description)} <span style="color:#777;">(${escapeHtml(z.positionSeuils)} · ${escapeHtml(z.durationTypique)})</span></span>
+      </li>
+    `).join("")}
+  </ul>
+</div>
+
 <div class="caveats">
   <p>${L.caveatsTitle}</p>
   <ul>
