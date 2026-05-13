@@ -52,7 +52,7 @@ interface CloudDataContextType {
 const CloudDataContext = createContext<CloudDataContextType | null>(null);
 
 export function CloudDataProvider({ children }: { children: ReactNode }) {
-  const cloudData = useCloudData();
+  const cloudData = useCloudDataInternal();
 
   return (
     <CloudDataContext.Provider value={cloudData}>
