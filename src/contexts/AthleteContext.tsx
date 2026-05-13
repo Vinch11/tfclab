@@ -105,7 +105,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
         // legacy compat :
         historique: [],
         masse_grasse: refs.masse_grasse ?? null,
-        sexe: refs.sexe ?? null,
+        sexe: a.sex ?? refs.sexe ?? null, // ✅ FIX: Priorité colonne DB, fallback refs
       };
     });
   }, [dbAthletes]);
@@ -150,6 +150,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
       athlete.objectif || "IM",
       refs as Json,
       athlete.vo2max ?? null,
+      athlete.sexe || refs.sexe || null, // ✅ FIX: Passer le sexe à la création
     );
     if (created?.id) setSelectedAthleteId(created.id);
     return created;

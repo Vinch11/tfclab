@@ -31,6 +31,7 @@ export const athleteSchema = z.object({
   name: z.string().trim().min(1, "Le nom est requis").max(100, "Le nom est trop long"),
   goal: z.string().max(500, "L'objectif est trop long").nullable().optional(),
   vo2max: numericOptional(20, 100),
+  sex: z.enum(["M", "F"]).nullable().optional(),
   refs: z.record(z.unknown()).nullable().optional(),
 });
 

@@ -169,11 +169,11 @@ export function useCloudData() {
   }, [loadData]);
 
   // ========== ATHLETES ==========
-  const addAthlete = async (name: string, goal: string, refs: Json = {}, vo2max: number | null = null) => {
+  const addAthlete = async (name: string, goal: string, refs: Json = {}, vo2max: number | null = null, sex: string | null = null) => {
     if (!user) return null;
     
     // Validate input data
-    const { data: validated, error: validationError } = validateOrNull(athleteSchema, { name, goal, vo2max, refs });
+    const { data: validated, error: validationError } = validateOrNull(athleteSchema, { name, goal, vo2max, sex, refs });
     if (validationError) {
       toast.error(`Données invalides: ${validationError}`);
       return null;
@@ -185,6 +185,7 @@ export function useCloudData() {
       goal: validated.goal ?? null,
       refs: (validated.refs as Json) ?? {},
       vo2max: (validated.vo2max as number | null) ?? null,
+      sex: validated.sex ?? null,
     };
     const { data, error } = await supabase
       .from("athletes")
