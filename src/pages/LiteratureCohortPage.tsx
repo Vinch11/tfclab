@@ -307,6 +307,8 @@ export default function LiteratureCohortPage() {
               )}
             </CardContent>
           </Card>
+
+          <LabAthleteValidator />
         </>
       )}
     </div>
