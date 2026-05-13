@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const SUGGESTIONS = [
+  "Travaux de Véronique Billat : VMA, vVO2max, intervalles 30/30, économie de course (1996-2024)",
   "Études récentes (2023-2025) sur VLamax et performance en cyclisme",
   "Méta-analyses sur MLSS vs FTP",
   "Running economy : valeurs de référence par niveau d'élite",
