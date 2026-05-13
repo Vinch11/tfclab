@@ -313,13 +313,51 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     const { ftp, pmax_5s, weight_kg } = effectiveSnapshot;
     
     // =============================================
-    // C0) V2 ENHANCED CAP (running power + VMA/Seuil fusion)
+    // C0) UNIFIED CAP ESTIMATOR (source principale)
+    // - vlamaxCapEstimator = source dominante (intègre Sprint 15s, Pace/VMA,
+    //   Puissance course, Modèle C inverse, mesure labo, économie, TTE)
+    // - computeVLamaxRunV2Enhanced = fallback Score G running power si
+    //   l'estimateur principal renvoie "insufficient"
     // =============================================
     if (sport === "cap") {
+      const capEst = estimateVLamaxCap({
+        vma: effectiveSnapshot.vma ?? null,
+        paceThresholdSecPerKm: effectiveSnapshot.pace_threshold_sec_per_km ?? null,
+        tteMin: effectiveSnapshot.tte_observed_min ?? null,
+        sprint15sDistance: effectiveSnapshot.sprint_15s_distance ?? null,
+        runningPowerMax: effectiveSnapshot.running_power_max ?? null,
+        runningPowerThreshold: effectiveSnapshot.running_power_threshold ?? null,
+        vlamaxRunMeasured: effectiveSnapshot.vlamax_run ?? null,
+      });
+
+      if (capEst.method !== "insufficient" && capEst.value > 0) {
+        const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+        const v2Input: VLamaxV2Input = {
+          rawValue: capEst.value,
+          source: "estimation",
+          sport,
+          previousEffective,
+          factors: {
+            sourceCount: capEst.sources.length,
+            temporalStability: 0.3,
+            dataAgeDays: ageDays,
+          },
+          sourceLabels: capEst.sources.map(s => `CAP: ${s}`),
+          reason: `VLamax CAP unifié (${capEst.method})`,
+        };
+        const v2 = computeVLamaxV2(v2Input);
+        v2.confidence = Math.max(v2.confidence, capEst.confidence * 0.95);
+        return wrapV2Result(v2, {
+          protocol: `CAP unifié — ${capEst.sources.join(" + ") || capEst.method}`,
+          date: effectiveSnapshot.date,
+        });
+      }
+
+      // Fallback : Score G running power (vlamaxRunV2Enhanced)
       const hasRunPower = effectiveSnapshot.running_power_threshold != null && effectiveSnapshot.running_power_threshold > 0;
-      const hasVmaSeuil = effectiveSnapshot.vma != null && effectiveSnapshot.vma > 0 
+      const hasVmaSeuil = effectiveSnapshot.vma != null && effectiveSnapshot.vma > 0
         && effectiveSnapshot.pace_threshold_sec_per_km != null && effectiveSnapshot.pace_threshold_sec_per_km > 0;
-      
+
       if (hasRunPower || hasVmaSeuil) {
         const runV2 = computeVLamaxRunV2Enhanced({
           runPowerThreshold: effectiveSnapshot.running_power_threshold ?? 0,
@@ -334,7 +372,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
           vma: effectiveSnapshot.vma ?? null,
           paceThresholdSecPerKm: effectiveSnapshot.pace_threshold_sec_per_km ?? null,
         });
-        
+
         if (runV2.formula !== "insufficient") {
           const ageDays = computeDataAgeDays(effectiveSnapshot.date);
           const v2Input: VLamaxV2Input = {
@@ -347,11 +385,11 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
               temporalStability: 0.3,
               dataAgeDays: ageDays,
             },
-            sourceLabels: runV2.sources.map(s => `CAP: ${s}`),
-            reason: `VLamax CAP V2 (${runV2.formulaLabel})`,
+            sourceLabels: runV2.sources.map(s => `CAP fallback: ${s}`),
+            reason: `VLamax CAP fallback Score G (${runV2.formulaLabel})`,
           };
           const v2 = computeVLamaxV2(v2Input);
-          v2.confidence = Math.max(v2.confidence, runV2.confidence * 0.9);
+          v2.confidence = Math.max(v2.confidence, runV2.confidence * 0.85);
           return wrapV2Result(v2, {
             protocol: runV2.formulaLabel,
             date: effectiveSnapshot.date,
