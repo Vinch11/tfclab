@@ -68,3 +68,8 @@ export function useCloudDataContext() {
   }
   return context;
 }
+
+// ✅ Alias for backwards compatibility — always use the shared context state
+// to ensure updates (snapshots, athletes…) propagate across components.
+export const useCloudData = useCloudDataContext;
+
