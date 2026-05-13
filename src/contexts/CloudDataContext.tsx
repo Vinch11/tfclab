@@ -18,7 +18,7 @@ interface CloudDataContextType {
   checkins: DbCheckin[];
   loading: boolean;
   loadData: () => Promise<void>;
-  addAthlete: (name: string, goal: string, refs?: Json, vo2max?: number | null) => Promise<DbAthlete | null>;
+  addAthlete: (name: string, goal: string, refs?: Json, vo2max?: number | null, sex?: string | null) => Promise<DbAthlete | null>;
   updateAthlete: (id: string, updates: TablesUpdate<"athletes">) => Promise<boolean>;
   deleteAthlete: (id: string) => Promise<boolean>;
   addTest: (
