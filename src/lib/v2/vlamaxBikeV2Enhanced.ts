@@ -334,11 +334,11 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   // Validation FTP obligatoire
   if (!ftp || ftp <= 0) {
     return {
-      value: 0.42, rangeMin: 0.25, rangeMax: 0.65,
-      confidence: 0.20, confidenceLabel: "Très faible",
+      value: 0, rangeMin: 0, rangeMax: 0,
+      confidence: 0, confidenceLabel: "Très faible",
       formula: "insufficient", formulaLabel: "Données insuffisantes",
       components: null,
-      pedagogicalMessage: "FTP requis pour estimer VLamax vélo",
+      pedagogicalMessage: "Données insuffisantes — renseigner FTP pour estimer VLamax vélo",
       warnings: ["FTP non renseigné"], sources: [],
     };
   }
@@ -617,11 +617,11 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   } else {
     // ── INSUFFICIENT ──
     return {
-      value: 0.42, rangeMin: 0.25, rangeMax: 0.65,
-      confidence: 0.25, confidenceLabel: "Très faible",
+      value: 0, rangeMin: 0, rangeMax: 0,
+      confidence: 0, confidenceLabel: "Très faible",
       formula: "insufficient", formulaLabel: "Données insuffisantes",
       components: null,
-      pedagogicalMessage: "Compléter FTP + VO₂max + Pmax pour estimer VLamax",
+      pedagogicalMessage: "Données insuffisantes — compléter FTP + VO₂max + Pmax pour estimer VLamax",
       warnings: ["Données de puissance insuffisantes"], sources,
     };
   }

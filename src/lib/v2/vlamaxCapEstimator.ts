@@ -320,12 +320,12 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   // =============================================
   if (estimates.length === 0) {
     return {
-      value: 0.42, // Valeur par défaut conservatrice
-      confidence: 0.15,
+      value: 0, // Politique TFCL : pas de fallback neutre — afficher "Données insuffisantes"
+      confidence: 0,
       confidenceAdjustment: 0,
-      sources: ["Défaut"],
-      method: "default",
-      details: "Données insuffisantes pour estimation"
+      sources: [],
+      method: "insufficient",
+      details: "Données insuffisantes pour estimation VLamax CAP"
     };
   }
 

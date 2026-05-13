@@ -323,11 +323,11 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
   } else {
     // Insufficient
     return {
-      value: 0.42, rangeMin: 0.25, rangeMax: 0.60,
-      confidence: 0.20, confidenceLabel: "Très faible",
+      value: 0, rangeMin: 0, rangeMax: 0,
+      confidence: 0, confidenceLabel: "Très faible",
       formula: "insufficient", formulaLabel: "Données insuffisantes",
       components: null,
-      pedagogicalMessage: "Importer les records de puissance running (Stryd/Garmin) ou renseigner VMA + allure seuil",
+      pedagogicalMessage: "Données insuffisantes — importer les records de puissance running (Stryd/Garmin) ou renseigner VMA + allure seuil",
       warnings: ["Données insuffisantes pour estimer VLamax CAP"],
       sources: [], runGlycolyticProfile: null,
     };
