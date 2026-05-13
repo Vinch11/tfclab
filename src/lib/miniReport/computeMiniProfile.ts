@@ -165,18 +165,6 @@ function buildZones(vmaKmh: number): TrainingZone[] {
   const baseSec = 3600 / vmaKmh; // sec/km à 100% VMA
   const paceFor = (pct: number) => Math.round(baseSec / pct);
 
-  // Importé localement pour éviter un import circulaire au top du fichier
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { TRAINING_ZONES } = require("@/lib/trainingZonesDefinition") as {
-    TRAINING_ZONES: Array<{
-      id: string;
-      label: string;
-      description: string;
-      vma: { min: number; max: number };
-      parametresTravailles: string;
-    }>;
-  };
-
   return TRAINING_ZONES.map((z) => ({
     id: z.id,
     label: z.label,
