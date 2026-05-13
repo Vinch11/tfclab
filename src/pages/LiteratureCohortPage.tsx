@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, BookOpen, Sparkles, Trash2 } from "lucide-react";
 import { LabAthleteValidator } from "@/components/calibration/LabAthleteValidator";
+import { LiteratureSearchWidget } from "@/components/calibration/LiteratureSearchWidget";
 
 type Version = {
   id: string;
@@ -308,6 +309,7 @@ export default function LiteratureCohortPage() {
             </CardContent>
           </Card>
 
+          <LiteratureSearchWidget />
           <LabAthleteValidator />
         </>
       )}
