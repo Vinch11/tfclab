@@ -216,15 +216,14 @@ export function VLamaxUnifiedCard({
     );
   }
   
-  // Display value
-  const displayValue = v2Result
+  // Display value — utilise v2Result uniquement sur l'onglet Vélo (v2Result est calibré vélo)
+  const displayValue = v2Result && !isOnRunTab
     ? (staffMode ? formatVLamaxStaff(v2Result) : formatVLamaxAthlete(v2Result))
     : (staffMode ? `${vlamax.toFixed(2)}` : `≈ ${vlamax.toFixed(2)}`);
-  
-  // Calibration display
+
+  // Cibles alignées sur l'onglet actif (Vélo vs CAP)
   const normalizedObj = normalizeObjective(objectif as ObjectifPrincipal);
-  // Sport résolu pour les cibles VLamax (run → cap pour offset CAP)
-  const sportForTargets = sport === "run" ? "cap" : sport;
+  const sportForTargets = isOnRunTab ? "cap" : (sport === "run" ? "cap" : sport);
   const targets = getVLamaxRange(normalizedObj, ambition, sportForTargets);
   const ambitionDef = getAmbitionDefinition(ambition);
   
