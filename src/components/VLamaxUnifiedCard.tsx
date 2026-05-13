@@ -172,22 +172,27 @@ export function VLamaxUnifiedCard({
   const [showEducation, setShowEducation] = useState(false);
   const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
   
-  const vlamax = vlamaxEffectif.value;
-  
+  const vlamaxBike = vlamaxEffectif.value;
+
   // Determine available tabs
   const showBike = !isRunningOnly;
   const showRun = isTriathlon || isRunningOnly;
-  const showComparison = isTriathlon && vlamax !== null && vlamaxRun !== null;
-  
+  const showComparison = isTriathlon && vlamaxBike !== null && vlamaxRun != null;
+
   const defaultTab = isRunningOnly ? "run" : "bike";
   const effectiveTab = activeTab ?? defaultTab;
-  
-  // Profile for header
+
+  // ✅ Cohérence: la valeur affichée et la cible suivent l'onglet actif.
+  // En triathlon, l'onglet CAP doit refléter vlamaxRun, pas vlamaxBike.
+  const isOnRunTab = effectiveTab === "run";
+  const vlamax = isOnRunTab && vlamaxRun != null ? vlamaxRun : vlamaxBike;
+
+  // Profile for header (basé sur la valeur de l'onglet actif)
   const { profil } = useMemo(
     () => getAgeAdjustedVLamaxProfil(vlamax, age),
     [vlamax, age]
   );
-  
+
   const profileConfig = PROFILE_CONFIG[profil];
   
   // Unavailable state
