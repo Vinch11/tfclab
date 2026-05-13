@@ -43,7 +43,7 @@ function getFatigueIcon(value: number) {
 }
 
 export function QuickFatigueInput({ athleteId, athleteName, onSubmit }: QuickFatigueInputProps) {
-  const { addCheckin, updateCheckin, getCheckinsForAthlete } = useCloudDataContext();
+  const { addCheckin, updateCheckin, getCheckinsForAthlete } = useCloudData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 

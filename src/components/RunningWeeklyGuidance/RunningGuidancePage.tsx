@@ -44,7 +44,7 @@ import { computeDisponibiliteTFCL } from "@/lib/v2/disponibiliteTFCL";
 export function RunningGuidancePage() {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudDataContext();
+  const { snapshots, tests, checkins } = useCloudData();
   const { isRunningOnly, raceType, raceLabel } = useRunningFocusMode();
   
   // État local pour simulation (en prod, viendrait de la DB)

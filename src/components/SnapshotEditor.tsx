@@ -207,7 +207,7 @@ function VLamaxCapField({
 
 
 export function SnapshotEditor({ snapshot, trigger, staffMode = false }: SnapshotEditorProps) {
-  const { updateSnapshot } = useCloudDataContext();
+  const { updateSnapshot } = useCloudData();
   const [open, setOpen] = useState(false);
 
   const [date, setDate] = useState(snapshot.date);

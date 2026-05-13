@@ -1061,7 +1061,7 @@ function AnnotationsPanelV2({ annotations }: { annotations: AnnotationV2[] }) {
 
 export default function TemplatesPage() {
   const navigate = useNavigate();
-  const { snapshots, tests, loading: cloudLoading } = useCloudDataContext();
+  const { snapshots, tests, loading: cloudLoading } = useCloudData();
   
   // ✅ Utiliser AthleteContext pour synchroniser avec le Dashboard
   const { athletes, selectedAthleteId, setSelectedAthleteId } = useAthletes();

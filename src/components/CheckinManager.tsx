@@ -63,7 +63,7 @@ function getDefaultWeekTag(): string {
 }
 
 export function CheckinManager({ athleteId, athleteName }: CheckinManagerProps) {
-  const { getCheckinsForAthlete, addCheckin, updateCheckin, deleteCheckin } = useCloudDataContext();
+  const { getCheckinsForAthlete, addCheckin, updateCheckin, deleteCheckin } = useCloudData();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingCheckin, setEditingCheckin] = useState<DbCheckin | null>(null);

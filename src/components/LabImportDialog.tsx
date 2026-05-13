@@ -40,7 +40,7 @@ export function LabImportDialog({
   previousSnapshot,
   onImportComplete 
 }: LabImportDialogProps) {
-  const { addSnapshot, addTest } = useCloudDataContext();
+  const { addSnapshot, addTest } = useCloudData();
   
   // Use persisted dialog state to survive page minimize/restore
   const [isOpen, setIsOpen] = usePersistedDialogState(`lab-import-${athleteId}`, false);

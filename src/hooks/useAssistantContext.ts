@@ -60,7 +60,7 @@ export function useAssistantContext(
   selectedAthleteId: string | null,
   currentPage: string = "dashboard"
 ): AssistantContextForAI {
-  const { athletes, snapshots, tests } = useCloudDataContext();
+  const { athletes, snapshots, tests } = useCloudData();
   
   const context = useMemo<AssistantAthleteContext>(() => {
     // Pas d'athlète sélectionné

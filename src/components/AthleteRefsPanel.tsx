@@ -101,7 +101,7 @@ export function AthleteRefsPanel({
   onNavigateToTFCLTest,
   compact = false 
 }: AthleteRefsPanelProps) {
-  const { updateAthlete } = useCloudDataContext();
+  const { updateAthlete } = useCloudData();
   
   // Détection mode running
   const isRunningGoal = ["Marathon", "Semi", "5K", "10K", "StartToRun", "Trail", "TrailShort", "TrailMountain", "TrailUltra"].includes(athleteGoal);

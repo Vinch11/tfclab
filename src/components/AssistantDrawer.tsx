@@ -270,7 +270,7 @@ export function AssistantDrawer({
   const inputRef = useRef<HTMLInputElement>(null);
   
   // Données Cloud
-  const { athletes, snapshots, tests } = useCloudDataContext();
+  const { athletes, snapshots, tests } = useCloudData();
   
   // Context Packet runtime
   const contextPacket = useMemo<AssistantContextPacket>(() => {
