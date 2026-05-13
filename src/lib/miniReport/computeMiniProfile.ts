@@ -20,6 +20,8 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
+
 export type ReferenceRaceType = "semi" | "20k";
 export type Sex = "M" | "F";
 export type ProfileType = "explosif" | "equilibre" | "endurant";
@@ -156,76 +158,22 @@ function paceFromTimeAndDistance(timeSec: number, distanceKm: number): number {
 }
 
 // =============================================
-// 6. Zones Z1-Z7 (% VMA)
+// 6. Zones Z1 → Z7 (% VMA) — alignées sur la grille officielle TFCL
+//    Source unique : src/lib/trainingZonesDefinition.ts
 // =============================================
 function buildZones(vmaKmh: number): TrainingZone[] {
   const baseSec = 3600 / vmaKmh; // sec/km à 100% VMA
-
   const paceFor = (pct: number) => Math.round(baseSec / pct);
 
-  const ZONES: Array<Omit<TrainingZone, "paceMinSecPerKm" | "paceMaxSecPerKm">> = [
-    {
-      id: "Z1",
-      label: "Récupération active",
-      pctVmaMin: 50,
-      pctVmaMax: 60,
-      description: "Allure très facile, conversation aisée. Cardio < 70% FC max.",
-      purpose: "Récupération entre séances dures, échauffement, retour au calme.",
-    },
-    {
-      id: "Z2",
-      label: "Endurance fondamentale",
-      pctVmaMin: 60,
-      pctVmaMax: 75,
-      description: "Allure confortable, respiration nasale possible. Pilier de la base aérobie.",
-      purpose: "Développer la capillarisation, le métabolisme des graisses, l'endurance générale.",
-    },
-    {
-      id: "Z3",
-      label: "Endurance critique / Tempo",
-      pctVmaMin: 75,
-      pctVmaMax: 85,
-      description: "Allure soutenue mais maîtrisée, conversation par phrases courtes.",
-      purpose: "Améliorer la clairance du lactate sous le seuil, allure marathon/semi.",
-    },
-    {
-      id: "Z4",
-      label: "Seuil lactique (MLSS)",
-      pctVmaMin: 85,
-      pctVmaMax: 92,
-      description: "Allure proche d'un effort 1h all-out (≈ semi-marathon rapide).",
-      purpose: "Repousser le seuil — pierre angulaire pour les distances 10k à semi.",
-    },
-    {
-      id: "Z5",
-      label: "VO2max",
-      pctVmaMin: 92,
-      pctVmaMax: 100,
-      description: "Effort intense, respiration ample. Soutenable 5 à 12 min en continu.",
-      purpose: "Élever le plafond aérobie, intervalles de 3 à 6 min ou 30/30.",
-    },
-    {
-      id: "Z6",
-      label: "Anaérobie lactique",
-      pctVmaMin: 100,
-      pctVmaMax: 115,
-      description: "Au-dessus de VMA, sollicite la glycolyse rapide (production lactate).",
-      purpose: "Tolérance lactique, intervalles courts 30s à 2 min avec repos long.",
-    },
-    {
-      id: "Z7",
-      label: "Sprint / Neuromusculaire",
-      pctVmaMin: 115,
-      pctVmaMax: 150,
-      description: "Effort maximal court (< 15 s). Filière phosphocréatine + recrutement.",
-      purpose: "Force-vitesse, économie de course, foulée — repos complet entre reps.",
-    },
-  ];
-
-  return ZONES.map((z) => ({
-    ...z,
-    paceMinSecPerKm: paceFor(z.pctVmaMax / 100),
-    paceMaxSecPerKm: paceFor(z.pctVmaMin / 100),
+  return TRAINING_ZONES.map((z) => ({
+    id: z.id,
+    label: z.label,
+    pctVmaMin: z.vma.min,
+    pctVmaMax: z.vma.max,
+    description: z.description,
+    purpose: z.parametresTravailles,
+    paceMinSecPerKm: paceFor(z.vma.max / 100),
+    paceMaxSecPerKm: paceFor(z.vma.min / 100),
   }));
 }
 

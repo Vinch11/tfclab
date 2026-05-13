@@ -25,15 +25,17 @@ const PROFILE_COLORS: Record<string, string> = {
   endurant: "#27AE60",
 };
 
-const ZONE_COLORS = [
-  "#A8E6CF", // Z1
-  "#7FCDCD", // Z2
-  "#FFD93D", // Z3
-  "#FF9F43", // Z4
-  "#FF6B6B", // Z5
-  "#C44569", // Z6
-  "#6C5CE7", // Z7
-];
+// Couleurs alignées sur la grille officielle Z1 → Z7 (Z4 dédoublée a/b)
+const ZONE_COLORS: Record<string, string> = {
+  Z1: "#A8E6CF",
+  Z2: "#7FCDCD",
+  Z3: "#FFD93D",
+  Z4a: "#FFB347",
+  Z4b: "#FF8C42",
+  Z5: "#FF6B6B",
+  Z6: "#C44569",
+  Z7: "#6C5CE7",
+};
 
 export function buildMiniReportHTML(result: MiniReportResult): string {
   const { input, vlamax, profile, profileLabel, ceMlPerKgPerKm, mlssPct,
@@ -85,9 +87,9 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
   const adviceHtml = trainingAdvice.map((a) => `<li>${renderInline(a)}</li>`).join("");
   const caveatsHtml = caveats.map((c) => `<li>${escapeHtml(c)}</li>`).join("");
 
-  const zonesHtml = zones.map((z, i) => `
+  const zonesHtml = zones.map((z) => `
     <tr>
-      <td style="background:${ZONE_COLORS[i]};color:#000;font-weight:700;text-align:center;width:50px;">${z.id}</td>
+      <td style="background:${ZONE_COLORS[z.id] || "#999"};color:#000;font-weight:700;text-align:center;width:50px;">${z.id}</td>
       <td><strong>${escapeHtml(z.label)}</strong><br/><span style="font-size:11px;color:#666;">${escapeHtml(z.description)}</span></td>
       <td style="text-align:center;font-variant-numeric:tabular-nums;">${z.pctVmaMin}–${z.pctVmaMax}%</td>
       <td style="text-align:center;font-variant-numeric:tabular-nums;">${formatPace(z.paceMinSecPerKm)}–${formatPace(z.paceMaxSecPerKm)}</td>
