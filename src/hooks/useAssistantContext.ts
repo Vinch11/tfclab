@@ -144,6 +144,7 @@ export function useAssistantContext(
         athlete_id: s.athlete_id,
         date: s.date,
         vlamax: s.vlamax,
+        vlamax_run: (s as any).vlamax_run ?? null, // ✅ requis pour routing CAP
         ftp: s.ftp,
         pmax_5s: s.pmax_5s,
         weight_kg: s.weight_kg,
