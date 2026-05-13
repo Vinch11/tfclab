@@ -20,6 +20,8 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
+
 export type ReferenceRaceType = "semi" | "20k";
 export type Sex = "M" | "F";
 export type ProfileType = "explosif" | "equilibre" | "endurant";
