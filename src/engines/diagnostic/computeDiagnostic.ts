@@ -144,15 +144,20 @@ function computeVLamaxFromInput(input: DiagnosticInput): VLamaxEffectif {
   if (input.vlamaxEffectifPrecomputed) {
     return input.vlamaxEffectifPrecomputed;
   }
+  // ✅ VLamax adaptée à l'objectif : pour un coureur pur, on doit passer
+  // vlamax_run au moteur V2 ; sinon il interprète la VLamax vélo comme
+  // VLamax CAP et produit un profil incohérent.
+  const isRunFocus = input.sportFocus === "run";
   const snapshotObj = {
     id: "diagnostic-snapshot",
     athlete_id: input.athleteId,
     date: new Date().toISOString().split("T")[0],
     vlamax: input.vlamax,
+    vlamax_run: input.vlamaxRun,
     ftp: input.ftp,
     pmax_5s: input.pmax5s,
     weight_kg: input.weightKg,
-    sport_main: input.sportFocus === "run" ? "run" : "bike",
+    sport_main: isRunFocus ? "run" : "bike",
     p30s_w: input.p30sW,
     p60s_w: input.p60sW,
     map5min_w: input.map5minW,
