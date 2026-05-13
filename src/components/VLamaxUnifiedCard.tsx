@@ -92,7 +92,7 @@ export interface VLamaxUnifiedCardProps {
   vlamaxEffectif: VLamaxEffectif;
   objectif: string;
   age?: number | null;
-  sex?: "H" | "F";
+  sex?: "H" | "M" | "F";
   staffMode?: boolean;
   ambition?: AmbitionLevel;
   /** Sport principal (cap | bike | tri) pour offset des cibles VLamax */
