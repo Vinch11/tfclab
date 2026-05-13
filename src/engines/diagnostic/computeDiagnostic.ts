@@ -517,11 +517,15 @@ function mapMetricToLever(metric: string): "increase_vo2max" | "decrease_vlamax"
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function computeDataCompleteness(input: DiagnosticInput): number {
+  // ✅ VLamax adaptée à l'objectif : pour un runner pur, c'est vlamax_run
+  // qui compte dans la complétude (pas la VLamax vélo).
+  const goalVlamax = input.sportFocus === "run" ? input.vlamaxRun : input.vlamax;
+
   const fields: (number | null | undefined)[] = [
     input.vo2max,
     input.ftp,
     input.ftpKg,
-    input.vlamax,
+    goalVlamax,
     input.tteObservedMin ?? input.tss7d,
     input.pmax5s,
     input.weightKg,
@@ -532,6 +536,10 @@ function computeDataCompleteness(input: DiagnosticInput): number {
   }
   if (input.sportFocus === "bike" || input.sportFocus === "tri") {
     fields.push(input.p30sW, input.p60sW, input.map5minW);
+  }
+  // En triathlon on attend AUSSI vlamax_run (scoring CAP-spécifique)
+  if (input.sportFocus === "tri") {
+    fields.push(input.vlamaxRun);
   }
 
   const present = fields.filter(f => f !== null && f !== undefined).length;
