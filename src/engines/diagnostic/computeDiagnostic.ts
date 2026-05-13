@@ -144,15 +144,20 @@ function computeVLamaxFromInput(input: DiagnosticInput): VLamaxEffectif {
   if (input.vlamaxEffectifPrecomputed) {
     return input.vlamaxEffectifPrecomputed;
   }
+  // ✅ VLamax adaptée à l'objectif : pour un coureur pur, on doit passer
+  // vlamax_run au moteur V2 ; sinon il interprète la VLamax vélo comme
+  // VLamax CAP et produit un profil incohérent.
+  const isRunFocus = input.sportFocus === "run";
   const snapshotObj = {
     id: "diagnostic-snapshot",
     athlete_id: input.athleteId,
     date: new Date().toISOString().split("T")[0],
     vlamax: input.vlamax,
+    vlamax_run: input.vlamaxRun,
     ftp: input.ftp,
     pmax_5s: input.pmax5s,
     weight_kg: input.weightKg,
-    sport_main: input.sportFocus === "run" ? "run" : "bike",
+    sport_main: isRunFocus ? "run" : "bike",
     p30s_w: input.p30sW,
     p60s_w: input.p60sW,
     map5min_w: input.map5minW,
@@ -512,11 +517,15 @@ function mapMetricToLever(metric: string): "increase_vo2max" | "decrease_vlamax"
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function computeDataCompleteness(input: DiagnosticInput): number {
+  // ✅ VLamax adaptée à l'objectif : pour un runner pur, c'est vlamax_run
+  // qui compte dans la complétude (pas la VLamax vélo).
+  const goalVlamax = input.sportFocus === "run" ? input.vlamaxRun : input.vlamax;
+
   const fields: (number | null | undefined)[] = [
     input.vo2max,
     input.ftp,
     input.ftpKg,
-    input.vlamax,
+    goalVlamax,
     input.tteObservedMin ?? input.tss7d,
     input.pmax5s,
     input.weightKg,
@@ -527,6 +536,10 @@ function computeDataCompleteness(input: DiagnosticInput): number {
   }
   if (input.sportFocus === "bike" || input.sportFocus === "tri") {
     fields.push(input.p30sW, input.p60sW, input.map5minW);
+  }
+  // En triathlon on attend AUSSI vlamax_run (scoring CAP-spécifique)
+  if (input.sportFocus === "tri") {
+    fields.push(input.vlamaxRun);
   }
 
   const present = fields.filter(f => f !== null && f !== undefined).length;

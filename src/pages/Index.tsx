@@ -481,6 +481,7 @@ const Index = () => {
         athlete_id: s.athlete_id,
         date: s.date,
         vlamax: s.vlamax,
+        vlamax_run: (s as any).vlamax_run ?? null, // ✅ requis pour routing CAP
         ftp: s.ftp,
         pmax_5s: s.pmax_5s,
         weight_kg: s.weight_kg,
@@ -492,6 +493,8 @@ const Index = () => {
         protocol_quality: s.protocol_quality,
         objectif: s.objectif,
         vo2max: s.vo2max,
+        vlamax_source: (s as any).vlamax_source ?? null,
+        vlamax_protocol: (s as any).vlamax_protocol ?? null,
         // CAP V2 Enhanced — données Nolio/Stryd/Garmin
         vma: s.vma,
         pace_threshold_sec_per_km: s.pace_threshold_sec_per_km,
