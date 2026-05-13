@@ -42,7 +42,7 @@ import {
 } from "@/lib/annotationEngineV2";
 import { getTemplateProfiles, getClosestProfile, type TemplateProfilePair } from "@/data/templateProfiles";
 
-import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import { useCloudData, DbAthlete, DbSnapshot } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { computeVLamaxEffectif, getSourceColor, getSourceBgColor, type VLamaxSource, computeTTEEffectif } from "@/engines/diagnostic";
 import { PlanComparisonView } from "@/components/PlanComparisonView";

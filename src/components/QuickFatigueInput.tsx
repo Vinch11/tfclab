@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Battery, BatteryFull, BatteryLow, BatteryMedium, BatteryWarning, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCloudData, DbCheckin } from "@/hooks/useCloudData";
+import { useCloudData, DbCheckin } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 
 interface QuickFatigueInputProps {

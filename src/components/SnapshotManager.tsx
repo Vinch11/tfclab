@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { NolioImporter, NolioImportResult } from "@/components/NolioImporter";
-import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
+import { DbSnapshot, useCloudData } from "@/contexts/CloudDataContext";
 import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
 import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/engines/diagnostic";
 import { 

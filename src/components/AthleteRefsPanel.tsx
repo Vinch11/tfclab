@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import { useCloudData, DbAthlete, DbSnapshot } from "@/contexts/CloudDataContext";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
 import { 
   getEffectiveRefs, 

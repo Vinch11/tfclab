@@ -4,7 +4,7 @@
 // =============================================
 
 import { useMemo } from "react";
-import { useCloudData, DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import { useCloudData, DbAthlete, DbSnapshot } from "@/contexts/CloudDataContext";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif } from "@/engines/diagnostic";
 import { getEffectiveRefs, computeFtpKg, EffectiveRefs } from "@/lib/effectiveRefs";
 import { computeCRR } from "@/lib/chargeRecenteReference";

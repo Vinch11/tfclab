@@ -20,7 +20,7 @@ import { performOcr } from "@/lib/labImport/ocrProcessor";
 import { parseLabReport, ReportType } from "@/lib/labImport/parsers";
 import { LabExtract, ExtractedField } from "@/lib/labImport/types";
 import { extractToValidationFields, applyFieldEdits, mapExtractToSnapshot, compareWithPrevious } from "@/lib/labImport/snapshotMapper";
-import { DbSnapshot, useCloudData } from "@/hooks/useCloudData";
+import { DbSnapshot, useCloudData } from "@/contexts/CloudDataContext";
 import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
 
 interface LabImportDialogProps {

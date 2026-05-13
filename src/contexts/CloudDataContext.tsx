@@ -4,8 +4,11 @@
  */
 
 import { createContext, useContext, ReactNode } from "react";
-import { useCloudData, DbAthlete, DbSnapshot, DbCheckin } from "@/hooks/useCloudData";
+import { useCloudData as useCloudDataInternal, DbAthlete, DbSnapshot, DbCheckin } from "@/hooks/useCloudData";
 import type { Tables, TablesInsert, TablesUpdate, Json } from "@/integrations/supabase/types";
+
+// Re-export types so consumers can import everything from CloudDataContext
+export type { DbAthlete, DbSnapshot, DbCheckin };
 
 type DbTest = Tables<"tests">;
 type DbPlan = Tables<"plans">;
@@ -49,7 +52,7 @@ interface CloudDataContextType {
 const CloudDataContext = createContext<CloudDataContextType | null>(null);
 
 export function CloudDataProvider({ children }: { children: ReactNode }) {
-  const cloudData = useCloudData();
+  const cloudData = useCloudDataInternal();
 
   return (
     <CloudDataContext.Provider value={cloudData}>
@@ -65,3 +68,8 @@ export function useCloudDataContext() {
   }
   return context;
 }
+
+// ✅ Alias for backwards compatibility — always use the shared context state
+// to ensure updates (snapshots, athletes…) propagate across components.
+export const useCloudData = useCloudDataContext;
+

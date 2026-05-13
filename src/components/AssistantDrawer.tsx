@@ -26,7 +26,7 @@ import {
   Database,
   Trash2
 } from "lucide-react";
-import { useCloudData } from "@/hooks/useCloudData";
+import { useCloudData } from "@/contexts/CloudDataContext";
 import { 
   getAssistantContext, 
   formatContextForPrompt, 

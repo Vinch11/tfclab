@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { useCloudData } from "@/hooks/useCloudData";
+import { useCloudData } from "@/contexts/CloudDataContext";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { LockedProfileCard } from "./LockedProfileCard";
