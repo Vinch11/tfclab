@@ -12,6 +12,7 @@ import {
   Stethoscope,
   Footprints,
   Bike,
+  BookOpen,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
@@ -43,6 +44,15 @@ const sections = [
     route: "/diagnostic/testing-week-cap",
     color: "text-green-500",
     bgColor: "bg-green-500/10",
+  },
+  {
+    id: "cohort-literature",
+    title: "Cohorte Littérature (IA)",
+    description: "Extraction IA de profils de référence depuis la littérature scientifique (Mader, Heck, Beneke…)",
+    icon: BookOpen,
+    route: "/diagnostic/cohort-literature",
+    color: "text-purple-500",
+    bgColor: "bg-purple-500/10",
   },
 ];
 
