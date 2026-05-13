@@ -424,7 +424,7 @@ const Index = () => {
     return {
       id: dbAthlete.id,
       nom: dbAthlete.name,
-      sexe: (refs.sexe as "M" | "F") || "M",
+      sexe: (dbAthlete.sex as "M" | "F") || (refs.sexe as "M" | "F") || "M", // ✅ FIX: Priorité colonne DB
       objectif: (dbAthlete.goal as any) || "IM",
       ambition: legacyAmbition,
       // ✅ FIX: Mapper fatPct (format Cloud) vers masse_grasse (format legacy)
