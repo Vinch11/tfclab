@@ -89,6 +89,12 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
   // ── 6bis. Run MLSS (Modèle C — cross-validator silencieux + fallback) ──
   const runMLSS = computeRunMLSSFromInput(input);
 
+  // ── 6ter. Race Chrono Estimate (RAW — Riegel/VDOT/ACSM/durabilité) ──
+  // Calculé seulement si des chronos sont saisis. Sortie tagguée "race_chrono".
+  const raceChronoEstimate = input.raceChronos
+    ? estimateFromRaceChronos(input.raceChronos)
+    : null;
+
   // ── 7. Synthèse ───────────────────────────────────────────────────────────
   const synthesis = computeSynthesis(limiter, readiness, fatigue, runInjuryRisk, input, runMLSS);
 
@@ -121,6 +127,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     },
     reliability,
     runMLSS,
+    raceChronoEstimate,
     synthesis,
     _rawInput: input,
     meta: {
