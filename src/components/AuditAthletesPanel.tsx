@@ -6,6 +6,8 @@ import { Stethoscope, AlertTriangle, AlertCircle, CheckCircle2, Loader2 } from "
 import { supabase } from "@/integrations/supabase/client";
 import { auditProfile } from "@/lib/profileAudit";
 import { ProfileAuditDialog } from "@/components/ProfileAuditDialog";
+import { CoachabilityAuditDialog } from "@/components/CoachabilityAuditDialog";
+import { Gauge } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Row = {
