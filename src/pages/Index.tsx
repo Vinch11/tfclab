@@ -890,6 +890,46 @@ const Index = () => {
   // ✅ COMPASS INPUT mémorisé — réutilisé par CoachingCompassCard + AthleteProfile
   const compassInputMemo = useMemo(() => {
     if (!currentAthlete || !effectiveCloudSnapshot) return null;
+
+    // ✅ Race chrono fallback : si pas de mesures effectives (run_economy_score / TTE),
+    // on dérive une estimation depuis les chronos saisis (semi, marathon, 10K…)
+    const snap: any = effectiveCloudSnapshot;
+    const chronoEstimate = estimateFromRaceChronos({
+      time_5k_sec: snap.time_5k_sec ?? null,
+      time_10k_sec: snap.time_10k_sec ?? null,
+      time_20k_sec: snap.time_20k_sec ?? null,
+      time_half_sec: snap.time_half_sec ?? null,
+      time_marathon_sec: snap.time_marathon_sec ?? null,
+    });
+
+    // Économie : score 0-100 dérivé de CE (ml O2/kg/km). 180→90, 200→70, 220→50.
+    const economyFromChrono = chronoEstimate?.CE_mlO2_kg_km != null
+      ? Math.max(20, Math.min(95, Math.round(90 - (chronoEstimate.CE_mlO2_kg_km - 180) * 2)))
+      : null;
+    const runEconomyScoreEffective = (snap.run_economy_score as number | null | undefined) ?? economyFromChrono;
+
+    // TTE : si non observé en labo, proxy depuis durée de la référence chrono + durabilityIndex.
+    let tteForCompass = tteEffectif;
+    if ((snap.tte_observed_min == null) && chronoEstimate) {
+      const refMin = chronoEstimate.reference.time_sec / 60;
+      let proxy = 45;
+      if (refMin >= 90) proxy = 75;       // marathon / très long
+      else if (refMin >= 75) proxy = 60;  // semi
+      else if (refMin >= 40) proxy = 50;  // 10-20K
+      else proxy = 35;
+      const di = chronoEstimate.durabilityIndex;
+      if (di != null) {
+        if (di <= 1.00) proxy += 10;
+        else if (di > 1.06) proxy -= 10;
+      }
+      tteForCompass = {
+        ...tteEffectif,
+        tte_min: proxy,
+        source: "race_chrono" as any,
+        confidence: Math.max(tteEffectif.confidence ?? 0, 0.55),
+      };
+    }
+
     return {
       ftp: effectiveRefs.ftp,
       poids: effectiveRefs.weightKg,
@@ -901,13 +941,13 @@ const Index = () => {
       p30sW: effectiveCloudSnapshot.p30s_w ?? null,
       p60sW: effectiveCloudSnapshot.p60s_w ?? null,
       map5minW: effectiveCloudSnapshot.map5min_w ?? null,
-      runEconomyScore: effectiveCloudSnapshot.run_economy_score ?? null,
+      runEconomyScore: runEconomyScoreEffective,
       hrDriftPct: effectiveCloudSnapshot.run_hr_drift_pct ?? null,
       vma: effectiveCloudSnapshot.vma ?? null,
       paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
       fatmax: null as number | null,
       vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
-      tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
+      tteEffectif: { tte_min: tteForCompass.tte_min, confidence: tteForCompass.confidence, source: tteForCompass.source },
       fatigueEffectif: fatigueEffectifForCompass ? {
         score: fatigueEffectifForCompass.score,
         level: String(fatigueEffectifForCompass.level),
