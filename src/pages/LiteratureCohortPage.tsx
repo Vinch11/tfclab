@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, BookOpen, Sparkles, Trash2 } from "lucide-react";
+import { Loader2, BookOpen, Sparkles, Trash2, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { SidebarLayout } from "@/components/SidebarLayout";
 import { LabAthleteValidator } from "@/components/calibration/LabAthleteValidator";
 import { LiteratureSearchWidget } from "@/components/calibration/LiteratureSearchWidget";
 
@@ -41,6 +43,7 @@ type Profile = {
 
 export default function LiteratureCohortPage() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [versions, setVersions] = useState<Version[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
