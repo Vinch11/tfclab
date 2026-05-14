@@ -154,14 +154,27 @@ export function AuditAthletesPanel() {
                   </Badge>
                 )}
                 {r.snapshot ? (
-                  <ProfileAuditDialog
-                    snapshot={r.snapshot}
-                    athleteName={r.athleteName}
-                    athleteGoal={r.athleteGoal}
-                    trigger={
-                      <Button size="sm" variant="outline">Auditer</Button>
-                    }
-                  />
+                  <>
+                    <CoachabilityAuditDialog
+                      snapshot={r.snapshot}
+                      athleteName={r.athleteName}
+                      athleteGoal={r.athleteGoal}
+                      trigger={
+                        <Button size="sm" variant="outline" className="gap-1.5">
+                          <Gauge className="w-3.5 h-3.5" />
+                          Coachabilité
+                        </Button>
+                      }
+                    />
+                    <ProfileAuditDialog
+                      snapshot={r.snapshot}
+                      athleteName={r.athleteName}
+                      athleteGoal={r.athleteGoal}
+                      trigger={
+                        <Button size="sm" variant="outline">Auditer</Button>
+                      }
+                    />
+                  </>
                 ) : (
                   <Button size="sm" variant="outline" disabled>—</Button>
                 )}
