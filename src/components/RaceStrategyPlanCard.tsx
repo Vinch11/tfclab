@@ -16,7 +16,7 @@ import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Activity, ChevronRight, ShieldCheck, Target, Flame, AlertTriangle, Info } from "lucide-react";
+import { Activity, ChevronRight, ShieldCheck, Target, Flame, AlertTriangle, Info, Gauge, HeartPulse, Mountain, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 
@@ -34,6 +34,16 @@ interface SplitRow {
   zone: "GREEN" | "ORANGE" | "RED";
 }
 
+interface EffortRef {
+  npLow: number;          // NP cible bas (W) ou allure rapide (sec/km) -- ici on garde W pour bike, sec/km pour run
+  npHigh: number;
+  hrLow: number | null;   // bpm
+  hrHigh: number | null;
+  climbPower: number | null;   // W (bike) — plafond consenti sur côte
+  climbHr: number | null;      // bpm
+  tss: number;            // TSS prévu pour ce scénario sur la durée
+}
+
 interface ScenarioBlock {
   key: ScenarioKey;
   emoji: string;
@@ -46,6 +56,9 @@ interface ScenarioBlock {
   metabolicCost: number;        // 0-100
   robustness: "ROBUST" | "FRAGILE" | "VERY_FRAGILE";
   splits: SplitRow[];
+  effortRef: EffortRef;
+  centerPct: number;
+  highPct: number;
 }
 
 interface RaceStrategyPlanCardProps {
@@ -55,8 +68,53 @@ interface RaceStrategyPlanCardProps {
   raceDurationMin: number;
   ftp?: number | null;
   paceThresholdSecKm?: number | null;
+  hrThresholdBpm?: number | null;   // LTHR — pour calculer les fourchettes cardio
   disponibiliteScore?: number | null;
   className?: string;
+}
+
+// Calcule les repères d'effort (NP / cardio / montée / TSS) pour un scénario donné
+function buildEffortRef(
+  scenario: { lowPct: number; centerPct: number; highPct: number; toleratedPct: number },
+  discipline: "bike" | "run",
+  raceDurationMin: number,
+  ftp?: number | null,
+  paceThresholdSecKm?: number | null,
+  hrThresholdBpm?: number | null,
+): EffortRef {
+  const { lowPct, centerPct, highPct, toleratedPct } = scenario;
+
+  // NP cible (bike: W, run: sec/km)
+  let npLow = 0;
+  let npHigh = 0;
+  let climbPower: number | null = null;
+  if (discipline === "bike" && ftp && ftp > 0) {
+    npLow = Math.round((lowPct / 100) * ftp);
+    npHigh = Math.round((centerPct / 100) * ftp);
+    climbPower = Math.round((highPct / 100) * ftp);
+  } else if (discipline === "run" && paceThresholdSecKm && paceThresholdSecKm > 0) {
+    npLow = Math.round(paceThresholdSecKm * (100 / centerPct));
+    npHigh = Math.round(paceThresholdSecKm * (100 / lowPct));
+    climbPower = Math.round(paceThresholdSecKm * (100 / highPct));
+  }
+
+  // Cardio (LTHR × % couloir, modèle linéaire conservateur)
+  // En pratique HR ≈ %LTHR avec un offset léger : on prend LTHR × (pct/100) plafonné à 0.96 LTHR pour la fourchette basse
+  let hrLow: number | null = null;
+  let hrHigh: number | null = null;
+  let climbHr: number | null = null;
+  if (hrThresholdBpm && hrThresholdBpm > 0) {
+    const hrAt = (pct: number) => Math.round(hrThresholdBpm * Math.min(pct / 100, 1.05));
+    hrLow = hrAt(Math.max(lowPct - 2, 60));
+    hrHigh = hrAt(centerPct);
+    climbHr = hrAt(Math.min(toleratedPct, highPct + 3));
+  }
+
+  // TSS prévu = (durée_h × IF²) × 100, avec IF = centerPct/100
+  const ifVal = centerPct / 100;
+  const tss = Math.round((raceDurationMin / 60) * ifVal * ifVal * 100);
+
+  return { npLow, npHigh, hrLow, hrHigh, climbPower, climbHr, tss };
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -96,8 +154,8 @@ function targetForRange(
 // ──────────────────────────────────────────────────────────────────────────────
 
 function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
-  const { envelope, raceObjective, discipline, ftp, paceThresholdSecKm } = props;
-  const { lowPct, centerPct, highPct } = envelope.boundary;
+  const { envelope, raceObjective, discipline, ftp, paceThresholdSecKm, hrThresholdBpm, raceDurationMin } = props;
+  const { lowPct, centerPct, highPct, toleratedPct } = envelope.boundary;
 
   const isTri = raceObjective === "IM" || raceObjective === "70.3";
   const isLong = raceObjective === "IM" || raceObjective === "Marathon";
@@ -111,7 +169,21 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
   const ambitiousCenter = centerPct;
   const ambitiousHigh = Math.round((centerPct + highPct) / 2);
   const aggressiveHigh = highPct;
-  const aggressiveOver = Math.min(highPct + 3, envelope.boundary.toleratedPct);
+  const aggressiveOver = Math.min(highPct + 3, toleratedPct);
+
+  // ──── Repères d'effort (NP / cardio / montée / TSS) par scénario
+  const refRobust = buildEffortRef(
+    { lowPct: robustLow, centerPct: robustCenter, highPct: ambitiousCenter, toleratedPct: ambitiousHigh },
+    discipline, raceDurationMin, ftp, paceThresholdSecKm, hrThresholdBpm,
+  );
+  const refAmbitious = buildEffortRef(
+    { lowPct: robustCenter, centerPct: ambitiousCenter, highPct: ambitiousHigh, toleratedPct: aggressiveHigh },
+    discipline, raceDurationMin, ftp, paceThresholdSecKm, hrThresholdBpm,
+  );
+  const refAggressive = buildEffortRef(
+    { lowPct: ambitiousHigh, centerPct: aggressiveHigh, highPct: aggressiveOver, toleratedPct: toleratedPct },
+    discipline, raceDurationMin, ftp, paceThresholdSecKm, hrThresholdBpm,
+  );
 
   // ──── Templates de splits par scénario × discipline
   const robustSplits = (): SplitRow[] => {
@@ -196,6 +268,9 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       metabolicCost: 55,
       robustness: "ROBUST",
       splits: robustSplits(),
+      effortRef: refRobust,
+      centerPct: robustCenter,
+      highPct: ambitiousCenter,
     },
     {
       key: "AMBITIOUS",
@@ -212,6 +287,9 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       metabolicCost: 72,
       robustness: "FRAGILE",
       splits: ambitiousSplits(),
+      effortRef: refAmbitious,
+      centerPct: ambitiousCenter,
+      highPct: ambitiousHigh,
     },
     {
       key: "AGGRESSIVE",
@@ -228,6 +306,9 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       metabolicCost: 92,
       robustness: "VERY_FRAGILE",
       splits: aggressiveSplits(),
+      effortRef: refAggressive,
+      centerPct: aggressiveHigh,
+      highPct: aggressiveOver,
     },
   ];
 }
@@ -276,13 +357,79 @@ function SplitTimeline({ splits }: { splits: SplitRow[] }) {
   );
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// EffortRefBlock — fiche route format "Repères d'effort" (NP, cardio, montée, TSS)
+// ──────────────────────────────────────────────────────────────────────────────
+
+function fmtPaceShort(secPerKm: number): string {
+  const m = Math.floor(secPerKm / 60);
+  const s = Math.round(secPerKm % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function EffortRefBlock({
+  ref,
+  discipline,
+}: {
+  ref: EffortRef;
+  discipline: "bike" | "run";
+}) {
+  const unit = discipline === "bike" ? "W" : "/km";
+  const npLabel = discipline === "bike" ? "Cible NP" : "Allure cible";
+  const climbLabel = discipline === "bike" ? "Plafond montée" : "Cap allure côte";
+
+  const npStr = discipline === "bike"
+    ? (ref.npLow === ref.npHigh ? `${ref.npLow} W` : `${ref.npLow}–${ref.npHigh} W`)
+    : `${fmtPaceShort(ref.npLow)}–${fmtPaceShort(ref.npHigh)}/km`;
+
+  const hrStr = ref.hrLow != null && ref.hrHigh != null
+    ? (ref.hrLow === ref.hrHigh ? `${ref.hrLow} bpm` : `${ref.hrLow}–${ref.hrHigh} bpm`)
+    : "— (LTHR manquant)";
+
+  const climbPowStr = ref.climbPower != null
+    ? (discipline === "bike" ? `≈ ${ref.climbPower} W` : `≈ ${fmtPaceShort(ref.climbPower)}/km`)
+    : "—";
+
+  const climbHrStr = ref.climbHr != null ? `, plafond cardio ${ref.climbHr} bpm` : "";
+
+  return (
+    <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
+      <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+        <Gauge className="h-3 w-3 text-primary" /> Repères d'effort
+      </h4>
+      <ul className="space-y-1.5 text-xs leading-snug">
+        <li className="flex items-start gap-2">
+          <Target className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+          <span><span className="text-muted-foreground">{npLabel} :</span> <strong className="font-mono">{npStr}</strong></span>
+        </li>
+        <li className="flex items-start gap-2">
+          <HeartPulse className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
+          <span><span className="text-muted-foreground">Cible cardio :</span> <strong className="font-mono">{hrStr}</strong></span>
+        </li>
+        <li className="flex items-start gap-2">
+          <Mountain className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+          <span>
+            <span className="text-muted-foreground">{climbLabel} :</span>{" "}
+            <strong className="font-mono">{climbPowStr}</strong>
+            <span className="text-muted-foreground">{climbHrStr}</span>
+          </span>
+        </li>
+        <li className="flex items-start gap-2">
+          <TrendingUp className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+          <span><span className="text-muted-foreground">Charge prévue :</span> <strong className="font-mono">{ref.tss} TSS</strong></span>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
 const ROBUSTNESS_LABEL: Record<ScenarioBlock["robustness"], { label: string; cls: string }> = {
   ROBUST: { label: "Robuste", cls: "text-emerald-600 dark:text-emerald-400" },
   FRAGILE: { label: "Fragile", cls: "text-amber-600 dark:text-amber-400" },
   VERY_FRAGILE: { label: "Très fragile", cls: "text-red-600 dark:text-red-400" },
 };
 
-function ScenarioCard({ scenario }: { scenario: ScenarioBlock }) {
+function ScenarioCard({ scenario, discipline }: { scenario: ScenarioBlock; discipline: "bike" | "run" }) {
   const rob = ROBUSTNESS_LABEL[scenario.robustness];
   return (
     <Card className="overflow-hidden">
@@ -346,6 +493,9 @@ function ScenarioCard({ scenario }: { scenario: ScenarioBlock }) {
             <div className={cn("text-sm font-bold mt-0.5", rob.cls)}>{rob.label}</div>
           </div>
         </div>
+
+        {/* Repères d'effort — fiche route synthétique */}
+        <EffortRefBlock ref={scenario.effortRef} discipline={discipline} />
 
         {/* Splits */}
         <div>
@@ -432,7 +582,7 @@ export function RaceStrategyPlanCard(props: RaceStrategyPlanCardProps) {
 
         {scenarios.map((s) => (
           <TabsContent key={s.key} value={s.key} className="mt-3">
-            <ScenarioCard scenario={s} />
+            <ScenarioCard scenario={s} discipline={props.discipline} />
           </TabsContent>
         ))}
       </Tabs>
