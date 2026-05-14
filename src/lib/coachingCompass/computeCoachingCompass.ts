@@ -618,7 +618,19 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
   const durabilityScore = scoreRelativeToTarget(durabilityValue, durabilityTarget);
   const economyScore = scoreRelativeToTarget(economyValue, economyTarget);
 
-  return [
+  const economyAxis: RadarAxis = {
+    key: "economy",
+    label: isRunning ? "Économie de Course" : "Économie",
+    shortLabel: isRunning ? "Éco. CAP" : "Éco.",
+    score: economyScore,
+    icon: "🦶",
+    color: "hsl(160, 60%, 45%)",
+    value: economyValue,
+    target: economyTarget,
+    unit: "/100",
+  };
+
+  const axes: RadarAxis[] = [
     {
       key: "vo2max",
       label: "VO₂max",
@@ -653,18 +665,9 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       target: durabilityTarget,
       unit: "/100",
     },
-    {
-      key: "economy",
-      label: isRunning ? "Économie de Course" : "Économie",
-      shortLabel: isRunning ? "Éco. CAP" : "Éco.",
-      score: economyScore,
-      icon: "🦶",
-      color: "hsl(160, 60%, 45%)",
-      value: economyValue,
-      target: economyTarget,
-      unit: "/100",
-    },
   ];
+
+  return { axes, economy: economyAxis };
 }
 
 function normalizeScore(value: number | null, min: number, max: number): number {
