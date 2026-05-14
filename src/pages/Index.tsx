@@ -1673,6 +1673,7 @@ const Index = () => {
                 vlamax={alignedVlamaxEffectif.value}
                 objectif={currentAthlete.goal || null}
                 sportMain={(effectiveCloudSnapshot as any)?.sport_main ?? null}
+                age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
               />
             ),
           },
