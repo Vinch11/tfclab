@@ -271,38 +271,47 @@ export default function RaceSimulationPage() {
   const potentielPhysiologiqueScore = readiness.score;
   
   const envelope = React.useMemo(() => {
-    // CHANTIER A — durée prédite par objectif (fallback simple si pas de prediction TTE)
     const durationFallback: Record<string, number> = {
       "IM": 600, "70.3": 300, "Marathon": 210, "Semi": 105, "10km": 45,
     };
     const cpWkg = activeSnapshot?.ftp && activeSnapshot?.weight_kg
       ? (activeSnapshot.ftp * 0.95) / activeSnapshot.weight_kg
       : null;
+    // P1 — Pour le segment course (CAP ou run du tri), on injecte la VLamax CAP run.
+    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
+    // P2 — Fallback paceThreshold via raceTimeEstimator (RAW) si effective absent.
+    const paceThresholdEffective = activeSnapshot?.pace_threshold_sec_per_km
+      ?? raceChronoEstimate?.paceThreshold_sec_km
+      ?? null;
+    // P2 — Paliers de risque : pénalise/booste le potentiel selon la durabilité observée.
+    const adjustedReadiness = potentielPhysiologiqueScore != null
+      ? Math.max(0, Math.min(100, potentielPhysiologiqueScore + durabilityReadinessDelta))
+      : potentielPhysiologiqueScore;
     return computePacingEnvelope({
-      vlamaxEffectif,
+      vlamaxEffectif: vlamaxForSport,
       tteEffectif,
       fatmax,
-      potentielPhysiologiqueScore,
+      potentielPhysiologiqueScore: adjustedReadiness,
       fatigueIndex: null,
       raceObjective,
       sport: discipline,
       ftp: activeSnapshot?.ftp,
       vma: activeSnapshot?.vma,
-      paceThreshold: activeSnapshot?.pace_threshold_sec_per_km,
+      paceThreshold: paceThresholdEffective,
       weight: activeSnapshot?.weight_kg,
-      // CHANTIER A
       ambition: (selectedAthlete as any)?.ambition ?? null,
       cpWkg,
       wPrimeJkg: null,
       predictedDurationMin: durationFallback[raceObjective] ?? 180,
     });
-  }, [vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
+  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, durabilityReadinessDelta, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
   
   const rules = React.useMemo(() => {
     if (!envelope) return null;
+    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
     return generateDisciplineRules({
       envelope,
-      vlamaxEffectif,
+      vlamaxEffectif: vlamaxForSport,
       raceObjective,
       sport: discipline,
       potentielPhysiologiqueScore,
