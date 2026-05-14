@@ -120,8 +120,11 @@ export interface TFCLCoachingCompassResult {
   // Intégration Potentiel Physiologique
   readiness: TFCLReadinessState;
   
-  // Axes radar (pour visualisation)
+  // Axes radar (4 piliers : VO2max, VLamax, Aérobie [VMA/FTPkg], Durabilité)
   radarAxes: RadarAxis[];
+
+  // Modulateur Économie — affiché à part (facteur secondaire d'efficience)
+  economyModifier: RadarAxis;
   
   // Fatigue warning (si applicable)
   fatigueWarning: {
