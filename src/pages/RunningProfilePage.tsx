@@ -603,6 +603,10 @@ export default function RunningProfilePage() {
             staffMode={staffMode}
             weightKg={effectiveCloudSnapshot?.weight_kg ?? null}
             powerEndurance={effectiveCloudSnapshot?.running_power_threshold ?? null}
+            raceChrono={(() => {
+              const est = estimateFromRaceChronos((effectiveCloudSnapshot ?? {}) as any);
+              return est ? { CE_mlO2_kg_km: est.CE_mlO2_kg_km, durabilityIndex: est.durabilityIndex, confidence: est.confidence } : null;
+            })()}
           />
         ),
       },
