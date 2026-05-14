@@ -34,6 +34,7 @@ import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
 import { computeVLamaxEffectif, computeTTEEffectif } from '@/engines/diagnostic';
+import { estimateFromRaceChronos } from '@/engines/diagnostic/raceTimeEstimator';
 import { computeUnifiedReadiness } from '@/lib/readinessSource';
 import { computeFatMaxTFCL } from '@/lib/v2/fatmaxTFCL';
 import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibiliteTFCL';
@@ -69,6 +70,20 @@ export default function RaceSimulationPage() {
       snapshots: snapshots ?? [],
     });
   }, [athleteId, objectif, activeSnapshotId, tests, snapshots]);
+
+  // P1 — VLamax CAP run dédiée (sport forcé "cap") pour les segments course,
+  // y compris en triathlon où l'objectif global résout par défaut vers le vélo.
+  const vlamaxRunEffectif = React.useMemo(() => {
+    if (!athleteId) return null;
+    return computeVLamaxEffectif({
+      athleteId,
+      objectif,
+      activeSnapshotId,
+      tests: tests ?? [],
+      snapshots: snapshots ?? [],
+      sportOverride: "cap",
+    });
+  }, [athleteId, objectif, activeSnapshotId, tests, snapshots]);
   
   const activeSnapshot = React.useMemo(() => {
     if (!snapshots || !athleteId) return null;
@@ -89,6 +104,29 @@ export default function RaceSimulationPage() {
       objectif,
     });
   }, [activeSnapshot, objectif]);
+
+  // P2 — Estimation depuis chronos course (Riegel + Daniels VDOT + ACSM + durabilité).
+  // Sortie RAW, jamais effective : sert UNIQUEMENT de fallback (paceThreshold absent)
+  // et d'overlay de risque via l'indice de durabilité.
+  const raceChronoEstimate = React.useMemo(() => {
+    if (!activeSnapshot) return null;
+    return estimateFromRaceChronos(activeSnapshot as any);
+  }, [activeSnapshot]);
+
+  // Pénalité de readiness liée à la durabilité (indice observé/Riegel sur semi→marathon).
+  // Paliers calibrés : 1.04 = bon, 1.08 = moyen, >1.08 = faible.
+  //   • durabilityIndex ≤ 1.00 → bonus +2 pts (excellente endurance)
+  //   • 1.00 < idx ≤ 1.04     → 0 pt
+  //   • 1.04 < idx ≤ 1.08     → −4 pts (resserre le plafond pacing)
+  //   • idx > 1.08            → −8 pts (zone tolérée largement réduite)
+  const durabilityReadinessDelta = React.useMemo(() => {
+    const idx = raceChronoEstimate?.durabilityIndex;
+    if (idx == null) return 0;
+    if (idx <= 1.00) return +2;
+    if (idx <= 1.04) return 0;
+    if (idx <= 1.08) return -4;
+    return -8;
+  }, [raceChronoEstimate]);
   
   const fatmax = React.useMemo(() => {
     if (!vlamaxEffectif?.value) return null;
@@ -163,14 +201,27 @@ export default function RaceSimulationPage() {
   //   • Pénalité additionnelle −2 pts vSeuil si VLamax ≥ 0.55 (profil glycolytique → drift run accru)
   //   • Vélo : table de format (à individualiser via CP/FTP en v2)
   const segmentDurationMin = React.useMemo(() => {
-    const paceThr = activeSnapshot?.pace_threshold_sec_per_km ?? null; // sec/km au seuil
-    const vlamaxHigh = (vlamaxEffectif?.value ?? 0.4) >= 0.55;
+    // P2 — Fallback paceThreshold via raceTimeEstimator si l'effective est absent.
+    // Reste tag RAW : utilisé uniquement pour le calcul de durée prédite, pas en prescription.
+    const paceThr = activeSnapshot?.pace_threshold_sec_per_km
+      ?? raceChronoEstimate?.paceThreshold_sec_km
+      ?? null; // sec/km au seuil
+    // P1 — Pénalité glycolytique segment course basée sur la VLamax CAP (run), pas la bike.
+    const vlamaxRunVal = vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? 0.4;
+    const vlamaxHigh = vlamaxRunVal >= 0.55;
     const vlamaxVSeuilPenalty = vlamaxHigh ? 0.02 : 0; // -2% vSeuil si glyco
+
+    // P2 — Pénalité de durabilité observée chronos (Riegel semi→marathon)
+    //   • idx ≤ 1.04 → 0%   • 1.04–1.08 → -1.5%   • >1.08 → -3%
+    const durIdx = raceChronoEstimate?.durabilityIndex;
+    const durabilityPenalty = durIdx == null ? 0
+      : durIdx <= 1.04 ? 0
+      : durIdx <= 1.08 ? 0.015
+      : 0.03;
 
     const ambition = ((selectedAthlete as any)?.ambition ?? 'age_group') as
       | 'finisher' | 'age_group' | 'competitor' | 'elite';
 
-    // Fraction de vSeuil soutenue post-T2
     const vSeuilFractionByAmbition: Record<typeof ambition, { half: number; full: number }> = {
       elite:      { half: 0.95, full: 0.89 },
       competitor: { half: 0.88, full: 0.82 },
@@ -180,8 +231,7 @@ export default function RaceSimulationPage() {
 
     const computeRunMin = (distanceKm: number, vSeuilFraction: number): number | null => {
       if (!paceThr || paceThr <= 0) return null;
-      const effectiveFraction = Math.max(0.5, vSeuilFraction - vlamaxVSeuilPenalty);
-      // pace réel = pace_seuil / fraction vSeuil
+      const effectiveFraction = Math.max(0.5, vSeuilFraction - vlamaxVSeuilPenalty - durabilityPenalty);
       const paceRunSecKm = paceThr / effectiveFraction;
       return (paceRunSecKm * distanceKm) / 60;
     };
@@ -195,7 +245,7 @@ export default function RaceSimulationPage() {
       return { bike: 150, run: Math.round(runMin) };
     }
     return { bike: 180, run: 180 };
-  }, [raceObjective, activeSnapshot, vlamaxEffectif, selectedAthlete]);
+  }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete]);
 
   const raceDurationMin = React.useMemo(() => {
     if (isTriathlon) return segmentDurationMin[discipline];
@@ -221,38 +271,47 @@ export default function RaceSimulationPage() {
   const potentielPhysiologiqueScore = readiness.score;
   
   const envelope = React.useMemo(() => {
-    // CHANTIER A — durée prédite par objectif (fallback simple si pas de prediction TTE)
     const durationFallback: Record<string, number> = {
       "IM": 600, "70.3": 300, "Marathon": 210, "Semi": 105, "10km": 45,
     };
     const cpWkg = activeSnapshot?.ftp && activeSnapshot?.weight_kg
       ? (activeSnapshot.ftp * 0.95) / activeSnapshot.weight_kg
       : null;
+    // P1 — Pour le segment course (CAP ou run du tri), on injecte la VLamax CAP run.
+    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
+    // P2 — Fallback paceThreshold via raceTimeEstimator (RAW) si effective absent.
+    const paceThresholdEffective = activeSnapshot?.pace_threshold_sec_per_km
+      ?? raceChronoEstimate?.paceThreshold_sec_km
+      ?? null;
+    // P2 — Paliers de risque : pénalise/booste le potentiel selon la durabilité observée.
+    const adjustedReadiness = potentielPhysiologiqueScore != null
+      ? Math.max(0, Math.min(100, potentielPhysiologiqueScore + durabilityReadinessDelta))
+      : potentielPhysiologiqueScore;
     return computePacingEnvelope({
-      vlamaxEffectif,
+      vlamaxEffectif: vlamaxForSport,
       tteEffectif,
       fatmax,
-      potentielPhysiologiqueScore,
+      potentielPhysiologiqueScore: adjustedReadiness,
       fatigueIndex: null,
       raceObjective,
       sport: discipline,
       ftp: activeSnapshot?.ftp,
       vma: activeSnapshot?.vma,
-      paceThreshold: activeSnapshot?.pace_threshold_sec_per_km,
+      paceThreshold: paceThresholdEffective,
       weight: activeSnapshot?.weight_kg,
-      // CHANTIER A
       ambition: (selectedAthlete as any)?.ambition ?? null,
       cpWkg,
       wPrimeJkg: null,
       predictedDurationMin: durationFallback[raceObjective] ?? 180,
     });
-  }, [vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
+  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, durabilityReadinessDelta, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
   
   const rules = React.useMemo(() => {
     if (!envelope) return null;
+    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
     return generateDisciplineRules({
       envelope,
-      vlamaxEffectif,
+      vlamaxEffectif: vlamaxForSport,
       raceObjective,
       sport: discipline,
       potentielPhysiologiqueScore,
@@ -262,19 +321,21 @@ export default function RaceSimulationPage() {
       fatigueLevel: latestCheckin?.fatigue ?? null,
       liveSegments: null, // Pas de données live en mode pré-course
     });
-  }, [envelope, vlamaxEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete, tteEffectif, activeSnapshot, latestCheckin]);
+  }, [envelope, vlamaxEffectif, vlamaxRunEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete, tteEffectif, activeSnapshot, latestCheckin]);
   
   const scenarios = React.useMemo(() => {
     if (!envelope) return null;
+    // P1 — VLamax discipline-aware (run du tri = vlamax_run, pas vlamax bike).
+    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
     return simulatePacingScenarios({
       envelope,
       raceObjective,
-      vlamaxValue: vlamaxEffectif?.value ?? null,
+      vlamaxValue: vlamaxForSport?.value ?? null,
       tteMin: tteEffectif?.tte_min ?? null,
       raceDistanceKm: 90,
       raceDurationMin,
     });
-  }, [envelope, raceObjective, vlamaxEffectif, tteEffectif, raceDurationMin]);
+  }, [envelope, raceObjective, vlamaxEffectif, vlamaxRunEffectif, discipline, tteEffectif, raceDurationMin]);
   
   return (
     <SidebarLayout
