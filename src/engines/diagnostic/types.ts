@@ -192,6 +192,11 @@ export interface AthleteDiagnostic {
     effectiveSource: "observed" | "predicted" | "none";
   } | null;
   
+  // ─── 6bis bis. Race Chrono Estimate (RAW — Riegel/VDOT/ACSM) ─────
+  // null si aucun chrono saisi. Source: "race_chrono", reliability raw_*.
+  // Sert de fallback effectif (paceThreshold, vo2max, CE, durabilité).
+  raceChronoEstimate: import("./raceTimeEstimator").RaceTimeEstimate | null;
+  
   // ─── 7. Synthèse Décisionnelle ────────────────────
   synthesis: DiagnosticSynthesis;
   
