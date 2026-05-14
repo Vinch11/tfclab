@@ -15,12 +15,18 @@
  * Run: bunx tsx scripts/billatAnchorRecalibration.ts
  */
 
-import { createClient } from "@supabase/supabase-js";
-
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL!;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY!;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Cohorte Billat extraite manuellement (literature_cohort_profiles, N=20)
+const BILLAT_COHORT = [
+  { study_year: 1996, cohort_label: "National Level Long-Distance Runners", vo2max: 72.5, vma_kmh: 21.6, running_economy: 209 },
+  { study_year: 1996, cohort_label: "Elite male marathon runners", vo2max: 69.6, vma_kmh: 20.9, running_economy: 201 },
+  { study_year: 1999, cohort_label: "Elite Marathoners", vo2max: 70.1, vma_kmh: 21.1, running_economy: 185 },
+  { study_year: 1999, cohort_label: "Well-trained runners (pre-training)", vo2max: 68.1, vma_kmh: 20.0, running_economy: 211 },
+  { study_year: 2001, cohort_label: "Elite Marathon Runners", vo2max: 75.6, vma_kmh: 22.3, running_economy: 199 },
+  { study_year: 2001, cohort_label: "National level marathon runners", vo2max: 71.3, vma_kmh: 20.3, running_economy: 199 },
+  { study_year: 2003, cohort_label: "Elite Kenyan long-distance runners", vo2max: 79.5, vma_kmh: 21.3, running_economy: 185 },
+  { study_year: 2023, cohort_label: "Elite Kenyan 10k runners", vo2max: 74.2, vma_kmh: 21.5, running_economy: 190 },
+  { study_year: 2023, cohort_label: "Sub-elite marathoners", vo2max: 65.7, vma_kmh: 19.5, running_economy: 205 },
+];
 
 // Modèle C inverse : étant donné MLSS_pct + CE, retrouver VLamax
 function inverseModelC(mlssPct: number, ce: number): number {
