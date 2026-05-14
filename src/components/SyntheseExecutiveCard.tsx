@@ -85,9 +85,8 @@ function computePillarScore(
     if (typeof gapPercent === "number" && Number.isFinite(gapPercent)) {
       // Au-dessus de la cible: léger bonus capé à 25
       if (gapPercent >= 5) return 25;
-      // Échelle linéaire: chaque 1% sous la cible = -0.5 point, base 22 à 0%
-      const raw = 22 + (gapPercent / 5) * 1.5; // -10% → 22 - 3 = 19 ... ajustons
-      // Recalcul plus lisible: base 22 à 0%, perte 0.55/point%
+      // Linéaire: base 22 à 0% (cible exacte), perte ~0.55 pt par % de déficit
+      // -10% → 16.5 | -20% → 11 | -30% → 5.5 | -40% → 0
       const linear = 22 + gapPercent * 0.55;
       return Math.max(0, Math.min(25, linear));
     }
