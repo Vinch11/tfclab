@@ -293,7 +293,13 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       sprint_15s_distance: numOrNull(sprint15s),
       running_power_max: numOrNull(runPowerMax),
       running_power_threshold: numOrNull(runPowerThreshold),
-    });
+      // ✅ Chronos course (Raw)
+      time_5k_sec: parseRaceTime(time5k),
+      time_10k_sec: parseRaceTime(time10k),
+      time_20k_sec: parseRaceTime(time20k),
+      time_half_sec: parseRaceTime(timeHalf),
+      time_marathon_sec: parseRaceTime(timeMarathon),
+    } as any);
     setOpen(false);
   };
 
