@@ -12,6 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   User, 
   Activity, 
@@ -435,17 +438,20 @@ export function AthleteRefsPanel({
   return (
     <Card className="border-border/50">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <CardTitle className="text-lg flex items-center gap-2">
             <User className="h-5 w-5" />
             Profil & Références
           </CardTitle>
-          {isDirty && (
-            <Button onClick={handleSave} disabled={saving} size="sm">
-              <Save className="h-4 w-4 mr-1" />
-              {saving ? "Enregistrement..." : "Enregistrer"}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            <QuickChronoDialog athleteId={athlete.id} snapshots={snapshots} activeSnapshotId={athlete.active_snapshot_id ?? null} onSaved={onUpdate} />
+            {isDirty && (
+              <Button onClick={handleSave} disabled={saving} size="sm">
+                <Save className="h-4 w-4 mr-1" />
+                {saving ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+            )}
+          </div>
         </div>
         {effective.snapshotUsed && (
           <p className="text-sm text-muted-foreground">
@@ -525,5 +531,189 @@ export function AthleteRefsPanel({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ============================================================
+// QuickChronoDialog — Saisie rapide d'un chrono (par défaut: semi)
+// Met à jour le snapshot actif (ou crée un snapshot minimal).
+// ============================================================
+type ChronoDistance = "5k" | "10k" | "20k" | "half" | "marathon";
+const CHRONO_OPTIONS: { value: ChronoDistance; label: string; km: number }[] = [
+  { value: "5k", label: "5 km", km: 5 },
+  { value: "10k", label: "10 km", km: 10 },
+  { value: "20k", label: "20 km", km: 20 },
+  { value: "half", label: "Semi-marathon (21,1 km)", km: 21.0975 },
+  { value: "marathon", label: "Marathon (42,2 km)", km: 42.195 },
+];
+const CHRONO_FIELDS: Record<ChronoDistance, { sec: string; date: string }> = {
+  "5k": { sec: "time_5k_sec", date: "time_5k_date" },
+  "10k": { sec: "time_10k_sec", date: "time_10k_date" },
+  "20k": { sec: "time_20k_sec", date: "time_20k_date" },
+  half: { sec: "time_half_sec", date: "time_half_date" },
+  marathon: { sec: "time_marathon_sec", date: "time_marathon_date" },
+};
+
+function parseChronoStr(input: string): number | null {
+  const s = input.trim().toLowerCase().replace(/\s+/g, "");
+  if (!s) return null;
+  let m = s.match(/^(\d+):(\d{1,2}):(\d{1,2})$/);
+  if (m) return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+  m = s.match(/^(\d+):(\d{1,2})$/);
+  if (m) return Number(m[1]) * 60 + Number(m[2]);
+  m = s.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/);
+  if (m && (m[1] || m[2] || m[3])) {
+    return (Number(m[1] || 0) * 3600) + (Number(m[2] || 0) * 60) + Number(m[3] || 0);
+  }
+  return null;
+}
+
+function QuickChronoDialog({
+  athleteId,
+  snapshots,
+  activeSnapshotId,
+  onSaved,
+}: {
+  athleteId: string;
+  snapshots: DbSnapshot[];
+  activeSnapshotId: string | null;
+  onSaved?: () => void;
+}) {
+  const { addSnapshot, loadData } = useCloudData();
+  const [open, setOpen] = useState(false);
+  const [distance, setDistance] = useState<ChronoDistance>("half");
+  const [chrono, setChrono] = useState("");
+  const [dateChrono, setDateChrono] = useState(new Date().toISOString().split("T")[0]);
+  const [saving, setSaving] = useState(false);
+
+  const activeSnapshot = useMemo(() => {
+    if (activeSnapshotId) return snapshots.find((s) => s.id === activeSnapshotId);
+    return snapshots
+      .filter((s) => s.athlete_id === athleteId)
+      .sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
+  }, [snapshots, activeSnapshotId, athleteId]);
+
+  const opt = CHRONO_OPTIONS.find((o) => o.value === distance)!;
+  const parsed = parseChronoStr(chrono);
+  const paceHint = parsed && parsed > 0
+    ? (() => {
+        const paceSec = Math.round(parsed / opt.km);
+        return `${Math.floor(paceSec / 60)}:${String(paceSec % 60).padStart(2, "0")}/km`;
+      })()
+    : null;
+
+  const handleSave = async () => {
+    if (!parsed || parsed < 60) {
+      toast.error("Chrono invalide. Format : 1:28:45 ou 28:30");
+      return;
+    }
+    if (!dateChrono) {
+      toast.error("Renseigne la date du chrono");
+      return;
+    }
+    setSaving(true);
+    try {
+      let snapshotId = activeSnapshot?.id;
+      if (!snapshotId) {
+        const created = await addSnapshot({
+          athlete_id: athleteId,
+          coach_id: "",
+          date: dateChrono,
+          source: "race_time_quick_entry",
+        } as any);
+        if (!created) { setSaving(false); return; }
+        snapshotId = created.id;
+      }
+      const fields = CHRONO_FIELDS[distance];
+      const { error } = await supabase
+        .from("snapshots")
+        .update({ [fields.sec]: parsed, [fields.date]: dateChrono })
+        .eq("id", snapshotId);
+      if (error) {
+        toast.error(`Erreur : ${error.message}`);
+        setSaving(false);
+        return;
+      }
+      toast.success(`Chrono ${opt.label} enregistré`);
+      setChrono("");
+      await loadData();
+      onSaved?.();
+      setOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5">
+          <Timer className="h-4 w-4" />
+          Saisir chrono
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Timer className="h-5 w-5 text-primary" />
+            Saisir un chrono récent
+          </DialogTitle>
+          <DialogDescription>
+            Alimente l'analyse durabilité, l'économie de course (CAP) et la calibration MLSS.
+            Format&nbsp;: <code>1:28:45</code> ou <code>28:30</code>.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Distance</Label>
+            <Select value={distance} onValueChange={(v) => setDistance(v as ChronoDistance)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CHRONO_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Chrono</Label>
+              <Input
+                placeholder="ex : 1:28:45"
+                value={chrono}
+                onChange={(e) => setChrono(e.target.value)}
+                inputMode="numeric"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Date</Label>
+              <Input
+                type="date"
+                value={dateChrono}
+                onChange={(e) => setDateChrono(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+              />
+            </div>
+          </div>
+          {paceHint && (
+            <p className="text-xs text-muted-foreground">
+              Allure moyenne&nbsp;: <span className="font-medium text-foreground">{paceHint}</span>
+            </p>
+          )}
+          {!activeSnapshot && (
+            <p className="text-xs text-muted-foreground italic">
+              Aucun snapshot actif — un snapshot minimal sera créé automatiquement.
+            </p>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)} disabled={saving}>Annuler</Button>
+          <Button onClick={handleSave} disabled={saving || !parsed} className="gap-2">
+            <Save className="h-4 w-4" />
+            {saving ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
