@@ -68,8 +68,8 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
   // 5. Assembler Potentiel Physiologique
   const readiness = buildReadinessState(input);
 
-  // 6. Construire les axes radar
-  const radarAxes = buildRadarAxes(input, profile);
+  // 6. Construire les axes radar (4 piliers) + modulateur Économie séparé
+  const { axes: radarAxes, economy: economyModifier } = buildRadarAxes(input, profile);
 
   // 7. Fatigue warning
   const fatigueWarning = buildFatigueWarning(input);
@@ -81,6 +81,7 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
     decision,
     readiness,
     radarAxes,
+    economyModifier,
     fatigueWarning,
     meta: {
       version: COACHING_COMPASS_VERSION,
@@ -530,7 +531,7 @@ function buildReadinessState(input: CoachingCompassInput): TFCLReadinessState {
 // AXES RADAR — Synthèse visuelle
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalProfile): RadarAxis[] {
+function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalProfile): { axes: RadarAxis[]; economy: RadarAxis } {
   const isRunning = input.sportFocus === "run";
   const ambition = (input.ambition || "age_group") as AmbitionLevel;
   const objectif = input.objectif || "IM";
@@ -617,7 +618,19 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
   const durabilityScore = scoreRelativeToTarget(durabilityValue, durabilityTarget);
   const economyScore = scoreRelativeToTarget(economyValue, economyTarget);
 
-  return [
+  const economyAxis: RadarAxis = {
+    key: "economy",
+    label: isRunning ? "Économie de Course" : "Économie",
+    shortLabel: isRunning ? "Éco. CAP" : "Éco.",
+    score: economyScore,
+    icon: "🦶",
+    color: "hsl(160, 60%, 45%)",
+    value: economyValue,
+    target: economyTarget,
+    unit: "/100",
+  };
+
+  const axes: RadarAxis[] = [
     {
       key: "vo2max",
       label: "VO₂max",
@@ -652,18 +665,9 @@ function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalP
       target: durabilityTarget,
       unit: "/100",
     },
-    {
-      key: "economy",
-      label: isRunning ? "Économie de Course" : "Économie",
-      shortLabel: isRunning ? "Éco. CAP" : "Éco.",
-      score: economyScore,
-      icon: "🦶",
-      color: "hsl(160, 60%, 45%)",
-      value: economyValue,
-      target: economyTarget,
-      unit: "/100",
-    },
   ];
+
+  return { axes, economy: economyAxis };
 }
 
 function normalizeScore(value: number | null, min: number, max: number): number {
