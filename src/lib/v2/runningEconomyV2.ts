@@ -105,6 +105,17 @@ export interface RunningEconomyV2Input {
   // Contexte
   objectif?: string;
   sport?: string;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // INTÉGRATION C — Fallback RAW depuis chronos course (raceTimeEstimator)
+  // Utilisé UNIQUEMENT en l'absence de données effectives (FC/puissance/drift).
+  // CE en mlO₂/kg/km, durabilityIndex semi→marathon (1.0 = neutre).
+  // ─────────────────────────────────────────────────────────────────────────
+  raceChrono?: {
+    CE_mlO2_kg_km?: number | null;
+    durabilityIndex?: number | null;
+    confidence?: number | null;     // 0..1, plafonné côté estimator à 0.85
+  } | null;
 }
 
 // =============================================
