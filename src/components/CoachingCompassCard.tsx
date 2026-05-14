@@ -799,6 +799,42 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   );
                 })}
               </div>
+
+              {/* MODULATEUR ÉCONOMIE — facteur secondaire d'efficience */}
+              {compass.economyModifier && (() => {
+                const eco = compass.economyModifier;
+                const ecoStatus = eco.score >= 75 ? "Bonus" : eco.score >= 50 ? "Neutre" : "Pénalité";
+                const ecoColor = eco.score >= 75 ? "success" : eco.score >= 50 ? "warning" : "destructive";
+                return (
+                  <div className="mt-3 px-1">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                      Modulateur — Efficience
+                    </span>
+                    <div className={cn(
+                      "mt-1 flex items-start gap-2.5 p-2.5 rounded-lg border border-dashed",
+                      eco.score >= 75 ? "bg-[hsl(var(--success)/0.04)] border-[hsl(var(--success)/0.3)]" :
+                      eco.score >= 50 ? "bg-[hsl(var(--warning)/0.04)] border-[hsl(var(--warning)/0.3)]" :
+                      "bg-[hsl(var(--destructive)/0.04)] border-[hsl(var(--destructive)/0.3)]"
+                    )}>
+                      <span className="text-base mt-0.5">🦶</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-bold">{eco.label}</p>
+                          <Badge variant="outline" className={cn(
+                            "text-[9px] h-4 px-1.5",
+                            `border-[hsl(var(--${ecoColor})/0.4)] text-[hsl(var(--${ecoColor}))]`
+                          )}>
+                            {eco.score}/100 — {ecoStatus}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">
+                          Coût énergétique du mouvement. Multiplicateur des 4 piliers : améliore le rendement sans changer le plafond physiologique.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <FlowConnector />
