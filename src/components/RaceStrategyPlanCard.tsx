@@ -16,7 +16,7 @@ import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Activity, ChevronRight, ShieldCheck, Target, Flame, AlertTriangle, Info } from "lucide-react";
+import { Activity, ChevronRight, ShieldCheck, Target, Flame, AlertTriangle, Info, Gauge, HeartPulse, Mountain, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 
@@ -34,6 +34,16 @@ interface SplitRow {
   zone: "GREEN" | "ORANGE" | "RED";
 }
 
+interface EffortRef {
+  npLow: number;          // NP cible bas (W) ou allure rapide (sec/km) -- ici on garde W pour bike, sec/km pour run
+  npHigh: number;
+  hrLow: number | null;   // bpm
+  hrHigh: number | null;
+  climbPower: number | null;   // W (bike) — plafond consenti sur côte
+  climbHr: number | null;      // bpm
+  tss: number;            // TSS prévu pour ce scénario sur la durée
+}
+
 interface ScenarioBlock {
   key: ScenarioKey;
   emoji: string;
@@ -46,6 +56,9 @@ interface ScenarioBlock {
   metabolicCost: number;        // 0-100
   robustness: "ROBUST" | "FRAGILE" | "VERY_FRAGILE";
   splits: SplitRow[];
+  effortRef: EffortRef;
+  centerPct: number;
+  highPct: number;
 }
 
 interface RaceStrategyPlanCardProps {
@@ -55,8 +68,53 @@ interface RaceStrategyPlanCardProps {
   raceDurationMin: number;
   ftp?: number | null;
   paceThresholdSecKm?: number | null;
+  hrThresholdBpm?: number | null;   // LTHR — pour calculer les fourchettes cardio
   disponibiliteScore?: number | null;
   className?: string;
+}
+
+// Calcule les repères d'effort (NP / cardio / montée / TSS) pour un scénario donné
+function buildEffortRef(
+  scenario: { lowPct: number; centerPct: number; highPct: number; toleratedPct: number },
+  discipline: "bike" | "run",
+  raceDurationMin: number,
+  ftp?: number | null,
+  paceThresholdSecKm?: number | null,
+  hrThresholdBpm?: number | null,
+): EffortRef {
+  const { lowPct, centerPct, highPct, toleratedPct } = scenario;
+
+  // NP cible (bike: W, run: sec/km)
+  let npLow = 0;
+  let npHigh = 0;
+  let climbPower: number | null = null;
+  if (discipline === "bike" && ftp && ftp > 0) {
+    npLow = Math.round((lowPct / 100) * ftp);
+    npHigh = Math.round((centerPct / 100) * ftp);
+    climbPower = Math.round((highPct / 100) * ftp);
+  } else if (discipline === "run" && paceThresholdSecKm && paceThresholdSecKm > 0) {
+    npLow = Math.round(paceThresholdSecKm * (100 / centerPct));
+    npHigh = Math.round(paceThresholdSecKm * (100 / lowPct));
+    climbPower = Math.round(paceThresholdSecKm * (100 / highPct));
+  }
+
+  // Cardio (LTHR × % couloir, modèle linéaire conservateur)
+  // En pratique HR ≈ %LTHR avec un offset léger : on prend LTHR × (pct/100) plafonné à 0.96 LTHR pour la fourchette basse
+  let hrLow: number | null = null;
+  let hrHigh: number | null = null;
+  let climbHr: number | null = null;
+  if (hrThresholdBpm && hrThresholdBpm > 0) {
+    const hrAt = (pct: number) => Math.round(hrThresholdBpm * Math.min(pct / 100, 1.05));
+    hrLow = hrAt(Math.max(lowPct - 2, 60));
+    hrHigh = hrAt(centerPct);
+    climbHr = hrAt(Math.min(toleratedPct, highPct + 3));
+  }
+
+  // TSS prévu = (durée_h × IF²) × 100, avec IF = centerPct/100
+  const ifVal = centerPct / 100;
+  const tss = Math.round((raceDurationMin / 60) * ifVal * ifVal * 100);
+
+  return { npLow, npHigh, hrLow, hrHigh, climbPower, climbHr, tss };
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
