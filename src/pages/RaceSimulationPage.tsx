@@ -104,6 +104,29 @@ export default function RaceSimulationPage() {
       objectif,
     });
   }, [activeSnapshot, objectif]);
+
+  // P2 — Estimation depuis chronos course (Riegel + Daniels VDOT + ACSM + durabilité).
+  // Sortie RAW, jamais effective : sert UNIQUEMENT de fallback (paceThreshold absent)
+  // et d'overlay de risque via l'indice de durabilité.
+  const raceChronoEstimate = React.useMemo(() => {
+    if (!activeSnapshot) return null;
+    return estimateFromRaceChronos(activeSnapshot as any);
+  }, [activeSnapshot]);
+
+  // Pénalité de readiness liée à la durabilité (indice observé/Riegel sur semi→marathon).
+  // Paliers calibrés : 1.04 = bon, 1.08 = moyen, >1.08 = faible.
+  //   • durabilityIndex ≤ 1.00 → bonus +2 pts (excellente endurance)
+  //   • 1.00 < idx ≤ 1.04     → 0 pt
+  //   • 1.04 < idx ≤ 1.08     → −4 pts (resserre le plafond pacing)
+  //   • idx > 1.08            → −8 pts (zone tolérée largement réduite)
+  const durabilityReadinessDelta = React.useMemo(() => {
+    const idx = raceChronoEstimate?.durabilityIndex;
+    if (idx == null) return 0;
+    if (idx <= 1.00) return +2;
+    if (idx <= 1.04) return 0;
+    if (idx <= 1.08) return -4;
+    return -8;
+  }, [raceChronoEstimate]);
   
   const fatmax = React.useMemo(() => {
     if (!vlamaxEffectif?.value) return null;
