@@ -113,20 +113,9 @@ export default function RaceSimulationPage() {
     return estimateFromRaceChronos(activeSnapshot as any);
   }, [activeSnapshot]);
 
-  // Pénalité de readiness liée à la durabilité (indice observé/Riegel sur semi→marathon).
-  // Paliers calibrés : 1.04 = bon, 1.08 = moyen, >1.08 = faible.
-  //   • durabilityIndex ≤ 1.00 → bonus +2 pts (excellente endurance)
-  //   • 1.00 < idx ≤ 1.04     → 0 pt
-  //   • 1.04 < idx ≤ 1.08     → −4 pts (resserre le plafond pacing)
-  //   • idx > 1.08            → −8 pts (zone tolérée largement réduite)
-  const durabilityReadinessDelta = React.useMemo(() => {
-    const idx = raceChronoEstimate?.durabilityIndex;
-    if (idx == null) return 0;
-    if (idx <= 1.00) return +2;
-    if (idx <= 1.04) return 0;
-    if (idx <= 1.08) return -4;
-    return -8;
-  }, [raceChronoEstimate]);
+  // Note: les paliers de risque depuis la durabilité (Riegel semi→marathon) sont
+  // désormais portés par pacingEnvelopeEngine (input.raceChrono), plus besoin
+  // d'ajustement manuel ici.
   
   const fatmax = React.useMemo(() => {
     if (!vlamaxEffectif?.value) return null;
