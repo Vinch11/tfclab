@@ -154,8 +154,8 @@ function targetForRange(
 // ──────────────────────────────────────────────────────────────────────────────
 
 function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
-  const { envelope, raceObjective, discipline, ftp, paceThresholdSecKm } = props;
-  const { lowPct, centerPct, highPct } = envelope.boundary;
+  const { envelope, raceObjective, discipline, ftp, paceThresholdSecKm, hrThresholdBpm, raceDurationMin } = props;
+  const { lowPct, centerPct, highPct, toleratedPct } = envelope.boundary;
 
   const isTri = raceObjective === "IM" || raceObjective === "70.3";
   const isLong = raceObjective === "IM" || raceObjective === "Marathon";
@@ -169,7 +169,21 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
   const ambitiousCenter = centerPct;
   const ambitiousHigh = Math.round((centerPct + highPct) / 2);
   const aggressiveHigh = highPct;
-  const aggressiveOver = Math.min(highPct + 3, envelope.boundary.toleratedPct);
+  const aggressiveOver = Math.min(highPct + 3, toleratedPct);
+
+  // ──── Repères d'effort (NP / cardio / montée / TSS) par scénario
+  const refRobust = buildEffortRef(
+    { lowPct: robustLow, centerPct: robustCenter, highPct: ambitiousCenter, toleratedPct: ambitiousHigh },
+    discipline, raceDurationMin, ftp, paceThresholdSecKm, hrThresholdBpm,
+  );
+  const refAmbitious = buildEffortRef(
+    { lowPct: robustCenter, centerPct: ambitiousCenter, highPct: ambitiousHigh, toleratedPct: aggressiveHigh },
+    discipline, raceDurationMin, ftp, paceThresholdSecKm, hrThresholdBpm,
+  );
+  const refAggressive = buildEffortRef(
+    { lowPct: ambitiousHigh, centerPct: aggressiveHigh, highPct: aggressiveOver, toleratedPct: toleratedPct },
+    discipline, raceDurationMin, ftp, paceThresholdSecKm, hrThresholdBpm,
+  );
 
   // ──── Templates de splits par scénario × discipline
   const robustSplits = (): SplitRow[] => {
@@ -254,6 +268,9 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       metabolicCost: 55,
       robustness: "ROBUST",
       splits: robustSplits(),
+      effortRef: refRobust,
+      centerPct: robustCenter,
+      highPct: ambitiousCenter,
     },
     {
       key: "AMBITIOUS",
@@ -270,6 +287,9 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       metabolicCost: 72,
       robustness: "FRAGILE",
       splits: ambitiousSplits(),
+      effortRef: refAmbitious,
+      centerPct: ambitiousCenter,
+      highPct: ambitiousHigh,
     },
     {
       key: "AGGRESSIVE",
@@ -286,6 +306,9 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       metabolicCost: 92,
       robustness: "VERY_FRAGILE",
       splits: aggressiveSplits(),
+      effortRef: refAggressive,
+      centerPct: aggressiveHigh,
+      highPct: aggressiveOver,
     },
   ];
 }
