@@ -327,8 +327,14 @@ export default function AthleteEditPage() {
           </CardContent>
         </Card>
 
+        {/* Saisie rapide chrono — alimente durabilité, économie CAP, calibration MLSS */}
+        {!isNew && editingAthlete?.id && (
+          <QuickRaceTimeCard athleteId={editingAthlete.id} />
+        )}
+
         {/* F8 — Profil ergogénique */}
         <Card>
+
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-primary" />
