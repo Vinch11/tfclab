@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmbitionDefinition, getRunningTimeHint, isRunningObjectiveWithTimes } from "@/types/ambitionLevel";
 import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
+import { QuickRaceTimeCard } from "@/components/QuickRaceTimeCard";
 
 export default function AthleteEditPage() {
   const navigate = useNavigate();
@@ -326,8 +327,14 @@ export default function AthleteEditPage() {
           </CardContent>
         </Card>
 
+        {/* Saisie rapide chrono — alimente durabilité, économie CAP, calibration MLSS */}
+        {!isNew && editingAthlete?.id && (
+          <QuickRaceTimeCard athleteId={editingAthlete.id} />
+        )}
+
         {/* F8 — Profil ergogénique */}
         <Card>
+
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-primary" />
