@@ -92,6 +92,7 @@ import { LeviersSection } from "@/components/simplified/LeviersSection";
 
 // ✅ Engines unifiés
 import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
+import { estimateFromRaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
 
 // ✅ Cycle Intelligence Engine™
 import { CycleIntelligenceCard } from "@/components/CycleIntelligenceCard";
