@@ -4429,9 +4429,14 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const globalColor = globalScore >= 75 ? "#16a34a" : globalScore >= 50 ? "#ca8a04" : "#dc2626";
   const globalBadgeClass2 = globalScore >= 75 ? "badgeSuccess" : globalScore >= 50 ? "badgeWarning" : "badgeError";
   
+  // ✅ Économie = modulateur secondaire (badge séparé)
+  const ecoMod = cc.economyModifier;
+  const ecoStatus = ecoMod && ecoMod.score >= 75 ? "Bonus" : ecoMod && ecoMod.score >= 50 ? "Neutre" : "Pénalité";
+  const ecoBadgeClass = ecoMod && ecoMod.score >= 75 ? "badgeSuccess" : ecoMod && ecoMod.score >= 50 ? "badgeWarning" : "badgeError";
+
   const compassHTML = `
     <section id="compass" class="section pagebreak">
-      <h2>3. TFCL Coaching Compass™ — 5 Axes</h2>
+      <h2>3. TFCL Coaching Compass™ — 4 Piliers + Modulateur Économie</h2>
       
       <!-- CRR -->
       <div class="card mb" style="border-left: 4px solid ${crrCardColor};">
@@ -4447,11 +4452,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </div>
       </div>
       
-      <!-- RADAR 5 AXES -->
+      <!-- RADAR 4 PILIERS -->
       <div class="card cardHighlight">
         <div style="text-align:center;margin-bottom:16px;">
           <div style="font-size:16px;font-weight:700;">TFCL Coaching Compass™</div>
-          <div class="muted">5 Axes – PROFIL → LIMITEUR → LEVIER → DÉCISION</div>
+          <div class="muted">4 Piliers (VO₂max · VLamax · Aérobie · Durabilité) — Économie en modulateur secondaire</div>
         </div>
         
         <div style="display:flex;justify-content:center;margin:20px 0;">
@@ -4466,19 +4471,31 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         
         <div style="text-align:center;margin-top:16px;">
           <span class="badge ${globalBadgeClass2}" style="font-size:16px;padding:10px 20px;">
-            Score Global: ${globalScore}/100
+            Score Global (4 piliers) : ${globalScore}/100
           </span>
           <div class="muted mt" style="font-size:11px;">Complétude: ${cc.meta.dataCompleteness}%</div>
         </div>
+
+        ${ecoMod ? `
+          <div style="margin-top:18px;padding:12px;border:1px dashed #94a3b8;border-radius:8px;background:#f8fafc;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#0f172a;">🦶 ${htmlEscape(ecoMod.label)} — Modulateur d'efficience</div>
+                <div class="muted" style="font-size:11px;margin-top:2px;">Coût énergétique du mouvement. Multiplicateur secondaire des 4 piliers (n'augmente pas le plafond physiologique).</div>
+              </div>
+              <span class="badge ${ecoBadgeClass}" style="font-size:13px;padding:6px 12px;white-space:nowrap;">${ecoMod.score}/100 — ${ecoStatus}</span>
+            </div>
+          </div>
+        ` : ''}
       </div>
       
-      <!-- 5 AXES DÉTAILLÉS -->
+      <!-- 4 PILIERS DÉTAILLÉS -->
       <div class="card mt">
-        <h3>📐 Détail des 5 Axes</h3>
+        <h3>📐 Détail des 4 Piliers</h3>
         <table>
           <thead>
             <tr>
-              <th>Axe</th>
+              <th>Pilier</th>
               <th>Score</th>
               <th>Actuel</th>
               <th>Cible</th>
@@ -4498,6 +4515,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 <td style="font-weight:700;color:${deltaColor};">${delta}</td>
               </tr>`;
             }).join("")}
+            ${ecoMod ? `<tr style="background:#f8fafc;">
+              <td><b>${ecoMod.icon} ${htmlEscape(ecoMod.label)}</b> <span class="muted" style="font-size:10px;">(modulateur)</span></td>
+              <td><span class="badge ${ecoBadgeClass}" style="font-weight:700;">${ecoMod.score}/100</span></td>
+              <td>${ecoMod.value !== null ? (ecoMod.value < 10 ? ecoMod.value.toFixed(2) : ecoMod.value.toFixed(1)) + ' ' + ecoMod.unit : '—'}</td>
+              <td>${ecoMod.target !== null ? (ecoMod.target < 10 ? ecoMod.target.toFixed(2) : ecoMod.target.toFixed(1)) + ' ' + ecoMod.unit : '—'}</td>
+              <td class="muted" style="font-size:11px;">${ecoStatus}</td>
+            </tr>` : ''}
           </tbody>
         </table>
       </div>
