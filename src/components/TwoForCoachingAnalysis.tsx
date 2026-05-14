@@ -346,7 +346,7 @@ export function TwoForCoachingAnalysis({
           </div>
           <div>
             <h2 className="text-xl font-semibold text-foreground">Analyse Two For Coaching Lab™</h2>
-            <p className="text-sm text-muted-foreground">Objectif: {athlete.objectif === "IM" ? "Ironman" : "70.3"}</p>
+            <p className="text-sm text-muted-foreground">Objectif: {normalizeRaceTypeForDisplay(athlete.objectif)}</p>
           </div>
         </div>
         <TTEGuard 
