@@ -357,6 +357,72 @@ function SplitTimeline({ splits }: { splits: SplitRow[] }) {
   );
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// EffortRefBlock — fiche route format "Repères d'effort" (NP, cardio, montée, TSS)
+// ──────────────────────────────────────────────────────────────────────────────
+
+function fmtPaceShort(secPerKm: number): string {
+  const m = Math.floor(secPerKm / 60);
+  const s = Math.round(secPerKm % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function EffortRefBlock({
+  ref,
+  discipline,
+}: {
+  ref: EffortRef;
+  discipline: "bike" | "run";
+}) {
+  const unit = discipline === "bike" ? "W" : "/km";
+  const npLabel = discipline === "bike" ? "Cible NP" : "Allure cible";
+  const climbLabel = discipline === "bike" ? "Plafond montée" : "Cap allure côte";
+
+  const npStr = discipline === "bike"
+    ? (ref.npLow === ref.npHigh ? `${ref.npLow} W` : `${ref.npLow}–${ref.npHigh} W`)
+    : `${fmtPaceShort(ref.npLow)}–${fmtPaceShort(ref.npHigh)}/km`;
+
+  const hrStr = ref.hrLow != null && ref.hrHigh != null
+    ? (ref.hrLow === ref.hrHigh ? `${ref.hrLow} bpm` : `${ref.hrLow}–${ref.hrHigh} bpm`)
+    : "— (LTHR manquant)";
+
+  const climbPowStr = ref.climbPower != null
+    ? (discipline === "bike" ? `≈ ${ref.climbPower} W` : `≈ ${fmtPaceShort(ref.climbPower)}/km`)
+    : "—";
+
+  const climbHrStr = ref.climbHr != null ? `, plafond cardio ${ref.climbHr} bpm` : "";
+
+  return (
+    <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
+      <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+        <Gauge className="h-3 w-3 text-primary" /> Repères d'effort
+      </h4>
+      <ul className="space-y-1.5 text-xs leading-snug">
+        <li className="flex items-start gap-2">
+          <Target className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+          <span><span className="text-muted-foreground">{npLabel} :</span> <strong className="font-mono">{npStr}</strong></span>
+        </li>
+        <li className="flex items-start gap-2">
+          <HeartPulse className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
+          <span><span className="text-muted-foreground">Cible cardio :</span> <strong className="font-mono">{hrStr}</strong></span>
+        </li>
+        <li className="flex items-start gap-2">
+          <Mountain className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+          <span>
+            <span className="text-muted-foreground">{climbLabel} :</span>{" "}
+            <strong className="font-mono">{climbPowStr}</strong>
+            <span className="text-muted-foreground">{climbHrStr}</span>
+          </span>
+        </li>
+        <li className="flex items-start gap-2">
+          <TrendingUp className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+          <span><span className="text-muted-foreground">Charge prévue :</span> <strong className="font-mono">{ref.tss} TSS</strong></span>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
 const ROBUSTNESS_LABEL: Record<ScenarioBlock["robustness"], { label: string; cls: string }> = {
   ROBUST: { label: "Robuste", cls: "text-emerald-600 dark:text-emerald-400" },
   FRAGILE: { label: "Fragile", cls: "text-amber-600 dark:text-amber-400" },
