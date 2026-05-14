@@ -17,6 +17,7 @@ import { Edit, Save, Calculator, Sparkles, HelpCircle, BookOpen, Bike, PersonSta
 import { useCloudData, DbSnapshot } from "@/contexts/CloudDataContext";
 import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
 import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
+import { RMSEExplainer } from "@/components/RMSEExplainer";
 import { RunningTestProtocolsGuide } from "@/components/RunningTestProtocolsGuide";
 import {
   Tooltip,
@@ -176,9 +177,18 @@ function VLamaxCapField({
           )}
         </div>
         {estimatedValue && canEstimate && (
-          <div className="col-span-4 text-xs text-muted-foreground ml-auto pr-2">
-            Estimation: <span className="font-medium text-accent">{estimatedValue.value.toFixed(2)}</span>
-            <span className="ml-1">({estimatedValue.sources.join(" + ")})</span>
+          <div className="col-span-4 flex items-center justify-end gap-2 text-xs text-muted-foreground pr-2">
+            <span>
+              Estimation: <span className="font-medium text-accent">{estimatedValue.value.toFixed(2)}</span>
+              <span className="ml-1">({estimatedValue.sources.join(" + ")})</span>
+            </span>
+            <RMSEExplainer
+              compact
+              value={0.053}
+              unit="mmol/L/s"
+              tolerance={0.08}
+              context="Précision validée sur cohorte Billat N=9 (coureurs élites/sub-élites)"
+            />
           </div>
         )}
       </div>
