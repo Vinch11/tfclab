@@ -525,6 +525,25 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // INTÉGRATION C — Paliers de risque depuis la durabilité chronos (Riegel).
+  // Ratio observé semi→marathon vs Riegel (1.000 = neutre).
+  //   ≤1.00 excellent (élargit légèrement plafond), 1.00–1.04 neutre,
+  //   1.04–1.08 moyen (−2 widthHigh), >1.08 faible (−4 widthHigh + message robustesse).
+  // ─────────────────────────────────────────────────────────────────────────────
+  const durIdx = input.raceChrono?.durabilityIndex ?? null;
+  if (durIdx != null) {
+    sourcesUsed.push(`Durabilité chronos (idx=${durIdx.toFixed(2)})`);
+    if (durIdx > 1.08) {
+      readinessAdjustment += 4;
+      if (!readinessMessage) readinessMessage = "Durabilité observée faible — plafonner l'allure pour finir.";
+    } else if (durIdx > 1.04) {
+      readinessAdjustment += 2;
+    } else if (durIdx <= 1.00) {
+      readinessAdjustment = Math.max(readinessAdjustment - 1, -1);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // STEP 5: Calcul des limites — utilise widthLow/widthHigh asymétriques
   // ─────────────────────────────────────────────────────────────────────────────
   // Readiness/fatigue n'affectent QUE le plafond (cohérent avec readinessMessage)
