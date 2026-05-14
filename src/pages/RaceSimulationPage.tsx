@@ -283,15 +283,13 @@ export default function RaceSimulationPage() {
     const paceThresholdEffective = activeSnapshot?.pace_threshold_sec_per_km
       ?? raceChronoEstimate?.paceThreshold_sec_km
       ?? null;
-    // P2 — Paliers de risque : pénalise/booste le potentiel selon la durabilité observée.
-    const adjustedReadiness = potentielPhysiologiqueScore != null
-      ? Math.max(0, Math.min(100, potentielPhysiologiqueScore + durabilityReadinessDelta))
-      : potentielPhysiologiqueScore;
+    // Note: les paliers de risque durabilité sont désormais natifs au moteur
+    // (pacingEnvelopeEngine reçoit raceChrono et applique readinessAdjustment).
     return computePacingEnvelope({
       vlamaxEffectif: vlamaxForSport,
       tteEffectif,
       fatmax,
-      potentielPhysiologiqueScore: adjustedReadiness,
+      potentielPhysiologiqueScore,
       fatigueIndex: null,
       raceObjective,
       sport: discipline,
@@ -303,8 +301,13 @@ export default function RaceSimulationPage() {
       cpWkg,
       wPrimeJkg: null,
       predictedDurationMin: durationFallback[raceObjective] ?? 180,
+      raceChrono: raceChronoEstimate ? {
+        paceThreshold_sec_km: raceChronoEstimate.paceThreshold_sec_km ?? null,
+        durabilityIndex: raceChronoEstimate.durabilityIndex ?? null,
+        confidence: raceChronoEstimate.confidence,
+      } : null,
     });
-  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, durabilityReadinessDelta, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
+  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
   
   const rules = React.useMemo(() => {
     if (!envelope) return null;
