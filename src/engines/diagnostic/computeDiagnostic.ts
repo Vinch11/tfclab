@@ -39,6 +39,7 @@ import {
   type RunMLSSPrediction,
   type RunMLSSCrossValidation,
 } from "@/lib/v2/runMLSSPredictor";
+import { estimateFromRaceChronos } from "./raceTimeEstimator";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ORCHESTRATEUR PRINCIPAL
