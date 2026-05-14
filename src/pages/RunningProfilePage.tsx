@@ -42,6 +42,7 @@ import { VLamaxCAPCard } from "@/components/VLamaxCAPCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCard";
 import { RaceTimeEstimateCard } from "@/components/RaceTimeEstimateCard";
+import { estimateFromRaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
