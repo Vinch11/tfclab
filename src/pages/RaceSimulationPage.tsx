@@ -588,7 +588,11 @@ export default function RaceSimulationPage() {
                       paceThresholdSecKm={activeSnapshot?.pace_threshold_sec_per_km}
                       disponibiliteScore={disponibilite?.score}
                     />
-                  ) : (
+                  ) : null}
+                  {(discipline === 'run' || isTriathlon) && activeSnapshot && (
+                    <RaceTimeEstimateCard chronos={activeSnapshot as any} />
+                  )}
+                  {!envelope && (
                     <div className="text-center py-6 text-sm text-muted-foreground">
                       Données insuffisantes pour générer ton plan de course
                     </div>
