@@ -531,7 +531,7 @@ function buildReadinessState(input: CoachingCompassInput): TFCLReadinessState {
 // AXES RADAR — Synthèse visuelle
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalProfile): RadarAxis[] {
+function buildRadarAxes(input: CoachingCompassInput, profile: TFCLPhysiologicalProfile): { axes: RadarAxis[]; economy: RadarAxis } {
   const isRunning = input.sportFocus === "run";
   const ambition = (input.ambition || "age_group") as AmbitionLevel;
   const objectif = input.objectif || "IM";
