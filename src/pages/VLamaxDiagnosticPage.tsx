@@ -150,20 +150,20 @@ export default function VLamaxDiagnosticPage() {
       staffMode={false}
       onStaffModeChange={() => {}}
     >
-      <div className="container mx-auto p-4 md:p-6 max-w-5xl space-y-6">
+      <div className="container mx-auto p-3 sm:p-4 md:p-6 max-w-5xl space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-start gap-2 sm:gap-3 min-w-0">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="shrink-0">
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Retour</span>
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Beaker className="h-6 w-6 text-primary" />
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2 break-words">
+                <Beaker className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
                 Diagnostic VLamax
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground break-words">
                 {athlete?.name ?? "Aucun athlète sélectionné"} — vue
                 méthode-par-méthode
               </p>
@@ -173,6 +173,7 @@ export default function VLamaxDiagnosticPage() {
             onClick={handleSnapshot}
             disabled={!result || persisting}
             size="sm"
+            className="w-full sm:w-auto shrink-0"
           >
             <Camera className="h-4 w-4 mr-2" />
             {persisting ? "Enregistrement…" : "Snapshot calibration"}

@@ -132,18 +132,18 @@ export default function LiteratureCohortPage() {
       staffMode={false}
       onStaffModeChange={() => {}}
     >
-      <div className="container mx-auto py-6 space-y-6 max-w-7xl">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/diagnostic")}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour Diagnostic
+      <div className="container mx-auto py-4 sm:py-6 space-y-6 max-w-7xl">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-start gap-2 sm:gap-3 min-w-0">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/diagnostic")} className="shrink-0">
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Retour Diagnostic</span>
             </Button>
-            <div className="flex items-center gap-3">
-              <BookOpen className="h-7 w-7 text-primary" />
-              <div>
-                <h1 className="text-2xl font-bold">Cohorte Littérature Scientifique</h1>
-                <p className="text-sm text-muted-foreground">
+            <div className="flex items-start gap-2 sm:gap-3 min-w-0">
+              <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 text-primary shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold break-words leading-tight">Cohorte Littérature Scientifique</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground break-words mt-1">
                   Extraction IA de cohortes de référence depuis la littérature publiée (Mader, Heck, Beneke, Skiba, Pallarés…)
                 </p>
               </div>
