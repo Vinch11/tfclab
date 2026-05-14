@@ -107,6 +107,7 @@ export function RunningEconomyModule({
     weightKg,
     objectif,
     sport,
+    raceChrono,
   }).estimatedO2Cost;
   
   // Si non applicable (vélo, triathlon vélo-focus), ne pas afficher
