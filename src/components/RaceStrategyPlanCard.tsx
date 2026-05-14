@@ -429,7 +429,7 @@ const ROBUSTNESS_LABEL: Record<ScenarioBlock["robustness"], { label: string; cls
   VERY_FRAGILE: { label: "Très fragile", cls: "text-red-600 dark:text-red-400" },
 };
 
-function ScenarioCard({ scenario }: { scenario: ScenarioBlock }) {
+function ScenarioCard({ scenario, discipline }: { scenario: ScenarioBlock; discipline: "bike" | "run" }) {
   const rob = ROBUSTNESS_LABEL[scenario.robustness];
   return (
     <Card className="overflow-hidden">
@@ -495,7 +495,7 @@ function ScenarioCard({ scenario }: { scenario: ScenarioBlock }) {
         </div>
 
         {/* Repères d'effort — fiche route synthétique */}
-        <EffortRefBlock ref={scenario.effortRef} discipline={scenario.effortRef.npLow > 0 || scenario.effortRef.npHigh > 0 ? (scenario.effortRef.npLow > 30 ? "bike" : "run") : "bike"} />
+        <EffortRefBlock ref={scenario.effortRef} discipline={discipline} />
 
         {/* Splits */}
         <div>
@@ -582,7 +582,7 @@ export function RaceStrategyPlanCard(props: RaceStrategyPlanCardProps) {
 
         {scenarios.map((s) => (
           <TabsContent key={s.key} value={s.key} className="mt-3">
-            <ScenarioCard scenario={s} />
+            <ScenarioCard scenario={s} discipline={props.discipline} />
           </TabsContent>
         ))}
       </Tabs>
