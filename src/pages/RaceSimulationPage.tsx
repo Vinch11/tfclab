@@ -70,6 +70,20 @@ export default function RaceSimulationPage() {
       snapshots: snapshots ?? [],
     });
   }, [athleteId, objectif, activeSnapshotId, tests, snapshots]);
+
+  // P1 — VLamax CAP run dédiée (sport forcé "cap") pour les segments course,
+  // y compris en triathlon où l'objectif global résout par défaut vers le vélo.
+  const vlamaxRunEffectif = React.useMemo(() => {
+    if (!athleteId) return null;
+    return computeVLamaxEffectif({
+      athleteId,
+      objectif,
+      activeSnapshotId,
+      tests: tests ?? [],
+      snapshots: snapshots ?? [],
+      sportOverride: "cap",
+    });
+  }, [athleteId, objectif, activeSnapshotId, tests, snapshots]);
   
   const activeSnapshot = React.useMemo(() => {
     if (!snapshots || !athleteId) return null;
