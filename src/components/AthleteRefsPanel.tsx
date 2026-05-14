@@ -438,17 +438,20 @@ export function AthleteRefsPanel({
   return (
     <Card className="border-border/50">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <CardTitle className="text-lg flex items-center gap-2">
             <User className="h-5 w-5" />
             Profil & Références
           </CardTitle>
-          {isDirty && (
-            <Button onClick={handleSave} disabled={saving} size="sm">
-              <Save className="h-4 w-4 mr-1" />
-              {saving ? "Enregistrement..." : "Enregistrer"}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            <QuickChronoDialog athleteId={athlete.id} snapshots={snapshots} activeSnapshotId={athlete.active_snapshot_id ?? null} onSaved={onUpdate} />
+            {isDirty && (
+              <Button onClick={handleSave} disabled={saving} size="sm">
+                <Save className="h-4 w-4 mr-1" />
+                {saving ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+            )}
+          </div>
         </div>
         {effective.snapshotUsed && (
           <p className="text-sm text-muted-foreground">
