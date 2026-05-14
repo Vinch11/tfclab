@@ -370,12 +370,12 @@ export default function RunMLSSCohortPage() {
       staffMode={staffMode}
       onStaffModeChange={setStaffMode}
     >
-      <div className="container mx-auto p-4 sm:p-6 max-w-6xl space-y-6">
+      <div className="container mx-auto p-3 sm:p-6 max-w-6xl space-y-6">
         {/* Header */}
-        <div className="flex items-start gap-3">
-          <FlaskConical className="h-6 w-6 text-primary mt-1 shrink-0" />
+        <div className="flex items-start gap-2 sm:gap-3">
+          <FlaskConical className="h-5 w-5 sm:h-6 sm:w-6 text-primary mt-1 shrink-0" />
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl font-bold">Cohorte Run MLSS — Validation Modèle C</h1>
+            <h1 className="text-lg sm:text-2xl font-bold break-words leading-tight">Cohorte Run MLSS — Validation Modèle C</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Élargissez la cohorte au-delà de N=14 (calibration interne) en saisissant les tests
               terrain de vos athlètes. RMSE recalculé en direct, dual-tier labo/terrain.
@@ -407,7 +407,7 @@ export default function RunMLSSCohortPage() {
                 );
               })()}
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <TierStatBlock title="Labo" stats={report.byTier.lab} />
                 <TierStatBlock title="Terrain" stats={report.byTier.field} />
                 <TierStatBlock title="Combiné" stats={report.byTier.combined} highlight />
