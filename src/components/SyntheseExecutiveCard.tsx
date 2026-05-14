@@ -77,23 +77,37 @@ function computePillarScore(
   const gaps = limiter.gapAnalysis.filter(g => metricNames.includes(g.metric));
   if (gaps.length === 0) return null;
 
+  // Scoring continu (0-25) basé sur gapPercent pour éviter les sauts brutaux
+  // entre paliers (limiting → acceptable → optimal). Plus le gap négatif est
+  // grand, plus le score baisse linéairement. Une marge >= +5% donne le max.
+  // Mapping: +5% ou plus → 25 ; 0% → 22 ; -10% → 17 ; -20% → 12 ; -30% → 7 ; -40%+ → 0.
+  const scoreFromGap = (gapPercent: number | undefined, status: string): number => {
+    if (typeof gapPercent === "number" && Number.isFinite(gapPercent)) {
+      // Au-dessus de la cible: léger bonus capé à 25
+      if (gapPercent >= 5) return 25;
+      // Échelle linéaire: chaque 1% sous la cible = -0.5 point, base 22 à 0%
+      const raw = 22 + (gapPercent / 5) * 1.5; // -10% → 22 - 3 = 19 ... ajustons
+      // Recalcul plus lisible: base 22 à 0%, perte 0.55/point%
+      const linear = 22 + gapPercent * 0.55;
+      return Math.max(0, Math.min(25, linear));
+    }
+    // Fallback si gapPercent absent
+    if (status === "optimal") return 25;
+    if (status === "acceptable") return 18;
+    if (status === "limiting") return 8;
+    return 0;
+  };
+
   let totalScore = 0;
   let counted = 0;
   for (const gap of gaps) {
     if (!availableMetrics.has(gap.metric)) continue;
+    if (gap.status === "unknown") continue;
     counted++;
-    if (gap.status === "optimal") totalScore += 25;
-    else if (gap.status === "acceptable") totalScore += 18;
-    else if (gap.status === "limiting") {
-      const severity = Math.min(1, gap.weightedImpact / 15);
-      totalScore += Math.max(0, Math.round(15 * (1 - severity)));
-    } else {
-      // unknown status → don't fabricate a score
-      counted--;
-    }
+    totalScore += scoreFromGap(gap.gapPercent, gap.status);
   }
   if (counted === 0) return null;
-  return Math.round(totalScore / counted);
+  return Math.round((totalScore / counted) * 10) / 10;
 }
 
 function computeGlobalScore(pillarScores: (number | null)[]): number {
