@@ -321,19 +321,21 @@ export default function RaceSimulationPage() {
       fatigueLevel: latestCheckin?.fatigue ?? null,
       liveSegments: null, // Pas de données live en mode pré-course
     });
-  }, [envelope, vlamaxEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete, tteEffectif, activeSnapshot, latestCheckin]);
+  }, [envelope, vlamaxEffectif, vlamaxRunEffectif, raceObjective, discipline, potentielPhysiologiqueScore, selectedAthlete, tteEffectif, activeSnapshot, latestCheckin]);
   
   const scenarios = React.useMemo(() => {
     if (!envelope) return null;
+    // P1 — VLamax discipline-aware (run du tri = vlamax_run, pas vlamax bike).
+    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
     return simulatePacingScenarios({
       envelope,
       raceObjective,
-      vlamaxValue: vlamaxEffectif?.value ?? null,
+      vlamaxValue: vlamaxForSport?.value ?? null,
       tteMin: tteEffectif?.tte_min ?? null,
       raceDistanceKm: 90,
       raceDurationMin,
     });
-  }, [envelope, raceObjective, vlamaxEffectif, tteEffectif, raceDurationMin]);
+  }, [envelope, raceObjective, vlamaxEffectif, vlamaxRunEffectif, discipline, tteEffectif, raceDurationMin]);
   
   return (
     <SidebarLayout
