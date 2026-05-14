@@ -1522,6 +1522,17 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </div>
 
             <div className="flex gap-1">
+              {s.vlamax_run != null && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleClearVlamaxRun(s)}
+                  className="h-9 text-xs"
+                  title="Effacer uniquement la VLamax CAP mesurée"
+                >
+                  Effacer VLamax CAP
+                </Button>
+              )}
               <Button
                 size="icon"
                 variant={isActive ? "secondary" : "ghost"}
