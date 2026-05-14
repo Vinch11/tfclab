@@ -86,6 +86,17 @@ export interface PacingEnvelopeInput {
    * Défaut 0.5 si non fourni (réserve modérée typique).
    */
   wPrimeBalanceRaceDay?: number | null;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INTÉGRATION C — Fallback RAW depuis chronos course (raceTimeEstimator).
+  // Utilisé si paceThreshold absent + comme paliers de risque sur la durabilité.
+  // Ne remplace JAMAIS une donnée effective.
+  // ─────────────────────────────────────────────────────────────────────────────
+  raceChrono?: {
+    paceThreshold_sec_km?: number | null;
+    durabilityIndex?: number | null;
+    confidence?: number | null;
+  } | null;
 }
 
 export type IntensityReferenceBase = 
