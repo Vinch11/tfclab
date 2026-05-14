@@ -330,6 +330,7 @@ export default function LiteratureCohortPage() {
           <LabAthleteValidator />
         </>
       )}
-    </div>
+      </div>
+    </SidebarLayout>
   );
 }
