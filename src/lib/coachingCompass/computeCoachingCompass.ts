@@ -68,8 +68,8 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
   // 5. Assembler Potentiel Physiologique
   const readiness = buildReadinessState(input);
 
-  // 6. Construire les axes radar
-  const radarAxes = buildRadarAxes(input, profile);
+  // 6. Construire les axes radar (4 piliers) + modulateur Économie séparé
+  const { axes: radarAxes, economy: economyModifier } = buildRadarAxes(input, profile);
 
   // 7. Fatigue warning
   const fatigueWarning = buildFatigueWarning(input);
@@ -81,6 +81,7 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
     decision,
     readiness,
     radarAxes,
+    economyModifier,
     fatigueWarning,
     meta: {
       version: COACHING_COMPASS_VERSION,
