@@ -243,6 +243,32 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [runPowerMax, setRunPowerMax] = useState(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
   const [runPowerThreshold, setRunPowerThreshold] = useState(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
 
+  // ✅ Chronos course (RAW pour estimateur CE / durabilité)
+  const [time5k, setTime5k] = useState((snapshot as any).time_5k_sec != null ? secondsToMmSs((snapshot as any).time_5k_sec) : "");
+  const [time10k, setTime10k] = useState((snapshot as any).time_10k_sec != null ? secondsToMmSs((snapshot as any).time_10k_sec) : "");
+  const [time20k, setTime20k] = useState((snapshot as any).time_20k_sec != null ? secondsToMmSs((snapshot as any).time_20k_sec) : "");
+  const [timeHalf, setTimeHalf] = useState((snapshot as any).time_half_sec != null ? secondsToMmSs((snapshot as any).time_half_sec) : "");
+  const [timeMarathon, setTimeMarathon] = useState((snapshot as any).time_marathon_sec != null ? secondsToMmSs((snapshot as any).time_marathon_sec) : "");
+
+  const parseRaceTime = (s: string): number | null => {
+    if (!s) return null;
+    const t = s.trim();
+    // hh:mm:ss or mm:ss or seconds
+    const parts = t.split(":").map(p => p.trim());
+    if (parts.length === 3) {
+      const [h, m, sec] = parts.map(Number);
+      if ([h, m, sec].some(isNaN)) return null;
+      return h * 3600 + m * 60 + sec;
+    }
+    if (parts.length === 2) {
+      const [m, sec] = parts.map(Number);
+      if ([m, sec].some(isNaN)) return null;
+      return m * 60 + sec;
+    }
+    const n = Number(t);
+    return isNaN(n) ? null : n;
+  };
+
   const handleSave = async () => {
     await updateSnapshot(snapshot.id, {
       date,
