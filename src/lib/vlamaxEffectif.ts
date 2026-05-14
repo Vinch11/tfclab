@@ -198,7 +198,7 @@ function computeDataAgeDays(dateStr?: string): number {
 // =============================================
 
 export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLamaxEffectif {
-  const { athleteId, objectif, activeSnapshotId, tests, snapshots, previousEffective } = params;
+  const { athleteId, objectif, activeSnapshotId, tests, snapshots, previousEffective, sportOverride } = params;
 
   // Déterminer le snapshot effectif
   const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
@@ -215,7 +215,8 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     }
   }
 
-  const sport = snapshotSportToContext(effectiveSnapshot?.sport_main, objectif);
+  const sport: SportContext = sportOverride
+    ?? snapshotSportToContext(effectiveSnapshot?.sport_main, objectif);
 
   // =============================================
   // A0) SOURCE CAP MESURÉE (vlamax_run — sprint lactate / test CAP terrain)
