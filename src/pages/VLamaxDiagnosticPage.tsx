@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Camera, Beaker, AlertTriangle, History, Info } from "lucide-react";
 import { toast } from "sonner";
+import { RMSEExplainer } from "@/components/RMSEExplainer";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -199,7 +200,15 @@ export default function VLamaxDiagnosticPage() {
             {/* SYNTHÈSE */}
             <Card>
               <CardHeader>
-                <CardTitle>Synthèse</CardTitle>
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle>Synthèse</CardTitle>
+                  <RMSEExplainer
+                    value={0.053}
+                    unit="mmol/L/s"
+                    tolerance={0.08}
+                    context="Validation Billat N=9 coureurs (cohorte littérature 1996-2023)"
+                  />
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
