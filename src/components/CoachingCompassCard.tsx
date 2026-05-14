@@ -691,7 +691,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 Niveau 1 — Profil physiologique
               </span>
               <p className="text-[10px] text-muted-foreground mt-0.5 mb-2 italic">
-                Le radar visualise tes 5 capacités clés. La zone verte = zone optimale (75-100). Plus ta surface est grande, plus tu es prêt.
+                Le radar visualise tes 4 piliers physiologiques (VO₂max, VLamax, Aérobie, Durabilité). Plus ta surface est grande, plus tu es prêt. L'<strong>économie</strong> est affichée à part comme modulateur secondaire d'efficience.
               </p>
               <div className="mt-1">
                 <SignatureRadar axes={compass.radarAxes} size={320} />
