@@ -56,12 +56,7 @@ function expectedMLSSPct(label: string): number {
 }
 
 async function main() {
-  const { data, error } = await supabase
-    .from("literature_cohort_profiles")
-    .select("study_author, study_year, cohort_label, vo2max, vma_kmh, running_economy")
-    .ilike("study_author", "%billat%");
-
-  if (error || !data) { console.error(error); process.exit(1); }
+  const data = BILLAT_COHORT;
 
   console.log(`\n=== Billat Anchor Recalibration (N=${data.length}) ===\n`);
   const rows: Array<{ label: string; ratio: number; vlaTarget: number; vlaCurrent: number; delta: number }> = [];
