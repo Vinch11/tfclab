@@ -736,6 +736,18 @@ const Index = () => {
         motivation: latestCheckin.motivation,
         painFlag: latestCheckin.pain_flag ?? false,
       } : undefined,
+      raceChronos: {
+        time_5k_sec: (effectiveCloudSnapshot as any).time_5k_sec ?? null,
+        time_10k_sec: (effectiveCloudSnapshot as any).time_10k_sec ?? null,
+        time_20k_sec: (effectiveCloudSnapshot as any).time_20k_sec ?? null,
+        time_half_sec: (effectiveCloudSnapshot as any).time_half_sec ?? null,
+        time_marathon_sec: (effectiveCloudSnapshot as any).time_marathon_sec ?? null,
+        time_5k_date: (effectiveCloudSnapshot as any).time_5k_date ?? null,
+        time_10k_date: (effectiveCloudSnapshot as any).time_10k_date ?? null,
+        time_20k_date: (effectiveCloudSnapshot as any).time_20k_date ?? null,
+        time_half_date: (effectiveCloudSnapshot as any).time_half_date ?? null,
+        time_marathon_date: (effectiveCloudSnapshot as any).time_marathon_date ?? null,
+      },
     };
 
     const diagnostic = computeDiagnostic(diagnosticInput);
