@@ -870,6 +870,7 @@ export type Database = {
           pace_threshold_sec_per_km: number | null
           pmax_5s: number | null
           protocol_quality: number | null
+          race_times_notes: string | null
           run_duration_min: number | null
           run_economy_label: string | null
           run_economy_score: number | null
@@ -886,6 +887,16 @@ export type Database = {
           source: string
           sport_main: string | null
           sprint_15s_distance: number | null
+          time_10k_date: string | null
+          time_10k_sec: number | null
+          time_20k_date: string | null
+          time_20k_sec: number | null
+          time_5k_date: string | null
+          time_5k_sec: number | null
+          time_half_date: string | null
+          time_half_sec: number | null
+          time_marathon_date: string | null
+          time_marathon_sec: number | null
           tss_7d: number | null
           tte_mode: string | null
           tte_observed_min: number | null
@@ -928,6 +939,7 @@ export type Database = {
           pace_threshold_sec_per_km?: number | null
           pmax_5s?: number | null
           protocol_quality?: number | null
+          race_times_notes?: string | null
           run_duration_min?: number | null
           run_economy_label?: string | null
           run_economy_score?: number | null
@@ -944,6 +956,16 @@ export type Database = {
           source?: string
           sport_main?: string | null
           sprint_15s_distance?: number | null
+          time_10k_date?: string | null
+          time_10k_sec?: number | null
+          time_20k_date?: string | null
+          time_20k_sec?: number | null
+          time_5k_date?: string | null
+          time_5k_sec?: number | null
+          time_half_date?: string | null
+          time_half_sec?: number | null
+          time_marathon_date?: string | null
+          time_marathon_sec?: number | null
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
@@ -986,6 +1008,7 @@ export type Database = {
           pace_threshold_sec_per_km?: number | null
           pmax_5s?: number | null
           protocol_quality?: number | null
+          race_times_notes?: string | null
           run_duration_min?: number | null
           run_economy_label?: string | null
           run_economy_score?: number | null
@@ -1002,6 +1025,16 @@ export type Database = {
           source?: string
           sport_main?: string | null
           sprint_15s_distance?: number | null
+          time_10k_date?: string | null
+          time_10k_sec?: number | null
+          time_20k_date?: string | null
+          time_20k_sec?: number | null
+          time_5k_date?: string | null
+          time_5k_sec?: number | null
+          time_half_date?: string | null
+          time_half_sec?: number | null
+          time_marathon_date?: string | null
+          time_marathon_sec?: number | null
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
