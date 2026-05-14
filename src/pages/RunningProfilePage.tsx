@@ -41,6 +41,7 @@ import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
 import { VLamaxCAPCard } from "@/components/VLamaxCAPCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCard";
+import { RaceTimeEstimateCard } from "@/components/RaceTimeEstimateCard";
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
@@ -611,6 +612,12 @@ export default function RunningProfilePage() {
             snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
             staffMode={staffMode}
           />
+        ),
+      },
+      {
+        id: "race-time-estimate",
+        render: () => (
+          <RaceTimeEstimateCard chronos={(effectiveCloudSnapshot ?? {}) as any} />
         ),
       },
       {

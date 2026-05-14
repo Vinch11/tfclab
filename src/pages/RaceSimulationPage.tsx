@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { RaceStrategyPlanCard } from '@/components/RaceStrategyPlanCard';
+import { RaceTimeEstimateCard } from '@/components/RaceTimeEstimateCard';
 import { TriathlonFullRaceSimulationCard } from '@/components/TriathlonFullRaceSimulationCard';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
 import { NegativeSplitPreviewCard } from '@/components/NegativeSplitPreviewCard';
@@ -587,7 +588,11 @@ export default function RaceSimulationPage() {
                       paceThresholdSecKm={activeSnapshot?.pace_threshold_sec_per_km}
                       disponibiliteScore={disponibilite?.score}
                     />
-                  ) : (
+                  ) : null}
+                  {(discipline === 'run' || isTriathlon) && activeSnapshot && (
+                    <RaceTimeEstimateCard chronos={activeSnapshot as any} />
+                  )}
+                  {!envelope && (
                     <div className="text-center py-6 text-sm text-muted-foreground">
                       Données insuffisantes pour générer ton plan de course
                     </div>

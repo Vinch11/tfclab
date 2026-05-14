@@ -243,6 +243,32 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [runPowerMax, setRunPowerMax] = useState(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
   const [runPowerThreshold, setRunPowerThreshold] = useState(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
 
+  // ✅ Chronos course (RAW pour estimateur CE / durabilité)
+  const [time5k, setTime5k] = useState((snapshot as any).time_5k_sec != null ? secondsToMmSs((snapshot as any).time_5k_sec) : "");
+  const [time10k, setTime10k] = useState((snapshot as any).time_10k_sec != null ? secondsToMmSs((snapshot as any).time_10k_sec) : "");
+  const [time20k, setTime20k] = useState((snapshot as any).time_20k_sec != null ? secondsToMmSs((snapshot as any).time_20k_sec) : "");
+  const [timeHalf, setTimeHalf] = useState((snapshot as any).time_half_sec != null ? secondsToMmSs((snapshot as any).time_half_sec) : "");
+  const [timeMarathon, setTimeMarathon] = useState((snapshot as any).time_marathon_sec != null ? secondsToMmSs((snapshot as any).time_marathon_sec) : "");
+
+  const parseRaceTime = (s: string): number | null => {
+    if (!s) return null;
+    const t = s.trim();
+    // hh:mm:ss or mm:ss or seconds
+    const parts = t.split(":").map(p => p.trim());
+    if (parts.length === 3) {
+      const [h, m, sec] = parts.map(Number);
+      if ([h, m, sec].some(isNaN)) return null;
+      return h * 3600 + m * 60 + sec;
+    }
+    if (parts.length === 2) {
+      const [m, sec] = parts.map(Number);
+      if ([m, sec].some(isNaN)) return null;
+      return m * 60 + sec;
+    }
+    const n = Number(t);
+    return isNaN(n) ? null : n;
+  };
+
   const handleSave = async () => {
     await updateSnapshot(snapshot.id, {
       date,
@@ -267,7 +293,13 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       sprint_15s_distance: numOrNull(sprint15s),
       running_power_max: numOrNull(runPowerMax),
       running_power_threshold: numOrNull(runPowerThreshold),
-    });
+      // ✅ Chronos course (Raw)
+      time_5k_sec: parseRaceTime(time5k),
+      time_10k_sec: parseRaceTime(time10k),
+      time_20k_sec: parseRaceTime(time20k),
+      time_half_sec: parseRaceTime(timeHalf),
+      time_marathon_sec: parseRaceTime(timeMarathon),
+    } as any);
     setOpen(false);
   };
 
@@ -294,6 +326,12 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       setSprint15s(snapshot.sprint_15s_distance != null ? String(snapshot.sprint_15s_distance) : "");
       setRunPowerMax(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
       setRunPowerThreshold(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
+      const s = snapshot as any;
+      setTime5k(s.time_5k_sec != null ? secondsToMmSs(s.time_5k_sec) : "");
+      setTime10k(s.time_10k_sec != null ? secondsToMmSs(s.time_10k_sec) : "");
+      setTime20k(s.time_20k_sec != null ? secondsToMmSs(s.time_20k_sec) : "");
+      setTimeHalf(s.time_half_sec != null ? secondsToMmSs(s.time_half_sec) : "");
+      setTimeMarathon(s.time_marathon_sec != null ? secondsToMmSs(s.time_marathon_sec) : "");
     }
     setOpen(isOpen);
   };
@@ -566,6 +604,35 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
               sprint15sDistance={numOrNull(sprint15s)}
               runningPowerMax={numOrNull(runPowerMax)}
             />
+
+            {/* Chronos course (Raw → CE / Durabilité) */}
+            <div className="pt-3 border-t border-border">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                🏁 Derniers chronos course (Raw)
+              </p>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                Format mm:ss ou hh:mm:ss. Sert à estimer vVO2max, allure seuil, économie de course et durabilité (Riegel + Daniels VDOT + ACSM).
+              </p>
+            </div>
+
+            {[
+              { label: "5 km", v: time5k, set: setTime5k, ph: "20:30" },
+              { label: "10 km", v: time10k, set: setTime10k, ph: "42:15" },
+              { label: "20 km", v: time20k, set: setTime20k, ph: "1:28:00" },
+              { label: "Semi-marathon", v: timeHalf, set: setTimeHalf, ph: "1:32:45" },
+              { label: "Marathon", v: timeMarathon, set: setTimeMarathon, ph: "3:25:00" },
+            ].map(({ label, v, set, ph }) => (
+              <div key={label} className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right text-sm">{label}</Label>
+                <Input
+                  className="col-span-3"
+                  type="text"
+                  placeholder={ph}
+                  value={v}
+                  onChange={(e) => set(e.target.value)}
+                />
+              </div>
+            ))}
           </TabsContent>
         </Tabs>
 
