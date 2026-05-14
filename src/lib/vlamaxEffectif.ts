@@ -150,6 +150,11 @@ interface ComputeVLamaxEffectifParams {
   snapshots: SnapshotCloud[];
   /** V2: valeur effective précédente (pour EWMA) */
   previousEffective?: number | null;
+  /**
+   * Override explicite du sport ciblé (utile pour le segment course d'un triathlon
+   * → forcer "cap" même si l'objectif global est "IM"/"70.3" qui résout vers "velo").
+   */
+  sportOverride?: SportContext | null;
 }
 
 // =============================================
