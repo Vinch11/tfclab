@@ -201,14 +201,27 @@ export default function RaceSimulationPage() {
   //   • Pénalité additionnelle −2 pts vSeuil si VLamax ≥ 0.55 (profil glycolytique → drift run accru)
   //   • Vélo : table de format (à individualiser via CP/FTP en v2)
   const segmentDurationMin = React.useMemo(() => {
-    const paceThr = activeSnapshot?.pace_threshold_sec_per_km ?? null; // sec/km au seuil
-    const vlamaxHigh = (vlamaxEffectif?.value ?? 0.4) >= 0.55;
+    // P2 — Fallback paceThreshold via raceTimeEstimator si l'effective est absent.
+    // Reste tag RAW : utilisé uniquement pour le calcul de durée prédite, pas en prescription.
+    const paceThr = activeSnapshot?.pace_threshold_sec_per_km
+      ?? raceChronoEstimate?.paceThreshold_sec_km
+      ?? null; // sec/km au seuil
+    // P1 — Pénalité glycolytique segment course basée sur la VLamax CAP (run), pas la bike.
+    const vlamaxRunVal = vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? 0.4;
+    const vlamaxHigh = vlamaxRunVal >= 0.55;
     const vlamaxVSeuilPenalty = vlamaxHigh ? 0.02 : 0; // -2% vSeuil si glyco
+
+    // P2 — Pénalité de durabilité observée chronos (Riegel semi→marathon)
+    //   • idx ≤ 1.04 → 0%   • 1.04–1.08 → -1.5%   • >1.08 → -3%
+    const durIdx = raceChronoEstimate?.durabilityIndex;
+    const durabilityPenalty = durIdx == null ? 0
+      : durIdx <= 1.04 ? 0
+      : durIdx <= 1.08 ? 0.015
+      : 0.03;
 
     const ambition = ((selectedAthlete as any)?.ambition ?? 'age_group') as
       | 'finisher' | 'age_group' | 'competitor' | 'elite';
 
-    // Fraction de vSeuil soutenue post-T2
     const vSeuilFractionByAmbition: Record<typeof ambition, { half: number; full: number }> = {
       elite:      { half: 0.95, full: 0.89 },
       competitor: { half: 0.88, full: 0.82 },
@@ -218,8 +231,7 @@ export default function RaceSimulationPage() {
 
     const computeRunMin = (distanceKm: number, vSeuilFraction: number): number | null => {
       if (!paceThr || paceThr <= 0) return null;
-      const effectiveFraction = Math.max(0.5, vSeuilFraction - vlamaxVSeuilPenalty);
-      // pace réel = pace_seuil / fraction vSeuil
+      const effectiveFraction = Math.max(0.5, vSeuilFraction - vlamaxVSeuilPenalty - durabilityPenalty);
       const paceRunSecKm = paceThr / effectiveFraction;
       return (paceRunSecKm * distanceKm) / 60;
     };
@@ -233,7 +245,7 @@ export default function RaceSimulationPage() {
       return { bike: 150, run: Math.round(runMin) };
     }
     return { bike: 180, run: 180 };
-  }, [raceObjective, activeSnapshot, vlamaxEffectif, selectedAthlete]);
+  }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete]);
 
   const raceDurationMin = React.useMemo(() => {
     if (isTriathlon) return segmentDurationMin[discipline];
