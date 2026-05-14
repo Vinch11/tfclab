@@ -1199,6 +1199,7 @@ export default function DashboardPage() {
         vlamax={vlamaxEffectif.value}
         objectif={objectif}
         sportMain={(snapshot as any)?.sport_main ?? null}
+        age={athleteAge ?? null}
       />
     )},
     { id: "cpw-prime-curve", render: () => (
