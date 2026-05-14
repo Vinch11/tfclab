@@ -2,15 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity } from "lucide-react";
 import { resolveBadgeSport } from "@/lib/sportMainDeduction";
+import { getAgeAdjustedVLamaxThresholds, type VLamaxProfil } from "@/lib/ageAdjustment";
 
 interface VLamaxProfileScaleProps {
   vlamax: number | null;
   objectif?: string | null;
   sportMain?: string | null;
+  /** Âge de l'athlète — utilisé pour l'ajustement des seuils (>40 ans = seuils abaissés) */
+  age?: number | null;
 }
 
 interface ProfileBand {
-  key: string;
+  key: VLamaxProfil;
   min: number;
   max: number;
   label: string;
@@ -21,61 +24,81 @@ interface ProfileBand {
   text: string;
 }
 
-const BANDS: ProfileBand[] = [
-  {
-    key: "diesel",
-    min: 0.0,
-    max: 0.30,
-    label: "Diesel extrême",
-    shortLabel: "< 0,30",
-    sports: "Ironman, ultra-cyclisme, marche athlétique 50 km",
-    characteristics: "Combustion graisses excellente, seuil anaérobie ~VO2max, accélération quasi nulle.",
-    color: "bg-blue-500/70",
-    text: "text-blue-700 dark:text-blue-300",
-  },
-  {
-    key: "endurance",
-    min: 0.30,
-    max: 0.50,
-    label: "Endurance polyvalente",
-    shortLabel: "0,30 – 0,50",
-    sports: "Marathon, trail long, cyclisme route (grimpeur, courses à étapes)",
-    characteristics: "Tient longtemps à haute intensité avec une légère capacité à changer de rythme / encaisser le relief.",
-    color: "bg-green-500/70",
-    text: "text-green-700 dark:text-green-300",
-  },
-  {
-    key: "puncheur",
-    min: 0.50,
-    max: 0.75,
-    label: "Puncheur / Mixte",
-    shortLabel: "0,50 – 0,75",
-    sports: "Classiques flandriennes, foot, rugby, demi-fond (1500–5000 m), VTT XCO",
-    characteristics: "Répète des efforts > seuil et récupère vite — au prix d'une grosse consommation de glycogène.",
-    color: "bg-amber-500/70",
-    text: "text-amber-700 dark:text-amber-300",
-  },
-  {
-    key: "explosif",
-    min: 0.75,
-    max: 1.20,
-    label: "Explosif / Sprinteur",
-    shortLabel: "> 0,75",
-    sports: "Sprint piste (100/200 m, cyclisme piste), BMX, natation 50/100 m",
-    characteristics: "Puissance maximale phénoménale, ouverture des vannes glycolytiques fulgurante.",
-    color: "bg-red-500/70",
-    text: "text-red-700 dark:text-red-300",
-  },
-];
-
 const SCALE_MIN = 0;
 const SCALE_MAX = 1.0; // affichage borné à 1.0 mmol/L/s
 
-function findBand(value: number): ProfileBand {
-  return BANDS.find((b) => value >= b.min && value < b.max) ?? BANDS[BANDS.length - 1];
+/**
+ * Construit les bandes du profil VLamax à partir des seuils canoniques
+ * (`getAgeAdjustedVLamaxThresholds`) pour rester aligné avec VLamaxUnifiedCard
+ * et `getAgeAdjustedVLamaxProfil`.
+ */
+function buildBands(age: number | null | undefined): ProfileBand[] {
+  const t = getAgeAdjustedVLamaxThresholds(age ?? null);
+  const fmt = (v: number) => v.toFixed(2).replace(".", ",");
+  return [
+    {
+      key: "diesel",
+      min: 0,
+      max: t.diesel,
+      label: "Diesel Ultra-Endurant",
+      shortLabel: `< ${fmt(t.diesel)}`,
+      sports: "Ironman, ultra-trail, ultra-cyclisme, marche athlétique",
+      characteristics: "Combustion graisses excellente, seuil anaérobie ~VO2max, accélération quasi nulle.",
+      color: "bg-blue-500/70",
+      text: "text-blue-700 dark:text-blue-300",
+    },
+    {
+      key: "endurant",
+      min: t.diesel,
+      max: t.endurant,
+      label: "Endurant",
+      shortLabel: `${fmt(t.diesel)} – ${fmt(t.endurant)}`,
+      sports: "Marathon, trail long/montagne, cyclisme route (grimpeur)",
+      characteristics: "Tient longtemps à haute intensité, économie aérobie dominante.",
+      color: "bg-green-500/70",
+      text: "text-green-700 dark:text-green-300",
+    },
+    {
+      key: "equilibre",
+      min: t.endurant,
+      max: t.equilibre,
+      label: "Équilibré",
+      shortLabel: `${fmt(t.endurant)} – ${fmt(t.equilibre)}`,
+      sports: "70.3, semi, trail court, cyclisme polyvalent",
+      characteristics: "Bon compromis aérobie/anaérobie, capacité à varier les rythmes.",
+      color: "bg-emerald-500/70",
+      text: "text-emerald-700 dark:text-emerald-300",
+    },
+    {
+      key: "explosif",
+      min: t.equilibre,
+      max: t.explosif,
+      label: "Explosif",
+      shortLabel: `${fmt(t.equilibre)} – ${fmt(t.explosif)}`,
+      sports: "Demi-fond (1500–5000 m), VTT XCO, classiques, foot/rugby",
+      characteristics: "Répète des efforts > seuil et récupère vite — au prix d'une grosse conso de glycogène.",
+      color: "bg-orange-500/70",
+      text: "text-orange-700 dark:text-orange-300",
+    },
+    {
+      key: "sprinter",
+      min: t.explosif,
+      max: 1.20,
+      label: "Sprinter",
+      shortLabel: `≥ ${fmt(t.explosif)}`,
+      sports: "Sprint piste (100/200 m), BMX, natation 50/100 m",
+      characteristics: "Puissance maximale phénoménale, glycolyse fulgurante.",
+      color: "bg-red-500/70",
+      text: "text-red-700 dark:text-red-300",
+    },
+  ];
 }
 
-export function VLamaxProfileScale({ vlamax, objectif, sportMain }: VLamaxProfileScaleProps) {
+function findBand(value: number, bands: ProfileBand[]): ProfileBand {
+  return bands.find((b) => value >= b.min && value < b.max) ?? bands[bands.length - 1];
+}
+
+export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null }: VLamaxProfileScaleProps) {
   const sport = resolveBadgeSport({ sport_main: sportMain }, { goal: objectif }) ?? "bike";
   const sportLabel = sport === "cap" ? "Course à pied" : sport === "tri" ? "Triathlon" : "Vélo";
 
@@ -95,9 +118,11 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain }: VLamaxProfil
     );
   }
 
+  const BANDS = buildBands(age);
   const clamped = Math.max(SCALE_MIN, Math.min(SCALE_MAX, vlamax));
   const positionPct = ((clamped - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100;
-  const currentBand = findBand(vlamax);
+  const currentBand = findBand(vlamax, BANDS);
+  const ageAdjusted = age != null && age >= 30;
 
   return (
     <Card>
@@ -109,6 +134,9 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain }: VLamaxProfil
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <Badge variant="outline" className="text-[11px]">{sportLabel}</Badge>
           <span>VLamax mesurée : <strong className="text-foreground">{vlamax.toFixed(2)}</strong> mmol/L/s</span>
+          {ageAdjusted && (
+            <Badge variant="outline" className="text-[10px]">Seuils ajustés âge ({age} ans)</Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -143,9 +171,9 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain }: VLamaxProfil
           {/* Graduations */}
           <div className="flex justify-between text-[10px] text-muted-foreground pt-3 overflow-hidden">
             <span className="shrink-0">0,00</span>
-            <span className="shrink-0">0,30</span>
-            <span className="shrink-0">0,50</span>
-            <span className="shrink-0">0,75</span>
+            <span className="shrink-0">{BANDS[0].max.toFixed(2).replace(".", ",")}</span>
+            <span className="shrink-0">{BANDS[2].min.toFixed(2).replace(".", ",")}</span>
+            <span className="shrink-0">{BANDS[4].min.toFixed(2).replace(".", ",")}</span>
             <span className="shrink-0">1,00</span>
           </div>
         </div>
@@ -165,7 +193,7 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain }: VLamaxProfil
         {/* Légende complète repliée façon liste compacte */}
         <details className="text-xs">
           <summary className="cursor-pointer text-muted-foreground hover:text-foreground font-medium">
-            Voir les 4 profils complets
+            Voir les 5 profils complets
           </summary>
           <ul className="mt-2 space-y-2">
             {BANDS.map((b) => (
@@ -179,7 +207,7 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain }: VLamaxProfil
         </details>
 
         <p className="text-[10px] text-muted-foreground italic">
-          Échelle indicative basée sur la classification glycolytique (Mader-Heck). Le positionnement optimal dépend du sport et de l'objectif (ex. Trail long → idéal 0,30–0,50).
+          Échelle alignée sur les seuils canoniques TFCL (Mader-Heck, ajustés par âge). Le positionnement optimal dépend du sport et de l'objectif (ex. Trail montagne → idéal "Endurant" à "Équilibré").
         </p>
       </CardContent>
     </Card>
