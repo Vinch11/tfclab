@@ -332,8 +332,9 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       fcMax: fcMax ? Math.round(fcMax) : null,
     });
 
-    // Parse VLamax CAP fields
+    // Parse VLamax CAP fields — en mode Staff, un champ vide doit vraiment supprimer la valeur verrouillée.
     const vlamaxRun = staffMode ? parseNum(formData.vlamax_run) : editingSnapshot.vlamax_run;
+    const shouldClearVlamaxRunLock = staffMode && vlamaxRun == null && editingSnapshot.vlamax_run != null;
     const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
 
     await updateSnapshot(editingSnapshot.id, {
@@ -348,6 +349,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       vo2max,
       vlamax, // ✅ Conserve valeur existante si mode standard
       vlamax_run: vlamaxRun, // ✅ VLamax CAP
+      ...(shouldClearVlamaxRunLock ? {
+        vlamax_source: null,
+        vlamax_protocol: null,
+        vlamax_is_reference: false,
+      } : {}),
       weight_kg: parseNum(formData.weight_kg),
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
@@ -401,6 +407,21 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const handleDelete = async (id: string) => {
     if (confirm("Supprimer ce snapshot ?")) {
       await deleteSnapshot(id);
+    }
+  };
+
+  const handleClearVlamaxRun = async (s: DbSnapshot) => {
+    if (!confirm("Effacer la VLamax CAP mesurée de ce profil ? L'estimation terrain redeviendra prioritaire.")) return;
+
+    const success = await updateSnapshot(s.id, {
+      vlamax_run: null,
+      vlamax_source: null,
+      vlamax_protocol: null,
+      vlamax_is_reference: false,
+    } as Partial<DbSnapshot>);
+
+    if (success && editingSnapshot?.id === s.id) {
+      setFormData((prev) => ({ ...prev, vlamax_run: "" }));
     }
   };
 
@@ -1501,6 +1522,17 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </div>
 
             <div className="flex gap-1">
+              {s.vlamax_run != null && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleClearVlamaxRun(s)}
+                  className="h-9 text-xs"
+                  title="Effacer uniquement la VLamax CAP mesurée"
+                >
+                  Effacer VLamax CAP
+                </Button>
+              )}
               <Button
                 size="icon"
                 variant={isActive ? "secondary" : "ghost"}
