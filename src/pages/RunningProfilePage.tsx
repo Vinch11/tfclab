@@ -615,6 +615,12 @@ export default function RunningProfilePage() {
         ),
       },
       {
+        id: "race-time-estimate",
+        render: () => (
+          <RaceTimeEstimateCard chronos={(effectiveCloudSnapshot ?? {}) as any} />
+        ),
+      },
+      {
         id: "injury-risk-cap",
         render: () => (
           <InjuryRiskCAPCard
