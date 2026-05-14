@@ -604,6 +604,35 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
               sprint15sDistance={numOrNull(sprint15s)}
               runningPowerMax={numOrNull(runPowerMax)}
             />
+
+            {/* Chronos course (Raw → CE / Durabilité) */}
+            <div className="pt-3 border-t border-border">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                🏁 Derniers chronos course (Raw)
+              </p>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                Format mm:ss ou hh:mm:ss. Sert à estimer vVO2max, allure seuil, économie de course et durabilité (Riegel + Daniels VDOT + ACSM).
+              </p>
+            </div>
+
+            {[
+              { label: "5 km", v: time5k, set: setTime5k, ph: "20:30" },
+              { label: "10 km", v: time10k, set: setTime10k, ph: "42:15" },
+              { label: "20 km", v: time20k, set: setTime20k, ph: "1:28:00" },
+              { label: "Semi-marathon", v: timeHalf, set: setTimeHalf, ph: "1:32:45" },
+              { label: "Marathon", v: timeMarathon, set: setTimeMarathon, ph: "3:25:00" },
+            ].map(({ label, v, set, ph }) => (
+              <div key={label} className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right text-sm">{label}</Label>
+                <Input
+                  className="col-span-3"
+                  type="text"
+                  placeholder={ph}
+                  value={v}
+                  onChange={(e) => set(e.target.value)}
+                />
+              </div>
+            ))}
           </TabsContent>
         </Tabs>
 
