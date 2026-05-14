@@ -494,6 +494,9 @@ function ScenarioCard({ scenario }: { scenario: ScenarioBlock }) {
           </div>
         </div>
 
+        {/* Repères d'effort — fiche route synthétique */}
+        <EffortRefBlock ref={scenario.effortRef} discipline={scenario.effortRef.npLow > 0 || scenario.effortRef.npHigh > 0 ? (scenario.effortRef.npLow > 30 ? "bike" : "run") : "bike"} />
+
         {/* Splits */}
         <div>
           <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
