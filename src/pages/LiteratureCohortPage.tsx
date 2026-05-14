@@ -126,16 +126,30 @@ export default function LiteratureCohortPage() {
   }, [profiles]);
 
   return (
-    <div className="container mx-auto py-6 space-y-6 max-w-7xl">
-      <div className="flex items-center gap-3">
-        <BookOpen className="h-7 w-7 text-primary" />
-        <div>
-          <h1 className="text-2xl font-bold">Cohorte Littérature Scientifique</h1>
-          <p className="text-sm text-muted-foreground">
-            Extraction IA de cohortes de référence depuis la littérature publiée (Mader, Heck, Beneke, Skiba, Pallarés…)
-          </p>
+    <SidebarLayout
+      activeTab="diagnostic"
+      onTabChange={(tab) => navigate(`/${tab === "dashboard" ? "" : tab}`)}
+      staffMode={false}
+      onStaffModeChange={() => {}}
+    >
+      <div className="container mx-auto py-6 space-y-6 max-w-7xl">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/diagnostic")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour Diagnostic
+            </Button>
+            <div className="flex items-center gap-3">
+              <BookOpen className="h-7 w-7 text-primary" />
+              <div>
+                <h1 className="text-2xl font-bold">Cohorte Littérature Scientifique</h1>
+                <p className="text-sm text-muted-foreground">
+                  Extraction IA de cohortes de référence depuis la littérature publiée (Mader, Heck, Beneke, Skiba, Pallarés…)
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
       <Card>
         <CardHeader>
