@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy } from "lucide-react";
+import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy, Pencil } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -458,6 +458,21 @@ export default function AthletesListPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {!selectionMode && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                          title="Éditer le profil"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAthleteId(athlete.id);
+                            navigate(`/athlete/${athlete.id}`);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
                       {!selectionMode && (
                         <Button
                           variant="ghost"
