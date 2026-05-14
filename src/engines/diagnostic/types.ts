@@ -103,6 +103,20 @@ export interface DiagnosticInput {
   
   // Check-in data (optionnel)
   checkinData?: CheckinData;
+
+  // ─── Chronos course (RAW — alimente raceTimeEstimator) ───────────
+  raceChronos?: {
+    time_5k_sec?: number | null;
+    time_10k_sec?: number | null;
+    time_20k_sec?: number | null;
+    time_half_sec?: number | null;
+    time_marathon_sec?: number | null;
+    time_5k_date?: string | null;
+    time_10k_date?: string | null;
+    time_20k_date?: string | null;
+    time_half_date?: string | null;
+    time_marathon_date?: string | null;
+  };
 }
 
 export interface DecisionReliabilityInput {
@@ -177,6 +191,11 @@ export interface AthleteDiagnostic {
     effectivePct: number | null;
     effectiveSource: "observed" | "predicted" | "none";
   } | null;
+  
+  // ─── 6bis bis. Race Chrono Estimate (RAW — Riegel/VDOT/ACSM) ─────
+  // null si aucun chrono saisi. Source: "race_chrono", reliability raw_*.
+  // Sert de fallback effectif (paceThreshold, vo2max, CE, durabilité).
+  raceChronoEstimate: import("./raceTimeEstimator").RaceTimeEstimate | null;
   
   // ─── 7. Synthèse Décisionnelle ────────────────────
   synthesis: DiagnosticSynthesis;

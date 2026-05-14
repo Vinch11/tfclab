@@ -42,6 +42,7 @@ import { VLamaxCAPCard } from "@/components/VLamaxCAPCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCard";
 import { RaceTimeEstimateCard } from "@/components/RaceTimeEstimateCard";
+import { estimateFromRaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
 import { RunningFocusModeIndicator } from "@/components/RunningFocusModeIndicator";
 import { InjuryRiskCAPCard } from "@/components/InjuryRiskCAPCard";
 import { VLamaxRunExplainedCard } from "@/components/VLamaxRunExplainedCard";
@@ -602,6 +603,10 @@ export default function RunningProfilePage() {
             staffMode={staffMode}
             weightKg={effectiveCloudSnapshot?.weight_kg ?? null}
             powerEndurance={effectiveCloudSnapshot?.running_power_threshold ?? null}
+            raceChrono={(() => {
+              const est = estimateFromRaceChronos((effectiveCloudSnapshot ?? {}) as any);
+              return est ? { CE_mlO2_kg_km: est.CE_mlO2_kg_km, durabilityIndex: est.durabilityIndex, confidence: est.confidence } : null;
+            })()}
           />
         ),
       },

@@ -86,6 +86,17 @@ export interface PacingEnvelopeInput {
    * Défaut 0.5 si non fourni (réserve modérée typique).
    */
   wPrimeBalanceRaceDay?: number | null;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INTÉGRATION C — Fallback RAW depuis chronos course (raceTimeEstimator).
+  // Utilisé si paceThreshold absent + comme paliers de risque sur la durabilité.
+  // Ne remplace JAMAIS une donnée effective.
+  // ─────────────────────────────────────────────────────────────────────────────
+  raceChrono?: {
+    paceThreshold_sec_km?: number | null;
+    durabilityIndex?: number | null;
+    confidence?: number | null;
+  } | null;
 }
 
 export type IntensityReferenceBase = 
@@ -511,6 +522,25 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   if (fatigueIndex != null && fatigueIndex > 50) {
     sourcesUsed.push("Fatigue quantifiée");
     readinessAdjustment += Math.round((fatigueIndex - 50) * 0.05);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INTÉGRATION C — Paliers de risque depuis la durabilité chronos (Riegel).
+  // Ratio observé semi→marathon vs Riegel (1.000 = neutre).
+  //   ≤1.00 excellent (élargit légèrement plafond), 1.00–1.04 neutre,
+  //   1.04–1.08 moyen (−2 widthHigh), >1.08 faible (−4 widthHigh + message robustesse).
+  // ─────────────────────────────────────────────────────────────────────────────
+  const durIdx = input.raceChrono?.durabilityIndex ?? null;
+  if (durIdx != null) {
+    sourcesUsed.push(`Durabilité chronos (idx=${durIdx.toFixed(2)})`);
+    if (durIdx > 1.08) {
+      readinessAdjustment += 4;
+      if (!readinessMessage) readinessMessage = "Durabilité observée faible — plafonner l'allure pour finir.";
+    } else if (durIdx > 1.04) {
+      readinessAdjustment += 2;
+    } else if (durIdx <= 1.00) {
+      readinessAdjustment = Math.max(readinessAdjustment - 1, -1);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

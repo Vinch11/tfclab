@@ -105,6 +105,17 @@ export interface RunningEconomyV2Input {
   // Contexte
   objectif?: string;
   sport?: string;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // INTÉGRATION C — Fallback RAW depuis chronos course (raceTimeEstimator)
+  // Utilisé UNIQUEMENT en l'absence de données effectives (FC/puissance/drift).
+  // CE en mlO₂/kg/km, durabilityIndex semi→marathon (1.0 = neutre).
+  // ─────────────────────────────────────────────────────────────────────────
+  raceChrono?: {
+    CE_mlO2_kg_km?: number | null;
+    durabilityIndex?: number | null;
+    confidence?: number | null;     // 0..1, plafonné côté estimator à 0.85
+  } | null;
 }
 
 // =============================================
@@ -365,6 +376,32 @@ export function computeRunningEconomyV2(input: RunningEconomyV2Input): RunningEc
     confidence += 0.15;
   }
   
+  // 4) FALLBACK RAW — chronos course (Riegel + Daniels VDOT + ACSM CE)
+  //    Activé UNIQUEMENT si aucun facteur effectif (FC, power, drift) disponible
+  //    OU si la durabilité observée apporte une info indépendante.
+  //    Bandes CE référencées (Barnes & Kilding 2015, ml O₂/kg/km) :
+  //      ≤195 = élite, 196-205 = bien entraîné, 206-215 = entraîné,
+  //      216-225 = récréatif, >225 = débutant.
+  const ceChrono = input.raceChrono?.CE_mlO2_kg_km;
+  const durIdx = input.raceChrono?.durabilityIndex;
+  const chronoConf = input.raceChrono?.confidence ?? 0.55;
+  if (ceChrono != null && ceChrono > 0 && factorsCount === 0) {
+    factorsCount++;
+    if (ceChrono <= 195)      economyScore += 18;
+    else if (ceChrono <= 205) economyScore += 10;
+    else if (ceChrono <= 215) economyScore += 0;
+    else if (ceChrono <= 225) economyScore -= 10;
+    else                       economyScore -= 18;
+    confidence += Math.min(0.20, chronoConf * 0.25);
+    warnings.push(`Économie estimée Raw depuis chronos course (CE ≈ ${ceChrono.toFixed(0)} mlO₂/kg/km).`);
+  }
+  // Pénalité durabilité observée — toujours appliquée si dispo (info indépendante).
+  if (durIdx != null) {
+    if (durIdx > 1.08) economyScore -= 8;
+    else if (durIdx > 1.04) economyScore -= 4;
+    else if (durIdx <= 1.00) economyScore += 3;
+  }
+
   // Finaliser score
   economyScore = clamp(economyScore, 0, 100);
   confidence = clamp(confidence, 0, 0.85);

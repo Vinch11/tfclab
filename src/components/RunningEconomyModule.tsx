@@ -48,6 +48,12 @@ interface RunningEconomyModuleProps {
   staffMode?: boolean;
   weightKg?: number | null;
   powerEndurance?: number | null;
+  /** Fallback RAW depuis chronos course (raceTimeEstimator) */
+  raceChrono?: {
+    CE_mlO2_kg_km?: number | null;
+    durabilityIndex?: number | null;
+    confidence?: number | null;
+  } | null;
 }
 
 export function RunningEconomyModule({
@@ -63,6 +69,7 @@ export function RunningEconomyModule({
   staffMode = false,
   weightKg = null,
   powerEndurance = null,
+  raceChrono = null,
 }: RunningEconomyModuleProps) {
   // ✅ Cloud persistence - get economy from Cloud if available
   const {
@@ -100,6 +107,7 @@ export function RunningEconomyModule({
     weightKg,
     objectif,
     sport,
+    raceChrono,
   }).estimatedO2Cost;
   
   // Si non applicable (vélo, triathlon vélo-focus), ne pas afficher
