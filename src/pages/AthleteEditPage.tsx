@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmbitionDefinition, getRunningTimeHint, isRunningObjectiveWithTimes } from "@/types/ambitionLevel";
 import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
+import { QuickRaceTimeCard } from "@/components/QuickRaceTimeCard";
 
 export default function AthleteEditPage() {
   const navigate = useNavigate();
