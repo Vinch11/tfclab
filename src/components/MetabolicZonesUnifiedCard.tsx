@@ -63,6 +63,7 @@ import {
   type LactateThresholdsTFCL,
 } from "@/lib/thresholds/computeLactateThresholdsTFCL";
 import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
+import { UnitToggle } from "@/components/charts/FatCarbOxidationChart";
 
 // =============================================
 // TYPES
