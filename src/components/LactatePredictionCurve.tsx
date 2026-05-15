@@ -8,13 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, AlertTriangle, Activity, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+// Audit 2C F18 — migré de `metabolicSimulator` (engine non calibré) vers
+// `maderMetabolicModel` (Mader α=1.98 calibré N=44). Cohérent avec
+// `MetabolicZonesINSCYDChart`, `StaffReport`, `ExportTools`.
 import {
-  MetabolicProfile,
-  generateLactateCurve,
+  type MaderProfile,
+  generateMaderLactateCurve,
   findLactateThresholds,
-  predictFatMax,
-  LactatePoint
-} from "@/lib/v2/metabolicSimulator";
+  findFatMax,
+} from "@/lib/v2/maderMetabolicModel";
 import {
   AreaChart,
   Area,
@@ -201,19 +203,44 @@ export function LactatePredictionCurve({
   compact = false
 }: LactatePredictionCurveProps) {
   
-  // Generate lactate curve
-  const lactateCurve = useMemo(() => 
-    generateLactateCurve(vo2max, vlamax, ftp), 
-    [vo2max, vlamax, ftp]
-  );
-  
-  // Find thresholds
-  const { lt1Pct, lt2Pct } = useMemo(() => 
-    findLactateThresholds(vo2max, vlamax), 
-    [vo2max, vlamax]
-  );
-  
-  const fatMaxPct = useMemo(() => predictFatMax(vlamax), [vlamax]);
+  // Audit 2C F18 — courbe Mader (calibré N=44) au lieu du simulator linéaire.
+  const profile = useMemo<MaderProfile | null>(() => {
+    if (!vo2max || !vlamax || !ftp) return null;
+    return { vo2max, vlamax, weight };
+  }, [vo2max, vlamax, weight, ftp]);
+
+  // Mappe la couleur de zone à partir du label Mader (cohérent avec ZoneLegend)
+  const zoneColor = (zone: string): string => {
+    if (zone.startsWith("Z1")) return "hsl(217, 91%, 60%)";
+    if (zone.startsWith("Z2")) return "hsl(142, 71%, 45%)";
+    if (zone.startsWith("Z3")) return "hsl(45, 93%, 47%)";
+    if (zone.startsWith("Z4")) return "hsl(24, 95%, 53%)";
+    if (zone.startsWith("Z5")) return "hsl(0, 84%, 60%)";
+    return "hsl(280, 87%, 60%)";
+  };
+
+  const lactateCurve = useMemo(() => {
+    if (!profile) return [];
+    return generateMaderLactateCurve(profile).map((p) => ({
+      intensity: p.intensity,
+      watts: p.power,
+      lactate: p.lactate,
+      zone: p.zone,
+      color: zoneColor(p.zone),
+    }));
+  }, [profile]);
+
+  // Find thresholds (Mader → intensities en % VO2max)
+  const { lt1Pct, lt2Pct } = useMemo(() => {
+    if (!profile) return { lt1Pct: 60, lt2Pct: 80 };
+    const lt = findLactateThresholds(profile);
+    return { lt1Pct: lt.lt1Intensity, lt2Pct: lt.lt2Intensity };
+  }, [profile]);
+
+  const fatMaxPct = useMemo(() => {
+    if (!profile) return 60;
+    return findFatMax(profile).fatMaxIntensity;
+  }, [profile]);
   
   // Data validation
   if (!vo2max || !vlamax || !ftp) {

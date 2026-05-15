@@ -41,7 +41,8 @@ import { StaffBriefingCard } from "@/components/StaffBriefingCard";
 import { AssistantDrawer } from "@/components/AssistantDrawer";
 import { computeNutritionTiming } from "@/lib/nutritionTiming";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
-import { computeRunningEconomy } from "@/lib/runningEconomy";
+// Audit 2C F19 — migré V1 → V2 (score 0-100 + O2 cost canonique).
+import { computeRunningEconomyV2 } from "@/lib/v2/runningEconomyV2";
 import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
