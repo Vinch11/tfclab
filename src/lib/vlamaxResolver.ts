@@ -69,7 +69,7 @@ export function resolveVlamaxForGoal(
   if (sport === "run") {
     const v = snapshot.vlamax_run;
     if (v == null) {
-      if (typeof console !== "undefined" && process?.env?.NODE_ENV !== "production") {
+      if (typeof console !== "undefined" && import.meta.env?.DEV) {
         console.warn(
           "[vlamax-resolver] sport=run mais vlamax_run manquant — retourne null (Données insuffisantes)"
         );
