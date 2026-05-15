@@ -249,14 +249,20 @@ export function predictFTP(
 }
 
 /**
- * Predict FatMax intensity (% of VO2max where fat oxidation peaks)
- * Lower VLamax = higher FatMax intensity
+ * Predict FatMax intensity (% FTP where fat oxidation peaks).
+ *
+ * Audit 2D F23/F24/F25: aligné sur la formule canonique TFCL
+ * (`fatmaxTFCL.computeFatMaxTFCL`) sans le terme VO2max (signature historique
+ * vlamax-only). Bornes unifiées [48, 82] pour cohérence multi-pages.
+ *
+ * ⚠️ Cette fonction reste exposée uniquement pour les courbes substrat internes
+ * de ce module (lui-même déprécié — voir mem://logic/metabolic-simulator-deprecated).
+ * Les nouveaux consumers doivent utiliser `findFatMax` (Mader) ou
+ * `computeFatMaxTFCL` (wrapper objectif/fatigue).
  */
 export function predictFatMax(vlamax: number): number {
-  // FatMax typically between 45-75% VO2max
-  // Lower VLamax allows higher FatMax
-  const fatMax = 80 - (vlamax * 40);
-  return Math.max(45, Math.min(75, fatMax));
+  const fatMax = 78 - 52 * (vlamax - 0.25);
+  return Math.max(48, Math.min(82, fatMax));
 }
 
 /**
