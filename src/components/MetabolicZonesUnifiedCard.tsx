@@ -115,9 +115,13 @@ export function MetabolicZonesUnifiedCard({
   const [activeTab, setActiveTab] = useState("fatmax");
   const [showEducation, setShowEducation] = useState(false);
   const isRunning = useIsRunningOnly();
-  const refLabel = isRunning ? "Seuil" : "FTP";
-  // Mode allure: runner sans FTP mais avec VMA
-  const paceMode = isRunning && (!ftp || ftp <= 0) && !!vma && vma > 0;
+  const ftpAvailable = !!(ftp && ftp > 0);
+  const vmaAvailable = !!(vma && vma > 0);
+  const canToggle = ftpAvailable && vmaAvailable;
+  const [paceMode, setPaceMode] = useState<boolean>(
+    isRunning && vmaAvailable ? true : (!ftpAvailable && vmaAvailable)
+  );
+  const refLabel = paceMode ? "Seuil" : (isRunning ? "Seuil" : "FTP");
 
   const normalizedObjectif = (objectif === "IM" ? "Ironman" : objectif) as FatMaxObjectif;
 
