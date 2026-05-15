@@ -115,16 +115,7 @@ export {
   type NutritionContributor
 } from './nutritionV2';
 
-// Injury Risk V2 (legacy)
-export {
-  computeInjuryRiskV2,
-  getInjuryRiskColor,
-  getInjuryRiskBadgeClass,
-  type InjuryRiskV2,
-  type InjuryRiskLevelV2,
-  type InjuryRiskFactorV2,
-  type InjuryRiskV2Input
-} from './injuryRiskV2';
+// Injury Risk V2 — F32/F35: supprimé (dead code). Source unique = injuryRiskUnified ci-dessous.
 
 // Injury Risk Unified TFCL™ (CAP & Vélo)
 export {
