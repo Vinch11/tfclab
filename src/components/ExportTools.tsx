@@ -2626,7 +2626,7 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
             <div class="v">${vo2max ? vo2max + ' ml/kg/min' : '—'}</div>
             
             <div class="k">Durabilité</div>
-            <div class="v">${durability} min</div>
+            <div class="v">${durability != null ? `${durability} min` : "— (données insuffisantes)"}</div>
             
             <div class="k">Objectif</div>
             <div class="v">${htmlEscape(objectif)}</div>
