@@ -386,6 +386,48 @@ export function effectiveWprime(wprimeJ: number): number {
   return Math.min(WPRIME_CEILING_J, Math.max(wprimeJ, WPRIME_FLOOR_J));
 }
 
+export interface WprimeClampMeta {
+  /** Bounded value (J) — safe for prescriptions */
+  value: number;
+  /** Original raw W' (J) */
+  rawJ: number;
+  /** True if the floor or ceiling was applied */
+  clamped: boolean;
+  /** Which bound was hit, if any */
+  bound: "floor" | "ceiling" | null;
+  /** Human-readable reason (FR) for UI/annotation surfacing */
+  reason: string | null;
+}
+
+/**
+ * F39 — Surfaces W' clamping metadata so consumers (plan annotations, exports,
+ * staff reports) can warn the coach when the raw W' was outside [10 ; 35] kJ.
+ * Use this whenever the bounded value is consumed in a user-facing context;
+ * `effectiveWprime()` remains available for pure numeric prescription paths.
+ */
+export function effectiveWprimeWithMeta(wprimeJ: number): WprimeClampMeta {
+  const value = effectiveWprime(wprimeJ);
+  if (wprimeJ < WPRIME_FLOOR_J) {
+    return {
+      value,
+      rawJ: wprimeJ,
+      clamped: true,
+      bound: "floor",
+      reason: `W' brut ${(wprimeJ / 1000).toFixed(1)}kJ < plancher 10kJ — borné pour prescription`,
+    };
+  }
+  if (wprimeJ > WPRIME_CEILING_J) {
+    return {
+      value,
+      rawJ: wprimeJ,
+      clamped: true,
+      bound: "ceiling",
+      reason: `W' brut ${(wprimeJ / 1000).toFixed(1)}kJ > plafond 35kJ — borné pour prescription`,
+    };
+  }
+  return { value, rawJ: wprimeJ, clamped: false, bound: null, reason: null };
+}
+
 /**
  * Calculate τ (time constant for W' reconstitution)
  *
