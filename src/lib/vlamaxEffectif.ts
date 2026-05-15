@@ -127,6 +127,13 @@ function isLabMeasuredVlamaxTest(t: TestCloud): boolean {
   return false;
 }
 
+function isLabMeasuredVlamaxSnapshot(s: SnapshotCloud): boolean {
+  const source = (s.vlamax_source || "").toLowerCase();
+  if (["lab", "labo", "lactate_lab", "vlamax_lab"].includes(source)) return true;
+  const haystack = `${s.vlamax_source || ""} ${s.vlamax_protocol || ""}`.toLowerCase();
+  return /(labo|lactat[e]? lab|prise de sang|blood lactate|lab measurement)/.test(haystack);
+}
+
 interface SnapshotCloud {
   id: string;
   athlete_id: string;
@@ -238,22 +245,22 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     ?? snapshotSportToContext(effectiveSnapshot?.sport_main, objectif);
 
   // =============================================
-  // A0) SOURCE CAP MESURÉE (vlamax_run — sprint lactate / test CAP terrain)
-  // Priorité absolue pour le sport CAP : si l'athlète a une VLamax run
-  // mesurée (lactate sprint 15s / test CAP), on l'utilise telle quelle.
+  // A0) SOURCE CAP MESURÉE LABO (vlamax_run)
+  // Priorité absolue uniquement si la valeur est une vraie mesure lactate labo.
+  // Les anciennes valeurs terrain/snapshot ne doivent pas masquer vlamaxCapEstimator.
   // =============================================
   if (
     sport === "cap" &&
     effectiveSnapshot &&
     effectiveSnapshot.vlamax_run != null &&
-    effectiveSnapshot.vlamax_run > 0
+    effectiveSnapshot.vlamax_run > 0 &&
+    isLabMeasuredVlamaxSnapshot(effectiveSnapshot)
   ) {
     const ageDays = computeDataAgeDays(effectiveSnapshot.date);
     const protocolLabel = effectiveSnapshot.vlamax_protocol || "Test CAP (sprint lactate)";
-    const isLab = (effectiveSnapshot.vlamax_source || "").toLowerCase().includes("lab");
     const v2Input: VLamaxV2Input = {
       rawValue: effectiveSnapshot.vlamax_run,
-      source: isLab ? "test_labo" : "test_terrain",
+      source: "test_labo",
       sport,
       previousEffective,
       factors: { sourceCount: 1, temporalStability: 0.1, dataAgeDays: ageDays },
@@ -262,7 +269,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     };
     const v2 = computeVLamaxV2(v2Input);
     return wrapV2Result(v2, {
-      testType: isLab ? "LACTATE_LAB" : "CAP_FIELD",
+      testType: "LACTATE_LAB",
       date: effectiveSnapshot.date,
       protocol: protocolLabel,
     });
@@ -360,7 +367,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         sprint15sDistance: effectiveSnapshot.sprint_15s_distance ?? null,
         runningPowerMax: effectiveSnapshot.running_power_max ?? null,
         runningPowerThreshold: effectiveSnapshot.running_power_threshold ?? null,
-        vlamaxRunMeasured: effectiveSnapshot.vlamax_run ?? null,
+        vlamaxRunMeasured: isLabMeasuredVlamaxSnapshot(effectiveSnapshot) ? effectiveSnapshot.vlamax_run ?? null : null,
       });
 
       if (capEst.method !== "insufficient" && capEst.value > 0) {
