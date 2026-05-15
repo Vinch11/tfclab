@@ -66,6 +66,7 @@ import { Phase3Dashboard } from "@/components/Phase3Dashboard";
 import { LorangTestChecklist } from "@/components/LorangTestChecklist";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
+import { FatCarbOxidationChart } from "@/components/charts/FatCarbOxidationChart";
 import { computeFatMaxTFCL, computeFatMaxAnchorPctFTP, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 // ✅ Zones Métaboliques - Carte unifiée (Phase 1b UX)
@@ -1679,6 +1680,19 @@ const Index = () => {
                 tteEffectif={alignedTteEffectif}
                 objectif={currentAthlete.goal || "IM"}
                 ftp={ftp}
+                staffMode={staffMode}
+              />
+            ),
+          },
+          // Combustion Lipides / Glucides (style INSCYD)
+          {
+            id: "fat-carb-combustion-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <FatCarbOxidationChart
+                vo2max={effectiveCloudSnapshot.vo2max ?? null}
+                vlamax={alignedVlamaxEffectif.value}
+                ftp={ftp}
+                weight={poids ?? 70}
                 staffMode={staffMode}
               />
             ),
