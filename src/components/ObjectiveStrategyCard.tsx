@@ -160,6 +160,123 @@ function splitLabel(bias: PlanConfig["splitBias"], deltaPct: number): string {
   return "Even split (allure stable du début à la fin)";
 }
 
+// ─── Découpage par segment ────────────────────────────────────────────────────
+
+function runSegmentsForFormat(format: RaceObjective): { label: string; share: number }[] {
+  // share = fraction de la distance/durée totale, doit sommer à 1
+  if (format === "Marathon") {
+    return [
+      { label: "Km 0–10",  share: 10 / 42.195 },
+      { label: "Km 10–21", share: 11 / 42.195 },
+      { label: "Km 21–32", share: 11 / 42.195 },
+      { label: "Km 32–42", share: 10.195 / 42.195 },
+    ];
+  }
+  if (format === "10km") {
+    return [
+      { label: "Km 0–2.5", share: 0.25 },
+      { label: "Km 2.5–5", share: 0.25 },
+      { label: "Km 5–7.5", share: 0.25 },
+      { label: "Km 7.5–10", share: 0.25 },
+    ];
+  }
+  // Semi, tri-run, autres : 4 quarts
+  return [
+    { label: "Q1 (départ)",  share: 0.25 },
+    { label: "Q2",           share: 0.25 },
+    { label: "Q3",           share: 0.25 },
+    { label: "Q4 (finish)",  share: 0.25 },
+  ];
+}
+
+function paceSegments(targetPaceSec: number, bias: PlanConfig["splitBias"], deltaPct: number, format: RaceObjective) {
+  const segs = runSegmentsForFormat(format);
+  // Offsets (% de l'allure moyenne) pour chaque quart, somme ≈ 0.
+  // Negative split : on démarre plus lent (positif = plus lent), on finit plus rapide (négatif).
+  let offsets: number[];
+  if (bias === "negative") {
+    const d = Math.max(0.5, deltaPct); // amplitude
+    offsets = [+0.75 * d, +0.25 * d, -0.25 * d, -0.75 * d];
+  } else if (bias === "positive") {
+    const d = Math.max(0.5, deltaPct);
+    offsets = [-0.5 * d, -0.15 * d, +0.15 * d, +0.5 * d];
+  } else {
+    offsets = [+0.2, 0, -0.05, -0.15];
+  }
+  return segs.map((s, i) => ({
+    label: s.label,
+    paceSec: targetPaceSec * (1 + offsets[i] / 100),
+  }));
+}
+
+interface BikeSegment { label: string; targetW: number; rangeW: [number, number]; note: string; }
+
+function bikeSegments(envelope: PacingEnvelopeResult, ftp: number, intensityFactor: number): BikeSegment[] {
+  const center = envelope.boundary.centerPct * intensityFactor;
+  const low = envelope.boundary.lowPct * intensityFactor;
+  const high = envelope.boundary.highPct * intensityFactor;
+  const cap = envelope.boundary.toleratedPct * intensityFactor;
+  const w = (pct: number) => Math.round((pct / 100) * ftp);
+  return [
+    {
+      label: "Plat / faux-plat",
+      targetW: w(center),
+      rangeW: [w(low), w(high)],
+      note: "Cible NP — relâché, cadence 85–95.",
+    },
+    {
+      label: "Faux-plat montant",
+      targetW: w(center + 3),
+      rangeW: [w(center), w(center + 6)],
+      note: "Légère hausse (+3%), ne pas pousser.",
+    },
+    {
+      label: "Côte courte (<3 min)",
+      targetW: w(cap),
+      rangeW: [w(center + 5), w(cap)],
+      note: `Plafond strict ≤ ${w(cap)} W. Accepter 5–10 s perdus.`,
+    },
+    {
+      label: "Côte longue (>5 min)",
+      targetW: w(center + 5),
+      rangeW: [w(center), w(center + 8)],
+      note: "Tenir NP, jamais au-dessus du plafond.",
+    },
+    {
+      label: "Descente / récup",
+      targetW: w(Math.max(40, center - 20)),
+      rangeW: [w(Math.max(30, center - 30)), w(center - 10)],
+      note: "Récup active, boire, manger.",
+    },
+  ];
+}
+
+function SegmentsTable({ rows }: { rows: { label: string; col1: string; col2?: string; note?: string }[] }) {
+  return (
+    <div className="rounded-md border border-border/40 overflow-hidden">
+      <div className="grid grid-cols-[1.2fr_1fr_1fr] bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground px-2 py-1">
+        <div>Segment</div>
+        <div>Cible</div>
+        <div>Plage</div>
+      </div>
+      {rows.map((r, i) => (
+        <div
+          key={i}
+          className={cn(
+            "grid grid-cols-[1.2fr_1fr_1fr] px-2 py-1.5 text-[11px]",
+            i % 2 === 0 ? "bg-background/40" : "bg-muted/10",
+          )}
+        >
+          <div className="font-medium text-foreground">{r.label}</div>
+          <div className="font-semibold">{r.col1}</div>
+          <div className="text-muted-foreground">{r.col2 ?? "—"}</div>
+          {r.note && <div className="col-span-3 text-[10px] text-muted-foreground italic mt-0.5">{r.note}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
 function BikeBlock({
