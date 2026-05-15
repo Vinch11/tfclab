@@ -185,6 +185,28 @@
   /* Fail-safe: aucune image/vidéo/iframe ne peut dépasser la largeur de son conteneur */
   img, svg, video, canvas, iframe {
     max-width: 100%;
+    height: auto;
+  }
+
+  /* Mobile-first safety net: empêche tout conteneur fluide de pousser au-delà du viewport.
+     Les éléments qui doivent rester larges (tables, charts) doivent être enveloppés
+     explicitement dans .overflow-x-auto pour scroller localement. */
+  @media (max-width: 767px) {
+    main, main > div, main section, main article {
+      max-width: 100%;
+      min-width: 0;
+    }
+    /* Forcer le wrap des flex rows non explicitement nowrap */
+    main .flex:not(.flex-nowrap):not(.overflow-x-auto):not(.overflow-auto) {
+      flex-wrap: wrap;
+    }
+    /* Les grilles à colonnes fixes ≥3 deviennent fluides en dessous de 768px sauf override */
+    main .grid {
+      min-width: 0;
+    }
+    main .grid > * {
+      min-width: 0;
+    }
   }
 
   h1, h2, h3, h4, h5, h6 {
