@@ -24,6 +24,7 @@ export interface TrainingZoneDefinition {
   fcMax: { min: number; max: number } | null; // null pour Z7
   vma: { min: number; max: number };         // % VMA (course)
   ftp: { min: number; max: number };         // % FTP (vélo)
+  cpRun: { min: number; max: number };       // % CP (puissance course - Stryd)
   
   // Pédagogie staff-grade
   parametresTravailles: string;
