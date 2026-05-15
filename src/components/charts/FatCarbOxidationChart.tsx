@@ -402,7 +402,10 @@ export function FatCarbOxidationChart({
             <div className="text-[11px] text-muted-foreground">
               Entre FatMax ({fatMax.fatMaxIntensity}%) et Crossover ({crossoverPct}%), l'athlète bascule
               d'une dominance lipidique vers glucidique. Pic d'oxydation lipidique : {fatMax.fatMaxGrams} g/min.
-              Besoins CHO @ FTP : ~{Math.round((data.find(p => Math.round(p.watts) >= ftp!) ?? data[data.length - 1]).carbGmin * 60)} g/h.
+              Besoins CHO @ {paceMode ? "Seuil" : "FTP"} : ~{Math.round((paceMode
+                ? (data.find(p => p.paceKmh >= refValue) ?? data[data.length - 1])
+                : (data.find(p => Math.round(p.watts) >= refValue) ?? data[data.length - 1])
+              ).carbGmin * 60)} g/h.
             </div>
           </div>
         </div>
