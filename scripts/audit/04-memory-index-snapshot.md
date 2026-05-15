@@ -1,4 +1,6 @@
 # Project Memory
+# (Snapshot maintenu manuellement — copie 1:1 de mem://index.md.
+#  À régénérer après tout add/remove de mémoire.)
 
 ## Core
 - **App Name**: 'Potentiel Physiologique TFCL™'. Technical terms unified under this brand.
@@ -10,3 +12,118 @@
 - **Fatigue Mapping**: Standard 1-10 scale (fresh:2, ok:4, fatigued:6, high:8, injured:10).
 
 ## Memories
+- [Mader α N=44](mem://logic/mader-alpha-calibration-n44) — α=1.98 calibré sur 44 profils labo bike, forward+inverse alignés.
+- [Run MLSS Predictor](mem://logic/run-mlss-predictor-modele-c) — Modèle C: MLSS_pct = 1 − 0.337·VLa − 0.0021·(CE−200), RMSE 2.64%.
+- [Decision Reliability Engine](mem://architecture/decision-reliability-engine-dre) — Quantifies data quality and weights model confidence.
+- [FIT File Engine](mem://features/fit-file-analysis-engine) — Local parsing, test detection, and DriftRatioChart.
+- [Race Sim Refined](mem://features/race-simulation-v4-refined-precision) — Fuel & Risk model, ±2-3% precision scenarios.
+- [Scientific Audit](mem://philosophy/scientific-rigor-audit) — Scientific models used (Mader-Heck, Skiba, etc.).
+- [Strategy Engine](mem://features/tfcl-strategy-engine) — Syncs limiters with training levers.
+- [Power Curve Rules](mem://logic/metabolic-power-curve-integrity-rules) — Monotonicity and absolute caps for CP/W'.
+- [Unified Scenario](mem://logic/unified-scenario-system-v2) — 3-scenario system, bypassed if observed data confidence > 0.9.
+- [Coach Decision Mode](mem://features/coach-advanced-decision-mode) — Coach dashboard and manual overrides.
+- [Calibration Alerts](mem://logic/continuous-calibration-alert-triggers) — Recalibration triggers based on deviation.
+- [Running Profile](mem://features/running-profile-page) — Running specific physiological overview.
+- [VLamax Calibration](mem://logic/vlamax-continuous-calibration) — 42-day sliding window for VLamax calibration.
+- [Injury Risk Model](mem://logic/injury-risk-cap-model) — Contextually sensitive injury risk assessment for runners.
+- [Traceability Schema](mem://architecture/calibration-traceability-schema) — DB schema for calibration evidence and snapshots.
+- [CAP Protocols](mem://features/cap-testing-protocols) — Field testing protocols for runners.
+- [PDF Strategy](mem://architecture/pdf-export-printable-html-strategy) — Browser-native printable HTML exports.
+- [Calibration Weighting](mem://logic/calibration-weighting-formula) — Base x Quality x Decay formula.
+- [Transparency Philosophy](mem://philosophy/transparency-vs-false-precision) — Reliability levels and source indicators.
+- [TFCL AI Guidance](mem://features/tfcl-guidance-ai-system) — Q&A assistant using Gemini 1.5.
+- [VLamax Sim Widget](mem://features/vlamax-simulation-and-estimation-widget) — Real-time 'What-If' simulator.
+- [Symptom Matrix](mem://features/tfcl-symptom-matrix) — Maps 10 field symptoms to physiological metrics.
+- [Design Principles](mem://philosophy/design-principles) — Desktop-first, intuitive pruning.
+- [Interactive Plan](mem://features/plan-ia/gestion-interactive) — Interactive IA plan management.
+- [Effective Data Hierarchy](mem://architecture/hierarchie-donnees-effectives) — Fallback hierarchy for physiological data.
+- [Mader Modeling](mem://logic/mader-metabolic-modeling-rigor-v2) — Mader-Heck parameters and MLSS logic.
+- [Strategic Recap](mem://features/plan-ia/strategic-recap) — Hybrid Lorang periodization blocks in AI plans.
+- [Pacing Envelope](mem://logic/pacing-envelope-system) — Long distance risk index and pacing zones.
+- [Fatigue Model](mem://logic/snapshot-centric-fatigue-model) — Centralized mapping for fatigue states.
+- [Methodological Influences](mem://features/plan-ia/methodological-influences) — Requires citing models in AI plans.
+- [Elite Pillars](mem://features/plan-ia/advanced-methodological-pillars) — Elite coaching constraints and Sprint Bans.
+- [Dose Response Periodization](mem://philosophy/adaptive-dose-response-periodization) — Adaptive duration based on physiological response.
+- [Multi-Objective Periodization](mem://features/plan-ia/multi-objective-periodization) — Handles A, B, C race objectives.
+- [Testing Protocols](mem://features/tests/protocols-and-calibration) — Standardized field testing procedures.
+- [CP Rules](mem://logic/critical-power-diagnostic-rules) — 6 validation rules for CP regression.
+- [CP W' Model](mem://logic/modele-puissance-critique-w-prime) — Raw vs Effective points for CP.
+- [VLamax Unified Engine](mem://logic/moteur-vlamax-tfcl-v2-unifie) — 4-method fusion for metabolic estimations.
+- [Data Separation](mem://architecture/physiological-data-separation) — Strict split between raw estimations and effective prescriptions.
+- [Target Sync](mem://architecture/target-synchronization-and-validation) — Unified physiological targets by age/ambition.
+- [Nutrition System](mem://features/nutrition-unified-v2-system) — CHO needs based on Mader-Heck.
+- [INSCYD Integration](mem://features/metabolic-analysis-suite-inscyd) — INSCYD-grade precision metabolic charts.
+- [Coaching Compass](mem://features/coaching-compass) — 5-axis physiological radar.
+- [3-Engine Architecture](mem://architecture/three-engine-consolidation) — Diagnostic > Decision > Plan flow.
+- [FatMax Calculation](mem://logic/fatmax-calculation-v2) — FatMax formula based on VLamax and VO2max.
+- [Fatigue Warning](mem://logic/fatigue-warning-system) — Visual alerts for fatigue states without altering structural diagnosis.
+- [Diagnostic Hub](mem://architecture/diagnostic-engine-hub) — `engines/diagnostic` is the source of truth.
+- [Cycle Intelligence](mem://features/cycle-intelligence-engine-v2-thresholds) — Analyzes snapshot evolution for block efficacy.
+- [Adaptation Predictor](mem://features/adaptation-predictor-ai-integration) — Projects physiological changes for AI plans.
+- [Potentiel Physiologique](mem://architecture/potentiel-physiologique-model) — Core structural model and app naming convention.
+- [Limiter Override](mem://features/plan-ia/coach-limiter-override) — Allows coaches to override detected limiters in AI generation.
+- [Insufficient Data Policy](mem://logic/insufficient-data-guard-policy) — No fake estimations for missing data.
+- [Generation Engine v3](mem://features/plan-ia/generation-engine-v3) — Volume x Ambition matrix and prompt chunking.
+- [Trail Specifications](mem://logic/trail-training-specifications) — Specific constraints for short/mountain trail plans.
+- [Workout Library](mem://features/plan-ia/workout-library-browser) — Browse 600 validated training sessions.
+- [Workout Intensity](mem://logic/workout-intensity-and-sync-standard-lorang) — A-D Lorang intensity categories.
+- [Plan DB Integrity](mem://architecture/ai-plan-regeneration-context-and-data-integrity) — Ensures clean DB state before inserting new plans.
+- [Race Day Management](mem://features/plan-ia/race-day-management) — Pre-configured race week templates.
+- [Custom Workouts](mem://features/plan-ia/custom-workout-rules) — Limits custom generated workouts to <=20%.
+- [Mobile UI Implementation](mem://ux/mobile-optimization-implementation) — Standard 7-tab nav and long-press interactions.
+- [Strategic Roadmap](mem://features/strategic-roadmap-system) — High-level Lorang periodization blocks.
+- [Snapshot Sync Alert](mem://features/plan-ia/snapshot-sync-system) — Alerts when physiology shifts during an active plan.
+- [Nutrition Sim](mem://features/race-simulation/nutrition-simulation) — Pacing simulation with localized nutrition cues.
+- [Sport Focus Constraints](mem://logic/sport-focus-engine-constraints) — Masks irrelevant metrics based on selected sport.
+- [Unified Target Scoring](mem://logic/unified-target-relative-scoring) — 0-100 linear scale for metrics.
+- [Unified PDF Engine](mem://architecture/unified-pdf-reporting-engine) — Keeps PDF reports identical to the UI dashboard.
+- [Limiter Detection](mem://logic/detection-limiteurs-unifiee-v2) — Secondary limiter must be different category.
+- [Running Economy Model](mem://logic/running-economy-calculation-model) — Physiological estimation of RE.
+- [VLamax Data Integrity](mem://architecture/vlamax-calculation-data-integrity) — Enforces use of `mapSnapshotToV2`.
+- [Lorang Strategy Activation](mem://logic/lorang-strategy-lever-activation) — Forces lever activation for primary bottleneck.
+- [TTE Fallbacks](mem://logic/tte-estimation-fallbacks) — Uses 7d TSS if TTE is unobserved.
+- [AI Plan Modular Arch](mem://architecture/ai-training-plan-modular-architecture) — 4-module structure for the Edge Function.
+- [Plan Constraints Hierarchy](mem://logic/plan-ia-constraints-hierarchy) — Coach manual inputs override automated matrix.
+- [Diagnostic Logic](mem://logic/diagnostic-evaluation-logic) — Sequential-then-parallel metric evaluation.
+- [PWA Identity](mem://branding/pwa-visual-identity) — TFC Lab branding and visual specs.
+- [Sport Ratios](mem://logic/sport-distribution-ratios-and-justification) — Target distribution (Bike>Run>Swim).
+- [Elite Benchmarks](mem://logic/plan-ia-elite-qualification-benchmarks) — Expected finish times for elite level parsing.
+- [Physiological Obj Mapping](mem://logic/physiological-objective-mapping) — Maps trail categories to physiological thresholds.
+- [Catalog Optimization](mem://logic/plan-ia-catalog-optimization) — Resolves 40-session bottleneck via inter-phase rotation.
+- [Plan Chunking](mem://logic/plan-ia-chunking-thresholds) — 6 to 8 weeks maximum chunk sizes for GenAI.
+- [Methodology Reverse Periodization](mem://logic/training-progression-methodology-lorang-vs-friel) — Lorang vs Friel logic.
+- [Norwegian Double Threshold](mem://features/plan-ia/norwegian-double-threshold) — 2x day lactate sessions.
+- [Workout Library Levels](mem://features/plan-ia/workout-library-levels) — Filter by athlete experience.
+- [Workout Engine Source](mem://features/plan-ia/workout-library-engine-source) — `staffSessions` is UI only, `enrichedWorkouts` is AI.
+- [Quality Validation Engine](mem://features/plan-ia/quality-validation-engine) — Multi-level limiter matching for plan validation.
+- [AI Plan DB Persistence](mem://architecture/ai-plan-catalog-persistence) — 100% regex extraction for library IDs.
+- [VLamax Trace Persistence](mem://features/vlamax-trace-persistence) — P2 traceability: diagnostic page + manual snapshot to calibration_evidence.
+- [Run MLSS Sliding Calibration](mem://features/run-mlss-sliding-calibration-42d) — 42-day drift detection on effectivePct/VLamax/CE, recalibration triggers.
+- [Run MLSS Cohort Protocol](mem://features/run-mlss-cohort-validation-protocol) — Coach-driven dual-tier (lab/field) cohort enrollment, weighted RMSE vs baseline 2.64%.
+- [Profile Audit Engine](mem://features/profile-audit-engine) — Bouton 'Auditer ce profil' (10 règles + IA Gemini) dans widget Analyse + page Diagnostic.
+- [VLamax CAP Anchor Calibration](mem://features/vlamax-cap-anchor-calibration-p4) — N=15 (3 coach + 12 lit). Sprint anchors recalibrés: VLamax = -0.5066 + 0.01420·sprint_m, RMSE 0.073.
+- [VLamax CAP Estimator Running Atténuation](mem://logic/vlamax-cap-estimator-running-attenuation) — Sprint ×0.80−0.05, ratio seuil/VMA dominant (0.65) sans labo/puissance. Aligné mini-rapport.
+- [VLamax Resolver Uniforme par Objectif](mem://logic/vlamax-resolver-uniform-by-goal) — Helper `resolveVlamaxForGoal` : run/trail→vlamax_run, bike/tri→vlamax. Fixes convergents: mapSnapshotToV2, computeDiagnostic, useDecisionReliability, useAssistantContext, Index.
+- [CAP VLamax Unified Source](mem://logic/cap-vlamax-unified-source) — vlamaxCapEstimator = source PRIMAIRE pour vlamax_run (snapshot/diagnostic/mini-rapport); vlamaxRunV2Enhanced = fallback Score G uniquement.
+- [Score G CAP Calibration v2](mem://logic/score-g-cap-calibration-v2) — Normalisations recalibrées N=40 synthétique, RMSE target −38% (0.038→0.024). Harness CSV `scripts/calibrateScoreGCAP.ts`.
+- [Literature Cohort Extraction](mem://features/literature-cohort-extraction) — Couche 1 validation IA: extraction publications labo (Gemini 2.5 Pro, tool-call), table `literature_cohort_*`, page `/diagnostic/cohort-literature`.
+- [Synthetic Cohort 500](mem://features/synthetic-cohort-500-generator) — Couche 2: générateur 500 profils CAP contraints (Mader/Billat), CSV pour calibrateScoreGCAP. RMSE target −37% mais delta inter-méthodes +22% sans recalibration cap-estimator.
+- [Billat Anchor Validation](mem://logic/billat-anchor-validation) — Cohorte Billat N=9 valide anchor Ratio Seuil/VMA (RMSE 0.053, bias +0.015). Pas de réancrage.
+- [Race Strategy Effort Ref](mem://features/race-strategy-effort-ref-block) — Bloc fiche route NP/cardio/montée/TSS par scénario dans RaceStrategyPlanCard.
+- [CAP VLamax Lab-Only Test Priority](mem://logic/cap-vlamax-lab-only-test-priority) — Sport=cap : seuls tests LABO (lactate) priment sur vlamaxCapEstimator. Tests terrain non-labo reclassés en fallback.
+- [CAP Estimator Bypass EWMA](mem://logic/cap-estimator-bypass-ewma) — Sport=cap C0: valeur de vlamaxCapEstimator écrase l'EWMA V2 (déjà fusion pondérée multi-sources).
+- [Insufficient Data No Fake Defaults](mem://logic/insufficient-data-no-fake-defaults) — Interdit `?? 0.45/50/45` pour vlamax/vo2max/tte. Donnée absente → value=0 + confidence=0 + UI "Données insuffisantes".
+- [Cycle & Adaptation VLamax Resolver](mem://logic/cycle-adaptation-vlamax-resolver) — cycleIntelligence + adaptationPredictor utilisent `resolveVlamaxForGoal` (sport-aware) au lieu de `snapshot.vlamax` brut.
+- [Metabolic Simulator Deprecated](mem://logic/metabolic-simulator-deprecated) — Interdit d'importer `predict*`/`calibrate*` depuis `metabolicSimulator`. Utiliser `maderMetabolicModel` (calibré N=44).
+- [FatMax Unified Formula](mem://logic/fatmax-unified-formula) — F23/F24/F25: formule canonique `clamp(78−52·(VLa−0.25)+0.15·(VO2−50), 48, 82)`. Source raw=findFatMax (Mader), wrapper=computeFatMaxTFCL.
+- [Nutrition Canonical Base Rate](mem://logic/nutrition-canonical-base-rate) — F26/F27: `nutritionUnified.computeBaseRateMader` = source CHO unique. V1, V2, Timing délèguent.
+- [FatMax Anchor Helper](mem://logic/fatmax-anchor-canonical-helper) — F29: `computeFatMaxAnchorPctFTP(vla, vo2)` consommé par Index, ExportTools, coachingCompass.
+- [Nutrition Heat No Double-Count](mem://logic/nutrition-heat-no-double-count) — F30: heat +10% appliqué une seule fois (computeBaseRateMader); LATE désactive son +5% en chaleur; totalCarbsG/totalKcal exposés par phase et global.
+- [Nutrition Short Event No Bypass](mem://logic/nutrition-short-event-no-bypass) — F31: 10K/sprint (<1h) suivent Mader-Heck canonique, plancher dynamique (0 si <1h, sinon 30/40), CARBS_TABLE_VELO/CAP supprimées.
+- [Fatigue State Canonical 0-100](mem://logic/fatigue-state-canonical-100-mapping) — F34: mapping unifié 1-10 ×10 (fresh=20, ok=40, fatigued=60, high=80, injured=100); fatigueV2 + FatigueComparisonChart consomment `fatigueStateMapping`.
+- [TTE Age Adjustment](mem://logic/tte-age-adjustment-propagation) — F33: `computeTTEEffectif({ age })` propage l'âge à `getTTETarget`/`evaluerTTE` (masters −2/−5/−8 min). Diagnostic engine + Index/Dashboard/RaceSim/RunningProfile/ExportTools/AssistantContext alignés.
+- [TSS Target Objective Defaults](mem://logic/tss-target-objective-aware-defaults) — F36/F37: défaut `tss7dHabituel/tssTarget` = `getCRRTargets(objectif).chargeOptimale` au lieu de 450 hardcodé. fatigueEffectif + fatigueV2.
+- [TTE/Fatigue V2 Deprecation](mem://architecture/tte-fatigue-v2-deprecation) — F32/F35: tteV2/fatigueV2/injuryRiskV2 + cards supprimés (dead code, 3 moteurs concurrents). Sources uniques: tteEffectif/fatigueEffectif/injuryRiskUnified.
+- [TTE No Fake 45](mem://logic/tte-no-fake-default-45-propagation) — F38: interdit `tte_min/durability ?? 45` comme mesure. tteEffectif fall-through D si LOAD échoue ; race-sim et exports n'amplifient/affichent plus de fausse durabilité.
+- [W' Clamp Traceability](mem://logic/wprime-clamp-traceability) — F39: `effectiveWprimeWithMeta` expose floor/ceiling appliqué; wbalPostProcessor annote ⚠ dans plan.
+- [Recovery Files Disambiguation](mem://architecture/recovery-files-disambiguation) — F40: recoveryProtocol (nutrition) ≠ enrichedWorkoutsRecovery (catalogue séances). Headers ajoutés.
