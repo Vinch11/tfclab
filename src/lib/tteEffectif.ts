@@ -78,7 +78,7 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
       tte_observed_min: null
     });
     
-    const evaluation = evaluerTTE(tteResult, objectif || "");
+    const evaluation = evaluerTTE(tteResult, objectif || "", age ?? null);
     return {
       tte_min: tteResult.tteMin ?? 45,
       source: "estimated",
