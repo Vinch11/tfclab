@@ -445,7 +445,7 @@ export default function RaceSimulationPage() {
         </Alert>
         
         {/* ═══ Parcours guidé en 5 étapes ═══ */}
-        <Accordion type="multiple" defaultValue={["step-1", "step-2"]} className="w-full space-y-2">
+        <Accordion type="multiple" value={openSteps} onValueChange={setOpenSteps} className="w-full space-y-2">
 
           {/* ÉTAPE 1 — TON PROFIL */}
           <AccordionItem value="step-1" className="border border-border rounded-lg px-3 sm:px-4 bg-card">
