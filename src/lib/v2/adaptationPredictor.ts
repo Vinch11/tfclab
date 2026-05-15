@@ -280,10 +280,13 @@ function extractPhysioState(snapshot: Record<string, unknown>): PhysioState {
   const ftp = (snapshot.ftp as number) ?? null;
   const weight_kg = (snapshot.weight_kg as number) ?? null;
 
-  // Estimate FatMax from VLamax
+  // Estimate FatMax from VLamax (+ VO2max si dispo)
+  // Audit 2D F23/F25: formule canonique TFCL alignée `fatmaxTFCL.computeFatMaxTFCL`
+  // FatMax_%FTP = clamp(78 − 52·(VLa − 0.25) + 0.15·(VO2 − 50), 48, 82)
   let fatmax_pct: number | null = null;
   if (vlamax !== null) {
-    fatmax_pct = Math.max(50, Math.min(85, 78 - 45 * (vlamax - 0.25)));
+    const vo2Term = vo2max && Number.isFinite(vo2max) && vo2max > 0 ? 0.15 * (vo2max - 50) : 0;
+    fatmax_pct = Math.max(48, Math.min(82, 78 - 52 * (vlamax - 0.25) + vo2Term));
   }
 
   // Estimate LT2 as % VO2max (~78-88% typical)
