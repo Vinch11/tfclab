@@ -471,14 +471,28 @@ export function computeNutritionTiming(params: ComputeNutritionTimingParams): Nu
   }
   
   // Calcul des glucides cibles
-  const baseCarbs = sport === "velo" ? 70 : 55;
-  const vlamaxAdj = getVLamaxCarbFactor(vlamax!);
-  const objectifAdj = getObjectifAdjustment(objectif, sport);
+  // Audit 2D F27 — si vo2max + weightKg fournis, on délègue baseRate à la
+  // source canonique unique (`nutritionUnified.computeBaseRateMader`).
+  // Sinon fallback heuristique legacy (constantes par sport).
+  const useCanonical = params.vo2max != null && params.weightKg != null && params.weightKg > 0;
+  const baseCarbs = useCanonical
+    ? computeBaseRateMader(
+        params.weightKg!,
+        sport,
+        params.vo2max ?? null,
+        vlamax,
+        params.targetIntensityPct ?? null,
+        params.targetDurationHours ?? null,
+      ).baseRate
+    : (sport === "velo" ? 70 : 55);
+  const vlamaxAdj = useCanonical ? 0 : getVLamaxCarbFactor(vlamax!);
+  const objectifAdj = useCanonical ? 0 : getObjectifAdjustment(objectif, sport);
   const toleranceAdj = getToleranceAdjustment(digestiveTolerance);
 
   // F2 — Modulation durée-dépendante (Stellingwerff 2014, Burke 2019)
+  // Désactivée si calcul canonique (déjà intégrée dans computeBaseRateMader).
   const durationMin = getEstimatedDuration(objectif, sport);
-  const durationMult = getDurationMultiplier(durationMin);
+  const durationMult = useCanonical ? 1 : getDurationMultiplier(durationMin);
 
   let carbsTarget = (baseCarbs + vlamaxAdj + objectifAdj + toleranceAdj) * durationMult;
   carbsTarget = Math.round(clampCarbs(carbsTarget, sport, gutTrainingLevel));
