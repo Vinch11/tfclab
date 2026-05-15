@@ -283,6 +283,7 @@ function BikeBlock({
   envelope, ftp, plan,
 }: { envelope: PacingEnvelopeResult; ftp: number; plan: PlanConfig }) {
   const w = bikeWatts(envelope, ftp, plan.intensityFactor);
+  const segs = bikeSegments(envelope, ftp, plan.intensityFactor);
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
@@ -297,6 +298,19 @@ function BikeBlock({
         <Metric label="Plafond montées" value={`≤ ${w.capClimbW} W`} />
         <Metric label="VI cible" value={`< ${w.vi}`} />
       </div>
+
+      <div className="space-y-1">
+        <div className="text-[11px] font-semibold text-foreground/80">Par segment de terrain</div>
+        <SegmentsTable
+          rows={segs.map((s) => ({
+            label: s.label,
+            col1: `${s.targetW} W`,
+            col2: `${s.rangeW[0]}–${s.rangeW[1]} W`,
+            note: s.note,
+          }))}
+        />
+      </div>
+
       <div className="text-[11px] text-muted-foreground leading-relaxed">
         FC indicative : <strong>{fcZone(envelope.boundary.centerPct * plan.intensityFactor)}</strong>.
         Régularité = <strong>NP très proche de la puissance moyenne (VI &lt; 1.05)</strong>. Dans les côtes,
