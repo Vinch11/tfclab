@@ -66,7 +66,7 @@ import { Phase3Dashboard } from "@/components/Phase3Dashboard";
 import { LorangTestChecklist } from "@/components/LorangTestChecklist";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
-import { computeFatMaxTFCL, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
+import { computeFatMaxTFCL, computeFatMaxAnchorPctFTP, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 // ✅ Zones Métaboliques - Carte unifiée (Phase 1b UX)
 import { MetabolicZonesUnifiedCard } from "@/components/MetabolicZonesUnifiedCard";
@@ -694,11 +694,9 @@ const Index = () => {
       protocolQuality: effectiveCloudSnapshot.protocol_quality ?? null,
       wprimeKj: wprimeKjForLimiter,
       cpDataQuality: cpResultForLimiter?.dataQuality ?? null,
-      // FatMax en %FTP/seuil dérivée de VLamax (formule Mader, alignée avec computeFatMaxTFCL)
-      // VLamax 0.30→75%, 0.40→71%, 0.55→64%, 0.70→58%
-      fatmax: vlamaxEffectif.value != null
-        ? Math.round(Math.max(52, Math.min(82, 78 - 45 * (vlamaxEffectif.value - 0.25))))
-        : null,
+      // Audit 2D F29: ancre FatMax canonique unifiée (computeFatMaxAnchorPctFTP)
+      // Formule: clamp(78 − 52·(VLa−0.25) + 0.15·(VO2−50), 48, 82)
+      fatmax: computeFatMaxAnchorPctFTP(vlamaxEffectif.value, effectiveCloudSnapshot.vo2max ?? null),
       forceDevMode: effectiveCloudSnapshot.force_development_mode ?? false,
       giIssuesFlag: effectiveCloudSnapshot.gi_issues_flag ?? false,
       checkinData: latestCheckin ? {

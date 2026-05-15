@@ -40,6 +40,7 @@ import {
   getVmaTargetByAmbition,
 } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
+import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 export const COACHING_COMPASS_VERSION = "1.0.0";
@@ -116,11 +117,9 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
  *   VLamax 0.55 → 64.50% (cible IM/Marathon)
  *   VLamax 0.70 → 57.75% (glycolytique dominant)
  */
-function estimateFatMaxFromProfile(ftp: number | null, vlamax: number | null): number | null {
-  if (!vlamax || !Number.isFinite(vlamax) || vlamax <= 0) return null;
-  const rawCenter = 78 - 45 * (vlamax - 0.25);
-  const fatMaxPct = Math.max(52, Math.min(82, rawCenter));
-  return Math.round(fatMaxPct);
+function estimateFatMaxFromProfile(ftp: number | null, vlamax: number | null, vo2max: number | null = null): number | null {
+  // Audit 2D F29: délègue à l'ancre canonique unifiée
+  return computeFatMaxAnchorPctFTP(vlamax, vo2max);
 }
 
 /**
@@ -158,7 +157,7 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
     : null;
 
   // FatMax : donnée directe > estimation VLamax+FTP
-  const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value);
+  const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value, input.vo2max);
   const fatmaxSource = input.fatmax ? "snapshot" : (fatmaxValue ? "estimation" : "unknown");
 
   // Durabilité = expression directe du TTE (pas de fatigue/disponibilité)
