@@ -721,7 +721,7 @@ export default function RaceSimulationPage() {
           </AccordionItem>
 
           {/* ÉTAPE 3 — TON PLAN DE COURSE */}
-          <AccordionItem value="step-3" className="border border-border rounded-lg px-3 sm:px-4 bg-card">
+          <AccordionItem id="step-3" value="step-3" className="border border-border rounded-lg px-3 sm:px-4 bg-card scroll-mt-20">
             <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3 text-left">
                 <Badge variant="default" className="h-7 w-7 rounded-full p-0 flex items-center justify-center text-xs shrink-0">3</Badge>
