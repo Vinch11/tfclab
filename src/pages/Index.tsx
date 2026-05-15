@@ -187,7 +187,6 @@ import {
   Trophy,
   Calculator,
   Shield,
-  Target,
 } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
