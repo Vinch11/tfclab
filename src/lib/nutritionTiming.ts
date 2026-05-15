@@ -6,6 +6,7 @@
  */
 
 import type { EnergyDriftResult, EnergyDriftLevel } from "./energyDrift";
+import { computeBaseRateMader } from "./v2/nutritionUnified";
 
 // =============================================
 // TYPES
