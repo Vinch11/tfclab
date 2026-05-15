@@ -176,6 +176,14 @@ export function computeAbsoluteRange(
     return { ok: true, unit: "W", lo, hi, display: `${lo.toFixed(0)}–${hi.toFixed(0)} W` };
   }
 
+  // Puissance course: %CP run -> W (Stryd / Garmin Running Power)
+  if (metricKey === "puissance" && sportKey === "course") {
+    if (!refs.cpRun) return { ok: false, note: "Renseigne CP course" };
+    const lo = (zone.min / 100) * refs.cpRun;
+    const hi = (zone.max / 100) * refs.cpRun;
+    return { ok: true, unit: "W", lo, hi, display: `${lo.toFixed(0)}–${hi.toFixed(0)} W` };
+  }
+
   // Allure course: %VMA -> km/h + min/km
   if (metricKey === "allure" && sportKey === "course") {
     if (!refs.vma) return { ok: false, note: "Renseigne VMA" };
