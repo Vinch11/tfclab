@@ -157,7 +157,7 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
     : null;
 
   // FatMax : donnée directe > estimation VLamax+FTP
-  const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value);
+  const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value, input.vo2max);
   const fatmaxSource = input.fatmax ? "snapshot" : (fatmaxValue ? "estimation" : "unknown");
 
   // Durabilité = expression directe du TTE (pas de fatigue/disponibilité)
