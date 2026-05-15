@@ -58,6 +58,7 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
   { id: "vlamax-v2-calibration-profil", label: "Calibration VLamax V2", icon: "Zap", category: "analyse", defaultVisible: true },
   { id: "ftp-targets-profil", label: "Cibles FTP/kg ou VMA", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "fatmax-tfcl-profil", label: "Zones Métaboliques TFCL™", icon: "Flame", category: "analyse", defaultVisible: true },
+  { id: "fat-carb-combustion-profil", label: "Combustion Lipides / Glucides", icon: "Flame", category: "analyse", defaultVisible: true },
   { id: "vo2max-age-profil", label: "VO₂max — Comparatif âge", icon: "Calendar", category: "analyse", defaultVisible: true },
   { id: "scientific-charts-profil", label: "Graphiques INSCYD (Staff)", icon: "BarChart", category: "analyse", defaultVisible: true },
   { id: "decision-reliability-profil", label: "Fiabilité Décisionnelle (Staff)", icon: "Shield", category: "analyse", defaultVisible: true },
@@ -397,6 +398,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);
       insertMissing("vlamax-profile-scale", ["vlamax-targets", "fatmax-tfcl", "coaching-compass"]);
       insertMissing("vlamax-profile-scale-profil", ["vlamax-v2-calibration-profil", "fatmax-tfcl-profil", "lactate-thresholds-profil"]);
+      insertMissing("fat-carb-combustion-profil", ["fatmax-tfcl-profil", "vo2max-age-profil"]);
 
       return [...merged, ...missingConfigs];
     }
