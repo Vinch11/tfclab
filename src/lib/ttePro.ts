@@ -128,9 +128,10 @@ export function getTTETarget(objectif: string, age?: number | null): number {
  */
 export function evaluerTTE(
   tteResult: TTEResult,
-  objectif: string
+  objectif: string,
+  age?: number | null
 ): { status: "ok" | "warning" | "critical"; message: string } {
-  const target = getTTETarget(objectif);
+  const target = getTTETarget(objectif, age ?? null);
   const diff = tteResult.tte_min - target;
 
   if (diff >= 0) {
