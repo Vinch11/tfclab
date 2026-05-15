@@ -21,6 +21,7 @@ import { computePotentielEffectif, getScoreColor, getPotentielTargets, getTarget
 // =============================================
 
 import { TTEEffectif, getTTETarget } from "./tteEffectif";
+import { getCRRTargets } from "./chargeRecenteReference";
 import { type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
 type PotentielPhysiologiqueEffectifCompat = PotentielPhysiologiqueEffectif;
 import { VLamaxEffectif } from "./vlamaxEffectif";
