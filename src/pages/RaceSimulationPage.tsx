@@ -438,6 +438,51 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
+              {!activeSnapshot && selectedAthlete && (
+                <Alert variant="destructive" className="text-xs sm:text-sm">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription className="space-y-2">
+                    <div>
+                      <strong>Aucun snapshot rattaché à « {selectedAthlete.nom} ».</strong>
+                      {" "}La simulation a besoin d'un snapshot (FTP, VLamax, TTE, VO₂max…) pour afficher ton profil et calculer un pacing fiable.
+                    </div>
+                    {(() => {
+                      const homonyms = (athletes || []).filter(
+                        (a: any) => a.nom === selectedAthlete.nom && a.id !== selectedAthlete.id
+                      );
+                      const withSnap = homonyms.find((a: any) =>
+                        (snapshots || []).some(s => s.athlete_id === a.id)
+                      );
+                      if (withSnap) {
+                        return (
+                          <div className="text-[11px] sm:text-xs">
+                            ⚠️ Une autre fiche « {selectedAthlete.nom} » existe et contient des snapshots.
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="px-1 h-auto text-[11px] sm:text-xs underline"
+                              onClick={() => {
+                                try {
+                                  localStorage.setItem("vinceslab-selected-athlete", withSnap.id);
+                                  sessionStorage.setItem("vinceslab-selected-athlete-session", withSnap.id);
+                                } catch {}
+                                window.location.reload();
+                              }}
+                            >
+                              Basculer sur cette fiche
+                            </Button>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="text-[11px] sm:text-xs">
+                          <Link to="/diagnostic" className="underline">Encoder un snapshot dans Diagnostic →</Link>
+                        </div>
+                      );
+                    })()}
+                  </AlertDescription>
+                </Alert>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <ProfileTile
                   label="VLamax"
