@@ -605,11 +605,10 @@ ${PLANS.map(planSection).join("")}
 </body></html>`;
 }
 
-function downloadStrategyPdf(props: ObjectiveStrategyCardProps) {
-  const html = buildStrategyHtml(props);
+function downloadStrategyPdf(props: ObjectiveStrategyCardProps, overrides: Record<string, NutriOverride>) {
+  const html = buildStrategyHtml(props, overrides);
   const win = window.open("", "_blank", "width=900,height=1200");
   if (!win) {
-    // Popup bloqué : fallback téléchargement HTML
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
