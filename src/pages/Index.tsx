@@ -1148,6 +1148,16 @@ const Index = () => {
                 </div>
               )}
 
+              {/* CTA — Voir ma stratégie : ouvre directement l'étape 3 de la simulation */}
+              {currentAthlete && (
+                <Button asChild size="sm" className="shrink-0 gap-1.5">
+                  <Link to="/race?step=3">
+                    <Target className="h-4 w-4" />
+                    <span>Voir ma stratégie</span>
+                  </Link>
+                </Button>
+              )}
+
               {/* Running Focus Mode Badge - visible quand actif */}
               {isRunningOnly && (
                 <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium shrink-0">
