@@ -552,14 +552,14 @@ const Index = () => {
 
   // ✅ RUNNING ECONOMY - Pour rapport staff
   const runningEconomyResult = useMemo(() => {
-    return computeRunningEconomy({
+    return computeRunningEconomyV2({
       fcMax: effectiveRefs.fcMax ?? null,
-      fcMoyenneEndurance: null,
-      allureEndurance: null,
-      // ✅ FIX: Utiliser la dérive cardiaque du snapshot
-      deriveCardiaque: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
+      // Dérive cardiaque mesurée depuis les sessions FIT
+      hrDriftPct: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
       tteMin: tteEffectif.tte_min,
+      weightKg: effectiveRefs.poids ?? null,
       objectif: currentAthlete?.goal || "IM",
+      sport: currentAthlete?.sport_main,
     });
   }, [effectiveRefs, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
 
