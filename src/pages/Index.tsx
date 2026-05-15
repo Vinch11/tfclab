@@ -66,6 +66,7 @@ import { Phase3Dashboard } from "@/components/Phase3Dashboard";
 import { LorangTestChecklist } from "@/components/LorangTestChecklist";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
+import { FatCarbOxidationChart } from "@/components/charts/FatCarbOxidationChart";
 import { computeFatMaxTFCL, computeFatMaxAnchorPctFTP, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 // ✅ Zones Métaboliques - Carte unifiée (Phase 1b UX)
