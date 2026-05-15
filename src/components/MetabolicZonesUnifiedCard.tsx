@@ -265,7 +265,7 @@ export function MetabolicZonesUnifiedCard({
 
           {/* FatMax Tab */}
           <AnimatedTabsContent value="fatmax" activeValue={activeTab} className="mt-3 space-y-3">
-            <FatMaxTabContent fatmax={fatmax} ftp={ftp} compact={compact} staffMode={staffMode} refLabel={refLabel} />
+            <FatMaxTabContent fatmax={fatmax} ftp={ftp} vma={vma} paceMode={paceMode} compact={compact} staffMode={staffMode} refLabel={refLabel} />
           </AnimatedTabsContent>
 
           {/* Lactate Thresholds Tab — deferred */}
