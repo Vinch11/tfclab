@@ -42,15 +42,32 @@ import {
 interface FatCarbOxidationChartProps {
   vo2max: number | null;
   vlamax: number | null;
-  ftp: number | null;
+  ftp?: number | null;
+  /** VMA en km/h — requis si paceMode=true (mode coureur sans FTP) */
+  vma?: number | null;
+  /** Si true, affiche en allure (min/km) au lieu de watts. Nécessite vma. */
+  paceMode?: boolean;
   weight?: number;
   staffMode?: boolean;
   className?: string;
 }
 
+// Fraction de VMA correspondant à la vitesse au seuil (vSeuil ≈ 88% VMA)
+const V_SEUIL_FRACTION = 0.88;
+
+function kmhToPaceStr(kmh: number): string {
+  if (!kmh || kmh <= 0) return "—";
+  const min = 60 / kmh;
+  const m = Math.floor(min);
+  const s = Math.round((min - m) * 60);
+  return `${m}:${String(s).padStart(2, "0")}/km`;
+}
+
 interface OxPoint {
   intensity: number;
   watts: number;
+  paceKmh: number;
+  paceStr: string;
   fatGmin: number;
   carbGmin: number;
   fatKcalH: number;
