@@ -668,6 +668,20 @@ export default function RaceSimulationPage() {
             <AccordionContent className="space-y-3">
               {!staffMode ? (
                 <>
+                  <ObjectiveStrategyCard
+                    raceObjective={raceObjective}
+                    bikeEnvelope={envelopeBike}
+                    runEnvelope={envelopeRun}
+                    ftp={activeSnapshot?.ftp ?? null}
+                    paceThresholdSecKm={activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null}
+                    weightKg={activeSnapshot?.weight_kg ?? null}
+                    vlamaxBike={vlamaxEffectif?.value ?? null}
+                    vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
+                    vo2max={activeSnapshot?.vo2max ?? null}
+                    tteMin={tteEffectif?.tte_min ?? null}
+                    bikeDurationMin={isTriathlon ? segmentDurationMin.bike : (discipline === 'bike' ? raceDurationMin : null)}
+                    runDurationMin={isTriathlon ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : null)}
+                  />
                   {envelope ? (
                     <RaceStrategyPlanCard
                       envelope={envelope}
