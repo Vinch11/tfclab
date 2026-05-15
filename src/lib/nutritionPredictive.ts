@@ -525,8 +525,12 @@ export function computeNutritionEstimate(params: {
   }
 
   const capMax = sport === 'cap' ? 75 : sport === 'triathlon' ? 85 : 120;
-  centralCarbs = Math.max(30, Math.min(capMax, centralCarbs));
-  carbsMin = Math.max(25, centralCarbs - 10);
+  // F31 — Plancher dynamique : 0 g/h pour 10K / sprint (<1h),
+  // 30 g/h pour épreuves d'endurance. Pas de bypass des tables hardcodées.
+  const isShortEvent = duration < 1;
+  const minFloor = isShortEvent ? 0 : 30;
+  centralCarbs = Math.max(minFloor, Math.min(capMax, centralCarbs));
+  carbsMin = Math.max(Math.max(0, minFloor - 5), centralCarbs - 10);
   carbsMax = Math.min(120, centralCarbs + 10);
 
   // Détermination du niveau de risque
