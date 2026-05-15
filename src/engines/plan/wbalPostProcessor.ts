@@ -22,6 +22,7 @@ import {
   analyzeCriticalPower,
   prescribeIntervalRecovery,
   effectiveWprime,
+  effectiveWprimeWithMeta,
   type CriticalPowerResult,
 } from "@/lib/v2/criticalPowerModel";
 
