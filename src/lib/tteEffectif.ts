@@ -31,6 +31,8 @@ interface ComputeTTEEffectifParams {
   tte_mode?: TTEMode | string | null;
   tte_observed_min?: number | null;
   objectif?: string;
+  /** F33: Age en années pour ajuster la cible TTE (masters athletes) */
+  age?: number | null;
 }
 
 // =============================================
@@ -42,18 +44,20 @@ interface ComputeTTEEffectifParams {
  * A) OBSERVED: TTE mesuré directement (tte_observed_min) → confiance 0.95
  * B) LOAD: Estimé via TSS_7d → confiance 0.7
  * C) FTP-based fallback → confiance 0.5
- * D) Unknown: Aucune donnée → tte_min = 45, confiance 0.2
+ * D) Unknown: Aucune donnée → tte_min = 0, confiance 0.2
+ *
+ * F33: `age` est propagé à `getTTETarget` pour ajustement masters (30+, 40+, 50+).
  */
 export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffectif {
   // Normalize tss_7j -> tss_7d (legacy mapping)
   const tss_7d = params.tss_7d ?? params.tss_7j ?? null;
-  const { ftp, tte_mode, tte_observed_min, objectif } = params;
+  const { ftp, tte_mode, tte_observed_min, objectif, age } = params;
 
-  const target = objectif ? getTTETargetFromPro(objectif) : 45;
+  const target = getTTETargetFromPro(objectif || "", age ?? null);
 
   // A) OBSERVED - Priorité maximale
   if (tte_mode === "OBSERVED" && tte_observed_min != null && tte_observed_min > 0) {
-    const evaluation = evaluerTTE({ tte_min: tte_observed_min, tteMin: tte_observed_min, source: "observed", confidence: 0.95, label: "" }, objectif || "");
+    const evaluation = evaluerTTE({ tte_min: tte_observed_min, tteMin: tte_observed_min, source: "observed", confidence: 0.95, label: "" }, objectif || "", age ?? null);
     return {
       tte_min: tte_observed_min,
       source: "observed",
