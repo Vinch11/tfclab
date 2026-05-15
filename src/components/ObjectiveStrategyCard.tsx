@@ -18,7 +18,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Bike, Footprints, Apple, Target, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Bike, Footprints, Apple, Target, AlertTriangle, ShieldCheck, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { computeBaseRateMader } from "@/lib/v2/nutritionUnified";
 import { computeNegativeSplitDelta } from "@/lib/v2/pacingDisciplineRules";
@@ -422,6 +423,138 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
+// ─── Export PDF (printable HTML) ──────────────────────────────────────────────
+
+function buildStrategyHtml(props: ObjectiveStrategyCardProps): string {
+  const {
+    raceObjective, bikeEnvelope, runEnvelope,
+    ftp, paceThresholdSecKm, weightKg,
+    vlamaxBike, vlamaxRun, vo2max, tteMin,
+    bikeDurationMin, runDurationMin,
+  } = props;
+  const w = weightKg ?? 70;
+  const hasBike = !!bikeEnvelope && !!ftp && ftp > 0;
+  const hasRun = !!runEnvelope && !!paceThresholdSecKm && paceThresholdSecKm > 0;
+  const bikeIntensityPct = bikeEnvelope?.boundary.centerPct ?? 75;
+  const runIntensityPct = runEnvelope?.boundary.centerPct ?? 88;
+  const bikeH = (bikeDurationMin ?? 0) / 60;
+  const runH = (runDurationMin ?? 0) / 60;
+
+  const planSection = (plan: PlanConfig) => {
+    let html = `<section class="plan"><h2>${plan.label}</h2><p class="desc">${plan.description}</p>`;
+
+    if (hasBike) {
+      const bw = bikeWatts(bikeEnvelope!, ftp!, plan.intensityFactor);
+      const segs = bikeSegments(bikeEnvelope!, ftp!, plan.intensityFactor);
+      html += `<h3>Vélo</h3>
+        <table class="kv"><tbody>
+          <tr><th>Puissance cible (NP)</th><td>${bw.targetW} W</td><th>Plage</th><td>${bw.rangeW[0]}–${bw.rangeW[1]} W</td></tr>
+          <tr><th>IF</th><td>${bw.if}</td><th>Plafond montées</th><td>≤ ${bw.capClimbW} W</td></tr>
+          <tr><th>FC indicative</th><td colspan="3">${fcZone(bikeEnvelope!.boundary.centerPct * plan.intensityFactor)}</td></tr>
+        </tbody></table>
+        <table class="seg"><thead><tr><th>Segment</th><th>Cible</th><th>Plage</th><th>Note</th></tr></thead><tbody>
+          ${segs.map(s => `<tr><td>${s.label}</td><td>${s.targetW} W</td><td>${s.rangeW[0]}–${s.rangeW[1]} W</td><td>${s.note}</td></tr>`).join("")}
+        </tbody></table>`;
+    }
+
+    if (hasRun) {
+      const p = runPace(runEnvelope!, paceThresholdSecKm!, plan.intensityFactor);
+      const deltaPct = (raceObjective === "Marathon" || raceObjective === "10km")
+        ? computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct
+        : 1.2;
+      const segs = paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, raceObjective);
+      html += `<h3>Course à pied</h3>
+        <table class="kv"><tbody>
+          <tr><th>Allure cible</th><td>${fmtPaceSecKm(p.targetPaceSec)}</td><th>Plage</th><td>${fmtPaceSecKm(p.rangePaceSec[0])} – ${fmtPaceSecKm(p.rangePaceSec[1])}</td></tr>
+          <tr><th>Plafond</th><td colspan="3">+ rapide que ${fmtPaceSecKm(p.cap)}</td></tr>
+          <tr><th>Stratégie</th><td colspan="3">${splitLabel(plan.splitBias, deltaPct)}</td></tr>
+        </tbody></table>
+        <table class="seg"><thead><tr><th>Segment</th><th>Allure cible</th><th>Tolérance</th></tr></thead><tbody>
+          ${segs.map(s => `<tr><td>${s.label}</td><td>${fmtPaceSecKm(s.paceSec)}</td><td>± 3 s/km</td></tr>`).join("")}
+        </tbody></table>`;
+    }
+
+    // Nutrition
+    const nutriRow = (sport: "velo" | "cap", durationH: number, label: string, vla: number | null, intensityPct: number) => {
+      if (durationH <= 0) return "";
+      const { baseRate } = computeBaseRateMader(w, sport, vo2max ?? null, vla, intensityPct, durationH, false);
+      const n = nutritionItems(baseRate, durationH, plan);
+      return `<tr>
+        <th>${label}</th>
+        <td>${n.perHour} g/h</td>
+        <td>${n.totalCho} g</td>
+        <td>${n.gels} gels</td>
+        <td>${n.bars} barres</td>
+        <td>${n.iso} iso (${n.isoMl} ml)</td>
+        <td>${n.eauMl} ml eau</td>
+      </tr>`;
+    };
+    html += `<h3>Nutrition</h3>
+      <table class="seg"><thead><tr><th>Segment</th><th>CHO/h</th><th>Total</th><th>Gels</th><th>Barres</th><th>Iso</th><th>Eau</th></tr></thead><tbody>
+        ${hasBike && bikeH > 0 ? nutriRow("velo", bikeH, "Vélo", vlamaxBike ?? null, bikeIntensityPct * plan.intensityFactor) : ""}
+        ${hasRun && runH > 0 ? nutriRow("cap", runH, "Course", vlamaxRun ?? null, runIntensityPct * plan.intensityFactor) : ""}
+      </tbody></table>`;
+
+    if (plan.key === "B") {
+      html += `<p class="warn"><strong>Quand basculer Plan B ?</strong> FC qui décroche &gt; 8 bpm sous cible pour la même puissance, écœurement nutritionnel, crampes naissantes, perte de cadence &gt; 5 spm, ou chaleur &gt; 28 °C non anticipée. Réduire l'intensité, passer aux liquides, relancer doucement après 10 min.</p>`;
+    }
+
+    html += `</section>`;
+    return html;
+  };
+
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"/>
+<title>Stratégie ${raceObjective} — TFCL™</title>
+<style>
+  @page { size: A4; margin: 14mm; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #111; font-size: 11px; line-height: 1.4; }
+  h1 { font-size: 18px; margin: 0 0 4px; color: #0f172a; }
+  h2 { font-size: 14px; margin: 14px 0 6px; padding: 4px 8px; background: #f1f5f9; border-left: 3px solid #2563eb; }
+  h3 { font-size: 12px; margin: 10px 0 4px; color: #1e293b; }
+  .meta { color: #64748b; font-size: 10px; margin-bottom: 12px; }
+  .desc { color: #475569; font-style: italic; margin: 2px 0 8px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  table.kv th { width: 22%; text-align: left; padding: 3px 6px; background: #f8fafc; color: #475569; font-weight: 500; }
+  table.kv td { padding: 3px 6px; border-bottom: 1px solid #e2e8f0; }
+  table.seg th { background: #e2e8f0; padding: 4px 6px; text-align: left; font-size: 10px; }
+  table.seg td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; font-size: 10px; }
+  .plan { page-break-inside: avoid; margin-bottom: 16px; }
+  .warn { background: #fef3c7; border-left: 3px solid #d97706; padding: 6px 8px; font-size: 10px; margin-top: 6px; }
+  .footer { margin-top: 16px; font-size: 9px; color: #64748b; text-align: center; font-style: italic; }
+  @media print { .noprint { display: none; } }
+  .noprint { position: fixed; top: 8px; right: 8px; }
+  .noprint button { padding: 6px 12px; background: #2563eb; color: white; border: 0; border-radius: 4px; cursor: pointer; font-size: 12px; }
+</style></head>
+<body>
+<div class="noprint"><button onclick="window.print()">Imprimer / PDF</button></div>
+<h1>Stratégie ${raceObjective} — Plan A & Plan B</h1>
+<div class="meta">Généré le ${new Date().toLocaleDateString("fr-FR")} · Potentiel Physiologique TFCL™</div>
+${PLANS.map(planSection).join("")}
+<div class="footer">Calibrations : Pacing Envelope™ TFCL · Nutrition Mader-Heck (g CHO/h) · Negative split = Hanley 2020 / Casado 2021.</div>
+<script>setTimeout(() => window.print(), 400);</script>
+</body></html>`;
+}
+
+function downloadStrategyPdf(props: ObjectiveStrategyCardProps) {
+  const html = buildStrategyHtml(props);
+  const win = window.open("", "_blank", "width=900,height=1200");
+  if (!win) {
+    // Popup bloqué : fallback téléchargement HTML
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `strategie-${props.raceObjective}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
+
 // ─── Composant principal ──────────────────────────────────────────────────────
 
 export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
@@ -466,9 +599,20 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
               Deux plans complets : on vise le Plan A. Si quelque chose dérape en course, on bascule sur le Plan B sans paniquer.
             </p>
           </div>
-          <Badge variant="outline" className="text-[10px] shrink-0">
-            {isTri ? "Triathlon" : raceObjective}
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="outline" className="text-[10px]">
+              {isTri ? "Triathlon" : raceObjective}
+            </Badge>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-2 text-[11px] gap-1"
+              onClick={() => downloadStrategyPdf(props)}
+            >
+              <Download className="h-3.5 w-3.5" />
+              PDF
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
