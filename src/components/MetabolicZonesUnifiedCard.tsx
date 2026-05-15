@@ -331,12 +331,16 @@ export function MetabolicZonesUnifiedCard({
 function FatMaxTabContent({
   fatmax,
   ftp,
+  vma = null,
+  paceMode = false,
   compact,
   staffMode,
   refLabel = "FTP",
 }: {
   fatmax: FatMaxTFCLResult | null;
   ftp: number | null;
+  vma?: number | null;
+  paceMode?: boolean;
   compact: boolean;
   staffMode: boolean;
   refLabel?: string;
@@ -353,13 +357,27 @@ function FatMaxTabContent({
     );
   }
 
+  const fatMaxPaceRange = paceMode && vma
+    ? `${pctSeuilToPaceStr(fatmax.physioMaxPctFTP, vma)}–${pctSeuilToPaceStr(fatmax.physioMinPctFTP, vma)}`
+    : null;
+  const centerPace = paceMode && vma ? pctSeuilToPaceStr(fatmax.centerPctFTP, vma) : null;
+  const crossoverPaceRange = paceMode && vma
+    ? `${pctSeuilToPaceStr(fatmax.crossoverZone[1], vma)}–${pctSeuilToPaceStr(fatmax.crossoverZone[0], vma)}`
+    : null;
+
   return (
     <div className="space-y-3">
       {/* Plage FatMax */}
       <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
         <p className="text-xs text-muted-foreground mb-1">Plage FatMax</p>
         <p className="text-2xl font-bold">{formatFatMaxRange(fatmax)}</p>
-        <p className="text-sm font-medium mt-1">Centre: {fatmax.centerPctFTP}% {refLabel}</p>
+        {fatMaxPaceRange && (
+          <p className="text-sm font-mono text-orange-600 dark:text-orange-400 mt-0.5">{fatMaxPaceRange}</p>
+        )}
+        <p className="text-sm font-medium mt-1">
+          Centre: {fatmax.centerPctFTP}% {refLabel}
+          {centerPace && <span className="text-muted-foreground ml-2 font-mono">({centerPace})</span>}
+        </p>
       </div>
 
       {/* Crossover Zone */}
@@ -369,9 +387,14 @@ function FatMaxTabContent({
             <div className="w-2 h-2 rounded-full bg-amber-500" />
             <span className="text-xs font-medium">Crossover Zone</span>
           </div>
-          <span className="font-mono text-xs font-medium text-amber-600 dark:text-amber-400">
-            {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% {refLabel}
-          </span>
+          <div className="text-right">
+            <span className="font-mono text-xs font-medium text-amber-600 dark:text-amber-400">
+              {fatmax.crossoverZone[0]}–{fatmax.crossoverZone[1]}% {refLabel}
+            </span>
+            {crossoverPaceRange && (
+              <div className="font-mono text-[10px] text-amber-600/80 dark:text-amber-400/80">{crossoverPaceRange}</div>
+            )}
+          </div>
         </div>
       </div>
 
