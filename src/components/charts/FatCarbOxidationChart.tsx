@@ -225,16 +225,22 @@ export function FatCarbOxidationChart({
   vlamax,
   ftp,
   vma,
-  paceMode = false,
+  paceMode: paceModeDefault = false,
   weight = 70,
   staffMode = false,
   className,
 }: FatCarbOxidationChartProps) {
   const isMobile = useIsTouchDevice();
-  // En paceMode, vma remplace ftp comme référence
+  const ftpAvailable = !!(ftp && ftp > 0);
+  const vmaAvailable = !!(vma && vma > 0);
+  const canToggle = ftpAvailable && vmaAvailable;
+  // État interne: l'utilisateur peut basculer Watts ↔ Allure si les 2 références existent
+  const initialPace = paceModeDefault ? vmaAvailable : (!ftpAvailable && vmaAvailable);
+  const [paceMode, setPaceMode] = useState<boolean>(initialPace);
+
   const valid = !!(
     vo2max && vlamax && vo2max > 0 && vlamax > 0 &&
-    (paceMode ? (vma && vma > 0) : (ftp && ftp > 0))
+    (paceMode ? vmaAvailable : ftpAvailable)
   );
   // Référence affichée: FTP (W) ou vSeuil (km/h ≈ 88% VMA)
   const refValue = paceMode ? (vma! * V_SEUIL_FRACTION) : ftp!;
