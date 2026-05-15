@@ -441,7 +441,7 @@ export function computeFatigueEffectif(params: ComputeFatigueParams): FatigueEff
   const reasonsMissing: string[] = [];
 
   // Calcul des sous-indices
-  const chargeResult = computeChargeRecenteIndex(tss7d ?? null, tss7dHabituel ?? null);
+  const chargeResult = computeChargeRecenteIndex(tss7d ?? null, tss7dHabituel ?? null, objectif ?? null);
   const fatiguePercueResult = computeFatiguePercueIndex(fatiguePercue ?? null);
   const tteResult = computeTTEIndex(tteEffectif, objectif);
   const fraicheurResult = computeFraicheurIndex(potentielPhysiologique);
