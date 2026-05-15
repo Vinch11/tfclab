@@ -1,5 +1,12 @@
 /**
- * Recovery Nutrition Protocol — F7
+ * Recovery NUTRITION Protocol — F7
+ *
+ * F40 disambiguation: this module computes post-effort NUTRITION targets
+ * (CHO, protein, fluids, sodium) following the 4R model. It is unrelated to
+ * `enrichedWorkoutsRecovery.ts`, which is the TRAINING catalog of REST/Récup
+ * sessions used by the workout library / AI plan generator. The two files
+ * are intentionally separate (nutrition prescription vs. workout catalog).
+ *
  * Post-effort 4R model: Rehydrate, Refuel, Repair, Rest
  *
  * Scientific basis:
