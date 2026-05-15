@@ -40,6 +40,7 @@ import {
   getVmaTargetByAmbition,
 } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor, getTTEAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
+import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 export const COACHING_COMPASS_VERSION = "1.0.0";
