@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Info, Calendar, FlaskConical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -51,10 +51,33 @@ export default function RaceSimulationPage() {
   const { snapshots, tests, checkins } = useCloudData();
   const [activeTab, setActiveTab] = useState("simulation");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
+  const [searchParams] = useSearchParams();
+  const requestedStep = searchParams.get("step");
+  const initialAccordion = React.useMemo(() => {
+    if (requestedStep) {
+      const k = `step-${requestedStep}`;
+      return Array.from(new Set(["step-1", "step-2", k]));
+    }
+    return ["step-1", "step-2"];
+  }, [requestedStep]);
+  const [openSteps, setOpenSteps] = useState<string[]>(initialAccordion);
+
+  useEffect(() => {
+    setOpenSteps(initialAccordion);
+    if (requestedStep) {
+      const id = `step-${requestedStep}`;
+      // wait for accordion to expand
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 250);
+    }
+  }, [initialAccordion, requestedStep]);
 
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
+
   
   // Compute effectifs
   const athleteId = selectedAthlete?.id ?? '';
@@ -422,7 +445,7 @@ export default function RaceSimulationPage() {
         </Alert>
         
         {/* ═══ Parcours guidé en 5 étapes ═══ */}
-        <Accordion type="multiple" defaultValue={["step-1", "step-2"]} className="w-full space-y-2">
+        <Accordion type="multiple" value={openSteps} onValueChange={setOpenSteps} className="w-full space-y-2">
 
           {/* ÉTAPE 1 — TON PROFIL */}
           <AccordionItem value="step-1" className="border border-border rounded-lg px-3 sm:px-4 bg-card">
@@ -698,7 +721,7 @@ export default function RaceSimulationPage() {
           </AccordionItem>
 
           {/* ÉTAPE 3 — TON PLAN DE COURSE */}
-          <AccordionItem value="step-3" className="border border-border rounded-lg px-3 sm:px-4 bg-card">
+          <AccordionItem id="step-3" value="step-3" className="border border-border rounded-lg px-3 sm:px-4 bg-card scroll-mt-20">
             <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3 text-left">
                 <Badge variant="default" className="h-7 w-7 rounded-full p-0 flex items-center justify-center text-xs shrink-0">3</Badge>

@@ -188,7 +188,7 @@ import {
   Calculator,
   Shield,
 } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
@@ -1146,6 +1146,16 @@ const Index = () => {
                     }}
                   />
                 </div>
+              )}
+
+              {/* CTA — Voir ma stratégie : ouvre directement l'étape 3 de la simulation */}
+              {currentAthlete && (
+                <Button asChild size="sm" className="shrink-0 gap-1.5">
+                  <Link to="/race?step=3">
+                    <Target className="h-4 w-4" />
+                    <span>Voir ma stratégie</span>
+                  </Link>
+                </Button>
               )}
 
               {/* Running Focus Mode Badge - visible quand actif */}
