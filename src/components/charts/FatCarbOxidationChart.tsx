@@ -4,7 +4,7 @@
  * Uses maderMetabolicModel.ts for physiological accuracy
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ComposedChart,
   Area,
@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AlertTriangle, Flame, Droplets, ArrowRightLeft, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -76,6 +77,29 @@ interface OxPoint {
   fatPct: number;
   vo2LMin: number;
   efficiency: number;
+}
+
+// =============================================
+// UNIT TOGGLE
+// =============================================
+
+export function UnitToggle({ paceMode, onChange }: { paceMode: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <ToggleGroup
+      type="single"
+      size="sm"
+      value={paceMode ? "pace" : "watts"}
+      onValueChange={(v) => { if (v) onChange(v === "pace"); }}
+      className="h-7"
+    >
+      <ToggleGroupItem value="watts" className="h-7 px-2 text-[10px]" aria-label="Watts">
+        Watts
+      </ToggleGroupItem>
+      <ToggleGroupItem value="pace" className="h-7 px-2 text-[10px]" aria-label="Allure">
+        Allure
+      </ToggleGroupItem>
+    </ToggleGroup>
+  );
 }
 
 // =============================================
@@ -225,16 +249,22 @@ export function FatCarbOxidationChart({
   vlamax,
   ftp,
   vma,
-  paceMode = false,
+  paceMode: paceModeDefault = false,
   weight = 70,
   staffMode = false,
   className,
 }: FatCarbOxidationChartProps) {
   const isMobile = useIsTouchDevice();
-  // En paceMode, vma remplace ftp comme référence
+  const ftpAvailable = !!(ftp && ftp > 0);
+  const vmaAvailable = !!(vma && vma > 0);
+  const canToggle = ftpAvailable && vmaAvailable;
+  // État interne: l'utilisateur peut basculer Watts ↔ Allure si les 2 références existent
+  const initialPace = paceModeDefault ? vmaAvailable : (!ftpAvailable && vmaAvailable);
+  const [paceMode, setPaceMode] = useState<boolean>(initialPace);
+
   const valid = !!(
     vo2max && vlamax && vo2max > 0 && vlamax > 0 &&
-    (paceMode ? (vma && vma > 0) : (ftp && ftp > 0))
+    (paceMode ? vmaAvailable : ftpAvailable)
   );
   // Référence affichée: FTP (W) ou vSeuil (km/h ≈ 88% VMA)
   const refValue = paceMode ? (vma! * V_SEUIL_FRACTION) : ftp!;
@@ -307,7 +337,12 @@ export function FatCarbOxidationChart({
             Oxydation Lipides / Glucides
             <Badge variant="outline" className="text-[9px] font-normal">Mader Model</Badge>
           </CardTitle>
-          <Badge variant="secondary" className="text-[9px] font-mono">VLa {vlamax!.toFixed(2)}</Badge>
+          <div className="flex items-center gap-2">
+            {canToggle && (
+              <UnitToggle paceMode={paceMode} onChange={setPaceMode} />
+            )}
+            <Badge variant="secondary" className="text-[9px] font-mono">VLa {vlamax!.toFixed(2)}</Badge>
+          </div>
         </div>
       </CardHeader>
 

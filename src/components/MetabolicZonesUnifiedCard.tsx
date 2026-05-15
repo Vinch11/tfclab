@@ -63,6 +63,7 @@ import {
   type LactateThresholdsTFCL,
 } from "@/lib/thresholds/computeLactateThresholdsTFCL";
 import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
+import { UnitToggle } from "@/components/charts/FatCarbOxidationChart";
 
 // =============================================
 // TYPES
@@ -115,9 +116,13 @@ export function MetabolicZonesUnifiedCard({
   const [activeTab, setActiveTab] = useState("fatmax");
   const [showEducation, setShowEducation] = useState(false);
   const isRunning = useIsRunningOnly();
-  const refLabel = isRunning ? "Seuil" : "FTP";
-  // Mode allure: runner sans FTP mais avec VMA
-  const paceMode = isRunning && (!ftp || ftp <= 0) && !!vma && vma > 0;
+  const ftpAvailable = !!(ftp && ftp > 0);
+  const vmaAvailable = !!(vma && vma > 0);
+  const canToggle = ftpAvailable && vmaAvailable;
+  const [paceMode, setPaceMode] = useState<boolean>(
+    isRunning && vmaAvailable ? true : (!ftpAvailable && vmaAvailable)
+  );
+  const refLabel = paceMode ? "Seuil" : (isRunning ? "Seuil" : "FTP");
 
   const normalizedObjectif = (objectif === "IM" ? "Ironman" : objectif) as FatMaxObjectif;
 
@@ -185,14 +190,19 @@ export function MetabolicZonesUnifiedCard({
             <Flame className="h-4 w-4 text-orange-500" />
             Zones Métaboliques TFCL™
           </CardTitle>
-          {fatmax && (
-            <Badge
-              variant="outline"
-              className={cn("text-xs", getFatMaxConfidenceBadgeClass(fatmax.confidenceLevel))}
-            >
-              {fatmax.confidenceLabel}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {canToggle && (
+              <UnitToggle paceMode={paceMode} onChange={setPaceMode} />
+            )}
+            {fatmax && (
+              <Badge
+                variant="outline"
+                className={cn("text-xs", getFatMaxConfidenceBadgeClass(fatmax.confidenceLevel))}
+              >
+                {fatmax.confidenceLabel}
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* FatMax principal (résumé compact) */}
