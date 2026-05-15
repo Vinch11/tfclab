@@ -58,16 +58,13 @@ export const ZonesConfig: Record<string, MetricConfig> = {
         max: z.ftp.max,
         desc: z.parametresTravailles
       })),
-      "course": [
-        { key: "Z1", name: "Récupération", min: 0, max: 80, desc: "Récupération, circulation" },
-        { key: "Z2", name: "Endurance Fondamentale", min: 80, max: 90, desc: "Base aérobie" },
-        { key: "Z3", name: "Endurance Active", min: 90, max: 100, desc: "Tempo" },
-        { key: "Z4a", name: "Sweet Spot", min: 100, max: 105, desc: "Durabilité" },
-        { key: "Z4b", name: "Seuil bas", min: 105, max: 110, desc: "Tolérance" },
-        { key: "Z5", name: "Seuil", min: 110, max: 120, desc: "MLSS, FTP" },
-        { key: "Z6", name: "VO2max", min: 120, max: 140, desc: "Puissance aérobie max" },
-        { key: "Z7", name: "Neuromusculaire", min: 140, max: 200, desc: "Sprints, force max" }
-      ]
+      "course": TRAINING_ZONES.map(z => ({
+        key: z.id,
+        name: z.label,
+        min: z.cpRun.min,
+        max: z.cpRun.max,
+        desc: z.parametresTravailles
+      }))
     }
   },
 
@@ -144,6 +141,7 @@ export interface AthleteRefsForZones {
   vma: number | null;
   ftp: number | null;
   css: number | null;
+  cpRun?: number | null;
 }
 
 // Calcul automatique des valeurs absolues pour une zone
@@ -175,6 +173,14 @@ export function computeAbsoluteRange(
     if (!refs.ftp) return { ok: false, note: "Renseigne FTP" };
     const lo = (zone.min / 100) * refs.ftp;
     const hi = (zone.max / 100) * refs.ftp;
+    return { ok: true, unit: "W", lo, hi, display: `${lo.toFixed(0)}–${hi.toFixed(0)} W` };
+  }
+
+  // Puissance course: %CP run -> W (Stryd / Garmin Running Power)
+  if (metricKey === "puissance" && sportKey === "course") {
+    if (!refs.cpRun) return { ok: false, note: "Renseigne CP course" };
+    const lo = (zone.min / 100) * refs.cpRun;
+    const hi = (zone.max / 100) * refs.cpRun;
     return { ok: true, unit: "W", lo, hi, display: `${lo.toFixed(0)}–${hi.toFixed(0)} W` };
   }
 
