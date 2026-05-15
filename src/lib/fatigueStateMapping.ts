@@ -31,3 +31,26 @@ export function fatigueStateToScore(state: string | null | undefined): number | 
 export function fatigueStateToScoreOrDefault(state: string | null | undefined): number {
   return fatigueStateToScore(state) ?? FATIGUE_STATE_DEFAULT_SCORE;
 }
+
+/**
+ * Canonical 0-100 score derived from 1-10 mapping (×10).
+ * fresh=20, ok=40, fatigued=60, high=80, injured=100.
+ * Higher = more fatigue.
+ */
+export function fatigueStateToScore100(state: string | null | undefined): number | null {
+  const s = fatigueStateToScore(state);
+  return s == null ? null : s * 10;
+}
+
+export function fatigueStateToScore100OrDefault(state: string | null | undefined): number {
+  return fatigueStateToScore100(state) ?? FATIGUE_STATE_DEFAULT_SCORE * 10;
+}
+
+/** Canonical labels for fatigue_state */
+export const FATIGUE_STATE_LABELS: Record<string, string> = {
+  fresh: "Frais",
+  ok: "Normal",
+  fatigued: "Fatigué",
+  high: "Très fatigué",
+  injured: "Blessé",
+};

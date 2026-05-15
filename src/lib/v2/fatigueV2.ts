@@ -385,15 +385,15 @@ function computeResponsePillar(input: FatigueV2Input): FatiguePillarResult {
 
 function computeFeelingPillar(input: FatigueV2Input): FatiguePillarResult {
   const { fatigueState } = input;
-  
-  // Conversion fatigue_state du snapshot → score 0-100
-  // 0 = très fatigué, 100 = très frais
+
+  // F34: Mapping canonique aligné sur fatigueStateMapping.ts (1-10 ×10)
+  // fresh=20, ok=40, fatigued=60, high=80, injured=100. Higher = more fatigue.
   const FATIGUE_STATE_SCORES: Record<string, { score: number; label: string }> = {
-    fresh:    { score: 15, label: "Frais — bien récupéré" },
-    ok:       { score: 40, label: "Normal — état standard" },
-    fatigued: { score: 65, label: "Fatigué — récupération conseillée" },
-    high:     { score: 80, label: "Fatigue élevée — repos recommandé" },
-    injured:  { score: 95, label: "Blessé — arrêt nécessaire" },
+    fresh:    { score: 20,  label: "Frais — bien récupéré" },
+    ok:       { score: 40,  label: "Normal — état standard" },
+    fatigued: { score: 60,  label: "Fatigué — récupération conseillée" },
+    high:     { score: 80,  label: "Fatigue élevée — repos recommandé" },
+    injured:  { score: 100, label: "Blessé — arrêt nécessaire" },
   };
   
   const details: string[] = [];
