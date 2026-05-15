@@ -326,17 +326,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     snapshots: snapshots.map(mapSnapshotToV2),
   }) : null;
   
-  // TTE effectif
-  const tteEffectif = effectiveSnapshot ? computeTTEEffectif({
-    ftp: effectiveSnapshot.ftp ?? null,
-    tss_7d: effectiveSnapshot.tss_7d ?? null,
-    tte_mode: effectiveSnapshot.tte_mode ?? "LOAD",
-    tte_observed_min: effectiveSnapshot.tte_observed_min ?? null,
-    objectif: athlete?.goal || "IM",
-  }) : null;
-  
-  // Potentiel Physiologique
-  // Calculer l'âge de l'athlète
+  // Calculer l'âge de l'athlète (utilisé par TTE F33 et Potentiel Physiologique)
   const athleteAge = athlete?.birth_date ? (() => {
     const birthDate = new Date(athlete.birth_date);
     const today = new Date();
@@ -347,6 +337,18 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     }
     return age;
   })() : null;
+
+  // TTE effectif
+  const tteEffectif = effectiveSnapshot ? computeTTEEffectif({
+    ftp: effectiveSnapshot.ftp ?? null,
+    tss_7d: effectiveSnapshot.tss_7d ?? null,
+    tte_mode: effectiveSnapshot.tte_mode ?? "LOAD",
+    tte_observed_min: effectiveSnapshot.tte_observed_min ?? null,
+    objectif: athlete?.goal || "IM",
+    age: athleteAge, // F33
+  }) : null;
+
+  // Potentiel Physiologique
   
   const potentielPhysiologique = tteEffectif && vlamaxEffectif ? computePotentielEffectif({
     objectif: athlete?.goal || "IM",
