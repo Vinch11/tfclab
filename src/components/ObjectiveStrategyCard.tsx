@@ -494,7 +494,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 // ─── Export PDF (printable HTML) ──────────────────────────────────────────────
 
-function buildStrategyHtml(props: ObjectiveStrategyCardProps): string {
+function buildStrategyHtml(props: ObjectiveStrategyCardProps, overrides: Record<string, NutriOverride> = {}): string {
   const {
     raceObjective, bikeEnvelope, runEnvelope,
     ftp, paceThresholdSecKm, weightKg,
