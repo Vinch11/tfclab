@@ -36,6 +36,12 @@ export interface NutritionPhaseUnified {
   timeRange: string;
   carbsGh: number;
   carbsGhRange: string;
+  /** F30 — durée effective de la phase en minutes (pour totaux cohérents). */
+  durationMin: number;
+  /** F30 — total CHO consommés sur la phase (g) = carbsGh × durationMin/60. */
+  totalCarbsG: number;
+  /** F30 — total kcal CHO sur la phase (4 kcal/g). */
+  totalKcal: number;
   products: NutritionProduct[];
   hydrationMlH: number;
   sodiumMgH: number;
