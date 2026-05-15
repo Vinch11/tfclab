@@ -11,7 +11,7 @@
  * La nutrition est une CONSÉQUENCE, pas une variable isolée.
  */
 
-import { calculateCarbOxidation } from './v2/maderMetabolicModel';
+import { computeBaseRateMader } from './v2/nutritionUnified';
 
 export type VLamaxCategory = 'very_low' | 'moderate' | 'high' | 'very_high';
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
