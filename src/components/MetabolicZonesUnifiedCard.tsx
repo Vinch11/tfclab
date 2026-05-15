@@ -74,12 +74,27 @@ export interface MetabolicZonesUnifiedCardProps {
   tteEffectif: TTEEffectif;
   objectif: string;
   ftp: number | null;
+  /** VMA en km/h — utilisée pour afficher l'allure (min/km) si ftp absent */
+  vma?: number | null;
   fatigueIndex?: number | null;
-  
+
   // Display options
   staffMode?: boolean;
   compact?: boolean;
   className?: string;
+}
+
+// Fraction de VMA correspondant à la vitesse au seuil
+const V_SEUIL_FRACTION = 0.88;
+
+function pctSeuilToPaceStr(pct: number, vma: number, fraction = V_SEUIL_FRACTION): string {
+  const vSeuil = vma * fraction;
+  const v = vSeuil * (pct / 100);
+  if (!v || v <= 0) return "—";
+  const min = 60 / v;
+  const m = Math.floor(min);
+  const s = Math.round((min - m) * 60);
+  return `${m}:${String(s).padStart(2, "0")}/km`;
 }
 
 // =============================================
