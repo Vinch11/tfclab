@@ -368,10 +368,10 @@ function fmtPaceShort(secPerKm: number): string {
 }
 
 function EffortRefBlock({
-  ref,
+  effortRef: ref,
   discipline,
 }: {
-  ref: EffortRef;
+  effortRef: EffortRef;
   discipline: "bike" | "run";
 }) {
   const unit = discipline === "bike" ? "W" : "/km";
