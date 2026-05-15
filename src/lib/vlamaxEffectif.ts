@@ -134,6 +134,19 @@ function isLabMeasuredVlamaxSnapshot(s: SnapshotCloud): boolean {
   return /(labo|lactat[e]? lab|prise de sang|blood lactate|lab measurement)/.test(haystack);
 }
 
+/**
+ * Détecte un test VLamax provenant d'un protocole CAP/course (sprint terrain
+ * en running). Ces tests ne sont PAS représentatifs de la glycolyse vélo et
+ * doivent être exclus du pipeline `sport=velo` pour éviter qu'un sprint CAP
+ * récent (ex. "Sprint 15s CAP" 0.71) ne masque la VLamax vélo réelle.
+ */
+function isCapSpecificVlamaxTest(t: TestCloud): boolean {
+  const type = (t.type || "").toLowerCase();
+  if (type.includes("cap") || type.includes("run")) return true;
+  const haystack = `${t.name || ""} ${t.note || ""} ${t.raw?.source || ""} ${t.raw?.protocol || ""}`.toLowerCase();
+  return /(\bcap\b|course à pied|running|run\b|sprint.*cap|cap.*sprint)/.test(haystack);
+}
+
 interface SnapshotCloud {
   id: string;
   athlete_id: string;
@@ -312,7 +325,9 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   const athleteTestsAll = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
   const athleteTests = sport === "cap"
     ? athleteTestsAll.filter(isLabMeasuredVlamaxTest)
-    : athleteTestsAll;
+    // Pour sport=velo/natation : exclure les tests CAP-spécifiques (Sprint 15s CAP, etc.)
+    // qui mesurent la glycolyse en course et polluent la VLamax vélo.
+    : athleteTestsAll.filter(t => !isCapSpecificVlamaxTest(t));
   
   if (athleteTests.length > 0) {
     const sortedTests = [...athleteTests].sort((a, b) => {
