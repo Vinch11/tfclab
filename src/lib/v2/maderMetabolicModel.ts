@@ -374,7 +374,8 @@ export function findFatMax(profile: MaderProfile): {
   let fatMaxIntensity = 0;
   
   // Search for peak fat oxidation
-  for (let intensity = 30; intensity <= 85; intensity += 1) {
+  // Audit 2D F25: borne haute alignée [48, 82] sur formule canonique TFCL
+  for (let intensity = 30; intensity <= 82; intensity += 1) {
     const fatOx = calculateFatOxidation(intensity, vo2max, vlamax, weight);
     if (fatOx > maxFatOx) {
       maxFatOx = fatOx;
