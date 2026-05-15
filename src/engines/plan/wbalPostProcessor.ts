@@ -22,6 +22,7 @@ import {
   analyzeCriticalPower,
   prescribeIntervalRecovery,
   effectiveWprime,
+  effectiveWprimeWithMeta,
   type CriticalPowerResult,
 } from "@/lib/v2/criticalPowerModel";
 
@@ -209,9 +210,14 @@ export function applyWbalRecoveryRecalc(
   }
 
   const cp = cpResult.effectiveCP;
-  const wprime = effectiveWprime(cpResult.wprime); // [10kJ ; 35kJ]
+  const wprimeMeta = effectiveWprimeWithMeta(cpResult.wprime); // F39: trace clamping
+  const wprime = wprimeMeta.value; // [10kJ ; 35kJ]
   const ftp = athleteData.ftp ?? cp;
   const wKJ = Math.round(wprime / 100) / 10;
+  // F39 — surfaced in annotation when W' was bounded (raw out of [10 ; 35] kJ)
+  const wClampNote = wprimeMeta.clamped
+    ? ` ⚠ ${wprimeMeta.bound === "floor" ? "W' plancher 10kJ appliqué" : "W' plafond 35kJ appliqué"} (brut ${(wprimeMeta.rawJ / 1000).toFixed(1)}kJ)`
+    : "";
 
   // 2) Parcourir toutes les sessions
   for (const week of plan.weeks) {
@@ -320,8 +326,8 @@ export function applyWbalRecoveryRecalc(
       });
       const annotation =
         rewrites.length === 1
-          ? ` *[W'bal recalc: IA ${rewrites[0].originalRestStr} → ${formatRestSec(rewrites[0].newRestSec)} optimal pour ${rewrites[0].maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W]*`
-          : ` *[W'bal multi-blocs (W'=${wKJ}kJ, CP=${cp}W): ${annotationLines.join(" | ")}]*`;
+          ? ` *[W'bal recalc: IA ${rewrites[0].originalRestStr} → ${formatRestSec(rewrites[0].newRestSec)} optimal pour ${rewrites[0].maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W${wClampNote}]*`
+          : ` *[W'bal multi-blocs (W'=${wKJ}kJ, CP=${cp}W${wClampNote}): ${annotationLines.join(" | ")}]*`;
 
       session.details = newDetails + annotation;
       stats.rewritten++;

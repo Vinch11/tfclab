@@ -1,6 +1,11 @@
 // =============================================
 // ENRICHED WORKOUTS — RECOVERY & REST (Cat D/Récup)
 // 12 séances dédiées récupération, régénération, mobilité
+//
+// F40 disambiguation: this is the TRAINING catalog of recovery/rest
+// SESSIONS (consumed by the workout library + AI plan generator).
+// Post-effort NUTRITION targets (CHO/protein/fluids) live in
+// `src/lib/recoveryProtocol.ts`. The two files are intentionally distinct.
 // =============================================
 
 import { LibraryWorkout, WorkoutGoal } from "@/types/workoutLibrary";
