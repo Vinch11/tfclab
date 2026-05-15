@@ -210,9 +210,14 @@ export function applyWbalRecoveryRecalc(
   }
 
   const cp = cpResult.effectiveCP;
-  const wprime = effectiveWprime(cpResult.wprime); // [10kJ ; 35kJ]
+  const wprimeMeta = effectiveWprimeWithMeta(cpResult.wprime); // F39: trace clamping
+  const wprime = wprimeMeta.value; // [10kJ ; 35kJ]
   const ftp = athleteData.ftp ?? cp;
   const wKJ = Math.round(wprime / 100) / 10;
+  // F39 — surfaced in annotation when W' was bounded (raw out of [10 ; 35] kJ)
+  const wClampNote = wprimeMeta.clamped
+    ? ` ⚠ ${wprimeMeta.bound === "floor" ? "W' plancher 10kJ appliqué" : "W' plafond 35kJ appliqué"} (brut ${(wprimeMeta.rawJ / 1000).toFixed(1)}kJ)`
+    : "";
 
   // 2) Parcourir toutes les sessions
   for (const week of plan.weeks) {
