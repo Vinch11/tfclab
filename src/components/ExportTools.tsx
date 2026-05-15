@@ -1950,7 +1950,8 @@ function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string 
   
   // ✅ Utiliser les valeurs alignées du diagnostic unifié (pas le snapshot brut)
   const vlamax_run = alignedVlamax.value;
-  const durability = alignedTte.tte_min ?? 45;
+  // F38: pas de fake 45 min — null = "—"
+  const durability = alignedTte.tte_min && alignedTte.tte_min > 0 ? alignedTte.tte_min : null;
   const vo2max = effectiveSnapshot?.vo2max ?? null;
   const potentielScore = potentielPhysiologique.score;
   
@@ -2565,7 +2566,8 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
   // ✅ Utiliser les valeurs alignées du diagnostic unifié (pas le snapshot brut)
   const vlamax_run = vlamax.value;
   const vo2max = effectiveSnapshot?.vo2max ?? null;
-  const durability = alignedTte.tte_min ?? 45;
+  // F38: pas de fake 45 min — null = "—"
+  const durability = alignedTte.tte_min && alignedTte.tte_min > 0 ? alignedTte.tte_min : null;
   const objectif = athlete.goal || "Marathon";
   
   // Déterminer si c'est un objectif CAP

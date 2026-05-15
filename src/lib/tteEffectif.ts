@@ -77,17 +77,20 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
       tte_mode: "LOAD",
       tte_observed_min: null
     });
-    
-    const evaluation = evaluerTTE(tteResult, objectif || "", age ?? null);
-    return {
-      tte_min: tteResult.tteMin ?? 45,
-      source: "estimated",
-      confidence: 0.7,
-      label: `~${tteResult.tteMin ?? 45} min (estimé)`,
-      target,
-      status: evaluation.status,
-      status_message: evaluation.message
-    };
+
+    // F38: NE PAS faker 45 min si l'estimation LOAD a échoué — fall-through D
+    if (tteResult.tteMin != null && tteResult.tteMin > 0) {
+      const evaluation = evaluerTTE(tteResult, objectif || "", age ?? null);
+      return {
+        tte_min: tteResult.tteMin,
+        source: "estimated",
+        confidence: 0.7,
+        label: `~${tteResult.tteMin} min (estimé)`,
+        target,
+        status: evaluation.status,
+        status_message: evaluation.message
+      };
+    }
   }
 
   // C) FTP-based fallback

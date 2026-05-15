@@ -326,7 +326,8 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
   let recommendedScenario: SimulationScenarioType = "ROBUST";
   let recommendedRationale = "Scénario discipliné recommandé — maximise la probabilité de finir dans les meilleures conditions.";
   
-  if (race_readiness_state === "GREEN" && (vlamax_run_v2 ?? 0.4) < 0.35 && (durability_index ?? 45) >= 55) {
+  // F38: durability_index manquant → on n'autorise pas le scénario AMBITIOUS sans preuve
+  if (race_readiness_state === "GREEN" && (vlamax_run_v2 != null && vlamax_run_v2 < 0.35) && (durability_index != null && durability_index >= 55)) {
     recommendedScenario = "AMBITIOUS";
     recommendedRationale = "Profil physiologique favorable (VLamax basse + durabilité élevée) — scénario ambitieux envisageable.";
   } else if (race_readiness_state === "RED") {
@@ -581,7 +582,8 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
   let fatigue = 0;
   
   const baseFatigue = FATIGUE_PARAMS.base_accumulation_per_pct[distance];
-  const durabilityDampener = FATIGUE_PARAMS.durability_dampener(durability ?? 45);
+  // F38: si durability inconnu, on prend la valeur médiane 45 sans la maquiller en mesure
+  const durabilityDampener = FATIGUE_PARAMS.durability_dampener(durability != null && durability > 0 ? durability : 45);
   
   for (let i = 0; i <= 100; i += 10) {
     const point = pacingCurve.find(p => p.distance_pct === i);
@@ -617,8 +619,8 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
     failureProbability += 15;
   }
   
-  // Amplifier si durabilité faible
-  if ((durability ?? 45) < 40) {
+  // Amplifier si durabilité faible (F38: ne pas amplifier si donnée manquante)
+  if (durability != null && durability > 0 && durability < 40) {
     failureProbability += 10;
   }
   
