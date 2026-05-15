@@ -385,7 +385,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         // V2 supplémentaire tire la valeur vers un previousEffective potentiellement
         // obsolète (ex. ancien test Score G) et masque le profil glycolytique réel.
         v2.effective = clampVLamax(capEst.value, sport);
-        v2.smoothingApplied = false;
+        (v2 as any).smoothingApplied = false;
         return wrapV2Result(v2, {
           protocol: `CAP unifié — ${capEst.sources.join(" + ") || capEst.method}`,
           date: effectiveSnapshot.date,
