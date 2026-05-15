@@ -9,6 +9,8 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -265,7 +267,16 @@ const METRIC_CONFIGS: MetricConfig[] = [
 
 function extractPhysioState(snapshot: Record<string, unknown>): PhysioState {
   const vo2max = (snapshot.vo2max as number) ?? null;
-  const vlamax = (snapshot.vlamax as number) ?? null;
+  // Résolution VLamax sport-aware (run/trail → vlamax_run, bike/tri → vlamax).
+  // Évite de projeter des adaptations sur la mauvaise filière pour les athlètes CAP.
+  const vlamax = resolveVlamaxForGoal(
+    {
+      vlamax: snapshot.vlamax as number | null,
+      vlamax_run: snapshot.vlamax_run as number | null,
+      sport_main: snapshot.sport_main as string | null,
+    },
+    { goal: snapshot.objectif as string | null, objectif: snapshot.objectif as string | null }
+  ).value;
   const ftp = (snapshot.ftp as number) ?? null;
   const weight_kg = (snapshot.weight_kg as number) ?? null;
 

@@ -11,6 +11,7 @@
  */
 
 import { computeFatMaxTFCL, type FatMaxTFCLInput, type FatMaxObjectif } from "./fatmaxTFCL";
+import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -504,11 +505,22 @@ export function computeCycleIntelligence(input: CycleIntelligenceInput): CycleIn
  * Prépare les données de snapshot pour le Cycle Intelligence Engine
  */
 export function snapshotToEngineData(snapshot: Record<string, unknown>): SnapshotData {
+  // Résolution VLamax sport-aware : pour un athlète CAP/Trail, le champ
+  // `snapshot.vlamax` représente la VLamax vélo et n'est PAS représentatif
+  // de la glycolyse en course. On utilise le resolver unifié.
+  const vlamaxResolved = resolveVlamaxForGoal(
+    {
+      vlamax: snapshot.vlamax as number | null,
+      vlamax_run: snapshot.vlamax_run as number | null,
+      sport_main: snapshot.sport_main as string | null,
+    },
+    { goal: snapshot.objectif as string | null, objectif: snapshot.objectif as string | null }
+  );
   return {
     id: (snapshot.id as string) || "",
     date: (snapshot.date as string) || "",
     vo2max: (snapshot.vo2max as number) ?? null,
-    vlamax: (snapshot.vlamax as number) ?? null,
+    vlamax: vlamaxResolved.value,
     ftp: (snapshot.ftp as number) ?? null,
     weight_kg: (snapshot.weight_kg as number) ?? null,
     tte_observed_min: (snapshot.tte_observed_min as number) ?? null,
