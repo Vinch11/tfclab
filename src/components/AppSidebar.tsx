@@ -233,6 +233,24 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                 </SidebarMenuItem>
               )}
 
+              {/* Mini rapport */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/mini-rapport")}
+                  isActive={location.pathname === "/mini-rapport"}
+                  tooltip={collapsed ? "Mini rapport" : undefined}
+                  className={cn(
+                    "h-9 sm:h-10 rounded-lg transition-all duration-200",
+                    location.pathname === "/mini-rapport"
+                      ? "bg-sidebar-accent text-sidebar-primary font-semibold border border-sidebar-border"
+                      : "hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                  )}
+                >
+                  <FileText className="h-[18px] w-[18px] text-sidebar-foreground/60" />
+                  {!collapsed && <span className="text-sm">Mini rapport</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               {/* Configuration */}
               <SidebarMenuItem>
                 <SidebarMenuButton
