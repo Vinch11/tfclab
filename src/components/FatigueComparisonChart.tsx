@@ -25,27 +25,15 @@ import { format, subDays, parseISO, isAfter } from "date-fns";
 import { fr } from "date-fns/locale";
 import { DbSnapshot, DbTest } from "@/hooks/useCloudData";
 import { computeFatigueEffectif, computeTTEEffectif, computeVLamaxEffectif } from "@/engines/diagnostic";
+import {
+  fatigueStateToScore100OrDefault,
+  FATIGUE_STATE_LABELS,
+} from "@/lib/fatigueStateMapping";
 
-// Mapping fatigue_state → score 0-100
-const FATIGUE_STATE_TO_SCORE: Record<string, number> = {
-  fresh: 10,
-  ok: 35,
-  fatigued: 60,
-  high: 80,
-  injured: 95,
-};
-
+// F34: Use canonical mapping (1-10 ×10 → fresh=20, ok=40, fatigued=60, high=80, injured=100)
 function fatigueStateToScore(state: string | null): number {
-  return FATIGUE_STATE_TO_SCORE[state || "ok"] ?? 35;
+  return fatigueStateToScore100OrDefault(state);
 }
-
-const FATIGUE_STATE_LABELS: Record<string, string> = {
-  fresh: "Frais",
-  ok: "Normal",
-  fatigued: "Fatigué",
-  high: "Très fatigué",
-  injured: "Blessé",
-};
 
 interface FatigueComparisonChartProps {
   activeSnapshot: DbSnapshot | null;
