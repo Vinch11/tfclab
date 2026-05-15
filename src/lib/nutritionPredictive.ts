@@ -168,108 +168,10 @@ export function getVLamaxLabel(category: VLamaxCategory): string {
   }
 }
 
-// Tables de besoins glucidiques (g/h) par VLamax et objectif
-const CARBS_TABLE_VELO: Record<VLamaxCategory, Record<string, [number, number] | null>> = {
-  very_low: {
-    ironman: [60, 70],
-    im: [60, 70],
-    ultra: [60, 70],
-    '70.3': [70, 80],
-    half: [70, 80],
-    sprint: [80, 90],
-    olympic: [80, 90],
-    marathon: [60, 70],
-    semi: [70, 80],
-    trail: [60, 70],
-  },
-  moderate: {
-    ironman: [70, 80],
-    im: [70, 80],
-    ultra: [70, 80],
-    '70.3': [80, 90],
-    half: [80, 90],
-    sprint: [90, 100],
-    olympic: [90, 100],
-    marathon: [70, 80],
-    semi: [80, 90],
-    trail: [70, 80],
-  },
-  high: {
-    ironman: [80, 90],
-    im: [80, 90],
-    ultra: [80, 90],
-    '70.3': [90, 100],
-    half: [90, 100],
-    sprint: [100, 110],
-    olympic: [100, 110],
-    marathon: [80, 90],
-    semi: [90, 100],
-    trail: [80, 90],
-  },
-  very_high: {
-    ironman: [90, 100],
-    im: [90, 100],
-    ultra: [90, 100],
-    '70.3': [100, 120],
-    half: [100, 120],
-    sprint: null, // Risque élevé
-    olympic: null,
-    marathon: [90, 100],
-    semi: [100, 110],
-    trail: [90, 100],
-  },
-};
-
-const CARBS_TABLE_CAP: Record<VLamaxCategory, Record<string, [number, number] | null>> = {
-  very_low: {
-    marathon: [50, 60],
-    semi: [60, 70],
-    sprint: [70, 80],
-    '10k': [70, 80],
-    ironman: [50, 60],
-    im: [50, 60],
-    '70.3': [60, 70],
-    half: [60, 70],
-    trail: [50, 60],
-    ultra: [50, 60],
-  },
-  moderate: {
-    marathon: [60, 70],
-    semi: [70, 80],
-    sprint: [80, 90],
-    '10k': [80, 90],
-    ironman: [60, 70],
-    im: [60, 70],
-    '70.3': [70, 80],
-    half: [70, 80],
-    trail: [60, 70],
-    ultra: [60, 70],
-  },
-  high: {
-    marathon: [70, 80],
-    semi: [80, 90],
-    sprint: null, // Limite tolérance
-    '10k': null,
-    ironman: [70, 80],
-    im: [70, 80],
-    '70.3': [80, 90],
-    half: [80, 90],
-    trail: [70, 80],
-    ultra: [70, 80],
-  },
-  very_high: {
-    marathon: null, // Non optimal
-    semi: null, // Risqué
-    sprint: null, // Déconseillé
-    '10k': null,
-    ironman: null,
-    im: null,
-    '70.3': null,
-    half: null,
-    trail: null,
-    ultra: null,
-  },
-};
+// F31 — CARBS_TABLE_VELO/CAP supprimées : code mort depuis F26 (le pipeline
+// délègue désormais à `nutritionUnified.computeBaseRateMader`). Conserver les
+// valeurs hardcodées (notamment 10K → [70-80] g/h) constituait un bypass
+// silencieux du calcul canonique Mader-Heck.
 
 // Capacité d'absorption estimée par sport (g/h)
 const TOLERANCE_BY_SPORT: Record<Sport, number> = {
@@ -525,8 +427,12 @@ export function computeNutritionEstimate(params: {
   }
 
   const capMax = sport === 'cap' ? 75 : sport === 'triathlon' ? 85 : 120;
-  centralCarbs = Math.max(30, Math.min(capMax, centralCarbs));
-  carbsMin = Math.max(25, centralCarbs - 10);
+  // F31 — Plancher dynamique : 0 g/h pour 10K / sprint (<1h),
+  // 30 g/h pour épreuves d'endurance. Pas de bypass des tables hardcodées.
+  const isShortEvent = duration < 1;
+  const minFloor = isShortEvent ? 0 : 30;
+  centralCarbs = Math.max(minFloor, Math.min(capMax, centralCarbs));
+  carbsMin = Math.max(Math.max(0, minFloor - 5), centralCarbs - 10);
   carbsMax = Math.min(120, centralCarbs + 10);
 
   // Détermination du niveau de risque

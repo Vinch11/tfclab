@@ -211,7 +211,11 @@ export function computeBaseRateMader(
   }
   
   const capMax = sport === 'cap' ? 75 : 90;
-  const baseRate = clamp(Math.round(exogenousGh), 30, capMax);
+  // F31 — Pas de plancher artificiel pour les épreuves courtes (<1h, ex: 10K).
+  // Sur ces formats Mader-Heck recommande "rinçage buccal" (~0-25 g/h),
+  // forcer 30 g/h reviendrait à bypasser la logique canonique.
+  const minFloor = duration < 1 ? 0 : 30;
+  const baseRate = clamp(Math.round(exogenousGh), minFloor, capMax);
   const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
   
   return { baseRate, totalOxidation: Math.round(totalOxidationGh), method };
@@ -664,9 +668,12 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
 
   const rawCarbs = base + ta.adj + da.adj;
   const maxBound = advancedGut ? 120 : 90;
-  const carbsCentral = clamp(Math.round(rawCarbs), 40, maxBound);
-  const carbsMin = clamp(carbsCentral - 5, 35, maxBound);
-  const carbsMax = clamp(carbsCentral + 5, 40, maxBound);
+  // F31 — Plancher dynamique : 0 g/h pour les épreuves courtes (<1h, ex: 10K),
+  // 40 g/h pour les épreuves d'endurance (≥1h). Évite le bypass artificiel.
+  const minFloor = (durationH !== null && durationH < 1) ? 0 : 40;
+  const carbsCentral = clamp(Math.round(rawCarbs), minFloor, maxBound);
+  const carbsMin = clamp(carbsCentral - 5, Math.max(0, minFloor - 5), maxBound);
+  const carbsMax = clamp(carbsCentral + 5, minFloor, maxBound);
 
   // Risque
   const { score, risk, label: riskLabel, icon: riskIcon } = computeRisk(input);
