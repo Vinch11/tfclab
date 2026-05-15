@@ -18,7 +18,7 @@
  */
 
 import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
-import { calculateCarbOxidation } from './maderMetabolicModel';
+import { computeBaseRateMader } from './nutritionUnified';
 
 // =============================================
 // TYPES V2
