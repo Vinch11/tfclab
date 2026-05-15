@@ -691,7 +691,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
               size="sm"
               variant="outline"
               className="h-7 px-2 text-[11px] gap-1"
-              onClick={() => downloadStrategyPdf(props)}
+              onClick={() => downloadStrategyPdf(props, nutriOverrides)}
             >
               <Download className="h-3.5 w-3.5" />
               PDF
