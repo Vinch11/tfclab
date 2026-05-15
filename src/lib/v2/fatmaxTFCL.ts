@@ -129,6 +129,29 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 /**
+ * Audit 2D F29 — Ancre FatMax canonique (%FTP)
+ *
+ * Formule unifiée TFCL : `clamp(78 − 52·(VLa−0.25) + 0.15·(VO2−50), 48, 82)`.
+ * Source unique pour tous les pipelines (snapshot diagnostic, ExportTools,
+ * coachingCompass, nutrition). Ne PAS dupliquer ailleurs.
+ *
+ * @param vlamax mmol/L/s (effectif)
+ * @param vo2max ml/kg/min (optionnel — terme correctif)
+ * @returns %FTP arrondi, ou null si VLamax invalide
+ */
+export function computeFatMaxAnchorPctFTP(
+  vlamax: number | null | undefined,
+  vo2max: number | null | undefined = null
+): number | null {
+  if (vlamax == null || !Number.isFinite(vlamax) || vlamax <= 0) return null;
+  const vo2Term = (vo2max != null && Number.isFinite(vo2max) && vo2max > 0)
+    ? 0.15 * (vo2max - 50)
+    : 0;
+  const raw = 78 - 52 * (vlamax - 0.25) + vo2Term;
+  return Math.round(clamp(raw, 48, 82));
+}
+
+/**
  * Calcule la FatMax TFCL™ selon la formule officielle V2
  * 
  * Formule:
