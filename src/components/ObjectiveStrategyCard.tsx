@@ -655,6 +655,14 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
   const bikeIntensityPct = bikeEnvelope?.boundary.centerPct ?? 75;
   const runIntensityPct = runEnvelope?.boundary.centerPct ?? 88;
 
+  // Overrides nutrition par (plan, sport)
+  const [nutriOverrides, setNutriOverrides] = React.useState<Record<string, NutriOverride>>({});
+  const overrideKey = (planK: PlanKey, sport: "velo" | "cap") => `${planK}-${sport}`;
+  const patchOverride = (planK: PlanKey, sport: "velo" | "cap", patch: NutriOverride) =>
+    setNutriOverrides((prev) => ({ ...prev, [overrideKey(planK, sport)]: { ...prev[overrideKey(planK, sport)], ...patch } }));
+  const resetOverride = (planK: PlanKey, sport: "velo" | "cap") =>
+    setNutriOverrides((prev) => { const { [overrideKey(planK, sport)]: _, ...rest } = prev; return rest; });
+
   return (
     <Card className={cn("border-2 border-primary/30", className)}>
       <CardHeader className="pb-3">
