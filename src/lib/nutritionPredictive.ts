@@ -11,7 +11,7 @@
  * La nutrition est une CONSÉQUENCE, pas une variable isolée.
  */
 
-import { calculateCarbOxidation } from './v2/maderMetabolicModel';
+import { computeBaseRateMader } from './v2/nutritionUnified';
 
 export type VLamaxCategory = 'very_low' | 'moderate' | 'high' | 'very_high';
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
@@ -491,45 +491,41 @@ export function computeNutritionEstimate(params: {
   let carbsMin: number;
   let carbsMax: number;
 
-  // --- Calcul Mader-based ---
+  // --- Calcul Mader-based via source canonique unique ---
+  // Audit 2D F26 — délégué à `nutritionUnified.computeBaseRateMader` pour
+  // garantir l'égalité stricte avec NutritionV2/NutritionUnified/Index/Dashboard.
   const vo2 = vo2max ?? (sport === 'cap' ? 48 : 50);
   const weight = weightKg ?? 70;
-  
+
   // Intensité typique par objectif
   const intensityMap: Record<string, number> = {
     ironman: 70, '70.3': 78, marathon: 82, semi: 88,
     sprint: 92, trail: 75, '10k': 90,
   };
   const intensity = intensityMap[normalizedObjectif] ?? 75;
-  
+
   // Durée typique par objectif
   const durationMap: Record<string, number> = {
     ironman: 10, '70.3': 5, marathon: 3.5, semi: 1.75,
     sprint: 1.25, trail: 4, '10k': 0.67,
   };
   const duration = durationMap[normalizedObjectif] ?? 3;
-  
-  // Oxydation totale via Mader (g/min → g/h)
-  const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlamax, weight);
-  const totalOxGh = carbOxGmin * 60;
-  
-  // Modèle glycogène physiologique (Cao 2025: 380-500g total)
-  // Réserves: ~5g/kg (conservateur)
-  const glycogenStores = weight * 5;
-  const totalCarbNeeded = totalOxGh * duration;
-  const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * duration));
-  const effectiveStores = glycogenStores * accessFactor;
-  const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
-  // Minimum exogène modulé par durée (Cao 2025)
-  const MIN_EXOGENOUS_FRACTION = duration < 1 ? 0 : duration < 2 ? 0.25 : duration < 3 ? 0.40 : 0.50;
-  let exogenousGh = totalOxGh * Math.max(MIN_EXOGENOUS_FRACTION, 1 - glycogenCoverage);
-  
-  // Ajustement sport — CAP: -18% tolérance digestive + clamp 75g/h (Pfeiffer 2012)
-  const sportFactor = sport === 'cap' ? 0.82 : sport === 'triathlon' ? 0.90 : 1.0;
-  exogenousGh *= sportFactor;
-  
+
+  // `nutritionUnified` ne supporte que 'velo' | 'cap'. On mappe 'triathlon' → 'cap'
+  // (sport dominant CHO en triathlon longue distance) et on ré-applique le facteur
+  // tolérance digestive triathlon en post-traitement.
+  const unifiedSport: 'velo' | 'cap' = sport === 'velo' ? 'velo' : 'cap';
+  const { baseRate } = computeBaseRateMader(weight, unifiedSport, vo2, vlamax, intensity, duration);
+
+  // Ajustement triathlon : réintroduire le facteur 0.90 (vs 0.82 CAP, 1.0 vélo)
+  let centralCarbs = baseRate;
+  if (sport === 'triathlon') {
+    // Annule le -18% CAP appliqué par computeBaseRateMader puis applique -10% triathlon
+    centralCarbs = Math.round(baseRate / 0.82 * 0.90);
+  }
+
   const capMax = sport === 'cap' ? 75 : sport === 'triathlon' ? 85 : 120;
-  const centralCarbs = Math.round(Math.max(30, Math.min(capMax, exogenousGh)));
+  centralCarbs = Math.max(30, Math.min(capMax, centralCarbs));
   carbsMin = Math.max(25, centralCarbs - 10);
   carbsMax = Math.min(120, centralCarbs + 10);
 

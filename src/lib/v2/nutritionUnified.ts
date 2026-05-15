@@ -147,7 +147,18 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 
 
 
-function computeBaseRateMader(
+/**
+ * Calcule le taux de base CHO (g/h) via le modèle Mader-Heck.
+ *
+ * Source canonique unique partagée entre :
+ * - `nutritionUnified.computeNutritionUnified`
+ * - `nutritionV2.computeNutritionV2`
+ * - `nutritionPredictive.computeNutritionEstimate` (legacy V1)
+ * - `nutritionTiming.computeNutritionTiming` (quand vo2max + weightKg fournis)
+ *
+ * Audit 2D F26 — élimine les divergences inter-modules de carbsCentral.
+ */
+export function computeBaseRateMader(
   weightKg: number, 
   sport: 'velo' | 'cap',
   vo2max: number | null | undefined,

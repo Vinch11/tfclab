@@ -52,6 +52,11 @@ interface NutritionTimingCardProps {
   onToleranceChange?: (tolerance: DigestiveTolerance) => void;
   initialTolerance?: DigestiveTolerance;
   compact?: boolean;
+  /** F27 — Si fournis, baseRate calculé via source canonique Mader. */
+  vo2max?: number | null;
+  weightKg?: number | null;
+  targetIntensityPct?: number | null;
+  targetDurationHours?: number | null;
 }
 
 export function NutritionTimingCard({
@@ -64,6 +69,10 @@ export function NutritionTimingCard({
   onToleranceChange,
   initialTolerance = "MEDIUM",
   compact = false,
+  vo2max,
+  weightKg,
+  targetIntensityPct,
+  targetDurationHours,
 }: NutritionTimingCardProps) {
   const [digestiveTolerance, setDigestiveTolerance] = useState<DigestiveTolerance>(initialTolerance);
   const [showPhases, setShowPhases] = useState(!compact);
@@ -81,6 +90,10 @@ export function NutritionTimingCard({
     sport,
     digestiveTolerance,
     energyDrift,
+    vo2max,
+    weightKg,
+    targetIntensityPct,
+    targetDurationHours,
   });
   
   const SportIcon = sport === "cap" ? Footprints : Bike;
