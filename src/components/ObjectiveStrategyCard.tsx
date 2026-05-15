@@ -352,6 +352,17 @@ function RunBlock({
         <Metric label="Plage" value={`${fmtPaceSecKm(p.rangePaceSec[0])} – ${fmtPaceSecKm(p.rangePaceSec[1])}`} />
         <Metric label="Plafond (à éviter)" value={`+ rapide que ${fmtPaceSecKm(p.cap)}`} />
       </div>
+
+      <div className="space-y-1">
+        <div className="text-[11px] font-semibold text-foreground/80">Allures par segment</div>
+        <SegmentsTable
+          rows={paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, format).map((s) => ({
+            label: s.label,
+            col1: fmtPaceSecKm(s.paceSec),
+            col2: "± 3 s/km",
+          }))}
+        />
+      </div>
       <div className="rounded-md bg-primary/5 border border-primary/20 p-2">
         <div className="text-[11px] font-semibold text-primary mb-0.5">Stratégie de pacing</div>
         <div className="text-[11px] text-foreground leading-relaxed">
