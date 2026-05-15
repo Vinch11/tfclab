@@ -4,7 +4,7 @@
  * Uses maderMetabolicModel.ts for physiological accuracy
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ComposedChart,
   Area,
