@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { RaceStrategyPlanCard } from '@/components/RaceStrategyPlanCard';
+import { ObjectiveStrategyCard } from '@/components/ObjectiveStrategyCard';
 import { RaceTimeEstimateCard } from '@/components/RaceTimeEstimateCard';
 import { TriathlonFullRaceSimulationCard } from '@/components/TriathlonFullRaceSimulationCard';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
@@ -298,6 +299,41 @@ export default function RaceSimulationPage() {
       } : null,
     });
   }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
+
+  // Stratégie objectif — pour les triathlons on calcule aussi l'enveloppe de l'autre segment,
+  // de manière à présenter Plan A / Plan B sur les 2 segments en simultané.
+  const envelopeBike = React.useMemo(() => {
+    if (!isTriathlon && discipline !== 'bike') return null;
+    if (discipline === 'bike') return envelope;
+    const cpWkg = activeSnapshot?.ftp && activeSnapshot?.weight_kg
+      ? (activeSnapshot.ftp * 0.95) / activeSnapshot.weight_kg : null;
+    return computePacingEnvelope({
+      vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, fatigueIndex: null,
+      raceObjective, sport: 'bike',
+      ftp: activeSnapshot?.ftp, vma: activeSnapshot?.vma,
+      paceThreshold: activeSnapshot?.pace_threshold_sec_per_km, weight: activeSnapshot?.weight_kg,
+      ambition: (selectedAthlete as any)?.ambition ?? null, cpWkg, wPrimeJkg: null,
+      predictedDurationMin: segmentDurationMin.bike,
+    });
+  }, [isTriathlon, discipline, envelope, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin]);
+
+  const envelopeRun = React.useMemo(() => {
+    if (!isTriathlon && discipline !== 'run') return null;
+    if (discipline === 'run') return envelope;
+    const cpWkg = activeSnapshot?.ftp && activeSnapshot?.weight_kg
+      ? (activeSnapshot.ftp * 0.95) / activeSnapshot.weight_kg : null;
+    const paceThr = activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null;
+    return computePacingEnvelope({
+      vlamaxEffectif: vlamaxRunEffectif ?? vlamaxEffectif, tteEffectif, fatmax,
+      potentielPhysiologiqueScore, fatigueIndex: null,
+      raceObjective, sport: 'run',
+      ftp: activeSnapshot?.ftp, vma: activeSnapshot?.vma,
+      paceThreshold: paceThr, weight: activeSnapshot?.weight_kg,
+      ambition: (selectedAthlete as any)?.ambition ?? null, cpWkg, wPrimeJkg: null,
+      predictedDurationMin: segmentDurationMin.run,
+    });
+  }, [isTriathlon, discipline, envelope, vlamaxRunEffectif, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin, raceChronoEstimate]);
+
   
   const rules = React.useMemo(() => {
     if (!envelope) return null;
@@ -632,6 +668,20 @@ export default function RaceSimulationPage() {
             <AccordionContent className="space-y-3">
               {!staffMode ? (
                 <>
+                  <ObjectiveStrategyCard
+                    raceObjective={raceObjective}
+                    bikeEnvelope={envelopeBike}
+                    runEnvelope={envelopeRun}
+                    ftp={activeSnapshot?.ftp ?? null}
+                    paceThresholdSecKm={activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null}
+                    weightKg={activeSnapshot?.weight_kg ?? null}
+                    vlamaxBike={vlamaxEffectif?.value ?? null}
+                    vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
+                    vo2max={activeSnapshot?.vo2max ?? null}
+                    tteMin={tteEffectif?.tte_min ?? null}
+                    bikeDurationMin={isTriathlon ? segmentDurationMin.bike : (discipline === 'bike' ? raceDurationMin : null)}
+                    runDurationMin={isTriathlon ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : null)}
+                  />
                   {envelope ? (
                     <RaceStrategyPlanCard
                       envelope={envelope}
