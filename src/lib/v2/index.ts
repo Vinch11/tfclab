@@ -69,18 +69,8 @@ export {
   type VLamaxBikeV2Result
 } from './vlamaxV2';
 
-// TTE V2
-export {
-  computeTTEV2,
-  formatTTERangeLabel,
-  getTTEStatusColor,
-  getTTEStatusBadgeClass,
-  type TTERangeV2,
-  type TTESourceV2,
-  type TTEStatusV2,
-  type TTEFactorV2,
-  type TTEV2Input
-} from './tteV2';
+// TTE V2 — F32: supprimé (dead code). Source unique = src/lib/tteEffectif.ts (computeTTEEffectif)
+// délégant à src/lib/ttePro.ts pour formules + targets.
 
 // Running Economy V2
 export {
@@ -105,25 +95,7 @@ export {
   type CompassCAPInput,
 } from '../compassScoringCAP';
 
-export {
-  computeFatigueV2,
-  getFatigueLevelColor,
-  getFatigueBadgeClass,
-  getFatigueProgressColor,
-  getFatigueIcon,
-  FATIGUE_PHILOSOPHY,
-  FATIGUE_SCALE,
-  ACADEMY_FATIGUE_MODULE,
-  PDF_FATIGUE_SECTION,
-  FATIGUE_CHATBOT_QA,
-  type FatigueFonctionnelleV2,
-  type FatigueLevelV2,
-  type FatigueOriginV2,
-  type FatiguePillarV2,
-  type FatiguePillarResult,
-  type FatigueComponentV2,
-  type FatigueV2Input
-} from './fatigueV2';
+// Fatigue V2 — F35: supprimé (dead code). Source unique = src/lib/fatigueEffectif.ts (computeFatigueEffectif)
 
 // Nutrition V2
 export {
@@ -143,16 +115,7 @@ export {
   type NutritionContributor
 } from './nutritionV2';
 
-// Injury Risk V2 (legacy)
-export {
-  computeInjuryRiskV2,
-  getInjuryRiskColor,
-  getInjuryRiskBadgeClass,
-  type InjuryRiskV2,
-  type InjuryRiskLevelV2,
-  type InjuryRiskFactorV2,
-  type InjuryRiskV2Input
-} from './injuryRiskV2';
+// Injury Risk V2 — F32/F35: supprimé (dead code). Source unique = injuryRiskUnified ci-dessous.
 
 // Injury Risk Unified TFCL™ (CAP & Vélo)
 export {
