@@ -11,6 +11,7 @@
  */
 
 import { computeFatMaxTFCL, type FatMaxTFCLInput, type FatMaxObjectif } from "./fatmaxTFCL";
+import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -507,8 +508,6 @@ export function snapshotToEngineData(snapshot: Record<string, unknown>): Snapsho
   // Résolution VLamax sport-aware : pour un athlète CAP/Trail, le champ
   // `snapshot.vlamax` représente la VLamax vélo et n'est PAS représentatif
   // de la glycolyse en course. On utilise le resolver unifié.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { resolveVlamaxForGoal } = require("@/lib/vlamaxResolver");
   const vlamaxResolved = resolveVlamaxForGoal(
     {
       vlamax: snapshot.vlamax as number | null,

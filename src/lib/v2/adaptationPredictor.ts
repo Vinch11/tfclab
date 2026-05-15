@@ -9,6 +9,8 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -267,8 +269,6 @@ function extractPhysioState(snapshot: Record<string, unknown>): PhysioState {
   const vo2max = (snapshot.vo2max as number) ?? null;
   // Résolution VLamax sport-aware (run/trail → vlamax_run, bike/tri → vlamax).
   // Évite de projeter des adaptations sur la mauvaise filière pour les athlètes CAP.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { resolveVlamaxForGoal } = require("@/lib/vlamaxResolver");
   const vlamax = resolveVlamaxForGoal(
     {
       vlamax: snapshot.vlamax as number | null,
