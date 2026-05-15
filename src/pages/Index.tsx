@@ -557,9 +557,9 @@ const Index = () => {
       // Dérive cardiaque mesurée depuis les sessions FIT
       hrDriftPct: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
       tteMin: tteEffectif.tte_min,
-      weightKg: effectiveRefs.poids ?? null,
+      weightKg: effectiveRefs.weightKg ?? null,
       objectif: currentAthlete?.goal || "IM",
-      sport: currentAthlete?.sport_main,
+      sport: (currentAthlete as any)?.sport_main ?? undefined,
     });
   }, [effectiveRefs, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
 
