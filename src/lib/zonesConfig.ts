@@ -141,6 +141,7 @@ export interface AthleteRefsForZones {
   vma: number | null;
   ftp: number | null;
   css: number | null;
+  cpRun?: number | null;
 }
 
 // Calcul automatique des valeurs absolues pour une zone
