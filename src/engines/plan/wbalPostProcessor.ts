@@ -326,8 +326,8 @@ export function applyWbalRecoveryRecalc(
       });
       const annotation =
         rewrites.length === 1
-          ? ` *[W'bal recalc: IA ${rewrites[0].originalRestStr} → ${formatRestSec(rewrites[0].newRestSec)} optimal pour ${rewrites[0].maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W]*`
-          : ` *[W'bal multi-blocs (W'=${wKJ}kJ, CP=${cp}W): ${annotationLines.join(" | ")}]*`;
+          ? ` *[W'bal recalc: IA ${rewrites[0].originalRestStr} → ${formatRestSec(rewrites[0].newRestSec)} optimal pour ${rewrites[0].maxReps} reps max — calibré W'=${wKJ}kJ, CP=${cp}W${wClampNote}]*`
+          : ` *[W'bal multi-blocs (W'=${wKJ}kJ, CP=${cp}W${wClampNote}): ${annotationLines.join(" | ")}]*`;
 
       session.details = newDetails + annotation;
       stats.rewritten++;
