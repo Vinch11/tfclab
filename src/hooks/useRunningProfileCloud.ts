@@ -63,23 +63,23 @@ function snapshotToRunningProfile(
   const priorityLever = parsePriorityLever(snapshot.coach_notes);
 
   // Create locked metrics
-  // ⚠️ Politique TFCL "Insufficient Data": jamais de valeur neutre fictive.
-  // Si la donnée est absente, on retourne null + confidence 0 → l'UI affiche
-  // "Données insuffisantes" plutôt qu'un faux profil moyen.
+  // ⚠️ Politique TFCL "Insufficient Data" (Core rule):
+  // jamais de valeur neutre fictive. Si la donnée est absente, on retourne 0
+  // + confidence 0 → l'UI doit afficher "Données insuffisantes" (test conf=0).
   const vo2max_run: LockedMetric = {
-    value: snapshot.vo2max ?? null as unknown as number,
+    value: snapshot.vo2max ?? 0,
     confidence: snapshot.vo2max != null ? confidence : 0,
     source,
   };
 
   const vlamax_run: LockedMetric = {
-    value: snapshot.vlamax_run ?? null as unknown as number,
+    value: snapshot.vlamax_run ?? 0,
     confidence: snapshot.vlamax_run != null ? confidence : 0,
     source,
   };
 
   const durability_run: LockedMetric = {
-    value: snapshot.tte_observed_min ?? null as unknown as number,
+    value: snapshot.tte_observed_min ?? 0,
     confidence: snapshot.tte_observed_min != null ? confidence * 0.9 : 0,
     source,
   };
