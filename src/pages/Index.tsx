@@ -1671,27 +1671,30 @@ const Index = () => {
               )
             ),
           },
-          // FatMax TFCL (profil) — masqué si runner sans FTP (références watts non pertinentes)
+          // FatMax TFCL (profil) — runner sans FTP : affichage en allure (min/km) via VMA
           {
             id: "fatmax-tfcl-profil",
-            render: () => currentAthlete && !(isRunningOnly && (!ftp || ftp <= 0)) && (
+            render: () => currentAthlete && !(isRunningOnly && (!ftp || ftp <= 0) && !(effectiveCloudSnapshot?.vma)) && (
               <MetabolicZonesUnifiedCard
                 vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={alignedTteEffectif}
                 objectif={currentAthlete.goal || "IM"}
                 ftp={ftp}
+                vma={effectiveCloudSnapshot?.vma ?? null}
                 staffMode={staffMode}
               />
             ),
           },
-          // Combustion Lipides / Glucides (style INSCYD) — masqué si runner sans FTP
+          // Combustion Lipides / Glucides — runner sans FTP : affichage en allure
           {
             id: "fat-carb-combustion-profil",
-            render: () => currentAthlete && effectiveCloudSnapshot && !(isRunningOnly && (!ftp || ftp <= 0)) && (
+            render: () => currentAthlete && effectiveCloudSnapshot && !(isRunningOnly && (!ftp || ftp <= 0) && !effectiveCloudSnapshot.vma) && (
               <FatCarbOxidationChart
                 vo2max={effectiveCloudSnapshot.vo2max ?? null}
                 vlamax={alignedVlamaxEffectif.value}
                 ftp={ftp}
+                vma={effectiveCloudSnapshot.vma ?? null}
+                paceMode={isRunningOnly && (!ftp || ftp <= 0)}
                 weight={poids ?? 70}
                 staffMode={staffMode}
               />
