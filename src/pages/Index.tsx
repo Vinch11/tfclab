@@ -1683,6 +1683,19 @@ const Index = () => {
               />
             ),
           },
+          // Combustion Lipides / Glucides (style INSCYD)
+          {
+            id: "fat-carb-combustion-profil",
+            render: () => currentAthlete && effectiveCloudSnapshot && (
+              <FatCarbOxidationChart
+                vo2max={effectiveCloudSnapshot.vo2max ?? null}
+                vlamax={alignedVlamaxEffectif.value}
+                ftp={ftp}
+                weight={poids ?? 70}
+                staffMode={staffMode}
+              />
+            ),
+          },
           // VO2max Age Comparison (profil)
           {
             id: "vo2max-age-profil",
