@@ -1950,7 +1950,8 @@ function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string 
   
   // ✅ Utiliser les valeurs alignées du diagnostic unifié (pas le snapshot brut)
   const vlamax_run = alignedVlamax.value;
-  const durability = alignedTte.tte_min ?? 45;
+  // F38: pas de fake 45 min — null = "—"
+  const durability = alignedTte.tte_min && alignedTte.tte_min > 0 ? alignedTte.tte_min : null;
   const vo2max = effectiveSnapshot?.vo2max ?? null;
   const potentielScore = potentielPhysiologique.score;
   
@@ -1995,7 +1996,7 @@ function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string 
           <div class="kv mt">
             <div class="k">VLamax CAP</div><div class="v">${vlamax_run ? vlamax_run.toFixed(2) + ' mmol/L/s' : '—'}</div>
             <div class="k">VO₂max</div><div class="v">${vo2max ? vo2max + ' ml/kg/min' : '—'}</div>
-            <div class="k">Durabilité</div><div class="v">${durability} min</div>
+            <div class="k">Durabilité</div><div class="v">${durability != null ? `${durability} min` : "— (données insuffisantes)"}</div>
             <div class="k">Objectif</div><div class="v">${htmlEscape(athlete.goal || '—')}</div>
           </div>
           <p class="muted mt" style="font-size:10px;font-style:italic;">
@@ -2565,7 +2566,8 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
   // ✅ Utiliser les valeurs alignées du diagnostic unifié (pas le snapshot brut)
   const vlamax_run = vlamax.value;
   const vo2max = effectiveSnapshot?.vo2max ?? null;
-  const durability = alignedTte.tte_min ?? 45;
+  // F38: pas de fake 45 min — null = "—"
+  const durability = alignedTte.tte_min && alignedTte.tte_min > 0 ? alignedTte.tte_min : null;
   const objectif = athlete.goal || "Marathon";
   
   // Déterminer si c'est un objectif CAP
@@ -2624,7 +2626,7 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
             <div class="v">${vo2max ? vo2max + ' ml/kg/min' : '—'}</div>
             
             <div class="k">Durabilité</div>
-            <div class="v">${durability} min</div>
+            <div class="v">${durability != null ? `${durability} min` : "— (données insuffisantes)"}</div>
             
             <div class="k">Objectif</div>
             <div class="v">${htmlEscape(objectif)}</div>

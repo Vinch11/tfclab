@@ -213,7 +213,8 @@ export function TwoForCoachingAnalysis({
     status_message: "Données manquantes"
   };
   
-  const tte = tteEffectif.tte_min ?? 45;
+  // F38: pas de fake 45 min — 0 = données insuffisantes (cf. memory `insufficient-data-no-fake-defaults`)
+  const tte = tteEffectif.tte_min ?? 0;
 
   // ✅ FTP/kg
   const ftp_kg = useMemo(() => {

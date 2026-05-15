@@ -63,8 +63,10 @@ export function computeRunningNeeds(
     semi: { warning: 45, critical: 40 },
   };
   
-  const vlamaxValue = vlamax_run.value ?? 0.45;
-  const tteValue = tte_run.value ?? 45;
+  // F38 / memory `insufficient-data-no-fake-defaults`:
+  // valeur manquante → 0 (sera traité comme "non évalué" par les seuils ci-dessous)
+  const vlamaxValue = vlamax_run.value ?? 0;
+  const tteValue = tte_run.value ?? 0;
   
   // Déterminer si VLamax est trop élevée
   const vlamaxThreshold = vlamaxThresholds[raceType];

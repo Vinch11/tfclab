@@ -548,11 +548,12 @@ function computeSegmentFuelRisk(
   }
   
   // TTE adjustment - appliquer multiplicateur si présent
+  // F38: si tteMin manquant, on n'applique aucune correction (pas de défaut 45 fictif)
   const tteUsableMultiplier = readinessModifiers?.tteUsableMultiplier ?? 1.0;
-  const tte = (tteMin ?? 45) * tteUsableMultiplier;
-  if (tte < 40) {
+  const tte = tteMin != null && tteMin > 0 ? tteMin * tteUsableMultiplier : null;
+  if (tte != null && tte < 40) {
     risk += (12 + (40 - tte) * 1.5) * scenarioRiskFactor;
-  } else if (tte > 60) {
+  } else if (tte != null && tte > 60) {
     risk -= 8; // Bonus durabilité plus fort
   }
   
@@ -691,7 +692,8 @@ function computeGlycogenRemaining(
   // atténue la dérive du coût glucidique en fin de course.
   //   TTE 60min+ : +8%   |   TTE 45min : +15%   |   TTE 25min : +30%
   // ─────────────────────────────────────────────────────────────────
-  const tteRef = tteMin ?? 45;
+  // F38: si TTE manquant, on choisit le facteur médian (≈ TTE 45) sans prétendre l'avoir mesuré
+  const tteRef = tteMin != null && tteMin > 0 ? tteMin : 45;
   const durabilityFactor = clamp(0.40 - (tteRef - 25) * 0.0089, 0.08, 0.35);
   const progressionFactor = 1 + Math.pow(segmentIndex / totalSegments, 1.2) * durabilityFactor;
   
