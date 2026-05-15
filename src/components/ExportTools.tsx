@@ -1355,19 +1355,20 @@ function buildExportPayload(
     snapshots: athleteSnapshots.map(mapSnapshotToV2)
   });
   
-  // Calculer TTE effectif (legacy)
+  // ✅ Diagnostic Engine unifié — Source unique de vérité (identique au dashboard)
+  const athleteBirthDate = athlete.birth_date ?? ((athlete as unknown as { dateNaissance?: string | null }).dateNaissance ?? null);
+  const athleteAge = calculateAge(athleteBirthDate);
+  const objectifForLimiter = athlete.goal || "IM";
+
+  // Calculer TTE effectif (legacy) — F33: âge propagé
   const tteLegacy = computeTTEEffectif({
     ftp: effectiveRefs.ftp,
     tss_7d: effectiveSnapshot?.tss_7d,
     tte_mode: effectiveSnapshot?.tte_mode,
     tte_observed_min: effectiveSnapshot?.tte_observed_min,
-    objectif: athlete.goal || "IM"
+    objectif: athlete.goal || "IM",
+    age: athleteAge,
   });
-
-  // ✅ Diagnostic Engine unifié — Source unique de vérité (identique au dashboard)
-  const athleteBirthDate = athlete.birth_date ?? ((athlete as unknown as { dateNaissance?: string | null }).dateNaissance ?? null);
-  const athleteAge = calculateAge(athleteBirthDate);
-  const objectifForLimiter = athlete.goal || "IM";
   const sportFocusForLimiter: "run" | "bike" | "tri" = 
     ["Marathon", "Semi", "Trail", "TrailLong", "TrailCourt", "Ultra", "Course", "10K", "5K", "StartToRun"].includes(objectifForLimiter) ? "run"
     : ["IM", "Ironman", "703", "70.3", "Half", "Olympic", "Sprint"].includes(objectifForLimiter) ? "tri"
