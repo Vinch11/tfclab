@@ -170,7 +170,10 @@ export function MetabolicZonesUnifiedCard({
     );
   }
 
-  const wattsRange = fatmax ? formatFatMaxWatts(fatmax, ftp) : null;
+  const wattsRange = fatmax && !paceMode ? formatFatMaxWatts(fatmax, ftp) : null;
+  const paceRange = fatmax && paceMode && vma
+    ? `${pctSeuilToPaceStr(fatmax.physioMaxPctFTP, vma)}–${pctSeuilToPaceStr(fatmax.physioMinPctFTP, vma)}`
+    : null;
   const hasLactateData = thresholds.lt1.confidence > 0 || thresholds.lt2.confidence > 0;
 
   return (
