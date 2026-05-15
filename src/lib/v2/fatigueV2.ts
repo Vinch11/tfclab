@@ -238,15 +238,18 @@ function getTrendLabel(trend: 'improving' | 'stable' | 'worsening' | null): stri
 // =============================================
 
 function computeChargePillar(input: FatigueV2Input): FatiguePillarResult {
-  const { tss7d, tssTarget, tssTrend } = input;
-  
+  const { tss7d, tssTarget, tssTrend, objectif } = input;
+
   let score = 50; // Default neutre
   let confidence = 0.5;
   const details: string[] = [];
-  
+
+  // F36/F37: défaut tssTarget dérivé de l'objectif (chargeOptimale CRR) au lieu de 450 hardcodé
+  const objectiveTarget = objectif ? getCRRTargets(objectif).chargeOptimale : null;
+
   // Score basé sur ratio TSS
   if (tss7d !== null && tss7d >= 0) {
-    const target = tssTarget ?? 450; // Référence par défaut
+    const target = tssTarget ?? objectiveTarget ?? 450; // F36: fallback objectif-aware
     const ratio = tss7d / target;
     
     // Charge_score = clamp(TSS_7d / TSS_cible × 100, 0, 120)
@@ -255,8 +258,8 @@ function computeChargePillar(input: FatigueV2Input): FatiguePillarResult {
     // Normaliser sur 0-100 pour le calcul final
     score = clamp(score, 0, 100);
     
-    confidence = tssTarget !== null ? 0.85 : 0.65;
-    details.push(`TSS 7j: ${tss7d} (cible: ${target})`);
+    confidence = tssTarget !== null ? 0.85 : (objectiveTarget != null ? 0.75 : 0.55);
+    details.push(`TSS 7j: ${tss7d} (cible: ${target}${tssTarget == null && objectiveTarget != null ? ` — réf objectif ${objectif}` : ''})`);
     details.push(`Ratio: ${(ratio * 100).toFixed(0)}%`);
   } else {
     details.push("TSS non disponible — estimation par défaut");
