@@ -106,6 +106,25 @@ interface TestCloud {
   created_at?: string;
   type?: string;
   name?: string;
+  note?: string | null;
+  raw?: any;
+}
+
+/**
+ * Détermine si un test VLamax provient d'une mesure laboratoire (prise de sang lactate
+ * post-effort). Pour le sport CAP, seules les mesures labo doivent court-circuiter
+ * `vlamaxCapEstimator` (source PRIMAIRE — voir mémoire `cap-vlamax-unified-source`).
+ *
+ * Tous les tests terrain (Sprint 15s CAP, dérivations Score G, saisies coach sans
+ * lactate) sont reclassés en fallback : ils ne dominent l'estimateur unifié que si
+ * celui-ci renvoie `insufficient`.
+ */
+function isLabMeasuredVlamaxTest(t: TestCloud): boolean {
+  const type = (t.type || "").toUpperCase();
+  if (type === "LACTATE_LAB" || type === "VLAMAX_LAB" || type === "LAB") return true;
+  const haystack = `${t.name || ""} ${t.note || ""} ${t.raw?.source || ""} ${t.raw?.protocol || ""}`.toLowerCase();
+  if (/(labo|lactat[e]? lab|prise de sang|blood lactate|lab measurement)/.test(haystack)) return true;
+  return false;
 }
 
 interface SnapshotCloud {
@@ -277,8 +296,16 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
 
   // =============================================
   // B) SOURCE TEST TERRAIN
+  // ⚠️ Pour le sport CAP : seuls les tests LABO mesurés (lactate post-sprint /
+  // rampe lactate) priment sur l'estimateur unifié `vlamaxCapEstimator` qui est
+  // la source PRIMAIRE (mémoire `cap-vlamax-unified-source`). Les tests terrain
+  // non-labo (Sprint 15s, Score G, saisies coach) sont reclassés en fallback :
+  // ils ne sont consultés que si l'estimateur renvoie `insufficient` (bloc D).
   // =============================================
-  const athleteTests = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
+  const athleteTestsAll = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
+  const athleteTests = sport === "cap"
+    ? athleteTestsAll.filter(isLabMeasuredVlamaxTest)
+    : athleteTestsAll;
   
   if (athleteTests.length > 0) {
     const sortedTests = [...athleteTests].sort((a, b) => {
