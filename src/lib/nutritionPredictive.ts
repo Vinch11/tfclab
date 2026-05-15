@@ -172,6 +172,8 @@ export function getVLamaxLabel(category: VLamaxCategory): string {
 // délègue désormais à `nutritionUnified.computeBaseRateMader`). Conserver les
 // valeurs hardcodées (notamment 10K → [70-80] g/h) constituait un bypass
 // silencieux du calcul canonique Mader-Heck.
+
+// Capacité d'absorption estimée par sport (g/h)
 const TOLERANCE_BY_SPORT: Record<Sport, number> = {
   velo: 100,    // Vélo : tolérance digestive élevée
   triathlon: 90, // Triathlon : mixte
