@@ -95,7 +95,7 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
     // Estimation grossière basée sur FTP seul
     // FTP élevé suggère meilleure endurance, mais confiance faible
     const estimatedTTE = Math.min(60, Math.max(35, Math.round(35 + (ftp - 200) * 0.05)));
-    const evaluation = evaluerTTE({ tte_min: estimatedTTE, tteMin: estimatedTTE, source: "estimated", confidence: 0.5, label: "" }, objectif || "");
+    const evaluation = evaluerTTE({ tte_min: estimatedTTE, tteMin: estimatedTTE, source: "estimated", confidence: 0.5, label: "" }, objectif || "", age ?? null);
     
     return {
       tte_min: estimatedTTE,
