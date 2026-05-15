@@ -547,15 +547,23 @@ function buildStrategyHtml(props: ObjectiveStrategyCardProps, overrides: Record<
     const nutriRow = (sport: "velo" | "cap", durationH: number, label: string, vla: number | null, intensityPct: number) => {
       if (durationH <= 0) return "";
       const { baseRate } = computeBaseRateMader(w, sport, vo2max ?? null, vla, intensityPct, durationH, false);
-      const n = nutritionItems(baseRate, durationH, plan);
+      const auto = nutritionItems(baseRate, durationH, plan);
+      const ov = overrides[`${plan.key}-${sport}`] ?? {};
+      const gels = ov.gels ?? auto.gels;
+      const bars = ov.bars ?? auto.bars;
+      const iso = ov.iso ?? auto.iso;
+      const eauMl = ov.eauMl ?? auto.eauMl;
+      const totalCho = gels * 25 + bars * 30 + iso * 30;
+      const perHour = Math.round(totalCho / Math.max(0.1, durationH));
+      const edited = ov.gels != null || ov.bars != null || ov.iso != null || ov.eauMl != null;
       return `<tr>
-        <th>${label}</th>
-        <td>${n.perHour} g/h</td>
-        <td>${n.totalCho} g</td>
-        <td>${n.gels} gels</td>
-        <td>${n.bars} barres</td>
-        <td>${n.iso} iso (${n.isoMl} ml)</td>
-        <td>${n.eauMl} ml eau</td>
+        <th>${label}${edited ? " ✎" : ""}</th>
+        <td>${perHour} g/h</td>
+        <td>${totalCho} g</td>
+        <td>${gels} gels</td>
+        <td>${bars} barres</td>
+        <td>${iso} iso (${iso * 500} ml)</td>
+        <td>${eauMl} ml eau</td>
       </tr>`;
     };
     html += `<h3>Nutrition</h3>
