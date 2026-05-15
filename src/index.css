@@ -161,6 +161,7 @@
     scroll-behavior: smooth;
     /* Prevent horizontal overflow on mobile */
     overflow-x: hidden;
+    max-width: 100%;
   }
 
   body {
@@ -171,6 +172,19 @@
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.011em;
     line-height: 1.6;
+    /* iOS Safari: empêche tout enfant débordant de provoquer un scroll horizontal */
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Fail-safe: aucune image/vidéo/iframe ne peut dépasser la largeur de son conteneur */
+  img, svg, video, canvas, iframe {
+    max-width: 100%;
   }
 
   h1, h2, h3, h4, h5, h6 {
