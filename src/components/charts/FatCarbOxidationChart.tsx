@@ -80,6 +80,29 @@ interface OxPoint {
 }
 
 // =============================================
+// UNIT TOGGLE
+// =============================================
+
+export function UnitToggle({ paceMode, onChange }: { paceMode: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <ToggleGroup
+      type="single"
+      size="sm"
+      value={paceMode ? "pace" : "watts"}
+      onValueChange={(v) => { if (v) onChange(v === "pace"); }}
+      className="h-7"
+    >
+      <ToggleGroupItem value="watts" className="h-7 px-2 text-[10px]" aria-label="Watts">
+        Watts
+      </ToggleGroupItem>
+      <ToggleGroupItem value="pace" className="h-7 px-2 text-[10px]" aria-label="Allure">
+        Allure
+      </ToggleGroupItem>
+    </ToggleGroup>
+  );
+}
+
+// =============================================
 // VARIABLE EFFICIENCY (21-26%)
 // Scales with intensity and trained status
 // =============================================
