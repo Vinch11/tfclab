@@ -206,6 +206,9 @@ export function MetabolicZonesUnifiedCard({
               {wattsRange && (
                 <span className="text-xs text-muted-foreground ml-2">{wattsRange}</span>
               )}
+              {paceRange && (
+                <span className="text-xs text-muted-foreground ml-2">{paceRange}</span>
+              )}
             </div>
             <div className="flex items-center gap-1.5 text-sm">
               <Zap className={cn("w-3.5 h-3.5", getMetabolicZoneColor(fatmax.metabolicZone))} />
