@@ -51,10 +51,33 @@ export default function RaceSimulationPage() {
   const { snapshots, tests, checkins } = useCloudData();
   const [activeTab, setActiveTab] = useState("simulation");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
+  const [searchParams] = useSearchParams();
+  const requestedStep = searchParams.get("step");
+  const initialAccordion = React.useMemo(() => {
+    if (requestedStep) {
+      const k = `step-${requestedStep}`;
+      return Array.from(new Set(["step-1", "step-2", k]));
+    }
+    return ["step-1", "step-2"];
+  }, [requestedStep]);
+  const [openSteps, setOpenSteps] = useState<string[]>(initialAccordion);
+
+  useEffect(() => {
+    setOpenSteps(initialAccordion);
+    if (requestedStep) {
+      const id = `step-${requestedStep}`;
+      // wait for accordion to expand
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 250);
+    }
+  }, [initialAccordion, requestedStep]);
 
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
+
   
   // Compute effectifs
   const athleteId = selectedAthlete?.id ?? '';
