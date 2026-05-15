@@ -599,9 +599,20 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
               Deux plans complets : on vise le Plan A. Si quelque chose dérape en course, on bascule sur le Plan B sans paniquer.
             </p>
           </div>
-          <Badge variant="outline" className="text-[10px] shrink-0">
-            {isTri ? "Triathlon" : raceObjective}
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="outline" className="text-[10px]">
+              {isTri ? "Triathlon" : raceObjective}
+            </Badge>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-2 text-[11px] gap-1"
+              onClick={() => downloadStrategyPdf(props)}
+            >
+              <Download className="h-3.5 w-3.5" />
+              PDF
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
