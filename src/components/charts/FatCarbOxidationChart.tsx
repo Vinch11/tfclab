@@ -313,7 +313,12 @@ export function FatCarbOxidationChart({
             Oxydation Lipides / Glucides
             <Badge variant="outline" className="text-[9px] font-normal">Mader Model</Badge>
           </CardTitle>
-          <Badge variant="secondary" className="text-[9px] font-mono">VLa {vlamax!.toFixed(2)}</Badge>
+          <div className="flex items-center gap-2">
+            {canToggle && (
+              <UnitToggle paceMode={paceMode} onChange={setPaceMode} />
+            )}
+            <Badge variant="secondary" className="text-[9px] font-mono">VLa {vlamax!.toFixed(2)}</Badge>
+          </div>
         </div>
       </CardHeader>
 
