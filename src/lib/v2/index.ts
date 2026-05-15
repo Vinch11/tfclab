@@ -69,18 +69,8 @@ export {
   type VLamaxBikeV2Result
 } from './vlamaxV2';
 
-// TTE V2
-export {
-  computeTTEV2,
-  formatTTERangeLabel,
-  getTTEStatusColor,
-  getTTEStatusBadgeClass,
-  type TTERangeV2,
-  type TTESourceV2,
-  type TTEStatusV2,
-  type TTEFactorV2,
-  type TTEV2Input
-} from './tteV2';
+// TTE V2 — F32: supprimé (dead code). Source unique = src/lib/tteEffectif.ts (computeTTEEffectif)
+// délégant à src/lib/ttePro.ts pour formules + targets.
 
 // Running Economy V2
 export {
