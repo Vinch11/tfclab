@@ -189,14 +189,19 @@ export function MetabolicZonesUnifiedCard({
             <Flame className="h-4 w-4 text-orange-500" />
             Zones Métaboliques TFCL™
           </CardTitle>
-          {fatmax && (
-            <Badge
-              variant="outline"
-              className={cn("text-xs", getFatMaxConfidenceBadgeClass(fatmax.confidenceLevel))}
-            >
-              {fatmax.confidenceLabel}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {canToggle && (
+              <UnitToggle paceMode={paceMode} onChange={setPaceMode} />
+            )}
+            {fatmax && (
+              <Badge
+                variant="outline"
+                className={cn("text-xs", getFatMaxConfidenceBadgeClass(fatmax.confidenceLevel))}
+              >
+                {fatmax.confidenceLabel}
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* FatMax principal (résumé compact) */}
