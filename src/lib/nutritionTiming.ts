@@ -73,6 +73,11 @@ export interface ComputeNutritionTimingParams {
   energyDrift: EnergyDriftResult;
   /** F1 — Niveau d'entraînement digestif (gut training). Default: "trained" */
   gutTrainingLevel?: GutTrainingLevel;
+  /** F27 — Si fournis, baseRate calculé via `nutritionUnified.computeBaseRateMader` (canonique). */
+  vo2max?: number | null;
+  weightKg?: number | null;
+  targetIntensityPct?: number | null;
+  targetDurationHours?: number | null;
 }
 
 // =============================================
