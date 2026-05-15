@@ -36,6 +36,12 @@ export interface NutritionPhaseUnified {
   timeRange: string;
   carbsGh: number;
   carbsGhRange: string;
+  /** F30 — durée effective de la phase en minutes (pour totaux cohérents). */
+  durationMin: number;
+  /** F30 — total CHO consommés sur la phase (g) = carbsGh × durationMin/60. */
+  totalCarbsG: number;
+  /** F30 — total kcal CHO sur la phase (4 kcal/g). */
+  totalKcal: number;
   products: NutritionProduct[];
   hydrationMlH: number;
   sodiumMgH: number;
@@ -69,6 +75,10 @@ export interface NutritionUnifiedResult {
   carbsMin: number;
   carbsMax: number;
   carbsCentral: number;
+  /** F30 — total CHO sur la course (somme phases START+MID+LATE × durée). */
+  totalCarbsG: number;
+  /** F30 — total kcal CHO (4 kcal/g). */
+  totalKcal: number;
 
   // Risque
   risk: NutritionRisk;
@@ -396,15 +406,38 @@ function generatePhases(
   durationH: number | null,
   tolerance: 'LOW' | 'MEDIUM' | 'HIGH',
   vlamaxVal: number | null,
+  maxBound: number = 90,
+  isHeat: boolean = false,
 ): NutritionPhaseUnified[] {
   const durMin = durationH ? Math.round(durationH * 60) : 180;
-  const lateStart = Math.round(durMin * 0.7);
+  const lateStartMin = Math.round(durMin * 0.7);
   const isCAP = sport === 'cap';
 
-  // Progressivité: START = 60-70% de la cible, MID = 100%, LATE = 100-110%
-  const startCarbs = Math.round(carbsCentral * 0.65);
-  const midCarbs = carbsCentral;
-  const lateCarbs = Math.round(carbsCentral * 1.05);
+  // F30 — Anti-empilement chaleur :
+  // Le facteur chaleur (+10%) est DÉJÀ appliqué dans `computeBaseRateMader` →
+  // `carbsCentral` reflète déjà l'oxydation augmentée. La phase LATE ne doit
+  // donc PAS empiler un +5% supplémentaire qui pousserait au-delà de la limite
+  // GI (90 g/h sans gut training, 120 avec). Multiplicateur LATE :
+  //   - Sans chaleur     → ×1.05 (progression naturelle)
+  //   - Avec chaleur     → ×1.00 (chaleur déjà comptée dans la base)
+  const lateMultiplier = isHeat ? 1.0 : 1.05;
+
+  // Progressivité: START = 65% de la cible, MID = 100%, LATE = ×lateMultiplier
+  const startCarbs = clamp(Math.round(carbsCentral * 0.65), 0, maxBound);
+  const midCarbs = clamp(carbsCentral, 0, maxBound);
+  const lateCarbs = clamp(Math.round(carbsCentral * lateMultiplier), 0, maxBound);
+
+  // F30 — Durées effectives par phase (pour totaux énergie/CHO cohérents)
+  const startDurMin = Math.min(30, durMin);
+  const midEndMin = Math.min(lateStartMin, durMin);
+  const midDurMin = Math.max(0, midEndMin - startDurMin);
+  const lateDurMin = Math.max(0, durMin - midEndMin);
+
+  const buildPhaseTotals = (carbsGh: number, durationMin: number) => {
+    const totalCarbsG = Math.round((carbsGh * durationMin) / 60);
+    const totalKcal = totalCarbsG * 4; // 4 kcal/g CHO
+    return { durationMin, totalCarbsG, totalKcal };
+  };
 
   const phases: NutritionPhaseUnified[] = [];
 
@@ -415,6 +448,9 @@ function generatePhases(
     timeRange: 'J-3 à H-0',
     carbsGh: 0,
     carbsGhRange: '—',
+    durationMin: 0,
+    totalCarbsG: 0,
+    totalKcal: 0,
     products: [
       {
         type: 'bar',
@@ -452,9 +488,10 @@ function generatePhases(
     label: 'Démarrage',
     timeRange: `0 → 30 min`,
     carbsGh: startCarbs,
-    carbsGhRange: `${startCarbs - 5}–${startCarbs + 5}`,
+    carbsGhRange: `${Math.max(0, startCarbs - 5)}–${Math.min(maxBound, startCarbs + 5)}`,
+    ...buildPhaseTotals(startCarbs, startDurMin),
     products: generateProducts(startCarbs, sport, tolerance),
-    hydrationMlH: 0, // will be filled from hydration
+    hydrationMlH: 0,
     sodiumMgH: 0,
     frequencyMin: tolerance === 'LOW' ? 10 : 15,
     athleteMessage: `Commence à manger dès les premières 10-15 min. Ne pas attendre d'avoir faim !`,
@@ -465,31 +502,33 @@ function generatePhases(
   phases.push({
     name: 'MID',
     label: 'Phase principale',
-    timeRange: `30 → ${lateStart} min`,
+    timeRange: `30 → ${lateStartMin} min`,
     carbsGh: midCarbs,
-    carbsGhRange: `${midCarbs - 5}–${midCarbs + 5}`,
+    carbsGhRange: `${Math.max(0, midCarbs - 5)}–${Math.min(maxBound, midCarbs + 5)}`,
+    ...buildPhaseTotals(midCarbs, midDurMin),
     products: generateProducts(midCarbs, sport, tolerance),
     hydrationMlH: 0,
     sodiumMgH: 0,
     frequencyMin: tolerance === 'LOW' ? 10 : 15,
     athleteMessage: `Rythme de croisière : mange toutes les ${tolerance === 'LOW' ? '10' : '15-20'} min. Alterne boisson et gel.`,
-    staffMessage: `Cible pleine: ${midCarbs} g/h. Fractionner toutes les ${tolerance === 'LOW' ? '10' : '15'} min. Ratio G:F 2:1 si > 60g/h.`,
+    staffMessage: `Cible pleine: ${midCarbs} g/h. Fractionner toutes les ${tolerance === 'LOW' ? '10' : '15'} min. Ratio G:F 2:1 si > 60g/h.${isHeat ? ' (Chaleur déjà intégrée dans la base — pas de boost LATE.)' : ''}`,
   });
 
   // LATE (70% → fin)
-  if (durMin > 60) {
+  if (durMin > 60 && lateDurMin > 0) {
     phases.push({
       name: 'LATE',
       label: 'Dernier tiers',
-      timeRange: `${lateStart} min → fin`,
+      timeRange: `${lateStartMin} min → fin`,
       carbsGh: lateCarbs,
-      carbsGhRange: `${lateCarbs - 5}–${lateCarbs + 10}`,
+      carbsGhRange: `${Math.max(0, lateCarbs - 5)}–${Math.min(maxBound, lateCarbs + (isHeat ? 5 : 10))}`,
+      ...buildPhaseTotals(lateCarbs, lateDurMin),
       products: generateProducts(lateCarbs, sport, tolerance),
       hydrationMlH: 0,
       sodiumMgH: 0,
       frequencyMin: tolerance === 'LOW' ? 10 : 12,
-      athleteMessage: `Ne lâche rien ! C'est maintenant que la nutrition fait la différence. Augmente légèrement si tu te sens bien.`,
-      staffMessage: `Phase critique: ${lateCarbs} g/h (+5%). Compenser la fatigue digestive par le fractionnement. Renforcer Na+ si crampes.`,
+      athleteMessage: `Ne lâche rien ! C'est maintenant que la nutrition fait la différence.${isHeat ? ' Maintiens la cible — n\'augmente pas (chaleur déjà intégrée).' : ' Augmente légèrement si tu te sens bien.'}`,
+      staffMessage: `Phase critique: ${lateCarbs} g/h ${isHeat ? '(maintien cible — chaleur déjà comptée dans base)' : '(+5% vs MID)'}. Compenser la fatigue digestive par le fractionnement. Renforcer Na+ si crampes.`,
     });
   }
 
@@ -635,8 +674,9 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
   // Hydratation
   const hydration = computeHydration(input);
 
-  // Phases
-  const phases = generatePhases(carbsCentral, sport, durationH, tolerance, input.vlamaxValue);
+  // Phases — F30: passe maxBound + isHeat pour anti-empilement & clamp cohérent
+  const isHeat = input.heatCondition ?? false;
+  const phases = generatePhases(carbsCentral, sport, durationH, tolerance, input.vlamaxValue, maxBound, isHeat);
   // Fill hydration in each phase
   phases.forEach(p => {
     if (p.name !== 'PRE') {
@@ -645,10 +685,20 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
     }
   });
 
+  // F30 — Totaux énergie/CHO cohérents (somme des phases en course)
+  const totalCarbsG = phases.filter(p => p.name !== 'PRE').reduce((s, p) => s + p.totalCarbsG, 0);
+  const totalKcal = totalCarbsG * 4;
+
   // Messages
   const summary = generateSummary(carbsCentral, risk, sport, input);
   const why = generateWhyMessages(input, carbsCentral);
   const warnings = generateWarnings(input, carbsCentral, risk);
+
+  // F30 — Avertissement explicite si chaleur pousse au plafond GI
+  if (isHeat && carbsCentral >= 85) {
+    warnings.staff.push(`Chaleur + cible ${carbsCentral} g/h ≥ 85: limite GI atteinte. Boost LATE désactivé pour éviter le double-comptage. Gut training fortement recommandé.`);
+    warnings.athlete.push(`⚠️ Il fait chaud et tes besoins en sucre sont déjà élevés (${carbsCentral} g/h). Reste sur la cible — n'augmente pas en fin de course.`);
+  }
 
   // Confiance
   let confidence = 0.50;
@@ -662,6 +712,8 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
     carbsMin,
     carbsMax,
     carbsCentral,
+    totalCarbsG,
+    totalKcal,
     risk,
     riskLabel,
     riskScore: score,
