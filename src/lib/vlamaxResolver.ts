@@ -17,6 +17,7 @@
  */
 
 import { resolveSportMain, type CanonicalSport } from "./sportMainDeduction";
+import { estimateVLamaxCap } from "./v2/vlamaxCapEstimator";
 
 export type VlamaxSource = "run" | "bike";
 
@@ -40,6 +41,21 @@ interface SnapshotLike {
   vlamax?: number | null;
   vlamax_run?: number | null;
   sport_main?: string | null;
+  // Fields used by the unified CAP estimator (canonical source for vlamax_run)
+  vma?: number | null;
+  pace_threshold_sec_per_km?: number | null;
+  tte_observed_min?: number | null;
+  sprint_15s_distance?: number | null;
+  running_power_max?: number | null;
+  running_power_threshold?: number | null;
+  vlamax_source?: string | null;
+  vlamax_protocol?: string | null;
+  vo2max?: number | null;
+}
+
+function isLabMeasuredVlamaxRun(s: SnapshotLike): boolean {
+  const haystack = `${s.vlamax_source || ""} ${s.vlamax_protocol || ""}`.toLowerCase();
+  return /(labo|lactat|prise de sang|blood lactate|lab measurement)/.test(haystack);
 }
 
 interface AthleteLike {
@@ -65,18 +81,40 @@ export function resolveVlamaxForGoal(
 
   const sport = resolveSportMain(snapshot, athlete);
 
-  // run / trail → vlamax_run obligatoire
+  // run / trail → estimateur CAP unifié = source PRIMAIRE (mémoire `cap-vlamax-unified-source`).
+  // La valeur brute snapshot.vlamax_run (souvent un test sprint terrain non normalisé)
+  // n'est utilisée que :
+  //   - si elle provient d'une mesure labo (lactate post-sprint)
+  //   - ou en dernier fallback si l'estimateur renvoie `insufficient`.
   if (sport === "run") {
-    const v = snapshot.vlamax_run;
-    if (v == null) {
-      if (typeof console !== "undefined" && import.meta.env?.DEV) {
-        console.warn(
-          "[vlamax-resolver] sport=run mais vlamax_run manquant — retourne null (Données insuffisantes)"
-        );
-      }
-      return { value: null, source: "run", sport, reason: "missing_vlamax_run" };
+    const rawRun = snapshot.vlamax_run ?? null;
+    const isLab = rawRun != null && isLabMeasuredVlamaxRun(snapshot);
+
+    const capEst = estimateVLamaxCap({
+      vma: snapshot.vma ?? null,
+      paceThresholdSecPerKm: snapshot.pace_threshold_sec_per_km ?? null,
+      tteMin: snapshot.tte_observed_min ?? null,
+      sprint15sDistance: snapshot.sprint_15s_distance ?? null,
+      runningPowerMax: snapshot.running_power_max ?? null,
+      runningPowerThreshold: snapshot.running_power_threshold ?? null,
+      vlamaxRunMeasured: isLab ? rawRun : null,
+      vo2max: snapshot.vo2max ?? null,
+    });
+
+    if (capEst.method !== "insufficient" && capEst.value > 0) {
+      return { value: capEst.value, source: "run", sport, reason: "ok" };
     }
-    return { value: v, source: "run", sport, reason: "ok" };
+
+    if (rawRun != null && rawRun > 0) {
+      return { value: rawRun, source: "run", sport, reason: "ok" };
+    }
+
+    if (typeof console !== "undefined" && import.meta.env?.DEV) {
+      console.warn(
+        "[vlamax-resolver] sport=run — estimateur CAP insuffisant et vlamax_run manquant (Données insuffisantes)"
+      );
+    }
+    return { value: null, source: "run", sport, reason: "missing_vlamax_run" };
   }
 
   // bike / tri / null → vlamax (vélo) en pivot
