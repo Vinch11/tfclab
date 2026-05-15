@@ -380,8 +380,56 @@ function RunBlock({
   );
 }
 
+export type NutriOverride = Partial<{ gels: number; bars: number; iso: number; eauMl: number }>;
+
+function NumStepper({
+  value, onChange, min = 0, max = 99, step = 1, suffix,
+}: { value: number; onChange: (v: number) => void; min?: number; max?: number; step?: number; suffix?: string }) {
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(min, value - step))}
+        className="h-6 w-6 rounded border border-border/60 bg-background text-xs font-bold hover:bg-muted"
+        aria-label="Diminuer"
+      >−</button>
+      <input
+        type="number"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => {
+          const v = Number(e.target.value);
+          if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)));
+        }}
+        className="w-14 h-6 rounded border border-border/60 bg-background text-center text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+      />
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(max, value + step))}
+        className="h-6 w-6 rounded border border-border/60 bg-background text-xs font-bold hover:bg-muted"
+        aria-label="Augmenter"
+      >+</button>
+      {suffix && <span className="text-[10px] text-muted-foreground ml-1">{suffix}</span>}
+    </div>
+  );
+}
+
+function EditableMetric({
+  label, value, onChange, suffix, step, max,
+}: { label: string; value: number; onChange: (v: number) => void; suffix?: string; step?: number; max?: number }) {
+  return (
+    <div className="rounded-md bg-background/60 border border-border/40 px-2 py-1.5">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-0.5"><NumStepper value={value} onChange={onChange} step={step} max={max} suffix={suffix} /></div>
+    </div>
+  );
+}
+
 function NutritionBlock({
   weightKg, vo2, vlamax, durationH, intensityPct, sport, plan, label,
+  override, onOverrideChange, onResetOverride,
 }: {
   weightKg: number;
   vo2: number | null;
@@ -391,24 +439,45 @@ function NutritionBlock({
   sport: "velo" | "cap";
   plan: PlanConfig;
   label: string;
+  override: NutriOverride;
+  onOverrideChange: (patch: NutriOverride) => void;
+  onResetOverride: () => void;
 }) {
   const { baseRate } = computeBaseRateMader(weightKg, sport, vo2, vlamax, intensityPct, durationH, false);
-  const n = nutritionItems(baseRate, durationH, plan);
+  const auto = nutritionItems(baseRate, durationH, plan);
+  const gels = override.gels ?? auto.gels;
+  const bars = override.bars ?? auto.bars;
+  const iso = override.iso ?? auto.iso;
+  const eauMl = override.eauMl ?? auto.eauMl;
+  const isEdited = override.gels != null || override.bars != null || override.iso != null || override.eauMl != null;
+  // Total CHO recalculé depuis les saisies utilisateur
+  const totalCho = gels * 25 + bars * 30 + iso * 30;
+  const liquideMl = iso * 500 + eauMl;
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <Apple className="h-4 w-4 text-primary" />
-        Nutrition {label}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Apple className="h-4 w-4 text-primary" />
+          Nutrition {label}
+        </div>
+        {isEdited && (
+          <button
+            type="button"
+            onClick={onResetOverride}
+            className="text-[10px] text-primary hover:underline"
+          >
+            Réinitialiser
+          </button>
+        )}
       </div>
       <div className="text-[11px] text-muted-foreground">
-        Cible : <strong>{n.perHour} g CHO/h</strong> · Total : <strong>{n.totalCho} g</strong> ·
-        Liquide visé : <strong>{Math.round(durationH * 600)} ml/h</strong>
+        Cible auto : <strong>{auto.perHour} g CHO/h</strong> · Total saisi : <strong>{totalCho} g</strong> ({Math.round(totalCho / Math.max(0.1, durationH))} g/h) · Liquide saisi : <strong>{liquideMl} ml</strong>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-        <Metric label="Gels (~25g)" value={n.gels.toString()} />
-        <Metric label="Barres (~30g)" value={n.bars.toString()} />
-        <Metric label="Bidons iso 500ml" value={n.iso.toString()} />
-        <Metric label="Eau pure" value={`${n.eauMl} ml`} />
+        <EditableMetric label="Gels (~25g)" value={gels} onChange={(v) => onOverrideChange({ gels: v })} max={30} />
+        <EditableMetric label="Barres (~30g)" value={bars} onChange={(v) => onOverrideChange({ bars: v })} max={20} />
+        <EditableMetric label="Bidons iso 500ml" value={iso} onChange={(v) => onOverrideChange({ iso: v })} max={20} />
+        <EditableMetric label="Eau pure" value={eauMl} onChange={(v) => onOverrideChange({ eauMl: v })} step={50} max={5000} suffix="ml" />
       </div>
     </div>
   );
