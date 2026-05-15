@@ -296,8 +296,16 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
 
   // =============================================
   // B) SOURCE TEST TERRAIN
+  // ⚠️ Pour le sport CAP : seuls les tests LABO mesurés (lactate post-sprint /
+  // rampe lactate) priment sur l'estimateur unifié `vlamaxCapEstimator` qui est
+  // la source PRIMAIRE (mémoire `cap-vlamax-unified-source`). Les tests terrain
+  // non-labo (Sprint 15s, Score G, saisies coach) sont reclassés en fallback :
+  // ils ne sont consultés que si l'estimateur renvoie `insufficient` (bloc D).
   // =============================================
-  const athleteTests = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
+  const athleteTestsAll = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
+  const athleteTests = sport === "cap"
+    ? athleteTestsAll.filter(isLabMeasuredVlamaxTest)
+    : athleteTestsAll;
   
   if (athleteTests.length > 0) {
     const sortedTests = [...athleteTests].sort((a, b) => {
