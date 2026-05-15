@@ -50,6 +50,13 @@ interface MetabolicZonesINSCYDChartProps {
   weight?: number;
   staffMode?: boolean;
   className?: string;
+  /**
+   * Audit 2B F10 — sport-aware gating.
+   * findMLSSPower / Mader α=1.98 ont été calibrés exclusivement sur cyclistes labo
+   * (mem://logic/mader-alpha-calibration-n44). Pour sport=cap, ce chart affiche
+   * un placeholder au lieu de plaquer une MLSS bike sur un coureur.
+   */
+  sport?: "velo" | "cap" | "triathlon";
 }
 
 interface MaderZone {
@@ -168,10 +175,33 @@ export function MetabolicZonesINSCYDChart({
   weight = 70,
   staffMode = false,
   className,
+  sport,
 }: MetabolicZonesINSCYDChartProps) {
   const isMobile = useIsTouchDevice();
   const [activeTab, setActiveTab] = useState("bars");
-  const valid = vo2max && vlamax && ftp && vo2max > 0 && vlamax > 0 && ftp > 0;
+  // Audit 2B F10 — bike-only chart (zones dérivées de la MLSS Mader bike)
+  const isCap = sport === "cap";
+  const valid = !isCap && vo2max && vlamax && ftp && vo2max > 0 && vlamax > 0 && ftp > 0;
+
+  if (isCap) {
+    return (
+      <Card className={cn("border-border/50", className)}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Zones métaboliques INSCYD
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-[11px] text-muted-foreground flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-amber-500" />
+          <span>
+            Chart bike-only (Mader α=1.98 calibré cyclistes labo). Pour la course à pied,
+            consulter le profil running et le Modèle C run dédié.
+          </span>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const profile = useMemo<MaderProfile | null>(() => {
     if (!valid) return null;

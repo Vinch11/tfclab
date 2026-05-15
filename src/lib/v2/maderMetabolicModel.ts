@@ -514,8 +514,8 @@ export function calibrateVLamaxFromMLSS(
   vo2max: number,
   weight: number,
   observedMAP?: number | null,  // MAP réelle (P5min) si disponible — plus précis que MAP dérivée
+  efficiency: number = 0.23,    // Audit 2B F13 — alignement avec findMLSSPower (param optionnel)
 ): number {
-  const efficiency = 0.23; // Default gross mechanical efficiency
   // CRITICAL: must match findMLSSPower α to keep forward/inverse consistency
   // (round-trip calibrate→predict must converge). Refit Nov 2026 sur N=44.
   const ALPHA = USE_CALIBRATED_MADER_ALPHA ? MADER_ALPHA_CALIBRATED : 2.5;
@@ -530,7 +530,10 @@ export function calibrateVLamaxFromMLSS(
   const mapWatts = (observedMAP != null && observedMAP > 0) ? observedMAP : mapTheoretical;
 
   // MLSS as fraction of MAP
-  const mlssFraction = observedMLSSPower / mapWatts;
+  // Audit 2B F9 — clamp dans le même domaine [0.45, 0.95] que findMLSSPower
+  // pour garantir la cohérence forward/inverse aux extrêmes.
+  const mlssFractionRaw = observedMLSSPower / mapWatts;
+  const mlssFraction = Math.max(0.45, Math.min(0.95, mlssFractionRaw));
 
   // Direct inverse: VLamax = (1 - mlssFraction) × VO2max_abs / α
   const vlamax = (1 - mlssFraction) * vo2maxAbs / ALPHA;
