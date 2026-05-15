@@ -347,7 +347,7 @@ export function FatCarbOxidationChart({
               <YAxis yAxisId="kcal" orientation="right" {...responsiveAxisProps.yAxis} domain={[0, "auto"]}
                 tickFormatter={(v: number) => `${Math.round(v)}`} />
 
-              <Tooltip content={<OxidationTooltip />} {...mobileTooltipProps} />
+              <Tooltip content={<TooltipComp />} {...mobileTooltipProps} />
 
               {/* FatMax vertical */}
               <ReferenceLine yAxisId="gmin" x={fatMax.fatMaxIntensity}
