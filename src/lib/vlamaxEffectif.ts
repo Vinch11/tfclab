@@ -325,7 +325,9 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   const athleteTestsAll = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
   const athleteTests = sport === "cap"
     ? athleteTestsAll.filter(isLabMeasuredVlamaxTest)
-    : athleteTestsAll;
+    // Pour sport=velo/natation : exclure les tests CAP-spécifiques (Sprint 15s CAP, etc.)
+    // qui mesurent la glycolyse en course et polluent la VLamax vélo.
+    : athleteTestsAll.filter(t => !isCapSpecificVlamaxTest(t));
   
   if (athleteTests.length > 0) {
     const sortedTests = [...athleteTests].sort((a, b) => {
