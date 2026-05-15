@@ -506,6 +506,7 @@ const Index = () => {
         running_power_30s: s.running_power_30s,
         running_power_60s: s.running_power_60s,
         running_power_5min: s.running_power_5min,
+        sprint_15s_distance: (s as any).sprint_15s_distance ?? null,
       })),
     });
   }, [currentAthlete, tests, snapshots]);
