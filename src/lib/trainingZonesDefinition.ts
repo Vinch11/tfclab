@@ -52,6 +52,7 @@ export const TRAINING_ZONES: TrainingZoneDefinition[] = [
     fcMax: { min: 0, max: 70 },
     vma: { min: 0, max: 60 },
     ftp: { min: 0, max: 55 },
+    cpRun: { min: 0, max: 80 },
     parametresTravailles: "Récupération, affûtage, échauffement, lactate de base",
     positionSeuils: "< SL1",
     impactMetabolique: {
@@ -72,6 +73,7 @@ export const TRAINING_ZONES: TrainingZoneDefinition[] = [
     fcMax: { min: 70, max: 78 },
     vma: { min: 60, max: 70 },
     ftp: { min: 56, max: 75 },
+    cpRun: { min: 80, max: 90 },
     parametresTravailles: "Lipolyse, volume mitochondrial, base aérobie",
     positionSeuils: "Approche SV1",
     impactMetabolique: {
@@ -92,6 +94,7 @@ export const TRAINING_ZONES: TrainingZoneDefinition[] = [
     fcMax: { min: 78, max: 83 },
     vma: { min: 70, max: 78 },
     ftp: { min: 76, max: 90 },
+    cpRun: { min: 90, max: 100 },
     parametresTravailles: "Base aérobie solide, force si basse cadence",
     positionSeuils: "= SV1 / SL1",
     impactMetabolique: {
@@ -112,6 +115,7 @@ export const TRAINING_ZONES: TrainingZoneDefinition[] = [
     fcMax: { min: 83, max: 87 },
     vma: { min: 78, max: 83 },
     ftp: { min: 88, max: 93 },
+    cpRun: { min: 100, max: 105 },
     parametresTravailles: "Économie de course, durabilité, spécifique long",
     positionSeuils: "Entre SV1 et SV2",
     impactMetabolique: {
@@ -132,6 +136,7 @@ export const TRAINING_ZONES: TrainingZoneDefinition[] = [
     fcMax: { min: 87, max: 91 },
     vma: { min: 83, max: 88 },
     ftp: { min: 94, max: 98 },
+    cpRun: { min: 105, max: 110 },
     parametresTravailles: "Tolérance à l'inconfort, mental, spécifique moyen",
     positionSeuils: "Montée vers SV2",
     impactMetabolique: {
@@ -152,6 +157,7 @@ export const TRAINING_ZONES: TrainingZoneDefinition[] = [
     fcMax: { min: 91, max: 94 },
     vma: { min: 88, max: 92 },
     ftp: { min: 99, max: 105 },
+    cpRun: { min: 110, max: 120 },
     parametresTravailles: "Repousser le seuil anaérobie, MLSS",
     positionSeuils: "= SV2 / SL2 (≈ 4 mmol/L)",
     impactMetabolique: {
@@ -172,6 +178,7 @@ export const TRAINING_ZONES: TrainingZoneDefinition[] = [
     fcMax: { min: 95, max: 100 },
     vma: { min: 95, max: 105 },
     ftp: { min: 106, max: 120 },
+    cpRun: { min: 120, max: 140 },
     parametresTravailles: "VO2max, cylindrée cardiaque",
     positionSeuils: "> SV2 (zone rouge)",
     impactMetabolique: {
@@ -192,6 +199,7 @@ export const TRAINING_ZONES: TrainingZoneDefinition[] = [
     fcMax: null, // N/A
     vma: { min: 120, max: 200 },
     ftp: { min: 150, max: 300 },
+    cpRun: { min: 140, max: 200 },
     parametresTravailles: "Explosivité, force max, vitesse pure",
     positionSeuils: "Anaérobie alactique",
     impactMetabolique: {
