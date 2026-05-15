@@ -217,6 +217,17 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
               </button>
               <div className="h-px bg-border/40" />
               <button
+                onClick={() => { navigate("/mini-rapport"); setShowMoreMenu(false); }}
+                className={cn(
+                  "flex items-center gap-3 w-full px-4 py-3 text-sm font-medium transition-colors",
+                  location.pathname === "/mini-rapport" ? "text-primary bg-primary/5" : "text-foreground hover:bg-muted/50"
+                )}
+              >
+                <FileText className="w-4 h-4 text-primary" />
+                Mini rapport
+              </button>
+              <div className="h-px bg-border/40" />
+              <button
                 onTouchStart={(e) => { e.stopPropagation(); handlePressStart(); }}
                 onTouchEnd={(e) => { e.stopPropagation(); handlePressEnd(); }}
                 onClick={() => { onStaffModeChange?.(!staffMode); setShowMoreMenu(false); }}
