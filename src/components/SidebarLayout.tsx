@@ -71,8 +71,8 @@ export function SidebarLayout({
           </header>
 
           {/* Main content - mobile optimized padding with bottom nav space */}
-          <main className="flex-1 overflow-auto ios-scroll">
-            <div className="container mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-6 pb-20 md:pb-6">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto ios-scroll w-full max-w-full">
+            <div className="container mx-auto py-3 sm:py-6 pb-20 md:pb-6 w-full max-w-full">
               {children}
             </div>
           </main>
