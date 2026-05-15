@@ -211,7 +211,11 @@ export function computeBaseRateMader(
   }
   
   const capMax = sport === 'cap' ? 75 : 90;
-  const baseRate = clamp(Math.round(exogenousGh), 30, capMax);
+  // F31 — Pas de plancher artificiel pour les épreuves courtes (<1h, ex: 10K).
+  // Sur ces formats Mader-Heck recommande "rinçage buccal" (~0-25 g/h),
+  // forcer 30 g/h reviendrait à bypasser la logique canonique.
+  const minFloor = duration < 1 ? 0 : 30;
+  const baseRate = clamp(Math.round(exogenousGh), minFloor, capMax);
   const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
   
   return { baseRate, totalOxidation: Math.round(totalOxidationGh), method };
