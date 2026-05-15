@@ -195,59 +195,12 @@ function getRiskLabel(risk: NutritionRiskV2): string {
 
 /**
  * Étape A — Taux de base via modèle Mader (g/h)
- * 
- * Utilise calculateCarbOxidation(intensity, vo2max, vlamax, weight) 
- * pour obtenir l'oxydation totale de glucides (g/min) à l'intensité cible.
- * 
- * L'apport EXOGÈNE recommandé = fraction de l'oxydation totale,
- * car le glycogène endogène couvre une partie (décroissante avec la durée).
- * 
- * Fallback si VO2max inconnu : estimation conservative (48–50 ml/kg/min)
- * Fallback si VLamax inconnue : 0.45 (valeur médiane endurant)
- * Fallback si intensité inconnue : 70% (effort longue distance)
+ *
+ * Audit 2D F26 — délégué à la source canonique unique
+ * `nutritionUnified.computeBaseRateMader` pour garantir l'égalité stricte
+ * des valeurs CHO entre Index, Dashboard, StaffReport, ExportTools, etc.
  */
-function computeBaseRateMader(
-  weightKg: number, 
-  sport: 'velo' | 'cap',
-  vo2max: number | null | undefined,
-  vlamaxValue: number | null,
-  intensityPct: number | null,
-  durationHours: number | null
-): { baseRate: number; totalOxidation: number; method: 'mader' | 'fallback' } {
-  // Fallbacks conservateurs
-  const vo2 = vo2max ?? (sport === 'cap' ? 48 : 50);
-  const vlx = vlamaxValue ?? 0.45;
-  const intensity = intensityPct ?? 70;
-  const duration = durationHours ?? 3;
-  
-  // Oxydation totale de glucides via Mader (g/min)
-  const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
-  const totalOxidationGh = carbOxGmin * 60; // g/h
-  
-  // Modèle glycogène physiologique (Cao 2025: 380-500g total)
-  // Réserves: ~5g/kg (conservateur vs ancien 6g/kg)
-  const glycogenStores = weightKg * 5;
-  const totalCarbNeeded = totalOxidationGh * duration;
-  const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * duration));
-  const effectiveStores = glycogenStores * accessFactor;
-  const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
-  
-  // Minimum exogène modulé par durée (Cao 2025)
-  // <1h: 0%, 1-2h: 25%, 2-3h: 40%, >3h: 50%
-  const MIN_EXOGENOUS_FRACTION = duration < 1 ? 0 : duration < 2 ? 0.25 : duration < 3 ? 0.40 : 0.50;
-  let exogenousGh = totalOxidationGh * Math.max(MIN_EXOGENOUS_FRACTION, 1 - glycogenCoverage);
-  
-  // CAP: tolérance digestive réduite de ~18% + clamp max 75g/h (Pfeiffer 2012)
-  if (sport === 'cap') {
-    exogenousGh *= 0.82;
-  }
-  
-  const capMax = sport === 'cap' ? 75 : 90;
-  const baseRate = clamp(Math.round(exogenousGh), 30, capMax);
-  const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
-  
-  return { baseRate, totalOxidation: Math.round(totalOxidationGh), method };
-}
+import { computeBaseRateMader } from './nutritionUnified';
 
 /**
  * Étape B — Modulation par VLamax
