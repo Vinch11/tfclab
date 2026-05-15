@@ -18,6 +18,7 @@
  */
 
 import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
+import { getCRRTargets } from '@/lib/chargeRecenteReference';
 
 // =============================================
 // TYPES V2
