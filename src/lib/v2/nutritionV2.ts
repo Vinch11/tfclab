@@ -193,14 +193,8 @@ function getRiskLabel(risk: NutritionRiskV2): string {
 // FORMULE V2 OFFICIELLE TFCL™
 // =============================================
 
-/**
- * Étape A — Taux de base via modèle Mader (g/h)
- *
- * Audit 2D F26 — délégué à la source canonique unique
- * `nutritionUnified.computeBaseRateMader` pour garantir l'égalité stricte
- * des valeurs CHO entre Index, Dashboard, StaffReport, ExportTools, etc.
- */
-import { computeBaseRateMader } from './nutritionUnified';
+// Audit 2D F26 — `computeBaseRateMader` est désormais importé en tête de
+// fichier depuis `nutritionUnified` (source canonique unique).
 
 /**
  * Étape B — Modulation par VLamax
