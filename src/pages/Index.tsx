@@ -514,6 +514,7 @@ const Index = () => {
       tte_mode: effectiveCloudSnapshot.tte_mode ?? "LOAD",
       tte_observed_min: effectiveCloudSnapshot.tte_observed_min ?? null,
       objectif: currentAthlete.goal || "IM",
+      age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null, // F33
     });
   }, [effectiveCloudSnapshot, currentAthlete]);
 

@@ -185,8 +185,9 @@ export default function RunningProfilePage() {
       tte_observed_min: effectiveCloudSnapshot?.tte_observed_min ?? null,
       ftp: effectiveRefs.ftp,
       objectif: athleteGoal,
+      age: athleteAge, // F33
     });
-  }, [effectiveCloudSnapshot, effectiveRefs, athleteGoal]);
+  }, [effectiveCloudSnapshot, effectiveRefs, athleteGoal, athleteAge]);
 
   // Fatigue Effectif — snapshot-centric (fatigue_state → score numérique)
   const fatigueResult = useMemo(() => {

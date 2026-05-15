@@ -204,6 +204,7 @@ function computeTTEFromInput(input: DiagnosticInput): TTEEffectif {
     tte_mode: input.tteMode,
     tte_observed_min: input.tteObservedMin,
     objectif: input.objectif,
+    age: input.age, // F33: ajustement masters
   });
 }
 

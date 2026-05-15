@@ -235,17 +235,7 @@ export default function DashboardPage() {
       snapshots: athleteSnapshots.map(mapSnapshotToV2),
     });
     
-    // TTE Effectif (source unique)
-    const tteEffectif = computeTTEEffectif({
-      ftp: activeSnapshot.ftp,
-      tss_7d: activeSnapshot.tss_7d,
-      tte_mode: activeSnapshot.tte_mode,
-      tte_observed_min: activeSnapshot.tte_observed_min,
-      objectif,
-    });
-    
-    // Potentiel Physiologique Effectif (source unique)
-    // Calculer l'âge
+    // Calculer l'âge (utilisé par TTE et Potentiel Physiologique)
     const athleteAge = currentAthlete.birth_date ? (() => {
       const birthDate = new Date(currentAthlete.birth_date);
       const today = new Date();
@@ -256,6 +246,18 @@ export default function DashboardPage() {
       }
       return age;
     })() : null;
+
+    // TTE Effectif (source unique)
+    const tteEffectif = computeTTEEffectif({
+      ftp: activeSnapshot.ftp,
+      tss_7d: activeSnapshot.tss_7d,
+      tte_mode: activeSnapshot.tte_mode,
+      tte_observed_min: activeSnapshot.tte_observed_min,
+      objectif,
+      age: athleteAge, // F33
+    });
+    
+    // Potentiel Physiologique Effectif (source unique)
     
     // Nutrition Prédictive
     const nutritionEstimate = computeNutritionEstimate({

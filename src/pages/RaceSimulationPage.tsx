@@ -102,8 +102,9 @@ export default function RaceSimulationPage() {
       tte_mode: activeSnapshot.tte_mode,
       tte_observed_min: activeSnapshot.tte_observed_min,
       objectif,
+      age: (selectedAthlete as any)?.age ?? (selectedAthlete?.birth_date ? Math.floor((Date.now() - new Date(selectedAthlete.birth_date).getTime()) / (365.25 * 24 * 3600 * 1000)) : null), // F33
     });
-  }, [activeSnapshot, objectif]);
+  }, [activeSnapshot, objectif, selectedAthlete]);
 
   // P2 — Estimation depuis chronos course (Riegel + Daniels VDOT + ACSM + durabilité).
   // Sortie RAW, jamais effective : sert UNIQUEMENT de fallback (paceThreshold absent)
