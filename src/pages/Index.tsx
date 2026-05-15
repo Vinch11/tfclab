@@ -1671,10 +1671,10 @@ const Index = () => {
               )
             ),
           },
-          // FatMax TFCL (profil)
+          // FatMax TFCL (profil) — masqué si runner sans FTP (références watts non pertinentes)
           {
             id: "fatmax-tfcl-profil",
-            render: () => currentAthlete && (
+            render: () => currentAthlete && !(isRunningOnly && (!ftp || ftp <= 0)) && (
               <MetabolicZonesUnifiedCard
                 vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={alignedTteEffectif}
@@ -1684,10 +1684,10 @@ const Index = () => {
               />
             ),
           },
-          // Combustion Lipides / Glucides (style INSCYD)
+          // Combustion Lipides / Glucides (style INSCYD) — masqué si runner sans FTP
           {
             id: "fat-carb-combustion-profil",
-            render: () => currentAthlete && effectiveCloudSnapshot && (
+            render: () => currentAthlete && effectiveCloudSnapshot && !(isRunningOnly && (!ftp || ftp <= 0)) && (
               <FatCarbOxidationChart
                 vo2max={effectiveCloudSnapshot.vo2max ?? null}
                 vlamax={alignedVlamaxEffectif.value}
