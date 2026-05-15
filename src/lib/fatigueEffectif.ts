@@ -233,15 +233,17 @@ export function getFatigueLevel(score: number): FatigueLevel {
  */
 function computeChargeRecenteIndex(
   tss7d: number | null,
-  tss7dHabituel: number | null
+  tss7dHabituel: number | null,
+  objectif: string | null = null
 ): { index: number; confidence: number } {
   // Si pas de TSS, estimation neutre
   if (tss7d === null || tss7d === undefined) {
     return { index: 40, confidence: 0.3 };
   }
 
-  // Charge habituelle par défaut si non fournie
-  const chargeRef = tss7dHabituel ?? 450; // Valeur moyenne raisonnable
+  // F36/F37: défaut objectif-aware (CRR.chargeOptimale) au lieu de 450 hardcodé
+  const objectiveRef = objectif ? getCRRTargets(objectif).chargeOptimale : null;
+  const chargeRef = tss7dHabituel ?? objectiveRef ?? 450;
 
   // Ratio charge récente / charge habituelle
   const ratio = tss7d / chargeRef;
@@ -264,9 +266,9 @@ function computeChargeRecenteIndex(
     index = 95; // Critique
   }
 
-  return { 
-    index: clamp(index, 0, 100), 
-    confidence: tss7dHabituel ? 0.9 : 0.6 
+  return {
+    index: clamp(index, 0, 100),
+    confidence: tss7dHabituel ? 0.9 : (objectiveRef != null ? 0.75 : 0.55)
   };
 }
 
