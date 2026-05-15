@@ -75,6 +75,10 @@ export interface NutritionUnifiedResult {
   carbsMin: number;
   carbsMax: number;
   carbsCentral: number;
+  /** F30 — total CHO sur la course (somme phases START+MID+LATE × durée). */
+  totalCarbsG: number;
+  /** F30 — total kcal CHO (4 kcal/g). */
+  totalKcal: number;
 
   // Risque
   risk: NutritionRisk;
