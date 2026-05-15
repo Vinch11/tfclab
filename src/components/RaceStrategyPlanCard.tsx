@@ -368,10 +368,10 @@ function fmtPaceShort(secPerKm: number): string {
 }
 
 function EffortRefBlock({
-  ref,
+  effortRef: ref,
   discipline,
 }: {
-  ref: EffortRef;
+  effortRef: EffortRef;
   discipline: "bike" | "run";
 }) {
   const unit = discipline === "bike" ? "W" : "/km";
@@ -495,7 +495,7 @@ function ScenarioCard({ scenario, discipline }: { scenario: ScenarioBlock; disci
         </div>
 
         {/* Repères d'effort — fiche route synthétique */}
-        <EffortRefBlock ref={scenario.effortRef} discipline={discipline} />
+        <EffortRefBlock effortRef={scenario.effortRef} discipline={discipline} />
 
         {/* Splits */}
         <div>
