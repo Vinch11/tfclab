@@ -41,7 +41,8 @@ import { StaffBriefingCard } from "@/components/StaffBriefingCard";
 import { AssistantDrawer } from "@/components/AssistantDrawer";
 import { computeNutritionTiming } from "@/lib/nutritionTiming";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
-import { computeRunningEconomy } from "@/lib/runningEconomy";
+// Audit 2C F19 — migré V1 → V2 (score 0-100 + O2 cost canonique).
+import { computeRunningEconomyV2 } from "@/lib/v2/runningEconomyV2";
 import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
@@ -551,14 +552,14 @@ const Index = () => {
 
   // ✅ RUNNING ECONOMY - Pour rapport staff
   const runningEconomyResult = useMemo(() => {
-    return computeRunningEconomy({
+    return computeRunningEconomyV2({
       fcMax: effectiveRefs.fcMax ?? null,
-      fcMoyenneEndurance: null,
-      allureEndurance: null,
-      // ✅ FIX: Utiliser la dérive cardiaque du snapshot
-      deriveCardiaque: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
+      // Dérive cardiaque mesurée depuis les sessions FIT
+      hrDriftPct: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
       tteMin: tteEffectif.tte_min,
+      weightKg: effectiveRefs.weightKg ?? null,
       objectif: currentAthlete?.goal || "IM",
+      sport: (currentAthlete as any)?.sport_main ?? undefined,
     });
   }, [effectiveRefs, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
 
