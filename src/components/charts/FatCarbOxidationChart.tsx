@@ -231,7 +231,13 @@ export function FatCarbOxidationChart({
   className,
 }: FatCarbOxidationChartProps) {
   const isMobile = useIsTouchDevice();
-  const valid = vo2max && vlamax && ftp && vo2max > 0 && vlamax > 0 && ftp > 0;
+  // En paceMode, vma remplace ftp comme référence
+  const valid = !!(
+    vo2max && vlamax && vo2max > 0 && vlamax > 0 &&
+    (paceMode ? (vma && vma > 0) : (ftp && ftp > 0))
+  );
+  // Référence affichée: FTP (W) ou vSeuil (km/h ≈ 88% VMA)
+  const refValue = paceMode ? (vma! * V_SEUIL_FRACTION) : ftp!;
 
   const profile = useMemo<MaderProfile | null>(() => {
     if (!valid) return null;
@@ -243,7 +249,6 @@ export function FatCarbOxidationChart({
     return findFatMax(profile);
   }, [profile]);
 
-  // Generate data with variable efficiency
   const data = useMemo<OxPoint[]>(() => {
     if (!profile || !valid) return [];
     const points: OxPoint[] = [];
@@ -254,31 +259,38 @@ export function FatCarbOxidationChart({
       const energyKJPerMin = vo2LMin * 20.9;
       const watts = (energyKJPerMin * 1000 / 60) * efficiency;
 
+      // Allure (km/h) ≈ VMA × intensity/100 (approximation %vVO2max ≈ %VO2max)
+      const paceKmh = paceMode && vma ? vma * (intensity / 100) : 0;
+      const paceStr = paceMode ? kmhToPaceStr(paceKmh) : "";
+
       const fatGmin = calculateFatOxidation(intensity, vo2max!, vlamax!, weight);
       const carbGmin = calculateCarbOxidation(intensity, vo2max!, vlamax!, weight);
 
-      const fatKcalH = fatGmin * 9 * 60; // 9 kcal/g fat
-      const carbKcalH = carbGmin * 4 * 60; // 4 kcal/g carb
+      const fatKcalH = fatGmin * 9 * 60;
+      const carbKcalH = carbGmin * 4 * 60;
       const totalKcalH = fatKcalH + carbKcalH;
       const fatPct = totalKcalH > 0 ? (fatKcalH / totalKcalH) * 100 : 0;
 
-      points.push({ intensity, watts, fatGmin, carbGmin, fatKcalH, carbKcalH, totalKcalH, fatPct, vo2LMin, efficiency });
+      points.push({ intensity, watts, paceKmh, paceStr, fatGmin, carbGmin, fatKcalH, carbKcalH, totalKcalH, fatPct, vo2LMin, efficiency });
     }
     return points;
-  }, [vo2max, vlamax, weight, valid, profile]);
+  }, [vo2max, vlamax, weight, valid, profile, paceMode, vma]);
 
-  // Find crossover intensity
   const crossoverPct = useMemo(() => {
     const pt = data.find((p) => p.fatPct < 50);
     return pt?.intensity ?? (fatMax?.fatMaxIntensity ?? 60) + 10;
   }, [data, fatMax]);
+
+  const TooltipComp = useMemo(() => makeOxidationTooltip(paceMode), [paceMode]);
 
   if (!valid || !fatMax) {
     return (
       <Card className={className}>
         <CardContent className="py-8 text-center">
           <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">VO₂max, VLamax et FTP requis pour le graphique d'oxydation</p>
+          <p className="text-sm text-muted-foreground">
+            VO₂max, VLamax et {paceMode ? "VMA" : "FTP"} requis pour le graphique d'oxydation
+          </p>
         </CardContent>
       </Card>
     );
