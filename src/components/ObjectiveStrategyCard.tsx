@@ -747,6 +747,9 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     sport="velo"
                     plan={plan}
                     label="vélo"
+                    override={nutriOverrides[overrideKey(plan.key, "velo")] ?? {}}
+                    onOverrideChange={(patch) => patchOverride(plan.key, "velo", patch)}
+                    onResetOverride={() => resetOverride(plan.key, "velo")}
                   />
                 )}
 
@@ -760,6 +763,9 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     sport="cap"
                     plan={plan}
                     label="course"
+                    override={nutriOverrides[overrideKey(plan.key, "cap")] ?? {}}
+                    onOverrideChange={(patch) => patchOverride(plan.key, "cap", patch)}
+                    onResetOverride={() => resetOverride(plan.key, "cap")}
                   />
                 )}
 
