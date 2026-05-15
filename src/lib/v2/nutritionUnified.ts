@@ -670,8 +670,9 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
   // Hydratation
   const hydration = computeHydration(input);
 
-  // Phases
-  const phases = generatePhases(carbsCentral, sport, durationH, tolerance, input.vlamaxValue);
+  // Phases — F30: passe maxBound + isHeat pour anti-empilement & clamp cohérent
+  const isHeat = input.heatCondition ?? false;
+  const phases = generatePhases(carbsCentral, sport, durationH, tolerance, input.vlamaxValue, maxBound, isHeat);
   // Fill hydration in each phase
   phases.forEach(p => {
     if (p.name !== 'PRE') {
@@ -680,10 +681,20 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
     }
   });
 
+  // F30 — Totaux énergie/CHO cohérents (somme des phases en course)
+  const totalCarbsG = phases.filter(p => p.name !== 'PRE').reduce((s, p) => s + p.totalCarbsG, 0);
+  const totalKcal = totalCarbsG * 4;
+
   // Messages
   const summary = generateSummary(carbsCentral, risk, sport, input);
   const why = generateWhyMessages(input, carbsCentral);
   const warnings = generateWarnings(input, carbsCentral, risk);
+
+  // F30 — Avertissement explicite si chaleur pousse au plafond GI
+  if (isHeat && carbsCentral >= 85) {
+    warnings.staff.push(`Chaleur + cible ${carbsCentral} g/h ≥ 85: limite GI atteinte. Boost LATE désactivé pour éviter le double-comptage. Gut training fortement recommandé.`);
+    warnings.athlete.push(`⚠️ Il fait chaud et tes besoins en sucre sont déjà élevés (${carbsCentral} g/h). Reste sur la cible — n'augmente pas en fin de course.`);
+  }
 
   // Confiance
   let confidence = 0.50;
@@ -697,6 +708,8 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
     carbsMin,
     carbsMax,
     carbsCentral,
+    totalCarbsG,
+    totalKcal,
     risk,
     riskLabel,
     riskScore: score,
