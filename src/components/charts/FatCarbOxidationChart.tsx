@@ -95,96 +95,108 @@ function getEfficiency(intensityPct: number): number {
 // TOOLTIP
 // =============================================
 
-function OxidationTooltip({ active, payload }: any) {
-  if (!active || !payload?.length) return null;
-  const d = payload[0]?.payload as OxPoint;
-  if (!d) return null;
+function makeOxidationTooltip(paceMode: boolean) {
+  return function OxidationTooltip({ active, payload }: any) {
+    if (!active || !payload?.length) return null;
+    const d = payload[0]?.payload as OxPoint;
+    if (!d) return null;
+    const refLabel = paceMode ? d.paceStr : `${Math.round(d.watts)}W`;
 
-  return (
-    <div className="bg-popover/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg text-[10px] min-w-[190px]">
-      <p className="font-semibold text-xs mb-1.5">{d.intensity}% VO₂max · {Math.round(d.watts)}W</p>
-      <div className="space-y-0.5">
-        <div className="flex justify-between gap-3">
-          <span className="text-muted-foreground flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(142,71%,45%)" }} />
-            Lipides
-          </span>
-          <span className="font-mono font-bold" style={{ color: "hsl(142,71%,45%)" }}>
-            {d.fatGmin.toFixed(2)} g/min
-          </span>
-        </div>
-        <div className="flex justify-between gap-3">
-          <span className="text-muted-foreground flex items-center gap-1">
-            <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(24,95%,53%)" }} />
-            Glucides
-          </span>
-          <span className="font-mono font-bold" style={{ color: "hsl(24,95%,53%)" }}>
-            {d.carbGmin.toFixed(2)} g/min
-          </span>
-        </div>
-        <div className="border-t border-border/50 my-1 pt-1 space-y-0.5">
+    return (
+      <div className="bg-popover/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg text-[10px] min-w-[190px]">
+        <p className="font-semibold text-xs mb-1.5">{d.intensity}% VO₂max · {refLabel}</p>
+        <div className="space-y-0.5">
           <div className="flex justify-between gap-3">
-            <span className="text-muted-foreground">% Lipides</span>
-            <span className="font-mono">{Math.round(d.fatPct)}%</span>
+            <span className="text-muted-foreground flex items-center gap-1">
+              <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(142,71%,45%)" }} />
+              Lipides
+            </span>
+            <span className="font-mono font-bold" style={{ color: "hsl(142,71%,45%)" }}>
+              {d.fatGmin.toFixed(2)} g/min
+            </span>
           </div>
           <div className="flex justify-between gap-3">
-            <span className="text-muted-foreground">Fat kcal/h</span>
-            <span className="font-mono">{Math.round(d.fatKcalH)}</span>
+            <span className="text-muted-foreground flex items-center gap-1">
+              <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(24,95%,53%)" }} />
+              Glucides
+            </span>
+            <span className="font-mono font-bold" style={{ color: "hsl(24,95%,53%)" }}>
+              {d.carbGmin.toFixed(2)} g/min
+            </span>
           </div>
-          <div className="flex justify-between gap-3">
-            <span className="text-muted-foreground">CHO kcal/h</span>
-            <span className="font-mono">{Math.round(d.carbKcalH)}</span>
-          </div>
-          <div className="flex justify-between gap-3">
-            <span className="text-muted-foreground">Total</span>
-            <span className="font-mono font-bold">{Math.round(d.totalKcalH)} kcal/h</span>
-          </div>
-          <div className="flex justify-between gap-3">
-            <span className="text-muted-foreground">Efficience</span>
-            <span className="font-mono">{(d.efficiency * 100).toFixed(1)}%</span>
+          <div className="border-t border-border/50 my-1 pt-1 space-y-0.5">
+            <div className="flex justify-between gap-3">
+              <span className="text-muted-foreground">% Lipides</span>
+              <span className="font-mono">{Math.round(d.fatPct)}%</span>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span className="text-muted-foreground">Fat kcal/h</span>
+              <span className="font-mono">{Math.round(d.fatKcalH)}</span>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span className="text-muted-foreground">CHO kcal/h</span>
+              <span className="font-mono">{Math.round(d.carbKcalH)}</span>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span className="text-muted-foreground">Total</span>
+              <span className="font-mono font-bold">{Math.round(d.totalKcalH)} kcal/h</span>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span className="text-muted-foreground">Efficience</span>
+              <span className="font-mono">{(d.efficiency * 100).toFixed(1)}%</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 }
 
 // =============================================
 // KEY METRICS
 // =============================================
 
-function OxidationMetrics({ data, fatMax, ftp }: {
+function OxidationMetrics({ data, fatMax, refValue, paceMode }: {
   data: OxPoint[];
   fatMax: { fatMaxIntensity: number; fatMaxPower: number; fatMaxGrams: number; carbAtFatMax: number };
-  ftp: number;
+  refValue: number; // FTP (W) ou vSeuil (km/h)
+  paceMode: boolean;
 }) {
-  // Find crossover point (where carb kcal > fat kcal → fatPct < 50)
   const crossover = data.find((p) => p.fatPct < 50);
   const crossoverPct = crossover?.intensity ?? fatMax.fatMaxIntensity + 10;
-  const crossoverWatts = crossover ? Math.round(crossover.watts) : 0;
 
-  // Carb rate at FTP intensity (~85% VO2max approximation)
-  const atFtp = data.find((p) => Math.round(p.watts) >= ftp) ?? data[data.length - 1];
+  const atRef = paceMode
+    ? data.find((p) => p.paceKmh >= refValue) ?? data[data.length - 1]
+    : data.find((p) => Math.round(p.watts) >= refValue) ?? data[data.length - 1];
+
+  const fatMaxRefStr = paceMode
+    ? kmhToPaceStr((refValue / V_SEUIL_FRACTION) * (fatMax.fatMaxIntensity / 100))
+    : `${fatMax.fatMaxPower}W`;
+  const crossoverRefStr = paceMode
+    ? kmhToPaceStr((refValue / V_SEUIL_FRACTION) * (crossoverPct / 100))
+    : `${crossover ? Math.round(crossover.watts) : 0}W`;
+  const atRefStr = paceMode ? atRef.paceStr : `${Math.round(atRef.watts)}W`;
+  const refLabel = paceMode ? "Seuil" : "FTP";
 
   const items = [
     {
       label: "FatMax",
       value: `${fatMax.fatMaxGrams} g/min`,
-      sub: `${fatMax.fatMaxIntensity}% VO₂max · ${fatMax.fatMaxPower}W`,
+      sub: `${fatMax.fatMaxIntensity}% VO₂max · ${fatMaxRefStr}`,
       css: "bg-emerald-500/10 border-emerald-500/30 text-emerald-600",
       Icon: Droplets,
     },
     {
       label: "Crossover",
       value: `${crossoverPct}% VO₂max`,
-      sub: `${crossoverWatts}W · 50/50 lip/glu`,
+      sub: `${crossoverRefStr} · 50/50 lip/glu`,
       css: "bg-sky-500/10 border-sky-500/30 text-sky-600",
       Icon: ArrowRightLeft,
     },
     {
-      label: "CHO @ FTP",
-      value: `${Math.round(atFtp.carbGmin * 60)} g/h`,
-      sub: `${atFtp.carbGmin.toFixed(2)} g/min · ${Math.round(atFtp.watts)}W`,
+      label: `CHO @ ${refLabel}`,
+      value: `${Math.round(atRef.carbGmin * 60)} g/h`,
+      sub: `${atRef.carbGmin.toFixed(2)} g/min · ${atRefStr}`,
       css: "bg-orange-500/10 border-orange-500/30 text-orange-600",
       Icon: Flame,
     },
@@ -212,6 +224,8 @@ export function FatCarbOxidationChart({
   vo2max,
   vlamax,
   ftp,
+  vma,
+  paceMode = false,
   weight = 70,
   staffMode = false,
   className,
