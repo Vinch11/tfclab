@@ -1435,10 +1435,9 @@ function buildExportPayload(
       protocolQuality: effectiveSnapshot.protocol_quality ?? null,
       wprimeKj: wprimeKjForPayload,
       cpDataQuality: cpResultForPayload?.dataQuality ?? null,
-      // FatMax en %FTP/seuil dérivée de VLamax (formule Mader, alignée avec computeFatMaxTFCL)
-      fatmax: vlamaxLegacy.value != null
-        ? Math.round(Math.max(52, Math.min(82, 78 - 45 * (vlamaxLegacy.value - 0.25))))
-        : null,
+      // Audit 2D F29: ancre FatMax canonique unifiée (computeFatMaxAnchorPctFTP)
+      // Formule: clamp(78 − 52·(VLa−0.25) + 0.15·(VO2−50), 48, 82)
+      fatmax: computeFatMaxAnchorPctFTP(vlamaxLegacy.value, effectiveSnapshot.vo2max ?? null),
       forceDevMode: effectiveSnapshot.force_development_mode ?? false,
       giIssuesFlag: effectiveSnapshot.gi_issues_flag ?? false,
       checkinData: latestCheckin ? {
