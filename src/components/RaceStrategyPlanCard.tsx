@@ -495,7 +495,7 @@ function ScenarioCard({ scenario, discipline }: { scenario: ScenarioBlock; disci
         </div>
 
         {/* Repères d'effort — fiche route synthétique */}
-        <EffortRefBlock ref={scenario.effortRef} discipline={discipline} />
+        <EffortRefBlock effortRef={scenario.effortRef} discipline={discipline} />
 
         {/* Splits */}
         <div>
