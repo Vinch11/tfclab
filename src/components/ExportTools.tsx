@@ -1996,7 +1996,7 @@ function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string 
           <div class="kv mt">
             <div class="k">VLamax CAP</div><div class="v">${vlamax_run ? vlamax_run.toFixed(2) + ' mmol/L/s' : '—'}</div>
             <div class="k">VO₂max</div><div class="v">${vo2max ? vo2max + ' ml/kg/min' : '—'}</div>
-            <div class="k">Durabilité</div><div class="v">${durability} min</div>
+            <div class="k">Durabilité</div><div class="v">${durability != null ? `${durability} min` : "— (données insuffisantes)"}</div>
             <div class="k">Objectif</div><div class="v">${htmlEscape(athlete.goal || '—')}</div>
           </div>
           <p class="muted mt" style="font-size:10px;font-style:italic;">
