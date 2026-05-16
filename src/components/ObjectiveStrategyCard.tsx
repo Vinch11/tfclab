@@ -586,40 +586,44 @@ function buildStrategyHtml(
   const runH = (runDurationMin ?? 0) / 60;
 
   const planSection = (plan: PlanConfig) => {
-    let html = `<section class="plan"><h2>${plan.label}</h2><p class="desc">${plan.description}</p>`;
+    const effIF = plan.intensityFactor * conditionsFactor;
+    let html = `<section class="plan"><h2>${plan.label}${conditionsFactor < 1 ? ` <span style="font-size:10px;color:#b45309;">(ajusté conditions ×${conditionsFactor.toFixed(3)})</span>` : ""}</h2><p class="desc">${plan.description}</p>`;
 
     if (hasBike && include.bike) {
-      const bw = bikeWatts(bikeEnvelope!, ftp!, plan.intensityFactor);
-      const segs = bikeSegments(bikeEnvelope!, ftp!, plan.intensityFactor);
+      const bw = bikeWatts(bikeEnvelope!, ftp!, effIF);
+      const segs = bikeSegments(bikeEnvelope!, ftp!, effIF);
       html += `<h3>Vélo</h3>
         <table class="kv"><tbody>
           <tr><th>Puissance cible (NP)</th><td>${bw.targetW} W</td><th>Plage</th><td>${bw.rangeW[0]}–${bw.rangeW[1]} W</td></tr>
           <tr><th>IF</th><td>${bw.if}</td><th>Plafond montées</th><td>≤ ${bw.capClimbW} W</td></tr>
-          <tr><th>FC indicative</th><td colspan="3">${fcZone(bikeEnvelope!.boundary.centerPct * plan.intensityFactor)}</td></tr>
+          <tr><th>FC indicative</th><td colspan="3">${fcZone(bikeEnvelope!.boundary.centerPct * effIF)}</td></tr>
         </tbody></table>
-        <table class="seg"><thead><tr><th>Segment</th><th>Cible</th><th>Plage</th><th>Note</th></tr></thead><tbody>
-          ${segs.map(s => `<tr><td>${s.label}</td><td>${s.targetW} W</td><td>${s.rangeW[0]}–${s.rangeW[1]} W</td><td>${s.note}</td></tr>`).join("")}
+        <table class="seg"><thead><tr><th>Segment</th><th>Cible</th><th>Plage</th><th>Cadence</th><th>Note</th></tr></thead><tbody>
+          ${segs.map(s => `<tr><td>${s.label}</td><td>${s.targetW} W</td><td>${s.rangeW[0]}–${s.rangeW[1]} W</td><td>${bikeCadence(s.label)}</td><td>${s.note}</td></tr>`).join("")}
         </tbody></table>`;
     }
 
     if (hasRun && include.run) {
-      const p = runPace(runEnvelope!, paceThresholdSecKm!, plan.intensityFactor);
+      const p = runPace(runEnvelope!, paceThresholdSecKm!, effIF);
       const deltaPct = (raceObjective === "Marathon" || raceObjective === "10km")
         ? computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct
         : 1.2;
       const segs = paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, raceObjective);
+      const baseSpm = raceObjective === "Marathon" ? 178 : 182;
       html += `<h3>Course à pied</h3>
         <table class="kv"><tbody>
           <tr><th>Allure cible</th><td>${fmtPaceSecKm(p.targetPaceSec)}</td><th>Plage</th><td>${fmtPaceSecKm(p.rangePaceSec[0])} – ${fmtPaceSecKm(p.rangePaceSec[1])}</td></tr>
           <tr><th>Plafond</th><td colspan="3">+ rapide que ${fmtPaceSecKm(p.cap)}</td></tr>
           <tr><th>Stratégie</th><td colspan="3">${splitLabel(plan.splitBias, deltaPct)}</td></tr>
         </tbody></table>
-        <table class="seg"><thead><tr><th>Segment</th><th>Allure cible</th><th>Tolérance</th></tr></thead><tbody>
-          ${segs.map(s => `<tr><td>${s.label}</td><td>${fmtPaceSecKm(s.paceSec)}</td><td>± 3 s/km</td></tr>`).join("")}
+        <table class="seg"><thead><tr><th>Segment</th><th>Allure cible</th><th>Tolérance</th><th>Cadence</th></tr></thead><tbody>
+          ${segs.map((s, i) => {
+            const drift = i === 0 ? -2 : i === segs.length - 1 ? +2 : 0;
+            return `<tr><td>${s.label}</td><td>${fmtPaceSecKm(s.paceSec)}</td><td>± 3 s/km</td><td>${baseSpm + drift}–${baseSpm + drift + 4} spm</td></tr>`;
+          }).join("")}
         </tbody></table>`;
     }
 
-    // Nutrition
     if (include.nutrition) {
       const nutriRow = (sport: "velo" | "cap", durationH: number, label: string, vla: number | null, intensityPct: number) => {
         if (durationH <= 0) return "";
@@ -643,8 +647,8 @@ function buildStrategyHtml(
           <td>${eauMl} ml eau</td>
         </tr>`;
       };
-      const bikeNutri = hasBike && bikeH > 0 ? nutriRow("velo", bikeH, "Vélo", vlamaxBike ?? null, bikeIntensityPct * plan.intensityFactor) : "";
-      const runNutri = hasRun && runH > 0 ? nutriRow("cap", runH, "Course", vlamaxRun ?? null, runIntensityPct * plan.intensityFactor) : "";
+      const bikeNutri = hasBike && bikeH > 0 ? nutriRow("velo", bikeH, "Vélo", vlamaxBike ?? null, bikeIntensityPct * effIF) : "";
+      const runNutri = hasRun && runH > 0 ? nutriRow("cap", runH, "Course", vlamaxRun ?? null, runIntensityPct * effIF) : "";
       if (bikeNutri || runNutri) {
         html += `<h3>Nutrition</h3>
           <table class="seg"><thead><tr><th>Segment</th><th>CHO/h</th><th>Total</th><th>Gels</th><th>Barres</th><th>Iso</th><th>Eau</th></tr></thead><tbody>
@@ -654,13 +658,31 @@ function buildStrategyHtml(
       }
     }
 
+    if (plan.key === "A") {
+      html += `<h3>Critères de bascule Plan A → Plan B</h3>
+        <table class="seg"><thead><tr><th>Signal</th><th>Seuil</th><th>Action</th></tr></thead><tbody>
+          <tr><td>Dérive FC à puissance/allure constante</td><td>≥ +8 bpm sur 10 min</td><td>Bascule Plan B</td></tr>
+          <tr><td>Ratio Puissance / FC</td><td>Chute &gt; 8%</td><td>Bascule Plan B</td></tr>
+          <tr><td>Perte de cadence (run)</td><td>≥ −5 spm vs cible</td><td>Bascule Plan B</td></tr>
+          <tr><td>Perte de cadence (vélo)</td><td>&lt; 70 rpm soutenu hors mur</td><td>Changer braquet, sinon Plan B</td></tr>
+          <tr><td>Écœurement / crampes naissantes</td><td>Apparition franche</td><td>Plan B nutrition liquide + −5% IF</td></tr>
+          <tr><td>Chaleur non anticipée</td><td>&gt; 28 °C</td><td>Plan B + +200 mL/h</td></tr>
+          <tr><td>RPE déconnecté</td><td>RPE ≥ 8 sur Plan A</td><td>Bascule Plan B immédiate</td></tr>
+        </tbody></table>
+        <p class="warn">Règle des 2/3 : 2 critères en &lt; 10 min ou 3 sur la course → bascule Plan B sans hésiter.</p>`;
+    }
+
     if (plan.key === "B") {
-      html += `<p class="warn"><strong>Quand basculer Plan B ?</strong> FC qui décroche &gt; 8 bpm sous cible pour la même puissance, écœurement nutritionnel, crampes naissantes, perte de cadence &gt; 5 spm, ou chaleur &gt; 28 °C non anticipée. Réduire l'intensité, passer aux liquides, relancer doucement après 10 min.</p>`;
+      html += `<p class="warn"><strong>Protocole de bascule.</strong> Réduire l'intensité à l'IF Plan B affiché, passer aux liquides, relancer doucement après 10 min. Si 2 critères restent actifs après 15 min, mode "finish only" : −5% IF supplémentaire, marche en côte autorisée.</p>`;
     }
 
     html += `</section>`;
     return html;
   };
+
+  const conditionsBanner = conditionsReasons.length > 0
+    ? `<div class="meta" style="background:#fef3c7;border-left:3px solid #d97706;padding:6px 8px;color:#92400e;">Conditions appliquées : ${conditionsReasons.join(" · ")} (dérate IF ×${conditionsFactor.toFixed(3)})</div>`
+    : "";
 
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"/>
 <title>Stratégie ${raceObjective} — TFCL™</title>
