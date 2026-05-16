@@ -181,8 +181,9 @@ function derateFromConditions(elevationGainM: number | null | undefined, heatC: 
   else if (elev >= 800) { factor *= 0.985; reasons.push(`Terrain ${elev} m D+ : −1.5% IF`); }
   const heat = heatC ?? null;
   if (heat != null) {
-    if (heat >= 32) { factor *= 0.96; reasons.push(`Chaleur ≥ 32 °C : −4% IF`); }
-    else if (heat >= 28) { factor *= 0.98; reasons.push(`Chaleur ${heat} °C : −2% IF`); }
+    // Calibration Périard 2015 (heat stress) : −6% IF à ≥32 °C, −3% à ≥28 °C.
+    if (heat >= 32) { factor *= 0.94; reasons.push(`Chaleur ≥ 32 °C : −6% IF (Périard 2015)`); }
+    else if (heat >= 28) { factor *= 0.97; reasons.push(`Chaleur ${heat} °C : −3% IF (Périard 2015)`); }
   }
   return { factor: +factor.toFixed(4), reasons };
 }
