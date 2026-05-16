@@ -198,11 +198,9 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
         ].filter(v => v !== null);
         rawData.bestDistance = bestSprint;
         rawData.estimatedVlamax = estimatedVlamax;
-        if (estimatedVlamax) {
-          snapshotUpdates.vlamax_run = estimatedVlamax;
-          snapshotUpdates.vlamax_source = "CAP_FIELD";
-          snapshotUpdates.vlamax_protocol = `Sprint 15s CAP (${bestSprint}m)`;
-        }
+        // NOTE: on n'écrit plus snapshot.vlamax_run depuis le sprint 15s.
+        // Le sprint reste un signal alimentant `vlamaxCapEstimator` (multi-sources)
+        // via `sprint_15s_distance`. Voir mémoire `cap-vlamax-unified-source`.
         
       } else if (dayKey === "D3") {
         testType = "VMA";

@@ -97,11 +97,15 @@ export function CAPTestingWeekPage() {
     return Math.round((done / total) * 100);
   }, [completionStatus, activeSnapshot]);
 
-  // VLamax CAP : prioriser la valeur effective stockée (moteur unifié multi-sources :
-  // sprint + power + Modèle C inverse), sinon fallback estimation rapide sprint 15s.
+  // VLamax CAP affichée :
+  //  - si un test labo (lactate) a renseigné `vlamax_run` avec source labo → on l'affiche comme "mesurée"
+  //  - sinon on calcule une estimation rapide à partir de sprint_15s_distance (visualisation seule,
+  //    cette valeur n'est plus écrite dans le snapshot — voir mémoire `cap-vlamax-unified-source`)
   const vlamaxDisplay = useMemo(() => {
     const stored = (activeSnapshot as any)?.vlamax_run as number | null | undefined;
-    if (stored != null && stored > 0) {
+    const source = (activeSnapshot as any)?.vlamax_source as string | null | undefined;
+    const isLabMeasured = !!source && /lab|lactate/i.test(source);
+    if (isLabMeasured && stored != null && stored > 0) {
       return { value: Math.round(stored * 100) / 100, source: "measured" as const };
     }
     const dist = activeSnapshot?.sprint_15s_distance;
