@@ -689,6 +689,14 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
   const resetOverride = (planK: PlanKey, sport: "velo" | "cap") =>
     setNutriOverrides((prev) => { const { [overrideKey(planK, sport)]: _, ...rest } = prev; return rest; });
 
+  // Sections à inclure dans l'export PDF
+  const [exportSections, setExportSections] = React.useState<ExportSections>({
+    bike: hasBike,
+    run: hasRun,
+    nutrition: true,
+  });
+  const noneSelected = !exportSections.bike && !exportSections.run && !exportSections.nutrition;
+
   return (
     <Card className={cn("border-2 border-primary/30", className)}>
       <CardHeader className="pb-3">
