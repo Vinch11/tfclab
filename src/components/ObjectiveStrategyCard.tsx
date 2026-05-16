@@ -123,17 +123,29 @@ function bikeWatts(envelope: PacingEnvelopeResult, ftp: number, intensityFactor:
   };
 }
 
-function runPace(envelope: PacingEnvelopeResult, paceThr: number, intensityFactor: number) {
+function runPace(envelope: PacingEnvelopeResult, paceThr: number, intensityFactor: number, format?: RaceObjective) {
   // En course, "haut %" = plus rapide. centerPct est le % du seuil tenable.
   const center = envelope.boundary.centerPct * intensityFactor; // ex: 95
   const low = envelope.boundary.lowPct * intensityFactor;
   const high = envelope.boundary.highPct * intensityFactor;
   // pace = paceThr / fraction
   const targetSec = paceThr / (center / 100);
+
+  // Plafond run : toleratedPct brut = burst anaérobie (~120%), pertinent uniquement courte distance.
+  // Pour longue distance on borne à high + petite marge pour éviter d'afficher un plafond
+  // beaucoup plus rapide que la plage (ex: plafond 4:10 vs plage 5:08–5:31).
+  const capMarginPct =
+    format === "IM" ? 2 :
+    format === "70.3" ? 2 :
+    format === "Marathon" ? 3 :
+    format === "Semi" ? 4 :
+    /* 10km, Trail, défaut */ 6;
+  const cappedToleratedPct = Math.min(envelope.boundary.toleratedPct * intensityFactor, high + capMarginPct);
+
   return {
     targetPaceSec: targetSec,
     rangePaceSec: [paceThr / (high / 100), paceThr / (low / 100)] as [number, number], // [plus rapide, plus lent]
-    cap: paceThr / ((envelope.boundary.toleratedPct * intensityFactor) / 100),
+    cap: paceThr / (cappedToleratedPct / 100),
   };
 }
 
@@ -418,7 +430,7 @@ function RunBlock({
   conditionsFactor?: number;
 }) {
   const effIF = plan.intensityFactor * conditionsFactor;
-  const p = runPace(envelope, paceThr, effIF);
+  const p = runPace(envelope, paceThr, effIF, format);
   const deltaPct = React.useMemo(() => {
     if (format === "Marathon" || format === "10km") {
       return computeNegativeSplitDelta(format, vlamax, tteMin, durationMin).targetPct;
@@ -636,7 +648,7 @@ function buildStrategyHtml(
     }
 
     if (hasRun && include.run) {
-      const p = runPace(runEnvelope!, paceThresholdSecKm!, effIF);
+      const p = runPace(runEnvelope!, paceThresholdSecKm!, effIF, raceObjective);
       const deltaPct = (raceObjective === "Marathon" || raceObjective === "10km")
         ? computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct
         : 1.2;
