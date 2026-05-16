@@ -126,12 +126,20 @@ function bikeWatts(envelope: PacingEnvelopeResult, ftp: number, intensityFactor:
   };
 }
 
+// Ratio vCS/VMA ≈ 0.90 (cf. pacingEnvelopeEngine VCS_OVER_VMA_RATIO).
+// Le moteur d'enveloppe expose centerPct en %VMA pour le run ; on doit convertir en %seuil
+// (paceThr = allure seuil) pour produire une allure cible cohérente.
+const VCS_OVER_VMA = 0.90;
+
 function runPace(envelope: PacingEnvelopeResult, paceThr: number, intensityFactor: number, format?: RaceObjective) {
-  // En course, "haut %" = plus rapide. centerPct est le % du seuil tenable.
-  const center = envelope.boundary.centerPct * intensityFactor; // ex: 95
-  const low = envelope.boundary.lowPct * intensityFactor;
-  const high = envelope.boundary.highPct * intensityFactor;
-  // pace = paceThr / fraction
+  // Fix unité : pour le run, l'enveloppe expose des % de VMA. paceThr est l'allure seuil.
+  // pctSeuil = pctVMA / VCS_OVER_VMA  (un % de VMA donne un % de seuil plus élevé, car seuil < VMA).
+  const toPctSeuil = (pct: number) => (envelope.sport === "run" ? pct / VCS_OVER_VMA : pct);
+
+  const center = toPctSeuil(envelope.boundary.centerPct) * intensityFactor;
+  const low = toPctSeuil(envelope.boundary.lowPct) * intensityFactor;
+  const high = toPctSeuil(envelope.boundary.highPct) * intensityFactor;
+  // pace = paceThr / fraction (haut % = plus rapide en course)
   const targetSec = paceThr / (center / 100);
 
   // Plafond run : toleratedPct brut = burst anaérobie (~120%), pertinent uniquement courte distance.
@@ -143,7 +151,10 @@ function runPace(envelope: PacingEnvelopeResult, paceThr: number, intensityFacto
     format === "Marathon" ? 3 :
     format === "Semi" ? 4 :
     /* 10km, Trail, défaut */ 6;
-  const cappedToleratedPct = Math.min(envelope.boundary.toleratedPct * intensityFactor, high + capMarginPct);
+  const cappedToleratedPct = Math.min(
+    toPctSeuil(envelope.boundary.toleratedPct) * intensityFactor,
+    high + capMarginPct
+  );
 
   return {
     targetPaceSec: targetSec,
