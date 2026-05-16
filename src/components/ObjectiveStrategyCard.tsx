@@ -350,11 +350,20 @@ function SegmentsTable({ rows, cadenceHeader = "Cadence" }: { rows: { label: str
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
 function BikeBlock({
-  envelope, ftp, plan, conditionsFactor = 1,
-}: { envelope: PacingEnvelopeResult; ftp: number; plan: PlanConfig; conditionsFactor?: number }) {
-  const effIF = plan.intensityFactor * conditionsFactor;
+  envelope, ftp, plan, conditionsFactor = 1, raceObjective, ambition, wPrimeJ,
+}: {
+  envelope: PacingEnvelopeResult; ftp: number; plan: PlanConfig; conditionsFactor?: number;
+  raceObjective?: RaceObjective; ambition?: string | null; wPrimeJ?: number | null;
+}) {
+  // Audit Lit. — 70.3 Plan A : +2 pts FTP sur centre nominal pour competitor/elite (Coggan/Allen 0.84–0.88 pros).
+  const planABoost = (
+    plan.key === "A" &&
+    raceObjective === "70.3" &&
+    (ambition === "competitor" || ambition === "elite")
+  ) ? 1.025 : 1; // ~+2.5% sur le centre ≈ +2 pts FTP autour de 80%
+  const effIF = plan.intensityFactor * conditionsFactor * planABoost;
   const w = bikeWatts(envelope, ftp, effIF);
-  const segs = bikeSegments(envelope, ftp, effIF);
+  const segs = bikeSegments(envelope, ftp, effIF, { wPrimeJ, allowMurOverload: true });
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
