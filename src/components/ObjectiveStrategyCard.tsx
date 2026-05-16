@@ -714,15 +714,62 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
             <Badge variant="outline" className="text-[10px]">
               {isTri ? "Triathlon" : raceObjective}
             </Badge>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 px-2 text-[11px] gap-1"
-              onClick={() => downloadStrategyPdf(props, nutriOverrides)}
-            >
-              <Download className="h-3.5 w-3.5" />
-              PDF
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="outline" className="h-7 px-2 text-[11px] gap-1">
+                  <Download className="h-3.5 w-3.5" />
+                  PDF
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-60 p-3 space-y-2">
+                <div className="text-xs font-semibold">Sections à exporter</div>
+                <div className="space-y-1.5">
+                  {hasBike && (
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="export-bike"
+                        checked={exportSections.bike}
+                        onCheckedChange={(v) => setExportSections((s) => ({ ...s, bike: v === true }))}
+                      />
+                      <Label htmlFor="export-bike" className="text-xs cursor-pointer flex items-center gap-1.5">
+                        <Bike className="h-3.5 w-3.5 text-primary" /> Vélo
+                      </Label>
+                    </div>
+                  )}
+                  {hasRun && (
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="export-run"
+                        checked={exportSections.run}
+                        onCheckedChange={(v) => setExportSections((s) => ({ ...s, run: v === true }))}
+                      />
+                      <Label htmlFor="export-run" className="text-xs cursor-pointer flex items-center gap-1.5">
+                        <Footprints className="h-3.5 w-3.5 text-primary" /> Course (CAP)
+                      </Label>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="export-nutri"
+                      checked={exportSections.nutrition}
+                      onCheckedChange={(v) => setExportSections((s) => ({ ...s, nutrition: v === true }))}
+                    />
+                    <Label htmlFor="export-nutri" className="text-xs cursor-pointer flex items-center gap-1.5">
+                      <Apple className="h-3.5 w-3.5 text-primary" /> Nutrition
+                    </Label>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full h-7 text-[11px] gap-1"
+                  disabled={noneSelected}
+                  onClick={() => downloadStrategyPdf(props, nutriOverrides, exportSections)}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Exporter
+                </Button>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </CardHeader>
