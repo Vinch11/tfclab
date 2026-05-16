@@ -783,6 +783,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
     vlamaxBike, vlamaxRun, vo2max, tteMin,
     bikeDurationMin, runDurationMin,
     elevationGainM: elevationGainMProp, heatC: heatCProp,
+    ambition, wPrimeJ,
     className,
   } = props;
 
