@@ -628,8 +628,12 @@ ${PLANS.map(planSection).join("")}
 </body></html>`;
 }
 
-function downloadStrategyPdf(props: ObjectiveStrategyCardProps, overrides: Record<string, NutriOverride>) {
-  const html = buildStrategyHtml(props, overrides);
+function downloadStrategyPdf(
+  props: ObjectiveStrategyCardProps,
+  overrides: Record<string, NutriOverride>,
+  include: ExportSections,
+) {
+  const html = buildStrategyHtml(props, overrides, include);
   const win = window.open("", "_blank", "width=900,height=1200");
   if (!win) {
     const blob = new Blob([html], { type: "text/html" });
