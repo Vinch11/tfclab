@@ -862,7 +862,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                   size="sm"
                   className="w-full h-7 text-[11px] gap-1"
                   disabled={noneSelected}
-                  onClick={() => downloadStrategyPdf(props, nutriOverrides, exportSections)}
+                  onClick={() => downloadStrategyPdf(props, nutriOverrides, exportSections, conditions.factor, conditions.reasons)}
                 >
                   <Download className="h-3.5 w-3.5" />
                   Exporter
