@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Bike, Footprints, Apple, Target, AlertTriangle, ShieldCheck, Download } from "lucide-react";
+import { Bike, Footprints, Apple, Target, AlertTriangle, ShieldCheck, Download, Mountain, Thermometer, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,6 +47,10 @@ interface ObjectiveStrategyCardProps {
   /** Durées par segment (min) — utilisées pour la nutrition */
   bikeDurationMin?: number | null;
   runDurationMin?: number | null;
+
+  /** P3 — Conditions de course (modulent l'IF Plan A/B) */
+  elevationGainM?: number | null;
+  heatC?: number | null;
 
   className?: string;
 }
@@ -164,6 +168,36 @@ function splitLabel(bias: PlanConfig["splitBias"], deltaPct: number): string {
   return "Even split (allure stable du début à la fin)";
 }
 
+// P3 — Dérate IF selon conditions (terrain + chaleur)
+// Renvoie un multiplicateur ≤ 1 à appliquer en plus du intensityFactor du plan.
+function derateFromConditions(elevationGainM: number | null | undefined, heatC: number | null | undefined): {
+  factor: number;
+  reasons: string[];
+} {
+  let factor = 1;
+  const reasons: string[] = [];
+  const elev = elevationGainM ?? 0;
+  if (elev >= 1500) { factor *= 0.97; reasons.push(`Terrain ≥ 1500 m D+ : −3% IF`); }
+  else if (elev >= 800) { factor *= 0.985; reasons.push(`Terrain ${elev} m D+ : −1.5% IF`); }
+  const heat = heatC ?? null;
+  if (heat != null) {
+    if (heat >= 32) { factor *= 0.96; reasons.push(`Chaleur ≥ 32 °C : −4% IF`); }
+    else if (heat >= 28) { factor *= 0.98; reasons.push(`Chaleur ${heat} °C : −2% IF`); }
+  }
+  return { factor: +factor.toFixed(4), reasons };
+}
+
+// P6 — Cadences cibles vélo par segment
+function bikeCadence(label: string): string {
+  if (label.startsWith("Plat")) return "85–95 rpm";
+  if (label.startsWith("Faux-plat montant")) return "82–90 rpm";
+  if (label.startsWith("Mur")) return "65–75 rpm (force, court)";
+  if (label.startsWith("Côte courte")) return "75–85 rpm";
+  if (label.startsWith("Côte longue")) return "75–82 rpm (min 70)";
+  if (label.startsWith("Descente")) return "≥ 90 rpm relâché";
+  return "—";
+}
+
 // ─── Découpage par segment ────────────────────────────────────────────────────
 
 function runSegmentsForFormat(format: RaceObjective): { label: string; share: number }[] {
@@ -241,6 +275,12 @@ function bikeSegments(envelope: PacingEnvelopeResult, ftp: number, intensityFact
       note: `Plafond strict ≤ ${w(cap)} W. Accepter 5–10 s perdus.`,
     },
     {
+      label: "Mur raide >8% (15–30 s)",
+      targetW: w(Math.min(cap + 8, cap * 1.06)),
+      rangeW: [w(cap), w(Math.min(cap + 12, cap * 1.10))],
+      note: `Brève surcharge tolérée (15–30 s max) : reste sous ${w(Math.min(cap + 12, cap * 1.10))} W, sors assis dès que la pente passe sous 8 %.`,
+    },
+    {
       label: "Côte longue (>5 min)",
       targetW: w(center + 5),
       rangeW: [w(center), w(center + 8)],
@@ -255,26 +295,31 @@ function bikeSegments(envelope: PacingEnvelopeResult, ftp: number, intensityFact
   ];
 }
 
-function SegmentsTable({ rows }: { rows: { label: string; col1: string; col2?: string; note?: string }[] }) {
+function SegmentsTable({ rows, cadenceHeader = "Cadence" }: { rows: { label: string; col1: string; col2?: string; cadence?: string; note?: string }[]; cadenceHeader?: string }) {
+  const hasCadence = rows.some((r) => r.cadence);
+  const cols = hasCadence ? "grid-cols-[1.2fr_1fr_1fr_1fr]" : "grid-cols-[1.2fr_1fr_1fr]";
   return (
     <div className="rounded-md border border-border/40 overflow-hidden">
-      <div className="grid grid-cols-[1.2fr_1fr_1fr] bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground px-2 py-1">
+      <div className={cn("grid bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground px-2 py-1", cols)}>
         <div>Segment</div>
         <div>Cible</div>
         <div>Plage</div>
+        {hasCadence && <div>{cadenceHeader}</div>}
       </div>
       {rows.map((r, i) => (
         <div
           key={i}
           className={cn(
-            "grid grid-cols-[1.2fr_1fr_1fr] px-2 py-1.5 text-[11px]",
+            "grid px-2 py-1.5 text-[11px]",
+            cols,
             i % 2 === 0 ? "bg-background/40" : "bg-muted/10",
           )}
         >
           <div className="font-medium text-foreground">{r.label}</div>
           <div className="font-semibold">{r.col1}</div>
           <div className="text-muted-foreground">{r.col2 ?? "—"}</div>
-          {r.note && <div className="col-span-3 text-[10px] text-muted-foreground italic mt-0.5">{r.note}</div>}
+          {hasCadence && <div className="text-muted-foreground">{r.cadence ?? "—"}</div>}
+          {r.note && <div className={cn("text-[10px] text-muted-foreground italic mt-0.5", hasCadence ? "col-span-4" : "col-span-3")}>{r.note}</div>}
         </div>
       ))}
     </div>
@@ -284,15 +329,19 @@ function SegmentsTable({ rows }: { rows: { label: string; col1: string; col2?: s
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
 function BikeBlock({
-  envelope, ftp, plan,
-}: { envelope: PacingEnvelopeResult; ftp: number; plan: PlanConfig }) {
-  const w = bikeWatts(envelope, ftp, plan.intensityFactor);
-  const segs = bikeSegments(envelope, ftp, plan.intensityFactor);
+  envelope, ftp, plan, conditionsFactor = 1,
+}: { envelope: PacingEnvelopeResult; ftp: number; plan: PlanConfig; conditionsFactor?: number }) {
+  const effIF = plan.intensityFactor * conditionsFactor;
+  const w = bikeWatts(envelope, ftp, effIF);
+  const segs = bikeSegments(envelope, ftp, effIF);
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
         <Bike className="h-4 w-4 text-primary" />
         Stratégie vélo
+        {conditionsFactor < 1 && (
+          <Badge variant="outline" className="text-[9px] ml-auto">Ajusté conditions : ×{conditionsFactor.toFixed(3)}</Badge>
+        )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
         <Metric label="Puissance cible (NP)" value={`${w.targetW} W`} />
@@ -310,22 +359,24 @@ function BikeBlock({
             label: s.label,
             col1: `${s.targetW} W`,
             col2: `${s.rangeW[0]}–${s.rangeW[1]} W`,
+            cadence: bikeCadence(s.label),
             note: s.note,
           }))}
         />
       </div>
 
       <div className="text-[11px] text-muted-foreground leading-relaxed">
-        FC indicative : <strong>{fcZone(envelope.boundary.centerPct * plan.intensityFactor)}</strong>.
+        FC indicative : <strong>{fcZone(envelope.boundary.centerPct * effIF)}</strong>.
         Régularité = <strong>NP très proche de la puissance moyenne (VI &lt; 1.05)</strong>. Dans les côtes,
         ne JAMAIS dépasser le plafond — accepter de perdre 5–10s vs un partenaire.
+        Sur un mur &gt; 8 %, surcharge tolérée 15–30 s puis revenir sous plafond dès que la pente baisse.
       </div>
     </div>
   );
 }
 
 function RunBlock({
-  envelope, paceThr, plan, format, vlamax, tteMin, durationMin,
+  envelope, paceThr, plan, format, vlamax, tteMin, durationMin, conditionsFactor = 1,
 }: {
   envelope: PacingEnvelopeResult;
   paceThr: number;
@@ -334,22 +385,34 @@ function RunBlock({
   vlamax: number | null;
   tteMin: number | null;
   durationMin: number;
+  conditionsFactor?: number;
 }) {
-  const p = runPace(envelope, paceThr, plan.intensityFactor);
-  // Calibration split via helper existant pour Marathon/10km, sinon estimation locale
+  const effIF = plan.intensityFactor * conditionsFactor;
+  const p = runPace(envelope, paceThr, effIF);
   const deltaPct = React.useMemo(() => {
     if (format === "Marathon" || format === "10km") {
       return computeNegativeSplitDelta(format, vlamax, tteMin, durationMin).targetPct;
     }
-    // Semi / segment tri-run : 1.0–1.5% par défaut
     return 1.2;
   }, [format, vlamax, tteMin, durationMin]);
+
+  // P6 — cadence cible run par segment (~spm). Approx selon allure cible et split.
+  const runCadenceForSeg = (idx: number, total: number): string => {
+    // Plus on avance, plus on tient la cadence haute (180-184 spm fin de course).
+    const base = format === "Marathon" ? 178 : 182;
+    const drift = idx === 0 ? -2 : idx === total - 1 ? +2 : 0;
+    return `${base + drift}–${base + drift + 4} spm`;
+  };
+  const segs = paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, format);
 
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
         <Footprints className="h-4 w-4 text-primary" />
         Stratégie course à pied
+        {conditionsFactor < 1 && (
+          <Badge variant="outline" className="text-[9px] ml-auto">Ajusté conditions : ×{conditionsFactor.toFixed(3)}</Badge>
+        )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
         <Metric label="Allure cible" value={fmtPaceSecKm(p.targetPaceSec)} />
@@ -358,12 +421,14 @@ function RunBlock({
       </div>
 
       <div className="space-y-1">
-        <div className="text-[11px] font-semibold text-foreground/80">Allures par segment</div>
+        <div className="text-[11px] font-semibold text-foreground/80">Allures &amp; cadences par segment</div>
         <SegmentsTable
-          rows={paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, format).map((s) => ({
+          cadenceHeader="Cadence"
+          rows={segs.map((s, i) => ({
             label: s.label,
             col1: fmtPaceSecKm(s.paceSec),
             col2: "± 3 s/km",
+            cadence: runCadenceForSeg(i, segs.length),
           }))}
         />
       </div>
@@ -376,7 +441,7 @@ function RunBlock({
         </div>
         <div className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
           Démarrer 3–5 s/km plus lent que l'allure cible sur les 20 premières minutes,
-          retrouver la cible au tiers, accélérer progressivement sur la 2e moitié.
+          retrouver la cible au tiers, accélérer progressivement sur la 2e moitié. Cadence stable, jamais sous −4 spm de la cible.
         </div>
       </div>
     </div>
@@ -503,6 +568,8 @@ function buildStrategyHtml(
   props: ObjectiveStrategyCardProps,
   overrides: Record<string, NutriOverride> = {},
   include: ExportSections = { bike: true, run: true, nutrition: true },
+  conditionsFactor: number = 1,
+  conditionsReasons: string[] = [],
 ): string {
   const {
     raceObjective, bikeEnvelope, runEnvelope,
@@ -519,40 +586,44 @@ function buildStrategyHtml(
   const runH = (runDurationMin ?? 0) / 60;
 
   const planSection = (plan: PlanConfig) => {
-    let html = `<section class="plan"><h2>${plan.label}</h2><p class="desc">${plan.description}</p>`;
+    const effIF = plan.intensityFactor * conditionsFactor;
+    let html = `<section class="plan"><h2>${plan.label}${conditionsFactor < 1 ? ` <span style="font-size:10px;color:#b45309;">(ajusté conditions ×${conditionsFactor.toFixed(3)})</span>` : ""}</h2><p class="desc">${plan.description}</p>`;
 
     if (hasBike && include.bike) {
-      const bw = bikeWatts(bikeEnvelope!, ftp!, plan.intensityFactor);
-      const segs = bikeSegments(bikeEnvelope!, ftp!, plan.intensityFactor);
+      const bw = bikeWatts(bikeEnvelope!, ftp!, effIF);
+      const segs = bikeSegments(bikeEnvelope!, ftp!, effIF);
       html += `<h3>Vélo</h3>
         <table class="kv"><tbody>
           <tr><th>Puissance cible (NP)</th><td>${bw.targetW} W</td><th>Plage</th><td>${bw.rangeW[0]}–${bw.rangeW[1]} W</td></tr>
           <tr><th>IF</th><td>${bw.if}</td><th>Plafond montées</th><td>≤ ${bw.capClimbW} W</td></tr>
-          <tr><th>FC indicative</th><td colspan="3">${fcZone(bikeEnvelope!.boundary.centerPct * plan.intensityFactor)}</td></tr>
+          <tr><th>FC indicative</th><td colspan="3">${fcZone(bikeEnvelope!.boundary.centerPct * effIF)}</td></tr>
         </tbody></table>
-        <table class="seg"><thead><tr><th>Segment</th><th>Cible</th><th>Plage</th><th>Note</th></tr></thead><tbody>
-          ${segs.map(s => `<tr><td>${s.label}</td><td>${s.targetW} W</td><td>${s.rangeW[0]}–${s.rangeW[1]} W</td><td>${s.note}</td></tr>`).join("")}
+        <table class="seg"><thead><tr><th>Segment</th><th>Cible</th><th>Plage</th><th>Cadence</th><th>Note</th></tr></thead><tbody>
+          ${segs.map(s => `<tr><td>${s.label}</td><td>${s.targetW} W</td><td>${s.rangeW[0]}–${s.rangeW[1]} W</td><td>${bikeCadence(s.label)}</td><td>${s.note}</td></tr>`).join("")}
         </tbody></table>`;
     }
 
     if (hasRun && include.run) {
-      const p = runPace(runEnvelope!, paceThresholdSecKm!, plan.intensityFactor);
+      const p = runPace(runEnvelope!, paceThresholdSecKm!, effIF);
       const deltaPct = (raceObjective === "Marathon" || raceObjective === "10km")
         ? computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct
         : 1.2;
       const segs = paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, raceObjective);
+      const baseSpm = raceObjective === "Marathon" ? 178 : 182;
       html += `<h3>Course à pied</h3>
         <table class="kv"><tbody>
           <tr><th>Allure cible</th><td>${fmtPaceSecKm(p.targetPaceSec)}</td><th>Plage</th><td>${fmtPaceSecKm(p.rangePaceSec[0])} – ${fmtPaceSecKm(p.rangePaceSec[1])}</td></tr>
           <tr><th>Plafond</th><td colspan="3">+ rapide que ${fmtPaceSecKm(p.cap)}</td></tr>
           <tr><th>Stratégie</th><td colspan="3">${splitLabel(plan.splitBias, deltaPct)}</td></tr>
         </tbody></table>
-        <table class="seg"><thead><tr><th>Segment</th><th>Allure cible</th><th>Tolérance</th></tr></thead><tbody>
-          ${segs.map(s => `<tr><td>${s.label}</td><td>${fmtPaceSecKm(s.paceSec)}</td><td>± 3 s/km</td></tr>`).join("")}
+        <table class="seg"><thead><tr><th>Segment</th><th>Allure cible</th><th>Tolérance</th><th>Cadence</th></tr></thead><tbody>
+          ${segs.map((s, i) => {
+            const drift = i === 0 ? -2 : i === segs.length - 1 ? +2 : 0;
+            return `<tr><td>${s.label}</td><td>${fmtPaceSecKm(s.paceSec)}</td><td>± 3 s/km</td><td>${baseSpm + drift}–${baseSpm + drift + 4} spm</td></tr>`;
+          }).join("")}
         </tbody></table>`;
     }
 
-    // Nutrition
     if (include.nutrition) {
       const nutriRow = (sport: "velo" | "cap", durationH: number, label: string, vla: number | null, intensityPct: number) => {
         if (durationH <= 0) return "";
@@ -576,8 +647,8 @@ function buildStrategyHtml(
           <td>${eauMl} ml eau</td>
         </tr>`;
       };
-      const bikeNutri = hasBike && bikeH > 0 ? nutriRow("velo", bikeH, "Vélo", vlamaxBike ?? null, bikeIntensityPct * plan.intensityFactor) : "";
-      const runNutri = hasRun && runH > 0 ? nutriRow("cap", runH, "Course", vlamaxRun ?? null, runIntensityPct * plan.intensityFactor) : "";
+      const bikeNutri = hasBike && bikeH > 0 ? nutriRow("velo", bikeH, "Vélo", vlamaxBike ?? null, bikeIntensityPct * effIF) : "";
+      const runNutri = hasRun && runH > 0 ? nutriRow("cap", runH, "Course", vlamaxRun ?? null, runIntensityPct * effIF) : "";
       if (bikeNutri || runNutri) {
         html += `<h3>Nutrition</h3>
           <table class="seg"><thead><tr><th>Segment</th><th>CHO/h</th><th>Total</th><th>Gels</th><th>Barres</th><th>Iso</th><th>Eau</th></tr></thead><tbody>
@@ -587,13 +658,31 @@ function buildStrategyHtml(
       }
     }
 
+    if (plan.key === "A") {
+      html += `<h3>Critères de bascule Plan A → Plan B</h3>
+        <table class="seg"><thead><tr><th>Signal</th><th>Seuil</th><th>Action</th></tr></thead><tbody>
+          <tr><td>Dérive FC à puissance/allure constante</td><td>≥ +8 bpm sur 10 min</td><td>Bascule Plan B</td></tr>
+          <tr><td>Ratio Puissance / FC</td><td>Chute &gt; 8%</td><td>Bascule Plan B</td></tr>
+          <tr><td>Perte de cadence (run)</td><td>≥ −5 spm vs cible</td><td>Bascule Plan B</td></tr>
+          <tr><td>Perte de cadence (vélo)</td><td>&lt; 70 rpm soutenu hors mur</td><td>Changer braquet, sinon Plan B</td></tr>
+          <tr><td>Écœurement / crampes naissantes</td><td>Apparition franche</td><td>Plan B nutrition liquide + −5% IF</td></tr>
+          <tr><td>Chaleur non anticipée</td><td>&gt; 28 °C</td><td>Plan B + +200 mL/h</td></tr>
+          <tr><td>RPE déconnecté</td><td>RPE ≥ 8 sur Plan A</td><td>Bascule Plan B immédiate</td></tr>
+        </tbody></table>
+        <p class="warn">Règle des 2/3 : 2 critères en &lt; 10 min ou 3 sur la course → bascule Plan B sans hésiter.</p>`;
+    }
+
     if (plan.key === "B") {
-      html += `<p class="warn"><strong>Quand basculer Plan B ?</strong> FC qui décroche &gt; 8 bpm sous cible pour la même puissance, écœurement nutritionnel, crampes naissantes, perte de cadence &gt; 5 spm, ou chaleur &gt; 28 °C non anticipée. Réduire l'intensité, passer aux liquides, relancer doucement après 10 min.</p>`;
+      html += `<p class="warn"><strong>Protocole de bascule.</strong> Réduire l'intensité à l'IF Plan B affiché, passer aux liquides, relancer doucement après 10 min. Si 2 critères restent actifs après 15 min, mode "finish only" : −5% IF supplémentaire, marche en côte autorisée.</p>`;
     }
 
     html += `</section>`;
     return html;
   };
+
+  const conditionsBanner = conditionsReasons.length > 0
+    ? `<div class="meta" style="background:#fef3c7;border-left:3px solid #d97706;padding:6px 8px;color:#92400e;">Conditions appliquées : ${conditionsReasons.join(" · ")} (dérate IF ×${conditionsFactor.toFixed(3)})</div>`
+    : "";
 
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"/>
 <title>Stratégie ${raceObjective} — TFCL™</title>
@@ -622,6 +711,7 @@ function buildStrategyHtml(
 <div class="noprint"><button onclick="window.print()">Imprimer / PDF</button></div>
 <h1>Stratégie ${raceObjective} — Plan A & Plan B</h1>
 <div class="meta">Généré le ${new Date().toLocaleDateString("fr-FR")} · Potentiel Physiologique TFCL™</div>
+${conditionsBanner}
 ${PLANS.map(planSection).join("")}
 <div class="footer">Calibrations : Pacing Envelope™ TFCL · Nutrition Mader-Heck (g CHO/h) · Negative split = Hanley 2020 / Casado 2021.</div>
 <script>setTimeout(() => window.print(), 400);</script>
@@ -632,8 +722,10 @@ function downloadStrategyPdf(
   props: ObjectiveStrategyCardProps,
   overrides: Record<string, NutriOverride>,
   include: ExportSections,
+  conditionsFactor: number = 1,
+  conditionsReasons: string[] = [],
 ) {
-  const html = buildStrategyHtml(props, overrides, include);
+  const html = buildStrategyHtml(props, overrides, include, conditionsFactor, conditionsReasons);
   const win = window.open("", "_blank", "width=900,height=1200");
   if (!win) {
     const blob = new Blob([html], { type: "text/html" });
@@ -657,8 +749,15 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
     raceObjective, bikeEnvelope, runEnvelope,
     ftp, paceThresholdSecKm, weightKg,
     vlamaxBike, vlamaxRun, vo2max, tteMin,
-    bikeDurationMin, runDurationMin, className,
+    bikeDurationMin, runDurationMin,
+    elevationGainM: elevationGainMProp, heatC: heatCProp,
+    className,
   } = props;
+
+  // P3 — Conditions de course (terrain + chaleur). Initialisées via props, éditables inline.
+  const [elevationGainM, setElevationGainM] = React.useState<number>(elevationGainMProp ?? 0);
+  const [heatC, setHeatC] = React.useState<number>(heatCProp ?? 22);
+  const conditions = React.useMemo(() => derateFromConditions(elevationGainM, heatC), [elevationGainM, heatC]);
 
   const isTri = raceObjective === "IM" || raceObjective === "70.3";
   const hasBike = !!bikeEnvelope && !!ftp && ftp > 0;
@@ -763,7 +862,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                   size="sm"
                   className="w-full h-7 text-[11px] gap-1"
                   disabled={noneSelected}
-                  onClick={() => downloadStrategyPdf(props, nutriOverrides, exportSections)}
+                  onClick={() => downloadStrategyPdf(props, nutriOverrides, exportSections, conditions.factor, conditions.reasons)}
                 >
                   <Download className="h-3.5 w-3.5" />
                   Exporter
@@ -774,7 +873,56 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-3">
+        {/* P3 — Conditions de course */}
+        <div className="rounded-md border border-border/60 bg-muted/30 p-2.5">
+          <div className="flex items-center gap-2 mb-2 text-xs font-semibold">
+            <Mountain className="h-3.5 w-3.5 text-primary" />
+            Conditions de course
+            {conditions.factor < 1 && (
+              <Badge variant="outline" className="text-[9px] ml-auto">
+                Dérate IF : ×{conditions.factor.toFixed(3)}
+              </Badge>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex items-center gap-2 text-[11px]">
+              <Mountain className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">D+ (m)</span>
+              <input
+                type="number"
+                min={0}
+                step={100}
+                value={elevationGainM}
+                onChange={(e) => setElevationGainM(Math.max(0, Number(e.target.value) || 0))}
+                className="w-20 h-6 rounded border border-border/60 bg-background text-center text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-[11px]">
+              <Thermometer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">Chaleur (°C)</span>
+              <input
+                type="number"
+                min={-5}
+                max={45}
+                step={1}
+                value={heatC}
+                onChange={(e) => setHeatC(Number(e.target.value) || 0)}
+                className="w-20 h-6 rounded border border-border/60 bg-background text-center text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </label>
+          </div>
+          {conditions.reasons.length > 0 ? (
+            <div className="mt-1.5 text-[10px] text-amber-700 dark:text-amber-400">
+              {conditions.reasons.join(" · ")}
+            </div>
+          ) : (
+            <div className="mt-1.5 text-[10px] text-muted-foreground italic">
+              Conditions standards : aucun ajustement appliqué.
+            </div>
+          )}
+        </div>
+
         <Tabs defaultValue="A" className="w-full">
           <TabsList className="grid grid-cols-2 w-full">
             {PLANS.map((p) => (
@@ -786,9 +934,9 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
           </TabsList>
 
           {PLANS.map((plan) => {
-            // Estimation cumulée nutrition pour le résumé tri (vélo + cap)
             const bikeH = (bikeDurationMin ?? 0) / 60;
             const runH = (runDurationMin ?? 0) / 60;
+            const effIF = plan.intensityFactor * conditions.factor;
 
             return (
               <TabsContent key={plan.key} value={plan.key} className="space-y-3 mt-4">
@@ -801,7 +949,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                 </div>
 
                 {hasBike && (
-                  <BikeBlock envelope={bikeEnvelope!} ftp={ftp!} plan={plan} />
+                  <BikeBlock envelope={bikeEnvelope!} ftp={ftp!} plan={plan} conditionsFactor={conditions.factor} />
                 )}
 
                 {hasRun && (
@@ -813,6 +961,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     vlamax={vlamaxRun ?? null}
                     tteMin={tteMin ?? null}
                     durationMin={runDurationMin ?? 0}
+                    conditionsFactor={conditions.factor}
                   />
                 )}
 
@@ -824,7 +973,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     vo2={vo2max ?? null}
                     vlamax={vlamaxBike ?? null}
                     durationH={bikeH}
-                    intensityPct={bikeIntensityPct * plan.intensityFactor}
+                    intensityPct={bikeIntensityPct * effIF}
                     sport="velo"
                     plan={plan}
                     label="vélo"
@@ -840,7 +989,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     vo2={vo2max ?? null}
                     vlamax={vlamaxRun ?? null}
                     durationH={runH}
-                    intensityPct={runIntensityPct * plan.intensityFactor}
+                    intensityPct={runIntensityPct * effIF}
                     sport="cap"
                     plan={plan}
                     label="course"
@@ -850,12 +999,46 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                   />
                 )}
 
+                {/* P2 — Critères de bascule Plan A → Plan B (structurés, toujours visibles côté Plan A) */}
+                {plan.key === "A" && (
+                  <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 space-y-1.5">
+                    <div className="flex items-center gap-2 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
+                      <ArrowRightLeft className="h-3.5 w-3.5" />
+                      Critères de bascule Plan A → Plan B
+                    </div>
+                    <div className="rounded-md border border-border/40 overflow-hidden bg-background/40">
+                      <div className="grid grid-cols-[1.4fr_1fr_1fr] bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground px-2 py-1">
+                        <div>Signal</div>
+                        <div>Seuil</div>
+                        <div>Action</div>
+                      </div>
+                      {[
+                        { sig: "Dérive FC à puissance/allure constante", seuil: "≥ +8 bpm sur 10 min", act: "Bascule Plan B" },
+                        { sig: "Ratio Puissance / FC", seuil: "Chute > 8%", act: "Bascule Plan B" },
+                        { sig: "Perte de cadence (run)", seuil: "≥ −5 spm vs cible", act: "Bascule Plan B" },
+                        { sig: "Perte de cadence (vélo)", seuil: "< 70 rpm soutenu hors mur", act: "Changer braquet, sinon Plan B" },
+                        { sig: "Écœurement / nausée / crampes naissantes", seuil: "Apparition franche", act: "Plan B nutrition (liquide) + −5% IF" },
+                        { sig: "Température ressentie", seuil: "> 28 °C non anticipée", act: "Plan B + +200 mL/h" },
+                        { sig: "RPE déconnecté de la puissance", seuil: "RPE ≥ 8 sur Plan A IF", act: "Bascule Plan B immédiate" },
+                      ].map((r, i) => (
+                        <div key={i} className={cn("grid grid-cols-[1.4fr_1fr_1fr] px-2 py-1.5 text-[10.5px]", i % 2 === 0 ? "bg-background/40" : "bg-muted/10")}>
+                          <div className="font-medium text-foreground">{r.sig}</div>
+                          <div className="text-muted-foreground">{r.seuil}</div>
+                          <div className="text-foreground/90">{r.act}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground italic">
+                      Règle des 2/3 : 2 critères déclenchés en moins de 10 min ou 3 sur la course → bascule Plan B sans hésiter.
+                    </div>
+                  </div>
+                )}
+
                 {plan.key === "B" && (
                   <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-2.5 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
-                    <strong>Quand basculer sur Plan B ?</strong> Frequence cardiaque qui décroche &gt; 8 bpm sous la cible
-                    pour la même puissance, écœurement nutritionnel, crampes naissantes, perte de cadence
-                    &gt; 5 spm, ou chaleur &gt; 28 °C non anticipée. Réduire l'intensité, passer aux liquides,
-                    relancer doucement après 10 min.
+                    <strong>Protocole de bascule.</strong> Réduire l'intensité à l'IF Plan B affiché, passer aux liquides (iso + eau),
+                    relancer progressivement après 10 min. Si 2 critères du tableau ci-dessus restent actifs après 15 min en Plan B,
+                    passer en mode "finish only" : IF −5% supplémentaire, marche en côte autorisée.
                   </div>
                 )}
               </TabsContent>
