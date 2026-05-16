@@ -329,15 +329,19 @@ function SegmentsTable({ rows, cadenceHeader = "Cadence" }: { rows: { label: str
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
 function BikeBlock({
-  envelope, ftp, plan,
-}: { envelope: PacingEnvelopeResult; ftp: number; plan: PlanConfig }) {
-  const w = bikeWatts(envelope, ftp, plan.intensityFactor);
-  const segs = bikeSegments(envelope, ftp, plan.intensityFactor);
+  envelope, ftp, plan, conditionsFactor = 1,
+}: { envelope: PacingEnvelopeResult; ftp: number; plan: PlanConfig; conditionsFactor?: number }) {
+  const effIF = plan.intensityFactor * conditionsFactor;
+  const w = bikeWatts(envelope, ftp, effIF);
+  const segs = bikeSegments(envelope, ftp, effIF);
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
         <Bike className="h-4 w-4 text-primary" />
         Stratégie vélo
+        {conditionsFactor < 1 && (
+          <Badge variant="outline" className="text-[9px] ml-auto">Ajusté conditions : ×{conditionsFactor.toFixed(3)}</Badge>
+        )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
         <Metric label="Puissance cible (NP)" value={`${w.targetW} W`} />
@@ -355,15 +359,17 @@ function BikeBlock({
             label: s.label,
             col1: `${s.targetW} W`,
             col2: `${s.rangeW[0]}–${s.rangeW[1]} W`,
+            cadence: bikeCadence(s.label),
             note: s.note,
           }))}
         />
       </div>
 
       <div className="text-[11px] text-muted-foreground leading-relaxed">
-        FC indicative : <strong>{fcZone(envelope.boundary.centerPct * plan.intensityFactor)}</strong>.
+        FC indicative : <strong>{fcZone(envelope.boundary.centerPct * effIF)}</strong>.
         Régularité = <strong>NP très proche de la puissance moyenne (VI &lt; 1.05)</strong>. Dans les côtes,
         ne JAMAIS dépasser le plafond — accepter de perdre 5–10s vs un partenaire.
+        Sur un mur &gt; 8 %, surcharge tolérée 15–30 s puis revenir sous plafond dès que la pente baisse.
       </div>
     </div>
   );
