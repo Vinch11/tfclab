@@ -436,6 +436,23 @@ function RunBlock({
     if (format === "Marathon" || format === "10km") {
       return computeNegativeSplitDelta(format, vlamax, tteMin, durationMin).targetPct;
     }
+    // Triathlon (70.3 / IM) : TTE / durée run pilote l'agressivité du split
+    // Ratio < 0.6 → split positif prudent ; > 1.0 → negative split modeste.
+    if ((format === "70.3" || format === "IM") && durationMin > 0 && tteMin && tteMin > 0) {
+      const ratio = tteMin / durationMin;
+      // IM: même borne haute plus prudente que 70.3 (course glycogène-limitée)
+      if (format === "IM") {
+        if (ratio < 0.5) return 3.5;        // positif marqué
+        if (ratio < 0.8) return 2.0;        // positif modéré
+        if (ratio < 1.1) return 0.5;        // ~even split
+        return -0.5;                         // negative split modeste (élite-like)
+      }
+      // 70.3
+      if (ratio < 0.5) return 2.5;
+      if (ratio < 0.8) return 1.2;
+      if (ratio < 1.1) return 0.3;
+      return -0.5;
+    }
     return 1.2;
   }, [format, vlamax, tteMin, durationMin]);
 
