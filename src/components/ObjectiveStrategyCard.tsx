@@ -255,12 +255,27 @@ function paceSegments(targetPaceSec: number, bias: PlanConfig["splitBias"], delt
 
 interface BikeSegment { label: string; targetW: number; rangeW: [number, number]; note: string; }
 
-function bikeSegments(envelope: PacingEnvelopeResult, ftp: number, intensityFactor: number): BikeSegment[] {
+function bikeSegments(
+  envelope: PacingEnvelopeResult,
+  ftp: number,
+  intensityFactor: number,
+  opts?: { wPrimeJ?: number | null; allowMurOverload?: boolean }
+): BikeSegment[] {
   const center = envelope.boundary.centerPct * intensityFactor;
   const low = envelope.boundary.lowPct * intensityFactor;
   const high = envelope.boundary.highPct * intensityFactor;
   const cap = envelope.boundary.toleratedPct * intensityFactor;
   const w = (pct: number) => Math.round((pct / 100) * ftp);
+
+  // Audit Lit. — Mur >8% : si W' > 20 kJ, surcharge admissible étendue à +12–15% (15–30 s).
+  const wPrime = opts?.wPrimeJ ?? null;
+  const murOverloadOK = !!opts?.allowMurOverload && wPrime != null && wPrime > 20000;
+  const murCenterPct = murOverloadOK ? Math.min(cap + 12, cap * 1.12) : Math.min(cap + 8, cap * 1.06);
+  const murHighPct = murOverloadOK ? Math.min(cap + 15, cap * 1.15) : Math.min(cap + 12, cap * 1.10);
+  const murNote = murOverloadOK
+    ? `W' ≈ ${(wPrime! / 1000).toFixed(1)} kJ : surcharge tolérée jusqu'à ${w(murHighPct)} W (15–30 s max), remets-toi assis dès que la pente passe sous 8 %.`
+    : `Brève surcharge tolérée (15–30 s max) : reste sous ${w(murHighPct)} W, remets-toi assis dès que la pente passe sous 8 %.`;
+
   return [
     {
       label: "Plat / faux-plat",
@@ -282,9 +297,9 @@ function bikeSegments(envelope: PacingEnvelopeResult, ftp: number, intensityFact
     },
     {
       label: "Mur raide · >8% · 15–30 s",
-      targetW: w(Math.min(cap + 8, cap * 1.06)),
-      rangeW: [w(cap), w(Math.min(cap + 12, cap * 1.10))],
-      note: `Brève surcharge tolérée (15–30 s max) : reste sous ${w(Math.min(cap + 12, cap * 1.10))} W, remets-toi assis dès que la pente passe sous 8 %.`,
+      targetW: w(murCenterPct),
+      rangeW: [w(cap), w(murHighPct)],
+      note: murNote,
     },
     {
       label: "Côte longue · >5 min",
