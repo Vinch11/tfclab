@@ -764,22 +764,6 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
   const hasRun = !!runEnvelope && !!paceThresholdSecKm && paceThresholdSecKm > 0;
   const w = weightKg ?? 70;
 
-  if (!hasBike && !hasRun) {
-    return (
-      <Card className={cn("border-dashed", className)}>
-        <CardHeader>
-          <CardTitle className="text-base">Stratégie objectif</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          Données insuffisantes pour générer une stratégie : il manque la FTP (vélo) et/ou l'allure seuil (course).
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const bikeIntensityPct = bikeEnvelope?.boundary.centerPct ?? 75;
-  const runIntensityPct = runEnvelope?.boundary.centerPct ?? 88;
-
   // Overrides nutrition par (plan, sport)
   const [nutriOverrides, setNutriOverrides] = React.useState<Record<string, NutriOverride>>({});
   const overrideKey = (planK: PlanKey, sport: "velo" | "cap") => `${planK}-${sport}`;
@@ -795,6 +779,22 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
     nutrition: true,
   });
   const noneSelected = !exportSections.bike && !exportSections.run && !exportSections.nutrition;
+
+  if (!hasBike && !hasRun) {
+    return (
+      <Card className={cn("border-dashed", className)}>
+        <CardHeader>
+          <CardTitle className="text-base">Stratégie objectif</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          Données insuffisantes pour générer une stratégie : il manque la FTP (vélo) et/ou l'allure seuil (course).
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const bikeIntensityPct = bikeEnvelope?.boundary.centerPct ?? 75;
+  const runIntensityPct = runEnvelope?.boundary.centerPct ?? 88;
 
   return (
     <Card className={cn("border-2 border-primary/30", className)}>
