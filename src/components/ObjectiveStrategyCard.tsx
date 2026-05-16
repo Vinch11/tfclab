@@ -711,6 +711,7 @@ function buildStrategyHtml(
 <div class="noprint"><button onclick="window.print()">Imprimer / PDF</button></div>
 <h1>Stratégie ${raceObjective} — Plan A & Plan B</h1>
 <div class="meta">Généré le ${new Date().toLocaleDateString("fr-FR")} · Potentiel Physiologique TFCL™</div>
+${conditionsBanner}
 ${PLANS.map(planSection).join("")}
 <div class="footer">Calibrations : Pacing Envelope™ TFCL · Nutrition Mader-Heck (g CHO/h) · Negative split = Hanley 2020 / Casado 2021.</div>
 <script>setTimeout(() => window.print(), 400);</script>
@@ -721,8 +722,10 @@ function downloadStrategyPdf(
   props: ObjectiveStrategyCardProps,
   overrides: Record<string, NutriOverride>,
   include: ExportSections,
+  conditionsFactor: number = 1,
+  conditionsReasons: string[] = [],
 ) {
-  const html = buildStrategyHtml(props, overrides, include);
+  const html = buildStrategyHtml(props, overrides, include, conditionsFactor, conditionsReasons);
   const win = window.open("", "_blank", "width=900,height=1200");
   if (!win) {
     const blob = new Blob([html], { type: "text/html" });
