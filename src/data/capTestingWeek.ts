@@ -468,6 +468,7 @@ export function computeCAPCompletion(snapshot: {
   vma?: number | null;
   pace_threshold_sec_per_km?: number | null;
   tte_observed_min?: number | null;
+  tte_observed_min_run?: number | null;
   running_power_max?: number | null;
   running_power_threshold?: number | null;
   protocol_quality?: number | null;
@@ -496,7 +497,9 @@ export function computeCAPCompletion(snapshot: {
     missingData.push("Allure Seuil (s/km)");
   }
   
-  if (snapshot.tte_observed_min) {
+  // TTE CAP = champ dédié `tte_observed_min_run` (séparé du TTE vélo)
+  const tteCap = snapshot.tte_observed_min_run ?? null;
+  if (tteCap) {
     completedTests.push("D5 - TTE observé");
   } else {
     missingData.push("TTE observé (min)");

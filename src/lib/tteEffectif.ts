@@ -30,6 +30,10 @@ interface ComputeTTEEffectifParams {
   tss_7j?: number | null; // Legacy mapping
   tte_mode?: TTEMode | string | null;
   tte_observed_min?: number | null;
+  /** TTE CAP observé (séparé du TTE vélo). Utilisé quand sport === "run". */
+  tte_observed_min_run?: number | null;
+  /** "bike" (défaut) ou "run" — détermine quel champ TTE observé utiliser. */
+  sport?: "bike" | "run" | null;
   objectif?: string;
   /** F33: Age en années pour ajuster la cible TTE (masters athletes) */
   age?: number | null;
@@ -51,18 +55,27 @@ interface ComputeTTEEffectifParams {
 export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffectif {
   // Normalize tss_7j -> tss_7d (legacy mapping)
   const tss_7d = params.tss_7d ?? params.tss_7j ?? null;
-  const { ftp, tte_mode, tte_observed_min, objectif, age } = params;
+  const { ftp, tte_mode, objectif, age } = params;
+
+  // Sport-aware : on choisit le champ TTE observé pertinent (run vs bike).
+  // Par défaut bike pour préserver le comportement historique.
+  const sport = params.sport ?? "bike";
+  const observedRaw = sport === "run"
+    ? (params.tte_observed_min_run ?? null)
+    : (params.tte_observed_min ?? null);
 
   const target = getTTETargetFromPro(objectif || "", age ?? null);
 
   // A) OBSERVED - Priorité maximale
-  if (tte_mode === "OBSERVED" && tte_observed_min != null && tte_observed_min > 0) {
-    const evaluation = evaluerTTE({ tte_min: tte_observed_min, tteMin: tte_observed_min, source: "observed", confidence: 0.95, label: "" }, objectif || "", age ?? null);
+  // On considère OBSERVED si tte_mode l'indique OU si une valeur est présente
+  // pour le sport demandé (la valeur saisie est par construction observée).
+  if ((tte_mode === "OBSERVED" || observedRaw != null) && observedRaw != null && observedRaw > 0) {
+    const evaluation = evaluerTTE({ tte_min: observedRaw, tteMin: observedRaw, source: "observed", confidence: 0.95, label: "" }, objectif || "", age ?? null);
     return {
-      tte_min: tte_observed_min,
+      tte_min: observedRaw,
       source: "observed",
       confidence: 0.95,
-      label: `${tte_observed_min} min (mesuré)`,
+      label: `${observedRaw} min (mesuré)`,
       target,
       status: evaluation.status,
       status_message: evaluation.message
