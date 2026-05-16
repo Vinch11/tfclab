@@ -667,9 +667,25 @@ function buildStrategyHtml(
 
     if (hasRun && include.run) {
       const p = runPace(runEnvelope!, paceThresholdSecKm!, effIF, raceObjective);
-      const deltaPct = (raceObjective === "Marathon" || raceObjective === "10km")
-        ? computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct
-        : 1.2;
+      const deltaPct = (() => {
+        if (raceObjective === "Marathon" || raceObjective === "10km") {
+          return computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct;
+        }
+        if ((raceObjective === "70.3" || raceObjective === "IM") && (runDurationMin ?? 0) > 0 && tteMin && tteMin > 0) {
+          const ratio = tteMin / (runDurationMin as number);
+          if (raceObjective === "IM") {
+            if (ratio < 0.5) return 3.5;
+            if (ratio < 0.8) return 2.0;
+            if (ratio < 1.1) return 0.5;
+            return -0.5;
+          }
+          if (ratio < 0.5) return 2.5;
+          if (ratio < 0.8) return 1.2;
+          if (ratio < 1.1) return 0.3;
+          return -0.5;
+        }
+        return 1.2;
+      })();
       const segs = paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, raceObjective);
       const baseSpm = raceObjective === "Marathon" ? 178 : 182;
       html += `<h3>Course à pied</h3>
