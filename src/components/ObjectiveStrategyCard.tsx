@@ -20,6 +20,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Bike, Footprints, Apple, Target, AlertTriangle, ShieldCheck, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { computeBaseRateMader } from "@/lib/v2/nutritionUnified";
 import { computeNegativeSplitDelta } from "@/lib/v2/pacingDisciplineRules";
@@ -494,7 +497,13 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 // ─── Export PDF (printable HTML) ──────────────────────────────────────────────
 
-function buildStrategyHtml(props: ObjectiveStrategyCardProps, overrides: Record<string, NutriOverride> = {}): string {
+export interface ExportSections { bike: boolean; run: boolean; nutrition: boolean; }
+
+function buildStrategyHtml(
+  props: ObjectiveStrategyCardProps,
+  overrides: Record<string, NutriOverride> = {},
+  include: ExportSections = { bike: true, run: true, nutrition: true },
+): string {
   const {
     raceObjective, bikeEnvelope, runEnvelope,
     ftp, paceThresholdSecKm, weightKg,
@@ -512,7 +521,7 @@ function buildStrategyHtml(props: ObjectiveStrategyCardProps, overrides: Record<
   const planSection = (plan: PlanConfig) => {
     let html = `<section class="plan"><h2>${plan.label}</h2><p class="desc">${plan.description}</p>`;
 
-    if (hasBike) {
+    if (hasBike && include.bike) {
       const bw = bikeWatts(bikeEnvelope!, ftp!, plan.intensityFactor);
       const segs = bikeSegments(bikeEnvelope!, ftp!, plan.intensityFactor);
       html += `<h3>Vélo</h3>
@@ -526,7 +535,7 @@ function buildStrategyHtml(props: ObjectiveStrategyCardProps, overrides: Record<
         </tbody></table>`;
     }
 
-    if (hasRun) {
+    if (hasRun && include.run) {
       const p = runPace(runEnvelope!, paceThresholdSecKm!, plan.intensityFactor);
       const deltaPct = (raceObjective === "Marathon" || raceObjective === "10km")
         ? computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct
@@ -544,33 +553,39 @@ function buildStrategyHtml(props: ObjectiveStrategyCardProps, overrides: Record<
     }
 
     // Nutrition
-    const nutriRow = (sport: "velo" | "cap", durationH: number, label: string, vla: number | null, intensityPct: number) => {
-      if (durationH <= 0) return "";
-      const { baseRate } = computeBaseRateMader(w, sport, vo2max ?? null, vla, intensityPct, durationH, false);
-      const auto = nutritionItems(baseRate, durationH, plan);
-      const ov = overrides[`${plan.key}-${sport}`] ?? {};
-      const gels = ov.gels ?? auto.gels;
-      const bars = ov.bars ?? auto.bars;
-      const iso = ov.iso ?? auto.iso;
-      const eauMl = ov.eauMl ?? auto.eauMl;
-      const totalCho = gels * 25 + bars * 30 + iso * 30;
-      const perHour = Math.round(totalCho / Math.max(0.1, durationH));
-      const edited = ov.gels != null || ov.bars != null || ov.iso != null || ov.eauMl != null;
-      return `<tr>
-        <th>${label}${edited ? " ✎" : ""}</th>
-        <td>${perHour} g/h</td>
-        <td>${totalCho} g</td>
-        <td>${gels} gels</td>
-        <td>${bars} barres</td>
-        <td>${iso} iso (${iso * 500} ml)</td>
-        <td>${eauMl} ml eau</td>
-      </tr>`;
-    };
-    html += `<h3>Nutrition</h3>
-      <table class="seg"><thead><tr><th>Segment</th><th>CHO/h</th><th>Total</th><th>Gels</th><th>Barres</th><th>Iso</th><th>Eau</th></tr></thead><tbody>
-        ${hasBike && bikeH > 0 ? nutriRow("velo", bikeH, "Vélo", vlamaxBike ?? null, bikeIntensityPct * plan.intensityFactor) : ""}
-        ${hasRun && runH > 0 ? nutriRow("cap", runH, "Course", vlamaxRun ?? null, runIntensityPct * plan.intensityFactor) : ""}
-      </tbody></table>`;
+    if (include.nutrition) {
+      const nutriRow = (sport: "velo" | "cap", durationH: number, label: string, vla: number | null, intensityPct: number) => {
+        if (durationH <= 0) return "";
+        const { baseRate } = computeBaseRateMader(w, sport, vo2max ?? null, vla, intensityPct, durationH, false);
+        const auto = nutritionItems(baseRate, durationH, plan);
+        const ov = overrides[`${plan.key}-${sport}`] ?? {};
+        const gels = ov.gels ?? auto.gels;
+        const bars = ov.bars ?? auto.bars;
+        const iso = ov.iso ?? auto.iso;
+        const eauMl = ov.eauMl ?? auto.eauMl;
+        const totalCho = gels * 25 + bars * 30 + iso * 30;
+        const perHour = Math.round(totalCho / Math.max(0.1, durationH));
+        const edited = ov.gels != null || ov.bars != null || ov.iso != null || ov.eauMl != null;
+        return `<tr>
+          <th>${label}${edited ? " ✎" : ""}</th>
+          <td>${perHour} g/h</td>
+          <td>${totalCho} g</td>
+          <td>${gels} gels</td>
+          <td>${bars} barres</td>
+          <td>${iso} iso (${iso * 500} ml)</td>
+          <td>${eauMl} ml eau</td>
+        </tr>`;
+      };
+      const bikeNutri = hasBike && bikeH > 0 ? nutriRow("velo", bikeH, "Vélo", vlamaxBike ?? null, bikeIntensityPct * plan.intensityFactor) : "";
+      const runNutri = hasRun && runH > 0 ? nutriRow("cap", runH, "Course", vlamaxRun ?? null, runIntensityPct * plan.intensityFactor) : "";
+      if (bikeNutri || runNutri) {
+        html += `<h3>Nutrition</h3>
+          <table class="seg"><thead><tr><th>Segment</th><th>CHO/h</th><th>Total</th><th>Gels</th><th>Barres</th><th>Iso</th><th>Eau</th></tr></thead><tbody>
+            ${bikeNutri}
+            ${runNutri}
+          </tbody></table>`;
+      }
+    }
 
     if (plan.key === "B") {
       html += `<p class="warn"><strong>Quand basculer Plan B ?</strong> FC qui décroche &gt; 8 bpm sous cible pour la même puissance, écœurement nutritionnel, crampes naissantes, perte de cadence &gt; 5 spm, ou chaleur &gt; 28 °C non anticipée. Réduire l'intensité, passer aux liquides, relancer doucement après 10 min.</p>`;
@@ -613,8 +628,12 @@ ${PLANS.map(planSection).join("")}
 </body></html>`;
 }
 
-function downloadStrategyPdf(props: ObjectiveStrategyCardProps, overrides: Record<string, NutriOverride>) {
-  const html = buildStrategyHtml(props, overrides);
+function downloadStrategyPdf(
+  props: ObjectiveStrategyCardProps,
+  overrides: Record<string, NutriOverride>,
+  include: ExportSections,
+) {
+  const html = buildStrategyHtml(props, overrides, include);
   const win = window.open("", "_blank", "width=900,height=1200");
   if (!win) {
     const blob = new Blob([html], { type: "text/html" });
@@ -670,6 +689,14 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
   const resetOverride = (planK: PlanKey, sport: "velo" | "cap") =>
     setNutriOverrides((prev) => { const { [overrideKey(planK, sport)]: _, ...rest } = prev; return rest; });
 
+  // Sections à inclure dans l'export PDF
+  const [exportSections, setExportSections] = React.useState<ExportSections>({
+    bike: hasBike,
+    run: hasRun,
+    nutrition: true,
+  });
+  const noneSelected = !exportSections.bike && !exportSections.run && !exportSections.nutrition;
+
   return (
     <Card className={cn("border-2 border-primary/30", className)}>
       <CardHeader className="pb-3">
@@ -687,15 +714,62 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
             <Badge variant="outline" className="text-[10px]">
               {isTri ? "Triathlon" : raceObjective}
             </Badge>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 px-2 text-[11px] gap-1"
-              onClick={() => downloadStrategyPdf(props, nutriOverrides)}
-            >
-              <Download className="h-3.5 w-3.5" />
-              PDF
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="outline" className="h-7 px-2 text-[11px] gap-1">
+                  <Download className="h-3.5 w-3.5" />
+                  PDF
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-60 p-3 space-y-2">
+                <div className="text-xs font-semibold">Sections à exporter</div>
+                <div className="space-y-1.5">
+                  {hasBike && (
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="export-bike"
+                        checked={exportSections.bike}
+                        onCheckedChange={(v) => setExportSections((s) => ({ ...s, bike: v === true }))}
+                      />
+                      <Label htmlFor="export-bike" className="text-xs cursor-pointer flex items-center gap-1.5">
+                        <Bike className="h-3.5 w-3.5 text-primary" /> Vélo
+                      </Label>
+                    </div>
+                  )}
+                  {hasRun && (
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="export-run"
+                        checked={exportSections.run}
+                        onCheckedChange={(v) => setExportSections((s) => ({ ...s, run: v === true }))}
+                      />
+                      <Label htmlFor="export-run" className="text-xs cursor-pointer flex items-center gap-1.5">
+                        <Footprints className="h-3.5 w-3.5 text-primary" /> Course (CAP)
+                      </Label>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="export-nutri"
+                      checked={exportSections.nutrition}
+                      onCheckedChange={(v) => setExportSections((s) => ({ ...s, nutrition: v === true }))}
+                    />
+                    <Label htmlFor="export-nutri" className="text-xs cursor-pointer flex items-center gap-1.5">
+                      <Apple className="h-3.5 w-3.5 text-primary" /> Nutrition
+                    </Label>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full h-7 text-[11px] gap-1"
+                  disabled={noneSelected}
+                  onClick={() => downloadStrategyPdf(props, nutriOverrides, exportSections)}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Exporter
+                </Button>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </CardHeader>
