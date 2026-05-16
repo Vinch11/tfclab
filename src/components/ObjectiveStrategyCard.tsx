@@ -52,6 +52,11 @@ interface ObjectiveStrategyCardProps {
   elevationGainM?: number | null;
   heatC?: number | null;
 
+  /** Audit Lit. — Niveau d'ambition (module le centre Plan A sur 70.3) */
+  ambition?: "finisher" | "age_group" | "competitor" | "elite" | string | null;
+  /** Audit Lit. — W' (J) pour autoriser la surcharge "mur >8%" si W' > 20 kJ */
+  wPrimeJ?: number | null;
+
   className?: string;
 }
 
@@ -181,8 +186,9 @@ function derateFromConditions(elevationGainM: number | null | undefined, heatC: 
   else if (elev >= 800) { factor *= 0.985; reasons.push(`Terrain ${elev} m D+ : −1.5% IF`); }
   const heat = heatC ?? null;
   if (heat != null) {
-    if (heat >= 32) { factor *= 0.96; reasons.push(`Chaleur ≥ 32 °C : −4% IF`); }
-    else if (heat >= 28) { factor *= 0.98; reasons.push(`Chaleur ${heat} °C : −2% IF`); }
+    // Calibration Périard 2015 (heat stress) : −6% IF à ≥32 °C, −3% à ≥28 °C.
+    if (heat >= 32) { factor *= 0.94; reasons.push(`Chaleur ≥ 32 °C : −6% IF (Périard 2015)`); }
+    else if (heat >= 28) { factor *= 0.97; reasons.push(`Chaleur ${heat} °C : −3% IF (Périard 2015)`); }
   }
   return { factor: +factor.toFixed(4), reasons };
 }
@@ -249,12 +255,27 @@ function paceSegments(targetPaceSec: number, bias: PlanConfig["splitBias"], delt
 
 interface BikeSegment { label: string; targetW: number; rangeW: [number, number]; note: string; }
 
-function bikeSegments(envelope: PacingEnvelopeResult, ftp: number, intensityFactor: number): BikeSegment[] {
+function bikeSegments(
+  envelope: PacingEnvelopeResult,
+  ftp: number,
+  intensityFactor: number,
+  opts?: { wPrimeJ?: number | null; allowMurOverload?: boolean }
+): BikeSegment[] {
   const center = envelope.boundary.centerPct * intensityFactor;
   const low = envelope.boundary.lowPct * intensityFactor;
   const high = envelope.boundary.highPct * intensityFactor;
   const cap = envelope.boundary.toleratedPct * intensityFactor;
   const w = (pct: number) => Math.round((pct / 100) * ftp);
+
+  // Audit Lit. — Mur >8% : si W' > 20 kJ, surcharge admissible étendue à +12–15% (15–30 s).
+  const wPrime = opts?.wPrimeJ ?? null;
+  const murOverloadOK = !!opts?.allowMurOverload && wPrime != null && wPrime > 20000;
+  const murCenterPct = murOverloadOK ? Math.min(cap + 12, cap * 1.12) : Math.min(cap + 8, cap * 1.06);
+  const murHighPct = murOverloadOK ? Math.min(cap + 15, cap * 1.15) : Math.min(cap + 12, cap * 1.10);
+  const murNote = murOverloadOK
+    ? `W' ≈ ${(wPrime! / 1000).toFixed(1)} kJ : surcharge tolérée jusqu'à ${w(murHighPct)} W (15–30 s max), remets-toi assis dès que la pente passe sous 8 %.`
+    : `Brève surcharge tolérée (15–30 s max) : reste sous ${w(murHighPct)} W, remets-toi assis dès que la pente passe sous 8 %.`;
+
   return [
     {
       label: "Plat / faux-plat",
@@ -276,9 +297,9 @@ function bikeSegments(envelope: PacingEnvelopeResult, ftp: number, intensityFact
     },
     {
       label: "Mur raide · >8% · 15–30 s",
-      targetW: w(Math.min(cap + 8, cap * 1.06)),
-      rangeW: [w(cap), w(Math.min(cap + 12, cap * 1.10))],
-      note: `Brève surcharge tolérée (15–30 s max) : reste sous ${w(Math.min(cap + 12, cap * 1.10))} W, remets-toi assis dès que la pente passe sous 8 %.`,
+      targetW: w(murCenterPct),
+      rangeW: [w(cap), w(murHighPct)],
+      note: murNote,
     },
     {
       label: "Côte longue · >5 min",
@@ -329,11 +350,20 @@ function SegmentsTable({ rows, cadenceHeader = "Cadence" }: { rows: { label: str
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
 function BikeBlock({
-  envelope, ftp, plan, conditionsFactor = 1,
-}: { envelope: PacingEnvelopeResult; ftp: number; plan: PlanConfig; conditionsFactor?: number }) {
-  const effIF = plan.intensityFactor * conditionsFactor;
+  envelope, ftp, plan, conditionsFactor = 1, raceObjective, ambition, wPrimeJ,
+}: {
+  envelope: PacingEnvelopeResult; ftp: number; plan: PlanConfig; conditionsFactor?: number;
+  raceObjective?: RaceObjective; ambition?: string | null; wPrimeJ?: number | null;
+}) {
+  // Audit Lit. — 70.3 Plan A : +2 pts FTP sur centre nominal pour competitor/elite (Coggan/Allen 0.84–0.88 pros).
+  const planABoost = (
+    plan.key === "A" &&
+    raceObjective === "70.3" &&
+    (ambition === "competitor" || ambition === "elite")
+  ) ? 1.025 : 1; // ~+2.5% sur le centre ≈ +2 pts FTP autour de 80%
+  const effIF = plan.intensityFactor * conditionsFactor * planABoost;
   const w = bikeWatts(envelope, ftp, effIF);
-  const segs = bikeSegments(envelope, ftp, effIF);
+  const segs = bikeSegments(envelope, ftp, effIF, { wPrimeJ, allowMurOverload: true });
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
@@ -576,6 +606,7 @@ function buildStrategyHtml(
     ftp, paceThresholdSecKm, weightKg,
     vlamaxBike, vlamaxRun, vo2max, tteMin,
     bikeDurationMin, runDurationMin,
+    ambition, wPrimeJ,
   } = props;
   const w = weightKg ?? 70;
   const hasBike = !!bikeEnvelope && !!ftp && ftp > 0;
@@ -586,12 +617,13 @@ function buildStrategyHtml(
   const runH = (runDurationMin ?? 0) / 60;
 
   const planSection = (plan: PlanConfig) => {
-    const effIF = plan.intensityFactor * conditionsFactor;
-    let html = `<section class="plan"><h2>${plan.label}${conditionsFactor < 1 ? ` <span style="font-size:10px;color:#b45309;">(ajusté conditions ×${conditionsFactor.toFixed(3)})</span>` : ""}</h2><p class="desc">${plan.description}</p>`;
+    const planABoost = (plan.key === "A" && raceObjective === "70.3" && (ambition === "competitor" || ambition === "elite")) ? 1.025 : 1;
+    const effIF = plan.intensityFactor * conditionsFactor * planABoost;
+    let html = `<section class="plan"><h2>${plan.label}${conditionsFactor < 1 ? ` <span style="font-size:10px;color:#b45309;">(ajusté conditions ×${conditionsFactor.toFixed(3)})</span>` : ""}${planABoost > 1 ? ` <span style="font-size:10px;color:#047857;">(70.3 ${ambition} : +2 pts FTP)</span>` : ""}</h2><p class="desc">${plan.description}</p>`;
 
     if (hasBike && include.bike) {
       const bw = bikeWatts(bikeEnvelope!, ftp!, effIF);
-      const segs = bikeSegments(bikeEnvelope!, ftp!, effIF);
+      const segs = bikeSegments(bikeEnvelope!, ftp!, effIF, { wPrimeJ, allowMurOverload: true });
       html += `<h3>Vélo</h3>
         <table class="kv"><tbody>
           <tr><th>Puissance cible (NP)</th><td>${bw.targetW} W</td><th>Plage</th><td>${bw.rangeW[0]}–${bw.rangeW[1]} W</td></tr>
@@ -751,6 +783,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
     vlamaxBike, vlamaxRun, vo2max, tteMin,
     bikeDurationMin, runDurationMin,
     elevationGainM: elevationGainMProp, heatC: heatCProp,
+    ambition, wPrimeJ,
     className,
   } = props;
 
@@ -949,7 +982,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                 </div>
 
                 {hasBike && (
-                  <BikeBlock envelope={bikeEnvelope!} ftp={ftp!} plan={plan} conditionsFactor={conditions.factor} />
+                  <BikeBlock envelope={bikeEnvelope!} ftp={ftp!} plan={plan} conditionsFactor={conditions.factor} raceObjective={raceObjective} ambition={ambition} wPrimeJ={wPrimeJ} />
                 )}
 
                 {hasRun && (
