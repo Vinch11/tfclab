@@ -982,7 +982,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                 </div>
 
                 {hasBike && (
-                  <BikeBlock envelope={bikeEnvelope!} ftp={ftp!} plan={plan} conditionsFactor={conditions.factor} />
+                  <BikeBlock envelope={bikeEnvelope!} ftp={ftp!} plan={plan} conditionsFactor={conditions.factor} raceObjective={raceObjective} ambition={ambition} wPrimeJ={wPrimeJ} />)
                 )}
 
                 {hasRun && (
