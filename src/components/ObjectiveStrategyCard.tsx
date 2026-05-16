@@ -521,7 +521,7 @@ function buildStrategyHtml(
   const planSection = (plan: PlanConfig) => {
     let html = `<section class="plan"><h2>${plan.label}</h2><p class="desc">${plan.description}</p>`;
 
-    if (hasBike) {
+    if (hasBike && include.bike) {
       const bw = bikeWatts(bikeEnvelope!, ftp!, plan.intensityFactor);
       const segs = bikeSegments(bikeEnvelope!, ftp!, plan.intensityFactor);
       html += `<h3>Vélo</h3>
@@ -535,7 +535,7 @@ function buildStrategyHtml(
         </tbody></table>`;
     }
 
-    if (hasRun) {
+    if (hasRun && include.run) {
       const p = runPace(runEnvelope!, paceThresholdSecKm!, plan.intensityFactor);
       const deltaPct = (raceObjective === "Marathon" || raceObjective === "10km")
         ? computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct
@@ -553,33 +553,39 @@ function buildStrategyHtml(
     }
 
     // Nutrition
-    const nutriRow = (sport: "velo" | "cap", durationH: number, label: string, vla: number | null, intensityPct: number) => {
-      if (durationH <= 0) return "";
-      const { baseRate } = computeBaseRateMader(w, sport, vo2max ?? null, vla, intensityPct, durationH, false);
-      const auto = nutritionItems(baseRate, durationH, plan);
-      const ov = overrides[`${plan.key}-${sport}`] ?? {};
-      const gels = ov.gels ?? auto.gels;
-      const bars = ov.bars ?? auto.bars;
-      const iso = ov.iso ?? auto.iso;
-      const eauMl = ov.eauMl ?? auto.eauMl;
-      const totalCho = gels * 25 + bars * 30 + iso * 30;
-      const perHour = Math.round(totalCho / Math.max(0.1, durationH));
-      const edited = ov.gels != null || ov.bars != null || ov.iso != null || ov.eauMl != null;
-      return `<tr>
-        <th>${label}${edited ? " ✎" : ""}</th>
-        <td>${perHour} g/h</td>
-        <td>${totalCho} g</td>
-        <td>${gels} gels</td>
-        <td>${bars} barres</td>
-        <td>${iso} iso (${iso * 500} ml)</td>
-        <td>${eauMl} ml eau</td>
-      </tr>`;
-    };
-    html += `<h3>Nutrition</h3>
-      <table class="seg"><thead><tr><th>Segment</th><th>CHO/h</th><th>Total</th><th>Gels</th><th>Barres</th><th>Iso</th><th>Eau</th></tr></thead><tbody>
-        ${hasBike && bikeH > 0 ? nutriRow("velo", bikeH, "Vélo", vlamaxBike ?? null, bikeIntensityPct * plan.intensityFactor) : ""}
-        ${hasRun && runH > 0 ? nutriRow("cap", runH, "Course", vlamaxRun ?? null, runIntensityPct * plan.intensityFactor) : ""}
-      </tbody></table>`;
+    if (include.nutrition) {
+      const nutriRow = (sport: "velo" | "cap", durationH: number, label: string, vla: number | null, intensityPct: number) => {
+        if (durationH <= 0) return "";
+        const { baseRate } = computeBaseRateMader(w, sport, vo2max ?? null, vla, intensityPct, durationH, false);
+        const auto = nutritionItems(baseRate, durationH, plan);
+        const ov = overrides[`${plan.key}-${sport}`] ?? {};
+        const gels = ov.gels ?? auto.gels;
+        const bars = ov.bars ?? auto.bars;
+        const iso = ov.iso ?? auto.iso;
+        const eauMl = ov.eauMl ?? auto.eauMl;
+        const totalCho = gels * 25 + bars * 30 + iso * 30;
+        const perHour = Math.round(totalCho / Math.max(0.1, durationH));
+        const edited = ov.gels != null || ov.bars != null || ov.iso != null || ov.eauMl != null;
+        return `<tr>
+          <th>${label}${edited ? " ✎" : ""}</th>
+          <td>${perHour} g/h</td>
+          <td>${totalCho} g</td>
+          <td>${gels} gels</td>
+          <td>${bars} barres</td>
+          <td>${iso} iso (${iso * 500} ml)</td>
+          <td>${eauMl} ml eau</td>
+        </tr>`;
+      };
+      const bikeNutri = hasBike && bikeH > 0 ? nutriRow("velo", bikeH, "Vélo", vlamaxBike ?? null, bikeIntensityPct * plan.intensityFactor) : "";
+      const runNutri = hasRun && runH > 0 ? nutriRow("cap", runH, "Course", vlamaxRun ?? null, runIntensityPct * plan.intensityFactor) : "";
+      if (bikeNutri || runNutri) {
+        html += `<h3>Nutrition</h3>
+          <table class="seg"><thead><tr><th>Segment</th><th>CHO/h</th><th>Total</th><th>Gels</th><th>Barres</th><th>Iso</th><th>Eau</th></tr></thead><tbody>
+            ${bikeNutri}
+            ${runNutri}
+          </tbody></table>`;
+      }
+    }
 
     if (plan.key === "B") {
       html += `<p class="warn"><strong>Quand basculer Plan B ?</strong> FC qui décroche &gt; 8 bpm sous cible pour la même puissance, écœurement nutritionnel, crampes naissantes, perte de cadence &gt; 5 spm, ou chaleur &gt; 28 °C non anticipée. Réduire l'intensité, passer aux liquides, relancer doucement après 10 min.</p>`;
