@@ -184,6 +184,8 @@ export interface CoachingCompassInput {
   // Effectifs pré-calculés (provenant du Diagnostic Engine)
   vlamaxEffectif: { value: number | null; confidence: number; source: string };
   tteEffectif: { tte_min: number; confidence: number; source: string };
+  /** TTE CAP séparé (course à pied). Pour les triathlons, on prend min(bike,run) pour la durabilité. */
+  tteEffectifRun?: { tte_min: number; confidence: number; source: string } | null;
   fatigueEffectif: { score: number; level: string; confidence: number } | null;
   
   // Limiteur unifié pré-calculé
