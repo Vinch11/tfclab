@@ -430,7 +430,7 @@ function RunBlock({
   conditionsFactor?: number;
 }) {
   const effIF = plan.intensityFactor * conditionsFactor;
-  const p = runPace(envelope, paceThr, effIF);
+  const p = runPace(envelope, paceThr, effIF, format);
   const deltaPct = React.useMemo(() => {
     if (format === "Marathon" || format === "10km") {
       return computeNegativeSplitDelta(format, vlamax, tteMin, durationMin).targetPct;
@@ -648,7 +648,7 @@ function buildStrategyHtml(
     }
 
     if (hasRun && include.run) {
-      const p = runPace(runEnvelope!, paceThresholdSecKm!, effIF);
+      const p = runPace(runEnvelope!, paceThresholdSecKm!, effIF, raceObjective);
       const deltaPct = (raceObjective === "Marathon" || raceObjective === "10km")
         ? computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct
         : 1.2;
