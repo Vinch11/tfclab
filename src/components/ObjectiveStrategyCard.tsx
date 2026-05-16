@@ -376,7 +376,7 @@ function BikeBlock({
 }
 
 function RunBlock({
-  envelope, paceThr, plan, format, vlamax, tteMin, durationMin,
+  envelope, paceThr, plan, format, vlamax, tteMin, durationMin, conditionsFactor = 1,
 }: {
   envelope: PacingEnvelopeResult;
   paceThr: number;
@@ -385,22 +385,34 @@ function RunBlock({
   vlamax: number | null;
   tteMin: number | null;
   durationMin: number;
+  conditionsFactor?: number;
 }) {
-  const p = runPace(envelope, paceThr, plan.intensityFactor);
-  // Calibration split via helper existant pour Marathon/10km, sinon estimation locale
+  const effIF = plan.intensityFactor * conditionsFactor;
+  const p = runPace(envelope, paceThr, effIF);
   const deltaPct = React.useMemo(() => {
     if (format === "Marathon" || format === "10km") {
       return computeNegativeSplitDelta(format, vlamax, tteMin, durationMin).targetPct;
     }
-    // Semi / segment tri-run : 1.0–1.5% par défaut
     return 1.2;
   }, [format, vlamax, tteMin, durationMin]);
+
+  // P6 — cadence cible run par segment (~spm). Approx selon allure cible et split.
+  const runCadenceForSeg = (idx: number, total: number): string => {
+    // Plus on avance, plus on tient la cadence haute (180-184 spm fin de course).
+    const base = format === "Marathon" ? 178 : 182;
+    const drift = idx === 0 ? -2 : idx === total - 1 ? +2 : 0;
+    return `${base + drift}–${base + drift + 4} spm`;
+  };
+  const segs = paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, format);
 
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
         <Footprints className="h-4 w-4 text-primary" />
         Stratégie course à pied
+        {conditionsFactor < 1 && (
+          <Badge variant="outline" className="text-[9px] ml-auto">Ajusté conditions : ×{conditionsFactor.toFixed(3)}</Badge>
+        )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
         <Metric label="Allure cible" value={fmtPaceSecKm(p.targetPaceSec)} />
@@ -409,12 +421,14 @@ function RunBlock({
       </div>
 
       <div className="space-y-1">
-        <div className="text-[11px] font-semibold text-foreground/80">Allures par segment</div>
+        <div className="text-[11px] font-semibold text-foreground/80">Allures &amp; cadences par segment</div>
         <SegmentsTable
-          rows={paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, format).map((s) => ({
+          cadenceHeader="Cadence"
+          rows={segs.map((s, i) => ({
             label: s.label,
             col1: fmtPaceSecKm(s.paceSec),
             col2: "± 3 s/km",
+            cadence: runCadenceForSeg(i, segs.length),
           }))}
         />
       </div>
@@ -427,7 +441,7 @@ function RunBlock({
         </div>
         <div className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
           Démarrer 3–5 s/km plus lent que l'allure cible sur les 20 premières minutes,
-          retrouver la cible au tiers, accélérer progressivement sur la 2e moitié.
+          retrouver la cible au tiers, accélérer progressivement sur la 2e moitié. Cadence stable, jamais sous −4 spm de la cible.
         </div>
       </div>
     </div>
