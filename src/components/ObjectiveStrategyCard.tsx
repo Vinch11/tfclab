@@ -846,7 +846,56 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-3">
+        {/* P3 — Conditions de course */}
+        <div className="rounded-md border border-border/60 bg-muted/30 p-2.5">
+          <div className="flex items-center gap-2 mb-2 text-xs font-semibold">
+            <Mountain className="h-3.5 w-3.5 text-primary" />
+            Conditions de course
+            {conditions.factor < 1 && (
+              <Badge variant="outline" className="text-[9px] ml-auto">
+                Dérate IF : ×{conditions.factor.toFixed(3)}
+              </Badge>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex items-center gap-2 text-[11px]">
+              <Mountain className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">D+ (m)</span>
+              <input
+                type="number"
+                min={0}
+                step={100}
+                value={elevationGainM}
+                onChange={(e) => setElevationGainM(Math.max(0, Number(e.target.value) || 0))}
+                className="w-20 h-6 rounded border border-border/60 bg-background text-center text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-[11px]">
+              <Thermometer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">Chaleur (°C)</span>
+              <input
+                type="number"
+                min={-5}
+                max={45}
+                step={1}
+                value={heatC}
+                onChange={(e) => setHeatC(Number(e.target.value) || 0)}
+                className="w-20 h-6 rounded border border-border/60 bg-background text-center text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </label>
+          </div>
+          {conditions.reasons.length > 0 ? (
+            <div className="mt-1.5 text-[10px] text-amber-700 dark:text-amber-400">
+              {conditions.reasons.join(" · ")}
+            </div>
+          ) : (
+            <div className="mt-1.5 text-[10px] text-muted-foreground italic">
+              Conditions standards : aucun ajustement appliqué.
+            </div>
+          )}
+        </div>
+
         <Tabs defaultValue="A" className="w-full">
           <TabsList className="grid grid-cols-2 w-full">
             {PLANS.map((p) => (
@@ -858,9 +907,9 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
           </TabsList>
 
           {PLANS.map((plan) => {
-            // Estimation cumulée nutrition pour le résumé tri (vélo + cap)
             const bikeH = (bikeDurationMin ?? 0) / 60;
             const runH = (runDurationMin ?? 0) / 60;
+            const effIF = plan.intensityFactor * conditions.factor;
 
             return (
               <TabsContent key={plan.key} value={plan.key} className="space-y-3 mt-4">
@@ -873,7 +922,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                 </div>
 
                 {hasBike && (
-                  <BikeBlock envelope={bikeEnvelope!} ftp={ftp!} plan={plan} />
+                  <BikeBlock envelope={bikeEnvelope!} ftp={ftp!} plan={plan} conditionsFactor={conditions.factor} />
                 )}
 
                 {hasRun && (
@@ -885,6 +934,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     vlamax={vlamaxRun ?? null}
                     tteMin={tteMin ?? null}
                     durationMin={runDurationMin ?? 0}
+                    conditionsFactor={conditions.factor}
                   />
                 )}
 
@@ -896,7 +946,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     vo2={vo2max ?? null}
                     vlamax={vlamaxBike ?? null}
                     durationH={bikeH}
-                    intensityPct={bikeIntensityPct * plan.intensityFactor}
+                    intensityPct={bikeIntensityPct * effIF}
                     sport="velo"
                     plan={plan}
                     label="vélo"
@@ -912,7 +962,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     vo2={vo2max ?? null}
                     vlamax={vlamaxRun ?? null}
                     durationH={runH}
-                    intensityPct={runIntensityPct * plan.intensityFactor}
+                    intensityPct={runIntensityPct * effIF}
                     sport="cap"
                     plan={plan}
                     label="course"
@@ -922,12 +972,46 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                   />
                 )}
 
+                {/* P2 — Critères de bascule Plan A → Plan B (structurés, toujours visibles côté Plan A) */}
+                {plan.key === "A" && (
+                  <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 space-y-1.5">
+                    <div className="flex items-center gap-2 text-[11px] font-semibold text-amber-800 dark:text-amber-300">
+                      <ArrowRightLeft className="h-3.5 w-3.5" />
+                      Critères de bascule Plan A → Plan B
+                    </div>
+                    <div className="rounded-md border border-border/40 overflow-hidden bg-background/40">
+                      <div className="grid grid-cols-[1.4fr_1fr_1fr] bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground px-2 py-1">
+                        <div>Signal</div>
+                        <div>Seuil</div>
+                        <div>Action</div>
+                      </div>
+                      {[
+                        { sig: "Dérive FC à puissance/allure constante", seuil: "≥ +8 bpm sur 10 min", act: "Bascule Plan B" },
+                        { sig: "Ratio Puissance / FC", seuil: "Chute > 8%", act: "Bascule Plan B" },
+                        { sig: "Perte de cadence (run)", seuil: "≥ −5 spm vs cible", act: "Bascule Plan B" },
+                        { sig: "Perte de cadence (vélo)", seuil: "< 70 rpm soutenu hors mur", act: "Changer braquet, sinon Plan B" },
+                        { sig: "Écœurement / nausée / crampes naissantes", seuil: "Apparition franche", act: "Plan B nutrition (liquide) + −5% IF" },
+                        { sig: "Température ressentie", seuil: "> 28 °C non anticipée", act: "Plan B + +200 mL/h" },
+                        { sig: "RPE déconnecté de la puissance", seuil: "RPE ≥ 8 sur Plan A IF", act: "Bascule Plan B immédiate" },
+                      ].map((r, i) => (
+                        <div key={i} className={cn("grid grid-cols-[1.4fr_1fr_1fr] px-2 py-1.5 text-[10.5px]", i % 2 === 0 ? "bg-background/40" : "bg-muted/10")}>
+                          <div className="font-medium text-foreground">{r.sig}</div>
+                          <div className="text-muted-foreground">{r.seuil}</div>
+                          <div className="text-foreground/90">{r.act}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground italic">
+                      Règle des 2/3 : 2 critères déclenchés en moins de 10 min ou 3 sur la course → bascule Plan B sans hésiter.
+                    </div>
+                  </div>
+                )}
+
                 {plan.key === "B" && (
                   <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-2.5 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
-                    <strong>Quand basculer sur Plan B ?</strong> Frequence cardiaque qui décroche &gt; 8 bpm sous la cible
-                    pour la même puissance, écœurement nutritionnel, crampes naissantes, perte de cadence
-                    &gt; 5 spm, ou chaleur &gt; 28 °C non anticipée. Réduire l'intensité, passer aux liquides,
-                    relancer doucement après 10 min.
+                    <strong>Protocole de bascule.</strong> Réduire l'intensité à l'IF Plan B affiché, passer aux liquides (iso + eau),
+                    relancer progressivement après 10 min. Si 2 critères du tableau ci-dessus restent actifs après 15 min en Plan B,
+                    passer en mode "finish only" : IF −5% supplémentaire, marche en côte autorisée.
                   </div>
                 )}
               </TabsContent>
