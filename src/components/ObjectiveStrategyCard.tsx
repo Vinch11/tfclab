@@ -722,8 +722,15 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
     raceObjective, bikeEnvelope, runEnvelope,
     ftp, paceThresholdSecKm, weightKg,
     vlamaxBike, vlamaxRun, vo2max, tteMin,
-    bikeDurationMin, runDurationMin, className,
+    bikeDurationMin, runDurationMin,
+    elevationGainM: elevationGainMProp, heatC: heatCProp,
+    className,
   } = props;
+
+  // P3 — Conditions de course (terrain + chaleur). Initialisées via props, éditables inline.
+  const [elevationGainM, setElevationGainM] = React.useState<number>(elevationGainMProp ?? 0);
+  const [heatC, setHeatC] = React.useState<number>(heatCProp ?? 22);
+  const conditions = React.useMemo(() => derateFromConditions(elevationGainM, heatC), [elevationGainM, heatC]);
 
   const isTri = raceObjective === "IM" || raceObjective === "70.3";
   const hasBike = !!bikeEnvelope && !!ftp && ftp > 0;
