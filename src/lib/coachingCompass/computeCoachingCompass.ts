@@ -123,12 +123,21 @@ function estimateFatMaxFromProfile(ftp: number | null, vlamax: number | null, vo
 }
 
 /**
- * Dérive un score de durabilité à partir de TTE si hrDrift absent.
- * TTE 60min → 90/100, TTE 30min → 50/100, TTE 20min → 30/100.
+ * Dérive un score de durabilité à partir de TTE.
+ * Divisor calibré selon l'objectif — un même TTE n'a pas la même valeur
+ * de durabilité pour un 10K (effort court) et un IM (5h de vélo + marathon).
+ *
+ * Évite qu'un TTE CAP "correct" (ex. 80 min) sature la durabilité pour un
+ * triathlon où la vraie question est la tenue vélo longue durée.
  */
-function deriveDurabilityFromTTE(tteMin: number | null): number | null {
+function deriveDurabilityFromTTE(tteMin: number | null, objectif?: string): number | null {
   if (!tteMin || tteMin <= 0) return null;
-  return Math.max(0, Math.min(100, Math.round((tteMin / 65) * 100)));
+  const divisor =
+    objectif === "IM" ? 120 :        // IM : TTE 120min → 100 (besoin durabilité forte)
+    objectif === "70.3" ? 95 :       // 70.3 : 95min → 100
+    objectif === "Marathon" ? 75 :   // Marathon : 75min → 100
+    65;                              // 10K, semi, défaut
+  return Math.max(0, Math.min(100, Math.round((tteMin / divisor) * 100)));
 }
 
 /**
