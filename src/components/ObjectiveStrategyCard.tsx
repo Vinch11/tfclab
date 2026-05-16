@@ -295,26 +295,31 @@ function bikeSegments(envelope: PacingEnvelopeResult, ftp: number, intensityFact
   ];
 }
 
-function SegmentsTable({ rows }: { rows: { label: string; col1: string; col2?: string; note?: string }[] }) {
+function SegmentsTable({ rows, cadenceHeader = "Cadence" }: { rows: { label: string; col1: string; col2?: string; cadence?: string; note?: string }[]; cadenceHeader?: string }) {
+  const hasCadence = rows.some((r) => r.cadence);
+  const cols = hasCadence ? "grid-cols-[1.2fr_1fr_1fr_1fr]" : "grid-cols-[1.2fr_1fr_1fr]";
   return (
     <div className="rounded-md border border-border/40 overflow-hidden">
-      <div className="grid grid-cols-[1.2fr_1fr_1fr] bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground px-2 py-1">
+      <div className={cn("grid bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground px-2 py-1", cols)}>
         <div>Segment</div>
         <div>Cible</div>
         <div>Plage</div>
+        {hasCadence && <div>{cadenceHeader}</div>}
       </div>
       {rows.map((r, i) => (
         <div
           key={i}
           className={cn(
-            "grid grid-cols-[1.2fr_1fr_1fr] px-2 py-1.5 text-[11px]",
+            "grid px-2 py-1.5 text-[11px]",
+            cols,
             i % 2 === 0 ? "bg-background/40" : "bg-muted/10",
           )}
         >
           <div className="font-medium text-foreground">{r.label}</div>
           <div className="font-semibold">{r.col1}</div>
           <div className="text-muted-foreground">{r.col2 ?? "—"}</div>
-          {r.note && <div className="col-span-3 text-[10px] text-muted-foreground italic mt-0.5">{r.note}</div>}
+          {hasCadence && <div className="text-muted-foreground">{r.cadence ?? "—"}</div>}
+          {r.note && <div className={cn("text-[10px] text-muted-foreground italic mt-0.5", hasCadence ? "col-span-4" : "col-span-3")}>{r.note}</div>}
         </div>
       ))}
     </div>
