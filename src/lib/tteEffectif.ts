@@ -67,9 +67,13 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
   const target = getTTETargetFromPro(objectif || "", age ?? null);
 
   // A) OBSERVED - Priorité maximale
-  // On considère OBSERVED si tte_mode l'indique OU si une valeur est présente
-  // pour le sport demandé (la valeur saisie est par construction observée).
-  if ((tte_mode === "OBSERVED" || observedRaw != null) && observedRaw != null && observedRaw > 0) {
+  // - bike : on conserve le gating historique (tte_mode === "OBSERVED")
+  // - run  : la simple présence de `tte_observed_min_run` suffit (CAPTestSheet
+  //          n'écrit pas tte_mode pour ne pas écraser le mode vélo).
+  const observedGate = sport === "run"
+    ? (observedRaw != null && observedRaw > 0)
+    : (tte_mode === "OBSERVED" && observedRaw != null && observedRaw > 0);
+  if (observedGate && observedRaw != null) {
     const evaluation = evaluerTTE({ tte_min: observedRaw, tteMin: observedRaw, source: "observed", confidence: 0.95, label: "" }, objectif || "", age ?? null);
     return {
       tte_min: observedRaw,
