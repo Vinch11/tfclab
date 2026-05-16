@@ -168,6 +168,36 @@ function splitLabel(bias: PlanConfig["splitBias"], deltaPct: number): string {
   return "Even split (allure stable du début à la fin)";
 }
 
+// P3 — Dérate IF selon conditions (terrain + chaleur)
+// Renvoie un multiplicateur ≤ 1 à appliquer en plus du intensityFactor du plan.
+function derateFromConditions(elevationGainM: number | null | undefined, heatC: number | null | undefined): {
+  factor: number;
+  reasons: string[];
+} {
+  let factor = 1;
+  const reasons: string[] = [];
+  const elev = elevationGainM ?? 0;
+  if (elev >= 1500) { factor *= 0.97; reasons.push(`Terrain ≥ 1500 m D+ : −3% IF`); }
+  else if (elev >= 800) { factor *= 0.985; reasons.push(`Terrain ${elev} m D+ : −1.5% IF`); }
+  const heat = heatC ?? null;
+  if (heat != null) {
+    if (heat >= 32) { factor *= 0.96; reasons.push(`Chaleur ≥ 32 °C : −4% IF`); }
+    else if (heat >= 28) { factor *= 0.98; reasons.push(`Chaleur ${heat} °C : −2% IF`); }
+  }
+  return { factor: +factor.toFixed(4), reasons };
+}
+
+// P6 — Cadences cibles vélo par segment
+function bikeCadence(label: string): string {
+  if (label.startsWith("Plat")) return "85–95 rpm";
+  if (label.startsWith("Faux-plat montant")) return "82–90 rpm";
+  if (label.startsWith("Mur")) return "65–75 rpm (force, court)";
+  if (label.startsWith("Côte courte")) return "75–85 rpm";
+  if (label.startsWith("Côte longue")) return "75–82 rpm (min 70)";
+  if (label.startsWith("Descente")) return "≥ 90 rpm relâché";
+  return "—";
+}
+
 // ─── Découpage par segment ────────────────────────────────────────────────────
 
 function runSegmentsForFormat(format: RaceObjective): { label: string; share: number }[] {
