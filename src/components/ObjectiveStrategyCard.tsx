@@ -18,7 +18,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Bike, Footprints, Apple, Target, AlertTriangle, ShieldCheck, Download, Mountain, Thermometer, ArrowRightLeft } from "lucide-react";
+import { Bike, Footprints, Apple, Target, AlertTriangle, ShieldCheck, Download, Mountain, Thermometer, ArrowRightLeft, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -919,6 +920,28 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {/* Alerte TTE CAP manquant — stratégie course en mode prudent par défaut */}
+        {hasRun && (!tteMin || tteMin <= 0) && (ambition === "competitor" || ambition === "elite") && (
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2.5 flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="text-[11px] sm:text-xs font-semibold text-amber-900 dark:text-amber-200">
+                TTE CAP non renseigné
+              </div>
+              <p className="text-[10.5px] sm:text-[11px] text-amber-900/90 dark:text-amber-200/90 leading-snug">
+                Avec une ambition <strong>{ambition}</strong>, l'absence de TTE course bascule la stratégie run en mode prudent
+                (split, plafond et delta neg/even calibrés par défaut). Renseigne un TTE observé pour sharper le Plan&nbsp;A.
+              </p>
+              <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[11px] gap-1 border-amber-500/50 hover:bg-amber-500/15">
+                <Link to="/diagnostic/tests?tab=library&category=TTE">
+                  Renseigner le TTE CAP
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* P3 — Conditions de course */}
         <div className="rounded-md border border-border/60 bg-muted/30 p-2.5">
           <div className="flex items-center gap-2 mb-2 text-xs font-semibold">
