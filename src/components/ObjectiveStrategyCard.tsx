@@ -48,6 +48,10 @@ interface ObjectiveStrategyCardProps {
   bikeDurationMin?: number | null;
   runDurationMin?: number | null;
 
+  /** P3 — Conditions de course (modulent l'IF Plan A/B) */
+  elevationGainM?: number | null;
+  heatC?: number | null;
+
   className?: string;
 }
 
