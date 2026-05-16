@@ -275,6 +275,12 @@ function bikeSegments(envelope: PacingEnvelopeResult, ftp: number, intensityFact
       note: `Plafond strict ≤ ${w(cap)} W. Accepter 5–10 s perdus.`,
     },
     {
+      label: "Mur raide >8% (15–30 s)",
+      targetW: w(Math.min(cap + 8, cap * 1.06)),
+      rangeW: [w(cap), w(Math.min(cap + 12, cap * 1.10))],
+      note: `Brève surcharge tolérée (15–30 s max) : reste sous ${w(Math.min(cap + 12, cap * 1.10))} W, sors assis dès que la pente passe sous 8 %.`,
+    },
+    {
       label: "Côte longue (>5 min)",
       targetW: w(center + 5),
       rangeW: [w(center), w(center + 8)],
