@@ -606,6 +606,7 @@ function buildStrategyHtml(
     ftp, paceThresholdSecKm, weightKg,
     vlamaxBike, vlamaxRun, vo2max, tteMin,
     bikeDurationMin, runDurationMin,
+    ambition, wPrimeJ,
   } = props;
   const w = weightKg ?? 70;
   const hasBike = !!bikeEnvelope && !!ftp && ftp > 0;
@@ -616,12 +617,13 @@ function buildStrategyHtml(
   const runH = (runDurationMin ?? 0) / 60;
 
   const planSection = (plan: PlanConfig) => {
-    const effIF = plan.intensityFactor * conditionsFactor;
-    let html = `<section class="plan"><h2>${plan.label}${conditionsFactor < 1 ? ` <span style="font-size:10px;color:#b45309;">(ajusté conditions ×${conditionsFactor.toFixed(3)})</span>` : ""}</h2><p class="desc">${plan.description}</p>`;
+    const planABoost = (plan.key === "A" && raceObjective === "70.3" && (ambition === "competitor" || ambition === "elite")) ? 1.025 : 1;
+    const effIF = plan.intensityFactor * conditionsFactor * planABoost;
+    let html = `<section class="plan"><h2>${plan.label}${conditionsFactor < 1 ? ` <span style="font-size:10px;color:#b45309;">(ajusté conditions ×${conditionsFactor.toFixed(3)})</span>` : ""}${planABoost > 1 ? ` <span style="font-size:10px;color:#047857;">(70.3 ${ambition} : +2 pts FTP)</span>` : ""}</h2><p class="desc">${plan.description}</p>`;
 
     if (hasBike && include.bike) {
       const bw = bikeWatts(bikeEnvelope!, ftp!, effIF);
-      const segs = bikeSegments(bikeEnvelope!, ftp!, effIF);
+      const segs = bikeSegments(bikeEnvelope!, ftp!, effIF, { wPrimeJ, allowMurOverload: true });
       html += `<h3>Vélo</h3>
         <table class="kv"><tbody>
           <tr><th>Puissance cible (NP)</th><td>${bw.targetW} W</td><th>Plage</th><td>${bw.rangeW[0]}–${bw.rangeW[1]} W</td></tr>
