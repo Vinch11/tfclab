@@ -900,6 +900,7 @@ export type Database = {
           tss_7d: number | null
           tte_mode: string | null
           tte_observed_min: number | null
+          tte_observed_min_run: number | null
           updated_at: string
           vlamax: number | null
           vlamax_is_reference: boolean | null
@@ -969,6 +970,7 @@ export type Database = {
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
+          tte_observed_min_run?: number | null
           updated_at?: string
           vlamax?: number | null
           vlamax_is_reference?: boolean | null
@@ -1038,6 +1040,7 @@ export type Database = {
           tss_7d?: number | null
           tte_mode?: string | null
           tte_observed_min?: number | null
+          tte_observed_min_run?: number | null
           updated_at?: string
           vlamax?: number | null
           vlamax_is_reference?: boolean | null

@@ -123,21 +123,36 @@ function estimateFatMaxFromProfile(ftp: number | null, vlamax: number | null, vo
 }
 
 /**
- * Dérive un score de durabilité à partir de TTE.
+ * Dérive un score de durabilité à partir du TTE.
  * Divisor calibré selon l'objectif — un même TTE n'a pas la même valeur
  * de durabilité pour un 10K (effort court) et un IM (5h de vélo + marathon).
  *
- * Évite qu'un TTE CAP "correct" (ex. 80 min) sature la durabilité pour un
- * triathlon où la vraie question est la tenue vélo longue durée.
+ * Pour un triathlon, on prend le MIN entre TTE vélo et TTE run quand les deux
+ * sont mesurés : la durabilité réelle est limitée par le maillon faible
+ * (sur un 70.3 il faut tenir à la fois bike et run).
  */
-function deriveDurabilityFromTTE(tteMin: number | null, objectif?: string): number | null {
-  if (!tteMin || tteMin <= 0) return null;
+function deriveDurabilityFromTTE(
+  tteBikeMin: number | null,
+  objectif?: string,
+  tteRunMin?: number | null,
+): number | null {
+  const isTriathlon = objectif === "IM" || objectif === "70.3" || objectif === "Sprint" || objectif === "Olympic";
+
+  // Triathlon : si on a les deux TTE → min (maillon faible). Sinon valeur disponible.
+  let effectiveTte: number | null;
+  if (isTriathlon && tteBikeMin && tteBikeMin > 0 && tteRunMin && tteRunMin > 0) {
+    effectiveTte = Math.min(tteBikeMin, tteRunMin);
+  } else {
+    effectiveTte = (tteBikeMin && tteBikeMin > 0) ? tteBikeMin : (tteRunMin && tteRunMin > 0 ? tteRunMin : null);
+  }
+  if (!effectiveTte || effectiveTte <= 0) return null;
+
   const divisor =
     objectif === "IM" ? 120 :        // IM : TTE 120min → 100 (besoin durabilité forte)
     objectif === "70.3" ? 95 :       // 70.3 : 95min → 100
     objectif === "Marathon" ? 75 :   // Marathon : 75min → 100
     65;                              // 10K, semi, défaut
-  return Math.max(0, Math.min(100, Math.round((tteMin / divisor) * 100)));
+  return Math.max(0, Math.min(100, Math.round((effectiveTte / divisor) * 100)));
 }
 
 /**
@@ -170,7 +185,12 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
   const fatmaxSource = input.fatmax ? "snapshot" : (fatmaxValue ? "estimation" : "unknown");
 
   // Durabilité = expression directe du TTE, calibrée selon l'objectif
-  const durabilityValue = deriveDurabilityFromTTE(input.tteEffectif.tte_min, input.objectif);
+  // Pour les triathlons : min(TTE bike, TTE run) si les deux sont mesurés (maillon faible).
+  const durabilityValue = deriveDurabilityFromTTE(
+    input.tteEffectif.tte_min,
+    input.objectif,
+    input.tteEffectifRun?.tte_min ?? null,
+  );
   const durabilitySource = durabilityValue ? "estimation" : "unknown";
 
   // Économie : running score > dérivé vélo

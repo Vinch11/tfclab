@@ -130,6 +130,20 @@ export default function RaceSimulationPage() {
     });
   }, [activeSnapshot, objectif, selectedAthlete]);
 
+  // TTE CAP séparé (sport="run") — alimente la section run de la stratégie A/B
+  // pour 70.3/IM/courses pures à pied. Évite que le TTE vélo serve de proxy.
+  const tteEffectifRun = React.useMemo(() => {
+    if (!activeSnapshot) return null;
+    return computeTTEEffectif({
+      ftp: activeSnapshot.ftp,
+      tss_7d: activeSnapshot.tss_7d,
+      tte_observed_min_run: (activeSnapshot as any).tte_observed_min_run ?? null,
+      sport: "run",
+      objectif,
+      age: (selectedAthlete as any)?.age ?? (selectedAthlete?.birth_date ? Math.floor((Date.now() - new Date(selectedAthlete.birth_date).getTime()) / (365.25 * 24 * 3600 * 1000)) : null),
+    });
+  }, [activeSnapshot, objectif, selectedAthlete]);
+
   // P2 — Estimation depuis chronos course (Riegel + Daniels VDOT + ACSM + durabilité).
   // Sortie RAW, jamais effective : sert UNIQUEMENT de fallback (paceThreshold absent)
   // et d'overlay de risque via l'indice de durabilité.
@@ -747,6 +761,7 @@ export default function RaceSimulationPage() {
                     vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
                     vo2max={activeSnapshot?.vo2max ?? null}
                     tteMin={tteEffectif?.tte_min ?? null}
+                    tteMinRun={tteEffectifRun?.tte_min ?? null}
                     bikeDurationMin={isTriathlon ? segmentDurationMin.bike : (discipline === 'bike' ? raceDurationMin : null)}
                     runDurationMin={isTriathlon ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : null)}
                   />

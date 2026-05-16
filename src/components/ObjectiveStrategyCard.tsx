@@ -44,6 +44,8 @@ interface ObjectiveStrategyCardProps {
   vlamaxRun?: number | null;
   vo2max?: number | null;
   tteMin?: number | null;
+  /** TTE CAP observé séparé du TTE vélo. Si fourni, prime sur tteMin pour la section run (70.3/IM/run pur). */
+  tteMinRun?: number | null;
 
   /** Durées par segment (min) — utilisées pour la nutrition */
   bikeDurationMin?: number | null;
@@ -634,10 +636,12 @@ function buildStrategyHtml(
   const {
     raceObjective, bikeEnvelope, runEnvelope,
     ftp, paceThresholdSecKm, weightKg,
-    vlamaxBike, vlamaxRun, vo2max, tteMin,
+    vlamaxBike, vlamaxRun, vo2max, tteMin, tteMinRun,
     bikeDurationMin, runDurationMin,
     ambition, wPrimeJ,
   } = props;
+  // Pour la section run : on priorise le TTE CAP si fourni (sinon fallback TTE vélo).
+  const tteRunEffective = (tteMinRun && tteMinRun > 0) ? tteMinRun : (tteMin ?? null);
   const w = weightKg ?? 70;
   const hasBike = !!bikeEnvelope && !!ftp && ftp > 0;
   const hasRun = !!runEnvelope && !!paceThresholdSecKm && paceThresholdSecKm > 0;
@@ -669,10 +673,10 @@ function buildStrategyHtml(
       const p = runPace(runEnvelope!, paceThresholdSecKm!, effIF, raceObjective);
       const deltaPct = (() => {
         if (raceObjective === "Marathon" || raceObjective === "10km") {
-          return computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteMin ?? null, runDurationMin ?? 0).targetPct;
+          return computeNegativeSplitDelta(raceObjective, vlamaxRun ?? null, tteRunEffective, runDurationMin ?? 0).targetPct;
         }
-        if ((raceObjective === "70.3" || raceObjective === "IM") && (runDurationMin ?? 0) > 0 && tteMin && tteMin > 0) {
-          const ratio = tteMin / (runDurationMin as number);
+        if ((raceObjective === "70.3" || raceObjective === "IM") && (runDurationMin ?? 0) > 0 && tteRunEffective && tteRunEffective > 0) {
+          const ratio = tteRunEffective / (runDurationMin as number);
           if (raceObjective === "IM") {
             if (ratio < 0.5) return 3.5;
             if (ratio < 0.8) return 2.0;
@@ -826,12 +830,14 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
   const {
     raceObjective, bikeEnvelope, runEnvelope,
     ftp, paceThresholdSecKm, weightKg,
-    vlamaxBike, vlamaxRun, vo2max, tteMin,
+    vlamaxBike, vlamaxRun, vo2max, tteMin, tteMinRun,
     bikeDurationMin, runDurationMin,
     elevationGainM: elevationGainMProp, heatC: heatCProp,
     ambition, wPrimeJ,
     className,
   } = props;
+  // Section run : préférer le TTE CAP s'il est mesuré, sinon retomber sur tteMin (vélo / unique).
+  const tteRunEffective = (tteMinRun && tteMinRun > 0) ? tteMinRun : (tteMin ?? null);
 
   // P3 — Conditions de course (terrain + chaleur). Initialisées via props, éditables inline.
   const [elevationGainM, setElevationGainM] = React.useState<number>(elevationGainMProp ?? 0);
@@ -954,7 +960,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
 
       <CardContent className="space-y-3">
         {/* Alerte TTE CAP manquant — stratégie course en mode prudent par défaut */}
-        {hasRun && (!tteMin || tteMin <= 0) && (ambition === "competitor" || ambition === "elite") && (
+        {hasRun && (!tteRunEffective || tteRunEffective <= 0) && (ambition === "competitor" || ambition === "elite") && (
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2.5 flex items-start gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-1.5">
@@ -1060,7 +1066,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     plan={plan}
                     format={raceObjective}
                     vlamax={vlamaxRun ?? null}
-                    tteMin={tteMin ?? null}
+                    tteMin={tteRunEffective}
                     durationMin={runDurationMin ?? 0}
                     conditionsFactor={conditions.factor}
                   />

@@ -111,7 +111,7 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
       ? formatSecsToMMSS(snapshot.pace_threshold_sec_per_km)
       : ""
   );
-  const [tteObserved, setTteObserved, clearTte] = usePersistedString(persistKey("tteObserved"), snapshot?.tte_observed_min?.toString() || "");
+  const [tteObserved, setTteObserved, clearTte] = usePersistedString(persistKey("tteObserved"), (snapshot as any)?.tte_observed_min_run?.toString() || "");
   const [runPowerMax, setRunPowerMax, clearRunPowerMax] = usePersistedString(persistKey("runPowerMax"), snapshot?.running_power_max?.toString() || "");
   const [runPowerThreshold, setRunPowerThreshold, clearRunPowerThreshold] = usePersistedString(persistKey("runPowerThreshold"), snapshot?.running_power_threshold?.toString() || "");
   const [hrMax, setHrMax, clearHrMax] = usePersistedString(persistKey("hrMax"), "");
@@ -223,8 +223,8 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
           rawData.paceThresholdFormatted = paceThreshold;
         }
         if (tteObserved) {
-          snapshotUpdates.tte_observed_min = parseInt(tteObserved);
-          snapshotUpdates.tte_mode = "OBSERVED";
+          // CAP TTE → champ dédié `tte_observed_min_run` (ne plus écraser le TTE vélo)
+          snapshotUpdates.tte_observed_min_run = parseInt(tteObserved);
           rawData.tteObserved = parseInt(tteObserved);
         }
         if (runPowerMax) {

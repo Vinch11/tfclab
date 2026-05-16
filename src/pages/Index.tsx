@@ -519,6 +519,19 @@ const Index = () => {
     });
   }, [effectiveCloudSnapshot, currentAthlete]);
 
+  // TTE CAP (run) séparé : alimente la durabilité du Compass pour triathlon (min bike/run).
+  const tteEffectifRun = useMemo(() => {
+    if (!effectiveCloudSnapshot || !currentAthlete) return null;
+    return computeTTEEffectif({
+      ftp: effectiveCloudSnapshot.ftp ?? null,
+      tss_7d: effectiveCloudSnapshot.tss_7d ?? null,
+      tte_observed_min_run: (effectiveCloudSnapshot as any).tte_observed_min_run ?? null,
+      sport: "run",
+      objectif: currentAthlete.goal || "IM",
+      age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+    });
+  }, [effectiveCloudSnapshot, currentAthlete]);
+
   // ✅ Valeur TTE affichée partout (Index) - fallback 0 pour compatibilité
   const tte = useMemo(() => {
     return tteEffectif?.tte_min ?? 0;
@@ -881,6 +894,7 @@ const Index = () => {
       fatmax: null as number | null,
       vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
       tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
+      tteEffectifRun: tteEffectifRun ? { tte_min: tteEffectifRun.tte_min, confidence: tteEffectifRun.confidence, source: tteEffectifRun.source } : null,
       fatigueEffectif: fatigueEffectifForCompass ? {
         score: fatigueEffectifForCompass.score,
         level: String(fatigueEffectifForCompass.level),
