@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Bike, Footprints, Apple, Target, AlertTriangle, ShieldCheck, Download } from "lucide-react";
+import { Bike, Footprints, Apple, Target, AlertTriangle, ShieldCheck, Download, Mountain, Thermometer, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
