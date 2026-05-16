@@ -52,6 +52,11 @@ interface ObjectiveStrategyCardProps {
   elevationGainM?: number | null;
   heatC?: number | null;
 
+  /** Audit Lit. — Niveau d'ambition (module le centre Plan A sur 70.3) */
+  ambition?: "finisher" | "age_group" | "competitor" | "elite" | string | null;
+  /** Audit Lit. — W' (J) pour autoriser la surcharge "mur >8%" si W' > 20 kJ */
+  wPrimeJ?: number | null;
+
   className?: string;
 }
 
