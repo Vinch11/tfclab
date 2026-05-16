@@ -568,6 +568,8 @@ function buildStrategyHtml(
   props: ObjectiveStrategyCardProps,
   overrides: Record<string, NutriOverride> = {},
   include: ExportSections = { bike: true, run: true, nutrition: true },
+  conditionsFactor: number = 1,
+  conditionsReasons: string[] = [],
 ): string {
   const {
     raceObjective, bikeEnvelope, runEnvelope,
