@@ -169,8 +169,8 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
   const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value, input.vo2max);
   const fatmaxSource = input.fatmax ? "snapshot" : (fatmaxValue ? "estimation" : "unknown");
 
-  // Durabilité = expression directe du TTE (pas de fatigue/disponibilité)
-  const durabilityValue = deriveDurabilityFromTTE(input.tteEffectif.tte_min);
+  // Durabilité = expression directe du TTE, calibrée selon l'objectif
+  const durabilityValue = deriveDurabilityFromTTE(input.tteEffectif.tte_min, input.objectif);
   const durabilitySource = durabilityValue ? "estimation" : "unknown";
 
   // Économie : running score > dérivé vélo
