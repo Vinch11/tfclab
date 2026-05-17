@@ -83,27 +83,23 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
   }, [athlete, snapshots, athleteId]);
 
   const [distance, setDistance] = useState<Distance>("half");
-  const [chrono, setChrono] = useState("");
+  const [hh, setHH] = useState("");
+  const [mm, setMM] = useState("");
+  const [ss, setSS] = useState("");
   const [dateChrono, setDateChrono] = useState(new Date().toISOString().split("T")[0]);
   const [saving, setSaving] = useState(false);
 
   const opt = DISTANCE_OPTIONS.find((d) => d.value === distance)!;
 
-  /** Auto-format: reformate toujours depuis les chiffres seuls.
-   *  ≤2 → ss ; 3-4 → mm:ss ; 5-6 → h:mm:ss. Les ":" tapés manuellement sont ignorés. */
-  const formatChronoInput = (raw: string): string => {
-    const digits = raw.replace(/\D/g, "").slice(0, 6);
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 4) {
-      return `${digits.slice(0, digits.length - 2)}:${digits.slice(-2)}`;
-    }
-    const ss = digits.slice(-2);
-    const mm = digits.slice(-4, -2);
-    const h = digits.slice(0, digits.length - 4);
-    return `${h}:${mm}:${ss}`;
+  const clampNum = (v: string, max: number, maxLen: number) => {
+    const d = v.replace(/\D/g, "").slice(0, maxLen);
+    if (!d) return "";
+    return String(Math.min(Number(d), max));
   };
 
-  const parsed = parseChrono(chrono);
+  const totalSec =
+    (Number(hh || 0) * 3600) + (Number(mm || 0) * 60) + Number(ss || 0);
+  const parsed = totalSec >= 60 ? totalSec : null;
   const paceHint = parsed && parsed > 0 ? formatPace(parsed, opt.km) : null;
 
   const existingTimes = useMemo(() => {
@@ -117,9 +113,9 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
   }, [activeSnapshot]);
 
   const handleSave = async () => {
-    const sec = parseChrono(chrono);
+    const sec = parsed;
     if (!sec || sec < 60) {
-      toast.error("Chrono invalide. Format attendu : 1:28:45 ou 28:30");
+      toast.error("Chrono invalide. Renseigne au moins minutes et secondes.");
       return;
     }
     if (!dateChrono) {
@@ -166,7 +162,7 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
       }
 
       toast.success(`Chrono ${opt.label} enregistré`);
-      setChrono("");
+      setHH(""); setMM(""); setSS("");
       await loadData();
     } catch (e) {
       console.error(e);
@@ -185,7 +181,7 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
         </CardTitle>
         <CardDescription>
           Alimente l'analyse durabilité, l'économie de course (CAP) et la calibration MLSS.
-          Format : <code>1:28:45</code> ou <code>28:30</code>.
+          Saisis heures, minutes et secondes séparément (ex : 1 / 28 / 45).
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -203,15 +199,41 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
           </div>
 
           <div className="space-y-1.5">
-            <Label>Chrono</Label>
-            <Input
-              placeholder="ex : 1:28:45"
-              value={chrono}
-              onChange={(e) => setChrono(formatChronoInput(e.target.value))}
-              inputMode="numeric"
-              pattern="[0-9:]*"
-              maxLength={8}
-            />
+            <Label>Chrono (h / min / s)</Label>
+            <div className="flex items-center gap-1.5">
+              <Input
+                placeholder="h"
+                value={hh}
+                onChange={(e) => setHH(clampNum(e.target.value, 23, 2))}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                className="text-center"
+                aria-label="heures"
+              />
+              <span className="text-muted-foreground font-mono">:</span>
+              <Input
+                placeholder="mm"
+                value={mm}
+                onChange={(e) => setMM(clampNum(e.target.value, 59, 2))}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                className="text-center"
+                aria-label="minutes"
+              />
+              <span className="text-muted-foreground font-mono">:</span>
+              <Input
+                placeholder="ss"
+                value={ss}
+                onChange={(e) => setSS(clampNum(e.target.value, 59, 2))}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                className="text-center"
+                aria-label="secondes"
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">
