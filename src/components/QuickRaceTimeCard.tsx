@@ -89,19 +89,14 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
 
   const opt = DISTANCE_OPTIONS.find((d) => d.value === distance)!;
 
-  /** Auto-format: digits-only → mm:ss (≤4) ou h:mm:ss (5-6). Laisse passer ":" manuel. */
+  /** Auto-format: reformate toujours depuis les chiffres seuls.
+   *  ≤2 → ss ; 3-4 → mm:ss ; 5-6 → h:mm:ss. Les ":" tapés manuellement sont ignorés. */
   const formatChronoInput = (raw: string): string => {
-    // Si l'utilisateur a tapé ":" lui-même, on respecte sa saisie (nettoyée)
-    if (raw.includes(":")) {
-      return raw.replace(/[^\d:]/g, "").slice(0, 8);
-    }
     const digits = raw.replace(/\D/g, "").slice(0, 6);
     if (digits.length <= 2) return digits;
     if (digits.length <= 4) {
-      // mm:ss
       return `${digits.slice(0, digits.length - 2)}:${digits.slice(-2)}`;
     }
-    // h:mm:ss
     const ss = digits.slice(-2);
     const mm = digits.slice(-4, -2);
     const h = digits.slice(0, digits.length - 4);
