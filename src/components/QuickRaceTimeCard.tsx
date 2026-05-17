@@ -181,7 +181,7 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
         </CardTitle>
         <CardDescription>
           Alimente l'analyse durabilité, l'économie de course (CAP) et la calibration MLSS.
-          Format : <code>1:28:45</code> ou <code>28:30</code>.
+          Saisis heures, minutes et secondes séparément (ex : 1 / 28 / 45).
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
