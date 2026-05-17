@@ -802,7 +802,7 @@ function buildStrategyHtml(
 </style></head>
 <body>
 <div class="noprint"><button onclick="window.print()">Imprimer / PDF</button></div>
-<h1>Stratégie ${raceObjective} — Plan A & Plan B</h1>
+<h1>Stratégie TFCL Plan A & Plan B</h1>
 <div class="meta">Généré le ${new Date().toLocaleDateString("fr-FR")} · Potentiel Physiologique TFCL™</div>
 ${conditionsBanner}
 ${PLANS.map(planSection).join("")}
@@ -899,7 +899,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
           <div className="space-y-1">
             <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              Stratégie {raceObjective} — Plan A & Plan B
+              Stratégie TFCL Plan A & Plan B
             </CardTitle>
             <p className="text-[11px] sm:text-xs text-muted-foreground">
               Deux plans complets : on vise le Plan A. Si quelque chose dérape en course, on bascule sur le Plan B sans paniquer.
