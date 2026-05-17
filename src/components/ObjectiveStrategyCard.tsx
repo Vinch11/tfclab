@@ -802,7 +802,7 @@ function buildStrategyHtml(
 </style></head>
 <body>
 <div class="noprint"><button onclick="window.print()">Imprimer / PDF</button></div>
-<h1>Stratégie ${raceObjective} — Plan A & Plan B</h1>
+<h1>Stratégie TFCL Plan A & Plan B</h1>
 <div class="meta">Généré le ${new Date().toLocaleDateString("fr-FR")} · Potentiel Physiologique TFCL™</div>
 ${conditionsBanner}
 ${PLANS.map(planSection).join("")}
