@@ -162,7 +162,7 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
       }
 
       toast.success(`Chrono ${opt.label} enregistré`);
-      setChrono("");
+      setHH(""); setMM(""); setSS("");
       await loadData();
     } catch (e) {
       console.error(e);
