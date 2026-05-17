@@ -212,8 +212,10 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
             <Input
               placeholder="ex : 1:28:45"
               value={chrono}
-              onChange={(e) => setChrono(e.target.value)}
+              onChange={(e) => setChrono(formatChronoInput(e.target.value))}
               inputMode="numeric"
+              pattern="[0-9:]*"
+              maxLength={8}
             />
           </div>
 
