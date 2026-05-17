@@ -199,15 +199,41 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
           </div>
 
           <div className="space-y-1.5">
-            <Label>Chrono</Label>
-            <Input
-              placeholder="ex : 1:28:45"
-              value={chrono}
-              onChange={(e) => setChrono(formatChronoInput(e.target.value))}
-              inputMode="numeric"
-              pattern="[0-9:]*"
-              maxLength={8}
-            />
+            <Label>Chrono (h / min / s)</Label>
+            <div className="flex items-center gap-1.5">
+              <Input
+                placeholder="h"
+                value={hh}
+                onChange={(e) => setHH(clampNum(e.target.value, 23, 2))}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                className="text-center"
+                aria-label="heures"
+              />
+              <span className="text-muted-foreground font-mono">:</span>
+              <Input
+                placeholder="mm"
+                value={mm}
+                onChange={(e) => setMM(clampNum(e.target.value, 59, 2))}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                className="text-center"
+                aria-label="minutes"
+              />
+              <span className="text-muted-foreground font-mono">:</span>
+              <Input
+                placeholder="ss"
+                value={ss}
+                onChange={(e) => setSS(clampNum(e.target.value, 59, 2))}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                className="text-center"
+                aria-label="secondes"
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">
