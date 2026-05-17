@@ -83,27 +83,23 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
   }, [athlete, snapshots, athleteId]);
 
   const [distance, setDistance] = useState<Distance>("half");
-  const [chrono, setChrono] = useState("");
+  const [hh, setHH] = useState("");
+  const [mm, setMM] = useState("");
+  const [ss, setSS] = useState("");
   const [dateChrono, setDateChrono] = useState(new Date().toISOString().split("T")[0]);
   const [saving, setSaving] = useState(false);
 
   const opt = DISTANCE_OPTIONS.find((d) => d.value === distance)!;
 
-  /** Auto-format: reformate toujours depuis les chiffres seuls.
-   *  ≤2 → ss ; 3-4 → mm:ss ; 5-6 → h:mm:ss. Les ":" tapés manuellement sont ignorés. */
-  const formatChronoInput = (raw: string): string => {
-    const digits = raw.replace(/\D/g, "").slice(0, 6);
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 4) {
-      return `${digits.slice(0, digits.length - 2)}:${digits.slice(-2)}`;
-    }
-    const ss = digits.slice(-2);
-    const mm = digits.slice(-4, -2);
-    const h = digits.slice(0, digits.length - 4);
-    return `${h}:${mm}:${ss}`;
+  const clampNum = (v: string, max: number, maxLen: number) => {
+    const d = v.replace(/\D/g, "").slice(0, maxLen);
+    if (!d) return "";
+    return String(Math.min(Number(d), max));
   };
 
-  const parsed = parseChrono(chrono);
+  const totalSec =
+    (Number(hh || 0) * 3600) + (Number(mm || 0) * 60) + Number(ss || 0);
+  const parsed = totalSec >= 60 ? totalSec : null;
   const paceHint = parsed && parsed > 0 ? formatPace(parsed, opt.km) : null;
 
   const existingTimes = useMemo(() => {
