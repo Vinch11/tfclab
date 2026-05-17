@@ -554,20 +554,6 @@ const CHRONO_FIELDS: Record<ChronoDistance, { sec: string; date: string }> = {
   marathon: { sec: "time_marathon_sec", date: "time_marathon_date" },
 };
 
-function parseChronoStr(input: string): number | null {
-  const s = input.trim().toLowerCase().replace(/\s+/g, "");
-  if (!s) return null;
-  let m = s.match(/^(\d+):(\d{1,2}):(\d{1,2})$/);
-  if (m) return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
-  m = s.match(/^(\d+):(\d{1,2})$/);
-  if (m) return Number(m[1]) * 60 + Number(m[2]);
-  m = s.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/);
-  if (m && (m[1] || m[2] || m[3])) {
-    return (Number(m[1] || 0) * 3600) + (Number(m[2] || 0) * 60) + Number(m[3] || 0);
-  }
-  return null;
-}
-
 function QuickChronoDialog({
   athleteId,
   snapshots,
@@ -582,7 +568,9 @@ function QuickChronoDialog({
   const { addSnapshot, loadData } = useCloudData();
   const [open, setOpen] = useState(false);
   const [distance, setDistance] = useState<ChronoDistance>("half");
-  const [chrono, setChrono] = useState("");
+  const [hours, setHours] = useState("");
+  const [minutes, setMinutes] = useState("");
+  const [seconds, setSeconds] = useState("");
   const [dateChrono, setDateChrono] = useState(new Date().toISOString().split("T")[0]);
   const [saving, setSaving] = useState(false);
 
@@ -594,7 +582,12 @@ function QuickChronoDialog({
   }, [snapshots, activeSnapshotId, athleteId]);
 
   const opt = CHRONO_OPTIONS.find((o) => o.value === distance)!;
-  const parsed = parseChronoStr(chrono);
+  const cleanTimePart = (value: string, max: number) => {
+    const digits = value.replace(/\D/g, "").slice(0, 2);
+    if (!digits) return "";
+    return String(Math.min(Number(digits), max));
+  };
+  const parsed = (Number(hours || 0) * 3600) + (Number(minutes || 0) * 60) + Number(seconds || 0);
   const paceHint = parsed && parsed > 0
     ? (() => {
         const paceSec = Math.round(parsed / opt.km);
@@ -604,7 +597,7 @@ function QuickChronoDialog({
 
   const handleSave = async () => {
     if (!parsed || parsed < 60) {
-      toast.error("Chrono invalide. Format : 1:28:45 ou 28:30");
+      toast.error("Chrono invalide. Renseigne au moins les minutes.");
       return;
     }
     if (!dateChrono) {
@@ -635,7 +628,9 @@ function QuickChronoDialog({
         return;
       }
       toast.success(`Chrono ${opt.label} enregistré`);
-      setChrono("");
+      setHours("");
+      setMinutes("");
+      setSeconds("");
       await loadData();
       onSaved?.();
       setOpen(false);
