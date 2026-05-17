@@ -554,20 +554,6 @@ const CHRONO_FIELDS: Record<ChronoDistance, { sec: string; date: string }> = {
   marathon: { sec: "time_marathon_sec", date: "time_marathon_date" },
 };
 
-function parseChronoStr(input: string): number | null {
-  const s = input.trim().toLowerCase().replace(/\s+/g, "");
-  if (!s) return null;
-  let m = s.match(/^(\d+):(\d{1,2}):(\d{1,2})$/);
-  if (m) return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
-  m = s.match(/^(\d+):(\d{1,2})$/);
-  if (m) return Number(m[1]) * 60 + Number(m[2]);
-  m = s.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/);
-  if (m && (m[1] || m[2] || m[3])) {
-    return (Number(m[1] || 0) * 3600) + (Number(m[2] || 0) * 60) + Number(m[3] || 0);
-  }
-  return null;
-}
-
 function QuickChronoDialog({
   athleteId,
   snapshots,
@@ -582,7 +568,9 @@ function QuickChronoDialog({
   const { addSnapshot, loadData } = useCloudData();
   const [open, setOpen] = useState(false);
   const [distance, setDistance] = useState<ChronoDistance>("half");
-  const [chrono, setChrono] = useState("");
+  const [hours, setHours] = useState("");
+  const [minutes, setMinutes] = useState("");
+  const [seconds, setSeconds] = useState("");
   const [dateChrono, setDateChrono] = useState(new Date().toISOString().split("T")[0]);
   const [saving, setSaving] = useState(false);
 
@@ -594,7 +582,12 @@ function QuickChronoDialog({
   }, [snapshots, activeSnapshotId, athleteId]);
 
   const opt = CHRONO_OPTIONS.find((o) => o.value === distance)!;
-  const parsed = parseChronoStr(chrono);
+  const cleanTimePart = (value: string, max: number) => {
+    const digits = value.replace(/\D/g, "").slice(0, 2);
+    if (!digits) return "";
+    return String(Math.min(Number(digits), max));
+  };
+  const parsed = (Number(hours || 0) * 3600) + (Number(minutes || 0) * 60) + Number(seconds || 0);
   const paceHint = parsed && parsed > 0
     ? (() => {
         const paceSec = Math.round(parsed / opt.km);
@@ -604,7 +597,7 @@ function QuickChronoDialog({
 
   const handleSave = async () => {
     if (!parsed || parsed < 60) {
-      toast.error("Chrono invalide. Format : 1:28:45 ou 28:30");
+      toast.error("Chrono invalide. Renseigne au moins les minutes.");
       return;
     }
     if (!dateChrono) {
@@ -635,7 +628,9 @@ function QuickChronoDialog({
         return;
       }
       toast.success(`Chrono ${opt.label} enregistré`);
-      setChrono("");
+      setHours("");
+      setMinutes("");
+      setSeconds("");
       await loadData();
       onSaved?.();
       setOpen(false);
@@ -660,7 +655,7 @@ function QuickChronoDialog({
           </DialogTitle>
           <DialogDescription>
             Alimente l'analyse durabilité, l'économie de course (CAP) et la calibration MLSS.
-            Format&nbsp;: <code>1:28:45</code> ou <code>28:30</code>.
+            Saisis heures, minutes et secondes séparément.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -676,14 +671,42 @@ function QuickChronoDialog({
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 col-span-2">
               <Label>Chrono</Label>
-              <Input
-                placeholder="ex : 1:28:45"
-                value={chrono}
-                onChange={(e) => setChrono(e.target.value)}
-                inputMode="numeric"
-              />
+              <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-2">
+                <Input
+                  placeholder="h"
+                  value={hours}
+                  onChange={(e) => setHours(cleanTimePart(e.target.value, 23))}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={2}
+                  className="text-center"
+                  aria-label="heures"
+                />
+                <span className="text-muted-foreground font-mono">:</span>
+                <Input
+                  placeholder="mm"
+                  value={minutes}
+                  onChange={(e) => setMinutes(cleanTimePart(e.target.value, 59))}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={2}
+                  className="text-center"
+                  aria-label="minutes"
+                />
+                <span className="text-muted-foreground font-mono">:</span>
+                <Input
+                  placeholder="ss"
+                  value={seconds}
+                  onChange={(e) => setSeconds(cleanTimePart(e.target.value, 59))}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={2}
+                  className="text-center"
+                  aria-label="secondes"
+                />
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Date</Label>
