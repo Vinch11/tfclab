@@ -113,9 +113,9 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
   }, [activeSnapshot]);
 
   const handleSave = async () => {
-    const sec = parseChrono(chrono);
+    const sec = parsed;
     if (!sec || sec < 60) {
-      toast.error("Chrono invalide. Format attendu : 1:28:45 ou 28:30");
+      toast.error("Chrono invalide. Renseigne au moins minutes et secondes.");
       return;
     }
     if (!dateChrono) {
