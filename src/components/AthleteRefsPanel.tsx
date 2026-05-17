@@ -655,7 +655,7 @@ function QuickChronoDialog({
           </DialogTitle>
           <DialogDescription>
             Alimente l'analyse durabilité, l'économie de course (CAP) et la calibration MLSS.
-            Format&nbsp;: <code>1:28:45</code> ou <code>28:30</code>.
+            Saisis heures, minutes et secondes séparément.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -671,14 +671,42 @@ function QuickChronoDialog({
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 col-span-2">
               <Label>Chrono</Label>
-              <Input
-                placeholder="ex : 1:28:45"
-                value={chrono}
-                onChange={(e) => setChrono(e.target.value)}
-                inputMode="numeric"
-              />
+              <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-2">
+                <Input
+                  placeholder="h"
+                  value={hours}
+                  onChange={(e) => setHours(cleanTimePart(e.target.value, 23))}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={2}
+                  className="text-center"
+                  aria-label="heures"
+                />
+                <span className="text-muted-foreground font-mono">:</span>
+                <Input
+                  placeholder="mm"
+                  value={minutes}
+                  onChange={(e) => setMinutes(cleanTimePart(e.target.value, 59))}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={2}
+                  className="text-center"
+                  aria-label="minutes"
+                />
+                <span className="text-muted-foreground font-mono">:</span>
+                <Input
+                  placeholder="ss"
+                  value={seconds}
+                  onChange={(e) => setSeconds(cleanTimePart(e.target.value, 59))}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={2}
+                  className="text-center"
+                  aria-label="secondes"
+                />
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Date</Label>
