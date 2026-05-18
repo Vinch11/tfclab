@@ -23,6 +23,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FileDown, Sparkles, RefreshCw, Trophy, AlertTriangle, Calendar, Bike, Footprints, Apple } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const COACH_TONES = [
+  { id: "fire", label: "🔥 Feu sacré", hint: "Chauffe à blanc, énergie de combat" },
+  { id: "calm", label: "🧘 Calme & rassurant", hint: "Apaise, confiance posée" },
+  { id: "tactical", label: "🎯 Tactique & analytique", hint: "Lucide, stratège, factuel" },
+  { id: "short", label: "⚡ Bref & direct", hint: "Punchy, 3-4 phrases max" },
+  { id: "mentor", label: "🤝 Mentor bienveillant", hint: "Chaleureux, posture de coach senior" },
+] as const;
+type CoachToneId = typeof COACH_TONES[number]["id"];
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +74,7 @@ export function RaceReadinessReportDialog({
 }: Props) {
   const [aiMessage, setAiMessage] = useState<string>("");
   const [loadingAI, setLoadingAI] = useState(false);
+  const [coachTone, setCoachTone] = useState<CoachToneId>("fire");
 
   const compassResult = useMemo(
     () => (compassInput ? computeCoachingCompass(compassInput) : null),
@@ -169,6 +180,7 @@ export function RaceReadinessReportDialog({
           limiter: readiness.limiter,
           strengths: readiness.strengths.map(s => s.label),
           gaps: readiness.gaps.map(g => g.label),
+          tone: coachTone,
         },
       });
       if (error) throw error;
@@ -292,15 +304,32 @@ export function RaceReadinessReportDialog({
             {/* AI message */}
             <Card className="border-amber-200 bg-amber-50/40 dark:bg-amber-950/10">
               <CardContent className="pt-4 pb-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                   <div className="flex items-center gap-2 text-sm font-semibold">
                     <Sparkles className="h-4 w-4 text-amber-600" />
                     Message du coach
                   </div>
-                  <Button size="sm" variant="ghost" onClick={generateMessage} disabled={loadingAI} className="h-7 text-xs">
-                    <RefreshCw className={cn("h-3 w-3 mr-1", loadingAI && "animate-spin")} />
-                    Régénérer
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Select value={coachTone} onValueChange={(v) => setCoachTone(v as CoachToneId)} disabled={loadingAI}>
+                      <SelectTrigger className="h-7 text-xs w-[180px]">
+                        <SelectValue placeholder="Ton du message" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COACH_TONES.map(t => (
+                          <SelectItem key={t.id} value={t.id} className="text-xs">
+                            <div className="flex flex-col">
+                              <span>{t.label}</span>
+                              <span className="text-[10px] text-muted-foreground">{t.hint}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" variant="ghost" onClick={generateMessage} disabled={loadingAI} className="h-7 text-xs">
+                      <RefreshCw className={cn("h-3 w-3 mr-1", loadingAI && "animate-spin")} />
+                      Régénérer
+                    </Button>
+                  </div>
                 </div>
                 {loadingAI && !aiMessage ? (
                   <div className="space-y-2">

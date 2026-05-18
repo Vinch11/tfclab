@@ -8,6 +8,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+type CoachTone = "fire" | "calm" | "tactical" | "short" | "mentor";
+
 interface ReqPayload {
   athleteName: string;
   raceName: string | null;
@@ -21,7 +23,30 @@ interface ReqPayload {
   limiter: { label: string; description: string } | null;
   strengths: string[];
   gaps: string[];
+  tone?: CoachTone;
 }
+
+const TONE_INSTRUCTIONS: Record<CoachTone, string> = {
+  fire: `Ton RÉSOLUMENT MOTIVANT et électrique : chauffe l'athlète à blanc, énergie de combat, donne envie de tout casser.
+- Verbes d'action, images sportives (chasser, attaquer, dérouler, lâcher les chevaux).
+- Clôture qui claque, courte et percutante.
+- Structure libre mais 4 temps : ouverture qui claque · 2 armes physiologiques · leviers reformulés en cartes à jouer · clôture qui envoie.`,
+  calm: `Ton CALME, POSÉ et RASSURANT : voix de coach serein, confiance tranquille, aucune pression.
+- Phrases fluides, respirées, presque méditatives.
+- Mots-clés : "sereinement", "à ton rythme", "tu es prêt·e", "confiance", "respire".
+- Clôture douce et ancrée. Évite l'emphase et les superlatifs.`,
+  tactical: `Ton TACTIQUE et ANALYTIQUE : posture de stratège lucide. L'athlète doit comprendre clairement ses leviers et son plan de course.
+- Structuré, précis, factuel mais chaleureux.
+- Mets en relief les leviers physiologiques exploitables et comment les jouer en course.
+- Clôture orientée plan d'action ("Voilà ta partition pour le jour J").`,
+  short: `Ton BREF et DIRECT : 3-4 phrases MAX au total. Punchy, sans fioriture.
+- Une phrase verdict. Une phrase forces. Une phrase leviers. Une phrase clôture.
+- Pas de markdown, pas de listes, pas de paragraphes longs.`,
+  mentor: `Ton MENTOR BIENVEILLANT : coach senior chaleureux qui te connaît bien, ferme et protecteur.
+- Phrases pleines, posées, légèrement personnelles ("J'ai vu ton travail, je sais où tu vas").
+- Valorise la cohérence du chemin parcouru autant que les chiffres.
+- Clôture chaleureuse, presque paternelle/maternelle, qui pose la confiance.`,
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -33,24 +58,22 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
 
-    const system = `Tu es un coach d'endurance TFCL — bienveillant, factuel, et surtout RÉSOLUMENT MOTIVANT. Ton job : chauffer l'athlète à blanc et l'envoyer en course en pleine confiance, prêt à tout donner.
-C'est un bilan PRÉ-OBJECTIF. Plus rien à ajuster — uniquement à GALVANISER, VALORISER et CONSOLIDER le mental de guerrier.
-Tu écris en français, à la 2ème personne du singulier (tutoiement). Ton chaud, vibrant, énergique, jamais alarmiste. Tu dois donner envie de chausser les pointes MAINTENANT.
+    const tone: CoachTone = payload.tone ?? "fire";
+    const toneBlock = TONE_INSTRUCTIONS[tone] ?? TONE_INSTRUCTIONS.fire;
 
-Structure attendue (markdown léger, pas de titre H1) :
-1. Une ouverture qui claque (1-2 phrases) : annonce le verdict («${payload.readinessVerdict.label} ${payload.readinessVerdict.emoji}») comme une victoire déjà en marche, fruit de ton travail. Pas de pourcentage, jamais.
-2. Un paragraphe (2-3 phrases) qui met en avant 2 points forts physiologiques concrets comme des **armes** que tu emportes en course. Sois imagé, sois fier pour l'athlète.
-3. Un paragraphe (2-3 phrases) qui reformule les éventuels écarts en **leviers, marges, cartes à jouer intelligemment** — jamais en faiblesses. Montre comment t'appuyer sur tes forces. Si pas d'écart : célèbre l'alignement total.
-4. Une clôture qui envoie : phrase courte, percutante, qui donne envie de tout casser. Style "Tu es prêt. Maintenant, va chercher ce qui t'appartient." (varie la formule).
+    const system = `Tu es un coach d'endurance TFCL — bienveillant et factuel.
+C'est un bilan PRÉ-OBJECTIF. Plus rien à ajuster — uniquement à VALORISER et CONSOLIDER le mental.
+Tu écris en français, à la 2ème personne du singulier (tutoiement). Jamais alarmiste.
 
-Règles de ton :
-- INTERDIT : "manque", "déficit", "faiblesse", "insuffisant", "problème", "risque", "danger", et tout pourcentage.
-- PRÉFÉRER : "levier", "arme", "atout", "carte à jouer", "potentiel", "puissance", "marge", "moteur".
-- Verbes d'action et images sportives bienvenus (chasser, attaquer, dérouler, tenir, donner, lâcher les chevaux) — sans cliché grandiloquent.
-- Si verdict «En feu» ou «Prêt» : ton triomphant, électrique, ça doit pulser.
-- «Prêt avec réserves» / «Moyennement prêt» : ton confiant et combatif — l'athlète a une vraie carte à jouer, valorise sa cohérence et son cran.
-- «Mieux vaudrait reporter» : honnête mais chaleureux et constructif — focus sur ce qui est en place et la stratégie pour sortir une belle course malgré tout.
-- N'invente AUCUN chiffre qui ne soit pas dans les données fournies.`;
+== TON À ADOPTER (impératif) ==
+${toneBlock}
+
+== Règles communes (toujours) ==
+- INTERDIT : "manque", "déficit", "faiblesse", "insuffisant", "problème", "risque", "danger", et tout pourcentage (%, "pour cent", etc.).
+- PRÉFÉRER : "levier", "arme", "atout", "carte à jouer", "potentiel", "marge", "moteur".
+- N'invente AUCUN chiffre qui ne soit pas dans les données fournies.
+- Ne mentionne JAMAIS le score chiffré du verdict, uniquement son label («${payload.readinessVerdict.label} ${payload.readinessVerdict.emoji}»).
+- Adapte la nuance au verdict : «En feu»/«Prêt» = très positif ; «Prêt avec réserves»/«Moyennement prêt» = confiant et combatif ; «Mieux vaudrait reporter» = honnête mais constructif.`;
 
     const userMsg = `Athlète : ${payload.athleteName}
 Course : ${payload.raceName ?? payload.raceType} (${payload.raceType}) — le ${payload.raceDateISO} — J-${payload.daysRemaining}
