@@ -74,6 +74,7 @@ export function RaceReadinessReportDialog({
 }: Props) {
   const [aiMessage, setAiMessage] = useState<string>("");
   const [loadingAI, setLoadingAI] = useState(false);
+  const [coachTone, setCoachTone] = useState<CoachToneId>("fire");
 
   const compassResult = useMemo(
     () => (compassInput ? computeCoachingCompass(compassInput) : null),
