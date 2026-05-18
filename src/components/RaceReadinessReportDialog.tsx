@@ -180,6 +180,7 @@ export function RaceReadinessReportDialog({
           limiter: readiness.limiter,
           strengths: readiness.strengths.map(s => s.label),
           gaps: readiness.gaps.map(g => g.label),
+          tone: coachTone,
         },
       });
       if (error) throw error;
