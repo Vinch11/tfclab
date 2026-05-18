@@ -193,6 +193,40 @@ export function RaceReadinessReportDialog({
 
   function handleExportPDF() {
     if (!readiness) return;
+
+    // Construction de la stratégie Plan A & Plan B (si coch et données dispo)
+    let strategyBodyHtml: string | null = null;
+    const include: ExportSections = { bike: attachBike, run: attachRun, nutrition: attachNutrition };
+    if (canAttachStrategy && (include.bike || include.run || include.nutrition)) {
+      const fullHtml = buildStrategyHtml(
+        {
+          raceObjective: raceObjective!,
+          bikeEnvelope: envelopeBike,
+          runEnvelope: envelopeRun,
+          ftp: compassInput?.ftp ?? null,
+          paceThresholdSecKm: compassInput?.paceThresholdSecPerKm ?? null,
+          weightKg: compassInput?.poids ?? null,
+          vlamaxBike: compassInput?.vlamaxEffectif?.value ?? null,
+          vlamaxRun: compassInput?.vlamaxEffectif?.value ?? null,
+          vo2max: compassInput?.vo2max ?? null,
+          tteMin: compassInput?.tteEffectif?.tte_min ?? null,
+          tteMinRun: compassInput?.tteEffectifRun?.tte_min ?? null,
+          bikeDurationMin: segmentDurationMin.bike || null,
+          runDurationMin: segmentDurationMin.run || null,
+          ambition: ambition as any,
+        },
+        {},
+        include,
+      );
+      // Extraction du <body>...</body> (en retirant les boutons noprint et le script)
+      const bodyMatch = fullHtml.match(/<body>([\s\S]*?)<\/body>/i);
+      strategyBodyHtml = bodyMatch
+        ? bodyMatch[1]
+            .replace(/<div class="noprint"[\s\S]*?<\/div>/gi, "")
+            .replace(/<script[\s\S]*?<\/script>/gi, "")
+        : null;
+    }
+
     const html = buildRaceReadinessHTML({
       athleteName,
       raceName: nextRace?.race_name ?? "Objectif de saison",
@@ -204,11 +238,7 @@ export function RaceReadinessReportDialog({
       result: readiness,
       aiMessage: aiMessage || "Message non généré.",
       peerRef,
-      attachments: {
-        bike: attachBike ? bikePlan : null,
-        run: attachRun ? runPlan : null,
-        nutrition: attachNutrition ? nutritionPlan : null,
-      },
+      strategyBodyHtml,
     });
     openPrintableHTML(html, {
       filenameHint: `Bilan pré-objectif - ${athleteName}`,
