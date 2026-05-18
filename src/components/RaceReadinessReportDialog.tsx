@@ -62,16 +62,16 @@ export function RaceReadinessReportDialog({
   }, [nextRace]);
 
   async function generateMessage() {
-    if (!readiness || !nextRace || daysRemaining == null) return;
+    if (!readiness) return;
     setLoadingAI(true);
     try {
       const { data, error } = await supabase.functions.invoke("race-readiness-message", {
         body: {
           athleteName,
-          raceName: nextRace.race_name,
-          raceType: nextRace.race_type,
-          raceDateISO: nextRace.race_date,
-          daysRemaining,
+          raceName: nextRace?.race_name ?? "Objectif de saison",
+          raceType: nextRace?.race_type ?? objectif,
+          raceDateISO: nextRace?.race_date ?? null,
+          daysRemaining: daysRemaining ?? null,
           ambition,
           objectif,
           readinessPct: readiness.scorePct,
@@ -89,9 +89,9 @@ export function RaceReadinessReportDialog({
         return;
       }
       setAiMessage(data?.message ?? "");
-    } catch (e) {
-      console.error(e);
-      toast({ title: "Erreur", description: "Impossible de générer le message", variant: "destructive" });
+    } catch (e: any) {
+      console.error("[RaceReadiness] generateMessage error:", e);
+      toast({ title: "Erreur", description: e?.message ?? "Impossible de générer le message", variant: "destructive" });
     } finally {
       setLoadingAI(false);
     }
