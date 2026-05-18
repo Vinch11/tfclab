@@ -57,6 +57,7 @@ const mdToHtml = (md: string) =>
 export function buildRaceReadinessHTML(opts: BuildOpts): string {
   const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, strategyBodyHtml, peerRef } = opts;
   const dateFR = new Date(raceDateISO).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  const verdict = getReadinessVerdict(result.scorePct);
 
   const strategyHTML = strategyBodyHtml
     ? `<h2>Stratégie TFCL — Plan A &amp; Plan B</h2>
