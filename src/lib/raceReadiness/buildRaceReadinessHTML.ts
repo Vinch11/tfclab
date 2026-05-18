@@ -6,6 +6,7 @@
 
 import type { RaceReadinessResult } from "./computeRaceReadiness";
 import { buildReadinessRadarSVG } from "./buildReadinessRadarSVG";
+import { type PeerReference, peerVerdict } from "./peerReference";
 import {
   renderBikePlanHTML, renderRunPlanHTML, renderNutritionPlanHTML,
   type BikePlan, type RunPlan, type NutritionPlan,
@@ -21,6 +22,8 @@ interface BuildOpts {
   ambition: string;
   result: RaceReadinessResult;
   aiMessage: string;
+  /** Référence cohorte (moyenne / au-dessus). Optionnel. */
+  peerRef?: PeerReference | null;
   /** Plans optionnels à joindre au PDF (sélection coach). */
   attachments?: {
     bike?: BikePlan | null;
@@ -59,7 +62,7 @@ const mdToHtml = (md: string) =>
     .replace(/\n/g, "<br/>");
 
 export function buildRaceReadinessHTML(opts: BuildOpts): string {
-  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, attachments } = opts;
+  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, attachments, peerRef } = opts;
   const dateFR = new Date(raceDateISO).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
   const attachmentsHTML = [
@@ -68,13 +71,18 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
     attachments?.nutrition ? renderNutritionPlanHTML(attachments.nutrition) : "",
   ].join("");
 
+  const verdictColor = (tone: string) =>
+    tone === "above" ? "#7c3aed" : tone === "around" ? "#475569" : "#b45309";
+
   const axisRows = result.axes.map(a => {
     const interp = axisInterpretation[a.key] ?? "";
+    const v = peerRef ? peerVerdict(a.score, peerRef) : null;
     return `
     <tr>
       <td>
         <div style="font-weight:600;">${esc(a.label)}</div>
         ${interp ? `<div style="font-size:8.5pt; color:#64748b; margin-top:2pt; font-style:italic;">${esc(interp)}</div>` : ""}
+        ${v ? `<div style="font-size:8.5pt; margin-top:2pt; color:${verdictColor(v.tone)}; font-weight:600;">${v.tone === "above" ? "★ " : ""}${esc(v.label)} <span style="color:#94a3b8; font-weight:400;">vs ${esc(peerRef!.cohortLabel)} (${peerRef!.peerAvg})</span></div>` : ""}
       </td>
       <td style="text-align:center; font-weight:700; color:${colorFor(a.status)};">${a.score}/100</td>
       <td style="text-align:center;">${a.value != null ? `${a.value}${esc(a.unit)}` : "—"}</td>
@@ -128,11 +136,11 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   <h2>Cartographie de ta forme</h2>
   <div style="display:flex; gap:16pt; align-items:center; flex-wrap:wrap;">
     <div style="flex:1 1 320pt; min-width:280pt;">
-      ${buildReadinessRadarSVG({ axes: result.axes, size: 320 })}
+      ${buildReadinessRadarSVG({ axes: result.axes, size: 320, peerRef })}
     </div>
     <div style="flex:1 1 220pt; font-size:10pt; color:#334155;">
       <p style="margin:0 0 6pt;"><strong>Chaque axe = un pilier de ta performance.</strong></p>
-      <p style="margin:0 0 6pt;">Plus le polygone est large et régulier, plus ton profil est <strong>équilibré et prêt à délivrer le jour J</strong>.</p>
+      ${peerRef ? `<p style="margin:0 0 6pt;">Comparé à la cohorte <strong>${esc(peerRef.cohortLabel)}</strong> : ligne grise = moyenne (${peerRef.peerAvg}), ligne violette = seuil <strong>« au-dessus de la moyenne »</strong> (${peerRef.peerAbove}+ ★). Ligne verte à 100 = cible d'ambition.</p>` : ""}
       <p style="margin:0; color:#64748b;">Les axes les plus internes ne sont pas des faiblesses : ce sont tes <strong>leviers de progression</strong>, les zones où chaque effort produira le plus de gain.</p>
     </div>
   </div>

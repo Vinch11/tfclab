@@ -30,6 +30,7 @@ import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachin
 import { computeRaceReadiness, type RaceReadinessResult } from "@/lib/raceReadiness/computeRaceReadiness";
 import { buildRaceReadinessHTML } from "@/lib/raceReadiness/buildRaceReadinessHTML";
 import { buildReadinessRadarSVG } from "@/lib/raceReadiness/buildReadinessRadarSVG";
+import { getPeerReference, peerVerdict } from "@/lib/raceReadiness/peerReference";
 import {
   buildBikePlan, buildRunPlan, buildNutritionPlan,
   type SyntheticPlanInputs,
@@ -75,6 +76,7 @@ export function RaceReadinessReportDialog({
     [compassInput]
   );
   const readiness = useMemo(() => computeRaceReadiness(compassResult), [compassResult]);
+  const peerRef = useMemo(() => getPeerReference(ambition), [ambition]);
 
   // Construction des plans synthétiques (sans coût, ne dépend que de compassInput)
   const planInputs = useMemo<SyntheticPlanInputs | null>(() => {
@@ -155,6 +157,7 @@ export function RaceReadinessReportDialog({
       ambition,
       result: readiness,
       aiMessage: aiMessage || "Message non généré.",
+      peerRef,
       attachments: {
         bike: attachBike ? bikePlan : null,
         run: attachRun ? runPlan : null,
@@ -236,13 +239,13 @@ export function RaceReadinessReportDialog({
               <CardContent className="pt-4 pb-4">
                 <div className="text-sm font-semibold mb-1">Cartographie de ta forme</div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Plus le polygone est large et régulier, plus ton profil est équilibré pour le jour J.
-                  Les axes les plus internes sont tes <strong>leviers de progression</strong>, pas des faiblesses.
+                  Comparée à la cohorte <strong>{peerRef.cohortLabel}</strong> : le trait gris marque la moyenne ({peerRef.peerAvg}),
+                  le trait violet le seuil « au-dessus de la moyenne » ({peerRef.peerAbove}+ ★). La ligne verte à 100 = ta cible d'ambition.
                 </p>
                 <div
                   className="w-full max-w-md mx-auto"
                   dangerouslySetInnerHTML={{
-                    __html: buildReadinessRadarSVG({ axes: readiness.axes, size: 300 }),
+                    __html: buildReadinessRadarSVG({ axes: readiness.axes, size: 300, peerRef }),
                   }}
                 />
               </CardContent>
@@ -252,13 +255,23 @@ export function RaceReadinessReportDialog({
             <div>
               <h3 className="text-sm font-semibold mb-2">Détail par axe physiologique</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {readiness.axes.map(a => (
+                {readiness.axes.map(a => {
+                  const v = peerVerdict(a.score, peerRef);
+                  return (
                   <div key={a.key} className="p-2.5 rounded-md border bg-card text-xs">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0">
                         <div className="font-medium">{a.label}</div>
                         <div className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
                           {AXIS_INTERPRETATION[a.key] ?? ""}
+                        </div>
+                        <div className={cn(
+                          "text-[11px] mt-1 font-medium",
+                          v.tone === "above" && "text-violet-700",
+                          v.tone === "around" && "text-slate-600",
+                          v.tone === "below" && "text-amber-700",
+                        )}>
+                          {v.tone === "above" && "★ "}{v.label} <span className="text-muted-foreground font-normal">vs {peerRef.cohortLabel} ({peerRef.peerAvg})</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 ml-2">
@@ -281,7 +294,8 @@ export function RaceReadinessReportDialog({
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
