@@ -136,11 +136,11 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   <h2>Cartographie de ta forme</h2>
   <div style="display:flex; gap:16pt; align-items:center; flex-wrap:wrap;">
     <div style="flex:1 1 320pt; min-width:280pt;">
-      ${buildReadinessRadarSVG({ axes: result.axes, size: 320 })}
+      ${buildReadinessRadarSVG({ axes: result.axes, size: 320, peerRef })}
     </div>
     <div style="flex:1 1 220pt; font-size:10pt; color:#334155;">
       <p style="margin:0 0 6pt;"><strong>Chaque axe = un pilier de ta performance.</strong></p>
-      <p style="margin:0 0 6pt;">Plus le polygone est large et régulier, plus ton profil est <strong>équilibré et prêt à délivrer le jour J</strong>.</p>
+      ${peerRef ? `<p style="margin:0 0 6pt;">Comparé à la cohorte <strong>${esc(peerRef.cohortLabel)}</strong> : ligne grise = moyenne (${peerRef.peerAvg}), ligne violette = seuil <strong>« au-dessus de la moyenne »</strong> (${peerRef.peerAbove}+ ★). Ligne verte à 100 = cible d'ambition.</p>` : ""}
       <p style="margin:0; color:#64748b;">Les axes les plus internes ne sont pas des faiblesses : ce sont tes <strong>leviers de progression</strong>, les zones où chaque effort produira le plus de gain.</p>
     </div>
   </div>
