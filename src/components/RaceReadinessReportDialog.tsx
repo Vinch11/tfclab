@@ -239,13 +239,13 @@ export function RaceReadinessReportDialog({
               <CardContent className="pt-4 pb-4">
                 <div className="text-sm font-semibold mb-1">Cartographie de ta forme</div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Plus le polygone est large et régulier, plus ton profil est équilibré pour le jour J.
-                  Les axes les plus internes sont tes <strong>leviers de progression</strong>, pas des faiblesses.
+                  Comparée à la cohorte <strong>{peerRef.cohortLabel}</strong> : le trait gris marque la moyenne ({peerRef.peerAvg}),
+                  le trait violet le seuil « au-dessus de la moyenne » ({peerRef.peerAbove}+ ★). La ligne verte à 100 = ta cible d'ambition.
                 </p>
                 <div
                   className="w-full max-w-md mx-auto"
                   dangerouslySetInnerHTML={{
-                    __html: buildReadinessRadarSVG({ axes: readiness.axes, size: 300 }),
+                    __html: buildReadinessRadarSVG({ axes: readiness.axes, size: 300, peerRef }),
                   }}
                 />
               </CardContent>
