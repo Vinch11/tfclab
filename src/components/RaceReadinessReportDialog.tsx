@@ -253,25 +253,32 @@ export function RaceReadinessReportDialog({
               <h3 className="text-sm font-semibold mb-2">Détail par axe physiologique</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {readiness.axes.map(a => (
-                  <div key={a.key} className="flex items-center justify-between p-2.5 rounded-md border bg-card text-xs">
-                    <span className="font-medium">{a.label}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">
-                        {a.value != null ? `${a.value}${a.unit}` : "—"}
-                        {a.target != null && <> / <span className="opacity-70">{a.target}{a.unit}</span></>}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "text-xs font-bold tabular-nums",
-                          a.status === "strong" && "border-emerald-500 text-emerald-700",
-                          a.status === "ok" && "border-sky-500 text-sky-700",
-                          a.status === "below" && "border-amber-500 text-amber-700",
-                          a.status === "gap" && "border-sky-600 text-sky-800",
-                        )}
-                      >
-                        {a.score}
-                      </Badge>
+                  <div key={a.key} className="p-2.5 rounded-md border bg-card text-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <div className="font-medium">{a.label}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+                          {AXIS_INTERPRETATION[a.key] ?? ""}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <span className="text-muted-foreground">
+                          {a.value != null ? `${a.value}${a.unit}` : "—"}
+                          {a.target != null && <> / <span className="opacity-70">{a.target}{a.unit}</span></>}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-xs font-bold tabular-nums",
+                            a.status === "strong" && "border-emerald-500 text-emerald-700",
+                            a.status === "ok" && "border-sky-500 text-sky-700",
+                            a.status === "below" && "border-amber-500 text-amber-700",
+                            a.status === "gap" && "border-sky-600 text-sky-800",
+                          )}
+                        >
+                          {a.score}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 ))}
