@@ -274,14 +274,19 @@ export function RaceReadinessReportDialog({
           </div>
         ) : (
           <div className="space-y-5">
-            {/* Hero score */}
-            <Card className={cn("border-0 bg-gradient-to-br shadow-lg", levelStyles(readiness.level))}>
-              <CardContent className="pt-6 pb-5 text-center">
-                <div className="text-6xl font-extrabold leading-none">{readiness.scorePct}%</div>
-                <div className="text-base mt-2 font-medium">Prêt pour le jour J</div>
-                <div className="text-xs mt-2 opacity-90">{readiness.levelLabel}</div>
-              </CardContent>
-            </Card>
+            {/* Hero verdict (qualitatif, plus pédagogique qu'un % brut) */}
+            {(() => {
+              const verdict = getReadinessVerdict(readiness.scorePct);
+              return (
+                <Card className={cn("border-0 bg-gradient-to-br shadow-lg", levelStyles(readiness.level))}>
+                  <CardContent className="pt-6 pb-5 text-center">
+                    <div className="text-5xl leading-none">{verdict.emoji}</div>
+                    <div className="text-3xl font-extrabold mt-3 leading-tight">{verdict.label}</div>
+                    <div className="text-sm mt-2 opacity-90 italic">{verdict.tagline}</div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* AI message */}
             <Card className="border-amber-200 bg-amber-50/40 dark:bg-amber-950/10">
