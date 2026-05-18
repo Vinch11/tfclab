@@ -1,1 +1,4 @@
 project_id = "wtwjkmawntybyehatkjo"
+
+[functions.race-readiness-message]
+verify_jwt = false

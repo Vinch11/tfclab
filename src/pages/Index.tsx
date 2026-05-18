@@ -86,6 +86,7 @@ import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 // ✅ Coach Decision Center — Carte unifiée (Phase 2 Architecture)
 import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
 import { CoachingCompassCard } from "@/components/CoachingCompassCard";
+import { RaceReadinessReportDialog } from "@/components/RaceReadinessReportDialog";
 
 // ✅ Dashboard Simplifié — 4 sections linéaires
 import { AnalyseSection } from "@/components/simplified/AnalyseSection";
@@ -187,6 +188,7 @@ import {
   Trophy,
   Calculator,
   Shield,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
@@ -325,6 +327,7 @@ const Index = () => {
   const [showSnapshots, setShowSnapshots] = usePersistedDialogState("vlab-show-snapshots", false);
   const [showCheckins, setShowCheckins] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [readinessOpen, setReadinessOpen] = useState(false);
 
   // ✅ Mode Staff toggle (affichage expert avec indices de confiance)
   const [staffMode, setStaffMode] = useState<boolean>(() => {
@@ -1161,6 +1164,31 @@ const Index = () => {
                   />
                 </div>
               )}
+
+              {/* Bilan pré-objectif TFCL — visible dès qu'il y a une course future, accentué en race week */}
+              {currentAthlete && raceGoals.length > 0 && (() => {
+                const future = raceGoals
+                  .filter(g => new Date(g.race_date) >= new Date())
+                  .sort((a, b) => new Date(a.race_date).getTime() - new Date(b.race_date).getTime());
+                const next = future[0];
+                if (!next) return null;
+                const days = Math.ceil((new Date(next.race_date).getTime() - Date.now()) / 86400000);
+                const isRaceWeek = days <= 7;
+                return (
+                  <Button
+                    size="sm"
+                    variant={isRaceWeek ? "default" : "outline"}
+                    className={cn("shrink-0 gap-1.5", isRaceWeek && "animate-pulse")}
+                    onClick={() => setReadinessOpen(true)}
+                    title={isRaceWeek ? "Race week — bilan disponible" : `J-${days} avant la course`}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span className="hidden sm:inline">Bilan pré-objectif</span>
+                    <span className="sm:hidden">Bilan</span>
+                    {isRaceWeek && <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">J-{days}</Badge>}
+                  </Button>
+                );
+              })()}
 
               {/* CTA — Voir ma stratégie : ouvre directement l'étape 3 de la simulation */}
               {currentAthlete && (
@@ -2066,6 +2094,25 @@ const Index = () => {
           onOpenChange={setExportOpen}
         />
       )}
+
+      {/* Bilan pré-objectif TFCL */}
+      {currentAthlete && (() => {
+        const future = raceGoals
+          .filter(g => new Date(g.race_date) >= new Date())
+          .sort((a, b) => new Date(a.race_date).getTime() - new Date(b.race_date).getTime());
+        const next = future[0];
+        return (
+          <RaceReadinessReportDialog
+            open={readinessOpen}
+            onOpenChange={setReadinessOpen}
+            athleteName={currentAthlete.name}
+            objectif={currentAthlete.goal || "IM"}
+            ambition={currentAmbition}
+            nextRace={next ? { race_name: next.race_name, race_type: next.race_type, race_date: next.race_date } : null}
+            compassInput={compassInputMemo}
+          />
+        );
+      })()}
     </SidebarLayout>
   );
 };
