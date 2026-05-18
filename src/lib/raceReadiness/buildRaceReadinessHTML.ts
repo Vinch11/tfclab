@@ -29,6 +29,15 @@ interface BuildOpts {
   };
 }
 
+const axisInterpretation: Record<string, string> = {
+  vo2max: "Plafond aérobie — la puissance maximale de ton moteur principal.",
+  vlamax: "Équilibre glycolytique — une valeur maîtrisée limite l'acidose sur la durée.",
+  ftpkg: "Puissance aérobie au kilo — le rendement brut de ton moteur.",
+  vma: "Vitesse Maximale Aérobie — ta vitesse de référence pour les zones d'entraînement.",
+  durability: "Capacité à tenir l'intensité sur toute la durée de l'objectif.",
+  economy: "Efficience métabolique — l'énergie consommée pour avancer.",
+};
+
 const colorFor = (status: string) =>
   status === "strong" ? "#16a34a" :
   status === "ok" ? "#0ea5e9" :
@@ -59,13 +68,19 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
     attachments?.nutrition ? renderNutritionPlanHTML(attachments.nutrition) : "",
   ].join("");
 
-  const axisRows = result.axes.map(a => `
+  const axisRows = result.axes.map(a => {
+    const interp = axisInterpretation[a.key] ?? "";
+    return `
     <tr>
-      <td>${esc(a.label)}</td>
+      <td>
+        <div style="font-weight:600;">${esc(a.label)}</div>
+        ${interp ? `<div style="font-size:8.5pt; color:#64748b; margin-top:2pt; font-style:italic;">${esc(interp)}</div>` : ""}
+      </td>
       <td style="text-align:center; font-weight:700; color:${colorFor(a.status)};">${a.score}/100</td>
       <td style="text-align:center;">${a.value != null ? `${a.value}${esc(a.unit)}` : "—"}</td>
       <td style="text-align:center; color:#666;">${a.target != null ? `${a.target}${esc(a.unit)}` : "—"}</td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 
   return `<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"/>
