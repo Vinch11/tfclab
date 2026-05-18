@@ -158,6 +158,23 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   <div class="gaps">${result.gaps.map(g => `<span class="chip lever">${esc(g.label)} (${g.score}/100)</span>`).join("")}</div>` : ""}
 
 
+  <h2>Le jour J — pacing &amp; gestion mentale</h2>
+  <div style="background:#f0fdf4; border-left:4pt solid #16a34a; border-radius:6pt; padding:14pt 18pt; margin:8pt 0 16pt; font-size:10.5pt; color:#1f2937; line-height:1.6;">
+    <p style="margin:0 0 10pt;"><strong style="color:#166534;">🧭 Les 4 règles d'or à te répéter sur la ligne de départ</strong></p>
+    <ol style="margin:0 0 10pt 18pt; padding:0;">
+      <li><strong>Premier tiers : sois ennuyeux.</strong> Reste 5–10 W (ou 10–15 s/km) <em>sous</em> ta cible. Les watts économisés tôt valent triple en fin de course.</li>
+      <li><strong>Mange avant d'avoir faim, bois avant d'avoir soif.</strong> Une gorgée toutes les 10–15 min, un apport glucidique toutes les 20–25 min, dès la première heure — pas après.</li>
+      <li><strong>Pilote sur une seule donnée à la fois.</strong> Cardio en montée, puissance/allure sur le plat, sensations en descente. Trop d'écrans = décisions floues.</li>
+      <li><strong>Découpe la course en blocs de 20 min.</strong> Tu ne cours pas un marathon, tu enchaînes des « petits efforts » que tu sais déjà gérer à l'entraînement.</li>
+    </ol>
+    <p style="margin:0 0 6pt;"><strong style="color:#166534;">🧠 Quand le doute s'installe (et il s'installera)</strong></p>
+    <ul style="margin:0 0 0 18pt; padding:0;">
+      <li><strong>Reviens au présent :</strong> 3 respirations profondes, relâche les épaules et la mâchoire, vérifie ta cadence.</li>
+      <li><strong>Une phrase d'ancrage</strong> préparée à l'avance (ex : <em>« je suis prêt, j'ai fait le travail »</em>) — répète-la à chaque ravito.</li>
+      <li><strong>Pense process, pas résultat :</strong> la prochaine gorgée, le prochain kilomètre, la prochaine bosse. Le chrono se construit, il ne se décide pas.</li>
+    </ul>
+  </div>
+
   ${strategyHTML}
 
   <div class="footer">
