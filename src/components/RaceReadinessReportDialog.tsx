@@ -300,6 +300,59 @@ export function RaceReadinessReportDialog({
               </div>
             )}
 
+            {/* Plans à joindre au bilan */}
+            {(bikePlan || runPlan || nutritionPlan) && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardContent className="pt-4 pb-4 space-y-3">
+                  <div className="text-sm font-semibold">Ajouter au bilan</div>
+                  <p className="text-xs text-muted-foreground">
+                    Coche les plans stratégiques à inclure dans le PDF remis à l'athlète.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {bikePlan && (
+                      <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
+                        <Checkbox checked={attachBike} onCheckedChange={(v) => setAttachBike(v === true)} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-sm font-medium">
+                            <Bike className="h-3.5 w-3.5" /> Plan Vélo
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            A : {bikePlan.planA.wattsLo}–{bikePlan.planA.wattsHi}W · B : {bikePlan.planB.wattsLo}–{bikePlan.planB.wattsHi}W
+                          </div>
+                        </div>
+                      </label>
+                    )}
+                    {runPlan && (
+                      <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
+                        <Checkbox checked={attachRun} onCheckedChange={(v) => setAttachRun(v === true)} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-sm font-medium">
+                            <Footprints className="h-3.5 w-3.5" /> Plan CAP
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            A : {runPlan.planA.paceLo} · B : {runPlan.planB.paceHi}
+                          </div>
+                        </div>
+                      </label>
+                    )}
+                    {nutritionPlan && (
+                      <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
+                        <Checkbox checked={attachNutrition} onCheckedChange={(v) => setAttachNutrition(v === true)} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-sm font-medium">
+                            <Apple className="h-3.5 w-3.5" /> Nutrition
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {nutritionPlan.baseRateGh} g/h · {nutritionPlan.totalCarbsG} g total
+                          </div>
+                        </div>
+                      </label>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Actions */}
             <div className="flex justify-end gap-2 pt-2 border-t">
               <Button variant="outline" onClick={() => onOpenChange(false)}>Fermer</Button>
