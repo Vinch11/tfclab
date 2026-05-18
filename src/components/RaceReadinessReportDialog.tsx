@@ -157,6 +157,7 @@ export function RaceReadinessReportDialog({
       ambition,
       result: readiness,
       aiMessage: aiMessage || "Message non généré.",
+      peerRef,
       attachments: {
         bike: attachBike ? bikePlan : null,
         run: attachRun ? runPlan : null,
