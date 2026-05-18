@@ -6,6 +6,10 @@
 
 import type { RaceReadinessResult } from "./computeRaceReadiness";
 import { buildReadinessRadarSVG } from "./buildReadinessRadarSVG";
+import {
+  renderBikePlanHTML, renderRunPlanHTML, renderNutritionPlanHTML,
+  type BikePlan, type RunPlan, type NutritionPlan,
+} from "./buildSyntheticPlans";
 
 interface BuildOpts {
   athleteName: string;
@@ -17,6 +21,12 @@ interface BuildOpts {
   ambition: string;
   result: RaceReadinessResult;
   aiMessage: string;
+  /** Plans optionnels à joindre au PDF (sélection coach). */
+  attachments?: {
+    bike?: BikePlan | null;
+    run?: RunPlan | null;
+    nutrition?: NutritionPlan | null;
+  };
 }
 
 const colorFor = (status: string) =>
