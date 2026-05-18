@@ -109,12 +109,8 @@ export function QuickObjectiveSelector({
   });
 
   const handleSelect = (goal: string) => {
-    if (goal === currentGoal) {
-      setDropdownOpen(false);
-      return;
-    }
-    
-    // Ouvrir la modale pour saisir les détails
+    // Toujours ouvrir la modale (même si on garde le même objectif)
+    // pour permettre la modification du nom et/ou de la date de la course
     setSelectedGoal(goal);
     setRaceName("");
     // Date par défaut: 3 mois dans le futur
