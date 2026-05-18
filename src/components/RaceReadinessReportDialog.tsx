@@ -105,13 +105,13 @@ export function RaceReadinessReportDialog({
   }, [open, readiness]);
 
   function handleExportPDF() {
-    if (!readiness || !nextRace || daysRemaining == null) return;
+    if (!readiness) return;
     const html = buildRaceReadinessHTML({
       athleteName,
-      raceName: nextRace.race_name,
-      raceType: nextRace.race_type,
-      raceDateISO: nextRace.race_date,
-      daysRemaining,
+      raceName: nextRace?.race_name ?? "Objectif de saison",
+      raceType: nextRace?.race_type ?? objectif,
+      raceDateISO: nextRace?.race_date ?? new Date().toISOString(),
+      daysRemaining: daysRemaining ?? 0,
       objectif,
       ambition,
       result: readiness,
