@@ -16,7 +16,7 @@ interface ReqPayload {
   daysRemaining: number;
   ambition: string;
   objectif: string;
-  readinessPct: number; // 0-100
+  readinessVerdict: { label: string; emoji: string; tagline: string };
   axes: Array<{ label: string; score: number; target: number | null; value: number | null; unit: string }>;
   limiter: { label: string; description: string } | null;
   strengths: string[];
