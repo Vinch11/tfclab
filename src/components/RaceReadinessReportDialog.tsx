@@ -31,10 +31,8 @@ import { computeRaceReadiness, type RaceReadinessResult } from "@/lib/raceReadin
 import { buildRaceReadinessHTML } from "@/lib/raceReadiness/buildRaceReadinessHTML";
 import { buildReadinessRadarSVG } from "@/lib/raceReadiness/buildReadinessRadarSVG";
 import { getPeerReference, peerVerdict } from "@/lib/raceReadiness/peerReference";
-import {
-  buildBikePlan, buildRunPlan, buildNutritionPlan,
-  type SyntheticPlanInputs,
-} from "@/lib/raceReadiness/buildSyntheticPlans";
+import { buildStrategyHtml, type ExportSections } from "@/components/ObjectiveStrategyCard";
+import { computePacingEnvelope, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 
 interface NextRace {
