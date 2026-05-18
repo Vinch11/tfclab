@@ -31,10 +31,8 @@ import { computeRaceReadiness, type RaceReadinessResult } from "@/lib/raceReadin
 import { buildRaceReadinessHTML } from "@/lib/raceReadiness/buildRaceReadinessHTML";
 import { buildReadinessRadarSVG } from "@/lib/raceReadiness/buildReadinessRadarSVG";
 import { getPeerReference, peerVerdict } from "@/lib/raceReadiness/peerReference";
-import {
-  buildBikePlan, buildRunPlan, buildNutritionPlan,
-  type SyntheticPlanInputs,
-} from "@/lib/raceReadiness/buildSyntheticPlans";
+import { buildStrategyHtml, type ExportSections } from "@/components/ObjectiveStrategyCard";
+import { computePacingEnvelope, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 
 interface NextRace {
@@ -66,11 +64,6 @@ export function RaceReadinessReportDialog({
   const [aiMessage, setAiMessage] = useState<string>("");
   const [loadingAI, setLoadingAI] = useState(false);
 
-  // Plans à joindre au bilan (choix coach)
-  const [attachBike, setAttachBike] = useState(false);
-  const [attachRun, setAttachRun] = useState(false);
-  const [attachNutrition, setAttachNutrition] = useState(false);
-
   const compassResult = useMemo(
     () => (compassInput ? computeCoachingCompass(compassInput) : null),
     [compassInput]
@@ -78,23 +71,76 @@ export function RaceReadinessReportDialog({
   const readiness = useMemo(() => computeRaceReadiness(compassResult), [compassResult]);
   const peerRef = useMemo(() => getPeerReference(ambition), [ambition]);
 
-  // Construction des plans synthétiques (sans coût, ne dépend que de compassInput)
-  const planInputs = useMemo<SyntheticPlanInputs | null>(() => {
-    if (!compassInput) return null;
-    return {
-      objectif,
-      ambition,
-      ftp: compassInput.ftp,
-      paceThresholdSecKm: compassInput.paceThresholdSecPerKm,
-      weightKg: compassInput.poids,
-      vo2max: compassInput.vo2max,
-      vlamax: compassInput.vlamaxEffectif?.value ?? null,
-    };
-  }, [compassInput, objectif, ambition]);
+  // Map objectif → RaceObjective utilisé par le moteur d'enveloppe & la carte Plan A/B
+  const raceObjective: RaceObjective | null = useMemo(() => {
+    const o = (objectif || "").toLowerCase();
+    if (o.includes("70.3") || o.includes("half") || o.includes("703")) return "70.3";
+    if (o.includes("ironman") || o === "im" || o.includes("full")) return "IM";
+    if (o.includes("semi")) return "Semi";
+    if (o.includes("marathon")) return "Marathon";
+    if (o.includes("10")) return "10km";
+    return null;
+  }, [objectif]);
 
-  const bikePlan = useMemo(() => (planInputs ? buildBikePlan(planInputs) : null), [planInputs]);
-  const runPlan = useMemo(() => (planInputs ? buildRunPlan(planInputs) : null), [planInputs]);
-  const nutritionPlan = useMemo(() => (planInputs ? buildNutritionPlan(planInputs) : null), [planInputs]);
+  const isTri = raceObjective === "IM" || raceObjective === "70.3";
+  const isRunObj = raceObjective === "Marathon" || raceObjective === "Semi" || raceObjective === "10km";
+
+  // Durées fallback par segment (min)
+  const segmentDurationMin = useMemo(() => {
+    if (raceObjective === "IM") return { bike: 330, run: 240 };
+    if (raceObjective === "70.3") return { bike: 165, run: 100 };
+    if (raceObjective === "Marathon") return { bike: 0, run: 210 };
+    if (raceObjective === "Semi") return { bike: 0, run: 105 };
+    if (raceObjective === "10km") return { bike: 0, run: 45 };
+    return { bike: 0, run: 0 };
+  }, [raceObjective]);
+
+  const envelopeBike = useMemo(() => {
+    if (!compassInput || !raceObjective || !isTri) return null;
+    const cpWkg = compassInput.ftp && compassInput.poids
+      ? (compassInput.ftp * 0.95) / compassInput.poids : null;
+    return computePacingEnvelope({
+      vlamaxEffectif: compassInput.vlamaxEffectif as any,
+      tteEffectif: compassInput.tteEffectif as any,
+      fatmax: compassInput.fatmax as any,
+      potentielPhysiologiqueScore: compassInput.potentielPhysiologique?.score ?? null,
+      fatigueIndex: null,
+      raceObjective, sport: "bike",
+      ftp: compassInput.ftp, vma: compassInput.vma,
+      paceThreshold: compassInput.paceThresholdSecPerKm,
+      weight: compassInput.poids,
+      ambition: ambition as any, cpWkg, wPrimeJkg: null,
+      predictedDurationMin: segmentDurationMin.bike || 180,
+    });
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri]);
+
+  const envelopeRun = useMemo(() => {
+    if (!compassInput || !raceObjective || (!isTri && !isRunObj)) return null;
+    const cpWkg = compassInput.ftp && compassInput.poids
+      ? (compassInput.ftp * 0.95) / compassInput.poids : null;
+    return computePacingEnvelope({
+      vlamaxEffectif: compassInput.vlamaxEffectif as any,
+      tteEffectif: (compassInput.tteEffectifRun ?? compassInput.tteEffectif) as any,
+      fatmax: compassInput.fatmax as any,
+      potentielPhysiologiqueScore: compassInput.potentielPhysiologique?.score ?? null,
+      fatigueIndex: null,
+      raceObjective, sport: "run",
+      ftp: compassInput.ftp, vma: compassInput.vma,
+      paceThreshold: compassInput.paceThresholdSecPerKm,
+      weight: compassInput.poids,
+      ambition: ambition as any, cpWkg, wPrimeJkg: null,
+      predictedDurationMin: segmentDurationMin.run || 180,
+    });
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, isRunObj]);
+
+  const hasBikeEnv = !!envelopeBike && !!compassInput?.ftp;
+  const hasRunEnv = !!envelopeRun && !!compassInput?.paceThresholdSecPerKm;
+  const canAttachStrategy = !!raceObjective && (hasBikeEnv || hasRunEnv);
+
+  // Sections de la stratégie Plan A/B à inclure dans le PDF
+  const [attachBike, setAttachBike] = useState(false);
+  const [attachRun, setAttachRun] = useState(false);
+  const [attachNutrition, setAttachNutrition] = useState(false);
 
   const daysRemaining = useMemo(() => {
     if (!nextRace) return null;
@@ -147,6 +193,40 @@ export function RaceReadinessReportDialog({
 
   function handleExportPDF() {
     if (!readiness) return;
+
+    // Construction de la stratégie Plan A & Plan B (si coch et données dispo)
+    let strategyBodyHtml: string | null = null;
+    const include: ExportSections = { bike: attachBike, run: attachRun, nutrition: attachNutrition };
+    if (canAttachStrategy && (include.bike || include.run || include.nutrition)) {
+      const fullHtml = buildStrategyHtml(
+        {
+          raceObjective: raceObjective!,
+          bikeEnvelope: envelopeBike,
+          runEnvelope: envelopeRun,
+          ftp: compassInput?.ftp ?? null,
+          paceThresholdSecKm: compassInput?.paceThresholdSecPerKm ?? null,
+          weightKg: compassInput?.poids ?? null,
+          vlamaxBike: compassInput?.vlamaxEffectif?.value ?? null,
+          vlamaxRun: compassInput?.vlamaxEffectif?.value ?? null,
+          vo2max: compassInput?.vo2max ?? null,
+          tteMin: compassInput?.tteEffectif?.tte_min ?? null,
+          tteMinRun: compassInput?.tteEffectifRun?.tte_min ?? null,
+          bikeDurationMin: segmentDurationMin.bike || null,
+          runDurationMin: segmentDurationMin.run || null,
+          ambition: ambition as any,
+        },
+        {},
+        include,
+      );
+      // Extraction du <body>...</body> (en retirant les boutons noprint et le script)
+      const bodyMatch = fullHtml.match(/<body>([\s\S]*?)<\/body>/i);
+      strategyBodyHtml = bodyMatch
+        ? bodyMatch[1]
+            .replace(/<div class="noprint"[\s\S]*?<\/div>/gi, "")
+            .replace(/<script[\s\S]*?<\/script>/gi, "")
+        : null;
+    }
+
     const html = buildRaceReadinessHTML({
       athleteName,
       raceName: nextRace?.race_name ?? "Objectif de saison",
@@ -158,11 +238,7 @@ export function RaceReadinessReportDialog({
       result: readiness,
       aiMessage: aiMessage || "Message non généré.",
       peerRef,
-      attachments: {
-        bike: attachBike ? bikePlan : null,
-        run: attachRun ? runPlan : null,
-        nutrition: attachNutrition ? nutritionPlan : null,
-      },
+      strategyBodyHtml,
     });
     openPrintableHTML(html, {
       filenameHint: `Bilan pré-objectif - ${athleteName}`,
@@ -331,54 +407,52 @@ export function RaceReadinessReportDialog({
               </div>
             )}
 
-            {/* Plans à joindre au bilan */}
-            {(bikePlan || runPlan || nutritionPlan) && (
+            {/* Stratégie TFCL Plan A & Plan B — sections à joindre au PDF */}
+            {canAttachStrategy && (
               <Card className="border-primary/30 bg-primary/5">
                 <CardContent className="pt-4 pb-4 space-y-3">
-                  <div className="text-sm font-semibold">Ajouter au bilan</div>
+                  <div className="text-sm font-semibold">Joindre la stratégie TFCL Plan A & Plan B</div>
                   <p className="text-xs text-muted-foreground">
-                    Coche les plans stratégiques à inclure dans le PDF remis à l'athlète.
+                    Coche les sections de la carte stratégie (Plan A — course parfaite / Plan B — repli) à inclure dans le PDF.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    {bikePlan && (
+                    {hasBikeEnv && (
                       <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
                         <Checkbox checked={attachBike} onCheckedChange={(v) => setAttachBike(v === true)} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Bike className="h-3.5 w-3.5" /> Plan Vélo
+                            <Bike className="h-3.5 w-3.5" /> Section Vélo
                           </div>
                           <div className="text-[11px] text-muted-foreground">
-                            3 scénarios (Robuste / Ambitieux / Agressif) · splits + repères d'effort · FTP {bikePlan.ftp}W
+                            NP cible, plage, plafond montées, segments — Plan A & B
                           </div>
                         </div>
                       </label>
                     )}
-                    {runPlan && (
+                    {hasRunEnv && (
                       <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
                         <Checkbox checked={attachRun} onCheckedChange={(v) => setAttachRun(v === true)} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Footprints className="h-3.5 w-3.5" /> Plan CAP
+                            <Footprints className="h-3.5 w-3.5" /> Section Course
                           </div>
                           <div className="text-[11px] text-muted-foreground">
-                            3 scénarios (Robuste / Ambitieux / Agressif) · splits + repères d'effort · Seuil {Math.floor(runPlan.paceThresholdSecKm / 60)}:{(Math.round(runPlan.paceThresholdSecKm % 60)).toString().padStart(2, "0")}/km
+                            Allure cible, plage, splits, cadence — Plan A & B
                           </div>
                         </div>
                       </label>
                     )}
-                    {nutritionPlan && (
-                      <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
-                        <Checkbox checked={attachNutrition} onCheckedChange={(v) => setAttachNutrition(v === true)} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Apple className="h-3.5 w-3.5" /> Nutrition
-                          </div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {nutritionPlan.baseRateGh} g/h · {nutritionPlan.totalCarbsG} g total
-                          </div>
+                    <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
+                      <Checkbox checked={attachNutrition} onCheckedChange={(v) => setAttachNutrition(v === true)} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 text-sm font-medium">
+                          <Apple className="h-3.5 w-3.5" /> Section Nutrition
                         </div>
-                      </label>
-                    )}
+                        <div className="text-[11px] text-muted-foreground">
+                          CHO/h, gels, barres, iso, eau — Plan A & B
+                        </div>
+                      </div>
+                    </label>
                   </div>
                 </CardContent>
               </Card>

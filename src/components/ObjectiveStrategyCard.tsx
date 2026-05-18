@@ -637,7 +637,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 export interface ExportSections { bike: boolean; run: boolean; nutrition: boolean; }
 
-function buildStrategyHtml(
+export function buildStrategyHtml(
   props: ObjectiveStrategyCardProps,
   overrides: Record<string, NutriOverride> = {},
   include: ExportSections = { bike: true, run: true, nutrition: true },

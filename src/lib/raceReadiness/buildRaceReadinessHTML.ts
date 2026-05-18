@@ -7,10 +7,6 @@
 import type { RaceReadinessResult } from "./computeRaceReadiness";
 import { buildReadinessRadarSVG } from "./buildReadinessRadarSVG";
 import { type PeerReference, peerVerdict } from "./peerReference";
-import {
-  renderBikePlanHTML, renderRunPlanHTML, renderNutritionPlanHTML,
-  type BikePlan, type RunPlan, type NutritionPlan,
-} from "./buildSyntheticPlans";
 
 interface BuildOpts {
   athleteName: string;
@@ -24,12 +20,8 @@ interface BuildOpts {
   aiMessage: string;
   /** Référence cohorte (moyenne / au-dessus). Optionnel. */
   peerRef?: PeerReference | null;
-  /** Plans optionnels à joindre au PDF (sélection coach). */
-  attachments?: {
-    bike?: BikePlan | null;
-    run?: RunPlan | null;
-    nutrition?: NutritionPlan | null;
-  };
+  /** Corps HTML (inner <body>) de la carte Stratégie TFCL Plan A & Plan B à joindre. */
+  strategyBodyHtml?: string | null;
 }
 
 const axisInterpretation: Record<string, string> = {
@@ -62,14 +54,14 @@ const mdToHtml = (md: string) =>
     .replace(/\n/g, "<br/>");
 
 export function buildRaceReadinessHTML(opts: BuildOpts): string {
-  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, attachments, peerRef } = opts;
+  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, strategyBodyHtml, peerRef } = opts;
   const dateFR = new Date(raceDateISO).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
-  const attachmentsHTML = [
-    attachments?.bike ? renderBikePlanHTML(attachments.bike) : "",
-    attachments?.run ? renderRunPlanHTML(attachments.run) : "",
-    attachments?.nutrition ? renderNutritionPlanHTML(attachments.nutrition) : "",
-  ].join("");
+  const strategyHTML = strategyBodyHtml
+    ? `<h2>Stratégie TFCL — Plan A &amp; Plan B</h2>
+       <p style="font-size:10pt; color:#475569; margin:4pt 0 8pt;">Deux plans complets : on vise le Plan A. Si quelque chose dérape en course, on bascule sur le Plan B sans paniquer.</p>
+       <div class="strategy-block">${strategyBodyHtml}</div>`
+    : "";
 
   const verdictColor = (tone: string) =>
     tone === "above" ? "#7c3aed" : tone === "around" ? "#475569" : "#b45309";
@@ -168,7 +160,7 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
     <em style="color:#64748b;">Le connaître, c'est déjà la moitié du travail. Adapte ton pacing en conséquence et transforme-le en force.</em>
   </p>` : ""}
 
-  ${attachmentsHTML}
+  ${strategyHTML}
 
   <div class="footer">
     Rapport généré par Potentiel Physiologique TFCL™ — ${new Date().toLocaleDateString("fr-FR")}<br/>
