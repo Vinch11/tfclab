@@ -145,6 +145,8 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
     <em style="color:#64748b;">Le connaître, c'est déjà la moitié du travail. Adapte ton pacing en conséquence et transforme-le en force.</em>
   </p>` : ""}
 
+  ${attachmentsHTML}
+
   <div class="footer">
     Rapport généré par Potentiel Physiologique TFCL™ — ${new Date().toLocaleDateString("fr-FR")}<br/>
     Score basé sur le Coaching Compass (5 axes) et les cibles d'ambition.
