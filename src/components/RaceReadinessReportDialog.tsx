@@ -31,6 +31,7 @@ import { computeRaceReadiness, type RaceReadinessResult } from "@/lib/raceReadin
 import { buildRaceReadinessHTML } from "@/lib/raceReadiness/buildRaceReadinessHTML";
 import { buildReadinessRadarSVG } from "@/lib/raceReadiness/buildReadinessRadarSVG";
 import { getPeerReference, peerVerdict } from "@/lib/raceReadiness/peerReference";
+import { getReadinessVerdict } from "@/lib/raceReadiness/readinessVerdict";
 import { buildStrategyHtml, type ExportSections } from "@/components/ObjectiveStrategyCard";
 import { computePacingEnvelope, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
