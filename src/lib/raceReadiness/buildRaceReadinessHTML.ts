@@ -62,7 +62,7 @@ const mdToHtml = (md: string) =>
     .replace(/\n/g, "<br/>");
 
 export function buildRaceReadinessHTML(opts: BuildOpts): string {
-  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, attachments } = opts;
+  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, attachments, peerRef } = opts;
   const dateFR = new Date(raceDateISO).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
   const attachmentsHTML = [
@@ -71,13 +71,18 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
     attachments?.nutrition ? renderNutritionPlanHTML(attachments.nutrition) : "",
   ].join("");
 
+  const verdictColor = (tone: string) =>
+    tone === "above" ? "#7c3aed" : tone === "around" ? "#475569" : "#b45309";
+
   const axisRows = result.axes.map(a => {
     const interp = axisInterpretation[a.key] ?? "";
+    const v = peerRef ? peerVerdict(a.score, peerRef) : null;
     return `
     <tr>
       <td>
         <div style="font-weight:600;">${esc(a.label)}</div>
         ${interp ? `<div style="font-size:8.5pt; color:#64748b; margin-top:2pt; font-style:italic;">${esc(interp)}</div>` : ""}
+        ${v ? `<div style="font-size:8.5pt; margin-top:2pt; color:${verdictColor(v.tone)}; font-weight:600;">${v.tone === "above" ? "★ " : ""}${esc(v.label)} <span style="color:#94a3b8; font-weight:400;">vs ${esc(peerRef!.cohortLabel)} (${peerRef!.peerAvg})</span></div>` : ""}
       </td>
       <td style="text-align:center; font-weight:700; color:${colorFor(a.status)};">${a.score}/100</td>
       <td style="text-align:center;">${a.value != null ? `${a.value}${esc(a.unit)}` : "—"}</td>
