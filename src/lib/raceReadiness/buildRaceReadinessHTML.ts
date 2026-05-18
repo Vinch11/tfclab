@@ -1,9 +1,11 @@
 /**
  * Race Readiness — HTML printable (PDF via Ctrl+P)
  * Aligné avec la charte du mini-rapport TFCL.
+ * Ton positif : les "gaps" sont reformulés en "leviers de progression".
  */
 
 import type { RaceReadinessResult } from "./computeRaceReadiness";
+import { buildReadinessRadarSVG } from "./buildReadinessRadarSVG";
 
 interface BuildOpts {
   athleteName: string;
@@ -72,6 +74,7 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   .chip { padding: 3pt 10pt; border-radius: 999pt; font-size: 9pt; font-weight: 600; }
   .chip.strong { background: #dcfce7; color: #166534; }
   .chip.gap { background: #fee2e2; color: #991b1b; }
+  .chip.lever { background: #e0f2fe; color: #075985; }
   .footer { margin-top: 32pt; padding-top: 12pt; border-top: 1pt solid #e2e8f0; font-size: 8pt; color: #94a3b8; text-align: center; }
 </style></head>
 <body>
@@ -91,6 +94,18 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   <h2>Message du coach</h2>
   <div class="ai-message"><p>${mdToHtml(aiMessage)}</p></div>
 
+  <h2>Cartographie de ta forme</h2>
+  <div style="display:flex; gap:16pt; align-items:center; flex-wrap:wrap;">
+    <div style="flex:1 1 320pt; min-width:280pt;">
+      ${buildReadinessRadarSVG({ axes: result.axes, size: 320 })}
+    </div>
+    <div style="flex:1 1 220pt; font-size:10pt; color:#334155;">
+      <p style="margin:0 0 6pt;"><strong>Chaque axe = un pilier de ta performance.</strong></p>
+      <p style="margin:0 0 6pt;">Plus le polygone est large et régulier, plus ton profil est <strong>équilibré et prêt à délivrer le jour J</strong>.</p>
+      <p style="margin:0; color:#64748b;">Les axes les plus internes ne sont pas des faiblesses : ce sont tes <strong>leviers de progression</strong>, les zones où chaque effort produira le plus de gain.</p>
+    </div>
+  </div>
+
   <h2>Détail par axe physiologique</h2>
   <table>
     <thead><tr><th>Axe</th><th style="text-align:center;">Score</th><th style="text-align:center;">Valeur</th><th style="text-align:center;">Cible</th></tr></thead>
@@ -98,16 +113,21 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   </table>
 
   ${result.strengths.length ? `
-  <h2>Points forts</h2>
+  <h2>Tes points forts à exploiter le jour J</h2>
+  <p style="font-size:10pt; color:#475569; margin:4pt 0;">Ce sont les leviers sur lesquels t'appuyer pour construire ta course.</p>
   <div class="strengths">${result.strengths.map(s => `<span class="chip strong">${esc(s.label)} (${s.score}/100)</span>`).join("")}</div>` : ""}
 
   ${result.gaps.length ? `
-  <h2>Points de vigilance</h2>
-  <div class="gaps">${result.gaps.map(g => `<span class="chip gap">${esc(g.label)} (${g.score}/100)</span>`).join("")}</div>` : ""}
+  <h2>Leviers de progression identifiés</h2>
+  <p style="font-size:10pt; color:#475569; margin:4pt 0;">Pas des faiblesses — des marges de gain. Garde-les en tête, mais ne laisse pas ces axes te freiner mentalement : ta préparation reste solide sur l'ensemble.</p>
+  <div class="gaps">${result.gaps.map(g => `<span class="chip lever">${esc(g.label)} (${g.score}/100)</span>`).join("")}</div>` : ""}
 
   ${result.limiter ? `
-  <h2>Limiteur principal identifié</h2>
-  <p style="font-size:10pt;"><strong>${esc(result.limiter.label)}</strong> — ${esc(result.limiter.description)}</p>` : ""}
+  <h2>Facteur dominant à apprivoiser</h2>
+  <p style="font-size:10pt; color:#475569;">
+    <strong>${esc(result.limiter.label)}</strong> — ${esc(result.limiter.description)}<br/>
+    <em style="color:#64748b;">Le connaître, c'est déjà la moitié du travail. Adapte ton pacing en conséquence et transforme-le en force.</em>
+  </p>` : ""}
 
   <div class="footer">
     Rapport généré par Potentiel Physiologique TFCL™ — ${new Date().toLocaleDateString("fr-FR")}<br/>

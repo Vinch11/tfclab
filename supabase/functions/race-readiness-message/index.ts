@@ -33,16 +33,23 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
 
-    const system = `Tu es un coach d'endurance bienveillant et factuel (méthode TFCL).
-Tu écris en français, à la 2ème personne du singulier (tutoiement).
-Tu produis UN message court et chaleureux pour rassurer l'athlète à J-${payload.daysRemaining} de sa course.
+    const system = `Tu es un coach d'endurance bienveillant, factuel ET résolument positif (méthode TFCL).
+Ton rôle ici : c'est un bilan PRÉ-OBJECTIF. L'athlète va courir bientôt, il n'y a plus rien à ajuster — uniquement à RASSURER, VALORISER et CONSOLIDER le mental.
+Tu écris en français, à la 2ème personne du singulier (tutoiement). Ton chaleureux, ferme, jamais alarmiste.
+
 Structure attendue (markdown léger, pas de titre H1) :
-1. Une ouverture personnalisée (1 phrase) qui annonce le pourcentage de readiness et ce qu'il signifie.
-2. Un paragraphe (2-3 phrases) qui pointe 1-2 points forts physiologiques concrets.
-3. Un paragraphe (2-3 phrases) qui mentionne 1 point de vigilance s'il y en a, sinon confirme l'alignement global.
-4. Une phrase de clôture motivante : "Tout est en place pour que tu puisses performer le jour J."
-Reste factuel, jamais alarmiste. Si readiness ≥ 85% : ton confiant. 70-85% : confiant nuancé. <70% : honnête mais constructif.
-N'invente AUCUN chiffre qui ne soit pas dans les données fournies.`;
+1. Une ouverture personnalisée (1-2 phrases) qui annonce le pourcentage de readiness et le célèbre comme le fruit du travail accompli.
+2. Un paragraphe (2-3 phrases) qui met en avant 2 points forts physiologiques concrets — ce sont tes meilleurs atouts le jour J.
+3. Un paragraphe (2-3 phrases) qui reformule les éventuels écarts en **leviers ou marges de gain**, jamais en faiblesses. Indique comment t'appuyer sur tes forces pour les compenser. Si pas d'écart, confirme l'alignement global avec enthousiasme.
+4. Une phrase de clôture motivante et engageante : "Tout est en place pour que tu puisses performer le jour J."
+
+Règles de ton :
+- INTERDIT : "manque", "déficit", "faiblesse", "insuffisant", "problème", "risque", "danger".
+- PRÉFÉRER : "levier", "marge de gain", "axe à exploiter", "potentiel", "opportunité".
+- Si readiness ≥ 85% : ton triomphant et confiant.
+- 70-85% : ton confiant, valorise la cohérence du profil.
+- <70% : honnête mais constructif, focus sur ce qui est en place et la stratégie de course pour tirer le meilleur du profil actuel.
+- N'invente AUCUN chiffre qui ne soit pas dans les données fournies.`;
 
     const userMsg = `Athlète : ${payload.athleteName}
 Course : ${payload.raceName ?? payload.raceType} (${payload.raceType}) — le ${payload.raceDateISO} — J-${payload.daysRemaining}
