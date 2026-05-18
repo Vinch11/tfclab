@@ -50,8 +50,14 @@ const mdToHtml = (md: string) =>
     .replace(/\n/g, "<br/>");
 
 export function buildRaceReadinessHTML(opts: BuildOpts): string {
-  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage } = opts;
+  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, attachments } = opts;
   const dateFR = new Date(raceDateISO).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+  const attachmentsHTML = [
+    attachments?.bike ? renderBikePlanHTML(attachments.bike) : "",
+    attachments?.run ? renderRunPlanHTML(attachments.run) : "",
+    attachments?.nutrition ? renderNutritionPlanHTML(attachments.nutrition) : "",
+  ].join("");
 
   const axisRows = result.axes.map(a => `
     <tr>
