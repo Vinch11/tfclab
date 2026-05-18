@@ -20,12 +20,8 @@ interface BuildOpts {
   aiMessage: string;
   /** Référence cohorte (moyenne / au-dessus). Optionnel. */
   peerRef?: PeerReference | null;
-  /** Plans optionnels à joindre au PDF (sélection coach). */
-  attachments?: {
-    bike?: BikePlan | null;
-    run?: RunPlan | null;
-    nutrition?: NutritionPlan | null;
-  };
+  /** Corps HTML (inner <body>) de la carte Stratégie TFCL Plan A & Plan B à joindre. */
+  strategyBodyHtml?: string | null;
 }
 
 const axisInterpretation: Record<string, string> = {
