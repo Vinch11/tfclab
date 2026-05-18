@@ -6,6 +6,7 @@
 
 import type { RaceReadinessResult } from "./computeRaceReadiness";
 import { buildReadinessRadarSVG } from "./buildReadinessRadarSVG";
+import { type PeerReference, peerVerdict } from "./peerReference";
 import {
   renderBikePlanHTML, renderRunPlanHTML, renderNutritionPlanHTML,
   type BikePlan, type RunPlan, type NutritionPlan,
@@ -21,6 +22,8 @@ interface BuildOpts {
   ambition: string;
   result: RaceReadinessResult;
   aiMessage: string;
+  /** Référence cohorte (moyenne / au-dessus). Optionnel. */
+  peerRef?: PeerReference | null;
   /** Plans optionnels à joindre au PDF (sélection coach). */
   attachments?: {
     bike?: BikePlan | null;
