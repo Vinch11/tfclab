@@ -2094,6 +2094,25 @@ const Index = () => {
           onOpenChange={setExportOpen}
         />
       )}
+
+      {/* Bilan pré-objectif TFCL */}
+      {currentAthlete && (() => {
+        const future = raceGoals
+          .filter(g => new Date(g.race_date) >= new Date())
+          .sort((a, b) => new Date(a.race_date).getTime() - new Date(b.race_date).getTime());
+        const next = future[0];
+        return (
+          <RaceReadinessReportDialog
+            open={readinessOpen}
+            onOpenChange={setReadinessOpen}
+            athleteName={currentAthlete.name}
+            objectif={currentAthlete.goal || "IM"}
+            ambition={currentAmbition}
+            nextRace={next ? { race_name: next.race_name, race_type: next.race_type, race_date: next.race_date } : null}
+            compassInput={compassInputMemo}
+          />
+        );
+      })()}
     </SidebarLayout>
   );
 };
