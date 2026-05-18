@@ -326,6 +326,7 @@ const Index = () => {
   const [showSnapshots, setShowSnapshots] = usePersistedDialogState("vlab-show-snapshots", false);
   const [showCheckins, setShowCheckins] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [readinessOpen, setReadinessOpen] = useState(false);
 
   // ✅ Mode Staff toggle (affichage expert avec indices de confiance)
   const [staffMode, setStaffMode] = useState<boolean>(() => {
