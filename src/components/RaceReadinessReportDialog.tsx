@@ -23,6 +23,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FileDown, Sparkles, RefreshCw, Trophy, AlertTriangle, Calendar, Bike, Footprints, Apple } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const COACH_TONES = [
+  { id: "fire", label: "🔥 Feu sacré", hint: "Chauffe à blanc, énergie de combat" },
+  { id: "calm", label: "🧘 Calme & rassurant", hint: "Apaise, confiance posée" },
+  { id: "tactical", label: "🎯 Tactique & analytique", hint: "Lucide, stratège, factuel" },
+  { id: "short", label: "⚡ Bref & direct", hint: "Punchy, 3-4 phrases max" },
+  { id: "mentor", label: "🤝 Mentor bienveillant", hint: "Chaleureux, posture de coach senior" },
+] as const;
+type CoachToneId = typeof COACH_TONES[number]["id"];
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
