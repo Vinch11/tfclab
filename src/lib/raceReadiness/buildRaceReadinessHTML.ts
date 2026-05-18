@@ -153,12 +153,6 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   <p style="font-size:10pt; color:#475569; margin:4pt 0;">Pas des faiblesses — des marges de gain. Garde-les en tête, mais ne laisse pas ces axes te freiner mentalement : ta préparation reste solide sur l'ensemble.</p>
   <div class="gaps">${result.gaps.map(g => `<span class="chip lever">${esc(g.label)} (${g.score}/100)</span>`).join("")}</div>` : ""}
 
-  ${result.limiter ? `
-  <h2>Facteur dominant à apprivoiser</h2>
-  <p style="font-size:10pt; color:#475569;">
-    <strong>${esc(result.limiter.label)}</strong> — ${esc(result.limiter.description)}<br/>
-    <em style="color:#64748b;">Le connaître, c'est déjà la moitié du travail. Adapte ton pacing en conséquence et transforme-le en force.</em>
-  </p>` : ""}
 
   ${strategyHTML}
 
