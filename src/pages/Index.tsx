@@ -86,6 +86,8 @@ import { LorangDecisionFlowChart } from "@/components/LorangDecisionFlowChart";
 // ✅ Coach Decision Center — Carte unifiée (Phase 2 Architecture)
 import { CoachDecisionUnifiedCard } from "@/components/CoachDecisionUnifiedCard";
 import { CoachingCompassCard } from "@/components/CoachingCompassCard";
+import { RaceReadinessReportDialog } from "@/components/RaceReadinessReportDialog";
+import { Trophy } from "lucide-react";
 
 // ✅ Dashboard Simplifié — 4 sections linéaires
 import { AnalyseSection } from "@/components/simplified/AnalyseSection";
