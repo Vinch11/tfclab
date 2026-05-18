@@ -100,9 +100,9 @@ export function RaceReadinessReportDialog({
     const cpWkg = compassInput.ftp && compassInput.poids
       ? (compassInput.ftp * 0.95) / compassInput.poids : null;
     return computePacingEnvelope({
-      vlamaxEffectif: compassInput.vlamaxEffectif,
-      tteEffectif: compassInput.tteEffectif,
-      fatmax: compassInput.fatmax,
+      vlamaxEffectif: compassInput.vlamaxEffectif as any,
+      tteEffectif: compassInput.tteEffectif as any,
+      fatmax: compassInput.fatmax as any,
       potentielPhysiologiqueScore: compassInput.potentielPhysiologique?.score ?? null,
       fatigueIndex: null,
       raceObjective, sport: "bike",
