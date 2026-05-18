@@ -348,7 +348,7 @@ export function RaceReadinessReportDialog({
                             <Bike className="h-3.5 w-3.5" /> Plan Vélo
                           </div>
                           <div className="text-[11px] text-muted-foreground">
-                            A : {bikePlan.planA.wattsLo}–{bikePlan.planA.wattsHi}W · B : {bikePlan.planB.wattsLo}–{bikePlan.planB.wattsHi}W
+                            3 scénarios (Robuste / Ambitieux / Agressif) · splits + repères d'effort · FTP {bikePlan.ftp}W
                           </div>
                         </div>
                       </label>
@@ -361,7 +361,7 @@ export function RaceReadinessReportDialog({
                             <Footprints className="h-3.5 w-3.5" /> Plan CAP
                           </div>
                           <div className="text-[11px] text-muted-foreground">
-                            A : {runPlan.planA.paceLo} · B : {runPlan.planB.paceHi}
+                            3 scénarios (Robuste / Ambitieux / Agressif) · splits + repères d'effort · Seuil {Math.floor(runPlan.paceThresholdSecKm / 60)}:{(Math.round(runPlan.paceThresholdSecKm % 60)).toString().padStart(2, "0")}/km
                           </div>
                         </div>
                       </label>
