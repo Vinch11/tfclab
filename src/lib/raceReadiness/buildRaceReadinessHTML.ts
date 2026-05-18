@@ -7,10 +7,6 @@
 import type { RaceReadinessResult } from "./computeRaceReadiness";
 import { buildReadinessRadarSVG } from "./buildReadinessRadarSVG";
 import { type PeerReference, peerVerdict } from "./peerReference";
-import {
-  renderBikePlanHTML, renderRunPlanHTML, renderNutritionPlanHTML,
-  type BikePlan, type RunPlan, type NutritionPlan,
-} from "./buildSyntheticPlans";
 
 interface BuildOpts {
   athleteName: string;
