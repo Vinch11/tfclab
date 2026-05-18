@@ -162,7 +162,7 @@ export function RaceReadinessReportDialog({
           daysRemaining: daysRemaining ?? null,
           ambition,
           objectif,
-          readinessPct: readiness.scorePct,
+          readinessVerdict: getReadinessVerdict(readiness.scorePct),
           axes: readiness.axes.map(a => ({
             label: a.label, score: a.score, target: a.target, value: a.value, unit: a.unit,
           })),

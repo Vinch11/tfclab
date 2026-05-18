@@ -16,7 +16,7 @@ interface ReqPayload {
   daysRemaining: number;
   ambition: string;
   objectif: string;
-  readinessPct: number; // 0-100
+  readinessVerdict: { label: string; emoji: string; tagline: string };
   axes: Array<{ label: string; score: number; target: number | null; value: number | null; unit: string }>;
   limiter: { label: string; description: string } | null;
   strengths: string[];
@@ -38,23 +38,23 @@ Ton rôle ici : c'est un bilan PRÉ-OBJECTIF. L'athlète va courir bientôt, il 
 Tu écris en français, à la 2ème personne du singulier (tutoiement). Ton chaleureux, ferme, jamais alarmiste.
 
 Structure attendue (markdown léger, pas de titre H1) :
-1. Une ouverture personnalisée (1-2 phrases) qui annonce le pourcentage de readiness et le célèbre comme le fruit du travail accompli.
+1. Une ouverture personnalisée (1-2 phrases) qui annonce le verdict de readiness («${payload.readinessVerdict.label} ${payload.readinessVerdict.emoji}») et le célèbre comme le fruit du travail accompli. N'utilise JAMAIS de pourcentage.
 2. Un paragraphe (2-3 phrases) qui met en avant 2 points forts physiologiques concrets — ce sont tes meilleurs atouts le jour J.
 3. Un paragraphe (2-3 phrases) qui reformule les éventuels écarts en **leviers ou marges de gain**, jamais en faiblesses. Indique comment t'appuyer sur tes forces pour les compenser. Si pas d'écart, confirme l'alignement global avec enthousiasme.
 4. Une phrase de clôture motivante et engageante : "Tout est en place pour que tu puisses performer le jour J."
 
 Règles de ton :
-- INTERDIT : "manque", "déficit", "faiblesse", "insuffisant", "problème", "risque", "danger".
+- INTERDIT : "manque", "déficit", "faiblesse", "insuffisant", "problème", "risque", "danger", et SURTOUT tout pourcentage (%, pour cent, etc.).
 - PRÉFÉRER : "levier", "marge de gain", "axe à exploiter", "potentiel", "opportunité".
-- Si readiness ≥ 85% : ton triomphant et confiant.
-- 70-85% : ton confiant, valorise la cohérence du profil.
-- <70% : honnête mais constructif, focus sur ce qui est en place et la stratégie de course pour tirer le meilleur du profil actuel.
+- Si le verdict est «En feu» ou «Prêt» : ton triomphant et confiant.
+- «Prêt avec réserves» ou «Moyennement prêt» : ton confiant, valorise la cohérence du profil, reste rassurant.
+- «Mieux vaudrait reporter» : honnête mais constructif, focus sur ce qui est en place et la stratégie de course pour tirer le meilleur du profil actuel.
 - N'invente AUCUN chiffre qui ne soit pas dans les données fournies.`;
 
     const userMsg = `Athlète : ${payload.athleteName}
 Course : ${payload.raceName ?? payload.raceType} (${payload.raceType}) — le ${payload.raceDateISO} — J-${payload.daysRemaining}
 Objectif : ${payload.objectif} | Ambition : ${payload.ambition}
-Score de readiness global : ${payload.readinessPct}%
+Verdict de readiness global : ${payload.readinessVerdict.label} ${payload.readinessVerdict.emoji} — ${payload.readinessVerdict.tagline}
 
 Axes physiologiques (score / cible) :
 ${payload.axes.map(a => `- ${a.label} : score ${a.score}/100${a.value != null ? ` (valeur ${a.value}${a.unit}${a.target != null ? `, cible ${a.target}${a.unit}` : ""})` : ""}`).join("\n")}
