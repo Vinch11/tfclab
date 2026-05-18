@@ -54,14 +54,14 @@ const mdToHtml = (md: string) =>
     .replace(/\n/g, "<br/>");
 
 export function buildRaceReadinessHTML(opts: BuildOpts): string {
-  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, attachments, peerRef } = opts;
+  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, strategyBodyHtml, peerRef } = opts;
   const dateFR = new Date(raceDateISO).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
-  const attachmentsHTML = [
-    attachments?.bike ? renderBikePlanHTML(attachments.bike) : "",
-    attachments?.run ? renderRunPlanHTML(attachments.run) : "",
-    attachments?.nutrition ? renderNutritionPlanHTML(attachments.nutrition) : "",
-  ].join("");
+  const strategyHTML = strategyBodyHtml
+    ? `<h2>Stratégie TFCL — Plan A &amp; Plan B</h2>
+       <p style="font-size:10pt; color:#475569; margin:4pt 0 8pt;">Deux plans complets : on vise le Plan A. Si quelque chose dérape en course, on bascule sur le Plan B sans paniquer.</p>
+       <div class="strategy-block">${strategyBodyHtml}</div>`
+    : "";
 
   const verdictColor = (tone: string) =>
     tone === "above" ? "#7c3aed" : tone === "around" ? "#475569" : "#b45309";
