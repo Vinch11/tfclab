@@ -30,6 +30,7 @@ import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachin
 import { computeRaceReadiness, type RaceReadinessResult } from "@/lib/raceReadiness/computeRaceReadiness";
 import { buildRaceReadinessHTML } from "@/lib/raceReadiness/buildRaceReadinessHTML";
 import { buildReadinessRadarSVG } from "@/lib/raceReadiness/buildReadinessRadarSVG";
+import { getPeerReference, peerVerdict } from "@/lib/raceReadiness/peerReference";
 import {
   buildBikePlan, buildRunPlan, buildNutritionPlan,
   type SyntheticPlanInputs,
