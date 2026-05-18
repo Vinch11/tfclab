@@ -54,7 +54,7 @@ Règles de ton :
     const userMsg = `Athlète : ${payload.athleteName}
 Course : ${payload.raceName ?? payload.raceType} (${payload.raceType}) — le ${payload.raceDateISO} — J-${payload.daysRemaining}
 Objectif : ${payload.objectif} | Ambition : ${payload.ambition}
-Score de readiness global : ${payload.readinessPct}%
+Verdict de readiness global : ${payload.readinessVerdict.label} ${payload.readinessVerdict.emoji} — ${payload.readinessVerdict.tagline}
 
 Axes physiologiques (score / cible) :
 ${payload.axes.map(a => `- ${a.label} : score ${a.score}/100${a.value != null ? ` (valeur ${a.value}${a.unit}${a.target != null ? `, cible ${a.target}${a.unit}` : ""})` : ""}`).join("\n")}
