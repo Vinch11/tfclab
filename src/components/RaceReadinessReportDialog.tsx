@@ -76,6 +76,7 @@ export function RaceReadinessReportDialog({
     [compassInput]
   );
   const readiness = useMemo(() => computeRaceReadiness(compassResult), [compassResult]);
+  const peerRef = useMemo(() => getPeerReference(ambition), [ambition]);
 
   // Construction des plans synthétiques (sans coût, ne dépend que de compassInput)
   const planInputs = useMemo<SyntheticPlanInputs | null>(() => {
