@@ -361,7 +361,7 @@ export function RaceReadinessReportDialog({
                             <Footprints className="h-3.5 w-3.5" /> Plan CAP
                           </div>
                           <div className="text-[11px] text-muted-foreground">
-                            A : {runPlan.planA.paceLo} · B : {runPlan.planB.paceHi}
+                            3 scénarios (Robuste / Ambitieux / Agressif) · splits + repères d'effort · Seuil {Math.floor(runPlan.paceThresholdSecKm / 60)}:{(Math.round(runPlan.paceThresholdSecKm % 60)).toString().padStart(2, "0")}/km
                           </div>
                         </div>
                       </label>
