@@ -8,6 +8,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+type CoachTone = "fire" | "calm" | "tactical" | "short" | "mentor";
+
 interface ReqPayload {
   athleteName: string;
   raceName: string | null;
@@ -21,7 +23,30 @@ interface ReqPayload {
   limiter: { label: string; description: string } | null;
   strengths: string[];
   gaps: string[];
+  tone?: CoachTone;
 }
+
+const TONE_INSTRUCTIONS: Record<CoachTone, string> = {
+  fire: `Ton RÉSOLUMENT MOTIVANT et électrique : chauffe l'athlète à blanc, énergie de combat, donne envie de tout casser.
+- Verbes d'action, images sportives (chasser, attaquer, dérouler, lâcher les chevaux).
+- Clôture qui claque, courte et percutante.
+- Structure libre mais 4 temps : ouverture qui claque · 2 armes physiologiques · leviers reformulés en cartes à jouer · clôture qui envoie.`,
+  calm: `Ton CALME, POSÉ et RASSURANT : voix de coach serein, confiance tranquille, aucune pression.
+- Phrases fluides, respirées, presque méditatives.
+- Mots-clés : "sereinement", "à ton rythme", "tu es prêt·e", "confiance", "respire".
+- Clôture douce et ancrée. Évite l'emphase et les superlatifs.`,
+  tactical: `Ton TACTIQUE et ANALYTIQUE : posture de stratège lucide. L'athlète doit comprendre clairement ses leviers et son plan de course.
+- Structuré, précis, factuel mais chaleureux.
+- Mets en relief les leviers physiologiques exploitables et comment les jouer en course.
+- Clôture orientée plan d'action ("Voilà ta partition pour le jour J").`,
+  short: `Ton BREF et DIRECT : 3-4 phrases MAX au total. Punchy, sans fioriture.
+- Une phrase verdict. Une phrase forces. Une phrase leviers. Une phrase clôture.
+- Pas de markdown, pas de listes, pas de paragraphes longs.`,
+  mentor: `Ton MENTOR BIENVEILLANT : coach senior chaleureux qui te connaît bien, ferme et protecteur.
+- Phrases pleines, posées, légèrement personnelles ("J'ai vu ton travail, je sais où tu vas").
+- Valorise la cohérence du chemin parcouru autant que les chiffres.
+- Clôture chaleureuse, presque paternelle/maternelle, qui pose la confiance.`,
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
