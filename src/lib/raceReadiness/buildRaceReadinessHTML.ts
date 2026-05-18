@@ -7,6 +7,7 @@
 import type { RaceReadinessResult } from "./computeRaceReadiness";
 import { buildReadinessRadarSVG } from "./buildReadinessRadarSVG";
 import { type PeerReference, peerVerdict } from "./peerReference";
+import { getReadinessVerdict } from "./readinessVerdict";
 
 interface BuildOpts {
   athleteName: string;
@@ -92,8 +93,9 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   h2 { font-size: 14pt; margin-top: 24pt; margin-bottom: 8pt; color: #0f172a; border-bottom: 2pt solid #e2e8f0; padding-bottom: 4pt; }
   .meta { color: #64748b; font-size: 10pt; margin-bottom: 16pt; }
   .hero { background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); border-radius: 12pt; padding: 20pt; margin: 16pt 0; text-align: center; }
-  .score { font-size: 56pt; font-weight: 800; color: ${levelColor(result.level)}; line-height: 1; }
-  .score-label { font-size: 13pt; color: #334155; margin-top: 6pt; }
+  .verdict-emoji { font-size: 44pt; line-height: 1; }
+  .verdict-label { font-size: 26pt; font-weight: 800; color: ${levelColor(result.level)}; margin-top: 8pt; line-height: 1.1; }
+  .verdict-tagline { font-size: 12pt; color: #475569; margin-top: 6pt; font-style: italic; }
   .level-tag { display: inline-block; margin-top: 10pt; padding: 4pt 12pt; border-radius: 999pt; background: ${levelColor(result.level)}; color: white; font-size: 10pt; font-weight: 600; }
   .countdown { font-size: 11pt; color: #475569; margin-top: 8pt; }
   .ai-message { background: #fefce8; border-left: 4pt solid #ca8a04; padding: 14pt 18pt; border-radius: 6pt; margin: 12pt 0; font-size: 11pt; }
@@ -116,8 +118,9 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   </div>
 
   <div class="hero">
-    <div class="score">${result.scorePct}%</div>
-    <div class="score-label">Tu es prêt à <strong>${result.scorePct}%</strong> pour le jour J</div>
+    <div class="verdict-emoji">${verdict.emoji}</div>
+    <div class="verdict-label">${esc(verdict.label)}</div>
+    <div class="verdict-tagline">${esc(verdict.tagline)}</div>
     <div class="level-tag">${esc(result.levelLabel)}</div>
     <div class="countdown">J-${daysRemaining} avant la course</div>
   </div>
