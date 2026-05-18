@@ -6,6 +6,10 @@
 
 import type { RaceReadinessResult } from "./computeRaceReadiness";
 import { buildReadinessRadarSVG } from "./buildReadinessRadarSVG";
+import {
+  renderBikePlanHTML, renderRunPlanHTML, renderNutritionPlanHTML,
+  type BikePlan, type RunPlan, type NutritionPlan,
+} from "./buildSyntheticPlans";
 
 interface BuildOpts {
   athleteName: string;
@@ -17,6 +21,12 @@ interface BuildOpts {
   ambition: string;
   result: RaceReadinessResult;
   aiMessage: string;
+  /** Plans optionnels à joindre au PDF (sélection coach). */
+  attachments?: {
+    bike?: BikePlan | null;
+    run?: RunPlan | null;
+    nutrition?: NutritionPlan | null;
+  };
 }
 
 const colorFor = (status: string) =>
@@ -40,8 +50,14 @@ const mdToHtml = (md: string) =>
     .replace(/\n/g, "<br/>");
 
 export function buildRaceReadinessHTML(opts: BuildOpts): string {
-  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage } = opts;
+  const { athleteName, raceName, raceType, raceDateISO, daysRemaining, objectif, ambition, result, aiMessage, attachments } = opts;
   const dateFR = new Date(raceDateISO).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+  const attachmentsHTML = [
+    attachments?.bike ? renderBikePlanHTML(attachments.bike) : "",
+    attachments?.run ? renderRunPlanHTML(attachments.run) : "",
+    attachments?.nutrition ? renderNutritionPlanHTML(attachments.nutrition) : "",
+  ].join("");
 
   const axisRows = result.axes.map(a => `
     <tr>
@@ -128,6 +144,8 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
     <strong>${esc(result.limiter.label)}</strong> — ${esc(result.limiter.description)}<br/>
     <em style="color:#64748b;">Le connaître, c'est déjà la moitié du travail. Adapte ton pacing en conséquence et transforme-le en force.</em>
   </p>` : ""}
+
+  ${attachmentsHTML}
 
   <div class="footer">
     Rapport généré par Potentiel Physiologique TFCL™ — ${new Date().toLocaleDateString("fr-FR")}<br/>

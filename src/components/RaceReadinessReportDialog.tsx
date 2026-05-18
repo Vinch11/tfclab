@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileDown, Sparkles, RefreshCw, Trophy, AlertTriangle, Calendar } from "lucide-react";
+import { FileDown, Sparkles, RefreshCw, Trophy, AlertTriangle, Calendar, Bike, Footprints, Apple } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,10 @@ import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachin
 import { computeRaceReadiness, type RaceReadinessResult } from "@/lib/raceReadiness/computeRaceReadiness";
 import { buildRaceReadinessHTML } from "@/lib/raceReadiness/buildRaceReadinessHTML";
 import { buildReadinessRadarSVG } from "@/lib/raceReadiness/buildReadinessRadarSVG";
+import {
+  buildBikePlan, buildRunPlan, buildNutritionPlan,
+  type SyntheticPlanInputs,
+} from "@/lib/raceReadiness/buildSyntheticPlans";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 
 interface NextRace {
@@ -50,11 +55,34 @@ export function RaceReadinessReportDialog({
   const [aiMessage, setAiMessage] = useState<string>("");
   const [loadingAI, setLoadingAI] = useState(false);
 
+  // Plans à joindre au bilan (choix coach)
+  const [attachBike, setAttachBike] = useState(false);
+  const [attachRun, setAttachRun] = useState(false);
+  const [attachNutrition, setAttachNutrition] = useState(false);
+
   const compassResult = useMemo(
     () => (compassInput ? computeCoachingCompass(compassInput) : null),
     [compassInput]
   );
   const readiness = useMemo(() => computeRaceReadiness(compassResult), [compassResult]);
+
+  // Construction des plans synthétiques (sans coût, ne dépend que de compassInput)
+  const planInputs = useMemo<SyntheticPlanInputs | null>(() => {
+    if (!compassInput) return null;
+    return {
+      objectif,
+      ambition,
+      ftp: compassInput.ftp,
+      paceThresholdSecKm: compassInput.paceThresholdSecPerKm,
+      weightKg: compassInput.poids,
+      vo2max: compassInput.vo2max,
+      vlamax: compassInput.vlamaxEffectif?.value ?? null,
+    };
+  }, [compassInput, objectif, ambition]);
+
+  const bikePlan = useMemo(() => (planInputs ? buildBikePlan(planInputs) : null), [planInputs]);
+  const runPlan = useMemo(() => (planInputs ? buildRunPlan(planInputs) : null), [planInputs]);
+  const nutritionPlan = useMemo(() => (planInputs ? buildNutritionPlan(planInputs) : null), [planInputs]);
 
   const daysRemaining = useMemo(() => {
     if (!nextRace) return null;
@@ -117,6 +145,11 @@ export function RaceReadinessReportDialog({
       ambition,
       result: readiness,
       aiMessage: aiMessage || "Message non généré.",
+      attachments: {
+        bike: attachBike ? bikePlan : null,
+        run: attachRun ? runPlan : null,
+        nutrition: attachNutrition ? nutritionPlan : null,
+      },
     });
     openPrintableHTML(html, {
       filenameHint: `Bilan pré-objectif - ${athleteName}`,
@@ -265,6 +298,59 @@ export function RaceReadinessReportDialog({
                   </Card>
                 )}
               </div>
+            )}
+
+            {/* Plans à joindre au bilan */}
+            {(bikePlan || runPlan || nutritionPlan) && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardContent className="pt-4 pb-4 space-y-3">
+                  <div className="text-sm font-semibold">Ajouter au bilan</div>
+                  <p className="text-xs text-muted-foreground">
+                    Coche les plans stratégiques à inclure dans le PDF remis à l'athlète.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {bikePlan && (
+                      <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
+                        <Checkbox checked={attachBike} onCheckedChange={(v) => setAttachBike(v === true)} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-sm font-medium">
+                            <Bike className="h-3.5 w-3.5" /> Plan Vélo
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            A : {bikePlan.planA.wattsLo}–{bikePlan.planA.wattsHi}W · B : {bikePlan.planB.wattsLo}–{bikePlan.planB.wattsHi}W
+                          </div>
+                        </div>
+                      </label>
+                    )}
+                    {runPlan && (
+                      <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
+                        <Checkbox checked={attachRun} onCheckedChange={(v) => setAttachRun(v === true)} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-sm font-medium">
+                            <Footprints className="h-3.5 w-3.5" /> Plan CAP
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            A : {runPlan.planA.paceLo} · B : {runPlan.planB.paceHi}
+                          </div>
+                        </div>
+                      </label>
+                    )}
+                    {nutritionPlan && (
+                      <label className="flex items-start gap-2 p-2.5 rounded-md border bg-card cursor-pointer hover:bg-accent/30">
+                        <Checkbox checked={attachNutrition} onCheckedChange={(v) => setAttachNutrition(v === true)} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-sm font-medium">
+                            <Apple className="h-3.5 w-3.5" /> Nutrition
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {nutritionPlan.baseRateGh} g/h · {nutritionPlan.totalCarbsG} g total
+                          </div>
+                        </div>
+                      </label>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Actions */}
