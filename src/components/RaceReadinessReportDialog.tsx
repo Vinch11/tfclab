@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
 import { computeRaceReadiness, type RaceReadinessResult } from "@/lib/raceReadiness/computeRaceReadiness";
 import { buildRaceReadinessHTML } from "@/lib/raceReadiness/buildRaceReadinessHTML";
+import { buildReadinessRadarSVG } from "@/lib/raceReadiness/buildReadinessRadarSVG";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 
 interface NextRace {
@@ -187,6 +188,23 @@ export function RaceReadinessReportDialog({
               </CardContent>
             </Card>
 
+            {/* Radar — cartographie de la forme */}
+            <Card>
+              <CardContent className="pt-4 pb-4">
+                <div className="text-sm font-semibold mb-1">Cartographie de ta forme</div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Plus le polygone est large et régulier, plus ton profil est équilibré pour le jour J.
+                  Les axes les plus internes sont tes <strong>leviers de progression</strong>, pas des faiblesses.
+                </p>
+                <div
+                  className="w-full max-w-md mx-auto"
+                  dangerouslySetInnerHTML={{
+                    __html: buildReadinessRadarSVG({ axes: readiness.axes, size: 300 }),
+                  }}
+                />
+              </CardContent>
+            </Card>
+
             {/* Axes */}
             <div>
               <h3 className="text-sm font-semibold mb-2">Détail par axe physiologique</h3>
@@ -206,7 +224,7 @@ export function RaceReadinessReportDialog({
                           a.status === "strong" && "border-emerald-500 text-emerald-700",
                           a.status === "ok" && "border-sky-500 text-sky-700",
                           a.status === "below" && "border-amber-500 text-amber-700",
-                          a.status === "gap" && "border-red-500 text-red-700",
+                          a.status === "gap" && "border-sky-600 text-sky-800",
                         )}
                       >
                         {a.score}
@@ -217,13 +235,14 @@ export function RaceReadinessReportDialog({
               </div>
             </div>
 
-            {/* Strengths / Gaps */}
+            {/* Strengths / Leviers (ton positif) */}
             {(readiness.strengths.length > 0 || readiness.gaps.length > 0) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {readiness.strengths.length > 0 && (
                   <Card className="border-emerald-200 bg-emerald-50/40 dark:bg-emerald-950/10">
                     <CardContent className="pt-3 pb-3">
-                      <div className="text-xs font-semibold text-emerald-700 mb-1">Points forts</div>
+                      <div className="text-xs font-semibold text-emerald-700 mb-1">Points forts à exploiter</div>
+                      <p className="text-[11px] text-muted-foreground mb-2">Tes appuis solides pour construire la course.</p>
                       <div className="flex flex-wrap gap-1">
                         {readiness.strengths.map(s => (
                           <Badge key={s.key} className="bg-emerald-600 text-white text-xs">{s.label}</Badge>
@@ -233,12 +252,13 @@ export function RaceReadinessReportDialog({
                   </Card>
                 )}
                 {readiness.gaps.length > 0 && (
-                  <Card className="border-red-200 bg-red-50/40 dark:bg-red-950/10">
+                  <Card className="border-sky-200 bg-sky-50/40 dark:bg-sky-950/10">
                     <CardContent className="pt-3 pb-3">
-                      <div className="text-xs font-semibold text-red-700 mb-1">Points de vigilance</div>
+                      <div className="text-xs font-semibold text-sky-700 mb-1">Leviers de progression</div>
+                      <p className="text-[11px] text-muted-foreground mb-2">Pas des faiblesses — des marges de gain à activer.</p>
                       <div className="flex flex-wrap gap-1">
                         {readiness.gaps.map(g => (
-                          <Badge key={g.key} variant="destructive" className="text-xs">{g.label}</Badge>
+                          <Badge key={g.key} className="bg-sky-600 text-white text-xs">{g.label}</Badge>
                         ))}
                       </div>
                     </CardContent>
