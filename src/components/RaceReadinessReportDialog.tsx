@@ -14,14 +14,6 @@ const AXIS_INTERPRETATION: Record<string, string> = {
   economy: "Efficience métabolique — l'énergie consommée pour avancer.",
 };
 
-const AXIS_INTERPRETATION: Record<string, string> = {
-  vo2max: "Plafond aérobie — la puissance maximale de ton moteur principal.",
-  vlamax: "Équilibre glycolytique — une valeur maîtrisée limite l'acidose sur la durée.",
-  ftpkg: "Puissance aérobie au kilo — le rendement brut de ton moteur.",
-  vma: "Vitesse Maximale Aérobie — ta vitesse de référence pour les zones d'entraînement.",
-  durability: "Capacité à tenir l'intensité sur toute la durée de l'objectif.",
-  economy: "Efficience métabolique — l'énergie consommée pour avancer.",
-};
 
 import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
