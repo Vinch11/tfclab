@@ -64,11 +64,6 @@ export function RaceReadinessReportDialog({
   const [aiMessage, setAiMessage] = useState<string>("");
   const [loadingAI, setLoadingAI] = useState(false);
 
-  // Plans à joindre au bilan (choix coach)
-  const [attachBike, setAttachBike] = useState(false);
-  const [attachRun, setAttachRun] = useState(false);
-  const [attachNutrition, setAttachNutrition] = useState(false);
-
   const compassResult = useMemo(
     () => (compassInput ? computeCoachingCompass(compassInput) : null),
     [compassInput]
@@ -76,23 +71,76 @@ export function RaceReadinessReportDialog({
   const readiness = useMemo(() => computeRaceReadiness(compassResult), [compassResult]);
   const peerRef = useMemo(() => getPeerReference(ambition), [ambition]);
 
-  // Construction des plans synthétiques (sans coût, ne dépend que de compassInput)
-  const planInputs = useMemo<SyntheticPlanInputs | null>(() => {
-    if (!compassInput) return null;
-    return {
-      objectif,
-      ambition,
-      ftp: compassInput.ftp,
-      paceThresholdSecKm: compassInput.paceThresholdSecPerKm,
-      weightKg: compassInput.poids,
-      vo2max: compassInput.vo2max,
-      vlamax: compassInput.vlamaxEffectif?.value ?? null,
-    };
-  }, [compassInput, objectif, ambition]);
+  // Map objectif → RaceObjective utilisé par le moteur d'enveloppe & la carte Plan A/B
+  const raceObjective: RaceObjective | null = useMemo(() => {
+    const o = (objectif || "").toLowerCase();
+    if (o.includes("70.3") || o.includes("half") || o.includes("703")) return "70.3";
+    if (o.includes("ironman") || o === "im" || o.includes("full")) return "IM";
+    if (o.includes("semi")) return "Semi";
+    if (o.includes("marathon")) return "Marathon";
+    if (o.includes("10")) return "10km";
+    return null;
+  }, [objectif]);
 
-  const bikePlan = useMemo(() => (planInputs ? buildBikePlan(planInputs) : null), [planInputs]);
-  const runPlan = useMemo(() => (planInputs ? buildRunPlan(planInputs) : null), [planInputs]);
-  const nutritionPlan = useMemo(() => (planInputs ? buildNutritionPlan(planInputs) : null), [planInputs]);
+  const isTri = raceObjective === "IM" || raceObjective === "70.3";
+  const isRunObj = raceObjective === "Marathon" || raceObjective === "Semi" || raceObjective === "10km";
+
+  // Durées fallback par segment (min)
+  const segmentDurationMin = useMemo(() => {
+    if (raceObjective === "IM") return { bike: 330, run: 240 };
+    if (raceObjective === "70.3") return { bike: 165, run: 100 };
+    if (raceObjective === "Marathon") return { bike: 0, run: 210 };
+    if (raceObjective === "Semi") return { bike: 0, run: 105 };
+    if (raceObjective === "10km") return { bike: 0, run: 45 };
+    return { bike: 0, run: 0 };
+  }, [raceObjective]);
+
+  const envelopeBike = useMemo(() => {
+    if (!compassInput || !raceObjective || !isTri) return null;
+    const cpWkg = compassInput.ftp && compassInput.poids
+      ? (compassInput.ftp * 0.95) / compassInput.poids : null;
+    return computePacingEnvelope({
+      vlamaxEffectif: compassInput.vlamaxEffectif,
+      tteEffectif: compassInput.tteEffectif,
+      fatmax: compassInput.fatmax,
+      potentielPhysiologiqueScore: compassInput.potentielPhysiologique?.score ?? null,
+      fatigueIndex: null,
+      raceObjective, sport: "bike",
+      ftp: compassInput.ftp, vma: compassInput.vma,
+      paceThreshold: compassInput.paceThresholdSecPerKm,
+      weight: compassInput.poids,
+      ambition: ambition as any, cpWkg, wPrimeJkg: null,
+      predictedDurationMin: segmentDurationMin.bike || 180,
+    });
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri]);
+
+  const envelopeRun = useMemo(() => {
+    if (!compassInput || !raceObjective || (!isTri && !isRunObj)) return null;
+    const cpWkg = compassInput.ftp && compassInput.poids
+      ? (compassInput.ftp * 0.95) / compassInput.poids : null;
+    return computePacingEnvelope({
+      vlamaxEffectif: compassInput.vlamaxEffectif,
+      tteEffectif: compassInput.tteEffectifRun ?? compassInput.tteEffectif,
+      fatmax: compassInput.fatmax,
+      potentielPhysiologiqueScore: compassInput.potentielPhysiologique?.score ?? null,
+      fatigueIndex: null,
+      raceObjective, sport: "run",
+      ftp: compassInput.ftp, vma: compassInput.vma,
+      paceThreshold: compassInput.paceThresholdSecPerKm,
+      weight: compassInput.poids,
+      ambition: ambition as any, cpWkg, wPrimeJkg: null,
+      predictedDurationMin: segmentDurationMin.run || 180,
+    });
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, isRunObj]);
+
+  const hasBikeEnv = !!envelopeBike && !!compassInput?.ftp;
+  const hasRunEnv = !!envelopeRun && !!compassInput?.paceThresholdSecPerKm;
+  const canAttachStrategy = !!raceObjective && (hasBikeEnv || hasRunEnv);
+
+  // Sections de la stratégie Plan A/B à inclure dans le PDF
+  const [attachBike, setAttachBike] = useState(false);
+  const [attachRun, setAttachRun] = useState(false);
+  const [attachNutrition, setAttachNutrition] = useState(false);
 
   const daysRemaining = useMemo(() => {
     if (!nextRace) return null;
