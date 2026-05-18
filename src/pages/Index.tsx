@@ -1165,27 +1165,28 @@ const Index = () => {
                 </div>
               )}
 
-              {/* Bilan pré-objectif TFCL — visible dès qu'il y a une course future, accentué en race week */}
-              {currentAthlete && raceGoals.length > 0 && (() => {
-                const future = raceGoals
+              {/* Bilan pré-objectif TFCL — toujours visible, accentué en race week */}
+              {currentAthlete && (() => {
+                const future = (raceGoals || [])
                   .filter(g => new Date(g.race_date) >= new Date())
                   .sort((a, b) => new Date(a.race_date).getTime() - new Date(b.race_date).getTime());
                 const next = future[0];
-                if (!next) return null;
-                const days = Math.ceil((new Date(next.race_date).getTime() - Date.now()) / 86400000);
-                const isRaceWeek = days <= 7;
+                const days = next ? Math.ceil((new Date(next.race_date).getTime() - Date.now()) / 86400000) : null;
+                const isRaceWeek = days !== null && days <= 7;
                 return (
                   <Button
                     size="sm"
                     variant={isRaceWeek ? "default" : "outline"}
                     className={cn("shrink-0 gap-1.5", isRaceWeek && "animate-pulse")}
                     onClick={() => setReadinessOpen(true)}
-                    title={isRaceWeek ? "Race week — bilan disponible" : `J-${days} avant la course`}
+                    title={isRaceWeek ? "Race week — bilan disponible" : days !== null ? `J-${days} avant la course` : "Bilan pré-objectif TFCL"}
                   >
                     <Sparkles className="h-4 w-4" />
                     <span className="hidden sm:inline">Bilan pré-objectif</span>
                     <span className="sm:hidden">Bilan</span>
-                    {isRaceWeek && <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">J-{days}</Badge>}
+                    {days !== null && (
+                      <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">J-{days}</Badge>
+                    )}
                   </Button>
                 );
               })()}
