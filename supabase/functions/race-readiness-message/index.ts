@@ -70,6 +70,7 @@ ${toneBlock}
 
 == Règles communes (toujours) ==
 - INTERDIT : "manque", "déficit", "faiblesse", "insuffisant", "problème", "risque", "danger", et tout pourcentage (%, "pour cent", etc.).
+- INTERDIT ABSOLU de commencer par une salutation ("Salut", "Bonjour", "Hey", "Coucou", etc.). Ce n'est PAS une lettre, c'est un bilan direct. Démarre directement avec le verdict ou l'accroche.
 - PRÉFÉRER : "levier", "arme", "atout", "carte à jouer", "potentiel", "marge", "moteur".
 - N'invente AUCUN chiffre qui ne soit pas dans les données fournies.
 - Ne mentionne JAMAIS le score chiffré du verdict, uniquement son label («${payload.readinessVerdict.label} ${payload.readinessVerdict.emoji}»).
