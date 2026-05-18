@@ -112,7 +112,10 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   .footer { margin-top: 32pt; padding-top: 12pt; border-top: 1pt solid #e2e8f0; font-size: 8pt; color: #94a3b8; text-align: center; }
 </style></head>
 <body>
-  <h1>Bilan pré-objectif TFCL</h1>
+  <div style="display:flex; align-items:center; gap:14pt; margin-bottom:6pt;">
+    <img src="${typeof window !== "undefined" ? window.location.origin : ""}/logo-tfc.png" alt="TFC Lab" style="height:48pt; width:auto;" />
+    <h1 style="margin:0;">Bilan pré-objectif TFCL</h1>
+  </div>
   <div class="meta">
     <strong>${esc(athleteName)}</strong> — ${esc(raceName ?? raceType)} (${esc(raceType)}) le ${dateFR}<br/>
     Objectif: ${esc(objectif)} · Ambition: ${esc(ambition)}
