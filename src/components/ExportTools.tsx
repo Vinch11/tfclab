@@ -1449,6 +1449,12 @@ function buildExportPayload(
         motivation: latestCheckin.motivation,
         painFlag: latestCheckin.pain_flag ?? false,
       } : undefined,
+      // ✅ Cohérence Dashboard ↔ PDF : on injecte le VLamax effectif déjà résolu
+      // (sport-aware via mapSnapshotToV2 + resolveVlamaxForGoal). Sans cela,
+      // computeDiagnostic force sport_main selon sportFocus ("bike" pour tri/703)
+      // et lit snapshot.vlamax (vélo) au lieu de vlamax_run/CAP → divergence
+      // app (0.37) vs export (0.20) constatée sur Quentin (sport_main=run, goal=703).
+      vlamaxEffectifPrecomputed: vlamaxLegacy,
     };
     diagnostic = computeDiagnostic(diagnosticInput);
   }
