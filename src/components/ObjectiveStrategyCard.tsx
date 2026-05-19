@@ -61,6 +61,8 @@ interface ObjectiveStrategyCardProps {
   ambition?: "finisher" | "age_group" | "competitor" | "elite" | string | null;
   /** Audit Lit. — W' (J) pour autoriser la surcharge "mur >8%" si W' > 20 kJ */
   wPrimeJ?: number | null;
+  /** Athlete id pour persister les overrides allures CAP perso dans athletes.refs */
+  athleteId?: string | null;
 
   className?: string;
 }
