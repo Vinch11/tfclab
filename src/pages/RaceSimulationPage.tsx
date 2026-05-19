@@ -764,6 +764,7 @@ export default function RaceSimulationPage() {
                     tteMinRun={tteEffectifRun?.tte_min ?? null}
                     bikeDurationMin={isTriathlon ? segmentDurationMin.bike : (discipline === 'bike' ? raceDurationMin : null)}
                     runDurationMin={isTriathlon ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : null)}
+                    athleteId={athleteId || null}
                   />
                   {envelope ? (
                     <RaceStrategyPlanCard
