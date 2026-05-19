@@ -384,14 +384,13 @@ function defaultBikeDistanceKm(raceObjective?: RaceObjective | null): number | n
 
 /**
  * Estime le temps vélo (en minutes) si le plan est respecté.
- * Modèle physique simplifié à 2 composantes :
- *   t = d/v_flat + (m·g·D+) / (NP·η)
- * où v_flat = ((NP·0.85·η) / (0.5·CdA·ρ))^(1/3)
- *   - 0.85 ≈ part aéro de la NP sur plat solo
- *   - CdA = 0.32 (solo route, position rouleur)
- *   - ρ   = 1.225 kg/m³
- *   - η   = 0.97 (rendement transmission)
- *   - g   = 9.81 m/s²
+ * Bilan énergétique global (pas d'addition plat + grimpe) :
+ *   AP · η = ½·ρ·CdA·v³ + Crr·m_tot·g·v + m_tot·g·D+·v/d
+ * où AP (avg power) ≈ NP / VI_target (VI ≈ 1.04 sur plan parfaitement tenu).
+ * Constantes : CdA 0.32, ρ 1.225, Crr 0.004, η 0.97, m_bike 8 kg, g 9.81.
+ * Solveur : bissection sur v ∈ [3 ; 20] m/s.
+ * On expose toujours une "pénalité D+" indicative = écart vs un parcours plat
+ * équivalent (même AP, D+=0), pour info — sans la sommer dans le total.
  */
 function estimateBikeTimeMin(
   distanceKm: number,
@@ -402,17 +401,36 @@ function estimateBikeTimeMin(
   if (!(distanceKm > 0) || !(npW > 0) || !(weightKg > 0)) return null;
   const CdA = 0.32;
   const rho = 1.225;
+  const Crr = 0.004;
   const eta = 0.97;
   const g = 9.81;
-  const vFlat = Math.cbrt((npW * 0.85 * eta) / (0.5 * CdA * rho)); // m/s
-  const flatSec = (distanceKm * 1000) / vFlat;
-  const climbExtraSec = Math.max(0, (weightKg * g * elevationGainM) / (npW * eta));
-  const totalSec = flatSec + climbExtraSec;
+  const mBike = 8;
+  const mTot = weightKg + mBike;
+  const VI = 1.04;
+  const AP = npW / VI;
+  const d = distanceKm * 1000;
+
+  const solveV = (climbM: number): number => {
+    const target = AP * eta;
+    const f = (v: number) =>
+      0.5 * rho * CdA * v * v * v + Crr * mTot * g * v + (mTot * g * climbM * v) / d - target;
+    let lo = 3, hi = 20;
+    for (let i = 0; i < 60; i++) {
+      const mid = 0.5 * (lo + hi);
+      if (f(mid) > 0) hi = mid; else lo = mid;
+    }
+    return 0.5 * (lo + hi);
+  };
+
+  const v = solveV(Math.max(0, elevationGainM));
+  const vFlat = solveV(0);
+  const totalSec = d / v;
+  const flatSec = d / vFlat;
   return {
     totalMin: totalSec / 60,
     flatMin: flatSec / 60,
-    climbExtraMin: climbExtraSec / 60,
-    avgKmh: (distanceKm / totalSec) * 3600,
+    climbExtraMin: Math.max(0, (totalSec - flatSec) / 60),
+    avgKmh: (d / totalSec) * 3.6,
   };
 }
 
