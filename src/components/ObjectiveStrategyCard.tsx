@@ -261,14 +261,18 @@ function runSegmentsForFormat(format: RaceObjective): { label: string; share: nu
 
 function paceSegments(targetPaceSec: number, bias: PlanConfig["splitBias"], deltaPct: number, format: RaceObjective) {
   const segs = runSegmentsForFormat(format);
-  // Offsets (% de l'allure moyenne) pour chaque quart, somme ≈ 0.
-  // Negative split : on démarre plus lent (positif = plus lent), on finit plus rapide (négatif).
+  // Offsets (% de l'allure moyenne) pour chaque quart, somme = 0.
+  // Convention : positif = plus lent que la cible, négatif = plus rapide.
   let offsets: number[];
   if (bias === "negative") {
-    const d = Math.max(0.5, deltaPct); // amplitude
-    offsets = [+0.75 * d, +0.25 * d, -0.25 * d, -0.75 * d];
+    // Negative split progressif (Hanley 2020 / Casado 2021) :
+    // départ patient marqué → stabilisation → cœur de course → finish explosif.
+    // Profil asymétrique : on protège le départ (transition vélo→cap, jambes lourdes)
+    // pour libérer un vrai surrégime en fin de course.
+    const d = Math.max(0.5, Math.abs(deltaPct));
+    offsets = [+1.6 * d, +0.3 * d, -0.4 * d, -1.5 * d]; // somme = 0
   } else if (bias === "positive") {
-    const d = Math.max(0.5, deltaPct);
+    const d = Math.max(0.5, Math.abs(deltaPct));
     offsets = [-0.5 * d, -0.15 * d, +0.15 * d, +0.5 * d];
   } else {
     offsets = [+0.2, 0, -0.05, -0.15];
