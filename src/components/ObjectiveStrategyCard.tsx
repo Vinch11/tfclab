@@ -588,7 +588,14 @@ function RunBlock({
               {hasOverride && (
                 <Badge variant="outline" className="text-[9px]">Personnalisé</Badge>
               )}
-              <Button
+              {athleteId && isPlanA && hasOverride && (
+                <span className="text-[9px] text-muted-foreground flex items-center gap-1">
+                  {saveState === "saving" && <><Save className="h-3 w-3 animate-pulse" />Sauvegarde…</>}
+                  {saveState === "saved" && <><Check className="h-3 w-3 text-emerald-600" />Enregistré</>}
+                  {saveState === "error" && <span className="text-red-600">Erreur</span>}
+                  {saveState === "idle" && <><Check className="h-3 w-3 text-emerald-600/60" />Sync</>}
+                </span>
+              )}
                 type="button"
                 size="sm"
                 variant={manualMode ? "default" : "ghost"}
