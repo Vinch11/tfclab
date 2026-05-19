@@ -495,15 +495,36 @@ function RunBlock({
 
   // ── Manual override (Plan A only) — coach règle les paliers, offsets recalculés ──
   const isPlanA = plan.key === "A";
+  const { athletes, updateAthlete } = useCloudData();
+  const athlete = React.useMemo(
+    () => (athleteId ? athletes.find((a) => a.id === athleteId) ?? null : null),
+    [athletes, athleteId]
+  );
+  const storageKey = `${format}-${plan.key}`;
+  const savedOverrides = React.useMemo<(number | null)[] | null>(() => {
+    const refs = (athlete?.refs ?? {}) as Record<string, unknown>;
+    const all = (refs.cap_pace_overrides ?? {}) as Record<string, unknown>;
+    const raw = all[storageKey];
+    if (!Array.isArray(raw)) return null;
+    return raw.map((v) => (typeof v === "number" && Number.isFinite(v) ? v : null));
+  }, [athlete, storageKey]);
+
   const [manualMode, setManualMode] = React.useState(false);
   const [overrides, setOverrides] = React.useState<(number | null)[]>(() => autoSegs.map(() => null));
+  const [saveState, setSaveState] = React.useState<"idle" | "saving" | "saved" | "error">("idle");
 
-  // Reset overrides si le nombre de segments change (format change)
+  // Charger overrides sauvegardés au montage / changement d'athlète ou format
   React.useEffect(() => {
-    setOverrides(autoSegs.map(() => null));
-    setManualMode(false);
+    if (savedOverrides && savedOverrides.length === autoSegs.length && savedOverrides.some((o) => o != null)) {
+      setOverrides(savedOverrides);
+      setManualMode(true);
+    } else {
+      setOverrides(autoSegs.map(() => null));
+      setManualMode(false);
+    }
+    setSaveState("idle");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [format, plan.key]);
+  }, [athleteId, format, plan.key]);
 
   const segs = autoSegs.map((s, i) => ({ ...s, paceSec: overrides[i] ?? s.paceSec }));
 
@@ -514,6 +535,35 @@ function RunBlock({
   const lastHalfAvg = (segs[segs.length - 1].paceSec + (segs[segs.length - 2]?.paceSec ?? segs[segs.length - 1].paceSec)) / 2;
   const effDeltaPct = p.targetPaceSec > 0 ? ((firstHalfAvg - lastHalfAvg) / p.targetPaceSec) * 100 : deltaPct;
   const hasOverride = overrides.some((o) => o != null);
+
+  // Auto-save (debounce 800ms) dès qu'un override change
+  const lastSavedRef = React.useRef<string>(JSON.stringify(savedOverrides ?? []));
+  React.useEffect(() => {
+    if (!athleteId || !athlete || !isPlanA) return;
+    const current = JSON.stringify(overrides);
+    if (current === lastSavedRef.current) return;
+    const t = setTimeout(async () => {
+      setSaveState("saving");
+      const refs = { ...((athlete.refs ?? {}) as Record<string, unknown>) };
+      const all = { ...((refs.cap_pace_overrides ?? {}) as Record<string, unknown>) };
+      if (hasOverride) {
+        all[storageKey] = overrides;
+      } else {
+        delete all[storageKey];
+      }
+      refs.cap_pace_overrides = all;
+      const ok = await updateAthlete(athlete.id, { refs: refs as any });
+      if (ok) {
+        lastSavedRef.current = current;
+        setSaveState("saved");
+        setTimeout(() => setSaveState("idle"), 1500);
+      } else {
+        setSaveState("error");
+      }
+    }, 800);
+    return () => clearTimeout(t);
+  }, [overrides, athleteId, athlete, isPlanA, storageKey, hasOverride, updateAthlete]);
+
 
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
