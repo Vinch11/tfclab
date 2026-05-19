@@ -518,8 +518,8 @@ function BikeBlock({
               <Metric label="Pénalité D+" value={`+${fmtHMin(timeEstimate.climbExtraMin)}`} />
             </div>
             <div className="text-[10px] text-muted-foreground mt-1.5 leading-snug">
-              Modèle physique : v plat ≈ NP/(CdA·ρ) · 0.85 (solo route, CdA 0.32), + pénalité gravitaire
-              m·g·D+/NP. Précision ±5 % selon vent, position, drafting.
+              Bilan énergétique global (AP ≈ NP/1.04, CdA 0.32, Crr 0.004, vélo 8 kg).
+              La D+ est intégrée à l'équation (pas additionnée). Précision ±5 % selon vent, position, drafting.
             </div>
           </>
         ) : (
