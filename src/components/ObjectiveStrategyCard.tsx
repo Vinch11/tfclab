@@ -486,7 +486,29 @@ function RunBlock({
     const drift = idx === 0 ? -2 : idx === total - 1 ? +2 : 0;
     return `${base + drift}–${base + drift + 4} spm`;
   };
-  const segs = paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, format);
+  const autoSegs = paceSegments(p.targetPaceSec, plan.splitBias, deltaPct, format);
+
+  // ── Manual override (Plan A only) — coach règle les paliers, offsets recalculés ──
+  const isPlanA = plan.key === "A";
+  const [manualMode, setManualMode] = React.useState(false);
+  const [overrides, setOverrides] = React.useState<(number | null)[]>(() => autoSegs.map(() => null));
+
+  // Reset overrides si le nombre de segments change (format change)
+  React.useEffect(() => {
+    setOverrides(autoSegs.map(() => null));
+    setManualMode(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [format, plan.key]);
+
+  const segs = autoSegs.map((s, i) => ({ ...s, paceSec: overrides[i] ?? s.paceSec }));
+
+  // Offsets effectifs (% vs allure cible). Auto: ceux de paceSegments. Custom: recalculés.
+  const effOffsets = segs.map((s) => (p.targetPaceSec > 0 ? (s.paceSec / p.targetPaceSec - 1) * 100 : 0));
+  // deltaPct effectif = (allure 1re moitié − 2e moitié) / cible. Négatif = negative split.
+  const firstHalfAvg = (segs[0].paceSec + (segs[1]?.paceSec ?? segs[0].paceSec)) / 2;
+  const lastHalfAvg = (segs[segs.length - 1].paceSec + (segs[segs.length - 2]?.paceSec ?? segs[segs.length - 1].paceSec)) / 2;
+  const effDeltaPct = p.targetPaceSec > 0 ? ((firstHalfAvg - lastHalfAvg) / p.targetPaceSec) * 100 : deltaPct;
+  const hasOverride = overrides.some((o) => o != null);
 
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
@@ -504,23 +526,90 @@ function RunBlock({
       </div>
 
       <div className="space-y-1">
-        <div className="text-[11px] font-semibold text-foreground/80">Allures &amp; cadences par segment</div>
-        <SegmentsTable
-          cadenceHeader="Cadence"
-          rows={segs.map((s, i) => ({
-            label: s.label,
-            col1: fmtPaceSecKm(s.paceSec),
-            col2: "± 3 s/km",
-            cadence: runCadenceForSeg(i, segs.length),
-          }))}
-        />
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-[11px] font-semibold text-foreground/80">Allures &amp; cadences par segment</div>
+          {isPlanA && (
+            <div className="flex items-center gap-2">
+              {hasOverride && (
+                <Badge variant="outline" className="text-[9px]">Personnalisé</Badge>
+              )}
+              <Button
+                type="button"
+                size="sm"
+                variant={manualMode ? "default" : "ghost"}
+                className="h-6 px-2 text-[10px]"
+                onClick={() => setManualMode((m) => !m)}
+              >
+                {manualMode ? "Verrouiller" : "Personnaliser"}
+              </Button>
+              {hasOverride && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => setOverrides(autoSegs.map(() => null))}
+                >
+                  Réinit.
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+        {manualMode && isPlanA ? (
+          <div className="rounded-md border border-border/60 bg-background/40 overflow-hidden">
+            <table className="w-full text-[11px]">
+              <thead className="bg-muted/40 text-muted-foreground">
+                <tr>
+                  <th className="text-left px-2 py-1 font-medium">Segment</th>
+                  <th className="text-left px-2 py-1 font-medium">Allure (m:ss/km)</th>
+                  <th className="text-right px-2 py-1 font-medium">Offset</th>
+                  <th className="text-right px-2 py-1 font-medium">Cadence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {segs.map((s, i) => (
+                  <PaceOverrideRow
+                    key={s.label}
+                    label={s.label}
+                    paceSec={s.paceSec}
+                    offsetPct={effOffsets[i]}
+                    cadence={runCadenceForSeg(i, segs.length)}
+                    onChange={(sec) => {
+                      const next = [...overrides];
+                      next[i] = sec;
+                      setOverrides(next);
+                    }}
+                  />
+                ))}
+              </tbody>
+            </table>
+            <div className="px-2 py-1.5 text-[10px] text-muted-foreground border-t border-border/60 bg-muted/20">
+              Saisir au format <span className="font-mono">m:ss</span> (ex. <span className="font-mono">4:45</span>). Les offsets se recalculent à chaque saisie ; l'allure cible et la cadence restent inchangées.
+            </div>
+          </div>
+        ) : (
+          <SegmentsTable
+            cadenceHeader="Cadence"
+            rows={segs.map((s, i) => ({
+              label: s.label,
+              col1: fmtPaceSecKm(s.paceSec),
+              col2: hasOverride ? `${effOffsets[i] >= 0 ? "+" : ""}${effOffsets[i].toFixed(1)}%` : "± 3 s/km",
+              cadence: runCadenceForSeg(i, segs.length),
+            }))}
+          />
+        )}
       </div>
       <div className="rounded-md bg-primary/5 border border-primary/20 p-2">
         <div className="text-[11px] font-semibold text-primary mb-0.5">Stratégie de pacing</div>
         <div className="text-[11px] text-foreground leading-relaxed">
           Vu ton profil ({vlamax ? `VLamax ${vlamax.toFixed(2)}` : "VLamax estimée"}
           {tteMin ? `, TTE ${tteMin}min` : ""}) :{" "}
-          <strong>{splitLabel(plan.splitBias, deltaPct)}</strong>.
+          <strong>
+            {hasOverride
+              ? `Negative split personnalisé (~${Math.abs(effDeltaPct).toFixed(1)}% ${effDeltaPct >= 0 ? "plus rapide" : "plus lent"} en 2e moitié)`
+              : splitLabel(plan.splitBias, deltaPct)}
+          </strong>.
         </div>
         <div className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
           {plan.splitBias === "negative"
@@ -529,6 +618,63 @@ function RunBlock({
         </div>
       </div>
     </div>
+  );
+}
+
+// Parse "m:ss" → secondes/km (null si invalide)
+function parsePaceMSS(input: string): number | null {
+  const m = input.trim().match(/^(\d{1,2}):([0-5]?\d)$/);
+  if (!m) return null;
+  const sec = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  if (sec < 120 || sec > 900) return null; // garde-fou : 2:00 à 15:00/km
+  return sec;
+}
+
+function PaceOverrideRow({
+  label, paceSec, offsetPct, cadence, onChange,
+}: {
+  label: string; paceSec: number; offsetPct: number; cadence: string; onChange: (sec: number | null) => void;
+}) {
+  const initial = React.useMemo(() => {
+    const mm = Math.floor(paceSec / 60);
+    const ss = Math.round(paceSec - mm * 60);
+    return `${mm}:${ss.toString().padStart(2, "0")}`;
+  }, [paceSec]);
+  const [text, setText] = React.useState(initial);
+  React.useEffect(() => { setText(initial); }, [initial]);
+  const invalid = text.length > 0 && parsePaceMSS(text) == null;
+  return (
+    <tr className="border-t border-border/40">
+      <td className="px-2 py-1 font-medium">{label}</td>
+      <td className="px-2 py-1">
+        <input
+          type="text"
+          inputMode="numeric"
+          value={text}
+          onChange={(e) => {
+            const v = e.target.value;
+            setText(v);
+            const parsed = parsePaceMSS(v);
+            if (parsed != null) onChange(parsed);
+          }}
+          onBlur={() => {
+            const parsed = parsePaceMSS(text);
+            if (parsed == null) setText(initial);
+          }}
+          placeholder="m:ss"
+          className={cn(
+            "w-20 h-7 rounded border bg-background text-center font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-primary",
+            invalid ? "border-destructive" : "border-border/60",
+          )}
+        />
+      </td>
+      <td className="px-2 py-1 text-right tabular-nums">
+        <span className={offsetPct >= 0 ? "text-muted-foreground" : "text-primary font-semibold"}>
+          {offsetPct >= 0 ? "+" : ""}{offsetPct.toFixed(1)}%
+        </span>
+      </td>
+      <td className="px-2 py-1 text-right text-muted-foreground">{cadence}</td>
+    </tr>
   );
 }
 
