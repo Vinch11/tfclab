@@ -444,7 +444,7 @@ function BikeBlock({
 }
 
 function RunBlock({
-  envelope, paceThr, plan, format, vlamax, tteMin, durationMin, conditionsFactor = 1,
+  envelope, paceThr, plan, format, vlamax, tteMin, durationMin, conditionsFactor = 1, athleteId = null,
 }: {
   envelope: PacingEnvelopeResult;
   paceThr: number;
@@ -454,6 +454,7 @@ function RunBlock({
   tteMin: number | null;
   durationMin: number;
   conditionsFactor?: number;
+  athleteId?: string | null;
 }) {
   const effIF = plan.intensityFactor * conditionsFactor;
   const p = runPace(envelope, paceThr, effIF, format);
