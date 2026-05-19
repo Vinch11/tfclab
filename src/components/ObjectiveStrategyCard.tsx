@@ -1300,6 +1300,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
                     tteMin={tteRunEffective}
                     durationMin={runDurationMin ?? 0}
                     conditionsFactor={conditions.factor}
+                    athleteId={props.athleteId ?? null}
                   />
                 )}
 
