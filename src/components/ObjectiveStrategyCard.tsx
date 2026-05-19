@@ -621,6 +621,12 @@ function RunBlock({
         </div>
         {manualMode && isPlanA ? (
           <div className="rounded-md border border-border/60 bg-background/40 overflow-hidden">
+            <FinishPaceInput
+              targetPaceSec={p.targetPaceSec}
+              autoSegs={autoSegs}
+              currentLastSec={segs[segs.length - 1]?.paceSec ?? p.targetPaceSec}
+              onApply={(newOverrides) => setOverrides(newOverrides)}
+            />
             <table className="w-full text-[11px]">
               <thead className="bg-muted/40 text-muted-foreground">
                 <tr>
