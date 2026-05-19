@@ -463,77 +463,8 @@ function BikeBlock({
   const w = bikeWatts(envelope, ftp, effIF);
   const segs = bikeSegments(envelope, ftp, effIF, { wPrimeJ, allowMurOverload: true });
 
-  // Estimation du temps vélo si plan respecté
-  const [customDistKm, setCustomDistKm] = React.useState<number | null>(null);
-  const defaultDist = defaultBikeDistanceKm(raceObjective);
-  const bikeDistKm = customDistKm ?? defaultDist;
-  const timeEstimate = (bikeDistKm && weightKg)
-    ? estimateBikeTimeMin(bikeDistKm, elevationGainM ?? 0, w.targetW, weightKg)
-    : null;
 
-  return (
-    <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <Bike className="h-4 w-4 text-primary" />
-        Stratégie vélo
-        {conditionsFactor < 1 && (
-          <Badge variant="outline" className="text-[9px] ml-auto">Ajusté conditions : ×{conditionsFactor.toFixed(3)}</Badge>
-        )}
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-        <Metric label="Puissance cible (NP)" value={`${w.targetW} W`} />
-        <Metric label="Plage" value={`${w.rangeW[0]}–${w.rangeW[1]} W`} />
-        <Metric label="IF (NP/FTP)" value={w.if.toString()} />
-        <Metric label="Watts plat" value={`${w.flatW} W`} />
-        <Metric label="Plafond montées" value={`≤ ${w.capClimbW} W`} />
-        <Metric label="VI cible" value={`< ${w.vi}`} />
-      </div>
 
-      {/* Estimation temps vélo (si plan respecté) */}
-      <div className="rounded-md border border-primary/30 bg-primary/5 p-2.5">
-        <div className="flex items-center gap-2 mb-1.5 text-[11px] font-semibold">
-          <Mountain className="h-3.5 w-3.5 text-primary" />
-          Temps vélo estimé (si plan respecté)
-        </div>
-        <div className="flex items-center gap-2 flex-wrap text-[11px] mb-2">
-          <span className="text-muted-foreground">Distance</span>
-          <input
-            type="number"
-            min={1}
-            max={400}
-            step={1}
-            value={bikeDistKm ?? ""}
-            placeholder={defaultDist ? String(defaultDist) : "km"}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              setCustomDistKm(isFinite(v) && v > 0 ? v : null);
-            }}
-            className="w-16 h-6 rounded border border-border/60 bg-background text-center text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-          <span className="text-muted-foreground">km</span>
-          <span className="text-muted-foreground ml-2">D+</span>
-          <span className="font-mono text-xs">{elevationGainM ?? 0} m</span>
-        </div>
-        {timeEstimate ? (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <Metric label="Temps total" value={fmtHMin(timeEstimate.totalMin)} />
-              <Metric label="Vitesse moy." value={`${timeEstimate.avgKmh.toFixed(1)} km/h`} />
-              <Metric label="Pénalité D+" value={`+${fmtHMin(timeEstimate.climbExtraMin)}`} />
-            </div>
-            <div className="text-[10px] text-muted-foreground mt-1.5 leading-snug">
-              Bilan énergétique global (AP ≈ NP/1.04, CdA 0.32, Crr 0.004, vélo 8 kg).
-              La D+ est intégrée à l'équation (pas additionnée). Précision ±5 % selon vent, position, drafting.
-            </div>
-          </>
-        ) : (
-          <div className="text-[10px] text-muted-foreground italic">
-            {!weightKg
-              ? "Poids athlète manquant — renseigne le poids dans le profil pour estimer le temps."
-              : "Renseigne la distance vélo pour estimer le temps."}
-          </div>
-        )}
-      </div>
 
       <div className="space-y-1">
         <div className="text-[11px] font-semibold text-foreground/80">Par segment de terrain</div>
