@@ -576,25 +576,27 @@ function RunBlock({
     if (format === "Marathon" || format === "10km") {
       return computeNegativeSplitDelta(format, vlamax, tteMin, durationMin).targetPct;
     }
-    // Triathlon (70.3 / IM) : TTE / durée run pilote l'agressivité du split
-    // Ratio < 0.6 → split positif prudent ; > 1.0 → negative split modeste.
+    // Triathlon (70.3 / IM) : TTE / durée run pilote l'agressivité du split.
+    // Plan A = on assume un vrai negative split progressif (départ patient → finish explosif).
+    // Plan B = repli even/légèrement positif (on protège l'arrivée).
     if ((format === "70.3" || format === "IM") && durationMin > 0 && tteMin && tteMin > 0) {
       const ratio = tteMin / durationMin;
-      // IM: même borne haute plus prudente que 70.3 (course glycogène-limitée)
+      const isPlanA = plan.key === "A";
+      // IM (course glycogène-limitée, ne jamais surjouer le finish)
       if (format === "IM") {
-        if (ratio < 0.5) return 3.5;        // positif marqué
-        if (ratio < 0.8) return 2.0;        // positif modéré
-        if (ratio < 1.1) return 0.5;        // ~even split
-        return -0.5;                         // negative split modeste (élite-like)
+        if (ratio < 0.5) return 3.5;                    // positif marqué
+        if (ratio < 0.8) return 2.0;                    // positif modéré
+        if (ratio < 1.1) return isPlanA ? 1.5 : 0.5;    // negative léger / even
+        return isPlanA ? 2.5 : 1.0;                     // negative modéré (IM reste prudent)
       }
-      // 70.3
+      // 70.3 — durabilité élevée → on peut vraiment dérouler en fin de course.
       if (ratio < 0.5) return 2.5;
       if (ratio < 0.8) return 1.2;
-      if (ratio < 1.1) return 0.3;
-      return -0.5;
+      if (ratio < 1.1) return isPlanA ? 2.0 : 0.5;      // negative net si plan A
+      return isPlanA ? 3.5 : 1.5;                       // negative marqué (TTE > durée run)
     }
     return 1.2;
-  }, [format, vlamax, tteMin, durationMin]);
+  }, [format, vlamax, tteMin, durationMin, plan.key]);
 
   // P6 — cadence cible run par segment (~spm). Approx selon allure cible et split.
   const runCadenceForSeg = (idx: number, total: number): string => {
