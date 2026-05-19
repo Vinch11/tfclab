@@ -719,8 +719,10 @@ function FinishPaceInput({
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   });
 
-  // Sync display when external segments change
+  const focusedRef = React.useRef(false);
+  // Sync display when external segments change — sauf si l'utilisateur est en train d'éditer
   React.useEffect(() => {
+    if (focusedRef.current) return;
     const s = Math.round(currentLastSec);
     setVal(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`);
   }, [currentLastSec]);
