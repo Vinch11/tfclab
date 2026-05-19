@@ -261,14 +261,18 @@ function runSegmentsForFormat(format: RaceObjective): { label: string; share: nu
 
 function paceSegments(targetPaceSec: number, bias: PlanConfig["splitBias"], deltaPct: number, format: RaceObjective) {
   const segs = runSegmentsForFormat(format);
-  // Offsets (% de l'allure moyenne) pour chaque quart, somme ≈ 0.
-  // Negative split : on démarre plus lent (positif = plus lent), on finit plus rapide (négatif).
+  // Offsets (% de l'allure moyenne) pour chaque quart, somme = 0.
+  // Convention : positif = plus lent que la cible, négatif = plus rapide.
   let offsets: number[];
   if (bias === "negative") {
-    const d = Math.max(0.5, deltaPct); // amplitude
-    offsets = [+0.75 * d, +0.25 * d, -0.25 * d, -0.75 * d];
+    // Negative split progressif (Hanley 2020 / Casado 2021) :
+    // départ patient marqué → stabilisation → cœur de course → finish explosif.
+    // Profil asymétrique : on protège le départ (transition vélo→cap, jambes lourdes)
+    // pour libérer un vrai surrégime en fin de course.
+    const d = Math.max(0.5, Math.abs(deltaPct));
+    offsets = [+1.6 * d, +0.3 * d, -0.4 * d, -1.5 * d]; // somme = 0
   } else if (bias === "positive") {
-    const d = Math.max(0.5, deltaPct);
+    const d = Math.max(0.5, Math.abs(deltaPct));
     offsets = [-0.5 * d, -0.15 * d, +0.15 * d, +0.5 * d];
   } else {
     offsets = [+0.2, 0, -0.05, -0.15];
@@ -375,71 +379,6 @@ function SegmentsTable({ rows, cadenceHeader = "Cadence" }: { rows: { label: str
 
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
-// Distance vélo par défaut selon le format (km). null = inconnu.
-function defaultBikeDistanceKm(raceObjective?: RaceObjective | null): number | null {
-  if (raceObjective === "70.3") return 90;
-  if (raceObjective === "IM") return 180;
-  return null;
-}
-
-/**
- * Estime le temps vélo (en minutes) si le plan est respecté.
- * Bilan énergétique global (pas d'addition plat + grimpe) :
- *   AP · η = ½·ρ·CdA·v³ + Crr·m_tot·g·v + m_tot·g·D+·v/d
- * où AP (avg power) ≈ NP / VI_target (VI ≈ 1.04 sur plan parfaitement tenu).
- * Constantes : CdA 0.32, ρ 1.225, Crr 0.004, η 0.97, m_bike 8 kg, g 9.81.
- * Solveur : bissection sur v ∈ [3 ; 20] m/s.
- * On expose toujours une "pénalité D+" indicative = écart vs un parcours plat
- * équivalent (même AP, D+=0), pour info — sans la sommer dans le total.
- */
-function estimateBikeTimeMin(
-  distanceKm: number,
-  elevationGainM: number,
-  npW: number,
-  weightKg: number,
-): { totalMin: number; flatMin: number; climbExtraMin: number; avgKmh: number } | null {
-  if (!(distanceKm > 0) || !(npW > 0) || !(weightKg > 0)) return null;
-  const CdA = 0.32;
-  const rho = 1.225;
-  const Crr = 0.004;
-  const eta = 0.97;
-  const g = 9.81;
-  const mBike = 8;
-  const mTot = weightKg + mBike;
-  const VI = 1.04;
-  const AP = npW / VI;
-  const d = distanceKm * 1000;
-
-  const solveV = (climbM: number): number => {
-    const target = AP * eta;
-    const f = (v: number) =>
-      0.5 * rho * CdA * v * v * v + Crr * mTot * g * v + (mTot * g * climbM * v) / d - target;
-    let lo = 3, hi = 20;
-    for (let i = 0; i < 60; i++) {
-      const mid = 0.5 * (lo + hi);
-      if (f(mid) > 0) hi = mid; else lo = mid;
-    }
-    return 0.5 * (lo + hi);
-  };
-
-  const v = solveV(Math.max(0, elevationGainM));
-  const vFlat = solveV(0);
-  const totalSec = d / v;
-  const flatSec = d / vFlat;
-  return {
-    totalMin: totalSec / 60,
-    flatMin: flatSec / 60,
-    climbExtraMin: Math.max(0, (totalSec - flatSec) / 60),
-    avgKmh: (d / totalSec) * 3.6,
-  };
-}
-
-function fmtHMin(totalMin: number): string {
-  if (!isFinite(totalMin) || totalMin <= 0) return "—";
-  const h = Math.floor(totalMin / 60);
-  const m = Math.round(totalMin - h * 60);
-  return h > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${m} min`;
-}
 
 function BikeBlock({
   envelope, ftp, plan, conditionsFactor = 1, raceObjective, ambition, wPrimeJ,
@@ -459,14 +398,6 @@ function BikeBlock({
   const w = bikeWatts(envelope, ftp, effIF);
   const segs = bikeSegments(envelope, ftp, effIF, { wPrimeJ, allowMurOverload: true });
 
-  // Estimation du temps vélo si plan respecté
-  const [customDistKm, setCustomDistKm] = React.useState<number | null>(null);
-  const defaultDist = defaultBikeDistanceKm(raceObjective);
-  const bikeDistKm = customDistKm ?? defaultDist;
-  const timeEstimate = (bikeDistKm && weightKg)
-    ? estimateBikeTimeMin(bikeDistKm, elevationGainM ?? 0, w.targetW, weightKg)
-    : null;
-
   return (
     <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium">
@@ -483,52 +414,6 @@ function BikeBlock({
         <Metric label="Watts plat" value={`${w.flatW} W`} />
         <Metric label="Plafond montées" value={`≤ ${w.capClimbW} W`} />
         <Metric label="VI cible" value={`< ${w.vi}`} />
-      </div>
-
-      {/* Estimation temps vélo (si plan respecté) */}
-      <div className="rounded-md border border-primary/30 bg-primary/5 p-2.5">
-        <div className="flex items-center gap-2 mb-1.5 text-[11px] font-semibold">
-          <Mountain className="h-3.5 w-3.5 text-primary" />
-          Temps vélo estimé (si plan respecté)
-        </div>
-        <div className="flex items-center gap-2 flex-wrap text-[11px] mb-2">
-          <span className="text-muted-foreground">Distance</span>
-          <input
-            type="number"
-            min={1}
-            max={400}
-            step={1}
-            value={bikeDistKm ?? ""}
-            placeholder={defaultDist ? String(defaultDist) : "km"}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              setCustomDistKm(isFinite(v) && v > 0 ? v : null);
-            }}
-            className="w-16 h-6 rounded border border-border/60 bg-background text-center text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-          <span className="text-muted-foreground">km</span>
-          <span className="text-muted-foreground ml-2">D+</span>
-          <span className="font-mono text-xs">{elevationGainM ?? 0} m</span>
-        </div>
-        {timeEstimate ? (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <Metric label="Temps total" value={fmtHMin(timeEstimate.totalMin)} />
-              <Metric label="Vitesse moy." value={`${timeEstimate.avgKmh.toFixed(1)} km/h`} />
-              <Metric label="Pénalité D+" value={`+${fmtHMin(timeEstimate.climbExtraMin)}`} />
-            </div>
-            <div className="text-[10px] text-muted-foreground mt-1.5 leading-snug">
-              Bilan énergétique global (AP ≈ NP/1.04, CdA 0.32, Crr 0.004, vélo 8 kg).
-              La D+ est intégrée à l'équation (pas additionnée). Précision ±5 % selon vent, position, drafting.
-            </div>
-          </>
-        ) : (
-          <div className="text-[10px] text-muted-foreground italic">
-            {!weightKg
-              ? "Poids athlète manquant — renseigne le poids dans le profil pour estimer le temps."
-              : "Renseigne la distance vélo pour estimer le temps."}
-          </div>
-        )}
       </div>
 
       <div className="space-y-1">
@@ -572,25 +457,27 @@ function RunBlock({
     if (format === "Marathon" || format === "10km") {
       return computeNegativeSplitDelta(format, vlamax, tteMin, durationMin).targetPct;
     }
-    // Triathlon (70.3 / IM) : TTE / durée run pilote l'agressivité du split
-    // Ratio < 0.6 → split positif prudent ; > 1.0 → negative split modeste.
+    // Triathlon (70.3 / IM) : TTE / durée run pilote l'agressivité du split.
+    // Plan A = on assume un vrai negative split progressif (départ patient → finish explosif).
+    // Plan B = repli even/légèrement positif (on protège l'arrivée).
     if ((format === "70.3" || format === "IM") && durationMin > 0 && tteMin && tteMin > 0) {
       const ratio = tteMin / durationMin;
-      // IM: même borne haute plus prudente que 70.3 (course glycogène-limitée)
+      const isPlanA = plan.key === "A";
+      // IM (course glycogène-limitée, ne jamais surjouer le finish)
       if (format === "IM") {
-        if (ratio < 0.5) return 3.5;        // positif marqué
-        if (ratio < 0.8) return 2.0;        // positif modéré
-        if (ratio < 1.1) return 0.5;        // ~even split
-        return -0.5;                         // negative split modeste (élite-like)
+        if (ratio < 0.5) return 3.5;                    // positif marqué
+        if (ratio < 0.8) return 2.0;                    // positif modéré
+        if (ratio < 1.1) return isPlanA ? 1.5 : 0.5;    // negative léger / even
+        return isPlanA ? 2.5 : 1.0;                     // negative modéré (IM reste prudent)
       }
-      // 70.3
+      // 70.3 — durabilité élevée → on peut vraiment dérouler en fin de course.
       if (ratio < 0.5) return 2.5;
       if (ratio < 0.8) return 1.2;
-      if (ratio < 1.1) return 0.3;
-      return -0.5;
+      if (ratio < 1.1) return isPlanA ? 2.0 : 0.5;      // negative net si plan A
+      return isPlanA ? 3.5 : 1.5;                       // negative marqué (TTE > durée run)
     }
     return 1.2;
-  }, [format, vlamax, tteMin, durationMin]);
+  }, [format, vlamax, tteMin, durationMin, plan.key]);
 
   // P6 — cadence cible run par segment (~spm). Approx selon allure cible et split.
   const runCadenceForSeg = (idx: number, total: number): string => {
@@ -636,8 +523,9 @@ function RunBlock({
           <strong>{splitLabel(plan.splitBias, deltaPct)}</strong>.
         </div>
         <div className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
-          Démarrer 3–5 s/km plus lent que l'allure cible sur les 20 premières minutes,
-          retrouver la cible au tiers, accélérer progressivement sur la 2e moitié. Cadence stable, jamais sous −4 spm de la cible.
+          {plan.splitBias === "negative"
+            ? "Départ patient (10–25 s/km plus lent que la cible sur les 2–3 premiers km / 15–20 premières minutes), stabilisation au tiers, accélération franche sur la 2ᵉ moitié, finish explosif sur le dernier quart. Cadence stable, jamais sous −4 spm de la cible."
+            : "Démarrer 3–5 s/km plus lent que l'allure cible sur les 20 premières minutes, retrouver la cible au tiers, accélérer progressivement sur la 2ᵉ moitié. Cadence stable, jamais sous −4 spm de la cible."}
         </div>
       </div>
     </div>
