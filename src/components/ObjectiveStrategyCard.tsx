@@ -463,8 +463,23 @@ function BikeBlock({
   const w = bikeWatts(envelope, ftp, effIF);
   const segs = bikeSegments(envelope, ftp, effIF, { wPrimeJ, allowMurOverload: true });
 
-
-
+  return (
+    <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
+      <div className="flex items-center gap-2 text-sm font-medium">
+        <Bike className="h-4 w-4 text-primary" />
+        Stratégie vélo
+        {conditionsFactor < 1 && (
+          <Badge variant="outline" className="text-[9px] ml-auto">Ajusté conditions : ×{conditionsFactor.toFixed(3)}</Badge>
+        )}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+        <Metric label="Puissance cible (NP)" value={`${w.targetW} W`} />
+        <Metric label="Plage" value={`${w.rangeW[0]}–${w.rangeW[1]} W`} />
+        <Metric label="IF (NP/FTP)" value={w.if.toString()} />
+        <Metric label="Watts plat" value={`${w.flatW} W`} />
+        <Metric label="Plafond montées" value={`≤ ${w.capClimbW} W`} />
+        <Metric label="VI cible" value={`< ${w.vi}`} />
+      </div>
 
       <div className="space-y-1">
         <div className="text-[11px] font-semibold text-foreground/80">Par segment de terrain</div>
