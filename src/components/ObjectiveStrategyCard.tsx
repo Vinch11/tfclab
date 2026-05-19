@@ -761,7 +761,10 @@ function FinishPaceInput({
         type="text"
         inputMode="numeric"
         value={val}
+        onFocus={() => { focusedRef.current = true; }}
         onChange={(e) => setVal(e.target.value)}
+        onBlur={() => { focusedRef.current = false; }}
+        onKeyDown={(e) => { if (e.key === "Enter") { apply(); (e.target as HTMLInputElement).blur(); } }}
         placeholder="4:08"
         className="w-16 h-6 px-1.5 text-[11px] font-mono rounded border border-border bg-background"
       />
