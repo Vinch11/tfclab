@@ -595,6 +595,7 @@ function RunBlock({
                   {saveState === "error" && <span className="text-red-600">Erreur</span>}
                   {saveState === "idle" && <><Check className="h-3 w-3 text-emerald-600/60" />Sync</>}
                 </span>
+              )}
               <Button
                 type="button"
                 size="sm"
