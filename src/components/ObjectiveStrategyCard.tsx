@@ -699,6 +699,82 @@ function parsePaceMSS(input: string): number | null {
   return sec;
 }
 
+/**
+ * Auto-génère des paliers cohérents (negative split) depuis le temps cible final.
+ * - Conserve la moyenne ≈ allure cible course
+ * - Échelonne les offsets du profil auto pour que le dernier segment matche l'allure finale entrée
+ * - Si l'utilisateur entre 4'08/km alors que la cible est 4'15/km, les autres segments sont
+ *   ajustés proportionnellement (départ ralenti d'autant) pour préserver le chrono total.
+ */
+function FinishPaceInput({
+  targetPaceSec, autoSegs, currentLastSec, onApply,
+}: {
+  targetPaceSec: number;
+  autoSegs: { label: string; paceSec: number }[];
+  currentLastSec: number;
+  onApply: (overrides: (number | null)[]) => void;
+}) {
+  const [val, setVal] = React.useState<string>(() => {
+    const s = Math.round(currentLastSec);
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  });
+
+  // Sync display when external segments change
+  React.useEffect(() => {
+    const s = Math.round(currentLastSec);
+    setVal(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`);
+  }, [currentLastSec]);
+
+  const apply = () => {
+    const finishSec = parsePaceMSS(val);
+    if (!finishSec || targetPaceSec <= 0 || autoSegs.length === 0) return;
+    const baseOffsets = autoSegs.map((s) => s.paceSec / targetPaceSec - 1);
+    const lastBase = baseOffsets[baseOffsets.length - 1];
+    const finishOffset = finishSec / targetPaceSec - 1;
+    // Si profil auto neutre (lastBase ≈ 0), fallback gradient linéaire
+    let next: number[];
+    if (Math.abs(lastBase) < 1e-4) {
+      const n = autoSegs.length;
+      // Linéaire de +|finishOffset| à finishOffset, moyenne 0 si symétrique
+      next = autoSegs.map((_, i) => {
+        const t = n > 1 ? i / (n - 1) : 0;
+        const off = (1 - 2 * t) * Math.abs(finishOffset);
+        // Inverser pour negative split (départ lent → finish rapide)
+        return Math.round(targetPaceSec * (1 + (finishOffset < 0 ? off : -off)));
+      });
+    } else {
+      const k = finishOffset / lastBase;
+      next = baseOffsets.map((off) => Math.round(targetPaceSec * (1 + off * k)));
+    }
+    onApply(next);
+  };
+
+  const finishSec = parsePaceMSS(val);
+  const previewDelta = finishSec ? ((finishSec - targetPaceSec) / targetPaceSec) * 100 : null;
+
+  return (
+    <div className="flex items-center gap-2 px-2 py-2 border-b border-border/60 bg-muted/30 flex-wrap">
+      <span className="text-[10px] font-medium text-foreground/80">Temps cible final (m:ss/km)</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="4:08"
+        className="w-16 h-6 px-1.5 text-[11px] font-mono rounded border border-border bg-background"
+      />
+      <Button type="button" size="sm" variant="secondary" className="h-6 px-2 text-[10px]" onClick={apply} disabled={!finishSec}>
+        Recalculer paliers
+      </Button>
+      {previewDelta != null && (
+        <span className="text-[10px] text-muted-foreground">
+          → finish {previewDelta >= 0 ? "+" : ""}{previewDelta.toFixed(1)}% vs cible
+        </span>
+      )}
+    </div>
+  );
+}
+
 function PaceOverrideRow({
   label, paceSec, offsetPct, cadence, onChange,
 }: {
