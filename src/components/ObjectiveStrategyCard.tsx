@@ -719,8 +719,10 @@ function FinishPaceInput({
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   });
 
-  // Sync display when external segments change
+  const focusedRef = React.useRef(false);
+  // Sync display when external segments change — sauf si l'utilisateur est en train d'éditer
   React.useEffect(() => {
+    if (focusedRef.current) return;
     const s = Math.round(currentLastSec);
     setVal(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`);
   }, [currentLastSec]);
@@ -759,7 +761,10 @@ function FinishPaceInput({
         type="text"
         inputMode="numeric"
         value={val}
+        onFocus={() => { focusedRef.current = true; }}
         onChange={(e) => setVal(e.target.value)}
+        onBlur={() => { focusedRef.current = false; }}
+        onKeyDown={(e) => { if (e.key === "Enter") { apply(); (e.target as HTMLInputElement).blur(); } }}
         placeholder="4:08"
         className="w-16 h-6 px-1.5 text-[11px] font-mono rounded border border-border bg-background"
       />
@@ -786,32 +791,53 @@ function PaceOverrideRow({
     return `${mm}:${ss.toString().padStart(2, "0")}`;
   }, [paceSec]);
   const [text, setText] = React.useState(initial);
-  React.useEffect(() => { setText(initial); }, [initial]);
+  const focusedRef = React.useRef(false);
+  // Ne réinitialise le texte que si le champ n'est PAS en cours d'édition
+  React.useEffect(() => {
+    if (!focusedRef.current) setText(initial);
+  }, [initial]);
   const invalid = text.length > 0 && parsePaceMSS(text) == null;
+  const adjustSec = (delta: number) => {
+    const parsed = parsePaceMSS(text) ?? paceSec;
+    const next = Math.max(120, Math.min(900, Math.round(parsed) + delta));
+    const mm = Math.floor(next / 60);
+    const ss = next - mm * 60;
+    setText(`${mm}:${ss.toString().padStart(2, "0")}`);
+    onChange(next);
+  };
   return (
     <tr className="border-t border-border/40">
       <td className="px-2 py-1 font-medium">{label}</td>
       <td className="px-2 py-1">
-        <input
-          type="text"
-          inputMode="numeric"
-          value={text}
-          onChange={(e) => {
-            const v = e.target.value;
-            setText(v);
-            const parsed = parsePaceMSS(v);
-            if (parsed != null) onChange(parsed);
-          }}
-          onBlur={() => {
-            const parsed = parsePaceMSS(text);
-            if (parsed == null) setText(initial);
-          }}
-          placeholder="m:ss"
-          className={cn(
-            "w-20 h-7 rounded border bg-background text-center font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-primary",
-            invalid ? "border-destructive" : "border-border/60",
-          )}
-        />
+        <div className="flex items-center gap-1">
+          <Button type="button" size="sm" variant="ghost" className="h-7 w-6 p-0 text-base" onClick={() => adjustSec(-1)} aria-label="−1 s/km">−</Button>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={text}
+            onFocus={() => { focusedRef.current = true; }}
+            onChange={(e) => setText(e.target.value)}
+            onBlur={() => {
+              focusedRef.current = false;
+              const parsed = parsePaceMSS(text);
+              if (parsed != null) {
+                onChange(parsed);
+                const mm = Math.floor(parsed / 60);
+                const ss = parsed - mm * 60;
+                setText(`${mm}:${ss.toString().padStart(2, "0")}`);
+              } else {
+                setText(initial);
+              }
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+            placeholder="m:ss"
+            className={cn(
+              "w-16 h-7 rounded border bg-background text-center font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-primary",
+              invalid ? "border-destructive" : "border-border/60",
+            )}
+          />
+          <Button type="button" size="sm" variant="ghost" className="h-7 w-6 p-0 text-base" onClick={() => adjustSec(+1)} aria-label="+1 s/km">+</Button>
+        </div>
       </td>
       <td className="px-2 py-1 text-right tabular-nums">
         <span className={offsetPct >= 0 ? "text-muted-foreground" : "text-primary font-semibold"}>
