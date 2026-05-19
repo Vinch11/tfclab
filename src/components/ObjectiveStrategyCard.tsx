@@ -28,6 +28,8 @@ import { cn } from "@/lib/utils";
 import { computeBaseRateMader } from "@/lib/v2/nutritionUnified";
 import { computeNegativeSplitDelta } from "@/lib/v2/pacingDisciplineRules";
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
+import { useCloudData } from "@/contexts/CloudDataContext";
+import { Save, Check } from "lucide-react";
 
 interface ObjectiveStrategyCardProps {
   raceObjective: RaceObjective;
