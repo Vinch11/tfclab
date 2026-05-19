@@ -642,8 +642,9 @@ function RunBlock({
           <strong>{splitLabel(plan.splitBias, deltaPct)}</strong>.
         </div>
         <div className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
-          Démarrer 3–5 s/km plus lent que l'allure cible sur les 20 premières minutes,
-          retrouver la cible au tiers, accélérer progressivement sur la 2e moitié. Cadence stable, jamais sous −4 spm de la cible.
+          {plan.splitBias === "negative"
+            ? "Départ patient (10–25 s/km plus lent que la cible sur les 2–3 premiers km / 15–20 premières minutes), stabilisation au tiers, accélération franche sur la 2ᵉ moitié, finish explosif sur le dernier quart. Cadence stable, jamais sous −4 spm de la cible."
+            : "Démarrer 3–5 s/km plus lent que l'allure cible sur les 20 premières minutes, retrouver la cible au tiers, accélérer progressivement sur la 2ᵉ moitié. Cadence stable, jamais sous −4 spm de la cible."}
         </div>
       </div>
     </div>
