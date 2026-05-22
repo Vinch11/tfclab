@@ -1208,6 +1208,86 @@ export default function AITrainingPlanPage() {
                   )}
                 </div>
 
+                {/* Trail-specific profile (distance + D+ + time + altitude) */}
+                {/Trail|Ultra/i.test(objective) && (() => {
+                  const km = parseFloat(trailDistanceKm) || 0;
+                  const dPlus = parseInt(trailElevationM, 10) || 0;
+                  const ratio = km > 0 && dPlus > 0 ? Math.round(dPlus / km) : null;
+                  const terrainLabel = ratio === null ? null :
+                    ratio < 20 ? "Roulant" :
+                    ratio < 35 ? "Vallonné" :
+                    ratio < 55 ? "Montagne" : "Haute montagne";
+                  return (
+                    <div className="space-y-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+                      <Label className="text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                        ⛰️ Profil de course trail
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Distance (km) *</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="0.1"
+                            placeholder="ex: 50"
+                            value={trailDistanceKm}
+                            onChange={e => setTrailDistanceKm(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">D+ total (m) *</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="50"
+                            placeholder="ex: 3500"
+                            value={trailElevationM}
+                            onChange={e => setTrailElevationM(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Temps cible (h:mm)</Label>
+                          <Input
+                            placeholder="ex: 8:30"
+                            value={trailTargetTimeH}
+                            onChange={e => setTrailTargetTimeH(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Altitude max (m)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="100"
+                            placeholder="ex: 2400"
+                            value={trailMaxAltitudeM}
+                            onChange={e => setTrailMaxAltitudeM(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                      </div>
+                      {ratio !== null && terrainLabel && (
+                        <p className="text-[11px] text-muted-foreground">
+                          → <span className="font-semibold text-amber-700 dark:text-amber-400">{ratio} m/km</span> — profil <span className="font-semibold">{terrainLabel}</span>
+                          {km > 0 && dPlus > 0 && (
+                            <> · D+ hebdo cible peak ≈ <span className="font-semibold">{Math.round(dPlus * 0.12)}m</span></>
+                          )}
+                        </p>
+                      )}
+                      {(!trailDistanceKm || !trailElevationM) && (
+                        <p className="text-[10px] text-amber-700/80 dark:text-amber-400/80">
+                          ⚠️ Renseigne distance + D+ pour que l'IA adapte le plan au profil exact de ta course.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
+
+
+
                 {/* Multi-objective section */}
                 {raceGoals.map((goal, idx) => (
                   <div key={idx} className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3 relative">
