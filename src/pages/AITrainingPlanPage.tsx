@@ -453,6 +453,18 @@ export default function AITrainingPlanPage() {
     };
 
     const allRaceGoals: RaceGoal[] = [];
+    // Parse trail target time "h:mm" → minutes
+    const parseTargetTimeMin = (s: string): number | null => {
+      if (!s) return null;
+      const m = s.match(/^(\d{1,2})\s*[:hH]\s*(\d{0,2})$/);
+      if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2] || "0", 10);
+      const asInt = parseInt(s, 10);
+      return Number.isFinite(asInt) && asInt > 0 ? asInt : null;
+    };
+    const trailDistKm = parseFloat(trailDistanceKm) || null;
+    const trailDPlus = parseInt(trailElevationM, 10) || null;
+    const trailTargetMin = parseTargetTimeMin(trailTargetTimeH);
+    const trailMaxAlt = parseInt(trailMaxAltitudeM, 10) || null;
     // Primary objective = A
     allRaceGoals.push({
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
@@ -460,6 +472,10 @@ export default function AITrainingPlanPage() {
       raceDate: raceDate || undefined,
       weeksUntilRace: computeWeeksUntilRace(raceDate),
       priority: "A",
+      distanceKm: trailDistKm,
+      elevationGainM: trailDPlus,
+      targetTimeMinutes: trailTargetMin,
+      maxAltitudeM: trailMaxAlt,
     });
     // Additional goals
     for (const g of raceGoals) {
