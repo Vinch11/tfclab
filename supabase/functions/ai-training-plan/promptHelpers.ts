@@ -37,7 +37,28 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   
   // Prohibitions — injected in detail later (see L3853+), only add brief reminder here
   // (detailed injection with PRIORITÉ ABSOLUE is done below in the athlete profile section)
-  
+
+  // 📍 PROFIL COURSE TRAIL — pré-calculé côté code (D+/km, terrain, D+ hebdo cible)
+  // Injecté UNE SEULE FOIS dans chunk 1 (≈80 tokens). Évite hallucination du profil.
+  if (config?.trailProfile) {
+    const tp = config.trailProfile;
+    const durMin = tp.estimatedRaceDurationMin;
+    const durStr = durMin
+      ? `${Math.floor(durMin / 60)}h${(durMin % 60).toString().padStart(2, "0")}`
+      : "n/r";
+    lines.push(`\n📍 PROFIL COURSE TRAIL (valeurs finales, ne pas recalculer) :`);
+    lines.push(`  • Distance: ${tp.distanceKm} km · D+: ${tp.elevationGainM} m · Ratio: ${tp.dPlusPerKm} m/km → terrain "${tp.terrainLabel}"`);
+    lines.push(`  • Durée estimée: ${durStr}${tp.needsNightSimulation ? " (≥6h → simulations nocturnes obligatoires)" : ""}`);
+    lines.push(`  • D+ hebdo cible: base ${tp.weeklyDPlusBaseM}m → peak ${tp.weeklyDPlusPeakM}m (progression linéaire)`);
+    if (tp.descentTechnicalRequired) {
+      lines.push(`  • ⚠️ Descente technique OBLIGATOIRE 1x/sem en Build/Peak (ratio ≥35 m/km)`);
+    }
+    if (tp.needsAcclimatation) {
+      lines.push(`  • ⚠️ Altitude max ≥2000m → bloc d'acclimatation (3-4 sem) ou simulation hypoxie`);
+    }
+    lines.push(`  • Gut Training cible: ${tp.gutTrainingTargetGPerH} g CHO/h testé en simulation longue`);
+  }
+
   // Volume constraints
   if (config?.weeklyHours) lines.push(`\n📊 Volume: ${config.weeklyHours}h/sem`);
   if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
