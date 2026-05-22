@@ -40,9 +40,35 @@ export function ProfileAuditDialog({ snapshot, athleteName, athleteGoal, trigger
   const [open, setOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [fixingSport, setFixingSport] = useState(false);
+  const queryClient = useQueryClient();
 
   const report: ProfileAuditReport = auditProfile(snapshot ?? {}, athleteName, athleteGoal);
   const verdict = verdictConfig[report.overallVerdict];
+
+  const fixSportMismatch = async () => {
+    const deduced = deduceSportMainFromGoal(athleteGoal);
+    if (!deduced || !snapshot?.id) {
+      toast.error("Impossible de corriger : snapshot ou objectif manquant");
+      return;
+    }
+    setFixingSport(true);
+    try {
+      const { error } = await supabase
+        .from("snapshots")
+        .update({ sport_main: deduced })
+        .eq("id", snapshot.id);
+      if (error) throw error;
+      toast.success(`sport_main mis à jour : "${deduced}"`);
+      queryClient.invalidateQueries({ queryKey: ["snapshots"] });
+      queryClient.invalidateQueries({ queryKey: ["cloud-data"] });
+      setOpen(false);
+    } catch (e: any) {
+      toast.error("Erreur : " + (e?.message ?? "inconnue"));
+    } finally {
+      setFixingSport(false);
+    }
+  };
 
   const runAIAudit = async () => {
     setAiLoading(true);
