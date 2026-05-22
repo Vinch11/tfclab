@@ -160,7 +160,12 @@ export function ProfileAuditDialog({ snapshot, athleteName, athleteGoal, trigger
             ) : (
               <div className="space-y-3">
                 {report.findings.map((f) => (
-                  <FindingCard key={f.id} finding={f} />
+                  <FindingCard
+                    key={f.id}
+                    finding={f}
+                    onAutoFix={f.id === "sport_goal_mismatch" ? fixSportMismatch : undefined}
+                    autoFixLoading={fixingSport}
+                  />
                 ))}
               </div>
             )}
