@@ -207,6 +207,11 @@ export default function AITrainingPlanPage() {
   const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
   const [trainingLevel, setTrainingLevel] = useState<string>("auto");
   const [constraints, setConstraints] = useState("");
+  // Trail-only: profil de course (D+, distance, temps cible, altitude max)
+  const [trailDistanceKm, setTrailDistanceKm] = useState("");
+  const [trailElevationM, setTrailElevationM] = useState("");
+  const [trailTargetTimeH, setTrailTargetTimeH] = useState(""); // h:mm
+  const [trailMaxAltitudeM, setTrailMaxAltitudeM] = useState("");
 
   // Multi-objective state
   const [raceGoals, setRaceGoals] = useState<RaceGoal[]>([]);
@@ -240,6 +245,10 @@ export default function AITrainingPlanPage() {
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
       if (savedState.trainingLevel) setTrainingLevel(savedState.trainingLevel);
       if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
+      if (savedState.trailDistanceKm) setTrailDistanceKm(savedState.trailDistanceKm);
+      if (savedState.trailElevationM) setTrailElevationM(savedState.trailElevationM);
+      if (savedState.trailTargetTimeH) setTrailTargetTimeH(savedState.trailTargetTimeH);
+      if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
     } else {
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
@@ -270,9 +279,13 @@ export default function AITrainingPlanPage() {
       strengthSessionsPerWeek,
       trainingLevel,
       raceGoals,
+      trailDistanceKm,
+      trailElevationM,
+      trailTargetTimeH,
+      trailMaxAltitudeM,
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals]);
+  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -440,6 +453,18 @@ export default function AITrainingPlanPage() {
     };
 
     const allRaceGoals: RaceGoal[] = [];
+    // Parse trail target time "h:mm" → minutes
+    const parseTargetTimeMin = (s: string): number | null => {
+      if (!s) return null;
+      const m = s.match(/^(\d{1,2})\s*[:hH]\s*(\d{0,2})$/);
+      if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2] || "0", 10);
+      const asInt = parseInt(s, 10);
+      return Number.isFinite(asInt) && asInt > 0 ? asInt : null;
+    };
+    const trailDistKm = parseFloat(trailDistanceKm) || null;
+    const trailDPlus = parseInt(trailElevationM, 10) || null;
+    const trailTargetMin = parseTargetTimeMin(trailTargetTimeH);
+    const trailMaxAlt = parseInt(trailMaxAltitudeM, 10) || null;
     // Primary objective = A
     allRaceGoals.push({
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
@@ -447,6 +472,10 @@ export default function AITrainingPlanPage() {
       raceDate: raceDate || undefined,
       weeksUntilRace: computeWeeksUntilRace(raceDate),
       priority: "A",
+      distanceKm: trailDistKm,
+      elevationGainM: trailDPlus,
+      targetTimeMinutes: trailTargetMin,
+      maxAltitudeM: trailMaxAlt,
     });
     // Additional goals
     for (const g of raceGoals) {
@@ -1178,6 +1207,86 @@ export default function AITrainingPlanPage() {
                     </p>
                   )}
                 </div>
+
+                {/* Trail-specific profile (distance + D+ + time + altitude) */}
+                {/Trail|Ultra/i.test(objective) && (() => {
+                  const km = parseFloat(trailDistanceKm) || 0;
+                  const dPlus = parseInt(trailElevationM, 10) || 0;
+                  const ratio = km > 0 && dPlus > 0 ? Math.round(dPlus / km) : null;
+                  const terrainLabel = ratio === null ? null :
+                    ratio < 20 ? "Roulant" :
+                    ratio < 35 ? "Vallonné" :
+                    ratio < 55 ? "Montagne" : "Haute montagne";
+                  return (
+                    <div className="space-y-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+                      <Label className="text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                        ⛰️ Profil de course trail
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Distance (km) *</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="0.1"
+                            placeholder="ex: 50"
+                            value={trailDistanceKm}
+                            onChange={e => setTrailDistanceKm(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">D+ total (m) *</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="50"
+                            placeholder="ex: 3500"
+                            value={trailElevationM}
+                            onChange={e => setTrailElevationM(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Temps cible (h:mm)</Label>
+                          <Input
+                            placeholder="ex: 8:30"
+                            value={trailTargetTimeH}
+                            onChange={e => setTrailTargetTimeH(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px]">Altitude max (m)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="100"
+                            placeholder="ex: 2400"
+                            value={trailMaxAltitudeM}
+                            onChange={e => setTrailMaxAltitudeM(e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                      </div>
+                      {ratio !== null && terrainLabel && (
+                        <p className="text-[11px] text-muted-foreground">
+                          → <span className="font-semibold text-amber-700 dark:text-amber-400">{ratio} m/km</span> — profil <span className="font-semibold">{terrainLabel}</span>
+                          {km > 0 && dPlus > 0 && (
+                            <> · D+ hebdo cible peak ≈ <span className="font-semibold">{Math.round(dPlus * 0.12)}m</span></>
+                          )}
+                        </p>
+                      )}
+                      {(!trailDistanceKm || !trailElevationM) && (
+                        <p className="text-[10px] text-amber-700/80 dark:text-amber-400/80">
+                          ⚠️ Renseigne distance + D+ pour que l'IA adapte le plan au profil exact de ta course.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
+
+
 
                 {/* Multi-objective section */}
                 {raceGoals.map((goal, idx) => (

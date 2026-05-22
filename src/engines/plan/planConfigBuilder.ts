@@ -15,6 +15,7 @@ import type { PlanConfig, PlanAthleteData, RaceGoal, AdaptationProjection } from
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
 import { computeAdaptationPrediction, type AdaptationPredictorInput } from "@/lib/v2/adaptationPredictor";
 import { computeCRR, computeChargeScore, getCRRTargets } from "@/lib/chargeRecenteReference";
+import { computeTrailProfile, isTrailObjective } from "@/lib/trailProfile";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATHLETE DATA EXTRACTION
@@ -180,6 +181,38 @@ export function buildPlanConfigFromDiagnostic(
     },
   };
 
+  // ── Trail Profile (pré-calcul côté code, injecté chunk 1 uniquement) ──────
+  // Cherche l'objectif A (ou primaire) trail dans raceGoals avec distance+D+ renseignés
+  let trailProfile: PlanConfig["trailProfile"];
+  if (isTrailObjective(formConfig.objective) && formConfig.raceGoals) {
+    const primary = formConfig.raceGoals.find(g => g.priority === "A") ?? formConfig.raceGoals[0];
+    if (primary) {
+      const tp = computeTrailProfile({
+        objective: primary.objective || formConfig.objective,
+        distanceKm: primary.distanceKm ?? null,
+        elevationGainM: primary.elevationGainM ?? null,
+        targetTimeMinutes: primary.targetTimeMinutes ?? null,
+        maxAltitudeM: primary.maxAltitudeM ?? null,
+      });
+      if (tp) {
+        trailProfile = {
+          distanceKm: tp.distanceKm,
+          elevationGainM: tp.elevationGainM,
+          dPlusPerKm: tp.dPlusPerKm,
+          terrainLabel: tp.terrainLabel,
+          weeklyDPlusPeakM: tp.weeklyDPlusPeakM,
+          weeklyDPlusBaseM: tp.weeklyDPlusBaseM,
+          descentTechnicalRequired: tp.descentTechnicalRequired,
+          estimatedRaceDurationMin: tp.estimatedRaceDurationMin,
+          needsAcclimatation: tp.needsAcclimatation,
+          needsNightSimulation: tp.needsNightSimulation,
+          gutTrainingTargetGPerH: tp.gutTrainingTargetGPerH,
+          summary: tp.summary,
+        };
+      }
+    }
+  }
+
   return {
     objective: formConfig.objective,
     raceName: formConfig.raceName,
@@ -199,6 +232,7 @@ export function buildPlanConfigFromDiagnostic(
     adaptationProjections: projections.length > 0 ? projections : undefined,
     recentLoad,
     _athleteSex: diagnostic._rawInput.sex ?? null,
+    trailProfile,
   };
 }
 

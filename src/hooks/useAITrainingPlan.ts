@@ -39,6 +39,30 @@ export interface RaceGoal {
   raceDate?: string;
   weeksUntilRace?: number;
   priority: "A" | "B" | "C";
+  /** Trail uniquement — utilisés pour pré-calculer le profil de course (D+/km, séances clés) */
+  distanceKm?: number | null;
+  elevationGainM?: number | null;
+  targetTimeMinutes?: number | null;
+  maxAltitudeM?: number | null;
+}
+
+/**
+ * Profil de course trail pré-calculé côté code et injecté dans le prompt IA.
+ * Voir src/lib/trailProfile.ts.
+ */
+export interface TrailProfileSummary {
+  distanceKm: number;
+  elevationGainM: number;
+  dPlusPerKm: number;
+  terrainLabel: string;
+  weeklyDPlusPeakM: number;
+  weeklyDPlusBaseM: number;
+  descentTechnicalRequired: boolean;
+  estimatedRaceDurationMin: number | null;
+  needsAcclimatation: boolean;
+  needsNightSimulation: boolean;
+  gutTrainingTargetGPerH: number;
+  summary: string;
 }
 
 export interface AdaptationProjection {
@@ -99,6 +123,8 @@ export interface PlanConfig {
     target: { min: number; opt: number; max: number };
   };
   _athleteSex?: string | null;
+  /** Profil trail pré-calculé (D+/km, terrain, D+ hebdo cible) — injecté chunk 1 uniquement */
+  trailProfile?: TrailProfileSummary;
 }
 
 export interface ChunkProgress {
