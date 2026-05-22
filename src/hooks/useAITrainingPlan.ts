@@ -123,6 +123,8 @@ export interface PlanConfig {
     target: { min: number; opt: number; max: number };
   };
   _athleteSex?: string | null;
+  /** Profil trail pré-calculé (D+/km, terrain, D+ hebdo cible) — injecté chunk 1 uniquement */
+  trailProfile?: TrailProfileSummary;
 }
 
 export interface ChunkProgress {
