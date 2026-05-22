@@ -218,7 +218,7 @@ export function ProfileAuditDialog({ snapshot, athleteName, athleteGoal, trigger
   );
 }
 
-function FindingCard({ finding }: { finding: AuditFinding }) {
+function FindingCard({ finding, onAutoFix, autoFixLoading }: { finding: AuditFinding; onAutoFix?: () => void; autoFixLoading?: boolean }) {
   const cfg = severityConfig[finding.severity];
   const Icon = cfg.icon;
   return (
@@ -241,6 +241,18 @@ function FindingCard({ finding }: { finding: AuditFinding }) {
               <span className="text-foreground/80">{finding.fix}</span>
             </div>
           </div>
+          {onAutoFix && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-2 gap-2"
+              onClick={onAutoFix}
+              disabled={autoFixLoading}
+            >
+              {autoFixLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wrench className="w-3.5 h-3.5" />}
+              Corriger automatiquement
+            </Button>
+          )}
         </div>
       </div>
     </div>
