@@ -15,6 +15,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ObjectifType } from "@/types/athlete";
+import { deduceSportMainFromGoal, normalizeSportMain } from "@/lib/sportMainDeduction";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -184,6 +185,38 @@ export function useAthleteRaceGoals(athleteId: string | null) {
       if (error) {
         console.error('Error updating athlete goal:', error);
         throw error;
+      }
+
+      // 1.b Auto-sync sport_main on the active snapshot if incoherent with the new goal.
+      // Avoids the "Sport principal incohérent avec l'objectif" audit warning when a
+      // coach changes objectif (e.g. IM → TrailMountain) without touching the snapshot.
+      try {
+        const deducedSport = deduceSportMainFromGoal(goal);
+        if (deducedSport) {
+          const { data: athleteRow } = await supabase
+            .from('athletes')
+            .select('active_snapshot_id')
+            .eq('id', athleteId)
+            .maybeSingle();
+          const snapId = athleteRow?.active_snapshot_id;
+          if (snapId) {
+            const { data: snap } = await supabase
+              .from('snapshots')
+              .select('sport_main')
+              .eq('id', snapId)
+              .maybeSingle();
+            const currentSport = normalizeSportMain(snap?.sport_main);
+            if (currentSport !== deducedSport) {
+              await supabase
+                .from('snapshots')
+                .update({ sport_main: deducedSport })
+                .eq('id', snapId);
+              queryClient.invalidateQueries({ queryKey: ['snapshots'] });
+            }
+          }
+        }
+      } catch (syncErr) {
+        console.warn('[updateAthleteGoal] sport_main sync failed', syncErr);
       }
 
       // 2. Add to race goals history (unless skipped or already exists recently)
