@@ -10,6 +10,9 @@ import { auditProfile, type AuditFinding, type ProfileAuditReport } from "@/lib/
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { deduceSportMainFromGoal } from "@/lib/sportMainDeduction";
+import { useQueryClient } from "@tanstack/react-query";
+import { Wrench } from "lucide-react";
 
 interface ProfileAuditDialogProps {
   snapshot: any;
