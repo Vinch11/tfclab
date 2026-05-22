@@ -15,6 +15,7 @@ import type { PlanConfig, PlanAthleteData, RaceGoal, AdaptationProjection } from
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
 import { computeAdaptationPrediction, type AdaptationPredictorInput } from "@/lib/v2/adaptationPredictor";
 import { computeCRR, computeChargeScore, getCRRTargets } from "@/lib/chargeRecenteReference";
+import { computeTrailProfile, isTrailObjective } from "@/lib/trailProfile";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATHLETE DATA EXTRACTION
