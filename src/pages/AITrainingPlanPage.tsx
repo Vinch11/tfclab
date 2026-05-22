@@ -548,6 +548,18 @@ export default function AITrainingPlanPage() {
       return;
     }
 
+    // Guard: trail objectives REQUIRE distance + D+ to compute trailProfile (no fake defaults)
+    const isTrailObj = objective.startsWith("Trail");
+    if (isTrailObj) {
+      const km = parseFloat(trailDistanceKm) || 0;
+      const dPlus = parseInt(trailElevationM, 10) || 0;
+      if (km <= 0 || dPlus <= 0) {
+        toast.error("Renseignez la distance (km) et le D+ total de la course trail avant de générer le plan.");
+        return;
+      }
+    }
+
+
     // Archive current plan if this is a sync-triggered regeneration
     if (showSyncBanner && currentAthlete) {
       const { data: { user } } = await supabase.auth.getUser();
