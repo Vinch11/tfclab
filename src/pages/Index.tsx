@@ -1403,6 +1403,11 @@ const Index = () => {
                           <SelectItem value="703">70.3 / Half</SelectItem>
                           <SelectItem value="Marathon">Marathon</SelectItem>
                           <SelectItem value="Semi">Semi-Marathon</SelectItem>
+                          <SelectItem value="10K">10K</SelectItem>
+                          <SelectItem value="5K">5K</SelectItem>
+                          <SelectItem value="TrailShort">Trail court</SelectItem>
+                          <SelectItem value="TrailMountain">Trail montagne</SelectItem>
+                          <SelectItem value="TrailUltra">Ultra trail</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
