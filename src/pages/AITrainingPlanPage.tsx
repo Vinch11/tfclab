@@ -245,6 +245,10 @@ export default function AITrainingPlanPage() {
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
       if (savedState.trainingLevel) setTrainingLevel(savedState.trainingLevel);
       if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
+      if (savedState.trailDistanceKm) setTrailDistanceKm(savedState.trailDistanceKm);
+      if (savedState.trailElevationM) setTrailElevationM(savedState.trailElevationM);
+      if (savedState.trailTargetTimeH) setTrailTargetTimeH(savedState.trailTargetTimeH);
+      if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
     } else {
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
