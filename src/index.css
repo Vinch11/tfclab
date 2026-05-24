@@ -159,21 +159,20 @@
   html {
     /* Smooth scrolling */
     scroll-behavior: smooth;
-    /* Prevent horizontal overflow on mobile */
-    overflow-x: hidden;
+    /* Prevent horizontal overflow on mobile without blocking vertical scroll */
+    overflow-x: clip;
     max-width: 100%;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
-    overscroll-behavior-y: contain;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.011em;
     line-height: 1.6;
     /* iOS Safari: empêche tout enfant débordant de provoquer un scroll horizontal */
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100vw;
   }
 
