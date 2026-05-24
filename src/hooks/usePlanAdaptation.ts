@@ -62,12 +62,14 @@ export function usePlanAdaptation() {
       const { error } = await supabase
         .from("plans")
         .upsert(
-          {
-            athlete_id: athleteId,
-            coach_id: coachId,
-            plan_json: plan as unknown as Record<string, unknown>,
-            updated_at: new Date().toISOString(),
-          },
+          [
+            {
+              athlete_id: athleteId,
+              coach_id: coachId,
+              plan_json: plan as unknown as Record<string, unknown>,
+              updated_at: new Date().toISOString(),
+            },
+          ],
           { onConflict: "athlete_id" }
         );
       if (error) throw error;
@@ -78,14 +80,16 @@ export function usePlanAdaptation() {
   /** Archive le plan courant dans plan_versions avant écrasement. */
   const archive = useCallback(
     async (athleteId: string, coachId: string, plan: ParsedPlan, reason: string) => {
-      await supabase.from("plan_versions").insert({
-        athlete_id: athleteId,
-        coach_id: coachId,
-        plan_json: plan as unknown as Record<string, unknown>,
-        objective: `[ADAPTATION] ${reason}`,
-        weeks_count: plan.totalWeeks,
-        sessions_count: plan.weeks.reduce((sum, w) => sum + w.sessions.length, 0),
-      });
+      await supabase.from("plan_versions").insert([
+        {
+          athlete_id: athleteId,
+          coach_id: coachId,
+          plan_json: plan as unknown as Record<string, unknown>,
+          objective: `[ADAPTATION] ${reason}`,
+          weeks_count: plan.totalWeeks,
+          sessions_count: plan.weeks.reduce((sum, w) => sum + w.sessions.length, 0),
+        },
+      ]);
     },
     []
   );

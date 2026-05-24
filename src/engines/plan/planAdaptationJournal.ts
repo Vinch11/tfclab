@@ -120,18 +120,20 @@ export async function journalAdaptation(
 ): Promise<AdaptationRecord | null> {
   const { data, error } = await supabase
     .from("plan_adaptations")
-    .insert({
-      athlete_id: input.athleteId,
-      coach_id: input.coachId,
-      adaptation_type: input.type,
-      triggered_by: input.triggeredBy,
-      reason: input.reason ?? null,
-      from_week: input.fromWeek ?? null,
-      to_week: input.toWeek ?? null,
-      diff_json: { changes: input.diff ?? [] },
-      warnings: input.warnings ?? [],
-      applied: input.applied ?? true,
-    })
+    .insert([
+      {
+        athlete_id: input.athleteId,
+        coach_id: input.coachId,
+        adaptation_type: input.type,
+        triggered_by: input.triggeredBy,
+        reason: input.reason ?? null,
+        from_week: input.fromWeek ?? null,
+        to_week: input.toWeek ?? null,
+        diff_json: { changes: input.diff ?? [] } as unknown as Record<string, unknown>,
+        warnings: (input.warnings ?? []) as unknown as Record<string, unknown>,
+        applied: input.applied ?? true,
+      },
+    ])
     .select()
     .single();
   if (error) {
