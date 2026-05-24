@@ -84,6 +84,26 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     }
   }
 
+  // 🚦 RAMPE DE VOLUME OBLIGATOIRE — contrainte dure Sem 1 + ramp-up
+  // Injectée chunk 1 uniquement (buildStructuredDiagnosticBlock = chunk 1).
+  // Dérivée de `trainingLevel` (coach) + `weeklyHours` cible.
+  if (config?.volumeRamp) {
+    const vr = config.volumeRamp;
+    const levelLabel = {
+      untrained: "Non entraîné",
+      light: "Entraînement léger",
+      trained: "Entraîné",
+      highly_trained: "Très entraîné / Peak form",
+    }[vr.trainingLevel as string] || vr.trainingLevel;
+    const capStr = vr.week1HoursCap !== null ? ` (plafond absolu ${vr.week1HoursCap}h)` : "";
+    lines.push(`\n🚦 RAMPE DE VOLUME OBLIGATOIRE — niveau déclaré "${levelLabel}" :`);
+    lines.push(`  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
+    lines.push(`  • Semaine 1 : MAX ${vr.week1HoursMax}h (= ${Math.round(vr.week1PctTarget * 100)}% de la cible)${capStr}`);
+    lines.push(`  • Rampe : atteindre ${vr.weeklyHoursTarget}h en ~${vr.rampWeeks} semaine(s), progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem (règle des 10%, ACWR ≤ 1.3 — Gabbett)`);
+    lines.push(`  ⚠️ NE PAS appliquer le volume cible "weeklyHours" dès Sem 1 : c'est la cible APRÈS la rampe, pas le point de départ.`);
+    lines.push(`  ⚠️ Une semaine de décharge (deload) DOIT intervenir tous les 3 microcycles de charge même pendant la rampe.`);
+  }
+
   // FIX C5 (audit): Limiter-aware phase heuristics — adapt durations based on L1 type
   if (totalWeeks && totalWeeks > 10) {
     const tw = totalWeeks;
