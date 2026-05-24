@@ -125,6 +125,20 @@ export interface PlanConfig {
   _athleteSex?: string | null;
   /** Profil trail pré-calculé (D+/km, terrain, D+ hebdo cible) — injecté chunk 1 uniquement */
   trailProfile?: TrailProfileSummary;
+  /**
+   * Rampe de volume des premières semaines — dérivée de `trainingLevel`.
+   * Contrainte dure injectée chunk 1 pour borner Sem 1 et le ramp-up.
+   * Absent si `trainingLevel` non fourni ou si tss7d réel disponible (CRR prime).
+   */
+  volumeRamp?: {
+    trainingLevel: "untrained" | "light" | "trained" | "highly_trained";
+    week1PctTarget: number;       // 0-1 (ex: 0.40 = 40% du volume cible Sem 1)
+    rampWeeks: number;            // Nombre de semaines pour atteindre weeklyHours
+    week1HoursCap: number | null; // Plafond absolu Sem 1 (h), null si pas de cap
+    weeklyHoursTarget: number;    // Rappel cible
+    week1HoursMax: number;        // Sem 1 effective max (h)
+    weeklyIncreasePctMax: number; // Progression max/sem (ex: 0.10 = +10%/sem)
+  };
 }
 
 export interface ChunkProgress {
