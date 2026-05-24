@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Calendar, ChevronLeft, ChevronRight, Trash2, Waves, Bike,
-  Footprints, Moon, Dumbbell, Loader2, Pencil, AlertTriangle,
+  Footprints, Moon, Dumbbell, Loader2, Pencil, AlertTriangle, Download,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -23,6 +23,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { toast } from "sonner";
 import { SessionEditDialog } from "@/components/SessionEditDialog";
 import { PlanHistory } from "@/components/PlanHistory";
+import { exportSessionsToNolioZip, triggerBlobDownload } from "@/lib/nolioExport";
 
 interface TrainingPlanRow {
   id: string;
