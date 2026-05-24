@@ -1723,6 +1723,16 @@ export default function AITrainingPlanPage() {
                       <Button variant="ghost" size="sm" onClick={handleCopy}>
                         {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportNolio}
+                        disabled={exportingNolio || !parsedPlan}
+                        title="Exporter le plan vers Nolio (.zip de .json intervals.icu)"
+                      >
+                        {exportingNolio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                        <span className="ml-1 text-xs">Nolio</span>
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => { reset(); setIsSaved(false); if (persistKey) localStorage.removeItem(persistKey); }}>
                         <RotateCcw className="h-4 w-4" />
                       </Button>
