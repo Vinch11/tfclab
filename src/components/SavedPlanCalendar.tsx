@@ -152,6 +152,32 @@ export function SavedPlanCalendar() {
     setSessions(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
   };
 
+  const [exporting, setExporting] = useState<"all" | "week" | null>(null);
+
+  const handleExportNolio = async (scope: "all" | "week") => {
+    if (sessions.length === 0) { toast.error("Aucune séance à exporter"); return; }
+    setExporting(scope);
+    try {
+      const subset = scope === "all"
+        ? sessions
+        : (currentWeekData?.sessions ?? []);
+      if (subset.length === 0) { toast.error("Aucune séance sur cette semaine"); return; }
+      const athleteName = currentAthlete?.name ? currentAthlete.name.replace(/[^a-zA-Z0-9]+/g, "-") : "athlete";
+      const stamp = format(new Date(), "yyyyMMdd");
+      const baseName = scope === "all"
+        ? `nolio-plan-${athleteName}-${stamp}.zip`
+        : `nolio-sem${weekOffset + 1}-${athleteName}-${stamp}.zip`;
+      const blob = await exportSessionsToNolioZip(subset, baseName);
+      triggerBlobDownload(blob, baseName);
+      toast.success(`Export Nolio prêt (${subset.length} séances)`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erreur lors de l'export Nolio");
+    } finally {
+      setExporting(null);
+    }
+  };
+
   if (!currentAthlete) {
     return (
       <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">
