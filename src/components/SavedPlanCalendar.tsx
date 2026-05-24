@@ -227,6 +227,28 @@ export function SavedPlanCalendar() {
               <Badge variant="secondary" className="text-xs">
                 {sessions.length} séances • {allWeeks.length} sem.
               </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={exporting !== null}
+                onClick={() => handleExportNolio("week")}
+                title="Exporter la semaine affichée vers Nolio (.zip de .json intervals.icu)"
+              >
+                {exporting === "week" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                Nolio (sem.)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={exporting !== null}
+                onClick={() => handleExportNolio("all")}
+                title="Exporter le plan complet vers Nolio (.zip de .json intervals.icu)"
+              >
+                {exporting === "all" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                Nolio (tout)
+              </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" className="h-7 text-xs" disabled={deleting === "all"}>
