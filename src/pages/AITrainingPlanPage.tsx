@@ -694,6 +694,48 @@ export default function AITrainingPlanPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const [exportingNolio, setExportingNolio] = useState(false);
+  const handleExportNolio = useCallback(async () => {
+    if (!parsedPlan) { toast.error("Aucun plan à exporter"); return; }
+    setExportingNolio(true);
+    try {
+      const { exportSessionsToNolioZip, triggerBlobDownload } = await import("@/lib/nolioExport");
+      const sessions: Array<{
+        id: string; date: string;
+        custom_workout_title: string | null;
+        custom_workout_description: string | null;
+        phase: string | null;
+      }> = [];
+      // planStartDate is the Monday of week 1
+      const weekOneMonday = startOfWeek(planStartDate, { weekStartsOn: 1 });
+      for (const w of (parsedPlan.weeks || [])) {
+        for (const s of (w.sessions || [])) {
+          if (s.isRest) continue;
+          const date = addDays(weekOneMonday, (w.weekNumber - 1) * 7 + s.dayIndex);
+          sessions.push({
+            id: `${w.weekNumber}-${s.dayIndex}-${s.sport}`,
+            date: format(date, "yyyy-MM-dd"),
+            custom_workout_title: `${s.sport} — ${s.title}`,
+            custom_workout_description: s.details || null,
+            phase: w.phase || w.theme || null,
+          });
+        }
+      }
+      if (sessions.length === 0) { toast.error("Aucune séance dans ce plan"); return; }
+      const athleteName = currentAthlete?.name ? currentAthlete.name.replace(/[^a-zA-Z0-9]+/g, "-") : "athlete";
+      const stamp = format(new Date(), "yyyyMMdd");
+      const fname = `nolio-plan-${athleteName}-${stamp}.zip`;
+      const blob = await exportSessionsToNolioZip(sessions, fname);
+      triggerBlobDownload(blob, fname);
+      toast.success(`Export Nolio prêt (${sessions.length} séances)`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Erreur export Nolio : " + (e?.message || "Inconnu"));
+    } finally {
+      setExportingNolio(false);
+    }
+  }, [parsedPlan, planStartDate, currentAthlete]);
+
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
 
