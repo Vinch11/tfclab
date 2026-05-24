@@ -34,7 +34,7 @@ export function SidebarLayout({
 
   return (
     <SidebarProvider defaultOpen={false}>
-      <div className="min-h-svh flex w-full">
+      <div className="h-svh flex w-full">
         <AppSidebar
           activeTab={activeTab}
           onTabChange={onTabChange}
