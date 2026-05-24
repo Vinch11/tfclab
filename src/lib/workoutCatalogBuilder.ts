@@ -380,10 +380,13 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   }
 
   lines.push("\n⚠️ RÈGLES D'UTILISATION DU CATALOGUE :");
-  lines.push("1. Pour chaque séance clé 🔑, CITE l'ID du catalogue (ex: 'A_RUN_Z2_EASY')");
-  lines.push("2. Adapte la durée selon la semaine (progression) mais garde le protocole");
-  lines.push("3. Si aucune séance du catalogue ne correspond, tu PEUX créer une séance custom mais mentionne 'CUSTOM'");
-  lines.push("4. Les séances de récupération et repos ne nécessitent pas d'ID catalogue");
+  lines.push("1. Pour chaque séance, la colonne **Détails** DOIT contenir la DESCRIPTION COMPLÈTE du protocole (échauffement, structure intervalles/séries, récup, zones/allures/puissance, durée totale) — recopie/adapte la `Structure` du catalogue, ne te contente JAMAIS de l'ID seul.");
+  lines.push("2. Format Détails OBLIGATOIRE : `<protocole complet en 1-3 phrases avec chiffres précis>. [ID: <CATALOG_ID>]` — l'ID en fin entre crochets, JAMAIS seul.");
+  lines.push("   ❌ INTERDIT : `| Mardi | CAP | TTE Intro Seuil | ID: B_TR_HILL_TEMPO |`");
+  lines.push("   ✅ CORRECT : `| Mardi | CAP | 🔑 TTE Intro Seuil | 15min éch Z2. 4×6min @seuil (88% VMA) r=2min trot. 15min RC. 1h05 total. [ID: B_TR_HILL_TEMPO] |`");
+  lines.push("3. Adapte la durée selon la semaine (progression) mais garde le protocole.");
+  lines.push("4. Si aucune séance du catalogue ne correspond, tu PEUX créer une séance custom (décris le protocole complet, mentionne 'CUSTOM' au lieu de l'ID).");
+  lines.push("5. Les séances de récupération et repos ne nécessitent pas d'ID catalogue (mais gardent une description : durée, zone, type).");
 
   return lines.join("\n");
 }
