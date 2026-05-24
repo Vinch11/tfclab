@@ -1,70 +1,118 @@
 ## Objectif
 
-Garantir qu'à chaque endroit qui consomme « la VLamax » de l'athlète, c'est la valeur **adaptée à l'objectif** qui est utilisée :
-- Course (5k/10k/semi/marathon) → `vlamax_run`
-- Trail (court/long/ultra) → `vlamax_run`
-- Vélo / cyclisme → `vlamax` (vélo)
-- Triathlon (IM, 70.3) → règle : `vlamax` (vélo) reste la donnée pivot pour la simu vélo, mais le scoring « cap-spécifique » (économie, MLSS run, drift) utilise `vlamax_run`. La carte unifiée et le résumé global utilisent **les deux**, jamais un mélange.
+Permettre d'adapter un plan IA en cours de préparation via deux mécanismes complémentaires :
+- **Option 1** : Patch local déterministe (zéro IA) pour ajustements mineurs
+- **Option 2** : Régénération partielle ciblée (IA légère, fenêtre 3-4 sem) pour changements physiologiques significatifs
 
-Aujourd'hui, plusieurs consommateurs lisent toujours `snapshot.vlamax` (vélo) même pour un coureur pur, ce qui produit des badges, scores et conseils incohérents.
+Le tout sans dégrader la qualité ni fatiguer l'IA.
 
-## Travaux
+---
 
-### 1. Helper unique (source de vérité)
+## Architecture
 
-Créer `src/lib/vlamaxResolver.ts` :
+```text
+src/engines/plan/
+├─ planPatcher.ts              ← NEW (Option 1: transformations déterministes)
+├─ planPatcher.test.ts         ← NEW
+├─ planWindowRegen.ts          ← NEW (Option 2: orchestration fenêtre IA)
+└─ planAdaptationJournal.ts    ← NEW (garde-fou anti-cascade)
 
-- `resolveVlamaxForGoal(snapshot, athlete)` →
-  ```ts
-  { value: number | null; source: "run" | "bike"; sport: CanonicalSport; reason: string }
-  ```
-  Utilise `resolveSportMain` + fallback (si run mais `vlamax_run` manque → null + `reason: "missing_vlamax_run"`).
-- `resolveVlamaxBadgeKind(...)` : mappe `source` vers `"cap" | "bike"` pour les bandeaux/cibles.
-- Politique « Données insuffisantes » respectée : pas de fallback silencieux vélo → run.
-- Tests unitaires sur les 4 cas (run / trail / bike / tri) + 2 cas dégradés (sport_main incohérent, valeur absente).
+src/hooks/
+└─ usePlanAdaptation.ts        ← NEW (façade unifiée patch | window-regen)
 
-### 2. Audit + migration des consommateurs
+src/components/plan/
+└─ PlanAdaptationDialog.tsx    ← NEW (UI coach: choix patch vs window-regen)
 
-Remplacer toute lecture directe `snapshot.vlamax` par `resolveVlamaxForGoal` dans les fichiers où la valeur sert à un usage générique « VLamax athlète » :
+supabase/migrations/
+└─ plan_adaptations table     ← NEW (journal des adaptations)
+```
 
-- Cartes & UI dashboard
-  - `VLamaxUnifiedCard` (déjà partiellement fait, vérifier l'header global)
-  - `DashboardRecommendationsCard`, `DashboardGauges`, `DecisionReliabilityCard`, `LactatePredictionCurve`, `LactateCorrespondenceCard`, `BeforeAfterComparisonCard`, `LimiterHierarchyEditor`, `DataCompletionGuide`, `AthleteRefsPanel` (badge "VLamax")
-- Moteurs scientifiques
-  - `engines/diagnostic/computeDiagnostic.ts` (limiteurs)
-  - `engines/decision/computeDecision.ts`
-  - `engines/plan/planConfigBuilder.ts` + `planValidator.ts`
-  - `lib/compassScoring.ts` / `compassScoringCAP.ts`
-  - `lib/scoreEnvelope.ts`, `lib/runInjuryRisk.ts`, `lib/runningEconomy.ts`, `lib/energyDrift.ts`, `lib/annotationEngine.ts`
-- Exports & rapports
-  - `ExportTools.tsx`, `staffReport.ts`, `staffBriefing.ts`, `PDFPreviewPanel.tsx`
-  - Mini-rapport (`lib/miniReport/computeMiniProfile.ts`)
-- Hooks IA / contexte
-  - `useAITrainingPlan`, `useAICoaching`, `useAssistantContext`, `useDecisionReliability`, `useRunMLSSDriftDetection`
-- Race Sim
-  - `pages/RaceSimulationPage.tsx` : pour un objectif **course/trail**, n'utilise plus la VLamax vélo dans la simu run.
+---
 
-### 3. Endroits qui doivent rester sur la VLamax vélo
+## Option 1 — planPatcher.ts (déterministe)
 
-Documenter explicitement (commentaire `// raw bike VLamax — do not route via resolver`) :
-- `VLamaxBikeV2EnhancedCard`, `VLamaxDiagnosticPage`
-- `lib/v2/vlamaxBikeV2Enhanced` et calibrations bike (`calibration_evidence` source vélo)
-- Onglet Bike de `VLamaxUnifiedCard`
-- Composants spécifiques run (`VLamaxRunExplainedCard`, page Running) restent sur `vlamax_run`.
+Fonctions pures qui transforment `plan_json` sans appel IA :
 
-### 4. Garde-fous
+| Fonction | Déclencheur | Effet |
+|---|---|---|
+| `applyDeload(plan, fromWeek, intensity)` | Fatigue détectée | Réduit TSS sem N+1 de 20-40% |
+| `redistributeMissedTSS(plan, missedDate)` | Séance manquée | Re-répartit TSS sur 3 jours suivants (max +15%/jour) |
+| `swapModality(plan, sessionId, newModality)` | Blessure mineure | Bike↔Run↔Swim avec conservation TSS |
+| `shiftRaceDate(plan, newDate)` | Décalage course | Re-calibre taper (3 dernières semaines) |
+| `truncateAfterWeek(plan, week)` | Préparation Window regen | Coupe le plan à la semaine N |
 
-- Lint maison (regex + commentaire) : tout nouveau `snapshot.vlamax` hors fichiers whitelistés ⇒ doit passer par le resolver.
-- Ajout d'un warn dev `[vlamax-resolver] sport=run mais vlamax_run manquant — affichage "Données insuffisantes"`.
-- Mémoire projet mise à jour (`mem://logic/vlamax-resolver-uniform-by-goal`).
+Contraintes :
+- Garantit invariants : Σ TSS hebdo respecte ramp, jours OFF préservés
+- Retourne `{ plan, diff: PatchDiff[], warnings: string[] }`
+- Aucune nouvelle séance créée — uniquement transformations
 
-### 5. Vérification
+---
 
-- Tests : `engines/diagnostic`, `engines/decision`, `planValidator`, mini-rapport.
-- QA visuel : Dashboard d'un athlète **Marathon** (Cath) → toutes les cartes affichent `vlamax_run`, plus aucune référence accidentelle à la VLamax vélo. Idem athlète **Ironman** (mix) et **vélo pur**.
+## Option 2 — planWindowRegen.ts (IA légère)
 
-## Points à confirmer
+Régénère une fenêtre de 3-4 semaines via l'edge function existante `ai-training-plan`, **sans toucher** le reste :
 
-1. **Triathlon** : on garde la règle « bike pour la simu vélo, run pour la simu run, et la carte globale affiche les deux côte à côte » ? Ou on impose une seule VLamax « pivot » (vélo) ?
-2. **Trail court (≤30 km)** vs **trail long/ultra** : même politique (toujours `vlamax_run`) ou nuance pour l'ultra (où la VLamax est presque non-discriminante) ?
-3. **Manque de `vlamax_run` pour un coureur** : on affiche « Données insuffisantes » partout (politique actuelle) ou on accepte un fallback estimé via le moteur V2 run ?
+1. **Préserve passé** : sem 1 → N-1 inchangées
+2. **Régénère fenêtre** : sem N → N+windowSize via prompt allégé incluant :
+   - Résumé condensé des semaines passées (TSS moyen, séances clés, fatigue observée)
+   - Snapshot physiologique courant
+   - Catalogue filtré pour ces semaines uniquement (~30 séances)
+   - Contraintes : continuité avec sem N-1, raccord propre vers sem N+windowSize+1 (si existe)
+3. **Recolle** : concatène past + window + future
+
+Mécanisme : nouveau param `regenWindow: { fromWeek, toWeek, pastSummary, futureAnchor }` ajouté côté edge function. ~30% tokens vs régénération complète.
+
+---
+
+## Garde-fou : planAdaptationJournal
+
+Table `plan_adaptations` :
+```sql
+- id, athlete_id, plan_id
+- type: 'patch' | 'window_regen'
+- triggered_by: 'fatigue' | 'missed_session' | 'physio_drift' | ...
+- diff_json, reason
+- created_at
+```
+
+Règles :
+- Max **2 window-regens / 28 jours** (sinon force patch ou propose plan complet)
+- Max **5 patches consécutifs** sans window-regen
+- Affichage timeline dans UI coach
+
+---
+
+## Intégration UI
+
+`PlanAdaptationDialog` déclenché par :
+- Bouton manuel "Adapter le plan" sur dashboard coach
+- Auto-suggéré par `usePlanSnapshotSync` selon ampleur du drift :
+  - Drift < 10% → propose **patch**
+  - Drift ≥ 10% → propose **window-regen** (fenêtre courante + 2 sem)
+  - Drift ≥ 25% → propose **régénération complète**
+
+Dialog affiche :
+- Diff visuel des semaines impactées
+- Estimation coût (patch = instantané, window = ~15s)
+- Confirmation coach avant application
+
+---
+
+## Tests
+
+- `planPatcher.test.ts` : invariants TSS, ramp, conservation jours OFF
+- `planWindowRegen.test.ts` : continuité sem N-1 ↔ N (raccord TSS, modalités)
+- Snapshot test : journal correctement écrit après chaque adaptation
+
+---
+
+## Livraison incrémentale
+
+1. Migration DB `plan_adaptations`
+2. `planPatcher.ts` + tests (Option 1 complète, utilisable immédiatement)
+3. `planAdaptationJournal.ts`
+4. `planWindowRegen.ts` + adaptation edge function `ai-training-plan` (param `regenWindow`)
+5. `usePlanAdaptation.ts` + `PlanAdaptationDialog.tsx`
+6. Branchement auto-suggestion dans `usePlanSnapshotSync`
+
+Chaque étape testable indépendamment.

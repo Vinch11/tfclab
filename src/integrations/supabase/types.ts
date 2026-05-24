@@ -599,6 +599,51 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_adaptations: {
+        Row: {
+          adaptation_type: string
+          applied: boolean
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          diff_json: Json
+          from_week: number | null
+          id: string
+          reason: string | null
+          to_week: number | null
+          triggered_by: string
+          warnings: Json
+        }
+        Insert: {
+          adaptation_type: string
+          applied?: boolean
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          diff_json?: Json
+          from_week?: number | null
+          id?: string
+          reason?: string | null
+          to_week?: number | null
+          triggered_by: string
+          warnings?: Json
+        }
+        Update: {
+          adaptation_type?: string
+          applied?: boolean
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          diff_json?: Json
+          from_week?: number | null
+          id?: string
+          reason?: string | null
+          to_week?: number | null
+          triggered_by?: string
+          warnings?: Json
+        }
+        Relationships: []
+      }
       plan_versions: {
         Row: {
           athlete_id: string
