@@ -20,7 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   ChevronLeft, Sparkles, Calendar, Target, Clock, Loader2,
   AlertTriangle, Zap, User, RotateCcw, Copy, CheckCircle2,
-  FileText, LayoutGrid, Users, GitCompareArrows, Plus, X, Download,
+  FileText, LayoutGrid, Users, GitCompareArrows, Plus, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -693,48 +693,6 @@ export default function AITrainingPlanPage() {
     toast.success("Plan copié !");
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const [exportingNolio, setExportingNolio] = useState(false);
-  const handleExportNolio = useCallback(async () => {
-    if (!parsedPlan) { toast.error("Aucun plan à exporter"); return; }
-    setExportingNolio(true);
-    try {
-      const { exportSessionsToNolioZip, triggerBlobDownload } = await import("@/lib/nolioExport");
-      const sessions: Array<{
-        id: string; date: string;
-        custom_workout_title: string | null;
-        custom_workout_description: string | null;
-        phase: string | null;
-      }> = [];
-      // planStartDate is the Monday of week 1
-      const weekOneMonday = startOfWeek(planStartDate, { weekStartsOn: 1 });
-      for (const w of (parsedPlan.weeks || [])) {
-        for (const s of (w.sessions || [])) {
-          if (s.isRest) continue;
-          const date = addDays(weekOneMonday, (w.weekNumber - 1) * 7 + s.dayIndex);
-          sessions.push({
-            id: `${w.weekNumber}-${s.dayIndex}-${s.sport}`,
-            date: format(date, "yyyy-MM-dd"),
-            custom_workout_title: `${s.sport} — ${s.title}`,
-            custom_workout_description: s.details || null,
-            phase: w.phase || w.theme || null,
-          });
-        }
-      }
-      if (sessions.length === 0) { toast.error("Aucune séance dans ce plan"); return; }
-      const athleteName = currentAthlete?.name ? currentAthlete.name.replace(/[^a-zA-Z0-9]+/g, "-") : "athlete";
-      const stamp = format(new Date(), "yyyyMMdd");
-      const fname = `nolio-plan-${athleteName}-${stamp}.zip`;
-      const blob = await exportSessionsToNolioZip(sessions, fname);
-      triggerBlobDownload(blob, fname);
-      toast.success(`Export Nolio prêt (${sessions.length} séances)`);
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Erreur export Nolio : " + (e?.message || "Inconnu"));
-    } finally {
-      setExportingNolio(false);
-    }
-  }, [parsedPlan, planStartDate, currentAthlete]);
 
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
@@ -1722,16 +1680,6 @@ export default function AITrainingPlanPage() {
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm" onClick={handleCopy}>
                         {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleExportNolio}
-                        disabled={exportingNolio || !parsedPlan}
-                        title="Exporter le plan vers Nolio (.zip de .json intervals.icu)"
-                      >
-                        {exportingNolio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                        <span className="ml-1 text-xs">Nolio</span>
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => { reset(); setIsSaved(false); if (persistKey) localStorage.removeItem(persistKey); }}>
                         <RotateCcw className="h-4 w-4" />
