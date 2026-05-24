@@ -66,7 +66,7 @@ export function usePlanAdaptation() {
             {
               athlete_id: athleteId,
               coach_id: coachId,
-              plan_json: plan as unknown as Record<string, unknown>,
+              plan_json: plan as any,
               updated_at: new Date().toISOString(),
             },
           ],
@@ -84,7 +84,7 @@ export function usePlanAdaptation() {
         {
           athlete_id: athleteId,
           coach_id: coachId,
-          plan_json: plan as unknown as Record<string, unknown>,
+          plan_json: plan as any,
           objective: `[ADAPTATION] ${reason}`,
           weeks_count: plan.totalWeeks,
           sessions_count: plan.weeks.reduce((sum, w) => sum + w.sessions.length, 0),

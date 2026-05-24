@@ -129,8 +129,8 @@ export async function journalAdaptation(
         reason: input.reason ?? null,
         from_week: input.fromWeek ?? null,
         to_week: input.toWeek ?? null,
-        diff_json: { changes: input.diff ?? [] } as unknown as Record<string, unknown>,
-        warnings: (input.warnings ?? []) as unknown as Record<string, unknown>,
+        diff_json: { changes: input.diff ?? [] } as any,
+        warnings: (input.warnings ?? []) as any,
         applied: input.applied ?? true,
       },
     ])
