@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Calendar, ChevronLeft, ChevronRight, Trash2, Waves, Bike,
-  Footprints, Moon, Dumbbell, Loader2, Pencil, AlertTriangle,
+  Footprints, Moon, Dumbbell, Loader2, Pencil, AlertTriangle, Download,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -23,6 +23,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { toast } from "sonner";
 import { SessionEditDialog } from "@/components/SessionEditDialog";
 import { PlanHistory } from "@/components/PlanHistory";
+import { exportSessionsToNolioZip, triggerBlobDownload } from "@/lib/nolioExport";
 
 interface TrainingPlanRow {
   id: string;
@@ -151,6 +152,32 @@ export function SavedPlanCalendar() {
     setSessions(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
   };
 
+  const [exporting, setExporting] = useState<"all" | "week" | null>(null);
+
+  const handleExportNolio = async (scope: "all" | "week") => {
+    if (sessions.length === 0) { toast.error("Aucune séance à exporter"); return; }
+    setExporting(scope);
+    try {
+      const subset = scope === "all"
+        ? sessions
+        : (currentWeekData?.sessions ?? []);
+      if (subset.length === 0) { toast.error("Aucune séance sur cette semaine"); return; }
+      const athleteName = currentAthlete?.name ? currentAthlete.name.replace(/[^a-zA-Z0-9]+/g, "-") : "athlete";
+      const stamp = format(new Date(), "yyyyMMdd");
+      const baseName = scope === "all"
+        ? `nolio-plan-${athleteName}-${stamp}.zip`
+        : `nolio-sem${weekOffset + 1}-${athleteName}-${stamp}.zip`;
+      const blob = await exportSessionsToNolioZip(subset, baseName);
+      triggerBlobDownload(blob, baseName);
+      toast.success(`Export Nolio prêt (${subset.length} séances)`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erreur lors de l'export Nolio");
+    } finally {
+      setExporting(null);
+    }
+  };
+
   if (!currentAthlete) {
     return (
       <Card><CardContent className="p-6 text-center text-muted-foreground text-sm">
@@ -200,6 +227,28 @@ export function SavedPlanCalendar() {
               <Badge variant="secondary" className="text-xs">
                 {sessions.length} séances • {allWeeks.length} sem.
               </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={exporting !== null}
+                onClick={() => handleExportNolio("week")}
+                title="Exporter la semaine affichée vers Nolio (.zip de .json intervals.icu)"
+              >
+                {exporting === "week" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                Nolio (sem.)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={exporting !== null}
+                onClick={() => handleExportNolio("all")}
+                title="Exporter le plan complet vers Nolio (.zip de .json intervals.icu)"
+              >
+                {exporting === "all" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                Nolio (tout)
+              </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" className="h-7 text-xs" disabled={deleting === "all"}>
