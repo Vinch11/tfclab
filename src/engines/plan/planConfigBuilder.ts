@@ -213,6 +213,34 @@ export function buildPlanConfigFromDiagnostic(
     }
   }
 
+  // ── Volume Ramp (rampe de volume Sem 1 → cible) ──────────────────────────
+  // Dérivée de `trainingLevel`. Contrainte dure injectée chunk 1 pour
+  // éviter de balancer un volume cible (ex: 12h) dès la Sem 1 à un athlète
+  // peu/non entraîné. Règle des 10% + ACWR ≤ 1.3 (Gabbett).
+  let volumeRamp: PlanConfig["volumeRamp"];
+  if (formConfig.trainingLevel && formConfig.weeklyHours && formConfig.weeklyHours > 0) {
+    const target = formConfig.weeklyHours;
+    const matrix = {
+      untrained:      { pct: 0.40, ramp: 6, cap: 5 as number | null },
+      light:          { pct: 0.60, ramp: 4, cap: 8 as number | null },
+      trained:        { pct: 0.80, ramp: 2, cap: null as number | null },
+      highly_trained: { pct: 0.95, ramp: 1, cap: null as number | null },
+    }[formConfig.trainingLevel];
+    if (matrix) {
+      const pctHours = +(target * matrix.pct).toFixed(1);
+      const week1HoursMax = matrix.cap !== null ? Math.min(pctHours, matrix.cap) : pctHours;
+      volumeRamp = {
+        trainingLevel: formConfig.trainingLevel,
+        week1PctTarget: matrix.pct,
+        rampWeeks: matrix.ramp,
+        week1HoursCap: matrix.cap,
+        weeklyHoursTarget: target,
+        week1HoursMax,
+        weeklyIncreasePctMax: 0.10,
+      };
+    }
+  }
+
   return {
     objective: formConfig.objective,
     raceName: formConfig.raceName,
@@ -233,6 +261,7 @@ export function buildPlanConfigFromDiagnostic(
     recentLoad,
     _athleteSex: diagnostic._rawInput.sex ?? null,
     trailProfile,
+    volumeRamp,
   };
 }
 
