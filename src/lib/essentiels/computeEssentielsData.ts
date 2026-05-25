@@ -42,12 +42,22 @@ export interface PillarData {
   source: string;
 }
 
+export interface CompassScores {
+  vo2: number;
+  vla: number;
+  durability: number;
+  economy: number;
+  freshness: number;
+}
+
 export interface EssentielsBundle {
   athleteName: string;
   athleteObjectif: string;
   snapshotDate: string | null;
   age: number | null;
   pillars: PillarData[];
+  compassScores: CompassScores | null;
+  completeness: { measured: number; missing: number };
   generatedAt: string;
 }
 
