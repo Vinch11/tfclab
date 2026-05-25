@@ -42,12 +42,22 @@ export interface PillarData {
   source: string;
 }
 
+export interface CompassScores {
+  vo2: number;
+  vla: number;
+  durability: number;
+  economy: number;
+  freshness: number;
+}
+
 export interface EssentielsBundle {
   athleteName: string;
   athleteObjectif: string;
   snapshotDate: string | null;
   age: number | null;
   pillars: PillarData[];
+  compassScores: CompassScores | null;
+  completeness: { measured: number; missing: number };
   generatedAt: string;
 }
 
@@ -376,12 +386,39 @@ export function computeEssentielsData(args: {
     source: "buildScientificAuditHTML + tables calibration_evidence / literature_cohort",
   });
 
+  // Compass scores simplifiés 0-100 (axes principaux)
+  const scoreH = (v: number | null, t: number) =>
+    v == null || !isFinite(v) || v === 0 ? 0 : Math.min(100, Math.round((v / t) * 100));
+  const scoreInv = (v: number | null, t: number) => {
+    if (v == null || !isFinite(v) || v === 0) return 0;
+    if (v <= t) return 100;
+    const excess = v / t;
+    return excess >= 2 ? 0 : Math.max(0, Math.round(100 * (2 - excess)));
+  };
+  const compassScores =
+    vo2 || vla || tteEff || ftp || ce
+      ? {
+          vo2: scoreH(vo2, 65),
+          vla: isLongDist ? scoreInv(vla, 0.4) : scoreH(vla, 0.6),
+          durability: tteEff && tteEff.target ? scoreH(tteEff.tte_min || 0, tteEff.target) : 0,
+          economy: ce ? scoreH(ce, 75) : 0,
+          freshness: effectiveSnapshot?.tss_7d ? Math.max(0, Math.min(100, 100 - Math.abs((effectiveSnapshot.tss_7d - 450) / 5))) : 50,
+        }
+      : null;
+
+  // Complétude données mesurées vs manquantes (7 mesures clés)
+  const measuredFlags = [vo2, vla, ftp, ce, tteEff?.tte_min, effectiveSnapshot?.tss_7d, fatmaxPct];
+  const measured = measuredFlags.filter((v) => v != null && isFinite(v as number) && v !== 0).length;
+  const missing = measuredFlags.length - measured;
+
   return {
     athleteName: athlete.nom || "Athlète",
     athleteObjectif: athlete.objectif || "—",
     snapshotDate: effectiveSnapshot?.date ?? null,
     age,
     pillars,
+    compassScores,
+    completeness: { measured, missing },
     generatedAt: new Date().toLocaleString("fr-FR"),
   };
 }

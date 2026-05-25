@@ -30,6 +30,7 @@ import {
   type PillarMetric,
 } from "@/lib/essentiels/computeEssentielsData";
 import { buildEssentielsHTML } from "@/lib/essentiels/buildEssentielsHTML";
+import { PillarVisual } from "@/components/essentiels/PillarVisuals";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import { cn } from "@/lib/utils";
 
@@ -135,15 +136,21 @@ function MetricGauge({ m }: { m: PillarMetric }) {
   );
 }
 
-function PillarCard({ p }: { p: PillarData }) {
+function PillarCard({
+  p,
+  ctx,
+}: {
+  p: PillarData;
+  ctx: React.ComponentProps<typeof PillarVisual>["ctx"];
+}) {
   const s = STATUS_STYLES[p.status];
   const Icon = s.Icon;
   return (
-    <Card className={cn("overflow-hidden border-2", s.border)}>
+    <Card className={cn("overflow-hidden border-2 transition-all hover:shadow-lg", s.border)}>
       <div className={cn("flex items-center gap-3 px-4 py-3 border-b", s.bg)}>
         <div
           className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0",
+            "w-9 h-9 rounded-xl flex items-center justify-center font-bold text-base shrink-0 shadow-sm",
             "bg-background",
             s.color,
           )}
@@ -160,11 +167,18 @@ function PillarCard({ p }: { p: PillarData }) {
       </div>
 
       <CardContent className="p-4 space-y-4">
+        {/* Visualisation dédiée */}
+        <div className="rounded-lg bg-muted/30 p-2 border border-border/50">
+          <PillarVisual p={p} ctx={ctx} />
+        </div>
+
+        {/* Métriques chiffrées avec jauge */}
         <div className="space-y-3">
           {p.metrics.map((m, i) => (
             <MetricGauge key={i} m={m} />
           ))}
         </div>
+
 
         <div
           className={cn(
@@ -305,7 +319,15 @@ export default function EssentielsPage() {
         {bundle && (
           <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
             {bundle.pillars.map((p) => (
-              <PillarCard key={p.id} p={p} />
+              <PillarCard
+                key={p.id}
+                p={p}
+                ctx={{
+                  compassScores: bundle.compassScores,
+                  completeness: bundle.completeness,
+                }}
+              />
+
             ))}
           </div>
         )}
