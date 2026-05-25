@@ -16,6 +16,7 @@ import {
   LogOut,
   Shield,
   FileText,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -48,6 +49,7 @@ interface NavItem {
 const navigationItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/" },
   { id: "athletes", label: "Athlètes", icon: Users, route: "/athletes" },
+  { id: "essentiels", label: "Essentiels", icon: Sparkles, route: "/essentiels" },
   { id: "diagnostic", label: "Diagnostic", icon: Stethoscope, route: "/diagnostic" },
   { id: "planning", label: "Planification", icon: CalendarDays, route: "/planning" },
   { id: "simulation", label: "Simulation", icon: Play, route: "/race" },
