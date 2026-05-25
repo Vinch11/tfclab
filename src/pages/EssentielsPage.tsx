@@ -319,7 +319,15 @@ export default function EssentielsPage() {
         {bundle && (
           <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
             {bundle.pillars.map((p) => (
-              <PillarCard key={p.id} p={p} />
+              <PillarCard
+                key={p.id}
+                p={p}
+                ctx={{
+                  compassScores: bundle.compassScores,
+                  completeness: bundle.completeness,
+                }}
+              />
+
             ))}
           </div>
         )}
