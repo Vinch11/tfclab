@@ -33,6 +33,7 @@ import VLamaxDiagnosticPage from "./pages/VLamaxDiagnosticPage";
 import RunMLSSCohortPage from "./pages/RunMLSSCohortPage";
 import LiteratureCohortPage from "./pages/LiteratureCohortPage";
 import MiniReportPage from "./pages/MiniReportPage";
+import EssentielsPage from "./pages/EssentielsPage";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ export default function App() {
                 <Route path="/athletes" element={<ProtectedRoute><AthletesListPage /></ProtectedRoute>} />
                 <Route path="/athlete/:id" element={<ProtectedRoute><AthleteEditPage /></ProtectedRoute>} />
                 <Route path="/athleteEditPage" element={<ProtectedRoute><AthleteEditPage /></ProtectedRoute>} />
+                <Route path="/essentiels" element={<ProtectedRoute><EssentielsPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 3 — DIAGNOSTIC                     */}
