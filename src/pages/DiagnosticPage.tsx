@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
+import { ScientificAuditReportButton } from "@/components/ScientificAuditReportButton";
 
 const sections = [
   {
@@ -114,6 +115,9 @@ export default function DiagnosticPage() {
             );
           })}
         </div>
+
+        {/* Rapport d'audit scientifique signé (toutes traces consolidées) */}
+        <ScientificAuditReportButton />
 
         {/* Audit de cohérence des profils athlètes */}
         <AuditAthletesPanel />
