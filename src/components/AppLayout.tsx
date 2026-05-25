@@ -25,6 +25,7 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
   const activeTab = (() => {
     const path = location.pathname;
     if (path.startsWith("/athletes") || path.startsWith("/athlete")) return "athletes";
+    if (path.startsWith("/essentiels")) return "essentiels";
     if (path.startsWith("/diagnostic")) return "diagnostic";
     if (path.startsWith("/planning")) return "planning";
     if (path.startsWith("/race")) return "simulation";
