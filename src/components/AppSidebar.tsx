@@ -5,17 +5,18 @@
 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
+  BarChart3,
   Users,
   Stethoscope,
-  CalendarDays,
-  Play,
-  GraduationCap,
-  Settings,
+  ClipboardList,
+  Timer,
+  BookOpen,
+  SlidersHorizontal,
   ChevronDown,
   LogOut,
   Shield,
-  FileText,
+  FileDown,
+  ScrollText,
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -42,18 +43,18 @@ import { Footprints, FlaskConical } from "lucide-react";
 interface NavItem {
   id: string;
   label: string;
-  icon: typeof LayoutDashboard;
+  icon: typeof BarChart3;
   route: string;
 }
 
 const navigationItems: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/" },
+  { id: "dashboard", label: "Dashboard", icon: BarChart3, route: "/" },
   { id: "athletes", label: "Athlètes", icon: Users, route: "/athletes" },
   { id: "essentiels", label: "Essentiels", icon: Sparkles, route: "/essentiels" },
   { id: "diagnostic", label: "Diagnostic", icon: Stethoscope, route: "/diagnostic" },
-  { id: "planning", label: "Planification", icon: CalendarDays, route: "/planning" },
-  { id: "simulation", label: "Simulation", icon: Play, route: "/race" },
-  { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
+  { id: "planning", label: "Planification", icon: ClipboardList, route: "/planning" },
+  { id: "simulation", label: "Simulation", icon: Timer, route: "/race" },
+  { id: "academy", label: "Academy", icon: BookOpen, route: "/academy" },
 ];
 
 interface AppSidebarProps {
@@ -229,7 +230,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                     tooltip={collapsed ? "Export PDF" : undefined}
                     className="h-9 sm:h-10 rounded-lg hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                   >
-                    <FileText className="h-[18px] w-[18px] text-sidebar-foreground/60" />
+                    <FileDown className="h-[18px] w-[18px] text-sidebar-foreground/60" />
                     {!collapsed && <span className="text-sm">Export PDF</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -248,7 +249,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                       : "hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                   )}
                 >
-                  <FileText className="h-[18px] w-[18px] text-sidebar-foreground/60" />
+                  <ScrollText className="h-[18px] w-[18px] text-sidebar-foreground/60" />
                   {!collapsed && <span className="text-sm">Mini rapport</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -269,7 +270,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                       : "hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                   )}
                 >
-                  <Settings className="h-[18px] w-[18px] text-sidebar-foreground/60" />
+                  <SlidersHorizontal className="h-[18px] w-[18px] text-sidebar-foreground/60" />
                   {!collapsed && <span className="text-sm">Configuration</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>

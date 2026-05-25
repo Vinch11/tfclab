@@ -7,16 +7,16 @@
 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
+  BarChart3,
   Users,
   Stethoscope,
-  CalendarDays,
-  Play,
-  GraduationCap,
-  Settings,
-  FileText,
-  Palette,
+  ClipboardList,
+  Timer,
+  BookOpen,
   Sparkles,
+  FileDown,
+  ScrollText,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Footprints } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,13 +24,13 @@ import { useRef, useCallback, useState } from "react";
 import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
 
 const tabs = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/" },
+  { id: "dashboard", label: "Dashboard", icon: BarChart3, route: "/" },
   { id: "athletes", label: "Athlètes", icon: Users, route: "/athletes" },
   { id: "essentiels", label: "Essent.", icon: Sparkles, route: "/essentiels" },
   { id: "diagnostic", label: "Diag.", icon: Stethoscope, route: "/diagnostic" },
-  { id: "planning", label: "Plan", icon: CalendarDays, route: "/planning" },
-  { id: "simulation", label: "Simul.", icon: Play, route: "/race" },
-  { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
+  { id: "planning", label: "Plan", icon: ClipboardList, route: "/planning" },
+  { id: "simulation", label: "Simul.", icon: Timer, route: "/race" },
+  { id: "academy", label: "Academy", icon: BookOpen, route: "/academy" },
 ];
 
 interface MobileBottomNavProps {
@@ -155,7 +155,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
             )}
           >
             <div className="relative">
-              <Settings className={cn(
+              <SlidersHorizontal className={cn(
                 "w-5 h-5 transition-transform duration-300",
                 staffMode && "animate-spin-slow drop-shadow-[0_0_6px_hsl(var(--primary)/0.4)]"
               )} />
@@ -206,7 +206,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
                 onClick={() => { navigate("/"); onTabChange("configuration"); setShowMoreMenu(false); }}
                 className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
               >
-                <Palette className="w-4 h-4 text-primary" />
+                <SlidersHorizontal className="w-4 h-4 text-primary" />
                 Configuration
               </button>
               <div className="h-px bg-border/40" />
@@ -214,7 +214,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
                 onClick={() => { if (onExportClick) onExportClick(); setShowMoreMenu(false); }}
                 className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
               >
-                <FileText className="w-4 h-4 text-primary" />
+                <FileDown className="w-4 h-4 text-primary" />
                 Exporter un rapport
               </button>
               <div className="h-px bg-border/40" />
@@ -225,7 +225,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
                   location.pathname === "/mini-rapport" ? "text-primary bg-primary/5" : "text-foreground hover:bg-muted/50"
                 )}
               >
-                <FileText className="w-4 h-4 text-primary" />
+                <ScrollText className="w-4 h-4 text-primary" />
                 Mini rapport
               </button>
               <div className="h-px bg-border/40" />
@@ -238,7 +238,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
                   staffMode ? "text-primary" : "text-foreground hover:bg-muted/50"
                 )}
               >
-                <Settings className={cn("w-4 h-4", staffMode ? "text-primary" : "text-muted-foreground")} />
+                <SlidersHorizontal className={cn("w-4 h-4", staffMode ? "text-primary" : "text-muted-foreground")} />
                 {staffMode ? "✓ Mode Expert" : "Mode Expert"}
               </button>
             </div>
