@@ -43,18 +43,18 @@ import { Footprints, FlaskConical } from "lucide-react";
 interface NavItem {
   id: string;
   label: string;
-  icon: typeof LayoutDashboard;
+  icon: typeof BarChart3;
   route: string;
 }
 
 const navigationItems: NavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, route: "/" },
+  { id: "dashboard", label: "Dashboard", icon: BarChart3, route: "/" },
   { id: "athletes", label: "Athlètes", icon: Users, route: "/athletes" },
   { id: "essentiels", label: "Essentiels", icon: Sparkles, route: "/essentiels" },
   { id: "diagnostic", label: "Diagnostic", icon: Stethoscope, route: "/diagnostic" },
-  { id: "planning", label: "Planification", icon: CalendarDays, route: "/planning" },
-  { id: "simulation", label: "Simulation", icon: Play, route: "/race" },
-  { id: "academy", label: "Academy", icon: GraduationCap, route: "/academy" },
+  { id: "planning", label: "Planification", icon: ClipboardList, route: "/planning" },
+  { id: "simulation", label: "Simulation", icon: Timer, route: "/race" },
+  { id: "academy", label: "Academy", icon: BookOpen, route: "/academy" },
 ];
 
 interface AppSidebarProps {
