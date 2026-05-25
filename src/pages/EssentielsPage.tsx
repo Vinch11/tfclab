@@ -30,6 +30,7 @@ import {
   type PillarMetric,
 } from "@/lib/essentiels/computeEssentielsData";
 import { buildEssentielsHTML } from "@/lib/essentiels/buildEssentielsHTML";
+import { PillarVisual } from "@/components/essentiels/PillarVisuals";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import { cn } from "@/lib/utils";
 
