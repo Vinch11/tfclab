@@ -7,16 +7,16 @@
 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
+  BarChart3,
   Users,
   Stethoscope,
-  CalendarDays,
-  Play,
-  GraduationCap,
-  Settings,
-  FileText,
-  Palette,
+  ClipboardList,
+  Timer,
+  BookOpen,
   Sparkles,
+  FileDown,
+  ScrollText,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Footprints } from "lucide-react";
 import { cn } from "@/lib/utils";

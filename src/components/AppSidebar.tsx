@@ -230,7 +230,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                     tooltip={collapsed ? "Export PDF" : undefined}
                     className="h-9 sm:h-10 rounded-lg hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                   >
-                    <FileText className="h-[18px] w-[18px] text-sidebar-foreground/60" />
+                    <FileDown className="h-[18px] w-[18px] text-sidebar-foreground/60" />
                     {!collapsed && <span className="text-sm">Export PDF</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -249,7 +249,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                       : "hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                   )}
                 >
-                  <FileText className="h-[18px] w-[18px] text-sidebar-foreground/60" />
+                  <ScrollText className="h-[18px] w-[18px] text-sidebar-foreground/60" />
                   {!collapsed && <span className="text-sm">Mini rapport</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -270,7 +270,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                       : "hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                   )}
                 >
-                  <Settings className="h-[18px] w-[18px] text-sidebar-foreground/60" />
+                  <SlidersHorizontal className="h-[18px] w-[18px] text-sidebar-foreground/60" />
                   {!collapsed && <span className="text-sm">Configuration</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
