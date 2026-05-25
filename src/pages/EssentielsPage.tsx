@@ -1,12 +1,11 @@
 /**
- * EssentielsPage — Les 8 indicateurs essentiels TFCL par athlète
- * Vue pédagogique : pour chaque pilier, valeur de l'athlète + définition + explication.
+ * EssentielsPage — Les 8 piliers TFCL avec graphiques, lecture, pédagogie + export PDF.
  */
 
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,51 +21,193 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Sparkles,
-  Activity,
-  Compass,
-  Gauge,
-  Timer,
-  Flame,
-  ShieldCheck,
-  Route,
-  FileSearch,
-  ArrowRight,
-} from "lucide-react";
+import { Sparkles, Download, ArrowRight, CheckCircle2, AlertTriangle, Info, HelpCircle } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
-import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
-import { computeTTEEffectif } from "@/lib/tteEffectif";
-import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
-import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
-import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import {
+  computeEssentielsData,
+  type PillarData,
+  type PillarMetric,
+} from "@/lib/essentiels/computeEssentielsData";
+import { buildEssentielsHTML } from "@/lib/essentiels/buildEssentielsHTML";
+import { openPrintableHTML } from "@/lib/openPrintableHTML";
+import { cn } from "@/lib/utils";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-const calculateAge = (birth?: string | null): number | null => {
-  if (!birth) return null;
-  const d = new Date(birth);
-  if (isNaN(d.getTime())) return null;
-  const diff = Date.now() - d.getTime();
-  return Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+const STATUS_STYLES: Record<
+  string,
+  { color: string; bg: string; border: string; label: string; Icon: typeof CheckCircle2 }
+> = {
+  ok: {
+    color: "text-emerald-600",
+    bg: "bg-emerald-50 dark:bg-emerald-500/10",
+    border: "border-emerald-200 dark:border-emerald-500/30",
+    label: "Dans la cible",
+    Icon: CheckCircle2,
+  },
+  warn: {
+    color: "text-amber-600",
+    bg: "bg-amber-50 dark:bg-amber-500/10",
+    border: "border-amber-200 dark:border-amber-500/30",
+    label: "À travailler",
+    Icon: AlertTriangle,
+  },
+  missing: {
+    color: "text-slate-500",
+    bg: "bg-slate-50 dark:bg-slate-500/10",
+    border: "border-slate-200 dark:border-slate-500/30",
+    label: "Données insuffisantes",
+    Icon: HelpCircle,
+  },
+  info: {
+    color: "text-blue-600",
+    bg: "bg-blue-50 dark:bg-blue-500/10",
+    border: "border-blue-200 dark:border-blue-500/30",
+    label: "Information",
+    Icon: Info,
+  },
 };
 
-const formatVal = (
-  v: number | null | undefined,
-  unit = "",
-  digits = 1,
-): { text: string; missing: boolean } => {
-  if (v == null || !isFinite(v) || v === 0) {
-    return { text: "Données insuffisantes", missing: true };
+function MetricGauge({ m }: { m: PillarMetric }) {
+  if (m.value == null || !isFinite(m.value) || m.value === 0) {
+    return (
+      <div className="flex items-baseline justify-between">
+        <span className="text-xs text-muted-foreground">{m.label}</span>
+        <span className="text-xs italic text-muted-foreground">Données insuffisantes</span>
+      </div>
+    );
   }
-  return { text: `${v.toFixed(digits)}${unit ? " " + unit : ""}`, missing: false };
-};
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
+  const formatted =
+    (m.decimals != null ? m.value.toFixed(m.decimals) : String(m.value)).replace(".", ",");
+
+  if (!m.scale) {
+    return (
+      <div className="flex items-baseline justify-between">
+        <span className="text-xs text-muted-foreground">{m.label}</span>
+        <span className="text-sm font-semibold text-foreground">
+          {formatted}
+          {m.unit && <span className="ml-1 text-xs text-muted-foreground">{m.unit}</span>}
+        </span>
+      </div>
+    );
+  }
+
+  const [sMin, sMax] = m.scale;
+  const pct = (v: number) => Math.max(0, Math.min(100, ((v - sMin) / (sMax - sMin)) * 100));
+  const valuePct = pct(m.value);
+  const inTarget =
+    m.target && m.value >= m.target[0] && m.value <= m.target[1];
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-baseline justify-between">
+        <span className="text-xs text-muted-foreground">{m.label}</span>
+        <span className={cn("text-sm font-semibold", inTarget ? "text-emerald-600" : "text-foreground")}>
+          {formatted}
+          {m.unit && <span className="ml-1 text-xs text-muted-foreground">{m.unit}</span>}
+        </span>
+      </div>
+      <div className="relative h-2.5 rounded-full bg-muted overflow-hidden">
+        {m.target && (
+          <div
+            className="absolute top-0 h-full bg-emerald-200 dark:bg-emerald-500/30"
+            style={{
+              left: `${pct(m.target[0])}%`,
+              width: `${pct(m.target[1]) - pct(m.target[0])}%`,
+            }}
+          />
+        )}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-1 h-4 bg-foreground rounded-full"
+          style={{ left: `calc(${valuePct}% - 2px)` }}
+        />
+      </div>
+      <div className="flex justify-between text-[10px] text-muted-foreground/70">
+        <span>{sMin}</span>
+        {m.target && (
+          <span className="text-emerald-600 dark:text-emerald-400">
+            cible {m.target[0]}–{m.target[1]}
+          </span>
+        )}
+        <span>{sMax}</span>
+      </div>
+    </div>
+  );
+}
+
+function PillarCard({ p }: { p: PillarData }) {
+  const s = STATUS_STYLES[p.status];
+  const Icon = s.Icon;
+  return (
+    <Card className={cn("overflow-hidden border-2", s.border)}>
+      <div className={cn("flex items-center gap-3 px-4 py-3 border-b", s.bg)}>
+        <div
+          className={cn(
+            "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0",
+            "bg-background",
+            s.color,
+          )}
+        >
+          {p.number}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-sm leading-tight text-foreground">{p.title}</h3>
+          <div className={cn("flex items-center gap-1 text-[11px] mt-0.5", s.color)}>
+            <Icon className="h-3 w-3" />
+            <span className="font-medium">{s.label}</span>
+          </div>
+        </div>
+      </div>
+
+      <CardContent className="p-4 space-y-4">
+        <div className="space-y-3">
+          {p.metrics.map((m, i) => (
+            <MetricGauge key={i} m={m} />
+          ))}
+        </div>
+
+        <div
+          className={cn(
+            "text-xs leading-relaxed p-3 rounded-md border-l-2",
+            s.bg,
+            s.border,
+            "border-l-current",
+            s.color,
+          )}
+        >
+          <span className="font-semibold">Lecture : </span>
+          <span className="text-foreground/90">{p.interpretation}</span>
+        </div>
+
+        <Accordion type="single" collapsible>
+          <AccordionItem value="more" className="border-b-0">
+            <AccordionTrigger className="text-xs py-1.5 hover:no-underline">
+              Définition · Pourquoi · Comment agir
+            </AccordionTrigger>
+            <AccordionContent className="text-xs space-y-2.5 pt-2">
+              <div>
+                <div className="font-semibold text-foreground mb-0.5">Définition</div>
+                <p className="text-muted-foreground leading-relaxed">{p.definition}</p>
+              </div>
+              <div>
+                <div className="font-semibold text-foreground mb-0.5">Pourquoi c'est important</div>
+                <p className="text-muted-foreground leading-relaxed">{p.whyMatters}</p>
+              </div>
+              <div>
+                <div className="font-semibold text-foreground mb-0.5">Comment on agit</div>
+                <p className="text-muted-foreground leading-relaxed">{p.howToAct}</p>
+              </div>
+              <div className="text-[10px] text-muted-foreground/70 italic border-t pt-2">
+                Source : {p.source}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function EssentielsPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
@@ -76,189 +217,18 @@ export default function EssentielsPage() {
     () => localStorage.getItem("vlab-staff-mode") === "true",
   );
 
-  // Snapshot effectif
-  const effectiveSnapshot = useMemo(() => {
-    if (!currentAthlete) return null;
-    const list = (snapshots || []).filter((s) => s.athlete_id === currentAthlete.id);
-    if (list.length === 0) return null;
-    if (currentAthlete.active_snapshot_id) {
-      const active = list.find((s) => s.id === currentAthlete.active_snapshot_id);
-      if (active) return active;
-    }
-    return [...list].sort((a, b) => (a.date < b.date ? 1 : -1))[0];
-  }, [currentAthlete, snapshots]);
-
-  // Calculs essentiels
-  const vlamaxEff = useMemo(() => {
-    if (!currentAthlete) return null;
-    return computeVLamaxEffectif({
-      athleteId: currentAthlete.id,
-      objectif: currentAthlete.objectif || "IM",
-      activeSnapshotId: currentAthlete.active_snapshot_id,
-      tests: (tests || []).map((t: any) => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
-      snapshots: (snapshots || []).map(mapSnapshotToV2),
-    });
-  }, [currentAthlete, snapshots, tests]);
-
-  const tteEff = useMemo(() => {
-    if (!currentAthlete || !effectiveSnapshot) return null;
-    return computeTTEEffectif({
-      ftp: effectiveSnapshot.ftp ?? null,
-      tss_7d: effectiveSnapshot.tss_7d ?? null,
-      tte_mode: (effectiveSnapshot.tte_mode as any) ?? "LOAD",
-      tte_observed_min: effectiveSnapshot.tte_observed_min ?? null,
-      objectif: currentAthlete.objectif || "IM",
-      age: calculateAge(currentAthlete.dateNaissance),
-    });
-  }, [currentAthlete, effectiveSnapshot]);
-
-  const mlssRun = useMemo(() => {
-    const vla = vlamaxEff?.value ?? null;
-    const ce = (effectiveSnapshot as any)?.run_economy_score ?? null;
-    return predictRunMLSSPctFromVLaCE(vla, ce);
-  }, [vlamaxEff, effectiveSnapshot]);
-
-  const fatmaxPct = useMemo(() => {
-    return computeFatMaxAnchorPctFTP(
-      vlamaxEff?.value ?? null,
-      effectiveSnapshot?.vo2max ?? null,
-    );
-  }, [vlamaxEff, effectiveSnapshot]);
-
-  const vo2 = effectiveSnapshot?.vo2max ?? currentAthlete?.vo2max ?? null;
-  const vlaVal = vlamaxEff?.value ?? null;
-
-  // Les 8 cartes
-  const pillars = useMemo(
-    () => [
-      {
-        id: "vo2-vlamax",
-        icon: Activity,
-        color: "text-red-500",
-        bg: "bg-red-500/10",
-        title: "1. VO₂max × VLamax",
-        value: (() => {
-          const vo2f = formatVal(vo2, "ml/kg/min", 1);
-          const vlaf = formatVal(vlaVal, "mmol/L/s", 2);
-          if (vo2f.missing && vlaf.missing)
-            return { text: "Données insuffisantes", missing: true };
-          return {
-            text: `VO₂max: ${vo2f.text} • VLamax: ${vlaf.text}`,
-            missing: false,
-          };
-        })(),
-        definition:
-          "Le VO₂max mesure la puissance aérobie (capacité à consommer l'oxygène). La VLamax mesure la puissance anaérobie glycolytique (vitesse de production de lactate). Le couple décrit l'identité métabolique de l'athlète.",
-        explanation:
-          "Un athlète d'endurance vise un VO₂max élevé + une VLamax basse (≈0.30) pour économiser le glycogène. Un sprinteur cherche l'inverse. C'est la base de toute prescription : intervalles, FatMax, nutrition.",
-      },
-      {
-        id: "compass",
-        icon: Compass,
-        color: "text-blue-500",
-        bg: "bg-blue-500/10",
-        title: "2. Coaching Compass™",
-        value: { text: "Voir Dashboard → onglet Compass", missing: false },
-        definition:
-          "Radar 5-6 axes (VO₂max, VLamax, Durabilité, Économie, Fraîcheur, Force) avec détection automatique du limiter primaire & secondaire et des leviers Lorang à activer.",
-        explanation:
-          "Le Compass traduit la physiologie en décision d'entraînement. Il évite de s'éparpiller : on travaille en priorité le maillon faible. Chaque axe est noté 0-100 sur des cibles ambition-aware.",
-      },
-      {
-        id: "mlss-run",
-        icon: Gauge,
-        color: "text-orange-500",
-        bg: "bg-orange-500/10",
-        title: "3. MLSS Run (Model C)",
-        value: mlssRun
-          ? {
-              text: `${mlssRun.mlssPct.toFixed(1)}% VMA (RMSE 2.64%)`,
-              missing: false,
-            }
-          : { text: "Données insuffisantes (VLa + CE requis)", missing: true },
-        definition:
-          "Maximal Lactate Steady State : intensité maximale soutenable sans accumulation de lactate. Formule : MLSS_pct = 1 − 0.337·VLa − 0.0021·(CE−200). Précision RMSE ≈ 2.64%.",
-        explanation:
-          "C'est le seuil d'or pour le coureur d'endurance. En dessous : on accumule de l'aérobie pure. Au dessus : la fatigue glycolytique s'installe. On calibre tempo, sweet-spot et seuil sur cette valeur.",
-      },
-      {
-        id: "tte",
-        icon: Timer,
-        color: "text-purple-500",
-        bg: "bg-purple-500/10",
-        title: "4. TTE / Durabilité",
-        value:
-          tteEff && tteEff.tte_min > 0
-            ? {
-                text: `${Math.round(tteEff.tte_min)} min @ FTP (cible ${tteEff.target ?? "?"} min)`,
-                missing: false,
-              }
-            : { text: "Données insuffisantes", missing: true },
-        definition:
-          "Time To Exhaustion : temps maintenable à FTP/seuil. Reflète la capacité à tenir longtemps une intensité élevée, indépendamment du VO₂max. Ajusté pour les masters (−2/−5/−8 min selon âge).",
-        explanation:
-          "Deux athlètes même FTP, TTE différents → préparations radicalement différentes. La durabilité prédit la performance Ironman / marathon mieux que la PMA. Un TTE < cible = priorité aux longs sweet-spot.",
-      },
-      {
-        id: "fatmax-nutrition",
-        icon: Flame,
-        color: "text-amber-600",
-        bg: "bg-amber-500/10",
-        title: "5. FatMax + Nutrition Mader-Heck",
-        value:
-          fatmaxPct != null
-            ? { text: `FatMax ≈ ${fatmaxPct.toFixed(0)}% FTP`, missing: false }
-            : { text: "Données insuffisantes", missing: true },
-        definition:
-          "FatMax : intensité maximisant l'oxydation des lipides. Formule canonique : clamp(78 − 52·(VLa−0.25) + 0.15·(VO₂−50), 48, 82). Les besoins en glucides sont dérivés de Mader-Heck (et non d'une table forfaitaire 60 g/h).",
-        explanation:
-          "Sous FatMax → on entraîne la machine à brûler du gras (long bike, base aérobie). Au-dessus → on dépend du glycogène → on alimente. Cela dimensionne le plan nutritionnel de course (g/h CHO).",
-      },
-      {
-        id: "no-fake",
-        icon: ShieldCheck,
-        color: "text-green-600",
-        bg: "bg-green-500/10",
-        title: "6. Politique « No Fake Defaults »",
-        value: { text: "Active sur tous les calculs", missing: false },
-        definition:
-          "Quand une donnée manque (VLamax, VO₂max, TTE…), l'app affiche « Données insuffisantes » et confidence=0, au lieu d'inventer une valeur neutre. Aucune décision ne repose sur une estimation fantôme.",
-        explanation:
-          "C'est une garantie scientifique majeure : pas de faux 0.45 mmol/L/s par défaut, pas de 45 min de TTE inventé. Si la carte affiche « Données insuffisantes », il faut faire le test — pas deviner.",
-      },
-      {
-        id: "pacing",
-        icon: Route,
-        color: "text-cyan-600",
-        bg: "bg-cyan-500/10",
-        title: "7. Pacing Envelope + Race Simulation",
-        value: { text: "Voir onglet Simulation", missing: false },
-        definition:
-          "Simulation 3 scénarios (optimiste, réaliste, prudent) avec précision ±2-3%, bloc fiche route (NP/cardio/montée/TSS) et cues nutrition localisés (km/D+).",
-        explanation:
-          "Passer du diagnostic à l'action le jour J : connaître son enveloppe physiologique permet de partir au bon rythme et de ne pas exploser sur les bosses. Les cues nutrition disent quand prendre quoi.",
-      },
-      {
-        id: "traceability",
-        icon: FileSearch,
-        color: "text-indigo-600",
-        bg: "bg-indigo-500/10",
-        title: "8. Traçabilité scientifique",
-        value: { text: "Rapport d'audit signé SHA-256", missing: false },
-        definition:
-          "Toutes les prédictions sont versionnées dans calibration_evidence, literature_cohort, vlamax_trace, run_mlss_trace. Un rapport HTML signé SHA-256 consolide les preuves.",
-        explanation:
-          "L'app n'est pas une boîte noire. Pour une fédération, un staff ou un audit : on peut prouver d'où vient chaque chiffre, sur quelle cohorte le modèle est calibré, quand le profil a dérivé.",
-      },
-    ],
-    [vo2, vlaVal, mlssRun, tteEff, fatmaxPct],
+  const bundle = useMemo(
+    () => computeEssentielsData({ athlete: currentAthlete, snapshots: snapshots || [], tests: tests || [] }),
+    [currentAthlete, snapshots, tests],
   );
+
+  const handleExportPDF = () => {
+    if (!bundle) return;
+    const html = buildEssentielsHTML(bundle);
+    openPrintableHTML(html, {
+      filenameHint: `Essentiels TFCL — ${bundle.athleteName}`,
+    });
+  };
 
   return (
     <SidebarLayout
@@ -270,18 +240,29 @@ export default function EssentielsPage() {
         localStorage.setItem("vlab-staff-mode", String(v));
       }}
     >
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
+      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/10">
-            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+        <div className="flex items-start sm:items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/10 shrink-0">
+              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground">Essentiels</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Les 8 piliers TFCL — chiffres, graphiques, pédagogie
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-bold text-foreground">Essentiels</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Les 8 piliers TFCL — données + définitions + pédagogie
-            </p>
-          </div>
+          <Button
+            onClick={handleExportPDF}
+            disabled={!bundle}
+            size="sm"
+            className="shrink-0"
+          >
+            <Download className="h-4 w-4 mr-1.5" />
+            Export PDF
+          </Button>
         </div>
 
         {/* Sélecteur athlète */}
@@ -305,15 +286,15 @@ export default function EssentielsPage() {
                 ))}
               </SelectContent>
             </Select>
-            {currentAthlete && (
+            {bundle && (
               <Badge variant="secondary" className="text-[10px] sm:text-xs">
-                Snapshot : {effectiveSnapshot?.date ?? "aucun"}
+                Snapshot : {bundle.snapshotDate ?? "aucun"}
               </Badge>
             )}
           </CardContent>
         </Card>
 
-        {!currentAthlete && (
+        {!bundle && (
           <Card className="border-dashed">
             <CardContent className="py-6 text-center text-sm text-muted-foreground">
               Sélectionnez un athlète pour afficher ses 8 essentiels.
@@ -321,66 +302,19 @@ export default function EssentielsPage() {
           </Card>
         )}
 
-        {currentAthlete && (
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 md:grid-cols-2">
-            {pillars.map((p) => {
-              const Icon = p.icon;
-              return (
-                <Card key={p.id} className="overflow-hidden">
-                  <CardHeader className="p-3 sm:p-4 pb-2">
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${p.bg} shrink-0`}>
-                        <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${p.color}`} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <CardTitle className="text-sm sm:text-base leading-tight">
-                          {p.title}
-                        </CardTitle>
-                        <p
-                          className={`text-xs sm:text-sm mt-1 font-medium ${
-                            p.value.missing
-                              ? "text-muted-foreground italic"
-                              : "text-foreground"
-                          }`}
-                        >
-                          {p.value.text}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-3 sm:p-4 pt-0">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="def" className="border-b-0">
-                        <AccordionTrigger className="text-xs sm:text-sm py-2 hover:no-underline">
-                          Définition & explication pédagogique
-                        </AccordionTrigger>
-                        <AccordionContent className="text-xs sm:text-sm space-y-2 leading-relaxed">
-                          <div>
-                            <span className="font-semibold text-foreground">Définition. </span>
-                            <span className="text-muted-foreground">{p.definition}</span>
-                          </div>
-                          <div>
-                            <span className="font-semibold text-foreground">
-                              Pourquoi c'est important.{" "}
-                            </span>
-                            <span className="text-muted-foreground">{p.explanation}</span>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </CardContent>
-                </Card>
-              );
-            })}
+        {bundle && (
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
+            {bundle.pillars.map((p) => (
+              <PillarCard key={p.id} p={p} />
+            ))}
           </div>
         )}
 
-        {/* Footer info */}
+        {/* Footer */}
         <Card className="border-dashed border-primary/20 bg-primary/5">
           <CardContent className="py-3 sm:py-4 px-3 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Pour aller plus loin : Dashboard (Compass complet), Diagnostic (audit signé),
-              Simulation (race day).
+              Pour aller plus loin : Dashboard (Compass), Diagnostic (audit signé), Simulation (race day).
             </p>
             <Button
               size="sm"
