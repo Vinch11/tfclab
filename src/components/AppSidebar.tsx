@@ -5,17 +5,18 @@
 
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
+  BarChart3,
   Users,
   Stethoscope,
-  CalendarDays,
-  Play,
-  GraduationCap,
-  Settings,
+  ClipboardList,
+  Timer,
+  BookOpen,
+  SlidersHorizontal,
   ChevronDown,
   LogOut,
   Shield,
-  FileText,
+  FileDown,
+  ScrollText,
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
