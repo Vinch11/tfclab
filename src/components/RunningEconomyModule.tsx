@@ -6,6 +6,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Footprints, 
   Heart, 
@@ -208,36 +209,52 @@ export function RunningEconomyModule({
           </div>
         </div>
         
-        {/* Coût O2 estimé (ml/kg/km) — métrique physiologique */}
-        {o2CostResult && (
-          <div className="p-3 rounded-lg bg-secondary/30 border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Coût O₂ estimé</span>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  {o2CostResult.sourceLabel}
-                </Badge>
-              </div>
-              <span className="text-xs">{o2CostResult.levelEmoji}</span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-mono font-bold text-foreground">
-                {o2CostResult.value}
-              </span>
-              <span className="text-sm text-muted-foreground">ml/kg/km</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-              <span>{o2CostResult.levelLabel}</span>
-              <span className="italic">{o2CostResult.referenceRange}</span>
-            </div>
-            {o2CostResult.source === 'acsm' && (
-              <p className="text-[10px] text-muted-foreground/70 mt-1.5">
-                ⚠️ Estimation ACSM (allure seule). Pour une estimation plus précise, ajoutez la puissance de course (Stryd/Garmin) et le poids.
-              </p>
-            )}
-          </div>
-        )}
+        {/* Coût énergétique — affichage pédagogique (3 niveaux) avec valeur précise en hover */}
+        {o2CostResult && (() => {
+          const ml = o2CostResult.value;
+          const cat = ml < 195
+            ? { emoji: "🟢", label: "Économe", hint: "élite / bonne foulée", cls: "bg-green-500/10 border-green-500/30 text-green-700 dark:text-green-400" }
+            : ml <= 210
+            ? { emoji: "🟡", label: "Standard", hint: "typique amateur", cls: "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400" }
+            : { emoji: "🔴", label: "Coûteux", hint: "marge de progression", cls: "bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400" };
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={cn("p-3 rounded-lg border cursor-help", cat.cls)}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4" />
+                      <span className="text-sm font-medium">Coût énergétique</span>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                        {o2CostResult.sourceLabel}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl">{cat.emoji}</span>
+                    <span className="text-xl font-bold">{cat.label}</span>
+                    <span className="text-xs opacity-75">— {cat.hint}</span>
+                  </div>
+                  <div className="mt-1 text-[10px] opacity-70">
+                    Survolez pour la valeur précise · {o2CostResult.referenceRange}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                <div className="space-y-1 text-xs">
+                  <div className="font-semibold">{ml} ml O₂/kg/km</div>
+                  <div className="opacity-90">{o2CostResult.levelLabel}</div>
+                  <div className="opacity-75">Seuils : 🟢 &lt;195 · 🟡 195–210 · 🔴 &gt;210</div>
+                  {o2CostResult.source === 'acsm' && (
+                    <div className="opacity-75 italic pt-1 border-t border-border/40">
+                      ⚠️ Estimation ACSM (allure seule). Ajoutez puissance + poids pour plus de précision.
+                    </div>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })()}
         
         {/* Échelle d'économie - Staff */}
         {staffMode && (
