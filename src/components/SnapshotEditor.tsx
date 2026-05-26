@@ -17,6 +17,7 @@ import { Edit, Save, Calculator, Sparkles, HelpCircle, BookOpen, Bike, PersonSta
 import { useCloudData, DbSnapshot } from "@/contexts/CloudDataContext";
 import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
 import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
+import { resolveRunningEconomy } from "@/lib/runningEconomySimple";
 import { RMSEExplainer } from "@/components/RMSEExplainer";
 import { RunningTestProtocolsGuide } from "@/components/RunningTestProtocolsGuide";
 import {
@@ -242,6 +243,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [sprint15s, setSprint15s] = useState(snapshot.sprint_15s_distance != null ? String(snapshot.sprint_15s_distance) : "");
   const [runPowerMax, setRunPowerMax] = useState(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
   const [runPowerThreshold, setRunPowerThreshold] = useState(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
+  const [runEconomyScore, setRunEconomyScore] = useState(snapshot.run_economy_score != null ? String(snapshot.run_economy_score) : "");
 
   // ✅ Chronos course (RAW pour estimateur CE / durabilité)
   const [time5k, setTime5k] = useState((snapshot as any).time_5k_sec != null ? secondsToMmSs((snapshot as any).time_5k_sec) : "");
@@ -293,6 +295,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       sprint_15s_distance: numOrNull(sprint15s),
       running_power_max: numOrNull(runPowerMax),
       running_power_threshold: numOrNull(runPowerThreshold),
+      run_economy_score: numOrNull(runEconomyScore) != null ? Math.round(numOrNull(runEconomyScore)!) : null,
       // ✅ Chronos course (Raw)
       time_5k_sec: parseRaceTime(time5k),
       time_10k_sec: parseRaceTime(time10k),
@@ -326,6 +329,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       setSprint15s(snapshot.sprint_15s_distance != null ? String(snapshot.sprint_15s_distance) : "");
       setRunPowerMax(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
       setRunPowerThreshold(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
+      setRunEconomyScore(snapshot.run_economy_score != null ? String(snapshot.run_economy_score) : "");
       const s = snapshot as any;
       setTime5k(s.time_5k_sec != null ? secondsToMmSs(s.time_5k_sec) : "");
       setTime10k(s.time_10k_sec != null ? secondsToMmSs(s.time_10k_sec) : "");
@@ -533,6 +537,41 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
                 )}
               </div>
             </div>
+
+            {/* ✅ Économie de course (mesurée ou estimée auto via VMA + Allure seuil) */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <LabelWithHelp
+                label="Économie course"
+                help="Score 0-100 (plus haut = plus économe). Laissez vide pour estimation automatique depuis VMA + Allure seuil (Léger / Di Prampero)."
+                example="65 ≈ standard | 80+ ≈ économe | <40 ≈ coûteux"
+              />
+              <div className="col-span-3 flex gap-2 items-center">
+                <Input
+                  className="flex-1"
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Auto (VMA / Allure)"
+                  value={runEconomyScore}
+                  onChange={(e) => setRunEconomyScore(e.target.value)}
+                />
+                {(() => {
+                  const est = resolveRunningEconomy({
+                    measuredScore: numOrNull(runEconomyScore),
+                    vmaKmh: numOrNull(vma),
+                    pace30MinSecPerKm: parsePaceToSeconds(paceThreshold),
+                  });
+                  if (!est) return <span className="text-xs text-muted-foreground">—</span>;
+                  return (
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {est.estimated ? "≈ " : ""}{est.score}/100 · {est.mlKgKm} ml/kg/km · {est.categoryLabel}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+
+
 
             <div className="grid grid-cols-4 items-center gap-4">
               <LabelWithHelp 
