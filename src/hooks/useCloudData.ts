@@ -14,6 +14,7 @@ import {
   testSchema,
   validateOrNull 
 } from "@/lib/validationSchemas";
+import { enrichSnapshotWithRunEconomy } from "@/lib/runningEconomySimple";
 // Types DB from generated types (extended with active_snapshot_id and birth_date)
 export interface DbAthlete {
   id: string;
