@@ -33,6 +33,7 @@ import {
   getEconomyLabelStyle,
   getEconomyPotentielBonus
 } from "@/lib/runningEconomySnapshot";
+import { resolveRunningEconomy } from "@/lib/runningEconomySimple";
 import { 
   estimateVLamaxCap, 
   canEstimateVLamaxCap, 
