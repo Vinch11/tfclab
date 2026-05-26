@@ -41,8 +41,21 @@ const COLORS = {
   bg: "hsl(210 40% 96%)",
 };
 
+function normalizeLabel(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u2080-\u2089]/g, (c) => String(c.charCodeAt(0) - 0x2080))
+    .replace(/[\u2070\u00b9\u00b2\u00b3\u2074-\u2079]/g, (c) => {
+      const map: Record<string, string> = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9" };
+      return map[c] ?? c;
+    })
+    .replace(/[^\p{L}\p{N}]/gu, "");
+}
+
 function metricValue(p: PillarData, label: string): number | null {
-  const m = p.metrics.find((x) => x.label.toLowerCase().includes(label.toLowerCase()));
+  const target = normalizeLabel(label);
+  const m = p.metrics.find((x) => normalizeLabel(x.label).includes(target));
   return m && m.value != null && isFinite(m.value) && m.value !== 0 ? m.value : null;
 }
 
