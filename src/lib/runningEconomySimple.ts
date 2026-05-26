@@ -244,6 +244,7 @@ export function enrichSnapshotWithRunEconomy<T extends Record<string, any>>(
     measuredScore: null,
     vmaKmh: snapshot.vma ?? null,
     pace30MinSecPerKm: snapshot.pace_threshold_sec_per_km ?? null,
+    vlamaxRun: snapshot.vlamax_run ?? snapshot.vlamax ?? null,
   });
   if (!resolved) return snapshot;
   return {
