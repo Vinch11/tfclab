@@ -410,12 +410,12 @@ export function useCloudData() {
         return null;
       }
 
-      setSnapshots((prev) => [fetched as DbSnapshot, ...prev]);
+      setSnapshots((prev) => [enrichSnapshotWithRunEconomy(fetched as DbSnapshot) as DbSnapshot, ...prev]);
       toast.success("Snapshot créé");
       return fetched as DbSnapshot;
     }
 
-    setSnapshots((prev) => [row, ...prev]);
+    setSnapshots((prev) => [enrichSnapshotWithRunEconomy(row) as DbSnapshot, ...prev]);
     toast.success("Snapshot créé");
     return row;
   };
