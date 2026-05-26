@@ -8,7 +8,7 @@ import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
-import { estimateRunningEconomySimple, categorizeRunningEconomy } from "@/lib/runningEconomySimple";
+import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
 
 export interface PillarMetric {
   label: string;
@@ -122,17 +122,14 @@ export function computeEssentielsData(args: {
 
   const vla = vlamaxEff?.value ?? null;
   const vo2 = effectiveSnapshot?.vo2max ?? athlete?.vo2max ?? null;
-  const ceMeasured = (effectiveSnapshot as any)?.run_economy_score ?? null;
 
-  // Fallback simple : si CE non mesurée mais VMA dispo → estimation Léger/Di Prampero.
-  const vmaKmh = (effectiveSnapshot as any)?.vma ?? null;
-  const paceThresholdSecPerKm = (effectiveSnapshot as any)?.pace_threshold_sec_per_km ?? null;
-  const ceSimple = ceMeasured == null
-    ? estimateRunningEconomySimple({ vmaKmh, pace30MinSecPerKm: paceThresholdSecPerKm })
+  // Résolveur unifié CE : mesure > estimation VMA/allure > null.
+  const ceResolved = resolveRunningEconomyFromSnapshot(effectiveSnapshot as any);
+  const ce = ceResolved?.mlKgKm ?? null; // ml O₂/kg/km — unité attendue par runMLSSPredictor
+  const ceCategory = ceResolved
+    ? { category: ceResolved.category, label: ceResolved.categoryLabel }
     : null;
-  const ce = ceMeasured ?? ceSimple?.value ?? null;
-  const ceCategory = categorizeRunningEconomy(ce);
-  const ceIsEstimated = ceMeasured == null && ceSimple != null;
+  const ceIsEstimated = ceResolved?.estimated ?? false;
 
   const mlssRun = predictRunMLSSPctFromVLaCE(vla, ce);
   const fatmaxPct = computeFatMaxAnchorPctFTP(vla, vo2);

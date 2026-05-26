@@ -14,6 +14,7 @@ import {
   testSchema,
   validateOrNull 
 } from "@/lib/validationSchemas";
+import { enrichSnapshotWithRunEconomy } from "@/lib/runningEconomySimple";
 // Types DB from generated types (extended with active_snapshot_id and birth_date)
 export interface DbAthlete {
   id: string;
@@ -151,7 +152,13 @@ export function useCloudData() {
       setAthletes(athletesRes.data || []);
       setTests(testsRes.data || []);
       setPlans(plansRes.data || []);
-      setSnapshots((snapshotsRes.data as DbSnapshot[]) || []);
+      // Enrichissement transparent : si run_economy_score absent mais VMA dispo,
+      // on l'estime via Léger/Di Prampero. Préserve traçabilité via run_economy_score_source.
+      // → Tous les consommateurs (Compass, MLSS, AI Plan, Exports…) bénéficient automatiquement.
+      const enrichedSnapshots = ((snapshotsRes.data as DbSnapshot[]) || []).map((s) =>
+        enrichSnapshotWithRunEconomy(s) as DbSnapshot,
+      );
+      setSnapshots(enrichedSnapshots);
       setCheckins((checkinsRes.data as DbCheckin[]) || []);
     } catch (error: unknown) {
       // Log sanitized error in development only
@@ -403,12 +410,12 @@ export function useCloudData() {
         return null;
       }
 
-      setSnapshots((prev) => [fetched as DbSnapshot, ...prev]);
+      setSnapshots((prev) => [enrichSnapshotWithRunEconomy(fetched as DbSnapshot) as DbSnapshot, ...prev]);
       toast.success("Snapshot créé");
       return fetched as DbSnapshot;
     }
 
-    setSnapshots((prev) => [row, ...prev]);
+    setSnapshots((prev) => [enrichSnapshotWithRunEconomy(row) as DbSnapshot, ...prev]);
     toast.success("Snapshot créé");
     return row;
   };
@@ -423,7 +430,7 @@ export function useCloudData() {
       console.error("Update snapshot error:", error.message, error.details, error.code, JSON.stringify(cleanUpdates));
       return false;
     }
-    setSnapshots((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+    setSnapshots((prev) => prev.map((s) => (s.id === id ? enrichSnapshotWithRunEconomy({ ...s, ...updates }) as DbSnapshot : s)));
     toast.success("Profil mis à jour");
     return true;
   };
