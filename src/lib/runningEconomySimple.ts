@@ -67,16 +67,42 @@ function classify(score: number): { category: RunningEconomyCategory; label: str
 }
 
 // ---------------------------------------------------------------------------
-// Formules simples
+// Formules simples (corrigées)
 // ---------------------------------------------------------------------------
 
+/**
+ * Léger & Mercier (1984) — VO2 ≈ 3.5 × VMA(km/h) ml/min/kg.
+ * Converti en ml O₂/kg/km, le coût aérobie de base est ~210 ml/kg/km, quasi
+ * indépendant de la VMA. On garde une légère pente (−0.4·VMA) reflétant le fait
+ * empirique que les coureurs à grosse VMA ont souvent une foulée plus efficace,
+ * mais on cap à 195 (jamais "Économe" sans mesure).
+ */
 function legerCE(vmaKmh: number): number {
-  return 210 - 0.8 * vmaKmh; // ml O₂/kg/km
+  return 210 - 0.4 * (vmaKmh - 16); // ~210 à VMA 16, ~205 à VMA 28
 }
 
+/**
+ * di Prampero (1986) — coût énergétique en course ≈ 3.86 J/kg/m en plat,
+ * soit ~184.7 ml O₂/kg/km (constante, indépendante de la vitesse en plat).
+ * On expose une très légère majoration aux allures lentes (inefficacité
+ * mécanique sous-optimale) pour différencier joggers vs coureurs entraînés.
+ */
 function diPramperoCE(pace30SecPerKm: number): number {
   const vMs = 1000 / pace30SecPerKm;
-  return 3.86 * vMs + 3.6;
+  const baseline = 184.7; // ml O₂/kg/km (3.86 J/kg/m ÷ 20.9 J/mlO₂ × 1000)
+  // pénalité allure très lente : +5 ml si <2.5 m/s (~6:40/km), −2 ml si >4.5 m/s (élite)
+  const speedAdj = vMs < 2.5 ? 5 : vMs > 4.5 ? -2 : 0;
+  return baseline + speedAdj;
+}
+
+/**
+ * Pénalité VLamax — un VLamax élevé = plus de glycolyse anaérobie sous-seuil
+ * = surcoût O₂ réel (~+5 ml/kg/km par 0.10 de VLa au-dessus de 0.40).
+ * Surtout critique pour les ex-sprinters reconvertis endurance.
+ */
+function vlamaxPenalty(vlamaxRun: number | null | undefined): number {
+  if (vlamaxRun == null || !isFinite(vlamaxRun) || vlamaxRun <= 0.40) return 0;
+  return Math.min(20, (vlamaxRun - 0.40) * 50); // cap +20 ml
 }
 
 // ---------------------------------------------------------------------------
@@ -90,6 +116,8 @@ export interface RunningEconomyInputs {
   vmaKmh?: number | null;
   /** Allure tenue ~30 min sec/km (pour estimation Di Prampero). */
   pace30MinSecPerKm?: number | null;
+  /** VLamax run (mmol/L/s) — pénalise CE si élevé (ex-sprinters). */
+  vlamaxRun?: number | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -99,13 +127,16 @@ export interface RunningEconomyInputs {
 /**
  * Résolveur unifié : retourne le CE le plus fiable disponible.
  * Hiérarchie : mesuré > blend Léger+Di Prampero > Léger seul > Di Prampero seul > null.
+ *
+ * IMPORTANT : sans mesure réelle (FIT/labo), le score est capé à 85/100.
+ * Un score 100 ne peut venir que d'une mesure terrain/labo (`measured`).
  */
 export function resolveRunningEconomy(
   input: RunningEconomyInputs,
 ): RunningEconomyResolved | null {
-  const { measuredScore, vmaKmh, pace30MinSecPerKm } = input;
+  const { measuredScore, vmaKmh, pace30MinSecPerKm, vlamaxRun } = input;
 
-  // 1. Mesure réelle (FIT / labo) — priorité absolue.
+  // 1. Mesure réelle (FIT / labo) — priorité absolue, pas de cap.
   if (measuredScore != null && isFinite(measuredScore) && measuredScore > 0) {
     const ml = scoreToMlKgKm(measuredScore);
     const cls = classify(measuredScore);
@@ -147,8 +178,15 @@ export function resolveRunningEconomy(
     errorMargin = 7;
   }
 
-  ml = Math.max(170, Math.min(240, ml));
-  const score = mlKgKmToScore(ml);
+  // Pénalité VLamax (surcoût glycolytique) — appliquée uniquement aux estimations.
+  const vlaPenalty = vlamaxPenalty(vlamaxRun);
+  ml = ml + vlaPenalty;
+  if (vlaPenalty > 0) errorMargin = Math.max(errorMargin, 10);
+
+  ml = Math.max(175, Math.min(240, ml));
+  let score = mlKgKmToScore(ml);
+  // Cap dur : sans mesure on ne peut pas garantir > 85/100.
+  score = Math.min(85, score);
   const cls = classify(score);
 
   return {
