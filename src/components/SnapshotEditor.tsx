@@ -329,6 +329,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       setSprint15s(snapshot.sprint_15s_distance != null ? String(snapshot.sprint_15s_distance) : "");
       setRunPowerMax(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
       setRunPowerThreshold(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
+      setRunEconomyScore(snapshot.run_economy_score != null ? String(snapshot.run_economy_score) : "");
       const s = snapshot as any;
       setTime5k(s.time_5k_sec != null ? secondsToMmSs(s.time_5k_sec) : "");
       setTime10k(s.time_10k_sec != null ? secondsToMmSs(s.time_10k_sec) : "");
