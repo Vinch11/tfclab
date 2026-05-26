@@ -284,7 +284,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_ref_bpm: runHr ? Math.round(runHr) : null,
       run_duration_min: runDuration ? Math.round(runDuration) : null,
       run_hr_drift_pct: runDrift,
-      run_economy_score: economyResult.score,
+      run_economy_score: (() => { const m = parseNum(formData.run_economy_score_manual); return m != null ? Math.round(Math.max(0, Math.min(100, m))) : economyResult.score; })(),
       run_economy_label: economyResult.label,
 
       // 🏃 VLamax CAP (données pour estimation)
