@@ -416,6 +416,17 @@ export function computeEssentielsData(args: {
     const excess = v / t;
     return excess >= 2 ? 0 : Math.max(0, Math.round(100 * (2 - excess)));
   };
+  // Freshness : priorité tss_7d (charge), sinon fatigue_state (ressenti).
+  // Si aucune donnée → 0 (politique "no fake defaults").
+  const tss7d = effectiveSnapshot?.tss_7d;
+  const fatigueScore100 = fatigueStateToScore100((effectiveSnapshot as any)?.fatigue_state);
+  let freshnessScore = 0;
+  if (tss7d != null && isFinite(tss7d) && tss7d > 0) {
+    freshnessScore = Math.max(0, Math.min(100, 100 - Math.abs((tss7d - 450) / 5)));
+  } else if (fatigueScore100 != null) {
+    // fatigue 0-100 (higher = more fatigue) → freshness = 100 - fatigue
+    freshnessScore = Math.max(0, Math.min(100, 100 - fatigueScore100));
+  }
   const compassScores =
     vo2 || vla || tteEff || ftp || ce
       ? {
@@ -423,7 +434,7 @@ export function computeEssentielsData(args: {
           vla: isLongDist ? scoreInv(vla, 0.4) : scoreH(vla, 0.6),
           durability: tteEff && tteEff.target ? scoreH(tteEff.tte_min || 0, tteEff.target) : 0,
           economy: ce ? scoreH(ce, 75) : 0,
-          freshness: effectiveSnapshot?.tss_7d ? Math.max(0, Math.min(100, 100 - Math.abs((effectiveSnapshot.tss_7d - 450) / 5))) : 50,
+          freshness: freshnessScore,
         }
       : null;
 
