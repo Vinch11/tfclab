@@ -430,7 +430,7 @@ export function useCloudData() {
       console.error("Update snapshot error:", error.message, error.details, error.code, JSON.stringify(cleanUpdates));
       return false;
     }
-    setSnapshots((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+    setSnapshots((prev) => prev.map((s) => (s.id === id ? enrichSnapshotWithRunEconomy({ ...s, ...updates }) as DbSnapshot : s)));
     toast.success("Profil mis à jour");
     return true;
   };
