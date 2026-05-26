@@ -152,7 +152,13 @@ export function useCloudData() {
       setAthletes(athletesRes.data || []);
       setTests(testsRes.data || []);
       setPlans(plansRes.data || []);
-      setSnapshots((snapshotsRes.data as DbSnapshot[]) || []);
+      // Enrichissement transparent : si run_economy_score absent mais VMA dispo,
+      // on l'estime via Léger/Di Prampero. Préserve traçabilité via run_economy_score_source.
+      // → Tous les consommateurs (Compass, MLSS, AI Plan, Exports…) bénéficient automatiquement.
+      const enrichedSnapshots = ((snapshotsRes.data as DbSnapshot[]) || []).map((s) =>
+        enrichSnapshotWithRunEconomy(s) as DbSnapshot,
+      );
+      setSnapshots(enrichedSnapshots);
       setCheckins((checkinsRes.data as DbCheckin[]) || []);
     } catch (error: unknown) {
       // Log sanitized error in development only
