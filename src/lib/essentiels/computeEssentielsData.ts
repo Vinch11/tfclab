@@ -9,6 +9,7 @@ import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
+import { fatigueStateToScore100 } from "@/lib/fatigueStateMapping";
 
 export interface PillarMetric {
   label: string;
