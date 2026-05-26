@@ -538,6 +538,41 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
               </div>
             </div>
 
+            {/* ✅ Économie de course (mesurée ou estimée auto via VMA + Allure seuil) */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <LabelWithHelp
+                label="Économie course"
+                help="Score 0-100 (plus haut = plus économe). Laissez vide pour estimation automatique depuis VMA + Allure seuil (Léger / Di Prampero)."
+                example="65 ≈ standard | 80+ ≈ économe | <40 ≈ coûteux"
+              />
+              <div className="col-span-3 flex gap-2 items-center">
+                <Input
+                  className="flex-1"
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Auto (VMA / Allure)"
+                  value={runEconomyScore}
+                  onChange={(e) => setRunEconomyScore(e.target.value)}
+                />
+                {(() => {
+                  const est = resolveRunningEconomy({
+                    measuredScore: numOrNull(runEconomyScore),
+                    vmaKmh: numOrNull(vma),
+                    pace30MinSecPerKm: parsePaceToSeconds(paceThreshold),
+                  });
+                  if (!est) return <span className="text-xs text-muted-foreground">—</span>;
+                  return (
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                      {est.estimated ? "≈ " : ""}{est.score}/100 · {est.mlKgKm} ml/kg/km · {est.categoryLabel}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+
+
+
             <div className="grid grid-cols-4 items-center gap-4">
               <LabelWithHelp 
                 label="Sprint 15s (m)" 
