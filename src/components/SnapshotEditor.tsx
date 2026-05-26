@@ -243,6 +243,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [sprint15s, setSprint15s] = useState(snapshot.sprint_15s_distance != null ? String(snapshot.sprint_15s_distance) : "");
   const [runPowerMax, setRunPowerMax] = useState(snapshot.running_power_max != null ? String(snapshot.running_power_max) : "");
   const [runPowerThreshold, setRunPowerThreshold] = useState(snapshot.running_power_threshold != null ? String(snapshot.running_power_threshold) : "");
+  const [runEconomyScore, setRunEconomyScore] = useState(snapshot.run_economy_score != null ? String(snapshot.run_economy_score) : "");
 
   // ✅ Chronos course (RAW pour estimateur CE / durabilité)
   const [time5k, setTime5k] = useState((snapshot as any).time_5k_sec != null ? secondsToMmSs((snapshot as any).time_5k_sec) : "");
