@@ -8,7 +8,7 @@ import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
-import { estimateRunningEconomySimple, categorizeRunningEconomy } from "@/lib/runningEconomySimple";
+import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
 
 export interface PillarMetric {
   label: string;
