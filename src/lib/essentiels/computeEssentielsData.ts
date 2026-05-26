@@ -122,7 +122,18 @@ export function computeEssentielsData(args: {
 
   const vla = vlamaxEff?.value ?? null;
   const vo2 = effectiveSnapshot?.vo2max ?? athlete?.vo2max ?? null;
-  const ce = (effectiveSnapshot as any)?.run_economy_score ?? null;
+  const ceMeasured = (effectiveSnapshot as any)?.run_economy_score ?? null;
+
+  // Fallback simple : si CE non mesurée mais VMA dispo → estimation Léger/Di Prampero.
+  const vmaKmh = (effectiveSnapshot as any)?.vma ?? null;
+  const paceThresholdSecPerKm = (effectiveSnapshot as any)?.pace_threshold_sec_per_km ?? null;
+  const ceSimple = ceMeasured == null
+    ? estimateRunningEconomySimple({ vmaKmh, pace30MinSecPerKm: paceThresholdSecPerKm })
+    : null;
+  const ce = ceMeasured ?? ceSimple?.value ?? null;
+  const ceCategory = categorizeRunningEconomy(ce);
+  const ceIsEstimated = ceMeasured == null && ceSimple != null;
+
   const mlssRun = predictRunMLSSPctFromVLaCE(vla, ce);
   const fatmaxPct = computeFatMaxAnchorPctFTP(vla, vo2);
   const ftp = effectiveSnapshot?.ftp ?? null;
