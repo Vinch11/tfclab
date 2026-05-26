@@ -17,6 +17,7 @@ import { Edit, Save, Calculator, Sparkles, HelpCircle, BookOpen, Bike, PersonSta
 import { useCloudData, DbSnapshot } from "@/contexts/CloudDataContext";
 import { PROFILE_TERMINOLOGY } from "@/lib/v2/profileTerminology";
 import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
+import { resolveRunningEconomy } from "@/lib/runningEconomySimple";
 import { RMSEExplainer } from "@/components/RMSEExplainer";
 import { RunningTestProtocolsGuide } from "@/components/RunningTestProtocolsGuide";
 import {
