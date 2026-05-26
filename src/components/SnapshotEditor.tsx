@@ -295,6 +295,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       sprint_15s_distance: numOrNull(sprint15s),
       running_power_max: numOrNull(runPowerMax),
       running_power_threshold: numOrNull(runPowerThreshold),
+      run_economy_score: numOrNull(runEconomyScore) != null ? Math.round(numOrNull(runEconomyScore)!) : null,
       // ✅ Chronos course (Raw)
       time_5k_sec: parseRaceTime(time5k),
       time_10k_sec: parseRaceTime(time10k),
