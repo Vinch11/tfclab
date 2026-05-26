@@ -210,6 +210,8 @@ export function resolveRunningEconomyFromSnapshot(
         run_economy_score?: number | null;
         vma?: number | null;
         pace_threshold_sec_per_km?: number | null;
+        vlamax_run?: number | null;
+        vlamax?: number | null;
       }
     | null
     | undefined,
@@ -219,6 +221,7 @@ export function resolveRunningEconomyFromSnapshot(
     measuredScore: snapshot.run_economy_score ?? null,
     vmaKmh: snapshot.vma ?? null,
     pace30MinSecPerKm: snapshot.pace_threshold_sec_per_km ?? null,
+    vlamaxRun: snapshot.vlamax_run ?? snapshot.vlamax ?? null,
   });
 }
 
