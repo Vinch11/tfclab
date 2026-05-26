@@ -101,6 +101,7 @@ const INITIAL_FORM_STATE = {
   run_hr_ref: "",
   run_duration_min: "",
   run_hr_drift_pct: "",
+  run_economy_score_manual: "",
   // 🏃 VLamax CAP (données pour estimation)
   pace_threshold: "",
   sprint_15s: "",
