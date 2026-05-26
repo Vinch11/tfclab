@@ -198,6 +198,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_ref: s.run_hr_ref_bpm != null ? String(s.run_hr_ref_bpm) : "",
       run_duration_min: s.run_duration_min != null ? String(s.run_duration_min) : "",
       run_hr_drift_pct: s.run_hr_drift_pct != null ? String(s.run_hr_drift_pct) : "",
+      run_economy_score_manual: s.run_economy_score != null ? String(s.run_economy_score) : "",
 
       // VLamax CAP
       pace_threshold: s.pace_threshold_sec_per_km != null ? formatSecToPace(s.pace_threshold_sec_per_km) : "",
