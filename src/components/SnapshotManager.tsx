@@ -33,6 +33,7 @@ import {
   getEconomyLabelStyle,
   getEconomyPotentielBonus
 } from "@/lib/runningEconomySnapshot";
+import { resolveRunningEconomy } from "@/lib/runningEconomySimple";
 import { 
   estimateVLamaxCap, 
   canEstimateVLamaxCap, 
@@ -100,6 +101,7 @@ const INITIAL_FORM_STATE = {
   run_hr_ref: "",
   run_duration_min: "",
   run_hr_drift_pct: "",
+  run_economy_score_manual: "",
   // 🏃 VLamax CAP (données pour estimation)
   pace_threshold: "",
   sprint_15s: "",
@@ -196,6 +198,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_ref: s.run_hr_ref_bpm != null ? String(s.run_hr_ref_bpm) : "",
       run_duration_min: s.run_duration_min != null ? String(s.run_duration_min) : "",
       run_hr_drift_pct: s.run_hr_drift_pct != null ? String(s.run_hr_drift_pct) : "",
+      run_economy_score_manual: s.run_economy_score != null ? String(s.run_economy_score) : "",
 
       // VLamax CAP
       pace_threshold: s.pace_threshold_sec_per_km != null ? formatSecToPace(s.pace_threshold_sec_per_km) : "",
@@ -281,7 +284,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_ref_bpm: runHr ? Math.round(runHr) : null,
       run_duration_min: runDuration ? Math.round(runDuration) : null,
       run_hr_drift_pct: runDrift,
-      run_economy_score: economyResult.score,
+      run_economy_score: (() => { const m = parseNum(formData.run_economy_score_manual); return m != null ? Math.round(Math.max(0, Math.min(100, m))) : economyResult.score; })(),
       run_economy_label: economyResult.label,
 
       // 🏃 VLamax CAP (données pour estimation)
@@ -376,7 +379,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_ref_bpm: runHr ? Math.round(runHr) : null,
       run_duration_min: runDuration ? Math.round(runDuration) : null,
       run_hr_drift_pct: runDrift,
-      run_economy_score: economyResult.score,
+      run_economy_score: (() => { const m = parseNum(formData.run_economy_score_manual); return m != null ? Math.round(Math.max(0, Math.min(100, m))) : economyResult.score; })(),
       run_economy_label: economyResult.label,
 
       // 🏃 VLamax CAP (données pour estimation)
@@ -988,7 +991,55 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </div>
           </div>
 
-          {/* Preview économie avec interprétation */}
+          {/* Saisie manuelle directe du score (override) + estimation auto VMA/Allure */}
+          <div className="mt-4 p-3 rounded-lg border border-primary/30 bg-primary/5">
+            <Label htmlFor="run_economy_score_manual" className="flex items-center gap-1.5">
+              <span className="text-sm font-semibold">Score Économie de course (0–100) — manuel</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      Saisie directe d'un score d'économie de course connu (test labo, observation coach).
+                      Vide = score auto-calculé depuis allure + FC + dérive (ou estimation VMA/Allure).
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Label>
+            <div className="grid grid-cols-2 gap-3 mt-1">
+              <Input
+                id="run_economy_score_manual"
+                type="number"
+                step="1"
+                min="0"
+                max="100"
+                placeholder="Auto"
+                value={formData.run_economy_score_manual}
+                onChange={(e) => setFormData({ ...formData, run_economy_score_manual: e.target.value })}
+              />
+              {(() => {
+                const vmaNum = parseNum(formData.vma);
+                const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
+                const est = resolveRunningEconomy({ vmaKmh: vmaNum, pace30MinSecPerKm: paceThresholdSec });
+                if (est.score == null) {
+                  return <div className="text-xs text-muted-foreground self-center">Estim. auto: renseigner VMA + Allure seuil</div>;
+                }
+                return (
+                  <div className="text-xs self-center">
+                    <span className="text-muted-foreground">≈ </span>
+                    <span className="font-semibold text-foreground">{est.score}/100</span>
+                    {est.mlKgKm != null && <span className="text-muted-foreground"> · {est.mlKgKm.toFixed(1)} ml/kg/km</span>}
+                    <div className="text-[10px] text-muted-foreground mt-0.5">Estim. auto (VMA / Allure)</div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+
+
           <div className="mt-4 p-3 rounded-lg border border-border bg-background/50">
             {(() => {
               const paceSec = parsePaceToSec(formData.run_pace_ref);
