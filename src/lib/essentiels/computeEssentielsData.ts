@@ -8,6 +8,7 @@ import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { estimateRunningEconomySimple, categorizeRunningEconomy } from "@/lib/runningEconomySimple";
 
 export interface PillarMetric {
   label: string;
@@ -121,7 +122,18 @@ export function computeEssentielsData(args: {
 
   const vla = vlamaxEff?.value ?? null;
   const vo2 = effectiveSnapshot?.vo2max ?? athlete?.vo2max ?? null;
-  const ce = (effectiveSnapshot as any)?.run_economy_score ?? null;
+  const ceMeasured = (effectiveSnapshot as any)?.run_economy_score ?? null;
+
+  // Fallback simple : si CE non mesurée mais VMA dispo → estimation Léger/Di Prampero.
+  const vmaKmh = (effectiveSnapshot as any)?.vma ?? null;
+  const paceThresholdSecPerKm = (effectiveSnapshot as any)?.pace_threshold_sec_per_km ?? null;
+  const ceSimple = ceMeasured == null
+    ? estimateRunningEconomySimple({ vmaKmh, pace30MinSecPerKm: paceThresholdSecPerKm })
+    : null;
+  const ce = ceMeasured ?? ceSimple?.value ?? null;
+  const ceCategory = categorizeRunningEconomy(ce);
+  const ceIsEstimated = ceMeasured == null && ceSimple != null;
+
   const mlssRun = predictRunMLSSPctFromVLaCE(vla, ce);
   const fatmaxPct = computeFatMaxAnchorPctFTP(vla, vo2);
   const ftp = effectiveSnapshot?.ftp ?? null;
@@ -232,13 +244,24 @@ export function computeEssentielsData(args: {
         scale: [70, 95],
         direction: "band",
       },
+      {
+        label: ceIsEstimated ? "Économie de course (estimée)" : "Économie de course",
+        value: ce,
+        unit: "ml O₂/kg/km",
+        decimals: 1,
+        target: [185, 205],
+        scale: [170, 240],
+        direction: "lower",
+      },
     ],
     status: mlssRun ? (mlssRun.mlssPct >= 82 && mlssRun.mlssPct <= 92 ? "ok" : "warn") : "missing",
     interpretation: mlssRun
-      ? `Ton MLSS Run est prédit à ${mlssRun.mlssPct.toFixed(1)}% de la VMA (précision ±2.64%). C'est l'allure plafond soutenable ~45-60 min sans dérive lactique.`
-      : "Données insuffisantes : la prédiction MLSS Run nécessite à la fois VLamax et l'économie de course.",
+      ? `Ton MLSS Run est prédit à ${mlssRun.mlssPct.toFixed(1)}% de la VMA (±2.64%). C'est l'allure plafond soutenable ~45-60 min sans dérive lactique.${ceCategory ? ` Économie : ${ceCategory.label.toLowerCase()} (${ce!.toFixed(0)} ml O₂/kg/km${ceIsEstimated ? ", estimée VMA" : ""}).` : ""}`
+      : ce == null
+        ? "Économie de course manquante. Renseigne ta VMA dans le snapshot pour activer l'estimation simple (formule Léger), ou importe un test labo."
+        : "Données insuffisantes : la prédiction MLSS Run nécessite à la fois VLamax et l'économie de course.",
     definition:
-      "Maximum Lactate Steady State : intensité la plus élevée à laquelle la lactatémie reste stable (~3-5 mmol/L). Model C : MLSS_pct = 1 − 0.337·VLa − 0.0021·(CE−200). Calibré sur cohorte N=44 (RMSE 2.64%).",
+      "Maximum Lactate Steady State : intensité la plus élevée à laquelle la lactatémie reste stable (~3-5 mmol/L). Model C : MLSS_pct = 1 − 0.337·VLa − 0.0021·(CE−200). Calibré sur cohorte N=44 (RMSE 2.64%). Économie de course : coût énergétique en O₂ par km — plus c'est bas, mieux c'est. Catégories : Économe <195, Standard 195-210, Coûteux >210.",
     whyMatters:
       "Le MLSS est la frontière entre aérobie pure et fatigue glycolytique. Tempo, sweet-spot et seuil sont calibrés autour de cette valeur. Une erreur de 5% → 30 min de fatigue inutile en compétition.",
     howToAct:
