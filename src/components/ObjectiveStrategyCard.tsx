@@ -1386,7 +1386,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
 
         <Tabs defaultValue="A" className="w-full">
           <TabsList className="grid grid-cols-2 w-full">
-            {PLANS.map((p) => (
+            {getPlans(raceObjective).map((p) => (
               <TabsTrigger key={p.key} value={p.key} className="text-xs sm:text-sm">
                 {p.key === "A" ? <ShieldCheck className="h-3.5 w-3.5 mr-1.5" /> : <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />}
                 {p.label}
