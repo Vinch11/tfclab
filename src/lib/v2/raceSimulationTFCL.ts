@@ -404,60 +404,47 @@ interface ScenarioParams {
   potentielScore: number;
   thresholdPace: number | null;
   envelope: PacingEnvelopeRunResult;
+  /** Ancres explicites first/middle/last (en %seuil), alignées Plan A/B. */
+  anchors: { first: number; middle: number; last: number };
 }
 
 function generateScenario(type: SimulationScenarioType, params: ScenarioParams): SimulationScenario {
   const {
-    distance, greenMin, greenMax, orangeMax, greenCenter,
-    vlamax, durability, potentielState, potentielScore, thresholdPace, envelope
+    distance, vlamax, durability, potentielState, potentielScore, thresholdPace, envelope, anchors
   } = params;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DÉFINIR LE PROFIL DE PACING PAR SCÉNARIO
+  // Les ancres viennent désormais directement du caller, garantissant l'unité
+  // exacte (%seuil) et la cohérence avec RaceStrategyPlanCard (Plan A/B).
   // ─────────────────────────────────────────────────────────────────────────────
-  let pacingProfile: { first: number; middle: number; last: number };
+  const pacingProfile = { first: anchors.first, middle: anchors.middle, last: anchors.last };
   let label: string;
   let description: string;
   let baseFailureProbability: number;
   let decisionRobustness: "ROBUST" | "FRAGILE" | "VERY_FRAGILE";
-  
+
   switch (type) {
     case "ROBUST":
-      pacingProfile = {
-        first: greenMin + 1,
-        middle: greenCenter,
-        last: greenMax - 1,
-      };
       label = "Scénario ROBUSTE";
       description = "Pacing intégralement en zone verte — performance maximisée avec risque minimisé";
       baseFailureProbability = 8;
       decisionRobustness = "ROBUST";
       break;
-      
     case "AMBITIOUS":
-      pacingProfile = {
-        first: greenCenter,
-        middle: greenMax,
-        last: orangeMax - 2,
-      };
       label = "Scénario AMBITIEUX";
       description = "Entrée tardive en zone orange — performance possible mais fragile";
       baseFailureProbability = 25;
       decisionRobustness = "FRAGILE";
       break;
-      
     case "AGGRESSIVE":
-      pacingProfile = {
-        first: greenMax + 2,
-        middle: orangeMax,
-        last: orangeMax + 3,
-      };
       label = "Scénario AGRESSIF";
       description = "Rouge précoce — maximise le risque d'effondrement";
       baseFailureProbability = 55;
       decisionRobustness = "VERY_FRAGILE";
       break;
   }
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // GÉNÉRER LA COURBE DE PACING (10 points)
