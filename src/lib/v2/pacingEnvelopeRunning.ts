@@ -264,6 +264,16 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
       : 45;
 
   const VCS_OVER_VMA = 0.90;
+
+  const vlamaxEffectifBridge =
+    vlamax_run_v2 != null
+      ? { value: vlamax_run_v2, confidence: 0.7, source: "computed" as const }
+      : null;
+  const tteEffectifBridge =
+    durability_index != null
+      ? { tte_min: durability_index, confidence: 0.7, source: "observed" as const }
+      : null;
+
   const unifiedEnvelope = computePacingEnvelope({
     vlamaxEffectif: vlamaxEffectifBridge as never,
     tteEffectif: tteEffectifBridge as never,
