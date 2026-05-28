@@ -274,51 +274,60 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
   sourcesUsed.push("Potentiel Physiologique");
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // EXTRAIRE LES BORNES DE L'ENVELOPPE
+  // EXTRAIRE LES BORNES DE L'ENVELOPPE (en %seuil, alignées Plan A/B)
+  // Partitionnement IDENTIQUE à RaceStrategyPlanCard pour cohérence des allures.
   // ─────────────────────────────────────────────────────────────────────────────
-  const greenZone = pacing_envelope.zones.find(z => z.zone === "GREEN");
-  const orangeZone = pacing_envelope.zones.find(z => z.zone === "ORANGE");
-  
-  const greenMin = greenZone?.rangePctThreshold[0] ?? 88;
-  const greenMax = greenZone?.rangePctThreshold[1] ?? 92;
-  const orangeMax = orangeZone?.rangePctThreshold[1] ?? 95;
-  const greenCenter = (greenMin + greenMax) / 2;
+  const b = pacing_envelope.boundary_pct_threshold;
+  const lowPct = b.lowPct;
+  const centerPct = b.centerPct;
+  const highPct = b.highPct;
+  const toleratedPct = b.toleratedPct;
+
+  // Mêmes ancres que RaceStrategyPlanCard (lignes 179-184)
+  const robustLow = lowPct;
+  const robustCenter = Math.round((lowPct + centerPct) / 2);
+  const ambitiousCenter = centerPct;
+  const ambitiousHigh = Math.round((centerPct + highPct) / 2);
+  const aggressiveHigh = highPct;
+  const aggressiveOver = Math.min(highPct + 3, toleratedPct);
+
+  // Exposés tels quels au générateur (greenMin/greenMax/orangeMax/greenCenter
+  // sont conservés pour compat, mais désormais on transmet aussi les ancres canoniques).
+  const greenMin = lowPct;
+  const greenMax = highPct;
+  const orangeMax = toleratedPct;
+  const greenCenter = centerPct;
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // GÉNÉRER LES 3 SCÉNARIOS
+  // GÉNÉRER LES 3 SCÉNARIOS — chaque scénario reçoit ses ancres explicites
+  // (first/middle/last) pour matcher exactement Plan A/B.
   // ─────────────────────────────────────────────────────────────────────────────
+  const commonParams = {
+    distance,
+    greenMin, greenMax, orangeMax, greenCenter,
+    vlamax: vlamax_run_v2,
+    durability: durability_index,
+    potentielState: race_readiness_state,
+    potentielScore: race_readiness_score,
+    thresholdPace: threshold_pace_sec_km,
+    envelope: pacing_envelope,
+  };
+
   const scenarios: SimulationScenario[] = [
     generateScenario("ROBUST", {
-      distance,
-      greenMin, greenMax, orangeMax, greenCenter,
-      vlamax: vlamax_run_v2,
-      durability: durability_index,
-      potentielState: race_readiness_state,
-      potentielScore: race_readiness_score,
-      thresholdPace: threshold_pace_sec_km,
-      envelope: pacing_envelope,
+      ...commonParams,
+      anchors: { first: robustLow, middle: robustCenter, last: ambitiousCenter },
     }),
     generateScenario("AMBITIOUS", {
-      distance,
-      greenMin, greenMax, orangeMax, greenCenter,
-      vlamax: vlamax_run_v2,
-      durability: durability_index,
-      potentielState: race_readiness_state,
-      potentielScore: race_readiness_score,
-      thresholdPace: threshold_pace_sec_km,
-      envelope: pacing_envelope,
+      ...commonParams,
+      anchors: { first: robustCenter, middle: ambitiousCenter, last: ambitiousHigh },
     }),
     generateScenario("AGGRESSIVE", {
-      distance,
-      greenMin, greenMax, orangeMax, greenCenter,
-      vlamax: vlamax_run_v2,
-      durability: durability_index,
-      potentielState: race_readiness_state,
-      potentielScore: race_readiness_score,
-      thresholdPace: threshold_pace_sec_km,
-      envelope: pacing_envelope,
+      ...commonParams,
+      anchors: { first: ambitiousHigh, middle: aggressiveHigh, last: aggressiveOver },
     }),
   ];
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DÉTERMINER LE SCÉNARIO RECOMMANDÉ
