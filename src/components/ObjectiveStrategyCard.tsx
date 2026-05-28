@@ -1394,7 +1394,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
             ))}
           </TabsList>
 
-          {PLANS.map((plan) => {
+          {getPlans(raceObjective).map((plan) => {
             const bikeH = (bikeDurationMin ?? 0) / 60;
             const runH = (runDurationMin ?? 0) / 60;
             const effIF = plan.intensityFactor * conditions.factor;
