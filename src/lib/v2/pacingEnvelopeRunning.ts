@@ -113,6 +113,15 @@ export interface PacingEnvelopeRunResult {
   // Zones de pacing
   zones: PacingZoneDefinitionRun[];
   
+  // Bornes canoniques en %seuil (alignées avec ObjectiveStrategyCard / RaceStrategyPlanCard).
+  // Permet de partitionner les 3 scénarios de simulation avec les MÊMES ancres que Plan A/B.
+  boundary_pct_threshold: {
+    lowPct: number;
+    centerPct: number;
+    highPct: number;
+    toleratedPct: number;
+  };
+  
   // Règles de discipline
   rules: PacingRulesRun;
   
@@ -135,6 +144,7 @@ export interface PacingEnvelopeRunResult {
   disclaimer: string;
   methodology: string;
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONSTANTES — BORNES PAR DISTANCE
@@ -286,6 +296,8 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
   let green: [number, number];
   let orange: [number, number];
   let red: [number, number];
+  let centerPctSeuil: number;
+  let toleratedPctSeuil: number;
   let allowAggressiveFinish = false;
 
   if (unifiedEnvelope) {
@@ -293,22 +305,24 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     missingData.push(...unifiedEnvelope.missingData);
     const b = unifiedEnvelope.boundary;
     green = [Math.round(toPctSeuil(b.lowPct)), Math.round(toPctSeuil(b.highPct))];
-    orange = [green[1], Math.round(toPctSeuil(b.toleratedPct))];
+    centerPctSeuil = Math.round(toPctSeuil(b.centerPct));
+    toleratedPctSeuil = Math.round(toPctSeuil(b.toleratedPct));
+    orange = [green[1], toleratedPctSeuil];
     red = [orange[1], Math.round(Math.min(orange[1] + 8, 115))];
-    // Negative split = standard élite (Hanley 2020, Casado 2021).
-    // Autorisé sauf contre-indication forte (readiness RED ou asymétrie défavorable).
     allowAggressiveFinish =
       race_readiness_state !== "RED" &&
       b.asymmetryRatio >= 0.85 &&
       !(vlamax_run_v2 != null && vlamax_run_v2 > 0.55 && distance === "MARATHON");
   } else {
-    // Fallback ultime: bornes statiques historiques
     const baseBounds = ZONE_BOUNDARIES[distance];
     green = [...baseBounds.green] as [number, number];
     orange = [...baseBounds.orange] as [number, number];
     red = [...baseBounds.red] as [number, number];
+    centerPctSeuil = Math.round((green[0] + green[1]) / 2);
+    toleratedPctSeuil = orange[1];
     missingData.push("Moteur unifié indisponible — fallback statique");
   }
+
 
   // Lecture passive Potentiel Physio pour les labels conditionnels (orange_label, etc.)
   const readinessMod = READINESS_MODIFIERS[race_readiness_state];
@@ -465,6 +479,13 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     distance,
     threshold_pace_sec_km: threshold_pace,
     zones,
+    boundary_pct_threshold: {
+      lowPct: green[0],
+      centerPct: centerPctSeuil,
+      highPct: green[1],
+      toleratedPct: toleratedPctSeuil,
+    },
+
     rules,
     scenarios,
     briefing,

@@ -274,51 +274,60 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
   sourcesUsed.push("Potentiel Physiologique");
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // EXTRAIRE LES BORNES DE L'ENVELOPPE
+  // EXTRAIRE LES BORNES DE L'ENVELOPPE (en %seuil, alignées Plan A/B)
+  // Partitionnement IDENTIQUE à RaceStrategyPlanCard pour cohérence des allures.
   // ─────────────────────────────────────────────────────────────────────────────
-  const greenZone = pacing_envelope.zones.find(z => z.zone === "GREEN");
-  const orangeZone = pacing_envelope.zones.find(z => z.zone === "ORANGE");
-  
-  const greenMin = greenZone?.rangePctThreshold[0] ?? 88;
-  const greenMax = greenZone?.rangePctThreshold[1] ?? 92;
-  const orangeMax = orangeZone?.rangePctThreshold[1] ?? 95;
-  const greenCenter = (greenMin + greenMax) / 2;
+  const b = pacing_envelope.boundary_pct_threshold;
+  const lowPct = b.lowPct;
+  const centerPct = b.centerPct;
+  const highPct = b.highPct;
+  const toleratedPct = b.toleratedPct;
+
+  // Mêmes ancres que RaceStrategyPlanCard (lignes 179-184)
+  const robustLow = lowPct;
+  const robustCenter = Math.round((lowPct + centerPct) / 2);
+  const ambitiousCenter = centerPct;
+  const ambitiousHigh = Math.round((centerPct + highPct) / 2);
+  const aggressiveHigh = highPct;
+  const aggressiveOver = Math.min(highPct + 3, toleratedPct);
+
+  // Exposés tels quels au générateur (greenMin/greenMax/orangeMax/greenCenter
+  // sont conservés pour compat, mais désormais on transmet aussi les ancres canoniques).
+  const greenMin = lowPct;
+  const greenMax = highPct;
+  const orangeMax = toleratedPct;
+  const greenCenter = centerPct;
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // GÉNÉRER LES 3 SCÉNARIOS
+  // GÉNÉRER LES 3 SCÉNARIOS — chaque scénario reçoit ses ancres explicites
+  // (first/middle/last) pour matcher exactement Plan A/B.
   // ─────────────────────────────────────────────────────────────────────────────
+  const commonParams = {
+    distance,
+    greenMin, greenMax, orangeMax, greenCenter,
+    vlamax: vlamax_run_v2,
+    durability: durability_index,
+    potentielState: race_readiness_state,
+    potentielScore: race_readiness_score,
+    thresholdPace: threshold_pace_sec_km,
+    envelope: pacing_envelope,
+  };
+
   const scenarios: SimulationScenario[] = [
     generateScenario("ROBUST", {
-      distance,
-      greenMin, greenMax, orangeMax, greenCenter,
-      vlamax: vlamax_run_v2,
-      durability: durability_index,
-      potentielState: race_readiness_state,
-      potentielScore: race_readiness_score,
-      thresholdPace: threshold_pace_sec_km,
-      envelope: pacing_envelope,
+      ...commonParams,
+      anchors: { first: robustLow, middle: robustCenter, last: ambitiousCenter },
     }),
     generateScenario("AMBITIOUS", {
-      distance,
-      greenMin, greenMax, orangeMax, greenCenter,
-      vlamax: vlamax_run_v2,
-      durability: durability_index,
-      potentielState: race_readiness_state,
-      potentielScore: race_readiness_score,
-      thresholdPace: threshold_pace_sec_km,
-      envelope: pacing_envelope,
+      ...commonParams,
+      anchors: { first: robustCenter, middle: ambitiousCenter, last: ambitiousHigh },
     }),
     generateScenario("AGGRESSIVE", {
-      distance,
-      greenMin, greenMax, orangeMax, greenCenter,
-      vlamax: vlamax_run_v2,
-      durability: durability_index,
-      potentielState: race_readiness_state,
-      potentielScore: race_readiness_score,
-      thresholdPace: threshold_pace_sec_km,
-      envelope: pacing_envelope,
+      ...commonParams,
+      anchors: { first: ambitiousHigh, middle: aggressiveHigh, last: aggressiveOver },
     }),
   ];
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DÉTERMINER LE SCÉNARIO RECOMMANDÉ
@@ -395,60 +404,47 @@ interface ScenarioParams {
   potentielScore: number;
   thresholdPace: number | null;
   envelope: PacingEnvelopeRunResult;
+  /** Ancres explicites first/middle/last (en %seuil), alignées Plan A/B. */
+  anchors: { first: number; middle: number; last: number };
 }
 
 function generateScenario(type: SimulationScenarioType, params: ScenarioParams): SimulationScenario {
   const {
-    distance, greenMin, greenMax, orangeMax, greenCenter,
-    vlamax, durability, potentielState, potentielScore, thresholdPace, envelope
+    distance, vlamax, durability, potentielState, potentielScore, thresholdPace, envelope, anchors
   } = params;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DÉFINIR LE PROFIL DE PACING PAR SCÉNARIO
+  // Les ancres viennent désormais directement du caller, garantissant l'unité
+  // exacte (%seuil) et la cohérence avec RaceStrategyPlanCard (Plan A/B).
   // ─────────────────────────────────────────────────────────────────────────────
-  let pacingProfile: { first: number; middle: number; last: number };
+  const pacingProfile = { first: anchors.first, middle: anchors.middle, last: anchors.last };
   let label: string;
   let description: string;
   let baseFailureProbability: number;
   let decisionRobustness: "ROBUST" | "FRAGILE" | "VERY_FRAGILE";
-  
+
   switch (type) {
     case "ROBUST":
-      pacingProfile = {
-        first: greenMin + 1,
-        middle: greenCenter,
-        last: greenMax - 1,
-      };
       label = "Scénario ROBUSTE";
       description = "Pacing intégralement en zone verte — performance maximisée avec risque minimisé";
       baseFailureProbability = 8;
       decisionRobustness = "ROBUST";
       break;
-      
     case "AMBITIOUS":
-      pacingProfile = {
-        first: greenCenter,
-        middle: greenMax,
-        last: orangeMax - 2,
-      };
       label = "Scénario AMBITIEUX";
       description = "Entrée tardive en zone orange — performance possible mais fragile";
       baseFailureProbability = 25;
       decisionRobustness = "FRAGILE";
       break;
-      
     case "AGGRESSIVE":
-      pacingProfile = {
-        first: greenMax + 2,
-        middle: orangeMax,
-        last: orangeMax + 3,
-      };
       label = "Scénario AGRESSIF";
       description = "Rouge précoce — maximise le risque d'effondrement";
       baseFailureProbability = 55;
       decisionRobustness = "VERY_FRAGILE";
       break;
   }
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // GÉNÉRER LA COURBE DE PACING (10 points)
