@@ -153,9 +153,21 @@ function targetForRange(
 // Construction des scénarios (à partir du couloir + objectif + discipline)
 // ──────────────────────────────────────────────────────────────────────────────
 
+// Ratio vCS/VMA — l'enveloppe expose des %VMA pour le run ; on convertit en %seuil
+// pour rester cohérent avec les labels "% seuil" et avec ObjectiveStrategyCard (Plan A/B).
+const VCS_OVER_VMA = 0.90;
+
 function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
   const { envelope, raceObjective, discipline, ftp, paceThresholdSecKm, hrThresholdBpm, raceDurationMin } = props;
-  const { lowPct, centerPct, highPct, toleratedPct } = envelope.boundary;
+  const raw = envelope.boundary;
+
+  // Conversion %VMA → %seuil pour le run, no-op pour le bike (déjà en %FTP/%seuil).
+  const toSeuil = (pct: number) =>
+    discipline === "run" ? Math.round(pct / VCS_OVER_VMA) : pct;
+  const lowPct = toSeuil(raw.lowPct);
+  const centerPct = toSeuil(raw.centerPct);
+  const highPct = toSeuil(raw.highPct);
+  const toleratedPct = toSeuil(raw.toleratedPct);
 
   const isTri = raceObjective === "IM" || raceObjective === "70.3";
   const isLong = raceObjective === "IM" || raceObjective === "Marathon";
