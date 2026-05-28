@@ -1148,7 +1148,7 @@ export function buildStrategyHtml(
 <h1>Stratégie TFCL Plan A & Plan B</h1>
 <div class="meta">Généré le ${new Date().toLocaleDateString("fr-FR")} · Potentiel Physiologique TFCL™</div>
 ${conditionsBanner}
-${PLANS.map(planSection).join("")}
+${getPlans(raceObjective).map(planSection).join("")}
 <div class="footer">Calibrations : Pacing Envelope™ TFCL · Nutrition Mader-Heck (g CHO/h) · Negative split = Hanley 2020 / Casado 2021.</div>
 <script>setTimeout(() => window.print(), 400);</script>
 </body></html>`;
