@@ -80,30 +80,45 @@ interface PlanConfig {
   splitBias: "negative" | "even" | "positive";
 }
 
-const PLANS: PlanConfig[] = [
-  {
-    key: "A",
-    label: "Plan A — Course parfaite",
-    badge: "Cible",
-    badgeVariant: "default",
-    description:
-      "Tout va bien : jambes fraîches, digestion OK, météo conforme. On joue le centre de l'enveloppe avec discipline.",
-    intensityFactor: 1.0,
-    carbsFactor: 1.0,
-    splitBias: "negative",
-  },
-  {
-    key: "B",
-    label: "Plan B — Replis course",
-    badge: "Sécurité",
-    badgeVariant: "secondary",
-    description:
-      "Si Plan A ne passe pas (estomac, chaleur, jambes lourdes, perte de cadence) : on protège l'arrivée. Intensité réduite, nutrition allégée et plus liquide.",
-    intensityFactor: 0.96,
-    carbsFactor: 0.75,
-    splitBias: "even",
-  },
-];
+// Plan B intensityFactor calibré par format (littérature scientifique 2014-2024)
+//  - 10km/Semi : -4% (Stevens & Cooke 2024)
+//  - Marathon  : -5% (Hanley 2015)
+//  - 70.3      : -6% (Laursen 2011)
+//  - IM        : -7% (Mujika 2017, Laursen 2011)
+// Plan A splitBias = "even" pour IM (Hanley 2015), "negative" sinon.
+function getPlans(format: RaceObjective): PlanConfig[] {
+  const planBIntensity =
+    format === "IM" ? 0.93 :
+    format === "70.3" ? 0.94 :
+    format === "Marathon" ? 0.95 :
+    0.96; // 10km, Semi, autres
+  const planASplit: PlanConfig["splitBias"] = format === "IM" ? "even" : "negative";
+  return [
+    {
+      key: "A",
+      label: "Plan A — Course parfaite",
+      badge: "Cible",
+      badgeVariant: "default",
+      description:
+        "Tout va bien : jambes fraîches, digestion OK, météo conforme. On joue le centre de l'enveloppe avec discipline.",
+      intensityFactor: 1.0,
+      carbsFactor: 1.0,
+      splitBias: planASplit,
+    },
+    {
+      key: "B",
+      label: "Plan B — Replis course",
+      badge: "Sécurité",
+      badgeVariant: "secondary",
+      description:
+        `Si Plan A ne passe pas (estomac, chaleur, jambes lourdes, perte de cadence) : on protège l'arrivée. Intensité réduite (${Math.round((1 - planBIntensity) * 100)}% sous le centre), nutrition allégée et plus liquide.`,
+      intensityFactor: planBIntensity,
+      carbsFactor: 0.75,
+      splitBias: "even",
+    },
+  ];
+}
+
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
