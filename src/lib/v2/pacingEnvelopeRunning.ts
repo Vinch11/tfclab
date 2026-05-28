@@ -264,16 +264,6 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
       : 45;
 
   const VCS_OVER_VMA = 0.90;
-
-  const vlamaxEffectifBridge =
-    vlamax_run_v2 != null
-      ? { value: vlamax_run_v2, confidence: 0.7, source: "computed" as const }
-      : null;
-  const tteEffectifBridge =
-    durability_index != null
-      ? { tte_min: durability_index, confidence: 0.7, source: "observed" as const }
-      : null;
-
   const unifiedEnvelope = computePacingEnvelope({
     vlamaxEffectif: vlamaxEffectifBridge as never,
     tteEffectif: tteEffectifBridge as never,
@@ -283,6 +273,16 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     raceObjective: RACE_OBJ_MAP[distance],
     sport: "run",
     vma: inputs.vma ?? null,
+    paceThreshold: threshold_pace,
+    ambition: inputs.ambition ?? null,
+    cpWkg: inputs.cpWkg ?? null,
+    wPrimeJkg: inputs.wPrimeJkg ?? null,
+    predictedDurationMin: inputs.predictedDurationMin ?? RACE_DURATION_FALLBACK_MIN[distance],
+  });
+
+  // Conversion %VMA → %seuil (1/0.90 ≈ 1.111). Bornes physiologiques.
+  const toPctSeuil = (pctVMA: number): number => clamp(pctVMA / VCS_OVER_VMA, 60, 115);
+
   let green: [number, number];
   let orange: [number, number];
   let red: [number, number];
@@ -299,14 +299,11 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     toleratedPctSeuil = Math.round(toPctSeuil(b.toleratedPct));
     orange = [green[1], toleratedPctSeuil];
     red = [orange[1], Math.round(Math.min(orange[1] + 8, 115))];
-    // Negative split = standard élite (Hanley 2020, Casado 2021).
-    // Autorisé sauf contre-indication forte (readiness RED ou asymétrie défavorable).
     allowAggressiveFinish =
       race_readiness_state !== "RED" &&
       b.asymmetryRatio >= 0.85 &&
       !(vlamax_run_v2 != null && vlamax_run_v2 > 0.55 && distance === "MARATHON");
   } else {
-    // Fallback ultime: bornes statiques historiques
     const baseBounds = ZONE_BOUNDARIES[distance];
     green = [...baseBounds.green] as [number, number];
     orange = [...baseBounds.orange] as [number, number];
@@ -316,16 +313,6 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     missingData.push("Moteur unifié indisponible — fallback statique");
   }
 
-      b.asymmetryRatio >= 0.85 &&
-      !(vlamax_run_v2 != null && vlamax_run_v2 > 0.55 && distance === "MARATHON");
-  } else {
-    // Fallback ultime: bornes statiques historiques
-    const baseBounds = ZONE_BOUNDARIES[distance];
-    green = [...baseBounds.green] as [number, number];
-    orange = [...baseBounds.orange] as [number, number];
-    red = [...baseBounds.red] as [number, number];
-    missingData.push("Moteur unifié indisponible — fallback statique");
-  }
 
   // Lecture passive Potentiel Physio pour les labels conditionnels (orange_label, etc.)
   const readinessMod = READINESS_MODIFIERS[race_readiness_state];
