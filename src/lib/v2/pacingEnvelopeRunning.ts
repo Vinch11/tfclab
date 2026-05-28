@@ -283,19 +283,11 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     raceObjective: RACE_OBJ_MAP[distance],
     sport: "run",
     vma: inputs.vma ?? null,
-    paceThreshold: threshold_pace,
-    ambition: inputs.ambition ?? null,
-    cpWkg: inputs.cpWkg ?? null,
-    wPrimeJkg: inputs.wPrimeJkg ?? null,
-    predictedDurationMin: inputs.predictedDurationMin ?? RACE_DURATION_FALLBACK_MIN[distance],
-  });
-
-  // Conversion %VMA → %seuil (1/0.90 ≈ 1.111). Bornes physiologiques.
-  const toPctSeuil = (pctVMA: number): number => clamp(pctVMA / VCS_OVER_VMA, 60, 115);
-
   let green: [number, number];
   let orange: [number, number];
   let red: [number, number];
+  let centerPctSeuil: number;
+  let toleratedPctSeuil: number;
   let allowAggressiveFinish = false;
 
   if (unifiedEnvelope) {
@@ -303,12 +295,27 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     missingData.push(...unifiedEnvelope.missingData);
     const b = unifiedEnvelope.boundary;
     green = [Math.round(toPctSeuil(b.lowPct)), Math.round(toPctSeuil(b.highPct))];
-    orange = [green[1], Math.round(toPctSeuil(b.toleratedPct))];
+    centerPctSeuil = Math.round(toPctSeuil(b.centerPct));
+    toleratedPctSeuil = Math.round(toPctSeuil(b.toleratedPct));
+    orange = [green[1], toleratedPctSeuil];
     red = [orange[1], Math.round(Math.min(orange[1] + 8, 115))];
     // Negative split = standard élite (Hanley 2020, Casado 2021).
     // Autorisé sauf contre-indication forte (readiness RED ou asymétrie défavorable).
     allowAggressiveFinish =
       race_readiness_state !== "RED" &&
+      b.asymmetryRatio >= 0.85 &&
+      !(vlamax_run_v2 != null && vlamax_run_v2 > 0.55 && distance === "MARATHON");
+  } else {
+    // Fallback ultime: bornes statiques historiques
+    const baseBounds = ZONE_BOUNDARIES[distance];
+    green = [...baseBounds.green] as [number, number];
+    orange = [...baseBounds.orange] as [number, number];
+    red = [...baseBounds.red] as [number, number];
+    centerPctSeuil = Math.round((green[0] + green[1]) / 2);
+    toleratedPctSeuil = orange[1];
+    missingData.push("Moteur unifié indisponible — fallback statique");
+  }
+
       b.asymmetryRatio >= 0.85 &&
       !(vlamax_run_v2 != null && vlamax_run_v2 > 0.55 && distance === "MARATHON");
   } else {
