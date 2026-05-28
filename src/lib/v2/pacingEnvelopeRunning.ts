@@ -479,6 +479,13 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     distance,
     threshold_pace_sec_km: threshold_pace,
     zones,
+    boundary_pct_threshold: {
+      lowPct: green[0],
+      centerPct: centerPctSeuil,
+      highPct: green[1],
+      toleratedPct: toleratedPctSeuil,
+    },
+
     rules,
     scenarios,
     briefing,
