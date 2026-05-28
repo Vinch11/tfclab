@@ -80,30 +80,45 @@ interface PlanConfig {
   splitBias: "negative" | "even" | "positive";
 }
 
-const PLANS: PlanConfig[] = [
-  {
-    key: "A",
-    label: "Plan A — Course parfaite",
-    badge: "Cible",
-    badgeVariant: "default",
-    description:
-      "Tout va bien : jambes fraîches, digestion OK, météo conforme. On joue le centre de l'enveloppe avec discipline.",
-    intensityFactor: 1.0,
-    carbsFactor: 1.0,
-    splitBias: "negative",
-  },
-  {
-    key: "B",
-    label: "Plan B — Replis course",
-    badge: "Sécurité",
-    badgeVariant: "secondary",
-    description:
-      "Si Plan A ne passe pas (estomac, chaleur, jambes lourdes, perte de cadence) : on protège l'arrivée. Intensité réduite, nutrition allégée et plus liquide.",
-    intensityFactor: 0.96,
-    carbsFactor: 0.75,
-    splitBias: "even",
-  },
-];
+// Plan B intensityFactor calibré par format (littérature scientifique 2014-2024)
+//  - 10km/Semi : -4% (Stevens & Cooke 2024)
+//  - Marathon  : -5% (Hanley 2015)
+//  - 70.3      : -6% (Laursen 2011)
+//  - IM        : -7% (Mujika 2017, Laursen 2011)
+// Plan A splitBias = "even" pour IM (Hanley 2015), "negative" sinon.
+function getPlans(format: RaceObjective): PlanConfig[] {
+  const planBIntensity =
+    format === "IM" ? 0.93 :
+    format === "70.3" ? 0.94 :
+    format === "Marathon" ? 0.95 :
+    0.96; // 10km, Semi, autres
+  const planASplit: PlanConfig["splitBias"] = format === "IM" ? "even" : "negative";
+  return [
+    {
+      key: "A",
+      label: "Plan A — Course parfaite",
+      badge: "Cible",
+      badgeVariant: "default",
+      description:
+        "Tout va bien : jambes fraîches, digestion OK, météo conforme. On joue le centre de l'enveloppe avec discipline.",
+      intensityFactor: 1.0,
+      carbsFactor: 1.0,
+      splitBias: planASplit,
+    },
+    {
+      key: "B",
+      label: "Plan B — Replis course",
+      badge: "Sécurité",
+      badgeVariant: "secondary",
+      description:
+        `Si Plan A ne passe pas (estomac, chaleur, jambes lourdes, perte de cadence) : on protège l'arrivée. Intensité réduite (${Math.round((1 - planBIntensity) * 100)}% sous le centre), nutrition allégée et plus liquide.`,
+      intensityFactor: planBIntensity,
+      carbsFactor: 0.75,
+      splitBias: "even",
+    },
+  ];
+}
+
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -1133,7 +1148,7 @@ export function buildStrategyHtml(
 <h1>Stratégie TFCL Plan A & Plan B</h1>
 <div class="meta">Généré le ${new Date().toLocaleDateString("fr-FR")} · Potentiel Physiologique TFCL™</div>
 ${conditionsBanner}
-${PLANS.map(planSection).join("")}
+${getPlans(raceObjective).map(planSection).join("")}
 <div class="footer">Calibrations : Pacing Envelope™ TFCL · Nutrition Mader-Heck (g CHO/h) · Negative split = Hanley 2020 / Casado 2021.</div>
 <script>setTimeout(() => window.print(), 400);</script>
 </body></html>`;
@@ -1371,7 +1386,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
 
         <Tabs defaultValue="A" className="w-full">
           <TabsList className="grid grid-cols-2 w-full">
-            {PLANS.map((p) => (
+            {getPlans(raceObjective).map((p) => (
               <TabsTrigger key={p.key} value={p.key} className="text-xs sm:text-sm">
                 {p.key === "A" ? <ShieldCheck className="h-3.5 w-3.5 mr-1.5" /> : <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />}
                 {p.label}
@@ -1379,7 +1394,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
             ))}
           </TabsList>
 
-          {PLANS.map((plan) => {
+          {getPlans(raceObjective).map((plan) => {
             const bikeH = (bikeDurationMin ?? 0) / 60;
             const runH = (runDurationMin ?? 0) / 60;
             const effIF = plan.intensityFactor * conditions.factor;
