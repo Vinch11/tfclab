@@ -113,6 +113,15 @@ export interface PacingEnvelopeRunResult {
   // Zones de pacing
   zones: PacingZoneDefinitionRun[];
   
+  // Bornes canoniques en %seuil (alignées avec ObjectiveStrategyCard / RaceStrategyPlanCard).
+  // Permet de partitionner les 3 scénarios de simulation avec les MÊMES ancres que Plan A/B.
+  boundary_pct_threshold: {
+    lowPct: number;
+    centerPct: number;
+    highPct: number;
+    toleratedPct: number;
+  };
+  
   // Règles de discipline
   rules: PacingRulesRun;
   
@@ -135,6 +144,7 @@ export interface PacingEnvelopeRunResult {
   disclaimer: string;
   methodology: string;
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONSTANTES — BORNES PAR DISTANCE
