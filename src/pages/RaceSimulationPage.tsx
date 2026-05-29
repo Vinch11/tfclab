@@ -295,7 +295,7 @@ export default function RaceSimulationPage() {
       return { bike: 150, run: Math.round(runMin) };
     }
     return { bike: 180, run: 180 };
-  }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete]);
+  }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm]);
 
   const raceDurationMin = React.useMemo(() => {
     if (isTriathlon) return segmentDurationMin[discipline];
