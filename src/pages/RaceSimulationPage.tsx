@@ -120,6 +120,24 @@ export default function RaceSimulationPage() {
     }
     return athleteSnapshots.sort((a, b) => b.date.localeCompare(a.date))[0] ?? null;
   }, [snapshots, athleteId, activeSnapshotId]);
+
+  // ── What-if seuil run (override local, n'altère pas le snapshot) ──────────
+  // Permet de simuler des allures cibles / temps avec un seuil hypothétique
+  // (ex: tester 4:20/km au lieu de 4:37/km encodé).
+  const [paceThresholdInput, setPaceThresholdInput] = useState<string>('');
+  const paceThresholdOverrideSecKm = React.useMemo<number | null>(() => {
+    const m = paceThresholdInput.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const min = parseInt(m[1], 10);
+    const sec = parseInt(m[2], 10);
+    if (sec >= 60) return null;
+    const total = min * 60 + sec;
+    if (total < 150 || total > 600) return null; // garde-fou 2:30–10:00/km
+    return total;
+  }, [paceThresholdInput]);
+  const overrideActive = paceThresholdOverrideSecKm != null;
+  const fmtMmSs = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+
   
   const tteEffectif = React.useMemo(() => {
     if (!activeSnapshot) return null;
