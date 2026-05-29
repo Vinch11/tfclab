@@ -86,7 +86,7 @@ interface PlanConfig {
 //  - 70.3      : -6% (Laursen 2011)
 //  - IM        : -7% (Mujika 2017, Laursen 2011)
 // Plan A splitBias = "even" pour IM (Hanley 2015), "negative" sinon.
-function getPlans(format: RaceObjective): PlanConfig[] {
+export function getPlans(format: RaceObjective): PlanConfig[] {
   const planBIntensity =
     format === "IM" ? 0.93 :
     format === "70.3" ? 0.94 :
@@ -150,7 +150,7 @@ function bikeWatts(envelope: PacingEnvelopeResult, ftp: number, intensityFactor:
 // (paceThr = allure seuil) pour produire une allure cible cohérente.
 const VCS_OVER_VMA = 0.90;
 
-function runPace(envelope: PacingEnvelopeResult, paceThr: number, intensityFactor: number, format?: RaceObjective) {
+export function runPace(envelope: PacingEnvelopeResult, paceThr: number, intensityFactor: number, format?: RaceObjective) {
   // Fix unité : pour le run, l'enveloppe expose des % de VMA. paceThr est l'allure seuil.
   // pctSeuil = pctVMA / VCS_OVER_VMA  (un % de VMA donne un % de seuil plus élevé, car seuil < VMA).
   const toPctSeuil = (pct: number) => (envelope.sport === "run" ? pct / VCS_OVER_VMA : pct);
@@ -251,7 +251,7 @@ function bikeCadence(label: string): string {
 
 // ─── Découpage par segment ────────────────────────────────────────────────────
 
-function runSegmentsForFormat(format: RaceObjective): { label: string; share: number }[] {
+export function runSegmentsForFormat(format: RaceObjective): { label: string; share: number }[] {
   // share = fraction de la distance/durée totale, doit sommer à 1
   if (format === "Marathon") {
     return [
@@ -278,7 +278,7 @@ function runSegmentsForFormat(format: RaceObjective): { label: string; share: nu
   ];
 }
 
-function paceSegments(targetPaceSec: number, bias: PlanConfig["splitBias"], deltaPct: number, format: RaceObjective) {
+export function paceSegments(targetPaceSec: number, bias: PlanConfig["splitBias"], deltaPct: number, format: RaceObjective) {
   const segs = runSegmentsForFormat(format);
   // Offsets (% de l'allure moyenne) pour chaque quart, somme = 0.
   // Convention : positif = plus lent que la cible, négatif = plus rapide.

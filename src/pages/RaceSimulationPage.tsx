@@ -17,6 +17,7 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { RaceStrategyPlanCard } from '@/components/RaceStrategyPlanCard';
 import { ObjectiveStrategyCard } from '@/components/ObjectiveStrategyCard';
+import { PlanVsSimulationPaceChart } from '@/components/charts/PlanVsSimulationPaceChart';
 import { RaceTimeEstimateCard } from '@/components/RaceTimeEstimateCard';
 import { TriathlonFullRaceSimulationCard } from '@/components/TriathlonFullRaceSimulationCard';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
@@ -777,6 +778,18 @@ export default function RaceSimulationPage() {
                       disponibiliteScore={disponibilite?.score}
                     />
                   ) : null}
+                  {(discipline === 'run' || isTriathlon) && envelopeRun && activeSnapshot?.pace_threshold_sec_per_km && (
+                    <PlanVsSimulationPaceChart
+                      raceObjective={raceObjective}
+                      runEnvelope={envelopeRun}
+                      paceThresholdSecKm={activeSnapshot.pace_threshold_sec_per_km}
+                      vma={activeSnapshot?.vma ?? null}
+                      vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
+                      tteMinRun={tteEffectifRun?.tte_min ?? tteEffectif?.tte_min ?? null}
+                      runDurationMin={isTriathlon ? segmentDurationMin.run : raceDurationMin}
+                      weightKg={activeSnapshot?.weight_kg ?? null}
+                    />
+                  )}
                   {(discipline === 'run' || isTriathlon) && activeSnapshot && (
                     <RaceTimeEstimateCard chronos={activeSnapshot as any} />
                   )}
