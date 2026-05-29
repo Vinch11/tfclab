@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
@@ -118,6 +120,24 @@ export default function RaceSimulationPage() {
     }
     return athleteSnapshots.sort((a, b) => b.date.localeCompare(a.date))[0] ?? null;
   }, [snapshots, athleteId, activeSnapshotId]);
+
+  // ── What-if seuil run (override local, n'altère pas le snapshot) ──────────
+  // Permet de simuler des allures cibles / temps avec un seuil hypothétique
+  // (ex: tester 4:20/km au lieu de 4:37/km encodé).
+  const [paceThresholdInput, setPaceThresholdInput] = useState<string>('');
+  const paceThresholdOverrideSecKm = React.useMemo<number | null>(() => {
+    const m = paceThresholdInput.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const min = parseInt(m[1], 10);
+    const sec = parseInt(m[2], 10);
+    if (sec >= 60) return null;
+    const total = min * 60 + sec;
+    if (total < 150 || total > 600) return null; // garde-fou 2:30–10:00/km
+    return total;
+  }, [paceThresholdInput]);
+  const overrideActive = paceThresholdOverrideSecKm != null;
+  const fmtMmSs = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+
   
   const tteEffectif = React.useMemo(() => {
     if (!activeSnapshot) return null;
@@ -232,7 +252,8 @@ export default function RaceSimulationPage() {
   const segmentDurationMin = React.useMemo(() => {
     // P2 — Fallback paceThreshold via raceTimeEstimator si l'effective est absent.
     // Reste tag RAW : utilisé uniquement pour le calcul de durée prédite, pas en prescription.
-    const paceThr = activeSnapshot?.pace_threshold_sec_per_km
+    const paceThr = paceThresholdOverrideSecKm
+      ?? activeSnapshot?.pace_threshold_sec_per_km
       ?? raceChronoEstimate?.paceThreshold_sec_km
       ?? null; // sec/km au seuil
     // P1 — Pénalité glycolytique segment course basée sur la VLamax CAP (run), pas la bike.
@@ -274,7 +295,7 @@ export default function RaceSimulationPage() {
       return { bike: 150, run: Math.round(runMin) };
     }
     return { bike: 180, run: 180 };
-  }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete]);
+  }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm]);
 
   const raceDurationMin = React.useMemo(() => {
     if (isTriathlon) return segmentDurationMin[discipline];
@@ -309,7 +330,10 @@ export default function RaceSimulationPage() {
     // P1 — Pour le segment course (CAP ou run du tri), on injecte la VLamax CAP run.
     const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
     // P2 — Fallback paceThreshold via raceTimeEstimator (RAW) si effective absent.
-    const paceThresholdEffective = activeSnapshot?.pace_threshold_sec_per_km
+    // Override what-if appliqué uniquement au segment course (le seuil run ne
+    // sert pas pour la zone bike, qui pilote sur FTP/CP).
+    const paceThresholdEffective = (discipline === 'run' ? paceThresholdOverrideSecKm : null)
+      ?? activeSnapshot?.pace_threshold_sec_per_km
       ?? raceChronoEstimate?.paceThreshold_sec_km
       ?? null;
     // Note: les paliers de risque durabilité sont désormais natifs au moteur
@@ -336,7 +360,7 @@ export default function RaceSimulationPage() {
         confidence: raceChronoEstimate.confidence,
       } : null,
     });
-  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
+  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete, paceThresholdOverrideSecKm]);
 
   // Stratégie objectif — pour les triathlons on calcule aussi l'enveloppe de l'autre segment,
   // de manière à présenter Plan A / Plan B sur les 2 segments en simultané.
@@ -360,7 +384,7 @@ export default function RaceSimulationPage() {
     if (discipline === 'run') return envelope;
     const cpWkg = activeSnapshot?.ftp && activeSnapshot?.weight_kg
       ? (activeSnapshot.ftp * 0.95) / activeSnapshot.weight_kg : null;
-    const paceThr = activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null;
+    const paceThr = paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null;
     return computePacingEnvelope({
       vlamaxEffectif: vlamaxRunEffectif ?? vlamaxEffectif, tteEffectif, fatmax,
       potentielPhysiologiqueScore, fatigueIndex: null,
@@ -370,7 +394,7 @@ export default function RaceSimulationPage() {
       ambition: (selectedAthlete as any)?.ambition ?? null, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.run,
     });
-  }, [isTriathlon, discipline, envelope, vlamaxRunEffectif, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin, raceChronoEstimate]);
+  }, [isTriathlon, discipline, envelope, vlamaxRunEffectif, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin, raceChronoEstimate, paceThresholdOverrideSecKm]);
 
   
   const rules = React.useMemo(() => {
@@ -702,7 +726,7 @@ export default function RaceSimulationPage() {
                     vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore,
                     fatigueIndex: null, raceObjective, sport: discipline,
                     ftp: activeSnapshot?.ftp, vma: activeSnapshot?.vma,
-                    paceThreshold: activeSnapshot?.pace_threshold_sec_per_km,
+                    paceThreshold: (discipline === 'run' ? paceThresholdOverrideSecKm : null) ?? activeSnapshot?.pace_threshold_sec_per_km,
                     weight: activeSnapshot?.weight_kg,
                   }}
                   raceDurationMin={raceDurationMin}
@@ -749,6 +773,60 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
+              {/* What-if seuil run — recalcule allures cibles & temps */}
+              {(discipline === 'run' || isTriathlon) && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="pace-threshold-whatif" className="text-xs font-semibold">
+                        Tester un autre seuil run (what-if)
+                      </Label>
+                      <p className="text-[10px] text-muted-foreground">
+                        Seuil encodé : {activeSnapshot?.pace_threshold_sec_per_km
+                          ? `${fmtMmSs(activeSnapshot.pace_threshold_sec_per_km)}/km`
+                          : '—'} · format mm:ss
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="pace-threshold-whatif"
+                        value={paceThresholdInput}
+                        onChange={(e) => setPaceThresholdInput(e.target.value)}
+                        placeholder="ex: 4:20"
+                        className="h-8 w-24 text-xs"
+                      />
+                      <span className="text-[11px] text-muted-foreground">/km</span>
+                      {overrideActive && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[11px]"
+                          onClick={() => setPaceThresholdInput('')}
+                        >
+                          Réinitialiser
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {overrideActive && paceThresholdOverrideSecKm && (
+                    <div className="text-[11px] text-primary font-medium">
+                      ✓ Recalculs actifs avec seuil = {fmtMmSs(paceThresholdOverrideSecKm)}/km
+                      {activeSnapshot?.pace_threshold_sec_per_km && (
+                        <span className="text-muted-foreground font-normal">
+                          {' '}(Δ {paceThresholdOverrideSecKm < activeSnapshot.pace_threshold_sec_per_km ? '−' : '+'}
+                          {fmtMmSs(Math.abs(paceThresholdOverrideSecKm - activeSnapshot.pace_threshold_sec_per_km))} vs encodé)
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {paceThresholdInput.trim() !== '' && !overrideActive && (
+                    <div className="text-[11px] text-destructive">
+                      Format invalide — utilise mm:ss entre 2:30 et 10:00 (ex: 4:20).
+                    </div>
+                  )}
+                </div>
+              )}
               {!staffMode ? (
                 <>
                   <ObjectiveStrategyCard
@@ -756,7 +834,7 @@ export default function RaceSimulationPage() {
                     bikeEnvelope={envelopeBike}
                     runEnvelope={envelopeRun}
                     ftp={activeSnapshot?.ftp ?? null}
-                    paceThresholdSecKm={activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null}
+                    paceThresholdSecKm={paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null}
                     weightKg={activeSnapshot?.weight_kg ?? null}
                     vlamaxBike={vlamaxEffectif?.value ?? null}
                     vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
@@ -774,21 +852,22 @@ export default function RaceSimulationPage() {
                       discipline={discipline}
                       raceDurationMin={raceDurationMin}
                       ftp={activeSnapshot?.ftp}
-                      paceThresholdSecKm={activeSnapshot?.pace_threshold_sec_per_km}
+                      paceThresholdSecKm={discipline === 'run' ? (paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km) : activeSnapshot?.pace_threshold_sec_per_km}
                       disponibiliteScore={disponibilite?.score}
                     />
                   ) : null}
-                  {(discipline === 'run' || isTriathlon) && envelopeRun && activeSnapshot?.pace_threshold_sec_per_km && (
+                  {(discipline === 'run' || isTriathlon) && envelopeRun && (paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km) && (
                     <PlanVsSimulationPaceChart
                       raceObjective={raceObjective}
                       runEnvelope={envelopeRun}
-                      paceThresholdSecKm={activeSnapshot.pace_threshold_sec_per_km}
+                      paceThresholdSecKm={(paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km)!}
                       vma={activeSnapshot?.vma ?? null}
                       vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
                       tteMinRun={tteEffectifRun?.tte_min ?? tteEffectif?.tte_min ?? null}
                       runDurationMin={isTriathlon ? segmentDurationMin.run : raceDurationMin}
                       weightKg={activeSnapshot?.weight_kg ?? null}
                     />
+
                   )}
                   {(discipline === 'run' || isTriathlon) && activeSnapshot && (
                     <RaceTimeEstimateCard chronos={activeSnapshot as any} />
