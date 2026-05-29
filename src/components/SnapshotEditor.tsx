@@ -536,7 +536,9 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
                     = {secondsToMmSs(parsePaceToSeconds(paceThreshold)!)}/km
                   </span>
                 )}
+              </div>
             </div>
+
 
             {/* Avis temps réel : cohérence Seuil ↔ VMA (référence Billat) */}
             <div className="grid grid-cols-4 gap-4">
