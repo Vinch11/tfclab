@@ -173,7 +173,7 @@ export function PlanVsSimulationPaceChart({
 
   // ── Construction des données pour le chart (X = % distance) ──────────────
   const data = React.useMemo(() => {
-    const points: Record<string, number | null> & { distPct: number }[] = [];
+    // (variable supprimée — non utilisée, on construit `xs` puis on map ci-dessous)
 
     // Plan A/B : pace constante au sein du quart, affichée au début et fin de chaque quart
     let cumul = 0;
