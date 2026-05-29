@@ -330,7 +330,10 @@ export default function RaceSimulationPage() {
     // P1 — Pour le segment course (CAP ou run du tri), on injecte la VLamax CAP run.
     const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
     // P2 — Fallback paceThreshold via raceTimeEstimator (RAW) si effective absent.
-    const paceThresholdEffective = activeSnapshot?.pace_threshold_sec_per_km
+    // Override what-if appliqué uniquement au segment course (le seuil run ne
+    // sert pas pour la zone bike, qui pilote sur FTP/CP).
+    const paceThresholdEffective = (discipline === 'run' ? paceThresholdOverrideSecKm : null)
+      ?? activeSnapshot?.pace_threshold_sec_per_km
       ?? raceChronoEstimate?.paceThreshold_sec_km
       ?? null;
     // Note: les paliers de risque durabilité sont désormais natifs au moteur
