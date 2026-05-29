@@ -394,7 +394,7 @@ export default function RaceSimulationPage() {
       ambition: (selectedAthlete as any)?.ambition ?? null, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.run,
     });
-  }, [isTriathlon, discipline, envelope, vlamaxRunEffectif, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin, raceChronoEstimate]);
+  }, [isTriathlon, discipline, envelope, vlamaxRunEffectif, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin, raceChronoEstimate, paceThresholdOverrideSecKm]);
 
   
   const rules = React.useMemo(() => {
