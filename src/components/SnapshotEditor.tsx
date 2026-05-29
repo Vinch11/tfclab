@@ -20,6 +20,7 @@ import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstim
 import { resolveRunningEconomy } from "@/lib/runningEconomySimple";
 import { RMSEExplainer } from "@/components/RMSEExplainer";
 import { RunningTestProtocolsGuide } from "@/components/RunningTestProtocolsGuide";
+import { ThresholdVmaCoherenceHint } from "@/components/diagnostic/ThresholdVmaCoherenceHint";
 import {
   Tooltip,
   TooltipContent,
@@ -537,6 +538,17 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
                 )}
               </div>
             </div>
+
+
+            {/* Avis temps réel : cohérence Seuil ↔ VMA (référence Billat) */}
+            <div className="grid grid-cols-4 gap-4">
+              <ThresholdVmaCoherenceHint
+                paceThresholdSecPerKm={parsePaceToSeconds(paceThreshold)}
+                vmaKmh={numOrNull(vma)}
+                source={(snapshot as any).source ?? null}
+              />
+            </div>
+
 
             {/* ✅ Économie de course (mesurée ou estimée auto via VMA + Allure seuil) */}
             <div className="grid grid-cols-4 items-center gap-4">
