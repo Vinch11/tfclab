@@ -360,7 +360,7 @@ export default function RaceSimulationPage() {
         confidence: raceChronoEstimate.confidence,
       } : null,
     });
-  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete]);
+  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete, paceThresholdOverrideSecKm]);
 
   // Stratégie objectif — pour les triathlons on calcule aussi l'enveloppe de l'autre segment,
   // de manière à présenter Plan A / Plan B sur les 2 segments en simultané.
