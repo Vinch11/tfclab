@@ -252,7 +252,8 @@ export default function RaceSimulationPage() {
   const segmentDurationMin = React.useMemo(() => {
     // P2 — Fallback paceThreshold via raceTimeEstimator si l'effective est absent.
     // Reste tag RAW : utilisé uniquement pour le calcul de durée prédite, pas en prescription.
-    const paceThr = activeSnapshot?.pace_threshold_sec_per_km
+    const paceThr = paceThresholdOverrideSecKm
+      ?? activeSnapshot?.pace_threshold_sec_per_km
       ?? raceChronoEstimate?.paceThreshold_sec_km
       ?? null; // sec/km au seuil
     // P1 — Pénalité glycolytique segment course basée sur la VLamax CAP (run), pas la bike.
