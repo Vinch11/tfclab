@@ -97,9 +97,18 @@ export function PlanVsSimulationPaceChart({
   );
 
   const deltaA = React.useMemo(() => {
-    if (raceObjective === "Marathon" || raceObjective === "10km" || raceObjective === "Semi") {
+    if (raceObjective === "Marathon" || raceObjective === "10km") {
       return computeNegativeSplitDelta(
         raceObjective,
+        vlamaxRun,
+        tteMinRun,
+        runDurationMin
+      ).targetPct;
+    }
+    if (raceObjective === "Semi") {
+      // Semi : on emprunte la logique 10 km (course tempo / proche seuil)
+      return computeNegativeSplitDelta(
+        "10km",
         vlamaxRun,
         tteMinRun,
         runDurationMin
