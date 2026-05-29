@@ -278,7 +278,7 @@ export function runSegmentsForFormat(format: RaceObjective): { label: string; sh
   ];
 }
 
-function paceSegments(targetPaceSec: number, bias: PlanConfig["splitBias"], deltaPct: number, format: RaceObjective) {
+export function paceSegments(targetPaceSec: number, bias: PlanConfig["splitBias"], deltaPct: number, format: RaceObjective) {
   const segs = runSegmentsForFormat(format);
   // Offsets (% de l'allure moyenne) pour chaque quart, somme = 0.
   // Convention : positif = plus lent que la cible, négatif = plus rapide.
