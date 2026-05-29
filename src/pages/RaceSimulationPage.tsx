@@ -17,6 +17,7 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { RaceSimulationModule } from '@/components/RaceSimulationModule';
 import { RaceStrategyPlanCard } from '@/components/RaceStrategyPlanCard';
 import { ObjectiveStrategyCard } from '@/components/ObjectiveStrategyCard';
+import { PlanVsSimulationPaceChart } from '@/components/charts/PlanVsSimulationPaceChart';
 import { RaceTimeEstimateCard } from '@/components/RaceTimeEstimateCard';
 import { TriathlonFullRaceSimulationCard } from '@/components/TriathlonFullRaceSimulationCard';
 import { PacingEnvelopeCard } from '@/components/PacingEnvelopeCard';
