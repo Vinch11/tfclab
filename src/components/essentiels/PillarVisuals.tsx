@@ -70,17 +70,23 @@ function VO2VlamaxMap({ p }: { p: PillarData }) {
     return <EmptyChart label="VO₂max + VLamax requis" />;
   }
 
-  // Zones d'identité : explosive (haut/droite), équilibré (centre), endurant (bas/gauche)
+  // Zones d'identité métabolique — bandes verticales basées uniquement sur VLamax
+  // (la couleur = profil métabolique, indépendant du VO₂max)
+  // Couleurs strictement alignées entre bandes et légende.
+  const ZONE_ENDURANT = "hsl(142 71% 45%)"; // emerald
+  const ZONE_EQUILIBRE = "hsl(38 92% 50%)"; // amber
+  const ZONE_EXPLOSIF = "hsl(0 84% 60%)"; // red
+
   const data = [{ vlamax: vla, vo2: vo2, name: "Toi" }];
 
   return (
-    <div className="h-44 relative">
+    <div className="h-52 relative">
       <ResponsiveContainer width="100%" height="100%">
-        <ScatterChart margin={{ top: 10, right: 16, bottom: 30, left: 30 }}>
-          {/* Zones colorées */}
-          <ReferenceArea x1={0.1} x2={0.4} y1={50} y2={80} fill="hsl(142 71% 45% / 0.12)" />
-          <ReferenceArea x1={0.4} x2={0.7} y1={45} y2={75} fill="hsl(38 92% 50% / 0.1)" />
-          <ReferenceArea x1={0.7} x2={1.2} y1={40} y2={70} fill="hsl(0 84% 60% / 0.1)" />
+        <ScatterChart margin={{ top: 24, right: 16, bottom: 30, left: 30 }}>
+          {/* Bandes verticales pleine hauteur, alignées sur les seuils VLamax */}
+          <ReferenceArea x1={0.1} x2={0.4} y1={35} y2={80} fill={ZONE_ENDURANT} fillOpacity={0.14} />
+          <ReferenceArea x1={0.4} x2={0.7} y1={35} y2={80} fill={ZONE_EQUILIBRE} fillOpacity={0.14} />
+          <ReferenceArea x1={0.7} x2={1.0} y1={35} y2={80} fill={ZONE_EXPLOSIF} fillOpacity={0.14} />
           <XAxis
             type="number"
             dataKey="vlamax"
@@ -111,10 +117,26 @@ function VO2VlamaxMap({ p }: { p: PillarData }) {
           </Scatter>
         </ScatterChart>
       </ResponsiveContainer>
-      <div className="absolute top-1 right-2 flex flex-col gap-0.5 text-[9px] pointer-events-none">
-        <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Endurant</span>
-        <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400">Équilibré</span>
-        <span className="px-1.5 py-0.5 rounded bg-red-500/15 text-red-700 dark:text-red-400">Explosif</span>
+      {/* Légende horizontale alignée sur les bandes — couleurs identiques aux ReferenceArea */}
+      <div className="absolute top-0 left-0 right-0 flex justify-around px-8 text-[9px] font-medium pointer-events-none">
+        <span
+          className="px-1.5 py-0.5 rounded"
+          style={{ backgroundColor: "hsl(142 71% 45% / 0.18)", color: ZONE_ENDURANT }}
+        >
+          Endurant
+        </span>
+        <span
+          className="px-1.5 py-0.5 rounded"
+          style={{ backgroundColor: "hsl(38 92% 50% / 0.18)", color: "hsl(38 92% 35%)" }}
+        >
+          Équilibré
+        </span>
+        <span
+          className="px-1.5 py-0.5 rounded"
+          style={{ backgroundColor: "hsl(0 84% 60% / 0.18)", color: ZONE_EXPLOSIF }}
+        >
+          Explosif
+        </span>
       </div>
     </div>
   );
