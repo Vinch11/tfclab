@@ -150,7 +150,7 @@ function bikeWatts(envelope: PacingEnvelopeResult, ftp: number, intensityFactor:
 // (paceThr = allure seuil) pour produire une allure cible cohérente.
 const VCS_OVER_VMA = 0.90;
 
-function runPace(envelope: PacingEnvelopeResult, paceThr: number, intensityFactor: number, format?: RaceObjective) {
+export function runPace(envelope: PacingEnvelopeResult, paceThr: number, intensityFactor: number, format?: RaceObjective) {
   // Fix unité : pour le run, l'enveloppe expose des % de VMA. paceThr est l'allure seuil.
   // pctSeuil = pctVMA / VCS_OVER_VMA  (un % de VMA donne un % de seuil plus élevé, car seuil < VMA).
   const toPctSeuil = (pct: number) => (envelope.sport === "run" ? pct / VCS_OVER_VMA : pct);
