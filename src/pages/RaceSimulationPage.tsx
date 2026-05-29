@@ -726,7 +726,7 @@ export default function RaceSimulationPage() {
                     vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore,
                     fatigueIndex: null, raceObjective, sport: discipline,
                     ftp: activeSnapshot?.ftp, vma: activeSnapshot?.vma,
-                    paceThreshold: activeSnapshot?.pace_threshold_sec_per_km,
+                    paceThreshold: (discipline === 'run' ? paceThresholdOverrideSecKm : null) ?? activeSnapshot?.pace_threshold_sec_per_km,
                     weight: activeSnapshot?.weight_kg,
                   }}
                   raceDurationMin={raceDurationMin}
