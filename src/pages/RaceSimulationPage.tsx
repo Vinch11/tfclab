@@ -384,7 +384,7 @@ export default function RaceSimulationPage() {
     if (discipline === 'run') return envelope;
     const cpWkg = activeSnapshot?.ftp && activeSnapshot?.weight_kg
       ? (activeSnapshot.ftp * 0.95) / activeSnapshot.weight_kg : null;
-    const paceThr = activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null;
+    const paceThr = paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null;
     return computePacingEnvelope({
       vlamaxEffectif: vlamaxRunEffectif ?? vlamaxEffectif, tteEffectif, fatmax,
       potentielPhysiologiqueScore, fatigueIndex: null,
