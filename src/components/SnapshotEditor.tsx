@@ -20,6 +20,7 @@ import { estimateVLamaxCap, canEstimateVLamaxCap } from "@/lib/v2/vlamaxCapEstim
 import { resolveRunningEconomy } from "@/lib/runningEconomySimple";
 import { RMSEExplainer } from "@/components/RMSEExplainer";
 import { RunningTestProtocolsGuide } from "@/components/RunningTestProtocolsGuide";
+import { ThresholdVmaCoherenceHint } from "@/components/diagnostic/ThresholdVmaCoherenceHint";
 import {
   Tooltip,
   TooltipContent,
