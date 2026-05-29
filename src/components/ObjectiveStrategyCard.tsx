@@ -251,7 +251,7 @@ function bikeCadence(label: string): string {
 
 // ─── Découpage par segment ────────────────────────────────────────────────────
 
-function runSegmentsForFormat(format: RaceObjective): { label: string; share: number }[] {
+export function runSegmentsForFormat(format: RaceObjective): { label: string; share: number }[] {
   // share = fraction de la distance/durée totale, doit sommer à 1
   if (format === "Marathon") {
     return [
