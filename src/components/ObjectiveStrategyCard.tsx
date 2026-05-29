@@ -86,7 +86,7 @@ interface PlanConfig {
 //  - 70.3      : -6% (Laursen 2011)
 //  - IM        : -7% (Mujika 2017, Laursen 2011)
 // Plan A splitBias = "even" pour IM (Hanley 2015), "negative" sinon.
-function getPlans(format: RaceObjective): PlanConfig[] {
+export function getPlans(format: RaceObjective): PlanConfig[] {
   const planBIntensity =
     format === "IM" ? 0.93 :
     format === "70.3" ? 0.94 :
