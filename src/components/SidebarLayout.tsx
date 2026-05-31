@@ -66,7 +66,8 @@ export function SidebarLayout({
                 Expert
               </Badge>
             )}
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              <VersionBadge />
               <ThemeToggle />
             </div>
           </header>
