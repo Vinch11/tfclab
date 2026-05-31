@@ -198,64 +198,74 @@ export function normalizeObjKey(obj: string): string {
 // === TIME TARGET HINTS BY OBJECTIVE × AMBITION × SEX ===
 export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: string }>> = {
   IM: {
-    finisher:   { M: "14h – 17h",       F: "14h30 – 17h30" },
-    age_group:  { M: "10h30 – 13h",     F: "11h – 14h" },
-    competitor: { M: "9h00 – 10h30",    F: "9h30 – 11h" },
-    elite:      { M: "Sub 8h45",        F: "Sub 9h30" },
+    finisher:    { M: "14h – 17h",       F: "14h30 – 17h30" },
+    age_group:   { M: "10h30 – 13h",     F: "11h – 14h" },
+    competitor:  { M: "9h00 – 10h30",    F: "9h30 – 11h" },
+    elite:       { M: "Sub 8h45",        F: "Sub 9h30" },
+    world_class: { M: "Sub 8h00",        F: "Sub 8h45" },
   },
   "703": {
-    finisher:   { M: "6h30 – 8h",       F: "7h00 – 8h30" },
-    age_group:  { M: "5h00 – 6h15",     F: "5h20 – 6h40" },
-    competitor: { M: "4h10 – 5h00",     F: "4h30 – 5h15" },
-    elite:      { M: "Sub 4h05",        F: "Sub 4h25" },
+    finisher:    { M: "6h30 – 8h",       F: "7h00 – 8h30" },
+    age_group:   { M: "5h00 – 6h15",     F: "5h20 – 6h40" },
+    competitor:  { M: "4h10 – 5h00",     F: "4h30 – 5h15" },
+    elite:       { M: "Sub 4h05",        F: "Sub 4h25" },
+    world_class: { M: "Sub 3h45",        F: "Sub 4h05" },
   },
   Marathon: {
-    finisher:   { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
-    age_group:  { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
-    competitor: { M: "3h00 – 3h30",    F: "3h18 – 3h50" },
-    elite:      { M: "Sub 2h45",       F: "Sub 3h05" },
+    finisher:    { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
+    age_group:   { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
+    competitor:  { M: "3h00 – 3h30",    F: "3h18 – 3h50" },
+    elite:       { M: "2h45 – 3h00",    F: "3h05 – 3h20" },
+    world_class: { M: "Sub 2h35",       F: "Sub 2h55" },
   },
   Semi: {
-    finisher:   { M: "2h00 – 2h30",    F: "2h10 – 2h45" },
-    age_group:  { M: "1h35 – 1h55",    F: "1h44 – 2h06" },
-    competitor: { M: "1h20 – 1h35",    F: "1h28 – 1h44" },
-    elite:      { M: "Sub 1h18",       F: "Sub 1h26" },
+    finisher:    { M: "2h00 – 2h30",    F: "2h10 – 2h45" },
+    age_group:   { M: "1h35 – 1h55",    F: "1h44 – 2h06" },
+    competitor:  { M: "1h20 – 1h35",    F: "1h28 – 1h44" },
+    elite:       { M: "1h12 – 1h20",    F: "1h20 – 1h28" },
+    world_class: { M: "Sub 1h08",       F: "Sub 1h17" },
   },
   "10K": {
-    finisher:   { M: "55' – 1h10",     F: "1h00 – 1h17" },
-    age_group:  { M: "45' – 52'",      F: "49' – 57'" },
-    competitor: { M: "38' – 44'",      F: "42' – 48'" },
-    elite:      { M: "Sub 36'",        F: "Sub 40'" },
+    finisher:    { M: "55' – 1h10",     F: "1h00 – 1h17" },
+    age_group:   { M: "45' – 52'",      F: "49' – 57'" },
+    competitor:  { M: "38' – 44'",      F: "42' – 48'" },
+    elite:       { M: "33' – 37'",      F: "37' – 41'" },
+    world_class: { M: "Sub 31'",        F: "Sub 35'" },
   },
   "5K": {
-    finisher:   { M: "28' – 35'",      F: "30' – 38'" },
-    age_group:  { M: "22' – 26'",      F: "24' – 29'" },
-    competitor: { M: "18' – 21'",      F: "20' – 23'" },
-    elite:      { M: "Sub 17'",        F: "Sub 19'" },
+    finisher:    { M: "28' – 35'",      F: "30' – 38'" },
+    age_group:   { M: "22' – 26'",      F: "24' – 29'" },
+    competitor:  { M: "18' – 21'",      F: "20' – 23'" },
+    elite:       { M: "16' – 18'",      F: "18' – 20'" },
+    world_class: { M: "Sub 15'",        F: "Sub 17'" },
   },
   Trail: {
-    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
-    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
-    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
-    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+    finisher:    { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:   { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor:  { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:       { M: "2h50 – 3h15",    F: "3h10 – 3h35" },
+    world_class: { M: "Sub 2h45",       F: "Sub 3h05" },
   },
   TrailShort: {
-    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
-    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
-    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
-    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+    finisher:    { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:   { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor:  { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:       { M: "2h50 – 3h15",    F: "3h10 – 3h35" },
+    world_class: { M: "Sub 2h45",       F: "Sub 3h05" },
   },
   TrailMountain: {
-    finisher:   { M: "12h – 16h",      F: "13h – 17h30" },
-    age_group:  { M: "9h – 11h30",     F: "10h – 12h40" },
-    competitor: { M: "7h – 9h",        F: "7h45 – 10h" },
-    elite:      { M: "Sub 6h30",       F: "Sub 7h10" },
+    finisher:    { M: "12h – 16h",      F: "13h – 17h30" },
+    age_group:   { M: "9h – 11h30",     F: "10h – 12h40" },
+    competitor:  { M: "7h – 9h",        F: "7h45 – 10h" },
+    elite:       { M: "6h – 7h",        F: "6h40 – 7h45" },
+    world_class: { M: "Sub 5h45",       F: "Sub 6h25" },
   },
   TrailUltra: {
-    finisher:   { M: "30h – 46h",      F: "33h – 50h" },
-    age_group:  { M: "22h – 30h",      F: "24h – 33h" },
-    competitor: { M: "18h – 22h",      F: "20h – 24h" },
-    elite:      { M: "Sub 17h",        F: "Sub 19h" },
+    finisher:    { M: "30h – 46h",      F: "33h – 50h" },
+    age_group:   { M: "22h – 30h",      F: "24h – 33h" },
+    competitor:  { M: "18h – 22h",      F: "20h – 24h" },
+    elite:       { M: "15h – 18h",      F: "17h – 20h" },
+    world_class: { M: "Sub 14h30",      F: "Sub 16h30" },
   },
 };
 
@@ -268,18 +278,22 @@ export function getTimeTargetHint(objective: string, ambition: string, sex?: str
 }
 
 // FIX #2-amb: Normalize accented chars (é→e, è→e) before matching
+// world_class = NOUVEAU palier "Elite" UI (top 3% AG). Doit être détecté AVANT `elite`
+// car certains alias historiques ("worldclass") contiennent la sous-chaîne "class"/"world".
 export function normalizeAmbKey(amb: string): string {
   const lower = amb.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z_]/g, "");
+  if (lower.includes("world") || lower.includes("monde") || lower.includes("mondial") || lower === "wc") return "world_class";
   if (lower.includes("elite") || lower.includes("pro") || lower.includes("qualif")) return "elite";
   if (lower.includes("compet") || lower.includes("comp")) return "competitor";
-  if (lower.includes("age") || lower.includes("group") || lower.includes("intermediaire")) return "age_group";
-  if (lower.includes("finisher") || lower.includes("fin")) return "finisher";
+  if (lower.includes("age") || lower.includes("group") || lower.includes("intermediaire") || lower.includes("confirme") || lower.includes("confirmed")) return "age_group";
+  if (lower.includes("finisher") || lower.includes("fin") || lower.includes("decouverte") || lower.includes("discovery")) return "finisher";
   return "age_group"; // safer default than "finisher"
 }
 
 // === AMBITION SCALING FACTORS for deriving standard session durations from catalog ===
-// Elite uses full catalog range, lower levels scale down proportionally
+// world_class (top 3%) > elite (top 10%) > competitor > age_group > finisher
 export const AMBITION_SCALE: Record<string, number> = {
+  world_class: 1.10,
   elite: 1.0,
   competitor: 0.85,
   age_group: 0.70,
