@@ -485,7 +485,7 @@ export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
 export function getVo2maxTarget(objectif: string, ambition: string, age: number | null = null): number {
   const normalized = normalizeObjective(objectif);
   const targets = VO2MAX_TARGETS[normalized] || VO2MAX_TARGETS["703"];
-  const baseTarget = targets[ambition] || targets.age_group;
+  const baseTarget = targets[ambition] ?? targets.world_class ?? targets.elite ?? targets.age_group;
   
   const ageFactor = getVo2maxAgeFactor(age);
   return Math.round(baseTarget * ageFactor * 10) / 10;
