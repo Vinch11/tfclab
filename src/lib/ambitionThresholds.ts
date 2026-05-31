@@ -118,11 +118,14 @@ export function evaluateReadiness(
   potentielScore: number | null,
   ambition: AmbitionLevel = DEFAULT_AMBITION
 ): MetricEvaluation {
+  // Seuils Potentiel Physiologique alignés sur les 5 paliers d'ambition
+  // (Découverte → Confirmé → Compétiteur → Qualifiable → Elite top 3%)
   const potentielThresholds: Record<AmbitionLevel, { ok: number; warning: number }> = {
-    finisher: { ok: 65, warning: 45 },
-    age_group: { ok: 75, warning: 55 },
-    competitor: { ok: 82, warning: 65 },
-    elite: { ok: 88, warning: 72 },
+    finisher:    { ok: 60, warning: 40 },   // Découverte
+    age_group:   { ok: 72, warning: 52 },   // Confirmé
+    competitor:  { ok: 80, warning: 62 },   // Compétiteur
+    elite:       { ok: 86, warning: 70 },   // Qualifiable
+    world_class: { ok: 92, warning: 78 },   // Elite (top 3%)
   };
   
   const thresholds = potentielThresholds[ambition];

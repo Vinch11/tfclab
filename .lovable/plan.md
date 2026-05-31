@@ -1,118 +1,95 @@
+# Refonte des paliers d'ambition (5 niveaux — Option A)
+
 ## Objectif
 
-Permettre d'adapter un plan IA en cours de préparation via deux mécanismes complémentaires :
-- **Option 1** : Patch local déterministe (zéro IA) pour ajustements mineurs
-- **Option 2** : Régénération partielle ciblée (IA légère, fenêtre 3-4 sem) pour changements physiologiques significatifs
+Remplacer les 4 paliers actuels (`finisher` / `age_group` / `competitor` / `elite`) par 5 paliers ancrés sur des **percentiles AG réels**, afin d'éviter le cas Quentin (classé "competitor" mais visant un slot Mondial qui correspond en réalité au top 3%).
 
-Le tout sans dégrader la qualité ni fatiguer l'IA.
+## Nouvelle grille
 
----
+| Clé technique | Label | Icône | Percentile AG cible |
+|---|---|---|---|
+| `discovery` | Découverte | 🌱 | Finisher dans les temps officiels |
+| `confirmed` | Confirmé | 🎯 | Top 50% AG |
+| `competitor` | Compétiteur | 🏆 | Top 25% AG |
+| `qualifiable` | Qualifiable | 🎟️ | Top 10% AG — slot National/Européen accessible |
+| `elite` | Elite | 👑 | Top 3% AG — slot Mondial / podium overall |
 
-## Architecture
+## Stratégie de migration des athlètes existants
 
-```text
-src/engines/plan/
-├─ planPatcher.ts              ← NEW (Option 1: transformations déterministes)
-├─ planPatcher.test.ts         ← NEW
-├─ planWindowRegen.ts          ← NEW (Option 2: orchestration fenêtre IA)
-└─ planAdaptationJournal.ts    ← NEW (garde-fou anti-cascade)
+Auto-remap silencieux par mapping déterministe (pas de re-sélection forcée) :
 
-src/hooks/
-└─ usePlanAdaptation.ts        ← NEW (façade unifiée patch | window-regen)
-
-src/components/plan/
-└─ PlanAdaptationDialog.tsx    ← NEW (UI coach: choix patch vs window-regen)
-
-supabase/migrations/
-└─ plan_adaptations table     ← NEW (journal des adaptations)
+```
+finisher    → discovery
+age_group   → confirmed
+competitor  → competitor   (inchangé — clé conservée)
+elite       → qualifiable  (plus juste : "elite" actuel ≈ slot National, pas Mondial)
 ```
 
----
+Le palier `elite` réel (top 3%) reste vide par défaut — sélection manuelle requise pour les rares athlètes concernés. Justification : l'ancien `elite` était sur-utilisé et trompeur (cas Quentin).
 
-## Option 1 — planPatcher.ts (déterministe)
+## Périmètre v1
 
-Fonctions pures qui transforment `plan_json` sans appel IA :
+Déploiement sur **tous les objectifs running + triathlon** simultanément (IM, 70.3, Marathon, Semi, 10K, 5K, Trail, TrailShort, TrailMountain). Pas de feature flag — refactor complet d'un coup pour éviter incohérences entre composants.
 
-| Fonction | Déclencheur | Effet |
-|---|---|---|
-| `applyDeload(plan, fromWeek, intensity)` | Fatigue détectée | Réduit TSS sem N+1 de 20-40% |
-| `redistributeMissedTSS(plan, missedDate)` | Séance manquée | Re-répartit TSS sur 3 jours suivants (max +15%/jour) |
-| `swapModality(plan, sessionId, newModality)` | Blessure mineure | Bike↔Run↔Swim avec conservation TSS |
-| `shiftRaceDate(plan, newDate)` | Décalage course | Re-calibre taper (3 dernières semaines) |
-| `truncateAfterWeek(plan, week)` | Préparation Window regen | Coupe le plan à la semaine N |
+## Changements techniques
 
-Contraintes :
-- Garantit invariants : Σ TSS hebdo respecte ramp, jours OFF préservés
-- Retourne `{ plan, diff: PatchDiff[], warnings: string[] }`
-- Aucune nouvelle séance créée — uniquement transformations
+### 1. Source unique — `src/types/ambitionLevel.ts`
+- `AmbitionLevel` : nouveau union type (5 clés)
+- `AMBITION_DEFINITIONS` : 5 entrées avec icônes/couleurs/descriptions
+- `AMBITION_LEVELS_ORDERED` : ordre `[discovery, confirmed, competitor, qualifiable, elite]`
+- `DEFAULT_AMBITION` : `confirmed` (au lieu de `age_group`)
+- `AMBITION_ALIASES` : ajout des anciennes clés pour rétrocompatibilité auto-remap (`finisher → discovery`, `age_group → confirmed`, `elite → qualifiable`)
+- `RUNNING_TIME_HINTS` : recalibrer les 5 lignes par objectif (utiliser les chronos issus de la grille Quentin/Mondial 70.3 et benchmarks marathon/semi/10K/5K France 2024)
 
----
+### 2. Seuils physiologiques — `src/lib/physiologicalTargets.ts`
+- `getTargetsForAmbition` : ajouter les valeurs FTP/kg, VMA, TTE, VO2max pour les 5 paliers par objectif
+- `getVLamaxRange` : idem (5 plages par objectif)
+- Calibrer `qualifiable` ≈ ancien `elite`, et `elite` ≈ +1 cran (top 3%)
 
-## Option 2 — planWindowRegen.ts (IA légère)
+### 3. UI sélecteurs (rétrocompatibles automatiquement via `AMBITION_DEFINITIONS`)
+- `src/components/QuickAmbitionSelector.tsx` — aucune modif (boucle sur `AMBITION_LEVELS_ORDERED`)
+- Onboarding ambition screens (si présents) — vérifier la grille
 
-Régénère une fenêtre de 3-4 semaines via l'edge function existante `ai-training-plan`, **sans toucher** le reste :
+### 4. Seuils Potentiel Physiologique — `src/lib/ambitionThresholds.ts`
+- `evaluateReadiness` : étendre `potentielThresholds` aux 5 clés
+  - `discovery: { ok: 55, warning: 35 }`
+  - `confirmed: { ok: 70, warning: 50 }`
+  - `competitor: { ok: 80, warning: 62 }`
+  - `qualifiable: { ok: 86, warning: 70 }`
+  - `elite: { ok: 92, warning: 78 }`
 
-1. **Préserve passé** : sem 1 → N-1 inchangées
-2. **Régénère fenêtre** : sem N → N+windowSize via prompt allégé incluant :
-   - Résumé condensé des semaines passées (TSS moyen, séances clés, fatigue observée)
-   - Snapshot physiologique courant
-   - Catalogue filtré pour ces semaines uniquement (~30 séances)
-   - Contraintes : continuité avec sem N-1, raccord propre vers sem N+windowSize+1 (si existe)
-3. **Recolle** : concatène past + window + future
+### 5. Moteurs en aval (vérification + extension)
+- `src/lib/v2/unifiedLimiterDetection.ts` — `getVo2maxTarget(objectif, ambition, age)` : étendre à 5 paliers
+- `src/lib/coachingCompass/` — vérifier scoring
+- `supabase/functions/ai-training-plan/vlamaxTargets.ts` — étendre matrice cibles VLamax
+- `src/lib/eliteReferences.ts` — vérifier mapping
 
-Mécanisme : nouveau param `regenWindow: { fromWeek, toWeek, pastSummary, futureAnchor }` ajouté côté edge function. ~30% tokens vs régénération complète.
+### 6. Persistence DB
+- Aucune migration de schéma : champ `ambition` est déjà `text` libre dans `athletes`/`refs`
+- Les anciennes valeurs sont auto-remappées à la lecture via `normalizeAmbitionLevel`
+- Pas d'écriture batch — la nouvelle clé sera écrite au prochain save manuel
 
----
+### 7. Prompt IA (no token bloat)
+- `planConfigBuilder` injecte uniquement le label résolu + les 3 cibles physio numériques (FTP/kg, VMA, VLamax-max) issues de `getTargetsForAmbition` — pas la grille complète
+- Aucune dégradation tokens attendue (déjà la pratique actuelle pour 4 paliers)
 
-## Garde-fou : planAdaptationJournal
-
-Table `plan_adaptations` :
-```sql
-- id, athlete_id, plan_id
-- type: 'patch' | 'window_regen'
-- triggered_by: 'fatigue' | 'missed_session' | 'physio_drift' | ...
-- diff_json, reason
-- created_at
-```
-
-Règles :
-- Max **2 window-regens / 28 jours** (sinon force patch ou propose plan complet)
-- Max **5 patches consécutifs** sans window-regen
-- Affichage timeline dans UI coach
-
----
-
-## Intégration UI
-
-`PlanAdaptationDialog` déclenché par :
-- Bouton manuel "Adapter le plan" sur dashboard coach
-- Auto-suggéré par `usePlanSnapshotSync` selon ampleur du drift :
-  - Drift < 10% → propose **patch**
-  - Drift ≥ 10% → propose **window-regen** (fenêtre courante + 2 sem)
-  - Drift ≥ 25% → propose **régénération complète**
-
-Dialog affiche :
-- Diff visuel des semaines impactées
-- Estimation coût (patch = instantané, window = ~15s)
-- Confirmation coach avant application
-
----
+### 8. Memory update
+- Créer `mem://logic/ambition-tiers-5-levels-percentile-based` documentant la grille + mapping legacy
+- Mettre à jour l'index mémoire
 
 ## Tests
 
-- `planPatcher.test.ts` : invariants TSS, ramp, conservation jours OFF
-- `planWindowRegen.test.ts` : continuité sem N-1 ↔ N (raccord TSS, modalités)
-- Snapshot test : journal correctement écrit après chaque adaptation
+- `src/lib/__tests__/` : ajouter test `ambitionLevel.normalize.test.ts` couvrant le remap legacy (`finisher → discovery`, etc.)
+- Vérifier `physiologicalTargets` : 5 paliers × N objectifs renvoient des cibles monotones croissantes
+- Smoke test : générer un plan IA pour un athlète `qualifiable` 70.3 → vérifier que les cibles physio sont plus exigeantes que `competitor`
 
----
+## Hors périmètre v1
 
-## Livraison incrémentale
+- Refonte du screen onboarding "choix d'ambition" (juste textes/hints mis à jour, pas de refactor visuel)
+- Distinction "Slot National" vs "Slot Continental" vs "Slot Mondial" → reportée v2 si besoin
+- Recalibrage des benchmarks Trail (utilise pour l'instant les valeurs courantes ajustées)
 
-1. Migration DB `plan_adaptations`
-2. `planPatcher.ts` + tests (Option 1 complète, utilisable immédiatement)
-3. `planAdaptationJournal.ts`
-4. `planWindowRegen.ts` + adaptation edge function `ai-training-plan` (param `regenWindow`)
-5. `usePlanAdaptation.ts` + `PlanAdaptationDialog.tsx`
-6. Branchement auto-suggestion dans `usePlanSnapshotSync`
+## Risques & mitigations
 
-Chaque étape testable indépendamment.
+- **Athlètes anciennement `elite` rétrogradés en `qualifiable`** : c'est volontaire (réaliste), aucune perte de données, le coach peut promouvoir manuellement vers `elite` si justifié
+- **Tests existants** sur 4 paliers : ajouter cas pour `discovery`/`qualifiable`, garder rétrocompat via aliases

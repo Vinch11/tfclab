@@ -33,7 +33,7 @@ interface DisciplineAudit {
   defaultStrategy: SplitStrategy;
   splits: SplitRow[];
   // Variantes par ambition (uniquement IM run pour l'instant)
-  ambitionVariants?: Record<AmbitionLevel, { strategy: SplitStrategy; firstPortion: string; tolerance: string; note: string }>;
+  ambitionVariants?: Partial<Record<AmbitionLevel, { strategy: SplitStrategy; firstPortion: string; tolerance: string; note: string }>>;
   scientificBasis: { title: string; refs: string[]; rationale: string }[];
   modelHypotheses: string[];
   bibliography: { author: string; year: number; topic: string }[];
