@@ -1058,10 +1058,17 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (isTriathlon) {
     lines.push("\n### 🔥🔥🔥 DOUBLES/TRIPLES SÉANCES — RÈGLE #1 LA PLUS IMPORTANTE 🔥🔥🔥");
     lines.push("Un plan triathlon IM/70.3 n'est PAS un plan de course à pied. Un triathlète s'entraîne PLUSIEURS FOIS PAR JOUR.");
-    lines.push("⛔ Un jour avec 1 seule séance (hors repos) est une ERREUR GRAVE pour Elite/Competitor.");
+    lines.push("⛔ Un jour avec 1 seule séance (hors repos) est une ERREUR GRAVE pour World Class/Elite/Competitor.");
     lines.push("");
-    if (ambition === "elite") {
-      lines.push("Ambition ELITE → minimum 14-16 séances/semaine, 10-14 doubles ou triples.");
+    if (ambition === "world_class" || ambition === "worldclass" || ambition === "world-class") {
+      lines.push("Ambition WORLD CLASS (top 3% AG) → minimum 18-22 séances/semaine, 12-16 doubles et 2-4 triples par semaine.");
+      lines.push("- CHAQUE jour (sauf 1 jour repos absolu) DOIT avoir 2 ou 3 séances.");
+      lines.push("- Référence directe : semaine-type Frodeno/Blummenfelt en pic de prépa Kona/Mondial.");
+      lines.push("- Volume cible : 26-34h/sem. Nat 5-6 séances, Vélo 5-6, CAP 4-5, Renfo 2-3.");
+      lines.push("- Triples obligatoires 3-4 fois/sem : Nat matin + Vélo midi + CAP soir.");
+      lines.push("- Inclure 1-2 micro-cycles 'choc' (3 jours doubles + 1 jour triple).");
+    } else if (ambition === "elite") {
+      lines.push("Ambition ELITE (top 10% AG) → minimum 14-16 séances/semaine, 10-14 doubles ou triples.");
       lines.push("- Chaque jour (sauf repos) DOIT avoir 2 ou 3 séances séparées.");
       lines.push("- Utilise la semaine-type Frodeno/Blummenfelt comme référence directe.");
       lines.push("- Volume cible : 22-30h/sem. Nat 4-5 séances, Vélo 4-5, CAP 3-4, Renfo 2-3.");
@@ -1080,7 +1087,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     }
     lines.push("- Format : UNE LIGNE PAR SÉANCE dans le tableau. 'Mardi matin', 'Mardi midi', 'Mardi soir' = 3 lignes séparées.");
     lines.push("- JAMAIS 2 intensités le même jour sauf brique planifiée.");
-    lines.push("- Le tableau d'une semaine Elite IM doit avoir 14-18 lignes (pas 7 !).");
+    lines.push("- Le tableau d'une semaine Elite/World Class IM doit avoir 14-20 lignes (pas 7 !).");
   }
 
   const weeks = config.weeksAvailable || 12;
