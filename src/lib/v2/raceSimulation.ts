@@ -981,7 +981,27 @@ export function computeRaceSimulation(input: RaceSimulationInput): RaceSimulatio
   
   const distanceKm = input.distanceKm ?? RACE_DISTANCES[raceType];
   const baseIntensity = AMBITION_INTENSITY[raceType]?.[input.ambition] ?? 70;
-  const baseDuration = input.targetDurationMin ?? REFERENCE_DURATIONS[raceType]?.[input.ambition] ?? 180;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Durée de référence : priorité à la physiologie réelle de l'athlète.
+  // Pour les courses CAP (10km/Semi/Marathon), AMBITION_INTENSITY = %VMA → on
+  // dérive le temps cible depuis VMA × %VMA plutôt qu'une table figée par
+  // ambition (qui sous-estimait grossièrement les athlètes à VMA élevée).
+  // Fallback à REFERENCE_DURATIONS uniquement si VMA absente.
+  // ─────────────────────────────────────────────────────────────────────────────
+  const isRunRace = raceType === '10km' || raceType === 'Semi' || raceType === 'Marathon';
+  let physioDuration: number | null = null;
+  if (isRunRace && input.vma != null && input.vma > 0) {
+    const targetSpeedKmh = input.vma * (baseIntensity / 100);
+    if (targetSpeedKmh > 0) {
+      physioDuration = (distanceKm / targetSpeedKmh) * 60; // min
+    }
+  }
+  const baseDuration =
+    input.targetDurationMin
+    ?? physioDuration
+    ?? REFERENCE_DURATIONS[raceType]?.[input.ambition]
+    ?? 180;
   
   // Récupérer les modificateurs Potentiel Physiologique
   const readinessModifiers = input.readinessModifiers;
