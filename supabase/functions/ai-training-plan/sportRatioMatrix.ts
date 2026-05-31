@@ -43,6 +43,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   // SL Bike doit simuler la durée de course ou 70-80% de celle-ci (Neal 2020, Laursen 2002)
   // SL Run = max 2.5-3h pour limiter le risque blessure (Mujika 2018, Billat 2001)
   IM: {
+    world_class:{ weeklyHours: [24,34], sessionsPerWeek: [14,20], keySessions: [3,5], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { longBikeMin: [330,450], longRunMin: [150,195], longSwimM: [4500,5500], weeklyKmRun: [80,150], weeklyKmBike: [350,650] } },
     elite:      { weeklyHours: [20,30], sessionsPerWeek: [12,16], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
       durations: { longBikeMin: [300,420], longRunMin: [135,180], longSwimM: [4000,5000], weeklyKmRun: [60,120], weeklyKmBike: [300,550] } },
     competitor: { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
@@ -57,6 +59,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   // SL Bike = 80-100% de la durée course visée (Laursen 2002)
   // SL Run = 1.5-2h suffisant pour les adaptations LD (Seiler 2010, Billat 2001)
   "703": {
+    world_class:{ weeklyHours: [18,26], sessionsPerWeek: [12,17], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { longBikeMin: [240,330], longRunMin: [110,150], longSwimM: [4000,5000], weeklyKmRun: [65,110], weeklyKmBike: [300,550] } },
     elite:      { weeklyHours: [15,22], sessionsPerWeek: [10,14], keySessions: [3,3], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
       durations: { longBikeMin: [210,300], longRunMin: [100,135], longSwimM: [3500,4500], weeklyKmRun: [50,90], weeklyKmBike: [250,450] } },
     competitor: { weeklyHours: [10,16], sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
@@ -68,6 +72,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   },
   // ═══ MARATHON ═══ (Haugen 2022: Elite 160-220km/sem, Tjelta 2016: 80% Z1-Z2)
   Marathon: {
+    world_class:{ weeklyHours: [14,19], sessionsPerWeek: [11,15], keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [150,180], weeklyKmRun: [160,260] } },
     elite:      { weeklyHours: [12,16], sessionsPerWeek: [10,13], keySessions: [3,3], progressionPct: [5,8],
       durations: { longRunMin: [135,165], weeklyKmRun: [130,220] } },
     competitor: { weeklyHours: [8,12],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
@@ -78,6 +84,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [75,105], weeklyKmRun: [25,50] } },
   },
   Semi: {
+    world_class:{ weeklyHours: [12,17], sessionsPerWeek: [9,13],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [100,135], weeklyKmRun: [120,190] } },
     elite:      { weeklyHours: [10,14], sessionsPerWeek: [8,11],  keySessions: [3,3], progressionPct: [5,8],
       durations: { longRunMin: [90,120], weeklyKmRun: [100,160] } },
     competitor: { weeklyHours: [7,10],  sessionsPerWeek: [6,8],   keySessions: [2,2], progressionPct: [5,7],
@@ -88,6 +96,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [50,75], weeklyKmRun: [20,40] } },
   },
   "10K": {
+    world_class:{ weeklyHours: [10,14], sessionsPerWeek: [9,12],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [85,110], weeklyKmRun: [110,170] } },
     elite:      { weeklyHours: [9,12],  sessionsPerWeek: [8,10],  keySessions: [2,3], progressionPct: [5,7],
       durations: { longRunMin: [75,100], weeklyKmRun: [90,140] } },
     competitor: { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [5,5],
@@ -99,6 +109,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   },
   // ═══ 5K ═══ (Tjelta 2016: Elite 80-120km/sem, high VO2max focus)
   "5K": {
+    world_class:{ weeklyHours: [9,13],  sessionsPerWeek: [8,12],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [70,95], weeklyKmRun: [100,150] } },
     elite:      { weeklyHours: [8,11],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
       durations: { longRunMin: [60,80], weeklyKmRun: [80,120] } },
     competitor: { weeklyHours: [5,8],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [5,5],
@@ -110,6 +122,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   },
   // ═══ TRAIL ═══
   Trail: {
+    world_class:{ weeklyHours: [14,21], sessionsPerWeek: [9,13],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [180,240], weeklyKmRun: [100,170] } },
     elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
       durations: { longRunMin: [150,210], weeklyKmRun: [80,140] } },
     competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
@@ -120,6 +134,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
   },
   TrailShort: {
+    world_class:{ weeklyHours: [14,21], sessionsPerWeek: [9,13],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [180,240], weeklyKmRun: [100,170] } },
     elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
       durations: { longRunMin: [150,210], weeklyKmRun: [80,140] } },
     competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
@@ -130,6 +146,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
   },
   TrailMountain: {
+    world_class:{ weeklyHours: [16,23], sessionsPerWeek: [9,14],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [210,330], weeklyKmRun: [85,150] } },
     elite:      { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8],
       durations: { longRunMin: [180,300], weeklyKmRun: [70,120] } },
     competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7],
@@ -140,6 +158,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [90,150], weeklyKmRun: [20,40] } },
   },
   TrailUltra: {
+    world_class:{ weeklyHours: [18,26], sessionsPerWeek: [9,14],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [270,480], weeklyKmRun: [100,180] } },
     elite:      { weeklyHours: [15,22], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8],
       durations: { longRunMin: [240,420], weeklyKmRun: [80,150] } },
     competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7],
