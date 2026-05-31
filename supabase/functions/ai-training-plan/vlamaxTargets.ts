@@ -7,7 +7,8 @@
 export type AmbitionLevel = "finisher" | "age_group" | "competitor" | "elite" | "world_class";
 export interface VLamaxRange { min: number; max: number; optimal: number }
 
-const VLAMAX_TABLE: Record<string, Record<AmbitionLevel, VLamaxRange>> = {
+// world_class est dérivé en runtime depuis `elite` via multiplicateur ×0.92 — pas d'entrée explicite requise
+const VLAMAX_TABLE: Record<string, Partial<Record<AmbitionLevel, VLamaxRange>>> = {
   IM: {
     finisher:   { min: 0.35, max: 0.60, optimal: 0.48 },
     age_group:  { min: 0.30, max: 0.50, optimal: 0.40 },
@@ -72,7 +73,7 @@ export function getVLamaxRangeForPlan(
   const ambKey = (ambition || "age_group").toLowerCase() as AmbitionLevel;
   // world_class : applique multiplicateur ×0.92 (top 3%) sur la base elite
   if (ambKey === "world_class") {
-    const eliteBase = VLAMAX_TABLE[key]?.elite ?? VLAMAX_TABLE["703"].elite;
+    const eliteBase = (VLAMAX_TABLE[key]?.elite ?? VLAMAX_TABLE["703"].elite)!;
     const wc: VLamaxRange = {
       min: +(eliteBase.min * 0.95).toFixed(2),
       max: +(eliteBase.max * 0.95).toFixed(2),
@@ -83,6 +84,6 @@ export function getVLamaxRangeForPlan(
   const ambResolved: AmbitionLevel = (["finisher", "age_group", "competitor", "elite"] as AmbitionLevel[]).includes(ambKey)
     ? ambKey
     : "age_group";
-  const base = VLAMAX_TABLE[key]?.[ambResolved as Exclude<AmbitionLevel, "world_class">] ?? VLAMAX_TABLE["703"].age_group;
+  const base = (VLAMAX_TABLE[key]?.[ambResolved as Exclude<AmbitionLevel, "world_class">] ?? VLAMAX_TABLE["703"].age_group)!;
   return applySportOffset(base, sport ?? undefined);
 }

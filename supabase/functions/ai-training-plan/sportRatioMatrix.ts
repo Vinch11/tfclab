@@ -43,6 +43,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   // SL Bike doit simuler la durée de course ou 70-80% de celle-ci (Neal 2020, Laursen 2002)
   // SL Run = max 2.5-3h pour limiter le risque blessure (Mujika 2018, Billat 2001)
   IM: {
+    world_class:{ weeklyHours: [24,34], sessionsPerWeek: [14,20], keySessions: [3,5], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
+      durations: { longBikeMin: [330,450], longRunMin: [150,195], longSwimM: [4500,5500], weeklyKmRun: [80,150], weeklyKmBike: [350,650] } },
     elite:      { weeklyHours: [20,30], sessionsPerWeek: [12,16], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
       durations: { longBikeMin: [300,420], longRunMin: [135,180], longSwimM: [4000,5000], weeklyKmRun: [60,120], weeklyKmBike: [300,550] } },
     competitor: { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [45,55], runPct: [25,35],
@@ -57,6 +59,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   // SL Bike = 80-100% de la durée course visée (Laursen 2002)
   // SL Run = 1.5-2h suffisant pour les adaptations LD (Seiler 2010, Billat 2001)
   "703": {
+    world_class:{ weeklyHours: [18,26], sessionsPerWeek: [12,17], keySessions: [3,4], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
+      durations: { longBikeMin: [240,330], longRunMin: [110,150], longSwimM: [4000,5000], weeklyKmRun: [65,110], weeklyKmBike: [300,550] } },
     elite:      { weeklyHours: [15,22], sessionsPerWeek: [10,14], keySessions: [3,3], progressionPct: [5,8], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
       durations: { longBikeMin: [210,300], longRunMin: [100,135], longSwimM: [3500,4500], weeklyKmRun: [50,90], weeklyKmBike: [250,450] } },
     competitor: { weeklyHours: [10,16], sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7], swimPct: [15,20], bikePct: [40,50], runPct: [30,40],
@@ -68,6 +72,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   },
   // ═══ MARATHON ═══ (Haugen 2022: Elite 160-220km/sem, Tjelta 2016: 80% Z1-Z2)
   Marathon: {
+    world_class:{ weeklyHours: [14,19], sessionsPerWeek: [11,15], keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [150,180], weeklyKmRun: [160,260] } },
     elite:      { weeklyHours: [12,16], sessionsPerWeek: [10,13], keySessions: [3,3], progressionPct: [5,8],
       durations: { longRunMin: [135,165], weeklyKmRun: [130,220] } },
     competitor: { weeklyHours: [8,12],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
@@ -78,6 +84,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [75,105], weeklyKmRun: [25,50] } },
   },
   Semi: {
+    world_class:{ weeklyHours: [12,17], sessionsPerWeek: [9,13],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [100,135], weeklyKmRun: [120,190] } },
     elite:      { weeklyHours: [10,14], sessionsPerWeek: [8,11],  keySessions: [3,3], progressionPct: [5,8],
       durations: { longRunMin: [90,120], weeklyKmRun: [100,160] } },
     competitor: { weeklyHours: [7,10],  sessionsPerWeek: [6,8],   keySessions: [2,2], progressionPct: [5,7],
@@ -88,6 +96,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [50,75], weeklyKmRun: [20,40] } },
   },
   "10K": {
+    world_class:{ weeklyHours: [10,14], sessionsPerWeek: [9,12],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [85,110], weeklyKmRun: [110,170] } },
     elite:      { weeklyHours: [9,12],  sessionsPerWeek: [8,10],  keySessions: [2,3], progressionPct: [5,7],
       durations: { longRunMin: [75,100], weeklyKmRun: [90,140] } },
     competitor: { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [5,5],
@@ -99,6 +109,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   },
   // ═══ 5K ═══ (Tjelta 2016: Elite 80-120km/sem, high VO2max focus)
   "5K": {
+    world_class:{ weeklyHours: [9,13],  sessionsPerWeek: [8,12],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [70,95], weeklyKmRun: [100,150] } },
     elite:      { weeklyHours: [8,11],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
       durations: { longRunMin: [60,80], weeklyKmRun: [80,120] } },
     competitor: { weeklyHours: [5,8],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [5,5],
@@ -110,6 +122,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
   },
   // ═══ TRAIL ═══
   Trail: {
+    world_class:{ weeklyHours: [14,21], sessionsPerWeek: [9,13],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [180,240], weeklyKmRun: [100,170] } },
     elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
       durations: { longRunMin: [150,210], weeklyKmRun: [80,140] } },
     competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
@@ -120,6 +134,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
   },
   TrailShort: {
+    world_class:{ weeklyHours: [14,21], sessionsPerWeek: [9,13],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [180,240], weeklyKmRun: [100,170] } },
     elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
       durations: { longRunMin: [150,210], weeklyKmRun: [80,140] } },
     competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
@@ -130,6 +146,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
   },
   TrailMountain: {
+    world_class:{ weeklyHours: [16,23], sessionsPerWeek: [9,14],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [210,330], weeklyKmRun: [85,150] } },
     elite:      { weeklyHours: [14,20], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8],
       durations: { longRunMin: [180,300], weeklyKmRun: [70,120] } },
     competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7],
@@ -140,6 +158,8 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
       durations: { longRunMin: [90,150], weeklyKmRun: [20,40] } },
   },
   TrailUltra: {
+    world_class:{ weeklyHours: [18,26], sessionsPerWeek: [9,14],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [270,480], weeklyKmRun: [100,180] } },
     elite:      { weeklyHours: [15,22], sessionsPerWeek: [8,12],  keySessions: [2,3], progressionPct: [5,8],
       durations: { longRunMin: [240,420], weeklyKmRun: [80,150] } },
     competitor: { weeklyHours: [10,16], sessionsPerWeek: [6,10],  keySessions: [2,3], progressionPct: [5,7],
@@ -178,64 +198,74 @@ export function normalizeObjKey(obj: string): string {
 // === TIME TARGET HINTS BY OBJECTIVE × AMBITION × SEX ===
 export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: string }>> = {
   IM: {
-    finisher:   { M: "14h – 17h",       F: "14h30 – 17h30" },
-    age_group:  { M: "10h30 – 13h",     F: "11h – 14h" },
-    competitor: { M: "9h00 – 10h30",    F: "9h30 – 11h" },
-    elite:      { M: "Sub 8h45",        F: "Sub 9h30" },
+    finisher:    { M: "14h – 17h",       F: "14h30 – 17h30" },
+    age_group:   { M: "10h30 – 13h",     F: "11h – 14h" },
+    competitor:  { M: "9h00 – 10h30",    F: "9h30 – 11h" },
+    elite:       { M: "Sub 8h45",        F: "Sub 9h30" },
+    world_class: { M: "Sub 8h00",        F: "Sub 8h45" },
   },
   "703": {
-    finisher:   { M: "6h30 – 8h",       F: "7h00 – 8h30" },
-    age_group:  { M: "5h00 – 6h15",     F: "5h20 – 6h40" },
-    competitor: { M: "4h10 – 5h00",     F: "4h30 – 5h15" },
-    elite:      { M: "Sub 4h05",        F: "Sub 4h25" },
+    finisher:    { M: "6h30 – 8h",       F: "7h00 – 8h30" },
+    age_group:   { M: "5h00 – 6h15",     F: "5h20 – 6h40" },
+    competitor:  { M: "4h10 – 5h00",     F: "4h30 – 5h15" },
+    elite:       { M: "Sub 4h05",        F: "Sub 4h25" },
+    world_class: { M: "Sub 3h45",        F: "Sub 4h05" },
   },
   Marathon: {
-    finisher:   { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
-    age_group:  { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
-    competitor: { M: "3h00 – 3h30",    F: "3h18 – 3h50" },
-    elite:      { M: "Sub 2h45",       F: "Sub 3h05" },
+    finisher:    { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
+    age_group:   { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
+    competitor:  { M: "3h00 – 3h30",    F: "3h18 – 3h50" },
+    elite:       { M: "2h45 – 3h00",    F: "3h05 – 3h20" },
+    world_class: { M: "Sub 2h35",       F: "Sub 2h55" },
   },
   Semi: {
-    finisher:   { M: "2h00 – 2h30",    F: "2h10 – 2h45" },
-    age_group:  { M: "1h35 – 1h55",    F: "1h44 – 2h06" },
-    competitor: { M: "1h20 – 1h35",    F: "1h28 – 1h44" },
-    elite:      { M: "Sub 1h18",       F: "Sub 1h26" },
+    finisher:    { M: "2h00 – 2h30",    F: "2h10 – 2h45" },
+    age_group:   { M: "1h35 – 1h55",    F: "1h44 – 2h06" },
+    competitor:  { M: "1h20 – 1h35",    F: "1h28 – 1h44" },
+    elite:       { M: "1h12 – 1h20",    F: "1h20 – 1h28" },
+    world_class: { M: "Sub 1h08",       F: "Sub 1h17" },
   },
   "10K": {
-    finisher:   { M: "55' – 1h10",     F: "1h00 – 1h17" },
-    age_group:  { M: "45' – 52'",      F: "49' – 57'" },
-    competitor: { M: "38' – 44'",      F: "42' – 48'" },
-    elite:      { M: "Sub 36'",        F: "Sub 40'" },
+    finisher:    { M: "55' – 1h10",     F: "1h00 – 1h17" },
+    age_group:   { M: "45' – 52'",      F: "49' – 57'" },
+    competitor:  { M: "38' – 44'",      F: "42' – 48'" },
+    elite:       { M: "33' – 37'",      F: "37' – 41'" },
+    world_class: { M: "Sub 31'",        F: "Sub 35'" },
   },
   "5K": {
-    finisher:   { M: "28' – 35'",      F: "30' – 38'" },
-    age_group:  { M: "22' – 26'",      F: "24' – 29'" },
-    competitor: { M: "18' – 21'",      F: "20' – 23'" },
-    elite:      { M: "Sub 17'",        F: "Sub 19'" },
+    finisher:    { M: "28' – 35'",      F: "30' – 38'" },
+    age_group:   { M: "22' – 26'",      F: "24' – 29'" },
+    competitor:  { M: "18' – 21'",      F: "20' – 23'" },
+    elite:       { M: "16' – 18'",      F: "18' – 20'" },
+    world_class: { M: "Sub 15'",        F: "Sub 17'" },
   },
   Trail: {
-    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
-    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
-    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
-    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+    finisher:    { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:   { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor:  { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:       { M: "2h50 – 3h15",    F: "3h10 – 3h35" },
+    world_class: { M: "Sub 2h45",       F: "Sub 3h05" },
   },
   TrailShort: {
-    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
-    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
-    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
-    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+    finisher:    { M: "5h30 – 7h",      F: "6h00 – 7h45" },
+    age_group:   { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
+    competitor:  { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
+    elite:       { M: "2h50 – 3h15",    F: "3h10 – 3h35" },
+    world_class: { M: "Sub 2h45",       F: "Sub 3h05" },
   },
   TrailMountain: {
-    finisher:   { M: "12h – 16h",      F: "13h – 17h30" },
-    age_group:  { M: "9h – 11h30",     F: "10h – 12h40" },
-    competitor: { M: "7h – 9h",        F: "7h45 – 10h" },
-    elite:      { M: "Sub 6h30",       F: "Sub 7h10" },
+    finisher:    { M: "12h – 16h",      F: "13h – 17h30" },
+    age_group:   { M: "9h – 11h30",     F: "10h – 12h40" },
+    competitor:  { M: "7h – 9h",        F: "7h45 – 10h" },
+    elite:       { M: "6h – 7h",        F: "6h40 – 7h45" },
+    world_class: { M: "Sub 5h45",       F: "Sub 6h25" },
   },
   TrailUltra: {
-    finisher:   { M: "30h – 46h",      F: "33h – 50h" },
-    age_group:  { M: "22h – 30h",      F: "24h – 33h" },
-    competitor: { M: "18h – 22h",      F: "20h – 24h" },
-    elite:      { M: "Sub 17h",        F: "Sub 19h" },
+    finisher:    { M: "30h – 46h",      F: "33h – 50h" },
+    age_group:   { M: "22h – 30h",      F: "24h – 33h" },
+    competitor:  { M: "18h – 22h",      F: "20h – 24h" },
+    elite:       { M: "15h – 18h",      F: "17h – 20h" },
+    world_class: { M: "Sub 14h30",      F: "Sub 16h30" },
   },
 };
 
@@ -248,18 +278,22 @@ export function getTimeTargetHint(objective: string, ambition: string, sex?: str
 }
 
 // FIX #2-amb: Normalize accented chars (é→e, è→e) before matching
+// world_class = NOUVEAU palier "Elite" UI (top 3% AG). Doit être détecté AVANT `elite`
+// car certains alias historiques ("worldclass") contiennent la sous-chaîne "class"/"world".
 export function normalizeAmbKey(amb: string): string {
   const lower = amb.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z_]/g, "");
+  if (lower.includes("world") || lower.includes("monde") || lower.includes("mondial") || lower === "wc") return "world_class";
   if (lower.includes("elite") || lower.includes("pro") || lower.includes("qualif")) return "elite";
   if (lower.includes("compet") || lower.includes("comp")) return "competitor";
-  if (lower.includes("age") || lower.includes("group") || lower.includes("intermediaire")) return "age_group";
-  if (lower.includes("finisher") || lower.includes("fin")) return "finisher";
+  if (lower.includes("age") || lower.includes("group") || lower.includes("intermediaire") || lower.includes("confirme") || lower.includes("confirmed")) return "age_group";
+  if (lower.includes("finisher") || lower.includes("fin") || lower.includes("decouverte") || lower.includes("discovery")) return "finisher";
   return "age_group"; // safer default than "finisher"
 }
 
 // === AMBITION SCALING FACTORS for deriving standard session durations from catalog ===
-// Elite uses full catalog range, lower levels scale down proportionally
+// world_class (top 3%) > elite (top 10%) > competitor > age_group > finisher
 export const AMBITION_SCALE: Record<string, number> = {
+  world_class: 1.10,
   elite: 1.0,
   competitor: 0.85,
   age_group: 0.70,
