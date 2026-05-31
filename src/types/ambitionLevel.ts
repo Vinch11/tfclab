@@ -1,16 +1,39 @@
 // =============================================
-// NIVEAU D'AMBITION ATHLÈTE
-// Modulateur des seuils physiologiques par objectif
+// NIVEAU D'AMBITION ATHLÈTE — Grille 5 paliers "Parcours athlète"
+// Ancrée sur des percentiles AG réels :
+//   discovery   → Finisher dans les temps officiels        (clé interne: finisher)
+//   confirmed   → Top 50% AG                                (clé interne: age_group)
+//   competitor  → Top 25% AG / podium local                 (clé interne: competitor)
+//   qualifiable → Top 10% AG — slot National/Européen       (clé interne: elite)
+//   world_class → Top 3% AG — slot Mondial / podium overall (clé interne: world_class)
+//
+// IMPORTANT — Stratégie de migration :
+// Les 4 anciennes clés (finisher/age_group/competitor/elite) restent les CLÉS
+// DE DONNÉES physiologiques. Le label UI change, mais aucune base de données
+// n'a besoin d'être migrée. Le 5ᵉ palier (`world_class`, label "Elite" 👑)
+// est NOUVEAU et applique des multiplicateurs +stricts sur les cibles physio
+// dérivées du palier `elite` (voir physiologicalTargets.ts).
+//
+// Ancienne sémantique → nouveau libellé :
+//   "finisher"   → "Découverte"  🌱
+//   "age_group"  → "Confirmé"    🎯
+//   "competitor" → "Compétiteur" 🏆
+//   "elite"      → "Qualifiable" 🎟️   (relabel — l'ancien "Elite" sur-utilisé)
+//   "world_class"→ "Elite"       👑   (NOUVEAU — top 3% AG)
 // =============================================
 
 /**
- * Niveaux d'ambition disponibles
- * - finisher: Terminer la course, objectif participation
- * - age_group: Performance catégorie d'âge, top 50% local
- * - competitor: Compétiteur sérieux, podium catégorie possible
- * - elite: Qualification championnats / podium overall
+ * Niveaux d'ambition disponibles (5 paliers).
+ *
+ * Note technique : les 4 premières clés conservent leur nom historique pour
+ * éviter une migration DB. Le 5ᵉ palier `world_class` est nouveau.
  */
-export type AmbitionLevel = "finisher" | "age_group" | "competitor" | "elite";
+export type AmbitionLevel =
+  | "finisher"     // UI: "Découverte"
+  | "age_group"    // UI: "Confirmé"
+  | "competitor"   // UI: "Compétiteur"
+  | "elite"        // UI: "Qualifiable"
+  | "world_class"; // UI: "Elite" (NOUVEAU top 3%)
 
 export interface AmbitionDefinition {
   id: AmbitionLevel;
@@ -24,33 +47,41 @@ export interface AmbitionDefinition {
 export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
   finisher: {
     id: "finisher",
-    label: "Finisher",
-    shortLabel: "FIN",
-    description: "Objectif: terminer la course avec succès",
-    icon: "🏁",
-    color: "text-muted-foreground"
+    label: "Découverte",
+    shortLabel: "DEC",
+    description: "Premier dossard — terminer dans les temps officiels",
+    icon: "🌱",
+    color: "text-emerald-600"
   },
   age_group: {
     id: "age_group",
-    label: "Age Group",
-    shortLabel: "AG",
-    description: "Performance dans votre catégorie d'âge",
-    icon: "⭐",
+    label: "Confirmé",
+    shortLabel: "CONF",
+    description: "Top 50% catégorie d'âge — performance solide",
+    icon: "🎯",
     color: "text-blue-500"
   },
   competitor: {
     id: "competitor",
     label: "Compétiteur",
     shortLabel: "COMP",
-    description: "Podium catégorie d'âge / top 25%",
+    description: "Top 25% AG — podium local, haut de tableau",
     icon: "🏆",
     color: "text-amber-500"
   },
   elite: {
     id: "elite",
-    label: "Elite / Qualif",
-    shortLabel: "PRO",
-    description: "Qualification championnats ou podium overall",
+    label: "Qualifiable",
+    shortLabel: "QUAL",
+    description: "Top 10% AG — slot National/Européen accessible",
+    icon: "🎟️",
+    color: "text-orange-500"
+  },
+  world_class: {
+    id: "world_class",
+    label: "Elite",
+    shortLabel: "ELITE",
+    description: "Top 3% AG — slot Mondial / podium overall",
     icon: "👑",
     color: "text-purple-500"
   }
@@ -59,6 +90,7 @@ export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SUGGESTIONS DE TEMPS PAR OBJECTIF RUNNING + AMBITION
 // Temps indicatifs hommes. Femmes: +8-12% selon la distance.
+// 5 paliers : Découverte / Confirmé / Compétiteur / Qualifiable / Elite
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export type RunningObjectiveWithTimes = "Marathon" | "Semi" | "10K" | "5K" | "Trail" | "TrailShort" | "TrailMountain";
@@ -66,46 +98,53 @@ export type SexeForHints = "M" | "F";
 
 export const RUNNING_TIME_HINTS: Record<RunningObjectiveWithTimes, Record<AmbitionLevel, { M: string; F: string }>> = {
   Marathon: {
-    finisher:   { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
-    age_group:  { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
-    competitor: { M: "3h00 – 3h30",    F: "3h18 – 3h50" },
-    elite:      { M: "Sub 2h45",       F: "Sub 3h05" },
+    finisher:    { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
+    age_group:   { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
+    competitor:  { M: "3h00 – 3h30",   F: "3h18 – 3h50" },
+    elite:       { M: "2h45 – 3h00",   F: "3h05 – 3h20" },
+    world_class: { M: "Sub 2h35",      F: "Sub 2h55" },
   },
   Semi: {
-    finisher:   { M: "2h00 – 2h30",    F: "2h10 – 2h45" },
-    age_group:  { M: "1h35 – 1h55",    F: "1h44 – 2h06" },
-    competitor: { M: "1h20 – 1h35",    F: "1h28 – 1h44" },
-    elite:      { M: "Sub 1h18",       F: "Sub 1h26" },
+    finisher:    { M: "2h00 – 2h30",   F: "2h10 – 2h45" },
+    age_group:   { M: "1h35 – 1h55",   F: "1h44 – 2h06" },
+    competitor:  { M: "1h20 – 1h35",   F: "1h28 – 1h44" },
+    elite:       { M: "1h12 – 1h20",   F: "1h20 – 1h28" },
+    world_class: { M: "Sub 1h08",      F: "Sub 1h17" },
   },
   "10K": {
-    finisher:   { M: "55' – 1h10",     F: "1h00 – 1h17" },
-    age_group:  { M: "45' – 52'",      F: "49' – 57'" },
-    competitor: { M: "38' – 44'",      F: "42' – 48'" },
-    elite:      { M: "Sub 36'",        F: "Sub 40'" },
+    finisher:    { M: "55' – 1h10",    F: "1h00 – 1h17" },
+    age_group:   { M: "45' – 52'",     F: "49' – 57'" },
+    competitor:  { M: "38' – 44'",     F: "42' – 48'" },
+    elite:       { M: "33' – 37'",     F: "37' – 41'" },
+    world_class: { M: "Sub 31'",       F: "Sub 35'" },
   },
   "5K": {
-    finisher:   { M: "28' – 35'",      F: "30' – 38'" },
-    age_group:  { M: "22' – 26'",      F: "24' – 29'" },
-    competitor: { M: "18' – 21'",      F: "20' – 23'" },
-    elite:      { M: "Sub 17'",        F: "Sub 19'" },
+    finisher:    { M: "28' – 35'",     F: "30' – 38'" },
+    age_group:   { M: "22' – 26'",     F: "24' – 29'" },
+    competitor:  { M: "18' – 21'",     F: "20' – 23'" },
+    elite:       { M: "16' – 18'",     F: "18' – 20'" },
+    world_class: { M: "Sub 15'",       F: "Sub 17'" },
   },
   Trail: {
-    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
-    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
-    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
-    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+    finisher:    { M: "5h30 – 7h",     F: "6h00 – 7h45" },
+    age_group:   { M: "4h00 – 5h15",   F: "4h25 – 5h45" },
+    competitor:  { M: "3h15 – 4h00",   F: "3h35 – 4h25" },
+    elite:       { M: "2h50 – 3h15",   F: "3h10 – 3h35" },
+    world_class: { M: "Sub 2h45",      F: "Sub 3h05" },
   },
   TrailShort: {
-    finisher:   { M: "5h30 – 7h",      F: "6h00 – 7h45" },
-    age_group:  { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
-    competitor: { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
-    elite:      { M: "Sub 3h00",       F: "Sub 3h20" },
+    finisher:    { M: "5h30 – 7h",     F: "6h00 – 7h45" },
+    age_group:   { M: "4h00 – 5h15",   F: "4h25 – 5h45" },
+    competitor:  { M: "3h15 – 4h00",   F: "3h35 – 4h25" },
+    elite:       { M: "2h50 – 3h15",   F: "3h10 – 3h35" },
+    world_class: { M: "Sub 2h45",      F: "Sub 3h05" },
   },
   TrailMountain: {
-    finisher:   { M: "12h – 16h",      F: "13h – 17h30" },
-    age_group:  { M: "9h – 11h30",     F: "10h – 12h40" },
-    competitor: { M: "7h – 9h",        F: "7h45 – 10h" },
-    elite:      { M: "Sub 6h30",       F: "Sub 7h10" },
+    finisher:    { M: "12h – 16h",     F: "13h – 17h30" },
+    age_group:   { M: "9h – 11h30",    F: "10h – 12h40" },
+    competitor:  { M: "7h – 9h",       F: "7h45 – 10h" },
+    elite:       { M: "6h – 7h",       F: "6h40 – 7h45" },
+    world_class: { M: "Sub 5h45",      F: "Sub 6h25" },
   },
 };
 
@@ -130,26 +169,49 @@ export function isRunningObjectiveWithTimes(objectif: string): objectif is Runni
 
 /**
  * Normalise une valeur d'ambition (string libre) vers AmbitionLevel valide.
- * Gère: casse (COMPETITOR → competitor), alias courants, valeurs nulles.
+ * Gère: casse, alias historiques, nouveaux alias "parcours athlète", valeurs nulles.
+ *
+ * Mapping legacy → nouvelles clés UI :
+ *   - `discovery`   (nouvelle clé UI) → `finisher`   (clé interne historique)
+ *   - `confirmed`   (nouvelle clé UI) → `age_group`  (clé interne historique)
+ *   - `qualifiable` (nouvelle clé UI) → `elite`      (clé interne historique)
+ *   - `world_class` (nouvelle clé UI) → `world_class` (NOUVEAU palier)
  */
 const AMBITION_ALIASES: Record<string, AmbitionLevel> = {
-  fin: "finisher",
+  // Clés internes canoniques
   finisher: "finisher",
-  ag: "age_group",
   age_group: "age_group",
+  competitor: "competitor",
+  elite: "elite",
+  world_class: "world_class",
+  // Alias "Parcours athlète" (labels UI saisis ailleurs)
+  discovery: "finisher",
+  decouverte: "finisher",
+  "découverte": "finisher",
+  fin: "finisher",
+  confirmed: "age_group",
+  confirme: "age_group",
+  "confirmé": "age_group",
+  ag: "age_group",
   agegroup: "age_group",
   intermediaire: "age_group",
   comp: "competitor",
-  competitor: "competitor",
+  competiteur: "competitor",
+  "compétiteur": "competitor",
+  qualifiable: "elite",
+  qualif: "elite",
   perf: "elite",
   performance: "elite",
-  elite: "elite",
-  pro: "elite",
+  worldclass: "world_class",
+  "world-class": "world_class",
+  monde: "world_class",
+  mondial: "world_class",
+  pro: "world_class",
 };
 
 export function normalizeAmbitionLevel(value: unknown): AmbitionLevel {
   if (!value || typeof value !== "string") return DEFAULT_AMBITION;
-  const key = value.trim().toLowerCase();
+  const key = value.trim().toLowerCase().replace(/\s+/g, "_");
   return AMBITION_ALIASES[key] ?? DEFAULT_AMBITION;
 }
 
@@ -172,16 +234,18 @@ export function getAmbitionDefinition(level: AmbitionLevel): AmbitionDefinition 
 }
 
 /**
- * Liste ordonnée pour les sélecteurs
+ * Liste ordonnée pour les sélecteurs (du plus modeste au plus exigeant).
  */
 export const AMBITION_LEVELS_ORDERED: AmbitionLevel[] = [
-  "finisher",
-  "age_group",
-  "competitor",
-  "elite"
+  "finisher",     // Découverte
+  "age_group",    // Confirmé
+  "competitor",   // Compétiteur
+  "elite",        // Qualifiable
+  "world_class",  // Elite (top 3%)
 ];
 
 /**
- * Ambition par défaut
+ * Ambition par défaut — "Confirmé" (top 50% AG).
+ * Position médiane volontaire pour éviter sur-promesses.
  */
 export const DEFAULT_AMBITION: AmbitionLevel = "age_group";
