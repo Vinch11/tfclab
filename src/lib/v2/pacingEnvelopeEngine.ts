@@ -34,15 +34,18 @@ export type PacingProfile = "sensitive" | "balanced" | "tolerant";
  * Niveau d'ambition — module l'intensité soutenable (Smyth 2022).
  * Accepte les deux conventions: canonique projet (lowercase) et pacing engine (UPPERCASE).
  */
+// Accepte les 5 paliers UI + leurs variantes upper-case + legacy
 export type AmbitionLevel =
-  | "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER"
-  | "elite" | "competitor" | "age_group" | "finisher";
+  | "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER" | "WORLD_CLASS"
+  | "elite" | "competitor" | "age_group" | "finisher" | "world_class";
 
 type AmbitionLevelNormalized = "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER";
 
 function normalizeAmbition(a: AmbitionLevel | null | undefined): AmbitionLevelNormalized {
   if (!a) return "COMPETITOR";
   const upper = String(a).toUpperCase().replace(/-/g, "_");
+  // WORLD_CLASS (nouveau top 3%) traité comme ELITE pour les anchors/declines CS.
+  if (upper === "WORLD_CLASS") return "ELITE";
   if (upper === "ELITE" || upper === "COMPETITOR" || upper === "AGE_GROUP" || upper === "FINISHER") {
     return upper as AmbitionLevelNormalized;
   }

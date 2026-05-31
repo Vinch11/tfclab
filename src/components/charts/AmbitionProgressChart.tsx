@@ -112,10 +112,11 @@ interface AmbitionAlert {
 // =============================================
 
 const AMBITION_COLORS: Record<AmbitionLevel, string> = {
-  finisher: "hsl(var(--muted-foreground))",
-  age_group: "hsl(210, 100%, 50%)",
-  competitor: "hsl(38, 100%, 50%)",
-  elite: "hsl(270, 80%, 60%)",
+  finisher: "hsl(var(--muted-foreground))",   // Découverte
+  age_group: "hsl(210, 100%, 50%)",            // Confirmé
+  competitor: "hsl(38, 100%, 50%)",            // Compétiteur
+  elite: "hsl(25, 95%, 55%)",                  // Qualifiable (orange)
+  world_class: "hsl(270, 80%, 60%)",           // Elite (violet — top 3%)
 };
 
 // =============================================

@@ -123,7 +123,8 @@ function getVO2maxTarget(objectif: string, ambition: AmbitionLevel): number {
     finisher: -5,
     age_group: 0,
     competitor: +3,
-    elite: +7,
+    elite: +7,         // Qualifiable
+    world_class: +11,  // Elite top 3% — VO2max cible plus exigeante
   };
   
   const key = Object.keys(baseTargets).find(k => 
@@ -150,7 +151,8 @@ function getVVO2maxTarget(objectif: string, ambition: AmbitionLevel): number {
     finisher: -1.5,
     age_group: 0,
     competitor: +1,
-    elite: +2.5,
+    elite: +2.5,        // Qualifiable
+    world_class: +4,    // Elite top 3% — vVO2max plus haute
   };
   
   const key = Object.keys(baseTargets).find(k => 
@@ -177,7 +179,8 @@ function getPaceThresholdTarget(objectif: string, ambition: AmbitionLevel): numb
     finisher: +30,
     age_group: 0,
     competitor: -15,
-    elite: -30,
+    elite: -30,           // Qualifiable
+    world_class: -45,     // Elite top 3% — allure seuil ~45 s/km plus rapide
   };
   
   const key = Object.keys(baseTargets).find(k => 

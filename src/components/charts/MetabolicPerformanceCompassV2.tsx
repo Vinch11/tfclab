@@ -67,10 +67,11 @@ interface MetabolicPerformanceCompassV2Props {
 
 // Couleurs pour chaque niveau d'ambition
 const AMBITION_COLORS: Record<AmbitionLevel, string> = {
-  finisher: "hsl(var(--muted-foreground))",
-  age_group: "hsl(210, 80%, 55%)",
-  competitor: "hsl(38, 92%, 50%)",
-  elite: "hsl(270, 70%, 60%)"
+  finisher: "hsl(var(--muted-foreground))",   // Découverte
+  age_group: "hsl(210, 80%, 55%)",             // Confirmé
+  competitor: "hsl(38, 92%, 50%)",             // Compétiteur
+  elite: "hsl(25, 90%, 55%)",                  // Qualifiable
+  world_class: "hsl(270, 70%, 60%)"            // Elite (top 3%)
 };
 
 // Couleurs de gradient pour le score global
