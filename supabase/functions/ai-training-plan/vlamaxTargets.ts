@@ -70,9 +70,19 @@ export function getVLamaxRangeForPlan(
 ): VLamaxRange {
   const key = (objectif && (VLAMAX_TABLE[objectif] ? objectif : ALIASES[objectif] || ALIASES[objectif.toLowerCase()])) || "703";
   const ambKey = (ambition || "age_group").toLowerCase() as AmbitionLevel;
+  // world_class : applique multiplicateur ×0.92 (top 3%) sur la base elite
+  if (ambKey === "world_class") {
+    const eliteBase = VLAMAX_TABLE[key]?.elite ?? VLAMAX_TABLE["703"].elite;
+    const wc: VLamaxRange = {
+      min: +(eliteBase.min * 0.95).toFixed(2),
+      max: +(eliteBase.max * 0.95).toFixed(2),
+      optimal: +(eliteBase.optimal * 0.92).toFixed(2),
+    };
+    return applySportOffset(wc, sport ?? undefined);
+  }
   const ambResolved: AmbitionLevel = (["finisher", "age_group", "competitor", "elite"] as AmbitionLevel[]).includes(ambKey)
     ? ambKey
     : "age_group";
-  const base = VLAMAX_TABLE[key]?.[ambResolved] ?? VLAMAX_TABLE["703"].age_group;
+  const base = VLAMAX_TABLE[key]?.[ambResolved as Exclude<AmbitionLevel, "world_class">] ?? VLAMAX_TABLE["703"].age_group;
   return applySportOffset(base, sport ?? undefined);
 }
