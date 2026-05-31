@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/s
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { VersionBadge } from "@/components/VersionBadge";
 import logo from "@/assets/logo-2fc.png";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
