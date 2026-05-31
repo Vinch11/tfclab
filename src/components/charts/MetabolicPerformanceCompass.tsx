@@ -434,7 +434,7 @@ export function MetabolicPerformanceCompass({
                         fill={AMBITION_COLORS[ambition]}
                         fillOpacity={isActive ? 0.25 : 0.05}
                         strokeWidth={isActive ? 3 : 1.5}
-                        strokeDasharray={ambition === 'finisher' ? '5 5' : ambition === 'elite' ? '2 2' : undefined}
+                        strokeDasharray={ambition === 'finisher' ? '5 5' : ambition === 'elite' ? '2 2' : ambition === 'world_class' ? '1 3' : undefined}
                       />
                     );
                   })}

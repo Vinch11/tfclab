@@ -411,7 +411,7 @@ function BikeBlock({
   const planABoost = (
     plan.key === "A" &&
     raceObjective === "70.3" &&
-    (ambition === "competitor" || ambition === "elite")
+    (ambition === "competitor" || ambition === "elite" || ambition === "world_class")
   ) ? 1.025 : 1; // ~+2.5% sur le centre ≈ +2 pts FTP autour de 80%
   const effIF = plan.intensityFactor * conditionsFactor * planABoost;
   const w = bikeWatts(envelope, ftp, effIF);
@@ -1005,7 +1005,7 @@ export function buildStrategyHtml(
   const runH = (runDurationMin ?? 0) / 60;
 
   const planSection = (plan: PlanConfig) => {
-    const planABoost = (plan.key === "A" && raceObjective === "70.3" && (ambition === "competitor" || ambition === "elite")) ? 1.025 : 1;
+    const planABoost = (plan.key === "A" && raceObjective === "70.3" && (ambition === "competitor" || ambition === "elite" || ambition === "world_class")) ? 1.025 : 1;
     const effIF = plan.intensityFactor * conditionsFactor * planABoost;
     let html = `<section class="plan"><h2>${plan.label}${conditionsFactor < 1 ? ` <span style="font-size:10px;color:#b45309;">(ajusté conditions ×${conditionsFactor.toFixed(3)})</span>` : ""}${planABoost > 1 ? ` <span style="font-size:10px;color:#047857;">(70.3 ${ambition} : +2 pts FTP)</span>` : ""}</h2><p class="desc">${plan.description}</p>`;
 
@@ -1314,7 +1314,7 @@ export function ObjectiveStrategyCard(props: ObjectiveStrategyCardProps) {
 
       <CardContent className="space-y-3">
         {/* Alerte TTE CAP manquant — stratégie course en mode prudent par défaut */}
-        {hasRun && (!tteRunEffective || tteRunEffective <= 0) && (ambition === "competitor" || ambition === "elite") && (
+        {hasRun && (!tteRunEffective || tteRunEffective <= 0) && (ambition === "competitor" || ambition === "elite" || ambition === "world_class") && (
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2.5 flex items-start gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-1.5">

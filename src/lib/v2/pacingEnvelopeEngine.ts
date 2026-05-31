@@ -39,13 +39,12 @@ export type AmbitionLevel =
   | "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER" | "WORLD_CLASS"
   | "elite" | "competitor" | "age_group" | "finisher" | "world_class";
 
-type AmbitionLevelNormalized = "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER";
+type AmbitionLevelNormalized = "WORLD_CLASS" | "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER";
 
 function normalizeAmbition(a: AmbitionLevel | null | undefined): AmbitionLevelNormalized {
   if (!a) return "COMPETITOR";
   const upper = String(a).toUpperCase().replace(/-/g, "_");
-  // WORLD_CLASS (nouveau top 3%) traité comme ELITE pour les anchors/declines CS.
-  if (upper === "WORLD_CLASS") return "ELITE";
+  if (upper === "WORLD_CLASS" || upper === "WORLDCLASS" || upper === "WC") return "WORLD_CLASS";
   if (upper === "ELITE" || upper === "COMPETITOR" || upper === "AGE_GROUP" || upper === "FINISHER") {
     return upper as AmbitionLevelNormalized;
   }
@@ -216,6 +215,7 @@ const RACE_TYPICAL_DURATION_MIN: Record<RaceObjective, number> = {
  * À 60 min de référence, on calibre légèrement au-dessus de CS (CS ≈ MLSS ≈ 60min).
  */
 const CS_ANCHOR_60MIN: Record<AmbitionLevelNormalized, number> = {
+  WORLD_CLASS: 102,  // top 3% AG : soutient légèrement au-dessus de CS à 60min (Smyth 2022)
   ELITE: 100,        // tient CS pile à 60min
   COMPETITOR: 97,    // léger déficit
   AGE_GROUP: 93,     // marge supérieure
@@ -228,6 +228,7 @@ const CS_ANCHOR_60MIN: Record<AmbitionLevelNormalized, number> = {
  * k = points %CS perdus quand durée × 10.
  */
 const CS_DECAY_PER_DECADE: Record<AmbitionLevelNormalized, number> = {
+  WORLD_CLASS: 6,
   ELITE: 8,
   COMPETITOR: 11,
   AGE_GROUP: 14,

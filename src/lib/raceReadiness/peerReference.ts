@@ -18,6 +18,9 @@ export interface PeerReference {
 
 export function getPeerReference(ambition: string): PeerReference {
   const a = (ambition || "").toLowerCase();
+  if (a.includes("world") || a.includes("monde") || a === "wc" || a.includes("world_class") || a.includes("worldclass")) {
+    return { peerAvg: 90, peerAbove: 96, cohortLabel: "World Class (Top 3% AG)" };
+  }
   if (a.includes("elite") || a.includes("pro")) {
     return { peerAvg: 82, peerAbove: 92, cohortLabel: "Élite / Pro" };
   }
