@@ -360,15 +360,17 @@ const FATMAX_TARGETS: Record<string, { min: number; optimal: number }> = {
 // W' targets (kJ) par objectif et ambition
 // Sprint/Olympic: W' élevé nécessaire (efforts courts supra-CP)
 // IM/Ultra/Marathon: W' bas acceptable (efforts principalement sous-CP)
+// world_class = top 3% AG : extension monotone du palier `elite`
+// (+1 à +2 kJ optimal selon objectif, max élargi de +1 à +2 kJ)
 const WPRIME_TARGETS: Record<string, Record<string, { min: number; optimal: number; max: number }>> = {
-  IM:       { finisher: { min: 10, optimal: 15, max: 25 }, age_group: { min: 12, optimal: 17, max: 25 }, competitor: { min: 14, optimal: 18, max: 26 }, elite: { min: 15, optimal: 20, max: 28 } },
-  "703":    { finisher: { min: 12, optimal: 17, max: 27 }, age_group: { min: 14, optimal: 19, max: 28 }, competitor: { min: 15, optimal: 20, max: 28 }, elite: { min: 16, optimal: 22, max: 30 } },
-  Marathon: { finisher: { min: 10, optimal: 14, max: 24 }, age_group: { min: 12, optimal: 16, max: 25 }, competitor: { min: 13, optimal: 17, max: 26 }, elite: { min: 14, optimal: 18, max: 27 } },
-  Semi:     { finisher: { min: 12, optimal: 16, max: 26 }, age_group: { min: 14, optimal: 18, max: 27 }, competitor: { min: 15, optimal: 19, max: 28 }, elite: { min: 16, optimal: 20, max: 29 } },
-  Trail:    { finisher: { min: 12, optimal: 16, max: 26 }, age_group: { min: 13, optimal: 17, max: 27 }, competitor: { min: 14, optimal: 18, max: 28 }, elite: { min: 15, optimal: 20, max: 28 } },
-  Ultra:    { finisher: { min: 10, optimal: 14, max: 24 }, age_group: { min: 11, optimal: 15, max: 25 }, competitor: { min: 12, optimal: 16, max: 26 }, elite: { min: 13, optimal: 17, max: 27 } },
-  Sprint:   { finisher: { min: 16, optimal: 20, max: 30 }, age_group: { min: 18, optimal: 22, max: 32 }, competitor: { min: 20, optimal: 25, max: 35 }, elite: { min: 22, optimal: 27, max: 38 } },
-  Olympic:  { finisher: { min: 14, optimal: 18, max: 28 }, age_group: { min: 16, optimal: 20, max: 30 }, competitor: { min: 18, optimal: 22, max: 32 }, elite: { min: 20, optimal: 24, max: 34 } },
+  IM:       { finisher: { min: 10, optimal: 15, max: 25 }, age_group: { min: 12, optimal: 17, max: 25 }, competitor: { min: 14, optimal: 18, max: 26 }, elite: { min: 15, optimal: 20, max: 28 }, world_class: { min: 16, optimal: 22, max: 30 } },
+  "703":    { finisher: { min: 12, optimal: 17, max: 27 }, age_group: { min: 14, optimal: 19, max: 28 }, competitor: { min: 15, optimal: 20, max: 28 }, elite: { min: 16, optimal: 22, max: 30 }, world_class: { min: 17, optimal: 24, max: 32 } },
+  Marathon: { finisher: { min: 10, optimal: 14, max: 24 }, age_group: { min: 12, optimal: 16, max: 25 }, competitor: { min: 13, optimal: 17, max: 26 }, elite: { min: 14, optimal: 18, max: 27 }, world_class: { min: 15, optimal: 20, max: 29 } },
+  Semi:     { finisher: { min: 12, optimal: 16, max: 26 }, age_group: { min: 14, optimal: 18, max: 27 }, competitor: { min: 15, optimal: 19, max: 28 }, elite: { min: 16, optimal: 20, max: 29 }, world_class: { min: 17, optimal: 22, max: 31 } },
+  Trail:    { finisher: { min: 12, optimal: 16, max: 26 }, age_group: { min: 13, optimal: 17, max: 27 }, competitor: { min: 14, optimal: 18, max: 28 }, elite: { min: 15, optimal: 20, max: 28 }, world_class: { min: 16, optimal: 22, max: 30 } },
+  Ultra:    { finisher: { min: 10, optimal: 14, max: 24 }, age_group: { min: 11, optimal: 15, max: 25 }, competitor: { min: 12, optimal: 16, max: 26 }, elite: { min: 13, optimal: 17, max: 27 }, world_class: { min: 14, optimal: 19, max: 29 } },
+  Sprint:   { finisher: { min: 16, optimal: 20, max: 30 }, age_group: { min: 18, optimal: 22, max: 32 }, competitor: { min: 20, optimal: 25, max: 35 }, elite: { min: 22, optimal: 27, max: 38 }, world_class: { min: 24, optimal: 30, max: 42 } },
+  Olympic:  { finisher: { min: 14, optimal: 18, max: 28 }, age_group: { min: 16, optimal: 20, max: 30 }, competitor: { min: 18, optimal: 22, max: 32 }, elite: { min: 20, optimal: 24, max: 34 }, world_class: { min: 22, optimal: 27, max: 37 } },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -390,21 +392,22 @@ function getFatmaxTargets(objectif: string): { min: number; optimal: number } {
 function getWprimeTargets(objectif: string, ambition: AmbitionLevel): { min: number; optimal: number; max: number } {
   const normalized = normalizeObjective(objectif);
   const targets = WPRIME_TARGETS[normalized] || WPRIME_TARGETS["703"];
-  return targets[ambition] || targets.age_group;
+  return targets[ambition] || targets.world_class || targets.elite || targets.age_group;
 }
 
 // Cibles VO2max par objectif et ambition (ml/kg/min) — VALEURS DE RÉFÉRENCE < 30 ANS
+// world_class = top 3% AG : +3 à +5 ml/kg/min au-dessus du palier `elite`
 const VO2MAX_TARGETS: Record<string, Record<string, number>> = {
-  IM: { finisher: 45, age_group: 52, competitor: 58, elite: 65 },
-  "703": { finisher: 48, age_group: 55, competitor: 60, elite: 68 },
-  Marathon: { finisher: 48, age_group: 55, competitor: 62, elite: 70 },
-  Semi: { finisher: 50, age_group: 55, competitor: 62, elite: 72 },
-  "10km": { finisher: 48, age_group: 55, competitor: 62, elite: 72 },
-  "5K": { finisher: 48, age_group: 56, competitor: 64, elite: 75 },
-  Trail: { finisher: 50, age_group: 55, competitor: 60, elite: 68 },
-  Ultra: { finisher: 48, age_group: 52, competitor: 58, elite: 65 },
-  Sprint: { finisher: 50, age_group: 58, competitor: 65, elite: 75 },
-  Olympic: { finisher: 50, age_group: 58, competitor: 62, elite: 72 },
+  IM: { finisher: 45, age_group: 52, competitor: 58, elite: 65, world_class: 70 },
+  "703": { finisher: 48, age_group: 55, competitor: 60, elite: 68, world_class: 73 },
+  Marathon: { finisher: 48, age_group: 55, competitor: 62, elite: 70, world_class: 76 },
+  Semi: { finisher: 50, age_group: 55, competitor: 62, elite: 72, world_class: 78 },
+  "10km": { finisher: 48, age_group: 55, competitor: 62, elite: 72, world_class: 78 },
+  "5K": { finisher: 48, age_group: 56, competitor: 64, elite: 75, world_class: 82 },
+  Trail: { finisher: 50, age_group: 55, competitor: 60, elite: 68, world_class: 74 },
+  Ultra: { finisher: 48, age_group: 52, competitor: 58, elite: 65, world_class: 70 },
+  Sprint: { finisher: 50, age_group: 58, competitor: 65, elite: 75, world_class: 82 },
+  Olympic: { finisher: 50, age_group: 58, competitor: 62, elite: 72, world_class: 78 },
 };
 
 /**
@@ -482,7 +485,7 @@ export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
 export function getVo2maxTarget(objectif: string, ambition: string, age: number | null = null): number {
   const normalized = normalizeObjective(objectif);
   const targets = VO2MAX_TARGETS[normalized] || VO2MAX_TARGETS["703"];
-  const baseTarget = targets[ambition] || targets.age_group;
+  const baseTarget = targets[ambition] ?? targets.world_class ?? targets.elite ?? targets.age_group;
   
   const ageFactor = getVo2maxAgeFactor(age);
   return Math.round(baseTarget * ageFactor * 10) / 10;

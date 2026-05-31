@@ -231,10 +231,19 @@ export default function AthleteEditPage() {
                   </PopoverTrigger>
                   <PopoverContent className="w-80" align="start">
                     <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Seuils adaptatifs</h4>
+                      <h4 className="font-medium text-sm">Parcours athlète — 5 paliers</h4>
                       <p className="text-xs text-muted-foreground">
-                        Les cibles VLamax, TTE et FTP/kg sont ajustées selon votre niveau d'ambition.
-                        Un "Finisher" aura des seuils plus souples qu'un "Elite" visant une qualification.
+                        Ancrés sur les percentiles de catégorie d'âge (AG) :
+                      </p>
+                      <ul className="text-xs text-muted-foreground space-y-1 list-none">
+                        <li>🌱 <b>Découverte</b> — Finisher dans les temps officiels</li>
+                        <li>🎯 <b>Confirmé</b> — Top 50% AG</li>
+                        <li>🏆 <b>Compétiteur</b> — Top 25% AG, podium local</li>
+                        <li>🎟️ <b>Qualifiable</b> — Top 10% AG, slot National/Européen</li>
+                        <li>👑 <b>Elite</b> — Top 3% AG, slot Mondial / podium overall</li>
+                      </ul>
+                      <p className="text-xs text-muted-foreground pt-1 border-t">
+                        Les cibles VLamax, VO2max, FTP/kg, TTE et W' sont ajustées en conséquence — un palier plus élevé impose des seuils plus stricts.
                       </p>
                     </div>
                   </PopoverContent>
