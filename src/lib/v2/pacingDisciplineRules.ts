@@ -440,12 +440,12 @@ function buildIronmanRunSplitRule(
   ambition: AmbitionLevel,
   vlamaxValue: number | null,
 ): DisciplineRule {
-  // Profil "élite-like" : low VLamax + niveau elite/competitor → autorise negative split modeste
+  // Profil "élite-like" : low VLamax + niveau world_class/elite/competitor → autorise negative split modeste
   const eliteLike =
-    (ambition === "elite" || ambition === "competitor") &&
+    (ambition === "world_class" || ambition === "elite" || ambition === "competitor") &&
     (vlamaxValue == null || vlamaxValue < 0.45);
 
-  if (ambition === "elite" && eliteLike) {
+  if ((ambition === "world_class" || ambition === "elite") && eliteLike) {
     return {
       id: "im_run_even_split",
       category: "non_negotiable",

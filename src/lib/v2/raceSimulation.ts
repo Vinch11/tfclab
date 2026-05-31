@@ -29,7 +29,7 @@ import type { SimulationModifiers } from './potentielTypes';
 
 export type SimulationMode = 'basic' | 'pro';
 export type RaceType = 'IM' | '70.3' | 'Marathon' | 'Semi' | '10km';
-export type AmbitionLevel = 'finish' | 'perf' | 'sub' | 'elite';
+export type AmbitionLevel = 'finish' | 'perf' | 'sub' | 'elite' | 'world_class';
 export type HeatCondition = 'low' | 'moderate' | 'high';
 export type TerrainType = 'flat' | 'hilly';
 export type ScenarioType = 'conservative' | 'optimal' | 'aggressive';
@@ -228,24 +228,25 @@ const AMBITION_LABELS: Record<AmbitionLevel, string> = {
   perf: 'Performance',
   sub: 'Objectif chrono',
   elite: 'Elite',
+  world_class: 'World Class',
 };
 
 // Intensité cible par ambition (%FTP ou %VMA)
 const AMBITION_INTENSITY: Record<RaceType, Record<AmbitionLevel, number>> = {
-  'IM': { finish: 62, perf: 68, sub: 72, elite: 76 },
-  '70.3': { finish: 70, perf: 75, sub: 80, elite: 85 },
-  'Marathon': { finish: 65, perf: 72, sub: 78, elite: 82 },
-  'Semi': { finish: 72, perf: 78, sub: 84, elite: 88 },
-  '10km': { finish: 82, perf: 88, sub: 92, elite: 96 },
+  'IM': { finish: 62, perf: 68, sub: 72, elite: 76, world_class: 79 },
+  '70.3': { finish: 70, perf: 75, sub: 80, elite: 85, world_class: 88 },
+  'Marathon': { finish: 65, perf: 72, sub: 78, elite: 82, world_class: 86 },
+  'Semi': { finish: 72, perf: 78, sub: 84, elite: 88, world_class: 92 },
+  '10km': { finish: 82, perf: 88, sub: 92, elite: 96, world_class: 100 },
 };
 
 // Durée référence par type/ambition (minutes)
 const REFERENCE_DURATIONS: Record<RaceType, Record<AmbitionLevel, number>> = {
-  'IM': { finish: 420, perf: 360, sub: 330, elite: 300 }, // 7h, 6h, 5h30, 5h vélo
-  '70.3': { finish: 195, perf: 165, sub: 150, elite: 135 }, // 3h15, 2h45, 2h30, 2h15 vélo
-  'Marathon': { finish: 300, perf: 240, sub: 210, elite: 180 },
-  'Semi': { finish: 135, perf: 105, sub: 95, elite: 80 },
-  '10km': { finish: 60, perf: 48, sub: 42, elite: 36 },
+  'IM': { finish: 420, perf: 360, sub: 330, elite: 300, world_class: 270 },
+  '70.3': { finish: 195, perf: 165, sub: 150, elite: 135, world_class: 122 },
+  'Marathon': { finish: 300, perf: 240, sub: 210, elite: 180, world_class: 155 },
+  'Semi': { finish: 135, perf: 105, sub: 95, elite: 80, world_class: 70 },
+  '10km': { finish: 60, perf: 48, sub: 42, elite: 36, world_class: 32 },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1266,6 +1267,7 @@ function computeBasicIntensityZone(
     perf: 10,
     sub: 20,
     elite: 30,
+    world_class: 40,
   };
   
   const adjustedScore = globalScore - ambitionPenalty[ambition];
@@ -1309,6 +1311,7 @@ function computeBasicGlobalRisk(
     perf: 15,
     sub: 30,
     elite: 45,
+    world_class: 55,
   };
   riskScore += ambitionRisk[ambition];
   

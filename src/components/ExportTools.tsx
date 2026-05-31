@@ -1584,8 +1584,8 @@ function buildExportPayload(
       'Trail': 'trail', 'TrailLong': 'trail',
     };
     const discipline = disciplineMap[athlete.goal || 'IM'] || 'IM';
-    const ambitionMap: Record<string, 'finisher' | 'age_group' | 'competitor' | 'elite'> = {
-      finisher: 'finisher', age_group: 'age_group', competitor: 'competitor', elite: 'elite',
+    const ambitionMap: Record<string, 'finisher' | 'age_group' | 'competitor' | 'elite' | 'world_class'> = {
+      finisher: 'finisher', age_group: 'age_group', competitor: 'competitor', elite: 'elite', world_class: 'world_class',
     };
     const lorangAmbition = ambitionMap[ambition] || 'age_group';
     const fatigueStateToScoreLorang: Record<string, number> = { fresh: 2, ok: 4, fatigued: 6, high: 8, injured: 10 };

@@ -76,7 +76,7 @@ export interface LorangStrategyInput {
   athlete: {
     age: number | null;
     discipline: 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail';
-    ambition: 'finisher' | 'age_group' | 'competitor' | 'elite';
+    ambition: 'finisher' | 'age_group' | 'competitor' | 'elite' | 'world_class';
     hasGIIssues: boolean;
   };
   
@@ -354,13 +354,13 @@ export const PROHIBITION_DEFINITIONS: Record<LorangProhibition, {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const FTP_KG_TARGETS: Record<string, Record<string, number>> = {
-  IM:       { finisher: 2.5, age_group: 3.0, competitor: 3.5, elite: 4.0 },
-  '703':    { finisher: 2.8, age_group: 3.2, competitor: 3.8, elite: 4.3 },
-  marathon: { finisher: 2.0, age_group: 2.5, competitor: 3.0, elite: 3.5 },
-  semi:     { finisher: 2.2, age_group: 2.7, competitor: 3.2, elite: 3.7 },
-  '10k':    { finisher: 2.5, age_group: 3.0, competitor: 3.5, elite: 4.0 },
-  cycling:  { finisher: 3.0, age_group: 3.5, competitor: 4.0, elite: 4.5 },
-  trail:    { finisher: 2.2, age_group: 2.7, competitor: 3.2, elite: 3.7 },
+  IM:       { finisher: 2.5, age_group: 3.0, competitor: 3.5, elite: 4.0, world_class: 4.5 },
+  '703':    { finisher: 2.8, age_group: 3.2, competitor: 3.8, elite: 4.3, world_class: 4.8 },
+  marathon: { finisher: 2.0, age_group: 2.5, competitor: 3.0, elite: 3.5, world_class: 4.0 },
+  semi:     { finisher: 2.2, age_group: 2.7, competitor: 3.2, elite: 3.7, world_class: 4.2 },
+  '10k':    { finisher: 2.5, age_group: 3.0, competitor: 3.5, elite: 4.0, world_class: 4.5 },
+  cycling:  { finisher: 3.0, age_group: 3.5, competitor: 4.0, elite: 4.5, world_class: 5.0 },
+  trail:    { finisher: 2.2, age_group: 2.7, competitor: 3.2, elite: 3.7, world_class: 4.2 },
 };
 
 function getFtpKgTarget(discipline: string, ambition: string): number {
