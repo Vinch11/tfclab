@@ -600,7 +600,38 @@ export function normalizeObjective(objectif: string): string {
 }
 
 /**
+ * Multiplicateurs `world_class` (Elite top 3% AG) appliqués post-lookup
+ * sur la base du palier `elite` (= "Qualifiable" UI).
+ * Sources : grilles qualif Mondial 70.3 (Kraichgau) + percentile 3% AG marathon.
+ */
+function applyWorldClassMultipliers(base: ObjectiveTargets): ObjectiveTargets {
+  return {
+    vlamax: {
+      min: +(base.vlamax.min * 0.95).toFixed(2),
+      max: +(base.vlamax.max * 0.95).toFixed(2),
+      optimal: +(base.vlamax.optimal * 0.92).toFixed(2),
+    },
+    tte_min: Math.round(base.tte_min * 1.10),
+    ftp_kg_min: Math.round(base.ftp_kg_min * 1.08 * 10) / 10,
+    vma_min: base.vma_min !== undefined ? Math.round(base.vma_min * 1.04 * 10) / 10 : undefined,
+    charge_optimale: Math.round(base.charge_optimale * 1.08),
+    nutrition_bike_gph: {
+      min: Math.round(base.nutrition_bike_gph.min * 1.05),
+      max: Math.round(base.nutrition_bike_gph.max * 1.05),
+    },
+    nutrition_run_gph: base.nutrition_run_gph ? {
+      min: Math.round(base.nutrition_run_gph.min * 1.05),
+      max: Math.round(base.nutrition_run_gph.max * 1.05),
+    } : undefined,
+  };
+}
+
+/**
  * Get full targets for an objective at a given ambition level (NEW API)
+ *
+ * Mapping ambition → bloc de données :
+ *   finisher/age_group/competitor/elite → lecture directe
+ *   world_class (Elite top 3%) → bloc `elite` + multiplicateurs +stricts
  */
 export function getTargetsForAmbition(
   objectif: string,
@@ -608,7 +639,12 @@ export function getTargetsForAmbition(
 ): ObjectiveTargets {
   const normalized = normalizeObjective(objectif);
   const targets = AMBITION_TARGETS[normalized];
-  return targets?.[ambition] || AMBITION_TARGETS["703"].age_group;
+  if (!targets) return AMBITION_TARGETS["703"].age_group;
+
+  if (ambition === "world_class") {
+    return applyWorldClassMultipliers(targets.elite);
+  }
+  return targets[ambition as keyof AmbitionTargets] || targets.age_group;
 }
 
 /**

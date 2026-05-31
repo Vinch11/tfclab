@@ -4,7 +4,7 @@
  * Source de vérité : src/lib/physiologicalTargets.ts → AMBITION_TARGETS[*].vlamax
  */
 
-export type AmbitionLevel = "finisher" | "age_group" | "competitor" | "elite";
+export type AmbitionLevel = "finisher" | "age_group" | "competitor" | "elite" | "world_class";
 export interface VLamaxRange { min: number; max: number; optimal: number }
 
 const VLAMAX_TABLE: Record<string, Record<AmbitionLevel, VLamaxRange>> = {
