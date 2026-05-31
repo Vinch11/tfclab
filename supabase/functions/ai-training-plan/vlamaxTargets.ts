@@ -7,7 +7,8 @@
 export type AmbitionLevel = "finisher" | "age_group" | "competitor" | "elite" | "world_class";
 export interface VLamaxRange { min: number; max: number; optimal: number }
 
-const VLAMAX_TABLE: Record<string, Record<AmbitionLevel, VLamaxRange>> = {
+// world_class est dérivé en runtime depuis `elite` via multiplicateur ×0.92 — pas d'entrée explicite requise
+const VLAMAX_TABLE: Record<string, Partial<Record<AmbitionLevel, VLamaxRange>>> = {
   IM: {
     finisher:   { min: 0.35, max: 0.60, optimal: 0.48 },
     age_group:  { min: 0.30, max: 0.50, optimal: 0.40 },
