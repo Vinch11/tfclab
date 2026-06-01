@@ -1064,6 +1064,295 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     variants: { trail_short: "5 reps / 90'", trail_mountain: "6-7 reps / 120'", trail_ultra: "7-8 reps / 150'" },
     goals: TRAIL_GOALS_ALL,
     tags: ["expé-hors-ville", "descente", "technique", "week-end", "spécifique-massif"]
+  },
+  // ============= TAPIS INCLINÉ — extensions =============
+  {
+    id: "URBAN_TAPIS_SEUIL_PROGRESSIF_LONG",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Seuil progressif tapis incliné — 3×15' à 4/6/8% inclinaison, allure seuil descendante. Travaille puissance aérobie en montée soutenue",
+    necessite: "Recommandé",
+    when: "Build/Peak (1× /sem en alternance avec seuil plat)",
+    phase: ["build", "peak"],
+    avoid: "Fatigue tendineuse Achille, semaine de récup",
+    durationMin: [70, 90],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF 1% incl. + 4×30\" lignes droites Z3", ["Z1", "Z2"]],
+      ["Main", "3×15' seuil à 4% / 6% / 8% incl. (allure régressive de 5-8s/km/bloc pour iso-FC). R: 4' marche 1%. Travail seuil + force spécifique montée.", ["Z4"]],
+      ["Cool-down", "10' EF 1% + étirements mollets/soléaires", ["Z1"]]
+    ]),
+    variants: { trail_short: "2×15'", trail_mountain: "3×15'", trail_ultra: "3×18'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "tapis-incliné", "seuil", "force-montée", "substitution-trail"]
+  },
+  {
+    id: "URBAN_TAPIS_VO2_FARTLEK_INCLINE",
+    cat: "C", sport: "course",
+    objectif: "[URBAIN] VO2max tapis fartlek inclinaison variable — 10×(2' à 8-10% VO2 + 1' récup 2%). Reproduit profil dent-de-scie sentier montée",
+    necessite: "Recommandé",
+    when: "Build (1× /sem en bloc VO2max)",
+    phase: ["build", "peak"],
+    avoid: "Si VMA descendante 2 sem consécutives",
+    durationMin: [50, 65],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "12' EF 1-2% + 4×30\" 5% incl. progressifs", ["Z1", "Z2"]],
+      ["Main", "10×(2' à 8-10% incl. allure VO2max FC≥92% / 1' récup 2% incl. EF). Garder cadence ≥175.", ["Z5"]],
+      ["Cool-down", "10' EF 1% + mobilité hanches", ["Z1"]]
+    ]),
+    variants: { trail_short: "8 reps", trail_mountain: "10 reps", trail_ultra: "12 reps allure légèrement réduite" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "tapis-incliné", "vo2max", "fartlek", "substitution-trail"]
+  },
+  {
+    id: "URBAN_TAPIS_SIMUL_COL_LONG",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Simulation col long tapis — 60-90' continu à 6-10% incl. allure marche/course alternée (5'/5'). Reproduit ascension longue 800-1500m D+",
+    necessite: "Recommandé",
+    when: "Peak (1× tous les 10-14j si course mountain/ultra)",
+    phase: ["build", "peak"],
+    avoid: "Pas en début de plan, exige adaptation préalable tapis incliné",
+    durationMin: [70, 110],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "10' EF 2% incl. + activation chevilles", ["Z1", "Z2"]],
+      ["Main", "60-90' continu 6-10% incl. : alterner 5' course allure EF haute (Z2-Z3) + 5' marche puissante (mains sur cuisses si raide). Sac lesté 4-6kg. Test nutrition col long (1 gel/45'). Ventilation max.", ["Z2", "Z3"]],
+      ["Cool-down", "10' EF 1% + étirements complets", ["Z1"]]
+    ]),
+    variants: { trail_short: "60'", trail_mountain: "75-90'", trail_ultra: "90-110'" },
+    goals: TRAIL_GOALS_MTN_ULTRA,
+    tags: ["urbain", "tapis-incliné", "simulation-col", "marche-course", "substitution-trail"]
+  },
+  // ============= ESCALIERS — extensions =============
+  {
+    id: "URBAN_ESCALIERS_SEUIL_CONTINU",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Seuil continu escaliers — 3×8' montées/descentes enchaînées sur grand escalier (>50 marches). Travail seuil + posture descente",
+    necessite: "Recommandé",
+    when: "Build/Peak (1× /sem si grand escalier disponible : building, monument, stade)",
+    phase: ["build", "peak"],
+    avoid: "Escalier <30 marches (cassures trop fréquentes), pluie",
+    durationMin: [50, 70],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "12' EF + 5' éducatifs montée (1 marche/2 marches)", ["Z1", "Z2"]],
+      ["Main", "3×8' enchaînement montée allure seuil + descente contrôlée (pose médio-pied, cadence haute). R: 3' marche plat. Travail FC seuil + technique descente sans D+ massif.", ["Z4"]],
+      ["Cool-down", "10' EF + étirements quadris/tibial antérieur", ["Z1"]]
+    ]),
+    variants: { trail_short: "2×8'", trail_mountain: "3×8'", trail_ultra: "3×10'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "escaliers", "seuil", "descente-technique", "substitution-trail"]
+  },
+  {
+    id: "URBAN_ESCALIERS_FARTLEK_LIBRE",
+    cat: "C", sport: "course",
+    objectif: "[URBAIN] Fartlek escaliers ludique — 45' parcours urbain enchaînant 6-10 escaliers du quartier avec allures libres. Stimulus varié et motivant",
+    necessite: "Recommandé",
+    when: "Build (1× /sem en alternative aux blocs structurés)",
+    phase: ["base", "build", "peak"],
+    avoid: "Trafic dense (heures de pointe), sols glissants",
+    durationMin: [40, 60],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "10' EF rejoindre 1er escalier", ["Z1", "Z2"]],
+      ["Main", "Parcours libre 30-40' : chaque escalier croisé = 1-3 montées allure choisie (sprint court, VMA, seuil long si escalier long). Entre les escaliers : EF Z2 récup. Compter ≥6 escaliers ≥40 marches.", ["Z3", "Z4", "Z5"]],
+      ["Cool-down", "10' EF retour + mobilité chevilles", ["Z1"]]
+    ]),
+    variants: { trail_short: "40'", trail_mountain: "50'", trail_ultra: "60'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "escaliers", "fartlek", "ludique", "substitution-trail"]
+  },
+  {
+    id: "URBAN_ESCALIERS_BATONS_DOUBLE_POLING",
+    cat: "C", sport: "course",
+    objectif: "[URBAIN] Escaliers + bâtons double-poling — 8×1'30 montée avec bâtons, focus poussée bras synchronisée. Spécifique trail mountain/ultra >1500m D+",
+    necessite: "Recommandé",
+    when: "Build/Peak (1× tous les 14j si course autorise bâtons)",
+    phase: ["build", "peak"],
+    avoid: "Escaliers étroits (gêne bâtons), pluie",
+    durationMin: [50, 65],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "10' EF + 5' activation épaules (élastique, rotations)", ["Z1", "Z2"]],
+      ["Main", "8×1'30 montée escaliers grand format bâtons en poussée double-poling synchro jambe (planter bâtons devant pied avant, pousser jusqu'à extension complète). R: descente 1'30 sans bâtons. Focus économie + chaîne postérieure haut du corps.", ["Z3", "Z4"]],
+      ["Cool-down", "10' EF + étirements lats/triceps/poignets", ["Z1"]]
+    ]),
+    variants: { trail_short: "Skip", trail_mountain: "8 reps", trail_ultra: "10 reps" },
+    goals: TRAIL_GOALS_MTN_ULTRA,
+    tags: ["urbain", "escaliers", "bâtons", "double-poling", "technique-haut-corps"]
+  },
+  // ============= CÔTES URBAINES — extensions =============
+  {
+    id: "URBAN_COTES_NORVEGIEN_DOUBLE_SEUIL",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Côte urbaine méthode norvégienne double seuil — AM 5×6' côte allure seuil bas / PM 6×4' côte allure seuil haut. Volume seuil massif sans casse",
+    necessite: "Recommandé",
+    when: "Peak (1× /sem si CTL >400 et adaptation seuil OK)",
+    phase: ["peak"],
+    avoid: "CTL bas, sem 1-3 du plan, fatigue accumulée >7 jours",
+    durationMin: [120, 150],
+    metricKey: "lactate", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "Séance AM : 15' EF + 4 lignes. 5×6' côte 4-6% allure seuil bas (lactate cible 2.5-3.0 mmol/L si mesurable). R: descente trottinée 2'30. Récup 6-8h.", ["Z1", "Z2", "Z4"]],
+      ["Main", "Séance PM : 15' EF + 4 lignes. 6×4' même côte allure seuil haut (lactate 3.5-4.0). R: descente 2'. Norvégien strict : ne JAMAIS dépasser zone seuil.", ["Z4"]],
+      ["Cool-down", "10' EF + bain froid si disponible", ["Z1"]]
+    ]),
+    variants: { trail_short: "AM 4×6' / PM 5×4'", trail_mountain: "5×6' / 6×4'", trail_ultra: "6×6' / 6×5'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "côtes", "norvégien", "double-seuil", "lactate"]
+  },
+  {
+    id: "URBAN_COTES_SPRINT_NEURO",
+    cat: "C", sport: "course",
+    objectif: "[URBAIN] Sprint côte neuromusculaire — 12×8\" côte raide (>10%) à intensité max, R complète. Recrutement fibres rapides, puissance départ relances",
+    necessite: "Recommandé",
+    when: "Base/Build (1× /sem entretien neuromusculaire)",
+    phase: ["base", "build"],
+    avoid: "Échauffement insuffisant, blessure mollet/Achille",
+    durationMin: [40, 55],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF + 5' éducatifs (skipping, talons-fesses, foulées bondissantes) + 3×80m progressifs", ["Z1", "Z2", "Z3"]],
+      ["Main", "12×8\" sprint côte raide >10% max effort (engagement bras+jambes, attaque pied avant). R: 2-3' marche descente RÉCUP COMPLÈTE. Pas filière lactique : neuromusculaire pur.", ["Z6"]],
+      ["Cool-down", "10' EF + mobilité hanches/chevilles", ["Z1"]]
+    ]),
+    variants: { trail_short: "10 reps", trail_mountain: "12 reps", trail_ultra: "8 reps (entretien minimal)" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "côtes", "sprint", "neuromusculaire", "puissance"]
+  },
+  {
+    id: "URBAN_COTES_LONGUES_FARTLEK",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Fartlek côtes longues — 70' parcours vallonné urbain (parc/passerelles/ponts) avec montées >2' à allures variables. Volume spécifique simulation profil",
+    necessite: "Recommandé",
+    when: "Build/Peak (1× /sem alternative à SL plate)",
+    phase: ["build", "peak"],
+    avoid: "Parcours <5km de bosses (trop répétitif)",
+    durationMin: [60, 90],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF rejoindre parcours vallonné", ["Z1", "Z2"]],
+      ["Main", "45-60' parcours bouclé : chaque montée >2' courue à allure seuil/Z3, chaque descente contrôlée technique pose pied, plat = EF Z2. Viser ≥400m D+ cumulés sur la séance.", ["Z2", "Z3", "Z4"]],
+      ["Cool-down", "10' EF retour + étirements", ["Z1"]]
+    ]),
+    variants: { trail_short: "60' / 300m D+", trail_mountain: "75' / 500m D+", trail_ultra: "90' / 600m D+" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "côtes-longues", "fartlek", "volume-D+", "substitution-trail"]
+  },
+  {
+    id: "URBAN_PARKING_RAMPE_PYRAMIDE",
+    cat: "C", sport: "course",
+    objectif: "[URBAIN] Parking souterrain rampe pyramide — 1-2-3-4-3-2-1 min montée rampe parking (pente continue 8-15%). Alternative tapis si météo extrême",
+    necessite: "Optionnel",
+    when: "Build (option météo: pluie/neige/froid extrême)",
+    phase: ["base", "build", "peak"],
+    avoid: "Mauvaise ventilation parking, trafic véhicules",
+    durationMin: [40, 55],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "12' EF en surface + 4×30\" rampe progressifs", ["Z1", "Z2"]],
+      ["Main", "Pyramide 1-2-3-4-3-2-1' montée rampe parking allure VMA→seuil→VMA. R: descente trottinée temps = temps d'effort. Total ~16' qualité.", ["Z4", "Z5"]],
+      ["Cool-down", "10' EF surface + étirements", ["Z1"]]
+    ]),
+    variants: { trail_short: "1-2-3-2-1", trail_mountain: "1-2-3-4-3-2-1", trail_ultra: "2-3-4-5-4-3-2" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "parking", "rampe", "pyramide", "météo-extrême"]
+  },
+  // ============= WEEK-ENDS EXPÉ — extensions =============
+  {
+    id: "EXPE_HORS_VILLE_NOCTURNE",
+    cat: "B", sport: "course",
+    objectif: "[EXPÉ HORS-VILLE] Sortie nocturne massif — 2-3h trail nuit avec frontale, sentier connu. Spécifique courses comportant phase nocturne (ultra >12h)",
+    necessite: "Recommandé",
+    when: "Peak (1-2× avant course ultra avec phase nuit prévue)",
+    phase: ["peak"],
+    avoid: "Sentier inconnu, frontale faible (<300 lumens), seul si zone isolée sans réseau",
+    durationMin: [120, 180],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF marche+course progressif (adaptation vision nuit)", ["Z1"]],
+      ["Main", "2-3h Z2 strict sur sentier connu avec D+ modéré (400-800m). Frontale principale + backup. Tester nutrition nocturne (gels, soupes salées), gestion baisse vigilance, allure ralentie (-15-20% vs jour). Si possible avec partenaire.", ["Z2"]],
+      ["Cool-down", "10' marche + recharge glucidique + sommeil prioritaire", ["Z1"]]
+    ]),
+    variants: { trail_short: "Skip", trail_mountain: "120-150'", trail_ultra: "150-180'" },
+    goals: TRAIL_GOALS_ULTRA,
+    tags: ["expé-hors-ville", "nocturne", "ultra-spécifique", "frontale", "week-end"]
+  },
+  {
+    id: "EXPE_HORS_VILLE_TRIPLE_JOUR",
+    cat: "B", sport: "course",
+    objectif: "[EXPÉ HORS-VILLE] Stage 3 jours massif — vendredi-samedi-dimanche en gîte, choc volume + D+. Pic spécifique ultra/mountain peak phase",
+    necessite: "Recommandé",
+    when: "Peak (1× max par plan, J-21 à J-35 de course)",
+    phase: ["peak"],
+    avoid: "CTL <450, blessure récente, dernière sem avant taper",
+    durationMin: [360, 540],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "J1 (ven AM/PM) : 2h Z2 reconnaissance + 600-1000m D+. Repas glucidique massif. Sommeil 9h.", ["Z2"]],
+      ["Main", "J2 (sam) : SL D+ longue 3-4h / 1200-2000m D+ Z2 sur sentier engagé. Test nutrition course complète. J3 (dim) : 2-3h Z1-Z2 sur jambes fatiguées / 600-1000m D+, allure très contrôlée. Total stage : 7-10h / 2500-4000m D+.", ["Z1", "Z2"]],
+      ["Cool-down", "Lundi récup complète + URBAN_RECUP_VELO_ZONE1 ou marche. Suivi feedback corporel 5 jours.", ["Z1"]]
+    ]),
+    variants: { trail_short: "Skip", trail_mountain: "Total 7h / 2500m D+", trail_ultra: "Total 9-10h / 3500-4000m D+" },
+    goals: TRAIL_GOALS_MTN_ULTRA,
+    tags: ["expé-hors-ville", "stage", "triple-jour", "pic-spécifique", "week-end-prolongé"]
+  },
+  {
+    id: "EXPE_HORS_VILLE_RACE_SIM_MASSIF",
+    cat: "Race-Sim", sport: "course",
+    objectif: "[EXPÉ HORS-VILLE] Race-sim massif autonomie complète — 3-5h sentier massif avec sac course, nutrition exacte jour J, matériel obligatoire. Répétition générale",
+    necessite: "Obligatoire",
+    when: "Peak (1× obligatoire J-21 à J-28 si course mountain/ultra)",
+    phase: ["peak"],
+    avoid: "Conditions extrêmes opposées à jour J, blessure aiguë",
+    durationMin: [180, 300],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF + check matériel obligatoire complet (couverture survie, sifflet, frontale, eau, nutrition jour J)", ["Z1", "Z2"]],
+      ["Main", "3-5h sur portion représentative du parcours (ou massif équivalent) : viser 60-70% D+ course cible, allure exacte stratégie jour J (Z2 pur sur portions roulantes, marche puissante montées raides, descente technique contrôlée). Nutrition strictement = jour J (gels/barres/poudre exacts). Ravitaillement autonome (pas de soutien externe).", ["Z2", "Z3"]],
+      ["Cool-down", "Bilan complet : nutrition tolérée ?, matériel OK ?, allure tenable sur ×2-3 ? Ajustements stratégie finale.", ["Z1"]]
+    ]),
+    variants: { trail_short: "180' / 600m D+", trail_mountain: "240' / 1200m D+", trail_ultra: "300' / 1800m D+" },
+    goals: TRAIL_GOALS_MTN_ULTRA,
+    tags: ["expé-hors-ville", "race-sim", "autonomie", "répétition-générale", "nutrition-test"]
+  },
+  {
+    id: "EXPE_HORS_VILLE_VERTICAL_KM",
+    cat: "C", sport: "course",
+    objectif: "[EXPÉ HORS-VILLE] Vertical Km massif — montée sèche 1000m D+ continue (3-5km dist.), allure soutenue. Test puissance verticale + économie montée raide",
+    necessite: "Recommandé",
+    when: "Build/Peak (1× tous les 21j si course mountain >1500m D+/km segments)",
+    phase: ["build", "peak"],
+    avoid: "Sentier glissant, pas de descente sécurisée (téléphérique/navette idéal)",
+    durationMin: [90, 150],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "20' marche+EF approche base montée + activation mollets/chevilles", ["Z1", "Z2"]],
+      ["Main", "Montée 1000m D+ continue allure Z3-Z4 soutenue, alterner course (pentes <15%) et marche puissante (>15%, mains cuisses). Chrono total = référence saison. Cadence soutenue, regard sur sentier 3-5m. Bâtons recommandés.", ["Z3", "Z4"]],
+      ["Cool-down", "Descente facile EF Z1-Z2 (ou téléphérique) + étirements complets bas du corps", ["Z1"]]
+    ]),
+    variants: { trail_short: "600m D+", trail_mountain: "1000m D+", trail_ultra: "1000-1200m D+ allure plus modérée" },
+    goals: TRAIL_GOALS_MTN_ULTRA,
+    tags: ["expé-hors-ville", "vertical-km", "puissance-verticale", "test-référence", "week-end"]
+  },
+  {
+    id: "EXPE_HORS_VILLE_FORET_PERIURBAINE",
+    cat: "A", sport: "course",
+    objectif: "[EXPÉ HORS-VILLE] Forêt périurbaine sentier — 90-150' sentier forestier accessible en transports (Fontainebleau, Soignes, Meudon, etc.). Volume EF sur sol souple sans long trajet",
+    necessite: "Recommandé",
+    when: "Base/Build (1× /sem, alternative à SL urbaine bitume)",
+    phase: ["base", "build", "peak"],
+    avoid: "—",
+    durationMin: [80, 150],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "10' EF approche forêt", ["Z1", "Z2"]],
+      ["Main", "70-130' EF Z2 strict sur sentier forestier, profiter du terrain souple, des micro-reliefs (200-500m D+ accumulés naturellement), de la fraîcheur. Travail proprioception cheville + variation foulée. Idéal aussi en double tapis-foret le week-end.", ["Z1", "Z2"]],
+      ["Cool-down", "10' marche + étirements", ["Z1"]]
+    ]),
+    variants: { trail_short: "80-100'", trail_mountain: "100-130'", trail_ultra: "120-150'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["expé-hors-ville", "forêt-périurbaine", "EF", "volume", "week-end", "accessible-transports"]
   }
 ];
 
