@@ -1024,7 +1024,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 const vmaNum = parseNum(formData.vma);
                 const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
                 const est = resolveRunningEconomy({ vmaKmh: vmaNum, pace30MinSecPerKm: paceThresholdSec });
-                if (est.score == null) {
+                if (!est || est.score == null) {
                   return <div className="text-xs text-muted-foreground self-center">Estim. auto: renseigner VMA + Allure seuil</div>;
                 }
                 return (
