@@ -700,9 +700,20 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   });
   
   // 5. Analyse Économie (Neuromuscular)
+  // ⚠️ GUARD COHÉRENCE ÉCONOMIE↔TTE (politique "no fake defaults")
+  // Quand TTE est inconnu (LOAD échoué, ni tte_observed_min ni tss_7d),
+  // on n'a pas le contexte de durabilité pour interpréter un score
+  // d'économie sous-cible. Sans ce contexte, l'économie remonte
+  // mécaniquement en limiteur primaire et fausse la lecture (Force Max
+  // activée par défaut, neuromusculaire surreprésenté chez la majorité
+  // des athlètes).
+  // → On neutralise son weightedImpact tant que TTE est "unknown".
+  const tteIsUnknown = input.tte === null;
   const economyGap = input.economyScore !== null 
     ? (input.economyScore - 70) / 70 
     : 0;
+  const economyRawImpact = economyGap < 0 ? Math.abs(economyGap) * weights.economy * 100 : 0;
+  const economyImpactNeutralized = tteIsUnknown && economyGap < 0;
   gapAnalysis.push({
     metric: "Économie",
     value: input.economyScore,
@@ -710,11 +721,12 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     gap: input.economyScore !== null ? input.economyScore - 70 : 0,
     gapPercent: economyGap * 100,
     status: input.economyScore === null ? "unknown"
+      : economyImpactNeutralized ? "acceptable"  // TTE inconnu → contexte manquant
       : input.economyScore >= 70 ? "optimal"
       : input.economyScore >= 50 ? "acceptable"
       : "limiting",
     weight: weights.economy,
-    weightedImpact: economyGap < 0 ? Math.abs(economyGap) * weights.economy * 100 : 0,
+    weightedImpact: economyImpactNeutralized ? 0 : economyRawImpact,
   });
   
   // 6. Analyse Disponibilité — RETIRÉE V2.1
