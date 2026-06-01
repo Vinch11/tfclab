@@ -1191,7 +1191,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     phase: ["peak"],
     avoid: "CTL bas, sem 1-3 du plan, fatigue accumulée >7 jours",
     durationMin: [120, 150],
-    metricKey: "lactate", sportKey: "course",
+    metricKey: "cardiaque", sportKey: "course",
     structure: mkStructure([
       ["Warm-up", "Séance AM : 15' EF + 4 lignes. 5×6' côte 4-6% allure seuil bas (lactate cible 2.5-3.0 mmol/L si mesurable). R: descente trottinée 2'30. Récup 6-8h.", ["Z1", "Z2", "Z4"]],
       ["Main", "Séance PM : 15' EF + 4 lignes. 6×4' même côte allure seuil haut (lactate 3.5-4.0). R: descente 2'. Norvégien strict : ne JAMAIS dépasser zone seuil.", ["Z4"]],
