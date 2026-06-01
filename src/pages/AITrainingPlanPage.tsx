@@ -288,9 +288,10 @@ export default function AITrainingPlanPage() {
       trailElevationM,
       trailTargetTimeH,
       trailMaxAltitudeM,
+      terrainAvailability,
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM]);
+  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
