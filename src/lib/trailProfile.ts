@@ -50,14 +50,19 @@ function classifyTerrain(dPlusPerKm: number): { terrain: TrailTerrain; label: st
 
 /**
  * Estime la durée de course (min) si pas fournie.
- * Modèle simple : base d'allure trail + pénalité D+ (≈10s/km par 100m D+).
+ * Modèle Minetti/Naismith simplifié :
+ *   - Base trail ~5'30/km (330 s/km) niveau intermédiaire
+ *   - Pénalité D+ : +6 s/km par 10 m/km de pente moyenne (≈ 1 min / 100m D+)
+ *     soit ~10h pour 43km/3000m, cohérent avec finishers UTMB-like.
+ *   - Référence : Scarf 2007, Kay 2012 (modèles de prédiction trail).
+ * Pour précision réelle, fournir `targetTimeMinutes`.
  */
 function estimateRaceDuration(distanceKm: number, elevationGainM: number): number {
-  // Base trail pace ~5'30/km en montagne pour niveau intermédiaire
   const basePaceSecPerKm = 330;
-  const elevationPenaltySec = (elevationGainM / 100) * 10 * distanceKm / Math.max(distanceKm, 1);
-  // Approx total seconds
-  const secPerKm = basePaceSecPerKm + (elevationGainM / Math.max(distanceKm, 1)) * 10;
+  const dPlusPerKm = elevationGainM / Math.max(distanceKm, 1);
+  // +6 s/km par 10 m/km de D+ moyen → pente forte = pénalité forte
+  const elevationPenaltySecPerKm = dPlusPerKm * 0.6;
+  const secPerKm = basePaceSecPerKm + elevationPenaltySecPerKm;
   return Math.round((secPerKm * distanceKm) / 60);
 }
 
