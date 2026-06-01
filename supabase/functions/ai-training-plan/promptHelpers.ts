@@ -96,7 +96,8 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(`\n📍 PROFIL COURSE TRAIL (valeurs finales, ne pas recalculer) :`);
     lines.push(`  • Distance: ${tp.distanceKm} km · D+: ${tp.elevationGainM} m · Ratio: ${tp.dPlusPerKm} m/km → terrain "${tp.terrainLabel}"`);
     lines.push(`  • Durée estimée: ${durStr}${tp.needsNightSimulation ? " (≥6h → simulations nocturnes obligatoires)" : ""}`);
-    lines.push(`  • D+ hebdo cible: base ${tp.weeklyDPlusBaseM}m → peak ${tp.weeklyDPlusPeakM}m (progression linéaire)`);
+    lines.push(`  • D+ hebdo cible: base ${tp.weeklyDPlusBaseM}m → peak ${tp.weeklyDPlusPeakM}m`);
+    lines.push(`  • 🚦 RAMPE D+ MAX: +30%/sem (Gabbett ACWR ≤1.3). NE PAS sauter de base→peak en <4 sem. Décharge -40% D+ toutes les 3 sem.`);
     if (tp.descentTechnicalRequired) {
       lines.push(`  • ⚠️ Descente technique OBLIGATOIRE 1x/sem en Build/Peak (ratio ≥35 m/km)`);
     }
