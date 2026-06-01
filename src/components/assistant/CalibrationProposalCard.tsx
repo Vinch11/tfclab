@@ -81,7 +81,7 @@ export function CalibrationProposalCard({ proposal }: Props) {
         date: proposal.date ?? new Date().toISOString().slice(0, 10),
         source_type,
         evidence_type,
-        raw_values: proposal.raw_values ?? {},
+        raw_values: (proposal.raw_values ?? {}) as never,
         confidence_evidence: proposal.confidence_evidence ?? 0.7,
         protocol_quality: Math.min(5, Math.max(1, proposal.protocol_quality ?? 3)),
         notes: proposal.notes ?? null,
