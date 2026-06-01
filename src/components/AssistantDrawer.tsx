@@ -95,6 +95,7 @@ async function streamChat({
   knowledgeContext,
   missingFields,
   isFirstMessage,
+  selectedAthleteId,
   onDelta,
   onDone,
   onError,
@@ -104,6 +105,7 @@ async function streamChat({
   knowledgeContext: string;
   missingFields: string;
   isFirstMessage: boolean;
+  selectedAthleteId: string | null;
   onDelta: (deltaText: string) => void;
   onDone: () => void;
   onError: (error: string) => void;
