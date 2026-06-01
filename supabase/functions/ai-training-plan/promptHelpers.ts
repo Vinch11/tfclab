@@ -31,10 +31,15 @@ export function buildTerrainHardBanBlock(config: any): string {
     lines.push(`  • ❌ INTERDIT en SEMAINE (lun-ven) : toute séance "montagne", "sentier montagne", "+500m D+" ou plus, "SL trail montagne", "back-to-back montagne", "massif".`);
     lines.push(`  • ❌ INTERDIT de prescrire >${maxDPlusWeekday}m D+ sur une séance de semaine (impossible à exécuter).`);
     lines.push(`  • ✅ QUOTA OBLIGATOIRE PAR SEMAINE : minimum 2 séances [URBAIN] dans chaque semaine de Build/Peak (tapis incliné, escaliers, côtes urbaines, excentrique salle). Chaque titre DOIT commencer par [URBAIN].`);
-    lines.push(`  • ✅ Catalogue à PIOCHER en priorité : URBAN_TAPIS_INCLINE_SEUIL, URBAN_COTES_URBAINES_VMA, URBAN_ESCALIERS_PYRAMIDE, URBAN_EXCENTRIQUE_DESCENTE_SALLE, V2_STR_ESCALIERS_TRAIL. Utilise leurs IDs explicitement.`);
-    lines.push(`  • ✅ Week-ends (sam/dim) UNIQUEMENT : possibilité de SL "expédition hors-ville" jusqu'à ${maxDPlusWeekend}m D+, max 1× tous les 10-15j (contrainte trajet). Tagger [EXPÉ HORS-VILLE].`);
-    lines.push(`  • Sem 1 (S1) : aucune sortie montagne, même week-end (phase d'adaptation). Compensations urbaines uniquement.`);
-    lines.push(`  • VALIDATION : si une semaine de Build/Peak n'a pas ≥2 séances [URBAIN] OU contient "montagne/+XXXm D+" en lun-ven, le plan est INVALIDE et doit être régénéré.`);
+    lines.push(`  • ✅ Catalogue URBAIN à PIOCHER : URBAN_TAPIS_INCLINE_SEUIL, URBAN_COTES_URBAINES_VMA, URBAN_ESCALIERS_PYRAMIDE, URBAN_EXCENTRIQUE_DESCENTE_SALLE, URBAN_TAPIS_SL_LONG, URBAN_DOUBLE_TAPIS_AM_PM, URBAN_PARC_BOUCLES_VALLONNEES, V2_STR_ESCALIERS_TRAIL. Utilise leurs IDs explicitement.`);
+    lines.push(`  • 🎒 ✅ WEEK-ENDS EXPÉ HORS-VILLE — PLANIFICATION OBLIGATOIRE (ne PAS oublier, c'est le pilier D+ du plan) :`);
+    lines.push(`      → Build : MINIMUM 1 week-end expé tous les 14 jours (= 2/mois). Choisir EXPE_HORS_VILLE_SL_DPLUS (sam OU dim, ${maxDPlusWeekend}m D+ max).`);
+    lines.push(`      → Peak (4-6 dernières sem avant course) : MINIMUM 2 week-ends expé/mois dont AU MOINS 1 EXPE_HORS_VILLE_BACK_TO_BACK (sam+dim consécutifs en massif).`);
+    lines.push(`      → Si course inclut descentes techniques : ajouter 1× EXPE_HORS_VILLE_DESCENTE_TECHNIQUE /mois en Build/Peak.`);
+    lines.push(`      → Chaque expé week-end DOIT apparaître nommément dans le plan avec titre commençant par [EXPÉ HORS-VILLE] et l'ID catalogue correspondant. NE PAS se contenter de "SL trail" générique.`);
+    lines.push(`      → Si l'athlète indique l'impossibilité expé un week-end donné : substituer par URBAN_DOUBLE_TAPIS_AM_PM (sam 2h + dim 3h tapis incliné), mais cela reste l'EXCEPTION pas la règle.`);
+    lines.push(`  • Sem 1 (S1) : pas d'expé week-end (adaptation). Compensations urbaines uniquement. EXPÉ démarre dès S2-S3.`);
+    lines.push(`  • VALIDATION : plan INVALIDE si (a) <2 séances [URBAIN]/sem en Build/Peak, OU (b) <2 séances [EXPÉ HORS-VILLE]/mois en Build, OU (c) aucun back-to-back EXPÉ en Peak, OU (d) "montagne/+XXXm D+" en lun-ven.`);
   } else if (ta === "vallonne") {
     lines.push(`  • Athlète en terrain VALLONNÉ (collines 50-200m max) — pas de massif montagneux accessible en semaine.`);
     lines.push(`  • ❌ INTERDIT en semaine : séances "montagne >500m D+ continu", "SL trail montagne 1500m+", "altitude".`);

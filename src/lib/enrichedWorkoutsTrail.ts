@@ -1006,6 +1006,64 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     variants: { trail_short: "40'", trail_mountain: "45-60'", trail_ultra: "60' + mobilité 15'" },
     goals: TRAIL_GOALS_ALL,
     tags: ["urbain", "récupération", "vélo", "cross-training", "substitution-trail", "fallback"]
+  },
+  // ============= WEEK-ENDS EXPÉ HORS-VILLE — sorties programmées pour athlète urbain =============
+  {
+    id: "EXPE_HORS_VILLE_SL_DPLUS",
+    cat: "B", sport: "course",
+    objectif: "[EXPÉ HORS-VILLE] Sortie longue D+ massif accessible — 2h30-5h trail vallonné/montagne (Ardennes/Vosges/Fontainebleau/Forêt domaniale <2h route). Volume D+ irréalisable en ville",
+    necessite: "Obligatoire",
+    when: "Build/Peak — 1× tous les 10-15j, planifier sam OU dim (un seul jour). Réserver date à l'avance (trajet 1-2h)",
+    phase: ["build", "peak"],
+    avoid: "Conditions neige/verglas si massif >1500m, première EXPÉ >3h sans préparation",
+    durationMin: [150, 300],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF plat Z1-Z2 sur sentier facile + activation chevilles/mollets (massif accidenté)", ["Z1", "Z2"]],
+      ["Main", "2-4h continu Z2 sur parcours vallonné/montagne RÉEL : viser 600-1500m D+ selon profil course. Alterner montées techniques (marche puissante >15% pente OK) et descentes contrôlées (technique pose pied). Tester nutrition course (gels/barres toutes les 30'), sac d'hydratation, chaussures trail, bâtons si autorisés. Photo/GPS du parcours pour valider D+.", ["Z2", "Z3"]],
+      ["Cool-down", "15' EF plat + étirements complets (quadris, mollets, fessiers) + recharge glucidique immédiate", ["Z1"]]
+    ]),
+    variants: { trail_short: "150-180' / 600-900m D+", trail_mountain: "210-270' / 1000-1500m D+", trail_ultra: "240-300' / 1200-1800m D+" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["expé-hors-ville", "week-end", "sortie-longue", "D+", "massif", "obligatoire-urbain"]
+  },
+  {
+    id: "EXPE_HORS_VILLE_BACK_TO_BACK",
+    cat: "B", sport: "course",
+    objectif: "[EXPÉ HORS-VILLE] Back-to-back week-end massif — sam SL D+ 2h30-3h30 + dim SL D+ 1h30-2h30 sur jambes fatiguées. Choc spécifique trail",
+    necessite: "Obligatoire",
+    when: "Build/Peak — 2-3× par phase (réserver hébergement gîte/refuge si massif >2h route)",
+    phase: ["build", "peak"],
+    avoid: "Sem 1-2 du plan (adaptation), CTL bas (<350), blessure aiguë",
+    durationMin: [240, 360],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "Jour 1 (sam) : 10' EF + activation. SL D+ 2h30-3h30 / 800-1400m D+ Z2 sentier technique. Recharge glucidique massive post-séance. Sommeil prioritaire.", ["Z1", "Z2"]],
+      ["Main", "Jour 2 (dim) : 10' échauffement long (mobilité hanches/chevilles raides) puis SL D+ 1h30-2h30 / 500-900m D+ Z1-Z2 strict (jambes lourdes attendues). Objectif : terminer en aérobie pure malgré fatigue résiduelle. Tester gestion mentale + nutrition course longue. NE PAS pousser si douleur articulaire.", ["Z1", "Z2"]],
+      ["Cool-down", "Étirements + récup active lundi (URBAN_RECUP_VELO_ZONE1 ou marche 30')", ["Z1"]]
+    ]),
+    variants: { trail_short: "Sam 2h / Dim 1h30 (total ~1200m D+)", trail_mountain: "Sam 3h / Dim 2h (total ~2000m D+)", trail_ultra: "Sam 3h30 / Dim 2h30 (total ~2500m D+)" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["expé-hors-ville", "back-to-back", "week-end", "choc-spécifique", "obligatoire-urbain"]
+  },
+  {
+    id: "EXPE_HORS_VILLE_DESCENTE_TECHNIQUE",
+    cat: "B", sport: "course",
+    objectif: "[EXPÉ HORS-VILLE] Atelier descente technique massif — 1h30-2h30 ciblé descentes répétées sur sentier accidenté. Compétence intransposable au tapis/escaliers",
+    necessite: "Recommandé",
+    when: "Build/Peak — 1× /mois si course trail mountain/ultra avec descentes techniques (>15% pente sentier rocheux)",
+    phase: ["build", "peak"],
+    avoid: "Pluie battante (glissance), première séance descente sans préparation excentrique préalable",
+    durationMin: [90, 150],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "20' montée EF + activation chevilles (cercles, sauts latéraux contrôlés)", ["Z1", "Z2"]],
+      ["Main", "5-8 répétitions descente technique 400-800m dénivelé négatif sur sentier accidenté : pose pied actif (avant-pied/médio-pied), regard 3-5m devant, bras écartés équilibre, fréquence pas élevée (>180), bâtons si besoin. R: remontée Z1-Z2 marche/EF. Travail spécifique impossible en ville (sol urbain trop plat/régulier).", ["Z2", "Z3"]],
+      ["Cool-down", "15' EF plat + étirements quadris/tibial antérieur (très sollicités en descente)", ["Z1"]]
+    ]),
+    variants: { trail_short: "5 reps / 90'", trail_mountain: "6-7 reps / 120'", trail_ultra: "7-8 reps / 150'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["expé-hors-ville", "descente", "technique", "week-end", "spécifique-massif"]
   }
 ];
 
