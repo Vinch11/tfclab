@@ -344,12 +344,13 @@ export function AssistantDrawer({
     let assistantSoFar = "";
     const upsertAssistant = (nextChunk: string) => {
       assistantSoFar += nextChunk;
+      const { cleaned, proposals } = extractCalibrationProposals(assistantSoFar);
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant") {
-          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar, sources } : m));
+          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: cleaned, sources, proposals } : m));
         }
-        return [...prev, { role: "assistant", content: assistantSoFar, sources }];
+        return [...prev, { role: "assistant", content: cleaned, sources, proposals }];
       });
     };
     
@@ -359,6 +360,7 @@ export function AssistantDrawer({
       knowledgeContext,
       missingFields,
       isFirstMessage: messages.length === 0,
+      selectedAthleteId,
       onDelta: (chunk) => upsertAssistant(chunk),
       onDone: () => setIsLoading(false),
       onError: (error) => {
@@ -369,7 +371,7 @@ export function AssistantDrawer({
         setIsLoading(false);
       },
     });
-  }, [messages, contextPacket, isLoading, hasSeenDisclaimer]);
+  }, [messages, contextPacket, isLoading, hasSeenDisclaimer, selectedAthleteId]);
   
   const handleQuickSuggestion = (query: string) => {
     handleSend(query);
