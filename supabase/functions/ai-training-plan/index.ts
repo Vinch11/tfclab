@@ -114,6 +114,14 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
 → Ratio cible : ≥80% séances catalogue, ≤20% séances custom.`;
     }
 
+    // 🚨 TERRAIN HARD-BAN — prepend en TÊTE du userPrompt pour overrider les exemples
+    // "+1200m D+" / "montagne" du systemPrompt quand l'athlète déclare un terrain urbain.
+    // S'applique à tous les chemins : mono-bloc, chunked (chunk 1+N), retries, surgical.
+    const _terrainHardBanTop = buildTerrainHardBanBlock(planConfig);
+    if (_terrainHardBanTop) {
+      userPrompt = `${_terrainHardBanTop}\n\n${userPrompt}`;
+    }
+
     const totalWeeks = planConfig?.weeksAvailable || 12;
     // Use smaller chunks for triathlon (very verbose output with multi-session days)
     const obj = (planConfig?.objective || "").toUpperCase();
