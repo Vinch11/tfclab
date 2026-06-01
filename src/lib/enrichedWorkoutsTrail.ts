@@ -799,6 +799,213 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     variants: { trail_short: "1×/sem", trail_mountain: "2×/sem Build", trail_ultra: "2×/sem Build + 1×/sem Peak" },
     goals: TRAIL_GOALS_ALL,
     tags: ["urbain", "excentrique", "descente", "force-max", "préhab-genou", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_TAPIS_SL_LONG",
+    cat: "A", sport: "course",
+    objectif: "[URBAIN] SL tapis incliné progressif — 90-180' à 3-8% incl. Z2, simule fatigue D+ d'une SL trail montagne",
+    necessite: "Obligatoire",
+    when: "Build/Peak weekends sans expé hors-ville (1× tous les 10-15j si terrain plat)",
+    phase: ["build", "peak"],
+    avoid: "Première séance >2h, chaleur salle excessive",
+    durationMin: [90, 180],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' marche/EF 1-3% incl. + activation glutes", ["Z1", "Z2"]],
+      ["Main", "Bloc continu Z2 (70-78% FCmax) avec inclinaison progressive : 30' à 3%, 30' à 5%, 30' à 7%, puis paliers de 15' alternant 5%/8%. Marche en récup brève (60-90\") chaque 30'. Hydratation 500ml/h + 40g CHO/h dès 60min. D+ tapis cumulé ≈ 800-1800m selon durée. Simulation forme/posture montée trail (penché légèrement, bras compacts).", ["Z2"]],
+      ["Cool-down", "10' marche 1% décroissante + étirements complets chaîne post + foam roller", ["Z1"]]
+    ]),
+    variants: { trail_short: "90-120'", trail_mountain: "120-180'", trail_ultra: "150-210' + nutrition test" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "tapis-incliné", "SL", "endurance-D+", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_DOUBLE_TAPIS_AM_PM",
+    cat: "A", sport: "course",
+    objectif: "[URBAIN] Doublette tapis matin+soir — substitue back-to-back trail weekend. AM 75' Z2 5% incl. + PM 60' Z2 3% incl. Charge cumulée D+ équivalente",
+    necessite: "Recommandé",
+    when: "Build/Peak weekends si pas d'accès hors-ville (1× tous les 15j)",
+    phase: ["build", "peak"],
+    avoid: "Tendinopathie en cours, semaines de récupération",
+    durationMin: [135, 180],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "AM : 10' EF 1% incl. PM : 10' marche + EF court 1%", ["Z1", "Z2"]],
+      ["Main", "AM (matin, ≥10h avant PM) : 75' continu Z2 à 5-8% inclinaison, allure modérée, cible D+ tapis ≈ 600-900m. Nutrition 30g CHO/h. PM (soir, jambes pré-fatiguées) : 60' continu Z2 à 3-5% inclinaison, allure très contrôlée, focus posture haute et cadence. Cible cardio Z2 strict (jamais Z3). Cumul D+ jour ≈ 1000-1500m.", ["Z2"]],
+      ["Cool-down", "Chaque séance : 5' marche + étirements + bain froid optionnel entre AM et PM", ["Z1"]]
+    ]),
+    variants: { trail_short: "60'+45'", trail_mountain: "75'+60'", trail_ultra: "90'+75'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "tapis-incliné", "back-to-back", "double-day", "endurance-D+", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_TAPIS_DESCENTE_NEGATIVE",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Tapis incliné NÉGATIVE — 4×6' à -6 à -10% incl. Z2/Z3. Travail spécifique excentrique quadriceps descente (tapis le permettant)",
+    necessite: "Recommandé",
+    when: "Build/Peak (1×/sem si tapis avec incl. négative dispo, terrain plat préparant montagne)",
+    phase: ["build", "peak"],
+    avoid: "Tapis sans inclinaison négative (substitue par URBAN_EXCENTRIQUE_DESCENTE_SALLE)",
+    durationMin: [50, 70],
+    metricKey: "allure", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF Z2 à 1% + 4×30\" lignes droites + 5' marche 0%", ["Z1", "Z2"]],
+      ["Main", "4 × 6' à inclinaison NÉGATIVE -6 à -10%, allure Z2/Z3 contrôlée (FC modérée, charge mécanique max). Cadence haute 88-92 spm, foulée RACCOURCIE, posé médio-pied sous CG, pas d'attaque talon. R:3' marche 1% incl. ⚠️ Si DOMS quadri >48h après séance, réduire à 4×4' la fois suivante.", ["Z2", "Z3"]],
+      ["Cool-down", "10' marche 1% + étirements quadriceps statiques 3×45\"/jambe + foam roller", ["Z1"]]
+    ]),
+    variants: { trail_short: "3×5'", trail_mountain: "4×6'", trail_ultra: "5×6' progression" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "tapis", "descente", "excentrique", "spécifique-descente", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_PARC_BOUCLES_VALLONNEES",
+    cat: "A", sport: "course",
+    objectif: "[URBAIN] SL parc/bois urbain — 90-150' Z2 sur boucles vallonnées (Bois Vincennes, Forêt Soignes, Bois Boulogne, etc.). Cumul D+ via répétitions de petites bosses",
+    necessite: "Obligatoire",
+    when: "Build/Peak weekends (1×/sem si parc/bois accessible avec D+ local)",
+    phase: ["base", "build", "peak"],
+    avoid: "Boucles 100% plates (utiliser tapis incliné à la place)",
+    durationMin: [90, 150],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF Z1/Z2 plat", ["Z1", "Z2"]],
+      ["Main", "90-150' continu Z2 sur boucle vallonnée (3-5km par boucle, 30-80m D+/boucle). Multiplier les répétitions de la même bosse pour cumuler 400-900m D+ total. Marcher activement les bosses raides >12% pour reproduire effort trail. Hydratation/nutrition 30-50g CHO/h dès 60min.", ["Z2"]],
+      ["Cool-down", "10' EF Z1 + étirements + mobilité", ["Z1"]]
+    ]),
+    variants: { trail_short: "90-120'", trail_mountain: "120-150'", trail_ultra: "150-210'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "parc", "endurance-D+", "SL", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_ESCALIERS_TEMPO_LONG",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Escaliers tempo long — 25-45' continu sur boucle escaliers/parc à étages. Endurance force-vertical-aérobie",
+    necessite: "Recommandé",
+    when: "Build (1×/sem si gradins/parc à étages dispo, alternative à VMA escaliers)",
+    phase: ["build", "peak"],
+    avoid: "Premier mois de reprise, genou douloureux en descente",
+    durationMin: [45, 75],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Main", "Après échauffement 15', enchaîner 25-45' boucle continue : montée d'escaliers (60-100 marches) à allure tempo Z3 + descente trottinée Z1/Z2 + transition à plat 30-60\". Objectif cumul ≥600-1200 marches montées dans la fenêtre. FC moyenne 80-87% FCmax. Bras dynamiques, poussée glutes.", ["Z3"]],
+      ["Cool-down", "10' EF Z1 + étirements complets", ["Z1"]]
+    ]),
+    variants: { trail_short: "25-30'", trail_mountain: "30-40'", trail_ultra: "40-50'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "escaliers", "tempo", "endurance-force", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_TAPIS_PYRAMIDE_INCLINE",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Pyramide inclinaison tapis — VO2max montée : 3-5-7-5-3' à 8% incl. allure Z4/Z5. Stimule VO2 spécifique grimpe",
+    necessite: "Recommandé",
+    when: "Peak (1×/sem si terrain plat, alternative à VMA côtes)",
+    phase: ["peak"],
+    avoid: "Achille douloureux, jambes fatiguées (>RPE 7/10 au repos)",
+    durationMin: [55, 75],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF Z2 + 4×30\" lignes droites 5% incl.", ["Z1", "Z2"]],
+      ["Main", "Pyramide 3'-5'-7'-5'-3' à 8% inclinaison, allure Z4/Z5 (90-95% FCmax, ≈VO2max spécifique montée). R: 3' marche 1-2% incl. entre paliers. Cadence 80-88 spm, foulée puissante. Total 23' à intensité élevée + récup.", ["Z4", "Z5"]],
+      ["Cool-down", "10' marche 1% décroissante + étirements mollets + soléaire", ["Z1"]]
+    ]),
+    variants: { trail_short: "3-5-3'", trail_mountain: "3-5-7-5-3'", trail_ultra: "3-5-7-7-5-3'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "tapis-incliné", "VO2max", "montée", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_SAC_LESTE_SL",
+    cat: "A", sport: "course",
+    objectif: "[URBAIN] SL avec sac lesté 4-6kg — 75-120' Z2 en parc/boucle urbaine. Reproduit charge spécifique trail (sac hydratation + matériel obligatoire)",
+    necessite: "Recommandé",
+    when: "Peak (1×/sem dans les 6 dernières sem avant course trail mountain/ultra)",
+    phase: ["peak"],
+    avoid: "Lombalgie active, première semaine de reprise post-coupure",
+    durationMin: [75, 120],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "10' marche avec sac + mobilité épaules/tronc", ["Z1", "Z2"]],
+      ["Main", "75-120' continu Z2 strict (jamais Z3 avec lest), sac dorsal lesté 4-6kg réparti (eau + matériel = matériel obligatoire course). Posture droite, gainage actif tronc. Si parc vallonné : intégrer 4-6 montées de petites bosses au passage. Cible : adapter chaîne post + épaules à la charge ressentie le jour J.", ["Z2"]],
+      ["Cool-down", "10' marche sans sac + étirements lombaires, trapèzes, ischios", ["Z1"]]
+    ]),
+    variants: { trail_short: "60-75' sac 3-4kg", trail_mountain: "90-120' sac 5-6kg", trail_ultra: "120-150' sac 6-8kg" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "sac-lesté", "spécificité-trail", "SL", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_CORE_GAINAGE_TRAIL",
+    cat: "C", sport: "strength",
+    objectif: "[URBAIN] Gainage trail spécifique — circuit 30' anti-affaissement chaîne post + tronc + cheville. Pré-requis pour soutenir effort montée/descente long",
+    necessite: "Obligatoire",
+    when: "Toute saison (2×/sem si terrain plat, 1×/sem en peak)",
+    phase: ["base", "build", "peak"],
+    avoid: "Lombalgie aiguë",
+    durationMin: [30, 45],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mkStructure([
+      ["Warm-up", "5' mobilité dynamique chevilles, hanches, colonne", []],
+      ["Main", "Circuit 3-4 tours (45\"/15\" repos entre exos, 90\" repos entre tours) : (1) gainage planche + lever jambe alternée, (2) side-plank dynamique + dip hanche 12/côté, (3) bird-dog 10/côté tempo lent, (4) calf-raises mollet/soléaire 20 reps unipodal, (5) glute bridge unipodal 12/côté, (6) Y-T-W épaules 8 reps chaque, (7) ankle stability sur Bosu/coussin 30\"/pied yeux fermés.", []],
+      ["Cool-down", "5' étirements chaîne post + respiration diaphragmatique", []]
+    ]),
+    variants: { trail_short: "3 tours", trail_mountain: "3-4 tours", trail_ultra: "4 tours + 1 round mental imagery" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "gainage", "core", "préhab", "stabilité-cheville", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_RACESIM_TAPIS_NUTRITION",
+    cat: "RACESIM", sport: "course",
+    objectif: "[URBAIN] Race-sim tapis incliné — 2-4h tapis 4-7% incl. Z2 avec test nutrition/hydratation/matériel jour J. Substitue race-sim trail montagne",
+    necessite: "Recommandé",
+    when: "Peak (1× dans les 4-6 sem avant course, équipement complet)",
+    phase: ["peak"],
+    avoid: "Chaleur salle excessive (>22°C), première séance >2h sans préparation",
+    durationMin: [120, 240],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "10' marche + EF 1% incl. (équipement complet déjà porté)", ["Z1", "Z2"]],
+      ["Main", "2-4h continu Z2 strict avec inclinaison alternée : blocs de 30' à 4%/5%/7% en rotation. Sac dorsal lesté 4-6kg. Tester EXACTEMENT la nutrition/hydratation/électrolytes prévus le jour J (gels, barres, boissons, fréquence). Tester chaussures + chaussettes + cuissard + casquette + bâtons (poussée sur tapis si possible). Ventilation salle ouverte si possible. Cible: 90% des conditions jour J sans le D+ naturel.", ["Z2"]],
+      ["Cool-down", "10' marche 1% + étirements + retour calme alimentaire", ["Z1"]]
+    ]),
+    variants: { trail_short: "120-150'", trail_mountain: "180-210'", trail_ultra: "210-240' + simulation nocturne" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "race-sim", "tapis-incliné", "nutrition-test", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_BATONS_TECHNIQUE_PARC",
+    cat: "C", sport: "course",
+    objectif: "[URBAIN] Technique bâtons + montée puissante — 45' parc/escaliers avec bâtons trail. Apprentissage gestuelle bras + économie montée",
+    necessite: "Recommandé",
+    when: "Build/Peak (1× tous les 15j si course trail mountain/ultra avec bâtons autorisés)",
+    phase: ["build", "peak"],
+    avoid: "Douleur épaule/coude, pluie intense (sol glissant)",
+    durationMin: [40, 60],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "10' marche rapide + activation épaules (rotations, pull-aparts élastique)", ["Z1"]],
+      ["Main", "Phase 1 (10') : gestuelle bâtons à plat (poussée alternée, double-poling court). Phase 2 (20') : 6-8 montées d'escaliers urbains ou côte parc avec bâtons (poussée synchronisée jambe opposée), R: descente sans bâtons. Phase 3 (10') : transition rapide bâtons en mains/dans sac (5 reps chronométrées : viser <8s). Bras compacts, poussée verticale.", ["Z2", "Z3"]],
+      ["Cool-down", "10' étirements épaules, triceps, lats + mobilité poignets", ["Z1"]]
+    ]),
+    variants: { trail_short: "Skip (sauf course autorisant bâtons)", trail_mountain: "1× tous les 15j", trail_ultra: "1× /sem peak" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "bâtons", "technique", "économie-montée", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_RECUP_VELO_ZONE1",
+    cat: "D", sport: "vélo",
+    objectif: "[URBAIN] Récup vélo home-trainer Z1 — 40-60' très facile post-séance lourde urbaine (escaliers/tapis incliné). Drainage sans impact",
+    necessite: "Recommandé",
+    when: "Lendemain de séance urbaine intense (escaliers, tapis incliné, descente)",
+    phase: ["base", "build", "peak", "taper"],
+    avoid: "—",
+    durationMin: [40, 60],
+    metricKey: "cardiaque", sportKey: "vélo",
+    structure: mkStructure([
+      ["Main", "40-60' continu Z1 (<70% FCmax, <60% FTP), cadence libre haute 85-95rpm, position confortable. Aucune intensité. Drainage musculaire + maintien volume aérobie sans surcharge tendineuse/articulaire des jambes après stress vertical.", ["Z1"]],
+      ["Cool-down", "5' pédalage très facile + étirements jambes complets", ["Z1"]]
+    ]),
+    variants: { trail_short: "40'", trail_mountain: "45-60'", trail_ultra: "60' + mobilité 15'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "récupération", "vélo", "cross-training", "substitution-trail", "fallback"]
   }
 ];
 
