@@ -99,6 +99,8 @@ export interface PlanFormConfig {
   constraints?: string;
   /** Évaluation rapide du niveau d'entraînement actuel — utilisé comme fallback CRR si TSS 7j absent */
   trainingLevel?: CoachTrainingLevel;
+  /** Terrain disponible — critique pour les athlètes urbains préparant un trail montagne */
+  terrainAvailability?: "plat" | "vallonne" | "montagne" | "mixte";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
