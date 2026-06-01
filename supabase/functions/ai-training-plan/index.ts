@@ -120,6 +120,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const _terrainHardBanTop = buildTerrainHardBanBlock(planConfig);
     if (_terrainHardBanTop) {
       userPrompt = `${_terrainHardBanTop}\n\n${userPrompt}`;
+      console.log(`🏙️ TERRAIN HARD-BAN ACTIVE: terrainAvailability="${planConfig?.terrainAvailability}" → injecté en tête + queue de chaque chunk.`);
+    } else {
+      console.log(`🏙️ TERRAIN HARD-BAN inactif (terrainAvailability="${planConfig?.terrainAvailability ?? "undefined"}").`);
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
