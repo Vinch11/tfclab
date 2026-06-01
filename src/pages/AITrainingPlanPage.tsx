@@ -214,6 +214,8 @@ export default function AITrainingPlanPage() {
   const [trailElevationM, setTrailElevationM] = useState("");
   const [trailTargetTimeH, setTrailTargetTimeH] = useState(""); // h:mm
   const [trailMaxAltitudeM, setTrailMaxAltitudeM] = useState("");
+  // Terrain dispo athlète (lieu de vie) — clé pour athlètes urbains préparant un trail montagne
+  const [terrainAvailability, setTerrainAvailability] = useState<string>("auto");
 
   // Multi-objective state
   const [raceGoals, setRaceGoals] = useState<RaceGoal[]>([]);
@@ -251,6 +253,7 @@ export default function AITrainingPlanPage() {
       if (savedState.trailElevationM) setTrailElevationM(savedState.trailElevationM);
       if (savedState.trailTargetTimeH) setTrailTargetTimeH(savedState.trailTargetTimeH);
       if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
+      if (savedState.terrainAvailability) setTerrainAvailability(savedState.terrainAvailability);
     } else {
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
@@ -285,9 +288,10 @@ export default function AITrainingPlanPage() {
       trailElevationM,
       trailTargetTimeH,
       trailMaxAltitudeM,
+      terrainAvailability,
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM]);
+  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -504,10 +508,11 @@ export default function AITrainingPlanPage() {
       ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
       constraints: constraints || undefined,
       trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
+      terrainAvailability: terrainAvailability === "auto" ? undefined : (terrainAvailability as any),
     };
 
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
-  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel]);
+  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, terrainAvailability]);
 
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!rawParsedPlan) return null;
@@ -1296,6 +1301,28 @@ export default function AITrainingPlanPage() {
                           ⚠️ Renseigne distance + D+ pour que l'IA adapte le plan au profil exact de ta course.
                         </p>
                       )}
+
+                      {/* Terrain dispo athlète — substitutions urbaines */}
+                      <div className="space-y-1 pt-2 border-t border-amber-500/20">
+                        <Label className="text-[11px] flex items-center gap-1">
+                          🏙️ Terrain accessible (lieu de vie)
+                        </Label>
+                        <Select value={terrainAvailability} onValueChange={setTerrainAvailability}>
+                          <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="auto">🤖 Auto (montagne supposée)</SelectItem>
+                            <SelectItem value="plat">🏙️ Plat — urbain (ex: Bruxelles, Amsterdam)</SelectItem>
+                            <SelectItem value="vallonne">🌳 Vallonné — collines 50-200m (ex: Liège, Lyon)</SelectItem>
+                            <SelectItem value="mixte">🚗 Mixte — urbain semaine + montagne weekend</SelectItem>
+                            <SelectItem value="montagne">⛰️ Montagne — accès direct (ex: Chamonix, Grenoble)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {(terrainAvailability === "plat" || terrainAvailability === "vallonne" || terrainAvailability === "mixte") && (
+                          <p className="text-[10px] text-amber-700/80 dark:text-amber-400/80">
+                            💡 L'IA substituera les séances montagne par des compensations urbaines (escaliers, tapis incliné, côtes urbaines, sorties weekend programmées).
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
                 })()}

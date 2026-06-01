@@ -716,6 +716,93 @@ const TRAIL_D: LibraryWorkout[] = [
 ];
 
 // ═══════════════════════════════════════════
+// URBAN — Compensations pour athlètes urbains préparant trail montagne
+// (Bruxelles, Paris, Amsterdam, etc.) — substitutions des séances D+
+// quand terrainAvailability ∈ {plat, vallonne, mixte}
+// Refs: Vernillo 2017 (downhill running), Giovanelli 2016 (uphill treadmill),
+//       Mille-Hamard 2012 (stair climbing physiology)
+// ═══════════════════════════════════════════
+
+const TRAIL_URBAN: LibraryWorkout[] = [
+  {
+    id: "URBAN_TAPIS_INCLINE_SEUIL",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Seuil montée tapis incliné — 4×12' à 8-12% incl. Z3/Z4. Substitue seuil montée long en l'absence de relief",
+    necessite: "Obligatoire",
+    when: "Build/Peak (1-2×/sem si terrain plat)",
+    phase: ["build", "peak"],
+    avoid: "Genou/tendon achille douloureux à l'inclinaison",
+    durationMin: [60, 90],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' progressif : 5' marche 3% incl. + 10' EF Z2 à 1% incl. + 4×30\" lignes droites 5% incl.", ["Z1", "Z2"]],
+      ["Main", "4 × 12' à 8-12% inclinaison, allure Z3/Z4 (85-92% FCmax, ~seuil running montée), cadence 75-85 spm. R:3-4' marche 2% incl. Cible cardio = équivalent seuil montée long sentier. D+ tapis cumulé ≈ 600-1000m selon vitesse.", ["Z3", "Z4"]],
+      ["Cool-down", "10' marche 1-3% incl. décroissant + étirements mollets longs, soléaire, ischios", ["Z1"]]
+    ]),
+    variants: { trail_short: "3×10'", trail_mountain: "4×12'", trail_ultra: "5×15'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "tapis-incliné", "seuil", "montée", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_COTES_URBAINES_VMA",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] VMA côtes urbaines — 10-15×60-90\" à fond sur passerelles/ponts/rampes. Substitue VMA côtes en l'absence de montagne",
+    necessite: "Recommandé",
+    when: "Base/Build (1×/sem si terrain plat ou vallonné)",
+    phase: ["base", "build"],
+    avoid: "Tendinopathie achille active",
+    durationMin: [50, 75],
+    metricKey: "allure", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "20' progressif Z1→Z2 + 4 lignes droites + gammes (montées genoux, talons-fesses, foulées bondissantes)", ["Z1", "Z2"]],
+      ["Main", "10-15 × 60-90\" à fond sur côte courte 4-8% (passerelle, pont, rampe parking, escalier d'avenue). Effort 95-100% VMA, foulée puissante avant-pied, bras dynamiques. R:descente trottinée 90-120\". Si une seule bosse : faire des allers-retours.", ["Z5"]],
+      ["Cool-down", "10' EF Z1 + étirements quadriceps, mollets, fléchisseurs hanche", ["Z1"]]
+    ]),
+    variants: { trail_short: "10-12 reps", trail_mountain: "12-15 reps", trail_ultra: "15×90\"" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "VMA", "côtes", "puissance-aérobie", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_ESCALIERS_PYRAMIDE",
+    cat: "B", sport: "course",
+    objectif: "[URBAIN] Escaliers pyramide — montées répétées d'escaliers urbains (building, parking, gradins). Force-puissance verticale + tolérance lactique montée",
+    necessite: "Obligatoire",
+    when: "Build (1-2×/sem si terrain plat)",
+    phase: ["base", "build"],
+    avoid: "Genou douloureux en descente, premières semaines de reprise",
+    durationMin: [40, 60],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "10' EF + mobilité chevilles + 3×30\" montées d'escaliers à allure modérée 2 marches à la fois", ["Z1", "Z2"]],
+      ["Main", "Pyramide : 1-2-3-4-5-4-3-2-1 étages (ou volées de 20-30 marches). Montée puissante 2 marches à la fois, poussée glute. Descente CONTRÔLÉE 1 marche à la fois (pas en courant — évite traumatisme rotulien). R:retour passif au point bas. Volume cible : 200-400 marches montées. Si gradins stade : 8-12×1' montée rapide.", ["Z3", "Z4"]],
+      ["Cool-down", "10' marche + étirements mollets, soléaire, quadriceps, glutes", ["Z1"]]
+    ]),
+    variants: { trail_short: "150-250 marches", trail_mountain: "250-400 marches", trail_ultra: "400-600 marches" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "escaliers", "force-verticale", "puissance", "substitution-trail", "fallback"]
+  },
+  {
+    id: "URBAN_EXCENTRIQUE_DESCENTE_SALLE",
+    cat: "C", sport: "strength",
+    objectif: "[URBAIN] Excentrique descente salle — substitue descente technique trail. Presse 120° phase neg 3-4s + step-downs + Nordic. Prépare quadriceps au stress descente",
+    necessite: "Obligatoire",
+    when: "Build/Peak (2×/sem si terrain plat/vallonné préparant montagne)",
+    phase: ["base", "build", "peak"],
+    avoid: "Tendinopathie rotulienne aiguë, post-séance longue (DOMS 48h)",
+    durationMin: [40, 55],
+    metricKey: "cardiaque", sportKey: "tout sport",
+    structure: mkStructure([
+      ["Warm-up", "10' vélo ergo Z2 + mobilité hanches/chevilles + activation glutes (clamshells, monster walks)", []],
+      ["Main", "Bloc 1 — Presse 120° excentrique : 4×6 reps à 70-80% 1RM, tempo 4-1-1-0 (4s descente, 1s pause basse, 1s remontée). R:2'30. | Bloc 2 — Step-downs lents : 4×8/côté sur step 30-40cm, descente 4s contrôlée, posé doux. R:90\". | Bloc 3 — Nordic curls : 3×6 (assistance bande si besoin), phase neg max contrôle. R:2'. | Bloc 4 (option) : Descente escalier en chaise (assis-debout sur marches) 3×12/jambe.", []],
+      ["Cool-down", "10' vélo Z1 + étirements quadriceps + foam roller IT band, quadriceps", []]
+    ]),
+    variants: { trail_short: "1×/sem", trail_mountain: "2×/sem Build", trail_ultra: "2×/sem Build + 1×/sem Peak" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "excentrique", "descente", "force-max", "préhab-genou", "substitution-trail", "fallback"]
+  }
+];
+
+// ═══════════════════════════════════════════
 // EXPORT
 // ═══════════════════════════════════════════
 
@@ -725,4 +812,5 @@ export const EnrichedWorkoutsTrail: LibraryWorkout[] = [
   ...TRAIL_C,
   ...TRAIL_RACESIM,
   ...TRAIL_D,
+  ...TRAIL_URBAN,
 ];

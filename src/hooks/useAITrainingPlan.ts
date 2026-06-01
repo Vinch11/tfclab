@@ -126,6 +126,17 @@ export interface PlanConfig {
   /** Profil trail pré-calculé (D+/km, terrain, D+ hebdo cible) — injecté chunk 1 uniquement */
   trailProfile?: TrailProfileSummary;
   /**
+   * Terrain disponible pour l'entraînement (lieu de vie de l'athlète).
+   * Critique pour les athlètes urbains préparant un trail de montagne :
+   * permet à l'IA de substituer les séances montagne par des compensations
+   * (escaliers, tapis incliné, côtes urbaines, sorties weekend programmées).
+   *  - "plat"      : aucun dénivelé accessible en semaine (ex: Bruxelles, Amsterdam)
+   *  - "vallonne"  : collines 50-200m D+ accessibles (ex: Liège, Lyon)
+   *  - "montagne"  : accès direct montagne (ex: Chamonix, Grenoble)
+   *  - "mixte"     : urbain en semaine + accès montagne weekend
+   */
+  terrainAvailability?: "plat" | "vallonne" | "montagne" | "mixte";
+  /**
    * Rampe de volume des premières semaines — dérivée de `trainingLevel`.
    * Contrainte dure injectée chunk 1 pour borner Sem 1 et le ramp-up.
    * Absent si `trainingLevel` non fourni ou si tss7d réel disponible (CRR prime).
