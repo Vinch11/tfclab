@@ -24,8 +24,9 @@ export interface TrailProfile {
   dPlusPerKm: number;            // mètres D+ par km
   terrain: TrailTerrain;
   terrainLabel: string;          // ex: "Montagne (50-80 m/km)"
-  weeklyDPlusPeakM: number;      // D+ hebdo cible au peak (≈ 10-15% du D+ total)
+  weeklyDPlusPeakM: number;      // D+ hebdo cible au peak
   weeklyDPlusBaseM: number;      // D+ hebdo cible en base
+  weeklyDPlusRampMaxPct: number; // progression hebdo MAX (ex 0.30 = +30%/sem, règle Gabbett ACWR)
   descentTechnicalRequired: boolean; // descente technique obligatoire ?
   estimatedRaceDurationMin: number | null;
   needsAcclimatation: boolean;
