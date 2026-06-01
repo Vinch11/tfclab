@@ -90,15 +90,17 @@ export function computeTrailProfile(input: TrailProfileInput): TrailProfile | nu
   const dPlusPerKm = Math.round(dPlus / km);
   const { terrain, label } = classifyTerrain(dPlusPerKm);
 
-  // D+ hebdo cible (trail science / Lorang / Jornet) :
-  //   Peak ≈ 1.0–1.5× D+ course (cap 8000 m/sem)
-  //   Build ≈ 0.7–1.0× D+ course
+  // D+ hebdo cible (trail science / Lorang / Jornet, Gabbett ACWR ≤1.3) :
+  //   Peak ≈ 0.8–1.2× D+ course (cap 5000 m/sem si base faible)
+  //   Build ≈ 0.6–0.9× D+ course
   //   Base ≈ 0.25–0.35× D+ course
-  // Multiplicateur réduit pour ultra >5000m (volume D+ irréaliste sinon).
-  const peakMultiplier = dPlus >= 5000 ? 0.8 : dPlus >= 2000 ? 1.2 : 1.5;
+  // Multiplicateurs assouplis post-audit V8 : risque blessure excentrique trop élevé
+  // si rampe ×4 en 4 sem. Cap progression hebdo +30% (Gabbett).
+  const peakMultiplier = dPlus >= 5000 ? 0.7 : dPlus >= 2000 ? 1.0 : 1.3;
   const baseMultiplier = dPlus >= 5000 ? 0.2 : 0.3;
-  const weeklyDPlusPeakM = Math.min(8000, Math.round(dPlus * peakMultiplier));
+  const weeklyDPlusPeakM = Math.min(6000, Math.round(dPlus * peakMultiplier));
   const weeklyDPlusBaseM = Math.round(dPlus * baseMultiplier);
+  const weeklyDPlusRampMaxPct = 0.30;
 
   const descentTechnicalRequired = dPlusPerKm >= 35;
   const estimatedRaceDurationMin = input.targetTimeMinutes ?? estimateRaceDuration(km, dPlus);
