@@ -58,12 +58,13 @@ function classifyTerrain(dPlusPerKm: number): { terrain: TrailTerrain; label: st
  * Pour précision réelle, fournir `targetTimeMinutes`.
  */
 function estimateRaceDuration(distanceKm: number, elevationGainM: number): number {
-  const basePaceSecPerKm = 330;
-  const dPlusPerKm = elevationGainM / Math.max(distanceKm, 1);
-  // +6 s/km par 10 m/km de D+ moyen → pente forte = pénalité forte
-  const elevationPenaltySecPerKm = dPlusPerKm * 0.6;
-  const secPerKm = basePaceSecPerKm + elevationPenaltySecPerKm;
-  return Math.round((secPerKm * distanceKm) / 60);
+  // Règle de Naismith adaptée trail :
+  //   - Base plat ~5'30/km (330 s/km)
+  //   - +1 min par 10 m de D+ (montée @ ~600 m/h en trail running)
+  // 43km/3000m → 43×330 + 3000×6 = 14190 + 18000 = 32190 s ≈ 8h57 ✓ UTMB-like
+  const basePaceSec = distanceKm * 330;
+  const climbPenaltySec = elevationGainM * 6;
+  return Math.round((basePaceSec + climbPenaltySec) / 60);
 }
 
 const TRAIL_OBJ_REGEX = /trail|ultra|utmb|ccc|occ|skyrun/i;
