@@ -991,7 +991,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
   },
   {
     id: "URBAN_RECUP_VELO_ZONE1",
-    cat: "D", sport: "vélo",
+    cat: "D", sport: "cyclisme",
     objectif: "[URBAIN] Récup vélo home-trainer Z1 — 40-60' très facile post-séance lourde urbaine (escaliers/tapis incliné). Drainage sans impact",
     necessite: "Recommandé",
     when: "Lendemain de séance urbaine intense (escaliers, tapis incliné, descente)",
