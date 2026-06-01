@@ -283,7 +283,6 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
 
       // Build structured diagnostic from config (always available, includes phase bounds)
       const structuredDiagnostic = buildStructuredDiagnosticBlock(planConfig, totalWeeks);
-      const terrainHardBan = buildTerrainHardBanBlock(planConfig);
 
       const stream = new ReadableStream({
         async start(controller) {
