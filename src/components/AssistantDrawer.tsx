@@ -565,12 +565,16 @@ export function AssistantDrawer({
               {/* Input bar — safe area bottom */}
               <div className="p-3 sm:p-4 border-t safe-area-inset-bottom shrink-0">
                 <div className="flex gap-2">
+                  <RaceChronoForm
+                    onSubmit={(msg) => handleSend(msg)}
+                    disabled={isLoading || !selectedAthleteId}
+                  />
                   <Input
                     ref={inputRef}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Pose ta question..."
+                    placeholder="Pose ta question ou un chrono..."
                     disabled={isLoading}
                     className="flex-1 h-11 text-sm"
                   />
@@ -588,6 +592,7 @@ export function AssistantDrawer({
                   </Button>
                 </div>
               </div>
+
             </TabsContent>
             
             {/* TAB: Contexte (Staff mode) */}
