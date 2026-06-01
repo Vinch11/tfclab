@@ -4238,97 +4238,381 @@ const BRICK_IM_VARIANTS: LibraryWorkout[] = Array.from({ length: 10 }).map((_, i
 }));
 
 // MUSCU / PREHAB (20)
+// ====================================================================
+// STRENGTH_PRO — Bibliothèque renforcement musculaire détaillée
+// 4 familles : (1) Force générale, (2) Trail-spécifique, (3) Route/CAP-spécifique, (4) Préhab/mobilité
+// Format Pro complet : Warm-up structuré + Main détaillé (séries×reps, tempo, charge %RM ou RPE, repos)
+//                      + Cool-down + Progression hebdomadaire indicative
+// Réfs : Rønnestad & Mujika (2014), Blagrove et al. (2018), Beattie et al. (2017),
+//        Vikmoen et al. (2016), Berryman et al. (2018) — Concurrent training endurance.
+// ====================================================================
 const STRENGTH_PRO: LibraryWorkout[] = [
+  // ───────────── FAMILLE 1 — FORCE GÉNÉRALE ─────────────
   {
     id: "C_STR_LOWER_PRO",
     cat: "C",
     sport: "strength",
-    objectif: "Bas du corps (force)",
+    objectif: "Force max bas du corps (squat/hip hinge)",
     necessite: "Recommandé",
-    when: "Toute l'année",
+    when: "Base & début Build (≥6 sem avant course A)",
     phase: ["base", "build"],
-    avoid: "—",
-    durationMin: [25, 55],
+    avoid: "Semaine de course A · Fatigue >7/10",
+    durationMin: [45, 60],
     metricKey: "cardiaque",
     sportKey: "tout sport",
-    structure: mkStructure([["Main", "Split squat / step-up / hip hinge / mollets / gainage", []]]),
+    structure: mkStructure([
+      ["Warm-up", "8' : 5' vélo Z1 + activation (glute bridge 2×10, bird-dog 2×8/côté, squat PdC 2×10, mobilité cheville 1'/côté)", ["Z1"]],
+      ["Main", "A) Back squat ou Goblet squat : 4×5 @ 80-85% 1RM (ou RPE 8) · tempo 3-1-1-0 · repos 2'30-3' entre séries.\nB) Romanian deadlift : 3×6 @ RPE 7-8 · tempo 3-0-1-0 · repos 2'.\nC) Bulgarian split squat : 3×6/jambe @ haltères modérés (RPE 7) · repos 90s.\nD) Mollets debout (calf raise lourd) : 3×8 tempo 2-2-1-0 · repos 60s.", []],
+      ["Cool-down", "8' : mobilité hanches (pigeon 1'/côté), psoas stretch (1'/côté), respiration nasale 3'", []],
+      ["Progression", "Sem 1-2 : ancrer technique (RPE 7). Sem 3-4 : monter à RPE 8-8.5. Sem 5 : décharge -30% volume. Cycle 4+1.", []]
+    ]),
     variants: {},
     goals: GOALS_ALL,
-    tags: ["strength", "prehab"]
+    tags: ["strength", "lower", "max-force"]
+  },
+  {
+    id: "C_STR_UPPER_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Force haut du corps (poussée/tirage) — posture & natation",
+    necessite: "Recommandé",
+    when: "Toute l'année (1× / 10j minimum)",
+    phase: ["base", "build"],
+    avoid: "—",
+    durationMin: [35, 50],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([
+      ["Warm-up", "6' : rotations épaules (band pull-apart 2×15), cat-cow 1', scapular push-up 2×10", []],
+      ["Main", "A) Pull-up assisté ou Lat pulldown : 4×6-8 @ RPE 7-8 · repos 2'.\nB) DB bench press ou pompes lestées : 4×6-8 @ RPE 7 · tempo 2-1-1-0 · repos 2'.\nC) Row haltère un bras : 3×8/côté @ RPE 7-8 · repos 90s.\nD) Face pull (élastique ou poulie) : 3×15 lent · repos 60s — coiffe des rotateurs.", []],
+      ["Cool-down", "6' : étirements pec doorway 30s/côté, lat stretch 30s/côté, doorway shoulder rotation 1'", []],
+      ["Progression", "Volume stable, augmenter charge +2.5% quand 4×8 tenu à RPE 7. Décharge sem 5.", []]
+    ]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "upper", "posture"]
   },
   {
     id: "C_STR_CORE_PRO",
     cat: "C",
     sport: "strength",
-    objectif: "Gainage & anti-rotation",
+    objectif: "Gainage anti-rotation & transfert force",
     necessite: "Recommandé",
-    when: "Toute l'année",
-    phase: ["base", "build"],
+    when: "Toute l'année (2-3×/sem possible)",
+    phase: ["base", "build", "peak"],
     avoid: "—",
-    durationMin: [25, 55],
+    durationMin: [25, 40],
     metricKey: "cardiaque",
     sportKey: "tout sport",
-    structure: mkStructure([["Main", "Pallof press / dead bug / side plank / farmer carry", []]]),
+    structure: mkStructure([
+      ["Warm-up", "5' : dead bug lent 2×8/côté, cat-cow 1', glute bridge 2×10", []],
+      ["Main", "Circuit 3-4 tours (repos 60s entre tours) :\n• Pallof press (élastique/poulie) : 12/côté lent — anti-rotation.\n• Side plank avec leg-lift : 30s/côté.\n• Bird-dog tempo 2-2-2 : 10/côté.\n• Farmer's carry lourd : 30m (charge = 50% poids corps total).\n• Hollow hold : 30-45s.", []],
+      ["Cool-down", "5' : child pose 1', respiration diaphragmatique 3' (4-6s in / 6-8s out)", []],
+      ["Progression", "Sem 1-2 : 3 tours · Sem 3-4 : 4 tours + charge farmer +5kg. Pas de décharge nécessaire (faible charge SNC).", []]
+    ]),
     variants: {},
     goals: GOALS_ALL,
-    tags: ["strength", "core"]
+    tags: ["strength", "core", "anti-rotation"]
   },
   {
-    id: "C_STR_ECC_PRO",
+    id: "C_STR_FULL_BODY_PRO",
     cat: "C",
     sport: "strength",
-    objectif: "Excentrique (descente)",
+    objectif: "Full body intégré (compromis temps/efficacité)",
     necessite: "Recommandé",
-    when: "Toute l'année",
-    phase: ["base", "build"],
-    avoid: "Douleur musculaire",
-    durationMin: [25, 55],
-    metricKey: "cardiaque",
-    sportKey: "tout sport",
-    structure: mkStructure([["Main", "Step-down / squat excentrique / isos quadris", []]]),
-    variants: {},
-    goals: GOALS_ALL,
-    tags: ["strength", "eccentric"]
-  },
-  {
-    id: "C_STR_ANKLE_PRO",
-    cat: "C",
-    sport: "strength",
-    objectif: "Pied/cheville proprio",
-    necessite: "Recommandé",
-    when: "Toute l'année",
+    when: "Coachés à volume limité (1 séance/sem possible)",
     phase: ["base", "build"],
     avoid: "—",
-    durationMin: [25, 55],
+    durationMin: [40, 55],
     metricKey: "cardiaque",
     sportKey: "tout sport",
-    structure: mkStructure([["Main", "Équilibre, sauts contrôlés, bande élastique, mobilité cheville", []]]),
+    structure: mkStructure([
+      ["Warm-up", "8' : vélo/erg Z1 5' + activation full body (squat PdC 10, push-up 8, glute bridge 10, scap pull 10)", ["Z1"]],
+      ["Main", "Superset A (3 tours, repos 2'30 entre tours) :\n• Trap-bar deadlift ou hip hinge : 5 reps @ RPE 8.\n• DB bench ou pompes lestées : 6-8 reps @ RPE 7.\nSuperset B (3 tours, repos 90s) :\n• Bulgarian split squat : 6/jambe.\n• Row haltère : 8/côté.\nFinisher (2 tours, repos 45s) :\n• Pallof press 12/côté + Calf raise 12 + Dead bug 8/côté.", []],
+      ["Cool-down", "7' : mobilité hanches/épaules + respiration nasale 3'", []],
+      ["Progression", "Charge +2.5% Sem 2-3 sur lifts principaux. Décharge sem 4.", []]
+    ]),
     variants: {},
     goals: GOALS_ALL,
-    tags: ["strength", "ankle", "prehab"]
+    tags: ["strength", "full-body", "time-efficient"]
   },
+
+  // ───────────── FAMILLE 2 — TRAIL-SPÉCIFIQUE ─────────────
   {
-    id: "C_STR_HIP_PRO",
+    id: "C_STR_ECC_QUAD_PRO",
     cat: "C",
     sport: "strength",
-    objectif: "Hanches/mobilité",
+    objectif: "Excentriques quadris — résistance descente (trail)",
+    necessite: "Recommandé",
+    when: "Base & début Build (≥4 sem avant trail long)",
+    phase: ["base", "build"],
+    avoid: "Tapering · Courbatures résiduelles · 48h avant longue descente",
+    durationMin: [35, 50],
+    metricKey: "cardiaque",
+    sportKey: "trail",
+    structure: mkStructure([
+      ["Warm-up", "10' : vélo Z1 5' + activation (squat PdC 2×10, fentes alternées 2×8/côté, mobilité cheville 1'/côté)", ["Z1"]],
+      ["Main", "A) Step-down excentrique (banc 30-40cm) : 4×6/jambe — descente 4-5s contrôlée, remontée aide bras · repos 90s.\nB) Squat excentrique (back ou goblet) : 4×5 @ RPE 7-8 — descente 5s, remontée 1s · repos 2'30.\nC) Reverse Nordic curl (quadris) : 3×6-8 — descente lente jusqu'à amplitude tolérée · repos 90s.\nD) Isos wall sit avec rebond léger : 3×30s · repos 60s.", []],
+      ["Cool-down", "8' : foam rolling quadris 3', stretch quad debout 30s/côté ×2, marche 3'", []],
+      ["Progression", "Sem 1 : volume 60% (test toleration courbatures J+2-J+3). Sem 2-4 : volume plein. Sem 5 décharge. STOP 10j avant course A.", []]
+    ]),
+    variants: {},
+    goals: ["trail_short", "trail_long", "ironman", "half"],
+    tags: ["strength", "trail", "eccentric", "downhill"]
+  },
+  {
+    id: "C_STR_CALF_HEAVY_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Mollets lourds — raideur tendon Achille (trail/CAP)",
+    necessite: "Recommandé",
+    when: "Base & Build",
+    phase: ["base", "build"],
+    avoid: "Tendinopathie Achille phase aiguë",
+    durationMin: [25, 35],
+    metricKey: "cardiaque",
+    sportKey: "trail",
+    structure: mkStructure([
+      ["Warm-up", "5' : marche dynamique + mobilité cheville (squat profond tenu 30s ×2, dorsiflexion contre mur 10/côté)", []],
+      ["Main", "A) Calf raise debout (chargé barre ou Smith) : 4×6 @ RPE 8 — tempo 2-2-1-1 (excentrique 2s, iso bas 1s) · repos 2'.\nB) Calf raise assis (soléaire) : 3×10 @ charge lourde · tempo 2-1-2-0 · repos 90s.\nC) Single-leg calf raise marche d'escalier amplitude max : 3×12/jambe · repos 60s.\nD) Heel drop excentrique (escalier, descente lente 4s) : 2×15/jambe — préhab tendon.", []],
+      ["Cool-down", "5' : stretch mollets (gastro & soléaire) 30s/côté ×2, mobilité cheville 2'", []],
+      ["Progression", "Charge +2.5kg/sem si tempo respecté. Décharge sem 5.", []]
+    ]),
+    variants: {},
+    goals: ["trail_short", "trail_long", "marathon", "semi"],
+    tags: ["strength", "calf", "achilles", "trail"]
+  },
+  {
+    id: "C_STR_DOWNHILL_PLYO_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Plyo descente — amortissement & rigidité réactive",
+    necessite: "Recommandé",
+    when: "Build & Peak (≥3 sem avant course A)",
+    phase: ["build", "peak"],
+    avoid: "Débutant · Tendinopathie · Surcharge récente",
+    durationMin: [30, 40],
+    metricKey: "cardiaque",
+    sportKey: "trail",
+    structure: mkStructure([
+      ["Warm-up", "12' : 5' jog Z1 + 3' éducatifs (talons-fesses, montées genoux) + activation plyo basse (pogo jumps 2×15)", ["Z1"]],
+      ["Main", "A) Drop jumps (boîte 30cm → sol → saut max) : 4×5 — contact sol <250ms · repos 2' (qualité avant volume).\nB) Box step-down avec rebond contrôlé : 3×6/jambe — absorber puis renvoyer · repos 90s.\nC) Lateral bounds : 3×8/côté · repos 90s — stabilité frontale.\nD) Pogo jumps (rigidité Achille) : 3×20s · repos 60s.", []],
+      ["Cool-down", "8' : marche 3' + foam rolling mollets/quadris 5'", []],
+      ["Progression", "Sem 1 : hauteur boîte 20cm. Sem 2-3 : 30cm. STOP J-10 course A. Volume total contacts <80/séance.", []]
+    ]),
+    variants: {},
+    goals: ["trail_short", "trail_long"],
+    tags: ["strength", "plyo", "trail", "downhill", "reactive"]
+  },
+  {
+    id: "C_STR_TRAIL_CORE_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Core montagne — stabilité tronc terrain instable",
     necessite: "Recommandé",
     when: "Toute l'année",
-    phase: ["base", "build"],
+    phase: ["base", "build", "peak"],
     avoid: "—",
-    durationMin: [25, 55],
+    durationMin: [25, 35],
+    metricKey: "cardiaque",
+    sportKey: "trail",
+    structure: mkStructure([
+      ["Warm-up", "5' : mobilité hanches/colonne (cat-cow, hip CARs 5/côté)", []],
+      ["Main", "Circuit 4 tours (repos 45s entre tours) :\n• Single-leg deadlift haltère (équilibre) : 8/jambe.\n• Side plank avec rotation hanche : 8/côté.\n• Suitcase carry asymétrique (charge 1 main) : 30m/côté.\n• Plank avec touche épaule alternée : 12 (anti-rotation).\n• Step-up avec genou haut tenu 2s : 8/jambe.", []],
+      ["Cool-down", "5' : child pose + respiration 3'", []],
+      ["Progression", "Tours 3→5 sur 4 sem. Charge carry +5kg sem 3.", []]
+    ]),
+    variants: {},
+    goals: ["trail_short", "trail_long"],
+    tags: ["strength", "core", "trail", "stability"]
+  },
+
+  // ───────────── FAMILLE 3 — ROUTE/CAP-SPÉCIFIQUE ─────────────
+  {
+    id: "C_STR_PLYO_BASIC_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Pliométrie de base — économie de course (route)",
+    necessite: "Recommandé",
+    when: "Base & début Build",
+    phase: ["base", "build"],
+    avoid: "Débutant total · Blessure pied/cheville récente",
+    durationMin: [25, 35],
+    metricKey: "cardiaque",
+    sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "10' : 5' jog Z1 + éducatifs (skipping, talons-fesses, foulée bondissante légère 2×20m)", ["Z1"]],
+      ["Main", "A) Pogo jumps (2 pieds) : 4×15 contacts — rigidité, contact <200ms · repos 75s.\nB) Saut sur banc bas (20-30cm) : 3×8 — atterrir doux, redescendre marche · repos 90s.\nC) Skip A & Skip B : 3×20m/exercice · repos 60s.\nD) Single-leg hops linéaires : 3×8/jambe · repos 60s.", []],
+      ["Cool-down", "8' : jog easy 3' + stretch mollets/quadris 5'", []],
+      ["Progression", "Sem 1 : 60% volume (apprentissage). Sem 2-4 : volume plein. Décharge sem 5. Contacts <120/séance.", []]
+    ]),
+    variants: {},
+    goals: ["marathon", "semi", "ironman", "half"],
+    tags: ["strength", "plyo", "running-economy", "cap"]
+  },
+  {
+    id: "C_STR_PLYO_ADVANCED_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Pliométrie avancée — puissance réactive sub-10s",
+    necessite: "Recommandé",
+    when: "Build & Peak",
+    phase: ["build", "peak"],
+    avoid: "Pré-compétition (J-7) · Fatigue >6/10",
+    durationMin: [30, 40],
+    metricKey: "cardiaque",
+    sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "12' : 5' jog Z1 + 4' éducatifs + 3' activation plyo basse (pogo 2×15, skip A 2×20m)", ["Z1"]],
+      ["Main", "A) Depth jumps boîte 40cm (contact bref → saut max H) : 4×5 · repos 2'30 (qualité maximale).\nB) Bounds alternés (foulée bondissante) : 4×20m · repos 90s.\nC) Single-leg hops chargés (gilet 5-10% PdC) : 3×6/jambe · repos 90s.\nD) Hurdle hops 30cm : 3×6 · repos 90s.", []],
+      ["Cool-down", "8' : jog 3' + foam rolling complet jambes 5'", []],
+      ["Progression", "Sem 1 : volume 70%. Sem 2-3 : plein. Sem 4 décharge. STOP J-10 course A. Total contacts <80.", []]
+    ]),
+    variants: {},
+    goals: ["marathon", "semi"],
+    tags: ["strength", "plyo", "power", "advanced", "cap"]
+  },
+  {
+    id: "C_STR_RUN_DRILLS_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Éducatifs foulée — technique & économie",
+    necessite: "Recommandé",
+    when: "Toute l'année (1-2×/sem 15')",
+    phase: ["base", "build", "peak"],
+    avoid: "—",
+    durationMin: [20, 30],
+    metricKey: "cardiaque",
+    sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "5' jog Z1 + mobilité hanches dynamique", ["Z1"]],
+      ["Main", "Sur 40m (repos = retour marche, 3-4 tours du circuit) :\n• Skipping A (genoux hauts, pose pied avant) : 40m.\n• Skipping B (extension hanche complète) : 40m.\n• Talons-fesses rapides : 40m.\n• Foulée bondissante longue : 40m.\n• Strides accélérés (80-90% allure max) : 4×60m repos 1' marche.", []],
+      ["Cool-down", "5' jog Z1 + étirements ischios/quadris", ["Z1"]],
+      ["Progression", "Stable. Ajouter 1 tour sem 3. À placer en pré-fractionné ou jour easy.", []]
+    ]),
+    variants: {},
+    goals: ["marathon", "semi", "ironman", "half"],
+    tags: ["strength", "drills", "technique", "cap"]
+  },
+  {
+    id: "C_STR_HILL_SPRINTS_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Sprints courts en côte — force-vitesse & VLamax CAP",
+    necessite: "Recommandé",
+    when: "Base & début Build",
+    phase: ["base", "build"],
+    avoid: "Pré-compétition · Sprint ban actif (voir Lorang)",
+    durationMin: [30, 45],
+    metricKey: "allure",
+    sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' : 10' jog Z1-Z2 + 4×strides 80m + mobilité hanches", ["Z1", "Z2"]],
+      ["Main", "8-10 × sprint 8-12s en côte 6-10% pente · effort 95-100% · récupération descente marche 2-3' (complète).\nFocus : foulée puissante, bras dynamiques, départ debout (pas crouch).", []],
+      ["Cool-down", "10' jog easy Z1 + mobilité", ["Z1"]],
+      ["Progression", "Sem 1 : 6 reps. Sem 2-3 : 8-10 reps. Sem 4 décharge. À placer en début phase, pas dans 3 dernières sem avant course A.", []]
+    ]),
+    variants: {},
+    goals: ["semi", "marathon"],
+    tags: ["strength", "sprint", "hill", "vlamax", "cap"]
+  },
+
+  // ───────────── FAMILLE 4 — PRÉHAB & MOBILITÉ ─────────────
+  {
+    id: "C_STR_HIP_MOBILITY_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Mobilité hanches + activation fessiers (préhab)",
+    necessite: "Recommandé",
+    when: "Toute l'année (2-3×/sem possible)",
+    phase: ["base", "build", "peak", "taper"],
+    avoid: "—",
+    durationMin: [20, 30],
     metricKey: "cardiaque",
     sportKey: "tout sport",
-    structure: mkStructure([["Main", "Mobilité hanches/ischios + gainage léger", []]]),
+    structure: mkStructure([
+      ["Warm-up", "3' : cat-cow + hip CARs lents 5/côté", []],
+      ["Main", "A) Mobilité (1-2 tours) :\n• 90/90 hip switches : 8/côté.\n• Couch stretch (psoas) : 45s/côté.\n• Pigeon pose active : 45s/côté.\n• Squat profond tenu (Asian squat) : 60s.\nB) Activation fessiers (2 tours, repos 30s) :\n• Glute bridge mono-jambe : 12/côté.\n• Clamshell élastique : 15/côté.\n• Hip thrust haltère : 10 @ RPE 6.\n• Monster walks élastique : 10 pas × 4 directions.", []],
+      ["Cool-down", "3' respiration diaphragmatique", []],
+      ["Progression", "Volume stable. Idéal en récup ou pré-séance qualité. Pas de décharge nécessaire.", []]
+    ]),
     variants: {},
     goals: GOALS_ALL,
-    tags: ["strength", "mobility"]
+    tags: ["strength", "mobility", "hip", "prehab", "glute-activation"]
   },
+  {
+    id: "C_STR_ANKLE_PROPRIO_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Cheville/pied — proprio & prévention entorse",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    phase: ["base", "build", "peak", "taper"],
+    avoid: "Entorse aiguë <3 sem",
+    durationMin: [20, 30],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([
+      ["Warm-up", "3' : mobilité cheville (dorsiflexion contre mur 10/côté, cercles cheville)", []],
+      ["Main", "A) Équilibre yeux ouverts/fermés mono-jambe : 30-45s × 2/côté (progression : surface molle).\nB) Calf raise mono-jambe excentrique escalier : 3×12/jambe (descente 3s).\nC) Sauts unipodaux contrôlés (avant/arrière/latéral) : 3×8/direction/jambe · repos 60s.\nD) Renfo tibial antérieur (toe raises chargés) : 3×15.\nE) Renfo péroniers (élastique éversion) : 3×15/côté.", []],
+      ["Cool-down", "3' : mobilité cheville + auto-massage voûte plantaire (balle) 1'/côté", []],
+      ["Progression", "Surface dure → molle (coussin proprio) sem 3. Yeux fermés sem 4.", []]
+    ]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "ankle", "proprio", "prehab"]
+  },
+  {
+    id: "C_STR_HAMSTRING_HEALTH_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Ischio-jambiers — prévention lésions (Nordic & Romanian)",
+    necessite: "Recommandé",
+    when: "Toute l'année (1-2×/sem)",
+    phase: ["base", "build", "peak"],
+    avoid: "Lésion ischio <4 sem · Tapering course A (J-7)",
+    durationMin: [25, 35],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([
+      ["Warm-up", "6' : glute bridge 2×10, leg swing avant/arrière 10/côté, hip CARs", []],
+      ["Main", "A) Nordic curl excentrique (partenaire ou strap) : 3×5-6 — descente contrôlée 3-4s · repos 2'30 (référence Petersen 2011, -51% blessures).\nB) Romanian deadlift haltères : 3×8 @ RPE 7 · tempo 3-0-1-0 · repos 90s.\nC) Single-leg RDL : 3×8/jambe @ haltères modérés · repos 90s.\nD) Glute-ham raise machine ou banc : 2×8 (si dispo).", []],
+      ["Cool-down", "6' : stretch ischios doux (foam roll 2', stretch debout 30s/côté ×2)", []],
+      ["Progression", "Sem 1 : 2×5 Nordic (forte courbatures normales). Sem 2-4 : 3×6. Décharge sem 5. Cycle 4+1.", []]
+    ]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "hamstring", "prehab", "nordic", "injury-prevention"]
+  },
+  {
+    id: "C_STR_THORACIC_SHOULDER_PRO",
+    cat: "C",
+    sport: "strength",
+    objectif: "Mobilité thoracique & épaule — posture vélo/natation",
+    necessite: "Recommandé",
+    when: "Toute l'année",
+    phase: ["base", "build", "peak", "taper"],
+    avoid: "—",
+    durationMin: [20, 30],
+    metricKey: "cardiaque",
+    sportKey: "tout sport",
+    structure: mkStructure([
+      ["Warm-up", "3' : cat-cow + shoulder CARs 5/côté", []],
+      ["Main", "A) Mobilité :\n• Thoracic extension foam roll : 2×60s.\n• Open book : 8/côté tempo lent.\n• Wall slides : 2×10.\n• Doorway pec stretch : 30s/côté ×2.\nB) Renfo postural :\n• Band pull-apart : 3×15.\n• Face pull (élastique) : 3×15.\n• Y-T-W au sol ou banc : 2×10 chaque lettre.\n• Prone scapular retraction : 2×12.", []],
+      ["Cool-down", "3' respiration nasale lente", []],
+      ["Progression", "Stable. Idéal après séance vélo longue ou avant natation.", []]
+    ]),
+    variants: {},
+    goals: GOALS_ALL,
+    tags: ["strength", "mobility", "thoracic", "shoulder", "prehab"]
+  },
+
+  // ───────────── FALLBACK VARIANTES (qualité moindre, dernier recours) ─────────────
   ...Array.from({ length: 15 }).map((_, i) => ({
     id: `C_STR_VAR_${i + 1}_PRO`,
     cat: "C" as const,
     sport: "strength" as const,
-    objectif: `Force/Préhab — variante #${i + 1}`,
+    objectif: `Force/Préhab — fallback variante #${i + 1}`,
     necessite: "Recommandé" as const,
     when: "Toute l'année",
     phase: ["base", "build"] as ("base" | "build" | "peak" | "taper")[],
@@ -4339,7 +4623,7 @@ const STRENGTH_PRO: LibraryWorkout[] = [
     structure: mkStructure([["Main", `Circuit ${i + 1}: 5–7 exos, RPE 6–7, focus qualité mouvement`, []]]),
     variants: {},
     goals: GOALS_ALL,
-    tags: ["strength", "prehab"]
+    tags: ["strength", "prehab", "fallback"]
   }))
 ];
 
