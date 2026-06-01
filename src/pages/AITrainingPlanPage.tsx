@@ -253,6 +253,7 @@ export default function AITrainingPlanPage() {
       if (savedState.trailElevationM) setTrailElevationM(savedState.trailElevationM);
       if (savedState.trailTargetTimeH) setTrailTargetTimeH(savedState.trailTargetTimeH);
       if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
+      if (savedState.terrainAvailability) setTerrainAvailability(savedState.terrainAvailability);
     } else {
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
