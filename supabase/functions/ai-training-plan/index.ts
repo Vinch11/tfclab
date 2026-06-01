@@ -120,6 +120,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const _terrainHardBanTop = buildTerrainHardBanBlock(planConfig);
     if (_terrainHardBanTop) {
       userPrompt = `${_terrainHardBanTop}\n\n${userPrompt}`;
+      console.log(`🏙️ TERRAIN HARD-BAN ACTIVE: terrainAvailability="${planConfig?.terrainAvailability}" → injecté en tête + queue de chaque chunk.`);
+    } else {
+      console.log(`🏙️ TERRAIN HARD-BAN inactif (terrainAvailability="${planConfig?.terrainAvailability ?? "undefined"}").`);
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;
@@ -471,7 +474,7 @@ Pour ce premier bloc, inclus :
    - ⚠️ Les bornes de phase estimées ci-dessus servent de GUIDE. Tu peux ajuster ±1 semaine si les limiteurs le justifient.
 
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
-IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.${wbalReminder}`;
+IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}`;
 
               } else {
                 // FIX #2 (audit recap): Re-inject BOTH diagnostic AND strategic recap
@@ -570,7 +573,7 @@ ${slidingSummary || "Premier bloc de continuation."}
 ${usedKeySessions.size > 0 ? Array.from(usedKeySessions).slice(-25).join(" • ") : "(aucune)"}
 → Tu peux REPRENDRE des familles de séances pour la progression, mais évite de copier le titre exact d'une séance déjà programmée. Varie les durées, intensités, ou structures.
 ${pendingGuardrails.length > 0 ? `\n🛟 GARDE-FOUS DYNAMIQUES (signaux objectifs du bloc précédent — tu restes maître, confirme ou ajuste) :\n${pendingGuardrails.map(g => `• ${g}`).join("\n")}\n→ Ces signaux sont INFORMATIFS. Tu peux les justifier (adaptation contextuelle valide) ou les corriger dans ce bloc. Ne les ignore pas silencieusement.\n` : ""}
-Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}`;
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}`;
                 // Reset pending guardrails — they've been delivered
                 pendingGuardrails = [];
               }

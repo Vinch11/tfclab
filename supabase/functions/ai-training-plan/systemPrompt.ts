@@ -28,10 +28,10 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL couvrant TOUTES les semai
 ⚠️ La colonne **Détails** doit TOUJOURS contenir la description complète du protocole de la séance :
 - échauffement (durée + zone), corps de séance (séries × durée × intensité + récup), retour au calme, durée totale.
 - Exemples concrets de zones/allures/puissance (W, %FTP, %VMA, allure /km, FC, RPE) — jamais juste l'intitulé.
-- Si la séance vient du catalogue TFCL™, recopie/adapte le champ `Structure` du catalogue et ajoute `[ID: <CATALOG_ID>]` EN FIN de cellule.
-- ❌ INTERDIT ABSOLU : `| Mardi | CAP | TTE Intro Seuil | ID: B_TR_HILL_TEMPO |` (Détails = ID seul → INVALIDE, recommence la semaine).
-- ✅ CORRECT : `| Mardi | CAP | 🔑 TTE Intro Seuil | 15min éch Z2. 4×6min @seuil (88% VMA, ~4:25/km) r=2min trot. 15min RC. ~1h05. [ID: B_TR_HILL_TEMPO] |`
-- Séances de repos/récup : décris au minimum durée + zone + type (ex: `Récup active 30min Z1 (RPE 2/10), mobilité 10min`).
+- Si la séance vient du catalogue TFCL™, recopie/adapte le champ \`Structure\` du catalogue et ajoute \`[ID: <CATALOG_ID>]\` EN FIN de cellule.
+- ❌ INTERDIT ABSOLU : \`| Mardi | CAP | TTE Intro Seuil | ID: B_TR_HILL_TEMPO |\` (Détails = ID seul → INVALIDE, recommence la semaine).
+- ✅ CORRECT : \`| Mardi | CAP | 🔑 TTE Intro Seuil | 15min éch Z2. 4×6min @seuil (88% VMA, ~4:25/km) r=2min trot. 15min RC. ~1h05. [ID: B_TR_HILL_TEMPO] |\`
+- Séances de repos/récup : décris au minimum durée + zone + type (ex: \`Récup active 30min Z1 (RPE 2/10), mobilité 10min\`).
 
 ## RATIOS SPORT/VOLUME PAR OBJECTIF (Méthodologie Dan Lorang / Élite Mondial)
 
