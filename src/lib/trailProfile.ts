@@ -24,8 +24,9 @@ export interface TrailProfile {
   dPlusPerKm: number;            // mètres D+ par km
   terrain: TrailTerrain;
   terrainLabel: string;          // ex: "Montagne (50-80 m/km)"
-  weeklyDPlusPeakM: number;      // D+ hebdo cible au peak (≈ 10-15% du D+ total)
+  weeklyDPlusPeakM: number;      // D+ hebdo cible au peak
   weeklyDPlusBaseM: number;      // D+ hebdo cible en base
+  weeklyDPlusRampMaxPct: number; // progression hebdo MAX (ex 0.30 = +30%/sem, règle Gabbett ACWR)
   descentTechnicalRequired: boolean; // descente technique obligatoire ?
   estimatedRaceDurationMin: number | null;
   needsAcclimatation: boolean;
@@ -50,15 +51,21 @@ function classifyTerrain(dPlusPerKm: number): { terrain: TrailTerrain; label: st
 
 /**
  * Estime la durée de course (min) si pas fournie.
- * Modèle simple : base d'allure trail + pénalité D+ (≈10s/km par 100m D+).
+ * Modèle Minetti/Naismith simplifié :
+ *   - Base trail ~5'30/km (330 s/km) niveau intermédiaire
+ *   - Pénalité D+ : +6 s/km par 10 m/km de pente moyenne (≈ 1 min / 100m D+)
+ *     soit ~10h pour 43km/3000m, cohérent avec finishers UTMB-like.
+ *   - Référence : Scarf 2007, Kay 2012 (modèles de prédiction trail).
+ * Pour précision réelle, fournir `targetTimeMinutes`.
  */
 function estimateRaceDuration(distanceKm: number, elevationGainM: number): number {
-  // Base trail pace ~5'30/km en montagne pour niveau intermédiaire
-  const basePaceSecPerKm = 330;
-  const elevationPenaltySec = (elevationGainM / 100) * 10 * distanceKm / Math.max(distanceKm, 1);
-  // Approx total seconds
-  const secPerKm = basePaceSecPerKm + (elevationGainM / Math.max(distanceKm, 1)) * 10;
-  return Math.round((secPerKm * distanceKm) / 60);
+  // Règle de Naismith adaptée trail :
+  //   - Base plat ~5'30/km (330 s/km)
+  //   - +1 min par 10 m de D+ (montée @ ~600 m/h en trail running)
+  // 43km/3000m → 43×330 + 3000×6 = 14190 + 18000 = 32190 s ≈ 8h57 ✓ UTMB-like
+  const basePaceSec = distanceKm * 330;
+  const climbPenaltySec = elevationGainM * 6;
+  return Math.round((basePaceSec + climbPenaltySec) / 60);
 }
 
 const TRAIL_OBJ_REGEX = /trail|ultra|utmb|ccc|occ|skyrun/i;
@@ -83,15 +90,17 @@ export function computeTrailProfile(input: TrailProfileInput): TrailProfile | nu
   const dPlusPerKm = Math.round(dPlus / km);
   const { terrain, label } = classifyTerrain(dPlusPerKm);
 
-  // D+ hebdo cible (trail science / Lorang / Jornet) :
-  //   Peak ≈ 1.0–1.5× D+ course (cap 8000 m/sem)
-  //   Build ≈ 0.7–1.0× D+ course
+  // D+ hebdo cible (trail science / Lorang / Jornet, Gabbett ACWR ≤1.3) :
+  //   Peak ≈ 0.8–1.2× D+ course (cap 5000 m/sem si base faible)
+  //   Build ≈ 0.6–0.9× D+ course
   //   Base ≈ 0.25–0.35× D+ course
-  // Multiplicateur réduit pour ultra >5000m (volume D+ irréaliste sinon).
-  const peakMultiplier = dPlus >= 5000 ? 0.8 : dPlus >= 2000 ? 1.2 : 1.5;
+  // Multiplicateurs assouplis post-audit V8 : risque blessure excentrique trop élevé
+  // si rampe ×4 en 4 sem. Cap progression hebdo +30% (Gabbett).
+  const peakMultiplier = dPlus >= 5000 ? 0.7 : dPlus >= 2000 ? 1.0 : 1.3;
   const baseMultiplier = dPlus >= 5000 ? 0.2 : 0.3;
-  const weeklyDPlusPeakM = Math.min(8000, Math.round(dPlus * peakMultiplier));
+  const weeklyDPlusPeakM = Math.min(6000, Math.round(dPlus * peakMultiplier));
   const weeklyDPlusBaseM = Math.round(dPlus * baseMultiplier);
+  const weeklyDPlusRampMaxPct = 0.30;
 
   const descentTechnicalRequired = dPlusPerKm >= 35;
   const estimatedRaceDurationMin = input.targetTimeMinutes ?? estimateRaceDuration(km, dPlus);
@@ -113,6 +122,7 @@ export function computeTrailProfile(input: TrailProfileInput): TrailProfile | nu
     terrainLabel: label,
     weeklyDPlusPeakM,
     weeklyDPlusBaseM,
+    weeklyDPlusRampMaxPct,
     descentTechnicalRequired,
     estimatedRaceDurationMin,
     needsAcclimatation,

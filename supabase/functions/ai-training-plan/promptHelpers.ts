@@ -96,7 +96,8 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(`\n📍 PROFIL COURSE TRAIL (valeurs finales, ne pas recalculer) :`);
     lines.push(`  • Distance: ${tp.distanceKm} km · D+: ${tp.elevationGainM} m · Ratio: ${tp.dPlusPerKm} m/km → terrain "${tp.terrainLabel}"`);
     lines.push(`  • Durée estimée: ${durStr}${tp.needsNightSimulation ? " (≥6h → simulations nocturnes obligatoires)" : ""}`);
-    lines.push(`  • D+ hebdo cible: base ${tp.weeklyDPlusBaseM}m → peak ${tp.weeklyDPlusPeakM}m (progression linéaire)`);
+    lines.push(`  • D+ hebdo cible: base ${tp.weeklyDPlusBaseM}m → peak ${tp.weeklyDPlusPeakM}m`);
+    lines.push(`  • 🚦 RAMPE D+ MAX: +30%/sem (Gabbett ACWR ≤1.3). NE PAS sauter de base→peak en <4 sem. Décharge -40% D+ toutes les 3 sem.`);
     if (tp.descentTechnicalRequired) {
       lines.push(`  • ⚠️ Descente technique OBLIGATOIRE 1x/sem en Build/Peak (ratio ≥35 m/km)`);
     }
@@ -185,51 +186,63 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(`  ⚠️ Une semaine de décharge (deload) DOIT intervenir tous les 3 microcycles de charge même pendant la rampe.`);
   }
 
-  // FIX C5 (audit): Limiter-aware phase heuristics — adapt durations based on L1 type
-  if (totalWeeks && totalWeeks > 10) {
+  // FIX C5 + audit V8: Limiter-aware phase heuristics — works for ANY plan ≥4 semaines.
+  // Avant: gating à tw>10 laissait l'IA improviser sur 4-10 sem (cas typique trail 6 sem).
+  if (totalWeeks && totalWeeks >= 4) {
     const tw = totalWeeks;
     const isFinisher = ambKey === "finisher";
     const L1 = (config?.identifiedLimiters?.[0] || "").toLowerCase();
     const L2 = (config?.identifiedLimiters?.[1] || "").toLowerCase();
 
-    // Taper duration depends on objective
-    const taperWeeks = ["IM", "TrailUltra"].includes(objKey) ? 3 : ["703", "Marathon"].includes(objKey) ? 2 : ["Semi", "Trail", "TrailMountain"].includes(objKey) ? 2 : 1;
-    const raceSpecificWeeks = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));
-    const remainingWeeks = tw - taperWeeks - raceSpecificWeeks;
+    // Taper duration adapté à la durée du plan (max 3 sem, min 1 sem)
+    const fullTaper = ["IM", "TrailUltra"].includes(objKey) ? 3 : ["703", "Marathon"].includes(objKey) ? 2 : ["Semi", "Trail", "TrailMountain"].includes(objKey) ? 2 : 1;
+    // Plan court: on rogne le taper plutôt que les phases (mais on garde ≥1 sem)
+    const taperWeeks = Math.max(1, Math.min(fullTaper, Math.floor(tw * 0.2)));
 
-    // C5: Adjust fondation/build split based on limiter type
-    // High VLamax or durability issues → longer Chantier block (more volume work needed)
-    // Economy/technique limiters → longer Fondation (motor pattern adaptation is slow)
+    // Race-specific: rogné aussi pour plans courts
+    const targetRaceSpecific = isFinisher ? 0 : Math.min(4, Math.max(2, Math.floor(tw * 0.15)));
+    const raceSpecificWeeks = Math.max(0, Math.min(targetRaceSpecific, tw - taperWeeks - 2)); // au moins 2 sem pour fondation+build
+
+    const remainingWeeks = Math.max(2, tw - taperWeeks - raceSpecificWeeks);
+
     const isVlamaxLimiter = /vlamax|glycoly|anaerob/i.test(L1);
     const isDurabilityLimiter = /durabilit|tte|endurance|fatmax|lipid/i.test(L1);
     const isEconomyLimiter = /econom|technique|cadence|biom[ée]can/i.test(L1);
 
-    let fondationPct = 0.35; // default
-    if (isEconomyLimiter) fondationPct = 0.42; // economy needs longer motor pattern adaptation
-    else if (isVlamaxLimiter) fondationPct = 0.30; // VLamax work benefits from earlier Chantier
-    else if (isDurabilityLimiter) fondationPct = 0.30; // durability needs more Build volume
+    let fondationPct = 0.35;
+    if (isEconomyLimiter) fondationPct = 0.42;
+    else if (isVlamaxLimiter) fondationPct = 0.30;
+    else if (isDurabilityLimiter) fondationPct = 0.30;
 
-    const fondationWeeks = Math.max(3, Math.floor(remainingWeeks * fondationPct));
-    const buildWeeks = remainingWeeks - fondationWeeks;
+    // Garantit fondation ≥1 sem et build ≥1 sem (jamais négatif)
+    let fondationWeeks = Math.max(1, Math.floor(remainingWeeks * fondationPct));
+    let buildWeeks = remainingWeeks - fondationWeeks;
+    if (buildWeeks < 1) {
+      buildWeeks = 1;
+      fondationWeeks = Math.max(1, remainingWeeks - 1);
+    }
 
-    // C5: Name phases with actual limiter targets
     const L1Short = L1 ? L1.split(/[\s(,]/)[0] : "Limiteur #1";
     const L2Short = L2 ? L2.split(/[\s(,]/)[0] : "Limiteur #2";
 
-    lines.push(`\n📅 BORNES DE PHASE ESTIMÉES (${tw} semaines, ajustées selon L1="${L1Short}") :`);
+    const planLengthTag = tw < 8 ? " — PLAN COURT (densité prioritaire sur volume)" : tw < 12 ? " — PLAN MOYEN" : "";
+    lines.push(`\n📅 BORNES DE PHASE ESTIMÉES (${tw} semaines, ajustées selon L1="${L1Short}")${planLengthTag} :`);
     if (isFinisher) {
       lines.push(`  Phase 1 — Adaptation : S1-S${fondationWeeks}`);
       lines.push(`  Phase 2 — Développement : S${fondationWeeks + 1}-S${fondationWeeks + buildWeeks}`);
-      lines.push(`  Phase 3 — Consolidation : S${fondationWeeks + buildWeeks + 1}-S${tw - taperWeeks}`);
-      lines.push(`  Phase 4 — Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
+      if (raceSpecificWeeks > 0) lines.push(`  Phase 3 — Consolidation : S${fondationWeeks + buildWeeks + 1}-S${tw - taperWeeks}`);
+      lines.push(`  Phase ${raceSpecificWeeks > 0 ? "4" : "3"} — Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
     } else {
-      const chantierEnd = fondationWeeks + Math.ceil(buildWeeks * (isVlamaxLimiter || isDurabilityLimiter ? 0.55 : 0.5));
+      const chantierEnd = fondationWeeks + Math.max(1, Math.ceil(buildWeeks * (isVlamaxLimiter || isDurabilityLimiter ? 0.55 : 0.5)));
       const consolEnd = fondationWeeks + buildWeeks;
       lines.push(`  Bloc Fondation + Intensité : S1-S${fondationWeeks}${isEconomyLimiter ? " (étendu: adaptation motrice L1)" : ""}`);
       lines.push(`  Bloc Chantier [${L1Short}↓] : S${fondationWeeks + 1}-S${chantierEnd}${isVlamaxLimiter ? " (étendu: chantier métabolique prioritaire)" : ""}`);
-      lines.push(`  Bloc Consolidation [${L2Short}] : S${chantierEnd + 1}-S${consolEnd}`);
-      lines.push(`  Bloc Race-Specific : S${consolEnd + 1}-S${tw - taperWeeks}`);
+      if (consolEnd > chantierEnd) lines.push(`  Bloc Consolidation [${L2Short}] : S${chantierEnd + 1}-S${consolEnd}`);
+      if (raceSpecificWeeks > 0) lines.push(`  Bloc Race-Specific : S${consolEnd + 1}-S${tw - taperWeeks}`);
       lines.push(`  Bloc Affûtage : S${tw - taperWeeks + 1}-S${tw}`);
+    }
+    if (tw < 8) {
+      lines.push(`  ⚠️ PLAN COURT (<8 sem) : pas de redondance. CHAQUE séance compte. Densité Z3/Z4 maintenue dès S1 (pas de "vraie" base aérobie possible).`);
     }
     lines.push(`  ⚠️ Ces bornes sont INDICATIVES mais adaptées aux limiteurs détectés. Le Récapitulatif Stratégique du chunk 1 fait foi.`);
   }
