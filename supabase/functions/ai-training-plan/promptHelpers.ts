@@ -59,6 +59,40 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(`  • Gut Training cible: ${tp.gutTrainingTargetGPerH} g CHO/h testé en simulation longue`);
   }
 
+  // 🏙️ ATHLÈTE URBAIN — substitutions montagne obligatoires
+  // Injecté chunk 1 quand le coach déclare terrain=plat/vallonné/mixte sur un objectif trail.
+  // Sans cela, l'IA prescrit des séances montagne irréalisables (frustration + non-adhérence).
+  if (config?.terrainAvailability && config.terrainAvailability !== "montagne" && config?.trailProfile) {
+    const ta = config.terrainAvailability as "plat" | "vallonne" | "mixte";
+    const tp = config.trailProfile;
+    const dPlusWeekly = tp.weeklyDPlusPeakM;
+    const labelMap = { plat: "PLAT (urbain, aucun dénivelé semaine)", vallonne: "VALLONNÉ (collines 50-200m)", mixte: "MIXTE (urbain semaine + montagne weekend)" };
+    lines.push(`\n🏙️ ATHLÈTE URBAIN — TERRAIN DÉCLARÉ : ${labelMap[ta]}`);
+    lines.push(`  ⚠️ Le profil course exige ${dPlusWeekly}m D+/sem en peak, mais l'athlète vit en terrain ${ta === "plat" ? "plat" : ta === "vallonne" ? "vallonné" : "mixte"}.`);
+    lines.push(`  RÈGLES DE SUBSTITUTION OBLIGATOIRES (à appliquer pour CHAQUE semaine du plan) :`);
+    if (ta === "plat") {
+      lines.push(`  • Remplacer toute "séance montagne / D+ long" semaine par : (1) tapis roulant incliné 8-15% [60-120min], (2) répétitions escaliers building/parking [25-45min], ou (3) côtes urbaines courtes répétées (passerelles, ponts) [40-70min].`);
+      lines.push(`  • Sorties longues (SL) D+ : programmer 1× tous les 15j en WEEK-END "EXPÉDITION" hors-ville (Ardennes, Vosges, Hautes Fagnes, etc.) — distance et temps de trajet à intégrer comme contrainte.`);
+      lines.push(`  • Back-to-back week-ends (Build/Peak) : OBLIGATOIRE 2-3× / phase en sortie hors-ville. Si impossible, fractionner en 2 doubles (samedi 2h tapis incliné + dimanche 3h tapis incliné).`);
+      lines.push(`  • Descente technique : substituer par travail excentrique en salle (presse 120° avec phase descente 3-4s, step-downs lents 4×8/côté, Nordic curls) — minimum 2×/sem en Build.`);
+      lines.push(`  • Calculer D+ hebdo cumulé réaliste : ~60% du target théorique (${Math.round(dPlusWeekly * 0.6)}m) atteint en compensation + 40% concentré sur les 2-3 week-ends expé/mois.`);
+    } else if (ta === "vallonne") {
+      lines.push(`  • Utiliser au MAX les collines locales : 2-3× /sem en VMA côtes / seuil montée sur les bosses 50-200m disponibles (répétitions multiples).`);
+      lines.push(`  • Compléter avec : tapis incliné 8-15% pour les blocs de seuil montée long (>30min continu impossible sur les collines courtes).`);
+      lines.push(`  • Sortie longue D+ : programmer 1× tous les 10-15j en week-end hors-ville (massif accessible <2h route).`);
+      lines.push(`  • D+ hebdo cible réaliste : ~80% du target théorique (${Math.round(dPlusWeekly * 0.8)}m).`);
+    } else {
+      // mixte
+      lines.push(`  • Semaine en ville : 70% du D+ cible via tapis incliné + côtes urbaines + escaliers.`);
+      lines.push(`  • Week-end montagne : SL D+ long + back-to-back possibles. Concentrer les séances clés montagne (descente technique, D+ long >2000m) sur ces 2 jours.`);
+      lines.push(`  • Pendant phase Spécifique (4-6 dernières sem) : viser 2 week-ends montagne / mois minimum.`);
+      lines.push(`  • D+ hebdo cible réaliste : ~90% du target théorique (${Math.round(dPlusWeekly * 0.9)}m).`);
+    }
+    lines.push(`  • Catalogue séances à PRIVILÉGIER : "V2_STR_ESCALIERS_TRAIL", "URBAN_TAPIS_INCLINE_SEUIL", "URBAN_COTES_URBAINES_VMA", "URBAN_ESCALIERS_PYRAMIDE", "URBAN_EXCENTRIQUE_DESCENTE_SALLE".`);
+    lines.push(`  • Chaque séance "compensation urbaine" DOIT être annotée [URBAIN] dans le titre pour traçabilité.`);
+    lines.push(`  • Si bloc d'acclimatation altitude requis (course >2000m) : recommander stage 7-14j sur place J-21 à J-7 (intégrer dans constraints du plan).`);
+  }
+
   // Volume constraints
   if (config?.weeklyHours) lines.push(`\n📊 Volume: ${config.weeklyHours}h/sem`);
   if (config?.sessionsPerWeek) lines.push(`📊 Séances: ${config.sessionsPerWeek}/sem`);
