@@ -237,6 +237,14 @@ function MessageBubble({ msg }: { msg: Message }) {
           </div>
         )}
       </div>
+      {/* Calibration proposals (assistant only) */}
+      {!isUser && msg.proposals && msg.proposals.length > 0 && (
+        <div className="w-full max-w-[92%]">
+          {msg.proposals.map((p, i) => (
+            <CalibrationProposalCard key={i} proposal={p} />
+          ))}
+        </div>
+      )}
       {/* Source citations */}
       {!isUser && msg.sources && msg.sources.length > 0 && (
         <div className="flex flex-wrap gap-1 px-1 max-w-[92%]">
@@ -250,6 +258,7 @@ function MessageBubble({ msg }: { msg: Message }) {
     </div>
   );
 }
+
 
 // =============================================
 // COMPONENT
