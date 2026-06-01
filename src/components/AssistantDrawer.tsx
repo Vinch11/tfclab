@@ -53,6 +53,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   sources?: string[];
+  proposals?: CalibrationProposal[];
 }
 
 interface AssistantDrawerProps {
