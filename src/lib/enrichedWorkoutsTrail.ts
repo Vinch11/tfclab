@@ -953,7 +953,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
   },
   {
     id: "URBAN_RACESIM_TAPIS_NUTRITION",
-    cat: "RACESIM", sport: "course",
+    cat: "Race-Sim", sport: "course",
     objectif: "[URBAIN] Race-sim tapis incliné — 2-4h tapis 4-7% incl. Z2 avec test nutrition/hydratation/matériel jour J. Substitue race-sim trail montagne",
     necessite: "Recommandé",
     when: "Peak (1× dans les 4-6 sem avant course, équipement complet)",
