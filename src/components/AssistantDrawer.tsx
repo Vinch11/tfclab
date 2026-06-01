@@ -42,6 +42,8 @@ import {
 } from "@/lib/assistant/knowledgeBase";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { RaceChronoForm } from "@/components/assistant/RaceChronoForm";
+import { CalibrationProposalCard, extractCalibrationProposals, type CalibrationProposal } from "@/components/assistant/CalibrationProposalCard";
 
 // =============================================
 // TYPES
