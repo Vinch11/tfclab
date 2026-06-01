@@ -19,28 +19,32 @@ export function buildTerrainHardBanBlock(config: any): string {
   const ta = config?.terrainAvailability;
   if (!ta || ta === "montagne") return "";
   const tp = config?.trailProfile;
-  if (!tp) return "";
+  // Fallback when trailProfile is missing : on raisonne sur weeklyHours / défaut.
+  const weeklyPeakDPlus = tp?.weeklyDPlusPeakM ?? 2000;
 
   const lines: string[] = [];
-  lines.push(`\n🚨 CONTRAINTE TERRAIN — PRIORITÉ ABSOLUE (override tous les exemples du system prompt) :`);
+  lines.push(`\n🚨🚨🚨 CONTRAINTE TERRAIN — PRIORITÉ ABSOLUE (override TOUS les exemples du system prompt, même "+1200m D+ montagne") :`);
   if (ta === "plat") {
     const maxDPlusWeekday = 150;
-    const maxDPlusWeekend = Math.round(tp.weeklyDPlusPeakM * 0.6);
+    const maxDPlusWeekend = Math.round(weeklyPeakDPlus * 0.6);
     lines.push(`  • Athlète URBAIN en terrain PLAT (ex: Bruxelles, Amsterdam, Paris intra) — AUCUN dénivelé naturel disponible en semaine.`);
-    lines.push(`  • ❌ INTERDIT en SEMAINE (lundi-vendredi) : toute séance "montagne", "sentier montagne", "+500m D+" ou plus, "SL trail montagne", "back-to-back montagne".`);
+    lines.push(`  • ❌ INTERDIT en SEMAINE (lun-ven) : toute séance "montagne", "sentier montagne", "+500m D+" ou plus, "SL trail montagne", "back-to-back montagne", "massif".`);
     lines.push(`  • ❌ INTERDIT de prescrire >${maxDPlusWeekday}m D+ sur une séance de semaine (impossible à exécuter).`);
-    lines.push(`  • ✅ OBLIGATOIRE en remplacement : tapis incliné 8-15%, escaliers building/parking, côtes urbaines courtes (ponts, passerelles), travail excentrique en salle. Annoter [URBAIN] dans le titre.`);
-    lines.push(`  • ✅ Week-ends (sam/dim) UNIQUEMENT : possibilité de SL "expédition hors-ville" jusqu'à ${maxDPlusWeekend}m D+, mais maximum 1× tous les 10-15j (contrainte trajet/logistique).`);
+    lines.push(`  • ✅ QUOTA OBLIGATOIRE PAR SEMAINE : minimum 2 séances [URBAIN] dans chaque semaine de Build/Peak (tapis incliné, escaliers, côtes urbaines, excentrique salle). Chaque titre DOIT commencer par [URBAIN].`);
+    lines.push(`  • ✅ Catalogue à PIOCHER en priorité : URBAN_TAPIS_INCLINE_SEUIL, URBAN_COTES_URBAINES_VMA, URBAN_ESCALIERS_PYRAMIDE, URBAN_EXCENTRIQUE_DESCENTE_SALLE, V2_STR_ESCALIERS_TRAIL. Utilise leurs IDs explicitement.`);
+    lines.push(`  • ✅ Week-ends (sam/dim) UNIQUEMENT : possibilité de SL "expédition hors-ville" jusqu'à ${maxDPlusWeekend}m D+, max 1× tous les 10-15j (contrainte trajet). Tagger [EXPÉ HORS-VILLE].`);
     lines.push(`  • Sem 1 (S1) : aucune sortie montagne, même week-end (phase d'adaptation). Compensations urbaines uniquement.`);
-    lines.push(`  • Si tu prescris une séance "montagne en semaine" ou ">${maxDPlusWeekday}m D+ en semaine", le plan est INVALIDE.`);
+    lines.push(`  • VALIDATION : si une semaine de Build/Peak n'a pas ≥2 séances [URBAIN] OU contient "montagne/+XXXm D+" en lun-ven, le plan est INVALIDE et doit être régénéré.`);
   } else if (ta === "vallonne") {
     lines.push(`  • Athlète en terrain VALLONNÉ (collines 50-200m max) — pas de massif montagneux accessible en semaine.`);
     lines.push(`  • ❌ INTERDIT en semaine : séances "montagne >500m D+ continu", "SL trail montagne 1500m+", "altitude".`);
-    lines.push(`  • ✅ OBLIGATOIRE : exploiter les collines locales en répétitions (VMA côtes, seuil montée) + tapis incliné pour blocs longs.`);
-    lines.push(`  • ✅ Week-ends massif (<2h route) : 1× tous les 10-15j possible.`);
+    lines.push(`  • ✅ QUOTA : minimum 1 séance [URBAIN] (tapis incliné ou excentrique salle) par semaine en Build/Peak, + 1-2 séances "collines locales" (VMA côtes / seuil montée).`);
+    lines.push(`  • ✅ Catalogue à pioche : URBAN_TAPIS_INCLINE_SEUIL, URBAN_EXCENTRIQUE_DESCENTE_SALLE + sessions VMA côtes du catalogue trail.`);
+    lines.push(`  • ✅ Week-ends massif (<2h route) : 1× tous les 10-15j possible. Tagger [EXPÉ HORS-VILLE].`);
   } else if (ta === "mixte") {
     lines.push(`  • Athlète MIXTE : urbain en semaine, accès montagne week-end uniquement.`);
     lines.push(`  • ❌ INTERDIT en semaine (lun-ven) : séances "montagne >500m D+", "SL trail montagne".`);
+    lines.push(`  • ✅ QUOTA : minimum 1 séance [URBAIN] (tapis/escaliers/excentrique) par semaine en lun-ven.`);
     lines.push(`  • ✅ Concentrer TOUTES les séances montagne (SL D+ long, descente technique, back-to-back) sur sam/dim.`);
   }
   return lines.join("\n");
