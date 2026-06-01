@@ -130,7 +130,8 @@ async function streamChat({
         athleteContext, 
         knowledgeContext,
         missingFields,
-        isFirstMessage 
+        isFirstMessage,
+        selectedAthleteId,
       }),
     });
 
