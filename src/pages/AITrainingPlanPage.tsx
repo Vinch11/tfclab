@@ -508,10 +508,11 @@ export default function AITrainingPlanPage() {
       ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
       constraints: constraints || undefined,
       trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
+      terrainAvailability: terrainAvailability === "auto" ? undefined : (terrainAvailability as any),
     };
 
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
-  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel]);
+  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, terrainAvailability]);
 
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!rawParsedPlan) return null;
