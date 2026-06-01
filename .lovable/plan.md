@@ -1,95 +1,83 @@
-# Refonte des paliers d'ambition (5 niveaux — Option A)
 
 ## Objectif
 
-Remplacer les 4 paliers actuels (`finisher` / `age_group` / `competitor` / `elite`) par 5 paliers ancrés sur des **percentiles AG réels**, afin d'éviter le cas Quentin (classé "competitor" mais visant un slot Mondial qui correspond en réalité au top 3%).
+Permettre au bot in-app d'atteindre la même précision que les analyses faites en chat : comparer un chrono réel (ex: Vince, 20km en 1h33) avec les prédictions de l'app, expliquer les écarts physiologiquement, et proposer une calibration.
 
-## Nouvelle grille
+## Architecture cible
 
-| Clé technique | Label | Icône | Percentile AG cible |
-|---|---|---|---|
-| `discovery` | Découverte | 🌱 | Finisher dans les temps officiels |
-| `confirmed` | Confirmé | 🎯 | Top 50% AG |
-| `competitor` | Compétiteur | 🏆 | Top 25% AG |
-| `qualifiable` | Qualifiable | 🎟️ | Top 10% AG — slot National/Européen accessible |
-| `elite` | Elite | 👑 | Top 3% AG — slot Mondial / podium overall |
+Migration de `supabase/functions/assistant-chat` du pattern actuel (fetch SSE manuel sans tools) vers **AI SDK + tool-calling** avec accès lecture DB et écriture calibration.
 
-## Stratégie de migration des athlètes existants
-
-Auto-remap silencieux par mapping déterministe (pas de re-sélection forcée) :
-
-```
-finisher    → discovery
-age_group   → confirmed
-competitor  → competitor   (inchangé — clé conservée)
-elite       → qualifiable  (plus juste : "elite" actuel ≈ slot National, pas Mondial)
+```text
+[Chat UI]
+   ↓ (messages + selectedAthleteId)
+[assistant-chat edge function]
+   ├─ system prompt enrichi (charte + référentiels TFCL)
+   ├─ contexte athlète actif (existant)
+   └─ streamText() avec tools:
+        ├─ getRaceScenarios(athleteId, distanceKm)   ← lecture
+        ├─ getSnapshotDetails(athleteId)              ← lecture
+        ├─ analyzeRacePerformance({distanceKm, timeSec, athleteId})  ← calcul pur
+        ├─ projectTimeRiegel({fromDistKm, fromTimeSec, toDistKm})    ← calcul pur
+        └─ saveCalibrationEvidence({athleteId, kind, payload})       ← écriture (needsApproval)
 ```
 
-Le palier `elite` réel (top 3%) reste vide par défaut — sélection manuelle requise pour les rares athlètes concernés. Justification : l'ancien `elite` était sur-utilisé et trompeur (cas Quentin).
+## Composants à créer / modifier
 
-## Périmètre v1
+### 1. Backend — `supabase/functions/assistant-chat/index.ts`
+- Remplacer fetch SSE manuel par **AI SDK** (`streamText` + `tool` + `stopWhen: stepCountIs(50)`) via `createLovableAiGatewayProvider`.
+- Ajouter 5 tools (voir architecture).
+- Tool d'écriture (`saveCalibrationEvidence`) marqué `needsApproval` → confirmation UI avant insert.
+- Enrichir `SYSTEM_PROMPT` avec :
+  - Tableau scénarios Finish→World-class (%VMA, %seuil, allure)
+  - Règles Riegel/Daniels (exposant 1.06)
+  - Heuristiques physio (TTE à seuil, MLSS vs LT2, durabilité)
+  - Méthodo : « si chrono observé > prédiction Perf, recalibrer VMA/seuil ou tte_observed_min_run »
 
-Déploiement sur **tous les objectifs running + triathlon** simultanément (IM, 70.3, Marathon, Semi, 10K, 5K, Trail, TrailShort, TrailMountain). Pas de feature flag — refactor complet d'un coup pour éviter incohérences entre composants.
+### 2. Bibliothèque calcul partagée — `supabase/functions/_shared/raceAnalysis.ts` (nouveau)
+- `computeRaceScenarios(snapshot, distanceKm)` → 5 lignes (Finish/Perf/Sub/Elite/WC) avec allure cible + temps prévu
+- `projectRiegel(d1, t1, d2, exp=1.06)` 
+- `analyzePerformance(actual, scenarios)` → renvoie écart %, scénario le plus proche, signal de recalibration
 
-## Changements techniques
+Réutilisable côté front aussi (export miroir dans `src/lib/`).
 
-### 1. Source unique — `src/types/ambitionLevel.ts`
-- `AmbitionLevel` : nouveau union type (5 clés)
-- `AMBITION_DEFINITIONS` : 5 entrées avec icônes/couleurs/descriptions
-- `AMBITION_LEVELS_ORDERED` : ordre `[discovery, confirmed, competitor, qualifiable, elite]`
-- `DEFAULT_AMBITION` : `confirmed` (au lieu de `age_group`)
-- `AMBITION_ALIASES` : ajout des anciennes clés pour rétrocompatibilité auto-remap (`finisher → discovery`, `age_group → confirmed`, `elite → qualifiable`)
-- `RUNNING_TIME_HINTS` : recalibrer les 5 lignes par objectif (utiliser les chronos issus de la grille Quentin/Mondial 70.3 et benchmarks marathon/semi/10K/5K France 2024)
+### 3. Frontend — composant chat
+- Hook `useAssistantContext` : ajouter VMA, allure seuil (`mlss_pace_sec`), VO2max run, `tte_observed_min_run`, `time_*_sec` existants dans le snapshot.
+- Composant `RaceChronoForm` (mini-formulaire) ouvert via bouton 📊 dans le chat : champs distance / temps / date / sport → injecte un message structuré dans la conversation.
+- Rendu tool-calls : afficher dans la bulle assistant les appels de tool (« 🔧 Analyse 20 km à 1h33 ») et leurs résultats compacts (tableau allures, écart %).
+- UI d'approbation pour `saveCalibrationEvidence` : carte « Enregistrer cette donnée comme calibration ? [Confirmer / Annuler] ».
 
-### 2. Seuils physiologiques — `src/lib/physiologicalTargets.ts`
-- `getTargetsForAmbition` : ajouter les valeurs FTP/kg, VMA, TTE, VO2max pour les 5 paliers par objectif
-- `getVLamaxRange` : idem (5 plages par objectif)
-- Calibrer `qualifiable` ≈ ancien `elite`, et `elite` ≈ +1 cran (top 3%)
+### 4. Détection NL des chronos
+- Pas de parser custom : c'est le rôle du modèle. Le system prompt donne quelques exemples (« 20km en 1h33 », « semi 1:38:30 », « 10K 38:42 ») et le bot appelle `analyzeRacePerformance` directement.
 
-### 3. UI sélecteurs (rétrocompatibles automatiquement via `AMBITION_DEFINITIONS`)
-- `src/components/QuickAmbitionSelector.tsx` — aucune modif (boucle sur `AMBITION_LEVELS_ORDERED`)
-- Onboarding ambition screens (si présents) — vérifier la grille
+## Détails techniques
 
-### 4. Seuils Potentiel Physiologique — `src/lib/ambitionThresholds.ts`
-- `evaluateReadiness` : étendre `potentielThresholds` aux 5 clés
-  - `discovery: { ok: 55, warning: 35 }`
-  - `confirmed: { ok: 70, warning: 50 }`
-  - `competitor: { ok: 80, warning: 62 }`
-  - `qualifiable: { ok: 86, warning: 70 }`
-  - `elite: { ok: 92, warning: 78 }`
+| Élément | Choix |
+|---|---|
+| Modèle | `google/gemini-3-flash-preview` (tool-calling robuste, latence ok) |
+| Provider | `createLovableAiGatewayProvider` (helper standard) |
+| `stopWhen` | `stepCountIs(50)` |
+| DB tools | Lecture via `supabaseClient` (RLS scoped to user via `getUser()`) |
+| Approval UI | Côté front, on lit `parts` de type `tool-call` et on rend boutons Confirm/Cancel qui réinjectent un message « tool result » |
+| Streaming | `result.toUIMessageStreamResponse({ headers })` |
 
-### 5. Moteurs en aval (vérification + extension)
-- `src/lib/v2/unifiedLimiterDetection.ts` — `getVo2maxTarget(objectif, ambition, age)` : étendre à 5 paliers
-- `src/lib/coachingCompass/` — vérifier scoring
-- `supabase/functions/ai-training-plan/vlamaxTargets.ts` — étendre matrice cibles VLamax
-- `src/lib/eliteReferences.ts` — vérifier mapping
+## Garde-fous
+- Tools de lecture : input validé Zod (UUID athleteId, distance ∈ [1, 250], temps ∈ [60s, 24h]).
+- Tool d'écriture : refuse si athleteId n'appartient pas au coach (vérif via `athletes.user_id = user.id`).
+- Reprise charte TFCL existante (sources, confiance, plage incertitude).
+- Pas de génération de plan ni d'override de snapshot sans confirmation.
 
-### 6. Persistence DB
-- Aucune migration de schéma : champ `ambition` est déjà `text` libre dans `athletes`/`refs`
-- Les anciennes valeurs sont auto-remappées à la lecture via `normalizeAmbitionLevel`
-- Pas d'écriture batch — la nouvelle clé sera écrite au prochain save manuel
+## Hors scope (à voir plus tard)
+- Vocal → texte (saisie chrono vocale).
+- Détection auto de chronos depuis FIT files importés (déjà géré ailleurs).
+- Recalcul automatique de VMA depuis chrono (le bot suggère, le coach valide manuellement).
 
-### 7. Prompt IA (no token bloat)
-- `planConfigBuilder` injecte uniquement le label résolu + les 3 cibles physio numériques (FTP/kg, VMA, VLamax-max) issues de `getTargetsForAmbition` — pas la grille complète
-- Aucune dégradation tokens attendue (déjà la pratique actuelle pour 4 paliers)
+## Livrables
+1. `supabase/functions/_shared/raceAnalysis.ts` + tests
+2. `supabase/functions/assistant-chat/index.ts` refondu (AI SDK + tools)
+3. `src/lib/raceAnalysis.ts` (miroir front pour formulaire/preview)
+4. `src/hooks/useAssistantContext.ts` enrichi (VMA, seuil, vo2max run, chronos historiques)
+5. `src/components/assistant/RaceChronoForm.tsx` + intégration dans la fenêtre chat
+6. Rendu tool-calls + approval UI dans le composant chat existant
+7. Migration mémoire : nouvelle règle `mem://features/assistant-bot-tool-calling`
 
-### 8. Memory update
-- Créer `mem://logic/ambition-tiers-5-levels-percentile-based` documentant la grille + mapping legacy
-- Mettre à jour l'index mémoire
-
-## Tests
-
-- `src/lib/__tests__/` : ajouter test `ambitionLevel.normalize.test.ts` couvrant le remap legacy (`finisher → discovery`, etc.)
-- Vérifier `physiologicalTargets` : 5 paliers × N objectifs renvoient des cibles monotones croissantes
-- Smoke test : générer un plan IA pour un athlète `qualifiable` 70.3 → vérifier que les cibles physio sont plus exigeantes que `competitor`
-
-## Hors périmètre v1
-
-- Refonte du screen onboarding "choix d'ambition" (juste textes/hints mis à jour, pas de refactor visuel)
-- Distinction "Slot National" vs "Slot Continental" vs "Slot Mondial" → reportée v2 si besoin
-- Recalibrage des benchmarks Trail (utilise pour l'instant les valeurs courantes ajustées)
-
-## Risques & mitigations
-
-- **Athlètes anciennement `elite` rétrogradés en `qualifiable`** : c'est volontaire (réaliste), aucune perte de données, le coach peut promouvoir manuellement vers `elite` si justifié
-- **Tests existants** sur 4 paliers : ajouter cas pour `discovery`/`qualifiable`, garder rétrocompat via aliases
+Estimation : ~6-8 fichiers touchés. Pas de changement DB.

@@ -42,6 +42,8 @@ import {
 } from "@/lib/assistant/knowledgeBase";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { RaceChronoForm } from "@/components/assistant/RaceChronoForm";
+import { CalibrationProposalCard, extractCalibrationProposals, type CalibrationProposal } from "@/components/assistant/CalibrationProposalCard";
 
 // =============================================
 // TYPES
@@ -51,6 +53,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   sources?: string[];
+  proposals?: CalibrationProposal[];
 }
 
 interface AssistantDrawerProps {
@@ -92,6 +95,7 @@ async function streamChat({
   knowledgeContext,
   missingFields,
   isFirstMessage,
+  selectedAthleteId,
   onDelta,
   onDone,
   onError,
@@ -101,6 +105,7 @@ async function streamChat({
   knowledgeContext: string;
   missingFields: string;
   isFirstMessage: boolean;
+  selectedAthleteId: string | null;
   onDelta: (deltaText: string) => void;
   onDone: () => void;
   onError: (error: string) => void;
@@ -125,7 +130,8 @@ async function streamChat({
         athleteContext, 
         knowledgeContext,
         missingFields,
-        isFirstMessage 
+        isFirstMessage,
+        selectedAthleteId,
       }),
     });
 
@@ -338,12 +344,13 @@ export function AssistantDrawer({
     let assistantSoFar = "";
     const upsertAssistant = (nextChunk: string) => {
       assistantSoFar += nextChunk;
+      const { cleaned, proposals } = extractCalibrationProposals(assistantSoFar);
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant") {
-          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar, sources } : m));
+          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: cleaned, sources, proposals } : m));
         }
-        return [...prev, { role: "assistant", content: assistantSoFar, sources }];
+        return [...prev, { role: "assistant", content: cleaned, sources, proposals }];
       });
     };
     
@@ -353,6 +360,7 @@ export function AssistantDrawer({
       knowledgeContext,
       missingFields,
       isFirstMessage: messages.length === 0,
+      selectedAthleteId,
       onDelta: (chunk) => upsertAssistant(chunk),
       onDone: () => setIsLoading(false),
       onError: (error) => {
@@ -363,7 +371,7 @@ export function AssistantDrawer({
         setIsLoading(false);
       },
     });
-  }, [messages, contextPacket, isLoading, hasSeenDisclaimer]);
+  }, [messages, contextPacket, isLoading, hasSeenDisclaimer, selectedAthleteId]);
   
   const handleQuickSuggestion = (query: string) => {
     handleSend(query);
