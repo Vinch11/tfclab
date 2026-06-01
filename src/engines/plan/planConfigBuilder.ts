@@ -264,6 +264,7 @@ export function buildPlanConfigFromDiagnostic(
     _athleteSex: diagnostic._rawInput.sex ?? null,
     trailProfile,
     volumeRamp,
+    terrainAvailability: formConfig.terrainAvailability,
   };
 }
 
