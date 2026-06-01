@@ -122,6 +122,7 @@ export function computeTrailProfile(input: TrailProfileInput): TrailProfile | nu
     terrainLabel: label,
     weeklyDPlusPeakM,
     weeklyDPlusBaseM,
+    weeklyDPlusRampMaxPct,
     descentTechnicalRequired,
     estimatedRaceDurationMin,
     needsAcclimatation,
