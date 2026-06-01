@@ -33,7 +33,7 @@ import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from 
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
-import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel } from "@/types/ambitionLevel";
+import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
@@ -60,12 +60,12 @@ const OBJECTIVE_OPTIONS = [
   { value: "TrailUltra", label: "Ultra trail (80 km+)" },
 ];
 
-const AMBITION_OPTIONS = [
-  { value: "FINISHER", label: "Finisher" },
-  { value: "AGE_GROUP", label: "Age Group" },
-  { value: "COMPETITOR", label: "Compétiteur" },
-  { value: "ELITE", label: "Élite" },
-];
+// Source unique : AMBITION_DEFINITIONS (5 paliers "Parcours athlète", clés canoniques lowercase).
+// Évite la dérive vs dashboard (Découverte/Confirmé/Compétiteur/Qualifiable/Elite).
+const AMBITION_OPTIONS = AMBITION_LEVELS_ORDERED.map(level => ({
+  value: level,
+  label: `${AMBITION_DEFINITIONS[level].icon} ${AMBITION_DEFINITIONS[level].label}`,
+}));
 
 const LEVER_LABELS: Record<string, string> = {
   increase_vo2max: "Développer VO2max",
@@ -79,21 +79,23 @@ const LEVER_LABELS: Record<string, string> = {
   maintain: "Maintenir le profil",
 };
 
-/** Literature-based recommended volume/sessions per objective × ambition */
+/** Literature-based recommended volume/sessions per objective × ambition (clés canoniques lowercase, 5 paliers). */
 const RECOMMENDED_RANGES: Record<string, Record<string, { hours: string; sessions: string }>> = {
-  IM:        { ELITE: { hours: "18-25", sessions: "10-14" }, COMPETITOR: { hours: "15-20", sessions: "9-12" }, AGE_GROUP: { hours: "10-15", sessions: "6-9" }, FINISHER: { hours: "8-12", sessions: "5-7" } },
-  "703":     { ELITE: { hours: "14-18", sessions: "8-12" }, COMPETITOR: { hours: "12-16", sessions: "7-10" }, AGE_GROUP: { hours: "8-12", sessions: "5-8" }, FINISHER: { hours: "6-10", sessions: "4-6" } },
-  Marathon:  { ELITE: { hours: "10-14", sessions: "7-10" }, COMPETITOR: { hours: "8-12", sessions: "6-8" }, AGE_GROUP: { hours: "6-9", sessions: "5-7" }, FINISHER: { hours: "4-7", sessions: "4-5" } },
-  Semi:      { ELITE: { hours: "8-12", sessions: "6-9" }, COMPETITOR: { hours: "7-10", sessions: "5-7" }, AGE_GROUP: { hours: "5-7", sessions: "4-6" }, FINISHER: { hours: "3-5", sessions: "3-4" } },
-  "10K":     { ELITE: { hours: "8-10", sessions: "6-8" }, COMPETITOR: { hours: "6-8", sessions: "5-7" }, AGE_GROUP: { hours: "4-6", sessions: "4-5" }, FINISHER: { hours: "3-4", sessions: "3-4" } },
-  StartToRun:{ ELITE: { hours: "3-5", sessions: "3" }, COMPETITOR: { hours: "3-5", sessions: "3" }, AGE_GROUP: { hours: "2-4", sessions: "3" }, FINISHER: { hours: "2-4", sessions: "3" } },
+  IM:        { world_class: { hours: "22-30", sessions: "12-16" }, elite: { hours: "18-25", sessions: "10-14" }, competitor: { hours: "15-20", sessions: "9-12" }, age_group: { hours: "10-15", sessions: "6-9" }, finisher: { hours: "8-12", sessions: "5-7" } },
+  "703":     { world_class: { hours: "16-22", sessions: "10-14" }, elite: { hours: "14-18", sessions: "8-12" }, competitor: { hours: "12-16", sessions: "7-10" }, age_group: { hours: "8-12", sessions: "5-8" }, finisher: { hours: "6-10", sessions: "4-6" } },
+  Marathon:  { world_class: { hours: "12-18", sessions: "9-13" }, elite: { hours: "10-14", sessions: "7-10" }, competitor: { hours: "8-12", sessions: "6-8" }, age_group: { hours: "6-9", sessions: "5-7" }, finisher: { hours: "4-7", sessions: "4-5" } },
+  Semi:      { world_class: { hours: "10-14", sessions: "8-11" }, elite: { hours: "8-12", sessions: "6-9" }, competitor: { hours: "7-10", sessions: "5-7" }, age_group: { hours: "5-7", sessions: "4-6" }, finisher: { hours: "3-5", sessions: "3-4" } },
+  "10K":     { world_class: { hours: "9-12", sessions: "7-10" }, elite: { hours: "8-10", sessions: "6-8" }, competitor: { hours: "6-8", sessions: "5-7" }, age_group: { hours: "4-6", sessions: "4-5" }, finisher: { hours: "3-4", sessions: "3-4" } },
+  StartToRun:{ world_class: { hours: "3-5", sessions: "3" }, elite: { hours: "3-5", sessions: "3" }, competitor: { hours: "3-5", sessions: "3" }, age_group: { hours: "2-4", sessions: "3" }, finisher: { hours: "2-4", sessions: "3" } },
 };
 
 function getRecommendedRange(objective: string, ambition: string): { hours: string; sessions: string } | null {
   const objRanges = RECOMMENDED_RANGES[objective];
   if (!objRanges) return null;
-  return objRanges[ambition] || objRanges["AGE_GROUP"] || null;
+  const key = normalizeAmbitionLevel(ambition);
+  return objRanges[key] || objRanges["age_group"] || null;
 }
+
 
 function calculateAge(birthDate: string): number {
   const birth = new Date(birthDate);
