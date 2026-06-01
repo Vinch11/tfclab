@@ -75,7 +75,7 @@ export function CalibrationProposalCard({ proposal }: Props) {
         ? proposal.source_type!
         : "POST_RACE";
 
-      const { error } = await supabase.from("calibration_evidence").insert({
+      const { error } = await supabase.from("calibration_evidence").insert([{
         athlete_id: proposal.athlete_id,
         coach_id: user.id,
         date: proposal.date ?? new Date().toISOString().slice(0, 10),
@@ -86,7 +86,7 @@ export function CalibrationProposalCard({ proposal }: Props) {
         protocol_quality: Math.min(5, Math.max(1, proposal.protocol_quality ?? 3)),
         notes: proposal.notes ?? null,
         validity: "OK",
-      });
+      }]);
 
       if (error) {
         console.error("Calibration insert error:", error);
