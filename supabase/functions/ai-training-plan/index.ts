@@ -7,6 +7,7 @@ import {
   buildCPWprimeSection,
   computeCPWprime,
   buildStructuredDiagnosticBlock,
+  buildTerrainHardBanBlock,
   extractStrategicRecap,
   detectActivePhase,
   validateChunk1HasRecap,
@@ -111,6 +112,14 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       userPrompt += `\n\n→ Utilise PRIORITAIREMENT les séances du catalogue ci-dessus.
 → Si AUCUNE séance ne correspond, tu peux CRÉER une séance [Custom] en respectant le format et la méthodologie.
 → Ratio cible : ≥80% séances catalogue, ≤20% séances custom.`;
+    }
+
+    // 🚨 TERRAIN HARD-BAN — prepend en TÊTE du userPrompt pour overrider les exemples
+    // "+1200m D+" / "montagne" du systemPrompt quand l'athlète déclare un terrain urbain.
+    // S'applique à tous les chemins : mono-bloc, chunked (chunk 1+N), retries, surgical.
+    const _terrainHardBanTop = buildTerrainHardBanBlock(planConfig);
+    if (_terrainHardBanTop) {
+      userPrompt = `${_terrainHardBanTop}\n\n${userPrompt}`;
     }
 
     const totalWeeks = planConfig?.weeksAvailable || 12;

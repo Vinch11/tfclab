@@ -8,6 +8,44 @@ import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
 // Builds a compact structured block from planConfig for re-injection in chunks
 // FIX #3 (audit recap): Now includes estimated phase bounds for the full plan
+
+/**
+ * 🏙️ HARD-BAN TERRAIN BLOCK — Injecté en TÊTE de CHAQUE chunk (chunk 1, N, retries).
+ * Quand l'athlète déclare terrain "plat"/"vallonné"/"mixte", on bannit explicitement
+ * les patterns "montagne / +XXXXm D+" pour éviter que l'IA mime les exemples
+ * du systemPrompt (qui contiennent de nombreuses tables avec +1200m/+1500m D+).
+ */
+export function buildTerrainHardBanBlock(config: any): string {
+  const ta = config?.terrainAvailability;
+  if (!ta || ta === "montagne") return "";
+  const tp = config?.trailProfile;
+  if (!tp) return "";
+
+  const lines: string[] = [];
+  lines.push(`\n🚨 CONTRAINTE TERRAIN — PRIORITÉ ABSOLUE (override tous les exemples du system prompt) :`);
+  if (ta === "plat") {
+    const maxDPlusWeekday = 150;
+    const maxDPlusWeekend = Math.round(tp.weeklyDPlusPeakM * 0.6);
+    lines.push(`  • Athlète URBAIN en terrain PLAT (ex: Bruxelles, Amsterdam, Paris intra) — AUCUN dénivelé naturel disponible en semaine.`);
+    lines.push(`  • ❌ INTERDIT en SEMAINE (lundi-vendredi) : toute séance "montagne", "sentier montagne", "+500m D+" ou plus, "SL trail montagne", "back-to-back montagne".`);
+    lines.push(`  • ❌ INTERDIT de prescrire >${maxDPlusWeekday}m D+ sur une séance de semaine (impossible à exécuter).`);
+    lines.push(`  • ✅ OBLIGATOIRE en remplacement : tapis incliné 8-15%, escaliers building/parking, côtes urbaines courtes (ponts, passerelles), travail excentrique en salle. Annoter [URBAIN] dans le titre.`);
+    lines.push(`  • ✅ Week-ends (sam/dim) UNIQUEMENT : possibilité de SL "expédition hors-ville" jusqu'à ${maxDPlusWeekend}m D+, mais maximum 1× tous les 10-15j (contrainte trajet/logistique).`);
+    lines.push(`  • Sem 1 (S1) : aucune sortie montagne, même week-end (phase d'adaptation). Compensations urbaines uniquement.`);
+    lines.push(`  • Si tu prescris une séance "montagne en semaine" ou ">${maxDPlusWeekday}m D+ en semaine", le plan est INVALIDE.`);
+  } else if (ta === "vallonne") {
+    lines.push(`  • Athlète en terrain VALLONNÉ (collines 50-200m max) — pas de massif montagneux accessible en semaine.`);
+    lines.push(`  • ❌ INTERDIT en semaine : séances "montagne >500m D+ continu", "SL trail montagne 1500m+", "altitude".`);
+    lines.push(`  • ✅ OBLIGATOIRE : exploiter les collines locales en répétitions (VMA côtes, seuil montée) + tapis incliné pour blocs longs.`);
+    lines.push(`  • ✅ Week-ends massif (<2h route) : 1× tous les 10-15j possible.`);
+  } else if (ta === "mixte") {
+    lines.push(`  • Athlète MIXTE : urbain en semaine, accès montagne week-end uniquement.`);
+    lines.push(`  • ❌ INTERDIT en semaine (lun-ven) : séances "montagne >500m D+", "SL trail montagne".`);
+    lines.push(`  • ✅ Concentrer TOUTES les séances montagne (SL D+ long, descente technique, back-to-back) sur sam/dim.`);
+  }
+  return lines.join("\n");
+}
+
 export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number): string {
   const lines: string[] = [];
   
