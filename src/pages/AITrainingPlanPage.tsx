@@ -1301,6 +1301,28 @@ export default function AITrainingPlanPage() {
                           ⚠️ Renseigne distance + D+ pour que l'IA adapte le plan au profil exact de ta course.
                         </p>
                       )}
+
+                      {/* Terrain dispo athlète — substitutions urbaines */}
+                      <div className="space-y-1 pt-2 border-t border-amber-500/20">
+                        <Label className="text-[11px] flex items-center gap-1">
+                          🏙️ Terrain accessible (lieu de vie)
+                        </Label>
+                        <Select value={terrainAvailability} onValueChange={setTerrainAvailability}>
+                          <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="auto">🤖 Auto (montagne supposée)</SelectItem>
+                            <SelectItem value="plat">🏙️ Plat — urbain (ex: Bruxelles, Amsterdam)</SelectItem>
+                            <SelectItem value="vallonne">🌳 Vallonné — collines 50-200m (ex: Liège, Lyon)</SelectItem>
+                            <SelectItem value="mixte">🚗 Mixte — urbain semaine + montagne weekend</SelectItem>
+                            <SelectItem value="montagne">⛰️ Montagne — accès direct (ex: Chamonix, Grenoble)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {(terrainAvailability === "plat" || terrainAvailability === "vallonne" || terrainAvailability === "mixte") && (
+                          <p className="text-[10px] text-amber-700/80 dark:text-amber-400/80">
+                            💡 L'IA substituera les séances montagne par des compensations urbaines (escaliers, tapis incliné, côtes urbaines, sorties weekend programmées).
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
                 })()}
