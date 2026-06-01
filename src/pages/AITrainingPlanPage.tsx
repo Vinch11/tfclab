@@ -214,6 +214,8 @@ export default function AITrainingPlanPage() {
   const [trailElevationM, setTrailElevationM] = useState("");
   const [trailTargetTimeH, setTrailTargetTimeH] = useState(""); // h:mm
   const [trailMaxAltitudeM, setTrailMaxAltitudeM] = useState("");
+  // Terrain dispo athlète (lieu de vie) — clé pour athlètes urbains préparant un trail montagne
+  const [terrainAvailability, setTerrainAvailability] = useState<string>("auto");
 
   // Multi-objective state
   const [raceGoals, setRaceGoals] = useState<RaceGoal[]>([]);
