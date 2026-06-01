@@ -7,6 +7,7 @@ import {
   buildCPWprimeSection,
   computeCPWprime,
   buildStructuredDiagnosticBlock,
+  buildTerrainHardBanBlock,
   extractStrategicRecap,
   detectActivePhase,
   validateChunk1HasRecap,
