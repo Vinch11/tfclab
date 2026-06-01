@@ -615,6 +615,12 @@ export function formatContextForPrompt(context: AssistantContextPacket): string 
   if (d.ftpKg !== null) parts.push(`## FTP/kg: ${d.ftpKg.toFixed(2)} W/kg`);
   if (d.poids !== null) parts.push(`## Poids: ${d.poids}kg`);
   if (d.fcMax !== null) parts.push(`## FC Max: ${d.fcMax} bpm`);
+  if (d.vma !== null || d.vo2max !== null) {
+    parts.push(`## Running (pour analyse de course)`);
+    if (d.vma !== null) parts.push(`- VMA: ${d.vma} km/h`);
+    if (d.vo2max !== null) parts.push(`- VO2max: ${d.vo2max} ml/kg/min`);
+  }
+  
   
   // Champs manquants
   if (context.missingFields.length > 0) {
