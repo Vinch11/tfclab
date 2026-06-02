@@ -13,6 +13,7 @@ import {
   Footprints,
   Bike,
   BookOpen,
+  ClipboardList,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
@@ -45,6 +46,15 @@ const sections = [
     route: "/diagnostic/testing-week-cap",
     color: "text-green-500",
     bgColor: "bg-green-500/10",
+  },
+  {
+    id: "coach-checklist",
+    title: "Checklist Coach",
+    description: "Tests à faire passer & données à encoder par sport (Run / Tri / Trail), cochable et imprimable",
+    icon: ClipboardList,
+    route: "/diagnostic/coach-checklist",
+    color: "text-amber-500",
+    bgColor: "bg-amber-500/10",
   },
   {
     id: "cohort-literature",
