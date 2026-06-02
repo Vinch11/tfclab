@@ -18,6 +18,7 @@ import {
 import { useState, useEffect } from "react";
 import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
 import { ScientificAuditReportButton } from "@/components/ScientificAuditReportButton";
+import { InscydPoffe2024ValidationCard } from "@/components/InscydPoffe2024ValidationCard";
 
 const sections = [
   {
@@ -131,6 +132,9 @@ export default function DiagnosticPage() {
 
         {/* Audit de cohérence des profils athlètes */}
         <AuditAthletesPanel />
+
+        {/* Référence externe de validation MLSS bike (Poffé 2024, N=29, r=0.99) */}
+        <InscydPoffe2024ValidationCard />
 
         {/* Info - compact on mobile */}
         <Card className="border-dashed border-primary/20 bg-primary/5">
