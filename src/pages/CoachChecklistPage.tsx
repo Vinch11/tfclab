@@ -221,7 +221,79 @@ const A = {
       refs: { ...(a?.refs ?? {}), ambition: v },
     }),
   } satisfies AthleteFieldSpec,
-};
+  sex: {
+    kind: "select",
+    options: [
+      { value: "M", label: "Homme" },
+      { value: "F", label: "Femme" },
+    ],
+    read: (a) => a?.sexe ?? a?.sex ?? a?.refs?.sexe ?? null,
+    write: (v, a) => ({
+      sexe: v,
+      sex: v,
+      refs: { ...(a?.refs ?? {}), sexe: v },
+    }),
+  } satisfies AthleteFieldSpec,
+  experience_level: {
+    kind: "select",
+    options: [
+      { value: "debutant", label: "Débutant (<1 an)" },
+      { value: "intermediaire", label: "Intermédiaire (1–3 ans)" },
+      { value: "confirme", label: "Confirmé (3–7 ans)" },
+      { value: "expert", label: "Expert (>7 ans)" },
+    ],
+    read: (a) => a?.refs?.experience_level ?? null,
+    write: (v, a) => ({ refs: { ...(a?.refs ?? {}), experience_level: v } }),
+  } satisfies AthleteFieldSpec,
+  tss_7d_habituel: {
+    kind: "number",
+    unit: "TSS/sem",
+    step: "10",
+    placeholder: "ex: 450",
+    read: (a) => a?.refs?.tss_7d_habituel ?? null,
+    write: (v, a) => ({ refs: { ...(a?.refs ?? {}), tss_7d_habituel: Math.round(Number(v)) } }),
+  } satisfies AthleteFieldSpec,
+  weekly_dplus_target_m: {
+    kind: "number",
+    unit: "m/sem",
+    step: "50",
+    placeholder: "ex: 1500",
+    read: (a) => a?.refs?.weekly_dplus_target_m ?? null,
+    write: (v, a) => ({ refs: { ...(a?.refs ?? {}), weekly_dplus_target_m: Math.round(Number(v)) } }),
+  } satisfies AthleteFieldSpec,
+  peak_dplus_session_m: {
+    kind: "number",
+    unit: "m",
+    step: "50",
+    placeholder: "ex: 1200",
+    read: (a) => a?.refs?.peak_dplus_session_m ?? null,
+    write: (v, a) => ({ refs: { ...(a?.refs ?? {}), peak_dplus_session_m: Math.round(Number(v)) } }),
+  } satisfies AthleteFieldSpec,
+  target_time_hours: {
+    kind: "number",
+    unit: "h",
+    step: "0.25",
+    placeholder: "ex: 6.5",
+    read: (a) => a?.refs?.target_time_hours ?? null,
+    write: (v, a) => ({ refs: { ...(a?.refs ?? {}), target_time_hours: Number(v) } }),
+  } satisfies AthleteFieldSpec,
+  mlss_observed_w: {
+    kind: "number",
+    unit: "W",
+    step: "1",
+    placeholder: "ex: 245",
+    read: (a) => a?.refs?.mlss_observed_w ?? null,
+    write: (v, a) => ({ refs: { ...(a?.refs ?? {}), mlss_observed_w: Math.round(Number(v)) } }),
+  } satisfies AthleteFieldSpec,
+  lactate_threshold_mmol: {
+    kind: "number",
+    unit: "mmol/L",
+    step: "0.1",
+    placeholder: "ex: 4.0",
+    read: (a) => a?.refs?.lactate_threshold_mmol ?? null,
+    write: (v, a) => ({ refs: { ...(a?.refs ?? {}), lactate_threshold_mmol: Number(v) } }),
+  } satisfies AthleteFieldSpec,
+
 
 // ============================================================
 // Sections (avec mapping field optionnel)
