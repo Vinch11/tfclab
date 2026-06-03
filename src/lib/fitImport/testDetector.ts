@@ -12,6 +12,39 @@ interface DetectionCandidate {
 }
 
 /**
+ * TFCL Reference-Week slots: which of the 4 efforts of the Semaine Test
+ * a detected FIT test type fills.
+ *  - P30S  → Sprint 30s (snapshot.p30s_w)
+ *  - P60S  → Sprint 60s (snapshot.p60s_w)
+ *  - MAP5  → MAP 5 min  (snapshot.map5min_w)
+ *  - FTP_TTE → FTP + TTE (snapshot.ftp + tte_observed_min)
+ */
+export type TFCLWeekSlot = "P30S" | "P60S" | "MAP5" | "FTP_TTE" | null;
+
+const TFCL_SLOT_MAP: Partial<Record<DetectedTestType, TFCLWeekSlot>> = {
+  SPRINT_30S: "P30S",
+  SPRINT_60S: "P60S",
+  MAP_5MIN: "MAP5",
+  FTP_20MIN: "FTP_TTE",
+  FTP_2x8MIN: "FTP_TTE",
+  TTE_THRESHOLD: "FTP_TTE",
+};
+
+export function getTFCLWeekSlot(type: DetectedTestType): TFCLWeekSlot {
+  return TFCL_SLOT_MAP[type] ?? null;
+}
+
+export function formatTFCLSlot(slot: TFCLWeekSlot): string {
+  switch (slot) {
+    case "P30S": return "Sprint 30s (D1)";
+    case "P60S": return "Sprint 60s (D1)";
+    case "MAP5": return "MAP 5 min (D3)";
+    case "FTP_TTE": return "FTP + TTE (D5)";
+    default: return "—";
+  }
+}
+
+/**
  * Détecte le type de test à partir d'une session FIT
  */
 export function detectTestType(

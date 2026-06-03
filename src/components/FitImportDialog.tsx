@@ -45,6 +45,7 @@ import {
   Gauge,
   CheckCircle2,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { DriftSegmentSelector } from "./DriftSegmentSelector";
 import {
@@ -65,6 +66,7 @@ import {
   type ProfileUpdatePreview,
   type RunningEconomyFitResult,
 } from "@/lib/fitImport";
+import { getTFCLWeekSlot, formatTFCLSlot } from "@/lib/fitImport/testDetector";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 import { estimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
 import { computeVLamaxBikeV2Enhanced } from "@/lib/v2/vlamaxBikeV2Enhanced";
@@ -606,6 +608,19 @@ export function FitImportDialog({
                     {analysis.testType.reasoning}
                   </p>
                 </div>
+                {/* TFCL Reference Week slot mapping */}
+                {selectedTestType && getTFCLWeekSlot(selectedTestType) && (
+                  <div className="mt-3 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <span>
+                      Remplit le slot Semaine Test TFCL™ :{" "}
+                      <strong>{formatTFCLSlot(getTFCLWeekSlot(selectedTestType))}</strong>
+                      {updateProfile
+                        ? " — sera enregistré dans le snapshot."
+                        : " — activez \"Mettre à jour le profil\" pour l'enregistrer."}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
