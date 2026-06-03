@@ -65,6 +65,7 @@ import {
   type ProfileUpdatePreview,
   type RunningEconomyFitResult,
 } from "@/lib/fitImport";
+import { getTFCLWeekSlot, formatTFCLSlot } from "@/lib/fitImport/testDetector";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 import { estimateVLamaxCap } from "@/lib/v2/vlamaxCapEstimator";
 import { computeVLamaxBikeV2Enhanced } from "@/lib/v2/vlamaxBikeV2Enhanced";
