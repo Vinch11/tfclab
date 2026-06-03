@@ -552,9 +552,27 @@ function ChecklistView({
                     <p className="text-xs text-muted-foreground mt-1">
                       <span className="font-medium text-foreground/70">Test :</span> {item.test}
                     </p>
-                    <p className="text-xs text-primary/80 mt-0.5">
-                      <span className="font-medium">→ Encoder :</span> {item.encode}
-                    </p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <p className="text-xs text-primary/80">
+                        <span className="font-medium">→ Encoder :</span> {item.encode}
+                      </p>
+                      {item.navigateTo && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs print:hidden"
+                          onClick={() => {
+                            if (item.navigateTo!.startsWith("/athleteEditPage") && athlete?.id) {
+                              navigate(`/athlete/${athlete.id}`);
+                            } else {
+                              navigate(item.navigateTo!);
+                            }
+                          }}
+                        >
+                          Aller <ArrowRight className="h-3 w-3 ml-1" />
+                        </Button>
+                      )}
+                    </div>
                     {item.field && (
                       <InlineFieldInput
                         field={item.field}
