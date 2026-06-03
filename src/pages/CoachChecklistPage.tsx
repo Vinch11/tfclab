@@ -559,6 +559,14 @@ function ChecklistView({
                         disabled={!canEdit}
                       />
                     )}
+                    {item.athleteField && (
+                      <InlineAthleteFieldInput
+                        field={item.athleteField}
+                        athlete={athlete}
+                        onCommit={onCommitAthleteField}
+                        disabled={!canEdit}
+                      />
+                    )}
                   </div>
                 </div>
               );
