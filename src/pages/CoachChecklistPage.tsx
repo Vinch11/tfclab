@@ -648,8 +648,10 @@ function ChecklistView({
           const v = item.athleteField.read(athlete);
           if (v != null && v !== "") out[`${sport}:${item.id}`] = true;
         }
+        if (item.auto?.done) out[`${sport}:${item.id}`] = true;
       }
     }
+
     return out;
   }, [checked, sections, snapshot, athlete, sport]);
 
