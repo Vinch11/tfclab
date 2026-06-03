@@ -99,8 +99,8 @@ const F = {
   tte_run: {
     unit: "min",
     step: "1",
-    read: (s) => s?.tte_observed_min_run ?? null,
-    write: (v) => ({ tte_observed_min_run: Math.round(v) }),
+    read: (s) => (s as any)?.tte_observed_min_run ?? null,
+    write: (v) => ({ tte_observed_min_run: Math.round(v) } as any),
   } satisfies SnapshotFieldSpec,
   ftp: {
     unit: "W",
