@@ -293,6 +293,9 @@ const A = {
     read: (a) => a?.refs?.lactate_threshold_mmol ?? null,
     write: (v, a) => ({ refs: { ...(a?.refs ?? {}), lactate_threshold_mmol: Number(v) } }),
   } satisfies AthleteFieldSpec,
+};
+
+
 
 
 // ============================================================
