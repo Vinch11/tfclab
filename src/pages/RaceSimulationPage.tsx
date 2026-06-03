@@ -286,12 +286,14 @@ export default function RaceSimulationPage() {
       return (paceRunSecKm * distanceKm) / 60;
     };
 
+    const fractions = vSeuilFractionByAmbition[ambition] ?? vSeuilFractionByAmbition.age_group;
+
     if (raceObjective === 'IM') {
-      const runMin = computeRunMin(42.2, vSeuilFractionByAmbition[ambition].full) ?? 240;
+      const runMin = computeRunMin(42.2, fractions.full) ?? 240;
       return { bike: 300, run: Math.round(runMin) };
     }
     if (raceObjective === '70.3') {
-      const runMin = computeRunMin(21.1, vSeuilFractionByAmbition[ambition].half) ?? 105;
+      const runMin = computeRunMin(21.1, fractions.half) ?? 105;
       return { bike: 150, run: Math.round(runMin) };
     }
     return { bike: 180, run: 180 };
