@@ -37,6 +37,17 @@ type SnapshotFieldSpec = {
   write: (value: number) => Partial<DbSnapshot>;
 };
 
+type AthleteFieldSpec = {
+  kind: "number" | "date" | "select";
+  unit?: string;
+  placeholder?: string;
+  step?: string;
+  options?: { value: string; label: string }[];
+  read: (a: any | null) => string | number | null;
+  /** Renvoie un objet partiel à fusionner dans l'athlète (clés top-level + `refs`). */
+  write: (value: string, athlete: any | null) => Record<string, any>;
+};
+
 type Item = {
   id: string;
   label: string;
@@ -44,6 +55,8 @@ type Item = {
   encode: string;
   /** Si présent, affiche un input lié au snapshot actif. */
   field?: SnapshotFieldSpec;
+  /** Si présent, affiche un input lié à l'athlète (refs ou colonnes). */
+  athleteField?: AthleteFieldSpec;
 };
 
 type Section = {
