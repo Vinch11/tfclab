@@ -58,6 +58,8 @@ type Item = {
   field?: SnapshotFieldSpec;
   /** Si présent, affiche un input lié à l'athlète (refs ou colonnes). */
   athleteField?: AthleteFieldSpec;
+  /** Route applicative pour aller directement à l'écran d'encodage. */
+  navigateTo?: string;
 };
 
 type Section = {
