@@ -667,6 +667,20 @@ export default function CoachChecklistPage() {
     }
   };
 
+  // ===== Écriture d'un champ dans l'athlète (colonnes + refs) =====
+  const commitAthleteField = async (patch: Record<string, any>) => {
+    if (!currentAthlete) {
+      toast.error("Sélectionnez un athlète avant de saisir une valeur");
+      return;
+    }
+    const next: any = { ...currentAthlete, ...patch };
+    if (patch.refs) {
+      next.refs = { ...(currentAthlete.refs ?? {}), ...patch.refs };
+    }
+    const ok = await updateAthlete(next);
+    if (ok) toast.success("Profil athlète mis à jour");
+  };
+
   const [sportTab, setSportTab] = useState<Exclude<Sport, "common">>("run");
 
   return (
