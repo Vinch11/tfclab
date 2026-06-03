@@ -21,6 +21,7 @@ import { ClipboardList, Printer, RotateCcw, Footprints, Bike, Mountain, Users, C
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudData, type DbSnapshot } from "@/contexts/CloudDataContext";
 import { TFCLTestingWeekStatusCard } from "@/components/coach/TFCLTestingWeekStatusCard";
+import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { toast } from "sonner";
 
 /**
