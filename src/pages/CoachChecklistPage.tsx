@@ -153,17 +153,85 @@ const F = {
 // Sections (avec mapping field optionnel)
 // ============================================================
 
+// ============================================================
+// Athlete field specs (refs + colonnes athletes)
+// ============================================================
+
+const A = {
+  height_cm: {
+    kind: "number",
+    unit: "cm",
+    step: "0.5",
+    placeholder: "ex: 178",
+    read: (a) => a?.refs?.height_cm ?? null,
+    write: (v, a) => ({
+      refs: { ...(a?.refs ?? {}), height_cm: Number(v) },
+    }),
+  } satisfies AthleteFieldSpec,
+  birth_date: {
+    kind: "date",
+    placeholder: "AAAA-MM-JJ",
+    read: (a) => a?.dateNaissance ?? null,
+    write: (v) => ({ dateNaissance: v || null }),
+  } satisfies AthleteFieldSpec,
+  fc_rest: {
+    kind: "number",
+    unit: "bpm",
+    step: "1",
+    placeholder: "ex: 52",
+    read: (a) => a?.refs?.fc_rest ?? null,
+    write: (v, a) => ({
+      refs: { ...(a?.refs ?? {}), fc_rest: Math.round(Number(v)) },
+    }),
+  } satisfies AthleteFieldSpec,
+  sport_main: {
+    kind: "select",
+    options: [
+      { value: "run", label: "Coureur (Route)" },
+      { value: "tri", label: "Triathlète" },
+      { value: "trail", label: "Trailer" },
+    ],
+    read: (a) => a?.refs?.sport_main ?? null,
+    write: (v, a) => ({
+      refs: { ...(a?.refs ?? {}), sport_main: v },
+    }),
+  } satisfies AthleteFieldSpec,
+  race_date: {
+    kind: "date",
+    read: (a) => a?.refs?.race_date ?? null,
+    write: (v, a) => ({
+      refs: { ...(a?.refs ?? {}), race_date: v || null },
+    }),
+  } satisfies AthleteFieldSpec,
+  ambition: {
+    kind: "select",
+    options: AMBITION_LEVELS_ORDERED.map((id) => ({
+      value: id,
+      label: AMBITION_DEFINITIONS[id].label,
+    })),
+    read: (a) => a?.ambition ?? a?.refs?.ambition ?? null,
+    write: (v, a) => ({
+      ambition: v,
+      refs: { ...(a?.refs ?? {}), ambition: v },
+    }),
+  } satisfies AthleteFieldSpec,
+};
+
+// ============================================================
+// Sections (avec mapping field optionnel)
+// ============================================================
+
 const SOCLE: Section = {
   title: "Socle commun (tous athlètes)",
   items: [
     { id: "weight", label: "Poids (kg)", test: "Balance, à jeun le matin", encode: "Snapshot → Poids", field: F.weight_kg },
-    { id: "height", label: "Taille (cm)", test: "Mesure debout sans chaussures", encode: "Profil athlète → Anthropométrie" },
-    { id: "age", label: "Âge & sexe", test: "Date de naissance", encode: "Profil athlète → Identité" },
+    { id: "height", label: "Taille (cm)", test: "Mesure debout sans chaussures", encode: "Profil athlète → Anthropométrie", athleteField: A.height_cm },
+    { id: "age", label: "Date de naissance", test: "Date de naissance (utilisée pour âge & ajustements masters)", encode: "Profil athlète → Identité", athleteField: A.birth_date },
     { id: "fcmax", label: "FC max (bpm)", test: "Test terrain : 3 km échauffement + 2×3 min all-out + 1 min all-out", encode: "Snapshot → FC max", field: F.fc_max },
-    { id: "fcrest", label: "FC repos (bpm)", test: "Moyenne sur 5 matins consécutifs, allongé, avant lever", encode: "Profil → Données physio → FCrepos" },
-    { id: "sport", label: "Sport principal", test: "Discipline cible (Run / Tri / Trail)", encode: "Profil → Sport principal" },
-    { id: "raceDate", label: "Date de la course objectif", test: "Date officielle de la course A", encode: "Profil → Objectif principal → Date" },
-    { id: "ambition", label: "Niveau d'ambition", test: "Finisher / Age Grouper / Compétitif / Élite", encode: "Profil → Objectif → Ambition" },
+    { id: "fcrest", label: "FC repos (bpm)", test: "Moyenne sur 5 matins consécutifs, allongé, avant lever", encode: "Profil → Données physio → FCrepos", athleteField: A.fc_rest },
+    { id: "sport", label: "Sport principal", test: "Discipline cible (Run / Tri / Trail)", encode: "Profil → Sport principal", athleteField: A.sport_main },
+    { id: "raceDate", label: "Date de la course objectif", test: "Date officielle de la course A", encode: "Profil → Objectif principal → Date", athleteField: A.race_date },
+    { id: "ambition", label: "Niveau d'ambition", test: "Découverte / Confirmé / Compétiteur / Qualifiable / Élite", encode: "Profil → Objectif → Ambition", athleteField: A.ambition },
   ],
 };
 
