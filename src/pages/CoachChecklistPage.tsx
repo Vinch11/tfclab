@@ -471,6 +471,7 @@ function ChecklistView({
   onCommitAthleteField: (patch: Record<string, any>) => Promise<void>;
   canEdit: boolean;
 }) {
+  const navigate = useNavigate();
   // Auto-check: un item avec field rempli est considéré comme fait
   const effectiveChecked = useMemo(() => {
     const out: Record<string, boolean> = { ...checked };
