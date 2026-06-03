@@ -583,7 +583,7 @@ export default function CoachChecklistPage() {
   const [staffMode, setStaffMode] = useState(
     () => localStorage.getItem("vlab-staff-mode") === "true"
   );
-  const { currentAthlete } = useAthletes();
+  const { currentAthlete, updateAthlete } = useAthletes();
   const { snapshots, addSnapshot, updateSnapshot, setActiveSnapshot } = useCloudData();
 
   useEffect(() => {
