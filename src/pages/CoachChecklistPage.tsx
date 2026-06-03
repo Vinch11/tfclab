@@ -362,6 +362,91 @@ function InlineFieldInput({
   );
 }
 
+function InlineAthleteFieldInput({
+  field,
+  athlete,
+  onCommit,
+  disabled,
+}: {
+  field: AthleteFieldSpec;
+  athlete: any | null;
+  onCommit: (patch: Record<string, any>) => Promise<void>;
+  disabled?: boolean;
+}) {
+  const current = field.read(athlete);
+  const [val, setVal] = useState<string>(current != null ? String(current) : "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setVal(current != null ? String(current) : "");
+  }, [current]);
+
+  const commit = async (nextVal?: string) => {
+    const raw = (nextVal ?? val).trim();
+    if (raw === "") return;
+    if (current != null && String(current) === raw) return;
+    if (field.kind === "number" && !Number.isFinite(Number(raw))) {
+      toast.error("Valeur invalide");
+      return;
+    }
+    setSaving(true);
+    try {
+      await onCommit(field.write(raw, athlete));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const filled = current != null && current !== "";
+
+  return (
+    <div className="flex items-center gap-1.5 mt-2 print:hidden">
+      {field.kind === "select" ? (
+        <select
+          value={val}
+          onChange={(e) => {
+            setVal(e.target.value);
+            commit(e.target.value);
+          }}
+          disabled={disabled || saving}
+          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+        >
+          <option value="">— choisir —</option>
+          {field.options?.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <Input
+          type={field.kind === "date" ? "date" : "number"}
+          inputMode={field.kind === "number" ? "decimal" : undefined}
+          step={field.kind === "number" ? field.step ?? "any" : undefined}
+          placeholder={field.placeholder ?? "—"}
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={() => commit()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          disabled={disabled || saving}
+          className="h-8 w-36 text-sm"
+        />
+      )}
+      {field.unit && <span className="text-xs text-muted-foreground">{field.unit}</span>}
+      {filled && (
+        <span className="inline-flex items-center text-xs text-green-600 dark:text-green-500 ml-1">
+          <CheckCircle2 className="h-3.5 w-3.5 mr-0.5" /> enregistré
+        </span>
+      )}
+    </div>
+  );
+}
+
 function ChecklistView({
   sport,
   sections,
