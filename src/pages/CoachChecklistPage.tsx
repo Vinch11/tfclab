@@ -717,6 +717,12 @@ function ChecklistView({
                     <p className="text-xs text-muted-foreground mt-1">
                       <span className="font-medium text-foreground/70">Test :</span> {item.test}
                     </p>
+                    {item.auto && (
+                      <p className={`text-xs mt-1 inline-flex items-center gap-1 ${item.auto.done ? "text-green-600 dark:text-green-500" : "text-amber-600 dark:text-amber-500"}`}>
+                        <CheckCircle2 className="h-3 w-3" /> {item.auto.info}
+                      </p>
+                    )}
+
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <p className="text-xs text-primary/80">
                         <span className="font-medium">→ Encoder :</span> {item.encode}
