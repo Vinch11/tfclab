@@ -540,7 +540,8 @@ export default function CoachChecklistPage() {
         </Card>
 
         {/* TFCL Testing Week status — visible at top, badge precision */}
-        <TFCLTestingWeekStatusCard snapshot={activeSnapshot as any} />
+        <TFCLTestingWeekStatusCard snapshot={activeSnapshot as any} sport={sportTab} />
+
 
         {/* Tabs */}
         <Tabs value={sportTab} onValueChange={(v) => setSportTab(v as Exclude<Sport, "common">)}>
