@@ -868,6 +868,12 @@ export default function CoachChecklistPage() {
 
   const [sportTab, setSportTab] = useState<Exclude<Sport, "common">>("run");
 
+  const sectionsBySport = useMemo(
+    () => buildSectionsBySport(athleteId ? snapshots.filter((s) => s.athlete_id === athleteId) : []),
+    [snapshots, athleteId],
+  );
+
+
   return (
     <SidebarLayout
       activeTab={activeTab}
