@@ -1,6 +1,11 @@
 /**
  * CoachChecklistPage — Checklists tests & données par sport (Run / Tri / Trail)
  * Cochable, persistante par athlète (localStorage), exportable PDF (print).
+ *
+ * ✅ Saisie inline : pour les items mappés à une colonne snapshot, le coach
+ * peut entrer la valeur directement dans la checklist. La valeur est écrite
+ * dans le snapshot actif (ou crée un snapshot du jour si absent), ce qui
+ * la rend immédiatement utilisable par les moteurs Diagnostic / Décision / Plan.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -11,14 +16,32 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ClipboardList, Printer, RotateCcw, Footprints, Bike, Mountain, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ClipboardList, Printer, RotateCcw, Footprints, Bike, Mountain, Users, CheckCircle2 } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudData, type DbSnapshot } from "@/contexts/CloudDataContext";
+import { toast } from "sonner";
+
+/**
+ * Field mapping vers une colonne snapshot.
+ * - read: lit la valeur depuis le snapshot, dans l'unité affichée
+ * - write: renvoie un patch partiel snapshot depuis l'unité affichée
+ */
+type SnapshotFieldSpec = {
+  unit: string;
+  placeholder?: string;
+  step?: string;
+  read: (s: DbSnapshot | null) => number | string | null;
+  write: (value: number) => Partial<DbSnapshot>;
+};
 
 type Item = {
   id: string;
   label: string;
   test: string;
   encode: string;
+  /** Si présent, affiche un input lié au snapshot actif. */
+  field?: SnapshotFieldSpec;
 };
 
 type Section = {
@@ -28,13 +51,100 @@ type Section = {
 
 type Sport = "common" | "run" | "tri" | "trail";
 
+// ============================================================
+// Field specs (mapping checklist ↔ colonnes snapshot)
+// ============================================================
+
+const F = {
+  weight_kg: {
+    unit: "kg",
+    step: "0.1",
+    read: (s) => s?.weight_kg ?? null,
+    write: (v) => ({ weight_kg: v }),
+  } satisfies SnapshotFieldSpec,
+  fc_max: {
+    unit: "bpm",
+    step: "1",
+    read: (s) => s?.fc_max ?? null,
+    write: (v) => ({ fc_max: Math.round(v) }),
+  } satisfies SnapshotFieldSpec,
+  vma: {
+    unit: "km/h",
+    step: "0.1",
+    read: (s) => s?.vma ?? null,
+    write: (v) => ({ vma: v }),
+  } satisfies SnapshotFieldSpec,
+  seuil_run_kmh: {
+    unit: "km/h",
+    step: "0.1",
+    placeholder: "ex: 16.5",
+    read: (s) =>
+      s?.pace_threshold_sec_per_km
+        ? Math.round((3600 / s.pace_threshold_sec_per_km) * 10) / 10
+        : null,
+    write: (v) => ({ pace_threshold_sec_per_km: Math.round(3600 / v) }),
+  } satisfies SnapshotFieldSpec,
+  vo2max: {
+    unit: "ml/kg/min",
+    step: "0.1",
+    read: (s) => s?.vo2max ?? null,
+    write: (v) => ({ vo2max: v }),
+  } satisfies SnapshotFieldSpec,
+  sprint15: {
+    unit: "m",
+    step: "0.5",
+    read: (s) => (s as any)?.sprint_15s_distance ?? null,
+    write: (v) => ({ sprint_15s_distance: v } as any),
+  } satisfies SnapshotFieldSpec,
+  tte_run: {
+    unit: "min",
+    step: "1",
+    read: (s) => (s as any)?.tte_observed_min_run ?? null,
+    write: (v) => ({ tte_observed_min_run: Math.round(v) } as any),
+  } satisfies SnapshotFieldSpec,
+  ftp: {
+    unit: "W",
+    step: "1",
+    read: (s) => s?.ftp ?? null,
+    write: (v) => ({ ftp: Math.round(v) }),
+  } satisfies SnapshotFieldSpec,
+  pmax_5s: {
+    unit: "W",
+    step: "1",
+    read: (s) => s?.pmax_5s ?? null,
+    write: (v) => ({ pmax_5s: Math.round(v) }),
+  } satisfies SnapshotFieldSpec,
+  tte_bike: {
+    unit: "min",
+    step: "1",
+    read: (s) => s?.tte_observed_min ?? null,
+    write: (v) => ({ tte_observed_min: Math.round(v) }),
+  } satisfies SnapshotFieldSpec,
+  vlamax_bike: {
+    unit: "mmol/L/s",
+    step: "0.01",
+    read: (s) => s?.vlamax ?? null,
+    write: (v) => ({ vlamax: v }),
+  } satisfies SnapshotFieldSpec,
+  css: {
+    unit: "sec/100m",
+    step: "0.1",
+    read: (s) => s?.css ?? null,
+    write: (v) => ({ css: v }),
+  } satisfies SnapshotFieldSpec,
+};
+
+// ============================================================
+// Sections (avec mapping field optionnel)
+// ============================================================
+
 const SOCLE: Section = {
   title: "Socle commun (tous athlètes)",
   items: [
-    { id: "weight", label: "Poids (kg)", test: "Balance, à jeun le matin", encode: "Profil athlète → Anthropométrie" },
+    { id: "weight", label: "Poids (kg)", test: "Balance, à jeun le matin", encode: "Snapshot → Poids", field: F.weight_kg },
     { id: "height", label: "Taille (cm)", test: "Mesure debout sans chaussures", encode: "Profil athlète → Anthropométrie" },
     { id: "age", label: "Âge & sexe", test: "Date de naissance", encode: "Profil athlète → Identité" },
-    { id: "fcmax", label: "FC max (bpm)", test: "Test terrain : 3 km échauffement + 2×3 min all-out + 1 min all-out (FCmax = pic réel)", encode: "Profil → Données physio → FCmax" },
+    { id: "fcmax", label: "FC max (bpm)", test: "Test terrain : 3 km échauffement + 2×3 min all-out + 1 min all-out", encode: "Snapshot → FC max", field: F.fc_max },
     { id: "fcrest", label: "FC repos (bpm)", test: "Moyenne sur 5 matins consécutifs, allongé, avant lever", encode: "Profil → Données physio → FCrepos" },
     { id: "sport", label: "Sport principal", test: "Discipline cible (Run / Tri / Trail)", encode: "Profil → Sport principal" },
     { id: "raceDate", label: "Date de la course objectif", test: "Date officielle de la course A", encode: "Profil → Objectif principal → Date" },
@@ -45,12 +155,12 @@ const SOCLE: Section = {
 const RUN: Section = {
   title: "Coureur (Route / 5K → Marathon)",
   items: [
-    { id: "vma", label: "VMA (km/h)", test: "VAMEVAL (palier 0.5 km/h /min) ou 5 min all-out après 15 min d'échauffement", encode: "Diagnostic → Tests → VMA" },
-    { id: "seuil_run", label: "Vitesse au seuil (km/h)", test: "30 min all-out (CP30) ou chrono 10 km récent (<8 sem)", encode: "Diagnostic → Tests → Seuil running" },
-    { id: "vo2max", label: "VO₂max (ml/kg/min)", test: "Auto-calculé depuis VMA (VO₂max ≈ VMA × 3.5) ou test labo direct", encode: "Calculé auto si VMA renseignée" },
-    { id: "sprint15", label: "Sprint 15s (distance, m)", test: "2 km échauffement + 3×15 s all-out plat, départ lancé. Garder la meilleure distance", encode: "Diagnostic → Tests → Sprint 15s" },
-    { id: "tte_run", label: "TTE à l'allure seuil (min)", test: "Tenir le plus longtemps possible à l'allure seuil (objectif >40 min)", encode: "Diagnostic → Tests → TTE Run" },
-    { id: "economy", label: "Économie de course (ml/kg/km)", test: "Auto-calculé depuis FIT (VO₂ estimé / vitesse en endurance fondamentale)", encode: "Auto depuis import FIT" },
+    { id: "vma", label: "VMA (km/h)", test: "VAMEVAL ou 5 min all-out après 15 min d'échauffement", encode: "Snapshot → VMA", field: F.vma },
+    { id: "seuil_run", label: "Vitesse au seuil (km/h)", test: "30 min all-out (CP30) ou chrono 10 km récent (<8 sem)", encode: "Snapshot → Pace seuil (auto sec/km)", field: F.seuil_run_kmh },
+    { id: "vo2max", label: "VO₂max (ml/kg/min)", test: "Auto-calculé depuis VMA (≈ VMA × 3.5) ou test labo direct", encode: "Snapshot → VO₂max", field: F.vo2max },
+    { id: "sprint15", label: "Sprint 15s (distance, m)", test: "2 km échauffement + 3×15 s all-out plat, départ lancé. Meilleure distance", encode: "Snapshot → Sprint 15s", field: F.sprint15 },
+    { id: "tte_run", label: "TTE à l'allure seuil (min)", test: "Tenir le plus longtemps possible à l'allure seuil (objectif >40 min)", encode: "Snapshot → TTE Run", field: F.tte_run },
+    { id: "economy", label: "Économie de course (ml/kg/km)", test: "Auto-calculé depuis FIT", encode: "Auto depuis import FIT" },
     { id: "race_ref", label: "Course de référence récente", test: "Chrono officiel <8 semaines sur 10K / semi / marathon", encode: "Profil → Records personnels" },
   ],
 };
@@ -58,13 +168,13 @@ const RUN: Section = {
 const TRI: Section = {
   title: "Triathlète (Sprint → Ironman)",
   items: [
-    { id: "ftp", label: "FTP vélo (W)", test: "Test 20 min all-out × 0.95 (après 20 min échauffement + 5 min all-out)", encode: "Diagnostic → Tests → FTP" },
-    { id: "pmax5", label: "Puissance max 5s (W)", test: "Sprint vélo 5 s départ lancé, meilleur de 3 essais", encode: "Diagnostic → Tests → PMax 5s" },
+    { id: "ftp", label: "FTP vélo (W)", test: "Test 20 min all-out × 0.95", encode: "Snapshot → FTP", field: F.ftp },
+    { id: "pmax5", label: "Puissance max 5s (W)", test: "Sprint vélo 5 s départ lancé, meilleur de 3 essais", encode: "Snapshot → Pmax 5s", field: F.pmax_5s },
     { id: "cp3", label: "Critical Power 3-point (W)", test: "3 efforts all-out : 12 min, 3 min, 30 s (jours différents)", encode: "Diagnostic → Tests → CP" },
-    { id: "tte_bike", label: "TTE vélo à FTP (min)", test: "Tenir le plus longtemps possible à FTP (objectif >40 min)", encode: "Diagnostic → Tests → TTE Bike" },
-    { id: "vlamax_bike", label: "VLamax vélo (mmol/L/s)", test: "Sprint vélo 15 s (calculé via sprint 15s ou estimé multi-sources)", encode: "Diagnostic → VLamax (auto)" },
-    { id: "css", label: "CSS natation (sec/100m)", test: "400 m + 200 m all-out, CSS = (D400−D200) / 2 m·s", encode: "Diagnostic → Tests → CSS" },
-    { id: "vo2_bike", label: "VO₂max vélo (ml/kg/min)", test: "Auto depuis FTP + poids, ou test labo direct", encode: "Calculé auto" },
+    { id: "tte_bike", label: "TTE vélo à FTP (min)", test: "Tenir le plus longtemps possible à FTP (objectif >40 min)", encode: "Snapshot → TTE Bike", field: F.tte_bike },
+    { id: "vlamax_bike", label: "VLamax vélo (mmol/L/s)", test: "Sprint vélo 15 s (calculé ou estimé multi-sources)", encode: "Snapshot → VLamax", field: F.vlamax_bike },
+    { id: "css", label: "CSS natation (sec/100m)", test: "400 m + 200 m all-out, CSS = (D400−D200)/2", encode: "Snapshot → CSS", field: F.css },
+    { id: "vo2_bike", label: "VO₂max vélo (ml/kg/min)", test: "Auto depuis FTP + poids, ou test labo direct", encode: "Snapshot → VO₂max", field: F.vo2max },
     { id: "run_subset", label: "Données coureur (VMA + seuil + sprint 15s)", test: "Voir checklist Coureur (sport secondaire)", encode: "Voir onglet Coureur" },
   ],
 };
@@ -72,12 +182,12 @@ const TRI: Section = {
 const TRAIL: Section = {
   title: "Trailer (Court → Ultra / Mountain)",
   items: [
-    { id: "v_up", label: "Vitesse ascensionnelle au seuil (m/h)", test: "Côte régulière 5–8% pendant 20 min all-out (objectif : V↑ stable)", encode: "Diagnostic → Tests → V↑ seuil" },
+    { id: "v_up", label: "Vitesse ascensionnelle au seuil (m/h)", test: "Côte régulière 5–8% pendant 20 min all-out", encode: "Diagnostic → Tests → V↑ seuil" },
     { id: "sprint_uphill", label: "Sprint côte 30s (m)", test: "Sprint montée raide (8–12%) 30 s all-out, distance parcourue", encode: "Diagnostic → Tests → Sprint côte" },
     { id: "weekly_dplus", label: "Charge D+ hebdo habituelle (m)", test: "Moyenne D+ des 4 dernières semaines (Strava/Garmin)", encode: "Profil → Trail → D+ hebdo" },
     { id: "max_dplus_session", label: "D+ max sur une séance (m)", test: "Plus gros D+ encaissé en sortie longue récente (3 mois)", encode: "Profil → Trail → D+ max séance" },
     { id: "race_profile", label: "Profil course objectif (km / D+ / altitude max)", test: "Trace GPX officielle de la course", encode: "Profil → Objectif Trail → Profil course" },
-    { id: "target_time", label: "Temps cible (h:min)", test: "Estimation réaliste basée sur courses similaires (calculée via estimateRaceDuration)", encode: "Profil → Objectif → Temps cible" },
+    { id: "target_time", label: "Temps cible (h:min)", test: "Estimation réaliste basée sur courses similaires", encode: "Profil → Objectif → Temps cible" },
     { id: "eccentric_eco", label: "Économie excentrique (descente)", test: "Auto depuis FIT : dérive FC sur descentes longues", encode: "Auto depuis FIT" },
     { id: "fatigue_descent", label: "Fatigue post-descente (subjectif 1–10)", test: "Note ressentie 24 h après sortie longue avec D−", encode: "Snapshot quotidien → Fatigue" },
     { id: "run_subset_trail", label: "Données coureur (VMA + seuil + sprint 15s)", test: "Voir checklist Coureur (base aérobie)", encode: "Voir onglet Coureur" },
@@ -87,7 +197,7 @@ const TRAIL: Section = {
 const CALIB: Section = {
   title: "Calibration continue (recommandé)",
   items: [
-    { id: "fit_sync", label: "Import FIT régulier (Strava / Garmin)", test: "Auto-import via connecteur, ou upload manuel séances clés", encode: "Diagnostic → Tests → Import FIT" },
+    { id: "fit_sync", label: "Import FIT régulier (Strava / Garmin)", test: "Auto-import ou upload manuel séances clés", encode: "Diagnostic → Tests → Import FIT" },
     { id: "lab_lactate", label: "Test lactate labo (1×/an)", test: "Test incrémental lactate en laboratoire (référence VLamax + MLSS)", encode: "Diagnostic → Tests → Import labo" },
     { id: "snapshot_daily", label: "Snapshot quotidien (fatigue, sommeil, RPE)", test: "Saisie matinale 30 s : état général, sommeil, douleur", encode: "Dashboard → Snapshot du jour" },
     { id: "field_test", label: "Test terrain tous les 6–8 sem", test: "VMA / FTP / Sprint 15s pour calibration continue VLamax 42j", encode: "Diagnostic → Tests" },
@@ -100,19 +210,108 @@ const SECTIONS_BY_SPORT: Record<Exclude<Sport, "common">, Section[]> = {
   trail: [SOCLE, TRAIL, RUN, CALIB],
 };
 
+// ============================================================
+// Inline field input
+// ============================================================
+
+function InlineFieldInput({
+  field,
+  snapshot,
+  onCommit,
+  disabled,
+}: {
+  field: SnapshotFieldSpec;
+  snapshot: DbSnapshot | null;
+  onCommit: (patch: Partial<DbSnapshot>) => Promise<void>;
+  disabled?: boolean;
+}) {
+  const current = field.read(snapshot);
+  const [val, setVal] = useState<string>(current != null ? String(current) : "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setVal(current != null ? String(current) : "");
+  }, [current]);
+
+  const commit = async () => {
+    const trimmed = val.trim();
+    if (trimmed === "") return;
+    const num = Number(trimmed);
+    if (!Number.isFinite(num)) {
+      toast.error("Valeur invalide");
+      return;
+    }
+    if (current != null && Number(current) === num) return; // no change
+    setSaving(true);
+    try {
+      await onCommit(field.write(num));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1.5 mt-2 print:hidden">
+      <Input
+        type="number"
+        inputMode="decimal"
+        step={field.step ?? "any"}
+        placeholder={field.placeholder ?? "—"}
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+        disabled={disabled || saving}
+        className="h-8 w-28 text-sm"
+      />
+      <span className="text-xs text-muted-foreground">{field.unit}</span>
+      {current != null && (
+        <span className="inline-flex items-center text-xs text-green-600 dark:text-green-500 ml-1">
+          <CheckCircle2 className="h-3.5 w-3.5 mr-0.5" /> enregistré
+        </span>
+      )}
+    </div>
+  );
+}
+
 function ChecklistView({
   sport,
   sections,
   checked,
   onToggle,
+  snapshot,
+  onCommitField,
+  canEdit,
 }: {
   sport: string;
   sections: Section[];
   checked: Record<string, boolean>;
   onToggle: (id: string) => void;
+  snapshot: DbSnapshot | null;
+  onCommitField: (patch: Partial<DbSnapshot>) => Promise<void>;
+  canEdit: boolean;
 }) {
+  // Auto-check: un item avec field rempli est considéré comme fait
+  const effectiveChecked = useMemo(() => {
+    const out: Record<string, boolean> = { ...checked };
+    for (const section of sections) {
+      for (const item of section.items) {
+        if (item.field) {
+          const v = item.field.read(snapshot);
+          if (v != null && v !== "") out[`${sport}:${item.id}`] = true;
+        }
+      }
+    }
+    return out;
+  }, [checked, sections, snapshot, sport]);
+
   const allIds = sections.flatMap((s) => s.items.map((i) => `${sport}:${i.id}`));
-  const doneCount = allIds.filter((id) => checked[id]).length;
+  const doneCount = allIds.filter((id) => effectiveChecked[id]).length;
   const total = allIds.length;
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
@@ -149,7 +348,7 @@ function ChecklistView({
           <CardContent className="space-y-3">
             {section.items.map((item) => {
               const key = `${sport}:${item.id}`;
-              const isChecked = !!checked[key];
+              const isChecked = !!effectiveChecked[key];
               return (
                 <div
                   key={item.id}
@@ -176,6 +375,14 @@ function ChecklistView({
                     <p className="text-xs text-primary/80 mt-0.5">
                       <span className="font-medium">→ Encoder :</span> {item.encode}
                     </p>
+                    {item.field && (
+                      <InlineFieldInput
+                        field={item.field}
+                        snapshot={snapshot}
+                        onCommit={onCommitField}
+                        disabled={!canEdit}
+                      />
+                    )}
                   </div>
                 </div>
               );
@@ -193,14 +400,29 @@ export default function CoachChecklistPage() {
     () => localStorage.getItem("vlab-staff-mode") === "true"
   );
   const { currentAthlete } = useAthletes();
+  const { snapshots, addSnapshot, updateSnapshot, setActiveSnapshot } = useCloudData();
 
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
 
-  const athleteId = currentAthlete?.id ?? "default";
+  const athleteId = currentAthlete?.id ?? null;
   const athleteName = currentAthlete?.nom ?? currentAthlete?.name ?? "Athlète";
-  const storageKey = `coach-checklist:${athleteId}`;
+  const storageKey = `coach-checklist:${athleteId ?? "default"}`;
+
+  // ===== Résolution du snapshot actif =====
+  const activeSnapshot = useMemo<DbSnapshot | null>(() => {
+    if (!athleteId) return null;
+    const own = snapshots.filter((s) => s.athlete_id === athleteId);
+    if (own.length === 0) return null;
+    const activeId = currentAthlete?.active_snapshot_id;
+    if (activeId) {
+      const found = own.find((s) => s.id === activeId);
+      if (found) return found;
+    }
+    // Fallback : snapshot le plus récent
+    return [...own].sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0] ?? null;
+  }, [snapshots, athleteId, currentAthlete?.active_snapshot_id]);
 
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
@@ -235,9 +457,33 @@ export default function CoachChecklistPage() {
     }
   };
 
-  const [sportTab, setSportTab] = useState<Exclude<Sport, "common">>("run");
+  // ===== Écriture d'un champ dans le snapshot =====
+  const commitField = async (patch: Partial<DbSnapshot>) => {
+    if (!athleteId) {
+      toast.error("Sélectionnez un athlète avant de saisir une valeur");
+      return;
+    }
+    if (activeSnapshot) {
+      const ok = await updateSnapshot(activeSnapshot.id, patch);
+      if (ok) toast.success("Snapshot mis à jour");
+    } else {
+      // Crée un snapshot du jour, source "checklist"
+      const today = new Date().toISOString().slice(0, 10);
+      const created = await addSnapshot({
+        athlete_id: athleteId,
+        coach_id: "" as any, // override par useCloudData.addSnapshot
+        date: today,
+        source: "checklist" as any,
+        coach_notes: "Snapshot créé depuis la Checklist Coach",
+        ...patch,
+      } as any);
+      if (created) {
+        await setActiveSnapshot(athleteId, created.id);
+      }
+    }
+  };
 
-  const sections = useMemo(() => SECTIONS_BY_SPORT[sportTab], [sportTab]);
+  const [sportTab, setSportTab] = useState<Exclude<Sport, "common">>("run");
 
   return (
     <SidebarLayout
@@ -256,7 +502,7 @@ export default function CoachChecklistPage() {
             <div>
               <h1 className="text-lg sm:text-2xl font-bold text-foreground">Checklist Coach</h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Tests à faire passer & données à encoder pour un profil de qualité
+                Tests à faire passer & données à encoder — saisie directe possible
               </p>
             </div>
           </div>
@@ -272,14 +518,23 @@ export default function CoachChecklistPage() {
 
         {/* Athlete badge */}
         <Card className="border-primary/20 bg-primary/5 print:bg-white print:border-black">
-          <CardContent className="py-3 px-4 flex items-center gap-2">
+          <CardContent className="py-3 px-4 flex flex-wrap items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
             <span className="text-sm">
               Checklist pour : <span className="font-semibold">{athleteName}</span>
             </span>
-            <Badge variant="outline" className="ml-auto text-xs">
+            <Badge variant="outline" className="text-xs">
               Sport : {sportTab.toUpperCase()}
             </Badge>
+            {activeSnapshot ? (
+              <Badge variant="secondary" className="text-xs">
+                Snapshot lié : {activeSnapshot.date}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs">
+                Aucun snapshot — sera créé à la 1ʳᵉ saisie
+              </Badge>
+            )}
           </CardContent>
         </Card>
 
@@ -297,15 +552,19 @@ export default function CoachChecklistPage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="run" className="mt-4">
-            <ChecklistView sport="run" sections={SECTIONS_BY_SPORT.run} checked={checked} onToggle={toggle} />
-          </TabsContent>
-          <TabsContent value="tri" className="mt-4">
-            <ChecklistView sport="tri" sections={SECTIONS_BY_SPORT.tri} checked={checked} onToggle={toggle} />
-          </TabsContent>
-          <TabsContent value="trail" className="mt-4">
-            <ChecklistView sport="trail" sections={SECTIONS_BY_SPORT.trail} checked={checked} onToggle={toggle} />
-          </TabsContent>
+          {(["run", "tri", "trail"] as const).map((s) => (
+            <TabsContent key={s} value={s} className="mt-4">
+              <ChecklistView
+                sport={s}
+                sections={SECTIONS_BY_SPORT[s]}
+                checked={checked}
+                onToggle={toggle}
+                snapshot={activeSnapshot}
+                onCommitField={commitField}
+                canEdit={!!athleteId}
+              />
+            </TabsContent>
+          ))}
         </Tabs>
 
         {/* Quality legend */}
@@ -314,10 +573,13 @@ export default function CoachChecklistPage() {
             <CardTitle className="text-sm">Niveaux de qualité du profil</CardTitle>
           </CardHeader>
           <CardContent className="text-xs space-y-1 text-muted-foreground">
-            <div>🔴 <strong>Insuffisant</strong> (&lt;40%) — Socle incomplet, affichage "Données insuffisantes"</div>
+            <div>🔴 <strong>Insuffisant</strong> (&lt;40%) — Socle incomplet, "Données insuffisantes"</div>
             <div>🟡 <strong>Basique</strong> (40–70%) — Diagnostic OK, plan IA en mode prudent</div>
-            <div>🟢 <strong>Fiable</strong> (70–90%) — Plan IA pleine puissance, simulation ±3% (recommandé)</div>
+            <div>🟢 <strong>Fiable</strong> (70–90%) — Plan IA pleine puissance, simulation ±3%</div>
             <div>🔵 <strong>Élite</strong> (&gt;90%) — Calibration continue VLamax 42j, INSCYD-grade</div>
+            <div className="pt-2 text-foreground/80">
+              💡 Les champs avec un input sont liés au <strong>snapshot actif</strong> : la valeur saisie est immédiatement utilisée par les moteurs Diagnostic / Décision / Plan.
+            </div>
           </CardContent>
         </Card>
       </div>
