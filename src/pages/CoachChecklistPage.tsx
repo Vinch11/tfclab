@@ -454,6 +454,8 @@ function ChecklistView({
   onToggle,
   snapshot,
   onCommitField,
+  athlete,
+  onCommitAthleteField,
   canEdit,
 }: {
   sport: string;
@@ -462,6 +464,8 @@ function ChecklistView({
   onToggle: (id: string) => void;
   snapshot: DbSnapshot | null;
   onCommitField: (patch: Partial<DbSnapshot>) => Promise<void>;
+  athlete: any | null;
+  onCommitAthleteField: (patch: Record<string, any>) => Promise<void>;
   canEdit: boolean;
 }) {
   // Auto-check: un item avec field rempli est considéré comme fait
@@ -473,10 +477,14 @@ function ChecklistView({
           const v = item.field.read(snapshot);
           if (v != null && v !== "") out[`${sport}:${item.id}`] = true;
         }
+        if (item.athleteField) {
+          const v = item.athleteField.read(athlete);
+          if (v != null && v !== "") out[`${sport}:${item.id}`] = true;
+        }
       }
     }
     return out;
-  }, [checked, sections, snapshot, sport]);
+  }, [checked, sections, snapshot, athlete, sport]);
 
   const allIds = sections.flatMap((s) => s.items.map((i) => `${sport}:${i.id}`));
   const doneCount = allIds.filter((id) => effectiveChecked[id]).length;
