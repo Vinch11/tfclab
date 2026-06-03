@@ -449,11 +449,15 @@ function buildCalibSection(snapshots: DbSnapshot[]): Section {
 
 
 
-const SECTIONS_BY_SPORT: Record<Exclude<Sport, "common">, Section[]> = {
-  run: [SOCLE, RUN, CALIB],
-  tri: [SOCLE, TRI, RUN, CALIB],
-  trail: [SOCLE, TRAIL, RUN, CALIB],
-};
+function buildSectionsBySport(snapshots: DbSnapshot[]): Record<Exclude<Sport, "common">, Section[]> {
+  const calib = buildCalibSection(snapshots);
+  return {
+    run: [SOCLE, RUN, calib],
+    tri: [SOCLE, TRI, RUN, calib],
+    trail: [SOCLE, TRAIL, RUN, calib],
+  };
+}
+
 
 // ============================================================
 // Inline field input
