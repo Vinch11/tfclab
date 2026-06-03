@@ -449,12 +449,43 @@ function buildCalibSection(snapshots: DbSnapshot[]): Section {
 
 
 
+function buildRunSection(snapshots: DbSnapshot[]): Section {
+  const latest = [...snapshots]
+    .filter((s) => s?.date)
+    .sort((a, b) => (a.date! < b.date! ? 1 : -1))[0] ?? null;
+
+  const resolved = latest ? resolveRunningEconomyFromSnapshot(latest as any) : null;
+
+  const economyItem: Item = {
+    id: "economy",
+    label: "Économie de course (ml/kg/km)",
+    test: "Auto-estimée (Léger / Di Prampero) depuis VMA + allure seuil + VLamax du snapshot",
+    encode: "Auto — enrichi via snapshot",
+    navigateTo: "/diagnostic/tests",
+    auto: resolved
+      ? {
+          done: true,
+          info: `${resolved.mlKgKm.toFixed(0)} ml/kg/km — ${resolved.categoryLabel} (score ${resolved.score}/100, ±${resolved.errorMargin.toFixed(0)}, ${resolved.source})`,
+        }
+      : {
+          done: false,
+          info: "Données insuffisantes (VMA ou allure seuil requises)",
+        },
+  };
+
+  return {
+    ...RUN,
+    items: RUN.items.map((it) => (it.id === "economy" ? economyItem : it)),
+  };
+}
+
 function buildSectionsBySport(snapshots: DbSnapshot[]): Record<Exclude<Sport, "common">, Section[]> {
   const calib = buildCalibSection(snapshots);
+  const run = buildRunSection(snapshots);
   return {
-    run: [SOCLE, RUN, calib],
-    tri: [SOCLE, TRI, RUN, calib],
-    trail: [SOCLE, TRAIL, RUN, calib],
+    run: [SOCLE, run, calib],
+    tri: [SOCLE, TRI, run, calib],
+    trail: [SOCLE, TRAIL, run, calib],
   };
 }
 
