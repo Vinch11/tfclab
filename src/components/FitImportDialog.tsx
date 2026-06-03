@@ -607,6 +607,19 @@ export function FitImportDialog({
                     {analysis.testType.reasoning}
                   </p>
                 </div>
+                {/* TFCL Reference Week slot mapping */}
+                {selectedTestType && getTFCLWeekSlot(selectedTestType) && (
+                  <div className="mt-3 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <span>
+                      Remplit le slot Semaine Test TFCL™ :{" "}
+                      <strong>{formatTFCLSlot(getTFCLWeekSlot(selectedTestType))}</strong>
+                      {updateProfile
+                        ? " — sera enregistré dans le snapshot."
+                        : " — activez \"Mettre à jour le profil\" pour l'enregistrer."}
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
