@@ -45,6 +45,7 @@ import {
   Gauge,
   CheckCircle2,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { DriftSegmentSelector } from "./DriftSegmentSelector";
 import {
