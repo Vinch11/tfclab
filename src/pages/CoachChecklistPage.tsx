@@ -24,6 +24,7 @@ import { useCloudData, type DbSnapshot } from "@/contexts/CloudDataContext";
 import { TFCLTestingWeekStatusCard } from "@/components/coach/TFCLTestingWeekStatusCard";
 import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { toast } from "sonner";
+import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
 
 /**
  * Field mapping vers une colonne snapshot.
