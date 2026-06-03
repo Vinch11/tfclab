@@ -32,7 +32,8 @@ export {
 } from "./bestEfforts";
 
 // Test Detector
-export { detectTestType } from "./testDetector";
+export { detectTestType, getTFCLWeekSlot, formatTFCLSlot } from "./testDetector";
+export type { TFCLWeekSlot } from "./testDetector";
 
 // Metrics Calculator
 export {
