@@ -21,6 +21,7 @@ import { ClipboardList, Printer, RotateCcw, Footprints, Bike, Mountain, Users, C
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudData, type DbSnapshot } from "@/contexts/CloudDataContext";
 import { TFCLTestingWeekStatusCard } from "@/components/coach/TFCLTestingWeekStatusCard";
+import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { toast } from "sonner";
 
 /**
@@ -36,6 +37,17 @@ type SnapshotFieldSpec = {
   write: (value: number) => Partial<DbSnapshot>;
 };
 
+type AthleteFieldSpec = {
+  kind: "number" | "date" | "select";
+  unit?: string;
+  placeholder?: string;
+  step?: string;
+  options?: { value: string; label: string }[];
+  read: (a: any | null) => string | number | null;
+  /** Renvoie un objet partiel à fusionner dans l'athlète (clés top-level + `refs`). */
+  write: (value: string, athlete: any | null) => Record<string, any>;
+};
+
 type Item = {
   id: string;
   label: string;
@@ -43,6 +55,8 @@ type Item = {
   encode: string;
   /** Si présent, affiche un input lié au snapshot actif. */
   field?: SnapshotFieldSpec;
+  /** Si présent, affiche un input lié à l'athlète (refs ou colonnes). */
+  athleteField?: AthleteFieldSpec;
 };
 
 type Section = {
@@ -139,17 +153,85 @@ const F = {
 // Sections (avec mapping field optionnel)
 // ============================================================
 
+// ============================================================
+// Athlete field specs (refs + colonnes athletes)
+// ============================================================
+
+const A = {
+  height_cm: {
+    kind: "number",
+    unit: "cm",
+    step: "0.5",
+    placeholder: "ex: 178",
+    read: (a) => a?.refs?.height_cm ?? null,
+    write: (v, a) => ({
+      refs: { ...(a?.refs ?? {}), height_cm: Number(v) },
+    }),
+  } satisfies AthleteFieldSpec,
+  birth_date: {
+    kind: "date",
+    placeholder: "AAAA-MM-JJ",
+    read: (a) => a?.dateNaissance ?? null,
+    write: (v) => ({ dateNaissance: v || null }),
+  } satisfies AthleteFieldSpec,
+  fc_rest: {
+    kind: "number",
+    unit: "bpm",
+    step: "1",
+    placeholder: "ex: 52",
+    read: (a) => a?.refs?.fc_rest ?? null,
+    write: (v, a) => ({
+      refs: { ...(a?.refs ?? {}), fc_rest: Math.round(Number(v)) },
+    }),
+  } satisfies AthleteFieldSpec,
+  sport_main: {
+    kind: "select",
+    options: [
+      { value: "run", label: "Coureur (Route)" },
+      { value: "tri", label: "Triathlète" },
+      { value: "trail", label: "Trailer" },
+    ],
+    read: (a) => a?.refs?.sport_main ?? null,
+    write: (v, a) => ({
+      refs: { ...(a?.refs ?? {}), sport_main: v },
+    }),
+  } satisfies AthleteFieldSpec,
+  race_date: {
+    kind: "date",
+    read: (a) => a?.refs?.race_date ?? null,
+    write: (v, a) => ({
+      refs: { ...(a?.refs ?? {}), race_date: v || null },
+    }),
+  } satisfies AthleteFieldSpec,
+  ambition: {
+    kind: "select",
+    options: AMBITION_LEVELS_ORDERED.map((id) => ({
+      value: id,
+      label: AMBITION_DEFINITIONS[id].label,
+    })),
+    read: (a) => a?.ambition ?? a?.refs?.ambition ?? null,
+    write: (v, a) => ({
+      ambition: v,
+      refs: { ...(a?.refs ?? {}), ambition: v },
+    }),
+  } satisfies AthleteFieldSpec,
+};
+
+// ============================================================
+// Sections (avec mapping field optionnel)
+// ============================================================
+
 const SOCLE: Section = {
   title: "Socle commun (tous athlètes)",
   items: [
     { id: "weight", label: "Poids (kg)", test: "Balance, à jeun le matin", encode: "Snapshot → Poids", field: F.weight_kg },
-    { id: "height", label: "Taille (cm)", test: "Mesure debout sans chaussures", encode: "Profil athlète → Anthropométrie" },
-    { id: "age", label: "Âge & sexe", test: "Date de naissance", encode: "Profil athlète → Identité" },
+    { id: "height", label: "Taille (cm)", test: "Mesure debout sans chaussures", encode: "Profil athlète → Anthropométrie", athleteField: A.height_cm },
+    { id: "age", label: "Date de naissance", test: "Date de naissance (utilisée pour âge & ajustements masters)", encode: "Profil athlète → Identité", athleteField: A.birth_date },
     { id: "fcmax", label: "FC max (bpm)", test: "Test terrain : 3 km échauffement + 2×3 min all-out + 1 min all-out", encode: "Snapshot → FC max", field: F.fc_max },
-    { id: "fcrest", label: "FC repos (bpm)", test: "Moyenne sur 5 matins consécutifs, allongé, avant lever", encode: "Profil → Données physio → FCrepos" },
-    { id: "sport", label: "Sport principal", test: "Discipline cible (Run / Tri / Trail)", encode: "Profil → Sport principal" },
-    { id: "raceDate", label: "Date de la course objectif", test: "Date officielle de la course A", encode: "Profil → Objectif principal → Date" },
-    { id: "ambition", label: "Niveau d'ambition", test: "Finisher / Age Grouper / Compétitif / Élite", encode: "Profil → Objectif → Ambition" },
+    { id: "fcrest", label: "FC repos (bpm)", test: "Moyenne sur 5 matins consécutifs, allongé, avant lever", encode: "Profil → Données physio → FCrepos", athleteField: A.fc_rest },
+    { id: "sport", label: "Sport principal", test: "Discipline cible (Run / Tri / Trail)", encode: "Profil → Sport principal", athleteField: A.sport_main },
+    { id: "raceDate", label: "Date de la course objectif", test: "Date officielle de la course A", encode: "Profil → Objectif principal → Date", athleteField: A.race_date },
+    { id: "ambition", label: "Niveau d'ambition", test: "Découverte / Confirmé / Compétiteur / Qualifiable / Élite", encode: "Profil → Objectif → Ambition", athleteField: A.ambition },
   ],
 };
 
@@ -280,6 +362,91 @@ function InlineFieldInput({
   );
 }
 
+function InlineAthleteFieldInput({
+  field,
+  athlete,
+  onCommit,
+  disabled,
+}: {
+  field: AthleteFieldSpec;
+  athlete: any | null;
+  onCommit: (patch: Record<string, any>) => Promise<void>;
+  disabled?: boolean;
+}) {
+  const current = field.read(athlete);
+  const [val, setVal] = useState<string>(current != null ? String(current) : "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setVal(current != null ? String(current) : "");
+  }, [current]);
+
+  const commit = async (nextVal?: string) => {
+    const raw = (nextVal ?? val).trim();
+    if (raw === "") return;
+    if (current != null && String(current) === raw) return;
+    if (field.kind === "number" && !Number.isFinite(Number(raw))) {
+      toast.error("Valeur invalide");
+      return;
+    }
+    setSaving(true);
+    try {
+      await onCommit(field.write(raw, athlete));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const filled = current != null && current !== "";
+
+  return (
+    <div className="flex items-center gap-1.5 mt-2 print:hidden">
+      {field.kind === "select" ? (
+        <select
+          value={val}
+          onChange={(e) => {
+            setVal(e.target.value);
+            commit(e.target.value);
+          }}
+          disabled={disabled || saving}
+          className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+        >
+          <option value="">— choisir —</option>
+          {field.options?.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <Input
+          type={field.kind === "date" ? "date" : "number"}
+          inputMode={field.kind === "number" ? "decimal" : undefined}
+          step={field.kind === "number" ? field.step ?? "any" : undefined}
+          placeholder={field.placeholder ?? "—"}
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={() => commit()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          disabled={disabled || saving}
+          className="h-8 w-36 text-sm"
+        />
+      )}
+      {field.unit && <span className="text-xs text-muted-foreground">{field.unit}</span>}
+      {filled && (
+        <span className="inline-flex items-center text-xs text-green-600 dark:text-green-500 ml-1">
+          <CheckCircle2 className="h-3.5 w-3.5 mr-0.5" /> enregistré
+        </span>
+      )}
+    </div>
+  );
+}
+
 function ChecklistView({
   sport,
   sections,
@@ -287,6 +454,8 @@ function ChecklistView({
   onToggle,
   snapshot,
   onCommitField,
+  athlete,
+  onCommitAthleteField,
   canEdit,
 }: {
   sport: string;
@@ -295,6 +464,8 @@ function ChecklistView({
   onToggle: (id: string) => void;
   snapshot: DbSnapshot | null;
   onCommitField: (patch: Partial<DbSnapshot>) => Promise<void>;
+  athlete: any | null;
+  onCommitAthleteField: (patch: Record<string, any>) => Promise<void>;
   canEdit: boolean;
 }) {
   // Auto-check: un item avec field rempli est considéré comme fait
@@ -306,10 +477,14 @@ function ChecklistView({
           const v = item.field.read(snapshot);
           if (v != null && v !== "") out[`${sport}:${item.id}`] = true;
         }
+        if (item.athleteField) {
+          const v = item.athleteField.read(athlete);
+          if (v != null && v !== "") out[`${sport}:${item.id}`] = true;
+        }
       }
     }
     return out;
-  }, [checked, sections, snapshot, sport]);
+  }, [checked, sections, snapshot, athlete, sport]);
 
   const allIds = sections.flatMap((s) => s.items.map((i) => `${sport}:${i.id}`));
   const doneCount = allIds.filter((id) => effectiveChecked[id]).length;
@@ -384,6 +559,14 @@ function ChecklistView({
                         disabled={!canEdit}
                       />
                     )}
+                    {item.athleteField && (
+                      <InlineAthleteFieldInput
+                        field={item.athleteField}
+                        athlete={athlete}
+                        onCommit={onCommitAthleteField}
+                        disabled={!canEdit}
+                      />
+                    )}
                   </div>
                 </div>
               );
@@ -400,7 +583,7 @@ export default function CoachChecklistPage() {
   const [staffMode, setStaffMode] = useState(
     () => localStorage.getItem("vlab-staff-mode") === "true"
   );
-  const { currentAthlete } = useAthletes();
+  const { currentAthlete, updateAthlete } = useAthletes();
   const { snapshots, addSnapshot, updateSnapshot, setActiveSnapshot } = useCloudData();
 
   useEffect(() => {
@@ -482,6 +665,20 @@ export default function CoachChecklistPage() {
         await setActiveSnapshot(athleteId, created.id);
       }
     }
+  };
+
+  // ===== Écriture d'un champ dans l'athlète (colonnes + refs) =====
+  const commitAthleteField = async (patch: Record<string, any>) => {
+    if (!currentAthlete) {
+      toast.error("Sélectionnez un athlète avant de saisir une valeur");
+      return;
+    }
+    const next: any = { ...currentAthlete, ...patch };
+    if (patch.refs) {
+      next.refs = { ...(currentAthlete.refs ?? {}), ...patch.refs };
+    }
+    const ok = await updateAthlete(next);
+    if (ok) toast.success("Profil athlète mis à jour");
   };
 
   const [sportTab, setSportTab] = useState<Exclude<Sport, "common">>("run");
@@ -566,6 +763,8 @@ export default function CoachChecklistPage() {
                 onToggle={toggle}
                 snapshot={activeSnapshot}
                 onCommitField={commitField}
+                athlete={currentAthlete}
+                onCommitAthleteField={commitAthleteField}
                 canEdit={!!athleteId}
               />
             </TabsContent>
