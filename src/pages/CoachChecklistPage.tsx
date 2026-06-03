@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { ClipboardList, Printer, RotateCcw, Footprints, Bike, Mountain, Users, CheckCircle2 } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudData, type DbSnapshot } from "@/contexts/CloudDataContext";
+import { TFCLTestingWeekStatusCard } from "@/components/coach/TFCLTestingWeekStatusCard";
 import { toast } from "sonner";
 
 /**
