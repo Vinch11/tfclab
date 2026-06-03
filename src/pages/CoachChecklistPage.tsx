@@ -474,19 +474,123 @@ function buildRunSection(snapshots: DbSnapshot[]): Section {
         },
   };
 
+  // VO₂max RUN : conserve la saisie inline (labo direct prioritaire),
+  // mais affiche la dérivation Léger-Mercier VMA × 3.5 quand le snapshot
+  // n'a pas de vo2max mesuré.
+  const vma = (latest as any)?.vma as number | null | undefined;
+  const measuredVo2 = (latest as any)?.vo2max as number | null | undefined;
+  const derivedVo2 = vma && vma > 0 ? Math.round(vma * 3.5 * 10) / 10 : null;
+
+  const vo2Item: Item = {
+    ...(RUN.items.find((i) => i.id === "vo2max")!),
+    test: "Test labo direct (prioritaire). Sinon dérivé Léger-Mercier : VMA × 3.5.",
+    encode: "Snapshot → VO₂max (laisser vide pour utiliser la dérivation auto)",
+    auto:
+      measuredVo2 && measuredVo2 > 0
+        ? { done: true, info: `Mesuré : ${measuredVo2.toFixed(1)} ml/kg/min` }
+        : derivedVo2
+          ? { done: true, info: `Estimé : ${derivedVo2.toFixed(1)} ml/kg/min (VMA × 3.5)` }
+          : { done: false, info: "Données insuffisantes (VMA requise)" },
+  };
+
   return {
     ...RUN,
-    items: RUN.items.map((it) => (it.id === "economy" ? economyItem : it)),
+    items: RUN.items.map((it) => {
+      if (it.id === "economy") return economyItem;
+      if (it.id === "vo2max") return vo2Item;
+      return it;
+    }),
+  };
+}
+
+function buildTriSection(snapshots: DbSnapshot[]): Section {
+  const latest = [...snapshots]
+    .filter((s) => s?.date)
+    .sort((a, b) => (a.date! < b.date! ? 1 : -1))[0] ?? null;
+
+  // VO₂max BIKE : même colonne `snapshot.vo2max` que RUN → doublon.
+  // Estimation Hawley/Noakes : VO₂max ≈ 10.8 × W/kg + 7 (W = FTP).
+  const ftp = (latest as any)?.ftp as number | null | undefined;
+  const weight = (latest as any)?.weight_kg as number | null | undefined;
+  const measuredVo2 = (latest as any)?.vo2max as number | null | undefined;
+  const derivedVo2 =
+    ftp && weight && ftp > 0 && weight > 0
+      ? Math.round((10.8 * (ftp / weight) + 7) * 10) / 10
+      : null;
+
+  const vo2BikeItem: Item = {
+    ...(TRI.items.find((i) => i.id === "vo2_bike")!),
+    label: "VO₂max (ml/kg/min) — partagé avec RUN",
+    test: "Test labo direct (prioritaire). Sinon dérivé Hawley/Noakes : 10.8 × FTP/poids + 7.",
+    encode: "Snapshot → VO₂max (colonne unique partagée avec RUN — saisir une seule fois)",
+    auto:
+      measuredVo2 && measuredVo2 > 0
+        ? { done: true, info: `Mesuré : ${measuredVo2.toFixed(1)} ml/kg/min` }
+        : derivedVo2
+          ? { done: true, info: `Estimé : ${derivedVo2.toFixed(1)} ml/kg/min (10.8·FTP/kg + 7)` }
+          : { done: false, info: "Données insuffisantes (FTP + poids requis)" },
+  };
+
+  return {
+    ...TRI,
+    items: TRI.items.map((it) => (it.id === "vo2_bike" ? vo2BikeItem : it)),
+  };
+}
+
+function buildTrailSection(snapshots: DbSnapshot[]): Section {
+  const now = Date.now();
+  const daysSince = (iso: string | null | undefined): number | null => {
+    if (!iso) return null;
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) return null;
+    return Math.floor((now - t) / (1000 * 60 * 60 * 24));
+  };
+
+  // Dernier import FIT (toute discipline) — l'analyzer détecte v_up,
+  // sprint côte et dérive FC descentes automatiquement.
+  const lastFit = snapshots
+    .filter((s) => (s.source ?? "").toLowerCase().includes("fit"))
+    .sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
+  const fitDays = daysSince(lastFit?.date);
+
+  const autoFromFit = (maxDays: number) =>
+    fitDays != null && fitDays <= maxDays
+      ? { done: true, info: `Dernier import FIT : il y a ${fitDays} j (détection auto)` }
+      : { done: false, info: fitDays != null ? `Dernier FIT : il y a ${fitDays} j — >${maxDays} j` : "Aucun import FIT détecté" };
+
+  const replacements: Record<string, Partial<Item>> = {
+    v_up: {
+      test: "Auto-détecté depuis FIT (testDetector) sur côtes longues régulières 20 min",
+      encode: "Auto — import FIT trail/montagne",
+      auto: autoFromFit(56),
+    },
+    sprint_uphill: {
+      test: "Auto-détecté depuis FIT sur efforts courts en côte raide (8–12 %)",
+      encode: "Auto — import FIT trail/montagne",
+      auto: autoFromFit(56),
+    },
+    eccentric_eco: {
+      test: "Auto-calculé depuis FIT (runningEconomyAnalyzer) sur dérive FC descentes longues",
+      encode: "Auto — import FIT trail/montagne",
+      auto: autoFromFit(56),
+    },
+  };
+
+  return {
+    ...TRAIL,
+    items: TRAIL.items.map((it) => (replacements[it.id] ? { ...it, ...replacements[it.id] } : it)),
   };
 }
 
 function buildSectionsBySport(snapshots: DbSnapshot[]): Record<Exclude<Sport, "common">, Section[]> {
   const calib = buildCalibSection(snapshots);
   const run = buildRunSection(snapshots);
+  const tri = buildTriSection(snapshots);
+  const trail = buildTrailSection(snapshots);
   return {
     run: [SOCLE, run, calib],
-    tri: [SOCLE, TRI, run, calib],
-    trail: [SOCLE, TRAIL, run, calib],
+    tri: [SOCLE, tri, run, calib],
+    trail: [SOCLE, trail, run, calib],
   };
 }
 
