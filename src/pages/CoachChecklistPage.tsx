@@ -763,6 +763,8 @@ export default function CoachChecklistPage() {
                 onToggle={toggle}
                 snapshot={activeSnapshot}
                 onCommitField={commitField}
+                athlete={currentAthlete}
+                onCommitAthleteField={commitAthleteField}
                 canEdit={!!athleteId}
               />
             </TabsContent>
