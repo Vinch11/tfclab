@@ -949,7 +949,7 @@ export default function CoachChecklistPage() {
             <TabsContent key={s} value={s} className="mt-4">
               <ChecklistView
                 sport={s}
-                sections={SECTIONS_BY_SPORT[s]}
+                sections={sectionsBySport[s]}
                 checked={checked}
                 onToggle={toggle}
                 snapshot={activeSnapshot}
