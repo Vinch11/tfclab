@@ -60,12 +60,15 @@ type Item = {
   athleteField?: AthleteFieldSpec;
   /** Route applicative pour aller directement à l'écran d'encodage. */
   navigateTo?: string;
+  /** Indicateur auto-calculé (Calibration continue). */
+  auto?: { done: boolean; info: string };
 };
 
 type Section = {
   title: string;
   items: Item[];
 };
+
 
 type Sport = "common" | "run" | "tri" | "trail";
 
