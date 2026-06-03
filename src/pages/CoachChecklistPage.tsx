@@ -256,7 +256,7 @@ const TRI: Section = {
   items: [
     { id: "ftp", label: "FTP vélo (W)", test: "Test 20 min all-out × 0.95", encode: "Snapshot → FTP", field: F.ftp, navigateTo: "/diagnostic/testing-week-tfcl" },
     { id: "pmax5", label: "Puissance max 5s (W)", test: "Sprint vélo 5 s départ lancé, meilleur de 3 essais", encode: "Snapshot → Pmax 5s", field: F.pmax_5s, navigateTo: "/diagnostic/testing-week-tfcl" },
-    { id: "cp3", label: "Critical Power 3-point (W)", test: "3 efforts all-out : 12 min, 3 min, 30 s (jours différents)", encode: "Diagnostic → Tests → CP", navigateTo: "/diagnostic/tests" },
+    
     { id: "tte_bike", label: "TTE vélo à FTP (min)", test: "Tenir le plus longtemps possible à FTP (objectif >40 min)", encode: "Snapshot → TTE Bike", field: F.tte_bike, navigateTo: "/diagnostic/testing-week-tfcl" },
     { id: "vlamax_bike", label: "VLamax vélo (mmol/L/s)", test: "Sprint vélo 15 s (calculé ou estimé multi-sources)", encode: "Snapshot → VLamax", field: F.vlamax_bike, navigateTo: "/diagnostic/vlamax" },
     { id: "css", label: "CSS natation (sec/100m)", test: "400 m + 200 m all-out, CSS = (D400−D200)/2", encode: "Snapshot → CSS", field: F.css, navigateTo: "/" },
