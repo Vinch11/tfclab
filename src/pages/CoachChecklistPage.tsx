@@ -539,6 +539,9 @@ export default function CoachChecklistPage() {
           </CardContent>
         </Card>
 
+        {/* TFCL Testing Week status — visible at top, badge precision */}
+        <TFCLTestingWeekStatusCard snapshot={activeSnapshot as any} />
+
         {/* Tabs */}
         <Tabs value={sportTab} onValueChange={(v) => setSportTab(v as Exclude<Sport, "common">)}>
           <TabsList className="grid w-full grid-cols-3 print:hidden">
