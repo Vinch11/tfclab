@@ -305,6 +305,14 @@ export function useAssistantContext(
     if (context.fcMax !== null) parts.push(`FCmax: ${context.fcMax} bpm`);
     if (context.tss7d !== null) parts.push(`Charge 7j: ${context.tss7d} TSS (${context.crrStatus})`);
     
+    // ✅ Limiteurs identifiés (source unique — alignée avec les plans IA et l'UI)
+    if (context.primaryLimiter && context.primaryLimiter !== "none") {
+      parts.push(`Limiteur #1: ${context.primaryLimiterLabel} → Levier: ${context.primaryLeverLabel} (sévérité: ${context.severity})`);
+      if (context.secondaryLimiter && context.secondaryLimiter !== "none") {
+        parts.push(`Limiteur #2: ${context.secondaryLimiterLabel}`);
+      }
+    }
+    
     // Nutrition
     if (context.nutritionEstimate) {
       const n = context.nutritionEstimate;
