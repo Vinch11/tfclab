@@ -252,6 +252,7 @@ export function buildPlanConfigFromDiagnostic(
     ambition: formConfig.ambition,
     constraints: formConfig.constraints,
     identifiedLimiters: limiters.length > 0 ? limiters : undefined,
+    identifiedLimitersRaw: limitersRaw.length > 0 ? limitersRaw : undefined,
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     adaptationProjections: projections.length > 0 ? projections : undefined,
