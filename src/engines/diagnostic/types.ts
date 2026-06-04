@@ -117,6 +117,9 @@ export interface DiagnosticInput {
     time_half_date?: string | null;
     time_marathon_date?: string | null;
   };
+
+  // F-24 : durée cible de course (min) pour évaluer la Durabilité dans le limiter
+  targetRaceDurationMin?: number | null;
 }
 
 export interface DecisionReliabilityInput {
