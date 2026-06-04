@@ -227,11 +227,25 @@ export interface UnifiedLimiterResult {
   primaryLever: UnifiedLever;
   leverLabel: string;
   leverEmoji: string;
-  
+
+  // ✅ H2 — Limiteur secondaire (catégorie DIFFÉRENTE du primaire, impact > 5)
+  // Permet d'exposer un second axe de travail sans le confondre avec le primaire.
+  secondaryLimiter: UnifiedLimiter;
+  secondaryLimiterLabel: string | null;
+  secondaryLever: UnifiedLever;
+  secondaryLeverLabel: string | null;
+
+  // ✅ H3 — Sévérité du limiteur primaire
+  // mild   : impact 5-15    → ajustement nutrition / micro-blocs
+  // moderate: impact 15-30  → bloc dédié 3-4 semaines
+  // severe : impact > 30    → réorientation complète de la périodisation
+  severity: "none" | "mild" | "moderate" | "severe";
+
   // Analyse par domaine
   gapAnalysis: UnifiedGapAnalysis[];
 
-  // ✅ Classement hybride par catégorie physiologique (somme des impacts)
+  // ✅ Classement hybride par catégorie physiologique
+  // (totalImpact = dominant + 0.4 × somme_des_autres, voir buildCategoryRanking)
   // Source de vérité partagée Compass + Carte Facteurs Limitants
   categoryRanking: CategoryRankingEntry[];
 
