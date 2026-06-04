@@ -713,8 +713,9 @@ function activateLevers(
     
     // Déterminer la raison principale
     let z2Reason: string;
-    if (tteIsLimiting && tteGap) {
+    if (tteIsLimiting && tteGap && tteGap.gapPercent < 0) {
       z2Reason = `TTE ${Math.abs(tteGap.gapPercent).toFixed(0)}% sous la cible (${tteGap.value}min vs ${tteGap.target}min) — développer la durabilité`;
+
     } else if (vlamaxIsLimiting && vlamaxGap) {
       z2Reason = `VLamax ${Math.abs(vlamaxGap.gapPercent).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
     } else {
