@@ -706,6 +706,47 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     weight: weights.tte,
     weightedImpact: tteGap < 0 ? Math.abs(tteGap) * weights.tte * 100 : 0,
   });
+
+  // F-24 — Durabilité standalone : compare TTE effectif à la durée cible de course.
+  // Le TTE physiologique générique (cible âge/objectif) ne suffit pas pour valider
+  // qu'un athlète peut tenir une course de durée X. Ex : marathon visé en 3h30
+  // (210 min) avec TTE = 60 min → carence majeure de durabilité spécifique,
+  // indépendamment du fait que le TTE > cible générique (45 min).
+  // Sévérité (gap = durée_course − TTE) :
+  //   gap ≤ 15 min  → optimal (impact 0)
+  //   15-30 min     → acceptable (faible impact)
+  //   30-60 min     → limiting (impact modéré, severity moderate)
+  //   > 60 min      → limiting (impact fort, severity severe)
+  // Cible attendue : TTE ≥ (durée_course − 15 min) pour considérer la durabilité validée.
+  if (input.tte !== null && input.targetRaceDurationMin && input.targetRaceDurationMin > 0) {
+    const raceDur = input.targetRaceDurationMin;
+    const durabilityTarget = Math.max(raceDur - 15, 30); // marge tactique 15 min
+    const durabilityRawGap = input.tte - durabilityTarget; // négatif = carence
+    const durabilityRelGap = durabilityRawGap / durabilityTarget;
+    const minutesShort = -durabilityRawGap; // positif quand TTE manque
+    const status: UnifiedGapAnalysis["status"] = durabilityRawGap >= 0
+      ? "optimal"
+      : minutesShort <= 15 ? "acceptable"
+      : "limiting";
+    // Boost progressif de l'impact selon l'écart absolu (en plus du gap relatif)
+    const severityBoost = minutesShort > 60 ? 1.6
+      : minutesShort > 30 ? 1.2
+      : 1.0;
+    const impact = durabilityRawGap < 0
+      ? Math.abs(durabilityRelGap) * weights.tte * 100 * severityBoost
+      : 0;
+    gapAnalysis.push({
+      metric: "Durabilité",
+      value: input.tte,
+      target: durabilityTarget,
+      gap: durabilityRawGap,
+      gapPercent: durabilityRelGap * 100,
+      status,
+      weight: weights.tte,
+      weightedImpact: impact,
+    });
+  }
+
   
   // 4. Analyse FatMax (Metabolic Efficiency)
   // ⚠️ GUARD COHÉRENCE VLamax↔FatMax (modèle Mader-Heck)
