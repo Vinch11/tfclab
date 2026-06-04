@@ -13,13 +13,31 @@
  * - TTE: minimum threshold in minutes for race readiness
  * - FTP/kg: minimum power-to-weight ratio for bike/tri objectives
  * - Charge: optimal weekly TSS for the objective
- * 
+ *
  * Ambition levels:
  * - finisher: Complete the race (relaxed thresholds)
  * - age_group: Category performance, top 50% (moderate thresholds)
  * - competitor: Top 25%, podium potential (demanding thresholds)
  * - elite: Championship qualification / overall podium (elite thresholds)
- */
+ *
+ * ============================================================================
+ * SCIENTIFIC REFERENCES — TTE @ CP/MLSS (R6)
+ * ============================================================================
+ * - Karsten et al. 2014, J Sports Sci: TTE @ CP = 41 ± 17 min (cycling, N=14)
+ * - Morgan et al. 2019, Eur J Appl Physiol: TTE @ CP = 48.3 ± 19.3 min (running)
+ * - Black et al. 2017, J Appl Physiol: TTE @ CP = 45–60 min
+ * - Burnley & Jones 2018, Eur J Sport Sci: TTE > 70 min rarely observed
+ * - Joyner 1991, J Appl Physiol: elite marathon @ 94–100% MLSS for 120–130 min
+ *   → implied TTE @ MLSS > 60 min (semi-elite/elite)
+ * - Plafond physiologique consensus : ~70–80 min (Burnley 2018)
+ *
+ * Implications matrice :
+ * - Ultra elite plafonné à 65 min (R1) — au-delà = hors plage observée
+ * - Semi competitor/elite alignés Joyner (R2) : 50/55 min
+ * - 5K/Sprint : TTE est SECONDAIRE (limiteur prime = VO2max). Les valeurs
+ *   ci-dessous restent informatives mais ne doivent pas être priorisées (R3).
+ * ============================================================================
+
 
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
