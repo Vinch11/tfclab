@@ -98,6 +98,13 @@ export interface PlanConfig {
   ambition?: string;
   constraints?: string;
   identifiedLimiters?: string[];
+  /**
+   * Liste légère des limiteurs (noms de métriques uniquement, ex: ["VLamax","VO2max","TTE"]).
+   * Utilisée pour l'injection dans les chunks 2..N et les heuristiques L1/L2,
+   * sans transporter le bloc markdown lourd de `identifiedLimiters` (qui n'est
+   * pertinent que pour le chunk 1 — section buildAthleteProfile).
+   */
+  identifiedLimitersRaw?: string[];
   activeLevers?: string[];
   prohibitions?: string[];
   adaptationProjections?: AdaptationProjection[];

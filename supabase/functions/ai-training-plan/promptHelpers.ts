@@ -66,10 +66,12 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   const diagTimeTarget = getTimeTargetHint(config?.objective || "", config?.ambition || "", config?._athleteSex);
   if (diagTimeTarget) lines.push(`🎯 Temps cible: ${diagTimeTarget}`);
   
-  // Limiters (structured, ranked)
-  if (config?.identifiedLimiters && config.identifiedLimiters.length > 0) {
-    lines.push(`\n🔴 LIMITEURS CLASSÉS (${config.identifiedLimiters.length} identifiés) :`);
-    config.identifiedLimiters.forEach((l: string, i: number) => {
+  // Limiters (structured, ranked) — utilise la liste RAW légère (noms de métriques)
+  // pour rester compact (chunks 2..N réinjectent ce bloc).
+  const limitersRaw: string[] | undefined = config?.identifiedLimitersRaw;
+  if (limitersRaw && limitersRaw.length > 0) {
+    lines.push(`\n🔴 LIMITEURS CLASSÉS (${limitersRaw.length} identifiés) :`);
+    limitersRaw.forEach((l: string, i: number) => {
       const tag = i === 0 ? "L1 (PRIORITAIRE)" : i === 1 ? "L2 (SECONDAIRE)" : `L${i + 1}`;
       lines.push(`  ${tag}: ${l}`);
     });
@@ -191,8 +193,12 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   if (totalWeeks && totalWeeks >= 4) {
     const tw = totalWeeks;
     const isFinisher = ambKey === "finisher";
-    const L1 = (config?.identifiedLimiters?.[0] || "").toLowerCase();
-    const L2 = (config?.identifiedLimiters?.[1] || "").toLowerCase();
+    // Utilise la liste RAW (noms métriques) ; fallback sur identifiedLimiters si absent
+    const rawList: string[] = (config?.identifiedLimitersRaw && config.identifiedLimitersRaw.length > 0)
+      ? config.identifiedLimitersRaw
+      : (config?.identifiedLimiters || []);
+    const L1 = (rawList[0] || "").toLowerCase();
+    const L2 = (rawList[1] || "").toLowerCase();
 
     // Taper duration adapté à la durée du plan (max 3 sem, min 1 sem)
     const fullTaper = ["IM", "TrailUltra"].includes(objKey) ? 3 : ["703", "Marathon"].includes(objKey) ? 2 : ["Semi", "Trail", "TrailMountain"].includes(objKey) ? 2 : 1;
@@ -737,7 +743,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
 
   // === CONTRAINTE EXPLICITE : RATIOS DE RÉPARTITION SPORTIVE PAR NIVEAU D'AMBITION ===
-  const sportRatios = getSportDistributionConstraint((config.objective || "").toUpperCase(), (config.ambition || "").toLowerCase(), config.identifiedLimiters, catalogDurationStats);
+  const sportRatios = getSportDistributionConstraint((config.objective || "").toUpperCase(), (config.ambition || "").toLowerCase(), config.identifiedLimitersRaw ?? config.identifiedLimiters, catalogDurationStats);
   if (sportRatios) {
     lines.push(sportRatios);
   }

@@ -837,7 +837,7 @@ Cette semaine était trop pauvre (séances insuffisantes ou structure incomplèt
 Exigences obligatoires :
 - Minimum ${minSessionsExpected} séances réelles
 - Tableau jour-par-jour complet (Lundi → Dimanche) avec : sport, type, durée, zones cibles, structure
-- Marqueur 🔑 sur les séances clés (alignées L1="${planConfig?.identifiedLimiters?.[0] || "—"}")
+- Marqueur 🔑 sur les séances clés (alignées L1="${planConfig?.identifiedLimitersRaw?.[0] || planConfig?.identifiedLimiters?.[0] || "—"}")
 - Justification W'bal pour les séances d'intervalles supra-CP
 - Cohérence de phase : ${activePhase}
 ${surgicalRecap}
@@ -890,8 +890,11 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
 
               // FIX M3 (audit): Post-chunk validation — check key sessions target L1/L2
               const keySessionMatches_all = combinedChunkText.match(/🔑[^\n|]*/g) || [];
-              const L1Name = (planConfig?.identifiedLimiters?.[0] || "").toLowerCase();
-              const L2Name = (planConfig?.identifiedLimiters?.[1] || "").toLowerCase();
+              const rawLimitersList: string[] = (planConfig?.identifiedLimitersRaw && planConfig.identifiedLimitersRaw.length > 0)
+                ? planConfig.identifiedLimitersRaw
+                : (planConfig?.identifiedLimiters || []);
+              const L1Name = (rawLimitersList[0] || "").toLowerCase();
+              const L2Name = (rawLimitersList[1] || "").toLowerCase();
               if (L1Name && keySessionMatches_all.length > 0) {
                 const L1Keywords = extractLimiterKeywords(L1Name);
                 const L2Keywords = L2Name ? extractLimiterKeywords(L2Name) : [];

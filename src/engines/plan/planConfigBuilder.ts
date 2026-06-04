@@ -120,6 +120,8 @@ export function buildPlanConfigFromDiagnostic(
   
   // ── Limiteurs enrichis ────────────────────────────────────────────────────
   const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
+  // ── Limiteurs RAW (noms de métriques, ordre prioritaire) — pour chunks 2..N
+  const limitersRaw = buildLimitersRawList(limiterResult, coachLimiterOrder);
 
   // ── Leviers (L1 + L2) ──────────────────────────────────────────────────────
   // ✅ FIX AUDIT V6 — On utilise `secondaryLever` (hybride catégoriel
@@ -250,6 +252,7 @@ export function buildPlanConfigFromDiagnostic(
     ambition: formConfig.ambition,
     constraints: formConfig.constraints,
     identifiedLimiters: limiters.length > 0 ? limiters : undefined,
+    identifiedLimitersRaw: limitersRaw.length > 0 ? limitersRaw : undefined,
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     adaptationProjections: projections.length > 0 ? projections : undefined,
@@ -264,6 +267,29 @@ export function buildPlanConfigFromDiagnostic(
 // ═══════════════════════════════════════════════════════════════════════════════
 // FORMATAGE LIMITEURS
 // ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Liste légère des noms de limiteurs (métriques), triée par impact décroissant
+ * et respectant l'override coach si présent. Utilisée pour l'injection dans
+ * les chunks 2..N et les heuristiques L1/L2, sans le markdown lourd.
+ */
+function buildLimitersRawList(
+  limiterResult: UnifiedLimiterResult,
+  coachLimiterOrder?: string[]
+): string[] {
+  let ranked = [...limiterResult.gapAnalysis]
+    .filter(g => g.weightedImpact > 0)
+    .sort((a, b) => b.weightedImpact - a.weightedImpact);
+  if (coachLimiterOrder && coachLimiterOrder.length > 0) {
+    ranked = ranked.sort((a, b) => {
+      const idxA = coachLimiterOrder.indexOf(a.metric);
+      const idxB = coachLimiterOrder.indexOf(b.metric);
+      return (idxA >= 0 ? idxA : 999) - (idxB >= 0 ? idxB : 999);
+    });
+  }
+  return ranked.map(g => g.metric);
+}
+
 
 function formatLimitersForPrompt(
   limiterResult: UnifiedLimiterResult,
