@@ -448,22 +448,40 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
       .filter(g => g.status === "limiting")
       .sort((a, b) => b.weightedImpact - a.weightedImpact);
     
-    // ✅ FIX: Si aucun gap "limiting" mais un primaryLimiter est identifié,
-    // inclure les gaps "attention" avec un écart significatif
+    // ✅ FIX BUG TTE 59% sous/au-dessus : ne retenir comme "raison limitante" que les gaps
+    // dont le signe correspond effectivement à une faiblesse pour la métrique considérée.
+    // - "higher is better" (TTE, VO2max, FTP/kg, VMA, FatMax, W', Durabilité, Économie) : gap < -5%
+    // - "lower is better"  (VLamax) : gap > +5%
+    const isLowerIsBetterMetric = (m: string) => m === "VLamax";
+    const isAttentionLimiting = (g: { metric: string; gapPercent: number }) => {
+      const gp = g.gapPercent;
+      if (isLowerIsBetterMetric(g.metric)) return gp >= 5;
+      return gp <= -5;
+    };
     const reasonGaps = limitingGapsForReasons.length > 0 
       ? limitingGapsForReasons 
       : unified.gapAnalysis
-          .filter(g => g.gapPercent !== 0 && Math.abs(g.gapPercent) >= 5)
+          .filter(isAttentionLimiting)
           .sort((a, b) => b.weightedImpact - a.weightedImpact);
     
+    // ✅ FIX : phraser selon le SIGNE du gap et la sémantique de la métrique
+    const formatGapReason = (g: { metric: string; gapPercent: number; value: number | null; target: number | null }) => {
+      const abs = Math.abs(g.gapPercent).toFixed(0);
+      if (isLowerIsBetterMetric(g.metric)) {
+        // VLamax : un excès au-dessus de la cible = problème
+        return g.gapPercent >= 0
+          ? `${g.metric} ${abs}% au-dessus de la cible`
+          : `${g.metric} ${abs}% sous la cible`;
+      }
+      // Métriques "plus = mieux" : en-dessous = problème
+      return g.gapPercent < 0
+        ? `${g.metric} ${abs}% sous la cible`
+        : `${g.metric} ${abs}% au-dessus de la cible`;
+    };
     const reasons = reasonGaps
       .slice(0, 3)
-      .map(g => {
-        if (g.metric === "VLamax") {
-          return `VLamax ${Math.abs(g.gapPercent).toFixed(0)}% au-dessus de la cible`;
-        }
-        return `${g.metric} ${Math.abs(g.gapPercent).toFixed(0)}% sous la cible`;
-      });
+      .map(formatGapReason);
+
     
     // Calculer la confiance à partir de l'écart entre les 2 premiers limiteurs
     const gapClarity = limitingGapsForReasons.length > 1 
