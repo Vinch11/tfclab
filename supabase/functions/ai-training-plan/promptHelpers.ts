@@ -193,8 +193,12 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   if (totalWeeks && totalWeeks >= 4) {
     const tw = totalWeeks;
     const isFinisher = ambKey === "finisher";
-    const L1 = (config?.identifiedLimiters?.[0] || "").toLowerCase();
-    const L2 = (config?.identifiedLimiters?.[1] || "").toLowerCase();
+    // Utilise la liste RAW (noms métriques) ; fallback sur identifiedLimiters si absent
+    const rawList: string[] = (config?.identifiedLimitersRaw && config.identifiedLimitersRaw.length > 0)
+      ? config.identifiedLimitersRaw
+      : (config?.identifiedLimiters || []);
+    const L1 = (rawList[0] || "").toLowerCase();
+    const L2 = (rawList[1] || "").toLowerCase();
 
     // Taper duration adapté à la durée du plan (max 3 sem, min 1 sem)
     const fullTaper = ["IM", "TrailUltra"].includes(objKey) ? 3 : ["703", "Marathon"].includes(objKey) ? 2 : ["Semi", "Trail", "TrailMountain"].includes(objKey) ? 2 : 1;
