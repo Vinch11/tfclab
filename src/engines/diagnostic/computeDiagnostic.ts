@@ -483,33 +483,10 @@ function generateHeadline(
   return `Limiteur principal : ${limiter.limiterLabel} — ${severityLabel}`;
 }
 
-function mapMetricToLimiter(metric: string): "aerobic_engine" | "glycolytic" | "specific_endurance" | "neuromuscular" | "anaerobic_capacity" | "metabolic_efficiency" | "availability" | "none" {
-  const map: Record<string, "aerobic_engine" | "glycolytic" | "specific_endurance" | "neuromuscular" | "anaerobic_capacity" | "metabolic_efficiency" | "availability" | "none"> = {
-    "VO2max": "aerobic_engine",
-    "FTP/kg": "aerobic_engine",
-    "VMA": "aerobic_engine",
-    "VLamax": "glycolytic",
-    "TTE": "specific_endurance",
-    "Robustesse": "specific_endurance",
-    "Économie": "neuromuscular",
-    "W'": "anaerobic_capacity",
-    "FatMax": "metabolic_efficiency",
-  };
-  return map[metric] || "none";
-}
+// R1 : `mapMetricToLimiter`/`mapMetricToLever` locaux supprimés.
+// La synthèse L1/L2 utilise désormais uniquement `limiter.primary*`/`limiter.secondary*`
+// produits par `detectUnifiedLimiter` (source unique partagée avec planConfigBuilder).
 
-function mapMetricToLever(metric: string): "increase_vo2max" | "decrease_vlamax" | "increase_tte" | "force_endurance" | "adjust_anaerobic" | "increase_fat_oxidation" | "recovery" | "maintain" {
-  const map: Record<string, "increase_vo2max" | "decrease_vlamax" | "increase_tte" | "force_endurance" | "adjust_anaerobic" | "increase_fat_oxidation" | "recovery" | "maintain"> = {
-    "VO2max": "increase_vo2max",
-    "FTP/kg": "increase_vo2max",
-    "VLamax": "decrease_vlamax",
-    "TTE": "increase_tte",
-    "Économie": "force_endurance",
-    "W'": "adjust_anaerobic",
-    "FatMax": "increase_fat_oxidation",
-  };
-  return map[metric] || "maintain";
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DATA COMPLETENESS
