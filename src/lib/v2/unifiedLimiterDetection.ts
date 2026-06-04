@@ -106,7 +106,12 @@ export interface CategoryRankingEntry {
   category: LimiterCategory;
   metrics: UnifiedGapAnalysis[];
   worstGap: number;        // Le pire écart individuel (le plus négatif)
-  totalImpact: number;     // Somme des |weightedImpact| de toutes les métriques limitantes
+  totalImpact: number;     // Score de hiérarchie = max(impacts) + 0.4 × somme(autres)
+                           // Évite le biais de cumul pur (aerobic_power agrège 3 métriques
+                           // vs glycolytic qui n'en a qu'une) tout en gardant le boost
+                           // de convergence multi-signaux dans une même catégorie.
+  sumImpact: number;       // Somme brute (pour affichage "cumul d'évidences" UI)
+  dominantImpact: number;  // Plus grand impact individuel de la catégorie
 }
 
 /**
