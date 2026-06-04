@@ -106,7 +106,12 @@ export interface CategoryRankingEntry {
   category: LimiterCategory;
   metrics: UnifiedGapAnalysis[];
   worstGap: number;        // Le pire écart individuel (le plus négatif)
-  totalImpact: number;     // Somme des |weightedImpact| de toutes les métriques limitantes
+  totalImpact: number;     // Score de hiérarchie = max(impacts) + 0.4 × somme(autres)
+                           // Évite le biais de cumul pur (aerobic_power agrège 3 métriques
+                           // vs glycolytic qui n'en a qu'une) tout en gardant le boost
+                           // de convergence multi-signaux dans une même catégorie.
+  sumImpact: number;       // Somme brute (pour affichage "cumul d'évidences" UI)
+  dominantImpact: number;  // Plus grand impact individuel de la catégorie
 }
 
 /**
@@ -166,15 +171,26 @@ export function buildCategoryRanking(gapAnalysis: UnifiedGapAnalysis[]): Categor
     if (existing) {
       existing.metrics.push(gap);
       existing.worstGap = Math.min(existing.worstGap, gap.gap);
-      existing.totalImpact += impact;
+      existing.sumImpact += impact;
+      existing.dominantImpact = Math.max(existing.dominantImpact, impact);
     } else {
       groups.set(category, {
         category,
         metrics: [gap],
         worstGap: gap.gap,
-        totalImpact: impact,
+        sumImpact: impact,
+        dominantImpact: impact,
+        totalImpact: impact, // recalculé ci-dessous
       });
     }
+  }
+
+  // ✅ H1 FIX : totalImpact = dominant + 0.4 × somme_des_autres
+  // Évite que aerobic_power (3 métriques) écrase mécaniquement glycolytic (1 métrique)
+  // par pure somme. Garde le boost de convergence multi-signaux.
+  for (const entry of groups.values()) {
+    const others = entry.sumImpact - entry.dominantImpact;
+    entry.totalImpact = entry.dominantImpact + 0.4 * others;
   }
 
   return Array.from(groups.values()).sort((a, b) => b.totalImpact - a.totalImpact);
@@ -211,11 +227,25 @@ export interface UnifiedLimiterResult {
   primaryLever: UnifiedLever;
   leverLabel: string;
   leverEmoji: string;
-  
+
+  // ✅ H2 — Limiteur secondaire (catégorie DIFFÉRENTE du primaire, impact > 5)
+  // Permet d'exposer un second axe de travail sans le confondre avec le primaire.
+  secondaryLimiter: UnifiedLimiter;
+  secondaryLimiterLabel: string | null;
+  secondaryLever: UnifiedLever;
+  secondaryLeverLabel: string | null;
+
+  // ✅ H3 — Sévérité du limiteur primaire
+  // mild   : impact 5-15    → ajustement nutrition / micro-blocs
+  // moderate: impact 15-30  → bloc dédié 3-4 semaines
+  // severe : impact > 30    → réorientation complète de la périodisation
+  severity: "none" | "mild" | "moderate" | "severe";
+
   // Analyse par domaine
   gapAnalysis: UnifiedGapAnalysis[];
 
-  // ✅ Classement hybride par catégorie physiologique (somme des impacts)
+  // ✅ Classement hybride par catégorie physiologique
+  // (totalImpact = dominant + 0.4 × somme_des_autres, voir buildCategoryRanking)
   // Source de vérité partagée Compass + Carte Facteurs Limitants
   categoryRanking: CategoryRankingEntry[];
 
@@ -801,6 +831,43 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     }
   }
 
+  // ✅ H2 — Limiteur secondaire (catégorie DIFFÉRENTE du primaire)
+  const secondaryCategoryEntry = categoryRanking
+    .slice(1)
+    .find(c => c.category !== topCategory?.category && c.totalImpact > 5)
+    ?? null;
+  let secondaryLimiter: UnifiedLimiter = "none";
+  let secondaryLever: UnifiedLever = "maintain";
+  if (secondaryCategoryEntry) {
+    secondaryLimiter = CATEGORY_TO_UNIFIED_LIMITER[secondaryCategoryEntry.category];
+    secondaryLever = CATEGORY_TO_LEVER[secondaryCategoryEntry.category];
+    // Mêmes affinages que pour le primaire
+    if (
+      secondaryCategoryEntry.category === "metabolic_endurance" &&
+      secondaryCategoryEntry.metrics.length === 1 &&
+      secondaryCategoryEntry.metrics[0].metric === "FatMax"
+    ) {
+      secondaryLimiter = "metabolic_efficiency";
+      secondaryLever = "increase_fat_oxidation";
+    }
+    if (
+      secondaryCategoryEntry.category === "neuromuscular" &&
+      secondaryCategoryEntry.metrics.length === 1 &&
+      (secondaryCategoryEntry.metrics[0].metric === "W'" || secondaryCategoryEntry.metrics[0].metric === "W' (kJ)")
+    ) {
+      secondaryLimiter = "anaerobic_capacity";
+      secondaryLever = "adjust_anaerobic";
+    }
+  }
+
+  // ✅ H3 — Sévérité basée sur l'impact dominant de la catégorie primaire
+  const primaryImpact = topCategory?.dominantImpact ?? 0;
+  const severity: "none" | "mild" | "moderate" | "severe" =
+    primaryLimiter === "none" ? "none"
+    : primaryImpact >= 30 ? "severe"
+    : primaryImpact >= 15 ? "moderate"
+    : "mild";
+
   // Calcul du détail de faiblesse aérobie
   // En mode running : VMA remplace FTP/kg dans l'analyse
   const aerobicExpressionAnalysis = gapAnalysis.find(g => g.metric === "VMA" || g.metric === "FTP/kg");
@@ -898,6 +965,13 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     primaryLever,
     leverLabel: leverInfo.label,
     leverEmoji: leverInfo.emoji,
+
+    secondaryLimiter,
+    secondaryLimiterLabel: secondaryLimiter !== "none" ? LIMITER_INFO[secondaryLimiter].label : null,
+    secondaryLever,
+    secondaryLeverLabel: secondaryLimiter !== "none" ? LEVER_INFO[secondaryLever].label : null,
+
+    severity,
     
     gapAnalysis: gapAnalysis.filter(g => g.metric !== "Disponibilité"),
     categoryRanking,
