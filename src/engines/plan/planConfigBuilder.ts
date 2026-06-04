@@ -122,24 +122,17 @@ export function buildPlanConfigFromDiagnostic(
   const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
 
   // ── Leviers (L1 + L2) ──────────────────────────────────────────────────────
+  // ✅ FIX AUDIT V6 — On utilise `secondaryLever` (hybride catégoriel
+  // dominant+0.4×others) issu du moteur unifié, au lieu de re-deriver depuis
+  // gapAnalysis[1] (impact individuel). Garantit la cohérence avec la
+  // hiérarchie des limiteurs exposée à l'UI et au prompt IA.
   const leverIds: string[] = [limiterResult.primaryLever];
-  // Add secondary lever from L2 gap if different from L1
-  const l2Gap = limiterResult.gapAnalysis
-    .filter(g => g.weightedImpact > 0)
-    .sort((a, b) => b.weightedImpact - a.weightedImpact)[1];
-  if (l2Gap) {
-    const l2LeverMap: Record<string, string> = {
-      "VO2max": "increase_vo2max",
-      "FTP/kg": "increase_ftp_kg",
-      "VLamax": "decrease_vlamax",
-      "TTE": "increase_tte",
-      "FatMax": "increase_fat_oxidation",
-      "Économie": "force_endurance",
-    };
-    const l2Lever = l2LeverMap[l2Gap.metric];
-    if (l2Lever && l2Lever !== limiterResult.primaryLever) {
-      leverIds.push(l2Lever);
-    }
+  if (
+    limiterResult.secondaryLever &&
+    limiterResult.secondaryLever !== "maintain" &&
+    limiterResult.secondaryLever !== limiterResult.primaryLever
+  ) {
+    leverIds.push(limiterResult.secondaryLever);
   }
   const levers = leverIds
     .map(l => LEVER_LABELS[l] || l)
