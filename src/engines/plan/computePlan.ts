@@ -202,40 +202,4 @@ export function postProcessParsedPlan(
   return { plan, wbalStats };
 }
 
-/**
- * Parse le markdown brut de l'IA et produit le PlanOutput final
- */
-export function buildPlanOutput(
-  rawMarkdown: string,
-  input: PlanInput,
-  chunksUsed: number
-): PlanOutput {
-  const plan = parseAIPlan(rawMarkdown);
-  const context = extractPlanContext(input.prescription);
-
-  // POST-TRAITEMENT : ancrage course + recalcul W'bal individualisé
-  const { wbalStats } = postProcessParsedPlan(plan, input.config, input.athleteData);
-
-  if (wbalStats && wbalStats.rewritten > 0) {
-    console.info(
-      `[PlanEngine] W'bal recalc — ${wbalStats.rewritten}/${wbalStats.scanned} sessions cyclistes recalculées`
-    );
-  }
-
-  return {
-    plan,
-    rawMarkdown,
-    generation: {
-      mode: input.config.mode,
-      chunksUsed,
-      totalWeeks: input.config.weeksAvailable,
-      generatedAt: new Date().toISOString(),
-    },
-    injectedContext: context,
-    meta: {
-      version: PLAN_ENGINE_VERSION,
-      disclaimer: PLAN_ENGINE_DISCLAIMER,
-    },
-  };
-}
 
