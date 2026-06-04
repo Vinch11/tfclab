@@ -641,8 +641,9 @@ function activateLevers(
       label: LEVER_DEFINITIONS.vo2_intervals.label,
       icon: LEVER_DEFINITIONS.vo2_intervals.icon,
       priority: primaryLimiter === 'motor' && vo2maxLow ? 1 : 2,
-      reason: vo2Gap 
+      reason: vo2Gap && vo2Gap.gapPercent < 0
         ? `VO₂max ${Math.abs(vo2Gap.gapPercent).toFixed(0)}% sous la cible (${vo2Gap.value} vs ${vo2Gap.target} ml/min/kg) — développer le plafond aérobie`
+
         : "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
       prescription: [
         "5×4min Z5 r3min (classique Billat)",
