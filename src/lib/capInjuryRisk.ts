@@ -301,9 +301,10 @@ function generateStaffAnalysis(
 // =============================================
 
 export function computeCAPInjuryRisk(params: CAPRiskParams): CAPInjuryRiskResult {
-  const { vlamaxValue, tteValue, objectif } = params;
-  
-  const thresholds = getThresholdsForObjectif(objectif);
+  const { vlamaxValue, tteValue, objectif, ambition, age } = params;
+
+  const thresholds = getThresholdsForObjectif(objectif, ambition ?? "age_group", age ?? null);
+
   
   const vlamaxScore = computeVLamaxScore(vlamaxValue, thresholds);
   const tteScore = computeTTEScore(tteValue, thresholds);
