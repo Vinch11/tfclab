@@ -94,6 +94,13 @@ export function useAssistantContext(
         tss7d: null,
         crrStatus: null,
         nutritionEstimate: null,
+        primaryLimiter: null,
+        primaryLimiterLabel: null,
+        primaryLever: null,
+        primaryLeverLabel: null,
+        secondaryLimiter: null,
+        secondaryLimiterLabel: null,
+        severity: null,
         currentPage,
       };
     }
