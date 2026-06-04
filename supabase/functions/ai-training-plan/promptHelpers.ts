@@ -297,7 +297,7 @@ export function extractStrategicRecap(chunkText: string): string {
     limiterTableMatch ? limiterTableMatch[1].trim() : "",
     synergyMatch ? `Synergies:\n${synergyMatch[1].trim()}` : "",
   ].filter(Boolean).join("\n\n");
-  if (combined.length > 80) return combined.slice(0, 4000);
+  if (combined.length > 80) return combined.slice(0, 6000);
 
   // Last resort: capture lines mentioning phase boundaries (S1-SN patterns)
   const phaseLines = chunkText.match(/(?:Fondation|Chantier|Build|Consolidation|Race.Specific|Aff[ûu]tage|Taper|Sp[ée]cifique|D[ée]veloppement|Pr[ée]paration)[^\n]*S\d+[^\n]*/gi) || [];
