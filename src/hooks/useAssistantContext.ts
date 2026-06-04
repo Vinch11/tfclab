@@ -200,13 +200,30 @@ export function useAssistantContext(
       else crrStatus = "très élevée";
     }
     
-    // Nutrition estimate
-    const nutritionEstimate = computeNutritionEstimate({
-      vlamax: vlamaxEffectif.value,
-      objectif: athlete.goal || "IM",
-      tteMin: tteEffectif?.tte_min ?? null,
-      tteTarget: tteEffectif?.target ?? null,
-    });
+    // ✅ FIX AUDIT V6 — Détection limiteurs (source unique)
+    let limiterResult: UnifiedLimiterResult | null = null;
+    try {
+      const v2 = effectiveSnapshot ? mapSnapshotToV2(effectiveSnapshot) : null;
+      limiterResult = detectUnifiedLimiter({
+        vo2max: effectiveSnapshot?.vo2max ?? null,
+        ftpKg,
+        vlamax: vlamaxEffectif.value,
+        wprimeKj: v2?.wprime_kj ?? null,
+        cpDataQuality: v2?.cp_data_quality ?? null,
+        tte: tteEffectif?.tte_min ?? null,
+        fatmax: v2?.fatmax ?? null,
+        economyScore: v2?.run_economy_score ?? null,
+        vma: v2?.vma ?? null,
+        sportFocus: (athlete.sport_focus as "bike" | "run" | "tri") ?? undefined,
+        availabilityScore: null,
+        hasHealthAlerts: false,
+        objectif: athlete.goal || "IM",
+        ambition: (athlete.ambition as AmbitionLevel) || "age_group",
+        age: athleteAge,
+      });
+    } catch (_) {
+      limiterResult = null;
+    }
     
     return {
       athleteId: athlete.id,
@@ -225,6 +242,13 @@ export function useAssistantContext(
       tss7d,
       crrStatus,
       nutritionEstimate,
+      primaryLimiter: limiterResult?.primaryLimiter ?? null,
+      primaryLimiterLabel: limiterResult?.limiterLabel ?? null,
+      primaryLever: limiterResult?.primaryLever ?? null,
+      primaryLeverLabel: limiterResult?.leverLabel ?? null,
+      secondaryLimiter: limiterResult?.secondaryLimiter ?? null,
+      secondaryLimiterLabel: limiterResult?.secondaryLimiterLabel ?? null,
+      severity: limiterResult?.severity ?? null,
       currentPage,
     };
   }, [selectedAthleteId, athletes, snapshots, tests, currentPage]);
