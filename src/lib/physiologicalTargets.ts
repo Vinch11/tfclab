@@ -37,6 +37,8 @@
  * - 5K/Sprint : TTE est SECONDAIRE (limiteur prime = VO2max). Les valeurs
  *   ci-dessous restent informatives mais ne doivent pas être priorisées (R3).
  * ============================================================================
+ */
+
 
 
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
