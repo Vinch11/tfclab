@@ -414,6 +414,44 @@ export function resolveRecoveryPower(
   }
 }
 
+// F-07: pure helpers aligned with src/lib/v2/criticalPowerModel.ts so that edge-side
+// recovery prescriptions stay consistent with client-side W'bal simulation.
+export function calcTauEdge(effectiveCP: number, recPow: number): number {
+  const dcp = effectiveCP - recPow;
+  if (dcp <= 0) return Infinity;
+  return Math.max(200, Math.min(1500, 546 * Math.exp(-0.01 * dcp) + 316));
+}
+
+export function calcRecoveryEdge(
+  effectiveCP: number,
+  wprimeEffJ: number,
+  intPow: number,
+  intDur: number,
+  recPow: number
+): { rest: number; maxReps: number } {
+  if (intPow <= effectiveCP) return { rest: 60, maxReps: 20 };
+  const wbalAfter = Math.max(0, wprimeEffJ - (intPow - effectiveCP) * intDur);
+  const depleted = wprimeEffJ - wbalAfter;
+  const safeRecPow = recPow >= effectiveCP ? 0 : recPow;
+  const tau = calcTauEdge(effectiveCP, safeRecPow);
+  const target75 = wprimeEffJ * 0.75;
+  const remaining = wprimeEffJ - target75;
+  const optRest =
+    depleted > 0 && remaining < depleted ? Math.round(-tau * Math.log(remaining / depleted)) : 60;
+  const wCost = (intPow - effectiveCP) * intDur;
+  let maxReps = 0;
+  let simWbal = wprimeEffJ;
+  for (let rep = 0; rep < 30; rep++) {
+    simWbal = Math.max(0, simWbal - wCost);
+    if (simWbal <= 0) break;
+    maxReps++;
+    const depNow = wprimeEffJ - simWbal;
+    simWbal = wprimeEffJ - depNow * Math.exp(-optRest / tau);
+    if (simWbal - wCost <= 0) break;
+  }
+  return { rest: optRest, maxReps: Math.max(1, maxReps) };
+}
+
 export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrategy = "passive"): string | null {
   // Reuse shared computation
   const result = computeCPWprime(data);
