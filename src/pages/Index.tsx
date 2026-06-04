@@ -751,7 +751,6 @@ const Index = () => {
         time_20k_date: (effectiveCloudSnapshot as any).time_20k_date ?? null,
         time_half_date: (effectiveCloudSnapshot as any).time_half_date ?? null,
         time_marathon_date: (effectiveCloudSnapshot as any).time_marathon_date ?? null,
-      ),
       },
       targetRaceDurationMin, // F-24
     };
