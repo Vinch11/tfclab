@@ -610,7 +610,7 @@ ${recapSection}${multiObjChunkReminder}
   3. Marque-la avec [Custom] dans le titre pour la distinguer des protocoles validés
 → Ratio cible : ≥80% séances catalogue, ≤20% séances custom. Si tu dépasses 20% custom, justifie pourquoi.
 
-🧠 MÉMOIRE GLOBALE DU PLAN (synthèse de TOUS les blocs déjà générés — anti-amnésie) :
+${prescribedPaces ? `🎯 ALLURES / PUISSANCES / FC PRESCRITES (réf. bloc 1 — ANCRAGE OBLIGATOIRE, ne pas dériver) :\n${prescribedPaces}\n→ Toute séance d'intensité de ce bloc DOIT utiliser ces ancrages (ou une variation justifiée ±5%). Ne pas inventer de nouvelles valeurs.\n\n` : ""}🧠 MÉMOIRE GLOBALE DU PLAN (synthèse de TOUS les blocs déjà générés — anti-amnésie) :
 ${globalPlanMemory || "(aucun bloc précédent)"}
 
 Résumé détaillé des blocs récents (progression) :
