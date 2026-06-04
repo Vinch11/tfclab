@@ -903,9 +903,11 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
                 const L2Hits = L2Keywords.length > 0 ? keyTexts.filter(t => L2Keywords.some(kw => t.includes(kw))).length : -1;
                 if (L1Hits === 0) {
                   console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions (🔑) target L1="${L1Name}". Phase: ${activePhase}`);
+                  pendingGuardrails.push(`Bloc précédent: 0 séance clé 🔑 ne ciblait L1="${rawLimitersList[0]}". Recentre au moins 1 séance clé/sem sur ce limiteur (mots-clés: ${L1Keywords.slice(0, 4).join(", ")}).`);
                 }
                 if (L2Hits === 0 && activePhase !== "Fondation" && activePhase !== "Adaptation") {
                   console.warn(`⚠️ M3 Validation: Chunk ${ci + 1} (S${chunk.start}-S${chunk.end}) — NO key sessions target L2="${L2Name}" in ${activePhase} phase.`);
+                  pendingGuardrails.push(`Bloc précédent: 0 séance clé 🔑 ne ciblait L2="${rawLimitersList[1]}" en phase ${activePhase}. Ajoute ≥1 séance L2 (mots-clés: ${L2Keywords.slice(0, 4).join(", ")}).`);
                 }
               }
               
