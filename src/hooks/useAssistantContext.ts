@@ -10,6 +10,8 @@ import { getEffectiveRefs, computeFtpKg, EffectiveRefs } from "@/lib/effectiveRe
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
+import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 // =============================================
 // TYPES
@@ -43,6 +45,15 @@ export interface AssistantAthleteContext {
   
   // Nutrition prédictive
   nutritionEstimate: NutritionEstimate | null;
+  
+  // ✅ FIX AUDIT V6 — Limiteurs identifiés (source de vérité partagée)
+  primaryLimiter: string | null;
+  primaryLimiterLabel: string | null;
+  primaryLever: string | null;
+  primaryLeverLabel: string | null;
+  secondaryLimiter: string | null;
+  secondaryLimiterLabel: string | null;
+  severity: "none" | "mild" | "moderate" | "severe" | null;
   
   // Page actuelle
   currentPage: string;
@@ -83,6 +94,13 @@ export function useAssistantContext(
         tss7d: null,
         crrStatus: null,
         nutritionEstimate: null,
+        primaryLimiter: null,
+        primaryLimiterLabel: null,
+        primaryLever: null,
+        primaryLeverLabel: null,
+        secondaryLimiter: null,
+        secondaryLimiterLabel: null,
+        severity: null,
         currentPage,
       };
     }
@@ -107,6 +125,13 @@ export function useAssistantContext(
         tss7d: null,
         crrStatus: null,
         nutritionEstimate: null,
+        primaryLimiter: null,
+        primaryLimiterLabel: null,
+        primaryLever: null,
+        primaryLeverLabel: null,
+        secondaryLimiter: null,
+        secondaryLimiterLabel: null,
+        severity: null,
         currentPage,
       };
     }
@@ -183,6 +208,32 @@ export function useAssistantContext(
       tteTarget: tteEffectif?.target ?? null,
     });
     
+    // ✅ FIX AUDIT V6 — Détection limiteurs (source unique partagée avec l'UI)
+    let limiterResult: UnifiedLimiterResult | null = null;
+    try {
+      const snap = effectiveSnapshot as any;
+      const ath = athlete as any;
+      limiterResult = detectUnifiedLimiter({
+        vo2max: effectiveSnapshot?.vo2max ?? null,
+        ftpKg,
+        vlamax: vlamaxEffectif.value,
+        wprimeKj: snap?.wprime_kj ?? null,
+        cpDataQuality: snap?.cp_data_quality ?? null,
+        tte: tteEffectif?.tte_min ?? null,
+        fatmax: snap?.fatmax ?? null,
+        economyScore: snap?.run_economy_score ?? null,
+        vma: snap?.vma ?? null,
+        sportFocus: ath?.sport_focus ?? undefined,
+        availabilityScore: null,
+        hasHealthAlerts: false,
+        objectif: athlete.goal || "IM",
+        ambition: (ath?.ambition as AmbitionLevel) || "age_group",
+        age: athleteAge,
+      });
+    } catch (_) {
+      limiterResult = null;
+    }
+    
     return {
       athleteId: athlete.id,
       athleteName: athlete.name,
@@ -200,6 +251,13 @@ export function useAssistantContext(
       tss7d,
       crrStatus,
       nutritionEstimate,
+      primaryLimiter: limiterResult?.primaryLimiter ?? null,
+      primaryLimiterLabel: limiterResult?.limiterLabel ?? null,
+      primaryLever: limiterResult?.primaryLever ?? null,
+      primaryLeverLabel: limiterResult?.leverLabel ?? null,
+      secondaryLimiter: limiterResult?.secondaryLimiter ?? null,
+      secondaryLimiterLabel: limiterResult?.secondaryLimiterLabel ?? null,
+      severity: limiterResult?.severity ?? null,
       currentPage,
     };
   }, [selectedAthleteId, athletes, snapshots, tests, currentPage]);
@@ -246,6 +304,14 @@ export function useAssistantContext(
     if (context.poids !== null) parts.push(`Poids: ${context.poids}kg`);
     if (context.fcMax !== null) parts.push(`FCmax: ${context.fcMax} bpm`);
     if (context.tss7d !== null) parts.push(`Charge 7j: ${context.tss7d} TSS (${context.crrStatus})`);
+    
+    // ✅ Limiteurs identifiés (source unique — alignée avec les plans IA et l'UI)
+    if (context.primaryLimiter && context.primaryLimiter !== "none") {
+      parts.push(`Limiteur #1: ${context.primaryLimiterLabel} → Levier: ${context.primaryLeverLabel} (sévérité: ${context.severity})`);
+      if (context.secondaryLimiter && context.secondaryLimiter !== "none") {
+        parts.push(`Limiteur #2: ${context.secondaryLimiterLabel}`);
+      }
+    }
     
     // Nutrition
     if (context.nutritionEstimate) {
