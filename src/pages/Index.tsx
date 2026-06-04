@@ -95,7 +95,8 @@ import { LeviersSection } from "@/components/simplified/LeviersSection";
 
 // ✅ Engines unifiés
 import { computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
-import { estimateFromRaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
+import { estimateFromRaceChronos, type RaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
+import { predictRaceDurationMin } from "@/lib/raceTimePredictor";
 
 // ✅ Cycle Intelligence Engine™
 import { CycleIntelligenceCard } from "@/components/CycleIntelligenceCard";
@@ -634,14 +635,29 @@ const Index = () => {
   const wprimeKjForLimiter = cpResultForLimiter?.wprimeKJ ?? null;
 
   // ✅ UNIFIED LIMITER - Pour Roadmap Stratégique
-  // F-24 — Durabilité : ne plus dériver `targetRaceDurationMin` d'un mapping objectif→durée
-  // hardcodé. Le temps de course dépend du niveau/ambition/parcours/conditions et est trop
-  // variable pour être deviné depuis le nom de l'objectif. De plus, comparer le TTE (au seuil,
-  // typiquement 40-90 min) à la durée totale d'une course longue (souvent courue largement sous
-  // le seuil) n'est pas physiologiquement cohérent. La règle F-24 ne s'active donc que si une
-  // estimation explicite de temps de course (renseignée par le coach ou issue d'un prédicteur
-  // calibré) est fournie en aval ; sinon on retourne `null` et la Durabilité n'est pas évaluée.
-  const targetRaceDurationMin = useMemo<number | null>(() => null, []);
+  // F-24 — Durabilité : `targetRaceDurationMin` est désormais alimenté par un prédicteur
+  // calibré (Riegel sur chronos saisis, Daniels/scenarios sur VMA+ambition, baseline ajustée
+  // pour le triathlon). Si aucune source n'est disponible (ex. trail, données manquantes),
+  // on retourne `null` et la règle F-24 reste OFF (pas de fausse mesure).
+  // Voir src/lib/raceTimePredictor.ts.
+  const targetRacePrediction = useMemo(() => {
+    if (!currentAthlete) return null;
+    const chronos: RaceChronos = {
+      time_5k_sec: (effectiveCloudSnapshot as any)?.time_5k_sec ?? null,
+      time_10k_sec: (effectiveCloudSnapshot as any)?.time_10k_sec ?? null,
+      time_20k_sec: (effectiveCloudSnapshot as any)?.time_20k_sec ?? null,
+      time_half_sec: (effectiveCloudSnapshot as any)?.time_half_sec ?? null,
+      time_marathon_sec: (effectiveCloudSnapshot as any)?.time_marathon_sec ?? null,
+    };
+    return predictRaceDurationMin({
+      objective: currentAthlete.goal || null,
+      ambition: currentAmbition as any,
+      raceChronos: chronos,
+      vmaKmh: effectiveCloudSnapshot?.vma ?? null,
+      thresholdPaceSecPerKm: (effectiveCloudSnapshot as any)?.pace_threshold_sec_km ?? null,
+    });
+  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition]);
+  const targetRaceDurationMin = targetRacePrediction?.targetRaceDurationMin ?? null;
 
   const unifiedLimiterResult = useMemo<UnifiedLimiterResult | null>(() => {
     if (!currentAthlete) return null;
