@@ -303,6 +303,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             let extractedRecap = "";
             // AUDIT FIX #4: Global Plan Memory — ultra-condensed, persists across all chunks
             let globalPlanMemory = "";
+            // F-22: Prescribed paces / power / HR thresholds extracted from chunk 1
+            // Persists across all chunks to anchor intensity prescriptions and prevent drift.
+            let prescribedPaces = "";
             // AUDIT FIX #5: Anti-redundancy — track key sessions used across all previous chunks
             const usedKeySessions: Set<string> = new Set();
             // FIX C1 (audit): Initialize activePhase from ambition — finisher starts in "Adaptation", not "Fondation"
@@ -325,6 +328,44 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
                 globalPlanMemory = parts.join("").trim();
               }
             };
+
+            /**
+             * F-22: Extract prescribed paces / power / HR from chunk 1 text.
+             * Looks for explicit thresholds and pace prescriptions in the diagnostic,
+             * strategic recap, and first weeks. Returns a deduplicated compact list
+             * (≤800 chars) suitable for re-injection in every subsequent chunk.
+             */
+            const extractPrescribedPaces = (text: string): string => {
+              if (!text) return "";
+              const hits = new Set<string>();
+              // Power prescriptions: "CP 285W", "FTP 280W", "Z4 = 240-260W", "Seuil ~265W"
+              const powerRe = /\b(CP|FTP|MAP|PMA|Seuil|Threshold|Z[1-7]|VO2|Sweet ?Spot|SST|Tempo)\b[^.\n|]{0,40}?\b\d{2,4}\s*W\b/gi;
+              // Pace prescriptions: "allure marathon 4:30/km", "seuil 3:45/km", "VMA 18 km/h", "16:00/3km"
+              const paceRe = /\b(VMA|Seuil|Allure\s+\w+|Tempo|Marathon|Semi|10K|5K|CSS|Z[1-7])\b[^.\n|]{0,40}?\d{1,2}[:'h]\d{1,2}\s*\/?\s*(?:km|m|3km)?|\b\d{1,2}[,.]?\d?\s*km\/h\b/gi;
+              // HR prescriptions: "Z2 130-145 bpm", "Seuil 165 bpm"
+              const hrRe = /\b(Z[1-7]|Seuil|Threshold|FCmax|FC\s*Seuil)\b[^.\n|]{0,30}?\d{2,3}\s*(?:-\s*\d{2,3})?\s*(?:bpm|ppm)\b/gi;
+              // %FTP / %CP / %VMA / %VO2 / %FCmax bands
+              const pctRe = /\b\d{2,3}\s*[-–]\s*\d{2,3}\s*%\s*(?:FTP|CP|VMA|VO2|PMA|FCmax|FCM)\b/gi;
+
+              const collect = (re: RegExp) => {
+                let m: RegExpExecArray | null;
+                while ((m = re.exec(text)) !== null) {
+                  const s = m[0].replace(/\s+/g, " ").trim();
+                  if (s.length >= 6 && s.length <= 80) hits.add(s);
+                }
+              };
+              collect(powerRe);
+              collect(paceRe);
+              collect(hrRe);
+              collect(pctRe);
+
+              if (hits.size === 0) return "";
+              const list = Array.from(hits).slice(0, 24);
+              let joined = list.join(" • ");
+              if (joined.length > 800) joined = joined.slice(0, 800).replace(/\s•[^•]*$/, "") + " …";
+              return joined;
+            };
+
 
             // ─── OPTIMIZATION #4: Dynamic feedback guardrails ───
             // Track per-chunk metrics (volume, intensity ratio, sport distribution).
@@ -569,7 +610,7 @@ ${recapSection}${multiObjChunkReminder}
   3. Marque-la avec [Custom] dans le titre pour la distinguer des protocoles validés
 → Ratio cible : ≥80% séances catalogue, ≤20% séances custom. Si tu dépasses 20% custom, justifie pourquoi.
 
-🧠 MÉMOIRE GLOBALE DU PLAN (synthèse de TOUS les blocs déjà générés — anti-amnésie) :
+${prescribedPaces ? `🎯 ALLURES / PUISSANCES / FC PRESCRITES (réf. bloc 1 — ANCRAGE OBLIGATOIRE, ne pas dériver) :\n${prescribedPaces}\n→ Toute séance d'intensité de ce bloc DOIT utiliser ces ancrages (ou une variation justifiée ±5%). Ne pas inventer de nouvelles valeurs.\n\n` : ""}🧠 MÉMOIRE GLOBALE DU PLAN (synthèse de TOUS les blocs déjà générés — anti-amnésie) :
 ${globalPlanMemory || "(aucun bloc précédent)"}
 
 Résumé détaillé des blocs récents (progression) :
@@ -706,6 +747,14 @@ Sans ce récapitulatif structuré, le plan sera rejeté.`;
                 } else {
                   console.warn("⚠️ Failed to extract strategic recap — subsequent chunks will lack periodization context");
                 }
+
+                // F-22: Extract prescribed paces / power / HR from chunk 1 (diagnostic + recap + week 1)
+                prescribedPaces = extractPrescribedPaces(combinedChunkText);
+                if (prescribedPaces) {
+                  console.log(`🎯 F-22: Extracted prescribed paces (${prescribedPaces.length} chars): ${prescribedPaces.slice(0, 120)}…`);
+                } else {
+                  console.warn("⚠️ F-22: No prescribed paces extracted from chunk 1 — subsequent chunks may drift in intensity.");
+                }
               }
 
               // FIX #4 (audit recap): Detect active phase with broader matching
@@ -735,6 +784,7 @@ Si une des semaines manquantes est la PREMIÈRE semaine d'un nouveau bloc/phase,
 📋 DIAGNOSTIC STRUCTURÉ :
 ${structuredDiagnostic}
 ${retryRecapSection}
+${prescribedPaces ? `\n🎯 ALLURES PRESCRITES (réf. bloc 1) : ${prescribedPaces}\n` : ""}
 
 🔄 PHASE ACTIVE : ${activePhase}
 
@@ -774,6 +824,7 @@ NE PAS répéter le diagnostic. Génère directement les tableaux.
 📋 DIAGNOSTIC STRUCTURÉ :
 ${structuredDiagnostic}
 ${retry2RecapSection}
+${prescribedPaces ? `\n🎯 ALLURES PRESCRITES (réf. bloc 1) : ${prescribedPaces}\n` : ""}
 
 🔄 PHASE ACTIVE : ${activePhase}
 

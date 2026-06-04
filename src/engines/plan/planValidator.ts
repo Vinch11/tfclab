@@ -55,6 +55,12 @@ export interface WeekMetrics {
   isRaceWeek: boolean;
   /** Key sessions count (🔑 or intensity sessions) */
   keySessions: number;
+  /** F-23: Real total weekly duration extracted from session text (minutes) */
+  totalDurationMin: number;
+  /** F-23: Total duration of key sessions only (minutes) */
+  keyDurationMin: number;
+  /** F-23: Number of sessions with a parseable duration (sample size) */
+  sessionsWithDuration: number;
 }
 
 export interface LimiterCoverageItem {
@@ -136,6 +142,50 @@ function isKeySession(session: ParsedSession): boolean {
   return KEY_SESSION_PATTERNS.test(text);
 }
 
+/**
+ * F-23: Extract session duration in minutes from title + details.
+ * Handles formats: "1h30", "1h", "90min", "45'", "45 min", "2h 15'".
+ * Returns null if no duration found (do not invent a value).
+ * If multiple durations appear (e.g. WU + main + CD), returns their SUM
+ * up to a sane cap (4h) — typical for tri/trail bricks.
+ */
+export function parseSessionDurationMin(session: ParsedSession): number | null {
+  if (session.isRest) return 0;
+  const text = `${session.title} ${session.details}`.toLowerCase();
+  if (!text.trim()) return null;
+
+  let total = 0;
+  let found = false;
+
+  // "1h", "1h30", "2 h 15" — hours (+ optional minutes)
+  const hRe = /(\d+)\s*h\s*(\d{1,2})?(?!\d)/g;
+  let m: RegExpExecArray | null;
+  while ((m = hRe.exec(text)) !== null) {
+    const h = parseInt(m[1], 10);
+    const min = m[2] ? parseInt(m[2], 10) : 0;
+    if (h >= 0 && h <= 12 && min < 60) {
+      total += h * 60 + min;
+      found = true;
+    }
+  }
+
+  // "45min", "45 min", "45'", "45′" — pure minutes (avoid "30/30" or rep counts by requiring a unit)
+  const mRe = /(?<!\d)(\d{1,3})\s*(?:min(?:utes?)?|'|′)(?!\d)/g;
+  while ((m = mRe.exec(text)) !== null) {
+    const mm = parseInt(m[1], 10);
+    // Skip very small values that are likely interval lengths (e.g. "3'" in "5x3'")
+    // Heuristic: minutes >= 15 are likely session durations, smaller are intervals
+    if (mm >= 15 && mm <= 300) {
+      total += mm;
+      found = true;
+    }
+  }
+
+  if (!found) return null;
+  // Cap at 4h (single session) to avoid runaway sums from rep durations
+  return Math.min(total, 240);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // WEEK METRICS EXTRACTION
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -173,6 +223,19 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
   // Key sessions
   const keySessions = activeSessions.filter(isKeySession).length;
 
+  // F-23: Real durations (sum of parseable session durations)
+  let totalDurationMin = 0;
+  let keyDurationMin = 0;
+  let sessionsWithDuration = 0;
+  for (const s of activeSessions) {
+    const d = parseSessionDurationMin(s);
+    if (d !== null && d > 0) {
+      totalDurationMin += d;
+      sessionsWithDuration++;
+      if (isKeySession(s)) keyDurationMin += d;
+    }
+  }
+
   return {
     weekNumber: week.weekNumber,
     theme: week.theme,
@@ -188,6 +251,9 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     isDeload,
     isRaceWeek,
     keySessions,
+    totalDurationMin,
+    keyDurationMin,
+    sessionsWithDuration,
   };
 }
 
@@ -355,52 +421,60 @@ function validateKeySessions(metrics: WeekMetrics[]): { issues: ValidationIssue[
   return { issues, score: Math.round((compliant / total) * 100) };
 }
 
-/** Rule 4: Volume progression */
+/** Rule 4: Volume progression — F-23: uses real durations when ≥60% of sessions have one */
 function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
 
   if (metrics.length < 3) return { issues: [], score: 100 };
 
-  // Track active sessions as volume proxy (we don't have duration data from parsed plan)
   const loadWeeks = metrics.filter(m => !m.isDeload && !m.isRaceWeek);
-  
   if (loadWeeks.length < 3) return { issues: [], score: 100 };
 
-  // Check overall progression trend: first third vs last third
+  // F-23: prefer real weekly duration if coverage is decent (≥60% sessions parsed)
+  const useDuration = loadWeeks.every(w => w.activeSessions === 0 || w.sessionsWithDuration / Math.max(1, w.activeSessions) >= 0.6)
+    && loadWeeks.some(w => w.totalDurationMin > 0);
+  const volumeOf = (w: WeekMetrics) => useDuration ? w.totalDurationMin : w.activeSessions;
+  const volUnit = useDuration ? "min" : "séances";
+
+  // Trend: first third vs last third
   const thirdLen = Math.max(1, Math.floor(loadWeeks.length / 3));
   const firstThird = loadWeeks.slice(0, thirdLen);
   const lastThird = loadWeeks.slice(-thirdLen);
 
-  const avgFirst = firstThird.reduce((s, w) => s + w.activeSessions, 0) / firstThird.length;
-  const avgLast = lastThird.reduce((s, w) => s + w.activeSessions, 0) / lastThird.length;
+  const avgFirst = firstThird.reduce((s, w) => s + volumeOf(w), 0) / firstThird.length;
+  const avgLast = lastThird.reduce((s, w) => s + volumeOf(w), 0) / lastThird.length;
 
-  // Volume should generally increase or stay stable (not decrease)
   if (avgLast < avgFirst * 0.85) {
     issues.push({
       rule: "progression",
       severity: "warning",
-      message: `Volume en baisse: moyenne ${avgFirst.toFixed(1)} séances/sem (début) → ${avgLast.toFixed(1)} (fin)`,
-      detail: `Une progression positive est attendue hors semaines de décharge et taper.`,
+      message: `Volume en baisse: moyenne ${avgFirst.toFixed(0)}${volUnit}/sem (début) → ${avgLast.toFixed(0)}${volUnit} (fin)`,
+      detail: `Une progression positive est attendue hors semaines de décharge et taper.${useDuration ? " (Calculé sur durées réelles)" : ""}`,
     });
   }
 
-  // Check for sudden jumps (> +30% week to week)
+  // Sudden jumps (> +30% week to week)
   for (let i = 1; i < metrics.length; i++) {
     const prev = metrics[i - 1];
     const curr = metrics[i];
     if (prev.isDeload || curr.isDeload || curr.isRaceWeek || prev.activeSessions < 3) continue;
 
-    const jump = (curr.activeSessions - prev.activeSessions) / Math.max(1, prev.activeSessions);
+    const prevVol = volumeOf(prev);
+    const currVol = volumeOf(curr);
+    if (prevVol < (useDuration ? 60 : 3)) continue;
+
+    const jump = (currVol - prevVol) / Math.max(1, prevVol);
     if (jump > 0.35) {
       issues.push({
         rule: "progression",
         severity: "warning",
         week: curr.weekNumber,
-        message: `S${curr.weekNumber}: Saut de volume +${Math.round(jump * 100)}% vs S${prev.weekNumber} (${prev.activeSessions} → ${curr.activeSessions} séances)`,
-        detail: `Progression recommandée: +5-10%/semaine maximum.`,
+        message: `S${curr.weekNumber}: Saut de volume +${Math.round(jump * 100)}% vs S${prev.weekNumber} (${prevVol.toFixed(0)} → ${currVol.toFixed(0)} ${volUnit})`,
+        detail: `Progression recommandée: +5-10%/semaine maximum.${useDuration ? " (Calculé sur durées réelles)" : ""}`,
       });
     }
   }
+
 
   // Check that intensity increases over the plan (key sessions should increase mid-plan)
   const firstHalfKeys = metrics.slice(0, Math.floor(metrics.length / 2))
