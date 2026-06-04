@@ -16,11 +16,11 @@
  */
 
 import type {
+  PlanGenerationConfig,
   ParsedPlan,
-  ParsedWeek,
   ParsedSession,
 } from "./types";
-import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
+import type { PlanAthleteData } from "@/hooks/useAITrainingPlan";
 import { applyWbalRecoveryRecalc, type WbalRecalcStats } from "./wbalPostProcessor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
