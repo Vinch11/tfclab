@@ -673,8 +673,9 @@ function activateLevers(
       label: LEVER_DEFINITIONS.threshold_work.label,
       icon: LEVER_DEFINITIONS.threshold_work.icon,
       priority: (primaryLimiter === 'motor' && ftpKgLow) || isMetricLimiting("FTP/kg") || isMetricLimiting("VMA") ? 1 : 2,
-      reason: ftpGap 
+      reason: ftpGap && ftpGap.gapPercent < 0
         ? `${ftpGap.metric} ${Math.abs(ftpGap.gapPercent).toFixed(0)}% sous la cible (${ftpGap.value?.toFixed(1)} vs ${ftpGap.target?.toFixed(1)}) — développer la puissance soutenue`
+
         : "FTP/kg insuffisant par rapport à la cible — développer l'expression aérobie via travail au seuil",
       prescription: [
         "2×20min au seuil (FTP/allure seuil)",
