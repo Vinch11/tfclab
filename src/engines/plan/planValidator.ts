@@ -55,6 +55,12 @@ export interface WeekMetrics {
   isRaceWeek: boolean;
   /** Key sessions count (🔑 or intensity sessions) */
   keySessions: number;
+  /** F-23: Real total weekly duration extracted from session text (minutes) */
+  totalDurationMin: number;
+  /** F-23: Total duration of key sessions only (minutes) */
+  keyDurationMin: number;
+  /** F-23: Number of sessions with a parseable duration (sample size) */
+  sessionsWithDuration: number;
 }
 
 export interface LimiterCoverageItem {
