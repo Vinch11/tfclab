@@ -66,10 +66,12 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   const diagTimeTarget = getTimeTargetHint(config?.objective || "", config?.ambition || "", config?._athleteSex);
   if (diagTimeTarget) lines.push(`🎯 Temps cible: ${diagTimeTarget}`);
   
-  // Limiters (structured, ranked)
-  if (config?.identifiedLimiters && config.identifiedLimiters.length > 0) {
-    lines.push(`\n🔴 LIMITEURS CLASSÉS (${config.identifiedLimiters.length} identifiés) :`);
-    config.identifiedLimiters.forEach((l: string, i: number) => {
+  // Limiters (structured, ranked) — utilise la liste RAW légère (noms de métriques)
+  // pour rester compact (chunks 2..N réinjectent ce bloc).
+  const limitersRaw: string[] | undefined = config?.identifiedLimitersRaw;
+  if (limitersRaw && limitersRaw.length > 0) {
+    lines.push(`\n🔴 LIMITEURS CLASSÉS (${limitersRaw.length} identifiés) :`);
+    limitersRaw.forEach((l: string, i: number) => {
       const tag = i === 0 ? "L1 (PRIORITAIRE)" : i === 1 ? "L2 (SECONDAIRE)" : `L${i + 1}`;
       lines.push(`  ${tag}: ${l}`);
     });
