@@ -743,7 +743,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
 
   // === CONTRAINTE EXPLICITE : RATIOS DE RÉPARTITION SPORTIVE PAR NIVEAU D'AMBITION ===
-  const sportRatios = getSportDistributionConstraint((config.objective || "").toUpperCase(), (config.ambition || "").toLowerCase(), config.identifiedLimiters, catalogDurationStats);
+  const sportRatios = getSportDistributionConstraint((config.objective || "").toUpperCase(), (config.ambition || "").toLowerCase(), config.identifiedLimitersRaw ?? config.identifiedLimiters, catalogDurationStats);
   if (sportRatios) {
     lines.push(sportRatios);
   }
