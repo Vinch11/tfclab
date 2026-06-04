@@ -20,9 +20,12 @@
  * - les contraintes tendineuses et osseuses
  */
 
+import { getTTETargetByAmbition } from "@/lib/physiologicalTargets";
+
 // =============================================
 // TYPES
 // =============================================
+
 
 export type CAPRiskLevel = 0 | 1 | 2 | 3;
 
