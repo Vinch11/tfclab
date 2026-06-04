@@ -294,7 +294,7 @@ export function GettingStartedChecklist({
           <CardContent className="pt-2 pb-4">
             <div className="space-y-3">
               {steps.map((step) => {
-                const isComplete = step.isComplete(athlete, snapshot);
+                const isComplete = step.isComplete(athlete, snapshot, extraSignals);
                 return (
                   <div
                     key={step.id}
