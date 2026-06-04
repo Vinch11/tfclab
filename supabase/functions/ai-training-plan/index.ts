@@ -747,6 +747,14 @@ Sans ce récapitulatif structuré, le plan sera rejeté.`;
                 } else {
                   console.warn("⚠️ Failed to extract strategic recap — subsequent chunks will lack periodization context");
                 }
+
+                // F-22: Extract prescribed paces / power / HR from chunk 1 (diagnostic + recap + week 1)
+                prescribedPaces = extractPrescribedPaces(combinedChunkText);
+                if (prescribedPaces) {
+                  console.log(`🎯 F-22: Extracted prescribed paces (${prescribedPaces.length} chars): ${prescribedPaces.slice(0, 120)}…`);
+                } else {
+                  console.warn("⚠️ F-22: No prescribed paces extracted from chunk 1 — subsequent chunks may drift in intensity.");
+                }
               }
 
               // FIX #4 (audit recap): Detect active phase with broader matching
