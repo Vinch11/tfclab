@@ -803,21 +803,21 @@ const TRAIL_URBAN: LibraryWorkout[] = [
   {
     id: "URBAN_TAPIS_SL_LONG",
     cat: "A", sport: "course",
-    objectif: "[URBAIN] SL tapis incliné progressif — 90-180' à 3-8% incl. Z2, simule fatigue D+ d'une SL trail montagne",
+    objectif: "[URBAIN · TAPIS] SL tapis incliné progressif — 60-120' à 3-8% incl. Z2, simule fatigue D+ d'une SL trail montagne. Au-delà de 2h, préférer URBAN_PARC_BOUCLES_VALLONNEES ou URBAN_SL_OUTDOOR_VARIETE (outdoor) — un tapis >2h est physiologiquement OK mais très peu motivant et n'apporte plus de gain spécifique.",
     necessite: "Obligatoire",
-    when: "Build/Peak weekends sans expé hors-ville (1× tous les 10-15j si terrain plat)",
+    when: "Build/Peak weekends sans expé hors-ville (1× tous les 10-15j si terrain plat) — uniquement quand parc/bois inaccessible",
     phase: ["build", "peak"],
-    avoid: "Première séance >2h, chaleur salle excessive",
-    durationMin: [90, 180],
+    avoid: "Première séance >90', chaleur salle excessive, durée >2h (basculer outdoor)",
+    durationMin: [60, 120],
     metricKey: "cardiaque", sportKey: "course",
     structure: mkStructure([
       ["Warm-up", "15' marche/EF 1-3% incl. + activation glutes", ["Z1", "Z2"]],
-      ["Main", "Bloc continu Z2 (70-78% FCmax) avec inclinaison progressive : 30' à 3%, 30' à 5%, 30' à 7%, puis paliers de 15' alternant 5%/8%. Marche en récup brève (60-90\") chaque 30'. Hydratation 500ml/h + 40g CHO/h dès 60min. D+ tapis cumulé ≈ 800-1800m selon durée. Simulation forme/posture montée trail (penché légèrement, bras compacts).", ["Z2"]],
+      ["Main", "Bloc continu Z2 (70-78% FCmax) avec inclinaison progressive : 20' à 3%, 20' à 5%, 20' à 7%, puis paliers de 15' alternant 5%/8%. Marche en récup brève (60-90\") chaque 30'. Hydratation 500ml/h + 40g CHO/h dès 60min. D+ tapis cumulé ≈ 500-1200m selon durée. Au-delà de 120', basculer obligatoirement vers la version outdoor (parc vallonné / ponts / escaliers) — le tapis >2h détériore engagement et qualité posturale sans bénéfice spécifique additionnel.", ["Z2"]],
       ["Cool-down", "10' marche 1% décroissante + étirements complets chaîne post + foam roller", ["Z1"]]
     ]),
-    variants: { trail_short: "90-120'", trail_mountain: "120-180'", trail_ultra: "150-210' + nutrition test" },
+    variants: { trail_short: "60-90'", trail_mountain: "90-120'", trail_ultra: "120' MAX tapis — au-delà obligatoirement outdoor" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["urbain", "tapis-incliné", "SL", "endurance-D+", "substitution-trail", "fallback"]
+    tags: ["urbain", "tapis-incliné", "SL", "endurance-D+", "substitution-trail", "fallback", "cap-2h"]
   },
   {
     id: "URBAN_DOUBLE_TAPIS_AM_PM",
@@ -860,21 +860,40 @@ const TRAIL_URBAN: LibraryWorkout[] = [
   {
     id: "URBAN_PARC_BOUCLES_VALLONNEES",
     cat: "A", sport: "course",
-    objectif: "[URBAIN] SL parc/bois urbain — 90-150' Z2 sur boucles vallonnées (Bois Vincennes, Forêt Soignes, Bois Boulogne, etc.). Cumul D+ via répétitions de petites bosses",
+    objectif: "[URBAIN · OUTDOOR] SL parc/bois urbain — 90-240' Z2 sur boucles vallonnées (Bois Vincennes, Forêt Soignes, Bois Boulogne, Parc Tête d'Or, etc.). Cumul D+ via répétitions de petites bosses. À PRIVILÉGIER sur tapis dès que la durée dépasse 2h.",
     necessite: "Obligatoire",
-    when: "Build/Peak weekends (1×/sem si parc/bois accessible avec D+ local)",
+    when: "Build/Peak weekends (1×/sem si parc/bois accessible avec D+ local) — première option pour toute SL urbaine ≥2h",
     phase: ["base", "build", "peak"],
-    avoid: "Boucles 100% plates (utiliser tapis incliné à la place)",
-    durationMin: [90, 150],
+    avoid: "Boucles 100% plates (utiliser tapis incliné à la place, sinon URBAN_SL_OUTDOOR_VARIETE)",
+    durationMin: [90, 240],
     metricKey: "cardiaque", sportKey: "course",
     structure: mkStructure([
       ["Warm-up", "15' EF Z1/Z2 plat", ["Z1", "Z2"]],
-      ["Main", "90-150' continu Z2 sur boucle vallonnée (3-5km par boucle, 30-80m D+/boucle). Multiplier les répétitions de la même bosse pour cumuler 400-900m D+ total. Marcher activement les bosses raides >12% pour reproduire effort trail. Hydratation/nutrition 30-50g CHO/h dès 60min.", ["Z2"]],
+      ["Main", "90-240' continu Z2 sur boucle vallonnée (3-5km par boucle, 30-80m D+/boucle). Multiplier les répétitions de la même bosse pour cumuler 400-1500m D+ total. Marcher activement les bosses raides >12% pour reproduire effort trail. Hydratation/nutrition 30-50g CHO/h dès 60min. Pour >3h : 2-3 boucles différentes (bois principal + boucle annexe + crochet escaliers) pour variété mentale.", ["Z2"]],
       ["Cool-down", "10' EF Z1 + étirements + mobilité", ["Z1"]]
     ]),
-    variants: { trail_short: "90-120'", trail_mountain: "120-150'", trail_ultra: "150-210'" },
+    variants: { trail_short: "90-120'", trail_mountain: "120-180'", trail_ultra: "180-240'" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["urbain", "parc", "endurance-D+", "SL", "substitution-trail", "fallback"]
+    tags: ["urbain", "parc", "endurance-D+", "SL", "substitution-trail", "outdoor", "preferred-long"]
+  },
+  {
+    id: "URBAN_SL_OUTDOOR_VARIETE",
+    cat: "A", sport: "course",
+    objectif: "[URBAIN · OUTDOOR] SL urbaine variée — 120-210' Z2 alternant parc + ponts + escaliers + quais + petites côtes urbaines. Alternative outdoor PRIORITAIRE au tapis pour les sorties longues 2-3h en ville sans bois accessible.",
+    necessite: "Obligatoire",
+    when: "Build/Peak weekends quand parc/bois éloigné (1×/sem) — préférée au tapis dès que durée ≥120'",
+    phase: ["build", "peak"],
+    avoid: "Trafic dense (privilégier tôt le matin / dimanche), canicule (déplacer aube)",
+    durationMin: [120, 210],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF Z1/Z2 plat (départ domicile)", ["Z1", "Z2"]],
+      ["Main", "Itinéraire en 4-5 segments enchaînés (Z2 strict 70-78% FCmax) : (1) 30-40' bord de fleuve/quais plat ; (2) 25-35' boucle parc/square avec petites bosses ; (3) 15-25' insertion escaliers (3-5 montées de 60-120 marches en Z2, descente trottinée) ; (4) 25-40' enchaînement ponts/passerelles avec rampes (rampe = 30-60s effort Z2 haut, redescente facile) ; (5) 20-40' retour bord de fleuve. Cumul D+ visé 300-900m via bosses + escaliers. Hydratation/nutrition 30-50g CHO/h dès 60min. Variation visuelle/mentale = engagement préservé sur 2-3h.", ["Z2"]],
+      ["Cool-down", "10' EF Z1 + étirements complets + foam roller", ["Z1"]]
+    ]),
+    variants: { trail_short: "120'", trail_mountain: "150-180'", trail_ultra: "180-210'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "outdoor", "varié", "ponts", "escaliers", "SL", "substitution-trail", "preferred-long"]
   },
   {
     id: "URBAN_ESCALIERS_TEMPO_LONG",
@@ -954,21 +973,21 @@ const TRAIL_URBAN: LibraryWorkout[] = [
   {
     id: "URBAN_RACESIM_TAPIS_NUTRITION",
     cat: "Race-Sim", sport: "course",
-    objectif: "[URBAIN] Race-sim tapis incliné — 2-4h tapis 4-7% incl. Z2 avec test nutrition/hydratation/matériel jour J. Substitue race-sim trail montagne",
+    objectif: "[URBAIN · TAPIS] Race-sim tapis incliné — 90-150' tapis 4-7% incl. Z2 avec test nutrition/hydratation/matériel jour J. Format court (≤2h30) volontairement : pour une race-sim plus longue, utiliser URBAN_PARC_BOUCLES_VALLONNEES ou URBAN_SL_OUTDOOR_VARIETE avec sac lesté et matériel complet.",
     necessite: "Recommandé",
     when: "Peak (1× dans les 4-6 sem avant course, équipement complet)",
     phase: ["peak"],
-    avoid: "Chaleur salle excessive (>22°C), première séance >2h sans préparation",
-    durationMin: [120, 240],
+    avoid: "Chaleur salle excessive (>22°C), durée >2h30 (basculer outdoor)",
+    durationMin: [90, 150],
     metricKey: "cardiaque", sportKey: "course",
     structure: mkStructure([
       ["Warm-up", "10' marche + EF 1% incl. (équipement complet déjà porté)", ["Z1", "Z2"]],
-      ["Main", "2-4h continu Z2 strict avec inclinaison alternée : blocs de 30' à 4%/5%/7% en rotation. Sac dorsal lesté 4-6kg. Tester EXACTEMENT la nutrition/hydratation/électrolytes prévus le jour J (gels, barres, boissons, fréquence). Tester chaussures + chaussettes + cuissard + casquette + bâtons (poussée sur tapis si possible). Ventilation salle ouverte si possible. Cible: 90% des conditions jour J sans le D+ naturel.", ["Z2"]],
+      ["Main", "90-150' continu Z2 strict avec inclinaison alternée : blocs de 30' à 4%/5%/7% en rotation. Sac dorsal lesté 4-6kg. Tester EXACTEMENT la nutrition/hydratation/électrolytes prévus le jour J (gels, barres, boissons, fréquence). Tester chaussures + chaussettes + cuissard + casquette + bâtons (poussée sur tapis si possible). Ventilation salle ouverte si possible. Cible: 90% des conditions jour J sans le D+ naturel. Au-delà de 2h30, faire la race-sim outdoor — l'engagement et la qualité posturale chutent sur tapis long.", ["Z2"]],
       ["Cool-down", "10' marche 1% + étirements + retour calme alimentaire", ["Z1"]]
     ]),
-    variants: { trail_short: "120-150'", trail_mountain: "180-210'", trail_ultra: "210-240' + simulation nocturne" },
+    variants: { trail_short: "90-120'", trail_mountain: "120-150'", trail_ultra: "150' tapis MAX — passer outdoor au-delà" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["urbain", "race-sim", "tapis-incliné", "nutrition-test", "substitution-trail", "fallback"]
+    tags: ["urbain", "race-sim", "tapis-incliné", "nutrition-test", "substitution-trail", "fallback", "cap-2h30"]
   },
   {
     id: "URBAN_BATONS_TECHNIQUE_PARC",
