@@ -2,7 +2,10 @@
 // TTE PRO - Time To Exhaustion Calculations
 // =============================================
 
+import { getTTETargetByAmbition } from "@/lib/physiologicalTargets";
+
 export type TTEMode = "LOAD" | "OBSERVED";
+
 
 export interface TTEInput {
   ftp: number | null;
