@@ -831,6 +831,43 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     }
   }
 
+  // ✅ H2 — Limiteur secondaire (catégorie DIFFÉRENTE du primaire)
+  const secondaryCategoryEntry = categoryRanking
+    .slice(1)
+    .find(c => c.category !== topCategory?.category && c.totalImpact > 5)
+    ?? null;
+  let secondaryLimiter: UnifiedLimiter = "none";
+  let secondaryLever: UnifiedLever = "maintain";
+  if (secondaryCategoryEntry) {
+    secondaryLimiter = CATEGORY_TO_UNIFIED_LIMITER[secondaryCategoryEntry.category];
+    secondaryLever = CATEGORY_TO_LEVER[secondaryCategoryEntry.category];
+    // Mêmes affinages que pour le primaire
+    if (
+      secondaryCategoryEntry.category === "metabolic_endurance" &&
+      secondaryCategoryEntry.metrics.length === 1 &&
+      secondaryCategoryEntry.metrics[0].metric === "FatMax"
+    ) {
+      secondaryLimiter = "metabolic_efficiency";
+      secondaryLever = "increase_fat_oxidation";
+    }
+    if (
+      secondaryCategoryEntry.category === "neuromuscular" &&
+      secondaryCategoryEntry.metrics.length === 1 &&
+      (secondaryCategoryEntry.metrics[0].metric === "W'" || secondaryCategoryEntry.metrics[0].metric === "W' (kJ)")
+    ) {
+      secondaryLimiter = "anaerobic_capacity";
+      secondaryLever = "adjust_anaerobic";
+    }
+  }
+
+  // ✅ H3 — Sévérité basée sur l'impact dominant de la catégorie primaire
+  const primaryImpact = topCategory?.dominantImpact ?? 0;
+  const severity: "none" | "mild" | "moderate" | "severe" =
+    primaryLimiter === "none" ? "none"
+    : primaryImpact >= 30 ? "severe"
+    : primaryImpact >= 15 ? "moderate"
+    : "mild";
+
   // Calcul du détail de faiblesse aérobie
   // En mode running : VMA remplace FTP/kg dans l'analyse
   const aerobicExpressionAnalysis = gapAnalysis.find(g => g.metric === "VMA" || g.metric === "FTP/kg");
