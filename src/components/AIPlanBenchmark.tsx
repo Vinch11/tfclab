@@ -36,6 +36,7 @@ interface AIPlanBenchmarkProps {
   identifiedLimiters?: string[];
   identifiedLimiterKeys?: string[];
   athleteData?: import("@/engines/plan/types").PlanAthleteData;
+  coachLimiterOrder?: string[];
 }
 
 interface MetricGauge {
@@ -445,13 +446,13 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
   );
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData }: AIPlanBenchmarkProps) {
+export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
   const validationResult = useMemo(
-    () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData),
-    [plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData]
+    () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder),
+    [plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder]
   );
 
   if (!metrics || !ref) return null;

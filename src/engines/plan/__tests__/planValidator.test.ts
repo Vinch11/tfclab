@@ -233,4 +233,47 @@ describe("planValidator", () => {
     expect(l1).toBeDefined();
     expect(l1!.pct).toBeGreaterThanOrEqual(30);
   });
+
+  // F-05 — Rule 6 : count ALL catalog IDs per session (multi-ID brick / pyramid)
+  it("F-05: counts every catalog ID emitted in a single key session", () => {
+    const plan = makePlan(Array.from({ length: 4 }, (_, i) =>
+      makeWeek(i + 1, [
+        // Brick: 2 IDs concatenated in the same key session
+        { sport: "Brick", title: "🔑 BRICK_703_BIKE_RUN — B_BIKE_SST_3x20 + B_RUN_TEMPO_LONG", details: "Séance clé brick" },
+        { sport: "Vélo", title: "🔑 V3_BIKE_Z2_ENDURANCE_LONG", details: "Endurance" },
+        { sport: "Course", title: "🔑 B_RUN_VO2_30_30", details: "VO2max" },
+      ])
+    ));
+    const result = validatePlan(plan);
+    // Without F-05: only first ID counted → uniqueCatalogIds = 3
+    // With F-05: brick session yields 2 unique IDs → uniqueCatalogIds ≥ 4
+    expect(result.catalogStats.uniqueCatalogIds).toBeGreaterThanOrEqual(4);
+  });
+
+  // F-14 — coachLimiterOrder defensively re-sorts identifiedLimiterKeys
+  it("F-14: coachLimiterOrder reorders L1/L2 for limiter coherence scoring", () => {
+    // Plan with 4× VO2 sessions and 1× seuil session — naturally favors vo2max as L1
+    const plan = makePlan(Array.from({ length: 4 }, (_, i) =>
+      makeWeek(i + 1, [
+        { sport: "Course", title: "🔑 Intervalles VO2 5x3min Z5", details: "VO2max" },
+        { sport: "Course", title: "🔑 Seuil 2x20min", details: "Seuil TTE" },
+        { sport: "Course", title: "EF Z2 50min", details: "Récup" },
+      ])
+    ));
+
+    // Pass keys in "wrong" order (vo2max first) but coach overrides → tte should rank first
+    const result = validatePlan(
+      plan,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ["vo2max", "tte"],            // naive order
+      undefined,
+      ["TTE", "VO2max"]             // coach override (metric names)
+    );
+    // After defensive re-sort, "tte" must be ranked L1 (first in coverage array)
+    expect(result.limiterCoverage[0]?.key).toBe("tte");
+    expect(result.limiterCoverage[1]?.key).toBe("vo2max");
+  });
 });

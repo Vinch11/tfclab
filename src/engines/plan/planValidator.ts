@@ -555,17 +555,21 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
 
       totalKeySessions++;
       CATALOG_ID_PATTERN.lastIndex = 0;
-      const match = CATALOG_ID_PATTERN.exec(text);
+      const ids: string[] = [];
+      let m: RegExpExecArray | null;
+      while ((m = CATALOG_ID_PATTERN.exec(text)) !== null) {
+        ids.push(m[0]);
+      }
+      CATALOG_ID_PATTERN.lastIndex = 0;
       const isCustom = CUSTOM_PATTERN.test(text);
+      CUSTOM_PATTERN.lastIndex = 0;
 
-      if (match) {
+      if (ids.length > 0) {
         catalogSessions++;
-        uniqueCatalogIds.add(match[0]);
+        for (const id of ids) uniqueCatalogIds.add(id);
       } else if (isCustom) {
         customSessions++;
       }
-      CATALOG_ID_PATTERN.lastIndex = 0;
-      CUSTOM_PATTERN.lastIndex = 0;
     }
   }
 
@@ -1382,8 +1386,27 @@ export function validatePlan(
   raceWeekNumbers?: number[],
   identifiedLimiters?: string[],
   identifiedLimiterKeys?: string[],
-  athleteData?: PlanAthleteData
+  athleteData?: PlanAthleteData,
+  coachLimiterOrder?: string[]
 ): PlanValidationResult {
+  // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
+  // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
+  // sorted, but if a caller forgets, this guarantees L1/L2 in validateLimiterCoherence
+  // match the coach's manual order.
+  let effectiveLimiterKeys = identifiedLimiterKeys;
+  if (coachLimiterOrder && coachLimiterOrder.length > 0 && identifiedLimiterKeys && identifiedLimiterKeys.length > 0) {
+    const coachKeyOrder = coachLimiterOrder
+      .map((m) => detectLimiterKeyFromMetric(m))
+      .filter((k): k is string => !!k);
+    effectiveLimiterKeys = [...identifiedLimiterKeys].sort((a, b) => {
+      const idxA = coachKeyOrder.indexOf(a);
+      const idxB = coachKeyOrder.indexOf(b);
+      const posA = idxA >= 0 ? idxA : 999;
+      const posB = idxB >= 0 ? idxB : 999;
+      return posA - posB;
+    });
+  }
+
   // Extract metrics for each week
   const weekMetrics = plan.weeks.map(extractWeekMetrics);
 
@@ -1397,7 +1420,7 @@ export function validatePlan(
   const prohibitionCompliance = validateProhibitionCompliance(plan, prohibitions);
   const phaseCoherence = validatePhaseCoherence(plan);
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
-  const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, identifiedLimiterKeys);
+  const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, effectiveLimiterKeys);
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
 
   // Combine all issues
