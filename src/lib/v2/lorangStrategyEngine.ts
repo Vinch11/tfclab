@@ -448,22 +448,40 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
       .filter(g => g.status === "limiting")
       .sort((a, b) => b.weightedImpact - a.weightedImpact);
     
-    // ✅ FIX: Si aucun gap "limiting" mais un primaryLimiter est identifié,
-    // inclure les gaps "attention" avec un écart significatif
+    // ✅ FIX BUG TTE 59% sous/au-dessus : ne retenir comme "raison limitante" que les gaps
+    // dont le signe correspond effectivement à une faiblesse pour la métrique considérée.
+    // - "higher is better" (TTE, VO2max, FTP/kg, VMA, FatMax, W', Durabilité, Économie) : gap < -5%
+    // - "lower is better"  (VLamax) : gap > +5%
+    const isLowerIsBetterMetric = (m: string) => m === "VLamax";
+    const isAttentionLimiting = (g: { metric: string; gapPercent: number }) => {
+      const gp = g.gapPercent;
+      if (isLowerIsBetterMetric(g.metric)) return gp >= 5;
+      return gp <= -5;
+    };
     const reasonGaps = limitingGapsForReasons.length > 0 
       ? limitingGapsForReasons 
       : unified.gapAnalysis
-          .filter(g => g.gapPercent !== 0 && Math.abs(g.gapPercent) >= 5)
+          .filter(isAttentionLimiting)
           .sort((a, b) => b.weightedImpact - a.weightedImpact);
     
+    // ✅ FIX : phraser selon le SIGNE du gap et la sémantique de la métrique
+    const formatGapReason = (g: { metric: string; gapPercent: number; value: number | null; target: number | null }) => {
+      const abs = Math.abs(g.gapPercent).toFixed(0);
+      if (isLowerIsBetterMetric(g.metric)) {
+        // VLamax : un excès au-dessus de la cible = problème
+        return g.gapPercent >= 0
+          ? `${g.metric} ${abs}% au-dessus de la cible`
+          : `${g.metric} ${abs}% sous la cible`;
+      }
+      // Métriques "plus = mieux" : en-dessous = problème
+      return g.gapPercent < 0
+        ? `${g.metric} ${abs}% sous la cible`
+        : `${g.metric} ${abs}% au-dessus de la cible`;
+    };
     const reasons = reasonGaps
       .slice(0, 3)
-      .map(g => {
-        if (g.metric === "VLamax") {
-          return `VLamax ${Math.abs(g.gapPercent).toFixed(0)}% au-dessus de la cible`;
-        }
-        return `${g.metric} ${Math.abs(g.gapPercent).toFixed(0)}% sous la cible`;
-      });
+      .map(formatGapReason);
+
     
     // Calculer la confiance à partir de l'écart entre les 2 premiers limiteurs
     const gapClarity = limitingGapsForReasons.length > 1 
@@ -623,8 +641,9 @@ function activateLevers(
       label: LEVER_DEFINITIONS.vo2_intervals.label,
       icon: LEVER_DEFINITIONS.vo2_intervals.icon,
       priority: primaryLimiter === 'motor' && vo2maxLow ? 1 : 2,
-      reason: vo2Gap 
+      reason: vo2Gap && vo2Gap.gapPercent < 0
         ? `VO₂max ${Math.abs(vo2Gap.gapPercent).toFixed(0)}% sous la cible (${vo2Gap.value} vs ${vo2Gap.target} ml/min/kg) — développer le plafond aérobie`
+
         : "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
       prescription: [
         "5×4min Z5 r3min (classique Billat)",
@@ -654,8 +673,9 @@ function activateLevers(
       label: LEVER_DEFINITIONS.threshold_work.label,
       icon: LEVER_DEFINITIONS.threshold_work.icon,
       priority: (primaryLimiter === 'motor' && ftpKgLow) || isMetricLimiting("FTP/kg") || isMetricLimiting("VMA") ? 1 : 2,
-      reason: ftpGap 
+      reason: ftpGap && ftpGap.gapPercent < 0
         ? `${ftpGap.metric} ${Math.abs(ftpGap.gapPercent).toFixed(0)}% sous la cible (${ftpGap.value?.toFixed(1)} vs ${ftpGap.target?.toFixed(1)}) — développer la puissance soutenue`
+
         : "FTP/kg insuffisant par rapport à la cible — développer l'expression aérobie via travail au seuil",
       prescription: [
         "2×20min au seuil (FTP/allure seuil)",
@@ -693,8 +713,9 @@ function activateLevers(
     
     // Déterminer la raison principale
     let z2Reason: string;
-    if (tteIsLimiting && tteGap) {
+    if (tteIsLimiting && tteGap && tteGap.gapPercent < 0) {
       z2Reason = `TTE ${Math.abs(tteGap.gapPercent).toFixed(0)}% sous la cible (${tteGap.value}min vs ${tteGap.target}min) — développer la durabilité`;
+
     } else if (vlamaxIsLimiting && vlamaxGap) {
       z2Reason = `VLamax ${Math.abs(vlamaxGap.gapPercent).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
     } else {
