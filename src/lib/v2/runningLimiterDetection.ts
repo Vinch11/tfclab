@@ -262,7 +262,9 @@ export function detectRunningLimiter(input: RunningLimiterInput): RunningLimiter
       : input.economyScore >= economyTarget * 0.85 ? "acceptable"
       : "limiting",
     weight: weights.economy,
-    weightedImpact: economyGap < 0 ? Math.abs(economyGap) * weights.economy * 100 : 0,
+    // ✅ DOCTRINE TFCL : Économie de course = modulateur d'efficience, JAMAIS limiteur #1
+    // (multiplicateur des 4 piliers, n'affecte pas le plafond physiologique)
+    weightedImpact: 0,
   });
   
   // 4. Analyse Durabilité
