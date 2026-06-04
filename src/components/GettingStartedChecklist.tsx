@@ -197,7 +197,7 @@ export function GettingStartedChecklist({
 
   // Calculer la progression
   const completedSteps = steps.filter((step) =>
-    step.isComplete(athlete, snapshot)
+    step.isComplete(athlete, snapshot, extraSignals)
   );
   const progress = Math.round((completedSteps.length / steps.length) * 100);
   const isAllComplete = progress === 100;
