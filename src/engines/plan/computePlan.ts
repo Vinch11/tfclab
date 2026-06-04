@@ -18,6 +18,7 @@
 import type {
   PlanGenerationConfig,
   ParsedPlan,
+  ParsedWeek,
   ParsedSession,
 } from "./types";
 import type { PlanAthleteData } from "@/hooks/useAITrainingPlan";
