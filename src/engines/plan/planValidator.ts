@@ -19,6 +19,7 @@ import {
   analyzeCriticalPower,
   effectiveWprime,
   prescribeIntervalRecovery,
+  calculateTau,
 } from "@/lib/v2/criticalPowerModel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
