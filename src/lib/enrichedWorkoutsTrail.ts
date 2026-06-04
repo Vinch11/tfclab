@@ -803,21 +803,21 @@ const TRAIL_URBAN: LibraryWorkout[] = [
   {
     id: "URBAN_TAPIS_SL_LONG",
     cat: "A", sport: "course",
-    objectif: "[URBAIN] SL tapis incliné progressif — 90-180' à 3-8% incl. Z2, simule fatigue D+ d'une SL trail montagne",
+    objectif: "[URBAIN · TAPIS] SL tapis incliné progressif — 60-120' à 3-8% incl. Z2, simule fatigue D+ d'une SL trail montagne. Au-delà de 2h, préférer URBAN_PARC_BOUCLES_VALLONNEES ou URBAN_SL_OUTDOOR_VARIETE (outdoor) — un tapis >2h est physiologiquement OK mais très peu motivant et n'apporte plus de gain spécifique.",
     necessite: "Obligatoire",
-    when: "Build/Peak weekends sans expé hors-ville (1× tous les 10-15j si terrain plat)",
+    when: "Build/Peak weekends sans expé hors-ville (1× tous les 10-15j si terrain plat) — uniquement quand parc/bois inaccessible",
     phase: ["build", "peak"],
-    avoid: "Première séance >2h, chaleur salle excessive",
-    durationMin: [90, 180],
+    avoid: "Première séance >90', chaleur salle excessive, durée >2h (basculer outdoor)",
+    durationMin: [60, 120],
     metricKey: "cardiaque", sportKey: "course",
     structure: mkStructure([
       ["Warm-up", "15' marche/EF 1-3% incl. + activation glutes", ["Z1", "Z2"]],
-      ["Main", "Bloc continu Z2 (70-78% FCmax) avec inclinaison progressive : 30' à 3%, 30' à 5%, 30' à 7%, puis paliers de 15' alternant 5%/8%. Marche en récup brève (60-90\") chaque 30'. Hydratation 500ml/h + 40g CHO/h dès 60min. D+ tapis cumulé ≈ 800-1800m selon durée. Simulation forme/posture montée trail (penché légèrement, bras compacts).", ["Z2"]],
+      ["Main", "Bloc continu Z2 (70-78% FCmax) avec inclinaison progressive : 20' à 3%, 20' à 5%, 20' à 7%, puis paliers de 15' alternant 5%/8%. Marche en récup brève (60-90\") chaque 30'. Hydratation 500ml/h + 40g CHO/h dès 60min. D+ tapis cumulé ≈ 500-1200m selon durée. Au-delà de 120', basculer obligatoirement vers la version outdoor (parc vallonné / ponts / escaliers) — le tapis >2h détériore engagement et qualité posturale sans bénéfice spécifique additionnel.", ["Z2"]],
       ["Cool-down", "10' marche 1% décroissante + étirements complets chaîne post + foam roller", ["Z1"]]
     ]),
-    variants: { trail_short: "90-120'", trail_mountain: "120-180'", trail_ultra: "150-210' + nutrition test" },
+    variants: { trail_short: "60-90'", trail_mountain: "90-120'", trail_ultra: "120' MAX tapis — au-delà obligatoirement outdoor" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["urbain", "tapis-incliné", "SL", "endurance-D+", "substitution-trail", "fallback"]
+    tags: ["urbain", "tapis-incliné", "SL", "endurance-D+", "substitution-trail", "fallback", "cap-2h"]
   },
   {
     id: "URBAN_DOUBLE_TAPIS_AM_PM",
