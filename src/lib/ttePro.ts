@@ -2,7 +2,10 @@
 // TTE PRO - Time To Exhaustion Calculations
 // =============================================
 
+import { getTTETargetByAmbition } from "@/lib/physiologicalTargets";
+
 export type TTEMode = "LOAD" | "OBSERVED";
+
 
 export interface TTEInput {
   ftp: number | null;
@@ -89,39 +92,22 @@ export function calculTTE(input: TTEInput): TTEResult {
 }
 
 /**
- * Get TTE target based on objective
- * Note: For age-adjusted targets, use getTTETargetForAge from ageAdjustment.ts
+ * Get TTE target based on objective.
+ *
+ * R4 : délègue à `getTTETargetByAmbition` (source unique = physiologicalTargets.ts).
+ * R5 : ajustement d'âge propagé via la matrice canonique.
+ *
+ * Signature legacy conservée : si `ambition` n'est pas fourni, on prend "age_group"
+ * pour rester aligné avec les baselines historiques (45–55 min selon objectif).
  */
-export function getTTETarget(objectif: string, age?: number | null): number {
-  const obj = (objectif || "").toLowerCase();
-  
-  // Base targets (for young athletes / no age specified)
-  let baseTarget: number;
-  if (obj.includes("ironman") || obj.includes("im") || obj.includes("ultra")) {
-    baseTarget = 55;
-  } else if (obj.includes("70.3") || obj.includes("half") || obj.includes("marathon")) {
-    baseTarget = 50;
-  } else if (obj.includes("olympic") || obj.includes("sprint")) {
-    baseTarget = 40;
-  } else {
-    baseTarget = 45;
-  }
-  
-  // Apply age adjustment if age is provided
-  if (age != null && age >= 30) {
-    // Reduce target progressively with age
-    // 30-39: -2 min, 40-49: -5 min, 50+: -8 min
-    if (age >= 50) {
-      return Math.max(baseTarget - 8, 35);
-    } else if (age >= 40) {
-      return Math.max(baseTarget - 5, 38);
-    } else {
-      return Math.max(baseTarget - 2, 40);
-    }
-  }
-  
-  return baseTarget;
+export function getTTETarget(
+  objectif: string,
+  age?: number | null,
+  ambition: import("@/types/ambitionLevel").AmbitionLevel = "age_group",
+): number {
+  return getTTETargetByAmbition(objectif, ambition, age ?? null);
 }
+
 
 /**
  * Evaluate TTE status relative to goal

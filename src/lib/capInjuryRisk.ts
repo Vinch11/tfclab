@@ -20,9 +20,12 @@
  * - les contraintes tendineuses et osseuses
  */
 
+import { getTTETargetByAmbition } from "@/lib/physiologicalTargets";
+
 // =============================================
 // TYPES
 // =============================================
+
 
 export type CAPRiskLevel = 0 | 1 | 2 | 3;
 
@@ -44,7 +47,12 @@ interface CAPRiskParams {
   vlamaxValue: number | null;
   tteValue: number | null;
   objectif: string;
+  /** R4 : ambition (défaut "age_group" pour préserver le comportement legacy) */
+  ambition?: import("@/types/ambitionLevel").AmbitionLevel;
+  /** R5 : âge pour ajustement TTE via getTTETargetByAmbition */
+  age?: number | null;
 }
+
 
 // =============================================
 // SEUILS PAR OBJECTIF
@@ -57,57 +65,46 @@ interface ObjectifThresholds {
   tteTolerance: number; // marge en minutes
 }
 
-function getThresholdsForObjectif(objectif: string): ObjectifThresholds {
+/**
+ * R4 : seuils dérivés de la source unique `getTTETargetByAmbition`
+ * (matrice canonique objectif × ambition + ajustement âge R5).
+ *
+ * Les seuils VLamax restent locaux car spécifiques au risque blessure CAP
+ * (plus stricts que la matrice de performance générique).
+ */
+function getThresholdsForObjectif(
+  objectif: string,
+  ambition: import("@/types/ambitionLevel").AmbitionLevel = "age_group",
+  age: number | null = null,
+): ObjectifThresholds {
   const normalizedGoal = objectif.toLowerCase();
-  
+  const tteTarget = getTTETargetByAmbition(objectif, ambition, age);
+  const tteTolerance = 5;
+
   // Semi-marathon
   if (normalizedGoal.includes("semi") || normalizedGoal.includes("21k")) {
-    return {
-      vlamaxIdeal: 0.45,
-      vlamaxTolerable: 0.55,
-      tteTarget: 47, // 45-50 min
-      tteTolerance: 5
-    };
+    return { vlamaxIdeal: 0.45, vlamaxTolerable: 0.55, tteTarget, tteTolerance };
   }
-  
+
   // Marathon
   if (normalizedGoal.includes("marathon") && !normalizedGoal.includes("semi")) {
-    return {
-      vlamaxIdeal: 0.40,
-      vlamaxTolerable: 0.50,
-      tteTarget: 52, // 50-55 min
-      tteTolerance: 5
-    };
+    return { vlamaxIdeal: 0.40, vlamaxTolerable: 0.50, tteTarget, tteTolerance };
   }
-  
+
   // Ironman 70.3
   if (normalizedGoal.includes("70.3") || normalizedGoal.includes("703") || normalizedGoal.includes("half ironman")) {
-    return {
-      vlamaxIdeal: 0.42,
-      vlamaxTolerable: 0.52,
-      tteTarget: 50,
-      tteTolerance: 5
-    };
+    return { vlamaxIdeal: 0.42, vlamaxTolerable: 0.52, tteTarget, tteTolerance };
   }
-  
+
   // Ironman Full
   if (normalizedGoal.includes("ironman") || normalizedGoal.includes("kona") || normalizedGoal.includes("im full")) {
-    return {
-      vlamaxIdeal: 0.35,
-      vlamaxTolerable: 0.45,
-      tteTarget: 55,
-      tteTolerance: 5
-    };
+    return { vlamaxIdeal: 0.35, vlamaxTolerable: 0.45, tteTarget, tteTolerance };
   }
-  
+
   // Default (Semi-like)
-  return {
-    vlamaxIdeal: 0.45,
-    vlamaxTolerable: 0.55,
-    tteTarget: 47,
-    tteTolerance: 5
-  };
+  return { vlamaxIdeal: 0.45, vlamaxTolerable: 0.55, tteTarget, tteTolerance };
 }
+
 
 // =============================================
 // CALCUL DU SCORE VLAMAX (CAP)
@@ -304,9 +301,10 @@ function generateStaffAnalysis(
 // =============================================
 
 export function computeCAPInjuryRisk(params: CAPRiskParams): CAPInjuryRiskResult {
-  const { vlamaxValue, tteValue, objectif } = params;
-  
-  const thresholds = getThresholdsForObjectif(objectif);
+  const { vlamaxValue, tteValue, objectif, ambition, age } = params;
+
+  const thresholds = getThresholdsForObjectif(objectif, ambition ?? "age_group", age ?? null);
+
   
   const vlamaxScore = computeVLamaxScore(vlamaxValue, thresholds);
   const tteScore = computeTTEScore(tteValue, thresholds);
