@@ -783,7 +783,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate]);
+  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals]);
 
   const handleLoadVersion = useCallback((version: { plan_json: any }) => {
     const pj = version.plan_json || {};
