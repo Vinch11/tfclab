@@ -714,6 +714,45 @@ export default function AITrainingPlanPage() {
         .flatMap(w => w.sessions || [])
         .filter(s => !s.isRest).length;
 
+      // F-16: compute validator score at save time and persist alongside the plan
+      // so we can measure AI plan quality drift over time (per athlete/objective).
+      let validatorScore: number | null = null;
+      let validatorGrade: string | null = null;
+      let validatorSummary: Record<string, unknown> | null = null;
+      try {
+        if (athleteContext) {
+          const cfg = buildConfigFromDiag(athleteContext.diagnostic);
+          const limiterKeys = deriveLimiterKeysFromGapAnalysis(
+            athleteContext.diagnostic.limiter.gapAnalysis,
+            coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
+          );
+          const raceNums: number[] = [];
+          const allGoals = [{ raceDate, priority: "A" as const }, ...raceGoals];
+          for (const g of allGoals) {
+            if (!g.raceDate) continue;
+            try {
+              const days = differenceInCalendarDays(parseISO(g.raceDate), planStartDate);
+              if (days >= 0) raceNums.push(Math.floor(days / 7) + 1);
+            } catch { /* ignore */ }
+          }
+          const vr = validatePlan(
+            parsedPlan,
+            objective,
+            cfg?.prohibitions,
+            raceNums.length > 0 ? raceNums : undefined,
+            cfg?.identifiedLimiters,
+            limiterKeys,
+            athleteContext.data,
+            coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
+          );
+          validatorScore = vr.score;
+          validatorGrade = vr.grade;
+          validatorSummary = vr.summary as unknown as Record<string, unknown>;
+        }
+      } catch (vErr) {
+        console.warn("[F-16] validator failed, persisting plan without score:", vErr);
+      }
+
       // Archive this plan version (history only — no write to training_plan)
       const { error } = await supabase.from("plan_versions").insert({
         athlete_id: currentAthlete.id,
@@ -729,6 +768,9 @@ export default function AITrainingPlanPage() {
         objective: objective || currentAthlete.goal || null,
         weeks_count: parsedPlan.weeks?.length || null,
         sessions_count: sessionsCount,
+        validator_score: validatorScore,
+        validator_grade: validatorGrade,
+        validator_summary: validatorSummary as any,
       });
       if (error) throw error;
 
