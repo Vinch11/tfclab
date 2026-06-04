@@ -48,6 +48,10 @@ import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { predictRaceDurationMin, type RaceChronos } from "@/lib/raceTimePredictor";
+import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 
 const OBJECTIVE_OPTIONS = [
   { value: "IM", label: "Ironman" },
