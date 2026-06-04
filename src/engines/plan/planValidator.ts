@@ -14,7 +14,7 @@
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 import type { PlanAthleteData } from "./types";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
-import { detectInterval, isCyclingSession } from "./wbalPostProcessor";
+import { detectInterval, detectAllIntervals, isCyclingSession } from "./wbalPostProcessor";
 import {
   analyzeCriticalPower,
   effectiveWprime,
@@ -1297,67 +1297,69 @@ function validateWbalFeasibility(
       if (session.isRest) continue;
       if (!isCyclingSession(session)) continue;
 
-      const detected = detectInterval(session.details);
-      if (!detected) continue;
+      const blocks = detectAllIntervals(session.details);
+      if (blocks.length === 0) continue;
 
-      scanned++;
+      for (const detected of blocks) {
+        scanned++;
 
-      const refWatts = detected.intensityRef === "FTP" ? ftp : cp;
-      const intervalPowerW = Math.round((refWatts * detected.pctIntensity) / 100);
+        const refWatts = detected.intensityRef === "FTP" ? ftp : cp;
+        const intervalPowerW = Math.round((refWatts * detected.pctIntensity) / 100);
 
-      // Sub-CP intervals: W' n'est pas drainé → toujours faisable
-      if (intervalPowerW <= cp) continue;
+        // Sub-CP intervals: W' n'est pas drainé → toujours faisable
+        if (intervalPowerW <= cp) continue;
 
-      // Coût d'1 rep vs W' total (cap physiologique strict)
-      const singleRepCostJ = (intervalPowerW - cp) * detected.durationSec;
-      if (singleRepCostJ > wprime) {
-        infeasible++;
-        issues.push({
-          rule: "wbal_feasibility",
-          severity: "error",
-          week: week.weekNumber,
-          message: `S${week.weekNumber} — "${session.title}" : 1 rep dépasse W' disponible`,
-          detail: `Coût ${Math.round(singleRepCostJ / 100) / 10}kJ > W'=${wKJ}kJ (CP=${cp}W, ${intervalPowerW}W = ${detected.pctIntensity}%${detected.intensityRef}, ${detected.durationSec}s). L'athlète atteindra l'épuisement avant la fin du 1er intervalle.`,
-        });
-        continue;
-      }
-
-      // Simulation multi-rep avec le repos prescrit par le plan
-      const prescription = prescribeIntervalRecovery(cp, wprime, intervalPowerW, detected.durationSec, 0);
-      const tau = calculateTau(cp, 0); // Skiba 2015 — recoveryPower=0 (passive)
-      const wCostPerRep = singleRepCostJ;
-
-      let simWbal = wprime;
-      let achievableReps = 0;
-      for (let r = 0; r < detected.reps; r++) {
-        simWbal = simWbal - wCostPerRep;
-        if (simWbal <= 0) break;
-        achievableReps++;
-        if (r < detected.reps - 1) {
-          const depletedNow = wprime - simWbal;
-          simWbal = wprime - depletedNow * Math.exp(-detected.originalRestSec / tau);
+        // Coût d'1 rep vs W' total (cap physiologique strict)
+        const singleRepCostJ = (intervalPowerW - cp) * detected.durationSec;
+        if (singleRepCostJ > wprime) {
+          infeasible++;
+          issues.push({
+            rule: "wbal_feasibility",
+            severity: "error",
+            week: week.weekNumber,
+            message: `S${week.weekNumber} — "${session.title}" : 1 rep dépasse W' disponible`,
+            detail: `Coût ${Math.round(singleRepCostJ / 100) / 10}kJ > W'=${wKJ}kJ (CP=${cp}W, ${intervalPowerW}W = ${detected.pctIntensity}%${detected.intensityRef}, ${detected.durationSec}s). L'athlète atteindra l'épuisement avant la fin du 1er intervalle.`,
+          });
+          continue;
         }
-      }
 
-      if (achievableReps < detected.reps) {
-        infeasible++;
-        issues.push({
-          rule: "wbal_feasibility",
-          severity: "error",
-          week: week.weekNumber,
-          message: `S${week.weekNumber} — "${session.title}" : ${achievableReps}/${detected.reps} reps réalisables`,
-          detail: `W'=${wKJ}kJ, CP=${cp}W, ${intervalPowerW}W, repos ${detected.originalRestSec}s → épuisement avant le rep #${achievableReps + 1}. Repos W'bal optimal : ${prescription.optimalRecoverySec}s pour ${prescription.maxReps} reps max.`,
-        });
-      } else if (prescription.maxReps < detected.reps) {
-        // Réalisable au sens strict mais marge W'bal serrée vs optimal
-        tight++;
-        issues.push({
-          rule: "wbal_feasibility",
-          severity: "warning",
-          week: week.weekNumber,
-          message: `S${week.weekNumber} — "${session.title}" : marge W'bal serrée`,
-          detail: `${detected.reps} reps demandés, repos ${detected.originalRestSec}s court. Repos optimal W'bal : ${prescription.optimalRecoverySec}s pour préserver la qualité des derniers intervalles.`,
-        });
+        // Simulation multi-rep avec le repos prescrit par le plan
+        const prescription = prescribeIntervalRecovery(cp, wprime, intervalPowerW, detected.durationSec, 0);
+        const tau = calculateTau(cp, 0); // Skiba 2015 — recoveryPower=0 (passive)
+        const wCostPerRep = singleRepCostJ;
+
+        let simWbal = wprime;
+        let achievableReps = 0;
+        for (let r = 0; r < detected.reps; r++) {
+          simWbal = simWbal - wCostPerRep;
+          if (simWbal <= 0) break;
+          achievableReps++;
+          if (r < detected.reps - 1) {
+            const depletedNow = wprime - simWbal;
+            simWbal = wprime - depletedNow * Math.exp(-detected.originalRestSec / tau);
+          }
+        }
+
+        if (achievableReps < detected.reps) {
+          infeasible++;
+          issues.push({
+            rule: "wbal_feasibility",
+            severity: "error",
+            week: week.weekNumber,
+            message: `S${week.weekNumber} — "${session.title}" : ${achievableReps}/${detected.reps} reps réalisables`,
+            detail: `W'=${wKJ}kJ, CP=${cp}W, ${intervalPowerW}W, repos ${detected.originalRestSec}s → épuisement avant le rep #${achievableReps + 1}. Repos W'bal optimal : ${prescription.optimalRecoverySec}s pour ${prescription.maxReps} reps max.`,
+          });
+        } else if (prescription.maxReps < detected.reps) {
+          // Réalisable au sens strict mais marge W'bal serrée vs optimal
+          tight++;
+          issues.push({
+            rule: "wbal_feasibility",
+            severity: "warning",
+            week: week.weekNumber,
+            message: `S${week.weekNumber} — "${session.title}" : marge W'bal serrée`,
+            detail: `${detected.reps} reps demandés, repos ${detected.originalRestSec}s court. Repos optimal W'bal : ${prescription.optimalRecoverySec}s pour préserver la qualité des derniers intervalles.`,
+          });
+        }
       }
     }
   }
