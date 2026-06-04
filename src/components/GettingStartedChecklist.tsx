@@ -40,12 +40,22 @@ interface AthleteData {
   goal?: string | null;
 }
 
+interface ExtraSignals {
+  /** VLamax effective résolue (estimateur CAP / vélo / labo).
+   *  Permet de valider l'étape "import test" même quand snapshot.vlamax brut est null. */
+  vlamaxEffective?: number | null;
+}
+
 interface ChecklistStep {
   id: string;
   title: string;
   description: string;
   icon: React.ReactNode;
-  isComplete: (athlete: AthleteData | null, snapshot: DbSnapshot | null) => boolean;
+  isComplete: (
+    athlete: AthleteData | null,
+    snapshot: DbSnapshot | null,
+    extra?: ExtraSignals
+  ) => boolean;
   action?: {
     label: string;
     onClick: () => void;
@@ -56,6 +66,8 @@ interface ChecklistStep {
 interface GettingStartedChecklistProps {
   athlete: AthleteData | null;
   snapshot: DbSnapshot | null;
+  /** Signaux dérivés (ex: VLamax effective issue de l'estimateur). */
+  extraSignals?: ExtraSignals;
   onNavigateToProfile: () => void;
   onNavigateToTests: () => void;
   onNavigateToAcademy: () => void;
@@ -90,6 +102,7 @@ export function useGettingStartedVisibility() {
 export function GettingStartedChecklist({
   athlete,
   snapshot,
+  extraSignals,
   onNavigateToProfile,
   onNavigateToTests,
   onNavigateToAcademy,
@@ -144,14 +157,15 @@ export function GettingStartedChecklist({
         title: "Importer un test ou fichier FIT",
         description: "Analyse un effort pour estimer VLamax et TTE",
         icon: <FileUp className="w-4 h-4" />,
-        isComplete: (_, s) =>
+        isComplete: (_, s, extra) =>
           !!(
             s?.vlamax ||
             (s as any)?.vlamax_run ||
             s?.tte_observed_min ||
             (s as any)?.tte_observed_min_run ||
             (s as any)?.sprint_15s_distance ||
-            s?.vo2max
+            s?.vo2max ||
+            (extra?.vlamaxEffective != null && extra.vlamaxEffective > 0)
           ),
         action: {
           label: "Aller aux tests",
@@ -183,7 +197,7 @@ export function GettingStartedChecklist({
 
   // Calculer la progression
   const completedSteps = steps.filter((step) =>
-    step.isComplete(athlete, snapshot)
+    step.isComplete(athlete, snapshot, extraSignals)
   );
   const progress = Math.round((completedSteps.length / steps.length) * 100);
   const isAllComplete = progress === 100;
@@ -280,7 +294,7 @@ export function GettingStartedChecklist({
           <CardContent className="pt-2 pb-4">
             <div className="space-y-3">
               {steps.map((step) => {
-                const isComplete = step.isComplete(athlete, snapshot);
+                const isComplete = step.isComplete(athlete, snapshot, extraSignals);
                 return (
                   <div
                     key={step.id}
