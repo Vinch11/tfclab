@@ -414,6 +414,44 @@ export function resolveRecoveryPower(
   }
 }
 
+// F-07: pure helpers aligned with src/lib/v2/criticalPowerModel.ts so that edge-side
+// recovery prescriptions stay consistent with client-side W'bal simulation.
+export function calcTauEdge(effectiveCP: number, recPow: number): number {
+  const dcp = effectiveCP - recPow;
+  if (dcp <= 0) return Infinity;
+  return Math.max(200, Math.min(1500, 546 * Math.exp(-0.01 * dcp) + 316));
+}
+
+export function calcRecoveryEdge(
+  effectiveCP: number,
+  wprimeEffJ: number,
+  intPow: number,
+  intDur: number,
+  recPow: number
+): { rest: number; maxReps: number } {
+  if (intPow <= effectiveCP) return { rest: 60, maxReps: 20 };
+  const wbalAfter = Math.max(0, wprimeEffJ - (intPow - effectiveCP) * intDur);
+  const depleted = wprimeEffJ - wbalAfter;
+  const safeRecPow = recPow >= effectiveCP ? 0 : recPow;
+  const tau = calcTauEdge(effectiveCP, safeRecPow);
+  const target75 = wprimeEffJ * 0.75;
+  const remaining = wprimeEffJ - target75;
+  const optRest =
+    depleted > 0 && remaining < depleted ? Math.round(-tau * Math.log(remaining / depleted)) : 60;
+  const wCost = (intPow - effectiveCP) * intDur;
+  let maxReps = 0;
+  let simWbal = wprimeEffJ;
+  for (let rep = 0; rep < 30; rep++) {
+    simWbal = Math.max(0, simWbal - wCost);
+    if (simWbal <= 0) break;
+    maxReps++;
+    const depNow = wprimeEffJ - simWbal;
+    simWbal = wprimeEffJ - depNow * Math.exp(-optRest / tau);
+    if (simWbal - wCost <= 0) break;
+  }
+  return { rest: optRest, maxReps: Math.max(1, maxReps) };
+}
+
 export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrategy = "passive"): string | null {
   // Reuse shared computation
   const result = computeCPWprime(data);
@@ -475,36 +513,11 @@ export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrate
   lines.push(`- **Repos inter-séries** → calculés via W'bal avec CP effectif (${effectiveCP}W) et W' effectif (${wEffKJ} kJ)`);
   lines.push(`- **CP brut (${cpRound}W)** → affiché uniquement pour information, JAMAIS utilisé comme cible d'intensité`);
 
-  // W'bal recovery prescriptions — uses effectiveCP and W' floor (aligned with client-side)
-  // FIXED: Recovery power = 0W (passive rest) for VO2max/Sprint formats (aligned with client-side criticalPowerModel.ts)
-  const calcTau = (recPow: number) => {
-    const dcp = effectiveCP - recPow;
-    if (dcp <= 0) return 1500;
-    return Math.max(200, Math.min(1500, 546 * Math.exp(-0.01 * dcp) + 316));
-  };
-  const calcRecovery = (intPow: number, intDur: number, recPow: number) => {
-    if (intPow <= effectiveCP) return { rest: 60, maxReps: 20 };
-    const wbalAfter = Math.max(0, wprimeEffJ - (intPow - effectiveCP) * intDur);
-    const depleted = wprimeEffJ - wbalAfter;
-    const tau = calcTau(recPow);
-    // Time to 75% reconstitution
-    const target75 = wprimeEffJ * 0.75;
-    const remaining = wprimeEffJ - target75;
-    const optRest = depleted > 0 && remaining < depleted ? Math.round(-tau * Math.log(remaining / depleted)) : 60;
-    // Max reps via iterative W'bal simulation
-    const wCost = (intPow - effectiveCP) * intDur;
-    let maxReps = 0;
-    let simWbal = wprimeEffJ;
-    for (let rep = 0; rep < 30; rep++) {
-      simWbal = Math.max(0, simWbal - wCost);
-      if (simWbal <= 0) break;
-      maxReps++;
-      const depNow = wprimeEffJ - simWbal;
-      simWbal = wprimeEffJ - depNow * Math.exp(-optRest / tau);
-      if (simWbal - wCost <= 0) break;
-    }
-    return { rest: optRest, maxReps: Math.max(1, maxReps) };
-  };
+  // W'bal recovery prescriptions — delegate to F-07 helpers (aligned with
+  // src/lib/v2/criticalPowerModel.ts). calcTauEdge returns Infinity when recPow ≥ CP and
+  // calcRecoveryEdge falls back to passive rest in that defensive case.
+  const calcRecovery = (intPow: number, intDur: number, recPow: number) =>
+    calcRecoveryEdge(effectiveCP, wprimeEffJ, intPow, intDur, recPow);
 
   const fmtRest = (sec: number) => sec >= 120 ? `${Math.round(sec / 60)}min` : `${sec}s`;
 
