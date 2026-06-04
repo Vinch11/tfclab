@@ -16,75 +16,17 @@
  */
 
 import type {
-  PlanInput,
-  PlanOutput,
-  PlanInjectedContext,
-  PlanGenerationConfig,
   ParsedPlan,
   ParsedWeek,
   ParsedSession,
 } from "./types";
-import { PLAN_ENGINE_VERSION, PLAN_ENGINE_DISCLAIMER } from "./types";
-import type { TrainingPrescription } from "@/engines/decision";
 import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
-import { parseAIPlan } from "@/lib/aiPlanParser";
 import { applyWbalRecoveryRecalc, type WbalRecalcStats } from "./wbalPostProcessor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// EXTRACTEUR DE CONTEXTE DÉCISIONNEL
+// POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
+// supprimés — dead code. PlanConfig est construit par buildPlanConfigFromDiagnostic.)
 // ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Extrait le contexte pertinent de la TrainingPrescription
- * pour l'injecter dans le prompt IA
- */
-export function extractPlanContext(prescription: TrainingPrescription): PlanInjectedContext {
-  const { strategy } = prescription;
-
-  return {
-    limiters: strategy._matrixResult
-      ? [strategy._matrixResult.limitingFactorLabel]
-      : [strategy.primaryAction],
-    activeLevers: strategy.levers.map(l => l.label),
-    prohibitions: strategy.prohibitions.map(p => p.label),
-    trainingFocus: {
-      do: strategy.trainingFocus.do,
-      avoid: strategy.trainingFocus.avoid,
-    },
-    weekType: strategy.weekLabel,
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// CONSTRUCTION DU CONFIG ENRICHI
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Construit un PlanConfig enrichi avec le contexte décisionnel
- * Compatible avec useAITrainingPlan
- */
-export function buildEnrichedPlanConfig(input: PlanInput): PlanConfig {
-  const context = extractPlanContext(input.prescription);
-  const { config } = input;
-
-  return {
-    objective: config.objective,
-    raceGoals: config.raceGoals,
-    planStartDate: config.planStartDate,
-    weeksAvailable: config.weeksAvailable,
-    weeklyHours: config.weeklyHours,
-    sessionsPerWeek: config.sessionsPerWeek,
-    maxSessionsPerDay: config.maxSessionsPerDay,
-    strengthSessionsPerWeek: config.strengthSessionsPerWeek,
-    ambition: config.ambition ?? input.prescription.strategy.weekLabel,
-    constraints: config.constraints,
-    
-    // Injection décisionnelle
-    identifiedLimiters: context.limiters,
-    activeLevers: context.activeLevers,
-    prohibitions: context.prohibitions,
-  };
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT
