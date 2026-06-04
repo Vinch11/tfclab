@@ -723,11 +723,31 @@ export function getVLamaxOptimal(objectif: string, ambition?: AmbitionLevel, spo
 }
 
 /**
- * Get TTE target for an objective (NEW API with ambition)
+ * Facteur de décroissance TTE par âge (R5).
+ * Local (évite import circulaire avec v2/unifiedLimiterDetection).
+ * Aligné sur Lepers & Cattagni 2012, Tanaka & Seals 2008.
+ *  <30: 1.00 | 30-39: 0.99 | 40-49: 0.97 | 50-59: 0.94 | ≥60: 0.90
  */
-export function getTTETargetByAmbition(objectif: string, ambition: AmbitionLevel = DEFAULT_AMBITION): number {
-  return getTargetsForAmbition(objectif, ambition).tte_min;
+export function getTTEAgeFactorLocal(age: number | null | undefined): number {
+  if (age == null || age < 30) return 1.0;
+  if (age < 40) return 0.99;
+  if (age < 50) return 0.97;
+  if (age < 60) return 0.94;
+  return 0.90;
 }
+
+/**
+ * Get TTE target for an objective (NEW API with ambition + optional age — R5)
+ */
+export function getTTETargetByAmbition(
+  objectif: string,
+  ambition: AmbitionLevel = DEFAULT_AMBITION,
+  age?: number | null
+): number {
+  const base = getTargetsForAmbition(objectif, ambition).tte_min;
+  return Math.round(base * getTTEAgeFactorLocal(age));
+}
+
 
 /**
  * Get TTE target for an objective (LEGACY API)
