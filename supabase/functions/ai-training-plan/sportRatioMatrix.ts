@@ -133,17 +133,20 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
     finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
       durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
   },
+  // TrailShort = format court (15-35 km, < 4h, 500-1500m D+).
+  // Volume hebdo plus proche d'un marathon route, sortie longue plafonnée, intensité (VO2/seuil) maintenue.
+  // Différencié de Trail (long, 40-80 km) qui exige plus de volume Z2 et longues sorties dépassant 2h30.
   TrailShort: {
-    world_class:{ weeklyHours: [14,21], sessionsPerWeek: [9,13],  keySessions: [3,4], progressionPct: [5,8],
-      durations: { longRunMin: [180,240], weeklyKmRun: [100,170] } },
-    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
-      durations: { longRunMin: [150,210], weeklyKmRun: [80,140] } },
-    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
-      durations: { longRunMin: [120,180], weeklyKmRun: [50,90] } },
-    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5],
-      durations: { longRunMin: [90,150], weeklyKmRun: [35,60] } },
-    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
-      durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
+    world_class:{ weeklyHours: [10,15], sessionsPerWeek: [8,11],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [105,150], weeklyKmRun: [80,130] } },
+    elite:      { weeklyHours: [9,13],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [90,135],  weeklyKmRun: [65,105] } },
+    competitor: { weeklyHours: [6,10],  sessionsPerWeek: [5,8],   keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [75,120],  weeklyKmRun: [40,75] } },
+    age_group:  { weeklyHours: [4,7],   sessionsPerWeek: [4,6],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { longRunMin: [60,100],  weeklyKmRun: [25,50] } },
+    finisher:   { weeklyHours: [3,5],   sessionsPerWeek: [3,5],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { longRunMin: [50,90],   weeklyKmRun: [15,35] } },
   },
   TrailMountain: {
     world_class:{ weeklyHours: [16,23], sessionsPerWeek: [9,14],  keySessions: [3,4], progressionPct: [5,8],
