@@ -10,6 +10,8 @@ import { getEffectiveRefs, computeFtpKg, EffectiveRefs } from "@/lib/effectiveRe
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { computeNutritionEstimate, NutritionEstimate } from "@/lib/nutritionPredictive";
+import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 // =============================================
 // TYPES
