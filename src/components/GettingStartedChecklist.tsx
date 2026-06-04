@@ -40,12 +40,22 @@ interface AthleteData {
   goal?: string | null;
 }
 
+interface ExtraSignals {
+  /** VLamax effective résolue (estimateur CAP / vélo / labo).
+   *  Permet de valider l'étape "import test" même quand snapshot.vlamax brut est null. */
+  vlamaxEffective?: number | null;
+}
+
 interface ChecklistStep {
   id: string;
   title: string;
   description: string;
   icon: React.ReactNode;
-  isComplete: (athlete: AthleteData | null, snapshot: DbSnapshot | null) => boolean;
+  isComplete: (
+    athlete: AthleteData | null,
+    snapshot: DbSnapshot | null,
+    extra?: ExtraSignals
+  ) => boolean;
   action?: {
     label: string;
     onClick: () => void;
@@ -56,6 +66,8 @@ interface ChecklistStep {
 interface GettingStartedChecklistProps {
   athlete: AthleteData | null;
   snapshot: DbSnapshot | null;
+  /** Signaux dérivés (ex: VLamax effective issue de l'estimateur). */
+  extraSignals?: ExtraSignals;
   onNavigateToProfile: () => void;
   onNavigateToTests: () => void;
   onNavigateToAcademy: () => void;
