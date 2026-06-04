@@ -860,21 +860,40 @@ const TRAIL_URBAN: LibraryWorkout[] = [
   {
     id: "URBAN_PARC_BOUCLES_VALLONNEES",
     cat: "A", sport: "course",
-    objectif: "[URBAIN] SL parc/bois urbain — 90-150' Z2 sur boucles vallonnées (Bois Vincennes, Forêt Soignes, Bois Boulogne, etc.). Cumul D+ via répétitions de petites bosses",
+    objectif: "[URBAIN · OUTDOOR] SL parc/bois urbain — 90-240' Z2 sur boucles vallonnées (Bois Vincennes, Forêt Soignes, Bois Boulogne, Parc Tête d'Or, etc.). Cumul D+ via répétitions de petites bosses. À PRIVILÉGIER sur tapis dès que la durée dépasse 2h.",
     necessite: "Obligatoire",
-    when: "Build/Peak weekends (1×/sem si parc/bois accessible avec D+ local)",
+    when: "Build/Peak weekends (1×/sem si parc/bois accessible avec D+ local) — première option pour toute SL urbaine ≥2h",
     phase: ["base", "build", "peak"],
-    avoid: "Boucles 100% plates (utiliser tapis incliné à la place)",
-    durationMin: [90, 150],
+    avoid: "Boucles 100% plates (utiliser tapis incliné à la place, sinon URBAN_SL_OUTDOOR_VARIETE)",
+    durationMin: [90, 240],
     metricKey: "cardiaque", sportKey: "course",
     structure: mkStructure([
       ["Warm-up", "15' EF Z1/Z2 plat", ["Z1", "Z2"]],
-      ["Main", "90-150' continu Z2 sur boucle vallonnée (3-5km par boucle, 30-80m D+/boucle). Multiplier les répétitions de la même bosse pour cumuler 400-900m D+ total. Marcher activement les bosses raides >12% pour reproduire effort trail. Hydratation/nutrition 30-50g CHO/h dès 60min.", ["Z2"]],
+      ["Main", "90-240' continu Z2 sur boucle vallonnée (3-5km par boucle, 30-80m D+/boucle). Multiplier les répétitions de la même bosse pour cumuler 400-1500m D+ total. Marcher activement les bosses raides >12% pour reproduire effort trail. Hydratation/nutrition 30-50g CHO/h dès 60min. Pour >3h : 2-3 boucles différentes (bois principal + boucle annexe + crochet escaliers) pour variété mentale.", ["Z2"]],
       ["Cool-down", "10' EF Z1 + étirements + mobilité", ["Z1"]]
     ]),
-    variants: { trail_short: "90-120'", trail_mountain: "120-150'", trail_ultra: "150-210'" },
+    variants: { trail_short: "90-120'", trail_mountain: "120-180'", trail_ultra: "180-240'" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["urbain", "parc", "endurance-D+", "SL", "substitution-trail", "fallback"]
+    tags: ["urbain", "parc", "endurance-D+", "SL", "substitution-trail", "outdoor", "preferred-long"]
+  },
+  {
+    id: "URBAN_SL_OUTDOOR_VARIETE",
+    cat: "A", sport: "course",
+    objectif: "[URBAIN · OUTDOOR] SL urbaine variée — 120-210' Z2 alternant parc + ponts + escaliers + quais + petites côtes urbaines. Alternative outdoor PRIORITAIRE au tapis pour les sorties longues 2-3h en ville sans bois accessible.",
+    necessite: "Obligatoire",
+    when: "Build/Peak weekends quand parc/bois éloigné (1×/sem) — préférée au tapis dès que durée ≥120'",
+    phase: ["build", "peak"],
+    avoid: "Trafic dense (privilégier tôt le matin / dimanche), canicule (déplacer aube)",
+    durationMin: [120, 210],
+    metricKey: "cardiaque", sportKey: "course",
+    structure: mkStructure([
+      ["Warm-up", "15' EF Z1/Z2 plat (départ domicile)", ["Z1", "Z2"]],
+      ["Main", "Itinéraire en 4-5 segments enchaînés (Z2 strict 70-78% FCmax) : (1) 30-40' bord de fleuve/quais plat ; (2) 25-35' boucle parc/square avec petites bosses ; (3) 15-25' insertion escaliers (3-5 montées de 60-120 marches en Z2, descente trottinée) ; (4) 25-40' enchaînement ponts/passerelles avec rampes (rampe = 30-60s effort Z2 haut, redescente facile) ; (5) 20-40' retour bord de fleuve. Cumul D+ visé 300-900m via bosses + escaliers. Hydratation/nutrition 30-50g CHO/h dès 60min. Variation visuelle/mentale = engagement préservé sur 2-3h.", ["Z2"]],
+      ["Cool-down", "10' EF Z1 + étirements complets + foam roller", ["Z1"]]
+    ]),
+    variants: { trail_short: "120'", trail_mountain: "150-180'", trail_ultra: "180-210'" },
+    goals: TRAIL_GOALS_ALL,
+    tags: ["urbain", "outdoor", "varié", "ponts", "escaliers", "SL", "substitution-trail", "preferred-long"]
   },
   {
     id: "URBAN_ESCALIERS_TEMPO_LONG",
