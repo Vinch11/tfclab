@@ -965,6 +965,13 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     primaryLever,
     leverLabel: leverInfo.label,
     leverEmoji: leverInfo.emoji,
+
+    secondaryLimiter,
+    secondaryLimiterLabel: secondaryLimiter !== "none" ? LIMITER_INFO[secondaryLimiter].label : null,
+    secondaryLever,
+    secondaryLeverLabel: secondaryLimiter !== "none" ? LEVER_INFO[secondaryLever].label : null,
+
+    severity,
     
     gapAnalysis: gapAnalysis.filter(g => g.metric !== "Disponibilité"),
     categoryRanking,
