@@ -427,31 +427,21 @@ function computeSynthesis(
     }
   }
 
-  // Priorités L1/L2
-  const sortedGaps = [...limiter.gapAnalysis]
-    .filter(g => g.status === "limiting")
-    .sort((a, b) => a.weightedImpact - b.weightedImpact);
-
+  // Priorités L1/L2 — source unique : moteur unifié (hybride dominant + 0.4×autres)
+  // R1+R2 : on ne re-dérive plus L2 localement via gapAnalysis[1] (impact brut),
+  // ce qui désynchronisait la synthèse TFCL du `secondaryLever` envoyé au prompt IA
+  // et utilisait un mapping métrique→catégorie local divergent (FatMax, W' incohérents).
   const L1 = {
     limiter: limiter.primaryLimiter,
     lever: limiter.primaryLever,
     label: limiter.limiterLabel,
   };
 
-  // L2 doit être un limiteur DIFFÉRENT de L1 pour éviter la redondance
-  // (ex: L1 Endurance spécifique + L2 TTE = incohérent, car même famille)
-  const l1LimiterType = limiter.primaryLimiter;
-  const l2Gap = sortedGaps.find((g, i) => {
-    if (i === 0) return false;
-    const l2Type = mapMetricToLimiter(g.metric);
-    return l2Type !== "none" && l2Type !== l1LimiterType;
-  }) || null;
-
-  const L2 = l2Gap
+  const L2 = limiter.secondaryLimiter !== "none" && limiter.secondaryLimiter !== limiter.primaryLimiter
     ? {
-        limiter: mapMetricToLimiter(l2Gap.metric),
-        lever: mapMetricToLever(l2Gap.metric),
-        label: LIMITER_INFO[mapMetricToLimiter(l2Gap.metric)].label,
+        limiter: limiter.secondaryLimiter,
+        lever: limiter.secondaryLever,
+        label: limiter.secondaryLimiterLabel ?? LIMITER_INFO[limiter.secondaryLimiter].label,
       }
     : null;
 
