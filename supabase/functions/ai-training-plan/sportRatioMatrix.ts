@@ -249,12 +249,13 @@ export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: st
     elite:       { M: "2h50 – 3h15",    F: "3h10 – 3h35" },
     world_class: { M: "Sub 2h45",       F: "Sub 3h05" },
   },
+  // TrailShort = 20-35 km, 600-1500m D+. Temps de référence beaucoup plus rapides que Trail long.
   TrailShort: {
-    finisher:    { M: "5h30 – 7h",      F: "6h00 – 7h45" },
-    age_group:   { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
-    competitor:  { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
-    elite:       { M: "2h50 – 3h15",    F: "3h10 – 3h35" },
-    world_class: { M: "Sub 2h45",       F: "Sub 3h05" },
+    finisher:    { M: "3h00 – 4h15",    F: "3h20 – 4h45" },
+    age_group:   { M: "2h15 – 2h55",    F: "2h30 – 3h15" },
+    competitor:  { M: "1h45 – 2h10",    F: "1h55 – 2h25" },
+    elite:       { M: "1h30 – 1h45",    F: "1h40 – 1h55" },
+    world_class: { M: "Sub 1h25",       F: "Sub 1h35" },
   },
   TrailMountain: {
     finisher:    { M: "12h – 16h",      F: "13h – 17h30" },
