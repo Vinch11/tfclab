@@ -707,30 +707,42 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     weightedImpact: tteGap < 0 ? Math.abs(tteGap) * weights.tte * 100 : 0,
   });
 
-  // F-24 — Durabilité standalone : compare TTE effectif à la durée cible de course.
-  // Le TTE physiologique générique (cible âge/objectif) ne suffit pas pour valider
-  // qu'un athlète peut tenir une course de durée X. Ex : marathon visé en 3h30
-  // (210 min) avec TTE = 60 min → carence majeure de durabilité spécifique,
-  // indépendamment du fait que le TTE > cible générique (45 min).
-  // Sévérité (gap = durée_course − TTE) :
-  //   gap ≤ 15 min  → optimal (impact 0)
-  //   15-30 min     → acceptable (faible impact)
-  //   30-60 min     → limiting (impact modéré, severity moderate)
-  //   > 60 min      → limiting (impact fort, severity severe)
-  // Cible attendue : TTE ≥ (durée_course − 15 min) pour considérer la durabilité validée.
+  // F-24 — Durabilité standalone : compare TTE effectif à une cible **intensité-relative**
+  // dérivée de la durée de course. Le TTE se mesure AU SEUIL (typiquement 40-90 min), alors
+  // qu'une course longue se court LARGEMENT SOUS le seuil. Comparer brut TTE vs durée totale
+  // créerait un faux déficit systémique (ex : marathon 210 min vs TTE 60 min → toujours
+  // "limiting"). On applique donc une fraction d'intensité de course (% du seuil tenu en
+  // épreuve) pour exprimer la cible TTE équivalente :
+  //   intensityFraction ≈ pace_course / pace_seuil
+  //     10K / Olympic       ~ 0.98  (couru ≈ au seuil)
+  //     Semi / 70.3 run     ~ 0.92
+  //     Marathon / 70.3 bk  ~ 0.85
+  //     IM / Trail long     ~ 0.75
+  //     Ultra               ~ 0.68
+  // Cible = raceDuration × intensityFraction, plafonnée à 90 min (limite physiologique TTE).
+  // La règle ne s'active que si une estimation de temps de course est fournie explicitement.
   if (input.tte !== null && input.targetRaceDurationMin && input.targetRaceDurationMin > 0) {
     const raceDur = input.targetRaceDurationMin;
-    const durabilityTarget = Math.max(raceDur - 15, 30); // marge tactique 15 min
-    const durabilityRawGap = input.tte - durabilityTarget; // négatif = carence
+    const obj = (input.objectif || "").toLowerCase();
+    const intensityFraction =
+      obj.includes("ironman") || obj === "im" ? 0.75
+      : obj.includes("ultra") ? 0.68
+      : obj.includes("70.3") || obj.includes("marathon") && !obj.includes("semi") ? 0.85
+      : obj.includes("trail") ? 0.75
+      : obj.includes("semi") || obj.includes("half") ? 0.92
+      : obj.includes("10k") || obj.includes("olympic") || obj.includes("olympique") ? 0.98
+      : 0.90;
+    // Cible TTE = durée course × fraction d'intensité, bornée [30 min, 90 min] (TTE physio max)
+    const durabilityTarget = Math.min(90, Math.max(30, raceDur * intensityFraction));
+    const durabilityRawGap = input.tte - durabilityTarget;
     const durabilityRelGap = durabilityRawGap / durabilityTarget;
-    const minutesShort = -durabilityRawGap; // positif quand TTE manque
+    const minutesShort = -durabilityRawGap;
     const status: UnifiedGapAnalysis["status"] = durabilityRawGap >= 0
       ? "optimal"
-      : minutesShort <= 15 ? "acceptable"
+      : minutesShort <= 10 ? "acceptable"
       : "limiting";
-    // Boost progressif de l'impact selon l'écart absolu (en plus du gap relatif)
-    const severityBoost = minutesShort > 60 ? 1.6
-      : minutesShort > 30 ? 1.2
+    const severityBoost = minutesShort > 30 ? 1.4
+      : minutesShort > 15 ? 1.15
       : 1.0;
     const impact = durabilityRawGap < 0
       ? Math.abs(durabilityRelGap) * weights.tte * 100 * severityBoost
@@ -738,7 +750,7 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     gapAnalysis.push({
       metric: "Durabilité",
       value: input.tte,
-      target: durabilityTarget,
+      target: Math.round(durabilityTarget),
       gap: durabilityRawGap,
       gapPercent: durabilityRelGap * 100,
       status,

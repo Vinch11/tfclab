@@ -634,19 +634,14 @@ const Index = () => {
   const wprimeKjForLimiter = cpResultForLimiter?.wprimeKJ ?? null;
 
   // ✅ UNIFIED LIMITER - Pour Roadmap Stratégique
-  // F-24 : durée cible de course estimée depuis l'objectif (pour évaluer la Durabilité)
-  const targetRaceDurationMin = useMemo<number | null>(() => {
-    const goal = (currentAthlete?.goal || "").toLowerCase();
-    if (goal.includes("ironman") || goal === "im") return 600;
-    if (goal.includes("70.3") || goal.includes("half ironman")) return 300;
-    if (goal.includes("marathon") && !goal.includes("semi")) return 210;
-    if (goal.includes("semi") || goal.includes("half marathon")) return 90;
-    if (goal.includes("olympic") || goal.includes("olympique")) return 135;
-    if (goal.includes("sprint") && goal.includes("tri")) return 75;
-    if (goal.includes("10k")) return 45;
-    if (goal.includes("trail")) return 360;
-    return null;
-  }, [currentAthlete?.goal]);
+  // F-24 — Durabilité : ne plus dériver `targetRaceDurationMin` d'un mapping objectif→durée
+  // hardcodé. Le temps de course dépend du niveau/ambition/parcours/conditions et est trop
+  // variable pour être deviné depuis le nom de l'objectif. De plus, comparer le TTE (au seuil,
+  // typiquement 40-90 min) à la durée totale d'une course longue (souvent courue largement sous
+  // le seuil) n'est pas physiologiquement cohérent. La règle F-24 ne s'active donc que si une
+  // estimation explicite de temps de course (renseignée par le coach ou issue d'un prédicteur
+  // calibré) est fournie en aval ; sinon on retourne `null` et la Durabilité n'est pas évaluée.
+  const targetRaceDurationMin = useMemo<number | null>(() => null, []);
 
   const unifiedLimiterResult = useMemo<UnifiedLimiterResult | null>(() => {
     if (!currentAthlete) return null;
