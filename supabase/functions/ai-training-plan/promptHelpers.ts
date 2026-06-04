@@ -513,41 +513,11 @@ export function buildCPWprimeSection(data: any, recoveryStrategy: RecoveryStrate
   lines.push(`- **Repos inter-séries** → calculés via W'bal avec CP effectif (${effectiveCP}W) et W' effectif (${wEffKJ} kJ)`);
   lines.push(`- **CP brut (${cpRound}W)** → affiché uniquement pour information, JAMAIS utilisé comme cible d'intensité`);
 
-  // W'bal recovery prescriptions — uses effectiveCP and W' floor (aligned with client-side)
-  // F-07: calcTau aligned with src/lib/v2/criticalPowerModel.ts → returns Infinity when
-  // recPow ≥ CP (no W' reconstitution possible). calcRecovery falls back to passive rest
-  // (recPow=0) in that defensive case so the prescription stays finite and physiologically
-  // meaningful instead of emitting an undefined rest duration.
-  const calcTau = (recPow: number): number => {
-    const dcp = effectiveCP - recPow;
-    if (dcp <= 0) return Infinity; // matches calculateTau() in criticalPowerModel.ts
-    return Math.max(200, Math.min(1500, 546 * Math.exp(-0.01 * dcp) + 316));
-  };
-  const calcRecovery = (intPow: number, intDur: number, recPow: number) => {
-    if (intPow <= effectiveCP) return { rest: 60, maxReps: 20 };
-    const wbalAfter = Math.max(0, wprimeEffJ - (intPow - effectiveCP) * intDur);
-    const depleted = wprimeEffJ - wbalAfter;
-    // Defensive: if recPow ≥ CP no reconstitution would occur → fallback to passive (0W)
-    const safeRecPow = recPow >= effectiveCP ? 0 : recPow;
-    const tau = calcTau(safeRecPow);
-    // Time to 75% reconstitution
-    const target75 = wprimeEffJ * 0.75;
-    const remaining = wprimeEffJ - target75;
-    const optRest = depleted > 0 && remaining < depleted ? Math.round(-tau * Math.log(remaining / depleted)) : 60;
-    // Max reps via iterative W'bal simulation
-    const wCost = (intPow - effectiveCP) * intDur;
-    let maxReps = 0;
-    let simWbal = wprimeEffJ;
-    for (let rep = 0; rep < 30; rep++) {
-      simWbal = Math.max(0, simWbal - wCost);
-      if (simWbal <= 0) break;
-      maxReps++;
-      const depNow = wprimeEffJ - simWbal;
-      simWbal = wprimeEffJ - depNow * Math.exp(-optRest / tau);
-      if (simWbal - wCost <= 0) break;
-    }
-    return { rest: optRest, maxReps: Math.max(1, maxReps) };
-  };
+  // W'bal recovery prescriptions — delegate to F-07 helpers (aligned with
+  // src/lib/v2/criticalPowerModel.ts). calcTauEdge returns Infinity when recPow ≥ CP and
+  // calcRecoveryEdge falls back to passive rest in that defensive case.
+  const calcRecovery = (intPow: number, intDur: number, recPow: number) =>
+    calcRecoveryEdge(effectiveCP, wprimeEffJ, intPow, intDur, recPow);
 
   const fmtRest = (sec: number) => sec >= 120 ? `${Math.round(sec / 60)}min` : `${sec}s`;
 
