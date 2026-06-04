@@ -48,8 +48,8 @@ const PILLAR_CONFIG = [
   {
     key: "Endurance Spécifique",
     icon: "🏋️",
-    description: "TTE et durabilité",
-    metrics: ["TTE"],
+    description: "TTE et durabilité (vs durée course)",
+    metrics: ["TTE", "Durabilité"],
   },
   {
     key: "Puissance Aérobie",
