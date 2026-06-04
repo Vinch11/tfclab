@@ -48,6 +48,10 @@ import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { predictRaceDurationMin } from "@/lib/raceTimePredictor";
+import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 
 const OBJECTIVE_OPTIONS = [
   { value: "IM", label: "Ironman" },
@@ -127,7 +131,7 @@ export default function AITrainingPlanPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getPlan } = useCloudDataContext();
+  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan } = useCloudDataContext();
   const { response, isLoading, chunkProgress, generatePlan, reset, setResponse } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
@@ -335,6 +339,48 @@ export default function AITrainingPlanPage() {
         ? "run"
         : "bike";
 
+    // ✅ Alignement Dashboard (Index.tsx) — précalcul des inputs partagés
+    // pour garantir que le diagnostic du plan IA part exactement du même
+    // état que le dashboard : VLamax effectif fusionné, FatMax canonique,
+    // durée cible course (F-24) et dernier check-in.
+    const vlamaxEffectifPrecomputed = computeVLamaxEffectif({
+      athleteId: athlete.id,
+      objectif: obj,
+      activeSnapshotId: athlete.active_snapshot_id,
+      tests: athleteTests.map(t => ({
+        athlete_id: t.athlete_id,
+        vlamax: t.vlamax,
+        date: t.date,
+        type: t.type,
+        name: t.name,
+      })),
+      snapshots: athleteSnapshots.map(mapSnapshotToV2),
+    });
+
+    const raceChronos = {
+      time_5k_sec: (activeSnap as any).time_5k_sec ?? null,
+      time_10k_sec: (activeSnap as any).time_10k_sec ?? null,
+      time_20k_sec: (activeSnap as any).time_20k_sec ?? null,
+      time_half_sec: (activeSnap as any).time_half_sec ?? null,
+      time_marathon_sec: (activeSnap as any).time_marathon_sec ?? null,
+      time_5k_date: (activeSnap as any).time_5k_date ?? null,
+      time_10k_date: (activeSnap as any).time_10k_date ?? null,
+      time_20k_date: (activeSnap as any).time_20k_date ?? null,
+      time_half_date: (activeSnap as any).time_half_date ?? null,
+      time_marathon_date: (activeSnap as any).time_marathon_date ?? null,
+    };
+    const targetRaceDurationMin = predictRaceDurationMin({
+      objective: obj,
+      ambition: normalizeAmbitionLevel(amb) as any,
+      raceChronos,
+      vmaKmh: refs.vma ?? null,
+      thresholdPaceSecPerKm: (activeSnap as any).pace_threshold_sec_km ?? activeSnap.pace_threshold_sec_per_km ?? null,
+    })?.targetRaceDurationMin ?? null;
+
+    const latestCheckin = (getCheckinsForAthlete(athlete.id) ?? [])
+      .slice()
+      .sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime())[0] ?? null;
+
     // Build DiagnosticInput and delegate to the Diagnostic Engine
     const diagnosticInput: DiagnosticInput = {
       athleteId: athlete.id,
@@ -359,6 +405,7 @@ export default function AITrainingPlanPage() {
       vlamaxSource: activeSnap.vlamax_source,
       vlamaxProtocol: activeSnap.vlamax_protocol,
       vlamaxIsReference: activeSnap.vlamax_is_reference ?? false,
+      vlamaxEffectifPrecomputed,
       tteObservedMin: activeSnap.tte_observed_min,
       tteMode: activeSnap.tte_mode,
       tss7d: activeSnap.tss_7d,
@@ -378,13 +425,23 @@ export default function AITrainingPlanPage() {
       protocolQuality: activeSnap.protocol_quality,
       wprimeKj: cpResult?.wprimeKJ ?? null,
       cpDataQuality: cpResult?.dataQuality ?? null,
-      fatmax: null,
+      fatmax: computeFatMaxAnchorPctFTP(vlamaxEffectifPrecomputed.value, refs.vo2max ?? null),
       forceDevMode: activeSnap.force_development_mode ?? false,
       giIssuesFlag: activeSnap.gi_issues_flag ?? false,
+      checkinData: latestCheckin ? {
+        sleep: latestCheckin.sleep,
+        fatigue: latestCheckin.fatigue,
+        soreness: latestCheckin.soreness,
+        stress: latestCheckin.stress,
+        motivation: latestCheckin.motivation,
+        painFlag: latestCheckin.pain_flag ?? false,
+      } : undefined,
+      raceChronos,
+      targetRaceDurationMin,
     };
 
     return computeDiagnostic(diagnosticInput);
-  }, [getSnapshotsForAthlete, getTestsForAthlete]);
+  }, [getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete]);
 
   // Compute athlete context for a given athlete (diagnostic + athlete data)
   const computeAthleteContext = useCallback((athlete: any, obj: string, amb: string): AthleteComputedContext | null => {
