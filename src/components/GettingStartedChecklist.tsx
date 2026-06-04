@@ -102,6 +102,7 @@ export function useGettingStartedVisibility() {
 export function GettingStartedChecklist({
   athlete,
   snapshot,
+  extraSignals,
   onNavigateToProfile,
   onNavigateToTests,
   onNavigateToAcademy,
