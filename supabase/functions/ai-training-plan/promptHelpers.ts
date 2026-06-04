@@ -689,7 +689,35 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         const pace = deriveRacePace(goal);
         lines.push(`→ ⏱️ **Temps cible coach (PRIORITÉ)** : ${tFmt}${pace ? ` → allure cible **${pace}**` : ""}.`);
         lines.push(`→ Les séances spécifiques (race-pace, simulation, sortie longue progressive) DOIVENT inclure des blocs à ${pace || `l'allure cible (${tFmt})`}. Le temps statistique éventuel est SECONDAIRE.`);
+
+        // F-24 — Audit durabilité : TTE effectif vs durée cible de course
+        const tteVal = typeof data?.tte === "number" ? data.tte : null;
+        if (tteVal && tteVal > 0) {
+          const raceDurMin = goal.targetTimeMinutes;
+          const durabilityTarget = Math.max(raceDurMin - 15, 30);
+          const shortMin = Math.round(durabilityTarget - tteVal); // positif = carence
+          const isTriOrBrick = /IM|703|triathl|Olympic|Sprint/i.test(String(goal.objective || ""));
+          if (shortMin <= 0) {
+            lines.push(`→ 🟢 **Durabilité OK** : TTE effectif ${tteVal} min ≥ ${durabilityTarget} min (cible course − 15 min de marge). Pas de sur-volume requis.`);
+          } else if (shortMin <= 15) {
+            lines.push(`→ 🟡 **Durabilité limite** : TTE effectif ${tteVal} min vs cible ${durabilityTarget} min (carence ${shortMin} min). Renforcer progressivement la sortie longue (Z2 → Z2-Z3), atteindre 70-80% de la durée course en pic.`);
+          } else if (shortMin <= 30) {
+            lines.push(`→ 🟠 **Durabilité INSUFFISANTE (carence ${shortMin} min)** : TTE ${tteVal} min vs cible ${durabilityTarget} min pour ${tFmt}.`);
+            lines.push(`   • Sortie longue Z2 obligatoire 1×/sem, progression +10-15 min/sem jusqu'à ≥ ${Math.round(raceDurMin * 0.75)} min en pic.`);
+            lines.push(`   • Ajouter 1 séance hebdo de Train Low (Z2 à jeun 60-90 min) pour FatMax + économie glycogène.`);
+            if (isTriOrBrick) lines.push(`   • Inclure 1 BRICK vélo→course chaque 10-14 jours pour transfert spécifique de durabilité.`);
+            else lines.push(`   • Bloc spécifique en pré-compétition : 1 SL à allure course progressive (40-60% du temps cible en finissant à pace).`);
+          } else {
+            lines.push(`→ 🔴 **DURABILITÉ = LIMITEUR MAJEUR (carence ${shortMin} min)** : TTE ${tteVal} min très en dessous de la cible ${durabilityTarget} min pour ${tFmt}. Risque de DNF / mur métabolique élevé.`);
+            lines.push(`   • PRIORITÉ #1 du plan : volume aérobie soutenu. SL Z2 hebdomadaire OBLIGATOIRE, progression jusqu'à ≥ ${Math.round(raceDurMin * 0.80)} min en pic.`);
+            lines.push(`   • 2 séances/sem Train Low (Z2 60-120 min à jeun) → adaptation FatMax + résistance fatigue.`);
+            if (isTriOrBrick) lines.push(`   • BRICK vélo→course 1×/sem en bloc spécifique (transfert durabilité pluri-disciplinaire).`);
+            else lines.push(`   • Bloc spécifique : 2 SL à allure course progressive (50-70% temps cible en finissant à pace) + 1 simulation longue (75% durée course).`);
+            lines.push(`   • Réduire l'intensité haute (Z5/Z6) à 1 séance/sem max pendant le bloc base, pour libérer du volume aérobie.`);
+          }
+        }
       }
+
       if (goalWeek && goal.raceDate) {
         lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
         lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
