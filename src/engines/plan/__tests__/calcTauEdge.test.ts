@@ -64,9 +64,10 @@ describe("F-07 — calcRecoveryEdge handles recPow ≥ CP without diverging", ()
   });
 
   it("active-tempo recovery (70% CP) prescribes longer rest than passive (0 W)", () => {
+    // Deep depletion: 120% CP for 180 s ≈ 10 kJ above CP → remaining < depleted branch
     const intPow = Math.round(CP * 1.2);
-    const passive = calcRecoveryEdge(CP, W_EFF, intPow, 30, 0);
-    const tempo = calcRecoveryEdge(CP, W_EFF, intPow, 30, Math.round(CP * 0.7));
+    const passive = calcRecoveryEdge(CP, W_EFF, intPow, 180, 0);
+    const tempo = calcRecoveryEdge(CP, W_EFF, intPow, 180, Math.round(CP * 0.7));
     expect(tempo.rest).toBeGreaterThan(passive.rest);
   });
 
