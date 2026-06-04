@@ -120,6 +120,8 @@ export function buildPlanConfigFromDiagnostic(
   
   // ── Limiteurs enrichis ────────────────────────────────────────────────────
   const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
+  // ── Limiteurs RAW (noms de métriques, ordre prioritaire) — pour chunks 2..N
+  const limitersRaw = buildLimitersRawList(limiterResult, coachLimiterOrder);
 
   // ── Leviers (L1 + L2) ──────────────────────────────────────────────────────
   // ✅ FIX AUDIT V6 — On utilise `secondaryLever` (hybride catégoriel
