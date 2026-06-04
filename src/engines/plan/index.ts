@@ -2,31 +2,16 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL PLAN ENGINE™ — Public API
  * 
- * Orchestre la préparation et le post-traitement des plans d'entraînement.
+ * Orchestre le post-traitement des plans d'entraînement.
  * La génération IA reste dans l'edge function (streaming).
- * 
- * USAGE :
- * ```ts
- * import { buildEnrichedPlanConfig, buildPlanOutput, extractPlanContext } from "@/engines/plan";
- * 
- * // 1. Préparer le config enrichi
- * const config = buildEnrichedPlanConfig({ prescription, athleteData, config });
- * 
- * // 2. Appeler useAITrainingPlan avec ce config
- * const { generatePlan } = useAITrainingPlan();
- * await generatePlan(athleteData, config);
- * 
- * // 3. Post-traiter le résultat
- * const output = buildPlanOutput(rawMarkdown, input, chunksUsed);
- * ```
+ *
+ * Le `PlanConfig` envoyé à `useAITrainingPlan` est construit via
+ * `buildPlanConfigFromDiagnostic` (planConfigBuilder).
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
 // Core functions
 export {
-  extractPlanContext,
-  buildEnrichedPlanConfig,
-  buildPlanOutput,
   postProcessParsedPlan,
 } from "./computePlan";
 
