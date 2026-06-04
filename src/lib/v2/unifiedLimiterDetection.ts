@@ -171,15 +171,26 @@ export function buildCategoryRanking(gapAnalysis: UnifiedGapAnalysis[]): Categor
     if (existing) {
       existing.metrics.push(gap);
       existing.worstGap = Math.min(existing.worstGap, gap.gap);
-      existing.totalImpact += impact;
+      existing.sumImpact += impact;
+      existing.dominantImpact = Math.max(existing.dominantImpact, impact);
     } else {
       groups.set(category, {
         category,
         metrics: [gap],
         worstGap: gap.gap,
-        totalImpact: impact,
+        sumImpact: impact,
+        dominantImpact: impact,
+        totalImpact: impact, // recalculé ci-dessous
       });
     }
+  }
+
+  // ✅ H1 FIX : totalImpact = dominant + 0.4 × somme_des_autres
+  // Évite que aerobic_power (3 métriques) écrase mécaniquement glycolytic (1 métrique)
+  // par pure somme. Garde le boost de convergence multi-signaux.
+  for (const entry of groups.values()) {
+    const others = entry.sumImpact - entry.dominantImpact;
+    entry.totalImpact = entry.dominantImpact + 0.4 * others;
   }
 
   return Array.from(groups.values()).sort((a, b) => b.totalImpact - a.totalImpact);
