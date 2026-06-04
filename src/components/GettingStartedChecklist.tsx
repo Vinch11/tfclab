@@ -130,21 +130,29 @@ export function GettingStartedChecklist({
       {
         id: "add-ftp",
         title: "Renseigner les données de base",
-        description: "Ajoute FTP, poids et FC max pour calibrer les zones",
+        description: "Ajoute FTP/VMA/CSS et poids pour calibrer les zones",
         icon: <Activity className="w-4 h-4" />,
-        isComplete: (_, s) => !!(s?.ftp && s?.weight_kg),
+        isComplete: (_, s) => !!(s?.weight_kg && (s?.ftp || s?.vma || s?.css)),
         action: {
           label: "Compléter le profil",
           onClick: onNavigateToProfile,
         },
-        tip: "FTP et poids sont essentiels pour calculer le W/kg",
+        tip: "Au moins une référence d'intensité (FTP, VMA ou CSS) + le poids",
       },
       {
         id: "import-test",
         title: "Importer un test ou fichier FIT",
         description: "Analyse un effort pour estimer VLamax et TTE",
         icon: <FileUp className="w-4 h-4" />,
-        isComplete: (_, s) => !!(s?.vlamax || s?.tte_observed_min),
+        isComplete: (_, s) =>
+          !!(
+            s?.vlamax ||
+            (s as any)?.vlamax_run ||
+            s?.tte_observed_min ||
+            (s as any)?.tte_observed_min_run ||
+            (s as any)?.sprint_15s_distance ||
+            s?.vo2max
+          ),
         action: {
           label: "Aller aux tests",
           onClick: onNavigateToTests,
