@@ -1458,6 +1458,7 @@ const Index = () => {
                   goal: currentAthlete.goal,
                 }}
                 snapshot={effectiveCloudSnapshot}
+                extraSignals={{ vlamaxEffective: vlamaxEffectif?.value ?? null }}
                 onNavigateToProfile={() => navigate(`/athlete/${currentAthlete.id}`)}
                 onNavigateToTests={() => navigate("/diagnostic/tests")}
                 onNavigateToAcademy={() => navigate("/academy")}
