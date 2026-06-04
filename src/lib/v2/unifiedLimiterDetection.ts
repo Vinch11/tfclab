@@ -609,7 +609,13 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       : input.vlamax <= vlamaxRange.max ? "acceptable"
       : "limiting",
     weight: weights.glycolytic,
-    weightedImpact: vlamaxExcess ? (input.vlamax! - vlamaxRange.max) * 100 * weights.glycolytic : 0,
+    // ✅ FIX: utilise le gap relatif × poids × 100 (cohérent avec VO2max/FTP/VMA/TTE/FatMax)
+    // L'ancienne formule (Δ absolu mmol/L/s × 100) sous-pondérait massivement la VLamax
+    // (~0.9 pour gap 0.12) vs VO2max -4% (~3.4) → faisait sortir le VO2max en limiteur #1
+    // alors que la VLamax dominait clairement le profil.
+    weightedImpact: input.vlamax !== null && vlamaxGap > 0
+      ? Math.abs(vlamaxGap) * weights.glycolytic * 100
+      : 0,
   });
   
   // 2b. Analyse W' (Capacité Anaérobie absolue)
