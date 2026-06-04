@@ -666,4 +666,6 @@ Pour 5K, 10K, Semi, Marathon, Trail : CAP 75-85% volume. Vélo = 5-10% max, Z1-Z
 - **Règle #3**: ROTATION des formats secondaires (EF, renfo, technique).
 - **Règle #4**: VARIATION INTRA-BLOC (différentes méthodes pour même objectif).
 `;
+  return base + buildSpecializedSections(profile);
 }
+
