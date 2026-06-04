@@ -2,8 +2,101 @@
 // SYSTEM PROMPT — Training methodology, periodization, examples
 // ═══════════════════════════════════════════════════════════════
 
-export function getSystemPrompt(): string {
-  return `Tu es le moteur TFCL™ Plan Generator, un système expert en périodisation d'entraînement. Ta méthodologie est inspirée de Dan Lorang et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks, Joel Filliol, Mikal Iden).
+export interface SystemPromptProfile {
+  sex?: string | null;
+  age?: number | null;
+  objective?: string | null;
+}
+
+/**
+ * F-21 — Réinjection dynamique des sections spécialisées.
+ * Étend le system prompt compressé (F-19) avec des blocs experts complets
+ * uniquement pertinents pour le profil :
+ *   - MASTER (>=50 ans) : Tanaka/Seals, récupération étendue
+ *   - FÉMININ / RED-S (sex="F") : Sims/Bruinvels/Elliott-Sale, LEA, ferritine
+ *   - TRAIL (objectif Trail*) : excentrique, gut, power-hike, altitude
+ * Coût : +1-3 KB ciblés vs +20 KB injectés à tous les athlètes (F-19).
+ */
+function buildSpecializedSections(profile?: SystemPromptProfile): string {
+  if (!profile) return "";
+  const blocks: string[] = [];
+  const age = profile.age ?? null;
+  const sex = (profile.sex ?? "").toUpperCase();
+  const obj = (profile.objective ?? "").toUpperCase();
+
+  // ─── MASTER >=50 ans (Tanaka & Seals, Lazarus & Harridge) ───────────────
+  if (age !== null && age >= 50) {
+    blocks.push(`## 🧓 PROFIL MASTER ${age}+ ANS — RÈGLES RENFORCÉES (Tanaka, Seals, Lazarus)
+- **FCmax**: diminue ~1 bpm/an après 30 ans (Tanaka: 208 − 0.7×âge). NE PAS utiliser 220−âge.
+- **Récupération**: +24-48h vs <40 ans après séance VO2max/seuil. Charge 2:1 STRICTE (jamais 3:1).
+- **Intensité**: MAX 1 séance VO2max/sem + 1 seuil/sem (jamais doublés <72h).
+- **Volume**: progression plafonnée à +3%/sem (vs +10% jeune). ACWR cible ≤1.1.
+- **Force**: 3x/sem OBLIGATOIRE (sarcopénie). Pliométrie LÉGÈRE uniquement (sauts <30cm, contacts <100/sem).
+- **Sommeil**: 8-9h non négociable. Sieste 20min si disponible.
+- **Hormones**: si masculin, surveiller fatigue chronique = signal testostérone basse → décharge.
+- **Mobilité**: 10-15min/jour (hanches, thoracique). Préventif tendinopathies (Achilles, patellaire).
+- **2 jours de repos COMPLET/sem** (pas actif). Mardi+Vendredi typique.
+${age >= 60 ? "- **>=60 ans**: ajouter équilibre proprioceptif 2x/sem (chutes). Test 6min walk trimestriel." : ""}`);
+  } else if (age !== null && age >= 40) {
+    blocks.push(`## 🧓 PROFIL MASTER ${age} ANS (Tanaka, Seals)
+- **FCmax**: Tanaka 208 − 0.7×âge (pas 220−âge).
+- Charge 2:1, max 2 intensités/sem, renfo 2x/sem obligatoire.
+- Récupération +12-24h vs jeune. Progression vol max +5%/sem.`);
+  }
+
+  // ─── FÉMININ / RED-S (Sims, Elliott-Sale, Mountjoy 2023) ────────────────
+  if (sex === "F") {
+    blocks.push(`## ♀️ PROFIL FÉMININ — PÉRIODISATION HORMONALE & RED-S (Sims, Elliott-Sale, Mountjoy)
+- **Cycle 28j** (si naturel, non hormonal) :
+  - **Folliculaire (J1-J14)**: œstrogènes ↑, tolérance intensité MAX → placer VO2max, force max, seuil court.
+  - **Ovulation (J13-J15)**: pic perf. Window pour test/PR/séance clé.
+  - **Lutéale (J15-J28)**: progestérone ↑ → RPE +1 à intensité égale, thermorégulation altérée, sommeil dégradé.
+    → Réduire intensité 5-10%, privilégier volume Z2, hydrater +20%, refroidir activement.
+  - **Pré-menstruel (J24-J28)**: PMS possible → décharge naturelle, séances qualité optionnelles.
+- **Contraception hormonale (pilule monophasique, DIU hormonal)**: cycle artificiel → plan standard (pas de modulation).
+- **🚨 RED-S (Relative Energy Deficiency in Sport, Mountjoy 2023)** :
+  - LEA (Low Energy Availability) <30 kcal/kg FFM/jour = ZONE ROUGE.
+  - Symptômes : aménorrhée >3 mois, fatigue chronique, fractures de stress, perf stagnante.
+  - **JAMAIS combiner Train Low + restriction calorique chez une athlète féminine.**
+  - **JAMAIS prescrire de jeûne intermittent** sans validation nutritionniste.
+- **Ferritine cible >40 ng/mL** (vs 20 chez homme). Si <30 → bilan martial avant blocs VO2max.
+- **Santé osseuse**: 2x/sem charge axiale (sauts, course descente courte, force lourde). PROTECTEUR ostéoporose.
+- **Triade féminine** = aménorrhée + dysfonction alimentaire + faible DMO. Surveiller, JAMAIS minimiser.
+- **Périménopause / ménopause** (si âge ~45-55): perte œstrogènes → +force, +pliométrie, +protéines (1.6-2.2g/kg), HIIT court.`);
+  }
+
+  // ─── TRAIL (excentrique, gut, power-hike, altitude) ─────────────────────
+  if (/TRAIL|UTMB|CCC|OCC/.test(obj)) {
+    blocks.push(`## ⛰️ SPÉCIFIQUE TRAIL — BLOCS EXPERTS (Jornet, D'Haene, Millet, Vernillo)
+- **Descente technique (CRITIQUE)** : 1 séance/sem dédiée (excentrique = ↓ DOMS race).
+  - Format : 4-8×3-5min descente rapide pente 8-15%, récup remontée easy. Progresser 4 sem.
+  - Si terrain plat : tapis incliné en marche arrière (excentrique mollet/quad) ou escaliers descente.
+- **Power Hike (marche rapide en côte)** : OUTIL CLÉ trail long. À PRATIQUER, pas improviser.
+  - 1x/sem en SL : alterner course/marche rapide en côte >12%. Objectif efficience >5 km/h en montée.
+  - Tester bâtons (TMB, UTMB) dès build phase. Gain économie 8-15%.
+- **Force-endurance mollets** : 3x/sem mini → mollets debout 3×20, mollets assis 3×15, sauts cordes 3×60s.
+  - Trail Ultra : 1500-2000 répétitions mollets/semaine cumulé (prévention crampes K90+).
+- **Gut Training trail-spécifique** :
+  - Cible 60-100 g/h glucides (vs 30-90 route). Tester en SL >3h dès build.
+  - Inclure solide (barres, riz, salé) + liquide. Pas que gels.
+  - Sel : 800-1200 mg Na+/h (chaleur/altitude) vs 500-700 route.
+- **D+ hebdo** : progression linéaire vers le D+ course.
+  - Base : 25-35% du D+ course/sem. Peak : 100-150% (cap 8000 m/sem).
+  - JAMAIS ajouter D+ ET volume la même semaine.
+- **Back-to-back weekend (SL J1 + SL technique J2)** : OBLIGATOIRE phase spécifique.
+  - Simule fatigue cumulée trail. Ex : Sam 3h Z2 D+ / Dim 2h technique fraîcheur dégradée.
+- **Altitude** (course >2000m) : stage acclimat 7-14j sur place J-21 à J-7.
+  - Si impossible : tente hypoxique 8-10h/nuit 3 sem. Ou simulation altitude masque DURING (limité).
+- **Nutrition pré-trail long** : carb-loading 8-10g/kg J-2/J-1 + petit-déj 3-4h avant 2-3g/kg.
+- **Matériel à TESTER en SL** : sac, bâtons, frontale, chaussures à plaque vs trail dynamique.`);
+  }
+
+  if (blocks.length === 0) return "";
+  return "\n\n" + blocks.join("\n\n");
+}
+
+export function getSystemPrompt(profile?: SystemPromptProfile): string {
+  const base = `Tu es le moteur TFCL™ Plan Generator, un système expert en périodisation d'entraînement. Ta méthodologie est inspirée de Dan Lorang et des meilleures pratiques du coaching d'endurance élite (INSCYD, TrainingPeaks, Joel Filliol, Mikal Iden).
 
 ## Ta Mission
 Générer un plan d'entraînement COMPLET ET INTÉGRAL, semaine par semaine, séance par séance, individualisé selon :
