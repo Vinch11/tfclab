@@ -31,6 +31,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
+import { validatePlan } from "@/engines/plan/planValidator";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
