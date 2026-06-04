@@ -12,6 +12,8 @@ const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-
 export interface PlanAthleteData {
   nom?: string;
   sex?: string | null;
+  /** Âge (années) — utilisé par F-21 pour réinjecter la section Master >=40/>=50 ans dans le systemPrompt */
+  age?: number | null;
   ftp?: number | null;
   weightKg?: number | null;
   vlamax?: number | null;
