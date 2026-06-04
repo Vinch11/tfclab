@@ -973,21 +973,21 @@ const TRAIL_URBAN: LibraryWorkout[] = [
   {
     id: "URBAN_RACESIM_TAPIS_NUTRITION",
     cat: "Race-Sim", sport: "course",
-    objectif: "[URBAIN] Race-sim tapis incliné — 2-4h tapis 4-7% incl. Z2 avec test nutrition/hydratation/matériel jour J. Substitue race-sim trail montagne",
+    objectif: "[URBAIN · TAPIS] Race-sim tapis incliné — 90-150' tapis 4-7% incl. Z2 avec test nutrition/hydratation/matériel jour J. Format court (≤2h30) volontairement : pour une race-sim plus longue, utiliser URBAN_PARC_BOUCLES_VALLONNEES ou URBAN_SL_OUTDOOR_VARIETE avec sac lesté et matériel complet.",
     necessite: "Recommandé",
     when: "Peak (1× dans les 4-6 sem avant course, équipement complet)",
     phase: ["peak"],
-    avoid: "Chaleur salle excessive (>22°C), première séance >2h sans préparation",
-    durationMin: [120, 240],
+    avoid: "Chaleur salle excessive (>22°C), durée >2h30 (basculer outdoor)",
+    durationMin: [90, 150],
     metricKey: "cardiaque", sportKey: "course",
     structure: mkStructure([
       ["Warm-up", "10' marche + EF 1% incl. (équipement complet déjà porté)", ["Z1", "Z2"]],
-      ["Main", "2-4h continu Z2 strict avec inclinaison alternée : blocs de 30' à 4%/5%/7% en rotation. Sac dorsal lesté 4-6kg. Tester EXACTEMENT la nutrition/hydratation/électrolytes prévus le jour J (gels, barres, boissons, fréquence). Tester chaussures + chaussettes + cuissard + casquette + bâtons (poussée sur tapis si possible). Ventilation salle ouverte si possible. Cible: 90% des conditions jour J sans le D+ naturel.", ["Z2"]],
+      ["Main", "90-150' continu Z2 strict avec inclinaison alternée : blocs de 30' à 4%/5%/7% en rotation. Sac dorsal lesté 4-6kg. Tester EXACTEMENT la nutrition/hydratation/électrolytes prévus le jour J (gels, barres, boissons, fréquence). Tester chaussures + chaussettes + cuissard + casquette + bâtons (poussée sur tapis si possible). Ventilation salle ouverte si possible. Cible: 90% des conditions jour J sans le D+ naturel. Au-delà de 2h30, faire la race-sim outdoor — l'engagement et la qualité posturale chutent sur tapis long.", ["Z2"]],
       ["Cool-down", "10' marche 1% + étirements + retour calme alimentaire", ["Z1"]]
     ]),
-    variants: { trail_short: "120-150'", trail_mountain: "180-210'", trail_ultra: "210-240' + simulation nocturne" },
+    variants: { trail_short: "90-120'", trail_mountain: "120-150'", trail_ultra: "150' tapis MAX — passer outdoor au-delà" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["urbain", "race-sim", "tapis-incliné", "nutrition-test", "substitution-trail", "fallback"]
+    tags: ["urbain", "race-sim", "tapis-incliné", "nutrition-test", "substitution-trail", "fallback", "cap-2h30"]
   },
   {
     id: "URBAN_BATONS_TECHNIQUE_PARC",
