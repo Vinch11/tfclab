@@ -421,52 +421,60 @@ function validateKeySessions(metrics: WeekMetrics[]): { issues: ValidationIssue[
   return { issues, score: Math.round((compliant / total) * 100) };
 }
 
-/** Rule 4: Volume progression */
+/** Rule 4: Volume progression — F-23: uses real durations when ≥60% of sessions have one */
 function validateProgression(metrics: WeekMetrics[]): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
 
   if (metrics.length < 3) return { issues: [], score: 100 };
 
-  // Track active sessions as volume proxy (we don't have duration data from parsed plan)
   const loadWeeks = metrics.filter(m => !m.isDeload && !m.isRaceWeek);
-  
   if (loadWeeks.length < 3) return { issues: [], score: 100 };
 
-  // Check overall progression trend: first third vs last third
+  // F-23: prefer real weekly duration if coverage is decent (≥60% sessions parsed)
+  const useDuration = loadWeeks.every(w => w.activeSessions === 0 || w.sessionsWithDuration / Math.max(1, w.activeSessions) >= 0.6)
+    && loadWeeks.some(w => w.totalDurationMin > 0);
+  const volumeOf = (w: WeekMetrics) => useDuration ? w.totalDurationMin : w.activeSessions;
+  const volUnit = useDuration ? "min" : "séances";
+
+  // Trend: first third vs last third
   const thirdLen = Math.max(1, Math.floor(loadWeeks.length / 3));
   const firstThird = loadWeeks.slice(0, thirdLen);
   const lastThird = loadWeeks.slice(-thirdLen);
 
-  const avgFirst = firstThird.reduce((s, w) => s + w.activeSessions, 0) / firstThird.length;
-  const avgLast = lastThird.reduce((s, w) => s + w.activeSessions, 0) / lastThird.length;
+  const avgFirst = firstThird.reduce((s, w) => s + volumeOf(w), 0) / firstThird.length;
+  const avgLast = lastThird.reduce((s, w) => s + volumeOf(w), 0) / lastThird.length;
 
-  // Volume should generally increase or stay stable (not decrease)
   if (avgLast < avgFirst * 0.85) {
     issues.push({
       rule: "progression",
       severity: "warning",
-      message: `Volume en baisse: moyenne ${avgFirst.toFixed(1)} séances/sem (début) → ${avgLast.toFixed(1)} (fin)`,
-      detail: `Une progression positive est attendue hors semaines de décharge et taper.`,
+      message: `Volume en baisse: moyenne ${avgFirst.toFixed(0)}${volUnit}/sem (début) → ${avgLast.toFixed(0)}${volUnit} (fin)`,
+      detail: `Une progression positive est attendue hors semaines de décharge et taper.${useDuration ? " (Calculé sur durées réelles)" : ""}`,
     });
   }
 
-  // Check for sudden jumps (> +30% week to week)
+  // Sudden jumps (> +30% week to week)
   for (let i = 1; i < metrics.length; i++) {
     const prev = metrics[i - 1];
     const curr = metrics[i];
     if (prev.isDeload || curr.isDeload || curr.isRaceWeek || prev.activeSessions < 3) continue;
 
-    const jump = (curr.activeSessions - prev.activeSessions) / Math.max(1, prev.activeSessions);
+    const prevVol = volumeOf(prev);
+    const currVol = volumeOf(curr);
+    if (prevVol < (useDuration ? 60 : 3)) continue;
+
+    const jump = (currVol - prevVol) / Math.max(1, prevVol);
     if (jump > 0.35) {
       issues.push({
         rule: "progression",
         severity: "warning",
         week: curr.weekNumber,
-        message: `S${curr.weekNumber}: Saut de volume +${Math.round(jump * 100)}% vs S${prev.weekNumber} (${prev.activeSessions} → ${curr.activeSessions} séances)`,
-        detail: `Progression recommandée: +5-10%/semaine maximum.`,
+        message: `S${curr.weekNumber}: Saut de volume +${Math.round(jump * 100)}% vs S${prev.weekNumber} (${prevVol.toFixed(0)} → ${currVol.toFixed(0)} ${volUnit})`,
+        detail: `Progression recommandée: +5-10%/semaine maximum.${useDuration ? " (Calculé sur durées réelles)" : ""}`,
       });
     }
   }
+
 
   // Check that intensity increases over the plan (key sessions should increase mid-plan)
   const firstHalfKeys = metrics.slice(0, Math.floor(metrics.length / 2))
