@@ -1324,7 +1324,7 @@ function validateWbalFeasibility(
 
       // Simulation multi-rep avec le repos prescrit par le plan
       const prescription = prescribeIntervalRecovery(cp, wprime, intervalPowerW, detected.durationSec, 0);
-      const tau = wprime / Math.max(1, cp); // tau Skiba avec recoveryPower=0
+      const tau = calculateTau(cp, 0); // Skiba 2015 — recoveryPower=0 (passive)
       const wCostPerRep = singleRepCostJ;
 
       let simWbal = wprime;
