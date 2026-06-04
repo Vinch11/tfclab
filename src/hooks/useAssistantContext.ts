@@ -200,25 +200,34 @@ export function useAssistantContext(
       else crrStatus = "très élevée";
     }
     
-    // ✅ FIX AUDIT V6 — Détection limiteurs (source unique)
+    // Nutrition estimate
+    const nutritionEstimate = computeNutritionEstimate({
+      vlamax: vlamaxEffectif.value,
+      objectif: athlete.goal || "IM",
+      tteMin: tteEffectif?.tte_min ?? null,
+      tteTarget: tteEffectif?.target ?? null,
+    });
+    
+    // ✅ FIX AUDIT V6 — Détection limiteurs (source unique partagée avec l'UI)
     let limiterResult: UnifiedLimiterResult | null = null;
     try {
-      const v2 = effectiveSnapshot ? mapSnapshotToV2(effectiveSnapshot) : null;
+      const snap = effectiveSnapshot as any;
+      const ath = athlete as any;
       limiterResult = detectUnifiedLimiter({
         vo2max: effectiveSnapshot?.vo2max ?? null,
         ftpKg,
         vlamax: vlamaxEffectif.value,
-        wprimeKj: v2?.wprime_kj ?? null,
-        cpDataQuality: v2?.cp_data_quality ?? null,
+        wprimeKj: snap?.wprime_kj ?? null,
+        cpDataQuality: snap?.cp_data_quality ?? null,
         tte: tteEffectif?.tte_min ?? null,
-        fatmax: v2?.fatmax ?? null,
-        economyScore: v2?.run_economy_score ?? null,
-        vma: v2?.vma ?? null,
-        sportFocus: (athlete.sport_focus as "bike" | "run" | "tri") ?? undefined,
+        fatmax: snap?.fatmax ?? null,
+        economyScore: snap?.run_economy_score ?? null,
+        vma: snap?.vma ?? null,
+        sportFocus: ath?.sport_focus ?? undefined,
         availabilityScore: null,
         hasHealthAlerts: false,
         objectif: athlete.goal || "IM",
-        ambition: (athlete.ambition as AmbitionLevel) || "age_group",
+        ambition: (ath?.ambition as AmbitionLevel) || "age_group",
         age: athleteAge,
       });
     } catch (_) {
