@@ -14,7 +14,7 @@
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 import type { PlanAthleteData } from "./types";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
-import { detectInterval, isCyclingSession } from "./wbalPostProcessor";
+import { detectInterval, detectAllIntervals, isCyclingSession } from "./wbalPostProcessor";
 import {
   analyzeCriticalPower,
   effectiveWprime,
