@@ -401,7 +401,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
     },
     elite: {
       vlamax: { min: 0.20, max: 0.35, optimal: 0.28 },
-      tte_min: 70,
+      tte_min: 65, // R1: plafonné — Burnley 2018 (TTE > 70 min hors plage observée)
       ftp_kg_min: 4.0,
       vma_min: 20.0,
       charge_optimale: 650,
