@@ -76,6 +76,7 @@ export interface UnifiedLimiterInput {
   objectif: string;
   ambition: AmbitionLevel;
   age: number | null;               // Âge pour ajustement des cibles
+  targetRaceDurationMin?: number | null; // F-24 : durée cible course (coach) pour évaluer la durabilité
 }
 
 export interface UnifiedGapAnalysis {
