@@ -824,6 +824,7 @@ NE PAS répéter le diagnostic. Génère directement les tableaux.
 📋 DIAGNOSTIC STRUCTURÉ :
 ${structuredDiagnostic}
 ${retry2RecapSection}
+${prescribedPaces ? `\n🎯 ALLURES PRESCRITES (réf. bloc 1) : ${prescribedPaces}\n` : ""}
 
 🔄 PHASE ACTIVE : ${activePhase}
 
