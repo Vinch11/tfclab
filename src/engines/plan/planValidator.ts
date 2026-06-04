@@ -142,6 +142,50 @@ function isKeySession(session: ParsedSession): boolean {
   return KEY_SESSION_PATTERNS.test(text);
 }
 
+/**
+ * F-23: Extract session duration in minutes from title + details.
+ * Handles formats: "1h30", "1h", "90min", "45'", "45 min", "2h 15'".
+ * Returns null if no duration found (do not invent a value).
+ * If multiple durations appear (e.g. WU + main + CD), returns their SUM
+ * up to a sane cap (4h) — typical for tri/trail bricks.
+ */
+export function parseSessionDurationMin(session: ParsedSession): number | null {
+  if (session.isRest) return 0;
+  const text = `${session.title} ${session.details}`.toLowerCase();
+  if (!text.trim()) return null;
+
+  let total = 0;
+  let found = false;
+
+  // "1h", "1h30", "2 h 15" — hours (+ optional minutes)
+  const hRe = /(\d+)\s*h\s*(\d{1,2})?(?!\d)/g;
+  let m: RegExpExecArray | null;
+  while ((m = hRe.exec(text)) !== null) {
+    const h = parseInt(m[1], 10);
+    const min = m[2] ? parseInt(m[2], 10) : 0;
+    if (h >= 0 && h <= 12 && min < 60) {
+      total += h * 60 + min;
+      found = true;
+    }
+  }
+
+  // "45min", "45 min", "45'", "45′" — pure minutes (avoid "30/30" or rep counts by requiring a unit)
+  const mRe = /(?<!\d)(\d{1,3})\s*(?:min(?:utes?)?|'|′)(?!\d)/g;
+  while ((m = mRe.exec(text)) !== null) {
+    const mm = parseInt(m[1], 10);
+    // Skip very small values that are likely interval lengths (e.g. "3'" in "5x3'")
+    // Heuristic: minutes >= 15 are likely session durations, smaller are intervals
+    if (mm >= 15 && mm <= 300) {
+      total += mm;
+      found = true;
+    }
+  }
+
+  if (!found) return null;
+  // Cap at 4h (single session) to avoid runaway sums from rep durations
+  return Math.min(total, 240);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // WEEK METRICS EXTRACTION
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -179,6 +223,19 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
   // Key sessions
   const keySessions = activeSessions.filter(isKeySession).length;
 
+  // F-23: Real durations (sum of parseable session durations)
+  let totalDurationMin = 0;
+  let keyDurationMin = 0;
+  let sessionsWithDuration = 0;
+  for (const s of activeSessions) {
+    const d = parseSessionDurationMin(s);
+    if (d !== null && d > 0) {
+      totalDurationMin += d;
+      sessionsWithDuration++;
+      if (isKeySession(s)) keyDurationMin += d;
+    }
+  }
+
   return {
     weekNumber: week.weekNumber,
     theme: week.theme,
@@ -194,6 +251,9 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     isDeload,
     isRaceWeek,
     keySessions,
+    totalDurationMin,
+    keyDurationMin,
+    sessionsWithDuration,
   };
 }
 
