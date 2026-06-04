@@ -654,12 +654,42 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       return (prio[a.priority] || 3) - (prio[b.priority] || 3);
     });
 
+    // F-26: Helpers — format coach-provided targetTimeMinutes + derive race pace
+    const formatTargetTime = (min: number): string => {
+      const h = Math.floor(min / 60);
+      const m = Math.round(min % 60);
+      return h > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${m}min`;
+    };
+    const deriveRacePace = (goal: any): string | null => {
+      if (!goal?.targetTimeMinutes || goal.targetTimeMinutes <= 0) return null;
+      let dist: number | null = (typeof goal.distanceKm === "number" && goal.distanceKm > 0) ? goal.distanceKm : null;
+      if (!dist) {
+        const obj = String(goal.objective || "");
+        if (/marathon/i.test(obj) && !/semi/i.test(obj)) dist = 42.195;
+        else if (/semi/i.test(obj)) dist = 21.0975;
+        else if (/10\s*k/i.test(obj)) dist = 10;
+        else if (/5\s*k/i.test(obj)) dist = 5;
+      }
+      if (!dist) return null;
+      const p = goal.targetTimeMinutes / dist;
+      const pm = Math.floor(p);
+      const ps = Math.round((p - pm) * 60);
+      return `${pm}:${String(ps).padStart(2, "0")}/km`;
+    };
+
     sortedGoals.forEach((goal: any, idx: number) => {
       const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
       const goalWeek = computeGoalWeek(goal);
       const bounds = getWeekBounds(goalWeek);
       const weekAnchor = goalWeek ? ` — Échéance: Semaine ${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
       lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}${weekAnchor}`);
+      // F-26: Coach-provided target time → derive race pace + anchor key sessions
+      if (goal.targetTimeMinutes && goal.targetTimeMinutes > 0) {
+        const tFmt = formatTargetTime(goal.targetTimeMinutes);
+        const pace = deriveRacePace(goal);
+        lines.push(`→ ⏱️ **Temps cible coach (PRIORITÉ)** : ${tFmt}${pace ? ` → allure cible **${pace}**` : ""}.`);
+        lines.push(`→ Les séances spécifiques (race-pace, simulation, sortie longue progressive) DOIVENT inclure des blocs à ${pace || `l'allure cible (${tFmt})`}. Le temps statistique éventuel est SECONDAIRE.`);
+      }
       if (goalWeek && goal.raceDate) {
         lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
         lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
