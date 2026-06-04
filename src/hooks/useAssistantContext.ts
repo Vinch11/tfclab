@@ -46,6 +46,15 @@ export interface AssistantAthleteContext {
   // Nutrition prédictive
   nutritionEstimate: NutritionEstimate | null;
   
+  // ✅ FIX AUDIT V6 — Limiteurs identifiés (source de vérité partagée)
+  primaryLimiter: string | null;
+  primaryLimiterLabel: string | null;
+  primaryLever: string | null;
+  primaryLeverLabel: string | null;
+  secondaryLimiter: string | null;
+  secondaryLimiterLabel: string | null;
+  severity: "none" | "mild" | "moderate" | "severe" | null;
+  
   // Page actuelle
   currentPage: string;
 }
