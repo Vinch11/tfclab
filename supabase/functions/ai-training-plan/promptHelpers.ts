@@ -731,11 +731,19 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   }
 
   // Inject time target hint based on objective × ambition × sex
+  // F-26: si le coach a saisi un targetTimeMinutes explicite, le temps statistique devient secondaire.
   const athleteSex = data?.sex || data?.sexe || null;
   const timeTarget = getTimeTargetHint(config.objective || "", config.ambition || "", athleteSex);
+  const coachTimeProvided = Array.isArray(config.raceGoals)
+    && config.raceGoals.some((g: any) => g?.targetTimeMinutes && g.targetTimeMinutes > 0);
   if (timeTarget) {
-    lines.push(`- **🎯 Temps cible estimé :** ${timeTarget}`);
-    lines.push(`  → Ce temps cible sert UNIQUEMENT à guider la progression du plan (volume de travail à allure spécifique, distribution des séances clés, stratégie de course J-J).`);
+    const label = coachTimeProvided ? "🎯 Fourchette littérature (RÉFÉRENCE secondaire)" : "🎯 Temps cible estimé";
+    lines.push(`- **${label} :** ${timeTarget}`);
+    if (coachTimeProvided) {
+      lines.push(`  → ⚠️ Un **temps cible coach** a été saisi pour au moins un objectif ci-dessus. Cette fourchette littérature ne sert qu'à vérifier la plausibilité — c'est le temps cible coach qui pilote l'allure spécifique.`);
+    } else {
+      lines.push(`  → Ce temps cible sert UNIQUEMENT à guider la progression du plan (volume de travail à allure spécifique, distribution des séances clés, stratégie de course J-J).`);
+    }
     lines.push(`  → Les ZONES D'ENTRAÎNEMENT (Z1-Z7) restent 100% individualisées à partir des valeurs physiologiques de l'athlète (VMA, FTP, FCmax). Ne JAMAIS recalculer ou modifier les zones à partir du temps cible.`);
     lines.push(`  → En résumé : le temps cible = objectif de performance final. Les zones = outils d'entraînement individualisés. Les deux sont indépendants.`);
   }
