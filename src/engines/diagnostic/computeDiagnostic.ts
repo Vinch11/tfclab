@@ -68,6 +68,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     age: input.age,
     vma: input.vma,
     sportFocus: input.sportFocus,
+    targetRaceDurationMin: input.targetRaceDurationMin ?? null,
   });
 
   // ── 3. Potentiel Physiologique ─────────────────────────────────────────────────────
