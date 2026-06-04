@@ -784,6 +784,7 @@ Si une des semaines manquantes est la PREMIÈRE semaine d'un nouveau bloc/phase,
 📋 DIAGNOSTIC STRUCTURÉ :
 ${structuredDiagnostic}
 ${retryRecapSection}
+${prescribedPaces ? `\n🎯 ALLURES PRESCRITES (réf. bloc 1) : ${prescribedPaces}\n` : ""}
 
 🔄 PHASE ACTIVE : ${activePhase}
 
