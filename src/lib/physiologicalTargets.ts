@@ -224,7 +224,7 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
     },
     competitor: {
       vlamax: { min: 0.38, max: 0.58, optimal: 0.48 },
-      tte_min: 45,
+      tte_min: 50, // R2: aligné Joyner 1991 (semi-elite TTE @ MLSS)
       ftp_kg_min: 3.6,
       vma_min: 17.5,
       charge_optimale: 330,
@@ -233,7 +233,8 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
     },
     elite: {
       vlamax: { min: 0.32, max: 0.50, optimal: 0.40 },
-      tte_min: 50,
+      tte_min: 55, // R2: aligné Joyner 1991 / Burnley 2018 (élite ≥55 min)
+
       ftp_kg_min: 4.0,
       vma_min: 20.0,
       charge_optimale: 400,
