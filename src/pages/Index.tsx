@@ -634,6 +634,20 @@ const Index = () => {
   const wprimeKjForLimiter = cpResultForLimiter?.wprimeKJ ?? null;
 
   // ✅ UNIFIED LIMITER - Pour Roadmap Stratégique
+  // F-24 : durée cible de course estimée depuis l'objectif (pour évaluer la Durabilité)
+  const targetRaceDurationMin = useMemo<number | null>(() => {
+    const goal = (currentAthlete?.goal || "").toLowerCase();
+    if (goal.includes("ironman") || goal === "im") return 600;
+    if (goal.includes("70.3") || goal.includes("half ironman")) return 300;
+    if (goal.includes("marathon") && !goal.includes("semi")) return 210;
+    if (goal.includes("semi") || goal.includes("half marathon")) return 90;
+    if (goal.includes("olympic") || goal.includes("olympique")) return 135;
+    if (goal.includes("sprint") && goal.includes("tri")) return 75;
+    if (goal.includes("10k")) return 45;
+    if (goal.includes("trail")) return 360;
+    return null;
+  }, [currentAthlete?.goal]);
+
   const unifiedLimiterResult = useMemo<UnifiedLimiterResult | null>(() => {
     if (!currentAthlete) return null;
     return detectUnifiedLimiter({
@@ -652,8 +666,9 @@ const Index = () => {
       age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
       vma: effectiveCloudSnapshot?.vma ?? null,
       sportFocus: isRunningOnly ? "run" : "bike",
+      targetRaceDurationMin,
     });
-  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter, cpResultForLimiter, isRunningOnly]);
+  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter, cpResultForLimiter, isRunningOnly, targetRaceDurationMin]);
 
   // ✅ DIAGNOSTIC & PRESCRIPTION UNIFIÉS — Source unique pour TOUS les onglets
   const { dashDiagnostic, dashPrescription } = useMemo(() => {
