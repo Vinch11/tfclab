@@ -427,31 +427,21 @@ function computeSynthesis(
     }
   }
 
-  // Priorités L1/L2
-  const sortedGaps = [...limiter.gapAnalysis]
-    .filter(g => g.status === "limiting")
-    .sort((a, b) => a.weightedImpact - b.weightedImpact);
-
+  // Priorités L1/L2 — source unique : moteur unifié (hybride dominant + 0.4×autres)
+  // R1+R2 : on ne re-dérive plus L2 localement via gapAnalysis[1] (impact brut),
+  // ce qui désynchronisait la synthèse TFCL du `secondaryLever` envoyé au prompt IA
+  // et utilisait un mapping métrique→catégorie local divergent (FatMax, W' incohérents).
   const L1 = {
     limiter: limiter.primaryLimiter,
     lever: limiter.primaryLever,
     label: limiter.limiterLabel,
   };
 
-  // L2 doit être un limiteur DIFFÉRENT de L1 pour éviter la redondance
-  // (ex: L1 Endurance spécifique + L2 TTE = incohérent, car même famille)
-  const l1LimiterType = limiter.primaryLimiter;
-  const l2Gap = sortedGaps.find((g, i) => {
-    if (i === 0) return false;
-    const l2Type = mapMetricToLimiter(g.metric);
-    return l2Type !== "none" && l2Type !== l1LimiterType;
-  }) || null;
-
-  const L2 = l2Gap
+  const L2 = limiter.secondaryLimiter !== "none" && limiter.secondaryLimiter !== limiter.primaryLimiter
     ? {
-        limiter: mapMetricToLimiter(l2Gap.metric),
-        lever: mapMetricToLever(l2Gap.metric),
-        label: LIMITER_INFO[mapMetricToLimiter(l2Gap.metric)].label,
+        limiter: limiter.secondaryLimiter,
+        lever: limiter.secondaryLever,
+        label: limiter.secondaryLimiterLabel ?? LIMITER_INFO[limiter.secondaryLimiter].label,
       }
     : null;
 
@@ -493,33 +483,10 @@ function generateHeadline(
   return `Limiteur principal : ${limiter.limiterLabel} — ${severityLabel}`;
 }
 
-function mapMetricToLimiter(metric: string): "aerobic_engine" | "glycolytic" | "specific_endurance" | "neuromuscular" | "anaerobic_capacity" | "metabolic_efficiency" | "availability" | "none" {
-  const map: Record<string, "aerobic_engine" | "glycolytic" | "specific_endurance" | "neuromuscular" | "anaerobic_capacity" | "metabolic_efficiency" | "availability" | "none"> = {
-    "VO2max": "aerobic_engine",
-    "FTP/kg": "aerobic_engine",
-    "VMA": "aerobic_engine",
-    "VLamax": "glycolytic",
-    "TTE": "specific_endurance",
-    "Robustesse": "specific_endurance",
-    "Économie": "neuromuscular",
-    "W'": "anaerobic_capacity",
-    "FatMax": "metabolic_efficiency",
-  };
-  return map[metric] || "none";
-}
+// R1 : `mapMetricToLimiter`/`mapMetricToLever` locaux supprimés.
+// La synthèse L1/L2 utilise désormais uniquement `limiter.primary*`/`limiter.secondary*`
+// produits par `detectUnifiedLimiter` (source unique partagée avec planConfigBuilder).
 
-function mapMetricToLever(metric: string): "increase_vo2max" | "decrease_vlamax" | "increase_tte" | "force_endurance" | "adjust_anaerobic" | "increase_fat_oxidation" | "recovery" | "maintain" {
-  const map: Record<string, "increase_vo2max" | "decrease_vlamax" | "increase_tte" | "force_endurance" | "adjust_anaerobic" | "increase_fat_oxidation" | "recovery" | "maintain"> = {
-    "VO2max": "increase_vo2max",
-    "FTP/kg": "increase_vo2max",
-    "VLamax": "decrease_vlamax",
-    "TTE": "increase_tte",
-    "Économie": "force_endurance",
-    "W'": "adjust_anaerobic",
-    "FatMax": "increase_fat_oxidation",
-  };
-  return map[metric] || "maintain";
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DATA COMPLETENESS
