@@ -137,7 +137,13 @@ export function SyntheseExecutiveCard({
   // Build set of available metrics (used by both guard and pillars)
   const availableMetrics = new Set<string>();
   if (vlamaxEffectif.value !== null && vlamaxEffectif.source !== "unknown") availableMetrics.add("VLamax");
-  if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") availableMetrics.add("TTE");
+  if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") {
+    availableMetrics.add("TTE");
+    // F-24 : Durabilité dérive du TTE comparé à la durée cible de course
+    if (limiterResult?.gapAnalysis?.some(g => g.metric === "Durabilité")) {
+      availableMetrics.add("Durabilité");
+    }
+  }
   if (ftpKg !== null) availableMetrics.add("FTP/kg");
   if (vo2max) availableMetrics.add("VO2max");
 
