@@ -157,14 +157,15 @@ export function GettingStartedChecklist({
         title: "Importer un test ou fichier FIT",
         description: "Analyse un effort pour estimer VLamax et TTE",
         icon: <FileUp className="w-4 h-4" />,
-        isComplete: (_, s) =>
+        isComplete: (_, s, extra) =>
           !!(
             s?.vlamax ||
             (s as any)?.vlamax_run ||
             s?.tte_observed_min ||
             (s as any)?.tte_observed_min_run ||
             (s as any)?.sprint_15s_distance ||
-            s?.vo2max
+            s?.vo2max ||
+            (extra?.vlamaxEffective != null && extra.vlamaxEffective > 0)
           ),
         action: {
           label: "Aller aux tests",
