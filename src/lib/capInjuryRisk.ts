@@ -44,7 +44,12 @@ interface CAPRiskParams {
   vlamaxValue: number | null;
   tteValue: number | null;
   objectif: string;
+  /** R4 : ambition (défaut "age_group" pour préserver le comportement legacy) */
+  ambition?: import("@/types/ambitionLevel").AmbitionLevel;
+  /** R5 : âge pour ajustement TTE via getTTETargetByAmbition */
+  age?: number | null;
 }
+
 
 // =============================================
 // SEUILS PAR OBJECTIF
