@@ -1361,7 +1361,6 @@ function validateWbalFeasibility(
           });
         }
       }
-      }
     }
   }
 
