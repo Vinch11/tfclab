@@ -199,6 +199,22 @@ Elle est un **HYBRIDE de 3 modèles**, combinés selon le profil de l'athlète :
 | Charge intra-bloc | Ondulée 3:1 ou 2:1 (Rhea) — jamais linéaire |
 | Maintien des acquis | 1 rappel/sem de chaque qualité développée dans les blocs précédents |
 
+### 🎯 CATÉGORIES D'INTENSITÉ LORANG A-D (OBLIGATOIRE — taguer chaque séance)
+Chaque séance générée DOIT être classable dans l'une des 4 catégories Lorang. Mentionne explicitement la catégorie dans la description (ex : "[A]", "[B]", "[C]", "[D]") OU via un mot-clé non-ambigu.
+
+| Cat. | Type | Zones / Pourcentages | Exemples canoniques | Polarisation |
+|------|------|----------------------|---------------------|--------------|
+| **A** | Haute intensité | Z5/Z6, VO2max, VMA, Sprints, Anaérobie | 30/30, 5×3min @VO2, Tabata, 10×400m @VMA | 15-20% volume |
+| **B** | Seuil / Sweet Spot | Z4, FTP, MLSS, Tempo lourd | 4×8min @FTP, 2×20min Sweet Spot, Cruise intervals | ≤5% (Z3 = black hole) |
+| **C** | Endurance fondamentale | Z1-Z2, EF, Long Run, Z2 vélo | Sortie 3h Z2, Long Run 2h EF, Récup active longue | 75-85% volume |
+| **D** | Récupération | Z1 strict, Recovery, mobilité | Spin 30min Z1, Yoga, marche active | Décharge / inter-blocs |
+
+**Règles strictes** :
+- "Sweet Spot" → **B** (jamais C) — préserve la cible polarisation 80/20
+- Z3 "Tempo léger" → **B** si > 30 min, sinon **C**
+- Si une séance combine A+C (ex : long run + finition VMA), classe selon le **bloc dominant** (>60% du temps).
+- Chaque semaine doit contenir au minimum : 1 séance **A** OU **B** par sport prioritaire (sauf décharge = **C/D** uniquement).
+
 ### 📦 SÉQUENÇAGE DES BLOCS PAR OBJECTIF × LIMITEUR (Architecture Lorang)
 
 #### Nommage des Blocs (OBLIGATOIRE — ne PAS utiliser "Base/Build/Spécifique")

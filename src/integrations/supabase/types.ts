@@ -653,6 +653,9 @@ export type Database = {
           objective: string | null
           plan_json: Json
           sessions_count: number | null
+          validator_grade: string | null
+          validator_score: number | null
+          validator_summary: Json | null
           weeks_count: number | null
         }
         Insert: {
@@ -663,6 +666,9 @@ export type Database = {
           objective?: string | null
           plan_json?: Json
           sessions_count?: number | null
+          validator_grade?: string | null
+          validator_score?: number | null
+          validator_summary?: Json | null
           weeks_count?: number | null
         }
         Update: {
@@ -673,6 +679,9 @@ export type Database = {
           objective?: string | null
           plan_json?: Json
           sessions_count?: number | null
+          validator_grade?: string | null
+          validator_score?: number | null
+          validator_summary?: Json | null
           weeks_count?: number | null
         }
         Relationships: []

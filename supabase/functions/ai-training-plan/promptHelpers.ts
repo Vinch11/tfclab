@@ -271,8 +271,10 @@ export function extractStrategicRecap(chunkText: string): string {
   for (const pattern of patterns) {
     const match = chunkText.match(pattern);
     if (match && match[1].trim().length > 50) {
-      // FIX C4 (audit): Increase truncation from 2500 to 4000 chars to preserve later phases in long plans
-      return match[1].trim().slice(0, 4000);
+      // F-12 (audit IA plan v8): bumped 4000 → 6000 chars to preserve full periodization
+      // narrative on long plans (Ironman 28w, Trail Mountain 24w). Token budget profiler
+      // (scripts/profileChunkTokenBudget.py) confirms <5% Gemini Flash 1M context, +500 tok/chunk safe.
+      return match[1].trim().slice(0, 6000);
     }
   }
 
@@ -295,7 +297,7 @@ export function extractStrategicRecap(chunkText: string): string {
     limiterTableMatch ? limiterTableMatch[1].trim() : "",
     synergyMatch ? `Synergies:\n${synergyMatch[1].trim()}` : "",
   ].filter(Boolean).join("\n\n");
-  if (combined.length > 80) return combined.slice(0, 4000);
+  if (combined.length > 80) return combined.slice(0, 6000);
 
   // Last resort: capture lines mentioning phase boundaries (S1-SN patterns)
   const phaseLines = chunkText.match(/(?:Fondation|Chantier|Build|Consolidation|Race.Specific|Aff[ûu]tage|Taper|Sp[ée]cifique|D[ée]veloppement|Pr[ée]paration)[^\n]*S\d+[^\n]*/gi) || [];
