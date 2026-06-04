@@ -555,17 +555,21 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
 
       totalKeySessions++;
       CATALOG_ID_PATTERN.lastIndex = 0;
-      const match = CATALOG_ID_PATTERN.exec(text);
+      const ids: string[] = [];
+      let m: RegExpExecArray | null;
+      while ((m = CATALOG_ID_PATTERN.exec(text)) !== null) {
+        ids.push(m[0]);
+      }
+      CATALOG_ID_PATTERN.lastIndex = 0;
       const isCustom = CUSTOM_PATTERN.test(text);
+      CUSTOM_PATTERN.lastIndex = 0;
 
-      if (match) {
+      if (ids.length > 0) {
         catalogSessions++;
-        uniqueCatalogIds.add(match[0]);
+        for (const id of ids) uniqueCatalogIds.add(id);
       } else if (isCustom) {
         customSessions++;
       }
-      CATALOG_ID_PATTERN.lastIndex = 0;
-      CUSTOM_PATTERN.lastIndex = 0;
     }
   }
 
