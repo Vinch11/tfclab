@@ -133,17 +133,20 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
     finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
       durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
   },
+  // TrailShort = format court (15-35 km, < 4h, 500-1500m D+).
+  // Volume hebdo plus proche d'un marathon route, sortie longue plafonnée, intensité (VO2/seuil) maintenue.
+  // Différencié de Trail (long, 40-80 km) qui exige plus de volume Z2 et longues sorties dépassant 2h30.
   TrailShort: {
-    world_class:{ weeklyHours: [14,21], sessionsPerWeek: [9,13],  keySessions: [3,4], progressionPct: [5,8],
-      durations: { longRunMin: [180,240], weeklyKmRun: [100,170] } },
-    elite:      { weeklyHours: [12,18], sessionsPerWeek: [8,11],  keySessions: [2,3], progressionPct: [5,7],
-      durations: { longRunMin: [150,210], weeklyKmRun: [80,140] } },
-    competitor: { weeklyHours: [8,14],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7],
-      durations: { longRunMin: [120,180], weeklyKmRun: [50,90] } },
-    age_group:  { weeklyHours: [6,10],  sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5],
-      durations: { longRunMin: [90,150], weeklyKmRun: [35,60] } },
-    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,5],   keySessions: [1,2], progressionPct: [3,3],
-      durations: { longRunMin: [75,120], weeklyKmRun: [20,40] } },
+    world_class:{ weeklyHours: [10,15], sessionsPerWeek: [8,11],  keySessions: [3,4], progressionPct: [5,8],
+      durations: { longRunMin: [105,150], weeklyKmRun: [80,130] } },
+    elite:      { weeklyHours: [9,13],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [90,135],  weeklyKmRun: [65,105] } },
+    competitor: { weeklyHours: [6,10],  sessionsPerWeek: [5,8],   keySessions: [2,3], progressionPct: [5,7],
+      durations: { longRunMin: [75,120],  weeklyKmRun: [40,75] } },
+    age_group:  { weeklyHours: [4,7],   sessionsPerWeek: [4,6],   keySessions: [2,2], progressionPct: [3,5],
+      durations: { longRunMin: [60,100],  weeklyKmRun: [25,50] } },
+    finisher:   { weeklyHours: [3,5],   sessionsPerWeek: [3,5],   keySessions: [1,2], progressionPct: [3,3],
+      durations: { longRunMin: [50,90],   weeklyKmRun: [15,35] } },
   },
   TrailMountain: {
     world_class:{ weeklyHours: [16,23], sessionsPerWeek: [9,14],  keySessions: [3,4], progressionPct: [5,8],
@@ -246,12 +249,13 @@ export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: st
     elite:       { M: "2h50 – 3h15",    F: "3h10 – 3h35" },
     world_class: { M: "Sub 2h45",       F: "Sub 3h05" },
   },
+  // TrailShort = 20-35 km, 600-1500m D+. Temps de référence beaucoup plus rapides que Trail long.
   TrailShort: {
-    finisher:    { M: "5h30 – 7h",      F: "6h00 – 7h45" },
-    age_group:   { M: "4h00 – 5h15",    F: "4h25 – 5h45" },
-    competitor:  { M: "3h15 – 4h00",    F: "3h35 – 4h25" },
-    elite:       { M: "2h50 – 3h15",    F: "3h10 – 3h35" },
-    world_class: { M: "Sub 2h45",       F: "Sub 3h05" },
+    finisher:    { M: "3h00 – 4h15",    F: "3h20 – 4h45" },
+    age_group:   { M: "2h15 – 2h55",    F: "2h30 – 3h15" },
+    competitor:  { M: "1h45 – 2h10",    F: "1h55 – 2h25" },
+    elite:       { M: "1h30 – 1h45",    F: "1h40 – 1h55" },
+    world_class: { M: "Sub 1h25",       F: "Sub 1h35" },
   },
   TrailMountain: {
     finisher:    { M: "12h – 16h",      F: "13h – 17h30" },

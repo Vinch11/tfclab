@@ -654,12 +654,42 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       return (prio[a.priority] || 3) - (prio[b.priority] || 3);
     });
 
+    // F-26: Helpers — format coach-provided targetTimeMinutes + derive race pace
+    const formatTargetTime = (min: number): string => {
+      const h = Math.floor(min / 60);
+      const m = Math.round(min % 60);
+      return h > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${m}min`;
+    };
+    const deriveRacePace = (goal: any): string | null => {
+      if (!goal?.targetTimeMinutes || goal.targetTimeMinutes <= 0) return null;
+      let dist: number | null = (typeof goal.distanceKm === "number" && goal.distanceKm > 0) ? goal.distanceKm : null;
+      if (!dist) {
+        const obj = String(goal.objective || "");
+        if (/marathon/i.test(obj) && !/semi/i.test(obj)) dist = 42.195;
+        else if (/semi/i.test(obj)) dist = 21.0975;
+        else if (/10\s*k/i.test(obj)) dist = 10;
+        else if (/5\s*k/i.test(obj)) dist = 5;
+      }
+      if (!dist) return null;
+      const p = goal.targetTimeMinutes / dist;
+      const pm = Math.floor(p);
+      const ps = Math.round((p - pm) * 60);
+      return `${pm}:${String(ps).padStart(2, "0")}/km`;
+    };
+
     sortedGoals.forEach((goal: any, idx: number) => {
       const prioEmoji = goal.priority === "A" ? "🅰️ PRINCIPAL" : goal.priority === "B" ? "🅱️ INTERMÉDIAIRE" : "🆎 SECONDAIRE";
       const goalWeek = computeGoalWeek(goal);
       const bounds = getWeekBounds(goalWeek);
       const weekAnchor = goalWeek ? ` — Échéance: Semaine ${goalWeek}${bounds ? ` (${bounds.start} → ${bounds.end})` : ""}` : "";
       lines.push(`**Objectif ${idx + 1} — ${prioEmoji}** : ${goal.objective}${goal.raceName ? ` (${goal.raceName})` : ""}${goal.raceDate ? ` — Date : ${goal.raceDate}` : ""}${weekAnchor}`);
+      // F-26: Coach-provided target time → derive race pace + anchor key sessions
+      if (goal.targetTimeMinutes && goal.targetTimeMinutes > 0) {
+        const tFmt = formatTargetTime(goal.targetTimeMinutes);
+        const pace = deriveRacePace(goal);
+        lines.push(`→ ⏱️ **Temps cible coach (PRIORITÉ)** : ${tFmt}${pace ? ` → allure cible **${pace}**` : ""}.`);
+        lines.push(`→ Les séances spécifiques (race-pace, simulation, sortie longue progressive) DOIVENT inclure des blocs à ${pace || `l'allure cible (${tFmt})`}. Le temps statistique éventuel est SECONDAIRE.`);
+      }
       if (goalWeek && goal.raceDate) {
         lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
         lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
@@ -701,11 +731,19 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   }
 
   // Inject time target hint based on objective × ambition × sex
+  // F-26: si le coach a saisi un targetTimeMinutes explicite, le temps statistique devient secondaire.
   const athleteSex = data?.sex || data?.sexe || null;
   const timeTarget = getTimeTargetHint(config.objective || "", config.ambition || "", athleteSex);
+  const coachTimeProvided = Array.isArray(config.raceGoals)
+    && config.raceGoals.some((g: any) => g?.targetTimeMinutes && g.targetTimeMinutes > 0);
   if (timeTarget) {
-    lines.push(`- **🎯 Temps cible estimé :** ${timeTarget}`);
-    lines.push(`  → Ce temps cible sert UNIQUEMENT à guider la progression du plan (volume de travail à allure spécifique, distribution des séances clés, stratégie de course J-J).`);
+    const label = coachTimeProvided ? "🎯 Fourchette littérature (RÉFÉRENCE secondaire)" : "🎯 Temps cible estimé";
+    lines.push(`- **${label} :** ${timeTarget}`);
+    if (coachTimeProvided) {
+      lines.push(`  → ⚠️ Un **temps cible coach** a été saisi pour au moins un objectif ci-dessus. Cette fourchette littérature ne sert qu'à vérifier la plausibilité — c'est le temps cible coach qui pilote l'allure spécifique.`);
+    } else {
+      lines.push(`  → Ce temps cible sert UNIQUEMENT à guider la progression du plan (volume de travail à allure spécifique, distribution des séances clés, stratégie de course J-J).`);
+    }
     lines.push(`  → Les ZONES D'ENTRAÎNEMENT (Z1-Z7) restent 100% individualisées à partir des valeurs physiologiques de l'athlète (VMA, FTP, FCmax). Ne JAMAIS recalculer ou modifier les zones à partir du temps cible.`);
     lines.push(`  → En résumé : le temps cible = objectif de performance final. Les zones = outils d'entraînement individualisés. Les deux sont indépendants.`);
   }
