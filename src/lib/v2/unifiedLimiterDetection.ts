@@ -705,21 +705,18 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     weightedImpact: fatmaxImpactNeutralized ? 0 : fatmaxRawImpact,
   });
   
-  // 5. Analyse Économie (Neuromuscular)
-  // ⚠️ GUARD COHÉRENCE ÉCONOMIE↔TTE (politique "no fake defaults")
-  // Quand TTE est inconnu (LOAD échoué, ni tte_observed_min ni tss_7d),
-  // on n'a pas le contexte de durabilité pour interpréter un score
-  // d'économie sous-cible. Sans ce contexte, l'économie remonte
-  // mécaniquement en limiteur primaire et fausse la lecture (Force Max
-  // activée par défaut, neuromusculaire surreprésenté chez la majorité
-  // des athlètes).
-  // → On neutralise son weightedImpact tant que TTE est "unknown".
-  const tteIsUnknown = input.tte === null;
+  // 5. Analyse Économie (Modulateur d'Efficience — JAMAIS limiteur #1)
+  // ⚠️ DOCTRINE TFCL : l'Économie de course/pédalage est un MULTIPLICATEUR
+  // des 4 piliers physiologiques (aérobie, glycolyse, durabilité, neuromusculaire).
+  // Elle améliore le rendement SANS changer le plafond physiologique → elle
+  // ne peut pas être le facteur limitant #1 d'une périodisation.
+  // → weightedImpact = 0 systématiquement (mais le gap reste affiché pour
+  //   transparence et alimente le score de modulation côté Compass).
+  // Cohérent avec l'UI qui classe l'Économie sous "MODULATEUR — EFFICIENCE",
+  // séparé des 4 piliers principaux.
   const economyGap = input.economyScore !== null 
     ? (input.economyScore - 70) / 70 
     : 0;
-  const economyRawImpact = economyGap < 0 ? Math.abs(economyGap) * weights.economy * 100 : 0;
-  const economyImpactNeutralized = tteIsUnknown && economyGap < 0;
   gapAnalysis.push({
     metric: "Économie",
     value: input.economyScore,
@@ -727,12 +724,11 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     gap: input.economyScore !== null ? input.economyScore - 70 : 0,
     gapPercent: economyGap * 100,
     status: input.economyScore === null ? "unknown"
-      : economyImpactNeutralized ? "acceptable"  // TTE inconnu → contexte manquant
       : input.economyScore >= 70 ? "optimal"
       : input.economyScore >= 50 ? "acceptable"
-      : "limiting",
+      : "limiting",  // statut conservé pour affichage, mais impact = 0
     weight: weights.economy,
-    weightedImpact: economyImpactNeutralized ? 0 : economyRawImpact,
+    weightedImpact: 0,  // ✅ Modulateur — exclu du classement des limiteurs primaires
   });
   
   // 6. Analyse Disponibilité — RETIRÉE V2.1
