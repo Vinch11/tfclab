@@ -721,7 +721,13 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   //     Ultra               ~ 0.68
   // Cible = raceDuration × intensityFraction, plafonnée à 90 min (limite physiologique TTE).
   // La règle ne s'active que si une estimation de temps de course est fournie explicitement.
-  if (input.tte !== null && input.targetRaceDurationMin && input.targetRaceDurationMin > 0) {
+  // ⚠️ Garde anti-faux-positif : si le TTE atteint déjà la cible principale
+  // ajustée à l'âge (bloc TTE ci-dessus, gap ≥ 0), l'athlète possède la
+  // durabilité physiologique requise pour son objectif. Inutile de générer
+  // une "Durabilité" limitante via le plafond 90 min des courses longues —
+  // cela créait un faux limiteur secondaire "TTE insuffisant" alors même que
+  // le TTE est au-dessus de la cible (cas Vince : TTE 70 vs cible 44).
+  if (input.tte !== null && input.targetRaceDurationMin && input.targetRaceDurationMin > 0 && input.tte < tteTarget) {
     const raceDur = input.targetRaceDurationMin;
     const obj = (input.objectif || "").toLowerCase();
     const intensityFraction =
