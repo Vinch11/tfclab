@@ -837,7 +837,7 @@ Cette semaine était trop pauvre (séances insuffisantes ou structure incomplèt
 Exigences obligatoires :
 - Minimum ${minSessionsExpected} séances réelles
 - Tableau jour-par-jour complet (Lundi → Dimanche) avec : sport, type, durée, zones cibles, structure
-- Marqueur 🔑 sur les séances clés (alignées L1="${planConfig?.identifiedLimiters?.[0] || "—"}")
+- Marqueur 🔑 sur les séances clés (alignées L1="${planConfig?.identifiedLimitersRaw?.[0] || planConfig?.identifiedLimiters?.[0] || "—"}")
 - Justification W'bal pour les séances d'intervalles supra-CP
 - Cohérence de phase : ${activePhase}
 ${surgicalRecap}
