@@ -10,7 +10,9 @@ import { normalizeAmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel"
 
 // API exposée aux pages (compatible avec ton AthleteEditPage actuel)
 interface AthleteContextType {
-  athletes: any[]; // on adapte progressivement; pour l’instant "any" évite de casser
+  athletes: any[]; // on adapte progressivement; pour l'instant "any" évite de casser
+  visibleAthletes: any[];
+  hiddenAthletes: any[];
   selectedAthleteId: string | null;
   currentAthlete: any | null;
   setSelectedAthleteId: (id: string | null) => void;
@@ -19,6 +21,7 @@ interface AthleteContextType {
   addAthlete: (athlete: any) => Promise<any>;
   updateAthlete: (athlete: any) => Promise<boolean>;
   deleteAthlete: (athleteId: string) => Promise<boolean>;
+  toggleAthleteHidden: (athleteId: string, hidden: boolean) => Promise<boolean>;
 
   // helpers
   refresh: () => Promise<void>;
@@ -26,14 +29,14 @@ interface AthleteContextType {
 
 const AthleteContext = createContext<AthleteContextType | undefined>(undefined);
 const LS_SELECTED = "vinceslab-selected-athlete";
-const SS_SELECTED = "vinceslab-selected-athlete-session"; // ✅ Backup pour iOS
+const SS_SELECTED = "vinceslab-selected-athlete-session"; // Backup pour iOS
 
 function normalizeRefs(refs: any): any {
   const r = refs && typeof refs === "object" ? refs : {};
-  // ✅ FIX: Unifier masse_grasse → fatPct pour cohérence avec effectiveRefs
+  // FIX: Unifier masse_grasse → fatPct pour cohérence avec effectiveRefs
   const fatPct = r.fatPct ?? r.masse_grasse ?? null;
   return {
-    ...r, // ✅ FIX: Préserver TOUTES les clés existantes (weightKg, etc.)
+    ...r, // FIX: Préserver TOUTES les clés existantes (weightKg, etc.)
     fcMax: r.fcMax ?? null,
     vma: r.vma ?? null,
     ftp: r.ftp ?? null,
@@ -45,7 +48,7 @@ function normalizeRefs(refs: any): any {
   };
 }
 
-// ✅ Récupération robuste: essaie localStorage, puis sessionStorage
+// Récupération robuste: essaie localStorage, puis sessionStorage
 function getPersistedAthleteId(): string | null {
   try {
     return localStorage.getItem(LS_SELECTED) || sessionStorage.getItem(SS_SELECTED) || null;
@@ -54,7 +57,7 @@ function getPersistedAthleteId(): string | null {
   }
 }
 
-// ✅ Sauvegarde duale pour survivre aux purges iOS
+// Sauvegarde duale pour survivre aux purges iOS
 function persistAthleteId(id: string | null) {
   try {
     if (id) {
@@ -89,7 +92,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
     persistAthleteId(id);
   };
 
-  // “UI athletes” : on expose une forme proche de ton ancien type Athlete
+  // "UI athletes" : on expose une forme proche de ton ancien type Athlete
   const athletes = useMemo(() => {
     return (dbAthletes || []).map((a) => {
       const refs = normalizeRefs(a.refs as any);
@@ -102,13 +105,17 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
         active_snapshot_id: a.active_snapshot_id ?? null,
         dateNaissance: a.birth_date ?? null,
         ambition: normalizeAmbitionLevel(refs.ambition),
+        is_hidden: a.is_hidden ?? false,
         // legacy compat :
         historique: [],
         masse_grasse: refs.masse_grasse ?? null,
-        sexe: a.sex ?? refs.sexe ?? null, // ✅ FIX: Priorité colonne DB, fallback refs
+        sexe: a.sex ?? refs.sexe ?? null, // FIX: Priorité colonne DB, fallback refs
       };
     });
   }, [dbAthletes]);
+
+  const visibleAthletes = useMemo(() => athletes.filter((a) => !a.is_hidden), [athletes]);
+  const hiddenAthletes = useMemo(() => athletes.filter((a) => a.is_hidden), [athletes]);
 
   const currentAthlete = useMemo(() => {
     // Priorité: athlète sélectionné existant, sinon premier de la liste
@@ -150,7 +157,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
       athlete.objectif || "IM",
       refs as Json,
       athlete.vo2max ?? null,
-      athlete.sexe || refs.sexe || null, // ✅ FIX: Passer le sexe à la création
+      athlete.sexe || refs.sexe || null, // FIX: Passer le sexe à la création
     );
     if (created?.id) setSelectedAthleteId(created.id);
     return created;
@@ -165,7 +172,7 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
       refs: refs as Json,
       vo2max: athlete.vo2max ?? null,
       birth_date: athlete.dateNaissance || null,
-      sex: athlete.sexe || refs.sexe || null, // ✅ FIX: Écrire aussi la colonne sex
+      sex: athlete.sexe || refs.sexe || null, // FIX: Écrire aussi la colonne sex
     });
   };
 
