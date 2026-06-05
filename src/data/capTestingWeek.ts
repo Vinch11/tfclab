@@ -114,11 +114,9 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           { durationMin: 4, intensityLabel: "Récup", notes: "Marche ou footing très lent" }
         ],
         main: [
-          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s", notes: "Départ arrêté. Effort 100% dès le départ. Un assistant chronomètre et siffle l'arrêt à 15s." },
-          { durationMin: 5, intensityLabel: "Récupération", notes: "Marche complète" },
-          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s (essai 2)", notes: "Deuxième tentative pour confirmer ou améliorer" },
-          { durationMin: 5, intensityLabel: "Récupération", notes: "Marche complète" },
-          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s (essai 3)", notes: "Troisième tentative - garder la meilleure distance" }
+          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s (essai 1)", notes: "Départ arrêté. Effort 100% dès le départ. Un assistant chronomètre et siffle l'arrêt à 15s." },
+          { durationMin: 8, intensityLabel: "Récupération longue (8 min)", notes: "Marche + footing Z1 très lent. Récup portée à 8 min (vs 5 min historique) pour garantir resynthèse PCr complète et éviter l'effet fatigue sur le 2e sprint (recommandation audit #5)." },
+          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s (essai 2)", notes: "Deuxième et dernière tentative — garder la meilleure distance des 2 essais. Format réduit à 2 sprints (vs 3) pour préserver la fraîcheur glycolytique." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Footing Z1", notes: "Retour au calme progressif" }
@@ -128,19 +126,21 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "Ne pas regarder le chrono pendant l'effort",
           "Surface dure et régulière (piste synthétique idéale)",
           "Terrain parfaitement plat, sans vent si possible",
-          "Maintenir l'effort jusqu'au signal - pas de ralentissement anticipé"
+          "Maintenir l'effort jusqu'au signal - pas de ralentissement anticipé",
+          "Format 2 sprints × 8 min de récup (audit #5) — si écart >3 m entre les 2 essais, refaire un 3e sprint après 8 min de récup supplémentaire"
         ],
         validityCriteria: [
-          "Écart < 3m entre les 3 essais (reproductibilité)",
+          "Écart < 3m entre les 2 essais (reproductibilité)",
           "Pas de faux départ ni hésitation",
           "Sprint réellement maximal (sensation d'épuisement)",
-          "RPE = 10/10 sur le sprint"
+          "RPE = 10/10 sur le sprint",
+          "Sensation de fraîcheur identique avant chaque essai (sinon récup insuffisante)"
         ],
         dataToRecord: [
           "Distance sprint 15s - essai 1 (m)",
           "Distance sprint 15s - essai 2 (m)",
-          "Distance sprint 15s - essai 3 (m)",
           "Meilleure distance (m)",
+          "Écart entre les 2 essais (m)",
           "HR max atteinte",
           "Conditions (vent, température)",
           "Qualité protocole (1–5)"
