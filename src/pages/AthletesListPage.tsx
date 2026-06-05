@@ -423,11 +423,17 @@ export default function AthletesListPage() {
                         <h3 className="font-semibold text-foreground">
                           {athlete.nom}
                         </h3>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <Badge variant="secondary" className="text-xs">
                             <Target className="h-3 w-3 mr-1" />
                             {getObjectifLabel(athlete.objectif)}
                           </Badge>
+                          {athlete.is_hidden && (
+                            <Badge variant="outline" className="text-xs gap-1">
+                              <EyeOff className="h-3 w-3" />
+                              Masqué
+                            </Badge>
+                          )}
                           {vlamax && (
                             <span className="text-xs text-muted-foreground">
                               VLamax: {vlamax.toFixed(2)}
