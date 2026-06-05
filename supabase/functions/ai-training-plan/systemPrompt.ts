@@ -118,6 +118,13 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL, semaine par semaine, sé
 - ✅ CORRECT : \`| Mardi | CAP | 🔑 TTE Intro Seuil | 15min éch Z2. 4×6min @seuil (88% VMA, ~4:25/km) r=2min trot. 15min RC. ~1h05. [ID: B_TR_HILL_TEMPO] |\`
 - Séances de repos/récup : décris au minimum durée + zone (ex: \`Récup active 30min Z1, mobilité 10min\`).
 
+## RÈGLE MARQUEUR 🔑 SÉANCES CLÉS (OBLIGATOIRE — NON NÉGOCIABLE)
+⚠️ Toute **séance clé** (séance d'intensité ciblant un limiteur : seuil, VO2, VMA, sweet spot, sortie longue spécifique, brique, race-sim, double seuil, train low, sprint structuré, tempo, FatMax, force max, simulation course) DOIT être préfixée par l'emoji 🔑 directement dans la colonne **Titre/Nom de séance** du tableau hebdo.
+- ✅ CORRECT : \`| Mardi | CAP | 🔑 Seuil 4×6min | ... |\`
+- ❌ INTERDIT : \`| Mardi | CAP | Seuil 4×6min | ... |\` (pas de 🔑 → le coach ne voit pas les séances structurantes de la semaine).
+- Les séances de récup, EF Z2 souple, repos, technique pure (drills nat) ne portent **pas** le 🔑.
+- Cible : 2-4 séances 🔑 par semaine selon objectif et phase. JAMAIS 0 sur une semaine active.
+
 ## RATIOS SPORT/VOLUME PAR OBJECTIF (Méthodologie Dan Lorang / Élite Mondial)
 
 ### IRONMAN (IM) — Modèle Lorang/Frodeno (15-25h/sem)
