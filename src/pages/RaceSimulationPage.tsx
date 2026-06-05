@@ -846,78 +846,57 @@ export default function RaceSimulationPage() {
                 runDurationMin={isTriathlon ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : null)}
                 athleteId={athleteId || null}
               />
-              {!staffMode ? (
-                <>
-                  {envelope ? (
-                    <RaceStrategyPlanCard
-                      envelope={envelope}
-                      raceObjective={raceObjective}
-                      discipline={discipline}
-                      raceDurationMin={raceDurationMin}
-                      ftp={activeSnapshot?.ftp}
-                      paceThresholdSecKm={discipline === 'run' ? (paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km) : activeSnapshot?.pace_threshold_sec_per_km}
-                      disponibiliteScore={disponibilite?.score}
-                    />
-                  ) : null}
-                  {(discipline === 'run' || isTriathlon) && envelopeRun && (paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km) && (
-                    <PlanVsSimulationPaceChart
-                      raceObjective={raceObjective}
-                      runEnvelope={envelopeRun}
-                      paceThresholdSecKm={(paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km)!}
-                      vma={activeSnapshot?.vma ?? null}
-                      vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
-                      tteMinRun={tteEffectifRun?.tte_min ?? tteEffectif?.tte_min ?? null}
-                      runDurationMin={isTriathlon ? segmentDurationMin.run : raceDurationMin}
-                      weightKg={activeSnapshot?.weight_kg ?? null}
-                    />
-
-                  )}
-                  {(discipline === 'run' || isTriathlon) && activeSnapshot && (
-                    <RaceTimeEstimateCard chronos={activeSnapshot as any} />
-                  )}
-                  {!envelope && (
-                    <div className="text-center py-6 text-sm text-muted-foreground">
-                      Données insuffisantes pour générer ton plan de course
-                    </div>
-                  )}
-                  {isTriathlon && (
-                    <>
-                      <Alert className="text-[11px] sm:text-xs py-2 bg-amber-500/5 border-amber-500/30">
-                        <Info className="h-3.5 w-3.5" />
-                        <AlertDescription>
-                          <strong>Triathlon :</strong> les 3 plans ci-dessus simulent uniquement le segment{' '}
-                          <strong>{discipline === 'bike' ? '🚴 vélo' : '🏃 course à pied'}</strong>. La simulation
-                          ci-dessous combine les 2 segments pour estimer ta course complète.
-                        </AlertDescription>
-                      </Alert>
-                      <TriathlonFullRaceSimulationCard
-                        raceObjective={raceObjective as 'IM' | '70.3'}
-                        bikeBaselineMin={segmentDurationMin.bike}
-                        runBaselineMin={segmentDurationMin.run}
-                        disponibiliteScore={disponibilite?.score}
-                        vlamaxValue={vlamaxEffectif?.value ?? null}
-                        fatigueState={(activeSnapshot?.fatigue_state as any) ?? null}
-                      />
-                    </>
-                  )}
-                </>
-              ) : (
-                <RaceSimulationModule
-                  vlamaxEffectif={vlamaxEffectif?.value}
-                  vlamaxConfidence={vlamaxEffectif?.confidence ?? 0.5}
-                  vlamaxDiscipline={discipline}
-                  tteMin={tteEffectif?.tte_min}
-                  tteConfidence={tteEffectif?.confidence ?? 0.5}
-                  fatmax={fatmax}
-                  disponibiliteScore={disponibilite?.score}
-                  disponibiliteLevel={disponibilite?.level}
+              {/* Section #3 identique sur desktop / iPad / iPhone — toujours en vue athlète */}
+              {envelope ? (
+                <RaceStrategyPlanCard
+                  envelope={envelope}
+                  raceObjective={raceObjective}
+                  discipline={discipline}
+                  raceDurationMin={raceDurationMin}
                   ftp={activeSnapshot?.ftp}
-                  vma={activeSnapshot?.vma}
-                  paceThreshold={activeSnapshot?.pace_threshold_sec_per_km}
-                  weight={activeSnapshot?.weight_kg}
-                  staffMode={staffMode}
-                  defaultRaceType={raceObjective}
+                  paceThresholdSecKm={discipline === 'run' ? (paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km) : activeSnapshot?.pace_threshold_sec_per_km}
+                  disponibiliteScore={disponibilite?.score}
                 />
+              ) : null}
+              {(discipline === 'run' || isTriathlon) && envelopeRun && (paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km) && (
+                <PlanVsSimulationPaceChart
+                  raceObjective={raceObjective}
+                  runEnvelope={envelopeRun}
+                  paceThresholdSecKm={(paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km)!}
+                  vma={activeSnapshot?.vma ?? null}
+                  vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
+                  tteMinRun={tteEffectifRun?.tte_min ?? tteEffectif?.tte_min ?? null}
+                  runDurationMin={isTriathlon ? segmentDurationMin.run : raceDurationMin}
+                  weightKg={activeSnapshot?.weight_kg ?? null}
+                />
+              )}
+              {(discipline === 'run' || isTriathlon) && activeSnapshot && (
+                <RaceTimeEstimateCard chronos={activeSnapshot as any} />
+              )}
+              {!envelope && (
+                <div className="text-center py-6 text-sm text-muted-foreground">
+                  Données insuffisantes pour générer ton plan de course
+                </div>
+              )}
+              {isTriathlon && (
+                <>
+                  <Alert className="text-[11px] sm:text-xs py-2 bg-amber-500/5 border-amber-500/30">
+                    <Info className="h-3.5 w-3.5" />
+                    <AlertDescription>
+                      <strong>Triathlon :</strong> les 3 plans ci-dessus simulent uniquement le segment{' '}
+                      <strong>{discipline === 'bike' ? '🚴 vélo' : '🏃 course à pied'}</strong>. La simulation
+                      ci-dessous combine les 2 segments pour estimer ta course complète.
+                    </AlertDescription>
+                  </Alert>
+                  <TriathlonFullRaceSimulationCard
+                    raceObjective={raceObjective as 'IM' | '70.3'}
+                    bikeBaselineMin={segmentDurationMin.bike}
+                    runBaselineMin={segmentDurationMin.run}
+                    disponibiliteScore={disponibilite?.score}
+                    vlamaxValue={vlamaxEffectif?.value ?? null}
+                    fatigueState={(activeSnapshot?.fatigue_state as any) ?? null}
+                  />
+                </>
               )}
             </AccordionContent>
           </AccordionItem>
