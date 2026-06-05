@@ -190,7 +190,7 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           { durationMin: 5, intensityLabel: "Récup", notes: "Marche/footing lent avant le test" }
         ],
         main: [
-          { durationMin: 6, intensityLabel: "TEST VAMEVAL ou 6 min ALL-OUT", notes: "Option A : Test VAMEVAL sur piste. Option B : 6 min effort maximal régulier. VMA = distance / 6 × 10 (km/h)" }
+          { durationMin: 8, intensityLabel: "TEST VAMEVAL recommandé (durée totale > 6 min)", notes: "Option A (RECOMMANDÉE, audit #4) : Test VAMEVAL sur piste — paliers de 1 min, +0.5 km/h par palier, départ à 8 km/h. Durée totale TYPIQUE 8–14 min selon niveau. VMA = vitesse du dernier palier complet. Option B (fallback, biais +3–5%) : 6 min all-out — utiliser UNIQUEMENT si pas d'accès piste ou matériel VAMEVAL. La méthode 6 min surestime la VMA de 3–5% (départ trop rapide, pacing imparfait, peu de paliers d'incrémentation)." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Marche/footing Z1", notes: "Retour au calme progressif" }
