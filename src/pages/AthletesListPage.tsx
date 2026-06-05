@@ -402,7 +402,7 @@ export default function AthletesListPage() {
                   isSelected 
                     ? "border-primary bg-primary/5" 
                     : "hover:border-primary/50"
-                }`}
+                } ${athlete.is_hidden ? "opacity-60" : ""}`}
                 onClick={() => handleSelectAthlete(athlete.id)}
               >
                 <CardContent className="p-4">
