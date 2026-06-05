@@ -136,6 +136,16 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "HR max P60s",
           "RPE global (1–10)",
           "Qualité protocole (1–5)"
+        ],
+        homeTrainerNotes: [
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D1 Glycolytique :",
+          "Calibration : spin-down obligatoire 10 min après échauffement (sinon biais −5 à −15 W sur sprints courts)",
+          "Mode résistance LIBRE (NE PAS utiliser ERG sur sprints all-out — l'ERG plafonne et fausse le P30s)",
+          "Ventilateur frontal PUISSANT obligatoire (sinon dérive thermique = perte de puissance 3–8% sur le P60s)",
+          "Température salle <22°C idéale, hydratation à portée de main",
+          "Inertie : préférer HT direct-drive (Wahoo Kickr, Tacx Neo) — les HT à roue surestiment P30s de 5–10% à cause de l'inertie du volant",
+          "Départ lancé sur HT : monter à 25 km/h équivalent (≈ 200–250 W Z2) avant de déclencher le sprint",
+          "Si test outdoor disponible : préférer outdoor (référence). HT = fallback hiver/intempéries."
         ]
       }
     },
