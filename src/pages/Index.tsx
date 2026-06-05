@@ -350,6 +350,7 @@ const Index = () => {
   const gettingStartedVisibility = useGettingStartedVisibility();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isHiddenDialogOpen, setIsHiddenDialogOpen] = useState(false);
   const [newAthleteName, setNewAthleteName] = useState("");
   const [newAthleteGoal, setNewAthleteGoal] = useState("IM");
   const [newAthleteBirthDate, setNewAthleteBirthDate] = useState("");
