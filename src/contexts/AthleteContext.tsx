@@ -178,6 +178,14 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
     return ok;
   };
 
+  const toggleAthleteHidden = async (athleteId: string, hidden: boolean) => {
+    const ok = await dbUpdateAthlete(athleteId, { is_hidden: hidden });
+    if (ok) {
+      await loadData();
+    }
+    return ok;
+  };
+
   const refresh = async () => {
     await loadData();
   };
@@ -186,12 +194,15 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
     <AthleteContext.Provider
       value={{
         athletes,
+        visibleAthletes,
+        hiddenAthletes,
         selectedAthleteId,
         currentAthlete,
         setSelectedAthleteId,
         addAthlete,
         updateAthlete,
         deleteAthlete,
+        toggleAthleteHidden,
         refresh,
       }}
     >
