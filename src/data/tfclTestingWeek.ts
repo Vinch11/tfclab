@@ -213,6 +213,15 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "HR max",
           "RPE (1–10)",
           "Qualité protocole (1–5)"
+        ],
+        homeTrainerNotes: [
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D3 MAP 5 min :",
+          "Spin-down obligatoire après échauffement (15 min) — la dérive thermique du HT peut décaler la puissance de 5–10 W sur un effort de 5 min",
+          "ERG mode AUTORISÉ et même RECOMMANDÉ : régler à la MAP 5 min cible estimée, le HT lisse les fluctuations = pacing parfait",
+          "Si ERG non disponible : mode résistance fixe + pacing manuel (plus difficile, biais positive split)",
+          "Ventilateur frontal OBLIGATOIRE — sans ventilation, perte de 8–12 W sur 5 min par dérive thermique",
+          "Température salle <22°C, hydratation accessible",
+          "Cadence stable 90–100 rpm comme outdoor — surveiller que le HT n'impose pas une cadence artificielle"
         ]
       }
     },
