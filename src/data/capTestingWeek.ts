@@ -422,20 +422,26 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
         ],
         recovery: [],
         pacingRules: [
-          "Pente 1% obligatoire",
+          "Pente 1% obligatoire (tapis)",
           "Ventilateur frontal OBLIGATOIRE (sinon dérive HR faussée par chaleur)",
-          "Vitesse FIXE — aucune variation",
+          "Vitesse FIXE sur le bloc Z2 — aucune variation",
+          "Bloc 3×1km : 3 paliers de 1 km à vitesse correspondant à ~85% allure seuil, récup 90 s marche 5 km/h",
           "Hydratation autorisée pendant l'effort"
         ],
         validityCriteria: [
-          "HR drift < 5% sur 50 min (idéal)",
+          "HR drift < 5% sur le bloc Z2 de 35 min (idéal)",
           "HR drift < 8% (acceptable avec chaleur tapis)",
-          "RPE ≤ 4/10 stable",
-          "Si drift >8% → ventilation insuffisante, refaire"
+          "Bloc 3×1km : FC stabilisée sur le 3e km (plateau aérobie)",
+          "RPE ≤ 4/10 sur Z2, 6–7/10 sur 1km",
+          "Si drift Z2 >8% → ventilation insuffisante, refaire"
         ],
         dataToRecord: [
-          "Vitesse imposée (km/h)",
-          "HR moyenne 5 premières min vs 5 dernières min → HR drift %",
+          "Vitesse imposée Z2 (km/h)",
+          "HR drift Z2 (%)",
+          "Vitesse imposée 3×1km (km/h)",
+          "FC moyenne 3e km (bpm)",
+          "Puissance running moyenne 3e km (W) — si capteur",
+          "CE calculée (kJ/km ou kJ/kg/km)",
           "RPE début/fin",
           "Température salle",
           "Ventilateur (oui/non)",
