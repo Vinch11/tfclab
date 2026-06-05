@@ -451,22 +451,34 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
     },
     {
       dayKey: "D7",
-      title: "OFF",
-      goal: "Repos complet pour assimilation",
+      title: "OFF + COHÉRENCE CHECK",
+      goal: "Repos complet + validation croisée des résultats (audit #6)",
       sessionType: "REST",
-      durationEstimateMin: 0,
+      durationEstimateMin: 15,
       icon: "off",
       protocol: {
         warmup: [],
         main: [],
         recovery: [],
-        pacingRules: [],
+        pacingRules: [
+          "Aucune activité sportive — repos complet",
+          "Prendre 10–15 min pour remplir la table de cohérence ci-dessous"
+        ],
         validityCriteria: [
-          "Pas d'activité sportive",
-          "Récupération mentale et physique"
+          "AUDIT #6 — Table COHÉRENCE CHECK à remplir (validation croisée) :",
+          "• Ratio allure seuil / VMA = pace_seuil_kmh / VMA → attendu 0.85–0.92 (élite jusqu'à 0.93)",
+          "• Ratio VLamax (sprint) / Allure seuil : VLamax >0.55 + ratio seuil/VMA <0.83 = profil glycolytique (cohérent)",
+          "• VLamax <0.40 + ratio seuil/VMA >0.88 = profil aérobie/économie (cohérent)",
+          "• VLamax >0.55 + ratio seuil/VMA >0.90 = INCOHÉRENT (probable sous-estimation sprint OU surestimation seuil)",
+          "• VLamax <0.40 + ratio seuil/VMA <0.83 = INCOHÉRENT (probable surestimation sprint OU sous-estimation seuil)",
+          "• TTE observé vs ambition : ultra >55 min, competitor 45–55 min, fitness 30–45 min, débutant <30 min",
+          "• HR drift Z2 D6 < 5% = récupération validée — si >8% : reporter analyse, refaire D5+D6 dans 7 j"
         ],
         dataToRecord: [
-          "Sensation générale (1–10)"
+          "Sensation générale (1–10)",
+          "Cohérence des ratios (cohérent / à recalibrer)",
+          "Tests à refaire éventuellement",
+          "Date prévue prochaine semaine de tests (recalibration suggérée tous les 8–12 semaines)"
         ]
       }
     }
