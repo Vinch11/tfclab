@@ -371,40 +371,53 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
     },
     {
       dayKey: "D6",
-      title: "Endurance Validation",
-      goal: "Validation de la récupération et cohérence du profil",
+      title: "Endurance Validation + TEST Économie de Course (RE)",
+      goal: "Validation de la récupération + mesure de l'économie de course (CE en kJ/km) — AUDIT #1",
       sessionType: "VALIDATION",
-      durationEstimateMin: 60,
+      durationEstimateMin: 75,
       icon: "endurance",
       protocol: {
-        warmup: [],
+        warmup: [
+          { durationMin: 15, intensityLabel: "Footing Z2 progressif", notes: "Activation aérobie, finir à 80% allure seuil" }
+        ],
         main: [
-          { durationMin: 50, intensityLabel: "Footing Z2 stable", notes: "50–60 min à allure endurance fondamentale (~70% allure seuil)" },
-          { durationMin: 10, intensityLabel: "Retour au calme", notes: "Marche + étirements" }
+          { durationMin: 35, intensityLabel: "Footing Z2 stable", notes: "35 min à allure endurance fondamentale (~70% allure seuil) — sert de baseline HR drift" },
+          { durationMin: 12, intensityLabel: "TEST RE — 3×1 km allure marathon", notes: "AUDIT #1 — bloc d'économie de course : 3×1 km à allure marathon estimée (~85% allure seuil, ~88–92% FC seuil), récup 90 s footing lent entre chaque répétition. Mesurer puissance running moyenne (W) + FC stable sur le 3e km. CE (kJ/km) = (puissance moyenne W × 1 km × 3.6) / vitesse (km/h). Cible : CE 0.95–1.10 kJ/kg/km (élite <0.95). Nécessite capteur de puissance running (Stryd, COROS POD2, Garmin RD Pod)." },
+          { durationMin: 10, intensityLabel: "Retour au calme", notes: "Footing Z1 + marche + étirements" }
         ],
         recovery: [],
         pacingRules: [
-          "Allure stable et confortable",
-          "Conversation fluide possible",
-          "Objectif : vérifier la récupération après D5"
+          "Bloc Z2 : allure stable et confortable, conversation fluide",
+          "Bloc 3×1km : allure marathon RÉGULIÈRE (±3 s/km), pas de positive split",
+          "Récup 90 s entre les 1km — footing lent (pas de marche complète)",
+          "Si pas de capteur de puissance : enregistrer FC moyenne 3e km + allure → estimation CE via Léger/Di Prampero"
         ],
         validityCriteria: [
-          "HR drift < 5% sur 50 min",
-          "Sensation de facilité (RPE ≤ 4)",
-          "Foulée fluide sans fatigue"
+          "HR drift < 5% sur le bloc Z2 de 35 min",
+          "Bloc 3×1km : variabilité allure < 2% entre les 3 répétitions",
+          "FC stabilisée sur le 3e km (plateau aérobie atteint)",
+          "Sensation 'confortablement soutenable' sur les 1km (RPE 6–7/10)",
+          "Foulée fluide sans dégradation technique"
         ],
         dataToRecord: [
-          "Allure moyenne",
-          "HR drift (%)",
+          "Allure moyenne Z2 (min:sec/km)",
+          "HR drift Z2 (%)",
+          "Allure moyenne 3×1km (min:sec/km)",
+          "FC moyenne 3e km (bpm)",
+          "Puissance running moyenne 3e km (W) — si capteur",
+          "CE calculée (kJ/km ou kJ/kg/km)",
           "RPE (1–10)",
           "Notes confort/récupération",
           "Qualité protocole (1–5)"
         ]
       },
       treadmillProtocol: {
-        warmup: [],
+        warmup: [
+          { durationMin: 15, intensityLabel: "Footing Z2 tapis (pente 1%)", notes: "Activation progressive, ventilateur ON" }
+        ],
         main: [
-          { durationMin: 50, intensityLabel: "Vitesse FIXE = 70% allure seuil tapis (pente 1%)", notes: "Vitesse imposée 50 min, ventilateur ON. Mesure pure de la dérive cardiaque (HR drift) sans variation pacing — alimente run_hr_drift_pct et run_economy." },
+          { durationMin: 35, intensityLabel: "Vitesse FIXE = 70% allure seuil tapis (pente 1%)", notes: "Vitesse imposée 35 min, ventilateur ON. Mesure pure de la dérive cardiaque (HR drift) sans variation pacing — alimente run_hr_drift_pct et run_economy." },
+          { durationMin: 12, intensityLabel: "TEST RE tapis — 3×1 km allure marathon (pente 1%)", notes: "AUDIT #1 — bloc d'économie de course tapis : 3×1 km à vitesse fixée correspondant à ~85% allure seuil (pente 1%), récup 90 s marche 5 km/h entre chaque répétition. Mesurer puissance running + FC stable sur le 3e km. CE (kJ/km) calculée comme outdoor. Tapis = pacing parfait, idéal pour RE." },
           { durationMin: 10, intensityLabel: "Marche tapis", notes: "Retour au calme" }
         ],
         recovery: [],
