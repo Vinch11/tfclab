@@ -254,6 +254,9 @@ const Index = () => {
   // ✅ Utiliser AthleteContext pour la synchronisation avec les composants de recommandation
   const { 
     athletes, 
+    visibleAthletes,
+    hiddenAthletes,
+    toggleAthleteHidden,
     currentAthlete: contextCurrentAthlete, 
     selectedAthleteId, 
     setSelectedAthleteId 
@@ -274,6 +277,7 @@ const Index = () => {
       vo2max: contextCurrentAthlete.vo2max,
       active_snapshot_id: contextCurrentAthlete.active_snapshot_id,
       birth_date: contextCurrentAthlete.dateNaissance,
+      is_hidden: contextCurrentAthlete.is_hidden ?? false,
       coach_id: "", // Non utilisé dans Index
       created_at: "", // Non utilisé dans Index
     } as DbAthlete;
