@@ -290,6 +290,16 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "HR drift (%)",
           "RPE (1–10)",
           "Qualité protocole (1–5)"
+        ],
+        homeTrainerNotes: [
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D5 FTP + TTE :",
+          "Spin-down obligatoire (15 min échauffement puis recalibration)",
+          "ERG mode RECOMMANDÉ pour Option A (FTP connu) : régler à 100% FTP, le HT impose la puissance = TTE pur sans biais de pacing",
+          "ATTENTION ERG : risque de 'death spiral' si fatigue (cadence chute, ERG augmente couple, blocage). Surveillance critique : si cadence <80 rpm pendant >10 s → ARRÊT (= TTE atteint)",
+          "Option B (recalibration) : mode résistance fixe + pacing manuel, FTP = Pavg × 0.95",
+          "Ventilation MAXIMALE (2 ventilateurs si possible) — un effort de 40–60 min sans ventilation perd 15–25 W par hyperthermie",
+          "Hydratation 500 mL/h minimum, gel optionnel après 30 min",
+          "FTP HT typiquement 3–7% inférieur au FTP outdoor (moins d'inertie, monotonie) — noter sur quel format le FTP a été mesuré pour traçabilité"
         ]
       }
     },
