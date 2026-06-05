@@ -483,6 +483,20 @@ export default function AthletesListPage() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                          title={athlete.is_hidden ? "Démasquer ce profil" : "Masquer ce profil"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAthleteHidden(athlete.id, !athlete.is_hidden);
+                          }}
+                        >
+                          {athlete.is_hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        </Button>
+                      )}
+                      {!selectionMode && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="opacity-0 group-hover:opacity-100 transition-opacity"
                           title="Dupliquer ce profil"
                           onClick={(e) => handleDuplicateAthlete(e, athlete.id)}
