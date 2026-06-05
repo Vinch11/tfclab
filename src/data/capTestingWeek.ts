@@ -337,7 +337,7 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
         ],
         main: [
           { durationMin: 25, intensityLabel: "25 min vitesse seuil FIXÉE (pente 1%)", notes: "Démarrer à 90% VMA. Vitesse imposée par tapis = pacing PARFAIT. Si tenu 'confortablement difficile' = OK." },
-          { durationMin: 5, intensityLabel: "Extension TTE — +0.3 km/h", notes: "Si encore capable de parler en mots courts, augmenter de +0.3 km/h et tenir jusqu'à incapacité (= TTE). Si chute de vitesse impossible sur tapis : test invalide → refaire 0.3 km/h plus bas." }
+          { durationMin: 45, intensityLabel: "Extension TTE — +0.3 km/h jusqu'à épuisement (cap 45 min)", notes: "AUDIT #2 — extension étendue : si encore capable de parler en mots courts à la fin des 25 min, augmenter de +0.3 km/h et tenir jusqu'à incapacité (= TTE). Cap absolu 45 min de TTE total (25 + 20) pour éviter biais glycogénique. Permet de discriminer competitor (45–55 min) vs elite (55–70 min). Si chute de vitesse impossible sur tapis : test invalide → refaire 0.3 km/h plus bas." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Marche tapis 5 km/h", notes: "Retour au calme + boire" }
