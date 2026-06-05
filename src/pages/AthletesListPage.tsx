@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy, Pencil } from "lucide-react";
+import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy, Pencil, Eye, EyeOff } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +22,7 @@ import type { Tables, Json } from "@/integrations/supabase/types";
 
 export default function AthletesListPage() {
   const navigate = useNavigate();
-  const { athletes, setSelectedAthleteId, deleteAthlete, refresh } = useAthletes();
+  const { athletes, setSelectedAthleteId, deleteAthlete, refresh, toggleAthleteHidden } = useAthletes();
   const { athletes: dbAthletes, snapshots, tests, checkins, loadData } = useCloudDataContext();
   const { user } = useAuth();
   const [importing, setImporting] = useState(false);
@@ -402,7 +402,7 @@ export default function AthletesListPage() {
                   isSelected 
                     ? "border-primary bg-primary/5" 
                     : "hover:border-primary/50"
-                }`}
+                } ${athlete.is_hidden ? "opacity-60" : ""}`}
                 onClick={() => handleSelectAthlete(athlete.id)}
               >
                 <CardContent className="p-4">
@@ -423,11 +423,17 @@ export default function AthletesListPage() {
                         <h3 className="font-semibold text-foreground">
                           {athlete.nom}
                         </h3>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <Badge variant="secondary" className="text-xs">
                             <Target className="h-3 w-3 mr-1" />
                             {getObjectifLabel(athlete.objectif)}
                           </Badge>
+                          {athlete.is_hidden && (
+                            <Badge variant="outline" className="text-xs gap-1">
+                              <EyeOff className="h-3 w-3" />
+                              Masqué
+                            </Badge>
+                          )}
                           {vlamax && (
                             <span className="text-xs text-muted-foreground">
                               VLamax: {vlamax.toFixed(2)}
@@ -471,6 +477,20 @@ export default function AthletesListPage() {
                           }}
                         >
                           <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {!selectionMode && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                          title={athlete.is_hidden ? "Démasquer ce profil" : "Masquer ce profil"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAthleteHidden(athlete.id, !athlete.is_hidden);
+                          }}
+                        >
+                          {athlete.is_hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                         </Button>
                       )}
                       {!selectionMode && (
