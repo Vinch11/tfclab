@@ -332,26 +332,45 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "RPE (1–10)",
           "Notes confort/récupération",
           "Qualité protocole (1–5)"
+        ],
+        homeTrainerNotes: [
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D6 Z2 Validation :",
+          "ERG mode IDÉAL ici : régler à 65–70% FTP, le HT impose la puissance constante = mesure pure du HR drift sans variation de pacing",
+          "Ventilateur frontal OBLIGATOIRE — le HR drift sans ventilation est faussé (+8 à +15 bpm artificiel)",
+          "Température salle <22°C, hydratation 500 mL/h",
+          "HR drift acceptable sur HT : <8% (vs <5% outdoor) à cause de la chaleur résiduelle inévitable",
+          "Si drift HT >10% : refaire avec meilleure ventilation, sinon la validation D5 n'est pas exploitable"
         ]
       }
     },
     {
       dayKey: "D7",
-      title: "OFF",
-      goal: "Repos complet pour assimilation",
+      title: "OFF + COHÉRENCE CHECK",
+      goal: "Repos complet + validation croisée des résultats (audit #6)",
       sessionType: "REST",
-      durationEstimateMin: 0,
+      durationEstimateMin: 15,
       protocol: {
         warmup: [],
         main: [],
         recovery: [],
-        pacingCadenceRules: [],
+        pacingCadenceRules: [
+          "Aucune activité sportive — repos complet",
+          "Prendre 10–15 min pour remplir la table de cohérence ci-dessous"
+        ],
         validityCriteria: [
-          "Pas d'activité sportive",
-          "Récupération mentale et physique"
+          "AUDIT #6 — Table COHÉRENCE CHECK à remplir (validation croisée) :",
+          "• Ratio FTP/MAP (PAM 5 min) : attendu 0.78–0.88 (élite jusqu'à 0.92) — hors plage = test à refaire",
+          "• Ratio P30s/FTP : attendu 2.5–4.0 (sprinter naturel >3.5, endurant <3.0) — cohérent avec VLamax estimée",
+          "• Ratio P60s/FTP : attendu 1.8–2.5 — si <1.6 = P60s sous-estimé (pacing trop conservateur)",
+          "• VLamax bike estimée (sprint P30s) vs ratio FTP/MAP : VLamax >0.55 attendu si ratio FTP/MAP <0.80 (profil glycolytique), VLamax <0.40 attendu si ratio >0.86 (profil aérobie). Sinon = incohérence à investiguer.",
+          "• TTE observé vs ambition : ultra/IM >55 min, competitor 45–55 min, fitness 30–45 min, débutant <30 min",
+          "• HR drift Z2 D6 <5% outdoor / <8% HT = récupération validée — si >10% : reporter analyse, refaire D5+D6 dans 7 j"
         ],
         dataToRecord: [
-          "Sensation générale (1–10)"
+          "Sensation générale (1–10)",
+          "Cohérence des ratios (cohérent / à recalibrer)",
+          "Tests à refaire éventuellement",
+          "Date prévue prochaine semaine de tests (recalibration suggérée tous les 8–12 semaines, ou en cas de bloc d'entraînement majeur)"
         ]
       }
     }
