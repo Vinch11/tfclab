@@ -16,6 +16,8 @@ export interface TFCLProtocol {
   pacingCadenceRules: string[];
   validityCriteria: string[];
   dataToRecord: string[];
+  /** AUDIT #3 — Variante home-trainer : notes spécifiques pour exécuter le test en intérieur sur HT (calibration, ventilation, ERG mode, biais à corriger). Les métriques de sortie sont identiques (alimentent les mêmes champs p30s_w, p60s_w, map5min_w, ftp, tte_observed_min). */
+  homeTrainerNotes?: string[];
 }
 
 export interface TFCLTestDay {
