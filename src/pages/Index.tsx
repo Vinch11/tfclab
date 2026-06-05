@@ -1277,6 +1277,69 @@ const Index = () => {
 
               {/* Actions compactes */}
               <div className="flex items-center gap-1">
+                {/* Masquer / démasquer l'athlète courant */}
+                {currentAthlete && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                    onClick={() => toggleAthleteHidden(currentAthlete.id, !currentAthlete.is_hidden)}
+                    title={currentAthlete.is_hidden ? "Démasquer cet athlète" : "Masquer cet athlète"}
+                  >
+                    {currentAthlete.is_hidden ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+
+                {/* Gestion des athlètes masqués */}
+                {hiddenAthletes.length > 0 && (
+                  <Dialog open={isHiddenDialogOpen} onOpenChange={setIsHiddenDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0 relative">
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
+                          {hiddenAthletes.length}
+                        </span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-[90vw] sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Athlètes masqués</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-3 pt-4">
+                        <p className="text-sm text-muted-foreground">
+                          Ces athlètes sont masqués du sélecteur principal. Cliquez sur l'œil pour les réafficher.
+                        </p>
+                        <div className="space-y-2">
+                          {hiddenAthletes.map((a) => (
+                            <div
+                              key={a.id}
+                              className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-secondary/50 border border-border"
+                            >
+                              <div>
+                                <p className="text-sm font-medium">{a.nom}</p>
+                                <p className="text-xs text-muted-foreground">{a.objectif || "IM"}</p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 shrink-0"
+                                onClick={() => toggleAthleteHidden(a.id, false)}
+                                title="Démasquer"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
