@@ -58,6 +58,7 @@ export type Database = {
           created_at: string
           goal: string | null
           id: string
+          is_hidden: boolean
           name: string
           refs: Json | null
           sex: string | null
@@ -70,6 +71,7 @@ export type Database = {
           created_at?: string
           goal?: string | null
           id?: string
+          is_hidden?: boolean
           name: string
           refs?: Json | null
           sex?: string | null
@@ -82,6 +84,7 @@ export type Database = {
           created_at?: string
           goal?: string | null
           id?: string
+          is_hidden?: boolean
           name?: string
           refs?: Json | null
           sex?: string | null

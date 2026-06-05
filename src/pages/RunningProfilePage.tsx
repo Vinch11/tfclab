@@ -108,6 +108,7 @@ export default function RunningProfilePage() {
       vo2max: currentAthlete.vo2max,
       active_snapshot_id: currentAthlete.active_snapshot_id,
       birth_date: currentAthlete.dateNaissance,
+      is_hidden: null,
       coach_id: "",
       created_at: "",
       sex: null,
