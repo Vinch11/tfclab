@@ -1120,11 +1120,18 @@ const Index = () => {
                   <SelectValue placeholder="Athlète" />
                 </SelectTrigger>
                 <SelectContent>
-                  {athletes.map((a) => (
+                  {/* Athlètes visibles */}
+                  {visibleAthletes.map((a) => (
                     <SelectItem key={a.id} value={a.id}>
                       {a.nom} ({a.objectif || "IM"})
                     </SelectItem>
                   ))}
+                  {/* Athlète sélectionné s'il est masqué (pour permettre le changement) */}
+                  {selectedAthleteId && !visibleAthletes.some((a) => a.id === selectedAthleteId) && (
+                    <SelectItem key={selectedAthleteId} value={selectedAthleteId} className="text-muted-foreground">
+                      {athletes.find((a) => a.id === selectedAthleteId)?.nom} ({athletes.find((a) => a.id === selectedAthleteId)?.objectif || "IM"}) — masqué
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
 
