@@ -22,7 +22,7 @@ import type { Tables, Json } from "@/integrations/supabase/types";
 
 export default function AthletesListPage() {
   const navigate = useNavigate();
-  const { athletes, setSelectedAthleteId, deleteAthlete, refresh } = useAthletes();
+  const { athletes, setSelectedAthleteId, deleteAthlete, refresh, toggleAthleteHidden } = useAthletes();
   const { athletes: dbAthletes, snapshots, tests, checkins, loadData } = useCloudDataContext();
   const { user } = useAuth();
   const [importing, setImporting] = useState(false);
