@@ -829,24 +829,25 @@ export default function RaceSimulationPage() {
                   )}
                 </div>
               )}
+              {/* Stratégie Plan A & Plan B — toujours visible (mode athlète ET mode staff) */}
+              <ObjectiveStrategyCard
+                raceObjective={raceObjective}
+                bikeEnvelope={envelopeBike}
+                runEnvelope={envelopeRun}
+                ftp={activeSnapshot?.ftp ?? null}
+                paceThresholdSecKm={paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null}
+                weightKg={activeSnapshot?.weight_kg ?? null}
+                vlamaxBike={vlamaxEffectif?.value ?? null}
+                vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
+                vo2max={activeSnapshot?.vo2max ?? null}
+                tteMin={tteEffectif?.tte_min ?? null}
+                tteMinRun={tteEffectifRun?.tte_min ?? null}
+                bikeDurationMin={isTriathlon ? segmentDurationMin.bike : (discipline === 'bike' ? raceDurationMin : null)}
+                runDurationMin={isTriathlon ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : null)}
+                athleteId={athleteId || null}
+              />
               {!staffMode ? (
                 <>
-                  <ObjectiveStrategyCard
-                    raceObjective={raceObjective}
-                    bikeEnvelope={envelopeBike}
-                    runEnvelope={envelopeRun}
-                    ftp={activeSnapshot?.ftp ?? null}
-                    paceThresholdSecKm={paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null}
-                    weightKg={activeSnapshot?.weight_kg ?? null}
-                    vlamaxBike={vlamaxEffectif?.value ?? null}
-                    vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
-                    vo2max={activeSnapshot?.vo2max ?? null}
-                    tteMin={tteEffectif?.tte_min ?? null}
-                    tteMinRun={tteEffectifRun?.tte_min ?? null}
-                    bikeDurationMin={isTriathlon ? segmentDurationMin.bike : (discipline === 'bike' ? raceDurationMin : null)}
-                    runDurationMin={isTriathlon ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : null)}
-                    athleteId={athleteId || null}
-                  />
                   {envelope ? (
                     <RaceStrategyPlanCard
                       envelope={envelope}
