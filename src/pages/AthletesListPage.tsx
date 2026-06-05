@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy, Pencil } from "lucide-react";
+import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy, Pencil, Eye, EyeOff } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
