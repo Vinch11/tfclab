@@ -412,6 +412,22 @@ export function TFCLTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: TF
               </div>
             )}
 
+            {day.protocol.homeTrainerNotes && day.protocol.homeTrainerNotes.length > 0 && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+                <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                  <span>🏠</span> Variante Home-Trainer (intérieur)
+                </h4>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  {day.protocol.homeTrainerNotes.map((note, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-primary">›</span>
+                      {note}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {day.protocol.validityCriteria.length > 0 && (
               <div>
                 <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
