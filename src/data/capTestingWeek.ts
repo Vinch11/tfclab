@@ -297,8 +297,8 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           { durationMin: 5, intensityLabel: "Récup", notes: "Marche avant le test" }
         ],
         main: [
-          { durationMin: 30, intensityLabel: "30 min au seuil", notes: "Effort maximal soutenable sur 30 min. Allure régulière du début à la fin. Si vous tenez aisément 30 min, l'allure était trop basse." },
-          { durationMin: 5, intensityLabel: "Extension TTE (optionnel)", notes: "Si possible, continuez jusqu'à l'épuisement pour mesurer le TTE réel au seuil" }
+          { durationMin: 30, intensityLabel: "30 min au seuil (calage allure)", notes: "Effort maximal soutenable sur 30 min. Allure régulière du début à la fin. Si vous tenez aisément 30 min, l'allure était trop basse." },
+          { durationMin: 45, intensityLabel: "Extension TTE — jusqu'à épuisement (cap 45 min)", notes: "AUDIT #2 — extension étendue de 5 à 45 min : continuer à l'allure seuil jusqu'à incapacité physique de maintenir l'allure (chute >5 s/km pendant >30 s). Arrêt obligatoire à 45 min de TTE total (30 + 15) pour éviter biais glycogénique. Cette extension permet de discriminer correctement les profils competitor (TTE 45–55 min) et elite (TTE 55–70 min), impossible avec une extension limitée à 5 min." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Marche/footing Z1", notes: "Retour au calme" }
