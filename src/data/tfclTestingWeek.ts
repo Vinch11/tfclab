@@ -16,6 +16,8 @@ export interface TFCLProtocol {
   pacingCadenceRules: string[];
   validityCriteria: string[];
   dataToRecord: string[];
+  /** AUDIT #3 — Variante home-trainer : notes spécifiques pour exécuter le test en intérieur sur HT (calibration, ventilation, ERG mode, biais à corriger). Les métriques de sortie sont identiques (alimentent les mêmes champs p30s_w, p60s_w, map5min_w, ftp, tte_observed_min). */
+  homeTrainerNotes?: string[];
 }
 
 export interface TFCLTestDay {
@@ -134,6 +136,16 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "HR max P60s",
           "RPE global (1–10)",
           "Qualité protocole (1–5)"
+        ],
+        homeTrainerNotes: [
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D1 Glycolytique :",
+          "Calibration : spin-down obligatoire 10 min après échauffement (sinon biais −5 à −15 W sur sprints courts)",
+          "Mode résistance LIBRE (NE PAS utiliser ERG sur sprints all-out — l'ERG plafonne et fausse le P30s)",
+          "Ventilateur frontal PUISSANT obligatoire (sinon dérive thermique = perte de puissance 3–8% sur le P60s)",
+          "Température salle <22°C idéale, hydratation à portée de main",
+          "Inertie : préférer HT direct-drive (Wahoo Kickr, Tacx Neo) — les HT à roue surestiment P30s de 5–10% à cause de l'inertie du volant",
+          "Départ lancé sur HT : monter à 25 km/h équivalent (≈ 200–250 W Z2) avant de déclencher le sprint",
+          "Si test outdoor disponible : préférer outdoor (référence). HT = fallback hiver/intempéries."
         ]
       }
     },
@@ -201,6 +213,15 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "HR max",
           "RPE (1–10)",
           "Qualité protocole (1–5)"
+        ],
+        homeTrainerNotes: [
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D3 MAP 5 min :",
+          "Spin-down obligatoire après échauffement (15 min) — la dérive thermique du HT peut décaler la puissance de 5–10 W sur un effort de 5 min",
+          "ERG mode AUTORISÉ et même RECOMMANDÉ : régler à la MAP 5 min cible estimée, le HT lisse les fluctuations = pacing parfait",
+          "Si ERG non disponible : mode résistance fixe + pacing manuel (plus difficile, biais positive split)",
+          "Ventilateur frontal OBLIGATOIRE — sans ventilation, perte de 8–12 W sur 5 min par dérive thermique",
+          "Température salle <22°C, hydratation accessible",
+          "Cadence stable 90–100 rpm comme outdoor — surveiller que le HT n'impose pas une cadence artificielle"
         ]
       }
     },
@@ -269,6 +290,16 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "HR drift (%)",
           "RPE (1–10)",
           "Qualité protocole (1–5)"
+        ],
+        homeTrainerNotes: [
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D5 FTP + TTE :",
+          "Spin-down obligatoire (15 min échauffement puis recalibration)",
+          "ERG mode RECOMMANDÉ pour Option A (FTP connu) : régler à 100% FTP, le HT impose la puissance = TTE pur sans biais de pacing",
+          "ATTENTION ERG : risque de 'death spiral' si fatigue (cadence chute, ERG augmente couple, blocage). Surveillance critique : si cadence <80 rpm pendant >10 s → ARRÊT (= TTE atteint)",
+          "Option B (recalibration) : mode résistance fixe + pacing manuel, FTP = Pavg × 0.95",
+          "Ventilation MAXIMALE (2 ventilateurs si possible) — un effort de 40–60 min sans ventilation perd 15–25 W par hyperthermie",
+          "Hydratation 500 mL/h minimum, gel optionnel après 30 min",
+          "FTP HT typiquement 3–7% inférieur au FTP outdoor (moins d'inertie, monotonie) — noter sur quel format le FTP a été mesuré pour traçabilité"
         ]
       }
     },
@@ -301,26 +332,45 @@ export const TFCL_TESTING_WEEK: TFCLTestingWeek = {
           "RPE (1–10)",
           "Notes confort/récupération",
           "Qualité protocole (1–5)"
+        ],
+        homeTrainerNotes: [
+          "AUDIT #3 — Variante HOME-TRAINER (HT) D6 Z2 Validation :",
+          "ERG mode IDÉAL ici : régler à 65–70% FTP, le HT impose la puissance constante = mesure pure du HR drift sans variation de pacing",
+          "Ventilateur frontal OBLIGATOIRE — le HR drift sans ventilation est faussé (+8 à +15 bpm artificiel)",
+          "Température salle <22°C, hydratation 500 mL/h",
+          "HR drift acceptable sur HT : <8% (vs <5% outdoor) à cause de la chaleur résiduelle inévitable",
+          "Si drift HT >10% : refaire avec meilleure ventilation, sinon la validation D5 n'est pas exploitable"
         ]
       }
     },
     {
       dayKey: "D7",
-      title: "OFF",
-      goal: "Repos complet pour assimilation",
+      title: "OFF + COHÉRENCE CHECK",
+      goal: "Repos complet + validation croisée des résultats (audit #6)",
       sessionType: "REST",
-      durationEstimateMin: 0,
+      durationEstimateMin: 15,
       protocol: {
         warmup: [],
         main: [],
         recovery: [],
-        pacingCadenceRules: [],
+        pacingCadenceRules: [
+          "Aucune activité sportive — repos complet",
+          "Prendre 10–15 min pour remplir la table de cohérence ci-dessous"
+        ],
         validityCriteria: [
-          "Pas d'activité sportive",
-          "Récupération mentale et physique"
+          "AUDIT #6 — Table COHÉRENCE CHECK à remplir (validation croisée) :",
+          "• Ratio FTP/MAP (PAM 5 min) : attendu 0.78–0.88 (élite jusqu'à 0.92) — hors plage = test à refaire",
+          "• Ratio P30s/FTP : attendu 2.5–4.0 (sprinter naturel >3.5, endurant <3.0) — cohérent avec VLamax estimée",
+          "• Ratio P60s/FTP : attendu 1.8–2.5 — si <1.6 = P60s sous-estimé (pacing trop conservateur)",
+          "• VLamax bike estimée (sprint P30s) vs ratio FTP/MAP : VLamax >0.55 attendu si ratio FTP/MAP <0.80 (profil glycolytique), VLamax <0.40 attendu si ratio >0.86 (profil aérobie). Sinon = incohérence à investiguer.",
+          "• TTE observé vs ambition : ultra/IM >55 min, competitor 45–55 min, fitness 30–45 min, débutant <30 min",
+          "• HR drift Z2 D6 <5% outdoor / <8% HT = récupération validée — si >10% : reporter analyse, refaire D5+D6 dans 7 j"
         ],
         dataToRecord: [
-          "Sensation générale (1–10)"
+          "Sensation générale (1–10)",
+          "Cohérence des ratios (cohérent / à recalibrer)",
+          "Tests à refaire éventuellement",
+          "Date prévue prochaine semaine de tests (recalibration suggérée tous les 8–12 semaines, ou en cas de bloc d'entraînement majeur)"
         ]
       }
     }

@@ -114,11 +114,9 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           { durationMin: 4, intensityLabel: "Récup", notes: "Marche ou footing très lent" }
         ],
         main: [
-          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s", notes: "Départ arrêté. Effort 100% dès le départ. Un assistant chronomètre et siffle l'arrêt à 15s." },
-          { durationMin: 5, intensityLabel: "Récupération", notes: "Marche complète" },
-          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s (essai 2)", notes: "Deuxième tentative pour confirmer ou améliorer" },
-          { durationMin: 5, intensityLabel: "Récupération", notes: "Marche complète" },
-          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s (essai 3)", notes: "Troisième tentative - garder la meilleure distance" }
+          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s (essai 1)", notes: "Départ arrêté. Effort 100% dès le départ. Un assistant chronomètre et siffle l'arrêt à 15s." },
+          { durationMin: 8, intensityLabel: "Récupération longue (8 min)", notes: "Marche + footing Z1 très lent. Récup portée à 8 min (vs 5 min historique) pour garantir resynthèse PCr complète et éviter l'effet fatigue sur le 2e sprint (recommandation audit #5)." },
+          { durationMin: 0.25, intensityLabel: "SPRINT MAXIMAL 15s (essai 2)", notes: "Deuxième et dernière tentative — garder la meilleure distance des 2 essais. Format réduit à 2 sprints (vs 3) pour préserver la fraîcheur glycolytique." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Footing Z1", notes: "Retour au calme progressif" }
@@ -128,19 +126,21 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           "Ne pas regarder le chrono pendant l'effort",
           "Surface dure et régulière (piste synthétique idéale)",
           "Terrain parfaitement plat, sans vent si possible",
-          "Maintenir l'effort jusqu'au signal - pas de ralentissement anticipé"
+          "Maintenir l'effort jusqu'au signal - pas de ralentissement anticipé",
+          "Format 2 sprints × 8 min de récup (audit #5) — si écart >3 m entre les 2 essais, refaire un 3e sprint après 8 min de récup supplémentaire"
         ],
         validityCriteria: [
-          "Écart < 3m entre les 3 essais (reproductibilité)",
+          "Écart < 3m entre les 2 essais (reproductibilité)",
           "Pas de faux départ ni hésitation",
           "Sprint réellement maximal (sensation d'épuisement)",
-          "RPE = 10/10 sur le sprint"
+          "RPE = 10/10 sur le sprint",
+          "Sensation de fraîcheur identique avant chaque essai (sinon récup insuffisante)"
         ],
         dataToRecord: [
           "Distance sprint 15s - essai 1 (m)",
           "Distance sprint 15s - essai 2 (m)",
-          "Distance sprint 15s - essai 3 (m)",
           "Meilleure distance (m)",
+          "Écart entre les 2 essais (m)",
           "HR max atteinte",
           "Conditions (vent, température)",
           "Qualité protocole (1–5)"
@@ -190,7 +190,7 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           { durationMin: 5, intensityLabel: "Récup", notes: "Marche/footing lent avant le test" }
         ],
         main: [
-          { durationMin: 6, intensityLabel: "TEST VAMEVAL ou 6 min ALL-OUT", notes: "Option A : Test VAMEVAL sur piste. Option B : 6 min effort maximal régulier. VMA = distance / 6 × 10 (km/h)" }
+          { durationMin: 8, intensityLabel: "TEST VAMEVAL recommandé (durée totale > 6 min)", notes: "Option A (RECOMMANDÉE, audit #4) : Test VAMEVAL sur piste — paliers de 1 min, +0.5 km/h par palier, départ à 8 km/h. Durée totale TYPIQUE 8–14 min selon niveau. VMA = vitesse du dernier palier complet. Option B (fallback, biais +3–5%) : 6 min all-out — utiliser UNIQUEMENT si pas d'accès piste ou matériel VAMEVAL. La méthode 6 min surestime la VMA de 3–5% (départ trop rapide, pacing imparfait, peu de paliers d'incrémentation)." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Marche/footing Z1", notes: "Retour au calme progressif" }
@@ -297,8 +297,8 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
           { durationMin: 5, intensityLabel: "Récup", notes: "Marche avant le test" }
         ],
         main: [
-          { durationMin: 30, intensityLabel: "30 min au seuil", notes: "Effort maximal soutenable sur 30 min. Allure régulière du début à la fin. Si vous tenez aisément 30 min, l'allure était trop basse." },
-          { durationMin: 5, intensityLabel: "Extension TTE (optionnel)", notes: "Si possible, continuez jusqu'à l'épuisement pour mesurer le TTE réel au seuil" }
+          { durationMin: 30, intensityLabel: "30 min au seuil (calage allure)", notes: "Effort maximal soutenable sur 30 min. Allure régulière du début à la fin. Si vous tenez aisément 30 min, l'allure était trop basse." },
+          { durationMin: 45, intensityLabel: "Extension TTE — jusqu'à épuisement (cap 45 min)", notes: "AUDIT #2 — extension étendue de 5 à 45 min : continuer à l'allure seuil jusqu'à incapacité physique de maintenir l'allure (chute >5 s/km pendant >30 s). Arrêt obligatoire à 45 min de TTE total (30 + 15) pour éviter biais glycogénique. Cette extension permet de discriminer correctement les profils competitor (TTE 45–55 min) et elite (TTE 55–70 min), impossible avec une extension limitée à 5 min." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Marche/footing Z1", notes: "Retour au calme" }
@@ -337,7 +337,7 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
         ],
         main: [
           { durationMin: 25, intensityLabel: "25 min vitesse seuil FIXÉE (pente 1%)", notes: "Démarrer à 90% VMA. Vitesse imposée par tapis = pacing PARFAIT. Si tenu 'confortablement difficile' = OK." },
-          { durationMin: 5, intensityLabel: "Extension TTE — +0.3 km/h", notes: "Si encore capable de parler en mots courts, augmenter de +0.3 km/h et tenir jusqu'à incapacité (= TTE). Si chute de vitesse impossible sur tapis : test invalide → refaire 0.3 km/h plus bas." }
+          { durationMin: 45, intensityLabel: "Extension TTE — +0.3 km/h jusqu'à épuisement (cap 45 min)", notes: "AUDIT #2 — extension étendue : si encore capable de parler en mots courts à la fin des 25 min, augmenter de +0.3 km/h et tenir jusqu'à incapacité (= TTE). Cap absolu 45 min de TTE total (25 + 20) pour éviter biais glycogénique. Permet de discriminer competitor (45–55 min) vs elite (55–70 min). Si chute de vitesse impossible sur tapis : test invalide → refaire 0.3 km/h plus bas." }
         ],
         recovery: [
           { durationMin: 10, intensityLabel: "Marche tapis 5 km/h", notes: "Retour au calme + boire" }
@@ -371,58 +371,77 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
     },
     {
       dayKey: "D6",
-      title: "Endurance Validation",
-      goal: "Validation de la récupération et cohérence du profil",
+      title: "Endurance Validation + TEST Économie de Course (RE)",
+      goal: "Validation de la récupération + mesure de l'économie de course (CE en kJ/km) — AUDIT #1",
       sessionType: "VALIDATION",
-      durationEstimateMin: 60,
+      durationEstimateMin: 75,
       icon: "endurance",
       protocol: {
-        warmup: [],
+        warmup: [
+          { durationMin: 15, intensityLabel: "Footing Z2 progressif", notes: "Activation aérobie, finir à 80% allure seuil" }
+        ],
         main: [
-          { durationMin: 50, intensityLabel: "Footing Z2 stable", notes: "50–60 min à allure endurance fondamentale (~70% allure seuil)" },
-          { durationMin: 10, intensityLabel: "Retour au calme", notes: "Marche + étirements" }
+          { durationMin: 35, intensityLabel: "Footing Z2 stable", notes: "35 min à allure endurance fondamentale (~70% allure seuil) — sert de baseline HR drift" },
+          { durationMin: 12, intensityLabel: "TEST RE — 3×1 km allure marathon", notes: "AUDIT #1 — bloc d'économie de course : 3×1 km à allure marathon estimée (~85% allure seuil, ~88–92% FC seuil), récup 90 s footing lent entre chaque répétition. Mesurer puissance running moyenne (W) + FC stable sur le 3e km. CE (kJ/km) = (puissance moyenne W × 1 km × 3.6) / vitesse (km/h). Cible : CE 0.95–1.10 kJ/kg/km (élite <0.95). Nécessite capteur de puissance running (Stryd, COROS POD2, Garmin RD Pod)." },
+          { durationMin: 10, intensityLabel: "Retour au calme", notes: "Footing Z1 + marche + étirements" }
         ],
         recovery: [],
         pacingRules: [
-          "Allure stable et confortable",
-          "Conversation fluide possible",
-          "Objectif : vérifier la récupération après D5"
+          "Bloc Z2 : allure stable et confortable, conversation fluide",
+          "Bloc 3×1km : allure marathon RÉGULIÈRE (±3 s/km), pas de positive split",
+          "Récup 90 s entre les 1km — footing lent (pas de marche complète)",
+          "Si pas de capteur de puissance : enregistrer FC moyenne 3e km + allure → estimation CE via Léger/Di Prampero"
         ],
         validityCriteria: [
-          "HR drift < 5% sur 50 min",
-          "Sensation de facilité (RPE ≤ 4)",
-          "Foulée fluide sans fatigue"
+          "HR drift < 5% sur le bloc Z2 de 35 min",
+          "Bloc 3×1km : variabilité allure < 2% entre les 3 répétitions",
+          "FC stabilisée sur le 3e km (plateau aérobie atteint)",
+          "Sensation 'confortablement soutenable' sur les 1km (RPE 6–7/10)",
+          "Foulée fluide sans dégradation technique"
         ],
         dataToRecord: [
-          "Allure moyenne",
-          "HR drift (%)",
+          "Allure moyenne Z2 (min:sec/km)",
+          "HR drift Z2 (%)",
+          "Allure moyenne 3×1km (min:sec/km)",
+          "FC moyenne 3e km (bpm)",
+          "Puissance running moyenne 3e km (W) — si capteur",
+          "CE calculée (kJ/km ou kJ/kg/km)",
           "RPE (1–10)",
           "Notes confort/récupération",
           "Qualité protocole (1–5)"
         ]
       },
       treadmillProtocol: {
-        warmup: [],
+        warmup: [
+          { durationMin: 15, intensityLabel: "Footing Z2 tapis (pente 1%)", notes: "Activation progressive, ventilateur ON" }
+        ],
         main: [
-          { durationMin: 50, intensityLabel: "Vitesse FIXE = 70% allure seuil tapis (pente 1%)", notes: "Vitesse imposée 50 min, ventilateur ON. Mesure pure de la dérive cardiaque (HR drift) sans variation pacing — alimente run_hr_drift_pct et run_economy." },
+          { durationMin: 35, intensityLabel: "Vitesse FIXE = 70% allure seuil tapis (pente 1%)", notes: "Vitesse imposée 35 min, ventilateur ON. Mesure pure de la dérive cardiaque (HR drift) sans variation pacing — alimente run_hr_drift_pct et run_economy." },
+          { durationMin: 12, intensityLabel: "TEST RE tapis — 3×1 km allure marathon (pente 1%)", notes: "AUDIT #1 — bloc d'économie de course tapis : 3×1 km à vitesse fixée correspondant à ~85% allure seuil (pente 1%), récup 90 s marche 5 km/h entre chaque répétition. Mesurer puissance running + FC stable sur le 3e km. CE (kJ/km) calculée comme outdoor. Tapis = pacing parfait, idéal pour RE." },
           { durationMin: 10, intensityLabel: "Marche tapis", notes: "Retour au calme" }
         ],
         recovery: [],
         pacingRules: [
-          "Pente 1% obligatoire",
+          "Pente 1% obligatoire (tapis)",
           "Ventilateur frontal OBLIGATOIRE (sinon dérive HR faussée par chaleur)",
-          "Vitesse FIXE — aucune variation",
+          "Vitesse FIXE sur le bloc Z2 — aucune variation",
+          "Bloc 3×1km : 3 paliers de 1 km à vitesse correspondant à ~85% allure seuil, récup 90 s marche 5 km/h",
           "Hydratation autorisée pendant l'effort"
         ],
         validityCriteria: [
-          "HR drift < 5% sur 50 min (idéal)",
+          "HR drift < 5% sur le bloc Z2 de 35 min (idéal)",
           "HR drift < 8% (acceptable avec chaleur tapis)",
-          "RPE ≤ 4/10 stable",
-          "Si drift >8% → ventilation insuffisante, refaire"
+          "Bloc 3×1km : FC stabilisée sur le 3e km (plateau aérobie)",
+          "RPE ≤ 4/10 sur Z2, 6–7/10 sur 1km",
+          "Si drift Z2 >8% → ventilation insuffisante, refaire"
         ],
         dataToRecord: [
-          "Vitesse imposée (km/h)",
-          "HR moyenne 5 premières min vs 5 dernières min → HR drift %",
+          "Vitesse imposée Z2 (km/h)",
+          "HR drift Z2 (%)",
+          "Vitesse imposée 3×1km (km/h)",
+          "FC moyenne 3e km (bpm)",
+          "Puissance running moyenne 3e km (W) — si capteur",
+          "CE calculée (kJ/km ou kJ/kg/km)",
           "RPE début/fin",
           "Température salle",
           "Ventilateur (oui/non)",
@@ -432,22 +451,34 @@ export const CAP_TESTING_WEEK: CAPTestingWeek = {
     },
     {
       dayKey: "D7",
-      title: "OFF",
-      goal: "Repos complet pour assimilation",
+      title: "OFF + COHÉRENCE CHECK",
+      goal: "Repos complet + validation croisée des résultats (audit #6)",
       sessionType: "REST",
-      durationEstimateMin: 0,
+      durationEstimateMin: 15,
       icon: "off",
       protocol: {
         warmup: [],
         main: [],
         recovery: [],
-        pacingRules: [],
+        pacingRules: [
+          "Aucune activité sportive — repos complet",
+          "Prendre 10–15 min pour remplir la table de cohérence ci-dessous"
+        ],
         validityCriteria: [
-          "Pas d'activité sportive",
-          "Récupération mentale et physique"
+          "AUDIT #6 — Table COHÉRENCE CHECK à remplir (validation croisée) :",
+          "• Ratio allure seuil / VMA = pace_seuil_kmh / VMA → attendu 0.85–0.92 (élite jusqu'à 0.93)",
+          "• Ratio VLamax (sprint) / Allure seuil : VLamax >0.55 + ratio seuil/VMA <0.83 = profil glycolytique (cohérent)",
+          "• VLamax <0.40 + ratio seuil/VMA >0.88 = profil aérobie/économie (cohérent)",
+          "• VLamax >0.55 + ratio seuil/VMA >0.90 = INCOHÉRENT (probable sous-estimation sprint OU surestimation seuil)",
+          "• VLamax <0.40 + ratio seuil/VMA <0.83 = INCOHÉRENT (probable surestimation sprint OU sous-estimation seuil)",
+          "• TTE observé vs ambition : ultra >55 min, competitor 45–55 min, fitness 30–45 min, débutant <30 min",
+          "• HR drift Z2 D6 < 5% = récupération validée — si >8% : reporter analyse, refaire D5+D6 dans 7 j"
         ],
         dataToRecord: [
-          "Sensation générale (1–10)"
+          "Sensation générale (1–10)",
+          "Cohérence des ratios (cohérent / à recalibrer)",
+          "Tests à refaire éventuellement",
+          "Date prévue prochaine semaine de tests (recalibration suggérée tous les 8–12 semaines)"
         ]
       }
     }
