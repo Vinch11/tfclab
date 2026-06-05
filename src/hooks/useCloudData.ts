@@ -26,6 +26,7 @@ export interface DbAthlete {
   sex: string | null;
   active_snapshot_id: string | null;
   birth_date: string | null; // Date de naissance pour calcul AAI
+  is_hidden: boolean | null; // Masquer dans le sélecteur
   created_at: string;
 }
 export type DbTest = Tables<"tests">;
