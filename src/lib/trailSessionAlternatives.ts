@@ -173,9 +173,10 @@ export function getTrailSessionAlternatives(input: {
     kind: "mountain",
     icon: "🏔️",
     label: "Montagne (référence)",
-    hint: [durStr, dPlusStr, ctx.intensity].filter(Boolean).join(" · ")
+    hint: [ctx.repsLabel, durStr, dPlusStr, ctx.intensity].filter(Boolean).join(" · ")
       || "Terrain trail réel — version prescrite",
   };
+
 
   switch (kind) {
     case "race_sim": {
