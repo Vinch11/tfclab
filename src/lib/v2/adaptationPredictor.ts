@@ -165,11 +165,13 @@ const LEVER_EFFECTS: Record<TrainingLeverId, LeverEffect[]> = {
     { metric: "economy", minPct: 0, maxPct: 2 },
   ],
   glycolytic_block: [
-    { metric: "vlamax", minPct: 5, maxPct: 15 },       // Augmentation (pas bon pour endurance)
+    // P1 recalibration — Lievens 2020 : chez athlètes déjà entraînés,
+    // un bloc glycolytique 4-8 sem ne déplace VLamax que de +3 à +8% (et non +15%).
+    { metric: "vlamax", minPct: 3, maxPct: 8 },
     { metric: "vo2max", minPct: 1, maxPct: 3 },
-    { metric: "fatmax", minPct: -8, maxPct: -3 },
-    { metric: "durability", minPct: -5, maxPct: -2 },
-    { metric: "tte", minPct: -5, maxPct: 0 },
+    { metric: "fatmax", minPct: -6, maxPct: -2 },
+    { metric: "durability", minPct: -4, maxPct: -1 },
+    { metric: "tte", minPct: -4, maxPct: 0 },
     { metric: "economy", minPct: 0, maxPct: 1 },
     { metric: "lt2", minPct: 0, maxPct: 2 },
   ],
