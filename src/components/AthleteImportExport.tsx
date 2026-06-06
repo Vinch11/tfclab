@@ -396,6 +396,13 @@ export function AthleteImportExport({
                           <span>{item.snapshots.length} profil(s)</span>
                           <span>{item.tests.length} test(s)</span>
                           <span>{item.checkins.length} check-in(s)</span>
+                          {(item.planVersions?.length ?? 0) > 0 && (
+                            <span>{item.planVersions!.length} plan(s) IA</span>
+                          )}
+                          {(item.coachOverrides?.length ?? 0) > 0 && (
+                            <span>{item.coachOverrides!.length} override(s)</span>
+                          )}
+
                         </div>
                       </div>
                       {item.athlete.goal && (
