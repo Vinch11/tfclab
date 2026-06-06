@@ -604,6 +604,25 @@ const LIMITER_TO_LEVERS: Record<string, TrainingLeverId[]> = {
   anaerobic_capacity: ["glycolytic_block", "max_force", "plyometrics"],
 };
 
+/**
+ * Audit P2 — trainability différentielle.
+ * Quand un levier cible le limiteur dominant, les métriques directement liées
+ * à ce limiteur réagissent plus fortement (Bouchard 2011 — non-responders sur
+ * non-targeted, +20-30 % d'amplitude sur targeted). Le bonus +15 pts du ranking
+ * ne touchait que l'ordre, pas l'amplitude affichée.
+ */
+const LIMITER_TO_METRICS: Record<string, MetricId[]> = {
+  aerobic_engine: ["vo2max", "lt2"],
+  glycolytic: ["vlamax", "fatmax"],
+  specific_endurance: ["tte", "lt2", "durability"],
+  metabolic_efficiency: ["fatmax", "durability"],
+  neuromuscular: ["economy"],
+  anaerobic_capacity: ["vlamax"],
+};
+
+const TRAINABILITY_TARGETED_BOOST = 1.25;   // +25 % d'amplitude sur métrique ciblée
+const TRAINABILITY_OFF_TARGET_DAMP = 0.85;  // −15 % sur métriques non ciblées du levier ciblé
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // PUBLIC API
 // ═══════════════════════════════════════════════════════════════════════════════
