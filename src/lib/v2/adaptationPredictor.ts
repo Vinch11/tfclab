@@ -97,6 +97,22 @@ export interface AdaptationPredictorInput {
   limiterLabel: string | null;
   objectif: string;
   selectedLevers?: TrainingLeverId[];
+  /** Sport principal de l'athlète (run / bike / tri / trail). Sert à résoudre
+   *  correctement la VLamax via `resolveVlamaxForGoal` et à choisir le profil
+   *  de pondération performance (Audit P0 — B1). */
+  sportMain?: string | null;
+  /** Durée du plan en semaines. Sert à moduler l'amplitude des deltas projetés
+   *  via `durationFactor` (Audit P0 — B2). Défaut 6 semaines (référence). */
+  weeksAvailable?: number;
+}
+
+/** Facteur d'échelle de la projection en fonction de la durée du plan.
+ *  Référence = 6 semaines (= 1.0). Plancher 0.5 (plan court < 3 sem), plafond
+ *  2.5 (plan > 15 sem — au-delà la trainability sature, cf. Bouchard 2011). */
+function computeDurationFactor(weeksAvailable: number | undefined): number {
+  if (!weeksAvailable || !Number.isFinite(weeksAvailable) || weeksAvailable <= 0) return 1;
+  const raw = weeksAvailable / 6;
+  return Math.max(0.5, Math.min(2.5, raw));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
