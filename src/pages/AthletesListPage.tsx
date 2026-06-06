@@ -380,7 +380,23 @@ export default function AthletesListPage() {
               tests={tests}
               checkins={checkins}
               onImport={handleImport}
+              fetchExtras={async (ids) => {
+                const result: Record<string, { planVersions: any[]; coachOverrides: any[] }> = {};
+                if (ids.length === 0) return result;
+                const [{ data: plans }, { data: overrides }] = await Promise.all([
+                  supabase.from("plan_versions").select("*").in("athlete_id", ids),
+                  supabase.from("coach_overrides").select("*").in("athlete_id", ids),
+                ]);
+                for (const id of ids) {
+                  result[id] = {
+                    planVersions: (plans ?? []).filter((p: any) => p.athlete_id === id),
+                    coachOverrides: (overrides ?? []).filter((o: any) => o.athlete_id === id),
+                  };
+                }
+                return result;
+              }}
             />
+
           </div>
         )}
 
