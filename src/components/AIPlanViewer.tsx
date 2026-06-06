@@ -443,9 +443,10 @@ interface AIPlanViewerProps {
   isRegenerating?: boolean;
   athleteName?: string;
   currentWeekNumber?: number;
+  adaptationProjections?: import("@/hooks/useAITrainingPlan").AdaptationProjection[];
 }
 
-export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, currentWeekNumber }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
 
@@ -456,7 +457,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
   );
 
   const handleExportPDF = () => {
-    exportAIPlanToPDF(plan, athleteName, startDate);
+    exportAIPlanToPDF(plan, athleteName, startDate, adaptationProjections);
   };
 
   return (

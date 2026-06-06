@@ -1910,7 +1910,13 @@ export default function AITrainingPlanPage() {
                         isRegenerating={isRegenerating}
                         athleteName={currentAthlete?.nom}
                         currentWeekNumber={currentWeekNumber}
+                        adaptationProjections={
+                          athleteContext
+                            ? buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections
+                            : undefined
+                        }
                       />
+
                     </>
                   ) : resultView === "interactive" && !isLoading ? (
                     <Card>
