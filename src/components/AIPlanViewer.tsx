@@ -456,8 +456,20 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     [raceGoals]
   );
 
+  // Corrige une distance hallucinée dans le titre IA en utilisant la distance réelle de l'objectif trail
+  const correctedTitle = useMemo(() => {
+    const t = plan.title || "";
+    const primary = (raceGoals || []).find((g) => g.priority === "A" && typeof g.distanceKm === "number" && (g.distanceKm as number) > 0)
+      || (raceGoals || []).find((g) => typeof g.distanceKm === "number" && (g.distanceKm as number) > 0);
+    const km = primary?.distanceKm;
+    if (!km) return t;
+    const kmRegex = /\(\s*\d{1,3}\s*km\s*\)/i;
+    if (kmRegex.test(t)) return t.replace(kmRegex, `(${km}km)`);
+    return t.replace(/—\s*([^—]+?)(\s+—|$)/, (_m, name, tail) => `— ${name.trim()} (${km}km)${tail}`);
+  }, [plan.title, raceGoals]);
+
   const handleExportPDF = () => {
-    exportAIPlanToPDF(plan, athleteName, startDate, adaptationProjections);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections);
   };
 
   return (
