@@ -221,12 +221,14 @@ const LEVER_EFFECTS: Record<TrainingLeverId, LeverEffect[]> = {
     { metric: "lt2", minPct: 0, maxPct: 2 },
   ],
   norwegian_method: [
-    { metric: "lt2", minPct: 4, maxPct: 8 },
-    { metric: "tte", minPct: 12, maxPct: 25 },
+    // P1 recalibration — Seiler 2010, Sylta/Tønnessen 2016, Casado/Foster 2022 :
+    // double seuil sur un bloc 6-12 sem améliore TTE de +5 à +15% (et non +25%, ordre saisonnier).
+    { metric: "lt2", minPct: 3, maxPct: 6 },
+    { metric: "tte", minPct: 5, maxPct: 15 },
     { metric: "vo2max", minPct: 1, maxPct: 3 },
     { metric: "vlamax", minPct: -3, maxPct: -1 },
     { metric: "fatmax", minPct: 1, maxPct: 3 },
-    { metric: "durability", minPct: 3, maxPct: 7 },
+    { metric: "durability", minPct: 2, maxPct: 6 },
     { metric: "economy", minPct: 1, maxPct: 3 },
   ],
   plyometrics: [
