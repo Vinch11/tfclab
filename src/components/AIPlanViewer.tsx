@@ -479,7 +479,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
-              <h3 className="font-bold text-base">{plan.title}</h3>
+              <h3 className="font-bold text-base">{correctedTitle}</h3>
               <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {plan.phases.length} blocs</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
