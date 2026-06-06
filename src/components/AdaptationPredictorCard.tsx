@@ -192,6 +192,8 @@ export function AdaptationPredictorCard({
   limiterId,
   limiterLabel,
   objectif,
+  sportMain,
+  weeksAvailable,
   staffMode = false,
   className,
 }: AdaptationPredictorCardProps) {
@@ -203,8 +205,10 @@ export function AdaptationPredictorCard({
       limiterId,
       limiterLabel,
       objectif,
+      sportMain,
+      weeksAvailable,
     });
-  }, [snapshot, limiterId, limiterLabel, objectif]);
+  }, [snapshot, limiterId, limiterLabel, objectif, sportMain, weeksAvailable]);
 
   const hasData = result.currentState.vo2max !== null || result.currentState.vlamax !== null || result.currentState.ftp !== null;
 
@@ -234,6 +238,9 @@ export function AdaptationPredictorCard({
   });
 
   const bestScenario = sortedScenarios[0];
+  const horizonLabel = weeksAvailable && weeksAvailable > 0
+    ? `Projection sur ${weeksAvailable} semaine${weeksAvailable > 1 ? "s" : ""} (référence 6 sem.)`
+    : "Projection sur un bloc de référence de 6 semaines";
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -243,7 +250,7 @@ export function AdaptationPredictorCard({
           Adaptation Predictor™
         </CardTitle>
         <p className="text-xs text-muted-foreground mt-1">
-          Projection des adaptations sur un bloc de 4-6 semaines
+          {horizonLabel} — estimations modèle (fourchettes physiologiques typiques, non garanties).
         </p>
       </CardHeader>
 
