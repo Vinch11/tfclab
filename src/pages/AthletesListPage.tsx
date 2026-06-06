@@ -322,7 +322,38 @@ export default function AthletesListPage() {
           }
         }
 
+        // 6. Import plan_versions (AI plans)
+        for (const plan of ((item as any).planVersions ?? [])) {
+          const { id: _oldId, athlete_id: _oldAthleteId, coach_id: _oldCoach, created_at: _ca, ...planData } = plan;
+          const { error: planError } = await supabase
+            .from("plan_versions")
+            .insert({
+              ...planData,
+              athlete_id: newAthleteId,
+              coach_id: user.id,
+            });
+          if (planError) {
+            errors.push(`Plan IA pour "${item.athlete.name}": ${planError.message}`);
+          }
+        }
+
+        // 7. Import coach_overrides
+        for (const ov of ((item as any).coachOverrides ?? [])) {
+          const { id: _oldId, athlete_id: _oldAthleteId, coach_id: _oldCoach, created_at: _ca, ...ovData } = ov;
+          const { error: ovError } = await supabase
+            .from("coach_overrides")
+            .insert({
+              ...ovData,
+              athlete_id: newAthleteId,
+              coach_id: user.id,
+            });
+          if (ovError) {
+            errors.push(`Override pour "${item.athlete.name}": ${ovError.message}`);
+          }
+        }
+
         imported++;
+
       } catch (err) {
         errors.push(`Erreur inattendue pour "${item.athlete.name}": ${err instanceof Error ? err.message : "erreur"}`);
       }
