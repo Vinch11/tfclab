@@ -147,7 +147,14 @@ export function LimiterHierarchyEditor({
 
   const [isOverridden, setIsOverridden] = useState(false);
 
-  // Reset when gaps change (new athlete/objective)
+  // Signature stable des gaps (métrique + impact arrondi) — évite reset au moindre re-render
+  const gapsSignature = [...gaps]
+    .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité")
+    .map(g => `${g.metric}:${Math.round(g.weightedImpact)}`)
+    .sort()
+    .join("|");
+
+  // Reset uniquement quand la signature change réellement (nouvel athlète/objectif)
   useEffect(() => {
     const newDefault = [...gaps]
       .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité")
@@ -160,7 +167,8 @@ export function LimiterHierarchyEditor({
       status: g.status,
     })));
     setIsOverridden(false);
-  }, [gaps]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gapsSignature]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
