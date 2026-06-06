@@ -109,17 +109,27 @@ export function AthleteImportExport({
   };
   
   // Exporter les athlètes sélectionnés
-  const handleExport = () => {
+  const handleExport = async () => {
     if (selectedAthletes.size === 0) {
       toast.error("Sélectionnez au moins un athlète");
       return;
     }
-    
+
+    const ids = Array.from(selectedAthletes);
+    let extras: Record<string, { planVersions: any[]; coachOverrides: any[] }> = {};
+    if (fetchExtras) {
+      try {
+        extras = await fetchExtras(ids);
+      } catch (err) {
+        toast.warning("Plans IA / overrides non inclus: " + (err instanceof Error ? err.message : "erreur"));
+      }
+    }
+
     const exportData: AthleteExportData = {
       version: EXPORT_VERSION,
       exportedAt: new Date().toISOString(),
       exportedFrom: window.location.origin,
-      athletes: Array.from(selectedAthletes).map(athleteId => {
+      athletes: ids.map(athleteId => {
         const athlete = athletes.find(a => a.id === athleteId);
         if (!athlete) return null;
         
@@ -133,12 +143,15 @@ export function AthleteImportExport({
         const snapshotsWithoutCoach = athleteSnapshots.map(({ coach_id: _c, ...s }) => s);
         const testsWithoutCoach = athleteTests.map(({ coach_id: _c, ...t }) => t);
         const checkinsWithoutCoach = athleteCheckins.map(({ coach_id: _c, ...ch }) => ch);
+        const extra = extras[athleteId];
         
         return {
           athlete: athleteWithoutCoach,
           snapshots: snapshotsWithoutCoach,
           tests: testsWithoutCoach,
-          checkins: checkinsWithoutCoach
+          checkins: checkinsWithoutCoach,
+          planVersions: extra?.planVersions ?? [],
+          coachOverrides: extra?.coachOverrides ?? [],
         };
       }).filter(Boolean) as AthleteExportData["athletes"]
     };
@@ -154,10 +167,16 @@ export function AthleteImportExport({
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
-    toast.success(`${selectedAthletes.size} athlète(s) exporté(s)`);
+    const totalPlans = Object.values(extras).reduce((s, e) => s + (e.planVersions?.length ?? 0), 0);
+    const totalOverrides = Object.values(extras).reduce((s, e) => s + (e.coachOverrides?.length ?? 0), 0);
+    toast.success(
+      `${ids.length} athlète(s) exporté(s)` +
+      (totalPlans || totalOverrides ? ` · ${totalPlans} plan(s) IA, ${totalOverrides} override(s)` : "")
+    );
     setExportDialogOpen(false);
     setSelectedAthletes(new Set());
   };
+
   
   // Gérer le fichier importé
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
