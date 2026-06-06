@@ -752,7 +752,7 @@ export default function RunningProfilePage() {
                   <Activity className="h-4 w-4 mr-2" />
                   Semaine Tests CAP
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => navigate("/running-guidance")}>
+                <Button variant="outline" size="sm" onClick={() => navigate("/planning/running-guidance")}>
                   <Target className="h-4 w-4 mr-2" />
                   Guidage Hebdo
                 </Button>
