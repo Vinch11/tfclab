@@ -654,7 +654,7 @@ export function computeAdaptationPrediction(input: AdaptationPredictorInput): Ad
     ? TRAINING_LEVERS.filter(l => selectedLevers.includes(l.id))
     : TRAINING_LEVERS;
 
-  const scenarios = leversToSimulate.map(lever => buildScenario(lever, state, objectif, sportMain, durationFactor));
+  const scenarios = leversToSimulate.map(lever => buildScenario(lever, state, objectif, sportMain, durationFactor, limiterId));
 
   // Find best scenario
   let bestIdx = 0;
