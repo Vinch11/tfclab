@@ -335,13 +335,14 @@ function extractPhysioState(
 
   const tte_min = (snapshot.tte_observed_min as number) ?? null;
 
-  // Durability from HR drift
+  // Durability from HR drift (Maunder 2021) — seul proxy physiologique fiable.
+  // Audit P2 — fix: l'ancien fallback `durability ≈ tte × 1.5` n'a aucune base
+  // (TTE ≠ durabilité aérobie tardive). On respecte la politique
+  // "Insufficient Data No Fake Defaults" → null si HR drift absent.
   let durability_score: number | null = null;
   const hrDrift = snapshot.run_hr_drift_pct as number | null;
-  if (hrDrift !== null) {
+  if (hrDrift !== null && hrDrift !== undefined && Number.isFinite(hrDrift)) {
     durability_score = Math.max(0, Math.min(100, 100 - hrDrift * 5));
-  } else if (tte_min !== null) {
-    durability_score = Math.min(100, tte_min * 1.5);
   }
 
   const economy_score = (snapshot.run_economy_score as number) ?? null;
@@ -490,8 +491,17 @@ function buildScenario(
   objectif: string,
   sportMain: string | null | undefined,
   durationFactor: number,
+  limiterId: string | null,
 ): AdaptationScenario {
   const effects = LEVER_EFFECTS[lever.id];
+
+  // Audit P2 — trainability différentielle.
+  // Si le levier cible explicitement le limiteur, on amplifie les métriques
+  // directement liées et on amortit légèrement les autres effets du même levier.
+  const leverTargetsLimiter = limiterId
+    ? (LIMITER_TO_LEVERS[limiterId] || []).includes(lever.id)
+    : false;
+  const targetedMetrics = limiterId ? (LIMITER_TO_METRICS[limiterId] || []) : [];
 
   const metrics: MetricDelta[] = METRIC_CONFIGS.map(config => {
     const current = getMetricValue(state, config.id);
@@ -515,8 +525,15 @@ function buildScenario(
     }
 
     // Audit P0 — B2: amplitudes mises à l'échelle selon la durée du plan.
-    const scaledMin = effect.minPct * durationFactor;
-    const scaledMax = effect.maxPct * durationFactor;
+    // Audit P2: + multiplicateur de trainability quand le levier cible le limiteur.
+    let trainabilityMult = 1;
+    if (leverTargetsLimiter) {
+      trainabilityMult = targetedMetrics.includes(config.id)
+        ? TRAINABILITY_TARGETED_BOOST
+        : TRAINABILITY_OFF_TARGET_DAMP;
+    }
+    const scaledMin = effect.minPct * durationFactor * trainabilityMult;
+    const scaledMax = effect.maxPct * durationFactor * trainabilityMult;
     const midPct = (scaledMin + scaledMax) / 2;
     const projected = current * (1 + midPct / 100);
 
@@ -603,6 +620,25 @@ const LIMITER_TO_LEVERS: Record<string, TrainingLeverId[]> = {
   anaerobic_capacity: ["glycolytic_block", "max_force", "plyometrics"],
 };
 
+/**
+ * Audit P2 — trainability différentielle.
+ * Quand un levier cible le limiteur dominant, les métriques directement liées
+ * à ce limiteur réagissent plus fortement (Bouchard 2011 — non-responders sur
+ * non-targeted, +20-30 % d'amplitude sur targeted). Le bonus +15 pts du ranking
+ * ne touchait que l'ordre, pas l'amplitude affichée.
+ */
+const LIMITER_TO_METRICS: Record<string, MetricId[]> = {
+  aerobic_engine: ["vo2max", "lt2"],
+  glycolytic: ["vlamax", "fatmax"],
+  specific_endurance: ["tte", "lt2", "durability"],
+  metabolic_efficiency: ["fatmax", "durability"],
+  neuromuscular: ["economy"],
+  anaerobic_capacity: ["vlamax"],
+};
+
+const TRAINABILITY_TARGETED_BOOST = 1.25;   // +25 % d'amplitude sur métrique ciblée
+const TRAINABILITY_OFF_TARGET_DAMP = 0.85;  // −15 % sur métriques non ciblées du levier ciblé
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // PUBLIC API
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -618,7 +654,7 @@ export function computeAdaptationPrediction(input: AdaptationPredictorInput): Ad
     ? TRAINING_LEVERS.filter(l => selectedLevers.includes(l.id))
     : TRAINING_LEVERS;
 
-  const scenarios = leversToSimulate.map(lever => buildScenario(lever, state, objectif, sportMain, durationFactor));
+  const scenarios = leversToSimulate.map(lever => buildScenario(lever, state, objectif, sportMain, durationFactor, limiterId));
 
   // Find best scenario
   let bestIdx = 0;
