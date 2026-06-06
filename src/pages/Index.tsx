@@ -1953,6 +1953,7 @@ const Index = () => {
                 limiterId={alignedLimiterResult?.primaryLimiter ?? null}
                 limiterLabel={alignedLimiterResult?.limiterLabel ?? null}
                 objectif={currentAthlete.goal || "IM"}
+                sportMain={(effectiveCloudSnapshot as { sport_main?: string | null })?.sport_main ?? null}
                 staffMode={staffMode}
               />
             ),

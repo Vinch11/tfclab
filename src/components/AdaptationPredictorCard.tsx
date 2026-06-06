@@ -43,6 +43,12 @@ interface AdaptationPredictorCardProps {
   limiterId: string | null;
   limiterLabel: string | null;
   objectif: string;
+  /** Sport principal (run/bike/tri/trail). Sert à choisir le profil de
+   *  pondération performance — Audit P0 B3. */
+  sportMain?: string | null;
+  /** Durée du plan (semaines). Module l'amplitude des deltas projetés
+   *  — Audit P0 B2. Défaut 6 semaines (référence). */
+  weeksAvailable?: number;
   staffMode?: boolean;
   className?: string;
 }
@@ -88,16 +94,24 @@ function MetricProjectionRow({ metric, higherIsBetter }: { metric: MetricDelta; 
         )}>
           {metric.projected?.toFixed(metric.id === "vlamax" ? 2 : 1)}
         </span>
-        <Badge variant="outline" className={cn(
-          "text-[10px] px-1.5 font-mono",
-          isPositiveChange
-            ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
-            : metric.significance === "none"
-              ? "bg-muted text-muted-foreground"
-              : "bg-red-500/10 text-red-700 border-red-500/30",
-        )}>
-          {metric.deltaMidPct > 0 ? "+" : ""}{metric.deltaMidPct.toFixed(1)}%
-        </Badge>
+        <div className="flex flex-col items-end">
+          <Badge variant="outline" className={cn(
+            "text-[10px] px-1.5 font-mono",
+            isPositiveChange
+              ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
+              : metric.significance === "none"
+                ? "bg-muted text-muted-foreground"
+                : "bg-red-500/10 text-red-700 border-red-500/30",
+          )}>
+            {metric.deltaMidPct > 0 ? "+" : ""}{metric.deltaMidPct.toFixed(1)}%
+          </Badge>
+          {/* Audit P0 — affichage fourchette physiologique */}
+          {(metric.deltaMin !== metric.deltaMax) && (
+            <span className="text-[9px] text-muted-foreground font-mono mt-0.5">
+              [{metric.deltaMin > 0 ? "+" : ""}{metric.deltaMin}% → {metric.deltaMax > 0 ? "+" : ""}{metric.deltaMax}%]
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -178,6 +192,8 @@ export function AdaptationPredictorCard({
   limiterId,
   limiterLabel,
   objectif,
+  sportMain,
+  weeksAvailable,
   staffMode = false,
   className,
 }: AdaptationPredictorCardProps) {
@@ -189,8 +205,10 @@ export function AdaptationPredictorCard({
       limiterId,
       limiterLabel,
       objectif,
+      sportMain,
+      weeksAvailable,
     });
-  }, [snapshot, limiterId, limiterLabel, objectif]);
+  }, [snapshot, limiterId, limiterLabel, objectif, sportMain, weeksAvailable]);
 
   const hasData = result.currentState.vo2max !== null || result.currentState.vlamax !== null || result.currentState.ftp !== null;
 
@@ -220,6 +238,9 @@ export function AdaptationPredictorCard({
   });
 
   const bestScenario = sortedScenarios[0];
+  const horizonLabel = weeksAvailable && weeksAvailable > 0
+    ? `Projection sur ${weeksAvailable} semaine${weeksAvailable > 1 ? "s" : ""} (référence 6 sem.)`
+    : "Projection sur un bloc de référence de 6 semaines";
 
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -229,7 +250,7 @@ export function AdaptationPredictorCard({
           Adaptation Predictor™
         </CardTitle>
         <p className="text-xs text-muted-foreground mt-1">
-          Projection des adaptations sur un bloc de 4-6 semaines
+          {horizonLabel} — estimations modèle (fourchettes physiologiques typiques, non garanties).
         </p>
       </CardHeader>
 
