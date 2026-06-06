@@ -214,7 +214,7 @@ export function LimiterHierarchyEditor({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isOverridden && (
-            <Badge variant="outline" className="text-[9px] gap-1 border-accent text-accent-foreground">
+            <Badge variant="outline" className="text-[9px] gap-1 border-accent bg-accent text-accent-foreground">
               <ShieldAlert className="h-3 w-3" />
               Ordre modifié par le coach
             </Badge>
