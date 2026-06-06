@@ -193,31 +193,11 @@ export function RunningGuidancePage() {
     return checkRecalibrationAlerts(lockedProfile);
   }, [lockedProfile]);
   
-  // Si pas en mode running
-  if (!isRunningOnly) {
-    return (
-      <AppLayout title="Guidance Coach">
-        <div className="max-w-2xl mx-auto p-4">
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertTitle>Running Focus Mode™ requis</AlertTitle>
-            <AlertDescription>
-              Cette page est réservée aux athlètes avec un objectif course à pied 
-              (5K, 10K, Semi, Marathon, Trail).
-              <br />
-              <Button 
-                variant="link" 
-                className="p-0 h-auto"
-                onClick={() => navigate("/")}
-              >
-                Retour au Dashboard
-              </Button>
-            </AlertDescription>
-          </Alert>
-        </div>
-      </AppLayout>
-    );
-  }
+  // Note: on n'exige plus l'activation explicite du Running Focus Mode pour
+  // afficher la page — l'utilisateur arrive ici depuis /running-profile ou la
+  // section Planification, le gating provoquait une perception "ne dirige vers rien".
+  // Si raceType est absent, la page affiche un message contextuel plus bas.
+
   
   // Si pas d'athlète sélectionné
   if (!currentAthlete) {
