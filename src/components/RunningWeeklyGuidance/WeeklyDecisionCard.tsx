@@ -45,6 +45,12 @@ export function WeeklyDecisionCard({
   const readinessConfig = READINESS_CONFIG[decision.readiness_week] ?? READINESS_CONFIG.MODERATE;
   const riskConfig = RISK_CONFIG[decision.risk_level] ?? RISK_CONFIG.LOW;
   const focusConfig = FOCUS_CONFIG[decision.weekly_focus] ?? FOCUS_CONFIG.ENDURANCE;
+  const constraints = decision.constraints ?? {
+    intensity_allowed: "LOW" as const,
+    longrun_allowed: false,
+    speedwork_allowed: false,
+    max_key_sessions: 0,
+  };
   
   return (
     <Card className={cn(
