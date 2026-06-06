@@ -441,11 +441,20 @@ function buildProhibitions(
 // ADAPTATION PROJECTIONS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function buildAdaptationProjections(diagnostic: AthleteDiagnostic): AdaptationProjection[] {
+function buildAdaptationProjections(
+  diagnostic: AthleteDiagnostic,
+  weeksAvailable: number,
+): AdaptationProjection[] {
   const raw = diagnostic._rawInput;
+  // Audit P0 — B1 : on transmet sport_main, vlamax_run et les champs nécessaires
+  // au resolver CAP. Sans cela, les coureurs/traileurs recevaient la VLamax vélo.
   const snapshot: Record<string, unknown> = {
     vo2max: raw.vo2max,
-    vlamax: diagnostic.effectifs.vlamax.value,
+    vlamax: raw.vlamax,
+    vlamax_run: raw.vlamaxRun,
+    vma: raw.vma,
+    pace_threshold_sec_per_km: raw.paceThresholdSecPerKm,
+    sport_main: raw.sportFocus,
     ftp: raw.ftp,
     weight_kg: raw.weightKg,
     tte_observed_min: diagnostic.effectifs.tte.tte_min,
@@ -458,6 +467,8 @@ function buildAdaptationProjections(diagnostic: AthleteDiagnostic): AdaptationPr
     limiterId: diagnostic.limiter.primaryLimiter !== "none" ? diagnostic.limiter.primaryLimiter : null,
     limiterLabel: diagnostic.limiter.primaryLimiter !== "none" ? diagnostic.limiter.limiterLabel : null,
     objectif: diagnostic.objectif,
+    sportMain: raw.sportFocus,
+    weeksAvailable,
   };
 
   try {
