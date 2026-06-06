@@ -470,8 +470,8 @@ function estimatePerformanceImpact(
         : perfImprovementPct > 0.5
           ? `Amélioration modérée sur ${label}`
           : perfImprovementPct > 0
-            ? `Impact marginal sur ${distanceLabels[dist]}`
-            : `Risque de régression sur ${distanceLabels[dist]}`,
+            ? `Impact marginal sur ${label}`
+            : `Risque de régression sur ${label}`,
     };
   });
 }
