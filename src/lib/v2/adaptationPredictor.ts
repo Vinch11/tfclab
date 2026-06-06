@@ -281,17 +281,32 @@ const METRIC_CONFIGS: MetricConfig[] = [
 // EXTRACT STATE FROM SNAPSHOT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function extractPhysioState(snapshot: Record<string, unknown>): PhysioState {
+function extractPhysioState(
+  snapshot: Record<string, unknown>,
+  objectif: string,
+  sportMain: string | null | undefined,
+): PhysioState {
   const vo2max = (snapshot.vo2max as number) ?? null;
   // Résolution VLamax sport-aware (run/trail → vlamax_run, bike/tri → vlamax).
-  // Évite de projeter des adaptations sur la mauvaise filière pour les athlètes CAP.
+  // Audit P0 — B1: on passe explicitement `objectif` et `sportMain` au resolver
+  // (au lieu de relire `snapshot.objectif` qui n'était quasi jamais peuplé,
+  // ce qui faisait fallback systématique sur la VLamax vélo pour les coureurs).
   const vlamax = resolveVlamaxForGoal(
     {
       vlamax: snapshot.vlamax as number | null,
       vlamax_run: snapshot.vlamax_run as number | null,
-      sport_main: snapshot.sport_main as string | null,
+      sport_main: (snapshot.sport_main as string | null) ?? sportMain ?? null,
+      vma: snapshot.vma as number | null,
+      pace_threshold_sec_per_km: snapshot.pace_threshold_sec_per_km as number | null,
+      tte_observed_min: snapshot.tte_observed_min as number | null,
+      sprint_15s_distance: snapshot.sprint_15s_distance as number | null,
+      running_power_max: snapshot.running_power_max as number | null,
+      running_power_threshold: snapshot.running_power_threshold as number | null,
+      vlamax_source: snapshot.vlamax_source as string | null,
+      vlamax_protocol: snapshot.vlamax_protocol as string | null,
+      vo2max,
     },
-    { goal: snapshot.objectif as string | null, objectif: snapshot.objectif as string | null }
+    { goal: objectif, objectif }
   ).value;
   const ftp = (snapshot.ftp as number) ?? null;
   const weight_kg = (snapshot.weight_kg as number) ?? null;
@@ -306,9 +321,11 @@ function extractPhysioState(snapshot: Record<string, unknown>): PhysioState {
   }
 
   // Estimate LT2 as % VO2max (~78-88% typical)
+  // Audit P0 — B4: coefficient Jeukendrup 1997 (VO2 = FTP/kg × 10.8 + 7),
+  // l'ancien × 12 + 5 surestimait lt2_pct de ~11 %.
   let lt2_pct: number | null = null;
   if (vo2max && ftp && weight_kg && weight_kg > 0) {
-    const ftpVo2 = (ftp / weight_kg) * 12 + 5; // rough VO2 at FTP
+    const ftpVo2 = (ftp / weight_kg) * 10.8 + 7;
     lt2_pct = Math.min(95, Math.max(70, (ftpVo2 / vo2max) * 100));
   }
 
