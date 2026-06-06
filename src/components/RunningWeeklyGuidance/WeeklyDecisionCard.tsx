@@ -125,23 +125,23 @@ export function WeeklyDecisionCard({
           <div className="grid grid-cols-2 gap-2 text-sm">
             <ConstraintItem
               label="Intensité"
-              value={INTENSITY_LABELS[decision.constraints.intensity_allowed]}
-              allowed={decision.constraints.intensity_allowed !== "LOW"}
+              value={INTENSITY_LABELS[constraints.intensity_allowed]}
+              allowed={constraints.intensity_allowed !== "LOW"}
             />
             <ConstraintItem
               label="Long run"
-              value={decision.constraints.longrun_allowed ? "Autorisé" : "Non"}
-              allowed={decision.constraints.longrun_allowed}
+              value={constraints.longrun_allowed ? "Autorisé" : "Non"}
+              allowed={constraints.longrun_allowed}
             />
             <ConstraintItem
               label="Speedwork"
-              value={decision.constraints.speedwork_allowed ? "Autorisé" : "Non"}
-              allowed={decision.constraints.speedwork_allowed}
+              value={constraints.speedwork_allowed ? "Autorisé" : "Non"}
+              allowed={constraints.speedwork_allowed}
             />
             <ConstraintItem
               label="Séances clés"
-              value={`Max ${decision.constraints.max_key_sessions}`}
-              allowed={decision.constraints.max_key_sessions > 0}
+              value={`Max ${constraints.max_key_sessions}`}
+              allowed={constraints.max_key_sessions > 0}
             />
           </div>
         </div>
