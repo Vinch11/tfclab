@@ -68,13 +68,22 @@ function buildPlanHTML(
 
     const sessionRows = week.sessions.map(s => {
       const dateStr = weekStart && s.dayIndex >= 0 ? formatSessionDate(weekStart, s.dayIndex) : "";
+      const trailAlts = s.isRest
+        ? []
+        : getTrailSessionAlternatives({ sport: s.sport, title: s.title, details: s.details });
+      const altsHtml = trailAlts.length > 0
+        ? `<div style="margin-top:4px;padding-top:4px;border-top:1px dashed #ccc;font-size:10px;color:#555;">
+            <strong style="color:#1967d2;">Alternatives terrain :</strong>
+            ${trailAlts.map(a => `<div style="margin-top:2px;"><span>${a.icon}</span> <strong>${a.label}</strong> — <span style="color:#777;">${a.hint}</span></div>`).join("")}
+          </div>`
+        : "";
       return `
       <tr style="${s.isRest ? 'color:#999;' : ''}">
         ${hasDate ? `<td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;font-size:11px;color:#555;">${dateStr}</td>` : ""}
         <td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;">${s.dayName}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;">${getSportEmoji(s.sport)} ${s.sport}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;font-weight:600;">${s.title}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;">${s.details}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;">${s.details}${altsHtml}</td>
       </tr>
     `;
     }).join("");
