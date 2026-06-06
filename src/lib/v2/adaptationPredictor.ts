@@ -604,16 +604,17 @@ const LIMITER_TO_LEVERS: Record<string, TrainingLeverId[]> = {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export function computeAdaptationPrediction(input: AdaptationPredictorInput): AdaptationPredictorResult {
-  const { snapshot, limiterId, limiterLabel, objectif, selectedLevers } = input;
+  const { snapshot, limiterId, limiterLabel, objectif, selectedLevers, sportMain, weeksAvailable } = input;
 
-  const state = extractPhysioState(snapshot);
+  const state = extractPhysioState(snapshot, objectif, sportMain);
+  const durationFactor = computeDurationFactor(weeksAvailable);
 
   // Determine which levers to simulate
   const leversToSimulate = selectedLevers && selectedLevers.length > 0
     ? TRAINING_LEVERS.filter(l => selectedLevers.includes(l.id))
     : TRAINING_LEVERS;
 
-  const scenarios = leversToSimulate.map(lever => buildScenario(lever, state, objectif));
+  const scenarios = leversToSimulate.map(lever => buildScenario(lever, state, objectif, sportMain, durationFactor));
 
   // Find best scenario
   let bestIdx = 0;
