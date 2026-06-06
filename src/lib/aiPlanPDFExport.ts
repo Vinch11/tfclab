@@ -40,8 +40,13 @@ function formatWeekRange(weekStart: Date): string {
   return `${weekStart.toLocaleDateString("fr-FR", opts)} → ${end.toLocaleDateString("fr-FR", opts)}`;
 }
 
-export function exportAIPlanToPDF(plan: ParsedPlan, athleteName?: string, startDate?: Date) {
-  const html = buildPlanHTML(plan, athleteName, startDate);
+export function exportAIPlanToPDF(
+  plan: ParsedPlan,
+  athleteName?: string,
+  startDate?: Date,
+  adaptationProjections?: AdaptationProjection[],
+) {
+  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, "_blank");
@@ -50,7 +55,12 @@ export function exportAIPlanToPDF(plan: ParsedPlan, athleteName?: string, startD
   }
 }
 
-function buildPlanHTML(plan: ParsedPlan, athleteName?: string, startDate?: Date): string {
+function buildPlanHTML(
+  plan: ParsedPlan,
+  athleteName?: string,
+  startDate?: Date,
+  adaptationProjections?: AdaptationProjection[],
+): string {
   const hasDate = !!startDate;
 
   const weekRows = plan.weeks.map(week => {
