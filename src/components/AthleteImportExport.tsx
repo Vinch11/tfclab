@@ -47,6 +47,8 @@ export interface AthleteExportData {
     snapshots: Array<Omit<DbSnapshot, "coach_id">>;
     tests: Array<Omit<DbTest, "coach_id">>;
     checkins: Array<Omit<DbCheckin, "coach_id">>;
+    planVersions?: Array<Record<string, any>>;
+    coachOverrides?: Array<Record<string, any>>;
   }>;
 }
 
@@ -56,17 +58,25 @@ interface AthleteImportExportProps {
   tests: DbTest[];
   checkins: DbCheckin[];
   onImport: (data: AthleteExportData) => Promise<{ imported: number; errors: string[] }>;
+  /** Optional loader to attach plan_versions + coach_overrides to the export payload */
+  fetchExtras?: (athleteIds: string[]) => Promise<Record<string, {
+    planVersions: Array<Record<string, any>>;
+    coachOverrides: Array<Record<string, any>>;
+  }>>;
 }
 
-const EXPORT_VERSION = "2.0.0";
+const EXPORT_VERSION = "2.1.0";
+
 
 export function AthleteImportExport({
   athletes,
   snapshots,
   tests,
   checkins,
-  onImport
+  onImport,
+  fetchExtras,
 }: AthleteImportExportProps) {
+
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedAthletes, setSelectedAthletes] = useState<Set<string>>(new Set());
@@ -99,17 +109,27 @@ export function AthleteImportExport({
   };
   
   // Exporter les athlètes sélectionnés
-  const handleExport = () => {
+  const handleExport = async () => {
     if (selectedAthletes.size === 0) {
       toast.error("Sélectionnez au moins un athlète");
       return;
     }
-    
+
+    const ids = Array.from(selectedAthletes);
+    let extras: Record<string, { planVersions: any[]; coachOverrides: any[] }> = {};
+    if (fetchExtras) {
+      try {
+        extras = await fetchExtras(ids);
+      } catch (err) {
+        toast.warning("Plans IA / overrides non inclus: " + (err instanceof Error ? err.message : "erreur"));
+      }
+    }
+
     const exportData: AthleteExportData = {
       version: EXPORT_VERSION,
       exportedAt: new Date().toISOString(),
       exportedFrom: window.location.origin,
-      athletes: Array.from(selectedAthletes).map(athleteId => {
+      athletes: ids.map(athleteId => {
         const athlete = athletes.find(a => a.id === athleteId);
         if (!athlete) return null;
         
@@ -123,12 +143,15 @@ export function AthleteImportExport({
         const snapshotsWithoutCoach = athleteSnapshots.map(({ coach_id: _c, ...s }) => s);
         const testsWithoutCoach = athleteTests.map(({ coach_id: _c, ...t }) => t);
         const checkinsWithoutCoach = athleteCheckins.map(({ coach_id: _c, ...ch }) => ch);
+        const extra = extras[athleteId];
         
         return {
           athlete: athleteWithoutCoach,
           snapshots: snapshotsWithoutCoach,
           tests: testsWithoutCoach,
-          checkins: checkinsWithoutCoach
+          checkins: checkinsWithoutCoach,
+          planVersions: extra?.planVersions ?? [],
+          coachOverrides: extra?.coachOverrides ?? [],
         };
       }).filter(Boolean) as AthleteExportData["athletes"]
     };
@@ -144,10 +167,16 @@ export function AthleteImportExport({
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
-    toast.success(`${selectedAthletes.size} athlète(s) exporté(s)`);
+    const totalPlans = Object.values(extras).reduce((s, e) => s + (e.planVersions?.length ?? 0), 0);
+    const totalOverrides = Object.values(extras).reduce((s, e) => s + (e.coachOverrides?.length ?? 0), 0);
+    toast.success(
+      `${ids.length} athlète(s) exporté(s)` +
+      (totalPlans || totalOverrides ? ` · ${totalPlans} plan(s) IA, ${totalOverrides} override(s)` : "")
+    );
     setExportDialogOpen(false);
     setSelectedAthletes(new Set());
   };
+
   
   // Gérer le fichier importé
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -367,6 +396,13 @@ export function AthleteImportExport({
                           <span>{item.snapshots.length} profil(s)</span>
                           <span>{item.tests.length} test(s)</span>
                           <span>{item.checkins.length} check-in(s)</span>
+                          {(item.planVersions?.length ?? 0) > 0 && (
+                            <span>{item.planVersions!.length} plan(s) IA</span>
+                          )}
+                          {(item.coachOverrides?.length ?? 0) > 0 && (
+                            <span>{item.coachOverrides!.length} override(s)</span>
+                          )}
+
                         </div>
                       </div>
                       {item.athlete.goal && (
