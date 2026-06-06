@@ -491,8 +491,17 @@ function buildScenario(
   objectif: string,
   sportMain: string | null | undefined,
   durationFactor: number,
+  limiterId: string | null,
 ): AdaptationScenario {
   const effects = LEVER_EFFECTS[lever.id];
+
+  // Audit P2 — trainability différentielle.
+  // Si le levier cible explicitement le limiteur, on amplifie les métriques
+  // directement liées et on amortit légèrement les autres effets du même levier.
+  const leverTargetsLimiter = limiterId
+    ? (LIMITER_TO_LEVERS[limiterId] || []).includes(lever.id)
+    : false;
+  const targetedMetrics = limiterId ? (LIMITER_TO_METRICS[limiterId] || []) : [];
 
   const metrics: MetricDelta[] = METRIC_CONFIGS.map(config => {
     const current = getMetricValue(state, config.id);
@@ -516,8 +525,15 @@ function buildScenario(
     }
 
     // Audit P0 — B2: amplitudes mises à l'échelle selon la durée du plan.
-    const scaledMin = effect.minPct * durationFactor;
-    const scaledMax = effect.maxPct * durationFactor;
+    // Audit P2: + multiplicateur de trainability quand le levier cible le limiteur.
+    let trainabilityMult = 1;
+    if (leverTargetsLimiter) {
+      trainabilityMult = targetedMetrics.includes(config.id)
+        ? TRAINABILITY_TARGETED_BOOST
+        : TRAINABILITY_OFF_TARGET_DAMP;
+    }
+    const scaledMin = effect.minPct * durationFactor * trainabilityMult;
+    const scaledMax = effect.maxPct * durationFactor * trainabilityMult;
     const midPct = (scaledMin + scaledMax) / 2;
     const projected = current * (1 + midPct / 100);
 
