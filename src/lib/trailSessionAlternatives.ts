@@ -120,13 +120,17 @@ function extractContext(text: string): SessionContext {
 function detectKind(text: string): SessionKind | null {
   const t = text.toLowerCase();
   if (!TRAIL_HINT.test(t)) return null;
+  // Ordre de priorité : la spécifique d'abord, descente en DERNIER
+  // (car "descente" apparaît souvent juste comme consigne de récup : "r=descente trot")
   if (/race[\s-]?sim|simulation course|simul course|simulation race|race day/.test(t)) return "race_sim";
-  if (/descente|excentr/.test(t)) return "descente";
-  if (/vma|30\/30|15\/15|sprint.*côte|sprint.*cote|côtes? courtes?|cotes? courtes?/.test(t)) return "vma_cote";
-  if (/seuil|tempo|sweet[\s-]?spot|sst\b|threshold/.test(t)) return "seuil_cote";
-  if (/(sl\b|sortie longue|long run|endurance longue|\b2h|\b3h|\b4h)/.test(t)) return "long_run_dplus";
+  if (/vma|30\/30|15\/15|sprint.*c[ôo]te|c[ôo]tes? courtes?/.test(t)) return "vma_cote";
+  if (/seuil|tempo|sweet[\s-]?spot|sst\b|threshold|norv[ée]g/.test(t)) return "seuil_cote";
+  if (/(sl\b|sortie longue|long run|endurance longue|\b[2-9]h\b)/.test(t)) return "long_run_dplus";
+  // descente uniquement si elle est le focus (mots "technique"/"excentr" ou en titre)
+  if (/descente technique|excentr|descentes? r[ée]p[ée]t|travail descente/.test(t)) return "descente";
   return "endurance_dplus";
 }
+
 
 function formatDuration(min: number): string {
   if (min >= 60) {
