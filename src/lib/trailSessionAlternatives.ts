@@ -43,20 +43,28 @@ interface SessionContext {
 }
 
 function parseDurationMin(text: string): number | null {
-  // Cherche durée totale: "2h30", "1 h 45", "90 min", "2h"
-  const hm = text.match(/(\d{1,2})\s*h\s*(\d{1,2})?/i);
-  if (hm) {
-    const h = parseInt(hm[1], 10);
-    const m = hm[2] ? parseInt(hm[2], 10) : 0;
-    if (h >= 1 && h <= 12) return h * 60 + m;
+  // Forme h:mm collée — "2h30", "1h45" (pas d'espace, mm sur 2 chiffres)
+  const hmStrict = text.match(/\b(\d{1,2})\s*h\s*(\d{2})\b/i);
+  if (hmStrict) {
+    const h = parseInt(hmStrict[1], 10);
+    const m = parseInt(hmStrict[2], 10);
+    if (h >= 1 && h <= 12 && m < 60) return h * 60 + m;
   }
-  const m = text.match(/(\d{2,3})\s*min/i);
+  // Forme h seule — "3h", "2 h" (pas suivi d'un autre chiffre pour éviter "3h 3h Z2" → 3h03)
+  const hOnly = text.match(/\b(\d{1,2})\s*h\b(?!\s*\d)/i);
+  if (hOnly) {
+    const h = parseInt(hOnly[1], 10);
+    if (h >= 1 && h <= 12) return h * 60;
+  }
+  // Forme min — "90 min", "45min"
+  const m = text.match(/\b(\d{2,3})\s*min\b/i);
   if (m) {
     const v = parseInt(m[1], 10);
     if (v >= 20 && v <= 480) return v;
   }
   return null;
 }
+
 
 function parseReps(text: string): { count: number | null; label: string | null } {
   // Ex: "8×400m", "5x6min", "10 × 30/30", "3×8min"
