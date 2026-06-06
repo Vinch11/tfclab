@@ -102,15 +102,19 @@ export function AdaptationProjectionSummary({
                 const digits = isVla ? 2 : 1;
                 const deltaSign = m.deltaPct > 0 ? "+" : "";
                 return (
-                  <div key={m.label} className="flex items-center gap-1.5">
-                    <Icon className={`h-3 w-3 ${color} shrink-0`} />
-                    <span className="text-[10px] text-foreground truncate">
-                      {m.label}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground ml-auto whitespace-nowrap font-mono">
+                  <div key={m.label} className="flex flex-col gap-0.5 min-w-0">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <Icon className={`h-3 w-3 ${color} shrink-0`} />
+                      <span className="text-[10px] font-medium text-foreground truncate flex-1 min-w-0">
+                        {m.label}
+                      </span>
+                      <span className={`text-[10px] font-mono shrink-0 ${color}`}>
+                        {deltaSign}{m.deltaPct.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="text-[9px] text-muted-foreground font-mono pl-4">
                       {m.current?.toFixed(digits) ?? "?"} → {m.projected?.toFixed(digits) ?? "?"}
-                      <span className={`ml-1 ${color}`}>({deltaSign}{m.deltaPct.toFixed(1)}%)</span>
-                    </span>
+                    </div>
                   </div>
                 );
               })}
