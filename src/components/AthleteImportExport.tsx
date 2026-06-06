@@ -47,6 +47,8 @@ export interface AthleteExportData {
     snapshots: Array<Omit<DbSnapshot, "coach_id">>;
     tests: Array<Omit<DbTest, "coach_id">>;
     checkins: Array<Omit<DbCheckin, "coach_id">>;
+    planVersions?: Array<Record<string, any>>;
+    coachOverrides?: Array<Record<string, any>>;
   }>;
 }
 
@@ -56,9 +58,15 @@ interface AthleteImportExportProps {
   tests: DbTest[];
   checkins: DbCheckin[];
   onImport: (data: AthleteExportData) => Promise<{ imported: number; errors: string[] }>;
+  /** Optional loader to attach plan_versions + coach_overrides to the export payload */
+  fetchExtras?: (athleteIds: string[]) => Promise<Record<string, {
+    planVersions: Array<Record<string, any>>;
+    coachOverrides: Array<Record<string, any>>;
+  }>>;
 }
 
-const EXPORT_VERSION = "2.0.0";
+const EXPORT_VERSION = "2.1.0";
+
 
 export function AthleteImportExport({
   athletes,
