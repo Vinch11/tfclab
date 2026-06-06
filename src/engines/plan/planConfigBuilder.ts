@@ -145,7 +145,7 @@ export function buildPlanConfigFromDiagnostic(
   const prohibitions = buildProhibitions(limiterResult, diagnostic.objectif, diagnostic.ambition);
 
   // ── Adaptation Projections ────────────────────────────────────────────────
-  const projections = buildAdaptationProjections(diagnostic);
+  const projections = buildAdaptationProjections(diagnostic, formConfig.weeksAvailable);
 
   // ── Charge Récente de Référence (CRR) ────────────────────────────────────
   // Hiérarchie: NOLIO > SNAPSHOT(tss7d) > MANUAL(coach trainingLevel) > UNKNOWN
