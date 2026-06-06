@@ -756,7 +756,7 @@ export default function RunningProfilePage() {
                   <Target className="h-4 w-4 mr-2" />
                   Guidage Hebdo
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => navigate("/race-day")}>
+                <Button variant="outline" size="sm" onClick={() => navigate("/race?briefing=1")}>
                   <Shield className="h-4 w-4 mr-2" />
                   Mode Race Day
                 </Button>
