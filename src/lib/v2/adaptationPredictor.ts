@@ -484,6 +484,8 @@ function buildScenario(
   lever: TrainingLever,
   state: PhysioState,
   objectif: string,
+  sportMain: string | null | undefined,
+  durationFactor: number,
 ): AdaptationScenario {
   const effects = LEVER_EFFECTS[lever.id];
 
@@ -508,7 +510,10 @@ function buildScenario(
       };
     }
 
-    const midPct = (effect.minPct + effect.maxPct) / 2;
+    // Audit P0 — B2: amplitudes mises à l'échelle selon la durée du plan.
+    const scaledMin = effect.minPct * durationFactor;
+    const scaledMax = effect.maxPct * durationFactor;
+    const midPct = (scaledMin + scaledMax) / 2;
     const projected = current * (1 + midPct / 100);
 
     let direction: "up" | "down" | "stable";
@@ -529,16 +534,16 @@ function buildScenario(
       unit: config.unit,
       current,
       projected: Math.round(projected * 100) / 100,
-      deltaMin: effect.minPct,
-      deltaMax: effect.maxPct,
-      deltaMidPct: midPct,
+      deltaMin: Math.round(scaledMin * 10) / 10,
+      deltaMax: Math.round(scaledMax * 10) / 10,
+      deltaMidPct: Math.round(midPct * 10) / 10,
       direction,
       significance,
       available: true,
     };
   });
 
-  const performancePredictions = estimatePerformanceImpact(metrics, objectif);
+  const performancePredictions = estimatePerformanceImpact(metrics, objectif, sportMain);
 
   // Overall impact score: weighted average of positive effects for endurance
   const availableMetrics = metrics.filter(m => m.available);
