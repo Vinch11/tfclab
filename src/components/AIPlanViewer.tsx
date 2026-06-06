@@ -273,6 +273,12 @@ function SessionCard({ session, date }: SessionCardProps) {
     );
   }
 
+  const trailAlts = getTrailSessionAlternatives({
+    sport: session.sport,
+    title: session.title,
+    details: session.details,
+  });
+
   return (
     <div
       className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${getSportColor(session.sport)}`}
@@ -289,6 +295,24 @@ function SessionCard({ session, date }: SessionCardProps) {
         <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
           {session.details}
         </p>
+      )}
+      {expanded && trailAlts.length > 0 && (
+        <div className="mt-2 border-t border-current/10 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
+            Alternatives terrain
+          </p>
+          <div className="space-y-1">
+            {trailAlts.map((alt) => (
+              <div key={alt.kind} className="flex items-start gap-1.5 text-[11px] leading-snug">
+                <span className="shrink-0" aria-hidden>{alt.icon}</span>
+                <span>
+                  <span className="font-medium">{alt.label}</span>
+                  <span className="text-muted-foreground"> — {alt.hint}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
