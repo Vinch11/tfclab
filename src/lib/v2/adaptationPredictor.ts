@@ -335,13 +335,14 @@ function extractPhysioState(
 
   const tte_min = (snapshot.tte_observed_min as number) ?? null;
 
-  // Durability from HR drift
+  // Durability from HR drift (Maunder 2021) — seul proxy physiologique fiable.
+  // Audit P2 — fix: l'ancien fallback `durability ≈ tte × 1.5` n'a aucune base
+  // (TTE ≠ durabilité aérobie tardive). On respecte la politique
+  // "Insufficient Data No Fake Defaults" → null si HR drift absent.
   let durability_score: number | null = null;
   const hrDrift = snapshot.run_hr_drift_pct as number | null;
-  if (hrDrift !== null) {
+  if (hrDrift !== null && hrDrift !== undefined && Number.isFinite(hrDrift)) {
     durability_score = Math.max(0, Math.min(100, 100 - hrDrift * 5));
-  } else if (tte_min !== null) {
-    durability_score = Math.min(100, tte_min * 1.5);
   }
 
   const economy_score = (snapshot.run_economy_score as number) ?? null;
