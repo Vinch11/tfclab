@@ -358,39 +358,101 @@ function getMetricValue(state: PhysioState, id: MetricId): number | null {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PERFORMANCE PREDICTION
+// PERFORMANCE PREDICTION — sport-aware (Audit P0 — B3)
+// Les pondérations métriques varient selon le sport principal et l'objectif
+// (route, trail, bike, tri). On retourne 2 à 3 "distances" pertinentes.
 // ═══════════════════════════════════════════════════════════════════════════════
+
+type DistKey =
+  | "10k" | "semi" | "marathon"
+  | "trail_short" | "trail_long" | "trail_ultra"
+  | "ftp_test" | "ftp_4h" | "gran_fondo"
+  | "sprint_tri" | "olympic_tri" | "half_im" | "ironman";
+
+const DISTANCE_WEIGHTS: Record<DistKey, Record<MetricId, number>> = {
+  // Course route
+  "10k":       { vo2max: 0.30, vlamax: 0.10, fatmax: 0.05, lt2: 0.25, tte: 0.15, durability: 0.05, economy: 0.10 },
+  "semi":      { vo2max: 0.20, vlamax: 0.15, fatmax: 0.10, lt2: 0.20, tte: 0.15, durability: 0.10, economy: 0.10 },
+  "marathon":  { vo2max: 0.15, vlamax: 0.20, fatmax: 0.15, lt2: 0.15, tte: 0.10, durability: 0.15, economy: 0.10 },
+  // Trail (fatmax + durability + economy dominants)
+  "trail_short": { vo2max: 0.20, vlamax: 0.15, fatmax: 0.10, lt2: 0.15, tte: 0.10, durability: 0.15, economy: 0.15 },
+  "trail_long":  { vo2max: 0.12, vlamax: 0.15, fatmax: 0.20, lt2: 0.10, tte: 0.10, durability: 0.20, economy: 0.13 },
+  "trail_ultra": { vo2max: 0.08, vlamax: 0.12, fatmax: 0.25, lt2: 0.08, tte: 0.10, durability: 0.25, economy: 0.12 },
+  // Cyclisme (LT2 + VO2max + FTP/kg = TTE)
+  "ftp_test":   { vo2max: 0.30, vlamax: 0.10, fatmax: 0.05, lt2: 0.30, tte: 0.15, durability: 0.05, economy: 0.05 },
+  "ftp_4h":     { vo2max: 0.15, vlamax: 0.15, fatmax: 0.20, lt2: 0.15, tte: 0.10, durability: 0.20, economy: 0.05 },
+  "gran_fondo": { vo2max: 0.15, vlamax: 0.15, fatmax: 0.20, lt2: 0.15, tte: 0.10, durability: 0.20, economy: 0.05 },
+  // Triathlon
+  "sprint_tri":  { vo2max: 0.28, vlamax: 0.12, fatmax: 0.05, lt2: 0.25, tte: 0.15, durability: 0.05, economy: 0.10 },
+  "olympic_tri": { vo2max: 0.22, vlamax: 0.15, fatmax: 0.08, lt2: 0.22, tte: 0.13, durability: 0.10, economy: 0.10 },
+  "half_im":     { vo2max: 0.15, vlamax: 0.18, fatmax: 0.15, lt2: 0.15, tte: 0.10, durability: 0.17, economy: 0.10 },
+  "ironman":     { vo2max: 0.10, vlamax: 0.20, fatmax: 0.20, lt2: 0.10, tte: 0.08, durability: 0.22, economy: 0.10 },
+};
+
+const DISTANCE_LABELS: Record<DistKey, string> = {
+  "10k": "10 km",
+  "semi": "Semi-marathon",
+  "marathon": "Marathon",
+  "trail_short": "Trail court (< 25 km)",
+  "trail_long": "Trail long (25–80 km)",
+  "trail_ultra": "Ultra (> 80 km)",
+  "ftp_test": "FTP / CLM 40 km",
+  "ftp_4h": "Sortie longue 4 h",
+  "gran_fondo": "Gran Fondo",
+  "sprint_tri": "Triathlon S",
+  "olympic_tri": "Triathlon M",
+  "half_im": "Half Ironman",
+  "ironman": "Ironman",
+};
+
+/** Sélectionne 3 distances pertinentes à projeter selon le sport et l'objectif. */
+function pickPerformanceDistances(objectif: string, sportMain: string | null | undefined): DistKey[] {
+  const obj = (objectif || "").toLowerCase();
+  const sport = (sportMain || "").toLowerCase();
+
+  // Objectif explicite prioritaire
+  if (/ultra|utmb|ccc|tor|diagonal/.test(obj)) return ["trail_long", "trail_ultra", "trail_short"];
+  if (/trail/.test(obj)) return ["trail_short", "trail_long", "trail_ultra"];
+  if (/ironman\b|im\b|140\.6/.test(obj)) return ["ironman", "half_im", "olympic_tri"];
+  if (/half[\s-]?ironman|70\.3|h70/.test(obj)) return ["half_im", "olympic_tri", "ironman"];
+  if (/olympic|m\b|distance m/.test(obj)) return ["olympic_tri", "sprint_tri", "half_im"];
+  if (/sprint.*tri|tri.*sprint|s\b/.test(obj)) return ["sprint_tri", "olympic_tri", "half_im"];
+  if (/marathon|42/.test(obj)) return ["marathon", "semi", "10k"];
+  if (/semi|half|21/.test(obj)) return ["semi", "10k", "marathon"];
+  if (/10.?k|10000/.test(obj)) return ["10k", "semi", "marathon"];
+  if (/5.?k|5000/.test(obj)) return ["10k", "semi", "marathon"];
+  if (/ftp|clm|chrono|tt\b/.test(obj)) return ["ftp_test", "ftp_4h", "gran_fondo"];
+  if (/fondo|cyclo|gran/.test(obj)) return ["gran_fondo", "ftp_4h", "ftp_test"];
+
+  // Fallback par sport
+  if (sport === "bike" || sport === "cyclisme") return ["ftp_test", "ftp_4h", "gran_fondo"];
+  if (sport === "tri" || sport === "triathlon") return ["olympic_tri", "half_im", "ironman"];
+  if (sport === "trail") return ["trail_short", "trail_long", "trail_ultra"];
+  if (sport === "run" || sport === "cap" || sport === "course") return ["10k", "semi", "marathon"];
+
+  // Dernier recours
+  return ["10k", "semi", "marathon"];
+}
 
 function estimatePerformanceImpact(
   metrics: MetricDelta[],
   objectif: string,
+  sportMain: string | null | undefined,
 ): PerformancePrediction[] {
-  // Weighted importance of each metric per distance
-  const distanceWeights: Record<string, Record<MetricId, number>> = {
-    "10k": { vo2max: 0.30, vlamax: 0.10, fatmax: 0.05, lt2: 0.25, tte: 0.15, durability: 0.05, economy: 0.10 },
-    "semi": { vo2max: 0.20, vlamax: 0.15, fatmax: 0.10, lt2: 0.20, tte: 0.15, durability: 0.10, economy: 0.10 },
-    "marathon": { vo2max: 0.15, vlamax: 0.20, fatmax: 0.15, lt2: 0.15, tte: 0.10, durability: 0.15, economy: 0.10 },
-  };
-
-  const distances = ["10k", "semi", "marathon"];
-  const distanceLabels: Record<string, string> = {
-    "10k": "10 km",
-    "semi": "Semi-marathon",
-    "marathon": "Marathon",
-  };
+  const distances = pickPerformanceDistances(objectif, sportMain);
 
   return distances.map(dist => {
-    const weights = distanceWeights[dist];
+    const weights = DISTANCE_WEIGHTS[dist];
+    const label = DISTANCE_LABELS[dist];
     let totalImpact = 0;
 
     for (const metric of metrics) {
       if (!metric.available) continue;
       const w = weights[metric.id] || 0;
-      // For VLamax, negative deltaPct = improvement for endurance
       let effectiveDelta = metric.deltaMidPct;
       const config = METRIC_CONFIGS.find(c => c.id === metric.id);
       if (config && !config.higherIsBetter) {
-        effectiveDelta = -effectiveDelta; // Invert: decrease = improvement
+        effectiveDelta = -effectiveDelta;
       }
       totalImpact += effectiveDelta * w;
     }
@@ -399,14 +461,14 @@ function estimatePerformanceImpact(
     const perfImprovementPct = totalImpact * 0.6;
 
     return {
-      distance: distanceLabels[dist],
+      distance: label,
       currentPace: null,
       projectedPace: null,
       improvementPct: Math.round(perfImprovementPct * 10) / 10,
       explanation: perfImprovementPct > 1.5
-        ? `Gain significatif attendu sur ${distanceLabels[dist]}`
+        ? `Gain significatif attendu sur ${label}`
         : perfImprovementPct > 0.5
-          ? `Amélioration modérée sur ${distanceLabels[dist]}`
+          ? `Amélioration modérée sur ${label}`
           : perfImprovementPct > 0
             ? `Impact marginal sur ${distanceLabels[dist]}`
             : `Risque de régression sur ${distanceLabels[dist]}`,
