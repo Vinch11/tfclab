@@ -82,12 +82,18 @@ export function VLamaxCAPCard({
   const cloudVlamax = runningProfile?.vlamax_run?.value ?? null;
   const cloudVo2max = runningProfile?.vo2max_run?.value ?? null;
   const cloudEconomy = runningProfile?.economy_run?.value ?? null;
-  
-  // Valeurs calibrées ou fallback (prioritize Cloud data)
-  const effectiveVlamax = cloudVlamax ?? vlamaxValue;
+
+  // Valeurs calibrées ou fallback
+  // ⚠️ Source unique: la prop `vlamaxValue` provient déjà du resolver (vlamaxEffectif
+  // → estimateVLamaxCap, source PRIMAIRE per mémoire `cap-vlamax-unified-source`).
+  // Le champ cloud `vlamax_run` n'est qu'un fallback si la prop est absente, sinon
+  // on affichait la valeur brute du sprint stockée et on divergeait de la carte
+  // "Analyse Détaillée" qui consomme le même resolver.
+  const effectiveVlamax = vlamaxValue ?? cloudVlamax;
   const modelledVlamax = liveCalibration?.vlamax_modelled ?? effectiveVlamax;
   const calibratedVlamax = liveCalibration?.vlamax_calibrated ?? effectiveVlamax;
-  const confidence = liveCalibration?.confidence ?? runningProfile?.vlamax_run?.confidence ?? vlamaxConfidence;
+  const confidence = liveCalibration?.confidence ?? vlamaxConfidence ?? runningProfile?.vlamax_run?.confidence ?? 0;
+
   const delta = liveCalibration?.delta ?? 0;
   const hasCalibration = liveCalibration !== null && windowEvidences.length > 0;
   
