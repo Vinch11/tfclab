@@ -43,6 +43,12 @@ interface AdaptationPredictorCardProps {
   limiterId: string | null;
   limiterLabel: string | null;
   objectif: string;
+  /** Sport principal (run/bike/tri/trail). Sert à choisir le profil de
+   *  pondération performance — Audit P0 B3. */
+  sportMain?: string | null;
+  /** Durée du plan (semaines). Module l'amplitude des deltas projetés
+   *  — Audit P0 B2. Défaut 6 semaines (référence). */
+  weeksAvailable?: number;
   staffMode?: boolean;
   className?: string;
 }
