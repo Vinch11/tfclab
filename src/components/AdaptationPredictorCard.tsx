@@ -94,16 +94,24 @@ function MetricProjectionRow({ metric, higherIsBetter }: { metric: MetricDelta; 
         )}>
           {metric.projected?.toFixed(metric.id === "vlamax" ? 2 : 1)}
         </span>
-        <Badge variant="outline" className={cn(
-          "text-[10px] px-1.5 font-mono",
-          isPositiveChange
-            ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
-            : metric.significance === "none"
-              ? "bg-muted text-muted-foreground"
-              : "bg-red-500/10 text-red-700 border-red-500/30",
-        )}>
-          {metric.deltaMidPct > 0 ? "+" : ""}{metric.deltaMidPct.toFixed(1)}%
-        </Badge>
+        <div className="flex flex-col items-end">
+          <Badge variant="outline" className={cn(
+            "text-[10px] px-1.5 font-mono",
+            isPositiveChange
+              ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
+              : metric.significance === "none"
+                ? "bg-muted text-muted-foreground"
+                : "bg-red-500/10 text-red-700 border-red-500/30",
+          )}>
+            {metric.deltaMidPct > 0 ? "+" : ""}{metric.deltaMidPct.toFixed(1)}%
+          </Badge>
+          {/* Audit P0 — affichage fourchette physiologique */}
+          {(metric.deltaMin !== metric.deltaMax) && (
+            <span className="text-[9px] text-muted-foreground font-mono mt-0.5">
+              [{metric.deltaMin > 0 ? "+" : ""}{metric.deltaMin}% → {metric.deltaMax > 0 ? "+" : ""}{metric.deltaMax}%]
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
