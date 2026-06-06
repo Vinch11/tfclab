@@ -95,14 +95,21 @@ export function AdaptationProjectionSummary({
               {active.metrics.map((m) => {
                 const Icon = DIRECTION_ICON[m.direction];
                 const color = DIRECTION_COLOR[m.direction];
+                // VLamax vit dans la plage 0.3–0.9 → 2 décimales requises
+                // pour éviter qu'une baisse réelle (ex 0.60→0.59) ne s'affiche
+                // comme "0.6 → 0.6" (faux "stable" visuel).
+                const isVla = /vlamax/i.test(m.label);
+                const digits = isVla ? 2 : 1;
+                const deltaSign = m.deltaPct > 0 ? "+" : "";
                 return (
                   <div key={m.label} className="flex items-center gap-1.5">
                     <Icon className={`h-3 w-3 ${color} shrink-0`} />
                     <span className="text-[10px] text-foreground truncate">
                       {m.label}
                     </span>
-                    <span className="text-[10px] text-muted-foreground ml-auto whitespace-nowrap">
-                      {m.current?.toFixed(1) ?? "?"} → {m.projected?.toFixed(1) ?? "?"}
+                    <span className="text-[10px] text-muted-foreground ml-auto whitespace-nowrap font-mono">
+                      {m.current?.toFixed(digits) ?? "?"} → {m.projected?.toFixed(digits) ?? "?"}
+                      <span className={`ml-1 ${color}`}>({deltaSign}{m.deltaPct.toFixed(1)}%)</span>
                     </span>
                   </div>
                 );
