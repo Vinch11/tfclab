@@ -107,6 +107,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
       lines.push(`  • ⚠️ Altitude max ≥2000m → bloc d'acclimatation (3-4 sem) ou simulation hypoxie`);
     }
     lines.push(`  • Gut Training cible: ${tp.gutTrainingTargetGPerH} g CHO/h testé en simulation longue`);
+    lines.push(`  • 📝 TITRE DU PLAN — OBLIGATOIRE : le titre "# Plan TFCL™ — ..." DOIT mentionner exactement "${tp.distanceKm}km" (et non une autre distance inventée). Format imposé : "# Plan TFCL™ — [Nom course] (${tp.distanceKm}km) — N semaines".`);
   }
 
   // 🏙️ ATHLÈTE URBAIN — substitutions montagne obligatoires
