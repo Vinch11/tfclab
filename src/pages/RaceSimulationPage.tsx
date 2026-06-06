@@ -455,7 +455,7 @@ export default function RaceSimulationPage() {
               </Link>
             </Button>
             {envelope && rules && scenarios && (
-              <Dialog>
+              <Dialog defaultOpen={searchParams.get('briefing') === '1'}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs sm:text-sm">
                     <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -473,6 +473,7 @@ export default function RaceSimulationPage() {
                   />
                 </DialogContent>
               </Dialog>
+
             )}
           </div>
         </div>
