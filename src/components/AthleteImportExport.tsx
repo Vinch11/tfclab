@@ -73,8 +73,10 @@ export function AthleteImportExport({
   snapshots,
   tests,
   checkins,
-  onImport
+  onImport,
+  fetchExtras,
 }: AthleteImportExportProps) {
+
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedAthletes, setSelectedAthletes] = useState<Set<string>>(new Set());
