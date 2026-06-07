@@ -46,6 +46,12 @@ import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
 import { PlanHistoryCard } from "@/components/PlanHistoryCard";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
