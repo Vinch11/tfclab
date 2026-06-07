@@ -5,6 +5,7 @@
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
+import { getFicheForSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
 
 function getSportEmoji(sport: string): string {
   const s = sport.toLowerCase();
@@ -38,6 +39,87 @@ function formatWeekRange(weekStart: Date): string {
   end.setDate(end.getDate() + 6);
   const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
   return `${weekStart.toLocaleDateString("fr-FR", opts)} → ${end.toLocaleDateString("fr-FR", opts)}`;
+}
+
+function escapeHTML(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function renderFicheHTML(f: EnrichedSessionFiche): string {
+  const structure = f.structure
+    .map(
+      (s) =>
+        `<div style="margin-top:2px;"><strong>${escapeHTML(s.part)}</strong>${
+          s.zones.length ? ` <span style="color:#888;">[${s.zones.join(", ")}]</span>` : ""
+        } — ${escapeHTML(s.text)}</div>`
+    )
+    .join("");
+
+  const variants = f.variants.length
+    ? `<div style="margin-top:4px;"><strong style="color:#1967d2;">🎯 Variantes :</strong><ul style="margin:2px 0 0 16px;padding:0;">${f.variants
+        .map((v) => `<li><strong>${escapeHTML(v.goal)}</strong> — ${escapeHTML(v.text)}</li>`)
+        .join("")}</ul></div>`
+    : "";
+
+  const wbal = f.wbalSummary
+    ? `<div style="margin-top:3px;"><strong>⚙️ W'bal :</strong> <span style="color:#555;">${escapeHTML(
+        f.wbalSummary
+      )}</span></div>`
+    : "";
+
+  const dplus = f.dPlusTargetM
+    ? `<div style="margin-top:3px;"><strong>⛰ D+ cible :</strong> ${
+        typeof f.dPlusTargetM === "number"
+          ? `${f.dPlusTargetM} m`
+          : `${f.dPlusTargetM.min}-${f.dPlusTargetM.max} m`
+      }</div>`
+    : "";
+
+  const whenAvoid =
+    f.when || f.avoid
+      ? `<div style="margin-top:3px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          ${f.when ? `<div><strong style="color:#2e7d32;">✓ Quand :</strong> ${escapeHTML(f.when)}</div>` : ""}
+          ${f.avoid ? `<div><strong style="color:#c62828;">⚠ Éviter :</strong> ${escapeHTML(f.avoid)}</div>` : ""}
+        </div>`
+      : "";
+
+  const notes = f.notes
+    ? `<div style="margin-top:3px;font-style:italic;color:#555;border-left:2px solid #1967d2;padding-left:6px;">💡 ${escapeHTML(
+        f.notes
+      )}</div>`
+    : "";
+
+  const tags = f.tags.length
+    ? `<div style="margin-top:4px;">${f.tags
+        .map(
+          (t) =>
+            `<span style="display:inline-block;background:#eef2f6;color:#555;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:3px;">#${escapeHTML(
+              t
+            )}</span>`
+        )
+        .join("")}</div>`
+    : "";
+
+  return `<div style="margin-top:6px;padding:6px 8px;border-top:1px dashed #ccc;background:#fafbfd;border-radius:4px;font-size:10.5px;color:#333;line-height:1.4;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
+      <strong style="color:#1967d2;text-transform:uppercase;font-size:9.5px;letter-spacing:0.4px;">Fiche complète bibliothèque</strong>
+      <span style="font-size:9px;color:#777;">
+        Cat ${escapeHTML(f.cat)} · ${escapeHTML(f.necessite)} · ${f.durationMin[0]}-${f.durationMin[1]} min ·
+        <code style="background:#eef2f6;padding:1px 4px;border-radius:3px;">${escapeHTML(f.id)}</code>
+      </span>
+    </div>
+    <div style="font-style:italic;color:#444;margin-bottom:3px;">🎯 ${escapeHTML(f.objectif)}</div>
+    ${structure}
+    ${wbal}
+    ${variants}
+    ${dplus}
+    ${whenAvoid}
+    ${notes}
+    ${tags}
+  </div>`;
 }
 
 export function exportAIPlanToPDF(
@@ -77,13 +159,15 @@ function buildPlanHTML(
             ${trailAlts.map(a => `<div style="margin-top:2px;"><span>${a.icon}</span> <strong>${a.label}</strong> — <span style="color:#777;">${a.hint}</span></div>`).join("")}
           </div>`
         : "";
+      const fiche = s.isRest ? null : getFicheForSession({ title: s.title, details: s.details });
+      const ficheHtml = fiche ? renderFicheHTML(fiche) : "";
       return `
       <tr style="${s.isRest ? 'color:#999;' : ''}">
-        ${hasDate ? `<td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;font-size:11px;color:#555;">${dateStr}</td>` : ""}
-        <td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;">${s.dayName}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;">${getSportEmoji(s.sport)} ${s.sport}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-weight:600;">${s.title}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;">${s.details}${altsHtml}</td>
+        ${hasDate ? `<td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;font-size:11px;color:#555;vertical-align:top;">${dateStr}</td>` : ""}
+        <td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;vertical-align:top;">${s.dayName}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;vertical-align:top;">${getSportEmoji(s.sport)} ${s.sport}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;font-weight:600;vertical-align:top;">${s.title}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;vertical-align:top;">${s.details}${ficheHtml}${altsHtml}</td>
       </tr>
     `;
     }).join("");
