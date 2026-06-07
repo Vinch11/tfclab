@@ -328,17 +328,35 @@ function SessionCard({ session, date }: SessionCardProps) {
 
           <p className="text-[11px] italic text-foreground/80">🎯 {fiche.objectif}</p>
 
-          <div className="space-y-1.5">
-            {fiche.structure.map((s, i) => (
-              <div key={i} className="text-[11px] leading-snug">
-                <span className="font-semibold">{s.part}</span>
-                {s.zones.length > 0 && (
-                  <span className="ml-1.5 text-muted-foreground">[{s.zones.join(", ")}]</span>
-                )}
-                <span className="ml-1 text-foreground/90">— {s.text}</span>
-              </div>
-            ))}
+          <div className="space-y-2">
+            {fiche.structure.map((s, i) => {
+              const body = formatFicheText(s.text);
+              const isBlock = /^<(ol|ul|p)\b/.test(body);
+              return (
+                <div key={i} className="text-[11px] leading-relaxed">
+                  <div>
+                    <span className="font-semibold">{s.part}</span>
+                    {s.zones.length > 0 && (
+                      <span className="ml-1.5 text-muted-foreground">[{s.zones.join(", ")}]</span>
+                    )}
+                    {!isBlock && (
+                      <span
+                        className="ml-1 text-foreground/90 fiche-body"
+                        dangerouslySetInnerHTML={{ __html: `— ${body}` }}
+                      />
+                    )}
+                  </div>
+                  {isBlock && (
+                    <div
+                      className="mt-1 pl-2 border-l-2 border-current/15 text-foreground/90 fiche-body"
+                      dangerouslySetInnerHTML={{ __html: body }}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
+
 
           {fiche.wbalSummary && (
             <div className="text-[10.5px] leading-snug">
