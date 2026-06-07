@@ -202,10 +202,10 @@ function ThemePreview({ themeKey }: { themeKey: Theme }) {
       accent: "bg-[hsl(45,90%,48%)]",
     },
     emerald: {
-      bg: "bg-[#043327]",
-      card: "bg-[#064e3b]",
-      primary: "bg-[#c9a84c]",
-      accent: "bg-[#0d7a5f]",
+      bg: "bg-[#0c2340]",
+      card: "bg-[#1a4a6e]",
+      primary: "bg-[#5cbdb9]",
+      accent: "bg-[#2d8a9e]",
     },
   };
 

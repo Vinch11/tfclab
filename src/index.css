@@ -152,75 +152,76 @@
 
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     THEME: EMERALD LAB — Prestige scientifique, vert profond + or, bento
-     Palette: #043327 / #064e3b / #0d7a5f / #c9a84c / #f5f0e0
+     THEME: EMERALD LAB — Ocean Deep palette
+     Deep navy background, teal accents, aqua primary
+     Palette: #0c2340 / #1a4a6e / #2d8a9e / #5cbdb9
      ═══════════════════════════════════════════════════════════════════════════ */
   .emerald {
-    --background: 162 85% 11%;          /* #043327 */
-    --foreground: 45 50% 92%;           /* #f5f0e0 */
+    --background: 210 68% 15%;          /* #0c2340 deep navy */
+    --foreground: 210 40% 93%;          /* very light blue-white */
 
-    --card: 160 78% 16%;                /* #064e3b */
-    --card-foreground: 45 50% 92%;
+    --card: 205 62% 27%;                /* #1a4a6e midnight blue */
+    --card-foreground: 210 40% 93%;
 
-    --popover: 160 78% 16%;
-    --popover-foreground: 45 50% 92%;
+    --popover: 205 62% 27%;
+    --popover-foreground: 210 40% 93%;
 
-    --primary: 43 55% 54%;              /* #c9a84c gold */
-    --primary-foreground: 162 85% 11%;
+    --primary: 178 42% 55%;             /* #5cbdb9 aqua */
+    --primary-foreground: 210 68% 11%;
 
-    --secondary: 163 80% 20%;
-    --secondary-foreground: 45 50% 92%;
+    --secondary: 205 50% 22%;
+    --secondary-foreground: 210 40% 93%;
 
-    --muted: 163 50% 18%;
-    --muted-foreground: 45 25% 70%;
+    --muted: 205 45% 20%;
+    --muted-foreground: 210 30% 72%;
 
-    --accent: 163 80% 26%;              /* #0d7a5f */
-    --accent-foreground: 45 50% 92%;
+    --accent: 190 56% 40%;              /* #2d8a9e teal */
+    --accent-foreground: 210 40% 93%;
 
     --destructive: 0 65% 55%;
-    --destructive-foreground: 45 50% 95%;
+    --destructive-foreground: 210 40% 95%;
 
-    --success: 158 65% 45%;
-    --success-foreground: 162 85% 11%;
+    --success: 160 50% 42%;
+    --success-foreground: 210 68% 11%;
 
     --warning: 43 70% 58%;
-    --warning-foreground: 162 85% 11%;
+    --warning-foreground: 210 68% 11%;
 
-    --border: 163 60% 22%;
-    --input: 163 50% 18%;
-    --ring: 43 55% 54%;
+    --border: 205 50% 24%;
+    --input: 205 45% 20%;
+    --ring: 178 42% 55%;
 
-    --chart-1: 43 55% 54%;
-    --chart-2: 163 80% 36%;
-    --chart-3: 158 65% 45%;
-    --chart-4: 45 50% 80%;
+    --chart-1: 178 42% 55%;
+    --chart-2: 190 56% 45%;
+    --chart-3: 160 50% 42%;
+    --chart-4: 210 40% 80%;
     --chart-5: 28 65% 55%;
     --chart-6: 195 50% 50%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(43 55% 54%) 0%, hsl(38 50% 46%) 100%);
-    --gradient-card: linear-gradient(160deg, hsl(160 78% 16% / 0.6) 0%, hsl(163 80% 12% / 0.4) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(163 80% 26%) 0%, hsl(163 80% 18%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top, hsl(163 80% 22% / 0.5) 0%, hsl(162 85% 11%) 70%);
+    --gradient-primary: linear-gradient(135deg, hsl(178 42% 55%) 0%, hsl(190 56% 45%) 100%);
+    --gradient-card: linear-gradient(160deg, hsl(205 62% 27% / 0.6) 0%, hsl(210 68% 12% / 0.4) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(190 56% 40%) 0%, hsl(190 56% 30%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top, hsl(190 56% 35% / 0.5) 0%, hsl(210 68% 15%) 70%);
 
-    --shadow-glow: 0 0 32px hsl(43 55% 54% / 0.15);
-    --shadow-card: 0 1px 2px hsl(162 85% 5% / 0.4), 0 8px 24px hsl(162 85% 5% / 0.25);
-    --shadow-elevated: 0 4px 12px hsl(162 85% 5% / 0.4), 0 16px 40px hsl(162 85% 5% / 0.35);
+    --shadow-glow: 0 0 32px hsl(178 42% 55% / 0.15);
+    --shadow-card: 0 1px 2px hsl(210 68% 5% / 0.4), 0 8px 24px hsl(210 68% 5% / 0.25);
+    --shadow-elevated: 0 4px 12px hsl(210 68% 5% / 0.4), 0 16px 40px hsl(210 68% 5% / 0.35);
 
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'DM Sans', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
-    --sidebar-background: 162 88% 9%;
-    --sidebar-foreground: 45 50% 88%;
-    --sidebar-primary: 43 55% 54%;
-    --sidebar-primary-foreground: 162 85% 11%;
-    --sidebar-accent: 163 80% 18%;
-    --sidebar-accent-foreground: 43 55% 80%;
-    --sidebar-border: 163 60% 18%;
-    --sidebar-ring: 43 55% 54%;
+    --sidebar-background: 210 70% 12%;
+    --sidebar-foreground: 210 40% 88%;
+    --sidebar-primary: 178 42% 55%;
+    --sidebar-primary-foreground: 210 68% 11%;
+    --sidebar-accent: 205 50% 18%;
+    --sidebar-accent-foreground: 178 42% 80%;
+    --sidebar-border: 205 50% 18%;
+    --sidebar-ring: 178 42% 55%;
   }
 
-  /* Emerald-scoped visual personality (bento, gold uppercase eyebrows, glow active item) */
+  /* Emerald-scoped visual personality (bento, aqua uppercase eyebrows, glow active item) */
   .emerald body {
     font-family: 'DM Sans', sans-serif;
   }
@@ -230,7 +231,7 @@
   }
   .emerald main {
     background:
-      radial-gradient(ellipse 80% 50% at 50% 0%, hsl(163 80% 22% / 0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 50% at 50% 0%, hsl(190 56% 35% / 0.25) 0%, transparent 60%),
       hsl(var(--background));
   }
   .emerald [data-sidebar="menu-button"][data-active="true"] {
