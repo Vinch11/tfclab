@@ -841,10 +841,11 @@ export default function AITrainingPlanPage() {
     }
   }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals]);
 
-  const handleLoadVersion = useCallback((version: { plan_json: any }) => {
+  const [pendingVersion, setPendingVersion] = useState<{ plan_json: any } | null>(null);
+
+  const applyLoadedVersion = useCallback((version: { plan_json: any }, startDate: Date) => {
     const pj = version.plan_json || {};
     let md: string | null = pj._markdown || null;
-    // Legacy fallback: reconstruct a minimal markdown from the saved parsed plan
     if (!md && Array.isArray(pj.weeks) && pj.weeks.length > 0) {
       const lines: string[] = [];
       if (pj.title) lines.push(`# ${pj.title}`, "");
@@ -869,15 +870,7 @@ export default function AITrainingPlanPage() {
       return;
     }
     setResponse(md);
-    // Restore the original plan start date so weekly dates match the archive.
-    if (pj._planStartDate) {
-      try {
-        const restored = parseISO(pj._planStartDate);
-        if (!isNaN(restored.getTime())) {
-          setPlanStartDate(startOfWeek(restored, { weekStartsOn: 1 }));
-        }
-      } catch { /* keep current */ }
-    }
+    setPlanStartDate(startOfWeek(startDate, { weekStartsOn: 1 }));
     if (pj._objective) setObjective(pj._objective);
     if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
     if (pj._raceDate !== undefined) setRaceDate(pj._raceDate || "");
@@ -885,6 +878,10 @@ export default function AITrainingPlanPage() {
     setIsSaved(true);
     toast.success("Version chargée");
   }, [setResponse]);
+
+  const handleLoadVersion = useCallback((version: { plan_json: any }) => {
+    setPendingVersion(version);
+  }, []);
 
   // Compute the current week number relative to planStartDate
   const currentWeekNumber = useMemo(() => {
