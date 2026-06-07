@@ -154,40 +154,55 @@ function buildPlanHTML(
         ? []
         : getTrailSessionAlternatives({ sport: s.sport, title: s.title, details: s.details });
       const altsHtml = trailAlts.length > 0
-        ? `<div style="margin-top:4px;padding-top:4px;border-top:1px dashed #ccc;font-size:10px;color:#555;">
+        ? `<div style="font-size:10px;color:#555;">
             <strong style="color:#1967d2;">Alternatives terrain :</strong>
             ${trailAlts.map(a => `<div style="margin-top:2px;"><span>${a.icon}</span> <strong>${a.label}</strong> — <span style="color:#777;">${a.hint}</span></div>`).join("")}
           </div>`
         : "";
       const fiche = s.isRest ? null : getFicheForSession({ title: s.title, details: s.details });
-      const ficheHtml = fiche ? renderFicheHTML(fiche) : "";
+      const totalCols = (hasDate ? 1 : 0) + 4;
+      const ficheRow = fiche
+        ? `<tr><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fafbfd;">${renderFicheHTML(fiche)}</td></tr>`
+        : "";
+      const altsRow = altsHtml
+        ? `<tr><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`
+        : "";
       return `
       <tr style="${s.isRest ? 'color:#999;' : ''}">
         ${hasDate ? `<td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;font-size:11px;color:#555;vertical-align:top;">${dateStr}</td>` : ""}
         <td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;vertical-align:top;">${s.dayName}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;vertical-align:top;">${getSportEmoji(s.sport)} ${s.sport}</td>
         <td style="padding:4px 8px;border:1px solid #ddd;font-weight:600;vertical-align:top;">${s.title}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;vertical-align:top;">${s.details}${ficheHtml}${altsHtml}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;vertical-align:top;word-wrap:break-word;">${s.details}</td>
       </tr>
+      ${ficheRow}
+      ${altsRow}
     `;
     }).join("");
 
     const weekRangeStr = weekStart ? ` <span style="font-weight:normal;font-size:10px;color:#1967d2;margin-left:6px;">(${formatWeekRange(weekStart)})</span>` : "";
 
     return `
-      <div style="page-break-inside:avoid;margin-bottom:24px;">
+      <div style="margin-bottom:24px;">
         <h3 style="margin:0 0 4px 0;font-size:14px;color:#333;">
           Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
           <span style="font-weight:normal;font-size:11px;color:#888;margin-left:8px;">${week.phase}</span>
         </h3>
         ${week.volumeTarget ? `<p style="margin:0 0 8px 0;font-size:11px;color:#666;">Volume cible : ${week.volumeTarget}</p>` : ""}
-        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;">
+          <colgroup>
+            ${hasDate ? `<col style="width:72px;">` : ""}
+            <col style="width:58px;">
+            <col style="width:78px;">
+            <col style="width:150px;">
+            <col>
+          </colgroup>
           <thead>
             <tr style="background:#f5f5f5;">
-              ${hasDate ? `<th style="padding:4px 8px;border:1px solid #ddd;text-align:left;width:100px;">Date</th>` : ""}
-              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;width:80px;">Jour</th>
-              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;width:100px;">Sport</th>
-              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;width:180px;">Séance</th>
+              ${hasDate ? `<th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Date</th>` : ""}
+              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Jour</th>
+              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Sport</th>
+              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Séance</th>
               <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Détails</th>
             </tr>
           </thead>
@@ -208,10 +223,12 @@ function buildPlanHTML(
   <meta charset="UTF-8">
   <title>${plan.title}</title>
   <style>
-    @media print { .no-print { display: none !important; } @page { margin: 15mm; } }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; color: #222; background: #fff; }
+    @media print { .no-print { display: none !important; } @page { size: A4 landscape; margin: 10mm; } }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; color: #222; background: #fff; }
     h1 { font-size: 20px; margin-bottom: 4px; }
     h2 { font-size: 16px; color: #444; margin-top: 24px; border-bottom: 2px solid #1967d2; padding-bottom: 4px; }
+    table { word-wrap: break-word; overflow-wrap: break-word; }
+    td, th { word-wrap: break-word; overflow-wrap: break-word; }
   </style>
 </head>
 <body>
