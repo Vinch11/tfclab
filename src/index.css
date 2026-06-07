@@ -149,6 +149,99 @@
     --sidebar-border: 225 22% 20%;
     --sidebar-ring: 35 60% 48%;
   }
+
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     THEME: EMERALD LAB — Prestige scientifique, vert profond + or, bento
+     Palette: #043327 / #064e3b / #0d7a5f / #c9a84c / #f5f0e0
+     ═══════════════════════════════════════════════════════════════════════════ */
+  .emerald {
+    --background: 162 85% 11%;          /* #043327 */
+    --foreground: 45 50% 92%;           /* #f5f0e0 */
+
+    --card: 160 78% 16%;                /* #064e3b */
+    --card-foreground: 45 50% 92%;
+
+    --popover: 160 78% 16%;
+    --popover-foreground: 45 50% 92%;
+
+    --primary: 43 55% 54%;              /* #c9a84c gold */
+    --primary-foreground: 162 85% 11%;
+
+    --secondary: 163 80% 20%;
+    --secondary-foreground: 45 50% 92%;
+
+    --muted: 163 50% 18%;
+    --muted-foreground: 45 25% 70%;
+
+    --accent: 163 80% 26%;              /* #0d7a5f */
+    --accent-foreground: 45 50% 92%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 45 50% 95%;
+
+    --success: 158 65% 45%;
+    --success-foreground: 162 85% 11%;
+
+    --warning: 43 70% 58%;
+    --warning-foreground: 162 85% 11%;
+
+    --border: 163 60% 22%;
+    --input: 163 50% 18%;
+    --ring: 43 55% 54%;
+
+    --chart-1: 43 55% 54%;
+    --chart-2: 163 80% 36%;
+    --chart-3: 158 65% 45%;
+    --chart-4: 45 50% 80%;
+    --chart-5: 28 65% 55%;
+    --chart-6: 195 50% 50%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(43 55% 54%) 0%, hsl(38 50% 46%) 100%);
+    --gradient-card: linear-gradient(160deg, hsl(160 78% 16% / 0.6) 0%, hsl(163 80% 12% / 0.4) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(163 80% 26%) 0%, hsl(163 80% 18%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top, hsl(163 80% 22% / 0.5) 0%, hsl(162 85% 11%) 70%);
+
+    --shadow-glow: 0 0 32px hsl(43 55% 54% / 0.15);
+    --shadow-card: 0 1px 2px hsl(162 85% 5% / 0.4), 0 8px 24px hsl(162 85% 5% / 0.25);
+    --shadow-elevated: 0 4px 12px hsl(162 85% 5% / 0.4), 0 16px 40px hsl(162 85% 5% / 0.35);
+
+    --font-heading: 'Space Grotesk', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --sidebar-background: 162 88% 9%;
+    --sidebar-foreground: 45 50% 88%;
+    --sidebar-primary: 43 55% 54%;
+    --sidebar-primary-foreground: 162 85% 11%;
+    --sidebar-accent: 163 80% 18%;
+    --sidebar-accent-foreground: 43 55% 80%;
+    --sidebar-border: 163 60% 18%;
+    --sidebar-ring: 43 55% 54%;
+  }
+
+  /* Emerald-scoped visual personality (bento, gold uppercase eyebrows, glow active item) */
+  .emerald body {
+    font-family: 'DM Sans', sans-serif;
+  }
+  .emerald h1, .emerald h2, .emerald h3, .emerald h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.015em;
+  }
+  .emerald main {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, hsl(163 80% 22% / 0.25) 0%, transparent 60%),
+      hsl(var(--background));
+  }
+  .emerald [data-sidebar="menu-button"][data-active="true"] {
+    border-left: 2px solid hsl(var(--primary));
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.08);
+  }
+  .emerald .rounded-lg,
+  .emerald .rounded-md {
+    border-radius: 0.75rem;
+  }
 }
 
 @layer base {
