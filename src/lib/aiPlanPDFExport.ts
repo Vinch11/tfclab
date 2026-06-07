@@ -78,13 +78,15 @@ function buildPlanHTML(
             ${trailAlts.map(a => `<div style="margin-top:2px;"><span>${a.icon}</span> <strong>${a.label}</strong> — <span style="color:#777;">${a.hint}</span></div>`).join("")}
           </div>`
         : "";
+      const fiche = s.isRest ? null : getFicheForSession({ title: s.title, details: s.details });
+      const ficheHtml = fiche ? renderFicheHTML(fiche) : "";
       return `
       <tr style="${s.isRest ? 'color:#999;' : ''}">
-        ${hasDate ? `<td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;font-size:11px;color:#555;">${dateStr}</td>` : ""}
-        <td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;">${s.dayName}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;">${getSportEmoji(s.sport)} ${s.sport}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-weight:600;">${s.title}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;">${s.details}${altsHtml}</td>
+        ${hasDate ? `<td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;font-size:11px;color:#555;vertical-align:top;">${dateStr}</td>` : ""}
+        <td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;vertical-align:top;">${s.dayName}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;vertical-align:top;">${getSportEmoji(s.sport)} ${s.sport}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;font-weight:600;vertical-align:top;">${s.title}</td>
+        <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;vertical-align:top;">${s.details}${ficheHtml}${altsHtml}</td>
       </tr>
     `;
     }).join("");
