@@ -43,7 +43,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     THEME_ORDER.forEach((t) => root.classList.remove(t));
-    root.classList.add(theme);
+    if (theme === "emerald") {
+      root.classList.add("dark", "emerald");
+    } else {
+      root.classList.add(theme);
+    }
     localStorage.setItem("theme", theme);
   }, [theme]);
 
