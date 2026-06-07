@@ -2000,15 +2000,15 @@ function LoadVersionDialog({
   onClose,
   onConfirm,
 }: {
-  version: { plan_json: any } | null;
+  version: { plan_json: any; created_at?: string } | null;
   onClose: () => void;
   onConfirm: (startDate: Date) => void;
 }) {
   const [choice, setChoice] = useState<LoadChoice>("monday");
   const pj = version?.plan_json || {};
-  const originalRaw: string | undefined = pj._planStartDate;
+  const originalRaw: string | undefined = pj._planStartDate || version?.created_at;
   const original = originalRaw ? parseISO(originalRaw) : null;
-  const hasOriginal = original && !isNaN(original.getTime());
+  const hasOriginal = !!(original && !isNaN(original.getTime()));
 
   // Default to "created" if available, else "monday"
   useEffect(() => {
