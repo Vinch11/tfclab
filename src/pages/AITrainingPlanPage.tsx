@@ -464,12 +464,11 @@ export default function AITrainingPlanPage() {
     return computeAthleteContext(currentAthlete, objective, ambition);
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
-  // Compute plan start date: Monday of the CURRENT week (not next week)
-  const planStartDate = useMemo(() => {
-    const now = new Date();
-    const currentMonday = startOfWeek(now, { weekStartsOn: 1 });
-    return currentMonday;
-  }, []);
+  // Plan start date: defaults to Monday of the CURRENT week, but can be
+  // overridden when restoring an archived plan (so dates match the original).
+  const [planStartDate, setPlanStartDate] = useState<Date>(() =>
+    startOfWeek(new Date(), { weekStartsOn: 1 })
+  );
 
   const weeksAvailable = useMemo(() => {
     // Use the latest race date across all goals (primary A + additional B/C), relative to plan start week
@@ -870,7 +869,15 @@ export default function AITrainingPlanPage() {
       return;
     }
     setResponse(md);
-    // planStartDate is derived from raceDate — restoring raceDate is sufficient
+    // Restore the original plan start date so weekly dates match the archive.
+    if (pj._planStartDate) {
+      try {
+        const restored = parseISO(pj._planStartDate);
+        if (!isNaN(restored.getTime())) {
+          setPlanStartDate(startOfWeek(restored, { weekStartsOn: 1 }));
+        }
+      } catch { /* keep current */ }
+    }
     if (pj._objective) setObjective(pj._objective);
     if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
     if (pj._raceDate !== undefined) setRaceDate(pj._raceDate || "");
