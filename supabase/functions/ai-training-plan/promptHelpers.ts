@@ -1147,6 +1147,33 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Briques vélo→CAP 1-2x/sem en phase spécifique");
     lines.push("- Train Low 2-3x/sem en phase base");
     lines.push("- Gut Training progressif obligatoire");
+
+    // ─── DURABILITÉ RUN IM — OBLIGATOIRE BUILD/PEAK (élite/competitor) ───
+    // Comble l'angle mort identifié par audit coach élite IM femme :
+    // manque de long runs 1h45-2h15, bricks longs marathon-pace, late-race fractions.
+    // Ces séances sont la signature qui sépare l'élite IM des âge-groupeurs.
+    const ambKeyIM = normalizeAmbKey(config.ambition || "");
+    if (ambKeyIM === "elite" || ambKeyIM === "competitor") {
+      lines.push("\n### 🎯 DURABILITÉ RUN IRONMAN — OBLIGATOIRE BUILD + PEAK (élite/competitor)");
+      lines.push("Pour une élite IM, le marathon se gagne dans les 12 derniers km. Le plan DOIT intégrer ces séances signature :");
+      lines.push("");
+      lines.push("**Catalogue dédié IM Run Durability — utilise ces IDs en priorité absolue :**");
+      lines.push("- `A_IM_RUN_LONG_DURABILITY_2H` — Long run 1h45-2h15 Z2 + nutrition race + cadence cible.");
+      lines.push("- `B_IM_BRICK_LONG_MARATHON_PACE` — Brick 4-5h vélo Z2/SST + 60-90' run @ pace IM (signature absolue de l'élite IM).");
+      lines.push("- `B_IM_RUN_LATE_RACE_FRACTIONS` — Long run 1h30-2h avec 20-30' final @ pace IM (simule km 35-42).");
+      lines.push("- `A_IM_RUN_FATIGUED_NEXT_DAY` — Long run dimanche après gros vélo samedi (back-to-back Lorang/Frodeno).");
+      lines.push("- `B_IM_RUN_MARATHON_SPLIT` — 2× 60' @ pace IM matin+soir (peak uniquement, 1×/3 sem max).");
+      lines.push("- `B_IM_RUN_NEG_SPLIT_LR` — Long run progressif 3 tiers jusqu'à pace IM (pacing discipline).");
+      lines.push("");
+      lines.push("**Règle de prescription NON-NÉGOCIABLE :**");
+      lines.push("- **Build IM (S25-S50% du plan)** : minimum **1 séance IM run durability par semaine** (rotation entre long run 2h, brick long, late-race fractions, back-to-back).");
+      lines.push("- **Peak IM (S55-S85% du plan)** : minimum **2 séances IM run durability par semaine** (typiquement : brick long samedi + long run fatigué dimanche, OU long run 2h mardi + late-race fractions samedi).");
+      lines.push("- **Back-to-back weekend** (brick long samedi + long run dimanche) : 1×/2 sem minimum en Build tardif et Peak.");
+      lines.push("- **Brick long marathon-pace** (`B_IM_BRICK_LONG_MARATHON_PACE`) : 4-6 occurrences entre S8 et S20 d'un plan IM 24 sem.");
+      lines.push("- Si tu prescris une SL run classique en Build/Peak IM, vérifie d'abord qu'aucune séance ci-dessus ne couvre mieux le besoin de durabilité.");
+      lines.push("");
+      lines.push("**Pourquoi c'est critique** : Stryd Durability Index, Maunder 2021 (run durability post-bike), Coyle 1991 — la signature physiologique du marathon IM (courir vite après 5h vélo en fatigue musculaire/glycogénique) NE PEUT PAS être entraînée par des long runs en frais isolés.");
+    }
   } else if (objKeyForRappel === "703") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE 70.3");
     lines.push("Objectif 70.3 → applique les ratios Lorang/Haug :");
