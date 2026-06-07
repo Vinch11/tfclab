@@ -46,6 +46,12 @@ import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
 import { PlanHistoryCard } from "@/components/PlanHistoryCard";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
@@ -841,10 +847,11 @@ export default function AITrainingPlanPage() {
     }
   }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals]);
 
-  const handleLoadVersion = useCallback((version: { plan_json: any }) => {
+  const [pendingVersion, setPendingVersion] = useState<{ plan_json: any } | null>(null);
+
+  const applyLoadedVersion = useCallback((version: { plan_json: any }, startDate: Date) => {
     const pj = version.plan_json || {};
     let md: string | null = pj._markdown || null;
-    // Legacy fallback: reconstruct a minimal markdown from the saved parsed plan
     if (!md && Array.isArray(pj.weeks) && pj.weeks.length > 0) {
       const lines: string[] = [];
       if (pj.title) lines.push(`# ${pj.title}`, "");
@@ -869,15 +876,7 @@ export default function AITrainingPlanPage() {
       return;
     }
     setResponse(md);
-    // Restore the original plan start date so weekly dates match the archive.
-    if (pj._planStartDate) {
-      try {
-        const restored = parseISO(pj._planStartDate);
-        if (!isNaN(restored.getTime())) {
-          setPlanStartDate(startOfWeek(restored, { weekStartsOn: 1 }));
-        }
-      } catch { /* keep current */ }
-    }
+    setPlanStartDate(startOfWeek(startDate, { weekStartsOn: 1 }));
     if (pj._objective) setObjective(pj._objective);
     if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
     if (pj._raceDate !== undefined) setRaceDate(pj._raceDate || "");
@@ -885,6 +884,10 @@ export default function AITrainingPlanPage() {
     setIsSaved(true);
     toast.success("Version chargée");
   }, [setResponse]);
+
+  const handleLoadVersion = useCallback((version: { plan_json: any }) => {
+    setPendingVersion(version);
+  }, []);
 
   // Compute the current week number relative to planStartDate
   const currentWeekNumber = useMemo(() => {
@@ -1978,6 +1981,93 @@ export default function AITrainingPlanPage() {
         {/* Plan history (saved versions) */}
         <PlanHistoryCard refreshKey={historyRefreshKey} onLoadVersion={handleLoadVersion} />
       </div>
+      <LoadVersionDialog
+        version={pendingVersion}
+        onClose={() => setPendingVersion(null)}
+        onConfirm={(startDate) => {
+          if (pendingVersion) applyLoadedVersion(pendingVersion, startDate);
+          setPendingVersion(null);
+        }}
+      />
     </AppLayout>
+  );
+}
+
+type LoadChoice = "created" | "today" | "monday";
+
+function LoadVersionDialog({
+  version,
+  onClose,
+  onConfirm,
+}: {
+  version: { plan_json: any } | null;
+  onClose: () => void;
+  onConfirm: (startDate: Date) => void;
+}) {
+  const [choice, setChoice] = useState<LoadChoice>("monday");
+  const pj = version?.plan_json || {};
+  const originalRaw: string | undefined = pj._planStartDate;
+  const original = originalRaw ? parseISO(originalRaw) : null;
+  const hasOriginal = original && !isNaN(original.getTime());
+
+  // Default to "created" if available, else "monday"
+  useEffect(() => {
+    if (version) setChoice(hasOriginal ? "created" : "monday");
+  }, [version, hasOriginal]);
+
+  const resolveDate = (): Date => {
+    if (choice === "created" && hasOriginal) return original!;
+    if (choice === "today") return new Date();
+    return startOfWeek(new Date(), { weekStartsOn: 1 });
+  };
+
+  return (
+    <AlertDialog open={!!version} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Date de début du plan</AlertDialogTitle>
+          <AlertDialogDescription>
+            Choisissez à partir de quelle date afficher les semaines de ce plan.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <RadioGroup value={choice} onValueChange={(v) => setChoice(v as LoadChoice)} className="space-y-2 py-2">
+          {hasOriginal && (
+            <label className="flex items-start gap-2 cursor-pointer rounded-md border border-border p-3 hover:bg-accent/50">
+              <RadioGroupItem value="created" className="mt-0.5" />
+              <div className="text-sm">
+                <div className="font-medium">Date de création d'origine</div>
+                <div className="text-xs text-muted-foreground">
+                  {format(original!, "d MMMM yyyy")} — voir l'état d'avancement
+                </div>
+              </div>
+            </label>
+          )}
+          <label className="flex items-start gap-2 cursor-pointer rounded-md border border-border p-3 hover:bg-accent/50">
+            <RadioGroupItem value="monday" className="mt-0.5" />
+            <div className="text-sm">
+              <div className="font-medium">Lundi de la semaine actuelle</div>
+              <div className="text-xs text-muted-foreground">
+                {format(startOfWeek(new Date(), { weekStartsOn: 1 }), "d MMMM yyyy")}
+              </div>
+            </div>
+          </label>
+          <label className="flex items-start gap-2 cursor-pointer rounded-md border border-border p-3 hover:bg-accent/50">
+            <RadioGroupItem value="today" className="mt-0.5" />
+            <div className="text-sm">
+              <div className="font-medium">Aujourd'hui</div>
+              <div className="text-xs text-muted-foreground">
+                {format(new Date(), "d MMMM yyyy")}
+              </div>
+            </div>
+          </label>
+        </RadioGroup>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction onClick={() => onConfirm(resolveDate())}>
+            Charger
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
