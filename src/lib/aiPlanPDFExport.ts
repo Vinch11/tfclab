@@ -53,9 +53,9 @@ function renderFicheHTML(f: EnrichedSessionFiche): string {
   const structure = f.structure
     .map(
       (s) =>
-        `<div style="margin-top:2px;"><strong>${escapeHTML(s.part)}</strong>${
+        `<div style="margin-top:3px;padding:3px 0;"><strong>${escapeHTML(s.part)}</strong>${
           s.zones.length ? ` <span style="color:#888;">[${s.zones.join(", ")}]</span>` : ""
-        } — ${escapeHTML(s.text)}</div>`
+        } — <span style="display:inline-block;vertical-align:top;">${formatFicheText(s.text)}</span></div>`
     )
     .join("");
 
