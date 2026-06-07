@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-export type Theme = "dark" | "light";
+export type Theme = "dark" | "light" | "emerald";
 
 export const THEME_CONFIG: Record<Theme, { label: string; icon: string; description: string }> = {
   dark: {
@@ -13,9 +13,14 @@ export const THEME_CONFIG: Record<Theme, { label: string; icon: string; descript
     icon: "☀️",
     description: "Fond clair, professionnel",
   },
+  emerald: {
+    label: "Emerald Lab",
+    icon: "💎",
+    description: "Mode prestige : émeraude + or, bento scientifique",
+  },
 };
 
-export const THEME_ORDER: Theme[] = ["dark", "light"];
+export const THEME_ORDER: Theme[] = ["dark", "light", "emerald"];
 
 interface ThemeContextType {
   theme: Theme;
@@ -43,9 +48,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => setThemeState(newTheme);
-  
+
   const toggleTheme = () => {
-    setThemeState(theme === "dark" ? "light" : "dark");
+    const idx = THEME_ORDER.indexOf(theme);
+    const next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
+    setThemeState(next);
   };
 
   return (
