@@ -128,6 +128,22 @@ function renderFicheHTML(f: EnrichedSessionFiche): string {
   </div>`;
 }
 
+function getSportBadgeStyle(sport: string): { bg: string; color: string; border: string } {
+  const s = sport.toLowerCase();
+  if (s.includes("repos") || s.includes("rest")) return { bg: "#f3f4f6", color: "#6b7280", border: "#e5e7eb" };
+  if (s.includes("natation") || s.includes("swim")) return { bg: "#dbeafe", color: "#1e40af", border: "#bfdbfe" };
+  if (s.includes("vélo") || s.includes("velo") || s.includes("bike")) return { bg: "#dbeafe", color: "#1e3a8a", border: "#93c5fd" };
+  if (s.includes("brick")) return { bg: "#ede9fe", color: "#5b21b6", border: "#c4b5fd" };
+  if (s.includes("muscu") || s.includes("force")) return { bg: "#fce7f3", color: "#9d174d", border: "#f9a8d4" };
+  if (s.includes("cap") || s.includes("course") || s.includes("run")) return { bg: "#dcfce7", color: "#166534", border: "#86efac" };
+  return { bg: "#f3f4f6", color: "#374151", border: "#d1d5db" };
+}
+
+function getSportBadge(sport: string): string {
+  const style = getSportBadgeStyle(sport);
+  return `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${style.bg};color:${style.color};border:1px solid ${style.border};white-space:nowrap;">${getSportEmoji(sport)} ${sport}</span>`;
+}
+
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
   athleteName?: string,
@@ -151,10 +167,10 @@ function buildPlanHTML(
 ): string {
   const hasDate = !!startDate;
 
-  const weekRows = plan.weeks.map(week => {
+  const weekRows = plan.weeks.map((week, weekIdx) => {
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
 
-    const sessionRows = week.sessions.map(s => {
+    const sessionRows = week.sessions.map((s, sessionIdx) => {
       const dateStr = weekStart && s.dayIndex >= 0 ? formatSessionDate(weekStart, s.dayIndex) : "";
       const trailAlts = s.isRest
         ? []
@@ -173,13 +189,18 @@ function buildPlanHTML(
       const altsRow = altsHtml
         ? `<tr><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`
         : "";
+      
+      // Alternating row colors + stronger separator between days
+      const rowBg = sessionIdx % 2 === 0 ? "#ffffff" : "#f8fafc";
+      const daySeparator = sessionIdx > 0 ? "border-top:2px solid #e2e8f0;" : "";
+      
       return `
-      <tr style="${s.isRest ? 'color:#999;' : ''}">
-        ${hasDate ? `<td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;font-size:11px;color:#555;vertical-align:top;">${dateStr}</td>` : ""}
-        <td style="padding:4px 8px;border:1px solid #ddd;white-space:nowrap;vertical-align:top;">${s.dayName}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;vertical-align:top;">${getSportEmoji(s.sport)} ${s.sport}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-weight:600;vertical-align:top;">${s.title}</td>
-        <td style="padding:4px 8px;border:1px solid #ddd;font-size:11px;vertical-align:top;word-wrap:break-word;">${s.details}</td>
+      <tr style="background:${rowBg};${daySeparator}${s.isRest ? 'color:#9ca3af;' : ''}">
+        ${hasDate ? `<td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;font-size:11px;color:#4b5563;vertical-align:top;font-weight:500;">${dateStr}</td>` : ""}
+        <td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;vertical-align:top;font-weight:600;color:#374151;">${s.dayName}</td>
+        <td style="padding:6px 10px;border:1px solid #d1d5db;vertical-align:top;">${getSportBadge(s.sport)}</td>
+        <td style="padding:6px 10px;border:1px solid #d1d5db;font-weight:600;vertical-align:top;color:#1f2937;">${s.title}</td>
+        <td style="padding:6px 10px;border:1px solid #d1d5db;font-size:11px;vertical-align:top;word-wrap:break-word;color:#4b5563;line-height:1.5;">${s.details}</td>
       </tr>
       ${ficheRow}
       ${altsRow}
@@ -187,34 +208,36 @@ function buildPlanHTML(
     }).join("");
 
     const weekRangeStr = weekStart ? ` <span style="font-weight:normal;font-size:10px;color:#1967d2;margin-left:6px;">(${formatWeekRange(weekStart)})</span>` : "";
+    // Add a visual separator stripe between weeks
+    const weekSeparator = weekIdx > 0 ? "margin-top:32px;padding-top:16px;border-top:3px double #cbd5e1;" : "";
 
     return `
-      <div style="margin-bottom:24px;">
-        <h3 style="margin:0 0 4px 0;font-size:14px;color:#333;">
+      <div style="margin-bottom:28px;${weekSeparator}">
+        <h3 style="margin:0 0 6px 0;font-size:15px;color:#1f2937;background:#eff6ff;padding:8px 12px;border-radius:6px;border-left:4px solid #1967d2;">
           Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
-          <span style="font-weight:normal;font-size:11px;color:#888;margin-left:8px;">${week.phase}</span>
+          <span style="font-weight:normal;font-size:11px;color:#6b7280;margin-left:8px;">${week.phase}</span>
         </h3>
-        ${week.volumeTarget ? `<p style="margin:0 0 8px 0;font-size:11px;color:#666;">Volume cible : ${week.volumeTarget}</p>` : ""}
-        <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;">
+        ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#4b5563;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
+        <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid #d1d5db;">
           <colgroup>
-            ${hasDate ? `<col style="width:72px;">` : ""}
-            <col style="width:58px;">
-            <col style="width:78px;">
-            <col style="width:150px;">
+            ${hasDate ? `<col style="width:80px;">` : ""}
+            <col style="width:65px;">
+            <col style="width:100px;">
+            <col style="width:170px;">
             <col>
           </colgroup>
           <thead>
-            <tr style="background:#f5f5f5;">
-              ${hasDate ? `<th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Date</th>` : ""}
-              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Jour</th>
-              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Sport</th>
-              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Séance</th>
-              <th style="padding:4px 8px;border:1px solid #ddd;text-align:left;">Détails</th>
+            <tr style="background:#f1f5f9;">
+              ${hasDate ? `<th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Date</th>` : ""}
+              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Jour</th>
+              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Sport</th>
+              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Séance</th>
+              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Détails</th>
             </tr>
           </thead>
           <tbody>${sessionRows}</tbody>
         </table>
-        ${week.coachNotes ? `<p style="margin:8px 0 0 0;font-size:11px;color:#555;background:#fff8e1;padding:6px 10px;border-radius:4px;">⚡ ${week.coachNotes}</p>` : ""}
+        ${week.coachNotes ? `<p style="margin:10px 0 0 0;font-size:11px;color:#4b5563;background:#fffbeb;padding:8px 12px;border-radius:6px;border-left:3px solid #f59e0b;">⚡ ${week.coachNotes}</p>` : ""}
       </div>
     `;
   }).join("");
