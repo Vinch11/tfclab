@@ -14,9 +14,9 @@ export const THEME_CONFIG: Record<Theme, { label: string; icon: string; descript
     description: "Fond clair, professionnel",
   },
   emerald: {
-    label: "Ocean Deep",
-    icon: "🌊",
-    description: "Mode prestige : bleu profond + aqua, bento scientifique",
+    label: "Prestige",
+    icon: "✨",
+    description: "Mode premium : palette sombre + typographie et bento éditorial",
   },
 };
 

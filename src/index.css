@@ -156,75 +156,75 @@
      Deep navy background, teal accents, aqua primary
      Palette: #0c2340 / #1a4a6e / #2d8a9e / #5cbdb9
      ═══════════════════════════════════════════════════════════════════════════ */
+  /* ───────────────────────────────────────────────────────────────────────
+     EMERALD (Prestige) — Identical color palette to .dark, with premium
+     typography, glass bento tiles, hero numerics, segmented tabs.
+     ─────────────────────────────────────────────────────────────────── */
   .emerald {
-    --background: 210 68% 15%;          /* #0c2340 deep navy */
-    --foreground: 210 40% 93%;          /* very light blue-white */
+    --background: 225 30% 7%;
+    --foreground: 220 15% 93%;
 
-    --card: 205 62% 27%;                /* #1a4a6e midnight blue */
-    --card-foreground: 210 40% 93%;
+    --card: 225 25% 10%;
+    --card-foreground: 220 15% 93%;
 
-    --popover: 205 62% 27%;
-    --popover-foreground: 210 40% 93%;
+    --popover: 225 25% 10%;
+    --popover-foreground: 220 15% 93%;
 
-    --primary: 178 42% 55%;             /* #5cbdb9 aqua */
-    --primary-foreground: 210 68% 11%;
+    --primary: 175 55% 48%;
+    --primary-foreground: 225 30% 7%;
 
-    --secondary: 205 50% 22%;
-    --secondary-foreground: 210 40% 93%;
+    --secondary: 225 20% 16%;
+    --secondary-foreground: 220 15% 88%;
 
-    --muted: 205 45% 20%;
-    --muted-foreground: 210 30% 72%;
+    --muted: 225 18% 14%;
+    --muted-foreground: 220 12% 62%;
 
-    --accent: 190 56% 40%;              /* #2d8a9e teal */
-    --accent-foreground: 210 40% 93%;
+    --accent: 28 70% 52%;
+    --accent-foreground: 225 30% 7%;
 
-    --destructive: 0 65% 55%;
-    --destructive-foreground: 210 40% 95%;
+    --destructive: 0 55% 50%;
+    --destructive-foreground: 220 15% 95%;
 
     --success: 160 50% 42%;
-    --success-foreground: 210 68% 11%;
+    --success-foreground: 220 15% 95%;
 
-    --warning: 43 70% 58%;
-    --warning-foreground: 210 68% 11%;
+    --warning: 42 65% 50%;
+    --warning-foreground: 225 30% 7%;
 
-    --border: 205 50% 24%;
-    --input: 205 45% 20%;
-    --ring: 178 42% 55%;
+    --border: 225 18% 18%;
+    --input: 225 18% 16%;
+    --ring: 175 55% 48%;
 
-    --chart-1: 178 42% 55%;
-    --chart-2: 190 56% 45%;
-    --chart-3: 160 50% 42%;
-    --chart-4: 210 40% 80%;
-    --chart-5: 28 65% 55%;
-    --chart-6: 195 50% 50%;
+    --chart-1: 175 55% 48%;
+    --chart-2: 160 50% 42%;
+    --chart-3: 28 70% 55%;
+    --chart-4: 270 40% 58%;
+    --chart-5: 345 45% 55%;
+    --chart-6: 50 60% 50%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(178 42% 55%) 0%, hsl(190 56% 45%) 100%);
-    --gradient-card: linear-gradient(160deg, hsl(205 62% 27% / 0.6) 0%, hsl(210 68% 12% / 0.4) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(190 56% 40%) 0%, hsl(190 56% 30%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top, hsl(190 56% 35% / 0.5) 0%, hsl(210 68% 15%) 70%);
+    --gradient-primary: linear-gradient(135deg, hsl(175 55% 48%) 0%, hsl(190 50% 42%) 100%);
+    --gradient-card: linear-gradient(160deg, hsl(225 25% 11%) 0%, hsl(225 25% 8%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(28 70% 52%) 0%, hsl(18 65% 46%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(225 25% 10%) 0%, hsl(225 30% 5%) 100%);
 
-    --shadow-glow: 0 0 32px hsl(178 42% 55% / 0.15);
-    --shadow-card: 0 1px 2px hsl(210 68% 5% / 0.4), 0 8px 24px hsl(210 68% 5% / 0.25);
-    --shadow-elevated: 0 4px 12px hsl(210 68% 5% / 0.4), 0 16px 40px hsl(210 68% 5% / 0.35);
+    --shadow-glow: 0 0 32px hsl(175 55% 48% / 0.15);
+    --shadow-card: 0 1px 3px hsl(225 30% 3% / 0.4), 0 8px 24px hsl(225 30% 3% / 0.3);
+    --shadow-elevated: 0 4px 12px hsl(225 30% 3% / 0.4), 0 16px 40px hsl(225 30% 3% / 0.4);
 
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'DM Sans', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
-    --sidebar-background: 210 70% 12%;
-    --sidebar-foreground: 210 40% 88%;
-    --sidebar-primary: 178 42% 55%;
-    --sidebar-primary-foreground: 210 68% 11%;
-    --sidebar-accent: 205 50% 18%;
-    --sidebar-accent-foreground: 178 42% 80%;
-    --sidebar-border: 205 50% 18%;
-    --sidebar-ring: 178 42% 55%;
+    --sidebar-background: 225 30% 6%;
+    --sidebar-foreground: 220 15% 88%;
+    --sidebar-primary: 175 55% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 225 20% 14%;
+    --sidebar-accent-foreground: 220 15% 92%;
+    --sidebar-border: 225 18% 18%;
+    --sidebar-ring: 175 55% 48%;
   }
 
-  /* ───────────────────────────────────────────────────────────────────────
-     EMERALD (Ocean Deep) — Whoop / Apple Fitness inspired premium identity
-     Glass tiles, bento spans, hero numerics, aurora glow, segmented tabs.
-     ─────────────────────────────────────────────────────────────────── */
   .emerald body {
     font-family: 'DM Sans', sans-serif;
     font-feature-settings: "ss01", "cv11";
@@ -236,39 +236,38 @@
   }
   .emerald h1 { font-weight: 700; letter-spacing: -0.03em; }
 
-  /* Aurora backdrop */
+  /* Subtle aurora backdrop, same hues as primary */
   .emerald main {
     background:
-      radial-gradient(ellipse 60% 40% at 20% 0%,  hsl(178 42% 55% / 0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 70% 50% at 90% 10%, hsl(190 56% 40% / 0.14) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 30% at 50% 100%, hsl(160 50% 42% / 0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 20% 0%,  hsl(var(--primary) / 0.08) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 90% 10%, hsl(var(--accent) / 0.06) 0%, transparent 60%),
       hsl(var(--background));
   }
 
   /* Editorial header */
   .emerald header {
-    background: linear-gradient(180deg, hsl(210 70% 10% / 0.85) 0%, hsl(210 70% 10% / 0.55) 100%) !important;
+    background: linear-gradient(180deg, hsl(225 30% 6% / 0.9) 0%, hsl(225 30% 7% / 0.6) 100%) !important;
     backdrop-filter: blur(20px) saturate(140%);
-    border-bottom: 1px solid hsl(178 42% 55% / 0.12) !important;
+    border-bottom: 1px solid hsl(var(--border)) !important;
   }
   .emerald header h1 {
     text-transform: uppercase;
     font-size: 0.78rem !important;
     letter-spacing: 0.18em;
     font-weight: 600;
-    color: hsl(210 30% 80%);
+    color: hsl(var(--foreground) / 0.85);
   }
   .emerald header p {
     font-size: 0.68rem !important;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: hsl(178 42% 65%) !important;
+    color: hsl(var(--primary)) !important;
   }
 
-  /* Sidebar jewel-tone */
+  /* Sidebar */
   .emerald [data-sidebar="sidebar"] {
-    background: linear-gradient(180deg, hsl(210 75% 9%) 0%, hsl(210 70% 7%) 100%) !important;
-    border-right: 1px solid hsl(178 42% 55% / 0.1) !important;
+    background: linear-gradient(180deg, hsl(225 30% 6%) 0%, hsl(225 30% 4%) 100%) !important;
+    border-right: 1px solid hsl(var(--border)) !important;
   }
   .emerald [data-sidebar="menu-button"] {
     border-radius: 0.625rem;
@@ -278,24 +277,24 @@
   .emerald [data-sidebar="menu-button"][data-active="true"] {
     border-left: 2px solid hsl(var(--primary));
     color: hsl(var(--primary));
-    background: linear-gradient(90deg, hsl(178 42% 55% / 0.16) 0%, hsl(178 42% 55% / 0.02) 100%);
-    box-shadow: inset 0 0 0 1px hsl(178 42% 55% / 0.08);
+    background: linear-gradient(90deg, hsl(var(--primary) / 0.16) 0%, hsl(var(--primary) / 0.02) 100%);
+    box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.08);
   }
   .emerald [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
-    background: hsl(205 50% 18% / 0.6);
-    color: hsl(178 42% 80%);
+    background: hsl(var(--secondary) / 0.7);
+    color: hsl(var(--foreground));
   }
 
-  /* Cards → glass bento tiles (matches generic shadcn Card pattern) */
+  /* Cards → glass bento tiles */
   .emerald [class*="rounded-lg"][class*="border"][class*="bg-card"],
   .emerald [class*="rounded-xl"][class*="border"][class*="bg-card"] {
-    background: linear-gradient(135deg, hsl(205 60% 22% / 0.85) 0%, hsl(210 65% 14% / 0.92) 100%) !important;
-    border: 1px solid hsl(178 42% 55% / 0.12) !important;
+    background: linear-gradient(135deg, hsl(225 25% 12% / 0.92) 0%, hsl(225 28% 8% / 0.96) 100%) !important;
+    border: 1px solid hsl(var(--border)) !important;
     border-radius: 1rem !important;
     box-shadow:
-      inset 0 1px 0 hsl(178 42% 75% / 0.06),
-      0 1px 2px hsl(210 70% 4% / 0.4),
-      0 12px 32px -8px hsl(210 70% 4% / 0.5);
+      inset 0 1px 0 hsl(220 15% 80% / 0.04),
+      0 1px 2px hsl(225 30% 2% / 0.5),
+      0 12px 32px -8px hsl(225 30% 2% / 0.55);
     backdrop-filter: blur(12px) saturate(130%);
     position: relative;
     overflow: hidden;
@@ -305,19 +304,19 @@
   .emerald [class*="rounded-xl"][class*="border"][class*="bg-card"]::before {
     content: "";
     position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent 0%, hsl(178 42% 65% / 0.45) 30%, hsl(190 56% 55% / 0.35) 70%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.4) 30%, hsl(var(--accent) / 0.3) 70%, transparent 100%);
     pointer-events: none;
   }
   .emerald [class*="rounded-lg"][class*="border"][class*="bg-card"]:hover,
   .emerald [class*="rounded-xl"][class*="border"][class*="bg-card"]:hover {
-    border-color: hsl(178 42% 55% / 0.28) !important;
+    border-color: hsl(var(--primary) / 0.3) !important;
     box-shadow:
-      inset 0 1px 0 hsl(178 42% 75% / 0.08),
-      0 2px 4px hsl(210 70% 4% / 0.5),
-      0 20px 48px -12px hsl(178 42% 30% / 0.4);
+      inset 0 1px 0 hsl(220 15% 80% / 0.06),
+      0 2px 4px hsl(225 30% 2% / 0.5),
+      0 20px 48px -12px hsl(var(--primary) / 0.25);
   }
 
-  /* Hero numeric typography — Whoop / Apple Fitness */
+  /* Hero numeric typography */
   .emerald .text-3xl,
   .emerald .text-4xl,
   .emerald .text-5xl,
@@ -340,43 +339,44 @@
     letter-spacing: -0.01em;
   }
 
-  /* Eyebrow labels */
+  /* Eyebrow labels — keep readable */
   .emerald .text-xs.text-muted-foreground {
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-weight: 500;
     font-size: 0.68rem;
+    color: hsl(220 12% 68%);
   }
 
-  /* Progress bars → thin Apple rails */
+  /* Progress bars */
   .emerald [role="progressbar"] {
     height: 6px !important;
-    background: hsl(205 45% 18%) !important;
+    background: hsl(var(--muted)) !important;
     border-radius: 999px;
     overflow: hidden;
   }
   .emerald [role="progressbar"] > * {
-    background: linear-gradient(90deg, hsl(178 42% 55%) 0%, hsl(160 50% 50%) 100%) !important;
-    box-shadow: 0 0 12px hsl(178 42% 55% / 0.5);
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--success)) 100%) !important;
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
   }
 
   /* Primary buttons with depth */
   .emerald button[class*="bg-primary"] {
-    background: linear-gradient(135deg, hsl(178 42% 55%) 0%, hsl(190 56% 45%) 100%) !important;
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(190 50% 42%) 100%) !important;
     box-shadow:
-      0 1px 0 hsl(178 60% 70% / 0.3) inset,
-      0 8px 24px -8px hsl(178 42% 40% / 0.6);
+      0 1px 0 hsl(175 70% 70% / 0.25) inset,
+      0 8px 24px -8px hsl(var(--primary) / 0.5);
     font-weight: 600;
     letter-spacing: 0.01em;
   }
   .emerald button[class*="bg-primary"]:hover {
     box-shadow:
-      0 1px 0 hsl(178 60% 75% / 0.4) inset,
-      0 12px 32px -8px hsl(178 42% 40% / 0.7);
+      0 1px 0 hsl(175 70% 75% / 0.35) inset,
+      0 12px 32px -8px hsl(var(--primary) / 0.6);
     transform: translateY(-1px);
   }
 
-  /* Bento rhythm: first tile spans 2 columns on common grids */
+  /* Bento rhythm: first tile spans 2 columns */
   @media (min-width: 1024px) {
     .emerald main .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > *:nth-child(6n+1) {
       grid-column: span 2;
@@ -388,16 +388,16 @@
 
   /* Segmented control tabs */
   .emerald [role="tablist"] {
-    background: hsl(205 50% 16% / 0.6) !important;
-    border: 1px solid hsl(178 42% 55% / 0.12);
+    background: hsl(var(--muted) / 0.7) !important;
+    border: 1px solid hsl(var(--border));
     border-radius: 0.75rem;
     padding: 4px;
     backdrop-filter: blur(12px);
   }
   .emerald [role="tab"][data-state="active"] {
-    background: linear-gradient(135deg, hsl(178 42% 55% / 0.22) 0%, hsl(190 56% 45% / 0.14) 100%) !important;
-    color: hsl(178 42% 78%) !important;
-    box-shadow: 0 1px 0 hsl(178 42% 65% / 0.2) inset, 0 4px 12px -4px hsl(210 70% 4% / 0.5);
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.22) 0%, hsl(var(--primary) / 0.1) 100%) !important;
+    color: hsl(var(--primary)) !important;
+    box-shadow: 0 1px 0 hsl(var(--primary) / 0.2) inset, 0 4px 12px -4px hsl(225 30% 2% / 0.5);
     border-radius: 0.5rem;
   }
 
@@ -405,15 +405,15 @@
   .emerald input,
   .emerald textarea,
   .emerald [role="combobox"] {
-    background: hsl(205 50% 16% / 0.6) !important;
-    border: 1px solid hsl(178 42% 55% / 0.14) !important;
+    background: hsl(var(--input)) !important;
+    border: 1px solid hsl(var(--border)) !important;
     border-radius: 0.625rem !important;
     transition: all 0.2s ease;
   }
   .emerald input:focus,
   .emerald textarea:focus {
-    border-color: hsl(178 42% 55% / 0.5) !important;
-    box-shadow: 0 0 0 4px hsl(178 42% 55% / 0.12) !important;
+    border-color: hsl(var(--primary) / 0.5) !important;
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.12) !important;
     outline: none;
   }
 
@@ -421,26 +421,26 @@
   .emerald *::-webkit-scrollbar { width: 10px; height: 10px; }
   .emerald *::-webkit-scrollbar-track { background: transparent; }
   .emerald *::-webkit-scrollbar-thumb {
-    background: hsl(178 42% 55% / 0.22);
+    background: hsl(var(--primary) / 0.25);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
-  .emerald *::-webkit-scrollbar-thumb:hover { background: hsl(178 42% 55% / 0.45); background-clip: padding-box; }
+  .emerald *::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.5); background-clip: padding-box; }
 
   /* Hairline gradient separators */
   .emerald [role="separator"],
   .emerald hr {
-    background: linear-gradient(90deg, transparent 0%, hsl(178 42% 55% / 0.22) 50%, transparent 100%) !important;
+    background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.25) 50%, transparent 100%) !important;
     border: none !important;
     height: 1px !important;
   }
 
   /* Dialogs */
   .emerald [role="dialog"] {
-    background: linear-gradient(180deg, hsl(210 65% 14%) 0%, hsl(210 70% 10%) 100%) !important;
-    border: 1px solid hsl(178 42% 55% / 0.18) !important;
-    box-shadow: 0 0 0 1px hsl(178 42% 55% / 0.08), 0 32px 64px -16px hsl(210 70% 4% / 0.8);
+    background: linear-gradient(180deg, hsl(225 25% 10%) 0%, hsl(225 30% 7%) 100%) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.06), 0 32px 64px -16px hsl(225 30% 2% / 0.8);
   }
 }
 
