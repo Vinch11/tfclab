@@ -869,7 +869,15 @@ export default function AITrainingPlanPage() {
       return;
     }
     setResponse(md);
-    // planStartDate is derived from raceDate — restoring raceDate is sufficient
+    // Restore the original plan start date so weekly dates match the archive.
+    if (pj._planStartDate) {
+      try {
+        const restored = parseISO(pj._planStartDate);
+        if (!isNaN(restored.getTime())) {
+          setPlanStartDate(startOfWeek(restored, { weekStartsOn: 1 }));
+        }
+      } catch { /* keep current */ }
+    }
     if (pj._objective) setObjective(pj._objective);
     if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
     if (pj._raceDate !== undefined) setRaceDate(pj._raceDate || "");
