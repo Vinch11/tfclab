@@ -51,12 +51,17 @@ function escapeHTML(s: string): string {
 
 function renderFicheHTML(f: EnrichedSessionFiche): string {
   const structure = f.structure
-    .map(
-      (s) =>
-        `<div style="margin-top:3px;padding:3px 0;"><strong>${escapeHTML(s.part)}</strong>${
-          s.zones.length ? ` <span style="color:#888;">[${s.zones.join(", ")}]</span>` : ""
-        } — <span style="display:inline-block;vertical-align:top;">${formatFicheText(s.text)}</span></div>`
-    )
+    .map((s) => {
+      const body = formatFicheText(s.text);
+      const isBlock = /^<(ol|ul|p)\b/.test(body);
+      const zones = s.zones.length
+        ? ` <span style="color:#888;">[${s.zones.join(", ")}]</span>`
+        : "";
+      const header = `<strong>${escapeHTML(s.part)}</strong>${zones}`;
+      return isBlock
+        ? `<div style="margin-top:5px;"><div style="margin-bottom:2px;">${header}</div><div style="padding-left:6px;border-left:2px solid #e3e8ef;">${body}</div></div>`
+        : `<div style="margin-top:3px;">${header} — ${body}</div>`;
+    })
     .join("");
 
   const variants = f.variants.length
