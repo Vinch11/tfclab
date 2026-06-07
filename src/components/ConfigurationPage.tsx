@@ -201,6 +201,12 @@ function ThemePreview({ themeKey }: { themeKey: Theme }) {
       primary: "bg-[hsl(220,65%,35%)]",
       accent: "bg-[hsl(45,90%,48%)]",
     },
+    emerald: {
+      bg: "bg-[#043327]",
+      card: "bg-[#064e3b]",
+      primary: "bg-[#c9a84c]",
+      accent: "bg-[#0d7a5f]",
+    },
   };
 
   const styles = previewStyles[themeKey];

@@ -1,4 +1,4 @@
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Gem } from "lucide-react";
 import { useTheme, type Theme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
 const ThemeIcons: Record<Theme, React.ElementType> = {
   dark: Moon,
   light: Sun,
+  emerald: Gem,
 };
 
 export function ThemeToggle() {
