@@ -1981,6 +1981,14 @@ export default function AITrainingPlanPage() {
         {/* Plan history (saved versions) */}
         <PlanHistoryCard refreshKey={historyRefreshKey} onLoadVersion={handleLoadVersion} />
       </div>
+      <LoadVersionDialog
+        version={pendingVersion}
+        onClose={() => setPendingVersion(null)}
+        onConfirm={(startDate) => {
+          if (pendingVersion) applyLoadedVersion(pendingVersion, startDate);
+          setPendingVersion(null);
+        }}
+      />
     </AppLayout>
   );
 }
