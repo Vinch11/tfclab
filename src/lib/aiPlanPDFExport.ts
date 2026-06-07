@@ -223,10 +223,12 @@ function buildPlanHTML(
   <meta charset="UTF-8">
   <title>${plan.title}</title>
   <style>
-    @media print { .no-print { display: none !important; } @page { margin: 15mm; } }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; color: #222; background: #fff; }
+    @media print { .no-print { display: none !important; } @page { size: A4 landscape; margin: 10mm; } }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; color: #222; background: #fff; }
     h1 { font-size: 20px; margin-bottom: 4px; }
     h2 { font-size: 16px; color: #444; margin-top: 24px; border-bottom: 2px solid #1967d2; padding-bottom: 4px; }
+    table { word-wrap: break-word; overflow-wrap: break-word; }
+    td, th { word-wrap: break-word; overflow-wrap: break-word; }
   </style>
 </head>
 <body>
