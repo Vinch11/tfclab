@@ -1992,3 +1992,82 @@ export default function AITrainingPlanPage() {
     </AppLayout>
   );
 }
+
+type LoadChoice = "created" | "today" | "monday";
+
+function LoadVersionDialog({
+  version,
+  onClose,
+  onConfirm,
+}: {
+  version: { plan_json: any } | null;
+  onClose: () => void;
+  onConfirm: (startDate: Date) => void;
+}) {
+  const [choice, setChoice] = useState<LoadChoice>("monday");
+  const pj = version?.plan_json || {};
+  const originalRaw: string | undefined = pj._planStartDate;
+  const original = originalRaw ? parseISO(originalRaw) : null;
+  const hasOriginal = original && !isNaN(original.getTime());
+
+  // Default to "created" if available, else "monday"
+  useEffect(() => {
+    if (version) setChoice(hasOriginal ? "created" : "monday");
+  }, [version, hasOriginal]);
+
+  const resolveDate = (): Date => {
+    if (choice === "created" && hasOriginal) return original!;
+    if (choice === "today") return new Date();
+    return startOfWeek(new Date(), { weekStartsOn: 1 });
+  };
+
+  return (
+    <AlertDialog open={!!version} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Date de début du plan</AlertDialogTitle>
+          <AlertDialogDescription>
+            Choisissez à partir de quelle date afficher les semaines de ce plan.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <RadioGroup value={choice} onValueChange={(v) => setChoice(v as LoadChoice)} className="space-y-2 py-2">
+          {hasOriginal && (
+            <label className="flex items-start gap-2 cursor-pointer rounded-md border border-border p-3 hover:bg-accent/50">
+              <RadioGroupItem value="created" className="mt-0.5" />
+              <div className="text-sm">
+                <div className="font-medium">Date de création d'origine</div>
+                <div className="text-xs text-muted-foreground">
+                  {format(original!, "d MMMM yyyy")} — voir l'état d'avancement
+                </div>
+              </div>
+            </label>
+          )}
+          <label className="flex items-start gap-2 cursor-pointer rounded-md border border-border p-3 hover:bg-accent/50">
+            <RadioGroupItem value="monday" className="mt-0.5" />
+            <div className="text-sm">
+              <div className="font-medium">Lundi de la semaine actuelle</div>
+              <div className="text-xs text-muted-foreground">
+                {format(startOfWeek(new Date(), { weekStartsOn: 1 }), "d MMMM yyyy")}
+              </div>
+            </div>
+          </label>
+          <label className="flex items-start gap-2 cursor-pointer rounded-md border border-border p-3 hover:bg-accent/50">
+            <RadioGroupItem value="today" className="mt-0.5" />
+            <div className="text-sm">
+              <div className="font-medium">Aujourd'hui</div>
+              <div className="text-xs text-muted-foreground">
+                {format(new Date(), "d MMMM yyyy")}
+              </div>
+            </div>
+          </label>
+        </RadioGroup>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction onClick={() => onConfirm(resolveDate())}>
+            Charger
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
