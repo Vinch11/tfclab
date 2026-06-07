@@ -6,6 +6,7 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
+import { formatFicheText } from "@/lib/ficheTextFormatter";
 
 function getSportEmoji(sport: string): string {
   const s = sport.toLowerCase();
