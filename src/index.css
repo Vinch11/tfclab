@@ -221,27 +221,226 @@
     --sidebar-ring: 178 42% 55%;
   }
 
-  /* Emerald-scoped visual personality (bento, aqua uppercase eyebrows, glow active item) */
+  /* ───────────────────────────────────────────────────────────────────────
+     EMERALD (Ocean Deep) — Whoop / Apple Fitness inspired premium identity
+     Glass tiles, bento spans, hero numerics, aurora glow, segmented tabs.
+     ─────────────────────────────────────────────────────────────────── */
   .emerald body {
     font-family: 'DM Sans', sans-serif;
+    font-feature-settings: "ss01", "cv11";
   }
   .emerald h1, .emerald h2, .emerald h3, .emerald h4 {
     font-family: 'Space Grotesk', sans-serif;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.022em;
+    font-weight: 600;
   }
+  .emerald h1 { font-weight: 700; letter-spacing: -0.03em; }
+
+  /* Aurora backdrop */
   .emerald main {
     background:
-      radial-gradient(ellipse 80% 50% at 50% 0%, hsl(190 56% 35% / 0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 20% 0%,  hsl(178 42% 55% / 0.10) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 90% 10%, hsl(190 56% 40% / 0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 30% at 50% 100%, hsl(160 50% 42% / 0.07) 0%, transparent 60%),
       hsl(var(--background));
+  }
+
+  /* Editorial header */
+  .emerald header {
+    background: linear-gradient(180deg, hsl(210 70% 10% / 0.85) 0%, hsl(210 70% 10% / 0.55) 100%) !important;
+    backdrop-filter: blur(20px) saturate(140%);
+    border-bottom: 1px solid hsl(178 42% 55% / 0.12) !important;
+  }
+  .emerald header h1 {
+    text-transform: uppercase;
+    font-size: 0.78rem !important;
+    letter-spacing: 0.18em;
+    font-weight: 600;
+    color: hsl(210 30% 80%);
+  }
+  .emerald header p {
+    font-size: 0.68rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: hsl(178 42% 65%) !important;
+  }
+
+  /* Sidebar jewel-tone */
+  .emerald [data-sidebar="sidebar"] {
+    background: linear-gradient(180deg, hsl(210 75% 9%) 0%, hsl(210 70% 7%) 100%) !important;
+    border-right: 1px solid hsl(178 42% 55% / 0.1) !important;
+  }
+  .emerald [data-sidebar="menu-button"] {
+    border-radius: 0.625rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
   }
   .emerald [data-sidebar="menu-button"][data-active="true"] {
     border-left: 2px solid hsl(var(--primary));
     color: hsl(var(--primary));
-    background: hsl(var(--primary) / 0.08);
+    background: linear-gradient(90deg, hsl(178 42% 55% / 0.16) 0%, hsl(178 42% 55% / 0.02) 100%);
+    box-shadow: inset 0 0 0 1px hsl(178 42% 55% / 0.08);
   }
-  .emerald .rounded-lg,
-  .emerald .rounded-md {
+  .emerald [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
+    background: hsl(205 50% 18% / 0.6);
+    color: hsl(178 42% 80%);
+  }
+
+  /* Cards → glass bento tiles (matches generic shadcn Card pattern) */
+  .emerald [class*="rounded-lg"][class*="border"][class*="bg-card"],
+  .emerald [class*="rounded-xl"][class*="border"][class*="bg-card"] {
+    background: linear-gradient(135deg, hsl(205 60% 22% / 0.85) 0%, hsl(210 65% 14% / 0.92) 100%) !important;
+    border: 1px solid hsl(178 42% 55% / 0.12) !important;
+    border-radius: 1rem !important;
+    box-shadow:
+      inset 0 1px 0 hsl(178 42% 75% / 0.06),
+      0 1px 2px hsl(210 70% 4% / 0.4),
+      0 12px 32px -8px hsl(210 70% 4% / 0.5);
+    backdrop-filter: blur(12px) saturate(130%);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .emerald [class*="rounded-lg"][class*="border"][class*="bg-card"]::before,
+  .emerald [class*="rounded-xl"][class*="border"][class*="bg-card"]::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent 0%, hsl(178 42% 65% / 0.45) 30%, hsl(190 56% 55% / 0.35) 70%, transparent 100%);
+    pointer-events: none;
+  }
+  .emerald [class*="rounded-lg"][class*="border"][class*="bg-card"]:hover,
+  .emerald [class*="rounded-xl"][class*="border"][class*="bg-card"]:hover {
+    border-color: hsl(178 42% 55% / 0.28) !important;
+    box-shadow:
+      inset 0 1px 0 hsl(178 42% 75% / 0.08),
+      0 2px 4px hsl(210 70% 4% / 0.5),
+      0 20px 48px -12px hsl(178 42% 30% / 0.4);
+  }
+
+  /* Hero numeric typography — Whoop / Apple Fitness */
+  .emerald .text-3xl,
+  .emerald .text-4xl,
+  .emerald .text-5xl,
+  .emerald .text-6xl {
+    font-family: 'Space Grotesk', sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "ss01";
+    letter-spacing: -0.04em;
+    font-weight: 600;
+  }
+  .emerald .text-2xl {
+    font-family: 'Space Grotesk', sans-serif;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+  }
+  .emerald .font-mono,
+  .emerald [class*="tabular"] {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* Eyebrow labels */
+  .emerald .text-xs.text-muted-foreground {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    font-size: 0.68rem;
+  }
+
+  /* Progress bars → thin Apple rails */
+  .emerald [role="progressbar"] {
+    height: 6px !important;
+    background: hsl(205 45% 18%) !important;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .emerald [role="progressbar"] > * {
+    background: linear-gradient(90deg, hsl(178 42% 55%) 0%, hsl(160 50% 50%) 100%) !important;
+    box-shadow: 0 0 12px hsl(178 42% 55% / 0.5);
+  }
+
+  /* Primary buttons with depth */
+  .emerald button[class*="bg-primary"] {
+    background: linear-gradient(135deg, hsl(178 42% 55%) 0%, hsl(190 56% 45%) 100%) !important;
+    box-shadow:
+      0 1px 0 hsl(178 60% 70% / 0.3) inset,
+      0 8px 24px -8px hsl(178 42% 40% / 0.6);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .emerald button[class*="bg-primary"]:hover {
+    box-shadow:
+      0 1px 0 hsl(178 60% 75% / 0.4) inset,
+      0 12px 32px -8px hsl(178 42% 40% / 0.7);
+    transform: translateY(-1px);
+  }
+
+  /* Bento rhythm: first tile spans 2 columns on common grids */
+  @media (min-width: 1024px) {
+    .emerald main .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > *:nth-child(6n+1) {
+      grid-column: span 2;
+    }
+    .emerald main .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 > *:nth-child(7n+1) {
+      grid-column: span 2;
+    }
+  }
+
+  /* Segmented control tabs */
+  .emerald [role="tablist"] {
+    background: hsl(205 50% 16% / 0.6) !important;
+    border: 1px solid hsl(178 42% 55% / 0.12);
     border-radius: 0.75rem;
+    padding: 4px;
+    backdrop-filter: blur(12px);
+  }
+  .emerald [role="tab"][data-state="active"] {
+    background: linear-gradient(135deg, hsl(178 42% 55% / 0.22) 0%, hsl(190 56% 45% / 0.14) 100%) !important;
+    color: hsl(178 42% 78%) !important;
+    box-shadow: 0 1px 0 hsl(178 42% 65% / 0.2) inset, 0 4px 12px -4px hsl(210 70% 4% / 0.5);
+    border-radius: 0.5rem;
+  }
+
+  /* Inputs */
+  .emerald input,
+  .emerald textarea,
+  .emerald [role="combobox"] {
+    background: hsl(205 50% 16% / 0.6) !important;
+    border: 1px solid hsl(178 42% 55% / 0.14) !important;
+    border-radius: 0.625rem !important;
+    transition: all 0.2s ease;
+  }
+  .emerald input:focus,
+  .emerald textarea:focus {
+    border-color: hsl(178 42% 55% / 0.5) !important;
+    box-shadow: 0 0 0 4px hsl(178 42% 55% / 0.12) !important;
+    outline: none;
+  }
+
+  /* Scrollbar */
+  .emerald *::-webkit-scrollbar { width: 10px; height: 10px; }
+  .emerald *::-webkit-scrollbar-track { background: transparent; }
+  .emerald *::-webkit-scrollbar-thumb {
+    background: hsl(178 42% 55% / 0.22);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .emerald *::-webkit-scrollbar-thumb:hover { background: hsl(178 42% 55% / 0.45); background-clip: padding-box; }
+
+  /* Hairline gradient separators */
+  .emerald [role="separator"],
+  .emerald hr {
+    background: linear-gradient(90deg, transparent 0%, hsl(178 42% 55% / 0.22) 50%, transparent 100%) !important;
+    border: none !important;
+    height: 1px !important;
+  }
+
+  /* Dialogs */
+  .emerald [role="dialog"] {
+    background: linear-gradient(180deg, hsl(210 65% 14%) 0%, hsl(210 70% 10%) 100%) !important;
+    border: 1px solid hsl(178 42% 55% / 0.18) !important;
+    box-shadow: 0 0 0 1px hsl(178 42% 55% / 0.08), 0 32px 64px -16px hsl(210 70% 4% / 0.8);
   }
 }
 
