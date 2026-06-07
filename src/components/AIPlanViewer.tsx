@@ -280,6 +280,11 @@ function SessionCard({ session, date }: SessionCardProps) {
     details: session.details,
   });
 
+  const fiche = useMemo(
+    () => getFicheForSession({ title: session.title, details: session.details }),
+    [session.title, session.details]
+  );
+
   return (
     <div
       className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${getSportColor(session.sport)}`}
@@ -290,12 +295,110 @@ function SessionCard({ session, date }: SessionCardProps) {
         <span className="text-sm font-medium">{session.dayName}</span>
         {date && <span className="text-xs text-muted-foreground">{format(date, "d MMM", { locale: fr })}</span>}
         <Badge variant="outline" className="text-[10px] ml-auto">{session.sport}</Badge>
+        {fiche && (
+          <Badge variant="secondary" className="text-[9px] gap-1" title={`Fiche bibliothèque : ${fiche.id}`}>
+            <FileText className="h-2.5 w-2.5" /> Fiche
+          </Badge>
+        )}
       </div>
       <p className="text-sm font-semibold mt-1">{session.title}</p>
       {expanded && session.details && (
         <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
           {session.details}
         </p>
+      )}
+      {expanded && fiche && (
+        <div className="mt-2 border-t border-current/10 pt-2 space-y-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Fiche complète bibliothèque
+            </p>
+            <div className="flex items-center gap-1 flex-wrap">
+              <Badge variant="outline" className="text-[9px]">Cat {fiche.cat}</Badge>
+              <Badge variant="outline" className="text-[9px]">{fiche.necessite}</Badge>
+              <Badge variant="outline" className="text-[9px]">
+                {fiche.durationMin[0]}-{fiche.durationMin[1]} min
+              </Badge>
+              <code className="text-[9px] px-1 py-0.5 rounded bg-muted/60 text-muted-foreground">
+                {fiche.id}
+              </code>
+            </div>
+          </div>
+
+          <p className="text-[11px] italic text-foreground/80">🎯 {fiche.objectif}</p>
+
+          <div className="space-y-1.5">
+            {fiche.structure.map((s, i) => (
+              <div key={i} className="text-[11px] leading-snug">
+                <span className="font-semibold">{s.part}</span>
+                {s.zones.length > 0 && (
+                  <span className="ml-1.5 text-muted-foreground">[{s.zones.join(", ")}]</span>
+                )}
+                <span className="ml-1 text-foreground/90">— {s.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {fiche.wbalSummary && (
+            <div className="text-[10.5px] leading-snug">
+              <span className="font-semibold text-foreground/80">⚙️ Profil W'bal : </span>
+              <span className="text-muted-foreground">{fiche.wbalSummary}</span>
+            </div>
+          )}
+
+          {fiche.variants.length > 0 && (
+            <div className="text-[10.5px] leading-snug">
+              <span className="font-semibold text-foreground/80">🎯 Variantes par objectif :</span>
+              <ul className="mt-0.5 ml-3 list-disc space-y-0.5 text-muted-foreground">
+                {fiche.variants.map((v, i) => (
+                  <li key={i}>
+                    <span className="font-medium uppercase text-[9px]">{v.goal}</span> — {v.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {fiche.dPlusTargetM && (
+            <div className="text-[10.5px] text-muted-foreground">
+              <span className="font-semibold text-foreground/80">⛰ D+ cible :</span>{" "}
+              {typeof fiche.dPlusTargetM === "number"
+                ? `${fiche.dPlusTargetM} m`
+                : `${fiche.dPlusTargetM.min}-${fiche.dPlusTargetM.max} m`}
+            </div>
+          )}
+
+          {(fiche.when || fiche.avoid) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10.5px]">
+              {fiche.when && (
+                <div className="text-muted-foreground">
+                  <span className="font-semibold text-green-700 dark:text-green-300">✓ Quand :</span> {fiche.when}
+                </div>
+              )}
+              {fiche.avoid && (
+                <div className="text-muted-foreground">
+                  <span className="font-semibold text-red-700 dark:text-red-300">⚠ Éviter :</span> {fiche.avoid}
+                </div>
+              )}
+            </div>
+          )}
+
+          {fiche.notes && (
+            <p className="text-[10.5px] italic text-muted-foreground border-l-2 border-primary/30 pl-2">
+              💡 {fiche.notes}
+            </p>
+          )}
+
+          {fiche.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {fiche.tags.map((t) => (
+                <span key={t} className="text-[9px] px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground">
+                  #{t}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       )}
       {expanded && trailAlts.length > 0 && (
         <div className="mt-2 border-t border-current/10 pt-2">
