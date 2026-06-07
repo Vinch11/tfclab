@@ -464,12 +464,11 @@ export default function AITrainingPlanPage() {
     return computeAthleteContext(currentAthlete, objective, ambition);
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
-  // Compute plan start date: Monday of the CURRENT week (not next week)
-  const planStartDate = useMemo(() => {
-    const now = new Date();
-    const currentMonday = startOfWeek(now, { weekStartsOn: 1 });
-    return currentMonday;
-  }, []);
+  // Plan start date: defaults to Monday of the CURRENT week, but can be
+  // overridden when restoring an archived plan (so dates match the original).
+  const [planStartDate, setPlanStartDate] = useState<Date>(() =>
+    startOfWeek(new Date(), { weekStartsOn: 1 })
+  );
 
   const weeksAvailable = useMemo(() => {
     // Use the latest race date across all goals (primary A + additional B/C), relative to plan start week
