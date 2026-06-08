@@ -144,13 +144,16 @@ function getSportBadge(sport: string): string {
   return `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${style.bg};color:${style.color};border:1px solid ${style.border};white-space:nowrap;">${getSportEmoji(sport)} ${sport}</span>`;
 }
 
+export type PlanPDFOrientation = "landscape" | "portrait";
+
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
   athleteName?: string,
   startDate?: Date,
   adaptationProjections?: AdaptationProjection[],
+  orientation: PlanPDFOrientation = "landscape",
 ) {
-  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections);
+  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, "_blank");
@@ -164,8 +167,10 @@ function buildPlanHTML(
   athleteName?: string,
   startDate?: Date,
   adaptationProjections?: AdaptationProjection[],
+  orientation: PlanPDFOrientation = "landscape",
 ): string {
   const hasDate = !!startDate;
+  const isPortrait = orientation === "portrait";
 
   const weekRows = plan.weeks.map((week, weekIdx) => {
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
