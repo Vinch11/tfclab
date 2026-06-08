@@ -184,10 +184,10 @@ function buildPlanHTML(
       const fiche = s.isRest ? null : getFicheForSession({ title: s.title, details: s.details });
       const totalCols = (hasDate ? 1 : 0) + 4;
       const ficheRow = fiche
-        ? `<tr><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fafbfd;">${renderFicheHTML(fiche)}</td></tr>`
+        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fafbfd;"><div class="fiche-box">${renderFicheHTML(fiche)}</div></td></tr>`
         : "";
       const altsRow = altsHtml
-        ? `<tr><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`
+        ? `<tr class="alts-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`
         : "";
       
       // Alternating row colors + stronger separator between days
@@ -195,7 +195,7 @@ function buildPlanHTML(
       const daySeparator = sessionIdx > 0 ? "border-top:2px solid #e2e8f0;" : "";
       
       return `
-      <tr style="background:${rowBg};${daySeparator}${s.isRest ? 'color:#9ca3af;' : ''}">
+      <tr class="session-row" style="background:${rowBg};${daySeparator}${s.isRest ? 'color:#9ca3af;' : ''}">
         ${hasDate ? `<td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;font-size:11px;color:#4b5563;vertical-align:top;font-weight:500;">${dateStr}</td>` : ""}
         <td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;vertical-align:top;font-weight:600;color:#374151;">${s.dayName}</td>
         <td style="padding:6px 10px;border:1px solid #d1d5db;vertical-align:top;">${getSportBadge(s.sport)}</td>
@@ -212,7 +212,7 @@ function buildPlanHTML(
     const weekSeparator = weekIdx > 0 ? "margin-top:32px;padding-top:16px;border-top:3px double #cbd5e1;" : "";
 
     return `
-      <div style="margin-bottom:28px;${weekSeparator}">
+      <div class="week-block" style="margin-bottom:28px;${weekSeparator}">
         <h3 style="margin:0 0 6px 0;font-size:15px;color:#1f2937;background:#eff6ff;padding:8px 12px;border-radius:6px;border-left:4px solid #1967d2;">
           Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
           <span style="font-weight:normal;font-size:11px;color:#6b7280;margin-left:8px;">${week.phase}</span>
