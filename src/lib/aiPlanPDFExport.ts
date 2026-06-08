@@ -252,12 +252,59 @@ function buildPlanHTML(
   <meta charset="UTF-8">
   <title>${plan.title}</title>
   <style>
-    @media print { .no-print { display: none !important; } @page { size: A4 landscape; margin: 10mm; } }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; color: #222; background: #fff; }
     h1 { font-size: 20px; margin-bottom: 4px; }
     h2 { font-size: 16px; color: #444; margin-top: 24px; border-bottom: 2px solid #1967d2; padding-bottom: 4px; }
     table { word-wrap: break-word; overflow-wrap: break-word; }
     td, th { word-wrap: break-word; overflow-wrap: break-word; }
+
+    /* ===== Optimisations impression PDF ===== */
+    @media print {
+      .no-print { display: none !important; }
+      @page { size: A4 landscape; margin: 8mm 10mm; }
+
+      /* Couleurs fidèles (badges, fonds, séparateurs) */
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+
+      body { padding: 0 !important; max-width: none !important; font-size: 11px; line-height: 1.35; }
+      h1 { font-size: 18px; }
+      h2 { font-size: 14px; margin-top: 14px; page-break-after: avoid; break-after: avoid; }
+      h3 { page-break-after: avoid; break-after: avoid; }
+
+      /* Une semaine = un bloc insécable autant que possible */
+      .week-block { page-break-inside: avoid; break-inside: avoid; margin-bottom: 14px !important; }
+      .week-block + .week-block { page-break-before: auto; }
+
+      /* Si une semaine déborde, on garde l'en-tête avec les premières lignes */
+      table { page-break-inside: auto; }
+      thead { display: table-header-group; } /* répète l'entête à chaque page */
+      tfoot { display: table-footer-group; }
+      tr { page-break-inside: avoid; break-inside: avoid; }
+
+      /* Évite qu'une fiche se sépare de sa séance parente */
+      tr.session-row { page-break-after: avoid; break-after: avoid; }
+      tr.fiche-row, tr.alts-row { page-break-before: avoid; break-before: avoid; }
+
+      /* Densification fiche / alternatives en print */
+      .fiche-box { font-size: 9.5px !important; line-height: 1.3 !important; padding: 4px 6px !important; }
+      .fiche-box ul, .fiche-box ol { margin: 2px 0 2px 14px !important; padding: 0 !important; }
+
+      /* Cellules : éviter overflow et garder texte lisible */
+      td, th { font-size: 10px !important; padding: 4px 6px !important; vertical-align: top; }
+      th { background: #eef2f7 !important; }
+
+      /* Séparation visuelle plus marquée entre les jours */
+      tr.session-row { border-top: 1.5pt solid #94a3b8 !important; }
+      tr.session-row:first-child { border-top: none !important; }
+
+      /* Récap stratégique / projections : pas de coupure au milieu */
+      .keep-together { page-break-inside: avoid; break-inside: avoid; }
+
+      /* Liens propres */
+      a { color: inherit; text-decoration: none; }
+
+      footer { page-break-before: avoid; }
+    }
   </style>
 </head>
 <body>
