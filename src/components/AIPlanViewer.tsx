@@ -592,7 +592,10 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
   }, [plan.title, raceGoals]);
 
   const handleExportPDF = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape");
+  };
+  const handleExportPDFPortrait = () => {
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait");
   };
 
   return (
@@ -607,7 +610,10 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Button variant="outline" size="sm" onClick={handleExportPDF}>
-                <Printer className="h-4 w-4 mr-1" /> PDF
+                <Printer className="h-4 w-4 mr-1" /> PDF paysage
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportPDFPortrait}>
+                <Printer className="h-4 w-4 mr-1" /> PDF portrait
               </Button>
               {onRegenerateFutureWeeks && currentWeekNumber && currentWeekNumber < plan.totalWeeks && (
                 <Button variant="outline" size="sm" onClick={onRegenerateFutureWeeks} disabled={isRegenerating}>
