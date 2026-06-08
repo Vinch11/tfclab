@@ -618,6 +618,9 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
               <Button variant="outline" size="sm" onClick={handleExportPDFPortrait}>
                 <Printer className="h-4 w-4 mr-1" /> PDF portrait
               </Button>
+              <Button variant="secondary" size="sm" onClick={handleExportPDFCompact}>
+                <List className="h-4 w-4 mr-1" /> PDF condensé
+              </Button>
               {onRegenerateFutureWeeks && currentWeekNumber && currentWeekNumber < plan.totalWeeks && (
                 <Button variant="outline" size="sm" onClick={onRegenerateFutureWeeks} disabled={isRegenerating}>
                   {isRegenerating ? (
