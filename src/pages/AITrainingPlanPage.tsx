@@ -1909,7 +1909,15 @@ export default function AITrainingPlanPage() {
                         plan={parsedPlan}
                         startDate={planStartDate}
                         raceGoals={[
-                          { priority: "A" as const, objective, raceName: raceName || undefined, raceDate: raceDate || undefined },
+                          {
+                            priority: "A" as const,
+                            objective,
+                            raceName: raceName || undefined,
+                            raceDate: raceDate || undefined,
+                            distanceKm: parseFloat(trailDistanceKm) || undefined,
+                            elevationGainM: parseInt(trailElevationM, 10) || undefined,
+                            maxAltitudeM: parseInt(trailMaxAltitudeM, 10) || undefined,
+                          },
                           ...raceGoals,
                         ].filter(goal => goal.raceDate)}
                         onSaveToPlan={handleSaveToPlan}
