@@ -187,6 +187,29 @@ function buildPlanHTML(
           </div>`
         : "";
       const fiche = s.isRest ? null : getFicheForSession({ title: s.title, details: s.details });
+
+      if (isPortrait) {
+        // Stacked card layout — clearer in A4 portrait
+        const header = `
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:6px 10px;background:#f1f5f9;border-bottom:1px solid #cbd5e1;">
+            <strong style="color:#1f2937;font-size:12px;min-width:90px;">${s.dayName}</strong>
+            ${dateStr ? `<span style="font-size:10.5px;color:#6b7280;">${dateStr}</span>` : ""}
+            ${getSportBadge(s.sport)}
+            <span style="font-weight:600;color:#1f2937;font-size:12px;flex:1;">${s.title}</span>
+          </div>`;
+        const body = `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;${s.isRest ? 'color:#9ca3af;' : ''}">${s.details}</div>`;
+        const ficheBlock = fiche
+          ? `<div style="border-top:1px dashed #cbd5e1;background:#fafbfd;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche)}</div></div>`
+          : "";
+        const altsBlock = altsHtml
+          ? `<div style="border-top:1px dashed #cbd5e1;background:#fff;padding:6px 10px;">${altsHtml}</div>`
+          : "";
+        return `
+          <div class="session-card" style="border:1px solid #d1d5db;border-radius:6px;margin-bottom:8px;overflow:hidden;background:#fff;">
+            ${header}${body}${ficheBlock}${altsBlock}
+          </div>`;
+      }
+
       const totalCols = (hasDate ? 1 : 0) + 4;
       const ficheRow = fiche
         ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fafbfd;"><div class="fiche-box">${renderFicheHTML(fiche)}</div></td></tr>`
@@ -216,13 +239,9 @@ function buildPlanHTML(
     // Add a visual separator stripe between weeks
     const weekSeparator = weekIdx > 0 ? "margin-top:32px;padding-top:16px;border-top:3px double #cbd5e1;" : "";
 
-    return `
-      <div class="week-block" style="margin-bottom:28px;${weekSeparator}">
-        <h3 style="margin:0 0 6px 0;font-size:15px;color:#1f2937;background:#eff6ff;padding:8px 12px;border-radius:6px;border-left:4px solid #1967d2;">
-          Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
-          <span style="font-weight:normal;font-size:11px;color:#6b7280;margin-left:8px;">${week.phase}</span>
-        </h3>
-        ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#4b5563;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
+    const sessionsBlock = isPortrait
+      ? `<div class="sessions-stack">${sessionRows}</div>`
+      : `
         <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid #d1d5db;">
           <colgroup>
             ${hasDate ? `<col style="width:8%;">` : ""}
@@ -241,7 +260,16 @@ function buildPlanHTML(
             </tr>
           </thead>
           <tbody>${sessionRows}</tbody>
-        </table>
+        </table>`;
+
+    return `
+      <div class="week-block" style="margin-bottom:28px;${weekSeparator}">
+        <h3 style="margin:0 0 6px 0;font-size:15px;color:#1f2937;background:#eff6ff;padding:8px 12px;border-radius:6px;border-left:4px solid #1967d2;">
+          Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
+          <span style="font-weight:normal;font-size:11px;color:#6b7280;margin-left:8px;">${week.phase}</span>
+        </h3>
+        ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#4b5563;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
+        ${sessionsBlock}
         ${week.coachNotes ? `<p style="margin:10px 0 0 0;font-size:11px;color:#4b5563;background:#fffbeb;padding:8px 12px;border-radius:6px;border-left:3px solid #f59e0b;">⚡ ${week.coachNotes}</p>` : ""}
       </div>
     `;
