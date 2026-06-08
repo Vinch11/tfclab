@@ -264,6 +264,20 @@ interface SessionCardProps {
 function SessionCard({ session, date }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
+  const trailAlts = useMemo(
+    () => getTrailSessionAlternatives({
+      sport: session.sport,
+      title: session.title,
+      details: session.details,
+    }),
+    [session.sport, session.title, session.details]
+  );
+
+  const fiche = useMemo(
+    () => session.isRest ? null : getFicheForSession({ title: session.title, details: session.details }),
+    [session.isRest, session.title, session.details]
+  );
+
   if (session.isRest) {
     return (
       <div className="p-3 rounded-lg border border-dashed border-border bg-muted/30 flex items-center gap-2">
@@ -274,17 +288,6 @@ function SessionCard({ session, date }: SessionCardProps) {
       </div>
     );
   }
-
-  const trailAlts = getTrailSessionAlternatives({
-    sport: session.sport,
-    title: session.title,
-    details: session.details,
-  });
-
-  const fiche = useMemo(
-    () => getFicheForSession({ title: session.title, details: session.details }),
-    [session.title, session.details]
-  );
 
   return (
     <div
