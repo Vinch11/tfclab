@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, Waves, Bike,
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
-  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle,
+  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle, List,
 } from "lucide-react";
 import { format, addDays, startOfWeek, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -592,10 +592,13 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
   }, [plan.title, raceGoals]);
 
   const handleExportPDF = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape");
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape", "full");
   };
   const handleExportPDFPortrait = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait");
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "full");
+  };
+  const handleExportPDFCompact = () => {
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "compact");
   };
 
   return (
@@ -614,6 +617,9 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
               </Button>
               <Button variant="outline" size="sm" onClick={handleExportPDFPortrait}>
                 <Printer className="h-4 w-4 mr-1" /> PDF portrait
+              </Button>
+              <Button variant="secondary" size="sm" onClick={handleExportPDFCompact}>
+                <List className="h-4 w-4 mr-1" /> PDF condensé
               </Button>
               {onRegenerateFutureWeeks && currentWeekNumber && currentWeekNumber < plan.totalWeeks && (
                 <Button variant="outline" size="sm" onClick={onRegenerateFutureWeeks} disabled={isRegenerating}>

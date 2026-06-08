@@ -145,6 +145,7 @@ function getSportBadge(sport: string): string {
 }
 
 export type PlanPDFOrientation = "landscape" | "portrait";
+export type PlanPDFDetailLevel = "full" | "compact";
 
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
@@ -152,8 +153,9 @@ export function exportAIPlanToPDF(
   startDate?: Date,
   adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
+  detailLevel: PlanPDFDetailLevel = "full",
 ) {
-  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation);
+  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, "_blank");
@@ -168,9 +170,11 @@ function buildPlanHTML(
   startDate?: Date,
   adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
+  detailLevel: PlanPDFDetailLevel = "full",
 ): string {
   const hasDate = !!startDate;
   const isPortrait = orientation === "portrait";
+  const isCompact = detailLevel === "compact";
 
   const weekRows = plan.weeks.map((week, weekIdx) => {
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
@@ -180,13 +184,13 @@ function buildPlanHTML(
       const trailAlts = s.isRest
         ? []
         : getTrailSessionAlternatives({ sport: s.sport, title: s.title, details: s.details });
-      const altsHtml = trailAlts.length > 0
+      const altsHtml = !isCompact && trailAlts.length > 0
         ? `<div style="font-size:10px;color:#555;">
             <strong style="color:#1967d2;">Alternatives terrain :</strong>
             ${trailAlts.map(a => `<div style="margin-top:2px;"><span>${a.icon}</span> <strong>${a.label}</strong> — <span style="color:#777;">${a.hint}</span></div>`).join("")}
           </div>`
         : "";
-      const fiche = s.isRest ? null : getFicheForSession({ title: s.title, details: s.details });
+      const fiche = (isCompact || s.isRest) ? null : getFicheForSession({ title: s.title, details: s.details });
 
       if (isPortrait) {
         // Stacked card layout — clearer in A4 portrait
@@ -197,7 +201,9 @@ function buildPlanHTML(
             ${getSportBadge(s.sport)}
             <span style="font-weight:600;color:#1f2937;font-size:12px;flex:1;">${s.title}</span>
           </div>`;
-        const body = `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;${s.isRest ? 'color:#9ca3af;' : ''}">${s.details}</div>`;
+        const body = isCompact
+          ? ""
+          : `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;${s.isRest ? 'color:#9ca3af;' : ''}">${s.details}</div>`;
         const ficheBlock = fiche
           ? `<div style="border-top:1px dashed #cbd5e1;background:#fafbfd;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche)}</div></div>`
           : "";
@@ -208,6 +214,19 @@ function buildPlanHTML(
           <div class="session-card" style="border:1px solid #d1d5db;border-radius:6px;margin-bottom:8px;overflow:hidden;background:#fff;">
             ${header}${body}${ficheBlock}${altsBlock}
           </div>`;
+      }
+
+      if (isCompact) {
+        // Compact landscape: 4 columns, no details/fiche/alts
+        const rowBg = sessionIdx % 2 === 0 ? "#ffffff" : "#f8fafc";
+        const daySeparator = sessionIdx > 0 ? "border-top:2px solid #e2e8f0;" : "";
+        return `
+        <tr class="session-row" style="background:${rowBg};${daySeparator}${s.isRest ? 'color:#9ca3af;' : ''}">
+          ${hasDate ? `<td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;font-size:11px;color:#4b5563;vertical-align:top;font-weight:500;">${dateStr}</td>` : ""}
+          <td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;vertical-align:top;font-weight:600;color:#374151;">${s.dayName}</td>
+          <td style="padding:6px 10px;border:1px solid #d1d5db;vertical-align:top;">${getSportBadge(s.sport)}</td>
+          <td style="padding:6px 10px;border:1px solid #d1d5db;font-weight:600;vertical-align:top;color:#1f2937;">${s.title}</td>
+        </tr>`;
       }
 
       const totalCols = (hasDate ? 1 : 0) + 4;
@@ -241,7 +260,26 @@ function buildPlanHTML(
 
     const sessionsBlock = isPortrait
       ? `<div class="sessions-stack">${sessionRows}</div>`
-      : `
+      : isCompact
+        ? `
+        <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid #d1d5db;">
+          <colgroup>
+            ${hasDate ? `<col style="width:10%;">` : ""}
+            <col style="width:8%;">
+            <col style="width:14%;">
+            <col style="width:${hasDate ? "68%" : "78%"};">
+          </colgroup>
+          <thead>
+            <tr style="background:#f1f5f9;">
+              ${hasDate ? `<th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Date</th>` : ""}
+              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Jour</th>
+              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Sport</th>
+              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Séance</th>
+            </tr>
+          </thead>
+          <tbody>${sessionRows}</tbody>
+        </table>`
+        : `
         <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid #d1d5db;">
           <colgroup>
             ${hasDate ? `<col style="width:8%;">` : ""}
@@ -394,7 +432,7 @@ function buildPlanHTML(
       </div>
     `).join("")}
   </div>` : ""}
-  <h2>Plan Détaillé</h2>
+  <h2>${isCompact ? "Plan Condensé" : "Plan Détaillé"}</h2>
   ${weekRows}
   <footer style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#aaa;text-align:center;">
     Plan généré par TFCL™ Plan Generator — ${new Date().toLocaleDateString("fr-FR")}
