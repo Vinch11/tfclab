@@ -245,26 +245,7 @@ function buildPlanHTML(
 
     const sessionsBlock = isPortrait
       ? `<div class="sessions-stack">${sessionRows}</div>`
-      : isCompact
-        ? `
-        <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid #d1d5db;">
-          <colgroup>
-            ${hasDate ? `<col style="width:10%;">` : ""}
-            <col style="width:8%;">
-            <col style="width:14%;">
-            <col style="width:${hasDate ? "68%" : "78%"};">
-          </colgroup>
-          <thead>
-            <tr style="background:#f1f5f9;">
-              ${hasDate ? `<th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Date</th>` : ""}
-              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Jour</th>
-              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Sport</th>
-              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Séance</th>
-            </tr>
-          </thead>
-          <tbody>${sessionRows}</tbody>
-        </table>`
-        : `
+      : `
         <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid #d1d5db;">
           <colgroup>
             ${hasDate ? `<col style="width:8%;">` : ""}
