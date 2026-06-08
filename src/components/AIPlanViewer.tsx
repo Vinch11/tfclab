@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, Waves, Bike,
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
-  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle,
+  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle, List,
 } from "lucide-react";
 import { format, addDays, startOfWeek, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
