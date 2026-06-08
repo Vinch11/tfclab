@@ -363,7 +363,7 @@ function buildPlanHTML(
     </table>
     ${plan.strategicRecap.synergies.length > 0 ? `<div style="margin-top:8px;font-size:10px;color:#555;"><strong>Synergies :</strong> ${plan.strategicRecap.synergies.map(s => `→ ${s}`).join(" | ")}</div>` : ""}
   </div>` : ""}
-  ${adaptationProjections && adaptationProjections.length > 0 ? `
+  ${!isCompact && adaptationProjections && adaptationProjections.length > 0 ? `
   <div style="background:#f3f8ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #1967d2;page-break-inside:avoid;">
     <strong>🔮 Projections Adaptation Predictor™</strong>
     <p style="margin:4px 0 8px 0;font-size:10px;color:#666;">Estimations modèle (fourchettes physiologiques typiques, non garanties).</p>
