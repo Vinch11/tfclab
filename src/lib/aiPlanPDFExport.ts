@@ -145,6 +145,7 @@ function getSportBadge(sport: string): string {
 }
 
 export type PlanPDFOrientation = "landscape" | "portrait";
+export type PlanPDFDetailLevel = "full" | "compact";
 
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
@@ -152,8 +153,9 @@ export function exportAIPlanToPDF(
   startDate?: Date,
   adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
+  detailLevel: PlanPDFDetailLevel = "full",
 ) {
-  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation);
+  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, "_blank");
@@ -168,9 +170,11 @@ function buildPlanHTML(
   startDate?: Date,
   adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
+  detailLevel: PlanPDFDetailLevel = "full",
 ): string {
   const hasDate = !!startDate;
   const isPortrait = orientation === "portrait";
+  const isCompact = detailLevel === "compact";
 
   const weekRows = plan.weeks.map((week, weekIdx) => {
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
