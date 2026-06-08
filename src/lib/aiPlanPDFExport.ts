@@ -220,11 +220,11 @@ function buildPlanHTML(
         ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#4b5563;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
         <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid #d1d5db;">
           <colgroup>
-            ${hasDate ? `<col style="width:80px;">` : ""}
-            <col style="width:65px;">
-            <col style="width:100px;">
-            <col style="width:170px;">
-            <col>
+            ${hasDate ? `<col style="width:8%;">` : ""}
+            <col style="width:6%;">
+            <col style="width:11%;">
+            <col style="width:19%;">
+            <col style="width:${hasDate ? "56%" : "64%"};">
           </colgroup>
           <thead>
             <tr style="background:#f1f5f9;">
