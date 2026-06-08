@@ -201,9 +201,7 @@ function buildPlanHTML(
             ${getSportBadge(s.sport)}
             <span style="font-weight:600;color:#1f2937;font-size:12px;flex:1;">${s.title}</span>
           </div>`;
-        const body = isCompact
-          ? ""
-          : `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;${s.isRest ? 'color:#9ca3af;' : ''}">${s.details}</div>`;
+        const body = `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;${s.isRest ? 'color:#9ca3af;' : ''}">${s.details}</div>`;
         const ficheBlock = fiche
           ? `<div style="border-top:1px dashed #cbd5e1;background:#fafbfd;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche)}</div></div>`
           : "";
@@ -214,19 +212,6 @@ function buildPlanHTML(
           <div class="session-card" style="border:1px solid #d1d5db;border-radius:6px;margin-bottom:8px;overflow:hidden;background:#fff;">
             ${header}${body}${ficheBlock}${altsBlock}
           </div>`;
-      }
-
-      if (isCompact) {
-        // Compact landscape: 4 columns, no details/fiche/alts
-        const rowBg = sessionIdx % 2 === 0 ? "#ffffff" : "#f8fafc";
-        const daySeparator = sessionIdx > 0 ? "border-top:2px solid #e2e8f0;" : "";
-        return `
-        <tr class="session-row" style="background:${rowBg};${daySeparator}${s.isRest ? 'color:#9ca3af;' : ''}">
-          ${hasDate ? `<td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;font-size:11px;color:#4b5563;vertical-align:top;font-weight:500;">${dateStr}</td>` : ""}
-          <td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;vertical-align:top;font-weight:600;color:#374151;">${s.dayName}</td>
-          <td style="padding:6px 10px;border:1px solid #d1d5db;vertical-align:top;">${getSportBadge(s.sport)}</td>
-          <td style="padding:6px 10px;border:1px solid #d1d5db;font-weight:600;vertical-align:top;color:#1f2937;">${s.title}</td>
-        </tr>`;
       }
 
       const totalCols = (hasDate ? 1 : 0) + 4;
