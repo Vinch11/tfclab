@@ -285,16 +285,17 @@ function buildPlanHTML(
   <meta charset="UTF-8">
   <title>${plan.title}</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; color: #222; background: #fff; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: ${isPortrait ? "820px" : "1200px"}; margin: 0 auto; padding: 20px; color: #222; background: #fff; }
     h1 { font-size: 20px; margin-bottom: 4px; }
     h2 { font-size: 16px; color: #444; margin-top: 24px; border-bottom: 2px solid #1967d2; padding-bottom: 4px; }
     table { word-wrap: break-word; overflow-wrap: break-word; }
     td, th { word-wrap: break-word; overflow-wrap: break-word; }
+    .session-card { page-break-inside: avoid; break-inside: avoid; }
 
     /* ===== Optimisations impression PDF ===== */
     @media print {
       .no-print { display: none !important; }
-      @page { size: A4 landscape; margin: 8mm 10mm; }
+      @page { size: A4 ${isPortrait ? "portrait" : "landscape"}; margin: ${isPortrait ? "10mm 12mm" : "8mm 10mm"}; }
 
       /* Couleurs fidèles (badges, fonds, séparateurs) */
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
