@@ -592,10 +592,13 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
   }, [plan.title, raceGoals]);
 
   const handleExportPDF = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape");
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape", "full");
   };
   const handleExportPDFPortrait = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait");
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "full");
+  };
+  const handleExportPDFCompact = () => {
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "compact");
   };
 
   return (

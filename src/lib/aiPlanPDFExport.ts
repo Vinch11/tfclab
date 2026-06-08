@@ -432,7 +432,7 @@ function buildPlanHTML(
       </div>
     `).join("")}
   </div>` : ""}
-  <h2>Plan Détaillé</h2>
+  <h2>${isCompact ? "Plan Condensé" : "Plan Détaillé"}</h2>
   ${weekRows}
   <footer style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#aaa;text-align:center;">
     Plan généré par TFCL™ Plan Generator — ${new Date().toLocaleDateString("fr-FR")}
