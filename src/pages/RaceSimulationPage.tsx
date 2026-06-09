@@ -855,6 +855,16 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
+              {lcwActive && lcwSegment === 'swim' ? (
+                <Alert className="text-[11px] sm:text-xs py-2">
+                  <Info className="h-3.5 w-3.5" />
+                  <AlertDescription>
+                    Le plan de course standard (vélo / course à pied) ne s'applique pas à la natation.
+                    Consulte l'encart natation à l'étape 2 pour les consignes spécifiques (allure, sighting, drafting, sortie d'eau).
+                  </AlertDescription>
+                </Alert>
+              ) : (<>
+
               {/* What-if seuil run — recalcule allures cibles & temps */}
               {(discipline === 'run' || isTriathlon) && (
                 <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
