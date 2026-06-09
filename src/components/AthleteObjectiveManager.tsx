@@ -137,6 +137,7 @@ export function AthleteObjectiveManager({
   const [newGoalName, setNewGoalName] = useState("");
   const [newGoalDate, setNewGoalDate] = useState<Date | undefined>(undefined);
   const [newPlanStartDate, setNewPlanStartDate] = useState<Date | undefined>(undefined);
+  const [newGoalFormat, setNewGoalFormat] = useState<"continuous" | "lcw_3day">("continuous");
 
   // Sort race goals by date (most recent first)
   const sortedRaceGoals = useMemo(() => {
