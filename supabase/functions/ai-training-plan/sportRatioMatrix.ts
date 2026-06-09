@@ -207,12 +207,14 @@ export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: st
     elite:       { M: "Sub 8h45",        F: "Sub 9h30" },
     world_class: { M: "Sub 8h00",        F: "Sub 8h45" },
   },
+  // 70.3 — calibration AG réaliste (réf. Challenge/IM 70.3 finisher data Coach Cox, 2022-2024)
+  // elite = "Qualifiable" Worlds AG (top 5-10% AG), pas pro podium.
   "703": {
-    finisher:    { M: "6h30 – 8h",       F: "7h00 – 8h30" },
-    age_group:   { M: "5h00 – 6h15",     F: "5h20 – 6h40" },
-    competitor:  { M: "4h10 – 5h00",     F: "4h30 – 5h15" },
-    elite:       { M: "Sub 4h05",        F: "Sub 4h25" },
-    world_class: { M: "Sub 3h45",        F: "Sub 4h05" },
+    finisher:    { M: "6h30 – 8h00",     F: "7h00 – 8h30" },
+    age_group:   { M: "5h15 – 6h15",     F: "5h45 – 6h45" },
+    competitor:  { M: "4h40 – 5h15",     F: "5h05 – 5h45" },
+    elite:       { M: "4h15 – 4h40",     F: "4h40 – 5h05" },  // Qualifiable AG Worlds
+    world_class: { M: "Sub 3h55",        F: "Sub 4h20" },     // Pro podium
   },
   Marathon: {
     finisher:    { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
