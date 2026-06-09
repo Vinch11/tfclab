@@ -579,7 +579,7 @@ export default function AITrainingPlanPage() {
     };
 
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
-  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, terrainAvailability]);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, terrainAvailability]);
 
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!rawParsedPlan) return null;
