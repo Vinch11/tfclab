@@ -1526,6 +1526,7 @@ const Index = () => {
 
                   {/* Ligne D : Progression vers la cible (pleine largeur) */}
                   <AmbitionProgressMini
+                    className="w-full justify-start"
                     snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
                     objectif={currentAthlete.goal || "IM"}
                     ambition={currentAmbition}
