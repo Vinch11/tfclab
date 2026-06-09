@@ -325,6 +325,19 @@ export default function RaceSimulationPage() {
   }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm]);
 
   const raceDurationMin = React.useMemo(() => {
+    // LCW : chaque segment simulé SOLO, sans pénalité enchaînement.
+    // Bike 90km TT solo : ~2h15-2h30 selon athlète ; on garde la baseline 150 min
+    // (équivalente à la baseline 70.3, légèrement optimiste pour solo).
+    // Run 21.1km SOLO fresh-start : on utilise le calcul Semi standard.
+    // Swim 1.9km : ~30 min baseline (très athlète-dépendant).
+    if (lcwActive) {
+      if (lcwSegment === 'swim') return 30;
+      if (lcwSegment === 'bike') return segmentDurationMin.bike; // 150 min baseline 70.3
+      if (lcwSegment === 'run') {
+        // Semi solo fresh — calcul standard de la branche Semi
+        return 100;
+      }
+    }
     if (isTriathlon) return segmentDurationMin[discipline];
     switch (raceObjective) {
       case 'Marathon': return 210;
@@ -332,7 +345,7 @@ export default function RaceSimulationPage() {
       case '10km': return 45;
       default: return 180;
     }
-  }, [raceObjective, isTriathlon, segmentDurationMin, discipline]);
+  }, [lcwActive, lcwSegment, raceObjective, isTriathlon, segmentDurationMin, discipline]);
   
   // Source de vérité unifiée — voir src/lib/readinessSource.ts
   const readiness = React.useMemo(() => computeUnifiedReadiness({
