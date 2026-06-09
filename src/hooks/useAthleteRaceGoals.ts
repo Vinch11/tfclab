@@ -166,6 +166,7 @@ export function useAthleteRaceGoals(athleteId: string | null) {
   const updateAthleteGoal = useCallback(async (goal: ObjectifType, options?: { 
     raceName?: string; 
     raceDate?: string;
+    raceFormat?: RaceFormat | null;
     skipHistory?: boolean;
   }): Promise<boolean> => {
     if (!athleteId) {
@@ -247,6 +248,7 @@ export function useAthleteRaceGoals(athleteId: string | null) {
               race_type: goal,
               race_name: options?.raceName ?? null,
               race_date: options?.raceDate ?? defaultRaceDate.toISOString().split('T')[0],
+              race_format: options?.raceFormat ?? null,
               plan_start_date: new Date().toISOString().split('T')[0],
             });
           
