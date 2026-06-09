@@ -1325,6 +1325,24 @@ export default function AITrainingPlanPage() {
                   <Input placeholder="Ex: IM Nice, Marathon Paris..." value={raceName} onChange={e => setRaceName(e.target.value)} />
                 </div>
 
+                {(objective === "703" || objective === "70.3") && (
+                  <div className="space-y-2">
+                    <Label>Format de course</Label>
+                    <Select value={raceFormat} onValueChange={(v) => setRaceFormat(v as "continuous" | "lcw_3day")}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="continuous">Standard — 1 jour (continu)</SelectItem>
+                        <SelectItem value="lcw_3day">Long Course Weekend — 3 jours (Ven nat / Sam vélo / Dim run)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {raceFormat === "lcw_3day" && (
+                      <p className="text-[11px] text-muted-foreground">
+                        LCW Wales/Belgium → back-to-back overnight au lieu de bricks T2, pacing vélo +3% (85-88% FTP), recharge glycogénique inter-étapes.
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Calendar className="h-3.5 w-3.5" />
