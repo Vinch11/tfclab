@@ -1153,8 +1153,12 @@ const Index = () => {
                 <div className="hidden md:block shrink-0">
                   <QuickObjectiveSelector
                     currentGoal={currentAthlete.goal}
-                    onGoalChange={async (goal) => {
-                      await updateAthleteGoal(goal);
+                    onGoalChange={async (goal, options) => {
+                      await updateAthleteGoal(goal, {
+                        raceName: options?.raceName,
+                        raceDate: options?.raceDate,
+                        raceFormat: options?.raceFormat ?? null,
+                      });
                       await loadData();
                     }}
                   />
