@@ -837,6 +837,7 @@ export default function RaceSimulationPage() {
                   </AlertDescription>
                 </Alert>
               )}
+              </>)}
             </AccordionContent>
           </AccordionItem>
 
