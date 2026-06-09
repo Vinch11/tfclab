@@ -1,93 +1,62 @@
-# Plan : A' Checklist Semaine Test + B Fit Inverse Mader Conjoint
+# Refonte Simulation LCW 70.3 — 3 épreuves indépendantes
 
-Objectif : amener TFCL de ~5% à ~3% d'erreur MLSS en (1) rendant visible la complétude de la Semaine Test TFCL côté Coach + détection auto FIT, et (2) en activant un **fit inverse Mader conjoint** sur les 4 efforts (P30s, P60s, MAP5, FTP/TTE) quand la semaine est complète.
+## Objectif
+Quand `raceFormat === "lcw_3day"`, l'onglet Simulation présente **3 simulations distinctes** (Natation J-2 / Vélo J-1 / Course J0), chacune calculée comme une **épreuve solo fraîche** (pas d'enchaînement, pas de fatigue cumulée, pas de carry-over glycogène).
 
----
+## Architecture cible
 
-## Partie A' — Checklist Semaine Test TFCL + détection FIT
+```text
+RaceSimulationPage
+└── détecte raceFormat === "lcw_3day"
+    └── <LCWSimulationTabs>
+        ├── Tab "🏊 Natation 1.9km (Ven)" → cartes solo natation
+        ├── Tab "🚴 Vélo 90km (Sam)"      → cartes solo vélo
+        └── Tab "🏃 Course 21.1km (Dim)"  → cartes solo course
+            (chaque tab réutilise les 5 cartes existantes
+             mais en mode discipline-unique, fresh-start)
+```
 
-### A'.1 — Bloc "Statut Semaine Test TFCL" dans la Checklist Coach
-Nouveau composant `TFCLTestingWeekStatusCard` affiché dans la Checklist Coach (page Diagnostic / Dashboard coach selon emplacement actuel de la Checklist).
+## Modifications par fichier
 
-Contenu :
-- Lit `computeTFCLCompletion` sur le snapshot actif (déjà disponible dans `tfclTestingWeek.ts`)
-- 4 cases à cocher visuelles : P30s ✓, P60s ✓, MAP5min ✓, FTP+TTE ✓
-- Badge global :
-  - **"Précision haute (~3% MLSS)"** si les 4 efforts présents + `protocol_quality ≥ 4`
-  - **"Précision standard (~5%)"** sinon
-- Lien direct "Aller à la Semaine Test →" vers `/tfcl-testing-week`
-- Affichage de la date du test le plus récent par effort (si dispo via `calibration_evidence`)
+### 1. `src/pages/RaceSimulationPage.tsx`
+- Détecter `raceFormat` depuis `athleteRaceGoals` (objectif courant)
+- Si LCW : encapsuler le bloc 5 cartes dans `<Tabs>` à 3 onglets (swim/bike/run)
+- Passer un nouveau prop `lcwDiscipline?: "swim" | "bike" | "run"` à chaque carte
+- Banner explicatif en tête : "Format LCW détecté — chaque épreuve simulée comme effort solo frais"
 
-### A'.2 — Détection auto dans les FIT importés
-Étendre `src/lib/fitImport/testDetector.ts` (déjà existant) pour mapper les tests détectés vers les 4 slots de la Semaine Test :
-- `sprint_15s` / `pmax` → slot **P30s** (si durée ≈ 30s détectée) ou ignoré
-- effort ~1min all-out → slot **P60s**
-- effort ~5min all-out (MAP test) → slot **MAP5min**
-- effort 20min / FTP test / TTE → slot **FTP+TTE**
+### 2. `src/lib/v2/raceSimulationTFCL.ts`
+- Ajouter paramètre `lcwSoloMode?: { discipline: "swim"|"bike"|"run", distanceKm: number }`
+- Quand actif :
+  - Forcer la distance à 1.9 / 90 / 21.1 km selon discipline
+  - Réinitialiser glycogène/fatigue de départ à 100% (pas de carry-over)
+  - Ajuster `envelope_constraints` : règles "course courte" (max 1er tiers ↑, zone rouge autorisée >40%)
+  - Pour run : retirer la pénalité fatigue post-vélo dans le calcul d'allure
 
-Côté UI d'import FIT, après analyse : afficher un panneau **"Test reconnu — assigner à la Semaine Test TFCL ?"** avec :
-- Le slot détecté (badge)
-- La valeur extraite (W, durée)
-- Bouton **"Valider et écrire dans le snapshot"** → écrit dans `p30s_w` / `p60s_w` / `map5min_w` / `ftp` + `tte_observed_min`
-- Crée une entrée `calibration_evidence` avec `source_type='fit'`, `evidence_type='tfcl_week_test'`, `protocol_quality` calculé via `evaluateProtocolQuality`
+### 3. `src/components/RaceStrategyPlanCard.tsx`
+- Prop `lcwDiscipline?` ; quand fourni :
+  - TSS, NP, durée recalculés pour discipline seule
+  - Plan A/B reformulés pour effort solo
+  - Cardio drift sans baseline post-bike pour le run
 
----
+### 4. `src/components/TriathlonFullRaceSimulationCard.tsx`
+- Prop `lcwDiscipline?` ; quand fourni : masquer transitions/enchaînement, n'afficher que la discipline active comme course autonome
+- Glycogène départ = 100%
 
-## Partie B — Fit Inverse Mader Conjoint (gain de précision réel)
+### 5. `src/components/ObjectiveStrategyCard.tsx`
+- Prop `lcwDiscipline?` ; pour run en LCW : retirer pénalité fatigue −3 à −5% → allure semi pure
 
-### B.1 — Nouveau module `src/lib/v2/maderInverseFitJoint.ts`
-Fonction `fitMaderJoint(efforts)` qui prend les 4 efforts complets et estime conjointement `(VLamax, VO2max, CE/efficiency)` en minimisant l'erreur sur les 4 puissances observées (équations Mader power-duration).
+### 6. `src/components/PacingEnvelopeCard.tsx`
+- Prop `lcwDiscipline?` ; basculer sur enveloppe "course courte indépendante" (semi seul pour run, 90km TT pour vélo, 1.9km OWS pour swim)
 
-Approche :
-- Modèle direct existant : `maderPowerDurationCurve.ts` → P(t) = f(VLamax, VO2max, CE)
-- Inverse : optimisation Levenberg-Marquardt simplifiée (ou grid-search affiné, 2 passes) sur `(VLamax, VO2max)` avec CE dérivé du FTP
-- Retourne `{ vlamax, vo2max, ce, mlssEstimated, mlssConfidenceInterval, rmse, convergence }`
-- Réutilise `computeMLSSConfidenceInterval` (inscydPoffe2024Sensitivity) pour l'IC final
+### 7. Nutrition (cartes carbLoading/hydration/gut/caffeine)
+- Détecter LCW : afficher 3 protocoles de carb-load consécutifs (J-3→J-2 swim, J-2 PM→J-1 bike, J-1 PM→J0 run) + refeed glycogène entre étapes
 
-### B.2 — Activation conditionnelle dans le moteur diagnostic
-Dans `engines/diagnostic/computeDiagnostic.ts` (ou le hub diagnostic) :
-- Si `computeTFCLCompletion(snapshot).complete === true` ET `protocol_quality ≥ 4` :
-  - Appeler `fitMaderJoint` → **source primaire** pour VLamax, VO2max, MLSS%
-  - Tracer dans `calibration_evidence` avec `evidence_type='mader_joint_fit'`, `confidence_evidence = 0.90`
-- Sinon : pipeline actuel (vlamaxCapEstimator / vlamaxV2Engine) inchangé
+## Hors scope
+- Pas de modif de la logique de génération de plan IA (déjà OK via `computePlan.ts`)
+- Pas de migration DB
+- Pas de modif des autres formats (continu standard inchangé)
 
-### B.3 — Affichage du gain dans le DRE
-Dans `useDecisionReliability` → `dre.decisionConfidenceScore` : bonus +0.15 quand le fit conjoint est actif. Le badge Checklist passe alors à **"Précision haute confirmée"**.
-
-### B.4 — Tests unitaires
-- `src/lib/v2/__tests__/maderInverseFitJoint.test.ts` : 5 profils synthétiques (sprinteur, endurant, mixte, élite, masters) → vérifier RMSE < 3% MLSS et convergence en < 50 itérations
-- Cas dégradé (1 effort manquant) → doit retourner `convergence=false` sans crash
-
----
-
-## Détails techniques
-
-**Fichiers créés**
-- `src/components/coach/TFCLTestingWeekStatusCard.tsx` (UI)
-- `src/lib/v2/maderInverseFitJoint.ts` (moteur)
-- `src/lib/v2/__tests__/maderInverseFitJoint.test.ts`
-
-**Fichiers modifiés**
-- `src/lib/fitImport/testDetector.ts` — ajout mapping slots Semaine Test
-- `src/lib/fitImport/analyzer.ts` — exposer le slot détecté dans `FitAnalysisResult`
-- Composant d'import FIT (à localiser : probablement `FitFileUpload*`) — panneau d'assignation
-- `src/engines/diagnostic/computeDiagnostic.ts` — branchement fit conjoint
-- `src/hooks/useDecisionReliability.ts` — bonus confiance
-- Page Diagnostic ou Dashboard Coach — insertion `<TFCLTestingWeekStatusCard />` dans la Checklist
-
-**Pas de migration DB** — tout passe par les colonnes existantes (`p30s_w`, `p60s_w`, `map5min_w`, `ftp`, `tte_observed_min`, `protocol_quality`) et la table `calibration_evidence` déjà en place.
-
-**Memory à ajouter après implémentation** :
-- `mem://features/mader-inverse-fit-joint` — protocole 4 efforts, RMSE cible 3%, activation conditionnelle
-- `mem://features/tfcl-testing-week-checklist-card` — règles d'affichage du badge précision
-
----
-
-## Livrables
-1. Checklist Coach affiche en temps réel le statut des 4 efforts de la Semaine Test TFCL
-2. Import FIT propose automatiquement d'assigner un test reconnu à un slot
-3. Quand les 4 efforts sont présents + qualité ≥ 4, le diagnostic utilise le fit Mader conjoint (gain ~5% → ~3% sur MLSS)
-4. Le DRE reflète le gain de confiance
-5. Tests unitaires couvrent les cas nominaux et dégradés
-
-Confirme et je lance l'implémentation.
+## Validation
+- Cas test : athlète Cath 70.3 LCW → 3 tabs visibles, chacun cohérent solo
+- Cas test : athlète 70.3 continu standard → comportement inchangé (1 simulation enchaînée)
+- Pas de régression sur Ironman / Marathon / 10K
