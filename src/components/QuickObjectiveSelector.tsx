@@ -180,11 +180,11 @@ export function QuickObjectiveSelector({
             ) : (
               <span aria-hidden>🎯</span>
             )}
-            <span className="truncate max-w-[110px] flex items-center gap-1">
-              {sportIcon && <span aria-hidden>{sportIcon}</span>}
-              <span>{label}</span>
+            <span className="truncate flex-1 min-w-0 flex items-center gap-1">
+              {sportIcon && <span aria-hidden className="shrink-0">{sportIcon}</span>}
+              <span className="truncate">{label}</span>
             </span>
-            <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+            <ChevronDown className="h-3.5 w-3.5 opacity-50 shrink-0" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">
