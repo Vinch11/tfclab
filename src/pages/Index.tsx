@@ -1147,6 +1147,43 @@ const Index = () => {
                 </div>
               )}
 
+              {/* Menu ⋯ — mobile uniquement, regroupe les actions athlète */}
+              {currentAthlete && (
+                <div className="sm:hidden ml-auto shrink-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="ghost" className="h-9 w-9 p-0">
+                        <MoreHorizontal className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => toggleAthleteHidden(currentAthlete.id, !currentAthlete.is_hidden)}>
+                        {currentAthlete.is_hidden ? (
+                          <><EyeOff className="h-4 w-4 mr-2" /> Démasquer cet athlète</>
+                        ) : (
+                          <><Eye className="h-4 w-4 mr-2" /> Masquer cet athlète</>
+                        )}
+                      </DropdownMenuItem>
+                      {hiddenAthletes.length > 0 && (
+                        <DropdownMenuItem onClick={() => setIsHiddenDialogOpen(true)}>
+                          <EyeOff className="h-4 w-4 mr-2" />
+                          Athlètes masqués ({hiddenAthletes.length})
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setIsAddDialogOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nouvel athlète
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleDeleteAthlete} className="text-destructive focus:text-destructive">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Supprimer cet athlète
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
+
               {/* Spacer pour pousser les actions à droite sur desktop */}
               <div className="hidden sm:flex flex-1 min-w-[8px]" />
 
