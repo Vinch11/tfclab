@@ -229,7 +229,7 @@ export default function RaceSimulationPage() {
   // Cherche un objectif 70.3 LCW à venir pour l'athlète. Si trouvé, on bascule
   // en "mode 3 épreuves indépendantes" : chaque segment est simulé SOLO,
   // sans enchaînement, sans carry-over de fatigue ni de glycogène.
-  const { raceGoals } = useAthleteRaceGoals(athleteId || null);
+  const { raceGoals, addRaceGoal } = useAthleteRaceGoals(athleteId || null);
   const lcwGoal = React.useMemo(() => {
     if (!raceGoals?.length) return null;
     const today = new Date().toISOString().slice(0, 10);
@@ -238,8 +238,40 @@ export default function RaceSimulationPage() {
       (g.race_date >= today || raceObjectiveRaw === '70.3')
     ) ?? null;
   }, [raceGoals, raceObjectiveRaw]);
-  const lcwActive = lcwGoal !== null && raceObjectiveRaw === '70.3';
+
+  // Manual override (fallback) : permet à l'athlète d'activer LCW depuis la page
+  // Simulation, même si aucun race_goal LCW n'est persisté en base (cas Cath :
+  // objectif 70.3 défini sans passer par le sélecteur de format).
+  const lcwManualKey = athleteId ? `lcw-manual-${athleteId}` : null;
+  const [lcwManualEnabled, setLcwManualEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined' || !lcwManualKey) return false;
+    return window.localStorage.getItem(lcwManualKey) === 'true';
+  });
+  React.useEffect(() => {
+    if (!lcwManualKey || typeof window === 'undefined') return;
+    if (lcwManualEnabled) window.localStorage.setItem(lcwManualKey, 'true');
+    else window.localStorage.removeItem(lcwManualKey);
+  }, [lcwManualEnabled, lcwManualKey]);
+
+  const lcwActive = raceObjectiveRaw === '70.3' && (lcwGoal !== null || lcwManualEnabled);
   const [lcwSegment, setLcwSegment] = useState<'swim' | 'bike' | 'run'>('bike');
+
+  const handleEnableLcwAndPersist = React.useCallback(async () => {
+    setLcwManualEnabled(true);
+    // Persiste un race_goal si aucun objectif 70.3 LCW à venir n'est en base
+    if (!lcwGoal && athleteId) {
+      const defaultDate = new Date();
+      defaultDate.setMonth(defaultDate.getMonth() + 3);
+      await addRaceGoal({
+        athlete_id: athleteId,
+        race_type: '703',
+        race_name: '70.3 Long Course Weekend',
+        race_date: defaultDate.toISOString().slice(0, 10),
+        race_format: 'lcw_3day',
+        plan_start_date: new Date().toISOString().slice(0, 10),
+      });
+    }
+  }, [lcwGoal, athleteId, addRaceGoal]);
 
   // raceObjective effectif : si LCW + segment run → Semi solo ; sinon inchangé.
   const raceObjective: RaceObjective = React.useMemo(() => {
@@ -512,11 +544,47 @@ export default function RaceSimulationPage() {
                 </DialogContent>
               </Dialog>
 
-            )}
+        )}
+
           </div>
         </div>
 
+        {/* Toggle manuel LCW (visible si objectif 70.3 mais pas encore activé) */}
+        {raceObjectiveRaw === '70.3' && !lcwActive && (
+          <Alert className="text-xs sm:text-sm py-2 sm:py-3 border-dashed">
+            <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className="text-[11px] sm:text-sm leading-relaxed flex-1">
+                Cette course est-elle au format <strong>Long Course Weekend</strong> (3 jours indépendants : nage vendredi, vélo samedi, course dimanche) ?
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs shrink-0"
+                onClick={handleEnableLcwAndPersist}
+              >
+                Activer le mode LCW
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Bouton désactiver (si LCW actif via toggle local, pas persisté) */}
+        {lcwActive && lcwManualEnabled && !lcwGoal && (
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-[11px] text-muted-foreground"
+              onClick={() => setLcwManualEnabled(false)}
+            >
+              Désactiver le mode LCW
+            </Button>
+          </div>
+        )}
+
         {/* ═══ BANNER + SÉLECTEUR LCW (Long Course Weekend — 3 jours éclatés) ═══ */}
+
         {lcwActive && (
           <Alert className="text-xs sm:text-sm py-2 sm:py-3 bg-primary/5 border-primary/30">
             <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
