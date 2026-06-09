@@ -1,6 +1,6 @@
 /**
  * QuickObjectiveSelector - Sélecteur rapide d'objectif pour le header
- * Avec modale pour saisir le nom et la date de la course
+ * Avec modale pour saisir le nom, la date et le format de la course
  */
 
 import { useState } from "react";
@@ -79,11 +79,19 @@ const OBJECTIF_ICONS: Record<string, string> = {
   TrailUltra: "⛰️",
 };
 
+export type RaceFormatUI = 'continuous' | 'lcw_3day';
+
+const RACE_FORMAT_OPTIONS: { value: RaceFormatUI; label: string; description: string }[] = [
+  { value: 'continuous', label: 'Triathlon classique', description: 'Enchaînement Natation → Vélo → Course en continu' },
+  { value: 'lcw_3day', label: 'Long Course Weekend (3 jours)', description: 'Natation J1, Vélo J2, Course J3' },
+];
+
 interface QuickObjectiveSelectorProps {
   currentGoal: string | null;
   onGoalChange: (goal: ObjectifType, options?: { 
     raceName?: string; 
     raceDate?: string;
+    raceFormat?: RaceFormatUI;
   }) => Promise<void>;
   disabled?: boolean;
   className?: string;
@@ -108,11 +116,16 @@ export function QuickObjectiveSelector({
     return date;
   });
 
+  const [raceFormat, setRaceFormat] = useState<RaceFormatUI>('continuous');
+
+  const isTriathlon = selectedGoal === 'IM' || selectedGoal === '703';
+
   const handleSelect = (goal: string) => {
     // Toujours ouvrir la modale (même si on garde le même objectif)
     // pour permettre la modification du nom et/ou de la date de la course
     setSelectedGoal(goal);
     setRaceName("");
+    setRaceFormat('continuous');
     // Date par défaut: 3 mois dans le futur
     const defaultDate = new Date();
     defaultDate.setMonth(defaultDate.getMonth() + 3);
@@ -129,10 +142,12 @@ export function QuickObjectiveSelector({
       await onGoalChange(selectedGoal as ObjectifType, {
         raceName: raceName.trim() || undefined,
         raceDate: raceDate ? format(raceDate, "yyyy-MM-dd") : undefined,
+        raceFormat: isTriathlon ? raceFormat : undefined,
       });
       setModalOpen(false);
       setSelectedGoal(null);
       setRaceName("");
+      setRaceFormat('continuous');
     } finally {
       setSaving(false);
     }
@@ -142,6 +157,7 @@ export function QuickObjectiveSelector({
     setModalOpen(false);
     setSelectedGoal(null);
     setRaceName("");
+    setRaceFormat('continuous');
   };
 
   const icon = currentGoal ? OBJECTIF_ICONS[currentGoal] || "🎯" : "🎯";
