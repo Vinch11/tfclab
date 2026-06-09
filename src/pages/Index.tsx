@@ -1456,44 +1456,51 @@ const Index = () => {
               const ambitionDef = getAmbitionDefinition(currentAmbition);
               return (
                 <div className="md:hidden space-y-2.5 pt-1">
-                  {/* Ligne A : Objectif 🎯 + Ambition ⭐ (deux pills égales, h-11 pour bon touch) */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <QuickObjectiveSelector
-                      currentGoal={currentAthlete.goal}
-                      className="!h-11 w-full justify-between"
-                      onGoalChange={async (goal, options) => {
-                        await updateAthleteGoal(goal, {
-                          raceName: options?.raceName,
-                          raceDate: options?.raceDate,
-                          raceFormat: options?.raceFormat ?? null,
-                        });
-                        await loadData();
-                      }}
-                    />
-                    <Select
-                      value={currentAmbition}
-                      onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
-                    >
-                      <SelectTrigger className="h-11 w-full text-sm border-primary/30 bg-primary/5">
-                        <span className="flex items-center gap-1.5 truncate">
-                          <Star className="h-4 w-4 text-primary shrink-0" />
-                          <span aria-hidden>{ambitionDef.icon}</span>
-                          <span className="truncate">{ambitionDef.label}</span>
-                        </span>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {AMBITION_LEVELS_ORDERED.map((level) => {
-                          const def = getAmbitionDefinition(level);
-                          const timeHint = currentAthlete ? getRunningTimeHint(currentAthlete.goal || "IM", level, currentAthlete.sex === "F" ? "F" : "M") : null;
-                          return (
-                            <SelectItem key={level} value={level}>
-                              {def.icon} {def.label}{timeHint ? ` — ${timeHint}` : ""}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Ligne A : Objectif 🎯 (pleine largeur, label complet) */}
+                  <QuickObjectiveSelector
+                    currentGoal={currentAthlete.goal}
+                    className="!h-11 w-full justify-between text-sm"
+                    onGoalChange={async (goal, options) => {
+                      await updateAthleteGoal(goal, {
+                        raceName: options?.raceName,
+                        raceDate: options?.raceDate,
+                        raceFormat: options?.raceFormat ?? null,
+                      });
+                      await loadData();
+                    }}
+                  />
+
+                  {/* Ligne B : Ambition ⭐ (pleine largeur, label + temps cible) */}
+                  <Select
+                    value={currentAmbition}
+                    onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
+                  >
+                    <SelectTrigger className="h-11 w-full text-sm border-primary/30 bg-primary/5">
+                      <span className="flex items-center gap-1.5 truncate">
+                        <Star className="h-4 w-4 text-primary shrink-0" />
+                        <span aria-hidden className="shrink-0">{ambitionDef.icon}</span>
+                        <span className="truncate font-medium">{ambitionDef.label}</span>
+                        {(() => {
+                          const timeHint = getRunningTimeHint(currentAthlete.goal || "IM", currentAmbition, currentAthlete.sex === "F" ? "F" : "M");
+                          return timeHint ? (
+                            <span className="text-muted-foreground text-xs truncate">— {timeHint}</span>
+                          ) : null;
+                        })()}
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AMBITION_LEVELS_ORDERED.map((level) => {
+                        const def = getAmbitionDefinition(level);
+                        const timeHint = currentAthlete ? getRunningTimeHint(currentAthlete.goal || "IM", level, currentAthlete.sex === "F" ? "F" : "M") : null;
+                        return (
+                          <SelectItem key={level} value={level}>
+                            {def.icon} {def.label}{timeHint ? ` — ${timeHint}` : ""}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+
 
                   {/* Ligne B : CTA principal pleine largeur — Voir ma stratégie */}
                   <Button asChild size="lg" className="w-full h-12 gap-2 text-sm font-semibold shadow-sm">
