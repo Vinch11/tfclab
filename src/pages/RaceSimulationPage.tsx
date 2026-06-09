@@ -1194,3 +1194,84 @@ function ProfileTile({
     </div>
   );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LCW SWIM SOLO CARD
+// Carte dédiée natation 1.9 km solo (vendredi) en format LCW.
+// La majorité des modules existants pilotent sur FTP/pace seuil → non pertinents
+// pour la nage. On affiche ici les consignes spécifiques OWS race-sim.
+// ═══════════════════════════════════════════════════════════════════════════════
+function LCWSwimSoloCard({
+  weightKg,
+  raceName,
+}: {
+  weightKg: number | null;
+  raceName: string;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">🏊</span>
+          <div>
+            <h3 className="text-sm font-semibold">Natation 1.9 km — {raceName}</h3>
+            <p className="text-[11px] text-muted-foreground">
+              Effort solo · Vendredi (J-2) · Eau libre · Sortir frais pour le vélo de samedi
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="rounded-md border border-border bg-muted/30 p-3">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1">
+            Allure cible
+          </div>
+          <p className="text-[11px] leading-snug">
+            <strong>Régulière, contrôlée.</strong> Démarrer 5 % sous l'allure CSS,
+            puis stabiliser. Pas de sprint départ (risque hyperventilation, perte d'aspiration).
+          </p>
+        </div>
+        <div className="rounded-md border border-border bg-muted/30 p-3">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1">
+            Sighting & trajectoire
+          </div>
+          <p className="text-[11px] leading-snug">
+            Lever la tête toutes les <strong>6–8 brasses</strong>. Viser les bouées les
+            plus éloignées pour ligne droite. Drafting autorisé : se caler dans les pieds
+            d'un nageur ~ même allure (économie 5–10 %).
+          </p>
+        </div>
+        <div className="rounded-md border border-border bg-muted/30 p-3">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1">
+            Sortie d'eau & T1
+          </div>
+          <p className="text-[11px] leading-snug">
+            Accélérer 200 m avant la sortie (réveil cardiaque pour la T1). Combinaison
+            descendue jusqu'à la taille en courant. Hydratation immédiate dès T1.
+          </p>
+        </div>
+        <div className="rounded-md border border-border bg-muted/30 p-3">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1">
+            Récupération post-épreuve
+          </div>
+          <p className="text-[11px] leading-snug">
+            <strong>Refeed agressif</strong> : 1.0 g CHO/kg dans les 30 min + protéines.
+            {weightKg ? ` Pour toi : ~${Math.round(weightKg * 1.0)} g CHO post-nage.` : ''}
+            {' '}Sieste 30–60 min l'après-midi. Nutrition normale au dîner pré-vélo.
+          </p>
+        </div>
+      </div>
+
+      <Alert className="text-[11px] sm:text-xs py-2 bg-amber-500/5 border-amber-500/30">
+        <Info className="h-3.5 w-3.5" />
+        <AlertDescription>
+          <strong>Format LCW :</strong> cette épreuve est jugée seule. L'enjeu n'est pas le
+          chrono natation mais de sortir <em>frais</em> pour les 90 km de vélo du lendemain.
+          Marge de sécurité 5–8 % vs allure CSS solo.
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
