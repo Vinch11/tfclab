@@ -57,6 +57,7 @@ interface RaceGoal {
   race_type: string;
   race_name: string | null;
   race_date: string;
+  race_format: 'continuous' | 'lcw_3day' | null;
   plan_start_date: string | null;
   created_at: string;
   updated_at: string;
