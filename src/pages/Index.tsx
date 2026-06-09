@@ -1445,7 +1445,7 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Bloc mobile uniquement — hiérarchie : objectif/ambition → CTA principal → bilan → progression */}
+            {/* Bloc mobile — design harmonisé : sections labellisées, container premium subtil */}
             {currentAthlete && (() => {
               const futureGoals = (raceGoals || [])
                 .filter(g => new Date(g.race_date) >= new Date())
@@ -1454,91 +1454,115 @@ const Index = () => {
               const daysToRace = nextRace ? Math.ceil((new Date(nextRace.race_date).getTime() - Date.now()) / 86400000) : null;
               const raceWeek = daysToRace !== null && daysToRace <= 7;
               const ambitionDef = getAmbitionDefinition(currentAmbition);
+              const timeHint = getRunningTimeHint(currentAthlete.goal || "IM", currentAmbition, currentAthlete.sex === "F" ? "F" : "M");
               return (
-                <div className="md:hidden space-y-2.5 pt-1">
-                  {/* Ligne A : Objectif 🎯 (pleine largeur, label complet) */}
-                  <QuickObjectiveSelector
-                    currentGoal={currentAthlete.goal}
-                    className="!h-11 w-full justify-between text-sm"
-                    onGoalChange={async (goal, options) => {
-                      await updateAthleteGoal(goal, {
-                        raceName: options?.raceName,
-                        raceDate: options?.raceDate,
-                        raceFormat: options?.raceFormat ?? null,
-                      });
-                      await loadData();
-                    }}
-                  />
-
-                  {/* Ligne B : Ambition ⭐ (pleine largeur, label + temps cible) */}
-                  <Select
-                    value={currentAmbition}
-                    onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
-                  >
-                    <SelectTrigger className="h-11 w-full text-sm border-primary/30 bg-primary/5 [&>span]:flex-1 [&>span]:min-w-0">
-                      <span className="flex items-center gap-1.5 min-w-0 flex-1 leading-none">
-                        <span aria-hidden className="shrink-0 text-base leading-none">{ambitionDef.icon}</span>
-                        <span className="font-medium truncate leading-none">{ambitionDef.label}</span>
-                        {(() => {
-                          const timeHint = getRunningTimeHint(currentAthlete.goal || "IM", currentAmbition, currentAthlete.sex === "F" ? "F" : "M");
-                          return timeHint ? (
-                            <span className="text-muted-foreground text-xs shrink-0 leading-none">· {timeHint}</span>
-                          ) : null;
-                        })()}
+                <div className="md:hidden space-y-4 pt-2">
+                  {/* Section 1 — Objectif & Ambition (groupe unifié avec séparateur) */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 px-0.5">
+                      <Target className="h-3 w-3 text-primary/70" />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Objectif & ambition
                       </span>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {AMBITION_LEVELS_ORDERED.map((level) => {
-                        const def = getAmbitionDefinition(level);
-                        const timeHint = currentAthlete ? getRunningTimeHint(currentAthlete.goal || "IM", level, currentAthlete.sex === "F" ? "F" : "M") : null;
-                        return (
-                          <SelectItem key={level} value={level}>
-                            {def.icon} {def.label}{timeHint ? ` — ${timeHint}` : ""}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-gradient-to-br from-card to-muted/20 overflow-hidden shadow-sm divide-y divide-border/50">
+                      <QuickObjectiveSelector
+                        currentGoal={currentAthlete.goal}
+                        className="!h-12 w-full justify-between text-sm !rounded-none !border-0 !bg-transparent hover:!bg-muted/30"
+                        onGoalChange={async (goal, options) => {
+                          await updateAthleteGoal(goal, {
+                            raceName: options?.raceName,
+                            raceDate: options?.raceDate,
+                            raceFormat: options?.raceFormat ?? null,
+                          });
+                          await loadData();
+                        }}
+                      />
+                      <Select
+                        value={currentAmbition}
+                        onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
+                      >
+                        <SelectTrigger className="h-12 w-full text-sm rounded-none border-0 bg-transparent hover:bg-muted/30 focus:ring-0 focus:ring-offset-0 [&>span]:flex-1 [&>span]:min-w-0">
+                          <span className="flex items-center gap-2 min-w-0 flex-1">
+                            <span aria-hidden className="text-base leading-none shrink-0">{ambitionDef.icon}</span>
+                            <span className="font-medium leading-none truncate">{ambitionDef.label}</span>
+                            {timeHint && (
+                              <span className="text-muted-foreground text-xs leading-none shrink-0 tabular-nums">· {timeHint}</span>
+                            )}
+                          </span>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {AMBITION_LEVELS_ORDERED.map((level) => {
+                            const def = getAmbitionDefinition(level);
+                            const hint = getRunningTimeHint(currentAthlete.goal || "IM", level, currentAthlete.sex === "F" ? "F" : "M");
+                            return (
+                              <SelectItem key={level} value={level}>
+                                {def.icon} {def.label}{hint ? ` — ${hint}` : ""}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
+                  {/* Section 2 — Actions (CTA principal + bilan) */}
+                  <div className="space-y-2">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="w-full h-12 gap-2 text-sm font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30"
+                    >
+                      <Link to="/race?step=3">
+                        <Target className="h-4 w-4" />
+                        <span>Voir ma stratégie</span>
+                      </Link>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={raceWeek ? "default" : "outline"}
+                      className={cn(
+                        "w-full h-11 gap-1.5 text-sm",
+                        raceWeek && "animate-pulse shadow-md"
+                      )}
+                      onClick={() => setReadinessOpen(true)}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>Bilan pré-objectif</span>
+                      {daysToRace !== null && (
+                        <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px] tabular-nums">
+                          J-{daysToRace}
+                        </Badge>
+                      )}
+                    </Button>
+                  </div>
 
-                  {/* Ligne B : CTA principal pleine largeur — Voir ma stratégie */}
-                  <Button asChild size="lg" className="w-full h-12 gap-2 text-sm font-semibold shadow-sm">
-                    <Link to="/race?step=3">
-                      <Target className="h-4 w-4" />
-                      <span>Voir ma stratégie</span>
-                    </Link>
-                  </Button>
-
-                  {/* Ligne C : CTA secondaire — Bilan pré-objectif (pleine largeur, accentué race week) */}
-                  <Button
-                    size="sm"
-                    variant={raceWeek ? "default" : "outline"}
-                    className={cn("w-full h-11 gap-1.5 text-sm", raceWeek && "animate-pulse")}
-                    onClick={() => setReadinessOpen(true)}
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>Bilan pré-objectif</span>
-                    {daysToRace !== null && (
-                      <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">J-{daysToRace}</Badge>
-                    )}
-                  </Button>
-
-                  {/* Ligne D : Progression vers la cible (pleine largeur) */}
-                  <AmbitionProgressMini
-                    className="w-full justify-start"
-                    snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
-                    objectif={currentAthlete.goal || "IM"}
-                    ambition={currentAmbition}
-                    weightKg={effectiveRefs.weightKg}
-                    onClick={() => {
-                      const el = document.getElementById("section-ambition-progress");
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                    onMetricClick={(sectionId) => {
-                      const el = document.getElementById(`section-${sectionId}`);
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                  />
+                  {/* Section 3 — Progression vers la cible */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 px-0.5">
+                      <Sparkles className="h-3 w-3 text-primary/70" />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Progression vers la cible
+                      </span>
+                    </div>
+                    <div className="rounded-xl border border-border/60 bg-muted/30 p-2.5">
+                      <AmbitionProgressMini
+                        className="w-full justify-start !bg-transparent !border-0 !shadow-none !p-0"
+                        snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                        objectif={currentAthlete.goal || "IM"}
+                        ambition={currentAmbition}
+                        weightKg={effectiveRefs.weightKg}
+                        onClick={() => {
+                          const el = document.getElementById("section-ambition-progress");
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
+                        onMetricClick={(sectionId) => {
+                          const el = document.getElementById(`section-${sectionId}`);
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               );
             })()}
