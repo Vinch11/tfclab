@@ -212,6 +212,7 @@ export default function AITrainingPlanPage() {
 
   const [objective, setObjective] = useState(currentAthlete?.objectif || "703");
   const [raceName, setRaceName] = useState("");
+  const [raceFormat, setRaceFormat] = useState<"continuous" | "lcw_3day">("continuous");
   const [raceDate, setRaceDate] = useState("");
   const [weeklyHours, setWeeklyHours] = useState("");
   const [sessionsPerWeek, setSessionsPerWeek] = useState("");
