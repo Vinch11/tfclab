@@ -988,6 +988,7 @@ export default function RaceSimulationPage() {
                   />
                 </>
               )}
+              </>)}
             </AccordionContent>
           </AccordionItem>
 
