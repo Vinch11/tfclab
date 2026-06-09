@@ -1520,21 +1520,22 @@ const Index = () => {
                     </Button>
                     <Button
                       size="sm"
-                      variant={raceWeek ? "default" : "outline"}
+                      variant="outline"
                       className={cn(
-                        "w-full h-11 gap-1.5 text-sm border-warning/40 bg-warning/5 text-warning-foreground hover:bg-warning/10 hover:border-warning/60",
-                        raceWeek && "animate-pulse shadow-md border-warning bg-warning/20"
+                        "w-full h-11 gap-1.5 text-sm border-warning/50 bg-warning/10 text-foreground hover:bg-warning/20 hover:border-warning/70",
+                        raceWeek && "animate-pulse shadow-md border-warning bg-warning/25"
                       )}
                       onClick={() => setReadinessOpen(true)}
                     >
                       <Sparkles className="h-4 w-4 text-warning" />
-                      <span>Bilan pré-objectif</span>
+                      <span className="font-medium">Bilan pré-objectif</span>
                       {daysToRace !== null && (
-                        <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px] tabular-nums bg-warning/15 text-warning-foreground border-warning/30">
+                        <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px] tabular-nums bg-warning/20 text-foreground border-warning/40">
                           J-{daysToRace}
                         </Badge>
                       )}
                     </Button>
+
                   </div>
 
                   {/* Section 3 — Progression (tonalité success) */}
