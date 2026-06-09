@@ -1407,9 +1407,20 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Ligne 2 (mobile only): Ambition + Progress */}
+            {/* Ligne 2 (mobile only): Objectif + Ambition + Progress */}
             {currentAthlete && (
               <div className="flex items-center gap-2 md:hidden flex-wrap">
+                <QuickObjectiveSelector
+                  currentGoal={currentAthlete.goal}
+                  onGoalChange={async (goal, options) => {
+                    await updateAthleteGoal(goal, {
+                      raceName: options?.raceName,
+                      raceDate: options?.raceDate,
+                      raceFormat: options?.raceFormat ?? null,
+                    });
+                    await loadData();
+                  }}
+                />
                 <Select
                   value={currentAmbition}
                   onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
@@ -1447,6 +1458,7 @@ const Index = () => {
                 />
               </div>
             )}
+
           </div>
         )}
       </CardContent>
