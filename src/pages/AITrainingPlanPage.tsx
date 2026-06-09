@@ -542,6 +542,7 @@ export default function AITrainingPlanPage() {
       raceDate: raceDate || undefined,
       weeksUntilRace: computeWeeksUntilRace(raceDate),
       priority: "A",
+      raceFormat: (objective === "703" || objective === "70.3") ? raceFormat : "continuous",
       distanceKm: trailDistKm,
       elevationGainM: trailDPlus,
       targetTimeMinutes: trailTargetMin,
