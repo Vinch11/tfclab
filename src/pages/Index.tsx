@@ -1445,7 +1445,7 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Bloc mobile uniquement — hiérarchie claire en 3 lignes */}
+            {/* Bloc mobile uniquement — hiérarchie : objectif/ambition → CTA principal → bilan → progression */}
             {currentAthlete && (() => {
               const futureGoals = (raceGoals || [])
                 .filter(g => new Date(g.race_date) >= new Date())
@@ -1453,13 +1453,14 @@ const Index = () => {
               const nextRace = futureGoals[0];
               const daysToRace = nextRace ? Math.ceil((new Date(nextRace.race_date).getTime() - Date.now()) / 86400000) : null;
               const raceWeek = daysToRace !== null && daysToRace <= 7;
+              const ambitionDef = getAmbitionDefinition(currentAmbition);
               return (
-                <div className="md:hidden space-y-2">
-                  {/* Ligne A : Objectif 🎯 + Ambition ⭐ (deux colonnes égales) */}
+                <div className="md:hidden space-y-2.5 pt-1">
+                  {/* Ligne A : Objectif 🎯 + Ambition ⭐ (deux pills égales, h-11 pour bon touch) */}
                   <div className="grid grid-cols-2 gap-2">
                     <QuickObjectiveSelector
                       currentGoal={currentAthlete.goal}
-                      className="w-full justify-start"
+                      className="!h-11 w-full justify-between"
                       onGoalChange={async (goal, options) => {
                         await updateAthleteGoal(goal, {
                           raceName: options?.raceName,
@@ -1473,9 +1474,12 @@ const Index = () => {
                       value={currentAmbition}
                       onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
                     >
-                      <SelectTrigger className="h-9 w-full text-sm">
-                        <Star className="h-3.5 w-3.5 mr-1.5 text-primary shrink-0" />
-                        <SelectValue placeholder="Ambition" />
+                      <SelectTrigger className="h-11 w-full text-sm border-primary/30 bg-primary/5">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <Star className="h-4 w-4 text-primary shrink-0" />
+                          <span aria-hidden>{ambitionDef.icon}</span>
+                          <span className="truncate">{ambitionDef.label}</span>
+                        </span>
                       </SelectTrigger>
                       <SelectContent>
                         {AMBITION_LEVELS_ORDERED.map((level) => {
@@ -1491,29 +1495,29 @@ const Index = () => {
                     </Select>
                   </div>
 
-                  {/* Ligne B : CTAs primaires Bilan + Voir ma stratégie */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      size="sm"
-                      variant={raceWeek ? "default" : "outline"}
-                      className={cn("w-full h-10 gap-1.5", raceWeek && "animate-pulse")}
-                      onClick={() => setReadinessOpen(true)}
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      <span>Bilan</span>
-                      {daysToRace !== null && (
-                        <Badge variant="secondary" className="ml-0.5 h-4 px-1 text-[10px]">J-{daysToRace}</Badge>
-                      )}
-                    </Button>
-                    <Button asChild size="sm" className="w-full h-10 gap-1.5">
-                      <Link to="/race?step=3">
-                        <Target className="h-4 w-4" />
-                        <span>Stratégie</span>
-                      </Link>
-                    </Button>
-                  </div>
+                  {/* Ligne B : CTA principal pleine largeur — Voir ma stratégie */}
+                  <Button asChild size="lg" className="w-full h-12 gap-2 text-sm font-semibold shadow-sm">
+                    <Link to="/race?step=3">
+                      <Target className="h-4 w-4" />
+                      <span>Voir ma stratégie</span>
+                    </Link>
+                  </Button>
 
-                  {/* Ligne C : Progression vers la cible (pleine largeur) */}
+                  {/* Ligne C : CTA secondaire — Bilan pré-objectif (pleine largeur, accentué race week) */}
+                  <Button
+                    size="sm"
+                    variant={raceWeek ? "default" : "outline"}
+                    className={cn("w-full h-11 gap-1.5 text-sm", raceWeek && "animate-pulse")}
+                    onClick={() => setReadinessOpen(true)}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Bilan pré-objectif</span>
+                    {daysToRace !== null && (
+                      <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">J-{daysToRace}</Badge>
+                    )}
+                  </Button>
+
+                  {/* Ligne D : Progression vers la cible (pleine largeur) */}
                   <AmbitionProgressMini
                     snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
                     objectif={currentAthlete.goal || "IM"}
@@ -1531,6 +1535,7 @@ const Index = () => {
                 </div>
               );
             })()}
+
 
           </div>
         )}
