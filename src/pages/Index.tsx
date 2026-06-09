@@ -1229,13 +1229,12 @@ const Index = () => {
                   <Button
                     size="sm"
                     variant={isRaceWeek ? "default" : "outline"}
-                    className={cn("flex-1 sm:flex-none sm:shrink-0 gap-1.5", isRaceWeek && "animate-pulse")}
+                    className={cn("hidden sm:inline-flex shrink-0 gap-1.5", isRaceWeek && "animate-pulse")}
                     onClick={() => setReadinessOpen(true)}
                     title={isRaceWeek ? "Race week — bilan disponible" : days !== null ? `J-${days} avant la course` : "Bilan pré-objectif TFCL"}
                   >
                     <Sparkles className="h-4 w-4" />
-                    <span className="hidden sm:inline">Bilan pré-objectif</span>
-                    <span className="sm:hidden">Bilan</span>
+                    <span>Bilan pré-objectif</span>
                     {days !== null && (
                       <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">J-{days}</Badge>
                     )}
@@ -1245,7 +1244,7 @@ const Index = () => {
 
               {/* CTA — Voir ma stratégie : ouvre directement l'étape 3 de la simulation */}
               {currentAthlete && (
-                <Button asChild size="sm" className="flex-1 sm:flex-none sm:shrink-0 gap-1.5">
+                <Button asChild size="sm" className="hidden sm:inline-flex shrink-0 gap-1.5">
                   <Link to="/race?step=3">
                     <Target className="h-4 w-4" />
                     <span>Voir ma stratégie</span>
