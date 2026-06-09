@@ -193,6 +193,7 @@ import {
   Sparkles,
   Eye,
   EyeOff,
+  MoreHorizontal,
 } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
