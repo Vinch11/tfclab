@@ -92,6 +92,52 @@ function anchorRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
     const targetWeek = plan.weeks.find(w => w.weekNumber === targetWeekNum);
     if (!targetWeek) continue;
 
+    const priorityLabel = goal.priority === "A" ? "🅰️" : goal.priority === "B" ? "🅱️" : "🅲";
+    const raceName = goal.raceName || goal.objective;
+    const pacingHint = buildPacingHint(goal.objective);
+
+    // ─── LCW (Long Course Weekend) — 3 jours éclatés (Ven nat / Sam vélo / Dim run) ───
+    if ((goal as any).raceFormat === "lcw_3day") {
+      const raceDate = new Date(goal.raceDate);
+      const stages = [
+        { offset: -2, sport: "🏊 Natation", stage: "Étape 1/3 — Natation", hint: "1.9 km. Sighting régulier. Sortir frais." },
+        { offset: -1, sport: "🚴 Vélo", stage: "Étape 2/3 — Vélo", hint: "90 km. Puissance 80-85% FTP. Nutrition 80-90g CHO/h. Refeed agressif post." },
+        { offset: 0, sport: "🏃 Course", stage: "Étape 3/3 — Course", hint: "21.1 km sur jambes pré-fatiguées. Pacing négatif split. Nutrition 60g/h." },
+      ];
+
+      // Purge toute session existante sur les 3 jours LCW (récup, autres séances IA)
+      const lcwDayIndices = new Set<number>();
+      for (const st of stages) {
+        const d = new Date(raceDate);
+        d.setDate(d.getDate() + st.offset);
+        lcwDayIndices.add(JS_TO_PLAN_DAY[d.getDay()]);
+      }
+      targetWeek.sessions = targetWeek.sessions.filter(s => !lcwDayIndices.has(s.dayIndex));
+
+      // Injecter les 3 étapes
+      for (const st of stages) {
+        const d = new Date(raceDate);
+        d.setDate(d.getDate() + st.offset);
+        const planDayIndex = JS_TO_PLAN_DAY[d.getDay()];
+        const dayName = PLAN_DAY_NAMES[planDayIndex];
+        const dateStr = d.toISOString().slice(0, 10);
+        targetWeek.sessions.push({
+          weekNumber: targetWeekNum,
+          weekTheme: targetWeek.theme,
+          phase: targetWeek.phase,
+          dayName,
+          dayIndex: planDayIndex,
+          sport: st.sport,
+          title: `🏁 COURSE OBJECTIF ${priorityLabel} — ${raceName} · ${st.stage}`,
+          details: `Jour J${st.offset === 0 ? "" : st.offset} — ${raceName} (${dateStr}, format LCW 3 jours). ${st.hint} ${pacingHint}`,
+          isRest: false,
+        });
+      }
+
+      targetWeek.sessions.sort((a, b) => a.dayIndex - b.dayIndex);
+      continue;
+    }
+
     // Already has a race day in the correct week → skip
     if (weekHasRaceDay(targetWeek)) continue;
 
@@ -126,12 +172,6 @@ function anchorRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
     const jsDayOfWeek = raceDate.getDay(); // 0=Sun
     const planDayIndex = JS_TO_PLAN_DAY[jsDayOfWeek];
     const dayName = PLAN_DAY_NAMES[planDayIndex];
-
-    const priorityLabel = goal.priority === "A" ? "🅰️" : goal.priority === "B" ? "🅱️" : "🅲";
-    const raceName = goal.raceName || goal.objective;
-
-    // Build pacing hint based on objective
-    const pacingHint = buildPacingHint(goal.objective);
 
     const raceSession: ParsedSession = {
       weekNumber: targetWeekNum,
