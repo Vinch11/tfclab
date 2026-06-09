@@ -1279,8 +1279,8 @@ const Index = () => {
                 </div>
               )}
 
-              {/* Actions compactes */}
-              <div className="flex items-center gap-1">
+              {/* Actions compactes — sur mobile : nouvelle ligne pleine largeur alignée à droite */}
+              <div className="flex items-center gap-1 basis-full justify-end sm:basis-auto sm:justify-start">
                 {/* Masquer / démasquer l'athlète courant */}
                 {currentAthlete && (
                   <Button
