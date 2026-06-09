@@ -104,6 +104,7 @@ export function useAthleteRaceGoals(athleteId: string | null) {
           race_type: input.race_type,
           race_name: input.race_name,
           race_date: input.race_date,
+          race_format: input.race_format ?? null,
           plan_start_date: input.plan_start_date,
         })
         .select()
