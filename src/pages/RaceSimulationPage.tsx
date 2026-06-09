@@ -37,6 +37,7 @@ import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
+import { useAthleteRaceGoals } from '@/hooks/useAthleteRaceGoals';
 import { computeVLamaxEffectif, computeTTEEffectif } from '@/engines/diagnostic';
 import { estimateFromRaceChronos } from '@/engines/diagnostic/raceTimeEstimator';
 import { computeUnifiedReadiness } from '@/lib/readinessSource';
@@ -216,7 +217,7 @@ export default function RaceSimulationPage() {
     return computeDisponibiliteTFCL(input);
   }, [activeSnapshot]);
   
-  const raceObjective: RaceObjective = React.useMemo(() => {
+  const raceObjectiveRaw: RaceObjective = React.useMemo(() => {
     if (objectif.includes('Marathon') && !objectif.includes('Semi')) return 'Marathon';
     if (objectif.includes('Semi')) return 'Semi';
     if (objectif.includes('10km') || objectif.includes('10k')) return '10km';
@@ -224,17 +225,41 @@ export default function RaceSimulationPage() {
     return 'IM';
   }, [objectif]);
 
+  // ═══ DÉTECTION FORMAT LCW (Long Course Weekend — 3 jours éclatés) ═══
+  // Cherche un objectif 70.3 LCW à venir pour l'athlète. Si trouvé, on bascule
+  // en "mode 3 épreuves indépendantes" : chaque segment est simulé SOLO,
+  // sans enchaînement, sans carry-over de fatigue ni de glycogène.
+  const { raceGoals } = useAthleteRaceGoals(athleteId || null);
+  const lcwGoal = React.useMemo(() => {
+    if (!raceGoals?.length) return null;
+    const today = new Date().toISOString().slice(0, 10);
+    return raceGoals.find(g =>
+      g.race_format === 'lcw_3day' &&
+      (g.race_date >= today || raceObjectiveRaw === '70.3')
+    ) ?? null;
+  }, [raceGoals, raceObjectiveRaw]);
+  const lcwActive = lcwGoal !== null && raceObjectiveRaw === '70.3';
+  const [lcwSegment, setLcwSegment] = useState<'swim' | 'bike' | 'run'>('bike');
+
+  // raceObjective effectif : si LCW + segment run → Semi solo ; sinon inchangé.
+  const raceObjective: RaceObjective = React.useMemo(() => {
+    if (lcwActive && lcwSegment === 'run') return 'Semi';
+    return raceObjectiveRaw;
+  }, [lcwActive, lcwSegment, raceObjectiveRaw]);
+
   // Triathlon → afficher pacing vélo ET course (segments séparés)
-  const isTriathlon = raceObjective === 'IM' || raceObjective === '70.3';
+  // En mode LCW, chaque segment est une épreuve SOLO → isTriathlon=false.
+  const isTriathlon = !lcwActive && (raceObjective === 'IM' || raceObjective === '70.3');
 
   // Discipline "principale" pour modules legacy (simulation, nutrition…)
   const defaultRunObjective = raceObjective === 'Marathon' || raceObjective === 'Semi' || raceObjective === '10km';
   const [triDiscipline, setTriDiscipline] = useState<'bike' | 'run'>('bike');
   const discipline: 'bike' | 'run' = React.useMemo(() => {
+    if (lcwActive) return lcwSegment === 'run' ? 'run' : 'bike'; // swim mappé sur bike (fallback)
     if (defaultRunObjective) return 'run';
     if (isTriathlon) return triDiscipline;
     return 'bike';
-  }, [defaultRunObjective, isTriathlon, triDiscipline]);
+  }, [lcwActive, lcwSegment, defaultRunObjective, isTriathlon, triDiscipline]);
 
   // Durée par segment (min) — individualisée à partir du pace seuil de l'athlète.
   // Modèle TFCL™ — exprimé en % de la vitesse seuil (vSeuil) :
@@ -300,6 +325,19 @@ export default function RaceSimulationPage() {
   }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm]);
 
   const raceDurationMin = React.useMemo(() => {
+    // LCW : chaque segment simulé SOLO, sans pénalité enchaînement.
+    // Bike 90km TT solo : ~2h15-2h30 selon athlète ; on garde la baseline 150 min
+    // (équivalente à la baseline 70.3, légèrement optimiste pour solo).
+    // Run 21.1km SOLO fresh-start : on utilise le calcul Semi standard.
+    // Swim 1.9km : ~30 min baseline (très athlète-dépendant).
+    if (lcwActive) {
+      if (lcwSegment === 'swim') return 30;
+      if (lcwSegment === 'bike') return segmentDurationMin.bike; // 150 min baseline 70.3
+      if (lcwSegment === 'run') {
+        // Semi solo fresh — calcul standard de la branche Semi
+        return 100;
+      }
+    }
     if (isTriathlon) return segmentDurationMin[discipline];
     switch (raceObjective) {
       case 'Marathon': return 210;
@@ -307,7 +345,7 @@ export default function RaceSimulationPage() {
       case '10km': return 45;
       default: return 180;
     }
-  }, [raceObjective, isTriathlon, segmentDurationMin, discipline]);
+  }, [lcwActive, lcwSegment, raceObjective, isTriathlon, segmentDurationMin, discipline]);
   
   // Source de vérité unifiée — voir src/lib/readinessSource.ts
   const readiness = React.useMemo(() => computeUnifiedReadiness({
@@ -478,6 +516,38 @@ export default function RaceSimulationPage() {
           </div>
         </div>
 
+        {/* ═══ BANNER + SÉLECTEUR LCW (Long Course Weekend — 3 jours éclatés) ═══ */}
+        {lcwActive && (
+          <Alert className="text-xs sm:text-sm py-2 sm:py-3 bg-primary/5 border-primary/30">
+            <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+            <AlertDescription className="space-y-2">
+              <div className="text-[11px] sm:text-sm leading-relaxed">
+                <strong>Format LCW détecté</strong> — {lcwGoal?.race_name ?? '70.3 Long Course Weekend'} ({lcwGoal?.race_date}).
+                Chaque épreuve est simulée comme un <strong>effort solo, jambes fraîches</strong> (pas d'enchaînement, pas de carry-over fatigue / glycogène).
+              </div>
+              <div className="inline-flex rounded-md border border-border overflow-hidden bg-background">
+                {([
+                  { key: 'swim', label: '🏊 Natation 1.9 km', day: 'Vendredi (J-2)' },
+                  { key: 'bike', label: '🚴 Vélo 90 km', day: 'Samedi (J-1)' },
+                  { key: 'run', label: '🏃 Course 21.1 km', day: 'Dimanche (J)' },
+                ] as const).map(seg => (
+                  <button
+                    key={seg.key}
+                    type="button"
+                    onClick={() => setLcwSegment(seg.key)}
+                    className={`px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-colors border-r border-border last:border-r-0 ${
+                      lcwSegment === seg.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                    }`}
+                    title={seg.day}
+                  >
+                    {seg.label}
+                  </button>
+                ))}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Info banner - compact */}
         <Alert className="text-xs sm:text-sm py-2 sm:py-3">
           <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
@@ -627,6 +697,14 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
+              {lcwActive && lcwSegment === 'swim' ? (
+                <LCWSwimSoloCard
+                  weightKg={activeSnapshot?.weight_kg ?? null}
+                  raceName={lcwGoal?.race_name ?? '70.3 LCW'}
+                />
+              ) : (<></>)}
+              {lcwActive && lcwSegment === 'swim' ? null : (<>
+
               {isTriathlon && (
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs text-muted-foreground">Segment :</span>
@@ -759,6 +837,7 @@ export default function RaceSimulationPage() {
                   </AlertDescription>
                 </Alert>
               )}
+              </>)}
             </AccordionContent>
           </AccordionItem>
 
@@ -776,6 +855,16 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
+              {lcwActive && lcwSegment === 'swim' ? (
+                <Alert className="text-[11px] sm:text-xs py-2">
+                  <Info className="h-3.5 w-3.5" />
+                  <AlertDescription>
+                    Le plan de course standard (vélo / course à pied) ne s'applique pas à la natation.
+                    Consulte l'encart natation à l'étape 2 pour les consignes spécifiques (allure, sighting, drafting, sortie d'eau).
+                  </AlertDescription>
+                </Alert>
+              ) : (<>
+
               {/* What-if seuil run — recalcule allures cibles & temps */}
               {(discipline === 'run' || isTriathlon) && (
                 <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
@@ -899,6 +988,7 @@ export default function RaceSimulationPage() {
                   />
                 </>
               )}
+              </>)}
             </AccordionContent>
           </AccordionItem>
 
@@ -1104,3 +1194,84 @@ function ProfileTile({
     </div>
   );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LCW SWIM SOLO CARD
+// Carte dédiée natation 1.9 km solo (vendredi) en format LCW.
+// La majorité des modules existants pilotent sur FTP/pace seuil → non pertinents
+// pour la nage. On affiche ici les consignes spécifiques OWS race-sim.
+// ═══════════════════════════════════════════════════════════════════════════════
+function LCWSwimSoloCard({
+  weightKg,
+  raceName,
+}: {
+  weightKg: number | null;
+  raceName: string;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">🏊</span>
+          <div>
+            <h3 className="text-sm font-semibold">Natation 1.9 km — {raceName}</h3>
+            <p className="text-[11px] text-muted-foreground">
+              Effort solo · Vendredi (J-2) · Eau libre · Sortir frais pour le vélo de samedi
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="rounded-md border border-border bg-muted/30 p-3">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1">
+            Allure cible
+          </div>
+          <p className="text-[11px] leading-snug">
+            <strong>Régulière, contrôlée.</strong> Démarrer 5 % sous l'allure CSS,
+            puis stabiliser. Pas de sprint départ (risque hyperventilation, perte d'aspiration).
+          </p>
+        </div>
+        <div className="rounded-md border border-border bg-muted/30 p-3">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1">
+            Sighting & trajectoire
+          </div>
+          <p className="text-[11px] leading-snug">
+            Lever la tête toutes les <strong>6–8 brasses</strong>. Viser les bouées les
+            plus éloignées pour ligne droite. Drafting autorisé : se caler dans les pieds
+            d'un nageur ~ même allure (économie 5–10 %).
+          </p>
+        </div>
+        <div className="rounded-md border border-border bg-muted/30 p-3">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1">
+            Sortie d'eau & T1
+          </div>
+          <p className="text-[11px] leading-snug">
+            Accélérer 200 m avant la sortie (réveil cardiaque pour la T1). Combinaison
+            descendue jusqu'à la taille en courant. Hydratation immédiate dès T1.
+          </p>
+        </div>
+        <div className="rounded-md border border-border bg-muted/30 p-3">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1">
+            Récupération post-épreuve
+          </div>
+          <p className="text-[11px] leading-snug">
+            <strong>Refeed agressif</strong> : 1.0 g CHO/kg dans les 30 min + protéines.
+            {weightKg ? ` Pour toi : ~${Math.round(weightKg * 1.0)} g CHO post-nage.` : ''}
+            {' '}Sieste 30–60 min l'après-midi. Nutrition normale au dîner pré-vélo.
+          </p>
+        </div>
+      </div>
+
+      <Alert className="text-[11px] sm:text-xs py-2 bg-amber-500/5 border-amber-500/30">
+        <Info className="h-3.5 w-3.5" />
+        <AlertDescription>
+          <strong>Format LCW :</strong> cette épreuve est jugée seule. L'enjeu n'est pas le
+          chrono natation mais de sortir <em>frais</em> pour les 90 km de vélo du lendemain.
+          Marge de sécurité 5–8 % vs allure CSS solo.
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
