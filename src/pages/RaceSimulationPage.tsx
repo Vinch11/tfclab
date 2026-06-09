@@ -546,6 +546,9 @@ export default function RaceSimulationPage() {
 
         )}
 
+          </div>
+        </div>
+
         {/* Toggle manuel LCW (visible si objectif 70.3 mais pas encore activé) */}
         {raceObjectiveRaw === '70.3' && !lcwActive && (
           <Alert className="text-xs sm:text-sm py-2 sm:py-3 border-dashed">
@@ -566,7 +569,7 @@ export default function RaceSimulationPage() {
           </Alert>
         )}
 
-        {/* Bouton désactiver (si LCW actif) */}
+        {/* Bouton désactiver (si LCW actif via toggle local, pas persisté) */}
         {lcwActive && lcwManualEnabled && !lcwGoal && (
           <div className="flex justify-end">
             <Button
@@ -579,10 +582,9 @@ export default function RaceSimulationPage() {
             </Button>
           </div>
         )}
-          </div>
-        </div>
 
         {/* ═══ BANNER + SÉLECTEUR LCW (Long Course Weekend — 3 jours éclatés) ═══ */}
+
         {lcwActive && (
           <Alert className="text-xs sm:text-sm py-2 sm:py-3 bg-primary/5 border-primary/30">
             <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
