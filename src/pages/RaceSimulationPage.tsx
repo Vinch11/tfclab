@@ -697,6 +697,14 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
+              {lcwActive && lcwSegment === 'swim' ? (
+                <LCWSwimSoloCard
+                  weightKg={activeSnapshot?.weight_kg ?? null}
+                  raceName={lcwGoal?.race_name ?? '70.3 LCW'}
+                />
+              ) : (<></>)}
+              {lcwActive && lcwSegment === 'swim' ? null : (<>
+
               {isTriathlon && (
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs text-muted-foreground">Segment :</span>
