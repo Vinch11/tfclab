@@ -169,6 +169,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 import {
   Zap,
@@ -192,6 +193,7 @@ import {
   Sparkles,
   Eye,
   EyeOff,
+  MoreHorizontal,
 } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Switch } from "@/components/ui/switch";
@@ -1145,6 +1147,43 @@ const Index = () => {
                 </div>
               )}
 
+              {/* Menu ⋯ — mobile uniquement, regroupe les actions athlète */}
+              {currentAthlete && (
+                <div className="sm:hidden ml-auto shrink-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="ghost" className="h-9 w-9 p-0">
+                        <MoreHorizontal className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => toggleAthleteHidden(currentAthlete.id, !currentAthlete.is_hidden)}>
+                        {currentAthlete.is_hidden ? (
+                          <><EyeOff className="h-4 w-4 mr-2" /> Démasquer cet athlète</>
+                        ) : (
+                          <><Eye className="h-4 w-4 mr-2" /> Masquer cet athlète</>
+                        )}
+                      </DropdownMenuItem>
+                      {hiddenAthletes.length > 0 && (
+                        <DropdownMenuItem onClick={() => setIsHiddenDialogOpen(true)}>
+                          <EyeOff className="h-4 w-4 mr-2" />
+                          Athlètes masqués ({hiddenAthletes.length})
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setIsAddDialogOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nouvel athlète
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleDeleteAthlete} className="text-destructive focus:text-destructive">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Supprimer cet athlète
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
+
               {/* Spacer pour pousser les actions à droite sur desktop */}
               <div className="hidden sm:flex flex-1 min-w-[8px]" />
 
@@ -1227,13 +1266,12 @@ const Index = () => {
                   <Button
                     size="sm"
                     variant={isRaceWeek ? "default" : "outline"}
-                    className={cn("flex-1 sm:flex-none sm:shrink-0 gap-1.5", isRaceWeek && "animate-pulse")}
+                    className={cn("hidden sm:inline-flex shrink-0 gap-1.5", isRaceWeek && "animate-pulse")}
                     onClick={() => setReadinessOpen(true)}
                     title={isRaceWeek ? "Race week — bilan disponible" : days !== null ? `J-${days} avant la course` : "Bilan pré-objectif TFCL"}
                   >
                     <Sparkles className="h-4 w-4" />
-                    <span className="hidden sm:inline">Bilan pré-objectif</span>
-                    <span className="sm:hidden">Bilan</span>
+                    <span>Bilan pré-objectif</span>
                     {days !== null && (
                       <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">J-{days}</Badge>
                     )}
@@ -1243,7 +1281,7 @@ const Index = () => {
 
               {/* CTA — Voir ma stratégie : ouvre directement l'étape 3 de la simulation */}
               {currentAthlete && (
-                <Button asChild size="sm" className="flex-1 sm:flex-none sm:shrink-0 gap-1.5">
+                <Button asChild size="sm" className="hidden sm:inline-flex shrink-0 gap-1.5">
                   <Link to="/race?step=3">
                     <Target className="h-4 w-4" />
                     <span>Voir ma stratégie</span>
@@ -1279,8 +1317,8 @@ const Index = () => {
                 </div>
               )}
 
-              {/* Actions compactes — sur mobile : nouvelle ligne pleine largeur alignée à droite */}
-              <div className="flex items-center gap-1 basis-full justify-end sm:basis-auto sm:justify-start">
+              {/* Actions compactes — desktop : icônes inline ; mobile : repris dans le menu ⋯ ci-dessous */}
+              <div className="hidden sm:flex items-center gap-1">
                 {/* Masquer / démasquer l'athlète courant */}
                 {currentAthlete && (
                   <Button
@@ -1407,57 +1445,92 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Ligne 2 (mobile only): Objectif + Ambition + Progress */}
-            {currentAthlete && (
-              <div className="flex items-center gap-2 md:hidden flex-wrap">
-                <QuickObjectiveSelector
-                  currentGoal={currentAthlete.goal}
-                  onGoalChange={async (goal, options) => {
-                    await updateAthleteGoal(goal, {
-                      raceName: options?.raceName,
-                      raceDate: options?.raceDate,
-                      raceFormat: options?.raceFormat ?? null,
-                    });
-                    await loadData();
-                  }}
-                />
-                <Select
-                  value={currentAmbition}
-                  onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
-                >
-                  <SelectTrigger className="h-9 flex-1 min-w-[120px] text-sm">
-                    <Star className="h-3.5 w-3.5 mr-1.5 text-primary shrink-0" />
-                    <SelectValue placeholder="Ambition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AMBITION_LEVELS_ORDERED.map((level) => {
-                      const def = getAmbitionDefinition(level);
-                      const timeHint = currentAthlete ? getRunningTimeHint(currentAthlete.goal || "IM", level, currentAthlete.sex === "F" ? "F" : "M") : null;
-                      return (
-                        <SelectItem key={level} value={level}>
-                          {def.icon} {def.label}{timeHint ? ` — ${timeHint}` : ""}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+            {/* Bloc mobile uniquement — hiérarchie claire en 3 lignes */}
+            {currentAthlete && (() => {
+              const futureGoals = (raceGoals || [])
+                .filter(g => new Date(g.race_date) >= new Date())
+                .sort((a, b) => new Date(a.race_date).getTime() - new Date(b.race_date).getTime());
+              const nextRace = futureGoals[0];
+              const daysToRace = nextRace ? Math.ceil((new Date(nextRace.race_date).getTime() - Date.now()) / 86400000) : null;
+              const raceWeek = daysToRace !== null && daysToRace <= 7;
+              return (
+                <div className="md:hidden space-y-2">
+                  {/* Ligne A : Objectif 🎯 + Ambition ⭐ (deux colonnes égales) */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <QuickObjectiveSelector
+                      currentGoal={currentAthlete.goal}
+                      className="w-full justify-start"
+                      onGoalChange={async (goal, options) => {
+                        await updateAthleteGoal(goal, {
+                          raceName: options?.raceName,
+                          raceDate: options?.raceDate,
+                          raceFormat: options?.raceFormat ?? null,
+                        });
+                        await loadData();
+                      }}
+                    />
+                    <Select
+                      value={currentAmbition}
+                      onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
+                    >
+                      <SelectTrigger className="h-9 w-full text-sm">
+                        <Star className="h-3.5 w-3.5 mr-1.5 text-primary shrink-0" />
+                        <SelectValue placeholder="Ambition" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AMBITION_LEVELS_ORDERED.map((level) => {
+                          const def = getAmbitionDefinition(level);
+                          const timeHint = currentAthlete ? getRunningTimeHint(currentAthlete.goal || "IM", level, currentAthlete.sex === "F" ? "F" : "M") : null;
+                          return (
+                            <SelectItem key={level} value={level}>
+                              {def.icon} {def.label}{timeHint ? ` — ${timeHint}` : ""}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <AmbitionProgressMini
-                  snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
-                  objectif={currentAthlete.goal || "IM"}
-                  ambition={currentAmbition}
-                  weightKg={effectiveRefs.weightKg}
-                  onClick={() => {
-                    const el = document.getElementById("section-ambition-progress");
-                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                  onMetricClick={(sectionId) => {
-                    const el = document.getElementById(`section-${sectionId}`);
-                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                />
-              </div>
-            )}
+                  {/* Ligne B : CTAs primaires Bilan + Voir ma stratégie */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant={raceWeek ? "default" : "outline"}
+                      className={cn("w-full h-10 gap-1.5", raceWeek && "animate-pulse")}
+                      onClick={() => setReadinessOpen(true)}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>Bilan</span>
+                      {daysToRace !== null && (
+                        <Badge variant="secondary" className="ml-0.5 h-4 px-1 text-[10px]">J-{daysToRace}</Badge>
+                      )}
+                    </Button>
+                    <Button asChild size="sm" className="w-full h-10 gap-1.5">
+                      <Link to="/race?step=3">
+                        <Target className="h-4 w-4" />
+                        <span>Stratégie</span>
+                      </Link>
+                    </Button>
+                  </div>
+
+                  {/* Ligne C : Progression vers la cible (pleine largeur) */}
+                  <AmbitionProgressMini
+                    snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                    objectif={currentAthlete.goal || "IM"}
+                    ambition={currentAmbition}
+                    weightKg={effectiveRefs.weightKg}
+                    onClick={() => {
+                      const el = document.getElementById("section-ambition-progress");
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    onMetricClick={(sectionId) => {
+                      const el = document.getElementById(`section-${sectionId}`);
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                  />
+                </div>
+              );
+            })()}
 
           </div>
         )}
