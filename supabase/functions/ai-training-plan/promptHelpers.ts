@@ -1180,6 +1180,33 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Vélo 40-50% | CAP 30-40% | Natation 15-20% | Renfo 5-10%");
     lines.push("- Min 3 natation/sem, 3 vélo/sem, 3 CAP/sem");
     lines.push("- Plus d'intensité seuil/tempo qu'en IM");
+
+    // ─── DURABILITÉ + RACE-SIM 70.3 — OBLIGATOIRE BUILD/PEAK (podium/elite/competitor) ───
+    // Comble les angles morts identifiés par audit coach 70.3 podium :
+    // race-pace CAP long manquant, briques race-pace 70.3 sous-prescrites,
+    // OWS race-sim et drafting/quick start piscine absents des plans standards.
+    const amb703 = normalizeAmbKey(config.ambition || "");
+    if (amb703 === "elite" || amb703 === "competitor" || amb703 === "podium") {
+      lines.push("\n### 🎯 DURABILITÉ + RACE-SIM 70.3 — OBLIGATOIRE BUILD + PEAK (podium/elite/competitor)");
+      lines.push("Pour un podium 70.3, le semi off-bike se gagne par la spécificité du pace ET la qualité du départ + drafting. Le plan DOIT intégrer ces séances signature :");
+      lines.push("");
+      lines.push("**Catalogue dédié 70.3 Podium Durability — utilise ces IDs en priorité absolue :**");
+      lines.push("- `A_703_RUN_RACE_PACE_LONG` — Long CAP 1h30-1h50 avec 45-60min @ pace 70.3 (séance manquante #1 des plans standards).");
+      lines.push("- `B_703_BRICK_RACE_PACE` — Brick 2h-2h30 vélo race-pace 70.3 + 60-75' run race-pace (signature absolue podium 70.3).");
+      lines.push("- `B_703_RUN_OFF_BIKE_FAST_FINISH` — Long run avec finish 20' @ pace 70.3 après SST vélo.");
+      lines.push("- `B_703_RUN_NEG_SPLIT` — Long run progressif 3 tiers jusqu'à pace 70.3 (pacing discipline).");
+      lines.push("- `B_703_SWIM_OWS_RACE_SIM` — Eau libre 2-3 km avec quick start + drafting + sighting (dès que l'eau libre est ouverte).");
+      lines.push("- `B_703_SWIM_QUICK_START_DRAFT` — Piscine race-sim : départ explosif 100m + drafting pieds + 300m race-pace.");
+      lines.push("");
+      lines.push("**Règle de prescription NON-NÉGOCIABLE :**");
+      lines.push("- **Build 70.3 (S25-S50% du plan)** : minimum **1 séance 70.3 race-pace/race-sim par semaine** (rotation : long race-pace, off-bike fast finish, neg split, OWS si disponible).");
+      lines.push("- **Peak 70.3 (S55-S90% du plan)** : minimum **2 séances 70.3 race-pace/race-sim par semaine** (typiquement : brick race-pace samedi + long run race-pace mardi/jeudi, + 1 séance natation race-sim/OWS/sem).");
+      lines.push("- **Brick race-pace 70.3** (`B_703_BRICK_RACE_PACE`) : 4-6 occurrences entre S6 et S14 d'un plan 70.3 16 sem. Jamais 2 sem de suite.");
+      lines.push("- **Natation race-sim** : `B_703_SWIM_QUICK_START_DRAFT` (piscine) 1×/sem hors-saison eau libre, puis `B_703_SWIM_OWS_RACE_SIM` (OWS) 1×/2 sem dès que l'eau libre est accessible.");
+      lines.push("- Si tu prescris une SL run classique en Build/Peak 70.3, vérifie qu'aucune séance ci-dessus ne couvre mieux le besoin spécifique.");
+      lines.push("");
+      lines.push("**Pourquoi c'est critique** : Lorang, Haug/Frodeno training logs, Stryd Durability Index, Maunder 2021 — un podium 70.3 ne se construit pas avec du volume Z2 isolé. La signature physiologique (courir vite après 2h-2h30 aéro + gagner le drafting au départ natation) DOIT être entraînée spécifiquement.");
+    }
   } else if (objKeyForRappel === "Marathon") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE MARATHON");
     lines.push("- CAP 85-90% | Renfo 10-15%");
