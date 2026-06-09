@@ -701,6 +701,24 @@ export function AthleteObjectiveManager({
                           placeholder="ex: Marathon de Paris 2025"
                         />
                       </div>
+
+                      {newGoalType === "70.3" && (
+                        <div className="space-y-2">
+                          <Label>Format de course</Label>
+                          <Select value={newGoalFormat} onValueChange={(v) => setNewGoalFormat(v as "continuous" | "lcw_3day")}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="continuous">Standard — course continue (1 jour)</SelectItem>
+                              <SelectItem value="lcw_3day">Long Course Weekend — 3 jours (Ven nat / Sam vélo / Dim run)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">
+                            LCW = format étapes (Wales, Belgium). Modifie la stratégie de plan : back-to-back overnight, pacing vélo +3%, recharge inter-étapes.
+                          </p>
+                        </div>
+                      )}
                       
                       {/* Race Date */}
                       <div className="space-y-2">
