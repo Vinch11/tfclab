@@ -1457,18 +1457,18 @@ const Index = () => {
               const timeHint = getRunningTimeHint(currentAthlete.goal || "IM", currentAmbition, currentAthlete.sex === "F" ? "F" : "M");
               return (
                 <div className="md:hidden space-y-4 pt-2">
-                  {/* Section 1 — Objectif & Ambition (groupe unifié avec séparateur) */}
+                  {/* Section 1 — Objectif & Ambition (tonalité primary) */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-1.5 px-0.5">
-                      <Target className="h-3 w-3 text-primary/70" />
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Target className="h-3 w-3 text-primary" />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-primary/80">
                         Objectif & ambition
                       </span>
                     </div>
-                    <div className="rounded-xl border border-border/60 bg-gradient-to-br from-card to-muted/20 overflow-hidden shadow-sm divide-y divide-border/50">
+                    <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent overflow-hidden shadow-sm divide-y divide-primary/15">
                       <QuickObjectiveSelector
                         currentGoal={currentAthlete.goal}
-                        className="!h-12 w-full justify-between text-sm !rounded-none !border-0 !bg-transparent hover:!bg-muted/30"
+                        className="!h-12 w-full justify-between text-sm !rounded-none !border-0 !bg-transparent hover:!bg-primary/10"
                         onGoalChange={async (goal, options) => {
                           await updateAthleteGoal(goal, {
                             raceName: options?.raceName,
@@ -1482,7 +1482,7 @@ const Index = () => {
                         value={currentAmbition}
                         onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
                       >
-                        <SelectTrigger className="h-12 w-full text-sm rounded-none border-0 bg-transparent hover:bg-muted/30 focus:ring-0 focus:ring-offset-0 [&>span]:flex-1 [&>span]:min-w-0">
+                        <SelectTrigger className="h-12 w-full text-sm rounded-none border-0 bg-transparent hover:bg-primary/10 focus:ring-0 focus:ring-offset-0 [&>span]:flex-1 [&>span]:min-w-0">
                           <span className="flex items-center gap-2 min-w-0 flex-1">
                             <span aria-hidden className="text-base leading-none shrink-0">{ambitionDef.icon}</span>
                             <span className="font-medium leading-none truncate">{ambitionDef.label}</span>
@@ -1506,12 +1506,12 @@ const Index = () => {
                     </div>
                   </div>
 
-                  {/* Section 2 — Actions (CTA principal + bilan) */}
+                  {/* Section 2 — Actions (tonalité accent/warning pour CTA) */}
                   <div className="space-y-2">
                     <Button
                       asChild
                       size="lg"
-                      className="w-full h-12 gap-2 text-sm font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30"
+                      className="w-full h-12 gap-2 text-sm font-semibold shadow-lg shadow-primary/30 bg-gradient-to-r from-primary to-primary/85 hover:shadow-primary/40"
                     >
                       <Link to="/race?step=3">
                         <Target className="h-4 w-4" />
@@ -1522,32 +1522,33 @@ const Index = () => {
                       size="sm"
                       variant={raceWeek ? "default" : "outline"}
                       className={cn(
-                        "w-full h-11 gap-1.5 text-sm",
-                        raceWeek && "animate-pulse shadow-md"
+                        "w-full h-11 gap-1.5 text-sm border-warning/40 bg-warning/5 text-warning-foreground hover:bg-warning/10 hover:border-warning/60",
+                        raceWeek && "animate-pulse shadow-md border-warning bg-warning/20"
                       )}
                       onClick={() => setReadinessOpen(true)}
                     >
-                      <Sparkles className="h-4 w-4" />
+                      <Sparkles className="h-4 w-4 text-warning" />
                       <span>Bilan pré-objectif</span>
                       {daysToRace !== null && (
-                        <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px] tabular-nums">
+                        <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px] tabular-nums bg-warning/15 text-warning-foreground border-warning/30">
                           J-{daysToRace}
                         </Badge>
                       )}
                     </Button>
                   </div>
 
-                  {/* Section 3 — Progression vers la cible */}
+                  {/* Section 3 — Progression (tonalité success) */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-1.5 px-0.5">
-                      <Sparkles className="h-3 w-3 text-primary/70" />
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Sparkles className="h-3 w-3 text-success" />
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-success/80">
                         Progression vers la cible
                       </span>
                     </div>
-                    <div className="rounded-xl border border-border/60 bg-muted/30 p-2.5">
+                    <div className="rounded-xl border border-success/20 bg-gradient-to-br from-success/10 via-success/5 to-transparent p-2.5 shadow-sm">
                       <AmbitionProgressMini
                         className="w-full justify-start !bg-transparent !border-0 !shadow-none !p-0"
+
                         snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
                         objectif={currentAthlete.goal || "IM"}
                         ambition={currentAmbition}
