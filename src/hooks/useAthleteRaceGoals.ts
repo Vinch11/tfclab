@@ -21,6 +21,8 @@ import { deduceSportMainFromGoal, normalizeSportMain } from "@/lib/sportMainDedu
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export type RaceFormat = 'continuous' | 'lcw_3day';
+
 export interface RaceGoal {
   id: string;
   athlete_id: string;
@@ -28,6 +30,7 @@ export interface RaceGoal {
   race_type: string;
   race_name: string | null;
   race_date: string;
+  race_format: RaceFormat | null;
   plan_start_date: string | null;
   created_at: string;
   updated_at: string;
@@ -38,6 +41,7 @@ export interface AddRaceGoalInput {
   race_type: string;
   race_name: string | null;
   race_date: string;
+  race_format?: RaceFormat | null;
   plan_start_date: string | null;
 }
 
