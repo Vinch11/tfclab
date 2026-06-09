@@ -13,6 +13,9 @@ import logo from "@/assets/logo-2fc.png";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { QuickObjectiveSelector } from "@/components/QuickObjectiveSelector";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 
 interface SidebarLayoutProps {
   children: ReactNode;
