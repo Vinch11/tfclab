@@ -212,6 +212,7 @@ export default function AITrainingPlanPage() {
 
   const [objective, setObjective] = useState(currentAthlete?.objectif || "703");
   const [raceName, setRaceName] = useState("");
+  const [raceFormat, setRaceFormat] = useState<"continuous" | "lcw_3day">("continuous");
   const [raceDate, setRaceDate] = useState("");
   const [weeklyHours, setWeeklyHours] = useState("");
   const [sessionsPerWeek, setSessionsPerWeek] = useState("");
@@ -250,6 +251,7 @@ export default function AITrainingPlanPage() {
       if (savedState.objective) setObjective(savedState.objective);
       else if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       if (savedState.raceName) setRaceName(savedState.raceName);
+      if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
       if (savedState.raceDate) setRaceDate(savedState.raceDate);
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
       if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
@@ -286,6 +288,7 @@ export default function AITrainingPlanPage() {
       response,
       objective,
       raceName,
+      raceFormat,
       raceDate,
       weeklyHours,
       sessionsPerWeek,
@@ -302,7 +305,7 @@ export default function AITrainingPlanPage() {
       terrainAvailability,
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
+  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -541,6 +544,7 @@ export default function AITrainingPlanPage() {
       raceDate: raceDate || undefined,
       weeksUntilRace: computeWeeksUntilRace(raceDate),
       priority: "A",
+      raceFormat: (objective === "703" || objective === "70.3") ? raceFormat : "continuous",
       distanceKm: trailDistKm,
       elevationGainM: trailDPlus,
       targetTimeMinutes: trailTargetMin,
@@ -575,7 +579,7 @@ export default function AITrainingPlanPage() {
     };
 
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
-  }, [objective, raceName, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, terrainAvailability]);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, terrainAvailability]);
 
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!rawParsedPlan) return null;
@@ -1323,6 +1327,24 @@ export default function AITrainingPlanPage() {
                   <Label>Nom de la course (optionnel)</Label>
                   <Input placeholder="Ex: IM Nice, Marathon Paris..." value={raceName} onChange={e => setRaceName(e.target.value)} />
                 </div>
+
+                {(objective === "703" || objective === "70.3") && (
+                  <div className="space-y-2">
+                    <Label>Format de course</Label>
+                    <Select value={raceFormat} onValueChange={(v) => setRaceFormat(v as "continuous" | "lcw_3day")}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="continuous">Standard — 1 jour (continu)</SelectItem>
+                        <SelectItem value="lcw_3day">Long Course Weekend — 3 jours (Ven nat / Sam vélo / Dim run)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {raceFormat === "lcw_3day" && (
+                      <p className="text-[11px] text-muted-foreground">
+                        LCW Wales/Belgium → back-to-back overnight au lieu de bricks T2, pacing vélo +3% (85-88% FTP), recharge glycogénique inter-étapes.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">

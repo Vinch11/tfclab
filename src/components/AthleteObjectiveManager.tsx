@@ -57,6 +57,7 @@ interface RaceGoal {
   race_type: string;
   race_name: string | null;
   race_date: string;
+  race_format: 'continuous' | 'lcw_3day' | null;
   plan_start_date: string | null;
   created_at: string;
   updated_at: string;
@@ -137,6 +138,7 @@ export function AthleteObjectiveManager({
   const [newGoalName, setNewGoalName] = useState("");
   const [newGoalDate, setNewGoalDate] = useState<Date | undefined>(undefined);
   const [newPlanStartDate, setNewPlanStartDate] = useState<Date | undefined>(undefined);
+  const [newGoalFormat, setNewGoalFormat] = useState<"continuous" | "lcw_3day">("continuous");
 
   // Sort race goals by date (most recent first)
   const sortedRaceGoals = useMemo(() => {
@@ -215,6 +217,7 @@ export function AthleteObjectiveManager({
         race_type: newGoalType,
         race_name: newGoalName || null,
         race_date: format(newGoalDate, 'yyyy-MM-dd'),
+        race_format: newGoalType === "70.3" ? newGoalFormat : "continuous",
         plan_start_date: newPlanStartDate ? format(newPlanStartDate, 'yyyy-MM-dd') : null,
       });
       
@@ -226,6 +229,7 @@ export function AthleteObjectiveManager({
       setNewGoalName("");
       setNewGoalDate(undefined);
       setNewPlanStartDate(undefined);
+      setNewGoalFormat("continuous");
       setIsAddDialogOpen(false);
       
       toast.success("Objectif ajouté avec succès");
@@ -377,6 +381,24 @@ export function AthleteObjectiveManager({
                         placeholder="ex: Marathon de Paris 2025"
                       />
                     </div>
+
+                    {newGoalType === "70.3" && (
+                      <div className="space-y-2">
+                        <Label>Format de course</Label>
+                        <Select value={newGoalFormat} onValueChange={(v) => setNewGoalFormat(v as "continuous" | "lcw_3day")}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="continuous">Standard — course continue (1 jour)</SelectItem>
+                            <SelectItem value="lcw_3day">Long Course Weekend — 3 jours (Ven nat / Sam vélo / Dim run)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          LCW = format étapes (Wales, Belgium). Modifie la stratégie de plan : back-to-back overnight, pacing vélo +3%, recharge inter-étapes.
+                        </p>
+                      </div>
+                    )}
                     
                     <div className="space-y-2">
                       <Label>Date de la course *</Label>
@@ -679,6 +701,24 @@ export function AthleteObjectiveManager({
                           placeholder="ex: Marathon de Paris 2025"
                         />
                       </div>
+
+                      {newGoalType === "70.3" && (
+                        <div className="space-y-2">
+                          <Label>Format de course</Label>
+                          <Select value={newGoalFormat} onValueChange={(v) => setNewGoalFormat(v as "continuous" | "lcw_3day")}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="continuous">Standard — course continue (1 jour)</SelectItem>
+                              <SelectItem value="lcw_3day">Long Course Weekend — 3 jours (Ven nat / Sam vélo / Dim run)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">
+                            LCW = format étapes (Wales, Belgium). Modifie la stratégie de plan : back-to-back overnight, pacing vélo +3%, recharge inter-étapes.
+                          </p>
+                        </div>
+                      )}
                       
                       {/* Race Date */}
                       <div className="space-y-2">

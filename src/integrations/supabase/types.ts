@@ -22,6 +22,7 @@ export type Database = {
           id: string
           plan_start_date: string | null
           race_date: string
+          race_format: string | null
           race_name: string | null
           race_type: string
           updated_at: string
@@ -33,6 +34,7 @@ export type Database = {
           id?: string
           plan_start_date?: string | null
           race_date: string
+          race_format?: string | null
           race_name?: string | null
           race_type: string
           updated_at?: string
@@ -44,6 +46,7 @@ export type Database = {
           id?: string
           plan_start_date?: string | null
           race_date?: string
+          race_format?: string | null
           race_name?: string | null
           race_type?: string
           updated_at?: string

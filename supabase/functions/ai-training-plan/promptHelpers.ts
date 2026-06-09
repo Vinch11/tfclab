@@ -1208,13 +1208,16 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("**Pourquoi c'est critique** : Lorang, Haug/Frodeno training logs, Stryd Durability Index, Maunder 2021 — un podium 70.3 ne se construit pas avec du volume Z2 isolé. La signature physiologique (courir vite après 2h-2h30 aéro + gagner le drafting au départ natation) DOIT être entraînée spécifiquement.");
 
       // ─── LCW (Long Course Weekend) — Format 3 JOURS ÉCLATÉ ───
-      // Détection sur raceName : "Long Course Weekend", "LCW" (LCW Wales/Belgium)
+      // Détection prioritaire : flag `raceFormat === "lcw_3day"` (champ explicite UI).
+      // Fallback : regex sur raceName ("Long Course Weekend" / "LCW") pour rétrocompatibilité.
+      const goalsLCW = Array.isArray(config.raceGoals) ? config.raceGoals : [];
+      const hasLCWFlag = goalsLCW.some((g: any) => g?.raceFormat === "lcw_3day");
       const raceNamesLCW: string[] = [
-        ...((Array.isArray(config.raceGoals) ? config.raceGoals : []).map((g: any) => String(g?.raceName || ""))),
+        ...goalsLCW.map((g: any) => String(g?.raceName || "")),
         String(config.raceName || ""),
         String(config.objective || ""),
       ].filter(Boolean);
-      const isLCW = raceNamesLCW.some((n) => /long\s*course\s*weekend|\blcw\b/i.test(n));
+      const isLCW = hasLCWFlag || raceNamesLCW.some((n) => /long\s*course\s*weekend|\blcw\b/i.test(n));
       if (isLCW) {
         lines.push("");
         lines.push("### 🏴 FORMAT LONG COURSE WEEKEND (LCW) — COURSE À ÉTAPES 3 JOURS");

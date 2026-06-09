@@ -41,6 +41,9 @@ export interface RaceGoal {
   raceDate?: string;
   weeksUntilRace?: number;
   priority: "A" | "B" | "C";
+  /** Format de course : "continuous" (défaut, 70.3/IM/marathon classiques)
+   *  ou "lcw_3day" (Long Course Weekend Wales/Belgium : Ven nat / Sam vélo / Dim run). */
+  raceFormat?: "continuous" | "lcw_3day" | null;
   /** Trail uniquement — utilisés pour pré-calculer le profil de course (D+/km, séances clés) */
   distanceKm?: number | null;
   elevationGainM?: number | null;
