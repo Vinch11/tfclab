@@ -1116,9 +1116,9 @@ const Index = () => {
           <div className="space-y-3">
             {/* Ligne 1: Sélecteur athlète + Badge âge + Actions */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Sélecteur athlète */}
+              {/* Sélecteur athlète — élargi sur mobile pour ne plus tronquer le nom */}
               <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
-                <SelectTrigger className="h-9 w-auto min-w-[120px] max-w-[180px] text-sm shrink-0">
+                <SelectTrigger className="h-9 flex-1 min-w-[160px] sm:flex-none sm:w-auto sm:min-w-[140px] sm:max-w-[220px] text-sm">
                   <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
                   <SelectValue placeholder="Athlète" />
                 </SelectTrigger>
