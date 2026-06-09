@@ -216,6 +216,7 @@ export function AthleteObjectiveManager({
         race_type: newGoalType,
         race_name: newGoalName || null,
         race_date: format(newGoalDate, 'yyyy-MM-dd'),
+        race_format: newGoalType === "70.3" ? newGoalFormat : "continuous",
         plan_start_date: newPlanStartDate ? format(newPlanStartDate, 'yyyy-MM-dd') : null,
       });
       
@@ -227,6 +228,7 @@ export function AthleteObjectiveManager({
       setNewGoalName("");
       setNewGoalDate(undefined);
       setNewPlanStartDate(undefined);
+      setNewGoalFormat("continuous");
       setIsAddDialogOpen(false);
       
       toast.success("Objectif ajouté avec succès");
