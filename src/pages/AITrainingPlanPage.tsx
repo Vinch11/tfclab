@@ -288,6 +288,7 @@ export default function AITrainingPlanPage() {
       response,
       objective,
       raceName,
+      raceFormat,
       raceDate,
       weeklyHours,
       sessionsPerWeek,
