@@ -1475,15 +1475,15 @@ const Index = () => {
                     value={currentAmbition}
                     onValueChange={(v) => updateCurrentAthleteAmbition(v as AmbitionLevel)}
                   >
-                    <SelectTrigger className="h-11 w-full text-sm border-primary/30 bg-primary/5">
-                      <span className="flex items-center gap-1.5 truncate">
+                    <SelectTrigger className="h-11 w-full text-sm border-primary/30 bg-primary/5 [&>span]:flex-1 [&>span]:min-w-0">
+                      <span className="flex items-center gap-1.5 min-w-0 flex-1">
                         <Star className="h-4 w-4 text-primary shrink-0" />
                         <span aria-hidden className="shrink-0">{ambitionDef.icon}</span>
-                        <span className="truncate font-medium">{ambitionDef.label}</span>
+                        <span className="font-medium truncate">{ambitionDef.label}</span>
                         {(() => {
                           const timeHint = getRunningTimeHint(currentAthlete.goal || "IM", currentAmbition, currentAthlete.sex === "F" ? "F" : "M");
                           return timeHint ? (
-                            <span className="text-muted-foreground text-xs truncate">— {timeHint}</span>
+                            <span className="text-muted-foreground text-xs shrink-0">· {timeHint}</span>
                           ) : null;
                         })()}
                       </span>
@@ -1526,6 +1526,7 @@ const Index = () => {
 
                   {/* Ligne D : Progression vers la cible (pleine largeur) */}
                   <AmbitionProgressMini
+                    className="w-full justify-start"
                     snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
                     objectif={currentAthlete.goal || "IM"}
                     ambition={currentAmbition}
