@@ -160,7 +160,7 @@ export function QuickObjectiveSelector({
     setRaceFormat('continuous');
   };
 
-  const icon = currentGoal ? OBJECTIF_ICONS[currentGoal] || "🎯" : "🎯";
+  const sportIcon = currentGoal ? OBJECTIF_ICONS[currentGoal] : null;
   const label = currentGoal ? getObjectifLabel(currentGoal as ObjectifType) : "Objectif";
   const selectedGoalLabel = selectedGoal ? getObjectifLabel(selectedGoal as ObjectifType) : "";
   const selectedGoalIcon = selectedGoal ? OBJECTIF_ICONS[selectedGoal] || "🎯" : "🎯";
@@ -172,15 +172,18 @@ export function QuickObjectiveSelector({
           <Button
             variant="outline"
             size="sm"
-            className={cn("h-9 gap-1.5 text-sm", className)}
+            className={cn("h-9 gap-1.5 text-sm border-primary/30 bg-primary/5 hover:bg-primary/10", className)}
             disabled={disabled || saving}
           >
             {saving ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <span>{icon}</span>
+              <span aria-hidden>🎯</span>
             )}
-            <span className="truncate max-w-[80px]">{label}</span>
+            <span className="truncate max-w-[110px] flex items-center gap-1">
+              {sportIcon && <span aria-hidden>{sportIcon}</span>}
+              <span>{label}</span>
+            </span>
             <ChevronDown className="h-3.5 w-3.5 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
