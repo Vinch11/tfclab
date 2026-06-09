@@ -235,7 +235,27 @@ export function useAthleteRaceGoals(athleteId: string | null) {
           g => g.race_type === goal && new Date(g.created_at) > sevenDaysAgo
         );
 
-        if (!recentSameGoal) {
+        const hasExplicitDetails =
+          options?.raceName !== undefined ||
+          options?.raceDate !== undefined ||
+          options?.raceFormat !== undefined;
+
+        if (recentSameGoal && hasExplicitDetails) {
+          // UPDATE existing recent goal with explicitly provided fields
+          // (sinon, re-sélectionner le même objectif avec un nouveau format
+          //  laissait race_format=null en base — bug iPhone Cath LCW)
+          const patch: Record<string, unknown> = {};
+          if (options?.raceName !== undefined) patch.race_name = options.raceName ?? null;
+          if (options?.raceDate !== undefined) patch.race_date = options.raceDate;
+          if (options?.raceFormat !== undefined) patch.race_format = options.raceFormat ?? null;
+          if (Object.keys(patch).length > 0) {
+            await supabase
+              .from('athlete_race_goals')
+              .update(patch)
+              .eq('id', recentSameGoal.id);
+            queryClient.invalidateQueries({ queryKey: ['athlete-race-goals', athleteId] });
+          }
+        } else if (!recentSameGoal) {
           // Default race date is 3 months from now if not specified
           const defaultRaceDate = new Date();
           defaultRaceDate.setMonth(defaultRaceDate.getMonth() + 3);
