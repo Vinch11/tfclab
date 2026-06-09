@@ -1118,10 +1118,10 @@ const Index = () => {
           <div className="space-y-3">
             {/* Ligne 1: Sélecteur athlète + Badge âge + Actions */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Sélecteur athlète — élargi sur mobile pour ne plus tronquer le nom */}
+              {/* Sélecteur athlète — élargi sur mobile (touch target 40px) */}
               <Select value={selectedAthleteId || ""} onValueChange={setSelectedAthleteId}>
-                <SelectTrigger className="h-9 flex-1 min-w-[160px] sm:flex-none sm:w-auto sm:min-w-[140px] sm:max-w-[220px] text-sm">
-                  <User className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+                <SelectTrigger className="h-10 sm:h-9 flex-1 min-w-0 sm:flex-none sm:w-auto sm:min-w-[140px] sm:max-w-[220px] text-sm font-medium">
+                  <User className="h-4 w-4 mr-1.5 text-primary shrink-0" />
                   <SelectValue placeholder="Athlète" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1149,10 +1149,10 @@ const Index = () => {
 
               {/* Menu ⋯ — mobile uniquement, regroupe les actions athlète */}
               {currentAthlete && (
-                <div className="sm:hidden ml-auto shrink-0">
+                <div className="sm:hidden shrink-0">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="ghost" className="h-9 w-9 p-0">
+                      <Button size="sm" variant="ghost" className="h-10 w-10 p-0">
                         <MoreHorizontal className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
