@@ -516,6 +516,38 @@ export default function RaceSimulationPage() {
           </div>
         </div>
 
+        {/* ═══ BANNER + SÉLECTEUR LCW (Long Course Weekend — 3 jours éclatés) ═══ */}
+        {lcwActive && (
+          <Alert className="text-xs sm:text-sm py-2 sm:py-3 bg-primary/5 border-primary/30">
+            <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+            <AlertDescription className="space-y-2">
+              <div className="text-[11px] sm:text-sm leading-relaxed">
+                <strong>Format LCW détecté</strong> — {lcwGoal?.race_name ?? '70.3 Long Course Weekend'} ({lcwGoal?.race_date}).
+                Chaque épreuve est simulée comme un <strong>effort solo, jambes fraîches</strong> (pas d'enchaînement, pas de carry-over fatigue / glycogène).
+              </div>
+              <div className="inline-flex rounded-md border border-border overflow-hidden bg-background">
+                {([
+                  { key: 'swim', label: '🏊 Natation 1.9 km', day: 'Vendredi (J-2)' },
+                  { key: 'bike', label: '🚴 Vélo 90 km', day: 'Samedi (J-1)' },
+                  { key: 'run', label: '🏃 Course 21.1 km', day: 'Dimanche (J)' },
+                ] as const).map(seg => (
+                  <button
+                    key={seg.key}
+                    type="button"
+                    onClick={() => setLcwSegment(seg.key)}
+                    className={`px-3 py-1.5 text-[11px] sm:text-xs font-medium transition-colors border-r border-border last:border-r-0 ${
+                      lcwSegment === seg.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'
+                    }`}
+                    title={seg.day}
+                  >
+                    {seg.label}
+                  </button>
+                ))}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Info banner - compact */}
         <Alert className="text-xs sm:text-sm py-2 sm:py-3">
           <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
