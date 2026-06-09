@@ -217,7 +217,7 @@ export default function RaceSimulationPage() {
     return computeDisponibiliteTFCL(input);
   }, [activeSnapshot]);
   
-  const raceObjective: RaceObjective = React.useMemo(() => {
+  const raceObjectiveRaw: RaceObjective = React.useMemo(() => {
     if (objectif.includes('Marathon') && !objectif.includes('Semi')) return 'Marathon';
     if (objectif.includes('Semi')) return 'Semi';
     if (objectif.includes('10km') || objectif.includes('10k')) return '10km';
@@ -225,17 +225,41 @@ export default function RaceSimulationPage() {
     return 'IM';
   }, [objectif]);
 
+  // ═══ DÉTECTION FORMAT LCW (Long Course Weekend — 3 jours éclatés) ═══
+  // Cherche un objectif 70.3 LCW à venir pour l'athlète. Si trouvé, on bascule
+  // en "mode 3 épreuves indépendantes" : chaque segment est simulé SOLO,
+  // sans enchaînement, sans carry-over de fatigue ni de glycogène.
+  const { raceGoals } = useAthleteRaceGoals(athleteId || null);
+  const lcwGoal = React.useMemo(() => {
+    if (!raceGoals?.length) return null;
+    const today = new Date().toISOString().slice(0, 10);
+    return raceGoals.find(g =>
+      g.race_format === 'lcw_3day' &&
+      (g.race_date >= today || raceObjectiveRaw === '70.3')
+    ) ?? null;
+  }, [raceGoals, raceObjectiveRaw]);
+  const lcwActive = lcwGoal !== null && raceObjectiveRaw === '70.3';
+  const [lcwSegment, setLcwSegment] = useState<'swim' | 'bike' | 'run'>('bike');
+
+  // raceObjective effectif : si LCW + segment run → Semi solo ; sinon inchangé.
+  const raceObjective: RaceObjective = React.useMemo(() => {
+    if (lcwActive && lcwSegment === 'run') return 'Semi';
+    return raceObjectiveRaw;
+  }, [lcwActive, lcwSegment, raceObjectiveRaw]);
+
   // Triathlon → afficher pacing vélo ET course (segments séparés)
-  const isTriathlon = raceObjective === 'IM' || raceObjective === '70.3';
+  // En mode LCW, chaque segment est une épreuve SOLO → isTriathlon=false.
+  const isTriathlon = !lcwActive && (raceObjective === 'IM' || raceObjective === '70.3');
 
   // Discipline "principale" pour modules legacy (simulation, nutrition…)
   const defaultRunObjective = raceObjective === 'Marathon' || raceObjective === 'Semi' || raceObjective === '10km';
   const [triDiscipline, setTriDiscipline] = useState<'bike' | 'run'>('bike');
   const discipline: 'bike' | 'run' = React.useMemo(() => {
+    if (lcwActive) return lcwSegment === 'run' ? 'run' : 'bike'; // swim mappé sur bike (fallback)
     if (defaultRunObjective) return 'run';
     if (isTriathlon) return triDiscipline;
     return 'bike';
-  }, [defaultRunObjective, isTriathlon, triDiscipline]);
+  }, [lcwActive, lcwSegment, defaultRunObjective, isTriathlon, triDiscipline]);
 
   // Durée par segment (min) — individualisée à partir du pace seuil de l'athlète.
   // Modèle TFCL™ — exprimé en % de la vitesse seuil (vSeuil) :
