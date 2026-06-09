@@ -272,6 +272,35 @@ export function QuickObjectiveSelector({
                 La date sera utilisée pour planifier ta préparation
               </p>
             </div>
+
+            {/* Format de course (triathlon uniquement) */}
+            {isTriathlon && (
+              <div className="grid gap-2">
+                <Label>Format de la course</Label>
+                <div className="grid gap-2">
+                  {RACE_FORMAT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setRaceFormat(opt.value)}
+                      className={cn(
+                        "flex flex-col items-start rounded-lg border p-3 text-left transition-colors",
+                        raceFormat === opt.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:bg-accent"
+                      )}
+                    >
+                      <span className="text-sm font-medium">
+                        {opt.label}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {opt.description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
