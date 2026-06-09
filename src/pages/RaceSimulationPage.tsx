@@ -37,6 +37,7 @@ import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
+import { useAthleteRaceGoals } from '@/hooks/useAthleteRaceGoals';
 import { computeVLamaxEffectif, computeTTEEffectif } from '@/engines/diagnostic';
 import { estimateFromRaceChronos } from '@/engines/diagnostic/raceTimeEstimator';
 import { computeUnifiedReadiness } from '@/lib/readinessSource';
