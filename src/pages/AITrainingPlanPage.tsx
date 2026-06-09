@@ -251,6 +251,7 @@ export default function AITrainingPlanPage() {
       if (savedState.objective) setObjective(savedState.objective);
       else if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       if (savedState.raceName) setRaceName(savedState.raceName);
+      if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
       if (savedState.raceDate) setRaceDate(savedState.raceDate);
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
       if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
