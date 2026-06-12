@@ -317,7 +317,7 @@ function parseTableToWeek(table: Element, weekNumber: number, staffMode: boolean
   }
   
   if (staffMode && skippedRows > 0) {
-    console.log(`[TemplateLoader] Week ${weekNumber}: skipped ${skippedRows} invalid rows`);
+    // console.log(`[TemplateLoader] Week ${weekNumber}: skipped ${skippedRows} invalid rows`);
   }
   
   return { weekNumber, sessions, coachAdvice: undefined };
@@ -431,7 +431,7 @@ async function parseDocxHtmlToSections(html: string, staffMode: boolean = false)
   const weeks: TemplateWeek[] = [];
   
   if (staffMode) {
-    console.log(`[TemplateLoader] Found ${tables.length} tables to parse`);
+    // console.log(`[TemplateLoader] Found ${tables.length} tables to parse`);
   }
   
   tables.forEach((table, idx) => {
@@ -476,9 +476,9 @@ async function parseDocxHtmlToSections(html: string, staffMode: boolean = false)
     const { weeks: sanitizedWeeks, allWarnings, stats } = sanitizeTemplate(weeks, staffMode);
     
     if (staffMode && allWarnings.length > 0) {
-      console.log(`[TemplateLoader] Sanity check: ${stats.blocked} blocked, ${stats.generic} generic removed`);
+      // console.log(`[TemplateLoader] Sanity check: ${stats.blocked} blocked, ${stats.generic} generic removed`);
       allWarnings.forEach((w) => {
-        console.log(`  - [${w.severity.toUpperCase()}] ${w.type}: ${w.message}`);
+        // console.log(`  - [${w.severity.toUpperCase()}] ${w.type}: ${w.message}`);
       });
     }
     
@@ -511,13 +511,13 @@ export async function parseDocxFromArrayBuffer(arrayBuffer: ArrayBuffer, staffMo
   const result = await mammoth.convertToHtml({ arrayBuffer });
 
   if (result.messages.length > 0) {
-    console.log("[TemplateLoader] Mammoth messages:", result.messages);
+    // console.log("[TemplateLoader] Mammoth messages:", result.messages);
   }
 
   // Parse the HTML to extract sections with sanity checks
   const sections = await parseDocxHtmlToSections(result.value, staffMode);
 
-  console.log(`[TemplateLoader] Parsed uploaded file: ${sections.length} sections with ${sections.reduce((acc, s) => acc + s.weeks.length, 0)} total weeks`);
+  // console.log(`[TemplateLoader] Parsed uploaded file: ${sections.length} sections with ${sections.reduce((acc, s) => acc + s.weeks.length, 0)} total weeks`);
 
   return sections;
 }
@@ -530,11 +530,11 @@ export async function loadProgramTemplateFromDocx(docxPath: string, staffMode: b
   // Check cache first
   const cached = getFromCache(docxPath);
   if (cached && cached.length > 0) {
-    console.log(`[TemplateLoader] Using cached template for ${docxPath}`);
+    // console.log(`[TemplateLoader] Using cached template for ${docxPath}`);
     return cached;
   }
   
-  console.log(`[TemplateLoader] Loading template from ${docxPath}`);
+  // console.log(`[TemplateLoader] Loading template from ${docxPath}`);
   
   // Fetch the DOCX file
   const response = await fetch(docxPath);
@@ -548,13 +548,13 @@ export async function loadProgramTemplateFromDocx(docxPath: string, staffMode: b
   const result = await mammoth.convertToHtml({ arrayBuffer });
   
   if (result.messages.length > 0) {
-    console.log("[TemplateLoader] Mammoth messages:", result.messages);
+    // console.log("[TemplateLoader] Mammoth messages:", result.messages);
   }
   
   // Parse the HTML to extract weeks with sanity checks
   const weeks = await parseDocxHtml(result.value, staffMode);
   
-  console.log(`[TemplateLoader] Parsed ${weeks.length} weeks`);
+  // console.log(`[TemplateLoader] Parsed ${weeks.length} weeks`);
   
   // Cache the result
   if (weeks.length > 0) {
@@ -572,11 +572,11 @@ export async function loadProgramSectionsFromDocx(docxPath: string, staffMode: b
   // Check cache first
   const cached = getSectionsFromCache(docxPath);
   if (cached && cached.length > 0) {
-    console.log(`[TemplateLoader] Using cached sections for ${docxPath}`);
+    // console.log(`[TemplateLoader] Using cached sections for ${docxPath}`);
     return cached;
   }
   
-  console.log(`[TemplateLoader] Loading sections from ${docxPath}`);
+  // console.log(`[TemplateLoader] Loading sections from ${docxPath}`);
   
   // Fetch the DOCX file
   const response = await fetch(docxPath);
@@ -590,13 +590,13 @@ export async function loadProgramSectionsFromDocx(docxPath: string, staffMode: b
   const result = await mammoth.convertToHtml({ arrayBuffer });
   
   if (result.messages.length > 0) {
-    console.log("[TemplateLoader] Mammoth messages:", result.messages);
+    // console.log("[TemplateLoader] Mammoth messages:", result.messages);
   }
   
   // Parse the HTML to extract sections with sanity checks
   const sections = await parseDocxHtmlToSections(result.value, staffMode);
   
-  console.log(`[TemplateLoader] Parsed ${sections.length} sections with ${sections.reduce((acc, s) => acc + s.weeks.length, 0)} total weeks`);
+  // console.log(`[TemplateLoader] Parsed ${sections.length} sections with ${sections.reduce((acc, s) => acc + s.weeks.length, 0)} total weeks`);
   
   // Cache the result
   if (sections.length > 0) {

@@ -292,5 +292,5 @@ export function enrichWorkoutGoals(library: LibraryWorkout[]): void {
     }
   }
 
-  console.log(`🏷️ Goals enricher: ${goalsAdded} sessions tagged with goals, ${phasesAdded} sessions tagged with phases`);
+  // console.log(`🏷️ Goals enricher: ${goalsAdded} sessions tagged with goals, ${phasesAdded} sessions tagged with phases`);
 }

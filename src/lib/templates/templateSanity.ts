@@ -134,10 +134,10 @@ export function sanitizeSessionDetails(
       processedSession.details = cleanedDetails;
       
       if (staffMode) {
-        console.log(
-          `[TemplateSanity] Session "${session.day}" (${context.sport}): ` +
-          `${removedCount} option(s) removed, ${validOptions.length} valid`
-        );
+        // console.log(
+        //   `[TemplateSanity] Session "${session.day}" (${context.sport}): ` +
+        //   `${removedCount} option(s) removed, ${validOptions.length} valid`
+        // );
       }
     }
   }
@@ -221,7 +221,7 @@ export function sanitizeWeek(
   if (staffMode) {
     const totalWarnings = sessionResults.reduce((acc, sr) => acc + sr.warnings.length, 0);
     if (totalWarnings > 0) {
-      console.log(`[TemplateSanity] Week ${week.weekNumber}: ${totalWarnings} warning(s)`);
+      // console.log(`[TemplateSanity] Week ${week.weekNumber}: ${totalWarnings} warning(s)`);
     }
   }
   
@@ -268,7 +268,7 @@ export function sanitizeTemplate(
   }
   
   if (staffMode && allWarnings.length > 0) {
-    console.log(`[TemplateSanity] Template sanitized: ${blocked} blocked, ${generic} generic removed`);
+    // console.log(`[TemplateSanity] Template sanitized: ${blocked} blocked, ${generic} generic removed`);
   }
   
   return { 
