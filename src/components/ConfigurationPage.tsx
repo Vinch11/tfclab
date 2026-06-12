@@ -183,6 +183,69 @@ export function ConfigurationPage() {
       {/* Section Ordre des Sections du Rapport */}
       <ReportSectionOrderEditor />
 
+      {/* Section Intégration Nolio */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Link2 className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Intégration Nolio</CardTitle>
+          </div>
+          <CardDescription>
+            Connectez votre compte Nolio pour synchroniser vos entraînements.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {nolioJustConnected && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
+              <CheckCircle2 className="w-4 h-4" />
+              <span className="text-sm font-medium">Nolio connecté avec succès</span>
+            </div>
+          )}
+
+          {nolioConnected ? (
+            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-success" />
+                </div>
+                <div>
+                  <Label className="font-medium text-base">✅ Nolio connecté</Label>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Votre compte Nolio est lié à TFC Lab.
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDisconnectNolio}
+                disabled={nolioLoading}
+              >
+                Déconnecter
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Link2 className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <Label className="font-medium text-base">Connecter Nolio</Label>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Autorisez TFC Lab à accéder à votre compte Nolio via OAuth2.
+                  </p>
+                </div>
+              </div>
+              <Button onClick={handleConnectNolio} disabled={nolioLoading}>
+                {nolioLoading ? "Connexion..." : "Connecter Nolio"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+
       {/* Section Préférences d'affichage */}
       <Card>
         <CardHeader>
