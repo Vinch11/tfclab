@@ -49,10 +49,10 @@ export function computeDecision(input: DecisionInput): TrainingPrescription {
   const roadmap = generateRoadmapFromDiagnostic(diagnostic);
 
   // ── 4. Simulation (placeholder — activé si raceSimulationInput fourni) ──
-  const raceSimulation = null; // TODO: Bridge vers computeRaceSimulation
+  const raceSimulation = null; // NON IMPLÉMENTÉ — à connecter ultérieurement
 
   // ── 5. Nutrition (placeholder — activé selon le contexte) ─────────────
-  const nutrition = null; // TODO: Bridge vers computeNutritionUnified
+  const nutrition = null; // NON IMPLÉMENTÉ — à connecter ultérieurement
 
   // ── 6. Executive Summary ──────────────────────────────────────────────────
   const executiveSummary = buildExecutiveSummary(diagnostic, strategy, workoutGuidance);
