@@ -257,7 +257,7 @@ function generatePositionnement(
       valeur: input.vo2max,
       unite: "ml/kg/min",
       source: "mesuré",
-      plageTFCL: null, // TODO: Ajouter référentiel VO2max
+      plageTFCL: null, // NON IMPLÉMENTÉ — référentiel VO2max à ajouter ultérieurement
       percentile: null,
       zone: input.vo2max >= 65 ? "Élevé" : input.vo2max >= 50 ? "Moyen" : "Bas",
       commentaire: `VO2max de ${input.vo2max} ml/kg/min.`,
