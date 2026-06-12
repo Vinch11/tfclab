@@ -2,12 +2,13 @@
  * Configuration Page - Gestion des thèmes et préférences utilisateur
  */
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen } from "lucide-react";
+import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2 } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { AdvancedLayoutEditor } from "./AdvancedLayoutEditor";
@@ -15,11 +16,88 @@ import { ReportSectionOrderEditor } from "./ReportSectionOrderEditor";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useGettingStartedVisibility } from "./GettingStartedChecklist";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 export function ConfigurationPage() {
   const { theme, setTheme, themeConfig } = useTheme();
   const { preferences, setPreference } = useUserPreferences();
   const gettingStartedVisibility = useGettingStartedVisibility();
+  const { user, session } = useAuth();
+
+  const [nolioConnected, setNolioConnected] = useState(false);
+  const [nolioLoading, setNolioLoading] = useState(false);
+  const [nolioJustConnected, setNolioJustConnected] = useState(false);
+
+  // Détecte ?nolio=connected dans l'URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("nolio") === "connected") {
+      setNolioJustConnected(true);
+      toast({ title: "Nolio connecté avec succès", description: "Votre compte Nolio est maintenant lié." });
+      // Nettoie l'URL
+      params.delete("nolio");
+      const newSearch = params.toString();
+      const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "") + window.location.hash;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, []);
+
+  // Vérifie si un token Nolio valide existe
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("nolio_tokens")
+        .select("expires_at")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        console.error("Failed to load nolio token status", error);
+        return;
+      }
+      setNolioConnected(!!data);
+    })();
+    return () => { cancelled = true; };
+  }, [user, nolioJustConnected]);
+
+  const handleConnectNolio = async () => {
+    if (!session?.access_token) {
+      toast({ title: "Connexion requise", description: "Veuillez vous connecter pour lier Nolio.", variant: "destructive" });
+      return;
+    }
+    setNolioLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-oauth/start", {
+        method: "GET",
+      });
+      if (error) throw error;
+      const url = (data as { url?: string })?.url;
+      if (!url) throw new Error("URL OAuth manquante");
+      window.location.href = url;
+    } catch (e) {
+      console.error("Nolio connect failed", e);
+      toast({ title: "Erreur Nolio", description: (e as Error).message ?? "Impossible de démarrer l'authentification.", variant: "destructive" });
+      setNolioLoading(false);
+    }
+  };
+
+  const handleDisconnectNolio = async () => {
+    if (!user) return;
+    setNolioLoading(true);
+    const { error } = await supabase.from("nolio_tokens").delete().eq("user_id", user.id);
+    setNolioLoading(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    setNolioConnected(false);
+    toast({ title: "Nolio déconnecté" });
+  };
+
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -104,6 +182,69 @@ export function ConfigurationPage() {
 
       {/* Section Ordre des Sections du Rapport */}
       <ReportSectionOrderEditor />
+
+      {/* Section Intégration Nolio */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Link2 className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">Intégration Nolio</CardTitle>
+          </div>
+          <CardDescription>
+            Connectez votre compte Nolio pour synchroniser vos entraînements.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {nolioJustConnected && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
+              <CheckCircle2 className="w-4 h-4" />
+              <span className="text-sm font-medium">Nolio connecté avec succès</span>
+            </div>
+          )}
+
+          {nolioConnected ? (
+            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-success" />
+                </div>
+                <div>
+                  <Label className="font-medium text-base">✅ Nolio connecté</Label>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Votre compte Nolio est lié à TFC Lab.
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDisconnectNolio}
+                disabled={nolioLoading}
+              >
+                Déconnecter
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Link2 className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <Label className="font-medium text-base">Connecter Nolio</Label>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Autorisez TFC Lab à accéder à votre compte Nolio via OAuth2.
+                  </p>
+                </div>
+              </div>
+              <Button onClick={handleConnectNolio} disabled={nolioLoading}>
+                {nolioLoading ? "Connexion..." : "Connecter Nolio"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
 
       {/* Section Préférences d'affichage */}
       <Card>
