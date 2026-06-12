@@ -221,12 +221,12 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
   }, [athleteTruth, raceType, ambition, phaseManual, raceDate, showResults, selectedTemplateFilter]);
 
   const handleSuggest = () => {
-    console.log("[WeekSelectorTFCL] handleSuggest called", {
-      selectedAthleteId,
-      athleteTruth,
-      raceType,
-      ambition
-    });
+    // console.log("[WeekSelectorTFCL] handleSuggest called", {
+    //   selectedAthleteId,
+    //   athleteTruth,
+    //   raceType,
+    //   ambition
+    // });
     
     if (selectedAthleteId && athleteTruth) {
       setShowResults(true);

@@ -281,7 +281,7 @@ export function useDecisionReliability(
       
       if (reliabilityError) {
         // Pas grave si le reliability_score n'existe pas encore
-        console.log("Reliability score pas encore créé pour ce snapshot");
+        // console.log("Reliability score pas encore créé pour ce snapshot");
       }
       
       toast.success("Marqué comme semaine de référence TFCL");
