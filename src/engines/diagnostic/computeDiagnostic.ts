@@ -125,7 +125,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     },
     injuryRisk: {
       run: runInjuryRisk,
-      bike: null, // TODO: Intégrer computeBikeInjuryRisk
+      bike: null, // NON IMPLÉMENTÉ — à connecter ultérieurement
     },
     reliability,
     runMLSS,
