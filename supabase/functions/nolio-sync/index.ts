@@ -72,6 +72,23 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Optional body: { athlete_id?: string, nolio_id?: number }
+  let requestedAthleteId: string | null = null;
+  let requestedNolioId: number | null = null;
+  try {
+    if (req.method !== "GET") {
+      const body = await req.clone().json().catch(() => null) as
+        | { athlete_id?: string; nolio_id?: number | string }
+        | null;
+      if (body?.athlete_id) requestedAthleteId = String(body.athlete_id);
+      if (body?.nolio_id != null) {
+        const n = Number(body.nolio_id);
+        if (Number.isFinite(n)) requestedNolioId = n;
+      }
+    }
+  } catch { /* noop */ }
+
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
