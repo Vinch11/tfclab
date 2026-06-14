@@ -567,7 +567,12 @@ Deno.serve(async (req) => {
       debugLog.push({
         week: s.weekNumber,
         day: s.dayIndex,
-        title: s.title ?? null,
+        name: s.title ?? null,
+        input: {
+          sport: s.sport ?? null,
+          title: s.title ?? null,
+          id: s.id ?? null,
+        },
         id_partner: idPartner,
         sport_id: sportId,
         structured_workout,
