@@ -27,15 +27,29 @@ type NolioMetaValue = {
 type NolioMetaResponse = Record<string, { unit: string; data: NolioMetaValue[] }>;
 
 // Mapping Nolio meta key → snapshot column
-// Note : hrrest (FC repos) n'a pas de colonne dédiée dans snapshots, ignorée.
+// Mapping Nolio meta key → snapshot column
 const META_KEY_MAP: Record<string, string> = {
   weight: "weight_kg",
+  hrrest: "fc_repos",
   hrmax: "fc_max",
   ftp: "ftp",
   aerobicspeed: "vma",
   criticalspeedswimming: "css",
   vo2max: "vo2max",
 };
+
+// Conversions spécifiques par colonne TFCLab :
+// - css : Nolio renvoie min/100m × 100 (ex 117.05 => 1:17.05 /100m). On convertit en sec/100m : (v/100)*60.
+// - fc_repos / fc_max : entiers bpm.
+function convertNolioValue(snapCol: string, raw: number): number {
+  if (snapCol === "css") {
+    return Math.round((raw / 100) * 60 * 100) / 100;
+  }
+  if (snapCol === "fc_repos" || snapCol === "fc_max") {
+    return Math.round(raw);
+  }
+  return raw;
+}
 
 function toNum(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;
