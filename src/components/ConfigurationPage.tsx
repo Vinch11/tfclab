@@ -336,7 +336,7 @@ export function ConfigurationPage() {
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
                   <CheckCircle2 className="w-4 h-4" />
                   <span className="text-sm font-medium">
-                    Synchronisation réussie — {nolioSyncSuccess.count} athlète{nolioSyncSuccess.count > 1 ? "s" : ""} mis à jour
+                    {nolioSyncSuccess.message}
                   </span>
                 </div>
               )}
