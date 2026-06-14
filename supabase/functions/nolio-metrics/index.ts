@@ -268,17 +268,13 @@ Deno.serve(async (req) => {
     let updatedCount = 0;
     let unchangedCount = 0;
     const warnings: string[] = [];
-
-    for (const a of athletes ?? []) {
-      const nolioId = Number(a.nolio_id);
-      if (!Number.isFinite(nolioId)) continue;
-
     const diagnosticDump: Record<string, unknown> = {};
     let firstAthleteLogged = false;
 
     for (const a of athletes ?? []) {
       const nolioId = Number(a.nolio_id);
       if (!Number.isFinite(nolioId)) continue;
+
 
       // Récupération métrique par métrique
       const latest: Record<string, number> = {};
