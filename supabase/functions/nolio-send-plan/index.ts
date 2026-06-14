@@ -540,7 +540,7 @@ Deno.serve(async (req) => {
       const payload: Record<string, unknown> = {
         id_partner: parseInt(idPartnerStr, 10),
         athlete_id: body.nolio_athlete_id,
-        sport_id: mapSport(s.sport),
+        sport_id: mapSport(s.sport, s.title, s.id ?? null),
         name: s.title ?? "Séance",
         date_start: dateStart,
         description: s.details ?? "",
