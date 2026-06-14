@@ -106,10 +106,6 @@ export function NolioLinkAthletesDialog({
     }
   };
 
-  const setNone = (athleteId: string) => {
-    setSelections((s) => ({ ...s, [athleteId]: NONE_VALUE }));
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -138,15 +134,14 @@ export function NolioLinkAthletesDialog({
               <thead className="text-left text-muted-foreground border-b">
                 <tr>
                   <th className="py-2 pr-2 font-medium">Athlète TFCLab</th>
-                  <th className="py-2 px-2 font-medium">Athlète Nolio</th>
-                  <th className="py-2 pl-2 font-medium w-[170px]">Aucun compte</th>
+                  <th className="py-2 pl-2 font-medium">Athlète Nolio</th>
                 </tr>
               </thead>
               <tbody>
                 {tfclAthletes.map((a) => (
                   <tr key={a.id} className="border-b last:border-0">
                     <td className="py-2 pr-2 font-medium">{a.name ?? "—"}</td>
-                    <td className="py-2 px-2">
+                    <td className="py-2 pl-2">
                       <Select
                         value={selections[a.id] ?? NONE_VALUE}
                         onValueChange={(v) =>
@@ -157,23 +152,14 @@ export function NolioLinkAthletesDialog({
                           <SelectValue placeholder="Sélectionner..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={NONE_VALUE}>— Aucun —</SelectItem>
                           {nolioAthletes.map((n) => (
                             <SelectItem key={n.nolio_id} value={String(n.nolio_id)}>
                               {n.name ?? `#${n.nolio_id}`}
                             </SelectItem>
                           ))}
+                          <SelectItem value={NONE_VALUE}>Aucun compte Nolio</SelectItem>
                         </SelectContent>
                       </Select>
-                    </td>
-                    <td className="py-2 pl-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setNone(a.id)}
-                      >
-                        Aucun compte Nolio
-                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -181,6 +167,7 @@ export function NolioLinkAthletesDialog({
             </table>
           )}
         </div>
+
 
         <DialogFooter className="flex sm:justify-between items-center gap-3">
           {savedOk ? (

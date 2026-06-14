@@ -32,7 +32,7 @@ export function ConfigurationPage() {
   const [nolioJustConnected, setNolioJustConnected] = useState(false);
   const [nolioSyncing, setNolioSyncing] = useState(false);
   const [nolioSyncError, setNolioSyncError] = useState<string | null>(null);
-  const [nolioSyncSuccess, setNolioSyncSuccess] = useState<{ count: number } | null>(null);
+  const [nolioSyncSuccess, setNolioSyncSuccess] = useState<{ count: number; linkedTotal: number; message: string } | null>(null);
   const [nolioLastSyncAt, setNolioLastSyncAt] = useState<string | null>(null);
   const [nolioLinkOpen, setNolioLinkOpen] = useState(false);
 
@@ -135,13 +135,17 @@ export function ConfigurationPage() {
       const { data, error } = await supabase.functions.invoke("nolio-sync", { method: "POST" });
       if (error) throw error;
       const count = (data as { athletes_count?: number })?.athletes_count ?? 0;
+      const linkedTotal = (data as { linked_total?: number })?.linked_total ?? 0;
+      const message =
+        (data as { message?: string })?.message ??
+        `Synchronisation réussie — ${linkedTotal} athlètes liés à Nolio, ${count} mis à jour`;
       const ok = (data as { ok?: boolean })?.ok ?? true;
       if (!ok) {
         const errs = (data as { errors?: string[] })?.errors?.join(" | ") ?? "Erreur inconnue";
         throw new Error(errs);
       }
-      setNolioSyncSuccess({ count });
-      toast({ title: "Synchronisation réussie", description: `${count} athlète${count > 1 ? "s" : ""} mis à jour.` });
+      setNolioSyncSuccess({ count, linkedTotal, message });
+      toast({ title: "Synchronisation réussie", description: message });
     } catch (e) {
       const msg = (e as Error).message ?? "Échec de la synchronisation";
       console.error("Nolio sync failed", e);
@@ -332,7 +336,7 @@ export function ConfigurationPage() {
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
                   <CheckCircle2 className="w-4 h-4" />
                   <span className="text-sm font-medium">
-                    Synchronisation réussie — {nolioSyncSuccess.count} athlète{nolioSyncSuccess.count > 1 ? "s" : ""} mis à jour
+                    {nolioSyncSuccess.message}
                   </span>
                 </div>
               )}
