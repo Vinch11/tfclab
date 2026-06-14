@@ -1,0 +1,1 @@
+ALTER TABLE public.nolio_sync_log ADD COLUMN IF NOT EXISTS notes TEXT;
