@@ -1,7 +1,7 @@
 /**
  * AIPlanViewer — Interactive structured view of a parsed AI training plan
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,10 @@ import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
 import type { RaceGoal } from "@/hooks/useAITrainingPlan";
+import { supabase } from "@/integrations/supabase/client";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase();
