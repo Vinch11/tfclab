@@ -807,7 +807,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} />
+          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} />
         </>
       ) : (
         <div className="space-y-4">
