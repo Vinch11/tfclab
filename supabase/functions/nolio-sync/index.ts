@@ -153,6 +153,7 @@ Deno.serve(async (req) => {
       },
     });
     const nolioText = await nolioResp.text();
+    log(`STEP 2b — Réponse Nolio HTTP ${nolioResp.status}, body length=${nolioText.length}, body (first 4000 chars): ${nolioText.slice(0, 4000)}`);
     if (!nolioResp.ok) {
       console.error("nolio athletes fetch failed", nolioResp.status, nolioText);
       await admin.from("nolio_sync_log").insert({
@@ -160,6 +161,7 @@ Deno.serve(async (req) => {
         athletes_count: 0,
         status: "error",
         error_message: `Nolio API ${nolioResp.status}: ${nolioText.slice(0, 500)}`,
+        notes: diagnosticLogs.join("\n").slice(0, 20000),
       });
       return new Response(
         JSON.stringify({
@@ -183,6 +185,7 @@ Deno.serve(async (req) => {
         athletes_count: 0,
         status: "error",
         error_message: "Réponse Nolio non-JSON",
+        notes: diagnosticLogs.join("\n").slice(0, 20000),
       });
       return new Response(JSON.stringify({ error: "Réponse Nolio invalide" }), {
         status: 502,
@@ -197,7 +200,10 @@ Deno.serve(async (req) => {
         ? ((nolioJson as { results: NolioAthlete[] }).results)
         : [];
 
-    // 3) Charge les athlètes existants du coach
+    // 3) Nombre d'athlètes reçus
+    log(`STEP 3 — ${nolioAthletes.length} athlètes reçus de Nolio`);
+
+    // 4) Charge les athlètes existants du coach
     const { data: existing, error: athErr } = await admin
       .from("athletes")
       .select("id, name, nolio_id")
@@ -205,11 +211,20 @@ Deno.serve(async (req) => {
 
     if (athErr) {
       console.error("nolio-sync athletes select", athErr);
+      await admin.from("nolio_sync_log").insert({
+        user_id: userId,
+        athletes_count: 0,
+        status: "error",
+        error_message: `DB error athletes: ${athErr.message}`,
+        notes: diagnosticLogs.join("\n").slice(0, 20000),
+      });
       return new Response(JSON.stringify({ error: "DB error athletes" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    log(`STEP 4 — ${existing?.length ?? 0} athlètes TFCLab pour ce coach: ${(existing ?? []).map(a => `"${a.name}" (nolio_id=${a.nolio_id ?? "null"})`).join(", ")}`);
 
     const byNolioId = new Map<number, typeof existing[number]>();
     const byName = new Map<string, typeof existing[number]>();
@@ -222,19 +237,31 @@ Deno.serve(async (req) => {
     let updated = 0;
     const errors: string[] = [];
 
+    // 5) Matching détaillé
     for (const na of nolioAthletes) {
       try {
         const nolioId = typeof na.nolio_id === "number" ? na.nolio_id : Number(na.nolio_id);
-        if (!Number.isFinite(nolioId)) continue;
         const name = (na.name ?? "").trim();
+        if (!Number.isFinite(nolioId)) {
+          log(`  ↳ Nolio athlète name="${name}" nolio_id INVALIDE (${na.nolio_id}) — skip`);
+          continue;
+        }
 
-        const match =
-          byNolioId.get(nolioId) ||
-          (name ? byName.get(normName(name)) : undefined) ||
-          null;
+        const matchById = byNolioId.get(nolioId);
+        const matchByName = name ? byName.get(normName(name)) : undefined;
+        const match = matchById || matchByName || null;
 
-        if (!match) continue;
-        if (match.nolio_id === nolioId) continue; // déjà à jour
+        if (!match) {
+          log(`  ↳ Nolio athlète "${name}" (nolio_id=${nolioId}) — AUCUN MATCH TFCLab`);
+          continue;
+        }
+        if (match.nolio_id === nolioId) {
+          log(`  ↳ Nolio athlète "${name}" (nolio_id=${nolioId}) — match TFCLab "${match.name}" déjà à jour`);
+          continue;
+        }
+
+        const matchVia = matchById ? "nolio_id" : "name";
+        log(`  ↳ Nolio athlète "${name}" (nolio_id=${nolioId}) — MATCH TFCLab "${match.name}" via ${matchVia} → update`);
 
         const { error: upErr } = await admin
           .from("athletes")
@@ -242,13 +269,18 @@ Deno.serve(async (req) => {
           .eq("id", match.id);
         if (upErr) {
           errors.push(`update ${match.id}: ${upErr.message}`);
+          log(`    ✗ update KO: ${upErr.message}`);
         } else {
           updated += 1;
+          log(`    ✓ update OK`);
         }
       } catch (e) {
         errors.push((e as Error).message);
+        log(`  ↳ exception: ${(e as Error).message}`);
       }
     }
+
+    log(`STEP 5 — Bilan: ${updated} mis à jour, ${errors.length} erreurs`);
 
     const status = errors.length === 0 ? "success" : (updated > 0 ? "partial" : "error");
 
@@ -257,6 +289,7 @@ Deno.serve(async (req) => {
       athletes_count: nolioAthletes.length,
       status,
       error_message: errors.length ? errors.slice(0, 5).join(" | ").slice(0, 1000) : null,
+      notes: diagnosticLogs.join("\n").slice(0, 20000),
     });
 
     return new Response(
