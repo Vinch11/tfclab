@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2, RefreshCw, AlertCircle } from "lucide-react";
+import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2, RefreshCw, AlertCircle, Download } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { AdvancedLayoutEditor } from "./AdvancedLayoutEditor";
@@ -35,6 +35,10 @@ export function ConfigurationPage() {
   const [nolioSyncSuccess, setNolioSyncSuccess] = useState<{ count: number; linkedTotal: number; message: string } | null>(null);
   const [nolioLastSyncAt, setNolioLastSyncAt] = useState<string | null>(null);
   const [nolioLinkOpen, setNolioLinkOpen] = useState(false);
+
+  const [nolioMetricsLoading, setNolioMetricsLoading] = useState(false);
+  const [nolioMetricsError, setNolioMetricsError] = useState<string | null>(null);
+  const [nolioMetricsSuccess, setNolioMetricsSuccess] = useState<{ created: number; updated: number; message: string } | null>(null);
 
   // Détecte ?nolio=connected dans l'URL
   useEffect(() => {
@@ -153,6 +157,40 @@ export function ConfigurationPage() {
       toast({ title: "Erreur de synchronisation", description: msg, variant: "destructive" });
     } finally {
       setNolioSyncing(false);
+    }
+  };
+
+  const handleImportNolioMetrics = async () => {
+    if (!session?.access_token) return;
+    setNolioMetricsLoading(true);
+    setNolioMetricsError(null);
+    setNolioMetricsSuccess(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-metrics", { method: "POST" });
+      if (error) throw error;
+      const ok = (data as { ok?: boolean })?.ok ?? true;
+      if (!ok) {
+        const errs = (data as { warnings?: string[] })?.warnings?.join(" | ") ?? "Erreur inconnue";
+        throw new Error(errs);
+      }
+      const created = (data as { created?: number })?.created ?? 0;
+      const updated = (data as { updated?: number })?.updated ?? 0;
+      const totalChanged = created + updated;
+      if (totalChanged > 0) {
+        const message = `${totalChanged} nouveaux snapshots créés`;
+        setNolioMetricsSuccess({ created, updated, message });
+        toast({ title: "Métriques importées", description: message });
+      } else {
+        setNolioMetricsSuccess({ created: 0, updated: 0, message: "Aucune nouvelle métrique détectée" });
+        toast({ title: "Métriques à jour", description: "Aucune nouvelle métrique détectée" });
+      }
+    } catch (e) {
+      const msg = (e as Error).message ?? "Échec de l'import des métriques";
+      console.error("Nolio metrics import failed", e);
+      setNolioMetricsError(msg);
+      toast({ title: "Erreur d'import", description: msg, variant: "destructive" });
+    } finally {
+      setNolioMetricsLoading(false);
     }
   };
 
@@ -331,6 +369,23 @@ export function ConfigurationPage() {
                 </Button>
               </div>
 
+              {/* Importer les métriques Nolio */}
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Download className={cn("w-5 h-5 text-primary", nolioMetricsLoading && "animate-bounce")} />
+                  </div>
+                  <div>
+                    <Label className="font-medium text-base">Importer les métriques Nolio</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Récupère les dernières métriques de chaque athlète lié et crée des snapshots.
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={handleImportNolioMetrics} disabled={nolioMetricsLoading}>
+                  {nolioMetricsLoading ? "Import en cours..." : "Importer"}
+                </Button>
+              </div>
 
               {nolioSyncSuccess && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
@@ -344,6 +399,23 @@ export function ConfigurationPage() {
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
                   <AlertCircle className="w-4 h-4" />
                   <span className="text-sm font-medium">{nolioSyncError}</span>
+                </div>
+              )}
+              {nolioMetricsSuccess && (
+                <div className={cn(
+                  "flex items-center gap-2 p-3 rounded-lg border",
+                  nolioMetricsSuccess.created + nolioMetricsSuccess.updated > 0
+                    ? "bg-success/10 border-success/30 text-success"
+                    : "bg-primary/10 border-primary/30 text-primary"
+                )}>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">{nolioMetricsSuccess.message}</span>
+                </div>
+              )}
+              {nolioMetricsError && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">{nolioMetricsError}</span>
                 </div>
               )}
             </>
