@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2 } from "lucide-react";
+import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2, RefreshCw, AlertCircle } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { AdvancedLayoutEditor } from "./AdvancedLayoutEditor";
@@ -29,6 +29,10 @@ export function ConfigurationPage() {
   const [nolioConnected, setNolioConnected] = useState(false);
   const [nolioLoading, setNolioLoading] = useState(false);
   const [nolioJustConnected, setNolioJustConnected] = useState(false);
+  const [nolioSyncing, setNolioSyncing] = useState(false);
+  const [nolioSyncError, setNolioSyncError] = useState<string | null>(null);
+  const [nolioSyncSuccess, setNolioSyncSuccess] = useState<{ count: number } | null>(null);
+  const [nolioLastSyncAt, setNolioLastSyncAt] = useState<string | null>(null);
 
   // Détecte ?nolio=connected dans l'URL
   useEffect(() => {
