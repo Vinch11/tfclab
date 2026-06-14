@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle2 } from "lucide-react";
 
-type NolioAthlete = { nolio_id: number; name?: string };
+type NolioAthlete = { nolio_id: number; name?: string; is_coach?: boolean };
 type TfclAthlete = { id: string; name: string | null; nolio_id: number | null };
 
 const NONE_VALUE = "__none__";
