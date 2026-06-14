@@ -369,6 +369,23 @@ export function ConfigurationPage() {
                 </Button>
               </div>
 
+              {/* Importer les métriques Nolio */}
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Download className={cn("w-5 h-5 text-primary", nolioMetricsLoading && "animate-bounce")} />
+                  </div>
+                  <div>
+                    <Label className="font-medium text-base">Importer les métriques Nolio</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Récupère les dernières métriques de chaque athlète lié et crée des snapshots.
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={handleImportNolioMetrics} disabled={nolioMetricsLoading}>
+                  {nolioMetricsLoading ? "Import en cours..." : "Importer"}
+                </Button>
+              </div>
 
               {nolioSyncSuccess && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
@@ -382,6 +399,23 @@ export function ConfigurationPage() {
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
                   <AlertCircle className="w-4 h-4" />
                   <span className="text-sm font-medium">{nolioSyncError}</span>
+                </div>
+              )}
+              {nolioMetricsSuccess && (
+                <div className={cn(
+                  "flex items-center gap-2 p-3 rounded-lg border",
+                  nolioMetricsSuccess.created + nolioMetricsSuccess.updated > 0
+                    ? "bg-success/10 border-success/30 text-success"
+                    : "bg-primary/10 border-primary/30 text-primary"
+                )}>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">{nolioMetricsSuccess.message}</span>
+                </div>
+              )}
+              {nolioMetricsError && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">{nolioMetricsError}</span>
                 </div>
               )}
             </>
