@@ -102,7 +102,27 @@ export function ConfigurationPage() {
       setNolioLastSyncAt(data?.synced_at ?? null);
     })();
     return () => { cancelled = true; };
-  }, [user, nolioSyncSuccess]);
+  }, [user, nolioSyncSuccess, nolioMetricsSuccess]);
+
+  // Charge la liste des athlètes liés à Nolio (nolio_id non null)
+  useEffect(() => {
+    if (!user || !nolioConnected) { setLinkedAthletes([]); return; }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("athletes")
+        .select("id, name, nolio_id")
+        .eq("coach_id", user.id)
+        .not("nolio_id", "is", null)
+        .order("name", { ascending: true });
+      if (cancelled) return;
+      if (error) { console.error("Failed to load linked athletes", error); return; }
+      setLinkedAthletes(((data ?? []) as Array<{ id: string; name: string; nolio_id: number }>).map(a => ({
+        id: a.id, name: a.name, nolio_id: Number(a.nolio_id),
+      })));
+    })();
+    return () => { cancelled = true; };
+  }, [user, nolioConnected, nolioSyncSuccess, nolioMetricsSuccess]);
 
   const handleConnectNolio = async () => {
     if (!session?.access_token) {
