@@ -12,6 +12,27 @@ const NOLIO_CREATE_TRAINING_URL = "https://www.nolio.io/api/create/planned/train
 
 type SupabaseAdmin = ReturnType<typeof createClient>;
 
+type WbalIntensityRef = "FTP" | "CP" | "MAP" | "VMA" | "CSS" | "HR" | "absolute";
+
+type WbalIntervalBlock = {
+  reps: number;
+  durationSec: number;
+  intensity: number;
+  intensityRef: WbalIntensityRef;
+  defaultRestSec: number;
+  recoveryStrategy?: string;
+  label?: string;
+};
+
+type WbalProfile = {
+  sport: string;
+  blocks: WbalIntervalBlock[];
+  restBetweenBlocksSec?: number;
+  notes?: string;
+};
+
+type WorkoutStructurePart = { part: string; text: string; zones: string[] };
+
 type ParsedSession = {
   weekNumber: number;
   dayIndex: number; // 0=Lun ... 6=Dim
@@ -19,6 +40,15 @@ type ParsedSession = {
   title: string;
   details: string;
   isRest: boolean;
+  structure?: WorkoutStructurePart[] | null;
+  wbalProfile?: WbalProfile | null;
+};
+
+type AthleteRefs = {
+  ftp?: number | null;
+  vma?: number | null;
+  css?: number | null;
+  fcMax?: number | null;
 };
 
 type Body = {
@@ -26,7 +56,143 @@ type Body = {
   nolio_athlete_id: number;
   planStartDate: string; // YYYY-MM-DD (lundi de la semaine 1)
   sessions: ParsedSession[];
+  refs?: AthleteRefs;
 };
+
+type NolioStep = {
+  step_duration_type: "duration";
+  step_duration_value: number;
+  intensity_type: "warmup" | "active" | "rest" | "cooldown" | "repetition";
+  target_type: "no_target" | "power" | "pace" | "heartrate";
+  target_value_min?: number;
+  target_value_max?: number;
+  target_value?: number;
+  notes?: string;
+};
+
+type NolioRepStep = {
+  intensity_type: "repetition";
+  value: number; // reps
+  steps: NolioStep[];
+};
+
+type NolioStructuredItem = NolioStep | NolioRepStep;
+
+function mapTargetType(ref: WbalIntensityRef): NolioStep["target_type"] {
+  switch (ref) {
+    case "FTP":
+    case "CP":
+    case "MAP":
+      return "power";
+    case "VMA":
+    case "CSS":
+      return "pace";
+    case "HR":
+      return "heartrate";
+    default:
+      return "no_target";
+  }
+}
+
+/**
+ * Calcule la valeur absolue cible pour un target_type/intensityRef × % intensité.
+ * Retourne null si la ref athlète manque.
+ */
+function computeTargetValue(
+  ref: WbalIntensityRef,
+  intensityPct: number,
+  refs: AthleteRefs,
+): number | null {
+  if (!Number.isFinite(intensityPct) || intensityPct <= 0) return null;
+  switch (ref) {
+    case "FTP":
+    case "CP":
+    case "MAP":
+      if (!refs.ftp) return null;
+      return Math.round(refs.ftp * intensityPct / 100);
+    case "VMA": {
+      if (!refs.vma) return null;
+      // pace en sec/km : 1000 / (vma_kmh * (intensity/100) * 1000/3600)
+      const speedMs = refs.vma * (intensityPct / 100) * (1000 / 3600);
+      if (speedMs <= 0) return null;
+      return Math.round(1000 / speedMs);
+    }
+    case "CSS": {
+      if (!refs.css) return null;
+      // css = sec/100m à 100%. pace cible (sec/100m) = css * 100 / intensity
+      return Math.round(refs.css * 100 / intensityPct);
+    }
+    case "HR":
+      if (!refs.fcMax) return null;
+      return Math.round(refs.fcMax * intensityPct / 100);
+    default:
+      return null;
+  }
+}
+
+/**
+ * Construit le tableau structured_workout Nolio depuis un WbalProfile TFCLab.
+ * - warmup 10min
+ * - chaque block : repetition wrapper si reps>1, sinon step active direct
+ * - cooldown 10min
+ */
+function buildStructuredWorkout(
+  wbal: WbalProfile,
+  refs: AthleteRefs,
+): NolioStructuredItem[] {
+  const items: NolioStructuredItem[] = [];
+
+  items.push({
+    step_duration_type: "duration",
+    step_duration_value: 600,
+    intensity_type: "warmup",
+    target_type: "no_target",
+  });
+
+  for (const block of wbal.blocks ?? []) {
+    const targetType = mapTargetType(block.intensityRef);
+    const center = computeTargetValue(block.intensityRef, block.intensity, refs);
+    const lo = computeTargetValue(block.intensityRef, block.intensity * 0.95, refs);
+    const hi = computeTargetValue(block.intensityRef, block.intensity * 1.05, refs);
+
+    const activeStep: NolioStep = {
+      step_duration_type: "duration",
+      step_duration_value: Math.max(1, Math.round(block.durationSec)),
+      intensity_type: "active",
+      target_type: targetType,
+      ...(targetType !== "no_target" && lo != null && hi != null
+        ? { target_value_min: Math.min(lo, hi), target_value_max: Math.max(lo, hi) }
+        : {}),
+      ...(targetType !== "no_target" && center != null ? { target_value: center } : {}),
+      ...(block.label ? { notes: block.label } : {}),
+    };
+
+    if (block.reps > 1) {
+      const restStep: NolioStep = {
+        step_duration_type: "duration",
+        step_duration_value: Math.max(1, Math.round(block.defaultRestSec || 60)),
+        intensity_type: "rest",
+        target_type: "no_target",
+      };
+      items.push({
+        intensity_type: "repetition",
+        value: block.reps,
+        steps: [activeStep, restStep],
+      });
+    } else {
+      items.push(activeStep);
+    }
+  }
+
+  items.push({
+    step_duration_type: "duration",
+    step_duration_value: 600,
+    intensity_type: "cooldown",
+    target_type: "no_target",
+  });
+
+  return items;
+}
 
 function mapSport(sport: string): number {
   const s = (sport ?? "").toLowerCase();
@@ -245,7 +411,11 @@ Deno.serve(async (req) => {
         (s.weekNumber - 1) * 7 + s.dayIndex,
       );
 
-      const payload = {
+      const structured_workout = s.wbalProfile && Array.isArray(s.wbalProfile.blocks) && s.wbalProfile.blocks.length > 0
+        ? buildStructuredWorkout(s.wbalProfile, body.refs ?? {})
+        : null;
+
+      const payload: Record<string, unknown> = {
         id_partner: `tfcl-${body.athlete_id}-${s.weekNumber}-${s.dayIndex}`,
         athlete_id: body.nolio_athlete_id,
         sport_id: mapSport(s.sport),
@@ -253,6 +423,7 @@ Deno.serve(async (req) => {
         date_start: dateStart,
         description: s.details ?? "",
       };
+      if (structured_workout) payload.structured_workout = structured_workout;
 
       const res = await postSession({
         url: NOLIO_CREATE_TRAINING_URL,
