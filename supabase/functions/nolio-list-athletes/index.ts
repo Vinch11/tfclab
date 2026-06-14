@@ -5,6 +5,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const NOLIO_ATHLETES_URL = "https://www.nolio.io/api/get/athletes/?wants_coach=false&limit=300";
+const NOLIO_USER_URL = "https://www.nolio.io/api/get/user/";
 
 async function refreshIfNeeded(
   admin: ReturnType<typeof createClient>,
