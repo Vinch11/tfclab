@@ -40,6 +40,7 @@ type ParsedSession = {
   title: string;
   details: string;
   isRest: boolean;
+  id?: string | null;
   structure?: WorkoutStructurePart[] | null;
   wbalProfile?: WbalProfile | null;
 };
@@ -208,9 +209,7 @@ function buildTargetFromZones(
         target_value: Math.round((r.min + r.max) / 2),
       };
     }
-    if (zNorm.includes("bpm") || /\bfc\b/.test(zNorm)) {
-      return { target_type: "heartrate" };
-    }
+    return { target_type: "no_target" };
   }
 
   // Power
@@ -235,7 +234,7 @@ function buildTargetFromZones(
         target_value: Math.round((lo + hi) / 2),
       };
     }
-    return { target_type: "power" };
+    return { target_type: "no_target" };
   }
 
   // Pace
@@ -262,7 +261,7 @@ function buildTargetFromZones(
         };
       }
     }
-    return { target_type: "pace" };
+    return { target_type: "no_target" };
   }
 
   return { target_type: "no_target" };
@@ -303,15 +302,23 @@ function buildStructuredFromParts(
 
 
 
-function mapSport(sport: string): number {
-  const s = (sport ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  if (s.includes("run") || s.includes("cap") || s.includes("course") || s.includes("running") || s.includes("trail")) return 1;
-  if (s.includes("bike") || s.includes("velo") || s.includes("cyclisme") || s.includes("cycling")) return 2;
+function detectSportId(text: string): number | null {
+  const s = normalizeStr(text);
+  if (!s) return null;
+  if (s.includes("bike") || s.includes("velo") || s.includes("cycle") || s.includes("cyclisme") || s.includes("cycling")) return 2;
   if (s.includes("swim") || s.includes("nat") || s.includes("natation") || s.includes("swimming")) return 3;
-  if (s.includes("strength") || s.includes("renfo") || s.includes("renforcement") || s.includes("muscu")) return 7;
+  if (s.includes("renfo") || s.includes("strength") || s.includes("muscu") || s.includes("renforcement")) return 7;
+  if (s.includes("run") || s.includes("cap") || s.includes("trail") || s.includes("course") || s.includes("running")) return 1;
+  return null;
+}
+
+function mapSport(sport: string, title?: string, id?: string | null): number {
+  const fromSport = detectSportId(sport);
+  if (fromSport !== null) return fromSport;
+  const fromTitle = detectSportId(title ?? "");
+  if (fromTitle !== null) return fromTitle;
+  const fromId = detectSportId(id ?? "");
+  if (fromId !== null) return fromId;
   return 1;
 }
 
@@ -533,7 +540,7 @@ Deno.serve(async (req) => {
       const payload: Record<string, unknown> = {
         id_partner: parseInt(idPartnerStr, 10),
         athlete_id: body.nolio_athlete_id,
-        sport_id: mapSport(s.sport),
+        sport_id: mapSport(s.sport, s.title, s.id ?? null),
         name: s.title ?? "Séance",
         date_start: dateStart,
         description: s.details ?? "",
