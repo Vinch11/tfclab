@@ -176,6 +176,23 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Optional body: { athlete_id?: string, nolio_id?: number }
+  let requestedAthleteId: string | null = null;
+  let requestedNolioId: number | null = null;
+  try {
+    if (req.method !== "GET") {
+      const body = await req.clone().json().catch(() => null) as
+        | { athlete_id?: string; nolio_id?: number | string }
+        | null;
+      if (body?.athlete_id) requestedAthleteId = String(body.athlete_id);
+      if (body?.nolio_id != null) {
+        const n = Number(body.nolio_id);
+        if (Number.isFinite(n)) requestedNolioId = n;
+      }
+    }
+  } catch { /* noop */ }
+
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -248,6 +265,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Si un athlète spécifique est demandé, restreindre
+    let scopedAthletes = athletes ?? [];
+    let targetAthleteName: string | null = null;
+    if (requestedAthleteId || requestedNolioId != null) {
+      scopedAthletes = scopedAthletes.filter(a =>
+        (requestedAthleteId && a.id === requestedAthleteId) ||
+        (requestedNolioId != null && Number(a.nolio_id) === requestedNolioId)
+      );
+      targetAthleteName = scopedAthletes[0]?.name ?? null;
+    }
+
     const today = new Date().toISOString().slice(0, 10);
     let createdCount = 0;
     let updatedCount = 0;
@@ -256,7 +284,7 @@ Deno.serve(async (req) => {
     const diagnosticDump: Record<string, unknown> = {};
     let firstAthleteLogged = false;
 
-    for (const a of athletes ?? []) {
+    for (const a of scopedAthletes) {
       const nolioId = Number(a.nolio_id);
       if (!Number.isFinite(nolioId)) continue;
 
@@ -370,7 +398,8 @@ Deno.serve(async (req) => {
       created: createdCount,
       updated: updatedCount,
       unchanged: unchangedCount,
-      athletes_scanned: athletes?.length ?? 0,
+      athletes_scanned: scopedAthletes.length,
+      athlete_name: targetAthleteName,
       warnings: warnings.slice(0, 10),
       status,
     }), {

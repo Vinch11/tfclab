@@ -72,6 +72,23 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Optional body: { athlete_id?: string, nolio_id?: number }
+  let requestedAthleteId: string | null = null;
+  let requestedNolioId: number | null = null;
+  try {
+    if (req.method !== "GET") {
+      const body = await req.clone().json().catch(() => null) as
+        | { athlete_id?: string; nolio_id?: number | string }
+        | null;
+      if (body?.athlete_id) requestedAthleteId = String(body.athlete_id);
+      if (body?.nolio_id != null) {
+        const n = Number(body.nolio_id);
+        if (Number.isFinite(n)) requestedNolioId = n;
+      }
+    }
+  } catch { /* noop */ }
+
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -237,8 +254,22 @@ Deno.serve(async (req) => {
     let updated = 0;
     const errors: string[] = [];
 
+    // Si un athlète spécifique est demandé, restreindre la liste Nolio à celui-ci
+    let targetAthleteName: string | null = null;
+    let nolioAthletesScoped = nolioAthletes;
+    if (requestedAthleteId || requestedNolioId != null) {
+      const targetTfcl = (existing ?? []).find(a =>
+        (requestedAthleteId && a.id === requestedAthleteId) ||
+        (requestedNolioId != null && Number(a.nolio_id) === requestedNolioId)
+      );
+      targetAthleteName = targetTfcl?.name ?? null;
+      const targetNolioId = requestedNolioId ?? (targetTfcl?.nolio_id != null ? Number(targetTfcl.nolio_id) : null);
+      nolioAthletesScoped = nolioAthletes.filter(na => Number(na.nolio_id) === targetNolioId);
+      log(`SCOPE — athlète unique demandé (id=${requestedAthleteId}, nolio_id=${targetNolioId}, name=${targetAthleteName}) → ${nolioAthletesScoped.length} match Nolio`);
+    }
+
     // 5) Matching détaillé
-    for (const na of nolioAthletes) {
+    for (const na of nolioAthletesScoped) {
       try {
         const nolioId = typeof na.nolio_id === "number" ? na.nolio_id : Number(na.nolio_id);
         const name = (na.name ?? "").trim();
@@ -292,7 +323,9 @@ Deno.serve(async (req) => {
       .not("nolio_id", "is", null);
     const linkedCount = linkedRows?.length ?? 0;
 
-    const message = `Synchronisation réussie — ${linkedCount} athlètes liés à Nolio, ${updated} mis à jour`;
+    const message = targetAthleteName
+      ? `${targetAthleteName} — ${updated} mis à jour`
+      : `Synchronisation réussie — ${linkedCount} athlètes liés à Nolio, ${updated} mis à jour`;
     log(`STEP 6 — ${message}`);
 
     await admin.from("nolio_sync_log").insert({

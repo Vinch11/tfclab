@@ -20,6 +20,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { NolioLinkAthletesDialog } from "./NolioLinkAthletesDialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type LinkedAthlete = { id: string; name: string; nolio_id: number };
 
 export function ConfigurationPage() {
   const { theme, setTheme, themeConfig } = useTheme();
@@ -39,6 +42,10 @@ export function ConfigurationPage() {
   const [nolioMetricsLoading, setNolioMetricsLoading] = useState(false);
   const [nolioMetricsError, setNolioMetricsError] = useState<string | null>(null);
   const [nolioMetricsSuccess, setNolioMetricsSuccess] = useState<{ created: number; updated: number; message: string } | null>(null);
+
+  const [linkedAthletes, setLinkedAthletes] = useState<LinkedAthlete[]>([]);
+  const [syncTarget, setSyncTarget] = useState<string>("all");
+  const [metricsTarget, setMetricsTarget] = useState<string>("all");
 
   // Détecte ?nolio=connected dans l'URL
   useEffect(() => {
@@ -95,7 +102,27 @@ export function ConfigurationPage() {
       setNolioLastSyncAt(data?.synced_at ?? null);
     })();
     return () => { cancelled = true; };
-  }, [user, nolioSyncSuccess]);
+  }, [user, nolioSyncSuccess, nolioMetricsSuccess]);
+
+  // Charge la liste des athlètes liés à Nolio (nolio_id non null)
+  useEffect(() => {
+    if (!user || !nolioConnected) { setLinkedAthletes([]); return; }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("athletes")
+        .select("id, name, nolio_id")
+        .eq("coach_id", user.id)
+        .not("nolio_id", "is", null)
+        .order("name", { ascending: true });
+      if (cancelled) return;
+      if (error) { console.error("Failed to load linked athletes", error); return; }
+      setLinkedAthletes(((data ?? []) as Array<{ id: string; name: string; nolio_id: number }>).map(a => ({
+        id: a.id, name: a.name, nolio_id: Number(a.nolio_id),
+      })));
+    })();
+    return () => { cancelled = true; };
+  }, [user, nolioConnected, nolioSyncSuccess, nolioMetricsSuccess]);
 
   const handleConnectNolio = async () => {
     if (!session?.access_token) {
@@ -136,13 +163,17 @@ export function ConfigurationPage() {
     setNolioSyncError(null);
     setNolioSyncSuccess(null);
     try {
-      const { data, error } = await supabase.functions.invoke("nolio-sync", { method: "POST" });
+      const target = linkedAthletes.find(a => a.id === syncTarget);
+      const body = target ? { athlete_id: target.id, nolio_id: target.nolio_id } : {};
+      const { data, error } = await supabase.functions.invoke("nolio-sync", { method: "POST", body });
       if (error) throw error;
       const count = (data as { athletes_count?: number })?.athletes_count ?? 0;
       const linkedTotal = (data as { linked_total?: number })?.linked_total ?? 0;
       const message =
         (data as { message?: string })?.message ??
-        `Synchronisation réussie — ${linkedTotal} athlètes liés à Nolio, ${count} mis à jour`;
+        (target
+          ? `${target.name} — ${count} mis à jour`
+          : `Synchronisation réussie — ${linkedTotal} athlètes liés à Nolio, ${count} mis à jour`);
       const ok = (data as { ok?: boolean })?.ok ?? true;
       if (!ok) {
         const errs = (data as { errors?: string[] })?.errors?.join(" | ") ?? "Erreur inconnue";
@@ -166,7 +197,9 @@ export function ConfigurationPage() {
     setNolioMetricsError(null);
     setNolioMetricsSuccess(null);
     try {
-      const { data, error } = await supabase.functions.invoke("nolio-metrics", { method: "POST" });
+      const target = linkedAthletes.find(a => a.id === metricsTarget);
+      const body = target ? { athlete_id: target.id, nolio_id: target.nolio_id } : {};
+      const { data, error } = await supabase.functions.invoke("nolio-metrics", { method: "POST", body });
       if (error) throw error;
       const ok = (data as { ok?: boolean })?.ok ?? true;
       if (!ok) {
@@ -176,13 +209,15 @@ export function ConfigurationPage() {
       const created = (data as { created?: number })?.created ?? 0;
       const updated = (data as { updated?: number })?.updated ?? 0;
       const totalChanged = created + updated;
+      const prefix = target ? `${target.name} — ` : "";
       if (totalChanged > 0) {
-        const message = `${totalChanged} nouveaux snapshots créés`;
+        const message = `${prefix}${created} snapshot${created > 1 ? "s" : ""} créé${created > 1 ? "s" : ""}${updated > 0 ? `, ${updated} mis à jour` : ""}`;
         setNolioMetricsSuccess({ created, updated, message });
         toast({ title: "Métriques importées", description: message });
       } else {
-        setNolioMetricsSuccess({ created: 0, updated: 0, message: "Aucune nouvelle métrique détectée" });
-        toast({ title: "Métriques à jour", description: "Aucune nouvelle métrique détectée" });
+        const message = `${prefix}Aucune nouvelle métrique détectée`;
+        setNolioMetricsSuccess({ created: 0, updated: 0, message });
+        toast({ title: "Métriques à jour", description: message });
       }
     } catch (e) {
       const msg = (e as Error).message ?? "Échec de l'import des métriques";
@@ -332,7 +367,7 @@ export function ConfigurationPage() {
               </div>
 
               {/* Bouton synchronisation */}
-              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div className="flex flex-col gap-3 p-4 rounded-xl bg-muted/30 border sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                     <RefreshCw className={cn("w-5 h-5 text-primary", nolioSyncing && "animate-spin")} />
@@ -346,10 +381,24 @@ export function ConfigurationPage() {
                     </p>
                   </div>
                 </div>
-                <Button onClick={handleSyncNolio} disabled={nolioSyncing}>
-                  {nolioSyncing ? "Synchronisation..." : "Synchroniser"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Select value={syncTarget} onValueChange={setSyncTarget}>
+                    <SelectTrigger className="w-[240px]">
+                      <SelectValue placeholder="Choisir une cible" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les athlètes liés à Nolio</SelectItem>
+                      {linkedAthletes.map(a => (
+                        <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleSyncNolio} disabled={nolioSyncing}>
+                    {nolioSyncing ? "Synchronisation..." : "Synchroniser"}
+                  </Button>
+                </div>
               </div>
+
 
               {/* Liaison manuelle des athlètes Nolio */}
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
@@ -370,7 +419,7 @@ export function ConfigurationPage() {
               </div>
 
               {/* Importer les métriques Nolio */}
-              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div className="flex flex-col gap-3 p-4 rounded-xl bg-muted/30 border sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                     <Download className={cn("w-5 h-5 text-primary", nolioMetricsLoading && "animate-bounce")} />
@@ -382,10 +431,24 @@ export function ConfigurationPage() {
                     </p>
                   </div>
                 </div>
-                <Button onClick={handleImportNolioMetrics} disabled={nolioMetricsLoading}>
-                  {nolioMetricsLoading ? "Import en cours..." : "Importer"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Select value={metricsTarget} onValueChange={setMetricsTarget}>
+                    <SelectTrigger className="w-[240px]">
+                      <SelectValue placeholder="Choisir une cible" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les athlètes liés à Nolio</SelectItem>
+                      {linkedAthletes.map(a => (
+                        <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleImportNolioMetrics} disabled={nolioMetricsLoading}>
+                    {nolioMetricsLoading ? "Import en cours..." : "Importer"}
+                  </Button>
+                </div>
               </div>
+
 
               {nolioSyncSuccess && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
