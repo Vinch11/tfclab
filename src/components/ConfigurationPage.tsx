@@ -36,6 +36,10 @@ export function ConfigurationPage() {
   const [nolioLastSyncAt, setNolioLastSyncAt] = useState<string | null>(null);
   const [nolioLinkOpen, setNolioLinkOpen] = useState(false);
 
+  const [nolioMetricsLoading, setNolioMetricsLoading] = useState(false);
+  const [nolioMetricsError, setNolioMetricsError] = useState<string | null>(null);
+  const [nolioMetricsSuccess, setNolioMetricsSuccess] = useState<{ created: number; updated: number; message: string } | null>(null);
+
   // Détecte ?nolio=connected dans l'URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
