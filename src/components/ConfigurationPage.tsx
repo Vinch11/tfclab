@@ -160,6 +160,40 @@ export function ConfigurationPage() {
     }
   };
 
+  const handleImportNolioMetrics = async () => {
+    if (!session?.access_token) return;
+    setNolioMetricsLoading(true);
+    setNolioMetricsError(null);
+    setNolioMetricsSuccess(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-metrics", { method: "POST" });
+      if (error) throw error;
+      const ok = (data as { ok?: boolean })?.ok ?? true;
+      if (!ok) {
+        const errs = (data as { warnings?: string[] })?.warnings?.join(" | ") ?? "Erreur inconnue";
+        throw new Error(errs);
+      }
+      const created = (data as { created?: number })?.created ?? 0;
+      const updated = (data as { updated?: number })?.updated ?? 0;
+      const totalChanged = created + updated;
+      if (totalChanged > 0) {
+        const message = `${totalChanged} nouveaux snapshots créés`;
+        setNolioMetricsSuccess({ created, updated, message });
+        toast({ title: "Métriques importées", description: message });
+      } else {
+        setNolioMetricsSuccess({ created: 0, updated: 0, message: "Aucune nouvelle métrique détectée" });
+        toast({ title: "Métriques à jour", description: "Aucune nouvelle métrique détectée" });
+      }
+    } catch (e) {
+      const msg = (e as Error).message ?? "Échec de l'import des métriques";
+      console.error("Nolio metrics import failed", e);
+      setNolioMetricsError(msg);
+      toast({ title: "Erreur d'import", description: msg, variant: "destructive" });
+    } finally {
+      setNolioMetricsLoading(false);
+    }
+  };
+
   const formatLastSync = (iso: string | null) => {
     if (!iso) return null;
     try {
