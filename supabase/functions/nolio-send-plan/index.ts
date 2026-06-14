@@ -302,15 +302,23 @@ function buildStructuredFromParts(
 
 
 
-function mapSport(sport: string): number {
-  const s = (sport ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  if (s.includes("run") || s.includes("cap") || s.includes("course") || s.includes("running") || s.includes("trail")) return 1;
-  if (s.includes("bike") || s.includes("velo") || s.includes("cyclisme") || s.includes("cycling")) return 2;
+function detectSportId(text: string): number | null {
+  const s = normalizeStr(text);
+  if (!s) return null;
+  if (s.includes("bike") || s.includes("velo") || s.includes("cycle") || s.includes("cyclisme") || s.includes("cycling")) return 2;
   if (s.includes("swim") || s.includes("nat") || s.includes("natation") || s.includes("swimming")) return 3;
-  if (s.includes("strength") || s.includes("renfo") || s.includes("renforcement") || s.includes("muscu")) return 7;
+  if (s.includes("renfo") || s.includes("strength") || s.includes("muscu") || s.includes("renforcement")) return 7;
+  if (s.includes("run") || s.includes("cap") || s.includes("trail") || s.includes("course") || s.includes("running")) return 1;
+  return null;
+}
+
+function mapSport(sport: string, title?: string, id?: string | null): number {
+  const fromSport = detectSportId(sport);
+  if (fromSport !== null) return fromSport;
+  const fromTitle = detectSportId(title ?? "");
+  if (fromTitle !== null) return fromTitle;
+  const fromId = detectSportId(id ?? "");
+  if (fromId !== null) return fromId;
   return 1;
 }
 
