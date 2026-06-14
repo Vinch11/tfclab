@@ -209,9 +209,7 @@ function buildTargetFromZones(
         target_value: Math.round((r.min + r.max) / 2),
       };
     }
-    if (zNorm.includes("bpm") || /\bfc\b/.test(zNorm)) {
-      return { target_type: "heartrate" };
-    }
+    return { target_type: "no_target" };
   }
 
   // Power
@@ -236,7 +234,7 @@ function buildTargetFromZones(
         target_value: Math.round((lo + hi) / 2),
       };
     }
-    return { target_type: "power" };
+    return { target_type: "no_target" };
   }
 
   // Pace
@@ -263,7 +261,7 @@ function buildTargetFromZones(
         };
       }
     }
-    return { target_type: "pace" };
+    return { target_type: "no_target" };
   }
 
   return { target_type: "no_target" };
