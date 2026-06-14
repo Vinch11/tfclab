@@ -159,7 +159,7 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
         </div>
         <Button onClick={() => setOpen(true)} disabled={!parsedPlan || activeCount === 0}>
           <Send className="h-4 w-4 mr-2" />
-          Envoyer vers Nolio
+          Envoyer tout vers Nolio
         </Button>
       </CardContent>
 
