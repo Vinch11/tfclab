@@ -415,8 +415,9 @@ Deno.serve(async (req) => {
         ? buildStructuredWorkout(s.wbalProfile, body.refs ?? {})
         : null;
 
+      const idPartnerStr = String(s.weekNumber).padStart(2, "0") + String(s.dayIndex) + String(body.nolio_athlete_id).slice(-4);
       const payload: Record<string, unknown> = {
-        id_partner: `tfcl-${body.athlete_id}-${s.weekNumber}-${s.dayIndex}`,
+        id_partner: parseInt(idPartnerStr, 10),
         athlete_id: body.nolio_athlete_id,
         sport_id: mapSport(s.sport),
         name: s.title ?? "Séance",
