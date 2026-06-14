@@ -7,6 +7,8 @@ const NOLIO_AUTHORIZE_URL = "https://www.nolio.io/api/authorize/";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const REDIRECT_URI =
   "https://wtwjkmawntybyehatkjo.supabase.co/functions/v1/nolio-oauth/callback";
+const APP_URL = Deno.env.get("APP_URL") || "https://tfclab.lovable.app";
+
 
 function randomString(len = 24): string {
   const bytes = new Uint8Array(len);
@@ -205,7 +207,7 @@ Deno.serve(async (req) => {
         status: 302,
         headers: {
           ...corsHeaders,
-          Location: `${appOriginUrl}/configuration?nolio=connected`,
+          Location: `${APP_URL}/configuration?nolio=connected`,
         },
       });
     }

@@ -7,7 +7,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
-const NOLIO_ATHLETES_URL = "https://www.nolio.io/api/get/athletes/?wants_coach=false";
+const NOLIO_ATHLETES_URL = "https://www.nolio.io/api/get/athletes/?wants_coach=false&limit=300";
 
 type NolioAthlete = {
   nolio_id: number;
@@ -240,7 +240,7 @@ Deno.serve(async (req) => {
 
     await admin.from("nolio_sync_log").insert({
       user_id: userId,
-      athletes_count: updated,
+      athletes_count: nolioAthletes.length,
       status,
       error_message: errors.length ? errors.slice(0, 5).join(" | ").slice(0, 1000) : null,
     });
