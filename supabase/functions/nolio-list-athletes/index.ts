@@ -137,7 +137,12 @@ Deno.serve(async (req) => {
       }
     } catch { /* ignore — coach entry is best-effort */ }
 
-    const finalAthletes = coachEntry ? [coachEntry, ...athletes] : athletes;
+    const sortedAthletes = [...athletes].sort((a, b) => {
+      const an = ((a as { name?: string })?.name ?? "").toString();
+      const bn = ((b as { name?: string })?.name ?? "").toString();
+      return an.localeCompare(bn, "fr", { sensitivity: "base" });
+    });
+    const finalAthletes = coachEntry ? [coachEntry, ...sortedAthletes] : sortedAthletes;
     return new Response(JSON.stringify({ athletes: finalAthletes }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
