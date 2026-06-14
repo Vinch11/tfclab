@@ -6,7 +6,7 @@ const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_AUTHORIZE_URL = "https://www.nolio.io/api/authorize/";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const REDIRECT_URI =
-  "https://hipitsvyceiiylyjvcwc.supabase.co/functions/v1/nolio-oauth/callback";
+  "https://wtwjkmawntybyehatkjo.supabase.co/functions/v1/nolio-oauth/callback";
 
 function randomString(len = 24): string {
   const bytes = new Uint8Array(len);
