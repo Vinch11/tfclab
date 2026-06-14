@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { NolioLinkAthletesDialog } from "./NolioLinkAthletesDialog";
 
 export function ConfigurationPage() {
   const { theme, setTheme, themeConfig } = useTheme();
