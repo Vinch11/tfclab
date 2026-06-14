@@ -126,9 +126,9 @@ function computeTargetValue(
   }
 }
 
-/** Parse "30min", "20 min", "1h", "1h30", "45'", "45 s" → secondes. Défaut 600s. */
-function parseDurationToSec(text: string): number {
-  if (!text) return 600;
+/** Parse "30min", "20 min", "1h", "1h30", "45'", "45 s" → secondes. Retourne null si aucun match. */
+function parseDurationToSec(text: string): number | null {
+  if (!text) return null;
   const t = text.toLowerCase();
   // 1h30 / 1h
   const hm = t.match(/(\d+)\s*h\s*(\d{1,2})?/);
@@ -150,7 +150,7 @@ function parseDurationToSec(text: string): number {
     const s = parseInt(ss[1], 10) || 0;
     if (s > 0) return s;
   }
-  return 600;
+  return null;
 }
 
 function normalizeStr(s: string): string {
@@ -272,11 +272,22 @@ function buildTargetFromZones(
 function buildStructuredFromParts(
   structure: WorkoutStructurePart[],
   refs: AthleteRefs,
+  wbalProfile?: WbalProfile | null,
 ): NolioStructuredItem[] {
   const items: NolioStructuredItem[] = [];
   for (const p of structure) {
     const intensity = mapPartToIntensity(p.part);
-    const duration = parseDurationToSec(p.text || "");
+
+    // Durée : texte → wbalProfile → défauts
+    let duration = parseDurationToSec(p.text || "");
+    if (duration == null) {
+      if (wbalProfile?.blocks?.length && intensity === "active") {
+        duration = wbalProfile.blocks[0]?.durationSec ?? 1200;
+      } else {
+        duration = intensity === "active" ? 1200 : 600;
+      }
+    }
+
     const target = buildTargetFromZones(p.zones || [], refs);
     items.push({
       type: "step",
@@ -515,7 +526,7 @@ Deno.serve(async (req) => {
 
       const structure = Array.isArray(s.structure) ? s.structure : [];
       const structured_workout = structure.length > 0
-        ? buildStructuredFromParts(structure, body.refs ?? {})
+        ? buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null)
         : null;
 
       const idPartnerStr = String(body.nolio_athlete_id) + String(s.weekNumber).padStart(2, "0") + String(s.dayIndex);
