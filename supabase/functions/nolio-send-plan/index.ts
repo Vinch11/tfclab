@@ -96,10 +96,6 @@ function mapTargetType(ref: WbalIntensityRef): NolioStep["target_type"] {
   }
 }
 
-/**
- * Calcule la valeur absolue cible pour un target_type/intensityRef × % intensité.
- * Retourne null si la ref athlète manque.
- */
 function computeTargetValue(
   ref: WbalIntensityRef,
   intensityPct: number,
@@ -114,14 +110,12 @@ function computeTargetValue(
       return Math.round(refs.ftp * intensityPct / 100);
     case "VMA": {
       if (!refs.vma) return null;
-      // pace en sec/km : 1000 / (vma_kmh * (intensity/100) * 1000/3600)
       const speedMs = refs.vma * (intensityPct / 100) * (1000 / 3600);
       if (speedMs <= 0) return null;
       return Math.round(1000 / speedMs);
     }
     case "CSS": {
       if (!refs.css) return null;
-      // css = sec/100m à 100%. pace cible (sec/100m) = css * 100 / intensity
       return Math.round(refs.css * 100 / intensityPct);
     }
     case "HR":
@@ -132,75 +126,171 @@ function computeTargetValue(
   }
 }
 
-/**
- * Construit le tableau structured_workout Nolio depuis un WbalProfile TFCLab.
- * - warmup 10min
- * - chaque block : repetition wrapper si reps>1, sinon step active direct
- * - cooldown 10min
- */
-function buildStructuredWorkout(
-  wbal: WbalProfile,
+/** Parse "30min", "20 min", "1h", "1h30", "45'", "45 s" → secondes. Défaut 600s. */
+function parseDurationToSec(text: string): number {
+  if (!text) return 600;
+  const t = text.toLowerCase();
+  // 1h30 / 1h
+  const hm = t.match(/(\d+)\s*h\s*(\d{1,2})?/);
+  if (hm) {
+    const h = parseInt(hm[1], 10) || 0;
+    const m = hm[2] ? parseInt(hm[2], 10) : 0;
+    const sec = h * 3600 + m * 60;
+    if (sec > 0) return sec;
+  }
+  // 30min / 30 min / 30'
+  const mm = t.match(/(\d+)\s*(?:min|'|’)/);
+  if (mm) {
+    const m = parseInt(mm[1], 10) || 0;
+    if (m > 0) return m * 60;
+  }
+  // 45 s / 45sec
+  const ss = t.match(/(\d+)\s*(?:s|sec)\b/);
+  if (ss) {
+    const s = parseInt(ss[1], 10) || 0;
+    if (s > 0) return s;
+  }
+  return 600;
+}
+
+function normalizeStr(s: string): string {
+  return (s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function mapPartToIntensity(part: string): "warmup" | "active" | "cooldown" {
+  const p = normalizeStr(part);
+  if (p.includes("warm") || p.includes("echauffement")) return "warmup";
+  if (p.includes("cool") || p.includes("retour") || p.includes("recup finale")) return "cooldown";
+  return "active";
+}
+
+/** Cherche un range "127-149 bpm" / "127 - 149 bpm" / "200-250 W" / "4:30-4:00/km" */
+function parseRange(text: string, unitPattern: string): { min: number; max: number } | null {
+  const re = new RegExp(`(\\d+(?:[.:]\\d+)?)\\s*[-–—]\\s*(\\d+(?:[.:]\\d+)?)\\s*${unitPattern}`, "i");
+  const m = text.match(re);
+  if (!m) return null;
+  const toNum = (s: string) => {
+    if (s.includes(":")) {
+      const [mm, ss] = s.split(":");
+      return parseInt(mm, 10) * 60 + parseInt(ss, 10);
+    }
+    return parseFloat(s);
+  };
+  const a = toNum(m[1]);
+  const b = toNum(m[2]);
+  return { min: Math.min(a, b), max: Math.max(a, b) };
+}
+
+function parsePctRange(text: string): { min: number; max: number } | null {
+  const m = text.match(/(\d+)\s*[-–—]\s*(\d+)\s*%/);
+  if (!m) return null;
+  const a = parseInt(m[1], 10);
+  const b = parseInt(m[2], 10);
+  return { min: Math.min(a, b), max: Math.max(a, b) };
+}
+
+/** Détermine target depuis zones[]. */
+function buildTargetFromZones(
+  zones: string[],
   refs: AthleteRefs,
-): NolioStructuredItem[] {
-  const items: NolioStructuredItem[] = [];
+): Pick<NolioStep, "target_type" | "target_value_min" | "target_value_max" | "target_value"> {
+  const zText = (zones ?? []).join(" | ");
+  const zNorm = normalizeStr(zText);
 
-  items.push({
-    type: "step",
-    step_duration_type: "duration",
-    step_duration_value: 600,
-    intensity_type: "warmup",
-    target_type: "no_target",
-  });
-
-  for (const block of wbal.blocks ?? []) {
-    const targetType = mapTargetType(block.intensityRef);
-    const center = computeTargetValue(block.intensityRef, block.intensity, refs);
-    const lo = computeTargetValue(block.intensityRef, block.intensity * 0.95, refs);
-    const hi = computeTargetValue(block.intensityRef, block.intensity * 1.05, refs);
-
-    const activeStep: NolioStep = {
-      type: "step",
-      step_duration_type: "duration",
-      step_duration_value: Math.max(1, Math.round(block.durationSec)),
-      intensity_type: "active",
-      target_type: targetType,
-      ...(targetType !== "no_target" && lo != null && hi != null
-        ? { target_value_min: Math.min(lo, hi), target_value_max: Math.max(lo, hi) }
-        : {}),
-      ...(targetType !== "no_target" && center != null ? { target_value: center } : {}),
-      ...(block.label ? { notes: block.label } : {}),
-    };
-
-    if (block.reps > 1) {
-      const restStep: NolioStep = {
-        type: "step",
-        step_duration_type: "duration",
-        step_duration_value: Math.max(1, Math.round(block.defaultRestSec || 60)),
-        intensity_type: "rest",
-        target_type: "no_target",
+  // Heart rate
+  if (zNorm.includes("bpm") || zNorm.includes(" fc") || /\bfc\b/.test(zNorm) || /\bz\d/.test(zNorm)) {
+    const r = parseRange(zText, "bpm");
+    if (r) {
+      return {
+        target_type: "heartrate",
+        target_value_min: Math.round(r.min),
+        target_value_max: Math.round(r.max),
+        target_value: Math.round((r.min + r.max) / 2),
       };
-      items.push({
-        type: "repetition",
-        intensity_type: "repetition",
-        value: block.reps,
-        steps: [activeStep, restStep],
-      });
-    } else {
-      items.push(activeStep);
+    }
+    if (zNorm.includes("bpm") || /\bfc\b/.test(zNorm)) {
+      return { target_type: "heartrate" };
     }
   }
 
-  items.push({
-    type: "step",
-    step_duration_type: "duration",
-    step_duration_value: 600,
-    intensity_type: "cooldown",
-    target_type: "no_target",
-  });
+  // Power
+  if (/\bw\b/.test(zNorm) || zNorm.includes("ftp") || zNorm.includes("puissance") || zNorm.includes("watt")) {
+    const rw = parseRange(zText, "w");
+    if (rw) {
+      return {
+        target_type: "power",
+        target_value_min: Math.round(rw.min),
+        target_value_max: Math.round(rw.max),
+        target_value: Math.round((rw.min + rw.max) / 2),
+      };
+    }
+    const pct = parsePctRange(zText);
+    if (pct && refs.ftp) {
+      const lo = Math.round(refs.ftp * pct.min / 100);
+      const hi = Math.round(refs.ftp * pct.max / 100);
+      return {
+        target_type: "power",
+        target_value_min: lo,
+        target_value_max: hi,
+        target_value: Math.round((lo + hi) / 2),
+      };
+    }
+    return { target_type: "power" };
+  }
 
+  // Pace
+  if (zNorm.includes("allure") || zNorm.includes("/km") || zNorm.includes("vma")) {
+    const rp = parseRange(zText, "\\/?\\s*km");
+    if (rp) {
+      return {
+        target_type: "pace",
+        target_value_min: Math.round(rp.min),
+        target_value_max: Math.round(rp.max),
+        target_value: Math.round((rp.min + rp.max) / 2),
+      };
+    }
+    const pct = parsePctRange(zText);
+    if (pct && refs.vma) {
+      const lo = computeTargetValue("VMA", pct.max, refs); // pace ↑ qd %↓
+      const hi = computeTargetValue("VMA", pct.min, refs);
+      if (lo != null && hi != null) {
+        return {
+          target_type: "pace",
+          target_value_min: Math.min(lo, hi),
+          target_value_max: Math.max(lo, hi),
+          target_value: Math.round((lo + hi) / 2),
+        };
+      }
+    }
+    return { target_type: "pace" };
+  }
 
+  return { target_type: "no_target" };
+}
+
+/** Construit structured_workout depuis le tableau `structure` (warm/main/cool). */
+function buildStructuredFromParts(
+  structure: WorkoutStructurePart[],
+  refs: AthleteRefs,
+): NolioStructuredItem[] {
+  const items: NolioStructuredItem[] = [];
+  for (const p of structure) {
+    const intensity = mapPartToIntensity(p.part);
+    const duration = parseDurationToSec(p.text || "");
+    const target = buildTargetFromZones(p.zones || [], refs);
+    items.push({
+      type: "step",
+      step_duration_type: "duration",
+      step_duration_value: Math.max(1, duration),
+      intensity_type: intensity,
+      ...target,
+      ...(p.text ? { notes: p.text.slice(0, 500) } : {}),
+    });
+  }
   return items;
 }
+
+
 
 function mapSport(sport: string): number {
   const s = (sport ?? "")
@@ -423,8 +513,9 @@ Deno.serve(async (req) => {
         (s.weekNumber - 1) * 7 + s.dayIndex,
       );
 
-      const structured_workout = s.wbalProfile && Array.isArray(s.wbalProfile.blocks) && s.wbalProfile.blocks.length > 0
-        ? buildStructuredWorkout(s.wbalProfile, body.refs ?? {})
+      const structure = Array.isArray(s.structure) ? s.structure : [];
+      const structured_workout = structure.length > 0
+        ? buildStructuredFromParts(structure, body.refs ?? {})
         : null;
 
       const idPartnerStr = String(body.nolio_athlete_id) + String(s.weekNumber).padStart(2, "0") + String(s.dayIndex);
@@ -437,6 +528,7 @@ Deno.serve(async (req) => {
         description: s.details ?? "",
       };
       if (structured_workout) payload.structured_workout = structured_workout;
+
 
       const res = await postSession({
         url: NOLIO_CREATE_TRAINING_URL,
