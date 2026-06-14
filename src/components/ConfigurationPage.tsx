@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2, RefreshCw, AlertCircle } from "lucide-react";
+import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2, RefreshCw, AlertCircle, Download } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { AdvancedLayoutEditor } from "./AdvancedLayoutEditor";
