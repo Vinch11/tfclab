@@ -364,6 +364,8 @@ export function ConfigurationPage() {
         </CardContent>
       </Card>
 
+      <NolioLinkAthletesDialog open={nolioLinkOpen} onOpenChange={setNolioLinkOpen} />
+
 
       {/* Section Préférences d'affichage */}
       <Card>
