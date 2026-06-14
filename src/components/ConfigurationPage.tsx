@@ -32,7 +32,7 @@ export function ConfigurationPage() {
   const [nolioJustConnected, setNolioJustConnected] = useState(false);
   const [nolioSyncing, setNolioSyncing] = useState(false);
   const [nolioSyncError, setNolioSyncError] = useState<string | null>(null);
-  const [nolioSyncSuccess, setNolioSyncSuccess] = useState<{ count: number } | null>(null);
+  const [nolioSyncSuccess, setNolioSyncSuccess] = useState<{ count: number; linkedTotal: number; message: string } | null>(null);
   const [nolioLastSyncAt, setNolioLastSyncAt] = useState<string | null>(null);
   const [nolioLinkOpen, setNolioLinkOpen] = useState(false);
 
