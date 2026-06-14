@@ -63,6 +63,7 @@ export type Database = {
           id: string
           is_hidden: boolean
           name: string
+          nolio_id: number | null
           refs: Json | null
           sex: string | null
           vo2max: number | null
@@ -76,6 +77,7 @@ export type Database = {
           id?: string
           is_hidden?: boolean
           name: string
+          nolio_id?: number | null
           refs?: Json | null
           sex?: string | null
           vo2max?: number | null
@@ -89,6 +91,7 @@ export type Database = {
           id?: string
           is_hidden?: boolean
           name?: string
+          nolio_id?: number | null
           refs?: Json | null
           sex?: string | null
           vo2max?: number | null
