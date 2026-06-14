@@ -284,6 +284,17 @@ Deno.serve(async (req) => {
 
     const status = errors.length === 0 ? "success" : (updated > 0 ? "partial" : "error");
 
+    // Count total TFCLab athletes with a valid nolio_id (after updates)
+    const { data: linkedRows } = await admin
+      .from("athletes")
+      .select("id, nolio_id")
+      .eq("coach_id", userId)
+      .not("nolio_id", "is", null);
+    const linkedCount = linkedRows?.length ?? 0;
+
+    const message = `Synchronisation réussie — ${linkedCount} athlètes liés à Nolio, ${updated} mis à jour`;
+    log(`STEP 6 — ${message}`);
+
     await admin.from("nolio_sync_log").insert({
       user_id: userId,
       athletes_count: nolioAthletes.length,
@@ -295,12 +306,15 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         ok: status !== "error",
+        message,
         athletes_count: updated,
         updated,
+        linked_total: linkedCount,
         received: nolioAthletes.length,
         status,
         errors: errors.slice(0, 5),
       }),
+
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
