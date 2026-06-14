@@ -517,6 +517,11 @@ Deno.serve(async (req) => {
     let sent = 0;
     let skipped = 0;
     const errors: { week: number; day: number; status: number; detail?: string }[] = [];
+    const debugLog: Array<Record<string, unknown>> = [];
+
+    // Suffixe de version basé sur la date du jour (MMDD) → force Nolio à accepter un nouvel envoi
+    const now = new Date();
+    const versionSuffix = String(now.getUTCMonth() + 1).padStart(2, "0") + String(now.getUTCDate()).padStart(2, "0");
 
     for (let i = 0; i < body.sessions.length; i++) {
       const s = body.sessions[i];
@@ -536,11 +541,13 @@ Deno.serve(async (req) => {
         ? buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null)
         : null;
 
-      const idPartnerStr = String(body.nolio_athlete_id) + String(s.weekNumber).padStart(2, "0") + String(s.dayIndex);
+      const idPartnerBase = String(body.nolio_athlete_id) + String(s.weekNumber).padStart(2, "0") + String(s.dayIndex);
+      const idPartner = `${idPartnerBase}_${versionSuffix}`;
+      const sportId = mapSport(s.sport, s.title, s.id ?? null);
       const payload: Record<string, unknown> = {
-        id_partner: parseInt(idPartnerStr, 10),
+        id_partner: idPartner,
         athlete_id: body.nolio_athlete_id,
-        sport_id: mapSport(s.sport, s.title, s.id ?? null),
+        sport_id: sportId,
         name: s.title ?? "Séance",
         date_start: dateStart,
         description: s.details ?? "",
@@ -557,6 +564,16 @@ Deno.serve(async (req) => {
         payload,
       });
 
+      debugLog.push({
+        week: s.weekNumber,
+        day: s.dayIndex,
+        title: s.title ?? null,
+        id_partner: idPartner,
+        sport_id: sportId,
+        structured_workout,
+        response: { ok: res.ok, status: res.status, detail: res.detail ?? null },
+      });
+
       if (res.ok) sent += 1;
       else errors.push({ week: s.weekNumber, day: s.dayIndex, status: res.status, detail: res.detail });
 
@@ -564,6 +581,20 @@ Deno.serve(async (req) => {
       if (i < body.sessions.length - 1) {
         await new Promise((r) => setTimeout(r, 200));
       }
+    }
+
+    // Log debug dans nolio_sync_log (notes = JSON complet pour vérifier ce qui est transmis)
+    try {
+      const notesJson = JSON.stringify({ sessions: debugLog }).slice(0, 100000);
+      await admin.from("nolio_sync_log").insert({
+        user_id: userId,
+        athletes_count: sent,
+        status: errors.length === 0 ? "success" : "partial",
+        error_message: errors.length > 0 ? JSON.stringify(errors.slice(0, 5)) : null,
+        notes: notesJson,
+      });
+    } catch (logErr) {
+      console.error("nolio_sync_log insert failed", logErr);
     }
 
     return new Response(JSON.stringify({
