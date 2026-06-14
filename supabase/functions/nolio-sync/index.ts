@@ -323,7 +323,9 @@ Deno.serve(async (req) => {
       .not("nolio_id", "is", null);
     const linkedCount = linkedRows?.length ?? 0;
 
-    const message = `Synchronisation réussie — ${linkedCount} athlètes liés à Nolio, ${updated} mis à jour`;
+    const message = targetAthleteName
+      ? `${targetAthleteName} — ${updated} mis à jour`
+      : `Synchronisation réussie — ${linkedCount} athlètes liés à Nolio, ${updated} mis à jour`;
     log(`STEP 6 — ${message}`);
 
     await admin.from("nolio_sync_log").insert({
