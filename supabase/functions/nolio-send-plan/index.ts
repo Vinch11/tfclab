@@ -60,6 +60,7 @@ type Body = {
 };
 
 type NolioStep = {
+  type: "step";
   step_duration_type: "duration";
   step_duration_value: number;
   intensity_type: "warmup" | "active" | "rest" | "cooldown" | "repetition";
@@ -71,6 +72,7 @@ type NolioStep = {
 };
 
 type NolioRepStep = {
+  type: "repetition";
   intensity_type: "repetition";
   value: number; // reps
   steps: NolioStep[];
@@ -143,6 +145,7 @@ function buildStructuredWorkout(
   const items: NolioStructuredItem[] = [];
 
   items.push({
+    type: "step",
     step_duration_type: "duration",
     step_duration_value: 600,
     intensity_type: "warmup",
@@ -156,6 +159,7 @@ function buildStructuredWorkout(
     const hi = computeTargetValue(block.intensityRef, block.intensity * 1.05, refs);
 
     const activeStep: NolioStep = {
+      type: "step",
       step_duration_type: "duration",
       step_duration_value: Math.max(1, Math.round(block.durationSec)),
       intensity_type: "active",
@@ -169,12 +173,14 @@ function buildStructuredWorkout(
 
     if (block.reps > 1) {
       const restStep: NolioStep = {
+        type: "step",
         step_duration_type: "duration",
         step_duration_value: Math.max(1, Math.round(block.defaultRestSec || 60)),
         intensity_type: "rest",
         target_type: "no_target",
       };
       items.push({
+        type: "repetition",
         intensity_type: "repetition",
         value: block.reps,
         steps: [activeStep, restStep],
@@ -185,23 +191,29 @@ function buildStructuredWorkout(
   }
 
   items.push({
+    type: "step",
     step_duration_type: "duration",
     step_duration_value: 600,
     intensity_type: "cooldown",
     target_type: "no_target",
   });
 
+
   return items;
 }
 
 function mapSport(sport: string): number {
-  const s = (sport ?? "").toLowerCase();
-  if (s.includes("cap") || s.includes("run") || s.includes("course")) return 1;
-  if (s.includes("vélo") || s.includes("velo") || s.includes("bike") || s.includes("cyclisme")) return 2;
-  if (s.includes("nat") || s.includes("swim")) return 3;
-  if (s.includes("renfo") || s.includes("muscu") || s.includes("strength") || s.includes("force")) return 7;
+  const s = (sport ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (s.includes("run") || s.includes("cap") || s.includes("course") || s.includes("running") || s.includes("trail")) return 1;
+  if (s.includes("bike") || s.includes("velo") || s.includes("cyclisme") || s.includes("cycling")) return 2;
+  if (s.includes("swim") || s.includes("nat") || s.includes("natation") || s.includes("swimming")) return 3;
+  if (s.includes("strength") || s.includes("renfo") || s.includes("renforcement") || s.includes("muscu")) return 7;
   return 1;
 }
+
 
 function addDaysYMD(startYMD: string, days: number): string {
   const [y, m, d] = startYMD.split("-").map((v) => parseInt(v, 10));
