@@ -517,9 +517,10 @@ function WeekQualityBadge({ week }: { week: ParsedWeek }) {
 interface WeekViewProps {
   week: ParsedWeek;
   startDate?: Date;
+  nolioCtx?: NolioCtx | null;
 }
 
-function WeekView({ week, startDate }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx }: WeekViewProps) {
   const weekDates = useMemo(() => {
     if (!startDate) return null;
     const start = startOfWeek(startDate, { weekStartsOn: 1 });
@@ -550,7 +551,7 @@ function WeekView({ week, startDate }: WeekViewProps) {
       <CardContent className="space-y-2">
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
-          return <SessionCard key={idx} session={session} date={date} />;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} />;
         })}
         {week.coachNotes && (
           <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
