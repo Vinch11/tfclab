@@ -264,27 +264,64 @@ export function ConfigurationPage() {
           )}
 
           {nolioConnected ? (
-            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-success" />
+            <>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-success" />
+                  </div>
+                  <div>
+                    <Label className="font-medium text-base">✅ Nolio connecté</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Votre compte Nolio est lié à TFC Lab.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <Label className="font-medium text-base">✅ Nolio connecté</Label>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Votre compte Nolio est lié à TFC Lab.
-                  </p>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDisconnectNolio}
+                  disabled={nolioLoading}
+                >
+                  Déconnecter
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDisconnectNolio}
-                disabled={nolioLoading}
-              >
-                Déconnecter
-              </Button>
-            </div>
+
+              {/* Bouton synchronisation */}
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <RefreshCw className={cn("w-5 h-5 text-primary", nolioSyncing && "animate-spin")} />
+                  </div>
+                  <div>
+                    <Label className="font-medium text-base">Synchroniser les données Nolio</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {nolioLastSyncAt
+                        ? `Dernière synchro : ${formatLastSync(nolioLastSyncAt)}`
+                        : "Aucune synchronisation effectuée pour le moment."}
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={handleSyncNolio} disabled={nolioSyncing}>
+                  {nolioSyncing ? "Synchronisation..." : "Synchroniser"}
+                </Button>
+              </div>
+
+              {nolioSyncSuccess && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">
+                    Synchronisation réussie — {nolioSyncSuccess.count} athlète{nolioSyncSuccess.count > 1 ? "s" : ""} mis à jour
+                  </span>
+                </div>
+              )}
+              {nolioSyncError && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">{nolioSyncError}</span>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
               <div className="flex items-center gap-3">
