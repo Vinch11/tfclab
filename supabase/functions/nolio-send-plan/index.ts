@@ -72,6 +72,7 @@ type NolioStep = {
 };
 
 type NolioRepStep = {
+  type: "repetition";
   intensity_type: "repetition";
   value: number; // reps
   steps: NolioStep[];
