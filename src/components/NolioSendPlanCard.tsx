@@ -1,0 +1,186 @@
+/**
+ * NolioSendPlanCard — Bouton + modale pour envoyer un plan IA vers Nolio.
+ * Visible uniquement si l'athlète sélectionné a un `nolio_id` en base.
+ */
+import { useEffect, useMemo, useState } from "react";
+import { format, addDays, startOfWeek } from "date-fns";
+import { Loader2, Send, AlertCircle, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import type { ParsedPlan } from "@/lib/aiPlanParser";
+
+interface Props {
+  athleteId: string;
+  athleteName?: string;
+  parsedPlan: ParsedPlan | null;
+  planStartDate: Date;
+}
+
+function nextMonday(from: Date = new Date()): Date {
+  const mon = startOfWeek(from, { weekStartsOn: 1 });
+  return mon <= from ? addDays(mon, 7) : mon;
+}
+
+export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStartDate }: Props) {
+  const [nolioId, setNolioId] = useState<number | null>(null);
+  const [loadingNolioId, setLoadingNolioId] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [startDateStr, setStartDateStr] = useState<string>(() =>
+    format(planStartDate ?? nextMonday(), "yyyy-MM-dd"),
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingNolioId(true);
+    supabase
+      .from("athletes")
+      .select("nolio_id")
+      .eq("id", athleteId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const raw = (data as { nolio_id?: number | null } | null)?.nolio_id;
+        setNolioId(typeof raw === "number" ? raw : null);
+        setLoadingNolioId(false);
+      });
+    return () => { cancelled = true; };
+  }, [athleteId]);
+
+  const sessions = useMemo(() => {
+    if (!parsedPlan) return [];
+    return (parsedPlan.weeks ?? []).flatMap((w) =>
+      (w.sessions ?? []).map((s) => ({
+        weekNumber: s.weekNumber,
+        dayIndex: s.dayIndex,
+        sport: s.sport,
+        title: s.title,
+        details: s.details,
+        isRest: s.isRest,
+      })),
+    );
+  }, [parsedPlan]);
+
+  const activeCount = sessions.filter((s) => !s.isRest && s.dayIndex >= 0).length;
+
+  if (loadingNolioId) return null;
+
+  if (nolioId == null) {
+    return (
+      <Card className="border-amber-300/50 bg-amber-50/40 dark:bg-amber-950/10">
+        <CardContent className="p-4 flex items-start gap-3 text-sm">
+          <AlertCircle className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
+          <div>
+            <p className="font-medium">Nolio — athlète non lié</p>
+            <p className="text-muted-foreground">
+              Athlète non lié à Nolio — synchroniser d'abord depuis la page Configuration.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  async function handleSend() {
+    if (!parsedPlan) return;
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-send-plan", {
+        body: {
+          athlete_id: athleteId,
+          nolio_athlete_id: nolioId,
+          planStartDate: startDateStr,
+          sessions,
+        },
+      });
+      if (error) throw error;
+      const sent = (data as { sent?: number; errors?: unknown[] } | null)?.sent ?? 0;
+      const errs = (data as { errors?: { status: number; detail?: string }[] } | null)?.errors ?? [];
+      if (errs.length > 0 && sent === 0) {
+        toast.error(`Échec Nolio — ${errs[0].status} ${errs[0].detail ?? ""}`.slice(0, 200));
+      } else if (errs.length > 0) {
+        toast.warning(`${sent} séances envoyées, ${errs.length} échecs (ex: ${errs[0].status})`);
+      } else {
+        toast.success(`${sent} séances envoyées vers Nolio`);
+      }
+      setOpen(false);
+    } catch (e) {
+      toast.error(`Erreur Nolio : ${(e as Error).message ?? "inconnue"}`);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <p className="font-medium">Nolio — athlète lié (id #{nolioId})</p>
+            <p className="text-muted-foreground">
+              Envoyer les {activeCount} séances planifiées (hors repos) sur le compte Nolio de l'athlète.
+            </p>
+          </div>
+        </div>
+        <Button onClick={() => setOpen(true)} disabled={!parsedPlan || activeCount === 0}>
+          <Send className="h-4 w-4 mr-2" />
+          Envoyer vers Nolio
+        </Button>
+      </CardContent>
+
+      <Dialog open={open} onOpenChange={(v) => !sending && setOpen(v)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Envoyer le plan vers Nolio</DialogTitle>
+            <DialogDescription>
+              Confirme les paramètres d'envoi. Les séances déjà envoyées (même
+              <code className="px-1">id_partner</code>) ne seront pas dupliquées.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 text-sm">
+            <div className="flex justify-between border-b pb-2">
+              <span className="text-muted-foreground">Athlète</span>
+              <span className="font-medium">{athleteName ?? "—"}</span>
+            </div>
+            <div className="flex justify-between border-b pb-2">
+              <span className="text-muted-foreground">Séances à envoyer</span>
+              <span className="font-medium">{activeCount} (hors repos)</span>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="nolio-start-date">Début du plan (lundi de la semaine 1)</Label>
+              <Input
+                id="nolio-start-date"
+                type="date"
+                value={startDateStr}
+                onChange={(e) => setStartDateStr(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={sending}>
+              Annuler
+            </Button>
+            <Button onClick={handleSend} disabled={sending || activeCount === 0}>
+              {sending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi en cours…</>
+              ) : (
+                <><Send className="h-4 w-4 mr-2" /> Confirmer l'envoi</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
