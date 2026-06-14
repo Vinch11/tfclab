@@ -109,7 +109,36 @@ Deno.serve(async (req) => {
       : Array.isArray((json as { results?: unknown })?.results)
         ? (json as { results: unknown[] }).results
         : [];
-    return new Response(JSON.stringify({ athletes }), {
+
+    // Fetch coach's own Nolio profile and prepend it
+    let coachEntry: { nolio_id: number; name: string; is_coach: true } | null = null;
+    try {
+      const userResp = await fetch(NOLIO_USER_URL, {
+        headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+      });
+      if (userResp.ok) {
+        const userJson = await userResp.json().catch(() => null) as
+          | { id?: number; pk?: number; first_name?: string; last_name?: string; name?: string; username?: string; email?: string }
+          | null;
+        const coachId = userJson?.id ?? userJson?.pk;
+        if (coachId != null) {
+          const fullName =
+            [userJson?.first_name, userJson?.last_name].filter(Boolean).join(" ").trim() ||
+            userJson?.name ||
+            userJson?.username ||
+            userJson?.email ||
+            `#${coachId}`;
+          coachEntry = {
+            nolio_id: Number(coachId),
+            name: `👤 Moi (coach) — ${fullName}`,
+            is_coach: true,
+          };
+        }
+      }
+    } catch { /* ignore — coach entry is best-effort */ }
+
+    const finalAthletes = coachEntry ? [coachEntry, ...athletes] : athletes;
+    return new Response(JSON.stringify({ athletes: finalAthletes }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
