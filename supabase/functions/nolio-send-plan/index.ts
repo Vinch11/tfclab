@@ -60,6 +60,7 @@ type Body = {
 };
 
 type NolioStep = {
+  type: "step";
   step_duration_type: "duration";
   step_duration_value: number;
   intensity_type: "warmup" | "active" | "rest" | "cooldown" | "repetition";
