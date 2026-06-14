@@ -6,7 +6,9 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
-const NOLIO_ATHLETES_URL = "https://www.nolio.io/api/athletes/";
+const NOLIO_ATHLETES_URL = "https://www.nolio.io/api/get/athletes/";
+const NOLIO_TRAINING_URL = "https://www.nolio.io/api/get/training/";
+const NOLIO_METRIC_URL = "https://www.nolio.io/api/get/metric/";
 
 type NolioAthlete = {
   id?: string | number;
