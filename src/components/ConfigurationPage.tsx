@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { NolioLinkAthletesDialog } from "./NolioLinkAthletesDialog";
 
 export function ConfigurationPage() {
   const { theme, setTheme, themeConfig } = useTheme();
@@ -33,6 +34,7 @@ export function ConfigurationPage() {
   const [nolioSyncError, setNolioSyncError] = useState<string | null>(null);
   const [nolioSyncSuccess, setNolioSyncSuccess] = useState<{ count: number } | null>(null);
   const [nolioLastSyncAt, setNolioLastSyncAt] = useState<string | null>(null);
+  const [nolioLinkOpen, setNolioLinkOpen] = useState(false);
 
   // Détecte ?nolio=connected dans l'URL
   useEffect(() => {
@@ -307,6 +309,25 @@ export function ConfigurationPage() {
                 </Button>
               </div>
 
+              {/* Liaison manuelle des athlètes Nolio */}
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Link2 className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <Label className="font-medium text-base">Lier les athlètes Nolio</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Associez manuellement chaque athlète TFCLab à son compte Nolio.
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" onClick={() => setNolioLinkOpen(true)}>
+                  Lier les athlètes Nolio
+                </Button>
+              </div>
+
+
               {nolioSyncSuccess && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
                   <CheckCircle2 className="w-4 h-4" />
@@ -342,6 +363,8 @@ export function ConfigurationPage() {
           )}
         </CardContent>
       </Card>
+
+      <NolioLinkAthletesDialog open={nolioLinkOpen} onOpenChange={setNolioLinkOpen} />
 
 
       {/* Section Préférences d'affichage */}
