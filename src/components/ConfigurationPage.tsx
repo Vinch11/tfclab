@@ -163,13 +163,17 @@ export function ConfigurationPage() {
     setNolioSyncError(null);
     setNolioSyncSuccess(null);
     try {
-      const { data, error } = await supabase.functions.invoke("nolio-sync", { method: "POST" });
+      const target = linkedAthletes.find(a => a.id === syncTarget);
+      const body = target ? { athlete_id: target.id, nolio_id: target.nolio_id } : {};
+      const { data, error } = await supabase.functions.invoke("nolio-sync", { method: "POST", body });
       if (error) throw error;
       const count = (data as { athletes_count?: number })?.athletes_count ?? 0;
       const linkedTotal = (data as { linked_total?: number })?.linked_total ?? 0;
       const message =
         (data as { message?: string })?.message ??
-        `Synchronisation réussie — ${linkedTotal} athlètes liés à Nolio, ${count} mis à jour`;
+        (target
+          ? `${target.name} — ${count} mis à jour`
+          : `Synchronisation réussie — ${linkedTotal} athlètes liés à Nolio, ${count} mis à jour`);
       const ok = (data as { ok?: boolean })?.ok ?? true;
       if (!ok) {
         const errs = (data as { errors?: string[] })?.errors?.join(" | ") ?? "Erreur inconnue";
@@ -193,7 +197,9 @@ export function ConfigurationPage() {
     setNolioMetricsError(null);
     setNolioMetricsSuccess(null);
     try {
-      const { data, error } = await supabase.functions.invoke("nolio-metrics", { method: "POST" });
+      const target = linkedAthletes.find(a => a.id === metricsTarget);
+      const body = target ? { athlete_id: target.id, nolio_id: target.nolio_id } : {};
+      const { data, error } = await supabase.functions.invoke("nolio-metrics", { method: "POST", body });
       if (error) throw error;
       const ok = (data as { ok?: boolean })?.ok ?? true;
       if (!ok) {
@@ -203,13 +209,15 @@ export function ConfigurationPage() {
       const created = (data as { created?: number })?.created ?? 0;
       const updated = (data as { updated?: number })?.updated ?? 0;
       const totalChanged = created + updated;
+      const prefix = target ? `${target.name} — ` : "";
       if (totalChanged > 0) {
-        const message = `${totalChanged} nouveaux snapshots créés`;
+        const message = `${prefix}${created} snapshot${created > 1 ? "s" : ""} créé${created > 1 ? "s" : ""}${updated > 0 ? `, ${updated} mis à jour` : ""}`;
         setNolioMetricsSuccess({ created, updated, message });
         toast({ title: "Métriques importées", description: message });
       } else {
-        setNolioMetricsSuccess({ created: 0, updated: 0, message: "Aucune nouvelle métrique détectée" });
-        toast({ title: "Métriques à jour", description: "Aucune nouvelle métrique détectée" });
+        const message = `${prefix}Aucune nouvelle métrique détectée`;
+        setNolioMetricsSuccess({ created: 0, updated: 0, message });
+        toast({ title: "Métriques à jour", description: message });
       }
     } catch (e) {
       const msg = (e as Error).message ?? "Échec de l'import des métriques";
