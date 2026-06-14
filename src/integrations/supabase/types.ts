@@ -982,6 +982,7 @@ export type Database = {
           fat_pct: number | null
           fatigue_state: string | null
           fc_max: number | null
+          fc_repos: number | null
           force_development_mode: boolean | null
           ftp: number | null
           gi_issues_flag: boolean | null
@@ -1052,6 +1053,7 @@ export type Database = {
           fat_pct?: number | null
           fatigue_state?: string | null
           fc_max?: number | null
+          fc_repos?: number | null
           force_development_mode?: boolean | null
           ftp?: number | null
           gi_issues_flag?: boolean | null
@@ -1122,6 +1124,7 @@ export type Database = {
           fat_pct?: number | null
           fatigue_state?: string | null
           fc_max?: number | null
+          fc_repos?: number | null
           force_development_mode?: boolean | null
           ftp?: number | null
           gi_issues_flag?: boolean | null
