@@ -27,9 +27,9 @@ type NolioMetaValue = {
 type NolioMetaResponse = Record<string, { unit: string; data: NolioMetaValue[] }>;
 
 // Mapping Nolio meta key → snapshot column
+// Note : hrrest (FC repos) n'a pas de colonne dédiée dans snapshots, ignorée.
 const META_KEY_MAP: Record<string, string> = {
   weight: "weight_kg",
-  hrrest: "fc_repos",
   hrmax: "fc_max",
   ftp: "ftp",
   aerobicspeed: "vma",
