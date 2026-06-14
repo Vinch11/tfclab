@@ -20,6 +20,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { NolioLinkAthletesDialog } from "./NolioLinkAthletesDialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type LinkedAthlete = { id: string; name: string; nolio_id: number };
 
 export function ConfigurationPage() {
   const { theme, setTheme, themeConfig } = useTheme();
