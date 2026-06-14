@@ -15,6 +15,7 @@ const NOLIO_METRIC_URL = "https://www.nolio.io/api/get/metric/";
 type SupabaseAdmin = ReturnType<typeof createClient>;
 
 type NolioMetricRow = {
+  value?: number | string | null;
   ftp?: number | null;
   vma?: number | null;
   fc_max?: number | null;
@@ -25,13 +26,14 @@ type NolioMetricRow = {
   created_at?: string | null;
 };
 
-const METRIC_MAP: Record<keyof Pick<NolioMetricRow, "ftp" | "vma" | "fc_max" | "css" | "weight" | "vo2max">, string> = {
-  ftp: "ftp",
-  vma: "vma",
-  fc_max: "fc_max",
-  css: "css",
-  weight: "weight_kg",
-  vo2max: "vo2max",
+// Nolio metric id → snapshot column
+const METRIC_ID_MAP: Record<number, string> = {
+  1: "weight_kg",   // poids
+  2: "fc_repos",    // FC repos
+  3: "fc_max",      // FC max
+  4: "ftp",         // FTP
+  5: "vma",         // VMA
+  6: "css",         // CSS
 };
 
 function toNum(v: unknown): number | null {
