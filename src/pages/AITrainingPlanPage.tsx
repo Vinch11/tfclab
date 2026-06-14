@@ -1958,6 +1958,7 @@ export default function AITrainingPlanPage() {
                         onRegenerateFutureWeeks={handleRegenerateFutureWeeks}
                         isRegenerating={isRegenerating}
                         athleteName={currentAthlete?.nom}
+                        athleteId={currentAthlete?.id}
                         currentWeekNumber={currentWeekNumber}
                         adaptationProjections={
                           athleteContext
