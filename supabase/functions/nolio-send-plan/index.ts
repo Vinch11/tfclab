@@ -145,6 +145,7 @@ function buildStructuredWorkout(
   const items: NolioStructuredItem[] = [];
 
   items.push({
+    type: "step",
     step_duration_type: "duration",
     step_duration_value: 600,
     intensity_type: "warmup",
@@ -158,6 +159,7 @@ function buildStructuredWorkout(
     const hi = computeTargetValue(block.intensityRef, block.intensity * 1.05, refs);
 
     const activeStep: NolioStep = {
+      type: "step",
       step_duration_type: "duration",
       step_duration_value: Math.max(1, Math.round(block.durationSec)),
       intensity_type: "active",
@@ -171,12 +173,14 @@ function buildStructuredWorkout(
 
     if (block.reps > 1) {
       const restStep: NolioStep = {
+        type: "step",
         step_duration_type: "duration",
         step_duration_value: Math.max(1, Math.round(block.defaultRestSec || 60)),
         intensity_type: "rest",
         target_type: "no_target",
       };
       items.push({
+        type: "repetition",
         intensity_type: "repetition",
         value: block.reps,
         steps: [activeStep, restStep],
@@ -187,11 +191,13 @@ function buildStructuredWorkout(
   }
 
   items.push({
+    type: "step",
     step_duration_type: "duration",
     step_duration_value: 600,
     intensity_type: "cooldown",
     target_type: "no_target",
   });
+
 
   return items;
 }
