@@ -203,13 +203,17 @@ function buildStructuredWorkout(
 }
 
 function mapSport(sport: string): number {
-  const s = (sport ?? "").toLowerCase();
-  if (s.includes("cap") || s.includes("run") || s.includes("course")) return 1;
-  if (s.includes("vélo") || s.includes("velo") || s.includes("bike") || s.includes("cyclisme")) return 2;
-  if (s.includes("nat") || s.includes("swim")) return 3;
-  if (s.includes("renfo") || s.includes("muscu") || s.includes("strength") || s.includes("force")) return 7;
+  const s = (sport ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (s.includes("run") || s.includes("cap") || s.includes("course") || s.includes("running") || s.includes("trail")) return 1;
+  if (s.includes("bike") || s.includes("velo") || s.includes("cyclisme") || s.includes("cycling")) return 2;
+  if (s.includes("swim") || s.includes("nat") || s.includes("natation") || s.includes("swimming")) return 3;
+  if (s.includes("strength") || s.includes("renfo") || s.includes("renforcement") || s.includes("muscu")) return 7;
   return 1;
 }
+
 
 function addDaysYMD(startYMD: string, days: number): string {
   const [y, m, d] = startYMD.split("-").map((v) => parseInt(v, 10));
