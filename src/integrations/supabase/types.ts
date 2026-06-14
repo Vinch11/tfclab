@@ -614,6 +614,7 @@ export type Database = {
           created_at: string
           error_message: string | null
           id: string
+          notes: string | null
           status: string
           synced_at: string
           user_id: string
@@ -623,6 +624,7 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          notes?: string | null
           status?: string
           synced_at?: string
           user_id: string
@@ -632,6 +634,7 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          notes?: string | null
           status?: string
           synced_at?: string
           user_id?: string
