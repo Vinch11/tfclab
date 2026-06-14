@@ -1,66 +1,22 @@
-// Nolio Sync — récupère les athlètes Nolio et fusionne dans public.athletes
-// Stratégie : ne JAMAIS écraser les champs non fournis par Nolio.
-// Matching : par refs.nolio_id si déjà connu, sinon par nom (insensible à la casse).
+// Nolio Sync — récupère les athlètes Nolio du coach et renseigne `athletes.nolio_id`.
+// Endpoints officiels (slash final obligatoire) :
+//   - GET https://www.nolio.io/api/get/athletes/?wants_coach=false
+// /get/training/ et /get/metric/ ne sont pas encore appelés (autorisation en cours).
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
-const NOLIO_ATHLETES_URL = "https://www.nolio.io/api/get/athletes/";
-const NOLIO_TRAINING_URL = "https://www.nolio.io/api/get/training/";
-const NOLIO_METRIC_URL = "https://www.nolio.io/api/get/metric/";
+const NOLIO_ATHLETES_URL = "https://www.nolio.io/api/get/athletes/?wants_coach=false";
 
 type NolioAthlete = {
-  id?: string | number;
-  uuid?: string;
+  nolio_id: number;
   name?: string;
-  first_name?: string;
-  last_name?: string;
-  full_name?: string;
-  email?: string;
-  birth_date?: string;
-  birthdate?: string;
-  date_of_birth?: string;
-  sex?: string;
-  gender?: string;
-  vo2max?: number;
-  weight?: number;
-  goal?: string;
-  [k: string]: unknown;
+  teams?: unknown[];
 };
 
 function normName(s: string | undefined | null): string {
   return (s ?? "").trim().toLowerCase();
-}
-
-function pickName(a: NolioAthlete): string | null {
-  if (a.full_name) return String(a.full_name).trim();
-  if (a.name) return String(a.name).trim();
-  const fn = [a.first_name, a.last_name].filter(Boolean).join(" ").trim();
-  return fn || null;
-}
-
-function pickBirthDate(a: NolioAthlete): string | null {
-  const raw = a.birth_date ?? a.birthdate ?? a.date_of_birth;
-  if (!raw) return null;
-  const s = String(raw);
-  // garde YYYY-MM-DD
-  const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
-  return m ? m[1] : null;
-}
-
-function pickSex(a: NolioAthlete): string | null {
-  const raw = (a.sex ?? a.gender) as string | undefined;
-  if (!raw) return null;
-  const v = String(raw).trim().toLowerCase();
-  if (v.startsWith("m") || v === "homme" || v === "male") return "M";
-  if (v.startsWith("f") || v === "femme" || v === "female") return "F";
-  return null;
-}
-
-function pickNolioId(a: NolioAthlete): string | null {
-  const raw = a.uuid ?? a.id;
-  return raw == null ? null : String(raw);
 }
 
 async function refreshIfNeeded(
@@ -175,7 +131,7 @@ Deno.serve(async (req) => {
       expires_at: (tokenRow.expires_at as string | null) ?? null,
     });
 
-    // 2) Appelle l'API Nolio
+    // 2) Appelle l'API Nolio — athlètes du coach
     const nolioResp = await fetch(NOLIO_ATHLETES_URL, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -220,21 +176,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Tolère plusieurs formats : [], {results:[]}, {data:[]}, {athletes:[]}
+    // L'API renvoie un tableau d'objets { nolio_id, name, teams }
     const nolioAthletes: NolioAthlete[] = Array.isArray(nolioJson)
       ? (nolioJson as NolioAthlete[])
       : Array.isArray((nolioJson as { results?: unknown })?.results)
         ? ((nolioJson as { results: NolioAthlete[] }).results)
-        : Array.isArray((nolioJson as { data?: unknown })?.data)
-          ? ((nolioJson as { data: NolioAthlete[] }).data)
-          : Array.isArray((nolioJson as { athletes?: unknown })?.athletes)
-            ? ((nolioJson as { athletes: NolioAthlete[] }).athletes)
-            : [];
+        : [];
 
     // 3) Charge les athlètes existants du coach
     const { data: existing, error: athErr } = await admin
       .from("athletes")
-      .select("id, name, refs, birth_date, sex, vo2max, goal")
+      .select("id, name, nolio_id")
       .eq("coach_id", userId);
 
     if (athErr) {
@@ -245,96 +197,50 @@ Deno.serve(async (req) => {
       });
     }
 
-    const byNolioId = new Map<string, typeof existing[number]>();
+    const byNolioId = new Map<number, typeof existing[number]>();
     const byName = new Map<string, typeof existing[number]>();
     for (const a of existing ?? []) {
-      const refs = (a.refs ?? {}) as Record<string, unknown>;
-      const nolioId = refs.nolio_id != null ? String(refs.nolio_id) : null;
-      if (nolioId) byNolioId.set(nolioId, a);
+      if (a.nolio_id != null) byNolioId.set(Number(a.nolio_id), a);
       const n = normName(a.name);
       if (n) byName.set(n, a);
     }
 
     let updated = 0;
-    let inserted = 0;
     const errors: string[] = [];
 
     for (const na of nolioAthletes) {
       try {
-        const name = pickName(na);
-        if (!name) continue;
-        const nolioId = pickNolioId(na);
-        const birth = pickBirthDate(na);
-        const sex = pickSex(na);
-        const vo2max =
-          typeof na.vo2max === "number" && Number.isFinite(na.vo2max)
-            ? na.vo2max
-            : null;
-        const goal = typeof na.goal === "string" ? na.goal : null;
+        const nolioId = typeof na.nolio_id === "number" ? na.nolio_id : Number(na.nolio_id);
+        if (!Number.isFinite(nolioId)) continue;
+        const name = (na.name ?? "").trim();
 
         const match =
-          (nolioId && byNolioId.get(nolioId)) ||
-          byName.get(normName(name)) ||
+          byNolioId.get(nolioId) ||
+          (name ? byName.get(normName(name)) : undefined) ||
           null;
 
-        // Fusion refs : on garde l'existant et on ajoute / écrase uniquement les clés Nolio.
-        const baseRefs = (match?.refs ?? {}) as Record<string, unknown>;
-        const mergedRefs: Record<string, unknown> = {
-          ...baseRefs,
-          nolio: { ...(baseRefs.nolio as Record<string, unknown> ?? {}), ...na },
-        };
-        if (nolioId) mergedRefs.nolio_id = nolioId;
+        if (!match) continue;
+        if (match.nolio_id === nolioId) continue; // déjà à jour
 
-        if (match) {
-          // Mise à jour : ne JAMAIS écraser un champ existant non fourni par Nolio.
-          const patch: Record<string, unknown> = { refs: mergedRefs };
-          if (birth && !match.birth_date) patch.birth_date = birth;
-          if (sex && !match.sex) patch.sex = sex;
-          if (vo2max != null && match.vo2max == null) patch.vo2max = vo2max;
-          if (goal && !match.goal) patch.goal = goal;
-          // name : on ne le change pas pour éviter d'écraser un nom déjà saisi.
-
-          const { error: upErr } = await admin
-            .from("athletes")
-            .update(patch)
-            .eq("id", match.id);
-          if (upErr) {
-            errors.push(`update ${match.id}: ${upErr.message}`);
-          } else {
-            updated += 1;
-          }
+        const { error: upErr } = await admin
+          .from("athletes")
+          .update({ nolio_id: nolioId })
+          .eq("id", match.id);
+        if (upErr) {
+          errors.push(`update ${match.id}: ${upErr.message}`);
         } else {
-          // Création : nouvel athlète rattaché au coach.
-          const insertRow: Record<string, unknown> = {
-            coach_id: userId,
-            name,
-            refs: mergedRefs,
-          };
-          if (birth) insertRow.birth_date = birth;
-          if (sex) insertRow.sex = sex;
-          if (vo2max != null) insertRow.vo2max = vo2max;
-          if (goal) insertRow.goal = goal;
-
-          const { error: insErr } = await admin
-            .from("athletes")
-            .insert(insertRow);
-          if (insErr) {
-            errors.push(`insert ${name}: ${insErr.message}`);
-          } else {
-            inserted += 1;
-          }
+          updated += 1;
         }
       } catch (e) {
         errors.push((e as Error).message);
       }
     }
 
-    const totalTouched = updated + inserted;
-    const status = errors.length === 0 ? "success" : (totalTouched > 0 ? "partial" : "error");
+    const status = errors.length === 0 ? "success" : (updated > 0 ? "partial" : "error");
 
     await admin.from("nolio_sync_log").insert({
       user_id: userId,
-      athletes_count: totalTouched,
+      athletes_count: updated,
       status,
       error_message: errors.length ? errors.slice(0, 5).join(" | ").slice(0, 1000) : null,
     });
@@ -342,9 +248,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         ok: status !== "error",
-        athletes_count: totalTouched,
+        athletes_count: updated,
         updated,
-        inserted,
         received: nolioAthletes.length,
         status,
         errors: errors.slice(0, 5),
