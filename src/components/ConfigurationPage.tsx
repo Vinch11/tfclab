@@ -367,7 +367,7 @@ export function ConfigurationPage() {
               </div>
 
               {/* Bouton synchronisation */}
-              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div className="flex flex-col gap-3 p-4 rounded-xl bg-muted/30 border sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                     <RefreshCw className={cn("w-5 h-5 text-primary", nolioSyncing && "animate-spin")} />
@@ -381,10 +381,24 @@ export function ConfigurationPage() {
                     </p>
                   </div>
                 </div>
-                <Button onClick={handleSyncNolio} disabled={nolioSyncing}>
-                  {nolioSyncing ? "Synchronisation..." : "Synchroniser"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Select value={syncTarget} onValueChange={setSyncTarget}>
+                    <SelectTrigger className="w-[240px]">
+                      <SelectValue placeholder="Choisir une cible" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les athlètes liés à Nolio</SelectItem>
+                      {linkedAthletes.map(a => (
+                        <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleSyncNolio} disabled={nolioSyncing}>
+                    {nolioSyncing ? "Synchronisation..." : "Synchroniser"}
+                  </Button>
+                </div>
               </div>
+
 
               {/* Liaison manuelle des athlètes Nolio */}
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
