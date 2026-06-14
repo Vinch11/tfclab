@@ -1,39 +1,40 @@
 // Nolio Metrics — récupère les métriques par athlète depuis Nolio et crée/maj un snapshot TFCLab.
-// Endpoint officiel (slash final) :
-//   GET https://www.nolio.io/api/get/metric/?athlete_id=<nolio_id>&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=15
-// Mapping Nolio -> snapshots :
-//   ftp->ftp, vma->vma, fc_max->fc_max, css->css, weight->weight_kg, vo2max->vo2max
+// Endpoint utilisé :
+//   GET https://www.nolio.io/api/get/user/meta/?athlete_id=<nolio_id>
+// Cet endpoint retourne TOUTES les métriques de l’athlète en une seule requête.
+// Mapping Nolio meta key → snapshots :
+//   weight→weight_kg, hrrest→fc_repos, hrmax→fc_max, ftp→ftp, aerobicspeed→vma,
+//   criticalspeedswimming→css, vo2max→vo2max
 // Règle : nouveau snapshot si au moins un champ diffère >0.5% du snapshot le plus récent.
-// Si un snapshot source="nolio" existe déjà pour aujourd'hui → update.
+// Si un snapshot source="nolio" existe déjà pour aujourd’hui → update.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
-const NOLIO_METRIC_URL = "https://www.nolio.io/api/get/metric/";
+const NOLIO_META_URL = "https://www.nolio.io/api/get/user/meta/";
 
 type SupabaseAdmin = ReturnType<typeof createClient>;
 
-type NolioMetricRow = {
-  value?: number | string | null;
-  ftp?: number | null;
-  vma?: number | null;
-  fc_max?: number | null;
-  css?: number | null;
-  weight?: number | null;
-  vo2max?: number | null;
-  date?: string | null;
-  created_at?: string | null;
+type NolioMetaValue = {
+  id: number;
+  date: string;
+  hour: string;
+  value: number;
+  source: string | null;
 };
 
-// Nolio metric id → snapshot column
-const METRIC_ID_MAP: Record<number, string> = {
-  1: "weight_kg",   // poids
-  2: "fc_repos",    // FC repos
-  3: "fc_max",      // FC max
-  4: "ftp",         // FTP
-  5: "vma",         // VMA
-  6: "css",         // CSS
+type NolioMetaResponse = Record<string, { unit: string; data: NolioMetaValue[] }>;
+
+// Mapping Nolio meta key → snapshot column
+const META_KEY_MAP: Record<string, string> = {
+  weight: "weight_kg",
+  hrrest: "fc_repos",
+  hrmax: "fc_max",
+  ftp: "ftp",
+  aerobicspeed: "vma",
+  criticalspeedswimming: "css",
+  vo2max: "vo2max",
 };
 
 function toNum(v: unknown): number | null {
@@ -91,16 +92,15 @@ async function refreshIfNeeded(
   return fresh ?? cur.access_token;
 }
 
-async function fetchMetricById(opts: {
+async function fetchAthleteMeta(opts: {
   admin: SupabaseAdmin;
   userId: string;
   athleteNolioId: number;
-  metricId: number;
   accessTokenRef: { current: string };
   refreshTokenStr: string | null;
-}): Promise<{ rows: NolioMetricRow[]; warning?: string; raw?: string }> {
-  const { admin, userId, athleteNolioId, metricId, accessTokenRef, refreshTokenStr } = opts;
-  const url = `${NOLIO_METRIC_URL}?athlete_id=${athleteNolioId}&id=${metricId}&limit=15`;
+}): Promise<{ data: NolioMetaResponse | null; warning?: string; raw?: string }> {
+  const { admin, userId, athleteNolioId, accessTokenRef, refreshTokenStr } = opts;
+  const url = `${NOLIO_META_URL}?athlete_id=${athleteNolioId}`;
 
   let attempt = 0;
   let didRefresh = false;
@@ -128,54 +128,25 @@ async function fetchMetricById(opts: {
       continue;
     }
 
-    const ctype = resp.headers.get("content-type") ?? "";
     const text = await resp.text();
-    if (resp.status === 400) {
-      // métrique non disponible pour cet athlète : ignorer silencieusement
-      return { rows: [], raw: text.slice(0, 500) };
-    }
     if (!resp.ok) {
-      return { rows: [], warning: `HTTP ${resp.status}: ${text.slice(0, 200)}`, raw: text.slice(0, 500) };
-    }
-    if (!ctype.includes("application/json")) {
-      return { rows: [], warning: `non-JSON`, raw: text.slice(0, 500) };
+      return { data: null, warning: `HTTP ${resp.status}: ${text.slice(0, 200)}`, raw: text.slice(0, 500) };
     }
     let json: unknown = null;
     try { json = JSON.parse(text); } catch { /* noop */ }
-    const arr: NolioMetricRow[] = Array.isArray(json)
-      ? json as NolioMetricRow[]
-      : Array.isArray((json as { results?: unknown })?.results)
-        ? (json as { results: NolioMetricRow[] }).results
-        : Array.isArray((json as { data?: unknown })?.data)
-          ? (json as { data: NolioMetricRow[] }).data
-          : [];
-    return { rows: arr, raw: text.slice(0, 500) };
+    if (!json || typeof json !== "object") {
+      return { data: null, warning: "non-JSON", raw: text.slice(0, 500) };
+    }
+    return { data: json as NolioMetaResponse, raw: text.slice(0, 500) };
   }
-  return { rows: [], warning: "max retries (429)" };
+  return { data: null, warning: "max retries (429)" };
 }
 
-/** Garde la valeur la plus récente non-null. */
-function latestValue(rows: NolioMetricRow[]): number | null {
-  const sorted = [...rows].sort((a, b) => {
-    const da = new Date(a.date ?? a.created_at ?? 0).getTime();
-    const db = new Date(b.date ?? b.created_at ?? 0).getTime();
-    return db - da;
-  });
-  for (const r of sorted) {
-    // certaines réponses retournent {value}, d'autres directement le champ (ftp/vma/...)
-    const candidates = [
-      r.value,
-      (r as Record<string, unknown>).ftp,
-      (r as Record<string, unknown>).vma,
-      (r as Record<string, unknown>).fc_max,
-      (r as Record<string, unknown>).fc_repos,
-      (r as Record<string, unknown>).css,
-      (r as Record<string, unknown>).weight,
-    ];
-    for (const c of candidates) {
-      const v = toNum(c);
-      if (v !== null) return v;
-    }
+/** Garde la valeur la plus récente non-null d’un tableau Nolio meta. */
+function latestMetaValue(entries: NolioMetaValue[]): number | null {
+  for (const e of entries) {
+    const v = toNum(e.value);
+    if (v !== null) return v;
   }
   return null;
 }
@@ -275,31 +246,39 @@ Deno.serve(async (req) => {
       const nolioId = Number(a.nolio_id);
       if (!Number.isFinite(nolioId)) continue;
 
+      const { data: meta, warning, raw } = await fetchAthleteMeta({
+        admin, userId, athleteNolioId: nolioId,
+        accessTokenRef, refreshTokenStr,
+      });
 
-      // Récupération métrique par métrique
+      if (!firstAthleteLogged && raw !== undefined) {
+        diagnosticDump.athlete_id = a.id;
+        diagnosticDump.nolio_id = nolioId;
+        diagnosticDump.raw_meta_keys = meta ? Object.keys(meta) : [];
+        diagnosticDump.raw_meta_sample = meta ? Object.fromEntries(
+          Object.entries(meta).slice(0, 3).map(([k, v]) => [k, { unit: v.unit, count: v.data?.length ?? 0 }])
+        ) : null;
+        diagnosticDump.raw_response_preview = raw;
+        firstAthleteLogged = true;
+      }
+
+      if (warning) {
+        warnings.push(`athlete ${a.id} #${nolioId}: ${warning}`);
+        continue;
+      }
+      if (!meta) continue;
+
+      // Extraction des valeurs les plus récentes
       const latest: Record<string, number> = {};
-      const athleteRaw: Record<string, string> = {};
-      for (const [idStr, col] of Object.entries(METRIC_ID_MAP)) {
-        const metricId = Number(idStr);
-        const { rows, warning, raw } = await fetchMetricById({
-          admin, userId, athleteNolioId: nolioId, metricId,
-          accessTokenRef, refreshTokenStr,
-        });
-        if (!firstAthleteLogged && raw !== undefined) {
-          athleteRaw[`id=${metricId} (${col})`] = raw;
+      for (const [nolioKey, snapCol] of Object.entries(META_KEY_MAP)) {
+        const entry = meta[nolioKey];
+        if (entry && Array.isArray(entry.data) && entry.data.length > 0) {
+          const v = latestMetaValue(entry.data);
+          if (v !== null) latest[snapCol] = v;
         }
-        if (warning) {
-          warnings.push(`athlete ${a.id} #${nolioId} metric ${metricId}: ${warning}`);
-          continue;
-        }
-        const v = latestValue(rows);
-        if (v !== null) latest[col] = v;
       }
 
       if (!firstAthleteLogged) {
-        diagnosticDump.athlete_id = a.id;
-        diagnosticDump.nolio_id = nolioId;
-        diagnosticDump.responses = athleteRaw;
         diagnosticDump.extracted = latest;
         firstAthleteLogged = true;
       }
@@ -328,7 +307,7 @@ Deno.serve(async (req) => {
       }
       if (!changed) { unchangedCount += 1; continue; }
 
-      // Snapshot nolio existant aujourd'hui ?
+      // Snapshot nolio existant aujourd’hui ?
       const { data: todayNolio } = await admin
         .from("snapshots")
         .select("id")
