@@ -1,6 +1,11 @@
 /**
  * NolioSendPlanCard — Bouton + modale pour envoyer un plan IA vers Nolio.
  * Visible uniquement si l'athlète sélectionné a un `nolio_id` en base.
+ *
+ * Enrichit chaque séance avec :
+ *   - structure (depuis la fiche bibliothèque)
+ *   - wbalProfile (depuis la fiche bibliothèque) → converti en structured_workout côté edge
+ *   - refs athlète (ftp/vma/css/fcMax depuis snapshot actif) pour calculs absolus
  */
 import { useEffect, useMemo, useState } from "react";
 import { format, addDays, startOfWeek } from "date-fns";
@@ -16,6 +21,9 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
 
 interface Props {
   athleteId: string;
@@ -30,6 +38,7 @@ function nextMonday(from: Date = new Date()): Date {
 }
 
 export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStartDate }: Props) {
+  const { athletes, snapshots } = useCloudDataContext();
   const [nolioId, setNolioId] = useState<number | null>(null);
   const [loadingNolioId, setLoadingNolioId] = useState(true);
   const [open, setOpen] = useState(false);
@@ -55,17 +64,33 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
     return () => { cancelled = true; };
   }, [athleteId]);
 
+  const refs = useMemo(() => {
+    const athlete = athletes.find((a) => a.id === athleteId) ?? null;
+    const r = getEffectiveRefs(athlete, snapshots);
+    return {
+      ftp: r.ftp,
+      vma: r.vma,
+      css: r.css,
+      fcMax: r.fcMax,
+    };
+  }, [athletes, snapshots, athleteId]);
+
   const sessions = useMemo(() => {
     if (!parsedPlan) return [];
     return (parsedPlan.weeks ?? []).flatMap((w) =>
-      (w.sessions ?? []).map((s) => ({
-        weekNumber: s.weekNumber,
-        dayIndex: s.dayIndex,
-        sport: s.sport,
-        title: s.title,
-        details: s.details,
-        isRest: s.isRest,
-      })),
+      (w.sessions ?? []).map((s) => {
+        const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+        return {
+          weekNumber: s.weekNumber,
+          dayIndex: s.dayIndex,
+          sport: s.sport,
+          title: s.title,
+          details: s.details,
+          isRest: s.isRest,
+          structure: lib?.structure ?? null,
+          wbalProfile: lib?.wbalProfile ?? null,
+        };
+      }),
     );
   }, [parsedPlan]);
 
@@ -99,6 +124,7 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
           nolio_athlete_id: nolioId,
           planStartDate: startDateStr,
           sessions,
+          refs,
         },
       });
       if (error) throw error;
@@ -155,6 +181,12 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
             <div className="flex justify-between border-b pb-2">
               <span className="text-muted-foreground">Séances à envoyer</span>
               <span className="font-medium">{activeCount} (hors repos)</span>
+            </div>
+            <div className="flex justify-between border-b pb-2 text-xs text-muted-foreground">
+              <span>Refs athlète</span>
+              <span>
+                FTP {refs.ftp ?? "—"}W · VMA {refs.vma ?? "—"}km/h · CSS {refs.css ?? "—"}s/100 · FCmax {refs.fcMax ?? "—"}
+              </span>
             </div>
             <div className="space-y-2">
               <Label htmlFor="nolio-start-date">Début du plan (lundi de la semaine 1)</Label>
