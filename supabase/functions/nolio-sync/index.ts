@@ -125,13 +125,27 @@ Deno.serve(async (req) => {
       );
     }
 
+    const diagnosticLogs: string[] = [];
+    const log = (msg: string) => {
+      const line = `[${new Date().toISOString()}] ${msg}`;
+      console.log(line);
+      diagnosticLogs.push(line);
+    };
+
+    // 1) Token diagnostics
+    const tokenExpiresAt = tokenRow.expires_at ? new Date(tokenRow.expires_at as string).getTime() : 0;
+    const isExpired = tokenExpiresAt ? tokenExpiresAt < Date.now() : true;
+    log(`STEP 1 — Token présent: ${!!tokenRow.access_token}, expires_at: ${tokenRow.expires_at}, expiré: ${isExpired}, refresh_token présent: ${!!tokenRow.refresh_token}`);
+
     const accessToken = await refreshIfNeeded(admin, userId, {
       access_token: tokenRow.access_token as string,
       refresh_token: (tokenRow.refresh_token as string | null) ?? null,
       expires_at: (tokenRow.expires_at as string | null) ?? null,
     });
+    log(`STEP 1b — Token utilisé (préfixe): ${accessToken.slice(0, 12)}... (longueur: ${accessToken.length})`);
 
     // 2) Appelle l'API Nolio — athlètes du coach
+    log(`STEP 2 — GET ${NOLIO_ATHLETES_URL}`);
     const nolioResp = await fetch(NOLIO_ATHLETES_URL, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
