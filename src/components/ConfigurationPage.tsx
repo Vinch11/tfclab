@@ -43,6 +43,10 @@ export function ConfigurationPage() {
   const [nolioMetricsError, setNolioMetricsError] = useState<string | null>(null);
   const [nolioMetricsSuccess, setNolioMetricsSuccess] = useState<{ created: number; updated: number; message: string } | null>(null);
 
+  const [linkedAthletes, setLinkedAthletes] = useState<LinkedAthlete[]>([]);
+  const [syncTarget, setSyncTarget] = useState<string>("all");
+  const [metricsTarget, setMetricsTarget] = useState<string>("all");
+
   // Détecte ?nolio=connected dans l'URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
