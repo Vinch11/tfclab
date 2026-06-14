@@ -273,21 +273,48 @@ Deno.serve(async (req) => {
       const nolioId = Number(a.nolio_id);
       if (!Number.isFinite(nolioId)) continue;
 
-      const { rows, warning } = await fetchMetricsForAthlete({
-        admin, userId, athleteNolioId: nolioId, accessTokenRef, refreshTokenStr,
-      });
-      if (warning) {
-        warnings.push(`athlete ${a.id} (#${nolioId}): ${warning}`);
-        continue;
+    const diagnosticDump: Record<string, unknown> = {};
+    let firstAthleteLogged = false;
+
+    for (const a of athletes ?? []) {
+      const nolioId = Number(a.nolio_id);
+      if (!Number.isFinite(nolioId)) continue;
+
+      // Récupération métrique par métrique
+      const latest: Record<string, number> = {};
+      const athleteRaw: Record<string, string> = {};
+      for (const [idStr, col] of Object.entries(METRIC_ID_MAP)) {
+        const metricId = Number(idStr);
+        const { rows, warning, raw } = await fetchMetricById({
+          admin, userId, athleteNolioId: nolioId, metricId,
+          accessTokenRef, refreshTokenStr,
+        });
+        if (!firstAthleteLogged && raw !== undefined) {
+          athleteRaw[`id=${metricId} (${col})`] = raw;
+        }
+        if (warning) {
+          warnings.push(`athlete ${a.id} #${nolioId} metric ${metricId}: ${warning}`);
+          continue;
+        }
+        const v = latestValue(rows);
+        if (v !== null) latest[col] = v;
       }
-      const latest = reduceLatest(rows);
-      const incomingKeys = Object.keys(latest) as (keyof typeof METRIC_MAP)[];
-      if (incomingKeys.length === 0) continue;
+
+      if (!firstAthleteLogged) {
+        diagnosticDump.athlete_id = a.id;
+        diagnosticDump.nolio_id = nolioId;
+        diagnosticDump.responses = athleteRaw;
+        diagnosticDump.extracted = latest;
+        firstAthleteLogged = true;
+      }
+
+      const incomingCols = Object.keys(latest);
+      if (incomingCols.length === 0) continue;
 
       // Snapshot le plus récent toutes sources
       const { data: lastSnap } = await admin
         .from("snapshots")
-        .select("id, date, source, ftp, vma, fc_max, css, weight_kg, vo2max")
+        .select("id, date, source, ftp, vma, fc_max, fc_repos, css, weight_kg, vo2max")
         .eq("athlete_id", a.id)
         .order("date", { ascending: false })
         .order("created_at", { ascending: false })
@@ -297,9 +324,8 @@ Deno.serve(async (req) => {
       // Détection changement >0.5%
       let changed = false;
       const payload: Record<string, number> = {};
-      for (const k of incomingKeys) {
-        const col = METRIC_MAP[k];
-        const next = latest[k]!;
+      for (const col of incomingCols) {
+        const next = latest[col];
         const prev = lastSnap ? toNum((lastSnap as Record<string, unknown>)[col]) : null;
         payload[col] = next;
         if (diffExceeds(prev, next)) changed = true;
@@ -347,6 +373,7 @@ Deno.serve(async (req) => {
       athletes_count: total,
       status,
       error_message: warnings.length ? warnings.slice(0, 5).join(" | ").slice(0, 1000) : null,
+      notes: JSON.stringify(diagnosticDump).slice(0, 4000),
     });
 
     return new Response(JSON.stringify({
