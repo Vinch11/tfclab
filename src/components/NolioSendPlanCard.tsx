@@ -83,8 +83,9 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
         return {
           weekNumber: s.weekNumber,
           dayIndex: s.dayIndex,
-          sport: s.sport,
+          sport: s.sport ?? lib?.sport ?? null,
           title: s.title,
+          id: lib?.id ?? null,
           details: s.details,
           isRest: s.isRest,
           structure: lib?.structure ?? null,
