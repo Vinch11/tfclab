@@ -265,6 +265,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Si un athlète spécifique est demandé, restreindre
+    let scopedAthletes = athletes ?? [];
+    let targetAthleteName: string | null = null;
+    if (requestedAthleteId || requestedNolioId != null) {
+      scopedAthletes = scopedAthletes.filter(a =>
+        (requestedAthleteId && a.id === requestedAthleteId) ||
+        (requestedNolioId != null && Number(a.nolio_id) === requestedNolioId)
+      );
+      targetAthleteName = scopedAthletes[0]?.name ?? null;
+    }
+
     const today = new Date().toISOString().slice(0, 10);
     let createdCount = 0;
     let updatedCount = 0;
@@ -273,7 +284,7 @@ Deno.serve(async (req) => {
     const diagnosticDump: Record<string, unknown> = {};
     let firstAthleteLogged = false;
 
-    for (const a of athletes ?? []) {
+    for (const a of scopedAthletes) {
       const nolioId = Number(a.nolio_id);
       if (!Number.isFinite(nolioId)) continue;
 
