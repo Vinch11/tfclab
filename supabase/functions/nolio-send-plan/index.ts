@@ -40,6 +40,7 @@ type ParsedSession = {
   title: string;
   details: string;
   isRest: boolean;
+  id?: string | null;
   structure?: WorkoutStructurePart[] | null;
   wbalProfile?: WbalProfile | null;
 };
