@@ -288,7 +288,7 @@ Deno.serve(async (req) => {
         const entry = meta[nolioKey];
         if (entry && Array.isArray(entry.data) && entry.data.length > 0) {
           const v = latestMetaValue(entry.data);
-          if (v !== null) latest[snapCol] = v;
+          if (v !== null) latest[snapCol] = convertNolioValue(snapCol, v);
         }
       }
 
