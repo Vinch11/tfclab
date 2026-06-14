@@ -398,7 +398,8 @@ Deno.serve(async (req) => {
       created: createdCount,
       updated: updatedCount,
       unchanged: unchangedCount,
-      athletes_scanned: athletes?.length ?? 0,
+      athletes_scanned: scopedAthletes.length,
+      athlete_name: targetAthleteName,
       warnings: warnings.slice(0, 10),
       status,
     }), {
