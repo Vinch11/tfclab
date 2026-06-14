@@ -419,7 +419,7 @@ export function ConfigurationPage() {
               </div>
 
               {/* Importer les métriques Nolio */}
-              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div className="flex flex-col gap-3 p-4 rounded-xl bg-muted/30 border sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                     <Download className={cn("w-5 h-5 text-primary", nolioMetricsLoading && "animate-bounce")} />
@@ -431,10 +431,24 @@ export function ConfigurationPage() {
                     </p>
                   </div>
                 </div>
-                <Button onClick={handleImportNolioMetrics} disabled={nolioMetricsLoading}>
-                  {nolioMetricsLoading ? "Import en cours..." : "Importer"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Select value={metricsTarget} onValueChange={setMetricsTarget}>
+                    <SelectTrigger className="w-[240px]">
+                      <SelectValue placeholder="Choisir une cible" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les athlètes liés à Nolio</SelectItem>
+                      {linkedAthletes.map(a => (
+                        <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={handleImportNolioMetrics} disabled={nolioMetricsLoading}>
+                    {nolioMetricsLoading ? "Import en cours..." : "Importer"}
+                  </Button>
+                </div>
               </div>
+
 
               {nolioSyncSuccess && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
