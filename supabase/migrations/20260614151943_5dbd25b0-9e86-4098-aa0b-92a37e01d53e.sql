@@ -1,0 +1,1 @@
+ALTER TABLE public.snapshots ADD COLUMN IF NOT EXISTS fc_repos integer NULL;
