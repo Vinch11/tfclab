@@ -1,7 +1,7 @@
 /**
  * AIPlanViewer — Interactive structured view of a parsed AI training plan
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,10 @@ import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
 import type { RaceGoal } from "@/hooks/useAITrainingPlan";
+import { supabase } from "@/integrations/supabase/client";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase();
@@ -259,9 +263,10 @@ function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRec
 interface SessionCardProps {
   session: ParsedSession;
   date?: Date;
+  nolioCtx?: NolioCtx | null;
 }
 
-function SessionCard({ session, date }: SessionCardProps) {
+function SessionCard({ session, date, nolioCtx }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const trailAlts = useMemo(
@@ -305,7 +310,10 @@ function SessionCard({ session, date }: SessionCardProps) {
           </Badge>
         )}
       </div>
-      <p className="text-sm font-semibold mt-1">{session.title}</p>
+      <div className="flex items-center gap-2 mt-1">
+        <p className="text-sm font-semibold flex-1">{session.title}</p>
+        {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} />}
+      </div>
       {expanded && session.details && (
         <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
           {session.details}
@@ -509,9 +517,10 @@ function WeekQualityBadge({ week }: { week: ParsedWeek }) {
 interface WeekViewProps {
   week: ParsedWeek;
   startDate?: Date;
+  nolioCtx?: NolioCtx | null;
 }
 
-function WeekView({ week, startDate }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx }: WeekViewProps) {
   const weekDates = useMemo(() => {
     if (!startDate) return null;
     const start = startOfWeek(startDate, { weekStartsOn: 1 });
@@ -542,7 +551,7 @@ function WeekView({ week, startDate }: WeekViewProps) {
       <CardContent className="space-y-2">
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
-          return <SessionCard key={idx} session={session} date={date} />;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} />;
         })}
         {week.coachNotes && (
           <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
@@ -568,13 +577,64 @@ interface AIPlanViewerProps {
   onRegenerateFutureWeeks?: () => void;
   isRegenerating?: boolean;
   athleteName?: string;
+  athleteId?: string;
   currentWeekNumber?: number;
   adaptationProjections?: import("@/hooks/useAITrainingPlan").AdaptationProjection[];
 }
 
-export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
+
+  // --- Nolio per-session sending context ---
+  const { athletes, snapshots } = useCloudDataContext();
+  const [nolioId, setNolioId] = useState<number | null>(null);
+  const [sentKeys, setSentKeys] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    if (!athleteId) { setNolioId(null); return; }
+    let cancelled = false;
+    supabase
+      .from("athletes")
+      .select("nolio_id")
+      .eq("id", athleteId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const raw = (data as { nolio_id?: number | null } | null)?.nolio_id;
+        setNolioId(typeof raw === "number" ? raw : null);
+      });
+    return () => { cancelled = true; };
+  }, [athleteId]);
+
+  useEffect(() => { setSentKeys(new Set()); }, [athleteId, plan]);
+
+  const nolioRefs = useMemo(() => {
+    if (!athleteId) return { ftp: null, vma: null, css: null, fcMax: null };
+    const athlete = athletes.find((a) => a.id === athleteId) ?? null;
+    const r = getEffectiveRefs(athlete, snapshots);
+    return { ftp: r.ftp, vma: r.vma, css: r.css, fcMax: r.fcMax };
+  }, [athletes, snapshots, athleteId]);
+
+  const markSent = useCallback((key: string) => {
+    setSentKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  }, []);
+
+  const nolioCtx: NolioCtx | null = useMemo(() => {
+    if (!athleteId || nolioId == null || !startDate) return null;
+    return {
+      athleteId,
+      nolioId,
+      planStartDate: startDate,
+      refs: nolioRefs,
+      isSent: (k: string) => sentKeys.has(k),
+      markSent,
+    };
+  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent]);
 
   const currentWeek = plan.weeks[selectedWeek];
   const sortedRaceGoals = useMemo(
@@ -747,12 +807,12 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} />
+          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} startDate={startDate} />
+            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} />
           ))}
         </div>
       )}
