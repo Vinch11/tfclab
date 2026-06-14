@@ -59,10 +59,11 @@ export function NolioLinkAthletesDialog({
         const list = ((listData as { athletes?: unknown[] })?.athletes ?? []) as NolioAthlete[];
 
         if (cancelled) return;
-        const sorted = [...list].sort((a, b) =>
+        const coachEntries = list.filter((n) => n.is_coach);
+        const others = list.filter((n) => !n.is_coach).sort((a, b) =>
           (a.name ?? "").localeCompare(b.name ?? "", "fr", { sensitivity: "base" }),
         );
-        setNolioAthletes(sorted);
+        setNolioAthletes([...coachEntries, ...others]);
         setTfclAthletes(filtered);
 
         const initial: Record<string, string> = {};
