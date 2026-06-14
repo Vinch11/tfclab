@@ -254,8 +254,22 @@ Deno.serve(async (req) => {
     let updated = 0;
     const errors: string[] = [];
 
+    // Si un athlète spécifique est demandé, restreindre la liste Nolio à celui-ci
+    let targetAthleteName: string | null = null;
+    let nolioAthletesScoped = nolioAthletes;
+    if (requestedAthleteId || requestedNolioId != null) {
+      const targetTfcl = (existing ?? []).find(a =>
+        (requestedAthleteId && a.id === requestedAthleteId) ||
+        (requestedNolioId != null && Number(a.nolio_id) === requestedNolioId)
+      );
+      targetAthleteName = targetTfcl?.name ?? null;
+      const targetNolioId = requestedNolioId ?? (targetTfcl?.nolio_id != null ? Number(targetTfcl.nolio_id) : null);
+      nolioAthletesScoped = nolioAthletes.filter(na => Number(na.nolio_id) === targetNolioId);
+      log(`SCOPE — athlète unique demandé (id=${requestedAthleteId}, nolio_id=${targetNolioId}, name=${targetAthleteName}) → ${nolioAthletesScoped.length} match Nolio`);
+    }
+
     // 5) Matching détaillé
-    for (const na of nolioAthletes) {
+    for (const na of nolioAthletesScoped) {
       try {
         const nolioId = typeof na.nolio_id === "number" ? na.nolio_id : Number(na.nolio_id);
         const name = (na.name ?? "").trim();
