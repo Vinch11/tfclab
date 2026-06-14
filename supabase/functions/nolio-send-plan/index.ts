@@ -526,7 +526,7 @@ Deno.serve(async (req) => {
 
       const structure = Array.isArray(s.structure) ? s.structure : [];
       const structured_workout = structure.length > 0
-        ? buildStructuredFromParts(structure, body.refs ?? {})
+        ? buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null)
         : null;
 
       const idPartnerStr = String(body.nolio_athlete_id) + String(s.weekNumber).padStart(2, "0") + String(s.dayIndex);
