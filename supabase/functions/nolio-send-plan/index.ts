@@ -272,11 +272,22 @@ function buildTargetFromZones(
 function buildStructuredFromParts(
   structure: WorkoutStructurePart[],
   refs: AthleteRefs,
+  wbalProfile?: WbalProfile | null,
 ): NolioStructuredItem[] {
   const items: NolioStructuredItem[] = [];
   for (const p of structure) {
     const intensity = mapPartToIntensity(p.part);
-    const duration = parseDurationToSec(p.text || "");
+
+    // Durée : texte → wbalProfile → défauts
+    let duration = parseDurationToSec(p.text || "");
+    if (duration == null) {
+      if (wbalProfile?.blocks?.length && intensity === "active") {
+        duration = wbalProfile.blocks[0]?.durationSec ?? 1200;
+      } else {
+        duration = intensity === "active" ? 1200 : 600;
+      }
+    }
+
     const target = buildTargetFromZones(p.zones || [], refs);
     items.push({
       type: "step",
