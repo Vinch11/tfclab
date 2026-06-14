@@ -513,8 +513,9 @@ Deno.serve(async (req) => {
         (s.weekNumber - 1) * 7 + s.dayIndex,
       );
 
-      const structured_workout = s.wbalProfile && Array.isArray(s.wbalProfile.blocks) && s.wbalProfile.blocks.length > 0
-        ? buildStructuredWorkout(s.wbalProfile, body.refs ?? {})
+      const structure = Array.isArray(s.structure) ? s.structure : [];
+      const structured_workout = structure.length > 0
+        ? buildStructuredFromParts(structure, body.refs ?? {})
         : null;
 
       const idPartnerStr = String(body.nolio_athlete_id) + String(s.weekNumber).padStart(2, "0") + String(s.dayIndex);
@@ -527,6 +528,7 @@ Deno.serve(async (req) => {
         description: s.details ?? "",
       };
       if (structured_workout) payload.structured_workout = structured_workout;
+
 
       const res = await postSession({
         url: NOLIO_CREATE_TRAINING_URL,
