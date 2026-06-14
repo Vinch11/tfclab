@@ -68,6 +68,29 @@ export function ConfigurationPage() {
     return () => { cancelled = true; };
   }, [user, nolioJustConnected]);
 
+  // Charge la date de dernière synchro réussie
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("nolio_sync_log")
+        .select("synced_at")
+        .eq("user_id", user.id)
+        .eq("status", "success")
+        .order("synced_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        console.error("Failed to load last sync", error);
+        return;
+      }
+      setNolioLastSyncAt(data?.synced_at ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [user, nolioSyncSuccess]);
+
   const handleConnectNolio = async () => {
     if (!session?.access_token) {
       toast({ title: "Connexion requise", description: "Veuillez vous connecter pour lier Nolio.", variant: "destructive" });
@@ -100,6 +123,40 @@ export function ConfigurationPage() {
     }
     setNolioConnected(false);
     toast({ title: "Nolio déconnecté" });
+  };
+  const handleSyncNolio = async () => {
+    if (!session?.access_token) return;
+    setNolioSyncing(true);
+    setNolioSyncError(null);
+    setNolioSyncSuccess(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-sync", { method: "POST" });
+      if (error) throw error;
+      const count = (data as { athletes_count?: number })?.athletes_count ?? 0;
+      const ok = (data as { ok?: boolean })?.ok ?? true;
+      if (!ok) {
+        const errs = (data as { errors?: string[] })?.errors?.join(" | ") ?? "Erreur inconnue";
+        throw new Error(errs);
+      }
+      setNolioSyncSuccess({ count });
+      toast({ title: "Synchronisation réussie", description: `${count} athlète${count > 1 ? "s" : ""} mis à jour.` });
+    } catch (e) {
+      const msg = (e as Error).message ?? "Échec de la synchronisation";
+      console.error("Nolio sync failed", e);
+      setNolioSyncError(msg);
+      toast({ title: "Erreur de synchronisation", description: msg, variant: "destructive" });
+    } finally {
+      setNolioSyncing(false);
+    }
+  };
+
+  const formatLastSync = (iso: string | null) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+    } catch {
+      return iso;
+    }
   };
 
 
