@@ -263,9 +263,10 @@ function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRec
 interface SessionCardProps {
   session: ParsedSession;
   date?: Date;
+  nolioCtx?: NolioCtx | null;
 }
 
-function SessionCard({ session, date }: SessionCardProps) {
+function SessionCard({ session, date, nolioCtx }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const trailAlts = useMemo(
@@ -309,7 +310,10 @@ function SessionCard({ session, date }: SessionCardProps) {
           </Badge>
         )}
       </div>
-      <p className="text-sm font-semibold mt-1">{session.title}</p>
+      <div className="flex items-center gap-2 mt-1">
+        <p className="text-sm font-semibold flex-1">{session.title}</p>
+        {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} />}
+      </div>
       {expanded && session.details && (
         <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
           {session.details}
