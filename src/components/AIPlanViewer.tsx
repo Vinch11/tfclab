@@ -577,13 +577,64 @@ interface AIPlanViewerProps {
   onRegenerateFutureWeeks?: () => void;
   isRegenerating?: boolean;
   athleteName?: string;
+  athleteId?: string;
   currentWeekNumber?: number;
   adaptationProjections?: import("@/hooks/useAITrainingPlan").AdaptationProjection[];
 }
 
-export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
+
+  // --- Nolio per-session sending context ---
+  const { athletes, snapshots } = useCloudDataContext();
+  const [nolioId, setNolioId] = useState<number | null>(null);
+  const [sentKeys, setSentKeys] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    if (!athleteId) { setNolioId(null); return; }
+    let cancelled = false;
+    supabase
+      .from("athletes")
+      .select("nolio_id")
+      .eq("id", athleteId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const raw = (data as { nolio_id?: number | null } | null)?.nolio_id;
+        setNolioId(typeof raw === "number" ? raw : null);
+      });
+    return () => { cancelled = true; };
+  }, [athleteId]);
+
+  useEffect(() => { setSentKeys(new Set()); }, [athleteId, plan]);
+
+  const nolioRefs = useMemo(() => {
+    if (!athleteId) return { ftp: null, vma: null, css: null, fcMax: null };
+    const athlete = athletes.find((a) => a.id === athleteId) ?? null;
+    const r = getEffectiveRefs(athlete, snapshots);
+    return { ftp: r.ftp, vma: r.vma, css: r.css, fcMax: r.fcMax };
+  }, [athletes, snapshots, athleteId]);
+
+  const markSent = useCallback((key: string) => {
+    setSentKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  }, []);
+
+  const nolioCtx: NolioCtx | null = useMemo(() => {
+    if (!athleteId || nolioId == null || !startDate) return null;
+    return {
+      athleteId,
+      nolioId,
+      planStartDate: startDate,
+      refs: nolioRefs,
+      isSent: (k: string) => sentKeys.has(k),
+      markSent,
+    };
+  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent]);
 
   const currentWeek = plan.weeks[selectedWeek];
   const sortedRaceGoals = useMemo(
