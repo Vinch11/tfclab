@@ -605,6 +605,36 @@ export type Database = {
         }
         Relationships: []
       }
+      nolio_sync_log: {
+        Row: {
+          athletes_count: number
+          created_at: string
+          error_message: string | null
+          id: string
+          status: string
+          synced_at: string
+          user_id: string
+        }
+        Insert: {
+          athletes_count?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status?: string
+          synced_at?: string
+          user_id: string
+        }
+        Update: {
+          athletes_count?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status?: string
+          synced_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       nolio_tokens: {
         Row: {
           access_token: string

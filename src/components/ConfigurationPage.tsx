@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2 } from "lucide-react";
+import { Settings, Palette, Check, LayoutDashboard, Trophy, BookOpen, Link2, CheckCircle2, RefreshCw, AlertCircle } from "lucide-react";
 import { useTheme, THEME_CONFIG, THEME_ORDER, Theme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { AdvancedLayoutEditor } from "./AdvancedLayoutEditor";
@@ -29,6 +29,10 @@ export function ConfigurationPage() {
   const [nolioConnected, setNolioConnected] = useState(false);
   const [nolioLoading, setNolioLoading] = useState(false);
   const [nolioJustConnected, setNolioJustConnected] = useState(false);
+  const [nolioSyncing, setNolioSyncing] = useState(false);
+  const [nolioSyncError, setNolioSyncError] = useState<string | null>(null);
+  const [nolioSyncSuccess, setNolioSyncSuccess] = useState<{ count: number } | null>(null);
+  const [nolioLastSyncAt, setNolioLastSyncAt] = useState<string | null>(null);
 
   // Détecte ?nolio=connected dans l'URL
   useEffect(() => {
@@ -64,6 +68,29 @@ export function ConfigurationPage() {
     return () => { cancelled = true; };
   }, [user, nolioJustConnected]);
 
+  // Charge la date de dernière synchro réussie
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("nolio_sync_log")
+        .select("synced_at")
+        .eq("user_id", user.id)
+        .eq("status", "success")
+        .order("synced_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        console.error("Failed to load last sync", error);
+        return;
+      }
+      setNolioLastSyncAt(data?.synced_at ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [user, nolioSyncSuccess]);
+
   const handleConnectNolio = async () => {
     if (!session?.access_token) {
       toast({ title: "Connexion requise", description: "Veuillez vous connecter pour lier Nolio.", variant: "destructive" });
@@ -96,6 +123,40 @@ export function ConfigurationPage() {
     }
     setNolioConnected(false);
     toast({ title: "Nolio déconnecté" });
+  };
+  const handleSyncNolio = async () => {
+    if (!session?.access_token) return;
+    setNolioSyncing(true);
+    setNolioSyncError(null);
+    setNolioSyncSuccess(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-sync", { method: "POST" });
+      if (error) throw error;
+      const count = (data as { athletes_count?: number })?.athletes_count ?? 0;
+      const ok = (data as { ok?: boolean })?.ok ?? true;
+      if (!ok) {
+        const errs = (data as { errors?: string[] })?.errors?.join(" | ") ?? "Erreur inconnue";
+        throw new Error(errs);
+      }
+      setNolioSyncSuccess({ count });
+      toast({ title: "Synchronisation réussie", description: `${count} athlète${count > 1 ? "s" : ""} mis à jour.` });
+    } catch (e) {
+      const msg = (e as Error).message ?? "Échec de la synchronisation";
+      console.error("Nolio sync failed", e);
+      setNolioSyncError(msg);
+      toast({ title: "Erreur de synchronisation", description: msg, variant: "destructive" });
+    } finally {
+      setNolioSyncing(false);
+    }
+  };
+
+  const formatLastSync = (iso: string | null) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+    } catch {
+      return iso;
+    }
   };
 
 
@@ -203,27 +264,64 @@ export function ConfigurationPage() {
           )}
 
           {nolioConnected ? (
-            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-success" />
+            <>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-success" />
+                  </div>
+                  <div>
+                    <Label className="font-medium text-base">✅ Nolio connecté</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Votre compte Nolio est lié à TFC Lab.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <Label className="font-medium text-base">✅ Nolio connecté</Label>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Votre compte Nolio est lié à TFC Lab.
-                  </p>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDisconnectNolio}
+                  disabled={nolioLoading}
+                >
+                  Déconnecter
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDisconnectNolio}
-                disabled={nolioLoading}
-              >
-                Déconnecter
-              </Button>
-            </div>
+
+              {/* Bouton synchronisation */}
+              <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <RefreshCw className={cn("w-5 h-5 text-primary", nolioSyncing && "animate-spin")} />
+                  </div>
+                  <div>
+                    <Label className="font-medium text-base">Synchroniser les données Nolio</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {nolioLastSyncAt
+                        ? `Dernière synchro : ${formatLastSync(nolioLastSyncAt)}`
+                        : "Aucune synchronisation effectuée pour le moment."}
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={handleSyncNolio} disabled={nolioSyncing}>
+                  {nolioSyncing ? "Synchronisation..." : "Synchroniser"}
+                </Button>
+              </div>
+
+              {nolioSyncSuccess && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">
+                    Synchronisation réussie — {nolioSyncSuccess.count} athlète{nolioSyncSuccess.count > 1 ? "s" : ""} mis à jour
+                  </span>
+                </div>
+              )}
+              {nolioSyncError && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">{nolioSyncError}</span>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
               <div className="flex items-center gap-3">
