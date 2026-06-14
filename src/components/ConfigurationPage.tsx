@@ -34,6 +34,7 @@ export function ConfigurationPage() {
   const [nolioSyncError, setNolioSyncError] = useState<string | null>(null);
   const [nolioSyncSuccess, setNolioSyncSuccess] = useState<{ count: number } | null>(null);
   const [nolioLastSyncAt, setNolioLastSyncAt] = useState<string | null>(null);
+  const [nolioLinkOpen, setNolioLinkOpen] = useState(false);
 
   // Détecte ?nolio=connected dans l'URL
   useEffect(() => {
