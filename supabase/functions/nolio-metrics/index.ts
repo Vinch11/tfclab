@@ -91,15 +91,16 @@ async function refreshIfNeeded(
   return fresh ?? cur.access_token;
 }
 
-async function fetchMetricsForAthlete(opts: {
+async function fetchMetricById(opts: {
   admin: SupabaseAdmin;
   userId: string;
   athleteNolioId: number;
+  metricId: number;
   accessTokenRef: { current: string };
   refreshTokenStr: string | null;
-}): Promise<{ rows: NolioMetricRow[]; warning?: string }> {
-  const { admin, userId, athleteNolioId, accessTokenRef, refreshTokenStr } = opts;
-  const url = `${NOLIO_METRIC_URL}?athlete_id=${athleteNolioId}&limit=15`;
+}): Promise<{ rows: NolioMetricRow[]; warning?: string; raw?: string }> {
+  const { admin, userId, athleteNolioId, metricId, accessTokenRef, refreshTokenStr } = opts;
+  const url = `${NOLIO_METRIC_URL}?athlete_id=${athleteNolioId}&id=${metricId}&limit=15`;
 
   let attempt = 0;
   let didRefresh = false;
@@ -128,49 +129,55 @@ async function fetchMetricsForAthlete(opts: {
     }
 
     const ctype = resp.headers.get("content-type") ?? "";
+    const text = await resp.text();
+    if (resp.status === 400) {
+      // métrique non disponible pour cet athlète : ignorer silencieusement
+      return { rows: [], raw: text.slice(0, 500) };
+    }
     if (!resp.ok) {
-      let detail: string;
-      if (ctype.includes("application/json")) {
-        const j = await resp.json().catch(() => null) as { detail?: string } | null;
-        detail = j?.detail ?? JSON.stringify(j);
-      } else {
-        detail = (await resp.text()).slice(0, 300);
-      }
-      return { rows: [], warning: `HTTP ${resp.status}: ${detail}` };
+      return { rows: [], warning: `HTTP ${resp.status}: ${text.slice(0, 200)}`, raw: text.slice(0, 500) };
     }
-
     if (!ctype.includes("application/json")) {
-      const txt = (await resp.text()).slice(0, 300);
-      return { rows: [], warning: `non-JSON: ${txt}` };
+      return { rows: [], warning: `non-JSON`, raw: text.slice(0, 500) };
     }
-    const json = await resp.json().catch(() => null);
+    let json: unknown = null;
+    try { json = JSON.parse(text); } catch { /* noop */ }
     const arr: NolioMetricRow[] = Array.isArray(json)
-      ? json
+      ? json as NolioMetricRow[]
       : Array.isArray((json as { results?: unknown })?.results)
         ? (json as { results: NolioMetricRow[] }).results
         : Array.isArray((json as { data?: unknown })?.data)
           ? (json as { data: NolioMetricRow[] }).data
           : [];
-    return { rows: arr };
+    return { rows: arr, raw: text.slice(0, 500) };
   }
   return { rows: [], warning: "max retries (429)" };
 }
 
-/** Garde la valeur la plus récente non-null pour chaque métrique. */
-function reduceLatest(rows: NolioMetricRow[]): Partial<Record<keyof typeof METRIC_MAP, number>> {
+/** Garde la valeur la plus récente non-null. */
+function latestValue(rows: NolioMetricRow[]): number | null {
   const sorted = [...rows].sort((a, b) => {
     const da = new Date(a.date ?? a.created_at ?? 0).getTime();
     const db = new Date(b.date ?? b.created_at ?? 0).getTime();
-    return db - da; // récent d'abord
+    return db - da;
   });
-  const out: Partial<Record<keyof typeof METRIC_MAP, number>> = {};
-  for (const k of Object.keys(METRIC_MAP) as (keyof typeof METRIC_MAP)[]) {
-    for (const r of sorted) {
-      const v = toNum(r[k]);
-      if (v !== null) { out[k] = v; break; }
+  for (const r of sorted) {
+    // certaines réponses retournent {value}, d'autres directement le champ (ftp/vma/...)
+    const candidates = [
+      r.value,
+      (r as Record<string, unknown>).ftp,
+      (r as Record<string, unknown>).vma,
+      (r as Record<string, unknown>).fc_max,
+      (r as Record<string, unknown>).fc_repos,
+      (r as Record<string, unknown>).css,
+      (r as Record<string, unknown>).weight,
+    ];
+    for (const c of candidates) {
+      const v = toNum(c);
+      if (v !== null) return v;
     }
   }
-  return out;
+  return null;
 }
 
 function diffExceeds(prev: number | null | undefined, next: number, pct = 0.005): boolean {
