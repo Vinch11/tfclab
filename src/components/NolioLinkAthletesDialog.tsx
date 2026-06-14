@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle2 } from "lucide-react";
 
-type NolioAthlete = { nolio_id: number; name?: string };
+type NolioAthlete = { nolio_id: number; name?: string; is_coach?: boolean };
 type TfclAthlete = { id: string; name: string | null; nolio_id: number | null };
 
 const NONE_VALUE = "__none__";
@@ -59,10 +59,11 @@ export function NolioLinkAthletesDialog({
         const list = ((listData as { athletes?: unknown[] })?.athletes ?? []) as NolioAthlete[];
 
         if (cancelled) return;
-        const sorted = [...list].sort((a, b) =>
+        const coachEntries = list.filter((n) => n.is_coach);
+        const others = list.filter((n) => !n.is_coach).sort((a, b) =>
           (a.name ?? "").localeCompare(b.name ?? "", "fr", { sensitivity: "base" }),
         );
-        setNolioAthletes(sorted);
+        setNolioAthletes([...coachEntries, ...others]);
         setTfclAthletes(filtered);
 
         const initial: Record<string, string> = {};
