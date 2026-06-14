@@ -126,9 +126,9 @@ function computeTargetValue(
   }
 }
 
-/** Parse "30min", "20 min", "1h", "1h30", "45'", "45 s" → secondes. Défaut 600s. */
-function parseDurationToSec(text: string): number {
-  if (!text) return 600;
+/** Parse "30min", "20 min", "1h", "1h30", "45'", "45 s" → secondes. Retourne null si aucun match. */
+function parseDurationToSec(text: string): number | null {
+  if (!text) return null;
   const t = text.toLowerCase();
   // 1h30 / 1h
   const hm = t.match(/(\d+)\s*h\s*(\d{1,2})?/);
@@ -150,7 +150,7 @@ function parseDurationToSec(text: string): number {
     const s = parseInt(ss[1], 10) || 0;
     if (s > 0) return s;
   }
-  return 600;
+  return null;
 }
 
 function normalizeStr(s: string): string {
