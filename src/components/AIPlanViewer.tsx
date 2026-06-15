@@ -554,6 +554,18 @@ function WeekView({ week, startDate, nolioCtx }: WeekViewProps) {
 
   const activeSessions = week.sessions.filter(s => !s.isRest).length;
 
+  // Bulk Nolio: keys of active (non-rest) sessions for this week
+  const weekSelectableKeys = useMemo(() => {
+    if (!nolioCtx) return [] as string[];
+    return week.sessions
+      .filter((s) => !s.isRest && s.dayIndex >= 0 && !nolioCtx.isSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex)))
+      .map((s) => sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
+  }, [week.sessions, nolioCtx]);
+  const weekSelectedCount = nolioCtx
+    ? weekSelectableKeys.filter((k) => nolioCtx.isSelected(k)).length
+    : 0;
+  const allWeekSelected = weekSelectableKeys.length > 0 && weekSelectedCount === weekSelectableKeys.length;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -568,6 +580,26 @@ function WeekView({ week, startDate, nolioCtx }: WeekViewProps) {
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
           </div>
         </div>
+        {nolioCtx && weekSelectableKeys.length > 0 && (
+          <div className="flex items-center gap-2 pt-1.5 flex-wrap">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-[11px]"
+              onClick={() => nolioCtx.setManySelected(weekSelectableKeys, !allWeekSelected)}
+            >
+              {allWeekSelected
+                ? `Désélectionner la semaine ${week.weekNumber}`
+                : `Tout sélectionner la semaine ${week.weekNumber}`}
+            </Button>
+            {weekSelectedCount > 0 && (
+              <Badge variant="secondary" className="text-[10px]">
+                {weekSelectedCount}/{weekSelectableKeys.length} sélectionnée(s)
+              </Badge>
+            )}
+          </div>
+        )}
         {week.volumeTarget && (
           <p className="text-xs text-muted-foreground">Volume cible : {week.volumeTarget}</p>
         )}
