@@ -735,6 +735,23 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
   const [bulkSending, setBulkSending] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
 
+  // Scope selector
+  const allWeekNums = useMemo(
+    () => Array.from(new Set(plan.weeks.map((w) => w.weekNumber))).sort((a, b) => a - b),
+    [plan.weeks],
+  );
+  const [scope, setScope] = useState<NolioScope>("all");
+  const [scopeWeek, setScopeWeek] = useState<number>(() => allWeekNums[0] ?? 1);
+  const [scopeFrom, setScopeFrom] = useState<number>(() => allWeekNums[0] ?? 1);
+  const [scopeTo, setScopeTo] = useState<number>(() => allWeekNums[allWeekNums.length - 1] ?? 1);
+  useEffect(() => {
+    if (allWeekNums.length === 0) return;
+    if (!allWeekNums.includes(scopeWeek)) setScopeWeek(allWeekNums[0]);
+    if (!allWeekNums.includes(scopeFrom)) setScopeFrom(allWeekNums[0]);
+    if (!allWeekNums.includes(scopeTo)) setScopeTo(allWeekNums[allWeekNums.length - 1]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allWeekNums.join(",")]);
+
   // Map selected keys → ParsedSession objects from current plan
   const selectedSessions = useMemo(() => {
     if (!nolioCtx) return [] as ParsedSession[];
@@ -748,6 +765,40 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     }
     return out;
   }, [plan, selectedKeys, nolioCtx]);
+
+  // Sessions effectively targeted by the current scope (used for top panel + confirm modal + send)
+  const targetSessions = useMemo(() => {
+    if (!nolioCtx) return [] as ParsedSession[];
+    if (scope === "selected") return selectedSessions;
+    const lo = Math.min(scopeFrom, scopeTo);
+    const hi = Math.max(scopeFrom, scopeTo);
+    const inScope = (n: number) => {
+      if (scope === "all") return true;
+      if (scope === "single") return n === scopeWeek;
+      return n >= lo && n <= hi;
+    };
+    const out: ParsedSession[] = [];
+    for (const w of plan.weeks) {
+      if (!inScope(w.weekNumber)) continue;
+      for (const s of w.sessions) {
+        if (s.isRest || s.dayIndex < 0) continue;
+        out.push(s);
+      }
+    }
+    return out;
+  }, [scope, scopeWeek, scopeFrom, scopeTo, plan, selectedSessions, nolioCtx]);
+
+  const targetWeekNumbers = useMemo(
+    () => Array.from(new Set(targetSessions.map((s) => s.weekNumber))).sort((a, b) => a - b),
+    [targetSessions],
+  );
+
+  const alreadySentInScope = useMemo(() => {
+    if (!nolioCtx) return 0;
+    return targetSessions.filter((s) =>
+      sentKeys.has(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex)),
+    ).length;
+  }, [targetSessions, sentKeys, nolioCtx]);
 
   async function handleBulkSend() {
     if (!nolioCtx || selectedSessions.length === 0) return;
