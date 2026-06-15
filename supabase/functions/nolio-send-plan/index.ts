@@ -642,9 +642,15 @@ Deno.serve(async (req) => {
       );
 
       const structure = Array.isArray(s.structure) ? s.structure : [];
-      const structured_workout = structure.length > 0
+      let structured_workout = structure.length > 0
         ? buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null)
         : null;
+
+      // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
+      // Si l'unique item racine est une repetition, on déballe ses steps enfants.
+      if (structured_workout && structured_workout.length === 1 && structured_workout[0].type === "repetition") {
+        structured_workout = (structured_workout[0] as NolioRepStep).steps;
+      }
 
       const idPartner = parseInt(
         String(body.nolio_athlete_id) +
@@ -654,6 +660,18 @@ Deno.serve(async (req) => {
         10,
       );
       const sportId = mapSport(s.sport, s.title, s.id ?? null);
+
+      // Suppression préalable : la séance peut déjà exister avec un sport_id obsolète.
+      // On ignore systématiquement les erreurs (404/inexistante = cas normal).
+      const deleteRes = await postSession({
+        url: NOLIO_DELETE_TRAINING_URL,
+        accessTokenRef,
+        refreshTokenStr,
+        admin,
+        userId,
+        payload: { id_partner: idPartner, athlete_id: body.nolio_athlete_id },
+      }).catch(() => null);
+
       const payload: Record<string, unknown> = {
         id_partner: idPartner,
         athlete_id: body.nolio_athlete_id,
@@ -664,7 +682,6 @@ Deno.serve(async (req) => {
       };
       if (structured_workout) payload.structured_workout = structured_workout;
 
-
       const res = await postSession({
         url: NOLIO_CREATE_TRAINING_URL,
         accessTokenRef,
@@ -673,29 +690,6 @@ Deno.serve(async (req) => {
         userId,
         payload,
       });
-
-      // Forcer la mise à jour côté Nolio (id_partner = clé d'identification, pas besoin d'id interne)
-      let updateRes: { ok: boolean; status: number; detail?: string; data?: unknown } | null = null;
-      if (res.ok) {
-        const updatePayload: Record<string, unknown> = {
-          id_partner: idPartner,
-          athlete_id: body.nolio_athlete_id,
-          sport_id: sportId,
-          name: s.title ?? "Séance",
-          date_start: dateStart,
-        };
-        if (structured_workout) updatePayload.structured_workout = structured_workout;
-
-        updateRes = await postSession({
-          url: NOLIO_UPDATE_TRAINING_URL,
-          accessTokenRef,
-          refreshTokenStr,
-          admin,
-          userId,
-          payload: updatePayload,
-        });
-      }
-
 
       debugLog.push({
         week: s.weekNumber,
@@ -709,16 +703,15 @@ Deno.serve(async (req) => {
         id_partner: idPartner,
         sport_id: sportId,
         structured_workout,
+        delete_response: deleteRes
+          ? { ok: deleteRes.ok, status: deleteRes.status, detail: deleteRes.detail ?? null }
+          : null,
         response: {
           ok: res.ok,
           status: res.status,
           detail: res.detail ?? null,
           data_raw: res.data ?? null,
         },
-        update_response: updateRes
-          ? { ok: updateRes.ok, status: updateRes.status, detail: updateRes.detail ?? null, data_raw: updateRes.data ?? null }
-          : null,
-
       });
 
       if (res.ok) sent += 1;
