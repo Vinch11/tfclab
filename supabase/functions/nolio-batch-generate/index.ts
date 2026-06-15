@@ -99,7 +99,7 @@ EXEMPLE RUN (Z2 endurance 60min, vma=18) :
 EXEMPLE NATATION (400 WU + 10x100m CSS r=20s + 200 CD, css=95) :
 [
   {"type":"step","intensity_type":"warmup","step_duration_type":"distance","step_duration_value":400,"target_type":"pace","target_value_min":100,"target_value_max":109,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":105,"pct_css_max":115},
-  {"type":"repetition","repeat_count":10,"steps":[
+  {"type":"repetition","value":10,"steps":[
     {"type":"step","intensity_type":"active","step_duration_type":"distance","step_duration_value":100,"target_type":"pace","target_value_min":95,"target_value_max":100,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":100,"pct_css_max":105},
     {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":20,"target_type":"no_target","target_value_min":null,"target_value_max":null,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
   ]},
