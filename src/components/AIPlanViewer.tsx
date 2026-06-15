@@ -914,6 +914,116 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
 
   return (
     <div className="space-y-4">
+      {/* Nolio — Top sending panel (unified scopes) */}
+      {nolioCtx && (
+        <Card className="border-primary/30">
+          <CardContent className="p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <Send className="h-4 w-4 text-primary" />
+              <h3 className="font-semibold text-sm">Envoyer vers Nolio</h3>
+              <Badge variant="secondary" className="text-[10px]">
+                athlète lié #{nolioCtx.nolioId}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="nolio-plan-start" className="text-xs">
+                  Date de début du plan (lundi semaine {allWeekNums[0] ?? 1})
+                </Label>
+                <Input
+                  id="nolio-plan-start"
+                  type="date"
+                  value={bulkStartDate}
+                  onChange={(e) => setBulkStartDate(e.target.value)}
+                  disabled={bulkSending}
+                  className="h-9"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Périmètre d'envoi</Label>
+                <RadioGroup
+                  value={scope}
+                  onValueChange={(v) => setScope(v as NolioScope)}
+                  className="grid grid-cols-2 gap-1.5 text-xs"
+                >
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="selected" id="scope-selected" />
+                    <span>Séances sélectionnées ({selectedSessions.length})</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="single" id="scope-single" />
+                    <span>Une semaine</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="range" id="scope-range" />
+                    <span>Plage de semaines</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="all" id="scope-all" />
+                    <span>Plan complet ({allWeekNums.length} sem.)</span>
+                  </label>
+                </RadioGroup>
+              </div>
+            </div>
+
+            {scope === "single" && (
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">Semaine :</Label>
+                <Select value={String(scopeWeek)} onValueChange={(v) => setScopeWeek(Number(v))}>
+                  <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {allWeekNums.map((n) => (
+                      <SelectItem key={n} value={String(n)}>Semaine {n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {scope === "range" && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <Label className="text-xs whitespace-nowrap">De :</Label>
+                <Select value={String(scopeFrom)} onValueChange={(v) => setScopeFrom(Number(v))}>
+                  <SelectTrigger className="h-9 w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {allWeekNums.map((n) => (
+                      <SelectItem key={n} value={String(n)}>Semaine {n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Label className="text-xs whitespace-nowrap">jusqu'à :</Label>
+                <Select value={String(scopeTo)} onValueChange={(v) => setScopeTo(Number(v))}>
+                  <SelectTrigger className="h-9 w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {allWeekNums.map((n) => (
+                      <SelectItem key={n} value={String(n)}>Semaine {n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-3 pt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground">
+                {targetSessions.length} séance(s) à envoyer
+                {targetWeekNumbers.length > 0 && ` · semaines ${targetWeekNumbers.join(", ")}`}
+                {alreadySentInScope > 0 && ` · ${alreadySentInScope} déjà envoyée(s)`}
+              </p>
+              <Button
+                size="sm"
+                onClick={() => setBulkConfirmOpen(true)}
+                disabled={targetSessions.length === 0 || bulkSending}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Envoyer vers Nolio
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Plan Header */}
       <Card>
         <CardContent className="p-4 space-y-3">
