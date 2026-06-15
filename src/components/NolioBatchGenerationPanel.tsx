@@ -63,6 +63,7 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number; ok: number; err: number; cost: number } | null>(null);
 
   // Refs athlète par défaut (modifiables par le coach)
   const [ftp, setFtp] = useState(280);
