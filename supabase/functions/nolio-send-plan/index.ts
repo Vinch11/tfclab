@@ -715,11 +715,10 @@ Deno.serve(async (req) => {
           detail: res.detail ?? null,
           data_raw: res.data ?? null,
         },
-        created_id: createdId,
-        id_lookup_path: idLookupPath,
         update_response: updateRes
           ? { ok: updateRes.ok, status: updateRes.status, detail: updateRes.detail ?? null, data_raw: updateRes.data ?? null }
           : null,
+
       });
 
       if (res.ok) sent += 1;
