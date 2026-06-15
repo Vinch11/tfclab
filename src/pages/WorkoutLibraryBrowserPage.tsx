@@ -370,11 +370,39 @@ function WorkoutRow({
                 {w.notes && (
                   <p className="text-xs text-muted-foreground italic">📝 {w.notes}</p>
                 )}
+
+                {/* Edit Nolio structure */}
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <Button
+                    size="sm"
+                    variant={hasOverride ? "default" : "outline"}
+                    onClick={(e) => { e.stopPropagation(); setEditorOpen(true); }}
+                  >
+                    <Pencil className="h-3 w-3 mr-1" />
+                    {hasOverride ? "Modifier structure Nolio" : "Éditer structure Nolio"}
+                  </Button>
+                  {hasOverride && (
+                    <span className="text-xs text-emerald-600 inline-flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" /> Structure Nolio personnalisée
+                    </span>
+                  )}
+                </div>
               </div>
             </TableCell>
           </TableRow>
         </CollapsibleContent>
       </>
+      {editorOpen && (
+        <NolioStructureEditor
+          open={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          sessionId={w.id}
+          sessionLabel={w.objectif}
+          defaultSportId={defaultNolioSportId(w.sport)}
+          onSaved={onOverrideChanged}
+        />
+      )}
     </Collapsible>
   );
 }
+
