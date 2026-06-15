@@ -863,7 +863,9 @@ Deno.serve(async (req) => {
         date_start: dateStart,
         description: s.details ?? "",
       };
-      if (structured_workout) payload.structured_workout = structured_workout;
+      if (structured_workout) {
+        payload.structured_workout = normalizeStructuredWorkoutForNolio(structured_workout);
+      }
 
       const res = await postSession({
         url: NOLIO_CREATE_TRAINING_URL,
