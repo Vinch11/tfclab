@@ -738,6 +738,7 @@ Deno.serve(async (req) => {
         },
         id_partner: idPartner,
         sport_id: sportId,
+        used_override: usedOverride,
         structured_workout,
         delete_response: deleteRes
           ? { ok: deleteRes.ok, status: deleteRes.status, detail: deleteRes.detail ?? null }
