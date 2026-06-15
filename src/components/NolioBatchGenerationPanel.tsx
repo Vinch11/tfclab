@@ -111,6 +111,21 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
     }
     return out;
   };
+  /** Pick N séances d'un sport précis (force regen possible). */
+  const pickBatchForSport = (sport: string, n: number, forceRegenerate = false): LibraryWorkout[] => {
+    const out: LibraryWorkout[] = [];
+    for (const w of filteredWorkouts) {
+      if (out.length >= n) break;
+      if (normalizeSport(w.sport) !== sport) continue;
+      if (!forceRegenerate) {
+        const g = generatedMap.get(w.id);
+        if (g?.status === "ok") continue;
+      }
+      out.push(w);
+    }
+    return out;
+  };
+
 
   const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false) => {
     if (batch.length === 0) {
@@ -224,6 +239,10 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
               <Button size="sm" variant="default" onClick={() => runBatch(pickTestBatchBySport(5))} disabled={loading}>
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
                 🧪 Test 25 (5/sport)
+              </Button>
+              <Button size="sm" variant="secondary" onClick={() => runBatch(pickBatchForSport("swim", 5, true), true)} disabled={loading}>
+                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RotateCw className="h-3 w-3 mr-1" />}
+                🌊 Régénérer 5 natation (force)
               </Button>
               <Button size="sm" onClick={() => runBatch(pickNextBatch(10))} disabled={loading}>
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
