@@ -281,16 +281,24 @@ function defaultNolioSportId(sport: string): number {
 function WorkoutRow({
   workout: w,
   hasOverride,
+  generated,
   onOverrideChanged,
 }: {
   workout: LibraryWorkout;
   hasOverride: boolean;
+  generated?: GeneratedRow;
   onOverrideChanged: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const sportInfo = SPORT_LABELS[normalizeSport(w.sport)];
 
+  const genBadge = (() => {
+    if (!generated) return { label: "⚪", title: "Non générée", cls: "text-muted-foreground" };
+    if (generated.status === "ok") return { label: "✅", title: "Structure Nolio générée par IA", cls: "text-emerald-600" };
+    if (generated.status === "error") return { label: "⚠️", title: `Erreur : ${generated.error_message ?? ""}`, cls: "text-amber-600" };
+    return { label: "⏳", title: generated.status, cls: "text-muted-foreground" };
+  })();
 
   return (
     <>
@@ -301,9 +309,10 @@ function WorkoutRow({
               <TableCell className="font-mono text-xs">
                 <div className="flex items-center gap-1 flex-wrap">
                   <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-0" : "-rotate-90"}`} />
+                  <span title={genBadge.title} className={genBadge.cls}>{genBadge.label}</span>
                   {w.id}
                   {hasOverride && (
-                    <span title="Structure Nolio personnalisée" className="inline-flex items-center gap-0.5 text-emerald-600">
+                    <span title="Structure Nolio personnalisée (override coach)" className="inline-flex items-center gap-0.5 text-emerald-600">
                       <CheckCircle2 className="h-3 w-3" />
                     </span>
                   )}
