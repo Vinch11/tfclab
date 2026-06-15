@@ -200,6 +200,11 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
     });
   };
 
+  /** Uniquement les séances en erreur (force regenerate). */
+  const pickAllErrors = (): LibraryWorkout[] => {
+    return filteredWorkouts.filter((w) => generatedMap.get(w.id)?.status === "error");
+  };
+
 
   return (
     <Card className="border-primary/30">
