@@ -1006,6 +1006,112 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
           ))}
         </div>
       )}
+
+      {/* Floating Nolio bulk-send bar */}
+      {nolioCtx && selectedSessions.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-lg">
+          <div className="mx-auto max-w-5xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                {selectedSessions.length} séance(s) sélectionnée(s)
+              </Badge>
+              <div className="flex items-center gap-2 min-w-0">
+                <Label htmlFor="nolio-bulk-start" className="text-xs whitespace-nowrap text-muted-foreground">
+                  Début du plan
+                </Label>
+                <Input
+                  id="nolio-bulk-start"
+                  type="date"
+                  value={bulkStartDate}
+                  onChange={(e) => setBulkStartDate(e.target.value)}
+                  className="h-8 w-[150px] text-xs"
+                  disabled={bulkSending}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedKeys(new Set())}
+                disabled={bulkSending}
+              >
+                Tout désélectionner
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setBulkConfirmOpen(true)}
+                disabled={bulkSending}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Envoyer {selectedSessions.length} séances vers Nolio
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk confirmation dialog */}
+      <Dialog open={bulkConfirmOpen} onOpenChange={(v) => !bulkSending && setBulkConfirmOpen(v)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Confirmer l'envoi groupé vers Nolio</DialogTitle>
+            <DialogDescription>
+              {selectedSessions.length} séance(s) à envoyer. Début du plan :{" "}
+              <span className="font-medium text-foreground">
+                {format(new Date(`${bulkStartDate}T00:00:00`), "EEEE d MMMM yyyy", { locale: fr })}
+              </span>
+              . Les séances déjà envoyées (même <code className="px-1">id_partner</code>) ne seront pas dupliquées.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[300px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
+            {selectedSessions.map((s) => {
+              const anchor = new Date(`${bulkStartDate}T00:00:00`);
+              const dt = addDays(anchor, (s.weekNumber - 1) * 7 + s.dayIndex);
+              return (
+                <div
+                  key={`${s.weekNumber}-${s.dayIndex}-${s.title}`}
+                  className="flex items-center justify-between gap-2 py-1 border-b border-border/40 last:border-0"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-muted-foreground whitespace-nowrap">
+                      S{s.weekNumber}
+                    </span>
+                    <span className="font-medium truncate">{s.title}</span>
+                  </div>
+                  <span className="text-muted-foreground whitespace-nowrap">
+                    {format(dt, "EEE d MMM", { locale: fr })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {bulkSending && (
+            <div className="space-y-2">
+              <Progress value={(bulkProgress.done / Math.max(1, bulkProgress.total)) * 100} />
+              <p className="text-xs text-center text-muted-foreground">
+                {bulkProgress.done}/{bulkProgress.total} séances envoyées…
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkConfirmOpen(false)} disabled={bulkSending}>
+              Annuler
+            </Button>
+            <Button onClick={handleBulkSend} disabled={bulkSending || selectedSessions.length === 0}>
+              {bulkSending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
+              ) : (
+                <><Send className="h-4 w-4 mr-2" /> Confirmer l'envoi</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
