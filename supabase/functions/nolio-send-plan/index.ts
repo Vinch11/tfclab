@@ -677,18 +677,33 @@ Deno.serve(async (req) => {
       // Forcer la mise à jour du sport_id sur la séance créée (Nolio peut garder l'ancien sport_id si une version a déjà été envoyée)
       let updateRes: { ok: boolean; status: number; detail?: string; data?: unknown } | null = null;
       let createdId: number | string | null = null;
+      let idLookupPath: string | null = null;
       if (res.ok && res.data && typeof res.data === "object") {
         const d = res.data as Record<string, unknown>;
-        const rawId = d.id ?? d.training_id ?? (d.data && typeof d.data === "object" ? (d.data as Record<string, unknown>).id : null);
-        if (typeof rawId === "number" || typeof rawId === "string") {
-          createdId = rawId;
+        const inner = (d.data && typeof d.data === "object") ? d.data as Record<string, unknown> : null;
+        const candidates: Array<[string, unknown]> = [
+          ["data.id", inner?.id],
+          ["data.pk", inner?.pk],
+          ["data.training_id", inner?.training_id],
+          ["id", d.id],
+          ["pk", d.pk],
+          ["training_id", d.training_id],
+        ];
+        for (const [path, val] of candidates) {
+          if (typeof val === "number" || (typeof val === "string" && val.length > 0)) {
+            createdId = val as number | string;
+            idLookupPath = path;
+            break;
+          }
+        }
+        if (createdId !== null) {
           updateRes = await postSession({
             url: NOLIO_UPDATE_TRAINING_URL,
             accessTokenRef,
             refreshTokenStr,
             admin,
             userId,
-            payload: { id: rawId, sport_id: sportId },
+            payload: { id: createdId, sport_id: sportId },
           });
         }
       }
@@ -705,10 +720,16 @@ Deno.serve(async (req) => {
         id_partner: idPartner,
         sport_id: sportId,
         structured_workout,
-        response: { ok: res.ok, status: res.status, detail: res.detail ?? null },
+        response: {
+          ok: res.ok,
+          status: res.status,
+          detail: res.detail ?? null,
+          data_raw: res.data ?? null,
+        },
         created_id: createdId,
+        id_lookup_path: idLookupPath,
         update_response: updateRes
-          ? { ok: updateRes.ok, status: updateRes.status, detail: updateRes.detail ?? null }
+          ? { ok: updateRes.ok, status: updateRes.status, detail: updateRes.detail ?? null, data_raw: updateRes.data ?? null }
           : null,
       });
 
