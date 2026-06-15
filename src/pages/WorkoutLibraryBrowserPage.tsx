@@ -17,6 +17,7 @@ import { Search, ChevronDown, Bike, PersonStanding, Waves, Dumbbell, Zap, Librar
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout, TrainingSport, SessionType, PhaseTag } from "@/types/workoutLibrary";
 import { NolioStructureEditor, NOLIO_SPORT_OPTIONS } from "@/components/NolioStructureEditor";
+import { NolioBatchGenerationPanel, useNolioGeneratedStatuses, type GeneratedRow } from "@/components/NolioBatchGenerationPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 
