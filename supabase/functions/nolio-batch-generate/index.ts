@@ -51,7 +51,7 @@ VÉLO (sport_id=14 ou 18) :
 - Calcul : target_value_min=round(ftp*pct_ftp_min/100), target_value_max=round(ftp*pct_ftp_max/100).
 - step_duration_type="duration" en secondes.
 - Seuls pct_ftp_min/max renseignés (pct_vma/hrmax/css = null) sur steps actifs.
-- Repos dans répétitions vélo : target_type="heartrate" avec Z1 (pct_hrmax_min=50, pct_hrmax_max=60), target_value_min=round(fcMax*0.50), target_value_max=round(fcMax*0.60). JAMAIS "no_target" sur un repos vélo (évite l'affichage empty_unit dans Nolio).
+- Repos dans répétitions vélo : target_type="power" avec Z1 (pct_ftp_min=45, pct_ftp_max=55), target_value_min=round(ftp*0.45), target_value_max=round(ftp*0.55). JAMAIS "no_target" ni "heartrate" sur un repos vélo (Z1 power évite l'affichage empty_unit dans Nolio et reste cohérent avec la métrique vélo).
 
 RUN (sport_id=2 ou 52) :
 - target_type="pace" TOUJOURS sur steps actifs (secondes/km depuis VMA). JAMAIS "heartrate" sauf si la séance mentionne EXPLICITEMENT la FC (ex : "à 75% FCmax").
@@ -85,7 +85,7 @@ EXEMPLE VÉLO (3x8' à 90-95% FTP, r=4', ftp=280) :
   {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":900,"target_type":"power","target_value_min":140,"target_value_max":196,"pct_ftp_min":50,"pct_ftp_max":70,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
   {"type":"repetition","value":3,"steps":[
     {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":480,"target_type":"power","target_value_min":252,"target_value_max":266,"pct_ftp_min":90,"pct_ftp_max":95,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
-    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":240,"target_type":"heartrate","target_value_min":93,"target_value_max":111,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":50,"pct_hrmax_max":60,"pct_css_min":null,"pct_css_max":null}
+    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":240,"target_type":"power","target_value_min":126,"target_value_max":154,"pct_ftp_min":45,"pct_ftp_max":55,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
   ]},
   {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"power","target_value_min":112,"target_value_max":154,"pct_ftp_min":40,"pct_ftp_max":55,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
 ]
