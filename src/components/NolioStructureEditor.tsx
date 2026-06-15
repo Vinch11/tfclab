@@ -130,7 +130,7 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
           sport,
           workoutText: workoutText ?? sessionLabel ?? "",
           defaultSportId: defaultSportId ?? 2,
-          ftp: 280, fcMax: 185, css: 95,
+          ftp, fcMax, vma, css,
         },
       });
       if (error) throw error;
