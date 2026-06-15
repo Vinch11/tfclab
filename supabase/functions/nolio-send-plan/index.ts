@@ -37,6 +37,7 @@ type WorkoutStructurePart = { part: string; text: string; zones: string[] };
 type ParsedSession = {
   weekNumber: number;
   dayIndex: number; // 0=Lun ... 6=Dim
+  sessionIndex?: number; // 0 = première séance du jour, 1 = deuxième, etc.
   sport: string;
   title: string;
   details: string;
@@ -658,10 +659,12 @@ Deno.serve(async (req) => {
         structured_workout = (structured_workout[0] as NolioRepStep).steps;
       }
 
+      const sessionIndex = Number.isFinite(s.sessionIndex as number) ? Number(s.sessionIndex) : 0;
       const idPartner = parseInt(
         String(body.nolio_athlete_id) +
         String(s.weekNumber).padStart(2, '0') +
         String(s.dayIndex) +
+        String(sessionIndex) +
         String(new Date().getDate()).padStart(2, '0'),
         10,
       );
