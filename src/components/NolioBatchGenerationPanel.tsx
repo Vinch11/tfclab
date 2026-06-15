@@ -244,6 +244,16 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RotateCw className="h-3 w-3 mr-1" />}
                 🌊 Régénérer 5 natation (force)
               </Button>
+              <Button size="sm" variant="secondary" onClick={() => {
+                const nonSwim: LibraryWorkout[] = [];
+                for (const sport of ["bike", "run", "strength", "brick"]) {
+                  nonSwim.push(...pickBatchForSport(sport, 5, true));
+                }
+                runBatch(nonSwim, true);
+              }} disabled={loading}>
+                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RotateCw className="h-3 w-3 mr-1" />}
+                🔁 Régénérer 20 non-natation (force)
+              </Button>
               <Button size="sm" onClick={() => runBatch(pickNextBatch(10))} disabled={loading}>
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
                 Générer 10 prochaines
