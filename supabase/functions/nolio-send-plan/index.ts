@@ -397,6 +397,43 @@ function normalizeStructuredWorkoutForNolio(
       }
     }
 
+    // Natation pace : Nolio interprète target_value en s/km, pas s/100m.
+    // Conversion s/100m → s/km (×10). Idempotent : on convertit uniquement
+    // si la valeur est plausible en s/100m (< 500s/100m = > 1:23/100m).
+    if (
+      sportId === 19 &&
+      src.type === "step" &&
+      src.target_type === "pace"
+    ) {
+      const css = refs?.css;
+      const pctMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
+      const pctMax = typeof src.pct_css_max === "number" ? src.pct_css_max : null;
+
+      // Recalcule depuis pct_css si dispo (source de vérité fiable)
+      if (typeof css === "number" && css > 0 && (pctMin !== null || pctMax !== null)) {
+        if (pctMin !== null) {
+          // pct < 100 = plus rapide → pace plus petite ; pct > 100 = plus lent → pace plus grande
+          src.target_value_max = Math.round((css * 100 / pctMin) * 10);
+        }
+        if (pctMax !== null) {
+          src.target_value_min = Math.round((css * 100 / pctMax) * 10);
+        }
+        const lo = typeof src.target_value_min === "number" ? src.target_value_min : null;
+        const hi = typeof src.target_value_max === "number" ? src.target_value_max : null;
+        if (lo !== null && hi !== null) {
+          src.target_value = Math.round((lo + hi) / 2);
+        }
+      } else {
+        // Fallback : conversion ×10 si la valeur ressemble à s/100m (< 500)
+        for (const key of ["target_value_min", "target_value_max", "target_value"]) {
+          const v = src[key];
+          if (typeof v === "number" && v > 0 && v < 500) {
+            src[key] = Math.round(v * 10);
+          }
+        }
+      }
+    }
+
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(src)) {
       if (v === null || v === undefined) continue;

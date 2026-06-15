@@ -62,7 +62,7 @@ RUN (sport_id=2 ou 52) :
 NATATION (sport_id=19) :
 - target_type="pace" TOUJOURS. JAMAIS "heartrate" même si la séance dit "Z2".
 - Mapping zones : Z1 → pct_css 105-115 · Z2 → 100-105 · Z3 → 95-100 · Z4/Z5 → 88-95. CSS+X → pct_css 100 à 100+X.
-- Calcul : target_value_min=round(css*pct_css_min/100), target_value_max=round(css*pct_css_max/100).
+- Calcul : target_value_min=round(css*100/pct_css_max)*10, target_value_max=round(css*100/pct_css_min)*10. Nolio attend la pace en SECONDES PAR KILOMÈTRE (s/km), pas s/100m → multiplier ×10. Exemple css=95s/100m à 100% CSS → 950 s/km (=1:35/100m affiché par Nolio). Note : pct min/max sont inversés car pct plus haut = plus lent = pace plus grande.
 - step_duration_type="distance" en mètres pour blocs actifs ; "duration" en secondes pour les repos.
 - Repos (r=20s) : target_type="no_target", target_value_min/max=null, pct_css_min/max=null.
 - Seuls pct_css_min/max renseignés.
@@ -97,14 +97,14 @@ EXEMPLE RUN (Z2 endurance 60min, vma=18) :
   {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"pace","target_value_min":327,"target_value_max":360,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":60,"pct_vma_max":66,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
 ]
 
-EXEMPLE NATATION (400 WU + 10x100m CSS r=20s + 200 CD, css=95) :
+EXEMPLE NATATION (400 WU + 10x100m CSS r=20s + 200 CD, css=95) — valeurs pace en s/km (×10) :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"distance","step_duration_value":400,"target_type":"pace","target_value_min":100,"target_value_max":109,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":105,"pct_css_max":115},
+  {"type":"step","intensity_type":"warmup","step_duration_type":"distance","step_duration_value":400,"target_type":"pace","target_value_min":826,"target_value_max":905,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":105,"pct_css_max":115},
   {"type":"repetition","value":10,"steps":[
-    {"type":"step","intensity_type":"active","step_duration_type":"distance","step_duration_value":100,"target_type":"pace","target_value_min":95,"target_value_max":100,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":100,"pct_css_max":105},
+    {"type":"step","intensity_type":"active","step_duration_type":"distance","step_duration_value":100,"target_type":"pace","target_value_min":905,"target_value_max":950,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":100,"pct_hrmax_max":null,"pct_css_min":100,"pct_css_max":105},
     {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":20,"target_type":"no_target","target_value_min":null,"target_value_max":null,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
   ]},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"distance","step_duration_value":200,"target_type":"pace","target_value_min":100,"target_value_max":109,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":105,"pct_css_max":115}
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"distance","step_duration_value":200,"target_type":"pace","target_value_min":826,"target_value_max":905,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":105,"pct_css_max":115}
 ]
 
 EXEMPLE RENFO (PPG 45min) :
