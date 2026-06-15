@@ -412,13 +412,19 @@ function buildStructuredFromParts(
 
 
 
+// Mapping basé sur les vrais sport_id Nolio découverts via GET /api/get/training/
+// 2=Course à pied, 14=Vélo Route, 18=Vélo Home Trainer, 19=Natation, 20=Renforcement, 52=Trail
 function detectSportId(text: string): number | null {
   const s = normalizeStr(text);
   if (!s) return null;
-  if (s.includes("bike") || s.includes("velo") || s.includes("cycle") || s.includes("cyclisme") || s.includes("cycling")) return 2;
-  if (s.includes("swim") || s.includes("nat") || s.includes("natation") || s.includes("swimming")) return 3;
-  if (s.includes("renfo") || s.includes("strength") || s.includes("muscu") || s.includes("renforcement")) return 7;
-  if (s.includes("run") || s.includes("cap") || s.includes("trail") || s.includes("course") || s.includes("running")) return 1;
+  // Ordre important : trail avant run, home trainer avant bike, natation avant rien
+  if (s.includes("trail")) return 52;
+  if (s.includes("home trainer") || s.includes("hometrainer") || /\bht\b/.test(s) || s.includes("indoor")) return 18;
+  if (s.includes("bike") || s.includes("velo") || s.includes("cycle") || s.includes("cyclisme") || s.includes("cycling")) return 14;
+  if (s.includes("swim") || s.includes("nat") || s.includes("natation") || s.includes("swimming")) return 19;
+  if (s.includes("renfo") || s.includes("strength") || s.includes("muscu") || s.includes("renforcement")) return 20;
+  if (s.includes("brick") || s.includes("triathlon") || /\btri\b/.test(s)) return 2;
+  if (s.includes("run") || s.includes("cap") || s.includes("course") || s.includes("running")) return 2;
   return null;
 }
 
@@ -429,7 +435,7 @@ function mapSport(sport: string, title?: string, id?: string | null): number {
   if (fromTitle !== null) return fromTitle;
   const fromId = detectSportId(id ?? "");
   if (fromId !== null) return fromId;
-  return 1;
+  return 2; // défaut Course à pied
 }
 
 
