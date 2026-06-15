@@ -558,6 +558,76 @@ async function postSession(opts: {
   return { ok: false, status: 0, detail: "unreachable" };
 }
 
+/**
+ * Strategy C : recalcule target_value_min/max depuis pct_*_min/max si refs athlète présentes.
+ * Conserve target_value_* stocké comme fallback si refs manquantes ou pct absent.
+ * Récursif sur les blocs `repetition`.
+ */
+function recomputeAbsoluteFromPct(items: unknown, refs: AthleteRefs): unknown {
+  if (!Array.isArray(items)) return items;
+  return items.map((raw) => {
+    if (!raw || typeof raw !== "object") return raw;
+    const item = { ...(raw as Record<string, unknown>) };
+    if (item.type === "repetition" && Array.isArray(item.steps)) {
+      item.steps = recomputeAbsoluteFromPct(item.steps, refs);
+      return item;
+    }
+    const ttype = item.target_type as string | undefined;
+    const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+    // % FTP → watts
+    if (ttype === "power") {
+      const pmin = num(item.pct_ftp_min);
+      const pmax = num(item.pct_ftp_max);
+      if (refs.ftp && pmin != null && pmax != null) {
+        const lo = Math.round(refs.ftp * pmin / 100);
+        const hi = Math.round(refs.ftp * pmax / 100);
+        item.target_value_min = lo;
+        item.target_value_max = hi;
+        item.target_value = Math.round((lo + hi) / 2);
+      }
+    }
+    // % VMA → pace s/km (% bas = pace haute)
+    else if (ttype === "pace") {
+      const pmin = num(item.pct_vma_min);
+      const pmax = num(item.pct_vma_max);
+      if (refs.vma && pmin != null && pmax != null && pmin > 0 && pmax > 0) {
+        const paceFromVma = (pct: number) => Math.round(1000 / (refs.vma! * (pct / 100) * (1000 / 3600)));
+        const lo = paceFromVma(pmax); // % haut = pace courte
+        const hi = paceFromVma(pmin);
+        item.target_value_min = Math.min(lo, hi);
+        item.target_value_max = Math.max(lo, hi);
+        item.target_value = Math.round((lo + hi) / 2);
+      } else {
+        // CSS pour natation (s/100m). pct_css = % du temps CSS (105 = +5% lent).
+        const cmin = num(item.pct_css_min);
+        const cmax = num(item.pct_css_max);
+        if (refs.css && cmin != null && cmax != null) {
+          const lo = Math.round(refs.css * cmin / 100);
+          const hi = Math.round(refs.css * cmax / 100);
+          item.target_value_min = Math.min(lo, hi);
+          item.target_value_max = Math.max(lo, hi);
+          item.target_value = Math.round((lo + hi) / 2);
+        }
+      }
+    }
+    // % HRmax → bpm
+    else if (ttype === "heartrate") {
+      const pmin = num(item.pct_hrmax_min);
+      const pmax = num(item.pct_hrmax_max);
+      if (refs.fcMax && pmin != null && pmax != null) {
+        const lo = Math.round(refs.fcMax * pmin / 100);
+        const hi = Math.round(refs.fcMax * pmax / 100);
+        item.target_value_min = lo;
+        item.target_value_max = hi;
+        item.target_value = Math.round((lo + hi) / 2);
+      }
+    }
+    return item;
+  });
+}
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
