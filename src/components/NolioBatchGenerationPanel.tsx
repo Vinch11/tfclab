@@ -173,8 +173,10 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
         totErr += data.error ?? 0;
         totSkip += data.skipped ?? 0;
         totCost += Number(data.total_cost_usd ?? 0);
-        if (Array.isArray(data.errors)) {
-          for (const e of data.errors) errorsLog.push(`${e.workout_id ?? "?"} → ${e.error ?? "?"}`);
+        if (Array.isArray(data.results)) {
+          for (const r of data.results) {
+            if (r.status === "error") errorsLog.push(`${r.workout_id ?? "?"} → ${r.error ?? "?"}`);
+          }
         }
       } catch (e) {
         // Chunk-level error: count chunk as errors but DO NOT stop the batch.
