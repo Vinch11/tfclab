@@ -705,6 +705,16 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Si pas d'override manuel : tenter la structure générée par IA (status='ok').
+      let usedGenerated = false;
+      if (!usedOverride && overrideKey) {
+        const gen = generatedMap.get(overrideKey);
+        if (gen && Array.isArray(gen.structured_workout) && gen.structured_workout.length > 0) {
+          structured_workout = gen.structured_workout;
+          usedGenerated = true;
+        }
+      }
+
       if (structured_workout == null && sourceStructure.length > 0) {
         let built = buildStructuredFromParts(sourceStructure, body.refs ?? {}, s.wbalProfile ?? null);
         // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
