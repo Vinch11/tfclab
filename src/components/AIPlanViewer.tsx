@@ -801,14 +801,12 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
   }, [targetSessions, sentKeys, nolioCtx]);
 
   async function handleBulkSend() {
-    if (!nolioCtx || selectedSessions.length === 0) return;
+    if (!nolioCtx || targetSessions.length === 0) return;
     setBulkSending(true);
-    setBulkProgress({ done: 0, total: selectedSessions.length });
+    setBulkProgress({ done: 0, total: targetSessions.length });
 
-    // Compute sessionIndex per (weekNumber, dayIndex) by counting sessions already
-    // processed in the same day. 0 = première séance du jour, 1 = deuxième, etc.
     const dayCounters = new Map<string, number>();
-    const enriched = selectedSessions.map((s) => {
+    const enriched = targetSessions.map((s) => {
       const dayKey = `${s.weekNumber}:${s.dayIndex}`;
       const sessionIndex = dayCounters.get(dayKey) ?? 0;
       dayCounters.set(dayKey, sessionIndex + 1);
@@ -827,12 +825,6 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       };
     });
 
-    // bulkStartDate = lundi choisi par le coach pour la PREMIÈRE semaine du plan affiché.
-    // Le serveur applique addDays(planStartDate, (weekNumber - 1) * 7 + dayIndex), donc
-    // planStartDate doit être le lundi correspondant à weekNumber=1 du plan global.
-    // Si la première semaine parsée n'est pas n°1 (ex: chunk démarre à Semaine 2), on recule
-    // planStartDate de (firstWeek - 1) * 7 jours pour que bulkStartDate reste le lundi de
-    // cette première semaine visible. Sans ça, les séances apparaissent une semaine trop tard.
     const firstWeekInPlan = plan.weeks.length > 0
       ? Math.min(...plan.weeks.map((w) => w.weekNumber))
       : 1;
@@ -841,8 +833,6 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     planStartDt.setUTCDate(planStartDt.getUTCDate() - (firstWeekInPlan - 1) * 7);
     const computedStart = planStartDt.toISOString().slice(0, 10);
 
-
-    // Indeterminate progress animation (single request)
     const interval = setInterval(() => {
       setBulkProgress((p) => {
         if (p.done >= p.total - 1) return p;
@@ -865,10 +855,9 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       const result = data as { sent?: number; errors?: { status: number; detail?: string }[] } | null;
       const sentCount = result?.sent ?? 0;
       const errs = result?.errors ?? [];
-      setBulkProgress({ done: sentCount, total: selectedSessions.length });
+      setBulkProgress({ done: sentCount, total: targetSessions.length });
 
       if (sentCount > 0) {
-        // Mark all as sent (best-effort: assume order matches enriched order; mark the first sentCount)
         enriched.slice(0, sentCount).forEach((s) => {
           markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
         });
