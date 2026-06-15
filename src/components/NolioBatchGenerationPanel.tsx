@@ -128,7 +128,12 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
   };
 
 
-  const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false) => {
+  // Live progress state
+  const [progress, setProgress] = useState<{
+    total: number; done: number; ok: number; err: number; skip: number; cost: number; errorsLog: string[];
+  } | null>(null);
+
+  const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false, chunkSize = 8) => {
     if (batch.length === 0) {
       toast({ title: "Rien à générer", description: "Toutes les séances éligibles ont déjà un statut OK." });
       return;
@@ -136,52 +141,71 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
 
     setLoading(true);
     setLastResult(null);
-    try {
-      // Chunk de 8 max pour rester sous le timeout 150s (Gemini 2.5 Pro ~20-30s/séance × concurrence 8)
-      const CHUNK_SIZE = 8;
-      const chunks: LibraryWorkout[][] = [];
-      for (let i = 0; i < batch.length; i += CHUNK_SIZE) chunks.push(batch.slice(i, i + CHUNK_SIZE));
+    setProgress({ total: batch.length, done: 0, ok: 0, err: 0, skip: 0, cost: 0, errorsLog: [] });
 
-      let totOk = 0, totErr = 0, totSkip = 0, totCost = 0;
+    const CHUNK_SIZE = chunkSize;
+    const chunks: LibraryWorkout[][] = [];
+    for (let i = 0; i < batch.length; i += CHUNK_SIZE) chunks.push(batch.slice(i, i + CHUNK_SIZE));
 
-      for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i];
-        setLastResult(`⏳ Chunk ${i + 1}/${chunks.length} (${chunk.length} séances)...`);
+    let totOk = 0, totErr = 0, totSkip = 0, totCost = 0, done = 0;
+    const errorsLog: string[] = [];
 
-        const payload = {
-          force_regenerate: forceRegenerate,
-          workouts: chunk.map((w) => ({
-            workout_id: w.id,
-            sessionLabel: w.objectif,
-            sport: w.sport,
-            defaultSportId: defaultNolioSportId(w.sport),
-            workoutText: workoutToText(w),
-            ftp, fcMax, vma, css,
-          })),
-        };
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      setLastResult(`⏳ ${done}/${batch.length} séances structurées · chunk ${i + 1}/${chunks.length}…`);
 
+      const payload = {
+        force_regenerate: forceRegenerate,
+        workouts: chunk.map((w) => ({
+          workout_id: w.id,
+          sessionLabel: w.objectif,
+          sport: w.sport,
+          defaultSportId: defaultNolioSportId(w.sport),
+          workoutText: workoutToText(w),
+          ftp, fcMax, vma, css,
+        })),
+      };
+
+      try {
         const { data, error } = await supabase.functions.invoke("nolio-batch-generate", { body: payload });
         if (error) throw error;
-
         totOk += data.ok ?? 0;
         totErr += data.error ?? 0;
         totSkip += data.skipped ?? 0;
         totCost += Number(data.total_cost_usd ?? 0);
-        onRefresh();
+        if (Array.isArray(data.errors)) {
+          for (const e of data.errors) errorsLog.push(`${e.workout_id ?? "?"} → ${e.error ?? "?"}`);
+        }
+      } catch (e) {
+        // Chunk-level error: count chunk as errors but DO NOT stop the batch.
+        totErr += chunk.length;
+        const msg = e instanceof Error ? e.message : String(e);
+        for (const w of chunk) errorsLog.push(`${w.id} → ${msg}`);
+        console.error(`[batch] chunk ${i + 1} failed:`, msg);
       }
 
-      const summary = `✅ ${totOk} ok · ⚠️ ${totErr} err · ⏭️ ${totSkip} skip · 💸 $${totCost.toFixed(4)} (${chunks.length} chunks)`;
-      setLastResult(summary);
-      toast({ title: `Batch ${batch.length} séances`, description: summary });
+      done += chunk.length;
+      setProgress({ total: batch.length, done, ok: totOk, err: totErr, skip: totSkip, cost: totCost, errorsLog });
       onRefresh();
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: "Erreur batch", description: msg, variant: "destructive" });
-      setLastResult(`❌ ${msg}`);
-    } finally {
-      setLoading(false);
     }
+
+    const summary = `✅ ${totOk} ok · ⚠️ ${totErr} err · ⏭️ ${totSkip} skip · 💸 $${totCost.toFixed(4)} (${chunks.length} chunks)`;
+    setLastResult(summary);
+    toast({ title: `Batch terminé — ${batch.length} séances`, description: summary });
+    onRefresh();
+    setLoading(false);
   };
+
+  /** Pick TOUTES les séances non encore générées (status≠ok). */
+  const pickAllRemaining = (): LibraryWorkout[] => {
+    const out: LibraryWorkout[] = [];
+    for (const w of filteredWorkouts) {
+      const g = generatedMap.get(w.id);
+      if (!g || g.status !== "ok") out.push(w);
+    }
+    return out;
+  };
+
 
   return (
     <Card className="border-primary/30">
