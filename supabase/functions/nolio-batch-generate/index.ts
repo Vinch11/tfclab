@@ -221,6 +221,24 @@ Deno.serve(async (req) => {
         results.push({ workout_id: w.workout_id, status: "skipped" });
         continue;
       }
+      // Exclusion séances de repos : insert direct skip sans appel LLM
+      if (isRestWorkout(w)) {
+        await admin.from("nolio_structures_generated").upsert({
+          workout_id: w.workout_id,
+          source_text_hash: hash,
+          sport_id: w.defaultSportId ?? null,
+          structured_workout: [],
+          schema_version: "v2-hybrid",
+          status: "skip",
+          error_message: "Séance de repos — pas de structure Nolio nécessaire",
+          tokens_in: 0,
+          tokens_out: 0,
+          cost_usd: 0,
+        }, { onConflict: "workout_id" });
+        skipped += 1;
+        results.push({ workout_id: w.workout_id, status: "skip" });
+        continue;
+      }
       tasks.push({ w, hash });
     }
 
