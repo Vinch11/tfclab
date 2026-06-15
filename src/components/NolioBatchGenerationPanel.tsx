@@ -291,14 +291,54 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
                 <RotateCw className="h-3 w-3 mr-1" />
                 Regénérer 20 (force)
               </Button>
+              <Button
+                size="sm"
+                variant="default"
+                className="bg-primary"
+                onClick={() => {
+                  const all = pickAllRemaining();
+                  if (all.length === 0) {
+                    toast({ title: "Tout est déjà généré", description: "Aucune séance restante." });
+                    return;
+                  }
+                  if (!confirm(`Lancer le batch complet sur ${all.length} séances ? Chunks de 10, ~${Math.ceil(all.length / 10)} appels.`)) return;
+                  runBatch(all, false, 10);
+                }}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Rocket className="h-3 w-3 mr-1" />}
+                🚀 Batch complet ({pickAllRemaining().length} restantes)
+              </Button>
             </div>
 
-            {lastResult && (
+            {progress && (
+              <div className="space-y-2 p-3 rounded border bg-muted/30">
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <span>{progress.done} / {progress.total} séances structurées</span>
+                  <span className="text-muted-foreground">
+                    ✅ {progress.ok} · ⚠️ {progress.err} · ⏭️ {progress.skip} · 💸 ${progress.cost.toFixed(4)}
+                  </span>
+                </div>
+                <Progress value={(progress.done / Math.max(progress.total, 1)) * 100} className="h-2" />
+                {progress.errorsLog.length > 0 && (
+                  <details className="text-[10px] mt-1">
+                    <summary className="cursor-pointer text-destructive">
+                      {progress.errorsLog.length} erreur(s) — voir détail
+                    </summary>
+                    <pre className="mt-1 max-h-40 overflow-auto bg-background p-2 rounded text-[10px]">
+                      {progress.errorsLog.slice(-50).join("\n")}
+                    </pre>
+                  </details>
+                )}
+              </div>
+            )}
+
+            {lastResult && !progress && (
               <div className="text-xs p-2 rounded bg-muted/40 font-mono">{lastResult}</div>
             )}
 
             <p className="text-[10px] text-muted-foreground">
-              Modèle : google/gemini-2.5-pro · délai 1.5s entre appels · max 20/lot pour éviter timeouts.
+              Modèle : google/gemini-2.5-pro · concurrence 8 · chunks 8-10 séances · erreurs non bloquantes.
             </p>
           </CardContent>
         </CollapsibleContent>
