@@ -673,11 +673,30 @@ Deno.serve(async (req) => {
       const override = overrideKey ? overridesMap.get(overrideKey) : undefined;
       let structured_workout: unknown = null;
       let usedOverride = false;
-      if (override && Array.isArray(override.structured_workout)) {
-        structured_workout = override.structured_workout;
-        usedOverride = true;
-      } else if (structure.length > 0) {
-        let built = buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null);
+
+      // Détection du shape de l'override :
+      //  - Nouveau (parts) : [{ part, text, zones }] → on remplace la `structure`
+      //    source et on relance le parsing automatique.
+      //  - Ancien (Nolio brut) : [{ type:"step"|"repetition", ... }] → usage direct.
+      let sourceStructure: WorkoutStructurePart[] = structure;
+      if (override && Array.isArray(override.structured_workout) && override.structured_workout.length > 0) {
+        const first = (override.structured_workout as unknown[])[0] as Record<string, unknown> | undefined;
+        const isPartsShape = first !== undefined && typeof first === "object" && "part" in first;
+        if (isPartsShape) {
+          sourceStructure = (override.structured_workout as unknown as WorkoutStructurePart[]).map((p) => ({
+            part: String(p.part ?? ""),
+            text: String(p.text ?? ""),
+            zones: Array.isArray(p.zones) ? p.zones.map((z) => String(z)) : [],
+          }));
+          usedOverride = true;
+        } else {
+          structured_workout = override.structured_workout;
+          usedOverride = true;
+        }
+      }
+
+      if (structured_workout == null && sourceStructure.length > 0) {
+        let built = buildStructuredFromParts(sourceStructure, body.refs ?? {}, s.wbalProfile ?? null);
         // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
         if (built && built.length === 1 && built[0].type === "repetition") {
           built = (built[0] as NolioRepStep).steps;
