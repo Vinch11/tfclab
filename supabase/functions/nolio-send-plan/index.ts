@@ -497,7 +497,7 @@ async function postSession(opts: {
   admin: SupabaseAdmin;
   userId: string;
   payload: Record<string, unknown>;
-}): Promise<{ ok: boolean; status: number; detail?: string }> {
+}): Promise<{ ok: boolean; status: number; detail?: string; data?: unknown }> {
   const { url, accessTokenRef, refreshTokenStr, admin, userId, payload } = opts;
   let didRefresh = false;
   let attempt = 0;
@@ -524,7 +524,6 @@ async function postSession(opts: {
 
     if (resp.status === 429) {
       await new Promise((r) => setTimeout(r, 2000));
-      // une seule réessai pour 429 (spec)
       const retry = await fetch(url, {
         method: "POST",
         headers: {
@@ -535,18 +534,18 @@ async function postSession(opts: {
         body: JSON.stringify(payload),
       });
       const ctype2 = retry.headers.get("content-type") ?? "";
-      if (retry.ok) return { ok: true, status: retry.status };
-      const detail2 = ctype2.includes("application/json")
-        ? JSON.stringify(await retry.json().catch(() => null))
-        : (await retry.text()).slice(0, 300);
+      const isJson2 = ctype2.includes("application/json");
+      const parsed2 = isJson2 ? await retry.json().catch(() => null) : null;
+      if (retry.ok) return { ok: true, status: retry.status, data: parsed2 };
+      const detail2 = isJson2 ? JSON.stringify(parsed2) : (await retry.text()).slice(0, 300);
       return { ok: false, status: retry.status, detail: detail2 };
     }
 
     const ctype = resp.headers.get("content-type") ?? "";
-    if (resp.ok) return { ok: true, status: resp.status };
-    const detail = ctype.includes("application/json")
-      ? JSON.stringify(await resp.json().catch(() => null))
-      : (await resp.text()).slice(0, 300);
+    const isJson = ctype.includes("application/json");
+    const parsed = isJson ? await resp.json().catch(() => null) : null;
+    if (resp.ok) return { ok: true, status: resp.status, data: parsed };
+    const detail = isJson ? JSON.stringify(parsed) : (await resp.text()).slice(0, 300);
     return { ok: false, status: resp.status, detail };
   }
   return { ok: false, status: 0, detail: "unreachable" };
