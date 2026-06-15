@@ -402,6 +402,16 @@ function WorkoutRow({
           sessionLabel={w.objectif}
           defaultSportId={defaultNolioSportId(w.sport)}
           onSaved={onOverrideChanged}
+          sport={w.sport}
+          workoutText={[
+            `Titre: ${w.objectif}`,
+            `Sport: ${w.sport}`,
+            `Type: ${w.cat}`,
+            `Durée: ${w.durationMin[0]}-${w.durationMin[1]} min`,
+            `Structure:`,
+            ...w.structure.map((s) => `- [${s.part}] ${s.text}`),
+            w.notes ? `Notes: ${w.notes}` : "",
+          ].filter(Boolean).join("\n")}
         />
       )}
     </>
