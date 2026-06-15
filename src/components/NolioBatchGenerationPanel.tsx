@@ -291,8 +291,8 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
                 className="bg-primary"
                 onClick={() => {
                   const all = pickAllRemaining();
-                  if (!window.confirm(`Lancer le batch complet sur ${all.length} séances restantes ? Durée estimée ~${Math.ceil(all.length / 8 * 0.6)} min.`)) return;
-                  runBatch(all, false, 10);
+                  if (!window.confirm(`Lancer le batch complet sur ${all.length} séances restantes ? Durée estimée ~${Math.ceil(all.length / 5 * 1.5)} min.`)) return;
+                  runBatch(all, false, 5);
                 }}
                 disabled={loading}
               >

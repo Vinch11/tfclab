@@ -184,8 +184,8 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (body.workouts.length > 10) {
-      return new Response(JSON.stringify({ error: "Max 10 workouts per batch (timeout safety)" }), {
+    if (body.workouts.length > 5) {
+      return new Response(JSON.stringify({ error: "Max 5 workouts per batch (timeout safety)" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -237,21 +237,30 @@ ${w.workoutText ?? ""}
 Retourne UNIQUEMENT le JSON valide { "sport_id": number, "structured_workout": array }.`;
 
       try {
-        const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-pro",
-            messages: [
-              { role: "system", content: SYSTEM_PROMPT },
-              { role: "user", content: userPrompt },
-            ],
-            response_format: { type: "json_object" },
-          }),
-        });
+        // Per-call timeout (120s) so a single slow session can't kill the whole batch
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 120_000);
+        let aiRes: Response;
+        try {
+          aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-pro",
+              messages: [
+                { role: "system", content: SYSTEM_PROMPT },
+                { role: "user", content: userPrompt },
+              ],
+              response_format: { type: "json_object" },
+            }),
+            signal: ctrl.signal,
+          });
+        } finally {
+          clearTimeout(timer);
+        }
 
         if (!aiRes.ok) {
           const txt = await aiRes.text();
