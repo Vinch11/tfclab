@@ -102,6 +102,10 @@ export default function WorkoutLibraryBrowserPage() {
   };
   useEffect(() => { refreshOverrides(); }, []);
 
+  // Statuts génération IA Nolio
+  const { map: generatedMap, refresh: refreshGenerated } = useNolioGeneratedStatuses();
+
+
 
 
   const filtered = useMemo(() => {
