@@ -253,7 +253,9 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
             <span className="text-[11px] text-muted-foreground">
               L'IA analyse le texte de la séance et pré-remplit la structure Nolio. Vérifie avant de sauvegarder.
             </span>
+            </div>
           </div>
+
 
 
           {loading ? (
