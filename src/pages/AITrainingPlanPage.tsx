@@ -38,7 +38,7 @@ import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionL
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
-import { NolioSendPlanCard } from "@/components/NolioSendPlanCard";
+
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
