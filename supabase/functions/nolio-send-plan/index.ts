@@ -267,6 +267,75 @@ function buildTargetFromZones(
   return { target_type: "no_target" };
 }
 
+const HR_ZONE_PCT: Record<string, [number, number]> = {
+  "1": [50, 60],
+  "2": [60, 70],
+  "3": [70, 80],
+  "4": [80, 90],
+  "5": [90, 95],
+  "6": [95, 100],
+};
+
+/** Détecte une cible depuis le texte libre : "100-108% FTP", "85% FTP", "Z2". */
+function buildTargetFromText(
+  text: string,
+  refs: AthleteRefs,
+): Pick<NolioStep, "target_type" | "target_value_min" | "target_value_max" | "target_value"> {
+  if (!text) return { target_type: "no_target" };
+  const t = text.toLowerCase();
+
+  // X-Y% FTP
+  const ftpRange = t.match(/(\d+)\s*[-–—]\s*(\d+)\s*%\s*ftp/);
+  if (ftpRange && refs.ftp) {
+    const a = parseInt(ftpRange[1], 10);
+    const b = parseInt(ftpRange[2], 10);
+    const lo = Math.round(refs.ftp * Math.min(a, b) / 100);
+    const hi = Math.round(refs.ftp * Math.max(a, b) / 100);
+    return { target_type: "power", target_value_min: lo, target_value_max: hi, target_value: Math.round((lo + hi) / 2) };
+  }
+  // X% FTP
+  const ftpSingle = t.match(/(\d+)\s*%\s*ftp/);
+  if (ftpSingle && refs.ftp) {
+    const a = parseInt(ftpSingle[1], 10);
+    const v = Math.round(refs.ftp * a / 100);
+    return { target_type: "power", target_value_min: v, target_value_max: v, target_value: v };
+  }
+  // ZN (heart rate zones)
+  const zMatch = t.match(/\bz\s*([1-6])\b/);
+  if (zMatch && refs.fcMax) {
+    const [pctLo, pctHi] = HR_ZONE_PCT[zMatch[1]];
+    const lo = Math.round(refs.fcMax * pctLo / 100);
+    const hi = Math.round(refs.fcMax * pctHi / 100);
+    return { target_type: "heartrate", target_value_min: lo, target_value_max: hi, target_value: Math.round((lo + hi) / 2) };
+  }
+  return { target_type: "no_target" };
+}
+
+/** Détecte NxM' ou N×M' dans le texte, et extrait la récup après "/". */
+function parseRepetitionPattern(text: string): {
+  reps: number;
+  workSec: number;
+  restSec: number | null;
+  restText: string;
+} | null {
+  if (!text) return null;
+  // 4x8' or 4×8' or 4 x 8 min
+  const m = text.match(/(\d+)\s*[x×]\s*(\d+)\s*(?:'|’|min)/i);
+  if (!m) return null;
+  const reps = parseInt(m[1], 10);
+  const workMin = parseInt(m[2], 10);
+  if (!reps || !workMin) return null;
+  // Récup : segment après "/"
+  let restSec: number | null = null;
+  let restText = "";
+  const slashIdx = text.indexOf("/", m.index! + m[0].length);
+  if (slashIdx >= 0) {
+    restText = text.slice(slashIdx + 1).trim();
+    restSec = parseDurationToSec(restText);
+  }
+  return { reps, workSec: workMin * 60, restSec, restText };
+}
+
 /** Construit structured_workout depuis le tableau `structure` (warm/main/cool). */
 function buildStructuredFromParts(
   structure: WorkoutStructurePart[],
@@ -276,9 +345,43 @@ function buildStructuredFromParts(
   const items: NolioStructuredItem[] = [];
   for (const p of structure) {
     const intensity = mapPartToIntensity(p.part);
+    const text = p.text || "";
+
+    // Tentative répétition (uniquement pour parties actives)
+    if (intensity === "active") {
+      const rep = parseRepetitionPattern(text);
+      if (rep) {
+        const fromZones = buildTargetFromZones(p.zones || [], refs);
+        const fromText = buildTargetFromText(text, refs);
+        const target = fromZones.target_type !== "no_target" ? fromZones : fromText;
+        const activeStep: NolioStep = {
+          type: "step",
+          step_duration_type: "duration",
+          step_duration_value: rep.workSec,
+          intensity_type: "active",
+          ...target,
+          notes: text.slice(0, 500),
+        };
+        const restStep: NolioStep = {
+          type: "step",
+          step_duration_type: "duration",
+          step_duration_value: rep.restSec ?? 120,
+          intensity_type: "rest",
+          target_type: "no_target",
+          ...(rep.restText ? { notes: rep.restText.slice(0, 500) } : {}),
+        };
+        items.push({
+          type: "repetition",
+          intensity_type: "repetition",
+          value: rep.reps,
+          steps: [activeStep, restStep],
+        });
+        continue;
+      }
+    }
 
     // Durée : texte → wbalProfile → défauts
-    let duration = parseDurationToSec(p.text || "");
+    let duration = parseDurationToSec(text);
     if (duration == null) {
       if (wbalProfile?.blocks?.length && intensity === "active") {
         duration = wbalProfile.blocks[0]?.durationSec ?? 1200;
@@ -287,14 +390,17 @@ function buildStructuredFromParts(
       }
     }
 
-    const target = buildTargetFromZones(p.zones || [], refs);
+    const fromZones = buildTargetFromZones(p.zones || [], refs);
+    const target = fromZones.target_type !== "no_target"
+      ? fromZones
+      : buildTargetFromText(text, refs);
     items.push({
       type: "step",
       step_duration_type: "duration",
       step_duration_value: Math.max(1, duration),
       intensity_type: intensity,
       ...target,
-      ...(p.text ? { notes: p.text.slice(0, 500) } : {}),
+      ...(text ? { notes: text.slice(0, 500) } : {}),
     });
   }
   return items;
