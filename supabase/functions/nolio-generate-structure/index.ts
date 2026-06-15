@@ -1,36 +1,37 @@
 // Edge function: génère un structured_workout Nolio depuis le texte d'une séance
-// via Lovable AI Gateway (modèle google/gemini-2.5-pro pour JSON robuste).
+// via Lovable AI Gateway (google/gemini-2.5-pro pour JSON robuste, équivalent qualité Claude Sonnet).
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `Tu es un expert en planification d'entraînement. Analyse cette séance et génère un structured_workout au format JSON Nolio strict.
+const SYSTEM_PROMPT = `Tu es un expert en planification d'entraînement triathlon. Analyse cette séance et génère un structured_workout JSON Nolio strict. Applique ces règles sans exception :
 
-Règles de conversion :
-- Pour les durées avec plage (ex: '60-120min'), prends toujours la valeur médiane arrondie à 5min près (ex: 90min = 5400s).
-- Pour les répétitions avec plage (ex: '6-10x'), prends toujours la valeur maximale.
-- Pour les zones avec plage (ex: 'Z1-Z2'), prends toujours la zone la plus haute (ex: Z2).
-- Pour les % FTP avec plage (ex: '80-85% FTP'), prends la valeur maximale (85%).
-- Pour les zones cardiaques, utilise ces plages depuis fcMax fourni : Z1=50-60%, Z2=60-70%, Z3=70-80%, Z4=80-90%, Z5=90-95%, Z6=95-100%.
-- Pour les % FTP, calcule les watts depuis ftp fourni.
-- Pour la natation, utilise step_duration_type: 'distance' avec les mètres.
-- Pour les répétitions (NxM'), crée un step repetition avec value:N contenant active+rest.
+DURÉES : plage '60-120min' → médiane arrondie à 5min (90min = 5400s). '1h30' → 5400s. '45'' → 2700s. Valeur unique → valeur exacte.
 
-Format de sortie STRICT (JSON uniquement, sans markdown, sans texte autour) :
-{
-  "sport_id": number,
-  "structured_workout": [
-    { "type":"step", "intensity_type":"warmup|active|rest|cooldown",
-      "step_duration_type":"duration|distance", "step_duration_value": number,
-      "target_type":"no_target|heartrate|power|pace",
-      "target_value_min"?: number, "target_value_max"?: number },
-    { "type":"repetition", "intensity_type":"repetition", "value": number,
-      "steps": [ ...steps ci-dessus ] }
-  ]
-}
+RÉPÉTITIONS : plage '6-10x' → maximum (10). Valeur unique '5x' → 5.
 
-sport_id: 2=Course, 14=Vélo, 18=HomeTrainer, 19=Natation, 20=Renfo, 52=Trail.`;
+ZONES : plage 'Z1-Z2' → zone la plus haute (Z2). Mapping depuis refs athlète : Z1=FC 0-70%/FTP 0-55%, Z2=FC 70-78%/FTP 56-75%, Z3=FC 78-83%/FTP 76-90%, Z4a=FC 83-87%/FTP 88-93%, Z4b=FC 87-91%/FTP 94-98%, Z5=FC 91-94%/FTP 99-105%, Z6=FC 95-100%/FTP 106-120%.
+
+% FTP : CONSERVE TOUJOURS LA PLAGE COMPLÈTE. '80-85% FTP' → target_value_min=round(ftp*0.80), target_value_max=round(ftp*0.85). '85% FTP' seul → target_value_min=round(ftp*0.83), target_value_max=round(ftp*0.87) (±2% autour de la valeur). Si zone Z sans % explicite → utilise les % min et max du mapping de la zone.
+
+% VMA : CONSERVE TOUJOURS LA PLAGE. '90-95% VMA' → target_value_min=round(3600/(vma*0.95*1000/3600)), target_value_max=round(3600/(vma*0.90*1000/3600)) (attention : plus vite = pace plus petite). '95% VMA' seul → ±2% autour de la valeur.
+
+% CSS natation : CONSERVE LA PLAGE. 'CSS+5' → target_value_min=css, target_value_max=css+5 en secondes/100m.
+
+FC : CONSERVE LA PLAGE. 'Z2' → target_value_min=round(fcMax*0.70), target_value_max=round(fcMax*0.78).
+
+TARGET TYPE : vélo/puissance → power en watts. Allure/VMA/pace → pace en secondes/km. FC/bpm → heartrate en bpm. Sinon → no_target.
+
+NATATION : step_duration_type='distance' en mètres. Repos 'r=15s' ou 'r=15"' → step rest duration 15s.
+
+RÉPÉTITIONS NxM : type='repetition', value=N, steps=[active(M*60s, target avec plage), rest(récup, no_target ou Z1)].
+
+STRUCTURE : warmup → blocs principaux → cooldown. Main avec NxM' → repetition. Main sans intervalles → step active simple avec plage de zone.
+
+sport_id Nolio : 2=Course, 14=Vélo, 18=HomeTrainer, 19=Natation, 20=Renfo, 52=Trail.
+
+Retourne UNIQUEMENT ce JSON sans markdown ni texte : { "sport_id": number, "structured_workout": array }`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -44,20 +45,24 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { sessionId, sessionLabel, sport, workoutText, ftp = 280, fcMax = 185, css = 95, defaultSportId } = body ?? {};
+    const { sessionId, sessionLabel, sport, workoutText, ftp = 280, fcMax = 185, vma = 18, css = 95, defaultSportId } = body ?? {};
 
-    const userPrompt = `Données athlète de référence : ftp=${ftp}, fcMax=${fcMax}, css=${css} (utilise ces valeurs par défaut pour calculer les zones absolues).
+    const userPrompt = `Refs athlète (utilise ces valeurs pour calculer les zones absolues) :
+- ftp = ${ftp} W
+- fcMax = ${fcMax} bpm
+- vma = ${vma} km/h
+- css = ${css} s/100m
 
 Séance à analyser :
-- ID: ${sessionId}
-- Titre: ${sessionLabel ?? ""}
-- Sport: ${sport ?? ""}
-- sport_id par défaut suggéré: ${defaultSportId ?? 2}
+- ID : ${sessionId}
+- Titre : ${sessionLabel ?? ""}
+- Sport : ${sport ?? ""}
+- sport_id par défaut suggéré : ${defaultSportId ?? 2}
 
-Texte complet :
+Texte complet de la séance :
 ${workoutText ?? ""}
 
-Retourne UNIQUEMENT le JSON valide.`;
+Retourne UNIQUEMENT le JSON valide { "sport_id": number, "structured_workout": array }.`;
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
