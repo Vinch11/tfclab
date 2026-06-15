@@ -224,7 +224,7 @@ Retourne UNIQUEMENT le JSON valide { "sport_id": number, "structured_workout": a
     };
 
     // Pool de concurrence : 5 séances en parallèle
-    const CONCURRENCY = 5;
+    const CONCURRENCY = 8;
     let cursor = 0;
     const workers = Array.from({ length: Math.min(CONCURRENCY, tasks.length) }, async () => {
       while (true) {
