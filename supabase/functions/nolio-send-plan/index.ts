@@ -993,7 +993,7 @@ Deno.serve(async (req) => {
 
     // Log debug dans nolio_sync_log (notes = JSON complet pour vérifier ce qui est transmis)
     try {
-      const notesJson = JSON.stringify({ sessions: debugLog }).slice(0, 100000);
+      const notesJson = JSON.stringify({ refs_received: body.refs ?? null, sessions: debugLog }).slice(0, 100000);
       await admin.from("nolio_sync_log").insert({
         user_id: userId,
         athletes_count: sent,

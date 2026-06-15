@@ -67,10 +67,18 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
   const refs = useMemo(() => {
     const athlete = athletes.find((a) => a.id === athleteId) ?? null;
     const r = getEffectiveRefs(athlete, snapshots);
+    // Garde défensive : Nolio attend la CSS natation en secondes/100m (ex: 95 = 1:35/100m).
+    // Si la valeur reçue est < 10, on l'interprète comme min/100m (ex: 1.58) et on convertit.
+    const cssRaw = r.css;
+    const cssSeconds = cssRaw == null
+      ? null
+      : cssRaw < 10
+        ? Math.round(cssRaw * 60)
+        : cssRaw;
     return {
       ftp: r.ftp,
       vma: r.vma,
-      css: r.css,
+      css: cssSeconds,
       fcMax: r.fcMax,
     };
   }, [athletes, snapshots, athleteId]);
