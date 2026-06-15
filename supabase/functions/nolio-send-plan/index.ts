@@ -908,7 +908,7 @@ Deno.serve(async (req) => {
         description: s.details ?? "",
       };
       if (structured_workout) {
-        payload.structured_workout = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {});
+        payload.structured_workout = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
       }
 
       const res = await postSession({
