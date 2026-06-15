@@ -15,25 +15,30 @@ RÉPÉTITIONS : plage '6-10x' → maximum (10). Valeur unique '5x' → 5.
 
 ZONES : plage 'Z1-Z2' → zone la plus haute (Z2). Mapping depuis refs athlète : Z1=FC 0-70%/FTP 0-55%, Z2=FC 70-78%/FTP 56-75%, Z3=FC 78-83%/FTP 76-90%, Z4a=FC 83-87%/FTP 88-93%, Z4b=FC 87-91%/FTP 94-98%, Z5=FC 91-94%/FTP 99-105%, Z6=FC 95-100%/FTP 106-120%.
 
-% FTP : CONSERVE TOUJOURS LA PLAGE COMPLÈTE. '80-85% FTP' → target_value_min=round(ftp*0.80), target_value_max=round(ftp*0.85). '85% FTP' seul → target_value_min=round(ftp*0.83), target_value_max=round(ftp*0.87) (±2% autour de la valeur). Si zone Z sans % explicite → utilise les % min et max du mapping de la zone.
+% FTP : CONSERVE TOUJOURS LA PLAGE COMPLÈTE. '80-85% FTP' → pct_ftp_min=80, pct_ftp_max=85, target_value_min=round(ftp*0.80), target_value_max=round(ftp*0.85). '85% FTP' seul → ±2% autour (pct_ftp_min=83, pct_ftp_max=87). Si zone Z sans % explicite → utilise les % min/max du mapping zone.
 
-% VMA : CONSERVE TOUJOURS LA PLAGE. '90-95% VMA' → target_value_min=round(3600/(vma*0.95*1000/3600)), target_value_max=round(3600/(vma*0.90*1000/3600)) (attention : plus vite = pace plus petite). '95% VMA' seul → ±2% autour de la valeur.
+% VMA : CONSERVE TOUJOURS LA PLAGE. '90-95% VMA' → pct_vma_min=90, pct_vma_max=95, target_value_min=round(3600/(vma*0.95*1000/3600)), target_value_max=round(3600/(vma*0.90*1000/3600)) (plus vite = pace plus petite). '95% VMA' seul → ±2%.
 
-% CSS natation : CONSERVE LA PLAGE. 'CSS+5' → target_value_min=css, target_value_max=css+5 en secondes/100m.
+% CSS natation : CONSERVE LA PLAGE. 'CSS+5' → pct_css_min=100, pct_css_max=105 (CSS+X = +X% temps ≈ −X% vitesse, exprimer en % du temps CSS), target_value_min=css, target_value_max=css+5 en s/100m.
 
-FC : CONSERVE LA PLAGE. 'Z2' → target_value_min=round(fcMax*0.70), target_value_max=round(fcMax*0.78).
+FC : CONSERVE LA PLAGE. 'Z2' → pct_hrmax_min=70, pct_hrmax_max=78, target_value_min=round(fcMax*0.70), target_value_max=round(fcMax*0.78).
+
+FORMAT HYBRIDE OBLIGATOIRE : pour TOUTE étape avec target_type ≠ 'no_target', ajoute LES DEUX :
+  - pct_*_min / pct_*_max (le % de référence, indépendant de l'athlète)
+  - target_value_min / target_value_max (valeurs absolues calculées avec les refs fournies)
+La consigne d'envoi recalcule par athlète à partir des pct si refs disponibles.
 
 TARGET TYPE : vélo/puissance → power en watts. Allure/VMA/pace → pace en secondes/km. FC/bpm → heartrate en bpm. Sinon → no_target.
 
 NATATION : step_duration_type='distance' en mètres. Repos 'r=15s' ou 'r=15"' → step rest duration 15s.
 
-RÉPÉTITIONS NxM : type='repetition', value=N, steps=[active(M*60s, target avec plage), rest(récup, no_target ou Z1)].
+RÉPÉTITIONS NxM : type='repetition', value=N, steps=[active(M*60s, target avec pct+absolu), rest(récup, no_target ou Z1)].
 
 STRUCTURE : warmup → blocs principaux → cooldown. Main avec NxM' → repetition. Main sans intervalles → step active simple avec plage de zone.
 
-sport_id Nolio : 2=Course, 14=Vélo, 18=HomeTrainer, 19=Natation, 20=Renfo, 52=Trail.
+sport_id Nolio : 2=Course, 14=Vélo, 18=HomeTrainer, 19=Natation, 20=Renfo, 52=Trail. Pour brick : utiliser 2 (le segment vélo sera géré séparément).
 
-Retourne UNIQUEMENT ce JSON sans markdown ni texte : { "sport_id": number, "structured_workout": array }`;
+Retourne UNIQUEMENT ce JSON sans markdown ni texte : { "sport_id": number, "structured_workout": array, "schema_version": "v2-hybrid" }`;
 
 interface WorkoutPayload {
   workout_id: string;
