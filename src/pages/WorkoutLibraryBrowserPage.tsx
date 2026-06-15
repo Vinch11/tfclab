@@ -313,12 +313,8 @@ function WorkoutRow({
   const [editorOpen, setEditorOpen] = useState(false);
   const sportInfo = SPORT_LABELS[normalizeSport(w.sport)];
 
-  const genBadge = (() => {
-    if (!generated) return { label: "⚪", title: "Non générée", cls: "text-muted-foreground" };
-    if (generated.status === "ok") return { label: "✅", title: "Structure Nolio générée par IA", cls: "text-emerald-600" };
-    if (generated.status === "error") return { label: "⚠️", title: `Erreur : ${generated.error_message ?? ""}`, cls: "text-amber-600" };
-    return { label: "⏳", title: generated.status, cls: "text-muted-foreground" };
-  })();
+
+
 
   return (
     <>
