@@ -644,6 +644,7 @@ Deno.serve(async (req) => {
       ),
     );
     const overridesMap = new Map<string, { sport_id: number; structured_workout: unknown }>();
+    const generatedMap = new Map<string, { sport_id: number; structured_workout: unknown }>();
     if (sessionIds.length > 0) {
       const { data: ovRows } = await admin
         .from("nolio_workout_overrides")
@@ -651,6 +652,15 @@ Deno.serve(async (req) => {
         .in("session_id", sessionIds);
       for (const r of (ovRows ?? []) as Array<{ session_id: string; sport_id: number; structured_workout: unknown }>) {
         overridesMap.set(r.session_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
+      }
+      // Structures Nolio générées par IA et validées (status='ok'). Priorité inférieure aux overrides manuels.
+      const { data: genRows } = await admin
+        .from("nolio_structures_generated")
+        .select("workout_id, sport_id, structured_workout, status")
+        .in("workout_id", sessionIds)
+        .eq("status", "ok");
+      for (const r of (genRows ?? []) as Array<{ workout_id: string; sport_id: number; structured_workout: unknown }>) {
+        generatedMap.set(r.workout_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
       }
     }
 
