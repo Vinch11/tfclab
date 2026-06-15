@@ -646,6 +646,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
   const { athletes, snapshots } = useCloudDataContext();
   const [nolioId, setNolioId] = useState<number | null>(null);
   const [sentKeys, setSentKeys] = useState<Set<string>>(() => new Set());
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (!athleteId) { setNolioId(null); return; }
@@ -663,7 +664,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     return () => { cancelled = true; };
   }, [athleteId]);
 
-  useEffect(() => { setSentKeys(new Set()); }, [athleteId, plan]);
+  useEffect(() => { setSentKeys(new Set()); setSelectedKeys(new Set()); }, [athleteId, plan]);
 
   const nolioRefs = useMemo(() => {
     if (!athleteId) return { ftp: null, vma: null, css: null, fcMax: null };
@@ -678,6 +679,29 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       next.add(key);
       return next;
     });
+    setSelectedKeys((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
+
+  const toggleSelected = useCallback((key: string) => {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const setManySelected = useCallback((keys: string[], value: boolean) => {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (value) keys.forEach((k) => next.add(k));
+      else keys.forEach((k) => next.delete(k));
+      return next;
+    });
   }, []);
 
   const nolioCtx: NolioCtx | null = useMemo(() => {
@@ -689,8 +713,118 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       refs: nolioRefs,
       isSent: (k: string) => sentKeys.has(k),
       markSent,
+      isSelected: (k: string) => selectedKeys.has(k),
+      toggleSelected,
+      setManySelected,
     };
-  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent]);
+  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
+
+  // Bulk send state
+  const [bulkStartDate, setBulkStartDate] = useState<string>(() => {
+    const today = new Date();
+    const mon = startOfWeek(today, { weekStartsOn: 1 });
+    const nextMon = mon <= today ? addDays(mon, 7) : mon;
+    return format(nextMon, "yyyy-MM-dd");
+  });
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkSending, setBulkSending] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+
+  // Map selected keys → ParsedSession objects from current plan
+  const selectedSessions = useMemo(() => {
+    if (!nolioCtx) return [] as ParsedSession[];
+    const out: ParsedSession[] = [];
+    for (const w of plan.weeks) {
+      for (const s of w.sessions) {
+        if (s.isRest || s.dayIndex < 0) continue;
+        const k = sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex);
+        if (selectedKeys.has(k)) out.push(s);
+      }
+    }
+    return out;
+  }, [plan, selectedKeys, nolioCtx]);
+
+  async function handleBulkSend() {
+    if (!nolioCtx || selectedSessions.length === 0) return;
+    setBulkSending(true);
+    setBulkProgress({ done: 0, total: selectedSessions.length });
+
+    const enriched = selectedSessions.map((s) => {
+      const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+      return {
+        weekNumber: s.weekNumber,
+        dayIndex: s.dayIndex,
+        sport: s.sport ?? lib?.sport ?? null,
+        title: s.title,
+        id: lib?.id ?? null,
+        details: s.details,
+        isRest: false,
+        structure: lib?.structure ?? null,
+        wbalProfile: lib?.wbalProfile ?? null,
+      };
+    });
+
+    // Calibre planStartDate côté serveur : choisi par l'utilisateur = lundi de la semaine 1.
+    // Determine the smallest weekNumber among selection to anchor planStartDate so dates align.
+    const minWeek = Math.min(...selectedSessions.map((s) => s.weekNumber));
+    const anchorDt = new Date(`${bulkStartDate}T00:00:00Z`);
+    // bulkStartDate corresponds to week 1 Monday; if selection starts at minWeek, planStartDate = bulkStartDate
+    // (server computes addDays(planStartDate, (w-1)*7+d) which is correct from week 1 anchor)
+    void minWeek;
+    const computedStart = anchorDt.toISOString().slice(0, 10);
+
+    // Indeterminate progress animation (single request)
+    const interval = setInterval(() => {
+      setBulkProgress((p) => {
+        if (p.done >= p.total - 1) return p;
+        return { ...p, done: p.done + 1 };
+      });
+    }, 350);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-send-plan", {
+        body: {
+          athlete_id: nolioCtx.athleteId,
+          nolio_athlete_id: nolioCtx.nolioId,
+          planStartDate: computedStart,
+          sessions: enriched,
+          refs: nolioCtx.refs,
+        },
+      });
+      clearInterval(interval);
+      if (error) throw error;
+      const result = data as { sent?: number; errors?: { status: number; detail?: string }[] } | null;
+      const sentCount = result?.sent ?? 0;
+      const errs = result?.errors ?? [];
+      setBulkProgress({ done: sentCount, total: selectedSessions.length });
+
+      if (sentCount > 0) {
+        // Mark all as sent (best-effort: assume order matches enriched order; mark the first sentCount)
+        enriched.slice(0, sentCount).forEach((s) => {
+          markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
+        });
+      }
+
+      if (errs.length === 0) {
+        toast.success(`${sentCount} séances envoyées avec succès`);
+      } else if (sentCount > 0) {
+        toast.warning(
+          `${sentCount} envoyées · ${errs.length} échec(s) — ${errs.slice(0, 2).map((e) => `${e.status} ${e.detail ?? ""}`).join(" | ")}`.slice(0, 240),
+        );
+      } else {
+        toast.error(
+          `Aucune séance envoyée — ${errs.slice(0, 2).map((e) => `${e.status} ${e.detail ?? ""}`).join(" | ")}`.slice(0, 240),
+        );
+      }
+      setBulkConfirmOpen(false);
+    } catch (e) {
+      clearInterval(interval);
+      toast.error(`Erreur Nolio : ${(e as Error).message ?? "inconnue"}`);
+    } finally {
+      setBulkSending(false);
+    }
+  }
+
 
   const currentWeek = plan.weeks[selectedWeek];
   const sortedRaceGoals = useMemo(
