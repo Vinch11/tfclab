@@ -363,12 +363,15 @@ function buildStructuredFromParts(
           ...target,
           notes: text.slice(0, 500),
         };
+        const restTarget = rep.restText
+          ? buildTargetFromText(rep.restText, refs)
+          : { target_type: "no_target" as const };
         const restStep: NolioStep = {
           type: "step",
           step_duration_type: "duration",
           step_duration_value: rep.restSec ?? 120,
           intensity_type: "rest",
-          target_type: "no_target",
+          ...restTarget,
           ...(rep.restText ? { notes: rep.restText.slice(0, 500) } : {}),
         };
         items.push({
