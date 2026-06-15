@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Sparkles, RotateCw, Loader2 } from "lucide-react";
+import { ChevronDown, Sparkles, RotateCw, Loader2, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 
 export type GeneratedStatus = "ok" | "error" | "pending" | "needs_review";
