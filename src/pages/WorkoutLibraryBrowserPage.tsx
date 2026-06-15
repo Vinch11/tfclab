@@ -280,11 +280,17 @@ function WorkoutRow({
         <CollapsibleTrigger asChild>
           <TableRow className="cursor-pointer hover:bg-muted/50">
             <TableCell className="font-mono text-xs">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-wrap">
                 <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-0" : "-rotate-90"}`} />
                 {w.id}
+                {hasOverride && (
+                  <span title="Structure Nolio personnalisée" className="inline-flex items-center gap-0.5 text-emerald-600">
+                    <CheckCircle2 className="h-3 w-3" />
+                  </span>
+                )}
               </div>
             </TableCell>
+
             <TableCell>
               <Badge variant="outline" className={`text-xs ${sportInfo?.color || ""}`}>
                 {sportInfo?.label || w.sport}
