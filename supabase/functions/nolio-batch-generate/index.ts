@@ -33,7 +33,7 @@ Chaque step DOIT respecter EXACTEMENT ce schéma plat, avec ces clés exactes :
   "pct_css_max": <number | null>    // natation uniquement
 }
 
-Pour type="repetition" : ajouter "repeat_count": <integer> et "steps": [<sub-steps respectant le même schéma>].
+Pour type="repetition" : ajouter "value": <integer> (nombre de répétitions, nom de champ officiel Nolio) et "steps": [<sub-steps respectant le même schéma>]. NE JAMAIS utiliser "repeat_count" — la spec Nolio impose "value".
 
 INTERDICTIONS ABSOLUES :
 - ❌ JAMAIS de préfixe step_target_*, step_target[] (tableau), target_value (sans _min/_max).
