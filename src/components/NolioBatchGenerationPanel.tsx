@@ -292,6 +292,22 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
               </Button>
               <Button
                 size="sm"
+                variant="destructive"
+                onClick={() => {
+                  const errs = pickAllErrors();
+                  if (errs.length === 0) {
+                    toast({ title: "Aucune erreur", description: "Pas de séances en statut error à relancer." });
+                    return;
+                  }
+                  if (!window.confirm(`Relancer ${errs.length} séances en erreur (force) ? Durée estimée ~${Math.ceil(errs.length / 5 * 1.5)} min.`)) return;
+                  runBatch(errs, true, 5);
+                }}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RotateCw className="h-3 w-3 mr-1" />}
+                🔄 Relancer les erreurs ({pickAllErrors().length})
+              </Button>
+                size="sm"
                 variant="default"
                 className="bg-primary"
                 onClick={() => {
