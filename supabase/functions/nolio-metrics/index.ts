@@ -39,11 +39,19 @@ const META_KEY_MAP: Record<string, string> = {
 };
 
 // Conversions spécifiques par colonne TFCLab :
-// - css : Nolio renvoie min/100m × 100 (ex 117.05 => 1:17.05 /100m). On convertit en sec/100m : (v/100)*60.
+// - css : Nolio renvoie selon deux formats observés :
+//     • raw ≥ 100 → format min·100 + sec (ex 117.05 = 1:17.05/100m) → minutes·60 + secondes
+//     • raw < 100  → déjà en secondes/100m (ex 96 = 1:36/100m) → valeur brute
+//   Résultat exprimé en s/100m (référence TFCLab).
 // - fc_repos / fc_max : entiers bpm.
 function convertNolioValue(snapCol: string, raw: number): number {
   if (snapCol === "css") {
-    return Math.round((raw / 100) * 60 * 100) / 100;
+    if (raw >= 100) {
+      const minutes = Math.floor(raw / 100);
+      const seconds = raw - minutes * 100;
+      return Math.round((minutes * 60 + seconds) * 100) / 100;
+    }
+    return Math.round(raw * 100) / 100;
   }
   if (snapCol === "fc_repos" || snapCol === "fc_max") {
     return Math.round(raw);
