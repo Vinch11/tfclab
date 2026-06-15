@@ -635,6 +635,26 @@ Deno.serve(async (req) => {
     const errors: { week: number; day: number; status: number; detail?: string }[] = [];
     const debugLog: Array<Record<string, unknown>> = [];
 
+    // Préchargement des overrides Nolio par session_id (structured_workout + sport_id personnalisés)
+    const sessionIds = Array.from(
+      new Set(
+        body.sessions
+          .map((s) => (s?.id ?? "").trim())
+          .filter((id) => id.length > 0),
+      ),
+    );
+    const overridesMap = new Map<string, { sport_id: number; structured_workout: unknown }>();
+    if (sessionIds.length > 0) {
+      const { data: ovRows } = await admin
+        .from("nolio_workout_overrides")
+        .select("session_id, sport_id, structured_workout")
+        .in("session_id", sessionIds);
+      for (const r of (ovRows ?? []) as Array<{ session_id: string; sport_id: number; structured_workout: unknown }>) {
+        overridesMap.set(r.session_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
+      }
+    }
+
+
     for (let i = 0; i < body.sessions.length; i++) {
       const s = body.sessions[i];
       if (s?.isRest) { skipped += 1; continue; }
