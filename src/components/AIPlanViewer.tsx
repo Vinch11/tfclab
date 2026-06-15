@@ -304,12 +304,26 @@ function SessionCard({ session, date, nolioCtx }: SessionCardProps) {
     );
   }
 
+  const selKey = nolioCtx ? sessionKey(nolioCtx.athleteId, session.weekNumber, session.dayIndex) : null;
+  const isSent = !!(nolioCtx && selKey && nolioCtx.isSent(selKey));
+  const isChecked = !!(nolioCtx && selKey && nolioCtx.isSelected(selKey));
+
   return (
     <div
       className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${getSportColor(session.sport)}`}
       onClick={() => setExpanded(!expanded)}
     >
       <div className="flex items-center gap-2">
+        {nolioCtx && selKey && !session.isRest && session.dayIndex >= 0 && (
+          <Checkbox
+            checked={isChecked}
+            disabled={isSent}
+            onCheckedChange={() => nolioCtx.toggleSelected(selKey)}
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Sélectionner pour envoi groupé Nolio"
+            className="shrink-0"
+          />
+        )}
         {getSportIcon(session.sport)}
         <span className="text-sm font-medium">{session.dayName}</span>
         {date && <span className="text-xs text-muted-foreground">{format(date, "d MMM", { locale: fr })}</span>}
