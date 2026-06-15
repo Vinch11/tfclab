@@ -275,123 +275,125 @@ function WorkoutRow({
 
 
   return (
-    <Collapsible asChild open={open} onOpenChange={setOpen}>
-      <>
-        <CollapsibleTrigger asChild>
-          <TableRow className="cursor-pointer hover:bg-muted/50">
-            <TableCell className="font-mono text-xs">
-              <div className="flex items-center gap-1 flex-wrap">
-                <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-0" : "-rotate-90"}`} />
-                {w.id}
-                {hasOverride && (
-                  <span title="Structure Nolio personnalisée" className="inline-flex items-center gap-0.5 text-emerald-600">
-                    <CheckCircle2 className="h-3 w-3" />
-                  </span>
-                )}
-              </div>
-            </TableCell>
-
-            <TableCell>
-              <Badge variant="outline" className={`text-xs ${sportInfo?.color || ""}`}>
-                {sportInfo?.label || w.sport}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Badge className={`text-xs ${TYPE_COLORS[w.cat] || "bg-muted"}`}>{w.cat}</Badge>
-            </TableCell>
-            <TableCell className="text-sm">{w.objectif}</TableCell>
-            <TableCell className="text-xs text-muted-foreground">
-              {w.durationMin[0]}–{w.durationMin[1]} min
-            </TableCell>
-            <TableCell>
-              <div className="flex gap-1 flex-wrap">
-                {w.phase?.map(p => (
-                  <Badge key={p} variant="outline" className={`text-[10px] ${PHASE_COLORS[p] || ""}`}>{p}</Badge>
-                ))}
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex gap-1 flex-wrap">
-                {w.goals?.slice(0, 3).map(g => (
-                  <Badge key={g} variant="outline" className="text-[10px]">{g}</Badge>
-                ))}
-                {(w.goals?.length || 0) > 3 && (
-                  <Badge variant="outline" className="text-[10px]">+{w.goals!.length - 3}</Badge>
-                )}
-              </div>
-            </TableCell>
-          </TableRow>
-        </CollapsibleTrigger>
-        <CollapsibleContent asChild>
-          <TableRow className="bg-muted/30">
-            <TableCell colSpan={7} className="p-4">
-              <div className="space-y-3">
-                {/* Structure */}
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">Structure</p>
-                  <div className="space-y-1">
-                    {w.structure.map((s, i) => (
-                      <div key={i} className="flex gap-2 text-sm">
-                        <Badge variant="outline" className="text-[10px] shrink-0 self-start mt-0.5">{s.part}</Badge>
-                        <span className="text-foreground">{s.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Métadonnées */}
-                <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                  <span><strong>Metric:</strong> {w.metricKey}</span>
-                  <span><strong>Sport key:</strong> {w.sportKey}</span>
-                  <span><strong>Nécessité:</strong> {w.necessite}</span>
-                  <span><strong>Quand:</strong> {w.when}</span>
-                  <span><strong>Éviter:</strong> {w.avoid}</span>
-                  {w.dPlusTargetM && (
-                    <span><strong>D+:</strong> {typeof w.dPlusTargetM === "number" ? `${w.dPlusTargetM}m` : `${w.dPlusTargetM.min}–${w.dPlusTargetM.max}m`}</span>
+    <>
+      <Collapsible asChild open={open} onOpenChange={setOpen}>
+        <>
+          <CollapsibleTrigger asChild>
+            <TableRow className="cursor-pointer hover:bg-muted/50">
+              <TableCell className="font-mono text-xs">
+                <div className="flex items-center gap-1 flex-wrap">
+                  <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-0" : "-rotate-90"}`} />
+                  {w.id}
+                  {hasOverride && (
+                    <span title="Structure Nolio personnalisée" className="inline-flex items-center gap-0.5 text-emerald-600">
+                      <CheckCircle2 className="h-3 w-3" />
+                    </span>
                   )}
                 </div>
+              </TableCell>
 
-                {/* Variantes */}
-                {Object.keys(w.variants).length > 0 && (
+              <TableCell>
+                <Badge variant="outline" className={`text-xs ${sportInfo?.color || ""}`}>
+                  {sportInfo?.label || w.sport}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge className={`text-xs ${TYPE_COLORS[w.cat] || "bg-muted"}`}>{w.cat}</Badge>
+              </TableCell>
+              <TableCell className="text-sm">{w.objectif}</TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {w.durationMin[0]}–{w.durationMin[1]} min
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-1 flex-wrap">
+                  {w.phase?.map(p => (
+                    <Badge key={p} variant="outline" className={`text-[10px] ${PHASE_COLORS[p] || ""}`}>{p}</Badge>
+                  ))}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-1 flex-wrap">
+                  {w.goals?.slice(0, 3).map(g => (
+                    <Badge key={g} variant="outline" className="text-[10px]">{g}</Badge>
+                  ))}
+                  {(w.goals?.length || 0) > 3 && (
+                    <Badge variant="outline" className="text-[10px]">+{w.goals!.length - 3}</Badge>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          </CollapsibleTrigger>
+          <CollapsibleContent asChild>
+            <TableRow className="bg-muted/30">
+              <TableCell colSpan={7} className="p-4">
+                <div className="space-y-3">
+                  {/* Structure */}
                   <div>
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">Variantes par objectif</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                      {Object.entries(w.variants).map(([goal, text]) => (
-                        <div key={goal} className="text-xs">
-                          <Badge variant="outline" className="text-[10px] mr-1">{goal}</Badge>
-                          <span className="text-muted-foreground">{text}</span>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">Structure</p>
+                    <div className="space-y-1">
+                      {w.structure.map((s, i) => (
+                        <div key={i} className="flex gap-2 text-sm">
+                          <Badge variant="outline" className="text-[10px] shrink-0 self-start mt-0.5">{s.part}</Badge>
+                          <span className="text-foreground">{s.text}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
 
-                {/* Notes */}
-                {w.notes && (
-                  <p className="text-xs text-muted-foreground italic">📝 {w.notes}</p>
-                )}
+                  {/* Métadonnées */}
+                  <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                    <span><strong>Metric:</strong> {w.metricKey}</span>
+                    <span><strong>Sport key:</strong> {w.sportKey}</span>
+                    <span><strong>Nécessité:</strong> {w.necessite}</span>
+                    <span><strong>Quand:</strong> {w.when}</span>
+                    <span><strong>Éviter:</strong> {w.avoid}</span>
+                    {w.dPlusTargetM && (
+                      <span><strong>D+:</strong> {typeof w.dPlusTargetM === "number" ? `${w.dPlusTargetM}m` : `${w.dPlusTargetM.min}–${w.dPlusTargetM.max}m`}</span>
+                    )}
+                  </div>
 
-                {/* Edit Nolio structure */}
-                <div className="flex items-center gap-2 pt-2 border-t">
-                  <Button
-                    size="sm"
-                    variant={hasOverride ? "default" : "outline"}
-                    onClick={(e) => { e.stopPropagation(); setEditorOpen(true); }}
-                  >
-                    <Pencil className="h-3 w-3 mr-1" />
-                    {hasOverride ? "Modifier structure Nolio" : "Éditer structure Nolio"}
-                  </Button>
-                  {hasOverride && (
-                    <span className="text-xs text-emerald-600 inline-flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" /> Structure Nolio personnalisée
-                    </span>
+                  {/* Variantes */}
+                  {Object.keys(w.variants).length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Variantes par objectif</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                        {Object.entries(w.variants).map(([goal, text]) => (
+                          <div key={goal} className="text-xs">
+                            <Badge variant="outline" className="text-[10px] mr-1">{goal}</Badge>
+                            <span className="text-muted-foreground">{text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
+
+                  {/* Notes */}
+                  {w.notes && (
+                    <p className="text-xs text-muted-foreground italic">📝 {w.notes}</p>
+                  )}
+
+                  {/* Edit Nolio structure */}
+                  <div className="flex items-center gap-2 pt-2 border-t">
+                    <Button
+                      size="sm"
+                      variant={hasOverride ? "default" : "outline"}
+                      onClick={(e) => { e.stopPropagation(); setEditorOpen(true); }}
+                    >
+                      <Pencil className="h-3 w-3 mr-1" />
+                      {hasOverride ? "Modifier structure Nolio" : "Éditer structure Nolio"}
+                    </Button>
+                    {hasOverride && (
+                      <span className="text-xs text-emerald-600 inline-flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Structure Nolio personnalisée
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </TableCell>
-          </TableRow>
-        </CollapsibleContent>
-      </>
+              </TableCell>
+            </TableRow>
+          </CollapsibleContent>
+        </>
+      </Collapsible>
       {editorOpen && (
         <NolioStructureEditor
           open={editorOpen}
@@ -402,7 +404,8 @@ function WorkoutRow({
           onSaved={onOverrideChanged}
         />
       )}
-    </Collapsible>
+    </>
   );
 }
+
 
