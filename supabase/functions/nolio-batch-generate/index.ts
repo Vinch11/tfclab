@@ -30,7 +30,14 @@ La consigne d'envoi recalcule par athlète à partir des pct si refs disponibles
 
 TARGET TYPE : vélo/puissance → power en watts. Allure/VMA/pace → pace en secondes/km. FC/bpm → heartrate en bpm. Sinon → no_target.
 
-NATATION : step_duration_type='distance' en mètres. Repos 'r=15s' ou 'r=15"' → step rest duration 15s.
+NATATION (sport_id=19) — RÈGLES STRICTES :
+- target_type="pace" TOUJOURS (jamais "heartrate" même si la séance dit "Z2"). Les zones nage = % CSS, pas % FCmax.
+- Mapping zones nage → pct_css : Z1 → pct_css_min=105, pct_css_max=115 (récup/échauffement, plus lent que CSS) · Z2 → pct_css_min=100, pct_css_max=105 (allure CSS endurance) · Z3 → pct_css_min=95, pct_css_max=100 (tempo, légèrement plus vite) · Z4/Z5 → pct_css_min=88, pct_css_max=95 (VO2/seuil rapide).
+- Si la séance dit "CSS+5" → pct_css_min=100, pct_css_max=105. "CSS-3" → pct_css_min=97, pct_css_max=100.
+- target_value_min/max OBLIGATOIRES en secondes/100m : target_value_min=round(css*pct_css_min/100), target_value_max=round(css*pct_css_max/100). (plus le pct est petit = plus vite = pace plus petite, donc min<max en secondes correspond bien à pct_min<pct_max).
+- Steps actifs : step_duration_type="distance" en mètres (jamais "time"/"duration"). Ex: 400m → step_duration_value=400.
+- Steps repos (r=20s, r=30s) : step_duration_type="duration" en secondes, target_type="no_target", target_value_min/max=null, pas de pct_*.
+- Éducatifs/drills sans intensité explicite → traiter en Z1 (pct_css 105-115).
 
 RÉPÉTITIONS NxM : type='repetition', value=N, steps=[active(M*60s, target avec pct+absolu), rest(récup, no_target ou Z1)].
 
