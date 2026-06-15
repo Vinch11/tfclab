@@ -1,62 +1,90 @@
-# Refonte Simulation LCW 70.3 — 3 épreuves indépendantes
+# Pilote Nolio — 20 séances + lancement manuel par lots
 
 ## Objectif
-Quand `raceFormat === "lcw_3day"`, l'onglet Simulation présente **3 simulations distinctes** (Natation J-2 / Vélo J-1 / Course J0), chacune calculée comme une **épreuve solo fraîche** (pas d'enchaînement, pas de fatigue cumulée, pas de carry-over glycogène).
+Tester la génération automatique de structures Nolio sur 20 séances, puis permettre au coach de lancer manuellement les lots suivants (10 ou 20 séances à la fois) depuis une UI dédiée. Aucun cron, aucun batch massif automatique.
 
-## Architecture cible
+## 1. Base de données
 
-```text
-RaceSimulationPage
-└── détecte raceFormat === "lcw_3day"
-    └── <LCWSimulationTabs>
-        ├── Tab "🏊 Natation 1.9km (Ven)" → cartes solo natation
-        ├── Tab "🚴 Vélo 90km (Sam)"      → cartes solo vélo
-        └── Tab "🏃 Course 21.1km (Dim)"  → cartes solo course
-            (chaque tab réutilise les 5 cartes existantes
-             mais en mode discipline-unique, fresh-start)
+Nouvelle table `nolio_structures_generated` (persiste le résultat IA, séparé des overrides manuels) :
+- `workout_id` (text, unique) — ID de la séance dans la bibliothèque TFCL
+- `sport_id` (int) — ID Nolio (2, 14, 18, 19, 20, 52)
+- `structured_workout` (jsonb) — JSON Nolio strict
+- `source_text_hash` (text) — hash du texte source au moment de la génération (détecte les changements)
+- `status` (text) — `pending` | `ok` | `error` | `needs_review`
+- `error_message` (text, null)
+- `model` (text) — ex. `google/gemini-2.5-pro`
+- `tokens_in`, `tokens_out` (int)
+- `cost_usd` (numeric)
+- `reviewed_by` (uuid, null) — coach qui a validé
+- `reviewed_at` (timestamptz, null)
+
+RLS : lecture/écriture pour `authenticated`, all pour `service_role`.
+
+## 2. Edge Function `nolio-batch-generate`
+
+Nouvelle fonction qui prend en input :
+```json
+{ "workout_ids": ["...", "..."], "force_regenerate": false }
 ```
 
-## Modifications par fichier
+- Max 20 IDs par appel (rejet 400 sinon).
+- Pour chaque ID :
+  1. Charge la séance depuis `enrichedWorkouts*` (texte source).
+  2. Skip si déjà `ok` et `source_text_hash` inchangé et pas de `force_regenerate`.
+  3. Appelle Lovable AI Gateway (`google/gemini-2.5-pro`) avec le prompt Nolio strict déjà rodé dans `nolio-generate-structure`.
+  4. Parse + validation Zod (sport_id ∈ liste, steps non vides, durées > 0).
+  5. Upsert dans `nolio_structures_generated` avec status `ok` ou `error`.
+  6. Délai `await sleep(1500)` entre chaque appel pour éviter 429.
+- Retourne un récap `{ processed, ok, error, skipped, total_cost_usd }`.
 
-### 1. `src/pages/RaceSimulationPage.tsx`
-- Détecter `raceFormat` depuis `athleteRaceGoals` (objectif courant)
-- Si LCW : encapsuler le bloc 5 cartes dans `<Tabs>` à 3 onglets (swim/bike/run)
-- Passer un nouveau prop `lcwDiscipline?: "swim" | "bike" | "run"` à chaque carte
-- Banner explicatif en tête : "Format LCW détecté — chaque épreuve simulée comme effort solo frais"
+## 3. UI — Page `WorkoutLibraryBrowserPage`
 
-### 2. `src/lib/v2/raceSimulationTFCL.ts`
-- Ajouter paramètre `lcwSoloMode?: { discipline: "swim"|"bike"|"run", distanceKm: number }`
-- Quand actif :
-  - Forcer la distance à 1.9 / 90 / 21.1 km selon discipline
-  - Réinitialiser glycogène/fatigue de départ à 100% (pas de carry-over)
-  - Ajuster `envelope_constraints` : règles "course courte" (max 1er tiers ↑, zone rouge autorisée >40%)
-  - Pour run : retirer la pénalité fatigue post-vélo dans le calcul d'allure
+Nouveau panneau **« Génération Nolio batch »** (collapsible, repliable par défaut) au-dessus de la liste :
 
-### 3. `src/components/RaceStrategyPlanCard.tsx`
-- Prop `lcwDiscipline?` ; quand fourni :
-  - TSS, NP, durée recalculés pour discipline seule
-  - Plan A/B reformulés pour effort solo
-  - Cardio drift sans baseline post-bike pour le run
+- Filtres pour sélectionner les séances à traiter :
+  - Sport (multi)
+  - Statut Nolio : `non généré` / `ok` / `error` / `needs_review` / `tous`
+  - Recherche texte
+- Compteur live : `X séances sélectionnées` (ex. 14/700).
+- Boutons :
+  - **« Générer 10 prochaines »** → appelle l'EF avec les 10 premiers IDs non générés
+  - **« Générer 20 prochaines »** → idem 20
+  - **« Regénérer la sélection »** (force_regenerate=true, max 20)
+- Indicateur de progression pendant l'appel + toast récap (✅ 18 ok, ⚠️ 2 erreurs, coût $0.04).
 
-### 4. `src/components/TriathlonFullRaceSimulationCard.tsx`
-- Prop `lcwDiscipline?` ; quand fourni : masquer transitions/enchaînement, n'afficher que la discipline active comme course autonome
-- Glycogène départ = 100%
+Sur chaque ligne de la bibliothèque, badge statut :
+- ⚪ Non généré
+- ✅ Généré
+- ⚠️ Erreur (avec tooltip message)
+- 🔧 Override manuel actif (priorité sur le généré)
 
-### 5. `src/components/ObjectiveStrategyCard.tsx`
-- Prop `lcwDiscipline?` ; pour run en LCW : retirer pénalité fatigue −3 à −5% → allure semi pure
+Clic sur le badge → modale d'inspection (JSON + bouton « Marquer validé » qui set `reviewed_by/at`).
 
-### 6. `src/components/PacingEnvelopeCard.tsx`
-- Prop `lcwDiscipline?` ; basculer sur enveloppe "course courte indépendante" (semi seul pour run, 90km TT pour vélo, 1.9km OWS pour swim)
+## 4. Priorité dans `nolio-send-plan`
 
-### 7. Nutrition (cartes carbLoading/hydration/gut/caffeine)
-- Détecter LCW : afficher 3 protocoles de carb-load consécutifs (J-3→J-2 swim, J-2 PM→J-1 bike, J-1 PM→J0 run) + refeed glycogène entre étapes
+Ordre de résolution pour chaque séance d'un plan envoyé à Nolio :
+1. `nolio_workout_overrides` (correction manuelle coach) — priorité max
+2. `nolio_structures_generated` avec status `ok`
+3. Fallback : parsing texte actuel
 
-## Hors scope
-- Pas de modif de la logique de génération de plan IA (déjà OK via `computePlan.ts`)
-- Pas de migration DB
-- Pas de modif des autres formats (continu standard inchangé)
+## 5. Étapes d'implémentation (ordre)
 
-## Validation
-- Cas test : athlète Cath 70.3 LCW → 3 tabs visibles, chacun cohérent solo
-- Cas test : athlète 70.3 continu standard → comportement inchangé (1 simulation enchaînée)
-- Pas de régression sur Ironman / Marathon / 10K
+1. Migration table `nolio_structures_generated`
+2. Edge Function `nolio-batch-generate` (réutilise le prompt de `nolio-generate-structure`)
+3. Hook `useNolioGenerationStatus(workoutIds)` pour charger les statuts en masse
+4. Panneau batch + badges dans `WorkoutLibraryBrowserPage`
+5. Mise à jour `nolio-send-plan` (priorité)
+
+## 6. Test pilote — déroulé
+
+1. Sélectionner 20 séances variées (5 bike, 5 run, 5 swim, 5 strength/trail).
+2. Cliquer **« Générer 20 prochaines »**.
+3. Mesurer : taux de succès, coût réel, temps total, qualité du JSON (validation manuelle des 20 via la modale d'inspection).
+4. Si > 90% ok → lancer 10/20 à la fois jusqu'à couvrir la bibliothèque.
+5. Si < 90% → ajuster le prompt avant d'élargir.
+
+## Notes techniques
+- Pas de cron, pas de queue, pas de pg_cron : 100% piloté par le coach.
+- Limite 20/appel évite les timeouts Edge Function (max 150s, ici ~30-45s pour 20 appels).
+- Le coût indicatif (Gemini 2.5 Pro) pour 700 séances est de l'ordre de quelques dollars.
+- Détection de drift via `source_text_hash` : si tu modifies une séance source plus tard, elle réapparaît comme « à regénérer ».
