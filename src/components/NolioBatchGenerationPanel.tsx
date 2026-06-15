@@ -240,6 +240,10 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
                 🧪 Test 25 (5/sport)
               </Button>
+              <Button size="sm" variant="secondary" onClick={() => runBatch(pickBatchForSport("swim", 5, true), true)} disabled={loading}>
+                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RotateCw className="h-3 w-3 mr-1" />}
+                🌊 Régénérer 5 natation (force)
+              </Button>
               <Button size="sm" onClick={() => runBatch(pickNextBatch(10))} disabled={loading}>
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
                 Générer 10 prochaines
