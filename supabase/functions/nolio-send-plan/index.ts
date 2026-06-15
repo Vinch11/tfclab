@@ -67,7 +67,7 @@ type NolioStep = {
   step_duration_type: "duration";
   step_duration_value: number;
   intensity_type: "warmup" | "active" | "rest" | "cooldown" | "repetition";
-  target_type: "no_target" | "power" | "pace" | "heartrate";
+  target_type: "no_target" | "power" | "pace" | "heartrate" | "duration";
   target_value_min?: number;
   target_value_max?: number;
   target_value?: number;
