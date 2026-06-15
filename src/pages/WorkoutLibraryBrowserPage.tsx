@@ -3,18 +3,22 @@
  * Filtrage par sport, phase, type, objectif avec détail des structures
  */
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Search, ChevronDown, Bike, PersonStanding, Waves, Dumbbell, Zap, Library } from "lucide-react";
+import { Search, ChevronDown, Bike, PersonStanding, Waves, Dumbbell, Zap, Library, Pencil, CheckCircle2 } from "lucide-react";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout, TrainingSport, SessionType, PhaseTag } from "@/types/workoutLibrary";
+import { NolioStructureEditor, NOLIO_SPORT_OPTIONS } from "@/components/NolioStructureEditor";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const SPORT_LABELS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   bike: { label: "Vélo", icon: <Bike className="h-4 w-4" />, color: "bg-amber-500/15 text-amber-700 border-amber-300" },
