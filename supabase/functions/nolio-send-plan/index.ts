@@ -669,14 +669,20 @@ Deno.serve(async (req) => {
       );
 
       const structure = Array.isArray(s.structure) ? s.structure : [];
-      let structured_workout = structure.length > 0
-        ? buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null)
-        : null;
-
-      // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
-      // Si l'unique item racine est une repetition, on déballe ses steps enfants.
-      if (structured_workout && structured_workout.length === 1 && structured_workout[0].type === "repetition") {
-        structured_workout = (structured_workout[0] as NolioRepStep).steps;
+      const overrideKey = (s.id ?? "").trim();
+      const override = overrideKey ? overridesMap.get(overrideKey) : undefined;
+      let structured_workout: unknown = null;
+      let usedOverride = false;
+      if (override && Array.isArray(override.structured_workout)) {
+        structured_workout = override.structured_workout;
+        usedOverride = true;
+      } else if (structure.length > 0) {
+        let built = buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null);
+        // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
+        if (built && built.length === 1 && built[0].type === "repetition") {
+          built = (built[0] as NolioRepStep).steps;
+        }
+        structured_workout = built;
       }
 
       const sessionIndex = Number.isFinite(s.sessionIndex as number) ? Number(s.sessionIndex) : 0;
@@ -688,7 +694,8 @@ Deno.serve(async (req) => {
         String(new Date().getDate()).padStart(2, '0'),
         10,
       );
-      const sportId = mapSport(s.sport, s.title, s.id ?? null);
+      const sportId = usedOverride && override ? override.sport_id : mapSport(s.sport, s.title, s.id ?? null);
+
 
       // Suppression préalable : la séance peut déjà exister avec un sport_id obsolète.
       // On ignore systématiquement les erreurs (404/inexistante = cas normal).
