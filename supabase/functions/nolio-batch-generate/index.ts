@@ -143,6 +143,12 @@ interface WorkoutPayload {
   fcMax?: number;
   vma?: number;
   css?: number;
+  isRest?: boolean;
+}
+
+const REST_ID_RE = /REST|REPOS|RECOVERY/i;
+function isRestWorkout(w: WorkoutPayload): boolean {
+  return w.isRest === true || REST_ID_RE.test(w.workout_id ?? "");
 }
 
 interface BatchBody {
