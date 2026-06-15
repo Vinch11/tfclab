@@ -179,8 +179,12 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
   const totalSec = useMemo(() => {
     let s = 0;
     for (const it of items) {
-      if (it.type === "step") s += it.step_duration_value || 0;
-      else s += (it.value || 0) * it.steps.reduce((a, st) => a + (st.step_duration_value || 0), 0);
+      if (!it) continue;
+      if (it.type === "step") {
+        s += it.step_duration_value || 0;
+      } else if (it.type === "repetition" && Array.isArray(it.steps)) {
+        s += (it.value || 0) * it.steps.reduce((a, st) => a + (st?.step_duration_value || 0), 0);
+      }
     }
     return s;
   }, [items]);
