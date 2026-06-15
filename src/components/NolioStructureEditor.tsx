@@ -116,6 +116,40 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
   const addStep = () => setItems((prev) => [...prev, blankStep()]);
   const addRep = () => setItems((prev) => [...prev, blankRep()]);
 
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-generate-structure", {
+        body: {
+          sessionId,
+          sessionLabel,
+          sport,
+          workoutText: workoutText ?? sessionLabel ?? "",
+          defaultSportId: defaultSportId ?? 2,
+          ftp: 280, fcMax: 185, css: 95,
+        },
+      });
+      if (error) throw error;
+      const generated = data as { sport_id?: number; structured_workout?: NolioEditorItem[] };
+      if (generated?.structured_workout && Array.isArray(generated.structured_workout)) {
+        setItems(generated.structured_workout);
+        if (typeof generated.sport_id === "number") setSportId(generated.sport_id);
+        setHasGenerated(true);
+        toast({ title: "Structure générée", description: "Vérifie et ajuste avant de sauvegarder." });
+      } else {
+        throw new Error("Format de réponse invalide");
+      }
+    } catch (e) {
+      toast({
+        title: "Échec de la génération",
+        description: (e as Error).message ?? "Saisie manuelle requise.",
+        variant: "destructive",
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     const payload = {
