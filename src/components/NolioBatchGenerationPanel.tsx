@@ -94,10 +94,27 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
     return out;
   };
 
-  const runBatch = async (size: number, forceRegenerate = false) => {
-    const batch = pickNextBatch(size, forceRegenerate);
+  /** Pick N par sport (bike, run, swim, strength, brick) pour test qualité. */
+  const pickTestBatchBySport = (perSport: number, forceRegenerate = false): LibraryWorkout[] => {
+    const targets = ["bike", "run", "swim", "strength", "brick"];
+    const out: LibraryWorkout[] = [];
+    for (const target of targets) {
+      let taken = 0;
+      for (const w of filteredWorkouts) {
+        if (taken >= perSport) break;
+        if (normalizeSport(w.sport) !== target) continue;
+        const g = generatedMap.get(w.id);
+        if (!forceRegenerate && g?.status === "ok") continue;
+        out.push(w);
+        taken += 1;
+      }
+    }
+    return out;
+  };
+
+  const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false) => {
     if (batch.length === 0) {
-      toast({ title: "Rien à générer", description: "Toutes les séances filtrées ont déjà un statut OK." });
+      toast({ title: "Rien à générer", description: "Toutes les séances éligibles ont déjà un statut OK." });
       return;
     }
 
@@ -186,15 +203,19 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => runBatch(10)} disabled={loading}>
+              <Button size="sm" variant="default" onClick={() => runBatch(pickTestBatchBySport(5))} disabled={loading}>
+                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+                🧪 Test 25 (5/sport)
+              </Button>
+              <Button size="sm" onClick={() => runBatch(pickNextBatch(10))} disabled={loading}>
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
                 Générer 10 prochaines
               </Button>
-              <Button size="sm" onClick={() => runBatch(20)} disabled={loading}>
+              <Button size="sm" onClick={() => runBatch(pickNextBatch(20))} disabled={loading}>
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
                 Générer 20 prochaines
               </Button>
-              <Button size="sm" variant="outline" onClick={() => runBatch(20, true)} disabled={loading}>
+              <Button size="sm" variant="outline" onClick={() => runBatch(pickNextBatch(20, true), true)} disabled={loading}>
                 <RotateCw className="h-3 w-3 mr-1" />
                 Regénérer 20 (force)
               </Button>

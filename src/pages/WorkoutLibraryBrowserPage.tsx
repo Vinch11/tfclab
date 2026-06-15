@@ -140,16 +140,36 @@ export default function WorkoutLibraryBrowserPage() {
     <SidebarLayout activeTab={activeTab} onTabChange={setActiveTab} staffMode={staffMode} onStaffModeChange={setStaffMode}>
       <div className="p-4 md:p-6 space-y-6 max-w-[1400px] mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Library className="h-6 w-6 text-primary" />
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Library className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Bibliothèque des Séances TFCL™</h1>
+              <p className="text-sm text-muted-foreground">
+                {WorkoutLibrary.length} séances disponibles pour les plans IA (dont variantes programmatiques)
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Bibliothèque des Séances TFCL™</h1>
-            <p className="text-sm text-muted-foreground">
-              {WorkoutLibrary.length} séances disponibles pour les plans IA (dont variantes programmatiques)
-            </p>
-          </div>
+          {/* Compteur structures Nolio générées */}
+          {(() => {
+            const okCount = Array.from(generatedMap.values()).filter((g) => g.status === "ok").length;
+            const total = WorkoutLibrary.length;
+            const pct = total > 0 ? Math.round((okCount / total) * 100) : 0;
+            return (
+              <div className="flex flex-col items-end gap-1 min-w-[220px]">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-emerald-600 font-semibold">✅ {okCount} / {total}</span>
+                  <span className="text-muted-foreground">séances structurées Nolio</span>
+                </div>
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-[10px] text-muted-foreground">{pct}% du catalogue</span>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Stats cards */}
@@ -293,12 +313,8 @@ function WorkoutRow({
   const [editorOpen, setEditorOpen] = useState(false);
   const sportInfo = SPORT_LABELS[normalizeSport(w.sport)];
 
-  const genBadge = (() => {
-    if (!generated) return { label: "⚪", title: "Non générée", cls: "text-muted-foreground" };
-    if (generated.status === "ok") return { label: "✅", title: "Structure Nolio générée par IA", cls: "text-emerald-600" };
-    if (generated.status === "error") return { label: "⚠️", title: `Erreur : ${generated.error_message ?? ""}`, cls: "text-amber-600" };
-    return { label: "⏳", title: generated.status, cls: "text-muted-foreground" };
-  })();
+
+
 
   return (
     <>
@@ -309,12 +325,26 @@ function WorkoutRow({
               <TableCell className="font-mono text-xs">
                 <div className="flex items-center gap-1 flex-wrap">
                   <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-0" : "-rotate-90"}`} />
-                  <span title={genBadge.title} className={genBadge.cls}>{genBadge.label}</span>
                   {w.id}
                   {hasOverride && (
                     <span title="Structure Nolio personnalisée (override coach)" className="inline-flex items-center gap-0.5 text-emerald-600">
                       <CheckCircle2 className="h-3 w-3" />
                     </span>
+                  )}
+                </div>
+                <div className="mt-1">
+                  {generated?.status === "ok" ? (
+                    <Badge className="text-[10px] bg-emerald-100 text-emerald-800 border-emerald-300 border" title="Structure Nolio générée par IA">
+                      ✅ Structure Nolio générée
+                    </Badge>
+                  ) : generated?.status === "error" ? (
+                    <Badge variant="destructive" className="text-[10px]" title={generated.error_message ?? ""}>
+                      ⚠️ Erreur génération
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                      ⚪ Non structurée
+                    </Badge>
                   )}
                 </div>
               </TableCell>
