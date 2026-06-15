@@ -91,8 +91,8 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (body.workouts.length > 30) {
-      return new Response(JSON.stringify({ error: "Max 30 workouts per batch" }), {
+    if (body.workouts.length > 10) {
+      return new Response(JSON.stringify({ error: "Max 10 workouts per batch (timeout safety)" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
