@@ -238,7 +238,7 @@ export default function WorkoutLibraryBrowserPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((w) => (
-                    <WorkoutRow key={w.id} workout={w} />
+                    <WorkoutRow key={w.id} workout={w} hasOverride={overrideIds.has(w.id)} onOverrideChanged={refreshOverrides} />
                   ))}
                 </TableBody>
               </Table>
