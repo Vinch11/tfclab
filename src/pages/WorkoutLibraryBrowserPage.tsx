@@ -250,9 +250,29 @@ export default function WorkoutLibraryBrowserPage() {
   );
 }
 
-function WorkoutRow({ workout: w }: { workout: LibraryWorkout }) {
+function defaultNolioSportId(sport: string): number {
+  const s = normalizeSport(sport);
+  if (s === "run") return 2;
+  if (s === "bike") return 14;
+  if (s === "swim") return 19;
+  if (s === "strength") return 20;
+  if (s === "trail") return 52;
+  return 2;
+}
+
+function WorkoutRow({
+  workout: w,
+  hasOverride,
+  onOverrideChanged,
+}: {
+  workout: LibraryWorkout;
+  hasOverride: boolean;
+  onOverrideChanged: () => void;
+}) {
   const [open, setOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const sportInfo = SPORT_LABELS[normalizeSport(w.sport)];
+
 
   return (
     <Collapsible asChild open={open} onOpenChange={setOpen}>
