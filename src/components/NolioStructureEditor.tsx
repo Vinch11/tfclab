@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Plus, Repeat } from "lucide-react";
+import { Trash2, Plus, Repeat, Sparkles, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -74,13 +74,17 @@ type Props = {
   sessionLabel?: string;
   defaultSportId?: number;
   onSaved?: () => void;
+  workoutText?: string;
+  sport?: string;
 };
 
-export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, defaultSportId, onSaved }: Props) {
+export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, defaultSportId, onSaved, workoutText, sport }: Props) {
   const [sportId, setSportId] = useState<number>(defaultSportId ?? 2);
   const [items, setItems] = useState<NolioEditorItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   useEffect(() => {
     if (!open) return;
