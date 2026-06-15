@@ -338,6 +338,37 @@ function parseRepetitionPattern(text: string): {
   return { reps, workSec: workMin * 60, restSec, restText };
 }
 
+/**
+ * Normalise un structured_workout avant envoi à Nolio.
+ * - Renomme `repeat_count` → `value` sur tous les nœuds `repetition` (spec officielle Nolio).
+ * - Supprime récursivement les clés dont la valeur est `null` ou `undefined`
+ *   (Nolio rejette `pct_ftp_min: null`, `target_value_max: null`, etc.).
+ * Ref: https://github.com/NolioApp/NolioAPI-Documentation/wiki/Structured-Workout
+ */
+function normalizeStructuredWorkoutForNolio(input: unknown): unknown {
+  if (Array.isArray(input)) {
+    return input
+      .map(normalizeStructuredWorkoutForNolio)
+      .filter((v) => v !== null && v !== undefined);
+  }
+  if (input && typeof input === "object") {
+    const src = input as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(src)) {
+      if (v === null || v === undefined) continue;
+      // Repetition: rename repeat_count -> value (spec Nolio = `value`)
+      if (k === "repeat_count" && src.type === "repetition" && !("value" in src)) {
+        out.value = typeof v === "number" ? v : Number(v);
+        continue;
+      }
+      out[k] = normalizeStructuredWorkoutForNolio(v);
+    }
+    return out;
+  }
+  return input;
+}
+
+
 /** Construit structured_workout depuis le tableau `structure` (warm/main/cool). */
 function buildStructuredFromParts(
   structure: WorkoutStructurePart[],
