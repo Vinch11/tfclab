@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Sparkles, RotateCw, Loader2 } from "lucide-react";
+import { ChevronDown, Sparkles, RotateCw, Loader2, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 
 export type GeneratedStatus = "ok" | "error" | "pending" | "needs_review";
@@ -62,6 +63,7 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number; ok: number; err: number; cost: number } | null>(null);
 
   // Refs athlète par défaut (modifiables par le coach)
   const [ftp, setFtp] = useState(280);
@@ -127,7 +129,7 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
   };
 
 
-  const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false) => {
+  const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false, chunkSize = 8) => {
     if (batch.length === 0) {
       toast({ title: "Rien à générer", description: "Toutes les séances éligibles ont déjà un statut OK." });
       return;
@@ -135,17 +137,17 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
 
     setLoading(true);
     setLastResult(null);
+    setProgress({ done: 0, total: batch.length, ok: 0, err: 0, cost: 0 });
     try {
-      // Chunk de 8 max pour rester sous le timeout 150s (Gemini 2.5 Pro ~20-30s/séance × concurrence 8)
-      const CHUNK_SIZE = 8;
+      const CHUNK_SIZE = chunkSize;
       const chunks: LibraryWorkout[][] = [];
       for (let i = 0; i < batch.length; i += CHUNK_SIZE) chunks.push(batch.slice(i, i + CHUNK_SIZE));
 
-      let totOk = 0, totErr = 0, totSkip = 0, totCost = 0;
+      let totOk = 0, totErr = 0, totSkip = 0, totCost = 0, totDone = 0;
 
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
-        setLastResult(`⏳ Chunk ${i + 1}/${chunks.length} (${chunk.length} séances)...`);
+        setLastResult(`⏳ Chunk ${i + 1}/${chunks.length} · ${totDone}/${batch.length} séances structurées...`);
 
         const payload = {
           force_regenerate: forceRegenerate,
@@ -159,19 +161,27 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
           })),
         };
 
-        const { data, error } = await supabase.functions.invoke("nolio-batch-generate", { body: payload });
-        if (error) throw error;
+        try {
+          const { data, error } = await supabase.functions.invoke("nolio-batch-generate", { body: payload });
+          if (error) throw error;
+          totOk += data.ok ?? 0;
+          totErr += data.error ?? 0;
+          totSkip += data.skipped ?? 0;
+          totCost += Number(data.total_cost_usd ?? 0);
+        } catch (chunkErr) {
+          const msg = chunkErr instanceof Error ? chunkErr.message : String(chunkErr);
+          console.error(`[batch] chunk ${i + 1} failed:`, msg);
+          totErr += chunk.length;
+        }
 
-        totOk += data.ok ?? 0;
-        totErr += data.error ?? 0;
-        totSkip += data.skipped ?? 0;
-        totCost += Number(data.total_cost_usd ?? 0);
+        totDone += chunk.length;
+        setProgress({ done: totDone, total: batch.length, ok: totOk, err: totErr, cost: totCost });
         onRefresh();
       }
 
-      const summary = `✅ ${totOk} ok · ⚠️ ${totErr} err · ⏭️ ${totSkip} skip · 💸 $${totCost.toFixed(4)} (${chunks.length} chunks)`;
+      const summary = `✅ ${totOk} succès · ⚠️ ${totErr} erreurs · ⏭️ ${totSkip} skip · 💸 $${totCost.toFixed(4)} · ${chunks.length} chunks · ${batch.length} séances`;
       setLastResult(summary);
-      toast({ title: `Batch ${batch.length} séances`, description: summary });
+      toast({ title: `Batch terminé`, description: summary });
       onRefresh();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -181,6 +191,15 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
       setLoading(false);
     }
   };
+
+  /** Toutes les séances non encore générées avec statut ok. */
+  const pickAllRemaining = (): LibraryWorkout[] => {
+    return filteredWorkouts.filter((w) => {
+      const g = generatedMap.get(w.id);
+      return !g || g.status !== "ok";
+    });
+  };
+
 
   return (
     <Card className="border-primary/30">
@@ -266,14 +285,40 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
                 <RotateCw className="h-3 w-3 mr-1" />
                 Regénérer 20 (force)
               </Button>
+              <Button
+                size="sm"
+                variant="default"
+                className="bg-primary"
+                onClick={() => {
+                  const all = pickAllRemaining();
+                  if (!window.confirm(`Lancer le batch complet sur ${all.length} séances restantes ? Durée estimée ~${Math.ceil(all.length / 8 * 0.6)} min.`)) return;
+                  runBatch(all, false, 10);
+                }}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Rocket className="h-3 w-3 mr-1" />}
+                🚀 Batch complet ({pickAllRemaining().length} restantes)
+              </Button>
             </div>
+
+            {progress && (
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-mono">
+                  <span>{progress.done} / {progress.total} séances structurées</span>
+                  <span className="text-muted-foreground">
+                    ✅ {progress.ok} · ⚠️ {progress.err} · 💸 ${progress.cost.toFixed(4)}
+                  </span>
+                </div>
+                <Progress value={(progress.done / Math.max(progress.total, 1)) * 100} />
+              </div>
+            )}
 
             {lastResult && (
               <div className="text-xs p-2 rounded bg-muted/40 font-mono">{lastResult}</div>
             )}
 
             <p className="text-[10px] text-muted-foreground">
-              Modèle : google/gemini-2.5-pro · délai 1.5s entre appels · max 20/lot pour éviter timeouts.
+              Modèle : google/gemini-2.5-pro · chunks de 8-10 séances · erreurs loggées sans bloquer le batch.
             </p>
           </CardContent>
         </CollapsibleContent>
