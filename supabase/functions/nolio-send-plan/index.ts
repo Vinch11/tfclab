@@ -710,7 +710,9 @@ Deno.serve(async (req) => {
       if (!usedOverride && overrideKey) {
         const gen = generatedMap.get(overrideKey);
         if (gen && Array.isArray(gen.structured_workout) && gen.structured_workout.length > 0) {
-          structured_workout = gen.structured_workout;
+          // Strategy C : recalcul depuis pct_* avec refs de l'athlète destinataire,
+          // fallback sur target_value_* stocké (valeurs absolues figées au moment du batch).
+          structured_workout = recomputeAbsoluteFromPct(gen.structured_workout, body.refs ?? {});
           usedGenerated = true;
         }
       }
