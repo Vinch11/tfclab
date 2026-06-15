@@ -225,6 +225,13 @@ export default function WorkoutLibraryBrowserPage() {
           </CardContent>
         </Card>
 
+        {/* Panneau de génération batch Nolio */}
+        <NolioBatchGenerationPanel
+          filteredWorkouts={filtered}
+          generatedMap={generatedMap}
+          onRefresh={refreshGenerated}
+        />
+
         {/* Table */}
         <Card>
           <CardContent className="p-0">
@@ -232,7 +239,7 @@ export default function WorkoutLibraryBrowserPage() {
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
-                    <TableHead className="w-[220px]">ID</TableHead>
+                    <TableHead className="w-[240px]">ID</TableHead>
                     <TableHead className="w-[80px]">Sport</TableHead>
                     <TableHead className="w-[60px]">Type</TableHead>
                     <TableHead>Objectif</TableHead>
@@ -243,7 +250,13 @@ export default function WorkoutLibraryBrowserPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((w) => (
-                    <WorkoutRow key={w.id} workout={w} hasOverride={overrideIds.has(w.id)} onOverrideChanged={refreshOverrides} />
+                    <WorkoutRow
+                      key={w.id}
+                      workout={w}
+                      hasOverride={overrideIds.has(w.id)}
+                      generated={generatedMap.get(w.id)}
+                      onOverrideChanged={refreshOverrides}
+                    />
                   ))}
                 </TableBody>
               </Table>
