@@ -1,40 +1,23 @@
 /**
- * NolioStructureEditor — Modale d'édition de la structure Nolio (structured_workout)
- * pour une séance de la bibliothèque. Persiste dans `nolio_workout_overrides`.
+ * NolioStructureEditor — Édition minimaliste de la structure d'une séance
+ * (warm-up / main / cool-down) avant envoi vers Nolio.
+ *
+ * Persiste dans `nolio_workout_overrides` : { session_id, sport_id, structured_workout }
+ * où `structured_workout` est ici un tableau `[{ part, text, zones }, ...]`
+ * (même shape que `LibraryWorkout.structure`). Le edge `nolio-send-plan`
+ * détecte cette shape et l'utilise comme source de parsing à la place
+ * du texte original de la séance.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Plus, Repeat, Sparkles, RefreshCw, Loader2 } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-
-export type NolioIntensityType = "warmup" | "active" | "rest" | "cooldown";
-export type NolioStepDurationType = "duration" | "distance";
-export type NolioTargetType = "no_target" | "heartrate" | "power" | "pace";
-
-export type NolioEditorStep = {
-  type: "step";
-  intensity_type: NolioIntensityType;
-  step_duration_type: NolioStepDurationType;
-  step_duration_value: number;
-  target_type: NolioTargetType;
-  target_value_min?: number;
-  target_value_max?: number;
-};
-
-export type NolioEditorRep = {
-  type: "repetition";
-  intensity_type: "repetition";
-  value: number;
-  steps: NolioEditorStep[];
-};
-
-export type NolioEditorItem = NolioEditorStep | NolioEditorRep;
 
 export const NOLIO_SPORT_OPTIONS = [
   { id: 2, label: "Course (2)" },
@@ -45,27 +28,7 @@ export const NOLIO_SPORT_OPTIONS = [
   { id: 52, label: "Trail (52)" },
 ];
 
-function blankStep(): NolioEditorStep {
-  return {
-    type: "step",
-    intensity_type: "active",
-    step_duration_type: "duration",
-    step_duration_value: 600,
-    target_type: "no_target",
-  };
-}
-
-function blankRep(): NolioEditorRep {
-  return {
-    type: "repetition",
-    intensity_type: "repetition",
-    value: 4,
-    steps: [
-      { ...blankStep(), intensity_type: "active", step_duration_value: 480 },
-      { ...blankStep(), intensity_type: "rest", step_duration_value: 120 },
-    ],
-  };
-}
+export type OverridePart = { part: string; text: string; zones: string[] };
 
 type Props = {
   open: boolean;
@@ -73,22 +36,45 @@ type Props = {
   sessionId: string;
   sessionLabel?: string;
   defaultSportId?: number;
+  defaultStructure?: OverridePart[];
   onSaved?: () => void;
-  workoutText?: string;
-  sport?: string;
 };
 
-export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, defaultSportId, onSaved, workoutText, sport }: Props) {
+type Row = { text: string; zones: string };
+
+function findRow(parts: OverridePart[] | undefined, keys: string[]): Row {
+  const found = (parts ?? []).find((p) =>
+    keys.some((k) => (p.part || "").toLowerCase().includes(k))
+  );
+  return {
+    text: found?.text ?? "",
+    zones: (found?.zones ?? []).join(", "),
+  };
+}
+
+function parseZones(s: string): string[] {
+  return s
+    .split(/[,;]+/)
+    .map((z) => z.trim())
+    .filter(Boolean);
+}
+
+export function NolioStructureEditor({
+  open,
+  onClose,
+  sessionId,
+  sessionLabel,
+  defaultSportId,
+  defaultStructure,
+  onSaved,
+}: Props) {
   const [sportId, setSportId] = useState<number>(defaultSportId ?? 2);
-  const [items, setItems] = useState<NolioEditorItem[]>([]);
+  const [warm, setWarm] = useState<Row>({ text: "", zones: "" });
+  const [main, setMain] = useState<Row>({ text: "", zones: "" });
+  const [cool, setCool] = useState<Row>({ text: "", zones: "" });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
-  const [ftp, setFtp] = useState<number>(280);
-  const [fcMax, setFcMax] = useState<number>(185);
-  const [vma, setVma] = useState<number>(18);
-  const [css, setCss] = useState<number>(95);
+  const [hasOverride, setHasOverride] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -101,100 +87,86 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
         .eq("session_id", sessionId)
         .maybeSingle();
       if (cancelled) return;
+
+      // Source : override si présent ET au bon format, sinon structure par défaut
+      let parts: OverridePart[] | undefined;
+      let sId = defaultSportId ?? 2;
+      let isOverride = false;
       if (data) {
-        setSportId(Number(data.sport_id) || (defaultSportId ?? 2));
-        setItems(Array.isArray(data.structured_workout) ? (data.structured_workout as NolioEditorItem[]) : []);
-      } else {
-        setSportId(defaultSportId ?? 2);
-        setItems([]);
+        sId = Number(data.sport_id) || sId;
+        if (
+          Array.isArray(data.structured_workout) &&
+          data.structured_workout.length > 0 &&
+          typeof (data.structured_workout as unknown[])[0] === "object" &&
+          (data.structured_workout as Array<Record<string, unknown>>)[0]?.part !== undefined
+        ) {
+          parts = data.structured_workout as unknown as OverridePart[];
+          isOverride = true;
+        }
       }
+      if (!parts) parts = defaultStructure;
+
+      setSportId(sId);
+      setWarm(findRow(parts, ["warm", "echauf", "éch"]));
+      setMain(findRow(parts, ["main", "corps", "princ"]));
+      setCool(findRow(parts, ["cool", "retour", "récup"]));
+      setHasOverride(isOverride);
       setLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [open, sessionId, defaultSportId]);
-
-  const updateItem = (idx: number, next: NolioEditorItem) => {
-    setItems((prev) => prev.map((it, i) => (i === idx ? next : it)));
-  };
-  const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
-  const addStep = () => setItems((prev) => [...prev, blankStep()]);
-  const addRep = () => setItems((prev) => [...prev, blankRep()]);
-
-  const handleGenerate = async () => {
-    setGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("nolio-generate-structure", {
-        body: {
-          sessionId,
-          sessionLabel,
-          sport,
-          workoutText: workoutText ?? sessionLabel ?? "",
-          defaultSportId: defaultSportId ?? 2,
-          ftp, fcMax, vma, css,
-        },
-      });
-      if (error) throw error;
-      const generated = data as { sport_id?: number; structured_workout?: NolioEditorItem[] };
-      if (generated?.structured_workout && Array.isArray(generated.structured_workout)) {
-        setItems(generated.structured_workout);
-        if (typeof generated.sport_id === "number") setSportId(generated.sport_id);
-        setHasGenerated(true);
-        toast({ title: "Structure générée", description: "Vérifie et ajuste avant de sauvegarder." });
-      } else {
-        throw new Error("Format de réponse invalide");
-      }
-    } catch (e) {
-      toast({
-        title: "Échec de la génération",
-        description: (e as Error).message ?? "Saisie manuelle requise.",
-        variant: "destructive",
-      });
-    } finally {
-      setGenerating(false);
-    }
-  };
+  }, [open, sessionId, defaultSportId, defaultStructure]);
 
   const handleSave = async () => {
     setSaving(true);
-    const payload = {
-      session_id: sessionId,
-      sport_id: sportId,
-      structured_workout: items as unknown as never,
-      updated_at: new Date().toISOString(),
-    };
+    const structured_workout: OverridePart[] = [
+      { part: "warm", text: warm.text.trim(), zones: parseZones(warm.zones) },
+      { part: "main", text: main.text.trim(), zones: parseZones(main.zones) },
+      { part: "cool", text: cool.text.trim(), zones: parseZones(cool.zones) },
+    ].filter((p) => p.text.length > 0 || p.zones.length > 0);
+
     const { error } = await supabase
       .from("nolio_workout_overrides")
-      .upsert([payload], { onConflict: "session_id" });
-
+      .upsert(
+        [{
+          session_id: sessionId,
+          sport_id: sportId,
+          structured_workout: structured_workout as unknown as never,
+          updated_at: new Date().toISOString(),
+        }],
+        { onConflict: "session_id" },
+      );
     setSaving(false);
     if (error) {
       toast({ title: "Erreur sauvegarde", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Structure Nolio sauvegardée", description: sessionId });
+    toast({ title: "Structure personnalisée sauvegardée", description: sessionId });
     onSaved?.();
     onClose();
   };
 
-  const totalSec = useMemo(() => {
-    let s = 0;
-    for (const it of items) {
-      if (!it) continue;
-      if (it.type === "step") {
-        s += it.step_duration_value || 0;
-      } else if (it.type === "repetition" && Array.isArray(it.steps)) {
-        s += (it.value || 0) * it.steps.reduce((a, st) => a + (st?.step_duration_value || 0), 0);
-      }
+  const handleReset = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from("nolio_workout_overrides")
+      .delete()
+      .eq("session_id", sessionId);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Erreur réinitialisation", description: error.message, variant: "destructive" });
+      return;
     }
-    return s;
-  }, [items]);
+    toast({ title: "Override supprimé", description: "Retour au texte original." });
+    onSaved?.();
+    onClose();
+  };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base">
-            Éditer la structure Nolio
+            Éditer structure Nolio
             <div className="text-xs font-normal text-muted-foreground mt-1">
               <span className="font-mono">{sessionId}</span>
               {sessionLabel && <span> · {sessionLabel}</span>}
@@ -202,8 +174,10 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Chargement…</p>
+        ) : (
+          <div className="space-y-4">
             <div>
               <Label className="text-xs">Sport Nolio</Label>
               <Select value={String(sportId)} onValueChange={(v) => setSportId(parseInt(v, 10))}>
@@ -215,82 +189,40 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end text-xs text-muted-foreground">
-              Durée totale estimée : <span className="font-mono ml-1">{Math.round(totalSec / 60)} min</span>
-            </div>
-          </div>
 
-          <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-2 space-y-2">
-            <div className="grid grid-cols-4 gap-2">
-              <div>
-                <Label className="text-[10px]">FTP (W)</Label>
-                <Input type="number" className="h-8 text-xs" value={ftp} onChange={(e) => setFtp(parseInt(e.target.value, 10) || 0)} />
-              </div>
-              <div>
-                <Label className="text-[10px]">FC max (bpm)</Label>
-                <Input type="number" className="h-8 text-xs" value={fcMax} onChange={(e) => setFcMax(parseInt(e.target.value, 10) || 0)} />
-              </div>
-              <div>
-                <Label className="text-[10px]">VMA (km/h)</Label>
-                <Input type="number" step="0.1" className="h-8 text-xs" value={vma} onChange={(e) => setVma(parseFloat(e.target.value) || 0)} />
-              </div>
-              <div>
-                <Label className="text-[10px]">CSS (s/100m)</Label>
-                <Input type="number" className="h-8 text-xs" value={css} onChange={(e) => setCss(parseInt(e.target.value, 10) || 0)} />
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 items-center">
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleGenerate}
-              disabled={generating || loading}
-            >
-              {generating ? (
-                <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Génération en cours…</>
-              ) : hasGenerated ? (
-                <><RefreshCw className="h-3 w-3 mr-1" /> 🔄 Regénérer</>
-              ) : (
-                <><Sparkles className="h-3 w-3 mr-1" /> ✨ Générer automatiquement</>
-              )}
-            </Button>
-            <span className="text-[11px] text-muted-foreground">
-              L'IA analyse le texte de la séance et pré-remplit la structure Nolio. Vérifie avant de sauvegarder.
-            </span>
-            </div>
-          </div>
-
-
-
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Chargement…</p>
-          ) : (
-            <div className="space-y-2">
-              {items.length === 0 && (
-                <p className="text-xs text-muted-foreground italic">Aucun step défini. Utilisez les boutons ci-dessous.</p>
-              )}
-              {items.map((it, idx) => (
-                <ItemCard
-                  key={idx}
-                  item={it}
-                  onChange={(next) => updateItem(idx, next)}
-                  onRemove={() => removeItem(idx)}
+            {([
+              { label: "Warm-up", row: warm, set: setWarm },
+              { label: "Main", row: main, set: setMain },
+              { label: "Cool-down", row: cool, set: setCool },
+            ] as const).map(({ label, row, set }) => (
+              <div key={label} className="space-y-1 rounded-md border p-2">
+                <Label className="text-xs font-semibold">{label}</Label>
+                <Textarea
+                  className="text-xs min-h-[60px]"
+                  placeholder="Texte de la séance…"
+                  value={row.text}
+                  onChange={(e) => set({ ...row, text: e.target.value })}
                 />
-              ))}
-            </div>
-          )}
-
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={addStep}>
-              <Plus className="h-3 w-3 mr-1" /> Ajouter un step
-            </Button>
-            <Button type="button" variant="outline" size="sm" onClick={addRep}>
-              <Repeat className="h-3 w-3 mr-1" /> Ajouter un bloc répétition
-            </Button>
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Zones (ex: Z1, Z2)</Label>
+                  <Input
+                    className="h-8 text-xs"
+                    placeholder="Z1, Z2"
+                    value={row.zones}
+                    onChange={(e) => set({ ...row, zones: e.target.value })}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
 
-        <DialogFooter>
+        <DialogFooter className="gap-2">
+          {hasOverride && (
+            <Button variant="ghost" onClick={handleReset} disabled={saving} className="mr-auto">
+              <RotateCcw className="h-3 w-3 mr-1" /> Réinitialiser
+            </Button>
+          )}
           <Button variant="outline" onClick={onClose} disabled={saving}>Annuler</Button>
           <Button onClick={handleSave} disabled={saving || loading}>
             {saving ? "Sauvegarde…" : "Sauvegarder"}
@@ -298,159 +230,5 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function StepEditor({
-  step,
-  onChange,
-  onRemove,
-  compact,
-}: {
-  step: NolioEditorStep;
-  onChange: (s: NolioEditorStep) => void;
-  onRemove?: () => void;
-  compact?: boolean;
-}) {
-  const set = <K extends keyof NolioEditorStep>(k: K, v: NolioEditorStep[K]) => onChange({ ...step, [k]: v });
-  const showTargets = step.target_type !== "no_target";
-  return (
-    <div className={`grid gap-2 ${compact ? "md:grid-cols-6" : "md:grid-cols-6"} grid-cols-2 items-end`}>
-      <div>
-        <Label className="text-[10px]">Type</Label>
-        <Select value={step.intensity_type} onValueChange={(v) => set("intensity_type", v as NolioIntensityType)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="warmup">warmup</SelectItem>
-            <SelectItem value="active">active</SelectItem>
-            <SelectItem value="rest">rest</SelectItem>
-            <SelectItem value="cooldown">cooldown</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <Label className="text-[10px]">Durée/Distance</Label>
-        <Select value={step.step_duration_type} onValueChange={(v) => set("step_duration_type", v as NolioStepDurationType)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="duration">duration (s)</SelectItem>
-            <SelectItem value="distance">distance (m)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <Label className="text-[10px]">Valeur</Label>
-        <Input
-          type="number"
-          className="h-8 text-xs"
-          value={step.step_duration_value}
-          onChange={(e) => set("step_duration_value", parseInt(e.target.value, 10) || 0)}
-        />
-      </div>
-      <div>
-        <Label className="text-[10px]">Target</Label>
-        <Select value={step.target_type} onValueChange={(v) => set("target_type", v as NolioTargetType)}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="no_target">no_target</SelectItem>
-            <SelectItem value="heartrate">heartrate</SelectItem>
-            <SelectItem value="power">power</SelectItem>
-            <SelectItem value="pace">pace</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      {showTargets ? (
-        <>
-          <div>
-            <Label className="text-[10px]">Min</Label>
-            <Input
-              type="number"
-              className="h-8 text-xs"
-              value={step.target_value_min ?? ""}
-              onChange={(e) => set("target_value_min", e.target.value === "" ? undefined : parseInt(e.target.value, 10))}
-            />
-          </div>
-          <div className="flex gap-1 items-end">
-            <div className="flex-1">
-              <Label className="text-[10px]">Max</Label>
-              <Input
-                type="number"
-                className="h-8 text-xs"
-                value={step.target_value_max ?? ""}
-                onChange={(e) => set("target_value_max", e.target.value === "" ? undefined : parseInt(e.target.value, 10))}
-              />
-            </div>
-            {onRemove && (
-              <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={onRemove}>
-                <Trash2 className="h-3 w-3 text-destructive" />
-              </Button>
-            )}
-          </div>
-        </>
-      ) : (
-        <div className="col-span-2 flex justify-end">
-          {onRemove && (
-            <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={onRemove}>
-              <Trash2 className="h-3 w-3 text-destructive" />
-            </Button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ItemCard({
-  item,
-  onChange,
-  onRemove,
-}: {
-  item: NolioEditorItem;
-  onChange: (i: NolioEditorItem) => void;
-  onRemove: () => void;
-}) {
-  if (item.type === "step") {
-    return (
-      <Card>
-        <CardContent className="p-3">
-          <StepEditor step={item} onChange={onChange} onRemove={onRemove} />
-        </CardContent>
-      </Card>
-    );
-  }
-  const rep = item;
-  const updateChild = (i: number, s: NolioEditorStep) =>
-    onChange({ ...rep, steps: rep.steps.map((c, idx) => (idx === i ? s : c)) });
-  const removeChild = (i: number) =>
-    onChange({ ...rep, steps: rep.steps.filter((_, idx) => idx !== i) });
-  const addChild = () =>
-    onChange({ ...rep, steps: [...rep.steps, blankStep()] });
-  return (
-    <Card className="border-primary/40">
-      <CardContent className="p-3 space-y-2">
-        <div className="flex items-center gap-2">
-          <Repeat className="h-4 w-4 text-primary" />
-          <Label className="text-xs">Répétitions</Label>
-          <Input
-            type="number"
-            className="h-8 w-20 text-xs"
-            value={rep.value}
-            onChange={(e) => onChange({ ...rep, value: parseInt(e.target.value, 10) || 1 })}
-          />
-          <span className="text-xs text-muted-foreground">× les steps ci-dessous</span>
-          <Button type="button" size="icon" variant="ghost" className="h-8 w-8 ml-auto" onClick={onRemove}>
-            <Trash2 className="h-3 w-3 text-destructive" />
-          </Button>
-        </div>
-        <div className="space-y-2 pl-4 border-l-2 border-primary/30">
-          {rep.steps.map((s, i) => (
-            <StepEditor key={i} step={s} onChange={(ns) => updateChild(i, ns)} onRemove={() => removeChild(i)} compact />
-          ))}
-          <Button type="button" variant="outline" size="sm" onClick={addChild}>
-            <Plus className="h-3 w-3 mr-1" /> Ajouter un step enfant
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
