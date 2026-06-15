@@ -111,6 +111,21 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
     }
     return out;
   };
+  /** Pick N séances d'un sport précis (force regen possible). */
+  const pickBatchForSport = (sport: string, n: number, forceRegenerate = false): LibraryWorkout[] => {
+    const out: LibraryWorkout[] = [];
+    for (const w of filteredWorkouts) {
+      if (out.length >= n) break;
+      if (normalizeSport(w.sport) !== sport) continue;
+      if (!forceRegenerate) {
+        const g = generatedMap.get(w.id);
+        if (g?.status === "ok") continue;
+      }
+      out.push(w);
+    }
+    return out;
+  };
+
 
   const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false) => {
     if (batch.length === 0) {
