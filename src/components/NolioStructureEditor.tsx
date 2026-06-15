@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Plus, Repeat } from "lucide-react";
+import { Trash2, Plus, Repeat, Sparkles, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -74,13 +74,17 @@ type Props = {
   sessionLabel?: string;
   defaultSportId?: number;
   onSaved?: () => void;
+  workoutText?: string;
+  sport?: string;
 };
 
-export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, defaultSportId, onSaved }: Props) {
+export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, defaultSportId, onSaved, workoutText, sport }: Props) {
   const [sportId, setSportId] = useState<number>(defaultSportId ?? 2);
   const [items, setItems] = useState<NolioEditorItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -111,6 +115,40 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
   const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
   const addStep = () => setItems((prev) => [...prev, blankStep()]);
   const addRep = () => setItems((prev) => [...prev, blankRep()]);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-generate-structure", {
+        body: {
+          sessionId,
+          sessionLabel,
+          sport,
+          workoutText: workoutText ?? sessionLabel ?? "",
+          defaultSportId: defaultSportId ?? 2,
+          ftp: 280, fcMax: 185, css: 95,
+        },
+      });
+      if (error) throw error;
+      const generated = data as { sport_id?: number; structured_workout?: NolioEditorItem[] };
+      if (generated?.structured_workout && Array.isArray(generated.structured_workout)) {
+        setItems(generated.structured_workout);
+        if (typeof generated.sport_id === "number") setSportId(generated.sport_id);
+        setHasGenerated(true);
+        toast({ title: "Structure générée", description: "Vérifie et ajuste avant de sauvegarder." });
+      } else {
+        throw new Error("Format de réponse invalide");
+      }
+    } catch (e) {
+      toast({
+        title: "Échec de la génération",
+        description: (e as Error).message ?? "Saisie manuelle requise.",
+        variant: "destructive",
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -173,6 +211,27 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
               Durée totale estimée : <span className="font-mono ml-1">{Math.round(totalSec / 60)} min</span>
             </div>
           </div>
+
+          <div className="flex flex-wrap gap-2 items-center rounded-md border border-dashed border-primary/40 bg-primary/5 p-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleGenerate}
+              disabled={generating || loading}
+            >
+              {generating ? (
+                <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Génération en cours…</>
+              ) : hasGenerated ? (
+                <><RefreshCw className="h-3 w-3 mr-1" /> 🔄 Regénérer</>
+              ) : (
+                <><Sparkles className="h-3 w-3 mr-1" /> ✨ Générer automatiquement</>
+              )}
+            </Button>
+            <span className="text-[11px] text-muted-foreground">
+              L'IA analyse le texte de la séance et pré-remplit la structure Nolio. Vérifie avant de sauvegarder.
+            </span>
+          </div>
+
 
           {loading ? (
             <p className="text-sm text-muted-foreground">Chargement…</p>
