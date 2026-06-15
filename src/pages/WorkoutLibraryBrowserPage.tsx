@@ -140,16 +140,36 @@ export default function WorkoutLibraryBrowserPage() {
     <SidebarLayout activeTab={activeTab} onTabChange={setActiveTab} staffMode={staffMode} onStaffModeChange={setStaffMode}>
       <div className="p-4 md:p-6 space-y-6 max-w-[1400px] mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Library className="h-6 w-6 text-primary" />
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Library className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Bibliothèque des Séances TFCL™</h1>
+              <p className="text-sm text-muted-foreground">
+                {WorkoutLibrary.length} séances disponibles pour les plans IA (dont variantes programmatiques)
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Bibliothèque des Séances TFCL™</h1>
-            <p className="text-sm text-muted-foreground">
-              {WorkoutLibrary.length} séances disponibles pour les plans IA (dont variantes programmatiques)
-            </p>
-          </div>
+          {/* Compteur structures Nolio générées */}
+          {(() => {
+            const okCount = Array.from(generatedMap.values()).filter((g) => g.status === "ok").length;
+            const total = WorkoutLibrary.length;
+            const pct = total > 0 ? Math.round((okCount / total) * 100) : 0;
+            return (
+              <div className="flex flex-col items-end gap-1 min-w-[220px]">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-emerald-600 font-semibold">✅ {okCount} / {total}</span>
+                  <span className="text-muted-foreground">séances structurées Nolio</span>
+                </div>
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-[10px] text-muted-foreground">{pct}% du catalogue</span>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Stats cards */}
