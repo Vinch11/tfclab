@@ -85,7 +85,7 @@ EXEMPLE VÉLO (3x8' à 90-95% FTP, r=4', ftp=280) :
   {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":900,"target_type":"power","target_value_min":140,"target_value_max":196,"pct_ftp_min":50,"pct_ftp_max":70,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
   {"type":"repetition","value":3,"steps":[
     {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":480,"target_type":"power","target_value_min":252,"target_value_max":266,"pct_ftp_min":90,"pct_ftp_max":95,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
-    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":240,"target_type":"heartrate","target_value_min":93,"target_value_max":111,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":50,"pct_hrmax_max":60,"pct_css_min":null,"pct_css_max":null}
+    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":240,"target_type":"power","target_value_min":126,"target_value_max":154,"pct_ftp_min":45,"pct_ftp_max":55,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
   ]},
   {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"power","target_value_min":112,"target_value_max":154,"pct_ftp_min":40,"pct_ftp_max":55,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
 ]
