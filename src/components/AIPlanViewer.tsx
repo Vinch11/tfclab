@@ -771,14 +771,20 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       };
     });
 
-    // Calibre planStartDate côté serveur : choisi par l'utilisateur = lundi de la semaine 1.
-    // Determine the smallest weekNumber among selection to anchor planStartDate so dates align.
-    const minWeek = Math.min(...selectedSessions.map((s) => s.weekNumber));
+    // bulkStartDate = lundi choisi par le coach pour la PREMIÈRE semaine du plan affiché.
+    // Le serveur applique addDays(planStartDate, (weekNumber - 1) * 7 + dayIndex), donc
+    // planStartDate doit être le lundi correspondant à weekNumber=1 du plan global.
+    // Si la première semaine parsée n'est pas n°1 (ex: chunk démarre à Semaine 2), on recule
+    // planStartDate de (firstWeek - 1) * 7 jours pour que bulkStartDate reste le lundi de
+    // cette première semaine visible. Sans ça, les séances apparaissent une semaine trop tard.
+    const firstWeekInPlan = plan.weeks.length > 0
+      ? Math.min(...plan.weeks.map((w) => w.weekNumber))
+      : 1;
     const anchorDt = new Date(`${bulkStartDate}T00:00:00Z`);
-    // bulkStartDate corresponds to week 1 Monday; if selection starts at minWeek, planStartDate = bulkStartDate
-    // (server computes addDays(planStartDate, (w-1)*7+d) which is correct from week 1 anchor)
-    void minWeek;
-    const computedStart = anchorDt.toISOString().slice(0, 10);
+    const planStartDt = new Date(anchorDt);
+    planStartDt.setUTCDate(planStartDt.getUTCDate() - (firstWeekInPlan - 1) * 7);
+    const computedStart = planStartDt.toISOString().slice(0, 10);
+
 
     // Indeterminate progress animation (single request)
     const interval = setInterval(() => {
@@ -1074,8 +1080,12 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
 
           <div className="max-h-[300px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
             {selectedSessions.map((s) => {
+              const firstWeekInPlan = plan.weeks.length > 0
+                ? Math.min(...plan.weeks.map((w) => w.weekNumber))
+                : 1;
               const anchor = new Date(`${bulkStartDate}T00:00:00`);
-              const dt = addDays(anchor, (s.weekNumber - 1) * 7 + s.dayIndex);
+              const dt = addDays(anchor, (s.weekNumber - firstWeekInPlan) * 7 + s.dayIndex);
+
               return (
                 <div
                   key={`${s.weekNumber}-${s.dayIndex}-${s.title}`}
