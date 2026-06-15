@@ -29,12 +29,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+
+type NolioScope = "selected" | "single" | "range" | "all";
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase();
@@ -730,6 +735,23 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
   const [bulkSending, setBulkSending] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
 
+  // Scope selector
+  const allWeekNums = useMemo(
+    () => Array.from(new Set(plan.weeks.map((w) => w.weekNumber))).sort((a, b) => a - b),
+    [plan.weeks],
+  );
+  const [scope, setScope] = useState<NolioScope>("all");
+  const [scopeWeek, setScopeWeek] = useState<number>(() => allWeekNums[0] ?? 1);
+  const [scopeFrom, setScopeFrom] = useState<number>(() => allWeekNums[0] ?? 1);
+  const [scopeTo, setScopeTo] = useState<number>(() => allWeekNums[allWeekNums.length - 1] ?? 1);
+  useEffect(() => {
+    if (allWeekNums.length === 0) return;
+    if (!allWeekNums.includes(scopeWeek)) setScopeWeek(allWeekNums[0]);
+    if (!allWeekNums.includes(scopeFrom)) setScopeFrom(allWeekNums[0]);
+    if (!allWeekNums.includes(scopeTo)) setScopeTo(allWeekNums[allWeekNums.length - 1]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allWeekNums.join(",")]);
+
   // Map selected keys → ParsedSession objects from current plan
   const selectedSessions = useMemo(() => {
     if (!nolioCtx) return [] as ParsedSession[];
@@ -744,15 +766,47 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     return out;
   }, [plan, selectedKeys, nolioCtx]);
 
-  async function handleBulkSend() {
-    if (!nolioCtx || selectedSessions.length === 0) return;
-    setBulkSending(true);
-    setBulkProgress({ done: 0, total: selectedSessions.length });
+  // Sessions effectively targeted by the current scope (used for top panel + confirm modal + send)
+  const targetSessions = useMemo(() => {
+    if (!nolioCtx) return [] as ParsedSession[];
+    if (scope === "selected") return selectedSessions;
+    const lo = Math.min(scopeFrom, scopeTo);
+    const hi = Math.max(scopeFrom, scopeTo);
+    const inScope = (n: number) => {
+      if (scope === "all") return true;
+      if (scope === "single") return n === scopeWeek;
+      return n >= lo && n <= hi;
+    };
+    const out: ParsedSession[] = [];
+    for (const w of plan.weeks) {
+      if (!inScope(w.weekNumber)) continue;
+      for (const s of w.sessions) {
+        if (s.isRest || s.dayIndex < 0) continue;
+        out.push(s);
+      }
+    }
+    return out;
+  }, [scope, scopeWeek, scopeFrom, scopeTo, plan, selectedSessions, nolioCtx]);
 
-    // Compute sessionIndex per (weekNumber, dayIndex) by counting sessions already
-    // processed in the same day. 0 = première séance du jour, 1 = deuxième, etc.
+  const targetWeekNumbers = useMemo(
+    () => Array.from(new Set(targetSessions.map((s) => s.weekNumber))).sort((a, b) => a - b),
+    [targetSessions],
+  );
+
+  const alreadySentInScope = useMemo(() => {
+    if (!nolioCtx) return 0;
+    return targetSessions.filter((s) =>
+      sentKeys.has(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex)),
+    ).length;
+  }, [targetSessions, sentKeys, nolioCtx]);
+
+  async function handleBulkSend() {
+    if (!nolioCtx || targetSessions.length === 0) return;
+    setBulkSending(true);
+    setBulkProgress({ done: 0, total: targetSessions.length });
+
     const dayCounters = new Map<string, number>();
-    const enriched = selectedSessions.map((s) => {
+    const enriched = targetSessions.map((s) => {
       const dayKey = `${s.weekNumber}:${s.dayIndex}`;
       const sessionIndex = dayCounters.get(dayKey) ?? 0;
       dayCounters.set(dayKey, sessionIndex + 1);
@@ -771,12 +825,6 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       };
     });
 
-    // bulkStartDate = lundi choisi par le coach pour la PREMIÈRE semaine du plan affiché.
-    // Le serveur applique addDays(planStartDate, (weekNumber - 1) * 7 + dayIndex), donc
-    // planStartDate doit être le lundi correspondant à weekNumber=1 du plan global.
-    // Si la première semaine parsée n'est pas n°1 (ex: chunk démarre à Semaine 2), on recule
-    // planStartDate de (firstWeek - 1) * 7 jours pour que bulkStartDate reste le lundi de
-    // cette première semaine visible. Sans ça, les séances apparaissent une semaine trop tard.
     const firstWeekInPlan = plan.weeks.length > 0
       ? Math.min(...plan.weeks.map((w) => w.weekNumber))
       : 1;
@@ -785,8 +833,6 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     planStartDt.setUTCDate(planStartDt.getUTCDate() - (firstWeekInPlan - 1) * 7);
     const computedStart = planStartDt.toISOString().slice(0, 10);
 
-
-    // Indeterminate progress animation (single request)
     const interval = setInterval(() => {
       setBulkProgress((p) => {
         if (p.done >= p.total - 1) return p;
@@ -809,10 +855,9 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       const result = data as { sent?: number; errors?: { status: number; detail?: string }[] } | null;
       const sentCount = result?.sent ?? 0;
       const errs = result?.errors ?? [];
-      setBulkProgress({ done: sentCount, total: selectedSessions.length });
+      setBulkProgress({ done: sentCount, total: targetSessions.length });
 
       if (sentCount > 0) {
-        // Mark all as sent (best-effort: assume order matches enriched order; mark the first sentCount)
         enriched.slice(0, sentCount).forEach((s) => {
           markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
         });
@@ -869,6 +914,116 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
 
   return (
     <div className="space-y-4">
+      {/* Nolio — Top sending panel (unified scopes) */}
+      {nolioCtx && (
+        <Card className="border-primary/30">
+          <CardContent className="p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <Send className="h-4 w-4 text-primary" />
+              <h3 className="font-semibold text-sm">Envoyer vers Nolio</h3>
+              <Badge variant="secondary" className="text-[10px]">
+                athlète lié #{nolioCtx.nolioId}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="nolio-plan-start" className="text-xs">
+                  Date de début du plan (lundi semaine {allWeekNums[0] ?? 1})
+                </Label>
+                <Input
+                  id="nolio-plan-start"
+                  type="date"
+                  value={bulkStartDate}
+                  onChange={(e) => setBulkStartDate(e.target.value)}
+                  disabled={bulkSending}
+                  className="h-9"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Périmètre d'envoi</Label>
+                <RadioGroup
+                  value={scope}
+                  onValueChange={(v) => setScope(v as NolioScope)}
+                  className="grid grid-cols-2 gap-1.5 text-xs"
+                >
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="selected" id="scope-selected" />
+                    <span>Séances sélectionnées ({selectedSessions.length})</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="single" id="scope-single" />
+                    <span>Une semaine</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="range" id="scope-range" />
+                    <span>Plage de semaines</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <RadioGroupItem value="all" id="scope-all" />
+                    <span>Plan complet ({allWeekNums.length} sem.)</span>
+                  </label>
+                </RadioGroup>
+              </div>
+            </div>
+
+            {scope === "single" && (
+              <div className="flex items-center gap-2">
+                <Label className="text-xs whitespace-nowrap">Semaine :</Label>
+                <Select value={String(scopeWeek)} onValueChange={(v) => setScopeWeek(Number(v))}>
+                  <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {allWeekNums.map((n) => (
+                      <SelectItem key={n} value={String(n)}>Semaine {n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {scope === "range" && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <Label className="text-xs whitespace-nowrap">De :</Label>
+                <Select value={String(scopeFrom)} onValueChange={(v) => setScopeFrom(Number(v))}>
+                  <SelectTrigger className="h-9 w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {allWeekNums.map((n) => (
+                      <SelectItem key={n} value={String(n)}>Semaine {n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Label className="text-xs whitespace-nowrap">jusqu'à :</Label>
+                <Select value={String(scopeTo)} onValueChange={(v) => setScopeTo(Number(v))}>
+                  <SelectTrigger className="h-9 w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {allWeekNums.map((n) => (
+                      <SelectItem key={n} value={String(n)}>Semaine {n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-3 pt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground">
+                {targetSessions.length} séance(s) à envoyer
+                {targetWeekNumbers.length > 0 && ` · semaines ${targetWeekNumbers.join(", ")}`}
+                {alreadySentInScope > 0 && ` · ${alreadySentInScope} déjà envoyée(s)`}
+              </p>
+              <Button
+                size="sm"
+                onClick={() => setBulkConfirmOpen(true)}
+                disabled={targetSessions.length === 0 || bulkSending}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Envoyer vers Nolio
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Plan Header */}
       <Card>
         <CardContent className="p-4 space-y-3">
@@ -1068,33 +1223,63 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       <Dialog open={bulkConfirmOpen} onOpenChange={(v) => !bulkSending && setBulkConfirmOpen(v)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Confirmer l'envoi groupé vers Nolio</DialogTitle>
+            <DialogTitle>Confirmer l'envoi vers Nolio</DialogTitle>
             <DialogDescription>
-              {selectedSessions.length} séance(s) à envoyer. Début du plan :{" "}
+              Périmètre :{" "}
+              <span className="font-medium text-foreground">
+                {scope === "selected" && `Séances sélectionnées (${selectedSessions.length})`}
+                {scope === "single" && `Semaine ${scopeWeek}`}
+                {scope === "range" && `Semaines ${Math.min(scopeFrom, scopeTo)} à ${Math.max(scopeFrom, scopeTo)}`}
+                {scope === "all" && `Plan complet (${allWeekNums.length} semaines)`}
+              </span>
+              {" · "}Début du plan :{" "}
               <span className="font-medium text-foreground">
                 {format(new Date(`${bulkStartDate}T00:00:00`), "EEEE d MMMM yyyy", { locale: fr })}
               </span>
-              . Les séances déjà envoyées (même <code className="px-1">id_partner</code>) ne seront pas dupliquées.
+              .
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[300px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
-            {selectedSessions.map((s) => {
+          {targetWeekNumbers.length > 0 && (
+            <div className="text-xs text-muted-foreground">
+              Semaines concernées :{" "}
+              {targetWeekNumbers.map((n) => {
+                const firstWeekInPlan = Math.min(...plan.weeks.map((w) => w.weekNumber));
+                const anchor = new Date(`${bulkStartDate}T00:00:00`);
+                const dt = addDays(anchor, (n - firstWeekInPlan) * 7);
+                return `S${n} (${format(dt, "d MMM", { locale: fr })})`;
+              }).join(" · ")}
+            </div>
+          )}
+
+          <div className="text-sm">
+            <span className="font-medium">{targetSessions.length}</span> séance(s) à envoyer (hors repos).
+          </div>
+
+          {alreadySentInScope > 0 && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {alreadySentInScope} séance(s) de ce périmètre ont déjà été envoyées sur Nolio.
+                Elles seront supprimées et recréées côté Nolio.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="max-h-[260px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
+            {targetSessions.map((s) => {
               const firstWeekInPlan = plan.weeks.length > 0
                 ? Math.min(...plan.weeks.map((w) => w.weekNumber))
                 : 1;
               const anchor = new Date(`${bulkStartDate}T00:00:00`);
               const dt = addDays(anchor, (s.weekNumber - firstWeekInPlan) * 7 + s.dayIndex);
-
               return (
                 <div
                   key={`${s.weekNumber}-${s.dayIndex}-${s.title}`}
                   className="flex items-center justify-between gap-2 py-1 border-b border-border/40 last:border-0"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-muted-foreground whitespace-nowrap">
-                      S{s.weekNumber}
-                    </span>
+                    <span className="text-muted-foreground whitespace-nowrap">S{s.weekNumber}</span>
                     <span className="font-medium truncate">{s.title}</span>
                   </div>
                   <span className="text-muted-foreground whitespace-nowrap">
@@ -1118,7 +1303,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
             <Button variant="outline" onClick={() => setBulkConfirmOpen(false)} disabled={bulkSending}>
               Annuler
             </Button>
-            <Button onClick={handleBulkSend} disabled={bulkSending || selectedSessions.length === 0}>
+            <Button onClick={handleBulkSend} disabled={bulkSending || targetSessions.length === 0}>
               {bulkSending ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
               ) : (

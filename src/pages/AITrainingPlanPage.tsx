@@ -38,7 +38,7 @@ import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionL
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
-import { NolioSendPlanCard } from "@/components/NolioSendPlanCard";
+
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
@@ -1928,14 +1928,7 @@ export default function AITrainingPlanPage() {
                             : "Plan IA · estimation depuis VMA"
                         }
                       />
-                      {currentAthlete && (
-                        <NolioSendPlanCard
-                          athleteId={currentAthlete.id}
-                          athleteName={currentAthlete.nom}
-                          parsedPlan={parsedPlan}
-                          planStartDate={planStartDate}
-                        />
-                      )}
+                      {/* Nolio sending panel is now rendered at the top of AIPlanViewer */}
                       <AIPlanViewer
                         plan={parsedPlan}
                         startDate={planStartDate}
