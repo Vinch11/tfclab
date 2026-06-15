@@ -313,36 +313,44 @@ Deno.serve(async (req) => {
 
     log(`STEP 5 — Bilan: ${updated} mis à jour, ${errors.length} erreurs`);
 
-    // STEP 5b — Diagnostic : récupère les séances réelles du premier athlète lié pour connaître les vrais sport_id Nolio
+    // STEP 5b — Diagnostic : sport_id réels Nolio sur plusieurs athlètes
     try {
-      const firstLinked = (nolioAthletesScoped.length ? nolioAthletesScoped : nolioAthletes)
-        .find(a => Number.isFinite(Number(a.nolio_id)));
-      if (firstLinked) {
-        const diagNolioId = Number(firstLinked.nolio_id);
-        const diagUrl = `https://www.nolio.io/api/get/training/?athlete_id=${diagNolioId}&limit=5`;
-        log(`STEP 5b — GET ${diagUrl}`);
-        const diagResp = await fetch(diagUrl, {
-          headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
-        });
-        const diagText = await diagResp.text();
-        log(`STEP 5b — HTTP ${diagResp.status}, body (first 3000 chars): ${diagText.slice(0, 3000)}`);
+      const candidates = (nolioAthletesScoped.length ? nolioAthletesScoped : nolioAthletes)
+        .filter(a => Number.isFinite(Number(a.nolio_id)))
+        .slice(0, 6);
+      const sportIdMap = new Map<number, string>();
+      for (const cand of candidates) {
+        const diagNolioId = Number(cand.nolio_id);
+        const diagUrl = `https://www.nolio.io/api/get/training/?athlete_id=${diagNolioId}&limit=20`;
+        log(`STEP 5b — GET ${diagUrl} (${cand.name})`);
         try {
+          const diagResp = await fetch(diagUrl, {
+            headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+          });
+          const diagText = await diagResp.text();
+          log(`STEP 5b — ${cand.name} HTTP ${diagResp.status}, len=${diagText.length}`);
           const diagJson = JSON.parse(diagText);
           const arr: any[] = Array.isArray(diagJson) ? diagJson : (Array.isArray(diagJson?.results) ? diagJson.results : []);
           const sports = arr.map(t => ({
-            id: t?.id ?? t?.pk ?? null,
-            id_partner: t?.id_partner ?? null,
             name: t?.name ?? null,
-            sport_id: t?.sport_id ?? t?.sport ?? null,
+            sport: t?.sport ?? null,
+            sport_id: t?.sport_id ?? null,
             date_start: t?.date_start ?? null,
           }));
-          log(`STEP 5b — sport_id détectés (athlète nolio_id=${diagNolioId}, ${sports.length} séances): ${JSON.stringify(sports)}`);
+          for (const s of sports) {
+            if (typeof s.sport_id === "number" && !sportIdMap.has(s.sport_id)) {
+              sportIdMap.set(s.sport_id, String(s.sport ?? s.name ?? "?"));
+            }
+          }
+          log(`STEP 5b — ${cand.name} (${sports.length} séances): ${JSON.stringify(sports)}`);
         } catch (e) {
-          log(`STEP 5b — parse JSON KO: ${(e as Error).message}`);
+          log(`STEP 5b — ${cand.name} KO: ${(e as Error).message}`);
         }
-      } else {
-        log(`STEP 5b — aucun athlète Nolio valide pour diagnostic /get/training/`);
       }
+      const mapSummary = Array.from(sportIdMap.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([id, name]) => `${id}=${name}`).join(", ");
+      log(`STEP 5b — MAPPING sport_id découverts: ${mapSummary || "(aucun)"}`);
     } catch (e) {
       log(`STEP 5b — exception diagnostic: ${(e as Error).message}`);
     }
