@@ -733,7 +733,12 @@ Deno.serve(async (req) => {
         String(new Date().getDate()).padStart(2, '0'),
         10,
       );
-      const sportId = usedOverride && override ? override.sport_id : mapSport(s.sport, s.title, s.id ?? null);
+      const generatedForSport = usedGenerated && overrideKey ? generatedMap.get(overrideKey) : undefined;
+      const sportId = usedOverride && override
+        ? override.sport_id
+        : generatedForSport
+          ? generatedForSport.sport_id
+          : mapSport(s.sport, s.title, s.id ?? null);
 
 
       // Suppression préalable : la séance peut déjà exister avec un sport_id obsolète.
