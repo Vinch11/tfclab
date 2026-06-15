@@ -343,16 +343,37 @@ function parseRepetitionPattern(text: string): {
  * - Renomme `repeat_count` → `value` sur tous les nœuds `repetition` (spec officielle Nolio).
  * - Supprime récursivement les clés dont la valeur est `null` ou `undefined`
  *   (Nolio rejette `pct_ftp_min: null`, `target_value_max: null`, etc.).
+ * - Convertit les steps `intensity_type:"rest"` + `target_type:"no_target"` en cible
+ *   FC Z1 (50–60% FCmax) pour éviter l'affichage `empty_unit` dans Nolio.
  * Ref: https://github.com/NolioApp/NolioAPI-Documentation/wiki/Structured-Workout
  */
-function normalizeStructuredWorkoutForNolio(input: unknown): unknown {
+function normalizeStructuredWorkoutForNolio(input: unknown, refs?: AthleteRefs): unknown {
   if (Array.isArray(input)) {
     return input
-      .map(normalizeStructuredWorkoutForNolio)
+      .map((v) => normalizeStructuredWorkoutForNolio(v, refs))
       .filter((v) => v !== null && v !== undefined);
   }
   if (input && typeof input === "object") {
     const src = input as Record<string, unknown>;
+
+    // Rest + no_target → heartrate Z1 (50-60% FCmax)
+    const fcMax = refs?.fcMax;
+    if (
+      src.type === "step" &&
+      src.intensity_type === "rest" &&
+      src.target_type === "no_target" &&
+      typeof fcMax === "number" && fcMax > 0
+    ) {
+      const lo = Math.round(fcMax * 0.50);
+      const hi = Math.round(fcMax * 0.60);
+      src.target_type = "heartrate";
+      src.target_value_min = lo;
+      src.target_value_max = hi;
+      src.target_value = Math.round((lo + hi) / 2);
+      src.pct_hrmax_min = 50;
+      src.pct_hrmax_max = 60;
+    }
+
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(src)) {
       if (v === null || v === undefined) continue;
@@ -361,7 +382,7 @@ function normalizeStructuredWorkoutForNolio(input: unknown): unknown {
         out.value = typeof v === "number" ? v : Number(v);
         continue;
       }
-      out[k] = normalizeStructuredWorkoutForNolio(v);
+      out[k] = normalizeStructuredWorkoutForNolio(v, refs);
     }
     return out;
   }
@@ -864,7 +885,7 @@ Deno.serve(async (req) => {
         description: s.details ?? "",
       };
       if (structured_workout) {
-        payload.structured_workout = normalizeStructuredWorkoutForNolio(structured_workout);
+        payload.structured_workout = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {});
       }
 
       const res = await postSession({
