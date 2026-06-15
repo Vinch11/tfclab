@@ -1928,14 +1928,7 @@ export default function AITrainingPlanPage() {
                             : "Plan IA · estimation depuis VMA"
                         }
                       />
-                      {currentAthlete && (
-                        <NolioSendPlanCard
-                          athleteId={currentAthlete.id}
-                          athleteName={currentAthlete.nom}
-                          parsedPlan={parsedPlan}
-                          planStartDate={planStartDate}
-                        />
-                      )}
+                      {/* Nolio sending panel is now rendered at the top of AIPlanViewer */}
                       <AIPlanViewer
                         plan={parsedPlan}
                         startDate={planStartDate}
