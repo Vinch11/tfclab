@@ -1413,7 +1413,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      nolio_rename_repeat_count_to_value: {
+        Args: { node: Json }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
