@@ -106,8 +106,10 @@ Deno.serve(async (req) => {
     const results: Array<{ workout_id: string; status: string; error?: string }> = [];
     let ok = 0, error = 0, skipped = 0, totalCost = 0;
 
-    for (let i = 0; i < body.workouts.length; i++) {
-      const w = body.workouts[i];
+    // Préparation : calcul hash + skip
+    type Task = { w: WorkoutPayload; hash: string };
+    const tasks: Task[] = [];
+    for (const w of body.workouts) {
       const hash = await sha256Hex(w.workoutText ?? "");
       const prev = existingMap.get(w.workout_id);
       if (!body.force_regenerate && prev?.status === "ok" && prev.source_text_hash === hash) {
@@ -115,7 +117,10 @@ Deno.serve(async (req) => {
         results.push({ workout_id: w.workout_id, status: "skipped" });
         continue;
       }
+      tasks.push({ w, hash });
+    }
 
+    const processOne = async ({ w, hash }: Task) => {
       const userPrompt = `Refs athlète (utilise ces valeurs pour calculer les zones absolues) :
 - ftp = ${w.ftp ?? 280} W
 - fcMax = ${w.fcMax ?? 185} bpm
@@ -134,8 +139,6 @@ ${w.workoutText ?? ""}
 Retourne UNIQUEMENT le JSON valide { "sport_id": number, "structured_workout": array }.`;
 
       try {
-        if (i > 0) await sleep(1500); // Rate-limit safety
-
         const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -213,7 +216,19 @@ Retourne UNIQUEMENT le JSON valide { "sport_id": number, "structured_workout": a
         error += 1;
         results.push({ workout_id: w.workout_id, status: "error", error: msg });
       }
-    }
+    };
+
+    // Pool de concurrence : 5 séances en parallèle
+    const CONCURRENCY = 5;
+    let cursor = 0;
+    const workers = Array.from({ length: Math.min(CONCURRENCY, tasks.length) }, async () => {
+      while (true) {
+        const idx = cursor++;
+        if (idx >= tasks.length) return;
+        await processOne(tasks[idx]);
+      }
+    });
+    await Promise.all(workers);
 
     return new Response(
       JSON.stringify({
