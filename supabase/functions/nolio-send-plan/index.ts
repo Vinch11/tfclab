@@ -9,6 +9,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const NOLIO_CREATE_TRAINING_URL = "https://www.nolio.io/api/create/planned/training/";
+const NOLIO_UPDATE_TRAINING_URL = "https://www.nolio.io/api/update/planned/training/";
 
 type SupabaseAdmin = ReturnType<typeof createClient>;
 
