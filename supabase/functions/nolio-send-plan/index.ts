@@ -9,6 +9,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const NOLIO_CREATE_TRAINING_URL = "https://www.nolio.io/api/create/planned/training/";
+const NOLIO_UPDATE_TRAINING_URL = "https://www.nolio.io/api/update/planned/training/";
 
 type SupabaseAdmin = ReturnType<typeof createClient>;
 
@@ -362,12 +363,15 @@ function buildStructuredFromParts(
           ...target,
           notes: text.slice(0, 500),
         };
+        const restTarget = rep.restText
+          ? buildTargetFromText(rep.restText, refs)
+          : { target_type: "no_target" as const };
         const restStep: NolioStep = {
           type: "step",
           step_duration_type: "duration",
           step_duration_value: rep.restSec ?? 120,
           intensity_type: "rest",
-          target_type: "no_target",
+          ...restTarget,
           ...(rep.restText ? { notes: rep.restText.slice(0, 500) } : {}),
         };
         items.push({
@@ -493,7 +497,7 @@ async function postSession(opts: {
   admin: SupabaseAdmin;
   userId: string;
   payload: Record<string, unknown>;
-}): Promise<{ ok: boolean; status: number; detail?: string }> {
+}): Promise<{ ok: boolean; status: number; detail?: string; data?: unknown }> {
   const { url, accessTokenRef, refreshTokenStr, admin, userId, payload } = opts;
   let didRefresh = false;
   let attempt = 0;
@@ -520,7 +524,6 @@ async function postSession(opts: {
 
     if (resp.status === 429) {
       await new Promise((r) => setTimeout(r, 2000));
-      // une seule réessai pour 429 (spec)
       const retry = await fetch(url, {
         method: "POST",
         headers: {
@@ -531,18 +534,18 @@ async function postSession(opts: {
         body: JSON.stringify(payload),
       });
       const ctype2 = retry.headers.get("content-type") ?? "";
-      if (retry.ok) return { ok: true, status: retry.status };
-      const detail2 = ctype2.includes("application/json")
-        ? JSON.stringify(await retry.json().catch(() => null))
-        : (await retry.text()).slice(0, 300);
+      const isJson2 = ctype2.includes("application/json");
+      const parsed2 = isJson2 ? await retry.json().catch(() => null) : null;
+      if (retry.ok) return { ok: true, status: retry.status, data: parsed2 };
+      const detail2 = isJson2 ? JSON.stringify(parsed2) : (await retry.text()).slice(0, 300);
       return { ok: false, status: retry.status, detail: detail2 };
     }
 
     const ctype = resp.headers.get("content-type") ?? "";
-    if (resp.ok) return { ok: true, status: resp.status };
-    const detail = ctype.includes("application/json")
-      ? JSON.stringify(await resp.json().catch(() => null))
-      : (await resp.text()).slice(0, 300);
+    const isJson = ctype.includes("application/json");
+    const parsed = isJson ? await resp.json().catch(() => null) : null;
+    if (resp.ok) return { ok: true, status: resp.status, data: parsed };
+    const detail = isJson ? JSON.stringify(parsed) : (await resp.text()).slice(0, 300);
     return { ok: false, status: resp.status, detail };
   }
   return { ok: false, status: 0, detail: "unreachable" };
@@ -671,6 +674,25 @@ Deno.serve(async (req) => {
         payload,
       });
 
+      // Forcer la mise à jour du sport_id sur la séance créée (Nolio peut garder l'ancien sport_id si une version a déjà été envoyée)
+      let updateRes: { ok: boolean; status: number; detail?: string; data?: unknown } | null = null;
+      let createdId: number | string | null = null;
+      if (res.ok && res.data && typeof res.data === "object") {
+        const d = res.data as Record<string, unknown>;
+        const rawId = d.id ?? d.training_id ?? (d.data && typeof d.data === "object" ? (d.data as Record<string, unknown>).id : null);
+        if (typeof rawId === "number" || typeof rawId === "string") {
+          createdId = rawId;
+          updateRes = await postSession({
+            url: NOLIO_UPDATE_TRAINING_URL,
+            accessTokenRef,
+            refreshTokenStr,
+            admin,
+            userId,
+            payload: { id: rawId, sport_id: sportId },
+          });
+        }
+      }
+
       debugLog.push({
         week: s.weekNumber,
         day: s.dayIndex,
@@ -684,6 +706,10 @@ Deno.serve(async (req) => {
         sport_id: sportId,
         structured_workout,
         response: { ok: res.ok, status: res.status, detail: res.detail ?? null },
+        created_id: createdId,
+        update_response: updateRes
+          ? { ok: updateRes.ok, status: updateRes.status, detail: updateRes.detail ?? null }
+          : null,
       });
 
       if (res.ok) sent += 1;
