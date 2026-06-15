@@ -45,7 +45,7 @@ STRUCTURE : warmup → blocs principaux → cooldown. Main avec NxM' → repetit
 
 sport_id Nolio : 2=Course, 14=Vélo, 18=HomeTrainer, 19=Natation, 20=Renfo, 52=Trail. Pour brick : utiliser 2 (le segment vélo sera géré séparément).
 
-Retourne UNIQUEMENT ce JSON sans markdown ni texte : { "sport_id": number, "structured_workout": array, "schema_version": "v2-hybrid" }`;
+Retourne UNIQUEMENT ce JSON sans markdown ni texte : { "sport_id": number, "structured_workout": array, "schema_version": "v2-hybrid" }. Le champ "schema_version":"v2-hybrid" est OBLIGATOIRE.`;
 
 interface WorkoutPayload {
   workout_id: string;
