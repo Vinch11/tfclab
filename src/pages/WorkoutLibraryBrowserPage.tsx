@@ -329,12 +329,26 @@ function WorkoutRow({
               <TableCell className="font-mono text-xs">
                 <div className="flex items-center gap-1 flex-wrap">
                   <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-0" : "-rotate-90"}`} />
-                  <span title={genBadge.title} className={genBadge.cls}>{genBadge.label}</span>
                   {w.id}
                   {hasOverride && (
                     <span title="Structure Nolio personnalisée (override coach)" className="inline-flex items-center gap-0.5 text-emerald-600">
                       <CheckCircle2 className="h-3 w-3" />
                     </span>
+                  )}
+                </div>
+                <div className="mt-1">
+                  {generated?.status === "ok" ? (
+                    <Badge className="text-[10px] bg-emerald-100 text-emerald-800 border-emerald-300 border" title="Structure Nolio générée par IA">
+                      ✅ Structure Nolio générée
+                    </Badge>
+                  ) : generated?.status === "error" ? (
+                    <Badge variant="destructive" className="text-[10px]" title={generated.error_message ?? ""}>
+                      ⚠️ Erreur génération
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                      ⚪ Non structurée
+                    </Badge>
                   )}
                 </div>
               </TableCell>
