@@ -608,6 +608,60 @@ export type Database = {
         }
         Relationships: []
       }
+      nolio_structures_generated: {
+        Row: {
+          cost_usd: number | null
+          created_at: string
+          error_message: string | null
+          id: string
+          model: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_text_hash: string
+          sport_id: number
+          status: string
+          structured_workout: Json
+          tokens_in: number | null
+          tokens_out: number | null
+          updated_at: string
+          workout_id: string
+        }
+        Insert: {
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          model?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_text_hash: string
+          sport_id: number
+          status?: string
+          structured_workout: Json
+          tokens_in?: number | null
+          tokens_out?: number | null
+          updated_at?: string
+          workout_id: string
+        }
+        Update: {
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          model?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_text_hash?: string
+          sport_id?: number
+          status?: string
+          structured_workout?: Json
+          tokens_in?: number | null
+          tokens_out?: number | null
+          updated_at?: string
+          workout_id?: string
+        }
+        Relationships: []
+      }
       nolio_sync_log: {
         Row: {
           athletes_count: number

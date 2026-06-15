@@ -644,6 +644,7 @@ Deno.serve(async (req) => {
       ),
     );
     const overridesMap = new Map<string, { sport_id: number; structured_workout: unknown }>();
+    const generatedMap = new Map<string, { sport_id: number; structured_workout: unknown }>();
     if (sessionIds.length > 0) {
       const { data: ovRows } = await admin
         .from("nolio_workout_overrides")
@@ -651,6 +652,15 @@ Deno.serve(async (req) => {
         .in("session_id", sessionIds);
       for (const r of (ovRows ?? []) as Array<{ session_id: string; sport_id: number; structured_workout: unknown }>) {
         overridesMap.set(r.session_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
+      }
+      // Structures Nolio générées par IA et validées (status='ok'). Priorité inférieure aux overrides manuels.
+      const { data: genRows } = await admin
+        .from("nolio_structures_generated")
+        .select("workout_id, sport_id, structured_workout, status")
+        .in("workout_id", sessionIds)
+        .eq("status", "ok");
+      for (const r of (genRows ?? []) as Array<{ workout_id: string; sport_id: number; structured_workout: unknown }>) {
+        generatedMap.set(r.workout_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
       }
     }
 
@@ -695,6 +705,16 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Si pas d'override manuel : tenter la structure générée par IA (status='ok').
+      let usedGenerated = false;
+      if (!usedOverride && overrideKey) {
+        const gen = generatedMap.get(overrideKey);
+        if (gen && Array.isArray(gen.structured_workout) && gen.structured_workout.length > 0) {
+          structured_workout = gen.structured_workout;
+          usedGenerated = true;
+        }
+      }
+
       if (structured_workout == null && sourceStructure.length > 0) {
         let built = buildStructuredFromParts(sourceStructure, body.refs ?? {}, s.wbalProfile ?? null);
         // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
@@ -713,7 +733,12 @@ Deno.serve(async (req) => {
         String(new Date().getDate()).padStart(2, '0'),
         10,
       );
-      const sportId = usedOverride && override ? override.sport_id : mapSport(s.sport, s.title, s.id ?? null);
+      const generatedForSport = usedGenerated && overrideKey ? generatedMap.get(overrideKey) : undefined;
+      const sportId = usedOverride && override
+        ? override.sport_id
+        : generatedForSport
+          ? generatedForSport.sport_id
+          : mapSport(s.sport, s.title, s.id ?? null);
 
 
       // Suppression préalable : la séance peut déjà exister avec un sport_id obsolète.
@@ -758,6 +783,7 @@ Deno.serve(async (req) => {
         id_partner: idPartner,
         sport_id: sportId,
         used_override: usedOverride,
+        used_generated: usedGenerated,
         structured_workout,
         delete_response: deleteRes
           ? { ok: deleteRes.ok, status: deleteRes.status, detail: deleteRes.detail ?? null }

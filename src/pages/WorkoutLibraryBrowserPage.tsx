@@ -17,6 +17,7 @@ import { Search, ChevronDown, Bike, PersonStanding, Waves, Dumbbell, Zap, Librar
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout, TrainingSport, SessionType, PhaseTag } from "@/types/workoutLibrary";
 import { NolioStructureEditor, NOLIO_SPORT_OPTIONS } from "@/components/NolioStructureEditor";
+import { NolioBatchGenerationPanel, useNolioGeneratedStatuses, type GeneratedRow } from "@/components/NolioBatchGenerationPanel";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -100,6 +101,10 @@ export default function WorkoutLibraryBrowserPage() {
     setOverrideIds(new Set((data ?? []).map((r: { session_id: string }) => r.session_id)));
   };
   useEffect(() => { refreshOverrides(); }, []);
+
+  // Statuts génération IA Nolio
+  const { map: generatedMap, refresh: refreshGenerated } = useNolioGeneratedStatuses();
+
 
 
 
@@ -220,6 +225,13 @@ export default function WorkoutLibraryBrowserPage() {
           </CardContent>
         </Card>
 
+        {/* Panneau de génération batch Nolio */}
+        <NolioBatchGenerationPanel
+          filteredWorkouts={filtered}
+          generatedMap={generatedMap}
+          onRefresh={refreshGenerated}
+        />
+
         {/* Table */}
         <Card>
           <CardContent className="p-0">
@@ -227,7 +239,7 @@ export default function WorkoutLibraryBrowserPage() {
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
-                    <TableHead className="w-[220px]">ID</TableHead>
+                    <TableHead className="w-[240px]">ID</TableHead>
                     <TableHead className="w-[80px]">Sport</TableHead>
                     <TableHead className="w-[60px]">Type</TableHead>
                     <TableHead>Objectif</TableHead>
@@ -238,7 +250,13 @@ export default function WorkoutLibraryBrowserPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((w) => (
-                    <WorkoutRow key={w.id} workout={w} hasOverride={overrideIds.has(w.id)} onOverrideChanged={refreshOverrides} />
+                    <WorkoutRow
+                      key={w.id}
+                      workout={w}
+                      hasOverride={overrideIds.has(w.id)}
+                      generated={generatedMap.get(w.id)}
+                      onOverrideChanged={refreshOverrides}
+                    />
                   ))}
                 </TableBody>
               </Table>
@@ -263,16 +281,24 @@ function defaultNolioSportId(sport: string): number {
 function WorkoutRow({
   workout: w,
   hasOverride,
+  generated,
   onOverrideChanged,
 }: {
   workout: LibraryWorkout;
   hasOverride: boolean;
+  generated?: GeneratedRow;
   onOverrideChanged: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const sportInfo = SPORT_LABELS[normalizeSport(w.sport)];
 
+  const genBadge = (() => {
+    if (!generated) return { label: "⚪", title: "Non générée", cls: "text-muted-foreground" };
+    if (generated.status === "ok") return { label: "✅", title: "Structure Nolio générée par IA", cls: "text-emerald-600" };
+    if (generated.status === "error") return { label: "⚠️", title: `Erreur : ${generated.error_message ?? ""}`, cls: "text-amber-600" };
+    return { label: "⏳", title: generated.status, cls: "text-muted-foreground" };
+  })();
 
   return (
     <>
@@ -283,9 +309,10 @@ function WorkoutRow({
               <TableCell className="font-mono text-xs">
                 <div className="flex items-center gap-1 flex-wrap">
                   <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-0" : "-rotate-90"}`} />
+                  <span title={genBadge.title} className={genBadge.cls}>{genBadge.label}</span>
                   {w.id}
                   {hasOverride && (
-                    <span title="Structure Nolio personnalisée" className="inline-flex items-center gap-0.5 text-emerald-600">
+                    <span title="Structure Nolio personnalisée (override coach)" className="inline-flex items-center gap-0.5 text-emerald-600">
                       <CheckCircle2 className="h-3 w-3" />
                     </span>
                   )}
