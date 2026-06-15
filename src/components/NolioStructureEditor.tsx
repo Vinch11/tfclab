@@ -216,7 +216,26 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center rounded-md border border-dashed border-primary/40 bg-primary/5 p-2">
+          <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-2 space-y-2">
+            <div className="grid grid-cols-4 gap-2">
+              <div>
+                <Label className="text-[10px]">FTP (W)</Label>
+                <Input type="number" className="h-8 text-xs" value={ftp} onChange={(e) => setFtp(parseInt(e.target.value, 10) || 0)} />
+              </div>
+              <div>
+                <Label className="text-[10px]">FC max (bpm)</Label>
+                <Input type="number" className="h-8 text-xs" value={fcMax} onChange={(e) => setFcMax(parseInt(e.target.value, 10) || 0)} />
+              </div>
+              <div>
+                <Label className="text-[10px]">VMA (km/h)</Label>
+                <Input type="number" step="0.1" className="h-8 text-xs" value={vma} onChange={(e) => setVma(parseFloat(e.target.value) || 0)} />
+              </div>
+              <div>
+                <Label className="text-[10px]">CSS (s/100m)</Label>
+                <Input type="number" className="h-8 text-xs" value={css} onChange={(e) => setCss(parseInt(e.target.value, 10) || 0)} />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
             <Button
               type="button"
               size="sm"
