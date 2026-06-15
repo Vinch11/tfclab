@@ -3,18 +3,22 @@
  * Filtrage par sport, phase, type, objectif avec détail des structures
  */
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Search, ChevronDown, Bike, PersonStanding, Waves, Dumbbell, Zap, Library } from "lucide-react";
+import { Search, ChevronDown, Bike, PersonStanding, Waves, Dumbbell, Zap, Library, Pencil, CheckCircle2 } from "lucide-react";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import type { LibraryWorkout, TrainingSport, SessionType, PhaseTag } from "@/types/workoutLibrary";
+import { NolioStructureEditor, NOLIO_SPORT_OPTIONS } from "@/components/NolioStructureEditor";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const SPORT_LABELS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   bike: { label: "Vélo", icon: <Bike className="h-4 w-4" />, color: "bg-amber-500/15 text-amber-700 border-amber-300" },
@@ -86,6 +90,18 @@ export default function WorkoutLibraryBrowserPage() {
       goals: Array.from(goals).sort(),
     };
   }, []);
+
+  // Overrides Nolio existants (set des session_id)
+  const [overrideIds, setOverrideIds] = useState<Set<string>>(new Set());
+  const refreshOverrides = async () => {
+    const { data } = await supabase
+      .from("nolio_workout_overrides")
+      .select("session_id");
+    setOverrideIds(new Set((data ?? []).map((r: { session_id: string }) => r.session_id)));
+  };
+  useEffect(() => { refreshOverrides(); }, []);
+
+
 
   const filtered = useMemo(() => {
     return WorkoutLibrary.filter(w => {
@@ -222,7 +238,7 @@ export default function WorkoutLibraryBrowserPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((w) => (
-                    <WorkoutRow key={w.id} workout={w} />
+                    <WorkoutRow key={w.id} workout={w} hasOverride={overrideIds.has(w.id)} onOverrideChanged={refreshOverrides} />
                   ))}
                 </TableBody>
               </Table>
@@ -234,9 +250,29 @@ export default function WorkoutLibraryBrowserPage() {
   );
 }
 
-function WorkoutRow({ workout: w }: { workout: LibraryWorkout }) {
+function defaultNolioSportId(sport: string): number {
+  const s = normalizeSport(sport);
+  if (s === "run") return 2;
+  if (s === "bike") return 14;
+  if (s === "swim") return 19;
+  if (s === "strength") return 20;
+  if (s === "trail") return 52;
+  return 2;
+}
+
+function WorkoutRow({
+  workout: w,
+  hasOverride,
+  onOverrideChanged,
+}: {
+  workout: LibraryWorkout;
+  hasOverride: boolean;
+  onOverrideChanged: () => void;
+}) {
   const [open, setOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const sportInfo = SPORT_LABELS[normalizeSport(w.sport)];
+
 
   return (
     <Collapsible asChild open={open} onOpenChange={setOpen}>
@@ -244,11 +280,17 @@ function WorkoutRow({ workout: w }: { workout: LibraryWorkout }) {
         <CollapsibleTrigger asChild>
           <TableRow className="cursor-pointer hover:bg-muted/50">
             <TableCell className="font-mono text-xs">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-wrap">
                 <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-0" : "-rotate-90"}`} />
                 {w.id}
+                {hasOverride && (
+                  <span title="Structure Nolio personnalisée" className="inline-flex items-center gap-0.5 text-emerald-600">
+                    <CheckCircle2 className="h-3 w-3" />
+                  </span>
+                )}
               </div>
             </TableCell>
+
             <TableCell>
               <Badge variant="outline" className={`text-xs ${sportInfo?.color || ""}`}>
                 {sportInfo?.label || w.sport}
@@ -328,11 +370,39 @@ function WorkoutRow({ workout: w }: { workout: LibraryWorkout }) {
                 {w.notes && (
                   <p className="text-xs text-muted-foreground italic">📝 {w.notes}</p>
                 )}
+
+                {/* Edit Nolio structure */}
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <Button
+                    size="sm"
+                    variant={hasOverride ? "default" : "outline"}
+                    onClick={(e) => { e.stopPropagation(); setEditorOpen(true); }}
+                  >
+                    <Pencil className="h-3 w-3 mr-1" />
+                    {hasOverride ? "Modifier structure Nolio" : "Éditer structure Nolio"}
+                  </Button>
+                  {hasOverride && (
+                    <span className="text-xs text-emerald-600 inline-flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" /> Structure Nolio personnalisée
+                    </span>
+                  )}
+                </div>
               </div>
             </TableCell>
           </TableRow>
         </CollapsibleContent>
       </>
+      {editorOpen && (
+        <NolioStructureEditor
+          open={editorOpen}
+          onClose={() => setEditorOpen(false)}
+          sessionId={w.id}
+          sessionLabel={w.objectif}
+          defaultSportId={defaultNolioSportId(w.sport)}
+          onSaved={onOverrideChanged}
+        />
+      )}
     </Collapsible>
   );
 }
+

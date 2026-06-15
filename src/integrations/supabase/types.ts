@@ -671,6 +671,33 @@ export type Database = {
         }
         Relationships: []
       }
+      nolio_workout_overrides: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          sport_id: number
+          structured_workout: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          sport_id: number
+          structured_workout: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          sport_id?: number
+          structured_workout?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       plan_adaptations: {
         Row: {
           adaptation_type: string

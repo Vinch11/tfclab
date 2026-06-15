@@ -635,6 +635,26 @@ Deno.serve(async (req) => {
     const errors: { week: number; day: number; status: number; detail?: string }[] = [];
     const debugLog: Array<Record<string, unknown>> = [];
 
+    // Préchargement des overrides Nolio par session_id (structured_workout + sport_id personnalisés)
+    const sessionIds = Array.from(
+      new Set(
+        body.sessions
+          .map((s) => (s?.id ?? "").trim())
+          .filter((id) => id.length > 0),
+      ),
+    );
+    const overridesMap = new Map<string, { sport_id: number; structured_workout: unknown }>();
+    if (sessionIds.length > 0) {
+      const { data: ovRows } = await admin
+        .from("nolio_workout_overrides")
+        .select("session_id, sport_id, structured_workout")
+        .in("session_id", sessionIds);
+      for (const r of (ovRows ?? []) as Array<{ session_id: string; sport_id: number; structured_workout: unknown }>) {
+        overridesMap.set(r.session_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
+      }
+    }
+
+
     for (let i = 0; i < body.sessions.length; i++) {
       const s = body.sessions[i];
       if (s?.isRest) { skipped += 1; continue; }
@@ -649,14 +669,20 @@ Deno.serve(async (req) => {
       );
 
       const structure = Array.isArray(s.structure) ? s.structure : [];
-      let structured_workout = structure.length > 0
-        ? buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null)
-        : null;
-
-      // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
-      // Si l'unique item racine est une repetition, on déballe ses steps enfants.
-      if (structured_workout && structured_workout.length === 1 && structured_workout[0].type === "repetition") {
-        structured_workout = (structured_workout[0] as NolioRepStep).steps;
+      const overrideKey = (s.id ?? "").trim();
+      const override = overrideKey ? overridesMap.get(overrideKey) : undefined;
+      let structured_workout: unknown = null;
+      let usedOverride = false;
+      if (override && Array.isArray(override.structured_workout)) {
+        structured_workout = override.structured_workout;
+        usedOverride = true;
+      } else if (structure.length > 0) {
+        let built = buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null);
+        // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
+        if (built && built.length === 1 && built[0].type === "repetition") {
+          built = (built[0] as NolioRepStep).steps;
+        }
+        structured_workout = built;
       }
 
       const sessionIndex = Number.isFinite(s.sessionIndex as number) ? Number(s.sessionIndex) : 0;
@@ -668,7 +694,8 @@ Deno.serve(async (req) => {
         String(new Date().getDate()).padStart(2, '0'),
         10,
       );
-      const sportId = mapSport(s.sport, s.title, s.id ?? null);
+      const sportId = usedOverride && override ? override.sport_id : mapSport(s.sport, s.title, s.id ?? null);
+
 
       // Suppression préalable : la séance peut déjà exister avec un sport_id obsolète.
       // On ignore systématiquement les erreurs (404/inexistante = cas normal).
@@ -711,6 +738,7 @@ Deno.serve(async (req) => {
         },
         id_partner: idPartner,
         sport_id: sportId,
+        used_override: usedOverride,
         structured_workout,
         delete_response: deleteRes
           ? { ok: deleteRes.ok, status: deleteRes.status, detail: deleteRes.detail ?? null }
