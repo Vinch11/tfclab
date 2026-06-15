@@ -212,6 +212,27 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
             </div>
           </div>
 
+          <div className="flex flex-wrap gap-2 items-center rounded-md border border-dashed border-primary/40 bg-primary/5 p-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleGenerate}
+              disabled={generating || loading}
+            >
+              {generating ? (
+                <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Génération en cours…</>
+              ) : hasGenerated ? (
+                <><RefreshCw className="h-3 w-3 mr-1" /> 🔄 Regénérer</>
+              ) : (
+                <><Sparkles className="h-3 w-3 mr-1" /> ✨ Générer automatiquement</>
+              )}
+            </Button>
+            <span className="text-[11px] text-muted-foreground">
+              L'IA analyse le texte de la séance et pré-remplit la structure Nolio. Vérifie avant de sauvegarder.
+            </span>
+          </div>
+
+
           {loading ? (
             <p className="text-sm text-muted-foreground">Chargement…</p>
           ) : (
