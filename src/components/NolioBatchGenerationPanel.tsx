@@ -94,10 +94,27 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
     return out;
   };
 
-  const runBatch = async (size: number, forceRegenerate = false) => {
-    const batch = pickNextBatch(size, forceRegenerate);
+  /** Pick N par sport (bike, run, swim, strength, brick) pour test qualité. */
+  const pickTestBatchBySport = (perSport: number, forceRegenerate = false): LibraryWorkout[] => {
+    const targets = ["bike", "run", "swim", "strength", "brick"];
+    const out: LibraryWorkout[] = [];
+    for (const target of targets) {
+      let taken = 0;
+      for (const w of filteredWorkouts) {
+        if (taken >= perSport) break;
+        if (normalizeSport(w.sport) !== target) continue;
+        const g = generatedMap.get(w.id);
+        if (!forceRegenerate && g?.status === "ok") continue;
+        out.push(w);
+        taken += 1;
+      }
+    }
+    return out;
+  };
+
+  const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false) => {
     if (batch.length === 0) {
-      toast({ title: "Rien à générer", description: "Toutes les séances filtrées ont déjà un statut OK." });
+      toast({ title: "Rien à générer", description: "Toutes les séances éligibles ont déjà un statut OK." });
       return;
     }
 
