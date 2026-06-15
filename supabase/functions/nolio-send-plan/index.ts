@@ -341,37 +341,60 @@ function parseRepetitionPattern(text: string): {
 /**
  * Normalise un structured_workout avant envoi à Nolio.
  * - Renomme `repeat_count` → `value` sur tous les nœuds `repetition` (spec officielle Nolio).
- * - Supprime récursivement les clés dont la valeur est `null` ou `undefined`
- *   (Nolio rejette `pct_ftp_min: null`, `target_value_max: null`, etc.).
- * - Convertit les steps `intensity_type:"rest"` + `target_type:"no_target"` en cible
- *   FC Z1 (50–60% FCmax) pour éviter l'affichage `empty_unit` dans Nolio.
+ * - Supprime récursivement les clés `null`/`undefined` (Nolio rejette `pct_ftp_min: null`, etc.).
+ * - Convertit les steps `intensity_type:"rest"` + `target_type:"no_target"` en cible Z1 selon le sport :
+ *     • Vélo (sport_id 14/18) → power 45–55% FTP
+ *     • Course/Trail (sport_id 2/52) → heartrate 50–60% FCmax
+ *     • Natation (sport_id 19) → duration sans cible (rest naturel)
  * Ref: https://github.com/NolioApp/NolioAPI-Documentation/wiki/Structured-Workout
  */
-function normalizeStructuredWorkoutForNolio(input: unknown, refs?: AthleteRefs): unknown {
+function normalizeStructuredWorkoutForNolio(
+  input: unknown,
+  refs?: AthleteRefs,
+  sportId?: number,
+): unknown {
   if (Array.isArray(input)) {
     return input
-      .map((v) => normalizeStructuredWorkoutForNolio(v, refs))
+      .map((v) => normalizeStructuredWorkoutForNolio(v, refs, sportId))
       .filter((v) => v !== null && v !== undefined);
   }
   if (input && typeof input === "object") {
     const src = input as Record<string, unknown>;
 
-    // Rest + no_target → heartrate Z1 (50-60% FCmax)
-    const fcMax = refs?.fcMax;
+    // Rest + no_target → cible Z1 sport-aware
     if (
       src.type === "step" &&
       src.intensity_type === "rest" &&
-      src.target_type === "no_target" &&
-      typeof fcMax === "number" && fcMax > 0
+      src.target_type === "no_target"
     ) {
-      const lo = Math.round(fcMax * 0.50);
-      const hi = Math.round(fcMax * 0.60);
-      src.target_type = "heartrate";
-      src.target_value_min = lo;
-      src.target_value_max = hi;
-      src.target_value = Math.round((lo + hi) / 2);
-      src.pct_hrmax_min = 50;
-      src.pct_hrmax_max = 60;
+      const isBike = sportId === 14 || sportId === 18;
+      const isRun = sportId === 2 || sportId === 52;
+      const isSwim = sportId === 19;
+      const ftp = refs?.ftp;
+      const fcMax = refs?.fcMax;
+
+      if (isBike && typeof ftp === "number" && ftp > 0) {
+        const lo = Math.round(ftp * 0.45);
+        const hi = Math.round(ftp * 0.55);
+        src.target_type = "power";
+        src.target_value_min = lo;
+        src.target_value_max = hi;
+        src.target_value = Math.round((lo + hi) / 2);
+        src.pct_ftp_min = 45;
+        src.pct_ftp_max = 55;
+      } else if (isRun && typeof fcMax === "number" && fcMax > 0) {
+        const lo = Math.round(fcMax * 0.50);
+        const hi = Math.round(fcMax * 0.60);
+        src.target_type = "heartrate";
+        src.target_value_min = lo;
+        src.target_value_max = hi;
+        src.target_value = Math.round((lo + hi) / 2);
+        src.pct_hrmax_min = 50;
+        src.pct_hrmax_max = 60;
+      } else if (isSwim) {
+        // Natation : rest naturel, pas de cible (target_type=duration sans valeurs)
+        src.target_type = "duration";
+      }
     }
 
     const out: Record<string, unknown> = {};
@@ -382,7 +405,7 @@ function normalizeStructuredWorkoutForNolio(input: unknown, refs?: AthleteRefs):
         out.value = typeof v === "number" ? v : Number(v);
         continue;
       }
-      out[k] = normalizeStructuredWorkoutForNolio(v, refs);
+      out[k] = normalizeStructuredWorkoutForNolio(v, refs, sportId);
     }
     return out;
   }
