@@ -200,6 +200,11 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
     });
   };
 
+  /** Uniquement les séances en erreur (force regenerate). */
+  const pickAllErrors = (): LibraryWorkout[] => {
+    return filteredWorkouts.filter((w) => generatedMap.get(w.id)?.status === "error");
+  };
+
 
   return (
     <Card className="border-primary/30">
@@ -284,6 +289,23 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
               <Button size="sm" variant="outline" onClick={() => runBatch(pickNextBatch(20, true), true)} disabled={loading}>
                 <RotateCw className="h-3 w-3 mr-1" />
                 Regénérer 20 (force)
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  const errs = pickAllErrors();
+                  if (errs.length === 0) {
+                    toast({ title: "Aucune erreur", description: "Pas de séances en statut error à relancer." });
+                    return;
+                  }
+                  if (!window.confirm(`Relancer ${errs.length} séances en erreur (force) ? Durée estimée ~${Math.ceil(errs.length / 5 * 1.5)} min.`)) return;
+                  runBatch(errs, true, 5);
+                }}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RotateCw className="h-3 w-3 mr-1" />}
+                🔄 Relancer les erreurs ({pickAllErrors().length})
               </Button>
               <Button
                 size="sm"
