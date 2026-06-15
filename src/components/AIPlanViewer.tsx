@@ -25,6 +25,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Send } from "lucide-react";
+import { toast } from "sonner";
+import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase();
@@ -294,12 +304,26 @@ function SessionCard({ session, date, nolioCtx }: SessionCardProps) {
     );
   }
 
+  const selKey = nolioCtx ? sessionKey(nolioCtx.athleteId, session.weekNumber, session.dayIndex) : null;
+  const isSent = !!(nolioCtx && selKey && nolioCtx.isSent(selKey));
+  const isChecked = !!(nolioCtx && selKey && nolioCtx.isSelected(selKey));
+
   return (
     <div
       className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${getSportColor(session.sport)}`}
       onClick={() => setExpanded(!expanded)}
     >
       <div className="flex items-center gap-2">
+        {nolioCtx && selKey && !session.isRest && session.dayIndex >= 0 && (
+          <Checkbox
+            checked={isChecked}
+            disabled={isSent}
+            onCheckedChange={() => nolioCtx.toggleSelected(selKey)}
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Sélectionner pour envoi groupé Nolio"
+            className="shrink-0"
+          />
+        )}
         {getSportIcon(session.sport)}
         <span className="text-sm font-medium">{session.dayName}</span>
         {date && <span className="text-xs text-muted-foreground">{format(date, "d MMM", { locale: fr })}</span>}
@@ -530,6 +554,18 @@ function WeekView({ week, startDate, nolioCtx }: WeekViewProps) {
 
   const activeSessions = week.sessions.filter(s => !s.isRest).length;
 
+  // Bulk Nolio: keys of active (non-rest) sessions for this week
+  const weekSelectableKeys = useMemo(() => {
+    if (!nolioCtx) return [] as string[];
+    return week.sessions
+      .filter((s) => !s.isRest && s.dayIndex >= 0 && !nolioCtx.isSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex)))
+      .map((s) => sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
+  }, [week.sessions, nolioCtx]);
+  const weekSelectedCount = nolioCtx
+    ? weekSelectableKeys.filter((k) => nolioCtx.isSelected(k)).length
+    : 0;
+  const allWeekSelected = weekSelectableKeys.length > 0 && weekSelectedCount === weekSelectableKeys.length;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -544,6 +580,26 @@ function WeekView({ week, startDate, nolioCtx }: WeekViewProps) {
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
           </div>
         </div>
+        {nolioCtx && weekSelectableKeys.length > 0 && (
+          <div className="flex items-center gap-2 pt-1.5 flex-wrap">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-[11px]"
+              onClick={() => nolioCtx.setManySelected(weekSelectableKeys, !allWeekSelected)}
+            >
+              {allWeekSelected
+                ? `Désélectionner la semaine ${week.weekNumber}`
+                : `Tout sélectionner la semaine ${week.weekNumber}`}
+            </Button>
+            {weekSelectedCount > 0 && (
+              <Badge variant="secondary" className="text-[10px]">
+                {weekSelectedCount}/{weekSelectableKeys.length} sélectionnée(s)
+              </Badge>
+            )}
+          </div>
+        )}
         {week.volumeTarget && (
           <p className="text-xs text-muted-foreground">Volume cible : {week.volumeTarget}</p>
         )}
@@ -590,6 +646,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
   const { athletes, snapshots } = useCloudDataContext();
   const [nolioId, setNolioId] = useState<number | null>(null);
   const [sentKeys, setSentKeys] = useState<Set<string>>(() => new Set());
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (!athleteId) { setNolioId(null); return; }
@@ -607,7 +664,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     return () => { cancelled = true; };
   }, [athleteId]);
 
-  useEffect(() => { setSentKeys(new Set()); }, [athleteId, plan]);
+  useEffect(() => { setSentKeys(new Set()); setSelectedKeys(new Set()); }, [athleteId, plan]);
 
   const nolioRefs = useMemo(() => {
     if (!athleteId) return { ftp: null, vma: null, css: null, fcMax: null };
@@ -622,6 +679,29 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       next.add(key);
       return next;
     });
+    setSelectedKeys((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
+
+  const toggleSelected = useCallback((key: string) => {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const setManySelected = useCallback((keys: string[], value: boolean) => {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (value) keys.forEach((k) => next.add(k));
+      else keys.forEach((k) => next.delete(k));
+      return next;
+    });
   }, []);
 
   const nolioCtx: NolioCtx | null = useMemo(() => {
@@ -633,8 +713,118 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       refs: nolioRefs,
       isSent: (k: string) => sentKeys.has(k),
       markSent,
+      isSelected: (k: string) => selectedKeys.has(k),
+      toggleSelected,
+      setManySelected,
     };
-  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent]);
+  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
+
+  // Bulk send state
+  const [bulkStartDate, setBulkStartDate] = useState<string>(() => {
+    const today = new Date();
+    const mon = startOfWeek(today, { weekStartsOn: 1 });
+    const nextMon = mon <= today ? addDays(mon, 7) : mon;
+    return format(nextMon, "yyyy-MM-dd");
+  });
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkSending, setBulkSending] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+
+  // Map selected keys → ParsedSession objects from current plan
+  const selectedSessions = useMemo(() => {
+    if (!nolioCtx) return [] as ParsedSession[];
+    const out: ParsedSession[] = [];
+    for (const w of plan.weeks) {
+      for (const s of w.sessions) {
+        if (s.isRest || s.dayIndex < 0) continue;
+        const k = sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex);
+        if (selectedKeys.has(k)) out.push(s);
+      }
+    }
+    return out;
+  }, [plan, selectedKeys, nolioCtx]);
+
+  async function handleBulkSend() {
+    if (!nolioCtx || selectedSessions.length === 0) return;
+    setBulkSending(true);
+    setBulkProgress({ done: 0, total: selectedSessions.length });
+
+    const enriched = selectedSessions.map((s) => {
+      const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+      return {
+        weekNumber: s.weekNumber,
+        dayIndex: s.dayIndex,
+        sport: s.sport ?? lib?.sport ?? null,
+        title: s.title,
+        id: lib?.id ?? null,
+        details: s.details,
+        isRest: false,
+        structure: lib?.structure ?? null,
+        wbalProfile: lib?.wbalProfile ?? null,
+      };
+    });
+
+    // Calibre planStartDate côté serveur : choisi par l'utilisateur = lundi de la semaine 1.
+    // Determine the smallest weekNumber among selection to anchor planStartDate so dates align.
+    const minWeek = Math.min(...selectedSessions.map((s) => s.weekNumber));
+    const anchorDt = new Date(`${bulkStartDate}T00:00:00Z`);
+    // bulkStartDate corresponds to week 1 Monday; if selection starts at minWeek, planStartDate = bulkStartDate
+    // (server computes addDays(planStartDate, (w-1)*7+d) which is correct from week 1 anchor)
+    void minWeek;
+    const computedStart = anchorDt.toISOString().slice(0, 10);
+
+    // Indeterminate progress animation (single request)
+    const interval = setInterval(() => {
+      setBulkProgress((p) => {
+        if (p.done >= p.total - 1) return p;
+        return { ...p, done: p.done + 1 };
+      });
+    }, 350);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-send-plan", {
+        body: {
+          athlete_id: nolioCtx.athleteId,
+          nolio_athlete_id: nolioCtx.nolioId,
+          planStartDate: computedStart,
+          sessions: enriched,
+          refs: nolioCtx.refs,
+        },
+      });
+      clearInterval(interval);
+      if (error) throw error;
+      const result = data as { sent?: number; errors?: { status: number; detail?: string }[] } | null;
+      const sentCount = result?.sent ?? 0;
+      const errs = result?.errors ?? [];
+      setBulkProgress({ done: sentCount, total: selectedSessions.length });
+
+      if (sentCount > 0) {
+        // Mark all as sent (best-effort: assume order matches enriched order; mark the first sentCount)
+        enriched.slice(0, sentCount).forEach((s) => {
+          markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
+        });
+      }
+
+      if (errs.length === 0) {
+        toast.success(`${sentCount} séances envoyées avec succès`);
+      } else if (sentCount > 0) {
+        toast.warning(
+          `${sentCount} envoyées · ${errs.length} échec(s) — ${errs.slice(0, 2).map((e) => `${e.status} ${e.detail ?? ""}`).join(" | ")}`.slice(0, 240),
+        );
+      } else {
+        toast.error(
+          `Aucune séance envoyée — ${errs.slice(0, 2).map((e) => `${e.status} ${e.detail ?? ""}`).join(" | ")}`.slice(0, 240),
+        );
+      }
+      setBulkConfirmOpen(false);
+    } catch (e) {
+      clearInterval(interval);
+      toast.error(`Erreur Nolio : ${(e as Error).message ?? "inconnue"}`);
+    } finally {
+      setBulkSending(false);
+    }
+  }
+
 
   const currentWeek = plan.weeks[selectedWeek];
   const sortedRaceGoals = useMemo(
@@ -816,6 +1006,112 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
           ))}
         </div>
       )}
+
+      {/* Floating Nolio bulk-send bar */}
+      {nolioCtx && selectedSessions.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-lg">
+          <div className="mx-auto max-w-5xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                {selectedSessions.length} séance(s) sélectionnée(s)
+              </Badge>
+              <div className="flex items-center gap-2 min-w-0">
+                <Label htmlFor="nolio-bulk-start" className="text-xs whitespace-nowrap text-muted-foreground">
+                  Début du plan
+                </Label>
+                <Input
+                  id="nolio-bulk-start"
+                  type="date"
+                  value={bulkStartDate}
+                  onChange={(e) => setBulkStartDate(e.target.value)}
+                  className="h-8 w-[150px] text-xs"
+                  disabled={bulkSending}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedKeys(new Set())}
+                disabled={bulkSending}
+              >
+                Tout désélectionner
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setBulkConfirmOpen(true)}
+                disabled={bulkSending}
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Envoyer {selectedSessions.length} séances vers Nolio
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk confirmation dialog */}
+      <Dialog open={bulkConfirmOpen} onOpenChange={(v) => !bulkSending && setBulkConfirmOpen(v)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Confirmer l'envoi groupé vers Nolio</DialogTitle>
+            <DialogDescription>
+              {selectedSessions.length} séance(s) à envoyer. Début du plan :{" "}
+              <span className="font-medium text-foreground">
+                {format(new Date(`${bulkStartDate}T00:00:00`), "EEEE d MMMM yyyy", { locale: fr })}
+              </span>
+              . Les séances déjà envoyées (même <code className="px-1">id_partner</code>) ne seront pas dupliquées.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[300px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
+            {selectedSessions.map((s) => {
+              const anchor = new Date(`${bulkStartDate}T00:00:00`);
+              const dt = addDays(anchor, (s.weekNumber - 1) * 7 + s.dayIndex);
+              return (
+                <div
+                  key={`${s.weekNumber}-${s.dayIndex}-${s.title}`}
+                  className="flex items-center justify-between gap-2 py-1 border-b border-border/40 last:border-0"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-muted-foreground whitespace-nowrap">
+                      S{s.weekNumber}
+                    </span>
+                    <span className="font-medium truncate">{s.title}</span>
+                  </div>
+                  <span className="text-muted-foreground whitespace-nowrap">
+                    {format(dt, "EEE d MMM", { locale: fr })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {bulkSending && (
+            <div className="space-y-2">
+              <Progress value={(bulkProgress.done / Math.max(1, bulkProgress.total)) * 100} />
+              <p className="text-xs text-center text-muted-foreground">
+                {bulkProgress.done}/{bulkProgress.total} séances envoyées…
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkConfirmOpen(false)} disabled={bulkSending}>
+              Annuler
+            </Button>
+            <Button onClick={handleBulkSend} disabled={bulkSending || selectedSessions.length === 0}>
+              {bulkSending ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
+              ) : (
+                <><Send className="h-4 w-4 mr-2" /> Confirmer l'envoi</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
