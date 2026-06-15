@@ -519,10 +519,6 @@ Deno.serve(async (req) => {
     const errors: { week: number; day: number; status: number; detail?: string }[] = [];
     const debugLog: Array<Record<string, unknown>> = [];
 
-    // Suffixe de version basé sur la date du jour (MMDD) → force Nolio à accepter un nouvel envoi
-    const now = new Date();
-    const versionSuffix = String(now.getUTCMonth() + 1).padStart(2, "0") + String(now.getUTCDate()).padStart(2, "0");
-
     for (let i = 0; i < body.sessions.length; i++) {
       const s = body.sessions[i];
       if (s?.isRest) { skipped += 1; continue; }
@@ -541,8 +537,13 @@ Deno.serve(async (req) => {
         ? buildStructuredFromParts(structure, body.refs ?? {}, s.wbalProfile ?? null)
         : null;
 
-      const idPartnerBase = String(body.nolio_athlete_id) + String(s.weekNumber).padStart(2, "0") + String(s.dayIndex);
-      const idPartner = `${idPartnerBase}_${versionSuffix}`;
+      const idPartner = parseInt(
+        String(body.nolio_athlete_id) +
+        String(s.weekNumber).padStart(2, '0') +
+        String(s.dayIndex) +
+        String(new Date().getDate()).padStart(2, '0'),
+        10,
+      );
       const sportId = mapSport(s.sport, s.title, s.id ?? null);
       const payload: Record<string, unknown> = {
         id_partner: idPartner,
