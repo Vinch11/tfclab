@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
     ];
 
     const sessions: unknown[] = [];
-    const dateStart = new Date(Date.now() + 7 * 86400_000).toISOString().slice(0, 19).replace("T", " ");
+    const dateStart = new Date(Date.now() + 7 * 86400_000).toISOString().slice(0, 10);
 
     for (const v of variants) {
       // id_partner unique par variante pour éviter collisions
