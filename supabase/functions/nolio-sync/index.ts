@@ -313,6 +313,40 @@ Deno.serve(async (req) => {
 
     log(`STEP 5 — Bilan: ${updated} mis à jour, ${errors.length} erreurs`);
 
+    // STEP 5b — Diagnostic : récupère les séances réelles du premier athlète lié pour connaître les vrais sport_id Nolio
+    try {
+      const firstLinked = (nolioAthletesScoped.length ? nolioAthletesScoped : nolioAthletes)
+        .find(a => Number.isFinite(Number(a.nolio_id)));
+      if (firstLinked) {
+        const diagNolioId = Number(firstLinked.nolio_id);
+        const diagUrl = `https://www.nolio.io/api/get/training/?athlete_id=${diagNolioId}&limit=5`;
+        log(`STEP 5b — GET ${diagUrl}`);
+        const diagResp = await fetch(diagUrl, {
+          headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+        });
+        const diagText = await diagResp.text();
+        log(`STEP 5b — HTTP ${diagResp.status}, body (first 3000 chars): ${diagText.slice(0, 3000)}`);
+        try {
+          const diagJson = JSON.parse(diagText);
+          const arr: any[] = Array.isArray(diagJson) ? diagJson : (Array.isArray(diagJson?.results) ? diagJson.results : []);
+          const sports = arr.map(t => ({
+            id: t?.id ?? t?.pk ?? null,
+            id_partner: t?.id_partner ?? null,
+            name: t?.name ?? null,
+            sport_id: t?.sport_id ?? t?.sport ?? null,
+            date_start: t?.date_start ?? null,
+          }));
+          log(`STEP 5b — sport_id détectés (athlète nolio_id=${diagNolioId}, ${sports.length} séances): ${JSON.stringify(sports)}`);
+        } catch (e) {
+          log(`STEP 5b — parse JSON KO: ${(e as Error).message}`);
+        }
+      } else {
+        log(`STEP 5b — aucun athlète Nolio valide pour diagnostic /get/training/`);
+      }
+    } catch (e) {
+      log(`STEP 5b — exception diagnostic: ${(e as Error).message}`);
+    }
+
     const status = errors.length === 0 ? "success" : (updated > 0 ? "partial" : "error");
 
     // Count total TFCLab athletes with a valid nolio_id (after updates)
@@ -322,6 +356,7 @@ Deno.serve(async (req) => {
       .eq("coach_id", userId)
       .not("nolio_id", "is", null);
     const linkedCount = linkedRows?.length ?? 0;
+
 
     const message = targetAthleteName
       ? `${targetAthleteName} — ${updated} mis à jour`
