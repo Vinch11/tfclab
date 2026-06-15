@@ -62,7 +62,7 @@ RUN (sport_id=2 ou 52) :
 NATATION (sport_id=19) :
 - target_type="pace" TOUJOURS. JAMAIS "heartrate" même si la séance dit "Z2".
 - Mapping zones : Z1 → pct_css 105-115 · Z2 → 100-105 · Z3 → 95-100 · Z4/Z5 → 88-95. CSS+X → pct_css 100 à 100+X.
-- Calcul : target_value_min=round(css*pct_css_min/100), target_value_max=round(css*pct_css_max/100).
+- Calcul : target_value_min=round(css*100/pct_css_max)*10, target_value_max=round(css*100/pct_css_min)*10. Nolio attend la pace en SECONDES PAR KILOMÈTRE (s/km), pas s/100m → multiplier ×10. Exemple css=95s/100m à 100% CSS → 950 s/km (=1:35/100m affiché par Nolio). Note : pct min/max sont inversés car pct plus haut = plus lent = pace plus grande.
 - step_duration_type="distance" en mètres pour blocs actifs ; "duration" en secondes pour les repos.
 - Repos (r=20s) : target_type="no_target", target_value_min/max=null, pct_css_min/max=null.
 - Seuls pct_css_min/max renseignés.
