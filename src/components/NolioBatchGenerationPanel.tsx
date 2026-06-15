@@ -121,22 +121,40 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
     setLoading(true);
     setLastResult(null);
     try {
-      const payload = {
-        force_regenerate: forceRegenerate,
-        workouts: batch.map((w) => ({
-          workout_id: w.id,
-          sessionLabel: w.objectif,
-          sport: w.sport,
-          defaultSportId: defaultNolioSportId(w.sport),
-          workoutText: workoutToText(w),
-          ftp, fcMax, vma, css,
-        })),
-      };
+      // Chunk de 8 max pour rester sous le timeout 150s (Gemini 2.5 Pro ~20-30s/séance × concurrence 8)
+      const CHUNK_SIZE = 8;
+      const chunks: LibraryWorkout[][] = [];
+      for (let i = 0; i < batch.length; i += CHUNK_SIZE) chunks.push(batch.slice(i, i + CHUNK_SIZE));
 
-      const { data, error } = await supabase.functions.invoke("nolio-batch-generate", { body: payload });
-      if (error) throw error;
+      let totOk = 0, totErr = 0, totSkip = 0, totCost = 0;
 
-      const summary = `✅ ${data.ok} ok · ⚠️ ${data.error} erreurs · ⏭️ ${data.skipped} skip · 💸 $${data.total_cost_usd}`;
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        setLastResult(`⏳ Chunk ${i + 1}/${chunks.length} (${chunk.length} séances)...`);
+
+        const payload = {
+          force_regenerate: forceRegenerate,
+          workouts: chunk.map((w) => ({
+            workout_id: w.id,
+            sessionLabel: w.objectif,
+            sport: w.sport,
+            defaultSportId: defaultNolioSportId(w.sport),
+            workoutText: workoutToText(w),
+            ftp, fcMax, vma, css,
+          })),
+        };
+
+        const { data, error } = await supabase.functions.invoke("nolio-batch-generate", { body: payload });
+        if (error) throw error;
+
+        totOk += data.ok ?? 0;
+        totErr += data.error ?? 0;
+        totSkip += data.skipped ?? 0;
+        totCost += Number(data.total_cost_usd ?? 0);
+        onRefresh();
+      }
+
+      const summary = `✅ ${totOk} ok · ⚠️ ${totErr} err · ⏭️ ${totSkip} skip · 💸 $${totCost.toFixed(4)} (${chunks.length} chunks)`;
       setLastResult(summary);
       toast({ title: `Batch ${batch.length} séances`, description: summary });
       onRefresh();
