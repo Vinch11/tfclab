@@ -749,11 +749,18 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     setBulkSending(true);
     setBulkProgress({ done: 0, total: selectedSessions.length });
 
+    // Compute sessionIndex per (weekNumber, dayIndex) by counting sessions already
+    // processed in the same day. 0 = première séance du jour, 1 = deuxième, etc.
+    const dayCounters = new Map<string, number>();
     const enriched = selectedSessions.map((s) => {
+      const dayKey = `${s.weekNumber}:${s.dayIndex}`;
+      const sessionIndex = dayCounters.get(dayKey) ?? 0;
+      dayCounters.set(dayKey, sessionIndex + 1);
       const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details });
       return {
         weekNumber: s.weekNumber,
         dayIndex: s.dayIndex,
+        sessionIndex,
         sport: s.sport ?? lib?.sport ?? null,
         title: s.title,
         id: lib?.id ?? null,
