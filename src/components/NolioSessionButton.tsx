@@ -26,6 +26,10 @@ export interface NolioCtx {
   refs: { ftp?: number | null; vma?: number | null; css?: number | null; fcMax?: number | null };
   isSent: (key: string) => boolean;
   markSent: (key: string) => void;
+  // Bulk selection API
+  isSelected: (key: string) => boolean;
+  toggleSelected: (key: string) => void;
+  setManySelected: (keys: string[], value: boolean) => void;
 }
 
 interface Props {
