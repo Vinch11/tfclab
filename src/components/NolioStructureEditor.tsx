@@ -85,6 +85,10 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [ftp, setFtp] = useState<number>(280);
+  const [fcMax, setFcMax] = useState<number>(185);
+  const [vma, setVma] = useState<number>(18);
+  const [css, setCss] = useState<number>(95);
 
   useEffect(() => {
     if (!open) return;
