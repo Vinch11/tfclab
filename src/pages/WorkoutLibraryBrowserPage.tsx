@@ -91,6 +91,18 @@ export default function WorkoutLibraryBrowserPage() {
     };
   }, []);
 
+  // Overrides Nolio existants (set des session_id)
+  const [overrideIds, setOverrideIds] = useState<Set<string>>(new Set());
+  const refreshOverrides = async () => {
+    const { data } = await supabase
+      .from("nolio_workout_overrides")
+      .select("session_id");
+    setOverrideIds(new Set((data ?? []).map((r: { session_id: string }) => r.session_id)));
+  };
+  useEffect(() => { refreshOverrides(); }, []);
+
+
+
   const filtered = useMemo(() => {
     return WorkoutLibrary.filter(w => {
       if (sportFilter !== "all" && normalizeSport(w.sport) !== sportFilter) return false;
