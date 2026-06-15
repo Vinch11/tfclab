@@ -117,12 +117,13 @@ export function NolioStructureEditor({ open, onClose, sessionId, sessionLabel, d
     const payload = {
       session_id: sessionId,
       sport_id: sportId,
-      structured_workout: items as unknown as object,
+      structured_workout: items as unknown as never,
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase
       .from("nolio_workout_overrides")
-      .upsert(payload, { onConflict: "session_id" });
+      .upsert([payload], { onConflict: "session_id" });
+
     setSaving(false);
     if (error) {
       toast({ title: "Erreur sauvegarde", description: error.message, variant: "destructive" });
