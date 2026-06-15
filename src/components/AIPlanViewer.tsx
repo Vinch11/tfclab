@@ -1223,33 +1223,63 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       <Dialog open={bulkConfirmOpen} onOpenChange={(v) => !bulkSending && setBulkConfirmOpen(v)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Confirmer l'envoi groupé vers Nolio</DialogTitle>
+            <DialogTitle>Confirmer l'envoi vers Nolio</DialogTitle>
             <DialogDescription>
-              {selectedSessions.length} séance(s) à envoyer. Début du plan :{" "}
+              Périmètre :{" "}
+              <span className="font-medium text-foreground">
+                {scope === "selected" && `Séances sélectionnées (${selectedSessions.length})`}
+                {scope === "single" && `Semaine ${scopeWeek}`}
+                {scope === "range" && `Semaines ${Math.min(scopeFrom, scopeTo)} à ${Math.max(scopeFrom, scopeTo)}`}
+                {scope === "all" && `Plan complet (${allWeekNums.length} semaines)`}
+              </span>
+              {" · "}Début du plan :{" "}
               <span className="font-medium text-foreground">
                 {format(new Date(`${bulkStartDate}T00:00:00`), "EEEE d MMMM yyyy", { locale: fr })}
               </span>
-              . Les séances déjà envoyées (même <code className="px-1">id_partner</code>) ne seront pas dupliquées.
+              .
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[300px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
-            {selectedSessions.map((s) => {
+          {targetWeekNumbers.length > 0 && (
+            <div className="text-xs text-muted-foreground">
+              Semaines concernées :{" "}
+              {targetWeekNumbers.map((n) => {
+                const firstWeekInPlan = Math.min(...plan.weeks.map((w) => w.weekNumber));
+                const anchor = new Date(`${bulkStartDate}T00:00:00`);
+                const dt = addDays(anchor, (n - firstWeekInPlan) * 7);
+                return `S${n} (${format(dt, "d MMM", { locale: fr })})`;
+              }).join(" · ")}
+            </div>
+          )}
+
+          <div className="text-sm">
+            <span className="font-medium">{targetSessions.length}</span> séance(s) à envoyer (hors repos).
+          </div>
+
+          {alreadySentInScope > 0 && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {alreadySentInScope} séance(s) de ce périmètre ont déjà été envoyées sur Nolio.
+                Elles seront supprimées et recréées côté Nolio.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="max-h-[260px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
+            {targetSessions.map((s) => {
               const firstWeekInPlan = plan.weeks.length > 0
                 ? Math.min(...plan.weeks.map((w) => w.weekNumber))
                 : 1;
               const anchor = new Date(`${bulkStartDate}T00:00:00`);
               const dt = addDays(anchor, (s.weekNumber - firstWeekInPlan) * 7 + s.dayIndex);
-
               return (
                 <div
                   key={`${s.weekNumber}-${s.dayIndex}-${s.title}`}
                   className="flex items-center justify-between gap-2 py-1 border-b border-border/40 last:border-0"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-muted-foreground whitespace-nowrap">
-                      S{s.weekNumber}
-                    </span>
+                    <span className="text-muted-foreground whitespace-nowrap">S{s.weekNumber}</span>
                     <span className="font-medium truncate">{s.title}</span>
                   </div>
                   <span className="text-muted-foreground whitespace-nowrap">
@@ -1273,7 +1303,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
             <Button variant="outline" onClick={() => setBulkConfirmOpen(false)} disabled={bulkSending}>
               Annuler
             </Button>
-            <Button onClick={handleBulkSend} disabled={bulkSending || selectedSessions.length === 0}>
+            <Button onClick={handleBulkSend} disabled={bulkSending || targetSessions.length === 0}>
               {bulkSending ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
               ) : (
