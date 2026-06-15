@@ -25,6 +25,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Send } from "lucide-react";
+import { toast } from "sonner";
+import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase();
