@@ -307,6 +307,7 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RotateCw className="h-3 w-3 mr-1" />}
                 🔄 Relancer les erreurs ({pickAllErrors().length})
               </Button>
+              <Button
                 size="sm"
                 variant="default"
                 className="bg-primary"
