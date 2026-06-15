@@ -203,15 +203,19 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" onClick={() => runBatch(10)} disabled={loading}>
+              <Button size="sm" variant="default" onClick={() => runBatch(pickTestBatchBySport(5))} disabled={loading}>
+                {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+                🧪 Test 25 (5/sport)
+              </Button>
+              <Button size="sm" onClick={() => runBatch(pickNextBatch(10))} disabled={loading}>
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
                 Générer 10 prochaines
               </Button>
-              <Button size="sm" onClick={() => runBatch(20)} disabled={loading}>
+              <Button size="sm" onClick={() => runBatch(pickNextBatch(20))} disabled={loading}>
                 {loading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
                 Générer 20 prochaines
               </Button>
-              <Button size="sm" variant="outline" onClick={() => runBatch(20, true)} disabled={loading}>
+              <Button size="sm" variant="outline" onClick={() => runBatch(pickNextBatch(20, true), true)} disabled={loading}>
                 <RotateCw className="h-3 w-3 mr-1" />
                 Regénérer 20 (force)
               </Button>
