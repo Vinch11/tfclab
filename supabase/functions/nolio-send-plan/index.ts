@@ -674,39 +674,28 @@ Deno.serve(async (req) => {
         payload,
       });
 
-      // Forcer la mise à jour du sport_id sur la séance créée (Nolio peut garder l'ancien sport_id si une version a déjà été envoyée)
+      // Forcer la mise à jour côté Nolio (id_partner = clé d'identification, pas besoin d'id interne)
       let updateRes: { ok: boolean; status: number; detail?: string; data?: unknown } | null = null;
-      let createdId: number | string | null = null;
-      let idLookupPath: string | null = null;
-      if (res.ok && res.data && typeof res.data === "object") {
-        const d = res.data as Record<string, unknown>;
-        const inner = (d.data && typeof d.data === "object") ? d.data as Record<string, unknown> : null;
-        const candidates: Array<[string, unknown]> = [
-          ["data.id", inner?.id],
-          ["data.pk", inner?.pk],
-          ["data.training_id", inner?.training_id],
-          ["id", d.id],
-          ["pk", d.pk],
-          ["training_id", d.training_id],
-        ];
-        for (const [path, val] of candidates) {
-          if (typeof val === "number" || (typeof val === "string" && val.length > 0)) {
-            createdId = val as number | string;
-            idLookupPath = path;
-            break;
-          }
-        }
-        if (createdId !== null) {
-          updateRes = await postSession({
-            url: NOLIO_UPDATE_TRAINING_URL,
-            accessTokenRef,
-            refreshTokenStr,
-            admin,
-            userId,
-            payload: { id: createdId, sport_id: sportId },
-          });
-        }
+      if (res.ok) {
+        const updatePayload: Record<string, unknown> = {
+          id_partner: idPartner,
+          athlete_id: body.nolio_athlete_id,
+          sport_id: sportId,
+          name: s.title ?? "Séance",
+          date_start: dateStart,
+        };
+        if (structured_workout) updatePayload.structured_workout = structured_workout;
+
+        updateRes = await postSession({
+          url: NOLIO_UPDATE_TRAINING_URL,
+          accessTokenRef,
+          refreshTokenStr,
+          admin,
+          userId,
+          payload: updatePayload,
+        });
       }
+
 
       debugLog.push({
         week: s.weekNumber,
