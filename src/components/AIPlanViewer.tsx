@@ -663,9 +663,17 @@ interface AIPlanViewerProps {
   adaptationProjections?: import("@/hooks/useAITrainingPlan").AdaptationProjection[];
 }
 
-export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
+
+  // --- Local plan state (allows in-UI session replacements without touching saved plan) ---
+  const [plan, setPlan] = useState<ParsedPlan>(planProp);
+  const [replacementCount, setReplacementCount] = useState(0);
+  useEffect(() => { setPlan(planProp); setReplacementCount(0); }, [planProp]);
+
+  // --- Replace dialog state ---
+  const [replaceTarget, setReplaceTarget] = useState<ParsedSession | null>(null);
 
   // --- Nolio per-session sending context ---
   const { athletes, snapshots } = useCloudDataContext();
@@ -689,7 +697,53 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     return () => { cancelled = true; };
   }, [athleteId]);
 
-  useEffect(() => { setSentKeys(new Set()); setSelectedKeys(new Set()); }, [athleteId, plan]);
+  useEffect(() => { setSentKeys(new Set()); setSelectedKeys(new Set()); }, [athleteId, planProp]);
+
+  const handleReplaceClick = useCallback((s: ParsedSession) => {
+    setReplaceTarget(s);
+  }, []);
+
+  const applyReplacement = useCallback((w: LibraryWorkout) => {
+    const target = replaceTarget;
+    if (!target) return;
+    const newSport = libSportToPlanSport(w.sport);
+    const newTitle = `${w.objectif || w.id}`;
+    const structureText = (w.structure || [])
+      .map((p) => `${p.part}${p.zones.length ? ` [${p.zones.join(", ")}]` : ""} — ${p.text}`)
+      .join("\n");
+    const newDetails = `[ID: ${w.id}] ${structureText}`.trim();
+
+    setPlan((prev) => ({
+      ...prev,
+      weeks: prev.weeks.map((wk) => {
+        if (wk.weekNumber !== target.weekNumber) return wk;
+        return {
+          ...wk,
+          sessions: wk.sessions.map((s) => {
+            if (s.dayIndex !== target.dayIndex || s.title !== target.title) return s;
+            return { ...s, sport: newSport, title: newTitle, details: newDetails, isRest: false };
+          }),
+        };
+      }),
+    }));
+    setReplacementCount((c) => c + 1);
+
+    // Reset "sent" badge for this session
+    if (athleteId) {
+      const k = sessionKey(athleteId, target.weekNumber, target.dayIndex);
+      setSentKeys((prev) => {
+        if (!prev.has(k)) return prev;
+        const next = new Set(prev);
+        next.delete(k);
+        return next;
+      });
+    }
+
+    toast.success(`Séance remplacée par ${w.id}`);
+    setReplaceTarget(null);
+  }, [replaceTarget, athleteId]);
+
+
 
   const nolioRefs = useMemo(() => {
     if (!athleteId) return { ftp: null, vma: null, css: null, fcMax: null };
