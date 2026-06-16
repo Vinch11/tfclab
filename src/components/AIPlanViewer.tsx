@@ -35,9 +35,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Send } from "lucide-react";
+import { Send, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+import { SessionReplaceDialog, libSportToPlanSport } from "@/components/SessionReplaceDialog";
+import type { LibraryWorkout } from "@/types/workoutLibrary";
+
 
 type NolioScope = "selected" | "single" | "range" | "all";
 
@@ -279,9 +282,10 @@ interface SessionCardProps {
   session: ParsedSession;
   date?: Date;
   nolioCtx?: NolioCtx | null;
+  onReplaceClick?: (session: ParsedSession) => void;
 }
 
-function SessionCard({ session, date, nolioCtx }: SessionCardProps) {
+function SessionCard({ session, date, nolioCtx, onReplaceClick }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const trailAlts = useMemo(
@@ -341,8 +345,21 @@ function SessionCard({ session, date, nolioCtx }: SessionCardProps) {
       </div>
       <div className="flex items-center gap-2 mt-1">
         <p className="text-sm font-semibold flex-1">{session.title}</p>
+        {onReplaceClick && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 px-2 text-[11px]"
+            onClick={(e) => { e.stopPropagation(); onReplaceClick(session); }}
+            title="Remplacer cette séance par une séance de la bibliothèque"
+          >
+            <Repeat className="h-3.5 w-3.5 mr-1" /> Remplacer
+          </Button>
+        )}
         {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} />}
       </div>
+
       {expanded && session.details && (
         <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
           {session.details}
@@ -547,9 +564,11 @@ interface WeekViewProps {
   week: ParsedWeek;
   startDate?: Date;
   nolioCtx?: NolioCtx | null;
+  onReplaceClick?: (session: ParsedSession) => void;
 }
 
-function WeekView({ week, startDate, nolioCtx }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick }: WeekViewProps) {
+
   const weekDates = useMemo(() => {
     if (!startDate) return null;
     const start = startOfWeek(startDate, { weekStartsOn: 1 });
@@ -612,8 +631,9 @@ function WeekView({ week, startDate, nolioCtx }: WeekViewProps) {
       <CardContent className="space-y-2">
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
-          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} />;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} />;
         })}
+
         {week.coachNotes && (
           <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-xs font-semibold text-primary flex items-center gap-1 mb-1">
@@ -643,9 +663,17 @@ interface AIPlanViewerProps {
   adaptationProjections?: import("@/hooks/useAITrainingPlan").AdaptationProjection[];
 }
 
-export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
+
+  // --- Local plan state (allows in-UI session replacements without touching saved plan) ---
+  const [plan, setPlan] = useState<ParsedPlan>(planProp);
+  const [replacementCount, setReplacementCount] = useState(0);
+  useEffect(() => { setPlan(planProp); setReplacementCount(0); }, [planProp]);
+
+  // --- Replace dialog state ---
+  const [replaceTarget, setReplaceTarget] = useState<ParsedSession | null>(null);
 
   // --- Nolio per-session sending context ---
   const { athletes, snapshots } = useCloudDataContext();
@@ -669,7 +697,53 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
     return () => { cancelled = true; };
   }, [athleteId]);
 
-  useEffect(() => { setSentKeys(new Set()); setSelectedKeys(new Set()); }, [athleteId, plan]);
+  useEffect(() => { setSentKeys(new Set()); setSelectedKeys(new Set()); }, [athleteId, planProp]);
+
+  const handleReplaceClick = useCallback((s: ParsedSession) => {
+    setReplaceTarget(s);
+  }, []);
+
+  const applyReplacement = useCallback((w: LibraryWorkout) => {
+    const target = replaceTarget;
+    if (!target) return;
+    const newSport = libSportToPlanSport(w.sport);
+    const newTitle = `${w.objectif || w.id}`;
+    const structureText = (w.structure || [])
+      .map((p) => `${p.part}${p.zones.length ? ` [${p.zones.join(", ")}]` : ""} — ${p.text}`)
+      .join("\n");
+    const newDetails = `[ID: ${w.id}] ${structureText}`.trim();
+
+    setPlan((prev) => ({
+      ...prev,
+      weeks: prev.weeks.map((wk) => {
+        if (wk.weekNumber !== target.weekNumber) return wk;
+        return {
+          ...wk,
+          sessions: wk.sessions.map((s) => {
+            if (s.dayIndex !== target.dayIndex || s.title !== target.title) return s;
+            return { ...s, sport: newSport, title: newTitle, details: newDetails, isRest: false };
+          }),
+        };
+      }),
+    }));
+    setReplacementCount((c) => c + 1);
+
+    // Reset "sent" badge for this session
+    if (athleteId) {
+      const k = sessionKey(athleteId, target.weekNumber, target.dayIndex);
+      setSentKeys((prev) => {
+        if (!prev.has(k)) return prev;
+        const next = new Set(prev);
+        next.delete(k);
+        return next;
+      });
+    }
+
+    toast.success(`Séance remplacée par ${w.id}`);
+    setReplaceTarget(null);
+  }, [replaceTarget, athleteId]);
+
+
 
   const nolioRefs = useMemo(() => {
     if (!athleteId) return { ftp: null, vma: null, css: null, fcMax: null };
@@ -923,6 +997,15 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
 
   return (
     <div className="space-y-4">
+      {replacementCount > 0 && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            ⚠️ Plan modifié — {replacementCount} séance(s) remplacée(s) localement. Pensez à sauvegarder pour conserver vos modifications.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (
         <Card className="border-primary/30">
@@ -1174,12 +1257,12 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} />
+          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} />
+            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} />
           ))}
         </div>
       )}
@@ -1322,7 +1405,17 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Replace session dialog */}
+      <SessionReplaceDialog
+        open={!!replaceTarget}
+        onOpenChange={(o) => { if (!o) setReplaceTarget(null); }}
+        currentSport={replaceTarget?.sport ?? ""}
+        currentTitle={replaceTarget?.title ?? ""}
+        onChoose={applyReplacement}
+      />
     </div>
+
   );
 }
 
