@@ -154,12 +154,13 @@ export default function TrackDayPage() {
     }
     const snap = await addSnapshot({
       athlete_id: currentAthlete.id,
-      label: `TFCL Track Day — ${testDate}`,
+      date: testDate,
+      source: "track_day",
       vma: calc.vmaConfirmee || null,
       vlamax_run: calc.vlamaxEst || null,
       tte_observed_min_run: calc.tteEst || null,
-      fatmax_pct: calc.fatMaxPct || null,
-      notes: `Track Day ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} — Score G ${fmt(calc.scoreG, 2)}`,
+      pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
+      coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA`,
     } as any);
     if (snap) {
       toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
