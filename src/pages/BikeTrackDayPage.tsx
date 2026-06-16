@@ -58,7 +58,11 @@ export default function BikeTrackDayPage() {
     [currentAthlete, snapshots]
   );
   const [weightKgManual, setWeightKgManual] = useState("");
+  const [heightCmManual, setHeightCmManual] = useState("");
+  const [fcReposManual, setFcReposManual] = useState("");
   const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
+  const heightCm = num(heightCmManual);
+  const fcRepos = num(fcReposManual);
 
   // Bloc 1 — sprints (HT puissance directe OU route vitesse+pente)
   const [p10s, setP10s] = useState("");
