@@ -314,7 +314,7 @@ function SessionCard({ session, date, nolioCtx, onReplaceClick, sessionIndex = 0
     );
   }
 
-  const selKey = nolioCtx ? sessionKey(nolioCtx.athleteId, session.weekNumber, session.dayIndex) : null;
+  const selKey = nolioCtx ? sessionKey(nolioCtx.athleteId, session.weekNumber, session.dayIndex, sessionIndex) : null;
   const isSent = !!(nolioCtx && selKey && nolioCtx.isSent(selKey));
   const isChecked = !!(nolioCtx && selKey && nolioCtx.isSelected(selKey));
 
