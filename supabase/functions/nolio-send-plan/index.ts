@@ -34,6 +34,8 @@ type WbalProfile = {
 
 type WorkoutStructurePart = { part: string; text: string; zones: string[] };
 
+type TerrainAlternative = { icon?: string; label: string; hint?: string };
+
 type ParsedSession = {
   weekNumber: number;
   dayIndex: number; // 0=Lun ... 6=Dim
@@ -48,6 +50,8 @@ type ParsedSession = {
   avoid?: string;
   notes?: string;
   objectif?: string;
+  /** Alternatives terrain (trail) calculées côté client depuis la fiche bibliothèque. */
+  alternatives?: TerrainAlternative[];
 };
 
 type AthleteRefs = {
