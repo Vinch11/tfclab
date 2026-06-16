@@ -1136,6 +1136,37 @@ Deno.serve(async (req) => {
         },
       });
 
+      // 📋 Audit trail : une ligne dans nolio_sync_log par séance envoyée,
+      // avec le workout_id, le payload complet et la réponse Nolio.
+      try {
+        await admin.from("nolio_sync_log").insert({
+          user_id: userId,
+          athletes_count: res.ok ? 1 : 0,
+          status: res.ok ? "success" : "error",
+          error_message: res.ok ? null : JSON.stringify({ status: res.status, detail: res.detail }).slice(0, 2000),
+          workout_id: (s.id ?? null),
+          payload: {
+            nolio_athlete_id: body.nolio_athlete_id,
+            week: s.weekNumber,
+            day: s.dayIndex,
+            date_start: dateStart,
+            sport_id: sportId,
+            id_partner: idPartner,
+            used_override: usedOverride,
+            used_generated: usedGenerated,
+            request: payload,
+            response: {
+              ok: res.ok,
+              status: res.status,
+              detail: res.detail ?? null,
+              data: res.data ?? null,
+            },
+          },
+        });
+      } catch (perSessionLogErr) {
+        console.error("nolio_sync_log per-session insert failed", perSessionLogErr);
+      }
+
       if (res.ok) sent += 1;
       else errors.push({ week: s.weekNumber, day: s.dayIndex, status: res.status, detail: res.detail });
 
@@ -1144,6 +1175,7 @@ Deno.serve(async (req) => {
         await new Promise((r) => setTimeout(r, 200));
       }
     }
+
 
     // Log debug dans nolio_sync_log (notes = JSON complet pour vérifier ce qui est transmis)
     try {
