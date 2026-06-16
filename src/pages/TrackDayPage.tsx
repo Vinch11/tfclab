@@ -72,9 +72,11 @@ export default function TrackDayPage() {
     [currentAthlete, snapshots]
   );
   const [weightKgManual, setWeightKgManual] = useState("");
-  const [heightMManual, setHeightMManual] = useState("");
+  const [heightCmManual, setHeightCmManual] = useState("");
+  const [fcReposManual, setFcReposManual] = useState("");
   const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
-  const heightM = num(heightMManual);
+  const heightM = num(heightCmManual) > 0 ? num(heightCmManual) / 100 : 0;
+  const fcRepos = num(fcReposManual);
 
   // Bloc 1 — Neuromusculaire (5 options indépendantes)
   const [t30m, setT30m] = useState("");
