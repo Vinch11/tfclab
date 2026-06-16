@@ -564,9 +564,11 @@ interface WeekViewProps {
   week: ParsedWeek;
   startDate?: Date;
   nolioCtx?: NolioCtx | null;
+  onReplaceClick?: (session: ParsedSession) => void;
 }
 
-function WeekView({ week, startDate, nolioCtx }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick }: WeekViewProps) {
+
   const weekDates = useMemo(() => {
     if (!startDate) return null;
     const start = startOfWeek(startDate, { weekStartsOn: 1 });
