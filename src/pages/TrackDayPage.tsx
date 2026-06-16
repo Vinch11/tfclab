@@ -98,15 +98,51 @@ export default function TrackDayPage() {
 
   // ──────────────── Calculs dérivés ────────────────
   const calc = useMemo(() => {
-    const vMax = num(vMaxKmh);
+    // ── Bloc 1 — Neuromusculaire (5 options indépendantes) ──
+    // Option 1 : 30m → V max (km/h), facteur 1.12 (correction départ arrêté → lancé) — Ferro 2001
+    const vMaxFrom30 = num(t30m) > 0 ? (30 / num(t30m)) * 3.6 * 1.12 : 0;
+    // Option 2 : 100m → P5s (W/kg) — Lockie 2011
+    const P5sFrom100 = num(t100m) > 0 && massKg > 0
+      ? massKg * Math.pow(100 / num(t100m), 2) * 0.0023
+      : 0;
+    // Option 3 : 200m → P30s (W/kg) — Morin 2011
+    const P30sFrom200 = num(t200m) > 0 && massKg > 0
+      ? massKg * Math.pow(200 / num(t200m), 2) * 0.0021
+      : 0;
+    // Option 4 : CMJ → P1s (W/kg) — Bosco 1983
+    const P1sFromCmj = num(cmjCm) > 0
+      ? 60.7 * Math.sqrt(num(cmjCm) / 100) + 45.3
+      : 0;
+    // Option 5 : 5 bonds horizontaux → Score_neuro — Maulder & Cronin 2005
+    const scoreNeuroBonds = num(bonds5m) > 0 && heightM > 0
+      ? num(bonds5m) / (heightM * 2.5)
+      : 0;
+
+    // P1s prioritaire CMJ, sinon dérivé de V max 30m (puissance approx)
+    const P1s = P1sFromCmj > 0
+      ? P1sFromCmj
+      : (vMaxFrom30 > 0 ? powerWperKg(vMaxFrom30) : 0);
+    const P5s = P5sFrom100;
+    const P30s = P30sFrom200;
+
+    // Score neuromusculaire global pondéré
+    // P1s prioritaire (CMJ ou sprint), sinon bonds
+    const neuroSamples: number[] = [];
+    if (P1sFromCmj > 0) neuroSamples.push(Math.min(1, P1sFromCmj / 75));
+    else if (scoreNeuroBonds > 0) neuroSamples.push(Math.min(1, scoreNeuroBonds / 1.6));
+    if (vMaxFrom30 > 0) neuroSamples.push(Math.min(1, vMaxFrom30 / 35));
+    if (P5s > 0) neuroSamples.push(Math.min(1, P5s / 18));
+    if (P30s > 0) neuroSamples.push(Math.min(1, P30s / 12));
+    const neuroScore = neuroSamples.length > 0
+      ? neuroSamples.reduce((a, b) => a + b, 0) / neuroSamples.length
+      : 0;
+    const neuroCount = [t30m, t100m, t200m, cmjCm, bonds5m].filter((v) => num(v) > 0).length;
+
+    // ── Bloc 2 — Glycolytique ──
     const v100 = num(t100m) > 0 ? (100 / num(t100m)) * 3.6 : 0;
     const v200 = num(t200m) > 0 ? (200 / num(t200m)) * 3.6 : 0;
     const v400 = num(t400m) > 0 ? (400 / num(t400m)) * 3.6 : 0;
     const v600 = num(t600m) > 0 ? (600 / num(t600m)) * 3.6 : 0;
-
-    const P1s = powerWperKg(vMax);
-    const P5s = powerWperKg(v100 || vMax * 0.9);
-    const P30s = powerWperKg(v200);
     const P60s = powerWperKg(v400);
 
     // VMA depuis 400m
@@ -119,28 +155,22 @@ export default function TrackDayPage() {
     const vSeuilKmh = num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
     const ratioSeuilVMA = vmaConfirmee > 0 && vSeuilKmh > 0 ? vSeuilKmh / vmaConfirmee : 0;
 
-    // TTE estimé (Billat) : plus le ratio est haut, plus le TTE au seuil est élevé
-    // Heuristique simple : TTE ≈ 30 + (ratio - 0.85) × 400, borné 25-75
     const tteEst = ratioSeuilVMA > 0 ? Math.max(25, Math.min(75, 30 + (ratioSeuilVMA - 0.85) * 400)) : 0;
 
-    // Drift cardiaque Z2
     const fcD = num(fcDebutZ2);
     const fcF = num(fcFinZ2);
     const driftPct = fcD > 0 ? ((fcF - fcD) / fcD) * 100 : 0;
-
-    // FatMax estimé : meilleur drift = FatMax plus haut (% VMA)
-    // Heuristique : FatMax % ≈ 65 - drift × 2, borné 50-78
     const fatMaxPct = fcD > 0 ? Math.max(50, Math.min(78, 65 - driftPct * 2)) : 0;
 
-    // VLamax — Score G inspiré de vlamaxRunV2Enhanced :
-    // Fusion sprints (P1s/P5s/P30s/P60s normalisés) + ratio seuil/VMA inversé.
-    // Score G ∈ [0,1] → VLamax ∈ [0.25 ; 0.85] mmol/L/s
-    const sprintScore = [P1s, P5s, P30s, P60s]
-      .map((p, i) => {
-        const refs = [22, 18, 12, 8]; // W/kg refs élite
-        return Math.max(0, Math.min(1, p / refs[i]));
-      })
-      .reduce((a, b) => a + b, 0) / 4;
+    // VLamax — Score G fusionne sprints disponibles + ratio seuil/VMA inversé
+    const sprintRefs = [22, 18, 12, 8];
+    const sprintVals = [P1s, P5s, P30s, P60s];
+    const sprintAvail = sprintVals
+      .map((p, i) => p > 0 ? Math.max(0, Math.min(1, p / sprintRefs[i])) : null)
+      .filter((v): v is number => v != null);
+    const sprintScore = sprintAvail.length > 0
+      ? sprintAvail.reduce((a, b) => a + b, 0) / sprintAvail.length
+      : 0;
 
     const ratioInv = ratioSeuilVMA > 0
       ? Math.max(0, Math.min(1, (0.95 - ratioSeuilVMA) / 0.15))
@@ -150,6 +180,8 @@ export default function TrackDayPage() {
     const vlamaxEst = vmaConfirmee > 0 ? 0.25 + scoreG * 0.6 : 0;
 
     return {
+      vMaxFrom30, P5sFrom100, P30sFrom200, P1sFromCmj, scoreNeuroBonds,
+      neuroScore, neuroCount,
       v100, v200, v400, v600,
       P1s, P5s, P30s, P60s,
       vma400, vma6min, vmaConfirmee,
@@ -158,7 +190,7 @@ export default function TrackDayPage() {
       driftPct, fatMaxPct,
       scoreG, vlamaxEst,
     };
-  }, [vMaxKmh, t100m, t200m, t400m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2]);
+  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
   const canCreateSnapshot =
     !!currentAthlete && calc.vmaConfirmee > 0 && calc.vlamaxEst > 0;
