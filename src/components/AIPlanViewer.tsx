@@ -358,7 +358,7 @@ function SessionCard({ session, date, nolioCtx, onReplaceClick, sessionIndex = 0
             <Repeat className="h-3.5 w-3.5 mr-1" /> Remplacer
           </Button>
         )}
-        {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} />}
+        {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} sessionIndex={sessionIndex} />}
       </div>
 
       {expanded && session.details && (
