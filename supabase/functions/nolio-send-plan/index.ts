@@ -965,44 +965,10 @@ Deno.serve(async (req) => {
         generatedMap.set(r.workout_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
       }
 
-      // 🔎 Prefix matching : un plan IA peut référencer "B_TR_HILLREPS_PRO" alors que la
-      // base contient "B_TR_HILLREPS_8x2_PRO" / "_6x3_PRO". Pour chaque ID non résolu,
-      // on essaie un préfixe progressif (drop du dernier token `_XXX`) et on prend la
-      // première structure `status='ok'` qui matche.
-      const unresolved = sessionIds.filter((id) => !generatedMap.has(id));
-      // ⚠️ Variantes numériques (_8x2, _6x3, _10x1, etc.) = séances DIFFÉRENTES.
-      // Si l'ID original n'a pas de suffixe numérique, refuser tout match qui en a un.
-      const NUMERIC_SUFFIX_RE = /_\d+x\d+(_|$)/i;
-      const originalHasNumericVariant = (id: string) => NUMERIC_SUFFIX_RE.test(id);
-      for (const id of unresolved) {
-        const tokens = id.split("_").filter((t) => t.length > 0);
-        const idHasVariant = originalHasNumericVariant(id);
-        // On essaie des préfixes de plus en plus courts (au moins 2 tokens).
-        for (let n = tokens.length - 1; n >= 2; n--) {
-          const prefix = tokens.slice(0, n).join("_");
-          const { data: prefRows } = await admin
-            .from("nolio_structures_generated")
-            .select("workout_id, sport_id, structured_workout")
-            .ilike("workout_id", `${prefix}\\_%`)
-            .eq("status", "ok")
-            .order("updated_at", { ascending: false })
-            .limit(5);
-          const candidates = (prefRows ?? []) as Array<
-            { workout_id: string; sport_id: number; structured_workout: unknown }
-          >;
-          const hit = candidates.find((c) => {
-            if (!idHasVariant && originalHasNumericVariant(c.workout_id)) return false;
-            return true;
-          });
-          if (hit) {
-            generatedMap.set(id, { sport_id: hit.sport_id, structured_workout: hit.structured_workout });
-            console.log(`[nolio-send-plan] prefix match: "${id}" → "${hit.workout_id}" (prefix="${prefix}")`);
-            break;
-          } else if (candidates.length > 0) {
-            console.log(`[nolio-send-plan] prefix match rejected for "${id}" (variantes numériques: ${candidates.map((c) => c.workout_id).join(", ")}) — fallback parsing`);
-          }
-        }
-      }
+      // ❌ Prefix matching supprimé : trop d'erreurs en matchant des variantes incorrectes
+      // (ex: B_TR_HILLREPS_PRO → B_TR_HILLREPS_8x2_PRO = séance différente).
+      // Si l'ID exact n'est pas trouvé, on tombe sur le parsing automatique du texte
+      // de la séance — plus fiable qu'un mauvais match.
     }
 
 
