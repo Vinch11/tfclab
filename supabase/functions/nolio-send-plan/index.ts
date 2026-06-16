@@ -404,9 +404,10 @@ function normalizeStructuredWorkoutForNolio(
       }
     }
 
-    // Run/Trail (sport_id 2/52) : step_duration_type "distance" interdit côté Nolio,
-    // la distance en mètres est réservée à la natation. On convertit en "duration" (secondes)
-    // en estimant depuis la VMA athlète : t = d / (vma * 1000/3600).
+    // Run/Trail (sport_id 2/52) : step_duration_type "distance" interdit côté Nolio.
+    // Nolio affiche alors la distance en mètres entre parenthèses à côté de l'allure (parasite).
+    // → On FORCE "duration" sur TOUS les steps run/trail, même si la structure générée
+    //   indique "distance". Conversion via VMA athlète : t = d / (vma * 1000/3600).
     if (
       (sportId === 2 || sportId === 52) &&
       src.type === "step" &&
@@ -415,7 +416,6 @@ function normalizeStructuredWorkoutForNolio(
       const distM = typeof src.step_duration_value === "number" ? src.step_duration_value : null;
       const vma = refs?.vma;
       if (distM !== null && distM > 0 && typeof vma === "number" && vma > 0) {
-        // Si une cible pace en s/km est connue, l'utiliser, sinon VMA brute.
         const speedMs = vma * (1000 / 3600);
         src.step_duration_type = "duration";
         src.step_duration_value = Math.round(distM / speedMs);
@@ -423,6 +423,10 @@ function normalizeStructuredWorkoutForNolio(
         // Fallback prudent : 4 m/s (~ 4:10/km) si pas de VMA.
         src.step_duration_type = "duration";
         src.step_duration_value = Math.round(distM / 4);
+      } else {
+        // Aucune distance exploitable : on bascule en duration neutre pour éviter l'affichage parasite.
+        src.step_duration_type = "duration";
+        src.step_duration_value = typeof src.step_duration_value === "number" ? src.step_duration_value : 60;
       }
     }
 
@@ -532,27 +536,30 @@ function buildDescription(s: ParsedSession): string {
   }
 
   // 2) Alternatives terrain (si fournies par la fiche bibliothèque)
+  //    Aération : ligne vide entre texte principal et alternatives, et entre chaque alternative.
   const alts = Array.isArray(s.alternatives)
     ? s.alternatives.filter((a) => a && typeof a.label === "string" && a.label.trim().length > 0)
     : [];
   if (alts.length > 0) {
-    const lines = ["", "🏔️ Alternatives :"];
-    for (const a of alts) {
+    const altLines: string[] = ["🏔️ Alternatives :", ""];
+    alts.forEach((a, idx) => {
       const icon = (a.icon ?? "").trim();
       const label = a.label.trim();
       const hint = (a.hint ?? "").trim();
       const head = icon ? `${icon} ${label}` : label;
-      lines.push(hint ? `• ${head} — ${hint}` : `• ${head}`);
-    }
-    parts.push(lines.join("\n"));
+      altLines.push(hint ? `• ${head} — ${hint}` : `• ${head}`);
+      if (idx < alts.length - 1) altLines.push("");
+    });
+    parts.push(altLines.join("\n"));
   }
 
-  // 3) Éviter
+  // 3) Éviter — ligne vide avant pour aération
   if (s.avoid && s.avoid.trim()) {
     parts.push(`⚠️ Éviter : ${s.avoid.trim()}`);
   }
 
-  let desc = parts.join("\n");
+  // Joindre les blocs avec une ligne vide entre chacun (aération).
+  let desc = parts.join("\n\n");
   if (desc.length > 500) {
     desc = desc.slice(0, 500);
     const lastBreak = desc.lastIndexOf("\n");
@@ -963,8 +970,13 @@ Deno.serve(async (req) => {
       // on essaie un préfixe progressif (drop du dernier token `_XXX`) et on prend la
       // première structure `status='ok'` qui matche.
       const unresolved = sessionIds.filter((id) => !generatedMap.has(id));
+      // ⚠️ Variantes numériques (_8x2, _6x3, _10x1, etc.) = séances DIFFÉRENTES.
+      // Si l'ID original n'a pas de suffixe numérique, refuser tout match qui en a un.
+      const NUMERIC_SUFFIX_RE = /_\d+x\d+(_|$)/i;
+      const originalHasNumericVariant = (id: string) => NUMERIC_SUFFIX_RE.test(id);
       for (const id of unresolved) {
         const tokens = id.split("_").filter((t) => t.length > 0);
+        const idHasVariant = originalHasNumericVariant(id);
         // On essaie des préfixes de plus en plus courts (au moins 2 tokens).
         for (let n = tokens.length - 1; n >= 2; n--) {
           const prefix = tokens.slice(0, n).join("_");
@@ -974,14 +986,20 @@ Deno.serve(async (req) => {
             .ilike("workout_id", `${prefix}\\_%`)
             .eq("status", "ok")
             .order("updated_at", { ascending: false })
-            .limit(1);
-          const hit = (prefRows ?? [])[0] as
-            | { workout_id: string; sport_id: number; structured_workout: unknown }
-            | undefined;
+            .limit(5);
+          const candidates = (prefRows ?? []) as Array<
+            { workout_id: string; sport_id: number; structured_workout: unknown }
+          >;
+          const hit = candidates.find((c) => {
+            if (!idHasVariant && originalHasNumericVariant(c.workout_id)) return false;
+            return true;
+          });
           if (hit) {
             generatedMap.set(id, { sport_id: hit.sport_id, structured_workout: hit.structured_workout });
             console.log(`[nolio-send-plan] prefix match: "${id}" → "${hit.workout_id}" (prefix="${prefix}")`);
             break;
+          } else if (candidates.length > 0) {
+            console.log(`[nolio-send-plan] prefix match rejected for "${id}" (variantes numériques: ${candidates.map((c) => c.workout_id).join(", ")}) — fallback parsing`);
           }
         }
       }
