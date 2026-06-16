@@ -207,11 +207,14 @@ export default function TrackDayPage() {
       athlete_id: currentAthlete.id,
       date: testDate,
       source: "track_day",
+      weight_kg: massKg > 0 ? massKg : null,
+      fc_repos: fcRepos > 0 ? fcRepos : null,
       vma: calc.vmaConfirmee || null,
       vlamax_run: calc.vlamaxEst || null,
       tte_observed_min_run: calc.tteEst || null,
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
-      coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA`,
+      sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
+      coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
     } as any);
     if (snap) {
       toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
