@@ -967,7 +967,14 @@ Deno.serve(async (req) => {
         description: s.details ?? "",
       };
       if (structured_workout) {
-        payload.structured_workout = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
+        const normalized = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
+        // Strength (sport_id 20) : si tous les steps ont target_type="no_target",
+        // Nolio affiche "empty_unit". On préfère ne PAS envoyer de structured_workout
+        // et laisser la description texte gérer l'affichage.
+        const strip = sportId === 20 && isAllNoTargetStructure(normalized);
+        if (!strip) {
+          payload.structured_workout = normalized;
+        }
       }
 
       const res = await postSession({
