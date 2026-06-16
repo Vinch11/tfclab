@@ -60,9 +60,11 @@ export default function BikeTrackDayPage() {
   const [weightKgManual, setWeightKgManual] = useState("");
   const [heightCmManual, setHeightCmManual] = useState("");
   const [fcReposManual, setFcReposManual] = useState("");
+  const [fcMaxManual, setFcMaxManual] = useState("");
   const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
   const heightCm = num(heightCmManual);
   const fcRepos = num(fcReposManual);
+  const fcMax = effectiveRefs.fcMax ?? num(fcMaxManual);
 
   // Bloc 1 — sprints (HT puissance directe OU route vitesse+pente)
   const [p10s, setP10s] = useState("");
@@ -147,6 +149,7 @@ export default function BikeTrackDayPage() {
       source: "bike_track_day",
       weight_kg: massKg > 0 ? massKg : null,
       fc_repos: fcRepos > 0 ? fcRepos : null,
+      fc_max: fcMax > 0 ? fcMax : null,
       ftp: calc.ftp || null,
       vlamax: calc.vlamaxEst || null,
       pmax_5s: calc.p10 || null,
@@ -228,23 +231,34 @@ export default function BikeTrackDayPage() {
             <CardTitle className="text-base">Données de base</CardTitle>
             <CardDescription className="text-xs">Communes à tous les blocs — alimentent les calculs (VO2max, FTP/kg) et le snapshot.</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <Label>
-                Poids (kg) {effectiveRefs.weightKg != null && <span className="text-[10px] text-success">— auto</span>}
+                Poids (kg) <span className="text-destructive">*</span>{" "}
+                {effectiveRefs.weightKg != null && <span className="text-[10px] text-success">— auto</span>}
               </Label>
               {effectiveRefs.weightKg != null ? (
                 <Input type="number" value={effectiveRefs.weightKg} disabled />
               ) : (
-                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" />
+                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" required />
               )}
             </div>
             <div>
-              <Label>FC repos (bpm)</Label>
+              <Label>FC repos (bpm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
               <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
             </div>
             <div>
-              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
+              <Label>
+                FC max (bpm) {effectiveRefs.fcMax != null && <span className="text-[10px] text-success">— auto</span>}
+              </Label>
+              {effectiveRefs.fcMax != null ? (
+                <Input type="number" value={effectiveRefs.fcMax} disabled />
+              ) : (
+                <Input type="number" value={fcMaxManual} onChange={(e) => setFcMaxManual(e.target.value)} placeholder="188" />
+              )}
+            </div>
+            <div>
+              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— IMC</span></Label>
               <Input type="number" value={heightCmManual} onChange={(e) => setHeightCmManual(e.target.value)} placeholder="178" />
             </div>
           </CardContent>
@@ -430,6 +444,31 @@ export default function BikeTrackDayPage() {
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
               <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
             </div>
+            {calc.vo2maxEst > 0 && (
+              <p className="text-[10px] text-amber-700 dark:text-amber-400">
+                <b>VO2max</b> = MAP × 10.8 / poids + 7 (Hawley &amp; Noakes 1992) — <b>Estimé — confiance : moyenne (±3 ml/kg/min)</b>
+              </p>
+            )}
+            {(() => {
+              const fields = [
+                { k: "Poids", ok: massKg > 0 },
+                { k: "FC repos", ok: fcRepos > 0 },
+                { k: "FC max", ok: fcMax > 0 },
+                { k: "Taille", ok: heightCm > 0 },
+                { k: "FTP", ok: calc.ftp > 0 },
+                { k: "MAP", ok: calc.map > 0 },
+                { k: "CP3'", ok: calc.cp3 > 0 },
+                { k: "VLamax", ok: calc.vlamaxEst > 0 },
+                { k: "VO2max", ok: calc.vo2maxEst > 0 },
+              ];
+              const filled = fields.filter((f) => f.ok).length;
+              return (
+                <div className="rounded-md border border-border/60 bg-background/60 p-2 text-xs">
+                  <b>{filled}/{fields.length}</b> champs renseignés
+                  <span className="text-muted-foreground"> — {fields.filter(f => !f.ok).map(f => f.k).join(", ") || "complet ✓"}</span>
+                </div>
+              );
+            })()}
             <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
               <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats
             </Button>

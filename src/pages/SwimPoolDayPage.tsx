@@ -55,9 +55,11 @@ export default function SwimPoolDayPage() {
   const [weightKgManual, setWeightKgManual] = useState("");
   const [heightCmManual, setHeightCmManual] = useState("");
   const [fcReposManual, setFcReposManual] = useState("");
+  const [fcMaxManual, setFcMaxManual] = useState("");
   const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
   const heightCm = num(heightCmManual);
   const fcRepos = num(fcReposManual);
+  const fcMax = effectiveRefs.fcMax ?? num(fcMaxManual);
 
 
   // Bloc 1 — sprints
@@ -96,12 +98,28 @@ export default function SwimPoolDayPage() {
       ? Math.max(20, Math.min(60, 25 + (ratioCssVmax - 0.55) * 200))
       : 0;
 
-    // VLamax nage indicatif (qualitatif) — sprint dominant si ratio bas
-    const vlamaxSwimIdx = ratioCssVmax > 0
-      ? Math.max(0.30, Math.min(0.80, 0.85 - ratioCssVmax))
-      : 0;
+    // VLamax nage par bandes (Mader 2003 adapté natation) :
+    //   ratio > 0.85 → faible 0.25-0.35 (profil endurant)
+    //   ratio 0.75-0.85 → moyenne 0.35-0.55
+    //   ratio < 0.75 → élevée 0.55-0.80 (profil sprinter)
+    let vlamaxSwimIdx = 0;
+    let vlamaxBand: "faible" | "moyenne" | "élevée" | "" = "";
+    let vlamaxRange = "";
+    if (ratioCssVmax > 0) {
+      if (ratioCssVmax > 0.85) {
+        vlamaxBand = "faible"; vlamaxRange = "0.25–0.35";
+        vlamaxSwimIdx = 0.35 - Math.min(0.10, (ratioCssVmax - 0.85) * 1.0);
+      } else if (ratioCssVmax >= 0.75) {
+        vlamaxBand = "moyenne"; vlamaxRange = "0.35–0.55";
+        vlamaxSwimIdx = 0.35 + ((0.85 - ratioCssVmax) / 0.10) * 0.20;
+      } else {
+        vlamaxBand = "élevée"; vlamaxRange = "0.55–0.80";
+        vlamaxSwimIdx = Math.min(0.80, 0.55 + (0.75 - ratioCssVmax) * 1.5);
+      }
+      vlamaxSwimIdx = Math.max(0.25, Math.min(0.80, vlamaxSwimIdx));
+    }
 
-    return { v25, v50, v100, vMax, css, cssPer100, ratioCssVmax, driftPct, t800Theo, ecart800, tteEst, vlamaxSwimIdx };
+    return { v25, v50, v100, vMax, css, cssPer100, ratioCssVmax, driftPct, t800Theo, ecart800, tteEst, vlamaxSwimIdx, vlamaxBand, vlamaxRange };
   }, [t25, t50, t100, t400, t200, fcDebut800, fcFin800, t800]);
 
   const canCreate = !!currentAthlete && calc.cssPer100 > 0;
@@ -117,6 +135,7 @@ export default function SwimPoolDayPage() {
       source: "swim_pool_day",
       weight_kg: massKg > 0 ? massKg : null,
       fc_repos: fcRepos > 0 ? fcRepos : null,
+      fc_max: fcMax > 0 ? fcMax : null,
       css: calc.cssPer100 || null,
       coach_notes: `TFCL Pool Day™ — Bassin ${poolLen}m — CSS ${fmtPace(calc.cssPer100)}/100m · V max ${fmt(calc.vMax, 2)} m/s · CSS/Vmax ${fmt(calc.ratioCssVmax * 100, 0)}% · VLamax nage idx ${fmt(calc.vlamaxSwimIdx, 2)} · TTE est ${fmt(calc.tteEst, 0)}min · drift 800m ${fmt(calc.driftPct, 1)}%${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
     } as any);
@@ -191,23 +210,34 @@ export default function SwimPoolDayPage() {
             <CardTitle className="text-base">Données de base</CardTitle>
             <CardDescription className="text-xs">Communes à tous les blocs — alimentent le snapshot.</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <Label>
-                Poids (kg) {effectiveRefs.weightKg != null && <span className="text-[10px] text-success">— auto</span>}
+                Poids (kg) <span className="text-destructive">*</span>{" "}
+                {effectiveRefs.weightKg != null && <span className="text-[10px] text-success">— auto</span>}
               </Label>
               {effectiveRefs.weightKg != null ? (
                 <Input type="number" value={effectiveRefs.weightKg} disabled />
               ) : (
-                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" />
+                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" required />
               )}
             </div>
             <div>
-              <Label>FC repos (bpm)</Label>
+              <Label>FC repos (bpm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
               <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
             </div>
             <div>
-              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
+              <Label>
+                FC max (bpm) {effectiveRefs.fcMax != null && <span className="text-[10px] text-success">— auto</span>}
+              </Label>
+              {effectiveRefs.fcMax != null ? (
+                <Input type="number" value={effectiveRefs.fcMax} disabled />
+              ) : (
+                <Input type="number" value={fcMaxManual} onChange={(e) => setFcMaxManual(e.target.value)} placeholder="180" />
+              )}
+            </div>
+            <div>
+              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— IMC</span></Label>
               <Input type="number" value={heightCmManual} onChange={(e) => setHeightCmManual(e.target.value)} placeholder="178" />
             </div>
           </CardContent>
@@ -333,11 +363,35 @@ export default function SwimPoolDayPage() {
               <Metric label="VLamax nage (idx)" value={fmt(calc.vlamaxSwimIdx, 2)} unit="" big />
               <Metric label="TTE nage est." value={fmt(calc.tteEst, 0)} unit="min" big />
             </div>
+            {calc.vlamaxBand && (
+              <p className="text-[11px] text-cyan-700 dark:text-cyan-400">
+                <b>VLamax nage : {calc.vlamaxBand}</b> ({calc.vlamaxRange} mmol/L/s) — ratio CSS/Vmax = {fmt(calc.ratioCssVmax * 100, 0)}%.
+                <span className="text-muted-foreground"> Réf : Mader 2003 adapté natation.</span>
+              </p>
+            )}
+            {(() => {
+              const fields = [
+                { k: "Poids", ok: massKg > 0 },
+                { k: "FC repos", ok: fcRepos > 0 },
+                { k: "FC max", ok: fcMax > 0 },
+                { k: "Taille", ok: heightCm > 0 },
+                { k: "CSS", ok: calc.cssPer100 > 0 },
+                { k: "V max", ok: calc.vMax > 0 },
+                { k: "Drift 800m", ok: calc.driftPct !== 0 },
+              ];
+              const filled = fields.filter((f) => f.ok).length;
+              return (
+                <div className="rounded-md border border-border/60 bg-background/60 p-2 text-xs">
+                  <b>{filled}/{fields.length}</b> champs renseignés
+                  <span className="text-muted-foreground"> — {fields.filter(f => !f.ok).map(f => f.k).join(", ") || "complet ✓"}</span>
+                </div>
+              );
+            })()}
             <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
               <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats
             </Button>
             <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
-              <b>Références :</b> Wakayoshi et al. 1992, Pelayo et al. 1996, Toussaint & Hollander 1994.
+              <b>Références :</b> Wakayoshi et al. 1992, Pelayo et al. 1996, Toussaint &amp; Hollander 1994, Mader 2003 (adapté natation).
               VLamax nage indicative (estimation qualitative sans lactate).
             </p>
           </CardContent>

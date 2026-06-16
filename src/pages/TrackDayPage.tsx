@@ -74,9 +74,11 @@ export default function TrackDayPage() {
   const [weightKgManual, setWeightKgManual] = useState("");
   const [heightCmManual, setHeightCmManual] = useState("");
   const [fcReposManual, setFcReposManual] = useState("");
+  const [fcMaxManual, setFcMaxManual] = useState("");
   const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
   const heightM = num(heightCmManual) > 0 ? num(heightCmManual) / 100 : 0;
   const fcRepos = num(fcReposManual);
+  const fcMax = effectiveRefs.fcMax ?? num(fcMaxManual);
 
   // Bloc 1 — Neuromusculaire (5 options indépendantes)
   const [t30m, setT30m] = useState("");
@@ -182,6 +184,9 @@ export default function TrackDayPage() {
     const scoreG = sprintScore * 0.6 + ratioInv * 0.4;
     const vlamaxEst = vmaConfirmee > 0 ? 0.25 + scoreG * 0.6 : 0;
 
+    // VO2max estimé depuis VMA — Léger & Mercier 1984 : VO2max ≈ VMA × 3.5
+    const vo2maxEst = vmaConfirmee > 0 ? vmaConfirmee * 3.5 : 0;
+
     return {
       vMaxFrom30, P5sFrom100, P30sFrom200, P1sFromCmj, scoreNeuroBonds,
       neuroScore, neuroCount,
@@ -191,7 +196,7 @@ export default function TrackDayPage() {
       vSeuilKmh, ratioSeuilVMA,
       tteEst,
       driftPct, fatMaxPct,
-      scoreG, vlamaxEst,
+      scoreG, vlamaxEst, vo2maxEst,
     };
   }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
@@ -209,7 +214,9 @@ export default function TrackDayPage() {
       source: "track_day",
       weight_kg: massKg > 0 ? massKg : null,
       fc_repos: fcRepos > 0 ? fcRepos : null,
+      fc_max: fcMax > 0 ? fcMax : null,
       vma: calc.vmaConfirmee || null,
+      vo2max: calc.vo2maxEst > 0 ? Math.round(calc.vo2maxEst * 10) / 10 : null,
       vlamax_run: calc.vlamaxEst || null,
       tte_observed_min_run: calc.tteEst || null,
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
@@ -301,10 +308,10 @@ export default function TrackDayPage() {
             <CardTitle className="text-base">Données de base</CardTitle>
             <CardDescription className="text-xs">Communes à tous les blocs — alimentent les calculs et le snapshot.</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <Label>
-                Poids (kg){" "}
+                Poids (kg) <span className="text-destructive">*</span>{" "}
                 {effectiveRefs.weightKg != null && (
                   <span className="text-[10px] text-success font-normal">— auto snapshot</span>
                 )}
@@ -312,15 +319,26 @@ export default function TrackDayPage() {
               {effectiveRefs.weightKg != null ? (
                 <Input type="number" value={effectiveRefs.weightKg} disabled />
               ) : (
-                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" />
+                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" required />
               )}
             </div>
             <div>
-              <Label>FC repos (bpm)</Label>
+              <Label>FC repos (bpm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
               <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
             </div>
             <div>
-              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— optionnel (IMC)</span></Label>
+              <Label>
+                FC max (bpm){" "}
+                {effectiveRefs.fcMax != null && <span className="text-[10px] text-success font-normal">— auto</span>}
+              </Label>
+              {effectiveRefs.fcMax != null ? (
+                <Input type="number" value={effectiveRefs.fcMax} disabled />
+              ) : (
+                <Input type="number" value={fcMaxManual} onChange={(e) => setFcMaxManual(e.target.value)} placeholder="188" />
+              )}
+            </div>
+            <div>
+              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— IMC</span></Label>
               <Input type="number" step="1" value={heightCmManual} onChange={(e) => setHeightCmManual(e.target.value)} placeholder="178" />
             </div>
           </CardContent>
@@ -421,12 +439,16 @@ export default function TrackDayPage() {
             <OptionRow
               num="6"
               title="Sprint 15s — distance max (m)"
-              ref="TFCL VLamax CAP — démarrer chrono au départ, courir 15s à vitesse max, marquer la distance"
+              ref="TFCL VLamax CAP — Démarrer au signal, courir 15 secondes à vitesse maximale, marquer la position et mesurer la distance en mètres"
               input={
                 <Input type="number" step="0.1" value={sprint15sM} onChange={(e) => setSprint15sM(e.target.value)} placeholder="115" />
               }
               unit="m"
-              result={num(sprint15sM) > 0 ? `→ snapshot.sprint_15s_distance = ${fmt(num(sprint15sM), 1)} m` : null}
+              result={
+                num(sprint15sM) > 0
+                  ? `V_15s = ${fmt((num(sprint15sM) / 15) * 3.6, 1)} km/h → snapshot.sprint_15s_distance`
+                  : null
+              }
             />
 
             {/* Synthèse Profil Neuromusculaire */}
@@ -579,9 +601,31 @@ export default function TrackDayPage() {
               <Metric label="Allure seuil" value={paceMinKm(calc.vSeuilKmh)} unit="min/km" big />
               <Metric label="Ratio seuil/VMA" value={fmt(calc.ratioSeuilVMA * 100, 1)} unit="%" big />
               <Metric label="VLamax est." value={fmt(calc.vlamaxEst, 2)} unit="mmol/L/s" big />
+              <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
               <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% VMA" big />
             </div>
+            {(() => {
+              const fields = [
+                { k: "Poids", ok: massKg > 0 },
+                { k: "FC repos", ok: fcRepos > 0 },
+                { k: "FC max", ok: fcMax > 0 },
+                { k: "Taille", ok: heightM > 0 },
+                { k: "VMA", ok: calc.vmaConfirmee > 0 },
+                { k: "Allure seuil", ok: calc.vSeuilKmh > 0 },
+                { k: "Sprint 15s", ok: num(sprint15sM) > 0 },
+                { k: "VLamax", ok: calc.vlamaxEst > 0 },
+                { k: "VO2max", ok: calc.vo2maxEst > 0 },
+              ];
+              const filled = fields.filter((f) => f.ok).length;
+              return (
+                <div className="rounded-md border border-border/60 bg-background/60 p-2 text-xs">
+                  <b>{filled}/{fields.length}</b> champs renseignés
+                  <span className="text-muted-foreground"> — {fields.filter(f => !f.ok).map(f => f.k).join(", ") || "complet ✓"}</span>
+                </div>
+              );
+            })()}
+
 
             <Button
               variant="default"
