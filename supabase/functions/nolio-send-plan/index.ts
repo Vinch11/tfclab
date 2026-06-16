@@ -1108,7 +1108,7 @@ Deno.serve(async (req) => {
         sport_id: sportId,
         name: s.title ?? "Séance",
         date_start: dateStart,
-        description: buildDescription(s),
+        description: buildDescription(s, sportId),
       };
       if (structured_workout) {
         // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
