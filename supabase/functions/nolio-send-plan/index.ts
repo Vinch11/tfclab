@@ -1053,6 +1053,11 @@ Deno.serve(async (req) => {
         description: buildDescription(s),
       };
       if (structured_workout) {
+        // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
+        // `structured_workout`, peu importe la source (override manuel, structure générée
+        // par IA récupérée depuis `nolio_structures_generated`, ou parsing automatique).
+        // C'est ici qu'on applique : conversion pace → m/s, distance run/trail → durée s,
+        // remap rest/no_target → cible Z1, suppression des clés null/undefined, etc.
         const normalized = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
         // Strength (sport_id 20) : si tous les steps ont target_type="no_target",
         // Nolio affiche "empty_unit". On préfère ne PAS envoyer de structured_workout
