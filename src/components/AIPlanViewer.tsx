@@ -1253,7 +1253,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} />
+            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} />
           ))}
         </div>
       )}
