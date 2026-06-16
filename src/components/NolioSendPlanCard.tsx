@@ -24,6 +24,7 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 
 interface Props {
   athleteId: string;
