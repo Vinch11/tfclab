@@ -72,9 +72,11 @@ export default function TrackDayPage() {
     [currentAthlete, snapshots]
   );
   const [weightKgManual, setWeightKgManual] = useState("");
-  const [heightMManual, setHeightMManual] = useState("");
+  const [heightCmManual, setHeightCmManual] = useState("");
+  const [fcReposManual, setFcReposManual] = useState("");
   const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
-  const heightM = num(heightMManual);
+  const heightM = num(heightCmManual) > 0 ? num(heightCmManual) / 100 : 0;
+  const fcRepos = num(fcReposManual);
 
   // Bloc 1 — Neuromusculaire (5 options indépendantes)
   const [t30m, setT30m] = useState("");
@@ -82,6 +84,7 @@ export default function TrackDayPage() {
   const [t200m, setT200m] = useState("");
   const [cmjCm, setCmjCm] = useState("");
   const [bonds5m, setBonds5m] = useState("");
+  const [sprint15sM, setSprint15sM] = useState(""); // distance parcourue en 15s max — alimente vlamaxCapEstimator
 
   // Bloc 2 — Glycolytique
   const [t400m, setT400m] = useState("");
@@ -204,11 +207,14 @@ export default function TrackDayPage() {
       athlete_id: currentAthlete.id,
       date: testDate,
       source: "track_day",
+      weight_kg: massKg > 0 ? massKg : null,
+      fc_repos: fcRepos > 0 ? fcRepos : null,
       vma: calc.vmaConfirmee || null,
       vlamax_run: calc.vlamaxEst || null,
       tte_observed_min_run: calc.tteEst || null,
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
-      coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA`,
+      sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
+      coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
     } as any);
     if (snap) {
       toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
@@ -286,6 +292,16 @@ export default function TrackDayPage() {
                 <Input type="number" value={wind} onChange={(e) => setWind(e.target.value)} placeholder="5" />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Données de base */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Données de base</CardTitle>
+            <CardDescription className="text-xs">Communes à tous les blocs — alimentent les calculs et le snapshot.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <Label>
                 Poids (kg){" "}
@@ -296,24 +312,16 @@ export default function TrackDayPage() {
               {effectiveRefs.weightKg != null ? (
                 <Input type="number" value={effectiveRefs.weightKg} disabled />
               ) : (
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={weightKgManual}
-                  onChange={(e) => setWeightKgManual(e.target.value)}
-                  placeholder="70"
-                />
+                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" />
               )}
             </div>
             <div>
-              <Label>Taille (m)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={heightMManual}
-                onChange={(e) => setHeightMManual(e.target.value)}
-                placeholder="1.78"
-              />
+              <Label>FC repos (bpm)</Label>
+              <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
+            </div>
+            <div>
+              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— optionnel (IMC)</span></Label>
+              <Input type="number" step="1" value={heightCmManual} onChange={(e) => setHeightCmManual(e.target.value)} placeholder="178" />
             </div>
           </CardContent>
         </Card>
@@ -408,6 +416,17 @@ export default function TrackDayPage() {
                     ? "⚠️ taille requise"
                     : null
               }
+            />
+            {/* Option 6 — Sprint 15s (distance) — alimente vlamaxCapEstimator */}
+            <OptionRow
+              num="6"
+              title="Sprint 15s — distance max (m)"
+              ref="TFCL VLamax CAP — démarrer chrono au départ, courir 15s à vitesse max, marquer la distance"
+              input={
+                <Input type="number" step="0.1" value={sprint15sM} onChange={(e) => setSprint15sM(e.target.value)} placeholder="115" />
+              }
+              unit="m"
+              result={num(sprint15sM) > 0 ? `→ snapshot.sprint_15s_distance = ${fmt(num(sprint15sM), 1)} m` : null}
             />
 
             {/* Synthèse Profil Neuromusculaire */}

@@ -58,7 +58,11 @@ export default function BikeTrackDayPage() {
     [currentAthlete, snapshots]
   );
   const [weightKgManual, setWeightKgManual] = useState("");
+  const [heightCmManual, setHeightCmManual] = useState("");
+  const [fcReposManual, setFcReposManual] = useState("");
   const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
+  const heightCm = num(heightCmManual);
+  const fcRepos = num(fcReposManual);
 
   // Bloc 1 — sprints (HT puissance directe OU route vitesse+pente)
   const [p10s, setP10s] = useState("");
@@ -119,10 +123,13 @@ export default function BikeTrackDayPage() {
 
     const tteEst = fractUtil > 0 ? Math.max(25, Math.min(75, 30 + (fractUtil - 0.75) * 400)) : 0;
 
+    // VO2max estimé depuis MAP — Hawley & Noakes 1992 : VO2max ≈ MAP × 10.8 / poids + 7
+    const vo2maxEst = map > 0 && massKg > 0 ? (map * 10.8) / massKg + 7 : 0;
+
     return {
       p10, p30, p60, map, cp3, ratioCp3Map,
       ftp20, ftpRampe, ftp, ftpKg, wPrime, fractUtil,
-      vlamaxEst, scoreG,
+      vlamaxEst, scoreG, vo2maxEst,
       driftPct, ratioZ2Ftp, fatMaxPct, tteEst,
     };
   }, [setup, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, map5min, cp3min, p20min, rampeLast, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
@@ -138,10 +145,13 @@ export default function BikeTrackDayPage() {
       athlete_id: currentAthlete.id,
       date: testDate,
       source: "bike_track_day",
+      weight_kg: massKg > 0 ? massKg : null,
+      fc_repos: fcRepos > 0 ? fcRepos : null,
       ftp: calc.ftp || null,
       vlamax: calc.vlamaxEst || null,
       pmax_5s: calc.p10 || null,
-      coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · FatMax ${fmt(calc.fatMaxPct, 0)}% · TTE ${fmt(calc.tteEst, 0)}min`,
+      vo2max: calc.vo2maxEst > 0 ? Math.round(calc.vo2maxEst * 10) / 10 : null,
+      coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · FatMax ${fmt(calc.fatMaxPct, 0)}% · TTE ${fmt(calc.tteEst, 0)}min${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
     } as any);
     if (snap) {
       toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
@@ -209,6 +219,16 @@ export default function BikeTrackDayPage() {
               <Label>Température (°C)</Label>
               <Input type="number" value={tempC} onChange={(e) => setTempC(e.target.value)} placeholder="20" />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Données de base */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Données de base</CardTitle>
+            <CardDescription className="text-xs">Communes à tous les blocs — alimentent les calculs (VO2max, FTP/kg) et le snapshot.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <Label>
                 Poids (kg) {effectiveRefs.weightKg != null && <span className="text-[10px] text-success">— auto</span>}
@@ -218,6 +238,14 @@ export default function BikeTrackDayPage() {
               ) : (
                 <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" />
               )}
+            </div>
+            <div>
+              <Label>FC repos (bpm)</Label>
+              <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
+            </div>
+            <div>
+              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
+              <Input type="number" value={heightCmManual} onChange={(e) => setHeightCmManual(e.target.value)} placeholder="178" />
             </div>
           </CardContent>
         </Card>
@@ -400,6 +428,7 @@ export default function BikeTrackDayPage() {
               <Metric label="VLamax est." value={fmt(calc.vlamaxEst, 2)} unit="mmol/L/s" big />
               <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% FTP" big />
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
+              <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
             </div>
             <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
               <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats

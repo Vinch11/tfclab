@@ -20,6 +20,7 @@ import { Waves, Zap, Target, Heart, Save, ArrowLeft } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
@@ -36,13 +37,28 @@ const fmtPace = (secPer100: number): string => {
 export default function SwimPoolDayPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot } = useCloudDataContext() as any;
+  const { addSnapshot, snapshots } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
 
   const [testDate, setTestDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [poolLen, setPoolLen] = useState<"25" | "50">("25");
+
+  const effectiveRefs = useMemo(
+    () => getEffectiveRefs(
+      currentAthlete ? { id: currentAthlete.id, refs: currentAthlete.refs, active_snapshot_id: currentAthlete.active_snapshot_id } as any : null,
+      (snapshots as any[]) || []
+    ),
+    [currentAthlete, snapshots]
+  );
+  const [weightKgManual, setWeightKgManual] = useState("");
+  const [heightCmManual, setHeightCmManual] = useState("");
+  const [fcReposManual, setFcReposManual] = useState("");
+  const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
+  const heightCm = num(heightCmManual);
+  const fcRepos = num(fcReposManual);
+
 
   // Bloc 1 — sprints
   const [t25, setT25] = useState("");
@@ -99,8 +115,10 @@ export default function SwimPoolDayPage() {
       athlete_id: currentAthlete.id,
       date: testDate,
       source: "swim_pool_day",
+      weight_kg: massKg > 0 ? massKg : null,
+      fc_repos: fcRepos > 0 ? fcRepos : null,
       css: calc.cssPer100 || null,
-      coach_notes: `TFCL Pool Day™ — Bassin ${poolLen}m — CSS ${fmtPace(calc.cssPer100)}/100m · V max ${fmt(calc.vMax, 2)} m/s · CSS/Vmax ${fmt(calc.ratioCssVmax * 100, 0)}% · VLamax nage idx ${fmt(calc.vlamaxSwimIdx, 2)} · TTE est ${fmt(calc.tteEst, 0)}min · drift 800m ${fmt(calc.driftPct, 1)}%`,
+      coach_notes: `TFCL Pool Day™ — Bassin ${poolLen}m — CSS ${fmtPace(calc.cssPer100)}/100m · V max ${fmt(calc.vMax, 2)} m/s · CSS/Vmax ${fmt(calc.ratioCssVmax * 100, 0)}% · VLamax nage idx ${fmt(calc.vlamaxSwimIdx, 2)} · TTE est ${fmt(calc.tteEst, 0)}min · drift 800m ${fmt(calc.driftPct, 1)}%${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
     } as any);
     if (snap) {
       toast({ title: "Snapshot créé" });
@@ -163,6 +181,34 @@ export default function SwimPoolDayPage() {
                 <option value="25">25 m</option>
                 <option value="50">50 m</option>
               </select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Données de base */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Données de base</CardTitle>
+            <CardDescription className="text-xs">Communes à tous les blocs — alimentent le snapshot.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <Label>
+                Poids (kg) {effectiveRefs.weightKg != null && <span className="text-[10px] text-success">— auto</span>}
+              </Label>
+              {effectiveRefs.weightKg != null ? (
+                <Input type="number" value={effectiveRefs.weightKg} disabled />
+              ) : (
+                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" />
+              )}
+            </div>
+            <div>
+              <Label>FC repos (bpm)</Label>
+              <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
+            </div>
+            <div>
+              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
+              <Input type="number" value={heightCmManual} onChange={(e) => setHeightCmManual(e.target.value)} placeholder="178" />
             </div>
           </CardContent>
         </Card>
