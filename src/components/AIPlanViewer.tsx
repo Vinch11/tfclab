@@ -282,9 +282,10 @@ interface SessionCardProps {
   session: ParsedSession;
   date?: Date;
   nolioCtx?: NolioCtx | null;
+  onReplaceClick?: (session: ParsedSession) => void;
 }
 
-function SessionCard({ session, date, nolioCtx }: SessionCardProps) {
+function SessionCard({ session, date, nolioCtx, onReplaceClick }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const trailAlts = useMemo(
@@ -344,8 +345,21 @@ function SessionCard({ session, date, nolioCtx }: SessionCardProps) {
       </div>
       <div className="flex items-center gap-2 mt-1">
         <p className="text-sm font-semibold flex-1">{session.title}</p>
+        {onReplaceClick && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 px-2 text-[11px]"
+            onClick={(e) => { e.stopPropagation(); onReplaceClick(session); }}
+            title="Remplacer cette séance par une séance de la bibliothèque"
+          >
+            <Repeat className="h-3.5 w-3.5 mr-1" /> Remplacer
+          </Button>
+        )}
         {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} />}
       </div>
+
       {expanded && session.details && (
         <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
           {session.details}
