@@ -22,6 +22,7 @@ import { Timer, Activity, Zap, Target, Heart, Save, ArrowLeft } from "lucide-rea
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
 
 // ──────────────────────────────────────────────────────────────
 // Helpers
@@ -51,7 +52,7 @@ const paceMinKm = (vKmh: number): string => {
 export default function TrackDayPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot } = useCloudDataContext();
+  const { addSnapshot, snapshots } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
@@ -62,10 +63,25 @@ export default function TrackDayPage() {
   const [tempC, setTempC] = useState("");
   const [wind, setWind] = useState("");
 
-  // Bloc 1 — Neuromusculaire
-  const [vMaxKmh, setVMaxKmh] = useState("");
+  // Anthropométrie (poids/taille) — auto depuis snapshot, fallback manuel
+  const effectiveRefs = useMemo(
+    () => getEffectiveRefs(
+      currentAthlete ? { id: currentAthlete.id, refs: currentAthlete.refs, active_snapshot_id: currentAthlete.active_snapshot_id } as any : null,
+      (snapshots as any[]) || []
+    ),
+    [currentAthlete, snapshots]
+  );
+  const [weightKgManual, setWeightKgManual] = useState("");
+  const [heightMManual, setHeightMManual] = useState("");
+  const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
+  const heightM = num(heightMManual);
+
+  // Bloc 1 — Neuromusculaire (5 options indépendantes)
+  const [t30m, setT30m] = useState("");
   const [t100m, setT100m] = useState("");
   const [t200m, setT200m] = useState("");
+  const [cmjCm, setCmjCm] = useState("");
+  const [bonds5m, setBonds5m] = useState("");
 
   // Bloc 2 — Glycolytique
   const [t400m, setT400m] = useState("");
@@ -82,15 +98,51 @@ export default function TrackDayPage() {
 
   // ──────────────── Calculs dérivés ────────────────
   const calc = useMemo(() => {
-    const vMax = num(vMaxKmh);
+    // ── Bloc 1 — Neuromusculaire (5 options indépendantes) ──
+    // Option 1 : 30m → V max (km/h), facteur 1.12 (correction départ arrêté → lancé) — Ferro 2001
+    const vMaxFrom30 = num(t30m) > 0 ? (30 / num(t30m)) * 3.6 * 1.12 : 0;
+    // Option 2 : 100m → P5s (W/kg) — Lockie 2011
+    const P5sFrom100 = num(t100m) > 0 && massKg > 0
+      ? massKg * Math.pow(100 / num(t100m), 2) * 0.0023
+      : 0;
+    // Option 3 : 200m → P30s (W/kg) — Morin 2011
+    const P30sFrom200 = num(t200m) > 0 && massKg > 0
+      ? massKg * Math.pow(200 / num(t200m), 2) * 0.0021
+      : 0;
+    // Option 4 : CMJ → P1s (W/kg) — Bosco 1983
+    const P1sFromCmj = num(cmjCm) > 0
+      ? 60.7 * Math.sqrt(num(cmjCm) / 100) + 45.3
+      : 0;
+    // Option 5 : 5 bonds horizontaux → Score_neuro — Maulder & Cronin 2005
+    const scoreNeuroBonds = num(bonds5m) > 0 && heightM > 0
+      ? num(bonds5m) / (heightM * 2.5)
+      : 0;
+
+    // P1s prioritaire CMJ, sinon dérivé de V max 30m (puissance approx)
+    const P1s = P1sFromCmj > 0
+      ? P1sFromCmj
+      : (vMaxFrom30 > 0 ? powerWperKg(vMaxFrom30) : 0);
+    const P5s = P5sFrom100;
+    const P30s = P30sFrom200;
+
+    // Score neuromusculaire global pondéré
+    // P1s prioritaire (CMJ ou sprint), sinon bonds
+    const neuroSamples: number[] = [];
+    if (P1sFromCmj > 0) neuroSamples.push(Math.min(1, P1sFromCmj / 75));
+    else if (scoreNeuroBonds > 0) neuroSamples.push(Math.min(1, scoreNeuroBonds / 1.6));
+    if (vMaxFrom30 > 0) neuroSamples.push(Math.min(1, vMaxFrom30 / 35));
+    if (P5s > 0) neuroSamples.push(Math.min(1, P5s / 18));
+    if (P30s > 0) neuroSamples.push(Math.min(1, P30s / 12));
+    const neuroScore = neuroSamples.length > 0
+      ? neuroSamples.reduce((a, b) => a + b, 0) / neuroSamples.length
+      : 0;
+    const neuroCount = [t30m, t100m, t200m, cmjCm, bonds5m].filter((v) => num(v) > 0).length;
+
+    // ── Bloc 2 — Glycolytique ──
     const v100 = num(t100m) > 0 ? (100 / num(t100m)) * 3.6 : 0;
     const v200 = num(t200m) > 0 ? (200 / num(t200m)) * 3.6 : 0;
     const v400 = num(t400m) > 0 ? (400 / num(t400m)) * 3.6 : 0;
     const v600 = num(t600m) > 0 ? (600 / num(t600m)) * 3.6 : 0;
-
-    const P1s = powerWperKg(vMax);
-    const P5s = powerWperKg(v100 || vMax * 0.9);
-    const P30s = powerWperKg(v200);
     const P60s = powerWperKg(v400);
 
     // VMA depuis 400m
@@ -103,28 +155,22 @@ export default function TrackDayPage() {
     const vSeuilKmh = num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
     const ratioSeuilVMA = vmaConfirmee > 0 && vSeuilKmh > 0 ? vSeuilKmh / vmaConfirmee : 0;
 
-    // TTE estimé (Billat) : plus le ratio est haut, plus le TTE au seuil est élevé
-    // Heuristique simple : TTE ≈ 30 + (ratio - 0.85) × 400, borné 25-75
     const tteEst = ratioSeuilVMA > 0 ? Math.max(25, Math.min(75, 30 + (ratioSeuilVMA - 0.85) * 400)) : 0;
 
-    // Drift cardiaque Z2
     const fcD = num(fcDebutZ2);
     const fcF = num(fcFinZ2);
     const driftPct = fcD > 0 ? ((fcF - fcD) / fcD) * 100 : 0;
-
-    // FatMax estimé : meilleur drift = FatMax plus haut (% VMA)
-    // Heuristique : FatMax % ≈ 65 - drift × 2, borné 50-78
     const fatMaxPct = fcD > 0 ? Math.max(50, Math.min(78, 65 - driftPct * 2)) : 0;
 
-    // VLamax — Score G inspiré de vlamaxRunV2Enhanced :
-    // Fusion sprints (P1s/P5s/P30s/P60s normalisés) + ratio seuil/VMA inversé.
-    // Score G ∈ [0,1] → VLamax ∈ [0.25 ; 0.85] mmol/L/s
-    const sprintScore = [P1s, P5s, P30s, P60s]
-      .map((p, i) => {
-        const refs = [22, 18, 12, 8]; // W/kg refs élite
-        return Math.max(0, Math.min(1, p / refs[i]));
-      })
-      .reduce((a, b) => a + b, 0) / 4;
+    // VLamax — Score G fusionne sprints disponibles + ratio seuil/VMA inversé
+    const sprintRefs = [22, 18, 12, 8];
+    const sprintVals = [P1s, P5s, P30s, P60s];
+    const sprintAvail = sprintVals
+      .map((p, i) => p > 0 ? Math.max(0, Math.min(1, p / sprintRefs[i])) : null)
+      .filter((v): v is number => v != null);
+    const sprintScore = sprintAvail.length > 0
+      ? sprintAvail.reduce((a, b) => a + b, 0) / sprintAvail.length
+      : 0;
 
     const ratioInv = ratioSeuilVMA > 0
       ? Math.max(0, Math.min(1, (0.95 - ratioSeuilVMA) / 0.15))
@@ -134,6 +180,8 @@ export default function TrackDayPage() {
     const vlamaxEst = vmaConfirmee > 0 ? 0.25 + scoreG * 0.6 : 0;
 
     return {
+      vMaxFrom30, P5sFrom100, P30sFrom200, P1sFromCmj, scoreNeuroBonds,
+      neuroScore, neuroCount,
       v100, v200, v400, v600,
       P1s, P5s, P30s, P60s,
       vma400, vma6min, vmaConfirmee,
@@ -142,7 +190,7 @@ export default function TrackDayPage() {
       driftPct, fatMaxPct,
       scoreG, vlamaxEst,
     };
-  }, [vMaxKmh, t100m, t200m, t400m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2]);
+  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
   const canCreateSnapshot =
     !!currentAthlete && calc.vmaConfirmee > 0 && calc.vlamaxEst > 0;
@@ -238,10 +286,39 @@ export default function TrackDayPage() {
                 <Input type="number" value={wind} onChange={(e) => setWind(e.target.value)} placeholder="5" />
               </div>
             </div>
+            <div>
+              <Label>
+                Poids (kg){" "}
+                {effectiveRefs.weightKg != null && (
+                  <span className="text-[10px] text-success font-normal">— auto snapshot</span>
+                )}
+              </Label>
+              {effectiveRefs.weightKg != null ? (
+                <Input type="number" value={effectiveRefs.weightKg} disabled />
+              ) : (
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={weightKgManual}
+                  onChange={(e) => setWeightKgManual(e.target.value)}
+                  placeholder="70"
+                />
+              )}
+            </div>
+            <div>
+              <Label>Taille (m)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={heightMManual}
+                onChange={(e) => setHeightMManual(e.target.value)}
+                placeholder="1.78"
+              />
+            </div>
           </CardContent>
         </Card>
 
-        {/* Bloc 1 — Neuromusculaire */}
+        {/* Bloc 1 — Neuromusculaire (5 options indépendantes) */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -252,32 +329,119 @@ export default function TrackDayPage() {
               <Badge variant="secondary">20 min</Badge>
             </div>
             <CardDescription className="text-xs leading-relaxed">
-              Après 15&apos; d&apos;échauffement progressif, réaliser <b>3 sprints maximaux</b> avec
-              8-10 min de récupération complète entre chaque.
-              <br />• Sprint 1 : <b>40m lancé</b> — mesurer vitesse max
-              <br />• Sprint 2 : <b>100m départ arrêté</b>
-              <br />• Sprint 3 : <b>200m départ arrêté</b>
+              <b>Toutes les options sont optionnelles</b> — remplis ce que tu peux mesurer,
+              le calcul s'adapte aux données disponibles. Après 15&apos; d&apos;échauffement
+              progressif, 8-10 min de récupération complète entre chaque effort maximal.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <Label>V max 40m (km/h)</Label>
-              <Input type="number" step="0.1" value={vMaxKmh} onChange={(e) => setVMaxKmh(e.target.value)} placeholder="32.0" />
+          <CardContent className="space-y-3">
+            {/* Option 1 — 30m */}
+            <OptionRow
+              num="1"
+              title="30m départ arrêté"
+              ref="Ferro et al. 2001"
+              input={
+                <Input type="number" step="0.01" value={t30m} onChange={(e) => setT30m(e.target.value)} placeholder="4.20" />
+              }
+              unit="sec"
+              result={calc.vMaxFrom30 > 0 ? `V max = ${fmt(calc.vMaxFrom30, 1)} km/h` : null}
+            />
+            {/* Option 2 — 100m */}
+            <OptionRow
+              num="2"
+              title="100m départ arrêté"
+              ref="Lockie et al. 2011"
+              input={
+                <Input type="number" step="0.01" value={t100m} onChange={(e) => setT100m(e.target.value)} placeholder="13.20" />
+              }
+              unit="sec"
+              result={
+                calc.P5sFrom100 > 0
+                  ? `P5s = ${fmt(calc.P5sFrom100, 2)} W/kg`
+                  : num(t100m) > 0 && massKg <= 0
+                    ? "⚠️ poids requis"
+                    : null
+              }
+            />
+            {/* Option 3 — 200m */}
+            <OptionRow
+              num="3"
+              title="200m départ arrêté"
+              ref="Morin et al. 2011"
+              input={
+                <Input type="number" step="0.01" value={t200m} onChange={(e) => setT200m(e.target.value)} placeholder="28.50" />
+              }
+              unit="sec"
+              result={
+                calc.P30sFrom200 > 0
+                  ? `P30s = ${fmt(calc.P30sFrom200, 2)} W/kg`
+                  : num(t200m) > 0 && massKg <= 0
+                    ? "⚠️ poids requis"
+                    : null
+              }
+            />
+            {/* Option 4 — CMJ */}
+            <OptionRow
+              num="4"
+              title="Saut vertical CMJ"
+              ref="Bosco 1983"
+              note="via app My Jump 2 ou tapis de saut"
+              input={
+                <Input type="number" step="0.1" value={cmjCm} onChange={(e) => setCmjCm(e.target.value)} placeholder="38" />
+              }
+              unit="cm"
+              result={calc.P1sFromCmj > 0 ? `P1s = ${fmt(calc.P1sFromCmj, 1)} W/kg` : null}
+            />
+            {/* Option 5 — 5 bonds */}
+            <OptionRow
+              num="5"
+              title="5 bonds horizontaux"
+              ref="Maulder & Cronin 2005"
+              input={
+                <Input type="number" step="0.01" value={bonds5m} onChange={(e) => setBonds5m(e.target.value)} placeholder="14.50" />
+              }
+              unit="m"
+              result={
+                calc.scoreNeuroBonds > 0
+                  ? `Score neuro = ${fmt(calc.scoreNeuroBonds, 2)}`
+                  : num(bonds5m) > 0 && heightM <= 0
+                    ? "⚠️ taille requise"
+                    : null
+              }
+            />
+
+            {/* Synthèse Profil Neuromusculaire */}
+            <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 space-y-2">
+              <div className="text-xs font-semibold flex items-center gap-2">
+                <Zap className="h-3 w-3 text-yellow-500" />
+                Profil Neuromusculaire
+              </div>
+              {calc.neuroCount === 0 ? (
+                <p className="text-xs text-muted-foreground italic">
+                  Optionnel — saisissez au moins une mesure.
+                </p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    {calc.vMaxFrom30 > 0 && <Metric label="V max" value={fmt(calc.vMaxFrom30, 1)} unit="km/h" />}
+                    {calc.P1s > 0 && <Metric label="P1s" value={fmt(calc.P1s, 1)} unit="W/kg" />}
+                    {calc.P5s > 0 && <Metric label="P5s" value={fmt(calc.P5s, 2)} unit="W/kg" />}
+                    {calc.P30s > 0 && <Metric label="P30s" value={fmt(calc.P30s, 2)} unit="W/kg" />}
+                    {calc.scoreNeuroBonds > 0 && <Metric label="Score bonds" value={fmt(calc.scoreNeuroBonds, 2)} unit="" />}
+                    <Metric label="Score global" value={fmt(calc.neuroScore * 100, 0)} unit="/100" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    {calc.neuroCount}/5 mesure{calc.neuroCount > 1 ? "s" : ""} — pondération P1s prioritaire (CMJ {">"} bonds).
+                  </p>
+                </>
+              )}
             </div>
-            <div>
-              <Label>Temps 100m (sec)</Label>
-              <Input type="number" step="0.01" value={t100m} onChange={(e) => setT100m(e.target.value)} placeholder="13.20" />
-            </div>
-            <div>
-              <Label>Temps 200m (sec)</Label>
-              <Input type="number" step="0.01" value={t200m} onChange={(e) => setT200m(e.target.value)} placeholder="28.50" />
-            </div>
-            <div className="sm:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1 text-xs">
-              <Metric label="P1s" value={fmt(calc.P1s, 2)} unit="W/kg" />
-              <Metric label="P5s" value={fmt(calc.P5s, 2)} unit="W/kg" />
-              <Metric label="P30s" value={fmt(calc.P30s, 2)} unit="W/kg" />
-              <Metric label="V 200m" value={fmt(calc.v200, 1)} unit="km/h" />
-            </div>
+
+            <p className="text-[10px] text-muted-foreground leading-relaxed pt-1 border-t border-border/40">
+              <b>Références complètes :</b> Ferro et al. 2001 (J Sports Sci) — Lockie et al. 2011 (J Strength Cond Res) —
+              Morin et al. 2011 (Eur J Appl Physiol) — Bosco 1983 (Eur J Appl Physiol) —
+              Maulder & Cronin 2005 (Phys Ther Sport).
+            </p>
           </CardContent>
         </Card>
 
@@ -427,6 +591,45 @@ function Metric({ label, value, unit, big }: { label: string; value: string; uni
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className={`font-semibold tabular-nums ${big ? "text-base" : "text-sm"}`}>
         {value} <span className="text-muted-foreground font-normal text-[10px]">{unit}</span>
+      </div>
+    </div>
+  );
+}
+
+function OptionRow({
+  num: n,
+  title,
+  ref: refStr,
+  note,
+  input,
+  unit,
+  result,
+}: {
+  num: string;
+  title: string;
+  ref: string;
+  note?: string;
+  input: React.ReactNode;
+  unit: string;
+  result: string | null;
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-[1fr_140px_1fr] gap-2 items-end rounded-md border border-border/60 bg-background/40 p-2">
+      <div>
+        <div className="text-xs font-medium">
+          Option {n} — {title}
+        </div>
+        <div className="text-[10px] text-muted-foreground">
+          Réf : {refStr}
+          {note ? ` · ${note}` : ""}
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        {input}
+        <span className="text-[10px] text-muted-foreground">{unit}</span>
+      </div>
+      <div className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 sm:text-right">
+        {result ?? <span className="text-muted-foreground font-normal italic">—</span>}
       </div>
     </div>
   );
