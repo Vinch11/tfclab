@@ -822,6 +822,9 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
         isRest: false,
         structure: lib?.structure ?? null,
         wbalProfile: lib?.wbalProfile ?? null,
+        avoid: lib?.avoid ?? undefined,
+        notes: lib?.notes ?? undefined,
+        objectif: lib?.objectif ?? undefined,
       };
     });
 
