@@ -149,6 +149,7 @@ export default function BikeTrackDayPage() {
       source: "bike_track_day",
       weight_kg: massKg > 0 ? massKg : null,
       fc_repos: fcRepos > 0 ? fcRepos : null,
+      fc_max: fcMax > 0 ? fcMax : null,
       ftp: calc.ftp || null,
       vlamax: calc.vlamaxEst || null,
       pmax_5s: calc.p10 || null,
