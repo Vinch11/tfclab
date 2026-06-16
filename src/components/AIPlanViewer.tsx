@@ -631,8 +631,9 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick }: WeekViewProps) 
       <CardContent className="space-y-2">
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
-          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} />;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} />;
         })}
+
         {week.coachNotes && (
           <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
             <p className="text-xs font-semibold text-primary flex items-center gap-1 mb-1">
