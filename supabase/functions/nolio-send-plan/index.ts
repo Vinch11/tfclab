@@ -532,27 +532,30 @@ function buildDescription(s: ParsedSession): string {
   }
 
   // 2) Alternatives terrain (si fournies par la fiche bibliothèque)
+  //    Aération : ligne vide entre texte principal et alternatives, et entre chaque alternative.
   const alts = Array.isArray(s.alternatives)
     ? s.alternatives.filter((a) => a && typeof a.label === "string" && a.label.trim().length > 0)
     : [];
   if (alts.length > 0) {
-    const lines = ["", "🏔️ Alternatives :"];
-    for (const a of alts) {
+    const altLines: string[] = ["🏔️ Alternatives :", ""];
+    alts.forEach((a, idx) => {
       const icon = (a.icon ?? "").trim();
       const label = a.label.trim();
       const hint = (a.hint ?? "").trim();
       const head = icon ? `${icon} ${label}` : label;
-      lines.push(hint ? `• ${head} — ${hint}` : `• ${head}`);
-    }
-    parts.push(lines.join("\n"));
+      altLines.push(hint ? `• ${head} — ${hint}` : `• ${head}`);
+      if (idx < alts.length - 1) altLines.push("");
+    });
+    parts.push(altLines.join("\n"));
   }
 
-  // 3) Éviter
+  // 3) Éviter — ligne vide avant pour aération
   if (s.avoid && s.avoid.trim()) {
     parts.push(`⚠️ Éviter : ${s.avoid.trim()}`);
   }
 
-  let desc = parts.join("\n");
+  // Joindre les blocs avec une ligne vide entre chacun (aération).
+  let desc = parts.join("\n\n");
   if (desc.length > 500) {
     desc = desc.slice(0, 500);
     const lastBreak = desc.lastIndexOf("\n");
