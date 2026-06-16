@@ -419,40 +419,52 @@ function normalizeStructuredWorkoutForNolio(
       }
     }
 
-    // Natation pace : Nolio interprète target_value en s/km, pas s/100m.
-    // Conversion s/100m → s/km (×10). Idempotent : on convertit uniquement
-    // si la valeur est plausible en s/100m (< 500s/100m = > 1:23/100m).
+    // ⚠️ Nolio attend `pace` en **mps (mètres/seconde)** — pas s/km, pas s/100m.
+    // Doc officielle : https://github.com/NolioApp/NolioAPI-Documentation/wiki/Structured-Workout
+    // Conversion finale :
+    //   - Natation (19) : valeurs stockées en s/100m → m/s = 100 / v
+    //   - Course/Trail (2/52) : valeurs stockées en s/km → m/s = 1000 / v
+    // Idempotent : si la valeur est déjà ≤ 15 (plage plausible m/s), on n'y touche plus.
     if (
-      sportId === 19 &&
       src.type === "step" &&
-      src.target_type === "pace"
+      src.target_type === "pace" &&
+      (sportId === 19 || sportId === 2 || sportId === 52)
     ) {
+      // 1) Recalcule d'abord target_value_min/max depuis les pct_* si dispo (source de vérité)
       const css = refs?.css;
-      const pctMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
-      const pctMax = typeof src.pct_css_max === "number" ? src.pct_css_max : null;
+      const vma = refs?.vma;
+      const pctCssMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
+      const pctCssMax = typeof src.pct_css_max === "number" ? src.pct_css_max : null;
+      const pctVmaMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
+      const pctVmaMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
 
-      // Recalcule depuis pct_css si dispo (source de vérité fiable)
-      if (typeof css === "number" && css > 0 && (pctMin !== null || pctMax !== null)) {
-        if (pctMin !== null) {
-          // pct < 100 = plus rapide → pace plus petite ; pct > 100 = plus lent → pace plus grande
-          src.target_value_max = Math.round((css * 100 / pctMin) * 10);
-        }
-        if (pctMax !== null) {
-          src.target_value_min = Math.round((css * 100 / pctMax) * 10);
-        }
-        const lo = typeof src.target_value_min === "number" ? src.target_value_min : null;
-        const hi = typeof src.target_value_max === "number" ? src.target_value_max : null;
-        if (lo !== null && hi !== null) {
-          src.target_value = Math.round((lo + hi) / 2);
-        }
-      } else {
-        // Fallback : conversion ×10 si la valeur ressemble à s/100m (< 500)
-        for (const key of ["target_value_min", "target_value_max", "target_value"]) {
-          const v = src[key];
-          if (typeof v === "number" && v > 0 && v < 500) {
-            src[key] = Math.round(v * 10);
-          }
-        }
+      if (sportId === 19 && typeof css === "number" && css > 0 && (pctCssMin !== null || pctCssMax !== null)) {
+        // s/100m : pct bas = plus rapide → temps plus petit
+        if (pctCssMin !== null) src.target_value_min = css * (pctCssMin / 100);
+        if (pctCssMax !== null) src.target_value_max = css * (pctCssMax / 100);
+      } else if ((sportId === 2 || sportId === 52) && typeof vma === "number" && vma > 0 && (pctVmaMin !== null || pctVmaMax !== null)) {
+        // s/km : pct haut = plus rapide → temps plus petit. min/max sur le temps.
+        const paceFromVma = (pct: number) => 1000 / (vma * (pct / 100) * (1000 / 3600));
+        if (pctVmaMax !== null) src.target_value_min = paceFromVma(pctVmaMax);
+        if (pctVmaMin !== null) src.target_value_max = paceFromVma(pctVmaMin);
+      }
+
+      // 2) Conversion finale → m/s (float arrondi 3 décimales)
+      const toMps = (v: number): number => {
+        if (!Number.isFinite(v) || v <= 0) return v;
+        if (v <= 15) return v; // déjà en m/s
+        const mps = sportId === 19 ? 100 / v : 1000 / v;
+        return Math.round(mps * 1000) / 1000;
+      };
+      for (const key of ["target_value_min", "target_value_max", "target_value"]) {
+        const v = src[key];
+        if (typeof v === "number") src[key] = toMps(v);
+      }
+      // Recalcule target_value médian si min/max présents
+      const lo = typeof src.target_value_min === "number" ? src.target_value_min : null;
+      const hi = typeof src.target_value_max === "number" ? src.target_value_max : null;
+      if (lo !== null && hi !== null) {
+        src.target_value = Math.round(((lo + hi) / 2) * 1000) / 1000;
       }
     }
 
