@@ -749,14 +749,14 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     }));
     setReplacementCount((c) => c + 1);
 
-    // Reset "sent" badge for this session
+    // Reset "sent" badge for any slot on this (week, day) — replacement targets all matching sessions
     if (athleteId) {
-      const k = sessionKey(athleteId, target.weekNumber, target.dayIndex);
+      const prefix = `${athleteId}:${target.weekNumber}:${target.dayIndex}:`;
       setSentKeys((prev) => {
-        if (!prev.has(k)) return prev;
+        let changed = false;
         const next = new Set(prev);
-        next.delete(k);
-        return next;
+        prev.forEach((k) => { if (k.startsWith(prefix)) { next.delete(k); changed = true; } });
+        return changed ? next : prev;
       });
     }
 
