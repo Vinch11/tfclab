@@ -981,7 +981,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
       if (sentCount > 0) {
         enriched.slice(0, sentCount).forEach((s) => {
-          markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
+          markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, s.sessionIndex ?? 0));
         });
       }
 
