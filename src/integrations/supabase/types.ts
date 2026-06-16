@@ -669,9 +669,11 @@ export type Database = {
           error_message: string | null
           id: string
           notes: string | null
+          payload: Json | null
           status: string
           synced_at: string
           user_id: string
+          workout_id: string | null
         }
         Insert: {
           athletes_count?: number
@@ -679,9 +681,11 @@ export type Database = {
           error_message?: string | null
           id?: string
           notes?: string | null
+          payload?: Json | null
           status?: string
           synced_at?: string
           user_id: string
+          workout_id?: string | null
         }
         Update: {
           athletes_count?: number
@@ -689,9 +693,11 @@ export type Database = {
           error_message?: string | null
           id?: string
           notes?: string | null
+          payload?: Json | null
           status?: string
           synced_at?: string
           user_id?: string
+          workout_id?: string | null
         }
         Relationships: []
       }

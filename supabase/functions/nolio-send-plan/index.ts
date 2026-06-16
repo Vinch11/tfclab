@@ -524,8 +524,12 @@ function extractNutritionNote(text?: string): string | null {
 function buildDescription(s: ParsedSession): string {
   const parts: string[] = [];
 
-  // 1) Texte court existant, inchangé
-  if (s.details) parts.push(s.details.trim());
+  // 1) Texte court existant, inchangé — mais on retire tout marqueur [ID:...]
+  //    injecté par le générateur de plan IA (ex: "Côtes 8x2' [ID: B_TR_HILLREPS_PRO]").
+  if (s.details) {
+    const cleaned = s.details.replace(/\[ID:[^\]]+\]/g, "").replace(/\s{2,}/g, " ").trim();
+    if (cleaned) parts.push(cleaned);
+  }
 
   // 2) Alternatives terrain (si fournies par la fiche bibliothèque)
   const alts = Array.isArray(s.alternatives)
@@ -556,6 +560,7 @@ function buildDescription(s: ParsedSession): string {
   }
   return desc;
 }
+
 
 
 /** Construit structured_workout depuis le tableau `structure` (warm/main/cool). */
@@ -952,7 +957,36 @@ Deno.serve(async (req) => {
       for (const r of (genRows ?? []) as Array<{ workout_id: string; sport_id: number; structured_workout: unknown }>) {
         generatedMap.set(r.workout_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
       }
+
+      // 🔎 Prefix matching : un plan IA peut référencer "B_TR_HILLREPS_PRO" alors que la
+      // base contient "B_TR_HILLREPS_8x2_PRO" / "_6x3_PRO". Pour chaque ID non résolu,
+      // on essaie un préfixe progressif (drop du dernier token `_XXX`) et on prend la
+      // première structure `status='ok'` qui matche.
+      const unresolved = sessionIds.filter((id) => !generatedMap.has(id));
+      for (const id of unresolved) {
+        const tokens = id.split("_").filter((t) => t.length > 0);
+        // On essaie des préfixes de plus en plus courts (au moins 2 tokens).
+        for (let n = tokens.length - 1; n >= 2; n--) {
+          const prefix = tokens.slice(0, n).join("_");
+          const { data: prefRows } = await admin
+            .from("nolio_structures_generated")
+            .select("workout_id, sport_id, structured_workout")
+            .ilike("workout_id", `${prefix}\\_%`)
+            .eq("status", "ok")
+            .order("updated_at", { ascending: false })
+            .limit(1);
+          const hit = (prefRows ?? [])[0] as
+            | { workout_id: string; sport_id: number; structured_workout: unknown }
+            | undefined;
+          if (hit) {
+            generatedMap.set(id, { sport_id: hit.sport_id, structured_workout: hit.structured_workout });
+            console.log(`[nolio-send-plan] prefix match: "${id}" → "${hit.workout_id}" (prefix="${prefix}")`);
+            break;
+          }
+        }
+      }
     }
+
 
 
     for (let i = 0; i < body.sessions.length; i++) {
@@ -1102,6 +1136,37 @@ Deno.serve(async (req) => {
         },
       });
 
+      // 📋 Audit trail : une ligne dans nolio_sync_log par séance envoyée,
+      // avec le workout_id, le payload complet et la réponse Nolio.
+      try {
+        await admin.from("nolio_sync_log").insert({
+          user_id: userId,
+          athletes_count: res.ok ? 1 : 0,
+          status: res.ok ? "success" : "error",
+          error_message: res.ok ? null : JSON.stringify({ status: res.status, detail: res.detail }).slice(0, 2000),
+          workout_id: (s.id ?? null),
+          payload: {
+            nolio_athlete_id: body.nolio_athlete_id,
+            week: s.weekNumber,
+            day: s.dayIndex,
+            date_start: dateStart,
+            sport_id: sportId,
+            id_partner: idPartner,
+            used_override: usedOverride,
+            used_generated: usedGenerated,
+            request: payload,
+            response: {
+              ok: res.ok,
+              status: res.status,
+              detail: res.detail ?? null,
+              data: res.data ?? null,
+            },
+          },
+        });
+      } catch (perSessionLogErr) {
+        console.error("nolio_sync_log per-session insert failed", perSessionLogErr);
+      }
+
       if (res.ok) sent += 1;
       else errors.push({ week: s.weekNumber, day: s.dayIndex, status: res.status, detail: res.detail });
 
@@ -1110,6 +1175,7 @@ Deno.serve(async (req) => {
         await new Promise((r) => setTimeout(r, 200));
       }
     }
+
 
     // Log debug dans nolio_sync_log (notes = JSON complet pour vérifier ce qui est transmis)
     try {
