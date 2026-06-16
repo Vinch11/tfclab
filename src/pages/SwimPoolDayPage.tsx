@@ -55,9 +55,11 @@ export default function SwimPoolDayPage() {
   const [weightKgManual, setWeightKgManual] = useState("");
   const [heightCmManual, setHeightCmManual] = useState("");
   const [fcReposManual, setFcReposManual] = useState("");
+  const [fcMaxManual, setFcMaxManual] = useState("");
   const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
   const heightCm = num(heightCmManual);
   const fcRepos = num(fcReposManual);
+  const fcMax = effectiveRefs.fcMax ?? num(fcMaxManual);
 
 
   // Bloc 1 — sprints
