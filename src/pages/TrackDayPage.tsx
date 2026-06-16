@@ -288,35 +288,6 @@ export default function TrackDayPage() {
                 <Input type="number" value={wind} onChange={(e) => setWind(e.target.value)} placeholder="5" />
               </div>
             </div>
-            <div>
-              <Label>
-                Poids (kg){" "}
-                {effectiveRefs.weightKg != null && (
-                  <span className="text-[10px] text-success font-normal">— auto snapshot</span>
-                )}
-              </Label>
-              {effectiveRefs.weightKg != null ? (
-                <Input type="number" value={effectiveRefs.weightKg} disabled />
-              ) : (
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={weightKgManual}
-                  onChange={(e) => setWeightKgManual(e.target.value)}
-                  placeholder="70"
-                />
-              )}
-            </div>
-            <div>
-              <Label>Taille (m)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={heightMManual}
-                onChange={(e) => setHeightMManual(e.target.value)}
-                placeholder="1.78"
-              />
-            </div>
           </CardContent>
         </Card>
 
