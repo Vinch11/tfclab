@@ -444,6 +444,31 @@ export default function BikeTrackDayPage() {
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
               <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
             </div>
+            {calc.vo2maxEst > 0 && (
+              <p className="text-[10px] text-amber-700 dark:text-amber-400">
+                <b>VO2max</b> = MAP × 10.8 / poids + 7 (Hawley &amp; Noakes 1992) — <b>Estimé — confiance : moyenne (±3 ml/kg/min)</b>
+              </p>
+            )}
+            {(() => {
+              const fields = [
+                { k: "Poids", ok: massKg > 0 },
+                { k: "FC repos", ok: fcRepos > 0 },
+                { k: "FC max", ok: fcMax > 0 },
+                { k: "Taille", ok: heightCm > 0 },
+                { k: "FTP", ok: calc.ftp > 0 },
+                { k: "MAP", ok: calc.map > 0 },
+                { k: "CP3'", ok: calc.cp3 > 0 },
+                { k: "VLamax", ok: calc.vlamaxEst > 0 },
+                { k: "VO2max", ok: calc.vo2maxEst > 0 },
+              ];
+              const filled = fields.filter((f) => f.ok).length;
+              return (
+                <div className="rounded-md border border-border/60 bg-background/60 p-2 text-xs">
+                  <b>{filled}/{fields.length}</b> champs renseignés
+                  <span className="text-muted-foreground"> — {fields.filter(f => !f.ok).map(f => f.k).join(", ") || "complet ✓"}</span>
+                </div>
+              );
+            })()}
             <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
               <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats
             </Button>
