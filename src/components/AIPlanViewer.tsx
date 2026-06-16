@@ -38,6 +38,7 @@ import {
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 
 type NolioScope = "selected" | "single" | "range" | "all";
 
