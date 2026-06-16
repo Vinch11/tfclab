@@ -35,6 +35,7 @@ import LiteratureCohortPage from "./pages/LiteratureCohortPage";
 import MiniReportPage from "./pages/MiniReportPage";
 import EssentielsPage from "./pages/EssentielsPage";
 import CoachChecklistPage from "./pages/CoachChecklistPage";
+import TrackDayPage from "./pages/TrackDayPage";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ export default function App() {
                 <Route path="/diagnostic/cohort-run-mlss" element={<ProtectedRoute><RunMLSSCohortPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/cohort-literature" element={<ProtectedRoute><LiteratureCohortPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/coach-checklist" element={<ProtectedRoute><CoachChecklistPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/track-day" element={<ProtectedRoute><TrackDayPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 4 — PLANIFICATION                  */}

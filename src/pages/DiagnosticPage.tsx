@@ -14,6 +14,7 @@ import {
   Bike,
   BookOpen,
   ClipboardList,
+  Timer,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
@@ -47,6 +48,15 @@ const sections = [
     route: "/diagnostic/testing-week-cap",
     color: "text-green-500",
     bgColor: "bg-green-500/10",
+  },
+  {
+    id: "track-day",
+    title: "TFCL Track Day™",
+    description: "Protocole piste complet en 2h — VMA, VLamax, Seuil, TTE en une seule séance",
+    icon: Timer,
+    route: "/diagnostic/track-day",
+    color: "text-purple-500",
+    bgColor: "bg-purple-500/10",
   },
   {
     id: "coach-checklist",
