@@ -524,8 +524,12 @@ function extractNutritionNote(text?: string): string | null {
 function buildDescription(s: ParsedSession): string {
   const parts: string[] = [];
 
-  // 1) Texte court existant, inchangé
-  if (s.details) parts.push(s.details.trim());
+  // 1) Texte court existant, inchangé — mais on retire tout marqueur [ID:...]
+  //    injecté par le générateur de plan IA (ex: "Côtes 8x2' [ID: B_TR_HILLREPS_PRO]").
+  if (s.details) {
+    const cleaned = s.details.replace(/\[ID:[^\]]+\]/g, "").replace(/\s{2,}/g, " ").trim();
+    if (cleaned) parts.push(cleaned);
+  }
 
   // 2) Alternatives terrain (si fournies par la fiche bibliothèque)
   const alts = Array.isArray(s.alternatives)
@@ -556,6 +560,7 @@ function buildDescription(s: ParsedSession): string {
   }
   return desc;
 }
+
 
 
 /** Construit structured_workout depuis le tableau `structure` (warm/main/cool). */
