@@ -283,9 +283,10 @@ interface SessionCardProps {
   date?: Date;
   nolioCtx?: NolioCtx | null;
   onReplaceClick?: (session: ParsedSession) => void;
+  sessionIndex?: number;
 }
 
-function SessionCard({ session, date, nolioCtx, onReplaceClick }: SessionCardProps) {
+function SessionCard({ session, date, nolioCtx, onReplaceClick, sessionIndex = 0 }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const trailAlts = useMemo(
