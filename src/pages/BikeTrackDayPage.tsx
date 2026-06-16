@@ -428,6 +428,7 @@ export default function BikeTrackDayPage() {
               <Metric label="VLamax est." value={fmt(calc.vlamaxEst, 2)} unit="mmol/L/s" big />
               <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% FTP" big />
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
+              <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
             </div>
             <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
               <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats
