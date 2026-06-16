@@ -185,6 +185,34 @@ export default function SwimPoolDayPage() {
           </CardContent>
         </Card>
 
+        {/* Données de base */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Données de base</CardTitle>
+            <CardDescription className="text-xs">Communes à tous les blocs — alimentent le snapshot.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <Label>
+                Poids (kg) {effectiveRefs.weightKg != null && <span className="text-[10px] text-success">— auto</span>}
+              </Label>
+              {effectiveRefs.weightKg != null ? (
+                <Input type="number" value={effectiveRefs.weightKg} disabled />
+              ) : (
+                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" />
+              )}
+            </div>
+            <div>
+              <Label>FC repos (bpm)</Label>
+              <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
+            </div>
+            <div>
+              <Label>Taille (cm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
+              <Input type="number" value={heightCmManual} onChange={(e) => setHeightCmManual(e.target.value)} placeholder="178" />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Bloc 1 */}
         <Card>
           <CardHeader>
