@@ -283,9 +283,10 @@ interface SessionCardProps {
   date?: Date;
   nolioCtx?: NolioCtx | null;
   onReplaceClick?: (session: ParsedSession) => void;
+  sessionIndex?: number;
 }
 
-function SessionCard({ session, date, nolioCtx, onReplaceClick }: SessionCardProps) {
+function SessionCard({ session, date, nolioCtx, onReplaceClick, sessionIndex = 0 }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const trailAlts = useMemo(
@@ -313,7 +314,7 @@ function SessionCard({ session, date, nolioCtx, onReplaceClick }: SessionCardPro
     );
   }
 
-  const selKey = nolioCtx ? sessionKey(nolioCtx.athleteId, session.weekNumber, session.dayIndex) : null;
+  const selKey = nolioCtx ? sessionKey(nolioCtx.athleteId, session.weekNumber, session.dayIndex, sessionIndex) : null;
   const isSent = !!(nolioCtx && selKey && nolioCtx.isSent(selKey));
   const isChecked = !!(nolioCtx && selKey && nolioCtx.isSelected(selKey));
 
@@ -357,7 +358,7 @@ function SessionCard({ session, date, nolioCtx, onReplaceClick }: SessionCardPro
             <Repeat className="h-3.5 w-3.5 mr-1" /> Remplacer
           </Button>
         )}
-        {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} />}
+        {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} sessionIndex={sessionIndex} />}
       </div>
 
       {expanded && session.details && (
@@ -578,13 +579,32 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick }: WeekViewProps) 
 
   const activeSessions = week.sessions.filter(s => !s.isRest).length;
 
+  // Map ParsedSession → slot index (occurrence within its day) so 2+ sessions
+  // sharing the same dayIndex can be selected/sent individually.
+  const slotMap = useMemo(() => {
+    const counters = new Map<number, number>();
+    const map = new Map<ParsedSession, number>();
+    for (const s of week.sessions) {
+      if (s.isRest || s.dayIndex < 0) continue;
+      const c = counters.get(s.dayIndex) ?? 0;
+      map.set(s, c);
+      counters.set(s.dayIndex, c + 1);
+    }
+    return map;
+  }, [week.sessions]);
+
   // Bulk Nolio: keys of active (non-rest) sessions for this week
   const weekSelectableKeys = useMemo(() => {
     if (!nolioCtx) return [] as string[];
-    return week.sessions
-      .filter((s) => !s.isRest && s.dayIndex >= 0 && !nolioCtx.isSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex)))
-      .map((s) => sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
-  }, [week.sessions, nolioCtx]);
+    const out: string[] = [];
+    for (const s of week.sessions) {
+      if (s.isRest || s.dayIndex < 0) continue;
+      const slot = slotMap.get(s) ?? 0;
+      const k = sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, slot);
+      if (!nolioCtx.isSent(k)) out.push(k);
+    }
+    return out;
+  }, [week.sessions, nolioCtx, slotMap]);
   const weekSelectedCount = nolioCtx
     ? weekSelectableKeys.filter((k) => nolioCtx.isSelected(k)).length
     : 0;
@@ -631,7 +651,8 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick }: WeekViewProps) 
       <CardContent className="space-y-2">
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
-          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} />;
+          const slot = slotMap.get(session) ?? 0;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} />;
         })}
 
         {week.coachNotes && (
@@ -728,14 +749,14 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     }));
     setReplacementCount((c) => c + 1);
 
-    // Reset "sent" badge for this session
+    // Reset "sent" badge for any slot on this (week, day) — replacement targets all matching sessions
     if (athleteId) {
-      const k = sessionKey(athleteId, target.weekNumber, target.dayIndex);
+      const prefix = `${athleteId}:${target.weekNumber}:${target.dayIndex}:`;
       setSentKeys((prev) => {
-        if (!prev.has(k)) return prev;
+        let changed = false;
         const next = new Set(prev);
-        next.delete(k);
-        return next;
+        prev.forEach((k) => { if (k.startsWith(prefix)) { next.delete(k); changed = true; } });
+        return changed ? next : prev;
       });
     }
 
@@ -826,6 +847,22 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allWeekNums.join(",")]);
 
+  // Per-week slot map: ParsedSession → occurrence index within its dayIndex.
+  // Lets us disambiguate the selection/sent key when 2+ sessions share the same day.
+  const planSlotMap = useMemo(() => {
+    const map = new Map<ParsedSession, number>();
+    for (const w of plan.weeks) {
+      const counters = new Map<number, number>();
+      for (const s of w.sessions) {
+        if (s.isRest || s.dayIndex < 0) continue;
+        const c = counters.get(s.dayIndex) ?? 0;
+        map.set(s, c);
+        counters.set(s.dayIndex, c + 1);
+      }
+    }
+    return map;
+  }, [plan]);
+
   // Map selected keys → ParsedSession objects from current plan
   const selectedSessions = useMemo(() => {
     if (!nolioCtx) return [] as ParsedSession[];
@@ -833,12 +870,13 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     for (const w of plan.weeks) {
       for (const s of w.sessions) {
         if (s.isRest || s.dayIndex < 0) continue;
-        const k = sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex);
+        const slot = planSlotMap.get(s) ?? 0;
+        const k = sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, slot);
         if (selectedKeys.has(k)) out.push(s);
       }
     }
     return out;
-  }, [plan, selectedKeys, nolioCtx]);
+  }, [plan, selectedKeys, nolioCtx, planSlotMap]);
 
   // Sessions effectively targeted by the current scope (used for top panel + confirm modal + send)
   const targetSessions = useMemo(() => {
@@ -869,10 +907,11 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
   const alreadySentInScope = useMemo(() => {
     if (!nolioCtx) return 0;
-    return targetSessions.filter((s) =>
-      sentKeys.has(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex)),
-    ).length;
-  }, [targetSessions, sentKeys, nolioCtx]);
+    return targetSessions.filter((s) => {
+      const slot = planSlotMap.get(s) ?? 0;
+      return sentKeys.has(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, slot));
+    }).length;
+  }, [targetSessions, sentKeys, nolioCtx, planSlotMap]);
 
   async function handleBulkSend() {
     if (!nolioCtx || targetSessions.length === 0) return;
@@ -942,7 +981,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
       if (sentCount > 0) {
         enriched.slice(0, sentCount).forEach((s) => {
-          markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
+          markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, s.sessionIndex ?? 0));
         });
       }
 

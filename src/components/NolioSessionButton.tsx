@@ -36,14 +36,20 @@ export interface NolioCtx {
 interface Props {
   session: ParsedSession;
   ctx: NolioCtx;
+  sessionIndex?: number;
 }
 
-export function sessionKey(athleteId: string, weekNumber: number, dayIndex: number): string {
-  return `${athleteId}:${weekNumber}:${dayIndex}`;
+export function sessionKey(
+  athleteId: string,
+  weekNumber: number,
+  dayIndex: number,
+  sessionIndex = 0,
+): string {
+  return `${athleteId}:${weekNumber}:${dayIndex}:${sessionIndex}`;
 }
 
-export function NolioSessionButton({ session, ctx }: Props) {
-  const key = sessionKey(ctx.athleteId, session.weekNumber, session.dayIndex);
+export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
+  const key = sessionKey(ctx.athleteId, session.weekNumber, session.dayIndex, sessionIndex);
   const initiallySent = ctx.isSent(key);
   const [sent, setSent] = useState(initiallySent);
   const [open, setOpen] = useState(false);
@@ -79,6 +85,7 @@ export function NolioSessionButton({ session, ctx }: Props) {
       const enriched = {
         weekNumber: session.weekNumber,
         dayIndex: session.dayIndex,
+        sessionIndex,
         sport: session.sport ?? lib?.sport ?? null,
         title: session.title,
         id: lib?.id ?? null,
