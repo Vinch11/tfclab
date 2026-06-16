@@ -595,3 +595,42 @@ function Metric({ label, value, unit, big }: { label: string; value: string; uni
     </div>
   );
 }
+
+function OptionRow({
+  num: n,
+  title,
+  ref: refStr,
+  note,
+  input,
+  unit,
+  result,
+}: {
+  num: string;
+  title: string;
+  ref: string;
+  note?: string;
+  input: React.ReactNode;
+  unit: string;
+  result: string | null;
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-[1fr_140px_1fr] gap-2 items-end rounded-md border border-border/60 bg-background/40 p-2">
+      <div>
+        <div className="text-xs font-medium">
+          Option {n} — {title}
+        </div>
+        <div className="text-[10px] text-muted-foreground">
+          Réf : {refStr}
+          {note ? ` · ${note}` : ""}
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        {input}
+        <span className="text-[10px] text-muted-foreground">{unit}</span>
+      </div>
+      <div className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 sm:text-right">
+        {result ?? <span className="text-muted-foreground font-normal italic">—</span>}
+      </div>
+    </div>
+  );
+}
