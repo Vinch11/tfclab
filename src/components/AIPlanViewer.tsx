@@ -847,6 +847,22 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allWeekNums.join(",")]);
 
+  // Per-week slot map: ParsedSession → occurrence index within its dayIndex.
+  // Lets us disambiguate the selection/sent key when 2+ sessions share the same day.
+  const planSlotMap = useMemo(() => {
+    const map = new Map<ParsedSession, number>();
+    for (const w of plan.weeks) {
+      const counters = new Map<number, number>();
+      for (const s of w.sessions) {
+        if (s.isRest || s.dayIndex < 0) continue;
+        const c = counters.get(s.dayIndex) ?? 0;
+        map.set(s, c);
+        counters.set(s.dayIndex, c + 1);
+      }
+    }
+    return map;
+  }, [plan]);
+
   // Map selected keys → ParsedSession objects from current plan
   const selectedSessions = useMemo(() => {
     if (!nolioCtx) return [] as ParsedSession[];
@@ -854,12 +870,13 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     for (const w of plan.weeks) {
       for (const s of w.sessions) {
         if (s.isRest || s.dayIndex < 0) continue;
-        const k = sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex);
+        const slot = planSlotMap.get(s) ?? 0;
+        const k = sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, slot);
         if (selectedKeys.has(k)) out.push(s);
       }
     }
     return out;
-  }, [plan, selectedKeys, nolioCtx]);
+  }, [plan, selectedKeys, nolioCtx, planSlotMap]);
 
   // Sessions effectively targeted by the current scope (used for top panel + confirm modal + send)
   const targetSessions = useMemo(() => {
@@ -890,10 +907,11 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
   const alreadySentInScope = useMemo(() => {
     if (!nolioCtx) return 0;
-    return targetSessions.filter((s) =>
-      sentKeys.has(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex)),
-    ).length;
-  }, [targetSessions, sentKeys, nolioCtx]);
+    return targetSessions.filter((s) => {
+      const slot = planSlotMap.get(s) ?? 0;
+      return sentKeys.has(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, slot));
+    }).length;
+  }, [targetSessions, sentKeys, nolioCtx, planSlotMap]);
 
   async function handleBulkSend() {
     if (!nolioCtx || targetSessions.length === 0) return;
