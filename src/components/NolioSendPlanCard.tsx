@@ -98,6 +98,9 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
           isRest: s.isRest,
           structure: lib?.structure ?? null,
           wbalProfile: lib?.wbalProfile ?? null,
+          avoid: lib?.avoid ?? undefined,
+          notes: lib?.notes ?? undefined,
+          objectif: lib?.objectif ?? undefined,
         };
       }),
     );

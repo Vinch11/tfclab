@@ -80,6 +80,9 @@ export function NolioSessionButton({ session, ctx }: Props) {
         isRest: false,
         structure: lib?.structure ?? null,
         wbalProfile: lib?.wbalProfile ?? null,
+        avoid: lib?.avoid ?? undefined,
+        notes: lib?.notes ?? undefined,
+        objectif: lib?.objectif ?? undefined,
       };
 
       // Recalibre planStartDate côté serveur pour que addDays(planStartDate, (w-1)*7+d) = dateStr.

@@ -45,6 +45,9 @@ type ParsedSession = {
   id?: string | null;
   structure?: WorkoutStructurePart[] | null;
   wbalProfile?: WbalProfile | null;
+  avoid?: string;
+  notes?: string;
+  objectif?: string;
 };
 
 type AthleteRefs = {
@@ -495,6 +498,61 @@ function isAllNoTargetStructure(input: unknown): boolean {
     return true;
   };
   return visit(input);
+}
+
+/** Cherche une note nutrition courte dans un texte libre. */
+function extractNutritionNote(text?: string): string | null {
+  if (!text) return null;
+  const n = text.trim();
+  const hasKeyword = /cho|glucides|hydratation|nutrition|g\/h|g\s+CHO|boire|gel|isotonique|protéines|carbs/i.test(n);
+  if (hasKeyword && n.length < 120) return n;
+  return null;
+}
+
+/** Construit une description enrichie courte (≤500 caractères) à partir de la fiche bibliothèque. */
+function buildDescription(s: ParsedSession): string {
+  const parts: string[] = [];
+
+  // 1) Texte court existant
+  if (s.details) parts.push(s.details.trim());
+
+  // 2) Instructions clés du Main (max 2 phrases, ~200 caractères, sans durées variables)
+  const mainPart = s.structure?.find((p) => {
+    const pn = normalizeStr(p.part);
+    return pn.includes("main") || pn.includes("corps") || pn.includes("princ");
+  });
+  if (mainPart?.text) {
+    let mt = mainPart.text.trim();
+    // Supprime les durées variables : "45-60min", "10'", "3x8min", "45 s"
+    mt = mt.replace(/\b\d+(?:[-–—]\d+)?\s*(?:min|minutes?|h|heures?|s|sec|secondes?|')\b/gi, "");
+    mt = mt.replace(/\b\d+\s*[x×]\s*\d+\s*(?:min|minutes?|h|heures?|s|sec|secondes?|')\b/gi, "");
+    mt = mt.replace(/\s+/g, " ").trim();
+    // Prend les 2 premières phrases significatives (>10 caractères)
+    const sentences = mt.split(/(?<=[.!?])\s+/).filter((t) => t.trim().length > 10);
+    let summary = sentences.slice(0, 2).join(" ").trim();
+    if (summary.length > 200) {
+      summary = summary.slice(0, 200);
+      const lastSpace = summary.lastIndexOf(" ");
+      if (lastSpace > 100) summary = summary.slice(0, lastSpace) + "…";
+    }
+    if (summary) parts.push(summary);
+  }
+
+  // 3) Note nutrition
+  const nutrition = extractNutritionNote(s.notes);
+  if (nutrition) parts.push(`🍎 ${nutrition}`);
+
+  // 4) Éviter
+  if (s.avoid) parts.push(`⚠️ Éviter : ${s.avoid.trim()}`);
+
+  let desc = parts.join("\n");
+  // Limite stricte à 500 caractères, coupe propre au dernier saut de ligne si possible
+  if (desc.length > 500) {
+    desc = desc.slice(0, 500);
+    const lastBreak = desc.lastIndexOf("\n");
+    if (lastBreak > 300) desc = desc.slice(0, lastBreak);
+  }
+  return desc;
 }
 
 
@@ -990,7 +1048,7 @@ Deno.serve(async (req) => {
         sport_id: sportId,
         name: s.title ?? "Séance",
         date_start: dateStart,
-        description: s.details ?? "",
+        description: buildDescription(s),
       };
       if (structured_workout) {
         const normalized = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
