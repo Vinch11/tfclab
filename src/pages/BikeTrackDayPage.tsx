@@ -123,10 +123,13 @@ export default function BikeTrackDayPage() {
 
     const tteEst = fractUtil > 0 ? Math.max(25, Math.min(75, 30 + (fractUtil - 0.75) * 400)) : 0;
 
+    // VO2max estimé depuis MAP — Hawley & Noakes 1992 : VO2max ≈ MAP × 10.8 / poids + 7
+    const vo2maxEst = map > 0 && massKg > 0 ? (map * 10.8) / massKg + 7 : 0;
+
     return {
       p10, p30, p60, map, cp3, ratioCp3Map,
       ftp20, ftpRampe, ftp, ftpKg, wPrime, fractUtil,
-      vlamaxEst, scoreG,
+      vlamaxEst, scoreG, vo2maxEst,
       driftPct, ratioZ2Ftp, fatMaxPct, tteEst,
     };
   }, [setup, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, map5min, cp3min, p20min, rampeLast, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
