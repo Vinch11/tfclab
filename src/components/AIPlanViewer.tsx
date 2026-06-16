@@ -1405,7 +1405,17 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Replace session dialog */}
+      <SessionReplaceDialog
+        open={!!replaceTarget}
+        onOpenChange={(o) => { if (!o) setReplaceTarget(null); }}
+        currentSport={replaceTarget?.sport ?? ""}
+        currentTitle={replaceTarget?.title ?? ""}
+        onChoose={applyReplacement}
+      />
     </div>
+
   );
 }
 
