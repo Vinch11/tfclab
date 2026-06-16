@@ -1248,7 +1248,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} />
+          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} />
         </>
       ) : (
         <div className="space-y-4">
