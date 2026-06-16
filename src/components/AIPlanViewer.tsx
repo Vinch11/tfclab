@@ -579,13 +579,32 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick }: WeekViewProps) 
 
   const activeSessions = week.sessions.filter(s => !s.isRest).length;
 
+  // Map ParsedSession → slot index (occurrence within its day) so 2+ sessions
+  // sharing the same dayIndex can be selected/sent individually.
+  const slotMap = useMemo(() => {
+    const counters = new Map<number, number>();
+    const map = new Map<ParsedSession, number>();
+    for (const s of week.sessions) {
+      if (s.isRest || s.dayIndex < 0) continue;
+      const c = counters.get(s.dayIndex) ?? 0;
+      map.set(s, c);
+      counters.set(s.dayIndex, c + 1);
+    }
+    return map;
+  }, [week.sessions]);
+
   // Bulk Nolio: keys of active (non-rest) sessions for this week
   const weekSelectableKeys = useMemo(() => {
     if (!nolioCtx) return [] as string[];
-    return week.sessions
-      .filter((s) => !s.isRest && s.dayIndex >= 0 && !nolioCtx.isSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex)))
-      .map((s) => sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex));
-  }, [week.sessions, nolioCtx]);
+    const out: string[] = [];
+    for (const s of week.sessions) {
+      if (s.isRest || s.dayIndex < 0) continue;
+      const slot = slotMap.get(s) ?? 0;
+      const k = sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, slot);
+      if (!nolioCtx.isSent(k)) out.push(k);
+    }
+    return out;
+  }, [week.sessions, nolioCtx, slotMap]);
   const weekSelectedCount = nolioCtx
     ? weekSelectableKeys.filter((k) => nolioCtx.isSelected(k)).length
     : 0;
