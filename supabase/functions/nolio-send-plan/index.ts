@@ -525,15 +525,55 @@ function extractNutritionNote(text?: string): string | null {
  *     • <icon> <label> — <hint>
  *   ⚠️ Éviter : <avoid>
  */
-function buildDescription(s: ParsedSession): string {
+function buildDescription(s: ParsedSession, sportId?: number): string {
   const parts: string[] = [];
 
   // 1) Texte court existant, inchangé — mais on retire tout marqueur [ID:...]
   //    injecté par le générateur de plan IA (ex: "Côtes 8x2' [ID: B_TR_HILLREPS_PRO]").
-  if (s.details) {
-    const cleaned = s.details.replace(/\[ID:[^\]]+\]/g, "").replace(/\s{2,}/g, " ").trim();
-    if (cleaned) parts.push(cleaned);
+  const cleanedDetails = s.details
+    ? s.details.replace(/\[ID:[^\]]+\]/g, "").replace(/\s{2,}/g, " ").trim()
+    : "";
+
+  // Cas spécifique Renforcement (sport_id: 20) — pas de structured_workout,
+  // la description est le seul contenu. On enrichit depuis la fiche bibliothèque.
+  if (sportId === 20) {
+    const bodyParts: string[] = [];
+
+    if (cleanedDetails) bodyParts.push(cleanedDetails);
+
+    const findPart = (name: string) =>
+      (s.structure ?? []).find((p) =>
+        normalizeStr(p.part).includes(normalizeStr(name))
+      );
+
+    const warmup = findPart("warm-up") || findPart("échauffement");
+    const main = findPart("main") || findPart("travail");
+    const cooldown = findPart("cool-down") || findPart("récupération");
+
+    if (warmup?.text?.trim()) {
+      bodyParts.push(`🔥 Échauffement : ${warmup.text.trim()}`);
+    }
+    if (main?.text?.trim()) {
+      bodyParts.push(`💪 Travail : ${main.text.trim()}`);
+    }
+    if (cooldown?.text?.trim()) {
+      bodyParts.push(`🧘 Récupération : ${cooldown.text.trim()}`);
+    }
+    if (s.avoid && s.avoid.trim()) {
+      bodyParts.push(`⚠️ Éviter : ${s.avoid.trim()}`);
+    }
+
+    let desc = bodyParts.join("\n\n");
+    if (desc.length > 1000) {
+      desc = desc.slice(0, 1000);
+      const lastSpace = desc.lastIndexOf(" ");
+      if (lastSpace > 800) desc = desc.slice(0, lastSpace);
+    }
+    return desc;
   }
+
+  // Format standard pour tous les autres sports
+  if (cleanedDetails) parts.push(cleanedDetails);
 
   // 2) Alternatives terrain (si fournies par la fiche bibliothèque)
   //    Aération : ligne vide entre texte principal et alternatives, et entre chaque alternative.
@@ -1068,7 +1108,7 @@ Deno.serve(async (req) => {
         sport_id: sportId,
         name: s.title ?? "Séance",
         date_start: dateStart,
-        description: buildDescription(s),
+        description: buildDescription(s, sportId),
       };
       if (structured_workout) {
         // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
