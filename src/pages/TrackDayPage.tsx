@@ -421,12 +421,16 @@ export default function TrackDayPage() {
             <OptionRow
               num="6"
               title="Sprint 15s — distance max (m)"
-              ref="TFCL VLamax CAP — démarrer chrono au départ, courir 15s à vitesse max, marquer la distance"
+              ref="TFCL VLamax CAP — Démarrer au signal, courir 15 secondes à vitesse maximale, marquer la position et mesurer la distance en mètres"
               input={
                 <Input type="number" step="0.1" value={sprint15sM} onChange={(e) => setSprint15sM(e.target.value)} placeholder="115" />
               }
               unit="m"
-              result={num(sprint15sM) > 0 ? `→ snapshot.sprint_15s_distance = ${fmt(num(sprint15sM), 1)} m` : null}
+              result={
+                num(sprint15sM) > 0
+                  ? `V_15s = ${fmt((num(sprint15sM) / 15) * 3.6, 1)} km/h → snapshot.sprint_15s_distance`
+                  : null
+              }
             />
 
             {/* Synthèse Profil Neuromusculaire */}
