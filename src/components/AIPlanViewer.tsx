@@ -35,9 +35,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Send } from "lucide-react";
+import { Send, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+import { SessionReplaceDialog, libSportToPlanSport } from "@/components/SessionReplaceDialog";
+import type { LibraryWorkout } from "@/types/workoutLibrary";
+
 
 type NolioScope = "selected" | "single" | "range" | "all";
 
