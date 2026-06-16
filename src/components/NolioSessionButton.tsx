@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import type { ParsedSession } from "@/lib/aiPlanParser";
 
 const DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
