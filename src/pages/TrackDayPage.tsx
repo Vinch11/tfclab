@@ -601,9 +601,31 @@ export default function TrackDayPage() {
               <Metric label="Allure seuil" value={paceMinKm(calc.vSeuilKmh)} unit="min/km" big />
               <Metric label="Ratio seuil/VMA" value={fmt(calc.ratioSeuilVMA * 100, 1)} unit="%" big />
               <Metric label="VLamax est." value={fmt(calc.vlamaxEst, 2)} unit="mmol/L/s" big />
+              <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
               <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% VMA" big />
             </div>
+            {(() => {
+              const fields = [
+                { k: "Poids", ok: massKg > 0 },
+                { k: "FC repos", ok: fcRepos > 0 },
+                { k: "FC max", ok: fcMax > 0 },
+                { k: "Taille", ok: heightM > 0 },
+                { k: "VMA", ok: calc.vmaConfirmee > 0 },
+                { k: "Allure seuil", ok: calc.vSeuilKmh > 0 },
+                { k: "Sprint 15s", ok: num(sprint15sM) > 0 },
+                { k: "VLamax", ok: calc.vlamaxEst > 0 },
+                { k: "VO2max", ok: calc.vo2maxEst > 0 },
+              ];
+              const filled = fields.filter((f) => f.ok).length;
+              return (
+                <div className="rounded-md border border-border/60 bg-background/60 p-2 text-xs">
+                  <b>{filled}/{fields.length}</b> champs renseignés
+                  <span className="text-muted-foreground"> — {fields.filter(f => !f.ok).map(f => f.k).join(", ") || "complet ✓"}</span>
+                </div>
+              );
+            })()}
+
 
             <Button
               variant="default"
