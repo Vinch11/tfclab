@@ -397,6 +397,28 @@ function normalizeStructuredWorkoutForNolio(
       }
     }
 
+    // Run/Trail (sport_id 2/52) : step_duration_type "distance" interdit côté Nolio,
+    // la distance en mètres est réservée à la natation. On convertit en "duration" (secondes)
+    // en estimant depuis la VMA athlète : t = d / (vma * 1000/3600).
+    if (
+      (sportId === 2 || sportId === 52) &&
+      src.type === "step" &&
+      src.step_duration_type === "distance"
+    ) {
+      const distM = typeof src.step_duration_value === "number" ? src.step_duration_value : null;
+      const vma = refs?.vma;
+      if (distM !== null && distM > 0 && typeof vma === "number" && vma > 0) {
+        // Si une cible pace en s/km est connue, l'utiliser, sinon VMA brute.
+        const speedMs = vma * (1000 / 3600);
+        src.step_duration_type = "duration";
+        src.step_duration_value = Math.round(distM / speedMs);
+      } else if (distM !== null && distM > 0) {
+        // Fallback prudent : 4 m/s (~ 4:10/km) si pas de VMA.
+        src.step_duration_type = "duration";
+        src.step_duration_value = Math.round(distM / 4);
+      }
+    }
+
     // Natation pace : Nolio interprète target_value en s/km, pas s/100m.
     // Conversion s/100m → s/km (×10). Idempotent : on convertit uniquement
     // si la valeur est plausible en s/100m (< 500s/100m = > 1:23/100m).
