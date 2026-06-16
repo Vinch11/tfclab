@@ -85,6 +85,7 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
       const enriched = {
         weekNumber: session.weekNumber,
         dayIndex: session.dayIndex,
+        sessionIndex,
         sport: session.sport ?? lib?.sport ?? null,
         title: session.title,
         id: lib?.id ?? null,
