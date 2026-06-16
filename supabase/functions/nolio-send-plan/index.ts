@@ -45,6 +45,9 @@ type ParsedSession = {
   id?: string | null;
   structure?: WorkoutStructurePart[] | null;
   wbalProfile?: WbalProfile | null;
+  avoid?: string;
+  notes?: string;
+  objectif?: string;
 };
 
 type AthleteRefs = {
