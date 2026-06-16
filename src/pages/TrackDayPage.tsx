@@ -52,7 +52,7 @@ const paceMinKm = (vKmh: number): string => {
 export default function TrackDayPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot } = useCloudDataContext();
+  const { addSnapshot, snapshots } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
@@ -63,10 +63,25 @@ export default function TrackDayPage() {
   const [tempC, setTempC] = useState("");
   const [wind, setWind] = useState("");
 
-  // Bloc 1 — Neuromusculaire
-  const [vMaxKmh, setVMaxKmh] = useState("");
+  // Anthropométrie (poids/taille) — auto depuis snapshot, fallback manuel
+  const effectiveRefs = useMemo(
+    () => getEffectiveRefs(
+      currentAthlete ? { id: currentAthlete.id, refs: currentAthlete.refs, active_snapshot_id: currentAthlete.active_snapshot_id } as any : null,
+      (snapshots as any[]) || []
+    ),
+    [currentAthlete, snapshots]
+  );
+  const [weightKgManual, setWeightKgManual] = useState("");
+  const [heightMManual, setHeightMManual] = useState("");
+  const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
+  const heightM = num(heightMManual);
+
+  // Bloc 1 — Neuromusculaire (5 options indépendantes)
+  const [t30m, setT30m] = useState("");
   const [t100m, setT100m] = useState("");
   const [t200m, setT200m] = useState("");
+  const [cmjCm, setCmjCm] = useState("");
+  const [bonds5m, setBonds5m] = useState("");
 
   // Bloc 2 — Glycolytique
   const [t400m, setT400m] = useState("");
