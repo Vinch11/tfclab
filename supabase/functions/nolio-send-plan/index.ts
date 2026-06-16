@@ -1048,7 +1048,7 @@ Deno.serve(async (req) => {
         sport_id: sportId,
         name: s.title ?? "Séance",
         date_start: dateStart,
-        description: s.details ?? "",
+        description: buildDescription(s),
       };
       if (structured_workout) {
         const normalized = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
