@@ -37,6 +37,7 @@ import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
+import { getEffectiveSnapshot } from '@/lib/effectiveRefs';
 import { useAthleteRaceGoals } from '@/hooks/useAthleteRaceGoals';
 import { computeVLamaxEffectif, computeTTEEffectif } from '@/engines/diagnostic';
 import { estimateFromRaceChronos } from '@/engines/diagnostic/raceTimeEstimator';
@@ -115,13 +116,8 @@ export default function RaceSimulationPage() {
   }, [athleteId, objectif, activeSnapshotId, tests, snapshots]);
   
   const activeSnapshot = React.useMemo(() => {
-    if (!snapshots || !athleteId) return null;
-    const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
-    if (activeSnapshotId) {
-      return athleteSnapshots.find(s => s.id === activeSnapshotId) ?? athleteSnapshots[0] ?? null;
-    }
-    return athleteSnapshots.sort((a, b) => b.date.localeCompare(a.date))[0] ?? null;
-  }, [snapshots, athleteId, activeSnapshotId]);
+    return getEffectiveSnapshot(selectedAthlete as any, snapshots ?? []);
+  }, [selectedAthlete, snapshots]);
 
   // ── What-if seuil run (override local, n'altère pas le snapshot) ──────────
   // Permet de simuler des allures cibles / temps avec un seuil hypothétique
@@ -233,11 +229,9 @@ export default function RaceSimulationPage() {
   const { raceGoals, addRaceGoal } = useAthleteRaceGoals(athleteId || null);
 
   const isTrailGoal = React.useMemo(() => {
-    if (!raceGoals?.length) return false;
-    const primary = raceGoals[0];
-    const type = (primary.race_type || '').toLowerCase();
-    return ['trail', 'ultra', 'montagne', 'mountain', 'skyrace'].some(k => type.includes(k));
-  }, [raceGoals]);
+    const obj = String((activeSnapshot as any)?.objectif || '').toLowerCase();
+    return ['trail', 'ultra', 'montagne', 'mountain', 'skyrace', 'utmb', 'skytrail'].some(k => obj.includes(k));
+  }, [activeSnapshot]);
   const lcwGoal = React.useMemo(() => {
     if (!raceGoals?.length) return null;
     const today = new Date().toISOString().slice(0, 10);
@@ -560,8 +554,8 @@ export default function RaceSimulationPage() {
         {isTrailGoal && !forceShowSimulation ? (
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <span>🏔</span>
+            <CardTitle className="flex items-center gap-2 text-lg">
+                <span>🏔️</span>
                 Simulation Trail — En développement
               </CardTitle>
               <CardDescription>
