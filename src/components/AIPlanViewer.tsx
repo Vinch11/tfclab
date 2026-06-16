@@ -811,6 +811,11 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
       const sessionIndex = dayCounters.get(dayKey) ?? 0;
       dayCounters.set(dayKey, sessionIndex + 1);
       const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+      const alternatives = getTrailSessionAlternatives({
+        sport: s.sport ?? lib?.sport ?? "",
+        title: s.title,
+        details: s.details,
+      }).map((a) => ({ icon: a.icon, label: a.label, hint: a.hint }));
       return {
         weekNumber: s.weekNumber,
         dayIndex: s.dayIndex,
@@ -825,6 +830,7 @@ export function AIPlanViewer({ plan, startDate, raceGoals, onSaveToPlan, isSavin
         avoid: lib?.avoid ?? undefined,
         notes: lib?.notes ?? undefined,
         objectif: lib?.objectif ?? undefined,
+        alternatives: alternatives.length > 0 ? alternatives : undefined,
       };
     });
 

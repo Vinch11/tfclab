@@ -34,6 +34,8 @@ type WbalProfile = {
 
 type WorkoutStructurePart = { part: string; text: string; zones: string[] };
 
+type TerrainAlternative = { icon?: string; label: string; hint?: string };
+
 type ParsedSession = {
   weekNumber: number;
   dayIndex: number; // 0=Lun ... 6=Dim
@@ -48,6 +50,8 @@ type ParsedSession = {
   avoid?: string;
   notes?: string;
   objectif?: string;
+  /** Alternatives terrain (trail) calculées côté client depuis la fiche bibliothèque. */
+  alternatives?: TerrainAlternative[];
 };
 
 type AthleteRefs = {
@@ -509,44 +513,42 @@ function extractNutritionNote(text?: string): string | null {
   return null;
 }
 
-/** Construit une description enrichie courte (≤500 caractères) à partir de la fiche bibliothèque. */
+/**
+ * Description envoyée à Nolio — format minimal et lisible (≤500 caractères) :
+ *   ligne 1 : texte court de la séance (details) tel quel
+ *   ligne vide
+ *   🏔️ Alternatives :
+ *     • <icon> <label> — <hint>
+ *   ⚠️ Éviter : <avoid>
+ */
 function buildDescription(s: ParsedSession): string {
   const parts: string[] = [];
 
-  // 1) Texte court existant
+  // 1) Texte court existant, inchangé
   if (s.details) parts.push(s.details.trim());
 
-  // 2) Instructions clés du Main (max 2 phrases, ~200 caractères, sans durées variables)
-  const mainPart = s.structure?.find((p) => {
-    const pn = normalizeStr(p.part);
-    return pn.includes("main") || pn.includes("corps") || pn.includes("princ");
-  });
-  if (mainPart?.text) {
-    let mt = mainPart.text.trim();
-    // Supprime les durées variables : "45-60min", "10'", "3x8min", "45 s"
-    mt = mt.replace(/\b\d+(?:[-–—]\d+)?\s*(?:min|minutes?|h|heures?|s|sec|secondes?|')\b/gi, "");
-    mt = mt.replace(/\b\d+\s*[x×]\s*\d+\s*(?:min|minutes?|h|heures?|s|sec|secondes?|')\b/gi, "");
-    mt = mt.replace(/\s+/g, " ").trim();
-    // Prend les 2 premières phrases significatives (>10 caractères)
-    const sentences = mt.split(/(?<=[.!?])\s+/).filter((t) => t.trim().length > 10);
-    let summary = sentences.slice(0, 2).join(" ").trim();
-    if (summary.length > 200) {
-      summary = summary.slice(0, 200);
-      const lastSpace = summary.lastIndexOf(" ");
-      if (lastSpace > 100) summary = summary.slice(0, lastSpace) + "…";
+  // 2) Alternatives terrain (si fournies par la fiche bibliothèque)
+  const alts = Array.isArray(s.alternatives)
+    ? s.alternatives.filter((a) => a && typeof a.label === "string" && a.label.trim().length > 0)
+    : [];
+  if (alts.length > 0) {
+    const lines = ["", "🏔️ Alternatives :"];
+    for (const a of alts) {
+      const icon = (a.icon ?? "").trim();
+      const label = a.label.trim();
+      const hint = (a.hint ?? "").trim();
+      const head = icon ? `${icon} ${label}` : label;
+      lines.push(hint ? `• ${head} — ${hint}` : `• ${head}`);
     }
-    if (summary) parts.push(summary);
+    parts.push(lines.join("\n"));
   }
 
-  // 3) Note nutrition
-  const nutrition = extractNutritionNote(s.notes);
-  if (nutrition) parts.push(`🍎 ${nutrition}`);
-
-  // 4) Éviter
-  if (s.avoid) parts.push(`⚠️ Éviter : ${s.avoid.trim()}`);
+  // 3) Éviter
+  if (s.avoid && s.avoid.trim()) {
+    parts.push(`⚠️ Éviter : ${s.avoid.trim()}`);
+  }
 
   let desc = parts.join("\n");
-  // Limite stricte à 500 caractères, coupe propre au dernier saut de ligne si possible
   if (desc.length > 500) {
     desc = desc.slice(0, 500);
     const lastBreak = desc.lastIndexOf("\n");
@@ -1051,6 +1053,11 @@ Deno.serve(async (req) => {
         description: buildDescription(s),
       };
       if (structured_workout) {
+        // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
+        // `structured_workout`, peu importe la source (override manuel, structure générée
+        // par IA récupérée depuis `nolio_structures_generated`, ou parsing automatique).
+        // C'est ici qu'on applique : conversion pace → m/s, distance run/trail → durée s,
+        // remap rest/no_target → cible Z1, suppression des clés null/undefined, etc.
         const normalized = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
         // Strength (sport_id 20) : si tous les steps ont target_type="no_target",
         // Nolio affiche "empty_unit". On préfère ne PAS envoyer de structured_workout

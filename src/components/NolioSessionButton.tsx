@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import type { ParsedSession } from "@/lib/aiPlanParser";
 
 const DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
@@ -70,6 +71,11 @@ export function NolioSessionButton({ session, ctx }: Props) {
     setSending(true);
     try {
       const lib = findLibraryWorkoutForSession({ title: session.title, details: session.details });
+      const alternatives = getTrailSessionAlternatives({
+        sport: session.sport ?? lib?.sport ?? "",
+        title: session.title,
+        details: session.details,
+      }).map((a) => ({ icon: a.icon, label: a.label, hint: a.hint }));
       const enriched = {
         weekNumber: session.weekNumber,
         dayIndex: session.dayIndex,
@@ -83,6 +89,7 @@ export function NolioSessionButton({ session, ctx }: Props) {
         avoid: lib?.avoid ?? undefined,
         notes: lib?.notes ?? undefined,
         objectif: lib?.objectif ?? undefined,
+        alternatives: alternatives.length > 0 ? alternatives : undefined,
       };
 
       // Recalibre planStartDate côté serveur pour que addDays(planStartDate, (w-1)*7+d) = dateStr.

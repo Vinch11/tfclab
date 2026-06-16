@@ -24,6 +24,7 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 
 interface Props {
   athleteId: string;
@@ -88,6 +89,11 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
     return (parsedPlan.weeks ?? []).flatMap((w) =>
       (w.sessions ?? []).map((s) => {
         const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+        const alternatives = getTrailSessionAlternatives({
+          sport: s.sport ?? lib?.sport ?? "",
+          title: s.title,
+          details: s.details,
+        }).map((a) => ({ icon: a.icon, label: a.label, hint: a.hint }));
         return {
           weekNumber: s.weekNumber,
           dayIndex: s.dayIndex,
@@ -101,6 +107,7 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
           avoid: lib?.avoid ?? undefined,
           notes: lib?.notes ?? undefined,
           objectif: lib?.objectif ?? undefined,
+          alternatives: alternatives.length > 0 ? alternatives : undefined,
         };
       }),
     );
