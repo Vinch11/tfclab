@@ -37,13 +37,28 @@ const fmtPace = (secPer100: number): string => {
 export default function SwimPoolDayPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot } = useCloudDataContext() as any;
+  const { addSnapshot, snapshots } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
 
   const [testDate, setTestDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [poolLen, setPoolLen] = useState<"25" | "50">("25");
+
+  const effectiveRefs = useMemo(
+    () => getEffectiveRefs(
+      currentAthlete ? { id: currentAthlete.id, refs: currentAthlete.refs, active_snapshot_id: currentAthlete.active_snapshot_id } as any : null,
+      (snapshots as any[]) || []
+    ),
+    [currentAthlete, snapshots]
+  );
+  const [weightKgManual, setWeightKgManual] = useState("");
+  const [heightCmManual, setHeightCmManual] = useState("");
+  const [fcReposManual, setFcReposManual] = useState("");
+  const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
+  const heightCm = num(heightCmManual);
+  const fcRepos = num(fcReposManual);
+
 
   // Bloc 1 — sprints
   const [t25, setT25] = useState("");
