@@ -957,7 +957,36 @@ Deno.serve(async (req) => {
       for (const r of (genRows ?? []) as Array<{ workout_id: string; sport_id: number; structured_workout: unknown }>) {
         generatedMap.set(r.workout_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
       }
+
+      // 🔎 Prefix matching : un plan IA peut référencer "B_TR_HILLREPS_PRO" alors que la
+      // base contient "B_TR_HILLREPS_8x2_PRO" / "_6x3_PRO". Pour chaque ID non résolu,
+      // on essaie un préfixe progressif (drop du dernier token `_XXX`) et on prend la
+      // première structure `status='ok'` qui matche.
+      const unresolved = sessionIds.filter((id) => !generatedMap.has(id));
+      for (const id of unresolved) {
+        const tokens = id.split("_").filter((t) => t.length > 0);
+        // On essaie des préfixes de plus en plus courts (au moins 2 tokens).
+        for (let n = tokens.length - 1; n >= 2; n--) {
+          const prefix = tokens.slice(0, n).join("_");
+          const { data: prefRows } = await admin
+            .from("nolio_structures_generated")
+            .select("workout_id, sport_id, structured_workout")
+            .ilike("workout_id", `${prefix}\\_%`)
+            .eq("status", "ok")
+            .order("updated_at", { ascending: false })
+            .limit(1);
+          const hit = (prefRows ?? [])[0] as
+            | { workout_id: string; sport_id: number; structured_workout: unknown }
+            | undefined;
+          if (hit) {
+            generatedMap.set(id, { sport_id: hit.sport_id, structured_workout: hit.structured_workout });
+            console.log(`[nolio-send-plan] prefix match: "${id}" → "${hit.workout_id}" (prefix="${prefix}")`);
+            break;
+          }
+        }
+      }
     }
+
 
 
     for (let i = 0; i < body.sessions.length; i++) {
