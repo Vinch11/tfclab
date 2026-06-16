@@ -286,10 +286,39 @@ export default function TrackDayPage() {
                 <Input type="number" value={wind} onChange={(e) => setWind(e.target.value)} placeholder="5" />
               </div>
             </div>
+            <div>
+              <Label>
+                Poids (kg){" "}
+                {effectiveRefs.weightKg != null && (
+                  <span className="text-[10px] text-success font-normal">— auto snapshot</span>
+                )}
+              </Label>
+              {effectiveRefs.weightKg != null ? (
+                <Input type="number" value={effectiveRefs.weightKg} disabled />
+              ) : (
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={weightKgManual}
+                  onChange={(e) => setWeightKgManual(e.target.value)}
+                  placeholder="70"
+                />
+              )}
+            </div>
+            <div>
+              <Label>Taille (m)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={heightMManual}
+                onChange={(e) => setHeightMManual(e.target.value)}
+                placeholder="1.78"
+              />
+            </div>
           </CardContent>
         </Card>
 
-        {/* Bloc 1 — Neuromusculaire */}
+        {/* Bloc 1 — Neuromusculaire (5 options indépendantes) */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -300,32 +329,119 @@ export default function TrackDayPage() {
               <Badge variant="secondary">20 min</Badge>
             </div>
             <CardDescription className="text-xs leading-relaxed">
-              Après 15&apos; d&apos;échauffement progressif, réaliser <b>3 sprints maximaux</b> avec
-              8-10 min de récupération complète entre chaque.
-              <br />• Sprint 1 : <b>40m lancé</b> — mesurer vitesse max
-              <br />• Sprint 2 : <b>100m départ arrêté</b>
-              <br />• Sprint 3 : <b>200m départ arrêté</b>
+              <b>Toutes les options sont optionnelles</b> — remplis ce que tu peux mesurer,
+              le calcul s'adapte aux données disponibles. Après 15&apos; d&apos;échauffement
+              progressif, 8-10 min de récupération complète entre chaque effort maximal.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <Label>V max 40m (km/h)</Label>
-              <Input type="number" step="0.1" value={vMaxKmh} onChange={(e) => setVMaxKmh(e.target.value)} placeholder="32.0" />
+          <CardContent className="space-y-3">
+            {/* Option 1 — 30m */}
+            <OptionRow
+              num="1"
+              title="30m départ arrêté"
+              ref="Ferro et al. 2001"
+              input={
+                <Input type="number" step="0.01" value={t30m} onChange={(e) => setT30m(e.target.value)} placeholder="4.20" />
+              }
+              unit="sec"
+              result={calc.vMaxFrom30 > 0 ? `V max = ${fmt(calc.vMaxFrom30, 1)} km/h` : null}
+            />
+            {/* Option 2 — 100m */}
+            <OptionRow
+              num="2"
+              title="100m départ arrêté"
+              ref="Lockie et al. 2011"
+              input={
+                <Input type="number" step="0.01" value={t100m} onChange={(e) => setT100m(e.target.value)} placeholder="13.20" />
+              }
+              unit="sec"
+              result={
+                calc.P5sFrom100 > 0
+                  ? `P5s = ${fmt(calc.P5sFrom100, 2)} W/kg`
+                  : num(t100m) > 0 && massKg <= 0
+                    ? "⚠️ poids requis"
+                    : null
+              }
+            />
+            {/* Option 3 — 200m */}
+            <OptionRow
+              num="3"
+              title="200m départ arrêté"
+              ref="Morin et al. 2011"
+              input={
+                <Input type="number" step="0.01" value={t200m} onChange={(e) => setT200m(e.target.value)} placeholder="28.50" />
+              }
+              unit="sec"
+              result={
+                calc.P30sFrom200 > 0
+                  ? `P30s = ${fmt(calc.P30sFrom200, 2)} W/kg`
+                  : num(t200m) > 0 && massKg <= 0
+                    ? "⚠️ poids requis"
+                    : null
+              }
+            />
+            {/* Option 4 — CMJ */}
+            <OptionRow
+              num="4"
+              title="Saut vertical CMJ"
+              ref="Bosco 1983"
+              note="via app My Jump 2 ou tapis de saut"
+              input={
+                <Input type="number" step="0.1" value={cmjCm} onChange={(e) => setCmjCm(e.target.value)} placeholder="38" />
+              }
+              unit="cm"
+              result={calc.P1sFromCmj > 0 ? `P1s = ${fmt(calc.P1sFromCmj, 1)} W/kg` : null}
+            />
+            {/* Option 5 — 5 bonds */}
+            <OptionRow
+              num="5"
+              title="5 bonds horizontaux"
+              ref="Maulder & Cronin 2005"
+              input={
+                <Input type="number" step="0.01" value={bonds5m} onChange={(e) => setBonds5m(e.target.value)} placeholder="14.50" />
+              }
+              unit="m"
+              result={
+                calc.scoreNeuroBonds > 0
+                  ? `Score neuro = ${fmt(calc.scoreNeuroBonds, 2)}`
+                  : num(bonds5m) > 0 && heightM <= 0
+                    ? "⚠️ taille requise"
+                    : null
+              }
+            />
+
+            {/* Synthèse Profil Neuromusculaire */}
+            <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 space-y-2">
+              <div className="text-xs font-semibold flex items-center gap-2">
+                <Zap className="h-3 w-3 text-yellow-500" />
+                Profil Neuromusculaire
+              </div>
+              {calc.neuroCount === 0 ? (
+                <p className="text-xs text-muted-foreground italic">
+                  Optionnel — saisissez au moins une mesure.
+                </p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    {calc.vMaxFrom30 > 0 && <Metric label="V max" value={fmt(calc.vMaxFrom30, 1)} unit="km/h" />}
+                    {calc.P1s > 0 && <Metric label="P1s" value={fmt(calc.P1s, 1)} unit="W/kg" />}
+                    {calc.P5s > 0 && <Metric label="P5s" value={fmt(calc.P5s, 2)} unit="W/kg" />}
+                    {calc.P30s > 0 && <Metric label="P30s" value={fmt(calc.P30s, 2)} unit="W/kg" />}
+                    {calc.scoreNeuroBonds > 0 && <Metric label="Score bonds" value={fmt(calc.scoreNeuroBonds, 2)} unit="" />}
+                    <Metric label="Score global" value={fmt(calc.neuroScore * 100, 0)} unit="/100" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    {calc.neuroCount}/5 mesure{calc.neuroCount > 1 ? "s" : ""} — pondération P1s prioritaire (CMJ {">"} bonds).
+                  </p>
+                </>
+              )}
             </div>
-            <div>
-              <Label>Temps 100m (sec)</Label>
-              <Input type="number" step="0.01" value={t100m} onChange={(e) => setT100m(e.target.value)} placeholder="13.20" />
-            </div>
-            <div>
-              <Label>Temps 200m (sec)</Label>
-              <Input type="number" step="0.01" value={t200m} onChange={(e) => setT200m(e.target.value)} placeholder="28.50" />
-            </div>
-            <div className="sm:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1 text-xs">
-              <Metric label="P1s" value={fmt(calc.P1s, 2)} unit="W/kg" />
-              <Metric label="P5s" value={fmt(calc.P5s, 2)} unit="W/kg" />
-              <Metric label="P30s" value={fmt(calc.P30s, 2)} unit="W/kg" />
-              <Metric label="V 200m" value={fmt(calc.v200, 1)} unit="km/h" />
-            </div>
+
+            <p className="text-[10px] text-muted-foreground leading-relaxed pt-1 border-t border-border/40">
+              <b>Références complètes :</b> Ferro et al. 2001 (J Sports Sci) — Lockie et al. 2011 (J Strength Cond Res) —
+              Morin et al. 2011 (Eur J Appl Physiol) — Bosco 1983 (Eur J Appl Physiol) —
+              Maulder & Cronin 2005 (Phys Ther Sport).
+            </p>
           </CardContent>
         </Card>
 
