@@ -20,6 +20,7 @@ import { Waves, Zap, Target, Heart, Save, ArrowLeft } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
