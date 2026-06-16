@@ -471,6 +471,20 @@ function normalizeStructuredWorkoutForNolio(
   return input;
 }
 
+/** True si tous les steps (récursivement) ont target_type="no_target". */
+function isAllNoTargetStructure(input: unknown): boolean {
+  const visit = (node: unknown): boolean => {
+    if (Array.isArray(node)) return node.every(visit);
+    if (node && typeof node === "object") {
+      const n = node as Record<string, unknown>;
+      if (n.type === "step") return n.target_type === "no_target";
+      if (n.type === "repetition" && Array.isArray(n.steps)) return n.steps.every(visit);
+    }
+    return true;
+  };
+  return visit(input);
+}
+
 
 /** Construit structured_workout depuis le tableau `structure` (warm/main/cool). */
 function buildStructuredFromParts(
