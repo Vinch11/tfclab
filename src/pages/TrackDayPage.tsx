@@ -74,9 +74,11 @@ export default function TrackDayPage() {
   const [weightKgManual, setWeightKgManual] = useState("");
   const [heightCmManual, setHeightCmManual] = useState("");
   const [fcReposManual, setFcReposManual] = useState("");
+  const [fcMaxManual, setFcMaxManual] = useState("");
   const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
   const heightM = num(heightCmManual) > 0 ? num(heightCmManual) / 100 : 0;
   const fcRepos = num(fcReposManual);
+  const fcMax = effectiveRefs.fcMax ?? num(fcMaxManual);
 
   // Bloc 1 — Neuromusculaire (5 options indépendantes)
   const [t30m, setT30m] = useState("");
