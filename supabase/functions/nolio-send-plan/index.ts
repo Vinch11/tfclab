@@ -404,9 +404,10 @@ function normalizeStructuredWorkoutForNolio(
       }
     }
 
-    // Run/Trail (sport_id 2/52) : step_duration_type "distance" interdit côté Nolio,
-    // la distance en mètres est réservée à la natation. On convertit en "duration" (secondes)
-    // en estimant depuis la VMA athlète : t = d / (vma * 1000/3600).
+    // Run/Trail (sport_id 2/52) : step_duration_type "distance" interdit côté Nolio.
+    // Nolio affiche alors la distance en mètres entre parenthèses à côté de l'allure (parasite).
+    // → On FORCE "duration" sur TOUS les steps run/trail, même si la structure générée
+    //   indique "distance". Conversion via VMA athlète : t = d / (vma * 1000/3600).
     if (
       (sportId === 2 || sportId === 52) &&
       src.type === "step" &&
@@ -415,7 +416,6 @@ function normalizeStructuredWorkoutForNolio(
       const distM = typeof src.step_duration_value === "number" ? src.step_duration_value : null;
       const vma = refs?.vma;
       if (distM !== null && distM > 0 && typeof vma === "number" && vma > 0) {
-        // Si une cible pace en s/km est connue, l'utiliser, sinon VMA brute.
         const speedMs = vma * (1000 / 3600);
         src.step_duration_type = "duration";
         src.step_duration_value = Math.round(distM / speedMs);
@@ -423,6 +423,10 @@ function normalizeStructuredWorkoutForNolio(
         // Fallback prudent : 4 m/s (~ 4:10/km) si pas de VMA.
         src.step_duration_type = "duration";
         src.step_duration_value = Math.round(distM / 4);
+      } else {
+        // Aucune distance exploitable : on bascule en duration neutre pour éviter l'affichage parasite.
+        src.step_duration_type = "duration";
+        src.step_duration_value = typeof src.step_duration_value === "number" ? src.step_duration_value : 60;
       }
     }
 
