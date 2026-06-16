@@ -1,0 +1,427 @@
+/**
+ * BikeTrackDayPage — TFCL Bike Day™
+ * Protocole vélo 2h : FTP, VLamax, MAP, W' en une séance.
+ *
+ * Références :
+ *  - Coggan & Allen 2010 (FTP from 20min × 0.95)
+ *  - Hawley & Noakes 1992 (ramp test → FTP × 0.75)
+ *  - Jones & Vanhatalo 2017 (CP / W')
+ *  - Mader 1976 (VLamax glycolytique)
+ */
+
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { SidebarLayout } from "@/components/SidebarLayout";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Bike, Activity, Zap, Target, Heart, Save, ArrowLeft } from "lucide-react";
+import { useAthletes } from "@/contexts/AthleteContext";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { toast } from "@/hooks/use-toast";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
+
+const num = (v: string): number => {
+  const n = parseFloat((v || "").replace(",", "."));
+  return Number.isFinite(n) ? n : 0;
+};
+const fmt = (n: number, d = 1) => (Number.isFinite(n) && n > 0 ? n.toFixed(d) : "—");
+
+/** P = (m·g·sin(atan(slope%/100)) + 0.25·v²) · v  — v en m/s */
+function powerFromSpeed(massKg: number, speedKmh: number, slopePct: number): number {
+  if (massKg <= 0 || speedKmh <= 0) return 0;
+  const v = speedKmh / 3.6;
+  const grav = massKg * 9.81 * Math.sin(Math.atan(slopePct / 100));
+  const aero = 0.25 * v * v;
+  return Math.max(0, (grav + aero) * v);
+}
+
+export default function BikeTrackDayPage() {
+  const navigate = useNavigate();
+  const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
+  const { addSnapshot, snapshots } = useCloudDataContext() as any;
+
+  const [activeTab, setActiveTab] = useState("diagnostic");
+  const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
+
+  const [testDate, setTestDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [setup, setSetup] = useState<"ht" | "route">("ht");
+  const [tempC, setTempC] = useState("");
+
+  const effectiveRefs = useMemo(
+    () => getEffectiveRefs(
+      currentAthlete ? { id: currentAthlete.id, refs: currentAthlete.refs, active_snapshot_id: currentAthlete.active_snapshot_id } as any : null,
+      (snapshots as any[]) || []
+    ),
+    [currentAthlete, snapshots]
+  );
+  const [weightKgManual, setWeightKgManual] = useState("");
+  const massKg = effectiveRefs.weightKg ?? num(weightKgManual);
+
+  // Bloc 1 — sprints (HT puissance directe OU route vitesse+pente)
+  const [p10s, setP10s] = useState("");
+  const [p30s, setP30s] = useState("");
+  const [p60s, setP60s] = useState("");
+  const [v10s, setV10s] = useState(""); const [s10s, setS10s] = useState("");
+  const [v30s, setV30s] = useState(""); const [s30s, setS30s] = useState("");
+  const [v60s, setV60s] = useState(""); const [s60s, setS60s] = useState("");
+
+  // Bloc 2 — Aérobie
+  const [map5min, setMap5min] = useState("");
+  const [fcMaxTest, setFcMaxTest] = useState("");
+  const [cp3min, setCp3min] = useState("");
+
+  // Bloc 3 — Seuil
+  const [p20min, setP20min] = useState("");
+  const [fc20Moy, setFc20Moy] = useState("");
+  const [rampeLast, setRampeLast] = useState("");
+
+  // Bloc 4 — Aérobie basse
+  const [fcDebutZ2, setFcDebutZ2] = useState("");
+  const [fcFinZ2, setFcFinZ2] = useState("");
+  const [puissanceZ2, setPuissanceZ2] = useState("");
+
+  const calc = useMemo(() => {
+    const p10 = setup === "ht" ? num(p10s) : powerFromSpeed(massKg, num(v10s), num(s10s));
+    const p30 = setup === "ht" ? num(p30s) : powerFromSpeed(massKg, num(v30s), num(s30s));
+    const p60 = setup === "ht" ? num(p60s) : powerFromSpeed(massKg, num(v60s), num(s60s));
+
+    const map = num(map5min);
+    const cp3 = num(cp3min);
+    const ratioCp3Map = map > 0 && cp3 > 0 ? cp3 / map : 0;
+    // W' rough estimate : (cp3 - FTP) × 180 (Skiba style) — fallback
+    const ftp20 = num(p20min) > 0 ? num(p20min) * 0.95 : 0;
+    const ftpRampe = num(rampeLast) > 0 ? num(rampeLast) * 0.75 : 0;
+    const ftp = ftp20 > 0 ? ftp20 : ftpRampe;
+    const wPrime = ftp > 0 && cp3 > 0 ? Math.max(0, (cp3 - ftp) * 180) : 0;
+    const ftpKg = ftp > 0 && massKg > 0 ? ftp / massKg : 0;
+    const fractUtil = map > 0 && ftp > 0 ? ftp / map : 0;
+
+    // VLamax glycolytique (sprints) — Score G sur p10s/p30s relatif au poids
+    const p10kg = massKg > 0 ? p10 / massKg : 0;
+    const p30kg = massKg > 0 ? p30 / massKg : 0;
+    const refs10 = 22, refs30 = 12;
+    const sScore = [
+      p10kg > 0 ? Math.min(1, p10kg / refs10) : null,
+      p30kg > 0 ? Math.min(1, p30kg / refs30) : null,
+    ].filter((v): v is number => v != null);
+    const sprintScore = sScore.length > 0 ? sScore.reduce((a, b) => a + b, 0) / sScore.length : 0;
+    const ratioInv = fractUtil > 0 ? Math.max(0, Math.min(1, (0.85 - fractUtil) / 0.15)) : 0.5;
+    const scoreG = sprintScore * 0.6 + ratioInv * 0.4;
+    const vlamaxEst = ftp > 0 ? 0.30 + scoreG * 0.55 : 0;
+
+    const fcD = num(fcDebutZ2), fcF = num(fcFinZ2);
+    const driftPct = fcD > 0 ? ((fcF - fcD) / fcD) * 100 : 0;
+    const ratioZ2Ftp = num(puissanceZ2) > 0 && ftp > 0 ? num(puissanceZ2) / ftp : 0;
+    const fatMaxPct = ftp > 0 ? Math.max(50, Math.min(78, 65 - driftPct * 2)) : 0;
+
+    const tteEst = fractUtil > 0 ? Math.max(25, Math.min(75, 30 + (fractUtil - 0.75) * 400)) : 0;
+
+    return {
+      p10, p30, p60, map, cp3, ratioCp3Map,
+      ftp20, ftpRampe, ftp, ftpKg, wPrime, fractUtil,
+      vlamaxEst, scoreG,
+      driftPct, ratioZ2Ftp, fatMaxPct, tteEst,
+    };
+  }, [setup, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, map5min, cp3min, p20min, rampeLast, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
+
+  const canCreate = !!currentAthlete && calc.ftp > 0;
+
+  const handleCreate = async () => {
+    if (!currentAthlete) {
+      toast({ title: "Sélectionnez un athlète", variant: "destructive" });
+      return;
+    }
+    const snap = await addSnapshot({
+      athlete_id: currentAthlete.id,
+      date: testDate,
+      source: "bike_track_day",
+      ftp: calc.ftp || null,
+      vlamax: calc.vlamaxEst || null,
+      pmax_5s: calc.p10 || null,
+      coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · FatMax ${fmt(calc.fatMaxPct, 0)}% · TTE ${fmt(calc.tteEst, 0)}min`,
+    } as any);
+    if (snap) {
+      toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
+      navigate(`/athlete/${currentAthlete.id}`);
+    } else {
+      toast({ title: "Échec création snapshot", variant: "destructive" });
+    }
+  };
+
+  return (
+    <SidebarLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      staffMode={staffMode}
+      onStaffModeChange={setStaffMode}
+    >
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 animate-fade-in pb-12">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/diagnostic")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="p-2 rounded-xl bg-orange-600/10">
+            <Bike className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold">🚴 TFCL Bike Day™</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Protocole vélo 2h — FTP, VLamax, MAP, W' en une séance
+            </p>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Configuration</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label>Athlète</Label>
+              <select
+                className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={currentAthlete?.id ?? ""}
+                onChange={(e) => setSelectedAthleteId(e.target.value)}
+              >
+                <option value="">— sélectionner —</option>
+                {athletes.map((a) => <option key={a.id} value={a.id}>{a.nom}</option>)}
+              </select>
+            </div>
+            <div>
+              <Label>Date</Label>
+              <Input type="date" value={testDate} onChange={(e) => setTestDate(e.target.value)} />
+            </div>
+            <div>
+              <Label>Setup</Label>
+              <select
+                className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={setup}
+                onChange={(e) => setSetup(e.target.value as "ht" | "route")}
+              >
+                <option value="ht">Home trainer (puissance)</option>
+                <option value="route">Vélo route (vitesse + pente)</option>
+              </select>
+            </div>
+            <div>
+              <Label>Température (°C)</Label>
+              <Input type="number" value={tempC} onChange={(e) => setTempC(e.target.value)} placeholder="20" />
+            </div>
+            <div>
+              <Label>
+                Poids (kg) {effectiveRefs.weightKg != null && <span className="text-[10px] text-success">— auto</span>}
+              </Label>
+              {effectiveRefs.weightKg != null ? (
+                <Input type="number" value={effectiveRefs.weightKg} disabled />
+              ) : (
+                <Input type="number" step="0.1" value={weightKgManual} onChange={(e) => setWeightKgManual(e.target.value)} placeholder="70" />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Bloc 1 */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Zap className="h-4 w-4 text-yellow-500" /> Bloc 1 — Neuromusculaire
+              </CardTitle>
+              <Badge variant="secondary">15 min</Badge>
+            </div>
+            <CardDescription className="text-xs">
+              Sprint 10s · 30s · 60s, récup complète entre chaque. {setup === "route" && "Sur route : saisis vitesse + pente, conversion auto en watts."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {(["10s", "30s", "60s"] as const).map((d, i) => {
+              const valW = setup === "ht" ? [p10s, p30s, p60s][i] : "";
+              const setW = setup === "ht" ? [setP10s, setP30s, setP60s][i] : null;
+              const valV = [v10s, v30s, v60s][i];
+              const setV = [setV10s, setV30s, setV60s][i];
+              const valS = [s10s, s30s, s60s][i];
+              const setS = [setS10s, setS30s, setS60s][i];
+              const result = [calc.p10, calc.p30, calc.p60][i];
+              return (
+                <div key={d} className="rounded-md border border-border/60 bg-background/40 p-2">
+                  <div className="text-xs font-medium mb-2">Sprint {d} max</div>
+                  {setup === "ht" ? (
+                    <div className="grid grid-cols-2 gap-2 items-end">
+                      <div>
+                        <Label className="text-xs">Puissance moy (W)</Label>
+                        <Input type="number" value={valW} onChange={(e) => setW?.(e.target.value)} placeholder={d === "10s" ? "1200" : d === "30s" ? "800" : "500"} />
+                      </div>
+                      <div className="text-xs text-yellow-700 dark:text-yellow-400 font-semibold text-right">
+                        {result > 0 ? `${fmt(result, 0)} W (${fmt(result / Math.max(massKg, 1), 1)} W/kg)` : "—"}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2 items-end">
+                      <div>
+                        <Label className="text-xs">Vitesse (km/h)</Label>
+                        <Input type="number" step="0.1" value={valV} onChange={(e) => setV(e.target.value)} placeholder="50" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Pente (%)</Label>
+                        <Input type="number" step="0.1" value={valS} onChange={(e) => setS(e.target.value)} placeholder="0" />
+                      </div>
+                      <div className="text-xs text-yellow-700 dark:text-yellow-400 font-semibold text-right">
+                        {result > 0 ? `${fmt(result, 0)} W` : "—"}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
+              <b>Réf :</b> Mader 1976 (VLamax glycolytique), Gardner et al. 2007 (sprint power).
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Bloc 2 */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-4 w-4 text-orange-500" /> Bloc 2 — Capacité Aérobie
+              </CardTitle>
+              <Badge variant="secondary">30 min</Badge>
+            </div>
+            <CardDescription className="text-xs">
+              • <b>MAP</b> = 5 min max — récup 8 min — <b>CP court</b> = 3 min max
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <Label>MAP 5 min (W)</Label>
+              <Input type="number" value={map5min} onChange={(e) => setMap5min(e.target.value)} placeholder="350" />
+            </div>
+            <div>
+              <Label>FC max test (bpm)</Label>
+              <Input type="number" value={fcMaxTest} onChange={(e) => setFcMaxTest(e.target.value)} placeholder="188" />
+            </div>
+            <div>
+              <Label>CP 3 min (W)</Label>
+              <Input type="number" value={cp3min} onChange={(e) => setCp3min(e.target.value)} placeholder="400" />
+            </div>
+            <div className="sm:col-span-3 grid grid-cols-3 gap-2 text-xs">
+              <Metric label="MAP" value={fmt(calc.map, 0)} unit="W" />
+              <Metric label="CP3'/MAP" value={fmt(calc.ratioCp3Map * 100, 0)} unit="%" />
+              <Metric label="W' estimé" value={fmt(calc.wPrime, 0)} unit="J" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Bloc 3 */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Target className="h-4 w-4 text-blue-500" /> Bloc 3 — Seuil FTP
+              </CardTitle>
+              <Badge variant="secondary">35 min</Badge>
+            </div>
+            <CardDescription className="text-xs">
+              <b>20 min max</b> (gold standard Coggan, FTP = P20 × 0.95). Alternative : test rampe (FTP = palier × 0.75).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label>P 20 min (W)</Label>
+              <Input type="number" value={p20min} onChange={(e) => setP20min(e.target.value)} placeholder="290" />
+            </div>
+            <div>
+              <Label>FC moyenne 20' (bpm)</Label>
+              <Input type="number" value={fc20Moy} onChange={(e) => setFc20Moy(e.target.value)} placeholder="172" />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Alternative — dernier palier rampe (W)</Label>
+              <Input type="number" value={rampeLast} onChange={(e) => setRampeLast(e.target.value)} placeholder="380" />
+            </div>
+            <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <Metric label="FTP (20min)" value={fmt(calc.ftp20, 0)} unit="W" />
+              <Metric label="FTP (rampe)" value={fmt(calc.ftpRampe, 0)} unit="W" />
+              <Metric label="FTP retenue" value={fmt(calc.ftp, 0)} unit="W" />
+              <Metric label="FTP/kg" value={fmt(calc.ftpKg, 2)} unit="W/kg" />
+              <Metric label="FTP/MAP (fractUtil)" value={fmt(calc.fractUtil * 100, 0)} unit="%" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Bloc 4 */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Heart className="h-4 w-4 text-red-500" /> Bloc 4 — Aérobie Basse
+              </CardTitle>
+              <Badge variant="secondary">20 min</Badge>
+            </div>
+            <CardDescription className="text-xs">
+              15 min Z2 stable (FC 65-72% FCmax) — mesure du drift et estimation FatMax.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <Label>FC début (bpm)</Label>
+              <Input type="number" value={fcDebutZ2} onChange={(e) => setFcDebutZ2(e.target.value)} placeholder="135" />
+            </div>
+            <div>
+              <Label>FC fin (bpm)</Label>
+              <Input type="number" value={fcFinZ2} onChange={(e) => setFcFinZ2(e.target.value)} placeholder="142" />
+            </div>
+            <div>
+              <Label>Puissance Z2 (W)</Label>
+              <Input type="number" value={puissanceZ2} onChange={(e) => setPuissanceZ2(e.target.value)} placeholder="180" />
+            </div>
+            <div className="sm:col-span-3 grid grid-cols-3 gap-2 text-xs">
+              <Metric label="Drift cardiaque" value={fmt(calc.driftPct, 1)} unit="%" />
+              <Metric label="Z2/FTP" value={fmt(calc.ratioZ2Ftp * 100, 0)} unit="%" />
+              <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% FTP" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-500/30 bg-orange-500/5">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bike className="h-4 w-4 text-orange-600" /> Synthèse — Profil vélo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              <Metric label="FTP" value={fmt(calc.ftp, 0)} unit="W" big />
+              <Metric label="FTP/kg" value={fmt(calc.ftpKg, 2)} unit="W/kg" big />
+              <Metric label="MAP" value={fmt(calc.map, 0)} unit="W" big />
+              <Metric label="W'" value={fmt(calc.wPrime, 0)} unit="J" big />
+              <Metric label="VLamax est." value={fmt(calc.vlamaxEst, 2)} unit="mmol/L/s" big />
+              <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% FTP" big />
+              <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
+            </div>
+            <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
+              <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats
+            </Button>
+            <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
+              <b>Références :</b> Coggan & Allen 2010, Hawley & Noakes 1992, Jones & Vanhatalo 2017, Mader 1976, Skiba 2012.
+              Confiance VLamax estimée : <b>0.65-0.80</b> (sans mesure lactate).
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </SidebarLayout>
+  );
+}
+
+function Metric({ label, value, unit, big }: { label: string; value: string; unit: string; big?: boolean }) {
+  return (
+    <div className={`rounded-md border border-border/60 bg-background/60 px-2 py-1.5 ${big ? "py-2" : ""}`}>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className={`font-semibold tabular-nums ${big ? "text-base" : "text-sm"}`}>
+        {value} <span className="text-muted-foreground font-normal text-[10px]">{unit}</span>
+      </div>
+    </div>
+  );
+}

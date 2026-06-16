@@ -36,6 +36,9 @@ import MiniReportPage from "./pages/MiniReportPage";
 import EssentielsPage from "./pages/EssentielsPage";
 import CoachChecklistPage from "./pages/CoachChecklistPage";
 import TrackDayPage from "./pages/TrackDayPage";
+import BikeTrackDayPage from "./pages/BikeTrackDayPage";
+import SwimPoolDayPage from "./pages/SwimPoolDayPage";
+import TriTestDayPage from "./pages/TriTestDayPage";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +99,9 @@ export default function App() {
                 <Route path="/diagnostic/cohort-literature" element={<ProtectedRoute><LiteratureCohortPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/coach-checklist" element={<ProtectedRoute><CoachChecklistPage /></ProtectedRoute>} />
                 <Route path="/diagnostic/track-day" element={<ProtectedRoute><TrackDayPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/bike-track-day" element={<ProtectedRoute><BikeTrackDayPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/swim-pool-day" element={<ProtectedRoute><SwimPoolDayPage /></ProtectedRoute>} />
+                <Route path="/diagnostic/tri-test-day" element={<ProtectedRoute><TriTestDayPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 4 — PLANIFICATION                  */}

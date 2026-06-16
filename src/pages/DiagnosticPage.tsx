@@ -15,6 +15,9 @@ import {
   BookOpen,
   ClipboardList,
   Timer,
+  Bike as BikeIcon,
+  Waves,
+  Zap,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
@@ -57,6 +60,33 @@ const sections = [
     route: "/diagnostic/track-day",
     color: "text-purple-500",
     bgColor: "bg-purple-500/10",
+  },
+  {
+    id: "bike-track-day",
+    title: "🚴 TFCL Bike Day™",
+    description: "Protocole vélo 2h — FTP, VLamax, MAP, W' en une séance",
+    icon: BikeIcon,
+    route: "/diagnostic/bike-track-day",
+    color: "text-orange-600",
+    bgColor: "bg-orange-600/10",
+  },
+  {
+    id: "swim-pool-day",
+    title: "🏊 TFCL Pool Day™",
+    description: "Protocole piscine 1h30 — CSS, VLamax nage, capacité aérobie",
+    icon: Waves,
+    route: "/diagnostic/swim-pool-day",
+    color: "text-cyan-500",
+    bgColor: "bg-cyan-500/10",
+  },
+  {
+    id: "tri-test-day",
+    title: "⚡ TFCL Tri Test Day™",
+    description: "Protocole triathlon combiné — profil complet en 2 séances",
+    icon: Zap,
+    route: "/diagnostic/tri-test-day",
+    color: "text-red-500",
+    bgColor: "bg-red-500/10",
   },
   {
     id: "coach-checklist",
