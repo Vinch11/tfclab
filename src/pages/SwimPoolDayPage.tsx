@@ -98,12 +98,28 @@ export default function SwimPoolDayPage() {
       ? Math.max(20, Math.min(60, 25 + (ratioCssVmax - 0.55) * 200))
       : 0;
 
-    // VLamax nage indicatif (qualitatif) — sprint dominant si ratio bas
-    const vlamaxSwimIdx = ratioCssVmax > 0
-      ? Math.max(0.30, Math.min(0.80, 0.85 - ratioCssVmax))
-      : 0;
+    // VLamax nage par bandes (Mader 2003 adapté natation) :
+    //   ratio > 0.85 → faible 0.25-0.35 (profil endurant)
+    //   ratio 0.75-0.85 → moyenne 0.35-0.55
+    //   ratio < 0.75 → élevée 0.55-0.80 (profil sprinter)
+    let vlamaxSwimIdx = 0;
+    let vlamaxBand: "faible" | "moyenne" | "élevée" | "" = "";
+    let vlamaxRange = "";
+    if (ratioCssVmax > 0) {
+      if (ratioCssVmax > 0.85) {
+        vlamaxBand = "faible"; vlamaxRange = "0.25–0.35";
+        vlamaxSwimIdx = 0.35 - Math.min(0.10, (ratioCssVmax - 0.85) * 1.0);
+      } else if (ratioCssVmax >= 0.75) {
+        vlamaxBand = "moyenne"; vlamaxRange = "0.35–0.55";
+        vlamaxSwimIdx = 0.35 + ((0.85 - ratioCssVmax) / 0.10) * 0.20;
+      } else {
+        vlamaxBand = "élevée"; vlamaxRange = "0.55–0.80";
+        vlamaxSwimIdx = Math.min(0.80, 0.55 + (0.75 - ratioCssVmax) * 1.5);
+      }
+      vlamaxSwimIdx = Math.max(0.25, Math.min(0.80, vlamaxSwimIdx));
+    }
 
-    return { v25, v50, v100, vMax, css, cssPer100, ratioCssVmax, driftPct, t800Theo, ecart800, tteEst, vlamaxSwimIdx };
+    return { v25, v50, v100, vMax, css, cssPer100, ratioCssVmax, driftPct, t800Theo, ecart800, tteEst, vlamaxSwimIdx, vlamaxBand, vlamaxRange };
   }, [t25, t50, t100, t400, t200, fcDebut800, fcFin800, t800]);
 
   const canCreate = !!currentAthlete && calc.cssPer100 > 0;
