@@ -363,11 +363,35 @@ export default function SwimPoolDayPage() {
               <Metric label="VLamax nage (idx)" value={fmt(calc.vlamaxSwimIdx, 2)} unit="" big />
               <Metric label="TTE nage est." value={fmt(calc.tteEst, 0)} unit="min" big />
             </div>
+            {calc.vlamaxBand && (
+              <p className="text-[11px] text-cyan-700 dark:text-cyan-400">
+                <b>VLamax nage : {calc.vlamaxBand}</b> ({calc.vlamaxRange} mmol/L/s) — ratio CSS/Vmax = {fmt(calc.ratioCssVmax * 100, 0)}%.
+                <span className="text-muted-foreground"> Réf : Mader 2003 adapté natation.</span>
+              </p>
+            )}
+            {(() => {
+              const fields = [
+                { k: "Poids", ok: massKg > 0 },
+                { k: "FC repos", ok: fcRepos > 0 },
+                { k: "FC max", ok: fcMax > 0 },
+                { k: "Taille", ok: heightCm > 0 },
+                { k: "CSS", ok: calc.cssPer100 > 0 },
+                { k: "V max", ok: calc.vMax > 0 },
+                { k: "Drift 800m", ok: calc.driftPct !== 0 },
+              ];
+              const filled = fields.filter((f) => f.ok).length;
+              return (
+                <div className="rounded-md border border-border/60 bg-background/60 p-2 text-xs">
+                  <b>{filled}/{fields.length}</b> champs renseignés
+                  <span className="text-muted-foreground"> — {fields.filter(f => !f.ok).map(f => f.k).join(", ") || "complet ✓"}</span>
+                </div>
+              );
+            })()}
             <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
               <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats
             </Button>
             <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
-              <b>Références :</b> Wakayoshi et al. 1992, Pelayo et al. 1996, Toussaint & Hollander 1994.
+              <b>Références :</b> Wakayoshi et al. 1992, Pelayo et al. 1996, Toussaint &amp; Hollander 1994, Mader 2003 (adapté natation).
               VLamax nage indicative (estimation qualitative sans lactate).
             </p>
           </CardContent>
