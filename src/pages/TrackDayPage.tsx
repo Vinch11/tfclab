@@ -22,6 +22,7 @@ import { Timer, Activity, Zap, Target, Heart, Save, ArrowLeft } from "lucide-rea
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
+import { getEffectiveRefs } from "@/lib/effectiveRefs";
 
 // ──────────────────────────────────────────────────────────────
 // Helpers
