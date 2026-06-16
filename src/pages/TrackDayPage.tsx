@@ -184,6 +184,9 @@ export default function TrackDayPage() {
     const scoreG = sprintScore * 0.6 + ratioInv * 0.4;
     const vlamaxEst = vmaConfirmee > 0 ? 0.25 + scoreG * 0.6 : 0;
 
+    // VO2max estimé depuis VMA — Léger & Mercier 1984 : VO2max ≈ VMA × 3.5
+    const vo2maxEst = vmaConfirmee > 0 ? vmaConfirmee * 3.5 : 0;
+
     return {
       vMaxFrom30, P5sFrom100, P30sFrom200, P1sFromCmj, scoreNeuroBonds,
       neuroScore, neuroCount,
@@ -193,7 +196,7 @@ export default function TrackDayPage() {
       vSeuilKmh, ratioSeuilVMA,
       tteEst,
       driftPct, fatMaxPct,
-      scoreG, vlamaxEst,
+      scoreG, vlamaxEst, vo2maxEst,
     };
   }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
