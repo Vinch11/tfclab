@@ -84,6 +84,7 @@ export default function TrackDayPage() {
   const [t200m, setT200m] = useState("");
   const [cmjCm, setCmjCm] = useState("");
   const [bonds5m, setBonds5m] = useState("");
+  const [sprint15sM, setSprint15sM] = useState(""); // distance parcourue en 15s max — alimente vlamaxCapEstimator
 
   // Bloc 2 — Glycolytique
   const [t400m, setT400m] = useState("");
