@@ -35,6 +35,12 @@ Chaque step DOIT respecter EXACTEMENT ce schéma plat, avec ces clés exactes :
 
 Pour type="repetition" : ajouter "value": <integer> (nombre de répétitions, nom de champ officiel Nolio) et "steps": [<sub-steps respectant le même schéma>]. NE JAMAIS utiliser "repeat_count" — la spec Nolio impose "value".
 
+⚠️ NOMBRE DE RÉPÉTITIONS — RÈGLE STRICTE :
+- "value" DOIT correspondre EXACTEMENT au nombre indiqué dans le texte de la séance.
+  Exemple : "12x45s" → value: 12 (jamais 18, jamais 10, jamais aucune autre valeur).
+- Si le texte donne une plage "10-15x" ou "10 à 15 répétitions", prendre la VALEUR MAXIMALE (ici 15).
+- NE JAMAIS inventer ni arrondir un nombre de répétitions. En cas d'ambiguïté, prendre le nombre littéralement présent dans le texte.
+
 INTERDICTIONS ABSOLUES :
 - ❌ JAMAIS de préfixe step_target_*, step_target[] (tableau), target_value (sans _min/_max).
 - ❌ JAMAIS d'objet imbriqué "target": { ... }.
@@ -56,7 +62,7 @@ VÉLO (sport_id=14 ou 18) :
 RUN (sport_id=2 ou 52) :
 - target_type="pace" TOUJOURS sur steps actifs (secondes/km depuis VMA). JAMAIS "heartrate" sauf si la séance mentionne EXPLICITEMENT la FC (ex : "à 75% FCmax").
 - Calcul : target_value_min=round(3600/(vma*pct_vma_max/100)), target_value_max=round(3600/(vma*pct_vma_min/100)). (Plus pct élevé = plus vite = pace plus petite, donc inversion min/max.)
-- step_duration_type="duration" en secondes (ou "distance" en mètres si la séance le précise explicitement, ex : "5x1000m").
+- step_duration_type="duration" en secondes TOUJOURS. JAMAIS "distance" en mètres pour le run/trail — la distance en mètres est réservée à la natation. Si la séance dit "5x1000m", convertir en durée : round(1000 / (vma * pct_vma_moyen/100 * 1000/3600)) secondes.
 - Seuls pct_vma_min/max renseignés (sauf cas FC explicite : alors target_type="heartrate", pct_hrmax_min/max, autres pct = null).
 
 NATATION (sport_id=19) :
