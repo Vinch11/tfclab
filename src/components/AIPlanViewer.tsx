@@ -997,6 +997,15 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
   return (
     <div className="space-y-4">
+      {replacementCount > 0 && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            ⚠️ Plan modifié — {replacementCount} séance(s) remplacée(s) localement. Pensez à sauvegarder pour conserver vos modifications.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (
         <Card className="border-primary/30">
