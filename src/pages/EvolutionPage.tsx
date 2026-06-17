@@ -1,17 +1,18 @@
 // =============================================================================
-// EvolutionPage — PMC (Banister) + Évolution snapshots
+// EvolutionPage — PMC (Banister) + Évolution snapshots + Records Nolio
 // =============================================================================
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Info, TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { AlertCircle, Info, TrendingUp, TrendingDown, Activity, Trophy } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   computePMC,
   computePMCSummary,
