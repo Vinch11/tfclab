@@ -102,6 +102,63 @@ export default function TrackDayPage() {
   const [fcFinZ2, setFcFinZ2] = useState("");
   const [allureZ2SecKm, setAllureZ2SecKm] = useState("");
 
+  // ─── Import Nolio ────────────────────────────────────────────
+  const [nolioLoading, setNolioLoading] = useState(false);
+  const [nolioDates, setNolioDates] = useState<Record<string, string | null>>({});
+
+  const importFromNolio = async () => {
+    if (!currentAthlete) return;
+    setNolioLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("nolio_records" as any)
+        .select("item_seconds, value, date_recorded, sport_id, cat")
+        .eq("athlete_id", currentAthlete.id)
+        .eq("cat", "par")
+        .in("sport_id", [2, 52]);
+      if (error) throw error;
+      const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null }>;
+      const pick = (sec: number) => {
+        const r = rows.find(x => x.item_seconds === sec);
+        return r ? { v: r.value, d: r.date_recorded } : null;
+      };
+      const dates: Record<string, string | null> = {};
+      // par run = sec/km. distance(m) = (sec/par)*1000 ; vitesse = 1000/par m/s
+      const r15 = pick(15);
+      if (r15 && r15.v > 0) {
+        const dist = (1000 / r15.v) * 15;
+        setSprint15sM(String(Math.round(dist * 10) / 10));
+        dates.sprint15s = r15.d;
+      }
+      const r360 = pick(360); // 6min
+      if (r360 && r360.v > 0) {
+        const dist = (360 / r360.v) * 1000;
+        setD6min(String(Math.round(dist)));
+        dates.d6min = r360.d;
+      }
+      // 400m → temps en s = par × 0.4
+      const r400 = rows.find(x => Math.abs(x.item_seconds - 60) < 10); // typically ~60-90s for 400m
+      // safer: derive t400 from a known short par record (75s)
+      const r75 = pick(75);
+      if (r75 && r75.v > 0) {
+        const t400 = (r75.v * 0.4);
+        setT400m(String(Math.round(t400 * 10) / 10));
+        dates.t400m = r75.d;
+      }
+      setNolioDates(dates);
+      const count = Object.keys(dates).length;
+      toast({ title: "Records Nolio importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""}.` });
+    } catch (e) {
+      toast({ title: "Erreur import Nolio", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setNolioLoading(false);
+    }
+  };
+
+  const fmtNolioDate = (d: string | null | undefined) =>
+    d ? `Nolio · ${new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : null;
+
+
   // ──────────────── Calculs dérivés ────────────────
   const calc = useMemo(() => {
     // ── Bloc 1 — Neuromusculaire (5 options indépendantes) ──
