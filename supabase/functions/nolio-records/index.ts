@@ -351,7 +351,7 @@ Deno.serve(async (req) => {
         user_id: userId,
         status: "success",
         athletes_count: athletes?.length ?? 0,
-        notes: { source: "nolio-records", total_records: totalImported, summary },
+        notes: { source: "nolio-records", total_records: totalImported, summary, vince_debug: debugCaptures },
         synced_at: new Date().toISOString(),
       });
     } catch (logErr) {
