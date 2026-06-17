@@ -268,39 +268,69 @@ Deno.serve(async (req) => {
         }
       }
 
-      // ─── 3) Mise à jour snapshot actif si records meilleurs ────────────
+      // ─── 3) Mise à jour snapshot (actif, sinon plus récent) ────────────
       let snapshotUpdates = 0;
+      let snapshotIdUsed: string | null = null;
       try {
         const { data: athRow } = await admin
           .from("athletes")
           .select("active_snapshot_id")
           .eq("id", athleteId)
           .maybeSingle();
-        const activeSnapId = (athRow as any)?.active_snapshot_id as string | null;
-        if (activeSnapId) {
+        let snapId = (athRow as any)?.active_snapshot_id as string | null;
+
+        if (!snapId) {
+          // Fallback : snapshot le plus récent de l'athlète
+          const { data: latest } = await admin
+            .from("snapshots")
+            .select("id")
+            .eq("athlete_id", athleteId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          snapId = (latest as any)?.id ?? null;
+          if (snapId) console.log(`fallback snapshot for athlete ${athleteId}: ${snapId}`);
+        }
+
+        if (snapId) {
+          snapshotIdUsed = snapId;
           const { data: snap } = await admin
             .from("snapshots")
             .select("pmax_5s, p30s_w, p60s_w, map5min_w, sprint_15s_distance, vma")
-            .eq("id", activeSnapId)
+            .eq("id", snapId)
             .maybeSingle();
 
-          const pick = (cat: string, sec: number, sports: number[]) => {
-            const r = rowsToUpsert.find(x =>
-              x.cat === cat &&
-              x.item_seconds === sec &&
-              sports.includes(x.sport_id as number),
+          // Meilleur record PPR toutes disciplines confondues à une durée donnée
+          const bestPPR = (sec: number): number | null => {
+            const matches = rowsToUpsert.filter(x =>
+              x.cat === "ppr" && x.item_seconds === sec,
             );
-            return r ? Number(r.value) : null;
+            if (matches.length === 0) return null;
+            return Math.max(...matches.map(x => Number(x.value)).filter(Number.isFinite));
           };
 
-          const p5 = pick("ppr", 5, BIKE_SPORTS);
-          const p30 = pick("ppr", 30, BIKE_SPORTS);
-          const p60 = pick("ppr", 60, BIKE_SPORTS);
-          const p300 = pick("ppr", 300, BIKE_SPORTS);
-          // par run record 15s → sprint distance = vitesse(m/s) × 15
-          const par15 = pick("par", 15, RUN_SPORTS);
-          // par run record 360s (6min) → vma = (distance_6min / 6) × 60 / 1000 × 1.05
-          const par360 = pick("par", 360, RUN_SPORTS);
+          const p5 = bestPPR(5);
+          const p30 = bestPPR(30);
+          const p60 = bestPPR(60);
+          const p300 = bestPPR(300);
+
+          // par run record 15s → distance (m) parcourue en 15s (target en sec/km)
+          const par15 = (() => {
+            const matches = rowsToUpsert.filter(x =>
+              x.cat === "par" && x.item_seconds === 15 && RUN_SPORTS.includes(x.sport_id as number),
+            );
+            if (matches.length === 0) return null;
+            // value = sec/km le plus rapide = min
+            return Math.min(...matches.map(x => Number(x.value)).filter(Number.isFinite));
+          })();
+          // par run record 360s (6min) → vma estimée
+          const par360 = (() => {
+            const matches = rowsToUpsert.filter(x =>
+              x.cat === "par" && x.item_seconds === 360 && RUN_SPORTS.includes(x.sport_id as number),
+            );
+            if (matches.length === 0) return null;
+            return Math.min(...matches.map(x => Number(x.value)).filter(Number.isFinite));
+          })();
 
           const updates: Record<string, number> = {};
           const better = (cur: unknown, nv: number | null) =>
@@ -312,15 +342,13 @@ Deno.serve(async (req) => {
           if (better((snap as any)?.map5min_w, p300)) updates.map5min_w = p300 as number;
 
           if (par15 != null && Number.isFinite(par15) && par15 > 0) {
-            // par en sec/km → vitesse m/s = 1000 / par
-            const speedMs = 1000 / par15;
-            const sprintDist = speedMs * 15;
+            // par en sec/km → vitesse m/s = 1000 / par → distance(15s) = vitesse × 15
+            const sprintDist = (1000 / par15) * 15;
             if (better((snap as any)?.sprint_15s_distance, sprintDist)) {
               updates.sprint_15s_distance = Math.round(sprintDist * 10) / 10;
             }
           }
           if (par360 != null && Number.isFinite(par360) && par360 > 0) {
-            // par en sec/km → distance_6min (m) = 360 / par × 1000
             const dist6m = (360 / par360) * 1000;
             const vmaEst = (dist6m / 6) * 60 / 1000 * 1.05;
             if (better((snap as any)?.vma, vmaEst)) {
@@ -332,7 +360,7 @@ Deno.serve(async (req) => {
             const { error: snapErr } = await admin
               .from("snapshots")
               .update(updates)
-              .eq("id", activeSnapId);
+              .eq("id", snapId);
             if (snapErr) {
               errors.push(`snapshot update: ${snapErr.message}`);
             } else {
