@@ -9,7 +9,7 @@
  *  - Mader 1976 (VLamax glycolytique)
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,11 +17,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bike, Activity, Zap, Target, Heart, Save, ArrowLeft } from "lucide-react";
+import { Bike, Activity, Zap, Target, Heart, Save, ArrowLeft, Download } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { supabase } from "@/integrations/supabase/client";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
@@ -88,6 +89,46 @@ export default function BikeTrackDayPage() {
   const [fcDebutZ2, setFcDebutZ2] = useState("");
   const [fcFinZ2, setFcFinZ2] = useState("");
   const [puissanceZ2, setPuissanceZ2] = useState("");
+
+  // ─── Import Nolio ─────────────────────────────────────────────────────
+  const [nolioLoading, setNolioLoading] = useState(false);
+  const [nolioDates, setNolioDates] = useState<Record<string, string | null>>({});
+
+  const importFromNolio = async () => {
+    if (!currentAthlete) return;
+    setNolioLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("nolio_records" as any)
+        .select("item_seconds, value, date_recorded, sport_id, cat")
+        .eq("athlete_id", currentAthlete.id)
+        .eq("cat", "ppr")
+        .in("sport_id", [14, 18]);
+      if (error) throw error;
+      const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null }>;
+      const pick = (sec: number) => {
+        const r = rows.find(x => x.item_seconds === sec);
+        return r ? { v: r.value, d: r.date_recorded } : null;
+      };
+      const dates: Record<string, string | null> = {};
+      const r5 = pick(5); if (r5) { setP10s(String(Math.round(r5.v))); dates.p10s = r5.d; }
+      const r30 = pick(30); if (r30) { setP30s(String(Math.round(r30.v))); dates.p30s = r30.d; }
+      const r60 = pick(60); if (r60) { setP60s(String(Math.round(r60.v))); dates.p60s = r60.d; }
+      const r300 = pick(300); if (r300) { setMap5min(String(Math.round(r300.v))); dates.map5min = r300.d; }
+      const r1200 = pick(1200); if (r1200) { setP20min(String(Math.round(r1200.v))); dates.p20min = r1200.d; }
+      setNolioDates(dates);
+      const count = Object.keys(dates).length;
+      toast({ title: "Records Nolio importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""}.` });
+    } catch (e) {
+      toast({ title: "Erreur import Nolio", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setNolioLoading(false);
+    }
+  };
+
+  const fmtNolioDate = (d: string | null | undefined) =>
+    d ? `Nolio · ${new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : null;
+
 
   const calc = useMemo(() => {
     const p10 = setup === "ht" ? num(p10s) : powerFromSpeed(massKg, num(v10s), num(s10s));
@@ -264,6 +305,15 @@ export default function BikeTrackDayPage() {
           </CardContent>
         </Card>
 
+        {/* Import Nolio */}
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={importFromNolio} disabled={nolioLoading || !currentAthlete}>
+            <Download className="h-4 w-4 mr-1" />
+            {nolioLoading ? "Import..." : "📥 Importer depuis Nolio"}
+          </Button>
+        </div>
+
+
         {/* Bloc 1 */}
         <Card>
           <CardHeader>
@@ -294,6 +344,11 @@ export default function BikeTrackDayPage() {
                       <div>
                         <Label className="text-xs">Puissance moy (W)</Label>
                         <Input type="number" value={valW} onChange={(e) => setW?.(e.target.value)} placeholder={d === "10s" ? "1200" : d === "30s" ? "800" : "500"} />
+                        {(() => {
+                          const key = d === "10s" ? "p10s" : d === "30s" ? "p30s" : "p60s";
+                          const lbl = fmtNolioDate(nolioDates[key]);
+                          return lbl ? <div className="text-[10px] text-muted-foreground/70 mt-0.5">{lbl}</div> : null;
+                        })()}
                       </div>
                       <div className="text-xs text-yellow-700 dark:text-yellow-400 font-semibold text-right">
                         {result > 0 ? `${fmt(result, 0)} W (${fmt(result / Math.max(massKg, 1), 1)} W/kg)` : "—"}
@@ -340,6 +395,9 @@ export default function BikeTrackDayPage() {
             <div>
               <Label>MAP 5 min (W)</Label>
               <Input type="number" value={map5min} onChange={(e) => setMap5min(e.target.value)} placeholder="350" />
+              {fmtNolioDate(nolioDates.map5min) && (
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.map5min)}</div>
+              )}
             </div>
             <div>
               <Label>FC max test (bpm)</Label>
@@ -374,6 +432,9 @@ export default function BikeTrackDayPage() {
             <div>
               <Label>P 20 min (W)</Label>
               <Input type="number" value={p20min} onChange={(e) => setP20min(e.target.value)} placeholder="290" />
+              {fmtNolioDate(nolioDates.p20min) && (
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.p20min)}</div>
+              )}
             </div>
             <div>
               <Label>FC moyenne 20' (bpm)</Label>

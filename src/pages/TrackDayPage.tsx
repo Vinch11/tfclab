@@ -18,11 +18,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Timer, Activity, Zap, Target, Heart, Save, ArrowLeft } from "lucide-react";
+import { Timer, Activity, Zap, Target, Heart, Save, ArrowLeft, Download } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { supabase } from "@/integrations/supabase/client";
 
 // ──────────────────────────────────────────────────────────────
 // Helpers
@@ -100,6 +101,63 @@ export default function TrackDayPage() {
   const [fcDebutZ2, setFcDebutZ2] = useState("");
   const [fcFinZ2, setFcFinZ2] = useState("");
   const [allureZ2SecKm, setAllureZ2SecKm] = useState("");
+
+  // ─── Import Nolio ────────────────────────────────────────────
+  const [nolioLoading, setNolioLoading] = useState(false);
+  const [nolioDates, setNolioDates] = useState<Record<string, string | null>>({});
+
+  const importFromNolio = async () => {
+    if (!currentAthlete) return;
+    setNolioLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("nolio_records" as any)
+        .select("item_seconds, value, date_recorded, sport_id, cat")
+        .eq("athlete_id", currentAthlete.id)
+        .eq("cat", "par")
+        .in("sport_id", [2, 52]);
+      if (error) throw error;
+      const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null }>;
+      const pick = (sec: number) => {
+        const r = rows.find(x => x.item_seconds === sec);
+        return r ? { v: r.value, d: r.date_recorded } : null;
+      };
+      const dates: Record<string, string | null> = {};
+      // par run = sec/km. distance(m) = (sec/par)*1000 ; vitesse = 1000/par m/s
+      const r15 = pick(15);
+      if (r15 && r15.v > 0) {
+        const dist = (1000 / r15.v) * 15;
+        setSprint15sM(String(Math.round(dist * 10) / 10));
+        dates.sprint15s = r15.d;
+      }
+      const r360 = pick(360); // 6min
+      if (r360 && r360.v > 0) {
+        const dist = (360 / r360.v) * 1000;
+        setD6min(String(Math.round(dist)));
+        dates.d6min = r360.d;
+      }
+      // 400m → temps en s = par × 0.4
+      const r400 = rows.find(x => Math.abs(x.item_seconds - 60) < 10); // typically ~60-90s for 400m
+      // safer: derive t400 from a known short par record (75s)
+      const r75 = pick(75);
+      if (r75 && r75.v > 0) {
+        const t400 = (r75.v * 0.4);
+        setT400m(String(Math.round(t400 * 10) / 10));
+        dates.t400m = r75.d;
+      }
+      setNolioDates(dates);
+      const count = Object.keys(dates).length;
+      toast({ title: "Records Nolio importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""}.` });
+    } catch (e) {
+      toast({ title: "Erreur import Nolio", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setNolioLoading(false);
+    }
+  };
+
+  const fmtNolioDate = (d: string | null | undefined) =>
+    d ? `Nolio · ${new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : null;
+
 
   // ──────────────── Calculs dérivés ────────────────
   const calc = useMemo(() => {
@@ -344,6 +402,14 @@ export default function TrackDayPage() {
           </CardContent>
         </Card>
 
+        {/* Import Nolio */}
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={importFromNolio} disabled={nolioLoading || !currentAthlete}>
+            <Download className="h-4 w-4 mr-1" />
+            {nolioLoading ? "Import..." : "📥 Importer depuis Nolio"}
+          </Button>
+        </div>
+
         {/* Bloc 1 — Neuromusculaire (5 options indépendantes) */}
         <Card>
           <CardHeader>
@@ -441,7 +507,12 @@ export default function TrackDayPage() {
               title="Sprint 15s — distance max (m)"
               ref="TFCL VLamax CAP — Démarrer au signal, courir 15 secondes à vitesse maximale, marquer la position et mesurer la distance en mètres"
               input={
-                <Input type="number" step="0.1" value={sprint15sM} onChange={(e) => setSprint15sM(e.target.value)} placeholder="115" />
+                <>
+                  <Input type="number" step="0.1" value={sprint15sM} onChange={(e) => setSprint15sM(e.target.value)} placeholder="115" />
+                  {fmtNolioDate(nolioDates.sprint15s) && (
+                    <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.sprint15s)}</div>
+                  )}
+                </>
               }
               unit="m"
               result={
@@ -506,6 +577,9 @@ export default function TrackDayPage() {
             <div>
               <Label>Temps 400m (sec)</Label>
               <Input type="number" step="0.01" value={t400m} onChange={(e) => setT400m(e.target.value)} placeholder="62.0" />
+              {fmtNolioDate(nolioDates.t400m) && (
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.t400m)}</div>
+              )}
             </div>
             <div>
               <Label>Temps 600m (sec)</Label>
@@ -539,6 +613,9 @@ export default function TrackDayPage() {
             <div>
               <Label>Distance 6 min (m)</Label>
               <Input type="number" value={d6min} onChange={(e) => setD6min(e.target.value)} placeholder="1850" />
+              {fmtNolioDate(nolioDates.d6min) && (
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.d6min)}</div>
+              )}
             </div>
             <div>
               <Label>Distance 20 min (m)</Label>
