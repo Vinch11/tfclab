@@ -1232,11 +1232,42 @@ export default function RaceSimulationPage() {
             </AccordionContent>
           </AccordionItem>
 
-          {/* ÉTAPE 5 — TES RISQUES & RAPPORT STAFF */}
+          {/* ÉTAPE 5 — RÉCUPÉRATION POST-COURSE */}
           <AccordionItem value="step-5" className="border border-border rounded-lg px-3 sm:px-4 bg-card">
             <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3 text-left">
                 <Badge variant="default" className="h-7 w-7 rounded-full p-0 flex items-center justify-center text-xs shrink-0">5</Badge>
+                <div>
+                  <div className="text-sm sm:text-base font-semibold">Récupération post-course</div>
+                  <div className="text-[11px] sm:text-xs text-muted-foreground font-normal">
+                    Fenêtres 4R : rehydrate, refuel, repair, rest
+                  </div>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4">
+              {!activeSnapshot?.weight_kg ? (
+                <div className="text-center py-6 text-sm text-muted-foreground">Poids athlète manquant — protocole indisponible</div>
+              ) : (
+                <RecoveryNutritionCard
+                  input={{
+                    weightKg: activeSnapshot.weight_kg,
+                    durationMin: raceDurationMin,
+                    intensity: raceDurationMin >= 150 ? 'depleting' : 'high',
+                    goal: 'full_recovery_48h',
+                    hotConditions: heatLevel === 'high',
+                  }}
+                  staffMode={staffMode}
+                />
+              )}
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* ÉTAPE 6 — TES RISQUES & RAPPORT STAFF */}
+          <AccordionItem value="step-6" className="border border-border rounded-lg px-3 sm:px-4 bg-card">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center gap-3 text-left">
+                <Badge variant="default" className="h-7 w-7 rounded-full p-0 flex items-center justify-center text-xs shrink-0">6</Badge>
                 <div>
                   <div className="text-sm sm:text-base font-semibold">
                     {staffMode ? "Rapport staff & règles de pacing" : "Tes risques & règles d'or"}
