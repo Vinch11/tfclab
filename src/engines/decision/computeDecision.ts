@@ -51,11 +51,56 @@ export function computeDecision(input: DecisionInput): TrainingPrescription {
   // ── 3. Roadmap ────────────────────────────────────────────────────────────
   const roadmap = generateRoadmapFromDiagnostic(diagnostic);
 
-  // ── 4. Simulation (placeholder — activé si raceSimulationInput fourni) ──
-  const raceSimulation = null; // NON IMPLÉMENTÉ — à connecter ultérieurement
+  // ── 4. Simulation (activée si raceSimulationInput fourni) ──────────────
+  const raceSimulation = input.raceSimulationInput
+    ? (() => {
+        try {
+          return computeRaceSimulation({
+            raceType: normalizeRaceType(input.raceSimulationInput!.raceType),
+            heat: input.raceSimulationInput!.heat,
+            terrain: input.raceSimulationInput!.terrain,
+            plannedCarbsGH: input.raceSimulationInput!.plannedCarbsGH,
+            ambition: (diagnostic.ambition as any) ?? "perf",
+            vlamaxEffectif: diagnostic.effectifs.vlamax.value,
+            vlamaxConfidence: diagnostic.effectifs.vlamax.confidence,
+            vlamaxDiscipline: diagnostic.sportFocus === "run" ? "run" : "bike",
+            tteMin: diagnostic.effectifs.tte.tte_min,
+            tteConfidence: diagnostic.effectifs.tte.confidence,
+            fatmaxCenterPct: diagnostic._rawInput.fatmax,
+            fatmaxRange: null,
+            disponibiliteScore: diagnostic.readiness.availability.score,
+            disponibiliteLevel: null,
+            ftp: diagnostic._rawInput.ftp,
+            vma: diagnostic._rawInput.vma,
+            paceThreshold: diagnostic._rawInput.paceThresholdSecPerKm,
+            weight: diagnostic._rawInput.weightKg,
+          });
+        } catch { return null; }
+      })()
+    : null;
 
-  // ── 5. Nutrition (placeholder — activé selon le contexte) ─────────────
-  const nutrition = null; // NON IMPLÉMENTÉ — à connecter ultérieurement
+  // ── 5. Nutrition (activée si athlète a un poids) ─────────────────────
+  const nutrition = (() => {
+    try {
+      const raw = diagnostic._rawInput;
+      const sport = diagnostic.sportFocus === "run" ? "cap" as const : "velo" as const;
+      const objectif = diagnostic.objectif ?? "70.3";
+      if (!raw.weightKg) return null;
+      return computeNutritionUnified({
+        sport,
+        objectif,
+        weightKg: raw.weightKg,
+        vlamaxValue: diagnostic.effectifs.vlamax.value,
+        vo2max: raw.vo2max,
+        tteMin: diagnostic.effectifs.tte.tte_min,
+        targetDurationHours: null,
+        targetIntensityPct: null,
+        heatCondition: input.raceSimulationInput?.heat ?? "low",
+        advancedGutTraining: raw.giIssuesFlag === false,
+      });
+    } catch { return null; }
+  })();
+
 
   // ── 6. Executive Summary ──────────────────────────────────────────────────
   const executiveSummary = buildExecutiveSummary(diagnostic, strategy, workoutGuidance);
