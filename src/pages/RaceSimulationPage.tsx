@@ -568,7 +568,7 @@ export default function RaceSimulationPage() {
                 <li>✅ Gestion glycogène sur ultra</li>
                 <li>✅ Stratégie allure montée/descente (GAP)</li>
                 <li>✅ Plan nutritionnel par phase</li>
-                <li>✅ Fatigue neuromusculaire >6h / >12h</li>
+                <li>✅ Fatigue neuromusculaire {'>'}6h / {'>'}12h</li>
               </ul>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Link to="/simulation/trail" className="w-full sm:w-auto">
