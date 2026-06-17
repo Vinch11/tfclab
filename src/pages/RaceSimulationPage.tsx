@@ -32,7 +32,7 @@ import { CaffeineProtocolCard } from '@/components/CaffeineProtocolCard';
 import { CarbLoadingCard } from '@/components/CarbLoadingCard';
 import { GutTrainingCard } from '@/components/GutTrainingCard';
 import { HydrationProtocolCard } from '@/components/HydrationProtocolCard';
-import { RecoveryNutritionCard } from '@/components/RecoveryNutritionCard';
+// RecoveryNutritionCard supprimée : NutritionUnifiedCard (V3 Mader/Jeukendrup) sert de moteur unique.
 import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 import { NutritionUnifiedCard } from '@/components/NutritionUnifiedCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
