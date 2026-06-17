@@ -120,6 +120,75 @@ export default function EvolutionPage() {
     };
   }, [recentSnapshots]);
 
+  // ─── Records Nolio ──────────────────────────────────────────────────────
+  const [records, setRecords] = useState<Array<{
+    cat: string; record_type: string; item_seconds: number; value: number;
+    date_recorded: string | null; sport_id: number;
+  }>>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("nolio_records")
+        .select("cat, record_type, item_seconds, value, date_recorded, sport_id")
+        .eq("athlete_id", currentAthlete.id)
+        .order("item_seconds", { ascending: true });
+      if (!cancelled && data) setRecords(data as any);
+    })();
+    return () => { cancelled = true; };
+  }, [currentAthlete.id]);
+
+  const BIKE_SPORTS = [14, 18];
+  const RUN_SPORTS = [2, 52];
+  const SWIM_SPORT = 19;
+
+  const bikeRecords = useMemo(() => {
+    const targets = [5, 30, 60, 300, 1200];
+    return targets.map(t => {
+      const candidates = records.filter(r => r.cat === "ppr" && BIKE_SPORTS.includes(r.sport_id));
+      const best = pickClosest(candidates, t);
+      return { target: t, label: formatDurationLabel(t), record: best };
+    });
+  }, [records]);
+
+  const runRecords = useMemo(() => {
+    // distances cibles en mètres; on tentera de matcher via item_seconds typique
+    const targets = [
+      { m: 400, label: "400 m", typical: 75 },
+      { m: 1000, label: "1 km", typical: 200 },
+      { m: 5000, label: "5 km", typical: 1100 },
+      { m: 10000, label: "10 km", typical: 2400 },
+      { m: 20000, label: "20 km", typical: 5400 },
+    ];
+    return targets.map(t => {
+      const candidates = records.filter(r => r.cat === "par" && RUN_SPORTS.includes(r.sport_id));
+      const best = pickClosest(candidates, t.typical);
+      return { target: t.m, label: t.label, record: best };
+    });
+  }, [records]);
+
+  const swimRecords = useMemo(() => {
+    const targets = [
+      { m: 100, label: "100 m", typical: 80 },
+      { m: 200, label: "200 m", typical: 170 },
+      { m: 400, label: "400 m", typical: 360 },
+    ];
+    return targets.map(t => {
+      const candidates = records.filter(r => r.cat === "par" && r.sport_id === SWIM_SPORT);
+      const best = pickClosest(candidates, t.typical);
+      return { target: t.m, label: t.label, record: best };
+    });
+  }, [records]);
+
+
+      ftp: build("ftp"),
+      vma: build("vma"),
+      css: build("css"),
+      vlamax: build("vlamax"),
+    };
+  }, [recentSnapshots]);
+
   return (
     <AppLayout title="Évolution" showBack>
       <div className="space-y-6">
