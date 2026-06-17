@@ -556,27 +556,32 @@ export default function RaceSimulationPage() {
             <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
                 <span>🏔️</span>
-                Simulation Trail — En développement
+                Simulation Trail TFCL™
               </CardTitle>
               <CardDescription>
-                La simulation de performance trail prend en compte des paramètres spécifiques (dénivelé, technicité terrain, gestion ultra) qui nécessitent un module dédié. Il sera disponible prochainement.
+                Module dédié trail : Minetti 2002 (coût énergétique pente), pacing GAP, glycogène ultra, fatigue neuromusculaire.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-2 text-sm">
-                <li>✅ Temps estimé selon D+ et distance</li>
+                <li>✅ Temps estimé selon D+ / D- / technicité</li>
                 <li>✅ Gestion glycogène sur ultra</li>
-                <li>✅ Stratégie allure montée/descente</li>
-                <li>✅ Besoins nutritionnels spécifiques trail</li>
-                <li>✅ Gestion chaleur et altitude</li>
+                <li>✅ Stratégie allure montée/descente (GAP)</li>
+                <li>✅ Plan nutritionnel par phase</li>
+                <li>✅ Fatigue neuromusculaire >6h / >12h</li>
               </ul>
-              <Button
-                variant="outline"
-                onClick={() => setForceShowSimulation(true)}
-                className="w-full sm:w-auto"
-              >
-                Utiliser la simulation course à pied
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Link to="/simulation/trail" className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto">Ouvrir la simulation trail</Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  onClick={() => setForceShowSimulation(true)}
+                  className="w-full sm:w-auto"
+                >
+                  Utiliser la simulation course à pied
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
