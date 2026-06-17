@@ -146,8 +146,20 @@ const DURATION_BY_OBJECTIF: Record<string, { velo: number; cap: number }> = {
   Semi: { velo: 0, cap: 1.67 },
   Trail: { velo: 0, cap: 4.0 },
   TrailLong: { velo: 0, cap: 6.0 },
+  TrailUltra: { velo: 0, cap: 14.0 },
   '10K': { velo: 0, cap: 0.67 },
   '5K': { velo: 0, cap: 0.35 },
+};
+
+/** Sport→cap tolerance mapping (foot-based digestive constraints). */
+const isCAPLike = (s: NutritionSport): boolean => s === 'cap' || s === 'trail' || s === 'ultra';
+const isUltra = (s: NutritionSport): boolean => s === 'ultra';
+const isTrailOrUltra = (s: NutritionSport): boolean => s === 'trail' || s === 'ultra';
+
+/** Durée par défaut quand `targetDurationHours` absent ET sport trail/ultra. */
+const DEFAULT_DURATION_BY_SPORT: Partial<Record<NutritionSport, number>> = {
+  trail: 5,
+  ultra: 14,
 };
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
@@ -171,14 +183,16 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
  */
 export function computeBaseRateMader(
   weightKg: number, 
-  sport: 'velo' | 'cap',
+  sport: NutritionSport,
   vo2max: number | null | undefined,
   vlamaxValue: number | null,
   intensityPct: number | null,
   durationHours: number | null,
   heatCondition?: boolean
 ): { baseRate: number; totalOxidation: number; method: 'mader' | 'fallback' } {
-  const vo2 = vo2max ?? (sport === 'cap' ? 48 : 50);
+  const capLike = isCAPLike(sport);
+  const ultra = isUltra(sport);
+  const vo2 = vo2max ?? (capLike ? 48 : 50);
   const vlx = vlamaxValue ?? 0.45;
   const intensity = intensityPct ?? 70;
   const duration = durationHours ?? 3;
@@ -187,34 +201,32 @@ export function computeBaseRateMader(
   let totalOxidationGh = carbOxGmin * 60;
   
   // Facteur chaleur: +10% oxydation CHO en conditions chaudes (>28°C)
-  // Réf: Cao et al 2025, Febbraio 1994
   if (heatCondition) {
     totalOxidationGh *= 1.10;
   }
   
-  // Modèle glycogène physiologique (Burke 2011, Gonzalez 2016)
-  // Réserves: ~5g/kg (conservateur, Cao 2025: 380-500g total)
+  // Modèle glycogène physiologique
   const glycogenStores = weightKg * 5;
   const totalCarbNeeded = totalOxidationGh * duration;
   const accessFactor = Math.min(0.75, 0.35 + 0.40 * Math.exp(-0.25 * duration));
   const effectiveStores = glycogenStores * accessFactor;
   const glycogenCoverage = Math.min(0.85, effectiveStores / totalCarbNeeded);
   
-  // Minimum exogène modulé par durée (Cao 2025)
-  // <1h: rinçage buccal suffit, 1-2h: 25%, 2-3h: 40%, >3h: 50%
   const MIN_EXOGENOUS_FRACTION = duration < 1 ? 0 : duration < 2 ? 0.25 : duration < 3 ? 0.40 : 0.50;
   let exogenousGh = totalOxidationGh * Math.max(MIN_EXOGENOUS_FRACTION, 1 - glycogenCoverage);
   
-  // CAP: clamp max réduit à 75g/h sans gut training (Pfeiffer 2012)
-  // + tolérance digestive réduite de ~18% vs vélo
-  if (sport === 'cap') {
+  // CAP / trail / ultra : tolérance digestive réduite (~18%) vs vélo
+  if (capLike) {
     exogenousGh *= 0.82;
   }
-  
-  const capMax = sport === 'cap' ? 75 : 90;
-  // F31 — Pas de plancher artificiel pour les épreuves courtes (<1h, ex: 10K).
-  // Sur ces formats Mader-Heck recommande "rinçage buccal" (~0-25 g/h),
-  // forcer 30 g/h reviendrait à bypasser la logique canonique.
+  // Ultra (>8h) : digestion dégradée → −15% additionnel (Pfeiffer 2012, Stellingwerff 2016)
+  if (ultra && duration >= 6) {
+    exogenousGh *= 0.82;
+  }
+
+  // Caps GI selon sport
+  // velo 90, cap 75, trail 70 (montée=GI↓), ultra 60 (Pfeiffer 2012)
+  const capMax = ultra ? 60 : sport === 'trail' ? 70 : capLike ? 75 : 90;
   const minFloor = duration < 1 ? 0 : 30;
   const baseRate = clamp(Math.round(exogenousGh), minFloor, capMax);
   const method = (vo2max != null && vlamaxValue != null) ? 'mader' : 'fallback';
