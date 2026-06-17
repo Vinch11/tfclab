@@ -783,6 +783,12 @@ const Index = () => {
         tss7d: effectiveCloudSnapshot.tss_7d ?? null,
         tss28d: effectiveCloudSnapshot.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null,
       },
+      raceSimulationInput: currentAthlete && (effectiveCloudSnapshot as any)?.objectif ? {
+        raceType: (effectiveCloudSnapshot as any).objectif,
+        heat: "low",
+        terrain: "flat",
+        plannedCarbsGH: 60,
+      } : undefined,
     });
 
     return { dashDiagnostic: diagnostic, dashPrescription: prescription };
