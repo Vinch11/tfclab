@@ -268,32 +268,60 @@ Deno.serve(async (req) => {
         }
       }
 
-      // ─── 3) Mise à jour snapshot (actif, sinon plus récent) ────────────
+      // ─── 3) Mise à jour snapshot (création d'un snapshot du jour) ──────
       let snapshotUpdates = 0;
       let snapshotIdUsed: string | null = null;
+      let snapshotCreated = false;
       try {
-        const { data: athRow } = await admin
-          .from("athletes")
-          .select("active_snapshot_id")
-          .eq("id", athleteId)
+        const today = new Date().toISOString().slice(0, 10);
+
+        // Cherche un snapshot existant pour aujourd'hui
+        const { data: todaySnap } = await admin
+          .from("snapshots")
+          .select("*")
+          .eq("athlete_id", athleteId)
+          .eq("date", today)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
-        let snapId = (athRow as any)?.active_snapshot_id as string | null;
+
+        let snapId: string | null = (todaySnap as any)?.id ?? null;
 
         if (!snapId) {
-          // Fallback : snapshot le plus récent de l'athlète
+          // Clone le snapshot le plus récent pour préserver les valeurs existantes
           const { data: latest } = await admin
             .from("snapshots")
-            .select("id")
+            .select("*")
             .eq("athlete_id", athleteId)
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle();
-          snapId = (latest as any)?.id ?? null;
-          if (snapId) console.log(`fallback snapshot for athlete ${athleteId}: ${snapId}`);
+
+          const base: Record<string, unknown> = { athlete_id: athleteId, date: today, source: "nolio-records" };
+          if (latest) {
+            const { id: _id, created_at: _c, updated_at: _u, ...rest } = latest as any;
+            Object.assign(base, rest);
+            base.date = today;
+            base.source = "nolio-records";
+          }
+
+          const { data: inserted, error: insErr } = await admin
+            .from("snapshots")
+            .insert(base)
+            .select("id")
+            .maybeSingle();
+          if (insErr) {
+            errors.push(`snapshot create: ${insErr.message}`);
+          } else {
+            snapId = (inserted as any)?.id ?? null;
+            snapshotCreated = !!snapId;
+            if (snapId) console.log(`created today snapshot for athlete ${athleteId}: ${snapId}`);
+          }
         }
 
         if (snapId) {
           snapshotIdUsed = snapId;
+
           const { data: snap } = await admin
             .from("snapshots")
             .select("pmax_5s, p30s_w, p60s_w, map5min_w, sprint_15s_distance, vma")
@@ -377,7 +405,10 @@ Deno.serve(async (req) => {
         imported: rowsToUpsert.length,
         errors,
         snapshot_updates: snapshotUpdates,
+        snapshot_id: snapshotIdUsed,
+        snapshot_created: snapshotCreated,
       } as any);
+
     }
 
     // Log dans nolio_sync_log pour traçabilité
