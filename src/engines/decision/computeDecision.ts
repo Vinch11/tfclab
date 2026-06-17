@@ -95,7 +95,7 @@ export function computeDecision(input: DecisionInput): TrainingPrescription {
         tteMin: diagnostic.effectifs.tte.tte_min,
         targetDurationHours: null,
         targetIntensityPct: null,
-        heatCondition: input.raceSimulationInput?.heat ?? "low",
+        heatCondition: input.raceSimulationInput?.heat === "high",
         advancedGutTraining: raw.giIssuesFlag === false,
       });
     } catch { return null; }
