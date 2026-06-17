@@ -52,6 +52,9 @@ import { simulatePacingScenarios } from '@/lib/v2/pacingScenarioSimulator';
 import { SIMULATION_DEFINITIONS } from '@/lib/v2/raceSimulation';
 import type { RaceObjective } from '@/lib/v2/pacingEnvelopeEngine';
 import { supabase } from '@/integrations/supabase/client';
+import { openPrintableHTML } from '@/lib/openPrintableHTML';
+import { buildRaceSimulationHTML } from '@/lib/raceSimulation/buildRaceSimulationHTML';
+
 
 export default function RaceSimulationPage() {
   const navigate = useNavigate();
