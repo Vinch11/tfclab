@@ -105,7 +105,7 @@ export default function BikeTrackDayPage() {
         .eq("cat", "ppr")
         .in("sport_id", [14, 18]);
       if (error) throw error;
-      const rows = (data ?? []) as Array<{ item_seconds: number; value: number; date_recorded: string | null }>;
+      const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null }>;
       const pick = (sec: number) => {
         const r = rows.find(x => x.item_seconds === sec);
         return r ? { v: r.value, d: r.date_recorded } : null;
