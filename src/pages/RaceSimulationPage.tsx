@@ -1038,6 +1038,13 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
+              <Alert className="text-[11px] sm:text-xs py-2 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40">
+                <Info className="h-3.5 w-3.5" />
+                <AlertDescription>
+                  <strong>💡 Pourquoi ce chiffre ?</strong> <em>Robuste</em> = on reste dans la moitié basse du couloir, risque physiologique minimal et marge pour finir fort. <em>Ambitieux</em> = on vise le centre, perf optimisée si la TTE le permet. <em>Agressif</em> = on flirte avec le plafond toléré, gain marginal mais risque réel d'effondrement glycogénique ou cardiaque dans le dernier tiers.
+                </AlertDescription>
+              </Alert>
+
               {lcwActive && lcwSegment === 'swim' ? (
                 <Alert className="text-[11px] sm:text-xs py-2">
                   <Info className="h-3.5 w-3.5" />
