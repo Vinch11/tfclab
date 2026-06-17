@@ -45,6 +45,7 @@ export function ConfigurationPage() {
 
   const [nolioRecordsLoading, setNolioRecordsLoading] = useState(false);
   const [nolioRecordsResult, setNolioRecordsResult] = useState<{ message: string; isError: boolean } | null>(null);
+  const [nolioRecordsDebug, setNolioRecordsDebug] = useState<{ url: string; status: number | null; body: string; phase: string } | null>(null);
 
   const [linkedAthletes, setLinkedAthletes] = useState<LinkedAthlete[]>([]);
   const [syncTarget, setSyncTarget] = useState<string>("all");
@@ -233,21 +234,49 @@ export function ConfigurationPage() {
   };
 
   const handleImportNolioRecords = async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token) {
+      setNolioRecordsResult({ message: "Pas de session active", isError: true });
+      return;
+    }
     setNolioRecordsLoading(true);
     setNolioRecordsResult(null);
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+    const url = `${supabaseUrl}/functions/v1/nolio-records`;
+    setNolioRecordsDebug({ url, status: null, body: "", phase: "Appel en cours vers nolio-records…" });
+    console.log("[nolio-records] calling", url);
+
     try {
-      const { data, error } = await supabase.functions.invoke("nolio-records", { method: "POST", body: {} });
-      if (error) throw error;
-      const total = (data as { total_records?: number })?.total_records ?? 0;
-      const processed = (data as { athletes_processed?: number })?.athletes_processed ?? 0;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
+        },
+        body: JSON.stringify({}),
+      });
+      const rawBody = await resp.text();
+      console.log("[nolio-records] status", resp.status, "body", rawBody);
+      setNolioRecordsDebug({ url, status: resp.status, body: rawBody, phase: `Réponse HTTP ${resp.status}` });
+
+      if (!resp.ok) {
+        setNolioRecordsResult({ message: `HTTP ${resp.status}: ${rawBody.slice(0, 200)}`, isError: true });
+        toast({ title: "Erreur d'import", description: `HTTP ${resp.status}`, variant: "destructive" });
+        return;
+      }
+      let parsed: any = null;
+      try { parsed = JSON.parse(rawBody); } catch { /* ignore */ }
+      const total = parsed?.total_records ?? 0;
+      const processed = parsed?.athletes_processed ?? 0;
       const message = `${total} record${total > 1 ? "s" : ""} importé${total > 1 ? "s" : ""} pour ${processed} athlète${processed > 1 ? "s" : ""}`;
       setNolioRecordsResult({ message, isError: false });
       toast({ title: "Records Nolio importés", description: message });
     } catch (e) {
       const msg = (e as Error).message ?? "Échec de l'import des records";
-      console.error("Nolio records import failed", e);
-      setNolioRecordsResult({ message: msg, isError: true });
+      console.error("[nolio-records] fetch failed (pré-edge function)", e);
+      setNolioRecordsDebug({ url, status: null, body: `FETCH ERROR: ${msg}`, phase: "Échec avant edge function" });
+      setNolioRecordsResult({ message: `Échec réseau : ${msg}`, isError: true });
       toast({ title: "Erreur d'import", description: msg, variant: "destructive" });
     } finally {
       setNolioRecordsLoading(false);
@@ -503,6 +532,23 @@ export function ConfigurationPage() {
                 )}>
                   {nolioRecordsResult.isError ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
                   <span className="text-sm font-medium">{nolioRecordsResult.message}</span>
+                </div>
+              )}
+
+              {nolioRecordsDebug && (
+                <div className="p-3 rounded-lg border border-amber-500/40 bg-amber-500/5 space-y-2">
+                  <div className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                    🐞 Debug nolio-records (temporaire)
+                  </div>
+                  <div className="text-xs font-mono break-all"><b>URL:</b> {nolioRecordsDebug.url}</div>
+                  <div className="text-xs"><b>Phase:</b> {nolioRecordsDebug.phase}</div>
+                  <div className="text-xs"><b>Status HTTP:</b> {nolioRecordsDebug.status ?? "—"}</div>
+                  <details open>
+                    <summary className="text-xs cursor-pointer"><b>Body brut</b></summary>
+                    <pre className="text-[10px] whitespace-pre-wrap break-all bg-background/60 p-2 rounded max-h-64 overflow-auto">
+{nolioRecordsDebug.body || "(vide)"}
+                    </pre>
+                  </details>
                 </div>
               )}
 
