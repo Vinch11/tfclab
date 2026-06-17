@@ -977,7 +977,14 @@ export default function RaceSimulationPage() {
                 </div>
               )}
 
+              <Alert className="text-[11px] sm:text-xs py-2 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40">
+                <Info className="h-3.5 w-3.5" />
+                <AlertDescription>
+                  <strong>💡 Pourquoi ce chiffre ?</strong> Le couloir vert est l'intensité optimale calculée depuis ton ratio FTP/VLamax : plus ta VLamax est élevée, plus tu brûles vite ton glycogène et plus le plafond est resserré. Ta TTE et ton potentiel physiologique du jour ajustent ensuite la largeur du couloir.
+                </AlertDescription>
+              </Alert>
               {envelope ? (
+
                 <PacingEnvelopeCard
                   input={{
                     vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore,
