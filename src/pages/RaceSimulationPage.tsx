@@ -1195,7 +1195,7 @@ export default function RaceSimulationPage() {
                 <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
                   <Info className="h-3.5 w-3.5" />
                   <AlertDescription>
-                    Ta nutrition n'est pas générique : elle suit ta consommation réelle de glucides à l'allure cible. Les protocoles ci-dessous sont chiffrés sur <strong>ton</strong> métabolisme.
+                    Ta nutrition n'est pas générique : elle suit ta consommation réelle de glucides à l'allure cible. Le protocole ci-dessous est chiffré sur <strong>ton</strong> métabolisme.
                   </AlertDescription>
                 </Alert>
               )}
