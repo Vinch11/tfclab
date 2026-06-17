@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Info, Calendar, FlaskConical } from 'lucide-react';
+import { ArrowLeft, Info, Calendar, FlaskConical, FileDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -32,7 +32,7 @@ import { CaffeineProtocolCard } from '@/components/CaffeineProtocolCard';
 import { CarbLoadingCard } from '@/components/CarbLoadingCard';
 import { GutTrainingCard } from '@/components/GutTrainingCard';
 import { HydrationProtocolCard } from '@/components/HydrationProtocolCard';
-import { RecoveryNutritionCard } from '@/components/RecoveryNutritionCard';
+// RecoveryNutritionCard supprimée : NutritionUnifiedCard (V3 Mader/Jeukendrup) sert de moteur unique.
 import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
 import { NutritionUnifiedCard } from '@/components/NutritionUnifiedCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -52,6 +52,9 @@ import { simulatePacingScenarios } from '@/lib/v2/pacingScenarioSimulator';
 import { SIMULATION_DEFINITIONS } from '@/lib/v2/raceSimulation';
 import type { RaceObjective } from '@/lib/v2/pacingEnvelopeEngine';
 import { supabase } from '@/integrations/supabase/client';
+import { openPrintableHTML } from '@/lib/openPrintableHTML';
+import { buildRaceSimulationHTML } from '@/lib/raceSimulation/buildRaceSimulationHTML';
+
 
 export default function RaceSimulationPage() {
   const navigate = useNavigate();
@@ -509,8 +512,38 @@ export default function RaceSimulationPage() {
       raceDurationMin,
     });
   }, [envelope, raceObjective, vlamaxEffectif, vlamaxRunEffectif, discipline, tteEffectif, raceDurationMin]);
-  
+
+  const handleExportReport = React.useCallback(() => {
+    const html = buildRaceSimulationHTML({
+      athleteName: selectedAthlete?.nom ?? 'Athlète',
+      raceObjective: String(raceObjective),
+      raceDurationMin,
+      generatedAt: new Date().toLocaleString('fr-FR'),
+      physio: {
+        ftp: activeSnapshot?.ftp ?? null,
+        vma: activeSnapshot?.vma ?? null,
+        paceThresholdSecKm: paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? null,
+        vlamax: vlamaxEffectif?.value ?? null,
+        vlamaxRun: vlamaxRunEffectif?.value ?? null,
+        vo2max: activeSnapshot?.vo2max ?? null,
+        tteMin: tteEffectif?.tte_min ?? null,
+        tteMinRun: tteEffectifRun?.tte_min ?? null,
+        weightKg: activeSnapshot?.weight_kg ?? null,
+        potentielScore: potentielPhysiologiqueScore ?? null,
+      },
+      envelope: envelope ?? null,
+      envelopeBike: envelopeBike ?? null,
+      envelopeRun: envelopeRun ?? null,
+      scenarios: scenarios ?? null,
+    });
+    openPrintableHTML(html, {
+      filenameHint: `Simulation_${(selectedAthlete?.nom ?? 'athlete').replace(/\s+/g, '_')}_${raceObjective}`,
+      autoPrint: false,
+    });
+  }, [selectedAthlete, raceObjective, raceDurationMin, activeSnapshot, paceThresholdOverrideSecKm, vlamaxEffectif, vlamaxRunEffectif, tteEffectif, tteEffectifRun, potentielPhysiologiqueScore, envelope, envelopeBike, envelopeRun, scenarios]);
+
   return (
+
     <SidebarLayout
       activeTab={activeTab}
       onTabChange={setActiveTab}
@@ -544,6 +577,18 @@ export default function RaceSimulationPage() {
                 <span className="hidden xs:inline">Audit pacing</span>
               </Link>
             </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5 h-8 text-xs sm:text-sm"
+              onClick={handleExportReport}
+              disabled={!selectedAthlete}
+              title="Ouvrir une page imprimable / exporter en PDF"
+            >
+              <FileDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">📄 Exporter le rapport</span>
+            </Button>
+
             {envelope && rules && scenarios && (
               <Dialog defaultOpen={searchParams.get('briefing') === '1'}>
                 <DialogTrigger asChild>
@@ -932,7 +977,14 @@ export default function RaceSimulationPage() {
                 </div>
               )}
 
+              <Alert className="text-[11px] sm:text-xs py-2 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40">
+                <Info className="h-3.5 w-3.5" />
+                <AlertDescription>
+                  <strong>💡 Pourquoi ce chiffre ?</strong> Le couloir vert est l'intensité optimale calculée depuis ton ratio FTP/VLamax : plus ta VLamax est élevée, plus tu brûles vite ton glycogène et plus le plafond est resserré. Ta TTE et ton potentiel physiologique du jour ajustent ensuite la largeur du couloir.
+                </AlertDescription>
+              </Alert>
               {envelope ? (
+
                 <PacingEnvelopeCard
                   input={{
                     vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore,
@@ -986,6 +1038,13 @@ export default function RaceSimulationPage() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
+              <Alert className="text-[11px] sm:text-xs py-2 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40">
+                <Info className="h-3.5 w-3.5" />
+                <AlertDescription>
+                  <strong>💡 Pourquoi ce chiffre ?</strong> <em>Robuste</em> = on reste dans la moitié basse du couloir, risque physiologique minimal et marge pour finir fort. <em>Ambitieux</em> = on vise le centre, perf optimisée si la TTE le permet. <em>Agressif</em> = on flirte avec le plafond toléré, gain marginal mais risque réel d'effondrement glycogénique ou cardiaque dans le dernier tiers.
+                </AlertDescription>
+              </Alert>
+
               {lcwActive && lcwSegment === 'swim' ? (
                 <Alert className="text-[11px] sm:text-xs py-2">
                   <Info className="h-3.5 w-3.5" />
@@ -1145,6 +1204,13 @@ export default function RaceSimulationPage() {
                   </AlertDescription>
                 </Alert>
               )}
+              <Alert className="text-[11px] sm:text-xs py-2 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40">
+                <Info className="h-3.5 w-3.5" />
+                <AlertDescription>
+                  <strong>💡 Pourquoi ce chiffre ?</strong> Les grammes de glucides par heure ne sont pas génériques : ils sont calculés depuis ta dépendance glycolytique mesurée par la VLamax (moteur unifié V3 — Mader-Heck + Jeukendrup). Plus la VLamax est haute, plus tu vides ton glycogène vite et plus la cible CHO/h monte. La durée de course module ensuite la bande recommandée.
+                </AlertDescription>
+              </Alert>
+
               {!activeSnapshot?.weight_kg ? (
                 <div className="text-center py-6 text-sm text-muted-foreground">Poids athlète manquant — protocoles indisponibles</div>
               ) : (
@@ -1167,14 +1233,8 @@ export default function RaceSimulationPage() {
                     weightKg={activeSnapshot.weight_kg}
                     staffMode={staffMode}
                   />
-                  <RecoveryNutritionCard
-                    input={{
-                      weightKg: activeSnapshot.weight_kg, durationMin: raceDurationMin,
-                      intensity: raceDurationMin >= 240 ? 'depleting' : 'high',
-                      goal: 'full_recovery_48h', hotConditions: false,
-                    }}
-                    staffMode={staffMode}
-                  />
+                  {/* RecoveryNutritionCard retirée : la récup est portée par NutritionUnifiedCard V3 plus bas. */}
+
                   <ErgogenicAidsCard
                     weightKg={activeSnapshot.weight_kg}
                     durationMin={raceDurationMin}
