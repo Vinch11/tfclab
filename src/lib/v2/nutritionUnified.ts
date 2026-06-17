@@ -762,8 +762,9 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
 
   // Durée estimée
   const durationH = input.targetDurationHours
-    ?? (DURATION_BY_OBJECTIF[input.objectif]?.[isCAPLike(sport) ? 'cap' : 'velo'] ?? null)
-    ?? DEFAULT_DURATION_BY_SPORT[sport] ?? null;
+    ?? DURATION_BY_OBJECTIF[input.objectif]?.[isCAPLike(sport) ? 'cap' : 'velo']
+    ?? DEFAULT_DURATION_BY_SPORT[sport]
+    ?? null;
 
   // Calcul glucides
   const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, input.targetIntensityPct, durationH, input.heatCondition);
