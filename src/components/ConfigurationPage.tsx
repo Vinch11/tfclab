@@ -45,7 +45,7 @@ export function ConfigurationPage() {
 
   const [nolioRecordsLoading, setNolioRecordsLoading] = useState(false);
   const [nolioRecordsResult, setNolioRecordsResult] = useState<{ message: string; isError: boolean } | null>(null);
-  const [nolioRecordsDebug, setNolioRecordsDebug] = useState<{ url: string; status: number | null; body: string; phase: string } | null>(null);
+  
 
   const [linkedAthletes, setLinkedAthletes] = useState<LinkedAthlete[]>([]);
   const [syncTarget, setSyncTarget] = useState<string>("all");
@@ -243,7 +243,6 @@ export function ConfigurationPage() {
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
     const url = `${supabaseUrl}/functions/v1/nolio-records`;
-    setNolioRecordsDebug({ url, status: null, body: "", phase: "Appel en cours vers nolio-records…" });
     console.log("[nolio-records] calling", url);
 
     try {
@@ -258,7 +257,7 @@ export function ConfigurationPage() {
       });
       const rawBody = await resp.text();
       console.log("[nolio-records] status", resp.status, "body", rawBody);
-      setNolioRecordsDebug({ url, status: resp.status, body: rawBody, phase: `Réponse HTTP ${resp.status}` });
+      
 
       if (!resp.ok) {
         setNolioRecordsResult({ message: `HTTP ${resp.status}: ${rawBody.slice(0, 200)}`, isError: true });
@@ -275,7 +274,7 @@ export function ConfigurationPage() {
     } catch (e) {
       const msg = (e as Error).message ?? "Échec de l'import des records";
       console.error("[nolio-records] fetch failed (pré-edge function)", e);
-      setNolioRecordsDebug({ url, status: null, body: `FETCH ERROR: ${msg}`, phase: "Échec avant edge function" });
+      
       setNolioRecordsResult({ message: `Échec réseau : ${msg}`, isError: true });
       toast({ title: "Erreur d'import", description: msg, variant: "destructive" });
     } finally {
@@ -535,22 +534,6 @@ export function ConfigurationPage() {
                 </div>
               )}
 
-              {nolioRecordsDebug && (
-                <div className="p-3 rounded-lg border border-amber-500/40 bg-amber-500/5 space-y-2">
-                  <div className="text-xs font-semibold text-amber-700 dark:text-amber-400">
-                    🐞 Debug nolio-records (temporaire)
-                  </div>
-                  <div className="text-xs font-mono break-all"><b>URL:</b> {nolioRecordsDebug.url}</div>
-                  <div className="text-xs"><b>Phase:</b> {nolioRecordsDebug.phase}</div>
-                  <div className="text-xs"><b>Status HTTP:</b> {nolioRecordsDebug.status ?? "—"}</div>
-                  <details open>
-                    <summary className="text-xs cursor-pointer"><b>Body brut</b></summary>
-                    <pre className="text-[10px] whitespace-pre-wrap break-all bg-background/60 p-2 rounded max-h-64 overflow-auto">
-{nolioRecordsDebug.body || "(vide)"}
-                    </pre>
-                  </details>
-                </div>
-              )}
 
 
 

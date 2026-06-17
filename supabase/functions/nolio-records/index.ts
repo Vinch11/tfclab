@@ -204,10 +204,17 @@ Deno.serve(async (req) => {
 
     const summary: Array<{ athlete: string; imported: number; errors: string[] }> = [];
     let totalImported = 0;
+    const seenNolioIds = new Set<number>();
 
     for (const ath of athletes ?? []) {
       const nolioId = (ath as any).nolio_id as number;
       const athleteId = (ath as any).id as string;
+      if (seenNolioIds.has(nolioId)) {
+        console.log(`skipped: duplicate nolio_id ${nolioId} (athlete ${(ath as any).name})`);
+        summary.push({ athlete: (ath as any).name ?? String(athleteId), imported: 0, errors: [`skipped: duplicate nolio_id ${nolioId}`] } as any);
+        continue;
+      }
+      seenNolioIds.add(nolioId);
       const errors: string[] = [];
       const rowsToUpsert: Array<Record<string, unknown>> = [];
 
