@@ -40,6 +40,7 @@ import BikeTrackDayPage from "./pages/BikeTrackDayPage";
 import SwimPoolDayPage from "./pages/SwimPoolDayPage";
 import TriTestDayPage from "./pages/TriTestDayPage";
 import TrailSimulationPage from "./pages/TrailSimulationPage";
+import EvolutionPage from "./pages/EvolutionPage";
 
 const queryClient = new QueryClient();
 
@@ -130,6 +131,7 @@ export default function App() {
                 {/* RUNNING PROFILE (accessible via dashboard)  */}
                 {/* ═══════════════════════════════════════════ */}
                 <Route path="/running-profile" element={<ProtectedRoute><RunningProfilePage /></ProtectedRoute>} />
+                <Route path="/evolution" element={<ProtectedRoute><EvolutionPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* LEGACY REDIRECTS                            */}
