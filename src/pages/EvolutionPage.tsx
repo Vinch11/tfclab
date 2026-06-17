@@ -326,10 +326,123 @@ export default function EvolutionPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 3 — RECORDS NOLIO                                       */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-amber-500" />
+              🏆 Records Nolio
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Meilleures performances importées depuis Nolio (par puissance, allure, natation).
+            </p>
+          </CardHeader>
+          <CardContent>
+            {records.length === 0 ? (
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  Aucun record Nolio importé. Lancez l'import depuis la page Configuration.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <div className="space-y-6">
+                <RecordsBlock
+                  title="🚴 Vélo — Records puissance"
+                  rows={bikeRecords}
+                  formatValue={(v) => `${Math.round(v)} W`}
+                />
+                <RecordsBlock
+                  title="🏃 Running — Records allure"
+                  rows={runRecords}
+                  formatValue={(v) => formatPaceMinPerKm(v)}
+                />
+                <RecordsBlock
+                  title="🏊 Natation — Records allure"
+                  rows={swimRecords}
+                  formatValue={(v) => formatPaceMinPer100m(v)}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
 }
+
+// ─── Records helpers ───────────────────────────────────────────────────────
+type RecordRow = {
+  cat: string; record_type: string; item_seconds: number; value: number;
+  date_recorded: string | null; sport_id: number;
+};
+
+function pickClosest(arr: RecordRow[], target: number): RecordRow | null {
+  if (!arr.length) return null;
+  // tolérance : ±20% autour de la cible
+  const tol = Math.max(2, target * 0.2);
+  const candidates = arr.filter(r => Math.abs(r.item_seconds - target) <= tol);
+  const pool = candidates.length ? candidates : arr;
+  return pool.reduce((best, r) =>
+    Math.abs(r.item_seconds - target) < Math.abs(best.item_seconds - target) ? r : best,
+    pool[0],
+  );
+}
+
+function formatDurationLabel(s: number): string {
+  if (s < 60) return `P${s}s`;
+  if (s < 3600) return `P${Math.round(s / 60)}min`;
+  return `P${(s / 3600).toFixed(1)}h`;
+}
+
+function formatPaceMinPerKm(secPerKm: number): string {
+  const m = Math.floor(secPerKm / 60);
+  const s = Math.round(secPerKm % 60);
+  return `${m}:${String(s).padStart(2, "0")}/km`;
+}
+
+function formatPaceMinPer100m(secPer100m: number): string {
+  const m = Math.floor(secPer100m / 60);
+  const s = Math.round(secPer100m % 60);
+  return `${m}:${String(s).padStart(2, "0")}/100m`;
+}
+
+function RecordsBlock({
+  title, rows, formatValue,
+}: {
+  title: string;
+  rows: Array<{ target: number; label: string; record: RecordRow | null }>;
+  formatValue: (v: number) => string;
+}) {
+  return (
+    <div>
+      <div className="font-semibold text-sm mb-2">{title}</div>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        {rows.map((row) => (
+          <div key={row.label} className="rounded-lg border p-3 bg-card">
+            <div className="text-xs text-muted-foreground">{row.label}</div>
+            {row.record ? (
+              <>
+                <div className="text-lg font-bold mt-1">{formatValue(row.record.value)}</div>
+                <div className="text-[10px] text-muted-foreground mt-1">
+                  {row.record.date_recorded
+                    ? new Date(row.record.date_recorded).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })
+                    : "—"}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground mt-1">—</div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 // ─── Sub-components ────────────────────────────────────────────────────────
 function KpiCard({ label, value, sublabel, color }: { label: string; value: string; sublabel: string; color: string }) {
