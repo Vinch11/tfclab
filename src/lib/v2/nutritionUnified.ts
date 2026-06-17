@@ -595,6 +595,48 @@ function generatePhases(
     });
   }
 
+  // NIGHT (ultra >12h) — caféine + aliments chauds
+  // Réf : Knechtle 2012, Stellingwerff 2016
+  if (isNightUltra) {
+    const caffeineMgLow = Math.round(weightKg * 1);
+    const caffeineMgHigh = Math.round(weightKg * 3);
+    const nightCarbs = clamp(Math.round(carbsCentral * 0.85), 30, maxBound);
+    const nightDurMin = Math.max(60, Math.round(durMin * 0.20));
+    phases.push({
+      name: 'NIGHT',
+      label: 'Nuit / longue durée (>12h)',
+      timeRange: 'Après 12h de course',
+      carbsGh: nightCarbs,
+      carbsGhRange: `${Math.max(30, nightCarbs - 10)}–${Math.min(maxBound, nightCarbs)}`,
+      durationMin: nightDurMin,
+      totalCarbsG: Math.round((nightCarbs * nightDurMin) / 60),
+      totalKcal: Math.round((nightCarbs * nightDurMin) / 60) * 4,
+      products: [
+        ...generateProducts(nightCarbs, sport, tolerance),
+        {
+          type: 'solid',
+          label: 'Bouillon chaud / soupe',
+          carbsPerUnit: 10,
+          volumeMl: 250,
+          frequency: 'Toutes les 60-90 min',
+          notes: 'Confort gastrique + sodium + chaleur (terrain froid)',
+        },
+        {
+          type: 'drink',
+          label: `Caféine ${caffeineMgLow}-${caffeineMgHigh} mg`,
+          carbsPerUnit: 0,
+          frequency: 'Toutes les 3-4h',
+          notes: `1-3 mg/kg (poids ${weightKg} kg). Vigilance + perception effort. Réf. Burke 2008.`,
+        },
+      ],
+      hydrationMlH: 0,
+      sodiumMgH: 0,
+      frequencyMin: 30,
+      athleteMessage: "Ralentis le rythme alimentaire — petites bouchées fréquentes. Privilégie chaud (bouillon, soupe). Caféine pour rester lucide.",
+      staffMessage: `NIGHT: ${nightCarbs} g/h (−15% vs MID), caféine ${caffeineMgLow}-${caffeineMgHigh} mg/3-4h, aliments chauds. Fenêtre gastrique réduite — fractionner ×30 min.`,
+    });
+  }
+
   return phases;
 }
 
