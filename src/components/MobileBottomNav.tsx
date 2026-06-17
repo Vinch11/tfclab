@@ -17,6 +17,7 @@ import {
   FileDown,
   ScrollText,
   SlidersHorizontal,
+  TrendingUp,
 } from "lucide-react";
 import { Footprints } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ const tabs = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3, route: "/" },
   { id: "athletes", label: "Athlètes", icon: Users, route: "/athletes" },
   { id: "essentiels", label: "Essent.", icon: Sparkles, route: "/essentiels" },
+  { id: "evolution", label: "Évolution", icon: TrendingUp, route: "/evolution" },
   { id: "diagnostic", label: "Diag.", icon: Stethoscope, route: "/diagnostic" },
   { id: "planning", label: "Plan", icon: ClipboardList, route: "/planning" },
   { id: "simulation", label: "Simul.", icon: Timer, route: "/race" },
@@ -110,7 +112,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
         {staffMode && (
           <div className="absolute top-0 left-0 right-0 h-px bg-primary/40" />
         )}
-        <div className="grid grid-cols-8 h-14">
+        <div className="grid grid-cols-9 h-14">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = isActive(tab);
