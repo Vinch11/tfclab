@@ -31,6 +31,9 @@ import { computeWorkoutRecommendations, type RecommendationContext } from "@/lib
 import { generateWorkoutAdvisories, type AdvisoryContext } from "@/lib/workoutAdvisoryEngine";
 import { computeStrategicRoadmap, type StrategicRoadmap } from "@/lib/v2/strategicRoadmap";
 import { getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
+import { computeRaceSimulation, normalizeRaceType } from "@/lib/v2/raceSimulation";
+import { computeNutritionUnified } from "@/lib/v2/nutritionUnified";
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ORCHESTRATEUR PRINCIPAL
