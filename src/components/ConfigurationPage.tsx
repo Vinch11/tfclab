@@ -243,7 +243,6 @@ export function ConfigurationPage() {
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
     const url = `${supabaseUrl}/functions/v1/nolio-records`;
-    setNolioRecordsDebug({ url, status: null, body: "", phase: "Appel en cours vers nolio-records…" });
     console.log("[nolio-records] calling", url);
 
     try {
