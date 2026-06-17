@@ -311,6 +311,19 @@ Deno.serve(async (req) => {
       } as any);
     }
 
+    // Log dans nolio_sync_log pour traçabilité
+    try {
+      await admin.from("nolio_sync_log").insert({
+        user_id: userId,
+        status: "success",
+        athletes_count: athletes?.length ?? 0,
+        notes: { source: "nolio-records", total_records: totalImported, summary },
+        synced_at: new Date().toISOString(),
+      });
+    } catch (logErr) {
+      console.warn("sync_log insert failed", logErr);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -322,6 +335,18 @@ Deno.serve(async (req) => {
     );
   } catch (e) {
     console.error("nolio-records error", e);
+    try {
+      const adminErr = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+      await adminErr.from("nolio_sync_log").insert({
+        status: "error",
+        error_message: `nolio-records: ${(e as Error).message}`,
+        notes: { source: "nolio-records", stack: (e as Error).stack?.slice(0, 500) },
+        synced_at: new Date().toISOString(),
+      });
+    } catch (_) { /* ignore */ }
     return new Response(
       JSON.stringify({ error: (e as Error).message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
