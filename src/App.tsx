@@ -39,6 +39,7 @@ import TrackDayPage from "./pages/TrackDayPage";
 import BikeTrackDayPage from "./pages/BikeTrackDayPage";
 import SwimPoolDayPage from "./pages/SwimPoolDayPage";
 import TriTestDayPage from "./pages/TriTestDayPage";
+import TrailSimulationPage from "./pages/TrailSimulationPage";
 
 const queryClient = new QueryClient();
 
@@ -118,6 +119,7 @@ export default function App() {
                 {/* ═══════════════════════════════════════════ */}
                 <Route path="/race" element={<ProtectedRoute><RaceSimulationPage /></ProtectedRoute>} />
                 <Route path="/race/pacing-audit" element={<ProtectedRoute><PacingAuditPage /></ProtectedRoute>} />
+                <Route path="/simulation/trail" element={<ProtectedRoute><TrailSimulationPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* SECTION 6 — ACADEMY                        */}
