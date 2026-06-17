@@ -252,6 +252,9 @@ export function ConfigurationPage() {
     } finally {
       setNolioRecordsLoading(false);
     }
+  };
+
+
 
   const formatLastSync = (iso: string | null) => {
     if (!iso) return null;
