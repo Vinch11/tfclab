@@ -46,6 +46,8 @@ import {
   Wrench,
   Bike,
   Footprints,
+  Mountain,
+  Zap as Lightning,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimatedTabsContent } from "@/components/ui/animated-tabs-content";
@@ -71,7 +73,7 @@ interface NutritionUnifiedCardProps {
   vlamaxConfidence?: number;
   vo2max?: number | null;
   tteMin: number | null;
-  sport: 'velo' | 'cap';
+  sport: 'velo' | 'cap' | 'trail' | 'ultra';
   objectif: string;
   targetDurationHours?: number | null;
   targetIntensityPct?: number | null;
@@ -90,7 +92,7 @@ interface NutritionUnifiedCardProps {
 
 const ProductItem = ({ product }: { product: NutritionProduct }) => {
   const icons: Record<string, string> = {
-    gel: '💧', drink: '🥤', bar: '🍫', chew: '🍬',
+    gel: '💧', drink: '🥤', bar: '🍫', chew: '🍬', solid: '🥖',
   };
   return (
     <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
@@ -131,9 +133,10 @@ const PhaseCard = ({ phase, isStaff }: { phase: NutritionPhaseUnified; isStaff: 
     START: 'bg-primary/5 border-primary/20',
     MID: 'bg-accent/5 border-accent/20',
     LATE: 'bg-warning/5 border-warning/20',
+    NIGHT: 'bg-indigo-500/5 border-indigo-500/30',
   };
   const labelIcons: Record<string, string> = {
-    PRE: '📋', START: '🚀', MID: '⚡', LATE: '🔥',
+    PRE: '📋', START: '🚀', MID: '⚡', LATE: '🔥', NIGHT: '🌙',
   };
 
   return (
@@ -242,7 +245,8 @@ export function NutritionUnifiedCard({
     );
   }
 
-  const SportIcon = sport === 'cap' ? Footprints : Bike;
+  const SportIcon = sport === 'ultra' ? Lightning : sport === 'trail' ? Mountain : sport === 'cap' ? Footprints : Bike;
+  const sportEmoji = sport === 'ultra' ? '⚡' : sport === 'trail' ? '🏔️' : sport === 'cap' ? '🏃' : '🚴';
 
   return (
     <Card className={className}>
@@ -283,7 +287,7 @@ export function NutritionUnifiedCard({
         {/* Sport label */}
         <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
           <SportIcon className="w-3 h-3" />
-          <span>{nutrition.sportLabel} • {objectif}</span>
+          <span>{sportEmoji} {nutrition.sportLabel} • {objectif}</span>
           {nutrition.durationHours && <span>• ~{nutrition.durationHours}h</span>}
         </div>
       </CardHeader>
