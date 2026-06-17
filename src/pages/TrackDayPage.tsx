@@ -577,6 +577,9 @@ export default function TrackDayPage() {
             <div>
               <Label>Temps 400m (sec)</Label>
               <Input type="number" step="0.01" value={t400m} onChange={(e) => setT400m(e.target.value)} placeholder="62.0" />
+              {fmtNolioDate(nolioDates.t400m) && (
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.t400m)}</div>
+              )}
             </div>
             <div>
               <Label>Temps 600m (sec)</Label>
