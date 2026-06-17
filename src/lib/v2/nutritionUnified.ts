@@ -20,9 +20,10 @@ import { calculateCarbOxidation } from './maderMetabolicModel';
 // =============================================
 
 export type NutritionRisk = 'low' | 'moderate' | 'high' | 'critical';
+export type NutritionSport = 'velo' | 'cap' | 'trail' | 'ultra';
 
 export interface NutritionProduct {
-  type: 'gel' | 'drink' | 'bar' | 'chew';
+  type: 'gel' | 'drink' | 'bar' | 'chew' | 'solid';
   label: string;
   carbsPerUnit: number;
   volumeMl?: number;
@@ -31,7 +32,7 @@ export interface NutritionProduct {
 }
 
 export interface NutritionPhaseUnified {
-  name: 'PRE' | 'START' | 'MID' | 'LATE';
+  name: 'PRE' | 'START' | 'MID' | 'LATE' | 'NIGHT';
   label: string;
   timeRange: string;
   carbsGh: number;
@@ -109,7 +110,7 @@ export interface NutritionUnifiedResult {
   confidence: number;
 
   // Contexte
-  sport: 'velo' | 'cap';
+  sport: NutritionSport;
   sportLabel: string;
   objectif: string;
   durationHours: number | null;
@@ -123,7 +124,7 @@ export interface NutritionUnifiedInput {
   vlamaxConfidence?: number;
   vo2max?: number | null;
   tteMin: number | null;
-  sport: 'velo' | 'cap';
+  sport: NutritionSport;
   objectif: string;
   targetDurationHours: number | null;
   targetIntensityPct: number | null;
