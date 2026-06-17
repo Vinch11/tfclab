@@ -1167,14 +1167,8 @@ export default function RaceSimulationPage() {
                     weightKg={activeSnapshot.weight_kg}
                     staffMode={staffMode}
                   />
-                  <RecoveryNutritionCard
-                    input={{
-                      weightKg: activeSnapshot.weight_kg, durationMin: raceDurationMin,
-                      intensity: raceDurationMin >= 240 ? 'depleting' : 'high',
-                      goal: 'full_recovery_48h', hotConditions: false,
-                    }}
-                    staffMode={staffMode}
-                  />
+                  {/* RecoveryNutritionCard retirée : la récup est portée par NutritionUnifiedCard V3 plus bas. */}
+
                   <ErgogenicAidsCard
                     weightKg={activeSnapshot.weight_kg}
                     durationMin={raceDurationMin}
