@@ -131,6 +131,7 @@ export default function App() {
                 {/* RUNNING PROFILE (accessible via dashboard)  */}
                 {/* ═══════════════════════════════════════════ */}
                 <Route path="/running-profile" element={<ProtectedRoute><RunningProfilePage /></ProtectedRoute>} />
+                <Route path="/evolution" element={<ProtectedRoute><EvolutionPage /></ProtectedRoute>} />
 
                 {/* ═══════════════════════════════════════════ */}
                 {/* LEGACY REDIRECTS                            */}
