@@ -1879,7 +1879,7 @@ export default function AITrainingPlanPage() {
                                 sport: sport === 'cap' ? 'run' : 'bike',
                                 objectif: objective || currentAthlete.goal || 'IM',
                               }) : null;
-                              const goalLabel = raceGoals?.[0]?.race_type || objective || currentAthlete.goal || 'IM';
+                              const goalLabel = raceGoals?.[0]?.objective || objective || currentAthlete.goal || 'IM';
                               return (
                                 <NutritionUnifiedCard
                                   vlamaxValue={vlaRes?.value ?? null}
