@@ -476,6 +476,38 @@ export function ConfigurationPage() {
                 </div>
               </div>
 
+              {/* Importer les records Nolio */}
+              <div className="flex flex-col gap-3 p-4 rounded-xl bg-muted/30 border sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Trophy className={cn("w-5 h-5 text-primary", nolioRecordsLoading && "animate-pulse")} />
+                  </div>
+                  <div>
+                    <Label className="font-medium text-base">Importer les records Nolio</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Récupère les records puissance (vélo), allure (run) et natation depuis Nolio.
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={handleImportNolioRecords} disabled={nolioRecordsLoading}>
+                  {nolioRecordsLoading ? "Import en cours..." : "Importer les records"}
+                </Button>
+              </div>
+
+              {nolioRecordsResult && (
+                <div className={cn(
+                  "flex items-center gap-2 p-3 rounded-lg border",
+                  nolioRecordsResult.isError
+                    ? "bg-destructive/10 border-destructive/30 text-destructive"
+                    : "bg-success/10 border-success/30 text-success"
+                )}>
+                  {nolioRecordsResult.isError ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                  <span className="text-sm font-medium">{nolioRecordsResult.message}</span>
+                </div>
+              )}
+
+
+
 
               {nolioSyncSuccess && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30 text-success">
