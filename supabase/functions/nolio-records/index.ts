@@ -227,7 +227,7 @@ Deno.serve(async (req) => {
           const shouldCapture = nolioId === 338386;
           const records = await fetchRecords(accessToken, nolioId, q.cat, q.recordType, q.sports, shouldCapture);
           for (const r of records) {
-            const item_seconds = Number(r.item_seconds);
+            const item_seconds = Number((r as any).inner_val ?? r.item_seconds);
             const value = Number(r.value);
             const sport_id = Number(r.sport_id ?? r.sport ?? q.defaultSportIds[0]);
             if (!Number.isFinite(item_seconds) || !Number.isFinite(value) || !Number.isFinite(sport_id)) continue;
