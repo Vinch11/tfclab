@@ -432,6 +432,9 @@ export default function BikeTrackDayPage() {
             <div>
               <Label>P 20 min (W)</Label>
               <Input type="number" value={p20min} onChange={(e) => setP20min(e.target.value)} placeholder="290" />
+              {fmtNolioDate(nolioDates.p20min) && (
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.p20min)}</div>
+              )}
             </div>
             <div>
               <Label>FC moyenne 20' (bpm)</Label>
