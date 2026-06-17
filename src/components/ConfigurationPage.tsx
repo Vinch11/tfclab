@@ -257,7 +257,7 @@ export function ConfigurationPage() {
       });
       const rawBody = await resp.text();
       console.log("[nolio-records] status", resp.status, "body", rawBody);
-      setNolioRecordsDebug({ url, status: resp.status, body: rawBody, phase: `Réponse HTTP ${resp.status}` });
+      
 
       if (!resp.ok) {
         setNolioRecordsResult({ message: `HTTP ${resp.status}: ${rawBody.slice(0, 200)}`, isError: true });
