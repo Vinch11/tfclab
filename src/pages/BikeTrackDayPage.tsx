@@ -9,7 +9,7 @@
  *  - Mader 1976 (VLamax glycolytique)
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,11 +17,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bike, Activity, Zap, Target, Heart, Save, ArrowLeft } from "lucide-react";
+import { Bike, Activity, Zap, Target, Heart, Save, ArrowLeft, Download } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { supabase } from "@/integrations/supabase/client";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
