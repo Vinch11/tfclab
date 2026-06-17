@@ -736,6 +736,14 @@ function generateWarnings(input: NutritionUnifiedInput, carbsCentral: number, ri
     staffW.push('Durée >4h: fractionner, alterner textures, surveiller Na+.');
     athleteW.push('Course de plus de 4h : alterne les produits pour ne pas te dégoûter.');
   }
+  if (isTrailOrUltra(input.sport)) {
+    staffW.push('Trail/Ultra : tolérance GI réduite en montée — privilégier 60 g/h max sur les ascensions, solides en plat/descente.');
+    athleteW.push('En montée, ton estomac digère moins bien. Vise 60g/h max et passe aux solides (dattes, banane) sur le plat.');
+  }
+  if (isUltra(input.sport)) {
+    staffW.push('Ultra : après 8h, fenêtre gastrique réduite. Petites quantités fréquentes (15-20g toutes les 20min) plutôt que grosses prises. Réduction CHO liquides → solides après 6h (Pfeiffer 2012, Stellingwerff 2016).');
+    athleteW.push('Après 8h, la fenêtre gastrique se réduit. Privilégiez les petites quantités fréquentes (15-20g toutes les 20min) plutôt que les grosses prises.');
+  }
 
   return { staff: staffW, athlete: athleteW };
 }
@@ -753,7 +761,9 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
   const advancedGut = input.advancedGutTraining ?? false;
 
   // Durée estimée
-  const durationH = input.targetDurationHours ?? (DURATION_BY_OBJECTIF[input.objectif]?.[sport] ?? null);
+  const durationH = input.targetDurationHours
+    ?? (DURATION_BY_OBJECTIF[input.objectif]?.[isCAPLike(sport) ? 'cap' : 'velo'] ?? null)
+    ?? DEFAULT_DURATION_BY_SPORT[sport] ?? null;
 
   // Calcul glucides
   const maderResult = computeBaseRateMader(input.weightKg, sport, input.vo2max, input.vlamaxValue, input.targetIntensityPct, durationH, input.heatCondition);
