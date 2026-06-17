@@ -1209,37 +1209,25 @@ export default function RaceSimulationPage() {
               {!activeSnapshot?.weight_kg ? (
                 <div className="text-center py-6 text-sm text-muted-foreground">Poids athlète manquant — protocoles indisponibles</div>
               ) : (
-                <>
-                  <CarbLoadingCard weightKg={activeSnapshot.weight_kg} durationMin={raceDurationMin} />
-                  <CaffeineProtocolCard weightKg={activeSnapshot.weight_kg} durationMin={raceDurationMin} sensitivity="unknown" habitualUser staffMode={staffMode} />
-                  <HydrationProtocolCard
-                    input={{
-                      weightKg: activeSnapshot.weight_kg, durationMin: raceDurationMin,
-                      sport: discipline === 'run' ? 'run' : 'bike', sweatLevel: 'average',
-                      sodiumPhenotype: 'average', tempC: 22, humidity: 60,
-                    }}
-                    staffMode={staffMode}
-                  />
-                  <GutTrainingCard
-                    currentLevel="developing"
-                    targetGph={raceDurationMin >= 240 ? 120 : raceDurationMin >= 150 ? 90 : 70}
-                    weeksAvailable={8}
-                    sport={discipline === 'run' ? 'cap' : 'velo'}
-                    weightKg={activeSnapshot.weight_kg}
-                    staffMode={staffMode}
-                  />
-                  {/* RecoveryNutritionCard retirée : la récup est portée par NutritionUnifiedCard V3 plus bas. */}
-
-                  <ErgogenicAidsCard
-                    weightKg={activeSnapshot.weight_kg}
-                    durationMin={raceDurationMin}
-                    discipline={discipline}
-                    hasRepeatedEfforts={(selectedAthlete as any)?.refs?.hasRepeatedEfforts ?? (discipline === 'bike' || raceDurationMin <= 60)}
-                    bicarbTested={Boolean((selectedAthlete as any)?.refs?.bicarbTested)}
-                    vegetarian={Boolean((selectedAthlete as any)?.refs?.vegetarian)}
-                    staffMode={staffMode}
-                  />
-                </>
+                (() => {
+                  const objStr = String((activeSnapshot as any)?.objectif || objectif || '').toLowerCase();
+                  const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
+                  const goalLabel = (raceGoals?.[0]?.race_type) || (activeSnapshot as any)?.objectif || objectif || 'IM';
+                  const vlamaxForNut = sport === 'cap' ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null) : (vlamaxEffectif?.value ?? null);
+                  return (
+                    <NutritionUnifiedCard
+                      vlamaxValue={vlamaxForNut}
+                      vlamaxConfidence={(sport === 'cap' ? vlamaxRunEffectif?.confidence : vlamaxEffectif?.confidence) ?? 0.7}
+                      vo2max={activeSnapshot?.vo2max ?? null}
+                      tteMin={(sport === 'cap' ? tteEffectifRun?.tte_min : tteEffectif?.tte_min) ?? null}
+                      sport={sport}
+                      objectif={String(goalLabel)}
+                      weightKg={activeSnapshot?.weight_kg ?? null}
+                      heatCondition={heatLevel === 'high'}
+                      staffMode={staffMode}
+                    />
+                  );
+                })()
               )}
             </AccordionContent>
           </AccordionItem>
