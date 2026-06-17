@@ -59,6 +59,11 @@ import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { predictRaceDurationMin } from "@/lib/raceTimePredictor";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { NutritionUnifiedCard } from "@/components/NutritionUnifiedCard";
+import { getEffectiveSnapshot } from "@/lib/effectiveRefs";
+import { computeVLamaxEffectif as computeVLamaxEffectifDiag, computeTTEEffectif } from "@/engines/diagnostic";
+import { Apple } from "lucide-react";
 
 const OBJECTIVE_OPTIONS = [
   { value: "IM", label: "Ironman" },
@@ -1840,6 +1845,56 @@ export default function AITrainingPlanPage() {
                       </TabsList>
                     </Tabs>
                     <div className="flex items-center gap-2">
+                      <Sheet>
+                        <SheetTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-1.5">
+                            <Apple className="h-4 w-4" /> Plan Nutritionnel
+                          </Button>
+                        </SheetTrigger>
+                        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+                          <SheetHeader>
+                            <SheetTitle>🍎 Plan Nutritionnel — {currentAthlete?.nom ?? 'Athlète'}</SheetTitle>
+                          </SheetHeader>
+                          <div className="mt-4">
+                            {(() => {
+                              if (!currentAthlete) return <p className="text-sm text-muted-foreground">Aucun athlète sélectionné.</p>;
+                              const athleteSnaps = snapshots.filter(s => s.athlete_id === currentAthlete.id);
+                              const snap = getEffectiveSnapshot(currentAthlete as any, athleteSnaps);
+                              const objStr = String((snap as any)?.objectif || objective || currentAthlete.goal || '').toLowerCase();
+                              const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
+                              const vlaRes = computeVLamaxEffectifDiag({
+                                athleteId: currentAthlete.id,
+                                objectif: objective || currentAthlete.goal || 'IM',
+                                activeSnapshotId: currentAthlete.active_snapshot_id ?? null,
+                                tests: tests ?? [],
+                                snapshots: athleteSnaps,
+                                sportOverride: sport === 'cap' ? 'cap' : undefined,
+                              });
+                              const tteRes = snap ? computeTTEEffectif({
+                                ftp: snap.ftp,
+                                tss_7d: (snap as any).tss_7d,
+                                tte_mode: (snap as any).tte_mode,
+                                tte_observed_min: (snap as any).tte_observed_min,
+                                tte_observed_min_run: (snap as any).tte_observed_min_run,
+                                sport: sport === 'cap' ? 'run' : 'bike',
+                                objectif: objective || currentAthlete.goal || 'IM',
+                              }) : null;
+                              const goalLabel = raceGoals?.[0]?.objective || objective || currentAthlete.goal || 'IM';
+                              return (
+                                <NutritionUnifiedCard
+                                  vlamaxValue={vlaRes?.value ?? null}
+                                  vlamaxConfidence={vlaRes?.confidence ?? 0.7}
+                                  vo2max={snap?.vo2max ?? null}
+                                  tteMin={tteRes?.tte_min ?? null}
+                                  sport={sport}
+                                  objectif={String(goalLabel)}
+                                  weightKg={snap?.weight_kg ?? null}
+                                />
+                              );
+                            })()}
+                          </div>
+                        </SheetContent>
+                      </Sheet>
                       <Button variant="ghost" size="sm" onClick={handleCopy}>
                         {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                       </Button>
