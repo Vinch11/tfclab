@@ -423,6 +423,35 @@ function generateProducts(carbsGh: number, sport: NutritionSport, tolerance: 'LO
     }
   }
 
+  // Trail / Ultra : ajouter aliments solides (dattes, banane, sandwich fromage)
+  // Réf : Pfeiffer 2012 (ultra), Stellingwerff 2016 (mix solide/liquide)
+  if (trailOrUltra) {
+    products.push({
+      type: 'solid',
+      label: 'Dattes / banane / pâte de fruits',
+      carbsPerUnit: 20,
+      frequency: ultra ? 'Toutes les 30-45 min après 3h' : 'Toutes les 45 min',
+      notes: 'Sucres rapides + texture solide pour confort gastrique',
+    });
+    products.push({
+      type: 'solid',
+      label: 'Sandwich fromage / pain saucisse',
+      carbsPerUnit: 35,
+      frequency: ultra ? '1 portion / 1h30 après 4h (mâcher lentement)' : 'Optionnel ravitaillement',
+      notes: 'Apport solide + lipides + sel — privilégier en montée à allure modérée',
+    });
+    if (ultra) {
+      products.push({
+        type: 'solid',
+        label: 'Bouillon / soupe chaude',
+        carbsPerUnit: 10,
+        volumeMl: 250,
+        frequency: 'Après 8h + en phase NIGHT',
+        notes: 'Sodium + chaleur + confort psychologique — réf. Knechtle 2012',
+      });
+    }
+  }
+
   return products;
 }
 
