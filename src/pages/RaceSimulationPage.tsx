@@ -1327,26 +1327,6 @@ export default function RaceSimulationPage() {
 
         </Accordion>
 
-        {/* ═══ NUTRITION UNIFIÉE (sport + objectif + chaleur depuis snapshot/sélecteur) ═══ */}
-        {selectedAthlete && activeSnapshot && (() => {
-          const objStr = String((activeSnapshot as any)?.objectif || objectif || '').toLowerCase();
-          const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
-          const goalLabel = (raceGoals?.[0]?.race_type) || (activeSnapshot as any)?.objectif || objectif || 'IM';
-          const vlamaxForNut = sport === 'cap' ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null) : (vlamaxEffectif?.value ?? null);
-          return (
-            <NutritionUnifiedCard
-              vlamaxValue={vlamaxForNut}
-              vlamaxConfidence={(sport === 'cap' ? vlamaxRunEffectif?.confidence : vlamaxEffectif?.confidence) ?? 0.7}
-              vo2max={activeSnapshot?.vo2max ?? null}
-              tteMin={(sport === 'cap' ? tteEffectifRun?.tte_min : tteEffectif?.tte_min) ?? null}
-              sport={sport}
-              objectif={String(goalLabel)}
-              weightKg={activeSnapshot?.weight_kg ?? null}
-              heatCondition={heatLevel === 'high'}
-              staffMode={staffMode}
-            />
-          );
-        })()}
 
         {/* Academy section - collapsible */}
         <details className="group">
