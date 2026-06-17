@@ -1204,6 +1204,13 @@ export default function RaceSimulationPage() {
                   </AlertDescription>
                 </Alert>
               )}
+              <Alert className="text-[11px] sm:text-xs py-2 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40">
+                <Info className="h-3.5 w-3.5" />
+                <AlertDescription>
+                  <strong>💡 Pourquoi ce chiffre ?</strong> Les grammes de glucides par heure ne sont pas génériques : ils sont calculés depuis ta dépendance glycolytique mesurée par la VLamax (moteur unifié V3 — Mader-Heck + Jeukendrup). Plus la VLamax est haute, plus tu vides ton glycogène vite et plus la cible CHO/h monte. La durée de course module ensuite la bande recommandée.
+                </AlertDescription>
+              </Alert>
+
               {!activeSnapshot?.weight_kg ? (
                 <div className="text-center py-6 text-sm text-muted-foreground">Poids athlète manquant — protocoles indisponibles</div>
               ) : (
