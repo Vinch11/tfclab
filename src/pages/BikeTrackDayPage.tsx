@@ -90,6 +90,46 @@ export default function BikeTrackDayPage() {
   const [fcFinZ2, setFcFinZ2] = useState("");
   const [puissanceZ2, setPuissanceZ2] = useState("");
 
+  // ─── Import Nolio ─────────────────────────────────────────────────────
+  const [nolioLoading, setNolioLoading] = useState(false);
+  const [nolioDates, setNolioDates] = useState<Record<string, string | null>>({});
+
+  const importFromNolio = async () => {
+    if (!currentAthlete) return;
+    setNolioLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("nolio_records" as any)
+        .select("item_seconds, value, date_recorded, sport_id, cat")
+        .eq("athlete_id", currentAthlete.id)
+        .eq("cat", "ppr")
+        .in("sport_id", [14, 18]);
+      if (error) throw error;
+      const rows = (data ?? []) as Array<{ item_seconds: number; value: number; date_recorded: string | null }>;
+      const pick = (sec: number) => {
+        const r = rows.find(x => x.item_seconds === sec);
+        return r ? { v: r.value, d: r.date_recorded } : null;
+      };
+      const dates: Record<string, string | null> = {};
+      const r5 = pick(5); if (r5) { setP10s(String(Math.round(r5.v))); dates.p10s = r5.d; }
+      const r30 = pick(30); if (r30) { setP30s(String(Math.round(r30.v))); dates.p30s = r30.d; }
+      const r60 = pick(60); if (r60) { setP60s(String(Math.round(r60.v))); dates.p60s = r60.d; }
+      const r300 = pick(300); if (r300) { setMap5min(String(Math.round(r300.v))); dates.map5min = r300.d; }
+      const r1200 = pick(1200); if (r1200) { setP20min(String(Math.round(r1200.v))); dates.p20min = r1200.d; }
+      setNolioDates(dates);
+      const count = Object.keys(dates).length;
+      toast({ title: "Records Nolio importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""}.` });
+    } catch (e) {
+      toast({ title: "Erreur import Nolio", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setNolioLoading(false);
+    }
+  };
+
+  const fmtNolioDate = (d: string | null | undefined) =>
+    d ? `Nolio · ${new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : null;
+
+
   const calc = useMemo(() => {
     const p10 = setup === "ht" ? num(p10s) : powerFromSpeed(massKg, num(v10s), num(s10s));
     const p30 = setup === "ht" ? num(p30s) : powerFromSpeed(massKg, num(v30s), num(s30s));
