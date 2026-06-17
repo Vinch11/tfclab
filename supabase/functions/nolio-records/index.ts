@@ -71,12 +71,24 @@ async function refreshIfNeeded(
   return json.access_token;
 }
 
+// Debug capture du premier appel (Vince / nolio_id=338386)
+type DebugCapture = {
+  url: string;
+  status: number;
+  status_text: string;
+  headers: Record<string, string>;
+  body_preview: string;
+  body_length: number;
+};
+const debugCaptures: DebugCapture[] = [];
+
 async function fetchRecords(
   accessToken: string,
   nolioAthleteId: number,
   cat: "ppr" | "par" | "phrr",
   recordType: "time" | "distance",
   sports?: number[],
+  captureRaw = false,
 ): Promise<NolioRecord[]> {
   const params = new URLSearchParams({
     cat,
@@ -90,18 +102,39 @@ async function fetchRecords(
   const resp = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
   });
+
+  // Capture brute pour debug (Vince)
+  let rawBody = "";
+  if (captureRaw) {
+    rawBody = await resp.text();
+    const headersObj: Record<string, string> = {};
+    resp.headers.forEach((v, k) => { headersObj[k] = v; });
+    debugCaptures.push({
+      url,
+      status: resp.status,
+      status_text: resp.statusText,
+      headers: headersObj,
+      body_preview: rawBody.slice(0, 4000),
+      body_length: rawBody.length,
+    });
+    console.log(`[nolio-records DEBUG] ${cat}/${recordType} athlete=${nolioAthleteId} → HTTP ${resp.status} body[${rawBody.length}]: ${rawBody.slice(0, 500)}`);
+  }
+
   if (!resp.ok) {
     console.warn(`nolio-records fetch ${cat}/${recordType} for ${nolioAthleteId} → HTTP ${resp.status}`);
     return [];
   }
-  const json = await resp.json().catch(() => null);
+  let json: any;
+  try {
+    json = captureRaw ? JSON.parse(rawBody) : await resp.json();
+  } catch { return []; }
   if (!json) return [];
-  // L'API peut renvoyer { results: [...] } ou directement un tableau
   if (Array.isArray(json)) return json as NolioRecord[];
-  if (Array.isArray((json as any).results)) return (json as any).results as NolioRecord[];
-  if (Array.isArray((json as any).records)) return (json as any).records as NolioRecord[];
+  if (Array.isArray(json.results)) return json.results as NolioRecord[];
+  if (Array.isArray(json.records)) return json.records as NolioRecord[];
   return [];
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
