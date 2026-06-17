@@ -395,6 +395,9 @@ export default function BikeTrackDayPage() {
             <div>
               <Label>MAP 5 min (W)</Label>
               <Input type="number" value={map5min} onChange={(e) => setMap5min(e.target.value)} placeholder="350" />
+              {fmtNolioDate(nolioDates.map5min) && (
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.map5min)}</div>
+              )}
             </div>
             <div>
               <Label>FC max test (bpm)</Label>
