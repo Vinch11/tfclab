@@ -577,6 +577,18 @@ export default function RaceSimulationPage() {
                 <span className="hidden xs:inline">Audit pacing</span>
               </Link>
             </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5 h-8 text-xs sm:text-sm"
+              onClick={handleExportReport}
+              disabled={!selectedAthlete}
+              title="Ouvrir une page imprimable / exporter en PDF"
+            >
+              <FileDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">📄 Exporter le rapport</span>
+            </Button>
+
             {envelope && rules && scenarios && (
               <Dialog defaultOpen={searchParams.get('briefing') === '1'}>
                 <DialogTrigger asChild>
