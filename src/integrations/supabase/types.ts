@@ -608,6 +608,59 @@ export type Database = {
         }
         Relationships: []
       }
+      nolio_records: {
+        Row: {
+          athlete_id: string
+          cat: string
+          created_at: string
+          date_recorded: string | null
+          id: string
+          item_seconds: number
+          nolio_athlete_id: number | null
+          record_type: string
+          sport_id: number
+          synced_at: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          athlete_id: string
+          cat: string
+          created_at?: string
+          date_recorded?: string | null
+          id?: string
+          item_seconds: number
+          nolio_athlete_id?: number | null
+          record_type: string
+          sport_id: number
+          synced_at?: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          athlete_id?: string
+          cat?: string
+          created_at?: string
+          date_recorded?: string | null
+          id?: string
+          item_seconds?: number
+          nolio_athlete_id?: number | null
+          record_type?: string
+          sport_id?: number
+          synced_at?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nolio_records_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nolio_structures_generated: {
         Row: {
           cost_usd: number | null

@@ -43,6 +43,9 @@ export function ConfigurationPage() {
   const [nolioMetricsError, setNolioMetricsError] = useState<string | null>(null);
   const [nolioMetricsSuccess, setNolioMetricsSuccess] = useState<{ created: number; updated: number; message: string } | null>(null);
 
+  const [nolioRecordsLoading, setNolioRecordsLoading] = useState(false);
+  const [nolioRecordsResult, setNolioRecordsResult] = useState<{ message: string; isError: boolean } | null>(null);
+
   const [linkedAthletes, setLinkedAthletes] = useState<LinkedAthlete[]>([]);
   const [syncTarget, setSyncTarget] = useState<string>("all");
   const [metricsTarget, setMetricsTarget] = useState<string>("all");
@@ -228,6 +231,30 @@ export function ConfigurationPage() {
       setNolioMetricsLoading(false);
     }
   };
+
+  const handleImportNolioRecords = async () => {
+    if (!session?.access_token) return;
+    setNolioRecordsLoading(true);
+    setNolioRecordsResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-records", { method: "POST", body: {} });
+      if (error) throw error;
+      const total = (data as { total_records?: number })?.total_records ?? 0;
+      const processed = (data as { athletes_processed?: number })?.athletes_processed ?? 0;
+      const message = `${total} record${total > 1 ? "s" : ""} importé${total > 1 ? "s" : ""} pour ${processed} athlète${processed > 1 ? "s" : ""}`;
+      setNolioRecordsResult({ message, isError: false });
+      toast({ title: "Records Nolio importés", description: message });
+    } catch (e) {
+      const msg = (e as Error).message ?? "Échec de l'import des records";
+      console.error("Nolio records import failed", e);
+      setNolioRecordsResult({ message: msg, isError: true });
+      toast({ title: "Erreur d'import", description: msg, variant: "destructive" });
+    } finally {
+      setNolioRecordsLoading(false);
+    }
+  };
+
+
 
   const formatLastSync = (iso: string | null) => {
     if (!iso) return null;
@@ -448,6 +475,38 @@ export function ConfigurationPage() {
                   </Button>
                 </div>
               </div>
+
+              {/* Importer les records Nolio */}
+              <div className="flex flex-col gap-3 p-4 rounded-xl bg-muted/30 border sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Trophy className={cn("w-5 h-5 text-primary", nolioRecordsLoading && "animate-pulse")} />
+                  </div>
+                  <div>
+                    <Label className="font-medium text-base">Importer les records Nolio</Label>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Récupère les records puissance (vélo), allure (run) et natation depuis Nolio.
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={handleImportNolioRecords} disabled={nolioRecordsLoading}>
+                  {nolioRecordsLoading ? "Import en cours..." : "Importer les records"}
+                </Button>
+              </div>
+
+              {nolioRecordsResult && (
+                <div className={cn(
+                  "flex items-center gap-2 p-3 rounded-lg border",
+                  nolioRecordsResult.isError
+                    ? "bg-destructive/10 border-destructive/30 text-destructive"
+                    : "bg-success/10 border-success/30 text-success"
+                )}>
+                  {nolioRecordsResult.isError ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                  <span className="text-sm font-medium">{nolioRecordsResult.message}</span>
+                </div>
+              )}
+
+
 
 
               {nolioSyncSuccess && (
