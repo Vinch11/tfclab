@@ -569,6 +569,14 @@ export default function RaceSimulationPage() {
           </div>
         </div>
 
+        <NolioValidationCard
+          athleteId={selectedAthlete?.id ?? null}
+          raceObjective={raceObjective}
+          simulationMin={raceDurationMin}
+        />
+
+
+
         {isTrailGoal && !forceShowSimulation ? (
           <Card className="bg-card border-border">
             <CardHeader>
