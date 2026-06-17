@@ -1,6 +1,6 @@
 /**
  * AppSidebar – Navigation TFCL restructurée
- * 6 sections principales : Dashboard, Athlètes, Diagnostic, Planification, Simulation, Academy
+ * 7 sections principales : Dashboard, Athlètes, Essentiels, Évolution, Diagnostic, Planification, Simulation, Academy
  */
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -18,6 +18,7 @@ import {
   FileDown,
   ScrollText,
   Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -51,6 +52,7 @@ const navigationItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3, route: "/" },
   { id: "athletes", label: "Athlètes", icon: Users, route: "/athletes" },
   { id: "essentiels", label: "Essentiels", icon: Sparkles, route: "/essentiels" },
+  { id: "evolution", label: "Évolution", icon: TrendingUp, route: "/evolution" },
   { id: "diagnostic", label: "Diagnostic", icon: Stethoscope, route: "/diagnostic" },
   { id: "planning", label: "Planification", icon: ClipboardList, route: "/planning" },
   { id: "simulation", label: "Simulation", icon: Timer, route: "/race" },
