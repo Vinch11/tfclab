@@ -613,6 +613,9 @@ export default function TrackDayPage() {
             <div>
               <Label>Distance 6 min (m)</Label>
               <Input type="number" value={d6min} onChange={(e) => setD6min(e.target.value)} placeholder="1850" />
+              {fmtNolioDate(nolioDates.d6min) && (
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.d6min)}</div>
+              )}
             </div>
             <div>
               <Label>Distance 20 min (m)</Label>
