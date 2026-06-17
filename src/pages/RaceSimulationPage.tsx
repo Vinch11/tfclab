@@ -512,8 +512,38 @@ export default function RaceSimulationPage() {
       raceDurationMin,
     });
   }, [envelope, raceObjective, vlamaxEffectif, vlamaxRunEffectif, discipline, tteEffectif, raceDurationMin]);
-  
+
+  const handleExportReport = React.useCallback(() => {
+    const html = buildRaceSimulationHTML({
+      athleteName: selectedAthlete?.nom ?? 'Athlète',
+      raceObjective: String(raceObjective),
+      raceDurationMin,
+      generatedAt: new Date().toLocaleString('fr-FR'),
+      physio: {
+        ftp: activeSnapshot?.ftp ?? null,
+        vma: activeSnapshot?.vma ?? null,
+        paceThresholdSecKm: paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? null,
+        vlamax: vlamaxEffectif?.value ?? null,
+        vlamaxRun: vlamaxRunEffectif?.value ?? null,
+        vo2max: activeSnapshot?.vo2max ?? null,
+        tteMin: tteEffectif?.tte_min ?? null,
+        tteMinRun: tteEffectifRun?.tte_min ?? null,
+        weightKg: activeSnapshot?.weight_kg ?? null,
+        potentielScore: potentielPhysiologiqueScore ?? null,
+      },
+      envelope: envelope ?? null,
+      envelopeBike: envelopeBike ?? null,
+      envelopeRun: envelopeRun ?? null,
+      scenarios: scenarios ?? null,
+    });
+    openPrintableHTML(html, {
+      filenameHint: `Simulation_${(selectedAthlete?.nom ?? 'athlete').replace(/\s+/g, '_')}_${raceObjective}`,
+      autoPrint: false,
+    });
+  }, [selectedAthlete, raceObjective, raceDurationMin, activeSnapshot, paceThresholdOverrideSecKm, vlamaxEffectif, vlamaxRunEffectif, tteEffectif, tteEffectifRun, potentielPhysiologiqueScore, envelope, envelopeBike, envelopeRun, scenarios]);
+
   return (
+
     <SidebarLayout
       activeTab={activeTab}
       onTabChange={setActiveTab}
