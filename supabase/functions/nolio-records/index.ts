@@ -405,7 +405,10 @@ Deno.serve(async (req) => {
         imported: rowsToUpsert.length,
         errors,
         snapshot_updates: snapshotUpdates,
+        snapshot_id: snapshotIdUsed,
+        snapshot_created: snapshotCreated,
       } as any);
+
     }
 
     // Log dans nolio_sync_log pour traçabilité
