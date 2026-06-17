@@ -527,6 +527,16 @@ export default function RaceSimulationPage() {
           </div>
           
           <div className="flex items-center gap-2">
+            <Select value={heatLevel} onValueChange={(v) => setHeatLevel(v as any)}>
+              <SelectTrigger className="h-8 w-[110px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">🌤 Frais</SelectItem>
+                <SelectItem value="moderate">🌡 Tempéré</SelectItem>
+                <SelectItem value="high">🔥 Chaud</SelectItem>
+              </SelectContent>
+            </Select>
             <Button asChild variant="outline" size="sm" className="gap-1.5 h-8 text-xs sm:text-sm">
               <Link to="/race/pacing-audit">
                 <FlaskConical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -1233,6 +1243,27 @@ export default function RaceSimulationPage() {
           </AccordionItem>
 
         </Accordion>
+
+        {/* ═══ NUTRITION UNIFIÉE (sport + objectif + chaleur depuis snapshot/sélecteur) ═══ */}
+        {selectedAthlete && activeSnapshot && (() => {
+          const objStr = String((activeSnapshot as any)?.objectif || objectif || '').toLowerCase();
+          const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
+          const goalLabel = (raceGoals?.[0]?.race_type) || (activeSnapshot as any)?.objectif || objectif || 'IM';
+          const vlamaxForNut = sport === 'cap' ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null) : (vlamaxEffectif?.value ?? null);
+          return (
+            <NutritionUnifiedCard
+              vlamaxValue={vlamaxForNut}
+              vlamaxConfidence={(sport === 'cap' ? vlamaxRunEffectif?.confidence : vlamaxEffectif?.confidence) ?? 0.7}
+              vo2max={activeSnapshot?.vo2max ?? null}
+              tteMin={(sport === 'cap' ? tteEffectifRun?.tte_min : tteEffectif?.tte_min) ?? null}
+              sport={sport}
+              objectif={String(goalLabel)}
+              weightKg={activeSnapshot?.weight_kg ?? null}
+              heatCondition={heatLevel === 'high'}
+              staffMode={staffMode}
+            />
+          );
+        })()}
 
         {/* Academy section - collapsible */}
         <details className="group">
