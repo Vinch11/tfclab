@@ -34,6 +34,8 @@ import { GutTrainingCard } from '@/components/GutTrainingCard';
 import { HydrationProtocolCard } from '@/components/HydrationProtocolCard';
 import { RecoveryNutritionCard } from '@/components/RecoveryNutritionCard';
 import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
+import { NutritionUnifiedCard } from '@/components/NutritionUnifiedCard';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
@@ -67,6 +69,11 @@ export default function RaceSimulationPage() {
   }, [requestedStep]);
   const [openSteps, setOpenSteps] = useState<string[]>(initialAccordion);
   const [forceShowSimulation, setForceShowSimulation] = useState(false);
+  const [heatLevel, setHeatLevel] = useState<'low' | 'moderate' | 'high'>(() => {
+    const v = localStorage.getItem('vlab-heat-level');
+    return v === 'low' || v === 'moderate' || v === 'high' ? v : 'moderate';
+  });
+  useEffect(() => { localStorage.setItem('vlab-heat-level', heatLevel); }, [heatLevel]);
 
   useEffect(() => {
     setOpenSteps(initialAccordion);
