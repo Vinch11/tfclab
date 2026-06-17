@@ -271,40 +271,51 @@ function intensityAdj(pct: number | null): { adj: number; explanation: string } 
 
 function computeHydration(input: NutritionUnifiedInput): HydrationPlan {
   const weight = input.weightKg ?? 70;
-  const isCAP = input.sport === 'cap';
+  const sport = input.sport;
+  const isCAP = isCAPLike(sport);
   const isHeat = input.heatCondition ?? false;
+  const trailOrUltra = isTrailOrUltra(sport);
+  const ultra = isUltra(sport);
 
-  // Base: 7-10 ml/kg/h vélo, 5-8 ml/kg/h CAP (contrainte mécanique)
-  const baseMultiplier = isCAP ? 6.5 : 8.5;
+  // Base: 7-10 ml/kg/h vélo, 5-8 ml/kg/h CAP/trail (contrainte mécanique).
+  // Trail/ultra majoration légère car sudation prolongée + montagne.
+  const baseMultiplier = trailOrUltra ? 8.0 : isCAP ? 6.5 : 8.5;
   const baseMlH = Math.round(weight * baseMultiplier);
   const heatFactor = isHeat ? 1.35 : 1.0;
   const heatAdjustedMlH = Math.round(baseMlH * heatFactor);
 
-  // Sodium: 300-600 mg/h standard, augmenté en chaleur
-  const baseSodiumMgH = isHeat ? 600 : 450;
-  // Concentration sodium par litre
+  // Sodium: trail 600-900 mg/h, ultra 800-1200 mg/h, standard 300-600.
+  let baseSodiumMgH = isHeat ? 600 : 450;
+  if (sport === 'trail') baseSodiumMgH = isHeat ? 900 : 750;
+  if (ultra) baseSodiumMgH = isHeat ? 1200 : 1000;
   const sodiumMgL = Math.round((baseSodiumMgH / heatAdjustedMlH) * 1000);
 
   const recs: string[] = [];
-  
   if (isHeat) {
     recs.push('Augmenter les apports de 30-35% en conditions chaudes (>28°C)');
     recs.push('Pré-hydratation : 500ml dans les 2h avant le départ');
   }
-  
   if (isCAP) {
     recs.push('Privilégier les petites gorgées régulières (toutes les 10-15 min)');
-    recs.push('Éviter de boire plus de 200ml d\'un coup (risque gastrique)');
+    recs.push("Éviter de boire plus de 200ml d'un coup (risque gastrique)");
   } else {
     recs.push('Boire régulièrement toutes les 15-20 min');
     recs.push('Bidon isotonique (40-60g glucides/L + 400-600mg sodium/L)');
+  }
+  if (trailOrUltra) {
+    recs.push('Sac/flasques : prévoir 500-750 ml entre 2 ravitos en montagne');
+    recs.push('Pastilles de sel ou capsules Na+ (300-500 mg) toutes les 1-2h si chaleur');
+  }
+  if (ultra) {
+    recs.push('Alterner boisson sucrée + eau plate (limiter écœurement)');
+    recs.push('Bouillon/soupe chaude après 8h pour Na+ et confort digestif');
   }
 
   const athleteMsg = isHeat
     ? `Bois ${Math.round(heatAdjustedMlH / 4)} ml toutes les 15 min. Il fait chaud : augmente tes apports !`
     : `Bois ${Math.round(heatAdjustedMlH / 4)} ml toutes les 15 min, soit ~${Math.round(heatAdjustedMlH / 1000 * 2) / 2} bidon/h.`;
 
-  const staffMsg = `Base ${baseMlH} ml/h (${baseMultiplier} ml/kg/h × ${weight} kg).${isHeat ? ` Correction chaleur ×1.35 → ${heatAdjustedMlH} ml/h.` : ''} Na+ ${baseSodiumMgH} mg/h (${sodiumMgL} mg/L). Réf: Sawka 2007 ACSM.`;
+  const staffMsg = `Base ${baseMlH} ml/h (${baseMultiplier} ml/kg/h × ${weight} kg).${isHeat ? ` Correction chaleur ×1.35 → ${heatAdjustedMlH} ml/h.` : ''} Na+ ${baseSodiumMgH} mg/h (${sodiumMgL} mg/L).${trailOrUltra ? ' Trail/ultra : sudation prolongée + chaleur montagne.' : ''} Réf: Sawka 2007 ACSM${ultra ? ', Knechtle 2012' : ''}.`;
 
   return {
     baseMlH,
@@ -323,9 +334,11 @@ function computeHydration(input: NutritionUnifiedInput): HydrationPlan {
 // PLAN PRODUIT CONCRET
 // =============================================
 
-function generateProducts(carbsGh: number, sport: 'velo' | 'cap', tolerance: 'LOW' | 'MEDIUM' | 'HIGH'): NutritionProduct[] {
+function generateProducts(carbsGh: number, sport: NutritionSport, tolerance: 'LOW' | 'MEDIUM' | 'HIGH'): NutritionProduct[] {
   const products: NutritionProduct[] = [];
-  const isCAP = sport === 'cap';
+  const isCAP = isCAPLike(sport);
+  const trailOrUltra = isTrailOrUltra(sport);
+  const ultra = isUltra(sport);
 
   if (carbsGh <= 50) {
     // Besoins faibles → boisson seule ou 1 gel
