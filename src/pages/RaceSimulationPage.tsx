@@ -28,12 +28,7 @@ import { PacingRulesParityCard } from '@/components/PacingRulesParityCard';
 import { PacingRulesSnapshotsCard } from '@/components/PacingRulesSnapshotsCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
-import { CaffeineProtocolCard } from '@/components/CaffeineProtocolCard';
-import { CarbLoadingCard } from '@/components/CarbLoadingCard';
-import { GutTrainingCard } from '@/components/GutTrainingCard';
-import { HydrationProtocolCard } from '@/components/HydrationProtocolCard';
-// RecoveryNutritionCard supprimée : NutritionUnifiedCard (V3 Mader/Jeukendrup) sert de moteur unique.
-import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
+import { RecoveryNutritionCard } from '@/components/RecoveryNutritionCard';
 import { NutritionUnifiedCard } from '@/components/NutritionUnifiedCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -1190,7 +1185,7 @@ export default function RaceSimulationPage() {
                 <div>
                   <div className="text-sm sm:text-base font-semibold">Ta nutrition pour tenir le plan</div>
                   <div className="text-[11px] sm:text-xs text-muted-foreground font-normal">
-                    Glucides, hydratation, caféine — calibrés sur ta VLamax et la durée
+                    Glucides et hydratation — calibrés sur ta VLamax et la durée
                   </div>
                 </div>
               </div>
@@ -1200,7 +1195,7 @@ export default function RaceSimulationPage() {
                 <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
                   <Info className="h-3.5 w-3.5" />
                   <AlertDescription>
-                    Ta nutrition n'est pas générique : elle suit ta consommation réelle de glucides à l'allure cible. Les protocoles ci-dessous sont chiffrés sur <strong>ton</strong> métabolisme.
+                    Ta nutrition n'est pas générique : elle suit ta consommation réelle de glucides à l'allure cible. Le protocole ci-dessous est chiffré sur <strong>ton</strong> métabolisme.
                   </AlertDescription>
                 </Alert>
               )}
@@ -1214,46 +1209,65 @@ export default function RaceSimulationPage() {
               {!activeSnapshot?.weight_kg ? (
                 <div className="text-center py-6 text-sm text-muted-foreground">Poids athlète manquant — protocoles indisponibles</div>
               ) : (
-                <>
-                  <CarbLoadingCard weightKg={activeSnapshot.weight_kg} durationMin={raceDurationMin} />
-                  <CaffeineProtocolCard weightKg={activeSnapshot.weight_kg} durationMin={raceDurationMin} sensitivity="unknown" habitualUser staffMode={staffMode} />
-                  <HydrationProtocolCard
-                    input={{
-                      weightKg: activeSnapshot.weight_kg, durationMin: raceDurationMin,
-                      sport: discipline === 'run' ? 'run' : 'bike', sweatLevel: 'average',
-                      sodiumPhenotype: 'average', tempC: 22, humidity: 60,
-                    }}
-                    staffMode={staffMode}
-                  />
-                  <GutTrainingCard
-                    currentLevel="developing"
-                    targetGph={raceDurationMin >= 240 ? 120 : raceDurationMin >= 150 ? 90 : 70}
-                    weeksAvailable={8}
-                    sport={discipline === 'run' ? 'cap' : 'velo'}
-                    weightKg={activeSnapshot.weight_kg}
-                    staffMode={staffMode}
-                  />
-                  {/* RecoveryNutritionCard retirée : la récup est portée par NutritionUnifiedCard V3 plus bas. */}
-
-                  <ErgogenicAidsCard
-                    weightKg={activeSnapshot.weight_kg}
-                    durationMin={raceDurationMin}
-                    discipline={discipline}
-                    hasRepeatedEfforts={(selectedAthlete as any)?.refs?.hasRepeatedEfforts ?? (discipline === 'bike' || raceDurationMin <= 60)}
-                    bicarbTested={Boolean((selectedAthlete as any)?.refs?.bicarbTested)}
-                    vegetarian={Boolean((selectedAthlete as any)?.refs?.vegetarian)}
-                    staffMode={staffMode}
-                  />
-                </>
+                (() => {
+                  const objStr = String((activeSnapshot as any)?.objectif || objectif || '').toLowerCase();
+                  const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
+                  const goalLabel = (raceGoals?.[0]?.race_type) || (activeSnapshot as any)?.objectif || objectif || 'IM';
+                  const vlamaxForNut = sport === 'cap' ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null) : (vlamaxEffectif?.value ?? null);
+                  return (
+                    <NutritionUnifiedCard
+                      vlamaxValue={vlamaxForNut}
+                      vlamaxConfidence={(sport === 'cap' ? vlamaxRunEffectif?.confidence : vlamaxEffectif?.confidence) ?? 0.7}
+                      vo2max={activeSnapshot?.vo2max ?? null}
+                      tteMin={(sport === 'cap' ? tteEffectifRun?.tte_min : tteEffectif?.tte_min) ?? null}
+                      sport={sport}
+                      objectif={String(goalLabel)}
+                      weightKg={activeSnapshot?.weight_kg ?? null}
+                      heatCondition={heatLevel === 'high'}
+                      staffMode={staffMode}
+                    />
+                  );
+                })()
               )}
             </AccordionContent>
           </AccordionItem>
 
-          {/* ÉTAPE 5 — TES RISQUES & RAPPORT STAFF */}
+          {/* ÉTAPE 5 — RÉCUPÉRATION POST-COURSE */}
           <AccordionItem value="step-5" className="border border-border rounded-lg px-3 sm:px-4 bg-card">
             <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3 text-left">
                 <Badge variant="default" className="h-7 w-7 rounded-full p-0 flex items-center justify-center text-xs shrink-0">5</Badge>
+                <div>
+                  <div className="text-sm sm:text-base font-semibold">Récupération post-course</div>
+                  <div className="text-[11px] sm:text-xs text-muted-foreground font-normal">
+                    Fenêtres 4R : rehydrate, refuel, repair, rest
+                  </div>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4">
+              {!activeSnapshot?.weight_kg ? (
+                <div className="text-center py-6 text-sm text-muted-foreground">Poids athlète manquant — protocole indisponible</div>
+              ) : (
+                <RecoveryNutritionCard
+                  input={{
+                    weightKg: activeSnapshot.weight_kg,
+                    durationMin: raceDurationMin,
+                    intensity: raceDurationMin >= 150 ? 'depleting' : 'high',
+                    goal: 'full_recovery_48h',
+                    hotConditions: heatLevel === 'high',
+                  }}
+                  staffMode={staffMode}
+                />
+              )}
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* ÉTAPE 6 — TES RISQUES & RAPPORT STAFF */}
+          <AccordionItem value="step-6" className="border border-border rounded-lg px-3 sm:px-4 bg-card">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center gap-3 text-left">
+                <Badge variant="default" className="h-7 w-7 rounded-full p-0 flex items-center justify-center text-xs shrink-0">6</Badge>
                 <div>
                   <div className="text-sm sm:text-base font-semibold">
                     {staffMode ? "Rapport staff & règles de pacing" : "Tes risques & règles d'or"}
@@ -1313,26 +1327,6 @@ export default function RaceSimulationPage() {
 
         </Accordion>
 
-        {/* ═══ NUTRITION UNIFIÉE (sport + objectif + chaleur depuis snapshot/sélecteur) ═══ */}
-        {selectedAthlete && activeSnapshot && (() => {
-          const objStr = String((activeSnapshot as any)?.objectif || objectif || '').toLowerCase();
-          const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
-          const goalLabel = (raceGoals?.[0]?.race_type) || (activeSnapshot as any)?.objectif || objectif || 'IM';
-          const vlamaxForNut = sport === 'cap' ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null) : (vlamaxEffectif?.value ?? null);
-          return (
-            <NutritionUnifiedCard
-              vlamaxValue={vlamaxForNut}
-              vlamaxConfidence={(sport === 'cap' ? vlamaxRunEffectif?.confidence : vlamaxEffectif?.confidence) ?? 0.7}
-              vo2max={activeSnapshot?.vo2max ?? null}
-              tteMin={(sport === 'cap' ? tteEffectifRun?.tte_min : tteEffectif?.tte_min) ?? null}
-              sport={sport}
-              objectif={String(goalLabel)}
-              weightKg={activeSnapshot?.weight_kg ?? null}
-              heatCondition={heatLevel === 'high'}
-              staffMode={staffMode}
-            />
-          );
-        })()}
 
         {/* Academy section - collapsible */}
         <details className="group">
