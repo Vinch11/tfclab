@@ -1185,7 +1185,7 @@ export default function RaceSimulationPage() {
                 <div>
                   <div className="text-sm sm:text-base font-semibold">Ta nutrition pour tenir le plan</div>
                   <div className="text-[11px] sm:text-xs text-muted-foreground font-normal">
-                    Glucides, hydratation, caféine — calibrés sur ta VLamax et la durée
+                    Glucides et hydratation — calibrés sur ta VLamax et la durée
                   </div>
                 </div>
               </div>
