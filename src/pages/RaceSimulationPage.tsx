@@ -1429,3 +1429,67 @@ function LCWSwimSoloCard({
   );
 }
 
+
+// ─── Nolio validation card ────────────────────────────────────────────────
+function NolioValidationCard({
+  athleteId, raceObjective, simulationMin,
+}: { athleteId: string | null; raceObjective: string; simulationMin: number }) {
+  const [records, setRecords] = React.useState<Array<{ item_seconds: number; value: number; date_recorded: string | null }>>([]);
+
+  React.useEffect(() => {
+    if (!athleteId) return;
+    let c = false;
+    (async () => {
+      const { data } = await supabase
+        .from("nolio_records" as any)
+        .select("item_seconds, value, date_recorded, sport_id, cat")
+        .eq("athlete_id", athleteId)
+        .eq("cat", "par")
+        .in("sport_id", [2, 52]);
+      if (!c && data) setRecords(((data as unknown) as any[]).map(r => ({
+        item_seconds: r.item_seconds, value: r.value, date_recorded: r.date_recorded,
+      })));
+    })();
+    return () => { c = true; };
+  }, [athleteId]);
+
+  if (!athleteId || records.length === 0) return null;
+
+  // target distance based on objective
+  const targetKm = raceObjective === "Marathon" ? 42.195
+    : raceObjective === "Semi" ? 21.1
+    : raceObjective === "10km" ? 10 : null;
+  if (!targetKm) return null;
+
+  // best record matching ~targetKm (dist_km ≈ item_seconds / value)
+  const tol = 0.15;
+  const matches = records.filter(r => r.value > 0 && Math.abs((r.item_seconds / r.value) - targetKm) / targetKm < tol);
+  if (matches.length === 0) return null;
+  const best = matches.reduce((a, b) => (a.item_seconds < b.item_seconds ? a : b));
+  const recordMin = best.item_seconds / 60;
+  const diffPct = ((simulationMin - recordMin) / recordMin) * 100;
+  const fmtT = (m: number) => `${Math.floor(m / 60)}h${String(Math.round(m % 60)).padStart(2, "0")}`;
+
+  return (
+    <Card className="bg-amber-50/40 dark:bg-amber-900/10 border-amber-300/50">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">🏆 Validation depuis records Nolio</CardTitle>
+      </CardHeader>
+      <CardContent className="text-xs space-y-1">
+        <div>
+          <b>Record réel :</b> {fmtT(recordMin)} — <b>Simulation :</b> {fmtT(simulationMin)} — <b>Écart :</b> {diffPct >= 0 ? "+" : ""}{diffPct.toFixed(1)}%
+        </div>
+        {Math.abs(diffPct) > 5 && (
+          <div className="text-amber-700 dark:text-amber-400 font-semibold">
+            ⚠️ Les paramètres physiologiques méritent d'être affinés.
+          </div>
+        )}
+        {best.date_recorded && (
+          <div className="text-[10px] text-muted-foreground">
+            Record du {new Date(best.date_recorded).toLocaleDateString("fr-FR")}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
