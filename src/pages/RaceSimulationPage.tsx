@@ -28,12 +28,7 @@ import { PacingRulesParityCard } from '@/components/PacingRulesParityCard';
 import { PacingRulesSnapshotsCard } from '@/components/PacingRulesSnapshotsCard';
 import { RaceDayBriefingMode } from '@/components/RaceDayBriefingMode';
 import { StaffPacingReportV2 } from '@/components/StaffPacingReportV2';
-import { CaffeineProtocolCard } from '@/components/CaffeineProtocolCard';
-import { CarbLoadingCard } from '@/components/CarbLoadingCard';
-import { GutTrainingCard } from '@/components/GutTrainingCard';
-import { HydrationProtocolCard } from '@/components/HydrationProtocolCard';
-// RecoveryNutritionCard supprimée : NutritionUnifiedCard (V3 Mader/Jeukendrup) sert de moteur unique.
-import { ErgogenicAidsCard } from '@/components/ErgogenicAidsCard';
+import { RecoveryNutritionCard } from '@/components/RecoveryNutritionCard';
 import { NutritionUnifiedCard } from '@/components/NutritionUnifiedCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
