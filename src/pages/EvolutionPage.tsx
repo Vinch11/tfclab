@@ -181,14 +181,6 @@ export default function EvolutionPage() {
     });
   }, [records]);
 
-
-      ftp: build("ftp"),
-      vma: build("vma"),
-      css: build("css"),
-      vlamax: build("vlamax"),
-    };
-  }, [recentSnapshots]);
-
   return (
     <AppLayout title="Évolution" showBack>
       <div className="space-y-6">
