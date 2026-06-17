@@ -274,7 +274,7 @@ export function ConfigurationPage() {
     } catch (e) {
       const msg = (e as Error).message ?? "Échec de l'import des records";
       console.error("[nolio-records] fetch failed (pré-edge function)", e);
-      setNolioRecordsDebug({ url, status: null, body: `FETCH ERROR: ${msg}`, phase: "Échec avant edge function" });
+      
       setNolioRecordsResult({ message: `Échec réseau : ${msg}`, isError: true });
       toast({ title: "Erreur d'import", description: msg, variant: "destructive" });
     } finally {
