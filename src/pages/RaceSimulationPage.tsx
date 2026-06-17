@@ -51,6 +51,7 @@ import { generateDisciplineRules } from '@/lib/v2/pacingDisciplineRules';
 import { simulatePacingScenarios } from '@/lib/v2/pacingScenarioSimulator';
 import { SIMULATION_DEFINITIONS } from '@/lib/v2/raceSimulation';
 import type { RaceObjective } from '@/lib/v2/pacingEnvelopeEngine';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function RaceSimulationPage() {
   const navigate = useNavigate();
