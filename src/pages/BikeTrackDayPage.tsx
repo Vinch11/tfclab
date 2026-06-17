@@ -305,6 +305,15 @@ export default function BikeTrackDayPage() {
           </CardContent>
         </Card>
 
+        {/* Import Nolio */}
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={importFromNolio} disabled={nolioLoading || !currentAthlete}>
+            <Download className="h-4 w-4 mr-1" />
+            {nolioLoading ? "Import..." : "📥 Importer depuis Nolio"}
+          </Button>
+        </div>
+
+
         {/* Bloc 1 */}
         <Card>
           <CardHeader>
