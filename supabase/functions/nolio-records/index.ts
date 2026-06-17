@@ -227,11 +227,88 @@ Deno.serve(async (req) => {
         }
       }
 
+      // ─── 3) Mise à jour snapshot actif si records meilleurs ────────────
+      let snapshotUpdates = 0;
+      try {
+        const { data: athRow } = await admin
+          .from("athletes")
+          .select("active_snapshot_id")
+          .eq("id", athleteId)
+          .maybeSingle();
+        const activeSnapId = (athRow as any)?.active_snapshot_id as string | null;
+        if (activeSnapId) {
+          const { data: snap } = await admin
+            .from("snapshots")
+            .select("pmax_5s, p30s_w, p60s_w, map5min_w, sprint_15s_distance, vma")
+            .eq("id", activeSnapId)
+            .maybeSingle();
+
+          const pick = (cat: string, sec: number, sports: number[]) => {
+            const r = rowsToUpsert.find(x =>
+              x.cat === cat &&
+              x.item_seconds === sec &&
+              sports.includes(x.sport_id as number),
+            );
+            return r ? Number(r.value) : null;
+          };
+
+          const p5 = pick("ppr", 5, BIKE_SPORTS);
+          const p30 = pick("ppr", 30, BIKE_SPORTS);
+          const p60 = pick("ppr", 60, BIKE_SPORTS);
+          const p300 = pick("ppr", 300, BIKE_SPORTS);
+          // par run record 15s → sprint distance = vitesse(m/s) × 15
+          const par15 = pick("par", 15, RUN_SPORTS);
+          // par run record 360s (6min) → vma = (distance_6min / 6) × 60 / 1000 × 1.05
+          const par360 = pick("par", 360, RUN_SPORTS);
+
+          const updates: Record<string, number> = {};
+          const better = (cur: unknown, nv: number | null) =>
+            nv != null && Number.isFinite(nv) && nv > Number(cur ?? 0);
+
+          if (better((snap as any)?.pmax_5s, p5)) updates.pmax_5s = p5 as number;
+          if (better((snap as any)?.p30s_w, p30)) updates.p30s_w = p30 as number;
+          if (better((snap as any)?.p60s_w, p60)) updates.p60s_w = p60 as number;
+          if (better((snap as any)?.map5min_w, p300)) updates.map5min_w = p300 as number;
+
+          if (par15 != null && Number.isFinite(par15) && par15 > 0) {
+            // par en sec/km → vitesse m/s = 1000 / par
+            const speedMs = 1000 / par15;
+            const sprintDist = speedMs * 15;
+            if (better((snap as any)?.sprint_15s_distance, sprintDist)) {
+              updates.sprint_15s_distance = Math.round(sprintDist * 10) / 10;
+            }
+          }
+          if (par360 != null && Number.isFinite(par360) && par360 > 0) {
+            // par en sec/km → distance_6min (m) = 360 / par × 1000
+            const dist6m = (360 / par360) * 1000;
+            const vmaEst = (dist6m / 6) * 60 / 1000 * 1.05;
+            if (better((snap as any)?.vma, vmaEst)) {
+              updates.vma = Math.round(vmaEst * 100) / 100;
+            }
+          }
+
+          if (Object.keys(updates).length > 0) {
+            const { error: snapErr } = await admin
+              .from("snapshots")
+              .update(updates)
+              .eq("id", activeSnapId);
+            if (snapErr) {
+              errors.push(`snapshot update: ${snapErr.message}`);
+            } else {
+              snapshotUpdates = Object.keys(updates).length;
+            }
+          }
+        }
+      } catch (e) {
+        errors.push(`snapshot sync: ${(e as Error).message}`);
+      }
+
       summary.push({
         athlete: (ath as any).name ?? String(athleteId),
         imported: rowsToUpsert.length,
         errors,
-      });
+        snapshot_updates: snapshotUpdates,
+      } as any);
     }
 
     return new Response(
