@@ -432,16 +432,20 @@ function generateProducts(carbsGh: number, sport: NutritionSport, tolerance: 'LO
 
 function generatePhases(
   carbsCentral: number,
-  sport: 'velo' | 'cap',
+  sport: NutritionSport,
   durationH: number | null,
   tolerance: 'LOW' | 'MEDIUM' | 'HIGH',
   vlamaxVal: number | null,
   maxBound: number = 90,
   isHeat: boolean = false,
+  weightKg: number = 70,
 ): NutritionPhaseUnified[] {
   const durMin = durationH ? Math.round(durationH * 60) : 180;
   const lateStartMin = Math.round(durMin * 0.7);
-  const isCAP = sport === 'cap';
+  const isCAP = isCAPLike(sport);
+  const trailOrUltra = isTrailOrUltra(sport);
+  const ultra = isUltra(sport);
+  const isNightUltra = ultra && (durationH ?? 0) > 12;
 
   // F30 — Anti-empilement chaleur :
   // Le facteur chaleur (+10%) est DÉJÀ appliqué dans `computeBaseRateMader` →
@@ -574,7 +578,8 @@ function computeRisk(input: NutritionUnifiedInput): { score: number; risk: Nutri
   if (input.vlamaxValue !== null && input.vlamaxValue > 0.55) score++;
   if (input.tteMin !== null && input.tteMin < 45) score++;
   if (input.targetDurationHours !== null && input.targetDurationHours > 3) score++;
-  if (input.sport === 'cap') score++;
+  if (isCAPLike(input.sport)) score++;
+  if (isUltra(input.sport) && (input.targetDurationHours ?? 0) > 8) score++;
 
   const risk: NutritionRisk = score <= 1 ? 'low' : score === 2 ? 'moderate' : score === 3 ? 'high' : 'critical';
   const labels: Record<NutritionRisk, string> = { low: 'Faible', moderate: 'Modéré', high: 'Élevé', critical: 'Critique' };
@@ -586,8 +591,8 @@ function computeRisk(input: NutritionUnifiedInput): { score: number; risk: Nutri
 // MESSAGES BILINGUES (staff / athlète)
 // =============================================
 
-function generateSummary(carbsCentral: number, risk: NutritionRisk, sport: 'velo' | 'cap', input: NutritionUnifiedInput): { athlete: string; staff: string } {
-  const sportLabel = sport === 'cap' ? 'course à pied' : 'vélo';
+function generateSummary(carbsCentral: number, risk: NutritionRisk, sport: NutritionSport, input: NutritionUnifiedInput): { athlete: string; staff: string } {
+  const sportLabel = sport === 'cap' ? 'course à pied' : sport === 'trail' ? 'trail' : sport === 'ultra' ? 'ultra trail' : 'vélo';
 
   const athleteMessages: Record<NutritionRisk, string> = {
     low: `Bonne nouvelle : avec ~${carbsCentral}g de glucides par heure, ton estomac devrait gérer sans problème. Un bidon isotonique + 1 gel de temps en temps suffisent.`,
@@ -612,7 +617,7 @@ function generateWhyMessages(input: NutritionUnifiedInput, carbsCentral: number)
   const w = input.weightKg ?? 70;
 
   parts_ath.push(`Ce chiffre de ${carbsCentral}g/h est basé sur ton poids (${w}kg) et ton profil métabolique.`);
-  parts_staff.push(`Base: ${input.sport === 'cap' ? '1.05' : '0.9'} × ${w}kg.`);
+  parts_staff.push(`Base: ${isCAPLike(input.sport) ? '1.05' : '0.9'} × ${w}kg.`);
 
   if (input.vlamaxValue !== null) {
     if (input.vlamaxValue > 0.55) {
@@ -624,7 +629,7 @@ function generateWhyMessages(input: NutritionUnifiedInput, carbsCentral: number)
     }
   }
 
-  if (input.sport === 'cap') {
+  if (isCAPLike(input.sport)) {
     parts_ath.push('En course à pied, ton estomac tolère moins qu\'à vélo (impacts + chaleur).');
     parts_staff.push('Sport CAP: coût O₂ ↑, tolérance GI ↓.');
   }
@@ -640,7 +645,7 @@ function generateWarnings(input: NutritionUnifiedInput, carbsCentral: number, ri
   const staffW: string[] = [];
   const athleteW: string[] = [];
 
-  if (input.sport === 'cap' && carbsCentral >= 70) {
+  if (isCAPLike(input.sport) && carbsCentral >= 70) {
     staffW.push('CAP ≥70g/h: limite de tolérance gastro-intestinale. Gut training obligatoire.');
     athleteW.push('Tes besoins sont élevés pour la course à pied. Entraîne ton estomac !');
   }
@@ -709,7 +714,7 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
 
   // Phases — F30: passe maxBound + isHeat pour anti-empilement & clamp cohérent
   const isHeat = input.heatCondition ?? false;
-  const phases = generatePhases(carbsCentral, sport, durationH, tolerance, input.vlamaxValue, maxBound, isHeat);
+  const phases = generatePhases(carbsCentral, sport, durationH, tolerance, input.vlamaxValue, maxBound, isHeat, input.weightKg);
   // Fill hydration in each phase
   phases.forEach(p => {
     if (p.name !== 'PRE') {
@@ -762,7 +767,7 @@ export function computeNutritionUnified(input: NutritionUnifiedInput): Nutrition
     athleteWarnings: warnings.athlete,
     confidence,
     sport,
-    sportLabel: sport === 'cap' ? 'Course à Pied' : 'Vélo',
+    sportLabel: sport === 'cap' ? 'Course à Pied' : sport === 'trail' ? 'Trail' : sport === 'ultra' ? 'Ultra Trail' : 'Vélo',
     objectif: input.objectif,
     durationHours: durationH,
     disclaimer: 'Estimations basées sur le profil métabolique. Ne remplace pas un avis nutritionnel professionnel. Toujours tester en entraînement.',
