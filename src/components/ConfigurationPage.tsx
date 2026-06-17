@@ -232,6 +232,27 @@ export function ConfigurationPage() {
     }
   };
 
+  const handleImportNolioRecords = async () => {
+    if (!session?.access_token) return;
+    setNolioRecordsLoading(true);
+    setNolioRecordsResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("nolio-records", { method: "POST", body: {} });
+      if (error) throw error;
+      const total = (data as { total_records?: number })?.total_records ?? 0;
+      const processed = (data as { athletes_processed?: number })?.athletes_processed ?? 0;
+      const message = `${total} record${total > 1 ? "s" : ""} importé${total > 1 ? "s" : ""} pour ${processed} athlète${processed > 1 ? "s" : ""}`;
+      setNolioRecordsResult({ message, isError: false });
+      toast({ title: "Records Nolio importés", description: message });
+    } catch (e) {
+      const msg = (e as Error).message ?? "Échec de l'import des records";
+      console.error("Nolio records import failed", e);
+      setNolioRecordsResult({ message: msg, isError: true });
+      toast({ title: "Erreur d'import", description: msg, variant: "destructive" });
+    } finally {
+      setNolioRecordsLoading(false);
+    }
+
   const formatLastSync = (iso: string | null) => {
     if (!iso) return null;
     try {
