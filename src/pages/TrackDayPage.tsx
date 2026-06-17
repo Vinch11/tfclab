@@ -507,7 +507,12 @@ export default function TrackDayPage() {
               title="Sprint 15s — distance max (m)"
               ref="TFCL VLamax CAP — Démarrer au signal, courir 15 secondes à vitesse maximale, marquer la position et mesurer la distance en mètres"
               input={
-                <Input type="number" step="0.1" value={sprint15sM} onChange={(e) => setSprint15sM(e.target.value)} placeholder="115" />
+                <>
+                  <Input type="number" step="0.1" value={sprint15sM} onChange={(e) => setSprint15sM(e.target.value)} placeholder="115" />
+                  {fmtNolioDate(nolioDates.sprint15s) && (
+                    <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.sprint15s)}</div>
+                  )}
+                </>
               }
               unit="m"
               result={
