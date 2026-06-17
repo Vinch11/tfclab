@@ -40,6 +40,7 @@ import BikeTrackDayPage from "./pages/BikeTrackDayPage";
 import SwimPoolDayPage from "./pages/SwimPoolDayPage";
 import TriTestDayPage from "./pages/TriTestDayPage";
 import TrailSimulationPage from "./pages/TrailSimulationPage";
+import EvolutionPage from "./pages/EvolutionPage";
 
 const queryClient = new QueryClient();
 
