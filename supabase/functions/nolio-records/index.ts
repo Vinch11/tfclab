@@ -224,7 +224,8 @@ Deno.serve(async (req) => {
 
       for (const q of queries) {
         try {
-          const records = await fetchRecords(accessToken, nolioId, q.cat, q.recordType, q.sports);
+          const shouldCapture = nolioId === 338386;
+          const records = await fetchRecords(accessToken, nolioId, q.cat, q.recordType, q.sports, shouldCapture);
           for (const r of records) {
             const item_seconds = Number(r.item_seconds);
             const value = Number(r.value);
