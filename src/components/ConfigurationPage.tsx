@@ -535,6 +535,23 @@ export function ConfigurationPage() {
                 </div>
               )}
 
+              {nolioRecordsDebug && (
+                <div className="p-3 rounded-lg border border-amber-500/40 bg-amber-500/5 space-y-2">
+                  <div className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                    🐞 Debug nolio-records (temporaire)
+                  </div>
+                  <div className="text-xs font-mono break-all"><b>URL:</b> {nolioRecordsDebug.url}</div>
+                  <div className="text-xs"><b>Phase:</b> {nolioRecordsDebug.phase}</div>
+                  <div className="text-xs"><b>Status HTTP:</b> {nolioRecordsDebug.status ?? "—"}</div>
+                  <details open>
+                    <summary className="text-xs cursor-pointer"><b>Body brut</b></summary>
+                    <pre className="text-[10px] whitespace-pre-wrap break-all bg-background/60 p-2 rounded max-h-64 overflow-auto">
+{nolioRecordsDebug.body || "(vide)"}
+                    </pre>
+                  </details>
+                </div>
+              )}
+
 
 
 
