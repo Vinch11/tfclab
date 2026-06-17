@@ -344,6 +344,11 @@ export default function BikeTrackDayPage() {
                       <div>
                         <Label className="text-xs">Puissance moy (W)</Label>
                         <Input type="number" value={valW} onChange={(e) => setW?.(e.target.value)} placeholder={d === "10s" ? "1200" : d === "30s" ? "800" : "500"} />
+                        {(() => {
+                          const key = d === "10s" ? "p10s" : d === "30s" ? "p30s" : "p60s";
+                          const lbl = fmtNolioDate(nolioDates[key]);
+                          return lbl ? <div className="text-[10px] text-muted-foreground/70 mt-0.5">{lbl}</div> : null;
+                        })()}
                       </div>
                       <div className="text-xs text-yellow-700 dark:text-yellow-400 font-semibold text-right">
                         {result > 0 ? `${fmt(result, 0)} W (${fmt(result / Math.max(massKg, 1), 1)} W/kg)` : "—"}
