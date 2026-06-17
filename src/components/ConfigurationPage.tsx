@@ -45,7 +45,7 @@ export function ConfigurationPage() {
 
   const [nolioRecordsLoading, setNolioRecordsLoading] = useState(false);
   const [nolioRecordsResult, setNolioRecordsResult] = useState<{ message: string; isError: boolean } | null>(null);
-  const [nolioRecordsDebug, setNolioRecordsDebug] = useState<{ url: string; status: number | null; body: string; phase: string } | null>(null);
+  
 
   const [linkedAthletes, setLinkedAthletes] = useState<LinkedAthlete[]>([]);
   const [syncTarget, setSyncTarget] = useState<string>("all");
