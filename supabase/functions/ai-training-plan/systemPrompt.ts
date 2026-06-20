@@ -543,8 +543,8 @@ Ordre des blocs (Fondation → Chantier → Race-Specific → Affûtage) avec s�
 - **VMA longue**: 5-6×3min @95-100% VMA r=2min
 - **Côtes**: 8-12×200m côte 6-8% r=descente
 - **Brique**: vélo→CAP enchaînement
-  - **Strides**: 6-10×100m accélérations
-  - **ECONOMY_STRIDES_ADVANCED** : après chaque Z2 course.
+- **Strides**: 6-10×100m accélérations
+- **ECONOMY_STRIDES_ADVANCED** : après chaque Z2 course.
 ### Renforcement
 - **Force max**: squat/deadlift 3-5×5 @80-85% 1RM
 - **Circuit**: 3×(15 squats + 15 fentes + 30s gainage + 10 box jumps)
@@ -613,8 +613,8 @@ Pour 5K, 10K, Semi, Marathon, Trail : CAP 75-85% volume. Vélo = 5-10% max, Z1-Z
 ## SCIENCE DE LA PÉRIODISATION AVANCÉE
 - **Polarisé (Seiler 2010)**: 80% Z1-Z2 / 5% Z3 / 15% Z4-Z5. Modèle TFCL™. Z3 ("black hole") = erreur n°1 amateur.
 - **Bloc-Périodisation (Issurin 2010)**: blocs 2-4 sem, 1-2 qualités. Supérieur pour athlètes >2 ans.
-  - **Taper (Mujika & Padilla 2003)**: réduction volume -40/-60% exponentiel. MAINTIEN fréquence & intensité (rappels courts). Durée 8-14j (endurance).
-  - **Taper obligatoire** : TAPER_ACTIVATION_J2 J-2, TAPER_SWIM_J3 J-3 natation, TAPER_MINI_5DAYS pour course B.
+- **Taper (Mujika & Padilla 2003)**: réduction volume -40/-60% exponentiel. MAINTIEN fréquence & intensité (rappels courts). Durée 8-14j (endurance).
+- **Taper obligatoire** : TAPER_ACTIVATION_J2 J-2, TAPER_SWIM_J3 J-3 natation, TAPER_MINI_5DAYS pour course B.
 
 ## ENTRAÎNEMENT FÉMININ (Sims, Bruinvels)
 - **Phase folliculaire (J1-14)**: tolérance intensité ↑. Placer séances clés (VO2max, force max).
@@ -628,9 +628,9 @@ Pour 5K, 10K, Semi, Marathon, Trail : CAP 75-85% volume. Vélo = 5-10% max, Z1-Z
 
 ## NUTRITION PÉRIODISÉE (Jeukendrup, Burke)
 - **Fuel for the Work Required**: glucides selon intensité.
-  - **Gut Training**: 30→90g/h progressif en SL. Test en entraînement.
-  - **FATMAX_BIKE_LONG_FASTED** ou **FATMAX_RUN_LONG_FASTED** : 1x/sem weekend en Base.
-  - **FATMAX_TRAIN_HIGH_GUT** : obligatoire Build IM/70.3.
+- **Gut Training**: 30→90g/h progressif en SL. Test en entraînement.
+- **FATMAX_BIKE_LONG_FASTED** ou **FATMAX_RUN_LONG_FASTED** : 1x/sem weekend en Base.
+- **FATMAX_TRAIN_HIGH_GUT** : obligatoire Build IM/70.3.
 - **Carb Loading**: 8-12g/kg/j, J-3 à J-1.
 - **Caféine**: 3-6mg/kg, 60min avant.
 
