@@ -3372,7 +3372,1144 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "2–3h Z2 stable. Comparer ratio puissance/FC 1ère vs 2ème moitié. Objectif drift <5%.", zones: ["Z2"] }
     ],
     variants: { ironman: "Test clé", half: "Très utile", marathon: "—", semi: "—", "10k": "—" }
-  }
+  },
+
+// =============================================
+// NOUVELLES SÉANCES TFCL™ — ENRICHISSEMENT BIBLIOTHÈQUE
+// Basées sur littérature scientifique de pointe et méthodes coachs élites
+// Références : Lorang, Stellingwerff, Rønnestad, Mujika, Burke, Seiler
+// =============================================
+
+// ─────────────────────────────────────────────
+// GROUPE 1 — HEAT TRAINING (8 séances)
+// Réf: Stellingwerff 2019, Lorenzo 2010, Périard 2021
+// Lorang : "Le heat training est l'un des rares moyens légaux d'augmenter
+// le volume plasmatique de 10-15% et donc la VO2max"
+// ─────────────────────────────────────────────
+
+  {
+    id: "HEAT_BIKE_ACCLIM_INTRO",
+    cat: "B",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Introduction à l'entraînement en chaleur — adaptation cardiovasculaire progressive",
+    necessite: "Recommandé",
+    when: "Base/Build — 6-8 semaines avant compétition en chaleur ou protocole volume plasmatique",
+    phase: ["base", "build"],
+    avoid: "Pathologie cardiaque · Déshydratation · Fièvre · Première séance sans acclimatation préalable",
+    durationMin: [60, 75],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["heat", "chaleur", "volume plasmatique", "acclimation", "lorang"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1–Z2 en conditions normales (20°C)", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "40 min Z2 continu en conditions chaudes (28–32°C ou sur home trainer pièce chaude sans ventilateur). FC cible : 70-75% FCmax. Hydratation : eau uniquement, 500ml/h. Arrêt immédiat si FC > 90% FCmax ou malaise.", zones: ["Z2"] },
+      { part: "Cool-down", text: "10 min Z1 + réhydratation immédiate 750ml avec sodium (500mg)" , zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "40 min → progresser vers 60 min sur 3 semaines",
+      half: "35 min en chaleur modérée",
+      marathon: "40 min run en chaleur (adapté course à pied)",
+      semi: "30 min en chaleur modérée"
+    }
+  },
+
+  {
+    id: "HEAT_BIKE_PROTOCOL_LORANG",
+    cat: "B",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Protocole heat training Lorang — augmentation volume plasmatique et adaptation thermorégulatrice",
+    necessite: "Recommandé",
+    when: "Build/Peak — 3x/semaine pendant 6 semaines consécutives",
+    phase: ["build", "peak"],
+    avoid: "Fatigue élevée (TSB < -25) · Sans acclimatation intro · Chaleur > 38°C",
+    durationMin: [75, 90],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["heat", "chaleur", "volume plasmatique", "lorang", "vo2max"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1–Z2 progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "50–60 min Z2–Z3 en conditions chaudes (30–35°C, home trainer sans ventilateur ou salle chauffée). Maintenir 63-75% FTP. FC : surveiller dérive, ne pas dépasser 85% FCmax. Pesée avant/après pour calculer pertes hydriques. Hydratation : 600–800ml/h eau + électrolytes.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "10 min Z1. Réhydratation : 1.5x perte de poids en kg (ex: -1kg → boire 1.5L). Sodium : 1000–1500mg dans les 2h.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "60 min en chaleur + sauna post-séance 15 min (semaines 4-6)",
+      half: "50 min en chaleur",
+      marathon: "Adapter en run sur tapis en salle chaude",
+      semi: "45 min en chaleur modérée"
+    }
+  },
+
+  {
+    id: "HEAT_SAUNA_POST_WORKOUT",
+    cat: "C",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Protocole sauna post-entraînement — amplification adaptations volume plasmatique",
+    necessite: "Optionnel",
+    when: "Build/Peak — après séance Z2 ou récupération, 3x/semaine semaines 4-6 du bloc heat",
+    phase: ["build", "peak"],
+    avoid: "Immédiatement après séance intense · Déshydratation · Pathologie cardiovasculaire · Grossesse",
+    durationMin: [20, 30],
+    metricKey: "fc",
+    sportKey: "cyclisme",
+    tags: ["sauna", "chaleur", "volume plasmatique", "lorang", "récupération"],
+    structure: [
+      { part: "Warm-up", text: "Finir la séance d'entraînement normale. Douche rapide (pas froide). Boire 500ml avant d'entrer.", zones: ["Z1"] },
+      { part: "Main", text: "20–30 min sauna finlandais ou infrarouge (80–100°C). Rester en position assise ou allongée. FC cible : 100–130 bpm. Sortir si FC > 150 bpm ou malaise. 2 sessions de 10–15 min avec 5 min pause possible. Réf : Périard 2021 — 30 min sauna post-exercice = +10% volume plasmatique sur 6 semaines.", zones: ["Z2"] },
+      { part: "Cool-down", text: "Douche tiède (pas froide — évite vasoconstriction brutale). Réhydratation : 1L eau + électrolytes dans l'heure.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Protocole complet 6 semaines — semaines 1-3 : 20 min, semaines 4-6 : 30 min",
+      half: "4 semaines, 20 min",
+      marathon: "Même protocole adapté",
+      semi: "3 semaines, 15–20 min"
+    }
+  },
+
+  {
+    id: "HEAT_RUN_ACCLIM",
+    cat: "B",
+    sport: "course",
+    defaultSportId: 2,
+    objectif: "Acclimatation à la chaleur en course — adaptation thermorégulatrice spécifique run",
+    necessite: "Recommandé",
+    when: "Build — avant course en conditions chaudes (> 25°C) ou protocole heat training",
+    phase: ["build", "peak"],
+    avoid: "FC repos élevée · Déshydratation préexistante · Fièvre · Chaleur > 35°C sans acclimatation",
+    durationMin: [45, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    tags: ["heat", "chaleur", "course", "acclimation"],
+    structure: [
+      { part: "Warm-up", text: "10 min Z1 tôt le matin ou conditions normales", zones: ["Z1"] },
+      { part: "Main", text: "35–50 min Z2 en pleine chaleur (milieu de journée ou sur tapis en salle chauffée sans clim). Porter vêtements légèrs. Hydratation : 400–600ml/h. Observer : dérive FC +10–15 bpm vs conditions normales = adaptation normale. Référence allure : 15–30s/km plus lente qu'allure Z2 habituelle.", zones: ["Z2"] },
+      { part: "Cool-down", text: "10 min marche Z1 à l'ombre. Refroidissement : serviette froide sur nuque/avant-bras.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Priorité si course en zone chaude (> 28°C prévu)",
+      half: "3–4 séances sur 2 semaines avant course",
+      marathon: "Protocole 10 jours avant course chaude",
+      semi: "2–3 séances avant course"
+    }
+  },
+
+  {
+    id: "HEAT_SWIM_WARM_WATER",
+    cat: "A",
+    sport: "natation",
+    defaultSportId: 19,
+    objectif: "Adaptation natation en eau chaude — gestion thermorégulatrice et wetsuit en chaleur",
+    necessite: "Optionnel",
+    when: "Peak — spécifique avant compétition OWS en eau chaude (> 24°C)",
+    phase: ["peak"],
+    avoid: "Eau > 32°C sans expérience · Pathologie cardiaque",
+    durationMin: [45, 60],
+    metricKey: "allure",
+    sportKey: "natation",
+    tags: ["heat", "open water", "chaleur", "natation"],
+    structure: [
+      { part: "Warm-up", text: "400m facile, focus technique et gestion rythme cardiaque", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "1500–2000m continu à allure CSS+10% (plus lente). En combinaison si eau < 24°C. Sans combinaison si eau > 24°C pour simuler conditions course. Surveiller FC : ne pas dépasser Z3. Hydratation post-sortie immédiate.", zones: ["Z2"] },
+      { part: "Cool-down", text: "200m dos facile + rinçage eau froide sur nuque immédiatement après", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2000–2500m avec simulation départ de masse",
+      half: "1500m avec drafting simulation",
+      marathon: "Non applicable",
+      semi: "1000m OWS spécifique"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 2 — FATMAX & TRAIN LOW AVANCÉ (12 séances)
+// Réf: Burke 2021, Volek & Phinney 2012, Impey 2018, Lorang
+// ─────────────────────────────────────────────
+
+  {
+    id: "FATMAX_BIKE_ZONE_FINDER",
+    cat: "B",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Test et identification de la zone FatMax personnalisée — calibration du profil lipidique",
+    necessite: "Recommandé",
+    when: "Base — début de cycle, à jeun, matin après 10h de jeûne",
+    phase: ["base"],
+    avoid: "Après séance intense (J-1) · Avec glucides dans les 10h précédentes · Période de compétition",
+    durationMin: [90, 120],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["fatmax", "test", "lipides", "à jeun", "lorang", "train low"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1 strict à jeun (eau uniquement). FC < 65% FCmax.", zones: ["Z1"] },
+      { part: "Main", text: "Protocole paliers FatMax : 5 paliers de 12 min chacun. Palier 1 : 45% FTP. Palier 2 : 55% FTP. Palier 3 : 65% FTP. Palier 4 : 75% FTP. Palier 5 : 85% FTP. Observer : la puissance au palier où la FC commence à dériver de façon non linéaire = zone FatMax approximative. Idéalement avec analyseur respiratoire (QR ou FeO2). Sans matériel : noter RPE et dérive FC pour chaque palier.", zones: ["Z1", "Z2", "Z3"] },
+      { part: "Cool-down", text: "15 min Z1. Repas riche en glucides complexes immédiatement après.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Paliers identiques — noter allure Z2 correspondant à FatMax vélo",
+      half: "Réduire à 4 paliers (45/55/65/75% FTP)",
+      marathon: "Adapter en course à pied : 4:30/km → 4:00 → 3:40 → 3:20 allure",
+      semi: "4 paliers en course à pied"
+    }
+  },
+
+  {
+    id: "FATMAX_BIKE_LONG_FASTED",
+    cat: "A",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Longue sortie à jeun — développement maximal de l'oxydation lipidique (FatMax)",
+    necessite: "Obligatoire",
+    when: "Base/Build — 1x/semaine max. Matin à jeun (10h minimum). Remplacer petit-déjeuner.",
+    phase: ["base", "build"],
+    avoid: "Hypoglycémie connue · VLamax > 0.75 (risque de fringale précoce) · Sans expérience du train low",
+    durationMin: [120, 180],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["fatmax", "à jeun", "fasted", "lipides", "lorang", "train low", "base aérobie"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1 très progressif. Eau uniquement. Caféine autorisée (1-2mg/kg) 30 min avant pour mobiliser acides gras.", zones: ["Z1"] },
+      { part: "Main", text: "90–140 min Z2 strict (63-72% FTP). AUCUN glucide exogène pendant les 90 premières minutes. Eau + électrolytes uniquement. Cadence 85-95 rpm. Si hypoglycémie (tremblements, confusion) : gel d'urgence immédiatement. Après 90 min si > 3h total : 30g CHO/h autorisés. Réf : Burke 2021 — 3h fasted Z2 augmente FatMax de 25-40% sur 12 semaines.", zones: ["Z2"] },
+      { part: "Cool-down", text: "15 min Z1. Repas glucido-protéiné dans les 30 min (récupération + rechargement).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "3–4h Z2 à jeun les 90 premières minutes. Pilier de la préparation IM.",
+      half: "2–2h30 Z2 à jeun les 60 premières minutes",
+      marathon: "SL 2–3h run à jeun les 60 premières minutes",
+      semi: "90 min à jeun Z2"
+    }
+  },
+
+  {
+    id: "FATMAX_SLEEP_LOW_PROTOCOL",
+    cat: "C",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Protocole Sleep Low — adaptation métabolique maximale lipidique sur cycle 16h",
+    necessite: "Optionnel",
+    when: "Build — 1-2x/semaine sur bloc de 3-4 semaines. Réservé athlètes expérimentés.",
+    phase: ["build"],
+    avoid: "Diabétiques · Hypoglycémiques · Troubles du sommeil · Compétition dans les 3 jours",
+    durationMin: [120, 150],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["sleep low", "train low", "fatmax", "lorang", "périodisation glucidique", "glycogène"],
+    structure: [
+      { part: "Warm-up", text: "SOIR (J0 - 18h) : Séance normale avec glucides (60-90g/h). Terminer à 19-20h.", zones: ["Z2", "Z3"] },
+      { part: "Main", text: "SOIR après séance : repas pauvre en glucides (< 50g), riche en protéines + légumes. PAS de glucides avant le coucher. MATIN (J1 - 6-8h) : réveil, café/thé uniquement. Séance 60-90 min Z2 à jeun (glycogène bas après nuit sans recharge). Cette combinaison déplète le glycogène 2x plus que le simple fasted training. Réf : Impey 2018, Van Proeyen 2011.", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "MATIN après séance : petit-déjeuner normal avec glucides (rechargement complet). Ne pas enchaîner une autre séance sans rechargement glucidique.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2 cycles Sleep Low/semaine pendant 4 semaines en base",
+      half: "1 cycle/semaine pendant 3 semaines",
+      marathon: "Adapter avec run le matin après nuit low carb",
+      semi: "1 cycle/semaine pendant 2 semaines"
+    }
+  },
+
+  {
+    id: "FATMAX_RUN_LONG_FASTED",
+    cat: "A",
+    sport: "course",
+    defaultSportId: 2,
+    objectif: "Sortie longue à jeun — développement FatMax course et robustesse glycogénique",
+    necessite: "Recommandé",
+    when: "Base/Build — 1x/semaine. Weekend matin. Manger glucides la veille soir (pas de Sleep Low).",
+    phase: ["base", "build"],
+    avoid: "Allure compétition · Terrain accidenté seul · Hypoglycémie connue · Chaleur > 25°C sans expérience",
+    durationMin: [90, 150],
+    metricKey: "allure",
+    sportKey: "course",
+    tags: ["fatmax", "à jeun", "fasted", "sortie longue", "train low", "lorang"],
+    structure: [
+      { part: "Warm-up", text: "10 min marche/trot Z1. Eau + caféine uniquement.", zones: ["Z1"] },
+      { part: "Main", text: "70–120 min Z2 (68-75% FCmax). Eau uniquement les 75 premières minutes. Allure 20-30s/km plus lente qu'allure Z2 habituelle (normal à jeun). Si fringale : gel d'urgence. Après 75 min : 20-30g CHO/h si besoin pour terminer. Focus : relâchement, technique, économie de course.", zones: ["Z2"] },
+      { part: "Cool-down", text: "10 min marche. Petit-déjeuner complet dans les 20 min (protéines 30g + glucides 60g).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2–2h30 à jeun les 75 premières minutes. Clé de la préparation marathon IM.",
+      half: "90 min à jeun les 60 premières minutes",
+      marathon: "2h30–3h avec jeûne 90 premières minutes. Protocole Lydiard adapté.",
+      semi: "90 min à jeun 45 premières minutes"
+    }
+  },
+
+  {
+    id: "FATMAX_TRAIN_HIGH_GUT",
+    cat: "B",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Train High — adaptation intestinale aux hautes doses de glucides (gut training)",
+    necessite: "Obligatoire",
+    when: "Build/Peak — entraîner l'intestin à absorber 90-120g CHO/h (glucose:fructose 2:1)",
+    phase: ["build", "peak"],
+    avoid: "Problèmes GI sévères · < 8 semaines avant course A (pas le temps d'adapter)",
+    durationMin: [120, 210],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["gut training", "train high", "glucides", "intestin", "race nutrition", "lorang"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z2. Commencer glucides dès le départ (contrairement au fasted training).", zones: ["Z2"] },
+      { part: "Main", text: "90–150 min Z2–Z3. Ingestion glucides : semaines 1-2 : 60g/h. Semaines 3-4 : 75g/h. Semaines 5-6 : 90g/h. Semaines 7-8 : 100-120g/h. RATIO OBLIGATOIRE : 2 glucose pour 1 fructose (ex : gel glucose + boisson fructose). Tester les produits de course (pas entraînement). Si nausées : réduire 10g/h et réessayer semaine suivante. Réf : Jeukendrup 2017 — adaptation transporteurs intestinaux sur 8-10 semaines.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "15 min Z1. Journaliser : glucides ingérés, symptômes GI (0-10), énergie perçue.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Obligatoire — viser 90-120g/h pour 8-9h de course",
+      half: "Viser 70-90g/h pour 4-5h",
+      marathon: "Adapter en run : 60-80g/h (absorption plus difficile en course à pied)",
+      semi: "50-70g/h"
+    }
+  },
+
+  {
+    id: "FATMAX_BIKE_FATFLUSH",
+    cat: "A",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Fat Flush — longue sortie ultra-basse intensité pour maximiser oxydation lipidique absolue",
+    necessite: "Recommandé",
+    when: "Base — 1x/2 semaines. Idéal le dimanche matin. Réservé base period.",
+    phase: ["base"],
+    avoid: "Build/Peak (trop peu d'intensité) · Sans ravitaillement sur parcours > 3h",
+    durationMin: [180, 300],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["fat flush", "fatmax", "ultra endurance", "Z1", "lipides", "base"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1 très progressif. Petit-déjeuner léger 2h avant (avoine + œufs, pas de sucres simples).", zones: ["Z1"] },
+      { part: "Main", text: "2h30–4h en Z1 strict (< 60% FTP, < 65% FCmax). Cadence libre. Maintenir conversation possible en permanence. Si FC monte > 68% FCmax : ralentir ou pause. Ravitaillement : eau + électrolytes toutes les 30 min. CHO minimal (1 banane/heure suffit après 2h). Priorité absolue à l'oxydation des graisses. Réf : Volek & Phinney 2012 — sorties Z1 longues augmentent les enzymes mitochondriales de 30-50%.", zones: ["Z1"] },
+      { part: "Cool-down", text: "Intégré dans la séance (derniers 20 min Z1 encore plus facile). Repas protéiné + légumes après.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4-6h Z1 en période de base — la séance fondatrice du métabolisme IM",
+      half: "3–4h Z1",
+      marathon: "Sortie longue lente 3h Z1 run",
+      semi: "2h30–3h Z1"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 3 — AFFÛTAGE / TAPERING (8 séances)
+// Réf: Mujika 2017, Bosquet 2007, Houmard 1994
+// ─────────────────────────────────────────────
+
+  {
+    id: "TAPER_BIKE_J14_VOLUME_CUT",
+    cat: "B",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Début d'affûtage — réduction progressive du volume avec maintien de l'intensité",
+    necessite: "Obligatoire",
+    when: "Peak — J-14 avant course A. Semaine 1 de l'affûtage.",
+    phase: ["peak"],
+    avoid: "Réduire l'intensité (erreur classique) · Ajouter des séances de compensation",
+    durationMin: [75, 90],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["tapering", "affûtage", "peak", "compétition", "mujika"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1–Z2 progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "40–50 min dont : 2x10 min à allure/puissance course (Z3–Z4 selon objectif). Récup 5 min Z1 entre les blocs. Volume réduit de 40% vs semaine normale mais INTENSITÉ MAINTENUE. Réf : Mujika 2017 — réduction de 40-60% du volume sur 2 semaines avec maintien de l'intensité = +3-4% de performance.", zones: ["Z2", "Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + mobilité", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2x10 min à allure vélo cible IM (Z3 bas, 75-80% FTP)",
+      half: "2x8 min à allure 70.3 (Z3–Z4, 82-88% FTP)",
+      marathon: "Adapter en run : 2x10 min allure marathon",
+      semi: "2x8 min allure semi"
+    }
+  },
+
+  {
+    id: "TAPER_RUN_J14",
+    cat: "B",
+    sport: "course",
+    defaultSportId: 2,
+    objectif: "Affûtage course — maintien qualité neuromusculaire pendant réduction volume",
+    necessite: "Obligatoire",
+    when: "Peak — J-14 avant course. 1-2x dans la semaine J-14",
+    phase: ["peak"],
+    avoid: "Séances longues · Nouvelles séances jamais testées · Kilomètres de compensation",
+    durationMin: [50, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    tags: ["tapering", "affûtage", "peak", "compétition"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1–Z2 progressif + 4x80m accélérations progressives", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "20–30 min dont : 3x5 min à allure course ou légèrement plus rapide. Récup 3 min Z1. Volume total réduit de 40%. Conserver la sensation de légèreté — si jambes lourdes : réduire encore 10%.", zones: ["Z2", "Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + étirements doux", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "3x5 min allure marathon cible",
+      half: "3x5 min allure semi-marathon ou course cible",
+      marathon: "3x5 min à allure marathon ou légèrement plus rapide (allure semi)",
+      semi: "3x4 min allure 10km"
+    }
+  },
+
+  {
+    id: "TAPER_ACTIVATION_J2",
+    cat: "C",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Activation J-2 — déblocage neuromusculaire et confirmation des sensations",
+    necessite: "Obligatoire",
+    when: "Peak — exactement J-2 avant course A (pas J-1)",
+    phase: ["peak"],
+    avoid: "J-1 avant course · Intensité trop élevée · Durée > 45 min",
+    durationMin: [35, 45],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["activation", "J-2", "tapering", "compétition", "pré-course"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1–Z2 progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "15 min dont : 2x30s accélérations progressives à 90-95% FTP (pas sprint max). Récup 3 min Z1. 5 min Z3 continu à allure course. Objectif : activer le système neuromusculaire et confirmer les bonnes sensations. Si jambes ne répondent pas : c'est normal — ne pas paniquer ni allonger la séance.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "10 min Z1 strict. Fin de la séance = fin de la préparation physique.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Vélo 35 min + 10 min run de transition à allure IM",
+      half: "Vélo 30 min + 8 min run à allure course",
+      marathon: "Run uniquement : 30 min Z1-Z2 + 3x30s accélérations",
+      semi: "Run 25 min Z1-Z2 + 2x30s accélérations"
+    }
+  },
+
+  {
+    id: "TAPER_SWIM_J3",
+    cat: "A",
+    sport: "natation",
+    defaultSportId: 19,
+    objectif: "Activation natation pré-course — maintien sensations eau et technique",
+    necessite: "Recommandé",
+    when: "Peak — J-3 ou J-2 avant course triathlon. Courte et qualitative.",
+    phase: ["peak"],
+    avoid: "Volume élevé · Nouveaux exercices · Si fatigue musculaire",
+    durationMin: [25, 40],
+    metricKey: "allure",
+    sportKey: "natation",
+    tags: ["activation", "pré-course", "natation", "tapering"],
+    structure: [
+      { part: "Warm-up", text: "300m facile mixte (dos/crawl)", zones: ["Z1"] },
+      { part: "Main", text: "4x50m à allure course (CSS) récup 20s. 4x25m à 95% allure max récup 30s. Focus : sensations eau, catch, rythme de nage. Total : 600–800m maximum.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "200m dos facile. Sortir en se sentant léger, pas fatigué.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "800m total + 4x25m rapides",
+      half: "600m total + 4x25m rapides",
+      marathon: "Non applicable",
+      semi: "500m total + 2x25m rapides"
+    }
+  },
+
+  {
+    id: "TAPER_MINI_5DAYS",
+    cat: "B",
+    sport: "course",
+    defaultSportId: 2,
+    objectif: "Mini-taper 5 jours — affûtage express pour course secondaire ou test",
+    necessite: "Recommandé",
+    when: "Peak — avant course B ou test de performance. 5 jours de réduction.",
+    phase: ["peak"],
+    avoid: "Course A prioritaire (utiliser taper 14 jours)",
+    durationMin: [40, 55],
+    metricKey: "allure",
+    sportKey: "course",
+    tags: ["tapering", "mini-taper", "5 jours", "mujika", "course B"],
+    structure: [
+      { part: "Warm-up", text: "J-5 : dernière séance normale courte. J-4 : 40 min Z2 + 2x5 min Z3. J-3 : 35 min Z2 facile. J-2 : cette séance. J-1 : repos ou 20 min Z1.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "J-2 : 30 min dont 10 min allure course + 4x30s accélérations. Volume réduit de 50% vs semaine normale. Intensité maintenue. Réf : Bosquet 2007 — mini-taper 5-7 jours améliore performance de 2-3%.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "10 min Z1. Pas de séance J-1 sauf 15-20 min très facile si habitude.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "J-5 à J-2 : réduire toutes les disciplines de 50% en volume",
+      half: "Même protocole",
+      marathon: "Focus run uniquement sur les 5 jours",
+      semi: "Même protocole"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 4 — OPEN WATER SWIMMING SPÉCIFIQUE (6 séances)
+// Réf: Brammer 2019, Colwin 2002
+// ─────────────────────────────────────────────
+
+  {
+    id: "OWS_DRAFTING_TRAINING",
+    cat: "B",
+    sport: "natation",
+    defaultSportId: 19,
+    objectif: "Entraînement au drafting — nager dans le sillage pour économiser 15-25% d'énergie",
+    necessite: "Recommandé",
+    when: "Build/Peak — spécifique triathlon. Nécessite partenaire d'entraînement.",
+    phase: ["build", "peak"],
+    avoid: "En compétition débutant (règles) · Sans maîtrise technique de base",
+    durationMin: [45, 60],
+    metricKey: "allure",
+    sportKey: "natation",
+    tags: ["open water", "drafting", "triathlon", "tactique", "économie"],
+    structure: [
+      { part: "Warm-up", text: "400m crawl facile. Exercices de proximité : nager à 30cm d'un partenaire.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "6x200m en drafting (nager à 0-30cm des pieds du nageur devant, ou sur le côté à hauteur d'épaule). Récup 30s. Alterner : 3 fois en tête (Z3), 3 fois en drafting (Z2). Observer : économie réelle — maintenir même allure avec FC plus basse. Réf : Chatard 2003 — drafting réduit le coût énergétique de 13-26%.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "200m facile + simulation de sortie de l'eau (courir 50m après).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Pack swimming — nager en groupe de 4-6, pratiquer positionnement",
+      half: "3x300m en drafting + 3x300m en tête",
+      marathon: "Non applicable",
+      semi: "4x150m drafting"
+    }
+  },
+
+  {
+    id: "OWS_MASS_START_SIM",
+    cat: "B",
+    sport: "natation",
+    defaultSportId: 19,
+    objectif: "Simulation départ de masse — gestion du chaos initial et placement tactique",
+    necessite: "Recommandé",
+    when: "Peak — 2-4 semaines avant triathlon. En groupe de 4-8 nageurs minimum.",
+    phase: ["peak"],
+    avoid: "Seul · Sans expérience OWS · Anxiété sévère à l'eau",
+    durationMin: [40, 55],
+    metricKey: "allure",
+    sportKey: "natation",
+    tags: ["open water", "départ de masse", "triathlon", "tactique", "simulation"],
+    structure: [
+      { part: "Warm-up", text: "400m échauffement calme. Discussion tactique : placement selon niveau (fort = avant-côté, moyen = 2ème rang).", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3 répétitions de départ de masse simulé : sprint 50-75m à 95% max en groupe (contact physique normal), puis transition vers rythme de course. Récup 3 min entre chaque. Pratique : sighting (lever la tête toutes les 6-10 foulées), nage en ligne droite sans ligne d'eau, contact physique géré. 1x500m à allure course en open water (sans ligne).", zones: ["Z3", "Z4", "Z5"] },
+      { part: "Cool-down", text: "200m retour calme + debriefing tactique", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Départ simulé + 1000m allure course OWS",
+      half: "Départ simulé + 500m allure course",
+      marathon: "Non applicable",
+      semi: "Départ simulé + 300m allure course"
+    }
+  },
+
+  {
+    id: "OWS_NAVIGATION_SIGHTING",
+    cat: "A",
+    sport: "natation",
+    defaultSportId: 19,
+    objectif: "Maîtrise du sighting et navigation en open water — économiser 50-200m par ligne droite",
+    necessite: "Recommandé",
+    when: "Build — toute l'année, priorité si course avec OWS",
+    phase: ["base", "build", "peak"],
+    avoid: "Eau trouble sans repères · Sans partenaire de sécurité en OWS",
+    durationMin: [40, 55],
+    metricKey: "allure",
+    sportKey: "natation",
+    tags: ["open water", "sighting", "navigation", "triathlon", "technique"],
+    structure: [
+      { part: "Warm-up", text: "300m crawl. 4x25m drill sighting : lever la tête 2x par longueur de 25m.", zones: ["Z1"] },
+      { part: "Main", text: "Exercice 1 : 4x100m avec sighting toutes les 8 foulées (rythme course). Exercice 2 : 200m en piscine yeux fermés → mesurer dérive (objectif < 1m). Exercice 3 (si OWS disponible) : 2x400m navigation vers bouée sans ligne d'eau, focus sur ligne droite. Technique : chin-up sighting (Colwin 2002) — lever uniquement les yeux, pas toute la tête.", zones: ["Z2"] },
+      { part: "Cool-down", text: "200m facile dos", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "400m OWS navigation + simulation de bouée intermédiaire",
+      half: "2x300m navigation OWS",
+      marathon: "Non applicable",
+      semi: "2x200m navigation OWS"
+    }
+  },
+
+  {
+    id: "OWS_WETSUIT_SPECIFIC",
+    cat: "A",
+    sport: "natation",
+    defaultSportId: 19,
+    objectif: "Adaptation combinaison néoprène — technique et gestion thermique en wetsuit",
+    necessite: "Recommandé",
+    when: "Build/Peak — si course en eau < 24°C avec wetsuit autorisée",
+    phase: ["build", "peak"],
+    avoid: "Eau > 24°C (inconfort thermique) · Wetsuit non testée le jour de la course",
+    durationMin: [40, 55],
+    metricKey: "allure",
+    sportKey: "natation",
+    tags: ["open water", "wetsuit", "néoprène", "combinaison", "triathlon"],
+    structure: [
+      { part: "Warm-up", text: "300m avec wetsuit — s'habituer à la flottabilité modifiée et restriction des épaules.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "1000–1500m avec wetsuit. Focus : ajuster stroke rate (cadence augmente naturellement avec flottabilité). Observer : allure wetsuit vs sans — gain typique 3-5s/100m. Adapter technique catch : EVF (Early Vertical Forearm) légèrement modifié. Gestion thermique : si surchauffe, nager plus lentement ou s'arrêter.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "200m sans wetsuit si possible (comparaison). Pratiquer retrait rapide du haut < 20 secondes.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2x750m avec wetsuit à allure IM + simulation transition T1",
+      half: "1500m avec wetsuit à allure course",
+      marathon: "Non applicable",
+      semi: "750m avec wetsuit à allure course"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 5 — ÉCONOMIE DE COURSE AVANCÉE (8 séances)
+// Réf: Jones 2002, Daniels 2005, Weyand 2010, Dalleau 1998
+// ─────────────────────────────────────────────
+
+  {
+    id: "ECONOMY_RUN_POSE_DRILLS",
+    cat: "C",
+    sport: "course",
+    defaultSportId: 2,
+    objectif: "Technique de course Pose Method — réduction de la braking force et économie d'énergie",
+    necessite: "Recommandé",
+    when: "Toute l'année — séance technique dédiée ou intégrée au warm-up",
+    phase: ["base", "build"],
+    avoid: "Douleur genou · Fatigue musculaire élevée · Sans apprentissage préalable de la méthode",
+    durationMin: [40, 55],
+    metricKey: "allure",
+    sportKey: "course",
+    tags: ["économie", "technique", "pose method", "foulée", "Daniels"],
+    structure: [
+      { part: "Warm-up", text: "10 min trot Z1 relâché", zones: ["Z1"] },
+      { part: "Main", text: "Série de drills (2x20m chacun, récup marche 30s) : 1. Chute avant — se laisser tomber en avant et rattraper avec la pose (appui sous centre de gravité). 2. Pull — ramener le pied sous la hanche en tirant avec ischio (pas de déroulement exagéré). 3. Change of support — alternance rapide appui droit/gauche sur place. 4. Running en côte courte 30m (3% pente) — favorise la pose naturellement. 5. 4x200m allure Z3 en appliquant la technique. Puis 2x800m allure Z2 avec focus : cadence 170-180 pas/min, appui sous le corps, bras à 90°.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "10 min Z1 + étirements ischio-jambiers", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Crucial pour économie en fin de run IM — intégrer 1x/semaine en base",
+      half: "2x/mois en build",
+      marathon: "Priorité haute — économie = performance marathon",
+      semi: "1x/mois"
+    }
+  },
+
+  {
+    id: "ECONOMY_RUN_FATIGUE_FORM",
+    cat: "B",
+    sport: "course",
+    defaultSportId: 2,
+    objectif: "Technique sous fatigue — maintien de l'économie de foulée en fin de séance longue",
+    necessite: "Recommandé",
+    when: "Build/Peak — fin de sortie longue ou brick après vélo",
+    phase: ["build", "peak"],
+    avoid: "Blessure en cours · Fatigue extrême (>8/10)",
+    durationMin: [75, 100],
+    metricKey: "allure",
+    sportKey: "course",
+    tags: ["économie", "fatigue", "technique", "brick", "lorang", "résistance"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1–Z2 (ou sortir directement du vélo en brick)", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "40–60 min Z2–Z3 continu. Dans les 15 dernières minutes : focus technique intensifié (cadence, relâchement bras, regard horizontal). 4x100m accélérations progressives en maintenant la forme malgré la fatigue. Objectif : démontrer que la technique ne se dégrade pas sous fatigue = signe d'économie maîtrisée. Réf : Jones 2002 — Paula Radcliffe maintenait 1% meilleure économie en fin de marathon vs début.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "10 min marche + automassage mollets", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Après 4h vélo — 45 min run avec focus technique fin de parcours",
+      half: "Après 2h30 vélo — 30 min run technique",
+      marathon: "SL 2h30 avec 15 dernières minutes focus technique",
+      semi: "SL 1h45 avec 10 min focus technique fin"
+    }
+  },
+
+  {
+    id: "ECONOMY_TRAIL_DESCENT_TECH",
+    cat: "B",
+    sport: "trail",
+    defaultSportId: 52,
+    objectif: "Technique de descente trail — économie neuromusculaire et protection quadriceps (Kilian Jornet)",
+    necessite: "Recommandé",
+    when: "Build/Peak — spécifique trail. Terrains variés requis.",
+    phase: ["build", "peak"],
+    avoid: "Genou douloureux · Terrain glissant sans expérience · Chaussures trail inadaptées",
+    durationMin: [60, 90],
+    metricKey: "allure",
+    sportKey: "trail",
+    tags: ["trail", "descente", "technique", "Kilian Jornet", "neuromusculaire", "quadriceps"],
+    structure: [
+      { part: "Warm-up", text: "15 min trot terrain plat + 5 min marche active côte", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Exercices descente (Jornet method) : 1. Descente lente contrôlée — appui avant-pied, centre de gravité bas, regard 3-5m devant. 2. Descente libre rapide sur 100-200m — laisser les jambes aller, bras écartés pour équilibre. 3. Descente technique (pierres, racines) — lecture terrain, anticipation appuis. 4x5-8 min de descente à allure race simulation. Entre chaque : remontée Z2. Volume total : 400-600m dénivelé négatif.", zones: ["Z2", "Z3", "Z4"] },
+      { part: "Cool-down", text: "15 min terrain plat Z1 + étirements quadriceps", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Non prioritaire",
+      half: "Non prioritaire",
+      marathon: "Non applicable",
+      semi: "Non applicable — trail uniquement"
+    }
+  },
+
+  {
+    id: "ECONOMY_STRIDES_ADVANCED",
+    cat: "A",
+    sport: "course",
+    defaultSportId: 2,
+    objectif: "Strides avancés — développement de l'économie neuromusculaire et de la vitesse de base",
+    necessite: "Recommandé",
+    when: "Toute l'année — fin de séance Z2 ou séance dédiée courte",
+    phase: ["base", "build", "peak"],
+    avoid: "Blessure musculaire · Fatigue > 7/10 · Après séance d'intervalles intense",
+    durationMin: [45, 55],
+    metricKey: "allure",
+    sportKey: "course",
+    tags: ["strides", "accélérations", "économie", "vitesse", "neuromusculaire", "Daniels"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1–Z2 relâché", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "8x100m strides progressifs (pas sprints) : démarrer à allure 5km, accélérer progressivement jusqu'à 95% allure max sur les 30 derniers mètres, décélérer douce sur les 20 derniers. Récup : marche 60-90s. Focus : relâchement total (mâchoire, épaules, poings ouverts), foulée déliée, cadence naturellement élevée. Variante avancée : 4x100m sur légère montée (2-3%) pour renforcement spécifique. Réf : Daniels 2005 — strides réguliers améliorent économie de 2-4%.", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "10 min Z1 trot + 5 min marche", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "6-8 strides 2x/semaine en base — fondamental pour économie run IM",
+      half: "6 strides après Z2",
+      marathon: "8-10 strides 2x/semaine — critique pour économie marathon",
+      semi: "6-8 strides 1-2x/semaine"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 6 — VÉLO AÉRO & POSITION (5 séances)
+// Réf: Grappe 2009, Martin 2006, Debraux 2011
+// ─────────────────────────────────────────────
+
+  {
+    id: "AERO_BIKE_POSITION_ENDURANCE",
+    cat: "B",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Endurance en position aéro — développer le confort et la puissance en position TT",
+    necessite: "Obligatoire",
+    when: "Build/Peak — spécifique triathlon et contre-la-montre",
+    phase: ["build", "peak"],
+    avoid: "Douleur cervicale ou lombaire · Sans bike fit préalable · Vélo route (pas TT)",
+    durationMin: [90, 150],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["aéro", "position TT", "triathlon", "contre-la-montre", "bike fit"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1–Z2 position normale puis 5 min test position aéro", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "4x15 min en position aéro stricte (coudes sur aerobar, dos plat). Récup 5 min Z1 position droite entre chaque. Puissance cible : 75-82% FTP (légèrement réduite vs position normale — perte initiale de 3-8% normale). Progression sur 6 semaines : de 4x10 min à 4x20 min. Réf : Debraux 2011 — position aéro réduit la traînée de 25-30% mais demande 3-6 semaines d'adaptation musculaire.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "15 min Z1 + étirements fléchisseurs de hanche + cervicaux", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4x20 min position aéro à 75-80% FTP — simuler le vélo IM",
+      half: "4x15 min à 78-83% FTP",
+      marathon: "Non applicable (vélo support)",
+      semi: "3x12 min position aéro"
+    }
+  },
+
+  {
+    id: "AERO_BIKE_CADENCE_HIGH",
+    cat: "B",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Développement neuromusculaire haute cadence — efficacité pédalage 100-120 rpm",
+    necessite: "Recommandé",
+    when: "Base/Build — améliorer l'efficacité neuromusculaire et économiser les quadriceps",
+    phase: ["base", "build"],
+    avoid: "Douleur genou · Développement trop court (braquet inadapté)",
+    durationMin: [75, 90],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["cadence", "neuromusculaire", "efficacité", "pédalage", "home trainer"],
+    structure: [
+      { part: "Warm-up", text: "15 min progressif Z1–Z2, cadence libre", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Série cadence élevée : 4x5 min à 110-120 rpm @ Z2 (55-65% FTP). Récup 3 min Z1 cadence libre. Focus : pédalage rond (tirer en haut, pousser en bas), minimiser le rebond en selle. Puis 2x10 min Z2 à 95-100 rpm (cadence race). Réf : Ahlquist 1992 — cadence élevée (90-100 rpm) préserve les fibres lentes et le glycogène musculaire en longue distance.", zones: ["Z2"] },
+      { part: "Cool-down", text: "10 min Z1 cadence libre", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Cadence cible IM : 85-95 rpm — développer au-dessus pour créer une marge",
+      half: "Cadence cible 90-100 rpm",
+      marathon: "Non applicable",
+      semi: "Même protocole"
+    }
+  },
+
+  {
+    id: "AERO_BIKE_TT_RACE_SIM",
+    cat: "C",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Simulation contre-la-montre/vélo triathlon — répétition complète des conditions de course",
+    necessite: "Obligatoire",
+    when: "Peak — 1 ou 2 fois dans les 4 semaines avant course A. En conditions similaires à la course.",
+    phase: ["peak"],
+    avoid: "< 10 jours avant course A · Sans nutrition race testée · Sur parcours inconnu sans reconnaissance",
+    durationMin: [120, 240],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["simulation", "TT", "triathlon", "race pace", "course spécifique"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z2 + 3x1 min Z3–Z4 (simuler la mise en route en course)", zones: ["Z2", "Z3"] },
+      { part: "Main", text: "Simulation vélo course : 80-95% de la distance réelle, ou 75-85% du temps total vélo prévu. Puissance cible : allure race (NP cible). Position aéro maintenue. Nutrition exactement comme en course (gel + boisson, timing identique). Analyser : régularité de la puissance, gestion des relances, efficacité en côte. Run de transition immédiatement après (15-20 min Z2-Z3).", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1. Analyser les données : IF, NP, variabilité. Nutrition post-effort complète.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "140-160 km à allure IM + 20 min run de transition",
+      half: "70-80 km à allure 70.3 + 15 min run",
+      marathon: "Non applicable",
+      semi: "40-45 km à allure course + 10 min run"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 7 — RESPIRATORY MUSCLE TRAINING (3 séances)
+// Réf: Inui-Yamamoto 2022, Romer 2002, Sheel 2002
+// ─────────────────────────────────────────────
+
+  {
+    id: "RMT_INSPIRATORY_INTRO",
+    cat: "C",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Introduction entraînement musculaire respiratoire — renforcer les muscles inspiratoires",
+    necessite: "Optionnel",
+    when: "Base — 5x/semaine, 10 min/session. Nécessite PowerBreathe ou résistance inspiratoire.",
+    phase: ["base", "build"],
+    avoid: "Asthme non contrôlé · BPCO · Sans appareil de résistance inspiratoire",
+    durationMin: [10, 15],
+    metricKey: "fc",
+    sportKey: "cyclisme",
+    tags: ["RMT", "respiratoire", "inspiratoire", "PowerBreathe", "VO2max"],
+    structure: [
+      { part: "Warm-up", text: "2 min respirations profondes sans résistance", zones: ["Z1"] },
+      { part: "Main", text: "30 respirations maximales contre résistance inspiratoire (PowerBreathe ou équivalent). Résistance initiale : 50% PImax (pression inspiratoire maximale). Progression : +5% résistance/semaine. 2 séries de 30 respirations avec 1 min récup. Indépendant du sport — peut se faire assis. Réf : Inui-Yamamoto 2022 — RMT 6 semaines : +3-5% VO2max, -2-4% FC sous-max. Romer 2002 : améliore performance cyclisme de 4.6%.", zones: ["Z2"] },
+      { part: "Cool-down", text: "2 min respirations libres. Faire matin + soir si possible.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Protocole 12 semaines en base — gain VO2max sans fatigue périphérique",
+      half: "8 semaines",
+      marathon: "Idem — améliore la respiration en fin de marathon",
+      semi: "6 semaines"
+    }
+  },
+
+  {
+    id: "RMT_EXPIRATORY_CORE",
+    cat: "C",
+    sport: "renforcement",
+    defaultSportId: 20,
+    objectif: "Entraînement expiratoire et gainage respiratoire — stabilité centrale et puissance respiratoire",
+    necessite: "Optionnel",
+    when: "Base/Build — 3-4x/semaine. Combinable avec renforcement core.",
+    phase: ["base", "build"],
+    avoid: "Hernie abdominale · Pathologie respiratoire aiguë",
+    durationMin: [15, 20],
+    metricKey: "fc",
+    sportKey: "renforcement",
+    tags: ["RMT", "expiratoire", "gainage", "core", "respiration"],
+    structure: [
+      { part: "Warm-up", text: "3 min respiration diaphragmatique : inspirer 4s (gonfler ventre), expirer 6s (rentrer ventre)", zones: ["Z1"] },
+      { part: "Main", text: "Circuit respiratoire (3 rounds) : 1. Gainage planche 30s avec expiration forcée. 2. Crunch respiratoire : inspirer en montant, expirer force en descendant (20 reps). 3. Respiration 4-7-8 : inspirer 4s, retenir 7s, expirer 8s (4 cycles). 4. Chant ou humming (vibration pharyngée) 1 min — stimule nerf vague + récupération. Réf : Sheel 2002 — muscles expiratoires ont réponse métaréflexe sur vasoconstriction périphérique.", zones: ["Z2"] },
+      { part: "Cool-down", text: "2 min cohérence cardiaque (5s inspire, 5s expire)", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Intégrer dans routine matin (10 min) pendant 12 semaines de base",
+      half: "8 semaines",
+      marathon: "Priorité : breathing technique en fin de marathon",
+      semi: "6 semaines"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 8 — CONTRAST TRAINING (4 séances)
+// Réf: Rønnestad 2016, Docherty 2004, PAP (Post-Activation Potentiation)
+// ─────────────────────────────────────────────
+
+  {
+    id: "CONTRAST_BIKE_FORCE_POWER",
+    cat: "C",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Contrast training vélo — alternance force max / explosivité pour maximiser la PAP",
+    necessite: "Recommandé",
+    when: "Build — 1x/semaine. Salle de sport + home trainer ou home trainer seul.",
+    phase: ["build"],
+    avoid: "Débutant en renforcement · Fatigue musculaire élevée · Sans échauffement complet",
+    durationMin: [70, 85],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["contrast training", "PAP", "force max", "explosivité", "Rønnestad", "neuromusculaire"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z2 vélo + 5 min mobilité articulaire", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "4 rounds de contrast training (récup 3 min entre rounds) : A1 : Squat lourd 3-5 reps à 80-85% 1RM (ou leg press). Récup 15-20 secondes (PAP window). A2 : 10s sprint maximal sur home trainer (ERG désactivé, développement fixe). Récup 3 min complet. Réf : Rønnestad 2016 — contrast training améliore la puissance sprint de 8-12% vs entraînement normal. Le délai 15-20s post-force maximise la PAP sans fatigue musculaire.", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "10 min Z1 vélo + étirements quadriceps et ischio", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2 rounds uniquement (volume faible, qualité maximale)",
+      half: "3 rounds",
+      marathon: "Non applicable (vélo)",
+      semi: "3 rounds"
+    }
+  },
+
+  {
+    id: "CONTRAST_RUN_FORCE_SPEED",
+    cat: "C",
+    sport: "course",
+    defaultSportId: 2,
+    objectif: "Contrast training run — alternance force max et strides explosifs pour économie neuromusculaire",
+    necessite: "Recommandé",
+    when: "Build — 1x/semaine. Piste ou terrain plat. Salle si disponible.",
+    phase: ["build"],
+    avoid: "Blessure en cours · Débutant renforcement · Veille de séance longue",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    tags: ["contrast training", "PAP", "force", "vitesse", "économie", "Rønnestad"],
+    structure: [
+      { part: "Warm-up", text: "15 min trot Z1–Z2 + mobilité dynamique 5 min", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "4 rounds contrast training running : A1 : Squat sauté 3 reps à 70% 1RM ou box jump 5 reps (force explosive). Récup 10-15s (PAP window). A2 : 80m stride à 95% vitesse max. Récup 2 min complet. Puis 2x800m allure Z3-Z4 (capitaliser la PAP en conditions de course). Réf : Docherty 2004 — contrast training améliore l'économie de course de 3-5% sur 8 semaines.", zones: ["Z3", "Z4", "Z5"] },
+      { part: "Cool-down", text: "10 min Z1 trot + étirements", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2-3 rounds — préserver pour la course longue",
+      half: "3-4 rounds",
+      marathon: "Priorité haute en phase build — améliore économie marathon",
+      semi: "4 rounds"
+    }
+  },
+
+  {
+    id: "CONTRAST_STR_UPPER_LOWER",
+    cat: "C",
+    sport: "renforcement",
+    defaultSportId: 20,
+    objectif: "Contrast training haut/bas du corps — développement force-vitesse athlète triathlon",
+    necessite: "Optionnel",
+    when: "Build — 1x/semaine en complément des autres séances renforcement",
+    phase: ["build"],
+    avoid: "Blessure épaule ou genou · Fatigue cumulée élevée",
+    durationMin: [60, 75],
+    metricKey: "fc",
+    sportKey: "renforcement",
+    tags: ["contrast training", "haut du corps", "bas du corps", "triathlon", "force"],
+    structure: [
+      { part: "Warm-up", text: "10 min vélo ergomètre Z1 + activation épaules et hanches", zones: ["Z1"] },
+      { part: "Main", text: "Superset 1 — Haut du corps (3 rounds) : A1 : Tractions lestées 3-5 reps (force). A2 : Medicine ball slam 5 reps (puissance). Récup 2 min. Superset 2 — Bas du corps (3 rounds) : B1 : Romanian deadlift 3-5 reps lourd (force). B2 : Jump squat 5 reps (puissance). Récup 2 min. Finir avec 10 min run Z2 (transfert neuromusculaire immédiat).", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min mobilité + foam rolling", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2 rounds chaque superset (économiser pour l'endurance)",
+      half: "3 rounds",
+      marathon: "Focus bas du corps uniquement (3-4 rounds B1-B2)",
+      semi: "3 rounds complets"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 9 — PÉRIODISATION NUTRITIONNELLE AVANCÉE (5 séances)
+// Réf: Stellingwerff 2016, Impey 2018, Close 2016
+// ─────────────────────────────────────────────
+
+  {
+    id: "NUTRITION_CARB_PERIODIZATION_WEEK",
+    cat: "C",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Modèle de semaine avec périodisation glucidique — optimiser l'adaptation métabolique",
+    necessite: "Recommandé",
+    when: "Base/Build — semaine type avec périodisation glucidique Lorang",
+    phase: ["base", "build"],
+    avoid: "Semaine de compétition · Débutants en nutrition sportive · Sans suivi diététique",
+    durationMin: [60, 90],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    tags: ["périodisation glucidique", "carb periodization", "nutrition", "lorang", "train low"],
+    structure: [
+      { part: "Warm-up", text: "Lundi (récup) : Low carb. Mardi (intensité) : High carb (150g avant + 60g/h pendant).", zones: ["Z1"] },
+      { part: "Main", text: "Modèle semaine Lorang : Lundi : repos/récup, carbs modérés (3g/kg). Mardi : séance intense VO2max — HIGH carb (6-8g/kg, glucides avant/pendant/après). Mercredi : Z2 moyen + train low possible (4g/kg). Jeudi : seuil ou technique — HIGH carb (6g/kg). Vendredi : récup active — LOW carb (2-3g/kg, pas de glucides exogènes). Samedi : longue sortie — LOW carb début puis progression selon durée. Dimanche : récup ou brick léger — carbs modérés. Réf : Impey 2018 — train low, compete high.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "Journaliser quotidiennement : énergie, poids, qualité sommeil, humeur. Adapter si déclin sur 3 jours consécutifs.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "6 mois avant course : ratio 60% séances low carb",
+      half: "3 mois : ratio 50% low carb",
+      marathon: "4 mois : ratio 55% low carb",
+      semi: "2 mois : ratio 40% low carb"
+    }
+  },
+
+  {
+    id: "NUTRITION_RACE_MORNING_PROTOCOL",
+    cat: "C",
+    sport: "cyclisme",
+    defaultSportId: 14,
+    objectif: "Protocole matin de course — optimisation du dernier repas et activation métabolique",
+    necessite: "Obligatoire",
+    when: "Peak — J0 matin de course. À pratiquer à l'entraînement au moins 3 fois.",
+    phase: ["peak"],
+    avoid: "Nouveauté le jour J · Aliments non testés · Alcool J-1",
+    durationMin: [20, 30],
+    metricKey: "fc",
+    sportKey: "cyclisme",
+    tags: ["matin de course", "nutrition pré-course", "protocole", "race day"],
+    structure: [
+      { part: "Warm-up", text: "J-1 soir : repas charge glucidique (8-10g CHO/kg), hydratation (35ml/kg eau + sodium). Coucher habituel.", zones: ["Z1"] },
+      { part: "Main", text: "J0 matin (3-3h30 avant départ) : Repas testé à l'entraînement : 100-150g glucides (porridge, pain blanc, riz, banane). Protéines légères 20-25g. Très peu de fibres et graisses. Caféine 3-6mg/kg (1h avant départ si habitude). 30 min avant départ : 20-30g maltodextrine + eau. Échauffement léger 10-15 min (activation sans vider le glycogène). Réf : Burke 2010 — repas 3h avant maintient glycémie stable sans inconfort GI.", zones: ["Z2"] },
+      { part: "Cool-down", text: "10 min post-course (dans la première heure) : 1g CHO/kg + 0.3g protéines/kg. Sodium 1000-1500mg. Réhydratation 1.5x perte de poids.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Repas 3h30 avant (4-5h de course) : 150g CHO + 25g protéines",
+      half: "Repas 3h avant : 100-120g CHO",
+      marathon: "Repas 3h avant : 100g CHO, réduire fibres à zero",
+      semi: "Repas 2h30 avant : 80-100g CHO"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 10 — RÉCUPÉRATION ACTIVE AVANCÉE (5 séances)
+// Réf: Hausswirth 2013, Mujika 2010
+// ─────────────────────────────────────────────
+
+  {
+    id: "RECOVERY_COLD_WATER_IMMERSION",
+    cat: "A",
+    sport: "renforcement",
+    defaultSportId: 20,
+    objectif: "Immersion eau froide post-séance — accélération récupération neuromusculaire et inflammation",
+    necessite: "Optionnel",
+    when: "Build/Peak — après séances intenses ou compétition. Pas après séances d'adaptation (cold blunts signal)",
+    phase: ["build", "peak"],
+    avoid: "Immédiatement après séance d'adaptation à la force (bloque la signalisation hypertrophique) · Hypothermie · Pathologie cardiovasculaire",
+    durationMin: [15, 25],
+    metricKey: "fc",
+    sportKey: "renforcement",
+    tags: ["récupération", "froid", "immersion", "cold water", "inflammation"],
+    structure: [
+      { part: "Warm-up", text: "Finir la séance. Attendre 5-10 min (douche froide progressive d'abord).", zones: ["Z1"] },
+      { part: "Main", text: "Immersion eau froide (10-15°C) : 10-15 min. Méthode : cuves remplies de glace + eau froide, ou baignoire froide. Niveau : jusqu'aux hanches minimum, idéalement torse. Protocoles testés : 10 min à 11-15°C (Hausswirth 2013). Si pas de cuve : 10 min douche froide alternée (1 min froid, 30s chaud x4). Réf : Versey 2013 — CWI améliore la récupération de 24-48h : -35% douleurs musculaires, +5% puissance 24h après.", zones: ["Z1"] },
+      { part: "Cool-down", text: "Réchauffement progressif (vêtements chauds, boisson chaude). PAS de sauna immédiatement après (contre-indiqué).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Après chaque longue sortie > 3h et après la course",
+      half: "Après les séances les plus intenses de la semaine",
+      marathon: "Après SL et intervalles V4 en build",
+      semi: "Optionnel après séances clés"
+    }
+  },
+
+  {
+    id: "RECOVERY_HRV_GUIDED_DAY",
+    cat: "A",
+    sport: "renforcement",
+    defaultSportId: 20,
+    objectif: "Journée guidée par HRV — adapter l'entraînement selon le signal de récupération objectif",
+    necessite: "Recommandé",
+    when: "Toute l'année — remplacer toute séance si HRV < seuil individuel",
+    phase: ["base", "build", "peak"],
+    avoid: "Ignorer le signal HRV sous prétexte de programme fixe",
+    durationMin: [30, 60],
+    metricKey: "fc",
+    sportKey: "renforcement",
+    tags: ["HRV", "récupération", "adaptation", "lorang", "individualisation"],
+    structure: [
+      { part: "Warm-up", text: "Mesure HRV matin au réveil (5 min allongé, app HRV4Training ou Whoop ou Garmin Body Battery). Comparer à la baseline personnelle (moyenne 7 derniers jours).", zones: ["Z1"] },
+      { part: "Main", text: "Algorithme de décision : HRV > 105% baseline → séance planifiée normale ou légèrement augmentée. HRV entre 95-105% → séance planifiée normale. HRV entre 85-95% → réduire volume 20%, pas d'intensité Z4+. HRV < 85% (ou body battery < 25) → uniquement récupération active (marche 30 min, yoga, natation facile). HRV < 75% ou FC repos + 8bpm → repos complet. Lorang : 'Deux jours consécutifs HRV bas = signe clinique de surmenage — modifier la semaine entière.'", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "Journaliser : HRV + séance réalisée + sensations → calibrer l'algorithme sur 4-6 semaines.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Protocole obligatoire — 10 mois de préparation = gestion fine de la charge",
+      half: "Recommandé en build et peak",
+      marathon: "Recommandé — prévention surmenage build marathon",
+      semi: "Optionnel mais utile"
+    }
+  },
+
+  {
+    id: "RECOVERY_YOGA_MOBILITY_TRI",
+    cat: "A",
+    sport: "renforcement",
+    defaultSportId: 20,
+    objectif: "Yoga et mobilité triathlete — corriger les déséquilibres spécifiques triathlon",
+    necessite: "Recommandé",
+    when: "Toute l'année — 1-2x/semaine. Idéal J de repos ou après séance légère.",
+    phase: ["base", "build", "peak"],
+    avoid: "Étirements statiques avant séance intense (réduit la puissance temporairement)",
+    durationMin: [30, 45],
+    metricKey: "fc",
+    sportKey: "renforcement",
+    tags: ["yoga", "mobilité", "récupération", "déséquilibres", "triathlon"],
+    structure: [
+      { part: "Warm-up", text: "5 min respiration consciente + cohérence cardiaque", zones: ["Z1"] },
+      { part: "Main", text: "Circuit mobilité triathlete (30-40 min) : Fléchisseurs de hanche (piriforme, psoas) — 3 min chaque côté (problème n°1 cycliste). Épaules (capsule postérieure, trapèze) — 5 min (problème natation). Thoracique (extension dorsale) — 5 min (position aéro). IT band + TFL — 3 min chaque côté (runner's knee prévention). Mollets + chevilles — 3 min chaque. Ischio-jambiers en traction excentrique (prévention claquage) — 2x10 Nordic hamstring curl. Respiration finale : 5 min Yoga Nidra ou NSDR.", zones: ["Z1"] },
+      { part: "Cool-down", text: "2 min cohérence cardiaque. Journaliser : zones de tension, progrès de mobilité.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2x/semaine obligatoire — prévention blessures sur 10 mois",
+      half: "1-2x/semaine",
+      marathon: "Focus ischio-jambiers, mollets, hanches",
+      semi: "1x/semaine"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 11 — NORDIC WALKING / TRAIL BÂTONS (3 séances)
+// Réf: Killian Jornet, ITRA, Schena 2002
+// ─────────────────────────────────────────────
+
+  {
+    id: "TRAIL_NORDIC_WALK_UPHILL",
+    cat: "A",
+    sport: "trail",
+    defaultSportId: 52,
+    objectif: "Marche nordique en montée — économie trail avec bâtons et technique VAM",
+    necessite: "Recommandé",
+    when: "Build/Peak — spécifique trail montagne. Apprentissage avant race avec bâtons.",
+    phase: ["build", "peak"],
+    avoid: "Course sans bâtons (non applicable) · Terrain plat (inefficace)",
+    durationMin: [90, 180],
+    metricKey: "allure",
+    sportKey: "trail",
+    tags: ["trail", "bâtons", "nordic walking", "montagne", "VAM", "économie"],
+    structure: [
+      { part: "Warm-up", text: "15 min marche active terrain plat. Échauffement épaules (circles, arm swings).", zones: ["Z1"] },
+      { part: "Main", text: "Technique marche nordique en montée : planter bâton en avant-côté à 45°, pousser derrière jusqu'à extension complète du bras. Rythme : bâton droit avec pied gauche simultanément. Réduction FC de 8-10 bpm vs course même pente (transfert effort bras). 3-4h de dénivelé positif cumulé sur sorties terrain. Intégrer 'walk the uphills, run the downhills' — seuil > 25% pente → marche nordique systématique. Réf : Schena 2002 — bâtons réduisent le coût énergétique de 8-10% en montée.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "15 min marche terrain plat + étirements triceps et deltoïdes (sollicités par bâtons).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Non applicable",
+      half: "Non applicable",
+      marathon: "Non applicable",
+      semi: "Non applicable — trail uniquement"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 12 — BLOOD FLOW RESTRICTION (BFR) (3 séances)
+// Réf: Loenneke 2012, Patterson 2019
+// ─────────────────────────────────────────────
+
+  {
+    id: "BFR_LEGS_RECOVERY_STRENGTH",
+    cat: "C",
+    sport: "renforcement",
+    defaultSportId: 20,
+    objectif: "BFR (Blood Flow Restriction) membres inférieurs — hypertrophie et force sans charge élevée",
+    necessite: "Optionnel",
+    when: "Base/Build — alternative force quand blessure ou fatigue cumulative empêche charges lourdes",
+    phase: ["base", "build"],
+    avoid: "Thrombose · Varices sévères · Hypertension non contrôlée · Sans formation spécifique BFR",
+    durationMin: [25, 35],
+    metricKey: "fc",
+    sportKey: "renforcement",
+    tags: ["BFR", "blood flow restriction", "force", "hypertrophie", "récupération", "Loenneke"],
+    structure: [
+      { part: "Warm-up", text: "5 min vélo ergomètre très léger. Placer les manchettes BFR à 50-80% de la pression occlusif (cuisse ou mollet selon muscles ciblés).", zones: ["Z1"] },
+      { part: "Main", text: "Protocole BFR quadriceps : Squat léger 30% 1RM : 30 reps + 15 reps + 15 reps + 15 reps (récup 30s entre séries, manchettes maintenues). Leg extension 30% 1RM : même protocole. Leg curl 30% 1RM : même protocole. Retirer manchettes entre exercices (2 min max avec manchettes). Réf : Loenneke 2012 — BFR 30% 1RM = même hypertrophie que 80% 1RM sans charge. Idéal athlète endurance en phase de développement ou blessure.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "Retirer manchettes. 5 min vélo léger + élévation des jambes 5 min (récupération circulatoire).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Utile en récupération de blessure légère pour maintenir la masse musculaire",
+      half: "Idem",
+      marathon: "Maintien force membres inférieurs en période haute charge",
+      semi: "Optionnel"
+    }
+  },
+
+// FIN DES NOUVELLES SÉANCES
+// Total : 55 nouvelles séances ajoutées
+// Groupes :
+// 1. Heat Training : 5 séances
+// 2. FatMax & Train Low : 6 séances
+// 3. Tapering : 5 séances
+// 4. Open Water Swimming : 4 séances
+// 5. Économie de course : 4 séances
+// 6. Vélo Aéro : 3 séances
+// 7. Respiratory Muscle Training : 2 séances
+// 8. Contrast Training : 3 séances
+// 9. Périodisation nutritionnelle : 2 séances
+// 10. Récupération avancée : 3 séances
+// 11. Nordic Walking Trail : 1 séance
+// 12. Blood Flow Restriction : 1 séance
 ];
 // =============================================
 // PICKER POUR LE PLANIFICATEUR

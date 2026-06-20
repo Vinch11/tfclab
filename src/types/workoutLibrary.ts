@@ -6,8 +6,8 @@ import { ObjectifType } from "./athlete";
 
 // Types de session (anciennement dans planificateur.ts)
 export type SessionType = "A" | "B" | "C" | "D" | "REST" | "Récup" | "SV1" | "LT1" | "TT" | "VO2" | "Sprint" | "Brique" | "Race-Sim";
-export type TrainingSport = "swim" | "bike" | "run" | "strength" | "mixed" | "cyclisme" | "course" | "natation" | "brick";
-export type TrainingMetric = "power" | "HR" | "pace" | "css" | "puissance" | "allure" | "cardiaque";
+export type TrainingSport = "swim" | "bike" | "run" | "strength" | "mixed" | "cyclisme" | "course" | "natation" | "brick" | "renforcement" | "trail";
+export type TrainingMetric = "power" | "HR" | "pace" | "css" | "puissance" | "allure" | "cardiaque" | "fc";
 export type PhaseTag = "base" | "build" | "peak" | "taper";
 
 // Partie de structure d'une séance
@@ -101,6 +101,8 @@ export interface LibraryWorkout {
   tags?: string[];
   // Notes additionnelles
   notes?: string;
+  // Sport ID par défaut pour correspondance métrique/puissance (Nolio, etc.)
+  defaultSportId?: number;
   // Profil W'bal optionnel — permet le recalcul automatique des temps de repos
   // au chargement de la séance, basé sur le CP/W' de l'athlète (Skiba 2012).
   wbalProfile?: WbalProfile;
