@@ -101,6 +101,8 @@ export interface LibraryWorkout {
   tags?: string[];
   // Notes additionnelles
   notes?: string;
+  // Sport ID par défaut pour correspondance métrique/puissance (Nolio, etc.)
+  defaultSportId?: number;
   // Profil W'bal optionnel — permet le recalcul automatique des temps de repos
   // au chargement de la séance, basé sur le CP/W' de l'athlète (Skiba 2012).
   wbalProfile?: WbalProfile;
