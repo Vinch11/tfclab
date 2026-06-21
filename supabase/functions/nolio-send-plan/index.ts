@@ -75,6 +75,7 @@ type NolioStep = {
   step_duration_value: number;
   intensity_type: "warmup" | "active" | "rest" | "cooldown" | "repetition";
   target_type: "no_target" | "power" | "pace" | "heartrate" | "duration";
+  target_unit?: "W" | "%ftp" | "min/km" | "min/100m" | "bpm";
   target_value_min?: number;
   target_value_max?: number;
   target_value?: number;
@@ -430,54 +431,87 @@ function normalizeStructuredWorkoutForNolio(
       }
     }
 
-    // ⚠️ Nolio attend `pace` en **mps (mètres/seconde)** — pas s/km, pas s/100m.
-    // Doc officielle : https://github.com/NolioApp/NolioAPI-Documentation/wiki/Structured-Workout
-    // Conversion finale :
-    //   - Natation (19) : valeurs stockées en s/100m → m/s = 100 / v
-    //   - Course/Trail (2/52) : valeurs stockées en s/km → m/s = 1000 / v
-    // Idempotent : si la valeur est déjà ≤ 15 (plage plausible m/s), on n'y touche plus.
-    if (
-      src.type === "step" &&
-      src.target_type === "pace" &&
-      (sportId === 19 || sportId === 2 || sportId === 52)
-    ) {
-      // 1) Recalcule d'abord target_value_min/max depuis les pct_* si dispo (source de vérité)
-      const css = refs?.css;
-      const vma = refs?.vma;
-      const pctCssMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
-      const pctCssMax = typeof src.pct_css_max === "number" ? src.pct_css_max : null;
-      const pctVmaMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
-      const pctVmaMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
+    // Cibles natives Nolio (plus de conversion m/s).
+    // - Power (vélo) : watts absolus + target_unit "W". Si seuls les % FTP sont dispo : target_unit "%ftp" + valeurs = pct_ftp_*.
+    // - Pace run/trail : min/km décimal (ex 300 s/km → 5.0).
+    // - Pace natation : min/100m décimal (ex 96 s/100m → 1.6).
+    // - Heartrate : bpm absolus + target_unit "bpm".
+    if (src.type === "step") {
+      const isBike = sportId === 14 || sportId === 18;
+      const isRun = sportId === 2 || sportId === 52;
+      const isSwim = sportId === 19;
 
-      if (sportId === 19 && typeof css === "number" && css > 0 && (pctCssMin !== null || pctCssMax !== null)) {
-        // s/100m : pct bas = plus rapide → temps plus petit
-        if (pctCssMin !== null) src.target_value_min = css * (pctCssMin / 100);
-        if (pctCssMax !== null) src.target_value_max = css * (pctCssMax / 100);
-      } else if ((sportId === 2 || sportId === 52) && typeof vma === "number" && vma > 0 && (pctVmaMin !== null || pctVmaMax !== null)) {
-        // s/km : pct haut = plus rapide → temps plus petit. min/max sur le temps.
-        const paceFromVma = (pct: number) => 1000 / (vma * (pct / 100) * (1000 / 3600));
-        if (pctVmaMax !== null) src.target_value_min = paceFromVma(pctVmaMax);
-        if (pctVmaMin !== null) src.target_value_max = paceFromVma(pctVmaMin);
-      }
+      if (src.target_type === "power" && isBike) {
+        const hasWatts =
+          typeof src.target_value_min === "number" ||
+          typeof src.target_value_max === "number" ||
+          typeof src.target_value === "number";
+        const pctMin = typeof src.pct_ftp_min === "number" ? src.pct_ftp_min : null;
+        const pctMax = typeof src.pct_ftp_max === "number" ? src.pct_ftp_max : null;
 
-      // 2) Conversion finale → m/s (float arrondi 3 décimales)
-      const toMps = (v: number): number => {
-        if (!Number.isFinite(v) || v <= 0) return v;
-        if (v <= 15) return v; // déjà en m/s
-        const mps = sportId === 19 ? 100 / v : 1000 / v;
-        return Math.round(mps * 1000) / 1000;
-      };
-      for (const key of ["target_value_min", "target_value_max", "target_value"]) {
-        const v = src[key];
-        if (typeof v === "number") src[key] = toMps(v);
-      }
-      // Recalcule target_value médian si min/max présents
-      const lo = typeof src.target_value_min === "number" ? src.target_value_min : null;
-      const hi = typeof src.target_value_max === "number" ? src.target_value_max : null;
-      if (lo !== null && hi !== null) {
-        src.target_value = Math.round(((lo + hi) / 2) * 1000) / 1000;
+        if (hasWatts) {
+          src.target_unit = "W";
+          for (const key of ["target_value_min", "target_value_max", "target_value"]) {
+            const v = src[key];
+            if (typeof v === "number") src[key] = Math.round(v);
+          }
+        } else if (pctMin !== null || pctMax !== null) {
+          src.target_unit = "%ftp";
+          if (pctMin !== null) src.target_value_min = pctMin;
+          if (pctMax !== null) src.target_value_max = pctMax;
+          const lo = typeof src.target_value_min === "number" ? src.target_value_min : null;
+          const hi = typeof src.target_value_max === "number" ? src.target_value_max : null;
+          if (lo !== null && hi !== null) src.target_value = Math.round((lo + hi) / 2);
+          else if (lo !== null) src.target_value = lo;
+          else if (hi !== null) src.target_value = hi;
+        }
+      } else if (src.target_type === "pace" && (isRun || isSwim)) {
+        // 1) Recalcule target_value_min/max depuis les pct_* si dispo (s/km ou s/100m)
+        const css = refs?.css;
+        const vma = refs?.vma;
+        const pctCssMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
+        const pctCssMax = typeof src.pct_css_max === "number" ? src.pct_css_max : null;
+        const pctVmaMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
+        const pctVmaMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
+
+        if (isSwim && typeof css === "number" && css > 0 && (pctCssMin !== null || pctCssMax !== null)) {
+          if (pctCssMin !== null) src.target_value_min = css * (pctCssMin / 100);
+          if (pctCssMax !== null) src.target_value_max = css * (pctCssMax / 100);
+        } else if (isRun && typeof vma === "number" && vma > 0 && (pctVmaMin !== null || pctVmaMax !== null)) {
+          const paceFromVma = (pct: number) => 1000 / (vma * (pct / 100) * (1000 / 3600));
+          if (pctVmaMax !== null) src.target_value_min = paceFromVma(pctVmaMax);
+          if (pctVmaMin !== null) src.target_value_max = paceFromVma(pctVmaMin);
+        }
+
+        // 2) Conversion s → min décimal natif Nolio
+        const denom = isSwim ? 100 : 60; // s/100m → min/100m via /60 ; s/km → min/km via /60
+        // Wait: s/100m → min/100m = s/60. s/km → min/km = s/60. Both /60.
+        const toMin = (v: number): number => {
+          if (!Number.isFinite(v) || v <= 0) return v;
+          // Idempotent : si déjà en minutes décimales (≤ 30), on ne reconvertit pas.
+          if (v <= 30) return Math.round(v * 100) / 100;
+          return Math.round((v / 60) * 100) / 100;
+        };
+        for (const key of ["target_value_min", "target_value_max", "target_value"]) {
+          const v = src[key];
+          if (typeof v === "number") src[key] = toMin(v);
+        }
+        const lo = typeof src.target_value_min === "number" ? src.target_value_min : null;
+        const hi = typeof src.target_value_max === "number" ? src.target_value_max : null;
+        if (lo !== null && hi !== null) {
+          src.target_value = Math.round(((lo + hi) / 2) * 100) / 100;
+        }
+        src.target_unit = isSwim ? "min/100m" : "min/km";
+        void denom;
+      } else if (src.target_type === "heartrate") {
+        src.target_unit = "bpm";
+        for (const key of ["target_value_min", "target_value_max", "target_value"]) {
+          const v = src[key];
+          if (typeof v === "number") src[key] = Math.round(v);
+        }
       }
     }
+
 
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(src)) {
