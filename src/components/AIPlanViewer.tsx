@@ -994,10 +994,11 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
       };
     });
 
-    // anchorWeek = 1ère semaine du périmètre. planStart = lundi saisi - (anchorWeek-1)*7.
+    // Date saisie = date de la 1ère séance du périmètre (anchor).
+    // planStart = date saisie - ((anchorWeek-1)*7 + anchorDay).
     const anchorDt = new Date(`${bulkStartDate}T00:00:00Z`);
     const planStartDt = new Date(anchorDt);
-    planStartDt.setUTCDate(planStartDt.getUTCDate() - (anchorWeek - 1) * 7);
+    planStartDt.setUTCDate(planStartDt.getUTCDate() - ((anchorWeek - 1) * 7 + anchorDay));
     const computedStart = planStartDt.toISOString().slice(0, 10);
 
     const interval = setInterval(() => {
