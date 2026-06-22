@@ -46,24 +46,24 @@ import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
 type NolioScope = "selected" | "single" | "range" | "all";
 
 function getSportIcon(sport: string) {
-  const s = sport.toLowerCase();
-  if (s.includes("natation") || s.includes("swim")) return <Waves className="h-4 w-4" />;
-  if (s.includes("vélo") || s.includes("velo") || s.includes("bike")) return <Bike className="h-4 w-4" />;
-  if (s.includes("cap") || s.includes("course") || s.includes("run")) return <Footprints className="h-4 w-4" />;
-  if (s.includes("repos") || s.includes("rest")) return <Moon className="h-4 w-4" />;
-  if (s.includes("muscu") || s.includes("force") || s.includes("renfo")) return <Dumbbell className="h-4 w-4" />;
+  const s = sport.toLowerCase().trim();
+  if (s === "nat" || s.includes("natation") || s.includes("swim")) return <Waves className="h-4 w-4" />;
+  if (s === "velo" || s === "vélo" || s.includes("vélo") || s.includes("velo") || s.includes("bike")) return <Bike className="h-4 w-4" />;
+  if (s === "cap" || s.includes("course") || s.includes("run")) return <Footprints className="h-4 w-4" />;
+  if (s === "repos" || s.includes("repos") || s.includes("rest")) return <Moon className="h-4 w-4" />;
+  if (s === "renfo" || s.includes("muscu") || s.includes("force") || s.includes("renfo")) return <Dumbbell className="h-4 w-4" />;
   if (s.includes("brick") || s.includes("brique")) return <Zap className="h-4 w-4" />;
   return <Dumbbell className="h-4 w-4" />;
 }
 
 function getSportColor(sport: string): string {
-  const s = sport.toLowerCase();
-  if (s.includes("natation") || s.includes("swim")) return "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30";
-  if (s.includes("vélo") || s.includes("velo") || s.includes("bike")) return "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30";
-  if (s.includes("cap") || s.includes("course") || s.includes("run")) return "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30";
-  if (s.includes("repos") || s.includes("rest")) return "bg-muted text-muted-foreground border-border";
+  const s = sport.toLowerCase().trim();
+  if (s === "nat" || s.includes("natation") || s.includes("swim")) return "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30";
+  if (s === "velo" || s === "vélo" || s.includes("vélo") || s.includes("velo") || s.includes("bike")) return "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30";
+  if (s === "cap" || s.includes("course") || s.includes("run")) return "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30";
+  if (s === "repos" || s.includes("repos") || s.includes("rest")) return "bg-muted text-muted-foreground border-border";
   if (s.includes("brick") || s.includes("brique")) return "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30";
-  if (s.includes("muscu") || s.includes("force") || s.includes("renfo")) return "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30";
+  if (s === "renfo" || s.includes("muscu") || s.includes("force") || s.includes("renfo")) return "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30";
   return "bg-muted text-muted-foreground border-border";
 }
 
