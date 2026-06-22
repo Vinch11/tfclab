@@ -1428,17 +1428,17 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                 {scope === "range" && `Semaines ${Math.min(scopeFrom, scopeTo)} à ${Math.max(scopeFrom, scopeTo)}`}
                 {scope === "all" && `Plan complet (${allWeekNums.length} semaines)`}
               </span>
-              {" · "}1ère séance le :{" "}
+              {" · "}Semaine S{anchorWeek} commence le :{" "}
               <span className="font-medium text-foreground">
-                {format(new Date(`${bulkStartDate}T00:00:00`), "EEEE d MMMM yyyy", { locale: fr })}
+                {format(bulkAnchorMonday, "EEEE d MMMM yyyy", { locale: fr })}
               </span>
-              {(anchorWeek > 1 || anchorDay > 0) && (
+              {anchorWeek > 1 && (
                 <>
                   {" · "}
                   <span className="text-muted-foreground">
-                    → Semaine 1 du plan débutera le{" "}
+                    → Le plan complet débute le{" "}
                     <span className="font-medium text-foreground">
-                      {format(parseISO(`${computedPlanStart}T00:00:00Z`), "EEEE d MMMM yyyy", { locale: fr })}
+                      {format(planStartMondayDate, "EEEE d MMMM yyyy", { locale: fr })}
                     </span>
                   </span>
                 </>
