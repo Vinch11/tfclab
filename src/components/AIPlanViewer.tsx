@@ -1106,7 +1106,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="nolio-plan-start" className="text-xs">
-                  Semaine {anchorWeek} commence le :
+                  Date de la 1ère séance à envoyer :
                 </Label>
                 <Input
                   id="nolio-plan-start"
@@ -1116,15 +1116,20 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                   disabled={bulkSending}
                   className="h-9"
                 />
-                {anchorWeek > 1 && (
+                {anchorSession && (
                   <p className="text-[11px] text-muted-foreground">
-                    → Semaine 1 du plan débutera le{" "}
-                    <span className="font-medium text-foreground">
-                      {(() => {
-                        try { return format(parseISO(`${computedPlanStart}T00:00:00Z`), "EEEE d MMM yyyy", { locale: fr }); }
-                        catch { return computedPlanStart; }
-                      })()}
-                    </span>
+                    → 1ère séance : <span className="font-medium text-foreground">S{anchorWeek} {DAY_NAMES[anchorDay] ?? `J${anchorDay + 1}`}</span>
+                    {" — "}{anchorSession.title}
+                    {(anchorWeek > 1 || anchorDay > 0) && (
+                      <>
+                        {" · "}Semaine 1 du plan : <span className="font-medium text-foreground">
+                          {(() => {
+                            try { return format(parseISO(`${computedPlanStart}T00:00:00Z`), "EEE d MMM yyyy", { locale: fr }); }
+                            catch { return computedPlanStart; }
+                          })()}
+                        </span>
+                      </>
+                    )}
                   </p>
                 )}
               </div>
