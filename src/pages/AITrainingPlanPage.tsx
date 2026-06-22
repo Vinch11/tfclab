@@ -206,6 +206,9 @@ export default function AITrainingPlanPage() {
 
   // Persistence key per athlete
   const persistKey = currentAthlete ? `tfcl_ai_plan_${currentAthlete.id}` : null;
+  // Active plan key (full plan JSON + generation timestamp, never overwritten without explicit confirmation)
+  const activePlanKey = currentAthlete ? `plan_active_${currentAthlete.id}` : null;
+  const [loadedFromCacheAt, setLoadedFromCacheAt] = useState<string | null>(null);
 
   // Form state — restore from localStorage if available
   const savedState = useMemo(() => {
