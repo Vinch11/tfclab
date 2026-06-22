@@ -505,10 +505,30 @@ function normalizeStructuredWorkoutForNolio(
         void denom;
       } else if (src.target_type === "heartrate") {
         src.target_unit = "bpm";
+        // Garde-fou : pct_hrmax_min 0/null → Z1 plancher 50% FCmax (jamais 0 envoyé à Nolio)
+        const fcMax = refs?.fcMax;
+        const pHrMin = typeof src.pct_hrmax_min === "number" ? src.pct_hrmax_min : null;
+        const pHrMax = typeof src.pct_hrmax_max === "number" ? src.pct_hrmax_max : null;
+        if (pHrMin === null || pHrMin <= 0) src.pct_hrmax_min = 50;
+        if (pHrMax === null || pHrMax <= 0) src.pct_hrmax_max = Math.max(60, (typeof src.pct_hrmax_min === "number" ? src.pct_hrmax_min : 50) + 10);
+        // Recalcule target_value_min/max si refs.fcMax dispo et valeur actuelle <= 0
+        const tMin = typeof src.target_value_min === "number" ? src.target_value_min : null;
+        const tMax = typeof src.target_value_max === "number" ? src.target_value_max : null;
+        if (typeof fcMax === "number" && fcMax > 0) {
+          if (tMin === null || tMin <= 0) src.target_value_min = Math.round(fcMax * (src.pct_hrmax_min as number) / 100);
+          if (tMax === null || tMax <= 0) src.target_value_max = Math.round(fcMax * (src.pct_hrmax_max as number) / 100);
+        } else {
+          // Pas de FCmax : plancher absolu 90 bpm pour éviter 0
+          if (tMin === null || tMin <= 0) src.target_value_min = 90;
+          if (tMax === null || tMax <= 0) src.target_value_max = Math.max(110, (src.target_value_min as number) + 20);
+        }
         for (const key of ["target_value_min", "target_value_max", "target_value"]) {
           const v = src[key];
           if (typeof v === "number") src[key] = Math.round(v);
         }
+        const lo2 = typeof src.target_value_min === "number" ? src.target_value_min : null;
+        const hi2 = typeof src.target_value_max === "number" ? src.target_value_max : null;
+        if (lo2 !== null && hi2 !== null) src.target_value = Math.round((lo2 + hi2) / 2);
       }
     }
 
