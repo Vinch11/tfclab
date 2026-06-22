@@ -209,22 +209,12 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
               </span>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nolio-start-date">Date de début du plan (lundi de la Semaine 1) :</Label>
-              <Input
-                id="nolio-start-date"
-                type="date"
-                value={startDateStr}
-                onChange={(e) => setStartDateStr(e.target.value)}
+              <Label>Semaine de démarrage du plan :</Label>
+              <WeekPicker
+                selectedMonday={selectedMonday}
+                onChange={setSelectedMonday}
+                anchorLabel="📅 La Semaine 1 du plan commence le :"
               />
-              <p className="text-[11px] text-muted-foreground">
-                → Semaine 1 démarrera le{" "}
-                <span className="font-medium text-foreground">
-                  {(() => {
-                    try { return format(parseISO(`${startDateStr}T00:00:00Z`), "EEEE d MMMM yyyy", { locale: fr }); }
-                    catch { return startDateStr; }
-                  })()}
-                </span>
-              </p>
             </div>
           </div>
 
