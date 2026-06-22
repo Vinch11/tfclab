@@ -55,24 +55,23 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
 
-  // Date par défaut de cette séance (calculée depuis planStartDate)
-  const defaultSessionDate = addDays(
-    ctx.planStartDate,
-    (session.weekNumber - 1) * 7 + Math.max(0, session.dayIndex),
-  );
-  const [sessionDateStr, setSessionDateStr] = useState(format(defaultSessionDate, "yyyy-MM-dd"));
+  // Lundi par défaut de la semaine de cette séance
+  const defaultMonday = useMemo(() => {
+    return mondayOf(
+      addDays(ctx.planStartDate, (session.weekNumber - 1) * 7),
+    );
+  }, [ctx.planStartDate, session.weekNumber]);
+  const [selectedMonday, setSelectedMonday] = useState<Date>(defaultMonday);
 
-  // Lundi semaine 1 du plan recalculé depuis la date de la séance choisie
-  const { sessionDate, computedPlanStart } = useMemo(() => {
-    const sd = parseISO(`${sessionDateStr}T00:00:00Z`);
-    const offsetDays = (session.weekNumber - 1) * 7 + Math.max(0, session.dayIndex);
-    const ps = new Date(sd);
-    ps.setUTCDate(ps.getUTCDate() - offsetDays);
-    return {
-      sessionDate: sd,
-      computedPlanStart: ps.toISOString().slice(0, 10),
-    };
-  }, [sessionDateStr, session.weekNumber, session.dayIndex]);
+  // Date effective de la séance = lundi sélectionné + dayIndex
+  // Lundi de la Semaine 1 du plan = lundi sélectionné - (weekNumber-1)*7
+  const { sessionDate, planStartMonday, computedPlanStart } = useMemo(() => {
+    const sd = addDays(selectedMonday, Math.max(0, session.dayIndex));
+    const ps = addDays(selectedMonday, -(session.weekNumber - 1) * 7);
+    const toIso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return { sessionDate: sd, planStartMonday: ps, computedPlanStart: toIso(ps) };
+  }, [selectedMonday, session.weekNumber, session.dayIndex]);
 
   if (session.isRest || session.dayIndex < 0) return null;
 
