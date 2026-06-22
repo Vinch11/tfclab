@@ -195,16 +195,16 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
               </span>
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`nolio-week-${key}`}>Cette semaine commence le :</Label>
+              <Label htmlFor={`nolio-session-${key}`}>Date de cette séance :</Label>
               <Input
-                id={`nolio-week-${key}`}
+                id={`nolio-session-${key}`}
                 type="date"
-                value={weekMondayStr}
-                onChange={(e) => setWeekMondayStr(e.target.value)}
+                value={sessionDateStr}
+                onChange={(e) => setSessionDateStr(e.target.value)}
                 onClick={stop}
               />
               <p className="text-[11px] text-muted-foreground">
-                → Séance programmée le{" "}
+                → Programmée le{" "}
                 <span className="font-medium text-foreground">
                   {format(sessionDate, "EEEE d MMMM yyyy", { locale: fr })}
                 </span>
