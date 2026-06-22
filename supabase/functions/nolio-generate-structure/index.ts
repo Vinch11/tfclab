@@ -21,9 +21,11 @@ ZONES : plage 'Z1-Z2' → zone la plus haute (Z2). Mapping depuis refs athlète 
 
 FC : CONSERVE LA PLAGE. 'Z2' → target_value_min=round(fcMax*0.70), target_value_max=round(fcMax*0.78).
 
-TARGET TYPE : vélo/puissance → power en watts. Allure/VMA/pace → pace en secondes/km. FC/bpm → heartrate en bpm. Sinon → no_target.
+TARGET TYPE : vélo/puissance → power en watts. FC/bpm/Z → heartrate en bpm. Natation → pace en sec/100m. Course/Trail → TOUJOURS heartrate (bpm via FCmax + pct_hrmax_min/max) ; ne JAMAIS retourner target_type="pace" pour la course (TFCLab convertit côté serveur). Sinon → no_target.
 
-⛔ ALLURE EXPLICITE — PRIORITÉ ABSOLUE : si le texte contient une allure chiffrée explicite (ex : 'pace 5:25/km', '5:25/km', '4:30-4:45/km', '@4:20'), tu DOIS l'utiliser comme target pace (secondes/km) et IGNORER toute dérivation %VMA / zone pour ce bloc. '5:25/km' seul → target_value_min=320, target_value_max=330 (±5s autour). Plage '4:30-4:45/km' → min=270, max=285. Ne JAMAIS écraser une allure explicite par un calcul VMA.
+⛔ ALLURE EXPLICITE COURSE — INTERDIT : même si le texte contient "5:25/km" ou "4:30-4:45/km", tu DOIS retourner target_type="heartrate" avec pct_hrmax_min/max correspondant à la zone évoquée (et target_value_min/max = round(fcMax*pct/100)). Ne JAMAIS retourner target_type="pace" pour course/trail.
+
+🏊 NATATION : target_type="pace", target_value_min/max en SECONDES par 100m (jamais en min/km, jamais en s/km). Si %CSS fourni : remplis aussi pct_css_min/max.
 
 🏃 STRIDES / LIGNES DROITES COURSE À PIED : 'NxDm strides' ou 'NxDm lignes droites' (ex : '6x80m strides', '8x100m LD') → type='repetition', value=N, steps=[active step_duration_type='distance' duration_value=D mètres target=no_target (accélération progressive — pas de pace cible), rest step_duration_type='time' duration_value=récup en secondes target=no_target]. NE JAMAIS convertir 80m en 20" de course. NE JAMAIS mettre une plage d'allure rapide sur l'actif d'une stride.
 
