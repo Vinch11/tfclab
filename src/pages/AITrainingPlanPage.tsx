@@ -332,7 +332,24 @@ export default function AITrainingPlanPage() {
       terrainAvailability,
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
+
+    // Persist active plan with generation timestamp.
+    // Only write when this is a fresh generation (not when restored from cache),
+    // to avoid overwriting a saved plan without explicit coach confirmation.
+    if (activePlanKey && !loadedFromCacheAt) {
+      try {
+        const existing = localStorage.getItem(activePlanKey);
+        const existingResp = existing ? (JSON.parse(existing)?.response ?? null) : null;
+        if (existingResp !== response) {
+          const payload = { response, generatedAt: new Date().toISOString() };
+          localStorage.setItem(activePlanKey, JSON.stringify(payload));
+        }
+      } catch {
+        const payload = { response, generatedAt: new Date().toISOString() };
+        localStorage.setItem(activePlanKey, JSON.stringify(payload));
+      }
+    }
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
