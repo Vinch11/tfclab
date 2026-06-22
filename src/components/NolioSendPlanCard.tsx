@@ -8,7 +8,8 @@
  *   - refs athlète (ftp/vma/css/fcMax depuis snapshot actif) pour calculs absolus
  */
 import { useEffect, useMemo, useState } from "react";
-import { format, addDays, startOfWeek } from "date-fns";
+import { format, addDays, startOfWeek, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Loader2, Send, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -208,13 +209,22 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
               </span>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nolio-start-date">Début du plan (lundi de la semaine 1)</Label>
+              <Label htmlFor="nolio-start-date">Cette semaine commence le :</Label>
               <Input
                 id="nolio-start-date"
                 type="date"
                 value={startDateStr}
                 onChange={(e) => setStartDateStr(e.target.value)}
               />
+              <p className="text-[11px] text-muted-foreground">
+                → Semaine 1 du plan débutera le{" "}
+                <span className="font-medium text-foreground">
+                  {(() => {
+                    try { return format(parseISO(`${startDateStr}T00:00:00Z`), "EEEE d MMMM yyyy", { locale: fr }); }
+                    catch { return startDateStr; }
+                  })()}
+                </span>
+              </p>
             </div>
           </div>
 

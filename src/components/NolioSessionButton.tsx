@@ -2,8 +2,9 @@
  * NolioSessionButton — Bouton "→ Nolio" par séance (envoi unitaire).
  * Discret, ouvre une mini-modale de confirmation avec date pré-remplie.
  */
-import { useState, type MouseEvent } from "react";
-import { format, addDays } from "date-fns";
+import { useState, useMemo, type MouseEvent } from "react";
+import { format, addDays, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Loader2, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -55,11 +56,22 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const defaultDate = addDays(
-    ctx.planStartDate,
-    (session.weekNumber - 1) * 7 + Math.max(0, session.dayIndex),
-  );
-  const [dateStr, setDateStr] = useState(format(defaultDate, "yyyy-MM-dd"));
+  // Lundi de la semaine de cette séance (calculé depuis planStartDate)
+  const defaultWeekMonday = addDays(ctx.planStartDate, (session.weekNumber - 1) * 7);
+  const [weekMondayStr, setWeekMondayStr] = useState(format(defaultWeekMonday, "yyyy-MM-dd"));
+
+  // Date effective de la séance et lundi semaine 1 du plan recalculé
+  const { sessionDate, computedPlanStart } = useMemo(() => {
+    const wm = parseISO(`${weekMondayStr}T00:00:00Z`);
+    const sd = new Date(wm);
+    sd.setUTCDate(sd.getUTCDate() + Math.max(0, session.dayIndex));
+    const ps = new Date(wm);
+    ps.setUTCDate(ps.getUTCDate() - (session.weekNumber - 1) * 7);
+    return {
+      sessionDate: sd,
+      computedPlanStart: ps.toISOString().slice(0, 10),
+    };
+  }, [weekMondayStr, session.weekNumber, session.dayIndex]);
 
   if (session.isRest || session.dayIndex < 0) return null;
 
@@ -99,11 +111,8 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
         alternatives: alternatives.length > 0 ? alternatives : undefined,
       };
 
-      // Recalibre planStartDate côté serveur pour que addDays(planStartDate, (w-1)*7+d) = dateStr.
-      const offsetDays = (session.weekNumber - 1) * 7 + session.dayIndex;
-      const dt = new Date(`${dateStr}T00:00:00Z`);
-      dt.setUTCDate(dt.getUTCDate() - offsetDays);
-      const computedStart = dt.toISOString().slice(0, 10);
+      // planStartDate (lundi semaine 1 du plan) recalculé depuis le lundi de la semaine choisie.
+      const computedStart = computedPlanStart;
 
       const { data, error } = await supabase.functions.invoke("nolio-send-plan", {
         body: {
@@ -184,14 +193,28 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
               </span>
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`nolio-date-${key}`}>Date</Label>
+              <Label htmlFor={`nolio-week-${key}`}>Cette semaine commence le :</Label>
               <Input
-                id={`nolio-date-${key}`}
+                id={`nolio-week-${key}`}
                 type="date"
-                value={dateStr}
-                onChange={(e) => setDateStr(e.target.value)}
+                value={weekMondayStr}
+                onChange={(e) => setWeekMondayStr(e.target.value)}
                 onClick={stop}
               />
+              <p className="text-[11px] text-muted-foreground">
+                → Séance programmée le{" "}
+                <span className="font-medium text-foreground">
+                  {format(sessionDate, "EEEE d MMMM yyyy", { locale: fr })}
+                </span>
+                {session.weekNumber > 1 && (
+                  <>
+                    {" · "}Semaine 1 du plan débutera le{" "}
+                    <span className="font-medium text-foreground">
+                      {format(parseISO(`${computedPlanStart}T00:00:00Z`), "EEEE d MMMM yyyy", { locale: fr })}
+                    </span>
+                  </>
+                )}
+              </p>
             </div>
           </div>
 
