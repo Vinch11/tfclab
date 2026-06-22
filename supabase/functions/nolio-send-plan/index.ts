@@ -449,6 +449,49 @@ function parseRepetitionPattern(text: string): {
   return { reps, workSec: workMin * 60, restSec, restText };
 }
 
+function cleanTargetFields(src: Record<string, unknown>) {
+  for (const key of [
+    "target_unit",
+    "target_value",
+    "target_value_min",
+    "target_value_max",
+    "pct_ftp_min",
+    "pct_ftp_max",
+    "pct_vma_min",
+    "pct_vma_max",
+    "pct_css_min",
+    "pct_css_max",
+    "pct_hrmax_min",
+    "pct_hrmax_max",
+  ]) delete src[key];
+}
+
+function vmaPctToHrZone(pct: number): [number, number] {
+  if (pct < 60) return [50, 60];
+  if (pct < 75) return [60, 70];
+  if (pct < 85) return [70, 80];
+  if (pct < 92) return [80, 87];
+  if (pct < 97) return [87, 91];
+  if (pct < 103) return [91, 95];
+  return [95, 100];
+}
+
+function cssPctToHrZone(pct: number): [number, number] {
+  if (pct >= 115) return [50, 60];
+  if (pct >= 108) return [60, 70];
+  if (pct >= 103) return [70, 80];
+  if (pct >= 98) return [80, 87];
+  if (pct >= 93) return [87, 91];
+  if (pct >= 88) return [91, 95];
+  return [95, 100];
+}
+
+function defaultHrZoneForStep(src: Record<string, unknown>): [number, number] {
+  const intensity = String(src.intensity_type ?? "");
+  if (intensity === "warmup" || intensity === "cooldown" || intensity === "rest") return HR_ZONE_PCT["1"];
+  return HR_ZONE_PCT["2"];
+}
+
 /**
  * Normalise un structured_workout avant envoi à Nolio.
  * - Renomme `repeat_count` → `value` sur tous les nœuds `repetition` (spec officielle Nolio).
