@@ -1188,6 +1188,14 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
             <div>
               <h3 className="font-bold text-base">{correctedTitle}</h3>
               <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {plan.phases.length} blocs</p>
+              {loadedFromCacheAt && (
+                <p className="text-[10px] text-muted-foreground/80 italic mt-0.5">
+                  Plan chargé depuis la sauvegarde locale — {(() => {
+                    try { return format(parseISO(loadedFromCacheAt), "d MMM yyyy 'à' HH:mm", { locale: fr }); }
+                    catch { return loadedFromCacheAt; }
+                  })()}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Button variant="outline" size="sm" onClick={handleExportPDF}>
