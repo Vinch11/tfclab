@@ -1384,18 +1384,13 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               <Badge variant="secondary" className="text-xs whitespace-nowrap">
                 {selectedSessions.length} séance(s) sélectionnée(s)
               </Badge>
-              <div className="flex items-center gap-2 min-w-0">
-                <Label htmlFor="nolio-bulk-start" className="text-xs whitespace-nowrap text-muted-foreground">
-                  Date 1ère séance
-                </Label>
-                <Input
-                  id="nolio-bulk-start"
-                  type="date"
-                  value={bulkStartDate}
-                  onChange={(e) => setBulkStartDate(e.target.value)}
-                  className="h-8 w-[150px] text-xs"
-                  disabled={bulkSending}
-                />
+              <div className="text-xs text-muted-foreground whitespace-nowrap hidden sm:block">
+                S{anchorWeek} : {format(bulkAnchorMonday, "EEE d MMM", { locale: fr })}
+                {anchorWeek > 1 && (
+                  <span className="ml-1 opacity-70">
+                    (plan : {format(planStartMondayDate, "d MMM", { locale: fr })})
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
