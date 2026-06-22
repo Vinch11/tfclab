@@ -604,6 +604,12 @@ Chaque semaine a 2-3 **séances clés (Key Sessions)**, les stimuli principaux. 
 - Titre descriptif ("🔑 CSS Dégressif", pas "Natation").
 - Varier d'une semaine à l'autre — PAS DE COPIER-COLLER.
 
+## ⛔ UNITÉS D'ALLURE — RÈGLE ABSOLUE
+- **Natation** : TOUJOURS exprimer l'allure en **sec/100m** ou **min:sec/100m** (ex: 1:25/100m, @CSS-2s/100m). **JAMAIS min/km** pour la natation.
+- **Course à pied / Trail** : allure en **min/km** (ex: 4:30/km) ou %VMA.
+- **Vélo** : puissance en **W** ou **%FTP**.
+- Toute séance natation contenant "min/km", "/km" ou une allure course = ERREUR GRAVE de format.
+
 ## ⛔ RÈGLE REPOS — COHÉRENCE ABSOLUE
 Un jour "Repos" est COMPLET (Sport="Repos"). Récupération active (vélo Z1 30min) n'est pas un jour repos. 1 jour repos complet/semaine min.
 
