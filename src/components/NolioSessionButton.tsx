@@ -3,7 +3,9 @@
  * Discret, ouvre une mini-modale de confirmation avec date pré-remplie.
  */
 import { useState, useMemo, type MouseEvent } from "react";
-import { addDays, startOfWeek } from "date-fns";
+import { addDays } from "date-fns";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Loader2, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
