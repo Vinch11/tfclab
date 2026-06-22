@@ -286,13 +286,60 @@ const HR_ZONE_PCT: Record<string, [number, number]> = {
   "6": [95, 100],
 };
 
-/** Détecte une cible depuis le texte libre : "100-108% FTP", "85% FTP", "Z2". */
+/** Détecte une cible depuis le texte libre : "100-108% FTP", "85% FTP", "Z2", "5:25/km", "4:30-4:45/km". */
 function buildTargetFromText(
   text: string,
   refs: AthleteRefs,
 ): Pick<NolioStep, "target_type" | "target_value_min" | "target_value_max" | "target_value"> {
   if (!text) return { target_type: "no_target" };
   const t = text.toLowerCase();
+
+  // Helper : convertit "M:SS" en secondes
+  const msToSec = (s: string): number | null => {
+    const m = s.match(/^(\d+):(\d{1,2})$/);
+    if (!m) return null;
+    return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  };
+
+  // ⏱️ Allure course EXPLICITE : "4:30-4:45/km" ou "4:30 – 4:45 /km"
+  const paceRange = t.match(/(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})\s*\/\s*km/);
+  if (paceRange) {
+    const a = msToSec(paceRange[1]);
+    const b = msToSec(paceRange[2]);
+    if (a !== null && b !== null) {
+      const lo = Math.min(a, b);
+      const hi = Math.max(a, b);
+      return { target_type: "pace", target_value_min: lo, target_value_max: hi, target_value: Math.round((lo + hi) / 2) };
+    }
+  }
+  // Allure course unique : "5:25/km" ou "pace 5:25/km" ou "@5:25/km"
+  const paceSingle = t.match(/(\d{1,2}:\d{2})\s*\/\s*km/);
+  if (paceSingle) {
+    const v = msToSec(paceSingle[1]);
+    if (v !== null) {
+      const lo = Math.max(60, v - 5);
+      const hi = v + 5;
+      return { target_type: "pace", target_value_min: lo, target_value_max: hi, target_value: v };
+    }
+  }
+  // 🏊 Allure natation EXPLICITE : "1:25/100m" ou "1:25-1:30/100m"
+  const swimRange = t.match(/(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})\s*\/\s*100\s*m/);
+  if (swimRange) {
+    const a = msToSec(swimRange[1]);
+    const b = msToSec(swimRange[2]);
+    if (a !== null && b !== null) {
+      const lo = Math.min(a, b);
+      const hi = Math.max(a, b);
+      return { target_type: "pace", target_value_min: lo, target_value_max: hi, target_value: Math.round((lo + hi) / 2) };
+    }
+  }
+  const swimSingle = t.match(/(\d{1,2}:\d{2})\s*\/\s*100\s*m/);
+  if (swimSingle) {
+    const v = msToSec(swimSingle[1]);
+    if (v !== null) {
+      return { target_type: "pace", target_value_min: Math.max(30, v - 3), target_value_max: v + 3, target_value: v };
+    }
+  }
 
   // X-Y% FTP
   const ftpRange = t.match(/(\d+)\s*[-–—]\s*(\d+)\s*%\s*ftp/);
@@ -307,8 +354,30 @@ function buildTargetFromText(
   const ftpSingle = t.match(/(\d+)\s*%\s*ftp/);
   if (ftpSingle && refs.ftp) {
     const a = parseInt(ftpSingle[1], 10);
-    const v = Math.round(refs.ftp * a / 100);
-    return { target_type: "power", target_value_min: v, target_value_max: v, target_value: v };
+    const lo = Math.round(refs.ftp * Math.max(0, a - 3) / 100);
+    const hi = Math.round(refs.ftp * (a + 3) / 100);
+    return { target_type: "power", target_value_min: lo, target_value_max: hi, target_value: Math.round((lo + hi) / 2) };
+  }
+  // X-Y% VMA → pace via VMA athlète
+  const vmaRange = t.match(/(\d+)\s*[-–—]\s*(\d+)\s*%\s*vma/);
+  if (vmaRange && refs.vma) {
+    const a = parseInt(vmaRange[1], 10);
+    const b = parseInt(vmaRange[2], 10);
+    const lo = computeTargetValue("VMA", Math.max(a, b), refs);
+    const hi = computeTargetValue("VMA", Math.min(a, b), refs);
+    if (lo !== null && hi !== null) {
+      return { target_type: "pace", target_value_min: Math.min(lo, hi), target_value_max: Math.max(lo, hi), target_value: Math.round((lo + hi) / 2) };
+    }
+  }
+  // X% VMA
+  const vmaSingle = t.match(/(\d+)\s*%\s*vma/);
+  if (vmaSingle && refs.vma) {
+    const a = parseInt(vmaSingle[1], 10);
+    const lo = computeTargetValue("VMA", a + 2, refs);
+    const hi = computeTargetValue("VMA", Math.max(50, a - 2), refs);
+    if (lo !== null && hi !== null) {
+      return { target_type: "pace", target_value_min: Math.min(lo, hi), target_value_max: Math.max(lo, hi), target_value: Math.round((lo + hi) / 2) };
+    }
   }
   // ZN (heart rate zones)
   const zMatch = t.match(/\bz\s*([1-6])\b/);
