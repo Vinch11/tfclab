@@ -56,22 +56,24 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
 
-  // Lundi de la semaine de cette séance (calculé depuis planStartDate)
-  const defaultWeekMonday = addDays(ctx.planStartDate, (session.weekNumber - 1) * 7);
-  const [weekMondayStr, setWeekMondayStr] = useState(format(defaultWeekMonday, "yyyy-MM-dd"));
+  // Date par défaut de cette séance (calculée depuis planStartDate)
+  const defaultSessionDate = addDays(
+    ctx.planStartDate,
+    (session.weekNumber - 1) * 7 + Math.max(0, session.dayIndex),
+  );
+  const [sessionDateStr, setSessionDateStr] = useState(format(defaultSessionDate, "yyyy-MM-dd"));
 
-  // Date effective de la séance et lundi semaine 1 du plan recalculé
+  // Lundi semaine 1 du plan recalculé depuis la date de la séance choisie
   const { sessionDate, computedPlanStart } = useMemo(() => {
-    const wm = parseISO(`${weekMondayStr}T00:00:00Z`);
-    const sd = new Date(wm);
-    sd.setUTCDate(sd.getUTCDate() + Math.max(0, session.dayIndex));
-    const ps = new Date(wm);
-    ps.setUTCDate(ps.getUTCDate() - (session.weekNumber - 1) * 7);
+    const sd = parseISO(`${sessionDateStr}T00:00:00Z`);
+    const offsetDays = (session.weekNumber - 1) * 7 + Math.max(0, session.dayIndex);
+    const ps = new Date(sd);
+    ps.setUTCDate(ps.getUTCDate() - offsetDays);
     return {
       sessionDate: sd,
       computedPlanStart: ps.toISOString().slice(0, 10),
     };
-  }, [weekMondayStr, session.weekNumber, session.dayIndex]);
+  }, [sessionDateStr, session.weekNumber, session.dayIndex]);
 
   if (session.isRest || session.dayIndex < 0) return null;
 
@@ -193,16 +195,16 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
               </span>
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`nolio-week-${key}`}>Cette semaine commence le :</Label>
+              <Label htmlFor={`nolio-session-${key}`}>Date de cette séance :</Label>
               <Input
-                id={`nolio-week-${key}`}
+                id={`nolio-session-${key}`}
                 type="date"
-                value={weekMondayStr}
-                onChange={(e) => setWeekMondayStr(e.target.value)}
+                value={sessionDateStr}
+                onChange={(e) => setSessionDateStr(e.target.value)}
                 onClick={stop}
               />
               <p className="text-[11px] text-muted-foreground">
-                → Séance programmée le{" "}
+                → Programmée le{" "}
                 <span className="font-medium text-foreground">
                   {format(sessionDate, "EEEE d MMMM yyyy", { locale: fr })}
                 </span>

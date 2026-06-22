@@ -931,20 +931,26 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     [targetSessions],
   );
 
-  // Semaine d'ancrage = première semaine du périmètre cible (fallback = 1ère du plan)
-  const anchorWeek = useMemo(() => {
-    if (targetWeekNumbers.length > 0) return targetWeekNumbers[0];
-    return plan.weeks.length > 0 ? Math.min(...plan.weeks.map((w) => w.weekNumber)) : 1;
-  }, [targetWeekNumbers, plan.weeks]);
+  // Première séance du périmètre (par semaine puis dayIndex) → ancrage de la date saisie
+  const anchorSession = useMemo(() => {
+    if (targetSessions.length === 0) return null;
+    return [...targetSessions].sort(
+      (a, b) => (a.weekNumber - b.weekNumber) || (a.dayIndex - b.dayIndex),
+    )[0];
+  }, [targetSessions]);
 
-  // Lundi semaine 1 calculé depuis le lundi de la semaine d'ancrage saisi par le coach
+  const anchorWeek = anchorSession?.weekNumber
+    ?? (plan.weeks.length > 0 ? Math.min(...plan.weeks.map((w) => w.weekNumber)) : 1);
+  const anchorDay = anchorSession?.dayIndex ?? 0;
+
+  // Lundi semaine 1 calculé depuis la date de la 1ère séance saisie par le coach
   const computedPlanStart = useMemo(() => {
     try {
       const dt = new Date(`${bulkStartDate}T00:00:00Z`);
-      dt.setUTCDate(dt.getUTCDate() - (anchorWeek - 1) * 7);
+      dt.setUTCDate(dt.getUTCDate() - ((anchorWeek - 1) * 7 + anchorDay));
       return dt.toISOString().slice(0, 10);
     } catch { return bulkStartDate; }
-  }, [bulkStartDate, anchorWeek]);
+  }, [bulkStartDate, anchorWeek, anchorDay]);
 
   const alreadySentInScope = useMemo(() => {
     if (!nolioCtx) return 0;
@@ -988,10 +994,11 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
       };
     });
 
-    // anchorWeek = 1ère semaine du périmètre. planStart = lundi saisi - (anchorWeek-1)*7.
+    // Date saisie = date de la 1ère séance du périmètre (anchor).
+    // planStart = date saisie - ((anchorWeek-1)*7 + anchorDay).
     const anchorDt = new Date(`${bulkStartDate}T00:00:00Z`);
     const planStartDt = new Date(anchorDt);
-    planStartDt.setUTCDate(planStartDt.getUTCDate() - (anchorWeek - 1) * 7);
+    planStartDt.setUTCDate(planStartDt.getUTCDate() - ((anchorWeek - 1) * 7 + anchorDay));
     const computedStart = planStartDt.toISOString().slice(0, 10);
 
     const interval = setInterval(() => {
@@ -1099,7 +1106,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="nolio-plan-start" className="text-xs">
-                  Semaine {anchorWeek} commence le :
+                  Date de la 1ère séance à envoyer :
                 </Label>
                 <Input
                   id="nolio-plan-start"
@@ -1109,15 +1116,20 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                   disabled={bulkSending}
                   className="h-9"
                 />
-                {anchorWeek > 1 && (
+                {anchorSession && (
                   <p className="text-[11px] text-muted-foreground">
-                    → Semaine 1 du plan débutera le{" "}
-                    <span className="font-medium text-foreground">
-                      {(() => {
-                        try { return format(parseISO(`${computedPlanStart}T00:00:00Z`), "EEEE d MMM yyyy", { locale: fr }); }
-                        catch { return computedPlanStart; }
-                      })()}
-                    </span>
+                    → 1ère séance : <span className="font-medium text-foreground">S{anchorWeek} {(["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"][anchorDay]) ?? `J${anchorDay + 1}`}</span>
+                    {" — "}{anchorSession.title}
+                    {(anchorWeek > 1 || anchorDay > 0) && (
+                      <>
+                        {" · "}Semaine 1 du plan : <span className="font-medium text-foreground">
+                          {(() => {
+                            try { return format(parseISO(`${computedPlanStart}T00:00:00Z`), "EEE d MMM yyyy", { locale: fr }); }
+                            catch { return computedPlanStart; }
+                          })()}
+                        </span>
+                      </>
+                    )}
                   </p>
                 )}
               </div>
@@ -1374,7 +1386,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               </Badge>
               <div className="flex items-center gap-2 min-w-0">
                 <Label htmlFor="nolio-bulk-start" className="text-xs whitespace-nowrap text-muted-foreground">
-                  S{anchorWeek} commence le
+                  Date 1ère séance
                 </Label>
                 <Input
                   id="nolio-bulk-start"
@@ -1421,11 +1433,11 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                 {scope === "range" && `Semaines ${Math.min(scopeFrom, scopeTo)} à ${Math.max(scopeFrom, scopeTo)}`}
                 {scope === "all" && `Plan complet (${allWeekNums.length} semaines)`}
               </span>
-              {" · "}Semaine {anchorWeek} commence le :{" "}
+              {" · "}1ère séance le :{" "}
               <span className="font-medium text-foreground">
                 {format(new Date(`${bulkStartDate}T00:00:00`), "EEEE d MMMM yyyy", { locale: fr })}
               </span>
-              {anchorWeek > 1 && (
+              {(anchorWeek > 1 || anchorDay > 0) && (
                 <>
                   {" · "}
                   <span className="text-muted-foreground">
@@ -1444,9 +1456,9 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
             <div className="text-xs text-muted-foreground">
               Semaines concernées :{" "}
               {targetWeekNumbers.map((n) => {
-                const anchor = new Date(`${bulkStartDate}T00:00:00`);
-                const dt = addDays(anchor, (n - anchorWeek) * 7);
-                return `S${n} (${format(dt, "d MMM", { locale: fr })})`;
+                const ps = parseISO(`${computedPlanStart}T00:00:00Z`);
+                const dt = addDays(ps, (n - 1) * 7);
+                return `S${n} (lun ${format(dt, "d MMM", { locale: fr })})`;
               }).join(" · ")}
             </div>
           )}
@@ -1467,8 +1479,8 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
           <div className="max-h-[260px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
             {targetSessions.map((s) => {
-              const anchor = new Date(`${bulkStartDate}T00:00:00`);
-              const dt = addDays(anchor, (s.weekNumber - anchorWeek) * 7 + s.dayIndex);
+              const ps = parseISO(`${computedPlanStart}T00:00:00Z`);
+              const dt = addDays(ps, (s.weekNumber - 1) * 7 + s.dayIndex);
               return (
                 <div
                   key={`${s.weekNumber}-${s.dayIndex}-${s.title}`}
