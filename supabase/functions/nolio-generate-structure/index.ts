@@ -28,7 +28,7 @@ TARGET TYPE — RÈGLE STRICTE :
 
 Mapping zones TFCLab → %FCmax : Z1=50-60, Z2=60-70, Z3=70-80, Z4a=80-87, Z4b=87-91, Z5=91-95, Z6=95-100.
 
-⛔ ALLURE EXPLICITE (course OU natation) — INTERDIT en target : même si le texte contient "5:25/km", "4:30-4:45/km", "1:36/100m" ou "@CSS", tu DOIS retourner target_type="heartrate" sur la zone correspondante. L'allure d'origine sera ré-écrite dans `notes` côté serveur.
+⛔ ALLURE EXPLICITE (course OU natation) — INTERDIT en target : même si le texte contient "5:25/km", "4:30-4:45/km", "1:36/100m" ou "@CSS", tu DOIS retourner target_type="heartrate" sur la zone correspondante. L'allure d'origine sera ré-écrite dans notes côté serveur.
 
 🏊 NATATION : step_duration_type="distance" en mètres, target_type="heartrate" (jamais pace). Éducatifs sans cible : target_type="no_target".
 
