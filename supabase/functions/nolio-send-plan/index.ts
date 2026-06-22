@@ -534,34 +534,77 @@ function normalizeStructuredWorkoutForNolio(
           else if (lo !== null) src.target_value = lo;
           else if (hi !== null) src.target_value = hi;
         }
-      } else if (src.target_type === "pace" && (isRun || isSwim)) {
-        // 1) Recalcule target_value_min/max depuis les pct_* si dispo (s/km ou s/100m)
-        const css = refs?.css;
+      } else if (src.target_type === "pace" && isRun) {
+        // ⛔ POLITIQUE TFCLab : en course/trail, on n'envoie JAMAIS une allure absolue à Nolio
+        // (conversion m/s instable côté Nolio → "02:56 min/km" sur un Z2). On convertit toute
+        // cible pace en HEARTRATE (Z1-Z6 via FCmax). Les seules cibles run autorisées :
+        //   - heartrate (bpm via %FCmax)
+        //   - pace dérivée de %VMA (gérée en upstream lors de l'écriture)
         const vma = refs?.vma;
+        const fcMax = refs?.fcMax;
+        let vmaMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
+        let vmaMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
+
+        // Dériver %VMA depuis pace absolue (s/km ou min/km décimal) si pct_vma_* absents.
+        if ((vmaMin === null || vmaMax === null) && typeof vma === "number" && vma > 0) {
+          const toSecKm = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
+          const tMin = typeof src.target_value_min === "number" ? src.target_value_min : null;
+          const tMax = typeof src.target_value_max === "number" ? src.target_value_max : null;
+          // pace plus petite ⇒ %VMA plus grand
+          if (tMin !== null) {
+            const sec = toSecKm(tMin);
+            if (sec > 0) vmaMax = vmaMax ?? (3600 / (sec * vma)) * 100;
+          }
+          if (tMax !== null) {
+            const sec = toSecKm(tMax);
+            if (sec > 0) vmaMin = vmaMin ?? (3600 / (sec * vma)) * 100;
+          }
+        }
+        // Défauts conservateurs si rien d'exploitable
+        if (vmaMin === null && vmaMax === null) { vmaMin = 70; vmaMax = 78; }
+        else if (vmaMin === null) vmaMin = Math.max(40, (vmaMax as number) - 5);
+        else if (vmaMax === null) vmaMax = vmaMin + 5;
+
+        // Mapping Lorang/Friel : %VMA → %FCmax (endurance ≈, divergent en haute intensité)
+        const vmaToHr = (p: number): number => {
+          if (p <= 60) return Math.max(50, p);
+          if (p <= 75) return p - 2;
+          if (p <= 85) return p - 4;
+          if (p <= 95) return p - 6;
+          if (p <= 105) return Math.min(95, p - 8);
+          return 95;
+        };
+        const hrPctMin = Math.round(vmaToHr(vmaMin));
+        const hrPctMax = Math.round(vmaToHr(vmaMax));
+        const fc = typeof fcMax === "number" && fcMax > 0 ? fcMax : 185;
+        const lo = Math.round(fc * hrPctMin / 100);
+        const hi = Math.round(fc * hrPctMax / 100);
+
+        src.target_type = "heartrate";
+        src.target_unit = "bpm";
+        src.pct_hrmax_min = hrPctMin;
+        src.pct_hrmax_max = hrPctMax;
+        src.target_value_min = lo;
+        src.target_value_max = hi;
+        src.target_value = Math.round((lo + hi) / 2);
+        // Nettoyage des champs spécifiques pace
+        delete (src as Record<string, unknown>).pct_vma_min;
+        delete (src as Record<string, unknown>).pct_vma_max;
+      } else if (src.target_type === "pace" && isSwim) {
+        // 🏊 Natation : TOUJOURS min/100m (jamais min/km). Si pct_css_* fournis et
+        // valeurs absolues absentes, dériver depuis CSS athlète.
+        const css = refs?.css;
         const pctCssMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
         const pctCssMax = typeof src.pct_css_max === "number" ? src.pct_css_max : null;
-        const pctVmaMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
-        const pctVmaMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
-
-        // ⛔ Ne JAMAIS écraser une allure explicite (target_value_min/max déjà chiffrés en s/km ou s/100m).
-        //    On ne dérive depuis pct_* QUE si les valeurs absolues sont absentes.
         const hasExplicitMin = typeof src.target_value_min === "number" && src.target_value_min > 0;
         const hasExplicitMax = typeof src.target_value_max === "number" && src.target_value_max > 0;
-        if (isSwim && typeof css === "number" && css > 0 && !hasExplicitMin && !hasExplicitMax && (pctCssMin !== null || pctCssMax !== null)) {
+        if (typeof css === "number" && css > 0 && !hasExplicitMin && !hasExplicitMax && (pctCssMin !== null || pctCssMax !== null)) {
           if (pctCssMin !== null) src.target_value_min = css * (pctCssMin / 100);
           if (pctCssMax !== null) src.target_value_max = css * (pctCssMax / 100);
-        } else if (isRun && typeof vma === "number" && vma > 0 && !hasExplicitMin && !hasExplicitMax && (pctVmaMin !== null || pctVmaMax !== null)) {
-          const paceFromVma = (pct: number) => 1000 / (vma * (pct / 100) * (1000 / 3600));
-          if (pctVmaMax !== null) src.target_value_min = paceFromVma(pctVmaMax);
-          if (pctVmaMin !== null) src.target_value_max = paceFromVma(pctVmaMin);
         }
-
-        // 2) Conversion s → min décimal natif Nolio
-        const denom = isSwim ? 100 : 60; // s/100m → min/100m via /60 ; s/km → min/km via /60
-        // Wait: s/100m → min/100m = s/60. s/km → min/km = s/60. Both /60.
+        // s/100m → min/100m décimal (idempotent : ≤ 30 = déjà min décimal)
         const toMin = (v: number): number => {
           if (!Number.isFinite(v) || v <= 0) return v;
-          // Idempotent : si déjà en minutes décimales (≤ 30), on ne reconvertit pas.
           if (v <= 30) return Math.round(v * 100) / 100;
           return Math.round((v / 60) * 100) / 100;
         };
@@ -574,8 +617,7 @@ function normalizeStructuredWorkoutForNolio(
         if (lo !== null && hi !== null) {
           src.target_value = Math.round(((lo + hi) / 2) * 100) / 100;
         }
-        src.target_unit = isSwim ? "min/100m" : "min/km";
-        void denom;
+        src.target_unit = "min/100m";
       } else if (src.target_type === "heartrate") {
         src.target_unit = "bpm";
         // Garde-fou : pct_hrmax_min 0/null → Z1 plancher 50% FCmax (jamais 0 envoyé à Nolio)
