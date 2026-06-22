@@ -770,6 +770,91 @@ function normalizeStructuredWorkoutForNolio(
         const hi2 = typeof src.target_value_max === "number" ? src.target_value_max : null;
         if (lo2 !== null && hi2 !== null) src.target_value = Math.round((lo2 + hi2) / 2);
       }
+
+      // 🔒 Verrou final TFCLab → Nolio : aucun sport non-vélo ne doit sortir en pace,
+      // target_unit min/km/min/100m/bpm, duration ou empty_unit. Les cibles exploitables
+      // sont transformées en FC; les éducatifs/restes sans cible restent no_target propre.
+      if (!isBike) {
+        const noPreciseTarget =
+          src.target_type === undefined ||
+          src.target_type === "" ||
+          src.target_type === "empty_unit" ||
+          src.target_type === "duration" ||
+          src.target_type === "no_target";
+
+        if (noPreciseTarget) {
+          src.target_type = "no_target";
+          cleanTargetFields(src);
+        } else {
+          const fcMax = refs?.fcMax;
+          const tMinRaw = typeof src.target_value_min === "number" ? src.target_value_min : null;
+          const tMaxRaw = typeof src.target_value_max === "number" ? src.target_value_max : null;
+          const tValRaw = typeof src.target_value === "number" ? src.target_value : null;
+          let zone = highestZonePct(typeof src.notes === "string" ? src.notes : "");
+
+          if (!zone && typeof src.pct_hrmax_min === "number" && typeof src.pct_hrmax_max === "number") {
+            zone = [src.pct_hrmax_min, src.pct_hrmax_max];
+          }
+
+          if (!zone && isRun) {
+            let vmaMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
+            let vmaMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
+            const vma = refs?.vma;
+            const toSecKm = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
+            if ((vmaMin === null || vmaMax === null) && typeof vma === "number" && vma > 0) {
+              const fast = tMinRaw ?? tValRaw;
+              const slow = tMaxRaw ?? tValRaw;
+              if (fast !== null) {
+                const sec = toSecKm(fast);
+                if (sec > 0) vmaMax = vmaMax ?? (3600 / (sec * vma)) * 100;
+              }
+              if (slow !== null) {
+                const sec = toSecKm(slow);
+                if (sec > 0) vmaMin = vmaMin ?? (3600 / (sec * vma)) * 100;
+              }
+            }
+            const refPct = vmaMin !== null && vmaMax !== null
+              ? (vmaMin + vmaMax) / 2
+              : (vmaMin ?? vmaMax ?? null);
+            if (refPct !== null) zone = vmaPctToHrZone(refPct);
+          }
+
+          if (!zone && isSwim) {
+            const css = refs?.css;
+            let pctCssMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
+            let pctCssMax = typeof src.pct_css_max === "number" ? src.pct_css_max : null;
+            const toSec100 = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
+            const fmtPace = (sec: number) => `${Math.floor(sec / 60)}:${Math.round(sec % 60).toString().padStart(2, "0")}/100m`;
+            const pMin = tMinRaw !== null ? toSec100(tMinRaw) : null;
+            const pMax = tMaxRaw !== null ? toSec100(tMaxRaw) : (tValRaw !== null ? toSec100(tValRaw) : null);
+            if (pMin !== null || pMax !== null) {
+              const existing = typeof src.notes === "string" ? src.notes.trim() : "";
+              const paceNote = pMin !== null && pMax !== null && Math.abs(pMin - pMax) > 1
+                ? `CSS : ${fmtPace(Math.min(pMin, pMax))}–${fmtPace(Math.max(pMin, pMax))}`
+                : `CSS : ${fmtPace(pMin ?? pMax!)}`;
+              src.notes = existing ? (existing.includes("/100m") ? existing : `${existing} · ${paceNote}`) : paceNote;
+            }
+            if ((pctCssMin === null || pctCssMax === null) && typeof css === "number" && css > 0) {
+              if (pMin !== null) pctCssMax = pctCssMax ?? (pMin / css) * 100;
+              if (pMax !== null) pctCssMin = pctCssMin ?? (pMax / css) * 100;
+            }
+            const refPct = pctCssMin !== null && pctCssMax !== null
+              ? (pctCssMin + pctCssMax) / 2
+              : (pctCssMin ?? pctCssMax ?? null);
+            if (refPct !== null) zone = cssPctToHrZone(refPct);
+          }
+
+          zone = zone ?? defaultHrZoneForStep(src);
+          const target = hrTargetFromPct(zone[0], zone[1], { fcMax });
+          cleanTargetFields(src);
+          src.target_type = "heartrate";
+          src.pct_hrmax_min = target.pct_hrmax_min;
+          src.pct_hrmax_max = target.pct_hrmax_max;
+          src.target_value_min = target.target_value_min;
+          src.target_value_max = target.target_value_max;
+          src.target_value = target.target_value;
+        }
+      }
     }
 
 
