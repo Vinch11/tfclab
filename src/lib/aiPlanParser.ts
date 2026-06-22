@@ -55,9 +55,19 @@ const DAY_MAP: Record<string, number> = {
 };
 
 function normDay(raw: string): { name: string; index: number } {
-  const lower = raw.trim().toLowerCase();
+  // Strip markdown emphasis (**, *, _), emoji and leading punctuation so labels
+  // like "**Lundi matin**", "_Mardi_", "🟦 Mercredi" still resolve.
+  const cleaned = raw
+    .replace(/[*_`~]+/g, " ")
+    .replace(/^[\s\-–—:•·\u{1F300}-\u{1FAFF}\u2600-\u27BF]+/u, "")
+    .trim()
+    .toLowerCase();
   for (const [key, idx] of Object.entries(DAY_MAP)) {
-    if (lower.startsWith(key)) return { name: key.charAt(0).toUpperCase() + key.slice(1), index: idx };
+    if (cleaned.startsWith(key)) return { name: key.charAt(0).toUpperCase() + key.slice(1), index: idx };
+  }
+  // Fallback: search anywhere in the string
+  for (const [key, idx] of Object.entries(DAY_MAP)) {
+    if (cleaned.includes(key)) return { name: key.charAt(0).toUpperCase() + key.slice(1), index: idx };
   }
   return { name: raw.trim(), index: -1 };
 }
