@@ -1386,7 +1386,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               </Badge>
               <div className="flex items-center gap-2 min-w-0">
                 <Label htmlFor="nolio-bulk-start" className="text-xs whitespace-nowrap text-muted-foreground">
-                  S{anchorWeek} commence le
+                  Date 1ère séance
                 </Label>
                 <Input
                   id="nolio-bulk-start"
