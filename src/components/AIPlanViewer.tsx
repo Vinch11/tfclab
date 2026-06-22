@@ -944,14 +944,31 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     ?? (plan.weeks.length > 0 ? Math.min(...plan.weeks.map((w) => w.weekNumber)) : 1);
   const anchorDay = anchorSession?.dayIndex ?? 0;
 
-  // Lundi semaine 1 calculé depuis la date de la 1ère séance saisie par le coach
+  // bulkStartDate = lundi de la semaine `anchorWeek` choisi par le coach.
+  // Lundi semaine 1 = bulkStartDate - (anchorWeek-1)*7.
   const computedPlanStart = useMemo(() => {
     try {
       const dt = new Date(`${bulkStartDate}T00:00:00Z`);
-      dt.setUTCDate(dt.getUTCDate() - ((anchorWeek - 1) * 7 + anchorDay));
+      dt.setUTCDate(dt.getUTCDate() - (anchorWeek - 1) * 7);
       return dt.toISOString().slice(0, 10);
     } catch { return bulkStartDate; }
-  }, [bulkStartDate, anchorWeek, anchorDay]);
+  }, [bulkStartDate, anchorWeek]);
+
+  const bulkAnchorMonday = useMemo(() => {
+    const [y, m, d] = bulkStartDate.split("-").map(Number);
+    return new Date(y, (m ?? 1) - 1, d ?? 1);
+  }, [bulkStartDate]);
+
+  const planStartMondayDate = useMemo(() => {
+    const [y, m, d] = computedPlanStart.split("-").map(Number);
+    return new Date(y, (m ?? 1) - 1, d ?? 1);
+  }, [computedPlanStart]);
+
+  const setBulkAnchorFromDate = useCallback((d: Date) => {
+    const mon = mondayOf(d);
+    const iso = `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, "0")}-${String(mon.getDate()).padStart(2, "0")}`;
+    setBulkStartDate(iso);
+  }, []);
 
   const alreadySentInScope = useMemo(() => {
     if (!nolioCtx) return 0;
