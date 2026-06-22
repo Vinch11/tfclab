@@ -15,7 +15,7 @@ ZONES : plage 'Z1-Z2' → zone la plus haute (Z2). Mapping depuis refs athlète 
 
 % FTP : CONSERVE TOUJOURS LA PLAGE COMPLÈTE. '80-85% FTP' → target_value_min=round(ftp*0.80), target_value_max=round(ftp*0.85). '85% FTP' seul → target_value_min=round(ftp*0.83), target_value_max=round(ftp*0.87) (±2% autour de la valeur). Si zone Z sans % explicite → utilise les % min et max du mapping de la zone.
 
-% VMA : CONSERVE TOUJOURS LA PLAGE. '90-95% VMA' → target_value_min=round(3600/(vma*0.95*1000/3600)), target_value_max=round(3600/(vma*0.90*1000/3600)) (attention : plus vite = pace plus petite). '95% VMA' seul → ±2% autour de la valeur.
+% VMA : pour Course/Trail, NE PRODUIS JAMAIS de pace. Convertis la plage en FC via le mapping TFCLab → FCmax : <60%=Z1, 60-74=Z2, 75-84=Z3, 85-91=Z4a, 92-96=Z4b, 97-102=Z5, ≥103=Z6.
 
 % CSS natation : CONSERVE LA PLAGE. 'CSS+5' → target_value_min=css, target_value_max=css+5 en secondes/100m.
 
@@ -36,7 +36,7 @@ Mapping zones TFCLab → %FCmax : Z1=50-60, Z2=60-70, Z3=70-80, Z4a=80-87, Z4b=8
 
 🚶 RÉCUPÉRATION 'MARCHE' / 'RETOUR MARCHE' / 'r=marche' : rest step avec target=no_target (jamais une allure de course). Durée par défaut 60s si non précisée. NE JAMAIS afficher une plage pace min/km sur une récup marche.
 
-NATATION : step_duration_type='distance' en mètres. Repos 'r=15s' ou 'r=15"' → step rest duration 15s. Target pace TOUJOURS en sec/100m, jamais min/km.
+NATATION : step_duration_type='distance' en mètres. Repos 'r=15s' ou 'r=15"' → step rest duration 15s. Target_type TOUJOURS heartrate ou no_target, jamais pace. Toute allure lisible (ex: CSS 1:36/100m) va dans notes uniquement.
 
 RÉPÉTITIONS NxM' : type='repetition', value=N, steps=[active(M*60s, target avec plage), rest(récup, no_target ou Z1)]. M' = minutes ; Dm = mètres ; D" = secondes. NE PAS confondre.
 
