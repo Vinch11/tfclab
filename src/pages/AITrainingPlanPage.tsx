@@ -206,6 +206,9 @@ export default function AITrainingPlanPage() {
 
   // Persistence key per athlete
   const persistKey = currentAthlete ? `tfcl_ai_plan_${currentAthlete.id}` : null;
+  // Active plan key (full plan JSON + generation timestamp, never overwritten without explicit confirmation)
+  const activePlanKey = currentAthlete ? `plan_active_${currentAthlete.id}` : null;
+  const [loadedFromCacheAt, setLoadedFromCacheAt] = useState<string | null>(null);
 
   // Form state — restore from localStorage if available
   const savedState = useMemo(() => {
@@ -252,8 +255,25 @@ export default function AITrainingPlanPage() {
   // Restore persisted plan + config on athlete change (single mode only)
   useEffect(() => {
     if (isMultiMode) return;
+    // Try plan_active_<id> first (full plan + timestamp)
+    let activeRestored = false;
+    if (activePlanKey) {
+      try {
+        const rawActive = localStorage.getItem(activePlanKey);
+        if (rawActive) {
+          const parsed = JSON.parse(rawActive);
+          if (parsed?.response) {
+            setResponse(parsed.response);
+            setLoadedFromCacheAt(parsed.generatedAt || null);
+            activeRestored = true;
+          }
+        }
+      } catch {}
+    }
+    if (!activeRestored) setLoadedFromCacheAt(null);
+
     if (savedState) {
-      if (savedState.response) setResponse(savedState.response);
+      if (!activeRestored && savedState.response) setResponse(savedState.response);
       if (savedState.objective) setObjective(savedState.objective);
       else if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       if (savedState.raceName) setRaceName(savedState.raceName);
@@ -284,6 +304,7 @@ export default function AITrainingPlanPage() {
   useEffect(() => {
     if (isLoading) {
       setIsSaved(false);
+      setLoadedFromCacheAt(null); // fresh generation in progress, indicator clears
     }
   }, [isLoading]);
 
@@ -311,7 +332,24 @@ export default function AITrainingPlanPage() {
       terrainAvailability,
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
-  }, [isMultiMode, persistKey, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
+
+    // Persist active plan with generation timestamp.
+    // Only write when this is a fresh generation (not when restored from cache),
+    // to avoid overwriting a saved plan without explicit coach confirmation.
+    if (activePlanKey && !loadedFromCacheAt) {
+      try {
+        const existing = localStorage.getItem(activePlanKey);
+        const existingResp = existing ? (JSON.parse(existing)?.response ?? null) : null;
+        if (existingResp !== response) {
+          const payload = { response, generatedAt: new Date().toISOString() };
+          localStorage.setItem(activePlanKey, JSON.stringify(payload));
+        }
+      } catch {
+        const payload = { response, generatedAt: new Date().toISOString() };
+        localStorage.setItem(activePlanKey, JSON.stringify(payload));
+      }
+    }
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -1898,7 +1936,7 @@ export default function AITrainingPlanPage() {
                       <Button variant="ghost" size="sm" onClick={handleCopy}>
                         {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => { reset(); setIsSaved(false); if (persistKey) localStorage.removeItem(persistKey); }}>
+                      <Button variant="ghost" size="sm" onClick={() => { if (!window.confirm("Supprimer le plan sauvegardé pour cet athlète ? Cette action est irréversible.")) return; reset(); setIsSaved(false); setLoadedFromCacheAt(null); if (persistKey) localStorage.removeItem(persistKey); if (activePlanKey) localStorage.removeItem(activePlanKey); }}>
                         <RotateCcw className="h-4 w-4" />
                       </Button>
                     </div>
@@ -2008,6 +2046,7 @@ export default function AITrainingPlanPage() {
                         athleteName={currentAthlete?.nom}
                         athleteId={currentAthlete?.id}
                         currentWeekNumber={currentWeekNumber}
+                        loadedFromCacheAt={loadedFromCacheAt}
                         adaptationProjections={
                           athleteContext
                             ? buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections

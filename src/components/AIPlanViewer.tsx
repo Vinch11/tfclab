@@ -681,12 +681,38 @@ interface AIPlanViewerProps {
   athleteName?: string;
   athleteId?: string;
   currentWeekNumber?: number;
+  loadedFromCacheAt?: string | null;
   adaptationProjections?: import("@/hooks/useAITrainingPlan").AdaptationProjection[];
 }
 
-export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, adaptationProjections }: AIPlanViewerProps) {
-  const [selectedWeek, setSelectedWeek] = useState(0);
+export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections }: AIPlanViewerProps) {
+  // Persist selected week per athlete (restored on mount/athlete change)
+  const weekStorageKey = athleteId ? `plan_current_week_${athleteId}` : null;
+  const [selectedWeek, setSelectedWeek] = useState<number>(() => {
+    if (!weekStorageKey) return 0;
+    try {
+      const raw = localStorage.getItem(weekStorageKey);
+      const n = raw ? parseInt(raw, 10) : 0;
+      return Number.isFinite(n) && n >= 0 ? n : 0;
+    } catch { return 0; }
+  });
   const [viewMode, setViewMode] = useState<"week" | "all">("week");
+
+  // Restore selected week when athlete changes
+  useEffect(() => {
+    if (!weekStorageKey) { setSelectedWeek(0); return; }
+    try {
+      const raw = localStorage.getItem(weekStorageKey);
+      const n = raw ? parseInt(raw, 10) : 0;
+      setSelectedWeek(Number.isFinite(n) && n >= 0 ? n : 0);
+    } catch { setSelectedWeek(0); }
+  }, [weekStorageKey]);
+
+  // Persist selected week
+  useEffect(() => {
+    if (!weekStorageKey) return;
+    try { localStorage.setItem(weekStorageKey, String(selectedWeek)); } catch {}
+  }, [weekStorageKey, selectedWeek]);
 
   // --- Local plan state (allows in-UI session replacements without touching saved plan) ---
   const [plan, setPlan] = useState<ParsedPlan>(planProp);
@@ -1162,6 +1188,14 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
             <div>
               <h3 className="font-bold text-base">{correctedTitle}</h3>
               <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {plan.phases.length} blocs</p>
+              {loadedFromCacheAt && (
+                <p className="text-[10px] text-muted-foreground/80 italic mt-0.5">
+                  Plan chargé depuis la sauvegarde locale — {(() => {
+                    try { return format(parseISO(loadedFromCacheAt), "d MMM yyyy 'à' HH:mm", { locale: fr }); }
+                    catch { return loadedFromCacheAt; }
+                  })()}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Button variant="outline" size="sm" onClick={handleExportPDF}>
