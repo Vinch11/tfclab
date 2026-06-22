@@ -2046,6 +2046,7 @@ export default function AITrainingPlanPage() {
                         athleteName={currentAthlete?.nom}
                         athleteId={currentAthlete?.id}
                         currentWeekNumber={currentWeekNumber}
+                        loadedFromCacheAt={loadedFromCacheAt}
                         adaptationProjections={
                           athleteContext
                             ? buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections
