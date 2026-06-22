@@ -1118,7 +1118,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                 />
                 {anchorSession && (
                   <p className="text-[11px] text-muted-foreground">
-                    → 1ère séance : <span className="font-medium text-foreground">S{anchorWeek} {DAY_NAMES[anchorDay] ?? `J${anchorDay + 1}`}</span>
+                    → 1ère séance : <span className="font-medium text-foreground">S{anchorWeek} {(["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"][anchorDay]) ?? `J${anchorDay + 1}`}</span>
                     {" — "}{anchorSession.title}
                     {(anchorWeek > 1 || anchorDay > 0) && (
                       <>
