@@ -44,9 +44,10 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
   const [loadingNolioId, setLoadingNolioId] = useState(true);
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
-  const [startDateStr, setStartDateStr] = useState<string>(() =>
-    format(planStartDate ?? nextMonday(), "yyyy-MM-dd"),
+  const [selectedMonday, setSelectedMonday] = useState<Date>(() =>
+    mondayOf(planStartDate ?? nextMonday()),
   );
+  const startDateStr = format(selectedMonday, "yyyy-MM-dd");
 
   useEffect(() => {
     let cancelled = false;
