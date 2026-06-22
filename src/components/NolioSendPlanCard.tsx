@@ -8,13 +8,12 @@
  *   - refs athlète (ftp/vma/css/fcMax depuis snapshot actif) pour calculs absolus
  */
 import { useEffect, useMemo, useState } from "react";
-import { format, addDays, startOfWeek, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
+import { format, addDays, startOfWeek } from "date-fns";
 import { Loader2, Send, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
@@ -45,9 +44,10 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
   const [loadingNolioId, setLoadingNolioId] = useState(true);
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
-  const [startDateStr, setStartDateStr] = useState<string>(() =>
-    format(planStartDate ?? nextMonday(), "yyyy-MM-dd"),
+  const [selectedMonday, setSelectedMonday] = useState<Date>(() =>
+    mondayOf(planStartDate ?? nextMonday()),
   );
+  const startDateStr = format(selectedMonday, "yyyy-MM-dd");
 
   useEffect(() => {
     let cancelled = false;
@@ -209,22 +209,12 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
               </span>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="nolio-start-date">Date de début du plan (lundi de la Semaine 1) :</Label>
-              <Input
-                id="nolio-start-date"
-                type="date"
-                value={startDateStr}
-                onChange={(e) => setStartDateStr(e.target.value)}
+              <Label>Semaine de démarrage du plan :</Label>
+              <WeekPicker
+                selectedMonday={selectedMonday}
+                onChange={setSelectedMonday}
+                anchorLabel="📅 La Semaine 1 du plan commence le :"
               />
-              <p className="text-[11px] text-muted-foreground">
-                → Semaine 1 démarrera le{" "}
-                <span className="font-medium text-foreground">
-                  {(() => {
-                    try { return format(parseISO(`${startDateStr}T00:00:00Z`), "EEEE d MMMM yyyy", { locale: fr }); }
-                    catch { return startDateStr; }
-                  })()}
-                </span>
-              </p>
             </div>
           </div>
 

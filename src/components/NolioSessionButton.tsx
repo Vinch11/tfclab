@@ -3,13 +3,13 @@
  * Discret, ouvre une mini-modale de confirmation avec date pré-remplie.
  */
 import { useState, useMemo, type MouseEvent } from "react";
-import { format, addDays, parseISO } from "date-fns";
+import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Loader2, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
@@ -56,24 +56,23 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
 
-  // Date par défaut de cette séance (calculée depuis planStartDate)
-  const defaultSessionDate = addDays(
-    ctx.planStartDate,
-    (session.weekNumber - 1) * 7 + Math.max(0, session.dayIndex),
-  );
-  const [sessionDateStr, setSessionDateStr] = useState(format(defaultSessionDate, "yyyy-MM-dd"));
+  // Lundi par défaut de la semaine de cette séance
+  const defaultMonday = useMemo(() => {
+    return mondayOf(
+      addDays(ctx.planStartDate, (session.weekNumber - 1) * 7),
+    );
+  }, [ctx.planStartDate, session.weekNumber]);
+  const [selectedMonday, setSelectedMonday] = useState<Date>(defaultMonday);
 
-  // Lundi semaine 1 du plan recalculé depuis la date de la séance choisie
-  const { sessionDate, computedPlanStart } = useMemo(() => {
-    const sd = parseISO(`${sessionDateStr}T00:00:00Z`);
-    const offsetDays = (session.weekNumber - 1) * 7 + Math.max(0, session.dayIndex);
-    const ps = new Date(sd);
-    ps.setUTCDate(ps.getUTCDate() - offsetDays);
-    return {
-      sessionDate: sd,
-      computedPlanStart: ps.toISOString().slice(0, 10),
-    };
-  }, [sessionDateStr, session.weekNumber, session.dayIndex]);
+  // Date effective de la séance = lundi sélectionné + dayIndex
+  // Lundi de la Semaine 1 du plan = lundi sélectionné - (weekNumber-1)*7
+  const { sessionDate, planStartMonday, computedPlanStart } = useMemo(() => {
+    const sd = addDays(selectedMonday, Math.max(0, session.dayIndex));
+    const ps = addDays(selectedMonday, -(session.weekNumber - 1) * 7);
+    const toIso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return { sessionDate: sd, planStartMonday: ps, computedPlanStart: toIso(ps) };
+  }, [selectedMonday, session.weekNumber, session.dayIndex]);
 
   if (session.isRest || session.dayIndex < 0) return null;
 
@@ -194,29 +193,29 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
                 Semaine {session.weekNumber} — {DAY_NAMES[session.dayIndex] ?? `Jour ${session.dayIndex + 1}`}
               </span>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor={`nolio-session-${key}`}>Date de cette séance :</Label>
-              <Input
-                id={`nolio-session-${key}`}
-                type="date"
-                value={sessionDateStr}
-                onChange={(e) => setSessionDateStr(e.target.value)}
-                onClick={stop}
+            <div className="space-y-2" onClick={stop}>
+              <Label>Semaine de la séance :</Label>
+              <WeekPicker
+                selectedMonday={selectedMonday}
+                onChange={setSelectedMonday}
+                hideSummary
               />
-              <p className="text-[11px] text-muted-foreground">
-                → Programmée le{" "}
-                <span className="font-medium text-foreground">
-                  {format(sessionDate, "EEEE d MMMM yyyy", { locale: fr })}
-                </span>
+              <div className="space-y-1 text-xs sm:text-sm rounded-md bg-muted/40 px-3 py-2 border border-border/60">
+                <div className="flex items-start gap-2 flex-wrap">
+                  <span>📅 Séance prévue le :</span>
+                  <span className="font-semibold text-teal-700 dark:text-teal-300">
+                    {format(sessionDate, "EEEE d MMMM yyyy", { locale: fr })}
+                  </span>
+                </div>
                 {session.weekNumber > 1 && (
-                  <>
-                    {" · "}Semaine 1 du plan débutera le{" "}
+                  <div className="flex items-start gap-2 flex-wrap text-muted-foreground">
+                    <span>→ Le plan complet débute donc le :</span>
                     <span className="font-medium text-foreground">
-                      {format(parseISO(`${computedPlanStart}T00:00:00Z`), "EEEE d MMMM yyyy", { locale: fr })}
+                      {format(planStartMonday, "EEEE d MMMM yyyy", { locale: fr })}
                     </span>
-                  </>
+                  </div>
                 )}
-              </p>
+              </div>
             </div>
           </div>
 
