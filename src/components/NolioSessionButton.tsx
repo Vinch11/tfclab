@@ -3,13 +3,12 @@
  * Discret, ouvre une mini-modale de confirmation avec date pré-remplie.
  */
 import { useState, useMemo, type MouseEvent } from "react";
-import { format, addDays, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
+import { addDays, startOfWeek } from "date-fns";
 import { Loader2, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
