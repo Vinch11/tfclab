@@ -931,20 +931,26 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     [targetSessions],
   );
 
-  // Semaine d'ancrage = première semaine du périmètre cible (fallback = 1ère du plan)
-  const anchorWeek = useMemo(() => {
-    if (targetWeekNumbers.length > 0) return targetWeekNumbers[0];
-    return plan.weeks.length > 0 ? Math.min(...plan.weeks.map((w) => w.weekNumber)) : 1;
-  }, [targetWeekNumbers, plan.weeks]);
+  // Première séance du périmètre (par semaine puis dayIndex) → ancrage de la date saisie
+  const anchorSession = useMemo(() => {
+    if (targetSessions.length === 0) return null;
+    return [...targetSessions].sort(
+      (a, b) => (a.weekNumber - b.weekNumber) || (a.dayIndex - b.dayIndex),
+    )[0];
+  }, [targetSessions]);
 
-  // Lundi semaine 1 calculé depuis le lundi de la semaine d'ancrage saisi par le coach
+  const anchorWeek = anchorSession?.weekNumber
+    ?? (plan.weeks.length > 0 ? Math.min(...plan.weeks.map((w) => w.weekNumber)) : 1);
+  const anchorDay = anchorSession?.dayIndex ?? 0;
+
+  // Lundi semaine 1 calculé depuis la date de la 1ère séance saisie par le coach
   const computedPlanStart = useMemo(() => {
     try {
       const dt = new Date(`${bulkStartDate}T00:00:00Z`);
-      dt.setUTCDate(dt.getUTCDate() - (anchorWeek - 1) * 7);
+      dt.setUTCDate(dt.getUTCDate() - ((anchorWeek - 1) * 7 + anchorDay));
       return dt.toISOString().slice(0, 10);
     } catch { return bulkStartDate; }
-  }, [bulkStartDate, anchorWeek]);
+  }, [bulkStartDate, anchorWeek, anchorDay]);
 
   const alreadySentInScope = useMemo(() => {
     if (!nolioCtx) return 0;
