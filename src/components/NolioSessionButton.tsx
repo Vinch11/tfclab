@@ -192,28 +192,17 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
                 Semaine {session.weekNumber} — {DAY_NAMES[session.dayIndex] ?? `Jour ${session.dayIndex + 1}`}
               </span>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor={`nolio-session-${key}`}>Date de cette séance :</Label>
-              <Input
-                id={`nolio-session-${key}`}
-                type="date"
-                value={sessionDateStr}
-                onChange={(e) => setSessionDateStr(e.target.value)}
-                onClick={stop}
+            <div className="space-y-2" onClick={stop}>
+              <Label>Semaine de la séance :</Label>
+              <WeekPicker
+                selectedMonday={selectedMonday}
+                onChange={setSelectedMonday}
+                planStartDate={session.weekNumber > 1 ? planStartMonday : null}
+                anchorLabel={`📅 Séance prévue le : `}
+                planStartLabel="→ Le plan complet débute donc le :"
               />
               <p className="text-[11px] text-muted-foreground">
-                → Programmée le{" "}
-                <span className="font-medium text-foreground">
-                  {format(sessionDate, "EEEE d MMMM yyyy", { locale: fr })}
-                </span>
-                {session.weekNumber > 1 && (
-                  <>
-                    {" · "}Semaine 1 du plan débutera le{" "}
-                    <span className="font-medium text-foreground">
-                      {format(parseISO(`${computedPlanStart}T00:00:00Z`), "EEEE d MMMM yyyy", { locale: fr })}
-                    </span>
-                  </>
-                )}
+                La séance est planifiée le {DAY_NAMES[session.dayIndex] ?? `J${session.dayIndex + 1}`} de la semaine choisie.
               </p>
             </div>
           </div>
