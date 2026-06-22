@@ -199,13 +199,24 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
               <WeekPicker
                 selectedMonday={selectedMonday}
                 onChange={setSelectedMonday}
-                planStartDate={session.weekNumber > 1 ? planStartMonday : null}
-                anchorLabel={`📅 Séance prévue le : `}
-                planStartLabel="→ Le plan complet débute donc le :"
+                hideSummary
               />
-              <p className="text-[11px] text-muted-foreground">
-                La séance est planifiée le {DAY_NAMES[session.dayIndex] ?? `J${session.dayIndex + 1}`} de la semaine choisie.
-              </p>
+              <div className="space-y-1 text-xs sm:text-sm rounded-md bg-muted/40 px-3 py-2 border border-border/60">
+                <div className="flex items-start gap-2 flex-wrap">
+                  <span>📅 Séance prévue le :</span>
+                  <span className="font-semibold text-teal-700 dark:text-teal-300">
+                    {format(sessionDate, "EEEE d MMMM yyyy", { locale: fr })}
+                  </span>
+                </div>
+                {session.weekNumber > 1 && (
+                  <div className="flex items-start gap-2 flex-wrap text-muted-foreground">
+                    <span>→ Le plan complet débute donc le :</span>
+                    <span className="font-medium text-foreground">
+                      {format(planStartMonday, "EEEE d MMMM yyyy", { locale: fr })}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
