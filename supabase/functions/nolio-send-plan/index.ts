@@ -601,10 +601,10 @@ function normalizeStructuredWorkoutForNolio(
             const v = src[key];
             if (typeof v === "number") src[key] = Math.round(v);
           }
-        } else if (pctMin !== null || pctMax !== null) {
-          src.target_unit = "%ftp";
-          if (pctMin !== null) src.target_value_min = pctMin;
-          if (pctMax !== null) src.target_value_max = pctMax;
+        } else if ((pctMin !== null || pctMax !== null) && typeof refs?.ftp === "number" && refs.ftp > 0) {
+          src.target_unit = "W";
+          if (pctMin !== null) src.target_value_min = Math.round(refs.ftp * pctMin / 100);
+          if (pctMax !== null) src.target_value_max = Math.round(refs.ftp * pctMax / 100);
           const lo = typeof src.target_value_min === "number" ? src.target_value_min : null;
           const hi = typeof src.target_value_max === "number" ? src.target_value_max : null;
           if (lo !== null && hi !== null) src.target_value = Math.round((lo + hi) / 2);
