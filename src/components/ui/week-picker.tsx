@@ -31,6 +31,8 @@ interface WeekPickerProps {
   anchorLabel?: string;
   /** Texte de la 2e ligne (devant la date plan). */
   planStartLabel?: string;
+  /** Masque le bloc de confirmation bas (l'appelant gère son propre résumé). */
+  hideSummary?: boolean;
   className?: string;
 }
 
