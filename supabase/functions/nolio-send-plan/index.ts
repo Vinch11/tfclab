@@ -281,10 +281,46 @@ const HR_ZONE_PCT: Record<string, [number, number]> = {
   "1": [50, 60],
   "2": [60, 70],
   "3": [70, 80],
-  "4": [80, 90],
-  "5": [90, 95],
+  "4": [80, 87],
+  "4a": [80, 87],
+  "4b": [87, 91],
+  "5": [91, 95],
   "6": [95, 100],
 };
+
+function hrTargetFromPct(
+  pctLo: number,
+  pctHi: number,
+  refs?: AthleteRefs,
+): Pick<NolioStep, "target_type" | "target_value_min" | "target_value_max" | "target_value"> & { pct_hrmax_min: number; pct_hrmax_max: number } {
+  const loPct = Math.max(40, Math.min(100, Math.round(Math.min(pctLo, pctHi))));
+  const hiPct = Math.max(loPct + 1, Math.min(100, Math.round(Math.max(pctLo, pctHi))));
+  const fc = typeof refs?.fcMax === "number" && refs.fcMax > 0 ? refs.fcMax : 185;
+  const lo = Math.round(fc * loPct / 100);
+  const hi = Math.round(fc * hiPct / 100);
+  return {
+    target_type: "heartrate",
+    pct_hrmax_min: loPct,
+    pct_hrmax_max: hiPct,
+    target_value_min: lo,
+    target_value_max: hi,
+    target_value: Math.round((lo + hi) / 2),
+  };
+}
+
+function highestZonePct(text?: string): [number, number] | null {
+  const norm = normalizeStr(text ?? "");
+  const matches = Array.from(norm.matchAll(/\bz\s*([1-6])\s*([ab])?\b/g));
+  if (matches.length === 0) return null;
+  const rank = (m: RegExpMatchArray) => {
+    const z = Number(m[1]);
+    const suffix = m[2] ?? "";
+    return z * 10 + (suffix === "b" ? 2 : suffix === "a" ? 1 : 0);
+  };
+  const top = matches.sort((a, b) => rank(b) - rank(a))[0];
+  const key = `${top[1]}${top[2] ?? ""}`;
+  return HR_ZONE_PCT[key] ?? HR_ZONE_PCT[top[1]] ?? null;
+}
 
 /** Détecte une cible depuis le texte libre : "100-108% FTP", "85% FTP", "Z2", "5:25/km", "4:30-4:45/km". */
 function buildTargetFromText(
