@@ -8,10 +8,10 @@
  *   - refs athlète (ftp/vma/css/fcMax depuis snapshot actif) pour calculs absolus
  */
 import { useEffect, useMemo, useState } from "react";
-import { format, addDays, startOfWeek, parseISO } from "date-fns";
-import { fr } from "date-fns/locale";
+import { format, addDays, startOfWeek } from "date-fns";
 import { Loader2, Send, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
