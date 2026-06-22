@@ -1122,33 +1122,16 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="nolio-plan-start" className="text-xs">
-                  Date de la 1ère séance à envoyer :
+                <Label className="text-xs">
+                  Quand commence la semaine S{anchorWeek} ?
                 </Label>
-                <Input
-                  id="nolio-plan-start"
-                  type="date"
-                  value={bulkStartDate}
-                  onChange={(e) => setBulkStartDate(e.target.value)}
-                  disabled={bulkSending}
-                  className="h-9"
+                <WeekPicker
+                  selectedMonday={bulkAnchorMonday}
+                  onChange={setBulkAnchorFromDate}
+                  planStartDate={anchorWeek > 1 ? planStartMondayDate : null}
+                  anchorLabel={`📅 Cette semaine du plan (S${anchorWeek}) commence le :`}
+                  planStartLabel="→ Le plan complet débute donc le :"
                 />
-                {anchorSession && (
-                  <p className="text-[11px] text-muted-foreground">
-                    → 1ère séance : <span className="font-medium text-foreground">S{anchorWeek} {(["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"][anchorDay]) ?? `J${anchorDay + 1}`}</span>
-                    {" — "}{anchorSession.title}
-                    {(anchorWeek > 1 || anchorDay > 0) && (
-                      <>
-                        {" · "}Semaine 1 du plan : <span className="font-medium text-foreground">
-                          {(() => {
-                            try { return format(parseISO(`${computedPlanStart}T00:00:00Z`), "EEE d MMM yyyy", { locale: fr }); }
-                            catch { return computedPlanStart; }
-                          })()}
-                        </span>
-                      </>
-                    )}
-                  </p>
-                )}
               </div>
 
               <div className="space-y-1.5">
