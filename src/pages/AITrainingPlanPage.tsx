@@ -255,8 +255,25 @@ export default function AITrainingPlanPage() {
   // Restore persisted plan + config on athlete change (single mode only)
   useEffect(() => {
     if (isMultiMode) return;
+    // Try plan_active_<id> first (full plan + timestamp)
+    let activeRestored = false;
+    if (activePlanKey) {
+      try {
+        const rawActive = localStorage.getItem(activePlanKey);
+        if (rawActive) {
+          const parsed = JSON.parse(rawActive);
+          if (parsed?.response) {
+            setResponse(parsed.response);
+            setLoadedFromCacheAt(parsed.generatedAt || null);
+            activeRestored = true;
+          }
+        }
+      } catch {}
+    }
+    if (!activeRestored) setLoadedFromCacheAt(null);
+
     if (savedState) {
-      if (savedState.response) setResponse(savedState.response);
+      if (!activeRestored && savedState.response) setResponse(savedState.response);
       if (savedState.objective) setObjective(savedState.objective);
       else if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       if (savedState.raceName) setRaceName(savedState.raceName);
@@ -287,6 +304,7 @@ export default function AITrainingPlanPage() {
   useEffect(() => {
     if (isLoading) {
       setIsSaved(false);
+      setLoadedFromCacheAt(null); // fresh generation in progress, indicator clears
     }
   }, [isLoading]);
 
