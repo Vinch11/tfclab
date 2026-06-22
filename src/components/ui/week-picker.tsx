@@ -48,6 +48,7 @@ export function WeekPicker({
   planStartDate = null,
   anchorLabel = "📅 Cette semaine du plan commence le :",
   planStartLabel = "→ Le plan complet débute donc le :",
+  hideSummary = false,
   className,
 }: WeekPickerProps) {
   const [viewMonth, setViewMonth] = React.useState<Date>(() => startOfMonth(selectedMonday));
