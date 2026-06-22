@@ -1479,8 +1479,8 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
           <div className="max-h-[260px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
             {targetSessions.map((s) => {
-              const anchor = new Date(`${bulkStartDate}T00:00:00`);
-              const dt = addDays(anchor, (s.weekNumber - anchorWeek) * 7 + s.dayIndex);
+              const ps = parseISO(`${computedPlanStart}T00:00:00Z`);
+              const dt = addDays(ps, (s.weekNumber - 1) * 7 + s.dayIndex);
               return (
                 <div
                   key={`${s.weekNumber}-${s.dayIndex}-${s.title}`}
