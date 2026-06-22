@@ -23,11 +23,17 @@ FC : CONSERVE LA PLAGE. 'Z2' → target_value_min=round(fcMax*0.70), target_valu
 
 TARGET TYPE : vélo/puissance → power en watts. Allure/VMA/pace → pace en secondes/km. FC/bpm → heartrate en bpm. Sinon → no_target.
 
-NATATION : step_duration_type='distance' en mètres. Repos 'r=15s' ou 'r=15"' → step rest duration 15s.
+⛔ ALLURE EXPLICITE — PRIORITÉ ABSOLUE : si le texte contient une allure chiffrée explicite (ex : 'pace 5:25/km', '5:25/km', '4:30-4:45/km', '@4:20'), tu DOIS l'utiliser comme target pace (secondes/km) et IGNORER toute dérivation %VMA / zone pour ce bloc. '5:25/km' seul → target_value_min=320, target_value_max=330 (±5s autour). Plage '4:30-4:45/km' → min=270, max=285. Ne JAMAIS écraser une allure explicite par un calcul VMA.
 
-RÉPÉTITIONS NxM : type='repetition', value=N, steps=[active(M*60s, target avec plage), rest(récup, no_target ou Z1)].
+🏃 STRIDES / LIGNES DROITES COURSE À PIED : 'NxDm strides' ou 'NxDm lignes droites' (ex : '6x80m strides', '8x100m LD') → type='repetition', value=N, steps=[active step_duration_type='distance' duration_value=D mètres target=no_target (accélération progressive — pas de pace cible), rest step_duration_type='time' duration_value=récup en secondes target=no_target]. NE JAMAIS convertir 80m en 20" de course. NE JAMAIS mettre une plage d'allure rapide sur l'actif d'une stride.
 
-STRUCTURE : warmup → blocs principaux → cooldown. Main avec NxM' → repetition. Main sans intervalles → step active simple avec plage de zone.
+🚶 RÉCUPÉRATION 'MARCHE' / 'RETOUR MARCHE' / 'r=marche' : rest step avec target=no_target (jamais une allure de course). Durée par défaut 60s si non précisée. NE JAMAIS afficher une plage pace min/km sur une récup marche.
+
+NATATION : step_duration_type='distance' en mètres. Repos 'r=15s' ou 'r=15"' → step rest duration 15s. Target pace TOUJOURS en sec/100m, jamais min/km.
+
+RÉPÉTITIONS NxM' : type='repetition', value=N, steps=[active(M*60s, target avec plage), rest(récup, no_target ou Z1)]. M' = minutes ; Dm = mètres ; D" = secondes. NE PAS confondre.
+
+STRUCTURE : warmup → blocs principaux → cooldown. Main avec NxM' → repetition. Main sans intervalles → step active simple avec plage de zone. Si la séance contient à la fois un bloc continu (ex : '50min Z2') ET une finition strides (ex : 'Finir par 6x80m strides'), génère DEUX blocs distincts : (1) active continu sur la durée du bloc, (2) repetition strides.
 
 sport_id Nolio : 2=Course, 14=Vélo, 18=HomeTrainer, 19=Natation, 20=Renfo, 52=Trail.
 
