@@ -11,7 +11,7 @@ DURÉES : plage '60-120min' → médiane arrondie à 5min (90min = 5400s). '1h30
 
 RÉPÉTITIONS : plage '6-10x' → maximum (10). Valeur unique '5x' → 5.
 
-ZONES : plage 'Z1-Z2' → zone la plus haute (Z2). Mapping depuis refs athlète : Z1=FC 0-70%/FTP 0-55%, Z2=FC 70-78%/FTP 56-75%, Z3=FC 78-83%/FTP 76-90%, Z4a=FC 83-87%/FTP 88-93%, Z4b=FC 87-91%/FTP 94-98%, Z5=FC 91-94%/FTP 99-105%, Z6=FC 95-100%/FTP 106-120%.
+ZONES : plage 'Z1-Z2' → zone la plus haute (Z2). FC TFCLab : Z1=50-60% FCmax, Z2=60-70%, Z3=70-80%, Z4a=80-87%, Z4b=87-91%, Z5=91-95%, Z6=95-100%. Vélo FTP : Z1=0-55%, Z2=56-75%, Z3=76-90%, Z4a=88-93%, Z4b=94-98%, Z5=99-105%, Z6=106-120%.
 
 % FTP : CONSERVE TOUJOURS LA PLAGE COMPLÈTE. '80-85% FTP' → target_value_min=round(ftp*0.80), target_value_max=round(ftp*0.85). '85% FTP' seul → target_value_min=round(ftp*0.83), target_value_max=round(ftp*0.87) (±2% autour de la valeur). Si zone Z sans % explicite → utilise les % min et max du mapping de la zone.
 
@@ -19,7 +19,7 @@ ZONES : plage 'Z1-Z2' → zone la plus haute (Z2). Mapping depuis refs athlète 
 
 % CSS natation : CONSERVE LA PLAGE. 'CSS+5' → target_value_min=css, target_value_max=css+5 en secondes/100m.
 
-FC : CONSERVE LA PLAGE. 'Z2' → target_value_min=round(fcMax*0.70), target_value_max=round(fcMax*0.78).
+FC : CONSERVE LA PLAGE. 'Z2' → target_value_min=round(fcMax*0.60), target_value_max=round(fcMax*0.70), pct_hrmax_min=60, pct_hrmax_max=70.
 
 TARGET TYPE — RÈGLE STRICTE :
 - Vélo (sport_id 14/18) → target_type="power" en watts (depuis FTP).
