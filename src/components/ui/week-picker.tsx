@@ -148,22 +148,24 @@ export function WeekPicker({
         })}
       </div>
 
-      <div className="space-y-1 text-xs sm:text-sm rounded-md bg-muted/40 px-3 py-2 border border-border/60">
-        <div className="flex items-start gap-2">
-          <span className="text-foreground">{anchorLabel}</span>
-          <span className="font-semibold text-teal-700 dark:text-teal-300">
-            {format(selectedMonday, "EEEE d MMMM yyyy", { locale: fr })}
-          </span>
-        </div>
-        {showPlanStart && planStartDate && (
-          <div className="flex items-start gap-2 text-muted-foreground">
-            <span>{planStartLabel}</span>
-            <span className="font-medium text-foreground">
-              {format(planStartDate, "EEEE d MMMM yyyy", { locale: fr })}
+      {!hideSummary && (
+        <div className="space-y-1 text-xs sm:text-sm rounded-md bg-muted/40 px-3 py-2 border border-border/60">
+          <div className="flex items-start gap-2 flex-wrap">
+            <span className="text-foreground">{anchorLabel}</span>
+            <span className="font-semibold text-teal-700 dark:text-teal-300">
+              {format(selectedMonday, "EEEE d MMMM yyyy", { locale: fr })}
             </span>
           </div>
-        )}
-      </div>
+          {showPlanStart && planStartDate && (
+            <div className="flex items-start gap-2 flex-wrap text-muted-foreground">
+              <span>{planStartLabel}</span>
+              <span className="font-medium text-foreground">
+                {format(planStartDate, "EEEE d MMMM yyyy", { locale: fr })}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
