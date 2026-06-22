@@ -543,10 +543,14 @@ function normalizeStructuredWorkoutForNolio(
         const pctVmaMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
         const pctVmaMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
 
-        if (isSwim && typeof css === "number" && css > 0 && (pctCssMin !== null || pctCssMax !== null)) {
+        // ⛔ Ne JAMAIS écraser une allure explicite (target_value_min/max déjà chiffrés en s/km ou s/100m).
+        //    On ne dérive depuis pct_* QUE si les valeurs absolues sont absentes.
+        const hasExplicitMin = typeof src.target_value_min === "number" && src.target_value_min > 0;
+        const hasExplicitMax = typeof src.target_value_max === "number" && src.target_value_max > 0;
+        if (isSwim && typeof css === "number" && css > 0 && !hasExplicitMin && !hasExplicitMax && (pctCssMin !== null || pctCssMax !== null)) {
           if (pctCssMin !== null) src.target_value_min = css * (pctCssMin / 100);
           if (pctCssMax !== null) src.target_value_max = css * (pctCssMax / 100);
-        } else if (isRun && typeof vma === "number" && vma > 0 && (pctVmaMin !== null || pctVmaMax !== null)) {
+        } else if (isRun && typeof vma === "number" && vma > 0 && !hasExplicitMin && !hasExplicitMax && (pctVmaMin !== null || pctVmaMax !== null)) {
           const paceFromVma = (pct: number) => 1000 / (vma * (pct / 100) * (1000 / 3600));
           if (pctVmaMax !== null) src.target_value_min = paceFromVma(pctVmaMax);
           if (pctVmaMin !== null) src.target_value_max = paceFromVma(pctVmaMin);
