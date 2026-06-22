@@ -208,8 +208,11 @@ function buildTargetFromZones(
   const zText = (zones ?? []).join(" | ");
   const zNorm = normalizeStr(zText);
 
-  // Heart rate
-  if (zNorm.includes("bpm") || zNorm.includes(" fc") || /\bfc\b/.test(zNorm) || /\bz\d/.test(zNorm)) {
+  // Heart rate zones TFCLab — pour tous les sports non-vélo, la normalisation finale garde FC.
+  const zonePct = highestZonePct(zText);
+  if (zonePct) return hrTargetFromPct(zonePct[0], zonePct[1], refs);
+
+  if (zNorm.includes("bpm") || zNorm.includes(" fc") || /\bfc\b/.test(zNorm)) {
     const r = parseRange(zText, "bpm");
     if (r) {
       return {
@@ -247,7 +250,7 @@ function buildTargetFromZones(
     return { target_type: "no_target" };
   }
 
-  // Pace
+  // Pace : cible provisoire seulement ; le normalizer final convertit toute pace non-vélo en FC.
   if (zNorm.includes("allure") || zNorm.includes("/km") || zNorm.includes("vma")) {
     const rp = parseRange(zText, "\\/?\\s*km");
     if (rp) {
@@ -415,14 +418,9 @@ function buildTargetFromText(
       return { target_type: "pace", target_value_min: Math.min(lo, hi), target_value_max: Math.max(lo, hi), target_value: Math.round((lo + hi) / 2) };
     }
   }
-  // ZN (heart rate zones)
-  const zMatch = t.match(/\bz\s*([1-6])\b/);
-  if (zMatch && refs.fcMax) {
-    const [pctLo, pctHi] = HR_ZONE_PCT[zMatch[1]];
-    const lo = Math.round(refs.fcMax * pctLo / 100);
-    const hi = Math.round(refs.fcMax * pctHi / 100);
-    return { target_type: "heartrate", target_value_min: lo, target_value_max: hi, target_value: Math.round((lo + hi) / 2) };
-  }
+  // ZN / Z4a / Z4b (heart rate zones TFCLab)
+  const zonePct = highestZonePct(t);
+  if (zonePct) return hrTargetFromPct(zonePct[0], zonePct[1], refs);
   return { target_type: "no_target" };
 }
 
