@@ -21,11 +21,16 @@ ZONES : plage 'Z1-Z2' → zone la plus haute (Z2). Mapping depuis refs athlète 
 
 FC : CONSERVE LA PLAGE. 'Z2' → target_value_min=round(fcMax*0.70), target_value_max=round(fcMax*0.78).
 
-TARGET TYPE : vélo/puissance → power en watts. FC/bpm/Z → heartrate en bpm. Natation → pace en sec/100m. Course/Trail → TOUJOURS heartrate (bpm via FCmax + pct_hrmax_min/max) ; ne JAMAIS retourner target_type="pace" pour la course (TFCLab convertit côté serveur). Sinon → no_target.
+TARGET TYPE — RÈGLE STRICTE :
+- Vélo (sport_id 14/18) → target_type="power" en watts (depuis FTP).
+- TOUS les autres sports (Course 2, Trail 52, Natation 19, Renfo 20) → target_type="heartrate" en bpm avec pct_hrmax_min/max. JAMAIS target_type="pace".
+- Si pas de cible (éducatifs, marche, repos libre) → target_type="no_target" (JAMAIS "empty_unit").
 
-⛔ ALLURE EXPLICITE COURSE — INTERDIT : même si le texte contient "5:25/km" ou "4:30-4:45/km", tu DOIS retourner target_type="heartrate" avec pct_hrmax_min/max correspondant à la zone évoquée (et target_value_min/max = round(fcMax*pct/100)). Ne JAMAIS retourner target_type="pace" pour course/trail.
+Mapping zones TFCLab → %FCmax : Z1=50-60, Z2=60-70, Z3=70-80, Z4a=80-87, Z4b=87-91, Z5=91-95, Z6=95-100.
 
-🏊 NATATION : target_type="pace", target_value_min/max en SECONDES par 100m (jamais en min/km, jamais en s/km). Si %CSS fourni : remplis aussi pct_css_min/max.
+⛔ ALLURE EXPLICITE (course OU natation) — INTERDIT en target : même si le texte contient "5:25/km", "4:30-4:45/km", "1:36/100m" ou "@CSS", tu DOIS retourner target_type="heartrate" sur la zone correspondante. L'allure d'origine sera ré-écrite dans `notes` côté serveur.
+
+🏊 NATATION : step_duration_type="distance" en mètres, target_type="heartrate" (jamais pace). Éducatifs sans cible : target_type="no_target".
 
 🏃 STRIDES / LIGNES DROITES COURSE À PIED : 'NxDm strides' ou 'NxDm lignes droites' (ex : '6x80m strides', '8x100m LD') → type='repetition', value=N, steps=[active step_duration_type='distance' duration_value=D mètres target=no_target (accélération progressive — pas de pace cible), rest step_duration_type='time' duration_value=récup en secondes target=no_target]. NE JAMAIS convertir 80m en 20" de course. NE JAMAIS mettre une plage d'allure rapide sur l'actif d'une stride.
 

@@ -535,47 +535,45 @@ function normalizeStructuredWorkoutForNolio(
           else if (hi !== null) src.target_value = hi;
         }
       } else if (src.target_type === "pace" && isRun) {
-        // ⛔ POLITIQUE TFCLab : en course/trail, on n'envoie JAMAIS une allure absolue à Nolio
-        // (conversion m/s instable côté Nolio → "02:56 min/km" sur un Z2). On convertit toute
-        // cible pace en HEARTRATE (Z1-Z6 via FCmax). Les seules cibles run autorisées :
-        //   - heartrate (bpm via %FCmax)
-        //   - pace dérivée de %VMA (gérée en upstream lors de l'écriture)
+        // ⛔ POLITIQUE TFCLab : pour TOUS les sports sauf vélo, on n'envoie que des cibles
+        // HEARTRATE (Nolio gère mal les unités pace dans le structured_workout).
+        // Mapping zones TFCLab → %FCmax :
+        //   Z1 50-60 · Z2 60-70 · Z3 70-80 · Z4a 80-87 · Z4b 87-91 · Z5 91-95 · Z6 95-100
         const vma = refs?.vma;
         const fcMax = refs?.fcMax;
         let vmaMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
         let vmaMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
+        const toSecKm = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
+        const tMinOrig = typeof src.target_value_min === "number" ? src.target_value_min : null;
+        const tMaxOrig = typeof src.target_value_max === "number" ? src.target_value_max : null;
 
-        // Dériver %VMA depuis pace absolue (s/km ou min/km décimal) si pct_vma_* absents.
+        // Dériver %VMA depuis pace absolue si pct_vma_* absents
         if ((vmaMin === null || vmaMax === null) && typeof vma === "number" && vma > 0) {
-          const toSecKm = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
-          const tMin = typeof src.target_value_min === "number" ? src.target_value_min : null;
-          const tMax = typeof src.target_value_max === "number" ? src.target_value_max : null;
-          // pace plus petite ⇒ %VMA plus grand
-          if (tMin !== null) {
-            const sec = toSecKm(tMin);
+          if (tMinOrig !== null) {
+            const sec = toSecKm(tMinOrig);
             if (sec > 0) vmaMax = vmaMax ?? (3600 / (sec * vma)) * 100;
           }
-          if (tMax !== null) {
-            const sec = toSecKm(tMax);
+          if (tMaxOrig !== null) {
+            const sec = toSecKm(tMaxOrig);
             if (sec > 0) vmaMin = vmaMin ?? (3600 / (sec * vma)) * 100;
           }
         }
-        // Défauts conservateurs si rien d'exploitable
         if (vmaMin === null && vmaMax === null) { vmaMin = 70; vmaMax = 78; }
         else if (vmaMin === null) vmaMin = Math.max(40, (vmaMax as number) - 5);
         else if (vmaMax === null) vmaMax = vmaMin + 5;
 
-        // Mapping Lorang/Friel : %VMA → %FCmax (endurance ≈, divergent en haute intensité)
-        const vmaToHr = (p: number): number => {
-          if (p <= 60) return Math.max(50, p);
-          if (p <= 75) return p - 2;
-          if (p <= 85) return p - 4;
-          if (p <= 95) return p - 6;
-          if (p <= 105) return Math.min(95, p - 8);
-          return 95;
+        // %VMA → zone FC TFCLab
+        const vmaToZone = (pct: number): [number, number] => {
+          if (pct < 60) return [50, 60];   // Z1
+          if (pct < 75) return [60, 70];   // Z2
+          if (pct < 85) return [70, 80];   // Z3
+          if (pct < 92) return [80, 87];   // Z4a
+          if (pct < 97) return [87, 91];   // Z4b
+          if (pct < 103) return [91, 95];  // Z5
+          return [95, 100];                 // Z6
         };
-        const hrPctMin = Math.round(vmaToHr(vmaMin));
-        const hrPctMax = Math.round(vmaToHr(vmaMax));
+        const refPct = ((vmaMin as number) + (vmaMax as number)) / 2;
+        const [hrPctMin, hrPctMax] = vmaToZone(refPct);
         const fc = typeof fcMax === "number" && fcMax > 0 ? fcMax : 185;
         const lo = Math.round(fc * hrPctMin / 100);
         const hi = Math.round(fc * hrPctMax / 100);
@@ -587,37 +585,87 @@ function normalizeStructuredWorkoutForNolio(
         src.target_value_min = lo;
         src.target_value_max = hi;
         src.target_value = Math.round((lo + hi) / 2);
-        // Nettoyage des champs spécifiques pace
         delete (src as Record<string, unknown>).pct_vma_min;
         delete (src as Record<string, unknown>).pct_vma_max;
       } else if (src.target_type === "pace" && isSwim) {
-        // 🏊 Natation : TOUJOURS min/100m (jamais min/km). Si pct_css_* fournis et
-        // valeurs absolues absentes, dériver depuis CSS athlète.
+        // 🏊 Natation : Nolio gère mal pace min/100m → on convertit en HEARTRATE,
+        // et on écrit l'allure originale (min/100m) dans `notes` pour l'athlète.
         const css = refs?.css;
-        const pctCssMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
-        const pctCssMax = typeof src.pct_css_max === "number" ? src.pct_css_max : null;
-        const hasExplicitMin = typeof src.target_value_min === "number" && src.target_value_min > 0;
-        const hasExplicitMax = typeof src.target_value_max === "number" && src.target_value_max > 0;
-        if (typeof css === "number" && css > 0 && !hasExplicitMin && !hasExplicitMax && (pctCssMin !== null || pctCssMax !== null)) {
-          if (pctCssMin !== null) src.target_value_min = css * (pctCssMin / 100);
-          if (pctCssMax !== null) src.target_value_max = css * (pctCssMax / 100);
-        }
-        // s/100m → min/100m décimal (idempotent : ≤ 30 = déjà min décimal)
-        const toMin = (v: number): number => {
-          if (!Number.isFinite(v) || v <= 0) return v;
-          if (v <= 30) return Math.round(v * 100) / 100;
-          return Math.round((v / 60) * 100) / 100;
+        const fcMax = refs?.fcMax;
+        const toSec100 = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
+        const tMin = typeof src.target_value_min === "number" ? toSec100(src.target_value_min) : null;
+        const tMax = typeof src.target_value_max === "number" ? toSec100(src.target_value_max) : null;
+
+        // Formatage allure m:ss/100m pour notes
+        const fmtPace = (sec: number) => {
+          const m = Math.floor(sec / 60);
+          const s = Math.round(sec % 60);
+          return `${m}:${s.toString().padStart(2, "0")}/100m`;
         };
-        for (const key of ["target_value_min", "target_value_max", "target_value"]) {
-          const v = src[key];
-          if (typeof v === "number") src[key] = toMin(v);
+        let paceNote = "";
+        if (tMin !== null && tMax !== null && Math.abs(tMin - tMax) > 1) {
+          paceNote = `Allure : ${fmtPace(Math.min(tMin, tMax))}–${fmtPace(Math.max(tMin, tMax))}`;
+        } else if (tMin !== null) {
+          paceNote = `Allure : ${fmtPace(tMin)}`;
+        } else if (tMax !== null) {
+          paceNote = `Allure : ${fmtPace(tMax)}`;
         }
-        const lo = typeof src.target_value_min === "number" ? src.target_value_min : null;
-        const hi = typeof src.target_value_max === "number" ? src.target_value_max : null;
-        if (lo !== null && hi !== null) {
-          src.target_value = Math.round(((lo + hi) / 2) * 100) / 100;
+
+        // %CSS depuis pct_css_* ou calculé depuis pace + CSS athlète
+        let pctCssMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
+        let pctCssMax = typeof src.pct_css_max === "number" ? src.pct_css_max : null;
+        if ((pctCssMin === null || pctCssMax === null) && typeof css === "number" && css > 0) {
+          // %CSS = pace / css * 100 (>100 = plus lent que CSS)
+          if (tMin !== null) pctCssMax = pctCssMax ?? (tMin / css) * 100;
+          if (tMax !== null) pctCssMin = pctCssMin ?? (tMax / css) * 100;
         }
-        src.target_unit = "min/100m";
+        // %CSS → zone FC (CSS ≈ Z4a/seuil)
+        const cssToZone = (pct: number): [number, number] => {
+          if (pct >= 115) return [50, 60];   // Z1
+          if (pct >= 108) return [60, 70];   // Z2
+          if (pct >= 103) return [70, 80];   // Z3
+          if (pct >= 98) return [80, 87];    // Z4a (@CSS)
+          if (pct >= 93) return [87, 91];    // Z4b
+          if (pct >= 88) return [91, 95];    // Z5
+          return [95, 100];                   // Z6
+        };
+        const refPct = (pctCssMin !== null && pctCssMax !== null)
+          ? (pctCssMin + pctCssMax) / 2
+          : (pctCssMin ?? pctCssMax ?? 100);
+        const [hrPctMin, hrPctMax] = cssToZone(refPct);
+        const fc = typeof fcMax === "number" && fcMax > 0 ? fcMax : 185;
+        const lo = Math.round(fc * hrPctMin / 100);
+        const hi = Math.round(fc * hrPctMax / 100);
+
+        src.target_type = "heartrate";
+        src.target_unit = "bpm";
+        src.pct_hrmax_min = hrPctMin;
+        src.pct_hrmax_max = hrPctMax;
+        src.target_value_min = lo;
+        src.target_value_max = hi;
+        src.target_value = Math.round((lo + hi) / 2);
+
+        if (paceNote) {
+          const existing = typeof src.notes === "string" ? src.notes.trim() : "";
+          src.notes = existing
+            ? (existing.includes("/100m") ? existing : `${existing} · ${paceNote}`)
+            : paceNote;
+        }
+        delete (src as Record<string, unknown>).pct_css_min;
+        delete (src as Record<string, unknown>).pct_css_max;
+      } else if (
+        isSwim &&
+        src.type === "step" &&
+        (src.target_type === undefined ||
+          src.target_type === "" ||
+          src.target_type === "empty_unit")
+      ) {
+        // 🏊 Éducatifs natation sans cible → no_target propre (pas d'empty_unit)
+        src.target_type = "no_target";
+        delete (src as Record<string, unknown>).target_unit;
+        delete (src as Record<string, unknown>).target_value;
+        delete (src as Record<string, unknown>).target_value_min;
+        delete (src as Record<string, unknown>).target_value_max;
       } else if (src.target_type === "heartrate") {
         src.target_unit = "bpm";
         // Garde-fou : pct_hrmax_min 0/null → Z1 plancher 50% FCmax (jamais 0 envoyé à Nolio)
