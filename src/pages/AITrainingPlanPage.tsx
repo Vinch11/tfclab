@@ -175,6 +175,13 @@ export default function AITrainingPlanPage() {
     }
   }, [location.state, setSelectedAthleteId]);
 
+  // Coach ID for adaptation dialog
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCoachId(user.id);
+    });
+  }, []);
+
   // Multi-athlete mode — restore from localStorage
   const MULTI_PERSIST_KEY = "tfcl_ai_multi_plan";
   const savedMultiState = useMemo(() => {
