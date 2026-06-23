@@ -2136,6 +2136,22 @@ export default function AITrainingPlanPage() {
           setPendingVersion(null);
         }}
       />
+      {parsedPlan && athleteContext && currentAthlete && coachId && (
+        <PlanAdaptationDialog
+          open={isAdaptDialogOpen}
+          onOpenChange={setIsAdaptDialogOpen}
+          athleteId={currentAthlete.id}
+          coachId={coachId}
+          athleteName={currentAthlete.nom}
+          currentPlan={parsedPlan}
+          athleteData={athleteContext.data}
+          baseConfig={buildConfigFromDiag(athleteContext.diagnostic)}
+          onAdapted={() => {
+            toast.success("Plan adapté — l'historique est mis à jour");
+            setHistoryRefreshKey(k => k + 1);
+          }}
+        />
+      )}
     </AppLayout>
   );
 }
