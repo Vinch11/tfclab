@@ -1943,6 +1943,16 @@ export default function AITrainingPlanPage() {
                           </div>
                         </SheetContent>
                       </Sheet>
+                      {parsedPlan && athleteContext && currentAthlete && coachId && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsAdaptDialogOpen(true)}
+                          className="gap-1.5"
+                        >
+                          <Zap className="h-4 w-4" /> Adapter le plan
+                        </Button>
+                      )}
                       <Button variant="ghost" size="sm" onClick={handleCopy}>
                         {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                       </Button>
