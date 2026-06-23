@@ -45,6 +45,7 @@ import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
 import { PlanHistoryCard } from "@/components/PlanHistoryCard";
+import { PlanAdaptationDialog } from "@/components/plan/PlanAdaptationDialog";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -160,6 +161,8 @@ export default function AITrainingPlanPage() {
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
   const [showSyncBanner, setShowSyncBanner] = useState(false);
+  const [isAdaptDialogOpen, setIsAdaptDialogOpen] = useState(false);
+  const [coachId, setCoachId] = useState<string>("");
 
   // Handle navigation from PlanSyncAlert
   useEffect(() => {
