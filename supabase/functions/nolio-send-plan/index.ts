@@ -736,6 +736,45 @@ function normalizeStructuredWorkoutForNolio(
       delete (src as Record<string, unknown>).pct_css_max;
       delete (src as Record<string, unknown>).pct_hrmax_min;
       delete (src as Record<string, unknown>).pct_hrmax_max;
+
+      // 🚴 Cadence (vélo uniquement) → secondary_step depuis notes/comment
+      if (isBike && !src.secondary_step) {
+        const texts: string[] = [];
+        if (typeof src.notes === "string") texts.push(src.notes);
+        if (typeof src.comment === "string") texts.push(src.comment);
+        const joined = texts.join(" ");
+        if (joined) {
+          // Skip si "cadence libre" explicite
+          if (!/cadence\s+libre/i.test(joined)) {
+            const rangeMatch = joined.match(/(\d{2,3})\s*[-–]\s*(\d{2,3})\s*rpm/i);
+            const singleMatch = !rangeMatch ? joined.match(/(\d{2,3})\s*rpm/i) : null;
+            if (rangeMatch) {
+              const a = parseInt(rangeMatch[1], 10);
+              const b = parseInt(rangeMatch[2], 10);
+              const lo = Math.min(a, b);
+              const hi = Math.max(a, b);
+              if (lo >= 30 && hi <= 200) {
+                src.secondary_step = {
+                  target_type: "cadence",
+                  target_value_min: lo,
+                  target_value_max: hi,
+                  target_value: Math.round((lo + hi) / 2),
+                };
+              }
+            } else if (singleMatch) {
+              const v = parseInt(singleMatch[1], 10);
+              if (v >= 30 && v <= 200) {
+                src.secondary_step = {
+                  target_type: "cadence",
+                  target_value_min: v,
+                  target_value_max: v,
+                  target_value: v,
+                };
+              }
+            }
+          }
+        }
+      }
     }
 
 
