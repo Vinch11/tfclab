@@ -45,6 +45,7 @@ import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
 import { PlanHistoryCard } from "@/components/PlanHistoryCard";
+import { PlanAdaptationDialog } from "@/components/plan/PlanAdaptationDialog";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -160,6 +161,8 @@ export default function AITrainingPlanPage() {
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
   const [showSyncBanner, setShowSyncBanner] = useState(false);
+  const [isAdaptDialogOpen, setIsAdaptDialogOpen] = useState(false);
+  const [coachId, setCoachId] = useState<string>("");
 
   // Handle navigation from PlanSyncAlert
   useEffect(() => {
@@ -171,6 +174,13 @@ export default function AITrainingPlanPage() {
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setSelectedAthleteId]);
+
+  // Coach ID for adaptation dialog
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCoachId(user.id);
+    });
+  }, []);
 
   // Multi-athlete mode — restore from localStorage
   const MULTI_PERSIST_KEY = "tfcl_ai_multi_plan";
@@ -1933,6 +1943,16 @@ export default function AITrainingPlanPage() {
                           </div>
                         </SheetContent>
                       </Sheet>
+                      {parsedPlan && athleteContext && currentAthlete && coachId && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsAdaptDialogOpen(true)}
+                          className="gap-1.5"
+                        >
+                          <Zap className="h-4 w-4" /> Adapter le plan
+                        </Button>
+                      )}
                       <Button variant="ghost" size="sm" onClick={handleCopy}>
                         {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                       </Button>
@@ -2116,6 +2136,22 @@ export default function AITrainingPlanPage() {
           setPendingVersion(null);
         }}
       />
+      {parsedPlan && athleteContext && currentAthlete && coachId && (
+        <PlanAdaptationDialog
+          open={isAdaptDialogOpen}
+          onOpenChange={setIsAdaptDialogOpen}
+          athleteId={currentAthlete.id}
+          coachId={coachId}
+          athleteName={currentAthlete.nom}
+          currentPlan={parsedPlan}
+          athleteData={athleteContext.data}
+          baseConfig={buildConfigFromDiag(athleteContext.diagnostic)}
+          onAdapted={() => {
+            toast.success("Plan adapté — l'historique est mis à jour");
+            setHistoryRefreshKey(k => k + 1);
+          }}
+        />
+      )}
     </AppLayout>
   );
 }
