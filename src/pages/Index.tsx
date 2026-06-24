@@ -205,6 +205,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import { useAthleteRaceRecords } from "@/hooks/useAthleteRaceRecords";
 import { FeedbackNolio } from "@/types/feedbackNolio";
 import { toast } from "sonner";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
@@ -478,6 +479,16 @@ const Index = () => {
     return pickEffectiveSnapshot(currentAthlete.id, currentAthlete.active_snapshot_id);
   }, [currentAthlete, snapshots]);
 
+  // 🏆 Records course Nolio (cat="par") → calibration croisée VLamax course (M3)
+  const activeSnapshotVma = useMemo(() => {
+    if (!currentAthlete) return null;
+    const snap = snapshots.find(s => s.id === currentAthlete.active_snapshot_id)
+      ?? [...snapshots.filter(s => s.athlete_id === currentAthlete.id)]
+          .sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
+    return snap?.vma ?? null;
+  }, [currentAthlete, snapshots]);
+  const raceRecordsForVlamax = useAthleteRaceRecords(currentAthlete?.id, activeSnapshotVma);
+
   // ✅ VLamax EFFECTIF - Source unique de vérité (utilise données Cloud)
   const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
     if (!currentAthlete) {
@@ -495,8 +506,10 @@ const Index = () => {
         name: t.name,
       })),
       snapshots: snapshots.map(mapSnapshotToV2),
+      raceRecords: raceRecordsForVlamax,
     });
-  }, [currentAthlete, tests, snapshots]);
+  }, [currentAthlete, tests, snapshots, raceRecordsForVlamax]);
+
 
   const vlamax = vlamaxEffectif.value ?? 0;
 
