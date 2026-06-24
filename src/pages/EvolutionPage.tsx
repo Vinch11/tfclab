@@ -2,17 +2,22 @@
 // EvolutionPage — PMC (Banister) + Évolution snapshots + Records Nolio
 // =============================================================================
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Info, TrendingUp, TrendingDown, Activity, Trophy } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle, Info, TrendingUp, TrendingDown, Activity, Trophy, Pencil, Check, X, Plus, Trash2 } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import {
   computePMC,
   computePMCSummary,
@@ -122,22 +127,21 @@ export default function EvolutionPage() {
 
   // ─── Records Nolio ──────────────────────────────────────────────────────
   const [records, setRecords] = useState<Array<{
+    id: string;
     cat: string; record_type: string; item_seconds: number; value: number;
-    date_recorded: string | null; sport_id: number;
+    date_recorded: string | null; sport_id: number; source: string;
   }>>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("nolio_records")
-        .select("cat, record_type, item_seconds, value, date_recorded, sport_id")
-        .eq("athlete_id", currentAthlete.id)
-        .order("item_seconds", { ascending: true });
-      if (!cancelled && data) setRecords(data as any);
-    })();
-    return () => { cancelled = true; };
+  const loadRecords = useCallback(async () => {
+    const { data } = await supabase
+      .from("nolio_records")
+      .select("id, cat, record_type, item_seconds, value, date_recorded, sport_id, source")
+      .eq("athlete_id", currentAthlete.id)
+      .order("item_seconds", { ascending: true });
+    if (data) setRecords(data as any);
   }, [currentAthlete.id]);
+
+  useEffect(() => { loadRecords(); }, [loadRecords]);
 
   const BIKE_SPORTS = [14, 18];
   const RUN_SPORTS = [2, 52];
@@ -145,15 +149,20 @@ export default function EvolutionPage() {
 
   const bikeRecords = useMemo(() => {
     const targets = [5, 30, 60, 300, 1200];
-    return targets.map(t => {
-      const candidates = records.filter(r => r.cat === "ppr" && BIKE_SPORTS.includes(r.sport_id));
-      const best = pickClosest(candidates, t);
+    const all = records.filter(r => r.cat === "ppr" && BIKE_SPORTS.includes(r.sport_id));
+    const rows = targets.map(t => {
+      const best = pickClosest(all, t);
       return { target: t, label: formatDurationLabel(t), record: best };
     });
+    // Add any manual records that don't match a standard target
+    const extraManual = all.filter(r =>
+      r.source === "manual" && !targets.some(t => Math.abs(r.item_seconds - t) <= Math.max(2, t * 0.2))
+    );
+    extraManual.forEach(r => rows.push({ target: r.item_seconds, label: formatDurationLabel(r.item_seconds), record: r }));
+    return rows;
   }, [records]);
 
   const runRecords = useMemo(() => {
-    // distances cibles en mètres; on tentera de matcher via item_seconds typique
     const targets = [
       { m: 400, label: "400 m", typical: 75 },
       { m: 1000, label: "1 km", typical: 200 },
@@ -161,9 +170,9 @@ export default function EvolutionPage() {
       { m: 10000, label: "10 km", typical: 2400 },
       { m: 20000, label: "20 km", typical: 5400 },
     ];
+    const all = records.filter(r => r.cat === "par" && RUN_SPORTS.includes(r.sport_id));
     return targets.map(t => {
-      const candidates = records.filter(r => r.cat === "par" && RUN_SPORTS.includes(r.sport_id));
-      const best = pickClosest(candidates, t.typical);
+      const best = pickClosest(all, t.typical);
       return { target: t.m, label: t.label, record: best };
     });
   }, [records]);
@@ -174,9 +183,9 @@ export default function EvolutionPage() {
       { m: 200, label: "200 m", typical: 170 },
       { m: 400, label: "400 m", typical: 360 },
     ];
+    const all = records.filter(r => r.cat === "par" && r.sport_id === SWIM_SPORT);
     return targets.map(t => {
-      const candidates = records.filter(r => r.cat === "par" && r.sport_id === SWIM_SPORT);
-      const best = pickClosest(candidates, t.typical);
+      const best = pickClosest(all, t.typical);
       return { target: t.m, label: t.label, record: best };
     });
   }, [records]);
@@ -328,7 +337,7 @@ export default function EvolutionPage() {
         </Card>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 3 — RECORDS NOLIO                                       */}
+        {/* SECTION 3 — RECORDS NOLIO + manuels                             */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <Card>
           <CardHeader>
@@ -337,36 +346,45 @@ export default function EvolutionPage() {
               🏆 Records Nolio
             </CardTitle>
             <p className="text-xs text-muted-foreground">
-              Meilleures performances importées depuis Nolio (par puissance, allure, natation).
+              Records importés depuis Nolio ou saisis manuellement par le coach (✍️).
             </p>
           </CardHeader>
           <CardContent>
-            {records.length === 0 ? (
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  Aucun record Nolio importé. Lancez l'import depuis la page Configuration.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <div className="space-y-6">
-                <RecordsBlock
-                  title="🚴 Vélo — Records puissance"
-                  rows={bikeRecords}
-                  formatValue={(v) => `${Math.round(v)} W`}
-                />
-                <RecordsBlock
-                  title="🏃 Running — Records allure"
-                  rows={runRecords}
-                  formatValue={(v) => formatPaceMinPerKm(v)}
-                />
-                <RecordsBlock
-                  title="🏊 Natation — Records allure"
-                  rows={swimRecords}
-                  formatValue={(v) => formatPaceMinPer100m(v)}
-                />
-              </div>
-            )}
+            <div className="space-y-6">
+              <RecordsBlock
+                kind="bike"
+                title="🚴 Vélo — Records puissance"
+                rows={bikeRecords}
+                formatValue={(v) => `${Math.round(v)} W`}
+                parseInput={(s) => {
+                  const n = parseFloat(s.replace(",", "."));
+                  return Number.isFinite(n) && n > 0 ? n : null;
+                }}
+                editPlaceholder="watts"
+                athleteId={currentAthlete.id}
+                onChanged={loadRecords}
+              />
+              <RecordsBlock
+                kind="run"
+                title="🏃 Running — Records allure"
+                rows={runRecords}
+                formatValue={(v) => formatPaceMinPerKm(v)}
+                parseInput={parsePaceMinSec}
+                editPlaceholder="min:sec/km"
+                athleteId={currentAthlete.id}
+                onChanged={loadRecords}
+              />
+              <RecordsBlock
+                kind="swim"
+                title="🏊 Natation — Records allure"
+                rows={swimRecords}
+                formatValue={(v) => formatPaceMinPer100m(v)}
+                parseInput={parsePaceMinSec}
+                editPlaceholder="min:sec/100m"
+                athleteId={currentAthlete.id}
+                onChanged={loadRecords}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -376,13 +394,53 @@ export default function EvolutionPage() {
 
 // ─── Records helpers ───────────────────────────────────────────────────────
 type RecordRow = {
+  id: string;
   cat: string; record_type: string; item_seconds: number; value: number;
-  date_recorded: string | null; sport_id: number;
+  date_recorded: string | null; sport_id: number; source: string;
 };
+
+type RecordKind = "bike" | "run" | "swim";
+
+const ADD_OPTIONS: Record<RecordKind, Array<{ label: string; itemSeconds?: number; distanceM?: number }>> = {
+  bike: [
+    { label: "5 s", itemSeconds: 5 },
+    { label: "30 s", itemSeconds: 30 },
+    { label: "1 min", itemSeconds: 60 },
+    { label: "5 min", itemSeconds: 300 },
+    { label: "20 min", itemSeconds: 1200 },
+  ],
+  run: [
+    { label: "400 m", distanceM: 400 },
+    { label: "1 km", distanceM: 1000 },
+    { label: "5 km", distanceM: 5000 },
+    { label: "10 km", distanceM: 10000 },
+  ],
+  swim: [
+    { label: "100 m", distanceM: 100 },
+    { label: "200 m", distanceM: 200 },
+    { label: "400 m", distanceM: 400 },
+  ],
+};
+
+function kindMeta(kind: RecordKind): { cat: string; sportId: number; recordType: string } {
+  if (kind === "bike") return { cat: "ppr", sportId: 14, recordType: "power" };
+  if (kind === "run") return { cat: "par", sportId: 2, recordType: "time" };
+  return { cat: "par", sportId: 19, recordType: "time" };
+}
+
+function parsePaceMinSec(s: string): number | null {
+  const trimmed = s.trim();
+  const m = trimmed.match(/^(\d{1,2}):(\d{1,2})$/);
+  if (m) {
+    const sec = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+    return sec > 0 ? sec : null;
+  }
+  const n = parseFloat(trimmed.replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
 
 function pickClosest(arr: RecordRow[], target: number): RecordRow | null {
   if (!arr.length) return null;
-  // tolérance : ±20% autour de la cible
   const tol = Math.max(2, target * 0.2);
   const candidates = arr.filter(r => Math.abs(r.item_seconds - target) <= tol);
   const pool = candidates.length ? candidates : arr;
@@ -411,35 +469,225 @@ function formatPaceMinPer100m(secPer100m: number): string {
 }
 
 function RecordsBlock({
-  title, rows, formatValue,
+  kind, title, rows, formatValue, parseInput, editPlaceholder, athleteId, onChanged,
 }: {
+  kind: RecordKind;
   title: string;
   rows: Array<{ target: number; label: string; record: RecordRow | null }>;
   formatValue: (v: number) => string;
+  parseInput: (s: string) => number | null;
+  editPlaceholder: string;
+  athleteId: string;
+  onChanged: () => void;
 }) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
+
+  const startEdit = (r: RecordRow) => {
+    setEditingId(r.id);
+    setEditValue(
+      kind === "bike"
+        ? String(Math.round(r.value))
+        : formatValue(r.value).replace(/\s?\/(km|100m)$/, ""),
+    );
+  };
+
+  const saveEdit = async (r: RecordRow) => {
+    const v = parseInput(editValue);
+    if (v == null) {
+      toast({ title: "Valeur invalide", variant: "destructive" });
+      return;
+    }
+    // For run/swim, value is sec per unit; item_seconds must stay coherent
+    let newItemSeconds = r.item_seconds;
+    if (kind === "run") newItemSeconds = Math.round(v * (r.item_seconds / r.value));
+    if (kind === "swim") newItemSeconds = Math.round(v * (r.item_seconds / r.value));
+    const { error } = await supabase
+      .from("nolio_records")
+      .update({ value: v, item_seconds: newItemSeconds, source: "manual" })
+      .eq("id", r.id);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Record mis à jour" });
+    setEditingId(null);
+    onChanged();
+  };
+
+  const deleteRecord = async (r: RecordRow) => {
+    if (r.source !== "manual") return;
+    if (!confirm("Supprimer ce record manuel ?")) return;
+    const { error } = await supabase.from("nolio_records").delete().eq("id", r.id);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Record supprimé" });
+    onChanged();
+  };
+
   return (
     <div>
-      <div className="font-semibold text-sm mb-2">{title}</div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="font-semibold text-sm">{title}</div>
+        <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>
+          <Plus className="h-3 w-3 mr-1" /> Ajouter un record
+        </Button>
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-        {rows.map((row) => (
-          <div key={row.label} className="rounded-lg border p-3 bg-card">
-            <div className="text-xs text-muted-foreground">{row.label}</div>
+        {rows.map((row, idx) => (
+          <div key={`${row.label}-${idx}`} className="rounded-lg border p-3 bg-card">
+            <div className="flex items-center justify-between gap-1">
+              <div className="text-xs text-muted-foreground">{row.label}</div>
+              {row.record?.source === "manual" && (
+                <span title="Saisie manuelle" className="text-[10px]">✍️</span>
+              )}
+            </div>
             {row.record ? (
-              <>
-                <div className="text-lg font-bold mt-1">{formatValue(row.record.value)}</div>
-                <div className="text-[10px] text-muted-foreground mt-1">
-                  {row.record.date_recorded
-                    ? new Date(row.record.date_recorded).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })
-                    : "—"}
+              editingId === row.record.id ? (
+                <div className="mt-1 space-y-1">
+                  <Input
+                    autoFocus
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    placeholder={editPlaceholder}
+                    className="h-7 text-sm"
+                  />
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => saveEdit(row.record!)}>
+                      <Check className="h-3 w-3 text-green-600" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-6 px-2" onClick={() => setEditingId(null)}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
-              </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1 mt-1">
+                    <div className="text-lg font-bold">{formatValue(row.record.value)}</div>
+                    <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => startEdit(row.record!)}>
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    {row.record.source === "manual" && (
+                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => deleteRecord(row.record!)}>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground mt-1">
+                    {row.record.date_recorded
+                      ? new Date(row.record.date_recorded).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })
+                      : "—"}
+                  </div>
+                </>
+              )
             ) : (
               <div className="text-sm text-muted-foreground mt-1">—</div>
             )}
           </div>
         ))}
       </div>
+
+      <AddRecordDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        kind={kind}
+        athleteId={athleteId}
+        parseInput={parseInput}
+        editPlaceholder={editPlaceholder}
+        onSaved={() => { setAddOpen(false); onChanged(); }}
+      />
     </div>
+  );
+}
+
+function AddRecordDialog({
+  open, onOpenChange, kind, athleteId, parseInput, editPlaceholder, onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  kind: RecordKind;
+  athleteId: string;
+  parseInput: (s: string) => number | null;
+  editPlaceholder: string;
+  onSaved: () => void;
+}) {
+  const opts = ADD_OPTIONS[kind];
+  const [optIdx, setOptIdx] = useState("0");
+  const [valStr, setValStr] = useState("");
+  const [dateStr, setDateStr] = useState("");
+
+  const submit = async () => {
+    const v = parseInput(valStr);
+    if (v == null) {
+      toast({ title: "Valeur invalide", variant: "destructive" });
+      return;
+    }
+    const opt = opts[parseInt(optIdx, 10)];
+    let itemSeconds: number;
+    if (kind === "bike") {
+      itemSeconds = opt.itemSeconds!;
+    } else {
+      // par = sec per (km or 100m). item_seconds = par × (distance / unit)
+      const unit = kind === "run" ? 1000 : 100;
+      itemSeconds = Math.round(v * (opt.distanceM! / unit));
+    }
+    const meta = kindMeta(kind);
+    const { error } = await supabase.from("nolio_records").insert({
+      athlete_id: athleteId,
+      cat: meta.cat,
+      sport_id: meta.sportId,
+      record_type: meta.recordType,
+      item_seconds: itemSeconds,
+      value: v,
+      date_recorded: dateStr || null,
+      source: "manual",
+    } as any);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Record ajouté" });
+    setValStr(""); setDateStr(""); setOptIdx("0");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Ajouter un record manuel</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs">Durée / Distance</Label>
+            <Select value={optIdx} onValueChange={setOptIdx}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {opts.map((o, i) => (
+                  <SelectItem key={i} value={String(i)}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Valeur ({editPlaceholder})</Label>
+            <Input value={valStr} onChange={(e) => setValStr(e.target.value)} placeholder={editPlaceholder} />
+          </div>
+          <div>
+            <Label className="text-xs">Date (optionnelle)</Label>
+            <Input type="date" value={dateStr} onChange={(e) => setDateStr(e.target.value)} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button onClick={submit}>Ajouter</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

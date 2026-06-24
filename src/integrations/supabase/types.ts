@@ -618,6 +618,7 @@ export type Database = {
           item_seconds: number
           nolio_athlete_id: number | null
           record_type: string
+          source: string
           sport_id: number
           synced_at: string
           updated_at: string
@@ -632,6 +633,7 @@ export type Database = {
           item_seconds: number
           nolio_athlete_id?: number | null
           record_type: string
+          source?: string
           sport_id: number
           synced_at?: string
           updated_at?: string
@@ -646,6 +648,7 @@ export type Database = {
           item_seconds?: number
           nolio_athlete_id?: number | null
           record_type?: string
+          source?: string
           sport_id?: number
           synced_at?: string
           updated_at?: string

@@ -100,25 +100,25 @@ export default function BikeTrackDayPage() {
     try {
       const { data, error } = await supabase
         .from("nolio_records" as any)
-        .select("item_seconds, value, date_recorded, sport_id, cat")
+        .select("item_seconds, value, date_recorded, sport_id, cat, source")
         .eq("athlete_id", currentAthlete.id)
         .eq("cat", "ppr")
         .in("sport_id", [14, 18]);
       if (error) throw error;
-      const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null }>;
+      const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null; source?: string }>;
       const pick = (sec: number) => {
         const r = rows.find(x => x.item_seconds === sec);
-        return r ? { v: r.value, d: r.date_recorded } : null;
+        return r ? { v: r.value, d: r.date_recorded, src: r.source ?? "nolio" } : null;
       };
       const dates: Record<string, string | null> = {};
-      const r5 = pick(5); if (r5) { setP10s(String(Math.round(r5.v))); dates.p10s = r5.d; }
-      const r30 = pick(30); if (r30) { setP30s(String(Math.round(r30.v))); dates.p30s = r30.d; }
-      const r60 = pick(60); if (r60) { setP60s(String(Math.round(r60.v))); dates.p60s = r60.d; }
-      const r300 = pick(300); if (r300) { setMap5min(String(Math.round(r300.v))); dates.map5min = r300.d; }
-      const r1200 = pick(1200); if (r1200) { setP20min(String(Math.round(r1200.v))); dates.p20min = r1200.d; }
+      const r5 = pick(5); if (r5) { setP10s(String(Math.round(r5.v))); dates.p10s = labelDate(r5); }
+      const r30 = pick(30); if (r30) { setP30s(String(Math.round(r30.v))); dates.p30s = labelDate(r30); }
+      const r60 = pick(60); if (r60) { setP60s(String(Math.round(r60.v))); dates.p60s = labelDate(r60); }
+      const r300 = pick(300); if (r300) { setMap5min(String(Math.round(r300.v))); dates.map5min = labelDate(r300); }
+      const r1200 = pick(1200); if (r1200) { setP20min(String(Math.round(r1200.v))); dates.p20min = labelDate(r1200); }
       setNolioDates(dates);
       const count = Object.keys(dates).length;
-      toast({ title: "Records Nolio importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""}.` });
+      toast({ title: "Records importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""} (Nolio + manuels).` });
     } catch (e) {
       toast({ title: "Erreur import Nolio", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -126,8 +126,10 @@ export default function BikeTrackDayPage() {
     }
   };
 
-  const fmtNolioDate = (d: string | null | undefined) =>
-    d ? `Nolio · ${new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : null;
+  const labelDate = (r: { d: string | null; src: string }) =>
+    r.d ? `${r.src === "manual" ? "Manuel ✍️" : "Nolio"} · ${new Date(r.d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : (r.src === "manual" ? "Manuel ✍️" : "Nolio");
+
+  const fmtNolioDate = (d: string | null | undefined) => d || null;
 
 
   const calc = useMemo(() => {

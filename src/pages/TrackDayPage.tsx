@@ -112,42 +112,40 @@ export default function TrackDayPage() {
     try {
       const { data, error } = await supabase
         .from("nolio_records" as any)
-        .select("item_seconds, value, date_recorded, sport_id, cat")
+        .select("item_seconds, value, date_recorded, sport_id, cat, source")
         .eq("athlete_id", currentAthlete.id)
         .eq("cat", "par")
         .in("sport_id", [2, 52]);
       if (error) throw error;
-      const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null }>;
+      const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null; source?: string }>;
       const pick = (sec: number) => {
         const r = rows.find(x => x.item_seconds === sec);
-        return r ? { v: r.value, d: r.date_recorded } : null;
+        return r ? { v: r.value, d: r.date_recorded, src: r.source ?? "nolio" } : null;
       };
+      const labelDate = (r: { d: string | null; src: string }) =>
+        r.d ? `${r.src === "manual" ? "Manuel ✍️" : "Nolio"} · ${new Date(r.d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : (r.src === "manual" ? "Manuel ✍️" : "Nolio");
       const dates: Record<string, string | null> = {};
-      // par run = sec/km. distance(m) = (sec/par)*1000 ; vitesse = 1000/par m/s
       const r15 = pick(15);
       if (r15 && r15.v > 0) {
         const dist = (1000 / r15.v) * 15;
         setSprint15sM(String(Math.round(dist * 10) / 10));
-        dates.sprint15s = r15.d;
+        dates.sprint15s = labelDate(r15);
       }
-      const r360 = pick(360); // 6min
+      const r360 = pick(360);
       if (r360 && r360.v > 0) {
         const dist = (360 / r360.v) * 1000;
         setD6min(String(Math.round(dist)));
-        dates.d6min = r360.d;
+        dates.d6min = labelDate(r360);
       }
-      // 400m → temps en s = par × 0.4
-      const r400 = rows.find(x => Math.abs(x.item_seconds - 60) < 10); // typically ~60-90s for 400m
-      // safer: derive t400 from a known short par record (75s)
       const r75 = pick(75);
       if (r75 && r75.v > 0) {
         const t400 = (r75.v * 0.4);
         setT400m(String(Math.round(t400 * 10) / 10));
-        dates.t400m = r75.d;
+        dates.t400m = labelDate(r75);
       }
       setNolioDates(dates);
       const count = Object.keys(dates).length;
-      toast({ title: "Records Nolio importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""}.` });
+      toast({ title: "Records importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""} (Nolio + manuels).` });
     } catch (e) {
       toast({ title: "Erreur import Nolio", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -155,8 +153,7 @@ export default function TrackDayPage() {
     }
   };
 
-  const fmtNolioDate = (d: string | null | undefined) =>
-    d ? `Nolio · ${new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : null;
+  const fmtNolioDate = (d: string | null | undefined) => d || null;
 
 
   // ──────────────── Calculs dérivés ────────────────
