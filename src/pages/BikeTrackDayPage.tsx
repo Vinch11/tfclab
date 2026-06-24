@@ -344,7 +344,21 @@ export default function BikeTrackDayPage() {
         <NolioImportPeriodDialog
           open={nolioPeriodOpen}
           onOpenChange={setNolioPeriodOpen}
-          onConfirm={(p) => importFromNolio({ dateFrom: p.dateFrom, dateTo: p.dateTo })}
+          onConfirm={async (p) => {
+            if (currentAthlete && updateAthlete) {
+              const refs = (currentAthlete.refs && typeof currentAthlete.refs === "object")
+                ? { ...(currentAthlete.refs as Record<string, unknown>) }
+                : {};
+              refs.raceRecordsWindowMonths = p.windowMonths;
+              try { await updateAthlete(currentAthlete.id, { refs: refs as any }); } catch { /* non-bloquant */ }
+            }
+            await importFromNolio({ dateFrom: p.dateFrom, dateTo: p.dateTo });
+          }}
+          defaultWindowMonths={
+            (currentAthlete?.refs as any)?.raceRecordsWindowMonths === null
+              ? null
+              : ((currentAthlete?.refs as any)?.raceRecordsWindowMonths ?? 12)
+          }
           loading={nolioLoading}
         />
 
