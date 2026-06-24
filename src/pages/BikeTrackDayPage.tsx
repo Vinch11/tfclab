@@ -198,6 +198,9 @@ export default function BikeTrackDayPage() {
       vlamax: calc.vlamaxEst || null,
       pmax_5s: calc.p10 || null,
       vo2max: calc.vo2maxEst > 0 ? Math.round(calc.vo2maxEst * 10) / 10 : null,
+      map5min_w: calc.map || null,
+      p30s_w: calc.cp3 || null,
+      tte_observed_min: calc.tteEst || null,
       coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · FatMax ${fmt(calc.fatMaxPct, 0)}% · TTE ${fmt(calc.tteEst, 0)}min${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
     } as any);
     if (snap) {
