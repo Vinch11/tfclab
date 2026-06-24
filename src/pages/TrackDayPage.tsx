@@ -308,6 +308,14 @@ export default function TrackDayPage() {
               Protocole piste 400m — VMA, VLamax, Seuil, TTE en 2h
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => openDiagnosticProtocolPrint("track-day", currentAthlete?.name)}
+          >
+            📄 Version papier
+          </Button>
         </div>
 
         {/* Setup */}
