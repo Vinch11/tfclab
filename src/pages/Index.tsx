@@ -34,6 +34,7 @@ import { NutritionTimingCard } from "@/components/NutritionTimingCard";
 import { RunningEconomyModule } from "@/components/RunningEconomyModule";
 import { RunningEconomySummaryCard } from "@/components/RunningEconomySummaryCard";
 import { VLamaxCAPCard } from "@/components/VLamaxCAPCard";
+import { TTEGlycogenInsightsCard } from "@/components/TTEGlycogenInsightsCard";
 import { useRunningFocusMode } from "@/hooks/useRunningFocusMode";
 import { SaisonPhasesView } from "@/components/SaisonPhasesView";
 import { StaffReport } from "@/components/StaffReport";
@@ -1801,6 +1802,24 @@ const Index = () => {
                 objectif={currentAthlete.goal || null}
                 sportMain={(effectiveCloudSnapshot as any)?.sport_main ?? null}
                 age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
+              />
+            ) : null,
+          },
+          // ✅ TTE mécanismes limitants + risque fringale glycogène (Dashboard)
+          {
+            id: "tte-glycogen-insights",
+            render: () => currentAthlete && effectiveCloudSnapshot ? (
+              <TTEGlycogenInsightsCard
+                vlamax={alignedVlamaxEffectif.value}
+                vo2max={effectiveCloudSnapshot.vo2max ?? null}
+                weightKg={effectiveCloudSnapshot.weight_kg ?? poids ?? null}
+                ftp={ftp}
+                vma={effectiveCloudSnapshot.vma ?? null}
+                targetRaceDurationMin={targetRaceDurationMin}
+                criticalPower={cpResultForLimiter?.effectiveCP ?? cpResultForLimiter?.cp ?? null}
+                wPrimeKj={wprimeKjForLimiter}
+                sport={isRunningOnly ? "run" : "bike"}
+                plannedCarbsGH={60}
               />
             ) : null,
           },
