@@ -487,7 +487,17 @@ const Index = () => {
           .sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
     return snap?.vma ?? null;
   }, [currentAthlete, snapshots]);
-  const raceRecordsForVlamax = useAthleteRaceRecords(currentAthlete?.id, activeSnapshotVma);
+  // Fenêtre de calibration VLamax (mois) — paramètre coach, défaut 12 mois (rec. niveau actuel)
+  const raceRecordsWindowMonths = useMemo<number | null>(() => {
+    const refs = (currentAthlete?.refs && typeof currentAthlete.refs === "object")
+      ? currentAthlete.refs as Record<string, unknown>
+      : {};
+    const v = refs.raceRecordsWindowMonths;
+    if (v === null) return null; // "Tout" explicite
+    if (typeof v === "number" && Number.isFinite(v) && v > 0) return v;
+    return 12;
+  }, [currentAthlete]);
+  const raceRecordsForVlamax = useAthleteRaceRecords(currentAthlete?.id, activeSnapshotVma, raceRecordsWindowMonths);
 
   // ✅ VLamax EFFECTIF - Source unique de vérité (utilise données Cloud)
   const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {

@@ -165,6 +165,15 @@ Deno.serve(async (req) => {
     }
     const userId = claimsData.claims.sub as string;
 
+    // Période d'import (optionnelle) — filtre `date_recorded` côté serveur
+    let dateFrom: string | null = null;
+    let dateTo: string | null = null;
+    try {
+      const body = await req.json().catch(() => null) as { date_from?: string; date_to?: string } | null;
+      if (body?.date_from && /^\d{4}-\d{2}-\d{2}$/.test(body.date_from)) dateFrom = body.date_from;
+      if (body?.date_to && /^\d{4}-\d{2}-\d{2}$/.test(body.date_to)) dateTo = body.date_to;
+    } catch { /* ignore */ }
+
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -238,6 +247,13 @@ Deno.serve(async (req) => {
             const value = Number(r.value);
             const sport_id = Number(r.sport_id ?? r.sport ?? q.defaultSportIds[0]);
             if (!Number.isFinite(item_seconds) || !Number.isFinite(value) || !Number.isFinite(sport_id)) continue;
+            const date_recorded = (r.date_recorded ?? r.date ?? null) as string | null;
+            // Filtre par fenêtre temporelle (si fournie) — on n'importe que les records datés dans la période
+            if (dateFrom || dateTo) {
+              if (!date_recorded) continue;
+              if (dateFrom && date_recorded < dateFrom) continue;
+              if (dateTo && date_recorded > dateTo) continue;
+            }
             rowsToUpsert.push({
               athlete_id: athleteId,
               nolio_athlete_id: nolioId,
@@ -245,7 +261,7 @@ Deno.serve(async (req) => {
               record_type: q.recordType,
               item_seconds,
               value,
-              date_recorded: (r.date_recorded ?? r.date ?? null) as string | null,
+              date_recorded,
               sport_id,
               synced_at: new Date().toISOString(),
             });

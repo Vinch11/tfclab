@@ -215,24 +215,35 @@ import type { RaceRecordsInput } from "@/lib/v2/vlamaxRunV2Enhanced";
 export async function fetchAthleteRaceRecords(
   athleteId: string,
   vma: number | null,
+  windowMonths: number | null = 12,
 ): Promise<RaceRecordsInput | null> {
   if (!athleteId || !vma || vma <= 0) return null;
-  const { data, error } = await supabase
+
+  let q = supabase
     .from("nolio_records")
-    .select("item_seconds, value")
+    .select("item_seconds, value, date_recorded")
     .eq("athlete_id", athleteId)
     .eq("sport_id", 2)
     .eq("cat", "par")
     .eq("record_type", "time")
     .in("item_seconds", [400, 1000, 5000, 10000]);
+
+  // Filtre fenêtre temporelle (12 mois par défaut pour refléter le niveau actuel)
+  if (windowMonths && windowMonths > 0) {
+    const since = new Date();
+    since.setMonth(since.getMonth() - windowMonths);
+    q = q.gte("date_recorded", since.toISOString().slice(0, 10));
+  }
+
+  const { data, error } = await q;
   if (error || !data || data.length === 0) return null;
 
+  // Si plusieurs records pour une même distance, on garde le meilleur (temps le plus court)
   const byDist = new Map<number, number>();
   for (const r of data) {
     const d = Number((r as { item_seconds: number }).item_seconds);
     const v = Number((r as { value: number | string }).value);
     if (Number.isFinite(d) && Number.isFinite(v) && v > 0) {
-      // Garde le meilleur (temps le plus court)
       const prev = byDist.get(d);
       if (prev === undefined || v < prev) byDist.set(d, v);
     }
