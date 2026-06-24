@@ -77,7 +77,48 @@ export interface VLamaxRunV2EnhancedInput {
   paceThresholdSecPerKm?: number | null;
   /** Sexe (pour fallback économie de course) */
   sex?: "H" | "F";
+  /** M3 — records de performance (allures distances courtes, Ward-Smith 1999) */
+  raceRecords?: RaceRecordsInput | null;
 }
+
+// =============================================
+// M3 — VLAMAX FROM RACE RECORDS (Ward-Smith 1999, Weyand 2010, Bundle 2003)
+// =============================================
+
+/**
+ * Records de performance course — temps en secondes pour chaque distance.
+ * VMA en km/h indispensable pour normaliser le ratio glycolytique.
+ */
+export interface RaceRecordsInput {
+  /** Temps record 400m en secondes */
+  pace400m_sec?: number | null;
+  /** Temps record 1km en secondes */
+  pace1km_sec?: number | null;
+  /** Temps record 5km en secondes */
+  pace5km_sec?: number | null;
+  /** Temps record 10km en secondes */
+  pace10km_sec?: number | null;
+  /** VMA en km/h */
+  vma: number;
+}
+
+export interface VLamaxFromRecords {
+  /** VLamax fusionnée depuis records (null si insuffisant) */
+  vlamax: number | null;
+  /** Composante depuis 400m */
+  vlamax_from_400m: number | null;
+  /** Composante depuis 1km */
+  vlamax_from_1km: number | null;
+  /** Glycolytic index 400m (vma - v400) / vma */
+  glycolytic_index_400m: number | null;
+  /** Glycolytic index 1km */
+  glycolytic_index_1km: number | null;
+  /** Méthode de fusion utilisée */
+  method: "400m+1km" | "400m_only" | "1km_only" | "insufficient";
+  /** Sources scientifiques */
+  sources: string[];
+}
+
 
 export interface VLamaxRunV2Components {
   // VMA/Seuil cross-validation
@@ -106,9 +147,12 @@ export interface VLamaxRunV2Components {
   // Fusion
   vlamax_raw: number;
   vlamax_final: number;
-  fusion_method: "dual_validation" | "scoreG_only" | "pace_only" | "insufficient";
+  fusion_method: "dual_validation" | "scoreG_only" | "pace_only" | "insufficient" | "triple_validation" | "records+pace" | "records+scoreG" | "records_only";
   divergence: number | null;
-  
+
+  /** M3 — VLamax depuis records */
+  vlamax_from_records?: number | null;
+
   /** Legacy compat */
   paceRatioVlamax?: number | null;
   paceRatioDelta?: number | null;
@@ -129,6 +173,8 @@ export interface VLamaxRunV2EnhancedResult {
   runGlycolyticProfile: RunGlycolyticProfile | null;
   /** Économie de course estimée (fallback Lacour & Bourdin 2015) — optionnel */
   runningEconomy?: RunningEconomyEstimate;
+  /** M3 — VLamax depuis records (Ward-Smith 1999) — optionnel */
+  vlamaxFromRecords?: VLamaxFromRecords;
 }
 
 export interface RunGlycolyticProfile {
@@ -188,7 +234,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     runPowerThreshold,
     runPower1s, runPower5s, runPower30s, runPower60s, runPower5min,
     tteMin, weightKg, protocolQuality,
-    vma, paceThresholdSecPerKm, sex,
+    vma, paceThresholdSecPerKm, sex, raceRecords,
   } = input;
 
   // Économie de course (fallback Lacour & Bourdin 2015 + correction Blagrove 2019)
@@ -210,6 +256,18 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     vlamaxFromPace = estimateVLamaxFromPaceRatio(vmaSeuratio);
     sources.push("VMA/Seuil");
   }
+
+  // =============================================
+  // M3 — Records de performance (Ward-Smith 1999)
+  // =============================================
+  let vlamaxFromRecords: VLamaxFromRecords | undefined;
+  let vlamaxFromRecordsValue: number | null = null;
+  if (raceRecords && vma && vma > 0 && (raceRecords.pace400m_sec || raceRecords.pace1km_sec)) {
+    vlamaxFromRecords = calibrateVLamaxFromRaceRecords({ ...raceRecords, vma });
+    vlamaxFromRecordsValue = vlamaxFromRecords.vlamax;
+    if (vlamaxFromRecordsValue !== null) sources.push("Records 400m/1km");
+  }
+
 
   // =============================================
   // ÉTAPE 2: Score G puissance running
@@ -298,14 +356,19 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
   const qualityFactor = protocolQuality ? (protocolQuality - 1) / 4 : 0.5;
   
   if (vlamaxFromPace !== null && vlamaxFromScoreG !== null) {
-    // DUAL VALIDATION: VMA/Seuil (50%) + Score G (50%) — recalibré N=40
-    finalValue = vlamaxFromPace * 0.50 + vlamaxFromScoreG * 0.50;
-    fusionMethod = "dual_validation";
+    // Base DUAL VALIDATION : VMA/Seuil (50%) + Score G (50%)
+    let wPace = 0.50, wScoreG = 0.50, wRecords = 0;
+    if (vlamaxFromRecordsValue !== null) {
+      // Triple: M3 = 25%, redistribuer M1/M2 proportionnellement (×0.75)
+      wPace = 0.375; wScoreG = 0.375; wRecords = 0.25;
+    }
+    finalValue = vlamaxFromPace * wPace + vlamaxFromScoreG * wScoreG + (vlamaxFromRecordsValue ?? 0) * wRecords;
+    fusionMethod = wRecords > 0 ? "triple_validation" : "dual_validation";
     divergence = Number(Math.abs(vlamaxFromPace - vlamaxFromScoreG).toFixed(3));
-    
-    const dataCount = scoreGComponents ? Object.values(scoreGComponents).filter(v => v !== null).length : 0;
+
     confidence = 0.70 + 0.12 * qualityFactor;
-    
+    if (wRecords > 0) confidence = Math.min(0.92, confidence + 0.04);
+
     if (divergence > 0.12) {
       warnings.push(`Divergence puissance vs allure (Δ=${divergence.toFixed(2)}) — vérifier calibration capteur puissance`);
       confidence = Math.max(0.50, confidence - 0.12);
@@ -313,31 +376,54 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
       warnings.push(`Écart modéré puissance vs allure (Δ=${divergence.toFixed(2)})`);
       confidence = Math.max(0.55, confidence - 0.05);
     } else {
-      // Convergence bonus
-      confidence = Math.min(0.90, confidence + 0.05);
+      confidence = Math.min(0.92, confidence + 0.05);
     }
-    
+
     formulaType = "tfcl_run_v2_enhanced";
-    formulaLabel = "TFCL Run V2 (VMA/Seuil + Score G)";
-    
+    formulaLabel = wRecords > 0
+      ? "TFCL Run V2 (VMA/Seuil + Score G + Records)"
+      : "TFCL Run V2 (VMA/Seuil + Score G)";
+
   } else if (vlamaxFromScoreG !== null) {
-    // Score G seul
-    finalValue = vlamaxFromScoreG;
-    fusionMethod = "scoreG_only";
-    confidence = 0.55 + 0.10 * qualityFactor;
+    // Score G ± Records
+    if (vlamaxFromRecordsValue !== null) {
+      finalValue = vlamaxFromScoreG * 0.75 + vlamaxFromRecordsValue * 0.25;
+      fusionMethod = "records+scoreG";
+      formulaLabel = "TFCL Run V2 (Score G + Records)";
+    } else {
+      finalValue = vlamaxFromScoreG;
+      fusionMethod = "scoreG_only";
+      formulaLabel = "TFCL Run V2 (puissance seule)";
+      warnings.push("VMA manquante : ajouter VMA pour cross-validation allure/puissance");
+    }
+    confidence = 0.55 + 0.10 * qualityFactor + (vlamaxFromRecordsValue !== null ? 0.05 : 0);
     formulaType = "tfcl_run_v2_partial";
-    formulaLabel = "TFCL Run V2 (puissance seule)";
-    warnings.push("VMA manquante : ajouter VMA pour cross-validation allure/puissance");
-    
+
   } else if (vlamaxFromPace !== null) {
-    // VMA/Seuil seul
-    finalValue = vlamaxFromPace;
-    fusionMethod = "pace_only";
-    confidence = 0.48;
+    // VMA/Seuil ± Records
+    if (vlamaxFromRecordsValue !== null) {
+      finalValue = vlamaxFromPace * 0.75 + vlamaxFromRecordsValue * 0.25;
+      fusionMethod = "records+pace";
+      formulaLabel = "TFCL Run V1+ (allure + records)";
+      confidence = 0.55;
+    } else {
+      finalValue = vlamaxFromPace;
+      fusionMethod = "pace_only";
+      formulaLabel = "TFCL Run V1 (allure seule)";
+      confidence = 0.48;
+      warnings.push("Puissance running manquante — estimation basée sur allure uniquement");
+    }
     formulaType = "tfcl_run_v1_fallback";
-    formulaLabel = "TFCL Run V1 (allure seule)";
-    warnings.push("Puissance running manquante — estimation basée sur allure uniquement");
-    
+
+  } else if (vlamaxFromRecordsValue !== null) {
+    // Records seuls
+    finalValue = vlamaxFromRecordsValue;
+    fusionMethod = "records_only";
+    confidence = 0.50;
+    formulaType = "tfcl_run_v1_fallback";
+    formulaLabel = "TFCL Run (Records 400m/1km)";
+    warnings.push("Estimation depuis records uniquement — ajouter VMA + seuil pour cross-validation");
+
   } else {
     // Insufficient
     return {
@@ -350,6 +436,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
       sources: [], runGlycolyticProfile: null,
     };
   }
+
   
   // Clamp final
   finalValue = Number(clamp(finalValue, 0.20, 0.90).toFixed(2));
@@ -400,6 +487,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     vlamax_final: finalValue,
     fusion_method: fusionMethod,
     divergence,
+    vlamax_from_records: vlamaxFromRecordsValue,
     paceRatioVlamax: vlamaxFromPace,
     paceRatioDelta: vlamaxFromScoreG !== null && vlamaxFromPace !== null
       ? Number((vlamaxFromScoreG - vlamaxFromPace).toFixed(2))
@@ -420,6 +508,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     sources,
     runGlycolyticProfile,
     runningEconomy,
+    vlamaxFromRecords,
   };
 }
 
@@ -516,4 +605,72 @@ export function getRunGlycolyticCategoryColor(cat: RunGlycolyticProfile["categor
     case "explosive": return "text-red-600 dark:text-red-400";
     default: return "text-muted-foreground";
   }
+}
+
+// =============================================
+// M3 — calibrateVLamaxFromRaceRecords
+// Ward-Smith 1999, Weyand 2010, Bundle 2003
+// =============================================
+/**
+ * Estime VLamax CAP depuis les records 400m / 1km en utilisant le ratio
+ * vitesse / VMA comme proxy de la composante glycolytique.
+ *
+ * Logique :
+ *   glycolytic_index_400 = (v400 - vma) / vma  (sur-vitesse au-dessus de VMA)
+ *   VLamax_from_400 = 0.20 + 0.85 × clamp((gi - 0.02) / 0.12, 0, 1)
+ *   VLamax_from_1km = 0.20 + 0.70 × clamp((gi1km - 0.04) / 0.15, 0, 1)
+ * Fusion : 60% 400m + 40% 1km si les deux disponibles.
+ */
+export function calibrateVLamaxFromRaceRecords(records: RaceRecordsInput): VLamaxFromRecords {
+  const sources = ["Ward-Smith 1999", "Weyand 2010", "Bundle 2003"];
+  const { vma, pace400m_sec, pace1km_sec } = records;
+
+  if (!vma || vma <= 0) {
+    return {
+      vlamax: null, vlamax_from_400m: null, vlamax_from_1km: null,
+      glycolytic_index_400m: null, glycolytic_index_1km: null,
+      method: "insufficient", sources,
+    };
+  }
+
+  const vmaMs = vma / 3.6;
+
+  let vlamax400: number | null = null;
+  let gi400: number | null = null;
+  if (pace400m_sec && pace400m_sec > 0) {
+    const v400 = 400 / pace400m_sec; // m/s
+    gi400 = (v400 - vmaMs) / vmaMs;
+    vlamax400 = clamp(0.20 + 0.85 * clamp((gi400 - 0.02) / 0.12, 0, 1), 0.20, 0.90);
+  }
+
+  let vlamax1k: number | null = null;
+  let gi1k: number | null = null;
+  if (pace1km_sec && pace1km_sec > 0) {
+    const v1k = 1000 / pace1km_sec;
+    gi1k = (v1k - vmaMs) / vmaMs;
+    vlamax1k = clamp(0.20 + 0.70 * clamp((gi1k - 0.04) / 0.15, 0, 1), 0.20, 0.90);
+  }
+
+  let fused: number | null = null;
+  let method: VLamaxFromRecords["method"] = "insufficient";
+  if (vlamax400 !== null && vlamax1k !== null) {
+    fused = vlamax400 * 0.60 + vlamax1k * 0.40;
+    method = "400m+1km";
+  } else if (vlamax400 !== null) {
+    fused = vlamax400;
+    method = "400m_only";
+  } else if (vlamax1k !== null) {
+    fused = vlamax1k;
+    method = "1km_only";
+  }
+
+  return {
+    vlamax: fused !== null ? Number(fused.toFixed(3)) : null,
+    vlamax_from_400m: vlamax400 !== null ? Number(vlamax400.toFixed(3)) : null,
+    vlamax_from_1km: vlamax1k !== null ? Number(vlamax1k.toFixed(3)) : null,
+    glycolytic_index_400m: gi400 !== null ? Number(gi400.toFixed(3)) : null,
+    glycolytic_index_1km: gi1k !== null ? Number(gi1k.toFixed(3)) : null,
+    method,
+    sources,
+  };
 }
