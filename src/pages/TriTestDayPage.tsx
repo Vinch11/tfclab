@@ -161,6 +161,18 @@ export default function TriTestDayPage() {
                 <option value="olympic">Olympique</option>
               </select>
             </div>
+            <div>
+              <Label>Poids (kg)</Label>
+              <input className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm" type="number" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="72.0" />
+            </div>
+            <div>
+              <Label>FC max (bpm)</Label>
+              <input className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm" type="number" value={fcMax} onChange={(e) => setFcMax(e.target.value)} placeholder="190" />
+            </div>
+            <div>
+              <Label>FC repos (bpm)</Label>
+              <input className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm" type="number" value={fcRepos} onChange={(e) => setFcRepos(e.target.value)} placeholder="48" />
+            </div>
           </CardContent>
         </Card>
 
