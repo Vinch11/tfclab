@@ -12,7 +12,10 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { calculateGlycogenDepletion, recommendedCarbsToAvoidBonk } from "./maderMetabolicModel";
+
 export type TrailTechnicite = "facile" | "moyen" | "difficile" | "extreme";
+
 export type TrailAmbition = "finisher" | "perf" | "podium";
 
 export interface TrailAthleteProfile {
