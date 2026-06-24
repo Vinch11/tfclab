@@ -729,3 +729,147 @@ export function generateMaderLactateCurve(
   
   return points;
 }
+
+// =============================================
+// GLYCOGEN DEPLETION — DUAL POOL (Muscle + Liver)
+// Coyle 1986 (JSCR), Coggan 1987 (JAP), Romijn 1993 (AJP)
+// =============================================
+
+export type HypoglycemiaRisk = "none" | "low" | "medium" | "high" | "critical";
+export type GlycogenLimitingFactor =
+  | "muscle_glycogen"
+  | "liver_glycogen"
+  | "blood_glucose"
+  | "none";
+
+export interface GlycogenDepletionResult {
+  muscleGlycogenG: number;
+  liverGlycogenG: number;
+  bloodGlucoseMmol: number;
+  hypoglycemiaRisk: HypoglycemiaRisk;
+  bonkRiskKm: number;       // distance estimée avant fringale (km) ; +Infinity si pas de risque
+  bonkRiskMin: number;      // distance temporelle équivalente (min)
+  limitingFactor: GlycogenLimitingFactor;
+  muscleGlucoseUptakeGMin: number;
+  liverReleaseGMin: number;
+  carbIntakeGMin: number;
+}
+
+/**
+ * Modèle dual-pool de délétion du glycogène musculaire et hépatique.
+ *
+ * Hypothèses :
+ * - Le muscle oxyde des CHO (Mader) en consommant glycogène local + glucose sanguin.
+ * - ~30 % du flux glucidique musculaire provient du glucose sanguin (Romijn 1993).
+ * - Le foie maintient la glycémie en relâchant du glucose, plafonné à
+ *   LIVER_GLUCOSE_RELEASE_MAX (Coyle 1986).
+ * - Si apport exogène + relâche hépatique < captation musculaire → glycémie chute.
+ * - Hypoglycémie sous BLOOD_GLUCOSE_CRITICAL (Coggan 1987).
+ */
+export function calculateGlycogenDepletion(
+  profile: MaderProfile,
+  intensityPct: number,
+  durationMin: number,
+  carbIntakeGH: number,
+  avgSpeedKmh: number = 10,
+): GlycogenDepletionResult {
+  const { vo2max, vlamax, weight } = profile;
+
+  // 1. Taux d'oxydation CHO (g/min)
+  const carbOxRate = Math.max(
+    0.1,
+    calculateCarbOxidation(intensityPct, vo2max, vlamax, weight),
+  );
+
+  // 2. Répartition glycogène musculaire vs glucose sanguin
+  // Romijn 1993 : ~30 % du flux CHO à intensité modérée vient du glucose plasmatique,
+  // jusqu'à ~40 % à intensité élevée.
+  const bloodGlucoseShare = Math.min(0.45, 0.20 + intensityPct / 250);
+  const muscleGlycogenUseRate = carbOxRate * (1 - bloodGlucoseShare);   // g/min
+  const muscleGlucoseUptake   = carbOxRate * bloodGlucoseShare;         // g/min (depuis sang)
+
+  // 3. Apport exogène
+  const carbIntakeGMin = Math.max(0, carbIntakeGH) / 60;
+
+  // 4. Intégration par minute
+  let muscleG = GLYCOGEN_MUSCLE_MAX;
+  let liverG  = GLYCOGEN_LIVER_MAX;
+  let bloodMmol = BLOOD_GLUCOSE_BASELINE;
+  let bonkRiskMin = Infinity;
+  let limitingFactor: GlycogenLimitingFactor = "none";
+
+  const steps = Math.max(1, Math.round(durationMin));
+  for (let t = 1; t <= steps; t++) {
+    // Délétion glycogène musculaire local
+    muscleG = Math.max(0, muscleG - muscleGlycogenUseRate);
+    // Si muscle vide → bascule sur sang
+    const extraSanguin = muscleG === 0 ? muscleGlycogenUseRate : 0;
+    const totalBloodDemand = muscleGlucoseUptake + extraSanguin;
+
+    // Déficit que le foie doit combler (après apport exogène)
+    const liverDemand = Math.max(0, totalBloodDemand - carbIntakeGMin);
+    const liverRelease = Math.min(LIVER_GLUCOSE_RELEASE_MAX, liverDemand, liverG);
+    liverG = Math.max(0, liverG - liverRelease);
+
+    // Si la demande dépasse l'apport + relâche hépatique → glycémie chute
+    const uncoveredGMin = liverDemand - liverRelease;
+    if (uncoveredGMin > 0) {
+      bloodMmol = Math.max(0, bloodMmol - uncoveredGMin * G_TO_MMOL_BLOOD);
+    } else if (carbIntakeGMin > totalBloodDemand) {
+      // Apport excédentaire : recharge légère vers baseline (cap)
+      const surplus = carbIntakeGMin - totalBloodDemand;
+      bloodMmol = Math.min(BLOOD_GLUCOSE_BASELINE, bloodMmol + surplus * G_TO_MMOL_BLOOD * 0.3);
+    }
+
+    if (bonkRiskMin === Infinity) {
+      if (muscleG <= 30) {
+        bonkRiskMin = t;
+        limitingFactor = "muscle_glycogen";
+      } else if (liverG === 0 && uncoveredGMin > 0) {
+        bonkRiskMin = t;
+        limitingFactor = "liver_glycogen";
+      } else if (bloodMmol <= BLOOD_GLUCOSE_CRITICAL) {
+        bonkRiskMin = t;
+        limitingFactor = "blood_glucose";
+      }
+    }
+  }
+
+  // 5. Risque hypoglycémique final
+  let hypoglycemiaRisk: HypoglycemiaRisk = "none";
+  if (bloodMmol <= 2.8) hypoglycemiaRisk = "critical";
+  else if (bloodMmol <= BLOOD_GLUCOSE_CRITICAL) hypoglycemiaRisk = "high";
+  else if (bloodMmol <= 4.0) hypoglycemiaRisk = "medium";
+  else if (bloodMmol <= 4.5) hypoglycemiaRisk = "low";
+
+  const bonkRiskKm = Number.isFinite(bonkRiskMin)
+    ? Math.round((bonkRiskMin / 60) * avgSpeedKmh * 10) / 10
+    : Infinity;
+
+  return {
+    muscleGlycogenG: Math.round(muscleG * 10) / 10,
+    liverGlycogenG: Math.round(liverG * 10) / 10,
+    bloodGlucoseMmol: Math.round(bloodMmol * 100) / 100,
+    hypoglycemiaRisk,
+    bonkRiskKm,
+    bonkRiskMin: Number.isFinite(bonkRiskMin) ? Math.round(bonkRiskMin) : Infinity,
+    limitingFactor,
+    muscleGlucoseUptakeGMin: Math.round(muscleGlucoseUptake * 100) / 100,
+    liverReleaseGMin: Math.round(Math.min(LIVER_GLUCOSE_RELEASE_MAX, muscleGlucoseUptake) * 100) / 100,
+    carbIntakeGMin: Math.round(carbIntakeGMin * 100) / 100,
+  };
+}
+
+/** Recommandation simple de CHO/h pour sécuriser (couvre captation musculaire − relâche foie). */
+export function recommendedCarbsToAvoidBonk(
+  profile: MaderProfile,
+  intensityPct: number,
+): number {
+  const carbOxRate = calculateCarbOxidation(intensityPct, profile.vo2max, profile.vlamax, profile.weight);
+  const bloodGlucoseShare = Math.min(0.45, 0.20 + intensityPct / 250);
+  const muscleGlucoseUptake = carbOxRate * bloodGlucoseShare; // g/min
+  // On veut intake ≥ uptake − liver_release_max
+  const needGMin = Math.max(0, muscleGlucoseUptake - LIVER_GLUCOSE_RELEASE_MAX);
+  // Cap pratique 30–120 g/h
+  return Math.min(120, Math.max(30, Math.round(needGMin * 60 + 30)));
+}
