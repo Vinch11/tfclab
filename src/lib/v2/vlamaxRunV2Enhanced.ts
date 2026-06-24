@@ -41,6 +41,13 @@
  */
 
 import { PHYSIOLOGICAL_BOUNDS } from "./vlamaxV2Engine";
+import {
+  estimateRunningEconomy,
+  type RunningEconomyEstimate,
+} from "./runningEconomyModel";
+
+export type { RunningEconomyEstimate } from "./runningEconomyModel";
+export { estimateRunningEconomy, vma_predicted_from_RE } from "./runningEconomyModel";
 
 // =============================================
 // TYPES
