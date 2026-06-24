@@ -234,7 +234,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     runPowerThreshold,
     runPower1s, runPower5s, runPower30s, runPower60s, runPower5min,
     tteMin, weightKg, protocolQuality,
-    vma, paceThresholdSecPerKm, sex,
+    vma, paceThresholdSecPerKm, sex, raceRecords,
   } = input;
 
   // Économie de course (fallback Lacour & Bourdin 2015 + correction Blagrove 2019)
