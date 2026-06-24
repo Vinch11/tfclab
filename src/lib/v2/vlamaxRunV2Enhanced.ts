@@ -170,6 +170,8 @@ export interface VLamaxRunV2EnhancedResult {
   runGlycolyticProfile: RunGlycolyticProfile | null;
   /** Économie de course estimée (fallback Lacour & Bourdin 2015) — optionnel */
   runningEconomy?: RunningEconomyEstimate;
+  /** M3 — VLamax depuis records (Ward-Smith 1999) — optionnel */
+  vlamaxFromRecords?: VLamaxFromRecords;
 }
 
 export interface RunGlycolyticProfile {
