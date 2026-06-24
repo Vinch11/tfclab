@@ -41,6 +41,13 @@
  */
 
 import { PHYSIOLOGICAL_BOUNDS } from "./vlamaxV2Engine";
+import {
+  estimateRunningEconomy,
+  type RunningEconomyEstimate,
+} from "./runningEconomyModel";
+
+export type { RunningEconomyEstimate } from "./runningEconomyModel";
+export { estimateRunningEconomy, vma_predicted_from_RE } from "./runningEconomyModel";
 
 // =============================================
 // TYPES
@@ -68,6 +75,8 @@ export interface VLamaxRunV2EnhancedInput {
   /** Pace-based cross-validation */
   vma?: number | null;
   paceThresholdSecPerKm?: number | null;
+  /** Sexe (pour fallback économie de course) */
+  sex?: "H" | "F";
 }
 
 export interface VLamaxRunV2Components {
@@ -118,6 +127,8 @@ export interface VLamaxRunV2EnhancedResult {
   warnings: string[];
   sources: string[];
   runGlycolyticProfile: RunGlycolyticProfile | null;
+  /** Économie de course estimée (fallback Lacour & Bourdin 2015) — optionnel */
+  runningEconomy?: RunningEconomyEstimate;
 }
 
 export interface RunGlycolyticProfile {
@@ -177,8 +188,15 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     runPowerThreshold,
     runPower1s, runPower5s, runPower30s, runPower60s, runPower5min,
     tteMin, weightKg, protocolQuality,
-    vma, paceThresholdSecPerKm,
+    vma, paceThresholdSecPerKm, sex,
   } = input;
+
+  // Économie de course (fallback Lacour & Bourdin 2015 + correction Blagrove 2019)
+  let runningEconomy: RunningEconomyEstimate | undefined;
+  if (vma && vma > 0 && weightKg && weightKg > 0) {
+    runningEconomy = estimateRunningEconomy(vma, weightKg, sex ?? "H");
+    warnings.push(runningEconomy.warning);
+  }
 
   // =============================================
   // ÉTAPE 1: Cross-validation VMA/Seuil
@@ -401,6 +419,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     warnings,
     sources,
     runGlycolyticProfile,
+    runningEconomy,
   };
 }
 
