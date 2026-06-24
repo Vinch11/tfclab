@@ -356,14 +356,19 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
   const qualityFactor = protocolQuality ? (protocolQuality - 1) / 4 : 0.5;
   
   if (vlamaxFromPace !== null && vlamaxFromScoreG !== null) {
-    // DUAL VALIDATION: VMA/Seuil (50%) + Score G (50%) — recalibré N=40
-    finalValue = vlamaxFromPace * 0.50 + vlamaxFromScoreG * 0.50;
-    fusionMethod = "dual_validation";
+    // Base DUAL VALIDATION : VMA/Seuil (50%) + Score G (50%)
+    let wPace = 0.50, wScoreG = 0.50, wRecords = 0;
+    if (vlamaxFromRecordsValue !== null) {
+      // Triple: M3 = 25%, redistribuer M1/M2 proportionnellement (×0.75)
+      wPace = 0.375; wScoreG = 0.375; wRecords = 0.25;
+    }
+    finalValue = vlamaxFromPace * wPace + vlamaxFromScoreG * wScoreG + (vlamaxFromRecordsValue ?? 0) * wRecords;
+    fusionMethod = wRecords > 0 ? "triple_validation" : "dual_validation";
     divergence = Number(Math.abs(vlamaxFromPace - vlamaxFromScoreG).toFixed(3));
-    
-    const dataCount = scoreGComponents ? Object.values(scoreGComponents).filter(v => v !== null).length : 0;
+
     confidence = 0.70 + 0.12 * qualityFactor;
-    
+    if (wRecords > 0) confidence = Math.min(0.92, confidence + 0.04);
+
     if (divergence > 0.12) {
       warnings.push(`Divergence puissance vs allure (Δ=${divergence.toFixed(2)}) — vérifier calibration capteur puissance`);
       confidence = Math.max(0.50, confidence - 0.12);
@@ -371,31 +376,54 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
       warnings.push(`Écart modéré puissance vs allure (Δ=${divergence.toFixed(2)})`);
       confidence = Math.max(0.55, confidence - 0.05);
     } else {
-      // Convergence bonus
-      confidence = Math.min(0.90, confidence + 0.05);
+      confidence = Math.min(0.92, confidence + 0.05);
     }
-    
+
     formulaType = "tfcl_run_v2_enhanced";
-    formulaLabel = "TFCL Run V2 (VMA/Seuil + Score G)";
-    
+    formulaLabel = wRecords > 0
+      ? "TFCL Run V2 (VMA/Seuil + Score G + Records)"
+      : "TFCL Run V2 (VMA/Seuil + Score G)";
+
   } else if (vlamaxFromScoreG !== null) {
-    // Score G seul
-    finalValue = vlamaxFromScoreG;
-    fusionMethod = "scoreG_only";
-    confidence = 0.55 + 0.10 * qualityFactor;
+    // Score G ± Records
+    if (vlamaxFromRecordsValue !== null) {
+      finalValue = vlamaxFromScoreG * 0.75 + vlamaxFromRecordsValue * 0.25;
+      fusionMethod = "records+scoreG";
+      formulaLabel = "TFCL Run V2 (Score G + Records)";
+    } else {
+      finalValue = vlamaxFromScoreG;
+      fusionMethod = "scoreG_only";
+      formulaLabel = "TFCL Run V2 (puissance seule)";
+      warnings.push("VMA manquante : ajouter VMA pour cross-validation allure/puissance");
+    }
+    confidence = 0.55 + 0.10 * qualityFactor + (vlamaxFromRecordsValue !== null ? 0.05 : 0);
     formulaType = "tfcl_run_v2_partial";
-    formulaLabel = "TFCL Run V2 (puissance seule)";
-    warnings.push("VMA manquante : ajouter VMA pour cross-validation allure/puissance");
-    
+
   } else if (vlamaxFromPace !== null) {
-    // VMA/Seuil seul
-    finalValue = vlamaxFromPace;
-    fusionMethod = "pace_only";
-    confidence = 0.48;
+    // VMA/Seuil ± Records
+    if (vlamaxFromRecordsValue !== null) {
+      finalValue = vlamaxFromPace * 0.75 + vlamaxFromRecordsValue * 0.25;
+      fusionMethod = "records+pace";
+      formulaLabel = "TFCL Run V1+ (allure + records)";
+      confidence = 0.55;
+    } else {
+      finalValue = vlamaxFromPace;
+      fusionMethod = "pace_only";
+      formulaLabel = "TFCL Run V1 (allure seule)";
+      confidence = 0.48;
+      warnings.push("Puissance running manquante — estimation basée sur allure uniquement");
+    }
     formulaType = "tfcl_run_v1_fallback";
-    formulaLabel = "TFCL Run V1 (allure seule)";
-    warnings.push("Puissance running manquante — estimation basée sur allure uniquement");
-    
+
+  } else if (vlamaxFromRecordsValue !== null) {
+    // Records seuls
+    finalValue = vlamaxFromRecordsValue;
+    fusionMethod = "records_only";
+    confidence = 0.50;
+    formulaType = "tfcl_run_v1_fallback";
+    formulaLabel = "TFCL Run (Records 400m/1km)";
+    warnings.push("Estimation depuis records uniquement — ajouter VMA + seuil pour cross-validation");
+
   } else {
     // Insufficient
     return {
@@ -408,6 +436,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
       sources: [], runGlycolyticProfile: null,
     };
   }
+
   
   // Clamp final
   finalValue = Number(clamp(finalValue, 0.20, 0.90).toFixed(2));
