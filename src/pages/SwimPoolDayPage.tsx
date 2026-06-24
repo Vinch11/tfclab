@@ -169,6 +169,14 @@ export default function SwimPoolDayPage() {
               Protocole piscine 1h30 — CSS, VLamax nage, capacité aérobie
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => openDiagnosticProtocolPrint("pool-day", currentAthlete?.name)}
+          >
+            📄 Version papier
+          </Button>
         </div>
 
         <Card>
