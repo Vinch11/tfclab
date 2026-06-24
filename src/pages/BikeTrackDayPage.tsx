@@ -228,6 +228,14 @@ export default function BikeTrackDayPage() {
               Protocole vélo 2h — FTP, VLamax, MAP, W' en une séance
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => openDiagnosticProtocolPrint("bike-day", currentAthlete?.name)}
+          >
+            📄 Version papier
+          </Button>
         </div>
 
         <Card>
