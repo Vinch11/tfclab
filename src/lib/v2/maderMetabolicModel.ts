@@ -4,6 +4,15 @@
 // Two For Coaching Lab - INSCYD-equivalent precision
 // =============================================
 
+// Fallback Running Economy (Lacour & Bourdin 2015) — réexporté pour
+// usage conjoint avec les prédictions Mader (cross-validation VMA via VO2max).
+export {
+  estimateRunningEconomy,
+  vma_predicted_from_RE,
+  type RunningEconomyEstimate,
+} from "./runningEconomyModel";
+
+
 /**
  * Core metabolic profile for calculations
  */
