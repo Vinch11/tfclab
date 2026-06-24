@@ -258,6 +258,18 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
   }
 
   // =============================================
+  // M3 — Records de performance (Ward-Smith 1999)
+  // =============================================
+  let vlamaxFromRecords: VLamaxFromRecords | undefined;
+  let vlamaxFromRecordsValue: number | null = null;
+  if (raceRecords && vma && vma > 0 && (raceRecords.pace400m_sec || raceRecords.pace1km_sec)) {
+    vlamaxFromRecords = calibrateVLamaxFromRaceRecords({ ...raceRecords, vma });
+    vlamaxFromRecordsValue = vlamaxFromRecords.vlamax;
+    if (vlamaxFromRecordsValue !== null) sources.push("Records 400m/1km");
+  }
+
+
+  // =============================================
   // ÉTAPE 2: Score G puissance running
   // =============================================
   let scoreGValue: number | null = null;
