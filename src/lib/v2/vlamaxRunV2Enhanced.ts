@@ -77,7 +77,48 @@ export interface VLamaxRunV2EnhancedInput {
   paceThresholdSecPerKm?: number | null;
   /** Sexe (pour fallback économie de course) */
   sex?: "H" | "F";
+  /** M3 — records de performance (allures distances courtes, Ward-Smith 1999) */
+  raceRecords?: RaceRecordsInput | null;
 }
+
+// =============================================
+// M3 — VLAMAX FROM RACE RECORDS (Ward-Smith 1999, Weyand 2010, Bundle 2003)
+// =============================================
+
+/**
+ * Records de performance course — temps en secondes pour chaque distance.
+ * VMA en km/h indispensable pour normaliser le ratio glycolytique.
+ */
+export interface RaceRecordsInput {
+  /** Temps record 400m en secondes */
+  pace400m_sec?: number | null;
+  /** Temps record 1km en secondes */
+  pace1km_sec?: number | null;
+  /** Temps record 5km en secondes */
+  pace5km_sec?: number | null;
+  /** Temps record 10km en secondes */
+  pace10km_sec?: number | null;
+  /** VMA en km/h */
+  vma: number;
+}
+
+export interface VLamaxFromRecords {
+  /** VLamax fusionnée depuis records (null si insuffisant) */
+  vlamax: number | null;
+  /** Composante depuis 400m */
+  vlamax_from_400m: number | null;
+  /** Composante depuis 1km */
+  vlamax_from_1km: number | null;
+  /** Glycolytic index 400m (vma - v400) / vma */
+  glycolytic_index_400m: number | null;
+  /** Glycolytic index 1km */
+  glycolytic_index_1km: number | null;
+  /** Méthode de fusion utilisée */
+  method: "400m+1km" | "400m_only" | "1km_only" | "insufficient";
+  /** Sources scientifiques */
+  sources: string[];
+}
+
 
 export interface VLamaxRunV2Components {
   // VMA/Seuil cross-validation
