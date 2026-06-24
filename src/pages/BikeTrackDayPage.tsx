@@ -44,7 +44,7 @@ function powerFromSpeed(massKg: number, speedKmh: number, slopePct: number): num
 export default function BikeTrackDayPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot, snapshots } = useCloudDataContext() as any;
+  const { addSnapshot, snapshots, updateAthlete } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
