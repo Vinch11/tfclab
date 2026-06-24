@@ -194,7 +194,16 @@ interface ComputeVLamaxEffectifParams {
    * → forcer "cap" même si l'objectif global est "IM"/"70.3" qui résout vers "velo").
    */
   sportOverride?: SportContext | null;
+  /**
+   * Records de performance course (Nolio `nolio_records` cat="par") —
+   * 400m / 1km / 5km / 10km en secondes. Si fournis, alimentent
+   * `calibrateVLamaxFromRaceRecords` dans le fallback Score G (vlamaxRunV2Enhanced)
+   * pour améliorer la précision de la VLamax course.
+   * Voir helper async `fetchAthleteRaceRecords` dans `src/lib/effectiveRefs.ts`.
+   */
+  raceRecords?: import("./v2/vlamaxRunV2Enhanced").RaceRecordsInput | null;
 }
+
 
 // =============================================
 // HELPERS INTERNES
