@@ -1816,7 +1816,7 @@ const Index = () => {
                 ftp={ftp}
                 vma={effectiveCloudSnapshot.vma ?? null}
                 targetRaceDurationMin={targetRaceDurationMin}
-                criticalPower={cpResultForLimiter?.cpWatts ?? null}
+                criticalPower={cpResultForLimiter?.effectiveCP ?? cpResultForLimiter?.cp ?? null}
                 wPrimeKj={wprimeKjForLimiter}
                 sport={isRunningOnly ? "run" : "bike"}
                 plannedCarbsGH={60}
