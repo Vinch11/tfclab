@@ -15,6 +15,7 @@ import { Zap, ArrowLeft, ExternalLink } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
+import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
 
 export default function TriTestDayPage() {
   const navigate = useNavigate();
@@ -94,6 +95,14 @@ export default function TriTestDayPage() {
               Protocole triathlon combiné — profil complet en 2 séances
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => openDiagnosticProtocolPrint("tri-day", currentAthlete?.name)}
+          >
+            📄 Version papier
+          </Button>
         </div>
 
         <Card className="border-dashed border-red-500/30 bg-red-500/5">

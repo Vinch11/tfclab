@@ -21,6 +21,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
@@ -168,6 +169,14 @@ export default function SwimPoolDayPage() {
               Protocole piscine 1h30 — CSS, VLamax nage, capacité aérobie
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => openDiagnosticProtocolPrint("pool-day", currentAthlete?.name)}
+          >
+            📄 Version papier
+          </Button>
         </div>
 
         <Card>

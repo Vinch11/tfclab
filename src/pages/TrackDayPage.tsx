@@ -24,6 +24,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { supabase } from "@/integrations/supabase/client";
+import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
 
 // ──────────────────────────────────────────────────────────────
 // Helpers
@@ -308,6 +309,14 @@ export default function TrackDayPage() {
               Protocole piste 400m — VMA, VLamax, Seuil, TTE en 2h
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => openDiagnosticProtocolPrint("track-day", currentAthlete?.name)}
+          >
+            📄 Version papier
+          </Button>
         </div>
 
         {/* Setup */}

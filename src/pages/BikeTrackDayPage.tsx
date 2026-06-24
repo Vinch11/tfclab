@@ -23,6 +23,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { supabase } from "@/integrations/supabase/client";
+import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
@@ -228,6 +229,14 @@ export default function BikeTrackDayPage() {
               Protocole vélo 2h — FTP, VLamax, MAP, W' en une séance
             </p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => openDiagnosticProtocolPrint("bike-day", currentAthlete?.name)}
+          >
+            📄 Version papier
+          </Button>
         </div>
 
         <Card>
