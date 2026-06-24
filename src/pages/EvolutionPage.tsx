@@ -127,22 +127,21 @@ export default function EvolutionPage() {
 
   // ─── Records Nolio ──────────────────────────────────────────────────────
   const [records, setRecords] = useState<Array<{
+    id: string;
     cat: string; record_type: string; item_seconds: number; value: number;
-    date_recorded: string | null; sport_id: number;
+    date_recorded: string | null; sport_id: number; source: string;
   }>>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("nolio_records")
-        .select("cat, record_type, item_seconds, value, date_recorded, sport_id")
-        .eq("athlete_id", currentAthlete.id)
-        .order("item_seconds", { ascending: true });
-      if (!cancelled && data) setRecords(data as any);
-    })();
-    return () => { cancelled = true; };
+  const loadRecords = useCallback(async () => {
+    const { data } = await supabase
+      .from("nolio_records")
+      .select("id, cat, record_type, item_seconds, value, date_recorded, sport_id, source")
+      .eq("athlete_id", currentAthlete.id)
+      .order("item_seconds", { ascending: true });
+    if (data) setRecords(data as any);
   }, [currentAthlete.id]);
+
+  useEffect(() => { loadRecords(); }, [loadRecords]);
 
   const BIKE_SPORTS = [14, 18];
   const RUN_SPORTS = [2, 52];
@@ -150,15 +149,20 @@ export default function EvolutionPage() {
 
   const bikeRecords = useMemo(() => {
     const targets = [5, 30, 60, 300, 1200];
-    return targets.map(t => {
-      const candidates = records.filter(r => r.cat === "ppr" && BIKE_SPORTS.includes(r.sport_id));
-      const best = pickClosest(candidates, t);
+    const all = records.filter(r => r.cat === "ppr" && BIKE_SPORTS.includes(r.sport_id));
+    const rows = targets.map(t => {
+      const best = pickClosest(all, t);
       return { target: t, label: formatDurationLabel(t), record: best };
     });
+    // Add any manual records that don't match a standard target
+    const extraManual = all.filter(r =>
+      r.source === "manual" && !targets.some(t => Math.abs(r.item_seconds - t) <= Math.max(2, t * 0.2))
+    );
+    extraManual.forEach(r => rows.push({ target: r.item_seconds, label: formatDurationLabel(r.item_seconds), record: r }));
+    return rows;
   }, [records]);
 
   const runRecords = useMemo(() => {
-    // distances cibles en mètres; on tentera de matcher via item_seconds typique
     const targets = [
       { m: 400, label: "400 m", typical: 75 },
       { m: 1000, label: "1 km", typical: 200 },
@@ -166,9 +170,9 @@ export default function EvolutionPage() {
       { m: 10000, label: "10 km", typical: 2400 },
       { m: 20000, label: "20 km", typical: 5400 },
     ];
+    const all = records.filter(r => r.cat === "par" && RUN_SPORTS.includes(r.sport_id));
     return targets.map(t => {
-      const candidates = records.filter(r => r.cat === "par" && RUN_SPORTS.includes(r.sport_id));
-      const best = pickClosest(candidates, t.typical);
+      const best = pickClosest(all, t.typical);
       return { target: t.m, label: t.label, record: best };
     });
   }, [records]);
@@ -179,9 +183,9 @@ export default function EvolutionPage() {
       { m: 200, label: "200 m", typical: 170 },
       { m: 400, label: "400 m", typical: 360 },
     ];
+    const all = records.filter(r => r.cat === "par" && r.sport_id === SWIM_SPORT);
     return targets.map(t => {
-      const candidates = records.filter(r => r.cat === "par" && r.sport_id === SWIM_SPORT);
-      const best = pickClosest(candidates, t.typical);
+      const best = pickClosest(all, t.typical);
       return { target: t.m, label: t.label, record: best };
     });
   }, [records]);
