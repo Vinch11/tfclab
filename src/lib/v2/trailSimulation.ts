@@ -12,7 +12,10 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { calculateGlycogenDepletion, recommendedCarbsToAvoidBonk } from "./maderMetabolicModel";
+
 export type TrailTechnicite = "facile" | "moyen" | "difficile" | "extreme";
+
 export type TrailAmbition = "finisher" | "perf" | "podium";
 
 export interface TrailAthleteProfile {
@@ -71,7 +74,17 @@ export interface TrailSimulationResult {
   warnings: string[];
   terrainLabel: string;
   ultraFatigueApplied: boolean;
+  // Modèle dual-pool (Coyle 1986 / Coggan 1987 / Romijn 1993)
+  bonkRiskKm: number | null;
+  bonkRiskMin: number | null;
+  limitingFactor: "muscle_glycogen" | "liver_glycogen" | "blood_glucose" | "none";
+  hypoglycemiaRisk: "none" | "low" | "medium" | "high" | "critical";
+  muscleGlycogenFinalG: number;
+  liverGlycogenFinalG: number;
+  bloodGlucoseFinalMmol: number;
+  recommendedCarbsGH: number;
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Minetti 2002 — coût énergétique relatif vs plat
@@ -299,6 +312,36 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
   if (risk === "CRITICAL") warnings.push("Glycogène critique (<5%) — augmenter CHO/h ou réduire intensité.");
   else if (risk === "HIGH") warnings.push("Glycogène bas (<20%) — risque hypoglycémie en fin de course.");
 
+  // ── Modèle dual-pool (muscle + foie + glycémie) ───────────────────────────
+  // Estime vo2max depuis VMA (Léger): vo2max ≈ vma × 3.5
+  const vmaForMader = athlete.vma ?? 14;
+  const vo2maxMader = vmaForMader * 3.5;
+  const vlamaxMader = athlete.vlamaxEffectif ?? 0.45;
+  const weightMader = athlete.weightKg ?? 70;
+  const avgIntensityPct = Math.max(40, Math.min(95, baseIntensity * 100 * 0.78)); // %VMA → ~ %VO2max
+  const avgSpeedKmh = totalKm / Math.max(0.1, cumulativeMin / 60);
+  const depletion = calculateGlycogenDepletion(
+    { vo2max: vo2maxMader, vlamax: vlamaxMader, weight: weightMader },
+    avgIntensityPct,
+    cumulativeMin,
+    input.plannedCarbsGH,
+    avgSpeedKmh,
+  );
+  const recommendedCarbsGH = recommendedCarbsToAvoidBonk(
+    { vo2max: vo2maxMader, vlamax: vlamaxMader, weight: weightMader },
+    avgIntensityPct,
+  );
+
+  if (Number.isFinite(depletion.bonkRiskKm) && depletion.bonkRiskKm < totalKm) {
+    warnings.push(
+      `⚠️ Risque fringale estimé au km ${depletion.bonkRiskKm} (facteur limitant : ${depletion.limitingFactor.replace("_", " ")}) — augmenter les glucides à ${recommendedCarbsGH} g/h pour sécuriser.`,
+    );
+  } else if (depletion.hypoglycemiaRisk === "high" || depletion.hypoglycemiaRisk === "critical") {
+    warnings.push(
+      `⚠️ Risque hypoglycémique ${depletion.hypoglycemiaRisk} (glycémie estimée ${depletion.bloodGlucoseMmol} mmol/L) — viser ${recommendedCarbsGH} g/h.`,
+    );
+  }
+
   // Plan nutrition par phase
   const heatBoost = input.tempC >= 28 ? 1.3 : input.tempC >= 22 ? 1.15 : 1.0;
   const nutritionPlanGH: TrailNutritionPlan[] = [
@@ -319,7 +362,16 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
     warnings,
     terrainLabel,
     ultraFatigueApplied,
+    bonkRiskKm: Number.isFinite(depletion.bonkRiskKm) ? depletion.bonkRiskKm : null,
+    bonkRiskMin: Number.isFinite(depletion.bonkRiskMin) ? depletion.bonkRiskMin : null,
+    limitingFactor: depletion.limitingFactor,
+    hypoglycemiaRisk: depletion.hypoglycemiaRisk,
+    muscleGlycogenFinalG: depletion.muscleGlycogenG,
+    liverGlycogenFinalG: depletion.liverGlycogenG,
+    bloodGlucoseFinalMmol: depletion.bloodGlucoseMmol,
+    recommendedCarbsGH,
   };
+
 }
 
 function round(n: number, d: number): number {
