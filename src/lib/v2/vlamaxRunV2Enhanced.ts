@@ -487,6 +487,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     vlamax_final: finalValue,
     fusion_method: fusionMethod,
     divergence,
+    vlamax_from_records: vlamaxFromRecordsValue,
     paceRatioVlamax: vlamaxFromPace,
     paceRatioDelta: vlamaxFromScoreG !== null && vlamaxFromPace !== null
       ? Number((vlamaxFromScoreG - vlamaxFromPace).toFixed(2))
@@ -507,6 +508,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     sources,
     runGlycolyticProfile,
     runningEconomy,
+    vlamaxFromRecords,
   };
 }
 
