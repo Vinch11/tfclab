@@ -431,7 +431,7 @@ export default function TrackDayPage() {
             <OptionRow
               num="1"
               title="30m départ arrêté"
-              ref="Ferro et al. 2001"
+              refLabel="Ferro et al. 2001"
               input={
                 <Input type="number" step="0.01" value={t30m} onChange={(e) => setT30m(e.target.value)} placeholder="4.20" />
               }
@@ -442,7 +442,7 @@ export default function TrackDayPage() {
             <OptionRow
               num="2"
               title="100m départ arrêté"
-              ref="Lockie et al. 2011"
+              refLabel="Lockie et al. 2011"
               input={
                 <Input type="number" step="0.01" value={t100m} onChange={(e) => setT100m(e.target.value)} placeholder="13.20" />
               }
@@ -459,7 +459,7 @@ export default function TrackDayPage() {
             <OptionRow
               num="3"
               title="200m départ arrêté"
-              ref="Morin et al. 2011"
+              refLabel="Morin et al. 2011"
               input={
                 <Input type="number" step="0.01" value={t200m} onChange={(e) => setT200m(e.target.value)} placeholder="28.50" />
               }
@@ -476,7 +476,7 @@ export default function TrackDayPage() {
             <OptionRow
               num="4"
               title="Saut vertical CMJ"
-              ref="Bosco 1983"
+              refLabel="Bosco 1983"
               note="via app My Jump 2 ou tapis de saut"
               input={
                 <Input type="number" step="0.1" value={cmjCm} onChange={(e) => setCmjCm(e.target.value)} placeholder="38" />
@@ -488,7 +488,7 @@ export default function TrackDayPage() {
             <OptionRow
               num="5"
               title="5 bonds horizontaux"
-              ref="Maulder & Cronin 2005"
+              refLabel="Maulder & Cronin 2005"
               input={
                 <Input type="number" step="0.01" value={bonds5m} onChange={(e) => setBonds5m(e.target.value)} placeholder="14.50" />
               }
@@ -505,7 +505,7 @@ export default function TrackDayPage() {
             <OptionRow
               num="6"
               title="Sprint 15s — distance max (m)"
-              ref="TFCL VLamax CAP — Démarrer au signal, courir 15 secondes à vitesse maximale, marquer la position et mesurer la distance en mètres"
+              refLabel="TFCL VLamax CAP — Démarrer au signal, courir 15 secondes à vitesse maximale, marquer la position et mesurer la distance en mètres"
               input={
                 <>
                   <Input type="number" step="0.1" value={sprint15sM} onChange={(e) => setSprint15sM(e.target.value)} placeholder="115" />
@@ -739,7 +739,7 @@ function Metric({ label, value, unit, big }: { label: string; value: string; uni
 function OptionRow({
   num: n,
   title,
-  ref: refStr,
+  refLabel: refStr,
   note,
   input,
   unit,
@@ -747,7 +747,7 @@ function OptionRow({
 }: {
   num: string;
   title: string;
-  ref: string;
+  refLabel: string;
   note?: string;
   input: React.ReactNode;
   unit: string;
