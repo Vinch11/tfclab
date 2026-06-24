@@ -194,7 +194,16 @@ interface ComputeVLamaxEffectifParams {
    * → forcer "cap" même si l'objectif global est "IM"/"70.3" qui résout vers "velo").
    */
   sportOverride?: SportContext | null;
+  /**
+   * Records de performance course (Nolio `nolio_records` cat="par") —
+   * 400m / 1km / 5km / 10km en secondes. Si fournis, alimentent
+   * `calibrateVLamaxFromRaceRecords` dans le fallback Score G (vlamaxRunV2Enhanced)
+   * pour améliorer la précision de la VLamax course.
+   * Voir helper async `fetchAthleteRaceRecords` dans `src/lib/effectiveRefs.ts`.
+   */
+  raceRecords?: import("./v2/vlamaxRunV2Enhanced").RaceRecordsInput | null;
 }
+
 
 // =============================================
 // HELPERS INTERNES
@@ -237,7 +246,8 @@ function computeDataAgeDays(dateStr?: string): number {
 // =============================================
 
 export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLamaxEffectif {
-  const { athleteId, objectif, activeSnapshotId, tests, snapshots, previousEffective, sportOverride } = params;
+  const { athleteId, objectif, activeSnapshotId, tests, snapshots, previousEffective, sportOverride, raceRecords } = params;
+
 
   // Déterminer le snapshot effectif
   const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
@@ -432,7 +442,10 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
           protocolQuality: (effectiveSnapshot.protocol_quality as 1|2|3|4|5) ?? 3,
           vma: effectiveSnapshot.vma ?? null,
           paceThresholdSecPerKm: effectiveSnapshot.pace_threshold_sec_per_km ?? null,
+          // M3 — Calibration croisée via records Nolio (400m, 1km, 5km, 10km)
+          raceRecords: raceRecords ?? null,
         });
+
 
         if (runV2.formula !== "insufficient") {
           const ageDays = computeDataAgeDays(effectiveSnapshot.date);
