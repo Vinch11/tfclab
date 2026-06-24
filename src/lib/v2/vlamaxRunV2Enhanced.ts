@@ -147,9 +147,12 @@ export interface VLamaxRunV2Components {
   // Fusion
   vlamax_raw: number;
   vlamax_final: number;
-  fusion_method: "dual_validation" | "scoreG_only" | "pace_only" | "insufficient";
+  fusion_method: "dual_validation" | "scoreG_only" | "pace_only" | "insufficient" | "triple_validation" | "records+pace" | "records+scoreG" | "records_only";
   divergence: number | null;
-  
+
+  /** M3 — VLamax depuis records */
+  vlamax_from_records?: number | null;
+
   /** Legacy compat */
   paceRatioVlamax?: number | null;
   paceRatioDelta?: number | null;
