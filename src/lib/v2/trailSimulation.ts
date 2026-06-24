@@ -71,7 +71,17 @@ export interface TrailSimulationResult {
   warnings: string[];
   terrainLabel: string;
   ultraFatigueApplied: boolean;
+  // Modèle dual-pool (Coyle 1986 / Coggan 1987 / Romijn 1993)
+  bonkRiskKm: number | null;
+  bonkRiskMin: number | null;
+  limitingFactor: "muscle_glycogen" | "liver_glycogen" | "blood_glucose" | "none";
+  hypoglycemiaRisk: "none" | "low" | "medium" | "high" | "critical";
+  muscleGlycogenFinalG: number;
+  liverGlycogenFinalG: number;
+  bloodGlucoseFinalMmol: number;
+  recommendedCarbsGH: number;
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Minetti 2002 — coût énergétique relatif vs plat
