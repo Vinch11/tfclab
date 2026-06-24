@@ -933,8 +933,8 @@ export function calculateTTEMechanisms(
 
   // --- 2) Acidose ---
   // Production / clearance de lactate à cette intensité
-  const lacProd = calculateLactateProduction(intensityPct, vlamax, vo2max); // mmol/L/min
-  const lacClr = calculateLactateClearance(intensityPct, vo2max);          // mmol/L/min
+  const lacProd = calculateLactateProduction(intensityPct, vlamax); // mmol/L/min
+  const lacClr = calculateLactateClearance(intensityPct, vo2max, BUFFER_CAPACITY_MMOL_L / 10); // mmol/L/min @ ~7 mmol/L
   const netAccum = lacProd - lacClr;                                        // mmol/L/min
   let tteAcidosis: number;
   if (netAccum <= 0.05) {
