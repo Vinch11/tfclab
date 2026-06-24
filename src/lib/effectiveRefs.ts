@@ -199,11 +199,18 @@ import { supabase } from "@/integrations/supabase/client";
 import type { RaceRecordsInput } from "@/lib/v2/vlamaxRunV2Enhanced";
 
 /**
- * Récupère les records de course (sport_id=2) depuis nolio_records pour
- * un athlète et renvoie un RaceRecordsInput prêt à passer à
- * `calibrateVLamaxFromRaceRecords` / `computeVLamaxRunV2Enhanced`.
+ * Récupère les records de performance course (sport_id=2, cat="par") depuis
+ * `nolio_records` pour un athlète et renvoie un `RaceRecordsInput` prêt à
+ * passer à `calibrateVLamaxFromRaceRecords` / `computeVLamaxRunV2Enhanced`.
  *
- * Mapping : item_seconds = distance(m), value = temps(s), cat='ppr', record_type='time'.
+ * Mapping :
+ *   - `item_seconds` = distance(m) (400, 1000, 5000, 10000)
+ *   - `value`        = temps de référence(s)
+ *   - `cat`          = 'par'  (Personal Athlete Records côté Nolio)
+ *   - `record_type`  = 'time'
+ *
+ * Priorité aux allures 400m et 1km qui calibrent la VLamax course
+ * (sprint anaérobie + tolérance acidose).
  */
 export async function fetchAthleteRaceRecords(
   athleteId: string,
@@ -215,7 +222,7 @@ export async function fetchAthleteRaceRecords(
     .select("item_seconds, value")
     .eq("athlete_id", athleteId)
     .eq("sport_id", 2)
-    .eq("cat", "ppr")
+    .eq("cat", "par")
     .eq("record_type", "time")
     .in("item_seconds", [400, 1000, 5000, 10000]);
   if (error || !data || data.length === 0) return null;
@@ -225,11 +232,13 @@ export async function fetchAthleteRaceRecords(
     const d = Number((r as { item_seconds: number }).item_seconds);
     const v = Number((r as { value: number | string }).value);
     if (Number.isFinite(d) && Number.isFinite(v) && v > 0) {
-      // Garde le meilleur (plus petit temps)
+      // Garde le meilleur (temps le plus court)
       const prev = byDist.get(d);
       if (prev === undefined || v < prev) byDist.set(d, v);
     }
   }
+
+  if (byDist.size === 0) return null;
 
   return {
     vma,
@@ -239,3 +248,4 @@ export async function fetchAthleteRaceRecords(
     pace10km_sec: byDist.get(10000) ?? null,
   };
 }
+
