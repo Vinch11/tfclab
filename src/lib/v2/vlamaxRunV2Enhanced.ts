@@ -75,6 +75,8 @@ export interface VLamaxRunV2EnhancedInput {
   /** Pace-based cross-validation */
   vma?: number | null;
   paceThresholdSecPerKm?: number | null;
+  /** Sexe (pour fallback économie de course) */
+  sex?: "H" | "F";
 }
 
 export interface VLamaxRunV2Components {
