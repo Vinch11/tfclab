@@ -70,6 +70,10 @@ export default function TriTestDayPage() {
       vma: num(vma) || null,
       vlamax: num(vlamaxBike) || null,
       vlamax_run: num(vlamaxRun) || null,
+      weight_kg: num(weight) > 0 ? num(weight) : null,
+      fc_max: num(fcMax) > 0 ? num(fcMax) : null,
+      fc_repos: num(fcRepos) > 0 ? num(fcRepos) : null,
+      vo2max: vo2maxEst > 0 ? Math.round(vo2maxEst * 10) / 10 : null,
       coach_notes: `TFCL Tri Test Day™ — Distance ${distance} — VLamax tri pondérée ${vlamaxTriPondere > 0 ? vlamaxTriPondere.toFixed(2) : "—"} mmol/L/s · Ratios temps: nage ${(ratios.swim * 100).toFixed(0)}% / vélo ${(ratios.bike * 100).toFixed(0)}% / run ${(ratios.run * 100).toFixed(0)}% · Statut: nage ${swimDone}, vélo ${bikeDone}, run ${runDone}`,
     } as any);
     if (snap) {
