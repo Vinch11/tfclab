@@ -125,6 +125,8 @@ export interface VLamaxRunV2EnhancedResult {
   warnings: string[];
   sources: string[];
   runGlycolyticProfile: RunGlycolyticProfile | null;
+  /** Économie de course estimée (fallback Lacour & Bourdin 2015) — optionnel */
+  runningEconomy?: RunningEconomyEstimate;
 }
 
 export interface RunGlycolyticProfile {
