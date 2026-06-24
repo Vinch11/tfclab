@@ -873,3 +873,137 @@ export function recommendedCarbsToAvoidBonk(
   // Cap pratique 30–120 g/h
   return Math.min(120, Math.max(30, Math.round(needGMin * 60 + 30)));
 }
+
+// =============================================
+// TTE MECHANISMS — limiting factor diagnosis
+// Réf : Hultman & Sahlin 1980, Noakes 2000 (Central Governor),
+// Morton 2006 (CP/W'), Jones 2010.
+// =============================================
+
+export type TTELimitingMechanism =
+  | "glycogen"
+  | "acidosis"
+  | "wprime"
+  | "central"
+  | "mixed";
+
+export interface TTEMechanismsResult {
+  tteGlycogen: number;   // min — déplétion glycogène musculaire
+  tteAcidosis: number;   // min — accumulation lactate > tampon
+  tteWprime: number;     // min — déplétion W' (CP model)
+  tteCentral: number;    // min — fatigue centrale (Noakes)
+  tteFinal: number;      // min — minimum des 4
+  limitingMechanism: TTELimitingMechanism;
+  mechanismConfidence: number; // 0-1
+  /** Reco pédagogique courte. */
+  recommendation: string;
+}
+
+/** Capacité tampon musculaire typique (mmol/L). Hultman & Sahlin 1980. */
+const BUFFER_CAPACITY_MMOL_L = 70;
+
+/**
+ * Calcule les 4 TTE concurrents et identifie le mécanisme limitant.
+ * @param profile MaderProfile
+ * @param power Watts cibles
+ * @param options.criticalPower W (CP) si disponible
+ * @param options.wPrimeJ Joules (W') si disponible
+ * @param options.externalCarbIntake g/h
+ */
+export function calculateTTEMechanisms(
+  profile: MaderProfile,
+  power: number,
+  options?: {
+    criticalPower?: number;
+    wPrimeJ?: number;
+    externalCarbIntake?: number;
+  },
+): TTEMechanismsResult {
+  const { vo2max, vlamax, weight } = profile;
+  const efficiency = profile.efficiency ?? 0.23;
+
+  // Intensité relative
+  const vo2LPerMin = (power / efficiency) / (ENERGY_PER_O2 * 1000 / 60);
+  const vo2mlkgmin = (vo2LPerMin * 1000) / weight;
+  const intensityPct = Math.max(1, Math.min(150, (vo2mlkgmin / vo2max) * 100));
+  const intensityFrac = intensityPct / 100;
+
+  // --- 1) Glycogène (modèle existant) ---
+  const tteGlycogen = calculateTTE(power, profile, options?.externalCarbIntake ?? 0);
+
+  // --- 2) Acidose ---
+  // Production / clearance de lactate à cette intensité
+  const lacProd = calculateLactateProduction(intensityPct, vlamax); // mmol/L/min
+  const lacClr = calculateLactateClearance(intensityPct, vo2max, BUFFER_CAPACITY_MMOL_L / 10); // mmol/L/min @ ~7 mmol/L
+  const netAccum = lacProd - lacClr;                                        // mmol/L/min
+  let tteAcidosis: number;
+  if (netAccum <= 0.05) {
+    tteAcidosis = 480; // pas d'accumulation significative
+  } else {
+    tteAcidosis = BUFFER_CAPACITY_MMOL_L / netAccum;
+  }
+  tteAcidosis = Math.max(0.5, Math.min(480, tteAcidosis));
+
+  // --- 3) W' (CP model) ---
+  let tteWprime = 480;
+  const cp = options?.criticalPower;
+  const wPrimeJ = options?.wPrimeJ;
+  if (cp && wPrimeJ && power > cp) {
+    tteWprime = (wPrimeJ / (power - cp)) / 60; // sec → min
+  } else if (cp && power <= cp) {
+    tteWprime = 480; // sous CP, W' non limitant
+  }
+  tteWprime = Math.max(0.2, Math.min(480, tteWprime));
+
+  // --- 4) Fatigue centrale (Noakes 2000, simplifié) ---
+  // tteCentral = 240 × (1/intensityPct)^1.5 × (1 + VLamax × 2)  [intensityPct fraction 0-1]
+  const tteCentral = Math.max(
+    5,
+    Math.min(600, 240 * Math.pow(1 / Math.max(0.4, intensityFrac), 1.5) * (1 + vlamax * 2) * 0.05),
+  );
+  // Note : facteur 0.05 calibration pour cohérence empirique (sinon valeurs irréalistes).
+
+  // --- Final ---
+  const candidates: Array<{ key: TTELimitingMechanism; v: number }> = [
+    { key: "glycogen", v: tteGlycogen },
+    { key: "acidosis", v: tteAcidosis },
+    { key: "wprime", v: tteWprime },
+    { key: "central", v: tteCentral },
+  ];
+  candidates.sort((a, b) => a.v - b.v);
+  const tteFinal = candidates[0].v;
+  const second = candidates[1].v;
+
+  // "mixed" si deux mécanismes très proches (<15% écart)
+  const closeRatio = second > 0 ? (second - tteFinal) / second : 1;
+  const limitingMechanism: TTELimitingMechanism =
+    closeRatio < 0.15 ? "mixed" : candidates[0].key;
+
+  // Confiance : plus l'écart est grand, plus on est sûr
+  const mechanismConfidence = Math.max(0.3, Math.min(1, closeRatio * 3));
+
+  const RECO: Record<TTELimitingMechanism, string> = {
+    glycogen:
+      "Votre TTE est limité par le glycogène — augmentez le FatMax et réduisez la VLamax (longues Z2, FatMax, restriction glucidique ciblée).",
+    acidosis:
+      "Votre TTE est limité par l'acidose — améliorez la capacité tampon avec du travail au seuil (séries 8–15' à MLSS, sweet-spot répété).",
+    wprime:
+      "Votre TTE est limité par le W' — augmentez le W' avec des efforts sous-maximaux répétés (VO2max 3–5', 30/30, over-unders).",
+    central:
+      "Votre TTE est limité par la fatigue centrale — développez la résistance mentale et la tolérance à l'effort perçu (longues sorties spécifiques, RPE-training, exposition).",
+    mixed:
+      "Plusieurs mécanismes co-limitants — travaillez en parallèle endurance fondamentale + seuil pour lever les deux verrous.",
+  };
+
+  return {
+    tteGlycogen: Math.round(tteGlycogen),
+    tteAcidosis: Math.round(tteAcidosis),
+    tteWprime: Math.round(tteWprime),
+    tteCentral: Math.round(tteCentral),
+    tteFinal: Math.round(tteFinal),
+    limitingMechanism,
+    mechanismConfidence: Number(mechanismConfidence.toFixed(2)),
+    recommendation: RECO[limitingMechanism],
+  };
+}
+
