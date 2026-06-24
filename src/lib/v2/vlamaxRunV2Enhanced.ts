@@ -563,3 +563,71 @@ export function getRunGlycolyticCategoryColor(cat: RunGlycolyticProfile["categor
     default: return "text-muted-foreground";
   }
 }
+
+// =============================================
+// M3 — calibrateVLamaxFromRaceRecords
+// Ward-Smith 1999, Weyand 2010, Bundle 2003
+// =============================================
+/**
+ * Estime VLamax CAP depuis les records 400m / 1km en utilisant le ratio
+ * vitesse / VMA comme proxy de la composante glycolytique.
+ *
+ * Logique :
+ *   glycolytic_index_400 = (v400 - vma) / vma  (sur-vitesse au-dessus de VMA)
+ *   VLamax_from_400 = 0.20 + 0.85 × clamp((gi - 0.02) / 0.12, 0, 1)
+ *   VLamax_from_1km = 0.20 + 0.70 × clamp((gi1km - 0.04) / 0.15, 0, 1)
+ * Fusion : 60% 400m + 40% 1km si les deux disponibles.
+ */
+export function calibrateVLamaxFromRaceRecords(records: RaceRecordsInput): VLamaxFromRecords {
+  const sources = ["Ward-Smith 1999", "Weyand 2010", "Bundle 2003"];
+  const { vma, pace400m_sec, pace1km_sec } = records;
+
+  if (!vma || vma <= 0) {
+    return {
+      vlamax: null, vlamax_from_400m: null, vlamax_from_1km: null,
+      glycolytic_index_400m: null, glycolytic_index_1km: null,
+      method: "insufficient", sources,
+    };
+  }
+
+  const vmaMs = vma / 3.6;
+
+  let vlamax400: number | null = null;
+  let gi400: number | null = null;
+  if (pace400m_sec && pace400m_sec > 0) {
+    const v400 = 400 / pace400m_sec; // m/s
+    gi400 = (v400 - vmaMs) / vmaMs;
+    vlamax400 = clamp(0.20 + 0.85 * clamp((gi400 - 0.02) / 0.12, 0, 1), 0.20, 0.90);
+  }
+
+  let vlamax1k: number | null = null;
+  let gi1k: number | null = null;
+  if (pace1km_sec && pace1km_sec > 0) {
+    const v1k = 1000 / pace1km_sec;
+    gi1k = (v1k - vmaMs) / vmaMs;
+    vlamax1k = clamp(0.20 + 0.70 * clamp((gi1k - 0.04) / 0.15, 0, 1), 0.20, 0.90);
+  }
+
+  let fused: number | null = null;
+  let method: VLamaxFromRecords["method"] = "insufficient";
+  if (vlamax400 !== null && vlamax1k !== null) {
+    fused = vlamax400 * 0.60 + vlamax1k * 0.40;
+    method = "400m+1km";
+  } else if (vlamax400 !== null) {
+    fused = vlamax400;
+    method = "400m_only";
+  } else if (vlamax1k !== null) {
+    fused = vlamax1k;
+    method = "1km_only";
+  }
+
+  return {
+    vlamax: fused !== null ? Number(fused.toFixed(3)) : null,
+    vlamax_from_400m: vlamax400 !== null ? Number(vlamax400.toFixed(3)) : null,
+    vlamax_from_1km: vlamax1k !== null ? Number(vlamax1k.toFixed(3)) : null,
+    glycolytic_index_400m: gi400 !== null ? Number(gi400.toFixed(3)) : null,
+    glycolytic_index_1km: gi1k !== null ? Number(gi1k.toFixed(3)) : null,
+    method,
+    sources,
+  };
+}
