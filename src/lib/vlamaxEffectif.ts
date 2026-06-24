@@ -246,7 +246,8 @@ function computeDataAgeDays(dateStr?: string): number {
 // =============================================
 
 export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLamaxEffectif {
-  const { athleteId, objectif, activeSnapshotId, tests, snapshots, previousEffective, sportOverride } = params;
+  const { athleteId, objectif, activeSnapshotId, tests, snapshots, previousEffective, sportOverride, raceRecords } = params;
+
 
   // Déterminer le snapshot effectif
   const athleteSnapshots = snapshots.filter(s => s.athlete_id === athleteId);
