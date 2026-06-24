@@ -442,7 +442,10 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
           protocolQuality: (effectiveSnapshot.protocol_quality as 1|2|3|4|5) ?? 3,
           vma: effectiveSnapshot.vma ?? null,
           paceThresholdSecPerKm: effectiveSnapshot.pace_threshold_sec_per_km ?? null,
+          // M3 — Calibration croisée via records Nolio (400m, 1km, 5km, 10km)
+          raceRecords: raceRecords ?? null,
         });
+
 
         if (runV2.formula !== "insufficient") {
           const ageDays = computeDataAgeDays(effectiveSnapshot.date);
