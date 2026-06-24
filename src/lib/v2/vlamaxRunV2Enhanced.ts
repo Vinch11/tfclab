@@ -419,6 +419,7 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     warnings,
     sources,
     runGlycolyticProfile,
+    runningEconomy,
   };
 }
 
