@@ -38,6 +38,9 @@ export default function TriTestDayPage() {
   const [vlamaxBike, setVlamaxBike] = useState("");
   const [vma, setVma] = useState("");        // km/h
   const [vlamaxRun, setVlamaxRun] = useState("");
+  const [weight, setWeight] = useState("");    // kg
+  const [fcMax, setFcMax] = useState("");      // bpm
+  const [fcRepos, setFcRepos] = useState("");  // bpm
 
   const ratios = distance === "IM"
     ? { swim: 0.10, bike: 0.55, run: 0.35 }
@@ -49,6 +52,9 @@ export default function TriTestDayPage() {
   const vlamaxTriPondere =
     (num(vlamaxBike) * ratios.bike + num(vlamaxRun) * ratios.run) /
     Math.max(0.0001, (num(vlamaxBike) > 0 ? ratios.bike : 0) + (num(vlamaxRun) > 0 ? ratios.run : 0));
+
+  // VO2max estimé depuis VMA (Léger & Mercier 1984 : VO2max ≈ 3.5 × VMA)
+  const vo2maxEst = num(vma) > 0 ? num(vma) * 3.5 : 0;
 
   const handleCreate = async () => {
     if (!currentAthlete) {
