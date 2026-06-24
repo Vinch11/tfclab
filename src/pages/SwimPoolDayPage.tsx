@@ -21,6 +21,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
