@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { NolioLinkAthletesDialog } from "./NolioLinkAthletesDialog";
+import { NolioImportPeriodDialog, type NolioImportPeriod } from "./NolioImportPeriodDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type LinkedAthlete = { id: string; name: string; nolio_id: number };
@@ -45,6 +46,8 @@ export function ConfigurationPage() {
 
   const [nolioRecordsLoading, setNolioRecordsLoading] = useState(false);
   const [nolioRecordsResult, setNolioRecordsResult] = useState<{ message: string; isError: boolean } | null>(null);
+  const [nolioRecordsPeriodOpen, setNolioRecordsPeriodOpen] = useState(false);
+
   
 
   const [linkedAthletes, setLinkedAthletes] = useState<LinkedAthlete[]>([]);
@@ -233,7 +236,7 @@ export function ConfigurationPage() {
     }
   };
 
-  const handleImportNolioRecords = async () => {
+  const handleImportNolioRecords = async (period: NolioImportPeriod) => {
     if (!session?.access_token) {
       setNolioRecordsResult({ message: "Pas de session active", isError: true });
       return;
@@ -243,7 +246,7 @@ export function ConfigurationPage() {
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
     const url = `${supabaseUrl}/functions/v1/nolio-records`;
-    console.log("[nolio-records] calling", url);
+    console.log("[nolio-records] calling", url, period);
 
     try {
       const resp = await fetch(url, {
@@ -253,11 +256,13 @@ export function ConfigurationPage() {
           "Content-Type": "application/json",
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          date_from: period.dateFrom,
+          date_to: period.dateTo,
+        }),
       });
       const rawBody = await resp.text();
       console.log("[nolio-records] status", resp.status, "body", rawBody);
-      
 
       if (!resp.ok) {
         setNolioRecordsResult({ message: `HTTP ${resp.status}: ${rawBody.slice(0, 200)}`, isError: true });
@@ -268,13 +273,15 @@ export function ConfigurationPage() {
       try { parsed = JSON.parse(rawBody); } catch { /* ignore */ }
       const total = parsed?.total_records ?? 0;
       const processed = parsed?.athletes_processed ?? 0;
-      const message = `${total} record${total > 1 ? "s" : ""} importé${total > 1 ? "s" : ""} pour ${processed} athlète${processed > 1 ? "s" : ""}`;
+      const fmtFr = (s: string) => new Date(s).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" });
+      const message = `${total} record${total > 1 ? "s" : ""} importé${total > 1 ? "s" : ""} pour ${processed} athlète${processed > 1 ? "s" : ""} sur la période du ${fmtFr(period.dateFrom)} au ${fmtFr(period.dateTo)}`;
       setNolioRecordsResult({ message, isError: false });
       toast({ title: "Records Nolio importés", description: message });
+      setNolioRecordsPeriodOpen(false);
     } catch (e) {
       const msg = (e as Error).message ?? "Échec de l'import des records";
       console.error("[nolio-records] fetch failed (pré-edge function)", e);
-      
+
       setNolioRecordsResult({ message: `Échec réseau : ${msg}`, isError: true });
       toast({ title: "Erreur d'import", description: msg, variant: "destructive" });
     } finally {
@@ -517,10 +524,16 @@ export function ConfigurationPage() {
                     </p>
                   </div>
                 </div>
-                <Button onClick={handleImportNolioRecords} disabled={nolioRecordsLoading}>
+                <Button onClick={() => setNolioRecordsPeriodOpen(true)} disabled={nolioRecordsLoading}>
                   {nolioRecordsLoading ? "Import en cours..." : "Importer les records"}
                 </Button>
               </div>
+              <NolioImportPeriodDialog
+                open={nolioRecordsPeriodOpen}
+                onOpenChange={setNolioRecordsPeriodOpen}
+                onConfirm={handleImportNolioRecords}
+                loading={nolioRecordsLoading}
+              />
 
               {nolioRecordsResult && (
                 <div className={cn(

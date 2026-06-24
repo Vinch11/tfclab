@@ -24,6 +24,7 @@ import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { supabase } from "@/integrations/supabase/client";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { NolioImportPeriodDialog } from "@/components/NolioImportPeriodDialog";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
@@ -43,7 +44,7 @@ function powerFromSpeed(massKg: number, speedKmh: number, slopePct: number): num
 export default function BikeTrackDayPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot, snapshots } = useCloudDataContext() as any;
+  const { addSnapshot, snapshots, updateAthlete } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
@@ -94,8 +95,9 @@ export default function BikeTrackDayPage() {
   // ─── Import Nolio ─────────────────────────────────────────────────────
   const [nolioLoading, setNolioLoading] = useState(false);
   const [nolioDates, setNolioDates] = useState<Record<string, string | null>>({});
+  const [nolioPeriodOpen, setNolioPeriodOpen] = useState(false);
 
-  const importFromNolio = async () => {
+  const importFromNolio = async (period: { dateFrom: string; dateTo: string }) => {
     if (!currentAthlete) return;
     setNolioLoading(true);
     try {
@@ -104,13 +106,24 @@ export default function BikeTrackDayPage() {
         .select("item_seconds, value, date_recorded, sport_id, cat, source")
         .eq("athlete_id", currentAthlete.id)
         .eq("cat", "ppr")
-        .in("sport_id", [14, 18]);
+        .in("sport_id", [14, 18])
+        .gte("date_recorded", period.dateFrom)
+        .lte("date_recorded", period.dateTo);
       if (error) throw error;
       const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null; source?: string }>;
-      const pick = (sec: number) => {
-        const r = rows.find(x => x.item_seconds === sec);
-        return r ? { v: r.value, d: r.date_recorded, src: r.source ?? "nolio" } : null;
-      };
+      // Si plusieurs records pour la même métrique, le plus récent prime
+      const bestBySec = new Map<number, { v: number; d: string | null; src: string }>();
+      for (const r of rows) {
+        const cur = bestBySec.get(r.item_seconds);
+        const cand = { v: r.value, d: r.date_recorded, src: r.source ?? "nolio" };
+        if (!cur) { bestBySec.set(r.item_seconds, cand); continue; }
+        const curT = cur.d ? new Date(cur.d).getTime() : 0;
+        const newT = cand.d ? new Date(cand.d).getTime() : 0;
+        if (newT >= curT) bestBySec.set(r.item_seconds, cand);
+      }
+      const pick = (sec: number) => bestBySec.get(sec) ?? null;
+      const labelDate = (r: { d: string | null; src: string }) =>
+        r.d ? `${r.src === "manual" ? "Manuel ✍️" : "Nolio"} · ${new Date(r.d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : (r.src === "manual" ? "Manuel ✍️" : "Nolio");
       const dates: Record<string, string | null> = {};
       const r5 = pick(5); if (r5) { setP10s(String(Math.round(r5.v))); dates.p10s = labelDate(r5); }
       const r30 = pick(30); if (r30) { setP30s(String(Math.round(r30.v))); dates.p30s = labelDate(r30); }
@@ -119,16 +132,18 @@ export default function BikeTrackDayPage() {
       const r1200 = pick(1200); if (r1200) { setP20min(String(Math.round(r1200.v))); dates.p20min = labelDate(r1200); }
       setNolioDates(dates);
       const count = Object.keys(dates).length;
-      toast({ title: "Records importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""} (Nolio + manuels).` });
+      const fmtFr = (s: string) => new Date(s).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" });
+      toast({
+        title: "Records importés",
+        description: `${count} record${count > 1 ? "s" : ""} importé${count > 1 ? "s" : ""} sur la période du ${fmtFr(period.dateFrom)} au ${fmtFr(period.dateTo)}.`,
+      });
+      setNolioPeriodOpen(false);
     } catch (e) {
       toast({ title: "Erreur import Nolio", description: (e as Error).message, variant: "destructive" });
     } finally {
       setNolioLoading(false);
     }
   };
-
-  const labelDate = (r: { d: string | null; src: string }) =>
-    r.d ? `${r.src === "manual" ? "Manuel ✍️" : "Nolio"} · ${new Date(r.d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : (r.src === "manual" ? "Manuel ✍️" : "Nolio");
 
   const fmtNolioDate = (d: string | null | undefined) => d || null;
 
@@ -321,11 +336,31 @@ export default function BikeTrackDayPage() {
 
         {/* Import Nolio */}
         <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={importFromNolio} disabled={nolioLoading || !currentAthlete}>
+          <Button variant="outline" size="sm" onClick={() => setNolioPeriodOpen(true)} disabled={nolioLoading || !currentAthlete}>
             <Download className="h-4 w-4 mr-1" />
             {nolioLoading ? "Import..." : "📥 Importer depuis Nolio"}
           </Button>
         </div>
+        <NolioImportPeriodDialog
+          open={nolioPeriodOpen}
+          onOpenChange={setNolioPeriodOpen}
+          onConfirm={async (p) => {
+            if (currentAthlete && updateAthlete) {
+              const refs = (currentAthlete.refs && typeof currentAthlete.refs === "object")
+                ? { ...(currentAthlete.refs as Record<string, unknown>) }
+                : {};
+              refs.raceRecordsWindowMonths = p.windowMonths;
+              try { await updateAthlete(currentAthlete.id, { refs: refs as any }); } catch { /* non-bloquant */ }
+            }
+            await importFromNolio({ dateFrom: p.dateFrom, dateTo: p.dateTo });
+          }}
+          defaultWindowMonths={
+            (currentAthlete?.refs as any)?.raceRecordsWindowMonths === null
+              ? null
+              : ((currentAthlete?.refs as any)?.raceRecordsWindowMonths ?? 12)
+          }
+          loading={nolioLoading}
+        />
 
 
         {/* Bloc 1 */}

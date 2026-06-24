@@ -18,6 +18,7 @@ import type { RaceRecordsInput } from "@/lib/v2/vlamaxRunV2Enhanced";
 export function useAthleteRaceRecords(
   athleteId: string | null | undefined,
   vma: number | null,
+  windowMonths: number | null = 12,
 ): RaceRecordsInput | null {
   const [records, setRecords] = useState<RaceRecordsInput | null>(null);
 
@@ -27,7 +28,7 @@ export function useAthleteRaceRecords(
       setRecords(null);
       return;
     }
-    fetchAthleteRaceRecords(athleteId, vma)
+    fetchAthleteRaceRecords(athleteId, vma, windowMonths)
       .then((r) => {
         if (!cancelled) setRecords(r);
       })
@@ -37,7 +38,7 @@ export function useAthleteRaceRecords(
     return () => {
       cancelled = true;
     };
-  }, [athleteId, vma]);
+  }, [athleteId, vma, windowMonths]);
 
   return records;
 }

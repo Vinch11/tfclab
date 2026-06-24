@@ -25,6 +25,7 @@ import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { supabase } from "@/integrations/supabase/client";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { NolioImportPeriodDialog } from "@/components/NolioImportPeriodDialog";
 
 // ──────────────────────────────────────────────────────────────
 // Helpers
@@ -54,7 +55,7 @@ const paceMinKm = (vKmh: number): string => {
 export default function TrackDayPage() {
   const navigate = useNavigate();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot, snapshots } = useCloudDataContext() as any;
+  const { addSnapshot, snapshots, updateAthlete } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
@@ -106,8 +107,9 @@ export default function TrackDayPage() {
   // ─── Import Nolio ────────────────────────────────────────────
   const [nolioLoading, setNolioLoading] = useState(false);
   const [nolioDates, setNolioDates] = useState<Record<string, string | null>>({});
+  const [nolioPeriodOpen, setNolioPeriodOpen] = useState(false);
 
-  const importFromNolio = async () => {
+  const importFromNolio = async (period: { dateFrom: string; dateTo: string }) => {
     if (!currentAthlete) return;
     setNolioLoading(true);
     try {
@@ -116,13 +118,22 @@ export default function TrackDayPage() {
         .select("item_seconds, value, date_recorded, sport_id, cat, source")
         .eq("athlete_id", currentAthlete.id)
         .eq("cat", "par")
-        .in("sport_id", [2, 52]);
+        .in("sport_id", [2, 52])
+        .gte("date_recorded", period.dateFrom)
+        .lte("date_recorded", period.dateTo);
       if (error) throw error;
       const rows = ((data ?? []) as unknown) as Array<{ item_seconds: number; value: number; date_recorded: string | null; source?: string }>;
-      const pick = (sec: number) => {
-        const r = rows.find(x => x.item_seconds === sec);
-        return r ? { v: r.value, d: r.date_recorded, src: r.source ?? "nolio" } : null;
-      };
+      // Si plusieurs records pour la même métrique, le plus récent prime
+      const bestBySec = new Map<number, { v: number; d: string | null; src: string }>();
+      for (const r of rows) {
+        const cur = bestBySec.get(r.item_seconds);
+        const cand = { v: r.value, d: r.date_recorded, src: r.source ?? "nolio" };
+        if (!cur) { bestBySec.set(r.item_seconds, cand); continue; }
+        const curT = cur.d ? new Date(cur.d).getTime() : 0;
+        const newT = cand.d ? new Date(cand.d).getTime() : 0;
+        if (newT >= curT) bestBySec.set(r.item_seconds, cand);
+      }
+      const pick = (sec: number) => bestBySec.get(sec) ?? null;
       const labelDate = (r: { d: string | null; src: string }) =>
         r.d ? `${r.src === "manual" ? "Manuel ✍️" : "Nolio"} · ${new Date(r.d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : (r.src === "manual" ? "Manuel ✍️" : "Nolio");
       const dates: Record<string, string | null> = {};
@@ -146,7 +157,12 @@ export default function TrackDayPage() {
       }
       setNolioDates(dates);
       const count = Object.keys(dates).length;
-      toast({ title: "Records importés", description: `${count} champ${count > 1 ? "s" : ""} pré-rempli${count > 1 ? "s" : ""} (Nolio + manuels).` });
+      const fmtFr = (s: string) => new Date(s).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" });
+      toast({
+        title: "Records importés",
+        description: `${count} record${count > 1 ? "s" : ""} importé${count > 1 ? "s" : ""} sur la période du ${fmtFr(period.dateFrom)} au ${fmtFr(period.dateTo)}.`,
+      });
+      setNolioPeriodOpen(false);
     } catch (e) {
       toast({ title: "Erreur import Nolio", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -410,11 +426,32 @@ export default function TrackDayPage() {
 
         {/* Import Nolio */}
         <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={importFromNolio} disabled={nolioLoading || !currentAthlete}>
+          <Button variant="outline" size="sm" onClick={() => setNolioPeriodOpen(true)} disabled={nolioLoading || !currentAthlete}>
             <Download className="h-4 w-4 mr-1" />
             {nolioLoading ? "Import..." : "📥 Importer depuis Nolio"}
           </Button>
         </div>
+        <NolioImportPeriodDialog
+          open={nolioPeriodOpen}
+          onOpenChange={setNolioPeriodOpen}
+          onConfirm={async (p) => {
+            // Persiste la fenêtre choisie comme paramètre coach (utilisée par la calibration VLamax)
+            if (currentAthlete && updateAthlete) {
+              const refs = (currentAthlete.refs && typeof currentAthlete.refs === "object")
+                ? { ...(currentAthlete.refs as Record<string, unknown>) }
+                : {};
+              refs.raceRecordsWindowMonths = p.windowMonths;
+              try { await updateAthlete(currentAthlete.id, { refs: refs as any }); } catch { /* non-bloquant */ }
+            }
+            await importFromNolio({ dateFrom: p.dateFrom, dateTo: p.dateTo });
+          }}
+          defaultWindowMonths={
+            (currentAthlete?.refs as any)?.raceRecordsWindowMonths === null
+              ? null
+              : ((currentAthlete?.refs as any)?.raceRecordsWindowMonths ?? 12)
+          }
+          loading={nolioLoading}
+        />
 
         {/* Bloc 1 — Neuromusculaire (5 options indépendantes) */}
         <Card>
