@@ -38,6 +38,9 @@ export default function TriTestDayPage() {
   const [vlamaxBike, setVlamaxBike] = useState("");
   const [vma, setVma] = useState("");        // km/h
   const [vlamaxRun, setVlamaxRun] = useState("");
+  const [weight, setWeight] = useState("");    // kg
+  const [fcMax, setFcMax] = useState("");      // bpm
+  const [fcRepos, setFcRepos] = useState("");  // bpm
 
   const ratios = distance === "IM"
     ? { swim: 0.10, bike: 0.55, run: 0.35 }
@@ -49,6 +52,9 @@ export default function TriTestDayPage() {
   const vlamaxTriPondere =
     (num(vlamaxBike) * ratios.bike + num(vlamaxRun) * ratios.run) /
     Math.max(0.0001, (num(vlamaxBike) > 0 ? ratios.bike : 0) + (num(vlamaxRun) > 0 ? ratios.run : 0));
+
+  // VO2max estimé depuis VMA (Léger & Mercier 1984 : VO2max ≈ 3.5 × VMA)
+  const vo2maxEst = num(vma) > 0 ? num(vma) * 3.5 : 0;
 
   const handleCreate = async () => {
     if (!currentAthlete) {
@@ -64,6 +70,10 @@ export default function TriTestDayPage() {
       vma: num(vma) || null,
       vlamax: num(vlamaxBike) || null,
       vlamax_run: num(vlamaxRun) || null,
+      weight_kg: num(weight) > 0 ? num(weight) : null,
+      fc_max: num(fcMax) > 0 ? num(fcMax) : null,
+      fc_repos: num(fcRepos) > 0 ? num(fcRepos) : null,
+      vo2max: vo2maxEst > 0 ? Math.round(vo2maxEst * 10) / 10 : null,
       coach_notes: `TFCL Tri Test Day™ — Distance ${distance} — VLamax tri pondérée ${vlamaxTriPondere > 0 ? vlamaxTriPondere.toFixed(2) : "—"} mmol/L/s · Ratios temps: nage ${(ratios.swim * 100).toFixed(0)}% / vélo ${(ratios.bike * 100).toFixed(0)}% / run ${(ratios.run * 100).toFixed(0)}% · Statut: nage ${swimDone}, vélo ${bikeDone}, run ${runDone}`,
     } as any);
     if (snap) {
@@ -150,6 +160,18 @@ export default function TriTestDayPage() {
                 <option value="703">70.3</option>
                 <option value="olympic">Olympique</option>
               </select>
+            </div>
+            <div>
+              <Label>Poids (kg)</Label>
+              <input className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm" type="number" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="72.0" />
+            </div>
+            <div>
+              <Label>FC max (bpm)</Label>
+              <input className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm" type="number" value={fcMax} onChange={(e) => setFcMax(e.target.value)} placeholder="190" />
+            </div>
+            <div>
+              <Label>FC repos (bpm)</Label>
+              <input className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm" type="number" value={fcRepos} onChange={(e) => setFcRepos(e.target.value)} placeholder="48" />
             </div>
           </CardContent>
         </Card>

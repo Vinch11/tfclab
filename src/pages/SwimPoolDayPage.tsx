@@ -138,6 +138,8 @@ export default function SwimPoolDayPage() {
       fc_repos: fcRepos > 0 ? fcRepos : null,
       fc_max: fcMax > 0 ? fcMax : null,
       css: calc.cssPer100 || null,
+      vlamax_run: calc.vlamaxSwimIdx || null,
+      tte_observed_min: calc.tteEst || null,
       coach_notes: `TFCL Pool Day™ — Bassin ${poolLen}m — CSS ${fmtPace(calc.cssPer100)}/100m · V max ${fmt(calc.vMax, 2)} m/s · CSS/Vmax ${fmt(calc.ratioCssVmax * 100, 0)}% · VLamax nage idx ${fmt(calc.vlamaxSwimIdx, 2)} · TTE est ${fmt(calc.tteEst, 0)}min · drift 800m ${fmt(calc.driftPct, 1)}%${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
     } as any);
     if (snap) {
