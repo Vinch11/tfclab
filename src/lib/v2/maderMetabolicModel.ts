@@ -67,6 +67,15 @@ const GLYCOGEN_MUSCLE_MAX = 400; // grams (trained athlete)
 const GLYCOGEN_LIVER_MAX = 100; // grams
 const LACTATE_BASELINE = 1.0; // mmol/L resting lactate
 
+// Glycogen depletion / glycemic regulation (Coyle 1986 JSCR, Coggan 1987 JAP, Romijn 1993 AJP)
+const LIVER_GLUCOSE_RELEASE_MAX = 0.5; // g/min — max hepatic glucose output (Coyle 1986)
+const BLOOD_GLUCOSE_CRITICAL = 3.5;    // mmol/L — hypoglycemic threshold (Coggan 1987)
+const BLOOD_GLUCOSE_BASELINE = 5.0;    // mmol/L — fasting normoglycemia
+const BLOOD_GLUCOSE_POOL_G = 4;        // ~4 g circulating glucose for a 70 kg adult
+// 1 g glucose dans ~5 L sang ≈ 1.11 mmol/L (180 g/mol)
+const G_TO_MMOL_BLOOD = 1.0 / BLOOD_GLUCOSE_POOL_G * (BLOOD_GLUCOSE_BASELINE - 0); // mmol/L per g delta (≈1.25)
+
+
 // =============================================
 // CORE LACTATE KINETICS (Mader Model)
 // =============================================
