@@ -188,8 +188,15 @@ export function computeVLamaxRunV2Enhanced(input: VLamaxRunV2EnhancedInput): VLa
     runPowerThreshold,
     runPower1s, runPower5s, runPower30s, runPower60s, runPower5min,
     tteMin, weightKg, protocolQuality,
-    vma, paceThresholdSecPerKm,
+    vma, paceThresholdSecPerKm, sex,
   } = input;
+
+  // Économie de course (fallback Lacour & Bourdin 2015 + correction Blagrove 2019)
+  let runningEconomy: RunningEconomyEstimate | undefined;
+  if (vma && vma > 0 && weightKg && weightKg > 0) {
+    runningEconomy = estimateRunningEconomy(vma, weightKg, sex ?? "H");
+    warnings.push(runningEconomy.warning);
+  }
 
   // =============================================
   // ÉTAPE 1: Cross-validation VMA/Seuil
