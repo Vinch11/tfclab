@@ -15,6 +15,7 @@ import { Zap, ArrowLeft, ExternalLink } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
+import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
 
 export default function TriTestDayPage() {
   const navigate = useNavigate();
