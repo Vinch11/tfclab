@@ -353,26 +353,23 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
     syncFromCloud();
   }, [user]);
 
-  // Obtenir les configs de section pour un onglet
-  const getSectionConfigs = useCallback((tabId: TabId): SectionConfig[] => {
-    const savedConfigs = preferences[tabId];
+  // Helper : fusionne les configs sauvegardées avec les sections par défaut,
+  // en insérant systématiquement les nouvelles sections à leur position stratégique.
+  function mergeSectionConfigs(tabId: TabId, savedConfigs: SectionConfig[] | undefined): SectionConfig[] {
     const defaultSections = ALL_SECTIONS[tabId];
-    
+
     if (savedConfigs && savedConfigs.length > 0) {
-      // Ajouter les nouvelles sections qui n'existent pas dans les préférences sauvegardées
       const savedIds = new Set(savedConfigs.map(c => c.id));
       let missingConfigs = defaultSections
         .filter(s => !savedIds.has(s.id))
         .map(s => ({ id: s.id, visible: s.defaultVisible }));
-      
-      // Filtrer les sections supprimées et ajouter les nouvelles
-      const validConfigs = savedConfigs.filter(c => 
+
+      const validConfigs = savedConfigs.filter(c =>
         defaultSections.some(s => s.id === c.id)
       );
 
       const merged = [...validConfigs];
 
-      // Helper: insert a missing section after a given anchor, or at fallback position
       const insertMissing = (sectionId: string, anchorIds: string[]) => {
         const def = defaultSections.find(s => s.id === sectionId);
         const isMissing = def && missingConfigs.some(c => c.id === sectionId);
@@ -391,7 +388,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
         missingConfigs = missingConfigs.filter(c => c.id !== sectionId);
       };
 
-      // ✅ Insérer les sections manquantes à des positions stratégiques
+      // Insérer les sections manquantes à des positions stratégiques
       insertMissing("quick-actions", ["getting-started"]);
       insertMissing("coaching-compass", ["quick-actions", "getting-started"]);
       insertMissing("analyse-section", ["coaching-compass", "quick-actions"]);
@@ -407,9 +404,13 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
 
       return [...merged, ...missingConfigs];
     }
-    
-    // Retourner les défauts
+
     return defaultSections.map(s => ({ id: s.id, visible: s.defaultVisible }));
+  }
+
+  // Obtenir les configs de section pour un onglet
+  const getSectionConfigs = useCallback((tabId: TabId): SectionConfig[] => {
+    return mergeSectionConfigs(tabId, preferences[tabId]);
   }, [preferences]);
 
   // Obtenir l'ordre des sections (tous les IDs)
