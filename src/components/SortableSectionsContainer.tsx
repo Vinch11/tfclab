@@ -102,18 +102,6 @@ export function SortableSectionsContainer({
     return order;
   }, [displayConfigs, isEditMode, isRunningOnly]);
 
-  // 🔍 TEMP DEBUG — vérifier que tte-glycogen-insights est dans displayOrder
-  if (tabId === "dashboard") {
-    // eslint-disable-next-line no-console
-    console.log("[SortableSections][dashboard] displayOrder =", displayOrder, {
-      hasTteGlycogen: displayOrder.includes("tte-glycogen-insights"),
-      isRunningOnly,
-      currentConfigsIds: currentConfigs.map(c => c.id),
-      sectionRendererIds: sections.map(s => s.id),
-    });
-  }
-
-
   // Compter les sections masquées par le Running Focus Mode
   const hiddenByRunningMode = useMemo(() => {
     if (!isRunningOnly) return 0;
