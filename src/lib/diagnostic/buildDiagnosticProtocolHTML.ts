@@ -828,7 +828,7 @@ function buildProtocolChapter(
 
     <h2>${chapterNumber}.C — Résultats calculés <span class="h2-hint">(à remplir après le test)</span></h2>
     <table class="results-table">
-      <thead><tr><th style="width:55%">Métrique</th><th style="width:25%">Valeur</th><th style="width:20%">Unité</th></tr></thead>
+      <thead><tr><th style="width:40%">Métrique</th><th style="width:20%">Valeur</th><th style="width:20%">Valeur précédente</th><th style="width:20%">Unité</th></tr></thead>
       <tbody>${resultsHtml}</tbody>
     </table>
 
