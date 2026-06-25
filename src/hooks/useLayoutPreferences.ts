@@ -331,16 +331,19 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
 
         if (!error && data?.layout_preferences) {
           const cloudPrefs = data.layout_preferences as LayoutPreferences | LegacyLayoutPreferences;
-          // Migrer si nécessaire
+          // Migrer si nécessaire, puis forcer l'insertion des sections manquantes
           const migrated: LayoutPreferences = {};
           for (const tabId of ['profil', 'evolution', 'dashboard'] as TabId[]) {
             const tabConfigs = migratePreferences(cloudPrefs, tabId);
             if (tabConfigs) {
-              migrated[tabId] = tabConfigs;
+              migrated[tabId] = mergeSectionConfigs(tabId, tabConfigs);
             }
           }
-          setPreferences(prev => ({ ...prev, ...migrated }));
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...preferences, ...migrated }));
+          setPreferences(prev => {
+            const merged = { ...prev, ...migrated };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            return merged;
+          });
         }
       } catch {
         // Fallback sur localStorage uniquement
