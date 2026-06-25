@@ -103,6 +103,7 @@ export default function TriTestDayPage() {
       coach_notes: `TFCL Tri Test Day™ — Distance ${distance} — VLamax tri pondérée ${vlamaxTriPondere > 0 ? vlamaxTriPondere.toFixed(2) : "—"} mmol/L/s · Ratios temps: nage ${(ratios.swim * 100).toFixed(0)}% / vélo ${(ratios.bike * 100).toFixed(0)}% / run ${(ratios.run * 100).toFixed(0)}% · Statut: nage ${swimDone}, vélo ${bikeDone}, run ${runDone}`,
     } as any);
     if (snap) {
+      clearStorageOnly();
       toast({ title: "Snapshot triathlon créé" });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
@@ -292,6 +293,14 @@ export default function TriTestDayPage() {
             <Button className="w-full" onClick={handleCreate} disabled={!currentAthlete}>
               Créer snapshot triathlon
             </Button>
+            <button
+              type="button"
+              onClick={handleClearForm}
+              className="w-full text-[11px] text-muted-foreground hover:text-destructive transition-colors flex items-center justify-center gap-1.5 py-1"
+            >
+              <Trash2 className="h-3 w-3" />
+              Effacer le formulaire
+            </button>
             <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
               <b>Références :</b> Wakayoshi 1992 (CSS), Coggan & Allen 2010 (FTP), Billat 2001 (VMA),
               Mader 1976 (VLamax). Pondérations : data Ironman Hawaii pro fields.
