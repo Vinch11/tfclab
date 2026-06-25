@@ -138,33 +138,31 @@ export function CoachabilityAuditDialog({
           <Separator />
 
           {/* Détail critères */}
-          <ScrollArea className="flex-1 pr-3 -mr-3">
-            <div className="space-y-2">
-              {report.criteria.map((c) => {
-                const Icon = statusCfg[c.status].icon;
-                return (
-                  <div key={c.id} className="flex items-start gap-3 p-3 rounded-md border border-border bg-card">
-                    <Icon className={cn("w-4 h-4 mt-0.5 shrink-0", statusCfg[c.status].color)} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium text-foreground">{c.label}</span>
-                        <span className="text-xs tabular-nums text-muted-foreground">
-                          {Math.round(c.score)}/100 · poids {Math.round(c.weight)}
-                        </span>
-                      </div>
-                      <Progress value={c.score} className="h-1 mt-1.5" />
-                      <p className="text-xs text-muted-foreground mt-1.5">{c.detail}</p>
-                      {c.fix && (
-                        <p className="text-xs text-foreground mt-1">
-                          <span className="text-warning">Action : </span>{c.fix}
-                        </p>
-                      )}
+          <div className="space-y-2">
+            {report.criteria.map((c) => {
+              const Icon = statusCfg[c.status].icon;
+              return (
+                <div key={c.id} className="flex items-start gap-3 p-3 rounded-md border border-border bg-card">
+                  <Icon className={cn("w-4 h-4 mt-0.5 shrink-0", statusCfg[c.status].color)} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-foreground">{c.label}</span>
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {Math.round(c.score)}/100 · poids {Math.round(c.weight)}
+                      </span>
                     </div>
+                    <Progress value={c.score} className="h-1 mt-1.5" />
+                    <p className="text-xs text-muted-foreground mt-1.5">{c.detail}</p>
+                    {c.fix && (
+                      <p className="text-xs text-foreground mt-1">
+                        <span className="text-warning">Action : </span>{c.fix}
+                      </p>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
