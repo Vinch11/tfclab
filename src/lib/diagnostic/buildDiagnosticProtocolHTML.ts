@@ -572,17 +572,10 @@ export function buildFullDiagnosticDossierHTML(
     sport === "triathlon" ? "Triathlon" : sport === "course" ? "Course à pied" : "Cyclisme";
 
   // Sélection des fiches selon le sport
-  const protocols: DiagnosticProtocol[] = [];
-  if (sport === "triathlon") protocols.push("track-day", "bike-day", "pool-day");
-  else if (sport === "course") protocols.push("track-day");
-  else if (sport === "cyclisme") protocols.push("bike-day");
-  // Pour course/cyclisme on garde aussi l'autre principal si pertinent ? Strict : un seul.
-  // Mais la consigne dit Track + Bike toujours, Pool si triathlon → on suit ça :
-  if (sport !== "triathlon") {
-    // override: spec demande Track Day + Bike Day toujours
-    protocols.length = 0;
-    protocols.push("track-day", "bike-day");
-  }
+  // Spec : Track Day + Bike Day toujours, Pool Day uniquement si triathlon
+  const protocols: DiagnosticProtocol[] = ["track-day", "bike-day"];
+  if (sport === "triathlon") protocols.push("pool-day");
+
 
   const protocolPages = protocols
     .map((proto) => buildProtocolSection(proto, athleteName))
