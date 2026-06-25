@@ -22,6 +22,8 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
+import { Trash2 } from "lucide-react";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
@@ -76,6 +78,32 @@ export default function SwimPoolDayPage() {
   const [fcDebut800, setFcDebut800] = useState("");
   const [fcFin800, setFcFin800] = useState("");
   const [t800, setT800] = useState("");
+
+  // ─── Persistance localStorage par athlète ─────────────────────
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const storageKey = currentAthlete ? `tfcl_test_poolday_${currentAthlete.id}` : null;
+  const { clear: clearForm, clearStorageOnly } = useTestFormPersistence(storageKey, {
+    testDate: { value: testDate, set: setTestDate, default: todayISO() },
+    poolLen: { value: poolLen, set: setPoolLen, default: "25" },
+    weightKgManual: { value: weightKgManual, set: setWeightKgManual, default: "" },
+    heightCmManual: { value: heightCmManual, set: setHeightCmManual, default: "" },
+    fcReposManual: { value: fcReposManual, set: setFcReposManual, default: "" },
+    fcMaxManual: { value: fcMaxManual, set: setFcMaxManual, default: "" },
+    t25: { value: t25, set: setT25, default: "" },
+    t50: { value: t50, set: setT50, default: "" },
+    t100: { value: t100, set: setT100, default: "" },
+    t400: { value: t400, set: setT400, default: "" },
+    t200: { value: t200, set: setT200, default: "" },
+    fcDebut800: { value: fcDebut800, set: setFcDebut800, default: "" },
+    fcFin800: { value: fcFin800, set: setFcFin800, default: "" },
+    t800: { value: t800, set: setT800, default: "" },
+  });
+
+  const handleClearForm = () => {
+    if (typeof window !== "undefined" && window.confirm("Effacer toutes les données du test ?")) {
+      clearForm();
+    }
+  };
 
   const calc = useMemo(() => {
     const v25 = num(t25) > 0 ? 25 / num(t25) : 0;
