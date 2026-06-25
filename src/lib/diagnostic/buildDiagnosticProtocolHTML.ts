@@ -48,6 +48,11 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         rows: [
           { measure: "Sprint 30m (essai 1)", unit: "secondes" },
           { measure: "Sprint 30m (essai 2)", unit: "secondes" },
+          { measure: "Sprint 100m", unit: "secondes" },
+          { measure: "Sprint 200m", unit: "secondes" },
+          { measure: "CMJ hauteur (My Jump 2)", unit: "cm" },
+          { measure: "P1s estimée", unit: "W/kg" },
+          { measure: "5 bonds horizontaux", unit: "mètres" },
           { measure: "FC max atteinte", unit: "bpm" },
         ],
       },
