@@ -791,7 +791,7 @@ function buildProtocolChapter(
   const resultsHtml = p.results
     .map(
       (r) =>
-        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill-cell"></td><td class="unit-cell">${escapeHtml(r.unit)}</td></tr>`,
+        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill-cell"></td><td class="fill-cell"></td><td class="unit-cell">${escapeHtml(r.unit)}</td></tr>`,
     )
     .join("");
 
