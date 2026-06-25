@@ -893,6 +893,10 @@ export function buildFullDiagnosticDossierHTML(
   .synthesis table th:nth-child(2), .synthesis table th:nth-child(3) { width: 22%; }
   .synthesis table th:nth-child(4) { width: 16%; }
   .conclusion-line { border-bottom: 1px solid #aaa; height: 26px; margin: 0; }
+  .detailed-section { page-break-inside: avoid; margin: 8px 0 12px; padding: 8px 10px; background: #f8fbfb; border-left: 3px solid #0d9488; border-radius: 2px; }
+  .detailed-section h3 { margin: 0 0 6px; font-size: 10.5pt; color: #0d9488; }
+  .detailed-list { margin: 0 0 0 18px; padding: 0; font-size: 10pt; line-height: 1.45; }
+  .detailed-list li { margin-bottom: 2px; }
 
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
