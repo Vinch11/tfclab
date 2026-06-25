@@ -171,6 +171,7 @@ export default function SwimPoolDayPage() {
       coach_notes: `TFCL Pool Day™ — Bassin ${poolLen}m — CSS ${fmtPace(calc.cssPer100)}/100m · V max ${fmt(calc.vMax, 2)} m/s · CSS/Vmax ${fmt(calc.ratioCssVmax * 100, 0)}% · VLamax nage idx ${fmt(calc.vlamaxSwimIdx, 2)} · TTE est ${fmt(calc.tteEst, 0)}min · drift 800m ${fmt(calc.driftPct, 1)}%${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
     } as any);
     if (snap) {
+      clearStorageOnly();
       toast({ title: "Snapshot créé" });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
@@ -429,6 +430,14 @@ export default function SwimPoolDayPage() {
             <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
               <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats
             </Button>
+            <button
+              type="button"
+              onClick={handleClearForm}
+              className="w-full text-[11px] text-muted-foreground hover:text-destructive transition-colors flex items-center justify-center gap-1.5 py-1"
+            >
+              <Trash2 className="h-3 w-3" />
+              Effacer le formulaire
+            </button>
             <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
               <b>Références :</b> Wakayoshi et al. 1992, Pelayo et al. 1996, Toussaint &amp; Hollander 1994, Mader 2003 (adapté natation).
               VLamax nage indicative (estimation qualitative sans lactate).
