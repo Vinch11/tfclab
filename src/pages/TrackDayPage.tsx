@@ -331,6 +331,7 @@ export default function TrackDayPage() {
       coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
     } as any);
     if (snap) {
+      clearStorageOnly();
       toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
