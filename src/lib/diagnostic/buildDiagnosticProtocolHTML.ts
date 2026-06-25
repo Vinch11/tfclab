@@ -617,9 +617,9 @@ export function buildDiagnosticProtocolHTML(
   h3 { font-size: 11pt; color: #0d9488; margin: 10px 0 4px; }
   h3 .duration { color: #666; font-weight: normal; font-size: 10pt; }
   table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-  th, td { border: 1px solid #bbb; padding: 6px 8px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
+  th, td { border: 1px solid #bbb; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
   th { background: #f1f5f5; color: #0d9488; font-weight: 600; }
-  td.fill { height: 22px; background: repeating-linear-gradient(transparent, transparent 18px, #ccc 18px, #ccc 19px); }
+  td.fill { height: 32px; background: repeating-linear-gradient(transparent, transparent 28px, #ccc 28px, #ccc 29px); }
   .instructions { margin: 4px 0 8px 18px; padding: 0; font-size: 10.5pt; }
   .instructions li { margin-bottom: 2px; }
   .block { page-break-inside: avoid; margin-bottom: 10px; }
