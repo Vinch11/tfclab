@@ -978,8 +978,8 @@ export function buildFullDiagnosticDossierHTML(
   .results-table tbody tr td:first-child { font-weight: 600; }
 
   /* ---- Champs à remplir : cellule haute, fond très clair, baseline nette ---- */
-  td.fill-cell { height: 30px; background: #fcfdfd; border-bottom: 1.5px solid #0d9488; }
-  td.unit-cell { background: #f7faf9; color: #555; font-size: 10pt; text-align: center; }
+  td.fill-cell { height: 32px; padding: 8px 10px; background: #fcfdfd; border-bottom: 1.5px solid #0d9488; }
+  td.unit-cell { padding: 8px 10px; background: #f7faf9; color: #555; font-size: 10pt; text-align: center; }
 
   /* ---- Cards ---- */
   .block-card { border: 1px solid #c8d4d4; border-radius: 4px; margin: 10px 0 14px; overflow: hidden; page-break-inside: avoid; }
