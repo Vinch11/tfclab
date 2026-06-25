@@ -12,6 +12,11 @@ type Block = {
   rows: Array<{ measure: string; unit: string }>;
 };
 
+type DetailedSection = {
+  title: string;
+  items: string[];
+};
+
 type ProtocolDef = {
   name: string;
   emoji: string;
@@ -19,7 +24,10 @@ type ProtocolDef = {
   material: string[];
   blocks: Block[];
   results: Array<{ metric: string; unit: string }>;
+  /** Détails scientifiques affichés dans le dossier complet (étapes, formules, validité, sécurité). */
+  detailed?: DetailedSection[];
 };
+
 
 const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
   "track-day": {
