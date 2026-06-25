@@ -121,10 +121,18 @@ export default function DiagnosticPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
+  const { currentAthlete } = useAthletes();
+  const [dossierSport, setDossierSport] = useState<DossierSport>("triathlon");
+  const [dossierAthleteName, setDossierAthleteName] = useState<string>("");
+
+  useEffect(() => {
+    setDossierAthleteName(currentAthlete?.name ?? "");
+  }, [currentAthlete?.id, currentAthlete?.name]);
 
   useEffect(() => {
     localStorage.setItem("vlab-staff-mode", staffMode.toString());
   }, [staffMode]);
+
 
   return (
     <SidebarLayout
