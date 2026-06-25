@@ -12,6 +12,11 @@ type Block = {
   rows: Array<{ measure: string; unit: string }>;
 };
 
+type DetailedSection = {
+  title: string;
+  items: string[];
+};
+
 type ProtocolDef = {
   name: string;
   emoji: string;
@@ -19,7 +24,10 @@ type ProtocolDef = {
   material: string[];
   blocks: Block[];
   results: Array<{ metric: string; unit: string }>;
+  /** Détails scientifiques affichés dans le dossier complet (étapes, formules, validité, sécurité). */
+  detailed?: DetailedSection[];
 };
+
 
 const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
   "track-day": {
@@ -100,6 +108,60 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
       { metric: "FatMax estimé", unit: "%VMA" },
       { metric: "FC max observée", unit: "bpm" },
     ],
+    detailed: [
+      {
+        title: "Préparation 48h avant",
+        items: [
+          "J-2 : entraînement léger Z1-Z2 max 45 min, aucun effort intense.",
+          "J-1 : repos complet ou marche 30 min. Hydratation 35 ml/kg/jour.",
+          "Repas pré-test (3h avant) : 1.5-2 g/kg glucides, faible en fibres et graisses.",
+          "Caféine optionnelle 3 mg/kg 45 min avant (si habituel).",
+          "Échauffement matinal court (10 min mobilité) avant arrivée sur piste.",
+        ],
+      },
+      {
+        title: "Conditions de validité",
+        items: [
+          "Température piste 10-22°C, vent < 15 km/h, piste sèche.",
+          "FC repos matinale dans ±5 bpm de la baseline 7 jours.",
+          "RPE pré-test ≤ 3/10 (fraîcheur subjective).",
+          "Récupération inter-blocs respectée (sinon VLamax sur-estimée).",
+          "Sprint 30m : départ debout 3-points, chrono déclenché au premier mouvement.",
+          "1500m : départ lancé 20m, allure régulière (variations < 3 sec/tour).",
+        ],
+      },
+      {
+        title: "Formules de calcul",
+        items: [
+          "VMA (km/h) = distance_1500m / temps_1500m × 3.6 (corrigée +2% piste extérieure).",
+          "Allure seuil ≈ 1.06 × allure VMA (zone 88-92% VMA pour 30-60 min).",
+          "VLamax_run ≈ −0.5066 + 0.01420 × distance_15s (RMSE 0.073, N=15).",
+          "TTE estimé = f(VLamax, économie, %seuil) — voir moteur Mader-Heck.",
+          "FatMax ≈ clamp(78 − 52·(VLa−0.25) + 0.15·(VO2−50), 48, 82) %VMA.",
+          "FC max retenue = max(FC pic 1500m, FC pic 5km).",
+        ],
+      },
+      {
+        title: "Erreurs fréquentes à éviter",
+        items: [
+          "Sprint 15s lancé trop court (départ < 20m) → distance sous-estimée.",
+          "Pacing 1500m positif (départ trop rapide) → temps majoré 3-5%.",
+          "5km commencé sans récup → FC saturée, allure dégradée.",
+          "Chronomètre arrêté en avance (avant ligne) → erreur 0.2-0.5s.",
+          "Athlète fatigué (CTL élevé, sommeil < 7h) → VLamax sous-estimée 10-15%.",
+        ],
+      },
+      {
+        title: "Sécurité & arrêt du test",
+        items: [
+          "Arrêt immédiat si : douleur thoracique, vertige, FC > 220−âge soutenu.",
+          "Pression artérielle pré-test si athlète > 40 ans ou ATCD cardio.",
+          "Présence d'un second observateur recommandée (chronométrage + sécurité).",
+          "Récupération active 15 min Z1 obligatoire après bloc 4.",
+        ],
+      },
+    ],
+
   },
   "bike-day": {
     name: "TFCL Bike Day™",
@@ -174,7 +236,62 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
       { metric: "CP estimée", unit: "W" },
       { metric: "FC max observée", unit: "bpm" },
     ],
+    detailed: [
+      {
+        title: "Préparation 48h avant",
+        items: [
+          "J-2 : sortie souple Z2 max 1h, pas d'intervalle.",
+          "J-1 : repos ou 30 min Z1 ouverture jambes (2×30s rythme).",
+          "Repas 3h avant : 1.5-2 g/kg glucides, hydratation 500 ml + électrolytes.",
+          "Calibration capteur de puissance (zero-offset) avant chaque bloc.",
+          "Position aéro confirmée et identique à la position de course.",
+        ],
+      },
+      {
+        title: "Conditions de validité",
+        items: [
+          "Home-trainer ERG OFF (slope mode) — sinon FTP biaisée par lissage.",
+          "Ventilation forte : T° corporelle stable, perte fluide < 1% poids.",
+          "Cadence libre 85-100 rpm sur tests, notée pour chaque bloc.",
+          "Sprint 10s : départ debout, gros braquet, chute cadence < 10 rpm = mauvais.",
+          "Wingate 30s : départ lancé 60 rpm Z2, all-out immédiat, P moy retenue.",
+          "FTP 20' : variation P par minute < 5% (sinon pacing instable, refaire).",
+        ],
+      },
+      {
+        title: "Formules de calcul",
+        items: [
+          "FTP = 0.95 × P moy 20' (méthode Coggan).",
+          "MAP = P moy 5 min (≈ VO2max via formule Storer si poids connu).",
+          "CP / W' = régression hyperbolique sur (30s, 5min, 20min) — minimum 3 points.",
+          "VLamax_bike (Score G) = f(P30s/P5min, P10s/P30s, drop FC) — moteur unifié.",
+          "Pmax 5s normalisée = P pic / poids (W/kg) — référence neuro-musculaire.",
+          "TTE bike = f(W'/(CP·intensité), VLamax, économie aéro).",
+        ],
+      },
+      {
+        title: "Erreurs fréquentes à éviter",
+        items: [
+          "Wingate avec décélération en fin (regard sur écran) → P moy sous-estimée.",
+          "FTP 20' sans 5 min MAP préalable → MAP biaisée par fatigue résiduelle.",
+          "Position route ≠ position aéro CLM → FTP non transposable.",
+          "Calibration ZO oubliée → erreur +/- 15-25 W.",
+          "Récupération inter-blocs < 8 min → VLamax sur-estimée par épuisement W'.",
+        ],
+      },
+      {
+        title: "Sécurité & arrêt du test",
+        items: [
+          "Arrêt si : palpitations, douleur thoracique, vision floue, FC plafonnée.",
+          "ECG d'effort recommandé > 40 ans avant test all-out répété.",
+          "Cool-down obligatoire 10-15 min Z1 pour clearance lactate.",
+          "Hydratation post : 1.5× poids perdu en 2h.",
+        ],
+      },
+    ],
   },
+
+
   "pool-day": {
     name: "TFCL Pool Day™",
     emoji: "🏊",
@@ -247,7 +364,59 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
       { metric: "Vitesse seuil", unit: "m/s" },
       { metric: "TTE nage estimé", unit: "min" },
     ],
+    detailed: [
+      {
+        title: "Préparation 48h avant",
+        items: [
+          "J-2 : nage technique 2000m max, aucun sprint.",
+          "J-1 : repos ou 1500m souple éducatifs.",
+          "Repas 3h avant : glucides simples + 500 ml eau.",
+          "Combinaison interdite (sauf si test spécifique CLM eau libre).",
+          "Bassin calibré (25m ou 50m), virages culbutés ou ouverts à préciser.",
+        ],
+      },
+      {
+        title: "Conditions de validité",
+        items: [
+          "Température eau 25-28°C, ligne d'eau libre (pas de coupure de couloir).",
+          "Sprint 25m : départ plongé bloc, chrono manuel au plongeon → mur d'arrivée.",
+          "Test 200m : départ dans l'eau (mur), all-out constant — split à 100m noté.",
+          "Récup 200/400m : 5-10 min Z1 souple (≥ FC < 110 bpm avant 400m).",
+          "Test 400m : variation par 100m < 1.5 s (sinon pacing instable, refaire).",
+          "Bassin 25m → ajouter 0.5 s/100m de correction vs 50m (virages).",
+        ],
+      },
+      {
+        title: "Formules de calcul",
+        items: [
+          "CSS (s/100m) = (400 − 200) / (T400 − T200) × 100 (formule Wakayoshi 1992).",
+          "Allure CSS = CSS / 100 × 100 → exprimée min:sec/100m.",
+          "Vitesse seuil (m/s) = 100 / CSS.",
+          "VLamax_swim index = f(V_sprint25m, drop V_400m) — normalisée 0-1.",
+          "TTE nage = 25-40 min à CSS pour nageur entraîné (cible 30 min).",
+        ],
+      },
+      {
+        title: "Erreurs fréquentes à éviter",
+        items: [
+          "Sprint 25m en culbute (pas de plongeon) → temps majoré 1-1.5 s.",
+          "200m parti trop fort (split #1 < 90% CSS attendu) → CSS sur-estimée.",
+          "400m avec dérive technique (fréquence ↓ 10%) → CSS sous-estimée.",
+          "Chronométrage GoPro/écran sans synchro main → biais 0.3-0.5 s.",
+          "Eau froide (< 24°C) ou chaude (> 29°C) → biais physiologique.",
+        ],
+      },
+      {
+        title: "Sécurité",
+        items: [
+          "Test impossible seul : présence MNS ou binôme bord de bassin obligatoire.",
+          "Hyperventilation pré-plongée interdite (risque syncope).",
+          "Arrêt si vertige, nausée, crampe — sortie immédiate.",
+        ],
+      },
+    ],
   },
+
   "tri-day": {
     name: "TFCL Tri Test Day™",
     emoji: "⚡",
@@ -323,8 +492,59 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
       { metric: "TTE multi-sport", unit: "min" },
       { metric: "FC max par sport", unit: "bpm" },
     ],
+    detailed: [
+      {
+        title: "Planning des 2 jours",
+        items: [
+          "Jour 1 matin : Vélo (FTP + VLamax) ~75 min — frais.",
+          "Jour 1 après-midi (≥ 4h plus tard) : Course post-vélo 3 km tempo.",
+          "Jour 2 matin : Natation CSS 200/400m — frais.",
+          "Jour 2 après-midi (≥ 4h plus tard) : Course 5 km seuil pour TTE.",
+          "Si impossible 2 jours : étaler sur 4 jours (un test par jour) avec Z2 entre les deux.",
+        ],
+      },
+      {
+        title: "Conditions de validité",
+        items: [
+          "Pas de séance intense J-2 et J-1 avant J1, ni entre les tests.",
+          "Hydratation 35 ml/kg + 500 ml 1h avant chaque test.",
+          "Sommeil ≥ 7h les 2 nuits, RPE matinal ≤ 3/10.",
+          "Capteur puissance calibré, GPS course validé sur tour étalon.",
+          "FC repos matinale dans ±5 bpm de la baseline.",
+        ],
+      },
+      {
+        title: "Formules de calcul",
+        items: [
+          "FTP = 0.95 × P moy 20'.",
+          "VMA (km/h) = distance_3km × 60 / temps_min (corrigée +3% si post-vélo).",
+          "CSS (s/100m) = (400 − 200) / (T400 − T200) × 100.",
+          "VLamax triathlon pondérée = moyenne pondérée par durée discipline cible.",
+          "FC max retenue par sport = max observé sur chaque test (jamais cross-sport).",
+        ],
+      },
+      {
+        title: "Erreurs fréquentes à éviter",
+        items: [
+          "Course 3 km post-vélo trop molle (manque de relance T2) → VMA biaisée.",
+          "Confondre FC max bike et FC max run (peut différer 5-15 bpm).",
+          "Tester natation en fin de journée → CSS dégradée 2-3 s/100m.",
+          "Pacing 5 km TTE non régulier → TTE non exploitable.",
+        ],
+      },
+      {
+        title: "Sécurité",
+        items: [
+          "ECG d'effort recommandé avant tri-day si > 40 ans.",
+          "Présence MNS au bloc natation obligatoire.",
+          "Récupération active 10-15 min après chaque bloc all-out.",
+          "Hydratation post : 1.5× poids perdu dans les 2h.",
+        ],
+      },
+    ],
   },
 };
+
 
 const escapeHtml = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -517,6 +737,18 @@ function buildProtocolSection(protocol: DiagnosticProtocol, athleteName?: string
     )
     .join("");
 
+  const detailedHtml = (p.detailed ?? [])
+    .map(
+      (sec) => `
+    <div class="detailed-section">
+      <h3>${escapeHtml(sec.title)}</h3>
+      <ul class="detailed-list">
+        ${sec.items.map((it) => `<li>${escapeHtml(it)}</li>`).join("")}
+      </ul>
+    </div>`,
+    )
+    .join("");
+
   return `
   <section class="protocol-page">
     <div class="header">
@@ -545,19 +777,22 @@ function buildProtocolSection(protocol: DiagnosticProtocol, athleteName?: string
       <tr><th>FC repos (bpm)</th><td class="fill"></td><th>FC max connue (bpm)</th><td class="fill"></td></tr>
     </table>
 
-    <h2>3 · Protocole détaillé</h2>
+    <h2>3 · Protocole détaillé — Blocs de test</h2>
     ${blocksHtml}
 
-    <h2>4 · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
+    ${detailedHtml ? `<h2>4 · Protocole précis &amp; cadre scientifique</h2>${detailedHtml}` : ""}
+
+    <h2>${detailedHtml ? "5" : "4"} · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
     <table>
       <thead><tr><th style="width:55%">Métrique</th><th style="width:25%">Valeur</th><th style="width:20%">Unité</th></tr></thead>
       <tbody>${resultsHtml}</tbody>
     </table>
 
-    <h2>5 · Notes du coach</h2>
+    <h2>${detailedHtml ? "6" : "5"} · Notes du coach</h2>
     <div class="notes-area"></div>
   </section>`;
 }
+
 
 /**
  * Construit un dossier complet imprimable (page de garde + toutes les fiches + synthèse).
@@ -658,6 +893,10 @@ export function buildFullDiagnosticDossierHTML(
   .synthesis table th:nth-child(2), .synthesis table th:nth-child(3) { width: 22%; }
   .synthesis table th:nth-child(4) { width: 16%; }
   .conclusion-line { border-bottom: 1px solid #aaa; height: 26px; margin: 0; }
+  .detailed-section { page-break-inside: avoid; margin: 8px 0 12px; padding: 8px 10px; background: #f8fbfb; border-left: 3px solid #0d9488; border-radius: 2px; }
+  .detailed-section h3 { margin: 0 0 6px; font-size: 10.5pt; color: #0d9488; }
+  .detailed-list { margin: 0 0 0 18px; padding: 0; font-size: 10pt; line-height: 1.45; }
+  .detailed-list li { margin-bottom: 2px; }
 
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
