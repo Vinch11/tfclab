@@ -958,7 +958,7 @@ export function buildFullDiagnosticDossierHTML(
 <meta charset="utf-8" />
 <title>Dossier de Tests Physiologiques TFCL™ — ${escapeHtml(athleteName || "Athlète")}</title>
 <style>
-  @page { size: A4 portrait; margin: 14mm 14mm 16mm; }
+  @page { size: A4 portrait; margin: 14mm 14mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "TFCLab™ · Dossier de Tests Physiologiques"; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } }
   * { box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.45; }
 
