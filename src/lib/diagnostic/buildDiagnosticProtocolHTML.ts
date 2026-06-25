@@ -289,6 +289,8 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
     ],
+  },
+
 
   "pool-day": {
     name: "TFCL Pool Day™",
