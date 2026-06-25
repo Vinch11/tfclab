@@ -595,7 +595,7 @@ export function buildDiagnosticProtocolHTML(
   const resultsHtml = p.results
     .map(
       (r) =>
-        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill"></td><td>${escapeHtml(r.unit)}</td></tr>`,
+        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill"></td><td class="fill"></td><td>${escapeHtml(r.unit)}</td></tr>`,
     )
     .join("");
 
