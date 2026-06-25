@@ -971,7 +971,7 @@ export function buildFullDiagnosticDossierHTML(
 
   /* ---- Tableaux génériques ---- */
   table { width: 100%; border-collapse: collapse; margin-top: 2px; }
-  th, td { border: 1px solid #b9c6c6; padding: 6px 8px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
+  th, td { border: 1px solid #b9c6c6; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
   th { background: #f1f7f6; color: #0d6b65; font-weight: 600; }
   .kv-table th { width: 28%; }
   .results-table th { background: #fdf6e3; color: #8a6d1f; }
