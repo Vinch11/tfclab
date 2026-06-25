@@ -664,7 +664,7 @@ export function buildDiagnosticProtocolHTML(
 
   <h2>4 · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
   <table>
-    <thead><tr><th style="width:55%">Métrique</th><th style="width:25%">Valeur</th><th style="width:20%">Unité</th></tr></thead>
+    <thead><tr><th style="width:40%">Métrique</th><th style="width:20%">Valeur</th><th style="width:20%">Valeur précédente</th><th style="width:20%">Unité</th></tr></thead>
     <tbody>${resultsHtml}</tbody>
   </table>
 
