@@ -11,11 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Zap, ArrowLeft, ExternalLink } from "lucide-react";
+import { Zap, ArrowLeft, ExternalLink, Trash2 } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
 
 export default function TriTestDayPage() {
   const navigate = useNavigate();
@@ -41,6 +42,31 @@ export default function TriTestDayPage() {
   const [weight, setWeight] = useState("");    // kg
   const [fcMax, setFcMax] = useState("");      // bpm
   const [fcRepos, setFcRepos] = useState("");  // bpm
+  // ─── Persistance localStorage par athlète ─────────────────────
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const storageKey = currentAthlete ? `tfcl_test_triday_${currentAthlete.id}` : null;
+  const { clear: clearForm, clearStorageOnly } = useTestFormPersistence(storageKey, {
+    testDate: { value: testDate, set: setTestDate, default: todayISO() },
+    distance: { value: distance, set: setDistance, default: "IM" },
+    swimDone: { value: swimDone, set: setSwimDone, default: "⬜" },
+    bikeDone: { value: bikeDone, set: setBikeDone, default: "⬜" },
+    runDone: { value: runDone, set: setRunDone, default: "⬜" },
+    css: { value: css, set: setCss, default: "" },
+    ftp: { value: ftp, set: setFtp, default: "" },
+    vlamaxBike: { value: vlamaxBike, set: setVlamaxBike, default: "" },
+    vma: { value: vma, set: setVma, default: "" },
+    vlamaxRun: { value: vlamaxRun, set: setVlamaxRun, default: "" },
+    weight: { value: weight, set: setWeight, default: "" },
+    fcMax: { value: fcMax, set: setFcMax, default: "" },
+    fcRepos: { value: fcRepos, set: setFcRepos, default: "" },
+  });
+
+  const handleClearForm = () => {
+    if (typeof window !== "undefined" && window.confirm("Effacer toutes les données du test ?")) {
+      clearForm();
+    }
+  };
+
 
   const ratios = distance === "IM"
     ? { swim: 0.10, bike: 0.55, run: 0.35 }
