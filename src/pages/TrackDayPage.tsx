@@ -26,6 +26,8 @@ import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { supabase } from "@/integrations/supabase/client";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
 import { NolioImportPeriodDialog } from "@/components/NolioImportPeriodDialog";
+import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
+import { Trash2 } from "lucide-react";
 
 // ──────────────────────────────────────────────────────────────
 // Helpers
@@ -108,6 +110,39 @@ export default function TrackDayPage() {
   const [nolioLoading, setNolioLoading] = useState(false);
   const [nolioDates, setNolioDates] = useState<Record<string, string | null>>({});
   const [nolioPeriodOpen, setNolioPeriodOpen] = useState(false);
+
+  // ─── Persistance localStorage par athlète ─────────────────────
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const storageKey = currentAthlete ? `tfcl_test_trackday_${currentAthlete.id}` : null;
+  const { clear: clearForm, clearStorageOnly } = useTestFormPersistence(storageKey, {
+    testDate: { value: testDate, set: setTestDate, default: todayISO() },
+    surface: { value: surface, set: setSurface, default: "piste" },
+    tempC: { value: tempC, set: setTempC, default: "" },
+    wind: { value: wind, set: setWind, default: "" },
+    weightKgManual: { value: weightKgManual, set: setWeightKgManual, default: "" },
+    heightCmManual: { value: heightCmManual, set: setHeightCmManual, default: "" },
+    fcReposManual: { value: fcReposManual, set: setFcReposManual, default: "" },
+    fcMaxManual: { value: fcMaxManual, set: setFcMaxManual, default: "" },
+    t30m: { value: t30m, set: setT30m, default: "" },
+    t100m: { value: t100m, set: setT100m, default: "" },
+    t200m: { value: t200m, set: setT200m, default: "" },
+    cmjCm: { value: cmjCm, set: setCmjCm, default: "" },
+    bonds5m: { value: bonds5m, set: setBonds5m, default: "" },
+    sprint15sM: { value: sprint15sM, set: setSprint15sM, default: "" },
+    t400m: { value: t400m, set: setT400m, default: "" },
+    t600m: { value: t600m, set: setT600m, default: "" },
+    d6min: { value: d6min, set: setD6min, default: "" },
+    d20min: { value: d20min, set: setD20min, default: "" },
+    fcDebutZ2: { value: fcDebutZ2, set: setFcDebutZ2, default: "" },
+    fcFinZ2: { value: fcFinZ2, set: setFcFinZ2, default: "" },
+    allureZ2SecKm: { value: allureZ2SecKm, set: setAllureZ2SecKm, default: "" },
+  });
+
+  const handleClearForm = () => {
+    if (typeof window !== "undefined" && window.confirm("Effacer toutes les données du test ?")) {
+      clearForm();
+    }
+  };
 
   const importFromNolio = async (period: { dateFrom: string; dateTo: string }) => {
     if (!currentAthlete) return;
@@ -296,6 +331,7 @@ export default function TrackDayPage() {
       coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
     } as any);
     if (snap) {
+      clearStorageOnly();
       toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
@@ -756,6 +792,15 @@ export default function TrackDayPage() {
               <Save className="h-4 w-4" />
               Créer un snapshot depuis ces résultats
             </Button>
+
+            <button
+              type="button"
+              onClick={handleClearForm}
+              className="w-full text-[11px] text-muted-foreground hover:text-destructive transition-colors flex items-center justify-center gap-1.5 py-1"
+            >
+              <Trash2 className="h-3 w-3" />
+              Effacer le formulaire
+            </button>
 
             <p className="text-[10px] text-muted-foreground leading-relaxed pt-2 border-t border-border/40">
               <b>Références :</b> Billat 2001, Jones &amp; Vanhatalo 2017, Léger &amp; Bouchard 1980,

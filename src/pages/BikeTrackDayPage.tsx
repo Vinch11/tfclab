@@ -25,6 +25,8 @@ import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { supabase } from "@/integrations/supabase/client";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
 import { NolioImportPeriodDialog } from "@/components/NolioImportPeriodDialog";
+import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
+import { Trash2 } from "lucide-react";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
@@ -96,6 +98,43 @@ export default function BikeTrackDayPage() {
   const [nolioLoading, setNolioLoading] = useState(false);
   const [nolioDates, setNolioDates] = useState<Record<string, string | null>>({});
   const [nolioPeriodOpen, setNolioPeriodOpen] = useState(false);
+
+  // ─── Persistance localStorage par athlète ─────────────────────
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const storageKey = currentAthlete ? `tfcl_test_bikeday_${currentAthlete.id}` : null;
+  const { clear: clearForm, clearStorageOnly } = useTestFormPersistence(storageKey, {
+    testDate: { value: testDate, set: setTestDate, default: todayISO() },
+    setup: { value: setup, set: setSetup, default: "ht" },
+    tempC: { value: tempC, set: setTempC, default: "" },
+    weightKgManual: { value: weightKgManual, set: setWeightKgManual, default: "" },
+    heightCmManual: { value: heightCmManual, set: setHeightCmManual, default: "" },
+    fcReposManual: { value: fcReposManual, set: setFcReposManual, default: "" },
+    fcMaxManual: { value: fcMaxManual, set: setFcMaxManual, default: "" },
+    p10s: { value: p10s, set: setP10s, default: "" },
+    p30s: { value: p30s, set: setP30s, default: "" },
+    p60s: { value: p60s, set: setP60s, default: "" },
+    v10s: { value: v10s, set: setV10s, default: "" },
+    s10s: { value: s10s, set: setS10s, default: "" },
+    v30s: { value: v30s, set: setV30s, default: "" },
+    s30s: { value: s30s, set: setS30s, default: "" },
+    v60s: { value: v60s, set: setV60s, default: "" },
+    s60s: { value: s60s, set: setS60s, default: "" },
+    map5min: { value: map5min, set: setMap5min, default: "" },
+    fcMaxTest: { value: fcMaxTest, set: setFcMaxTest, default: "" },
+    cp3min: { value: cp3min, set: setCp3min, default: "" },
+    p20min: { value: p20min, set: setP20min, default: "" },
+    fc20Moy: { value: fc20Moy, set: setFc20Moy, default: "" },
+    rampeLast: { value: rampeLast, set: setRampeLast, default: "" },
+    fcDebutZ2: { value: fcDebutZ2, set: setFcDebutZ2, default: "" },
+    fcFinZ2: { value: fcFinZ2, set: setFcFinZ2, default: "" },
+    puissanceZ2: { value: puissanceZ2, set: setPuissanceZ2, default: "" },
+  });
+
+  const handleClearForm = () => {
+    if (typeof window !== "undefined" && window.confirm("Effacer toutes les données du test ?")) {
+      clearForm();
+    }
+  };
 
   const importFromNolio = async (period: { dateFrom: string; dateTo: string }) => {
     if (!currentAthlete) return;
@@ -219,6 +258,7 @@ export default function BikeTrackDayPage() {
       coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · FatMax ${fmt(calc.fatMaxPct, 0)}% · TTE ${fmt(calc.tteEst, 0)}min${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
     } as any);
     if (snap) {
+      clearStorageOnly();
       toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
@@ -582,6 +622,14 @@ export default function BikeTrackDayPage() {
             <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
               <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats
             </Button>
+            <button
+              type="button"
+              onClick={handleClearForm}
+              className="w-full text-[11px] text-muted-foreground hover:text-destructive transition-colors flex items-center justify-center gap-1.5 py-1"
+            >
+              <Trash2 className="h-3 w-3" />
+              Effacer le formulaire
+            </button>
             <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
               <b>Références :</b> Coggan & Allen 2010, Hawley & Noakes 1992, Jones & Vanhatalo 2017, Mader 1976, Skiba 2012.
               Confiance VLamax estimée : <b>0.65-0.80</b> (sans mesure lactate).

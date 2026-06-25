@@ -11,11 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Zap, ArrowLeft, ExternalLink } from "lucide-react";
+import { Zap, ArrowLeft, ExternalLink, Trash2 } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
 
 export default function TriTestDayPage() {
   const navigate = useNavigate();
@@ -41,6 +42,31 @@ export default function TriTestDayPage() {
   const [weight, setWeight] = useState("");    // kg
   const [fcMax, setFcMax] = useState("");      // bpm
   const [fcRepos, setFcRepos] = useState("");  // bpm
+  // ─── Persistance localStorage par athlète ─────────────────────
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const storageKey = currentAthlete ? `tfcl_test_triday_${currentAthlete.id}` : null;
+  const { clear: clearForm, clearStorageOnly } = useTestFormPersistence(storageKey, {
+    testDate: { value: testDate, set: setTestDate, default: todayISO() },
+    distance: { value: distance, set: setDistance, default: "IM" },
+    swimDone: { value: swimDone, set: setSwimDone, default: "⬜" },
+    bikeDone: { value: bikeDone, set: setBikeDone, default: "⬜" },
+    runDone: { value: runDone, set: setRunDone, default: "⬜" },
+    css: { value: css, set: setCss, default: "" },
+    ftp: { value: ftp, set: setFtp, default: "" },
+    vlamaxBike: { value: vlamaxBike, set: setVlamaxBike, default: "" },
+    vma: { value: vma, set: setVma, default: "" },
+    vlamaxRun: { value: vlamaxRun, set: setVlamaxRun, default: "" },
+    weight: { value: weight, set: setWeight, default: "" },
+    fcMax: { value: fcMax, set: setFcMax, default: "" },
+    fcRepos: { value: fcRepos, set: setFcRepos, default: "" },
+  });
+
+  const handleClearForm = () => {
+    if (typeof window !== "undefined" && window.confirm("Effacer toutes les données du test ?")) {
+      clearForm();
+    }
+  };
+
 
   const ratios = distance === "IM"
     ? { swim: 0.10, bike: 0.55, run: 0.35 }
@@ -77,6 +103,7 @@ export default function TriTestDayPage() {
       coach_notes: `TFCL Tri Test Day™ — Distance ${distance} — VLamax tri pondérée ${vlamaxTriPondere > 0 ? vlamaxTriPondere.toFixed(2) : "—"} mmol/L/s · Ratios temps: nage ${(ratios.swim * 100).toFixed(0)}% / vélo ${(ratios.bike * 100).toFixed(0)}% / run ${(ratios.run * 100).toFixed(0)}% · Statut: nage ${swimDone}, vélo ${bikeDone}, run ${runDone}`,
     } as any);
     if (snap) {
+      clearStorageOnly();
       toast({ title: "Snapshot triathlon créé" });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
@@ -266,6 +293,14 @@ export default function TriTestDayPage() {
             <Button className="w-full" onClick={handleCreate} disabled={!currentAthlete}>
               Créer snapshot triathlon
             </Button>
+            <button
+              type="button"
+              onClick={handleClearForm}
+              className="w-full text-[11px] text-muted-foreground hover:text-destructive transition-colors flex items-center justify-center gap-1.5 py-1"
+            >
+              <Trash2 className="h-3 w-3" />
+              Effacer le formulaire
+            </button>
             <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
               <b>Références :</b> Wakayoshi 1992 (CSS), Coggan & Allen 2010 (FTP), Billat 2001 (VMA),
               Mader 1976 (VLamax). Pondérations : data Ironman Hawaii pro fields.

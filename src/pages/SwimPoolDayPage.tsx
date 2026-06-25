@@ -22,6 +22,8 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
+import { Trash2 } from "lucide-react";
 
 const num = (v: string): number => {
   const n = parseFloat((v || "").replace(",", "."));
@@ -76,6 +78,32 @@ export default function SwimPoolDayPage() {
   const [fcDebut800, setFcDebut800] = useState("");
   const [fcFin800, setFcFin800] = useState("");
   const [t800, setT800] = useState("");
+
+  // ─── Persistance localStorage par athlète ─────────────────────
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const storageKey = currentAthlete ? `tfcl_test_poolday_${currentAthlete.id}` : null;
+  const { clear: clearForm, clearStorageOnly } = useTestFormPersistence(storageKey, {
+    testDate: { value: testDate, set: setTestDate, default: todayISO() },
+    poolLen: { value: poolLen, set: setPoolLen, default: "25" },
+    weightKgManual: { value: weightKgManual, set: setWeightKgManual, default: "" },
+    heightCmManual: { value: heightCmManual, set: setHeightCmManual, default: "" },
+    fcReposManual: { value: fcReposManual, set: setFcReposManual, default: "" },
+    fcMaxManual: { value: fcMaxManual, set: setFcMaxManual, default: "" },
+    t25: { value: t25, set: setT25, default: "" },
+    t50: { value: t50, set: setT50, default: "" },
+    t100: { value: t100, set: setT100, default: "" },
+    t400: { value: t400, set: setT400, default: "" },
+    t200: { value: t200, set: setT200, default: "" },
+    fcDebut800: { value: fcDebut800, set: setFcDebut800, default: "" },
+    fcFin800: { value: fcFin800, set: setFcFin800, default: "" },
+    t800: { value: t800, set: setT800, default: "" },
+  });
+
+  const handleClearForm = () => {
+    if (typeof window !== "undefined" && window.confirm("Effacer toutes les données du test ?")) {
+      clearForm();
+    }
+  };
 
   const calc = useMemo(() => {
     const v25 = num(t25) > 0 ? 25 / num(t25) : 0;
@@ -143,6 +171,7 @@ export default function SwimPoolDayPage() {
       coach_notes: `TFCL Pool Day™ — Bassin ${poolLen}m — CSS ${fmtPace(calc.cssPer100)}/100m · V max ${fmt(calc.vMax, 2)} m/s · CSS/Vmax ${fmt(calc.ratioCssVmax * 100, 0)}% · VLamax nage idx ${fmt(calc.vlamaxSwimIdx, 2)} · TTE est ${fmt(calc.tteEst, 0)}min · drift 800m ${fmt(calc.driftPct, 1)}%${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
     } as any);
     if (snap) {
+      clearStorageOnly();
       toast({ title: "Snapshot créé" });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
@@ -401,6 +430,14 @@ export default function SwimPoolDayPage() {
             <Button className="w-full" disabled={!canCreate} onClick={handleCreate}>
               <Save className="h-4 w-4" /> Créer snapshot depuis ces résultats
             </Button>
+            <button
+              type="button"
+              onClick={handleClearForm}
+              className="w-full text-[11px] text-muted-foreground hover:text-destructive transition-colors flex items-center justify-center gap-1.5 py-1"
+            >
+              <Trash2 className="h-3 w-3" />
+              Effacer le formulaire
+            </button>
             <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
               <b>Références :</b> Wakayoshi et al. 1992, Pelayo et al. 1996, Toussaint &amp; Hollander 1994, Mader 2003 (adapté natation).
               VLamax nage indicative (estimation qualitative sans lactate).
