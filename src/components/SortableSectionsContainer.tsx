@@ -102,8 +102,6 @@ export function SortableSectionsContainer({
     return order;
   }, [displayConfigs, isEditMode, isRunningOnly]);
 
-
-
   // Compter les sections masquées par le Running Focus Mode
   const hiddenByRunningMode = useMemo(() => {
     if (!isRunningOnly) return 0;
