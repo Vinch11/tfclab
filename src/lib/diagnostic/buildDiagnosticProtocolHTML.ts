@@ -492,8 +492,59 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
       { metric: "TTE multi-sport", unit: "min" },
       { metric: "FC max par sport", unit: "bpm" },
     ],
+    detailed: [
+      {
+        title: "Planning des 2 jours",
+        items: [
+          "Jour 1 matin : Vélo (FTP + VLamax) ~75 min — frais.",
+          "Jour 1 après-midi (≥ 4h plus tard) : Course post-vélo 3 km tempo.",
+          "Jour 2 matin : Natation CSS 200/400m — frais.",
+          "Jour 2 après-midi (≥ 4h plus tard) : Course 5 km seuil pour TTE.",
+          "Si impossible 2 jours : étaler sur 4 jours (un test par jour) avec Z2 entre les deux.",
+        ],
+      },
+      {
+        title: "Conditions de validité",
+        items: [
+          "Pas de séance intense J-2 et J-1 avant J1, ni entre les tests.",
+          "Hydratation 35 ml/kg + 500 ml 1h avant chaque test.",
+          "Sommeil ≥ 7h les 2 nuits, RPE matinal ≤ 3/10.",
+          "Capteur puissance calibré, GPS course validé sur tour étalon.",
+          "FC repos matinale dans ±5 bpm de la baseline.",
+        ],
+      },
+      {
+        title: "Formules de calcul",
+        items: [
+          "FTP = 0.95 × P moy 20'.",
+          "VMA (km/h) = distance_3km × 60 / temps_min (corrigée +3% si post-vélo).",
+          "CSS (s/100m) = (400 − 200) / (T400 − T200) × 100.",
+          "VLamax triathlon pondérée = moyenne pondérée par durée discipline cible.",
+          "FC max retenue par sport = max observé sur chaque test (jamais cross-sport).",
+        ],
+      },
+      {
+        title: "Erreurs fréquentes à éviter",
+        items: [
+          "Course 3 km post-vélo trop molle (manque de relance T2) → VMA biaisée.",
+          "Confondre FC max bike et FC max run (peut différer 5-15 bpm).",
+          "Tester natation en fin de journée → CSS dégradée 2-3 s/100m.",
+          "Pacing 5 km TTE non régulier → TTE non exploitable.",
+        ],
+      },
+      {
+        title: "Sécurité",
+        items: [
+          "ECG d'effort recommandé avant tri-day si > 40 ans.",
+          "Présence MNS au bloc natation obligatoire.",
+          "Récupération active 10-15 min après chaque bloc all-out.",
+          "Hydratation post : 1.5× poids perdu dans les 2h.",
+        ],
+      },
+    ],
   },
 };
+
 
 const escapeHtml = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
