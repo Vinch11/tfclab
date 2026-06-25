@@ -737,6 +737,18 @@ function buildProtocolSection(protocol: DiagnosticProtocol, athleteName?: string
     )
     .join("");
 
+  const detailedHtml = (p.detailed ?? [])
+    .map(
+      (sec) => `
+    <div class="detailed-section">
+      <h3>${escapeHtml(sec.title)}</h3>
+      <ul class="detailed-list">
+        ${sec.items.map((it) => `<li>${escapeHtml(it)}</li>`).join("")}
+      </ul>
+    </div>`,
+    )
+    .join("");
+
   return `
   <section class="protocol-page">
     <div class="header">
@@ -765,19 +777,22 @@ function buildProtocolSection(protocol: DiagnosticProtocol, athleteName?: string
       <tr><th>FC repos (bpm)</th><td class="fill"></td><th>FC max connue (bpm)</th><td class="fill"></td></tr>
     </table>
 
-    <h2>3 · Protocole détaillé</h2>
+    <h2>3 · Protocole détaillé — Blocs de test</h2>
     ${blocksHtml}
 
-    <h2>4 · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
+    ${detailedHtml ? `<h2>4 · Protocole précis &amp; cadre scientifique</h2>${detailedHtml}` : ""}
+
+    <h2>${detailedHtml ? "5" : "4"} · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
     <table>
       <thead><tr><th style="width:55%">Métrique</th><th style="width:25%">Valeur</th><th style="width:20%">Unité</th></tr></thead>
       <tbody>${resultsHtml}</tbody>
     </table>
 
-    <h2>5 · Notes du coach</h2>
+    <h2>${detailedHtml ? "6" : "5"} · Notes du coach</h2>
     <div class="notes-area"></div>
   </section>`;
 }
+
 
 /**
  * Construit un dossier complet imprimable (page de garde + toutes les fiches + synthèse).
