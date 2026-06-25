@@ -948,7 +948,7 @@ export function buildFullDiagnosticDossierHTML(
     )
     .join("");
 
-  const conclusionLines = Array.from({ length: 14 })
+  const conclusionLines = Array.from({ length: 15 })
     .map(() => `<div class="conclusion-line"></div>`)
     .join("");
 
