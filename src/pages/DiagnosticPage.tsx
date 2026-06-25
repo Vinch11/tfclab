@@ -184,6 +184,60 @@ export default function DiagnosticPage() {
           })}
         </div>
 
+        {/* Export dossier complet PDF (page de garde + fiches + synthèse) */}
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FolderDown className="h-5 w-5 text-primary" />
+              📁 Exporter le dossier complet PDF
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-3">
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Génère un seul document imprimable avec page de garde, fiches de tests papier et synthèse finale.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="dossier-athlete" className="text-xs">Nom de l'athlète</Label>
+                <Input
+                  id="dossier-athlete"
+                  value={dossierAthleteName}
+                  onChange={(e) => setDossierAthleteName(e.target.value)}
+                  placeholder="Nom Prénom"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="dossier-sport" className="text-xs">Sport principal</Label>
+                <select
+                  id="dossier-sport"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={dossierSport}
+                  onChange={(e) => setDossierSport(e.target.value as DossierSport)}
+                >
+                  <option value="triathlon">Triathlon</option>
+                  <option value="course">Course à pied</option>
+                  <option value="cyclisme">Cyclisme</option>
+                </select>
+              </div>
+            </div>
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() =>
+                openFullDiagnosticDossierPrint(
+                  dossierAthleteName.trim() || undefined,
+                  dossierSport,
+                )
+              }
+            >
+              <FolderDown className="h-4 w-4 mr-2" />
+              Générer le dossier complet
+            </Button>
+            <p className="text-[10px] text-muted-foreground italic">
+              S'ouvre dans un nouvel onglet — utilisez Ctrl+P (Cmd+P) puis "Enregistrer en PDF".
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Rapport d'audit scientifique signé (toutes traces consolidées) */}
         <ScientificAuditReportButton />
 
