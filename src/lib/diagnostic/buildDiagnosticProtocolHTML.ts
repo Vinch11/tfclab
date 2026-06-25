@@ -236,7 +236,60 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
       { metric: "CP estimée", unit: "W" },
       { metric: "FC max observée", unit: "bpm" },
     ],
-  },
+    detailed: [
+      {
+        title: "Préparation 48h avant",
+        items: [
+          "J-2 : sortie souple Z2 max 1h, pas d'intervalle.",
+          "J-1 : repos ou 30 min Z1 ouverture jambes (2×30s rythme).",
+          "Repas 3h avant : 1.5-2 g/kg glucides, hydratation 500 ml + électrolytes.",
+          "Calibration capteur de puissance (zero-offset) avant chaque bloc.",
+          "Position aéro confirmée et identique à la position de course.",
+        ],
+      },
+      {
+        title: "Conditions de validité",
+        items: [
+          "Home-trainer ERG OFF (slope mode) — sinon FTP biaisée par lissage.",
+          "Ventilation forte : T° corporelle stable, perte fluide < 1% poids.",
+          "Cadence libre 85-100 rpm sur tests, notée pour chaque bloc.",
+          "Sprint 10s : départ debout, gros braquet, chute cadence < 10 rpm = mauvais.",
+          "Wingate 30s : départ lancé 60 rpm Z2, all-out immédiat, P moy retenue.",
+          "FTP 20' : variation P par minute < 5% (sinon pacing instable, refaire).",
+        ],
+      },
+      {
+        title: "Formules de calcul",
+        items: [
+          "FTP = 0.95 × P moy 20' (méthode Coggan).",
+          "MAP = P moy 5 min (≈ VO2max via formule Storer si poids connu).",
+          "CP / W' = régression hyperbolique sur (30s, 5min, 20min) — minimum 3 points.",
+          "VLamax_bike (Score G) = f(P30s/P5min, P10s/P30s, drop FC) — moteur unifié.",
+          "Pmax 5s normalisée = P pic / poids (W/kg) — référence neuro-musculaire.",
+          "TTE bike = f(W'/(CP·intensité), VLamax, économie aéro).",
+        ],
+      },
+      {
+        title: "Erreurs fréquentes à éviter",
+        items: [
+          "Wingate avec décélération en fin (regard sur écran) → P moy sous-estimée.",
+          "FTP 20' sans 5 min MAP préalable → MAP biaisée par fatigue résiduelle.",
+          "Position route ≠ position aéro CLM → FTP non transposable.",
+          "Calibration ZO oubliée → erreur +/- 15-25 W.",
+          "Récupération inter-blocs < 8 min → VLamax sur-estimée par épuisement W'.",
+        ],
+      },
+      {
+        title: "Sécurité & arrêt du test",
+        items: [
+          "Arrêt si : palpitations, douleur thoracique, vision floue, FC plafonnée.",
+          "ECG d'effort recommandé > 40 ans avant test all-out répété.",
+          "Cool-down obligatoire 10-15 min Z1 pour clearance lactate.",
+          "Hydratation post : 1.5× poids perdu en 2h.",
+        ],
+      },
+    ],
+
   "pool-day": {
     name: "TFCL Pool Day™",
     emoji: "🏊",
