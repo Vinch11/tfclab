@@ -108,6 +108,60 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
       { metric: "FatMax estimé", unit: "%VMA" },
       { metric: "FC max observée", unit: "bpm" },
     ],
+    detailed: [
+      {
+        title: "Préparation 48h avant",
+        items: [
+          "J-2 : entraînement léger Z1-Z2 max 45 min, aucun effort intense.",
+          "J-1 : repos complet ou marche 30 min. Hydratation 35 ml/kg/jour.",
+          "Repas pré-test (3h avant) : 1.5-2 g/kg glucides, faible en fibres et graisses.",
+          "Caféine optionnelle 3 mg/kg 45 min avant (si habituel).",
+          "Échauffement matinal court (10 min mobilité) avant arrivée sur piste.",
+        ],
+      },
+      {
+        title: "Conditions de validité",
+        items: [
+          "Température piste 10-22°C, vent < 15 km/h, piste sèche.",
+          "FC repos matinale dans ±5 bpm de la baseline 7 jours.",
+          "RPE pré-test ≤ 3/10 (fraîcheur subjective).",
+          "Récupération inter-blocs respectée (sinon VLamax sur-estimée).",
+          "Sprint 30m : départ debout 3-points, chrono déclenché au premier mouvement.",
+          "1500m : départ lancé 20m, allure régulière (variations < 3 sec/tour).",
+        ],
+      },
+      {
+        title: "Formules de calcul",
+        items: [
+          "VMA (km/h) = distance_1500m / temps_1500m × 3.6 (corrigée +2% piste extérieure).",
+          "Allure seuil ≈ 1.06 × allure VMA (zone 88-92% VMA pour 30-60 min).",
+          "VLamax_run ≈ −0.5066 + 0.01420 × distance_15s (RMSE 0.073, N=15).",
+          "TTE estimé = f(VLamax, économie, %seuil) — voir moteur Mader-Heck.",
+          "FatMax ≈ clamp(78 − 52·(VLa−0.25) + 0.15·(VO2−50), 48, 82) %VMA.",
+          "FC max retenue = max(FC pic 1500m, FC pic 5km).",
+        ],
+      },
+      {
+        title: "Erreurs fréquentes à éviter",
+        items: [
+          "Sprint 15s lancé trop court (départ < 20m) → distance sous-estimée.",
+          "Pacing 1500m positif (départ trop rapide) → temps majoré 3-5%.",
+          "5km commencé sans récup → FC saturée, allure dégradée.",
+          "Chronomètre arrêté en avance (avant ligne) → erreur 0.2-0.5s.",
+          "Athlète fatigué (CTL élevé, sommeil < 7h) → VLamax sous-estimée 10-15%.",
+        ],
+      },
+      {
+        title: "Sécurité & arrêt du test",
+        items: [
+          "Arrêt immédiat si : douleur thoracique, vertige, FC > 220−âge soutenu.",
+          "Pression artérielle pré-test si athlète > 40 ans ou ATCD cardio.",
+          "Présence d'un second observateur recommandée (chronométrage + sécurité).",
+          "Récupération active 15 min Z1 obligatoire après bloc 4.",
+        ],
+      },
+    ],
+
   },
   "bike-day": {
     name: "TFCL Bike Day™",
