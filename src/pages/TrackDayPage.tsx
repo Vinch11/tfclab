@@ -793,6 +793,15 @@ export default function TrackDayPage() {
               Créer un snapshot depuis ces résultats
             </Button>
 
+            <button
+              type="button"
+              onClick={handleClearForm}
+              className="w-full text-[11px] text-muted-foreground hover:text-destructive transition-colors flex items-center justify-center gap-1.5 py-1"
+            >
+              <Trash2 className="h-3 w-3" />
+              Effacer le formulaire
+            </button>
+
             <p className="text-[10px] text-muted-foreground leading-relaxed pt-2 border-t border-border/40">
               <b>Références :</b> Billat 2001, Jones &amp; Vanhatalo 2017, Léger &amp; Bouchard 1980,
               Skiba 2012. Confiance VLamax estimée : <b>0.70-0.80</b> (sans mesure lactate).
