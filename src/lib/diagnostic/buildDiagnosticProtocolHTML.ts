@@ -467,3 +467,290 @@ export function openDiagnosticProtocolPrint(
   w.document.write(html);
   w.document.close();
 }
+
+// ============================================================================
+// DOSSIER COMPLET — Plusieurs fiches en un seul PDF imprimable
+// ============================================================================
+
+export type DossierSport = "triathlon" | "course" | "cyclisme";
+
+/**
+ * Extrait le corps central (header + sections 1-5) d'une fiche protocole
+ * pour la réutiliser dans un dossier multi-pages, sans le <html>/<head>/<button>.
+ */
+function buildProtocolSection(protocol: DiagnosticProtocol, athleteName?: string): string {
+  const p = PROTOCOLS[protocol];
+  const today = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  const athlete = athleteName ? escapeHtml(athleteName) : blank("200px");
+
+  const materialHtml = p.material
+    .map((m) => `<label style="display:inline-block;margin-right:14px;font-size:10pt;">☐ ${escapeHtml(m)}</label>`)
+    .join("");
+
+  const blocksHtml = p.blocks
+    .map(
+      (b) => `
+    <div class="block">
+      <h3>${escapeHtml(b.title)} <span class="duration">— ${escapeHtml(b.duration)}</span></h3>
+      <ol class="instructions">
+        ${b.instructions.map((ins) => `<li>${escapeHtml(ins)}</li>`).join("")}
+      </ol>
+      <table class="data">
+        <thead><tr><th style="width:45%">Mesure</th><th style="width:20%">Valeur</th><th style="width:15%">Unité</th><th style="width:20%">Notes</th></tr></thead>
+        <tbody>
+          ${b.rows
+            .map(
+              (r) =>
+                `<tr><td>${escapeHtml(r.measure)}</td><td class="fill"></td><td>${escapeHtml(r.unit)}</td><td class="fill"></td></tr>`,
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>`,
+    )
+    .join("");
+
+  const resultsHtml = p.results
+    .map(
+      (r) =>
+        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill"></td><td>${escapeHtml(r.unit)}</td></tr>`,
+    )
+    .join("");
+
+  return `
+  <section class="protocol-page">
+    <div class="header">
+      <div class="brand">TFCLab™ <small>Two For Coaching</small></div>
+      <div class="meta">
+        <div><strong>${p.emoji} ${escapeHtml(p.name)}</strong></div>
+        <div>${escapeHtml(p.subtitle)}</div>
+        <div>Date : ${today}</div>
+      </div>
+    </div>
+
+    <h1>Protocole de test — ${escapeHtml(p.name)}</h1>
+    <div class="coach-line"><strong>Athlète :</strong> ${athlete} &nbsp;&nbsp; <strong>Coach :</strong> ${blank("220px")}</div>
+
+    <h2>1 · Informations générales</h2>
+    <table>
+      <tr><th style="width:30%">Date du test</th><td class="fill"></td><th style="width:30%">Heure de début</th><td class="fill"></td></tr>
+      <tr><th>Conditions (météo / T°)</th><td class="fill"></td><th>Heure de fin</th><td class="fill"></td></tr>
+      <tr><th>Lieu</th><td class="fill"></td><th>Durée totale</th><td class="fill"></td></tr>
+    </table>
+    <div style="margin-top:6px;"><strong>Matériel utilisé :</strong><br/>${materialHtml}</div>
+
+    <h2>2 · Données de base</h2>
+    <table>
+      <tr><th style="width:25%">Poids (kg)</th><td class="fill"></td><th style="width:25%">Taille (cm)</th><td class="fill"></td></tr>
+      <tr><th>FC repos (bpm)</th><td class="fill"></td><th>FC max connue (bpm)</th><td class="fill"></td></tr>
+    </table>
+
+    <h2>3 · Protocole détaillé</h2>
+    ${blocksHtml}
+
+    <h2>4 · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
+    <table>
+      <thead><tr><th style="width:55%">Métrique</th><th style="width:25%">Valeur</th><th style="width:20%">Unité</th></tr></thead>
+      <tbody>${resultsHtml}</tbody>
+    </table>
+
+    <h2>5 · Notes du coach</h2>
+    <div class="notes-area"></div>
+  </section>`;
+}
+
+/**
+ * Construit un dossier complet imprimable (page de garde + toutes les fiches + synthèse).
+ */
+export function buildFullDiagnosticDossierHTML(
+  athleteName?: string,
+  sport: DossierSport = "triathlon",
+): string {
+  const today = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  const athlete = athleteName ? escapeHtml(athleteName) : blank("260px");
+  const sportLabel =
+    sport === "triathlon" ? "Triathlon" : sport === "course" ? "Course à pied" : "Cyclisme";
+
+  // Sélection des fiches selon le sport
+  const protocols: DiagnosticProtocol[] = [];
+  if (sport === "triathlon") protocols.push("track-day", "bike-day", "pool-day");
+  else if (sport === "course") protocols.push("track-day");
+  else if (sport === "cyclisme") protocols.push("bike-day");
+  // Pour course/cyclisme on garde aussi l'autre principal si pertinent ? Strict : un seul.
+  // Mais la consigne dit Track + Bike toujours, Pool si triathlon → on suit ça :
+  if (sport !== "triathlon") {
+    // override: spec demande Track Day + Bike Day toujours
+    protocols.length = 0;
+    protocols.push("track-day", "bike-day");
+  }
+
+  const protocolPages = protocols
+    .map((proto) => buildProtocolSection(proto, athleteName))
+    .join('\n<div class="page-break"></div>\n');
+
+  // Tableau de synthèse
+  const synthesisRows: Array<{ metric: string; unit: string }> = [
+    { metric: "FTP", unit: "W" },
+    { metric: "FTP/kg", unit: "W/kg" },
+    { metric: "VMA", unit: "km/h" },
+    { metric: "CSS", unit: "s/100m" },
+    { metric: "FC max", unit: "bpm" },
+    { metric: "FC repos", unit: "bpm" },
+    { metric: "VO2max estimé", unit: "ml/kg/min" },
+    { metric: "VLamax vélo", unit: "mmol/L/s" },
+    { metric: "VLamax course", unit: "mmol/L/s" },
+    { metric: "TTE vélo", unit: "min" },
+    { metric: "TTE course", unit: "min" },
+    { metric: "Pmax 5s", unit: "W/kg" },
+    { metric: "P1s CMJ", unit: "W/kg" },
+    { metric: "Économie de course", unit: "ml/kg/km" },
+    { metric: "FatMax estimé", unit: "% FTP" },
+  ];
+
+  const synthesisRowsHtml = synthesisRows
+    .map(
+      (r) =>
+        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill"></td><td class="fill"></td><td>${escapeHtml(r.unit)}</td></tr>`,
+    )
+    .join("");
+
+  const conclusionLines = Array.from({ length: 15 })
+    .map(() => `<div class="conclusion-line"></div>`)
+    .join("");
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Dossier de Tests Physiologiques TFCL™ — ${escapeHtml(athleteName || "Athlète")}</title>
+<style>
+  @page { size: A4 portrait; margin: 15mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.4; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0d9488; padding-bottom: 8px; margin-bottom: 12px; }
+  .header .brand { font-size: 16pt; font-weight: bold; color: #0d9488; }
+  .header .brand small { display: block; font-size: 10pt; color: #555; font-weight: normal; }
+  .header .meta { font-size: 10pt; text-align: right; }
+  h1 { font-size: 14pt; color: #0d9488; margin: 4px 0; }
+  h2 { font-size: 12pt; color: #0d9488; border-bottom: 1px solid #0d9488; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px; }
+  h3 { font-size: 11pt; color: #0d9488; margin: 10px 0 4px; }
+  h3 .duration { color: #666; font-weight: normal; font-size: 10pt; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  th, td { border: 1px solid #bbb; padding: 6px 8px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
+  th { background: #f1f5f5; color: #0d9488; font-weight: 600; }
+  td.fill { height: 22px; background: repeating-linear-gradient(transparent, transparent 18px, #ccc 18px, #ccc 19px); }
+  .instructions { margin: 4px 0 8px 18px; padding: 0; font-size: 10.5pt; }
+  .instructions li { margin-bottom: 2px; }
+  .block { page-break-inside: avoid; margin-bottom: 10px; }
+  .coach-line { margin-top: 6px; font-size: 10pt; }
+  .notes-area { border: 1px solid #bbb; height: 140px; background: repeating-linear-gradient(transparent, transparent 22px, #ccc 22px, #ccc 23px); }
+  .footer { margin-top: 18px; padding-top: 6px; border-top: 1px solid #0d9488; font-size: 8.5pt; color: #555; text-align: center; }
+  .page-break { page-break-after: always; }
+  .print-btn { position: fixed; top: 10px; right: 10px; background: #0d9488; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; z-index: 1000; }
+  @media print { .print-btn { display: none; } }
+
+  /* Page de garde */
+  .cover { min-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px 20px; }
+  .cover .logo { font-size: 42pt; font-weight: bold; color: #0d9488; margin-bottom: 6px; letter-spacing: -1px; }
+  .cover .logo small { display: block; font-size: 13pt; color: #555; font-weight: normal; margin-top: 4px; }
+  .cover .doc-title { font-size: 26pt; color: #0d9488; margin: 40px 0 16px; font-weight: bold; }
+  .cover .athlete-name { font-size: 20pt; color: #111; margin: 24px 0 8px; }
+  .cover .meta-info { font-size: 13pt; color: #444; margin: 6px 0; }
+  .cover .info-lines { margin-top: 60px; font-size: 12pt; text-align: left; min-width: 360px; }
+  .cover .info-lines div { margin: 14px 0; }
+  .cover .cover-footer { margin-top: auto; padding-top: 40px; font-size: 9pt; color: #777; }
+
+  /* Synthèse */
+  .synthesis table th:nth-child(1) { width: 40%; }
+  .synthesis table th:nth-child(2), .synthesis table th:nth-child(3) { width: 22%; }
+  .synthesis table th:nth-child(4) { width: 16%; }
+  .conclusion-line { border-bottom: 1px solid #aaa; height: 26px; margin: 0; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+  <button class="print-btn" onclick="window.print()">🖨️ Imprimer / PDF</button>
+
+  <!-- 1) PAGE DE GARDE -->
+  <section class="cover">
+    <div class="logo">TFCLab™<small>Two For Coaching</small></div>
+    <div class="doc-title">Dossier de Tests Physiologiques TFCL™</div>
+    <div class="athlete-name"><strong>Athlète :</strong> ${athlete}</div>
+    <div class="meta-info"><strong>Sport principal :</strong> ${escapeHtml(sportLabel)}</div>
+    <div class="meta-info"><strong>Date d'édition :</strong> ${today}</div>
+
+    <div class="info-lines">
+      <div><strong>Coach :</strong> ${blank("260px")}</div>
+      <div><strong>Saison :</strong> ${blank("260px")}</div>
+      <div><strong>Objectif principal :</strong> ${blank("260px")}</div>
+    </div>
+
+    <div class="cover-footer">
+      Document confidentiel — Usage interne coach &amp; athlète<br/>
+      Protocoles scientifiques basés sur Billat 2001, Léger &amp; Bouchard 1980, Coggan 2010, Wakayoshi 1992, Mader-Heck
+    </div>
+  </section>
+
+  <div class="page-break"></div>
+
+  <!-- 2-N) FICHES DE TEST -->
+  ${protocolPages}
+
+  <div class="page-break"></div>
+
+  <!-- DERNIÈRE PAGE : SYNTHÈSE -->
+  <section class="synthesis">
+    <div class="header">
+      <div class="brand">TFCLab™ <small>Two For Coaching</small></div>
+      <div class="meta">
+        <div><strong>📊 Synthèse du profil</strong></div>
+        <div>${escapeHtml(sportLabel)}</div>
+        <div>Date : ${today}</div>
+      </div>
+    </div>
+
+    <h1>Synthèse du profil physiologique</h1>
+    <div class="coach-line"><strong>Athlète :</strong> ${athlete} &nbsp;&nbsp; <strong>Coach :</strong> ${blank("220px")}</div>
+
+    <h2>Tableau récapitulatif</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Métrique</th>
+          <th>Valeur mesurée</th>
+          <th>Valeur précédente</th>
+          <th>Unité</th>
+        </tr>
+      </thead>
+      <tbody>${synthesisRowsHtml}</tbody>
+    </table>
+
+    <h2>Conclusions du coach &amp; orientations d'entraînement</h2>
+    <div>${conclusionLines}</div>
+
+    <div class="footer">
+      TFCLab™ — Two For Coaching · Dossier complet de tests physiologiques · Confidentiel
+    </div>
+  </section>
+</body>
+</html>`;
+}
+
+/**
+ * Ouvre le dossier complet dans un nouvel onglet imprimable.
+ */
+export function openFullDiagnosticDossierPrint(
+  athleteName?: string,
+  sport: DossierSport = "triathlon",
+): void {
+  const html = buildFullDiagnosticDossierHTML(athleteName, sport);
+  const w = window.open("", "_blank");
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
