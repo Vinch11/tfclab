@@ -23,6 +23,15 @@ import { useState, useEffect } from "react";
 import { AuditAthletesPanel } from "@/components/AuditAthletesPanel";
 import { ScientificAuditReportButton } from "@/components/ScientificAuditReportButton";
 import { InscydPoffe2024ValidationCard } from "@/components/InscydPoffe2024ValidationCard";
+import { useAthletes } from "@/contexts/AthleteContext";
+import {
+  openFullDiagnosticDossierPrint,
+  type DossierSport,
+} from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FolderDown } from "lucide-react";
 
 const sections = [
   {
