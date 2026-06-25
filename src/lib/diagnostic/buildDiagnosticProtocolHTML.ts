@@ -605,7 +605,7 @@ export function buildDiagnosticProtocolHTML(
 <meta charset="utf-8" />
 <title>${escapeHtml(p.name)} — Protocole papier</title>
 <style>
-  @page { size: A4 portrait; margin: 15mm; }
+  @page { size: A4 portrait; margin: 15mm 15mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "TFCLab™ · ${escapeHtml(p.name)}"; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } }
   * { box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.4; }
   .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0d9488; padding-bottom: 8px; margin-bottom: 12px; }
