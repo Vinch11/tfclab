@@ -364,7 +364,59 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
       { metric: "Vitesse seuil", unit: "m/s" },
       { metric: "TTE nage estimé", unit: "min" },
     ],
+    detailed: [
+      {
+        title: "Préparation 48h avant",
+        items: [
+          "J-2 : nage technique 2000m max, aucun sprint.",
+          "J-1 : repos ou 1500m souple éducatifs.",
+          "Repas 3h avant : glucides simples + 500 ml eau.",
+          "Combinaison interdite (sauf si test spécifique CLM eau libre).",
+          "Bassin calibré (25m ou 50m), virages culbutés ou ouverts à préciser.",
+        ],
+      },
+      {
+        title: "Conditions de validité",
+        items: [
+          "Température eau 25-28°C, ligne d'eau libre (pas de coupure de couloir).",
+          "Sprint 25m : départ plongé bloc, chrono manuel au plongeon → mur d'arrivée.",
+          "Test 200m : départ dans l'eau (mur), all-out constant — split à 100m noté.",
+          "Récup 200/400m : 5-10 min Z1 souple (≥ FC < 110 bpm avant 400m).",
+          "Test 400m : variation par 100m < 1.5 s (sinon pacing instable, refaire).",
+          "Bassin 25m → ajouter 0.5 s/100m de correction vs 50m (virages).",
+        ],
+      },
+      {
+        title: "Formules de calcul",
+        items: [
+          "CSS (s/100m) = (400 − 200) / (T400 − T200) × 100 (formule Wakayoshi 1992).",
+          "Allure CSS = CSS / 100 × 100 → exprimée min:sec/100m.",
+          "Vitesse seuil (m/s) = 100 / CSS.",
+          "VLamax_swim index = f(V_sprint25m, drop V_400m) — normalisée 0-1.",
+          "TTE nage = 25-40 min à CSS pour nageur entraîné (cible 30 min).",
+        ],
+      },
+      {
+        title: "Erreurs fréquentes à éviter",
+        items: [
+          "Sprint 25m en culbute (pas de plongeon) → temps majoré 1-1.5 s.",
+          "200m parti trop fort (split #1 < 90% CSS attendu) → CSS sur-estimée.",
+          "400m avec dérive technique (fréquence ↓ 10%) → CSS sous-estimée.",
+          "Chronométrage GoPro/écran sans synchro main → biais 0.3-0.5 s.",
+          "Eau froide (< 24°C) ou chaude (> 29°C) → biais physiologique.",
+        ],
+      },
+      {
+        title: "Sécurité",
+        items: [
+          "Test impossible seul : présence MNS ou binôme bord de bassin obligatoire.",
+          "Hyperventilation pré-plongée interdite (risque syncope).",
+          "Arrêt si vertige, nausée, crampe — sortie immédiate.",
+        ],
+      },
+    ],
   },
+
   "tri-day": {
     name: "TFCL Tri Test Day™",
     emoji: "⚡",
