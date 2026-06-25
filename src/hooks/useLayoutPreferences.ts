@@ -79,6 +79,7 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "leviers-section", label: "Leviers & Actions", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "synthese-executive-dashboard", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
   { id: "vlamax-profile-scale", label: "Profil VLamax — Échelle", icon: "Activity", category: "metriques", defaultVisible: true },
+  { id: "tte-glycogen-insights", label: "Mécanisme limitant TTE & Glycogène", icon: "Brain", category: "analyse", defaultVisible: true },
 ];
 
 export const STRATEGIE_SECTIONS: SectionDefinition[] = [
@@ -397,6 +398,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
       insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);
       insertMissing("vlamax-profile-scale", ["vlamax-targets", "fatmax-tfcl", "coaching-compass"]);
+      insertMissing("tte-glycogen-insights", ["vlamax-profile-scale", "coaching-compass", "analyse-section"]);
       insertMissing("vlamax-profile-scale-profil", ["vlamax-v2-calibration-profil", "fatmax-tfcl-profil", "lactate-thresholds-profil"]);
       insertMissing("fat-carb-combustion-profil", ["fatmax-tfcl-profil", "vo2max-age-profil"]);
 
