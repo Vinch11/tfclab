@@ -73,8 +73,8 @@ export function CoachabilityAuditDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Gauge className="w-5 h-5 text-primary" />
             Audit de coachabilité — {athleteName}
@@ -84,7 +84,8 @@ export function CoachabilityAuditDialog({
           </p>
         </DialogHeader>
 
-        <div className="space-y-4 overflow-hidden flex-1 flex flex-col">
+        <div className="space-y-4 overflow-y-auto flex-1 px-6 pb-6">
+
           {/* Sélecteur objectif */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground shrink-0">Objectif :</span>
