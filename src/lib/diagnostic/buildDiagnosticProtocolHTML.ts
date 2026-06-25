@@ -48,6 +48,11 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         rows: [
           { measure: "Sprint 30m (essai 1)", unit: "secondes" },
           { measure: "Sprint 30m (essai 2)", unit: "secondes" },
+          { measure: "Sprint 100m", unit: "secondes" },
+          { measure: "Sprint 200m", unit: "secondes" },
+          { measure: "CMJ hauteur (My Jump 2)", unit: "cm" },
+          { measure: "P1s estimée", unit: "W/kg" },
+          { measure: "5 bonds horizontaux", unit: "mètres" },
           { measure: "FC max atteinte", unit: "bpm" },
         ],
       },
@@ -590,7 +595,7 @@ export function buildDiagnosticProtocolHTML(
   const resultsHtml = p.results
     .map(
       (r) =>
-        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill"></td><td>${escapeHtml(r.unit)}</td></tr>`,
+        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill"></td><td class="fill"></td><td>${escapeHtml(r.unit)}</td></tr>`,
     )
     .join("");
 
@@ -600,7 +605,7 @@ export function buildDiagnosticProtocolHTML(
 <meta charset="utf-8" />
 <title>${escapeHtml(p.name)} — Protocole papier</title>
 <style>
-  @page { size: A4 portrait; margin: 15mm; }
+  @page { size: A4 portrait; margin: 15mm 15mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "TFCLab™ · ${escapeHtml(p.name)}"; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } }
   * { box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.4; }
   .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0d9488; padding-bottom: 8px; margin-bottom: 12px; }
@@ -612,9 +617,9 @@ export function buildDiagnosticProtocolHTML(
   h3 { font-size: 11pt; color: #0d9488; margin: 10px 0 4px; }
   h3 .duration { color: #666; font-weight: normal; font-size: 10pt; }
   table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-  th, td { border: 1px solid #bbb; padding: 6px 8px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
+  th, td { border: 1px solid #bbb; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
   th { background: #f1f5f5; color: #0d9488; font-weight: 600; }
-  td.fill { height: 22px; background: repeating-linear-gradient(transparent, transparent 18px, #ccc 18px, #ccc 19px); }
+  td.fill { height: 32px; background: repeating-linear-gradient(transparent, transparent 28px, #ccc 28px, #ccc 29px); }
   .instructions { margin: 4px 0 8px 18px; padding: 0; font-size: 10.5pt; }
   .instructions li { margin-bottom: 2px; }
   .block { page-break-inside: avoid; margin-bottom: 10px; }
@@ -659,7 +664,7 @@ export function buildDiagnosticProtocolHTML(
 
   <h2>4 · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
   <table>
-    <thead><tr><th style="width:55%">Métrique</th><th style="width:25%">Valeur</th><th style="width:20%">Unité</th></tr></thead>
+    <thead><tr><th style="width:40%">Métrique</th><th style="width:20%">Valeur</th><th style="width:20%">Valeur précédente</th><th style="width:20%">Unité</th></tr></thead>
     <tbody>${resultsHtml}</tbody>
   </table>
 
@@ -786,7 +791,7 @@ function buildProtocolChapter(
   const resultsHtml = p.results
     .map(
       (r) =>
-        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill-cell"></td><td class="unit-cell">${escapeHtml(r.unit)}</td></tr>`,
+        `<tr><td>${escapeHtml(r.metric)}</td><td class="fill-cell"></td><td class="fill-cell"></td><td class="unit-cell">${escapeHtml(r.unit)}</td></tr>`,
     )
     .join("");
 
@@ -823,7 +828,7 @@ function buildProtocolChapter(
 
     <h2>${chapterNumber}.C — Résultats calculés <span class="h2-hint">(à remplir après le test)</span></h2>
     <table class="results-table">
-      <thead><tr><th style="width:55%">Métrique</th><th style="width:25%">Valeur</th><th style="width:20%">Unité</th></tr></thead>
+      <thead><tr><th style="width:40%">Métrique</th><th style="width:20%">Valeur</th><th style="width:20%">Valeur précédente</th><th style="width:20%">Unité</th></tr></thead>
       <tbody>${resultsHtml}</tbody>
     </table>
 
@@ -943,7 +948,7 @@ export function buildFullDiagnosticDossierHTML(
     )
     .join("");
 
-  const conclusionLines = Array.from({ length: 14 })
+  const conclusionLines = Array.from({ length: 15 })
     .map(() => `<div class="conclusion-line"></div>`)
     .join("");
 
@@ -953,7 +958,7 @@ export function buildFullDiagnosticDossierHTML(
 <meta charset="utf-8" />
 <title>Dossier de Tests Physiologiques TFCL™ — ${escapeHtml(athleteName || "Athlète")}</title>
 <style>
-  @page { size: A4 portrait; margin: 14mm 14mm 16mm; }
+  @page { size: A4 portrait; margin: 14mm 14mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "TFCLab™ · Dossier de Tests Physiologiques"; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } }
   * { box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.45; }
 
@@ -966,15 +971,15 @@ export function buildFullDiagnosticDossierHTML(
 
   /* ---- Tableaux génériques ---- */
   table { width: 100%; border-collapse: collapse; margin-top: 2px; }
-  th, td { border: 1px solid #b9c6c6; padding: 6px 8px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
+  th, td { border: 1px solid #b9c6c6; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
   th { background: #f1f7f6; color: #0d6b65; font-weight: 600; }
   .kv-table th { width: 28%; }
   .results-table th { background: #fdf6e3; color: #8a6d1f; }
   .results-table tbody tr td:first-child { font-weight: 600; }
 
   /* ---- Champs à remplir : cellule haute, fond très clair, baseline nette ---- */
-  td.fill-cell { height: 30px; background: #fcfdfd; border-bottom: 1.5px solid #0d9488; }
-  td.unit-cell { background: #f7faf9; color: #555; font-size: 10pt; text-align: center; }
+  td.fill-cell { height: 32px; padding: 8px 10px; background: #fcfdfd; border-bottom: 1.5px solid #0d9488; }
+  td.unit-cell { padding: 8px 10px; background: #f7faf9; color: #555; font-size: 10pt; text-align: center; }
 
   /* ---- Cards ---- */
   .block-card { border: 1px solid #c8d4d4; border-radius: 4px; margin: 10px 0 14px; overflow: hidden; page-break-inside: avoid; }
