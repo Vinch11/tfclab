@@ -756,7 +756,17 @@ export function generateMaderLactateCurve(
       zone
     });
   }
-  
+
+  // Audit fix — monotonicité croissante du lactate en steady-state.
+  // La courbe lactate ne peut jamais redescendre quand l'intensité augmente.
+  // Si findSteadyStateLactate produit du bruit numérique (oscillations du solver itératif),
+  // forcer lactate[i] >= lactate[i-1] + 0.01.
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].lactate < points[i - 1].lactate) {
+      points[i].lactate = Number((points[i - 1].lactate + 0.01).toFixed(2));
+    }
+  }
+
   return points;
 }
 
