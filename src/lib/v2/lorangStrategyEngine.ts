@@ -526,15 +526,15 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     
     // ✅ FIX : phraser selon le SIGNE du gap et la sémantique de la métrique
     const formatGapReason = (g: { metric: string; gapPercent: number; value: number | null; target: number | null }) => {
-      const abs = Math.abs(g.gapPercent).toFixed(0);
-      if (isLowerIsBetterMetric(g.metric)) {
-        // VLamax : un excès au-dessus de la cible = problème
-        return g.gapPercent >= 0
-          ? `${g.metric} ${abs}% au-dessus de la cible`
-          : `${g.metric} ${abs}% sous la cible`;
-      }
-      // Métriques "plus = mieux" : en-dessous = problème
-      return g.gapPercent < 0
+    const abs = Math.abs(clampPct(g.gapPercent)).toFixed(0);
+    if (isLowerIsBetterMetric(g.metric)) {
+      // VLamax : un excès au-dessus de la cible = problème
+      return g.gapPercent >= 0
+        ? `${g.metric} ${abs}% au-dessus de la cible`
+        : `${g.metric} ${abs}% sous la cible`;
+    }
+    // Métriques "plus = mieux" : en-dessous = problème
+    return g.gapPercent < 0
         ? `${g.metric} ${abs}% sous la cible`
         : `${g.metric} ${abs}% au-dessus de la cible`;
     };
