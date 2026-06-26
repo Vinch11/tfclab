@@ -153,9 +153,13 @@ interface WorkoutPayload {
   isRest?: boolean;
 }
 
-const REST_ID_RE = /REST|REPOS|RECOVERY/i;
+const REST_ID_RE = /^REST_|^REPOS_|^D_.*RECOVERY$|^REST$|^REPOS$/i;
+const PURE_REST_IDS = new Set(["REST_FULL_DAY", "REPOS_COMPLET"]);
 function isRestWorkout(w: WorkoutPayload): boolean {
   return w.isRest === true || REST_ID_RE.test(w.workout_id ?? "");
+}
+function isPureRest(w: WorkoutPayload): boolean {
+  return PURE_REST_IDS.has(w.workout_id ?? "");
 }
 
 interface BatchBody {
@@ -229,7 +233,7 @@ Deno.serve(async (req) => {
         continue;
       }
       // Exclusion séances de repos : insert direct skip sans appel LLM
-      if (isRestWorkout(w)) {
+      if (isRestWorkout(w) && (!body.force_regenerate || isPureRest(w))) {
         await admin.from("nolio_structures_generated").upsert({
           workout_id: w.workout_id,
           source_text_hash: hash,
