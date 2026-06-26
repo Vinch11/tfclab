@@ -21,6 +21,66 @@ import { type AerobicWeaknessDetail } from './unifiedLimiterDetection';
 export type { AerobicWeaknessDetail };
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS PARTAGÉS — Source de vérité unique
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Clamp un écart en pourcentage dans une plage physiologiquement plausible.
+ * Jamais > 500% ou < -200% dans un rapport.
+ */
+export const clampPct = (v: number): number => {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(-200, Math.min(500, v));
+};
+
+export interface VlamaxTargetRange {
+  ideal: number;
+  min: number;
+  max: number;
+}
+
+/**
+ * Source de vérité unique pour les cibles VLamax.
+ * Retourne UNE seule plage par (objectif, discipline) — jamais recalculée localement.
+ *
+ * @param objectif "IM" | "703" | "marathon" | "semi" | "10k" | "trail" | "cycling"
+ * @param discipline "bike" | "run" | "swim" (la VLamax course est sensiblement plus haute)
+ */
+export function getVlamaxTarget(
+  objectif: string | null | undefined,
+  discipline: 'bike' | 'run' | 'swim' = 'bike',
+): VlamaxTargetRange {
+  const key = String(objectif || '703').toLowerCase();
+
+  // Table de référence (bike) — alignée sur AMBITION_TARGETS age_group (cible "athlète préparé")
+  const BIKE: Record<string, VlamaxTargetRange> = {
+    im:        { ideal: 0.40, min: 0.30, max: 0.50 },
+    '703':     { ideal: 0.45, min: 0.35, max: 0.55 },
+    marathon:  { ideal: 0.45, min: 0.35, max: 0.55 },
+    semi:      { ideal: 0.55, min: 0.45, max: 0.70 },
+    '10k':     { ideal: 0.65, min: 0.50, max: 0.80 },
+    trail:     { ideal: 0.50, min: 0.40, max: 0.60 },
+    cycling:   { ideal: 0.50, min: 0.40, max: 0.65 },
+  };
+
+  const base = BIKE[key] ?? BIKE['703'];
+
+  if (discipline === 'run') {
+    // Offset CAP : VLamax course ~+0.05–0.07 vs vélo (cf. AMBITION_TARGETS sport offset)
+    return {
+      ideal: +(base.ideal + 0.06).toFixed(2),
+      min:   +(base.min + 0.05).toFixed(2),
+      max:   +Math.min(base.max + 0.07, 0.85).toFixed(2),
+    };
+  }
+  if (discipline === 'swim') {
+    // Natation : VLamax pertinente surtout sur sprint, plage similaire au vélo
+    return base;
+  }
+  return base;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // TYPES PRINCIPAUX
 // ═══════════════════════════════════════════════════════════════════════════════
 
