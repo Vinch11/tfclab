@@ -305,7 +305,7 @@ export default function TrackDayPage() {
       neuroScore, neuroCount,
       v100, v200, v400, v600, v1km, vma1km,
       P1s, P5s, P30s, P60s,
-      vma400, vma6min, vmaConfirmee,
+      vma400, vma400Warning, vma6min, vmaConfirmee,
       vSeuilKmh, ratioSeuilVMA,
       tteEst,
       driftPct, fatMaxPct,
@@ -667,6 +667,9 @@ export default function TrackDayPage() {
               <Input type="number" step="0.01" value={t400m} onChange={(e) => setT400m(e.target.value)} placeholder="62.0" />
               {fmtNolioDate(nolioDates.t400m) && (
                 <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.t400m)}</div>
+              )}
+              {calc.vma400Warning && (
+                <div className="text-[10px] text-destructive mt-1">⚠️ Valeur aberrante — vérifier le temps saisi</div>
               )}
             </div>
             <div>
