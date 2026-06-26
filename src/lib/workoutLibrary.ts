@@ -5909,6 +5909,345 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       marathon: "Non applicable",
       semi: "Non applicable — triathlon uniquement"
     }
+  },
+
+{
+    id: "SEILER_RUN_Z1_EASY_LONG",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie longue Z1 Seiler — volume aérobie fondamental à intensité strictement basse (pilier du 80/20)",
+    necessite: "Obligatoire",
+    when: "Toute l'année — 1-2x/semaine. Constitue le socle des 80% du volume Seiler.",
+    phase: ["base", "build", "peak"],
+    avoid: "Dériver vers Z3 (erreur classique — 'black hole') · Terrain trop vallonné si difficile de rester en Z1-Z2",
+    durationMin: [70, 150],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Seiler", "polarisé", "Z1", "Z2", "volume", "80/20", "aérobie fondamental", "black hole"],
+    structure: [
+      { part: "Warm-up", text: "Intégré — les 10 premières minutes sont l'échauffement naturel.", zones: ["Z1"] },
+      { part: "Main", text: "60-120 min en Z1-Z2 strict (< 75% FCmax). Allure conversation complète — capable de tenir une discussion normale sans s'essouffler. Si la FC monte vers 78% FCmax → ralentir immédiatement. CONCEPT CLÉ SEILER : le 'black hole' (Z3, 76-85% FCmax) est la zone à ÉVITER absolument. C'est trop difficile pour récupérer facilement, trop facile pour créer des adaptations VO2max. La plupart des athlètes amateurs passent 50-60% de leur volume en Z3 — c'est l'erreur n°1. Cette sortie DOIT rester en dessous du premier seuil lactique (LT1). En pratique : allure où chanter est possible (test Seiler). Réf : Seiler 2010 — les athlètes élites passent 75-80% de leur volume en Z1 strict. Progression sur les semaines : durée augmente de 10 min/semaine.", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "Intégré — les 10 dernières minutes naturellement plus lentes.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "90-120 min Z1 strict — fondement de la préparation IM longue distance",
+      half: "70-90 min Z1-Z2 — 1x/semaine minimum",
+      marathon: "80-110 min Z1 — le volume facile est aussi important que les séances dures",
+      semi: "60-80 min Z1-Z2"
+    }
+  },
+{
+    id: "SEILER_BIKE_Z1_LONG",
+    cat: "A",
+    sport: "cyclisme",
+    objectif: "Sortie longue Z1 Seiler vélo — volume aérobie fondamental polarisé",
+    necessite: "Obligatoire",
+    when: "Toute l'année — 1-2x/semaine. Pilier des 80% du volume Seiler.",
+    phase: ["base", "build", "peak"],
+    avoid: "Home trainer sans ventilateur (FC monte) · Dériver vers Z3 sur les côtes",
+    durationMin: [90, 210],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Seiler", "polarisé", "Z1", "Z2", "vélo", "80/20", "aérobie", "volume"],
+    structure: [
+      { part: "Warm-up", text: "Intégré — les 15 premières minutes Z1 très progressif.", zones: ["Z1"] },
+      { part: "Main", text: "90-180 min en Z1-Z2 strict (55-72% FTP, < 75% FCmax). Cadence libre 85-95 rpm. CONTRÔLE PUISSANCE : utiliser la puissance comme guide principal (pas la FC qui réagit trop lentement). Maintenir < 72% FTP en plat, autoriser jusqu'à 76% FTP dans les côtes courtes. Descentes : pédaler léger pour maintenir le stimulus sans dépasser Z2. Réf : Seiler 2006 — les cyclistes norvégiens élites (cross-country ski adapté au vélo) maintiennent 78-82% de leur volume < 72% FTP. Ceux qui dérivent vers Z3 sur les longues sorties stagnent.", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "Intégré — dernières 15 min Z1 strict.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "180-210 min Z1-Z2 — fondamental IM. Ravitaillement toutes les 45 min.",
+      half: "120-150 min Z1-Z2",
+      marathon: "90-120 min Z1 — support aérobie",
+      semi: "90-120 min Z1-Z2"
+    }
+  },
+{
+    id: "SEILER_SWIM_Z1_VOLUME",
+    cat: "A",
+    sport: "natation",
+    objectif: "Volume Z1 Seiler natation — accumulation volume aérobie en piscine (80% distribution polarisée)",
+    necessite: "Recommandé",
+    when: "Toute l'année — 1-2x/semaine. Socle du volume natation.",
+    phase: ["base", "build"],
+    avoid: "Dériver vers Z3 (effort perceptible mais gérable — black hole natation)",
+    durationMin: [45, 75],
+    metricKey: "allure",
+    sportKey: "natation",
+    defaultSportId: 19,
+    tags: ["Seiler", "polarisé", "Z1", "Z2", "natation", "volume", "80/20"],
+    structure: [
+      { part: "Warm-up", text: "300m progressif mixte crawl/dos", zones: ["Z1"] },
+      { part: "Main", text: "1500-3000m continu ou en longues séries (500-800m) à allure Z1-Z2 (> 110% CSS — plus lent que CSS). Cible : CSS+15s/100m minimum. Sensation : facile, technique fluide, respiration contrôlée toutes les 3 foulées. La tentation est de nager 'un peu plus vite' — résister. Réf : Seiler 2010 adapté natation — la natation doit suivre la même distribution polarisée que les autres sports. Le volume facile développe les adaptations centrales (volume sanguin, efficacité cardiaque) sans créer de fatigue périphérique.", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "200m dos très lent", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2500-3000m Z1 — fondation natation IM",
+      half: "2000-2500m Z1",
+      marathon: "1500-2000m — support",
+      semi: "1500-2000m Z1"
+    }
+  },
+{
+    id: "SEILER_RUN_4X4MIN_STANDARD",
+    cat: "B",
+    sport: "course",
+    objectif: "4×4min Seiler — intervalles VO2max standard norvégien (séance haute intensité polarisée)",
+    necessite: "Recommandé",
+    when: "Build/Peak — 1-2x/semaine. Constitue les 15-20% haute intensité du modèle polarisé.",
+    phase: ["build", "peak"],
+    avoid: "Plus de 2x/semaine (dépasse les 20% du volume) · Fatigue > 7/10 · Jamais en Z3 (trop peu intense)",
+    durationMin: [50, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Seiler", "4x4min", "VO2max", "polarisé", "haute intensité", "Z5", "Z4"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 progressif + 2×1 min à allure seuil R:2 min", zones: ["Z1", "Z2", "Z3"] },
+      { part: "Main", text: "4×4 min à très haute intensité (Z5 — 93-97% FCmax) R:3 min Z1 récup active. Réf : Seiler 2013 — le 4×4min est LA séance haute intensité de référence dans le modèle polarisé. Elle est suffisamment longue pour atteindre VO2max (les 2 premières minutes montent, les 2 dernières restent à VO2max) et suffisamment courte pour ne pas accumuler de fatigue excessive. RÈGLE SEILER : la récupération entre les répétitions doit être ACTIVE (footing Z1) et strictement de 3 min — pas 2 min (trop courte), pas 4 min (trop longue). FC cible sur les 2 dernières minutes de chaque répétition : 93-97% FCmax = séance réussie. Si FC ne monte pas > 90% FCmax sur aucune répétition → allure trop lente, pas une séance polarisée haute intensité.", zones: ["Z5", "Z6"] },
+      { part: "Cool-down", text: "12 min Z1 footing lent. Cette séance constitue 15-20% du volume hebdomadaire — ne pas en faire plus de 2x/semaine.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×4 min à 93-96% FCmax — stimulation VO2max sans fatigue excessive",
+      half: "4×4 min à 94-97% FCmax — standard",
+      marathon: "4×4 min à 93-96% FCmax — développe le plafond aérobie",
+      semi: "4×4 min à 95-97% FCmax"
+    }
+  },
+{
+    id: "SEILER_BIKE_4X4MIN",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "4×4min Seiler vélo — standard VO2max polarisé (séance haute intensité référence)",
+    necessite: "Recommandé",
+    when: "Build/Peak — 1-2x/semaine. 15-20% du volume en haute intensité.",
+    phase: ["build", "peak"],
+    avoid: "Plus de 2x/semaine · Fatigue élevée · Home trainer sans ventilateur (FC monte artificiellement)",
+    durationMin: [55, 70],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Seiler", "4x4min", "VO2max", "vélo", "polarisé", "haute intensité", "Norwegian"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 2×2 min à 95% FTP R:2 min", zones: ["Z1", "Z2", "Z4"] },
+      { part: "Main", text: "4×4 min à 106-115% FTP (Z5) R:3 min 50% FTP. Cadence 90-105 rpm. Sur les 2 dernières minutes de chaque répétition : FC cible ≥ 93% FCmax. Réf : Seiler 2013 — même protocole que la course, adapté au vélo. La puissance est facile à contrôler précisément. IMPORTANT : la récupération à 50% FTP (et non arrêt complet) est essentielle pour maintenir la cinétique VO2 et réduire le lactate progressivement, permettant la répétition suivante d'atteindre VO2max plus rapidement.", zones: ["Z5", "Z6"] },
+      { part: "Cool-down", text: "15 min Z1 cadence libre", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×4 min à 107-112% FTP — développement VO2max",
+      half: "4×4 min à 108-115% FTP",
+      marathon: "Support secondaire",
+      semi: "Support secondaire"
+    }
+  },
+{
+    id: "SEILER_RUN_4X8MIN",
+    cat: "B",
+    sport: "course",
+    objectif: "4×8min Seiler — intervalles longs haute intensité pour adaptations centrales profondes",
+    necessite: "Recommandé",
+    when: "Build — variante avancée du 4×4min. Plus de temps à VO2max, plus d'adaptations cardiaques.",
+    phase: ["build"],
+    avoid: "Athlètes débutants en intervalles haute intensité · Fatigue > 6/10",
+    durationMin: [60, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Seiler", "4x8min", "VO2max", "intervalles longs", "polarisé", "adaptations centrales"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 3×1 min à allure Z5 R:2 min", zones: ["Z1", "Z2", "Z5"] },
+      { part: "Main", text: "4×8 min à Z4-Z5 (90-95% FCmax) R:3 min Z1 actif. L'intensité est légèrement inférieure au 4×4min (FC un peu plus basse) pour permettre de tenir 8 min. Réf : Seiler 2013 — le 4×8min produit plus de temps total à VO2max que le 4×4min (les 6 dernières minutes de chaque répétition de 8 min sont passées à ou près de VO2max vs seulement 2 min pour le 4×4min). Les adaptations cardiaques structurelles (volume d'éjection) sont plus profondes avec les intervalles plus longs. Arrêter si allure chute > 5% vs première répétition.", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "12 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×8 min à 90-93% FCmax — excellent pour VO2max longue distance",
+      half: "4×8 min à 91-94% FCmax",
+      marathon: "4×8 min à 90-93% FCmax",
+      semi: "4×8 min à 92-95% FCmax"
+    }
+  },
+{
+    id: "SEILER_BIKE_4X8MIN",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "4×8min Seiler vélo — intervalles longs VO2max avec adaptations cardiaques profondes",
+    necessite: "Recommandé",
+    when: "Build — après 3-4 semaines de 4×4min. Progression naturelle du modèle Seiler.",
+    phase: ["build"],
+    avoid: "Fatigue élevée · Sans base 4×4min",
+    durationMin: [65, 80],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Seiler", "4x8min", "VO2max", "vélo", "intervalles longs", "polarisé"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min à 105% FTP R:2 min", zones: ["Z1", "Z2", "Z4"] },
+      { part: "Main", text: "4×8 min à 103-110% FTP R:4 min 50% FTP. Cadence 88-98 rpm. FC cible sur les 6 dernières minutes : 90-95% FCmax. La récupération passe de 3 à 4 min (légèrement plus longue qu'avec 4×4min) pour permettre de maintenir la puissance sur 8 min.", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×8 min à 103-107% FTP",
+      half: "4×8 min à 105-110% FTP",
+      marathon: "Support",
+      semi: "Support"
+    }
+  },
+{
+    id: "SEILER_WEEK_POLARIZED_RUN",
+    cat: "C",
+    sport: "course",
+    objectif: "Semaine polarisée Seiler course — structure 80/20 optimale (modèle de référence)",
+    necessite: "Recommandé",
+    when: "Build — semaine type pour athlètes course à pied suivant le modèle Seiler. 4-6 semaines consécutives.",
+    phase: ["build"],
+    avoid: "Dériver vers le modèle 'threshold' (trop de Z3) · Plus de 2 séances haute intensité/semaine",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Seiler", "semaine type", "polarisé", "80/20", "distribution", "structure"],
+    structure: [
+      { part: "Warm-up", text: "Structure semaine optimale Seiler (7 séances, ~10h/semaine) : LUNDI : Z1 récupération 40 min. MARDI : 4×4min Z5 (haute intensité, 15% du volume). MERCREDI : Z1-Z2 long 70-80 min. JEUDI : Z1 récupération 50 min + 8×80m strides. VENDREDI : 4×4min Z5 (2ème séance haute intensité = 20% du volume cumulé). SAMEDI : Z1 long 90-100 min. DIMANCHE : Z1 récupération 40 min.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Cette séance représente le VENDREDI (2ème séance haute intensité) : 4×4 min Z5 à 93-97% FCmax R:3 min Z1. VÉRIFICATION DISTRIBUTION POLARISÉE : Volume Z1-Z2 (lundi + mercredi + jeudi + samedi + dimanche) = ~340 min = 80% du total. Volume Z4-Z5 (mardi + vendredi) = ~48 min haute intensité = 20% du total. Volume Z3 = 0% (BLACK HOLE ÉVITÉ). Réf : Stöggl & Sperlich 2014 — le modèle polarisé produit +6.8% d'amélioration VO2max vs modèle threshold (+3.6%) sur 9 semaines.", zones: ["Z5"] },
+      { part: "Cool-down", text: "12 min Z1. Vérifier chaque semaine la distribution avec la règle : si plus de 20% du temps en Z3 → réduire les séances de qualité ou augmenter le volume facile.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Distribution identique sur 3 sports : 80% Z1-Z2 toutes disciplines confondues",
+      half: "Même structure, volumes légèrement réduits",
+      marathon: "Même structure — standard international",
+      semi: "Même structure, volumes légèrement réduits"
+    }
+  },
+{
+    id: "SEILER_WEEK_POLARIZED_TRI",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Semaine polarisée Seiler triathlon — distribution 80/20 sur 3 disciplines",
+    necessite: "Recommandé",
+    when: "Build — semaine type pour triathlètes. Le modèle 80/20 s'applique au volume TOTAL des 3 disciplines.",
+    phase: ["build"],
+    avoid: "Dériver vers Z3 sur les longues sorties vélo ou run (erreur la plus fréquente en triathlon)",
+    durationMin: [65, 85],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Seiler", "triathlon", "polarisé", "80/20", "3 disciplines", "structure semaine"],
+    structure: [
+      { part: "Warm-up", text: "Structure triathlon 12-15h/semaine : LUNDI : Repos ou Z1 mobilité. MARDI matin : Natation Z1 volume (2500m). MARDI soir : Vélo 4×4min Z5 (haute intensité #1). MERCREDI : Run Z1-Z2 long (70 min). JEUDI matin : Natation CSS (haute intensité #2 — seuil). JEUDI soir : Vélo Z1 long (90 min). VENDREDI : Run strides légers + Z1 40 min. SAMEDI : Vélo Z1-Z2 long (150 min) + Run Z2 30 min (brick léger). DIMANCHE : Run Z1 60 min.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Cette séance représente le MARDI SOIR vélo (4×4min Z5). VÉRIFICATION : Volume Z1-Z2 : ~80% du temps total toutes disciplines. Volume Z4-Z5 : ~20% (2 séances haute intensité par semaine — une vélo, une natation). Volume Z3 : 0-5% maximum. PIÈGE DU TRIATHLON SEILER : les triathlètes ont tendance à courir toutes leurs longues sorties vélo en Z3 ('grey zone') et à faire leurs natations en Z3. Résultat : 50-60% du volume en Z3 → stagnation. Réf : Muñoz 2014 — les triathlètes récréatifs qui passent à 80/20 améliorent leur VO2max de 8.4% vs 4.1% pour ceux en threshold.", zones: ["Z5"] },
+      { part: "Cool-down", text: "15 min Z1 vélo", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Même structure. Volume total 15-20h. Longues sorties vélo et run STRICTEMENT Z1-Z2.",
+      half: "10-12h total. 2 séances haute intensité/semaine.",
+      marathon: "Adapté course uniquement",
+      semi: "8-10h total. 1-2 séances haute intensité/semaine."
+    }
+  },
+{
+    id: "SEILER_RUN_BLACK_HOLE_AUDIT",
+    cat: "C",
+    sport: "course",
+    objectif: "Audit Black Hole Seiler — identifier et corriger la distribution d'intensité (diagnostic)",
+    necessite: "Recommandé",
+    when: "Base — à réaliser au début d'un bloc pour auditer sa distribution réelle d'intensité avant d'appliquer le modèle polarisé.",
+    phase: ["base"],
+    avoid: "Sauter cet audit si l'athlète n'a pas de données d'entraînement récentes (4 semaines minimum)",
+    durationMin: [30, 45],
+    metricKey: "fc",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Seiler", "black hole", "audit", "distribution", "diagnostic", "Z3", "80/20"],
+    structure: [
+      { part: "Warm-up", text: "Analyser les 4 dernières semaines d'entraînement : télécharger les données Garmin/Strava/Training Peaks.", zones: ["Z1"] },
+      { part: "Main", text: "Audit de distribution d'intensité Seiler : Classer chaque séance en 3 zones. Zone 1 (Z1-Z2, < LT1) : tout ce qui est < 82% FCmax en course, < 78% FTP vélo. Zone 2 (Z3, LT1→LT2 'black hole') : 82-90% FCmax, 78-90% FTP. Zone 3 (Z4-Z5, > LT2) : > 90% FCmax, > 90% FTP. Calculer le % de temps dans chaque zone. INTERPRÉTATION : Si > 30% en Z3 → modèle 'threshold' involontaire. Si > 20% en Z4-Z5 → trop intense. Cible Seiler : < 5% Z3, 15-20% Z4-Z5, 75-85% Z1-Z2. Réf : Seiler 2006 — 95% des athlètes amateurs surestiment le temps passé en Z1-Z2 et sous-estiment le temps en Z3.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "Documenter dans les notes coach : distribution actuelle, distribution cible, ajustements nécessaires.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Audit sur les 3 disciplines séparément",
+      half: "Audit course principalement",
+      marathon: "Audit course + vélo si cross-training",
+      semi: "Audit course principalement"
+    }
+  },
+{
+    id: "SEILER_RUN_Z1_RECOVERY_STRICT",
+    cat: "A",
+    sport: "course",
+    objectif: "Récupération Z1 strict Seiler — séance de récupération vraiment active (pas de dérive Z3)",
+    necessite: "Obligatoire",
+    when: "Toute l'année — lendemain de séance haute intensité ou longue sortie. Remplace le repos complet.",
+    phase: ["base", "build", "peak"],
+    avoid: "Dériver vers Z2 haut ou Z3 (détruit le bénéfice) · Courir avec des partenaires plus rapides",
+    durationMin: [30, 50],
+    metricKey: "fc",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Seiler", "récupération", "Z1 strict", "active recovery", "polarisé"],
+    structure: [
+      { part: "Warm-up", text: "Commencer directement à allure très lente", zones: ["Z1"] },
+      { part: "Main", text: "30-45 min en Z1 STRICT (< 70% FCmax). Allure : beaucoup plus lente qu'on ne pense nécessaire. Pour un coureur avec VMA 16 km/h : allure 6:30-7:00/km. Test : capable de chanter une chanson complète en courant (pas juste des mots — une chanson entière). Réf : Seiler 2010 — 'La plupart des athlètes font leurs séances de récupération trop vite et leurs séances intensives trop lentement. Résultat : tout se retrouve en Z3.' Cette séance doit se terminer avec l'impression de ne pas avoir vraiment couru — c'est le signe qu'elle est correcte.", zones: ["Z1"] },
+      { part: "Cool-down", text: "Marche 5 min + mobilité 10 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "40-50 min Z1 strict ou vélo Z1 30 min (alternative)",
+      half: "35-45 min Z1 strict",
+      marathon: "35-45 min Z1 strict — critique après longues sorties",
+      semi: "30-40 min Z1 strict"
+    }
+  },
+{
+    id: "SEILER_RUN_PROGRESSION_4TO8",
+    cat: "B",
+    sport: "course",
+    objectif: "Progression Seiler 4→8min — évolution naturelle des intervalles dans le modèle polarisé",
+    necessite: "Recommandé",
+    when: "Build — après 4-6 semaines de 4×4min. Progression naturelle vers plus de temps à VO2max.",
+    phase: ["build"],
+    avoid: "Sans base solide de 4×4min (minimum 4 semaines) · Fatigue élevée",
+    durationMin: [60, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Seiler", "progression", "4x4", "4x8", "VO2max", "polarisé", "évolution"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 2×1 min Z5 R:2 min", zones: ["Z1", "Z2", "Z5"] },
+      { part: "Main", text: "Semaines 1-2 : 4×4 min Z5 R:3 min (standard). Semaines 3-4 : 4×5 min Z4-Z5 R:3 min. Semaines 5-6 : 4×6 min Z4 R:3 min. Semaines 7-8 : 4×8 min Z4 R:4 min. Réf : Seiler 2013 — 'La progression optimale dans le modèle polarisé est d'allonger la durée des intervalles (4→6→8→10 min) tout en maintenant la récupération à 3-4 min actifs. Ne pas augmenter le nombre de répétitions ni réduire la récupération.' L'intensité diminue légèrement (95%FCmax → 91%FCmax) mais le temps total à VO2max augmente de 8 min (4×4min) à 32 min (4×8min).", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "12 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Progression identique — adapter semaines 5-8 en vélo si charge course élevée",
+      half: "Progression complète 8 semaines",
+      marathon: "Progression identique — fondamentale pour développer VO2max marathon",
+      semi: "Progression identique"
+    }
+  },
+{
+    id: "SEILER_BIKE_PROGRESSION_POLARIZED",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Progression polarisée Seiler vélo — évolution 4×4min → 4×8min → 4×12min sur 12 semaines",
+    necessite: "Recommandé",
+    when: "Build — programme 12 semaines de développement VO2max vélo selon Seiler.",
+    phase: ["build"],
+    avoid: "Sauter des étapes de progression · Fatigue chronique",
+    durationMin: [65, 80],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Seiler", "progression", "vélo", "polarisé", "VO2max", "12 semaines"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 2×2 min à 100% FTP R:2 min", zones: ["Z1", "Z2", "Z4"] },
+      { part: "Main", text: "Programme progression Seiler vélo : Semaines 1-3 : 4×4 min à 108-115% FTP R:3 min. Semaines 4-6 : 4×6 min à 106-112% FTP R:3 min. Semaines 7-9 : 4×8 min à 104-110% FTP R:4 min. Semaines 10-12 : 4×10-12 min à 102-108% FTP R:4 min. Maintenir 80% du volume total en Z1-Z2 sur toute la période. La séance haute intensité est TOUJOURS 1-2 fois/semaine maximum. Réf : Seiler 2013 — '10-12 min à intensité sous-maximale (102-108% FTP) avec 4 min de récup produit les meilleures adaptations à long terme.'", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Programme complet 12 semaines en début de saison — base VO2max IM",
+      half: "Programme 8 semaines (semaines 1-8 uniquement)",
+      marathon: "Support secondaire",
+      semi: "Support secondaire"
+    }
   }
 
 ];
