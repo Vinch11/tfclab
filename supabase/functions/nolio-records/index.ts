@@ -464,8 +464,13 @@ Deno.serve(async (req) => {
             }
           }
 
-          // ─── PAR course / distance — item_seconds = distance (m), value = temps (s) ──
-          // Validation physiologique : rejette les valeurs aberrantes (ex: 3-4s pour un 10K)
+          // ─── PAR course / distance — item_seconds = distance (m), value = ALLURE (min/km) ──
+          // Nolio renvoie une allure min/km (ex: 3.76 = 3:46/km), pas un temps total.
+          // Conversion : t_total_sec = pace_min_per_km × (distance_m / 1000) × 60
+          const paceToTotalSec = (paceMinPerKm: number | null, distanceM: number): number | null => {
+            if (paceMinPerKm == null || !Number.isFinite(paceMinPerKm) || paceMinPerKm <= 0) return null;
+            return paceMinPerKm * (distanceM / 1000) * 60;
+          };
           const validateRaceTime = (
             label: string,
             t: number | null,
@@ -474,15 +479,15 @@ Deno.serve(async (req) => {
           ): number | null => {
             if (t == null || !Number.isFinite(t)) return null;
             if (t < minSec || t > maxSec) {
-              errors.push(`${label} ignoré — ${t}s hors plage physiologique [${minSec}s, ${maxSec}s]`);
+              errors.push(`${label} ignoré — ${Math.round(t)}s hors plage physiologique [${minSec}s, ${maxSec}s]`);
               return null;
             }
             return t;
           };
-          const time5k = validateRaceTime("time_5k_sec", bestMin("par", "distance", 5000, RUN_SPORTS), 840, 3600);
-          const time10k = validateRaceTime("time_10k_sec", bestMin("par", "distance", 10000, RUN_SPORTS), 1800, 7200);
-          const timeHalf = validateRaceTime("time_half_sec", bestMin("par", "distance", 21097, RUN_SPORTS), 3600, 16200);
-          const timeMarathon = validateRaceTime("time_marathon_sec", bestMin("par", "distance", 42195, RUN_SPORTS), 7200, 32400);
+          const time5k = validateRaceTime("time_5k_sec", paceToTotalSec(bestMin("par", "distance", 5000, RUN_SPORTS), 5000), 840, 3600);
+          const time10k = validateRaceTime("time_10k_sec", paceToTotalSec(bestMin("par", "distance", 10000, RUN_SPORTS), 10000), 1800, 7200);
+          const timeHalf = validateRaceTime("time_half_sec", paceToTotalSec(bestMin("par", "distance", 21097, RUN_SPORTS), 21097), 3600, 16200);
+          const timeMarathon = validateRaceTime("time_marathon_sec", paceToTotalSec(bestMin("par", "distance", 42195, RUN_SPORTS), 42195), 7200, 32400);
           if (betterMin((snap as any)?.time_5k_sec, time5k)) updates.time_5k_sec = Math.round(time5k as number);
           if (betterMin((snap as any)?.time_10k_sec, time10k)) updates.time_10k_sec = Math.round(time10k as number);
           if (betterMin((snap as any)?.time_half_sec, timeHalf)) updates.time_half_sec = Math.round(timeHalf as number);
