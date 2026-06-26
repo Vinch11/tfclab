@@ -325,22 +325,22 @@ Deno.serve(async (req) => {
         let snapId: string | null = (todaySnap as any)?.id ?? null;
 
         if (!snapId) {
-          // Clone le snapshot le plus récent pour préserver les valeurs existantes
-          const { data: latest } = await admin
-            .from("snapshots")
-            .select("*")
-            .eq("athlete_id", athleteId)
-            .order("created_at", { ascending: false })
-            .limit(1)
+          // ❗ Pas de clonage : snapshot Nolio autonome, seuls les champs effectivement
+          // remontés par Nolio seront renseignés ci-dessous. Les autres champs (poids,
+          // FTP labo…) restent disponibles via l'historique des snapshots.
+          // On récupère uniquement coach_id (NOT NULL) auprès de l'athlète.
+          const { data: athleteRow } = await admin
+            .from("athletes")
+            .select("coach_id")
+            .eq("id", athleteId)
             .maybeSingle();
 
-          const base: Record<string, unknown> = { athlete_id: athleteId, date: today, source: "nolio-records" };
-          if (latest) {
-            const { id: _id, created_at: _c, updated_at: _u, ...rest } = latest as any;
-            Object.assign(base, rest);
-            base.date = today;
-            base.source = "nolio-records";
-          }
+          const base: Record<string, unknown> = {
+            athlete_id: athleteId,
+            coach_id: (athleteRow as any)?.coach_id ?? null,
+            date: today,
+            source: "nolio-records",
+          };
 
           const { data: inserted, error: insErr } = await admin
             .from("snapshots")
@@ -352,7 +352,7 @@ Deno.serve(async (req) => {
           } else {
             snapId = (inserted as any)?.id ?? null;
             snapshotCreated = !!snapId;
-            if (snapId) console.log(`created today snapshot for athlete ${athleteId}: ${snapId}`);
+            if (snapId) console.log(`created fresh nolio snapshot for athlete ${athleteId}: ${snapId}`);
           }
         }
 
@@ -367,12 +367,25 @@ Deno.serve(async (req) => {
 
           const BIKE_SPORT_IDS = [14, 18];
 
+          // ─── Source agrégée : on lit *toute* la table nolio_records pour cet athlète
+          // (records persistés cumulés) en plus de l'éventuel batch fraîchement importé.
+          // Cela permet de reconstituer le snapshot même quand Nolio renvoie 429 ou
+          // quand tous les records sont déjà connus en base (imported=0).
+          const { data: persistedRecords } = await admin
+            .from("nolio_records")
+            .select("cat, record_type, item_seconds, value, sport_id")
+            .eq("athlete_id", athleteId);
+          const aggregateSource: Array<Record<string, unknown>> = [
+            ...rowsToUpsert,
+            ...((persistedRecords ?? []) as Array<Record<string, unknown>>),
+          ];
+
           // ─── Helpers d'agrégation ───────────────────────────────────────
           const bestMax = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
-            const matches = rowsToUpsert.filter(x =>
+            const matches = aggregateSource.filter(x =>
               x.cat === cat &&
               x.record_type === recordType &&
-              x.item_seconds === sec &&
+              Number(x.item_seconds) === sec &&
               (!sportFilter || sportFilter.includes(Number(x.sport_id))),
             );
             if (matches.length === 0) return null;
@@ -380,10 +393,10 @@ Deno.serve(async (req) => {
             return vals.length ? Math.max(...vals) : null;
           };
           const bestMin = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
-            const matches = rowsToUpsert.filter(x =>
+            const matches = aggregateSource.filter(x =>
               x.cat === cat &&
               x.record_type === recordType &&
-              x.item_seconds === sec &&
+              Number(x.item_seconds) === sec &&
               (!sportFilter || sportFilter.includes(Number(x.sport_id))),
             );
             if (matches.length === 0) return null;
@@ -448,19 +461,29 @@ Deno.serve(async (req) => {
           if (betterMax((snap as any)?.p60s_w, p60Valid)) updates.p60s_w = p60Valid as number;
           if (betterMax((snap as any)?.map5min_w, p300Valid)) updates.map5min_w = p300Valid as number;
 
-          // ─── PAR course / durée — value = distance (m) parcourue dans `item_seconds` s ─
-          const dist15 = bestMax("par", "time", 15, RUN_SPORTS);
-          if (dist15 != null && dist15 > 0) {
-            if (betterMax((snap as any)?.sprint_15s_distance, dist15)) {
-              updates.sprint_15s_distance = Math.round(dist15 * 10) / 10;
+          // ─── PAR course / durée — value = vitesse moyenne (m/s) sur `item_seconds` ─
+          // Sprint 15s : distance = mps × 15
+          const mps15 = bestMax("par", "time", 15, RUN_SPORTS);
+          if (mps15 != null && mps15 > 0) {
+            const sprintDist = mps15 * 15;
+            if (sprintDist >= 60 && sprintDist <= 180) {
+              if (betterMax((snap as any)?.sprint_15s_distance, sprintDist)) {
+                updates.sprint_15s_distance = Math.round(sprintDist * 10) / 10;
+              }
+            } else {
+              errors.push(`sprint_15s_distance ignoré — ${sprintDist.toFixed(1)}m hors plage physiologique [60, 180]m`);
             }
           }
-          const dist360 = bestMax("par", "time", 360, RUN_SPORTS);
-          if (dist360 != null && dist360 > 0) {
-            // VMA estimée = vitesse moyenne sur 6 min × facteur de correction 1.05
-            const vmaEst = (dist360 / 360) * 3.6 * 1.05;
-            if (betterMax((snap as any)?.vma, vmaEst)) {
-              updates.vma = Math.round(vmaEst * 100) / 100;
+          // VMA 6 min : km/h = mps × 3.6, ×1.05 facteur "VMA vs vitesse moyenne 6 min"
+          const mps360 = bestMax("par", "time", 360, RUN_SPORTS);
+          if (mps360 != null && mps360 > 0) {
+            const vmaEst = mps360 * 3.6 * 1.05;
+            if (vmaEst >= 8 && vmaEst <= 30) {
+              if (betterMax((snap as any)?.vma, vmaEst)) {
+                updates.vma = Math.round(vmaEst * 100) / 100;
+              }
+            } else {
+              errors.push(`vma ignoré — ${vmaEst.toFixed(2)}km/h hors plage physiologique [8, 30]km/h`);
             }
           }
 
@@ -494,18 +517,22 @@ Deno.serve(async (req) => {
           if (betterMin((snap as any)?.time_marathon_sec, timeMarathon)) updates.time_marathon_sec = Math.round(timeMarathon as number);
           // (400m / 1000m : stockés uniquement dans nolio_records, consommés par fetchAthleteRaceRecords pour calibration VLamax)
 
-          // ─── PAR natation / distance — CSS = temps 400m / 4 (s/100m) ────
-          const time400swim = bestMin("par", "distance", 400, [SWIM_SPORT]);
-          if (time400swim != null) {
-            const cssVal = time400swim / 4;
-            if (betterMin((snap as any)?.css, cssVal)) {
-              updates.css = Math.round(cssVal * 100) / 100;
+          // ─── PAR natation / distance — value = vitesse (m/s) sur 400m, CSS = 100/value (s/100m) ──
+          const mpsSwim400 = bestMax("par", "distance", 400, [SWIM_SPORT]);
+          if (mpsSwim400 != null && mpsSwim400 > 0) {
+            const cssVal = 100 / mpsSwim400; // s/100m
+            if (cssVal >= 60 && cssVal <= 150) {
+              if (betterMin((snap as any)?.css, cssVal)) {
+                updates.css = Math.round(cssVal * 100) / 100;
+              }
+            } else {
+              errors.push(`css ignoré — ${cssVal.toFixed(1)}s/100m hors plage physiologique [60, 150]s/100m`);
             }
           }
           // (50/100/200/1500/3800 : stockés uniquement dans nolio_records)
 
           // ─── PHRR FC — max parmi tous les records item ≥ 300s (5min) ────
-          const hrCandidates = rowsToUpsert
+          const hrCandidates = aggregateSource
             .filter(x => x.cat === "phrr" && Number(x.item_seconds) >= 300)
             .map(x => Number(x.value))
             .filter(v => Number.isFinite(v) && v >= 150 && v <= 210);
