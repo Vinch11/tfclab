@@ -45,7 +45,11 @@ export function ConfigurationPage() {
   const [nolioMetricsSuccess, setNolioMetricsSuccess] = useState<{ created: number; updated: number; message: string } | null>(null);
 
   const [nolioRecordsLoading, setNolioRecordsLoading] = useState(false);
-  const [nolioRecordsResult, setNolioRecordsResult] = useState<{ message: string; isError: boolean } | null>(null);
+  const [nolioRecordsResult, setNolioRecordsResult] = useState<{
+    message: string;
+    isError: boolean;
+    summary?: Array<{ athlete: string; imported: number; errors?: string[] }>;
+  } | null>(null);
   const [nolioRecordsPeriodOpen, setNolioRecordsPeriodOpen] = useState(false);
 
   
