@@ -236,6 +236,10 @@ Deno.serve(async (req) => {
         { cat: "ppr", recordType: "time", defaultSportIds: BIKE_SPORTS },
         { cat: "par", recordType: "time", defaultSportIds: RUN_SPORTS },
         { cat: "par", recordType: "time", sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
+        // Records par distance (Nolio expose aussi cette dimension : temps requis pour couvrir une distance donnée)
+        { cat: "ppr", recordType: "distance", defaultSportIds: BIKE_SPORTS },
+        { cat: "par", recordType: "distance", defaultSportIds: RUN_SPORTS },
+        { cat: "par", recordType: "distance", sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
       ];
 
       for (const q of queries) {
