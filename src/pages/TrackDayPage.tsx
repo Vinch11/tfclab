@@ -659,7 +659,6 @@ export default function TrackDayPage() {
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-            <div>
               <Label>Temps 400m (sec)</Label>
               <Input type="number" step="0.01" value={t400m} onChange={(e) => setT400m(e.target.value)} placeholder="62.0" />
               {fmtNolioDate(nolioDates.t400m) && (
