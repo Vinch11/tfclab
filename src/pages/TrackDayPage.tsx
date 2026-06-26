@@ -131,6 +131,7 @@ export default function TrackDayPage() {
     bonds5m: { value: bonds5m, set: setBonds5m, default: "" },
     sprint15sM: { value: sprint15sM, set: setSprint15sM, default: "" },
     t400m: { value: t400m, set: setT400m, default: "" },
+    t1000m: { value: t1000m, set: setT1000m, default: "" },
     t600m: { value: t600m, set: setT600m, default: "" },
     d6min: { value: d6min, set: setD6min, default: "" },
     d20min: { value: d20min, set: setD20min, default: "" },
