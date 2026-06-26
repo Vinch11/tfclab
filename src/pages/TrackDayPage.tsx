@@ -687,7 +687,7 @@ export default function TrackDayPage() {
               <Input type="number" step="0.01" value={t600m} onChange={(e) => setT600m(e.target.value)} placeholder="98.0" />
             </div>
             <div className="sm:col-span-2 grid grid-cols-4 gap-2 mt-1 text-xs">
-              <Metric label="VMA (400m)" value={fmt(calc.vma400, 1)} unit="km/h" />
+              <Metric label="Vitesse 400m" value={fmt(calc.v400, 1)} unit="km/h" />
               <Metric label="VMA (1km)" value={fmt(calc.vma1km, 1)} unit="km/h" />
               <Metric label="V 600m" value={fmt(calc.v600, 1)} unit="km/h" />
               <Metric label="P60s" value={fmt(calc.P60s, 2)} unit="W/kg" />
