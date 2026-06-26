@@ -233,7 +233,7 @@ Deno.serve(async (req) => {
         continue;
       }
       // Exclusion séances de repos : insert direct skip sans appel LLM
-      if (isRestWorkout(w)) {
+      if (isRestWorkout(w) && (!body.force_regenerate || isPureRest(w))) {
         await admin.from("nolio_structures_generated").upsert({
           workout_id: w.workout_id,
           source_text_hash: hash,
