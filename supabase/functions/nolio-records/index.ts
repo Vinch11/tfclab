@@ -464,11 +464,25 @@ Deno.serve(async (req) => {
             }
           }
 
-          // ─── PAR course / distance — value = temps (s) sur la distance ──
-          const time5k = bestMin("par", "distance", 5000, RUN_SPORTS);
-          const time10k = bestMin("par", "distance", 10000, RUN_SPORTS);
-          const timeHalf = bestMin("par", "distance", 21097, RUN_SPORTS);
-          const timeMarathon = bestMin("par", "distance", 42195, RUN_SPORTS);
+          // ─── PAR course / distance — item_seconds = distance (m), value = temps (s) ──
+          // Validation physiologique : rejette les valeurs aberrantes (ex: 3-4s pour un 10K)
+          const validateRaceTime = (
+            label: string,
+            t: number | null,
+            minSec: number,
+            maxSec: number,
+          ): number | null => {
+            if (t == null || !Number.isFinite(t)) return null;
+            if (t < minSec || t > maxSec) {
+              errors.push(`${label} ignoré — ${t}s hors plage physiologique [${minSec}s, ${maxSec}s]`);
+              return null;
+            }
+            return t;
+          };
+          const time5k = validateRaceTime("time_5k_sec", bestMin("par", "distance", 5000, RUN_SPORTS), 840, 3600);
+          const time10k = validateRaceTime("time_10k_sec", bestMin("par", "distance", 10000, RUN_SPORTS), 1800, 7200);
+          const timeHalf = validateRaceTime("time_half_sec", bestMin("par", "distance", 21097, RUN_SPORTS), 3600, 16200);
+          const timeMarathon = validateRaceTime("time_marathon_sec", bestMin("par", "distance", 42195, RUN_SPORTS), 7200, 32400);
           if (betterMin((snap as any)?.time_5k_sec, time5k)) updates.time_5k_sec = Math.round(time5k as number);
           if (betterMin((snap as any)?.time_10k_sec, time10k)) updates.time_10k_sec = Math.round(time10k as number);
           if (betterMin((snap as any)?.time_half_sec, timeHalf)) updates.time_half_sec = Math.round(timeHalf as number);
