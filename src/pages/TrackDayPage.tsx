@@ -332,6 +332,7 @@ export default function TrackDayPage() {
       tte_observed_min_run: calc.tteEst || null,
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
       sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
+      pace1km_sec: num(t1000m) > 0 ? num(t1000m) : null,
       coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
     } as any);
     if (snap) {
