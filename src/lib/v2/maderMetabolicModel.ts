@@ -42,7 +42,7 @@ export interface LactateState {
  * Performance predictions from the model
  */
 export interface MaderPredictions {
-  mlssPower: number;        // Watts at MLSS (≈ FTP)
+  mlssPower: number;        // Watts at MLSS (Mader-derived; 0 = non calculable). NE PAS supposer = FTP.
   mlssWkg: number;          // W/kg at MLSS
   lt1Power: number;         // LT1 (2mmol) power
   lt2Power: number;         // LT2 (4mmol) power
@@ -315,24 +315,54 @@ export const USE_CALIBRATED_MADER_ALPHA = true;
 export function findMLSSPower(profile: MaderProfile): number {
   const { vo2max, vlamax, weight } = profile;
   const efficiency = profile.efficiency ?? 0.23;
-  
+
+  // Audit fix — MLSS unique source of truth.
+  // NE JAMAIS poser MLSS = FTP comme hypothèse (circulaire).
+  // Si les entrées Mader sont absentes/invalides → retourner 0 (sentinelle "non calculable").
+  // L'UI doit afficher "MLSS non calculable" plutôt qu'une approximation.
+  if (!Number.isFinite(vo2max) || vo2max <= 0) return 0;
+  if (!Number.isFinite(vlamax) || vlamax <= 0) return 0;
+  if (!Number.isFinite(weight) || weight <= 0) return 0;
+
   // Absolute VO2max in L/min
   const vo2maxAbs = vo2max * weight / 1000;
-  
+
   // Mader analytical MLSS relationship
   const ALPHA = USE_CALIBRATED_MADER_ALPHA ? MADER_ALPHA_CALIBRATED : MADER_ALPHA_LEGACY;
   const mlssIntensityPct = 100 * (1 - ALPHA * vlamax / vo2maxAbs);
-  
+
   // Clamp to physiological range (45-95% VO2max)
   const clampedIntensity = Math.max(45, Math.min(95, mlssIntensityPct));
-  
+
   // Convert intensity to power
   const vo2AtMLSS = vo2max * clampedIntensity / 100; // ml/kg/min
   const vo2LPerMin = vo2AtMLSS * weight / 1000;
   const energyKJPerMin = vo2LPerMin * ENERGY_PER_O2;
   const powerWatts = (energyKJPerMin * 1000 / 60) * efficiency;
-  
+
   return Math.round(powerWatts);
+}
+
+/**
+ * MLSS calculability helper — true si findMLSSPower retourne une valeur physiologique.
+ * Utiliser en amont de l'affichage pour décider entre la valeur Mader et "MLSS non calculable".
+ */
+export function isMLSSComputable(profile: MaderProfile): boolean {
+  return findMLSSPower(profile) > 0;
+}
+
+/**
+ * Format MLSS pour l'UI — retourne "MLSS non calculable" si la valeur Mader n'est pas dispo.
+ * Toujours utiliser ce helper côté affichage pour éviter de tomber dans le piège circulaire MLSS=FTP.
+ */
+export function formatMLSSDisplay(profile: MaderProfile, unit: "W" | "W/kg" = "W"): string {
+  const power = findMLSSPower(profile);
+  if (power <= 0) return "MLSS non calculable";
+  if (unit === "W/kg") {
+    const w = profile.weight > 0 ? (power / profile.weight).toFixed(2) : "—";
+    return `${w} W/kg`;
+  }
+  return `${power} W`;
 }
 
 /**
@@ -709,13 +739,16 @@ export function generateMaderLactateCurve(
     const power = Math.round((energyKJPerMin * 1000 / 60) * efficiency);
     
     // Determine zone
+    // Audit fix — zone supramaximale Z6 = ≥ Z5 sans borne haute.
+    // NE PAS écrire de zone inversée du type "103-100% FTP" (borne basse > borne haute).
+    // Toute zone au-dessus du seuil VO2max est unbounded vers le haut.
     let zone: string;
     if (lactate < 2.0) zone = "Z1 - Récupération";
     else if (lactate < 2.5) zone = "Z2 - Endurance";
     else if (lactate < 4.0) zone = "Z3 - Tempo";
     else if (lactate < 6.0) zone = "Z4 - Seuil";
     else if (lactate < 10.0) zone = "Z5 - VO2max";
-    else zone = "Z6 - Anaérobie";
+    else zone = "Z6 - Anaérobie (≥ 103% FTP, sans borne haute)";
     
     points.push({
       intensity,
@@ -726,7 +759,17 @@ export function generateMaderLactateCurve(
       zone
     });
   }
-  
+
+  // Audit fix — monotonicité croissante du lactate en steady-state.
+  // La courbe lactate ne peut jamais redescendre quand l'intensité augmente.
+  // Si findSteadyStateLactate produit du bruit numérique (oscillations du solver itératif),
+  // forcer lactate[i] >= lactate[i-1] + 0.01.
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].lactate < points[i - 1].lactate) {
+      points[i].lactate = Number((points[i - 1].lactate + 0.01).toFixed(2));
+    }
+  }
+
   return points;
 }
 
