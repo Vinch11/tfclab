@@ -583,16 +583,16 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
   const scores: { limiter: LorangLimiter; score: number; reason: string }[] = [];
   
   if (vo2maxGap !== null && vo2maxGap < -0.1) {
-    scores.push({ limiter: 'motor', score: vo2maxGap * 100, reason: `VO2max ${Math.abs(vo2maxGap * 100).toFixed(0)}% sous la cible` });
+    scores.push({ limiter: 'motor', score: vo2maxGap * 100, reason: `VO2max ${Math.abs(clampPct(vo2maxGap * 100)).toFixed(0)}% sous la cible` });
   }
   if (vlamaxGap !== null && vlamaxGap > 0.15) {
-    scores.push({ limiter: 'glycolytic', score: -vlamaxGap * 100, reason: `VLamax ${(vlamaxGap * 100).toFixed(0)}% au-dessus de la cible` });
+    scores.push({ limiter: 'glycolytic', score: -vlamaxGap * 100, reason: `VLamax ${clampPct(vlamaxGap * 100).toFixed(0)}% au-dessus de la cible` });
   }
   if (fatmaxGap !== null && fatmaxGap < -0.15) {
-    scores.push({ limiter: 'metabolic', score: fatmaxGap * 100, reason: `FatMax ${Math.abs(fatmaxGap * 100).toFixed(0)}% sous la cible` });
+    scores.push({ limiter: 'metabolic', score: fatmaxGap * 100, reason: `FatMax ${Math.abs(clampPct(fatmaxGap * 100)).toFixed(0)}% sous la cible` });
   }
   if (tteGap !== null && tteGap < -0.1) {
-    scores.push({ limiter: 'durability', score: tteGap * 100, reason: `TTE ${Math.abs(tteGap * 100).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)` });
+    scores.push({ limiter: 'durability', score: tteGap * 100, reason: `TTE ${Math.abs(clampPct(tteGap * 100)).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)` });
   }
   const economyScore = physiology.economy ?? 50;
   if (economyScore < 50) {
