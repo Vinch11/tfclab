@@ -702,7 +702,7 @@ function activateLevers(
       icon: LEVER_DEFINITIONS.vo2_intervals.icon,
       priority: primaryLimiter === 'motor' && vo2maxLow ? 1 : 2,
       reason: vo2Gap && vo2Gap.gapPercent < 0
-        ? `VO₂max ${Math.abs(vo2Gap.gapPercent).toFixed(0)}% sous la cible (${vo2Gap.value} vs ${vo2Gap.target} ml/min/kg) — développer le plafond aérobie`
+        ? `VO₂max ${Math.abs(clampPct(vo2Gap.gapPercent)).toFixed(0)}% sous la cible (${vo2Gap.value} vs ${vo2Gap.target} ml/min/kg) — développer le plafond aérobie`
 
         : "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
       prescription: [
@@ -734,7 +734,7 @@ function activateLevers(
       icon: LEVER_DEFINITIONS.threshold_work.icon,
       priority: (primaryLimiter === 'motor' && ftpKgLow) || isMetricLimiting("FTP/kg") || isMetricLimiting("VMA") ? 1 : 2,
       reason: ftpGap && ftpGap.gapPercent < 0
-        ? `${ftpGap.metric} ${Math.abs(ftpGap.gapPercent).toFixed(0)}% sous la cible (${ftpGap.value?.toFixed(1)} vs ${ftpGap.target?.toFixed(1)}) — développer la puissance soutenue`
+        ? `${ftpGap.metric} ${Math.abs(clampPct(ftpGap.gapPercent)).toFixed(0)}% sous la cible (${ftpGap.value?.toFixed(1)} vs ${ftpGap.target?.toFixed(1)}) — développer la puissance soutenue`
 
         : "FTP/kg insuffisant par rapport à la cible — développer l'expression aérobie via travail au seuil",
       prescription: [
@@ -774,10 +774,10 @@ function activateLevers(
     // Déterminer la raison principale
     let z2Reason: string;
     if (tteIsLimiting && tteGap && tteGap.gapPercent < 0) {
-      z2Reason = `TTE ${Math.abs(tteGap.gapPercent).toFixed(0)}% sous la cible (${tteGap.value}min vs ${tteGap.target}min) — développer la durabilité`;
+      z2Reason = `TTE ${Math.abs(clampPct(tteGap.gapPercent)).toFixed(0)}% sous la cible (${tteGap.value}min vs ${tteGap.target}min) — développer la durabilité`;
 
     } else if (vlamaxIsLimiting && vlamaxGap) {
-      z2Reason = `VLamax ${Math.abs(vlamaxGap.gapPercent).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
+      z2Reason = `VLamax ${Math.abs(clampPct(vlamaxGap.gapPercent)).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
     } else {
       z2Reason = "Efficacité énergétique limitante — augmenter le volume aérobie de base";
     }
