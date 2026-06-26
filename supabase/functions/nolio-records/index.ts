@@ -504,24 +504,14 @@ Deno.serve(async (req) => {
 
           // ─── PAR course / durée — value = vitesse moyenne (m/s) sur `item_seconds` ─
           // 🔒 PROTECTED_FROM_IMPORT
-          // sprint_15s_distance, tte_observed_min(_run), protocol_quality,
+          // sprint_15s_distance, vma, tte_observed_min(_run), protocol_quality,
           // vlamax_protocol, vlamax_source : champs terrain/labo qui ne peuvent
           // jamais être déduits d'un record Nolio. On ne les met PAS à jour ici,
           // ils restent ceux portés par CARRY_OVER_FIELDS.
-          // (Anciennement : sprint_15s_distance était écrasé depuis par/time/15)
-          // VMA 6 min : km/h = mps × 3.6, ×1.05 facteur "VMA vs vitesse moyenne 6 min"
-          const mps360 = bestMax("par", "time", 360, RUN_SPORTS);
-          if (mps360 != null && mps360 > 0) {
-            const vmaEst = mps360 * 3.6 * 1.05;
-            if (vmaEst >= 8 && vmaEst <= 30) {
-              if (betterMax((snap as any)?.vma, vmaEst)) {
-                updates.vma = Math.round(vmaEst * 100) / 100;
-              }
-            } else {
-              errors.push(`vma ignoré — ${vmaEst.toFixed(2)}km/h hors plage physiologique [8, 30]km/h`);
+          // VMA : uniquement via Track Day / Tri Test Day / saisie coach.
+          // Le record par/time/360 reste persisté dans `nolio_records` pour
+          // référence mais n'alimente plus le snapshot.
 
-            }
-          }
 
           // ─── PAR course / distance — item_seconds = distance (m), value = VITESSE (m/s) ──
           // Conversion : t_total_sec = distance_m / value_mps
