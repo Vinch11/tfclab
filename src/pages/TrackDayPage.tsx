@@ -261,13 +261,13 @@ export default function TrackDayPage() {
     const v600 = num(t600m) > 0 ? (600 / num(t600m)) * 3.6 : 0;
     const P60s = powerWperKg(v400);
 
-    // VMA depuis 400m — Léger & Bouchard 1980 : vitesse 400m × 1.05
     const vma400Raw = num(t400m) > 0 ? (400 / num(t400m)) * 3.6 * 1.05 : 0;
     const vma400 = vma400Raw > 30 ? 0 : vma400Raw;
     const vma400Warning = vma400Raw > 30;
     // VMA depuis 6 min (Léger)
     const vma6min = num(d6min) > 0 ? (num(d6min) / 6) * 60 / 1000 * 1.05 : 0;
-    const vmaConfirmee = Math.max(vma6min || 0, vma400 || 0, vma1km || 0);
+    const vmaConfirmee = vma6min > 0 ? vma6min : (vma1km > 0 ? vma1km : 0);
+
 
     // Allure seuil depuis 20 min
     const vSeuilKmh = num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
@@ -687,7 +687,7 @@ export default function TrackDayPage() {
               <Input type="number" step="0.01" value={t600m} onChange={(e) => setT600m(e.target.value)} placeholder="98.0" />
             </div>
             <div className="sm:col-span-2 grid grid-cols-4 gap-2 mt-1 text-xs">
-              <Metric label="VMA (400m)" value={fmt(calc.vma400, 1)} unit="km/h" />
+              <Metric label="Vitesse 400m" value={fmt(calc.v400, 1)} unit="km/h" />
               <Metric label="VMA (1km)" value={fmt(calc.vma1km, 1)} unit="km/h" />
               <Metric label="V 600m" value={fmt(calc.v600, 1)} unit="km/h" />
               <Metric label="P60s" value={fmt(calc.P60s, 2)} unit="W/kg" />
