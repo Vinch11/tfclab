@@ -340,14 +340,17 @@ Deno.serve(async (req) => {
 
           const { data: snap } = await admin
             .from("snapshots")
-            .select("pmax_5s, p30s_w, p60s_w, map5min_w, sprint_15s_distance, vma")
+            .select("pmax_5s, p30s_w, p60s_w, map5min_w, sprint_15s_distance, vma, ftp")
             .eq("id", snapId)
             .maybeSingle();
 
-          // Meilleur record PPR toutes disciplines confondues à une durée donnée
+          // Meilleur record PPR — VÉLO UNIQUEMENT (Route + Home Trainer)
+          const BIKE_SPORT_IDS = [14, 18];
           const bestPPR = (sec: number): number | null => {
             const matches = rowsToUpsert.filter(x =>
-              x.cat === "ppr" && x.item_seconds === sec,
+              x.cat === "ppr" &&
+              x.item_seconds === sec &&
+              BIKE_SPORT_IDS.includes(Number(x.sport_id))
             );
             if (matches.length === 0) return null;
             return Math.max(...matches.map(x => Number(x.value)).filter(Number.isFinite));
@@ -380,10 +383,42 @@ Deno.serve(async (req) => {
           const better = (cur: unknown, nv: number | null) =>
             nv != null && Number.isFinite(nv) && nv > Number(cur ?? 0);
 
-          if (better((snap as any)?.pmax_5s, p5)) updates.pmax_5s = p5 as number;
+          // Validation physiologique avant écriture snapshot
+          const snapFtp = Number((snap as any)?.ftp);
+          const hasFtp = Number.isFinite(snapFtp) && snapFtp > 0;
+
+          let p5Valid = p5;
+          if (p5Valid != null) {
+            if (hasFtp) {
+              const r = p5Valid / snapFtp;
+              if (r > 4.0) {
+                errors.push(`pmax_5s ignoré — ratio Pmax/FTP = ${r.toFixed(1)} (seuil physiologique : < 4.0)`);
+                p5Valid = null;
+              }
+            } else if (p5Valid >= 2000) {
+              errors.push(`pmax_5s ignoré — ${p5Valid}W ≥ plafond absolu 2000W (FTP indisponible)`);
+              p5Valid = null;
+            }
+          }
+
+          let p300Valid = p300;
+          if (p300Valid != null) {
+            if (hasFtp) {
+              const r = p300Valid / snapFtp;
+              if (r > 1.50) {
+                errors.push(`map5min_w ignoré — ratio MAP/FTP = ${r.toFixed(2)} (seuil physiologique : < 1.50)`);
+                p300Valid = null;
+              }
+            } else if (p300Valid >= 600) {
+              errors.push(`map5min_w ignoré — ${p300Valid}W ≥ plafond absolu 600W (FTP indisponible)`);
+              p300Valid = null;
+            }
+          }
+
+          if (better((snap as any)?.pmax_5s, p5Valid)) updates.pmax_5s = p5Valid as number;
           if (better((snap as any)?.p30s_w, p30)) updates.p30s_w = p30 as number;
           if (better((snap as any)?.p60s_w, p60)) updates.p60s_w = p60 as number;
-          if (better((snap as any)?.map5min_w, p300)) updates.map5min_w = p300 as number;
+          if (better((snap as any)?.map5min_w, p300Valid)) updates.map5min_w = p300Valid as number;
 
           if (par15 != null && Number.isFinite(par15) && par15 > 0) {
             // par en sec/km → vitesse m/s = 1000 / par → distance(15s) = vitesse × 15
