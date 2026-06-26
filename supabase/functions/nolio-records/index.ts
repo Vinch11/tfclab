@@ -367,9 +367,23 @@ Deno.serve(async (req) => {
           ];
 
           const carry: Record<string, unknown> = {};
+          const isPlausibleRunningPowerCarry = (field: string, value: unknown): boolean => {
+            const n = Number(value);
+            if (!Number.isFinite(n) || n <= 0) return true;
+            if (field === "running_power_max" && n > 1200) return false;
+            if (field === "running_power_threshold" && (n < 120 || n > 520)) return false;
+            if (["running_power_1s", "running_power_5s"].includes(field) && n > 1200) return false;
+            if (["running_power_30s", "running_power_60s"].includes(field) && n > 900) return false;
+            if (field === "running_power_5min" && n > 650) return false;
+            return true;
+          };
           if (prevSnap) {
             for (const f of CARRY_OVER_FIELDS) {
               const v = (prevSnap as any)[f];
+              if (f.startsWith("running_power_") && !isPlausibleRunningPowerCarry(f, v)) {
+                errors.push(`${f} carry-over ignoré — valeur CAP incohérente (${v})`);
+                continue;
+              }
               if (v !== null && v !== undefined) carry[f] = v;
             }
           }
