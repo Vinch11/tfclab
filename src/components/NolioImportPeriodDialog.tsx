@@ -1,6 +1,6 @@
 /**
  * NolioImportPeriodDialog
- * Sélecteur de période avant import des records Nolio.
+ * Sélecteur de période + (optionnel) liste d'athlètes à inclure avant import des records Nolio.
  * Utilisé dans BikeTrackDayPage, TrackDayPage et ConfigurationPage.
  */
 import { useEffect, useMemo, useState } from "react";
@@ -15,14 +15,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CalendarRange } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CalendarRange, Users } from "lucide-react";
 
 export type NolioImportPeriod = {
   dateFrom: string; // YYYY-MM-DD
   dateTo: string;   // YYYY-MM-DD
   /** Fenêtre en mois (6, 12, 24) ou null si "Tout" / personnalisé. */
   windowMonths: number | null;
+  /** Liste d'athlete_id sélectionnés (uniquement si selectableAthletes est fourni). */
+  athleteIds?: string[];
 };
+
+export type SelectableAthlete = { id: string; name: string };
 
 interface Props {
   open: boolean;
@@ -31,6 +36,8 @@ interface Props {
   defaultWindowMonths?: number | null;
   loading?: boolean;
   title?: string;
+  /** Si fourni, affiche la liste d'athlètes à cocher. Tous décochés par défaut. */
+  selectableAthletes?: SelectableAthlete[];
 }
 
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
@@ -55,11 +62,13 @@ export function NolioImportPeriodDialog({
   defaultWindowMonths = 12,
   loading = false,
   title = "Période des records à importer",
+  selectableAthletes,
 }: Props) {
   const today = useMemo(() => fmt(new Date()), []);
   const [dateFrom, setDateFrom] = useState(monthsAgo(defaultWindowMonths ?? 12));
   const [dateTo, setDateTo] = useState(today);
   const [windowMonths, setWindowMonths] = useState<number | null>(defaultWindowMonths ?? 12);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!open) return;
@@ -71,6 +80,8 @@ export function NolioImportPeriodDialog({
       setDateFrom(monthsAgo(defaultWindowMonths));
       setWindowMonths(defaultWindowMonths);
     }
+    // Par défaut : aucun athlète coché — le coach choisit explicitement.
+    setSelectedIds(new Set());
   }, [open, defaultWindowMonths, today]);
 
   const applyPreset = (months: number | null) => {
@@ -79,20 +90,43 @@ export function NolioImportPeriodDialog({
     setDateFrom(months == null ? "2000-01-01" : monthsAgo(months));
   };
 
+  const toggleAthlete = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedIds(new Set((selectableAthletes ?? []).map((a) => a.id)));
+  };
+  const deselectAll = () => setSelectedIds(new Set());
+
+  const hasAthleteSelector = Array.isArray(selectableAthletes);
+  const canConfirm = !loading && !!dateFrom && !!dateTo
+    && (!hasAthleteSelector || selectedIds.size > 0);
+
   const handleConfirm = () => {
-    onConfirm({ dateFrom, dateTo, windowMonths });
+    onConfirm({
+      dateFrom,
+      dateTo,
+      windowMonths,
+      ...(hasAthleteSelector ? { athleteIds: Array.from(selectedIds) } : {}),
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarRange className="w-4 h-4" />
             {title}
           </DialogTitle>
           <DialogDescription>
-            Sélectionnez la fenêtre temporelle des records à importer.
+            Sélectionnez la fenêtre temporelle{hasAthleteSelector ? " et les athlètes à importer" : " des records à importer"}.
           </DialogDescription>
         </DialogHeader>
 
@@ -146,6 +180,58 @@ export function NolioImportPeriodDialog({
             </div>
           </div>
 
+          {hasAthleteSelector && (
+            <div className="space-y-2 border-t pt-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-1.5 text-sm">
+                  <Users className="w-4 h-4" />
+                  Athlètes à importer
+                  <span className="text-xs text-muted-foreground font-normal">
+                    ({selectedIds.size}/{selectableAthletes!.length})
+                  </span>
+                </Label>
+                <div className="flex gap-1">
+                  <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={selectAll}>
+                    Tout sélectionner
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={deselectAll}>
+                    Tout déselectionner
+                  </Button>
+                </div>
+              </div>
+              {selectableAthletes!.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">
+                  Aucun athlète lié à Nolio. Liez d'abord vos athlètes depuis la section "Lier les athlètes Nolio".
+                </p>
+              ) : (
+                <div className="max-h-56 overflow-y-auto rounded-md border divide-y">
+                  {selectableAthletes!.map((a) => {
+                    const checked = selectedIds.has(a.id);
+                    return (
+                      <label
+                        key={a.id}
+                        htmlFor={`nolio-ath-${a.id}`}
+                        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-muted/50"
+                      >
+                        <Checkbox
+                          id={`nolio-ath-${a.id}`}
+                          checked={checked}
+                          onCheckedChange={() => toggleAthlete(a.id)}
+                        />
+                        <span className="text-sm">{a.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              {selectedIds.size === 0 && selectableAthletes!.length > 0 && (
+                <p className="text-xs text-muted-foreground italic">
+                  Cochez au moins un athlète pour lancer l'import.
+                </p>
+              )}
+            </div>
+          )}
+
           <p className="text-xs text-muted-foreground leading-relaxed">
             Seuls les records réalisés dans cette période seront importés.
             Recommandé : 12 mois pour refléter le niveau actuel.
@@ -161,8 +247,12 @@ export function NolioImportPeriodDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>
             Annuler
           </Button>
-          <Button onClick={handleConfirm} disabled={loading || !dateFrom || !dateTo}>
-            {loading ? "Import..." : "Importer"}
+          <Button onClick={handleConfirm} disabled={!canConfirm}>
+            {loading
+              ? "Import..."
+              : hasAthleteSelector
+                ? `Importer (${selectedIds.size})`
+                : "Importer"}
           </Button>
         </DialogFooter>
       </DialogContent>
