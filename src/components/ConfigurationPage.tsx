@@ -245,6 +245,10 @@ export function ConfigurationPage() {
       setNolioRecordsResult({ message: "Pas de session active", isError: true });
       return;
     }
+    if (!period.athleteIds || period.athleteIds.length === 0) {
+      setNolioRecordsResult({ message: "Aucun athlète sélectionné", isError: true });
+      return;
+    }
     setNolioRecordsLoading(true);
     setNolioRecordsResult(null);
 
@@ -263,6 +267,7 @@ export function ConfigurationPage() {
         body: JSON.stringify({
           date_from: period.dateFrom,
           date_to: period.dateTo,
+          athlete_ids: period.athleteIds,
         }),
       });
       const rawBody = await resp.text();
@@ -277,9 +282,10 @@ export function ConfigurationPage() {
       try { parsed = JSON.parse(rawBody); } catch { /* ignore */ }
       const total = parsed?.total_records ?? 0;
       const processed = parsed?.athletes_processed ?? 0;
+      const summary = Array.isArray(parsed?.summary) ? parsed.summary : undefined;
       const fmtFr = (s: string) => new Date(s).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" });
       const message = `${total} record${total > 1 ? "s" : ""} importé${total > 1 ? "s" : ""} pour ${processed} athlète${processed > 1 ? "s" : ""} sur la période du ${fmtFr(period.dateFrom)} au ${fmtFr(period.dateTo)}`;
-      setNolioRecordsResult({ message, isError: false });
+      setNolioRecordsResult({ message, isError: false, summary });
       toast({ title: "Records Nolio importés", description: message });
       setNolioRecordsPeriodOpen(false);
     } catch (e) {
