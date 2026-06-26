@@ -353,98 +353,140 @@ Deno.serve(async (req) => {
 
           const { data: snap } = await admin
             .from("snapshots")
-            .select("pmax_5s, p30s_w, p60s_w, map5min_w, sprint_15s_distance, vma, ftp")
+            .select("pmax_5s, p30s_w, p60s_w, map5min_w, sprint_15s_distance, vma, ftp, css, fc_max, time_5k_sec, time_10k_sec, time_half_sec, time_marathon_sec")
             .eq("id", snapId)
             .maybeSingle();
 
-          // Meilleur record PPR — VÉLO UNIQUEMENT (Route + Home Trainer)
           const BIKE_SPORT_IDS = [14, 18];
-          const bestPPR = (sec: number): number | null => {
+
+          // ─── Helpers d'agrégation ───────────────────────────────────────
+          const bestMax = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
             const matches = rowsToUpsert.filter(x =>
-              x.cat === "ppr" &&
+              x.cat === cat &&
+              x.record_type === recordType &&
               x.item_seconds === sec &&
-              BIKE_SPORT_IDS.includes(Number(x.sport_id))
+              (!sportFilter || sportFilter.includes(Number(x.sport_id))),
             );
             if (matches.length === 0) return null;
-            return Math.max(...matches.map(x => Number(x.value)).filter(Number.isFinite));
+            const vals = matches.map(x => Number(x.value)).filter(Number.isFinite);
+            return vals.length ? Math.max(...vals) : null;
+          };
+          const bestMin = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
+            const matches = rowsToUpsert.filter(x =>
+              x.cat === cat &&
+              x.record_type === recordType &&
+              x.item_seconds === sec &&
+              (!sportFilter || sportFilter.includes(Number(x.sport_id))),
+            );
+            if (matches.length === 0) return null;
+            const vals = matches.map(x => Number(x.value)).filter(v => Number.isFinite(v) && v > 0);
+            return vals.length ? Math.min(...vals) : null;
           };
 
-          const p5 = bestPPR(5);
-          const p30 = bestPPR(30);
-          const p60 = bestPPR(60);
-          const p300 = bestPPR(300);
-
-          // par run record 15s → distance (m) parcourue en 15s (target en sec/km)
-          const par15 = (() => {
-            const matches = rowsToUpsert.filter(x =>
-              x.cat === "par" && x.item_seconds === 15 && RUN_SPORTS.includes(x.sport_id as number),
-            );
-            if (matches.length === 0) return null;
-            // value = sec/km le plus rapide = min
-            return Math.min(...matches.map(x => Number(x.value)).filter(Number.isFinite));
-          })();
-          // par run record 360s (6min) → vma estimée
-          const par360 = (() => {
-            const matches = rowsToUpsert.filter(x =>
-              x.cat === "par" && x.item_seconds === 360 && RUN_SPORTS.includes(x.sport_id as number),
-            );
-            if (matches.length === 0) return null;
-            return Math.min(...matches.map(x => Number(x.value)).filter(Number.isFinite));
-          })();
-
           const updates: Record<string, number> = {};
-          const better = (cur: unknown, nv: number | null) =>
+          const betterMax = (cur: unknown, nv: number | null) =>
             nv != null && Number.isFinite(nv) && nv > Number(cur ?? 0);
+          const betterMin = (cur: unknown, nv: number | null) => {
+            if (nv == null || !Number.isFinite(nv) || nv <= 0) return false;
+            const c = Number(cur);
+            return !Number.isFinite(c) || c <= 0 || nv < c;
+          };
 
-          // Validation physiologique avant écriture snapshot
           const snapFtp = Number((snap as any)?.ftp);
           const hasFtp = Number.isFinite(snapFtp) && snapFtp > 0;
 
-          let p5Valid = p5;
-          if (p5Valid != null) {
+          // ─── PPR vélo / durée ───────────────────────────────────────────
+          const p5 = bestMax("ppr", "time", 5, BIKE_SPORT_IDS);
+          const p30 = bestMax("ppr", "time", 30, BIKE_SPORT_IDS);
+          const p60 = bestMax("ppr", "time", 60, BIKE_SPORT_IDS);
+          const p300 = bestMax("ppr", "time", 300, BIKE_SPORT_IDS);
+
+          // Garde physiologique : items < 30s → ratio /FTP < 4.0 ; item 300s → ratio /FTP < 1.6
+          const validateShort = (label: string, w: number | null, ratioCap: number, absCap: number): number | null => {
+            if (w == null) return null;
             if (hasFtp) {
-              const r = p5Valid / snapFtp;
-              if (r > 4.0) {
-                errors.push(`pmax_5s ignoré — ratio Pmax/FTP = ${r.toFixed(1)} (seuil physiologique : < 4.0)`);
-                p5Valid = null;
+              const r = w / snapFtp;
+              if (r > ratioCap) {
+                errors.push(`${label} ignoré — ratio ${label}/FTP = ${r.toFixed(2)} (seuil < ${ratioCap})`);
+                return null;
               }
-            } else if (p5Valid >= 2000) {
-              errors.push(`pmax_5s ignoré — ${p5Valid}W ≥ plafond absolu 2000W (FTP indisponible)`);
-              p5Valid = null;
+            } else if (w >= absCap) {
+              errors.push(`${label} ignoré — ${w}W ≥ plafond absolu ${absCap}W (FTP indisponible)`);
+              return null;
             }
-          }
+            return w;
+          };
 
-          let p300Valid = p300;
-          if (p300Valid != null) {
+          const p5Valid = validateShort("pmax_5s", p5, 4.0, 2000);
+          const p30Valid = validateShort("p30s_w", p30, 4.0, 1500);
+          const p60Valid = validateShort("p60s_w", p60, 4.0, 1200);
+          const p300Valid = (() => {
+            if (p300 == null) return null;
             if (hasFtp) {
-              const r = p300Valid / snapFtp;
-              if (r > 1.50) {
-                errors.push(`map5min_w ignoré — ratio MAP/FTP = ${r.toFixed(2)} (seuil physiologique : < 1.50)`);
-                p300Valid = null;
+              const r = p300 / snapFtp;
+              if (r > 1.6) {
+                errors.push(`map5min_w ignoré — ratio MAP/FTP = ${r.toFixed(2)} (seuil < 1.6)`);
+                return null;
               }
-            } else if (p300Valid >= 600) {
-              errors.push(`map5min_w ignoré — ${p300Valid}W ≥ plafond absolu 600W (FTP indisponible)`);
-              p300Valid = null;
+            } else if (p300 >= 600) {
+              errors.push(`map5min_w ignoré — ${p300}W ≥ plafond absolu 600W (FTP indisponible)`);
+              return null;
+            }
+            return p300;
+          })();
+
+          if (betterMax((snap as any)?.pmax_5s, p5Valid)) updates.pmax_5s = p5Valid as number;
+          if (betterMax((snap as any)?.p30s_w, p30Valid)) updates.p30s_w = p30Valid as number;
+          if (betterMax((snap as any)?.p60s_w, p60Valid)) updates.p60s_w = p60Valid as number;
+          if (betterMax((snap as any)?.map5min_w, p300Valid)) updates.map5min_w = p300Valid as number;
+
+          // ─── PAR course / durée — value = distance (m) parcourue dans `item_seconds` s ─
+          const dist15 = bestMax("par", "time", 15, RUN_SPORTS);
+          if (dist15 != null && dist15 > 0) {
+            if (betterMax((snap as any)?.sprint_15s_distance, dist15)) {
+              updates.sprint_15s_distance = Math.round(dist15 * 10) / 10;
             }
           }
-
-          if (better((snap as any)?.pmax_5s, p5Valid)) updates.pmax_5s = p5Valid as number;
-          if (better((snap as any)?.p30s_w, p30)) updates.p30s_w = p30 as number;
-          if (better((snap as any)?.p60s_w, p60)) updates.p60s_w = p60 as number;
-          if (better((snap as any)?.map5min_w, p300Valid)) updates.map5min_w = p300Valid as number;
-
-          if (par15 != null && Number.isFinite(par15) && par15 > 0) {
-            // par en sec/km → vitesse m/s = 1000 / par → distance(15s) = vitesse × 15
-            const sprintDist = (1000 / par15) * 15;
-            if (better((snap as any)?.sprint_15s_distance, sprintDist)) {
-              updates.sprint_15s_distance = Math.round(sprintDist * 10) / 10;
-            }
-          }
-          if (par360 != null && Number.isFinite(par360) && par360 > 0) {
-            const dist6m = (360 / par360) * 1000;
-            const vmaEst = (dist6m / 6) * 60 / 1000 * 1.05;
-            if (better((snap as any)?.vma, vmaEst)) {
+          const dist360 = bestMax("par", "time", 360, RUN_SPORTS);
+          if (dist360 != null && dist360 > 0) {
+            // VMA estimée = vitesse moyenne sur 6 min × facteur de correction 1.05
+            const vmaEst = (dist360 / 360) * 3.6 * 1.05;
+            if (betterMax((snap as any)?.vma, vmaEst)) {
               updates.vma = Math.round(vmaEst * 100) / 100;
+            }
+          }
+
+          // ─── PAR course / distance — value = temps (s) sur la distance ──
+          const time5k = bestMin("par", "distance", 5000, RUN_SPORTS);
+          const time10k = bestMin("par", "distance", 10000, RUN_SPORTS);
+          const timeHalf = bestMin("par", "distance", 21097, RUN_SPORTS);
+          const timeMarathon = bestMin("par", "distance", 42195, RUN_SPORTS);
+          if (betterMin((snap as any)?.time_5k_sec, time5k)) updates.time_5k_sec = Math.round(time5k as number);
+          if (betterMin((snap as any)?.time_10k_sec, time10k)) updates.time_10k_sec = Math.round(time10k as number);
+          if (betterMin((snap as any)?.time_half_sec, timeHalf)) updates.time_half_sec = Math.round(timeHalf as number);
+          if (betterMin((snap as any)?.time_marathon_sec, timeMarathon)) updates.time_marathon_sec = Math.round(timeMarathon as number);
+          // (400m / 1000m : stockés uniquement dans nolio_records, consommés par fetchAthleteRaceRecords pour calibration VLamax)
+
+          // ─── PAR natation / distance — CSS = temps 400m / 4 (s/100m) ────
+          const time400swim = bestMin("par", "distance", 400, [SWIM_SPORT]);
+          if (time400swim != null) {
+            const cssVal = time400swim / 4;
+            if (betterMin((snap as any)?.css, cssVal)) {
+              updates.css = Math.round(cssVal * 100) / 100;
+            }
+          }
+          // (50/100/200/1500/3800 : stockés uniquement dans nolio_records)
+
+          // ─── PHRR FC — max parmi tous les records item ≥ 300s (5min) ────
+          const hrCandidates = rowsToUpsert
+            .filter(x => x.cat === "phrr" && Number(x.item_seconds) >= 300)
+            .map(x => Number(x.value))
+            .filter(v => Number.isFinite(v) && v >= 150 && v <= 210);
+          if (hrCandidates.length > 0) {
+            const fcMaxObs = Math.max(...hrCandidates);
+            const curFc = Number((snap as any)?.fc_max);
+            if (!Number.isFinite(curFc) || fcMaxObs > curFc) {
+              updates.fc_max = Math.round(fcMaxObs);
             }
           }
 
