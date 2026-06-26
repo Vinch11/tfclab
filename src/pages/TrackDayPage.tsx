@@ -301,7 +301,7 @@ export default function TrackDayPage() {
     return {
       vMaxFrom30, P5sFrom100, P30sFrom200, P1sFromCmj, scoreNeuroBonds,
       neuroScore, neuroCount,
-      v100, v200, v400, v600,
+      v100, v200, v400, v600, v1km, vma1km,
       P1s, P5s, P30s, P60s,
       vma400, vma6min, vmaConfirmee,
       vSeuilKmh, ratioSeuilVMA,
@@ -309,7 +309,7 @@ export default function TrackDayPage() {
       driftPct, fatMaxPct,
       scoreG, vlamaxEst, vo2maxEst,
     };
-  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
+  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
   const canCreateSnapshot =
     !!currentAthlete && calc.vmaConfirmee > 0 && calc.vlamaxEst > 0;
