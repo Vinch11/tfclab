@@ -325,22 +325,15 @@ Deno.serve(async (req) => {
         let snapId: string | null = (todaySnap as any)?.id ?? null;
 
         if (!snapId) {
-          // Clone le snapshot le plus récent pour préserver les valeurs existantes
-          const { data: latest } = await admin
-            .from("snapshots")
-            .select("*")
-            .eq("athlete_id", athleteId)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          const base: Record<string, unknown> = { athlete_id: athleteId, date: today, source: "nolio-records" };
-          if (latest) {
-            const { id: _id, created_at: _c, updated_at: _u, ...rest } = latest as any;
-            Object.assign(base, rest);
-            base.date = today;
-            base.source = "nolio-records";
-          }
+          // ❗ Pas de clonage : snapshot Nolio autonome, seuls les champs effectivement
+          // remontés par Nolio seront renseignés dans la phase d'updates ci-dessous.
+          // Les autres champs (poids, masse grasse, FTP labo…) restent disponibles via
+          // l'historique des snapshots (fallback "dernier snapshot" côté app).
+          const base: Record<string, unknown> = {
+            athlete_id: athleteId,
+            date: today,
+            source: "nolio-records",
+          };
 
           const { data: inserted, error: insErr } = await admin
             .from("snapshots")
@@ -352,7 +345,7 @@ Deno.serve(async (req) => {
           } else {
             snapId = (inserted as any)?.id ?? null;
             snapshotCreated = !!snapId;
-            if (snapId) console.log(`created today snapshot for athlete ${athleteId}: ${snapId}`);
+            if (snapId) console.log(`created fresh nolio snapshot for athlete ${athleteId}: ${snapId}`);
           }
         }
 
