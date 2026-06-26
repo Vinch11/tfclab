@@ -42,7 +42,7 @@ export interface LactateState {
  * Performance predictions from the model
  */
 export interface MaderPredictions {
-  mlssPower: number;        // Watts at MLSS (≈ FTP)
+  mlssPower: number;        // Watts at MLSS (Mader-derived; 0 = non calculable). NE PAS supposer = FTP.
   mlssWkg: number;          // W/kg at MLSS
   lt1Power: number;         // LT1 (2mmol) power
   lt2Power: number;         // LT2 (4mmol) power
