@@ -1,0 +1,1 @@
+ALTER TABLE public.snapshots ALTER COLUMN css TYPE NUMERIC(5,2);
