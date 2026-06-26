@@ -129,7 +129,7 @@ export function NolioBatchGenerationPanel({ filteredWorkouts, generatedMap, onRe
   };
 
 
-  const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false, chunkSize = 8) => {
+  const runBatch = async (batch: LibraryWorkout[], forceRegenerate = false, chunkSize = 5) => {
     if (batch.length === 0) {
       toast({ title: "Rien à générer", description: "Toutes les séances éligibles ont déjà un statut OK." });
       return;
