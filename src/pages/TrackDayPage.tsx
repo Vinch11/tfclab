@@ -659,6 +659,7 @@ export default function TrackDayPage() {
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
+            <div>
               <Label>Temps 400m (sec)</Label>
               <Input type="number" step="0.01" value={t400m} onChange={(e) => setT400m(e.target.value)} placeholder="62.0" />
               {fmtNolioDate(nolioDates.t400m) && (
@@ -666,11 +667,19 @@ export default function TrackDayPage() {
               )}
             </div>
             <div>
+              <Label>Temps 1000m (sec)</Label>
+              <Input type="number" step="0.1" value={t1000m} onChange={(e) => setT1000m(e.target.value)} placeholder="230.0" />
+              <div className="text-[10px] text-muted-foreground/80 mt-1 leading-snug">
+                → Calibration VLamax course (Ward-Smith 1999) — améliore la précision de la VLamax avec le ratio 400m/1km
+              </div>
+            </div>
+            <div>
               <Label>Temps 600m (sec)</Label>
               <Input type="number" step="0.01" value={t600m} onChange={(e) => setT600m(e.target.value)} placeholder="98.0" />
             </div>
-            <div className="sm:col-span-2 grid grid-cols-3 gap-2 mt-1 text-xs">
+            <div className="sm:col-span-2 grid grid-cols-4 gap-2 mt-1 text-xs">
               <Metric label="VMA (400m)" value={fmt(calc.vma400, 1)} unit="km/h" />
+              <Metric label="VMA (1km)" value={fmt(calc.vma1km, 1)} unit="km/h" />
               <Metric label="V 600m" value={fmt(calc.v600, 1)} unit="km/h" />
               <Metric label="P60s" value={fmt(calc.P60s, 2)} unit="W/kg" />
             </div>
