@@ -739,13 +739,16 @@ export function generateMaderLactateCurve(
     const power = Math.round((energyKJPerMin * 1000 / 60) * efficiency);
     
     // Determine zone
+    // Audit fix — zone supramaximale Z6 = ≥ Z5 sans borne haute.
+    // NE PAS écrire de zone inversée du type "103-100% FTP" (borne basse > borne haute).
+    // Toute zone au-dessus du seuil VO2max est unbounded vers le haut.
     let zone: string;
     if (lactate < 2.0) zone = "Z1 - Récupération";
     else if (lactate < 2.5) zone = "Z2 - Endurance";
     else if (lactate < 4.0) zone = "Z3 - Tempo";
     else if (lactate < 6.0) zone = "Z4 - Seuil";
     else if (lactate < 10.0) zone = "Z5 - VO2max";
-    else zone = "Z6 - Anaérobie";
+    else zone = "Z6 - Anaérobie (≥ 103% FTP, sans borne haute)";
     
     points.push({
       intensity,
