@@ -106,8 +106,8 @@ function scenarioCard(s: PacingScenario): string {
       <div class="scenario-row"><b>Condition :</b> ${esc(s.condition.description)}</div>
       <div class="scenario-row"><b>Conséquence :</b> ${esc(s.consequence.description)}</div>
       <div class="scenario-row">
-        Impact glycogène : ${s.consequence.glycogenImpactPct.toFixed(0)} %
-        · Perte perf : ${s.consequence.performanceLossPct.toFixed(1)} %
+        Impact glycogène : ${clampPct(s.consequence.glycogenImpactPct).toFixed(0)} %
+        · Perte perf : ${clampPct(s.consequence.performanceLossPct).toFixed(1)} %
         ${s.consequence.breakpointKm != null ? ` · Décrochage ~ km ${s.consequence.breakpointKm}` : ""}
       </div>
       <div class="scenario-msg">${esc(s.pedagogicalMessage)}</div>
