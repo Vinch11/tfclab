@@ -346,6 +346,9 @@ Deno.serve(async (req) => {
             .limit(1)
             .maybeSingle();
 
+          // Champs portés depuis le snapshot précédent (Nolio ne les mesure pas).
+          // ⚠️ Inclut PROTECTED_FROM_IMPORT (cf. plus bas) : ces champs sont
+          // toujours carry-over et JAMAIS écrasés par les records Nolio.
           const CARRY_OVER_FIELDS = [
             "weight_kg", "fat_pct", "vo2max", "ftp",
             "p30s_w", "p60s_w", "map5min_w",
@@ -358,7 +361,10 @@ Deno.serve(async (req) => {
             "protocol_quality", "metabolic_profile",
             "run_economy_score", "run_economy_label",
             "carb_tolerance_band", "fatigue_state",
+            // Données terrain — protégées de tout écrasement par Nolio
+            "sprint_15s_distance",
           ];
+
           const carry: Record<string, unknown> = {};
           if (prevSnap) {
             for (const f of CARRY_OVER_FIELDS) {
@@ -496,18 +502,12 @@ Deno.serve(async (req) => {
           if (betterMax((snap as any)?.map5min_w, p300Valid)) updates.map5min_w = p300Valid as number;
 
           // ─── PAR course / durée — value = vitesse moyenne (m/s) sur `item_seconds` ─
-          // Sprint 15s : distance = mps × 15
-          const mps15 = bestMax("par", "time", 15, RUN_SPORTS);
-          if (mps15 != null && mps15 > 0) {
-            const sprintDist = mps15 * 15;
-            if (sprintDist >= 60 && sprintDist <= 180) {
-              if (betterMax((snap as any)?.sprint_15s_distance, sprintDist)) {
-                updates.sprint_15s_distance = Math.round(sprintDist * 10) / 10;
-              }
-            } else {
-              errors.push(`sprint_15s_distance ignoré — ${sprintDist.toFixed(1)}m hors plage physiologique [60, 180]m`);
-            }
-          }
+          // 🔒 PROTECTED_FROM_IMPORT
+          // sprint_15s_distance, tte_observed_min(_run), protocol_quality,
+          // vlamax_protocol, vlamax_source : champs terrain/labo qui ne peuvent
+          // jamais être déduits d'un record Nolio. On ne les met PAS à jour ici,
+          // ils restent ceux portés par CARRY_OVER_FIELDS.
+          // (Anciennement : sprint_15s_distance était écrasé depuis par/time/15)
           // VMA 6 min : km/h = mps × 3.6, ×1.05 facteur "VMA vs vitesse moyenne 6 min"
           const mps360 = bestMax("par", "time", 360, RUN_SPORTS);
           if (mps360 != null && mps360 > 0) {
@@ -518,6 +518,7 @@ Deno.serve(async (req) => {
               }
             } else {
               errors.push(`vma ignoré — ${vmaEst.toFixed(2)}km/h hors plage physiologique [8, 30]km/h`);
+
             }
           }
 
