@@ -21,6 +21,66 @@ import { type AerobicWeaknessDetail } from './unifiedLimiterDetection';
 export type { AerobicWeaknessDetail };
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS PARTAGÉS — Source de vérité unique
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Clamp un écart en pourcentage dans une plage physiologiquement plausible.
+ * Jamais > 500% ou < -200% dans un rapport.
+ */
+export const clampPct = (v: number): number => {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(-200, Math.min(500, v));
+};
+
+export interface VlamaxTargetRange {
+  ideal: number;
+  min: number;
+  max: number;
+}
+
+/**
+ * Source de vérité unique pour les cibles VLamax.
+ * Retourne UNE seule plage par (objectif, discipline) — jamais recalculée localement.
+ *
+ * @param objectif "IM" | "703" | "marathon" | "semi" | "10k" | "trail" | "cycling"
+ * @param discipline "bike" | "run" | "swim" (la VLamax course est sensiblement plus haute)
+ */
+export function getVlamaxTarget(
+  objectif: string | null | undefined,
+  discipline: 'bike' | 'run' | 'swim' = 'bike',
+): VlamaxTargetRange {
+  const key = String(objectif || '703').toLowerCase();
+
+  // Table de référence (bike) — alignée sur AMBITION_TARGETS age_group (cible "athlète préparé")
+  const BIKE: Record<string, VlamaxTargetRange> = {
+    im:        { ideal: 0.40, min: 0.30, max: 0.50 },
+    '703':     { ideal: 0.45, min: 0.35, max: 0.55 },
+    marathon:  { ideal: 0.45, min: 0.35, max: 0.55 },
+    semi:      { ideal: 0.55, min: 0.45, max: 0.70 },
+    '10k':     { ideal: 0.65, min: 0.50, max: 0.80 },
+    trail:     { ideal: 0.50, min: 0.40, max: 0.60 },
+    cycling:   { ideal: 0.50, min: 0.40, max: 0.65 },
+  };
+
+  const base = BIKE[key] ?? BIKE['703'];
+
+  if (discipline === 'run') {
+    // Offset CAP : VLamax course ~+0.05–0.07 vs vélo (cf. AMBITION_TARGETS sport offset)
+    return {
+      ideal: +(base.ideal + 0.06).toFixed(2),
+      min:   +(base.min + 0.05).toFixed(2),
+      max:   +Math.min(base.max + 0.07, 0.85).toFixed(2),
+    };
+  }
+  if (discipline === 'swim') {
+    // Natation : VLamax pertinente surtout sur sprint, plage similaire au vélo
+    return base;
+  }
+  return base;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // TYPES PRINCIPAUX
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -466,15 +526,15 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
     
     // ✅ FIX : phraser selon le SIGNE du gap et la sémantique de la métrique
     const formatGapReason = (g: { metric: string; gapPercent: number; value: number | null; target: number | null }) => {
-      const abs = Math.abs(g.gapPercent).toFixed(0);
-      if (isLowerIsBetterMetric(g.metric)) {
-        // VLamax : un excès au-dessus de la cible = problème
-        return g.gapPercent >= 0
-          ? `${g.metric} ${abs}% au-dessus de la cible`
-          : `${g.metric} ${abs}% sous la cible`;
-      }
-      // Métriques "plus = mieux" : en-dessous = problème
-      return g.gapPercent < 0
+    const abs = Math.abs(clampPct(g.gapPercent)).toFixed(0);
+    if (isLowerIsBetterMetric(g.metric)) {
+      // VLamax : un excès au-dessus de la cible = problème
+      return g.gapPercent >= 0
+        ? `${g.metric} ${abs}% au-dessus de la cible`
+        : `${g.metric} ${abs}% sous la cible`;
+    }
+    // Métriques "plus = mieux" : en-dessous = problème
+    return g.gapPercent < 0
         ? `${g.metric} ${abs}% sous la cible`
         : `${g.metric} ${abs}% au-dessus de la cible`;
     };
@@ -523,16 +583,16 @@ function identifyPrimaryLimiter(input: LorangStrategyInput): {
   const scores: { limiter: LorangLimiter; score: number; reason: string }[] = [];
   
   if (vo2maxGap !== null && vo2maxGap < -0.1) {
-    scores.push({ limiter: 'motor', score: vo2maxGap * 100, reason: `VO2max ${Math.abs(vo2maxGap * 100).toFixed(0)}% sous la cible` });
+    scores.push({ limiter: 'motor', score: vo2maxGap * 100, reason: `VO2max ${Math.abs(clampPct(vo2maxGap * 100)).toFixed(0)}% sous la cible` });
   }
   if (vlamaxGap !== null && vlamaxGap > 0.15) {
-    scores.push({ limiter: 'glycolytic', score: -vlamaxGap * 100, reason: `VLamax ${(vlamaxGap * 100).toFixed(0)}% au-dessus de la cible` });
+    scores.push({ limiter: 'glycolytic', score: -vlamaxGap * 100, reason: `VLamax ${clampPct(vlamaxGap * 100).toFixed(0)}% au-dessus de la cible` });
   }
   if (fatmaxGap !== null && fatmaxGap < -0.15) {
-    scores.push({ limiter: 'metabolic', score: fatmaxGap * 100, reason: `FatMax ${Math.abs(fatmaxGap * 100).toFixed(0)}% sous la cible` });
+    scores.push({ limiter: 'metabolic', score: fatmaxGap * 100, reason: `FatMax ${Math.abs(clampPct(fatmaxGap * 100)).toFixed(0)}% sous la cible` });
   }
   if (tteGap !== null && tteGap < -0.1) {
-    scores.push({ limiter: 'durability', score: tteGap * 100, reason: `TTE ${Math.abs(tteGap * 100).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)` });
+    scores.push({ limiter: 'durability', score: tteGap * 100, reason: `TTE ${Math.abs(clampPct(tteGap * 100)).toFixed(0)}% sous la cible (${physiology.tte}min vs ${physiology.tteTarget}min)` });
   }
   const economyScore = physiology.economy ?? 50;
   if (economyScore < 50) {
@@ -642,7 +702,7 @@ function activateLevers(
       icon: LEVER_DEFINITIONS.vo2_intervals.icon,
       priority: primaryLimiter === 'motor' && vo2maxLow ? 1 : 2,
       reason: vo2Gap && vo2Gap.gapPercent < 0
-        ? `VO₂max ${Math.abs(vo2Gap.gapPercent).toFixed(0)}% sous la cible (${vo2Gap.value} vs ${vo2Gap.target} ml/min/kg) — développer le plafond aérobie`
+        ? `VO₂max ${Math.abs(clampPct(vo2Gap.gapPercent)).toFixed(0)}% sous la cible (${vo2Gap.value} vs ${vo2Gap.target} ml/min/kg) — développer le plafond aérobie`
 
         : "Plafond aérobie limitant — développer VO₂max via intervalles haute intensité",
       prescription: [
@@ -674,7 +734,7 @@ function activateLevers(
       icon: LEVER_DEFINITIONS.threshold_work.icon,
       priority: (primaryLimiter === 'motor' && ftpKgLow) || isMetricLimiting("FTP/kg") || isMetricLimiting("VMA") ? 1 : 2,
       reason: ftpGap && ftpGap.gapPercent < 0
-        ? `${ftpGap.metric} ${Math.abs(ftpGap.gapPercent).toFixed(0)}% sous la cible (${ftpGap.value?.toFixed(1)} vs ${ftpGap.target?.toFixed(1)}) — développer la puissance soutenue`
+        ? `${ftpGap.metric} ${Math.abs(clampPct(ftpGap.gapPercent)).toFixed(0)}% sous la cible (${ftpGap.value?.toFixed(1)} vs ${ftpGap.target?.toFixed(1)}) — développer la puissance soutenue`
 
         : "FTP/kg insuffisant par rapport à la cible — développer l'expression aérobie via travail au seuil",
       prescription: [
@@ -714,10 +774,10 @@ function activateLevers(
     // Déterminer la raison principale
     let z2Reason: string;
     if (tteIsLimiting && tteGap && tteGap.gapPercent < 0) {
-      z2Reason = `TTE ${Math.abs(tteGap.gapPercent).toFixed(0)}% sous la cible (${tteGap.value}min vs ${tteGap.target}min) — développer la durabilité`;
+      z2Reason = `TTE ${Math.abs(clampPct(tteGap.gapPercent)).toFixed(0)}% sous la cible (${tteGap.value}min vs ${tteGap.target}min) — développer la durabilité`;
 
     } else if (vlamaxIsLimiting && vlamaxGap) {
-      z2Reason = `VLamax ${Math.abs(vlamaxGap.gapPercent).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
+      z2Reason = `VLamax ${Math.abs(clampPct(vlamaxGap.gapPercent)).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
     } else {
       z2Reason = "Efficacité énergétique limitante — augmenter le volume aérobie de base";
     }

@@ -25,7 +25,23 @@ export interface RaceSimulationReportInput {
   envelopeBike?: PacingEnvelopeResult | null;
   envelopeRun?: PacingEnvelopeResult | null;
   scenarios: ScenarioSimulationResult | null;
+  /** Charge hebdomadaire TSS — utilisée pour qualifier le calcul de TTE en mode LOAD. */
+  tss7d?: number | null;
+  /** Résultat CP/W' — si dataQuality === "implausible", les sections dépendantes sont masquées. */
+  criticalPower?: {
+    dataQuality?: "ok" | "low" | "implausible" | string;
+    cp?: number | null;
+    wPrime?: number | null;
+  } | null;
 }
+
+// ─── Helpers partagés ─────────────────────────────────────────────────────────
+
+/** Clamp un % à une plage physiologiquement plausible (jamais >500% ni <-200%). */
+const clampPct = (v: number): number => {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(-200, Math.min(500, v));
+};
 
 function esc(v: unknown): string {
   if (v == null) return "—";
@@ -56,6 +72,20 @@ function fmtNum(v: number | null, digits = 0, unit = ""): string {
   return `${v.toFixed(digits)}${unit ? " " + unit : ""}`;
 }
 
+/**
+ * Formate la TTE. Si la valeur est absente ET que la charge hebdo (TSS 7d) est
+ * inconnue ou nulle, on n'estime pas en mode LOAD et on l'indique explicitement.
+ */
+function fmtTTE(tteMin: number | null, tss7d?: number | null): string {
+  if (tteMin != null && Number.isFinite(tteMin) && tteMin > 0) {
+    return `${tteMin.toFixed(0)} min`;
+  }
+  if (tss7d == null || tss7d === 0) {
+    return `<span class="muted">TTE non calculable (charge hebdomadaire inconnue)</span>`;
+  }
+  return "—";
+}
+
 function envelopeBlock(label: string, env: PacingEnvelopeResult | null): string {
   if (!env) return `
     <div class="env-card">
@@ -68,10 +98,10 @@ function envelopeBlock(label: string, env: PacingEnvelopeResult | null): string 
     <div class="env-card">
       <div class="env-title">${esc(label)} <span class="env-sub">— ${esc(env.pacingProfile.label)} · confiance ${esc(env.confidenceLabel)}</span></div>
       <table class="kv">
-        <tr><td>Centre cible</td><td><b>${b.centerPct.toFixed(1)} %${esc(ref ? " " + ref : "")}</b></td></tr>
-        <tr><td>Couloir optimal</td><td>${b.lowPct.toFixed(1)} – ${b.highPct.toFixed(1)} %</td></tr>
-        <tr><td>Zone tolérée jusqu'à</td><td>${b.toleratedPct.toFixed(1)} %</td></tr>
-        <tr><td>Zone interdite ≥</td><td>${b.forbiddenPct.toFixed(1)} %</td></tr>
+        <tr><td>Centre cible</td><td><b>${clampPct(b.centerPct).toFixed(1)} %${esc(ref ? " " + ref : "")}</b></td></tr>
+        <tr><td>Couloir optimal</td><td>${clampPct(b.lowPct).toFixed(1)} – ${clampPct(b.highPct).toFixed(1)} %</td></tr>
+        <tr><td>Zone tolérée jusqu'à</td><td>${clampPct(b.toleratedPct).toFixed(1)} %</td></tr>
+        <tr><td>Zone interdite ≥</td><td>${clampPct(b.forbiddenPct).toFixed(1)} %</td></tr>
         <tr><td>Largeur enveloppe</td><td>${env.envelopeWidthLabel}</td></tr>
       </table>
       ${env.readinessMessage ? `<div class="note">${esc(env.readinessMessage)}</div>` : ""}
@@ -90,8 +120,8 @@ function scenarioCard(s: PacingScenario): string {
       <div class="scenario-row"><b>Condition :</b> ${esc(s.condition.description)}</div>
       <div class="scenario-row"><b>Conséquence :</b> ${esc(s.consequence.description)}</div>
       <div class="scenario-row">
-        Impact glycogène : ${s.consequence.glycogenImpactPct.toFixed(0)} %
-        · Perte perf : ${s.consequence.performanceLossPct.toFixed(1)} %
+        Impact glycogène : ${clampPct(s.consequence.glycogenImpactPct).toFixed(0)} %
+        · Perte perf : ${clampPct(s.consequence.performanceLossPct).toFixed(1)} %
         ${s.consequence.breakpointKm != null ? ` · Décrochage ~ km ${s.consequence.breakpointKm}` : ""}
       </div>
       <div class="scenario-msg">${esc(s.pedagogicalMessage)}</div>
@@ -133,10 +163,16 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
           <td>VLamax run</td><td>${fmtNum(ph.vlamaxRun, 2, "mmol/L/s")}</td></tr>
       <tr><td>VO2max</td><td>${fmtNum(ph.vo2max, 1, "ml/kg/min")}</td>
           <td>Potentiel physio</td><td>${fmtNum(ph.potentielScore, 0, "/100")}</td></tr>
-      <tr><td>TTE vélo</td><td>${fmtNum(ph.tteMin, 0, "min")}</td>
-          <td>TTE run</td><td>${fmtNum(ph.tteMinRun, 0, "min")}</td></tr>
+      <tr><td>TTE vélo</td><td>${fmtTTE(ph.tteMin, b.tss7d)}</td>
+          <td>TTE run</td><td>${fmtTTE(ph.tteMinRun, b.tss7d)}</td></tr>
     </table>
   `;
+
+  // Garde-fou CP/W' : si le modèle est implausible, masquer les sorties dépendantes.
+  const cpImplausible = b.criticalPower?.dataQuality === "implausible";
+  const cpWarningHTML = cpImplausible
+    ? `<div class="risk-warn">⚠️ Modèle CP/W' non calculable — données insuffisantes ou incohérentes. Vérifier les mesures de puissance courte durée.</div>`
+    : "";
 
   const scenariosHTML = b.scenarios
     ? `
@@ -227,6 +263,7 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
   <section>
     <h2>1. Profil physiologique</h2>
     ${physioGrid}
+    ${cpWarningHTML}
     ${why("Ces valeurs résument ton moteur : FTP/VMA fixent ton seuil aérobie, VLamax mesure ta vitesse glycolytique (consommation de sucre), TTE indique combien de temps tu tiens au seuil. Tout le reste du rapport est calculé à partir de ces chiffres.")}
   </section>
 
