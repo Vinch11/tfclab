@@ -5213,7 +5213,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
   },
 
 
-// =============================================
+// =============================================,
 // BIBLIOTHÈQUE NORVÉGIENNE — DOUBLE THRESHOLD
 // 12 séances scientifiques (Bakken, Ingebrigtsen, Seiler)
 // =============================================
@@ -5541,7 +5541,6 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "Protocole complet 5 paliers"
     }
   }
-
 ];
 // =============================================
 // PICKER POUR LE PLANIFICATEUR
