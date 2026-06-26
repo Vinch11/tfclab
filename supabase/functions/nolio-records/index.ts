@@ -326,11 +326,18 @@ Deno.serve(async (req) => {
 
         if (!snapId) {
           // ❗ Pas de clonage : snapshot Nolio autonome, seuls les champs effectivement
-          // remontés par Nolio seront renseignés dans la phase d'updates ci-dessous.
-          // Les autres champs (poids, masse grasse, FTP labo…) restent disponibles via
-          // l'historique des snapshots (fallback "dernier snapshot" côté app).
+          // remontés par Nolio seront renseignés ci-dessous. Les autres champs (poids,
+          // FTP labo…) restent disponibles via l'historique des snapshots.
+          // On récupère uniquement coach_id (NOT NULL) auprès de l'athlète.
+          const { data: athleteRow } = await admin
+            .from("athletes")
+            .select("coach_id")
+            .eq("id", athleteId)
+            .maybeSingle();
+
           const base: Record<string, unknown> = {
             athlete_id: athleteId,
+            coach_id: (athleteRow as any)?.coach_id ?? null,
             date: today,
             source: "nolio-records",
           };
