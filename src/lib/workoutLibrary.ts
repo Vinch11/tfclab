@@ -4526,7 +4526,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [45, 55],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "30/30", "VO2max", "vVO2max", "intervalles", "temps à VO2max"],
     structure: [
       { part: "Warm-up", text: "15 min progressif Z1→Z2 + 4x80m accélérations progressives + 2x30s à vVO2max (pour préparer le système neuromusculaire)", zones: ["Z1", "Z2"] },
@@ -4553,7 +4553,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [55, 70],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "30/30", "VO2max", "avancé", "vVO2max", "élite"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 progressif + 3x30s à vVO2max R:90s (activation neuromusculaire et cinétique VO2)", zones: ["Z1", "Z2", "Z5"] },
@@ -4580,7 +4580,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [55, 70],
     metricKey: "puissance",
     sportKey: "cyclisme",
-    defaultSportId: 14
+    defaultSportId: 14,
     tags: ["Billat", "30/30", "VO2max", "vélo", "puissance", "MAP"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif + 3×20s à 120% FTP récup 2 min (activation)", zones: ["Z1", "Z2", "Z5"] },
@@ -4612,7 +4612,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [50, 65],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "60/60", "VO2max", "intermédiaire", "vVO2max"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 + 3x60s à allure seuil (Z3-Z4) pour préparer progressivement", zones: ["Z1", "Z2", "Z3"] },
@@ -4639,7 +4639,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [60, 75],
     metricKey: "puissance",
     sportKey: "cyclisme",
-    defaultSportId: 14
+    defaultSportId: 14,
     tags: ["Billat", "60/60", "VO2max", "vélo", "intermédiaire"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 + 3×30s à 110% FTP récup 2 min", zones: ["Z1", "Z2"] },
@@ -4671,7 +4671,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [55, 70],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "3min/3min", "VO2max", "élite", "vVO2max", "avancé"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif + 3×1 min Z4 R:2 min + 2×30s à vVO2max R:90s", zones: ["Z1", "Z2", "Z4", "Z5"] },
@@ -4698,7 +4698,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [65, 80],
     metricKey: "puissance",
     sportKey: "cyclisme",
-    defaultSportId: 14
+    defaultSportId: 14,
     tags: ["Billat", "3min/3min", "VO2max", "vélo", "élite", "puissance critique"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min à 110% FTP récup 2 min + 2×30s à 130% FTP R:2 min", zones: ["Z1", "Z2", "Z5"] },
@@ -4730,7 +4730,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [75, 120],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "allure marathon", "spécificité", "économie", "seuil lactique"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 progressif + 4x80m strides", zones: ["Z1", "Z2"] },
@@ -4757,7 +4757,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [60, 85],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "allure semi", "seuil", "spécificité", "Z4"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 + 4×80m strides", zones: ["Z1", "Z2"] },
@@ -4789,7 +4789,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [35, 50],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "tlim", "test", "VO2max", "vVO2max", "diagnostic", "piste"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif + 2×2 min à 90% VMA R:2 min + 2×30s à vVO2max R:3 min (pour s'assurer que le système VO2 est activé)", zones: ["Z1", "Z2", "Z4", "Z5"] },
@@ -4816,7 +4816,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [40, 55],
     metricKey: "puissance",
     sportKey: "cyclisme",
-    defaultSportId: 14
+    defaultSportId: 14,
     tags: ["Billat", "tlim", "test", "VO2max", "MAP", "diagnostic", "vélo"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min à 105% FTP R:3 min + 2×30s sprint modéré R:3 min", zones: ["Z1", "Z2", "Z4"] },
@@ -4848,7 +4848,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [65, 90],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "MLSS", "seuil", "lactate", "endurance", "Z4"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 + 4×80m strides", zones: ["Z1", "Z2"] },
@@ -4875,7 +4875,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [70, 100],
     metricKey: "puissance",
     sportKey: "cyclisme",
-    defaultSportId: 14
+    defaultSportId: 14,
     tags: ["Billat", "MLSS", "seuil", "vélo", "FTP", "Z4"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif", zones: ["Z1", "Z2"] },
@@ -4907,7 +4907,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [60, 75],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "vitesse critique", "W prime", "Z4b", "Z5", "intermédiaire"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 + 4×80m strides + 2×1 min Z4 R:2 min", zones: ["Z1", "Z2", "Z4"] },
@@ -4939,7 +4939,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [60, 75],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "VO2max", "5min", "intervalles longs", "VFC", "volume stroke"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min Z4 R:2 min + 2×30s à vVO2max R:3 min", zones: ["Z1", "Z2", "Z4", "Z5"] },
@@ -4966,7 +4966,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [60, 80],
     metricKey: "puissance",
     sportKey: "cyclisme",
-    defaultSportId: 14
+    defaultSportId: 14,
     tags: ["Billat", "Seiler", "VO2max", "4min", "vélo", "Norwegian", "adaptations centrales"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 + 3×2 min à 100% FTP R:2 min + 2×30s sprint R:3 min", zones: ["Z1", "Z2", "Z4", "Z5"] },
@@ -4998,7 +4998,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [55, 70],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "fartlek", "VO2max", "terrain naturel", "variété", "plaisir"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 terrain varié", zones: ["Z1", "Z2"] },
@@ -5025,7 +5025,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [60, 90],
     metricKey: "allure",
     sportKey: "trail",
-    defaultSportId: 52
+    defaultSportId: 52,
     tags: ["Billat", "fartlek", "trail", "collines", "VO2max", "force", "spécifique"],
     structure: [
       { part: "Warm-up", text: "15 min trot terrain plat + mobilité hanches et chevilles", zones: ["Z1", "Z2"] },
@@ -5057,7 +5057,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [40, 50],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "économie", "strides", "technique", "coût énergétique", "fréquence"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 relâché", zones: ["Z1", "Z2"] },
@@ -5084,7 +5084,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [60, 80],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "progressif", "tempo", "gestion allure", "negative split"],
     structure: [
       { part: "Warm-up", text: "10 min Z1 très lent", zones: ["Z1"] },
@@ -5111,7 +5111,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [50, 65],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "lactate", "tolérance", "acidose", "capacité tampon", "Z5", "Z6"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 + 4×30s à vVO2max R:2 min", zones: ["Z1", "Z2", "Z5"] },
@@ -5138,7 +5138,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [90, 150],
     metricKey: "allure",
     sportKey: "course",
-    defaultSportId: 2
+    defaultSportId: 2,
     tags: ["Billat", "sortie longue", "Z2", "surges", "endurance fondamentale", "variété"],
     structure: [
       { part: "Warm-up", text: "10 min Z1 progressif", zones: ["Z1"] },
@@ -5170,7 +5170,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [50, 65],
     metricKey: "allure",
     sportKey: "natation",
-    defaultSportId: 19
+    defaultSportId: 19,
     tags: ["Billat", "30/30", "VO2max", "natation", "vVO2max", "CSS"],
     structure: [
       { part: "Warm-up", text: "400m progressif + 8×25m éducatifs R:15s + 4×50m à allure CSS R:20s", zones: ["Z1", "Z2", "Z3"] },
@@ -5197,7 +5197,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     durationMin: [55, 70],
     metricKey: "allure",
     sportKey: "natation",
-    defaultSportId: 19
+    defaultSportId: 19,
     tags: ["Billat", "CSS", "natation", "allure critique", "endurance spécifique"],
     structure: [
       { part: "Warm-up", text: "400m progressif + 4×100m progressifs jusqu'à CSS R:20s", zones: ["Z1", "Z2", "Z3"] },
