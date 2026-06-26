@@ -346,6 +346,9 @@ Deno.serve(async (req) => {
             .limit(1)
             .maybeSingle();
 
+          // Champs portés depuis le snapshot précédent (Nolio ne les mesure pas).
+          // ⚠️ Inclut PROTECTED_FROM_IMPORT (cf. plus bas) : ces champs sont
+          // toujours carry-over et JAMAIS écrasés par les records Nolio.
           const CARRY_OVER_FIELDS = [
             "weight_kg", "fat_pct", "vo2max", "ftp",
             "p30s_w", "p60s_w", "map5min_w",
@@ -358,7 +361,10 @@ Deno.serve(async (req) => {
             "protocol_quality", "metabolic_profile",
             "run_economy_score", "run_economy_label",
             "carb_tolerance_band", "fatigue_state",
+            // Données terrain — protégées de tout écrasement par Nolio
+            "sprint_15s_distance",
           ];
+
           const carry: Record<string, unknown> = {};
           if (prevSnap) {
             for (const f of CARRY_OVER_FIELDS) {
