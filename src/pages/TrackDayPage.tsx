@@ -257,15 +257,15 @@ export default function TrackDayPage() {
     const v200 = num(t200m) > 0 ? (200 / num(t200m)) * 3.6 : 0;
     const v400 = num(t400m) > 0 ? (400 / num(t400m)) * 3.6 : 0;
     const v1km = num(t1000m) > 0 ? (1000 / num(t1000m)) * 3.6 : 0;
-    const vma1km = v1km > 0 ? v1km * 1.08 : 0;
+    const vma1km = num(t1000m) > 0 ? (1000 / num(t1000m)) * 3.6 * 1.08 : 0;
     const v600 = num(t600m) > 0 ? (600 / num(t600m)) * 3.6 : 0;
     const P60s = powerWperKg(v400);
 
-    // VMA depuis 400m
-    const vma400 = num(t400m) > 0 ? (1440 / num(t400m)) * 3.6 : 0;
+    // VMA depuis 400m — Léger & Bouchard 1980 : vitesse 400m × 1.05
+    const vma400 = num(t400m) > 0 ? (400 / num(t400m)) * 3.6 * 1.05 : 0;
     // VMA depuis 6 min (Léger)
     const vma6min = num(d6min) > 0 ? (num(d6min) / 6) * 60 / 1000 * 1.05 : 0;
-    const vmaConfirmee = vma6min > 0 ? vma6min : vma400;
+    const vmaConfirmee = Math.max(vma6min, vma400, vma1km);
 
     // Allure seuil depuis 20 min
     const vSeuilKmh = num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
