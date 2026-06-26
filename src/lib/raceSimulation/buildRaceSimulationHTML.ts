@@ -84,10 +84,10 @@ function envelopeBlock(label: string, env: PacingEnvelopeResult | null): string 
     <div class="env-card">
       <div class="env-title">${esc(label)} <span class="env-sub">— ${esc(env.pacingProfile.label)} · confiance ${esc(env.confidenceLabel)}</span></div>
       <table class="kv">
-        <tr><td>Centre cible</td><td><b>${b.centerPct.toFixed(1)} %${esc(ref ? " " + ref : "")}</b></td></tr>
-        <tr><td>Couloir optimal</td><td>${b.lowPct.toFixed(1)} – ${b.highPct.toFixed(1)} %</td></tr>
-        <tr><td>Zone tolérée jusqu'à</td><td>${b.toleratedPct.toFixed(1)} %</td></tr>
-        <tr><td>Zone interdite ≥</td><td>${b.forbiddenPct.toFixed(1)} %</td></tr>
+        <tr><td>Centre cible</td><td><b>${clampPct(b.centerPct).toFixed(1)} %${esc(ref ? " " + ref : "")}</b></td></tr>
+        <tr><td>Couloir optimal</td><td>${clampPct(b.lowPct).toFixed(1)} – ${clampPct(b.highPct).toFixed(1)} %</td></tr>
+        <tr><td>Zone tolérée jusqu'à</td><td>${clampPct(b.toleratedPct).toFixed(1)} %</td></tr>
+        <tr><td>Zone interdite ≥</td><td>${clampPct(b.forbiddenPct).toFixed(1)} %</td></tr>
         <tr><td>Largeur enveloppe</td><td>${env.envelopeWidthLabel}</td></tr>
       </table>
       ${env.readinessMessage ? `<div class="note">${esc(env.readinessMessage)}</div>` : ""}
