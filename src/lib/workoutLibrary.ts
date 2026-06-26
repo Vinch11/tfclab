@@ -5539,7 +5539,378 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       marathon: "Protocole complet 5 paliers — essentiel pour marathon norvégien",
       semi: "Protocole complet 5 paliers"
     }
+  },
+
+// =============================================
+// BIBLIOTHÈQUE CANOVA — SPÉCIFICITÉ INVERSE
+// 14 séances scientifiques (Canova, Stellingwerff)
+// =============================================
+
+  {
+    id: "CANOVA_RUN_FAST_CONTINUOUS_INTRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Fast Continuous Run Canova intro — courir plus vite que l'allure course sur distance réduite (phase Introductive)",
+    necessite: "Recommandé",
+    when: "Build — phase Introductive (12-16 semaines avant course). Introduire l'allure spécifique tôt dans la préparation.",
+    phase: ["build"],
+    avoid: "Fatigue > 6/10 · Phase de base non complétée · Moins de 6 semaines d'entraînement régulier avant de commencer",
+    durationMin: [60, 80],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "Fast Continuous Run", "FCR", "spécificité", "allure course", "introductif"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 progressif + 4×80m strides progressifs. Les jambes doivent se sentir vives avant de commencer — si lourdes, réduire l'allure principale de 10s/km.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "8-10 km continu à allure marathon -10s/km (légèrement plus vite que l'allure cible). Exemple : cible marathon 4:00/km → courir à 3:50/km. RPE : 7-7.5/10. PHILOSOPHIE CANOVA : contrairement à la méthode classique qui progresse de lent vers rapide, Canova introduit immédiatement la spécificité — l'allure course est présente dès la première semaine de build, sur une COURTE distance. Le volume augmentera semaine après semaine, l'allure reste constante. Progression Canova : S1=6km FCR, S2=8km, S3=10km, S4=12km, S5=14km. Observer : FC stable et allure régulière (±3s/km) sur tout le bloc — si dérive, distance trop longue.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche 5 min. Nutrition post-effort dans les 20 min.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "6-8 km à allure run IM -5s/km (légèrement plus vite que Z2-Z3)",
+      half: "8 km à allure semi-marathon -10s/km",
+      marathon: "PRIORITÉ — 8-10 km à allure marathon -10s/km. Pilier de la phase Introductive.",
+      semi: "6 km à allure semi-marathon -10s/km"
   }
+  },
+  {
+    id: "CANOVA_RUN_FAST_CONTINUOUS_FUND",
+    cat: "B",
+    sport: "course",
+    objectif: "Fast Continuous Run Canova fondamental — volume FCR augmenté (phase Fundamental)",
+    necessite: "Recommandé",
+    when: "Build — phase Fundamental (8-12 semaines avant course). Volume FCR progressivement augmenté.",
+    phase: ["build"],
+    avoid: "Sans avoir complété 3-4 semaines de phase Introductive · Fatigue > 7/10",
+    durationMin: [75, 100],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "Fast Continuous Run", "fondamental", "volume", "spécificité marathon"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 4×100m progressifs", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "14-18 km continu à allure marathon -5s/km (quasi allure race). RPE 7.5-8/10. C'est la progression naturelle du FCR Intro — même allure, volume doublé sur 4 semaines. Le défi Canova : maintenir une allure régulière sur une distance significative qui approche la moitié du marathon. Ravitaillement : 20-30g glucides toutes les 30 min (gut training intégré). Progression : S1=12km, S2=14km, S3=16km, S4=18km. Sur les 3 derniers km : accélération progressive jusqu'à allure marathon exacte.", zones: ["Z4"] },
+      { part: "Cool-down", text: "12 min Z1 + marche + récupération nutritionnelle complète", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "12 km à allure run IM ou légèrement plus vite",
+      half: "12-14 km à allure semi-marathon -5s/km",
+      marathon: "14-18 km à allure marathon -5s/km. Cœur de la phase Fundamental.",
+      semi: "10-12 km à allure semi-marathon -5s/km"
+  }
+  },
+  {
+    id: "CANOVA_RUN_PROGRESSIVE_LONG",
+    cat: "B",
+    sport: "course",
+    objectif: "Progressive Long Run Canova — sortie longue avec accélération progressive vers l'allure course (negative split)",
+    necessite: "Obligatoire",
+    when: "Build/Peak — 1x/semaine. Remplace la sortie longue classique à allure constante.",
+    phase: ["build", "peak"],
+    avoid: "Terrain très vallonné (biaise la progression) · Chaleur > 25°C sans adaptation · Fatigue > 6/10",
+    durationMin: [100, 150],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "Progressive Long Run", "PLR", "negative split", "sortie longue", "allure marathon"],
+    structure: [
+      { part: "Warm-up", text: "Intégré dans la séance (les 8 premiers km sont l'échauffement naturel).", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Sortie longue 25-32 km avec accélération progressive en 3 phases. Phase 1 (premiers 40% — ex: km 1-10 sur 25km) : allure Z2 facile (~4:30-5:00/km pour marathon 3h30). Phase 2 (40-75% — ex: km 10-19) : allure Z3 soutenue, accélération progressive de 10-15s/km. Phase 3 (derniers 25% — ex: km 19-25) : allure marathon cible ou légèrement plus rapide. Derniers 3 km : free pace (allure naturelle). PHILOSOPHIE : Canova dit 'les champions ne ralentissent jamais en fin de marathon — ils s'entraînent à accélérer sur legs fatiguées'. Cette sortie simule exactement la physiologie des 15 derniers km de course. Ravitaillement : 30-45g glucides/h depuis le km 10. RPE final : 8.5/10.", zones: ["Z2", "Z3", "Z4"] },
+      { part: "Cool-down", text: "Marche 10 min + récupération nutritionnelle immédiate (1g CHO/kg + 0.3g prot/kg dans les 30 min).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "20-25 km : P1=10km Z2, P2=8km Z3, P3=derniers km allure run IM",
+      half: "18-22 km : P1=8km Z2, P2=7km Z3, P3=3-4km allure semi",
+      marathon: "PILIER ABSOLU — 28-32 km avec derniers 6-8 km à allure marathon ou plus vite",
+      semi: "16-20 km : P1=7km Z2, P2=7km Z3, P3=derniers 4km allure semi"
+  }
+  },
+  {
+    id: "CANOVA_RUN_PROGRESSIVE_MEDIUM",
+    cat: "B",
+    sport: "course",
+    objectif: "Medium Long Run progressif Canova — version courte du PLR pour les semaines de charge modérée",
+    necessite: "Recommandé",
+    when: "Build — séance de mi-semaine progressif. Moins exigeant que le PLR du weekend.",
+    phase: ["build"],
+    avoid: "Lendemain de double threshold ou séance intense · Fatigue > 6/10",
+    durationMin: [65, 85],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "progressif", "medium long", "allure marathon", "Z3", "Z4"],
+    structure: [
+      { part: "Warm-up", text: "10 min Z1 progressif", zones: ["Z1"] },
+      { part: "Main", text: "14-18 km progressifs en 2 phases. Phase 1 (10 km) : Z2 relâché (allure conversation). Phase 2 (4-8 km) : accélération progressive jusqu'à allure marathon ou légèrement plus vite. Terminer les 2 derniers km à allure semi-marathon (sensation forte). Réf : Canova 1999 — le medium long run progressif est la séance la plus couramment utilisée par les coureurs kényans dans la méthode Canova. Simple et efficace pour développer la spécificité sans créer de fatigue excessive.", zones: ["Z2", "Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "14 km : 8 km Z2 + 6 km progression allure run IM",
+      half: "14 km : 8 km Z2 + 6 km progression allure semi",
+      marathon: "16-18 km : 10 km Z2 + 6-8 km progression allure marathon",
+      semi: "14 km : 8 km Z2 + 6 km progression allure semi"
+  }
+  },
+  {
+    id: "CANOVA_RUN_VARIATION_PACE_MARATHON",
+    cat: "B",
+    sport: "course",
+    objectif: "Variation of Pace Canova marathon — alternance allure marathon / allure semi pour développer la polyvalence métabolique",
+    necessite: "Recommandé",
+    when: "Build/Peak — spécifique marathon. Simule les variations de rythme en course (ravitaillements, relances, côtes).",
+    phase: ["build", "peak"],
+    avoid: "Phase Introductive (trop tôt) · Fatigue > 6/10 · Terrain très irrégulier",
+    durationMin: [75, 100],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "Variation of Pace", "VOP", "marathon", "alternance", "Fartlek structuré"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 4×80m strides", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Fartlek structuré Canova : 6×[2 km à allure marathon + 1 km à allure semi-marathon]. Total : 18 km spécifiques. Allure marathon : Z4 bas (ex: 4:00/km pour sub-2h48). Allure semi-marathon : Z4 haut (ex: 3:48/km). RPE : alternance 7.5/10 → 8.5/10. LOGIQUE MÉTABOLIQUE : l'alternance force l'organisme à basculer répétitivement entre différentes filières énergétiques, simulant les variations naturelles de la course. Canova : 'Un marathonien doit être capable de s'adapter à tous les rythmes.' Progressions : S1=4×(2+1), S2=5×(2+1), S3=6×(2+1).", zones: ["Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche 5 min. Ravitaillement toutes les 30 min pendant la séance (30g CHO/h).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×[2 km allure run IM + 1 km allure marathon] — transition métabolique",
+      half: "5×[1.5 km allure semi + 500m allure 10km]",
+      marathon: "SÉANCE CANOVA SIGNATURE — 6×(2 km marathon + 1 km semi)",
+      semi: "5×[1 km allure semi + 500m allure 10km]"
+  }
+  },
+  {
+    id: "CANOVA_RUN_VARIATION_PACE_ULTRA",
+    cat: "B",
+    sport: "course",
+    objectif: "Variation of Pace Canova ultra/trail — alternance marche rapide / course pour ultra-endurance",
+    necessite: "Recommandé",
+    when: "Build — spécifique ultra-marathon et trail long. Développe la gestion allure sur très longue durée.",
+    phase: ["build"],
+    avoid: "Distances < marathon · Athlètes uniquement route",
+    durationMin: [120, 210],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "Variation of Pace", "ultra", "trail", "marche", "gestion allure"],
+    structure: [
+      { part: "Warm-up", text: "15 min marche rapide + 10 min trot progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3-4h avec alternance structurée : 20 min course Z2 + 5 min marche rapide (6-7 km/h). Répéter sur toute la durée. Progressivement réduire les phases marche en fin de bloc (semaines 3-4 : 20 min course + 3 min marche). Ravitaillement : 30-45g CHO/h depuis le début, avec simulation ravitaillement course (manger en mouvement). Réf : Canova adapté ultra — même principe de variation mais adapté aux durées > 4h où la marche est tactiquement optimale.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "10 min marche récup + alimentation complète immédiate", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "3h : alternance 20 min run Z2 + 2 min marche — simulation run IM",
+      half: "Non applicable",
+      marathon: "2h30 : alternance 25 min run + 3 min marche (semaines 1-2) → 30 min run + 2 min marche (semaines 3-4)",
+      semi: "Non applicable"
+  }
+  },
+  {
+    id: "CANOVA_RUN_SPECIAL_BLOCK_AM",
+    cat: "C",
+    sport: "course",
+    objectif: "Special Block Canova matin — FCR intense matin du bloc spécifique (phase Specific)",
+    necessite: "Recommandé",
+    when: "Peak — phase Specific (4-8 semaines avant course). Matin du Special Block Day. À coupler avec CANOVA_RUN_SPECIAL_BLOCK_PM le soir.",
+    phase: ["peak"],
+    avoid: "Sans base solide de FCR et PLR (3-4 mois) · Fatigue > 5/10 · Compétition dans les 10 jours",
+    durationMin: [80, 100],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "Special Block", "matin", "phase spécifique", "FCR", "élite"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 4×100m progressifs. La fraîcheur du matin est un avantage — profiter de la meilleure disposition physiologique de la journée.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "15-20 km continu à allure marathon -10s/km (plus vite que race pace). RPE 8/10. C'est la séance la plus intense de la semaine Canova — elle simule exactement la physiologie des km 10-30 d'un marathon en compétition. Ravitaillement : 40g CHO/h depuis le km 10 (gel + boisson). Canova : 'Le matin du special block, l'athlète doit courir à une allure qu'il serait incapable de tenir sur marathon complet.' Le but est d'exposer le corps à une allure légèrement supérieure à la cible pour créer une adaptation spécifique.", zones: ["Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche. Repas complet dans les 30 min. Repos 4-5h avant séance soir.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "12 km à allure run IM -5s/km",
+      half: "12 km à allure semi -10s/km",
+      marathon: "15-20 km à allure marathon -10s/km",
+      semi: "10 km à allure semi -10s/km"
+  }
+  },
+  {
+    id: "CANOVA_RUN_SPECIAL_BLOCK_PM",
+    cat: "C",
+    sport: "course",
+    objectif: "Special Block Canova soir — Progressive Run sur jambes fatiguées (phase Specific)",
+    necessite: "Recommandé",
+    when: "Peak — soir du Special Block Day. Après CANOVA_RUN_SPECIAL_BLOCK_AM (4-5h de récup minimum).",
+    phase: ["peak"],
+    avoid: "Sans avoir fait la séance matin · FC repos +8 bpm après la sieste · Sensation de jambes 'bloquées'",
+    durationMin: [60, 80],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "Special Block", "soir", "progression", "jambes fatiguées", "résistance"],
+    structure: [
+      { part: "Warm-up", text: "10 min trot Z1 lent. Les jambes seront fatiguées — c'est voulu. L'objectif de cette séance est de courir efficacement sur legs pré-fatiguées, ce qui simule les km 30-42 du marathon.", zones: ["Z1"] },
+      { part: "Main", text: "10-12 km avec accélération finale. Phase 1 (5-7 km) : Z2-Z3 (allure facile à modérée — les jambes sont lourdes, respecter cela). Phase 2 (3-5 km) : progression vers allure marathon exacte. Derniers 2 km : allure semi-marathon ou plus vite si les jambes 'se déverrouillent'. LOGIQUE CANOVA : courir vite sur legs fatiguées développe une adaptation neuromusculaire unique — l'économie de course sous fatigue, impossible à développer autrement. Réf : Canova 2006 — les meilleurs marathoniens maintiennent 98% de leur allure optimale aux km 35-42.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche. Récupération nutritionnelle immédiate et sommeil prioritaire.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "8 km : 5 km Z2 + 3 km progression allure run IM",
+      half: "10 km : 5 km Z2-Z3 + 5 km progression allure semi",
+      marathon: "12 km : 7 km Z2-Z3 + 5 km progression jusqu'à allure marathon",
+      semi: "10 km : 5 km Z2 + 5 km progression allure semi"
+  }
+  },
+  {
+    id: "CANOVA_RUN_FARTLEK_MARATHON",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek Canova marathon — alternance allure marathon et allure semi en terrain naturel",
+    necessite: "Recommandé",
+    when: "Build/Peak — séance clé mi-semaine. Plus dynamique que le VOP en piste.",
+    phase: ["build", "peak"],
+    avoid: "Terrain très accidenté (biaise les allures) · Fatigue > 6/10",
+    durationMin: [75, 95],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "Fartlek", "marathon", "alternance", "terrain naturel", "Kipchoge"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 4×80m accélérations", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "6×[2 km à allure marathon + 1 km à allure semi-marathon]. Total 18 km spécifiques. Courir sur terrain naturel (route, chemin) sans regarder la montre sur les km semi — utiliser le RPE et le souffle. Réf : Canova 1999 — le Fartlek Canova est différent du fartlek classique : les segments sont précis (km mesurés) et les allures sont spécifiques à la compétition cible. C'est un VOP en conditions naturelles.", zones: ["Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×[2 km run IM + 1 km marathon]",
+      half: "5×[1.5 km semi + 500m 10km]",
+      marathon: "6×[2 km marathon + 1 km semi] — séance signature Canova",
+      semi: "5×[1 km semi + 500m 10km]"
+  }
+  },
+  {
+    id: "CANOVA_RUN_FARTLEK_MIXED",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek mixte Canova — 3 allures (Z2 / marathon / semi) pour développement polyvalence métabolique complète",
+    necessite: "Recommandé",
+    when: "Build — variante du VOP avec 3 allures distinctes pour plus de variété métabolique.",
+    phase: ["build"],
+    avoid: "Phase Introductive (trop complexe) · Fatigue élevée",
+    durationMin: [70, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "Fartlek", "mixte", "3 allures", "polyvalence", "marathon"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Schéma : 4×[3 km à allure marathon + 1 km à allure semi + 1 km en récup Z2]. Total 20 km. 3 allures distinctes créent une variété de stimulus métabolique optimale. La récup Z2 entre les blocs simule la gestion des passages de ravitaillement en compétition. RPE moyen : 7.5/10 sur toute la séance.", zones: ["Z2", "Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "3×[3 km run IM + 1 km marathon + 1 km Z2]",
+      half: "4×[2 km semi + 500m 10km + 1 km Z2]",
+      marathon: "4×[3 km marathon + 1 km semi + 1 km Z2]",
+      semi: "4×[1.5 km semi + 500m 10km + 1 km Z2]"
+  }
+  },
+  {
+    id: "CANOVA_RUN_INTRODUCTIVE_PHASE",
+    cat: "B",
+    sport: "course",
+    objectif: "Phase Introductive Canova — premiers contacts avec l'allure course (12-16 semaines avant race)",
+    necessite: "Recommandé",
+    when: "Base/Build — phase d'introduction à la spécificité. Première phase de la périodisation Canova.",
+    phase: ["base", "build"],
+    avoid: "Fatigue de base · Moins de 4 semaines d'entraînement régulier",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "introductive", "phase", "allure course", "progressif", "premiers contacts"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 4×80m strides", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Protocole Introductif Canova : 4-6×[3-4 min à allure course cible + 2 min récup Z1-Z2]. L'allure est EXACTEMENT celle de la course cible (pas plus rapide, pas plus lente). Les répétitions sont courtes — l'important n'est pas le volume mais la qualité neuromusculaire à l'allure exacte. Canova : 'L'athlète doit apprendre à ressentir l'allure de course comme naturelle et économique.' RPE à l'allure course : 7/10 (doit sembler gérable). Si RPE > 8/10 à l'allure cible → revoir l'objectif de course.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche + étirements", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×4 min à allure run IM + 2 min trot",
+      half: "5×3 min à allure semi + 2 min trot",
+      marathon: "6×3 min à allure marathon + 2 min trot — premier contact spécificité",
+      semi: "5×3 min à allure semi + 2 min trot"
+  }
+  },
+  {
+    id: "CANOVA_RUN_SPECIFIC_PHASE",
+    cat: "C",
+    sport: "course",
+    objectif: "Phase Specific Canova — blocs spécifiques intense à allure course (4-8 semaines avant race)",
+    necessite: "Recommandé",
+    when: "Peak — phase Specific. Séance la plus difficile de la préparation Canova. 1x/2 semaines.",
+    phase: ["peak"],
+    avoid: "Sans progression complète des phases Introductive et Fundamental · Compétition dans les 7 jours · Fatigue > 6/10",
+    durationMin: [90, 120],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "spécifique", "phase peak", "allure course", "volume", "élite"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 4×150m progressifs jusqu'à allure course", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Séance spécifique complète : 2-3×[5-8 km à allure marathon exacte] R:3-5 min trot Z1. Volume total à allure spécifique : 15-24 km. C'est LA séance signature de la phase Specific Canova — simuler la course sur des distances significatives sans le stress compétitif. Ravitaillement : exact comme en compétition (timing, produits, doses). Observer : allure régulière sur toutes les répétitions (±5s/km). Si la dernière répétition est 10s+ plus lente que la première, volume trop élevé. Progression : S1=2×5km, S2=2×6km, S3=3×5km, S4=2×8km.", zones: ["Z4"] },
+      { part: "Cool-down", text: "12 min Z1 + marche 10 min. Récupération nutritionnelle prioritaire.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2×6 km à allure run IM R:4 min — simulation partielle du run IM",
+      half: "2×5 km à allure semi R:3 min",
+      marathon: "2-3×6-8 km à allure marathon R:4 min — élite Canova",
+      semi: "3×3 km à allure semi R:3 min"
+  }
+  },
+  {
+    id: "CANOVA_RUN_PRERACE_PHASE",
+    cat: "B",
+    sport: "course",
+    objectif: "Phase Pre-race Canova — dernière stimulation spécifique avant course (J-7 à J-10)",
+    necessite: "Obligatoire",
+    when: "Peak — 7-10 jours avant course A. Dernière séance de qualité.",
+    phase: ["peak"],
+    avoid: "< 7 jours avant course (trop proche) · Volume excessif · Nouvelles séances non testées",
+    durationMin: [45, 55],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "pre-race", "activation", "rappel allure", "J-7", "J-10"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 3×100m à allure course R:90s", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "3×[5 min à allure marathon exacte + 3 min récup Z1]. Réf : Canova 1999 — 'rappel allure' à J-7 ou J-10 : maintenir la mémoire neuromusculaire de l'allure course sans créer de fatigue. Volume très réduit vs séances normales. L'athlète doit se sentir 'vif' et l'allure course doit sembler facile (signe que l'affûtage fonctionne). Si l'allure semble dure → encore une semaine d'affûtage nécessaire.", zones: ["Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche 5 min. Pas de séance qualité après celle-ci jusqu'à la course.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "3×4 min allure run IM — rappel avant course",
+      half: "3×5 min allure semi — rappel",
+      marathon: "3×5 min allure marathon — rappel Canova J-7 ou J-10",
+      semi: "3×4 min allure semi — rappel"
+  }
+  },
+  {
+    id: "CANOVA_TRI_BRICK_SPECIFIC",
+    cat: "C",
+    sport: "course",
+    objectif: "Brick spécifique Canova triathlon — vélo + run à allures race pour développer la spécificité de transition",
+    necessite: "Recommandé",
+    when: "Build/Peak — spécifique triathlon. Simule les conditions exactes de course (post-vélo).",
+    phase: ["build", "peak"],
+    avoid: "Fatigue > 6/10 · Sans base brick préalable · Compétition dans les 7 jours",
+    durationMin: [150, 210],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Canova", "brick", "triathlon", "spécificité", "transition", "allure race"],
+    structure: [
+      { part: "Warm-up", text: "Intégré dans le vélo (20 min Z2 échauffement au début du vélo).", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "VÉLO (2h-3h) : 60-70% du temps en Z2 + 2-3 blocs de 15-20 min à allure vélo course (80-85% FTP). TRANSITION : rapide, simuler exactement T2 de course. RUN (20-40 min) : Phase 1 (5-10 min) : Z2 lent (jambes encore lourdes post-vélo — normal et prévu). Phase 2 (10-20 min) : progression vers allure run IM ou semi. Phase 3 (derniers 10 min) : allure race cible. PHILOSOPHIE CANOVA adaptée triathlon : la spécificité post-vélo est unique au triathlon — l'athlète doit s'entraîner à trouver son allure course spécifique sur jambes pré-fatiguées.", zones: ["Z2", "Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min marche + récupération nutritionnelle immédiate.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Vélo 4h + Run 30-40 min (10 min Z2 + 20 min allure run IM)",
+      half: "Vélo 2h + Run 20-30 min (8 min Z2 + 15 min allure run 70.3)",
+      marathon: "Non applicable",
+      semi: "Non applicable — triathlon uniquement"
+    }
+  }
+
 ];
 // =============================================
 // PICKER POUR LE PLANIFICATEUR
