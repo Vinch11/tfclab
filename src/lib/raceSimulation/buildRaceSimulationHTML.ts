@@ -72,6 +72,20 @@ function fmtNum(v: number | null, digits = 0, unit = ""): string {
   return `${v.toFixed(digits)}${unit ? " " + unit : ""}`;
 }
 
+/**
+ * Formate la TTE. Si la valeur est absente ET que la charge hebdo (TSS 7d) est
+ * inconnue ou nulle, on n'estime pas en mode LOAD et on l'indique explicitement.
+ */
+function fmtTTE(tteMin: number | null, tss7d?: number | null): string {
+  if (tteMin != null && Number.isFinite(tteMin) && tteMin > 0) {
+    return `${tteMin.toFixed(0)} min`;
+  }
+  if (tss7d == null || tss7d === 0) {
+    return `<span class="muted">TTE non calculable (charge hebdomadaire inconnue)</span>`;
+  }
+  return "—";
+}
+
 function envelopeBlock(label: string, env: PacingEnvelopeResult | null): string {
   if (!env) return `
     <div class="env-card">
