@@ -325,17 +325,50 @@ Deno.serve(async (req) => {
         let snapId: string | null = (todaySnap as any)?.id ?? null;
 
         if (!snapId) {
-          // ❗ Pas de clonage : snapshot Nolio autonome, seuls les champs effectivement
-          // remontés par Nolio seront renseignés ci-dessous. Les autres champs (poids,
-          // FTP labo…) restent disponibles via l'historique des snapshots.
-          // On récupère uniquement coach_id (NOT NULL) auprès de l'athlète.
+          // ❗ Snapshot Nolio "complet" : on clone depuis le dernier snapshot existant
+          // les champs de baseline labo/manuel jamais fournis par Nolio (poids, FTP labo,
+          // VO2max, fat_pct, tte_observed_min, paramètres VLamax/protocol…). Les champs
+          // effectivement recalculés depuis Nolio (vma, css, fc_max, pmax_5s, time_*…)
+          // seront écrasés ci-dessous par la phase d'agrégation.
           const { data: athleteRow } = await admin
             .from("athletes")
             .select("coach_id")
             .eq("id", athleteId)
             .maybeSingle();
 
+          const { data: prevSnap } = await admin
+            .from("snapshots")
+            .select("*")
+            .eq("athlete_id", athleteId)
+            .lt("date", today)
+            .order("date", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          const CARRY_OVER_FIELDS = [
+            "weight_kg", "fat_pct", "vo2max", "ftp",
+            "p30s_w", "p60s_w", "map5min_w",
+            "tte_observed_min", "tte_observed_min_run", "tte_mode",
+            "pace_threshold_sec_per_km", "running_power_threshold",
+            "running_power_max", "running_power_1s", "running_power_5s",
+            "running_power_30s", "running_power_60s", "running_power_5min",
+            "fc_repos", "objectif", "sport_main",
+            "vlamax", "vlamax_run", "vlamax_source", "vlamax_protocol",
+            "protocol_quality", "metabolic_profile",
+            "run_economy_score", "run_economy_label",
+            "carb_tolerance_band", "fatigue_state",
+          ];
+          const carry: Record<string, unknown> = {};
+          if (prevSnap) {
+            for (const f of CARRY_OVER_FIELDS) {
+              const v = (prevSnap as any)[f];
+              if (v !== null && v !== undefined) carry[f] = v;
+            }
+          }
+
           const base: Record<string, unknown> = {
+            ...carry,
             athlete_id: athleteId,
             coach_id: (athleteRow as any)?.coach_id ?? null,
             date: today,
@@ -352,9 +385,10 @@ Deno.serve(async (req) => {
           } else {
             snapId = (inserted as any)?.id ?? null;
             snapshotCreated = !!snapId;
-            if (snapId) console.log(`created fresh nolio snapshot for athlete ${athleteId}: ${snapId}`);
+            if (snapId) console.log(`created nolio snapshot for athlete ${athleteId}: ${snapId} (carry-over ${Object.keys(carry).length} fields from ${(prevSnap as any)?.id ?? "—"})`);
           }
         }
+
 
         if (snapId) {
           snapshotIdUsed = snapId;
