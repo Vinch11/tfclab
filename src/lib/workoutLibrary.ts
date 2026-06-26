@@ -6282,6 +6282,388 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "Support secondaire"
     }
   },
+
+  {
+    id: "COGGAN_BIKE_ZONE6_AC_SHORT",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Zone 6 Coggan — capacité anaérobie courte (30-60s) pour développer le W' et la tolérance lactate",
+    necessite: "Recommandé",
+    when: "Build/Peak — 1x/semaine. Développe la réserve anaérobie (W') essentielle pour les attaques, relances et finales.",
+    phase: ["build", "peak"],
+    avoid: "VLamax > 0.65 (déjà glycolytique, risque de surcharge) · Fatigue > 7/10 · IM longue distance (non prioritaire)",
+    durationMin: [55, 70],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "Zone 6", "AC", "capacité anaérobie", "W prime", "30s", "60s", "lactate"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 progressif + 3×20s à 130% FTP R:2 min (activation neuromusculaire)", zones: ["Z1", "Z2", "Z6"] },
+      { part: "Main", text: "Protocole Zone 6 Coggan : 3 séries de 4×[30s à 130-140% FTP + 90s récup 45% FTP]. Récup entre séries : 5 min Z1. Cadence haute 100-115 rpm pour maximiser le recrutement neuromusculaire. LOGIQUE W' : chaque répétition de 30s puise dans le W' (réserve anaérobie). La récup de 90s permet une reconstitution partielle du W' (Skiba 2012 : ~40-50% reconstitution en 90s). L'accumulation sur 12 répétitions crée une déplétion progressive du W' — c'est exactement ce stimulus qui force l'organisme à augmenter la taille de cette réserve. Surveiller : si la puissance chute > 10% sur les dernières répétitions d'une série → récup entre séries insuffisante ou W' déjà épuisé. Réf : Coggan 2010 — Zone 6 développe la capacité à produire de la puissance au-dessus du CP pendant des durées courtes.", zones: ["Z6", "Z7", "Z1"] },
+      { part: "Cool-down", text: "15 min Z1 cadence libre. Cette séance génère beaucoup de lactate — la récupération active est essentielle.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Rare — 2 séries de 3×30s uniquement si W' faible identifié au diagnostic",
+      half: "3 séries de 3×30s — pour les relances en course",
+      marathon: "Non applicable",
+      semi: "3 séries de 3×30s — utile pour les changements de rythme en triathlon"
+    }
+  },
+
+  {
+    id: "COGGAN_BIKE_ZONE6_AC_LONG",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Zone 6 Coggan longue — capacité anaérobie 60-120s pour développer W' et tolérance acidose",
+    necessite: "Recommandé",
+    when: "Build — après 3-4 semaines de Zone 6 courte. Durées plus longues pour plus de temps en Zone 6.",
+    phase: ["build"],
+    avoid: "VLamax > 0.60 · Fatigue élevée · Objectif endurance pure (IM, marathon)",
+    durationMin: [60, 75],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "Zone 6", "AC", "120s", "W prime", "acidose", "tolérance"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 2×30s à 130% FTP R:3 min", zones: ["Z1", "Z2", "Z6"] },
+      { part: "Main", text: "2 séries de 3×[60s à 125-135% FTP + 3 min récup 45% FTP]. Puis 2×[90s à 122-130% FTP + 4 min récup]. Récup entre séries : 6 min Z1. La récupération longue (3-4 min) après les efforts de 60-90s permet une meilleure reconstitution du W' et maintient la qualité sur toutes les répétitions. Réf : Skiba 2012 — le modèle W'bal montre qu'un effort de 60s à 130% FTP dépense ~60% du W' moyen. Avec 3 min de récup à 45% FTP, ~65% du W' est reconstitué — permettant la répétition suivante.", zones: ["Z6", "Z7", "Z1"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Non recommandé",
+      half: "2 séries de 2×60s + 2×90s — pour les relances 70.3",
+      marathon: "Non applicable",
+      semi: "2 séries de 2×60s + 2×90s"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 2 — ZONE 7 — PUISSANCE NEUROMUSCULAIRE
+// >150% FTP — sprints courts, force neuromusculaire
+// ─────────────────────────────────────────────
+
+  {
+    id: "COGGAN_BIKE_ZONE7_NEURO",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Zone 7 Coggan — puissance neuromusculaire maximale (sprints 5-15s, >150% FTP)",
+    necessite: "Recommandé",
+    when: "Base/Build — 1x/semaine. Développe la Pmax, le recrutement neuromusculaire et la VLamax haute.",
+    phase: ["base", "build"],
+    avoid: "VLamax > 0.70 (déjà très glycolytique) · Objectif IM (contre-productif) · Fatigue neuromusculaire",
+    durationMin: [50, 65],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "Zone 7", "neuromusculaire", "sprint", "Pmax", "5s", "10s", "15s"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×10s sprint départ arrêté R:3 min (activation neuromusculaire complète)", zones: ["Z1", "Z2", "Z7"] },
+      { part: "Main", text: "Protocole Zone 7 Coggan : 10-12×[8-12s sprint maximal all-out départ arrêté ou lancé + 3-4 min récup Z1 COMPLÈTE]. Développement fixe (braquets 50×14 ou 50×13 selon niveau). Objectif : puissance pic maximale sur chaque répétition. Cadence : démarrer à 50-60 rpm (force) et accélérer jusqu'à 120-130 rpm en fin de sprint. La récupération DOIT être complète (3-4 min) — si récup < 2 min, la répétition suivante n'est plus Zone 7 (puissance insuffisante). LOGIQUE COGGAN Zone 7 : ces sprints courts recrutent 100% des fibres musculaires y compris les fibres rapides de Type IIx, développant le potentiel de puissance absolue qui 'plafonne' toutes les autres zones. Un athlète avec Pmax élevée aura proportionnellement plus de réserve pour les Zones 4-6.", zones: ["Z7"] },
+      { part: "Cool-down", text: "15 min Z1 cadence libre + étirements quadriceps", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Non recommandé — contre-productif pour profil IM",
+      half: "6-8×10s sprint — maintien puissance neuromusculaire en triathlon",
+      marathon: "Non applicable",
+      semi: "6-8×10s sprint — maintien Pmax"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 3 — CRITICAL POWER INTERVALS
+// Séances autour du CP — développement de la frontière CP/W'
+// ─────────────────────────────────────────────
+
+  {
+    id: "COGGAN_BIKE_CP_OVER_UNDER",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Over-Under Coggan — intervalles alternant au-dessus et en-dessous du CP pour développer la puissance critique",
+    necessite: "Recommandé",
+    when: "Build/Peak — séance clé pour repousser le CP vers le haut et améliorer la tolérance à la zone de transition.",
+    phase: ["build", "peak"],
+    avoid: "Fatigue > 6/10 · VLamax > 0.55 · Moins de 3 semaines d'entraînement régulier à ce niveau",
+    durationMin: [65, 80],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "Over-Under", "CP", "FTP", "Critical Power", "Zone 4", "Zone 5"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 2×2 min à 95% FTP R:2 min", zones: ["Z1", "Z2", "Z4"] },
+      { part: "Main", text: "3-4×[10 min Over-Under] R:4 min Z1. Structure de chaque bloc de 10 min : 2 min à 85% FTP (Under — sous le CP) + 1 min à 110% FTP (Over — au-dessus du CP) × répété sur 10 min. LOGIQUE COGGAN Over-Under : les phases 'Under' maintiennent le lactate à ~2-3 mmol/L. Les phases 'Over' font monter le lactate rapidement à 4-6 mmol/L. L'alternance force le système tampon à travailler répétitivement — adaptant les enzymes tampons et repoussant le CP vers le haut. Réf : Coggan 2010 — 'Les Over-Unders sont la façon la plus efficace d'améliorer simultanément le CP et la tolérance à l'acidose.' Observer : la puissance ne doit pas chuter sur les phases Over au fil du bloc — si baisse > 5% → intensité too élevée.", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2×10 min Over-Under (85/105% FTP) — amélioration CP sans fatigue excessive",
+      half: "3×10 min Over-Under (85/110% FTP)",
+      marathon: "Non applicable",
+      semi: "3×10 min Over-Under (85/112% FTP)"
+    }
+  },
+
+  {
+    id: "COGGAN_BIKE_CP_DEPLETION",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Déplétion W' Coggan — vider intentionnellement le W' pour créer un stimulus d'adaptation maximal",
+    necessite: "Optionnel",
+    when: "Build — 1x/2 semaines maximum. Séance très exigeante — réservée aux athlètes avancés.",
+    phase: ["build"],
+    avoid: "Athlètes débutants · Fatigue > 5/10 · Semaine de compétition · VLamax > 0.55",
+    durationMin: [55, 70],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "W prime", "déplétion", "CP", "adaptation", "avancé", "Skiba"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×30s à 120% FTP R:2 min", zones: ["Z1", "Z2", "Z5"] },
+      { part: "Main", text: "Protocole déplétion W' : Bloc 1 — 3×2 min à 120% FTP R:2 min (dépense ~60% du W'). Récup 5 min Z1 (reconstitution ~40% du W'). Bloc 2 — 2×90s à 125% FTP R:90s (dépense ~30% du W' restant). Récup 4 min. Bloc 3 — 4×30s à 140% FTP R:1 min (vidage final du W'). Objectif : arriver à W' ≈ 0 sur la dernière répétition du Bloc 3 (sensation d'impossibilité totale de continuer). Réf : Skiba 2012 — la déplétion complète du W' crée le stimulus d'adaptation le plus puissant pour augmenter le W' sur 3-4 semaines. Mais la récupération post-séance est longue (48-72h).", zones: ["Z5", "Z6", "Z7"] },
+      { part: "Cool-down", text: "20 min Z1 — récupération active critique après déplétion W'. 72h avant prochaine séance intense.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Non recommandé",
+      half: "Bloc 1 + Bloc 2 uniquement (pas déplétion complète)",
+      marathon: "Non applicable",
+      semi: "Bloc 1 + Bloc 2 uniquement"
+    }
+  },
+
+  {
+    id: "COGGAN_RUN_CP_INTERVALS",
+    cat: "B",
+    sport: "course",
+    objectif: "Intervalles CP Coggan course — développement de la puissance critique running autour de la vitesse critique",
+    necessite: "Recommandé",
+    when: "Build/Peak — équivalent course des Over-Under vélo. Développe la vitesse critique (CV).",
+    phase: ["build", "peak"],
+    avoid: "Blessure en cours · Fatigue > 6/10 · VLamax > 0.65",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Coggan", "CP", "vitesse critique", "course", "Over-Under", "seuil"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 3×1 min à allure seuil R:90s", zones: ["Z1", "Z2", "Z4"] },
+      { part: "Main", text: "3×[10 min Over-Under] R:3 min Z1. Structure de chaque bloc 10 min : 3 min à 88-90% VMA (Under — juste sous la vitesse critique) + 2 min à 95-100% VMA (Over — juste au-dessus). Répéter sur 10 min (= 2 cycles Under/Over). Adapté de Coggan au running : la vitesse critique course (CV) correspond approximativement à l'allure 30-40 min de course. Les Over-Unders autour de cette vitesse créent la même adaptation que vélo — amélioration de la CV et de la tolérance au lactate. Observer : allure stable sur les phases Over, pas de décrochage en fin de bloc.", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "12 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2×10 min Over-Under (87/93% VMA)",
+      half: "3×10 min Over-Under (88/96% VMA)",
+      marathon: "3×10 min Over-Under (88/95% VMA)",
+      semi: "3×10 min Over-Under (89/97% VMA)"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 4 — SWEET SPOT AVANCÉ (Coggan Z3-Z4)
+// 88-93% FTP — meilleur ratio stimulus/fatigue
+// ─────────────────────────────────────────────
+
+  {
+    id: "COGGAN_BIKE_SST_EXTENDED",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Sweet Spot étendu Coggan — blocs longs 88-93% FTP pour adaptation TTE et résistance à la fatigue",
+    necessite: "Obligatoire",
+    when: "Build — 1-2x/semaine. Le meilleur ratio stimulus/fatigue dans les 7 zones Coggan.",
+    phase: ["build"],
+    avoid: "Fatigue > 7/10 · VLamax > 0.60 (risque d'accumulation lactate)",
+    durationMin: [75, 100],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "Sweet Spot", "SST", "88-93% FTP", "Z4", "TTE", "ratio stimulus"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 progressif. Cadence 85-90 rpm.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2-3×20 min à 88-93% FTP R:5 min Z1. Cadence 85-95 rpm. RPE 7.5/10 — 'dur mais soutenable, phrases courtes'. POURQUOI LE SWEET SPOT : Coggan 2010 — à 88-93% FTP (entre Z3 et Z4), l'intensité est suffisamment haute pour stimuler des adaptations physiologiques profondes (amélioration FTP, densité mitochondriale, efficacité lipidique) mais pas assez haute pour créer une fatigue excessive qui réduirait le volume total. C'est la zone avec le meilleur ROI (return on investment) en endurance. La règle Coggan : 'Une heure en Sweet Spot vaut deux heures en Z2 pour le développement du FTP.' Observer : puissance NP stable sur tout le bloc (±5W), FC en plateau sans dérive, RPE qui monte légèrement mais reste gérable.", zones: ["Z4"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2×20 min à 88-90% FTP — fondamental préparation IM",
+      half: "3×15 min à 89-92% FTP",
+      marathon: "Support secondaire — vélo cross-training",
+      semi: "2×20 min à 89-92% FTP"
+    }
+  },
+
+  {
+    id: "COGGAN_BIKE_SST_PROGRESSIVE",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Sweet Spot progressif Coggan — bloc SST avec montée vers Zone 4 FTP en fin de séance",
+    necessite: "Recommandé",
+    when: "Build/Peak — progression naturelle du SST vers le travail FTP.",
+    phase: ["build", "peak"],
+    avoid: "Fatigue > 6/10 · Sans base SST standard (3-4 semaines minimum)",
+    durationMin: [80, 105],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "Sweet Spot", "progressif", "FTP", "Zone 4", "progression"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Bloc 1 : 2×15 min à 88-90% FTP R:4 min. Bloc 2 : 1×15 min à 92-95% FTP R:4 min. Bloc 3 : 1×10 min à 97-102% FTP (zone FTP exacte). Récup entre blocs : 5 min Z1. La progression intra-séance simule la montée en intensité d'une course — l'athlète apprend à pousser l'intensité progressivement sur legs pré-fatiguées par le SST. Réf : Coggan 2010 — 'La progression au sein d'une même séance développe la capacité à changer de 'gear' métabolique et à maintenir la puissance en fin d'effort.'", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "B1: 2×15 min 88% FTP. B2: 1×12 min 92% FTP. B3: 1×8 min 97% FTP",
+      half: "B1: 2×15 min 89% FTP. B2: 1×12 min 93% FTP. B3: 1×10 min 99% FTP",
+      marathon: "Support secondaire",
+      semi: "B1: 2×12 min 90% FTP. B2: 1×10 min 94% FTP. B3: 1×8 min 100% FTP"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 5 — ZONE 5 VO2MAX (106-120% FTP)
+// Coggan Zone 5 — développement VO2max via la puissance
+// ─────────────────────────────────────────────
+
+  {
+    id: "COGGAN_BIKE_ZONE5_MAP",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Zone 5 Coggan — VO2max via puissance MAP (106-120% FTP) pour développement plafond aérobie",
+    necessite: "Recommandé",
+    when: "Build/Peak — 1-2x/semaine en bloc VO2max. Complémentaire au Sweet Spot.",
+    phase: ["build", "peak"],
+    avoid: "VLamax > 0.60 · Fatigue > 7/10 · Période de compétition dense",
+    durationMin: [60, 80],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "Zone 5", "VO2max", "MAP", "106-120% FTP", "plafond aérobie"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min à 105% FTP R:2 min + 2×30s à 120% FTP R:3 min", zones: ["Z1", "Z2", "Z4", "Z5"] },
+      { part: "Main", text: "5-6×3-4 min à 108-115% FTP R:3 min 50% FTP. Cadence 90-100 rpm. FC cible sur les 2 dernières minutes : 90-95% FCmax. COGGAN ZONE 5 vs Billat : même objectif (VO2max) mais approche par la puissance vs l'allure. L'avantage Coggan : contrôle précis via wattmètre, indépendant des conditions extérieures. L'athlète peut voir en temps réel s'il est en Zone 5 (106-120% FTP). Progression : S1=4×3min, S2=5×3min, S3=5×4min, S4=6×4min. Réf : Coggan 2010 — 'La Zone 5 développe la puissance aérobie maximale (MAP) et repousse vers le haut le plafond de toutes les autres zones.'", zones: ["Z5", "Z6"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×3 min à 108-112% FTP — blocs VO2max courts",
+      half: "5×3 min à 110-115% FTP",
+      marathon: "Support secondaire",
+      semi: "5-6×3 min à 110-115% FTP"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 6 — TEST FTP COGGAN
+// Protocoles de mesure du FTP selon Coggan
+// ─────────────────────────────────────────────
+
+  {
+    id: "COGGAN_BIKE_FTP_TEST_20MIN",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Test FTP 20min Coggan — protocole officiel de mesure du Functional Threshold Power",
+    necessite: "Obligatoire",
+    when: "Base/Build — toutes les 4-6 semaines. Calibration des zones de puissance.",
+    phase: ["base", "build"],
+    avoid: "Fatigue > 4/10 · Moins de 48h depuis dernière séance intense · Sans capteur puissance précis",
+    durationMin: [60, 75],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "test FTP", "20min", "diagnostic", "zones", "calibration"],
+    structure: [
+      { part: "Warm-up", text: "20 min progressif Z1→Z2 + 3×1 min à 100-105% FTP R:2 min + 5 min Z2 + 5 min Z1 (récup avant test).", zones: ["Z1", "Z2", "Z4"] },
+      { part: "Main", text: "20 min all-out à puissance la plus élevée possible maintenue de façon stable. RÈGLE COGGAN : partir légèrement conservateur (110% FTP estimée les 2 premières minutes) et monter progressivement. Éviter le départ trop rapide — la plupart des athlètes partent 10-15% trop vite. Technique : surveiller la puissance toutes les 5 min, légère progression si possible. FTP = P_moy_20min × 0.95. Réf : Coggan 2010 — 'Le test 20min × 0.95 est une approximation du FTP (60min) qui évite la fatigue excessive d'un test 60min.' Enregistrer : P moy 20min, P normalisée (NP) 20min, FC moy 20min, FC pic, RPE.", zones: ["Z4", "Z5", "Z6"] },
+      { part: "Cool-down", text: "15 min Z1. Entrer immédiatement le FTP dans TFCLab pour recalibrer toutes les zones.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Test standard — FTP IM est le même FTP Coggan",
+      half: "Test standard",
+      marathon: "Support diagnostic",
+      semi: "Test standard"
+    }
+  },
+
+  {
+    id: "COGGAN_BIKE_FTP_RAMP_TEST",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Ramp Test Coggan — test FTP progressif par paliers (alternative moins pénible au test 20min)",
+    necessite: "Recommandé",
+    when: "Base — alternative au test 20min. Moins de fatigue, moins d'expérience requise pour le pacing.",
+    phase: ["base"],
+    avoid: "Home trainer sans résistance contrôlable · Sans capteur puissance",
+    durationMin: [25, 35],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Coggan", "Ramp Test", "FTP", "test", "paliers", "diagnostic", "calibration"],
+    structure: [
+      { part: "Warm-up", text: "10 min Z1 progressif. Cadence 85-90 rpm.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Protocole Ramp Test Coggan : partir à 50% FTP estimée. Augmenter de 20W (ou 10-15%) toutes les 1 min. Continuer jusqu'à épuisement complet (impossible de maintenir la puissance du palier). Mesurer : puissance maximale du dernier palier COMPLÉTÉ. FTP estimée = puissance max palier × 0.75 (Coggan-Zwift adaptation). Avantage : pas de pacing requis, test court, reproductible. Inconvénient : moins précis que le 20min pour les athlètes bien entraînés (±5-8%). Cadence : maintenir 85-90 rpm sur tous les paliers, même les derniers.", zones: ["Z4", "Z5", "Z6", "Z7"] },
+      { part: "Cool-down", text: "10 min Z1. Calculer FTP = puissance dernier palier × 0.75. Entrer dans TFCLab.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Test standard — à faire toutes les 6-8 semaines",
+      half: "Test standard",
+      marathon: "Support",
+      semi: "Test standard"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 7 — SKIBA / W'BAL RECONSTITUTION
+// Gestion du W' en entraînement et compétition
+// ─────────────────────────────────────────────
+
+  {
+    id: "SKIBA_BIKE_WPRIME_RECHARGE",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Reconstitution W' Skiba — entraîner la reconstitution rapide du W' pour répéter les efforts intenses",
+    necessite: "Recommandé",
+    when: "Build/Peak — développe la capacité à 'recharger' le W' rapidement entre les efforts intenses.",
+    phase: ["build", "peak"],
+    avoid: "VLamax > 0.65 · Fatigue > 7/10 · Sans capteur de puissance",
+    durationMin: [55, 70],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Skiba", "W prime", "reconstitution", "W'bal", "récupération", "Coggan", "intervalles"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 2×30s à 130% FTP R:3 min", zones: ["Z1", "Z2", "Z6"] },
+      { part: "Main", text: "3 séries de [2 min à 120% FTP (dépense ~50% W') + 2 min récup 40% FTP (reconstitution ~35% W') + 1 min à 125% FTP (dépense ~40% W' restant) + 4 min récup 40% FTP (reconstitution ~65% W')]. Récup entre séries : 6 min. LOGIQUE SKIBA W'BAL : Skiba 2012 montre que la reconstitution du W' est exponentielle — elle est rapide au début de la récup et ralentit ensuite. L'entraînement spécifique de ce pattern (déplétion partielle + courte récup + nouvelle déplétion) entraîne l'organisme à reconstituer le W' plus rapidement. Résultat après 4-6 semaines : capacité à répéter les accélérations en course avec des récupérations plus courtes.", zones: ["Z6", "Z7", "Z1"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Non prioritaire — rare en IM",
+      half: "2 séries — pour les relances et montées en 70.3",
+      marathon: "Non applicable",
+      semi: "3 séries — utile pour le run en triathlon sprint/olympique"
+    }
+  },
+
+  {
+    id: "SKIBA_RUN_WPRIME_INTERVALS",
+    cat: "B",
+    sport: "course",
+    objectif: "W' intervals Skiba course — développer et entraîner la gestion du W' en running",
+    necessite: "Recommandé",
+    when: "Build/Peak — spécifique course à pied. Développe la capacité à accélérer sur jambes fatiguées.",
+    phase: ["build", "peak"],
+    avoid: "Blessure · VLamax > 0.65 · Fatigue > 7/10",
+    durationMin: [50, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Skiba", "W prime", "course", "W'bal", "accélérations", "répétitions"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 3×30s à VMA R:90s", zones: ["Z1", "Z2", "Z5"] },
+      { part: "Main", text: "Protocole W'bal course : 3 séries de [2 min à 105-110% VMA (dépense W') + 2 min récup active Z1 (reconstitution partielle W') + 1 min à 110-115% VMA (dépense W' restant) + 3 min récup Z1]. Récup entre séries : 5 min. Réf : Skiba 2012 adapté course — la vitesse critique course (CV ≈ VMA × 0.88) est l'équivalent du CP vélo. Les efforts > CV puisent dans le W'. Cet entraînement développe à la fois le W' (réserve) et la capacité de reconstitution entre les efforts. En compétition : permet de placer une accélération décisive après une phase difficile.", zones: ["Z5", "Z6", "Z1"] },
+      { part: "Cool-down", text: "12 min Z1 + marche 5 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2 séries uniquement — maintien de la capacité à relancer",
+      half: "3 séries — pour les changements de rythme en 70.3",
+      marathon: "2 séries — pour les accélérations en km 30-42",
+      semi: "3 séries — pour les changements de rythme semi"
+    }
+  },
+
 ];
 // =============================================
 // PICKER POUR LE PLANIFICATEUR
