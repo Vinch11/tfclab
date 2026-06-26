@@ -6664,6 +6664,346 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     }
   },
 
+
+  {
+    id: "LYDIARD_RUN_AEROBIC_BASE_LONG",
+    cat: "A",
+    sport: "course",
+    objectif: "Base aérobie Lydiard — sortie longue fondamentale pour construire le moteur aérobie (phase 1)",
+    necessite: "Obligatoire",
+    when: "Base — pilier de la phase 1 Lydiard. 1x/semaine weekend. Volume progressif sur 16-24 semaines.",
+    phase: ["base"],
+    avoid: "Dériver vers Z3 ou plus (détruit l'objectif) · Phase Build ou Peak (trop tard pour la base) · Terrain trop technique",
+    durationMin: [90, 180],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Lydiard", "base aérobie", "sortie longue", "Z2", "fondamental", "volume", "moteur aérobie"],
+    structure: [
+      { part: "Warm-up", text: "Intégré — les 15 premières minutes sont l'échauffement naturel en Z1.", zones: ["Z1"] },
+      { part: "Main", text: "90-150 min en Z1-Z2 strict. PHILOSOPHIE LYDIARD : 'La course aérobie développe le cœur, les poumons, les muscles et le système vasculaire. Sans cette base, la vitesse n'a aucun fondement.' Allure : conversation complète possible. FC < 75% FCmax STRICTEMENT. Pour un coureur avec FCmax 185 : rester sous 139 bpm. Progression Lydiard sur 24 semaines : S1=90 min, S4=110 min, S8=130 min, S12=150 min, S16=165 min, S20=180 min. La DURÉE augmente, pas l'intensité. Lydiard prescrivait même des marches si la FC montait trop. Cette base développe : densité capillaire, densité mitochondriale, enzymes aérobies, économie de course, volume sanguin, efficacité cardiaque.", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "Intégré — les 10 dernières minutes naturellement plus lentes. Étirements doux.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "120-180 min Z1-Z2 — équivalent triathlon de la base Lydiard",
+      half: "90-120 min Z1-Z2 — 1x/semaine en base",
+      marathon: "PRIORITÉ ABSOLUE — 120-165 min. La sortie longue Lydiard est le fondement du marathon.",
+      semi: "90-110 min Z1-Z2 — 1x/semaine"
+    }
+  },
+  {
+    id: "LYDIARD_RUN_AEROBIC_BASE_MEDIUM",
+    cat: "A",
+    sport: "course",
+    objectif: "Volume aérobie Lydiard — sortie medium quotidienne (40-60 min Z2) pour accumulation km",
+    necessite: "Obligatoire",
+    when: "Base — séance quotidienne ou quasi-quotidienne. Le volume total hebdomadaire est la clé Lydiard.",
+    phase: ["base"],
+    avoid: "Intensité > Z2 · Phase de Build ou Peak",
+    durationMin: [40, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Lydiard", "base aérobie", "quotidien", "Z1", "Z2", "volume", "accumulation"],
+    structure: [
+      { part: "Warm-up", text: "Intégré — départ très progressif 5 min Z1.", zones: ["Z1"] },
+      { part: "Main", text: "40-60 min en Z1-Z2. Cette séance est volontairement courte et facile — c'est son but. Lydiard prescrivait des doubles journées : matin 40-60 min Z1, soir 40-60 min Z1. Le volume hebdomadaire total (pas l'intensité de chaque séance) crée l'adaptation. RÈGLE LYDIARD : 'Il vaut mieux courir 100 km/semaine à Z1-Z2 que 60 km/semaine avec trop d'intensité.' Pour les Age Groupers : 6×50 min Z2/semaine = 300 min de base aérobie pure. Résultat sur 12-16 semaines : augmentation naturelle de la VMA de 5-12% sans aucune séance intense.", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "Marche 5 min + mobilité légère", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "50-60 min Z2 — 5-6x/semaine en phase base (avec vélo et natation)",
+      half: "45-55 min Z2 — 5x/semaine",
+      marathon: "50-60 min Z2 — 6x/semaine. Volume total cible 80-100 km/semaine.",
+      semi: "40-50 min Z2 — 5x/semaine"
+    }
+  },
+  {
+    id: "LYDIARD_RUN_HILL_CIRCUIT",
+    cat: "B",
+    sport: "course",
+    objectif: "Circuit collines Lydiard — développement force-endurance spécifique course (phase 2)",
+    necessite: "Recommandé",
+    when: "Build — phase 2 Lydiard, après 8-16 semaines de base aérobie complète. 2x/semaine.",
+    phase: ["build"],
+    avoid: "Sans base aérobie complète (Lydiard : 'Les collines sans base = blessure') · Terrain trop raide (> 15%)",
+    durationMin: [55, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Lydiard", "collines", "hill training", "force", "économie", "phase 2"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 terrain plat + mobilité hanches et mollets", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Circuit collines Lydiard : 6-10 répétitions sur une côte de 200-400m (pente 5-8%). Montée : effort soutenu mais contrôlé (Z3-Z4, pas de sprint). Focus technique : levée de genoux, bras actifs, regard vers le haut. Descente : trot de récupération Z1 (économie + excentrique). Puis 4-6×[150m en accélération légère en bas de côte + retour trot]. Total côtes : 25-40 min. Réf : Lydiard 1978 — 'Le travail en côte développe la force musculaire spécifique, l'économie de foulée et la résistance à la fatigue sans le stress neuromusculaire du sprint piste.' Lydiard utilisait les collines comme transition naturelle entre la base Z2 et le travail de piste.", zones: ["Z3", "Z4", "Z1"] },
+      { part: "Cool-down", text: "10 min Z1 terrain plat + étirements ischio-jambiers", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "6 répétitions collines 200m — entretien force sans fatigue excessive",
+      half: "8 répétitions 250m — transition base→build",
+      marathon: "10 répétitions 300m — clé du développement force-endurance marathon",
+      semi: "8 répétitions 250m"
+    }
+  },
+  {
+    id: "LYDIARD_RUN_HILL_BOUNDING",
+    cat: "B",
+    sport: "course",
+    objectif: "Bondissements en côte Lydiard — développement force explosive et économie neuromusculaire",
+    necessite: "Recommandé",
+    when: "Build — phase 2 Lydiard avancée. Après 3-4 semaines de circuit collines.",
+    phase: ["build"],
+    avoid: "Sans base collines préalable · Douleur genou ou tendon · Terrain humide glissant",
+    durationMin: [50, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Lydiard", "bondissements", "côte", "force", "explosivité", "économie neuromusculaire"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + mobilité complète + 3×50m strides progressifs sur plat", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Protocole bondissements Lydiard : 6-8×[60-80m de bondissements en côte (5-8%) + descente trot Z1]. Types de bondissements en alternance : A) Foulées bondissantes (triple extension complète, suspension prononcée). B) Montée genoux haute (levée maximale, contact sol minimal). C) Talons-fesses (recrutement ischio spécifique). 2 répétitions de chaque type. Réf : Lydiard 1978 — 'Les bondissements en côte développent l'élasticité musculaire et l'économie de foulée en un seul stimulus. C'est le pont entre la force brute et la vitesse élégante.' Terminer par 2×150m allure seuil sur plat (transfert immédiat).", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "10 min Z1 + étirements quadriceps et mollets", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "6 répétitions légères — maintien économie",
+      half: "8 répétitions — développement économie avant phase build",
+      marathon: "8 répétitions — clé économie Lydiard",
+      semi: "8 répétitions"
+    }
+  },
+  {
+    id: "LYDIARD_RUN_TRACK_VMA",
+    cat: "B",
+    sport: "course",
+    objectif: "Piste Lydiard — intervalles VMA sur base aérobie développée (phase 3)",
+    necessite: "Recommandé",
+    when: "Build/Peak — phase 3 Lydiard. Après 16-24 semaines de base + 4-6 semaines de collines.",
+    phase: ["build", "peak"],
+    avoid: "Sans base aérobie et collines complètes · Directement en phase base",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Lydiard", "piste", "VMA", "intervalles", "phase 3", "vitesse", "track"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + gammes athlétisme (talon-fesses, montée genoux, skipping) + 3×100m progressifs", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Protocole piste Lydiard : 6-12×400m à VMA (100% VMA) R:200m trot Z1. Puis 4×200m à 105-108% VMA R:200m trot. Lydiard : 'Le travail de piste ne vient QU'APRÈS la base aérobie complète. Un athlète avec une solide base peut tenir des intervalles de haute qualité semaine après semaine. Sans la base, les intervalles créent de la fatigue sans amélioration.' Différence clé Lydiard vs méthodes modernes : la base est TELLEMENT longue (16-24 semaines) que quand la piste arrive, le corps est parfaitement préparé et progresse rapidement.", zones: ["Z5", "Z6"] },
+      { part: "Cool-down", text: "15 min Z1 footing lent + étirements", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "6×400m VMA — développement VMA post-base",
+      half: "8×400m VMA + 4×200m rapides",
+      marathon: "10×400m VMA — construction vitesse pour tenir allure marathon",
+      semi: "10-12×400m VMA + 4×200m"
+    }
+  },
+  {
+    id: "KENYAN_RUN_FARTLEK_PYRAMID",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek pyramide kényan — surges progressifs en terrain naturel (méthode Kipchoge/Sang)",
+    necessite: "Recommandé",
+    when: "Build — séance de mi-semaine kényane. En terrain vallonné idéalement.",
+    phase: ["build"],
+    avoid: "Terrain plat artificiel (contre l'esprit kényan) · Montre GPS trop contraignante",
+    durationMin: [75, 100],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Kenyan", "Kipchoge", "Fartlek", "pyramide", "terrain naturel", "surges", "Patrick Sang"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1-Z2 terrain naturel. Les Kényans courent pieds nus ou avec sandales les 5 premières minutes — si possible, 3 min d'activation sur terre battue.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Fartlek pyramide Kipchoge : 2-3-5-7-5-3-2 min à 90-95% VMA avec récup trot égale entre chaque. Total temps intense : 27 min. Terrain : idéalement vallonné (accélérer dans les montées, récup en descente). PHILOSOPHIE KÉNYANE : les coureurs kényans font ce Fartlek en groupe, au feeling, sans montre. Le rythme naturel du groupe est auto-régulé. L'absence de pression technologique favorise l'écoute du corps. Réf : Larsen 2003 — 'Le Fartlek kényan combine simultanément le développement du seuil, du VO2max et de la force en côte, tout en maintenant le plaisir et la social bonding du groupe.'", zones: ["Z4", "Z5", "Z6"] },
+      { part: "Cool-down", text: "15 min Z1 terrain naturel + étirements au sol", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2-3-5-3-2 min (version courte) — développe polyvalence pace",
+      half: "2-3-5-7-5-3-2 min — séance complète",
+      marathon: "2-3-5-7-5-3-2 min — clé du build marathon kényan",
+      semi: "2-3-5-7-5-3-2 min"
+    }
+  },
+  {
+    id: "KENYAN_RUN_FARTLEK_SURGE",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek surges kényan — accélérations libres en terrain vallonné (style Iten Kenya)",
+    necessite: "Recommandé",
+    when: "Build — alternative plus libre au Fartlek pyramide. En groupe idéalement.",
+    phase: ["build"],
+    avoid: "Terrain plat · Météo dangereuse",
+    durationMin: [70, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Kenyan", "Fartlek", "surges", "terrain", "Iten", "naturel", "groupe"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1-Z2 progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "50-60 min de Fartlek libre kényan : courir à Z2 de base avec accélérations spontanées de 30s-2 min à 90-100% VMA sur les côtes, terrains variés, changements de direction. Pas de structure fixe — le terrain et les sensations guident. Courir en tête-à-tête ou groupe de 3-5 pour maintenir la compétitivité naturelle. Récup : retour Z2 entre les surges jusqu'à récupération complète. Total surges : 20-25 min accumulés. Réf : le camp d'Iten au Kenya (1600-2400m d'altitude) est le temple de ce type d'entraînement — Kipchoge, Bekele, Kimetto ont tous développé leur base sur ces chemins de terre rouge.", zones: ["Z2", "Z4", "Z5"] },
+      { part: "Cool-down", text: "10 min Z1 + étirements", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "50 min Z2 + surges spontanés 30s-1 min",
+      half: "55 min avec surges 30s-2 min",
+      marathon: "60 min avec surges 1-3 min — version Kipchoge",
+      semi: "55 min avec surges 30s-2 min"
+    }
+  },
+  {
+    id: "KENYAN_RUN_DOUBLE_DAY",
+    cat: "C",
+    sport: "course",
+    objectif: "Double journée kényane — deux séances Z2 dans la même journée pour accumulation volume",
+    necessite: "Optionnel",
+    when: "Base/Build — pour athlètes avec volume ≥ 70 km/semaine. 2-3x/semaine au maximum.",
+    phase: ["base", "build"],
+    avoid: "Athlètes < 60 km/semaine · Fatigue > 5/10 · Sans alimentation et sommeil optimaux",
+    durationMin: [80, 110],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Kenyan", "double journée", "volume", "Z2", "accumulation", "Kipchoge"],
+    structure: [
+      { part: "Warm-up", text: "MATIN (6h-7h) : 10 min progressif Z1. SOIR (16h-17h) : 10 min progressif Z1.", zones: ["Z1"] },
+      { part: "Main", text: "MATIN : 40-50 min Z1-Z2 léger et relâché. Focus : foulée économe, relâchement total. Pas de montre GPS (courir au feeling). SOIR (minimum 5h après) : 40-50 min Z2 soutenu — légèrement plus fort que le matin. Les jambes sont plus chaudes et répondent mieux l'après-midi. Réf : Larsen 2003 — 'Les coureurs kényans d'élite font 2-3 doubles journées par semaine pendant leur préparation principale. Cette accumulation de volume quotidien crée des adaptations mitochondriales impossibles à atteindre avec une seule séance.' La clé : JAMAIS de haute intensité dans une double journée. Les deux séances sont TOUJOURS en Z1-Z2.", zones: ["Z1", "Z2"] },
+      { part: "Cool-down", text: "SOIR : marche 10 min. Nutrition : 60g CHO + 30g protéines dans l'heure. Sommeil 8-9h obligatoire (adaptation).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Matin : 40 min run Z1 + Soir : 45 min vélo Z1 (alternance sports)",
+      half: "Matin : 40 min Z1 + Soir : 40 min Z2",
+      marathon: "Matin : 50 min Z1 + Soir : 50 min Z2 — volume marathon kényan",
+      semi: "Matin : 40 min Z1 + Soir : 40 min Z2"
+    }
+  },
+  {
+    id: "KENYAN_RUN_TEMPO_MARATHON",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo marathon Kipchoge — allure marathon exacte sur blocs longs (séance signature)",
+    necessite: "Obligatoire",
+    when: "Build/Peak — spécifique marathon. Équivalent Kipchoge du FCR Canova.",
+    phase: ["build", "peak"],
+    avoid: "Fatigue > 6/10 · Phase base (trop tôt) · Terrain accidenté",
+    durationMin: [80, 110],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Kenyan", "Kipchoge", "tempo marathon", "allure spécifique", "blocs longs", "Patrick Sang"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 progressif + 4×100m strides", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2×25 min à allure marathon cible R:5 min trot Z1. RPE : 7.5/10. La séance Kipchoge par excellence. Réf : semaine type Kipchoge (Larsen 2003, camp d'Iten) — 'Mardi et jeudi sont les jours tempo. Deux blocs de 25 min à allure marathon exacts.' La clé Kipchoge : régularité absolue au km (±2s/km sur tout le bloc). Il analyse chaque km post-séance pour vérifier la constance. Kipchoge : 'La régularité est plus importante que la vitesse.' Ravitaillement : 20-30g CHO sur les 5 min de récup entre les deux blocs. Progression : S1=2×20min, S2=2×22min, S3=2×25min, S4=2×28min, S5=1×35min.", zones: ["Z4"] },
+      { part: "Cool-down", text: "12 min Z1 + marche 5 min. Analyser chaque km (régularité ≤ ±3s/km = réussite).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2×20 min allure run IM — tempo spécifique triathlon",
+      half: "2×20 min allure semi",
+      marathon: "PRIORITÉ — 2×25 min allure marathon. Clé de la préparation Kipchoge.",
+      semi: "2×20 min allure semi-marathon"
+    }
+  },
+  {
+    id: "KENYAN_RUN_TEMPO_GROUP",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo groupe kényan — séance tempo en groupe pour bénéficier de la dynamique collective",
+    necessite: "Recommandé",
+    when: "Build — séance tempo réalisée avec d'autres coureurs de niveau similaire.",
+    phase: ["build"],
+    avoid: "Groupe trop rapide (risque de dépasser son allure cible) · Solo si besoin",
+    durationMin: [70, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Kenyan", "groupe", "tempo", "dynamique collective", "Iten", "social"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 en groupe + 2-3 accélérations progressives communes", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "40-50 min tempo en groupe à allure seuil bas (87-91% VMA / Z3-Z4). RPE : 7.5/10. En groupe de 3-10 coureurs de niveau homogène. Le groupe permet de maintenir l'allure sans effort mental individuel. Les Kényans courent souvent sans montre — le rythme est dicté par les leaders naturels qui tournent. AVANTAGE COGNITIF : courir en groupe réduit le RPE perçu de 5-10% à la même intensité (Tucker 2006). Kipchoge : 'Un groupe vous pousse à donner le meilleur de vous-même sans jamais vous sentir seul.'", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1 groupe + stretching collectif", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "40 min tempo groupe allure seuil",
+      half: "45 min tempo groupe",
+      marathon: "50 min tempo groupe à allure seuil",
+      semi: "45 min tempo groupe"
+    }
+  },
+  {
+    id: "KENYAN_RUN_LONG_NEGATIVE_SPLIT",
+    cat: "B",
+    sport: "course",
+    objectif: "Sortie longue negative split Kipchoge — accélération progressive sur les derniers km (séance weekend clé)",
+    necessite: "Obligatoire",
+    when: "Build/Peak — 1x/semaine weekend. Séance longue la plus importante de la préparation marathon.",
+    phase: ["build", "peak"],
+    avoid: "Fatigue > 6/10 · Chaleur > 25°C · Terrain trop accidenté sur la deuxième moitié",
+    durationMin: [100, 165],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Kenyan", "Kipchoge", "sortie longue", "negative split", "allure marathon", "progression"],
+    structure: [
+      { part: "Warm-up", text: "Intégré — les 5 premiers km en Z1 sont l'échauffement naturel.", zones: ["Z1"] },
+      { part: "Main", text: "Sortie 28-34 km avec negative split structuré à la Kipchoge. Structure : km 1-18 : Z2 très confortable (4:00-4:30/km pour sub-3h). km 18-26 : accélération progressive vers allure marathon (+10s/km de progression). km 26-32 : allure marathon exacte ou légèrement plus vite. Derniers 2 km : free pace. Ravitaillement : 40g CHO/h depuis le km 12 (gut training simultané). RPE km 1 : 5/10. RPE km 30 : 8.5/10. Cette structure simule parfaitement la physiologie d'un marathon réussi. Réf : Kipchoge court systématiquement ses sorties longues avec negative split — c'est sa signature de course.", zones: ["Z2", "Z3", "Z4"] },
+      { part: "Cool-down", text: "Marche 15 min + récupération nutritionnelle complète dans les 20 min (70g CHO + 30g protéines).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "22-25 km : km 1-14 Z2, km 14-20 progression, km 20-25 allure run IM",
+      half: "18-22 km : km 1-12 Z2, km 12-17 progression, km 17-22 allure semi",
+      marathon: "28-34 km avec negative split Kipchoge — séance weekend signature",
+      semi: "16-20 km avec negative split"
+    }
+  },
+  {
+    id: "KENYAN_WEEK_STRUCTURE_MARATHON",
+    cat: "C",
+    sport: "course",
+    objectif: "Semaine type kényane marathon — structure Kipchoge/Sang adaptée pour coureurs compétiteurs",
+    necessite: "Recommandé",
+    when: "Build — bloc de 4-8 semaines pour coureurs visant sub-3h ou moins. Volume 80-120 km/semaine.",
+    phase: ["build"],
+    avoid: "Volume < 60 km/semaine · Moins de 6 mois d'entraînement régulier · Sans base aérobie solide",
+    durationMin: [55, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Kenyan", "Kipchoge", "semaine type", "structure", "marathon", "volume", "Patrick Sang"],
+    structure: [
+      { part: "Warm-up", text: "LUNDI : 50 min Z1 récupération active. MARDI : 1h30 dont 2×25 min allure marathon (KENYAN_RUN_TEMPO_MARATHON). MERCREDI : 1h40 Z2 terrain vallonné (EF longue). JEUDI : 1h20 Fartlek pyramide kényan (KENYAN_RUN_FARTLEK_PYRAMID). VENDREDI : 45 min Z1 récupération légère. SAMEDI : 32 km SL negative split (KENYAN_RUN_LONG_NEGATIVE_SPLIT). DIMANCHE : 1h Z2 + 6×100m strides. Total : ~105-115 km.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Cette séance représente le JEUDI : Fartlek pyramide kényan 2-3-5-7-5-3-2 min à 90-95% VMA. RÉPARTITION HEBDOMADAIRE : ~80% Z1-Z2 (distribution Seiler respectée). ~20% Z3-Z5 (tempo + fartlek). Z3 minimal (la sortie longue et les EF restent en Z2). CLÉS DE LA SEMAINE KÉNYANE : 1. La SL est SACROSANTE — jamais sacrifiée. 2. Les deux séances de qualité (mardi + jeudi) sont séparées de 48h. 3. Les EF sont VRAIMENT faciles (pas de dérive Z3). 4. Manger 70-80g CHO/h sur la SL (gut training).", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "15 min Z1. Analyser le volume hebdomadaire total — objectif : +10% maximum par rapport à la semaine précédente.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Adapter : remplacer jeudi run par vélo 2h Z2, ajouter natation mardi matin",
+      half: "Volume réduit à 70-85 km. Même structure.",
+      marathon: "Structure complète 100-120 km/semaine — niveau compétiteur marathonien",
+      semi: "Volume 60-75 km. Même structure, durées réduites."
+    }
+  },
+  {
+    id: "KENYAN_RUN_ALTITUDE_SIMULATION",
+    cat: "C",
+    sport: "course",
+    objectif: "Simulation altitude kényane — protocole pour maximiser les bénéfices d'un camp en altitude",
+    necessite: "Optionnel",
+    when: "Build — si stage en altitude (> 1500m) ou simulation heat training comme alternative.",
+    phase: ["build"],
+    avoid: "Altitude < 1200m (bénéfices insuffisants) · Première semaine en altitude (adaptation) · Intensité élevée en altitude",
+    durationMin: [60, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Kenyan", "altitude", "camp", "adaptation", "érythropoïèse", "volume plasmatique"],
+    structure: [
+      { part: "Warm-up", text: "Semaine 1 altitude (1500-2400m) : UNIQUEMENT Z1-Z2 léger. La FC est naturellement 10-15 bpm plus haute qu'en plaine à la même allure — NORMAL. Réduire l'allure de 15-25 s/km vs plaine.", zones: ["Z1"] },
+      { part: "Main", text: "Programme altitude Lydiard-Kényan : Semaines 1-2 : uniquement Z1-Z2, volume normal -20%. Semaines 3-4 : retour au volume normal, introduire une séance de qualité légère. Semaines 5-6 (si stage long) : intensité normale mais allure toujours plus lente qu'en plaine (FC référence, pas allure GPS). BÉNÉFICES : augmentation masse érythrocytaire (+6-8% sur 4 semaines), augmentation VO2max (+3-5% à retour en plaine). Réf : Stellingwerff 2012 — l'altitude optimale est 2000-2400m pour 3-4 semaines. Les Kényans d'Iten (2400m) s'entraînent toute l'année à cette altitude — leur avantage physiologique est partiellement dû à cette adaptation chronique.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "Hydratation ++. Alimentation riche en fer (viandes rouges, légumineuses). Sommeil 9h minimum (la nuit en altitude = adaptation principale).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Stage altitude 3-4 semaines en phase base — gain VO2max significatif",
+      half: "Stage 2-3 semaines avant bloc build",
+      marathon: "Stage altitude 4-6 semaines — investissement optimal",
+      semi: "Stage 2-3 semaines"
+    }
+  },
+
 ];
 // =============================================
 // PICKER POUR LE PLANIFICATEUR
