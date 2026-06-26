@@ -95,6 +95,7 @@ export default function TrackDayPage() {
 
   // Bloc 2 — Glycolytique
   const [t400m, setT400m] = useState("");
+  const [t1000m, setT1000m] = useState("");
   const [t600m, setT600m] = useState("");
 
   // Bloc 3 — Seuil
