@@ -18,6 +18,7 @@ export interface VLamaxCapEstimateInput {
   sprint15sDistance?: number | null;     // Distance parcourue en 15s (mètres)
   runningPowerMax?: number | null;       // Puissance max course (W) - Stryd/Garmin
   runningPowerThreshold?: number | null; // Puissance seuil course (W)
+  weightKg?: number | null;              // Poids pour sanity-check W/kg puissance course
   // Données économie de course (import FIT)
   runEconomyScore?: number | null;       // Score 0-100 d'économie de course
   runHrDriftPct?: number | null;         // Dérive cardiaque (%)
@@ -66,6 +67,7 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
     sprint15sDistance, 
     runningPowerMax, 
     runningPowerThreshold,
+    weightKg,
     runEconomyScore,
     runHrDriftPct,
     vlamaxRunMeasured,
@@ -77,6 +79,50 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   let economyConfidenceAdjustment = 0;
   let economyImpact: { modifier: number; reason: string } | undefined;
   let hasMeasured = false;
+
+  // Garde physiologique puissance CAP : les champs running_power_* peuvent être
+  // pollués par des records vélo/Nolio ou des pics Garmin non exploitables.
+  // Pour la VLamax CAP, on ignore la puissance si elle sort d'une plage cohérente.
+  const hasWeight = weightKg != null && Number.isFinite(weightKg) && weightKg > 35 && weightKg < 130;
+  const invalidPowerReasons: string[] = [];
+  let validRunningPowerMax = runningPowerMax;
+  let validRunningPowerThreshold = runningPowerThreshold;
+
+  if (validRunningPowerMax != null && validRunningPowerMax > 0) {
+    const pMaxWkg = hasWeight ? validRunningPowerMax / weightKg! : null;
+    if (validRunningPowerMax > 1200 || (pMaxWkg != null && pMaxWkg > 13.5)) {
+      invalidPowerReasons.push(`Pmax CAP ${Math.round(validRunningPowerMax)}W ignorée`);
+      validRunningPowerMax = null;
+    }
+  }
+
+  if (validRunningPowerThreshold != null && validRunningPowerThreshold > 0) {
+    const pThrWkg = hasWeight ? validRunningPowerThreshold / weightKg! : null;
+    if (
+      validRunningPowerThreshold < 120 ||
+      validRunningPowerThreshold > 520 ||
+      (pThrWkg != null && (pThrWkg < 2.0 || pThrWkg > 5.8))
+    ) {
+      invalidPowerReasons.push(`Pseuil CAP ${Math.round(validRunningPowerThreshold)}W ignorée`);
+      validRunningPowerThreshold = null;
+    }
+  }
+
+  if (
+    validRunningPowerMax != null && validRunningPowerMax > 0 &&
+    validRunningPowerThreshold != null && validRunningPowerThreshold > 0
+  ) {
+    const ratio = validRunningPowerMax / validRunningPowerThreshold;
+    if (ratio < 1.2 || ratio > 2.7) {
+      invalidPowerReasons.push(`ratio Pmax/Pseuil CAP ${ratio.toFixed(2)} incohérent`);
+      validRunningPowerMax = null;
+      validRunningPowerThreshold = null;
+    }
+  }
+
+  if (invalidPowerReasons.length > 0) {
+    details += `${invalidPowerReasons.join(" ; ")}. `;
+  }
 
   // =============================================
   // SOURCE 0: Mesure labo directe (DOMINANTE — P0)
@@ -118,29 +164,29 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   // =============================================
   // SOURCE 2: Puissance course (Stryd/Garmin)
   // =============================================
-  if (runningPowerMax !== null && runningPowerMax !== undefined && runningPowerMax > 0) {
+  if (validRunningPowerMax !== null && validRunningPowerMax !== undefined && validRunningPowerMax > 0) {
     /**
      * Interpolation continue Puissance max → VLamax
      * 350W → 0.28, 700W → 0.50, 1050W → 0.72
      */
     let estimated: number;
-    if (runningPowerMax <= 300) estimated = 0.25;
-    else if (runningPowerMax >= 1100) estimated = 0.78;
+    if (validRunningPowerMax <= 300) estimated = 0.25;
+    else if (validRunningPowerMax >= 1100) estimated = 0.78;
     else {
       // 300-1100W: interpolation linéaire 0.25 → 0.78
-      estimated = 0.25 + (runningPowerMax - 300) * 0.000663;
+      estimated = 0.25 + (validRunningPowerMax - 300) * 0.000663;
     }
     
     estimates.push({ value: estimated, weight: 0.35, source: "Puissance Max" });
     sources.push("Puissance CAP");
-    details += `Pmax: ${runningPowerMax}W → ${estimated.toFixed(3)}. `;
+    details += `Pmax: ${validRunningPowerMax}W → ${estimated.toFixed(3)}. `;
   }
 
   // =============================================
   // SOURCE 3: Ratio Puissance (si threshold disponible)
   // =============================================
-  if (runningPowerMax && runningPowerThreshold && runningPowerThreshold > 0) {
-    const powerRatio = runningPowerThreshold / runningPowerMax;
+  if (validRunningPowerMax && validRunningPowerThreshold && validRunningPowerThreshold > 0) {
+    const powerRatio = validRunningPowerThreshold / validRunningPowerMax;
     /**
      * Interpolation continue ratio puissance → VLamax
      * ratio 0.80 → 0.25, ratio 0.65 → 0.45, ratio 0.50 → 0.65
@@ -182,8 +228,8 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
     // Pace ratio = signal physiologique le plus fiable en l'absence de labo/puissance.
     // En l'absence de labo et de puissance running, on lui donne le poids dominant.
     const hasPowerData =
-      (runningPowerMax != null && runningPowerMax > 0) ||
-      (runningPowerThreshold != null && runningPowerThreshold > 0);
+      (validRunningPowerMax != null && validRunningPowerMax > 0) ||
+      (validRunningPowerThreshold != null && validRunningPowerThreshold > 0);
     const weight = hasMeasured ? 0.15 : (hasPowerData ? 0.30 : 0.65);
     estimates.push({ value: estimated, weight, source: "Ratio Seuil/VMA" });
     sources.push("Seuil/VMA");

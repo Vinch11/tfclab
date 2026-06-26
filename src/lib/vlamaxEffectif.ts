@@ -392,6 +392,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         sprint15sDistance: effectiveSnapshot.sprint_15s_distance ?? null,
         runningPowerMax: effectiveSnapshot.running_power_max ?? null,
         runningPowerThreshold: effectiveSnapshot.running_power_threshold ?? null,
+        weightKg: weight_kg ?? null,
         vlamaxRunMeasured: isLabMeasuredVlamaxSnapshot(effectiveSnapshot) ? effectiveSnapshot.vlamax_run ?? null : null,
       });
 

@@ -48,6 +48,7 @@ interface SnapshotLike {
   sprint_15s_distance?: number | null;
   running_power_max?: number | null;
   running_power_threshold?: number | null;
+  weight_kg?: number | null;
   vlamax_source?: string | null;
   vlamax_protocol?: string | null;
   vo2max?: number | null;
@@ -97,6 +98,7 @@ export function resolveVlamaxForGoal(
       sprint15sDistance: snapshot.sprint_15s_distance ?? null,
       runningPowerMax: snapshot.running_power_max ?? null,
       runningPowerThreshold: snapshot.running_power_threshold ?? null,
+      weightKg: snapshot.weight_kg ?? null,
       vlamaxRunMeasured: isLab ? rawRun : null,
       vo2max: snapshot.vo2max ?? null,
     });
