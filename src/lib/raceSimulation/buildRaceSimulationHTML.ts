@@ -149,10 +149,16 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
           <td>VLamax run</td><td>${fmtNum(ph.vlamaxRun, 2, "mmol/L/s")}</td></tr>
       <tr><td>VO2max</td><td>${fmtNum(ph.vo2max, 1, "ml/kg/min")}</td>
           <td>Potentiel physio</td><td>${fmtNum(ph.potentielScore, 0, "/100")}</td></tr>
-      <tr><td>TTE vélo</td><td>${fmtNum(ph.tteMin, 0, "min")}</td>
-          <td>TTE run</td><td>${fmtNum(ph.tteMinRun, 0, "min")}</td></tr>
+      <tr><td>TTE vélo</td><td>${fmtTTE(ph.tteMin, b.tss7d)}</td>
+          <td>TTE run</td><td>${fmtTTE(ph.tteMinRun, b.tss7d)}</td></tr>
     </table>
   `;
+
+  // Garde-fou CP/W' : si le modèle est implausible, masquer les sorties dépendantes.
+  const cpImplausible = b.criticalPower?.dataQuality === "implausible";
+  const cpWarningHTML = cpImplausible
+    ? `<div class="risk-warn">⚠️ Modèle CP/W' non calculable — données insuffisantes ou incohérentes. Vérifier les mesures de puissance courte durée.</div>`
+    : "";
 
   const scenariosHTML = b.scenarios
     ? `
