@@ -362,7 +362,8 @@ Deno.serve(async (req) => {
             "run_economy_score", "run_economy_label",
             "carb_tolerance_band", "fatigue_state",
             // Données terrain — protégées de tout écrasement par Nolio
-            "sprint_15s_distance",
+            "sprint_15s_distance", "vma",
+
           ];
 
           const carry: Record<string, unknown> = {};
