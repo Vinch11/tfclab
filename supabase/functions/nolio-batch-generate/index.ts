@@ -153,9 +153,13 @@ interface WorkoutPayload {
   isRest?: boolean;
 }
 
-const REST_ID_RE = /REST|REPOS|RECOVERY/i;
+const REST_ID_RE = /^REST_|^REPOS_|^D_.*RECOVERY$|^REST$|^REPOS$/i;
+const PURE_REST_IDS = new Set(["REST_FULL_DAY", "REPOS_COMPLET"]);
 function isRestWorkout(w: WorkoutPayload): boolean {
   return w.isRest === true || REST_ID_RE.test(w.workout_id ?? "");
+}
+function isPureRest(w: WorkoutPayload): boolean {
+  return PURE_REST_IDS.has(w.workout_id ?? "");
 }
 
 interface BatchBody {
