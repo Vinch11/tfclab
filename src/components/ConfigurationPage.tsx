@@ -45,7 +45,11 @@ export function ConfigurationPage() {
   const [nolioMetricsSuccess, setNolioMetricsSuccess] = useState<{ created: number; updated: number; message: string } | null>(null);
 
   const [nolioRecordsLoading, setNolioRecordsLoading] = useState(false);
-  const [nolioRecordsResult, setNolioRecordsResult] = useState<{ message: string; isError: boolean } | null>(null);
+  const [nolioRecordsResult, setNolioRecordsResult] = useState<{
+    message: string;
+    isError: boolean;
+    summary?: Array<{ athlete: string; imported: number; errors?: string[] }>;
+  } | null>(null);
   const [nolioRecordsPeriodOpen, setNolioRecordsPeriodOpen] = useState(false);
 
   
@@ -241,6 +245,10 @@ export function ConfigurationPage() {
       setNolioRecordsResult({ message: "Pas de session active", isError: true });
       return;
     }
+    if (!period.athleteIds || period.athleteIds.length === 0) {
+      setNolioRecordsResult({ message: "Aucun athlète sélectionné", isError: true });
+      return;
+    }
     setNolioRecordsLoading(true);
     setNolioRecordsResult(null);
 
@@ -259,6 +267,7 @@ export function ConfigurationPage() {
         body: JSON.stringify({
           date_from: period.dateFrom,
           date_to: period.dateTo,
+          athlete_ids: period.athleteIds,
         }),
       });
       const rawBody = await resp.text();
@@ -273,9 +282,10 @@ export function ConfigurationPage() {
       try { parsed = JSON.parse(rawBody); } catch { /* ignore */ }
       const total = parsed?.total_records ?? 0;
       const processed = parsed?.athletes_processed ?? 0;
+      const summary = Array.isArray(parsed?.summary) ? parsed.summary : undefined;
       const fmtFr = (s: string) => new Date(s).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" });
       const message = `${total} record${total > 1 ? "s" : ""} importé${total > 1 ? "s" : ""} pour ${processed} athlète${processed > 1 ? "s" : ""} sur la période du ${fmtFr(period.dateFrom)} au ${fmtFr(period.dateTo)}`;
-      setNolioRecordsResult({ message, isError: false });
+      setNolioRecordsResult({ message, isError: false, summary });
       toast({ title: "Records Nolio importés", description: message });
       setNolioRecordsPeriodOpen(false);
     } catch (e) {
@@ -533,17 +543,32 @@ export function ConfigurationPage() {
                 onOpenChange={setNolioRecordsPeriodOpen}
                 onConfirm={handleImportNolioRecords}
                 loading={nolioRecordsLoading}
+                selectableAthletes={linkedAthletes.map((a) => ({ id: a.id, name: a.name }))}
               />
 
               {nolioRecordsResult && (
                 <div className={cn(
-                  "flex items-center gap-2 p-3 rounded-lg border",
+                  "p-3 rounded-lg border space-y-2",
                   nolioRecordsResult.isError
                     ? "bg-destructive/10 border-destructive/30 text-destructive"
                     : "bg-success/10 border-success/30 text-success"
                 )}>
-                  {nolioRecordsResult.isError ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                  <span className="text-sm font-medium">{nolioRecordsResult.message}</span>
+                  <div className="flex items-center gap-2">
+                    {nolioRecordsResult.isError ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                    <span className="text-sm font-medium">{nolioRecordsResult.message}</span>
+                  </div>
+                  {nolioRecordsResult.summary && nolioRecordsResult.summary.length > 0 && (
+                    <ul className="text-xs space-y-0.5 pl-6 list-disc">
+                      {nolioRecordsResult.summary.map((s, i) => (
+                        <li key={`${s.athlete}-${i}`}>
+                          <strong>{s.athlete}</strong> — {s.imported} record{s.imported > 1 ? "s" : ""}
+                          {s.errors && s.errors.length > 0 && (
+                            <span className="opacity-80"> · {s.errors.join(" | ")}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
 
