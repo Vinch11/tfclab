@@ -263,6 +263,7 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
   <section>
     <h2>1. Profil physiologique</h2>
     ${physioGrid}
+    ${cpWarningHTML}
     ${why("Ces valeurs résument ton moteur : FTP/VMA fixent ton seuil aérobie, VLamax mesure ta vitesse glycolytique (consommation de sucre), TTE indique combien de temps tu tiens au seuil. Tout le reste du rapport est calculé à partir de ces chiffres.")}
   </section>
 
