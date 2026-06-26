@@ -5911,7 +5911,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     }
   },
 
-{
+  {
     id: "SEILER_RUN_Z1_EASY_LONG",
     cat: "A",
     sport: "course",
@@ -5937,7 +5937,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "60-80 min Z1-Z2"
     }
   },
-{
+
+  {
     id: "SEILER_BIKE_Z1_LONG",
     cat: "A",
     sport: "cyclisme",
@@ -5963,7 +5964,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "90-120 min Z1-Z2"
     }
   },
-{
+
+  {
     id: "SEILER_SWIM_Z1_VOLUME",
     cat: "A",
     sport: "natation",
@@ -5989,7 +5991,14 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "1500-2000m Z1"
     }
   },
-{
+
+// ─────────────────────────────────────────────
+// GROUPE 2 — Z4-Z5 HAUTE INTENSITÉ (15-20% du volume)
+// "High intensity should be very high — not just hard"
+// Séances Seiler 4×4min et variantes
+// ─────────────────────────────────────────────
+
+  {
     id: "SEILER_RUN_4X4MIN_STANDARD",
     cat: "B",
     sport: "course",
@@ -6015,7 +6024,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "4×4 min à 95-97% FCmax"
     }
   },
-{
+
+  {
     id: "SEILER_BIKE_4X4MIN",
     cat: "B",
     sport: "cyclisme",
@@ -6041,7 +6051,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "Support secondaire"
     }
   },
-{
+
+  {
     id: "SEILER_RUN_4X8MIN",
     cat: "B",
     sport: "course",
@@ -6067,7 +6078,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "4×8 min à 92-95% FCmax"
     }
   },
-{
+
+  {
     id: "SEILER_BIKE_4X8MIN",
     cat: "B",
     sport: "cyclisme",
@@ -6093,7 +6105,13 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "Support"
     }
   },
-{
+
+// ─────────────────────────────────────────────
+// GROUPE 3 — DISTRIBUTION POLARISÉE HEBDOMADAIRE
+// Structure de semaine selon le modèle 80/20
+// ─────────────────────────────────────────────
+
+  {
     id: "SEILER_WEEK_POLARIZED_RUN",
     cat: "C",
     sport: "course",
@@ -6119,7 +6137,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "Même structure, volumes légèrement réduits"
     }
   },
-{
+
+  {
     id: "SEILER_WEEK_POLARIZED_TRI",
     cat: "C",
     sport: "cyclisme",
@@ -6145,7 +6164,13 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "8-10h total. 1-2 séances haute intensité/semaine."
     }
   },
-{
+
+// ─────────────────────────────────────────────
+// GROUPE 4 — ÉVITER LE BLACK HOLE (Z3)
+// Séances spécifiques pour sortir du grey zone
+// ─────────────────────────────────────────────
+
+  {
     id: "SEILER_RUN_BLACK_HOLE_AUDIT",
     cat: "C",
     sport: "course",
@@ -6171,7 +6196,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "Audit course principalement"
     }
   },
-{
+
+  {
     id: "SEILER_RUN_Z1_RECOVERY_STRICT",
     cat: "A",
     sport: "course",
@@ -6197,7 +6223,13 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "30-40 min Z1 strict"
     }
   },
-{
+
+// ─────────────────────────────────────────────
+// GROUPE 5 — PROGRESSIONS SEILER
+// Évolution du modèle sur 6-12 semaines
+// ─────────────────────────────────────────────
+
+  {
     id: "SEILER_RUN_PROGRESSION_4TO8",
     cat: "B",
     sport: "course",
@@ -6223,7 +6255,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "Progression identique"
     }
   },
-{
+
+  {
     id: "SEILER_BIKE_PROGRESSION_POLARIZED",
     cat: "B",
     sport: "cyclisme",
@@ -6248,8 +6281,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       marathon: "Support secondaire",
       semi: "Support secondaire"
     }
-  }
-
+  },
 ];
 // =============================================
 // PICKER POUR LE PLANIFICATEUR
