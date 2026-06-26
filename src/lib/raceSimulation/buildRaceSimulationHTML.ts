@@ -25,7 +25,23 @@ export interface RaceSimulationReportInput {
   envelopeBike?: PacingEnvelopeResult | null;
   envelopeRun?: PacingEnvelopeResult | null;
   scenarios: ScenarioSimulationResult | null;
+  /** Charge hebdomadaire TSS — utilisée pour qualifier le calcul de TTE en mode LOAD. */
+  tss7d?: number | null;
+  /** Résultat CP/W' — si dataQuality === "implausible", les sections dépendantes sont masquées. */
+  criticalPower?: {
+    dataQuality?: "ok" | "low" | "implausible" | string;
+    cp?: number | null;
+    wPrime?: number | null;
+  } | null;
 }
+
+// ─── Helpers partagés ─────────────────────────────────────────────────────────
+
+/** Clamp un % à une plage physiologiquement plausible (jamais >500% ni <-200%). */
+const clampPct = (v: number): number => {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(-200, Math.min(500, v));
+};
 
 function esc(v: unknown): string {
   if (v == null) return "—";
