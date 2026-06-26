@@ -5546,7 +5546,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
 // 14 séances scientifiques (Canova, Stellingwerff)
 // =============================================
 
-{
+  {
     id: "CANOVA_RUN_FAST_CONTINUOUS_INTRO",
     cat: "B",
     sport: "course",
@@ -5570,9 +5570,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "8 km à allure semi-marathon -10s/km",
       marathon: "PRIORITÉ — 8-10 km à allure marathon -10s/km. Pilier de la phase Introductive.",
       semi: "6 km à allure semi-marathon -10s/km"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_FAST_CONTINUOUS_FUND",
     cat: "B",
     sport: "course",
@@ -5596,9 +5596,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "12-14 km à allure semi-marathon -5s/km",
       marathon: "14-18 km à allure marathon -5s/km. Cœur de la phase Fundamental.",
       semi: "10-12 km à allure semi-marathon -5s/km"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_PROGRESSIVE_LONG",
     cat: "B",
     sport: "course",
@@ -5622,9 +5622,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "18-22 km : P1=8km Z2, P2=7km Z3, P3=3-4km allure semi",
       marathon: "PILIER ABSOLU — 28-32 km avec derniers 6-8 km à allure marathon ou plus vite",
       semi: "16-20 km : P1=7km Z2, P2=7km Z3, P3=derniers 4km allure semi"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_PROGRESSIVE_MEDIUM",
     cat: "B",
     sport: "course",
@@ -5648,9 +5648,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "14 km : 8 km Z2 + 6 km progression allure semi",
       marathon: "16-18 km : 10 km Z2 + 6-8 km progression allure marathon",
       semi: "14 km : 8 km Z2 + 6 km progression allure semi"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_VARIATION_PACE_MARATHON",
     cat: "B",
     sport: "course",
@@ -5674,9 +5674,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "5×[1.5 km allure semi + 500m allure 10km]",
       marathon: "SÉANCE CANOVA SIGNATURE — 6×(2 km marathon + 1 km semi)",
       semi: "5×[1 km allure semi + 500m allure 10km]"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_VARIATION_PACE_ULTRA",
     cat: "B",
     sport: "course",
@@ -5700,9 +5700,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "Non applicable",
       marathon: "2h30 : alternance 25 min run + 3 min marche (semaines 1-2) → 30 min run + 2 min marche (semaines 3-4)",
       semi: "Non applicable"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_SPECIAL_BLOCK_AM",
     cat: "C",
     sport: "course",
@@ -5726,9 +5726,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "12 km à allure semi -10s/km",
       marathon: "15-20 km à allure marathon -10s/km",
       semi: "10 km à allure semi -10s/km"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_SPECIAL_BLOCK_PM",
     cat: "C",
     sport: "course",
@@ -5752,9 +5752,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "10 km : 5 km Z2-Z3 + 5 km progression allure semi",
       marathon: "12 km : 7 km Z2-Z3 + 5 km progression jusqu'à allure marathon",
       semi: "10 km : 5 km Z2 + 5 km progression allure semi"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_FARTLEK_MARATHON",
     cat: "B",
     sport: "course",
@@ -5778,9 +5778,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "5×[1.5 km semi + 500m 10km]",
       marathon: "6×[2 km marathon + 1 km semi] — séance signature Canova",
       semi: "5×[1 km semi + 500m 10km]"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_FARTLEK_MIXED",
     cat: "B",
     sport: "course",
@@ -5804,9 +5804,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "4×[2 km semi + 500m 10km + 1 km Z2]",
       marathon: "4×[3 km marathon + 1 km semi + 1 km Z2]",
       semi: "4×[1.5 km semi + 500m 10km + 1 km Z2]"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_INTRODUCTIVE_PHASE",
     cat: "B",
     sport: "course",
@@ -5830,9 +5830,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "5×3 min à allure semi + 2 min trot",
       marathon: "6×3 min à allure marathon + 2 min trot — premier contact spécificité",
       semi: "5×3 min à allure semi + 2 min trot"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_SPECIFIC_PHASE",
     cat: "C",
     sport: "course",
@@ -5856,9 +5856,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "2×5 km à allure semi R:3 min",
       marathon: "2-3×6-8 km à allure marathon R:4 min — élite Canova",
       semi: "3×3 km à allure semi R:3 min"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_RUN_PRERACE_PHASE",
     cat: "B",
     sport: "course",
@@ -5882,9 +5882,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "3×5 min allure semi — rappel",
       marathon: "3×5 min allure marathon — rappel Canova J-7 ou J-10",
       semi: "3×4 min allure semi — rappel"
-    }
   }
-{
+  },
+  {
     id: "CANOVA_TRI_BRICK_SPECIFIC",
     cat: "C",
     sport: "course",
@@ -5908,7 +5908,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "Vélo 2h + Run 20-30 min (8 min Z2 + 15 min allure run 70.3)",
       marathon: "Non applicable",
       semi: "Non applicable — triathlon uniquement"
-    }
+  }
   }
 
 ];
