@@ -517,27 +517,33 @@ Deno.serve(async (req) => {
           if (betterMin((snap as any)?.time_marathon_sec, timeMarathon)) updates.time_marathon_sec = Math.round(timeMarathon as number);
           // (400m / 1000m : stockés uniquement dans nolio_records, consommés par fetchAthleteRaceRecords pour calibration VLamax)
 
-          // ─── PAR natation / distance — CSS = 100/vitesse (s/100m) ──
-          // ⚠️ sport_id=19 mélange piscine ET open water (les records OW gonflent la vitesse
-          // via courant/néoprène/dérive GPS). On essaie d'abord le 1500m puis le 800m
-          // (plus représentatif d'un effort piscine soutenu), et on ne tombe sur le 400m
-          // que si rien d'autre n'est disponible. Plage CSS plausible : 70-180 s/100m.
-          const cssCandidates: Array<{ dist: number; mps: number | null }> = [
-            { dist: 1500, mps: bestMax("par", "distance", 1500, [SWIM_SPORT]) },
-            { dist: 800, mps: bestMax("par", "distance", 800, [SWIM_SPORT]) },
-            { dist: 400, mps: bestMax("par", "distance", 400, [SWIM_SPORT]) },
+          // ─── CSS natation = 100/vitesse (s/100m) ──
+          // ⚠️ sport_id=19 mélange piscine ET open water. On agrège deux familles
+          // de candidats et on prend le MEILLEUR (m/s max) qui reste dans la plage
+          // piscine plausible [70, 180] s/100m :
+          //  1) par/distance : 1500m, 800m, 400m
+          //  2) par/time     : best m/s soutenu sur 1200s, 1500s, 1800s (proxy CSS classique)
+          const cssCandidates: Array<{ label: string; mps: number | null }> = [
+            { label: "dist1500", mps: bestMax("par", "distance", 1500, [SWIM_SPORT]) },
+            { label: "dist800",  mps: bestMax("par", "distance", 800,  [SWIM_SPORT]) },
+            { label: "dist400",  mps: bestMax("par", "distance", 400,  [SWIM_SPORT]) },
+            { label: "time1200", mps: bestMax("par", "time", 1200, [SWIM_SPORT]) },
+            { label: "time1500", mps: bestMax("par", "time", 1500, [SWIM_SPORT]) },
+            { label: "time1800", mps: bestMax("par", "time", 1800, [SWIM_SPORT]) },
           ];
-          for (const { dist, mps } of cssCandidates) {
+          let bestCss: { label: string; cssVal: number } | null = null;
+          for (const { label, mps } of cssCandidates) {
             if (mps == null || mps <= 0) continue;
             const cssVal = 100 / mps;
             if (cssVal >= 70 && cssVal <= 180) {
-              if (betterMin((snap as any)?.css, cssVal)) {
-                updates.css = Math.round(cssVal * 100) / 100;
-              }
-              break;
+              if (!bestCss || cssVal < bestCss.cssVal) bestCss = { label, cssVal };
             } else {
-              errors.push(`css(${dist}m) ignoré — ${cssVal.toFixed(1)}s/100m hors plage piscine [70, 180]s/100m (probablement open water)`);
+              errors.push(`css(${label}) ignoré — ${cssVal.toFixed(1)}s/100m hors plage piscine [70, 180]s/100m`);
             }
+          }
+          if (bestCss && betterMin((snap as any)?.css, bestCss.cssVal)) {
+            updates.css = Math.round(bestCss.cssVal * 100) / 100;
+            errors.push(`css retenu = ${bestCss.cssVal.toFixed(1)}s/100m (source: ${bestCss.label})`);
           }
           // (50/100/200/1500/3800 : stockés uniquement dans nolio_records)
 
