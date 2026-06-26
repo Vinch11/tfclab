@@ -4510,6 +4510,707 @@ export const WorkoutLibrary: LibraryWorkout[] = [
 // 10. Récupération avancée : 3 séances
 // 11. Nordic Walking Trail : 1 séance
 // 12. Blood Flow Restriction : 1 séance
+
+// =============================================
+// BIBLIOTHÈQUE BILLAT — 24 séances scientifiques
+// =============================================
+  {
+    id: "BILLAT_RUN_30_30_INTRO",
+    cat: "B",
+    sport: "course",
+    objectif: "Introduction au 30/30 Billat — maximiser le temps à VO2max avec volume modéré",
+    necessite: "Recommandé",
+    when: "Build — début d'un bloc VO2max. Limiter à 2x/semaine maximum.",
+    phase: ["build"],
+    avoid: "VLamax > 0.65 (surcharge glycolytique) · Fatigue > 7/10 · Moins de 3 semaines d'entraînement régulier",
+    durationMin: [45, 55],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "30/30", "VO2max", "vVO2max", "intervalles", "temps à VO2max"],
+    structure: [
+      { part: "Warm-up", text: "15 min progressif Z1→Z2 + 4x80m accélérations progressives + 2x30s à vVO2max (pour préparer le système neuromusculaire)", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2 séries de 8×[30s à vVO2max (100-105% VMA) + 30s récup active Z1 (footing très lent)]. Récup entre séries : 4 min Z1. Total temps à VO2max : ~16 min. Allure 30s : VMA = 18km/h → allure 3:20/km sur les 30s. La récupération active (pas arrêt complet) est ESSENTIELLE — Billat 2000 : la récup active maintient la cinétique VO2 élevée. Arrêter si FC descend > 10% FCmax entre les répétitions (indique fatigue excessive).", zones: ["Z5", "Z6", "Z1"] },
+      { part: "Cool-down", text: "10 min Z1 footing très lent + marche 5 min. Étirements doux.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "1x/14j uniquement si VO2max est limiteur identifié — pas en phase spécifique IM",
+      half: "2x/semaine en build sur 3-4 semaines si VO2max plafonné",
+      marathon: "Clé de voûte du bloc VO2max marathon — 2x/sem pendant 4 semaines",
+      semi: "Priorité haute si VMA est limiteur — 2x/sem build"
+    }
+  },
+
+  {
+    id: "BILLAT_RUN_30_30_PRO",
+    cat: "B",
+    sport: "course",
+    objectif: "30/30 Billat version avancée — volume maximal de temps à VO2max",
+    necessite: "Recommandé",
+    when: "Build/Peak — après 3-4 semaines de 30/30 intro. Athlètes bien entraînés (VMA > 16 km/h).",
+    phase: ["build", "peak"],
+    avoid: "Fatigue accumulée (CTL élevé + TSB négatif) · VLamax > 0.70 · Sans base 30/30 intro",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "30/30", "VO2max", "avancé", "vVO2max", "élite"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 progressif + 3x30s à vVO2max R:90s (activation neuromusculaire et cinétique VO2)", zones: ["Z1", "Z2", "Z5"] },
+      { part: "Main", text: "3 séries de 10×[30s à vVO2max + 30s récup active Z1]. Récup entre séries : 3 min Z1. Total : 30 répétitions = 15 min à vVO2max. Progression sur 3 semaines : S1 = 2×8 reps, S2 = 2×10 reps, S3 = 3×8 reps, S4 = 3×10 reps. Réf : Billat 2000 — temps à VO2max optimal = 10-20 min par séance. Au-delà = rendements décroissants et fatigue excessive.", zones: ["Z5", "Z6", "Z1"] },
+      { part: "Cool-down", text: "12 min Z1 footing + 3 min marche", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Rare — seulement si diagnostic confirme VO2max comme limiteur principal",
+      half: "Bloc 4 semaines en build mi-saison — très efficace",
+      marathon: "3-4 semaines en build — améliore la vitesse de base pour tenir l'allure marathon",
+      semi: "Bloc 4 semaines prioritaire — VO2max critique pour le semi"
+    }
+  },
+
+  {
+    id: "BILLAT_BIKE_30_30",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "30/30 Billat adapté vélo — développement VO2max et puissance aérobie maximale",
+    necessite: "Recommandé",
+    when: "Build — bloc VO2max vélo. Home trainer recommandé pour précision des efforts.",
+    phase: ["build"],
+    avoid: "VLamax > 0.60 (risque de trop solliciter la filière glycolytique) · Fatigue musculaire haute",
+    durationMin: [55, 70],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Billat", "30/30", "VO2max", "vélo", "puissance", "MAP"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 progressif + 3×20s à 120% FTP récup 2 min (activation)", zones: ["Z1", "Z2", "Z5"] },
+      { part: "Main", text: "2-3 séries de 8-10×[30s à 120-130% FTP + 30s récup active 40-50% FTP]. Récup entre séries : 4 min Z1. Cadence 95-105 rpm sur les efforts. La transition rapide 30s→récup est essentielle : passer de 130% à 45% FTP en moins de 5 secondes. Réf : Billat 2001 adapté vélo — mêmes principes cinétique VO2 que course mais puissance plus facile à contrôler précisément.", zones: ["Z5", "Z6", "Z1"] },
+      { part: "Cool-down", text: "15 min Z1 cadence libre + étirements quadriceps", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "1x/2 semaines si VO2max limiteur — pas la priorité principale IM",
+      half: "2x/semaine sur 4 semaines en build",
+      marathon: "Support secondaire",
+      semi: "Support secondaire"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 2 — SÉANCES 60/60 (Billat 2001)
+// Pour athlètes moins entraînés ou en début de bloc VO2max
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_RUN_60_60",
+    cat: "B",
+    sport: "course",
+    objectif: "60/60 Billat — transition entre Z4 et travail VO2max pur (moins intense que 30/30)",
+    necessite: "Recommandé",
+    when: "Build — idéal pour athlètes dont VMA < 14 km/h ou qui débutent le travail VO2max",
+    phase: ["build"],
+    avoid: "Déjà à l'aise avec le 30/30 (passer directement au 30/30) · Fatigue élevée",
+    durationMin: [50, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "60/60", "VO2max", "intermédiaire", "vVO2max"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 3x60s à allure seuil (Z3-Z4) pour préparer progressivement", zones: ["Z1", "Z2", "Z3"] },
+      { part: "Main", text: "2 séries de 6-8×[60s à 100-105% VMA + 60s récup active footing Z1]. Récup entre séries : 4 min Z1. Le 60/60 accumule moins de temps à VO2max que le 30/30 mais est plus accessible physiologiquement — la montée en VO2 est plus progressive sur 60s. Allure : si VMA = 14 km/h → allure 4:17/km sur les 60s. Surveiller : si FC dépasse 97% FCmax sur la dernière répétition → réduire d'une répétition la semaine suivante.", zones: ["Z5", "Z1"] },
+      { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Rare — préférer 30/30 ou 3min/3min selon le niveau",
+      half: "Bon point d'entrée avant de progresser vers le 30/30",
+      marathon: "Phase d'entrée dans le bloc VO2max marathon",
+      semi: "2-3 semaines avant de passer au 30/30"
+    }
+  },
+
+  {
+    id: "BILLAT_BIKE_60_60",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "60/60 Billat vélo — développement VO2max progressif accessible",
+    necessite: "Recommandé",
+    when: "Build — introduction au travail VO2max vélo. Home trainer idéal.",
+    phase: ["build"],
+    avoid: "Fatigue élevée · Déjà entraîné au 30/30 (trop facile)",
+    durationMin: [60, 75],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Billat", "60/60", "VO2max", "vélo", "intermédiaire"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×30s à 110% FTP récup 2 min", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2 séries de 7×[60s à 115-120% FTP + 60s récup 50% FTP]. Récup entre séries : 4 min. Cadence haute 100-110 rpm sur les efforts pour maximiser le recrutement neuromusculaire sans fatigue musculaire excessive.", zones: ["Z5", "Z1"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Blocs de 3 semaines si VO2max limiteur confirmé",
+      half: "2x/semaine en build",
+      marathon: "Support",
+      semi: "Support"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 3 — SÉANCES 3min/3min (Billat 2000)
+// Pour athlètes élites — stress VO2max plus long
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_RUN_3MIN_3MIN",
+    cat: "B",
+    sport: "course",
+    objectif: "3min/3min Billat — accumulation de temps à VO2max avec efforts plus longs (élite)",
+    necessite: "Recommandé",
+    when: "Build/Peak — athlètes élites ou bien entraînés. VMA > 17 km/h recommandé.",
+    phase: ["build", "peak"],
+    avoid: "Athlètes débutants ou VMA < 15 km/h (trop intense) · VLamax > 0.65 · Fatigue > 6/10",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "3min/3min", "VO2max", "élite", "vVO2max", "avancé"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 progressif + 3×1 min Z4 R:2 min + 2×30s à vVO2max R:90s", zones: ["Z1", "Z2", "Z4", "Z5"] },
+      { part: "Main", text: "5-7×[3 min à 100-105% VMA + 3 min récup active Z1-Z2 (footing)]. Si VMA = 18 km/h : allure 3:20/km pendant 3 min. La récupération DOIT être active (pas d'arrêt) — Billat 2000 : la récup active à 50-60% VMA maintient la cinétique VO2 et réduit le temps nécessaire pour atteindre VO2max à la répétition suivante. Observer : les 2 premières répétitions montent à VO2max, les suivantes y restent. Si allure chute > 5% : arrêter la série.", zones: ["Z5", "Z6", "Z1", "Z2"] },
+      { part: "Cool-down", text: "12 min Z1 + 3 min marche + étirements", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "1x/2 semaines si VO2max diagnostic — période build uniquement",
+      half: "Bloc de 4 semaines en build — très efficace niveau compétiteur",
+      marathon: "Clé pour marathoniens visant sub-3h ou sub-2h30 — développe la vitesse de base",
+      semi: "Priorité haute compétiteurs — 5-7 répétitions x 2/semaine"
+    }
+  },
+
+  {
+    id: "BILLAT_BIKE_3MIN_3MIN",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "3min/3min Billat vélo — développement VO2max et puissance critique vélo",
+    necessite: "Recommandé",
+    when: "Build/Peak — athlètes compétiteurs. FTP > 250W recommandé.",
+    phase: ["build", "peak"],
+    avoid: "VLamax > 0.60 · Fatigue élevée · Saison de compétition dense",
+    durationMin: [65, 80],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Billat", "3min/3min", "VO2max", "vélo", "élite", "puissance critique"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min à 110% FTP récup 2 min + 2×30s à 130% FTP R:2 min", zones: ["Z1", "Z2", "Z5"] },
+      { part: "Main", text: "5-6×[3 min à 110-120% FTP + 3 min récup 50-55% FTP]. Cadence libre sur les efforts (laisser le corps trouver sa cadence optimale à haute intensité — typiquement 80-95 rpm). Réf : Billat adapté vélo — même principe que course mais puissance plus contrôlable. Surveiller NP (Normalized Power) vs puissance affichée — écart > 10% indique fatigue neuromusculaire.", zones: ["Z5", "Z6", "Z1"] },
+      { part: "Cool-down", text: "15 min Z1 cadence libre", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Bloc de 3 semaines en milieu de build si VO2max diagnostic",
+      half: "Très efficace — 2x/semaine 4 semaines build",
+      marathon: "Support secondaire",
+      semi: "Support secondaire"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 4 — SÉANCES ALLURE MARATHON (Billat 2009)
+// "La course au seuil de confort" — spécificité d'allure
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_RUN_MARATHON_PACE",
+    cat: "B",
+    sport: "course",
+    objectif: "Allure marathon Billat — développer la spécificité métabolique exacte de la course (Billat 2009)",
+    necessite: "Obligatoire",
+    when: "Build/Peak — spécifique marathon. À partir de 12 semaines avant course.",
+    phase: ["build", "peak"],
+    avoid: "Trop tôt dans la saison (avant 8 semaines d'entraînement de base) · Fatigue > 6/10",
+    durationMin: [75, 120],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "allure marathon", "spécificité", "économie", "seuil lactique"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 progressif + 4x80m strides", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "40-60-80 min à allure marathon cible (Z3 — ~75-82% VMA). Progression sur les semaines : S1 = 3×15 min à allure marathon R:3 min. S2 = 2×20 min R:4 min. S3 = 1×35 min continu. S4 = 1×45 min continu. Réf : Billat 2009 — l'allure marathon correspond exactement à l'intensité où l'oxydation des glucides et des lipides est optimale pour la durée de course. Courir systématiquement à cette allure créée une adaptation métabolique spécifique irremplaçable. Surveiller : allure exacte au GPS (±3s/km), FC stable (pas de dérive > 5 bpm sur 20 min).", zones: ["Z3"] },
+      { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Allure run IM (Z2-Z3 bas) pendant 45-60 min — similaire mais plus lent",
+      half: "Allure semi-marathon : 1-2×15-20 min Z3-Z4",
+      marathon: "PRIORITÉ ABSOLUE — clé du marathon. Volume principal de la phase race-specific.",
+      semi: "Allure semi-marathon : Z3-Z4 — 2×15 min"
+    }
+  },
+
+  {
+    id: "BILLAT_RUN_SEMI_PACE",
+    cat: "B",
+    sport: "course",
+    objectif: "Allure semi-marathon Billat — spécificité métabolique semi (seuil haut)",
+    necessite: "Recommandé",
+    when: "Build/Peak — spécifique semi-marathon. À partir de 8 semaines avant course.",
+    phase: ["build", "peak"],
+    avoid: "Fatigue élevée · Plus de 2x/semaine (risque surmenage)",
+    durationMin: [60, 85],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "allure semi", "seuil", "spécificité", "Z4"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 4×80m strides", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Progression sur 4 semaines : S1 = 4×8 min à allure semi R:2 min. S2 = 3×10 min R:2 min. S3 = 2×15 min R:3 min. S4 = 1×25 min continu. Allure semi = Z4 (87-92% VMA). La particularité Billat : maintenir l'allure EXACTEMENT — ni trop lent (pas de stimulus), ni trop rapide (dette d'oxygène croissante). RPE cible : 7-8/10, capable de prononcer une phrase courte.", zones: ["Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + étirements", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Non prioritaire",
+      half: "PRIORITÉ — cœur de la préparation semi",
+      marathon: "Secondaire (vitesse de base pour marathon)",
+      semi: "PRIORITÉ ABSOLUE — 2x/semaine en peak"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 5 — TEST TLIM@vVO2max (Billat 1996)
+// "Le temps limite à vVO2max" — diagnostic fondamental
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_RUN_TLIM_TEST",
+    cat: "C",
+    sport: "course",
+    objectif: "Test tlim@vVO2max Billat — mesurer le temps limite à la vitesse VO2max (diagnostic)",
+    necessite: "Recommandé",
+    when: "Base/Build — test diagnostique à réaliser avant un bloc VO2max pour personnaliser le volume.",
+    phase: ["base", "build"],
+    avoid: "Fatigue > 5/10 · Moins de 2 jours depuis dernière séance intense · Maladie",
+    durationMin: [35, 50],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "tlim", "test", "VO2max", "vVO2max", "diagnostic", "piste"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 progressif + 2×2 min à 90% VMA R:2 min + 2×30s à vVO2max R:3 min (pour s'assurer que le système VO2 est activé)", zones: ["Z1", "Z2", "Z4", "Z5"] },
+      { part: "Main", text: "Courir à vVO2max (100% VMA) le plus longtemps possible jusqu'à épuisement complet. Départ à l'allure exacte (chrono ou GPS). Méthode : départ 50m à allure légèrement plus rapide pour atteindre vVO2max, puis maintenir. Arrêter quand l'allure chute de >3% (impossible de maintenir). Mesurer : temps total à vVO2max. Interprétation (Billat 1996) : < 4 min = capacité VO2max très limitée (VLamax trop haute ou manque de développement aérobie). 4-6 min = niveau intermédiaire. 6-8 min = bon niveau. > 8 min = niveau élite. Ce tlim détermine le volume optimal de 30/30 : tlim 4 min → 2×6 reps ; tlim 6 min → 2×8 reps ; tlim 8 min → 3×8 reps.", zones: ["Z5", "Z6"] },
+      { part: "Cool-down", text: "15 min Z1 très lent + marche jusqu'au retour FC repos", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Test important pour calibrer le bloc VO2max en période build",
+      half: "À réaliser avant chaque bloc VO2max (toutes les 8 semaines)",
+      marathon: "Clé pour optimiser le volume du bloc VO2max marathon",
+      semi: "Priorité — tlim prédit directement la performance 10km/semi"
+    }
+  },
+
+  {
+    id: "BILLAT_BIKE_TLIM_TEST",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Test tlim@MAP Billat adapté vélo — temps limite à la puissance aérobie maximale",
+    necessite: "Recommandé",
+    when: "Base/Build — test diagnostique avant bloc VO2max vélo.",
+    phase: ["base", "build"],
+    avoid: "Fatigue · Sans capteur de puissance fiable",
+    durationMin: [40, 55],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Billat", "tlim", "test", "VO2max", "MAP", "diagnostic", "vélo"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min à 105% FTP R:3 min + 2×30s sprint modéré R:3 min", zones: ["Z1", "Z2", "Z4"] },
+      { part: "Main", text: "Effort maximal à 110-115% FTP (MAP estimée) jusqu'à épuisement complet. Si MAP connue depuis test 5min : utiliser 100% MAP. Maintenir la cadence > 80 rpm. Arrêter quand cadence chute < 70 rpm ou puissance chute > 10%. Mesurer : temps total. Interprétation (adapté Billat 1996) : < 4 min = VO2max limiteur majeur. 4-6 min = limiteur modéré. 6-8 min = niveau compétiteur. > 8 min = niveau élite. Utiliser le tlim pour calibrer le volume des séances 30/30 vélo.", zones: ["Z5", "Z6"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Test important — calibre le bloc VO2max build",
+      half: "Toutes les 8 semaines",
+      marathon: "Support",
+      semi: "Support"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 6 — SÉANCES SEUIL LACTIQUE BILLAT (Billat 2004)
+// "Critical velocity and maximal lactate steady state"
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_RUN_MLSS_LONG",
+    cat: "B",
+    sport: "course",
+    objectif: "Vitesse MLSS Billat — entraînement long au seuil lactique maximal stable (Billat 2004)",
+    necessite: "Obligatoire",
+    when: "Build — 1x/semaine. Pilier de tout programme d'endurance.",
+    phase: ["build"],
+    avoid: "Semaine de décharge · Fatigue > 6/10 · Veille compétition",
+    durationMin: [65, 90],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "MLSS", "seuil", "lactate", "endurance", "Z4"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 4×80m strides", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "30-45 min à vitesse MLSS (seuil lactique maximal stable — Z3-Z4, ~85-88% VMA, ~lactate 3-4 mmol/L). Réf : Billat 2004 — le MLSS est l'intensité maximale où la clairance du lactate égale sa production. C'est la zone d'entraînement avec le meilleur ratio stimulus/fatigue pour améliorer l'endurance. Observer : FC stable (± 3 bpm), sensation 'difficile mais soutenable', capable de prononcer des mots isolés. Progression : S1=20 min, S2=25 min, S3=30 min, S4=35 min, S5=40 min.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "30 min à allure MLSS run — fondamental pour le marathon IM",
+      half: "35-40 min à allure MLSS",
+      marathon: "CLEF — 40-45 min. Améliore directement l'allure marathon",
+      semi: "30-35 min à allure MLSS"
+    }
+  },
+
+  {
+    id: "BILLAT_BIKE_MLSS",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "MLSS Billat vélo — seuil lactique maximal stable (88-93% FTP)",
+    necessite: "Obligatoire",
+    when: "Build — 1x/semaine. Base du développement aérobie spécifique vélo.",
+    phase: ["build"],
+    avoid: "Fatigue élevée · Semaine de décharge",
+    durationMin: [70, 100],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Billat", "MLSS", "seuil", "vélo", "FTP", "Z4"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "2-3×15-20 min à 88-93% FTP (MLSS vélo). Récup 5 min Z1 entre les blocs. Cadence 85-95 rpm. Observer : FC stable en plateau (pas de dérive), sensation steady-state. Progression sur 4 semaines : 2×15 → 2×20 → 3×15 → 3×20 → 1×45 min continu. Réf : Billat 2004 adapté vélo — le MLSS correspond à environ 88-93% FTP pour la plupart des athlètes.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2×20 min à 88-90% FTP — spécifique allure vélo IM",
+      half: "3×15 min à 90-93% FTP",
+      marathon: "Support secondaire",
+      semi: "Support secondaire"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 7 — SÉANCES VITESSE CRITIQUE (Billat & Koralsztein 1996)
+// "Critical velocity" — entre seuil et vVO2max
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_RUN_CRITICAL_VELOCITY",
+    cat: "B",
+    sport: "course",
+    objectif: "Vitesse critique Billat — zone entre MLSS et vVO2max (90-95% VMA, W' development)",
+    necessite: "Recommandé",
+    when: "Build/Peak — athlètes intermédiaires à avancés. Entre les blocs MLSS et VO2max.",
+    phase: ["build", "peak"],
+    avoid: "VLamax > 0.65 (accumulation lactate trop rapide) · Fatigue > 6/10",
+    durationMin: [60, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "vitesse critique", "W prime", "Z4b", "Z5", "intermédiaire"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 4×80m strides + 2×1 min Z4 R:2 min", zones: ["Z1", "Z2", "Z4"] },
+      { part: "Main", text: "4-6×[5-8 min à 90-95% VMA + 3 min récup Z1]. Réf : Billat & Koralsztein 1996 — la vitesse critique (Critical Velocity) est l'allure théoriquement tenable indéfiniment = asymptote de la relation puissance-durée. En pratique = allure 20-40 min race. Cette zone développe la tolérance à l'acidose et le W' (énergie anaérobie disponible). Observer : la FC doit être en plateau sur la fin de chaque répétition, pas encore en dérive. Si FC monte encore sur les 2 dernières minutes d'une répétition → allure trop rapide.", zones: ["Z4b", "Z5"] },
+      { part: "Cool-down", text: "12 min Z1 + étirements", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "3×5 min à 90% VMA — utile pour améliorer le plafond aérobie",
+      half: "5×6 min à 92-95% VMA — transition MLSS→VO2max",
+      marathon: "4×8 min à 90-92% VMA",
+      semi: "5-6×5 min à 93-95% VMA"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 8 — SÉANCES LONGUES À VO2max (Billat 2001)
+// "Prolonged intervals" — adaptations centrales profondes
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_RUN_VO2MAX_LONG_5MIN",
+    cat: "B",
+    sport: "course",
+    objectif: "Intervalles longs VO2max Billat — 5×5min à vVO2max (adaptations centrales cardiaques)",
+    necessite: "Recommandé",
+    when: "Build/Peak — athlètes avancés. Complément du 30/30 pour les adaptations centrales profondes.",
+    phase: ["build", "peak"],
+    avoid: "Débutants · VLamax > 0.65 · Fatigue élevée",
+    durationMin: [60, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "VO2max", "5min", "intervalles longs", "VFC", "volume stroke"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min Z4 R:2 min + 2×30s à vVO2max R:3 min", zones: ["Z1", "Z2", "Z4", "Z5"] },
+      { part: "Main", text: "5×[5 min à 100-105% VMA + 3-4 min récup active Z1-Z2]. Réf : Billat 2001 — les intervalles de 4-6 min à vVO2max induisent les plus grandes adaptations du volume d'éjection systolique (VES) et du débit cardiaque max. Le 30/30 est plus efficace pour le temps à VO2max mais le 5×5min crée des adaptations cardiaques structurelles plus profondes (hypertrophie cardiaque fonctionnelle). Progression : S1=4×4min, S2=4×5min, S3=5×4min, S4=5×5min.", zones: ["Z5", "Z6", "Z1", "Z2"] },
+      { part: "Cool-down", text: "12 min Z1 + marche 5 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×5 min R:4 min — stimulation cardiaque maximale sans surcharge",
+      half: "5×5 min R:3 min — très efficace",
+      marathon: "Bloc de 3 semaines en build — améliore le débit cardiaque max",
+      semi: "5×4 min R:3 min — excellent pour améliorer la VMA plafond"
+    }
+  },
+
+  {
+    id: "BILLAT_BIKE_VO2MAX_4MIN",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "4×4min VO2max Billat-Norvégien — combinaison Billat/Seiler pour adaptations centrales maximales",
+    necessite: "Recommandé",
+    when: "Build/Peak — standard international du travail VO2max vélo.",
+    phase: ["build", "peak"],
+    avoid: "VLamax > 0.60 · Fatigue élevée · Semaine de compétition",
+    durationMin: [60, 80],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Billat", "Seiler", "VO2max", "4min", "vélo", "Norwegian", "adaptations centrales"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×2 min à 100% FTP R:2 min + 2×30s sprint R:3 min", zones: ["Z1", "Z2", "Z4", "Z5"] },
+      { part: "Main", text: "4-5×[4 min à 106-110% FTP + 3-4 min récup 50% FTP]. Cadence 90-100 rpm. La puissance cible : chaque répétition doit être à FC ≥ 93% FCmax sur la dernière minute — c'est le marqueur que VO2max est atteint. Réf croisée : Billat 2001 (temps à VO2max) + Seiler 2010 (4×4min comme standard or norvégien) — cette combinaison est le protocole le plus étudié pour améliorer VO2max en cyclisme. FC pic à ≥95% FCmax sur au moins 3 des 4 répétitions = séance réussie.", zones: ["Z5", "Z6", "Z1"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×4 min 1-2x/2 semaines si VO2max limiteur identifié",
+      half: "5×4 min 2x/semaine en build sur 4 semaines",
+      marathon: "Support secondaire",
+      semi: "Support secondaire"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 9 — SÉANCES FARTLEK BILLAT (Billat 2001)
+// "Natural interval training" — en terrain naturel
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_RUN_FARTLEK_VO2",
+    cat: "B",
+    sport: "course",
+    objectif: "Fartlek Billat — intervalles libres en terrain naturel autour de vVO2max",
+    necessite: "Recommandé",
+    when: "Build — alternative au 30/30 en terrain naturel. Moins précis mais plus motivant.",
+    phase: ["build"],
+    avoid: "Terrain accidenté dangereux · Athlètes qui ont besoin de précision d'allure stricte",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "fartlek", "VO2max", "terrain naturel", "variété", "plaisir"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 terrain varié", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "30-40 min de Fartlek Billat : alternance libre de 30-90s à vVO2max (ressenti très difficile, souffle court) + 1-2 min récup active au feeling. Pas de chrono strict — utiliser le ressenti et le terrain (accélérer dans les montées légères, récupérer dans les descentes ou le plat). Volume à VO2max cible : 12-18 min au total. Réf : Billat 2001 — le Fartlek naturel produit des adaptations similaires au 30/30 structuré avec un plus grand plaisir à l'entraînement et une meilleure compliance à long terme.", zones: ["Z4", "Z5", "Z6", "Z1", "Z2"] },
+      { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "1x/2 semaines en build — maintien de la fraîcheur mentale",
+      half: "Peut remplacer 1 séance 30/30 par mois",
+      marathon: "Variation bienvenue dans le bloc VO2max",
+      semi: "Variation bienvenue"
+    }
+  },
+
+  {
+    id: "BILLAT_TRAIL_FARTLEK_HILL",
+    cat: "B",
+    sport: "trail",
+    objectif: "Fartlek collines Billat — intervalles naturels en côte pour trail (stimulation VO2max + force)",
+    necessite: "Recommandé",
+    when: "Build — spécifique trail. Terrain vallonné avec côtes de 200-400m de montée.",
+    phase: ["build"],
+    avoid: "Terrain glissant · Fatigue > 6/10 · Sans expérience trail",
+    durationMin: [60, 90],
+    metricKey: "allure",
+    sportKey: "trail",
+    defaultSportId: 52,
+    tags: ["Billat", "fartlek", "trail", "collines", "VO2max", "force", "spécifique"],
+    structure: [
+      { part: "Warm-up", text: "15 min trot terrain plat + mobilité hanches et chevilles", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "40-60 min Fartlek trail : accélérations en côte (30-90s à RPE 8-9/10 selon longueur de côte) + récup footing Z1 en descente et plat. La côte force naturellement la VO2max sans avoir à surveiller l'allure. Volume en côte : 15-20 min cumulés. Réf : Billat 2001 (fartlek naturel) + Minetti 2002 (efficience montée) — les côtes à haute intensité sont le moyen le plus naturel d'atteindre VO2max en trail tout en développant la force spécifique montée.", zones: ["Z4", "Z5", "Z6", "Z1", "Z2"] },
+      { part: "Cool-down", text: "15 min trot terrain plat + étirements mollets et quadriceps", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Non applicable",
+      half: "Non applicable",
+      marathon: "Non applicable",
+      semi: "Non applicable — trail uniquement"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 10 — SÉANCES RÉCUPÉRATION/ÉCONOMIE (Billat 2003)
+// "Training and bioenergetic characteristics in elite runners"
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_RUN_ECONOMY_STRIDES",
+    cat: "A",
+    sport: "course",
+    objectif: "Économie de course Billat — strides spécifiques pour améliorer le coût énergétique (Billat 2003)",
+    necessite: "Recommandé",
+    when: "Toute l'année — fin de séance Z2 ou séance courte dédiée. 2-3x/semaine.",
+    phase: ["base", "build", "peak"],
+    avoid: "Blessure en cours · Fatigue musculaire > 6/10",
+    durationMin: [40, 50],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "économie", "strides", "technique", "coût énergétique", "fréquence"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 relâché", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Protocole économie Billat (Billat 2003 — 'The Best Runners are Those Who Produce Less Lactate') : 10×100m strides progressifs avec focus sur : 1. Fréquence de foulée haute (175-185 spm) — compter ses pas pendant 30s. 2. Appui sous le centre de gravité (éviter heel strike). 3. Bras à 90° relâchés. 4. Expiration active à chaque foulée (synchronisation respiratoire). Récup : marche 60-90s entre chaque stride. Puis 4×200m à 95% VMA avec même focus technique. Réf : Billat 2003 — les coureurs élites ont une économie 15-20% meilleure grâce à une fréquence élevée et un meilleur transfert d'énergie élastique.", zones: ["Z4", "Z5"] },
+      { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2x/semaine en base — améliore économie run IM",
+      half: "2x/semaine toute l'année",
+      marathon: "PRIORITÉ — économie = 2-4 min sur marathon. 3x/semaine en build",
+      semi: "2x/semaine en build et peak"
+    }
+  },
+
+  {
+    id: "BILLAT_RUN_PROGRESSIVE_TEMPO",
+    cat: "B",
+    sport: "course",
+    objectif: "Tempo progressif Billat — montée en intensité de Z2 à allure course en continu (Billat 2009)",
+    necessite: "Recommandé",
+    when: "Build — séance clé pour développer la capacité à accélérer en course et la gestion des allures.",
+    phase: ["build"],
+    avoid: "Fatigue élevée · Terrain trop vallonné (biaiser l'allure)",
+    durationMin: [60, 80],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "progressif", "tempo", "gestion allure", "negative split"],
+    structure: [
+      { part: "Warm-up", text: "10 min Z1 très lent", zones: ["Z1"] },
+      { part: "Main", text: "45-60 min progressifs : 15 min Z2 (allure facile, conversation possible). 15 min Z3 (allure confortable mais soutenue, phrases courtes). 10 min Z4 (allure seuil, mots isolés). 5 min allure course cible (Z4-Z5 selon distance). Les 5 dernières minutes à allure race ou légèrement plus vite. Réf : Billat 2009 — le tempo progressif simule la distribution d'effort en course et développe la capacité à 'monter en régime' de façon contrôlée. Clé du negative split en compétition.", zones: ["Z2", "Z3", "Z4", "Z5"] },
+      { part: "Cool-down", text: "10 min Z1 + marche", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "30 min progressifs Z2→Z3→Z4 (allure run IM)",
+      half: "45 min progressifs jusqu'à allure semi",
+      marathon: "60 min progressifs jusqu'à allure marathon — simulation de course",
+      semi: "45 min progressifs jusqu'à allure semi-marathon"
+    }
+  },
+
+  {
+    id: "BILLAT_RUN_LACTATE_TOLERANCE",
+    cat: "B",
+    sport: "course",
+    objectif: "Tolérance lactate Billat — intervalles au-dessus de vVO2max pour la capacité tampon (Billat 2000)",
+    necessite: "Recommandé",
+    when: "Build/Peak — athlètes 5km/10km ou triathlètes avec VLamax basse. Améliore la tolérance à l'acidose.",
+    phase: ["build", "peak"],
+    avoid: "VLamax > 0.60 (déjà très glycolytique) · Fatigue élevée · Ironman > 8 semaines avant course",
+    durationMin: [50, 65],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "lactate", "tolérance", "acidose", "capacité tampon", "Z5", "Z6"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 4×30s à vVO2max R:2 min", zones: ["Z1", "Z2", "Z5"] },
+      { part: "Main", text: "6-8×[2 min à 110-115% VMA + 3 min récup complète]. Réf : Billat 2000 — au-dessus de vVO2max, la production de lactate dépasse la clairance → stimule les enzymes tampon et la tolérance à l'acidose. Différent du 30/30 : ici l'objectif n'est PAS de maximiser le temps à VO2max mais d'exposer les muscles à l'acidose et de développer les systèmes tampons. Observer : jambes qui brûlent sur les 40 dernières secondes de chaque répétition = signe positif. RPE 9-10/10 en fin de répétition.", zones: ["Z5", "Z6"] },
+      { part: "Cool-down", text: "15 min Z1 lent — la récupération active accélère l'élimination du lactate", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Non recommandé — trop glycolytique pour IM",
+      half: "3-4 semaines en peak si VLamax basse — pour 'piquer'",
+      marathon: "Non recommandé pour marathon (profil trop glycolytique)",
+      semi: "Utile pour semi-marathon si capacité à tenir allure élevée"
+    }
+  },
+
+  {
+    id: "BILLAT_RUN_Z2_LONG_BILLAT",
+    cat: "A",
+    sport: "course",
+    objectif: "Sortie longue Z2 Billat — endurance fondamentale avec surges intégrés (Billat 2003)",
+    necessite: "Obligatoire",
+    when: "Base/Build — remplacer la sortie longue classique. 1x/semaine.",
+    phase: ["base", "build"],
+    avoid: "Fatigue élevée · Temps de récupération < 48h depuis dernière séance intense",
+    durationMin: [90, 150],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Billat", "sortie longue", "Z2", "surges", "endurance fondamentale", "variété"],
+    structure: [
+      { part: "Warm-up", text: "10 min Z1 progressif", zones: ["Z1"] },
+      { part: "Main", text: "70-110 min Z2 confortable avec surges Billat intégrés : toutes les 15-20 min, insérer 4-6×[20s à allure VMA + 40s récup Z2 en continuant à courir]. Ces micro-surges (Billat 2003) maintiennent le tonus neuromusculaire pendant la sortie longue sans créer de fatigue significative. Allure Z2 principale : 60-72% VMA. Les surges : 100% VMA pendant 20s. Terminer les 15 dernières minutes en légère progression (Z2 haut). Réf : Billat 2003 — les élites kényans et éthiopiens intègrent naturellement des accélérations dans leurs sorties longues.", zones: ["Z2", "Z5"] },
+      { part: "Cool-down", text: "10 min marche + étirements", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2h-3h Z2 avec surges toutes les 25 min (4×20s à vVO2max)",
+      half: "1h30-2h Z2 avec surges toutes les 20 min",
+      marathon: "2h-2h30 Z2 avec surges — pilier de la préparation marathon Billat",
+      semi: "1h30-1h45 Z2 avec surges"
+    }
+  },
+
+// ─────────────────────────────────────────────
+// GROUPE 11 — SÉANCES NATATION BILLAT-ADAPTÉ
+// Principes Billat adaptés à la natation
+// ─────────────────────────────────────────────
+
+  {
+    id: "BILLAT_SWIM_30_30",
+    cat: "B",
+    sport: "natation",
+    objectif: "30/30 Billat adapté natation — maximiser le temps à VO2max en piscine",
+    necessite: "Recommandé",
+    when: "Build — bloc VO2max natation. Piscine 25m ou 50m.",
+    phase: ["build"],
+    avoid: "Technique insuffisante (fatigue technique compromet l'intensité) · Fatigue élevée",
+    durationMin: [50, 65],
+    metricKey: "allure",
+    sportKey: "natation",
+    defaultSportId: 19,
+    tags: ["Billat", "30/30", "VO2max", "natation", "vVO2max", "CSS"],
+    structure: [
+      { part: "Warm-up", text: "400m progressif + 8×25m éducatifs R:15s + 4×50m à allure CSS R:20s", zones: ["Z1", "Z2", "Z3"] },
+      { part: "Main", text: "Adaptation 30/30 natation : 3 séries de 8×[25m sprint maximal (vVO2max nage) + 25m nage lente récup (Z1)]. En bassin 25m : le 25m sprint correspond au 30s course, les 25m retour lent = récup. Récup entre séries : 3 min. L'objectif est la même cinétique VO2 que le 30/30 course. Allure sprint : 5-8% plus rapide que CSS. Observer : la qualité technique ne doit pas s'effondrer sur les dernières répétitions — si le catch se perd, arrêter. Réf : Billat 2001 adapté natation.", zones: ["Z5", "Z6", "Z1"] },
+      { part: "Cool-down", text: "200m dos facile + 200m crawl très lent", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2 séries de 8 répétitions — stimulation VO2max nage",
+      half: "3 séries de 8 répétitions",
+      marathon: "Non applicable",
+      semi: "Non applicable"
+    }
+  },
+
+  {
+    id: "BILLAT_SWIM_CSS_BILLAT",
+    cat: "B",
+    sport: "natation",
+    objectif: "CSS Billat — allure critique nage avec surges intégrés (principe tempo progressif natation)",
+    necessite: "Recommandé",
+    when: "Build/Peak — améliore la capacité à tenir l'allure CSS en compétition.",
+    phase: ["build", "peak"],
+    avoid: "Technique en cours d'apprentissage · Fatigue élevée",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "natation",
+    defaultSportId: 19,
+    tags: ["Billat", "CSS", "natation", "allure critique", "endurance spécifique"],
+    structure: [
+      { part: "Warm-up", text: "400m progressif + 4×100m progressifs jusqu'à CSS R:20s", zones: ["Z1", "Z2", "Z3"] },
+      { part: "Main", text: "Protocole Billat-CSS : 6×200m à allure CSS exacte (chrono précis) R:30s. Puis 4×[50m sprint 105% CSS + 150m retour à CSS]. Ces transitions rapide→retour à CSS simulent la gestion d'un départ de masse ou d'une accélération sur bouée. Réf : Billat 2009 (progressif) adapté natation — tenir l'allure critique après une accélération = clé de la performance triathlon natation.", zones: ["Z3", "Z4", "Z5"] },
+      { part: "Cool-down", text: "300m dos/brasse lent", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×200m CSS + 4×[50m sprint + 150m CSS]",
+      half: "6×200m CSS + 4×[50m sprint + 150m CSS]",
+      marathon: "Non applicable",
+      semi: "4×150m CSS + 3×[50m sprint + 100m CSS]"
+    }
+  },
 ];
 // =============================================
 // PICKER POUR LE PLANIFICATEUR
