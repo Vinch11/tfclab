@@ -315,24 +315,54 @@ export const USE_CALIBRATED_MADER_ALPHA = true;
 export function findMLSSPower(profile: MaderProfile): number {
   const { vo2max, vlamax, weight } = profile;
   const efficiency = profile.efficiency ?? 0.23;
-  
+
+  // Audit fix — MLSS unique source of truth.
+  // NE JAMAIS poser MLSS = FTP comme hypothèse (circulaire).
+  // Si les entrées Mader sont absentes/invalides → retourner 0 (sentinelle "non calculable").
+  // L'UI doit afficher "MLSS non calculable" plutôt qu'une approximation.
+  if (!Number.isFinite(vo2max) || vo2max <= 0) return 0;
+  if (!Number.isFinite(vlamax) || vlamax <= 0) return 0;
+  if (!Number.isFinite(weight) || weight <= 0) return 0;
+
   // Absolute VO2max in L/min
   const vo2maxAbs = vo2max * weight / 1000;
-  
+
   // Mader analytical MLSS relationship
   const ALPHA = USE_CALIBRATED_MADER_ALPHA ? MADER_ALPHA_CALIBRATED : MADER_ALPHA_LEGACY;
   const mlssIntensityPct = 100 * (1 - ALPHA * vlamax / vo2maxAbs);
-  
+
   // Clamp to physiological range (45-95% VO2max)
   const clampedIntensity = Math.max(45, Math.min(95, mlssIntensityPct));
-  
+
   // Convert intensity to power
   const vo2AtMLSS = vo2max * clampedIntensity / 100; // ml/kg/min
   const vo2LPerMin = vo2AtMLSS * weight / 1000;
   const energyKJPerMin = vo2LPerMin * ENERGY_PER_O2;
   const powerWatts = (energyKJPerMin * 1000 / 60) * efficiency;
-  
+
   return Math.round(powerWatts);
+}
+
+/**
+ * MLSS calculability helper — true si findMLSSPower retourne une valeur physiologique.
+ * Utiliser en amont de l'affichage pour décider entre la valeur Mader et "MLSS non calculable".
+ */
+export function isMLSSComputable(profile: MaderProfile): boolean {
+  return findMLSSPower(profile) > 0;
+}
+
+/**
+ * Format MLSS pour l'UI — retourne "MLSS non calculable" si la valeur Mader n'est pas dispo.
+ * Toujours utiliser ce helper côté affichage pour éviter de tomber dans le piège circulaire MLSS=FTP.
+ */
+export function formatMLSSDisplay(profile: MaderProfile, unit: "W" | "W/kg" = "W"): string {
+  const power = findMLSSPower(profile);
+  if (power <= 0) return "MLSS non calculable";
+  if (unit === "W/kg") {
+    const w = profile.weight > 0 ? (power / profile.weight).toFixed(2) : "—";
+    return `${w} W/kg`;
+  }
+  return `${power} W`;
 }
 
 /**
