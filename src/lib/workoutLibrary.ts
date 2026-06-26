@@ -5211,6 +5211,335 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       semi: "4×150m CSS + 3×[50m sprint + 100m CSS]"
     }
   },
+
+// =============================================
+// BIBLIOTHÈQUE NORVÉGIENNE — DOUBLE THRESHOLD
+// 12 séances scientifiques (Bakken, Ingebrigtsen, Seiler)
+// =============================================
+
+{
+    id: "NORWEGIAN_RUN_THRESHOLD_LOW_AM",
+    cat: "B",
+    sport: "course",
+    objectif: "Seuil bas norvégien (matin) — accumulation volume au seuil aérobie contrôlé (2.0-2.5 mmol/L)",
+    necessite: "Recommandé",
+    when: "Build — matin du 'double threshold day'. À coupler avec NORWEGIAN_RUN_THRESHOLD_HIGH_PM le soir. 2x/semaine max.",
+    phase: ["build"],
+    avoid: "Sans lactatémètre ou FC seuil non calibrée · Fatigue > 6/10 · Lendemain de séance intense · Semaine de décharge",
+    durationMin: [55, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Norwegian", "double threshold", "seuil bas", "LT1", "lactatémètre", "Ingebrigtsen", "Bakken", "TTE"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 très progressif. Footing relâché, FC < 70% FCmax. 4×80m strides légers. Idéalement mesurer lactate après échauffement (cible : 1.0-1.5 mmol/L = bien récupéré).", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "5-6×6 min à seuil bas (LT1) avec récup active 1 min Z1 entre chaque. Cibles d'intensité (choisir selon disponibilité) : Avec lactatémètre : 2.0-2.5 mmol/L. Sans lactatémètre FC : 82-86% FCmax. Sans lactatémètre allure : ~88-90% VMA. RPE : 6-7/10 — 'difficile mais parlable (phrases courtes)'. RÈGLE CRITIQUE NORVÉGIENNE : si lactate dépasse 2.8 mmol/L ou FC dépasse 88% FCmax sur une répétition → RÉDUIRE immédiatement l'allure de 5-8s/km. L'erreur classique : aller trop vite et transformer ce travail en séance Z4 — perd tout l'intérêt de la méthode. Progression : S1=4×6min, S2=5×6min, S3=5×7min, S4=6×6min, S5=4×8min.", zones: ["Z3"] },
+      { part: "Cool-down", text: "10 min Z1 footing lent. Si lactatémètre disponible : mesurer lactate 3 min après dernière répétition (cible : retour < 2.0 mmol/L). Manger dans l'heure suivante (glucides + protéines) pour préparer la séance du soir.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×8 min à 83-85% FCmax — base du TTE triathlon longue distance",
+      half: "5×6 min à 84-86% FCmax — développement du seuil spécifique 70.3",
+      marathon: "6×6 min à 86-88% FCmax — pilier de la préparation marathon norvégienne",
+      semi: "5×6 min à 86-88% FCmax — clé du développement TTE semi-marathon"
+    }
+  },
+
+{
+    id: "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
+    cat: "B",
+    sport: "course",
+    objectif: "Seuil bas norvégien volume — séance unique longue au seuil aérobie (sans double threshold)",
+    necessite: "Recommandé",
+    when: "Build — séance standalone quand le double threshold n'est pas possible. 1-2x/semaine.",
+    phase: ["base", "build"],
+    avoid: "Sans au minimum 48h depuis dernière séance intense · Semaine de décharge",
+    durationMin: [60, 80],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Norwegian", "seuil bas", "LT1", "volume", "TTE", "Tjelta"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "25-35 min continu à seuil bas (LT1) : 82-86% FCmax, RPE 6-7/10. Alternative intervalles avec récups très courtes : 3-4×8-10 min R:90s Z1. Réf : Tjelta 2019 — les meilleurs coureurs norvégiens accumulent 60-80 min/semaine au seuil bas en phase build. C'est le volume total qui crée l'adaptation, pas l'intensité de chaque répétition. Observer : FC stable (plateau) sur les 3 dernières minutes de chaque bloc = bonne intensité.", zones: ["Z3"] },
+      { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "30 min continu à seuil bas — base de l'endurance IM",
+      half: "25 min continu ou 3×8 min R:90s",
+      marathon: "35 min continu à seuil bas — fondamental Tjelta",
+      semi: "25-30 min à seuil bas"
+    }
+  },
+
+{
+    id: "NORWEGIAN_RUN_THRESHOLD_HIGH_PM",
+    cat: "B",
+    sport: "course",
+    objectif: "Seuil haut norvégien (soir) — accumulation volume au seuil lactique (3.0-4.0 mmol/L)",
+    necessite: "Recommandé",
+    when: "Build — soir du 'double threshold day'. À coupler avec NORWEGIAN_RUN_THRESHOLD_LOW_AM le matin. 2x/semaine max.",
+    phase: ["build"],
+    avoid: "Sans avoir fait la séance matin (ou au moins 4h de récup) · Fatigue excessive après séance matin · FC repos +5 bpm vs normale",
+    durationMin: [60, 80],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Norwegian", "double threshold", "seuil haut", "LT2", "MLSS", "soir", "Ingebrigtsen"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2. Les jambes seront un peu lourdes après la séance matin — normal. Si lactate de départ > 2.0 mmol/L après l'échauffement : réduire l'intensité de la séance principale de 5-8s/km.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "8-12×1000m à seuil haut (LT2/MLSS) avec récup 1 min Z1 entre chaque. Cibles : Avec lactatémètre : 3.0-4.0 mmol/L. Sans lactatémètre FC : 87-91% FCmax. Sans lactatémètre allure : ~92-95% VMA. RPE : 7-8/10 — 'dur mais soutenable, capable de prononcer un mot isolé'. LOGIQUE DU DOUBLE THRESHOLD : la séance matin a 'pré-fatigué' le système aérobie — le soir, même à intensité plus élevée, l'accumulation de lactate reste contrôlée car les fibres lentes sont déjà mobilisées. Réf : Mykleby & Seiler 2022. Arrêter si : allure chute > 5s/km vs première répétition OU lactate > 4.5 mmol/L.", zones: ["Z4"] },
+      { part: "Cool-down", text: "12 min Z1 + marche 5 min. Repas riche en glucides et protéines dans l'heure. Sommeil prioritaire (adaptation maximum pendant la nuit après double threshold).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "6×1000m à 87-89% FCmax — volume seuil haut sans excès",
+      half: "8×1000m à 88-90% FCmax",
+      marathon: "10×1000m à 90-92% FCmax — similaire entraînement élite marathon norvégien",
+      semi: "10-12×1000m à 91-93% FCmax"
+    }
+  },
+
+{
+    id: "NORWEGIAN_RUN_THRESHOLD_HIGH_5MIN",
+    cat: "B",
+    sport: "course",
+    objectif: "Seuil haut norvégien 5min — variante intervalles plus longs pour développer le TTE",
+    necessite: "Recommandé",
+    when: "Build — alternative au 1000m répétés. Meilleur pour développer le TTE (durabilité au seuil).",
+    phase: ["build"],
+    avoid: "Fatigue élevée · Moins de 4h depuis séance matin · Sans bonne maîtrise du rythme",
+    durationMin: [60, 80],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Norwegian", "seuil haut", "5min", "TTE", "durabilité", "Bakken"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 3×1 min à allure seuil R:2 min", zones: ["Z1", "Z2", "Z3"] },
+      { part: "Main", text: "5-7×5 min à seuil haut (90-93% FCmax) R:1 min Z1. Réf : Bakken 2019 — les répétitions de 5 min au seuil haut développent mieux le TTE que les 1000m car l'athlète passe plus de temps dans la zone de stimulus sans dépasser le seuil. Les 1 min de récup sont volontairement courtes — l'objectif est de maintenir le lactate dans la zone 3-4 mmol/L pendant toute la séance, pas de récupérer complètement entre les répétitions.", zones: ["Z4"] },
+      { part: "Cool-down", text: "12 min Z1 + marche", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "5×5 min à 88-90% FCmax",
+      half: "6×5 min à 90-92% FCmax",
+      marathon: "7×5 min à 90-92% FCmax",
+      semi: "7×5 min à 91-93% FCmax"
+    }
+  },
+
+{
+    id: "NORWEGIAN_RUN_DOUBLE_THRESHOLD_DAY",
+    cat: "C",
+    sport: "course",
+    objectif: "Journée Double Threshold norvégienne complète — matin seuil bas + soir seuil haut",
+    necessite: "Recommandé",
+    when: "Build — 2x/semaine (ex: mardi et jeudi). Réservé athlètes avec volume ≥ 8h/semaine.",
+    phase: ["build"],
+    avoid: "Athlètes < 6h/semaine · Sans récupération suffisante (48h depuis dernière séance intense) · Compétition dans les 5 jours",
+    durationMin: [110, 150],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Norwegian", "double threshold", "journée complète", "matin", "soir", "Ingebrigtsen", "Bakken"],
+    structure: [
+      { part: "Warm-up", text: "MATIN (6h-8h) : 15 min Z1→Z2 + 4×80m strides légers. Mesurer lactate si disponible (cible < 1.5 mmol/L au départ).", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "MATIN : 5×6 min à seuil bas (82-86% FCmax, ~2.0-2.5 mmol/L) R:1 min Z1. Durée ~55 min total. Repas post-séance matin : 60g glucides + 25g protéines dans les 30 min. Repos complet 4-5h (sommeil si possible). SOIR (16h-18h) : Ré-échauffement 12 min Z1. 8-10×1000m à seuil haut (88-92% FCmax, ~3.0-4.0 mmol/L) R:1 min Z1. Durée ~70 min total. Réf : Stenqvist 2021 — le double threshold day accumule 25-35 min au seuil en une journée vs 15-20 min pour une séance unique. Adaptation plus rapide du TTE sur 4-6 semaines.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "SOIR : 12 min Z1 + marche 5 min. Dîner : glucides 80g + protéines 30g. Sommeil 9h minimum (adaptation maximale).", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Matin : 4×6 min seuil bas. Soir : 6×1000m seuil haut. Volume adapté triathlon.",
+      half: "Matin : 5×6 min seuil bas. Soir : 8×1000m seuil haut.",
+      marathon: "Matin : 5×6 min seuil bas. Soir : 10×1000m seuil haut. Standard élite norvégien.",
+      semi: "Matin : 5×6 min seuil bas. Soir : 10-12×1000m seuil haut."
+    }
+  },
+
+{
+    id: "NORWEGIAN_BIKE_THRESHOLD_LOW",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Seuil bas norvégien vélo — accumulation volume au seuil aérobie vélo (75-82% FTP)",
+    necessite: "Recommandé",
+    when: "Build — séance standalone ou matin du double threshold triathlon. 2x/semaine.",
+    phase: ["build"],
+    avoid: "Fatigue élevée · Séance < 48h après effort intense",
+    durationMin: [70, 90],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Norwegian", "seuil bas", "vélo", "LT1", "TTE", "triathlon", "Bakken"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 progressif. Cadence 85-90 rpm.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "4-5×8 min à 75-82% FTP (seuil bas vélo ≈ LT1) R:90s Z1. Cadence 88-95 rpm. Cible FC : 80-85% FCmax. RPE 6-7/10. La spécificité vélo de la méthode norvégienne : le vélo permet de contrôler précisément la puissance (lactatémètre moins indispensable qu'en course). Progression : S1=3×8min, S2=4×8min, S3=4×10min, S4=5×8min, S5=3×15min, S6=2×20min continu. Réf : Bakken 2019 adapté vélo — même principe cinétique lactique que la course.", zones: ["Z3"] },
+      { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×10 min à 78-82% FTP — TTE spécifique IM",
+      half: "4×8 min à 80-84% FTP",
+      marathon: "Non prioritaire (focus course)",
+      semi: "3×8 min à 80-84% FTP — support développement aérobie"
+    }
+  },
+
+{
+    id: "NORWEGIAN_BIKE_THRESHOLD_HIGH",
+    cat: "B",
+    sport: "cyclisme",
+    objectif: "Seuil haut norvégien vélo — intervalles au seuil lactique vélo (85-92% FTP)",
+    necessite: "Recommandé",
+    when: "Build — séance standalone ou soir du double threshold triathlon.",
+    phase: ["build"],
+    avoid: "Sans capteur de puissance · Fatigue élevée · VLamax > 0.60 (risque acidose rapide)",
+    durationMin: [65, 85],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Norwegian", "seuil haut", "vélo", "LT2", "FTP", "triathlon"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 + 3×1 min à 95% FTP R:2 min", zones: ["Z1", "Z2", "Z4"] },
+      { part: "Main", text: "6-8×4-5 min à 85-92% FTP R:1 min 50% FTP. Cadence 88-95 rpm. FC cible : 87-92% FCmax. RPE 7-8/10. Surveiller : NP (Normalized Power) doit rester stable sur toutes les répétitions (±5W) — si NP baisse > 5% sur les dernières répétitions, intensité trop élevée. L'objectif est la cohérence, pas l'effort maximal.", zones: ["Z4"] },
+      { part: "Cool-down", text: "15 min Z1 cadence libre", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "5×5 min à 85-88% FTP — seuil spécifique IM vélo",
+      half: "7×4 min à 88-91% FTP",
+      marathon: "Non prioritaire",
+      semi: "6×4 min à 88-91% FTP"
+    }
+  },
+
+{
+    id: "NORWEGIAN_BIKE_DOUBLE_THRESHOLD",
+    cat: "C",
+    sport: "cyclisme",
+    objectif: "Double threshold vélo triathlon — séance unique combinant seuil bas et seuil haut (sans double journée)",
+    necessite: "Recommandé",
+    when: "Build — alternative au double threshold course pour triathlètes avec moins de volume. 1x/semaine.",
+    phase: ["build"],
+    avoid: "Fatigue élevée · VLamax > 0.55 · Sans capteur puissance",
+    durationMin: [90, 110],
+    metricKey: "puissance",
+    sportKey: "cyclisme",
+    defaultSportId: 14,
+    tags: ["Norwegian", "double threshold", "vélo", "triathlon", "seuil bas", "seuil haut"],
+    structure: [
+      { part: "Warm-up", text: "20 min Z1→Z2 progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Bloc 1 — Seuil bas (LT1) : 3×8 min à 76-82% FTP R:2 min. Récup entre blocs : 5 min Z1. Bloc 2 — Seuil haut (LT2) : 5×4 min à 87-92% FTP R:90s. Logique : le bloc seuil bas fatigue les fibres lentes en douceur, puis le bloc seuil haut les sollicite plus intensément — même principe que le double threshold day mais condensé en une séance. Moins efficace que la vraie double journée mais très bon compromis pour athlètes avec 8-12h/semaine.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "15 min Z1 + étirements", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "B1: 3×10min à 78-82% FTP. B2: 4×5min à 86-90% FTP",
+      half: "B1: 3×8min à 80-84% FTP. B2: 5×4min à 88-92% FTP",
+      marathon: "Non applicable",
+      semi: "B1: 3×6min. B2: 5×3min à 90-93% FTP"
+    }
+  },
+
+{
+    id: "NORWEGIAN_SWIM_THRESHOLD",
+    cat: "B",
+    sport: "natation",
+    objectif: "Seuil norvégien natation — accumulation volume au seuil (90-97% CSS) pour TTE natation",
+    necessite: "Recommandé",
+    when: "Build — 2x/semaine. Peut être couplé avec double threshold run ou bike le même jour.",
+    phase: ["build"],
+    avoid: "Technique insuffisante · Fatigue bras/épaules > 6/10",
+    durationMin: [55, 75],
+    metricKey: "allure",
+    sportKey: "natation",
+    defaultSportId: 19,
+    tags: ["Norwegian", "seuil", "natation", "CSS", "TTE", "triathlon"],
+    structure: [
+      { part: "Warm-up", text: "400m progressif + 4×50m éducatifs R:15s + 4×100m progressifs jusqu'à allure seuil R:20s", zones: ["Z1", "Z2", "Z3"] },
+      { part: "Main", text: "Protocole double seuil natation : Bloc A (seuil bas natation) : 4×200m à 92-95% CSS R:20s. Récup 3 min. Bloc B (seuil haut natation) : 6×100m à 98-102% CSS R:15s. RPE Bloc A : 7/10. RPE Bloc B : 8/10. Réf : Bakken 2019 adapté natation — même principe de double stimulation du seuil que la course. Le repos très court entre les répétitions (15-20s) force le maintien de la cinétique lactique en zone seuil, simulant le stimulus du double threshold.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "300m dos lent + 100m crawl très facile", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Bloc A: 4×200m CSS. Bloc B: 4×100m à 100-102% CSS",
+      half: "Bloc A: 4×150m CSS. Bloc B: 6×75m à 100-103% CSS",
+      marathon: "Non applicable",
+      semi: "Bloc A: 3×150m. Bloc B: 5×75m à 100-103% CSS"
+    }
+  },
+
+{
+    id: "NORWEGIAN_WEEK_STRUCTURE_RUN",
+    cat: "C",
+    sport: "course",
+    objectif: "Structure semaine norvégienne course — organisation optimale du double threshold sur 7 jours",
+    necessite: "Recommandé",
+    when: "Build — semaine type pour athlètes 5km-marathon avec volume ≥ 8h/semaine. Répéter 3-4 semaines.",
+    phase: ["build"],
+    avoid: "Athlètes < 8h/semaine · Sans base aérobie solide (au moins 3 mois d'entraînement régulier)",
+    durationMin: [50, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Norwegian", "semaine type", "structure", "double threshold", "Ingebrigtsen", "organisation"],
+    structure: [
+      { part: "Warm-up", text: "LUNDI : Repos complet ou mobilité 20 min. MARDI matin : NORWEGIAN_RUN_THRESHOLD_LOW_AM (5×6 min seuil bas). MARDI soir : NORWEGIAN_RUN_THRESHOLD_HIGH_PM (8-10×1000m seuil haut). MERCREDI : EF longue Z2 (70-90 min). JEUDI matin : NORWEGIAN_RUN_THRESHOLD_LOW_AM (5×6 min seuil bas). JEUDI soir : NORWEGIAN_RUN_THRESHOLD_HIGH_PM (8-10×1000m seuil haut). VENDREDI : EF récupération Z1 (40-50 min léger). SAMEDI : Sortie longue progressive Z2→Z3 (90-120 min). DIMANCHE : EF + côtes ou repos.", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Cette séance représente le JEUDI SOIR de la semaine norvégienne (voir structure complète ci-dessus). Exécuter comme NORWEGIAN_RUN_THRESHOLD_HIGH_PM standard. RÉPARTITION HEBDOMADAIRE TYPE : ~80% volume en Z1-Z2. ~20% volume en Z3-Z4 (seuil). Zéro Z5-Z6 pendant ce bloc (4-6 semaines). Réf : Tjelta 2019 — les coureurs norvégiens élites accumulent 60-80 min/semaine au seuil bas et 40-60 min/semaine au seuil haut pendant les blocs de développement TTE.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "12 min Z1. Note : après 4-6 semaines de bloc norvégien → ajouter 1 séance VO2max (Billat 30/30 ou 5×4min) par semaine pour capitaliser sur le TTE développé.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "2 double threshold days/semaine mais avec volumes réduits. Intégrer vélo et natation.",
+      half: "2 double threshold jours. Volume total 10-14h.",
+      marathon: "2 double threshold jours. Volume 120-160km/semaine pour élites, 60-90km pour compétiteurs.",
+      semi: "2 double threshold jours. Volume 80-120km/semaine."
+    }
+  },
+
+{
+    id: "NORWEGIAN_RUN_VMA_POST_BLOCK",
+    cat: "B",
+    sport: "course",
+    objectif: "VO2max norvégien post-bloc — capitaliser sur le TTE développé avec séance VO2max ciblée",
+    necessite: "Recommandé",
+    when: "Peak — après 4-6 semaines de bloc double threshold. Le TTE élevé permet maintenant de tenir plus longtemps à VO2max.",
+    phase: ["peak"],
+    avoid: "Pendant le bloc double threshold (pas les deux en même temps) · Fatigue > 6/10",
+    durationMin: [55, 70],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Norwegian", "VO2max", "post-bloc", "capitalisation", "TTE", "vitesse"],
+    structure: [
+      { part: "Warm-up", text: "15 min Z1→Z2 + 3×30s à vVO2max R:90s", zones: ["Z1", "Z2", "Z5"] },
+      { part: "Main", text: "Après un bloc de 4-6 semaines double threshold, le TTE est significativement amélioré. Cette séance capitalise sur ce gain : 5-6×3 min à 100-105% VMA R:2 min Z1-Z2. L'athlète peut maintenant tenir ces répétitions avec moins de fatigue qu'avant le bloc car le seuil est plus élevé. Réf : Stenqvist 2021 — le bloc double threshold améliore le VO2max de 3-5% et le TTE de 8-15% sur 6 semaines. La séance VO2max post-bloc est 40% plus productive qu'avant le bloc.", zones: ["Z5", "Z6"] },
+      { part: "Cool-down", text: "12 min Z1 + marche 5 min", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "4×3 min à 102-105% VMA R:2 min",
+      half: "5-6×3 min à 103-106% VMA R:2 min",
+      marathon: "5×3 min à 102-105% VMA R:2 min",
+      semi: "6×3 min à 103-106% VMA R:2 min"
+    }
+  },
+
+{
+    id: "NORWEGIAN_RUN_LACTATE_TEST_PROTOCOL",
+    cat: "C",
+    sport: "course",
+    objectif: "Protocole lactate terrain norvégien — calibrer les zones seuil sans labo (Bakken method)",
+    necessite: "Recommandé",
+    when: "Base/Build — avant de démarrer un bloc double threshold pour calibrer les zones individuelles.",
+    phase: ["base", "build"],
+    avoid: "Sans lactatémètre (peu utile) · Fatigue > 4/10 · Moins de 48h depuis effort intense",
+    durationMin: [60, 75],
+    metricKey: "allure",
+    sportKey: "course",
+    defaultSportId: 2,
+    tags: ["Norwegian", "lactate", "test", "calibration", "zones", "Bakken", "diagnostic"],
+    structure: [
+      { part: "Warm-up", text: "10 min Z1 + 5 min Z2. Mesure lactate basale (cible : 1.0-1.2 mmol/L = bien récupéré).", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "Protocole paliers lactate terrain Bakken : 4-5 paliers de 5 min avec mesure lactate à la fin de chaque. Palier 1 : Z2 facile (70% FCmax) → noter lactate. Palier 2 : 78% FCmax → noter lactate. Palier 3 : 83% FCmax → noter lactate. Palier 4 : 87% FCmax → noter lactate. Palier 5 (si confort) : 91% FCmax → noter lactate. Récup 90s entre paliers (mesure lactate pendant la récup). Identifier : LT1 = premier palier où lactate > 2.0 mmol/L. LT2/MLSS = palier où lactate > 3.5-4.0 mmol/L. Ces deux allures (et FC correspondantes) sont les cibles de tout le bloc double threshold suivant.", zones: ["Z2", "Z3", "Z4"] },
+      { part: "Cool-down", text: "10 min Z1. Documenter les résultats dans le snapshot : pace_threshold_sec_per_km = allure à LT2. Recalibrer toutes les 6-8 semaines car le seuil s'améliore avec l'entraînement.", zones: ["Z1"] }
+    ],
+    variants: {
+      ironman: "Ajouter palier vélo (5 paliers puissance) pour calibrer les deux disciplines",
+      half: "Protocole complet 5 paliers",
+      marathon: "Protocole complet 5 paliers — essentiel pour marathon norvégien",
+      semi: "Protocole complet 5 paliers"
+    }
+  }
 ];
 // =============================================
 // PICKER POUR LE PLANIFICATEUR
