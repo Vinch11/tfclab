@@ -233,13 +233,22 @@ Deno.serve(async (req) => {
         sports?: number[];
         defaultSportIds: number[];
       }> = [
-        { cat: "ppr", recordType: "time", defaultSportIds: BIKE_SPORTS },
-        { cat: "par", recordType: "time", defaultSportIds: RUN_SPORTS },
+        // PPR vélo — puissance par durée (Pmax 5s, Sprint, MAP, FTP, durabilité)
+        { cat: "ppr", recordType: "time", sports: BIKE_SPORTS, defaultSportIds: BIKE_SPORTS },
+        // PPR vélo — puissance par distance (CLM, cyclo)
+        { cat: "ppr", recordType: "distance", sports: BIKE_SPORTS, defaultSportIds: BIKE_SPORTS },
+        // PAR course — allure par durée (sprint 15s, VMA 6min)
+        { cat: "par", recordType: "time", sports: RUN_SPORTS, defaultSportIds: RUN_SPORTS },
+        // PAR course — allure par distance (400m, 1km, 5km, 10km, semi, marathon)
+        { cat: "par", recordType: "distance", sports: RUN_SPORTS, defaultSportIds: RUN_SPORTS },
+        // PAR natation — allure par durée (CSS, endurance)
         { cat: "par", recordType: "time", sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
-        // Records par distance (Nolio expose aussi cette dimension : temps requis pour couvrir une distance donnée)
-        { cat: "ppr", recordType: "distance", defaultSportIds: BIKE_SPORTS },
-        { cat: "par", recordType: "distance", defaultSportIds: RUN_SPORTS },
+        // PAR natation — allure par distance (50m, 100m, 200m, 400m, 1500m, 3800m)
         { cat: "par", recordType: "distance", sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
+        // PHRR FC — par durée, tous sports confondus
+        { cat: "phrr", recordType: "time", defaultSportIds: [...BIKE_SPORTS, ...RUN_SPORTS, SWIM_SPORT] },
+        // PHRR FC — par distance, tous sports confondus
+        { cat: "phrr", recordType: "distance", defaultSportIds: [...BIKE_SPORTS, ...RUN_SPORTS, SWIM_SPORT] },
       ];
 
       for (const q of queries) {
