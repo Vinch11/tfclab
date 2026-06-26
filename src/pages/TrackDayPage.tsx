@@ -95,6 +95,7 @@ export default function TrackDayPage() {
 
   // Bloc 2 — Glycolytique
   const [t400m, setT400m] = useState("");
+  const [t1000m, setT1000m] = useState("");
   const [t600m, setT600m] = useState("");
 
   // Bloc 3 — Seuil
@@ -130,6 +131,7 @@ export default function TrackDayPage() {
     bonds5m: { value: bonds5m, set: setBonds5m, default: "" },
     sprint15sM: { value: sprint15sM, set: setSprint15sM, default: "" },
     t400m: { value: t400m, set: setT400m, default: "" },
+    t1000m: { value: t1000m, set: setT1000m, default: "" },
     t600m: { value: t600m, set: setT600m, default: "" },
     d6min: { value: d6min, set: setD6min, default: "" },
     d20min: { value: d20min, set: setD20min, default: "" },
@@ -254,6 +256,8 @@ export default function TrackDayPage() {
     const v100 = num(t100m) > 0 ? (100 / num(t100m)) * 3.6 : 0;
     const v200 = num(t200m) > 0 ? (200 / num(t200m)) * 3.6 : 0;
     const v400 = num(t400m) > 0 ? (400 / num(t400m)) * 3.6 : 0;
+    const v1km = num(t1000m) > 0 ? (1000 / num(t1000m)) * 3.6 : 0;
+    const vma1km = v1km > 0 ? v1km * 1.08 : 0;
     const v600 = num(t600m) > 0 ? (600 / num(t600m)) * 3.6 : 0;
     const P60s = powerWperKg(v400);
 
@@ -297,7 +301,7 @@ export default function TrackDayPage() {
     return {
       vMaxFrom30, P5sFrom100, P30sFrom200, P1sFromCmj, scoreNeuroBonds,
       neuroScore, neuroCount,
-      v100, v200, v400, v600,
+      v100, v200, v400, v600, v1km, vma1km,
       P1s, P5s, P30s, P60s,
       vma400, vma6min, vmaConfirmee,
       vSeuilKmh, ratioSeuilVMA,
@@ -305,7 +309,7 @@ export default function TrackDayPage() {
       driftPct, fatMaxPct,
       scoreG, vlamaxEst, vo2maxEst,
     };
-  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
+  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
   const canCreateSnapshot =
     !!currentAthlete && calc.vmaConfirmee > 0 && calc.vlamaxEst > 0;
@@ -328,6 +332,7 @@ export default function TrackDayPage() {
       tte_observed_min_run: calc.tteEst || null,
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
       sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
+      pace1km_sec: num(t1000m) > 0 ? num(t1000m) : null,
       coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
     } as any);
     if (snap) {
@@ -661,11 +666,19 @@ export default function TrackDayPage() {
               )}
             </div>
             <div>
+              <Label>Temps 1000m (sec)</Label>
+              <Input type="number" step="0.1" value={t1000m} onChange={(e) => setT1000m(e.target.value)} placeholder="230.0" />
+              <div className="text-[10px] text-muted-foreground/80 mt-1 leading-snug">
+                → Calibration VLamax course (Ward-Smith 1999) — améliore la précision de la VLamax avec le ratio 400m/1km
+              </div>
+            </div>
+            <div>
               <Label>Temps 600m (sec)</Label>
               <Input type="number" step="0.01" value={t600m} onChange={(e) => setT600m(e.target.value)} placeholder="98.0" />
             </div>
-            <div className="sm:col-span-2 grid grid-cols-3 gap-2 mt-1 text-xs">
+            <div className="sm:col-span-2 grid grid-cols-4 gap-2 mt-1 text-xs">
               <Metric label="VMA (400m)" value={fmt(calc.vma400, 1)} unit="km/h" />
+              <Metric label="VMA (1km)" value={fmt(calc.vma1km, 1)} unit="km/h" />
               <Metric label="V 600m" value={fmt(calc.v600, 1)} unit="km/h" />
               <Metric label="P60s" value={fmt(calc.P60s, 2)} unit="W/kg" />
             </div>
