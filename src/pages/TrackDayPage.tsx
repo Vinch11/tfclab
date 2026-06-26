@@ -256,6 +256,8 @@ export default function TrackDayPage() {
     const v100 = num(t100m) > 0 ? (100 / num(t100m)) * 3.6 : 0;
     const v200 = num(t200m) > 0 ? (200 / num(t200m)) * 3.6 : 0;
     const v400 = num(t400m) > 0 ? (400 / num(t400m)) * 3.6 : 0;
+    const v1km = num(t1000m) > 0 ? (1000 / num(t1000m)) * 3.6 : 0;
+    const vma1km = v1km > 0 ? v1km * 1.08 : 0;
     const v600 = num(t600m) > 0 ? (600 / num(t600m)) * 3.6 : 0;
     const P60s = powerWperKg(v400);
 
