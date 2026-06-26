@@ -5908,7 +5908,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       half: "Vélo 2h + Run 20-30 min (8 min Z2 + 15 min allure run 70.3)",
       marathon: "Non applicable",
       semi: "Non applicable — triathlon uniquement"
-  }
+    }
   }
 
 ];
