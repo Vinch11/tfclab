@@ -329,7 +329,7 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   const warnings: string[] = [];
   const sources: string[] = [];
   
-  const { ftp, p30s_w, p60s_w, map5min_w, tte_min, pmax_5s, weight_kg, protocol_quality, objectif, vo2max, sex } = input;
+  const { ftp, p30s_w, p60s_w, map5min_w: map5min_w_raw, tte_min, pmax_5s: pmax_5s_raw, weight_kg, protocol_quality, objectif, vo2max, sex } = input;
   
   // Validation FTP obligatoire
   if (!ftp || ftp <= 0) {
@@ -344,6 +344,35 @@ export function computeVLamaxBikeV2Enhanced(input: VLamaxBikeV2EnhancedInput): V
   }
   
   sources.push("FTP");
+
+  // =============================================
+  // PHYSIOLOGICAL INPUT SANITY GUARD
+  // Pmax5s/FTP > 4.0  → non physiologique (ratio normal 2.5–3.5)
+  // MAP5min/FTP > 1.50 → non physiologique (ratio normal 1.25–1.40)
+  // On ignore l'entrée fautive et on laisse les autres méthodes prendre le relais.
+  // =============================================
+  let pmax_5s = pmax_5s_raw;
+  let map5min_w = map5min_w_raw;
+
+  if (pmax_5s != null && pmax_5s > 0) {
+    const rPmax = pmax_5s / ftp;
+    if (rPmax > 4.0) {
+      warnings.push(
+        `Pmax_5s ignorée — ratio Pmax/FTP = ${rPmax.toFixed(1)} (seuil physiologique : < 4.0)`
+      );
+      pmax_5s = null;
+    }
+  }
+
+  if (map5min_w != null && map5min_w > 0) {
+    const rMap = map5min_w / ftp;
+    if (rMap > 1.50) {
+      warnings.push(
+        `MAP5min ignorée — ratio MAP/FTP = ${rMap.toFixed(2)} (seuil physiologique : < 1.50)`
+      );
+      map5min_w = null;
+    }
+  }
 
   // =============================================
   // P1 — FTP/MAP COHERENCE GUARD
