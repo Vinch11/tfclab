@@ -653,6 +653,8 @@ export default function TrackDayPage() {
             </div>
             <CardDescription className="text-xs leading-relaxed">
               • <b>400m max</b> départ arrêté
+              <br />• <span className="text-muted-foreground italic">5 min de récupération entre le 400m et le 1000m</span>
+              <br />• <b>1000m max</b> (optionnel — alimente la calibration M3)
               <br />• Récup 8 min
               <br />• <b>600m max</b>
             </CardDescription>
@@ -669,7 +671,10 @@ export default function TrackDayPage() {
               <Label>Temps 1000m (sec)</Label>
               <Input type="number" step="0.1" value={t1000m} onChange={(e) => setT1000m(e.target.value)} placeholder="230.0" />
               <div className="text-[10px] text-muted-foreground/80 mt-1 leading-snug">
-                → Calibration VLamax course (Ward-Smith 1999) — améliore la précision de la VLamax avec le ratio 400m/1km
+                Vitesse 1km = {calc.v1km > 0 ? `${fmt(calc.v1km, 1)} km/h` : "—"}
+              </div>
+              <div className="text-[10px] text-muted-foreground/80 mt-1 leading-snug italic">
+                → Calibration VLamax course M3 (Ward-Smith 1999) — ratio 400m/1km améliore la précision de ±15%
               </div>
             </div>
             <div>
