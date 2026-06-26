@@ -517,16 +517,26 @@ Deno.serve(async (req) => {
           if (betterMin((snap as any)?.time_marathon_sec, timeMarathon)) updates.time_marathon_sec = Math.round(timeMarathon as number);
           // (400m / 1000m : stockés uniquement dans nolio_records, consommés par fetchAthleteRaceRecords pour calibration VLamax)
 
-          // ─── PAR natation / distance — value = vitesse (m/s) sur 400m, CSS = 100/value (s/100m) ──
-          const mpsSwim400 = bestMax("par", "distance", 400, [SWIM_SPORT]);
-          if (mpsSwim400 != null && mpsSwim400 > 0) {
-            const cssVal = 100 / mpsSwim400; // s/100m
-            if (cssVal >= 60 && cssVal <= 150) {
+          // ─── PAR natation / distance — CSS = 100/vitesse (s/100m) ──
+          // ⚠️ sport_id=19 mélange piscine ET open water (les records OW gonflent la vitesse
+          // via courant/néoprène/dérive GPS). On essaie d'abord le 1500m puis le 800m
+          // (plus représentatif d'un effort piscine soutenu), et on ne tombe sur le 400m
+          // que si rien d'autre n'est disponible. Plage CSS plausible : 70-180 s/100m.
+          const cssCandidates: Array<{ dist: number; mps: number | null }> = [
+            { dist: 1500, mps: bestMax("par", "distance", 1500, [SWIM_SPORT]) },
+            { dist: 800, mps: bestMax("par", "distance", 800, [SWIM_SPORT]) },
+            { dist: 400, mps: bestMax("par", "distance", 400, [SWIM_SPORT]) },
+          ];
+          for (const { dist, mps } of cssCandidates) {
+            if (mps == null || mps <= 0) continue;
+            const cssVal = 100 / mps;
+            if (cssVal >= 70 && cssVal <= 180) {
               if (betterMin((snap as any)?.css, cssVal)) {
                 updates.css = Math.round(cssVal * 100) / 100;
               }
+              break;
             } else {
-              errors.push(`css ignoré — ${cssVal.toFixed(1)}s/100m hors plage physiologique [60, 150]s/100m`);
+              errors.push(`css(${dist}m) ignoré — ${cssVal.toFixed(1)}s/100m hors plage piscine [70, 180]s/100m (probablement open water)`);
             }
           }
           // (50/100/200/1500/3800 : stockés uniquement dans nolio_records)
