@@ -225,7 +225,7 @@ export async function fetchAthleteRaceRecords(
     .eq("athlete_id", athleteId)
     .eq("sport_id", 2)
     .eq("cat", "par")
-    .eq("record_type", "time")
+    .eq("record_type", "distance") // Nolio par/distance : item_seconds=distance(m), value=temps(s)
     .in("item_seconds", [400, 1000, 5000, 10000]);
 
   // Filtre fenêtre temporelle (12 mois par défaut pour refléter le niveau actuel)
