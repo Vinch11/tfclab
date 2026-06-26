@@ -250,6 +250,7 @@ export default function BikeTrackDayPage() {
       fc_max: fcMax > 0 ? fcMax : null,
       ftp: calc.ftp || null,
       vlamax: calc.vlamaxEst || null,
+      // sprint 10s utilisé comme approximation du Pmax 5s (surestimation ~5–8% acceptable)
       pmax_5s: calc.p10 || null,
       vo2max: calc.vo2maxEst > 0 ? Math.round(calc.vo2maxEst * 10) / 10 : null,
       map5min_w: calc.map || null,
