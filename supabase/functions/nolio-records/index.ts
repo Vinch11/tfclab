@@ -367,12 +367,25 @@ Deno.serve(async (req) => {
 
           const BIKE_SPORT_IDS = [14, 18];
 
+          // ─── Source agrégée : on lit *toute* la table nolio_records pour cet athlète
+          // (records persistés cumulés) en plus de l'éventuel batch fraîchement importé.
+          // Cela permet de reconstituer le snapshot même quand Nolio renvoie 429 ou
+          // quand tous les records sont déjà connus en base (imported=0).
+          const { data: persistedRecords } = await admin
+            .from("nolio_records")
+            .select("cat, record_type, item_seconds, value, sport_id")
+            .eq("athlete_id", athleteId);
+          const aggregateSource: Array<Record<string, unknown>> = [
+            ...rowsToUpsert,
+            ...((persistedRecords ?? []) as Array<Record<string, unknown>>),
+          ];
+
           // ─── Helpers d'agrégation ───────────────────────────────────────
           const bestMax = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
-            const matches = rowsToUpsert.filter(x =>
+            const matches = aggregateSource.filter(x =>
               x.cat === cat &&
               x.record_type === recordType &&
-              x.item_seconds === sec &&
+              Number(x.item_seconds) === sec &&
               (!sportFilter || sportFilter.includes(Number(x.sport_id))),
             );
             if (matches.length === 0) return null;
@@ -380,10 +393,10 @@ Deno.serve(async (req) => {
             return vals.length ? Math.max(...vals) : null;
           };
           const bestMin = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
-            const matches = rowsToUpsert.filter(x =>
+            const matches = aggregateSource.filter(x =>
               x.cat === cat &&
               x.record_type === recordType &&
-              x.item_seconds === sec &&
+              Number(x.item_seconds) === sec &&
               (!sportFilter || sportFilter.includes(Number(x.sport_id))),
             );
             if (matches.length === 0) return null;
