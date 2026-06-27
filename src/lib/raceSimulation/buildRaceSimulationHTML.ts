@@ -226,19 +226,16 @@ function why(text: string): string {
 function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   const ph = b.physio;
   const dur = b.raceDurationMin;
-  // CHO/h selon durée
-  const choBand =
-    dur == null ? "60–80 g/h (à ajuster selon durée réelle)"
-    : dur >= 240 ? "90–120 g/h"
-    : dur >= 150 ? "70–90 g/h"
-    : dur >= 60 ? "50–70 g/h"
-    : "30–50 g/h";
-  const hydration =
-    dur == null ? "500–750 ml/h selon chaleur"
-    : dur >= 180 ? "600–800 ml/h (+ électrolytes systématiques)"
-    : "500–700 ml/h";
+  // CHO/h selon durée (paliers Finisher)
+  const choPerHour =
+    dur == null ? "60 g/h (par défaut)"
+    : dur > 360 ? "90 g/h"
+    : dur >= 240 ? "75 g/h"
+    : "60 g/h";
+  const hydration = "500–750 ml/h";
+  const sodium = "500–1000 mg/h";
 
-  // Zones FC simplifiées si fc_max ~ inconnue : on prend des % d'effort RPE.
+  // Zones FC simplifiées si fc_max disponible.
   const fcMax = (ph as any)?.fcMax ?? null;
   const hrZones = fcMax
     ? [
@@ -246,13 +243,17 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
         { id: "Z2", lo: Math.round(fcMax * 0.60), hi: Math.round(fcMax * 0.70), lab: "Endurance" },
         { id: "Z3", lo: Math.round(fcMax * 0.70), hi: Math.round(fcMax * 0.80), lab: "Tempo" },
         { id: "Z4", lo: Math.round(fcMax * 0.80), hi: Math.round(fcMax * 0.88), lab: "Seuil" },
+        { id: "Z5", lo: Math.round(fcMax * 0.88), hi: Math.round(fcMax * 0.95), lab: "VO2max" },
+        { id: "Z6", lo: Math.round(fcMax * 0.95), hi: fcMax, lab: "Anaérobie" },
       ]
     : null;
+  const walkThreshold = fcMax ? Math.round(fcMax * 0.85) : null;
 
   const rpeRows = [
-    { phase: "Premier tiers", rpe: "RPE 4–5/10", cue: "Conversation facile. Garde de la marge — c'est volontaire." },
-    { phase: "Deuxième tiers", rpe: "RPE 5–6/10", cue: "Allure stable, focus nutrition et hydratation toutes les 20 min." },
-    { phase: "Dernier tiers", rpe: "RPE 6–8/10", cue: "Si l'énergie est là, tu peux pousser progressivement. Sinon, gère." },
+    { discipline: "🏊 Natation", rpe: "RPE 5/10", cue: "Respiration contrôlée. Long et fluide — ne jamais s'asphyxier." },
+    { discipline: "🚴 Vélo", rpe: "RPE 5–6/10", cue: "Capable de parler en phrases complètes. Cadence ronde, jamais en force." },
+    { discipline: "🏃 Course à pied", rpe: "RPE 6–7/10", cue: "Phrases courtes possibles. Économie avant vitesse." },
+    { discipline: "🔁 Transitions", rpe: "Variable", cue: `Marcher si FC > 85% FCmax${walkThreshold ? ` (≈ ${walkThreshold} bpm)` : ""}. Boire avant de relancer.` },
   ];
 
   return `<!DOCTYPE html>
