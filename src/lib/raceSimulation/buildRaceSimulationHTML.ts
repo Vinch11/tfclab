@@ -33,6 +33,26 @@ export interface RaceSimulationReportInput {
     cp?: number | null;
     wPrime?: number | null;
   } | null;
+  /**
+   * Traçabilité VLamax — interdit d'afficher une valeur sans source.
+   * Si fourni, une section "Traçabilité VLamax" est rendue dans le rapport,
+   * détaillant les méthodes M1 (vélo lab/terrain), M2 (course/sprint), M3 (records)
+   * et la fusion pondérée + confiance.
+   */
+  vlamaxTrace?: {
+    final: number | null;
+    confidence?: number | null;
+    methods?: Array<{
+      key: 'M1' | 'M2' | 'M3' | string;
+      label: string;
+      value: number | null;
+      weight?: number | null;
+      source?: string | null;
+      note?: string | null;
+    }>;
+    fusionNote?: string | null;
+  } | null;
+
 }
 
 // ─── Helpers partagés ─────────────────────────────────────────────────────────
@@ -108,6 +128,70 @@ function envelopeBlock(label: string, env: PacingEnvelopeResult | null): string 
     </div>
   `;
 }
+
+function vlamaxTraceSection(trace: RaceSimulationReportInput["vlamaxTrace"]): string {
+  if (!trace || (trace.final == null && (!trace.methods || trace.methods.length === 0))) {
+    return `
+      <section>
+        <h2>2. Traçabilité VLamax</h2>
+        <div class="muted">Aucune trace disponible — valeur VLamax non documentée.</div>
+      </section>
+    `;
+  }
+
+  const methods = trace.methods ?? [];
+  const rows = methods.length
+    ? methods.map(m => `
+        <tr>
+          <td><b>${esc(m.key)}</b></td>
+          <td>${esc(m.label)}</td>
+          <td>${m.value != null && Number.isFinite(m.value) ? m.value.toFixed(2) : `<span class="muted">non mesuré</span>`}</td>
+          <td>${m.weight != null ? (m.weight * 100).toFixed(0) + " %" : "—"}</td>
+          <td>${esc(m.source ?? "—")}</td>
+          <td>${esc(m.note ?? "")}</td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="6" class="muted">Aucune méthode renseignée.</td></tr>`;
+
+  // Divergence bike vs run
+  const bike = methods.find(m => m.key === 'M1');
+  const run = methods.find(m => m.key === 'M2');
+  let divergenceBlock = "";
+  if (bike?.value != null && run?.value != null && Math.abs(bike.value - run.value) >= 0.05) {
+    divergenceBlock = `
+      <div class="note" style="margin-top:8px">
+        <b>Divergence détectée :</b> vélo = ${bike.value.toFixed(2)} mmol/L/s, course = ${run.value.toFixed(2)} mmol/L/s.
+        La fusion pondérée donne <b>${trace.final != null ? trace.final.toFixed(2) : "—"}</b> car les méthodes sont
+        pondérées par leur fiabilité (M1 vélo lab > M2 sprint terrain > M3 records inverse).
+        La différence reflète la spécificité musculaire de chaque discipline (recrutement, économie, technique).
+      </div>
+    `;
+  }
+
+  return `
+    <section>
+      <h2>2. Traçabilité VLamax — d'où vient ${trace.final != null ? `<b>${trace.final.toFixed(2)} mmol/L/s</b>` : "cette valeur"} ?</h2>
+      <table class="nutrition-table">
+        <thead>
+          <tr><th>Méthode</th><th>Description</th><th>Valeur</th><th>Poids fusion</th><th>Source</th><th>Note</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="kv-grid" style="margin-top:8px">
+        <table class="kv-grid">
+          <tr>
+            <td>Valeur finale fusionnée</td><td><b>${trace.final != null ? trace.final.toFixed(2) + " mmol/L/s" : "non calculable"}</b></td>
+            <td>Confiance</td><td>${trace.confidence != null ? Math.round(trace.confidence * 100) + " %" : "—"}</td>
+          </tr>
+        </table>
+      </div>
+      ${divergenceBlock}
+      ${trace.fusionNote ? `<div class="note" style="margin-top:6px">${esc(trace.fusionNote)}</div>` : ""}
+      ${why("La VLamax n'est jamais mesurée directement : elle est estimée par plusieurs voies (M1 = test lactate vélo, M2 = sprint/test course, M3 = records de durée courte). La valeur affichée est la fusion pondérée de ces estimations selon leur fiabilité. Une divergence vélo/course est normale et reflète des qualités musculaires distinctes.")}
+    </section>
+  `;
+}
+
 
 function scenarioCard(s: PacingScenario): string {
   return `
@@ -267,8 +351,10 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
     ${why("Ces valeurs résument ton moteur : FTP/VMA fixent ton seuil aérobie, VLamax mesure ta vitesse glycolytique (consommation de sucre), TTE indique combien de temps tu tiens au seuil. Tout le reste du rapport est calculé à partir de ces chiffres.")}
   </section>
 
+  ${vlamaxTraceSection(b.vlamaxTrace ?? null)}
+
   <section>
-    <h2>2. Couloir de pacing par segment</h2>
+    <h2>3. Couloir de pacing par segment</h2>
     <div class="env-grid">
       ${envelopeBlock("Vélo", b.envelopeBike ?? (b.envelope && b.envelope.sport === "bike" ? b.envelope : null))}
       ${envelopeBlock("Course à pied", b.envelopeRun ?? (b.envelope && b.envelope.sport === "run" ? b.envelope : null))}
@@ -277,7 +363,7 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
   </section>
 
   <section>
-    <h2>3. Plan nutrition (Mader-Heck + Jeukendrup)</h2>
+    <h2>4. Plan nutrition (Mader-Heck + Jeukendrup)</h2>
     <p class="muted" style="margin-top:0">Les grammes de glucides détaillés (CHO/h, sodium, caféine) sont rendus dans l'application via le moteur Nutrition unifié V3, calé sur ta VLamax, ton poids et la durée de course. Les valeurs clés à retenir :</p>
     <table class="nutrition-table">
       <thead><tr><th>Donnée</th><th>Valeur</th></tr></thead>
@@ -292,17 +378,18 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
   </section>
 
   <section>
-    <h2>4. Scénarios de pacing — robuste, ambitieux, agressif</h2>
+    <h2>5. Scénarios de pacing — robuste, ambitieux, agressif</h2>
     ${scenariosHTML}
     ${why("Robuste = on reste dans la moitié basse du couloir, risque physiologique minimal, marge pour finir fort. Ambitieux = on vise le centre, marge réduite mais perf optimisée si ta TTE est bonne. Agressif = on flirte avec le plafond toléré, gain marginal mais risque réel d'effondrement glycogénique ou cardiaque dans le dernier tiers.")}
   </section>
 
   <section>
-    <h2>5. Règles d'or du jour J</h2>
+    <h2>6. Règles d'or du jour J</h2>
     <ul class="golden">
       ${goldenRules.map(r => `<li>${esc(r)}</li>`).join("")}
     </ul>
   </section>
+
 
   <div class="footer">
     Généré le ${esc(b.generatedAt)} — TFC Lab • Potentiel Physiologique TFCL™<br/>

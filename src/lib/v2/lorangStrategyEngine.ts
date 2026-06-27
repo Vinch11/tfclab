@@ -80,6 +80,73 @@ export function getVlamaxTarget(
   return base;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SCORING VLAMAX UNIFIÉ — source unique partagée par Potentiel & Compass
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Écart relatif VLamax / cible (centre de plage).
+ * Positif = au-dessus de la cible (mauvais pour endurance).
+ */
+export function computeVlamaxGap(
+  vlamax: number | null | undefined,
+  objectif: string | null | undefined,
+  discipline: 'bike' | 'run' | 'swim' = 'bike',
+): number | null {
+  if (vlamax == null || !Number.isFinite(vlamax) || vlamax <= 0) return null;
+  const target = getVlamaxTarget(objectif, discipline);
+  if (!target?.ideal || target.ideal <= 0) return null;
+  return (vlamax - target.ideal) / target.ideal;
+}
+
+/**
+ * Limiteur ALERTE : VLamax > 30% au-dessus de la cible idéale.
+ * Utilisé pour capper le score VLamax dans le Potentiel Physiologique.
+ */
+export function isVlamaxAlertLimiter(
+  vlamax: number | null | undefined,
+  objectif: string | null | undefined,
+  discipline: 'bike' | 'run' | 'swim' = 'bike',
+): boolean {
+  const gap = computeVlamaxGap(vlamax, objectif, discipline);
+  return gap !== null && gap > 0.30;
+}
+
+/**
+ * Score VLamax 0-100 unifié — utilisé par le Potentiel Physiologique ET le Compass.
+ * Logique commune :
+ *   - dans la plage [min, max]   → 80-100 (centré idéal = 100)
+ *   - au-dessous du min          → 60 (sub-optimal, manque de glycolyse)
+ *   - au-dessus du max           → décroît linéairement
+ *   - si limiteur ALERTE (gap > 30%) → cap dur à 50
+ */
+export function computeVlamaxScore(
+  vlamax: number | null | undefined,
+  objectif: string | null | undefined,
+  discipline: 'bike' | 'run' | 'swim' = 'bike',
+): number {
+  if (vlamax == null || !Number.isFinite(vlamax) || vlamax <= 0) return 0;
+  const target = getVlamaxTarget(objectif, discipline);
+  const { ideal, min, max } = target;
+
+  let raw: number;
+  if (vlamax <= min) {
+    raw = 60;
+  } else if (vlamax >= max) {
+    const overflow = (vlamax - max) / Math.max(0.05, max);
+    raw = Math.max(20, 70 - overflow * 100);
+  } else {
+    const distance = Math.abs(vlamax - ideal) / Math.max(0.001, max - min);
+    raw = Math.round(100 - distance * 20);
+  }
+
+  if (isVlamaxAlertLimiter(vlamax, objectif, discipline)) {
+    return Math.min(50, raw);
+  }
+  return Math.round(raw);
+}
+
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES PRINCIPAUX
 // ═══════════════════════════════════════════════════════════════════════════════
