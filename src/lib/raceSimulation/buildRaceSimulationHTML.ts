@@ -33,6 +33,26 @@ export interface RaceSimulationReportInput {
     cp?: number | null;
     wPrime?: number | null;
   } | null;
+  /**
+   * Traçabilité VLamax — interdit d'afficher une valeur sans source.
+   * Si fourni, une section "Traçabilité VLamax" est rendue dans le rapport,
+   * détaillant les méthodes M1 (vélo lab/terrain), M2 (course/sprint), M3 (records)
+   * et la fusion pondérée + confiance.
+   */
+  vlamaxTrace?: {
+    final: number | null;
+    confidence?: number | null;
+    methods?: Array<{
+      key: 'M1' | 'M2' | 'M3' | string;
+      label: string;
+      value: number | null;
+      weight?: number | null;
+      source?: string | null;
+      note?: string | null;
+    }>;
+    fusionNote?: string | null;
+  } | null;
+
 }
 
 // ─── Helpers partagés ─────────────────────────────────────────────────────────
