@@ -226,19 +226,16 @@ function why(text: string): string {
 function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   const ph = b.physio;
   const dur = b.raceDurationMin;
-  // CHO/h selon durée
-  const choBand =
-    dur == null ? "60–80 g/h (à ajuster selon durée réelle)"
-    : dur >= 240 ? "90–120 g/h"
-    : dur >= 150 ? "70–90 g/h"
-    : dur >= 60 ? "50–70 g/h"
-    : "30–50 g/h";
-  const hydration =
-    dur == null ? "500–750 ml/h selon chaleur"
-    : dur >= 180 ? "600–800 ml/h (+ électrolytes systématiques)"
-    : "500–700 ml/h";
+  // CHO/h selon durée (paliers Finisher)
+  const choPerHour =
+    dur == null ? "60 g/h (par défaut)"
+    : dur > 360 ? "90 g/h"
+    : dur >= 240 ? "75 g/h"
+    : "60 g/h";
+  const hydration = "500–750 ml/h";
+  const sodium = "500–1000 mg/h";
 
-  // Zones FC simplifiées si fc_max ~ inconnue : on prend des % d'effort RPE.
+  // Zones FC simplifiées si fc_max disponible.
   const fcMax = (ph as any)?.fcMax ?? null;
   const hrZones = fcMax
     ? [
@@ -246,13 +243,17 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
         { id: "Z2", lo: Math.round(fcMax * 0.60), hi: Math.round(fcMax * 0.70), lab: "Endurance" },
         { id: "Z3", lo: Math.round(fcMax * 0.70), hi: Math.round(fcMax * 0.80), lab: "Tempo" },
         { id: "Z4", lo: Math.round(fcMax * 0.80), hi: Math.round(fcMax * 0.88), lab: "Seuil" },
+        { id: "Z5", lo: Math.round(fcMax * 0.88), hi: Math.round(fcMax * 0.95), lab: "VO2max" },
+        { id: "Z6", lo: Math.round(fcMax * 0.95), hi: fcMax, lab: "Anaérobie" },
       ]
     : null;
+  const walkThreshold = fcMax ? Math.round(fcMax * 0.85) : null;
 
   const rpeRows = [
-    { phase: "Premier tiers", rpe: "RPE 4–5/10", cue: "Conversation facile. Garde de la marge — c'est volontaire." },
-    { phase: "Deuxième tiers", rpe: "RPE 5–6/10", cue: "Allure stable, focus nutrition et hydratation toutes les 20 min." },
-    { phase: "Dernier tiers", rpe: "RPE 6–8/10", cue: "Si l'énergie est là, tu peux pousser progressivement. Sinon, gère." },
+    { discipline: "🏊 Natation", rpe: "RPE 5/10", cue: "Respiration contrôlée. Long et fluide — ne jamais s'asphyxier." },
+    { discipline: "🚴 Vélo", rpe: "RPE 5–6/10", cue: "Capable de parler en phrases complètes. Cadence ronde, jamais en force." },
+    { discipline: "🏃 Course à pied", rpe: "RPE 6–7/10", cue: "Phrases courtes possibles. Économie avant vitesse." },
+    { discipline: "🔁 Transitions", rpe: "Variable", cue: `Marcher si FC > 85% FCmax${walkThreshold ? ` (≈ ${walkThreshold} bpm)` : ""}. Boire avant de relancer.` },
   ];
 
   return `<!DOCTYPE html>
@@ -318,20 +319,23 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   <section>
     <h2>2. Plan nutrition simplifié</h2>
     <table>
-      <tr><th style="width:40%">Glucides / heure</th><td>${esc(choBand)}</td></tr>
+      <tr><th style="width:40%">Glucides / heure</th><td>${esc(choPerHour)}${dur != null ? ` <span style="color:#64748b">(durée estimée ${fmtDuration(dur)})</span>` : ""}</td></tr>
       <tr><th>Hydratation</th><td>${esc(hydration)}</td></tr>
-      <tr><th>Sodium</th><td>500–800 mg/h (plus si chaleur ou athlète "salty sweater")</td></tr>
+      <tr><th>Sodium</th><td>${esc(sodium)} (plus si chaleur ou "salty sweater")</td></tr>
       <tr><th>Démarrage nutrition</th><td>Dès la 20ème minute — ne pas attendre la soif/faim.</td></tr>
       <tr><th>Caféine (optionnel)</th><td>1–3 mg/kg, 30–45 min avant le départ.</td></tr>
     </table>
+    <p style="margin-top:8px;font-size:11px;color:#64748b">
+      Paliers : <strong>60 g/h</strong> si &lt; 4h · <strong>75 g/h</strong> si 4–6h · <strong>90 g/h</strong> si &gt; 6h.
+    </p>
   </section>
 
   <section>
-    <h2>3. Recommandations Finisher (gestion de l'effort)</h2>
+    <h2>3. Recommandations Finisher (RPE uniquement)</h2>
     <table>
-      <thead><tr><th>Phase</th><th>RPE cible</th><th>Consigne</th></tr></thead>
+      <thead><tr><th>Discipline</th><th>Effort cible</th><th>Consigne</th></tr></thead>
       <tbody>
-        ${rpeRows.map(r => `<tr><td><strong>${esc(r.phase)}</strong></td><td>${esc(r.rpe)}</td><td>${esc(r.cue)}</td></tr>`).join("")}
+        ${rpeRows.map(r => `<tr><td><strong>${esc(r.discipline)}</strong></td><td>${esc(r.rpe)}</td><td>${esc(r.cue)}</td></tr>`).join("")}
       </tbody>
     </table>
     <p style="margin-top:10px;font-size:11.5px;color:#475569">
@@ -342,9 +346,9 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   </section>
 
   <div class="callout">
-    Ce rapport est basé sur un profil estimé. Pour un rapport complet avec <strong>VLamax</strong>,
-    <strong>TTE</strong>, <strong>FatMax</strong> et des prédictions de performance, réaliser les protocoles
-    <strong>TFCL Track Day™</strong>, <strong>Bike Day™</strong> et <strong>Pool Day™</strong>.
+    Ce rapport est basé sur un profil estimé <strong>(confiance 60%)</strong>. Pour un rapport complet avec
+    <strong>VLamax</strong>, <strong>TTE</strong>, <strong>FatMax</strong> et des prédictions de performance précises,
+    réaliser les protocoles <strong>TFCL Track Day™</strong>, <strong>Bike Day™</strong> et <strong>Pool Day™</strong>.
   </div>
 
   <div class="footer">
