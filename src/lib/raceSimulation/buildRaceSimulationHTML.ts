@@ -53,6 +53,11 @@ export interface RaceSimulationReportInput {
     fusionNote?: string | null;
   } | null;
 
+  /** Source du snapshot — si "finisher-express", un rapport simplifié en 3 sections est généré. */
+  source?: "manual" | "nolio" | "import" | "finisher-express" | string | null;
+  /** Disponibilité hebdomadaire (h/sem) — utilisée dans le profil Express. */
+  weeklyHours?: number | null;
+
 }
 
 // ─── Helpers partagés ─────────────────────────────────────────────────────────
@@ -218,7 +223,141 @@ function why(text: string): string {
   return `<div class="why"><div class="why-title">💡 Pourquoi ce chiffre ?</div><div>${esc(text)}</div></div>`;
 }
 
+function buildExpressReportHTML(b: RaceSimulationReportInput): string {
+  const ph = b.physio;
+  const dur = b.raceDurationMin;
+  // CHO/h selon durée
+  const choBand =
+    dur == null ? "60–80 g/h (à ajuster selon durée réelle)"
+    : dur >= 240 ? "90–120 g/h"
+    : dur >= 150 ? "70–90 g/h"
+    : dur >= 60 ? "50–70 g/h"
+    : "30–50 g/h";
+  const hydration =
+    dur == null ? "500–750 ml/h selon chaleur"
+    : dur >= 180 ? "600–800 ml/h (+ électrolytes systématiques)"
+    : "500–700 ml/h";
+
+  // Zones FC simplifiées si fc_max ~ inconnue : on prend des % d'effort RPE.
+  const fcMax = (ph as any)?.fcMax ?? null;
+  const hrZones = fcMax
+    ? [
+        { id: "Z1", lo: Math.round(fcMax * 0.50), hi: Math.round(fcMax * 0.60), lab: "Récup" },
+        { id: "Z2", lo: Math.round(fcMax * 0.60), hi: Math.round(fcMax * 0.70), lab: "Endurance" },
+        { id: "Z3", lo: Math.round(fcMax * 0.70), hi: Math.round(fcMax * 0.80), lab: "Tempo" },
+        { id: "Z4", lo: Math.round(fcMax * 0.80), hi: Math.round(fcMax * 0.88), lab: "Seuil" },
+      ]
+    : null;
+
+  const rpeRows = [
+    { phase: "Premier tiers", rpe: "RPE 4–5/10", cue: "Conversation facile. Garde de la marge — c'est volontaire." },
+    { phase: "Deuxième tiers", rpe: "RPE 5–6/10", cue: "Allure stable, focus nutrition et hydratation toutes les 20 min." },
+    { phase: "Dernier tiers", rpe: "RPE 6–8/10", cue: "Si l'énergie est là, tu peux pousser progressivement. Sinon, gère." },
+  ];
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Rapport Express — ${esc(b.athleteName)} · ${esc(b.raceObjective)}</title>
+<style>
+  @page { size: A4; margin: 14mm; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0f172a; background: #f8fafc; margin: 0; padding: 16px; font-size: 12.5px; line-height: 1.5; }
+  h1 { font-size: 22px; margin: 0; color: white; }
+  h2 { font-size: 15px; margin: 22px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #0d9488; }
+  .header { background: linear-gradient(135deg, #0d9488, #0f766e); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
+  .header .subtitle { color: #ccfbf1; font-size: 12px; margin: 4px 0 12px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .meta-grid .cell { background: rgba(255,255,255,0.12); padding: 8px 10px; border-radius: 6px; }
+  .meta-grid .k { font-size: 9.5px; color: #99f6e4; text-transform: uppercase; letter-spacing: 0.5px; }
+  .meta-grid .v { font-size: 13px; font-weight: 600; color: white; margin-top: 2px; }
+  .banner { background: #ccfbf1; border: 1px solid #5eead4; color: #134e4a; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 14px; }
+  table { width:100%; border-collapse: collapse; font-size: 12px; }
+  th, td { padding: 6px 8px; border: 1px solid #e2e8f0; text-align: left; }
+  th { background: #f1f5f9; }
+  .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 10.5px; color: #475569; text-align: center; }
+  .callout { margin-top: 18px; padding: 12px 14px; border-radius: 8px; background: #fef9c3; border: 1px solid #fde68a; color: #713f12; font-size: 11.5px; }
+  .zones { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .zone { padding: 6px 10px; border-radius: 6px; background: #f1f5f9; font-size: 11.5px; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Rapport Express — TFCL™</h1>
+    <div class="subtitle">Profil estimé · FC + poids · 3 sections essentielles</div>
+    <div class="meta-grid">
+      <div class="cell"><div class="k">Athlète</div><div class="v">${esc(b.athleteName)}</div></div>
+      <div class="cell"><div class="k">Course</div><div class="v">${esc(b.raceObjective)}</div></div>
+      <div class="cell"><div class="k">Durée cible</div><div class="v">${esc(fmtDuration(b.raceDurationMin))}</div></div>
+      <div class="cell"><div class="k">Date</div><div class="v">${esc(b.generatedAt)}</div></div>
+    </div>
+  </div>
+
+  <div class="banner">
+    🚀 <strong>Mode Express</strong> — ce rapport repose sur un profil estimé à partir de la FC et du poids.
+    Les valeurs détaillées (VLamax, TTE, FatMax) ne sont pas disponibles.
+  </div>
+
+  <section>
+    <h2>1. Profil de base</h2>
+    <table>
+      <tr><th style="width:40%">Poids</th><td>${fmtNum(ph.weightKg, 1, "kg")}</td></tr>
+      <tr><th>Objectif</th><td>${esc(b.raceObjective)}</td></tr>
+      <tr><th>Durée cible</th><td>${esc(fmtDuration(b.raceDurationMin))}</td></tr>
+      <tr><th>Disponibilité hebdomadaire</th><td>${b.weeklyHours != null ? `${b.weeklyHours} h/sem` : "—"}</td></tr>
+    </table>
+    ${hrZones ? `
+      <h3 style="font-size:13px;margin-top:14px;">Zones FC (basées sur FC max = ${fcMax} bpm)</h3>
+      <div class="zones">
+        ${hrZones.map(z => `<div class="zone"><strong>${z.id}</strong> · ${z.lab} : ${z.lo}–${z.hi} bpm</div>`).join("")}
+      </div>
+    ` : `<p style="font-style:italic;color:#64748b;margin-top:10px">Renseigne ta FC max pour générer les zones cardio.</p>`}
+  </section>
+
+  <section>
+    <h2>2. Plan nutrition simplifié</h2>
+    <table>
+      <tr><th style="width:40%">Glucides / heure</th><td>${esc(choBand)}</td></tr>
+      <tr><th>Hydratation</th><td>${esc(hydration)}</td></tr>
+      <tr><th>Sodium</th><td>500–800 mg/h (plus si chaleur ou athlète "salty sweater")</td></tr>
+      <tr><th>Démarrage nutrition</th><td>Dès la 20ème minute — ne pas attendre la soif/faim.</td></tr>
+      <tr><th>Caféine (optionnel)</th><td>1–3 mg/kg, 30–45 min avant le départ.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. Recommandations Finisher (gestion de l'effort)</h2>
+    <table>
+      <thead><tr><th>Phase</th><th>RPE cible</th><th>Consigne</th></tr></thead>
+      <tbody>
+        ${rpeRows.map(r => `<tr><td><strong>${esc(r.phase)}</strong></td><td>${esc(r.rpe)}</td><td>${esc(r.cue)}</td></tr>`).join("")}
+      </tbody>
+    </table>
+    <p style="margin-top:10px;font-size:11.5px;color:#475569">
+      Les allures sont volontairement exprimées en <strong>RPE (échelle d'effort 1–10)</strong> et non en watts ou min/km :
+      sans test physiologique, ces valeurs seraient trompeuses. Concentre-toi sur la <strong>gestion de l'effort</strong>
+      et la <strong>nutrition</strong> — c'est ce qui fait la différence entre finir et abandonner.
+    </p>
+  </section>
+
+  <div class="callout">
+    Ce rapport est basé sur un profil estimé. Pour un rapport complet avec <strong>VLamax</strong>,
+    <strong>TTE</strong>, <strong>FatMax</strong> et des prédictions de performance, réaliser les protocoles
+    <strong>TFCL Track Day™</strong>, <strong>Bike Day™</strong> et <strong>Pool Day™</strong>.
+  </div>
+
+  <div class="footer">
+    Généré le ${esc(b.generatedAt)} — TFC Lab • Potentiel Physiologique TFCL™ · Profil Express
+  </div>
+</body>
+</html>`;
+}
+
 export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
+  if (b.source === "finisher-express") {
+    return buildExpressReportHTML(b);
+  }
   const ph = b.physio;
   const goldenRules = [
     "Premier tiers : reste sous le centre du couloir vert. Si ça paraît trop facile, c'est bon signe.",

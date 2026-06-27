@@ -40,6 +40,7 @@ import { SaisonPhasesView } from "@/components/SaisonPhasesView";
 import { StaffReport } from "@/components/StaffReport";
 import { StaffBriefingCard } from "@/components/StaffBriefingCard";
 import { AssistantDrawer } from "@/components/AssistantDrawer";
+import { ExpressDashboard } from "@/components/ExpressDashboard";
 import { computeNutritionTiming } from "@/lib/nutritionTiming";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 // Audit 2C F19 — migré V1 → V2 (score 0-100 + O2 cost canonique).
@@ -2340,7 +2341,21 @@ const Index = () => {
             ))}
           </div>
         )}
-        {renderContent()}
+        {(effectiveCloudSnapshot as any)?.source === "finisher-express" ? (
+          <ExpressDashboard
+            athleteName={currentAthlete?.name}
+            objectif={currentAthlete?.goal}
+            snapshot={{
+              fc_max: (effectiveCloudSnapshot as any)?.fc_max ?? null,
+              weight_kg: (effectiveCloudSnapshot as any)?.weight_kg ?? null,
+              vo2max: (effectiveCloudSnapshot as any)?.vo2max ?? null,
+              ftp: (effectiveCloudSnapshot as any)?.ftp ?? null,
+              vma: (effectiveCloudSnapshot as any)?.vma ?? null,
+            }}
+          />
+        ) : (
+          renderContent()
+        )}
       </div>
 
       {/* Snapshot Manager (triggered by Quick Actions) */}
