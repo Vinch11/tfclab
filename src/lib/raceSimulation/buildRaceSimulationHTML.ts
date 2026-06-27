@@ -351,8 +351,10 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
     ${why("Ces valeurs résument ton moteur : FTP/VMA fixent ton seuil aérobie, VLamax mesure ta vitesse glycolytique (consommation de sucre), TTE indique combien de temps tu tiens au seuil. Tout le reste du rapport est calculé à partir de ces chiffres.")}
   </section>
 
+  ${vlamaxTraceSection(b.vlamaxTrace ?? null)}
+
   <section>
-    <h2>2. Couloir de pacing par segment</h2>
+    <h2>3. Couloir de pacing par segment</h2>
     <div class="env-grid">
       ${envelopeBlock("Vélo", b.envelopeBike ?? (b.envelope && b.envelope.sport === "bike" ? b.envelope : null))}
       ${envelopeBlock("Course à pied", b.envelopeRun ?? (b.envelope && b.envelope.sport === "run" ? b.envelope : null))}
@@ -361,7 +363,7 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
   </section>
 
   <section>
-    <h2>3. Plan nutrition (Mader-Heck + Jeukendrup)</h2>
+    <h2>4. Plan nutrition (Mader-Heck + Jeukendrup)</h2>
     <p class="muted" style="margin-top:0">Les grammes de glucides détaillés (CHO/h, sodium, caféine) sont rendus dans l'application via le moteur Nutrition unifié V3, calé sur ta VLamax, ton poids et la durée de course. Les valeurs clés à retenir :</p>
     <table class="nutrition-table">
       <thead><tr><th>Donnée</th><th>Valeur</th></tr></thead>
@@ -376,17 +378,18 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
   </section>
 
   <section>
-    <h2>4. Scénarios de pacing — robuste, ambitieux, agressif</h2>
+    <h2>5. Scénarios de pacing — robuste, ambitieux, agressif</h2>
     ${scenariosHTML}
     ${why("Robuste = on reste dans la moitié basse du couloir, risque physiologique minimal, marge pour finir fort. Ambitieux = on vise le centre, marge réduite mais perf optimisée si ta TTE est bonne. Agressif = on flirte avec le plafond toléré, gain marginal mais risque réel d'effondrement glycogénique ou cardiaque dans le dernier tiers.")}
   </section>
 
   <section>
-    <h2>5. Règles d'or du jour J</h2>
+    <h2>6. Règles d'or du jour J</h2>
     <ul class="golden">
       ${goldenRules.map(r => `<li>${esc(r)}</li>`).join("")}
     </ul>
   </section>
+
 
   <div class="footer">
     Généré le ${esc(b.generatedAt)} — TFC Lab • Potentiel Physiologique TFCL™<br/>
