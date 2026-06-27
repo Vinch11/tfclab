@@ -7,7 +7,7 @@ export interface Snapshot {
   athlete_id: string;
   coach_id: string;
   date: string;
-  source: "manual" | "nolio" | "import";
+  source: "manual" | "nolio" | "import" | "finisher-express";
   cycle_tag?: string;
   confidence?: number; // 0-1
   
