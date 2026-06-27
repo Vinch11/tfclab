@@ -319,20 +319,23 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   <section>
     <h2>2. Plan nutrition simplifié</h2>
     <table>
-      <tr><th style="width:40%">Glucides / heure</th><td>${esc(choBand)}</td></tr>
+      <tr><th style="width:40%">Glucides / heure</th><td>${esc(choPerHour)}${dur != null ? ` <span style="color:#64748b">(durée estimée ${fmtDuration(dur)})</span>` : ""}</td></tr>
       <tr><th>Hydratation</th><td>${esc(hydration)}</td></tr>
-      <tr><th>Sodium</th><td>500–800 mg/h (plus si chaleur ou athlète "salty sweater")</td></tr>
+      <tr><th>Sodium</th><td>${esc(sodium)} (plus si chaleur ou "salty sweater")</td></tr>
       <tr><th>Démarrage nutrition</th><td>Dès la 20ème minute — ne pas attendre la soif/faim.</td></tr>
       <tr><th>Caféine (optionnel)</th><td>1–3 mg/kg, 30–45 min avant le départ.</td></tr>
     </table>
+    <p style="margin-top:8px;font-size:11px;color:#64748b">
+      Paliers : <strong>60 g/h</strong> si &lt; 4h · <strong>75 g/h</strong> si 4–6h · <strong>90 g/h</strong> si &gt; 6h.
+    </p>
   </section>
 
   <section>
-    <h2>3. Recommandations Finisher (gestion de l'effort)</h2>
+    <h2>3. Recommandations Finisher (RPE uniquement)</h2>
     <table>
-      <thead><tr><th>Phase</th><th>RPE cible</th><th>Consigne</th></tr></thead>
+      <thead><tr><th>Discipline</th><th>Effort cible</th><th>Consigne</th></tr></thead>
       <tbody>
-        ${rpeRows.map(r => `<tr><td><strong>${esc(r.phase)}</strong></td><td>${esc(r.rpe)}</td><td>${esc(r.cue)}</td></tr>`).join("")}
+        ${rpeRows.map(r => `<tr><td><strong>${esc(r.discipline)}</strong></td><td>${esc(r.rpe)}</td><td>${esc(r.cue)}</td></tr>`).join("")}
       </tbody>
     </table>
     <p style="margin-top:10px;font-size:11.5px;color:#475569">
