@@ -129,6 +129,70 @@ function envelopeBlock(label: string, env: PacingEnvelopeResult | null): string 
   `;
 }
 
+function vlamaxTraceSection(trace: RaceSimulationReportInput["vlamaxTrace"]): string {
+  if (!trace || (trace.final == null && (!trace.methods || trace.methods.length === 0))) {
+    return `
+      <section>
+        <h2>2. Traçabilité VLamax</h2>
+        <div class="muted">Aucune trace disponible — valeur VLamax non documentée.</div>
+      </section>
+    `;
+  }
+
+  const methods = trace.methods ?? [];
+  const rows = methods.length
+    ? methods.map(m => `
+        <tr>
+          <td><b>${esc(m.key)}</b></td>
+          <td>${esc(m.label)}</td>
+          <td>${m.value != null && Number.isFinite(m.value) ? m.value.toFixed(2) : `<span class="muted">non mesuré</span>`}</td>
+          <td>${m.weight != null ? (m.weight * 100).toFixed(0) + " %" : "—"}</td>
+          <td>${esc(m.source ?? "—")}</td>
+          <td>${esc(m.note ?? "")}</td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="6" class="muted">Aucune méthode renseignée.</td></tr>`;
+
+  // Divergence bike vs run
+  const bike = methods.find(m => m.key === 'M1');
+  const run = methods.find(m => m.key === 'M2');
+  let divergenceBlock = "";
+  if (bike?.value != null && run?.value != null && Math.abs(bike.value - run.value) >= 0.05) {
+    divergenceBlock = `
+      <div class="note" style="margin-top:8px">
+        <b>Divergence détectée :</b> vélo = ${bike.value.toFixed(2)} mmol/L/s, course = ${run.value.toFixed(2)} mmol/L/s.
+        La fusion pondérée donne <b>${trace.final != null ? trace.final.toFixed(2) : "—"}</b> car les méthodes sont
+        pondérées par leur fiabilité (M1 vélo lab > M2 sprint terrain > M3 records inverse).
+        La différence reflète la spécificité musculaire de chaque discipline (recrutement, économie, technique).
+      </div>
+    `;
+  }
+
+  return `
+    <section>
+      <h2>2. Traçabilité VLamax — d'où vient ${trace.final != null ? `<b>${trace.final.toFixed(2)} mmol/L/s</b>` : "cette valeur"} ?</h2>
+      <table class="nutrition-table">
+        <thead>
+          <tr><th>Méthode</th><th>Description</th><th>Valeur</th><th>Poids fusion</th><th>Source</th><th>Note</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="kv-grid" style="margin-top:8px">
+        <table class="kv-grid">
+          <tr>
+            <td>Valeur finale fusionnée</td><td><b>${trace.final != null ? trace.final.toFixed(2) + " mmol/L/s" : "non calculable"}</b></td>
+            <td>Confiance</td><td>${trace.confidence != null ? Math.round(trace.confidence * 100) + " %" : "—"}</td>
+          </tr>
+        </table>
+      </div>
+      ${divergenceBlock}
+      ${trace.fusionNote ? `<div class="note" style="margin-top:6px">${esc(trace.fusionNote)}</div>` : ""}
+      ${why("La VLamax n'est jamais mesurée directement : elle est estimée par plusieurs voies (M1 = test lactate vélo, M2 = sprint/test course, M3 = records de durée courte). La valeur affichée est la fusion pondérée de ces estimations selon leur fiabilité. Une divergence vélo/course est normale et reflète des qualités musculaires distinctes.")}
+    </section>
+  `;
+}
+
+
 function scenarioCard(s: PacingScenario): string {
   return `
     <div class="scenario sev-${esc(s.consequence.severity)}">
