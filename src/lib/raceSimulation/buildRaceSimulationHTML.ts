@@ -346,9 +346,9 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   </section>
 
   <div class="callout">
-    Ce rapport est basé sur un profil estimé. Pour un rapport complet avec <strong>VLamax</strong>,
-    <strong>TTE</strong>, <strong>FatMax</strong> et des prédictions de performance, réaliser les protocoles
-    <strong>TFCL Track Day™</strong>, <strong>Bike Day™</strong> et <strong>Pool Day™</strong>.
+    Ce rapport est basé sur un profil estimé <strong>(confiance 60%)</strong>. Pour un rapport complet avec
+    <strong>VLamax</strong>, <strong>TTE</strong>, <strong>FatMax</strong> et des prédictions de performance précises,
+    réaliser les protocoles <strong>TFCL Track Day™</strong>, <strong>Bike Day™</strong> et <strong>Pool Day™</strong>.
   </div>
 
   <div class="footer">
