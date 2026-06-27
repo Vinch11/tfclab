@@ -2340,7 +2340,21 @@ const Index = () => {
             ))}
           </div>
         )}
-        {renderContent()}
+        {(effectiveCloudSnapshot as any)?.source === "finisher-express" ? (
+          <ExpressDashboard
+            athleteName={currentAthlete?.name}
+            objectif={currentAthlete?.goal}
+            snapshot={{
+              fc_max: (effectiveCloudSnapshot as any)?.fc_max ?? null,
+              weight_kg: (effectiveCloudSnapshot as any)?.weight_kg ?? null,
+              vo2max: (effectiveCloudSnapshot as any)?.vo2max ?? null,
+              ftp: (effectiveCloudSnapshot as any)?.ftp ?? null,
+              vma: (effectiveCloudSnapshot as any)?.vma ?? null,
+            }}
+          />
+        ) : (
+          renderContent()
+        )}
       </div>
 
       {/* Snapshot Manager (triggered by Quick Actions) */}
