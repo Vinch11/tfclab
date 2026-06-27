@@ -53,6 +53,11 @@ export interface RaceSimulationReportInput {
     fusionNote?: string | null;
   } | null;
 
+  /** Source du snapshot — si "finisher-express", un rapport simplifié en 3 sections est généré. */
+  source?: "manual" | "nolio" | "import" | "finisher-express" | string | null;
+  /** Disponibilité hebdomadaire (h/sem) — utilisée dans le profil Express. */
+  weeklyHours?: number | null;
+
 }
 
 // ─── Helpers partagés ─────────────────────────────────────────────────────────
