@@ -40,6 +40,7 @@ import { SaisonPhasesView } from "@/components/SaisonPhasesView";
 import { StaffReport } from "@/components/StaffReport";
 import { StaffBriefingCard } from "@/components/StaffBriefingCard";
 import { AssistantDrawer } from "@/components/AssistantDrawer";
+import { ExpressDashboard } from "@/components/ExpressDashboard";
 import { computeNutritionTiming } from "@/lib/nutritionTiming";
 import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
 // Audit 2C F19 — migré V1 → V2 (score 0-100 + O2 cost canonique).
