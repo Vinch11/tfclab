@@ -87,6 +87,8 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
     if (!(p > 30 && p < 200) || !(vmaEst >= 8 && vmaEst <= 22) || !(wh > 0)) {
       return;
     }
+    // TODO : valeurs FC par défaut pour Express — à écraser par les vraies
+    // FC de l'athlète si disponibles dans athlete.refs
     // Valeurs par défaut physiologiquement plausibles pour le snapshot Express (course à pied)
     const fcMax = 180;
     const fcRepos = 60;
