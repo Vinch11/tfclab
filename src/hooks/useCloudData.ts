@@ -370,7 +370,7 @@ export function useCloudData() {
 
 
     // P0 — Auto-déduction sport_main depuis l'objectif athlète si non fourni / défaut bike
-    const validated = validation.data as any;
+    const validated = zodResult.data as any;
     const athleteForSport = athletes.find((a) => a.id === validated.athlete_id);
     const goal = athleteForSport?.goal;
     const providedSport = validated.sport_main as string | undefined;
