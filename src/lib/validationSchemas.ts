@@ -45,6 +45,7 @@ export const snapshotSchema = z.object({
   cycle_tag: z.string().max(50).nullable().optional(),
   confidence: numericOptional(0, 1),
   fc_max: intOptional(100, 250),
+  fc_repos: intOptional(30, 90),
   vma: numericOptional(8, 30),
   ftp: intOptional(50, 600),
   css: numericOptional(0.5, 3),
