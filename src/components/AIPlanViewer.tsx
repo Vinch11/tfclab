@@ -218,14 +218,13 @@ function buildAllGanttPhases(phases: { name: string; weeks: string }[], recap?: 
 function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRecap; phases: { name: string; weeks: string }[]; totalWeeks: number }) {
   const allGanttPhases = useMemo(() => buildAllGanttPhases(phases, recap), [phases, recap]);
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Target className="h-4 w-4 text-primary" />
-          Récapitulatif Stratégique
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <CollapsibleCard
+      className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent"
+      defaultOpen={false}
+      storageKey="ai_plan_strategic_recap"
+      icon={<Target className="h-4 w-4 text-primary" />}
+      title={<span className="text-sm">Récapitulatif Stratégique</span>}
+    >
         {/* Mini Gantt */}
         {phases.length > 0 && (
           <div className="p-3 rounded-lg bg-background/80 border border-border/50">
