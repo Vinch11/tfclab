@@ -165,6 +165,11 @@ export default function AITrainingPlanPage() {
   const [isAdaptDialogOpen, setIsAdaptDialogOpen] = useState(false);
   const [coachId, setCoachId] = useState<string>("");
 
+  // F-EXPRESS — Démarrage rapide (finisher)
+  const [expressDialogOpen, setExpressDialogOpen] = useState(false);
+  const [pendingExpressGen, setPendingExpressGen] = useState(false);
+  const expressFlagRef = useRef(false);
+
   // Handle navigation from PlanSyncAlert
   useEffect(() => {
     const navState = location.state as { athleteId?: string; autoRegenerate?: boolean } | null;
