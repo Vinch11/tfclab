@@ -421,7 +421,7 @@ export default function AthleteEditPage() {
         </Card>
 
         <div className="flex flex-col gap-3">
-          <Button onClick={handleSave} variant="outline" className="gap-2">
+          <Button onClick={() => handleSave()} variant="outline" className="gap-2">
             <Save className="h-4 w-4" />
             Sauvegarder
           </Button>
