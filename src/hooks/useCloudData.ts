@@ -356,6 +356,7 @@ export function useCloudData() {
     // Validate input data (and apply defaults like `source`)
     const validation = validateOrNull(snapshotSchema, snapshot);
     if (validation.error !== null) {
+      console.error("Zod validation failed:", validation.error);
       toast.error(`Données invalides: ${validation.error}`);
       return null;
     }
