@@ -701,17 +701,12 @@ export default function AITrainingPlanPage() {
       return;
     }
     try {
-      console.log(
-        "🏊 cssEst Express =", data.cssEst, "| type =", typeof data.cssEst,
-        "| attendu min/100m ~1.2 à 2.5"
-      );
       const newSnap = await addSnapshot({
         athlete_id: currentAthlete.id,
         date: new Date().toISOString().slice(0, 10),
         source: "finisher-express",
         ftp: data.ftpEst,
         vma: data.vmaEst,
-        css: data.cssEst,
         fc_max: data.fcMax,
         fc_repos: data.fcRepos,
         weight_kg: data.poids,
