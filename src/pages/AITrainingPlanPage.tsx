@@ -1795,11 +1795,19 @@ export default function AITrainingPlanPage() {
             {!isMultiMode && athleteContext && (() => {
               const projections = buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections;
               return projections && projections.length > 0 ? (
-                <AdaptationProjectionSummary
-                  projections={projections}
-                  selectedLeverId={selectedProjectionLever}
-                  onSelectLever={setSelectedProjectionLever}
-                />
+                <CollapsibleCard
+                  className="border-primary/20 bg-primary/5"
+                  defaultOpen={false}
+                  storageKey="ai_plan_adaptation_projections"
+                  icon={<Crosshair className="h-4 w-4 text-primary" />}
+                  title={<span className="text-sm">🔮 Projections Adaptation Predictor™</span>}
+                >
+                  <AdaptationProjectionSummary
+                    projections={projections}
+                    selectedLeverId={selectedProjectionLever}
+                    onSelectLever={setSelectedProjectionLever}
+                  />
+                </CollapsibleCard>
               ) : null;
             })()}
 
