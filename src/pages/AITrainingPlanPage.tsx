@@ -537,14 +537,19 @@ export default function AITrainingPlanPage() {
     return computeAthleteContext(currentAthlete, objective, ambition);
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
-  // F-EXPRESS — after snapshot creation, auto-trigger generation
+  // F-EXPRESS — after snapshot creation, wait until the Express snapshot is visible in
+  // the snapshots cache AND athleteContext reflects it, then auto-trigger generation.
   useEffect(() => {
-    if (!pendingExpressGen) return;
-    if (!athleteContext) return;
+    if (!pendingExpressGen || !currentAthlete) return;
+    const expressSnap = snapshots
+      .filter((s: any) => s.athlete_id === currentAthlete.id && s.source === "finisher-express")
+      .sort((a: any, b: any) => +new Date(b.date) - +new Date(a.date))[0];
+    if (!expressSnap || !athleteContext) return;
     setPendingExpressGen(false);
+    expressFlagRef.current = true;
     void handleGenerate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingExpressGen, athleteContext]);
+  }, [pendingExpressGen, snapshots, athleteContext, currentAthlete]);
 
   // Plan start date: defaults to Monday of the CURRENT week, but can be
   // overridden when restoring an archived plan (so dates match the original).
@@ -696,7 +701,7 @@ export default function AITrainingPlanPage() {
       return;
     }
     try {
-      await addSnapshot({
+      const newSnap = await addSnapshot({
         athlete_id: currentAthlete.id,
         date: new Date().toISOString().slice(0, 10),
         source: "finisher-express",
@@ -709,6 +714,10 @@ export default function AITrainingPlanPage() {
         objectif: data.objectif,
         coach_notes: "Profil estimé depuis FC — précision ~60% — à affiner avec les Test Days TFCL",
       } as any);
+      if (!newSnap?.id) {
+        toast.error("Échec création snapshot Express");
+        return;
+      }
       setObjective(data.objectif);
       setWeeklyHours(String(data.weeklyHours));
       expressFlagRef.current = true;
@@ -761,6 +770,7 @@ export default function AITrainingPlanPage() {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] : null;
     if (expressFlagRef.current || (activeSnap as any)?.source === "finisher-express") {
       config._expressFinisher = true;
+      config._expressFinisherPromptPrefix = "PROFIL EXPRESS FINISHER — confiance 60%. Utiliser UNIQUEMENT les zones FC dans toutes les prescriptions. Jamais de watts ni allure précise. Tout en RPE (1-10) et zones cardiaques. Objectif : finisher confortable, pas la performance.";
     }
     expressFlagRef.current = false;
     generatePlan(athleteContext.data, config);

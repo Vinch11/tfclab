@@ -138,6 +138,8 @@ export interface PlanConfig {
   /** F-EXPRESS — Profil onboardé via Démarrage Express (FC + poids uniquement, confiance 60%).
    *  Injecte un bloc systemPrompt qui force prescription en zones FC + RPE uniquement. */
   _expressFinisher?: boolean;
+  /** F-EXPRESS — Préfixe systemPrompt injecté en tête (renforce la règle FC/RPE). */
+  _expressFinisherPromptPrefix?: string;
   /** Profil trail pré-calculé (D+/km, terrain, D+ hebdo cible) — injecté chunk 1 uniquement */
   trailProfile?: TrailProfileSummary;
   /**

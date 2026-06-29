@@ -53,13 +53,17 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     // F-21 — Réinjection dynamique des sections spécialisées (Master >=50, Féminin/RED-S, Trail)
-    const systemPrompt = getSystemPrompt({
+    const baseSystemPrompt = getSystemPrompt({
       sex: athleteData?.sex ?? planConfig?._athleteSex ?? null,
       age: athleteData?.age ?? null,
       objective: planConfig?.objective ?? null,
       expressFinisher: planConfig?._expressFinisher === true,
     });
-    console.log(`📋 F-21 systemPrompt profile: sex=${athleteData?.sex ?? planConfig?._athleteSex ?? "?"} age=${athleteData?.age ?? "?"} obj=${planConfig?.objective ?? "?"} → ${systemPrompt.length} chars`);
+    const expressPrefix = typeof planConfig?._expressFinisherPromptPrefix === "string" && planConfig._expressFinisherPromptPrefix.trim().length > 0
+      ? `${planConfig._expressFinisherPromptPrefix.trim()}\n\n`
+      : "";
+    const systemPrompt = `${expressPrefix}${baseSystemPrompt}`;
+    console.log(`📋 F-21 systemPrompt profile: sex=${athleteData?.sex ?? planConfig?._athleteSex ?? "?"} age=${athleteData?.age ?? "?"} obj=${planConfig?.objective ?? "?"} expressPrefix=${expressPrefix ? "yes" : "no"} → ${systemPrompt.length} chars`);
     let userPrompt: string;
     if (regenerateWeek) {
       userPrompt = `Régénère UNIQUEMENT la Semaine ${regenerateWeek.weekNumber} du plan.
