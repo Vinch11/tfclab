@@ -1431,14 +1431,11 @@ export default function AITrainingPlanPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left: Configuration Form */}
           <div className="lg:col-span-1 space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Target className="h-4 w-4 text-primary" />
-                  Configuration {isMultiMode && "(commune)"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <CollapsibleCard
+              title={<>Configuration {isMultiMode && "(commune)"}</>}
+              icon={<Target className="h-4 w-4 text-primary" />}
+              defaultOpen={false}
+            >
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Target className="h-3.5 w-3.5" />
