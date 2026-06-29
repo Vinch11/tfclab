@@ -22,6 +22,7 @@ import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmb
 import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 import { QuickRaceTimeCard } from "@/components/QuickRaceTimeCard";
+import { ProfileChoiceDialog } from "@/components/ProfileChoiceDialog";
 
 export default function AthleteEditPage() {
   const navigate = useNavigate();
