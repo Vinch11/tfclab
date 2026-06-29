@@ -1,7 +1,8 @@
 /**
- * FinisherQuickStartDialog — Démarrage Express
+ * FinisherQuickStartDialog — Démarrage Express Course à pied
  * Permet de générer un plan IA "finisher" en quelques secondes
  * à partir de FC + poids uniquement (confiance ~60%).
+ * Limité aux objectifs course à pied : Start to Run, 10K, Semi-Marathon.
  */
 import { useState } from "react";
 import { Rocket, Loader2 } from "lucide-react";
@@ -31,10 +32,10 @@ export interface FinisherExpressPayload {
   fcMax: number;
   objectif: string;
   weeklyHours: number;
-  // Valeurs estimées
+  // Valeurs estimées (course à pied uniquement)
   ftpEst: number;
   vmaEst: number;
-  cssEst: number;
+  cssEst?: never; // natation non applicable en mode Express
 }
 
 interface Props {
@@ -45,9 +46,8 @@ interface Props {
 }
 
 const OBJECTIF_OPTIONS = [
-  { value: "IM", label: "Ironman" },
-  { value: "703", label: "70.3" },
-  { value: "Marathon", label: "Marathon" },
+  { value: "StartToRun", label: "Start to Run" },
+  { value: "10K", label: "10K" },
   { value: "Semi", label: "Semi-marathon" },
 ];
 
@@ -55,7 +55,7 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
   const [poids, setPoids] = useState<string>("");
   const [fcRepos, setFcRepos] = useState<string>("");
   const [fcMax, setFcMax] = useState<string>("");
-  const [objectif, setObjectif] = useState<string>(defaultObjectif || "703");
+  const [objectif, setObjectif] = useState<string>(defaultObjectif || "10K");
   const [weeklyHours, setWeeklyHours] = useState<string>("8");
   const [submitting, setSubmitting] = useState(false);
 
@@ -78,7 +78,6 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
     }
     const ftpEst = Math.round((fm - fr) * 1.8 + 50);
     const vmaEst = Math.round(((fm - fr) / 8 + 8) * 10) / 10;
-    const cssEst = Math.round((100 / (vmaEst * 0.65 / 3.6)) / 60 * 100) / 100;
 
     setSubmitting(true);
     try {
@@ -90,7 +89,6 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
         weeklyHours: wh,
         ftpEst,
         vmaEst,
-        cssEst,
       });
       reset();
       onOpenChange(false);
@@ -105,11 +103,14 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Rocket className="h-5 w-5 text-teal-500" />
-            Démarrage Express — Profil Finisher
+            Démarrage Express — Course à pied
           </DialogTitle>
           <DialogDescription>
             Génère un plan IA en quelques secondes à partir de FC + poids.
             Précision ~60% — à affiner avec les Test Days TFCL.
+            <span className="block mt-1 text-xs text-muted-foreground">
+              Objectifs course à pied uniquement. Triathlon / natation / vélo bientôt disponibles.
+            </span>
           </DialogDescription>
         </DialogHeader>
 
@@ -203,3 +204,4 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
     </Dialog>
   );
 }
+
