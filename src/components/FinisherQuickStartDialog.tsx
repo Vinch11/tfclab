@@ -87,7 +87,10 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
     if (!(p > 30 && p < 200) || !(vmaEst >= 8 && vmaEst <= 22) || !(wh > 0)) {
       return;
     }
-    const ftpEst = Math.round(vmaEst * 3.5);
+    // Valeurs par défaut physiologiquement plausibles pour le snapshot Express (course à pied)
+    const fcMax = 180;
+    const fcRepos = 60;
+    const ftpEst = Math.max(50, Math.round(vmaEst * 3.5));
 
     console.log("🏃 vmaEst Express =", vmaEst, "| type =", typeof vmaEst);
 
@@ -95,8 +98,8 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
     try {
       await onSubmit({
         poids: p,
-        fcRepos: 0,
-        fcMax: 0,
+        fcRepos,
+        fcMax,
         objectif,
         weeklyHours: wh,
         ftpEst,
