@@ -3,6 +3,7 @@
  */
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -217,14 +218,13 @@ function buildAllGanttPhases(phases: { name: string; weeks: string }[], recap?: 
 function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRecap; phases: { name: string; weeks: string }[]; totalWeeks: number }) {
   const allGanttPhases = useMemo(() => buildAllGanttPhases(phases, recap), [phases, recap]);
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <Target className="h-4 w-4 text-primary" />
-          Récapitulatif Stratégique
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <CollapsibleCard
+      className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent"
+      defaultOpen={false}
+      storageKey="ai_plan_strategic_recap"
+      icon={<Target className="h-4 w-4 text-primary" />}
+      title={<span className="text-sm">Récapitulatif Stratégique</span>}
+    >
         {/* Mini Gantt */}
         {phases.length > 0 && (
           <div className="p-3 rounded-lg bg-background/80 border border-border/50">
@@ -274,8 +274,7 @@ function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRec
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </CollapsibleCard>
   );
 }
 
@@ -1110,15 +1109,18 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (
-        <Card className="border-primary/30">
-          <CardContent className="p-4 space-y-4">
-            <div className="flex items-center gap-2">
-              <Send className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm">Envoyer vers Nolio</h3>
-              <Badge variant="secondary" className="text-[10px]">
-                athlète lié #{nolioCtx.nolioId}
-              </Badge>
-            </div>
+        <CollapsibleCard
+          className="border-primary/30"
+          defaultOpen={false}
+          storageKey="ai_plan_nolio_send"
+          icon={<Send className="h-4 w-4 text-primary" />}
+          title={<span className="text-sm">Envoyer vers Nolio</span>}
+          rightSlot={
+            <Badge variant="secondary" className="text-[10px]">
+              athlète lié #{nolioCtx.nolioId}
+            </Badge>
+          }
+        >
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -1213,8 +1215,8 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                 Envoyer vers Nolio
               </Button>
             </div>
-          </CardContent>
-        </Card>
+        </CollapsibleCard>
+
       )}
 
       {/* Plan Header */}

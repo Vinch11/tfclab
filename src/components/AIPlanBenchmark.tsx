@@ -3,6 +3,7 @@
  */
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -510,29 +511,27 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
   const conformityPct = Math.round(avgProximity * 100);
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-primary" />
-            Benchmark vs Référence {athleteName ? `— ${athleteName}` : ""}
-          </CardTitle>
-          <Badge
-            variant="outline"
-            className={conformityPct >= 80 ? "border-green-500/50 text-green-700 dark:text-green-300" :
-              conformityPct >= 50 ? "border-amber-500/50 text-amber-700 dark:text-amber-300" :
-                "border-destructive/50 text-destructive"}
-          >
-            {conformityPct}% conforme
-          </Badge>
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">
+    <CollapsibleCard
+      defaultOpen={false}
+      storageKey="ai_plan_benchmark"
+      icon={<Trophy className="h-4 w-4 text-primary" />}
+      title={<>Benchmark vs Référence {athleteName ? `— ${athleteName}` : ""}</>}
+      rightSlot={
+        <Badge
+          variant="outline"
+          className={conformityPct >= 80 ? "border-green-500/50 text-green-700 dark:text-green-300" :
+            conformityPct >= 50 ? "border-amber-500/50 text-amber-700 dark:text-amber-300" :
+              "border-destructive/50 text-destructive"}
+        >
+          {conformityPct}% conforme
+        </Badge>
+      }
+    >
+        <p className="text-xs text-muted-foreground -mt-1 mb-2">
           Comparaison du plan généré avec les standards <span className="font-semibold">{ref.label}</span>
           {ref.longRunMax && <> · SL max: {ref.longRunMax}</>}
           {" · "}Charge: {ref.loadPattern}
         </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
         {/* Main gauges */}
         {gauges.map(g => (
           <GaugeRow key={g.label} {...g} />
@@ -830,7 +829,6 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
             </p>
           )}
         </div>
-      </CardContent>
-    </Card>
+    </CollapsibleCard>
   );
 }

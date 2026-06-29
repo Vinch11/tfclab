@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,8 @@ interface CollapsibleCardProps {
   title: ReactNode;
   icon?: ReactNode;
   defaultOpen?: boolean;
+  /** Si fourni, l'état ouvert/fermé est persisté dans localStorage sous cette clé. */
+  storageKey?: string;
   className?: string;
   headerClassName?: string;
   contentClassName?: string;
@@ -17,18 +19,37 @@ interface CollapsibleCardProps {
 /**
  * Carte repliable. Par défaut fermée.
  * Le contenu est démonté lorsqu'elle est fermée pour économiser le rendu.
+ * Si `storageKey` est fourni, l'état est persistant via localStorage.
  */
 export function CollapsibleCard({
   title,
   icon,
   defaultOpen = false,
+  storageKey,
   className,
   headerClassName,
   contentClassName,
   children,
   rightSlot,
 }: CollapsibleCardProps) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState<boolean>(() => {
+    if (!storageKey) return defaultOpen;
+    try {
+      const raw = localStorage.getItem(`tfcl_collapsible_${storageKey}`);
+      if (raw === null) return defaultOpen;
+      return raw === "1";
+    } catch {
+      return defaultOpen;
+    }
+  });
+
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      localStorage.setItem(`tfcl_collapsible_${storageKey}`, open ? "1" : "0");
+    } catch {}
+  }, [open, storageKey]);
+
   return (
     <Card className={className}>
       <CardHeader

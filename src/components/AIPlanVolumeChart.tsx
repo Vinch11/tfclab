@@ -3,6 +3,7 @@
  */
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 import { TrendingUp } from "lucide-react";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
@@ -92,14 +93,12 @@ export function AIPlanVolumeChart({ plan }: { plan: ParsedPlan }) {
   if (chartData.length < 2) return null;
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-primary" />
-          Évolution des volumes par sport et bloc
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <CollapsibleCard
+      defaultOpen={false}
+      storageKey="ai_plan_volume_chart"
+      icon={<TrendingUp className="h-4 w-4 text-primary" />}
+      title={<span className="text-sm">Évolution des volumes par sport et bloc</span>}
+    >
         <div className="h-[260px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
@@ -141,7 +140,6 @@ export function AIPlanVolumeChart({ plan }: { plan: ParsedPlan }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </CardContent>
-    </Card>
+    </CollapsibleCard>
   );
 }

@@ -1299,6 +1299,7 @@ export default function AITrainingPlanPage() {
             title={isMultiMode ? `Athlètes (${selectedAthleteIds.length}/${athletes.length})` : (currentAthlete?.nom || "Athlète")}
             icon={isMultiMode ? <Users className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-primary" />}
             defaultOpen={false}
+            storageKey="ai_plan_athlete_selector"
             rightSlot={
               !isMultiMode && currentAthlete && limiter && limiter.primaryLimiter !== "none" ? (
                 <Badge variant="destructive" className="text-[10px]">
@@ -1435,6 +1436,7 @@ export default function AITrainingPlanPage() {
               title={<>Configuration {isMultiMode && "(commune)"}</>}
               icon={<Target className="h-4 w-4 text-primary" />}
               defaultOpen={false}
+              storageKey="ai_plan_configuration"
             >
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
@@ -1773,6 +1775,7 @@ export default function AITrainingPlanPage() {
                 title={<span className="text-sm">Hiérarchie des Limiteurs</span>}
                 icon={<Zap className="h-4 w-4 text-primary" />}
                 defaultOpen={false}
+                storageKey="ai_plan_limiter_hierarchy"
                 className="border-primary/30 bg-primary/5"
               >
                 <LimiterHierarchyEditor
