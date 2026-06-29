@@ -170,13 +170,17 @@ export default function AITrainingPlanPage() {
   const [pendingExpressGen, setPendingExpressGen] = useState(false);
   const expressFlagRef = useRef(false);
 
-  // Handle navigation from PlanSyncAlert
+  // Handle navigation from PlanSyncAlert or ProfileChoiceDialog
   useEffect(() => {
-    const navState = location.state as { athleteId?: string; autoRegenerate?: boolean } | null;
+    const navState = location.state as { athleteId?: string; autoRegenerate?: boolean; openExpress?: boolean } | null;
     if (navState?.athleteId && navState?.autoRegenerate) {
       setSelectedAthleteId(navState.athleteId);
       setShowSyncBanner(true);
-      // Clear the state to avoid re-triggering
+      window.history.replaceState({}, document.title);
+    }
+    if (navState?.openExpress) {
+      if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
+      setExpressDialogOpen(true);
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setSelectedAthleteId]);
