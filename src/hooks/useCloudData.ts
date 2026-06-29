@@ -353,16 +353,24 @@ export function useCloudData() {
       return null;
     }
 
-    // Validate input data (and apply defaults like `source`)
-    const validation = validateOrNull(snapshotSchema, snapshot);
-    if (validation.error !== null) {
-      console.error("Zod validation failed:", validation.error);
-      toast.error(`Données invalides: ${validation.error}`);
+    const zodResult = snapshotSchema.safeParse(snapshot);
+    if (!zodResult.success) {
+      console.error("❌ Zod validation failed dans addSnapshot");
+      console.error("Champs fautifs :", zodResult.error.flatten().fieldErrors);
+      zodResult.error.issues.forEach((i) =>
+        console.error(
+          `→ "${i.path.join('.')}" : ${i.message} | reçu :`,
+          (snapshot as any)?.[i.path[0]]
+        )
+      );
+      toast.error("Données invalides — voir console");
       return null;
     }
 
+
+
     // P0 — Auto-déduction sport_main depuis l'objectif athlète si non fourni / défaut bike
-    const validated = validation.data as any;
+    const validated = zodResult.data as any;
     const athleteForSport = athletes.find((a) => a.id === validated.athlete_id);
     const goal = athleteForSport?.goal;
     const providedSport = validated.sport_main as string | undefined;
