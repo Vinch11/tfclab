@@ -1295,8 +1295,18 @@ export default function AITrainingPlanPage() {
 
         {/* Athlete Selector */}
         {athletes.length > 0 ? (
-          <Card>
-            <CardContent className="p-4">
+          <CollapsibleCard
+            title={isMultiMode ? `Athlètes (${selectedAthleteIds.length}/${athletes.length})` : (currentAthlete?.nom || "Athlète")}
+            icon={isMultiMode ? <Users className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-primary" />}
+            defaultOpen={false}
+            rightSlot={
+              !isMultiMode && currentAthlete && limiter && limiter.primaryLimiter !== "none" ? (
+                <Badge variant="destructive" className="text-[10px]">
+                  {limiter.limiterEmoji} {limiter.limiterLabel}
+                </Badge>
+              ) : null
+            }
+          >
               {!isMultiMode ? (
                 /* Single athlete selector */
                 <>
@@ -1408,8 +1418,7 @@ export default function AITrainingPlanPage() {
                   </div>
                 </>
               )}
-            </CardContent>
-          </Card>
+          </CollapsibleCard>
         ) : (
           <Card className="border-destructive/50 bg-destructive/5">
             <CardContent className="p-4 flex items-center gap-3">
