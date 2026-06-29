@@ -828,7 +828,6 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
             </p>
           )}
         </div>
-      </CardContent>
-    </Card>
+    </CollapsibleCard>
   );
 }
