@@ -6,6 +6,7 @@ export interface SystemPromptProfile {
   sex?: string | null;
   age?: number | null;
   objective?: string | null;
+  expressFinisher?: boolean;
 }
 
 /**
