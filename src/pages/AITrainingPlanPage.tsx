@@ -676,6 +676,37 @@ export default function AITrainingPlanPage() {
   const { archiveCurrentPlan } = usePlanSnapshotSync();
 
   // Single athlete generation (archives plan if triggered by sync)
+  // F-EXPRESS — submit Démarrage rapide → snapshot + auto-générer
+  const handleExpressSubmit = async (data: FinisherExpressPayload) => {
+    if (!currentAthlete) {
+      toast.error("Sélectionnez un athlète");
+      return;
+    }
+    try {
+      await addSnapshot({
+        athlete_id: currentAthlete.id,
+        date: new Date().toISOString().slice(0, 10),
+        source: "finisher-express",
+        ftp: data.ftpEst,
+        vma: data.vmaEst,
+        css: data.cssEst,
+        fc_max: data.fcMax,
+        fc_repos: data.fcRepos,
+        weight_kg: data.poids,
+        objectif: data.objectif,
+        coach_notes: "Profil estimé depuis FC — précision ~60% — à affiner avec les Test Days TFCL",
+      } as any);
+      setObjective(data.objectif);
+      setWeeklyHours(String(data.weeklyHours));
+      expressFlagRef.current = true;
+      setPendingExpressGen(true);
+      toast.success("Profil Express créé — génération du plan en cours…");
+    } catch (e: any) {
+      toast.error("Erreur création snapshot: " + (e?.message ?? e));
+      throw e;
+    }
+  };
+
   const handleGenerate = async () => {
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
