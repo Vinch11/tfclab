@@ -707,7 +707,7 @@ export default function AITrainingPlanPage() {
         source: "finisher-express",
         ftp: data.ftpEst,
         vma: data.vmaEst,
-        css: data.cssEst,
+        css: 999,
         fc_max: data.fcMax,
         fc_repos: data.fcRepos,
         weight_kg: data.poids,
