@@ -140,7 +140,6 @@ export function AIPlanVolumeChart({ plan }: { plan: ParsedPlan }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </CardContent>
-    </Card>
+    </CollapsibleCard>
   );
 }
