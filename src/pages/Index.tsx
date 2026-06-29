@@ -211,6 +211,7 @@ import { FeedbackNolio } from "@/types/feedbackNolio";
 import { toast } from "sonner";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { PlanSyncAlert } from "@/components/PlanSyncAlert";
+import { ProfileChoiceDialog } from "@/components/ProfileChoiceDialog";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
