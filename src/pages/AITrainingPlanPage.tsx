@@ -2192,6 +2192,12 @@ export default function AITrainingPlanPage() {
           }}
         />
       )}
+      <FinisherQuickStartDialog
+        open={expressDialogOpen}
+        onOpenChange={setExpressDialogOpen}
+        defaultObjectif={currentAthlete?.objectif}
+        onSubmit={handleExpressSubmit}
+      />
     </AppLayout>
   );
 }
