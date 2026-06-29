@@ -78,7 +78,7 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
     }
     const ftpEst = Math.round((fm - fr) * 1.8 + 50);
     const vmaEst = Math.round(((fm - fr) / 8 + 8) * 10) / 10;
-    const cssEst = Math.round((vmaEst * 0.65) / 1.03 * 100);
+    const cssEst = Math.round((100 / (vmaEst * 0.65 / 3.6)) / 60 * 100) / 100;
 
     setSubmitting(true);
     try {
