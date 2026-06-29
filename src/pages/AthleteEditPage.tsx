@@ -22,6 +22,7 @@ import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED, DEFAULT_AMBITION, getAmb
 import { AthleteObjectiveManager } from "@/components/AthleteObjectiveManager";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 import { QuickRaceTimeCard } from "@/components/QuickRaceTimeCard";
+import { ProfileChoiceDialog } from "@/components/ProfileChoiceDialog";
 
 export default function AthleteEditPage() {
   const navigate = useNavigate();
@@ -99,7 +100,10 @@ export default function AthleteEditPage() {
   const ageIndex = computeAgeAdjustmentIndex(age);
   const ambitionDef = getAmbitionDefinition(ambition);
 
-  const handleSave = async () => {
+  const [profileChoiceOpen, setProfileChoiceOpen] = useState(false);
+  const [profileChoiceAthlete, setProfileChoiceAthlete] = useState<{ id: string; nom: string } | null>(null);
+
+  const handleSave = async (opts?: { skipChoiceDialog?: boolean }) => {
     if (!nom.trim()) {
       toast.error("Le nom est requis");
       return false;
@@ -136,6 +140,11 @@ export default function AthleteEditPage() {
         toast.success("Profil mis à jour");
       }
       setSelectedAthleteId(athleteData.id);
+      // Étape finale "Choix du profil" à la création
+      if (isNew && !opts?.skipChoiceDialog) {
+        setProfileChoiceAthlete({ id: athleteData.id, nom: athleteData.nom });
+        setProfileChoiceOpen(true);
+      }
       return true;
     } catch (e) {
       console.error("Erreur sauvegarde athlète:", e);
@@ -145,7 +154,7 @@ export default function AthleteEditPage() {
   };
 
   const handleSaveAndContinue = async () => {
-    const ok = await handleSave();
+    const ok = await handleSave({ skipChoiceDialog: true });
     if (ok) navigate("/diagnostic");
   };
 
@@ -412,7 +421,7 @@ export default function AthleteEditPage() {
         </Card>
 
         <div className="flex flex-col gap-3">
-          <Button onClick={handleSave} variant="outline" className="gap-2">
+          <Button onClick={() => handleSave()} variant="outline" className="gap-2">
             <Save className="h-4 w-4" />
             Sauvegarder
           </Button>
@@ -422,6 +431,13 @@ export default function AthleteEditPage() {
           </Button>
         </div>
       </div>
+
+      <ProfileChoiceDialog
+        open={profileChoiceOpen}
+        onOpenChange={setProfileChoiceOpen}
+        athleteId={profileChoiceAthlete?.id ?? null}
+        athleteName={profileChoiceAthlete?.nom}
+      />
     </AppLayout>
   );
 }

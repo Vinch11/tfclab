@@ -211,6 +211,7 @@ import { FeedbackNolio } from "@/types/feedbackNolio";
 import { toast } from "sonner";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { PlanSyncAlert } from "@/components/PlanSyncAlert";
+import { ProfileChoiceDialog } from "@/components/ProfileChoiceDialog";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
@@ -359,6 +360,8 @@ const Index = () => {
   const [newAthleteName, setNewAthleteName] = useState("");
   const [newAthleteGoal, setNewAthleteGoal] = useState("IM");
   const [newAthleteBirthDate, setNewAthleteBirthDate] = useState("");
+  const [profileChoiceOpen, setProfileChoiceOpen] = useState(false);
+  const [profileChoiceAthlete, setProfileChoiceAthlete] = useState<{ id: string; nom: string } | null>(null);
 
   // Feedbacks (localStorage pour l'instant)
   const [feedbacksNolio, setFeedbacksNolio] = useState<FeedbackNolio[]>(() => {
@@ -1049,10 +1052,14 @@ const Index = () => {
         await updateAthlete(athlete.id, { birth_date: newAthleteBirthDate });
       }
       setSelectedAthleteId(athlete.id);
+      const createdName = newAthleteName.trim();
       setNewAthleteName("");
       setNewAthleteGoal("IM");
       setNewAthleteBirthDate("");
       setIsAddDialogOpen(false);
+      // Étape finale "Choix du profil"
+      setProfileChoiceAthlete({ id: athlete.id, nom: createdName });
+      setProfileChoiceOpen(true);
     }
   };
 
@@ -2425,6 +2432,13 @@ const Index = () => {
           />
         );
       })()}
+
+      <ProfileChoiceDialog
+        open={profileChoiceOpen}
+        onOpenChange={setProfileChoiceOpen}
+        athleteId={profileChoiceAthlete?.id ?? null}
+        athleteName={profileChoiceAthlete?.nom}
+      />
     </SidebarLayout>
   );
 };
