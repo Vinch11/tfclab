@@ -715,7 +715,7 @@ export default function AITrainingPlanPage() {
         coach_notes: "Profil estimé depuis FC — précision ~60% — à affiner avec les Test Days TFCL",
       } as any);
       if (!newSnap?.id) {
-        toast.error("Échec création snapshot Express");
+        toast.error("Échec: " + (newSnap === null ? "snapshot null - voir console" : "ok"));
         return;
       }
       setObjective(data.objectif);
