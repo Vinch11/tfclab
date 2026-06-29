@@ -1436,6 +1436,7 @@ export default function AITrainingPlanPage() {
               title={<>Configuration {isMultiMode && "(commune)"}</>}
               icon={<Target className="h-4 w-4 text-primary" />}
               defaultOpen={false}
+              storageKey="ai_plan_configuration"
             >
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
