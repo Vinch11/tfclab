@@ -57,6 +57,7 @@ serve(async (req) => {
       sex: athleteData?.sex ?? planConfig?._athleteSex ?? null,
       age: athleteData?.age ?? null,
       objective: planConfig?.objective ?? null,
+      expressFinisher: planConfig?._expressFinisher === true,
     });
     console.log(`📋 F-21 systemPrompt profile: sex=${athleteData?.sex ?? planConfig?._athleteSex ?? "?"} age=${athleteData?.age ?? "?"} obj=${planConfig?.objective ?? "?"} → ${systemPrompt.length} chars`);
     let userPrompt: string;

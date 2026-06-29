@@ -20,10 +20,11 @@ import { Progress } from "@/components/ui/progress";
 import {
   ChevronLeft, Sparkles, Calendar, Target, Clock, Loader2,
   AlertTriangle, Zap, User, RotateCcw, Copy, CheckCircle2,
-  FileText, LayoutGrid, Users, GitCompareArrows, Plus, X,
+  FileText, LayoutGrid, Users, GitCompareArrows, Plus, X, Rocket,
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { FinisherQuickStartDialog, type FinisherExpressPayload } from "@/components/FinisherQuickStartDialog";
 import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, startOfDay } from "date-fns";
 
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -144,7 +145,7 @@ export default function AITrainingPlanPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan } = useCloudDataContext();
+  const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot } = useCloudDataContext();
   const { response, isLoading, chunkProgress, generatePlan, reset, setResponse } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
@@ -163,6 +164,11 @@ export default function AITrainingPlanPage() {
   const [showSyncBanner, setShowSyncBanner] = useState(false);
   const [isAdaptDialogOpen, setIsAdaptDialogOpen] = useState(false);
   const [coachId, setCoachId] = useState<string>("");
+
+  // F-EXPRESS — Démarrage rapide (finisher)
+  const [expressDialogOpen, setExpressDialogOpen] = useState(false);
+  const [pendingExpressGen, setPendingExpressGen] = useState(false);
+  const expressFlagRef = useRef(false);
 
   // Handle navigation from PlanSyncAlert
   useEffect(() => {
@@ -527,6 +533,15 @@ export default function AITrainingPlanPage() {
     return computeAthleteContext(currentAthlete, objective, ambition);
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
+  // F-EXPRESS — after snapshot creation, auto-trigger generation
+  useEffect(() => {
+    if (!pendingExpressGen) return;
+    if (!athleteContext) return;
+    setPendingExpressGen(false);
+    void handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingExpressGen, athleteContext]);
+
   // Plan start date: defaults to Monday of the CURRENT week, but can be
   // overridden when restoring an archived plan (so dates match the original).
   const [planStartDate, setPlanStartDate] = useState<Date>(() =>
@@ -670,6 +685,37 @@ export default function AITrainingPlanPage() {
   const { archiveCurrentPlan } = usePlanSnapshotSync();
 
   // Single athlete generation (archives plan if triggered by sync)
+  // F-EXPRESS — submit Démarrage rapide → snapshot + auto-générer
+  const handleExpressSubmit = async (data: FinisherExpressPayload) => {
+    if (!currentAthlete) {
+      toast.error("Sélectionnez un athlète");
+      return;
+    }
+    try {
+      await addSnapshot({
+        athlete_id: currentAthlete.id,
+        date: new Date().toISOString().slice(0, 10),
+        source: "finisher-express",
+        ftp: data.ftpEst,
+        vma: data.vmaEst,
+        css: data.cssEst,
+        fc_max: data.fcMax,
+        fc_repos: data.fcRepos,
+        weight_kg: data.poids,
+        objectif: data.objectif,
+        coach_notes: "Profil estimé depuis FC — précision ~60% — à affiner avec les Test Days TFCL",
+      } as any);
+      setObjective(data.objectif);
+      setWeeklyHours(String(data.weeklyHours));
+      expressFlagRef.current = true;
+      setPendingExpressGen(true);
+      toast.success("Profil Express créé — génération du plan en cours…");
+    } catch (e: any) {
+      toast.error("Erreur création snapshot: " + (e?.message ?? e));
+      throw e;
+    }
+  };
+
   const handleGenerate = async () => {
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
@@ -705,6 +751,14 @@ export default function AITrainingPlanPage() {
     }
 
     const config = buildConfigFromDiag(athleteContext.diagnostic);
+    // F-EXPRESS — inject flag if active snapshot was created via Démarrage Express
+    const activeSnap = currentAthlete ? getSnapshotsForAthlete(currentAthlete.id)
+      .slice()
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] : null;
+    if (expressFlagRef.current || (activeSnap as any)?.source === "finisher-express") {
+      config._expressFinisher = true;
+    }
+    expressFlagRef.current = false;
     generatePlan(athleteContext.data, config);
   };
 
@@ -1257,6 +1311,32 @@ export default function AITrainingPlanPage() {
                       })}
                     </SelectContent>
                   </Select>
+
+                  {/* F-EXPRESS — Démarrage rapide finisher (visible si aucune métrique) */}
+                  {currentAthlete && (() => {
+                    const snaps = getSnapshotsForAthlete(currentAthlete.id);
+                    const hasMetrics = snaps.some(s =>
+                      (s.ftp ?? 0) > 0 || (s.vma ?? 0) > 0 || (s.css ?? 0) > 0
+                    );
+                    if (hasMetrics) return null;
+                    return (
+                      <div className="mt-3 p-3 rounded-md border border-teal-500/40 bg-teal-500/5">
+                        <div className="flex items-center justify-between gap-3 flex-wrap">
+                          <div className="text-xs text-muted-foreground">
+                            🚀 Aucune métrique renseignée (FTP/VMA/CSS).
+                            Générez un plan finisher en quelques secondes.
+                          </div>
+                          <Button
+                            size="sm"
+                            className="gap-2 bg-teal-600 hover:bg-teal-700 text-white"
+                            onClick={() => setExpressDialogOpen(true)}
+                          >
+                            <Rocket className="h-4 w-4" /> Démarrage rapide
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {currentAthlete && limiter && limiter.primaryLimiter !== "none" && (
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -2152,6 +2232,12 @@ export default function AITrainingPlanPage() {
           }}
         />
       )}
+      <FinisherQuickStartDialog
+        open={expressDialogOpen}
+        onOpenChange={setExpressDialogOpen}
+        defaultObjectif={currentAthlete?.objectif}
+        onSubmit={handleExpressSubmit}
+      />
     </AppLayout>
   );
 }
