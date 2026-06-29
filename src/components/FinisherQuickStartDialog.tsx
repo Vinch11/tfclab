@@ -1,7 +1,7 @@
 /**
  * FinisherQuickStartDialog — Démarrage Express Course à pied
  * Permet de générer un plan IA "finisher" en quelques secondes
- * à partir de FC + poids uniquement (confiance ~60%).
+ * à partir de niveau déclaré + VMA ajustable (confiance ~60%).
  * Limité aux objectifs course à pied : Start to Run, 10K, Semi-Marathon.
  */
 import { useState } from "react";
@@ -51,18 +51,30 @@ const OBJECTIF_OPTIONS = [
   { value: "Semi", label: "Semi-marathon" },
 ];
 
+const NIVEAU_OPTIONS = [
+  { value: "decouverte", label: "Découverte", defaultVma: 10.0 },
+  { value: "intermediaire", label: "Intermédiaire", defaultVma: 13.0 },
+  { value: "avance", label: "Avancé", defaultVma: 16.0 },
+];
+
 export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, defaultObjectif }: Props) {
   const [poids, setPoids] = useState<string>("");
-  const [fcRepos, setFcRepos] = useState<string>("");
-  const [fcMax, setFcMax] = useState<string>("");
+  const [niveau, setNiveau] = useState<string>("intermediaire");
+  const [vma, setVma] = useState<string>("13.0");
   const [objectif, setObjectif] = useState<string>(defaultObjectif || "10K");
   const [weeklyHours, setWeeklyHours] = useState<string>("8");
   const [submitting, setSubmitting] = useState(false);
 
+  const handleNiveauChange = (value: string) => {
+    setNiveau(value);
+    const option = NIVEAU_OPTIONS.find((o) => o.value === value);
+    if (option) setVma(option.defaultVma.toFixed(1));
+  };
+
   const reset = () => {
     setPoids("");
-    setFcRepos("");
-    setFcMax("");
+    setNiveau("intermediaire");
+    setVma("13.0");
     setWeeklyHours("8");
     setSubmitting(false);
   };
@@ -70,21 +82,21 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const p = parseFloat(poids);
-    const fr = parseFloat(fcRepos);
-    const fm = parseFloat(fcMax);
+    const vmaEst = parseFloat(vma);
     const wh = parseFloat(weeklyHours);
-    if (!(p > 30 && p < 200) || !(fr >= 30 && fr <= 90) || !(fm >= 120 && fm <= 230) || fm <= fr || !(wh > 0)) {
+    if (!(p > 30 && p < 200) || !(vmaEst >= 8 && vmaEst <= 22) || !(wh > 0)) {
       return;
     }
-    const ftpEst = Math.round((fm - fr) * 1.8 + 50);
-    const vmaEst = Math.round(((fm - fr) / 8 + 8) * 10) / 10;
+    const ftpEst = Math.round(vmaEst * 3.5);
+
+    console.log("🏃 vmaEst Express =", vmaEst, "| type =", typeof vmaEst);
 
     setSubmitting(true);
     try {
       await onSubmit({
         poids: p,
-        fcRepos: fr,
-        fcMax: fm,
+        fcRepos: 0,
+        fcMax: 0,
         objectif,
         weeklyHours: wh,
         ftpEst,
@@ -106,7 +118,7 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
             Démarrage Express — Course à pied
           </DialogTitle>
           <DialogDescription>
-            Génère un plan IA en quelques secondes à partir de FC + poids.
+            Génère un plan IA en quelques secondes à partir de ton niveau et de ta VMA estimée.
             Précision ~60% — à affiner avec les Test Days TFCL.
             <span className="block mt-1 text-xs text-muted-foreground">
               Objectifs course à pied uniquement. Triathlon / natation / vélo bientôt disponibles.
@@ -130,37 +142,37 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="fcRepos">FC repos (bpm)</Label>
-              <Input
-                id="fcRepos"
-                type="number"
-                min={30}
-                max={90}
-                value={fcRepos}
-                onChange={(e) => setFcRepos(e.target.value)}
-                placeholder="ex: 55"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="fcMax">FC max (bpm)</Label>
-              <Input
-                id="fcMax"
-                type="number"
-                min={120}
-                max={230}
-                value={fcMax}
-                onChange={(e) => setFcMax(e.target.value)}
-                placeholder="ex: 185"
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="niveau">Niveau</Label>
+            <Select value={niveau} onValueChange={handleNiveauChange}>
+              <SelectTrigger id="niveau">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {NIVEAU_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <p className="text-xs text-muted-foreground -mt-2">
-            Si FC max inconnue : <strong>208 − 0.7 × âge</strong>
-          </p>
+
+          <div className="space-y-2">
+            <Label htmlFor="vma">VMA estimée (km/h)</Label>
+            <Input
+              id="vma"
+              type="number"
+              step="0.1"
+              min={8}
+              max={22}
+              value={vma}
+              onChange={(e) => setVma(e.target.value)}
+              placeholder="ex: 13.0"
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Ajustez si vous connaissez la valeur réelle
+            </p>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="objectif">Objectif</Label>
@@ -204,4 +216,3 @@ export function FinisherQuickStartDialog({ open, onOpenChange, onSubmit, default
     </Dialog>
   );
 }
-
