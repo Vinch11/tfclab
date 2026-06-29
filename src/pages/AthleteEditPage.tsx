@@ -431,6 +431,13 @@ export default function AthleteEditPage() {
           </Button>
         </div>
       </div>
+
+      <ProfileChoiceDialog
+        open={profileChoiceOpen}
+        onOpenChange={setProfileChoiceOpen}
+        athleteId={profileChoiceAthlete?.id ?? null}
+        athleteName={profileChoiceAthlete?.nom}
+      />
     </AppLayout>
   );
 }
