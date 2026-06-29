@@ -20,10 +20,11 @@ import { Progress } from "@/components/ui/progress";
 import {
   ChevronLeft, Sparkles, Calendar, Target, Clock, Loader2,
   AlertTriangle, Zap, User, RotateCcw, Copy, CheckCircle2,
-  FileText, LayoutGrid, Users, GitCompareArrows, Plus, X,
+  FileText, LayoutGrid, Users, GitCompareArrows, Plus, X, Rocket,
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { FinisherQuickStartDialog, type FinisherExpressPayload } from "@/components/FinisherQuickStartDialog";
 import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, startOfDay } from "date-fns";
 
 import { useAthletes } from "@/contexts/AthleteContext";
