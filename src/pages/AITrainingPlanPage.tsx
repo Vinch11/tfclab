@@ -705,13 +705,13 @@ export default function AITrainingPlanPage() {
         athlete_id: currentAthlete.id,
         date: new Date().toISOString().slice(0, 10),
         source: "finisher-express",
-        ftp: data.ftpEst,
+        ftp: Math.max(50, Math.round(data.ftpEst)),
         vma: data.vmaEst,
-        fc_max: data.fcMax,
-        fc_repos: data.fcRepos,
+        fc_max: data.fcMax || 180,
+        fc_repos: data.fcRepos || 60,
         weight_kg: data.poids,
         objectif: data.objectif,
-        coach_notes: "Profil estimé depuis FC — précision ~60% — à affiner avec les Test Days TFCL",
+        coach_notes: "Profil estimé depuis niveau déclaré + VMA — précision ~60% — à affiner avec les Test Days TFCL",
       } as any);
 
       if (!newSnap?.id) {
