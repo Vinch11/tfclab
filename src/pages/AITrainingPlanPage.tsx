@@ -707,6 +707,8 @@ export default function AITrainingPlanPage() {
         source: "finisher-express",
         ftp: Math.max(50, Math.round(data.ftpEst)),
         vma: data.vmaEst,
+        // TODO : valeurs FC par défaut pour Express — à écraser par les vraies
+        // FC de l'athlète si disponibles dans athlete.refs
         fc_max: data.fcMax || 180,
         fc_repos: data.fcRepos || 60,
         weight_kg: data.poids,
