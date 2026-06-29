@@ -1312,31 +1312,7 @@ export default function AITrainingPlanPage() {
                     </SelectContent>
                   </Select>
 
-                  {/* F-EXPRESS — Démarrage rapide finisher (visible si aucune métrique) */}
-                  {currentAthlete && (() => {
-                    const snaps = getSnapshotsForAthlete(currentAthlete.id);
-                    const hasMetrics = snaps.some(s =>
-                      (s.ftp ?? 0) > 0 || (s.vma ?? 0) > 0 || (s.css ?? 0) > 0
-                    );
-                    if (hasMetrics) return null;
-                    return (
-                      <div className="mt-3 p-3 rounded-md border border-teal-500/40 bg-teal-500/5">
-                        <div className="flex items-center justify-between gap-3 flex-wrap">
-                          <div className="text-xs text-muted-foreground">
-                            🚀 Aucune métrique renseignée (FTP/VMA/CSS).
-                            Générez un plan finisher en quelques secondes.
-                          </div>
-                          <Button
-                            size="sm"
-                            className="gap-2 bg-teal-600 hover:bg-teal-700 text-white"
-                            onClick={() => setExpressDialogOpen(true)}
-                          >
-                            <Rocket className="h-4 w-4" /> Démarrage rapide
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                  {/* F-EXPRESS — Démarrage rapide déplacé dans ProfileChoiceDialog (création athlète) */}
 
                   {currentAthlete && limiter && limiter.primaryLimiter !== "none" && (
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
