@@ -370,6 +370,16 @@ export default function AthletesListPage() {
   return (
     <AppLayout title="Mes Athlètes">
       <div className="space-y-4 animate-fade-in">
+        {/* Bouton ajouter */}
+        <Button
+          onClick={handleNewAthlete}
+          className="w-full py-6 text-lg gap-2"
+          size="lg"
+        >
+          <Plus className="h-5 w-5" />
+          Nouvel Athlète
+        </Button>
+
         {/* Selection mode toolbar */}
         {selectionMode && (
           <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
