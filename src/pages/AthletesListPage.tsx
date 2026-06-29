@@ -589,16 +589,6 @@ export default function AthletesListPage() {
             </Card>
           )}
         </div>
-
-        {/* Bouton ajouter */}
-        <Button
-          onClick={handleNewAthlete}
-          className="w-full py-6 text-lg gap-2"
-          size="lg"
-        >
-          <Plus className="h-5 w-5" />
-          Nouvel Athlète
-        </Button>
       </div>
     </AppLayout>
   );
