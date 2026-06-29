@@ -1110,15 +1110,18 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (
-        <Card className="border-primary/30">
-          <CardContent className="p-4 space-y-4">
-            <div className="flex items-center gap-2">
-              <Send className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm">Envoyer vers Nolio</h3>
-              <Badge variant="secondary" className="text-[10px]">
-                athlète lié #{nolioCtx.nolioId}
-              </Badge>
-            </div>
+        <CollapsibleCard
+          className="border-primary/30"
+          defaultOpen={false}
+          storageKey="ai_plan_nolio_send"
+          icon={<Send className="h-4 w-4 text-primary" />}
+          title={<span className="text-sm">Envoyer vers Nolio</span>}
+          rightSlot={
+            <Badge variant="secondary" className="text-[10px]">
+              athlète lié #{nolioCtx.nolioId}
+            </Badge>
+          }
+        >
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
