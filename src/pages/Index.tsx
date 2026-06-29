@@ -359,6 +359,8 @@ const Index = () => {
   const [newAthleteName, setNewAthleteName] = useState("");
   const [newAthleteGoal, setNewAthleteGoal] = useState("IM");
   const [newAthleteBirthDate, setNewAthleteBirthDate] = useState("");
+  const [profileChoiceOpen, setProfileChoiceOpen] = useState(false);
+  const [profileChoiceAthlete, setProfileChoiceAthlete] = useState<{ id: string; nom: string } | null>(null);
 
   // Feedbacks (localStorage pour l'instant)
   const [feedbacksNolio, setFeedbacksNolio] = useState<FeedbackNolio[]>(() => {
