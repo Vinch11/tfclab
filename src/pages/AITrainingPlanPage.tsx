@@ -533,6 +533,15 @@ export default function AITrainingPlanPage() {
     return computeAthleteContext(currentAthlete, objective, ambition);
   }, [currentAthlete, snapshots, tests, objective, ambition, computeAthleteContext]);
 
+  // F-EXPRESS — after snapshot creation, auto-trigger generation
+  useEffect(() => {
+    if (!pendingExpressGen) return;
+    if (!athleteContext) return;
+    setPendingExpressGen(false);
+    void handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingExpressGen, athleteContext]);
+
   // Plan start date: defaults to Monday of the CURRENT week, but can be
   // overridden when restoring an archived plan (so dates match the original).
   const [planStartDate, setPlanStartDate] = useState<Date>(() =>
