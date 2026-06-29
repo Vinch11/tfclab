@@ -1216,8 +1216,8 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                 Envoyer vers Nolio
               </Button>
             </div>
-          </CardContent>
-        </Card>
+        </CollapsibleCard>
+
       )}
 
       {/* Plan Header */}
