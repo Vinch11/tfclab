@@ -1051,10 +1051,14 @@ const Index = () => {
         await updateAthlete(athlete.id, { birth_date: newAthleteBirthDate });
       }
       setSelectedAthleteId(athlete.id);
+      const createdName = newAthleteName.trim();
       setNewAthleteName("");
       setNewAthleteGoal("IM");
       setNewAthleteBirthDate("");
       setIsAddDialogOpen(false);
+      // Étape finale "Choix du profil"
+      setProfileChoiceAthlete({ id: athlete.id, nom: createdName });
+      setProfileChoiceOpen(true);
     }
   };
 
