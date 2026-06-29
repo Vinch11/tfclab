@@ -711,6 +711,14 @@ export default function AITrainingPlanPage() {
     }
 
     const config = buildConfigFromDiag(athleteContext.diagnostic);
+    // F-EXPRESS — inject flag if active snapshot was created via Démarrage Express
+    const activeSnap = currentAthlete ? getSnapshotsForAthlete(currentAthlete.id)
+      .slice()
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] : null;
+    if (expressFlagRef.current || (activeSnap as any)?.source === "finisher-express") {
+      config._expressFinisher = true;
+    }
+    expressFlagRef.current = false;
     generatePlan(athleteContext.data, config);
   };
 
