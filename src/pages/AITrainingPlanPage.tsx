@@ -701,7 +701,7 @@ export default function AITrainingPlanPage() {
       return;
     }
     try {
-      const newSnap = await addSnapshot({
+      const payload = {
         athlete_id: currentAthlete.id,
         date: new Date().toISOString().slice(0, 10),
         source: "finisher-express",
@@ -713,8 +713,12 @@ export default function AITrainingPlanPage() {
         weight_kg: data.poids,
         objectif: data.objectif,
         coach_notes: "Profil estimé depuis FC — précision ~60% — à affiner avec les Test Days TFCL",
-      } as any);
+      };
+      console.log("[Express] payload:", JSON.stringify(payload));
+      const newSnap = await addSnapshot(payload as any);
+      console.log("[Express] snapshot créé:", newSnap);
       if (!newSnap?.id) {
+        console.error("[Express] addSnapshot a retourné null — validation Zod probablement KO (css attendu en min/100m 0.5–3, fc_repos 30–90, vma 8–30, ftp 50–600)");
         toast.error("Échec création snapshot Express");
         return;
       }
