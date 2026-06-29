@@ -770,7 +770,7 @@ export default function AITrainingPlanPage() {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] : null;
     if (expressFlagRef.current || (activeSnap as any)?.source === "finisher-express") {
       config._expressFinisher = true;
-      config._expressFinisherPromptPrefix = "PROFIL EXPRESS FINISHER — confiance 60%. Utiliser UNIQUEMENT les zones FC dans toutes les prescriptions. Jamais de watts ni allure précise. Tout en RPE (1-10) et zones cardiaques. Objectif : finisher confortable, pas la performance.";
+      config._expressFinisherPromptPrefix = `PROFIL EXPRESS FINISHER — confiance 60%. Pour toutes les prescriptions d’intensité, utiliser UNIQUEMENT les pourcentages de FCmax et le RPE. Format obligatoire : « 65-75% FCmax (RPE 5-6/10 — effort confortable, conversation possible) ». Ne jamais écrire de valeurs absolues en bpm, watts ou min/km. Exemples corrects : « Z2 : 65-75% FCmax (RPE 5-6/10) », « Z3 : 75-83% FCmax (RPE 6-7/10) », « Z4 : 83-90% FCmax (RPE 7-8/10) ». Exemples interdits : « 130 bpm », « 250W », « 4:30/km ». Pour la natation : utiliser uniquement RPE et description sensorielle (« allure où tu peux souffler toutes les 3 foulées »). Pour les durées : toujours en minutes, jamais en km. Objectif unique : que l’athlète termine la course en bonne santé et avec le sourire.`;
     }
     expressFlagRef.current = false;
     generatePlan(athleteContext.data, config);
