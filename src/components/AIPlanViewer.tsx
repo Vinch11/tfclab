@@ -274,8 +274,7 @@ function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRec
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </CollapsibleCard>
   );
 }
 
