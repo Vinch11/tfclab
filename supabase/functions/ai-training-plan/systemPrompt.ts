@@ -25,6 +25,20 @@ function buildSpecializedSections(profile?: SystemPromptProfile): string {
   const sex = (profile.sex ?? "").toUpperCase();
   const obj = (profile.objective ?? "").toUpperCase();
 
+  // ─── PROFIL EXPRESS FINISHER (confiance 60% — FC + poids uniquement) ─────
+  if (profile.expressFinisher) {
+    blocks.push(`## 🚀 PROFIL EXPRESS FINISHER — confiance 60%
+- Athlète onboardé via Démarrage Express : FTP/VMA/CSS sont des **estimations** à partir de FC + poids.
+- **Utiliser UNIQUEMENT les zones FC** dans toutes les prescriptions de séance.
+- **Jamais de watts** ni d'**allure précise en min/km** ni d'allure /100m.
+- Tout en **RPE (1-10)** et **zones cardiaques** (Z1-Z5 en % FCmax ou bpm).
+- Objectif : **finisher confortable**. Volume progressif, pas d'intensités max.
+- Pas de séances "race-pace puissance", pas de "seuil à X W". Reformuler en "Z3 RPE 6-7" ou "Z4 RPE 7-8".
+- Ne JAMAIS prétendre à une précision physiologique au-delà de 60%.
+- Mentionner en fin de plan : "Pour des cibles précises (W, /km), réaliser Track Day / Bike Day / Pool Day TFCL."`);
+  }
+
+
   // ─── MASTER >=50 ans (Tanaka & Seals, Lazarus & Harridge) ───────────────
   if (age !== null && age >= 50) {
     blocks.push(`## 🧓 PROFIL MASTER ${age}+ ANS — RÈGLES RENFORCÉES (Tanaka, Seals, Lazarus)
