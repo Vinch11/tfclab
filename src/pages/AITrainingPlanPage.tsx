@@ -701,6 +701,10 @@ export default function AITrainingPlanPage() {
       return;
     }
     try {
+      console.log(
+        "🏊 cssEst Express =", data.cssEst, "| type =", typeof data.cssEst,
+        "| attendu min/100m ~1.2 à 2.5"
+      );
       const newSnap = await addSnapshot({
         athlete_id: currentAthlete.id,
         date: new Date().toISOString().slice(0, 10),
@@ -714,6 +718,7 @@ export default function AITrainingPlanPage() {
         objectif: data.objectif,
         coach_notes: "Profil estimé depuis FC — précision ~60% — à affiner avec les Test Days TFCL",
       } as any);
+
       if (!newSnap?.id) {
         toast.error("Échec: " + (newSnap === null ? "snapshot null - voir console" : "ok"));
         return;
