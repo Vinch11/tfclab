@@ -39,6 +39,7 @@ import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionL
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
+import { CollapsibleCard } from "@/components/ui/collapsible-card";
 
 import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
@@ -1294,8 +1295,18 @@ export default function AITrainingPlanPage() {
 
         {/* Athlete Selector */}
         {athletes.length > 0 ? (
-          <Card>
-            <CardContent className="p-4">
+          <CollapsibleCard
+            title={isMultiMode ? `Athlètes (${selectedAthleteIds.length}/${athletes.length})` : (currentAthlete?.nom || "Athlète")}
+            icon={isMultiMode ? <Users className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-primary" />}
+            defaultOpen={false}
+            rightSlot={
+              !isMultiMode && currentAthlete && limiter && limiter.primaryLimiter !== "none" ? (
+                <Badge variant="destructive" className="text-[10px]">
+                  {limiter.limiterEmoji} {limiter.limiterLabel}
+                </Badge>
+              ) : null
+            }
+          >
               {!isMultiMode ? (
                 /* Single athlete selector */
                 <>
@@ -1407,8 +1418,7 @@ export default function AITrainingPlanPage() {
                   </div>
                 </>
               )}
-            </CardContent>
-          </Card>
+          </CollapsibleCard>
         ) : (
           <Card className="border-destructive/50 bg-destructive/5">
             <CardContent className="p-4 flex items-center gap-3">
@@ -1421,14 +1431,11 @@ export default function AITrainingPlanPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left: Configuration Form */}
           <div className="lg:col-span-1 space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Target className="h-4 w-4 text-primary" />
-                  Configuration {isMultiMode && "(commune)"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <CollapsibleCard
+              title={<>Configuration {isMultiMode && "(commune)"}</>}
+              icon={<Target className="h-4 w-4 text-primary" />}
+              defaultOpen={false}
+            >
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Target className="h-3.5 w-3.5" />
@@ -1758,31 +1765,27 @@ export default function AITrainingPlanPage() {
                     rows={3}
                   />
                 </div>
-              </CardContent>
-            </Card>
+            </CollapsibleCard>
 
             {/* Detected Limiters — editable hierarchy (single mode only) */}
             {!isMultiMode && limiter && limiter.gapAnalysis.some(g => g.weightedImpact > 0) && (
-              <Card className="border-primary/30 bg-primary/5">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-primary" />
-                    Hiérarchie des Limiteurs
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <LimiterHierarchyEditor
-                    gaps={limiter.gapAnalysis}
-                    confidence={limiter.confidence}
-                    limiterLabel={limiter.limiterLabel}
-                    limiterExplanation={limiter.limiterExplanation}
-                    leverEmoji={limiter.leverEmoji}
-                    leverLabel={limiter.leverLabel}
-                    primaryLimiter={limiter.primaryLimiter}
-                    onOrderChange={setCoachLimiterOrder}
-                  />
-                </CardContent>
-              </Card>
+              <CollapsibleCard
+                title={<span className="text-sm">Hiérarchie des Limiteurs</span>}
+                icon={<Zap className="h-4 w-4 text-primary" />}
+                defaultOpen={false}
+                className="border-primary/30 bg-primary/5"
+              >
+                <LimiterHierarchyEditor
+                  gaps={limiter.gapAnalysis}
+                  confidence={limiter.confidence}
+                  limiterLabel={limiter.limiterLabel}
+                  limiterExplanation={limiter.limiterExplanation}
+                  leverEmoji={limiter.leverEmoji}
+                  leverLabel={limiter.leverLabel}
+                  primaryLimiter={limiter.primaryLimiter}
+                  onOrderChange={setCoachLimiterOrder}
+                />
+              </CollapsibleCard>
             )}
 
             {/* Adaptation Projections Summary */}
