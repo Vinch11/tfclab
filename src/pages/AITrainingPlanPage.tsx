@@ -1299,6 +1299,7 @@ export default function AITrainingPlanPage() {
             title={isMultiMode ? `Athlètes (${selectedAthleteIds.length}/${athletes.length})` : (currentAthlete?.nom || "Athlète")}
             icon={isMultiMode ? <Users className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-primary" />}
             defaultOpen={false}
+            storageKey="ai_plan_athlete_selector"
             rightSlot={
               !isMultiMode && currentAthlete && limiter && limiter.primaryLimiter !== "none" ? (
                 <Badge variant="destructive" className="text-[10px]">
