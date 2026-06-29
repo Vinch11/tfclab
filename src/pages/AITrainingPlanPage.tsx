@@ -1775,6 +1775,7 @@ export default function AITrainingPlanPage() {
                 title={<span className="text-sm">Hiérarchie des Limiteurs</span>}
                 icon={<Zap className="h-4 w-4 text-primary" />}
                 defaultOpen={false}
+                storageKey="ai_plan_limiter_hierarchy"
                 className="border-primary/30 bg-primary/5"
               >
                 <LimiterHierarchyEditor
