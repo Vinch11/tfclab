@@ -135,6 +135,9 @@ export interface PlanConfig {
     target: { min: number; opt: number; max: number };
   };
   _athleteSex?: string | null;
+  /** F-EXPRESS — Profil onboardé via Démarrage Express (FC + poids uniquement, confiance 60%).
+   *  Injecte un bloc systemPrompt qui force prescription en zones FC + RPE uniquement. */
+  _expressFinisher?: boolean;
   /** Profil trail pré-calculé (D+/km, terrain, D+ hebdo cible) — injecté chunk 1 uniquement */
   trailProfile?: TrailProfileSummary;
   /**
