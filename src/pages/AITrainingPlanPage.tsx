@@ -1765,31 +1765,27 @@ export default function AITrainingPlanPage() {
                     rows={3}
                   />
                 </div>
-              </CardContent>
-            </Card>
+            </CollapsibleCard>
 
             {/* Detected Limiters — editable hierarchy (single mode only) */}
             {!isMultiMode && limiter && limiter.gapAnalysis.some(g => g.weightedImpact > 0) && (
-              <Card className="border-primary/30 bg-primary/5">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-primary" />
-                    Hiérarchie des Limiteurs
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <LimiterHierarchyEditor
-                    gaps={limiter.gapAnalysis}
-                    confidence={limiter.confidence}
-                    limiterLabel={limiter.limiterLabel}
-                    limiterExplanation={limiter.limiterExplanation}
-                    leverEmoji={limiter.leverEmoji}
-                    leverLabel={limiter.leverLabel}
-                    primaryLimiter={limiter.primaryLimiter}
-                    onOrderChange={setCoachLimiterOrder}
-                  />
-                </CardContent>
-              </Card>
+              <CollapsibleCard
+                title={<span className="text-sm">Hiérarchie des Limiteurs</span>}
+                icon={<Zap className="h-4 w-4 text-primary" />}
+                defaultOpen={false}
+                className="border-primary/30 bg-primary/5"
+              >
+                <LimiterHierarchyEditor
+                  gaps={limiter.gapAnalysis}
+                  confidence={limiter.confidence}
+                  limiterLabel={limiter.limiterLabel}
+                  limiterExplanation={limiter.limiterExplanation}
+                  leverEmoji={limiter.leverEmoji}
+                  leverLabel={limiter.leverLabel}
+                  primaryLimiter={limiter.primaryLimiter}
+                  onOrderChange={setCoachLimiterOrder}
+                />
+              </CollapsibleCard>
             )}
 
             {/* Adaptation Projections Summary */}
