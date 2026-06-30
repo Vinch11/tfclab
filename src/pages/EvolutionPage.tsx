@@ -57,23 +57,10 @@ export default function EvolutionPage() {
   const { currentAthlete } = useAthletes();
   const { snapshots, getSnapshotsForAthlete, loadData } = useCloudDataContext();
   const activeSnapshot = useMemo(
-    () => getActiveSnapshot(currentAthlete as any, snapshots),
+    () => currentAthlete ? getActiveSnapshot(currentAthlete as any, snapshots) : null,
     [currentAthlete, snapshots],
   );
 
-  if (!currentAthlete) {
-    return (
-      <AppLayout title="Évolution" showBack>
-        <Card>
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">Sélectionnez un athlète</p>
-            <Button onClick={() => navigate("/")} className="mt-4">Voir les athlètes</Button>
-          </CardContent>
-        </Card>
-      </AppLayout>
-    );
-  }
 
   const athleteSnapshots = useMemo(
     () => getSnapshotsForAthlete(currentAthlete.id).slice().sort((a, b) => a.date.localeCompare(b.date)),
