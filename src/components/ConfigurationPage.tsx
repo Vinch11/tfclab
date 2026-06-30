@@ -268,6 +268,7 @@ export function ConfigurationPage() {
           date_from: period.dateFrom,
           date_to: period.dateTo,
           athlete_ids: period.athleteIds,
+          force_overwrite: period.forceOverwrite === true,
         }),
       });
       const rawBody = await resp.text();
