@@ -246,6 +246,27 @@ export function NolioImportPeriodDialog({
               </span>
             )}
           </p>
+
+          <label
+            htmlFor="nolio-force-overwrite"
+            className="flex items-start gap-2 rounded-md border p-3 cursor-pointer hover:bg-muted/30"
+          >
+            <Checkbox
+              id="nolio-force-overwrite"
+              checked={forceOverwrite}
+              onCheckedChange={(v) => setForceOverwrite(v === true)}
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium">
+                Remplacer même si valeur inférieure (reflète la forme actuelle)
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Par défaut, seul un nouveau record absolu écrase la valeur existante. Cochez pour utiliser
+                la valeur Nolio la plus récente, même si elle est plus basse — utile après une perte de forme.
+              </p>
+            </div>
+          </label>
         </div>
 
         <DialogFooter className="gap-2">
