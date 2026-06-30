@@ -126,13 +126,14 @@ export default function EvolutionPage() {
   }>>([]);
 
   const loadRecords = useCallback(async () => {
+    if (!currentAthlete) return;
     const { data } = await supabase
       .from("nolio_records")
       .select("id, cat, record_type, item_seconds, value, date_recorded, sport_id, source")
       .eq("athlete_id", currentAthlete.id)
       .order("item_seconds", { ascending: true });
     if (data) setRecords(data as any);
-  }, [currentAthlete.id]);
+  }, [currentAthlete?.id]);
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
 
