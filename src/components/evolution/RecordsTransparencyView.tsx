@@ -27,6 +27,9 @@ type RecordRow = {
   source: string;
 };
 
+type FieldSources = Record<string, string>;
+
+
 const BIKE_SPORTS = [14, 18];
 const RUN_SPORTS = [2, 52];
 const SWIM_SPORT = 19;
@@ -247,14 +250,17 @@ const SLOTS: Slot[] = [
 type EnrichedRow = {
   record: RecordRow;
   slotLabel: string;
+  slot: Slot;
   candidate: number | null;
   status: Status;
+  manualSelected: boolean;
 };
 
 function computeRowsForKind(
   kind: "bike" | "run" | "swim",
   records: RecordRow[],
   snapshot: DbSnapshot | null,
+  fieldSources: FieldSources,
 ): EnrichedRow[] {
   const ftp = snapshot?.ftp ?? null;
   const slots = SLOTS.filter(s => s.sportKind === kind);
@@ -264,7 +270,6 @@ function computeRowsForKind(
     const matching = records.filter(slot.match);
     if (matching.length === 0) continue;
 
-    // Validation par record → liste des candidats valides
     const validated = matching.map(r => {
       const c = slot.computeCandidate(r);
       if (c == null || !Number.isFinite(c)) {
@@ -276,7 +281,6 @@ function computeRowsForKind(
       return { r, c, valid: false as const, reason };
     });
 
-    // Choisit le candidat retenu (max ou min)
     const validCands = validated.filter(x => x.valid && x.c != null) as Array<{ r: RecordRow; c: number; valid: true; reason: string }>;
     let winnerCandidate: number | null = null;
     let winnerId: string | null = null;
@@ -286,6 +290,8 @@ function computeRowsForKind(
       winnerId = sorted[0].r.id;
     }
 
+    const fieldKey = String(slot.snapshotField);
+    const isManualSelected = fieldSources[fieldKey] === "manual-selected";
     const snapVal = snapshot ? (snapshot[slot.snapshotField] as number | null | undefined) : null;
 
     for (const v of validated) {
@@ -293,11 +299,9 @@ function computeRowsForKind(
       if (!v.valid) {
         status = { kind: "rejected", label: "Rejeté — hors plage", reason: v.reason };
       } else if (snapVal != null && Number.isFinite(snapVal)) {
-        // Snapshot a une valeur : ce record est-il celui qui correspond ?
-        const tol = slot.selection === "max"
-          ? Math.max(1, Number(snapVal) * 0.02)
-          : Math.max(1, Number(snapVal) * 0.02);
-        if (v.r.id === winnerId && Math.abs(v.c! - Number(snapVal)) <= tol) {
+        const tol = Math.max(1, Number(snapVal) * 0.02);
+        const matchesSnap = Math.abs(v.c! - Number(snapVal)) <= tol;
+        if (matchesSnap && (isManualSelected || v.r.id === winnerId)) {
           status = { kind: "active", label: "Actif dans le profil" };
         } else {
           const cmp = slot.selection === "max"
@@ -312,21 +316,27 @@ function computeRowsForKind(
           };
         }
       } else {
-        // Pas de valeur dans snapshot : winner = neutre, autres = ignorés
         status = v.r.id === winnerId
           ? { kind: "neutral", label: "Disponible — non appliqué au snapshot" }
           : { kind: "ignored", label: "Ignoré", reason: "non retenu (un autre record du même slot a primé)" };
       }
-      out.push({ record: v.r, slotLabel: slot.label, candidate: v.c, status });
+      out.push({
+        record: v.r,
+        slotLabel: slot.label,
+        slot,
+        candidate: v.c,
+        status,
+        manualSelected: isManualSelected && status.kind === "active",
+      });
     }
   }
 
-  // Tri par slot puis date desc
   return out.sort((a, b) => {
     if (a.slotLabel !== b.slotLabel) return a.slotLabel.localeCompare(b.slotLabel);
     return String(b.record.date_recorded ?? "").localeCompare(String(a.record.date_recorded ?? ""));
   });
 }
+
 
 // ────────────────────────────────────────────────────────────────────────────
 // Composant principal
@@ -352,10 +362,46 @@ export function RecordsTransparencyView({
   onChanged: () => void;
 }) {
   const [recomputing, setRecomputing] = useState(false);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
 
-  const bikeRows = useMemo(() => computeRowsForKind("bike", records, activeSnapshot), [records, activeSnapshot]);
-  const runRows = useMemo(() => computeRowsForKind("run", records, activeSnapshot), [records, activeSnapshot]);
-  const swimRows = useMemo(() => computeRowsForKind("swim", records, activeSnapshot), [records, activeSnapshot]);
+  const fieldSources: FieldSources = useMemo(() => {
+    const raw = (activeSnapshot as any)?.field_sources;
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw as FieldSources;
+    return {};
+  }, [activeSnapshot]);
+
+  const bikeRows = useMemo(() => computeRowsForKind("bike", records, activeSnapshot, fieldSources), [records, activeSnapshot, fieldSources]);
+  const runRows = useMemo(() => computeRowsForKind("run", records, activeSnapshot, fieldSources), [records, activeSnapshot, fieldSources]);
+  const swimRows = useMemo(() => computeRowsForKind("swim", records, activeSnapshot, fieldSources), [records, activeSnapshot, fieldSources]);
+
+  const hasManualSelected = Object.values(fieldSources).some(v => v === "manual-selected");
+
+  const useRecord = async (row: EnrichedRow) => {
+    if (!activeSnapshot || row.candidate == null) return;
+    setApplyingId(row.record.id);
+    try {
+      const fieldKey = String(row.slot.snapshotField);
+      const value = row.slot.sportKind === "bike"
+        ? Math.round(row.candidate)
+        : Math.round(row.candidate * 10) / 10;
+      const nextSources = { ...fieldSources, [fieldKey]: "manual-selected" };
+      const { error } = await supabase
+        .from("snapshots")
+        .update({ [fieldKey]: value, field_sources: nextSources } as any)
+        .eq("id", activeSnapshot.id);
+      if (error) throw error;
+      toast({
+        title: "Valeur appliquée au snapshot",
+        description: `${row.slotLabel} = ${value} (sélection manuelle du coach)`,
+      });
+      onChanged();
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setApplyingId(null);
+    }
+  };
+
 
   // ─── Alerte champ manuel ancien ────────────────────────────────────────
   const manualAlert = useMemo(() => {
@@ -386,6 +432,15 @@ export function RecordsTransparencyView({
   };
 
   const recompute = async () => {
+    if (hasManualSelected) {
+      const manualLabels = Object.entries(fieldSources)
+        .filter(([, v]) => v === "manual-selected")
+        .map(([k]) => k)
+        .join(", ");
+      if (!confirm(`Certains champs ont été sélectionnés manuellement par le coach (${manualLabels}) — les écraser avec le recalcul automatique ?`)) {
+        return;
+      }
+    }
     setRecomputing(true);
     try {
       const { data, error } = await supabase.functions.invoke("nolio-records", {
@@ -394,6 +449,14 @@ export function RecordsTransparencyView({
       if (error) throw error;
       const errs = (data?.summary?.[0]?.errors as string[] | undefined) ?? [];
       const updates = (data?.summary?.[0] as any)?.snapshot_updates ?? 0;
+      // Clear manual-selected markers for fields that were overwritten
+      if (hasManualSelected && activeSnapshot) {
+        const cleared: FieldSources = {};
+        for (const [k, v] of Object.entries(fieldSources)) {
+          if (v !== "manual-selected") cleared[k] = v;
+        }
+        await supabase.from("snapshots").update({ field_sources: cleared } as any).eq("id", activeSnapshot.id);
+      }
       toast({
         title: "Profil recalculé",
         description: `${updates} champ(s) mis à jour${errs.length ? ` · ${errs.length} note(s)` : ""}`,
@@ -405,6 +468,7 @@ export function RecordsTransparencyView({
       setRecomputing(false);
     }
   };
+
 
   return (
     <div className="space-y-4">
@@ -448,9 +512,9 @@ export function RecordsTransparencyView({
       </div>
 
       {/* ─── Tableaux par sport ────────────────────────────────────────── */}
-      <SportTable title="🚴 Vélo (puissance)" rows={bikeRows} />
-      <SportTable title="🏃 Course (allure)" rows={runRows} />
-      <SportTable title="🏊 Natation (CSS)" rows={swimRows} />
+      <SportTable title="🚴 Vélo (puissance)" rows={bikeRows} onUse={useRecord} applyingId={applyingId} />
+      <SportTable title="🏃 Course (allure)" rows={runRows} onUse={useRecord} applyingId={applyingId} />
+      <SportTable title="🏊 Natation (CSS)" rows={swimRows} onUse={useRecord} applyingId={applyingId} />
 
       {bikeRows.length + runRows.length + swimRows.length === 0 && (
         <div className="text-sm text-muted-foreground text-center py-6">
@@ -461,7 +525,17 @@ export function RecordsTransparencyView({
   );
 }
 
-function SportTable({ title, rows }: { title: string; rows: EnrichedRow[] }) {
+function SportTable({
+  title,
+  rows,
+  onUse,
+  applyingId,
+}: {
+  title: string;
+  rows: EnrichedRow[];
+  onUse: (row: EnrichedRow) => void;
+  applyingId: string | null;
+}) {
   if (rows.length === 0) return null;
   return (
     <div>
@@ -475,16 +549,19 @@ function SportTable({ title, rows }: { title: string; rows: EnrichedRow[] }) {
               <TableHead className="text-xs">Date</TableHead>
               <TableHead className="text-xs">Source</TableHead>
               <TableHead className="text-xs">Statut</TableHead>
+              <TableHead className="text-xs">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((row) => {
               const meta = STATUS_BADGE[row.status.kind];
               const reason = (row.status as any).reason as string | undefined;
+              const isActive = row.status.kind === "active";
+              const canUse = row.status.kind !== "rejected" && row.candidate != null;
               return (
                 <TableRow key={row.record.id}>
                   <TableCell className="text-xs font-medium">{row.slotLabel}</TableCell>
-                  <TableCell className="text-xs font-mono">{SLOTS.find(s => s.label === row.slotLabel)?.formatRaw(row.record) ?? row.record.value}</TableCell>
+                  <TableCell className="text-xs font-mono">{row.slot.formatRaw(row.record)}</TableCell>
                   <TableCell className="text-xs">{fmtDate(row.record.date_recorded)}</TableCell>
                   <TableCell className="text-xs">
                     {row.record.source === "manual" ? "✍️ manuel" : "nolio"}
@@ -493,11 +570,26 @@ function SportTable({ title, rows }: { title: string; rows: EnrichedRow[] }) {
                     <div className="flex flex-col gap-0.5">
                       <Badge variant={meta.variant} className="w-fit text-[10px]">
                         {meta.emoji} {row.status.label}
+                        {row.manualSelected && (
+                          <span title="Sélectionné manuellement par le coach" className="ml-1">👆</span>
+                        )}
                       </Badge>
                       {reason && (
                         <span className="text-[10px] text-muted-foreground">{reason}</span>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-[11px]"
+                      disabled={isActive || !canUse || applyingId === row.record.id}
+                      onClick={() => onUse(row)}
+                      title={isActive ? "Déjà actif" : !canUse ? "Record rejeté ou non calculable" : "Appliquer cette valeur exacte au snapshot"}
+                    >
+                      → Utiliser
+                    </Button>
                   </TableCell>
                 </TableRow>
               );
@@ -508,3 +600,4 @@ function SportTable({ title, rows }: { title: string; rows: EnrichedRow[] }) {
     </div>
   );
 }
+

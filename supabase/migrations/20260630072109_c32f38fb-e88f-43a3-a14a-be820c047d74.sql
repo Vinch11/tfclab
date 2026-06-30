@@ -1,0 +1,1 @@
+ALTER TABLE public.snapshots ADD COLUMN IF NOT EXISTS field_sources jsonb NOT NULL DEFAULT '{}'::jsonb;
