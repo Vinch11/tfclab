@@ -430,7 +430,7 @@ Deno.serve(async (req) => {
           // quand tous les records sont déjà connus en base (imported=0).
           const { data: persistedRecords } = await admin
             .from("nolio_records")
-            .select("cat, record_type, item_seconds, value, sport_id")
+            .select("cat, record_type, item_seconds, value, sport_id, date_recorded")
             .eq("athlete_id", athleteId);
           const aggregateSource: Array<Record<string, unknown>> = [
             ...rowsToUpsert,
@@ -460,12 +460,37 @@ Deno.serve(async (req) => {
             const vals = matches.map(x => Number(x.value)).filter(v => Number.isFinite(v) && v > 0);
             return vals.length ? Math.min(...vals) : null;
           };
+          // forceOverwrite : prend la valeur du record le plus récent (date_recorded max)
+          // au lieu du max/min historique. Reflète la forme actuelle plutôt que le PB absolu.
+          const latest = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
+            const matches = aggregateSource.filter(x =>
+              x.cat === cat &&
+              x.record_type === recordType &&
+              Number(x.item_seconds) === sec &&
+              (!sportFilter || sportFilter.includes(Number(x.sport_id))),
+            );
+            if (matches.length === 0) return null;
+            const sorted = [...matches].sort((a, b) => {
+              const da = String(a.date_recorded ?? "");
+              const db = String(b.date_recorded ?? "");
+              return db.localeCompare(da);
+            });
+            const v = Number(sorted[0].value);
+            return Number.isFinite(v) ? v : null;
+          };
+          // Sélecteur unifié : bestMax (historique) ou latest (forme actuelle)
+          const pickMax = forceOverwrite ? latest : bestMax;
+          const pickMin = forceOverwrite ? latest : bestMin;
 
           const updates: Record<string, number> = {};
-          const betterMax = (cur: unknown, nv: number | null) =>
-            nv != null && Number.isFinite(nv) && nv > Number(cur ?? 0);
+          const betterMax = (cur: unknown, nv: number | null) => {
+            if (nv == null || !Number.isFinite(nv) || nv <= 0) return false;
+            if (forceOverwrite) return true;
+            return nv > Number(cur ?? 0);
+          };
           const betterMin = (cur: unknown, nv: number | null) => {
             if (nv == null || !Number.isFinite(nv) || nv <= 0) return false;
+            if (forceOverwrite) return true;
             const c = Number(cur);
             return !Number.isFinite(c) || c <= 0 || nv < c;
           };
