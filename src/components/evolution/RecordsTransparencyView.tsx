@@ -250,14 +250,17 @@ const SLOTS: Slot[] = [
 type EnrichedRow = {
   record: RecordRow;
   slotLabel: string;
+  slot: Slot;
   candidate: number | null;
   status: Status;
+  manualSelected: boolean;
 };
 
 function computeRowsForKind(
   kind: "bike" | "run" | "swim",
   records: RecordRow[],
   snapshot: DbSnapshot | null,
+  fieldSources: FieldSources,
 ): EnrichedRow[] {
   const ftp = snapshot?.ftp ?? null;
   const slots = SLOTS.filter(s => s.sportKind === kind);
@@ -267,7 +270,6 @@ function computeRowsForKind(
     const matching = records.filter(slot.match);
     if (matching.length === 0) continue;
 
-    // Validation par record → liste des candidats valides
     const validated = matching.map(r => {
       const c = slot.computeCandidate(r);
       if (c == null || !Number.isFinite(c)) {
@@ -279,7 +281,6 @@ function computeRowsForKind(
       return { r, c, valid: false as const, reason };
     });
 
-    // Choisit le candidat retenu (max ou min)
     const validCands = validated.filter(x => x.valid && x.c != null) as Array<{ r: RecordRow; c: number; valid: true; reason: string }>;
     let winnerCandidate: number | null = null;
     let winnerId: string | null = null;
@@ -289,6 +290,8 @@ function computeRowsForKind(
       winnerId = sorted[0].r.id;
     }
 
+    const fieldKey = String(slot.snapshotField);
+    const isManualSelected = fieldSources[fieldKey] === "manual-selected";
     const snapVal = snapshot ? (snapshot[slot.snapshotField] as number | null | undefined) : null;
 
     for (const v of validated) {
@@ -296,11 +299,9 @@ function computeRowsForKind(
       if (!v.valid) {
         status = { kind: "rejected", label: "Rejeté — hors plage", reason: v.reason };
       } else if (snapVal != null && Number.isFinite(snapVal)) {
-        // Snapshot a une valeur : ce record est-il celui qui correspond ?
-        const tol = slot.selection === "max"
-          ? Math.max(1, Number(snapVal) * 0.02)
-          : Math.max(1, Number(snapVal) * 0.02);
-        if (v.r.id === winnerId && Math.abs(v.c! - Number(snapVal)) <= tol) {
+        const tol = Math.max(1, Number(snapVal) * 0.02);
+        const matchesSnap = Math.abs(v.c! - Number(snapVal)) <= tol;
+        if (matchesSnap && (isManualSelected || v.r.id === winnerId)) {
           status = { kind: "active", label: "Actif dans le profil" };
         } else {
           const cmp = slot.selection === "max"
@@ -315,21 +316,27 @@ function computeRowsForKind(
           };
         }
       } else {
-        // Pas de valeur dans snapshot : winner = neutre, autres = ignorés
         status = v.r.id === winnerId
           ? { kind: "neutral", label: "Disponible — non appliqué au snapshot" }
           : { kind: "ignored", label: "Ignoré", reason: "non retenu (un autre record du même slot a primé)" };
       }
-      out.push({ record: v.r, slotLabel: slot.label, candidate: v.c, status });
+      out.push({
+        record: v.r,
+        slotLabel: slot.label,
+        slot,
+        candidate: v.c,
+        status,
+        manualSelected: isManualSelected && status.kind === "active",
+      });
     }
   }
 
-  // Tri par slot puis date desc
   return out.sort((a, b) => {
     if (a.slotLabel !== b.slotLabel) return a.slotLabel.localeCompare(b.slotLabel);
     return String(b.record.date_recorded ?? "").localeCompare(String(a.record.date_recorded ?? ""));
   });
 }
+
 
 // ────────────────────────────────────────────────────────────────────────────
 // Composant principal
