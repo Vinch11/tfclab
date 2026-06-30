@@ -574,10 +574,10 @@ Deno.serve(async (req) => {
             }
             return t;
           };
-          const time5k = validateRaceTime("time_5k_sec", mpsToTotalSec(bestMax("par", "distance", 5000, RUN_SPORTS), 5000), 840, 3600);
-          const time10k = validateRaceTime("time_10k_sec", mpsToTotalSec(bestMax("par", "distance", 10000, RUN_SPORTS), 10000), 1800, 7200);
-          const timeHalf = validateRaceTime("time_half_sec", mpsToTotalSec(bestMax("par", "distance", 21097, RUN_SPORTS), 21097), 3600, 16200);
-          const timeMarathon = validateRaceTime("time_marathon_sec", mpsToTotalSec(bestMax("par", "distance", 42195, RUN_SPORTS), 42195), 7200, 32400);
+          const time5k = validateRaceTime("time_5k_sec", mpsToTotalSec(pickMax("par", "distance", 5000, RUN_SPORTS), 5000), 840, 3600);
+          const time10k = validateRaceTime("time_10k_sec", mpsToTotalSec(pickMax("par", "distance", 10000, RUN_SPORTS), 10000), 1800, 7200);
+          const timeHalf = validateRaceTime("time_half_sec", mpsToTotalSec(pickMax("par", "distance", 21097, RUN_SPORTS), 21097), 3600, 16200);
+          const timeMarathon = validateRaceTime("time_marathon_sec", mpsToTotalSec(pickMax("par", "distance", 42195, RUN_SPORTS), 42195), 7200, 32400);
           if (betterMin((snap as any)?.time_5k_sec, time5k)) updates.time_5k_sec = Math.round(time5k as number);
           if (betterMin((snap as any)?.time_10k_sec, time10k)) updates.time_10k_sec = Math.round(time10k as number);
           if (betterMin((snap as any)?.time_half_sec, timeHalf)) updates.time_half_sec = Math.round(timeHalf as number);
