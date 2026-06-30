@@ -71,6 +71,7 @@ export function NolioImportPeriodDialog({
   const [dateTo, setDateTo] = useState(today);
   const [windowMonths, setWindowMonths] = useState<number | null>(defaultWindowMonths ?? 12);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [forceOverwrite, setForceOverwrite] = useState(false);
 
   useEffect(() => {
     if (!open) return;
