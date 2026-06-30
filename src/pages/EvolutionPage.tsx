@@ -375,7 +375,10 @@ export default function EvolutionPage() {
                 title="🏃 Running — Records allure"
                 rows={runRecords}
                 formatValue={(v) => formatPaceMinPerKm(v)}
-                parseInput={parsePaceMinSec}
+                parseInput={(s) => {
+                  const sec = parsePaceMinSec(s);
+                  return sec && sec > 0 ? 1000 / sec : null;
+                }}
                 editPlaceholder="min:sec/km"
                 athleteId={currentAthlete.id}
                 onChanged={loadRecords}
@@ -385,7 +388,10 @@ export default function EvolutionPage() {
                 title="🏊 Natation — Records allure"
                 rows={swimRecords}
                 formatValue={(v) => formatPaceMinPer100m(v)}
-                parseInput={parsePaceMinSec}
+                parseInput={(s) => {
+                  const sec = parsePaceMinSec(s);
+                  return sec && sec > 0 ? 100 / sec : null;
+                }}
                 editPlaceholder="min:sec/100m"
                 athleteId={currentAthlete.id}
                 onChanged={loadRecords}
@@ -475,13 +481,17 @@ function formatDurationLabel(s: number): string {
   return `P${(s / 3600).toFixed(1)}h`;
 }
 
-function formatPaceMinPerKm(secPerKm: number): string {
+function formatPaceMinPerKm(speedMs: number): string {
+  if (!Number.isFinite(speedMs) || speedMs <= 0) return "—";
+  const secPerKm = 1000 / speedMs;
   const m = Math.floor(secPerKm / 60);
   const s = Math.round(secPerKm % 60);
   return `${m}:${String(s).padStart(2, "0")}/km`;
 }
 
-function formatPaceMinPer100m(secPer100m: number): string {
+function formatPaceMinPer100m(speedMs: number): string {
+  if (!Number.isFinite(speedMs) || speedMs <= 0) return "—";
+  const secPer100m = 100 / speedMs;
   const m = Math.floor(secPer100m / 60);
   const s = Math.round(secPer100m % 60);
   return `${m}:${String(s).padStart(2, "0")}/100m`;
