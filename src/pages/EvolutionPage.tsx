@@ -63,8 +63,8 @@ export default function EvolutionPage() {
 
 
   const athleteSnapshots = useMemo(
-    () => getSnapshotsForAthlete(currentAthlete.id).slice().sort((a, b) => a.date.localeCompare(b.date)),
-    [currentAthlete.id, getSnapshotsForAthlete, snapshots]
+    () => currentAthlete ? getSnapshotsForAthlete(currentAthlete.id).slice().sort((a, b) => a.date.localeCompare(b.date)) : [],
+    [currentAthlete?.id, getSnapshotsForAthlete, snapshots]
   );
 
   // ─── Construction des PMCDataPoints à partir des tss_7d ────────────────
