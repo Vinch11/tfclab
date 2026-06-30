@@ -85,6 +85,7 @@ export function NolioImportPeriodDialog({
     }
     // Par défaut : aucun athlète coché — le coach choisit explicitement.
     setSelectedIds(new Set());
+    setForceOverwrite(false);
   }, [open, defaultWindowMonths, today]);
 
   const applyPreset = (months: number | null) => {
