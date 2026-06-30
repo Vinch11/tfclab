@@ -375,7 +375,10 @@ export default function EvolutionPage() {
                 title="🏃 Running — Records allure"
                 rows={runRecords}
                 formatValue={(v) => formatPaceMinPerKm(v)}
-                parseInput={parsePaceMinSec}
+                parseInput={(s) => {
+                  const sec = parsePaceMinSec(s);
+                  return sec && sec > 0 ? 1000 / sec : null;
+                }}
                 editPlaceholder="min:sec/km"
                 athleteId={currentAthlete.id}
                 onChanged={loadRecords}
@@ -385,7 +388,10 @@ export default function EvolutionPage() {
                 title="🏊 Natation — Records allure"
                 rows={swimRecords}
                 formatValue={(v) => formatPaceMinPer100m(v)}
-                parseInput={parsePaceMinSec}
+                parseInput={(s) => {
+                  const sec = parsePaceMinSec(s);
+                  return sec && sec > 0 ? 100 / sec : null;
+                }}
                 editPlaceholder="min:sec/100m"
                 athleteId={currentAthlete.id}
                 onChanged={loadRecords}
