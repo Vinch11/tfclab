@@ -391,6 +391,19 @@ export default function EvolutionPage() {
                 onChanged={loadRecords}
               />
             </div>
+
+            {/* ─── Vue détaillée & transparente ─────────────────────── */}
+            <div className="mt-8 pt-6 border-t">
+              <div className="font-semibold text-base mb-3">
+                🔍 Vue détaillée — Statut de chaque record vs snapshot actif
+              </div>
+              <RecordsTransparencyView
+                athleteId={currentAthlete.id}
+                activeSnapshot={activeSnapshot as any}
+                records={records as any}
+                onChanged={() => { loadRecords(); loadData(); }}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
