@@ -55,7 +55,11 @@ function deltaStr(curr: number | null | undefined, prev: number | null | undefin
 export default function EvolutionPage() {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { snapshots, getSnapshotsForAthlete } = useCloudDataContext();
+  const { snapshots, getSnapshotsForAthlete, loadData } = useCloudDataContext();
+  const activeSnapshot = useMemo(
+    () => getActiveSnapshot(currentAthlete as any, snapshots),
+    [currentAthlete, snapshots],
+  );
 
   if (!currentAthlete) {
     return (
