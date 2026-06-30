@@ -673,6 +673,7 @@ Deno.serve(async (req) => {
         athletes_processed: athletes?.length ?? 0,
         total_records: totalImported,
         summary,
+        debug: { rawNolioResponse: debugCaptures },
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
