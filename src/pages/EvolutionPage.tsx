@@ -18,6 +18,8 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { getActiveSnapshot } from "@/lib/athleteHelpers";
+import { RecordsTransparencyView } from "@/components/evolution/RecordsTransparencyView";
 import {
   computePMC,
   computePMCSummary,
@@ -53,7 +55,11 @@ function deltaStr(curr: number | null | undefined, prev: number | null | undefin
 export default function EvolutionPage() {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { snapshots, getSnapshotsForAthlete } = useCloudDataContext();
+  const { snapshots, getSnapshotsForAthlete, loadData } = useCloudDataContext();
+  const activeSnapshot = useMemo(
+    () => getActiveSnapshot(currentAthlete as any, snapshots),
+    [currentAthlete, snapshots],
+  );
 
   if (!currentAthlete) {
     return (
@@ -383,6 +389,19 @@ export default function EvolutionPage() {
                 editPlaceholder="min:sec/100m"
                 athleteId={currentAthlete.id}
                 onChanged={loadRecords}
+              />
+            </div>
+
+            {/* ─── Vue détaillée & transparente ─────────────────────── */}
+            <div className="mt-8 pt-6 border-t">
+              <div className="font-semibold text-base mb-3">
+                🔍 Vue détaillée — Statut de chaque record vs snapshot actif
+              </div>
+              <RecordsTransparencyView
+                athleteId={currentAthlete.id}
+                activeSnapshot={activeSnapshot as any}
+                records={records as any}
+                onChanged={() => { loadRecords(); loadData(); }}
               />
             </div>
           </CardContent>
