@@ -169,13 +169,15 @@ Deno.serve(async (req) => {
     let dateFrom: string | null = null;
     let dateTo: string | null = null;
     let athleteIdsFilter: string[] | null = null;
+    let forceOverwrite = false;
     try {
-      const body = await req.json().catch(() => null) as { date_from?: string; date_to?: string; athlete_ids?: string[] } | null;
+      const body = await req.json().catch(() => null) as { date_from?: string; date_to?: string; athlete_ids?: string[]; force_overwrite?: boolean } | null;
       if (body?.date_from && /^\d{4}-\d{2}-\d{2}$/.test(body.date_from)) dateFrom = body.date_from;
       if (body?.date_to && /^\d{4}-\d{2}-\d{2}$/.test(body.date_to)) dateTo = body.date_to;
       if (Array.isArray(body?.athlete_ids) && body!.athlete_ids!.length > 0) {
         athleteIdsFilter = body!.athlete_ids!.filter((x) => typeof x === "string");
       }
+      if (body?.force_overwrite === true) forceOverwrite = true;
     } catch { /* ignore */ }
 
     const admin = createClient(
@@ -428,7 +430,7 @@ Deno.serve(async (req) => {
           // quand tous les records sont déjà connus en base (imported=0).
           const { data: persistedRecords } = await admin
             .from("nolio_records")
-            .select("cat, record_type, item_seconds, value, sport_id")
+            .select("cat, record_type, item_seconds, value, sport_id, date_recorded")
             .eq("athlete_id", athleteId);
           const aggregateSource: Array<Record<string, unknown>> = [
             ...rowsToUpsert,
@@ -458,12 +460,37 @@ Deno.serve(async (req) => {
             const vals = matches.map(x => Number(x.value)).filter(v => Number.isFinite(v) && v > 0);
             return vals.length ? Math.min(...vals) : null;
           };
+          // forceOverwrite : prend la valeur du record le plus récent (date_recorded max)
+          // au lieu du max/min historique. Reflète la forme actuelle plutôt que le PB absolu.
+          const latest = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
+            const matches = aggregateSource.filter(x =>
+              x.cat === cat &&
+              x.record_type === recordType &&
+              Number(x.item_seconds) === sec &&
+              (!sportFilter || sportFilter.includes(Number(x.sport_id))),
+            );
+            if (matches.length === 0) return null;
+            const sorted = [...matches].sort((a, b) => {
+              const da = String(a.date_recorded ?? "");
+              const db = String(b.date_recorded ?? "");
+              return db.localeCompare(da);
+            });
+            const v = Number(sorted[0].value);
+            return Number.isFinite(v) ? v : null;
+          };
+          // Sélecteur unifié : bestMax (historique) ou latest (forme actuelle)
+          const pickMax = forceOverwrite ? latest : bestMax;
+          const pickMin = forceOverwrite ? latest : bestMin;
 
           const updates: Record<string, number> = {};
-          const betterMax = (cur: unknown, nv: number | null) =>
-            nv != null && Number.isFinite(nv) && nv > Number(cur ?? 0);
+          const betterMax = (cur: unknown, nv: number | null) => {
+            if (nv == null || !Number.isFinite(nv) || nv <= 0) return false;
+            if (forceOverwrite) return true;
+            return nv > Number(cur ?? 0);
+          };
           const betterMin = (cur: unknown, nv: number | null) => {
             if (nv == null || !Number.isFinite(nv) || nv <= 0) return false;
+            if (forceOverwrite) return true;
             const c = Number(cur);
             return !Number.isFinite(c) || c <= 0 || nv < c;
           };
@@ -472,10 +499,10 @@ Deno.serve(async (req) => {
           const hasFtp = Number.isFinite(snapFtp) && snapFtp > 0;
 
           // ─── PPR vélo / durée ───────────────────────────────────────────
-          const p5 = bestMax("ppr", "time", 5, BIKE_SPORT_IDS);
-          const p30 = bestMax("ppr", "time", 30, BIKE_SPORT_IDS);
-          const p60 = bestMax("ppr", "time", 60, BIKE_SPORT_IDS);
-          const p300 = bestMax("ppr", "time", 300, BIKE_SPORT_IDS);
+          const p5 = pickMax("ppr", "time", 5, BIKE_SPORT_IDS);
+          const p30 = pickMax("ppr", "time", 30, BIKE_SPORT_IDS);
+          const p60 = pickMax("ppr", "time", 60, BIKE_SPORT_IDS);
+          const p300 = pickMax("ppr", "time", 300, BIKE_SPORT_IDS);
 
           // Garde physiologique : items < 30s → ratio /FTP < 4.0 ; item 300s → ratio /FTP < 1.6
           const validateShort = (label: string, w: number | null, ratioCap: number, absCap: number): number | null => {
@@ -547,10 +574,10 @@ Deno.serve(async (req) => {
             }
             return t;
           };
-          const time5k = validateRaceTime("time_5k_sec", mpsToTotalSec(bestMax("par", "distance", 5000, RUN_SPORTS), 5000), 840, 3600);
-          const time10k = validateRaceTime("time_10k_sec", mpsToTotalSec(bestMax("par", "distance", 10000, RUN_SPORTS), 10000), 1800, 7200);
-          const timeHalf = validateRaceTime("time_half_sec", mpsToTotalSec(bestMax("par", "distance", 21097, RUN_SPORTS), 21097), 3600, 16200);
-          const timeMarathon = validateRaceTime("time_marathon_sec", mpsToTotalSec(bestMax("par", "distance", 42195, RUN_SPORTS), 42195), 7200, 32400);
+          const time5k = validateRaceTime("time_5k_sec", mpsToTotalSec(pickMax("par", "distance", 5000, RUN_SPORTS), 5000), 840, 3600);
+          const time10k = validateRaceTime("time_10k_sec", mpsToTotalSec(pickMax("par", "distance", 10000, RUN_SPORTS), 10000), 1800, 7200);
+          const timeHalf = validateRaceTime("time_half_sec", mpsToTotalSec(pickMax("par", "distance", 21097, RUN_SPORTS), 21097), 3600, 16200);
+          const timeMarathon = validateRaceTime("time_marathon_sec", mpsToTotalSec(pickMax("par", "distance", 42195, RUN_SPORTS), 42195), 7200, 32400);
           if (betterMin((snap as any)?.time_5k_sec, time5k)) updates.time_5k_sec = Math.round(time5k as number);
           if (betterMin((snap as any)?.time_10k_sec, time10k)) updates.time_10k_sec = Math.round(time10k as number);
           if (betterMin((snap as any)?.time_half_sec, timeHalf)) updates.time_half_sec = Math.round(timeHalf as number);
@@ -595,7 +622,7 @@ Deno.serve(async (req) => {
           if (hrCandidates.length > 0) {
             const fcMaxObs = Math.max(...hrCandidates);
             const curFc = Number((snap as any)?.fc_max);
-            if (!Number.isFinite(curFc) || fcMaxObs > curFc) {
+            if (forceOverwrite || !Number.isFinite(curFc) || fcMaxObs > curFc) {
               updates.fc_max = Math.round(fcMaxObs);
             }
           }

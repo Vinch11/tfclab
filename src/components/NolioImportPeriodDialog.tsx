@@ -25,6 +25,8 @@ export type NolioImportPeriod = {
   windowMonths: number | null;
   /** Liste d'athlete_id sélectionnés (uniquement si selectableAthletes est fourni). */
   athleteIds?: string[];
+  /** Si true, écrase les valeurs du snapshot même si la nouvelle valeur Nolio est inférieure. */
+  forceOverwrite?: boolean;
 };
 
 export type SelectableAthlete = { id: string; name: string };
@@ -69,6 +71,7 @@ export function NolioImportPeriodDialog({
   const [dateTo, setDateTo] = useState(today);
   const [windowMonths, setWindowMonths] = useState<number | null>(defaultWindowMonths ?? 12);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [forceOverwrite, setForceOverwrite] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -82,6 +85,7 @@ export function NolioImportPeriodDialog({
     }
     // Par défaut : aucun athlète coché — le coach choisit explicitement.
     setSelectedIds(new Set());
+    setForceOverwrite(false);
   }, [open, defaultWindowMonths, today]);
 
   const applyPreset = (months: number | null) => {
@@ -113,6 +117,7 @@ export function NolioImportPeriodDialog({
       dateFrom,
       dateTo,
       windowMonths,
+      forceOverwrite,
       ...(hasAthleteSelector ? { athleteIds: Array.from(selectedIds) } : {}),
     });
   };
@@ -241,6 +246,27 @@ export function NolioImportPeriodDialog({
               </span>
             )}
           </p>
+
+          <label
+            htmlFor="nolio-force-overwrite"
+            className="flex items-start gap-2 rounded-md border p-3 cursor-pointer hover:bg-muted/30"
+          >
+            <Checkbox
+              id="nolio-force-overwrite"
+              checked={forceOverwrite}
+              onCheckedChange={(v) => setForceOverwrite(v === true)}
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5">
+              <div className="text-sm font-medium">
+                Remplacer même si valeur inférieure (reflète la forme actuelle)
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Par défaut, seul un nouveau record absolu écrase la valeur existante. Cochez pour utiliser
+                la valeur Nolio la plus récente, même si elle est plus basse — utile après une perte de forme.
+              </p>
+            </div>
+          </label>
         </div>
 
         <DialogFooter className="gap-2">
