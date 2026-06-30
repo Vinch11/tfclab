@@ -114,7 +114,7 @@ async function fetchRecords(
       status: resp.status,
       status_text: resp.statusText,
       headers: headersObj,
-      body_preview: rawBody.slice(0, 4000),
+      body_preview: cat === "ppr" && recordType === "time" ? rawBody : rawBody.slice(0, 4000),
       body_length: rawBody.length,
     });
     console.log(`[nolio-records DEBUG] ${cat}/${recordType} athlete=${nolioAthleteId} → HTTP ${resp.status} body[${rawBody.length}]: ${rawBody.slice(0, 500)}`);
