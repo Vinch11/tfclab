@@ -117,6 +117,7 @@ export function NolioImportPeriodDialog({
       dateFrom,
       dateTo,
       windowMonths,
+      forceOverwrite,
       ...(hasAthleteSelector ? { athleteIds: Array.from(selectedIds) } : {}),
     });
   };
