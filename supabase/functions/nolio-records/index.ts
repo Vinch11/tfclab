@@ -264,6 +264,7 @@ Deno.serve(async (req) => {
       ];
 
       for (const q of queries) {
+        if (remapOnly) break;
         try {
           const shouldCapture = nolioId === 338386;
           const records = await fetchRecords(accessToken, nolioId, q.cat, q.recordType, q.sports, shouldCapture);
