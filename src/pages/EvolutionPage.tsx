@@ -57,27 +57,14 @@ export default function EvolutionPage() {
   const { currentAthlete } = useAthletes();
   const { snapshots, getSnapshotsForAthlete, loadData } = useCloudDataContext();
   const activeSnapshot = useMemo(
-    () => getActiveSnapshot(currentAthlete as any, snapshots),
+    () => currentAthlete ? getActiveSnapshot(currentAthlete as any, snapshots) : null,
     [currentAthlete, snapshots],
   );
 
-  if (!currentAthlete) {
-    return (
-      <AppLayout title="Évolution" showBack>
-        <Card>
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">Sélectionnez un athlète</p>
-            <Button onClick={() => navigate("/")} className="mt-4">Voir les athlètes</Button>
-          </CardContent>
-        </Card>
-      </AppLayout>
-    );
-  }
 
   const athleteSnapshots = useMemo(
-    () => getSnapshotsForAthlete(currentAthlete.id).slice().sort((a, b) => a.date.localeCompare(b.date)),
-    [currentAthlete.id, getSnapshotsForAthlete, snapshots]
+    () => currentAthlete ? getSnapshotsForAthlete(currentAthlete.id).slice().sort((a, b) => a.date.localeCompare(b.date)) : [],
+    [currentAthlete?.id, getSnapshotsForAthlete, snapshots]
   );
 
   // ─── Construction des PMCDataPoints à partir des tss_7d ────────────────
@@ -139,13 +126,14 @@ export default function EvolutionPage() {
   }>>([]);
 
   const loadRecords = useCallback(async () => {
+    if (!currentAthlete) return;
     const { data } = await supabase
       .from("nolio_records")
       .select("id, cat, record_type, item_seconds, value, date_recorded, sport_id, source")
       .eq("athlete_id", currentAthlete.id)
       .order("item_seconds", { ascending: true });
     if (data) setRecords(data as any);
-  }, [currentAthlete.id]);
+  }, [currentAthlete?.id]);
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
 
@@ -195,6 +183,20 @@ export default function EvolutionPage() {
       return { target: t.m, label: t.label, record: best };
     });
   }, [records]);
+
+  if (!currentAthlete) {
+    return (
+      <AppLayout title="Évolution" showBack>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Sélectionnez un athlète</p>
+            <Button onClick={() => navigate("/")} className="mt-4">Voir les athlètes</Button>
+          </CardContent>
+        </Card>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout title="Évolution" showBack>
