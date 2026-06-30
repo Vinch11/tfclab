@@ -62,15 +62,15 @@ Deno.serve(async (req) => {
         { global: { headers: { Authorization: authHeader } } },
       );
       const token = authHeader.replace("Bearer ", "");
-      const { data: claimsData, error: claimsErr } =
-        await supabase.auth.getClaims(token);
-      if (claimsErr || !claimsData?.claims) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+      if (userErr || !userData?.user) {
+        console.error("nolio-oauth start: auth failed", userErr?.message, "token len:", token.length);
+        return new Response(JSON.stringify({ error: "Unauthorized", detail: userErr?.message }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const userId = claimsData.claims.sub as string;
+      const userId = userData.user.id;
       const origin = appOrigin(req);
 
       const random = randomString(16);
