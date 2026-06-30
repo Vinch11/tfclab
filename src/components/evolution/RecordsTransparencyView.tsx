@@ -271,8 +271,9 @@ function computeRowsForKind(
         return { r, c: null as number | null, valid: false as const, reason: "valeur non calculable" };
       }
       const v = slot.validate(c, { ftp });
-      if (v.ok) return { r, c, valid: true as const, reason: "" };
-      return { r, c, valid: false as const, reason: v.reason };
+      if (v.ok === true) return { r, c, valid: true as const, reason: "" };
+      const reason = (v as { ok: false; reason: string }).reason;
+      return { r, c, valid: false as const, reason };
     });
 
     // Choisit le candidat retenu (max ou min)
