@@ -622,7 +622,7 @@ Deno.serve(async (req) => {
           if (hrCandidates.length > 0) {
             const fcMaxObs = Math.max(...hrCandidates);
             const curFc = Number((snap as any)?.fc_max);
-            if (!Number.isFinite(curFc) || fcMaxObs > curFc) {
+            if (forceOverwrite || !Number.isFinite(curFc) || fcMaxObs > curFc) {
               updates.fc_max = Math.round(fcMaxObs);
             }
           }
