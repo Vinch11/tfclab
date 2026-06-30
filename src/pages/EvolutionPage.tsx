@@ -184,6 +184,20 @@ export default function EvolutionPage() {
     });
   }, [records]);
 
+  if (!currentAthlete) {
+    return (
+      <AppLayout title="Évolution" showBack>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Sélectionnez un athlète</p>
+            <Button onClick={() => navigate("/")} className="mt-4">Voir les athlètes</Button>
+          </CardContent>
+        </Card>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout title="Évolution" showBack>
       <div className="space-y-6">
