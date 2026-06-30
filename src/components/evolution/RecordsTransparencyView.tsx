@@ -512,9 +512,9 @@ export function RecordsTransparencyView({
       </div>
 
       {/* ─── Tableaux par sport ────────────────────────────────────────── */}
-      <SportTable title="🚴 Vélo (puissance)" rows={bikeRows} />
-      <SportTable title="🏃 Course (allure)" rows={runRows} />
-      <SportTable title="🏊 Natation (CSS)" rows={swimRows} />
+      <SportTable title="🚴 Vélo (puissance)" rows={bikeRows} onUse={useRecord} applyingId={applyingId} />
+      <SportTable title="🏃 Course (allure)" rows={runRows} onUse={useRecord} applyingId={applyingId} />
+      <SportTable title="🏊 Natation (CSS)" rows={swimRows} onUse={useRecord} applyingId={applyingId} />
 
       {bikeRows.length + runRows.length + swimRows.length === 0 && (
         <div className="text-sm text-muted-foreground text-center py-6">
@@ -525,7 +525,17 @@ export function RecordsTransparencyView({
   );
 }
 
-function SportTable({ title, rows }: { title: string; rows: EnrichedRow[] }) {
+function SportTable({
+  title,
+  rows,
+  onUse,
+  applyingId,
+}: {
+  title: string;
+  rows: EnrichedRow[];
+  onUse: (row: EnrichedRow) => void;
+  applyingId: string | null;
+}) {
   if (rows.length === 0) return null;
   return (
     <div>
@@ -539,16 +549,19 @@ function SportTable({ title, rows }: { title: string; rows: EnrichedRow[] }) {
               <TableHead className="text-xs">Date</TableHead>
               <TableHead className="text-xs">Source</TableHead>
               <TableHead className="text-xs">Statut</TableHead>
+              <TableHead className="text-xs">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((row) => {
               const meta = STATUS_BADGE[row.status.kind];
               const reason = (row.status as any).reason as string | undefined;
+              const isActive = row.status.kind === "active";
+              const canUse = row.status.kind !== "rejected" && row.candidate != null;
               return (
                 <TableRow key={row.record.id}>
                   <TableCell className="text-xs font-medium">{row.slotLabel}</TableCell>
-                  <TableCell className="text-xs font-mono">{SLOTS.find(s => s.label === row.slotLabel)?.formatRaw(row.record) ?? row.record.value}</TableCell>
+                  <TableCell className="text-xs font-mono">{row.slot.formatRaw(row.record)}</TableCell>
                   <TableCell className="text-xs">{fmtDate(row.record.date_recorded)}</TableCell>
                   <TableCell className="text-xs">
                     {row.record.source === "manual" ? "✍️ manuel" : "nolio"}
@@ -557,11 +570,26 @@ function SportTable({ title, rows }: { title: string; rows: EnrichedRow[] }) {
                     <div className="flex flex-col gap-0.5">
                       <Badge variant={meta.variant} className="w-fit text-[10px]">
                         {meta.emoji} {row.status.label}
+                        {row.manualSelected && (
+                          <span title="Sélectionné manuellement par le coach" className="ml-1">👆</span>
+                        )}
                       </Badge>
                       {reason && (
                         <span className="text-[10px] text-muted-foreground">{reason}</span>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-[11px]"
+                      disabled={isActive || !canUse || applyingId === row.record.id}
+                      onClick={() => onUse(row)}
+                      title={isActive ? "Déjà actif" : !canUse ? "Record rejeté ou non calculable" : "Appliquer cette valeur exacte au snapshot"}
+                    >
+                      → Utiliser
+                    </Button>
                   </TableCell>
                 </TableRow>
               );
@@ -572,3 +600,4 @@ function SportTable({ title, rows }: { title: string; rows: EnrichedRow[] }) {
     </div>
   );
 }
+
