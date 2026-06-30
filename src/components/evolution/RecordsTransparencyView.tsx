@@ -362,10 +362,46 @@ export function RecordsTransparencyView({
   onChanged: () => void;
 }) {
   const [recomputing, setRecomputing] = useState(false);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
 
-  const bikeRows = useMemo(() => computeRowsForKind("bike", records, activeSnapshot), [records, activeSnapshot]);
-  const runRows = useMemo(() => computeRowsForKind("run", records, activeSnapshot), [records, activeSnapshot]);
-  const swimRows = useMemo(() => computeRowsForKind("swim", records, activeSnapshot), [records, activeSnapshot]);
+  const fieldSources: FieldSources = useMemo(() => {
+    const raw = (activeSnapshot as any)?.field_sources;
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw as FieldSources;
+    return {};
+  }, [activeSnapshot]);
+
+  const bikeRows = useMemo(() => computeRowsForKind("bike", records, activeSnapshot, fieldSources), [records, activeSnapshot, fieldSources]);
+  const runRows = useMemo(() => computeRowsForKind("run", records, activeSnapshot, fieldSources), [records, activeSnapshot, fieldSources]);
+  const swimRows = useMemo(() => computeRowsForKind("swim", records, activeSnapshot, fieldSources), [records, activeSnapshot, fieldSources]);
+
+  const hasManualSelected = Object.values(fieldSources).some(v => v === "manual-selected");
+
+  const useRecord = async (row: EnrichedRow) => {
+    if (!activeSnapshot || row.candidate == null) return;
+    setApplyingId(row.record.id);
+    try {
+      const fieldKey = String(row.slot.snapshotField);
+      const value = row.slot.sportKind === "bike"
+        ? Math.round(row.candidate)
+        : Math.round(row.candidate * 10) / 10;
+      const nextSources = { ...fieldSources, [fieldKey]: "manual-selected" };
+      const { error } = await supabase
+        .from("snapshots")
+        .update({ [fieldKey]: value, field_sources: nextSources } as any)
+        .eq("id", activeSnapshot.id);
+      if (error) throw error;
+      toast({
+        title: "Valeur appliquée au snapshot",
+        description: `${row.slotLabel} = ${value} (sélection manuelle du coach)`,
+      });
+      onChanged();
+    } catch (e) {
+      toast({ title: "Erreur", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setApplyingId(null);
+    }
+  };
+
 
   // ─── Alerte champ manuel ancien ────────────────────────────────────────
   const manualAlert = useMemo(() => {
