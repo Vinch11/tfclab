@@ -170,14 +170,16 @@ Deno.serve(async (req) => {
     let dateTo: string | null = null;
     let athleteIdsFilter: string[] | null = null;
     let forceOverwrite = false;
+    let remapOnly = false;
     try {
-      const body = await req.json().catch(() => null) as { date_from?: string; date_to?: string; athlete_ids?: string[]; force_overwrite?: boolean } | null;
+      const body = await req.json().catch(() => null) as { date_from?: string; date_to?: string; athlete_ids?: string[]; force_overwrite?: boolean; remap_only?: boolean } | null;
       if (body?.date_from && /^\d{4}-\d{2}-\d{2}$/.test(body.date_from)) dateFrom = body.date_from;
       if (body?.date_to && /^\d{4}-\d{2}-\d{2}$/.test(body.date_to)) dateTo = body.date_to;
       if (Array.isArray(body?.athlete_ids) && body!.athlete_ids!.length > 0) {
         athleteIdsFilter = body!.athlete_ids!.filter((x) => typeof x === "string");
       }
       if (body?.force_overwrite === true) forceOverwrite = true;
+      if (body?.remap_only === true) remapOnly = true;
     } catch { /* ignore */ }
 
     const admin = createClient(
