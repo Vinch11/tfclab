@@ -499,10 +499,10 @@ Deno.serve(async (req) => {
           const hasFtp = Number.isFinite(snapFtp) && snapFtp > 0;
 
           // ─── PPR vélo / durée ───────────────────────────────────────────
-          const p5 = bestMax("ppr", "time", 5, BIKE_SPORT_IDS);
-          const p30 = bestMax("ppr", "time", 30, BIKE_SPORT_IDS);
-          const p60 = bestMax("ppr", "time", 60, BIKE_SPORT_IDS);
-          const p300 = bestMax("ppr", "time", 300, BIKE_SPORT_IDS);
+          const p5 = pickMax("ppr", "time", 5, BIKE_SPORT_IDS);
+          const p30 = pickMax("ppr", "time", 30, BIKE_SPORT_IDS);
+          const p60 = pickMax("ppr", "time", 60, BIKE_SPORT_IDS);
+          const p300 = pickMax("ppr", "time", 300, BIKE_SPORT_IDS);
 
           // Garde physiologique : items < 30s → ratio /FTP < 4.0 ; item 300s → ratio /FTP < 1.6
           const validateShort = (label: string, w: number | null, ratioCap: number, absCap: number): number | null => {
