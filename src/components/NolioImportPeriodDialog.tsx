@@ -25,6 +25,8 @@ export type NolioImportPeriod = {
   windowMonths: number | null;
   /** Liste d'athlete_id sélectionnés (uniquement si selectableAthletes est fourni). */
   athleteIds?: string[];
+  /** Si true, écrase les valeurs du snapshot même si la nouvelle valeur Nolio est inférieure. */
+  forceOverwrite?: boolean;
 };
 
 export type SelectableAthlete = { id: string; name: string };
