@@ -1126,6 +1126,7 @@ export type Database = {
           fatigue_state: string | null
           fc_max: number | null
           fc_repos: number | null
+          field_sources: Json
           force_development_mode: boolean | null
           ftp: number | null
           gi_issues_flag: boolean | null
@@ -1197,6 +1198,7 @@ export type Database = {
           fatigue_state?: string | null
           fc_max?: number | null
           fc_repos?: number | null
+          field_sources?: Json
           force_development_mode?: boolean | null
           ftp?: number | null
           gi_issues_flag?: boolean | null
@@ -1268,6 +1270,7 @@ export type Database = {
           fatigue_state?: string | null
           fc_max?: number | null
           fc_repos?: number | null
+          field_sources?: Json
           force_development_mode?: boolean | null
           ftp?: number | null
           gi_issues_flag?: boolean | null
