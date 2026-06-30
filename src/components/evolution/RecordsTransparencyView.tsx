@@ -432,6 +432,15 @@ export function RecordsTransparencyView({
   };
 
   const recompute = async () => {
+    if (hasManualSelected) {
+      const manualLabels = Object.entries(fieldSources)
+        .filter(([, v]) => v === "manual-selected")
+        .map(([k]) => k)
+        .join(", ");
+      if (!confirm(`Certains champs ont été sélectionnés manuellement par le coach (${manualLabels}) — les écraser avec le recalcul automatique ?`)) {
+        return;
+      }
+    }
     setRecomputing(true);
     try {
       const { data, error } = await supabase.functions.invoke("nolio-records", {
@@ -440,6 +449,14 @@ export function RecordsTransparencyView({
       if (error) throw error;
       const errs = (data?.summary?.[0]?.errors as string[] | undefined) ?? [];
       const updates = (data?.summary?.[0] as any)?.snapshot_updates ?? 0;
+      // Clear manual-selected markers for fields that were overwritten
+      if (hasManualSelected && activeSnapshot) {
+        const cleared: FieldSources = {};
+        for (const [k, v] of Object.entries(fieldSources)) {
+          if (v !== "manual-selected") cleared[k] = v;
+        }
+        await supabase.from("snapshots").update({ field_sources: cleared } as any).eq("id", activeSnapshot.id);
+      }
       toast({
         title: "Profil recalculé",
         description: `${updates} champ(s) mis à jour${errs.length ? ` · ${errs.length} note(s)` : ""}`,
@@ -451,6 +468,7 @@ export function RecordsTransparencyView({
       setRecomputing(false);
     }
   };
+
 
   return (
     <div className="space-y-4">
