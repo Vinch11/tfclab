@@ -27,6 +27,9 @@ type RecordRow = {
   source: string;
 };
 
+type FieldSources = Record<string, string>;
+
+
 const BIKE_SPORTS = [14, 18];
 const RUN_SPORTS = [2, 52];
 const SWIM_SPORT = 19;
