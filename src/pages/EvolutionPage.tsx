@@ -18,6 +18,8 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { getActiveSnapshot } from "@/lib/athleteHelpers";
+import { RecordsTransparencyView } from "@/components/evolution/RecordsTransparencyView";
 import {
   computePMC,
   computePMCSummary,
