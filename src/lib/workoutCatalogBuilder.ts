@@ -93,7 +93,12 @@ function isEliteOrAntiMonotony(w: LibraryWorkout): boolean {
 }
 
 /** Score a workout for relevance to the given goal + phases */
-function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[]): number {
+function scoreWorkout(
+  w: LibraryWorkout,
+  goals: WorkoutGoal[],
+  phases: PhaseTag[],
+  limiterKeys?: { primary?: string; secondary?: string }
+): number {
   let score = 0;
 
   // Goal match — no penalty for unmatched to maximize diversity
@@ -106,30 +111,44 @@ function scoreWorkout(w: LibraryWorkout, goals: WorkoutGoal[], phases: PhaseTag[
       const allMatch = w.goals.every(g => goals.includes(g));
       if (allMatch) score += 3;
     }
-    // No penalty for non-matching goals — let diversity slots handle variety
   } else {
-    // No goals defined = universal session, slight bonus
     score += 2;
   }
 
-  // Phase match — no penalty for non-matching phases
+  // Phase match
   if (w.phase && w.phase.length > 0) {
     const phaseMatch = w.phase.some(p => phases.includes(p));
     if (phaseMatch) score += 8;
-    // No penalty — phases are hints, not hard filters
   }
 
-  // Bonus for obligatory sessions
   if (w.necessite === "Obligatoire") score += 3;
   if (w.necessite === "Recommandé") score += 1;
 
-  // Bonus for trail-specific sessions when goal is trail
   const isTrailGoal = goals.some(g => g.startsWith("trail_"));
   if (isTrailGoal && w.tags?.some(t => t === "trail")) score += 5;
   if (isTrailGoal && w.dPlusTargetM) score += 3;
 
-  // P5: Diversity bonus — Elite (V5) and Anti-monotony (V6) sessions get a boost
   if (isEliteOrAntiMonotony(w)) score += 4;
+
+  // ─── Limiter bonus (F-LIM) ───
+  // Boost sessions whose text matches the diagnosed primary/secondary limiter.
+  // Text = objectif + structure (all parts) + tags — même surface que planValidator.
+  if (limiterKeys?.primary || limiterKeys?.secondary) {
+    const structureText = (w.structure || [])
+      .map(s => `${s.part} ${s.text} ${s.zones.join(" ")}`)
+      .join(" ");
+    const tagsText = (w.tags || []).join(" ");
+    const matchText = `${w.objectif} ${structureText} ${tagsText}`;
+
+    const primaryPattern = limiterKeys.primary ? LIMITER_SESSION_PATTERNS[limiterKeys.primary] : undefined;
+    const secondaryPattern = limiterKeys.secondary ? LIMITER_SESSION_PATTERNS[limiterKeys.secondary] : undefined;
+
+    if (primaryPattern && primaryPattern.test(matchText)) {
+      score += 18;
+    } else if (secondaryPattern && secondaryPattern.test(matchText)) {
+      score += 8;
+    }
+  }
 
   return score;
 }
