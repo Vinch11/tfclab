@@ -251,7 +251,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds }
+            { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity
