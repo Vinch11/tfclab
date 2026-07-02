@@ -18,6 +18,10 @@
  *   CALIB_CSV=/mnt/documents/synthetic_cohort_500.csv bun run scripts/calibrateScoreGCAP.ts
  */
 import fs from "node:fs";
+import {
+  REFERENCE_DISTRIBUTIONS,
+  PLAUSIBILITY_BOUNDS,
+} from "../src/lib/v2/literatureReferences";
 
 const N = 500;
 const OUT = "/mnt/documents/synthetic_cohort_500.csv";
@@ -35,12 +39,21 @@ function mulberry32(seed: number) {
 }
 const rand = mulberry32(20260513);
 const randn = () => {
-  // Box-Muller
   const u = Math.max(rand(), 1e-9);
   const v = rand();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 };
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+function drawTruncated(mean: number, sd: number, min: number, max: number): number {
+  for (let i = 0; i < 20; i++) {
+    const x = mean + sd * randn();
+    if (x >= min && x <= max) return x;
+  }
+  return clamp(mean, min, max);
+}
+const runVo2Bound = PLAUSIBILITY_BOUNDS.find(b => b.metric === "run_vo2max")!;
+const runVlaBound = PLAUSIBILITY_BOUNDS.find(b => b.metric === "run_vlamax")!;
+
 
 const header = [
   "vma","paceThresholdSecPerKm","runPowerThreshold",
