@@ -9,7 +9,7 @@
 
 import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport } from "@/types/workoutLibrary";
 import { WorkoutLibrary } from "./workoutLibrary";
-import { LIMITER_SESSION_PATTERNS, resolveLimiterKey } from "./limiterSessionPatterns";
+import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 
 /** Compact session representation for the AI prompt */
 export interface CatalogEntry {
