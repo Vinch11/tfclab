@@ -48,7 +48,7 @@ export const snapshotSchema = z.object({
   fc_repos: intOptional(30, 90),
   vma: numericOptional(8, 30),
   ftp: intOptional(50, 600),
-  css: numericOptional(0.5, 3),
+  css: numericOptional(50, 200), // CSS en sec/100m (ex: 95 = 1:35/100m)
   vo2max: numericOptional(20, 100),
   vlamax: numericOptional(0.1, 1.5),
   vlamax_run: numericOptional(0.1, 1.5), // ✅ VLamax CAP
