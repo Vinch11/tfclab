@@ -144,12 +144,14 @@ function scoreWorkout(
   }
 
   // ─── Bonus volume aérobie en phase base (socle Lorang) ───
-  // Garantit que Z2 long / endurance fondamentale / sortie longue reste le socle
-  // même quand un athlète n'est pas limité en durabilité (pas de bonus limiter +18).
-  const isAerobicVolume = /z2|zone\s*2|endurance\s*(?:fondament|foncier|longue|base)|sortie\s*longue|\bsl\b|long\s*(?:run|ride)|ef\b|ea\b|steady\s*long/i.test(techMatchText);
+  // Match sur objectif + tags uniquement (pas les zones — quasi toutes les séances
+  // ont "Z2" en échauffement, ce qui gonflerait le bonus).
+  const aerobicMatchText = `${w.objectif} ${(w.tags || []).join(" ")}`;
+  const isAerobicVolume = /endurance\s*(?:fondament|foncier|longue|base|a[eé]robie)|sortie\s*longue|\bsl\b|long\s*(?:run|ride)|volume\s*a[eé]robie|steady\s*long|z2\s*(?:long|volume)/i.test(aerobicMatchText);
   if (isAerobicVolume && phases.includes("base")) {
     score += 6;
   }
+
 
 
   // ─── Limiter bonus (F-LIM) ───
