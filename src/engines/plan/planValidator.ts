@@ -21,6 +21,7 @@ import {
   prescribeIntervalRecovery,
   calculateTau,
 } from "@/lib/v2/criticalPowerModel";
+import { LIMITER_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
