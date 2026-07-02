@@ -5,7 +5,7 @@
  * 
  * v6: Improved cell extraction + sanity checks for misplaced options
  */
-import mammoth from "mammoth";
+// mammoth is dynamically imported at call sites to keep it out of the initial bundle
 import { parseDurationFromText } from "./durationParser";
 import { sanitizeTemplate, type SanityWarning } from "./templateSanity";
 
