@@ -49,7 +49,7 @@ export function ScientificDashboard({ snapshots, objectif, athleteNom }: Scienti
     const data: SportData[] = [];
 
     for (const sport of sports) {
-      const snapshot = snapshots.filter((s) => s.sport === sport).at(-1);
+      const snapshot = snapshots.filter((s) => s.sport === sport).slice(-1)[0];
       if (snapshot) {
         const calc = calculVLamaxAvecConfiance(snapshot, objectif);
         const tte = estimerTTESport(snapshot);

@@ -36,7 +36,7 @@ export function genererRecommandationsIA(athlete: Athlete): Recommendation[] {
   const sports: SportType[] = ["vélo", "course", "natation"];
 
   for (const sport of sports) {
-    const snapshot = athlete.historique.filter((h) => h.sport === sport).at(-1);
+    const snapshot = athlete.historique.filter((h) => h.sport === sport).slice(-1)[0];
     if (!snapshot) continue;
 
     const calc = calculVLamaxAvecConfiance(snapshot, athlete.objectif);
@@ -203,8 +203,8 @@ export function verifierAlertes(athlete: Athlete): Alert[] {
     const hist = athlete.historique.filter((h) => h.sport === sport);
     if (hist.length < 2) continue;
 
-    const lastSnapshot = hist.at(-1)!;
-    const prevSnapshot = hist.at(-2)!;
+    const lastSnapshot = hist[hist.length-1]!;
+    const prevSnapshot = hist[hist.length-2]!;
 
     const lastCalc = calculVLamaxAvecConfiance(lastSnapshot, athlete.objectif);
     const prevCalc = calculVLamaxAvecConfiance(prevSnapshot, athlete.objectif);
@@ -262,7 +262,7 @@ export function calculerScoreGlobal(athlete: Athlete): number {
   let sportCount = 0;
 
   for (const sport of sports) {
-    const snapshot = athlete.historique.filter((h) => h.sport === sport).at(-1);
+    const snapshot = athlete.historique.filter((h) => h.sport === sport).slice(-1)[0];
     if (!snapshot) continue;
 
     const calc = calculVLamaxAvecConfiance(snapshot, athlete.objectif);

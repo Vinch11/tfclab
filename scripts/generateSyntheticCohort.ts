@@ -18,6 +18,10 @@
  *   CALIB_CSV=/mnt/documents/synthetic_cohort_500.csv bun run scripts/calibrateScoreGCAP.ts
  */
 import fs from "node:fs";
+import {
+  REFERENCE_DISTRIBUTIONS,
+  PLAUSIBILITY_BOUNDS,
+} from "../src/lib/v2/literatureReferences";
 
 const N = 500;
 const OUT = "/mnt/documents/synthetic_cohort_500.csv";
@@ -35,12 +39,21 @@ function mulberry32(seed: number) {
 }
 const rand = mulberry32(20260513);
 const randn = () => {
-  // Box-Muller
   const u = Math.max(rand(), 1e-9);
   const v = rand();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 };
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+function drawTruncated(mean: number, sd: number, min: number, max: number): number {
+  for (let i = 0; i < 20; i++) {
+    const x = mean + sd * randn();
+    if (x >= min && x <= max) return x;
+  }
+  return clamp(mean, min, max);
+}
+const runVo2Bound = PLAUSIBILITY_BOUNDS.find(b => b.metric === "run_vo2max")!;
+const runVlaBound = PLAUSIBILITY_BOUNDS.find(b => b.metric === "run_vlamax")!;
+
 
 const header = [
   "vma","paceThresholdSecPerKm","runPowerThreshold",
@@ -52,14 +65,17 @@ const rows: string[] = [header];
 let nElite = 0, nGlyco = 0, nMid = 0;
 
 for (let i = 0; i < N; i++) {
-  // VMA : tronquée gaussienne autour de 17, σ=2.2
-  const vma = clamp(17 + randn() * 2.2, 13, 22);
-  // Ratio seuil/VMA : β-like via somme uniformes, plage 0.74-0.92
-  const ratio = clamp(0.83 + randn() * 0.04, 0.74, 0.92);
+  // Tier alterné (moitié trained sub-élite, moitié trained) — ancré littérature
+  const tier: "subelite" | "trained" = i % 2 === 0 ? "subelite" : "trained";
+  const dist = REFERENCE_DISTRIBUTIONS.run[tier]!;
+  // VO2max ancré (Léger : VMA = VO2max / 3.5)
+  const vo2 = drawTruncated(dist.vo2max.mean, dist.vo2max.sd, runVo2Bound.min, runVo2Bound.max);
+  const vma = clamp(vo2 / 3.5, 13, 24);
+  // VLamax ancré (draw indépendant borné littérature)
+  const vlaMeasured = drawTruncated(dist.vlamax.mean, dist.vlamax.sd, runVlaBound.min, runVlaBound.max);
+  // Ratio seuil/VMA dérivé de VLamax (Billat inversé)
+  const ratio = clamp(0.92 - 0.20 * (vlaMeasured - 0.20) / 0.70, 0.74, 0.92);
 
-  // VLamax cible (Billat) + bruit physiologique
-  const vlaCleanRatio = clamp((0.92 - ratio) / 0.20, 0, 1);
-  const vlaMeasured = clamp(0.20 + 0.70 * vlaCleanRatio + randn() * 0.04, 0.18, 0.95);
 
   // Catégorisation diagnostique
   if (vlaMeasured < 0.35) nElite++;
