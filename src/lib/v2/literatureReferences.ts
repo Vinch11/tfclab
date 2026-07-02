@@ -71,6 +71,18 @@ export const LITERATURE_REFERENCES: Record<string, LiteratureReference> = {
     openAccess: true,
     role: 'sensitivity',
   },
+  mlss_ijerph_2018_run: {
+    key: 'mlss_ijerph_2018_run',
+    citation:
+      'Sex-Related Differences in the Maximal Lactate Steady State (2018). Int J Environ Res ' +
+      'Public Health, PMC6316329. [DOI à confirmer]',
+    doi: 'PMC6316329',
+    n: 14,
+    discipline: 'run',
+    population: 'Coureurs entraînés, MLSS gold-standard (30-min trials)',
+    openAccess: true,
+    role: 'target',
+  },
 } as const;
 
 // ============================================
@@ -125,13 +137,22 @@ export interface PopulationTarget {
 
 export const POPULATION_TARGETS: PopulationTarget[] = [
   {
-    metric: 'run_MLSS_pct_vo2max',
+    metric: 'run_LT1_2mmol_pct_vo2max',
     mean: 79.2,
     sd: 2.5,
     range: [74.9, 83.8],
     unit: '% VO2max',
     source: 'sports_2023_run',
-    note: 'Seuil 2 mmol/L, 15 coureurs entraînés. Cible de validation MLSS% course.',
+    note: 'Seuil LT1 fixe 2 mmol/L (PAS le MLSS). Repère aérobie — 15 coureurs entraînés.',
+  },
+  {
+    metric: 'run_MLSS_pct_vo2max',
+    mean: 83,
+    sd: 5,
+    range: [78, 88],
+    unit: '% VO2max',
+    source: 'mlss_ijerph_2018_run',
+    note: 'Vrai MLSS (LT2) coureurs entraînés, 30-min trials. Cible de validation MLSS course.',
   },
   {
     metric: 'bike_MLSS_pct_vo2max',
@@ -189,10 +210,10 @@ export const PLAUSIBILITY_BOUNDS: PlausibilityBound[] = [
   },
   {
     metric: 'run_MLSS_pct_vo2max',
-    min: 70,
-    max: 88,
+    min: 72,
+    max: 92,
     unit: '% VO2max',
-    rationale: 'Union des plages course publiées + marge. Sortie modèle hors bornes = suspecte.',
+    rationale: 'Vrai MLSS coureurs entraînés 83 ± 5 (IJERPH 2018), mean ± ~2 SD. Distinct de LT1 2 mmol/L (~79%).',
   },
   {
     metric: 'bike_MLSS_pct_vo2max',
