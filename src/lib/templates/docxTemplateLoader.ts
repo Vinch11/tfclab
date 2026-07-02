@@ -508,7 +508,7 @@ async function parseDocxHtml(html: string, staffMode: boolean = false): Promise<
  */
 export async function parseDocxFromArrayBuffer(arrayBuffer: ArrayBuffer, staffMode: boolean = false): Promise<ProgramSection[]> {
   // Convert to HTML using mammoth
-  const result = await mammoth.convertToHtml({ arrayBuffer });
+  const { default: mammoth } = await import("mammoth"); const result = await mammoth.convertToHtml({ arrayBuffer });
 
   if (result.messages.length > 0) {
     // console.log("[TemplateLoader] Mammoth messages:", result.messages);
@@ -545,7 +545,7 @@ export async function loadProgramTemplateFromDocx(docxPath: string, staffMode: b
   const arrayBuffer = await response.arrayBuffer();
   
   // Convert to HTML using mammoth
-  const result = await mammoth.convertToHtml({ arrayBuffer });
+  const { default: mammoth } = await import("mammoth"); const result = await mammoth.convertToHtml({ arrayBuffer });
   
   if (result.messages.length > 0) {
     // console.log("[TemplateLoader] Mammoth messages:", result.messages);
@@ -587,7 +587,7 @@ export async function loadProgramSectionsFromDocx(docxPath: string, staffMode: b
   const arrayBuffer = await response.arrayBuffer();
   
   // Convert to HTML using mammoth
-  const result = await mammoth.convertToHtml({ arrayBuffer });
+  const { default: mammoth } = await import("mammoth"); const result = await mammoth.convertToHtml({ arrayBuffer });
   
   if (result.messages.length > 0) {
     // console.log("[TemplateLoader] Mammoth messages:", result.messages);
