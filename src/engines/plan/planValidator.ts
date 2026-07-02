@@ -955,9 +955,8 @@ function validateProhibitionCompliance(
  * - TTE vs FTP: TTE = sustained threshold endurance (seuil continu LONG, norvégienne, MLSS). FTP = power at threshold (sweet spot, over-under, FTP watts).
  * - VLamax vs Durabilité: VLamax = metabolic context (train low, glycolytique). Durabilité = distance context (sortie longue, SL, brick, finish rapide).
  */
-// LIMITER_SESSION_PATTERNS extrait dans src/lib/limiterSessionPatterns.ts
-// (source unique, réutilisée par workoutCatalogBuilder pour le scoring IA).
-import { LIMITER_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
+// LIMITER_SESSION_PATTERNS est importé en haut du fichier depuis
+// src/lib/limiterSessionPatterns.ts (source unique).
 
 
 const LIMITER_ALIAS_HINTS: Array<{ pattern: RegExp; aliases: string }> = [
