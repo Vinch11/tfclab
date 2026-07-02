@@ -34,6 +34,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useCloudData, DbAthlete, DbSnapshot } from "@/contexts/CloudDataContext";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
+import { OutOfDomainBadge } from "@/components/OutOfDomainBadge";
+
 import { 
   getEffectiveRefs, 
   getSourceLabel, 
@@ -188,19 +190,29 @@ export function AthleteRefsPanel({
     // Si valeur vient du snapshot, montrer la valeur effective + input profil séparé
     const isFromSnapshot = source === "snapshot";
 
+    // Métrique littérature pour flag "hors domaine" (uniquement VO₂max ici — VLamax n'est pas dans PHYSIO_FIELDS)
+    const outOfDomainMetric =
+      field.key === "vo2max" ? (isRunningGoal ? "run_vo2max" : "bike_vo2max") : null;
+
     return (
       <div key={field.key} className="space-y-1.5 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <Label htmlFor={field.profileKey} className="text-sm font-medium truncate">
             {field.label} <span className="text-muted-foreground text-xs">({field.unit})</span>
           </Label>
-          <Badge 
-            variant="outline" 
-            className={`text-xs shrink-0 ${getSourceBadgeClass(source)}`}
-          >
-            {getSourceLabel(source)}
-          </Badge>
+          <div className="flex items-center gap-1 shrink-0">
+            {outOfDomainMetric && effectiveValue != null && (
+              <OutOfDomainBadge metric={outOfDomainMetric} value={effectiveValue} />
+            )}
+            <Badge
+              variant="outline"
+              className={`text-xs ${getSourceBadgeClass(source)}`}
+            >
+              {getSourceLabel(source)}
+            </Badge>
+          </div>
         </div>
+
         
         <div className="flex items-center gap-2 min-w-0">
           {isFromSnapshot && (

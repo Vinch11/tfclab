@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, AlertTriangle, AlertCircle, Activity, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { OutOfDomainBadge } from "@/components/OutOfDomainBadge";
+
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
 interface RunMLSSCoherenceCardProps {
@@ -100,7 +102,9 @@ export function RunMLSSCoherenceCard({
             <Badge variant={sourceVariant as "default" | "secondary" | "outline"}>
               {sourceLabel}
             </Badge>
+            <OutOfDomainBadge metric="run_MLSS_pct_vo2max" value={effectivePct} />
           </div>
+
         </div>
       </div>
 

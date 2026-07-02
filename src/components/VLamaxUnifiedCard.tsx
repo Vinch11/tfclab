@@ -82,6 +82,8 @@ import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
 import { useRunningProfileCloud } from "@/hooks/useRunningProfileCloud";
 import { RUNNING_RACE_LABELS, type RunningRaceType } from "@/lib/runningFocusMode";
 import { RunMLSSCoherenceCard } from "@/components/RunMLSSCoherenceCard";
+import { OutOfDomainBadge } from "@/components/OutOfDomainBadge";
+
 
 // =============================================
 // TYPES
@@ -273,6 +275,8 @@ export function VLamaxUnifiedCard({
             {isOnRunTab ? <Footprints className="h-3 w-3" /> : <Bike className="h-3 w-3" />}
             Source : {isOnRunTab ? "VLamax CAP (run)" : "VLamax vélo"}
           </Badge>
+          <OutOfDomainBadge metric={isOnRunTab ? "run_vlamax" : "bike_vlamax"} value={vlamax} />
+
           {staffMode && v2Result && (
             <Badge 
               variant="outline" 

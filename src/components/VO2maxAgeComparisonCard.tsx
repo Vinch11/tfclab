@@ -33,6 +33,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { OutOfDomainBadge, disciplineFromGoal } from "@/components/OutOfDomainBadge";
+
 
 // =============================================
 // TYPES
@@ -507,9 +509,14 @@ export function VO2maxAgeComparisonCard({
             </div>
             <div>
               <span className="text-sm text-muted-foreground">VO₂max actuel</span>
-              <div className="font-mono font-bold text-xl text-primary">
+              <div className="font-mono font-bold text-xl text-primary flex items-center gap-2">
                 {Math.round(currentVo2max)} ml/kg/min
+                <OutOfDomainBadge
+                  metric={disciplineFromGoal(objectif) === "run" ? "run_vo2max" : "bike_vo2max"}
+                  value={currentVo2max}
+                />
               </div>
+
             </div>
             {currentAmbitionRow && (
               <div className="ml-auto text-right">
