@@ -482,19 +482,19 @@ export function AthleteRefsPanel({
         )}
       </CardHeader>
       
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8 p-4 sm:p-6">
         {/* Date de naissance + Anthropométrie */}
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-            <User className="h-4 w-4" />
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+            <User className="h-3.5 w-3.5" />
             Profil
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {/* Date de naissance */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                <Label htmlFor="birthDate" className="text-sm font-medium">
+                <Label htmlFor="birthDate" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Date de naissance
                 </Label>
               </div>
@@ -505,7 +505,7 @@ export function AthleteRefsPanel({
                   value={birthDate}
                   onChange={(e) => handleBirthDateChange(e.target.value)}
                   max={new Date().toISOString().split("T")[0]}
-                  className="flex-1 bg-secondary/50"
+                  className="flex-1 bg-secondary/50 tabular-nums"
                 />
                 <AgeAdjustmentBadge 
                   birthDate={birthDate} 
@@ -522,11 +522,11 @@ export function AthleteRefsPanel({
 
         {/* Références physiologiques */}
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-            <Activity className="h-4 w-4" />
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Activity className="h-3.5 w-3.5" />
             Références physiologiques
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {PHYSIO_FIELDS.map(renderField)}
           </div>
         </div>
