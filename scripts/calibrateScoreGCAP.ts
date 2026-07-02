@@ -284,6 +284,30 @@ const targetGain = (1 - best.eval.rmseTarget / baseEval.rmseTarget) * 100;
 const deltaGain = (1 - best.eval.rmseDelta / baseEval.rmseDelta) * 100;
 console.log(`\nImprovement: target RMSE ${targetGain.toFixed(1)}%, inter-method delta ${deltaGain.toFixed(1)}%`);
 
+// ─────────────────────────────────────────────
+// 6) Validation populationnelle vs littérature
+// ─────────────────────────────────────────────
+console.log("\n─── Validation populationnelle (MLSS %VO2max vs littérature) ───");
+const mlssRun: number[] = [];
+let outOfDomain = 0;
+for (const p of profiles as Profile[]) {
+  // Plausibility guards on drawn inputs
+  if (checkPlausibility("run_vlamax", (p as Profile).vlamaxTarget)) outOfDomain++;
+  if (checkPlausibility("run_vo2max", (p as Profile).vo2maxTarget ?? NaN)) outOfDomain++;
+  // Modèle MLSS%VO2max (Modèle C, CE=200 par défaut = référence populationnelle)
+  const pred = predictRunMLSSPctFromVLaCE((p as Profile).vlamaxTarget, 200);
+  if (pred) mlssRun.push(pred.mlssPct);
+}
+const meanMlssRun = mlssRun.reduce((s, x) => s + x, 0) / mlssRun.length;
+const runTarget = getPopulationTarget("run_MLSS_pct_vo2max")!;
+const bias = meanMlssRun - runTarget.mean;
+const flagged = Math.abs(bias) > runTarget.sd;
+console.log(`  Inputs hors bornes: ${outOfDomain}/${profiles.length * 2}`);
+console.log(`  Modèle MLSS%VO2max (run) : ${meanMlssRun.toFixed(1)}%  (N=${mlssRun.length})`);
+console.log(`  Cible littérature        : ${runTarget.mean}% ± ${runTarget.sd} (${runTarget.source})`);
+console.log(`  Biais                    : ${bias >= 0 ? "+" : ""}${bias.toFixed(2)} pts  ${flagged ? "⚠️ DÉRIVE (>1 SD)" : "✅ OK"}`);
+
+
 // Markdown report
 const md = `# Calibration Score G CAP — ${new Date().toISOString().slice(0, 10)}
 
