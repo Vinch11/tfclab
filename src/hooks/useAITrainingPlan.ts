@@ -216,6 +216,12 @@ export function useAITrainingPlan() {
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
       const usedIds = new Set<string>();
 
+      // Limiteurs diagnostiqués (clés métriques brutes issues du diagnostic unifié)
+      // — utilisés par scoreWorkout pour booster les séances qui adressent le limiteur.
+      const limiterKeys = planConfig.identifiedLimitersRaw && planConfig.identifiedLimitersRaw.length > 0
+        ? planConfig.identifiedLimitersRaw
+        : undefined;
+
       for (let i = 0; i < phaseRanges.length; i++) {
         const pr = phaseRanges[i];
         const catalog = buildWorkoutCatalog(
@@ -223,7 +229,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           totalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         catalog.forEach(e => { allCatalogEntries.push(e); usedIds.add(e.id); });
