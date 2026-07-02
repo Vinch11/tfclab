@@ -16,7 +16,7 @@ import { OnboardingGate } from "@/components/OnboardingGate";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import Index from "./pages/Index";
-import MetricCardDemoPage from "./pages/MetricCardDemoPage";
+
 
 
 // Lazy: split into per-route chunks
