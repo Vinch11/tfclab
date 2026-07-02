@@ -34,6 +34,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useCloudData, DbAthlete, DbSnapshot } from "@/contexts/CloudDataContext";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
+import { OutOfDomainBadge } from "@/components/OutOfDomainBadge";
+
 import { 
   getEffectiveRefs, 
   getSourceLabel, 
