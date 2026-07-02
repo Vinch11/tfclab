@@ -195,10 +195,10 @@ export function AthleteRefsPanel({
       field.key === "vo2max" ? (isRunningGoal ? "run_vo2max" : "bike_vo2max") : null;
 
     return (
-      <div key={field.key} className="space-y-1.5 min-w-0">
+      <div key={field.key} className="space-y-2 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <Label htmlFor={field.profileKey} className="text-sm font-medium truncate">
-            {field.label} <span className="text-muted-foreground text-xs">({field.unit})</span>
+          <Label htmlFor={field.profileKey} className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
+            {field.label} <span className="normal-case tracking-normal">({field.unit})</span>
           </Label>
           <div className="flex items-center gap-1 shrink-0">
             {outOfDomainMetric && effectiveValue != null && (
@@ -206,21 +206,27 @@ export function AthleteRefsPanel({
             )}
             <Badge
               variant="outline"
-              className={`text-xs ${getSourceBadgeClass(source)}`}
+              className={`text-[11px] ${getSourceBadgeClass(source)}`}
             >
               {getSourceLabel(source)}
             </Badge>
           </div>
         </div>
 
-        
-        <div className="flex items-center gap-2 min-w-0">
-          {isFromSnapshot && (
-            <div className="flex-1 min-w-0 px-3 py-2 rounded-md bg-success/5 border border-success/20 text-sm font-medium truncate">
-              {effectiveValue != null ? effectiveValue.toFixed(field.step === "0.1" ? 1 : 0) : "—"} {field.unit}
+        {/* Dominant value (if effective) */}
+        {isFromSnapshot && effectiveValue != null && (
+          <div className="px-3 py-2 rounded-md bg-success/5 border border-success/20">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-display font-semibold text-2xl sm:text-3xl tracking-tight tabular-nums text-foreground">
+                {effectiveValue.toFixed(field.step === "0.1" ? 1 : 0)}
+              </span>
+              <span className="text-xs text-muted-foreground">{field.unit}</span>
             </div>
-          )}
-          
+          </div>
+        )}
+
+        {/* Profile input (secondary) */}
+        <div className="flex items-center gap-2 min-w-0">
           <Input
             id={field.profileKey}
             type="number"
@@ -230,14 +236,17 @@ export function AthleteRefsPanel({
             placeholder={field.placeholder}
             value={formValue}
             onChange={(e) => handleChange(field.profileKey, e.target.value)}
-            className={`${isFromSnapshot ? "w-24 text-center shrink-0" : "flex-1"} bg-secondary/50 min-w-0`}
+            className={cn(
+              "flex-1 bg-secondary/50 min-w-0 tabular-nums",
+              isFromSnapshot ? "text-sm h-8" : "font-display font-semibold text-xl sm:text-2xl tracking-tight h-11"
+            )}
             title={isFromSnapshot ? "Valeur profil (snapshot prioritaire)" : undefined}
           />
         </div>
-        
+
         {isFromSnapshot && formValue && (
-          <p className="text-xs text-muted-foreground truncate">
-            Profil: {formValue} {field.unit} (snapshot prioritaire)
+          <p className="text-[11px] text-muted-foreground truncate">
+            Profil : {formValue} {field.unit} (snapshot prioritaire)
           </p>
         )}
       </div>
