@@ -184,10 +184,10 @@ export function MetabolicZonesUnifiedCard({
   return (
     <Card className={cn("overflow-hidden", className)}>
       {/* ═══ HEADER ═══ */}
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-4 p-4 sm:p-6">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Flame className="h-4 w-4 text-orange-500" />
+          <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <Flame className="h-3.5 w-3.5 text-orange-500" />
             Zones Métaboliques TFCL™
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export function MetabolicZonesUnifiedCard({
             {fatmax && (
               <Badge
                 variant="outline"
-                className={cn("text-xs", getFatMaxConfidenceBadgeClass(fatmax.confidenceLevel))}
+                className={cn("text-[11px]", getFatMaxConfidenceBadgeClass(fatmax.confidenceLevel))}
               >
                 {fatmax.confidenceLabel}
               </Badge>
@@ -205,22 +205,22 @@ export function MetabolicZonesUnifiedCard({
           </div>
         </div>
 
-        {/* FatMax principal (résumé compact) */}
+        {/* FatMax — valeur dominante */}
         {fatmax && (
-          <div className="flex items-center gap-4 mt-2">
-            <div>
-              <p className="text-xs text-muted-foreground">FatMax</p>
-              <span className="text-2xl font-bold font-mono">
+          <div className="mt-5 space-y-2">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">FatMax</p>
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <span className="font-display font-semibold text-3xl sm:text-4xl tracking-tight tabular-nums text-foreground">
                 {formatFatMaxRange(fatmax)}
               </span>
               {wattsRange && (
-                <span className="text-xs text-muted-foreground ml-2">{wattsRange}</span>
+                <span className="text-sm text-muted-foreground tabular-nums">{wattsRange}</span>
               )}
               {paceRange && (
-                <span className="text-xs text-muted-foreground ml-2">{paceRange}</span>
+                <span className="text-sm text-muted-foreground tabular-nums">{paceRange}</span>
               )}
             </div>
-            <div className="flex items-center gap-1.5 text-sm">
+            <div className="flex items-center gap-1.5">
               <Zap className={cn("w-3.5 h-3.5", getMetabolicZoneColor(fatmax.metabolicZone))} />
               <span className={cn("text-xs", getMetabolicZoneColor(fatmax.metabolicZone))}>
                 {fatmax.zoneLabel}
@@ -229,28 +229,29 @@ export function MetabolicZonesUnifiedCard({
           </div>
         )}
 
-        {/* LT1/LT2 résumé inline */}
+        {/* LT1/LT2 — secondaires, en retrait */}
         {hasLactateData && (
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center gap-5 mt-4 pt-4 border-t border-border/50">
             {thresholds.lt1.confidence > 0 && (
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-sky-500" />
-                <span className="text-xs text-muted-foreground">LT1:</span>
-                <span className="text-xs font-mono font-medium">{thresholds.lt1.label}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                <span className="text-[11px] text-muted-foreground uppercase tracking-wide">LT1</span>
+                <span className="text-sm text-foreground tabular-nums">{thresholds.lt1.label}</span>
               </div>
             )}
             {thresholds.lt2.confidence > 0 && (
               <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-rose-500" />
-                <span className="text-xs text-muted-foreground">LT2:</span>
-                <span className="text-xs font-mono font-medium">{thresholds.lt2.label}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                <span className="text-[11px] text-muted-foreground uppercase tracking-wide">LT2</span>
+                <span className="text-sm text-foreground tabular-nums">{thresholds.lt2.label}</span>
               </div>
             )}
           </div>
         )}
       </CardHeader>
 
-      <CardContent className="space-y-4 pt-0">
+      <CardContent className="space-y-5 pt-0 p-4 sm:p-6">
+
         {/* ═══ TABS ═══ */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${hasLactateData ? 3 : 2}, 1fr)` }}>
@@ -378,15 +379,15 @@ function FatMaxTabContent({
   return (
     <div className="space-y-3">
       {/* Plage FatMax */}
-      <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
-        <p className="text-xs text-muted-foreground mb-1">Plage FatMax</p>
-        <p className="text-2xl font-bold">{formatFatMaxRange(fatmax)}</p>
+      <div className="text-center p-4 sm:p-5 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-2">Plage FatMax</p>
+        <p className="font-display font-semibold text-3xl sm:text-4xl tracking-tight tabular-nums">{formatFatMaxRange(fatmax)}</p>
         {fatMaxPaceRange && (
-          <p className="text-sm font-mono text-orange-600 dark:text-orange-400 mt-0.5">{fatMaxPaceRange}</p>
+          <p className="text-sm text-orange-600 dark:text-orange-400 mt-1 tabular-nums">{fatMaxPaceRange}</p>
         )}
-        <p className="text-sm font-medium mt-1">
-          Centre: {fatmax.centerPctFTP}% {refLabel}
-          {centerPace && <span className="text-muted-foreground ml-2 font-mono">({centerPace})</span>}
+        <p className="text-xs text-muted-foreground mt-2">
+          Centre : <span className="text-foreground tabular-nums">{fatmax.centerPctFTP}% {refLabel}</span>
+          {centerPace && <span className="ml-2 tabular-nums">({centerPace})</span>}
         </p>
       </div>
 
