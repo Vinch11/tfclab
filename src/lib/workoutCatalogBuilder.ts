@@ -130,6 +130,18 @@ function scoreWorkout(
 
   if (isEliteOrAntiMonotony(w)) score += 4;
 
+  // ─── Bonus technique modulé par phase (Lorang : technique en début de cycle) ───
+  const structureTextTech = (w.structure || [])
+    .map(s => `${s.part} ${s.text} ${s.zones.join(" ")}`)
+    .join(" ");
+  const techMatchText = `${w.objectif} ${structureTextTech} ${(w.tags || []).join(" ")}`;
+  const isTechnical = /technique|éducatif|drill|gammes|strides|cadence|proprio|mobilit|gainage|core/i.test(techMatchText);
+  if (isTechnical) {
+    if (phases.includes("base")) score += 8;
+    else if (phases.includes("build")) score += 4;
+    else if (phases.includes("peak") || phases.includes("taper")) score -= 2;
+  }
+
   // ─── Limiter bonus (F-LIM) ───
   // Boost sessions whose text matches the diagnosed primary/secondary limiter.
   // Text = objectif + structure (all parts) + tags — même surface que planValidator.
