@@ -102,7 +102,9 @@ export function RunMLSSCoherenceCard({
             <Badge variant={sourceVariant as "default" | "secondary" | "outline"}>
               {sourceLabel}
             </Badge>
+            <OutOfDomainBadge metric="run_MLSS_pct_vo2max" value={effectivePct} />
           </div>
+
         </div>
       </div>
 
