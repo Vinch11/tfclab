@@ -71,6 +71,18 @@ export const LITERATURE_REFERENCES: Record<string, LiteratureReference> = {
     openAccess: true,
     role: 'sensitivity',
   },
+  mlss_ijerph_2018_run: {
+    key: 'mlss_ijerph_2018_run',
+    citation:
+      'Sex-Related Differences in the Maximal Lactate Steady State (2018). Int J Environ Res ' +
+      'Public Health, PMC6316329. [DOI à confirmer]',
+    doi: 'PMC6316329',
+    n: 14,
+    discipline: 'run',
+    population: 'Coureurs entraînés, MLSS gold-standard (30-min trials)',
+    openAccess: true,
+    role: 'target',
+  },
 } as const;
 
 // ============================================
