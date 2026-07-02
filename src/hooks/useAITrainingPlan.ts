@@ -229,7 +229,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           totalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         catalog.forEach(e => { allCatalogEntries.push(e); usedIds.add(e.id); });
@@ -251,7 +251,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys }
+            { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity

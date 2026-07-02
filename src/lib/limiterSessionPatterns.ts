@@ -55,3 +55,52 @@ export function resolveLimiterKey(limiterLabel: string | undefined | null): stri
   }
   return undefined;
 }
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * PROHIBITION → SESSION PATTERNS
+ *
+ * Regex matchant les séances à EXCLURE du catalogue quand une prohibition Lorang
+ * est active (ex : profil glycolytique haut + longue distance → sprint ban).
+ * Consommé par `buildWorkoutCatalog` avant le scoring.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+export const PROHIBITION_SESSION_PATTERNS: Record<string, RegExp> = {
+  sprints: /sprint|explo|force\s*max|vitesse\s*max|all[\s-]*out|tabata|neuro.*muscul|plyo|pliom[ée]tri/i,
+  micro_intervals: /30[\/_ -]?30|micro.?interval|15[\/_ -]?15|20[\/_ -]?20|10[\/_ -]?20|explo/i,
+  erratic_pacing: /erratique|non[\s_-]*structur|random[\s_-]*pace|surge.*random/i,
+  vo2_heavy_blocks: LIMITER_SESSION_PATTERNS.vo2max,
+  train_low: /train[\s_-]*low|fasted|[àa]\s*jeun/i,
+};
+
+/**
+ * Détecte les clés de prohibition actives à partir des messages descriptifs
+ * produits par `buildProhibitions` (planConfigBuilder). Cherche les mots-clés
+ * SPRINT BAN, micro-intervalles, VO2max lourd, train low, etc.
+ */
+export function resolveProhibitionKeys(prohibitions: string[] | undefined | null): string[] {
+  if (!prohibitions || prohibitions.length === 0) return [];
+  const active = new Set<string>();
+  for (const raw of prohibitions) {
+    const text = raw.toLowerCase();
+    // Prohibition explicite (🚫) — les messages ✅ autorisent au contraire
+    if (!text.includes("🚫") && !text.includes("interdit") && !text.includes("restriction")) continue;
+    if (/sprint\s*ban|sprint.*(?:interdit|contre-productif)|neuromuscul|pliom[ée]tri|tabata/i.test(text)) {
+      active.add("sprints");
+    }
+    if (/micro.?intervall|30[\/_ -]?30|15[\/_ -]?15|explosif/i.test(text)) {
+      active.add("micro_intervals");
+    }
+    if (/erratique|non[\s_-]*structur/i.test(text)) {
+      active.add("erratic_pacing");
+    }
+    if (/vo2\s*max\s*lourd|restriction\s*vo2|blocs?\s*vo2max\s*longs?/i.test(text)) {
+      active.add("vo2_heavy_blocks");
+    }
+    if (/train[\s_-]*low|fasted|à\s*jeun/i.test(text)) {
+      active.add("train_low");
+    }
+  }
+  return Array.from(active);
+}
+

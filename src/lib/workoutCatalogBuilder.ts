@@ -9,7 +9,7 @@
 
 import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport } from "@/types/workoutLibrary";
 import { WorkoutLibrary } from "./workoutLibrary";
-import { LIMITER_SESSION_PATTERNS, resolveLimiterKey } from "./limiterSessionPatterns";
+import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 
 /** Compact session representation for the AI prompt */
 export interface CatalogEntry {
@@ -188,6 +188,8 @@ export function buildWorkoutCatalog(
   options?: {
     sportFilter?: TrainingSport[];
     limiters?: string[];
+    /** Raw prohibition messages (from planConfigBuilder.buildProhibitions) — will be resolved to keys. */
+    prohibitions?: string[];
     maxItems?: number;
     /** Chunk index for rotation — different chunks get different secondary sessions */
     chunkIndex?: number;
@@ -204,17 +206,71 @@ export function buildWorkoutCatalog(
   const secondaryKey = resolveLimiterKey(options?.limiters?.[1]);
   const limiterKeys = (primaryKey || secondaryKey) ? { primary: primaryKey, secondary: secondaryKey } : undefined;
 
-  // Score and sort all workouts
+  // ─── PROHIBITIONS : filtre d'exclusion pré-scoring (F-PROH) ───
+  const activeProhibitionKeys = resolveProhibitionKeys(options?.prohibitions);
+  const prohibitionPatterns = activeProhibitionKeys
+    .map(k => PROHIBITION_SESSION_PATTERNS[k])
+    .filter(Boolean);
+
+  const matchesProhibition = (w: LibraryWorkout): boolean => {
+    if (prohibitionPatterns.length === 0) return false;
+    const structureText = (w.structure || [])
+      .map(s => `${s.part} ${s.text} ${s.zones.join(" ")}`)
+      .join(" ");
+    const tagsText = (w.tags || []).join(" ");
+    const text = `${w.objectif} ${structureText} ${tagsText}`;
+    return prohibitionPatterns.some(p => p.test(text));
+  };
+
+  // Garde-fou : par sport, si l'exclusion réduit le pool sous MIN_VIABLE,
+  // on rétablit les séances de ce sport (prohibition molle).
+  const MIN_VIABLE_PER_SPORT = 8;
+  const bypassProhibitionForSport = new Set<string>();
+  if (prohibitionPatterns.length > 0) {
+    const bySport: Record<string, { total: number; kept: number }> = {};
+    for (const w of WorkoutLibrary) {
+      if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) continue;
+      const s = w.sport;
+      bySport[s] = bySport[s] || { total: 0, kept: 0 };
+      bySport[s].total++;
+      if (!matchesProhibition(w)) bySport[s].kept++;
+    }
+    for (const [sport, { total, kept }] of Object.entries(bySport)) {
+      if (total >= MIN_VIABLE_PER_SPORT && kept < MIN_VIABLE_PER_SPORT) {
+        bypassProhibitionForSport.add(sport);
+        console.warn(
+          `[buildWorkoutCatalog] ⚠️ Prohibition molle pour sport="${sport}" : ` +
+          `${kept}/${total} séances restantes après exclusion (min viable=${MIN_VIABLE_PER_SPORT}). ` +
+          `Exclusion désactivée pour ce sport.`
+        );
+      }
+    }
+  }
+
+  // Score and sort all workouts (avec exclusion prohibitions)
+  let excludedCount = 0;
   const scored = WorkoutLibrary
     .filter(w => {
       if (options?.sportFilter && options.sportFilter.length > 0) {
         if (!options.sportFilter.includes(w.sport)) return false;
       }
       if (options?.excludeIds?.has(w.id)) return false;
+      if (prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w)) {
+        excludedCount++;
+        return false;
+      }
       return true;
     })
     .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
     .sort((a, b) => b.score - a.score);
+
+  if (activeProhibitionKeys.length > 0) {
+    console.log(
+      `[buildWorkoutCatalog] Prohibitions actives: [${activeProhibitionKeys.join(", ")}] → ` +
+      `${excludedCount} séance(s) exclue(s) du pool` +
+      (bypassProhibitionForSport.size > 0 ? ` (bypass: ${Array.from(bypassProhibitionForSport).join(", ")})` : "")
+    );
+  }
 
   const selected: LibraryWorkout[] = [];
   const selectedIds = new Set<string>();
