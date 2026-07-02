@@ -37,7 +37,7 @@ export interface SnapshotNolio {
   running_power_5min?: number;      // Best 5min running power (W)
   // Natation
   pace100?: number;           // Pace 100m (secondes)
-  css?: number;               // Critical Swim Speed (min/100m)
+  css?: number;               // Critical Swim Speed (sec/100m)
   // TTE
   tte_observed_min?: number;     // TTE observée terrain (min)
   // Métadonnées

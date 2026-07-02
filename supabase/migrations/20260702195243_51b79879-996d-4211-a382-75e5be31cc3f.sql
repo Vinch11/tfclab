@@ -1,0 +1,1 @@
+UPDATE public.snapshots SET css = ROUND(css * 60) WHERE css IS NOT NULL AND css < 10;
