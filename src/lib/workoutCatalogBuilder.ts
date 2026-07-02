@@ -197,7 +197,12 @@ export function buildWorkoutCatalog(
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
   const phases = phasesForWeekRange(weekStart, weekEnd, totalWeeks);
-  const maxItems = options?.maxItems || 80; // ↑ from 60 to 80
+  const maxItems = options?.maxItems || 80;
+
+  // Résolution des limiteurs (labels bruts → clés de patterns)
+  const primaryKey = resolveLimiterKey(options?.limiters?.[0]);
+  const secondaryKey = resolveLimiterKey(options?.limiters?.[1]);
+  const limiterKeys = (primaryKey || secondaryKey) ? { primary: primaryKey, secondary: secondaryKey } : undefined;
 
   // Score and sort all workouts
   const scored = WorkoutLibrary
@@ -205,11 +210,10 @@ export function buildWorkoutCatalog(
       if (options?.sportFilter && options.sportFilter.length > 0) {
         if (!options.sportFilter.includes(w.sport)) return false;
       }
-      // Exclude IDs already selected in prior chunks
       if (options?.excludeIds?.has(w.id)) return false;
       return true;
     })
-    .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases) }))
+    .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
     .sort((a, b) => b.score - a.score);
 
   const selected: LibraryWorkout[] = [];
