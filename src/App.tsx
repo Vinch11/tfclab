@@ -99,11 +99,8 @@ export default function App() {
                   {/* Public — Mini Rapport (formulaire ouvert, sans auth) */}
                   <Route path="/mini-rapport" element={<MiniReportPage />} />
 
-                  {/* TEMP demo for MetricCard visual verification */}
-                  <Route path="/metric-card-demo" element={<MetricCardDemoPage />} />
-
-
                   {/* ═══════════════════════════════════════════ */}
+
                   {/* SECTION 1 — DASHBOARD                      */}
                   {/* ═══════════════════════════════════════════ */}
                   <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
