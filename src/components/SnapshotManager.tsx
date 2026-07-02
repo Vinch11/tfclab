@@ -698,7 +698,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           />
         </div>
         <div>
-          <Label htmlFor="css">CSS (min/100m)</Label>
+          <Label htmlFor="css">CSS (sec/100m)</Label>
           <Input
             id="css"
             type="number"
