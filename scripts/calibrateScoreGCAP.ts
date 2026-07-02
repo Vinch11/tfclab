@@ -21,57 +21,97 @@
 import fs from "node:fs";
 import { computeVLamaxRunV2Enhanced, type VLamaxRunV2EnhancedInput } from "../src/lib/v2/vlamaxRunV2Enhanced";
 import { estimateVLamaxCap } from "../src/lib/v2/vlamaxCapEstimator";
+import {
+  REFERENCE_DISTRIBUTIONS,
+  PLAUSIBILITY_BOUNDS,
+  POPULATION_TARGETS,
+  getPopulationTarget,
+  checkPlausibility,
+} from "../src/lib/v2/literatureReferences";
+import { predictRunMLSSPctFromVLaCE } from "../src/lib/v2/runMLSSPredictor";
 
 // ─────────────────────────────────────────────
-// 1) Profile generation
+// 1) Profile generation — ANCRÉ LITTÉRATURE
 // ─────────────────────────────────────────────
 interface Profile extends VLamaxRunV2EnhancedInput {
   vlamaxTarget: number;
+  vo2maxTarget: number;
   paceRatio: number;
 }
 
-function genSynthetic(): Profile[] {
-  const profiles: Profile[] = [];
-  const vmas = [14, 15, 16, 17, 18, 19, 20, 21];
-  const ratios = [0.78, 0.82, 0.85, 0.88, 0.91];
-  const weight = 70;
+// Mulberry32 PRNG (deterministic)
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeRandn(rand: () => number) {
+  return () => {
+    const u = Math.max(rand(), 1e-9);
+    const v = rand();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  };
+}
+const clampN = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-  for (const vma of vmas) {
-    for (const ratio of ratios) {
-      // Target VLamax from Billat pace ratio (engine-agnostic ground truth)
-      const vlaTarget = Math.max(0.20, Math.min(0.90,
-        0.20 + 0.70 * Math.max(0, Math.min(1, (0.92 - ratio) / 0.20))));
+/** Truncated normal draw clamped to plausibility bounds. */
+function drawTruncated(mean: number, sd: number, min: number, max: number, randn: () => number): number {
+  for (let i = 0; i < 20; i++) {
+    const x = mean + sd * randn();
+    if (x >= min && x <= max) return x;
+  }
+  return clampN(mean, min, max);
+}
+
+function genSynthetic(): Profile[] {
+  const rand = mulberry32(20260702);
+  const randn = makeRandn(rand);
+  const profiles: Profile[] = [];
+  const runVo2Bound = PLAUSIBILITY_BOUNDS.find(b => b.metric === "run_vo2max")!;
+  const runVlaBound = PLAUSIBILITY_BOUNDS.find(b => b.metric === "run_vlamax")!;
+
+  // 20 subelite + 20 trained = 40 profils ancrés
+  const tiers: Array<"subelite" | "trained"> = ["subelite", "trained"];
+  for (const tier of tiers) {
+    const dist = REFERENCE_DISTRIBUTIONS.run[tier]!;
+    for (let i = 0; i < 20; i++) {
+      const vo2 = drawTruncated(dist.vo2max.mean, dist.vo2max.sd, runVo2Bound.min, runVo2Bound.max, randn);
+      const vla = drawTruncated(dist.vlamax.mean, dist.vlamax.sd, runVlaBound.min, runVlaBound.max, randn);
+      // VMA (km/h) ≈ VO2max / 3.5 (Léger)
+      const vma = vo2 / 3.5;
+      // Ratio seuil/VMA inversé depuis Billat : vla = 0.20 + 0.70·(0.92-ratio)/0.20
+      const ratio = clampN(0.92 - 0.20 * (vla - 0.20) / 0.70, 0.74, 0.92);
+      const weight = clampN(65 + randn() * 7, 50, 90);
 
       const vThreshold_ms = (vma * ratio) / 3.6;
-      // CR varies with glycolytic profile: endurant ~0.95, glyco ~1.05 J/kg/m
-      const CR = 1.00 + 0.10 * (vlaTarget - 0.4);
+      const CR = 1.00 + 0.10 * (vla - 0.4);
       const Pthr = CR * vThreshold_ms * weight;
-
-      // Sprint multipliers tied to glycolytic target (literature-aligned shape)
-      const Pthrs = Pthr;
-      const m1 = 2.0 + 1.0 * vlaTarget;        // P1s/Pthr
-      const m5 = 1.6 + 0.8 * vlaTarget;
-      const m30 = 1.20 + 0.65 * vlaTarget;
-      const m60 = 1.05 + 0.35 * vlaTarget;
-      const rfm = 0.95 - 0.18 * vlaTarget;      // E component
-      const tte = Math.round(60 - 40 * (vlaTarget - 0.2) / 0.6);
+      const m1 = 2.0 + 1.0 * vla, m5 = 1.6 + 0.8 * vla;
+      const m30 = 1.20 + 0.65 * vla, m60 = 1.05 + 0.35 * vla;
+      const rfm = 0.95 - 0.18 * vla;
+      const tte = Math.round(60 - 40 * (vla - 0.2) / 0.6);
 
       profiles.push({
         vma, paceThresholdSecPerKm: 3600 / (vma * ratio),
-        runPowerThreshold: Pthrs,
-        runPower1s: Pthrs * m1,
-        runPower5s: Pthrs * m5,
-        runPower30s: Pthrs * m30,
-        runPower60s: Pthrs * m60,
-        runPower5min: Pthrs / rfm,
+        runPowerThreshold: Pthr,
+        runPower1s: Pthr * m1, runPower5s: Pthr * m5,
+        runPower30s: Pthr * m30, runPower60s: Pthr * m60,
+        runPower5min: Pthr / rfm,
         tteMin: tte,
         weightKg: weight, protocolQuality: 4,
-        vlamaxTarget: vlaTarget, paceRatio: ratio,
+        vlamaxTarget: vla, vo2maxTarget: vo2, paceRatio: ratio,
       });
     }
   }
   return profiles;
 }
+
+
 
 function loadCSV(path: string): Profile[] {
   const txt = fs.readFileSync(path, "utf8");
