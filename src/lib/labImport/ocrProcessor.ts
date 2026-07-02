@@ -1,8 +1,6 @@
 // =============================================
-// OCR Processing with Tesseract.js
+// OCR Processing with Tesseract.js (lazy-loaded)
 // =============================================
-
-import Tesseract from "tesseract.js";
 
 export interface OcrResult {
   textByPage: string[];
@@ -17,6 +15,8 @@ export async function performOcr(
   pageImages: string[],
   onProgress?: (progress: number, status: string) => void
 ): Promise<OcrResult> {
+  const { default: Tesseract } = await import("tesseract.js");
+
   const startTime = Date.now();
   const textByPage: string[] = [];
   let totalConfidence = 0;

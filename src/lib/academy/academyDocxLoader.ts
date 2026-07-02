@@ -1,4 +1,4 @@
-import mammoth from "mammoth";
+// mammoth is dynamically imported inside loadAcademyHtml to keep it out of the initial bundle
 
 const CACHE_KEY = "academy-docx-cache-v1";
 const DOCX_PATH = "/academy/THEORIE_PLANIFICATION.docx";
@@ -50,6 +50,7 @@ export async function loadAcademyHtml(): Promise<string> {
     }
 
     const arrayBuffer = await response.arrayBuffer();
+    const { default: mammoth } = await import("mammoth");
     const result = await mammoth.convertToHtml({ arrayBuffer });
     
     const html = result.value;

@@ -1,11 +1,6 @@
 // =============================================
-// PDF Text Extraction with pdfjs-dist
+// PDF Text Extraction with pdfjs-dist (lazy-loaded)
 // =============================================
-
-import * as pdfjsLib from "pdfjs-dist";
-
-// Set worker source
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 export interface PdfExtractionResult {
   textByPage: string[];
@@ -14,10 +9,22 @@ export interface PdfExtractionResult {
   totalCharacters: number;
 }
 
+let _pdfjsPromise: Promise<typeof import("pdfjs-dist")> | null = null;
+async function getPdfJs() {
+  if (!_pdfjsPromise) {
+    _pdfjsPromise = import("pdfjs-dist").then((mod) => {
+      mod.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${mod.version}/pdf.worker.min.mjs`;
+      return mod;
+    });
+  }
+  return _pdfjsPromise;
+}
+
 /**
  * Extract text from PDF file using pdfjs-dist
  */
 export async function extractTextFromPdf(file: File): Promise<PdfExtractionResult> {
+  const pdfjsLib = await getPdfJs();
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   
@@ -68,6 +75,7 @@ export async function extractTextFromPdf(file: File): Promise<PdfExtractionResul
  * Convert PDF page to image for OCR
  */
 export async function pdfPageToImage(file: File, pageNum: number): Promise<string> {
+  const pdfjsLib = await getPdfJs();
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const page = await pdf.getPage(pageNum);
@@ -97,6 +105,7 @@ export async function pdfPageToImage(file: File, pageNum: number): Promise<strin
  * Get all pages as images for OCR processing
  */
 export async function getAllPagesAsImages(file: File): Promise<string[]> {
+  const pdfjsLib = await getPdfJs();
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   
