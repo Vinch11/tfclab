@@ -33,6 +33,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { OutOfDomainBadge, disciplineFromGoal } from "@/components/OutOfDomainBadge";
+
 
 // =============================================
 // TYPES
