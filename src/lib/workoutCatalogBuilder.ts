@@ -131,16 +131,26 @@ function scoreWorkout(
   if (isEliteOrAntiMonotony(w)) score += 4;
 
   // ─── Bonus technique modulé par phase (Lorang : technique en début de cycle) ───
+  // Pattern resserré : retire `cadence`/`core`/`gainage` (trop larges → captent vélo + renfo).
   const structureTextTech = (w.structure || [])
     .map(s => `${s.part} ${s.text} ${s.zones.join(" ")}`)
     .join(" ");
   const techMatchText = `${w.objectif} ${structureTextTech} ${(w.tags || []).join(" ")}`;
-  const isTechnical = /technique|éducatif|drill|gammes|strides|cadence|proprio|mobilit|gainage|core/i.test(techMatchText);
+  const isTechnical = /technique|éducatif|drill|gammes|strides|proprio|mobilit/i.test(techMatchText);
   if (isTechnical) {
     if (phases.includes("base")) score += 8;
     else if (phases.includes("build")) score += 4;
     else if (phases.includes("peak") || phases.includes("taper")) score -= 2;
   }
+
+  // ─── Bonus volume aérobie en phase base (socle Lorang) ───
+  // Garantit que Z2 long / endurance fondamentale / sortie longue reste le socle
+  // même quand un athlète n'est pas limité en durabilité (pas de bonus limiter +18).
+  const isAerobicVolume = /z2|zone\s*2|endurance\s*(?:fondament|foncier|longue|base)|sortie\s*longue|\bsl\b|long\s*(?:run|ride)|ef\b|ea\b|steady\s*long/i.test(techMatchText);
+  if (isAerobicVolume && phases.includes("base")) {
+    score += 6;
+  }
+
 
   // ─── Limiter bonus (F-LIM) ───
   // Boost sessions whose text matches the diagnosed primary/secondary limiter.
