@@ -273,6 +273,8 @@ export function VLamaxUnifiedCard({
             {isOnRunTab ? <Footprints className="h-3 w-3" /> : <Bike className="h-3 w-3" />}
             Source : {isOnRunTab ? "VLamax CAP (run)" : "VLamax vélo"}
           </Badge>
+          <OutOfDomainBadge metric={isOnRunTab ? "run_vlamax" : "bike_vlamax"} value={vlamax} />
+
           {staffMode && v2Result && (
             <Badge 
               variant="outline" 
