@@ -238,9 +238,9 @@ function MetricCard({
           {icon}
           <span className="text-sm">{label}</span>
         </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold">{value}</span>
-          <span className="text-sm text-muted-foreground">{unit}</span>
+        <div className="flex items-baseline gap-1 sm:gap-2">
+          <span className="font-display font-semibold text-2xl sm:text-4xl tracking-tight tabular-nums">{value}</span>
+          <span className="text-muted-foreground text-xs sm:text-sm">{unit}</span>
         </div>
         <Progress value={Math.min(progress, 100)} className="h-1.5 mt-2" />
       </CardContent>

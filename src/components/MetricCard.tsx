@@ -80,8 +80,8 @@ export function MetricCard({
       </div>
       <p className="metric-label mb-1 sm:mb-2 text-xs sm:text-sm">{title}</p>
       <div className="flex items-baseline gap-1 sm:gap-2">
-        <span className={cn("metric-value text-lg sm:text-2xl", `text-${accentColor}`)}>{value}</span>
-        {unit && <span className="text-muted-foreground text-[10px] sm:text-sm">{unit}</span>}
+        <span className={cn("font-display font-semibold text-2xl sm:text-4xl tracking-tight tabular-nums", `text-${accentColor}`)}>{value}</span>
+        {unit && <span className="text-muted-foreground text-xs sm:text-sm">{unit}</span>}
       </div>
     </div>
   );

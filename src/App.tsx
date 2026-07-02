@@ -17,6 +17,8 @@ import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import Index from "./pages/Index";
 
+
+
 // Lazy: split into per-route chunks
 const DiagnosticPage = lazy(() => import("./pages/DiagnosticPage"));
 const PlanningPage = lazy(() => import("./pages/PlanningPage"));
@@ -98,6 +100,7 @@ export default function App() {
                   <Route path="/mini-rapport" element={<MiniReportPage />} />
 
                   {/* ═══════════════════════════════════════════ */}
+
                   {/* SECTION 1 — DASHBOARD                      */}
                   {/* ═══════════════════════════════════════════ */}
                   <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
