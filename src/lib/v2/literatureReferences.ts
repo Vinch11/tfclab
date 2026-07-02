@@ -210,10 +210,10 @@ export const PLAUSIBILITY_BOUNDS: PlausibilityBound[] = [
   },
   {
     metric: 'run_MLSS_pct_vo2max',
-    min: 70,
-    max: 88,
+    min: 72,
+    max: 92,
     unit: '% VO2max',
-    rationale: 'Union des plages course publiées + marge. Sortie modèle hors bornes = suspecte.',
+    rationale: 'Vrai MLSS coureurs entraînés 83 ± 5 (IJERPH 2018), mean ± ~2 SD. Distinct de LT1 2 mmol/L (~79%).',
   },
   {
     metric: 'bike_MLSS_pct_vo2max',
