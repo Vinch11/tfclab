@@ -81,6 +81,9 @@ export function TestLibraryView({ tests, sportFilter, onStartTest }: TestLibrary
                   <Badge variant="outline" className={getCategoryColor(test.category)}>
                     {test.category}
                   </Badge>
+                  {test.id === "run_vlamax_sprint_15s_12min" && (
+                    <Badge className="bg-primary text-primary-foreground">★ Recommandé</Badge>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                   {test.objective}
