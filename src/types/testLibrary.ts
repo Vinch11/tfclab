@@ -19,12 +19,17 @@ export interface TestVariable {
 }
 
 // Résultat standardisé d'un test
+export type VLamaxTendance = "aerobie" | "mixte" | "glycolytique";
+
 export interface StandardTestResult {
   ok: boolean;
   msg?: string;
   vlamax?: number | null;
   raw: Record<string, number>;
   note: string;
+  // Estimation "tendance" (test indicatif, ex. Wingate) — pas une mesure
+  tendance?: VLamaxTendance;
+  vlamaxRange?: [number, number];
 }
 
 // Résultat de test stocké sur l'athlète
