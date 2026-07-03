@@ -123,7 +123,9 @@ export const TestLibrary: TestProtocol[] = [
     compute: (athlete, input) => {
       const p = Number(input.pmean30);
       const wIn = Number(input.weight);
-      const w = wIn && wIn > 0 ? wIn : (athlete?.poids && athlete.poids > 0 ? athlete.poids : 0);
+      const lastSnap = athlete?.historique?.[athlete.historique.length - 1];
+      const snapW = (lastSnap as any)?.poids;
+      const w = wIn && wIn > 0 ? wIn : (snapW && snapW > 0 ? snapW : 0);
       if (!p || p <= 0) return { ok: false, msg: "Puissance invalide", raw: { pmean30: p || 0 }, note: "" };
       if (!w) return { ok: false, msg: "Poids athlète requis (profil ou champ)", raw: { pmean30: p, weight: 0 }, note: "" };
 
