@@ -19,12 +19,17 @@ export interface TestVariable {
 }
 
 // Résultat standardisé d'un test
+export type VLamaxTendance = "aerobie" | "mixte" | "glycolytique";
+
 export interface StandardTestResult {
   ok: boolean;
   msg?: string;
   vlamax?: number | null;
   raw: Record<string, number>;
   note: string;
+  // Estimation "tendance" (test indicatif, ex. Wingate) — pas une mesure
+  tendance?: VLamaxTendance;
+  vlamaxRange?: [number, number];
 }
 
 // Résultat de test stocké sur l'athlète
@@ -40,6 +45,8 @@ export interface StoredTestResult {
   note: string;
   source: "library" | "manual";
   notes?: string;
+  tendance?: VLamaxTendance;
+  vlamaxRange?: [number, number];
 }
 
 // Définition d'un protocole de test
@@ -66,12 +73,17 @@ export const TestLibrary: TestProtocol[] = [
   // =============================================
   // TESTS VLAMAX - Alimentent le modèle VLamax
   // =============================================
+  // -------------------------------------------------------------
+  // MARQUEUR COMPLÉMENTAIRE (REF) — Sprint 5–10 s vélo
+  // Fenêtre 5–10 s = ATP-PCr (neuromusculaire), pas glycolytique.
+  // Ne modifie plus la VLamax pondérée du profil.
+  // -------------------------------------------------------------
   {
     id: "bike_sprint_10s",
-    type: "VLAMAX",
+    type: "REF",
     sport: "Cyclisme",
-    nom: "Sprint maximal 5–10 s",
-    objectif: "Estimation VLamax (débit glycolytique) via puissance max",
+    nom: "Puissance neuromusculaire pic (5–10 s)",
+    objectif: "Marqueur complémentaire — puissance pic ATP-PCr (pas d'estimation VLamax)",
     variables: [{ key: "pmax", label: "Puissance max (W)", unit: "W", min: 100, max: 2500 }],
     protocole: [
       "Échauffement 20 min progressif",
@@ -79,88 +91,88 @@ export const TestLibrary: TestProtocol[] = [
       "Récupération complète 5 min",
       "Capteur de puissance obligatoire"
     ],
-    calcul: "VLamax ≈ Pmax / 1000",
-    fiabilite: 0.90,
-    commentaire: "Très bon indicateur terrain de la capacité anaérobie.",
-    compute: (athlete, input) => {
+    calcul: "Pmax observée (W) — marqueur ATP-PCr",
+    fiabilite: null,
+    commentaire: "Marqueur neuromusculaire. Ne modifie pas la VLamax (mauvaise filière).",
+    compute: (_athlete, input) => {
       const p = Number(input.pmax);
       if (!p || p <= 0) return { ok: false, msg: "Puissance invalide", raw: { pmax: p || 0 }, note: "" };
-      const vlamax = p / 1000;
-      return { ok: true, vlamax, raw: { pmax: p }, note: "Proxy VLamax via Pmax/1000" };
+      return { ok: true, vlamax: null, raw: { pmax: p }, note: `Pmax neuromusculaire: ${p} W (marqueur, pas VLamax)` };
     }
   },
+  // -------------------------------------------------------------
+  // Wingate 30 s — recalibré en TENDANCE, pas point précis
+  // -------------------------------------------------------------
   {
     id: "bike_wingate",
     type: "VLAMAX",
     sport: "Cyclisme",
-    nom: "Wingate 30 s",
-    objectif: "Capacité anaérobie + proxy VLamax via puissance moyenne",
-    variables: [{ key: "pmean30", label: "Puissance moyenne 30 s (W)", unit: "W", min: 50, max: 1500 }],
+    nom: "Wingate 30 s (estimation indicative)",
+    objectif: "Tendance métabolique glycolytique via ratio W/kg sur 30 s",
+    variables: [
+      { key: "pmean30", label: "Puissance moyenne 30 s (W)", unit: "W", min: 50, max: 1500 },
+      { key: "weight", label: "Poids (kg) — optionnel si renseigné profil", unit: "kg", min: 30, max: 150 }
+    ],
     protocole: [
       "Échauffement 20–25 min",
       "Sprint maximal 30 s",
       "Résistance constante",
       "Repos complet après le test"
     ],
-    calcul: "VLamax ≈ Pmoy30 / 1000",
-    fiabilite: 0.75,
-    commentaire: "Plus fatigant, à éviter en période chargée.",
+    calcul: "Ratio Pmoy30/poids → tendance aérobie/mixte/glycolytique (fourchette VLamax indicative)",
+    fiabilite: 0.35,
+    commentaire: "Estimation indicative — donne une TENDANCE, pas une mesure précise. Pondérée faiblement dans le profil.",
     compute: (athlete, input) => {
       const p = Number(input.pmean30);
+      const wIn = Number(input.weight);
+      const lastSnap = athlete?.historique?.[athlete.historique.length - 1];
+      const snapW = (lastSnap as any)?.poids;
+      const w = wIn && wIn > 0 ? wIn : (snapW && snapW > 0 ? snapW : 0);
       if (!p || p <= 0) return { ok: false, msg: "Puissance invalide", raw: { pmean30: p || 0 }, note: "" };
-      const vlamax = p / 1000;
-      return { ok: true, vlamax, raw: { pmean30: p }, note: "Proxy VLamax via Pmoy30/1000" };
+      if (!w) return { ok: false, msg: "Poids athlète requis (profil ou champ)", raw: { pmean30: p, weight: 0 }, note: "" };
+
+      const wkg = p / w;
+      let tendance: VLamaxTendance;
+      let range: [number, number];
+      if (wkg < 5) { tendance = "aerobie"; range = [0.30, 0.40]; }
+      else if (wkg < 7) { tendance = "mixte"; range = [0.40, 0.55]; }
+      else { tendance = "glycolytique"; range = [0.55, 0.70]; }
+      const vlamax = (range[0] + range[1]) / 2;
+
+      return {
+        ok: true,
+        vlamax,
+        tendance,
+        vlamaxRange: range,
+        raw: { pmean30: p, weight: w, wkg, vlamaxMin: range[0], vlamaxMax: range[1] },
+        note: `Tendance ${tendance} (${wkg.toFixed(2)} W/kg) — VLamax indicative ${range[0].toFixed(2)}–${range[1].toFixed(2)}. Estimation indicative, pas mesure.`
+      };
     }
   },
-  {
-    id: "run_sprint_40m",
-    type: "VLAMAX",
-    sport: "Course à pied",
-    nom: "Sprint 30–50 m",
-    objectif: "Proxy VLamax course via vitesse max",
-    variables: [
-      { key: "dist", label: "Distance (m)", unit: "m", min: 20, max: 100 },
-      { key: "time", label: "Temps (s)", unit: "s", min: 2, max: 20 }
-    ],
-    protocole: [
-      "Échauffement complet",
-      "Sprint départ arrêté ou lancé",
-      "Chronométrage précis",
-      "2–3 essais max"
-    ],
-    calcul: "VLamax ≈ (m/s) / 10",
-    fiabilite: 0.70,
-    commentaire: "Sensibilité à la technique de course.",
-    compute: (athlete, input) => {
-      const d = Number(input.dist);
-      const t = Number(input.time);
-      if (!d || !t || t <= 0) return { ok: false, msg: "Valeurs invalides", raw: { dist: d || 0, time: t || 0 }, note: "" };
-      const vms = d / t;
-      const vlamax = vms / 10;
-      return { ok: true, vlamax, raw: { dist: d, time: t, vms }, note: "Proxy VLamax via (m/s)/10" };
-    }
-  },
+  // -------------------------------------------------------------
+  // MARQUEUR COMPLÉMENTAIRE (REF) — 200 m nage libre
+  // Effort majoritairement aérobie: pas d'estimation VLamax.
+  // -------------------------------------------------------------
   {
     id: "swim_200m",
-    type: "VLAMAX",
+    type: "REF",
     sport: "Natation",
-    nom: "Test 200 m nage libre",
-    objectif: "Estimation VLamax / capacité anaérobie natation",
+    nom: "Vitesse critique / capacité 200 m",
+    objectif: "Marqueur complémentaire — capacité 200 m nage libre (pas d'estimation VLamax)",
     variables: [{ key: "time200", label: "Temps 200 m (sec)", unit: "s", min: 90, max: 400 }],
     protocole: [
       "Échauffement 15–20 min",
       "200 m à intensité maximale",
       "Chronométrage précis"
     ],
-    calcul: "VLamax ≈ vitesse (m/s) / 3",
-    fiabilite: 0.70,
-    commentaire: "Très dépendant de la technique.",
-    compute: (athlete, input) => {
+    calcul: "Vitesse moyenne 200 m (m/s) — marqueur aérobie",
+    fiabilite: null,
+    commentaire: "Marqueur aérobie natation. Ne modifie pas la VLamax (mauvaise filière).",
+    compute: (_athlete, input) => {
       const t = Number(input.time200);
       if (!t || t <= 0) return { ok: false, msg: "Temps invalide", raw: { time200: t || 0 }, note: "" };
       const vms = 200 / t;
-      const vlamax = vms / 3;
-      return { ok: true, vlamax, raw: { time200: t, vms }, note: "Proxy VLamax natation via vitesse/3" };
+      return { ok: true, vlamax: null, raw: { time200: t, vms }, note: `Vitesse 200 m: ${vms.toFixed(2)} m/s (marqueur, pas VLamax)` };
     }
   },
 
@@ -298,7 +310,7 @@ export const TestLibrary: TestProtocol[] = [
     id: "run_vlamax_sprint15_12min",
     type: "VLAMAX",
     sport: "Course à pied",
-    nom: "VLamax CAP – Sprint 15s + 12 min",
+    nom: "VLamax rapide – Sprint 15s + 12 min (recommandé)",
     objectif: "Estimation VLamax course via sprint court (glycolytique) + effort 12 min (aérobie)",
     variables: [
       { key: "distSprint1", label: "Distance sprint 1 (m)", unit: "m", min: 30, max: 150 },
@@ -447,7 +459,9 @@ export function addTestResultToAthlete(
     vlamax: testDef.type === "VLAMAX" ? (result.vlamax ?? null) : null,
     raw: result.raw,
     note: result.note,
-    source: "library"
+    source: "library",
+    tendance: result.tendance,
+    vlamaxRange: result.vlamaxRange,
   };
 
   athlete.tests.push(stored);
