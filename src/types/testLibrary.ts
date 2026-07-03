@@ -308,7 +308,7 @@ export const TestLibrary: TestProtocol[] = [
     id: "run_vlamax_sprint15_12min",
     type: "VLAMAX",
     sport: "Course à pied",
-    nom: "VLamax CAP – Sprint 15s + 12 min",
+    nom: "VLamax rapide – Sprint 15s + 12 min (recommandé)",
     objectif: "Estimation VLamax course via sprint court (glycolytique) + effort 12 min (aérobie)",
     variables: [
       { key: "distSprint1", label: "Distance sprint 1 (m)", unit: "m", min: 30, max: 150 },
