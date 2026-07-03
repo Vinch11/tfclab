@@ -39,7 +39,11 @@ export function TestLibraryView({ tests, sportFilter, onStartTest }: TestLibrary
   }, [tests, sportFilter]);
   
   const bikeTests = filteredTests.filter(t => t.sport === "bike");
-  const runTests = filteredTests.filter(t => t.sport === "run");
+  const runTests = [...filteredTests.filter(t => t.sport === "run")].sort((a, b) => {
+    if (a.id === "run_vlamax_sprint_15s_12min") return -1;
+    if (b.id === "run_vlamax_sprint_15s_12min") return 1;
+    return 0;
+  });
   
   const getSportIcon = (sport: TestSport) => {
     switch (sport) {
