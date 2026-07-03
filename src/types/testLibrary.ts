@@ -459,7 +459,9 @@ export function addTestResultToAthlete(
     vlamax: testDef.type === "VLAMAX" ? (result.vlamax ?? null) : null,
     raw: result.raw,
     note: result.note,
-    source: "library"
+    source: "library",
+    tendance: result.tendance,
+    vlamaxRange: result.vlamaxRange,
   };
 
   athlete.tests.push(stored);
