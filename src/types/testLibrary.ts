@@ -45,6 +45,8 @@ export interface StoredTestResult {
   note: string;
   source: "library" | "manual";
   notes?: string;
+  tendance?: VLamaxTendance;
+  vlamaxRange?: [number, number];
 }
 
 // Définition d'un protocole de test
