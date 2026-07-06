@@ -463,12 +463,12 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
             background: `radial-gradient(600px 200px at 85% 0%, ${scoreStyle.ring}, transparent 60%)`,
           }}
         />
-        <div className="relative px-4 py-3 sm:px-5 sm:py-4 border-b border-border/40">
-          {/* Ligne 1 : eyebrow + KPIs inline + actions */}
+        <div className="relative px-4 py-4 sm:px-5 sm:py-5 border-b border-border/40">
+          {/* Ligne 1 : eyebrow + actions */}
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
-              <Gauge className="h-3 w-3 shrink-0" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] truncate">
+              <Gauge className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] truncate">
                 Analyse · {diagnostic.objectif} · {diagnostic.ambition}
               </span>
             </div>
@@ -476,53 +476,60 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
               variant="ghost"
               size="sm"
               className={cn(
-                "h-6 px-2 text-[10px] gap-1",
+                "h-7 px-2 text-xs gap-1",
                 isReorderMode ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
               onClick={() => setIsReorderMode(v => !v)}
             >
-              <ArrowUpDown className="h-3 w-3" />
+              <ArrowUpDown className="h-3.5 w-3.5" />
               {isReorderMode ? "OK" : "Trier"}
             </Button>
           </div>
 
-          {/* Ligne 2 : gauge + headline + KPIs inline */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* Gauge compacte */}
-            <ProgressRing pct={scoreValue ?? 0} color={scoreStyle.ring} size={56} stroke={4}>
+          {/* Ligne 2 : gauge + headline */}
+          <div className="flex items-center gap-4">
+            <ProgressRing pct={scoreValue ?? 0} color={scoreStyle.ring} size={72} stroke={5}>
               <div className="flex flex-col items-center leading-none">
-                <span className={cn("text-base font-semibold tabular-nums", scoreStyle.text)}>
+                <span className={cn("text-xl font-bold tabular-nums", scoreStyle.text)}>
                   {scoreValue ?? "—"}
                 </span>
-                <span className="text-[8px] uppercase tracking-widest text-muted-foreground mt-0.5">
-                  Score
+                <span className="text-[9px] uppercase tracking-widest text-muted-foreground mt-0.5">
+                  /100
                 </span>
               </div>
             </ProgressRing>
 
-            {/* Headline + KPIs inline */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm sm:text-base font-semibold tracking-tight leading-snug text-foreground line-clamp-2">
+              <h3 className="text-base sm:text-lg font-semibold tracking-tight leading-snug text-foreground line-clamp-2">
                 {synthesis.headline}
               </h3>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[10px] text-muted-foreground">
-                <InlineKpi label="données" value={`${completenessPct}%`} tone={completenessPct >= 70 ? "on_target" : "developing"} />
-                <InlineKpi label="cible" value={onTargetCount} tone={onTargetCount > 0 ? "excellent" : "unknown"} />
-                <InlineKpi label="prio" value={priorityCount} tone={priorityCount > 0 ? "priority" : "on_target"} />
-                <InlineKpi label="alertes" value={alertsCount} tone={criticalCount > 0 ? "priority" : alertsCount > 0 ? "developing" : "on_target"} />
+              <div className={cn(
+                "inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold px-2 py-0.5 rounded-full",
+                scoreStyle.chip
+              )}>
+                <scoreStyle.Icon className="h-3 w-3" />
+                {scoreStyle.label}
               </div>
             </div>
           </div>
 
-          {/* Forces chips, très compact */}
+          {/* Ligne 3 : KPI tiles — lisibles */}
+          <div className="grid grid-cols-4 gap-2 mt-4">
+            <KpiTile label="Données" value={`${completenessPct}%`} tone={completenessPct >= 70 ? "on_target" : "developing"} />
+            <KpiTile label="Cible" value={onTargetCount} tone={onTargetCount > 0 ? "excellent" : "unknown"} />
+            <KpiTile label="Prioritaires" value={priorityCount} tone={priorityCount > 0 ? "priority" : "on_target"} />
+            <KpiTile label="Alertes" value={alertsCount} tone={criticalCount > 0 ? "priority" : alertsCount > 0 ? "developing" : "on_target"} />
+          </div>
+
+          {/* Forces chips */}
           {synthesis.strengths.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2.5">
+            <div className="flex flex-wrap gap-1.5 mt-3">
               {synthesis.strengths.slice(0, 5).map((s, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.15)] font-medium"
+                  className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.15)] font-medium"
                 >
-                  <Sparkles className="h-2 w-2" />
+                  <Sparkles className="h-2.5 w-2.5" />
                   {s}
                 </span>
               ))}
