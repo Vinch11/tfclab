@@ -610,20 +610,16 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   );
 }
 
-// ─── Sous-composant KPI ─────────────────────────────────────
-function KpiCell({ label, value, tone }: { label: string; value: string | number; tone: StatusTone }) {
+// ─── Sous-composant KPI inline ─────────────────────────────
+function InlineKpi({ label, value, tone }: { label: string; value: string | number; tone: StatusTone }) {
   const style = TONE_STYLES[tone];
   return (
-    <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-background/50 border border-border/40">
-      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", style.accent)} />
-      <div className="min-w-0">
-        <div className={cn("text-base font-semibold tabular-nums leading-none", style.text)}>
-          {value}
-        </div>
-        <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
-          {label}
-        </div>
-      </div>
-    </div>
+    <span className="inline-flex items-center gap-1">
+      <span className={cn("h-1 w-1 rounded-full", style.accent)} />
+      <span className={cn("text-[11px] font-semibold tabular-nums leading-none", style.text)}>
+        {value}
+      </span>
+      <span className="text-muted-foreground/80">{label}</span>
+    </span>
   );
 }
