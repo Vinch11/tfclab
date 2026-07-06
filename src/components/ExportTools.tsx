@@ -3692,10 +3692,11 @@ function buildExecutiveSummaryHTML(payload: ExportPayload): string {
   const disciplineLabel = runGoals.has(goal as string) ? "Coureur"
     : triGoals.has(goal as string) ? "Triathlète"
     : "Cycliste";
-  const ambitionLabel = ambition?.current === "elite" ? "élite"
-    : ambition?.current === "podium" ? "podium"
-    : ambition?.current === "competitor" ? "compétiteur"
-    : ambition?.current === "finisher" ? "finisher"
+  const ambitionCur = ambition?.current as string | undefined;
+  const ambitionLabel = ambitionCur === "world_class" ? "élite"
+    : ambitionCur === "competitor" ? "compétiteur"
+    : ambitionCur === "finisher" ? "finisher"
+    : ambitionCur === "age_group" ? "âge-groupe"
     : "intermédiaire";
 
   const vlaVal = vlamax?.value ?? null;
