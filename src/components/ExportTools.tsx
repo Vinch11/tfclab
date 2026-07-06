@@ -8156,6 +8156,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       </head>
       <body>
         ${coverHTML}
+        ${buildExecutiveSummaryHTML(payload)}
         
         <div class="noPrint" style="padding:16px;background:#f0f9ff;border-radius:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
           <button onclick="window.print()" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#2563eb;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
