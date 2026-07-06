@@ -6097,7 +6097,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </div>
           </div>
           <div>
-            <h4>📊 Échelle AAI</h4>
+            <h4>📊 Échelle ${aaiShort}</h4>
             <svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="aaiGrad" x1="0%" y1="0%" x2="100%" y2="0%">
