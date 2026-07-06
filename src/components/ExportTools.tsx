@@ -9538,9 +9538,19 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       // Convert logo to base64 for embedding in the PDF
       const logoBase64 = await imageToBase64(logoUrl);
       
+      // Détecter le preset actif pour dériver l'audience
+      const currentPresetKey: ReportPreset | null = (() => {
+        const keys = Object.keys(sections) as (keyof ReportSections)[];
+        for (const p of Object.keys(REPORT_PRESETS) as ReportPreset[]) {
+          const ref = REPORT_PRESETS[p].sections;
+          if (keys.every(k => !!sections[k] === !!ref[k])) return p;
+        }
+        return null;
+      })();
+      
       const exportOptions: ExportOptions = {
         sections,
-        audience: activePreset === "athlete" ? "athlete" : "staff",
+        audience: currentPresetKey === "athlete" ? "athlete" : "staff",
       };
       
       const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions, calibrationEvidences);
