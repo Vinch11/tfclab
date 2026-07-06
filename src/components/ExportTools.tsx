@@ -3674,6 +3674,209 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
 // et explicitement non dogmatique
 // =============================================
 
+// =============================================
+// EXECUTIVE SUMMARY — Page autonome "si tu ne lis qu'une chose"
+// Placée juste après la cover, avant toute section technique.
+// Répond à 4 questions : profil, limiteur, leviers, chrono, risque.
+// =============================================
+function buildExecutiveSummaryHTML(payload: ExportPayload): string {
+  const {
+    athlete, effectiveRefs, effectiveSnapshot, vlamax,
+    unifiedLimiter, capInjuryRisk, nutritionEstimate, ambition, raceRecords,
+  } = payload;
+
+  const goal = normalizeRaceType(athlete.goal || "IM");
+  const goalLabel = getObjectifLabel(athlete.goal);
+  const runGoals = new Set(["MARATHON", "SEMI", "10K", "5K", "TRAIL", "ULTRA_TRAIL", "ULTRA"]);
+  const triGoals = new Set(["IM", "70.3", "OLYMPIQUE", "SPRINT"]);
+  const disciplineLabel = runGoals.has(goal as string) ? "Coureur"
+    : triGoals.has(goal as string) ? "Triathlète"
+    : "Cycliste";
+  const ambitionLabel = ambition?.current === "elite" ? "élite"
+    : ambition?.current === "podium" ? "podium"
+    : ambition?.current === "competitor" ? "compétiteur"
+    : ambition?.current === "finisher" ? "finisher"
+    : "intermédiaire";
+
+  const vlaVal = vlamax?.value ?? null;
+  const orientation = vlaVal == null ? null
+    : vlaVal <= 0.35 ? "profil plutôt aérobie"
+    : vlaVal >= 0.55 ? "profil plutôt glycolytique"
+    : "profil équilibré";
+
+  const isRun = runGoals.has(goal as string);
+  const keyMetric = isRun && effectiveSnapshot?.vma
+    ? `VMA ${effectiveSnapshot.vma.toFixed(1)} km/h`
+    : (effectiveRefs.ftp && effectiveRefs.weightKg && effectiveRefs.weightKg > 0)
+      ? `FTP ${(effectiveRefs.ftp / effectiveRefs.weightKg).toFixed(1)} W/kg`
+      : effectiveRefs.ftp
+        ? `FTP ${effectiveRefs.ftp} W`
+        : null;
+
+  const profilePhrase = [
+    `${disciplineLabel} ${ambitionLabel}`,
+    orientation,
+    keyMetric,
+    `objectif ${goalLabel}`,
+  ].filter(Boolean).join(", ") + ".";
+
+  // ─── Facteur limitant ─────────────────────────────
+  const hasLimiter = !!(unifiedLimiter && unifiedLimiter.limiterLabel);
+  const limiterName = hasLimiter ? htmlEscape(unifiedLimiter.limiterLabel) : null;
+  const limiterImplication = hasLimiter
+    ? (unifiedLimiter.leverLabel
+        ? `Le travail « ${htmlEscape(unifiedLimiter.leverLabel)} » est la priorité du cycle.`
+        : "C'est l'axe prioritaire du cycle.")
+    : null;
+
+  // ─── Leviers prioritaires ─────────────────────────
+  const VERB_BY_METRIC: Record<string, string> = {
+    "VO2max": "Développer le VO2max (fractionné long 3–5 min)",
+    "FTP/kg": "Élever le seuil (sweet spot & 2×20 min)",
+    "VMA": "Travailler la VMA (fractionné court 200–400 m)",
+    "VLamax": "Abaisser la VLamax (volume Z2, moins de sprints)",
+    "TTE": "Prolonger le TTE (2×20 → 1×45 min au seuil)",
+    "Economy": "Améliorer l'économie (drills, cadence, plyométrie)",
+    "FatMax": "Élever le FatMax (sorties longues Z2 à jeun)",
+    "Durability": "Renforcer la durabilité (sorties >3 h, back-to-back)",
+  };
+  const gaps = ((unifiedLimiter as any)?.gapAnalysis ?? [])
+    .filter((g: any) => g?.status !== "unknown" && typeof g?.gap === "number" && g.gap < -3)
+    .sort((a: any, b: any) => a.gap - b.gap)
+    .slice(0, 3);
+  const leviers: string[] = gaps.map((g: any) => VERB_BY_METRIC[g.metric] || `Développer ${g.metric}`);
+
+  // ─── Prédiction chrono ────────────────────────────
+  let predictionBlock: string | null = null;
+  try {
+    const vo2 = effectiveRefs.vo2max ?? effectiveSnapshot?.vo2max ?? null;
+    const wKg = effectiveRefs.weightKg ?? effectiveSnapshot?.weight_kg ?? null;
+    if (vo2 && vlaVal && wKg) {
+      const output = computePerformancePredictions({
+        vo2max: vo2, vlamax: vlaVal, weight: wKg,
+        ftp: effectiveRefs.ftp ?? null,
+        vma: effectiveSnapshot?.vma ?? null,
+        css: effectiveSnapshot?.css ?? null,
+        confidence: (vlamax?.confidence ?? 0) / 100,
+        raceRecords: raceRecords ?? null,
+      });
+      const optimal = output.scenarios.find((s: any) => s.scenario === "optimal") ?? output.scenarios[0];
+      const races: any[] = optimal?.predictions ?? [];
+      const goalMap: Record<string, string[]> = {
+        MARATHON: ["marathon", "42"], SEMI: ["semi", "21", "half"], "10K": ["10 k", "10k"], "5K": ["5 k", "5k"],
+        IM: ["ironman", "im"], "70.3": ["70.3", "half"], OLYMPIQUE: ["olymp"], SPRINT: ["sprint"],
+        TRAIL: ["trail"], ULTRA_TRAIL: ["ultra"], ULTRA: ["ultra"],
+      };
+      const needles = goalMap[goal as string] ?? [];
+      const norm = (s: string) => (s || "").toLowerCase();
+      const match = races.find((r: any) => needles.some(n => norm(r.raceName).includes(n) || norm(r.distance).includes(n)));
+      const chosen = match ?? races[0];
+      if (chosen && chosen.timeFormatted) {
+        const hasRecords = !!(raceRecords && Object.values(raceRecords).some((v) => v != null));
+        const source = hasRecords ? "recalé sur tes records récents" : "estimation physiologique pure";
+        predictionBlock = `
+          <div class="execValue">${htmlEscape(chosen.timeFormatted)}</div>
+          <div class="execMeta">sur ${htmlEscape(chosen.raceName)} · <i>${source}</i></div>
+        `;
+      }
+    }
+  } catch { /* silencieux : bloc masqué */ }
+
+  // ─── Risque n°1 ───────────────────────────────────
+  let riskBlock: string;
+  const capLevel = capInjuryRisk?.level ?? 0;              // 0..4
+  const nutR = nutritionEstimate?.riskLevel ?? "low";
+  const nutScore = nutR === "critical" ? 4 : nutR === "high" ? 3 : nutR === "moderate" ? 2 : 1;
+  if (Math.max(capLevel, nutScore) >= 2) {
+    const capWins = capLevel >= nutScore;
+    if (capWins && capInjuryRisk) {
+      const word = capLevel >= 3 ? "Blessure" : "Surcharge";
+      const action = capLevel >= 3
+        ? "réduire le volume CAP et renforcer la prévention."
+        : "surveiller la charge et intégrer davantage de récupération.";
+      riskBlock = `<div class="execValue riskHigh">${word}</div><div class="execMeta"><b>Action :</b> ${htmlEscape(action)}</div>`;
+    } else if (nutritionEstimate) {
+      const action = `viser ${nutritionEstimate.carbsMin}–${nutritionEstimate.carbsMax} g/h de glucides en course.`;
+      riskBlock = `<div class="execValue riskHigh">Carburant</div><div class="execMeta"><b>Action :</b> ${htmlEscape(action)}</div>`;
+    } else {
+      riskBlock = `<div class="execValue riskLow">Aucun risque majeur</div><div class="execMeta">Maintien du cadre d'entraînement.</div>`;
+    }
+  } else {
+    riskBlock = `<div class="execValue riskLow">Aucun risque majeur</div><div class="execMeta">Maintien du cadre d'entraînement actuel.</div>`;
+  }
+
+  const leviersBlock = leviers.length > 0
+    ? `<ol class="execLeviers">${leviers.map(l => `<li>${htmlEscape(l)}</li>`).join("")}</ol>`
+    : `<p class="execMeta">Pas d'axe prioritaire détecté — maintenir la routine.</p>`;
+
+  return `
+    <section class="section execSummary pagebreak">
+      <style>
+        .execSummary { padding: 28px 8px 12px; }
+        .execHeader { border-bottom: 2px solid #1e3a5f; padding-bottom: 14px; margin-bottom: 22px; }
+        .execEyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: #64748b; font-weight: 700; }
+        .execTitle { font-size: 28px; font-weight: 800; margin: 6px 0 0; color: #0f172a; letter-spacing: -0.01em; }
+        .execSubtitle { font-size: 13px; color: #475569; margin-top: 4px; }
+        .execProfileBlock { border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); margin-bottom: 16px; break-inside: avoid; }
+        .execGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .execBlock { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; background: #ffffff; break-inside: avoid; }
+        .execLabel { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: #64748b; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .execValue { font-size: 22px; font-weight: 700; color: #0f172a; line-height: 1.25; }
+        .execValue.riskHigh { color: #b91c1c; }
+        .execValue.riskLow { color: #15803d; }
+        .execMeta { font-size: 12px; color: #475569; margin-top: 6px; line-height: 1.5; }
+        .execProfile { font-size: 16px; line-height: 1.5; color: #0f172a; font-weight: 500; }
+        .execLeviers { margin: 4px 0 0; padding-left: 20px; }
+        .execLeviers li { font-size: 13px; line-height: 1.55; color: #1e293b; margin-bottom: 4px; }
+        .execFooter { margin-top: 18px; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 10px; color: #94a3b8; text-align: center; letter-spacing: 0.05em; }
+        @media print {
+          .execSummary { page-break-after: always; break-after: page; }
+        }
+      </style>
+
+      <div class="execHeader">
+        <div class="execEyebrow">Si tu ne lis qu'une page</div>
+        <div class="execTitle">Synthèse en 30 secondes</div>
+        <div class="execSubtitle">Les réponses essentielles avant tout détail technique.</div>
+      </div>
+
+      <div class="execProfileBlock">
+        <div class="execLabel">👤 Profil</div>
+        <div class="execProfile">${htmlEscape(profilePhrase)}</div>
+      </div>
+
+      <div class="execGrid">
+        ${hasLimiter ? `
+          <div class="execBlock">
+            <div class="execLabel">🎯 Facteur limitant principal</div>
+            <div class="execValue">${limiterName}</div>
+            <div class="execMeta">→ ${limiterImplication}</div>
+          </div>
+        ` : ''}
+
+        <div class="execBlock">
+          <div class="execLabel">🔧 Leviers prioritaires</div>
+          ${leviersBlock}
+        </div>
+
+        ${predictionBlock ? `
+          <div class="execBlock">
+            <div class="execLabel">⏱️ Chrono cible</div>
+            ${predictionBlock}
+          </div>
+        ` : ''}
+
+        <div class="execBlock">
+          <div class="execLabel">⚠️ Risque n°1</div>
+          ${riskBlock}
+        </div>
+      </div>
+
+      <div class="execFooter">DÉTAILS, MÉTHODOLOGIE ET GRAPHIQUES DANS LES SECTIONS SUIVANTES →</div>
+    </section>
+  `;
+}
+
 function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { sections: DEFAULT_REPORT_SECTIONS }, calibrationEvidences: CalibrationEvidence[] = []): string {
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
