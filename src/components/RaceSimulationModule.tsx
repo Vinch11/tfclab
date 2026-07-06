@@ -1410,6 +1410,9 @@ export function RaceSimulationModule({
             </CardContent>
           </Card>
         )}
+          </CollapsibleContent>
+        </Collapsible>
+        
         
         {/* Disclaimer */}
         <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
