@@ -3887,6 +3887,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     nutritionEstimate, capInjuryRisk, ageAdjustment, ambition
   } = payload;
   
+  const isAthlete = options.audience === "athlete";
+  
   const refs = getAthleteRefsForZones(effectiveRefs);
   // ✅ Source de vérité unifiée : ambitions + âge (mêmes cibles que dashboard/limiteur)
   const targets = buildReportTargetsFromUnifiedLimiter(payload.unifiedLimiter, athlete.goal, ambition.current);
