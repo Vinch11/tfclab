@@ -6073,9 +6073,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // 6. AJUSTEMENT PAR L'ÂGE (AAI)
   // =============================================
+  const aaiTermLong = isAthlete ? "Ajustement lié à l'âge" : "Ajustement par l'Âge (AAI)";
+  const aaiShort = isAthlete ? "Ajustement lié à l'âge" : "AAI";
   const aaiHTML = ageAdjustment.age !== null ? `
     <section id="aai" class="section pagebreakAvoid">
-      <h2>6. Ajustement par l'Âge (AAI)</h2>
+      <h2>6. ${aaiTermLong}</h2>
       
       <div class="card cardHighlight">
         <div class="grid2">
@@ -6085,7 +6087,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="muted">Catégorie : <b>${ageAdjustment.aai.label}</b></div>
             <div class="mt" style="display:flex;gap:16px;flex-wrap:wrap;">
               <div>
-                <div class="muted" style="font-size:11px;">AAI</div>
+                <div class="muted" style="font-size:11px;">${aaiShort}</div>
                 <div style="font-size:18px;font-weight:600">${Math.round(ageAdjustment.aai.aai * 100)}%</div>
               </div>
               <div>
