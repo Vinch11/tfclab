@@ -7744,6 +7744,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       vma: vmaVal,
       css: cssVal,
       confidence: p.vlamax.confidence / 100,
+      raceRecords: p.raceRecords ?? null,
     });
     
     const scenarioColors: Record<string, { bg: string; text: string; label: string }> = {
