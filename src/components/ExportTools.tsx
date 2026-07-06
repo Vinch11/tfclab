@@ -78,6 +78,7 @@ import {
   calculateTTEatMLSS,
 } from "@/lib/v2/maderMetabolicModel";
 import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
+import { useAthleteRaceRecords } from "@/hooks/useAthleteRaceRecords";
 // ✅ NEW: Coaching Compass (5 axes)
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
@@ -237,6 +238,8 @@ interface ExportPayload {
   lorangResult: LorangStrategyResult | null;
   // ✅ NEW: Run MLSS Cohérence (Modèle C — RMSE 2.64% sur N=14 run)
   runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"] | null;
+  // Records de course réels (injectés depuis useAthleteRaceRecords côté composant)
+  raceRecords?: import("@/lib/v2/vlamaxRunV2Enhanced").RaceRecordsInput | null;
 }
 
 // =============================================
@@ -7741,6 +7744,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       vma: vmaVal,
       css: cssVal,
       confidence: p.vlamax.confidence / 100,
+      raceRecords: p.raceRecords ?? null,
     });
     
     const scenarioColors: Record<string, { bg: string; text: string; label: string }> = {
@@ -9295,7 +9299,16 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     localStorage.setItem("vlab-export-sections", JSON.stringify(sections));
   }, [sections]);
   
+  // Records de course réels (fenêtre 12 mois par défaut) — activent le recalage
+  // Riegel dans computePerformancePredictions. Sans records ⇒ prédiction physio pure.
+  const activeSnapshotForRecords = getEffectiveSnapshot(athlete, snapshots);
+  const vmaForRecords = activeSnapshotForRecords?.vma ?? null;
+  const windowMonthsRefs = (athlete.refs as any)?.raceRecordsWindowMonths;
+  const raceRecordsWindow = windowMonthsRefs === null ? null : (windowMonthsRefs ?? 12);
+  const raceRecords = useAthleteRaceRecords(athlete.id, vmaForRecords, raceRecordsWindow);
+
   const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition);
+  payload.raceRecords = raceRecords;
   const exportCheck = canExport(payload);
 
   const [isExporting, setIsExporting] = useState(false);

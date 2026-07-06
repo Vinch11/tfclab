@@ -3,15 +3,30 @@
  * PERFORMANCE PREDICTION ENGINE – INSCYD-style
  * Two For Coaching Lab
  * =============================================
- * 
+ *
  * Predicts race times, power/pace targets for:
  * - Cycling: TT 20km, TT 40km, Gran Fondo 100km, Gran Fondo 160km
  * - Running: 10k, Semi-Marathon, Marathon
  * - Triathlon: Sprint, Olympique, 70.3, Ironman
- * 
+ *
  * Based on VO2max × VLamax × Economy interaction
  * With 3 scenarios: Conservative (95%), Optimal (80%), Aggressive (60%)
+ *
+ * ── Corrections V2 (2026-07) ──────────────────────────────────────────────────
+ *  (A) Fraction d'intensité soutenable pilotée par VLamax + durée cible
+ *      (au lieu du max de la plage figée) — crossover glucidique
+ *      VLamax-dépendant, Mader 1990. Un athlète VLamax haute paie plus cher
+ *      la longue distance (déplétion accélérée), quasi-neutre sur 10k.
+ *  (B) La VLamax est effectivement branchée dans le pace run (avant :
+ *      calculée dans enduranceIndex mais jamais utilisée pour le chrono cap).
+ *  (C) Recalage optionnel sur records réels (Riegel exponent 1.06 —
+ *      Riegel 1977, Peronnet 1993). Un chrono mesuré bat toujours
+ *      une estimation physiologique. Pour marathon extrapolé depuis 10k,
+ *      exposant effectif 1.07 (mur non linéaire, marathon runner classic).
+ * ──────────────────────────────────────────────────────────────────────────────
  */
+
+import type { RaceRecordsInput } from "@/lib/v2/vlamaxRunV2Enhanced";
 
 // =============================================
 // TYPES
@@ -33,6 +48,8 @@ export interface RacePrediction {
   intensityPctVMA?: number;     // % VMA for run
   carbsNeeded?: number;         // g/h estimated
   glycogenRisk: "low" | "moderate" | "high";
+  /** Origine de la prédiction (physio pure, ou recalé sur record + ancre). */
+  anchorNote?: string;
 }
 
 export interface ScenarioPrediction {
@@ -51,6 +68,13 @@ export interface PerformancePredictionInput {
   runEconomyScore?: number | null; // 0-1
   css?: number | null;             // swim CSS sec/100m
   confidence?: number;
+  /**
+   * Records de course réels (fenêtre récente). Si fournis, la prédiction
+   * running (10k / semi / marathon) est recalée via Riegel sur l'ancre
+   * la plus proche en distance de la course cible. Optionnel : sans records,
+   * la prédiction reste purement physiologique.
+   */
+  raceRecords?: RaceRecordsInput | null;
 }
 
 export interface PerformancePredictionOutput {
@@ -113,13 +137,172 @@ const SCENARIO_CONFIG: Record<ScenarioLevel, { label: string; probability: strin
 };
 
 // =============================================
+// (A + B) FRACTION D'INTENSITÉ SOUTENABLE — VLamax + Durée
+// =============================================
+
+/**
+ * Fraction %VMA (0-1) soutenable pour une course cap, pilotée par
+ * la durée de la course ET la VLamax.
+ *
+ * Base par durée (ancres physiologiques littérature) :
+ *   10k  (df ≈ 0.65) → ~93% VMA
+ *   semi (df ≈ 1.45) → ~88% VMA
+ *   mara (df ≈ 3.20) → ~81% VMA
+ * Interpolation linéaire par durationFactor plutôt que « top de la plage ».
+ *
+ * Modulation VLamax :
+ *   VLamax haute ⇒ crossover glucidique plus bas, déplétion plus rapide
+ *   ⇒ pénalité qui croît avec la durée (k_dist quasi nul à 10k, ~0.30 marathon).
+ *   fraction_ajustée = fraction_base × (1 − (VLamax − 0.40) × k_dist)
+ *
+ * Bornes : jamais > intensityRange[1], jamais < intensityRange[0] − 5.
+ * Réf : Mader (1990) partitionnement lactate/lipides ; Coyle (1988) glycogen depletion.
+ */
+export function computeSustainableFraction(
+  race: RaceDefinition,
+  vlamax: number,
+): number {
+  const df = race.durationFactor;
+
+  // Interpolation base sur ancres (df, %VMA)
+  const anchors: [number, number][] = [
+    [0.65, 0.93],  // 10k
+    [1.45, 0.88],  // semi
+    [3.20, 0.81],  // marathon
+  ];
+
+  let baseFraction: number;
+  if (df <= anchors[0][0]) {
+    baseFraction = anchors[0][1];
+  } else if (df >= anchors[anchors.length - 1][0]) {
+    baseFraction = anchors[anchors.length - 1][1];
+  } else {
+    // interpolation linéaire par segments
+    baseFraction = anchors[anchors.length - 1][1];
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const [d0, f0] = anchors[i];
+      const [d1, f1] = anchors[i + 1];
+      if (df >= d0 && df <= d1) {
+        const t = (df - d0) / (d1 - d0);
+        baseFraction = f0 + t * (f1 - f0);
+        break;
+      }
+    }
+  }
+
+  // Facteur k_dist : ~0 sur 10k, ~0.30 sur marathon.
+  // À df=0.65 → 0.015, df=1.45 → 0.095, df=3.20 → 0.27.
+  const kDist = Math.max(0, Math.min(0.30, (df - 0.5) * 0.10));
+
+  // Pivot VLamax = 0.40 mmol/L/s (moyenne endurance).
+  // VLamax 0.60 (glycolytique) → pénalité marathon ~5.4%. VLamax 0.30 → bonus léger.
+  const vlamaxAdjust = 1 - (vlamax - 0.40) * kDist;
+  let fraction = baseFraction * vlamaxAdjust;
+
+  // Bornes physiologiques (plage définie par race)
+  const rMax = race.intensityRange[1] / 100;
+  const rMin = Math.max(0.30, (race.intensityRange[0] - 5) / 100);
+  fraction = Math.max(rMin, Math.min(rMax, fraction));
+
+  return fraction;
+}
+
+// =============================================
+// (C) RECALAGE RIEGEL — records réels
+// =============================================
+
+interface RiegelAnchor {
+  distanceKm: number;
+  timeMin: number;
+  label: string;
+}
+
+/** Extrait les ancres disponibles d'un RaceRecordsInput. */
+function extractAnchors(records: RaceRecordsInput | null | undefined): RiegelAnchor[] {
+  if (!records) return [];
+  const out: RiegelAnchor[] = [];
+  if (records.pace400m_sec && records.pace400m_sec > 0) {
+    out.push({ distanceKm: 0.4, timeMin: records.pace400m_sec / 60, label: "400m" });
+  }
+  if (records.pace1km_sec && records.pace1km_sec > 0) {
+    out.push({ distanceKm: 1, timeMin: records.pace1km_sec / 60, label: "1 km" });
+  }
+  if (records.pace5km_sec && records.pace5km_sec > 0) {
+    out.push({ distanceKm: 5, timeMin: records.pace5km_sec / 60, label: "5 km" });
+  }
+  if (records.pace10km_sec && records.pace10km_sec > 0) {
+    out.push({ distanceKm: 10, timeMin: records.pace10km_sec / 60, label: "10 km" });
+  }
+  return out;
+}
+
+/** Choisit l'ancre la plus proche en log-distance de la cible. */
+function pickNearestAnchor(anchors: RiegelAnchor[], targetKm: number): RiegelAnchor | null {
+  if (anchors.length === 0) return null;
+  let best = anchors[0];
+  let bestDist = Math.abs(Math.log(best.distanceKm / targetKm));
+  for (const a of anchors.slice(1)) {
+    const d = Math.abs(Math.log(a.distanceKm / targetKm));
+    if (d < bestDist) { best = a; bestDist = d; }
+  }
+  return best;
+}
+
+/**
+ * Riegel : T2 = T1 × (D2/D1)^exp.
+ * exp = 1.06 par défaut ; 1.07 quand la cible est marathon et l'ancre ≤ 10km
+ * (le "mur" n'est pas linéaire en log, Riegel brut sous-estime).
+ */
+function riegelProject(anchor: RiegelAnchor, targetKm: number): { timeMin: number; expUsed: number } {
+  const isMarathonExtrapolation = targetKm >= 40 && anchor.distanceKm <= 10;
+  const exp = isMarathonExtrapolation ? 1.07 : 1.06;
+  return {
+    timeMin: anchor.timeMin * Math.pow(targetKm / anchor.distanceKm, exp),
+    expUsed: exp,
+  };
+}
+
+/** Poids Riegel selon la proximité de l'ancre (log-space) et l'extrapolation marathon. */
+function riegelBlendWeight(anchor: RiegelAnchor, targetKm: number): number {
+  const ratio = Math.max(anchor.distanceKm, targetKm) / Math.min(anchor.distanceKm, targetKm);
+  const isMarathonFar = targetKm >= 40 && anchor.distanceKm <= 5;
+  if (isMarathonFar) return 0.45;  // 5k → marathon, poids physio ≥ 55%
+  if (ratio <= 3) return 0.70;      // ex. 10k → semi, 5k → 10k
+  if (ratio <= 5) return 0.55;      // ex. 10k → marathon
+  return 0.50;                      // ex. 5k → marathon (garde poids physio élevé)
+}
+
+/**
+ * Recale une prédiction physio via Riegel sur la meilleure ancre disponible.
+ * Retourne { timeMin, note } où note documente l'ancre utilisée.
+ */
+function applyRiegelRecalibration(
+  physioTimeMin: number,
+  targetKm: number,
+  anchors: RiegelAnchor[],
+): { timeMin: number; note: string } {
+  const anchor = pickNearestAnchor(anchors, targetKm);
+  if (!anchor) {
+    return { timeMin: physioTimeMin, note: "Estimation physiologique, aucun record disponible" };
+  }
+  const { timeMin: riegelMin, expUsed } = riegelProject(anchor, targetKm);
+  const w = riegelBlendWeight(anchor, targetKm);
+  const blended = w * riegelMin + (1 - w) * physioTimeMin;
+  const expNote = expUsed === 1.07 ? " (exposant 1.07, sécurité marathon)" : "";
+  return {
+    timeMin: blended,
+    note: `Recalé sur ton ${anchor.label} récent — Riegel ${Math.round(w * 100)}% / physio ${Math.round((1 - w) * 100)}%${expNote}`,
+  };
+}
+
+// =============================================
 // CORE PREDICTION FUNCTIONS
 // =============================================
 
 /**
- * Estimate base race time (minutes) from metabolic profile
+ * Estimate base race time (minutes) from metabolic profile.
  * Core model: time ∝ durationFactor / metabolicPower
- * metabolicPower = VO2max × (1 - VLamax_penalty) × economy
+ * metabolicPower = VO2max × (1 − VLamax_penalty) × economy
  */
 function estimateBaseTime(
   race: RaceDefinition,
@@ -127,7 +310,7 @@ function estimateBaseTime(
 ): number {
   const { vo2max, vlamax, weight, ftp, vma } = input;
 
-  // Metabolic endurance index: higher VO2max + lower VLamax = better endurance
+  // Metabolic endurance index (fallback global uniquement)
   const enduranceIndex = vo2max * (1 - vlamax * 0.6);
 
   // Economy factor (0.85 – 1.0)
@@ -136,20 +319,21 @@ function estimateBaseTime(
     : 0.92;
 
   if (race.sport === "velo") {
-    // Bike: time derived from FTP and distance
+    // TODO(perf-v2): passer à une relation puissance-vitesse non-linéaire
+    // (traînée aéro cubique : v ∝ (P/CdA)^(1/3)). Pour l'instant modèle
+    // linéaire ftpWkg — sous-estime les écarts à haute vitesse (>40km/h)
+    // et sur profils vallonnés.
     const effectiveFTP = ftp ?? (vo2max * 0.075 - vlamax * 0.45) * weight;
     const ftpWkg = effectiveFTP / weight;
-    // Higher FTP/kg = faster
     const baseMin = race.durationFactor * 60 / (ftpWkg * 1.1);
     return Math.max(race.durationFactor * 15, baseMin);
   }
 
   if (race.sport === "cap") {
-    // Run: time derived from VMA (or estimated from VO2max)
+    // (A+B) Fraction soutenable = f(durée, VLamax) au lieu du max plage
     const effectiveVMA = vma ?? vo2max * 0.29; // VMA ≈ VO2max × 0.29
-    // Time for distance at fraction of VMA
     const distKm = parseFloat(race.distance);
-    const fraction = race.intensityRange[1] / 100;
+    const fraction = computeSustainableFraction(race, vlamax);
     const paceMinPerKm = 60 / (effectiveVMA * fraction * economy);
     return distKm * paceMinPerKm;
   }
@@ -162,17 +346,28 @@ function estimateBaseTime(
         const cssSecPer100 = input.css ?? (200 - vo2max * 1.2);
         totalMin += (seg.distanceKm * 1000 / 100) * cssSecPer100 / 60;
       } else if (seg.sport === "velo") {
+        // TODO(perf-v2): idem vélo standalone — modèle non-linéaire à venir.
         const effectiveFTP = ftp ?? (vo2max * 0.075 - vlamax * 0.45) * weight;
         const ftpWkg = effectiveFTP / weight;
-        // Long-course bike at fraction of FTP
         const bikeFraction = race.durationFactor > 4 ? 0.72 : 0.82;
         const avgSpeed = 20 + ftpWkg * bikeFraction * 8;
         totalMin += (seg.distanceKm / avgSpeed) * 60;
       } else {
-        // Run off bike (degraded economy ~5-8%)
+        // Run off bike : réutilise la fraction soutenable + dégradation
+        // (crossover VLamax-dépendant s'applique aussi, on la reflète
+        // via une "race virtuelle" équivalente au segment run).
         const effectiveVMA = vma ?? vo2max * 0.29;
         const degradation = race.durationFactor > 4 ? 0.88 : 0.92;
-        const runFraction = race.durationFactor > 4 ? 0.75 : 0.82;
+        // race virtuelle : durationFactor du tri (long), intensityRange dégradée
+        const virtualRunRace: RaceDefinition = {
+          ...race,
+          durationFactor: race.durationFactor,
+          intensityRange: [
+            Math.max(50, race.intensityRange[0] - 10),
+            Math.max(55, race.intensityRange[1] - 5),
+          ],
+        };
+        const runFraction = computeSustainableFraction(virtualRunRace, vlamax);
         const paceMinPerKm = 60 / (effectiveVMA * runFraction * economy * degradation);
         totalMin += seg.distanceKm * paceMinPerKm;
       }
@@ -244,12 +439,25 @@ export function computePerformancePredictions(
 ): PerformancePredictionOutput {
   const confidence = input.confidence ?? 0.7;
   const races = sportFilter ? RACES.filter(r => r.sport === sportFilter) : RACES;
+  const anchors = extractAnchors(input.raceRecords);
+  const hasAnchors = anchors.length > 0;
 
   const scenarios: ScenarioPrediction[] = (["conservative", "optimal", "aggressive"] as ScenarioLevel[]).map(level => {
     const cfg = SCENARIO_CONFIG[level];
 
     const predictions: RacePrediction[] = races.map(race => {
-      const baseTime = estimateBaseTime(race, input);
+      const physioTime = estimateBaseTime(race, input);
+
+      // (C) Recalage Riegel sur ancres réelles — cap uniquement
+      let baseTime = physioTime;
+      let anchorNote: string | undefined;
+      if (race.sport === "cap") {
+        const targetKm = parseFloat(race.distance);
+        const { timeMin, note } = applyRiegelRecalibration(physioTime, targetKm, anchors);
+        baseTime = timeMin;
+        anchorNote = note;
+      }
+
       const timeMin = baseTime * cfg.timeFactor;
 
       // Power target (bike)
@@ -262,14 +470,16 @@ export function computePerformancePredictions(
         powerWatts = Math.round(effectiveFTP * (midIntensity + cfg.intensityShift));
       }
 
-      // Pace target (run)
+      // Pace target (run) — reflète maintenant la fraction soutenable pilotée VLamax
       let paceSecPerKm: number | undefined;
       let paceFormatted: string | undefined;
       let intensityPctVMA: number | undefined;
       if (race.sport === "cap" || race.sport === "triathlon") {
         const effectiveVMA = input.vma ?? input.vo2max * 0.29;
-        const midIntensity = (race.intensityRange[0] + race.intensityRange[1]) / 2 / 100;
-        const adjustedIntensity = midIntensity + cfg.intensityShift;
+        const sustainable = race.sport === "cap"
+          ? computeSustainableFraction(race, input.vlamax)
+          : (race.intensityRange[0] + race.intensityRange[1]) / 2 / 100;
+        const adjustedIntensity = Math.max(0.30, Math.min(1.05, sustainable + cfg.intensityShift));
         intensityPctVMA = Math.round(adjustedIntensity * 100);
         const speedKmH = effectiveVMA * adjustedIntensity;
         paceSecPerKm = speedKmH > 0 ? 3600 / speedKmH : 600;
@@ -295,6 +505,7 @@ export function computePerformancePredictions(
         intensityPctVMA,
         carbsNeeded,
         glycogenRisk,
+        anchorNote,
       };
     });
 
@@ -306,10 +517,15 @@ export function computePerformancePredictions(
     };
   });
 
+  const baseNote = "Prédictions basées sur le modèle VO₂max × VLamax × Économie. Fraction soutenable pilotée par la durée cible et la VLamax (crossover glucidique Mader).";
+  const recalNote = hasAnchors
+    ? ` Recalage Riegel actif sur ${anchors.length} record(s) : ${anchors.map(a => a.label).join(", ")}.`
+    : " Aucun record de course fourni : estimation purement physiologique pour le run.";
+
   return {
     scenarios,
     confidence,
-    modelNote: "Prédictions basées sur le modèle VO₂max × VLamax × Économie. Les 3 scénarios reflètent la probabilité de succès physiologique.",
+    modelNote: baseNote + recalNote,
   };
 }
 
