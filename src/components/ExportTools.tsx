@@ -147,6 +147,7 @@ export interface ReportSections {
 
 interface ExportOptions {
   sections: ReportSections;
+  audience?: "athlete" | "staff";
 }
 
 // ReportSections interface - defines available sections in PDF export
