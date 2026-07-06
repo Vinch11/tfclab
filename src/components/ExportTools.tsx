@@ -9539,7 +9539,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       const logoBase64 = await imageToBase64(logoUrl);
       
       const exportOptions: ExportOptions = {
-        sections
+        sections,
+        audience: activePreset === "athlete" ? "athlete" : "staff",
       };
       
       const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions, calibrationEvidences);
