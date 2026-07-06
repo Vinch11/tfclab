@@ -121,6 +121,56 @@ function formatDurationCompact(minutes: number): string {
   return `${h}h${m.toString().padStart(2, '0')}`;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SYNTHÈSE COACH — pyramide inversée
+// Traduit les indices bruts (0-100) en langage clair et construit une phrase
+// narrative à partir de la sortie du moteur (aucun recalcul).
+// ─────────────────────────────────────────────────────────────────────────────
+
+type DepletionRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+const DEPLETION_WORDS: Record<DepletionRiskLevel, { word: string; tone: string; bg: string; ring: string }> = {
+  LOW:      { word: 'Faible',   tone: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/30' },
+  MEDIUM:   { word: 'Modéré',   tone: 'text-amber-600 dark:text-amber-400',     bg: 'bg-amber-500/10',   ring: 'ring-amber-500/30' },
+  HIGH:     { word: 'Élevé',    tone: 'text-orange-600 dark:text-orange-400',   bg: 'bg-orange-500/10',  ring: 'ring-orange-500/30' },
+  CRITICAL: { word: 'Critique', tone: 'text-red-600 dark:text-red-400',         bg: 'bg-red-500/10',     ring: 'ring-red-500/30' },
+};
+
+function depletionWord(risk: DepletionRiskLevel): string {
+  return DEPLETION_WORDS[risk]?.word ?? String(risk);
+}
+
+/** Recommandation carburant clé : cible g/h max sur les segments, ou 1er warning actionnable. */
+function pickKeyAction(scenario: PacingScenario): { text: string; carbsGh: number | null } {
+  const carbsMax = scenario.segments.reduce((m, s) => Math.max(m, s.carbsNeeded ?? 0), 0);
+  if (carbsMax >= 60) {
+    return { text: `Viser ${Math.round(carbsMax)} g glucides/h`, carbsGh: Math.round(carbsMax) };
+  }
+  const w = scenario.warnings.find((w) => w && w.length < 90);
+  if (w) return { text: w, carbsGh: null };
+  const s = scenario.strengths[0];
+  if (s) return { text: s, carbsGh: null };
+  return { text: 'Pacing sous contrôle — pas d\'action prioritaire', carbsGh: null };
+}
+
+/** Phrase narrative construite depuis la sortie moteur (aucun calcul). */
+function buildRaceSummary(scenario: PacingScenario, raceLabel: string): string {
+  const time = formatDurationCompact(scenario.estimatedTimeMin);
+  const risk = depletionWord(scenario.overallDepletionRisk).toLowerCase();
+  const parts: string[] = [];
+  parts.push(`Scénario ${scenario.label.toLowerCase()} : ${raceLabel} en ~${time}, risque carburant ${risk}`);
+  if (scenario.breakpointKm != null) {
+    parts.push(` Point critique au km ${Math.round(scenario.breakpointKm)}${scenario.breakpointRisk ? ' — ' + scenario.breakpointRisk.toLowerCase() : ''}`);
+  } else {
+    parts.push(' Aucun point de rupture détecté sur ce profil');
+  }
+  const action = pickKeyAction(scenario);
+  if (action.carbsGh != null) {
+    parts.push(` — sécurisable en montant à ${action.carbsGh} g/h`);
+  }
+  return parts.join('.') + '.';
+}
+
 // Helper pour calculer l'allure (min/km) à partir de la VMA et du % d'intensité
 function computePaceFromVMA(vmaKmh: number | null, intensityPct: number): string | null {
   if (!vmaKmh || vmaKmh <= 0) return null;
