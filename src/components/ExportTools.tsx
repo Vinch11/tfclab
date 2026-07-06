@@ -56,7 +56,7 @@ import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as Sm
 import { detectUnifiedLimiter, type UnifiedLimiterResult, computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
 import { User, Shield, Sparkles } from "lucide-react";
-import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS } from "./ReportSectionOrderEditor";
+import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS, REPORT_PRESETS, type ReportPreset } from "./ReportSectionOrderEditor";
 // ✅ NEW: Import Disponibilité TFCL™
 import { 
   computeDisponibiliteTFCL, 
