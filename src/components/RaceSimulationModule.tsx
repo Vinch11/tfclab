@@ -44,6 +44,8 @@ import {
   BookOpen,
   Lock,
   AlertCircle,
+  ChevronDown,
+  Utensils,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
