@@ -135,9 +135,12 @@ function MetricCard({ gap, metricInfo, showDragHandle = false, dragHandleProps =
 }) {
   const [open, setOpen] = useState(false);
   const isUnknown = gap.status === "unknown" || gap.value == null;
-  const status = isUnknown 
-    ? { label: "Donnée manquante", color: "text-muted-foreground", bgColor: "bg-muted/30 border-border/40", icon: Minus }
-    : getGapStatus(gap.gap);
+  const status = isUnknown
+    ? { label: "Donnée manquante", color: "text-muted-foreground", bgColor: "bg-muted/20 border-border/40", accent: "text-muted-foreground", icon: Minus }
+    : (() => {
+        const s = getGapStatus(gap.gap);
+        return { ...s, accent: s.color };
+      })();
   const StatusIcon = status.icon;
 
   const hasValues = gap.value != null && gap.target != null;
@@ -148,126 +151,132 @@ function MetricCard({ gap, metricInfo, showDragHandle = false, dragHandleProps =
 
   const formatVal = (v: number) => v < 10 ? v.toFixed(2) : v.toFixed(1);
 
+  const pct = (() => {
+    if (isUnknown) return 0;
+    if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + gap.gap));
+    const val = gap.value as number;
+    const tgt = gap.target as number;
+    if (isInverse) {
+      if (val <= tgt) return 100;
+      return Math.max(5, Math.min(100, ((2 * tgt - val) / tgt) * 100));
+    }
+    return Math.max(5, Math.min(100, (val / tgt) * 100));
+  })();
+
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className={cn("rounded-xl border transition-colors", status.bgColor)}>
-        <CollapsibleTrigger className="w-full text-left">
-          <div className="p-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-2">
+      <div className={cn("rounded-2xl border transition-colors", status.bgColor)}>
+        <CollapsibleTrigger className="w-full text-left group">
+          <div className="p-5 sm:p-6">
+            {/* Ligne 1 : identité (label discret) + statut */}
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2 min-w-0">
                 {showDragHandle && (
                   <div
                     onPointerDown={(e) => e.stopPropagation()}
-                    className="cursor-grab active:cursor-grabbing touch-none"
+                    className="cursor-grab active:cursor-grabbing touch-none -ml-1"
                     {...dragHandleProps}
                   >
-                    <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                    <GripVertical className="h-4 w-4 text-muted-foreground/60 hover:text-foreground transition-colors" />
                   </div>
                 )}
-                <span className="text-lg">{metricInfo.icon}</span>
-                <span className="text-sm font-bold">{metricInfo.label}</span>
+                <span className="text-base opacity-80">{metricInfo.icon}</span>
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground truncate">
+                  {metricInfo.label}
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <StatusIcon className={cn("h-4 w-4", status.color)} />
-                <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5", status.color)}>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <StatusIcon className={cn("h-3.5 w-3.5", status.accent)} />
+                <span className={cn("text-[11px] font-medium hidden sm:inline", status.accent)}>
                   {status.label}
-                </Badge>
+                </span>
                 <ChevronDown className={cn(
-                  "h-4 w-4 text-muted-foreground transition-transform",
+                  "h-4 w-4 text-muted-foreground/60 transition-transform ml-1",
                   open && "rotate-180"
                 )} />
               </div>
             </div>
 
-            {/* Comparatif Actuel → Cible — TOUJOURS VISIBLE */}
+            {/* Ligne 2 : LA valeur dominante */}
+            <div className="flex items-baseline gap-2 mb-1">
+              {isUnknown ? (
+                <span className="text-2xl font-semibold text-muted-foreground/70 tabular-nums">—</span>
+              ) : (
+                <>
+                  <span className={cn("text-4xl sm:text-5xl font-semibold tracking-tight tabular-nums leading-none", status.accent)}>
+                    {formatVal(gap.value as number)}
+                  </span>
+                  <span className="text-xs text-muted-foreground font-medium">{metricInfo.unit}</span>
+                </>
+              )}
+            </div>
+
+            {/* Ligne 3 : cible + delta, en retrait */}
             {hasValues && (
-              <div className="flex items-center gap-2 mb-2 text-xs">
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background/60 border border-border/30">
-                  <span className="text-muted-foreground">Actuel</span>
-                  <span className="font-bold text-foreground">{formatVal(gap.value as number)}</span>
-                  <span className="text-muted-foreground/60">{metricInfo.unit}</span>
-                </div>
-                <span className="text-muted-foreground/40">→</span>
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background/60 border border-border/30">
-                  <span className="text-muted-foreground">Cible</span>
-                  <span className="font-bold text-foreground">{formatVal(gap.target as number)}</span>
-                  <span className="text-muted-foreground/60">{metricInfo.unit}</span>
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-4">
+                <span>
+                  Cible <span className="tabular-nums text-foreground/80 font-medium">{formatVal(gap.target as number)}</span>
                   {gap.targetRange && (
-                    <span className="ml-0.5 text-[10px] text-muted-foreground/60 font-normal">
+                    <span className="ml-1 text-muted-foreground/60 tabular-nums">
                       ({gap.targetRange.min.toFixed(2)}–{gap.targetRange.max.toFixed(2)})
                     </span>
                   )}
-                </div>
+                </span>
                 {delta !== null && (
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] px-1.5",
-                      remainsToWork
-                        ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
-                        : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
-                    )}
-                  >
-                    {remainsToWork ? "Δ " : "✓ +"}
-                    {Math.abs(displayDelta!).toFixed(isInverse ? 2 : 1)} {metricInfo.unit} {remainsToWork ? "à combler" : "d'avance"}
-                  </Badge>
+                  <>
+                    <span className="text-muted-foreground/40">·</span>
+                    <span className={cn(
+                      "font-medium tabular-nums",
+                      remainsToWork ? "text-[hsl(var(--destructive))]" : "text-[hsl(var(--success))]"
+                    )}>
+                      {remainsToWork ? "−" : "+"}
+                      {Math.abs(displayDelta!).toFixed(isInverse ? 2 : 1)} {remainsToWork ? "à combler" : "d'avance"}
+                    </span>
+                  </>
                 )}
               </div>
             )}
+            {!hasValues && !isUnknown && <div className="mb-4" />}
+            {isUnknown && <div className="mb-4" />}
 
-            {/* Barre de progression */}
-            {(() => {
-              const pct = (() => {
-                if (isUnknown) return 0;
-                if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + gap.gap));
-                const val = gap.value as number;
-                const tgt = gap.target as number;
-                if (isInverse) {
-                  if (val <= tgt) return 100;
-                  return Math.max(5, Math.min(100, ((2 * tgt - val) / tgt) * 100));
-                }
-                return Math.max(5, Math.min(100, (val / tgt) * 100));
-              })();
-              return (
-                <div className="h-2.5 rounded-full bg-muted/60 overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all duration-700",
-                      isUnknown && "bg-muted-foreground/30"
-                    )}
-                    style={{
-                      width: `${pct}%`,
-                      ...(!isUnknown ? {
-                        background: pct >= 95
-                          ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 15%, hsl(30,85%,50%) 30%, hsl(45,80%,50%) 45%, hsl(60,70%,50%) 55%, hsl(90,55%,50%) 70%, hsl(120,60%,45%) 85%, hsl(142,71%,45%) 100%)"
-                          : pct >= 70
-                            ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(20,85%,50%) 25%, hsl(40,80%,50%) 50%, hsl(60,70%,50%) 75%, hsl(80,55%,48%) 100%)"
-                            : pct >= 45
-                              ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 40%, hsl(35,80%,50%) 100%)"
-                              : "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(10,80%,50%) 100%)"
-                      } : {}),
-                    }}
-                  />
-                </div>
-              );
-            })()}
+            {/* Barre de progression, plus fine */}
+            <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-700",
+                  isUnknown && "bg-muted-foreground/30"
+                )}
+                style={{
+                  width: `${pct}%`,
+                  ...(!isUnknown ? {
+                    background: pct >= 95
+                      ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 15%, hsl(30,85%,50%) 30%, hsl(45,80%,50%) 45%, hsl(60,70%,50%) 55%, hsl(90,55%,50%) 70%, hsl(120,60%,45%) 85%, hsl(142,71%,45%) 100%)"
+                      : pct >= 70
+                        ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(20,85%,50%) 25%, hsl(40,80%,50%) 50%, hsl(60,70%,50%) 75%, hsl(80,55%,48%) 100%)"
+                        : pct >= 45
+                          ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 40%, hsl(35,80%,50%) 100%)"
+                          : "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(10,80%,50%) 100%)"
+                  } : {}),
+                }}
+              />
+            </div>
           </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <div className="px-3 pb-3 space-y-2 border-t border-border/30 pt-2.5">
-            <div className="p-2.5 rounded-lg bg-background/60">
-              <p className="text-[10px] font-bold text-foreground mb-0.5">💡 Qu'est-ce que c'est ?</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.explanation}</p>
+          <div className="px-5 sm:px-6 pb-5 sm:pb-6 space-y-3 border-t border-border/40 pt-4">
+            <div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Qu'est-ce que c'est</p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{metricInfo.explanation}</p>
             </div>
-            <div className="p-2.5 rounded-lg bg-background/60">
-              <p className="text-[10px] font-bold text-foreground mb-0.5">🎯 Pourquoi c'est important</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.whyItMatters}</p>
+            <div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Pourquoi ça compte</p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{metricInfo.whyItMatters}</p>
             </div>
             {remainsToWork && (
-              <div className="p-2.5 rounded-lg bg-primary/5">
-                <p className="text-[10px] font-bold text-foreground mb-0.5">🔧 Comment améliorer</p>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.howToImprove}</p>
+              <div className="pt-2 border-t border-border/30">
+                <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Comment améliorer</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{metricInfo.howToImprove}</p>
               </div>
             )}
           </div>
@@ -374,126 +383,158 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
     .map(m => gapMap.get(m))
     .filter(Boolean) as typeof gapAnalysis;
 
-  return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-primary/10 border-b">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <BarChart3 className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex-1">
-            <CardTitle className="text-lg">Analyse Physiologique</CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Évaluation détaillée de tes capacités — clique sur une métrique pour en savoir plus
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={isReorderMode ? "default" : "outline"}
-              size="sm"
-              className="h-7 text-xs gap-1.5"
-              onClick={() => {
-                if (isReorderMode) setIsReorderMode(false);
-                else setIsReorderMode(true);
-              }}
-            >
-              <ArrowUpDown className="h-3.5 w-3.5" />
-              {isReorderMode ? "Terminé" : "Trier"}
-            </Button>
-            <Badge variant="outline" className="text-xs">
-              {Math.round(diagnostic.meta.dataCompleteness * 100)}% données
-            </Badge>
-          </div>
-        </div>
-      </CardHeader>
+  const completenessPct = Math.round(diagnostic.meta.dataCompleteness * 100);
+  const criticalCount = synthesis.alerts.filter(a => a.severity === "critical").length;
+  const warningCount = synthesis.alerts.filter(a => a.severity === "warning").length;
 
-      <CardContent className="p-4 space-y-4">
-        {/* Synthèse rapide */}
-        <div className="p-3 rounded-xl bg-muted/50 border">
-          <p className="text-sm font-medium">{synthesis.headline}</p>
+  return (
+    <Card className={cn("overflow-hidden border-border/60", className)}>
+      {/* ── HERO : une valeur dominante = la headline ── */}
+      <CardHeader className="pb-6 pt-6 px-6 sm:px-8 border-b border-border/40">
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <BarChart3 className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                Analyse physiologique
+              </p>
+              <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                {diagnostic.objectif} · {diagnostic.ambition}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant={isReorderMode ? "default" : "ghost"}
+            size="sm"
+            className="h-7 text-[11px] gap-1.5 text-muted-foreground hover:text-foreground"
+            onClick={() => setIsReorderMode(v => !v)}
+          >
+            <ArrowUpDown className="h-3 w-3" />
+            {isReorderMode ? "Terminé" : "Trier"}
+          </Button>
+        </div>
+
+        {/* Headline — LA phrase dominante */}
+        <CardTitle className="text-xl sm:text-2xl font-semibold tracking-tight leading-snug text-foreground">
+          {synthesis.headline}
+        </CardTitle>
+
+        {/* KPIs de contexte, en retrait */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-5">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-lg font-semibold tabular-nums text-foreground">{completenessPct}%</span>
+            <span className="text-[11px] text-muted-foreground">données</span>
+          </div>
           {synthesis.strengths.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {synthesis.strengths.map((s, i) => (
-                <Badge key={i} variant="secondary" className="text-[10px]">
-                  ✅ {s}
-                </Badge>
-              ))}
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg font-semibold tabular-nums text-[hsl(var(--success))]">{synthesis.strengths.length}</span>
+              <span className="text-[11px] text-muted-foreground">force{synthesis.strengths.length > 1 ? "s" : ""}</span>
+            </div>
+          )}
+          {(criticalCount + warningCount) > 0 && (
+            <div className="flex items-baseline gap-1.5">
+              <span className={cn(
+                "text-lg font-semibold tabular-nums",
+                criticalCount > 0 ? "text-[hsl(var(--destructive))]" : "text-[hsl(var(--warning))]"
+              )}>
+                {criticalCount + warningCount}
+              </span>
+              <span className="text-[11px] text-muted-foreground">alerte{criticalCount + warningCount > 1 ? "s" : ""}</span>
             </div>
           )}
         </div>
 
-        {/* Explication contextuelle */}
-        <div className="flex items-start gap-2 p-3 rounded-xl bg-primary/5 border border-primary/10">
-          <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-          <div className="text-xs text-muted-foreground leading-relaxed">
-            <p>
-              Chaque métrique est comparée à la <strong>cible idéale</strong> pour ton objectif (<strong>{diagnostic.objectif}</strong>) 
-              et ton niveau d'ambition (<strong>{diagnostic.ambition}</strong>).
-            </p>
-            <p className="mt-1">
-              📊 Un écart <strong className="text-[hsl(var(--success))]">positif</strong> = au-dessus de la cible. 
-              Un écart <strong className="text-[hsl(var(--destructive))]">négatif</strong> = axe de progression. 
-              Clique sur chaque métrique pour voir les détails et conseils.
-            </p>
-          </div>
-        </div>
-
-        {/* Hint réorganisation */}
-        {isReorderMode && (
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary">
-            <GripVertical className="h-4 w-4" />
-            Glisse les métriques pour réorganiser l'ordre d'affichage
+        {/* Chips forces, très discrètes */}
+        {synthesis.strengths.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-4">
+            {synthesis.strengths.map((s, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.2)]"
+              >
+                ✓ {s}
+              </span>
+            ))}
           </div>
         )}
+      </CardHeader>
 
-        {/* Liste des métriques — avec drag & drop */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={metricOrder} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2.5">
-              {orderedGaps.map((gap) => {
-                const metricInfo = METRIC_EXPLANATIONS[gap.metric] || {
-                  label: gap.metric,
-                  unit: "",
-                  explanation: "Métrique physiologique contribuant à ta performance.",
-                  whyItMatters: "Cette métrique influence directement ta capacité à atteindre ton objectif.",
-                  howToImprove: "Consulte ton coach pour des recommandations spécifiques.",
-                  icon: "📊",
-                };
-
-                return (
-                  <SortableMetricCard
-                    key={gap.metric}
-                    id={gap.metric}
-                    gap={gap}
-                    metricInfo={metricInfo}
-                    isReorderMode={isReorderMode}
-                  />
-                );
-              })}
-            </div>
-          </SortableContext>
-        </DndContext>
-
-        {/* Alertes */}
+      <CardContent className="p-6 sm:p-8 space-y-6">
+        {/* Alertes critiques : remontées en tête si présentes */}
         {synthesis.alerts.length > 0 && (
           <div className="space-y-1.5">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">⚡ Alertes</p>
             {synthesis.alerts.map((alert, i) => (
               <div
                 key={i}
                 className={cn(
-                  "flex items-start gap-2 p-2.5 rounded-xl text-xs",
-                  alert.severity === "critical" && "bg-destructive/10 text-destructive border border-destructive/20",
-                  alert.severity === "warning" && "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))] border border-[hsl(var(--warning)/0.2)]",
-                  alert.severity === "info" && "bg-primary/10 text-primary border border-primary/20"
+                  "flex items-start gap-2.5 p-3 rounded-xl text-xs leading-relaxed border",
+                  alert.severity === "critical" && "bg-[hsl(var(--destructive)/0.06)] text-[hsl(var(--destructive))] border-[hsl(var(--destructive)/0.2)]",
+                  alert.severity === "warning" && "bg-[hsl(var(--warning)/0.06)] text-[hsl(var(--warning))] border-[hsl(var(--warning)/0.2)]",
+                  alert.severity === "info" && "bg-primary/5 text-primary border-primary/15"
                 )}
               >
-                <span className="text-sm">{alert.severity === "critical" ? "🚨" : alert.severity === "warning" ? "⚠️" : "ℹ️"}</span>
-                <span className="leading-relaxed">{alert.message}</span>
+                <span className="text-sm shrink-0 leading-none mt-0.5">
+                  {alert.severity === "critical" ? "🚨" : alert.severity === "warning" ? "⚠️" : "ℹ️"}
+                </span>
+                <span>{alert.message}</span>
               </div>
             ))}
           </div>
         )}
+
+        {/* Hint réorganisation */}
+        {isReorderMode && (
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20 text-[11px] text-primary">
+            <GripVertical className="h-3.5 w-3.5" />
+            Glisse les métriques pour réorganiser l'ordre
+          </div>
+        )}
+
+        {/* Section métriques : label discret séparateur */}
+        <div>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+            Métriques
+          </p>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={metricOrder} strategy={verticalListSortingStrategy}>
+              <div className="space-y-3">
+                {orderedGaps.map((gap) => {
+                  const metricInfo = METRIC_EXPLANATIONS[gap.metric] || {
+                    label: gap.metric,
+                    unit: "",
+                    explanation: "Métrique physiologique contribuant à ta performance.",
+                    whyItMatters: "Cette métrique influence directement ta capacité à atteindre ton objectif.",
+                    howToImprove: "Consulte ton coach pour des recommandations spécifiques.",
+                    icon: "📊",
+                  };
+
+                  return (
+                    <SortableMetricCard
+                      key={gap.metric}
+                      id={gap.metric}
+                      gap={gap}
+                      metricInfo={metricInfo}
+                      isReorderMode={isReorderMode}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
+
+        {/* Pédagogie contextuelle : reléguée en footer discret */}
+        <div className="flex items-start gap-2 pt-4 border-t border-border/30 text-[11px] text-muted-foreground/80 leading-relaxed">
+          <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground/60" />
+          <p>
+            Chaque métrique est comparée à la cible idéale pour ton objectif.
+            Écart <span className="text-[hsl(var(--success))]">positif</span> = au-dessus de la cible ·
+            écart <span className="text-[hsl(var(--destructive))]">négatif</span> = axe de progression.
+            Clique pour les détails et conseils.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
