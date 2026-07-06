@@ -19,6 +19,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Timer,
   Flame,
@@ -42,6 +44,8 @@ import {
   BookOpen,
   Lock,
   AlertCircle,
+  ChevronDown,
+  Utensils,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -115,6 +119,56 @@ function formatDurationCompact(minutes: number): string {
   const m = Math.round(minutes % 60);
   if (h === 0) return `${m}min`;
   return `${h}h${m.toString().padStart(2, '0')}`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SYNTHÈSE COACH — pyramide inversée
+// Traduit les indices bruts (0-100) en langage clair et construit une phrase
+// narrative à partir de la sortie du moteur (aucun recalcul).
+// ─────────────────────────────────────────────────────────────────────────────
+
+type DepletionRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+const DEPLETION_WORDS: Record<DepletionRiskLevel, { word: string; tone: string; bg: string; ring: string }> = {
+  LOW:      { word: 'Faible',   tone: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/30' },
+  MEDIUM:   { word: 'Modéré',   tone: 'text-amber-600 dark:text-amber-400',     bg: 'bg-amber-500/10',   ring: 'ring-amber-500/30' },
+  HIGH:     { word: 'Élevé',    tone: 'text-orange-600 dark:text-orange-400',   bg: 'bg-orange-500/10',  ring: 'ring-orange-500/30' },
+  CRITICAL: { word: 'Critique', tone: 'text-red-600 dark:text-red-400',         bg: 'bg-red-500/10',     ring: 'ring-red-500/30' },
+};
+
+function depletionWord(risk: DepletionRiskLevel): string {
+  return DEPLETION_WORDS[risk]?.word ?? String(risk);
+}
+
+/** Recommandation carburant clé : cible g/h max sur les segments, ou 1er warning actionnable. */
+function pickKeyAction(scenario: PacingScenario): { text: string; carbsGh: number | null } {
+  const carbsMax = scenario.segments.reduce((m, s) => Math.max(m, s.carbsNeeded ?? 0), 0);
+  if (carbsMax >= 60) {
+    return { text: `Viser ${Math.round(carbsMax)} g glucides/h`, carbsGh: Math.round(carbsMax) };
+  }
+  const w = scenario.warnings.find((w) => w && w.length < 90);
+  if (w) return { text: w, carbsGh: null };
+  const s = scenario.strengths[0];
+  if (s) return { text: s, carbsGh: null };
+  return { text: 'Pacing sous contrôle — pas d\'action prioritaire', carbsGh: null };
+}
+
+/** Phrase narrative construite depuis la sortie moteur (aucun calcul). */
+function buildRaceSummary(scenario: PacingScenario, raceLabel: string): string {
+  const time = formatDurationCompact(scenario.estimatedTimeMin);
+  const risk = depletionWord(scenario.overallDepletionRisk).toLowerCase();
+  const parts: string[] = [];
+  parts.push(`Scénario ${scenario.label.toLowerCase()} : ${raceLabel} en ~${time}, risque carburant ${risk}`);
+  if (scenario.breakpointKm != null) {
+    parts.push(` Point critique au km ${Math.round(scenario.breakpointKm)}${scenario.breakpointRisk ? ' — ' + scenario.breakpointRisk.toLowerCase() : ''}`);
+  } else {
+    parts.push(' Aucun point de rupture détecté sur ce profil');
+  }
+  const action = pickKeyAction(scenario);
+  if (action.carbsGh != null) {
+    parts.push(` — sécurisable en montant à ${action.carbsGh} g/h`);
+  }
+  return parts.join('.') + '.';
 }
 
 // Helper pour calculer l'allure (min/km) à partir de la VMA et du % d'intensité
@@ -945,36 +999,108 @@ export function RaceSimulationModule({
           </div>
         )}
         
-        {/* Temps estimé du scénario sélectionné - optimisé mobile */}
-        {currentScenario && (
-          <Card className="border-2 border-primary/20">
-            <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
-              <div className="text-center">
-                <div className="text-xs sm:text-sm text-muted-foreground mb-1">
-                  Temps ({currentScenario.label})
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold text-primary">
-                  {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
-                </div>
-                <div className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  Centre: {formatDurationCompact(currentScenario.estimatedTimeMin)}
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-2">
+        {/* ═══════════ SYNTHÈSE COACH — pyramide inversée ═══════════ */}
+        {currentScenario && (() => {
+          const risk = currentScenario.overallDepletionRisk as DepletionRiskLevel;
+          const rw = DEPLETION_WORDS[risk] ?? DEPLETION_WORDS.MEDIUM;
+          const summary = buildRaceSummary(currentScenario, proSimulation.raceLabel);
+          const action = pickKeyAction(currentScenario);
+          const bp = currentScenario.breakpointKm;
+          return (
+            <Card className={cn("border-2", rw.ring, "ring-1")}>
+              <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6 space-y-4">
+                {/* Phrase narrative */}
+                <p className="text-sm sm:text-base leading-relaxed text-foreground">
+                  {summary}
+                </p>
+
+                {/* Point de rupture — pastille marquante */}
+                {bp != null && (
+                  <div className={cn(
+                    "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium",
+                    rw.bg, rw.tone,
+                  )}>
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Bascule au km {Math.round(bp)}
+                  </div>
+                )}
+
+                {/* 3 indicateurs côte à côte */}
+                <TooltipProvider delayDuration={300}>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                    {/* TEMPS */}
+                    <div className="p-3 sm:p-4 rounded-lg bg-muted/40 border border-border/60">
+                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+                        <Timer className="w-3 h-3" /> Temps
+                      </div>
+                      <div className="mt-1 font-display text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight">
+                        {formatDurationCompact(currentScenario.estimatedTimeMin)}
+                      </div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground tabular-nums">
+                        {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
+                      </div>
+                    </div>
+
+                    {/* RISQUE */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className={cn("p-3 sm:p-4 rounded-lg border cursor-help", rw.bg, "border-border/60")}>
+                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+                            <Shield className="w-3 h-3" /> Risque carburant
+                          </div>
+                          <div className={cn("mt-1 font-display text-2xl sm:text-3xl font-semibold tracking-tight", rw.tone)}>
+                            {rw.word}
+                          </div>
+                          <div className="text-[10px] sm:text-xs text-muted-foreground">
+                            {depletionWord(currentScenario.overallDepletionRisk as DepletionRiskLevel)} sur toute la course
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        Indice interne : {Math.round(currentScenario.overallFuelRisk)}/100 · Succès estimé : {Math.round(currentScenario.successProbability * 100)}%
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* ACTION */}
+                    <div className="p-3 sm:p-4 rounded-lg bg-primary/5 border border-primary/20">
+                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+                        <Utensils className="w-3 h-3" /> Action clé
+                      </div>
+                      {action.carbsGh != null ? (
+                        <>
+                          <div className="mt-1 font-display text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-primary">
+                            {action.carbsGh}<span className="text-sm sm:text-base font-normal text-muted-foreground"> g/h</span>
+                          </div>
+                          <div className="text-[10px] sm:text-xs text-muted-foreground">
+                            glucides cibles pour sécuriser
+                          </div>
+                        </>
+                      ) : (
+                        <div className="mt-1 text-xs sm:text-sm leading-snug text-foreground">
+                          {action.text}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TooltipProvider>
+
+                {/* Confiance temps + type scénario (compact, secondaire) */}
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1">
                   <Badge variant="outline" className="text-[10px] sm:text-xs">
                     {proSimulation.timeConfidenceLabel}
                   </Badge>
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className={cn("text-[10px] sm:text-xs", getScenarioBgColor(currentScenario.type))}
                   >
-                    {currentScenario.type === 'conservative' ? 'Sécurisé' : 
+                    {currentScenario.type === 'conservative' ? 'Sécurisé' :
                      currentScenario.type === 'optimal' ? 'Équilibré' : 'Ambitieux'}
                   </Badge>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          );
+        })()}
         
         {/* Sélection scénario - optimisé tactile */}
         <div className="space-y-3">
@@ -1016,6 +1142,16 @@ export function RaceSimulationModule({
           </div>
         </div>
         
+        {/* ═══════════ DÉTAIL REPLIÉ — ouvert à la demande ═══════════ */}
+        <Collapsible>
+          <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-sm font-medium hover:bg-muted/50 transition-colors group">
+            <span className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-muted-foreground" />
+              Détail par segment (métriques, allures, RPE, glycogène)
+            </span>
+            <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 sm:space-y-6 pt-4">
         {/* Détails du scénario sélectionné - optimisé mobile */}
         {currentScenario && (
           <Card>
@@ -1274,6 +1410,9 @@ export function RaceSimulationModule({
             </CardContent>
           </Card>
         )}
+          </CollapsibleContent>
+        </Collapsible>
+        
         
         {/* Disclaimer */}
         <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
