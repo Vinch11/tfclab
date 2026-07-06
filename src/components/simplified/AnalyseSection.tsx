@@ -135,9 +135,12 @@ function MetricCard({ gap, metricInfo, showDragHandle = false, dragHandleProps =
 }) {
   const [open, setOpen] = useState(false);
   const isUnknown = gap.status === "unknown" || gap.value == null;
-  const status = isUnknown 
-    ? { label: "Donnée manquante", color: "text-muted-foreground", bgColor: "bg-muted/30 border-border/40", icon: Minus }
-    : getGapStatus(gap.gap);
+  const status = isUnknown
+    ? { label: "Donnée manquante", color: "text-muted-foreground", bgColor: "bg-muted/20 border-border/40", accent: "text-muted-foreground", icon: Minus }
+    : (() => {
+        const s = getGapStatus(gap.gap);
+        return { ...s, accent: s.color };
+      })();
   const StatusIcon = status.icon;
 
   const hasValues = gap.value != null && gap.target != null;
@@ -148,126 +151,132 @@ function MetricCard({ gap, metricInfo, showDragHandle = false, dragHandleProps =
 
   const formatVal = (v: number) => v < 10 ? v.toFixed(2) : v.toFixed(1);
 
+  const pct = (() => {
+    if (isUnknown) return 0;
+    if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + gap.gap));
+    const val = gap.value as number;
+    const tgt = gap.target as number;
+    if (isInverse) {
+      if (val <= tgt) return 100;
+      return Math.max(5, Math.min(100, ((2 * tgt - val) / tgt) * 100));
+    }
+    return Math.max(5, Math.min(100, (val / tgt) * 100));
+  })();
+
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className={cn("rounded-xl border transition-colors", status.bgColor)}>
-        <CollapsibleTrigger className="w-full text-left">
-          <div className="p-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-2">
+      <div className={cn("rounded-2xl border transition-colors", status.bgColor)}>
+        <CollapsibleTrigger className="w-full text-left group">
+          <div className="p-5 sm:p-6">
+            {/* Ligne 1 : identité (label discret) + statut */}
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2 min-w-0">
                 {showDragHandle && (
                   <div
                     onPointerDown={(e) => e.stopPropagation()}
-                    className="cursor-grab active:cursor-grabbing touch-none"
+                    className="cursor-grab active:cursor-grabbing touch-none -ml-1"
                     {...dragHandleProps}
                   >
-                    <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                    <GripVertical className="h-4 w-4 text-muted-foreground/60 hover:text-foreground transition-colors" />
                   </div>
                 )}
-                <span className="text-lg">{metricInfo.icon}</span>
-                <span className="text-sm font-bold">{metricInfo.label}</span>
+                <span className="text-base opacity-80">{metricInfo.icon}</span>
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground truncate">
+                  {metricInfo.label}
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <StatusIcon className={cn("h-4 w-4", status.color)} />
-                <Badge variant="outline" className={cn("text-[9px] h-4 px-1.5", status.color)}>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <StatusIcon className={cn("h-3.5 w-3.5", status.accent)} />
+                <span className={cn("text-[11px] font-medium hidden sm:inline", status.accent)}>
                   {status.label}
-                </Badge>
+                </span>
                 <ChevronDown className={cn(
-                  "h-4 w-4 text-muted-foreground transition-transform",
+                  "h-4 w-4 text-muted-foreground/60 transition-transform ml-1",
                   open && "rotate-180"
                 )} />
               </div>
             </div>
 
-            {/* Comparatif Actuel → Cible — TOUJOURS VISIBLE */}
+            {/* Ligne 2 : LA valeur dominante */}
+            <div className="flex items-baseline gap-2 mb-1">
+              {isUnknown ? (
+                <span className="text-2xl font-semibold text-muted-foreground/70 tabular-nums">—</span>
+              ) : (
+                <>
+                  <span className={cn("text-4xl sm:text-5xl font-semibold tracking-tight tabular-nums leading-none", status.accent)}>
+                    {formatVal(gap.value as number)}
+                  </span>
+                  <span className="text-xs text-muted-foreground font-medium">{metricInfo.unit}</span>
+                </>
+              )}
+            </div>
+
+            {/* Ligne 3 : cible + delta, en retrait */}
             {hasValues && (
-              <div className="flex items-center gap-2 mb-2 text-xs">
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background/60 border border-border/30">
-                  <span className="text-muted-foreground">Actuel</span>
-                  <span className="font-bold text-foreground">{formatVal(gap.value as number)}</span>
-                  <span className="text-muted-foreground/60">{metricInfo.unit}</span>
-                </div>
-                <span className="text-muted-foreground/40">→</span>
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background/60 border border-border/30">
-                  <span className="text-muted-foreground">Cible</span>
-                  <span className="font-bold text-foreground">{formatVal(gap.target as number)}</span>
-                  <span className="text-muted-foreground/60">{metricInfo.unit}</span>
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-4">
+                <span>
+                  Cible <span className="tabular-nums text-foreground/80 font-medium">{formatVal(gap.target as number)}</span>
                   {gap.targetRange && (
-                    <span className="ml-0.5 text-[10px] text-muted-foreground/60 font-normal">
+                    <span className="ml-1 text-muted-foreground/60 tabular-nums">
                       ({gap.targetRange.min.toFixed(2)}–{gap.targetRange.max.toFixed(2)})
                     </span>
                   )}
-                </div>
+                </span>
                 {delta !== null && (
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] px-1.5",
-                      remainsToWork
-                        ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
-                        : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
-                    )}
-                  >
-                    {remainsToWork ? "Δ " : "✓ +"}
-                    {Math.abs(displayDelta!).toFixed(isInverse ? 2 : 1)} {metricInfo.unit} {remainsToWork ? "à combler" : "d'avance"}
-                  </Badge>
+                  <>
+                    <span className="text-muted-foreground/40">·</span>
+                    <span className={cn(
+                      "font-medium tabular-nums",
+                      remainsToWork ? "text-[hsl(var(--destructive))]" : "text-[hsl(var(--success))]"
+                    )}>
+                      {remainsToWork ? "−" : "+"}
+                      {Math.abs(displayDelta!).toFixed(isInverse ? 2 : 1)} {remainsToWork ? "à combler" : "d'avance"}
+                    </span>
+                  </>
                 )}
               </div>
             )}
+            {!hasValues && !isUnknown && <div className="mb-4" />}
+            {isUnknown && <div className="mb-4" />}
 
-            {/* Barre de progression */}
-            {(() => {
-              const pct = (() => {
-                if (isUnknown) return 0;
-                if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + gap.gap));
-                const val = gap.value as number;
-                const tgt = gap.target as number;
-                if (isInverse) {
-                  if (val <= tgt) return 100;
-                  return Math.max(5, Math.min(100, ((2 * tgt - val) / tgt) * 100));
-                }
-                return Math.max(5, Math.min(100, (val / tgt) * 100));
-              })();
-              return (
-                <div className="h-2.5 rounded-full bg-muted/60 overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all duration-700",
-                      isUnknown && "bg-muted-foreground/30"
-                    )}
-                    style={{
-                      width: `${pct}%`,
-                      ...(!isUnknown ? {
-                        background: pct >= 95
-                          ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 15%, hsl(30,85%,50%) 30%, hsl(45,80%,50%) 45%, hsl(60,70%,50%) 55%, hsl(90,55%,50%) 70%, hsl(120,60%,45%) 85%, hsl(142,71%,45%) 100%)"
-                          : pct >= 70
-                            ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(20,85%,50%) 25%, hsl(40,80%,50%) 50%, hsl(60,70%,50%) 75%, hsl(80,55%,48%) 100%)"
-                            : pct >= 45
-                              ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 40%, hsl(35,80%,50%) 100%)"
-                              : "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(10,80%,50%) 100%)"
-                      } : {}),
-                    }}
-                  />
-                </div>
-              );
-            })()}
+            {/* Barre de progression, plus fine */}
+            <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-700",
+                  isUnknown && "bg-muted-foreground/30"
+                )}
+                style={{
+                  width: `${pct}%`,
+                  ...(!isUnknown ? {
+                    background: pct >= 95
+                      ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 15%, hsl(30,85%,50%) 30%, hsl(45,80%,50%) 45%, hsl(60,70%,50%) 55%, hsl(90,55%,50%) 70%, hsl(120,60%,45%) 85%, hsl(142,71%,45%) 100%)"
+                      : pct >= 70
+                        ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(20,85%,50%) 25%, hsl(40,80%,50%) 50%, hsl(60,70%,50%) 75%, hsl(80,55%,48%) 100%)"
+                        : pct >= 45
+                          ? "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(15,85%,50%) 40%, hsl(35,80%,50%) 100%)"
+                          : "linear-gradient(90deg, hsl(0,75%,50%) 0%, hsl(10,80%,50%) 100%)"
+                  } : {}),
+                }}
+              />
+            </div>
           </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <div className="px-3 pb-3 space-y-2 border-t border-border/30 pt-2.5">
-            <div className="p-2.5 rounded-lg bg-background/60">
-              <p className="text-[10px] font-bold text-foreground mb-0.5">💡 Qu'est-ce que c'est ?</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.explanation}</p>
+          <div className="px-5 sm:px-6 pb-5 sm:pb-6 space-y-3 border-t border-border/40 pt-4">
+            <div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Qu'est-ce que c'est</p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{metricInfo.explanation}</p>
             </div>
-            <div className="p-2.5 rounded-lg bg-background/60">
-              <p className="text-[10px] font-bold text-foreground mb-0.5">🎯 Pourquoi c'est important</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.whyItMatters}</p>
+            <div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Pourquoi ça compte</p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{metricInfo.whyItMatters}</p>
             </div>
             {remainsToWork && (
-              <div className="p-2.5 rounded-lg bg-primary/5">
-                <p className="text-[10px] font-bold text-foreground mb-0.5">🔧 Comment améliorer</p>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{metricInfo.howToImprove}</p>
+              <div className="pt-2 border-t border-border/30">
+                <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">Comment améliorer</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{metricInfo.howToImprove}</p>
               </div>
             )}
           </div>
