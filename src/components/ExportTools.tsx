@@ -147,6 +147,7 @@ export interface ReportSections {
 
 interface ExportOptions {
   sections: ReportSections;
+  audience?: "athlete" | "staff";
 }
 
 // ReportSections interface - defines available sections in PDF export
@@ -3886,6 +3887,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     nutritionEstimate, capInjuryRisk, ageAdjustment, ambition
   } = payload;
   
+  const isAthlete = options.audience === "athlete";
+  
   const refs = getAthleteRefsForZones(effectiveRefs);
   // ✅ Source de vérité unifiée : ambitions + âge (mêmes cibles que dashboard/limiteur)
   const targets = buildReportTargetsFromUnifiedLimiter(payload.unifiedLimiter, athlete.goal, ambition.current);
@@ -6070,9 +6073,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // 6. AJUSTEMENT PAR L'ÂGE (AAI)
   // =============================================
+  const aaiTermLong = isAthlete ? "Ajustement lié à l'âge" : "Ajustement par l'Âge (AAI)";
+  const aaiShort = isAthlete ? "Ajustement lié à l'âge" : "AAI";
   const aaiHTML = ageAdjustment.age !== null ? `
     <section id="aai" class="section pagebreakAvoid">
-      <h2>6. Ajustement par l'Âge (AAI)</h2>
+      <h2>6. ${aaiTermLong}</h2>
       
       <div class="card cardHighlight">
         <div class="grid2">
@@ -6082,7 +6087,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="muted">Catégorie : <b>${ageAdjustment.aai.label}</b></div>
             <div class="mt" style="display:flex;gap:16px;flex-wrap:wrap;">
               <div>
-                <div class="muted" style="font-size:11px;">AAI</div>
+                <div class="muted" style="font-size:11px;">${aaiShort}</div>
                 <div style="font-size:18px;font-weight:600">${Math.round(ageAdjustment.aai.aai * 100)}%</div>
               </div>
               <div>
@@ -6092,7 +6097,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </div>
           </div>
           <div>
-            <h4>📊 Échelle AAI</h4>
+            <h4>📊 Échelle ${aaiShort}</h4>
             <svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="aaiGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -6298,7 +6303,39 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // SECTION RISQUE DE BLESSURE CAP (DÉTAILLÉ)
   // =============================================
-  const injuryRiskHTML = capInjuryRisk ? `
+  const injuryRiskHTML = capInjuryRisk ? (isAthlete ? (() => {
+    // Vue athlète : niveau en mots + couleur + phrase d'action
+    const lvl = capInjuryRisk.level;
+    const wordLevel = lvl >= 4 ? 'Critique' : lvl >= 3 ? 'Élevé' : lvl >= 2 ? 'Modéré' : 'Faible';
+    const wordColor = lvl >= 4 ? '#dc2626' : lvl >= 3 ? '#ea580c' : lvl >= 2 ? '#d97706' : '#16a34a';
+    const cardClass = lvl >= 3 ? 'cardError' : lvl >= 2 ? 'cardWarning' : 'cardSuccess';
+    const alertClass = lvl >= 3 ? 'alertError' : lvl >= 2 ? 'alertWarning' : 'alertSuccess';
+    const actionPhrase = lvl >= 4
+      ? 'Priorité absolue à la récupération. Discute avec ton coach avant la prochaine séance intense.'
+      : lvl >= 3
+        ? 'Réduis la charge et surveille tes signaux de fatigue cette semaine.'
+        : lvl >= 2
+          ? 'Reste vigilant sur les douleurs et respecte tes jours de récupération.'
+          : 'Profil sain. Continue ta progression graduelle.';
+    return `
+      <section id="injury-risk" class="section pagebreakAvoid">
+        <h2>🦵 Risque de Blessure</h2>
+        <div class="card ${cardClass}">
+          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+            <div style="font-size:48px;">${capInjuryRisk.icon}</div>
+            <div style="flex:1;min-width:200px;">
+              <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Niveau de risque</div>
+              <div style="font-size:28px;font-weight:700;color:${wordColor};">${wordLevel}</div>
+            </div>
+          </div>
+        </div>
+        <div class="alert ${alertClass} mt">
+          <b>${lvl >= 3 ? '🚨 Action recommandée :' : lvl >= 2 ? '⚠️ Vigilance :' : '✅ Tout va bien :'}</b>
+          ${actionPhrase}
+        </div>
+      </section>
+    `;
+  })() : `
     <section id="injury-risk" class="section pagebreakAvoid">
       <h2>🦵 Risque de Blessure CAP</h2>
       
@@ -6361,7 +6398,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         }
       </div>
     </section>
-  ` : '';
+  `) : '';
 
 
   // =============================================
@@ -7971,6 +8008,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       }).join('');
       
       const riskColor = race.glycogenRisk === 'low' ? '#16a34a' : race.glycogenRisk === 'moderate' ? '#d97706' : '#dc2626';
+      const riskLabelAthlete = race.glycogenRisk === 'low'
+        ? 'Faible'
+        : race.glycogenRisk === 'moderate'
+          ? 'Risque de coup de mou'
+          : 'Risque de mur';
+      const riskLabelStaff = race.glycogenRisk === 'low' ? 'Faible' : race.glycogenRisk === 'moderate' ? 'Modéré' : 'Élevé';
       
       return `<tr>
         <td>
@@ -7979,7 +8022,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </td>
         ${cells}
         <td style="text-align:center;">
-          <span class="badge" style="background:${riskColor}20;color:${riskColor};">${race.glycogenRisk === 'low' ? 'Faible' : race.glycogenRisk === 'moderate' ? 'Modéré' : 'Élevé'}</span>
+          <span class="badge" style="background:${riskColor}20;color:${riskColor};">${isAthlete ? riskLabelAthlete : riskLabelStaff}</span>
         </td>
       </tr>`;
     }).join('');
@@ -7991,7 +8034,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     
     return `
       <section id="performance-prediction">
-        <h2>⏱️ Prédiction de Performance — Modèle Mader</h2>
+        <h2>⏱️ Prédiction de Performance${isAthlete ? '' : ' — Modèle Mader'}</h2>
         <div class="card mb">
           <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;text-align:center;">
             <div>
@@ -8032,7 +8075,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <tr>
                 <th>Course</th>
                 ${headerCells}
-                <th style="text-align:center;font-size:10px;">Risque<br>Glycogène</th>
+                <th style="text-align:center;font-size:10px;">${isAthlete ? 'Risque nutrition' : 'Risque<br>Glycogène'}</th>
               </tr>
             </thead>
             <tbody>
@@ -8040,13 +8083,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </tbody>
           </table>
         </div>
-        <div class="card" style="background:#f8fafc;">
+        ${isAthlete ? '' : `<div class="card" style="background:#f8fafc;">
           <div class="muted" style="font-size:10px;">
             <b>Méthodologie :</b> ${output.modelNote}
             Métriques métaboliques (MLSS, FatMax, TTE) calculées par modèle Mader-Heck (2003). Parité Dashboard/Export.
             Confiance du modèle : ${Math.round(output.confidence * 100)}%.
           </div>
-        </div>
+        </div>`}
       </section>
     `;
   }
@@ -9535,8 +9578,19 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       // Convert logo to base64 for embedding in the PDF
       const logoBase64 = await imageToBase64(logoUrl);
       
+      // Détecter le preset actif pour dériver l'audience
+      const currentPresetKey: ReportPreset | null = (() => {
+        const keys = Object.keys(sections) as (keyof ReportSections)[];
+        for (const p of Object.keys(REPORT_PRESETS) as ReportPreset[]) {
+          const ref = REPORT_PRESETS[p].sections;
+          if (keys.every(k => !!sections[k] === !!ref[k])) return p;
+        }
+        return null;
+      })();
+      
       const exportOptions: ExportOptions = {
-        sections
+        sections,
+        audience: currentPresetKey === "athlete" ? "athlete" : "staff",
       };
       
       const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions, calibrationEvidences);
