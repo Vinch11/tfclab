@@ -78,6 +78,7 @@ import {
   calculateTTEatMLSS,
 } from "@/lib/v2/maderMetabolicModel";
 import { computePerformancePredictions } from "@/lib/v2/performancePrediction";
+import { useAthleteRaceRecords } from "@/hooks/useAthleteRaceRecords";
 // ✅ NEW: Coaching Compass (5 axes)
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
