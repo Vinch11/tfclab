@@ -9643,6 +9643,24 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     setSections(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const applyPreset = (preset: ReportPreset) => {
+    setSections({ ...REPORT_PRESETS[preset].sections });
+    toast.success(`Preset appliqué : ${REPORT_PRESETS[preset].label}`, {
+      description: "Tu peux ajuster manuellement les sections ci-dessous.",
+    });
+  };
+
+  // Détection du preset actif (match exact)
+  const activePreset: ReportPreset | null = (() => {
+    const keys = Object.keys(sections) as (keyof ReportSections)[];
+    for (const p of Object.keys(REPORT_PRESETS) as ReportPreset[]) {
+      const ref = REPORT_PRESETS[p].sections;
+      if (keys.every(k => !!sections[k] === !!ref[k])) return p;
+    }
+    return null;
+  })();
+
+
   const selectAll = () => {
     setSections(DEFAULT_REPORT_SECTIONS);
   };
