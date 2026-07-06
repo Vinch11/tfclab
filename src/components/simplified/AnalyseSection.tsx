@@ -246,74 +246,133 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="group rounded-xl border border-border/60 bg-card hover:border-border hover:shadow-sm transition-all">
+      <div
+        className={cn(
+          "group relative overflow-hidden rounded-xl border bg-card transition-all",
+          "hover:shadow-md",
+          tone === "priority" && "border-[hsl(var(--destructive)/0.35)]",
+          tone === "developing" && "border-[hsl(var(--warning)/0.35)]",
+          tone === "excellent" && "border-[hsl(var(--success)/0.35)]",
+          tone === "on_target" && "border-primary/25",
+          tone === "unknown" && "border-border/60",
+        )}
+      >
+        {/* Bande de couleur latérale — signal fort */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-1"
+          style={{ background: style.ring }}
+        />
+
         <CollapsibleTrigger className="w-full text-left">
-          <div className="flex items-center gap-3 px-4 py-3">
-            {showDragHandle && (
+          <div className="pl-4 pr-3 py-3 sm:pl-5 sm:pr-4">
+            {/* Ligne du haut : identité + valeur */}
+            <div className="flex items-center gap-3">
+              {showDragHandle && (
+                <div
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="cursor-grab active:cursor-grabbing touch-none -ml-1"
+                  {...dragHandleProps}
+                >
+                  <GripVertical className="h-4 w-4 text-muted-foreground/50 hover:text-foreground" />
+                </div>
+              )}
+
               <div
-                onPointerDown={(e) => e.stopPropagation()}
-                className="cursor-grab active:cursor-grabbing touch-none -ml-1"
-                {...dragHandleProps}
+                className="flex items-center justify-center rounded-lg shrink-0"
+                style={{
+                  width: 36,
+                  height: 36,
+                  background: `${style.ring}18`,
+                  color: style.ring,
+                }}
               >
-                <GripVertical className="h-4 w-4 text-muted-foreground/50 hover:text-foreground" />
+                <MetricIcon className="h-4 w-4" />
               </div>
-            )}
 
-            <ProgressRing pct={pct} color={style.ring} size={48} stroke={4}>
-              <MetricIcon className={cn("h-4 w-4", isUnknown ? "text-muted-foreground/50" : "text-foreground/80")} />
-            </ProgressRing>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-semibold text-foreground truncate">
-                  {metricInfo.label}
-                </span>
-                <span className={cn(
-                  "inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded",
-                  style.chip
-                )}>
-                  <StatusIcon className="h-2.5 w-2.5" />
-                  {style.label}
-                </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-foreground truncate">
+                    {metricInfo.label}
+                  </span>
+                  <span className={cn(
+                    "inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded",
+                    style.chip
+                  )}>
+                    <StatusIcon className="h-2.5 w-2.5" />
+                    {style.label}
+                  </span>
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">
+                  {hasValues
+                    ? <>Cible <span className="tabular-nums font-medium text-foreground/70">{formatVal(gap.target as number)}</span> {metricInfo.unit}</>
+                    : "Données insuffisantes"}
+                </div>
               </div>
-              {hasValues ? (
-                <div className="flex items-baseline gap-1.5 text-xs text-muted-foreground leading-tight mt-1">
-                  <span className="text-muted-foreground/70">Cible</span>
-                  <span className="tabular-nums font-medium text-foreground/80">{formatVal(gap.target as number)}</span>
-                  <span className="text-muted-foreground/60">{metricInfo.unit}</span>
-                  {delta !== null && (
+
+              {/* Valeur + delta empilés à droite */}
+              <div className="flex flex-col items-end shrink-0 leading-none gap-1">
+                <div className="flex items-baseline gap-0.5">
+                  {isUnknown ? (
+                    <span className="text-2xl font-bold text-muted-foreground/50 tabular-nums">—</span>
+                  ) : (
                     <>
-                      <span className="text-muted-foreground/40">·</span>
-                      <span className={cn(
-                        "tabular-nums font-semibold",
-                        remainsToWork ? "text-[hsl(var(--destructive))]" : "text-[hsl(var(--success))]"
-                      )}>
-                        {remainsToWork ? "−" : "+"}{Math.abs(displayDelta!).toFixed(isInverse ? 2 : 1)}
+                      <span className={cn("text-2xl sm:text-[28px] font-bold tracking-tight tabular-nums", style.text)}>
+                        {formatVal(gap.value as number)}
                       </span>
+                      <span className="text-[10px] text-muted-foreground font-medium ml-0.5">{metricInfo.unit}</span>
                     </>
                   )}
                 </div>
-              ) : (
-                <div className="text-xs text-muted-foreground/70 leading-tight mt-1">Données insuffisantes</div>
-              )}
-            </div>
-
-            <div className="flex items-baseline gap-1 shrink-0">
-              {isUnknown ? (
-                <span className="text-2xl font-semibold text-muted-foreground/50 tabular-nums">—</span>
-              ) : (
-                <>
-                  <span className={cn("text-2xl sm:text-3xl font-bold tracking-tight tabular-nums leading-none", style.text)}>
-                    {formatVal(gap.value as number)}
+                {delta !== null && (
+                  <span className={cn(
+                    "text-[11px] tabular-nums font-bold px-1.5 py-0.5 rounded",
+                    remainsToWork
+                      ? "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]"
+                      : "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]"
+                  )}>
+                    {remainsToWork ? "−" : "+"}{Math.abs(displayDelta!).toFixed(isInverse ? 2 : 1)}
                   </span>
-                  <span className="text-[10px] text-muted-foreground font-medium ml-0.5">{metricInfo.unit}</span>
-                </>
-              )}
+                )}
+              </div>
+
               <ChevronDown className={cn(
-                "h-4 w-4 text-muted-foreground/40 ml-2 transition-transform",
+                "h-4 w-4 text-muted-foreground/40 transition-transform shrink-0",
                 open && "rotate-180"
               )} />
             </div>
+
+            {/* Barre de progression horizontale — lecture instantanée */}
+            {!isUnknown && (
+              <div className="mt-2.5 ml-[52px]">
+                <div className="relative h-2 rounded-full bg-muted/60 overflow-hidden">
+                  {/* Zone cible (bande neutre) */}
+                  <div
+                    className="absolute top-0 bottom-0 bg-primary/15"
+                    style={{ left: "45%", right: "5%" }}
+                  />
+                  {/* Marqueur cible */}
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-foreground/30"
+                    style={{ left: "50%" }}
+                  />
+                  {/* Remplissage progression */}
+                  <div
+                    className="absolute top-0 bottom-0 rounded-full transition-all duration-700"
+                    style={{
+                      left: 0,
+                      width: `${pct}%`,
+                      background: style.ring,
+                      opacity: 0.85,
+                    }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1 text-[9px] text-muted-foreground/60 uppercase tracking-wider">
+                  <span>Bas</span>
+                  <span>Cible</span>
+                  <span>Haut</span>
+                </div>
+              </div>
+            )}
           </div>
         </CollapsibleTrigger>
 
