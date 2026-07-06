@@ -56,7 +56,7 @@ import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as Sm
 import { detectUnifiedLimiter, type UnifiedLimiterResult, computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
 import { User, Shield, Sparkles } from "lucide-react";
-import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS } from "./ReportSectionOrderEditor";
+import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS, REPORT_PRESETS, type ReportPreset } from "./ReportSectionOrderEditor";
 // ✅ NEW: Import Disponibilité TFCL™
 import { 
   computeDisponibiliteTFCL, 
@@ -9643,6 +9643,24 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     setSections(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const applyPreset = (preset: ReportPreset) => {
+    setSections({ ...REPORT_PRESETS[preset].sections });
+    toast.success(`Preset appliqué : ${REPORT_PRESETS[preset].label}`, {
+      description: "Tu peux ajuster manuellement les sections ci-dessous.",
+    });
+  };
+
+  // Détection du preset actif (match exact)
+  const activePreset: ReportPreset | null = (() => {
+    const keys = Object.keys(sections) as (keyof ReportSections)[];
+    for (const p of Object.keys(REPORT_PRESETS) as ReportPreset[]) {
+      const ref = REPORT_PRESETS[p].sections;
+      if (keys.every(k => !!sections[k] === !!ref[k])) return p;
+    }
+    return null;
+  })();
+
+
   const selectAll = () => {
     setSections(DEFAULT_REPORT_SECTIONS);
   };
@@ -9798,9 +9816,54 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
           
           {/* Onglet Sections */}
           <TabsContent value="sections" className="mt-0 p-3 space-y-3">
+            {/* ── Sélecteur de preset ── */}
+            <div className="rounded-lg border bg-muted/30 p-2.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Preset
+                </p>
+                {activePreset && (
+                  <span className="text-[10px] text-primary font-medium">
+                    ● {REPORT_PRESETS[activePreset].label}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {(Object.keys(REPORT_PRESETS) as ReportPreset[]).map((p) => {
+                  const preset = REPORT_PRESETS[p];
+                  const isActive = activePreset === p;
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => applyPreset(p)}
+                      className={`text-left rounded-md border p-2 transition-colors ${
+                        isActive
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-background hover:bg-muted/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        {p === "staff" ? <Shield className="h-3 w-3 text-primary" /> : <User className="h-3 w-3 text-primary" />}
+                        <span className="text-xs font-semibold">{preset.label}</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                        {preset.description}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+                        {Object.values(preset.sections).filter(Boolean).length} sections
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-muted-foreground/80 leading-snug pt-0.5">
+                Un preset est un point de départ — tu peux ajuster manuellement ci-dessous.
+              </p>
+            </div>
+
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-muted-foreground">
-                Sections Staff ({selectedCount}/{totalCount})
+                Sections ({selectedCount}/{totalCount})
               </p>
               <div className="flex gap-1">
                 <Button variant="ghost" size="sm" onClick={selectAll} className="text-xs h-6 px-2">
@@ -9811,6 +9874,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 </Button>
               </div>
             </div>
+            
             
             <div className="max-h-[280px] overflow-y-auto space-y-1 pr-1 border rounded-md p-2 bg-muted/20">
               {getSectionOrder().map((key) => (

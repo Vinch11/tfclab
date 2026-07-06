@@ -213,6 +213,54 @@ export const DEFAULT_VISIBILITY: Record<keyof ReportSections, boolean> = {
 // Export alias for backward compatibility
 export const DEFAULT_REPORT_SECTIONS = DEFAULT_VISIBILITY;
 
+// =============================================
+// PRESETS — Points de départ pour 2 publics distincts
+// L'utilisateur peut ajuster manuellement après application.
+// =============================================
+
+// Helper : génère un objet ReportSections rempli à `false`
+function allFalseSections(): Record<keyof ReportSections, boolean> {
+  const out = {} as Record<keyof ReportSections, boolean>;
+  (Object.keys(DEFAULT_VISIBILITY) as (keyof ReportSections)[]).forEach((k) => { out[k] = false; });
+  return out;
+}
+
+// Preset "Staff complet" — comportement actuel (tout coché)
+export const PRESET_STAFF: Record<keyof ReportSections, boolean> = { ...DEFAULT_VISIBILITY };
+
+// Preset "Athlète" — uniquement les sections lisibles sans bagage physiologique.
+// Exclu : vlamaxZoneConfidence, runMLSSCoherence, cpWprimeWbal, lactateCorrespondence,
+// lactateCurve, substrateCurve, calibrationEvidence, testsCalibration, cycleIntelligence,
+// qualite, compass (jargon interne, scores bruts, noms de modèles).
+export const PRESET_ATHLETE: Record<keyof ReportSections, boolean> = (() => {
+  const s = allFalseSections();
+  s.synthese = true;                   // + page de synthèse exécutive (injectée systématiquement)
+  s.zones = true;                      // zones d'entraînement (lisibles)
+  s.nutritionV2 = true;                // besoins carburant en langage clair
+  s.fatmaxTFCL = true;                 // complément nutrition (FatMax = intensité brûle-graisses)
+  s.performancePrediction = true;      // chronos prédits
+  s.ambitionTargets = true;            // cibles par niveau d'ambition
+  s.ambitionLegend = true;             // légende associée
+  s.injuryRisk = true;                 // risque blessure CAP
+  s.roadmap = true;                    // feuille de route stratégique
+  s.potentielPhysiologiqueRunning = true; // score global running lisible
+  s.pacingEnvelope = true;             // enveloppe d'allure course
+  s.ageAdjustment = true;              // ajustement âge (compréhensible)
+  s.comprendre = true;                 // page pédagogique "comprendre mes scores"
+  return s;
+})();
+
+export type ReportPreset = "staff" | "athlete";
+export const REPORT_PRESETS: Record<ReportPreset, {
+  label: string;
+  description: string;
+  sections: Record<keyof ReportSections, boolean>;
+}> = {
+  staff:   { label: "Rapport Staff",   description: "Toutes les sections, jargon inclus.",         sections: PRESET_STAFF },
+  athlete: { label: "Rapport Athlète", description: "Lisible sans bagage physiologique.",          sections: PRESET_ATHLETE },
+};
+
+
 // Récupérer l'ordre des sections depuis localStorage
 export function getSectionOrder(): (keyof ReportSections)[] {
   try {
