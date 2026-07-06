@@ -383,7 +383,6 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
     .map(m => gapMap.get(m))
     .filter(Boolean) as typeof gapAnalysis;
 
-  return (
   const completenessPct = Math.round(diagnostic.meta.dataCompleteness * 100);
   const criticalCount = synthesis.alerts.filter(a => a.severity === "critical").length;
   const warningCount = synthesis.alerts.filter(a => a.severity === "warning").length;
