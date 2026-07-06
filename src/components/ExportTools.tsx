@@ -8041,7 +8041,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <tr>
                 <th>Course</th>
                 ${headerCells}
-                <th style="text-align:center;font-size:10px;">Risque<br>Glycogène</th>
+                <th style="text-align:center;font-size:10px;">${isAthlete ? 'Risque nutrition' : 'Risque<br>Glycogène'}</th>
               </tr>
             </thead>
             <tbody>
@@ -8049,13 +8049,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </tbody>
           </table>
         </div>
-        <div class="card" style="background:#f8fafc;">
+        ${isAthlete ? '' : `<div class="card" style="background:#f8fafc;">
           <div class="muted" style="font-size:10px;">
             <b>Méthodologie :</b> ${output.modelNote}
             Métriques métaboliques (MLSS, FatMax, TTE) calculées par modèle Mader-Heck (2003). Parité Dashboard/Export.
             Confiance du modèle : ${Math.round(output.confidence * 100)}%.
           </div>
-        </div>
+        </div>`}
       </section>
     `;
   }
