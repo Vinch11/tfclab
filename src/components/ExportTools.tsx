@@ -9299,7 +9299,16 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     localStorage.setItem("vlab-export-sections", JSON.stringify(sections));
   }, [sections]);
   
+  // Records de course réels (fenêtre 12 mois par défaut) — activent le recalage
+  // Riegel dans computePerformancePredictions. Sans records ⇒ prédiction physio pure.
+  const activeSnapshotForRecords = getEffectiveSnapshot(athlete, snapshots);
+  const vmaForRecords = activeSnapshotForRecords?.vma ?? null;
+  const windowMonthsRefs = (athlete.refs as any)?.raceRecordsWindowMonths;
+  const raceRecordsWindow = windowMonthsRefs === null ? null : (windowMonthsRefs ?? 12);
+  const raceRecords = useAthleteRaceRecords(athlete.id, vmaForRecords, raceRecordsWindow);
+
   const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition);
+  payload.raceRecords = raceRecords;
   const exportCheck = canExport(payload);
 
   const [isExporting, setIsExporting] = useState(false);
