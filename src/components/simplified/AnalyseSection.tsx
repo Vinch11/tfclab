@@ -246,49 +246,40 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="group rounded-2xl border border-border/50 bg-card hover:border-border transition-colors">
+      <div className="group rounded-lg border border-border/50 bg-card hover:border-border transition-colors">
         <CollapsibleTrigger className="w-full text-left">
-          <div className="flex items-center gap-4 p-4 sm:p-5">
-            {/* Poignée */}
+          <div className="flex items-center gap-2.5 px-3 py-2">
             {showDragHandle && (
               <div
                 onPointerDown={(e) => e.stopPropagation()}
-                className="cursor-grab active:cursor-grabbing touch-none -ml-1"
+                className="cursor-grab active:cursor-grabbing touch-none -ml-0.5"
                 {...dragHandleProps}
               >
-                <GripVertical className="h-4 w-4 text-muted-foreground/50 hover:text-foreground" />
+                <GripVertical className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-foreground" />
               </div>
             )}
 
-            {/* Ring de progression avec icône métrique au centre */}
-            <ProgressRing pct={pct} color={style.ring} size={48} stroke={3}>
-              <MetricIcon className={cn("h-4 w-4", isUnknown ? "text-muted-foreground/50" : "text-foreground/70")} />
+            <ProgressRing pct={pct} color={style.ring} size={32} stroke={2.5}>
+              <MetricIcon className={cn("h-3 w-3", isUnknown ? "text-muted-foreground/50" : "text-foreground/70")} />
             </ProgressRing>
 
-            {/* Bloc identité + delta */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground truncate">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground/80 truncate">
                   {metricInfo.label}
                 </span>
-                <span className={cn("inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium", style.chip)}>
-                  <StatusIcon className="h-2.5 w-2.5" />
+                <span className={cn("h-1 w-1 rounded-full shrink-0", style.accent)} />
+                <span className="text-[10px] text-muted-foreground truncate">
                   {style.label}
                 </span>
               </div>
               {hasValues ? (
-                <div className="flex items-baseline gap-1.5 text-[11px] text-muted-foreground">
-                  <span>Cible</span>
-                  <span className="tabular-nums text-foreground/70 font-medium">{formatVal(gap.target as number)}</span>
-                  <span>{metricInfo.unit}</span>
-                  {gap.targetRange && (
-                    <span className="text-muted-foreground/60 tabular-nums">
-                      ({gap.targetRange.min.toFixed(2)}–{gap.targetRange.max.toFixed(2)})
-                    </span>
-                  )}
+                <div className="flex items-baseline gap-1 text-[10px] text-muted-foreground leading-tight">
+                  <span className="tabular-nums text-foreground/60">{formatVal(gap.target as number)}</span>
+                  <span className="text-muted-foreground/60">{metricInfo.unit}</span>
                   {delta !== null && (
                     <>
-                      <span className="text-muted-foreground/40">·</span>
+                      <span className="text-muted-foreground/30">·</span>
                       <span className={cn(
                         "tabular-nums font-medium",
                         remainsToWork ? "text-[hsl(var(--destructive))]" : "text-[hsl(var(--success))]"
@@ -299,24 +290,23 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
                   )}
                 </div>
               ) : (
-                <div className="text-[11px] text-muted-foreground/70">Données insuffisantes</div>
+                <div className="text-[10px] text-muted-foreground/70 leading-tight">Données insuffisantes</div>
               )}
             </div>
 
-            {/* LA valeur dominante à droite */}
-            <div className="flex items-baseline gap-1 shrink-0">
+            <div className="flex items-baseline gap-0.5 shrink-0">
               {isUnknown ? (
-                <span className="text-2xl font-semibold text-muted-foreground/50 tabular-nums">—</span>
+                <span className="text-lg font-semibold text-muted-foreground/50 tabular-nums">—</span>
               ) : (
                 <>
-                  <span className={cn("text-3xl sm:text-4xl font-semibold tracking-tight tabular-nums leading-none", style.text)}>
+                  <span className={cn("text-xl sm:text-2xl font-semibold tracking-tight tabular-nums leading-none", style.text)}>
                     {formatVal(gap.value as number)}
                   </span>
-                  <span className="text-[10px] text-muted-foreground font-medium ml-0.5">{metricInfo.unit}</span>
+                  <span className="text-[9px] text-muted-foreground font-medium ml-0.5">{metricInfo.unit}</span>
                 </>
               )}
               <ChevronDown className={cn(
-                "h-4 w-4 text-muted-foreground/40 ml-2 transition-transform",
+                "h-3.5 w-3.5 text-muted-foreground/40 ml-1.5 transition-transform",
                 open && "rotate-180"
               )} />
             </div>
@@ -324,21 +314,21 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <div className="mx-4 sm:mx-5 mb-4 sm:mb-5 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 pt-4 border-t border-border/40">
+          <div className="mx-3 mb-3 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 pt-2.5 border-t border-border/40">
             <div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Définition</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{metricInfo.explanation}</p>
+              <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest mb-0.5">Définition</p>
+              <p className="text-[11px] text-foreground/80 leading-relaxed">{metricInfo.explanation}</p>
             </div>
             <div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Impact</p>
-              <p className="text-xs text-foreground/80 leading-relaxed">{metricInfo.whyItMatters}</p>
+              <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest mb-0.5">Impact</p>
+              <p className="text-[11px] text-foreground/80 leading-relaxed">{metricInfo.whyItMatters}</p>
             </div>
             {remainsToWork && (
-              <div className="md:col-span-2 rounded-xl bg-primary/5 border border-primary/15 p-3">
-                <p className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-1 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Levier d'amélioration
+              <div className="md:col-span-2 rounded-md bg-primary/5 border border-primary/15 p-2">
+                <p className="text-[9px] font-semibold text-primary uppercase tracking-widest mb-0.5 flex items-center gap-1">
+                  <Sparkles className="h-2.5 w-2.5" /> Levier d'amélioration
                 </p>
-                <p className="text-xs text-foreground/85 leading-relaxed">{metricInfo.howToImprove}</p>
+                <p className="text-[11px] text-foreground/85 leading-relaxed">{metricInfo.howToImprove}</p>
               </div>
             )}
           </div>
@@ -469,80 +459,75 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
             background: `radial-gradient(600px 200px at 85% 0%, ${scoreStyle.ring}, transparent 60%)`,
           }}
         />
-        <div className="relative p-6 sm:p-8 border-b border-border/40">
-          {/* Eyebrow + actions */}
-          <div className="flex items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Gauge className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.15em]">
-                Analyse physiologique
-              </span>
-              <span className="text-muted-foreground/40">·</span>
-              <span className="text-[10px] uppercase tracking-wider">
-                {diagnostic.objectif} · {diagnostic.ambition}
+        <div className="relative px-4 py-3 sm:px-5 sm:py-4 border-b border-border/40">
+          {/* Ligne 1 : eyebrow + KPIs inline + actions */}
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
+              <Gauge className="h-3 w-3 shrink-0" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] truncate">
+                Analyse · {diagnostic.objectif} · {diagnostic.ambition}
               </span>
             </div>
             <Button
               variant="ghost"
               size="sm"
               className={cn(
-                "h-7 text-[11px] gap-1.5",
+                "h-6 px-2 text-[10px] gap-1",
                 isReorderMode ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
               onClick={() => setIsReorderMode(v => !v)}
             >
               <ArrowUpDown className="h-3 w-3" />
-              {isReorderMode ? "Terminé" : "Réorganiser"}
+              {isReorderMode ? "OK" : "Trier"}
             </Button>
           </div>
 
-          <div className="grid grid-cols-[1fr_auto] gap-6 items-center">
-            {/* Headline dominante */}
-            <div className="min-w-0">
-              <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight leading-[1.15] text-foreground">
+          {/* Ligne 2 : gauge + headline + KPIs inline */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Gauge compacte */}
+            <ProgressRing pct={scoreValue ?? 0} color={scoreStyle.ring} size={56} stroke={4}>
+              <div className="flex flex-col items-center leading-none">
+                <span className={cn("text-base font-semibold tabular-nums", scoreStyle.text)}>
+                  {scoreValue ?? "—"}
+                </span>
+                <span className="text-[8px] uppercase tracking-widest text-muted-foreground mt-0.5">
+                  Score
+                </span>
+              </div>
+            </ProgressRing>
+
+            {/* Headline + KPIs inline */}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm sm:text-base font-semibold tracking-tight leading-snug text-foreground line-clamp-2">
                 {synthesis.headline}
               </h3>
-              {synthesis.strengths.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-4">
-                  {synthesis.strengths.slice(0, 4).map((s, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.15)] font-medium"
-                    >
-                      <Sparkles className="h-2.5 w-2.5" />
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Gauge score */}
-            <div className="flex flex-col items-center gap-2">
-              <ProgressRing pct={scoreValue ?? 0} color={scoreStyle.ring} size={104} stroke={6}>
-                <div className="flex flex-col items-center leading-none">
-                  <span className={cn("text-3xl font-semibold tabular-nums tracking-tight", scoreStyle.text)}>
-                    {scoreValue ?? "—"}
-                  </span>
-                  <span className="text-[9px] uppercase tracking-widest text-muted-foreground mt-1">
-                    Score
-                  </span>
-                </div>
-              </ProgressRing>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[10px] text-muted-foreground">
+                <InlineKpi label="données" value={`${completenessPct}%`} tone={completenessPct >= 70 ? "on_target" : "developing"} />
+                <InlineKpi label="cible" value={onTargetCount} tone={onTargetCount > 0 ? "excellent" : "unknown"} />
+                <InlineKpi label="prio" value={priorityCount} tone={priorityCount > 0 ? "priority" : "on_target"} />
+                <InlineKpi label="alertes" value={alertsCount} tone={criticalCount > 0 ? "priority" : alertsCount > 0 ? "developing" : "on_target"} />
+              </div>
             </div>
           </div>
 
-          {/* Ligne de KPI compacts */}
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <KpiCell label="Données" value={`${completenessPct}%`} tone={completenessPct >= 70 ? "on_target" : "developing"} />
-            <KpiCell label="Dans la cible" value={onTargetCount} tone={onTargetCount > 0 ? "excellent" : "unknown"} />
-            <KpiCell label="Prioritaires" value={priorityCount} tone={priorityCount > 0 ? "priority" : "on_target"} />
-            <KpiCell label="Alertes" value={alertsCount} tone={criticalCount > 0 ? "priority" : alertsCount > 0 ? "developing" : "on_target"} />
-          </div>
+          {/* Forces chips, très compact */}
+          {synthesis.strengths.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2.5">
+              {synthesis.strengths.slice(0, 5).map((s, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.15)] font-medium"
+                >
+                  <Sparkles className="h-2 w-2" />
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <CardContent className="p-6 sm:p-8 space-y-6">
+      <CardContent className="p-3 sm:p-4 space-y-3">
         {/* Alertes remontées */}
         {synthesis.alerts.length > 0 && (
           <div className="space-y-2">
@@ -625,20 +610,16 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   );
 }
 
-// ─── Sous-composant KPI ─────────────────────────────────────
-function KpiCell({ label, value, tone }: { label: string; value: string | number; tone: StatusTone }) {
+// ─── Sous-composant KPI inline ─────────────────────────────
+function InlineKpi({ label, value, tone }: { label: string; value: string | number; tone: StatusTone }) {
   const style = TONE_STYLES[tone];
   return (
-    <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-background/50 border border-border/40">
-      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", style.accent)} />
-      <div className="min-w-0">
-        <div className={cn("text-base font-semibold tabular-nums leading-none", style.text)}>
-          {value}
-        </div>
-        <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
-          {label}
-        </div>
-      </div>
-    </div>
+    <span className="inline-flex items-center gap-1">
+      <span className={cn("h-1 w-1 rounded-full", style.accent)} />
+      <span className={cn("text-[11px] font-semibold tabular-nums leading-none", style.text)}>
+        {value}
+      </span>
+      <span className="text-muted-foreground/80">{label}</span>
+    </span>
   );
 }
