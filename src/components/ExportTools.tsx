@@ -238,6 +238,8 @@ interface ExportPayload {
   lorangResult: LorangStrategyResult | null;
   // ✅ NEW: Run MLSS Cohérence (Modèle C — RMSE 2.64% sur N=14 run)
   runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"] | null;
+  // Records de course réels (injectés depuis useAthleteRaceRecords côté composant)
+  raceRecords?: import("@/lib/v2/vlamaxRunV2Enhanced").RaceRecordsInput | null;
 }
 
 // =============================================
