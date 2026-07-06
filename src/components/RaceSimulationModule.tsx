@@ -1142,6 +1142,16 @@ export function RaceSimulationModule({
           </div>
         </div>
         
+        {/* ═══════════ DÉTAIL REPLIÉ — ouvert à la demande ═══════════ */}
+        <Collapsible>
+          <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/30 px-4 py-3 text-sm font-medium hover:bg-muted/50 transition-colors group">
+            <span className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-muted-foreground" />
+              Détail par segment (métriques, allures, RPE, glycogène)
+            </span>
+            <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 sm:space-y-6 pt-4">
         {/* Détails du scénario sélectionné - optimisé mobile */}
         {currentScenario && (
           <Card>
