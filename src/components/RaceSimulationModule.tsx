@@ -999,36 +999,108 @@ export function RaceSimulationModule({
           </div>
         )}
         
-        {/* Temps estimé du scénario sélectionné - optimisé mobile */}
-        {currentScenario && (
-          <Card className="border-2 border-primary/20">
-            <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
-              <div className="text-center">
-                <div className="text-xs sm:text-sm text-muted-foreground mb-1">
-                  Temps ({currentScenario.label})
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold text-primary">
-                  {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
-                </div>
-                <div className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  Centre: {formatDurationCompact(currentScenario.estimatedTimeMin)}
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-2">
+        {/* ═══════════ SYNTHÈSE COACH — pyramide inversée ═══════════ */}
+        {currentScenario && (() => {
+          const risk = currentScenario.overallDepletionRisk as DepletionRiskLevel;
+          const rw = DEPLETION_WORDS[risk] ?? DEPLETION_WORDS.MEDIUM;
+          const summary = buildRaceSummary(currentScenario, proSimulation.raceLabel);
+          const action = pickKeyAction(currentScenario);
+          const bp = currentScenario.breakpointKm;
+          return (
+            <Card className={cn("border-2", rw.ring, "ring-1")}>
+              <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6 space-y-4">
+                {/* Phrase narrative */}
+                <p className="text-sm sm:text-base leading-relaxed text-foreground">
+                  {summary}
+                </p>
+
+                {/* Point de rupture — pastille marquante */}
+                {bp != null && (
+                  <div className={cn(
+                    "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium",
+                    rw.bg, rw.tone,
+                  )}>
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Bascule au km {Math.round(bp)}
+                  </div>
+                )}
+
+                {/* 3 indicateurs côte à côte */}
+                <TooltipProvider delayDuration={300}>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                    {/* TEMPS */}
+                    <div className="p-3 sm:p-4 rounded-lg bg-muted/40 border border-border/60">
+                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+                        <Timer className="w-3 h-3" /> Temps
+                      </div>
+                      <div className="mt-1 font-display text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight">
+                        {formatDurationCompact(currentScenario.estimatedTimeMin)}
+                      </div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground tabular-nums">
+                        {formatDurationCompact(currentScenario.estimatedTimeRange[0])} – {formatDurationCompact(currentScenario.estimatedTimeRange[1])}
+                      </div>
+                    </div>
+
+                    {/* RISQUE */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className={cn("p-3 sm:p-4 rounded-lg border cursor-help", rw.bg, "border-border/60")}>
+                          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+                            <Shield className="w-3 h-3" /> Risque carburant
+                          </div>
+                          <div className={cn("mt-1 font-display text-2xl sm:text-3xl font-semibold tracking-tight", rw.tone)}>
+                            {rw.word}
+                          </div>
+                          <div className="text-[10px] sm:text-xs text-muted-foreground">
+                            {depletionWord(currentScenario.overallDepletionRisk as DepletionRiskLevel)} sur toute la course
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        Indice interne : {Math.round(currentScenario.overallFuelRisk)}/100 · Succès estimé : {Math.round(currentScenario.successProbability * 100)}%
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {/* ACTION */}
+                    <div className="p-3 sm:p-4 rounded-lg bg-primary/5 border border-primary/20">
+                      <div className="flex items-center gap-1.5 text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+                        <Utensils className="w-3 h-3" /> Action clé
+                      </div>
+                      {action.carbsGh != null ? (
+                        <>
+                          <div className="mt-1 font-display text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-primary">
+                            {action.carbsGh}<span className="text-sm sm:text-base font-normal text-muted-foreground"> g/h</span>
+                          </div>
+                          <div className="text-[10px] sm:text-xs text-muted-foreground">
+                            glucides cibles pour sécuriser
+                          </div>
+                        </>
+                      ) : (
+                        <div className="mt-1 text-xs sm:text-sm leading-snug text-foreground">
+                          {action.text}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TooltipProvider>
+
+                {/* Confiance temps + type scénario (compact, secondaire) */}
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1">
                   <Badge variant="outline" className="text-[10px] sm:text-xs">
                     {proSimulation.timeConfidenceLabel}
                   </Badge>
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className={cn("text-[10px] sm:text-xs", getScenarioBgColor(currentScenario.type))}
                   >
-                    {currentScenario.type === 'conservative' ? 'Sécurisé' : 
+                    {currentScenario.type === 'conservative' ? 'Sécurisé' :
                      currentScenario.type === 'optimal' ? 'Équilibré' : 'Ambitieux'}
                   </Badge>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          );
+        })()}
         
         {/* Sélection scénario - optimisé tactile */}
         <div className="space-y-3">
