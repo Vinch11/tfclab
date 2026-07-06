@@ -7974,6 +7974,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       }).join('');
       
       const riskColor = race.glycogenRisk === 'low' ? '#16a34a' : race.glycogenRisk === 'moderate' ? '#d97706' : '#dc2626';
+      const riskLabelAthlete = race.glycogenRisk === 'low'
+        ? 'Faible'
+        : race.glycogenRisk === 'moderate'
+          ? 'Risque de coup de mou'
+          : 'Risque de mur';
+      const riskLabelStaff = race.glycogenRisk === 'low' ? 'Faible' : race.glycogenRisk === 'moderate' ? 'Modéré' : 'Élevé';
       
       return `<tr>
         <td>
@@ -7982,7 +7988,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </td>
         ${cells}
         <td style="text-align:center;">
-          <span class="badge" style="background:${riskColor}20;color:${riskColor};">${race.glycogenRisk === 'low' ? 'Faible' : race.glycogenRisk === 'moderate' ? 'Modéré' : 'Élevé'}</span>
+          <span class="badge" style="background:${riskColor}20;color:${riskColor};">${isAthlete ? riskLabelAthlete : riskLabelStaff}</span>
         </td>
       </tr>`;
     }).join('');
@@ -7994,7 +8000,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     
     return `
       <section id="performance-prediction">
-        <h2>⏱️ Prédiction de Performance — Modèle Mader</h2>
+        <h2>⏱️ Prédiction de Performance${isAthlete ? '' : ' — Modèle Mader'}</h2>
         <div class="card mb">
           <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;text-align:center;">
             <div>
