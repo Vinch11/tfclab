@@ -6301,7 +6301,39 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   // SECTION RISQUE DE BLESSURE CAP (DÉTAILLÉ)
   // =============================================
-  const injuryRiskHTML = capInjuryRisk ? `
+  const injuryRiskHTML = capInjuryRisk ? (isAthlete ? (() => {
+    // Vue athlète : niveau en mots + couleur + phrase d'action
+    const lvl = capInjuryRisk.level;
+    const wordLevel = lvl >= 4 ? 'Critique' : lvl >= 3 ? 'Élevé' : lvl >= 2 ? 'Modéré' : 'Faible';
+    const wordColor = lvl >= 4 ? '#dc2626' : lvl >= 3 ? '#ea580c' : lvl >= 2 ? '#d97706' : '#16a34a';
+    const cardClass = lvl >= 3 ? 'cardError' : lvl >= 2 ? 'cardWarning' : 'cardSuccess';
+    const alertClass = lvl >= 3 ? 'alertError' : lvl >= 2 ? 'alertWarning' : 'alertSuccess';
+    const actionPhrase = lvl >= 4
+      ? 'Priorité absolue à la récupération. Discute avec ton coach avant la prochaine séance intense.'
+      : lvl >= 3
+        ? 'Réduis la charge et surveille tes signaux de fatigue cette semaine.'
+        : lvl >= 2
+          ? 'Reste vigilant sur les douleurs et respecte tes jours de récupération.'
+          : 'Profil sain. Continue ta progression graduelle.';
+    return `
+      <section id="injury-risk" class="section pagebreakAvoid">
+        <h2>🦵 Risque de Blessure</h2>
+        <div class="card ${cardClass}">
+          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+            <div style="font-size:48px;">${capInjuryRisk.icon}</div>
+            <div style="flex:1;min-width:200px;">
+              <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Niveau de risque</div>
+              <div style="font-size:28px;font-weight:700;color:${wordColor};">${wordLevel}</div>
+            </div>
+          </div>
+        </div>
+        <div class="alert ${alertClass} mt">
+          <b>${lvl >= 3 ? '🚨 Action recommandée :' : lvl >= 2 ? '⚠️ Vigilance :' : '✅ Tout va bien :'}</b>
+          ${actionPhrase}
+        </div>
+      </section>
+    `;
+  })() : `
     <section id="injury-risk" class="section pagebreakAvoid">
       <h2>🦵 Risque de Blessure CAP</h2>
       
@@ -6364,7 +6396,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         }
       </div>
     </section>
-  ` : '';
+  `) : '';
 
 
   // =============================================
