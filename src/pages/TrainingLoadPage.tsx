@@ -9,9 +9,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, Info } from "lucide-react";
+import { Loader2, RefreshCw, Info, AlertTriangle } from "lucide-react";
 import {
   computePmcAllSports,
+  detectSyncGap,
   type SportBucket,
   type PmcSeries,
 } from "@/lib/v2/trainingLoadModel";
