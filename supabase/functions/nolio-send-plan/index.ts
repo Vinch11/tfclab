@@ -672,7 +672,12 @@ function normalizeStructuredWorkoutForNolio(
         }
       } else if (src.target_type === "pace" && isSwim) {
         const css = refs?.css; // sec/100m
-        const toSec100 = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
+        // Détecte l'unité d'entrée : m/s (0.3-3) → sec/100m, sinon déjà sec/100m.
+        const toSec100 = (v: number) => {
+          if (v > 0 && v < 5) return 100 / v; // m/s → sec/100m
+          if (v >= 5 && v <= 30) return v * 60; // min décimales → sec/100m
+          return v;
+        };
         let tMin = typeof src.target_value_min === "number" ? toSec100(src.target_value_min) : null;
         let tMax = typeof src.target_value_max === "number" ? toSec100(src.target_value_max) : null;
         const pctMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
