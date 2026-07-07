@@ -448,11 +448,13 @@
     color: hsl(var(--primary));
   }
 
-  /* Subtle tinted backgrounds (bg-primary/10, bg-primary/5) — force readable text */
-  :where(:root, .dark, .emerald) [class*="bg-primary/"] {
+  /* Subtle tinted backgrounds (bg-primary/10, bg-primary/5) — force readable text.
+     Exclude solid `bg-primary` (matched by [class~="bg-primary"]) and any element
+     that already declares `text-primary-foreground` (solid primary buttons). */
+  :where(:root, .dark, .emerald) [class*="bg-primary/"]:not([class~="bg-primary"]):not([class*="text-primary-foreground"]) {
     color: hsl(var(--foreground));
   }
-  :where(:root, .dark, .emerald) [class*="bg-primary/"][class*="text-primary"] {
+  :where(:root, .dark, .emerald) [class*="bg-primary/"][class~="text-primary"]:not([class*="text-primary-foreground"]) {
     color: hsl(var(--primary)) !important;
   }
 
