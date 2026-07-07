@@ -630,11 +630,12 @@ export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
 
   return `
     <section id="fatmax-tfcl" class="section pagebreak">
-      <h2>🔥 FatMax TFCL™ — Zone d'Oxydation Lipidique Maximale</h2>
+      <h2>${fatmaxFullTitle}</h2>
       
       <div class="alert alertInfo mb">
-        <b>📋 Définition TFCL™ :</b> ${htmlEscape(FATMAX_DEFINITIONS.official)}
+        <b>📋 ${defLabel} :</b> ${htmlEscape(FATMAX_DEFINITIONS.official)}
       </div>
+      
       
       <div class="card cardHighlight">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
