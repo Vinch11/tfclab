@@ -34,7 +34,7 @@ export function SidebarLayout({
   const isMobile = useIsMobile();
 
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider defaultOpen={!isMobile}>
       <div className="h-svh flex w-full">
         <AppSidebar
           activeTab={activeTab}

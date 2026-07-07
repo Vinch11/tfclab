@@ -283,11 +283,11 @@
   /* Sidebar — refined vertical rail with layered depth and glowing active item */
   :where(:root, .dark, .emerald) [data-sidebar="sidebar"] {
     background:
-      radial-gradient(ellipse 140% 60% at 0% 0%, hsl(var(--primary) / 0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 100% 50% at 100% 100%, hsl(var(--accent) / 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 150% 42% at 45% 0%, hsl(var(--primary) / 0.16) 0%, transparent 58%),
+      radial-gradient(ellipse 110% 50% at 100% 82%, hsl(var(--accent) / 0.08) 0%, transparent 60%),
       linear-gradient(180deg,
         hsl(var(--sidebar-background)) 0%,
-        hsl(var(--sidebar-accent) / 0.35) 45%,
+        hsl(var(--sidebar-accent) / 0.58) 44%,
         hsl(var(--sidebar-background)) 100%) !important;
     border-right: 1px solid hsl(var(--sidebar-border)) !important;
     box-shadow:
@@ -303,6 +303,26 @@
     color: hsl(var(--sidebar-foreground) / 0.72);
     transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     position: relative;
+  }
+  :where(:root, .dark, .emerald) .tfcl-sidebar-logo {
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0.32rem;
+    border-radius: 1rem;
+    background:
+      radial-gradient(circle at 50% 38%, hsl(var(--foreground) / 0.20) 0%, transparent 48%),
+      linear-gradient(145deg, hsl(var(--background) / 0.78), hsl(var(--sidebar-accent) / 0.92));
+    border: 1px solid hsl(var(--primary) / 0.26);
+    box-shadow:
+      inset 0 1px 0 hsl(var(--foreground) / 0.10),
+      0 0 0 1px hsl(var(--background) / 0.60),
+      0 12px 26px -14px hsl(var(--primary) / 0.70);
+  }
+  :where(:root, .dark, .emerald) .tfcl-sidebar-logo--collapsed {
+    width: 2.35rem;
+    height: 2.35rem;
+    padding: 0.22rem;
+    border-radius: 0.8rem;
   }
   :where(:root, .dark, .emerald) [data-sidebar="menu-button"] svg {
     transition: color 0.2s ease, transform 0.2s ease, filter 0.2s ease;
@@ -320,12 +340,14 @@
     opacity: 1;
   }
   :where(:root, .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] {
-    color: hsl(var(--primary)) !important;
-    background: linear-gradient(90deg, hsl(var(--primary) / 0.22) 0%, hsl(var(--primary) / 0.06) 100%) !important;
+    color: hsl(var(--sidebar-accent-foreground)) !important;
+    background:
+      linear-gradient(90deg, hsl(var(--primary) / 0.34) 0%, hsl(var(--primary) / 0.18) 48%, hsl(var(--accent) / 0.10) 100%) !important;
     box-shadow:
-      inset 0 0 0 1px hsl(var(--primary) / 0.22),
-      inset 0 1px 0 hsl(var(--foreground) / 0.06),
-      0 6px 20px -10px hsl(var(--primary) / 0.55);
+      inset 0 0 0 1px hsl(var(--primary) / 0.46),
+      inset 0 1px 0 hsl(var(--foreground) / 0.12),
+      0 10px 28px -14px hsl(var(--primary) / 0.75);
+    transform: translateX(2px);
   }
   :where(:root, .dark, .emerald) [data-sidebar="menu-button"][data-active="true"]::before {
     content: "";
@@ -339,9 +361,12 @@
     box-shadow: 0 0 14px hsl(var(--primary) / 0.8);
   }
   :where(:root, .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] svg {
-    color: hsl(var(--primary));
+    color: hsl(var(--sidebar-accent-foreground));
     filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.6));
     opacity: 1;
+  }
+  :where(:root, .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] span {
+    color: hsl(var(--sidebar-accent-foreground));
   }
 
 
