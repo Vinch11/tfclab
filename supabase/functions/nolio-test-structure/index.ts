@@ -97,6 +97,7 @@ Deno.serve(async (req) => {
         duration: 1200,
         structured_workout: [
           {
+            type: "step",
             step_duration_type: "duration",
             step_duration_value: 1200,
             intensity_type: "active",
