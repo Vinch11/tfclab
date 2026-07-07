@@ -2420,9 +2420,9 @@ function buildPacingEnvelopeHTML(payload: ExportPayload): string {
         <b>📊 Données manquantes :</b> ${env.missingData.map(htmlEscape).join(", ")}
       </div>` : ""}
 
-      <div class="alert alertInfo mt" style="font-size:10px;">
+      ${isAthlete ? '' : `<div class="alert alertInfo mt" style="font-size:10px;">
         <b>📚 Méthodologie :</b> ${htmlEscape(env.methodology)}
-      </div>
+      </div>`}
     </section>
   `;
 }
