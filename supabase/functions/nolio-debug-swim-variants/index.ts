@@ -89,6 +89,7 @@ Deno.serve(async (req) => {
     const ymd = (offset: number) => new Date(base + offset * 86400000).toISOString().slice(0, 10);
     const target = { target_value_min: 1.1111, target_value_max: 1.1765, manual_values: true };
     const targetKmh = { target_value_min: 4.0, target_value_max: 4.235, manual_values: true };
+    const targetMin100 = { target_value_min: 1.4167, target_value_max: 1.5, manual_values: true };
     const variants = [
       { key: "A", label: "type-min100-name-pace", step: { target_type: "min/100m", name: "pace", ...target } },
       { key: "B", label: "type-min100-name-min100", step: { target_type: "min/100m", name: "min/100m", ...target } },
@@ -98,6 +99,10 @@ Deno.serve(async (req) => {
       { key: "F", label: "type-speed-ms", step: { target_type: "speed", name: "min/100m", ...target } },
       { key: "G", label: "type-min100-space", step: { target_type: "min/100 m", name: "min/100m", ...target } },
       { key: "H", label: "type-sec100", step: { target_type: "sec/100m", name: "sec/100m", ...target } },
+      { key: "I", label: "type-min100-decimal", step: { target_type: "min/100m", name: "min/100m", ...targetMin100 } },
+      { key: "J", label: "type-pace-unit-min100-ms", step: { target_type: "pace", target_unit: "min/100m", name: "min/100m", ...target } },
+      { key: "K", label: "type-pace-unit-min100-dec", step: { target_type: "pace", target_unit: "min/100m", name: "min/100m", ...targetMin100 } },
+      { key: "L", label: "type-notarget-name-min100", step: { target_type: "no_target", name: "min/100m", ...target } },
     ];
 
     const created: unknown[] = [];
