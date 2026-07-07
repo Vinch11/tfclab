@@ -6468,6 +6468,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const tteColor = tteImpact.includes('↑') ? 'color:var(--success)' : tteImpact.includes('↓') ? 'color:var(--warning)' : '';
     const vo2Color = vo2Impact.includes('↑') ? 'color:var(--success)' : '';
     
+    // Athlète : remplace "LT2/MLSS" par "seuil" dans la colonne Position Seuils
+    const positionSeuils = isAthlete
+      ? zone.positionSeuils.replace(/LT2\s*\/\s*MLSS/gi, 'Seuil').replace(/\bMLSS\b/g, 'Seuil').replace(/\bLT2\b/g, 'Seuil').replace(/\bLT1\b/g, 'Seuil aérobie')
+      : zone.positionSeuils;
+    
     return `
       <tr>
         <td><span class="badge badgePrimary">${zone.id}</span></td>
@@ -6475,10 +6480,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <td class="mono" style="font-size:10px">${fcDisplay}</td>
         <td class="mono" style="font-size:10px">${vmaDisplay}</td>
         <td class="mono" style="font-size:10px">${ftpDisplay}</td>
-        <td style="text-align:center"><span style="${vlamaxColor};font-weight:600">${vlamaxImpact}</span></td>
+        ${isAthlete ? '' : `<td style="text-align:center"><span style="${vlamaxColor};font-weight:600">${vlamaxImpact}</span></td>
         <td style="text-align:center"><span style="${tteColor};font-weight:600">${tteImpact}</span></td>
-        <td style="text-align:center"><span style="${vo2Color};font-weight:600">${vo2Impact}</span></td>
-        <td class="muted" style="font-size:10px">${htmlEscape(zone.positionSeuils)}</td>
+        <td style="text-align:center"><span style="${vo2Color};font-weight:600">${vo2Impact}</span></td>`}
+        <td class="muted" style="font-size:10px">${htmlEscape(positionSeuils)}</td>
       </tr>
     `;
   }).join('');
