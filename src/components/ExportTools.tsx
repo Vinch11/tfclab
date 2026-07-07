@@ -2308,7 +2308,7 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
 }
 
 // =============================================
-// BUILD PACING ENVELOPE HTML (Vélo/Tri) — Chantiers A/B unifiés
+// BUILD PACING ENVELOPE HTML (Vélo/Tri) — moteur unifié
 // =============================================
 
 function buildPacingEnvelopeHTML(payload: ExportPayload): string {
