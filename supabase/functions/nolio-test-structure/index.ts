@@ -60,6 +60,9 @@ Deno.serve(async (req) => {
       use_current_user?: boolean;
       mode?: "read" | "create_probe";
       id_partner?: number;
+      target_type?: string;
+      name?: string;
+      with_values?: boolean;
     };
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -91,17 +94,26 @@ Deno.serve(async (req) => {
       const payload: Record<string, unknown> = {
         id_partner: idPartner,
         sport_id: 19,
-        name: `[PROBE] Nolio visible ${idPartner}`,
+        name: body.name ?? `[PROBE] Nolio visible ${idPartner}`,
         date_start: dateStart,
         description: "Probe visibilité calendrier TFCLab",
         duration: 1200,
         structured_workout: [
           {
             type: "step",
-            step_duration_type: "duration",
-            step_duration_value: 1200,
+            step_duration_type: "distance",
+            step_duration_value: 50,
             intensity_type: "active",
-            target_type: "no_target",
+            target_type: body.target_type ?? "no_target",
+            ...(body.with_values === false ? {} : { target_value_min: 1.1111, target_value_max: 1.182 }),
+          },
+          {
+            type: "step",
+            step_duration_type: "distance",
+            step_duration_value: 200,
+            intensity_type: "active",
+            target_type: body.target_type ?? "no_target",
+            ...(body.with_values === false ? {} : { target_value_min: 1.1111, target_value_max: 1.182 }),
           },
         ],
       };
