@@ -2167,7 +2167,7 @@ function computeLongDistanceEnvelopeForExport(
 }
 
 // =============================================
-// BUILD PACING ENVELOPE RUNNING HTML — Chantier C unifié
+// BUILD PACING ENVELOPE RUNNING HTML — moteur unifié
 // =============================================
 
 function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
