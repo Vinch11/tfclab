@@ -133,16 +133,19 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  // Auth: shared secret. Value is stored in Vault under `nolio_cron_secret`
-  // and read via a SECURITY DEFINER RPC (executable by service_role only).
+  // Auth: shared secret. Accept either the env `CRON_SECRET` OR the value
+  // stored in Vault under `nolio_cron_secret` (read via a SECURITY DEFINER RPC).
   const providedSecret = req.headers.get("x-cron-secret") ?? "";
   const envSecret = Deno.env.get("CRON_SECRET") ?? "";
-  let expected = envSecret;
-  if (!expected) {
+  let vaultSecret = "";
+  try {
     const { data: rpcSecret } = await admin.rpc("_read_nolio_cron_secret");
-    expected = (rpcSecret as string | null) ?? "";
-  }
-  if (!expected || providedSecret !== expected) {
+    vaultSecret = (rpcSecret as string | null) ?? "";
+  } catch { /* noop */ }
+  const isValid = providedSecret.length > 0 &&
+    ((envSecret && providedSecret === envSecret) ||
+     (vaultSecret && providedSecret === vaultSecret));
+  if (!isValid) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
