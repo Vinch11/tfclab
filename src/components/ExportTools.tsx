@@ -3890,6 +3890,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   } = payload;
   
   const isAthlete = options.audience === "athlete";
+  // Propage l'audience au payload pour que les builders externes (nutritionV2, fatmax, pacing…) puissent adapter leur rendu
+  payload.audience = isAthlete ? "athlete" : "staff";
   
   const refs = getAthleteRefsForZones(effectiveRefs);
   // ✅ Source de vérité unifiée : ambitions + âge (mêmes cibles que dashboard/limiteur)
