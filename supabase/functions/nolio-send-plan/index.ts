@@ -598,6 +598,16 @@ function normalizeStructuredWorkoutForNolio(
       // Nolio affiche déjà l'allure lisible à partir de target_value → doublon avec
       // la fiche descriptive (buildDescription). Voir issue "steps redondants".
 
+      // 🏊 NATATION → normalisation en amont : quel que soit le target_type d'entrée
+      // (heartrate, power, pace, min/100m, ...), on force no_target. L'API publique Nolio
+      // ne supporte AUCUNE cible chiffrée fiable pour la natation (filtre serveur
+      // min/100m → empty_unit prouvé 2026-07-07). Le pace /100m vit dans buildDescription.
+      if (isSwim && src.target_type !== "no_target") {
+        src.target_type = "pace"; // fera tomber dans la branche isSwim ci-dessous → no_target
+      }
+
+
+
 
       if (src.target_type === "power" && isBike) {
         const ftp = refs?.ftp;
