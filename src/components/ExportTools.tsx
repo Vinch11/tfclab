@@ -6497,6 +6497,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${htmlEscape(ZONES_METHODOLOGY_NOTE)}
       </div>
       
+      ${isAthlete ? `<div class="card mb" style="font-size:11px;">
+        <b>📖 Comment lire ces zones :</b> Z1–Z2 = allures faciles (endurance, récup), Z3 = tempo, Z4 = seuil (soutenu), Z5 = VO₂max (dur, court), Z6–Z7 = très intense (sprint). Réfère-toi aux colonnes %FCmax / %VMA / %FTP selon ton sport.
+      </div>` : ''}
+      
       <div class="card">
         <h3>📊 Zones d'entraînement officielles</h3>
         <table>
@@ -6507,9 +6511,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <th>%FCmax</th>
               <th>%VMA (CAP)</th>
               <th>%FTP (Vélo)</th>
-              <th style="text-align:center">VLamax</th>
+              ${isAthlete ? '' : `<th style="text-align:center">VLamax</th>
               <th style="text-align:center">TTE</th>
-              <th style="text-align:center">VO2</th>
+              <th style="text-align:center">VO2</th>`}
               <th>Position Seuils</th>
             </tr>
           </thead>
@@ -6519,7 +6523,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </table>
       </div>
       
-      <div class="grid2 mt">
+      ${isAthlete ? '' : `<div class="grid2 mt">
         <div class="card">
           <h3>📖 Légende impacts métaboliques</h3>
           <table style="font-size:11px">
@@ -6540,7 +6544,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <li><b>Z7</b> = ↑↑ VLamax. Réserver aux phases de puissance/vitesse pure.</li>
           </ul>
         </div>
-      </div>
+      </div>`}
+      
       
       <div class="card cardHighlight mt">
         <h3>🧭 Recommandation selon votre profil</h3>
