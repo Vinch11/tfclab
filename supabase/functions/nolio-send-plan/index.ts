@@ -1084,6 +1084,38 @@ function addDaysYMD(startYMD: string, days: number): string {
   return dt.toISOString().slice(0, 10);
 }
 
+function summarizeStructuredWorkout(input: unknown): { durationSec: number; distanceMeters: number } {
+  const visit = (node: unknown): { durationSec: number; distanceMeters: number } => {
+    if (Array.isArray(node)) {
+      return node.reduce(
+        (acc, item) => {
+          const s = visit(item);
+          acc.durationSec += s.durationSec;
+          acc.distanceMeters += s.distanceMeters;
+          return acc;
+        },
+        { durationSec: 0, distanceMeters: 0 },
+      );
+    }
+    if (!node || typeof node !== "object") return { durationSec: 0, distanceMeters: 0 };
+    const item = node as Record<string, unknown>;
+    if (item.type === "repetition" && Array.isArray(item.steps)) {
+      const reps = typeof item.value === "number" && Number.isFinite(item.value) && item.value > 0 ? item.value : 1;
+      const inner = visit(item.steps);
+      return { durationSec: inner.durationSec * reps, distanceMeters: inner.distanceMeters * reps };
+    }
+    if (item.type === "step") {
+      const value = typeof item.step_duration_value === "number" && Number.isFinite(item.step_duration_value)
+        ? item.step_duration_value
+        : 0;
+      if (item.step_duration_type === "duration") return { durationSec: Math.max(0, Math.round(value)), distanceMeters: 0 };
+      if (item.step_duration_type === "distance") return { durationSec: 0, distanceMeters: Math.max(0, value) };
+    }
+    return { durationSec: 0, distanceMeters: 0 };
+  };
+  return visit(input);
+}
+
 async function refreshToken(
   admin: SupabaseAdmin,
   userId: string,
@@ -1482,6 +1514,9 @@ Deno.serve(async (req) => {
         // C'est ici qu'on applique : conversion pace → m/s, distance run/trail → durée s,
         // remap rest/no_target → cible Z1, suppression des clés null/undefined, etc.
         const normalized = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
+        const summary = summarizeStructuredWorkout(normalized);
+        if (summary.durationSec > 0) payload.duration = summary.durationSec;
+        if (summary.distanceMeters > 0) payload.distance = Number((summary.distanceMeters / 1000).toFixed(3));
         // Strength (sport_id 20) : si tous les steps ont target_type="no_target",
         // Nolio affiche "empty_unit". On préfère ne PAS envoyer de structured_workout
         // et laisser la description texte gérer l'affichage.
