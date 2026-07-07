@@ -583,9 +583,10 @@ function normalizeStructuredWorkoutForNolio(
     //   step_percent_low/high = %FTP
     // - Course/Trail (sport 2/52) : target_type="pace", valeurs en m/s (depuis VMA),
     //   comment = "Z2 — 5:15-5:30/km"
-    // - Natation (sport 19) : API publique CREATE Nolio = target_type="pace", valeurs en m/s (depuis CSS).
-    //   Tests terrain 2026-07-07 : `min/100m` est accepté en 201 mais relu `empty_unit`.
-    //   `pace` est la seule cible active non vide, mais Nolio la relit actuellement `min/km`.
+    // - Natation (sport 19) : target_type="min/100m" + manual_values:true + name:"pace_min100"
+    //   sur les steps ACTIFS (format prouvé par comparaison JSON natif Nolio 2026-07-07).
+    //   Repos natation → target_type:"no_target" sans manual_values/name/target_value_*.
+
     // - FC : target_type="heartrate", bpm (depuis FCmax)
     // ⛔ AUCUN target_unit, AUCUN pct_* envoyés à Nolio (champs internes TFCLab).
     if (src.type === "step") {
@@ -665,10 +666,15 @@ function normalizeStructuredWorkoutForNolio(
           delete (src as Record<string, unknown>).target_value_max;
         }
       } else if ((src.target_type === "pace" || src.target_type === "min/100m") && isSwim) {
-        // 🏊 IMPORTANT : le CREATE n'accepte officiellement que `pace`
-        // (doc: power/heartrate/pace/speed/no_target). Envoyer `min/100m` au CREATE
-        // est accepté en 201 mais relu/affiché en `empty_unit`. On envoie donc le seul
-        // format public non vide : `pace` + manual_values:true + valeurs m/s.
+        // 🏊 LIMITATION API PUBLIQUE Nolio (validée 2026-07-07) :
+        // Le CREATE `create/planned/training/` accepte `target_type:"min/100m"` + `manual_values:true`
+        // + `name:"pace_min100"` en 201, MAIS Nolio normalise systématiquement le stockage
+        // en `target_type:"empty_unit"` + `name:"no_target"` au relu — même quand le payload
+        // est byte-à-byte identique à celui d'une séance créée manuellement dans l'éditeur
+        // (qui, elle, s'affiche correctement `min/100m` sur desktop). La différence est côté
+        // serveur (endpoint privé ou flag origin non exposé), inatteignable via l'API publique.
+        // Fallback stable : `target_type:"pace"` + `manual_values:true` en m/s — Nolio relit
+        // en `min/km` sur desktop mobile mais AU MOINS affiche une valeur (pas `empty_unit`).
         const css = refs?.css; // sec/100m
         const toSec100 = (v: number) => {
           if (v > 0 && v < 5) return 100 / v; // m/s → sec/100m
@@ -685,28 +691,37 @@ function normalizeStructuredWorkoutForNolio(
           if (tMax === null && pctMin !== null) tMax = css * pctMin / 100;
         }
 
-        if (tMin !== null && tMin > 0 && tMax !== null && tMax > 0) {
-          // sec/100m → m/s. Pace RAPIDE (sec faible) → vitesse HAUTE.
+        const intensity = String(src.intensity_type ?? "");
+        const isRestLike = intensity === "rest";
+
+        if (!isRestLike && tMin !== null && tMin > 0 && tMax !== null && tMax > 0) {
           const secFast = Math.min(tMin, tMax);
           const secSlow = Math.max(tMin, tMax);
-          const speedHigh = Number((100 / secFast).toFixed(4)); // rapide
-          const speedLow = Number((100 / secSlow).toFixed(4));  // lent
+          const speedHigh = Number((100 / secFast).toFixed(4));
+          const speedLow = Number((100 / secSlow).toFixed(4));
           (src as Record<string, unknown>).target_type = "pace";
           (src as Record<string, unknown>).manual_values = true;
           src.target_value_min = speedLow;
           src.target_value_max = speedHigh;
           delete (src as Record<string, unknown>).target_value;
           delete (src as Record<string, unknown>).target_unit;
-
+          // ⚠️ NE PAS envoyer name:"pace_min100" — Nolio le réécrit en "no_target" via ce endpoint.
+          if ((src as Record<string, unknown>).name === "pace_min100") {
+            delete (src as Record<string, unknown>).name;
+          }
         } else {
-          // Natation sans cible exploitable → no_target propre (pas de pastille "empty_unit").
           src.target_type = "no_target";
           delete (src as Record<string, unknown>).target_value;
           delete (src as Record<string, unknown>).target_value_min;
           delete (src as Record<string, unknown>).target_value_max;
           delete (src as Record<string, unknown>).target_unit;
           delete (src as Record<string, unknown>).manual_values;
+          if ((src as Record<string, unknown>).name === "pace_min100") {
+            delete (src as Record<string, unknown>).name;
+          }
         }
+
+
 
 
 
