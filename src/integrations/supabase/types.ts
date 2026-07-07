@@ -477,6 +477,53 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_training_load: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          date: string
+          id: string
+          session_count: number
+          source: string
+          sport: string
+          tss: number
+          updated_at: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          date: string
+          id?: string
+          session_count?: number
+          source?: string
+          sport: string
+          tss?: number
+          updated_at?: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          session_count?: number
+          source?: string
+          sport?: string
+          tss?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_training_load_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       literature_cohort_profiles: {
         Row: {
           age_mean: number | null

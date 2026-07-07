@@ -32,6 +32,7 @@ const PacingAuditPage = lazy(() => import("./pages/PacingAuditPage"));
 const RunningProfilePage = lazy(() => import("./pages/RunningProfilePage"));
 const AthleteEditPage = lazy(() => import("./pages/AthleteEditPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const TrainingLoadPage = lazy(() => import("./pages/TrainingLoadPage"));
 const TFCLTestingWeekPage = lazy(() =>
   import("./components/TFCLTestingWeek").then((m) => ({ default: m.TFCLTestingWeekPage }))
 );
@@ -157,6 +158,7 @@ export default function App() {
                   {/* ═══════════════════════════════════════════ */}
                   <Route path="/running-profile" element={<ProtectedRoute><RunningProfilePage /></ProtectedRoute>} />
                   <Route path="/evolution" element={<ProtectedRoute><EvolutionPage /></ProtectedRoute>} />
+                  <Route path="/training-load" element={<ProtectedRoute><TrainingLoadPage /></ProtectedRoute>} />
 
                   {/* ═══════════════════════════════════════════ */}
                   {/* LEGACY REDIRECTS                            */}
