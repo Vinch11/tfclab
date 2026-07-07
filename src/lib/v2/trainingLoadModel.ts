@@ -136,3 +136,60 @@ export function nolioSportIdToBucket(sportId: number | null | undefined): SportB
   if (id === 2 || id === 52) return "run";
   return "other";
 }
+
+/**
+ * Sync-gap detector.
+ * Flags an athlete as "possibly stopped syncing" when the last `gapDays` days
+ * (default 5) are all TSS=0 AND the `historyDays` window before that (default 14)
+ * had at least `minActiveDays` active days (default 3). This prevents interpreting
+ * a sync outage as "athlete freshness".
+ *
+ * Input: chronologically ordered daily TSS rows for one sport bucket (usually 'global').
+ */
+export function detectSyncGap(
+  daily: Array<{ date: string; tss: number }>,
+  opts?: { gapDays?: number; historyDays?: number; minActiveDays?: number; referenceDate?: string },
+): { flagged: boolean; gapDays: number; lastActiveDate: string | null; reason: string } {
+  const gapDays = opts?.gapDays ?? 5;
+  const historyDays = opts?.historyDays ?? 14;
+  const minActiveDays = opts?.minActiveDays ?? 3;
+
+  if (daily.length === 0) {
+    return { flagged: false, gapDays: 0, lastActiveDate: null, reason: "no_data" };
+  }
+  const byDate = new Map<string, number>();
+  for (const r of daily) byDate.set(r.date, (byDate.get(r.date) ?? 0) + (Number(r.tss) || 0));
+
+  const today = opts?.referenceDate ?? new Date().toISOString().slice(0, 10);
+  // Count consecutive TSS=0 days from today backwards
+  let consecutiveZero = 0;
+  let lastActive: string | null = null;
+  for (let i = 0; i < 60; i++) {
+    const d = addDays(today, -i);
+    const tss = byDate.get(d) ?? 0;
+    if (tss > 0) { lastActive = d; break; }
+    consecutiveZero += 1;
+  }
+
+  if (consecutiveZero < gapDays) {
+    return { flagged: false, gapDays: consecutiveZero, lastActiveDate: lastActive, reason: "recent_activity" };
+  }
+
+  // Count active days in the historyDays window BEFORE the current gap
+  const historyEnd = addDays(today, -consecutiveZero); // last day that could have activity
+  let activeInHistory = 0;
+  for (let i = 0; i < historyDays; i++) {
+    const d = addDays(historyEnd, -i);
+    if ((byDate.get(d) ?? 0) > 0) activeInHistory += 1;
+  }
+
+  if (activeInHistory < minActiveDays) {
+    return { flagged: false, gapDays: consecutiveZero, lastActiveDate: lastActive, reason: "no_prior_pattern" };
+  }
+  return {
+    flagged: true,
+    gapDays: consecutiveZero,
+    lastActiveDate: lastActive,
+    reason: `Aucune séance depuis ${consecutiveZero} jours alors que l'athlète synchronisait régulièrement (${activeInHistory} jours actifs sur les ${historyDays} précédents). Vérifier la synchronisation Nolio.`,
+  };
+}
