@@ -241,6 +241,8 @@ interface ExportPayload {
   runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"] | null;
   // Records de course réels (injectés depuis useAthleteRaceRecords côté composant)
   raceRecords?: import("@/lib/v2/vlamaxRunV2Enhanced").RaceRecordsInput | null;
+  // Audience du rapport (dérivée du preset actif) — pilote le rendu, jamais les calculs
+  audience?: "athlete" | "staff";
 }
 
 // =============================================
