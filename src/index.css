@@ -234,19 +234,26 @@
     --sidebar-ring: 175 55% 48%;
   }
 
-  .emerald body {
-    font-family: 'DM Sans', sans-serif;
+  /* ═══════════════════════════════════════════════════════════════════════════
+     SHARED STYLING LAYER — applied to :root, .dark and .emerald
+     Color tokens differ per theme; visual language (glass tiles, gradient
+     hairlines, hero numerics, segmented tabs, sidebar accents…) is unified.
+     ═══════════════════════════════════════════════════════════════════════════ */
+  :where(:root, .dark, .emerald) body {
     font-feature-settings: "ss01", "cv11";
   }
-  .emerald h1, .emerald h2, .emerald h3, .emerald h4 {
-    font-family: 'Space Grotesk', sans-serif;
+  :where(:root, .dark, .emerald) h1,
+  :where(:root, .dark, .emerald) h2,
+  :where(:root, .dark, .emerald) h3,
+  :where(:root, .dark, .emerald) h4 {
+    font-family: var(--font-heading);
     letter-spacing: -0.022em;
     font-weight: 600;
   }
-  .emerald h1 { font-weight: 700; letter-spacing: -0.03em; }
+  :where(:root, .dark, .emerald) h1 { font-weight: 700; letter-spacing: -0.03em; }
 
   /* Subtle aurora backdrop, same hues as primary */
-  .emerald main {
+  :where(:root, .dark, .emerald) main {
     background:
       radial-gradient(ellipse 60% 40% at 20% 0%,  hsl(var(--primary) / 0.08) 0%, transparent 55%),
       radial-gradient(ellipse 70% 50% at 90% 10%, hsl(var(--accent) / 0.06) 0%, transparent 60%),
@@ -254,19 +261,19 @@
   }
 
   /* Editorial header */
-  .emerald header {
-    background: linear-gradient(180deg, hsl(225 30% 6% / 0.9) 0%, hsl(225 30% 7% / 0.6) 100%) !important;
+  :where(:root, .dark, .emerald) header {
+    background: linear-gradient(180deg, hsl(var(--background) / 0.9) 0%, hsl(var(--background) / 0.55) 100%) !important;
     backdrop-filter: blur(20px) saturate(140%);
     border-bottom: 1px solid hsl(var(--border)) !important;
   }
-  .emerald header h1 {
+  :where(:root, .dark, .emerald) header h1 {
     text-transform: uppercase;
     font-size: 0.78rem !important;
     letter-spacing: 0.18em;
     font-weight: 600;
     color: hsl(var(--foreground) / 0.85);
   }
-  .emerald header p {
+  :where(:root, .dark, .emerald) header p {
     font-size: 0.68rem !important;
     text-transform: uppercase;
     letter-spacing: 0.14em;
@@ -274,182 +281,194 @@
   }
 
   /* Sidebar */
-  .emerald [data-sidebar="sidebar"] {
-    background: linear-gradient(180deg, hsl(225 30% 6%) 0%, hsl(225 30% 4%) 100%) !important;
-    border-right: 1px solid hsl(var(--border)) !important;
+  :where(:root, .dark, .emerald) [data-sidebar="sidebar"] {
+    background: linear-gradient(180deg, hsl(var(--sidebar-background)) 0%, hsl(var(--background)) 100%) !important;
+    border-right: 1px solid hsl(var(--sidebar-border)) !important;
   }
-  .emerald [data-sidebar="menu-button"] {
+  :where(:root, .dark, .emerald) [data-sidebar="menu-button"] {
     border-radius: 0.625rem;
     font-weight: 500;
     transition: all 0.2s ease;
   }
-  .emerald [data-sidebar="menu-button"][data-active="true"] {
+  :where(:root, .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] {
     border-left: 2px solid hsl(var(--primary));
     color: hsl(var(--primary));
     background: linear-gradient(90deg, hsl(var(--primary) / 0.16) 0%, hsl(var(--primary) / 0.02) 100%);
     box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.08);
   }
-  .emerald [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
+  :where(:root, .dark, .emerald) [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
     background: hsl(var(--secondary) / 0.7);
     color: hsl(var(--foreground));
   }
 
   /* Cards → glass bento tiles */
-  .emerald [class*="rounded-lg"][class*="border"][class*="bg-card"],
-  .emerald [class*="rounded-xl"][class*="border"][class*="bg-card"] {
-    background: linear-gradient(135deg, hsl(225 25% 12% / 0.92) 0%, hsl(225 28% 8% / 0.96) 100%) !important;
+  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"],
+  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"] {
+    background: linear-gradient(135deg, hsl(var(--card) / 0.92) 0%, hsl(var(--background) / 0.96) 100%) !important;
     border: 1px solid hsl(var(--border)) !important;
     border-radius: 1rem !important;
     box-shadow:
-      inset 0 1px 0 hsl(220 15% 80% / 0.04),
-      0 1px 2px hsl(225 30% 2% / 0.5),
-      0 12px 32px -8px hsl(225 30% 2% / 0.55);
+      inset 0 1px 0 hsl(var(--foreground) / 0.04),
+      0 1px 2px hsl(0 0% 0% / 0.35),
+      0 12px 32px -8px hsl(0 0% 0% / 0.4);
     backdrop-filter: blur(12px) saturate(130%);
     position: relative;
     overflow: hidden;
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
-  .emerald [class*="rounded-lg"][class*="border"][class*="bg-card"]::before,
-  .emerald [class*="rounded-xl"][class*="border"][class*="bg-card"]::before {
+  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]::before,
+  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]::before {
     content: "";
     position: absolute; top: 0; left: 0; right: 0; height: 1px;
     background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.4) 30%, hsl(var(--accent) / 0.3) 70%, transparent 100%);
     pointer-events: none;
+    z-index: 1;
   }
-  .emerald [class*="rounded-lg"][class*="border"][class*="bg-card"]:hover,
-  .emerald [class*="rounded-xl"][class*="border"][class*="bg-card"]:hover {
+  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:hover,
+  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:hover {
     border-color: hsl(var(--primary) / 0.3) !important;
     box-shadow:
-      inset 0 1px 0 hsl(220 15% 80% / 0.06),
-      0 2px 4px hsl(225 30% 2% / 0.5),
-      0 20px 48px -12px hsl(var(--primary) / 0.25);
+      inset 0 1px 0 hsl(var(--foreground) / 0.06),
+      0 2px 4px hsl(0 0% 0% / 0.4),
+      0 20px 48px -12px hsl(var(--primary) / 0.22);
   }
 
   /* Hero numeric typography */
-  .emerald .text-3xl,
-  .emerald .text-4xl,
-  .emerald .text-5xl,
-  .emerald .text-6xl {
-    font-family: 'Space Grotesk', sans-serif;
+  :where(:root, .dark, .emerald) .text-3xl,
+  :where(:root, .dark, .emerald) .text-4xl,
+  :where(:root, .dark, .emerald) .text-5xl,
+  :where(:root, .dark, .emerald) .text-6xl {
+    font-family: var(--font-heading);
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum", "ss01";
     letter-spacing: -0.04em;
     font-weight: 600;
   }
-  .emerald .text-2xl {
-    font-family: 'Space Grotesk', sans-serif;
+  :where(:root, .dark, .emerald) .text-2xl {
+    font-family: var(--font-heading);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.025em;
     font-weight: 600;
   }
-  .emerald .font-mono,
-  .emerald [class*="tabular"] {
+  :where(:root, .dark, .emerald) .font-mono,
+  :where(:root, .dark, .emerald) [class*="tabular"] {
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }
 
-  /* Eyebrow labels — keep readable */
-  .emerald .text-xs.text-muted-foreground {
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-weight: 500;
-    font-size: 0.68rem;
-    color: hsl(220 12% 68%);
-  }
-
   /* Progress bars */
-  .emerald [role="progressbar"] {
+  :where(:root, .dark, .emerald) [role="progressbar"] {
     height: 6px !important;
     background: hsl(var(--muted)) !important;
     border-radius: 999px;
     overflow: hidden;
   }
-  .emerald [role="progressbar"] > * {
+  :where(:root, .dark, .emerald) [role="progressbar"] > * {
     background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--success)) 100%) !important;
     box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
   }
 
   /* Primary buttons with depth */
-  .emerald button[class*="bg-primary"] {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(190 50% 42%) 100%) !important;
+  :where(:root, .dark, .emerald) button[class*="bg-primary"] {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%) !important;
     box-shadow:
-      0 1px 0 hsl(175 70% 70% / 0.25) inset,
+      0 1px 0 hsl(var(--primary-foreground) / 0.25) inset,
       0 8px 24px -8px hsl(var(--primary) / 0.5);
     font-weight: 600;
     letter-spacing: 0.01em;
   }
-  .emerald button[class*="bg-primary"]:hover {
+  :where(:root, .dark, .emerald) button[class*="bg-primary"]:hover {
     box-shadow:
-      0 1px 0 hsl(175 70% 75% / 0.35) inset,
+      0 1px 0 hsl(var(--primary-foreground) / 0.35) inset,
       0 12px 32px -8px hsl(var(--primary) / 0.6);
     transform: translateY(-1px);
   }
 
-  /* Bento rhythm: first tile spans 2 columns */
-  @media (min-width: 1024px) {
-    .emerald main .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > *:nth-child(6n+1) {
-      grid-column: span 2;
-    }
-    .emerald main .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 > *:nth-child(7n+1) {
-      grid-column: span 2;
-    }
-  }
-
   /* Segmented control tabs */
-  .emerald [role="tablist"] {
+  :where(:root, .dark, .emerald) [role="tablist"] {
     background: hsl(var(--muted) / 0.7) !important;
     border: 1px solid hsl(var(--border));
     border-radius: 0.75rem;
     padding: 4px;
     backdrop-filter: blur(12px);
   }
-  .emerald [role="tab"][data-state="active"] {
+  :where(:root, .dark, .emerald) [role="tab"][data-state="active"] {
     background: linear-gradient(135deg, hsl(var(--primary) / 0.22) 0%, hsl(var(--primary) / 0.1) 100%) !important;
     color: hsl(var(--primary)) !important;
-    box-shadow: 0 1px 0 hsl(var(--primary) / 0.2) inset, 0 4px 12px -4px hsl(225 30% 2% / 0.5);
+    box-shadow: 0 1px 0 hsl(var(--primary) / 0.2) inset, 0 4px 12px -4px hsl(0 0% 0% / 0.4);
     border-radius: 0.5rem;
   }
 
   /* Inputs */
-  .emerald input,
-  .emerald textarea,
-  .emerald [role="combobox"] {
-    background: hsl(var(--input)) !important;
-    border: 1px solid hsl(var(--border)) !important;
+  :where(:root, .dark, .emerald) input,
+  :where(:root, .dark, .emerald) textarea,
+  :where(:root, .dark, .emerald) [role="combobox"] {
     border-radius: 0.625rem !important;
     transition: all 0.2s ease;
   }
-  .emerald input:focus,
-  .emerald textarea:focus {
+  :where(:root, .dark, .emerald) input:focus,
+  :where(:root, .dark, .emerald) textarea:focus {
     border-color: hsl(var(--primary) / 0.5) !important;
     box-shadow: 0 0 0 4px hsl(var(--primary) / 0.12) !important;
     outline: none;
   }
 
   /* Scrollbar */
-  .emerald *::-webkit-scrollbar { width: 10px; height: 10px; }
-  .emerald *::-webkit-scrollbar-track { background: transparent; }
-  .emerald *::-webkit-scrollbar-thumb {
+  :where(:root, .dark, .emerald) *::-webkit-scrollbar { width: 10px; height: 10px; }
+  :where(:root, .dark, .emerald) *::-webkit-scrollbar-track { background: transparent; }
+  :where(:root, .dark, .emerald) *::-webkit-scrollbar-thumb {
     background: hsl(var(--primary) / 0.25);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
-  .emerald *::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.5); background-clip: padding-box; }
+  :where(:root, .dark, .emerald) *::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.5); background-clip: padding-box; }
 
   /* Hairline gradient separators */
-  .emerald [role="separator"],
-  .emerald hr {
+  :where(:root, .dark, .emerald) [role="separator"],
+  :where(:root, .dark, .emerald) hr {
     background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.25) 50%, transparent 100%) !important;
     border: none !important;
     height: 1px !important;
   }
 
   /* Dialogs */
-  .emerald [role="dialog"] {
-    background: linear-gradient(180deg, hsl(225 25% 10%) 0%, hsl(225 30% 7%) 100%) !important;
+  :where(:root, .dark, .emerald) [role="dialog"] {
+    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%) !important;
     border: 1px solid hsl(var(--border)) !important;
-    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.06), 0 32px 64px -16px hsl(225 30% 2% / 0.8);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.06), 0 32px 64px -16px hsl(0 0% 0% / 0.7);
+  }
+
+  /* Bento rhythm: first tile spans 2 columns on wide dashboards */
+  @media (min-width: 1024px) {
+    :where(:root, .dark, .emerald) main .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > *:nth-child(6n+1) {
+      grid-column: span 2;
+    }
+  }
+
+  /* Light theme neutralises glass gradients & aurora — clean architectural feel */
+  .light main {
+    background: hsl(var(--background));
+  }
+  .light [class*="rounded-lg"][class*="border"][class*="bg-card"],
+  .light [class*="rounded-xl"][class*="border"][class*="bg-card"] {
+    background: hsl(var(--card)) !important;
+    backdrop-filter: none;
+  }
+  .light header {
+    background: hsl(var(--background) / 0.85) !important;
+  }
+  .light header h1 {
+    text-transform: none;
+    font-size: inherit !important;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+  }
+  .light header p {
+    text-transform: none;
+    font-size: inherit !important;
+    letter-spacing: normal;
+    color: hsl(var(--muted-foreground)) !important;
   }
 }
 
