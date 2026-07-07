@@ -85,6 +85,12 @@ export default function TrainingLoadPage() {
     return computePmcAllSports(rows, { startDate: start, endDate: end });
   }, [rows]);
 
+  const syncGap = useMemo(() => {
+    const globalRows = rows.filter((r) => r.sport === "global").map((r) => ({ date: r.date, tss: r.tss }));
+    return detectSyncGap(globalRows);
+  }, [rows]);
+
+
   if (!currentAthlete) {
     return (
       <AppLayout title="Charge d'entraînement">
