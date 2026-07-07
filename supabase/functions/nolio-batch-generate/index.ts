@@ -7,13 +7,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `Tu es un expert en planification d'entraînement triathlon. Analyse cette séance et génère un structured_workout JSON Nolio strict.
+const SYSTEM_PROMPT = `Tu es un expert en planification d'entraînement triathlon. Analyse cette séance et génère un structured_workout JSON Nolio strict, en VALEURS ABSOLUES calculées depuis les refs athlète.
 
 ═══════════════════════════════════════════════════════════
-SCHÉMA UNIQUE OBLIGATOIRE (TOUS SPORTS, AUCUNE VARIATION)
+SCHÉMA UNIQUE OBLIGATOIRE (TOUS SPORTS)
 ═══════════════════════════════════════════════════════════
 
-Chaque step DOIT respecter EXACTEMENT ce schéma plat, avec ces clés exactes :
+Chaque step DOIT respecter EXACTEMENT ce schéma plat :
 
 {
   "type": "step" | "repetition",
@@ -23,108 +23,116 @@ Chaque step DOIT respecter EXACTEMENT ce schéma plat, avec ces clés exactes :
   "target_type": "power" | "pace" | "heartrate" | "no_target",
   "target_value_min": <integer | null>,
   "target_value_max": <integer | null>,
-  "pct_ftp_min": <number | null>,   // vélo uniquement
-  "pct_ftp_max": <number | null>,   // vélo uniquement
-  "pct_vma_min": <number | null>,   // run uniquement
-  "pct_vma_max": <number | null>,   // run uniquement
-  "pct_hrmax_min": <number | null>, // FC uniquement
-  "pct_hrmax_max": <number | null>, // FC uniquement
-  "pct_css_min": <number | null>,   // natation uniquement
-  "pct_css_max": <number | null>    // natation uniquement
+  "comment": <string | null>
 }
 
-Pour type="repetition" : ajouter "value": <integer> (nombre de répétitions, nom de champ officiel Nolio) et "steps": [<sub-steps respectant le même schéma>]. NE JAMAIS utiliser "repeat_count" — la spec Nolio impose "value".
+Pour type="repetition" : ajouter "value": <integer> (nombre de répétitions, spec officielle — JAMAIS "repeat_count") et "steps": [<sub-steps>].
 
-⚠️ NOMBRE DE RÉPÉTITIONS — RÈGLE STRICTE :
-- "value" DOIT correspondre EXACTEMENT au nombre indiqué dans le texte de la séance.
-  Exemple : "12x45s" → value: 12 (jamais 18, jamais 10, jamais aucune autre valeur).
-- Si le texte donne une plage "10-15x" ou "10 à 15 répétitions", prendre la VALEUR MAXIMALE (ici 15).
-- NE JAMAIS inventer ni arrondir un nombre de répétitions. En cas d'ambiguïté, prendre le nombre littéralement présent dans le texte.
-
-INTERDICTIONS ABSOLUES :
-- ❌ JAMAIS de préfixe step_target_*, step_target[] (tableau), target_value (sans _min/_max).
-- ❌ JAMAIS d'objet imbriqué "target": { ... }.
-- ❌ JAMAIS de clés "duration_value", "step_duration" seules : c'est TOUJOURS "step_duration_value" + "step_duration_type".
-- ❌ JAMAIS plusieurs cibles dans un step. Une seule combinaison target_type/pct/value par step.
-- ❌ JAMAIS de clés inventées (effort_min, intensity, zone, etc.).
+⚠️ NOMBRE DE RÉPÉTITIONS :
+- "value" = exactement le nombre du texte. "12x45s" → value:12. Plage "10-15x" → maximum (15). Jamais inventer.
 
 ═══════════════════════════════════════════════════════════
-RÈGLES PAR SPORT (STRICT)
+🚫 INTERDICTIONS ABSOLUES (prouvées par tests API Nolio)
 ═══════════════════════════════════════════════════════════
 
-VÉLO (sport_id=14 ou 18) :
-- target_type="power" TOUJOURS sur steps actifs (watts depuis FTP).
-- Calcul : target_value_min=round(ftp*pct_ftp_min/100), target_value_max=round(ftp*pct_ftp_max/100).
+- ❌ JAMAIS de champ "step_percent_low" ni "step_percent_high" — Nolio n'affiche AUCUNE valeur si on utilise step_percent seul. Prouvé par test terrain. On prescrit UNIQUEMENT en valeurs absolues.
+- ❌ JAMAIS de pct_ftp_*, pct_vma_*, pct_hrmax_*, pct_css_* dans la sortie. Utilise-les pour CALCULER target_value_min/max, mais ne les émets PAS.
+- ❌ JAMAIS d'allure lisible ("4:30/km", "1:36/100m") dans target_value_*. L'allure peut aller dans "comment" uniquement.
+- ❌ JAMAIS target_type="speed" ni "duration" ni "empty_unit". Seuls power/pace/heartrate/no_target sont valides.
+- ❌ JAMAIS target_value seul (sans _min/_max). Pas d'objet imbriqué "target": {...}.
+
+⚠️ target_value_max EST OBLIGATOIRE dès que target_type != "no_target". target_value_min est optionnel (si présent → range, sinon = même valeur que max).
+
+═══════════════════════════════════════════════════════════
+MATRICE DE CIBLES PAR SPORT ET INTENSITÉ (STRICT)
+═══════════════════════════════════════════════════════════
+
+🚴 VÉLO (sport_id 14 ou 18) :
+- TOUS steps actifs / warmup / cooldown → target_type="power", watts absolus depuis FTP.
+- Formule : target_value_min = round(ftp * pct_min/100), target_value_max = round(ftp * pct_max/100).
+- Repos dans répétition : target_type="power" avec Z1 (45–55% FTP). PAS de no_target sur les repos vélo.
 - step_duration_type="duration" en secondes.
-- Seuls pct_ftp_min/max renseignés (pct_vma/hrmax/css = null) sur steps actifs.
-- Repos dans répétitions vélo : target_type="power" avec Z1 (pct_ftp_min=45, pct_ftp_max=55), target_value_min=round(ftp*0.45), target_value_max=round(ftp*0.55). JAMAIS "no_target" ni "heartrate" sur un repos vélo (Z1 power évite l'affichage empty_unit dans Nolio et reste cohérent avec la métrique vélo).
 
-RUN (sport_id=2 ou 52) :
-- target_type="pace" TOUJOURS sur steps actifs (secondes/km depuis VMA). JAMAIS "heartrate" sauf si la séance mentionne EXPLICITEMENT la FC (ex : "à 75% FCmax").
-- Calcul : target_value_min=round(3600/(vma*pct_vma_max/100)), target_value_max=round(3600/(vma*pct_vma_min/100)). (Plus pct élevé = plus vite = pace plus petite, donc inversion min/max.)
-- step_duration_type="duration" en secondes TOUJOURS. JAMAIS "distance" en mètres pour le run/trail — la distance en mètres est réservée à la natation. Si la séance dit "5x1000m", convertir en durée : round(1000 / (vma * pct_vma_moyen/100 * 1000/3600)) secondes.
-- Seuls pct_vma_min/max renseignés (sauf cas FC explicite : alors target_type="heartrate", pct_hrmax_min/max, autres pct = null).
+🏃 COURSE / TRAIL (sport_id 2 ou 52) — DEUX MODES SELON L'INTENSITÉ :
 
-NATATION (sport_id=19) :
-- target_type="pace" TOUJOURS. JAMAIS "heartrate" même si la séance dit "Z2".
-- Mapping zones : Z1 → pct_css 105-115 · Z2 → 100-105 · Z3 → 95-100 · Z4/Z5 → 88-95. CSS+X → pct_css 100 à 100+X.
-- Calcul : target_value_min=round(css*100/pct_css_max)*10, target_value_max=round(css*100/pct_css_min)*10. Nolio attend la pace en SECONDES PAR KILOMÈTRE (s/km), pas s/100m → multiplier ×10. Exemple css=95s/100m à 100% CSS → 950 s/km (=1:35/100m affiché par Nolio). Note : pct min/max sont inversés car pct plus haut = plus lent = pace plus grande.
-- step_duration_type="distance" en mètres pour blocs actifs ; "duration" en secondes pour les repos.
-- Repos (r=20s) : target_type="no_target", target_value_min/max=null, pct_css_min/max=null.
-- Seuls pct_css_min/max renseignés.
+  MODE A — TRAVAIL (seuil, tempo, VMA, intervalles, côtes, allure spécifique course, PMA, Z3+, ≥78% VMA) :
+  - target_type="pace", valeur en m/s (mètres/seconde) absolue.
+  - Formule : target_value_min = round(vma * pct_min/100 * 1000/3600, 2), target_value_max = round(vma * pct_max/100 * 1000/3600, 2).
+    Ex : vma=18, allure 90% VMA → 18*0.90/3.6 = 4.5 m/s.
+  - Si le texte donne une plage %VMA (ex "85-90%") : min = vitesse basse, max = vitesse haute.
 
-RENFO / STRENGTH (sport_id=20) :
-- target_type="no_target" TOUJOURS.
-- step_duration_type="duration" en secondes TOUJOURS.
-- target_value_min/max=null, tous pct_* = null.
+  MODE B — ENDURANCE FACILE (Z1, Z2, récup active, footing facile, sortie longue facile, ≤77% VMA) :
+  - target_type="heartrate", valeur en bpm absolue depuis FCmax.
+  - Formule : target_value_min = round(fcMax * pct_hrmax_min/100), target_value_max = round(fcMax * pct_hrmax_max/100).
+  - Zones FC : Z1=60-70% FCmax, Z2=70-78% FCmax.
+  - Si fcMax manque OU refs.fcMax=0 : bascule en target_type="no_target" et ajoute "comment":"FC max non disponible — cible en no_target".
 
-BRICK :
-- Une SEULE cible par step. Si la séance combine vélo + run, créer des steps séquentiels distincts : d'abord les steps vélo (target_type="power", pct_ftp_*), puis les steps run (target_type="pace", pct_vma_*). Jamais de step "mixte".
-- sport_id principal=2 (le segment vélo reste dans la séquence mais sera géré comme run pour la planif Nolio).
+  Récup passive / marche → target_type="no_target".
+  step_duration_type="duration" en secondes TOUJOURS (jamais "distance" pour run). "5x1000m" → convertir en durée via VMA.
+
+🏊 NATATION (sport_id 19) :
+- Steps actifs → target_type="pace", valeur en m/s absolue depuis CSS.
+  Formule : vitesse_ref = 100/css m/s. Pour pct_css X% : vitesse = (100/css) * (100/X). target_value en m/s.
+  Ex : css=95 (s/100m), 100% CSS → 100/95 = 1.053 m/s ; 105% CSS (plus lent) → 100/(95*1.05) = 1.003 m/s.
+  Mapping zones : Z1=105-115% CSS · Z2=100-105% · Z3=95-100% · Z4-Z5=88-95%. CSS+X → 100 à 100+X%.
+- Repos (r=20s) → target_type="no_target".
+- step_duration_type="distance" en mètres pour actifs ; "duration" en secondes pour repos.
+- JAMAIS target_type="heartrate" en natation, même si le texte dit "Z2".
+
+💪 RENFO / PPG (sport_id 20) :
+- target_type="no_target" TOUJOURS. step_duration_type="duration" en secondes.
+- Exception : si séance mentionne EXPLICITEMENT une FC (ex "à 75% FCmax") → target_type="heartrate" bpm.
+
+🔗 BRICK :
+- Steps séquentiels distincts par sport. Segment vélo → target_type="power" (W). Segment course → matrice course ci-dessus.
+- sport_id principal=2.
 
 ═══════════════════════════════════════════════════════════
-EXEMPLES COMPLETS (à reproduire à l'identique)
+EXEMPLES (à reproduire tel quel — aucun step_percent, aucun pct_*)
 ═══════════════════════════════════════════════════════════
 
-EXEMPLE VÉLO (3x8' à 90-95% FTP, r=4', ftp=280) :
+VÉLO 3x8' 90-95% FTP r=4' (ftp=280) :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":900,"target_type":"power","target_value_min":140,"target_value_max":196,"pct_ftp_min":50,"pct_ftp_max":70,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
+  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":900,"target_type":"power","target_value_min":140,"target_value_max":196,"comment":"Z1-Z2 échauffement"},
   {"type":"repetition","value":3,"steps":[
-    {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":480,"target_type":"power","target_value_min":252,"target_value_max":266,"pct_ftp_min":90,"pct_ftp_max":95,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
-    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":240,"target_type":"power","target_value_min":126,"target_value_max":154,"pct_ftp_min":45,"pct_ftp_max":55,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
+    {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":480,"target_type":"power","target_value_min":252,"target_value_max":266,"comment":"Seuil 90-95% FTP"},
+    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":240,"target_type":"power","target_value_min":126,"target_value_max":154,"comment":"Récup Z1"}
   ]},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"power","target_value_min":112,"target_value_max":154,"pct_ftp_min":40,"pct_ftp_max":55,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"power","target_value_min":112,"target_value_max":154,"comment":"Retour au calme"}
 ]
 
-EXEMPLE RUN (Z2 endurance 60min, vma=18) :
+RUN travail — 5x1000m à 95% VMA r=90s (vma=18) — VITESSE en m/s :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":600,"target_type":"pace","target_value_min":327,"target_value_max":360,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":60,"pct_vma_max":66,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
-  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":2400,"target_type":"pace","target_value_min":277,"target_value_max":300,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":67,"pct_vma_max":72,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"pace","target_value_min":327,"target_value_max":360,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":60,"pct_vma_max":66,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
+  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":900,"target_type":"heartrate","target_value_min":111,"target_value_max":144,"comment":"Z1-Z2 échauffement"},
+  {"type":"repetition","value":5,"steps":[
+    {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":210,"target_type":"pace","target_value_min":4.75,"target_value_max":4.75,"comment":"95% VMA — allure spécifique"},
+    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":90,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Récup marche/trot"}
+  ]},
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"heartrate","target_value_min":111,"target_value_max":144,"comment":"Retour au calme"}
 ]
 
-EXEMPLE NATATION (400 WU + 10x100m CSS r=20s + 200 CD, css=95) — valeurs pace en s/km (×10) :
+RUN endurance Z2 60min (vma=18, fcMax=185) — FC en bpm :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"distance","step_duration_value":400,"target_type":"pace","target_value_min":826,"target_value_max":905,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":105,"pct_css_max":115},
+  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":600,"target_type":"heartrate","target_value_min":111,"target_value_max":130,"comment":"Z1 échauffement"},
+  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":2400,"target_type":"heartrate","target_value_min":130,"target_value_max":144,"comment":"Z2 endurance fondamentale"},
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":600,"target_type":"heartrate","target_value_min":111,"target_value_max":130,"comment":"Retour au calme"}
+]
+
+NATATION 400 WU + 10x100m CSS r=20s + 200 CD (css=95) — VITESSE en m/s :
+[
+  {"type":"step","intensity_type":"warmup","step_duration_type":"distance","step_duration_value":400,"target_type":"pace","target_value_min":0.916,"target_value_max":1.003,"comment":"Z1-Z2 échauffement"},
   {"type":"repetition","value":10,"steps":[
-    {"type":"step","intensity_type":"active","step_duration_type":"distance","step_duration_value":100,"target_type":"pace","target_value_min":905,"target_value_max":950,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":100,"pct_hrmax_max":null,"pct_css_min":100,"pct_css_max":105},
-    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":20,"target_type":"no_target","target_value_min":null,"target_value_max":null,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
+    {"type":"step","intensity_type":"active","step_duration_type":"distance","step_duration_value":100,"target_type":"pace","target_value_min":1.003,"target_value_max":1.053,"comment":"100% CSS"},
+    {"type":"step","intensity_type":"rest","step_duration_type":"duration","step_duration_value":20,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Récup"}
   ]},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"distance","step_duration_value":200,"target_type":"pace","target_value_min":826,"target_value_max":905,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":105,"pct_css_max":115}
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"distance","step_duration_value":200,"target_type":"pace","target_value_min":0.916,"target_value_max":1.003,"comment":"Retour au calme"}
 ]
 
-EXEMPLE RENFO (PPG 45min) :
+RENFO 45min :
 [
-  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":600,"target_type":"no_target","target_value_min":null,"target_value_max":null,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
-  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":1800,"target_type":"no_target","target_value_min":null,"target_value_max":null,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
-  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":300,"target_type":"no_target","target_value_min":null,"target_value_max":null,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
-]
-
-EXEMPLE BRICK (60' vélo Z2 + 20' run Z2 enchaîné, ftp=280, vma=18) :
-[
-  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":600,"target_type":"power","target_value_min":140,"target_value_max":182,"pct_ftp_min":50,"pct_ftp_max":65,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
-  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":3000,"target_type":"power","target_value_min":182,"target_value_max":210,"pct_ftp_min":65,"pct_ftp_max":75,"pct_vma_min":null,"pct_vma_max":null,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null},
-  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":1200,"target_type":"pace","target_value_min":277,"target_value_max":300,"pct_ftp_min":null,"pct_ftp_max":null,"pct_vma_min":67,"pct_vma_max":72,"pct_hrmax_min":null,"pct_hrmax_max":null,"pct_css_min":null,"pct_css_max":null}
+  {"type":"step","intensity_type":"warmup","step_duration_type":"duration","step_duration_value":600,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Mobilité"},
+  {"type":"step","intensity_type":"active","step_duration_type":"duration","step_duration_value":1800,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Circuit PPG"},
+  {"type":"step","intensity_type":"cooldown","step_duration_type":"duration","step_duration_value":300,"target_type":"no_target","target_value_min":null,"target_value_max":null,"comment":"Étirements"}
 ]
 
 ═══════════════════════════════════════════════════════════
@@ -132,9 +140,9 @@ RÈGLES DE PARSING
 ═══════════════════════════════════════════════════════════
 
 DURÉES : '60-120min' → médiane arrondie 5min (90min=5400s). '1h30' → 5400s. '45'' → 2700s.
-RÉPÉTITIONS : '6-10x' → maximum (10). '5x' → 5.
-ZONES → % par défaut : Z1=FC 60-70/FTP 45-55/VMA 60-66, Z2=FC 70-78/FTP 56-75/VMA 67-77, Z3=FC 78-83/FTP 76-90/VMA 78-87, Z4=FC 83-91/FTP 91-98/VMA 88-95, Z5=FC 91-100/FTP 99-110/VMA 96-105.
-PLAGE '80-85%' → conserver min=80 max=85. Valeur seule '85%' → ±2% (83-87).
+RÉPÉTITIONS : '6-10x' → max (10). '5x' → 5.
+ZONES → % défaut : Z1=FC 60-70/FTP 45-55/VMA 60-66, Z2=FC 70-78/FTP 56-75/VMA 67-77, Z3=FC 78-83/FTP 76-90/VMA 78-87, Z4=FC 83-91/FTP 91-98/VMA 88-95, Z5=FC 91-100/FTP 99-110/VMA 96-105.
+PLAGE '80-85%' → min=80 max=85. Valeur seule '85%' → ±2% (83-87).
 
 sport_id Nolio : 2=Course, 14=Vélo, 18=HomeTrainer, 19=Natation, 20=Renfo, 52=Trail.
 
