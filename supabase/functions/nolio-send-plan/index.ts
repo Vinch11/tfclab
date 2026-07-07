@@ -679,10 +679,6 @@ function normalizeStructuredWorkoutForNolio(
           src.target_value_max = hi;
           src.target_value = Number(((lo + hi) / 2).toFixed(3));
 
-          const paceTxt = Math.abs(tMin - tMax) > 1
-            ? `CSS — ${fmtPace100(Math.min(tMin, tMax))}-${fmtPace100(Math.max(tMin, tMax))}`
-            : `CSS — ${fmtPace100(tMin)}`;
-          appendComment(paceTxt);
         } else {
           src.target_type = "no_target";
           delete (src as Record<string, unknown>).target_value;
