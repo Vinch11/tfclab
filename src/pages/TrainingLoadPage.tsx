@@ -9,9 +9,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, Info } from "lucide-react";
+import { Loader2, RefreshCw, Info, AlertTriangle } from "lucide-react";
 import {
   computePmcAllSports,
+  detectSyncGap,
   type SportBucket,
   type PmcSeries,
 } from "@/lib/v2/trainingLoadModel";
@@ -84,6 +85,12 @@ export default function TrainingLoadPage() {
     return computePmcAllSports(rows, { startDate: start, endDate: end });
   }, [rows]);
 
+  const syncGap = useMemo(() => {
+    const globalRows = rows.filter((r) => r.sport === "global").map((r) => ({ date: r.date, tss: r.tss }));
+    return detectSyncGap(globalRows);
+  }, [rows]);
+
+
   if (!currentAthlete) {
     return (
       <AppLayout title="Charge d'entraînement">
@@ -130,6 +137,17 @@ export default function TrainingLoadPage() {
 
         {lastError && (
           <Alert variant="destructive"><AlertDescription>{lastError}</AlertDescription></Alert>
+        )}
+
+        {syncGap.flagged && (
+          <Alert variant="destructive">
+            <AlertTriangle className="w-4 h-4" />
+            <AlertDescription>
+              <b>Sync possiblement interrompue.</b> {syncGap.reason}
+              {syncGap.lastActiveDate && <> Dernière séance connue : {syncGap.lastActiveDate}.</>}
+              {" "}Le TSB affiché ci-dessous n'est probablement PAS un vrai signal de fraîcheur.
+            </AlertDescription>
+          </Alert>
         )}
 
         {!series || rows.length === 0 ? (

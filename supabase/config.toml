@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.nolio-oauth]
 verify_jwt = false
+
+[functions.nolio-training-load-daily]
+verify_jwt = false
