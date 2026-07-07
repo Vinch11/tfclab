@@ -371,14 +371,17 @@ function getStatusLabel(score: number): string {
 
 function buildNutritionV2HTML(payload: ExportPayload): string {
   const { nutritionV2, athlete } = payload;
+  const isAthlete = payload.audience === "athlete";
+  const nutritionTitle = isAthlete ? "🍎 Ton plan nutrition course" : "🍎 Nutrition Prédictive V2 — TFCL™";
+  const nutritionEmptyTitle = isAthlete ? "🍎 Ton plan nutrition course" : "🍎 Nutrition Prédictive V2";
   
   if (!nutritionV2) {
     return `
       <section id="nutrition-v2" class="section pagebreakAvoid">
-        <h2>🍎 Nutrition Prédictive V2</h2>
+        <h2>${nutritionEmptyTitle}</h2>
         <div class="alert alertWarning">
           <b>⚠️ Données insuffisantes</b><br>
-          Le poids est requis pour calculer les besoins glucidiques. Renseignez le poids dans le snapshot.
+          Le poids est requis pour calculer les besoins nutritionnels. Renseignez le poids dans le snapshot.
         </div>
       </section>
     `;
