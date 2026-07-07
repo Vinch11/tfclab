@@ -1,8 +1,8 @@
-// Sonde Nolio — 3 séances minimales pour tester step_percent_low/high.
-// TEST A : cible absolue pace (contrôle).
-// TEST B : step_percent 85-90 sur pace (sans target_value).
-// TEST C : step_percent 75-85 sur heartrate (sans target_value).
-// Aucune conversion / normalisation maison — payload envoyée telle quelle.
+// Sonde Nolio — 3 séances minimales pour tester le rendu de `description`.
+// TEST HTML     : description avec balises <b>, <br>, <ul>, <li>, <i>.
+// TEST MARKDOWN : description avec **, listes -, *italic*.
+// TEST TEXTE    : description avec émojis + bullets Unicode (contrôle).
+// Aucune conversion / normalisation maison — descriptions envoyées telles quelles.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
