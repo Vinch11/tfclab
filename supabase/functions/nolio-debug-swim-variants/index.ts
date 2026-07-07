@@ -82,10 +82,11 @@ Deno.serve(async (req) => {
     ];
 
     const created: unknown[] = [];
+    const runKey = Date.now() % 100000;
     for (let i = 0; i < variants.length; i++) {
       const v = variants[i];
       const payload = {
-        id_partner: Number(`${body.nolio_athlete_id}99${i}${new Date().getUTCDate()}`),
+        id_partner: Number(`${body.nolio_athlete_id}${runKey}${i}`),
         athlete_id: body.nolio_athlete_id,
         sport_id: 19,
         name: `[PROBE] Swim ${v.key} ${v.label}`,
