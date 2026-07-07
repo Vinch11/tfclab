@@ -717,7 +717,8 @@ function normalizeStructuredWorkoutForNolio(
       }
 
       // 🔒 Strip des champs internes TFCLab non reconnus par Nolio
-      delete (src as Record<string, unknown>).target_unit;
+      // (target_unit conservé pour natation → hint "min/100m" pour Nolio)
+      if (!isSwim) delete (src as Record<string, unknown>).target_unit;
       delete (src as Record<string, unknown>).pct_ftp_min;
       delete (src as Record<string, unknown>).pct_ftp_max;
       delete (src as Record<string, unknown>).pct_vma_min;
