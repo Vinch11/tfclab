@@ -7,6 +7,7 @@ const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const NOLIO_CREATE_TRAINING_URL = "https://www.nolio.io/api/create/planned/training/";
 const NOLIO_GET_PLANNED_URL = "https://www.nolio.io/api/get/planned/training/";
+const NOLIO_DELETE_TRAINING_URL = "https://www.nolio.io/api/delete/planned/training/";
 
 async function refreshIfNeeded(
   admin: ReturnType<typeof createClient>,
@@ -64,6 +65,24 @@ Deno.serve(async (req) => {
       refresh_token: (tokenRow.refresh_token as string | null) ?? null,
       expires_at: (tokenRow.expires_at as string | null) ?? null,
     });
+
+    if ((body as { cleanup?: boolean }).cleanup) {
+      const ids = [
+        3383869907, 3383869917, 3383869927, 3383869937,
+        338386172840, 338386172841, 338386172842, 338386172843,
+        338386172844, 338386172845, 338386172846, 338386172847,
+      ];
+      const deleted: unknown[] = [];
+      for (const id_partner of ids) {
+        const resp = await fetch(NOLIO_DELETE_TRAINING_URL, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ id_partner, athlete_id: body.nolio_athlete_id }),
+        });
+        deleted.push({ id_partner, status: resp.status, ok: resp.ok, detail: await resp.text() });
+      }
+      return new Response(JSON.stringify({ deleted }, null, 2), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const start = body.date_start ?? "2026-07-24";
     const base = Date.parse(`${start}T00:00:00Z`);
