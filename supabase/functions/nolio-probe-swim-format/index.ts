@@ -125,9 +125,9 @@ Deno.serve(async (req) => {
     const dates = [date, date, date]; // 3 séances même jour
 
     const specs = [
-      { ...swim_a, date_start: dates[0], sport_id: 19, id_partner: `test-format-swim-a-${Date.now()}`, athlete_id: athleteId, description: "TEST FORMAT: 50m et 200m doivent afficher LE MÊME pace min/100m" },
-      { ...swim_b, date_start: dates[1], sport_id: 19, id_partner: `test-format-swim-b-${Date.now()}`, athlete_id: athleteId, description: "TEST FORMAT: repos SANS empty_unit" },
-      { ...run_c,  date_start: dates[2], sport_id: 2,  id_partner: `test-format-run-c-${Date.now()}`,  athlete_id: athleteId, description: "TEST FORMAT: course contrôle inchangée" },
+      { ...swim_a, date_start: dates[0], sport_id: 19, id_partner: `${Date.now()}`, athlete_id: athleteId, description: "TEST FORMAT: 50m et 200m doivent afficher LE MÊME pace min/100m" },
+      { ...swim_b, date_start: dates[1], sport_id: 19, id_partner: `${Date.now() + 1}`, athlete_id: athleteId, description: "TEST FORMAT: repos SANS empty_unit" },
+      { ...run_c,  date_start: dates[2], sport_id: 2,  id_partner: `${Date.now() + 2}`,  athlete_id: athleteId, description: "TEST FORMAT: course contrôle inchangée" },
     ];
 
     const results = [];
