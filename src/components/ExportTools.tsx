@@ -8180,7 +8180,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </ul>
           </div>
         </section>`;
-      return main + ld + refs;
+      return main + ld + (isAthlete ? "" : refs);
     })(),
     potentielPhysiologiqueRunning: buildPotentielPhysiologiqueRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
