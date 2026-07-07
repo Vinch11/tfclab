@@ -58,49 +58,37 @@ async function postNolio(url: string, token: string, payload: Record<string, unk
 type Probe = {
   label: string;
   hypothesis: string;
-  step: Record<string, unknown>;
+  description: string;
 };
 
 function buildProbes(): Probe[] {
-  const baseStep = {
-    type: "step",
-    step_duration_type: "time",
-    step_duration_value: 300, // 5 min
-    intensity_type: "active",
-  };
   return [
     {
-      label: "test_A_absolute_pace",
-      hypothesis: "cible absolue pace 3.5–3.7 m/s (contrôle)",
-      step: {
-        ...baseStep,
-        target_type: "pace",
-        target_value_min: 3.5,
-        target_value_max: 3.7,
-      },
+      label: "SONDE_FICHE_HTML",
+      hypothesis: "description en HTML — Nolio rend-il <b>/<br>/<ul>/<li>/<i> ?",
+      description: "<b>ÉCHAUFFEMENT</b><br><ul><li>20' progressif Z1-Z2</li></ul><br><i>Variante Ironman</i>",
     },
     {
-      label: "test_B_step_percent_pace",
-      hypothesis: "step_percent 85–90 sur pace (hyp: % VMA/allure ref athlète Nolio)",
-      step: {
-        ...baseStep,
-        target_type: "pace",
-        step_percent_low: 85,
-        step_percent_high: 90,
-      },
+      label: "SONDE_FICHE_MARKDOWN",
+      hypothesis: "description en Markdown — Nolio rend-il ** listes - et *italic* ?",
+      description: "**ÉCHAUFFEMENT**\n- 20' progressif Z1-Z2\n\n*Variante Ironman*",
     },
     {
-      label: "test_C_step_percent_heartrate",
-      hypothesis: "step_percent 75–85 sur heartrate (hyp: % FC max athlète Nolio)",
-      step: {
-        ...baseStep,
-        target_type: "heartrate",
-        step_percent_low: 75,
-        step_percent_high: 85,
-      },
+      label: "SONDE_FICHE_TEXTE",
+      hypothesis: "description en texte brut avec émojis + bullets Unicode (contrôle)",
+      description: "🔥 ÉCHAUFFEMENT\n• 20' progressif Z1-Z2\n\nVariante Ironman",
     },
   ];
 }
+
+// Step neutre pour toutes les sondes — on teste la description, pas le step.
+const NEUTRAL_STEP = {
+  type: "step",
+  step_duration_type: "time",
+  step_duration_value: 300, // 5 min
+  intensity_type: "active",
+  target_type: "no_target",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
