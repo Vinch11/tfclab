@@ -542,7 +542,15 @@ function normalizeStructuredWorkoutForNolio(
         src.target_value_max = hi;
         src.target_value = Math.round((lo + hi) / 2);
       }
-      // Natation rest → reste en no_target (pas de cible naturelle)
+      // 🏊 Natation rest : pas de cible naturelle. On supprime target_type entièrement
+      // pour éviter que Nolio affiche une pastille "empty_unit" sur un no_target vide.
+      if (sportId === 19) {
+        delete (src as Record<string, unknown>).target_type;
+        delete (src as Record<string, unknown>).target_value;
+        delete (src as Record<string, unknown>).target_value_min;
+        delete (src as Record<string, unknown>).target_value_max;
+        delete (src as Record<string, unknown>).target_unit;
+      }
     }
 
     // Run/Trail (sport_id 2/52) : step_duration_type "distance" interdit côté Nolio.
@@ -678,12 +686,16 @@ function normalizeStructuredWorkoutForNolio(
           src.target_value_min = lo;
           src.target_value_max = hi;
           src.target_value = Number(((lo + hi) / 2).toFixed(3));
+          // 🏊 Hint d'unité pour Nolio : affichage /100m au lieu de /km par défaut.
+          (src as Record<string, unknown>).target_unit = "min/100m";
 
         } else {
+          // Natation sans cible exploitable → no_target propre (pas de pastille "empty_unit").
           src.target_type = "no_target";
           delete (src as Record<string, unknown>).target_value;
           delete (src as Record<string, unknown>).target_value_min;
           delete (src as Record<string, unknown>).target_value_max;
+          delete (src as Record<string, unknown>).target_unit;
         }
       } else if (src.target_type === "heartrate") {
         const fcMax = refs?.fcMax;
@@ -713,7 +725,8 @@ function normalizeStructuredWorkoutForNolio(
       }
 
       // 🔒 Strip des champs internes TFCLab non reconnus par Nolio
-      delete (src as Record<string, unknown>).target_unit;
+      // (target_unit conservé pour natation → hint "min/100m" pour Nolio)
+      if (!isSwim) delete (src as Record<string, unknown>).target_unit;
       delete (src as Record<string, unknown>).pct_ftp_min;
       delete (src as Record<string, unknown>).pct_ftp_max;
       delete (src as Record<string, unknown>).pct_vma_min;
@@ -914,6 +927,8 @@ function buildDescription(s: ParsedSession, sportId?: number): string {
   }
 
   let desc = blocks.join("<br><br>");
+  // Espace d'aération en fin de fiche (une seule ligne vide).
+  if (desc) desc += "<br>";
 
   // Cap propre : coupe sur fin de </li>, </ul> ou <br>, jamais au milieu d'une balise.
   if (desc.length > MAX_LEN) {
