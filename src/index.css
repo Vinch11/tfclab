@@ -473,9 +473,13 @@
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.011em;
     line-height: 1.6;
-    /* iOS Safari: empêche tout enfant débordant de provoquer un scroll horizontal */
     overflow-x: clip;
     max-width: 100vw;
+    background-image:
+      radial-gradient(ellipse 90% 60% at 50% -10%, hsl(var(--primary) / 0.10) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 100% 0%, hsl(var(--accent) / 0.06) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 0% 100%, hsl(268 72% 66% / 0.05) 0%, transparent 55%);
+    background-attachment: fixed;
   }
 
   #root {
