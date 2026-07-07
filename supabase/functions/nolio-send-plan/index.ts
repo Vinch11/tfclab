@@ -927,6 +927,8 @@ function buildDescription(s: ParsedSession, sportId?: number): string {
   }
 
   let desc = blocks.join("<br><br>");
+  // Espace d'aération en fin de fiche (une seule ligne vide).
+  if (desc) desc += "<br>";
 
   // Cap propre : coupe sur fin de </li>, </ul> ou <br>, jamais au milieu d'une balise.
   if (desc.length > MAX_LEN) {
