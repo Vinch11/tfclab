@@ -735,6 +735,9 @@ function normalizeStructuredWorkoutForNolio(
       delete (src as Record<string, unknown>).pct_css_max;
       delete (src as Record<string, unknown>).pct_hrmax_min;
       delete (src as Record<string, unknown>).pct_hrmax_max;
+      // step_percent_low/high : Nolio ignore ce champ (test terrain — pas d'affichage).
+      delete (src as Record<string, unknown>).step_percent_low;
+      delete (src as Record<string, unknown>).step_percent_high;
 
       // 🚴 Cadence (vélo uniquement) → secondary_step depuis notes/comment
       if (isBike && !src.secondary_step) {
