@@ -2352,11 +2352,12 @@ function buildPacingEnvelopeHTML(payload: ExportPayload): string {
 
   return `
     <section id="pacing-envelope" class="section pagebreak">
-      <h2>📊 Pacing Envelope™ — Modèle Continu Smyth-Skiba</h2>
+      <h2>${bikeTitle}</h2>
 
-      <div class="alert alertInfo mb">
-        <b>📋 Concept :</b> Enveloppe calculée par le moteur unifié TFCL™ (Chantiers A+B). Le centre suit %CS f(durée, ambition) [Smyth 2022], la largeur est asymétrique pilotée par W'/CP [Skiba 2024, Vanhatalo 2020].
-      </div>
+      ${isAthlete ? '' : `<div class="alert alertInfo mb">
+        <b>📋 Concept :</b> Enveloppe calculée par le moteur unifié TFCL™. Le centre suit %CS f(durée, ambition) [Smyth 2022], la largeur est asymétrique pilotée par W'/CP [Skiba 2024, Vanhatalo 2020].
+      </div>`}
+
 
       <div class="grid3 mb">
         <div class="card">
