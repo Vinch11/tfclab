@@ -583,9 +583,10 @@ function normalizeStructuredWorkoutForNolio(
     //   step_percent_low/high = %FTP
     // - Course/Trail (sport 2/52) : target_type="pace", valeurs en m/s (depuis VMA),
     //   comment = "Z2 — 5:15-5:30/km"
-    // - Natation (sport 19) : API publique CREATE Nolio = target_type="pace", valeurs en m/s (depuis CSS).
-    //   Tests terrain 2026-07-07 : `min/100m` est accepté en 201 mais relu `empty_unit`.
-    //   `pace` est la seule cible active non vide, mais Nolio la relit actuellement `min/km`.
+    // - Natation (sport 19) : target_type="min/100m" + manual_values:true + name:"pace_min100"
+    //   sur les steps ACTIFS (format prouvé par comparaison JSON natif Nolio 2026-07-07).
+    //   Repos natation → target_type:"no_target" sans manual_values/name/target_value_*.
+
     // - FC : target_type="heartrate", bpm (depuis FCmax)
     // ⛔ AUCUN target_unit, AUCUN pct_* envoyés à Nolio (champs internes TFCLab).
     if (src.type === "step") {
