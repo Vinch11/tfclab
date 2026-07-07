@@ -95,4 +95,35 @@ describe("trainingLoadModel EMA", () => {
     expect(nolioSportIdToBucket(20)).toBe("other");
     expect(nolioSportIdToBucket(null)).toBe("other");
   });
+
+  it("detectSyncGap: flags 5+ zero days after regular activity", () => {
+    const ref = "2026-06-10";
+    const rows: Array<{ date: string; tss: number }> = [];
+    // 14 prior days: 5 active
+    for (let i = 6; i < 20; i++) {
+      rows.push({ date: addDays(ref, -i), tss: i % 3 === 0 ? 60 : 0 });
+    }
+    // last 6 days all zero (implicit)
+    const res = detectSyncGap(rows, { referenceDate: ref });
+    expect(res.flagged).toBe(true);
+    expect(res.gapDays).toBeGreaterThanOrEqual(5);
+  });
+
+  it("detectSyncGap: does NOT flag athlete with recent activity", () => {
+    const ref = "2026-06-10";
+    const rows = [
+      { date: addDays(ref, -1), tss: 80 },
+      { date: addDays(ref, -3), tss: 50 },
+    ];
+    const res = detectSyncGap(rows, { referenceDate: ref });
+    expect(res.flagged).toBe(false);
+  });
+
+  it("detectSyncGap: does NOT flag athlete without prior sync pattern", () => {
+    const ref = "2026-06-10";
+    // Only one session 3 weeks ago → no established pattern
+    const rows = [{ date: addDays(ref, -25), tss: 100 }];
+    const res = detectSyncGap(rows, { referenceDate: ref });
+    expect(res.flagged).toBe(false);
+  });
 });
