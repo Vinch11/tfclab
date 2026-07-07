@@ -645,11 +645,6 @@ function normalizeStructuredWorkoutForNolio(
           src.target_value_max = hi;
           src.target_value = Number(((lo + hi) / 2).toFixed(3));
 
-          const label = vmaZoneLabel(((pctMin as number) + (pctMax as number)) / 2);
-          const paceTxt = Math.abs(secKmFast - secKmSlow) > 1
-            ? `${label} — ${fmtPaceKm(Math.min(secKmFast, secKmSlow))}-${fmtPaceKm(Math.max(secKmFast, secKmSlow))}/km`.replace("/km/km", "/km")
-            : `${label} — ${fmtPaceKm(secKmFast)}`;
-          appendComment(paceTxt);
         } else {
           src.target_type = "no_target";
           delete (src as Record<string, unknown>).target_value;
