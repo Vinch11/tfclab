@@ -69,11 +69,16 @@ Deno.serve(async (req) => {
     const base = Date.parse(`${start}T00:00:00Z`);
     const ymd = (offset: number) => new Date(base + offset * 86400000).toISOString().slice(0, 10);
     const target = { target_value_min: 1.1111, target_value_max: 1.1765, manual_values: true };
+    const targetKmh = { target_value_min: 4.0, target_value_max: 4.235, manual_values: true };
     const variants = [
       { key: "A", label: "type-min100-name-pace", step: { target_type: "min/100m", name: "pace", ...target } },
       { key: "B", label: "type-min100-name-min100", step: { target_type: "min/100m", name: "min/100m", ...target } },
       { key: "C", label: "type-pace-name-min100", step: { target_type: "pace", name: "min/100m", ...target } },
       { key: "D", label: "type-pace-no-name", step: { target_type: "pace", ...target } },
+      { key: "E", label: "type-speed-kmh", step: { target_type: "speed", name: "speed", ...targetKmh } },
+      { key: "F", label: "type-speed-ms", step: { target_type: "speed", name: "min/100m", ...target } },
+      { key: "G", label: "type-min100-space", step: { target_type: "min/100 m", name: "min/100m", ...target } },
+      { key: "H", label: "type-sec100", step: { target_type: "sec/100m", name: "sec/100m", ...target } },
     ];
 
     const created: unknown[] = [];
