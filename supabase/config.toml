@@ -5,6 +5,3 @@ verify_jwt = false
 
 [functions.nolio-oauth]
 verify_jwt = false
-
-[functions.nolio-generate-structure]
-verify_jwt = false
