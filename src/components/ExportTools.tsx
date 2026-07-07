@@ -2428,7 +2428,7 @@ function buildPacingEnvelopeHTML(payload: ExportPayload): string {
 }
 
 // =============================================
-// BUILD LONG DISTANCE PACING HTML — Chantier D unifié (glycogène/CHO/thermique)
+// BUILD LONG DISTANCE PACING HTML — module longue distance (glycogène/CHO/thermique)
 // =============================================
 
 function buildLongDistancePacingHTML(payload: ExportPayload): string {
@@ -2532,7 +2532,7 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
       <h2>🏃 Long Distance Pacing — Glycogène / CHO / Thermique</h2>
 
       <div class="alert alertInfo mb">
-        <b>📋 Modèle Chantier D :</b> Module longue distance enrichi avec budget glycogène (Rapoport 2010), stratégie CHO (Jeukendrup 2014), stress thermique WBGT (Périard 2021).
+        <b>📋 Module longue distance :</b> Module longue distance enrichi avec budget glycogène (Rapoport 2010), stratégie CHO (Jeukendrup 2014), stress thermique WBGT (Périard 2021).
       </div>
 
       <div class="card" style="border-color:${ldriColor};background:${ldriColor}10;">
@@ -2580,8 +2580,8 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
         <table style="font-size:12px;">
           <tr><td>Pénalité durée</td><td><b>−${p.durationPenaltyPct}%</b></td></tr>
           <tr><td>Pénalité glycogène</td><td><b>−${p.glycogenPenaltyPct}%</b></td></tr>
-          <tr><td>Pénalité thermique (Chantier D)</td><td><b>−${p.thermalPenaltyPct}%</b></td></tr>
-          <tr><td>Pénalité déficit CHO (Chantier D)</td><td><b>−${p.carbDeficitPenaltyPct}%</b></td></tr>
+          <tr><td>Pénalité thermique</td><td><b>−${p.thermalPenaltyPct}%</b></td></tr>
+          <tr><td>Pénalité déficit CHO</td><td><b>−${p.carbDeficitPenaltyPct}%</b></td></tr>
           <tr style="background:#fef3c7;font-weight:700;"><td>Total réduction plafond</td><td>−${p.totalReductionPct}%</td></tr>
         </table>
       </div>
@@ -8166,7 +8166,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       const refs = `
         <section id="pacing-envelope-references" class="section pagebreakAvoid">
           <div class="card" style="background:#f8fafc;font-size:10px;">
-            <h3 style="font-size:12px;margin-bottom:6px;">📚 Références scientifiques — Modèle Pacing Envelope™ (Chantiers A→D)</h3>
+            <h3 style="font-size:12px;margin-bottom:6px;">📚 Références scientifiques — Modèle Pacing Envelope™</h3>
             <ul style="font-size:10px;line-height:1.5;padding-left:18px;margin:0;color:#475569;">
               <li><b>Smyth & Muniz-Pumares (2022)</b> — %CS soutenable décroît log-linéairement avec la durée (25M marathons Strava).</li>
               <li><b>Jones & Vanhatalo (2017)</b> — Critical Power / W' framework, vCS/vVMA ≈ 0.90.</li>
