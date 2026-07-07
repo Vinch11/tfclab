@@ -241,6 +241,8 @@ interface ExportPayload {
   runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"] | null;
   // Records de course réels (injectés depuis useAthleteRaceRecords côté composant)
   raceRecords?: import("@/lib/v2/vlamaxRunV2Enhanced").RaceRecordsInput | null;
+  // Audience du rapport (dérivée du preset actif) — pilote le rendu, jamais les calculs
+  audience?: "athlete" | "staff";
 }
 
 // =============================================
@@ -369,14 +371,17 @@ function getStatusLabel(score: number): string {
 
 function buildNutritionV2HTML(payload: ExportPayload): string {
   const { nutritionV2, athlete } = payload;
+  const isAthlete = payload.audience === "athlete";
+  const nutritionTitle = isAthlete ? "🍎 Ton plan nutrition course" : "🍎 Nutrition Prédictive V2 — TFCL™";
+  const nutritionEmptyTitle = isAthlete ? "🍎 Ton plan nutrition course" : "🍎 Nutrition Prédictive V2";
   
   if (!nutritionV2) {
     return `
       <section id="nutrition-v2" class="section pagebreakAvoid">
-        <h2>🍎 Nutrition Prédictive V2</h2>
+        <h2>${nutritionEmptyTitle}</h2>
         <div class="alert alertWarning">
           <b>⚠️ Données insuffisantes</b><br>
-          Le poids est requis pour calculer les besoins glucidiques. Renseignez le poids dans le snapshot.
+          Le poids est requis pour calculer les besoins nutritionnels. Renseignez le poids dans le snapshot.
         </div>
       </section>
     `;
@@ -427,13 +432,24 @@ function buildNutritionV2HTML(payload: ExportPayload): string {
     </div>
   ` : '';
 
+  const riskWordAthlete = nutritionV2.glycogenRisk === 'low' ? 'Faible'
+    : nutritionV2.glycogenRisk === 'moderate' ? 'Modéré'
+    : nutritionV2.glycogenRisk === 'high' ? 'Élevé' : 'Risque de mur';
+  const riskActionAthlete = nutritionV2.glycogenRisk === 'low'
+    ? 'Tes réserves d\'énergie tiennent la course, reste régulier sur les apports.'
+    : nutritionV2.glycogenRisk === 'moderate'
+      ? 'Bien gérer les apports pour éviter le coup de mou en fin de course.'
+      : nutritionV2.glycogenRisk === 'high'
+        ? 'Risque de coup de mou : respecte scrupuleusement le plan d\'apport, ne saute aucune prise.'
+        : 'Risque de mur : sois discipliné sur les apports dès les premières minutes.';
+
   return `
     <section id="nutrition-v2" class="section pagebreak">
-      <h2>🍎 Nutrition Prédictive V2 — TFCL™</h2>
+      <h2>${nutritionTitle}</h2>
       
-      <div class="alert alertInfo mb">
+      ${isAthlete ? '' : `<div class="alert alertInfo mb">
         <b>📋 Philosophie TFCL™ :</b> ${philosophyText}
-      </div>
+      </div>`}
       
       <div class="card ${riskCardClass}">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
@@ -443,11 +459,13 @@ function buildNutritionV2HTML(payload: ExportPayload): string {
             <div style="font-size:14px;font-weight:600;">Valeur centrale : ${nutritionV2.carbsCentral} g/h</div>
           </div>
           <div style="text-align:center;">
-            <div class="muted" style="font-size:11px;">Risque glycogène</div>
+            <div class="muted" style="font-size:11px;">${isAthlete ? 'Risque énergétique' : 'Risque glycogène'}</div>
             <div style="margin:8px 0;">
-              <span class="badge ${riskBadgeClass}" style="font-size:14px;padding:8px 16px;">${htmlEscape(nutritionV2.glycogenRiskLabel)}</span>
+              <span class="badge ${riskBadgeClass}" style="font-size:14px;padding:8px 16px;">${isAthlete ? riskWordAthlete : htmlEscape(nutritionV2.glycogenRiskLabel)}</span>
             </div>
-            <div class="muted" style="font-size:11px;">Score: ${nutritionV2.glycogenRiskScore}/4</div>
+            ${isAthlete
+              ? `<div class="muted" style="font-size:11px;max-width:200px;">${riskActionAthlete}</div>`
+              : `<div class="muted" style="font-size:11px;">Score: ${nutritionV2.glycogenRiskScore}/4</div>`}
           </div>
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Confiance</div>
@@ -561,6 +579,10 @@ function generateRaceSegments(goal: string, nutrition: NutritionPredictiveV2): A
 
 export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
   const { fatmaxTFCL, effectiveRefs, athlete } = payload;
+  const isAthlete = payload.audience === "athlete";
+  const fatmaxTitle = isAthlete ? "🔥 FatMax" : "🔥 FatMax TFCL™";
+  const fatmaxFullTitle = isAthlete ? "🔥 FatMax — Zone d'Oxydation Lipidique Maximale" : "🔥 FatMax TFCL™ — Zone d'Oxydation Lipidique Maximale";
+  const defLabel = isAthlete ? "Définition" : "Définition TFCL™";
   // Label de référence dynamique : "Allure Seuil" en mode Running, "FTP" sinon
   const isRunningMode = isRunningFocusModeActive(athlete?.goal);
   const refLabel = isRunningMode ? "Allure Seuil" : "FTP";
@@ -569,7 +591,7 @@ export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
   if (!fatmaxTFCL) {
     return `
       <section id="fatmax-tfcl" class="section pagebreakAvoid">
-        <h2>🔥 FatMax TFCL™</h2>
+        <h2>${fatmaxTitle}</h2>
         <div class="alert alertWarning">
           <b>⚠️ Données insuffisantes</b><br>
           La VLamax est requise pour estimer la FatMax. Renseignez ou faites estimer la VLamax.
@@ -608,11 +630,12 @@ export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
 
   return `
     <section id="fatmax-tfcl" class="section pagebreak">
-      <h2>🔥 FatMax TFCL™ — Zone d'Oxydation Lipidique Maximale</h2>
+      <h2>${fatmaxFullTitle}</h2>
       
       <div class="alert alertInfo mb">
-        <b>📋 Définition TFCL™ :</b> ${htmlEscape(FATMAX_DEFINITIONS.official)}
+        <b>📋 ${defLabel} :</b> ${htmlEscape(FATMAX_DEFINITIONS.official)}
       </div>
+      
       
       <div class="card cardHighlight">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
@@ -713,8 +736,8 @@ export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
         <div class="grid3">
           <div style="text-align:center;padding:12px;">
             <div style="font-size:24px;margin-bottom:8px;">↓</div>
-            <div style="font-weight:600;margin-bottom:4px;">Baisser la VLamax</div>
-            <div class="muted" style="font-size:11px;">Séances Z2 longues, tempo prolongé</div>
+            <div style="font-weight:600;margin-bottom:4px;">${isAthlete ? 'Travailler l\'endurance de base' : 'Baisser la VLamax'}</div>
+            <div class="muted" style="font-size:11px;">${isAthlete ? 'Sorties longues à basse intensité pour mieux utiliser les graisses' : 'Séances Z2 longues, tempo prolongé'}</div>
           </div>
           <div style="text-align:center;padding:12px;">
             <div style="font-size:24px;margin-bottom:8px;">↑</div>
@@ -2144,11 +2167,12 @@ function computeLongDistanceEnvelopeForExport(
 }
 
 // =============================================
-// BUILD PACING ENVELOPE RUNNING HTML — Chantier C unifié
+// BUILD PACING ENVELOPE RUNNING HTML — moteur unifié
 // =============================================
 
 function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
   const { effectiveSnapshot, athlete, vlamax: alignedVlamax, tte, ambition } = payload;
+  const isAthlete = payload.audience === "athlete";
   const threshold_pace = effectiveSnapshot?.pace_threshold_sec_per_km ?? null;
   const vo2max_run = (effectiveSnapshot as any)?.vo2max ?? null;
   const vma = (effectiveSnapshot as any)?.vma ?? null;
@@ -2159,11 +2183,12 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
   else if (goal.includes("Semi") || goal.includes("HM") || goal.includes("21")) distance = "HM";
 
   const distanceLabels: Record<string, string> = { "10K": "10 km", HM: "Semi-Marathon", MARATHON: "Marathon" };
+  const runTitle = isAthlete ? `📊 Tes allures cibles — ${distanceLabels[distance]}` : `🏃 Pacing Envelope™ CAP — ${distanceLabels[distance]}`;
 
   if (!threshold_pace) {
     return `
       <section id="pacing-envelope-running" class="section pagebreakAvoid">
-        <h2>🏃 Pacing Envelope™ CAP — ${distanceLabels[distance]}</h2>
+        <h2>${runTitle}</h2>
         <div class="alert alertWarning"><b>⚠️ Données insuffisantes :</b> Allure seuil manquante.</div>
       </section>`;
   }
@@ -2227,11 +2252,12 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
 
   return `
     <section id="pacing-envelope-running" class="section pagebreak">
-      <h2>🏃 Pacing Envelope™ CAP — ${distanceLabels[distance]}</h2>
+      <h2>${runTitle}</h2>
 
-      <div class="alert alertInfo mb">
-        <b>📋 Modèle continu Smyth-Skiba :</b> Zones calculées dynamiquement par le moteur unifié TFCL™ (Chantier C) — %CS f(durée, ambition) avec largeur asymétrique W'/CP.
-      </div>
+      ${isAthlete ? '' : `<div class="alert alertInfo mb">
+        <b>📋 Modèle continu Smyth-Skiba :</b> Zones calculées dynamiquement par le moteur unifié TFCL™ — %CS f(durée, ambition) avec largeur asymétrique W'/CP.
+      </div>`}
+
 
       <div class="card cardHighlight">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
@@ -2274,26 +2300,29 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
         <p class="muted" style="font-size:11px;margin-top:8px;font-style:italic;">${htmlEscape(result.briefing.message_to_remember)}</p>
       </div>
 
-      <div class="alert alertInfo mt" style="font-size:10px;">
+      ${isAthlete ? '' : `<div class="alert alertInfo mt" style="font-size:10px;">
         <b>📚 Méthodologie :</b> ${htmlEscape(result.methodology)}
-      </div>
+      </div>`}
     </section>
   `;
 }
 
 // =============================================
-// BUILD PACING ENVELOPE HTML (Vélo/Tri) — Chantiers A/B unifiés
+// BUILD PACING ENVELOPE HTML (Vélo/Tri) — moteur unifié
 // =============================================
 
 function buildPacingEnvelopeHTML(payload: ExportPayload): string {
   const env = computePacingEnvelopeForExport(payload);
   const { effectiveRefs, vlamax } = payload;
+  const isAthlete = payload.audience === "athlete";
+  const bikeTitleEmpty = isAthlete ? "📊 Tes allures cibles" : "📊 Pacing Envelope™ — Discipline Métabolique";
+  const bikeTitle = isAthlete ? "📊 Tes allures cibles" : "📊 Pacing Envelope™ — Modèle Continu Smyth-Skiba";
   const ftp = effectiveRefs.ftp ?? null;
 
   if (!env) {
     return `
       <section id="pacing-envelope" class="section pagebreakAvoid">
-        <h2>📊 Pacing Envelope™ — Discipline Métabolique</h2>
+        <h2>${bikeTitleEmpty}</h2>
         <div class="alert alertWarning"><b>⚠️ Données insuffisantes</b> pour générer l'enveloppe (FTP/VLamax/TTE manquants).</div>
       </section>`;
   }
@@ -2323,11 +2352,12 @@ function buildPacingEnvelopeHTML(payload: ExportPayload): string {
 
   return `
     <section id="pacing-envelope" class="section pagebreak">
-      <h2>📊 Pacing Envelope™ — Modèle Continu Smyth-Skiba</h2>
+      <h2>${bikeTitle}</h2>
 
-      <div class="alert alertInfo mb">
-        <b>📋 Concept :</b> Enveloppe calculée par le moteur unifié TFCL™ (Chantiers A+B). Le centre suit %CS f(durée, ambition) [Smyth 2022], la largeur est asymétrique pilotée par W'/CP [Skiba 2024, Vanhatalo 2020].
-      </div>
+      ${isAthlete ? '' : `<div class="alert alertInfo mb">
+        <b>📋 Concept :</b> Enveloppe calculée par le moteur unifié TFCL™. Le centre suit %CS f(durée, ambition) [Smyth 2022], la largeur est asymétrique pilotée par W'/CP [Skiba 2024, Vanhatalo 2020].
+      </div>`}
+
 
       <div class="grid3 mb">
         <div class="card">
@@ -2390,15 +2420,15 @@ function buildPacingEnvelopeHTML(payload: ExportPayload): string {
         <b>📊 Données manquantes :</b> ${env.missingData.map(htmlEscape).join(", ")}
       </div>` : ""}
 
-      <div class="alert alertInfo mt" style="font-size:10px;">
+      ${isAthlete ? '' : `<div class="alert alertInfo mt" style="font-size:10px;">
         <b>📚 Méthodologie :</b> ${htmlEscape(env.methodology)}
-      </div>
+      </div>`}
     </section>
   `;
 }
 
 // =============================================
-// BUILD LONG DISTANCE PACING HTML — Chantier D unifié (glycogène/CHO/thermique)
+// BUILD LONG DISTANCE PACING HTML — module longue distance (glycogène/CHO/thermique)
 // =============================================
 
 function buildLongDistancePacingHTML(payload: ExportPayload): string {
@@ -2502,7 +2532,7 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
       <h2>🏃 Long Distance Pacing — Glycogène / CHO / Thermique</h2>
 
       <div class="alert alertInfo mb">
-        <b>📋 Modèle Chantier D :</b> Module longue distance enrichi avec budget glycogène (Rapoport 2010), stratégie CHO (Jeukendrup 2014), stress thermique WBGT (Périard 2021).
+        <b>📋 Module longue distance :</b> Module longue distance enrichi avec budget glycogène (Rapoport 2010), stratégie CHO (Jeukendrup 2014), stress thermique WBGT (Périard 2021).
       </div>
 
       <div class="card" style="border-color:${ldriColor};background:${ldriColor}10;">
@@ -2550,8 +2580,8 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
         <table style="font-size:12px;">
           <tr><td>Pénalité durée</td><td><b>−${p.durationPenaltyPct}%</b></td></tr>
           <tr><td>Pénalité glycogène</td><td><b>−${p.glycogenPenaltyPct}%</b></td></tr>
-          <tr><td>Pénalité thermique (Chantier D)</td><td><b>−${p.thermalPenaltyPct}%</b></td></tr>
-          <tr><td>Pénalité déficit CHO (Chantier D)</td><td><b>−${p.carbDeficitPenaltyPct}%</b></td></tr>
+          <tr><td>Pénalité thermique</td><td><b>−${p.thermalPenaltyPct}%</b></td></tr>
+          <tr><td>Pénalité déficit CHO</td><td><b>−${p.carbDeficitPenaltyPct}%</b></td></tr>
           <tr style="background:#fef3c7;font-weight:700;"><td>Total réduction plafond</td><td>−${p.totalReductionPct}%</td></tr>
         </table>
       </div>
@@ -3888,6 +3918,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   } = payload;
   
   const isAthlete = options.audience === "athlete";
+  // Propage l'audience au payload pour que les builders externes (nutritionV2, fatmax, pacing…) puissent adapter leur rendu
+  payload.audience = isAthlete ? "athlete" : "staff";
   
   const refs = getAthleteRefsForZones(effectiveRefs);
   // ✅ Source de vérité unifiée : ambitions + âge (mêmes cibles que dashboard/limiteur)
@@ -6436,6 +6468,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const tteColor = tteImpact.includes('↑') ? 'color:var(--success)' : tteImpact.includes('↓') ? 'color:var(--warning)' : '';
     const vo2Color = vo2Impact.includes('↑') ? 'color:var(--success)' : '';
     
+    // Athlète : remplace "LT2/MLSS" par "seuil" dans la colonne Position Seuils
+    const positionSeuils = isAthlete
+      ? zone.positionSeuils.replace(/LT2\s*\/\s*MLSS/gi, 'Seuil').replace(/\bMLSS\b/g, 'Seuil').replace(/\bLT2\b/g, 'Seuil').replace(/\bLT1\b/g, 'Seuil aérobie')
+      : zone.positionSeuils;
+    
     return `
       <tr>
         <td><span class="badge badgePrimary">${zone.id}</span></td>
@@ -6443,10 +6480,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <td class="mono" style="font-size:10px">${fcDisplay}</td>
         <td class="mono" style="font-size:10px">${vmaDisplay}</td>
         <td class="mono" style="font-size:10px">${ftpDisplay}</td>
-        <td style="text-align:center"><span style="${vlamaxColor};font-weight:600">${vlamaxImpact}</span></td>
+        ${isAthlete ? '' : `<td style="text-align:center"><span style="${vlamaxColor};font-weight:600">${vlamaxImpact}</span></td>
         <td style="text-align:center"><span style="${tteColor};font-weight:600">${tteImpact}</span></td>
-        <td style="text-align:center"><span style="${vo2Color};font-weight:600">${vo2Impact}</span></td>
-        <td class="muted" style="font-size:10px">${htmlEscape(zone.positionSeuils)}</td>
+        <td style="text-align:center"><span style="${vo2Color};font-weight:600">${vo2Impact}</span></td>`}
+        <td class="muted" style="font-size:10px">${htmlEscape(positionSeuils)}</td>
       </tr>
     `;
   }).join('');
@@ -6460,6 +6497,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${htmlEscape(ZONES_METHODOLOGY_NOTE)}
       </div>
       
+      ${isAthlete ? `<div class="card mb" style="font-size:11px;">
+        <b>📖 Comment lire ces zones :</b> Z1–Z2 = allures faciles (endurance, récup), Z3 = tempo, Z4 = seuil (soutenu), Z5 = VO₂max (dur, court), Z6–Z7 = très intense (sprint). Réfère-toi aux colonnes %FCmax / %VMA / %FTP selon ton sport.
+      </div>` : ''}
+      
       <div class="card">
         <h3>📊 Zones d'entraînement officielles</h3>
         <table>
@@ -6470,9 +6511,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <th>%FCmax</th>
               <th>%VMA (CAP)</th>
               <th>%FTP (Vélo)</th>
-              <th style="text-align:center">VLamax</th>
+              ${isAthlete ? '' : `<th style="text-align:center">VLamax</th>
               <th style="text-align:center">TTE</th>
-              <th style="text-align:center">VO2</th>
+              <th style="text-align:center">VO2</th>`}
               <th>Position Seuils</th>
             </tr>
           </thead>
@@ -6482,7 +6523,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </table>
       </div>
       
-      <div class="grid2 mt">
+      ${isAthlete ? '' : `<div class="grid2 mt">
         <div class="card">
           <h3>📖 Légende impacts métaboliques</h3>
           <table style="font-size:11px">
@@ -6503,7 +6544,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <li><b>Z7</b> = ↑↑ VLamax. Réserver aux phases de puissance/vitesse pure.</li>
           </ul>
         </div>
-      </div>
+      </div>`}
+      
       
       <div class="card cardHighlight mt">
         <h3>🧭 Recommandation selon votre profil</h3>
@@ -8134,7 +8176,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       const refs = `
         <section id="pacing-envelope-references" class="section pagebreakAvoid">
           <div class="card" style="background:#f8fafc;font-size:10px;">
-            <h3 style="font-size:12px;margin-bottom:6px;">📚 Références scientifiques — Modèle Pacing Envelope™ (Chantiers A→D)</h3>
+            <h3 style="font-size:12px;margin-bottom:6px;">📚 Références scientifiques — Modèle Pacing Envelope™</h3>
             <ul style="font-size:10px;line-height:1.5;padding-left:18px;margin:0;color:#475569;">
               <li><b>Smyth & Muniz-Pumares (2022)</b> — %CS soutenable décroît log-linéairement avec la durée (25M marathons Strava).</li>
               <li><b>Jones & Vanhatalo (2017)</b> — Critical Power / W' framework, vCS/vVMA ≈ 0.90.</li>
@@ -8148,7 +8190,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </ul>
           </div>
         </section>`;
-      return main + ld + refs;
+      return main + ld + (isAthlete ? "" : refs);
     })(),
     potentielPhysiologiqueRunning: buildPotentielPhysiologiqueRunningHTML(payload),
     injuryRisk: injuryRiskHTML,
