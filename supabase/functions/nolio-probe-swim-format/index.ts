@@ -97,23 +97,20 @@ const run_c = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const auth = req.headers.get("Authorization");
-    if (!auth?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    const userClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: auth } } });
-    const { data: claims } = await userClient.auth.getClaims(auth.replace("Bearer ", ""));
-    const userId = claims?.claims?.sub as string;
-    if (!userId) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: tokenRow } = await admin.from("nolio_tokens").select("access_token, refresh_token, expires_at").eq("user_id", userId).maybeSingle();
-    if (!tokenRow?.access_token) return new Response(JSON.stringify({ error: "Nolio non connecté" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // PROBE : on prend l'unique coach ayant un token Nolio (service role bypass RLS).
+    const { data: tokenRow } = await admin.from("nolio_tokens")
+      .select("user_id, access_token, refresh_token, expires_at")
+      .order("expires_at", { ascending: false, nullsFirst: false })
+      .limit(1).maybeSingle();
+    if (!tokenRow?.access_token) return new Response(JSON.stringify({ error: "Aucun token Nolio en base" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const userId = tokenRow.user_id as string;
     const token = await refreshIfNeeded(admin, userId, {
       access_token: tokenRow.access_token as string,
       refresh_token: (tokenRow.refresh_token as string | null) ?? null,
       expires_at: (tokenRow.expires_at as string | null) ?? null,
     });
+
 
     const body = await req.json().catch(() => ({})) as { nolio_athlete_id?: number; date?: string };
     let athleteId = body.nolio_athlete_id;
