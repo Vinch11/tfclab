@@ -617,8 +617,8 @@ function normalizeStructuredWorkoutForNolio(
         if (wMin !== null && wMax !== null) src.target_value = Math.round((wMin + wMax) / 2);
         else if (wMin !== null) src.target_value = Math.round(wMin);
         else if (wMax !== null) src.target_value = Math.round(wMax);
-        if (pctMin !== null) src.step_percent_low = Math.round(pctMin);
-        if (pctMax !== null) src.step_percent_high = Math.round(pctMax);
+        // step_percent_low/high SUPPRIMÉ : Nolio n'affiche rien avec step_percent seul (test terrain).
+
       } else if (src.target_type === "pace" && isRun) {
         const vma = refs?.vma; // km/h
         let pctMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
