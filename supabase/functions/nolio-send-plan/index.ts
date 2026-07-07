@@ -583,8 +583,9 @@ function normalizeStructuredWorkoutForNolio(
     //   step_percent_low/high = %FTP
     // - Course/Trail (sport 2/52) : target_type="pace", valeurs en m/s (depuis VMA),
     //   comment = "Z2 — 5:15-5:30/km"
-    // - Natation (sport 19) : create API = target_type="pace", valeurs en m/s (depuis CSS).
-    //   Nolio relit ensuite ce pace natation comme target_type="min/100m" côté GET/UI.
+    // - Natation (sport 19) : API publique CREATE Nolio = target_type="pace", valeurs en m/s (depuis CSS).
+    //   Tests terrain 2026-07-07 : `min/100m` est accepté en 201 mais relu `empty_unit`.
+    //   `pace` est la seule cible active non vide, mais Nolio la relit actuellement `min/km`.
     // - FC : target_type="heartrate", bpm (depuis FCmax)
     // ⛔ AUCUN target_unit, AUCUN pct_* envoyés à Nolio (champs internes TFCLab).
     if (src.type === "step") {
@@ -664,10 +665,10 @@ function normalizeStructuredWorkoutForNolio(
           delete (src as Record<string, unknown>).target_value_max;
         }
       } else if ((src.target_type === "pace" || src.target_type === "min/100m") && isSwim) {
-        // 🏊 IMPORTANT : le GET Nolio expose la cible natation native en `min/100m`,
-        // mais le CREATE n'accepte officiellement que `pace` (doc: power/heartrate/pace/speed/no_target).
-        // Envoyer `min/100m` au CREATE est accepté en 201 mais relu/affiché en `empty_unit`.
-        // On envoie donc `pace` + manual_values:true + valeurs m/s ; Nolio convertit l'UI en /100m.
+        // 🏊 IMPORTANT : le CREATE n'accepte officiellement que `pace`
+        // (doc: power/heartrate/pace/speed/no_target). Envoyer `min/100m` au CREATE
+        // est accepté en 201 mais relu/affiché en `empty_unit`. On envoie donc le seul
+        // format public non vide : `pace` + manual_values:true + valeurs m/s.
         const css = refs?.css; // sec/100m
         const toSec100 = (v: number) => {
           if (v > 0 && v < 5) return 100 / v; // m/s → sec/100m
