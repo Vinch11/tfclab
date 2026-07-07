@@ -147,7 +147,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                       className={cn(
                         "relative h-10 sm:h-11 rounded-lg transition-all duration-200",
                         active
-                          ? "text-sidebar-primary font-semibold shadow-sm border border-sidebar-primary/35"
+                          ? "text-sidebar-primary font-semibold"
                           : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
                       )}
                     >
@@ -182,7 +182,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                     className={cn(
                       "relative h-10 sm:h-11 rounded-lg transition-all duration-200",
                         location.pathname === "/running-profile"
-                          ? "text-sidebar-primary font-semibold shadow-sm border border-sidebar-primary/35"
+                          ? "text-sidebar-primary font-semibold"
                         : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
                     )}
                   >
@@ -201,7 +201,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                     className={cn(
                       "relative h-10 sm:h-11 rounded-lg transition-all duration-200",
                         location.pathname === "/diagnostic/cohort-run-mlss"
-                          ? "text-sidebar-primary font-semibold shadow-sm border border-sidebar-primary/35"
+                          ? "text-sidebar-primary font-semibold"
                         : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
                     )}
                   >
@@ -249,7 +249,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                   className={cn(
                     "h-9 sm:h-10 rounded-lg transition-all duration-200",
                     location.pathname === "/mini-rapport"
-                      ? "text-sidebar-primary font-semibold border border-sidebar-primary/35"
+                      ? "text-sidebar-primary font-semibold"
                       : "hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                   )}
                 >
@@ -270,7 +270,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                   className={cn(
                     "h-9 sm:h-10 rounded-lg transition-all duration-200",
                     location.pathname === "/" && activeTab === "configuration"
-                      ? "text-sidebar-primary font-semibold border border-sidebar-primary/35"
+                      ? "text-sidebar-primary font-semibold"
                       : "hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground"
                   )}
                 >
