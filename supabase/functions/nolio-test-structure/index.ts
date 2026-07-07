@@ -1,8 +1,9 @@
-// Sonde Nolio — 3 séances minimales pour tester le rendu de `description`.
-// TEST HTML     : description avec balises <b>, <br>, <ul>, <li>, <i>.
-// TEST MARKDOWN : description avec **, listes -, *italic*.
-// TEST TEXTE    : description avec émojis + bullets Unicode (contrôle).
-// Aucune conversion / normalisation maison — descriptions envoyées telles quelles.
+// Sonde Nolio — 3 séances NATATION pour identifier le format d'allure /100m accepté.
+// Hypothèses testées :
+//   SWIM_A : target_type="pace", target_value en SEC/100m brut (90/85)
+//   SWIM_B : target_type="pace", target_value en m/s (contrôle actuel — échoue en min/km)
+//   SWIM_C : target_type="speed", target_value en m/s
+// Aucune normalisation maison — payloads envoyés tels quels.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
@@ -10,8 +11,9 @@ const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const NOLIO_CREATE_TRAINING_URL = "https://www.nolio.io/api/create/planned/training/";
 const NOLIO_DELETE_TRAINING_URL = "https://www.nolio.io/api/delete/planned/training/";
+const NOLIO_GET_TRAINING_URL = "https://www.nolio.io/api/get/training/";
 
-const RUN_SPORT_ID = 2;
+const SWIM_SPORT_ID = 19;
 
 async function refreshIfNeeded(
   admin: ReturnType<typeof createClient>,
@@ -55,40 +57,69 @@ async function postNolio(url: string, token: string, payload: Record<string, unk
   return { ok: resp.ok, status: resp.status, detail, data: parsed };
 }
 
+async function getNolio(url: string, token: string) {
+  const resp = await fetch(url, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+  });
+  const ctype = resp.headers.get("content-type") ?? "";
+  const isJson = ctype.includes("application/json");
+  const parsed = isJson ? await resp.json().catch(() => null) : null;
+  return { ok: resp.ok, status: resp.status, data: parsed };
+}
+
 type Probe = {
   label: string;
   hypothesis: string;
-  description: string;
+  step: Record<string, unknown>;
 };
 
 function buildProbes(): Probe[] {
   return [
     {
-      label: "SONDE_FICHE_HTML",
-      hypothesis: "description en HTML — Nolio rend-il <b>/<br>/<ul>/<li>/<i> ?",
-      description: "<b>ÉCHAUFFEMENT</b><br><ul><li>20' progressif Z1-Z2</li></ul><br><i>Variante Ironman</i>",
+      label: "SONDE_SWIM_A_SEC100M",
+      hypothesis: "target_value en SEC/100m brut (90-85 = 1:30-1:25/100m)",
+      step: {
+        type: "step",
+        step_duration_type: "distance",
+        step_duration_value: 100,
+        intensity_type: "active",
+        target_type: "pace",
+        target_value: 87,
+        target_value_min: 90, // lent
+        target_value_max: 85, // rapide
+      },
     },
     {
-      label: "SONDE_FICHE_MARKDOWN",
-      hypothesis: "description en Markdown — Nolio rend-il ** listes - et *italic* ?",
-      description: "**ÉCHAUFFEMENT**\n- 20' progressif Z1-Z2\n\n*Variante Ironman*",
+      label: "SONDE_SWIM_B_MS_CTRL",
+      hypothesis: "target_value en m/s (contrôle actuel — affiche min/km chez Nolio)",
+      step: {
+        type: "step",
+        step_duration_type: "distance",
+        step_duration_value: 100,
+        intensity_type: "active",
+        target_type: "pace",
+        target_value: 1.143,
+        target_value_min: 1.111, // 1:30/100m
+        target_value_max: 1.176, // 1:25/100m
+      },
     },
     {
-      label: "SONDE_FICHE_TEXTE",
-      hypothesis: "description en texte brut avec émojis + bullets Unicode (contrôle)",
-      description: "🔥 ÉCHAUFFEMENT\n• 20' progressif Z1-Z2\n\nVariante Ironman",
+      label: "SONDE_SWIM_C_SPEED",
+      hypothesis: "target_type=speed, target_value m/s",
+      step: {
+        type: "step",
+        step_duration_type: "distance",
+        step_duration_value: 100,
+        intensity_type: "active",
+        target_type: "speed",
+        target_value: 1.143,
+        target_value_min: 1.111,
+        target_value_max: 1.176,
+      },
     },
   ];
 }
-
-// Step neutre pour toutes les sondes — on teste la description, pas le step.
-const NEUTRAL_STEP = {
-  type: "step",
-  step_duration_type: "time",
-  step_duration_value: 300, // 5 min
-  intensity_type: "active",
-  target_type: "no_target",
-};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -106,7 +137,6 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({})) as { nolio_athlete_id?: number; date_start?: string };
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // 1) Token Nolio
     const { data: tokenRow } = await admin.from("nolio_tokens").select("access_token, refresh_token, expires_at").eq("user_id", userId).maybeSingle();
     if (!tokenRow?.access_token) {
       return new Response(JSON.stringify({ error: "Nolio non connecté" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -117,7 +147,6 @@ Deno.serve(async (req) => {
       expires_at: (tokenRow.expires_at as string | null) ?? null,
     });
 
-    // 2) Athlète cible
     let nolioAthleteId = body.nolio_athlete_id;
     if (!nolioAthleteId) {
       const { data: ath } = await admin.from("athletes").select("nolio_id").eq("coach_id", userId).not("nolio_id", "is", null).limit(1).maybeSingle();
@@ -135,17 +164,16 @@ Deno.serve(async (req) => {
       const p = probes[i];
       const idPartner = Number(`${Date.now()}${i + 1}`.slice(-15));
 
-      // Best-effort delete si collision
       await postNolio(NOLIO_DELETE_TRAINING_URL, token, { id_partner: idPartner, athlete_id: nolioAthleteId }).catch(() => null);
 
       const payload = {
         id_partner: idPartner,
         athlete_id: nolioAthleteId,
-        sport_id: RUN_SPORT_ID,
+        sport_id: SWIM_SPORT_ID,
         name: `[${p.label}]`,
         date_start: dateStart,
-        description: p.description, // BRUT — aucune transformation
-        structured_workout: [NEUTRAL_STEP],
+        description: `Sonde natation — ${p.hypothesis}`,
+        structured_workout: [p.step],
       };
 
       const res = await postNolio(NOLIO_CREATE_TRAINING_URL, token, payload);
@@ -153,11 +181,18 @@ Deno.serve(async (req) => {
         label: p.label,
         hypothesis: p.hypothesis,
         id_partner: idPartner,
-        description_sent: p.description,
+        session_sport_id: SWIM_SPORT_ID,
+        step_sent: p.step,
         payload_sent: payload,
         response: res,
       });
     }
+
+    // Bonus : lit une séance natation existante de Nolio pour vérifier le format qu'elle utilise.
+    const existingSwim = await getNolio(
+      `${NOLIO_GET_TRAINING_URL}?athlete_id=${nolioAthleteId}&sport_id=${SWIM_SPORT_ID}&limit=3`,
+      token,
+    ).catch(() => null);
 
     const summary = results.map((s) => {
       const x = s as { label: string; response: { ok: boolean; status: number; detail: string } };
@@ -168,17 +203,18 @@ Deno.serve(async (req) => {
       user_id: userId,
       athletes_count: 0,
       status: "success",
-      error_message: "SONDE step_percent",
-      notes: JSON.stringify({ nolio_athlete_id: nolioAthleteId, sport_id: RUN_SPORT_ID, date_start: dateStart, results }).slice(0, 20000),
+      error_message: "SONDE swim pace format",
+      notes: JSON.stringify({ nolio_athlete_id: nolioAthleteId, sport_id: SWIM_SPORT_ID, date_start: dateStart, results, existingSwim }).slice(0, 20000),
     });
 
     return new Response(JSON.stringify({
       ok: true,
       nolio_athlete_id: nolioAthleteId,
-      sport_id: RUN_SPORT_ID,
+      sport_id_used: SWIM_SPORT_ID,
       date_start: dateStart,
       summary,
       results,
+      existing_swim_from_nolio: existingSwim,
     }, null, 2), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
