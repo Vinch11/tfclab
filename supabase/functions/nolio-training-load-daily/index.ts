@@ -121,15 +121,6 @@ async function fetchTrainingsSince(
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  // Auth: shared secret
-  const providedSecret = req.headers.get("x-cron-secret") ?? "";
-  const expected = Deno.env.get("CRON_SECRET") ?? "";
-  if (!expected || providedSecret !== expected) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
   let days = 4;
   try {
     const body = await req.clone().json().catch(() => null) as { days?: number } | null;
@@ -141,6 +132,22 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+
+  // Auth: shared secret. Value is stored in Vault under `nolio_cron_secret`
+  // and read via a SECURITY DEFINER RPC (executable by service_role only).
+  const providedSecret = req.headers.get("x-cron-secret") ?? "";
+  const envSecret = Deno.env.get("CRON_SECRET") ?? "";
+  let expected = envSecret;
+  if (!expected) {
+    const { data: rpcSecret } = await admin.rpc("_read_nolio_cron_secret");
+    expected = (rpcSecret as string | null) ?? "";
+  }
+  if (!expected || providedSecret !== expected) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
 
   const fromDate = new Date(Date.now() - days * 86400_000).toISOString().slice(0, 10);
   const summary: {
