@@ -736,8 +736,8 @@ export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
         <div class="grid3">
           <div style="text-align:center;padding:12px;">
             <div style="font-size:24px;margin-bottom:8px;">↓</div>
-            <div style="font-weight:600;margin-bottom:4px;">Baisser la VLamax</div>
-            <div class="muted" style="font-size:11px;">Séances Z2 longues, tempo prolongé</div>
+            <div style="font-weight:600;margin-bottom:4px;">${isAthlete ? 'Travailler l\'endurance de base' : 'Baisser la VLamax'}</div>
+            <div class="muted" style="font-size:11px;">${isAthlete ? 'Sorties longues à basse intensité pour mieux utiliser les graisses' : 'Séances Z2 longues, tempo prolongé'}</div>
           </div>
           <div style="text-align:center;padding:12px;">
             <div style="font-size:24px;margin-bottom:8px;">↑</div>
