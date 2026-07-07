@@ -542,15 +542,16 @@ function normalizeStructuredWorkoutForNolio(
         src.target_value_max = hi;
         src.target_value = Math.round((lo + hi) / 2);
       }
-      // 🏊 Natation rest : pas de cible naturelle. On supprime target_type entièrement
-      // pour éviter que Nolio affiche une pastille "empty_unit" sur un no_target vide.
+      // 🏊 Natation rest : pas de cible naturelle. Forcer target_type="no_target"
+      // (SANS target_value_*) pour éviter la pastille "empty_unit" côté Nolio.
       if (sportId === 19) {
-        delete (src as Record<string, unknown>).target_type;
+        src.target_type = "no_target";
         delete (src as Record<string, unknown>).target_value;
         delete (src as Record<string, unknown>).target_value_min;
         delete (src as Record<string, unknown>).target_value_max;
         delete (src as Record<string, unknown>).target_unit;
       }
+
     }
 
     // Run/Trail (sport_id 2/52) : step_duration_type "distance" interdit côté Nolio.
