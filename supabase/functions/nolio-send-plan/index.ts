@@ -533,8 +533,7 @@ function normalizeStructuredWorkoutForNolio(
         src.target_value_min = lo;
         src.target_value_max = hi;
         src.target_value = Math.round((lo + hi) / 2);
-        src.step_percent_low = 45;
-        src.step_percent_high = 55;
+
       } else if (isRun && typeof fcMax === "number" && fcMax > 0) {
         const lo = Math.round(fcMax * 0.50);
         const hi = Math.round(fcMax * 0.60);
