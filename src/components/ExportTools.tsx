@@ -2300,9 +2300,9 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
         <p class="muted" style="font-size:11px;margin-top:8px;font-style:italic;">${htmlEscape(result.briefing.message_to_remember)}</p>
       </div>
 
-      <div class="alert alertInfo mt" style="font-size:10px;">
+      ${isAthlete ? '' : `<div class="alert alertInfo mt" style="font-size:10px;">
         <b>📚 Méthodologie :</b> ${htmlEscape(result.methodology)}
-      </div>
+      </div>`}
     </section>
   `;
 }
