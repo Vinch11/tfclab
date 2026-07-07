@@ -665,10 +665,14 @@ function normalizeStructuredWorkoutForNolio(
           delete (src as Record<string, unknown>).target_value_max;
         }
       } else if ((src.target_type === "pace" || src.target_type === "min/100m") && isSwim) {
-        // 🏊 IMPORTANT : le CREATE n'accepte officiellement que `pace`
-        // (doc: power/heartrate/pace/speed/no_target). Envoyer `min/100m` au CREATE
-        // est accepté en 201 mais relu/affiché en `empty_unit`. On envoie donc le seul
-        // format public non vide : `pace` + manual_values:true + valeurs m/s.
+        // 🏊 FORMAT CIBLE PROUVÉ par comparaison JSON natif Nolio (2 séances manuelles
+        // qui s'affichent bien en `min/100m` sur desktop — nolio_id 31872728 & 31732890).
+        // Combinaison OBLIGATOIRE des 3 champs sur les steps ACTIFS :
+        //   target_type: "min/100m"  (littéral, avec slash)
+        //   manual_values: true
+        //   name: "pace_min100"      (littéral — clé technique d'unité, PAS le nom de zone)
+        // Les valeurs restent en m/s. target_value_max = vitesse HAUTE = pace le plus rapide.
+        // Repos natation traités en amont (target_type:"no_target" sans manual_values).
         const css = refs?.css; // sec/100m
         const toSec100 = (v: number) => {
           if (v > 0 && v < 5) return 100 / v; // m/s → sec/100m
@@ -685,28 +689,37 @@ function normalizeStructuredWorkoutForNolio(
           if (tMax === null && pctMin !== null) tMax = css * pctMin / 100;
         }
 
-        if (tMin !== null && tMin > 0 && tMax !== null && tMax > 0) {
+        const intensity = String(src.intensity_type ?? "");
+        const isRestLike = intensity === "rest";
+
+        if (!isRestLike && tMin !== null && tMin > 0 && tMax !== null && tMax > 0) {
           // sec/100m → m/s. Pace RAPIDE (sec faible) → vitesse HAUTE.
           const secFast = Math.min(tMin, tMax);
           const secSlow = Math.max(tMin, tMax);
-          const speedHigh = Number((100 / secFast).toFixed(4)); // rapide
-          const speedLow = Number((100 / secSlow).toFixed(4));  // lent
-          (src as Record<string, unknown>).target_type = "pace";
+          const speedHigh = Number((100 / secFast).toFixed(10)); // rapide (max)
+          const speedLow = Number((100 / secSlow).toFixed(10));  // lent (min)
+          (src as Record<string, unknown>).target_type = "min/100m";
           (src as Record<string, unknown>).manual_values = true;
+          (src as Record<string, unknown>).name = "pace_min100";
           src.target_value_min = speedLow;
           src.target_value_max = speedHigh;
           delete (src as Record<string, unknown>).target_value;
           delete (src as Record<string, unknown>).target_unit;
 
         } else {
-          // Natation sans cible exploitable → no_target propre (pas de pastille "empty_unit").
+          // Natation sans cible exploitable OU step de repos → no_target propre.
+          // AUCUN manual_values / name:"pace_min100" / target_value_* sur un repos.
           src.target_type = "no_target";
           delete (src as Record<string, unknown>).target_value;
           delete (src as Record<string, unknown>).target_value_min;
           delete (src as Record<string, unknown>).target_value_max;
           delete (src as Record<string, unknown>).target_unit;
           delete (src as Record<string, unknown>).manual_values;
+          if ((src as Record<string, unknown>).name === "pace_min100") {
+            delete (src as Record<string, unknown>).name;
+          }
         }
+
 
 
 
