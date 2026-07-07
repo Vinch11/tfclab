@@ -533,8 +533,7 @@ function normalizeStructuredWorkoutForNolio(
         src.target_value_min = lo;
         src.target_value_max = hi;
         src.target_value = Math.round((lo + hi) / 2);
-        src.step_percent_low = 45;
-        src.step_percent_high = 55;
+
       } else if (isRun && typeof fcMax === "number" && fcMax > 0) {
         const lo = Math.round(fcMax * 0.50);
         const hi = Math.round(fcMax * 0.60);
@@ -618,13 +617,18 @@ function normalizeStructuredWorkoutForNolio(
         if (wMin !== null && wMax !== null) src.target_value = Math.round((wMin + wMax) / 2);
         else if (wMin !== null) src.target_value = Math.round(wMin);
         else if (wMax !== null) src.target_value = Math.round(wMax);
-        if (pctMin !== null) src.step_percent_low = Math.round(pctMin);
-        if (pctMax !== null) src.step_percent_high = Math.round(pctMax);
+        // step_percent_low/high SUPPRIMÉ : Nolio n'affiche rien avec step_percent seul (test terrain).
+
       } else if (src.target_type === "pace" && isRun) {
         const vma = refs?.vma; // km/h
         let pctMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
         let pctMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
-        const toSecKm = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
+        // Détecte l'unité d'entrée : m/s (0.5-15) → sec/km, minutes décimales (15-30) → sec/km, sinon déjà sec/km.
+        const toSecKm = (v: number) => {
+          if (v > 0 && v < 15) return 1000 / v; // m/s → sec/km
+          if (v >= 15 && v <= 30) return v * 60; // min décimales → sec/km
+          return v; // déjà sec/km
+        };
         const tMinOrig = typeof src.target_value_min === "number" ? toSecKm(src.target_value_min) : null;
         const tMaxOrig = typeof src.target_value_max === "number" ? toSecKm(src.target_value_max) : null;
 
@@ -668,7 +672,12 @@ function normalizeStructuredWorkoutForNolio(
         }
       } else if (src.target_type === "pace" && isSwim) {
         const css = refs?.css; // sec/100m
-        const toSec100 = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
+        // Détecte l'unité d'entrée : m/s (0.3-3) → sec/100m, sinon déjà sec/100m.
+        const toSec100 = (v: number) => {
+          if (v > 0 && v < 5) return 100 / v; // m/s → sec/100m
+          if (v >= 5 && v <= 30) return v * 60; // min décimales → sec/100m
+          return v;
+        };
         let tMin = typeof src.target_value_min === "number" ? toSec100(src.target_value_min) : null;
         let tMax = typeof src.target_value_max === "number" ? toSec100(src.target_value_max) : null;
         const pctMin = typeof src.pct_css_min === "number" ? src.pct_css_min : null;
@@ -736,6 +745,9 @@ function normalizeStructuredWorkoutForNolio(
       delete (src as Record<string, unknown>).pct_css_max;
       delete (src as Record<string, unknown>).pct_hrmax_min;
       delete (src as Record<string, unknown>).pct_hrmax_max;
+      // step_percent_low/high : Nolio ignore ce champ (test terrain — pas d'affichage).
+      delete (src as Record<string, unknown>).step_percent_low;
+      delete (src as Record<string, unknown>).step_percent_high;
 
       // 🚴 Cadence (vélo uniquement) → secondary_step depuis notes/comment
       if (isBike && !src.secondary_step) {
