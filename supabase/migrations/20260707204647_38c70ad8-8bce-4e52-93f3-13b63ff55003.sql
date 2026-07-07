@@ -1,0 +1,1 @@
+SELECT public._trigger_nolio_daily_cron() AS request_id;
