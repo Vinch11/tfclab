@@ -623,7 +623,12 @@ function normalizeStructuredWorkoutForNolio(
         const vma = refs?.vma; // km/h
         let pctMin = typeof src.pct_vma_min === "number" ? src.pct_vma_min : null;
         let pctMax = typeof src.pct_vma_max === "number" ? src.pct_vma_max : null;
-        const toSecKm = (v: number) => (v > 0 && v <= 30 ? v * 60 : v);
+        // Détecte l'unité d'entrée : m/s (0.5-15) → sec/km, minutes décimales (15-30) → sec/km, sinon déjà sec/km.
+        const toSecKm = (v: number) => {
+          if (v > 0 && v < 15) return 1000 / v; // m/s → sec/km
+          if (v >= 15 && v <= 30) return v * 60; // min décimales → sec/km
+          return v; // déjà sec/km
+        };
         const tMinOrig = typeof src.target_value_min === "number" ? toSecKm(src.target_value_min) : null;
         const tMaxOrig = typeof src.target_value_max === "number" ? toSecKm(src.target_value_max) : null;
 
