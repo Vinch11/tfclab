@@ -2252,11 +2252,12 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
 
   return `
     <section id="pacing-envelope-running" class="section pagebreak">
-      <h2>🏃 Pacing Envelope™ CAP — ${distanceLabels[distance]}</h2>
+      <h2>${runTitle}</h2>
 
-      <div class="alert alertInfo mb">
-        <b>📋 Modèle continu Smyth-Skiba :</b> Zones calculées dynamiquement par le moteur unifié TFCL™ (Chantier C) — %CS f(durée, ambition) avec largeur asymétrique W'/CP.
-      </div>
+      ${isAthlete ? '' : `<div class="alert alertInfo mb">
+        <b>📋 Modèle continu Smyth-Skiba :</b> Zones calculées dynamiquement par le moteur unifié TFCL™ — %CS f(durée, ambition) avec largeur asymétrique W'/CP.
+      </div>`}
+
 
       <div class="card cardHighlight">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
