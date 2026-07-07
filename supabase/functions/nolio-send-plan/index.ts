@@ -829,95 +829,89 @@ function extractNutritionNote(text?: string): string | null {
 }
 
 /**
- * Description envoyée à Nolio — format minimal et lisible (≤500 caractères) :
- *   ligne 1 : texte court de la séance (details) tel quel
- *   ligne vide
- *   🏔️ Alternatives :
+ * Description envoyée à Nolio — fiche bibliothèque structurée (≤4000 caractères) :
+ *
+ *   🎯 <objectif de la séance>
+ *
+ *   🔥 ÉCHAUFFEMENT — <warm-up>
+ *
+ *   💪 CORPS DE SÉANCE — <main>
+ *
+ *   🧘 RETOUR AU CALME — <cool-down>
+ *
+ *   🏔️ ALTERNATIVES TERRAIN :
  *     • <icon> <label> — <hint>
- *   ⚠️ Éviter : <avoid>
+ *
+ * Volontairement OMIS : "Quand"/phase/contexte, "⚠️ Éviter", tags (#...).
+ * Ces infos servent à la sélection, pas à l'exécution.
  */
 function buildDescription(s: ParsedSession, sportId?: number): string {
-  const parts: string[] = [];
+  const MAX_LEN = 4000;
 
-  // 1) Texte court existant, inchangé — mais on retire tout marqueur [ID:...]
-  //    injecté par le générateur de plan IA (ex: "Côtes 8x2' [ID: B_TR_HILLREPS_PRO]").
-  const cleanedDetails = s.details
-    ? s.details.replace(/\[ID:[^\]]+\]/g, "").replace(/\s{2,}/g, " ").trim()
-    : "";
+  // Nettoyage transversal : retire [ID:...] et tags #xxx isolés, compresse espaces.
+  const clean = (t: string | null | undefined): string => {
+    if (!t) return "";
+    return t
+      .replace(/\[ID:[^\]]+\]/g, "")
+      .replace(/(?:^|\s)#[\p{L}0-9_-]+/gu, "")
+      .replace(/[ \t]{2,}/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  };
 
-  // Cas spécifique Renforcement (sport_id: 20) — pas de structured_workout,
-  // la description est le seul contenu. On enrichit depuis la fiche bibliothèque.
-  if (sportId === 20) {
-    const bodyParts: string[] = [];
+  const findPart = (name: string) =>
+    (s.structure ?? []).find((p) =>
+      normalizeStr(p.part).includes(normalizeStr(name))
+    );
 
-    if (cleanedDetails) bodyParts.push(cleanedDetails);
+  const cleanedDetails = clean(s.details);
+  const cleanedObjectif = clean(s.objectif);
+  const warmup = clean(findPart("warm-up")?.text || findPart("échauffement")?.text);
+  const main = clean(findPart("main")?.text || findPart("travail")?.text);
+  const cooldown = clean(findPart("cool-down")?.text || findPart("récupération")?.text);
 
-    const findPart = (name: string) =>
-      (s.structure ?? []).find((p) =>
-        normalizeStr(p.part).includes(normalizeStr(name))
-      );
+  const sections: string[] = [];
 
-    const warmup = findPart("warm-up") || findPart("échauffement");
-    const main = findPart("main") || findPart("travail");
-    const cooldown = findPart("cool-down") || findPart("récupération");
+  // 🎯 Objectif — priorité au champ objectif, sinon ligne d'intention = details
+  const intent = cleanedObjectif || cleanedDetails;
+  if (intent) sections.push(`🎯 ${intent}`);
 
-    if (warmup?.text?.trim()) {
-      bodyParts.push(`🔥 Échauffement : ${warmup.text.trim()}`);
-    }
-    if (main?.text?.trim()) {
-      bodyParts.push(`💪 Travail : ${main.text.trim()}`);
-    }
-    if (cooldown?.text?.trim()) {
-      bodyParts.push(`🧘 Récupération : ${cooldown.text.trim()}`);
-    }
-    if (s.avoid && s.avoid.trim()) {
-      bodyParts.push(`⚠️ Éviter : ${s.avoid.trim()}`);
-    }
+  // 🔥 / 💪 / 🧘 — n'ajoute la section que si le contenu existe
+  if (warmup) sections.push(`🔥 ÉCHAUFFEMENT\n${warmup}`);
+  if (main) sections.push(`💪 CORPS DE SÉANCE\n${main}`);
+  if (cooldown) sections.push(`🧘 RETOUR AU CALME\n${cooldown}`);
 
-    let desc = bodyParts.join("\n\n");
-    if (desc.length > 1000) {
-      desc = desc.slice(0, 1000);
-      const lastSpace = desc.lastIndexOf(" ");
-      if (lastSpace > 800) desc = desc.slice(0, lastSpace);
-    }
-    return desc;
-  }
-
-  // Format standard pour tous les autres sports
-  if (cleanedDetails) parts.push(cleanedDetails);
-
-  // 2) Alternatives terrain (si fournies par la fiche bibliothèque)
-  //    Aération : ligne vide entre texte principal et alternatives, et entre chaque alternative.
+  // 🏔️ Alternatives terrain (conservées : servent à l'adaptation d'exécution)
   const alts = Array.isArray(s.alternatives)
     ? s.alternatives.filter((a) => a && typeof a.label === "string" && a.label.trim().length > 0)
     : [];
   if (alts.length > 0) {
-    const altLines: string[] = ["🏔️ Alternatives :", ""];
-    alts.forEach((a, idx) => {
-      const icon = (a.icon ?? "").trim();
-      const label = a.label.trim();
-      const hint = (a.hint ?? "").trim();
+    const altLines: string[] = ["🏔️ ALTERNATIVES TERRAIN"];
+    alts.forEach((a) => {
+      const icon = clean(a.icon);
+      const label = clean(a.label);
+      const hint = clean(a.hint);
       const head = icon ? `${icon} ${label}` : label;
       altLines.push(hint ? `• ${head} — ${hint}` : `• ${head}`);
-      if (idx < alts.length - 1) altLines.push("");
     });
-    parts.push(altLines.join("\n"));
+    sections.push(altLines.join("\n"));
   }
 
-  // 3) Éviter — ligne vide avant pour aération
-  if (s.avoid && s.avoid.trim()) {
-    parts.push(`⚠️ Éviter : ${s.avoid.trim()}`);
+  // Assemblage avec aération : ligne vide entre chaque section.
+  let desc = sections.join("\n\n");
+
+  // Cap propre : jamais en milieu de mot, on coupe au dernier saut de ligne.
+  if (desc.length > MAX_LEN) {
+    const cut = desc.slice(0, MAX_LEN);
+    const lastBreak = cut.lastIndexOf("\n");
+    const lastSpace = cut.lastIndexOf(" ");
+    const safe = lastBreak > MAX_LEN * 0.7 ? lastBreak : (lastSpace > MAX_LEN * 0.7 ? lastSpace : MAX_LEN);
+    desc = cut.slice(0, safe).trimEnd() + "…";
   }
 
-  // Joindre les blocs avec une ligne vide entre chacun (aération).
-  let desc = parts.join("\n\n");
-  if (desc.length > 500) {
-    desc = desc.slice(0, 500);
-    const lastBreak = desc.lastIndexOf("\n");
-    if (lastBreak > 300) desc = desc.slice(0, lastBreak);
-  }
   return desc;
 }
+
 
 
 
