@@ -579,6 +579,10 @@ function generateRaceSegments(goal: string, nutrition: NutritionPredictiveV2): A
 
 export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
   const { fatmaxTFCL, effectiveRefs, athlete } = payload;
+  const isAthlete = payload.audience === "athlete";
+  const fatmaxTitle = isAthlete ? "🔥 FatMax" : "🔥 FatMax TFCL™";
+  const fatmaxFullTitle = isAthlete ? "🔥 FatMax — Zone d'Oxydation Lipidique Maximale" : "🔥 FatMax TFCL™ — Zone d'Oxydation Lipidique Maximale";
+  const defLabel = isAthlete ? "Définition" : "Définition TFCL™";
   // Label de référence dynamique : "Allure Seuil" en mode Running, "FTP" sinon
   const isRunningMode = isRunningFocusModeActive(athlete?.goal);
   const refLabel = isRunningMode ? "Allure Seuil" : "FTP";
@@ -587,7 +591,7 @@ export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
   if (!fatmaxTFCL) {
     return `
       <section id="fatmax-tfcl" class="section pagebreakAvoid">
-        <h2>🔥 FatMax TFCL™</h2>
+        <h2>${fatmaxTitle}</h2>
         <div class="alert alertWarning">
           <b>⚠️ Données insuffisantes</b><br>
           La VLamax est requise pour estimer la FatMax. Renseignez ou faites estimer la VLamax.
