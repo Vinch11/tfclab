@@ -432,13 +432,24 @@ function buildNutritionV2HTML(payload: ExportPayload): string {
     </div>
   ` : '';
 
+  const riskWordAthlete = nutritionV2.glycogenRisk === 'low' ? 'Faible'
+    : nutritionV2.glycogenRisk === 'moderate' ? 'Modéré'
+    : nutritionV2.glycogenRisk === 'high' ? 'Élevé' : 'Risque de mur';
+  const riskActionAthlete = nutritionV2.glycogenRisk === 'low'
+    ? 'Tes réserves d\'énergie tiennent la course, reste régulier sur les apports.'
+    : nutritionV2.glycogenRisk === 'moderate'
+      ? 'Bien gérer les apports pour éviter le coup de mou en fin de course.'
+      : nutritionV2.glycogenRisk === 'high'
+        ? 'Risque de coup de mou : respecte scrupuleusement le plan d\'apport, ne saute aucune prise.'
+        : 'Risque de mur : sois discipliné sur les apports dès les premières minutes.';
+
   return `
     <section id="nutrition-v2" class="section pagebreak">
-      <h2>🍎 Nutrition Prédictive V2 — TFCL™</h2>
+      <h2>${nutritionTitle}</h2>
       
-      <div class="alert alertInfo mb">
+      ${isAthlete ? '' : `<div class="alert alertInfo mb">
         <b>📋 Philosophie TFCL™ :</b> ${philosophyText}
-      </div>
+      </div>`}
       
       <div class="card ${riskCardClass}">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
@@ -448,11 +459,13 @@ function buildNutritionV2HTML(payload: ExportPayload): string {
             <div style="font-size:14px;font-weight:600;">Valeur centrale : ${nutritionV2.carbsCentral} g/h</div>
           </div>
           <div style="text-align:center;">
-            <div class="muted" style="font-size:11px;">Risque glycogène</div>
+            <div class="muted" style="font-size:11px;">${isAthlete ? 'Risque énergétique' : 'Risque glycogène'}</div>
             <div style="margin:8px 0;">
-              <span class="badge ${riskBadgeClass}" style="font-size:14px;padding:8px 16px;">${htmlEscape(nutritionV2.glycogenRiskLabel)}</span>
+              <span class="badge ${riskBadgeClass}" style="font-size:14px;padding:8px 16px;">${isAthlete ? riskWordAthlete : htmlEscape(nutritionV2.glycogenRiskLabel)}</span>
             </div>
-            <div class="muted" style="font-size:11px;">Score: ${nutritionV2.glycogenRiskScore}/4</div>
+            ${isAthlete
+              ? `<div class="muted" style="font-size:11px;max-width:200px;">${riskActionAthlete}</div>`
+              : `<div class="muted" style="font-size:11px;">Score: ${nutritionV2.glycogenRiskScore}/4</div>`}
           </div>
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Confiance</div>
