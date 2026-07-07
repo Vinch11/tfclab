@@ -75,48 +75,31 @@ type Probe = {
 };
 
 function buildProbes(): Probe[] {
+  const mkSpeedStep = (distance: number) => ({
+    type: "step",
+    step_duration_type: "distance",
+    step_duration_value: distance,
+    intensity_type: "active",
+    target_type: "speed",
+    target_value: 1.143,
+    target_value_min: 1.111, // 1:30/100m
+    target_value_max: 1.176, // 1:25/100m
+  });
   return [
     {
-      label: "SONDE_SWIM_A_SEC100M",
-      hypothesis: "target_value en SEC/100m brut (90-85 = 1:30-1:25/100m)",
-      step: {
-        type: "step",
-        step_duration_type: "distance",
-        step_duration_value: 100,
-        intensity_type: "active",
-        target_type: "pace",
-        target_value: 87,
-        target_value_min: 90, // lent
-        target_value_max: 85, // rapide
-      },
+      label: "SONDE_DIST_50",
+      hypothesis: "speed m/s 1.111-1.176 sur 50m — pace affiché doit rester ~1:25-1:30/100m si absolu",
+      step: mkSpeedStep(50),
     },
     {
-      label: "SONDE_SWIM_B_MS_CTRL",
-      hypothesis: "target_value en m/s (contrôle actuel — affiche min/km chez Nolio)",
-      step: {
-        type: "step",
-        step_duration_type: "distance",
-        step_duration_value: 100,
-        intensity_type: "active",
-        target_type: "pace",
-        target_value: 1.143,
-        target_value_min: 1.111, // 1:30/100m
-        target_value_max: 1.176, // 1:25/100m
-      },
+      label: "SONDE_DIST_100",
+      hypothesis: "speed m/s 1.111-1.176 sur 100m — contrôle",
+      step: mkSpeedStep(100),
     },
     {
-      label: "SONDE_SWIM_C_SPEED",
-      hypothesis: "target_type=speed, target_value m/s",
-      step: {
-        type: "step",
-        step_duration_type: "distance",
-        step_duration_value: 100,
-        intensity_type: "active",
-        target_type: "speed",
-        target_value: 1.143,
-        target_value_min: 1.111,
-        target_value_max: 1.176,
-      },
+      label: "SONDE_DIST_400",
+      hypothesis: "speed m/s 1.111-1.176 sur 400m — pace doit rester ~1:25-1:30/100m si absolu",
+      step: mkSpeedStep(400),
     },
   ];
 }
