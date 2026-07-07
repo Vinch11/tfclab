@@ -74,8 +74,9 @@ type NolioStep = {
   step_duration_type: "duration";
   step_duration_value: number;
   intensity_type: "warmup" | "active" | "rest" | "cooldown" | "repetition";
-  target_type: "no_target" | "power" | "pace" | "heartrate" | "duration";
-  target_unit?: "W" | "%ftp" | "min/km" | "min/100m" | "bpm";
+  target_type: "no_target" | "power" | "pace" | "speed" | "heartrate" | "duration";
+  target_unit?: "W" | "%ftp" | "min/km" | "bpm";
+
   target_value_min?: number;
   target_value_max?: number;
   target_value?: number;
@@ -542,15 +543,16 @@ function normalizeStructuredWorkoutForNolio(
         src.target_value_max = hi;
         src.target_value = Math.round((lo + hi) / 2);
       }
-      // 🏊 Natation rest : pas de cible naturelle. On supprime target_type entièrement
-      // pour éviter que Nolio affiche une pastille "empty_unit" sur un no_target vide.
+      // 🏊 Natation rest : pas de cible naturelle. Forcer target_type="no_target"
+      // (SANS target_value_*) pour éviter la pastille "empty_unit" côté Nolio.
       if (sportId === 19) {
-        delete (src as Record<string, unknown>).target_type;
+        src.target_type = "no_target";
         delete (src as Record<string, unknown>).target_value;
         delete (src as Record<string, unknown>).target_value_min;
         delete (src as Record<string, unknown>).target_value_max;
         delete (src as Record<string, unknown>).target_unit;
       }
+
     }
 
     // Run/Trail (sport_id 2/52) : step_duration_type "distance" interdit côté Nolio.
@@ -660,8 +662,10 @@ function normalizeStructuredWorkoutForNolio(
           delete (src as Record<string, unknown>).target_value_max;
         }
       } else if (src.target_type === "pace" && isSwim) {
+        // 🏊 Nolio n'a pas de pace /100m normalisé via l'API (sondes prouvées :
+        // target_type="pace" force min/km, target_unit ignoré). On bascule sur
+        // target_type="speed" (m/s) : cible de vitesse correcte + temps de step juste.
         const css = refs?.css; // sec/100m
-        // Détecte l'unité d'entrée : m/s (0.3-3) → sec/100m, sinon déjà sec/100m.
         const toSec100 = (v: number) => {
           if (v > 0 && v < 5) return 100 / v; // m/s → sec/100m
           if (v >= 5 && v <= 30) return v * 60; // min décimales → sec/100m
@@ -682,12 +686,11 @@ function normalizeStructuredWorkoutForNolio(
           const speedSlow = 100 / tMax;
           const lo = Number(Math.min(speedFast, speedSlow).toFixed(3));
           const hi = Number(Math.max(speedFast, speedSlow).toFixed(3));
-          src.target_type = "pace";
+          src.target_type = "speed";
           src.target_value_min = lo;
           src.target_value_max = hi;
           src.target_value = Number(((lo + hi) / 2).toFixed(3));
-          // 🏊 Hint d'unité pour Nolio : affichage /100m au lieu de /km par défaut.
-          (src as Record<string, unknown>).target_unit = "min/100m";
+          delete (src as Record<string, unknown>).target_unit;
 
         } else {
           // Natation sans cible exploitable → no_target propre (pas de pastille "empty_unit").
@@ -697,6 +700,7 @@ function normalizeStructuredWorkoutForNolio(
           delete (src as Record<string, unknown>).target_value_max;
           delete (src as Record<string, unknown>).target_unit;
         }
+
       } else if (src.target_type === "heartrate") {
         const fcMax = refs?.fcMax;
         const pHrMin = typeof src.pct_hrmax_min === "number" ? src.pct_hrmax_min : null;
@@ -725,8 +729,9 @@ function normalizeStructuredWorkoutForNolio(
       }
 
       // 🔒 Strip des champs internes TFCLab non reconnus par Nolio
-      // (target_unit conservé pour natation → hint "min/100m" pour Nolio)
-      if (!isSwim) delete (src as Record<string, unknown>).target_unit;
+      // (target_unit systématiquement supprimé : Nolio l'ignore, prouvé par sondes)
+      delete (src as Record<string, unknown>).target_unit;
+
       delete (src as Record<string, unknown>).pct_ftp_min;
       delete (src as Record<string, unknown>).pct_ftp_max;
       delete (src as Record<string, unknown>).pct_vma_min;
