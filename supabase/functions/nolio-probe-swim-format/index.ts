@@ -99,11 +99,12 @@ Deno.serve(async (req) => {
   try {
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     // PROBE : on prend l'unique coach ayant un token Nolio (service role bypass RLS).
-    const { data: tokenRow } = await admin.from("nolio_tokens")
+    const { data: tokenRows, error: tokErr } = await admin.from("nolio_tokens")
       .select("user_id, access_token, refresh_token, expires_at")
-      .order("expires_at", { ascending: false, nullsFirst: false })
-      .limit(1).maybeSingle();
-    if (!tokenRow?.access_token) return new Response(JSON.stringify({ error: "Aucun token Nolio en base" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      .limit(1);
+    const tokenRow = tokenRows?.[0];
+    if (!tokenRow?.access_token) return new Response(JSON.stringify({ error: "Aucun token Nolio en base", tokErr, rows_count: tokenRows?.length ?? 0 }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
     const userId = tokenRow.user_id as string;
     const token = await refreshIfNeeded(admin, userId, {
       access_token: tokenRow.access_token as string,
