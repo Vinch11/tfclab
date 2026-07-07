@@ -1,4 +1,4 @@
-// Sonde Nolio — MODE DIAGNOSTIC READ-ONLY
+// Sonde Nolio — MODE DIAGNOSTIC
 // Récupère les séances planifiées d'un athlète sur une plage de dates,
 // et renvoie le JSON BRUT tel que Nolio le stocke — pour comparer :
 //   - séance créée manuellement dans l'éditeur (source de vérité min/100m)
@@ -10,6 +10,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const NOLIO_GET_PLANNED_URL = "https://www.nolio.io/api/get/planned/training/";
+const NOLIO_CREATE_PLANNED_URL = "https://www.nolio.io/api/create/planned/training/";
 
 async function refreshIfNeeded(
   admin: ReturnType<typeof createClient>,
@@ -52,7 +53,14 @@ Deno.serve(async (req) => {
     const userId = claims?.claims?.sub as string;
     if (!userId) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const body = await req.json().catch(() => ({})) as { nolio_athlete_id?: number; date_start?: string; date_end?: string; use_current_user?: boolean };
+    const body = await req.json().catch(() => ({})) as {
+      nolio_athlete_id?: number;
+      date_start?: string;
+      date_end?: string;
+      use_current_user?: boolean;
+      mode?: "read" | "create_probe";
+      id_partner?: number;
+    };
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const { data: tokenRow } = await admin.from("nolio_tokens").select("access_token, refresh_token, expires_at").eq("user_id", userId).maybeSingle();
@@ -76,6 +84,37 @@ Deno.serve(async (req) => {
 
     const dateStart = body.date_start ?? "2026-07-01";
     const dateEnd = body.date_end ?? "2026-07-31";
+
+    let create_probe: unknown = null;
+    if (body.mode === "create_probe") {
+      const idPartner = body.id_partner ?? Number(`907${new Date().getUTCDate()}${new Date().getUTCHours()}${new Date().getUTCMinutes()}`);
+      const payload: Record<string, unknown> = {
+        id_partner: idPartner,
+        sport_id: 19,
+        name: `[PROBE] Nolio visible ${idPartner}`,
+        date_start: dateStart,
+        description: "Probe visibilité calendrier TFCLab",
+        duration: 1200,
+        structured_workout: [
+          {
+            step_duration_type: "duration",
+            step_duration_value: 1200,
+            intensity_type: "active",
+            target_type: "no_target",
+          },
+        ],
+      };
+      if (nolioAthleteId) payload.athlete_id = nolioAthleteId;
+      const cResp = await fetch(NOLIO_CREATE_PLANNED_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const cRaw = await cResp.text();
+      let cParsed: unknown = cRaw;
+      try { cParsed = JSON.parse(cRaw); } catch { /* keep raw */ }
+      create_probe = { ok: cResp.ok, status: cResp.status, payload, response: cParsed };
+    }
 
     const params = new URLSearchParams({ from: dateStart, to: dateEnd, limit: "100" });
     if (nolioAthleteId) params.set("athlete_id", String(nolioAthleteId));
@@ -102,6 +141,7 @@ Deno.serve(async (req) => {
       nolio_athlete_id: nolioAthleteId,
       date_range: { start: dateStart, end: dateEnd },
       url,
+      create_probe,
       swim_count: swim.length,
       swim_trainings_raw: swim,
       _total_returned: Array.isArray(list) ? list.length : 0,
