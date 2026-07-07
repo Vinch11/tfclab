@@ -1525,7 +1525,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      _read_nolio_cron_secret: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
