@@ -32,6 +32,7 @@ const PacingAuditPage = lazy(() => import("./pages/PacingAuditPage"));
 const RunningProfilePage = lazy(() => import("./pages/RunningProfilePage"));
 const AthleteEditPage = lazy(() => import("./pages/AthleteEditPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const TrainingLoadPage = lazy(() => import("./pages/TrainingLoadPage"));
 const TFCLTestingWeekPage = lazy(() =>
   import("./components/TFCLTestingWeek").then((m) => ({ default: m.TFCLTestingWeekPage }))
 );
