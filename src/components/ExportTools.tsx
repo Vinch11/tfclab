@@ -2172,6 +2172,7 @@ function computeLongDistanceEnvelopeForExport(
 
 function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
   const { effectiveSnapshot, athlete, vlamax: alignedVlamax, tte, ambition } = payload;
+  const isAthlete = payload.audience === "athlete";
   const threshold_pace = effectiveSnapshot?.pace_threshold_sec_per_km ?? null;
   const vo2max_run = (effectiveSnapshot as any)?.vo2max ?? null;
   const vma = (effectiveSnapshot as any)?.vma ?? null;
@@ -2182,11 +2183,12 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
   else if (goal.includes("Semi") || goal.includes("HM") || goal.includes("21")) distance = "HM";
 
   const distanceLabels: Record<string, string> = { "10K": "10 km", HM: "Semi-Marathon", MARATHON: "Marathon" };
+  const runTitle = isAthlete ? `📊 Tes allures cibles — ${distanceLabels[distance]}` : `🏃 Pacing Envelope™ CAP — ${distanceLabels[distance]}`;
 
   if (!threshold_pace) {
     return `
       <section id="pacing-envelope-running" class="section pagebreakAvoid">
-        <h2>🏃 Pacing Envelope™ CAP — ${distanceLabels[distance]}</h2>
+        <h2>${runTitle}</h2>
         <div class="alert alertWarning"><b>⚠️ Données insuffisantes :</b> Allure seuil manquante.</div>
       </section>`;
   }
