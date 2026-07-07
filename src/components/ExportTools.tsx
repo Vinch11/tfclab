@@ -2314,12 +2314,15 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
 function buildPacingEnvelopeHTML(payload: ExportPayload): string {
   const env = computePacingEnvelopeForExport(payload);
   const { effectiveRefs, vlamax } = payload;
+  const isAthlete = payload.audience === "athlete";
+  const bikeTitleEmpty = isAthlete ? "📊 Tes allures cibles" : "📊 Pacing Envelope™ — Discipline Métabolique";
+  const bikeTitle = isAthlete ? "📊 Tes allures cibles" : "📊 Pacing Envelope™ — Modèle Continu Smyth-Skiba";
   const ftp = effectiveRefs.ftp ?? null;
 
   if (!env) {
     return `
       <section id="pacing-envelope" class="section pagebreakAvoid">
-        <h2>📊 Pacing Envelope™ — Discipline Métabolique</h2>
+        <h2>${bikeTitleEmpty}</h2>
         <div class="alert alertWarning"><b>⚠️ Données insuffisantes</b> pour générer l'enveloppe (FTP/VLamax/TTE manquants).</div>
       </section>`;
   }
