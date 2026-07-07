@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import logo from "@/assets/app-icon-tfc.png";
+import logo from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
 import { Footprints, FlaskConical } from "lucide-react";
