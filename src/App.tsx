@@ -158,6 +158,7 @@ export default function App() {
                   {/* ═══════════════════════════════════════════ */}
                   <Route path="/running-profile" element={<ProtectedRoute><RunningProfilePage /></ProtectedRoute>} />
                   <Route path="/evolution" element={<ProtectedRoute><EvolutionPage /></ProtectedRoute>} />
+                  <Route path="/training-load" element={<ProtectedRoute><TrainingLoadPage /></ProtectedRoute>} />
 
                   {/* ═══════════════════════════════════════════ */}
                   {/* LEGACY REDIRECTS                            */}
