@@ -583,8 +583,8 @@ function normalizeStructuredWorkoutForNolio(
     //   step_percent_low/high = %FTP
     // - Course/Trail (sport 2/52) : target_type="pace", valeurs en m/s (depuis VMA),
     //   comment = "Z2 — 5:15-5:30/km"
-    // - Natation (sport 19) : target_type="pace", valeurs en m/s (depuis CSS),
-    //   comment = "CSS — 1:36/100m"
+    // - Natation (sport 19) : create API = target_type="pace", valeurs en m/s (depuis CSS).
+    //   Nolio relit ensuite ce pace natation comme target_type="min/100m" côté GET/UI.
     // - FC : target_type="heartrate", bpm (depuis FCmax)
     // ⛔ AUCUN target_unit, AUCUN pct_* envoyés à Nolio (champs internes TFCLab).
     if (src.type === "step") {
@@ -663,12 +663,11 @@ function normalizeStructuredWorkoutForNolio(
           delete (src as Record<string, unknown>).target_value_min;
           delete (src as Record<string, unknown>).target_value_max;
         }
-      } else if (src.target_type === "pace" && isSwim) {
-        // 🏊 Format natif Nolio "valeurs brutes + min/100m" découvert via GET training
-        // d'une séance créée manuellement dans l'éditeur :
-        //   target_type:"min/100m" + manual_values:true + target_value_min/max en m/s.
-        // C'est un vrai pace /100m normalisé (indépendant de la distance),
-        // contrairement à target_type:"speed" qui affichait un temps de step.
+      } else if ((src.target_type === "pace" || src.target_type === "min/100m") && isSwim) {
+        // 🏊 IMPORTANT : le GET Nolio expose la cible natation native en `min/100m`,
+        // mais le CREATE n'accepte officiellement que `pace` (doc: power/heartrate/pace/speed/no_target).
+        // Envoyer `min/100m` au CREATE est accepté en 201 mais relu/affiché en `empty_unit`.
+        // On envoie donc `pace` + manual_values:true + valeurs m/s ; Nolio convertit l'UI en /100m.
         const css = refs?.css; // sec/100m
         const toSec100 = (v: number) => {
           if (v > 0 && v < 5) return 100 / v; // m/s → sec/100m
@@ -691,7 +690,7 @@ function normalizeStructuredWorkoutForNolio(
           const secSlow = Math.max(tMin, tMax);
           const speedHigh = Number((100 / secFast).toFixed(4)); // rapide
           const speedLow = Number((100 / secSlow).toFixed(4));  // lent
-          (src as Record<string, unknown>).target_type = "min/100m";
+          (src as Record<string, unknown>).target_type = "pace";
           (src as Record<string, unknown>).manual_values = true;
           src.target_value_min = speedLow;
           src.target_value_max = speedHigh;
