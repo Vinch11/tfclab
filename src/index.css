@@ -368,20 +368,43 @@
     box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
   }
 
-  /* Primary buttons with depth — monochromatic primary, no accent shift */
-  :where(:root, .dark, .emerald) button[class*="bg-primary"] {
+  /* Primary buttons with depth — only exact `bg-primary` (not bg-primary/10, hover:bg-primary, etc.) */
+  :where(:root, .dark, .emerald) button[class~="bg-primary"] {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.82) 100%) !important;
+    color: hsl(var(--primary-foreground)) !important;
     box-shadow:
       0 1px 0 hsl(var(--primary-foreground) / 0.22) inset,
       0 8px 24px -10px hsl(var(--primary) / 0.5);
     font-weight: 600;
     letter-spacing: 0.01em;
   }
-  :where(:root, .dark, .emerald) button[class*="bg-primary"]:hover {
+  :where(:root, .dark, .emerald) button[class~="bg-primary"]:hover {
     box-shadow:
       0 1px 0 hsl(var(--primary-foreground) / 0.3) inset,
       0 12px 32px -10px hsl(var(--primary) / 0.6);
     transform: translateY(-1px);
+  }
+
+  /* Outline / ghost / secondary buttons — refined glass finish, always readable */
+  :where(:root, .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]) {
+    background: hsl(var(--secondary) / 0.5);
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--foreground));
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+  :where(:root, .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]):hover {
+    background: hsl(var(--secondary));
+    border-color: hsl(var(--primary) / 0.4) !important;
+    color: hsl(var(--primary));
+  }
+
+  /* Subtle tinted backgrounds (bg-primary/10, bg-primary/5) — force readable text */
+  :where(:root, .dark, .emerald) [class*="bg-primary/"] {
+    color: hsl(var(--foreground));
+  }
+  :where(:root, .dark, .emerald) [class*="bg-primary/"][class*="text-primary"] {
+    color: hsl(var(--primary)) !important;
   }
 
   /* Segmented control tabs */
