@@ -250,14 +250,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Log run
-    await admin.from("nolio_sync_log").insert({
-      user_id: null,
-      athletes_count: summary.athletes_processed,
-      status: summary.incidents.length === 0 ? "success" : (summary.rows_upserted > 0 ? "partial" : "error"),
-      error_message: summary.incidents.length ? summary.incidents.slice(0, 5).map(i => i.error).join(" | ").slice(0, 1000) : null,
-      notes: `[cron nolio-training-load-daily] ${JSON.stringify(summary).slice(0, 3800)}`,
-    });
+    // Log one row per coach so the sync_log stays useful and RLS-scoped.
+    for (const tok of tokens ?? []) {
+      const uid = tok.user_id as string;
+      const coachIncidents = summary.incidents.filter(i => i.user_id === uid);
+      await admin.from("nolio_sync_log").insert({
+        user_id: uid,
+        athletes_count: summary.athletes_processed,
+        status: coachIncidents.length === 0 ? "success" : (summary.rows_upserted > 0 ? "partial" : "error"),
+        error_message: coachIncidents.length ? coachIncidents.slice(0, 5).map(i => i.error).join(" | ").slice(0, 1000) : null,
+        notes: `[cron nolio-training-load-daily] ${JSON.stringify({ ...summary, incidents: coachIncidents }).slice(0, 3800)}`,
+      });
+    }
 
     return new Response(JSON.stringify({ ok: true, summary }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
