@@ -139,6 +139,17 @@ export default function TrainingLoadPage() {
           <Alert variant="destructive"><AlertDescription>{lastError}</AlertDescription></Alert>
         )}
 
+        {syncGap.flagged && (
+          <Alert variant="destructive">
+            <AlertTriangle className="w-4 h-4" />
+            <AlertDescription>
+              <b>Sync possiblement interrompue.</b> {syncGap.reason}
+              {syncGap.lastActiveDate && <> Dernière séance connue : {syncGap.lastActiveDate}.</>}
+              {" "}Le TSB affiché ci-dessous n'est probablement PAS un vrai signal de fraîcheur.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {!series || rows.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-sm text-muted-foreground">
