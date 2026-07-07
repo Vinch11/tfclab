@@ -580,24 +580,10 @@ function normalizeStructuredWorkoutForNolio(
       const isRun = sportId === 2 || sportId === 52;
       const isSwim = sportId === 19;
 
-      const fmtPaceKm = (sec: number) =>
-        `${Math.floor(sec / 60)}:${Math.round(sec % 60).toString().padStart(2, "0")}/km`;
-      const fmtPace100 = (sec: number) =>
-        `${Math.floor(sec / 60)}:${Math.round(sec % 60).toString().padStart(2, "0")}/100m`;
-      const vmaZoneLabel = (pct: number): string => {
-        if (pct < 60) return "Z1";
-        if (pct < 75) return "Z2";
-        if (pct < 85) return "Z3";
-        if (pct < 92) return "Z4a";
-        if (pct < 97) return "Z4b";
-        if (pct < 103) return "Z5";
-        return "Z6";
-      };
-      const appendComment = (txt: string) => {
-        if (!txt) return;
-        const existing = typeof src.comment === "string" ? src.comment.trim() : "";
-        src.comment = existing ? `${existing} · ${txt}` : txt;
-      };
+      // ⚠️ Commentaires d'allure/CSS/zone au niveau du STEP volontairement retirés :
+      // Nolio affiche déjà l'allure lisible à partir de target_value → doublon avec
+      // la fiche descriptive (buildDescription). Voir issue "steps redondants".
+
 
       if (src.target_type === "power" && isBike) {
         const ftp = refs?.ftp;
@@ -659,11 +645,6 @@ function normalizeStructuredWorkoutForNolio(
           src.target_value_max = hi;
           src.target_value = Number(((lo + hi) / 2).toFixed(3));
 
-          const label = vmaZoneLabel(((pctMin as number) + (pctMax as number)) / 2);
-          const paceTxt = Math.abs(secKmFast - secKmSlow) > 1
-            ? `${label} — ${fmtPaceKm(Math.min(secKmFast, secKmSlow))}-${fmtPaceKm(Math.max(secKmFast, secKmSlow))}/km`.replace("/km/km", "/km")
-            : `${label} — ${fmtPaceKm(secKmFast)}`;
-          appendComment(paceTxt);
         } else {
           src.target_type = "no_target";
           delete (src as Record<string, unknown>).target_value;
@@ -698,10 +679,6 @@ function normalizeStructuredWorkoutForNolio(
           src.target_value_max = hi;
           src.target_value = Number(((lo + hi) / 2).toFixed(3));
 
-          const paceTxt = Math.abs(tMin - tMax) > 1
-            ? `CSS — ${fmtPace100(Math.min(tMin, tMax))}-${fmtPace100(Math.max(tMin, tMax))}`
-            : `CSS — ${fmtPace100(tMin)}`;
-          appendComment(paceTxt);
         } else {
           src.target_type = "no_target";
           delete (src as Record<string, unknown>).target_value;
