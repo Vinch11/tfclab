@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     const dateStart = body.date_start ?? "2026-07-01";
     const dateEnd = body.date_end ?? "2026-07-31";
 
-    const url = `${NOLIO_GET_PLANNED_URL}?athlete_id=${nolioAthleteId}&date_start=${dateStart}&date_end=${dateEnd}`;
+    const url = `${NOLIO_GET_PLANNED_URL}?athlete_id=${nolioAthleteId}&from=${dateStart}&to=${dateEnd}&limit=100`;
     const resp = await fetch(url, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
