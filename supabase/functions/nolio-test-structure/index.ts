@@ -142,10 +142,10 @@ Deno.serve(async (req) => {
         id_partner: idPartner,
         athlete_id: nolioAthleteId,
         sport_id: RUN_SPORT_ID,
-        name: `[SONDE] ${p.label}`,
+        name: `[${p.label}]`,
         date_start: dateStart,
-        description: `Hypothèse: ${p.hypothesis}. Payload envoyée brute, sans normalisation.`,
-        structured_workout: [p.step],
+        description: p.description, // BRUT — aucune transformation
+        structured_workout: [NEUTRAL_STEP],
       };
 
       const res = await postNolio(NOLIO_CREATE_TRAINING_URL, token, payload);
@@ -153,6 +153,7 @@ Deno.serve(async (req) => {
         label: p.label,
         hypothesis: p.hypothesis,
         id_partner: idPartner,
+        description_sent: p.description,
         payload_sent: payload,
         response: res,
       });
