@@ -3,6 +3,7 @@ import {
   computePmc,
   computePmcAllSports,
   nolioSportIdToBucket,
+  detectSyncGap,
   CTL_TAU,
   ATL_TAU,
 } from "@/lib/v2/trainingLoadModel";
