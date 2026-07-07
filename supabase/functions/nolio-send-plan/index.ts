@@ -1104,12 +1104,24 @@ function summarizeStructuredWorkout(input: unknown): { durationSec: number; dist
       const inner = visit(item.steps);
       return { durationSec: inner.durationSec * reps, distanceMeters: inner.distanceMeters * reps };
     }
-    if (item.type === "step") {
+      if (item.type === "step") {
       const value = typeof item.step_duration_value === "number" && Number.isFinite(item.step_duration_value)
         ? item.step_duration_value
         : 0;
       if (item.step_duration_type === "duration") return { durationSec: Math.max(0, Math.round(value)), distanceMeters: 0 };
-      if (item.step_duration_type === "distance") return { durationSec: 0, distanceMeters: Math.max(0, value) };
+      if (item.step_duration_type === "distance") {
+        const speed = typeof item.target_value === "number" && item.target_value > 0
+          ? item.target_value
+          : typeof item.target_value_min === "number" && typeof item.target_value_max === "number"
+            ? (item.target_value_min + item.target_value_max) / 2
+            : typeof item.target_value_max === "number" && item.target_value_max > 0
+              ? item.target_value_max
+              : null;
+        return {
+          durationSec: speed ? Math.round(value / speed) : 0,
+          distanceMeters: Math.max(0, value),
+        };
+      }
     }
     return { durationSec: 0, distanceMeters: 0 };
   };
@@ -1516,7 +1528,6 @@ Deno.serve(async (req) => {
         const normalized = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
         const summary = summarizeStructuredWorkout(normalized);
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
-        if (summary.distanceMeters > 0) payload.distance = Number((summary.distanceMeters / 1000).toFixed(3));
         // Strength (sport_id 20) : si tous les steps ont target_type="no_target",
         // Nolio affiche "empty_unit". On préfère ne PAS envoyer de structured_workout
         // et laisser la description texte gérer l'affichage.
