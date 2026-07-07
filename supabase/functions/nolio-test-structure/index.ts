@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     const userId = claims?.claims?.sub as string;
     if (!userId) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const body = await req.json().catch(() => ({})) as { nolio_athlete_id?: number; date_start?: string; date_end?: string };
+    const body = await req.json().catch(() => ({})) as { nolio_athlete_id?: number; date_start?: string; date_end?: string; use_current_user?: boolean };
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const { data: tokenRow } = await admin.from("nolio_tokens").select("access_token, refresh_token, expires_at").eq("user_id", userId).maybeSingle();
@@ -65,19 +65,21 @@ Deno.serve(async (req) => {
       expires_at: (tokenRow.expires_at as string | null) ?? null,
     });
 
-    let nolioAthleteId = body.nolio_athlete_id;
-    if (!nolioAthleteId) {
+    let nolioAthleteId = body.use_current_user ? undefined : body.nolio_athlete_id;
+    if (!body.use_current_user && !nolioAthleteId) {
       const { data: ath } = await admin.from("athletes").select("nolio_id").eq("coach_id", userId).not("nolio_id", "is", null).limit(1).maybeSingle();
       nolioAthleteId = ath?.nolio_id as number | undefined;
     }
-    if (!nolioAthleteId) {
+    if (!body.use_current_user && !nolioAthleteId) {
       return new Response(JSON.stringify({ error: "Aucun athlète Nolio lié — passe nolio_athlete_id en body" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const dateStart = body.date_start ?? "2026-07-01";
     const dateEnd = body.date_end ?? "2026-07-31";
 
-    const url = `${NOLIO_GET_PLANNED_URL}?athlete_id=${nolioAthleteId}&from=${dateStart}&to=${dateEnd}&limit=100`;
+    const params = new URLSearchParams({ from: dateStart, to: dateEnd, limit: "100" });
+    if (nolioAthleteId) params.set("athlete_id", String(nolioAthleteId));
+    const url = `${NOLIO_GET_PLANNED_URL}?${params.toString()}`;
     const resp = await fetch(url, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
