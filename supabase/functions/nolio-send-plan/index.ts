@@ -551,6 +551,8 @@ function normalizeStructuredWorkoutForNolio(
         delete (src as Record<string, unknown>).target_value_min;
         delete (src as Record<string, unknown>).target_value_max;
         delete (src as Record<string, unknown>).target_unit;
+        delete (src as Record<string, unknown>).manual_values;
+
       }
 
     }
