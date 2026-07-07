@@ -11,6 +11,7 @@ const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
 const NOLIO_GET_PLANNED_URL = "https://www.nolio.io/api/get/planned/training/";
 const NOLIO_CREATE_PLANNED_URL = "https://www.nolio.io/api/create/planned/training/";
+const NOLIO_DELETE_PLANNED_URL = "https://www.nolio.io/api/delete/planned/training/";
 
 async function refreshIfNeeded(
   admin: ReturnType<typeof createClient>,
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
       date_start?: string;
       date_end?: string;
       use_current_user?: boolean;
-      mode?: "read" | "create_probe";
+      mode?: "read" | "create_probe" | "delete_probe";
       id_partner?: number;
       target_type?: string;
       name?: string;
@@ -89,6 +90,20 @@ Deno.serve(async (req) => {
     const dateEnd = body.date_end ?? "2026-07-31";
 
     let create_probe: unknown = null;
+    let delete_probe: unknown = null;
+    if (body.mode === "delete_probe" && body.id_partner) {
+      const payload: Record<string, unknown> = { id_partner: body.id_partner };
+      if (nolioAthleteId) payload.athlete_id = nolioAthleteId;
+      const dResp = await fetch(NOLIO_DELETE_PLANNED_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const dRaw = await dResp.text();
+      let dParsed: unknown = dRaw;
+      try { dParsed = JSON.parse(dRaw); } catch { /* keep raw */ }
+      delete_probe = { ok: dResp.ok, status: dResp.status, payload, response: dParsed };
+    }
     if (body.mode === "create_probe") {
       const idPartner = body.id_partner ?? Number(`907${new Date().getUTCDate()}${new Date().getUTCHours()}${new Date().getUTCMinutes()}`);
       const payload: Record<string, unknown> = {
@@ -155,6 +170,7 @@ Deno.serve(async (req) => {
       date_range: { start: dateStart, end: dateEnd },
       url,
       create_probe,
+      delete_probe,
       swim_count: swim.length,
       swim_trainings_raw: swim,
       _total_returned: Array.isArray(list) ? list.length : 0,
