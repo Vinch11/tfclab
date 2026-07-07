@@ -666,14 +666,15 @@ function normalizeStructuredWorkoutForNolio(
           delete (src as Record<string, unknown>).target_value_max;
         }
       } else if ((src.target_type === "pace" || src.target_type === "min/100m") && isSwim) {
-        // 🏊 FORMAT CIBLE PROUVÉ par comparaison JSON natif Nolio (2 séances manuelles
-        // qui s'affichent bien en `min/100m` sur desktop — nolio_id 31872728 & 31732890).
-        // Combinaison OBLIGATOIRE des 3 champs sur les steps ACTIFS :
-        //   target_type: "min/100m"  (littéral, avec slash)
-        //   manual_values: true
-        //   name: "pace_min100"      (littéral — clé technique d'unité, PAS le nom de zone)
-        // Les valeurs restent en m/s. target_value_max = vitesse HAUTE = pace le plus rapide.
-        // Repos natation traités en amont (target_type:"no_target" sans manual_values).
+        // 🏊 LIMITATION API PUBLIQUE Nolio (validée 2026-07-07) :
+        // Le CREATE `create/planned/training/` accepte `target_type:"min/100m"` + `manual_values:true`
+        // + `name:"pace_min100"` en 201, MAIS Nolio normalise systématiquement le stockage
+        // en `target_type:"empty_unit"` + `name:"no_target"` au relu — même quand le payload
+        // est byte-à-byte identique à celui d'une séance créée manuellement dans l'éditeur
+        // (qui, elle, s'affiche correctement `min/100m` sur desktop). La différence est côté
+        // serveur (endpoint privé ou flag origin non exposé), inatteignable via l'API publique.
+        // Fallback stable : `target_type:"pace"` + `manual_values:true` en m/s — Nolio relit
+        // en `min/km` sur desktop mobile mais AU MOINS affiche une valeur (pas `empty_unit`).
         const css = refs?.css; // sec/100m
         const toSec100 = (v: number) => {
           if (v > 0 && v < 5) return 100 / v; // m/s → sec/100m
@@ -694,22 +695,21 @@ function normalizeStructuredWorkoutForNolio(
         const isRestLike = intensity === "rest";
 
         if (!isRestLike && tMin !== null && tMin > 0 && tMax !== null && tMax > 0) {
-          // sec/100m → m/s. Pace RAPIDE (sec faible) → vitesse HAUTE.
           const secFast = Math.min(tMin, tMax);
           const secSlow = Math.max(tMin, tMax);
-          const speedHigh = Number((100 / secFast).toFixed(10)); // rapide (max)
-          const speedLow = Number((100 / secSlow).toFixed(10));  // lent (min)
-          (src as Record<string, unknown>).target_type = "min/100m";
+          const speedHigh = Number((100 / secFast).toFixed(4));
+          const speedLow = Number((100 / secSlow).toFixed(4));
+          (src as Record<string, unknown>).target_type = "pace";
           (src as Record<string, unknown>).manual_values = true;
-          (src as Record<string, unknown>).name = "pace_min100";
           src.target_value_min = speedLow;
           src.target_value_max = speedHigh;
           delete (src as Record<string, unknown>).target_value;
           delete (src as Record<string, unknown>).target_unit;
-
+          // ⚠️ NE PAS envoyer name:"pace_min100" — Nolio le réécrit en "no_target" via ce endpoint.
+          if ((src as Record<string, unknown>).name === "pace_min100") {
+            delete (src as Record<string, unknown>).name;
+          }
         } else {
-          // Natation sans cible exploitable OU step de repos → no_target propre.
-          // AUCUN manual_values / name:"pace_min100" / target_value_* sur un repos.
           src.target_type = "no_target";
           delete (src as Record<string, unknown>).target_value;
           delete (src as Record<string, unknown>).target_value_min;
@@ -720,6 +720,7 @@ function normalizeStructuredWorkoutForNolio(
             delete (src as Record<string, unknown>).name;
           }
         }
+
 
 
 
