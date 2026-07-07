@@ -859,6 +859,19 @@ function buildDescription(s: ParsedSession, sportId?: number): string {
       .trim();
   };
 
+  // Échappement HTML : évite qu'un <, >, & dans le texte de séance casse le rendu Nolio.
+  const esc = (t: string): string =>
+    t.replace(/&/g, "&amp;")
+     .replace(/</g, "&lt;")
+     .replace(/>/g, "&gt;");
+
+  // Convertit un bloc texte multi-lignes en <li>...</li> (une puce par ligne non vide).
+  const toListItems = (text: string): string => {
+    const lines = text.split(/\n+/).map((l) => l.replace(/^\s*[•\-*]\s*/, "").trim()).filter(Boolean);
+    if (lines.length === 0) return "";
+    return lines.map((l) => `<li>${esc(l)}</li>`).join("");
+  };
+
   const findPart = (name: string) =>
     (s.structure ?? []).find((p) =>
       normalizeStr(p.part).includes(normalizeStr(name))
@@ -870,43 +883,84 @@ function buildDescription(s: ParsedSession, sportId?: number): string {
   const main = clean(findPart("main")?.text || findPart("travail")?.text);
   const cooldown = clean(findPart("cool-down")?.text || findPart("récupération")?.text);
 
-  const sections: string[] = [];
-
-  // 🎯 Objectif — priorité au champ objectif, sinon ligne d'intention = details
-  const intent = cleanedObjectif || cleanedDetails;
-  if (intent) sections.push(`🎯 ${intent}`);
-
-  // 🔥 / 💪 / 🧘 — n'ajoute la section que si le contenu existe
-  if (warmup) sections.push(`🔥 ÉCHAUFFEMENT\n${warmup}`);
-  if (main) sections.push(`💪 CORPS DE SÉANCE\n${main}`);
-  if (cooldown) sections.push(`🧘 RETOUR AU CALME\n${cooldown}`);
-
-  // 🏔️ Alternatives terrain (conservées : servent à l'adaptation d'exécution)
   const alts = Array.isArray(s.alternatives)
     ? s.alternatives.filter((a) => a && typeof a.label === "string" && a.label.trim().length > 0)
     : [];
+
+  const hasStructure = Boolean(warmup || main || cooldown || alts.length > 0);
+
+  // Fallback : aucune structure exploitable → texte brut existant, sans HTML.
+  if (!hasStructure) {
+    const parts: string[] = [];
+    const intent = cleanedObjectif || cleanedDetails;
+    if (intent) parts.push(`🎯 ${intent}`);
+    let desc = parts.join("\n\n");
+    if (desc.length > MAX_LEN) {
+      const cut = desc.slice(0, MAX_LEN);
+      const lastBreak = cut.lastIndexOf("\n");
+      const safe = lastBreak > MAX_LEN * 0.7 ? lastBreak : MAX_LEN;
+      desc = cut.slice(0, safe).trimEnd() + "…";
+    }
+    return desc;
+  }
+
+  const blocks: string[] = [];
+
+  // 1) Objectif
+  const intent = cleanedObjectif || cleanedDetails;
+  if (intent) blocks.push(`<b>🎯 ${esc(intent)}</b>`);
+
+  // 2) Structure de séance
+  if (warmup) {
+    const items = toListItems(warmup);
+    if (items) blocks.push(`<b>🔥 ÉCHAUFFEMENT</b><ul>${items}</ul>`);
+  }
+  if (main) {
+    const items = toListItems(main);
+    if (items) blocks.push(`<b>💪 CORPS DE SÉANCE</b><ul>${items}</ul>`);
+  }
+  if (cooldown) {
+    const items = toListItems(cooldown);
+    if (items) blocks.push(`<b>🧘 RETOUR AU CALME</b><ul>${items}</ul>`);
+  }
+
+  // 3) Alternatives terrain
   if (alts.length > 0) {
-    const altLines: string[] = ["🏔️ ALTERNATIVES TERRAIN"];
-    alts.forEach((a) => {
+    const items = alts.map((a) => {
       const icon = clean(a.icon);
       const label = clean(a.label);
       const hint = clean(a.hint);
       const head = icon ? `${icon} ${label}` : label;
-      altLines.push(hint ? `• ${head} — ${hint}` : `• ${head}`);
-    });
-    sections.push(altLines.join("\n"));
+      return `<li>${esc(hint ? `${head} — ${hint}` : head)}</li>`;
+    }).join("");
+    if (items) blocks.push(`<b>🏔️ Alternatives</b><ul>${items}</ul>`);
   }
 
-  // Assemblage avec aération : ligne vide entre chaque section.
-  let desc = sections.join("\n\n");
+  let desc = blocks.join("<br><br>");
 
-  // Cap propre : jamais en milieu de mot, on coupe au dernier saut de ligne.
+  // Cap propre : coupe sur fin de </li>, </ul> ou <br>, jamais au milieu d'une balise.
   if (desc.length > MAX_LEN) {
     const cut = desc.slice(0, MAX_LEN);
-    const lastBreak = cut.lastIndexOf("\n");
-    const lastSpace = cut.lastIndexOf(" ");
-    const safe = lastBreak > MAX_LEN * 0.7 ? lastBreak : (lastSpace > MAX_LEN * 0.7 ? lastSpace : MAX_LEN);
-    desc = cut.slice(0, safe).trimEnd() + "…";
+    const candidates = [
+      cut.lastIndexOf("</ul>"),
+      cut.lastIndexOf("</li>"),
+      cut.lastIndexOf("<br>"),
+    ];
+    const idx = Math.max(...candidates);
+    if (idx > MAX_LEN * 0.5) {
+      // Coupe juste après la balise trouvée
+      const tag = idx === cut.lastIndexOf("</ul>") ? "</ul>"
+        : idx === cut.lastIndexOf("</li>") ? "</li>"
+        : "<br>";
+      desc = cut.slice(0, idx + tag.length);
+      // Referme un <ul> resté ouvert si on a coupé sur </li>
+      const openUl = (desc.match(/<ul>/g) ?? []).length;
+      const closeUl = (desc.match(/<\/ul>/g) ?? []).length;
+      if (openUl > closeUl) desc += "</ul>".repeat(openUl - closeUl);
+    } else {
+      desc = cut;
+    }
+    desc += "…";
   }
 
   return desc;
