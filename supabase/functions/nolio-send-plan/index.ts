@@ -678,12 +678,16 @@ function normalizeStructuredWorkoutForNolio(
           src.target_value_min = lo;
           src.target_value_max = hi;
           src.target_value = Number(((lo + hi) / 2).toFixed(3));
+          // 🏊 Hint d'unité pour Nolio : affichage /100m au lieu de /km par défaut.
+          (src as Record<string, unknown>).target_unit = "min/100m";
 
         } else {
+          // Natation sans cible exploitable → no_target propre (pas de pastille "empty_unit").
           src.target_type = "no_target";
           delete (src as Record<string, unknown>).target_value;
           delete (src as Record<string, unknown>).target_value_min;
           delete (src as Record<string, unknown>).target_value_max;
+          delete (src as Record<string, unknown>).target_unit;
         }
       } else if (src.target_type === "heartrate") {
         const fcMax = refs?.fcMax;
