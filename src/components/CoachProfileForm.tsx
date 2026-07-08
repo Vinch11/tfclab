@@ -317,6 +317,97 @@ export function CoachProfileForm({
             </div>
           )}
 
+          {/* Durée du plan — OBLIGATOIRE, pas de défaut caché */}
+          <section className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+            <Label className="text-sm font-semibold mb-2 block">
+              Durée du plan <span className="text-destructive">*</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setDurationMode("free")}
+                className={cn(
+                  "rounded-md border p-2 text-xs sm:text-sm text-left transition-all",
+                  durationMode === "free"
+                    ? "border-primary bg-primary/20 ring-2 ring-primary"
+                    : "border-border hover:border-primary/40",
+                )}
+              >
+                <div className="font-medium">Durée libre</div>
+                <div className="text-[11px] text-muted-foreground">Sans date de course — progression sur N semaines.</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurationMode("date")}
+                className={cn(
+                  "rounded-md border p-2 text-xs sm:text-sm text-left transition-all",
+                  durationMode === "date"
+                    ? "border-primary bg-primary/20 ring-2 ring-primary"
+                    : "border-border hover:border-primary/40",
+                )}
+              >
+                <div className="font-medium">Objectif daté</div>
+                <div className="text-[11px] text-muted-foreground">Compte à rebours jusqu'à la course.</div>
+              </button>
+            </div>
+
+            {durationMode === "free" ? (
+              <div>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {[6, 8, 12, 16].map((n) => {
+                    const active = parseInt(freeWeeks, 10) === n;
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setFreeWeeks(String(n))}
+                        className={cn(
+                          "px-2.5 py-1 rounded-md border text-xs font-medium transition-all",
+                          active
+                            ? "border-primary bg-primary/20 ring-2 ring-primary"
+                            : "border-border hover:border-primary/40",
+                        )}
+                      >
+                        {n} sem
+                      </button>
+                    );
+                  })}
+                </div>
+                <Input
+                  type="number"
+                  min={2}
+                  max={52}
+                  placeholder="Nombre de semaines (2-52)"
+                  value={freeWeeks}
+                  onChange={(e) => setFreeWeeks(e.target.value)}
+                  className="max-w-[220px]"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Input
+                  type="date"
+                  value={raceDate}
+                  onChange={(e) => setRaceDate(e.target.value)}
+                  className="max-w-[220px]"
+                />
+                {computedWeeks !== null && (
+                  <div className="text-xs text-muted-foreground">
+                    ≈ <span className="font-semibold text-primary">{computedWeeks}</span> semaines jusqu'à la course.
+                  </div>
+                )}
+                {raceDate && computedWeeks === null && (
+                  <div className="text-xs text-destructive">Date passée — choisis une date future.</div>
+                )}
+              </div>
+            )}
+            {!canSubmit && computedWeeks === null && (
+              <div className="text-[11px] text-destructive mt-2">
+                Durée requise pour générer un plan (pas de défaut caché).
+              </div>
+            )}
+          </section>
+
           {/* a) Metabolic profile */}
           <section>
             <Label className="text-sm font-semibold mb-2 block">
