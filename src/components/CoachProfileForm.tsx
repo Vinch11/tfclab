@@ -264,7 +264,7 @@ export function CoachProfileForm({
                     className={cn(
                       "rounded-lg border p-3 text-left transition-all",
                       active
-                        ? "border-primary bg-primary/10 shadow-sm"
+                        ? "border-primary bg-primary/20 ring-2 ring-primary shadow-md"
                         : "border-border hover:border-primary/40",
                     )}
                   >
@@ -301,7 +301,7 @@ export function CoachProfileForm({
                     className={cn(
                       "rounded-lg border p-3 text-left transition-all",
                       active
-                        ? "border-primary bg-primary/10 shadow-sm"
+                        ? "border-primary bg-primary/20 ring-2 ring-primary shadow-md"
                         : "border-border hover:border-primary/40",
                     )}
                   >
@@ -344,7 +344,7 @@ export function CoachProfileForm({
                     className={cn(
                       "rounded-lg border p-3 text-left transition-all",
                       secondary === "unknown"
-                        ? "border-primary bg-primary/10"
+                        ? "border-primary bg-primary/20 ring-2 ring-primary"
                         : "border-border hover:border-primary/40",
                     )}
                   >
@@ -366,7 +366,7 @@ export function CoachProfileForm({
                         className={cn(
                           "rounded-lg border p-3 text-left transition-all",
                           active
-                            ? "border-primary bg-primary/10"
+                            ? "border-primary bg-primary/20 ring-2 ring-primary"
                             : "border-border hover:border-primary/40",
                         )}
                       >
