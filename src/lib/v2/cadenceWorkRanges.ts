@@ -13,6 +13,8 @@
 import { METHOD_VERSION_DISPLAY } from './scientificGovernance';
 import type { VLamaxEffectif } from '../vlamaxEffectif';
 import type { TTEEffectif } from '../tteEffectif';
+import { getVlamaxTarget } from './vlamaxTargets';
+
 
 // ============================================
 // TYPES
