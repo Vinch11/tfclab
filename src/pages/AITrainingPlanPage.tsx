@@ -1394,6 +1394,17 @@ export default function AITrainingPlanPage() {
               Plan d'entraînement personnalisé par IA
             </p>
           </div>
+          {/* COACH FORM launcher — saisie manuelle limiteurs Lorang */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCoachFormOpen(true)}
+            className="flex items-center gap-1.5"
+            title="Saisir manuellement les limiteurs Lorang de cet athlète"
+          >
+            <User className="h-4 w-4" />
+            Profil coach
+          </Button>
           {/* Multi/Single toggle */}
           <Button
             variant={isMultiMode ? "default" : "outline"}
