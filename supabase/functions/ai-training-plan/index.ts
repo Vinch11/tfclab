@@ -490,9 +490,11 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               );
             };
 
+            console.log(`🧩 Chunking activé : ${chunks.length} bloc(s) × ${CHUNK_SIZE} sem (total ${totalWeeks} sem) — ${chunks.map(c => `S${c.start}-S${c.end}`).join(", ")}`);
             for (let ci = 0; ci < chunks.length; ci++) {
               const chunk = chunks[ci];
               const isFirst = ci === 0;
+              console.log(`▶️ Chunk ${ci + 1}/${chunks.length} — S${chunk.start}-S${chunk.end} : génération en cours…`);
               const expectedWeeks = Array.from(
                 { length: chunk.end - chunk.start + 1 },
                 (_, i) => chunk.start + i
