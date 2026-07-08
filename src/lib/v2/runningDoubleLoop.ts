@@ -11,6 +11,14 @@
  */
 
 import { type RunningRaceType } from "@/lib/runningFocusMode";
+import { getVlamaxTarget as _getVlamaxTarget } from "./vlamaxTargets";
+
+// ⚠️  SOURCE UNIQUE VLamax : `src/lib/v2/vlamaxTargets.ts`. Aucune valeur en dur.
+function _vlamaxTolerance(key: string): { optimal: number; max: number } {
+  const t = _getVlamaxTarget(key, 'run');
+  return { optimal: t.ideal, max: t.max };
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES — BOUCLE LENTE (PROFIL VERROUILLÉ)
