@@ -193,6 +193,8 @@ export function CoachProfileForm({
   );
   const [sessionsPerWeek, setSessionsPerWeek] = useState<string>("");
   const [optionalOpen, setOptionalOpen] = useState(false);
+  const [primaryHelpOpen, setPrimaryHelpOpen] = useState(false);
+  const [secondaryHelpOpen, setSecondaryHelpOpen] = useState(false);
 
   // ─── Durée du plan (obligatoire, pas de défaut caché) ─────────────────────
   const [durationMode, setDurationMode] = useState<DurationMode>("free");
@@ -523,18 +525,36 @@ export function CoachProfileForm({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-sm font-medium">{opt.label}</span>
-                      <CoachTip>{LIMITER_PEDAGOGY[opt.value]}</CoachTip>
-                    </div>
-                    <div className="flex items-start justify-between gap-1 mt-1">
-                      <div className="text-xs text-muted-foreground">{opt.hint}</div>
                       {wasPre && !touchedPrimary && (
                         <Badge variant="outline" className="text-[10px] py-0 px-1 flex-shrink-0">estimé</Badge>
                       )}
                     </div>
+                    <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
                   </button>
                 );
               })}
             </div>
+
+            <Collapsible open={primaryHelpOpen} onOpenChange={setPrimaryHelpOpen}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-full justify-between mt-2 h-8 text-xs">
+                  <span>Aide terrain — reconnaître chaque limiteur</span>
+                  <span className="text-muted-foreground">{primaryHelpOpen ? "Masquer" : "Afficher"}</span>
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="rounded-md border border-border bg-muted/30 p-3 mt-1 space-y-2">
+                  {LIMITER_OPTIONS.map((opt) => (
+                    <div key={opt.value}>
+                      <div className="text-xs font-medium text-foreground">{opt.label}</div>
+                      <div className="text-xs text-muted-foreground leading-relaxed">
+                        {LIMITER_PEDAGOGY[opt.value]}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </section>
 
           {/* Optionals */}
@@ -589,15 +609,33 @@ export function CoachProfileForm({
                             : "border-border hover:border-primary/40",
                         )}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="text-sm font-medium">{opt.label}</div>
-                          <CoachTip>{LIMITER_PEDAGOGY[opt.value]}</CoachTip>
-                        </div>
+                        <div className="text-sm font-medium">{opt.label}</div>
                         <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
                       </button>
                     );
                   })}
                 </div>
+
+                <Collapsible open={secondaryHelpOpen} onOpenChange={setSecondaryHelpOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-full justify-between mt-2 h-8 text-xs">
+                      <span>Aide terrain — reconnaître chaque limiteur</span>
+                      <span className="text-muted-foreground">{secondaryHelpOpen ? "Masquer" : "Afficher"}</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="rounded-md border border-border bg-muted/30 p-3 mt-1 space-y-2">
+                      {LIMITER_OPTIONS.map((opt) => (
+                        <div key={opt.value}>
+                          <div className="text-xs font-medium text-foreground">{opt.label}</div>
+                          <div className="text-xs text-muted-foreground leading-relaxed">
+                            {LIMITER_PEDAGOGY[opt.value]}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </section>
 
               {/* e) Prohibitions */}
