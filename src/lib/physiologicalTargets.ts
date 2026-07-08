@@ -42,6 +42,8 @@
 
 
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { getVlamaxTarget as _getVlamaxTargetCanonical } from "./v2/vlamaxTargets";
+
 
 // =============================================
 // CORE TYPES
@@ -701,26 +703,32 @@ function applySportOffset(range: VLamaxTargets, sport?: string): VLamaxTargets {
 }
 
 /**
- * Get VLamax range for an objective (uses ambition level + optional sport offset)
+ * Get VLamax range for an objective.
+ *
+ * ⚠️  SOURCE UNIQUE — délègue à `src/lib/v2/vlamaxTargets.ts`. La cible VLamax
+ *    est UNIVERSELLE par distance (contrainte métabolique) : elle NE dépend PAS
+ *    de l'ambition ni des ex-tables `AMBITION_TARGETS.vlamax`. Le paramètre
+ *    `ambition` est conservé pour compat, mais ignoré pour la VLamax.
  */
-export function getVLamaxRange(objectif: string, ambition?: AmbitionLevel, sport?: string): VLamaxTargets {
-  const targets = getTargetsForAmbition(objectif, ambition || DEFAULT_AMBITION);
-  return applySportOffset(targets.vlamax, sport);
+export function getVLamaxRange(objectif: string, _ambition?: AmbitionLevel, sport?: string): VLamaxTargets {
+  const s = (sport || '').toLowerCase();
+  const discipline: 'bike' | 'run' | 'swim' =
+    s === 'cap' || s === 'run' || s === 'running' ? 'run'
+    : s === 'swim' ? 'swim'
+    : 'bike';
+  const range = _getVlamaxTargetCanonical(objectif, discipline);
+  return { min: range.min, max: range.max, optimal: range.ideal };
 }
 
-/**
- * Get VLamax threshold (max value) for triggering "too high" alerts
- */
 export function getVLamaxThreshold(objectif: string, ambition?: AmbitionLevel, sport?: string): number {
   return getVLamaxRange(objectif, ambition, sport).max;
 }
 
-/**
- * Get VLamax optimal value for an objective
- */
 export function getVLamaxOptimal(objectif: string, ambition?: AmbitionLevel, sport?: string): number {
   return getVLamaxRange(objectif, ambition, sport).optimal;
 }
+
+
 
 /**
  * Facteur de décroissance TTE par âge (R5).

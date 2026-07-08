@@ -13,6 +13,15 @@
 
 import { isRunningOnly as isRunningOnlyRace } from "./raceTypeNormalization";
 import { isRunningOnlyGoal } from "./allowedSports";
+import { getVlamaxTarget } from "./v2/vlamaxTargets";
+
+// ⚠️  SOURCE UNIQUE VLamax : cibles issues de `src/lib/v2/vlamaxTargets.ts`.
+//    Aucune valeur VLamax-cible en dur ci-dessous.
+function _vlamaxRunTarget(key: string): { min: number; optimal: number; max: number } {
+  const t = getVlamaxTarget(key, 'run');
+  return { min: t.min, optimal: t.ideal, max: t.max };
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -487,71 +496,73 @@ export interface RunningTargets {
   pctVO2maxRace: number; // % VO2max utilisable en course
 }
 
+// ⚠️  VLamax : injectée depuis la SOURCE UNIQUE `vlamaxTargets.ts` (jamais en dur ici).
 export const RUNNING_TARGETS_BY_RACE: Record<RunningRaceType, RunningTargets> = {
   "StartToRun": {
     vo2max: { min: 30, optimal: 40, elite: 50 },
-    vlamax: { min: 0.30, optimal: 0.50, max: 0.80 },
+    vlamax: _vlamaxRunTarget("10k"),
     economyScore: { min: 40, optimal: 55 },
     durabilityMin: 30,
     pctVO2maxRace: 70,
   },
   "5K": {
     vo2max: { min: 50, optimal: 58, elite: 72 },
-    vlamax: { min: 0.40, optimal: 0.55, max: 0.70 },
+    vlamax: _vlamaxRunTarget("5k"),
     economyScore: { min: 60, optimal: 75 },
     durabilityMin: 25,
     pctVO2maxRace: 92,
   },
   "10K": {
     vo2max: { min: 50, optimal: 58, elite: 72 },
-    vlamax: { min: 0.35, optimal: 0.45, max: 0.55 },
+    vlamax: _vlamaxRunTarget("10k"),
     economyScore: { min: 65, optimal: 78 },
     durabilityMin: 45,
     pctVO2maxRace: 88,
   },
   "Semi": {
     vo2max: { min: 48, optimal: 55, elite: 68 },
-    vlamax: { min: 0.28, optimal: 0.38, max: 0.48 },
+    vlamax: _vlamaxRunTarget("semi"),
     economyScore: { min: 68, optimal: 80 },
     durabilityMin: 100,
     pctVO2maxRace: 82,
   },
   "Marathon": {
     vo2max: { min: 48, optimal: 55, elite: 70 },
-    vlamax: { min: 0.22, optimal: 0.32, max: 0.42 },
+    vlamax: _vlamaxRunTarget("marathon"),
     economyScore: { min: 72, optimal: 85 },
     durabilityMin: 210,
     pctVO2maxRace: 78,
   },
   "Trail": {
     vo2max: { min: 48, optimal: 55, elite: 65 },
-    vlamax: { min: 0.28, optimal: 0.38, max: 0.48 },
+    vlamax: _vlamaxRunTarget("trail"),
     economyScore: { min: 65, optimal: 78 },
     durabilityMin: 180,
     pctVO2maxRace: 70,
   },
   "TrailShort": {
     vo2max: { min: 50, optimal: 58, elite: 68 },
-    vlamax: { min: 0.30, optimal: 0.40, max: 0.50 },
+    vlamax: _vlamaxRunTarget("trail"),
     economyScore: { min: 65, optimal: 78 },
     durabilityMin: 150,
     pctVO2maxRace: 72,
   },
   "TrailMountain": {
     vo2max: { min: 48, optimal: 55, elite: 65 },
-    vlamax: { min: 0.25, optimal: 0.35, max: 0.45 },
+    vlamax: _vlamaxRunTarget("trail"),
     economyScore: { min: 68, optimal: 80 },
     durabilityMin: 360,
     pctVO2maxRace: 65,
   },
   "TrailUltra": {
     vo2max: { min: 45, optimal: 52, elite: 62 },
-    vlamax: { min: 0.20, optimal: 0.28, max: 0.38 },
+    vlamax: _vlamaxRunTarget("im"),
     economyScore: { min: 72, optimal: 85 },
     durabilityMin: 600,
     pctVO2maxRace: 58,
   },
 };
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // FONCTIONS UTILITAIRES

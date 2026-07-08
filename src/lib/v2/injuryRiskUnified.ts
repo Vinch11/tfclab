@@ -19,6 +19,8 @@ import type { VLamaxEffectif } from '../vlamaxEffectif';
 import type { TTEEffectif } from '../tteEffectif';
 import type { FatigueEffectif } from '../fatigueEffectif';
 import type { IFSCResult } from './ifsc';
+import { getVlamaxTarget } from './vlamaxTargets';
+
 
 // ============================================
 // 1️⃣ PHILOSOPHIE OFFICIELLE
@@ -210,18 +212,23 @@ const CAP_WEIGHTS = {
 // ============================================
 
 /**
- * VLamax_factor TFCL™:
- * - <0.35 → risque faible (10)
- * - 0.35–0.55 → neutre (30)
- * - >0.55 → risque élevé (60)
+ * VLamax_factor TFCL™ (bandes RELATIVES à la cible SOURCE UNIQUE).
+ * - < target.min → risque faible (10)
+ * - dans [min, max] → neutre (30)
+ * - > target.max → risque élevé (60)
  */
-function computeCAPVlamaxComponent(vlamax: number | null): { component: number; known: boolean } {
-  if (vlamax === null) return { component: 30, known: false };
-  
-  if (vlamax < 0.35) return { component: 10, known: true };
-  if (vlamax <= 0.55) return { component: 30, known: true };
-  return { component: 60, known: true };
+function computeCAPVlamaxComponent(
+  vlamax: number | null,
+  objectif: string,
+): { component: number; known: boolean; target: { min: number; max: number } } {
+  const target = getVlamaxTarget(objectif, 'run');
+  const band = { min: target.min, max: target.max };
+  if (vlamax === null) return { component: 30, known: false, target: band };
+  if (vlamax < target.min) return { component: 10, known: true, target: band };
+  if (vlamax <= target.max) return { component: 30, known: true, target: band };
+  return { component: 60, known: true, target: band };
 }
+
 
 /**
  * TTE_factor TFCL™:
@@ -278,9 +285,10 @@ export function computeCAPInjuryRisk(input: CAPRiskInput): InjuryRiskEnvelope {
   
   // Calcul des composantes (4 piliers TFCL™)
   const fatigueComp = computeFatigueComponent(fatiguePct);
-  const vlamaxResult = computeCAPVlamaxComponent(vlamaxValue);
+  const vlamaxResult = computeCAPVlamaxComponent(vlamaxValue, objectif);
   const tteResult = computeCAPTTEComponent(tteMin, objectif);
   const economyResult = computeCAPEconomyComponent(economyLevel);
+  const vlaBand = vlamaxResult.target;
   
   // Construire les drivers (ordre TFCL™: Fatigue > VLamax > TTE > Économie)
   const drivers: InjuryRiskDriver[] = [
@@ -302,12 +310,13 @@ export function computeCAPInjuryRisk(input: CAPRiskInput): InjuryRiskEnvelope {
       component: vlamaxResult.component,
       weight: CAP_WEIGHTS.vlamax,
       impact: getDriverImpact(vlamaxResult.component),
-      explanation: vlamaxValue !== null && vlamaxValue > 0.55 
-        ? 'VLamax > 0.55 → +10-20 g/h glycolyse → contraintes mécaniques augmentées'
-        : vlamaxValue !== null && vlamaxValue < 0.35
-          ? 'VLamax < 0.35 → -10 g/h glycolyse → risque réduit'
-          : 'VLamax neutre (0.35-0.55) → risque standard'
+      explanation: vlamaxValue !== null && vlamaxValue > vlaBand.max 
+        ? `VLamax > ${vlaBand.max.toFixed(2)} (cible ${objectif}) → glycolyse accrue → contraintes mécaniques augmentées`
+        : vlamaxValue !== null && vlamaxValue < vlaBand.min
+          ? `VLamax < ${vlaBand.min.toFixed(2)} → oxydatif dominant → risque réduit`
+          : `VLamax dans la cible ${objectif} (${vlaBand.min.toFixed(2)}–${vlaBand.max.toFixed(2)}) → risque standard`
     },
+
     {
       id: 'tte',
       label: 'TTE effectif',
@@ -476,18 +485,23 @@ const BIKE_WEIGHTS = {
 // ============================================
 
 /**
- * VLamax_factor Vélo TFCL™:
- * - <0.35 → risque faible (10)
- * - 0.35–0.55 → neutre (30)
- * - >0.55 → risque élevé (60)
+ * VLamax_factor Vélo TFCL™ — bandes RELATIVES à la cible SOURCE UNIQUE.
+ * - < target.min → risque faible (10)
+ * - dans [min, max] → neutre (30)
+ * - > target.max → risque élevé (60)
  */
-function computeBikeVlamaxComponent(vlamax: number | null): { component: number; known: boolean } {
-  if (vlamax === null) return { component: 30, known: false };
-  
-  if (vlamax < 0.35) return { component: 10, known: true };
-  if (vlamax <= 0.55) return { component: 30, known: true };
-  return { component: 60, known: true };
+function computeBikeVlamaxComponent(
+  vlamax: number | null,
+  objectif: string,
+): { component: number; known: boolean; target: { min: number; max: number } } {
+  const target = getVlamaxTarget(objectif, 'bike');
+  const band = { min: target.min, max: target.max };
+  if (vlamax === null) return { component: 30, known: false, target: band };
+  if (vlamax < target.min) return { component: 10, known: true, target: band };
+  if (vlamax <= target.max) return { component: 30, known: true, target: band };
+  return { component: 60, known: true, target: band };
 }
+
 
 /**
  * TTE_factor Vélo TFCL™:
@@ -515,8 +529,9 @@ export function computeBikeInjuryRisk(input: BikeRiskInput): InjuryRiskEnvelope 
   
   // Calcul des composantes (3 piliers TFCL™ Vélo)
   const fatigueComp = computeFatigueComponent(fatiguePct);
-  const vlamaxResult = computeBikeVlamaxComponent(vlamaxValue);
+  const vlamaxResult = computeBikeVlamaxComponent(vlamaxValue, objectif);
   const tteResult = computeBikeTTEComponent(tteMin, objectif);
+  const vlaBand = vlamaxResult.target;
   
   // Construire les drivers (ordre TFCL™: Fatigue > VLamax > TTE)
   const drivers: InjuryRiskDriver[] = [
@@ -538,12 +553,13 @@ export function computeBikeInjuryRisk(input: BikeRiskInput): InjuryRiskEnvelope 
       component: vlamaxResult.component,
       weight: BIKE_WEIGHTS.vlamax,
       impact: getDriverImpact(vlamaxResult.component),
-      explanation: vlamaxValue !== null && vlamaxValue > 0.55 
-        ? 'VLamax > 0.55 → dépendance glycolyse élevée → risque métabolique accru'
-        : vlamaxValue !== null && vlamaxValue < 0.35
-          ? 'VLamax < 0.35 → efficience aérobie → risque réduit'
-          : 'VLamax neutre → risque métabolique standard'
+      explanation: vlamaxValue !== null && vlamaxValue > vlaBand.max 
+        ? `VLamax > ${vlaBand.max.toFixed(2)} (cible ${objectif}) → dépendance glycolyse élevée → risque métabolique accru`
+        : vlamaxValue !== null && vlamaxValue < vlaBand.min
+          ? `VLamax < ${vlaBand.min.toFixed(2)} → efficience aérobie → risque réduit`
+          : `VLamax dans la cible ${objectif} (${vlaBand.min.toFixed(2)}–${vlaBand.max.toFixed(2)}) → risque standard`
     },
+
     {
       id: 'tte',
       label: 'TTE effectif',
