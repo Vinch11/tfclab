@@ -11,7 +11,13 @@
  * ("Je ne sais pas") sont transmis comme ABSENTS. On n'invente RIEN.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, Save, User, AlertCircle } from "lucide-react";
+import { Sparkles, Save, User, AlertCircle, HelpCircle } from "lucide-react";
+
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 import {
   Dialog,
