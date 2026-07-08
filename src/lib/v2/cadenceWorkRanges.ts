@@ -248,7 +248,7 @@ function getCadenceStatus(
 export function computeCadenceWorkRanges(input: CadenceWorkRangesInput): CadenceRangeResult {
   const { sport, vlamaxEffectif, tteEffectif, objectif, spontaneousCadenceRpm } = input;
   
-  const vlamaxStatus = getVlamaxStatus(vlamaxEffectif, objectif);
+  const vlamaxStatus = getVlamaxStatus(vlamaxEffectif, objectif, sport);
   const tteStatus = getTTEStatus(tteEffectif);
   const cadenceStatus = getCadenceStatus(spontaneousCadenceRpm);
   
