@@ -153,6 +153,7 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const CHUNK_SIZE = isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
     const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 6;
     const needsChunking = !regenerateWeek && totalWeeks > chunkThreshold;
+    console.log(`🔎 Chunk decision: totalWeeks=${totalWeeks} threshold=${chunkThreshold} regenerateWeek=${!!regenerateWeek} isTriVerbose=${isTriVerbose} isTrailVerbose=${isTrailVerbose} → needsChunking=${needsChunking}`);
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
     const cpwResult = computeCPWprime(athleteData);
