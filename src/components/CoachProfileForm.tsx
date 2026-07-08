@@ -139,6 +139,32 @@ interface Props {
   onGenerate: (payload: CoachProfileFormPayload) => void;
 }
 
+/** Petite icône "?" qui affiche une note pédagogique au survol / tap. */
+function CoachTip({ children }: { children: React.ReactNode }) {
+  return (
+    <HoverCard openDelay={150} closeDelay={100}>
+      <HoverCardTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center justify-center rounded-full p-0.5 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          aria-label="En savoir plus"
+        >
+          <HelpCircle className="h-3.5 w-3.5" />
+        </button>
+      </HoverCardTrigger>
+      <HoverCardContent
+        side="top"
+        align="start"
+        sideOffset={6}
+        className="w-72 p-3 text-sm leading-relaxed"
+      >
+        {children}
+      </HoverCardContent>
+    </HoverCard>
+  );
+}
+
 export function CoachProfileForm({
   open,
   onOpenChange,
