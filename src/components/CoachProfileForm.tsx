@@ -143,19 +143,54 @@ export function CoachProfileForm({
   const [touchedPrimary, setTouchedPrimary] = useState(false);
   const [touchedSecondary, setTouchedSecondary] = useState(false);
 
-  // Reset when opening with a new prefill.
+  // Persistance locale par athlète (survit à la fermeture du dialogue).
+  const storageKey = `tfcl:coachProfileForm:${athleteName ?? "default"}`;
+
+  // Restore when opening: saved draft prime sur prefill.
   useEffect(() => {
     if (!open) return;
-    setMetabolic(prefill?.metabolicProfile ?? null);
-    setPrimary(prefillPrimary ?? null);
-    setSecondary(prefillSecondary ?? "unknown");
-    setProhibitions(prefill?.prohibitions ?? []);
-    setSessionsPerWeek("");
-    setTouchedPrimary(false);
-    setTouchedSecondary(false);
-    setOptionalOpen(false);
+    let restored = false;
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem(storageKey) : null;
+      if (raw) {
+        const s = JSON.parse(raw);
+        setMetabolic(s.metabolic ?? prefill?.metabolicProfile ?? null);
+        setPrimary(s.primary ?? prefillPrimary ?? null);
+        setSecondary(s.secondary ?? prefillSecondary ?? "unknown");
+        setProhibitions(s.prohibitions ?? prefill?.prohibitions ?? []);
+        setSessionsPerWeek(s.sessionsPerWeek ?? "");
+        setTouchedPrimary(!!s.touchedPrimary);
+        setTouchedSecondary(!!s.touchedSecondary);
+        setOptionalOpen(!!s.optionalOpen);
+        restored = true;
+      }
+    } catch {/* ignore */}
+    if (!restored) {
+      setMetabolic(prefill?.metabolicProfile ?? null);
+      setPrimary(prefillPrimary ?? null);
+      setSecondary(prefillSecondary ?? "unknown");
+      setProhibitions(prefill?.prohibitions ?? []);
+      setSessionsPerWeek("");
+      setTouchedPrimary(false);
+      setTouchedSecondary(false);
+      setOptionalOpen(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Persist on every change while open.
+  useEffect(() => {
+    if (!open) return;
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          metabolic, primary, secondary, prohibitions,
+          sessionsPerWeek, touchedPrimary, touchedSecondary, optionalOpen,
+        }),
+      );
+    } catch {/* ignore */}
+  }, [open, storageKey, metabolic, primary, secondary, prohibitions, sessionsPerWeek, touchedPrimary, touchedSecondary, optionalOpen]);
 
   const canSubmit = metabolic !== null && primary !== null;
 
