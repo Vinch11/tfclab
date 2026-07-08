@@ -93,7 +93,7 @@ export default function TrainingLoadPage() {
 
   if (!currentAthlete) {
     return (
-      <AppLayout title="Charge d'entraînement">
+      <AppLayout title="Charge d'entraînement" showBack>
         <div className="p-6">
           <Alert><AlertDescription>Sélectionne un athlète pour visualiser la charge d'entraînement.</AlertDescription></Alert>
         </div>
