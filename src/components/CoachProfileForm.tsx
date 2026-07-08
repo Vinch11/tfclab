@@ -72,6 +72,7 @@ const METRIC_TO_LORANG: Record<string, LorangLimiter> = {
 };
 
 export type MetabolicProfile = "sprinter" | "balanced" | "diesel";
+export type DurationMode = "date" | "free";
 
 export interface CoachProfileFormPayload {
   metabolicProfile: MetabolicProfile;
@@ -81,6 +82,12 @@ export interface CoachProfileFormPayload {
   secondaryLimiterMetric: string | null;
   prohibitions: LorangProhibition[];
   sessionsPerWeek: number | null;
+  /** Mode de durée du plan choisi par le coach. */
+  durationMode: DurationMode;
+  /** Date de course (ISO yyyy-MM-dd) — mode "date" uniquement, sinon null. */
+  raceDate: string | null;
+  /** Nombre de semaines — TOUJOURS renseigné (calculé depuis raceDate si mode date). */
+  weeksAvailable: number;
   /** Provenance de chaque champ (coach = saisie manuelle, diag = pré-rempli non modifié).
    *  Utilisé pour tracer que la saisie coach PRIME sur l'inférence. */
   overriddenByCoach: {
@@ -139,6 +146,11 @@ export function CoachProfileForm({
   const [sessionsPerWeek, setSessionsPerWeek] = useState<string>("");
   const [optionalOpen, setOptionalOpen] = useState(false);
 
+  // ─── Durée du plan (obligatoire, pas de défaut caché) ─────────────────────
+  const [durationMode, setDurationMode] = useState<DurationMode>("free");
+  const [raceDate, setRaceDate] = useState<string>("");     // yyyy-MM-dd
+  const [freeWeeks, setFreeWeeks] = useState<string>("");   // string pour input libre
+
   // Track whether the coach touched a pre-filled value (coach PRIME sur diagnostic).
   const [touchedPrimary, setTouchedPrimary] = useState(false);
   const [touchedSecondary, setTouchedSecondary] = useState(false);
@@ -159,6 +171,9 @@ export function CoachProfileForm({
         setSecondary(s.secondary ?? prefillSecondary ?? "unknown");
         setProhibitions(s.prohibitions ?? prefill?.prohibitions ?? []);
         setSessionsPerWeek(s.sessionsPerWeek ?? "");
+        setDurationMode(s.durationMode ?? "free");
+        setRaceDate(s.raceDate ?? "");
+        setFreeWeeks(s.freeWeeks ?? "");
         setTouchedPrimary(!!s.touchedPrimary);
         setTouchedSecondary(!!s.touchedSecondary);
         setOptionalOpen(!!s.optionalOpen);
@@ -171,6 +186,9 @@ export function CoachProfileForm({
       setSecondary(prefillSecondary ?? "unknown");
       setProhibitions(prefill?.prohibitions ?? []);
       setSessionsPerWeek("");
+      setDurationMode("free");
+      setRaceDate("");
+      setFreeWeeks("");
       setTouchedPrimary(false);
       setTouchedSecondary(false);
       setOptionalOpen(false);
@@ -186,16 +204,34 @@ export function CoachProfileForm({
         storageKey,
         JSON.stringify({
           metabolic, primary, secondary, prohibitions,
-          sessionsPerWeek, touchedPrimary, touchedSecondary, optionalOpen,
+          sessionsPerWeek, durationMode, raceDate, freeWeeks,
+          touchedPrimary, touchedSecondary, optionalOpen,
         }),
       );
     } catch {/* ignore */}
-  }, [open, storageKey, metabolic, primary, secondary, prohibitions, sessionsPerWeek, touchedPrimary, touchedSecondary, optionalOpen]);
+  }, [open, storageKey, metabolic, primary, secondary, prohibitions, sessionsPerWeek, durationMode, raceDate, freeWeeks, touchedPrimary, touchedSecondary, optionalOpen]);
 
-  const canSubmit = metabolic !== null && primary !== null;
+  // ─── Calcul de la durée effective ───────────────────────────────────────
+  const computedWeeks = useMemo<number | null>(() => {
+    if (durationMode === "date") {
+      if (!raceDate) return null;
+      try {
+        const race = new Date(raceDate + "T00:00:00");
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const days = Math.floor((race.getTime() - today.getTime()) / 86400000);
+        if (days < 0) return null;
+        return Math.max(1, Math.floor(days / 7) + 1);
+      } catch { return null; }
+    }
+    const n = parseInt(freeWeeks, 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [durationMode, raceDate, freeWeeks]);
+
+  const canSubmit = metabolic !== null && primary !== null && computedWeeks !== null && computedWeeks > 0;
 
   const build = (): CoachProfileFormPayload | null => {
-    if (!metabolic || !primary) return null;
+    if (!metabolic || !primary || !computedWeeks) return null;
     const primaryDef = LIMITER_OPTIONS.find((o) => o.value === primary)!;
     const secondaryDef =
       secondary !== "unknown" ? LIMITER_OPTIONS.find((o) => o.value === secondary) ?? null : null;
@@ -216,6 +252,9 @@ export function CoachProfileForm({
       secondaryLimiterMetric: secondaryDef ? secondaryDef.metric : null,
       prohibitions: Array.from(finalProhibitions),
       sessionsPerWeek: Number.isFinite(rawSpw) && rawSpw > 0 ? rawSpw : null,
+      durationMode,
+      raceDate: durationMode === "date" && raceDate ? raceDate : null,
+      weeksAvailable: computedWeeks,
       overriddenByCoach: {
         primary: touchedPrimary || !prefillPrimary,
         secondary: touchedSecondary || !prefillSecondary,
@@ -277,6 +316,97 @@ export function CoachProfileForm({
               </div>
             </div>
           )}
+
+          {/* Durée du plan — OBLIGATOIRE, pas de défaut caché */}
+          <section className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+            <Label className="text-sm font-semibold mb-2 block">
+              Durée du plan <span className="text-destructive">*</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setDurationMode("free")}
+                className={cn(
+                  "rounded-md border p-2 text-xs sm:text-sm text-left transition-all",
+                  durationMode === "free"
+                    ? "border-primary bg-primary/20 ring-2 ring-primary"
+                    : "border-border hover:border-primary/40",
+                )}
+              >
+                <div className="font-medium">Durée libre</div>
+                <div className="text-[11px] text-muted-foreground">Sans date de course — progression sur N semaines.</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurationMode("date")}
+                className={cn(
+                  "rounded-md border p-2 text-xs sm:text-sm text-left transition-all",
+                  durationMode === "date"
+                    ? "border-primary bg-primary/20 ring-2 ring-primary"
+                    : "border-border hover:border-primary/40",
+                )}
+              >
+                <div className="font-medium">Objectif daté</div>
+                <div className="text-[11px] text-muted-foreground">Compte à rebours jusqu'à la course.</div>
+              </button>
+            </div>
+
+            {durationMode === "free" ? (
+              <div>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {[6, 8, 12, 16].map((n) => {
+                    const active = parseInt(freeWeeks, 10) === n;
+                    return (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setFreeWeeks(String(n))}
+                        className={cn(
+                          "px-2.5 py-1 rounded-md border text-xs font-medium transition-all",
+                          active
+                            ? "border-primary bg-primary/20 ring-2 ring-primary"
+                            : "border-border hover:border-primary/40",
+                        )}
+                      >
+                        {n} sem
+                      </button>
+                    );
+                  })}
+                </div>
+                <Input
+                  type="number"
+                  min={2}
+                  max={52}
+                  placeholder="Nombre de semaines (2-52)"
+                  value={freeWeeks}
+                  onChange={(e) => setFreeWeeks(e.target.value)}
+                  className="max-w-[220px]"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Input
+                  type="date"
+                  value={raceDate}
+                  onChange={(e) => setRaceDate(e.target.value)}
+                  className="max-w-[220px]"
+                />
+                {computedWeeks !== null && (
+                  <div className="text-xs text-muted-foreground">
+                    ≈ <span className="font-semibold text-primary">{computedWeeks}</span> semaines jusqu'à la course.
+                  </div>
+                )}
+                {raceDate && computedWeeks === null && (
+                  <div className="text-xs text-destructive">Date passée — choisis une date future.</div>
+                )}
+              </div>
+            )}
+            {!canSubmit && computedWeeks === null && (
+              <div className="text-[11px] text-destructive mt-2">
+                Durée requise pour générer un plan (pas de défaut caché).
+              </div>
+            )}
+          </section>
 
           {/* a) Metabolic profile */}
           <section>

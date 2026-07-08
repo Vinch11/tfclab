@@ -187,10 +187,16 @@ export function useAITrainingPlan() {
       console.warn("Plan generation already in progress — ignoring duplicate call");
       return;
     }
+    // ─── Durée du plan : OBLIGATOIRE, pas de défaut caché ────────────────
+    // Un défaut fabriqué invisible (ancien `|| 12`) masquait des générations
+    // 12 sem sur des athlètes sans course ni durée renseignée.
+    const totalWeeks = planConfig.weeksAvailable;
+    if (!totalWeeks || totalWeeks <= 0) {
+      toast.error("Durée du plan manquante. Renseigne une date de course ou une durée libre (formulaire coach).");
+      return;
+    }
     setResponse("");
     setIsLoading(true);
-
-    const totalWeeks = planConfig.weeksAvailable || 12;
     // Match edge function's chunk sizing
     const obj = (planConfig.objective || "").toUpperCase();
     const isTriVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
