@@ -521,13 +521,16 @@ export function CoachProfileForm({
                         : "border-border hover:border-primary/40",
                     )}
                   >
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-start justify-between gap-2">
                       <span className="text-sm font-medium">{opt.label}</span>
+                      <CoachTip>{LIMITER_PEDAGOGY[opt.value]}</CoachTip>
+                    </div>
+                    <div className="flex items-start justify-between gap-1 mt-1">
+                      <div className="text-xs text-muted-foreground">{opt.hint}</div>
                       {wasPre && !touchedPrimary && (
-                        <Badge variant="outline" className="text-[10px] py-0 px-1">estimé</Badge>
+                        <Badge variant="outline" className="text-[10px] py-0 px-1 flex-shrink-0">estimé</Badge>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
                   </button>
                 );
               })}
