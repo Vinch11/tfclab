@@ -146,9 +146,12 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const isTrailVerbose = /TRAIL\s*(ULTRA|MOUNTAIN|MONT|UTMB|CCC|OCC|LONG)/i.test(obj) || (/TRAIL/i.test(obj) && totalWeeks >= 12);
     const isVerbosePlan = isTriVerbose || isTrailVerbose;
     // Dynamic chunk sizing based on verbosity tier
-    const CHUNK_SIZE = isTriVerbose ? 5 : isTrailVerbose ? 6 : 8;
-    // Chunk earlier for verbose plans to avoid token exhaustion → incomplete Race Weeks
-    const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 12;
+    // FIX (2026-07-08 audit — placeholders S7-S10 sur plan semi 11 sem) :
+    // les plans "non-verbose" (semi/marathon/CAP) restaient monolithiques jusqu'à 12 sem →
+    // truncation silencieuse au-delà de ~S6, complétée en placeholders côté parser.
+    // On chunk dès 6 semaines (4 sem / chunk) pour garantir une couverture complète.
+    const CHUNK_SIZE = isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
+    const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 6;
     const needsChunking = !regenerateWeek && totalWeeks > chunkThreshold;
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
