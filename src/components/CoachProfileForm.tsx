@@ -11,13 +11,7 @@
  * ("Je ne sais pas") sont transmis comme ABSENTS. On n'invente RIEN.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, Save, User, AlertCircle, HelpCircle } from "lucide-react";
-
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import { Sparkles, Save, User, AlertCircle } from "lucide-react";
 
 import {
   Dialog,
@@ -139,32 +133,6 @@ interface Props {
   onGenerate: (payload: CoachProfileFormPayload) => void;
 }
 
-/** Petite icône "?" qui affiche une note pédagogique au survol / tap. */
-function CoachTip({ children }: { children: React.ReactNode }) {
-  return (
-    <HoverCard openDelay={150} closeDelay={100}>
-      <HoverCardTrigger asChild>
-        <button
-          type="button"
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center justify-center rounded-full p-0.5 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-          aria-label="En savoir plus"
-        >
-          <HelpCircle className="h-3.5 w-3.5" />
-        </button>
-      </HoverCardTrigger>
-      <HoverCardContent
-        side="top"
-        align="start"
-        sideOffset={6}
-        className="w-72 p-3 text-sm leading-relaxed"
-      >
-        {children}
-      </HoverCardContent>
-    </HoverCard>
-  );
-}
-
 export function CoachProfileForm({
   open,
   onOpenChange,
@@ -193,8 +161,6 @@ export function CoachProfileForm({
   );
   const [sessionsPerWeek, setSessionsPerWeek] = useState<string>("");
   const [optionalOpen, setOptionalOpen] = useState(false);
-  const [primaryHelpOpen, setPrimaryHelpOpen] = useState(false);
-  const [secondaryHelpOpen, setSecondaryHelpOpen] = useState(false);
 
   // ─── Durée du plan (obligatoire, pas de défaut caché) ─────────────────────
   const [durationMode, setDurationMode] = useState<DurationMode>("free");
@@ -472,12 +438,20 @@ export function CoachProfileForm({
                 const active = metabolic === opt.v;
                 const wasPre = prefill?.metabolicProfile === opt.v;
                 return (
-                  <button
+                  <div
                     key={opt.v}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={active}
                     onClick={() => setMetabolic(opt.v)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setMetabolic(opt.v);
+                      }
+                    }}
                     className={cn(
-                      "rounded-lg border p-3 text-left transition-all",
+                      "rounded-lg border p-3 text-left transition-all cursor-pointer",
                       active
                         ? "border-primary bg-primary/20 ring-2 ring-primary shadow-md"
                         : "border-border hover:border-primary/40",
@@ -485,15 +459,29 @@ export function CoachProfileForm({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-sm font-medium">{opt.label}</span>
-                      <CoachTip>{METABOLIC_PEDAGOGY[opt.v]}</CoachTip>
-                    </div>
-                    <div className="flex items-start justify-between gap-1 mt-1">
-                      <div className="text-xs text-muted-foreground">{opt.hint}</div>
                       {wasPre && !active && (
                         <Badge variant="outline" className="text-[10px] py-0 px-1 flex-shrink-0">estimé</Badge>
                       )}
                     </div>
-                  </button>
+                    <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          className="text-xs text-primary hover:underline mt-2"
+                        >
+                          Aide terrain
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="text-xs text-muted-foreground leading-relaxed mt-2 border-t border-border/50 pt-2">
+                          {METABOLIC_PEDAGOGY[opt.v]}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
                 );
               })}
             </div>
@@ -509,15 +497,24 @@ export function CoachProfileForm({
                 const active = primary === opt.value;
                 const wasPre = prefillPrimary === opt.value;
                 return (
-                  <button
+                  <div
                     key={opt.value}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={active}
                     onClick={() => {
                       setPrimary(opt.value);
                       setTouchedPrimary(true);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setPrimary(opt.value);
+                        setTouchedPrimary(true);
+                      }
+                    }}
                     className={cn(
-                      "rounded-lg border p-3 text-left transition-all",
+                      "rounded-lg border p-3 text-left transition-all cursor-pointer",
                       active
                         ? "border-primary bg-primary/20 ring-2 ring-primary shadow-md"
                         : "border-border hover:border-primary/40",
@@ -530,31 +527,27 @@ export function CoachProfileForm({
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
-                  </button>
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          className="text-xs text-primary hover:underline mt-2"
+                        >
+                          Aide terrain
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="text-xs text-muted-foreground leading-relaxed mt-2 border-t border-border/50 pt-2">
+                          {LIMITER_PEDAGOGY[opt.value]}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
                 );
               })}
             </div>
-
-            <Collapsible open={primaryHelpOpen} onOpenChange={setPrimaryHelpOpen}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-full justify-between mt-2 h-8 text-xs">
-                  <span>Aide terrain — reconnaître chaque limiteur</span>
-                  <span className="text-muted-foreground">{primaryHelpOpen ? "Masquer" : "Afficher"}</span>
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="rounded-md border border-border bg-muted/30 p-3 mt-1 space-y-2">
-                  {LIMITER_OPTIONS.map((opt) => (
-                    <div key={opt.value}>
-                      <div className="text-xs font-medium text-foreground">{opt.label}</div>
-                      <div className="text-xs text-muted-foreground leading-relaxed">
-                        {LIMITER_PEDAGOGY[opt.value]}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
           </section>
 
           {/* Optionals */}
@@ -574,14 +567,23 @@ export function CoachProfileForm({
                   d) Limiteur secondaire
                 </Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <button
-                    type="button"
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={secondary === "unknown"}
                     onClick={() => {
                       setSecondary("unknown");
                       setTouchedSecondary(true);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSecondary("unknown");
+                        setTouchedSecondary(true);
+                      }
+                    }}
                     className={cn(
-                      "rounded-lg border p-3 text-left transition-all",
+                      "rounded-lg border p-3 text-left transition-all cursor-pointer",
                       secondary === "unknown"
                         ? "border-primary bg-primary/20 ring-2 ring-primary"
                         : "border-border hover:border-primary/40",
@@ -591,19 +593,28 @@ export function CoachProfileForm({
                     <div className="text-xs text-muted-foreground mt-1">
                       Par défaut — transmis comme absent (plan plus générique mais juste).
                     </div>
-                  </button>
+                  </div>
                   {LIMITER_OPTIONS.map((opt) => {
                     const active = secondary === opt.value;
                     return (
-                      <button
+                      <div
                         key={opt.value}
-                        type="button"
+                        role="button"
+                        tabIndex={0}
+                        aria-pressed={active}
                         onClick={() => {
                           setSecondary(opt.value);
                           setTouchedSecondary(true);
                         }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSecondary(opt.value);
+                            setTouchedSecondary(true);
+                          }
+                        }}
                         className={cn(
-                          "rounded-lg border p-3 text-left transition-all",
+                          "rounded-lg border p-3 text-left transition-all cursor-pointer",
                           active
                             ? "border-primary bg-primary/20 ring-2 ring-primary"
                             : "border-border hover:border-primary/40",
@@ -611,31 +622,27 @@ export function CoachProfileForm({
                       >
                         <div className="text-sm font-medium">{opt.label}</div>
                         <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
-                      </button>
+                        <Collapsible>
+                          <CollapsibleTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              className="text-xs text-primary hover:underline mt-2"
+                            >
+                              Aide terrain
+                            </button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="text-xs text-muted-foreground leading-relaxed mt-2 border-t border-border/50 pt-2">
+                              {LIMITER_PEDAGOGY[opt.value]}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </div>
                     );
                   })}
                 </div>
-
-                <Collapsible open={secondaryHelpOpen} onOpenChange={setSecondaryHelpOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="w-full justify-between mt-2 h-8 text-xs">
-                      <span>Aide terrain — reconnaître chaque limiteur</span>
-                      <span className="text-muted-foreground">{secondaryHelpOpen ? "Masquer" : "Afficher"}</span>
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="rounded-md border border-border bg-muted/30 p-3 mt-1 space-y-2">
-                      {LIMITER_OPTIONS.map((opt) => (
-                        <div key={opt.value}>
-                          <div className="text-xs font-medium text-foreground">{opt.label}</div>
-                          <div className="text-xs text-muted-foreground leading-relaxed">
-                            {LIMITER_PEDAGOGY[opt.value]}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
               </section>
 
               {/* e) Prohibitions */}
