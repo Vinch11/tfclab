@@ -167,14 +167,22 @@ export default function AITrainingPlanPage() {
   const [isAdaptDialogOpen, setIsAdaptDialogOpen] = useState(false);
   const [coachId, setCoachId] = useState<string>("");
 
-  // F-EXPRESS — Démarrage rapide (finisher)
+  // F-EXPRESS — Démarrage rapide (finisher) — DEPRECATED, remplacé par CoachProfileForm.
   const [expressDialogOpen, setExpressDialogOpen] = useState(false);
   const [pendingExpressGen, setPendingExpressGen] = useState(false);
   const expressFlagRef = useRef(false);
 
+  // COACH FORM — Saisie manuelle des limiteurs Lorang (remplace Express Finisher).
+  const [coachFormOpen, setCoachFormOpen] = useState(false);
+
   // Handle navigation from PlanSyncAlert or ProfileChoiceDialog
   useEffect(() => {
-    const navState = location.state as { athleteId?: string; autoRegenerate?: boolean; openExpress?: boolean } | null;
+    const navState = location.state as {
+      athleteId?: string;
+      autoRegenerate?: boolean;
+      openExpress?: boolean;
+      openCoachForm?: boolean;
+    } | null;
     if (navState?.athleteId && navState?.autoRegenerate) {
       setSelectedAthleteId(navState.athleteId);
       setShowSyncBanner(true);
@@ -183,6 +191,11 @@ export default function AITrainingPlanPage() {
     if (navState?.openExpress) {
       if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
       setExpressDialogOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+    if (navState?.openCoachForm) {
+      if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
+      setCoachFormOpen(true);
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setSelectedAthleteId]);
