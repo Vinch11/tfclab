@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { FinisherQuickStartDialog, type FinisherExpressPayload } from "@/components/FinisherQuickStartDialog";
+import { CoachProfileForm, type CoachProfileFormPayload, type CoachProfilePrefill, type MetabolicProfile } from "@/components/CoachProfileForm";
 import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, startOfDay } from "date-fns";
 
 import { useAthletes } from "@/contexts/AthleteContext";
