@@ -146,9 +146,12 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     const isTrailVerbose = /TRAIL\s*(ULTRA|MOUNTAIN|MONT|UTMB|CCC|OCC|LONG)/i.test(obj) || (/TRAIL/i.test(obj) && totalWeeks >= 12);
     const isVerbosePlan = isTriVerbose || isTrailVerbose;
     // Dynamic chunk sizing based on verbosity tier
-    const CHUNK_SIZE = isTriVerbose ? 5 : isTrailVerbose ? 6 : 8;
-    // Chunk earlier for verbose plans to avoid token exhaustion → incomplete Race Weeks
-    const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 12;
+    // FIX (2026-07-08 audit — placeholders S7-S10 sur plan semi 11 sem) :
+    // les plans "non-verbose" (semi/marathon/CAP) restaient monolithiques jusqu'à 12 sem →
+    // truncation silencieuse au-delà de ~S6, complétée en placeholders côté parser.
+    // On chunk dès 6 semaines (4 sem / chunk) pour garantir une couverture complète.
+    const CHUNK_SIZE = isTriVerbose ? 5 : isTrailVerbose ? 6 : 4;
+    const chunkThreshold = isTriVerbose ? 6 : isTrailVerbose ? 8 : 6;
     const needsChunking = !regenerateWeek && totalWeeks > chunkThreshold;
 
     // FIX #1: Deduplicate CP/W' — reuse buildCPWprimeSection's logic via shared helper
@@ -487,9 +490,11 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               );
             };
 
+            console.log(`🧩 Chunking activé : ${chunks.length} bloc(s) × ${CHUNK_SIZE} sem (total ${totalWeeks} sem) — ${chunks.map(c => `S${c.start}-S${c.end}`).join(", ")}`);
             for (let ci = 0; ci < chunks.length; ci++) {
               const chunk = chunks[ci];
               const isFirst = ci === 0;
+              console.log(`▶️ Chunk ${ci + 1}/${chunks.length} — S${chunk.start}-S${chunk.end} : génération en cours…`);
               const expectedWeeks = Array.from(
                 { length: chunk.end - chunk.start + 1 },
                 (_, i) => chunk.start + i
@@ -685,8 +690,12 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
                   await sleep(INTER_CHUNK_DELAY_MS);
                   const fallbackResult = await generateAndStream(chunkPrompt, controller, encoder, FALLBACK_MODEL);
                   if (!fallbackResult.text) {
-                    console.error(`Chunk ${ci + 1} fallback also failed. Skipping to next chunk.`);
-                    continue;
+                    // FIX (2026-07-08) : ne PLUS "skipper" silencieusement — remonter une erreur visible.
+                    const msg = `Génération incomplète : bloc semaines S${chunk.start}-S${chunk.end} n'a pas pu être généré (2 retries + fallback modèle échoués). Relancer la génération.`;
+                    console.error(`❌ Chunk ${ci + 1} FATAL: ${msg}`);
+                    const errorPayload = `{"error":${JSON.stringify(msg)},"code":500,"missingChunk":"S${chunk.start}-S${chunk.end}"}`;
+                    controller.enqueue(encoder.encode(`data: ${errorPayload}\n\n`));
+                    break;
                   }
                   chunkText = fallbackResult.text;
                   combinedChunkText = chunkText;
@@ -998,6 +1007,13 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
               if (newGuardrails.length > 0) {
                 console.log(`🛟 ${newGuardrails.length} guardrail(s) queued for chunk ${ci + 2}`);
                 pendingGuardrails.push(...newGuardrails);
+              // FIX (2026-07-08) : traçabilité frontières de chunks
+              const finalWeeks = extractGeneratedWeekNumbers(combinedChunkText);
+              const stillMissingFinal = expectedWeeks.filter(w => !finalWeeks.includes(w));
+              if (stillMissingFinal.length > 0) {
+                console.warn(`⚠️ Chunk ${ci + 1} S${chunk.start}-S${chunk.end} : généré avec semaines manquantes ${stillMissingFinal.join(",")} (frontend affichera placeholder).`);
+              } else {
+                console.log(`✅ Chunk ${ci + 1}/${chunks.length} S${chunk.start}-S${chunk.end} : généré, validé (${finalWeeks.length}/${expectedWeeks.length} sem), streamé.`);
               }
             }
 
