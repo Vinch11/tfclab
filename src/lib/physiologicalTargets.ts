@@ -705,19 +705,16 @@ function applySportOffset(range: VLamaxTargets, sport?: string): VLamaxTargets {
  *
  * ⚠️  SOURCE UNIQUE — délègue à `src/lib/v2/vlamaxTargets.ts`. La cible VLamax
  *    est UNIVERSELLE par distance (contrainte métabolique) : elle NE dépend PAS
- *    de l'ambition ni des ex-tables `AMBITION_TARGETS.vlamax`. Les paramètres
- *    `ambition` sont conservés pour compat, mais ignorés pour la VLamax.
+ *    de l'ambition ni des ex-tables `AMBITION_TARGETS.vlamax`. Le paramètre
+ *    `ambition` est conservé pour compat, mais ignoré pour la VLamax.
  */
 export function getVLamaxRange(objectif: string, _ambition?: AmbitionLevel, sport?: string): VLamaxTargets {
-  // Import différé pour éviter tout risque de cycle module-init.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { getVlamaxTarget } = require('./v2/vlamaxTargets') as typeof import('./v2/vlamaxTargets');
   const s = (sport || '').toLowerCase();
   const discipline: 'bike' | 'run' | 'swim' =
     s === 'cap' || s === 'run' || s === 'running' ? 'run'
     : s === 'swim' ? 'swim'
     : 'bike';
-  const range = getVlamaxTarget(objectif, discipline);
+  const range = _getVlamaxTargetCanonical(objectif, discipline);
   return { min: range.min, max: range.max, optimal: range.ideal };
 }
 
@@ -728,6 +725,7 @@ export function getVLamaxThreshold(objectif: string, ambition?: AmbitionLevel, s
 export function getVLamaxOptimal(objectif: string, ambition?: AmbitionLevel, sport?: string): number {
   return getVLamaxRange(objectif, ambition, sport).optimal;
 }
+
 
 
 /**
