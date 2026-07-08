@@ -55,6 +55,58 @@ export function getVlamaxTarget(
   return _getVlamaxTargetCanonical(objectif, discipline);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODULATION AMBITION — Agressivité de la réduction VLamax (TFCL™)
+// ═══════════════════════════════════════════════════════════════════════════════
+// La CIBLE VLamax reste universelle (contrainte métabolique, `vlamaxTargets.ts`).
+// Ce sont la SÉVÉRITÉ du déclenchement et l'AGRESSIVITÉ de la réponse qui
+// varient selon l'ambition : un age-grouper n'a pas besoin d'un plan aussi
+// restrictif qu'un competitor pour tirer un bénéfice réel.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type AmbitionLevelKey =
+  | 'finisher' | 'age_group' | 'competitor' | 'elite' | 'world_class';
+
+export type ReductionIntensity = 'soft' | 'firm';
+
+/**
+ * Multiplicateur au-delà duquel on considère la VLamax "trop haute" et où on
+ * déclenche Sprint Ban + prescriptions restrictives. Plus l'ambition est
+ * modeste, plus on est tolérant (on ne serre la vis que si l'écart est marqué).
+ */
+export function getVlamaxSprintBanMultiplier(
+  ambition: AmbitionLevelKey | string | null | undefined,
+): number {
+  switch (ambition) {
+    case 'finisher':    return Infinity;   // jamais (double garde-fou)
+    case 'age_group':   return 1.25;       // large tolérance
+    case 'competitor':  return 1.15;
+    case 'elite':
+    case 'world_class': return 1.10;       // calage fin
+    default:            return 1.20;       // défaut prudent
+  }
+}
+
+/**
+ * Agressivité de la réponse "réduction VLamax" une fois le levier activé.
+ *   soft : on augmente le Z2 progressivement, on garde de la variété, message
+ *          encourageant (construire la base). Pas de Sprint Ban.
+ *   firm : priorité forte au Z2, prohibitions actives, message strict.
+ *
+ * Point 4 : la DÉTECTION du limiteur glycolytique (vlamaxGap > 0.15) reste
+ * inchangée — c'est un diagnostic. Mais un finisher/age_group diagnostiqué
+ * glycolytique ne se voit pas imposer une réponse "firm".
+ */
+export function getReductionIntensity(
+  ambition: AmbitionLevelKey | string | null | undefined,
+): ReductionIntensity {
+  return (ambition === 'competitor' || ambition === 'elite' || ambition === 'world_class')
+    ? 'firm'
+    : 'soft';
+}
+
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCORING VLAMAX UNIFIÉ — source unique partagée par Potentiel & Compass
