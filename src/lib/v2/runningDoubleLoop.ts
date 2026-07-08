@@ -166,33 +166,34 @@ export const LEVER_BY_OBJECTIVE: Record<RunningObjectiveDistance, {
   "5K": {
     primary: "boost_vo2max",
     secondary: "race_specific",
-    vlamax_tolerance: { optimal: 0.55, max: 0.70 },
+    vlamax_tolerance: _vlamaxTolerance("5k"),
     focus_description: "Développement VO2max et vitesse spécifique 5K",
   },
   "10K": {
     primary: "boost_vo2max",
     secondary: "increase_durability",
-    vlamax_tolerance: { optimal: 0.45, max: 0.55 },
+    vlamax_tolerance: _vlamaxTolerance("10k"),
     focus_description: "Équilibre VO2max et durabilité à haute intensité",
   },
   "Semi": {
     primary: "increase_durability",
     secondary: "boost_vo2max",
-    vlamax_tolerance: { optimal: 0.38, max: 0.48 },
+    vlamax_tolerance: _vlamaxTolerance("semi"),
     focus_description: "Durabilité prioritaire avec développement VO2max",
   },
   "Marathon": {
     primary: "reduce_vlamax",
     secondary: "improve_economy",
-    vlamax_tolerance: { optimal: 0.32, max: 0.42 },
+    vlamax_tolerance: _vlamaxTolerance("marathon"),
     focus_description: "Réduction VLamax et optimisation de l'économie",
   },
   "Trail": {
     primary: "increase_durability",
     secondary: "improve_economy",
-    vlamax_tolerance: { optimal: 0.35, max: 0.45 },
+    vlamax_tolerance: _vlamaxTolerance("trail"),
     focus_description: "Durabilité extrême et économie en terrain varié",
   },
+
 };
 
 export const LEVER_INFO: Record<RunningPriorityLever, {
