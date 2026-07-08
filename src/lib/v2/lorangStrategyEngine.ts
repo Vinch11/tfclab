@@ -1122,10 +1122,19 @@ function computeProhibitions(
   // For semi/shorter distances: sprints are BENEFICIAL (neuromuscular, economy) → NO Sprint Ban
   // For Finisher ambition: VLamax optimization is irrelevant → NO Sprint Ban
   const shouldCheckSprintBan = isLongDistance && !isFinisher;
-  
-  const vlamaxTooHigh = physiology.vlamax !== null && 
+
+  // Multiplicateur de déclenchement modulé par l'ambition (cible universelle
+  // inchangée — on module l'AGRESSIVITÉ, pas la cible physiologique).
+  //   finisher  : Infinity (jamais)
+  //   age_group : ×1.25 (tolérant)
+  //   competitor: ×1.15
+  //   elite / wc: ×1.10
+  const sprintBanMultiplier = getVlamaxSprintBanMultiplier(ambition);
+  const vlamaxTooHigh = physiology.vlamax !== null &&
     physiology.vlamaxTarget > 0 &&
-    physiology.vlamax > physiology.vlamaxTarget * 1.1;
+    Number.isFinite(sprintBanMultiplier) &&
+    physiology.vlamax > physiology.vlamaxTarget * sprintBanMultiplier;
+
   
   // Sprint Ban Mode — only for long distance + non-finisher + VLamax actually too high
   if (shouldCheckSprintBan && vlamaxTooHigh) {
