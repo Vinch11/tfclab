@@ -485,18 +485,23 @@ const BIKE_WEIGHTS = {
 // ============================================
 
 /**
- * VLamax_factor Vélo TFCL™:
- * - <0.35 → risque faible (10)
- * - 0.35–0.55 → neutre (30)
- * - >0.55 → risque élevé (60)
+ * VLamax_factor Vélo TFCL™ — bandes RELATIVES à la cible SOURCE UNIQUE.
+ * - < target.min → risque faible (10)
+ * - dans [min, max] → neutre (30)
+ * - > target.max → risque élevé (60)
  */
-function computeBikeVlamaxComponent(vlamax: number | null): { component: number; known: boolean } {
-  if (vlamax === null) return { component: 30, known: false };
-  
-  if (vlamax < 0.35) return { component: 10, known: true };
-  if (vlamax <= 0.55) return { component: 30, known: true };
-  return { component: 60, known: true };
+function computeBikeVlamaxComponent(
+  vlamax: number | null,
+  objectif: string,
+): { component: number; known: boolean; target: { min: number; max: number } } {
+  const target = getVlamaxTarget(objectif, 'bike');
+  const band = { min: target.min, max: target.max };
+  if (vlamax === null) return { component: 30, known: false, target: band };
+  if (vlamax < target.min) return { component: 10, known: true, target: band };
+  if (vlamax <= target.max) return { component: 30, known: true, target: band };
+  return { component: 60, known: true, target: band };
 }
+
 
 /**
  * TTE_factor Vélo TFCL™:
