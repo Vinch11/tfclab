@@ -2295,9 +2295,9 @@ export default function AITrainingPlanPage() {
                             objective,
                             raceName: raceName || undefined,
                             raceDate: raceDate || undefined,
-                            distanceKm: parseFloat(trailDistanceKm) || undefined,
-                            elevationGainM: parseInt(trailElevationM, 10) || undefined,
-                            maxAltitudeM: parseInt(trailMaxAltitudeM, 10) || undefined,
+                            distanceKm: (objective || "").toLowerCase().startsWith("trail") ? (parseFloat(trailDistanceKm) || undefined) : undefined,
+                            elevationGainM: (objective || "").toLowerCase().startsWith("trail") ? (parseInt(trailElevationM, 10) || undefined) : undefined,
+                            maxAltitudeM: (objective || "").toLowerCase().startsWith("trail") ? (parseInt(trailMaxAltitudeM, 10) || undefined) : undefined,
                           },
                           ...raceGoals,
                         ].filter(goal => goal.raceDate)}
