@@ -13,6 +13,15 @@
 
 import { isRunningOnly as isRunningOnlyRace } from "./raceTypeNormalization";
 import { isRunningOnlyGoal } from "./allowedSports";
+import { getVlamaxTarget } from "./v2/vlamaxTargets";
+
+// ⚠️  SOURCE UNIQUE VLamax : cibles issues de `src/lib/v2/vlamaxTargets.ts`.
+//    Aucune valeur VLamax-cible en dur ci-dessous.
+function _vlamaxRunTarget(key: string): { min: number; optimal: number; max: number } {
+  const t = getVlamaxTarget(key, 'run');
+  return { min: t.min, optimal: t.ideal, max: t.max };
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
