@@ -72,6 +72,7 @@ const METRIC_TO_LORANG: Record<string, LorangLimiter> = {
 };
 
 export type MetabolicProfile = "sprinter" | "balanced" | "diesel";
+export type DurationMode = "date" | "free";
 
 export interface CoachProfileFormPayload {
   metabolicProfile: MetabolicProfile;
@@ -81,6 +82,12 @@ export interface CoachProfileFormPayload {
   secondaryLimiterMetric: string | null;
   prohibitions: LorangProhibition[];
   sessionsPerWeek: number | null;
+  /** Mode de durée du plan choisi par le coach. */
+  durationMode: DurationMode;
+  /** Date de course (ISO yyyy-MM-dd) — mode "date" uniquement, sinon null. */
+  raceDate: string | null;
+  /** Nombre de semaines — TOUJOURS renseigné (calculé depuis raceDate si mode date). */
+  weeksAvailable: number;
   /** Provenance de chaque champ (coach = saisie manuelle, diag = pré-rempli non modifié).
    *  Utilisé pour tracer que la saisie coach PRIME sur l'inférence. */
   overriddenByCoach: {
