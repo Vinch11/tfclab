@@ -2376,6 +2376,15 @@ export default function AITrainingPlanPage() {
         defaultObjectif={currentAthlete?.objectif}
         onSubmit={handleExpressSubmit}
       />
+      <CoachProfileForm
+        open={coachFormOpen}
+        onOpenChange={setCoachFormOpen}
+        athleteName={currentAthlete?.nom}
+        objectifLabel={OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective}
+        prefill={coachPrefill}
+        onSubmit={handleCoachFormSave}
+        onGenerate={handleCoachFormGenerate}
+      />
     </AppLayout>
   );
 }
