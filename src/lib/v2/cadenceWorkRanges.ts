@@ -170,15 +170,10 @@ export const CAP_OBSERVATION = {
 // ============================================
 
 export const THRESHOLDS = {
-  // VLamax thresholds par objectif
-  vlamax: {
-    'IM': { high: 0.35, low: 0.25 },
-    'IM 70.3': { high: 0.40, low: 0.30 },
-    '70.3': { high: 0.40, low: 0.30 },
-    'Marathon': { high: 0.35, low: 0.25 },
-    'Semi': { high: 0.45, low: 0.35 },
-    'default': { high: 0.45, low: 0.35 }
-  },
+  // ⚠️  VLamax : cibles issues de la SOURCE UNIQUE `vlamaxTargets.ts`.
+  //     high = borne haute de la plage cible ; low = borne basse.
+  //     Discipline = vélo par défaut (module partagé bike/run ; le sport
+  //     est repassé au niveau appelant si besoin d'affiner).
   // TTE thresholds
   tte: {
     insufficient: 40,
@@ -198,21 +193,20 @@ export const THRESHOLDS = {
 // ============================================
 
 /**
- * Détermine le statut VLamax par rapport à l'objectif
+ * Détermine le statut VLamax par rapport à l'objectif (SOURCE UNIQUE).
  */
 function getVlamaxStatus(
-  vlamax: VLamaxEffectif | null, 
-  objectif: string
+  vlamax: VLamaxEffectif | null,
+  objectif: string,
+  sport: SportType = 'bike',
 ): 'high' | 'moderate' | 'low' | 'unknown' {
   if (!vlamax || vlamax.value === null) return 'unknown';
-  
-  const thresholds = THRESHOLDS.vlamax[objectif as keyof typeof THRESHOLDS.vlamax] 
-    || THRESHOLDS.vlamax.default;
-  
-  if (vlamax.value > thresholds.high) return 'high';
-  if (vlamax.value < thresholds.low) return 'low';
+  const target = getVlamaxTarget(objectif, sport);
+  if (vlamax.value > target.max) return 'high';
+  if (vlamax.value < target.min) return 'low';
   return 'moderate';
 }
+
 
 /**
  * Détermine le statut TTE
