@@ -628,10 +628,15 @@ export default function AITrainingPlanPage() {
       const asInt = parseInt(s, 10);
       return Number.isFinite(asInt) && asInt > 0 ? asInt : null;
     };
-    const trailDistKm = parseFloat(trailDistanceKm) || null;
-    const trailDPlus = parseInt(trailElevationM, 10) || null;
-    const trailTargetMin = parseTargetTimeMin(trailTargetTimeH);
-    const trailMaxAlt = parseInt(trailMaxAltitudeM, 10) || null;
+    // Les champs distance/D+/temps/altitude sont saisis dans la section TRAIL du
+    // formulaire uniquement. Pour tout objectif standard (semi/marathon/10K/IM/…),
+    // la distance est CANONIQUE (dérivée de l'objectif côté promptHelpers) — on ne
+    // laisse PAS un `trailDistanceKm` résiduel écraser cette valeur.
+    const isTrailPrimary = (objective || "").toLowerCase().startsWith("trail");
+    const trailDistKm = isTrailPrimary ? (parseFloat(trailDistanceKm) || null) : null;
+    const trailDPlus = isTrailPrimary ? (parseInt(trailElevationM, 10) || null) : null;
+    const trailTargetMin = isTrailPrimary ? parseTargetTimeMin(trailTargetTimeH) : null;
+    const trailMaxAlt = isTrailPrimary ? (parseInt(trailMaxAltitudeM, 10) || null) : null;
     // Primary objective = A
     allRaceGoals.push({
       objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
@@ -2290,9 +2295,9 @@ export default function AITrainingPlanPage() {
                             objective,
                             raceName: raceName || undefined,
                             raceDate: raceDate || undefined,
-                            distanceKm: parseFloat(trailDistanceKm) || undefined,
-                            elevationGainM: parseInt(trailElevationM, 10) || undefined,
-                            maxAltitudeM: parseInt(trailMaxAltitudeM, 10) || undefined,
+                            distanceKm: (objective || "").toLowerCase().startsWith("trail") ? (parseFloat(trailDistanceKm) || undefined) : undefined,
+                            elevationGainM: (objective || "").toLowerCase().startsWith("trail") ? (parseInt(trailElevationM, 10) || undefined) : undefined,
+                            maxAltitudeM: (objective || "").toLowerCase().startsWith("trail") ? (parseInt(trailMaxAltitudeM, 10) || undefined) : undefined,
                           },
                           ...raceGoals,
                         ].filter(goal => goal.raceDate)}
