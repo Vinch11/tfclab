@@ -1007,6 +1007,7 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
               if (newGuardrails.length > 0) {
                 console.log(`🛟 ${newGuardrails.length} guardrail(s) queued for chunk ${ci + 2}`);
                 pendingGuardrails.push(...newGuardrails);
+              }
               // FIX (2026-07-08) : traçabilité frontières de chunks
               const finalWeeks = extractGeneratedWeekNumbers(combinedChunkText);
               const stillMissingFinal = expectedWeeks.filter(w => !finalWeeks.includes(w));
