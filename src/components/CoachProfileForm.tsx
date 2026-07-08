@@ -589,7 +589,10 @@ export function CoachProfileForm({
                             : "border-border hover:border-primary/40",
                         )}
                       >
-                        <div className="text-sm font-medium">{opt.label}</div>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="text-sm font-medium">{opt.label}</div>
+                          <CoachTip>{LIMITER_PEDAGOGY[opt.value]}</CoachTip>
+                        </div>
                         <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
                       </button>
                     );
