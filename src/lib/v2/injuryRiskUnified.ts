@@ -19,6 +19,8 @@ import type { VLamaxEffectif } from '../vlamaxEffectif';
 import type { TTEEffectif } from '../tteEffectif';
 import type { FatigueEffectif } from '../fatigueEffectif';
 import type { IFSCResult } from './ifsc';
+import { getVlamaxTarget } from './vlamaxTargets';
+
 
 // ============================================
 // 1️⃣ PHILOSOPHIE OFFICIELLE
