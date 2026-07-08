@@ -394,8 +394,10 @@ export default function AITrainingPlanPage() {
     const athleteSnapshots = getSnapshotsForAthlete(athlete.id);
     const athleteTests = getTestsForAthlete(athlete.id);
     const refs = getEffectiveRefs(athlete, athleteSnapshots);
-    const activeSnap = refs.snapshotUsed;
-    if (!activeSnap) return null;
+    // Coach form entry point: allow a synthetic (empty) snapshot when the athlete
+    // has no lab data yet. The coach form injects limiters manually downstream,
+    // so the diagnostic just needs a shape to hydrate from refs (fcMax/ftp/vma/css).
+    const activeSnap: any = refs.snapshotUsed ?? {};
 
     const ftpKg = computeFtpKg(refs);
 
