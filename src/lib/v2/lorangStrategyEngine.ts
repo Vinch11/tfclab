@@ -961,24 +961,39 @@ function activateLevers(
   }
   
   // LEVIER 2: SFR / Force Endurance
+  // Seuil modulé par l'ambition (mêmes multiplicateurs que Sprint Ban).
+  const sfrAmbition = (athlete as any).ambition || 'age_group';
+  const sfrMultiplier = getVlamaxSprintBanMultiplier(sfrAmbition);
+  const sfrIntensity = getReductionIntensity(sfrAmbition);
   const shouldActivateSFR = (
     primaryLimiter === 'glycolytic' ||
-    (physiology.vlamax !== null && physiology.vlamax > physiology.vlamaxTarget * 1.1)
+    (physiology.vlamax !== null && physiology.vlamax > physiology.vlamaxTarget * sfrMultiplier)
   ) && availability.level !== 'critical';
   
   if (shouldActivateSFR) {
+    const sfrSoft = sfrIntensity === 'soft';
     levers.push({
       lever: 'sfr_force_endurance',
       label: LEVER_DEFINITIONS.sfr_force_endurance.label,
       icon: LEVER_DEFINITIONS.sfr_force_endurance.icon,
-      priority: primaryLimiter === 'glycolytic' ? 1 : 2,
-      reason: "VLamax élevée — travail basse cadence pour réduire sollicitation glycolytique",
-      prescription: [
-        "Cadence 40–60 rpm",
-        "Zone Sweet Spot / Tempo",
-        "Blocs de 10–20 min",
-        "2–3x/semaine en phase Build",
-      ],
+      // Mode doux : priorité 2 (levier complémentaire, pas central).
+      priority: sfrSoft ? 2 : (primaryLimiter === 'glycolytic' ? 1 : 2),
+      reason: sfrSoft
+        ? `VLamax un peu élevée — travail basse cadence en complément (approche progressive, ambition ${sfrAmbition})`
+        : "VLamax élevée — travail basse cadence pour réduire sollicitation glycolytique",
+      prescription: sfrSoft
+        ? [
+            "Cadence 50–65 rpm (transition douce)",
+            "Zone tempo / Sweet Spot bas",
+            "Blocs de 5–10 min",
+            "1x/semaine max en phase Build",
+          ]
+        : [
+            "Cadence 40–60 rpm",
+            "Zone Sweet Spot / Tempo",
+            "Blocs de 10–20 min",
+            "2–3x/semaine en phase Build",
+          ],
       warnings: [
         "Progression progressive de la durée",
         "Surveiller les tensions genoux",
@@ -986,6 +1001,7 @@ function activateLevers(
       isStaffOnly: false,
     });
   }
+
   
   // LEVIER 3: Train Low (Staff Only)
   const isLongDistance = ['IM', '703', 'marathon', 'trail'].includes(athlete.discipline);
