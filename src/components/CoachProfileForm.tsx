@@ -11,7 +11,13 @@
  * ("Je ne sais pas") sont transmis comme ABSENTS. On n'invente RIEN.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, Save, User, AlertCircle } from "lucide-react";
+import { Sparkles, Save, User, AlertCircle, HelpCircle } from "lucide-react";
+
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 import {
   Dialog,
@@ -71,6 +77,22 @@ const METRIC_TO_LORANG: Record<string, LorangLimiter> = {
   "Economie": "neuromuscular",
 };
 
+// Notes pédagogiques "comment reconnaître cet athlète" — langage terrain, pas définition.
+const LIMITER_PEDAGOGY: Record<LorangLimiter, string> = {
+  motor: "L'athlète manque de cylindrée : il plafonne vite sur les efforts intenses, s'essouffle sur les côtes ou les accélérations. Typique du débutant ou de celui qui n'a jamais fait d'intensité.",
+  glycolytic: "L'athlète a du punch mais 's'éteint' vite : bon sur le court, il explose ses réserves sur la distance et 'meurt' en fin de course. Souvent un ancien sportif de sports explosifs (foot, sprint).",
+  durability: "L'athlète tient une bonne allure… mais pas longtemps. Il part bien puis décroche à mi-course. Le seuil est là, mais il ne le maintient pas.",
+  neuromuscular: "L'athlète 'rame' : foulée peu efficace, dépense trop d'énergie pour une allure donnée. Se fatigue plus vite que son niveau cardio ne le laisserait penser.",
+  metabolic: "L'athlète 'tape dans le mur' sur les sorties longues : coup de barre, fringale, baisse brutale. Il brûle trop de sucre, pas assez de gras. Crucial sur marathon/IM.",
+  availability: "L'athlète est déjà fatigué, stressé, dort mal, ou a peu de temps. La priorité n'est pas de le charger mais de le préserver. Vaut pour un athlète en surcharge de vie.",
+};
+
+const METABOLIC_PEDAGOGY: Record<MetabolicProfile, string> = {
+  sprinter: "Nerveux, explosif, à l'aise sur le court et les accélérations, mais s'épuise sur la distance. Ancien sport explosif fréquent.",
+  balanced: "Ni pur sprinteur ni pur diesel — polyvalent. Le cas le plus courant si tu hésites.",
+  diesel: "Régulier, endurant, à l'aise sur la durée mais peu de punch. Peut tenir longtemps sans exploser.",
+};
+
 export type MetabolicProfile = "sprinter" | "balanced" | "diesel";
 export type DurationMode = "date" | "free";
 
@@ -115,6 +137,32 @@ interface Props {
   onSubmit?: (payload: CoachProfileFormPayload) => void;
   /** Enregistre + lance la génération IA. */
   onGenerate: (payload: CoachProfileFormPayload) => void;
+}
+
+/** Petite icône "?" qui affiche une note pédagogique au survol / tap. */
+function CoachTip({ children }: { children: React.ReactNode }) {
+  return (
+    <HoverCard openDelay={150} closeDelay={100}>
+      <HoverCardTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center justify-center rounded-full p-0.5 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          aria-label="En savoir plus"
+        >
+          <HelpCircle className="h-3.5 w-3.5" />
+        </button>
+      </HoverCardTrigger>
+      <HoverCardContent
+        side="top"
+        align="start"
+        sideOffset={6}
+        className="w-72 p-3 text-sm leading-relaxed"
+      >
+        {children}
+      </HoverCardContent>
+    </HoverCard>
+  );
 }
 
 export function CoachProfileForm({
@@ -433,13 +481,16 @@ export function CoachProfileForm({
                         : "border-border hover:border-primary/40",
                     )}
                   >
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-start justify-between gap-2">
                       <span className="text-sm font-medium">{opt.label}</span>
+                      <CoachTip>{METABOLIC_PEDAGOGY[opt.v]}</CoachTip>
+                    </div>
+                    <div className="flex items-start justify-between gap-1 mt-1">
+                      <div className="text-xs text-muted-foreground">{opt.hint}</div>
                       {wasPre && !active && (
-                        <Badge variant="outline" className="text-[10px] py-0 px-1">estimé</Badge>
+                        <Badge variant="outline" className="text-[10px] py-0 px-1 flex-shrink-0">estimé</Badge>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
                   </button>
                 );
               })}
@@ -470,13 +521,16 @@ export function CoachProfileForm({
                         : "border-border hover:border-primary/40",
                     )}
                   >
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-start justify-between gap-2">
                       <span className="text-sm font-medium">{opt.label}</span>
+                      <CoachTip>{LIMITER_PEDAGOGY[opt.value]}</CoachTip>
+                    </div>
+                    <div className="flex items-start justify-between gap-1 mt-1">
+                      <div className="text-xs text-muted-foreground">{opt.hint}</div>
                       {wasPre && !touchedPrimary && (
-                        <Badge variant="outline" className="text-[10px] py-0 px-1">estimé</Badge>
+                        <Badge variant="outline" className="text-[10px] py-0 px-1 flex-shrink-0">estimé</Badge>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
                   </button>
                 );
               })}
@@ -535,7 +589,10 @@ export function CoachProfileForm({
                             : "border-border hover:border-primary/40",
                         )}
                       >
-                        <div className="text-sm font-medium">{opt.label}</div>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="text-sm font-medium">{opt.label}</div>
+                          <CoachTip>{LIMITER_PEDAGOGY[opt.value]}</CoachTip>
+                        </div>
                         <div className="text-xs text-muted-foreground mt-1">{opt.hint}</div>
                       </button>
                     );
