@@ -146,6 +146,11 @@ export function CoachProfileForm({
   const [sessionsPerWeek, setSessionsPerWeek] = useState<string>("");
   const [optionalOpen, setOptionalOpen] = useState(false);
 
+  // ─── Durée du plan (obligatoire, pas de défaut caché) ─────────────────────
+  const [durationMode, setDurationMode] = useState<DurationMode>("free");
+  const [raceDate, setRaceDate] = useState<string>("");     // yyyy-MM-dd
+  const [freeWeeks, setFreeWeeks] = useState<string>("");   // string pour input libre
+
   // Track whether the coach touched a pre-filled value (coach PRIME sur diagnostic).
   const [touchedPrimary, setTouchedPrimary] = useState(false);
   const [touchedSecondary, setTouchedSecondary] = useState(false);
@@ -166,6 +171,9 @@ export function CoachProfileForm({
         setSecondary(s.secondary ?? prefillSecondary ?? "unknown");
         setProhibitions(s.prohibitions ?? prefill?.prohibitions ?? []);
         setSessionsPerWeek(s.sessionsPerWeek ?? "");
+        setDurationMode(s.durationMode ?? "free");
+        setRaceDate(s.raceDate ?? "");
+        setFreeWeeks(s.freeWeeks ?? "");
         setTouchedPrimary(!!s.touchedPrimary);
         setTouchedSecondary(!!s.touchedSecondary);
         setOptionalOpen(!!s.optionalOpen);
@@ -178,6 +186,9 @@ export function CoachProfileForm({
       setSecondary(prefillSecondary ?? "unknown");
       setProhibitions(prefill?.prohibitions ?? []);
       setSessionsPerWeek("");
+      setDurationMode("free");
+      setRaceDate("");
+      setFreeWeeks("");
       setTouchedPrimary(false);
       setTouchedSecondary(false);
       setOptionalOpen(false);
@@ -193,16 +204,34 @@ export function CoachProfileForm({
         storageKey,
         JSON.stringify({
           metabolic, primary, secondary, prohibitions,
-          sessionsPerWeek, touchedPrimary, touchedSecondary, optionalOpen,
+          sessionsPerWeek, durationMode, raceDate, freeWeeks,
+          touchedPrimary, touchedSecondary, optionalOpen,
         }),
       );
     } catch {/* ignore */}
-  }, [open, storageKey, metabolic, primary, secondary, prohibitions, sessionsPerWeek, touchedPrimary, touchedSecondary, optionalOpen]);
+  }, [open, storageKey, metabolic, primary, secondary, prohibitions, sessionsPerWeek, durationMode, raceDate, freeWeeks, touchedPrimary, touchedSecondary, optionalOpen]);
 
-  const canSubmit = metabolic !== null && primary !== null;
+  // ─── Calcul de la durée effective ───────────────────────────────────────
+  const computedWeeks = useMemo<number | null>(() => {
+    if (durationMode === "date") {
+      if (!raceDate) return null;
+      try {
+        const race = new Date(raceDate + "T00:00:00");
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const days = Math.floor((race.getTime() - today.getTime()) / 86400000);
+        if (days < 0) return null;
+        return Math.max(1, Math.floor(days / 7) + 1);
+      } catch { return null; }
+    }
+    const n = parseInt(freeWeeks, 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [durationMode, raceDate, freeWeeks]);
+
+  const canSubmit = metabolic !== null && primary !== null && computedWeeks !== null && computedWeeks > 0;
 
   const build = (): CoachProfileFormPayload | null => {
-    if (!metabolic || !primary) return null;
+    if (!metabolic || !primary || !computedWeeks) return null;
     const primaryDef = LIMITER_OPTIONS.find((o) => o.value === primary)!;
     const secondaryDef =
       secondary !== "unknown" ? LIMITER_OPTIONS.find((o) => o.value === secondary) ?? null : null;
@@ -223,6 +252,9 @@ export function CoachProfileForm({
       secondaryLimiterMetric: secondaryDef ? secondaryDef.metric : null,
       prohibitions: Array.from(finalProhibitions),
       sessionsPerWeek: Number.isFinite(rawSpw) && rawSpw > 0 ? rawSpw : null,
+      durationMode,
+      raceDate: durationMode === "date" && raceDate ? raceDate : null,
+      weeksAvailable: computedWeeks,
       overriddenByCoach: {
         primary: touchedPrimary || !prefillPrimary,
         secondary: touchedSecondary || !prefillSecondary,
