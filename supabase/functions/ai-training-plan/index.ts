@@ -1007,6 +1007,13 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
               if (newGuardrails.length > 0) {
                 console.log(`🛟 ${newGuardrails.length} guardrail(s) queued for chunk ${ci + 2}`);
                 pendingGuardrails.push(...newGuardrails);
+              // FIX (2026-07-08) : traçabilité frontières de chunks
+              const finalWeeks = extractGeneratedWeekNumbers(combinedChunkText);
+              const stillMissingFinal = expectedWeeks.filter(w => !finalWeeks.includes(w));
+              if (stillMissingFinal.length > 0) {
+                console.warn(`⚠️ Chunk ${ci + 1} S${chunk.start}-S${chunk.end} : généré avec semaines manquantes ${stillMissingFinal.join(",")} (frontend affichera placeholder).`);
+              } else {
+                console.log(`✅ Chunk ${ci + 1}/${chunks.length} S${chunk.start}-S${chunk.end} : généré, validé (${finalWeeks.length}/${expectedWeeks.length} sem), streamé.`);
               }
             }
 
