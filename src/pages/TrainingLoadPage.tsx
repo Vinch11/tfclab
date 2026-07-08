@@ -102,7 +102,7 @@ export default function TrainingLoadPage() {
   }
 
   return (
-    <AppLayout title="Charge d'entraînement">
+    <AppLayout title="Charge d'entraînement" showBack>
       <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
