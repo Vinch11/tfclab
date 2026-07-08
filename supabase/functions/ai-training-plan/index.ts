@@ -688,8 +688,12 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
                   await sleep(INTER_CHUNK_DELAY_MS);
                   const fallbackResult = await generateAndStream(chunkPrompt, controller, encoder, FALLBACK_MODEL);
                   if (!fallbackResult.text) {
-                    console.error(`Chunk ${ci + 1} fallback also failed. Skipping to next chunk.`);
-                    continue;
+                    // FIX (2026-07-08) : ne PLUS "skipper" silencieusement — remonter une erreur visible.
+                    const msg = `Génération incomplète : bloc semaines S${chunk.start}-S${chunk.end} n'a pas pu être généré (2 retries + fallback modèle échoués). Relancer la génération.`;
+                    console.error(`❌ Chunk ${ci + 1} FATAL: ${msg}`);
+                    const errorPayload = `{"error":${JSON.stringify(msg)},"code":500,"missingChunk":"S${chunk.start}-S${chunk.end}"}`;
+                    controller.enqueue(encoder.encode(`data: ${errorPayload}\n\n`));
+                    break;
                   }
                   chunkText = fallbackResult.text;
                   combinedChunkText = chunkText;
