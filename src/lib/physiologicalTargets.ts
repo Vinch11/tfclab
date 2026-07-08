@@ -42,6 +42,8 @@
 
 
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
+import { getVlamaxTarget as _getVlamaxTargetCanonical } from "./v2/vlamaxTargets";
+
 
 // =============================================
 // CORE TYPES
