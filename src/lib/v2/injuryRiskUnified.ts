@@ -285,9 +285,10 @@ export function computeCAPInjuryRisk(input: CAPRiskInput): InjuryRiskEnvelope {
   
   // Calcul des composantes (4 piliers TFCL™)
   const fatigueComp = computeFatigueComponent(fatiguePct);
-  const vlamaxResult = computeCAPVlamaxComponent(vlamaxValue);
+  const vlamaxResult = computeCAPVlamaxComponent(vlamaxValue, objectif);
   const tteResult = computeCAPTTEComponent(tteMin, objectif);
   const economyResult = computeCAPEconomyComponent(economyLevel);
+  const vlaBand = vlamaxResult.target;
   
   // Construire les drivers (ordre TFCL™: Fatigue > VLamax > TTE > Économie)
   const drivers: InjuryRiskDriver[] = [
@@ -309,12 +310,13 @@ export function computeCAPInjuryRisk(input: CAPRiskInput): InjuryRiskEnvelope {
       component: vlamaxResult.component,
       weight: CAP_WEIGHTS.vlamax,
       impact: getDriverImpact(vlamaxResult.component),
-      explanation: vlamaxValue !== null && vlamaxValue > 0.55 
-        ? 'VLamax > 0.55 → +10-20 g/h glycolyse → contraintes mécaniques augmentées'
-        : vlamaxValue !== null && vlamaxValue < 0.35
-          ? 'VLamax < 0.35 → -10 g/h glycolyse → risque réduit'
-          : 'VLamax neutre (0.35-0.55) → risque standard'
+      explanation: vlamaxValue !== null && vlamaxValue > vlaBand.max 
+        ? `VLamax > ${vlaBand.max.toFixed(2)} (cible ${objectif}) → glycolyse accrue → contraintes mécaniques augmentées`
+        : vlamaxValue !== null && vlamaxValue < vlaBand.min
+          ? `VLamax < ${vlaBand.min.toFixed(2)} → oxydatif dominant → risque réduit`
+          : `VLamax dans la cible ${objectif} (${vlaBand.min.toFixed(2)}–${vlaBand.max.toFixed(2)}) → risque standard`
     },
+
     {
       id: 'tte',
       label: 'TTE effectif',
