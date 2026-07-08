@@ -1,8 +1,11 @@
 /**
  * ProfileChoiceDialog — Étape finale création athlète
- * Propose 2 voies : Démarrage rapide (Express) ou Profil complet (Diagnostic).
+ * Propose 2 voies : Saisie coach (Lorang manuel) ou Profil complet (Diagnostic).
+ *
+ * L'ancien "Démarrage Express" (qui devinait le profil FC-only) est remplacé
+ * par CoachProfileForm : le coach SAIT, on ne devine plus.
  */
-import { Rocket, FlaskConical } from "lucide-react";
+import { UserCog, FlaskConical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -24,10 +27,10 @@ interface Props {
 export function ProfileChoiceDialog({ open, onOpenChange, athleteId, athleteName }: Props) {
   const navigate = useNavigate();
 
-  const handleExpress = () => {
+  const handleCoachForm = () => {
     onOpenChange(false);
     navigate("/planning/ai-plan", {
-      state: { openExpress: true, athleteId },
+      state: { openCoachForm: true, athleteId },
     });
   };
 
@@ -47,24 +50,24 @@ export function ProfileChoiceDialog({ open, onOpenChange, athleteId, athleteName
         </DialogHeader>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          {/* Option 1 — Express */}
-          <div className="rounded-lg border border-teal-500/40 bg-teal-500/5 p-4 flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400">
-              <Rocket className="h-5 w-5" />
-              <span className="text-base font-semibold">🚀 Démarrage rapide</span>
+          {/* Option 1 — Saisie coach (Lorang manuel) */}
+          <div className="rounded-lg border border-primary/40 bg-primary/5 p-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-primary">
+              <UserCog className="h-5 w-5" />
+              <span className="text-base font-semibold">🧠 Saisie coach</span>
             </div>
             <div>
-              <p className="text-sm font-medium">Je veux un plan rapidement</p>
+              <p className="text-sm font-medium">Je connais le profil de l'athlète</p>
               <p className="text-xs text-muted-foreground mt-1">
-                5 minutes · Profil estimé · Zones FC uniquement
+                2 minutes · Limiteurs Lorang saisis manuellement · Aucune valeur inventée
               </p>
             </div>
             <Button
-              onClick={handleExpress}
-              className="mt-auto gap-2 bg-teal-600 hover:bg-teal-700 text-white"
+              onClick={handleCoachForm}
+              className="mt-auto gap-2"
             >
-              <Rocket className="h-4 w-4" />
-              Démarrage rapide
+              <UserCog className="h-4 w-4" />
+              Saisie coach
             </Button>
           </div>
 
@@ -88,10 +91,11 @@ export function ProfileChoiceDialog({ open, onOpenChange, athleteId, athleteName
         </div>
 
         <p className="text-xs text-muted-foreground text-center pt-2 border-t">
-          Le profil Express peut être complété à tout moment avec les Test Days pour
-          améliorer la précision du plan.
+          Les limiteurs saisis par le coach priment sur l'inférence automatique.
+          Ils peuvent être complétés à tout moment par un diagnostic complet.
         </p>
       </DialogContent>
     </Dialog>
   );
 }
+

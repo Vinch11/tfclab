@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { FinisherQuickStartDialog, type FinisherExpressPayload } from "@/components/FinisherQuickStartDialog";
+import { CoachProfileForm, type CoachProfileFormPayload, type CoachProfilePrefill, type MetabolicProfile } from "@/components/CoachProfileForm";
 import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, startOfDay } from "date-fns";
 
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -166,14 +167,22 @@ export default function AITrainingPlanPage() {
   const [isAdaptDialogOpen, setIsAdaptDialogOpen] = useState(false);
   const [coachId, setCoachId] = useState<string>("");
 
-  // F-EXPRESS — Démarrage rapide (finisher)
+  // F-EXPRESS — Démarrage rapide (finisher) — DEPRECATED, remplacé par CoachProfileForm.
   const [expressDialogOpen, setExpressDialogOpen] = useState(false);
   const [pendingExpressGen, setPendingExpressGen] = useState(false);
   const expressFlagRef = useRef(false);
 
+  // COACH FORM — Saisie manuelle des limiteurs Lorang (remplace Express Finisher).
+  const [coachFormOpen, setCoachFormOpen] = useState(false);
+
   // Handle navigation from PlanSyncAlert or ProfileChoiceDialog
   useEffect(() => {
-    const navState = location.state as { athleteId?: string; autoRegenerate?: boolean; openExpress?: boolean } | null;
+    const navState = location.state as {
+      athleteId?: string;
+      autoRegenerate?: boolean;
+      openExpress?: boolean;
+      openCoachForm?: boolean;
+    } | null;
     if (navState?.athleteId && navState?.autoRegenerate) {
       setSelectedAthleteId(navState.athleteId);
       setShowSyncBanner(true);
@@ -182,6 +191,11 @@ export default function AITrainingPlanPage() {
     if (navState?.openExpress) {
       if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
       setExpressDialogOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+    if (navState?.openCoachForm) {
+      if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
+      setCoachFormOpen(true);
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setSelectedAthleteId]);
@@ -779,6 +793,113 @@ export default function AITrainingPlanPage() {
     generatePlan(athleteContext.data, config);
   };
 
+  // ─── COACH FORM — Apply Lorang limiter overrides to config ────────────────
+  // Le coach saisit ce qu'il SAIT. Ces limiteurs REMPLACENT ceux du diagnostic
+  // dans identifiedLimiters/identifiedLimitersRaw/prohibitions transmis à
+  // useAITrainingPlan. On ne réinvente pas le moteur : on alimente le même flux.
+  const buildCoachOverrides = useCallback((payload: CoachProfileFormPayload, baseConfig: PlanConfig): PlanConfig => {
+    const cfg: PlanConfig = { ...baseConfig };
+
+    const primaryMetric = payload.primaryLimiterMetric;
+    const secondaryMetric = payload.secondaryLimiterMetric;
+
+    // identifiedLimitersRaw — noms de métriques (ordre coach = priorité)
+    const rawList = [primaryMetric];
+    if (secondaryMetric && secondaryMetric !== primaryMetric) rawList.push(secondaryMetric);
+    cfg.identifiedLimitersRaw = rawList;
+
+    // identifiedLimiters — markdown injecté chunk 1 (format coach-authored)
+    const md: string[] = [];
+    md.push(`## ⚙️ LIMITEURS SAISIS PAR LE COACH (source manuelle, prime sur inférence auto)`);
+    md.push(`Profil métabolique : **${payload.metabolicProfile === "sprinter" ? "Sprinteur / explosif (VLamax haute probable)" : payload.metabolicProfile === "diesel" ? "Diesel / endurant (moteur aérobie à développer)" : "Équilibré (aucun dominant métabolique)"}**`);
+    md.push("");
+    md.push(`### Limiteur #1 — ${primaryMetric} (jugement coach)`);
+    md.push(`- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine (Base/Build).`);
+    md.push(`- Catégorie Lorang : ${payload.primaryLimiter}`);
+    md.push("");
+    if (secondaryMetric) {
+      md.push(`### Limiteur #2 — ${secondaryMetric} (jugement coach)`);
+      md.push(`- ⚡ PRIORITÉ HAUTE : Ce limiteur doit recevoir la séance clé #2 de chaque semaine.`);
+      md.push(`- Catégorie Lorang : ${payload.secondaryLimiter}`);
+      md.push("");
+    } else {
+      md.push(`_Limiteur secondaire non renseigné par le coach → l'IA élargit son incertitude (aucun défaut inventé)._`);
+      md.push("");
+    }
+    md.push(`## RÈGLE DE PÉRIODISATION`);
+    md.push(`- Phase Base : Focus principal sur le Limiteur #1. #2 en maintien.`);
+    md.push(`- Phase Build : #1 toujours prioritaire, #2 monte en importance.`);
+    md.push(`- Phase Spécifique : intégration race-specific.`);
+    cfg.identifiedLimiters = md;
+
+    // Prohibitions — traduction texte pour le prompt
+    const prohibitionLabels: Record<string, string> = {
+      sprints: "🚫 Pas de sprints all-out (jugement coach).",
+      micro_intervals: "🚫 Pas de micro-intervalles explosifs <20s (jugement coach).",
+      vo2_heavy_blocks: "🚫 Pas de blocs VO2max longs ≥5min (jugement coach).",
+      erratic_pacing: "🚫 Pas de pacing erratique (jugement coach).",
+      train_low: "🚫 Pas de train-low / sleep-low (jugement coach).",
+    };
+    const prohibText = payload.prohibitions.map((p) => prohibitionLabels[p] || p);
+    if (prohibText.length > 0) {
+      // Merge sans dupliquer les prohibitions objectif-driven déjà présentes.
+      cfg.prohibitions = [...(cfg.prohibitions || []), ...prohibText];
+    }
+
+    if (payload.sessionsPerWeek && payload.sessionsPerWeek > 0) {
+      cfg.sessionsPerWeek = payload.sessionsPerWeek;
+    }
+
+    return cfg;
+  }, []);
+
+  // Pre-fill from auto diagnostic (metric names → Lorang categories, best-effort).
+  const coachPrefill = useMemo<CoachProfilePrefill | null>(() => {
+    if (!athleteContext) return null;
+    const ranked = [...athleteContext.diagnostic.limiter.gapAnalysis]
+      .filter((g) => g.weightedImpact > 0)
+      .sort((a, b) => b.weightedImpact - a.weightedImpact);
+    const primary = ranked[0]?.metric;
+    const secondary = ranked[1]?.metric;
+
+    // Métabolique estimé depuis VLamax vs cible (si connu).
+    const vla = athleteContext.diagnostic.effectifs?.vlamax?.value ?? null;
+    let metabolic: MetabolicProfile | undefined;
+    if (typeof vla === "number") {
+      if (vla >= 0.55) metabolic = "sprinter";
+      else if (vla <= 0.35) metabolic = "diesel";
+      else metabolic = "balanced";
+    }
+    return {
+      metabolicProfile: metabolic,
+      primaryLimiterMetric: primary,
+      secondaryLimiterMetric: secondary,
+    };
+  }, [athleteContext]);
+
+  const handleCoachFormGenerate = useCallback((payload: CoachProfileFormPayload) => {
+    if (!athleteContext) {
+      toast.error("Aucun contexte athlète — sélectionne un athlète d'abord.");
+      return;
+    }
+    const baseConfig = buildConfigFromDiag(athleteContext.diagnostic);
+    const config = buildCoachOverrides(payload, baseConfig);
+    // eslint-disable-next-line no-console
+    console.log("[CoachProfileForm] identifiedLimiters transmis:", {
+      raw: config.identifiedLimitersRaw,
+      prohibitions: config.prohibitions,
+      overriddenByCoach: payload.overriddenByCoach,
+    });
+    toast.success(`Limiteurs coach appliqués — génération en cours (${config.identifiedLimitersRaw?.join(" + ")}).`);
+    generatePlan(athleteContext.data, config);
+  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlan]);
+
+  const handleCoachFormSave = useCallback((payload: CoachProfileFormPayload) => {
+    // eslint-disable-next-line no-console
+    console.log("[CoachProfileForm] Profil enregistré (sans génération):", payload);
+    toast.success("Profil coach enregistré. Ouvre à nouveau le formulaire pour générer.");
+  }, []);
+
   // Multi-athlete batch generation
   const handleBatchGenerate = useCallback(async () => {
     if (selectedAthleteIds.length === 0) {
@@ -1273,6 +1394,17 @@ export default function AITrainingPlanPage() {
               Plan d'entraînement personnalisé par IA
             </p>
           </div>
+          {/* COACH FORM launcher — saisie manuelle limiteurs Lorang */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCoachFormOpen(true)}
+            className="flex items-center gap-1.5"
+            title="Saisir manuellement les limiteurs Lorang de cet athlète"
+          >
+            <User className="h-4 w-4" />
+            Profil coach
+          </Button>
           {/* Multi/Single toggle */}
           <Button
             variant={isMultiMode ? "default" : "outline"}
@@ -2243,6 +2375,15 @@ export default function AITrainingPlanPage() {
         onOpenChange={setExpressDialogOpen}
         defaultObjectif={currentAthlete?.objectif}
         onSubmit={handleExpressSubmit}
+      />
+      <CoachProfileForm
+        open={coachFormOpen}
+        onOpenChange={setCoachFormOpen}
+        athleteName={currentAthlete?.nom}
+        objectifLabel={OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective}
+        prefill={coachPrefill}
+        onSubmit={handleCoachFormSave}
+        onGenerate={handleCoachFormGenerate}
       />
     </AppLayout>
   );
