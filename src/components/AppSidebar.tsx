@@ -19,6 +19,7 @@ import {
   ScrollText,
   Sparkles,
   TrendingUp,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
