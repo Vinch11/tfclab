@@ -1257,7 +1257,7 @@ export default function AITrainingPlanPage() {
   const viewedMultiPlan = multiPlans.find(p => p.athleteId === viewedMultiAthleteId);
 
   return (
-    <AppLayout title="Plan IA TFCL™">
+    <AppLayout title="Plan IA TFCL™" showBack>
       <div className="max-w-5xl mx-auto space-y-6 p-4">
         {/* Header */}
         <div className="flex items-center gap-3">
