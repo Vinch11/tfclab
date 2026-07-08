@@ -19,6 +19,7 @@ import {
   ScrollText,
   Sparkles,
   TrendingUp,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -53,6 +54,7 @@ const navigationItems: NavItem[] = [
   { id: "athletes", label: "Athlètes", icon: Users, route: "/athletes" },
   { id: "essentiels", label: "Essentiels", icon: Sparkles, route: "/essentiels" },
   { id: "evolution", label: "Évolution", icon: TrendingUp, route: "/evolution" },
+  { id: "training-load", label: "Charge (CTL/ATL)", icon: Activity, route: "/training-load" },
   { id: "diagnostic", label: "Diagnostic", icon: Stethoscope, route: "/diagnostic" },
   { id: "planning", label: "Planification", icon: ClipboardList, route: "/planning" },
   { id: "simulation", label: "Simulation", icon: Timer, route: "/race" },
