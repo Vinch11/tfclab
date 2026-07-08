@@ -193,6 +193,8 @@ export function CoachProfileForm({
   );
   const [sessionsPerWeek, setSessionsPerWeek] = useState<string>("");
   const [optionalOpen, setOptionalOpen] = useState(false);
+  const [primaryHelpOpen, setPrimaryHelpOpen] = useState(false);
+  const [secondaryHelpOpen, setSecondaryHelpOpen] = useState(false);
 
   // ─── Durée du plan (obligatoire, pas de défaut caché) ─────────────────────
   const [durationMode, setDurationMode] = useState<DurationMode>("free");
