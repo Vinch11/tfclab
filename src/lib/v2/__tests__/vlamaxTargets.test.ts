@@ -57,13 +57,15 @@ describe('lorangStrategyEngine — modulation ambition préservée', () => {
     // On ré-implémente la condition côté test (pure) pour rester indépendant
     // du full input de computeLorangStrategy.
     const isLongDistance = ['IM', '703', 'marathon', 'trail'].includes('marathon');
-    const isFinisher = 'finisher' === 'finisher';
-    const shouldCheckSprintBan = isLongDistance && !isFinisher;
+    const ambition: string = 'finisher';
+    const shouldCheckSprintBan = isLongDistance && ambition !== 'finisher';
     expect(shouldCheckSprintBan).toBe(false);
 
     // Contrôle négatif : même profil avec ambition "competitor" ⇒ Sprint Ban possible
-    const shouldForCompetitor = isLongDistance && !('competitor' === 'finisher');
+    const ambition2: string = 'competitor';
+    const shouldForCompetitor = isLongDistance && ambition2 !== 'finisher';
     expect(shouldForCompetitor).toBe(true);
+
   });
 });
 
