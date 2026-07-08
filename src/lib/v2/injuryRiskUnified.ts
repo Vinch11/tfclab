@@ -529,8 +529,9 @@ export function computeBikeInjuryRisk(input: BikeRiskInput): InjuryRiskEnvelope 
   
   // Calcul des composantes (3 piliers TFCL™ Vélo)
   const fatigueComp = computeFatigueComponent(fatiguePct);
-  const vlamaxResult = computeBikeVlamaxComponent(vlamaxValue);
+  const vlamaxResult = computeBikeVlamaxComponent(vlamaxValue, objectif);
   const tteResult = computeBikeTTEComponent(tteMin, objectif);
+  const vlaBand = vlamaxResult.target;
   
   // Construire les drivers (ordre TFCL™: Fatigue > VLamax > TTE)
   const drivers: InjuryRiskDriver[] = [
@@ -552,12 +553,13 @@ export function computeBikeInjuryRisk(input: BikeRiskInput): InjuryRiskEnvelope 
       component: vlamaxResult.component,
       weight: BIKE_WEIGHTS.vlamax,
       impact: getDriverImpact(vlamaxResult.component),
-      explanation: vlamaxValue !== null && vlamaxValue > 0.55 
-        ? 'VLamax > 0.55 → dépendance glycolyse élevée → risque métabolique accru'
-        : vlamaxValue !== null && vlamaxValue < 0.35
-          ? 'VLamax < 0.35 → efficience aérobie → risque réduit'
-          : 'VLamax neutre → risque métabolique standard'
+      explanation: vlamaxValue !== null && vlamaxValue > vlaBand.max 
+        ? `VLamax > ${vlaBand.max.toFixed(2)} (cible ${objectif}) → dépendance glycolyse élevée → risque métabolique accru`
+        : vlamaxValue !== null && vlamaxValue < vlaBand.min
+          ? `VLamax < ${vlaBand.min.toFixed(2)} → efficience aérobie → risque réduit`
+          : `VLamax dans la cible ${objectif} (${vlaBand.min.toFixed(2)}–${vlaBand.max.toFixed(2)}) → risque standard`
     },
+
     {
       id: 'tte',
       label: 'TTE effectif',
