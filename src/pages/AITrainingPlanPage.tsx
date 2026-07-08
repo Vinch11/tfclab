@@ -884,15 +884,34 @@ export default function AITrainingPlanPage() {
       toast.error("Aucun contexte athlète — sélectionne un athlète d'abord.");
       return;
     }
+    if (!payload.weeksAvailable || payload.weeksAvailable <= 0) {
+      toast.error("Durée du plan manquante — renseigne une date de course ou une durée libre.");
+      return;
+    }
     const baseConfig = buildConfigFromDiag(athleteContext.diagnostic);
     const config = buildCoachOverrides(payload, baseConfig);
+
+    // ─── Durée pilotée par le coach form (mode date OU durée libre) ───
+    config.weeksAvailable = payload.weeksAvailable;
+    if (payload.durationMode === "free") {
+      // Pas de course datée : on retire raceDate/raceGoals pour que le moteur
+      // périodise base→build→peak sur N semaines sans taper de course.
+      config.raceDate = undefined;
+      config.raceGoals = undefined;
+    } else if (payload.raceDate) {
+      config.raceDate = payload.raceDate;
+    }
+
     // eslint-disable-next-line no-console
     console.log("[CoachProfileForm] identifiedLimiters transmis:", {
       raw: config.identifiedLimitersRaw,
       prohibitions: config.prohibitions,
+      weeksAvailable: config.weeksAvailable,
+      durationMode: payload.durationMode,
+      raceDate: config.raceDate ?? null,
       overriddenByCoach: payload.overriddenByCoach,
     });
-    toast.success(`Limiteurs coach appliqués — génération en cours (${config.identifiedLimitersRaw?.join(" + ")}).`);
+    toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
     generatePlan(athleteContext.data, config);
   }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlan]);
 
