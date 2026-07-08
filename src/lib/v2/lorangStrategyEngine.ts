@@ -865,43 +865,67 @@ function activateLevers(
   if (shouldActivateZ2) {
     const tteGap = getMetricGap("TTE");
     const vlamaxGap = getMetricGap("VLamax");
-    
+
+    // Agressivité modulée par l'ambition (cible universelle inchangée).
+    const ambition = (athlete as any).ambition || 'age_group';
+    const reductionIntensity = getReductionIntensity(ambition);
+    const isSoft = reductionIntensity === 'soft' && vlamaxIsLimiting && !tteIsLimiting;
+
     // Déterminer la raison principale
     let z2Reason: string;
     if (tteIsLimiting && tteGap && tteGap.gapPercent < 0) {
       z2Reason = `TTE ${Math.abs(clampPct(tteGap.gapPercent)).toFixed(0)}% sous la cible (${tteGap.value}min vs ${tteGap.target}min) — développer la durabilité`;
 
     } else if (vlamaxIsLimiting && vlamaxGap) {
-      z2Reason = `VLamax ${Math.abs(clampPct(vlamaxGap.gapPercent)).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
+      z2Reason = isSoft
+        ? `VLamax ${Math.abs(clampPct(vlamaxGap.gapPercent)).toFixed(0)}% au-dessus de la cible — construire progressivement la base aérobie (approche douce, ambition ${ambition})`
+        : `VLamax ${Math.abs(clampPct(vlamaxGap.gapPercent)).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
     } else {
       z2Reason = "Efficacité énergétique limitante — augmenter le volume aérobie de base";
     }
-    
+
+    const softPrescription = [
+      "Ajouter 1 sortie Z2 longue/sem (1h30-2h vélo / 60-90min CAP)",
+      "Garder de la variété : 1 séance intensité conservée/sem",
+      "Z2 avec finish tempo léger 15-20min (progressif)",
+      "Progression douce +5-8%/sem sur volume aérobie",
+    ];
+    const firmPrescription = tteIsLimiting
+      ? [
+          "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+          "2×20-30min au seuil pour augmenter le TTE",
+          "Z2 + bloc tempo final 20-30min",
+          "Progression charge +10%/semaine max",
+        ]
+      : [
+          "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+          "Z2 + bloc tempo final 20-30min",
+          "3-4 sorties Z2/semaine en phase Base",
+        ];
+
     levers.push({
       lever: 'z2_volume',
       label: LEVER_DEFINITIONS.z2_volume.label,
       icon: LEVER_DEFINITIONS.z2_volume.icon,
-      priority: (primaryLimiter === 'durability' || primaryLimiter === 'glycolytic' || primaryLimiter === 'metabolic') ? 1 : 2,
+      // Priorité abaissée en mode soft pour ne pas monopoliser tout le plan.
+      priority: isSoft
+        ? 2
+        : (primaryLimiter === 'durability' || primaryLimiter === 'glycolytic' || primaryLimiter === 'metabolic') ? 1 : 2,
       reason: z2Reason,
-      prescription: tteIsLimiting
+      prescription: isSoft ? softPrescription : firmPrescription,
+      warnings: isSoft
         ? [
-            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
-            "2×20-30min au seuil pour augmenter le TTE",
-            "Z2 + bloc tempo final 20-30min",
-            "Progression charge +10%/semaine max",
+            "Approche progressive — la base se construit sur 8-12 semaines",
+            "Ne pas supprimer complètement l'intensité (variété maintenue)",
           ]
         : [
-            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
-            "Z2 + bloc tempo final 20-30min",
-            "3-4 sorties Z2/semaine en phase Base",
+            "Progression volume max +10%/semaine",
+            "Maintenir au moins 1 jour OFF ou récup active",
           ],
-      warnings: [
-        "Progression volume max +10%/semaine",
-        "Maintenir au moins 1 jour OFF ou récup active",
-      ],
       isStaffOnly: false,
     });
   }
+
 
   // ═══════════════════════════════════════════════════════════════════════════
   // LEVIER: Force Max — Si économie faible ou âge > 35 ou neuromusculaire limitant
