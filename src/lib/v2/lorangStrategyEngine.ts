@@ -55,6 +55,58 @@ export function getVlamaxTarget(
   return _getVlamaxTargetCanonical(objectif, discipline);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODULATION AMBITION — Agressivité de la réduction VLamax (TFCL™)
+// ═══════════════════════════════════════════════════════════════════════════════
+// La CIBLE VLamax reste universelle (contrainte métabolique, `vlamaxTargets.ts`).
+// Ce sont la SÉVÉRITÉ du déclenchement et l'AGRESSIVITÉ de la réponse qui
+// varient selon l'ambition : un age-grouper n'a pas besoin d'un plan aussi
+// restrictif qu'un competitor pour tirer un bénéfice réel.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type AmbitionLevelKey =
+  | 'finisher' | 'age_group' | 'competitor' | 'elite' | 'world_class';
+
+export type ReductionIntensity = 'soft' | 'firm';
+
+/**
+ * Multiplicateur au-delà duquel on considère la VLamax "trop haute" et où on
+ * déclenche Sprint Ban + prescriptions restrictives. Plus l'ambition est
+ * modeste, plus on est tolérant (on ne serre la vis que si l'écart est marqué).
+ */
+export function getVlamaxSprintBanMultiplier(
+  ambition: AmbitionLevelKey | string | null | undefined,
+): number {
+  switch (ambition) {
+    case 'finisher':    return Infinity;   // jamais (double garde-fou)
+    case 'age_group':   return 1.25;       // large tolérance
+    case 'competitor':  return 1.15;
+    case 'elite':
+    case 'world_class': return 1.10;       // calage fin
+    default:            return 1.20;       // défaut prudent
+  }
+}
+
+/**
+ * Agressivité de la réponse "réduction VLamax" une fois le levier activé.
+ *   soft : on augmente le Z2 progressivement, on garde de la variété, message
+ *          encourageant (construire la base). Pas de Sprint Ban.
+ *   firm : priorité forte au Z2, prohibitions actives, message strict.
+ *
+ * Point 4 : la DÉTECTION du limiteur glycolytique (vlamaxGap > 0.15) reste
+ * inchangée — c'est un diagnostic. Mais un finisher/age_group diagnostiqué
+ * glycolytique ne se voit pas imposer une réponse "firm".
+ */
+export function getReductionIntensity(
+  ambition: AmbitionLevelKey | string | null | undefined,
+): ReductionIntensity {
+  return (ambition === 'competitor' || ambition === 'elite' || ambition === 'world_class')
+    ? 'firm'
+    : 'soft';
+}
+
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCORING VLAMAX UNIFIÉ — source unique partagée par Potentiel & Compass
@@ -813,43 +865,67 @@ function activateLevers(
   if (shouldActivateZ2) {
     const tteGap = getMetricGap("TTE");
     const vlamaxGap = getMetricGap("VLamax");
-    
+
+    // Agressivité modulée par l'ambition (cible universelle inchangée).
+    const ambition = (athlete as any).ambition || 'age_group';
+    const reductionIntensity = getReductionIntensity(ambition);
+    const isSoft = reductionIntensity === 'soft' && vlamaxIsLimiting && !tteIsLimiting;
+
     // Déterminer la raison principale
     let z2Reason: string;
     if (tteIsLimiting && tteGap && tteGap.gapPercent < 0) {
       z2Reason = `TTE ${Math.abs(clampPct(tteGap.gapPercent)).toFixed(0)}% sous la cible (${tteGap.value}min vs ${tteGap.target}min) — développer la durabilité`;
 
     } else if (vlamaxIsLimiting && vlamaxGap) {
-      z2Reason = `VLamax ${Math.abs(clampPct(vlamaxGap.gapPercent)).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
+      z2Reason = isSoft
+        ? `VLamax ${Math.abs(clampPct(vlamaxGap.gapPercent)).toFixed(0)}% au-dessus de la cible — construire progressivement la base aérobie (approche douce, ambition ${ambition})`
+        : `VLamax ${Math.abs(clampPct(vlamaxGap.gapPercent)).toFixed(0)}% au-dessus de la cible — volume Z2 pour abaisser la glycolyse`;
     } else {
       z2Reason = "Efficacité énergétique limitante — augmenter le volume aérobie de base";
     }
-    
+
+    const softPrescription = [
+      "Ajouter 1 sortie Z2 longue/sem (1h30-2h vélo / 60-90min CAP)",
+      "Garder de la variété : 1 séance intensité conservée/sem",
+      "Z2 avec finish tempo léger 15-20min (progressif)",
+      "Progression douce +5-8%/sem sur volume aérobie",
+    ];
+    const firmPrescription = tteIsLimiting
+      ? [
+          "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+          "2×20-30min au seuil pour augmenter le TTE",
+          "Z2 + bloc tempo final 20-30min",
+          "Progression charge +10%/semaine max",
+        ]
+      : [
+          "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
+          "Z2 + bloc tempo final 20-30min",
+          "3-4 sorties Z2/semaine en phase Base",
+        ];
+
     levers.push({
       lever: 'z2_volume',
       label: LEVER_DEFINITIONS.z2_volume.label,
       icon: LEVER_DEFINITIONS.z2_volume.icon,
-      priority: (primaryLimiter === 'durability' || primaryLimiter === 'glycolytic' || primaryLimiter === 'metabolic') ? 1 : 2,
+      // Priorité abaissée en mode soft pour ne pas monopoliser tout le plan.
+      priority: isSoft
+        ? 2
+        : (primaryLimiter === 'durability' || primaryLimiter === 'glycolytic' || primaryLimiter === 'metabolic') ? 1 : 2,
       reason: z2Reason,
-      prescription: tteIsLimiting
+      prescription: isSoft ? softPrescription : firmPrescription,
+      warnings: isSoft
         ? [
-            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
-            "2×20-30min au seuil pour augmenter le TTE",
-            "Z2 + bloc tempo final 20-30min",
-            "Progression charge +10%/semaine max",
+            "Approche progressive — la base se construit sur 8-12 semaines",
+            "Ne pas supprimer complètement l'intensité (variété maintenue)",
           ]
         : [
-            "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
-            "Z2 + bloc tempo final 20-30min",
-            "3-4 sorties Z2/semaine en phase Base",
+            "Progression volume max +10%/semaine",
+            "Maintenir au moins 1 jour OFF ou récup active",
           ],
-      warnings: [
-        "Progression volume max +10%/semaine",
-        "Maintenir au moins 1 jour OFF ou récup active",
-      ],
       isStaffOnly: false,
     });
   }
+
 
   // ═══════════════════════════════════════════════════════════════════════════
   // LEVIER: Force Max — Si économie faible ou âge > 35 ou neuromusculaire limitant
@@ -885,24 +961,39 @@ function activateLevers(
   }
   
   // LEVIER 2: SFR / Force Endurance
+  // Seuil modulé par l'ambition (mêmes multiplicateurs que Sprint Ban).
+  const sfrAmbition = (athlete as any).ambition || 'age_group';
+  const sfrMultiplier = getVlamaxSprintBanMultiplier(sfrAmbition);
+  const sfrIntensity = getReductionIntensity(sfrAmbition);
   const shouldActivateSFR = (
     primaryLimiter === 'glycolytic' ||
-    (physiology.vlamax !== null && physiology.vlamax > physiology.vlamaxTarget * 1.1)
+    (physiology.vlamax !== null && physiology.vlamax > physiology.vlamaxTarget * sfrMultiplier)
   ) && availability.level !== 'critical';
   
   if (shouldActivateSFR) {
+    const sfrSoft = sfrIntensity === 'soft';
     levers.push({
       lever: 'sfr_force_endurance',
       label: LEVER_DEFINITIONS.sfr_force_endurance.label,
       icon: LEVER_DEFINITIONS.sfr_force_endurance.icon,
-      priority: primaryLimiter === 'glycolytic' ? 1 : 2,
-      reason: "VLamax élevée — travail basse cadence pour réduire sollicitation glycolytique",
-      prescription: [
-        "Cadence 40–60 rpm",
-        "Zone Sweet Spot / Tempo",
-        "Blocs de 10–20 min",
-        "2–3x/semaine en phase Build",
-      ],
+      // Mode doux : priorité 2 (levier complémentaire, pas central).
+      priority: sfrSoft ? 2 : (primaryLimiter === 'glycolytic' ? 1 : 2),
+      reason: sfrSoft
+        ? `VLamax un peu élevée — travail basse cadence en complément (approche progressive, ambition ${sfrAmbition})`
+        : "VLamax élevée — travail basse cadence pour réduire sollicitation glycolytique",
+      prescription: sfrSoft
+        ? [
+            "Cadence 50–65 rpm (transition douce)",
+            "Zone tempo / Sweet Spot bas",
+            "Blocs de 5–10 min",
+            "1x/semaine max en phase Build",
+          ]
+        : [
+            "Cadence 40–60 rpm",
+            "Zone Sweet Spot / Tempo",
+            "Blocs de 10–20 min",
+            "2–3x/semaine en phase Build",
+          ],
       warnings: [
         "Progression progressive de la durée",
         "Surveiller les tensions genoux",
@@ -910,6 +1001,7 @@ function activateLevers(
       isStaffOnly: false,
     });
   }
+
   
   // LEVIER 3: Train Low (Staff Only)
   const isLongDistance = ['IM', '703', 'marathon', 'trail'].includes(athlete.discipline);
@@ -1030,10 +1122,19 @@ function computeProhibitions(
   // For semi/shorter distances: sprints are BENEFICIAL (neuromuscular, economy) → NO Sprint Ban
   // For Finisher ambition: VLamax optimization is irrelevant → NO Sprint Ban
   const shouldCheckSprintBan = isLongDistance && !isFinisher;
-  
-  const vlamaxTooHigh = physiology.vlamax !== null && 
+
+  // Multiplicateur de déclenchement modulé par l'ambition (cible universelle
+  // inchangée — on module l'AGRESSIVITÉ, pas la cible physiologique).
+  //   finisher  : Infinity (jamais)
+  //   age_group : ×1.25 (tolérant)
+  //   competitor: ×1.15
+  //   elite / wc: ×1.10
+  const sprintBanMultiplier = getVlamaxSprintBanMultiplier(ambition);
+  const vlamaxTooHigh = physiology.vlamax !== null &&
     physiology.vlamaxTarget > 0 &&
-    physiology.vlamax > physiology.vlamaxTarget * 1.1;
+    Number.isFinite(sprintBanMultiplier) &&
+    physiology.vlamax > physiology.vlamaxTarget * sprintBanMultiplier;
+
   
   // Sprint Ban Mode — only for long distance + non-finisher + VLamax actually too high
   if (shouldCheckSprintBan && vlamaxTooHigh) {
