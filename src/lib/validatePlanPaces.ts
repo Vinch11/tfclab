@@ -57,7 +57,12 @@ export interface PaceValidationReport {
 const PACE_RX = /(\d{1,2})[:'′’](\d{2})\s*\/\s*km/gi;
 // Fourchette d'allures "4:15-4:40/km" ou "4:15-4:40 /km"
 const PACE_RANGE_RX = /(\d{1,2}[:'′’]\d{2})\s*[-–]\s*(\d{1,2}[:'′’]\d{2})\s*\/\s*km/gi;
-const TOL_SEC = 8;
+// Whitelist stricte : on ne réécrit QUE si la dérive est grossière (>30s/km).
+// En-dessous, on considère que l'IA a fait un choix pédagogique légitime.
+const HARD_DEVIATION_SEC = 30;
+// Marqueurs de séance composite : plusieurs allures légitimes coexistent,
+// le correcteur zone-aware ne peut pas trancher → on n'y touche pas.
+const COMPOSITE_MARKERS = /simulation|n[eé]gative\s*split|neg[- ]?split|fartlek|insert|progressif|progression|brick|sl\s*avec|long\s*run.*avec|surge|pyramide|tempo\s*continu|race[- ]?sim/i;
 
 function fmt(sec: number): string {
   return `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}/km`;
