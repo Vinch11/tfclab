@@ -38,6 +38,10 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
+import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { validatePlanPaces } from "@/lib/validatePlanPaces";
+import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
+
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
