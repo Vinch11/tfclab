@@ -654,7 +654,7 @@ export default function AITrainingPlanPage() {
           } catch { raceWeekNumber = plan.weeks.length; }
 
           applyTaperVolumeOverride(plan, d.volumeCible, { raceWeekNumber });
-          validatePlanPaces(plan, d.paceTargets);
+          validatePlanPaces(plan, d.paceTargets, objective);
 
           // (4) Récapitulatif post-process — visibilité prioritaire via console.warn
           // pour éviter la troncature console sur les longs plans.
