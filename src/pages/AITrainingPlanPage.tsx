@@ -610,17 +610,24 @@ export default function AITrainingPlanPage() {
         // eslint-disable-next-line no-console
         console.log(`📦 postProcess START — plan assemblé (${plan.weeks.length} semaines, ${response.length} chars)`);
         try {
-          const userWH = parseFloat(weeklyHours);
-          const userWHValid = Number.isFinite(userWH) && userWH > 0;
-          const effectiveWH = resolveEffectiveWeeklyHours(weeklyHours, objective, ambition);
-          const usedFallback = !userWHValid && effectiveWH != null;
-          // Déclassement d'ambition en amont (une seule mutation) — la source de vérité
-          // ici et dans planConfigBuilder doit rester alignée.
+          // (1) Ambition effective D'ABORD — le fallback weeklyHours doit être indexé
+          // sur l'ambition consommée par le plan, pas l'ambition saisie.
           const ambRes = computeAmbitionEffective({
             ambitionSaisie: ambition,
             trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
             tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
           });
+
+          // (2) weeklyHours — user prime, sinon fallback sur l'ambition EFFECTIVE
+          const userWH = parseFloat(weeklyHours);
+          const userWHValid = Number.isFinite(userWH) && userWH > 0;
+          const effectiveWH = resolveEffectiveWeeklyHours(
+            weeklyHours,
+            objective,
+            ambRes.ambitionEffective,
+          );
+          const usedFallback = !userWHValid && effectiveWH != null;
+
           const d = deriveRaceTargets({
             vmaKmh: athleteContext?.data?.vma ?? null,
             thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
@@ -628,23 +635,62 @@ export default function AITrainingPlanPage() {
             ambition: ambRes.ambitionEffective,
             weeklyHours: effectiveWH,
           });
-          applyTaperVolumeOverride(plan, d.volumeCible);
+
+          // (3) Race week index — dérivé de raceDate + planStartDate quand dispo,
+          // fallback à la dernière semaine du plan. Sert à l'override taper/race.
+          let raceWeekNumber: number | null = null;
+          try {
+            const allDates = [raceDate, ...raceGoals.map(g => g.raceDate)].filter(Boolean) as string[];
+            if (allDates.length > 0 && planStartDate) {
+              const latest = allDates.sort().pop()!;
+              const race = startOfDay(parseISO(latest));
+              const start = startOfDay(planStartDate);
+              const days = differenceInCalendarDays(race, start);
+              if (days >= 0) {
+                raceWeekNumber = Math.min(Math.floor(days / 7) + 1, plan.weeks.length);
+              }
+            }
+            if (!raceWeekNumber) raceWeekNumber = plan.weeks.length;
+          } catch { raceWeekNumber = plan.weeks.length; }
+
+          applyTaperVolumeOverride(plan, d.volumeCible, { raceWeekNumber });
           validatePlanPaces(plan, d.paceTargets);
 
-          // (d) — Récapitulatif post-process : ENTRY / APPLIED / SKIPPED / fallback
+          // (4) Récapitulatif post-process — visibilité prioritaire via console.warn
+          // pour éviter la troncature console sur les longs plans.
           const isTaper = (w: typeof plan.weeks[0]) =>
-            /taper|aff[uû]t|volume\s*cut|course|race\s*week|jour\s*j|semaine\s*de\s*course/i.test(
-              `${w.theme} ${w.phase} ${w.coachNotes || ""}`
-            );
+            (raceWeekNumber !== null && (w.weekNumber === raceWeekNumber || w.weekNumber === raceWeekNumber - 1))
+            || /taper|aff[uû]t|volume\s*cut|race\s*week/i.test(`${w.theme} ${w.phase} ${w.coachNotes || ""}`);
           const taperWeeks = plan.weeks.filter(isTaper);
           const applied = taperWeeks.filter(w => / \(taper ×/.test(w.volumeTarget || "")).length;
           const skipped = taperWeeks.length - applied;
+
+          // Instrumentation : semaines observées + headers ### Semaine détectés dans le markdown
+          const weekNums = plan.weeks.map(w => w.weekNumber).join(",");
+          const headerNums = Array.from(
+            (response.match(/###?\s*\*{0,2}\s*Semaine\s*(\d+)/gi) || []).reduce((acc, m) => {
+              const n = parseInt(m.replace(/\D/g, ""), 10);
+              if (Number.isFinite(n)) acc.add(n);
+              return acc;
+            }, new Set<number>())
+          ).sort((a, b) => a - b).join(",");
+          const expected = weeksAvailable ?? plan.weeks.length;
+          const parity = plan.weeks.length === expected ? "OK" : "MISMATCH";
+
           // eslint-disable-next-line no-console
-          console.log(
-            `📦 SUMMARY: ${plan.weeks.length}/11 semaines, ${applied} applied, ${skipped} skipped, fallback: ${usedFallback ? "oui" : "non"}` +
+          console.warn(
+            `📦 SUMMARY: ${plan.weeks.length}/${expected} semaines [${parity}], ${applied} applied, ${skipped} skipped, fallback: ${usedFallback ? "oui" : "non"}` +
+            ` — parsed=[${weekNums}] headersInMarkdown=[${headerNums}] raceWeek=${raceWeekNumber}` +
             ` (userWH=${userWHValid ? userWH + "h" : "vide"}, effectiveWH=${effectiveWH ?? "null"}h, volumeCible=${d.volumeCible ?? "null"}h,` +
             ` ambitionSaisie=${ambRes.ambitionSaisie}, ambitionEffective=${ambRes.ambitionEffective}${ambRes.downgraded ? " ⬇️" : ""})`
           );
+          if (parity === "MISMATCH") {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `📦 SUMMARY MISMATCH — parser=${plan.weeks.length}, expected=${expected}, headersInMarkdown=${headerNums.split(",").filter(Boolean).length}.` +
+              ` Fin de markdown (400 derniers chars) : …${response.slice(-400)}`
+            );
+          }
         } catch (e) {
           console.warn("📦 postProcess FAILED", e);
         }
@@ -652,7 +698,7 @@ export default function AITrainingPlanPage() {
       return plan;
     } catch { return null; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, athleteContext]);
+  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, athleteContext, raceDate, raceGoals, planStartDate, weeksAvailable]);
 
 
   // ═══════════════════════════════════════════════════════════════════════════
