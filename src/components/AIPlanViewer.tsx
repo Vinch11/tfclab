@@ -689,6 +689,8 @@ interface AIPlanViewerProps {
   /** Contexte pour GapAmbitionPanel (100% frontend, déterministe). */
   gapContext?: {
     ambition?: string | null;
+    /** Ambition effective si déclassement appliqué (min(saisie, max(niveau))). */
+    ambitionEffective?: string | null;
     objective?: string | null;
     weeklyHours?: number | null;
     vmaKmh?: number | null;
@@ -1347,6 +1349,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           vmaKmh={gapContext.vmaKmh}
           thresholdPaceSecPerKm={gapContext.thresholdPaceSecPerKm}
           ambition={gapContext.ambition}
+          ambitionEffective={gapContext.ambitionEffective}
           objective={gapContext.objective}
           weeklyHours={gapContext.weeklyHours}
         />

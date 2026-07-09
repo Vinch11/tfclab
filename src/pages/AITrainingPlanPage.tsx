@@ -39,6 +39,7 @@ import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
 import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
 import { resolveEffectiveWeeklyHours } from "@/lib/defaultWeeklyHours";
@@ -613,11 +614,18 @@ export default function AITrainingPlanPage() {
           const userWHValid = Number.isFinite(userWH) && userWH > 0;
           const effectiveWH = resolveEffectiveWeeklyHours(weeklyHours, objective, ambition);
           const usedFallback = !userWHValid && effectiveWH != null;
+          // Déclassement d'ambition en amont (une seule mutation) — la source de vérité
+          // ici et dans planConfigBuilder doit rester alignée.
+          const ambRes = computeAmbitionEffective({
+            ambitionSaisie: ambition,
+            trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
+            tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+          });
           const d = deriveRaceTargets({
             vmaKmh: athleteContext?.data?.vma ?? null,
             thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
             objective,
-            ambition,
+            ambition: ambRes.ambitionEffective,
             weeklyHours: effectiveWH,
           });
           applyTaperVolumeOverride(plan, d.volumeCible);
@@ -634,7 +642,8 @@ export default function AITrainingPlanPage() {
           // eslint-disable-next-line no-console
           console.log(
             `📦 SUMMARY: ${plan.weeks.length}/11 semaines, ${applied} applied, ${skipped} skipped, fallback: ${usedFallback ? "oui" : "non"}` +
-            ` (userWH=${userWHValid ? userWH + "h" : "vide"}, effectiveWH=${effectiveWH ?? "null"}h, volumeCible=${d.volumeCible ?? "null"}h)`
+            ` (userWH=${userWHValid ? userWH + "h" : "vide"}, effectiveWH=${effectiveWH ?? "null"}h, volumeCible=${d.volumeCible ?? "null"}h,` +
+            ` ambitionSaisie=${ambRes.ambitionSaisie}, ambitionEffective=${ambRes.ambitionEffective}${ambRes.downgraded ? " ⬇️" : ""})`
           );
         } catch (e) {
           console.warn("📦 postProcess FAILED", e);
@@ -643,7 +652,7 @@ export default function AITrainingPlanPage() {
       return plan;
     } catch { return null; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, isLoading, objective, ambition, weeklyHours]);
+  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, athleteContext]);
 
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -2382,13 +2391,21 @@ export default function AITrainingPlanPage() {
                             ? buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections
                             : undefined
                         }
-                        gapContext={{
-                          ambition,
-                          objective,
-                          weeklyHours: parseFloat(weeklyHours) || null,
-                          vmaKmh: athleteContext?.data?.vma ?? null,
-                          thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
-                        }}
+                        gapContext={(() => {
+                          const ambRes = computeAmbitionEffective({
+                            ambitionSaisie: ambition,
+                            trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
+                            tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+                          });
+                          return {
+                            ambition, // saisie — gap calculé vers l'objectif visé par l'utilisateur
+                            ambitionEffective: ambRes.downgraded ? ambRes.ambitionEffective : undefined,
+                            objective,
+                            weeklyHours: parseFloat(weeklyHours) || null,
+                            vmaKmh: athleteContext?.data?.vma ?? null,
+                            thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
+                          };
+                        })()}
                       />
 
                     </>

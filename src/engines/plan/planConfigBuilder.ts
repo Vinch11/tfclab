@@ -16,6 +16,8 @@ import type { UnifiedLimiterResult } from "@/engines/diagnostic";
 import { computeAdaptationPrediction, type AdaptationPredictorInput } from "@/lib/v2/adaptationPredictor";
 import { computeCRR, computeChargeScore, getCRRTargets } from "@/lib/chargeRecenteReference";
 import { computeTrailProfile, isTrailObjective } from "@/lib/trailProfile";
+import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
+import { AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATHLETE DATA EXTRACTION
@@ -118,17 +120,34 @@ export function buildPlanConfigFromDiagnostic(
   coachLimiterOrder?: string[]  // Coach-overridden limiter order (metric names)
 ): PlanConfig {
   const limiterResult = diagnostic.limiter;
-  
+
+  // ── Ambition Effective (déclassement en amont) ────────────────────────────
+  // UNE seule mutation : ambitionEffective = min(saisie, max(niveau d'entraînement)).
+  // Tout ce qui dérive de l'ambition (volumes, qualités/sem, catalogues signature,
+  // pctVMA, progressionPct, prohibitions) DOIT consommer ambitionEffective.
+  const ambitionResolution = computeAmbitionEffective({
+    ambitionSaisie: formConfig.ambition ?? diagnostic.ambition,
+    trainingLevel: formConfig.trainingLevel,
+    tss7d: diagnostic._rawInput.tss7d ?? null,
+  });
+  const effectiveAmbitionLabel = AMBITION_DEFINITIONS[ambitionResolution.ambitionEffective].label;
+  // Mutation locale : formConfig.ambition remplacé par le label effectif pour tout le reste du builder.
+  const effectiveFormConfig: PlanFormConfig = { ...formConfig, ambition: effectiveAmbitionLabel };
+
   // ── Limiteurs enrichis ────────────────────────────────────────────────────
   const limiters = formatLimitersForPrompt(limiterResult, diagnostic.objectif, coachLimiterOrder);
+  // Note visible dans le Diagnostic TFCL du plan (prépendée si déclassement)
+  if (ambitionResolution.diagnosticNote) {
+    limiters.unshift(
+      `## 🎯 AMBITION AJUSTÉE`,
+      ambitionResolution.diagnosticNote,
+      ""
+    );
+  }
   // ── Limiteurs RAW (noms de métriques, ordre prioritaire) — pour chunks 2..N
   const limitersRaw = buildLimitersRawList(limiterResult, coachLimiterOrder);
 
   // ── Leviers (L1 + L2) ──────────────────────────────────────────────────────
-  // ✅ FIX AUDIT V6 — On utilise `secondaryLever` (hybride catégoriel
-  // dominant+0.4×others) issu du moteur unifié, au lieu de re-deriver depuis
-  // gapAnalysis[1] (impact individuel). Garantit la cohérence avec la
-  // hiérarchie des limiteurs exposée à l'UI et au prompt IA.
   const leverIds: string[] = [limiterResult.primaryLever];
   if (
     limiterResult.secondaryLever &&
@@ -141,8 +160,8 @@ export function buildPlanConfigFromDiagnostic(
     .map(l => LEVER_LABELS[l] || l)
     .filter(Boolean);
 
-  // ── Prohibitions ──────────────────────────────────────────────────────────
-  const prohibitions = buildProhibitions(limiterResult, diagnostic.objectif, diagnostic.ambition);
+  // ── Prohibitions (utilise l'ambition EFFECTIVE) ───────────────────────────
+  const prohibitions = buildProhibitions(limiterResult, diagnostic.objectif, ambitionResolution.ambitionEffective);
 
   // ── Adaptation Projections ────────────────────────────────────────────────
   const projections = buildAdaptationProjections(diagnostic, formConfig.weeksAvailable);
@@ -250,7 +269,17 @@ export function buildPlanConfigFromDiagnostic(
     sessionsPerWeek: formConfig.sessionsPerWeek,
     maxSessionsPerDay: formConfig.maxSessionsPerDay,
     strengthSessionsPerWeek: formConfig.strengthSessionsPerWeek,
-    ambition: formConfig.ambition,
+    ambition: effectiveFormConfig.ambition,
+    ambitionMeta: {
+      saisie: ambitionResolution.ambitionSaisie,
+      effective: ambitionResolution.ambitionEffective,
+      saisieLabel: AMBITION_DEFINITIONS[ambitionResolution.ambitionSaisie].label,
+      effectiveLabel: effectiveAmbitionLabel,
+      downgraded: ambitionResolution.downgraded,
+      trainingLevel: ambitionResolution.effectiveTrainingLevel,
+      trainingLevelSource: ambitionResolution.trainingLevelSource,
+      diagnosticNote: ambitionResolution.diagnosticNote,
+    },
     constraints: formConfig.constraints,
     identifiedLimiters: limiters.length > 0 ? limiters : undefined,
     identifiedLimitersRaw: limitersRaw.length > 0 ? limitersRaw : undefined,
