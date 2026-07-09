@@ -1,3 +1,4 @@
+// ⚠️ DUPLIQUÉ dans src/lib/raceAnalysis.ts — toute modif doit être appliquée aux deux
 // ⚠️ DUPLIQUÉ dans supabase/functions/_shared/raceAnalysis.ts — toute modif doit être appliquée aux deux
 // =============================================
 // RACE ANALYSIS — pure functions (Deno + browser)
