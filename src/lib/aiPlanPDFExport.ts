@@ -52,13 +52,15 @@ function fmtSecTime(sec: number): string {
 function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
   if (!ctx || (!ctx.vmaKmh && !ctx.thresholdPaceSecPerKm)) return "";
   const objKey = normObjPdf(ctx.objective || "");
-  const ambKey = normAmbPdf(ctx.ambition || "");
+  // Structure appliquée = ambition EFFECTIVE (après déclassement niveau d'entraînement).
+  const ambSource = ctx.ambitionEffective || ctx.ambition || "";
+  const ambKey = normAmbPdf(ambSource);
   if (!objKey) return "";
   const derived = deriveRaceTargets({
     vmaKmh: ctx.vmaKmh ?? null,
     thresholdPaceSecPerKm: ctx.thresholdPaceSecPerKm ?? null,
     objective: ctx.objective || "",
-    ambition: ctx.ambition || "",
+    ambition: ambSource,
     weeklyHours: ctx.weeklyHours ?? null,
   });
   const stdTime = REFERENCE_STANDARDS_PDF[objKey]?.[ambKey] ?? "—";
@@ -249,6 +251,8 @@ export type PlanPDFDetailLevel = "full" | "compact";
 
 export interface PDFGapContext {
   ambition?: string | null;
+  /** Ambition effective (après déclassement niveau d'entraînement). Utilisée pour la structure. */
+  ambitionEffective?: string | null;
   objective?: string | null;
   weeklyHours?: number | null;
   vmaKmh?: number | null;
