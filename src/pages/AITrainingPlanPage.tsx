@@ -613,11 +613,18 @@ export default function AITrainingPlanPage() {
           const userWHValid = Number.isFinite(userWH) && userWH > 0;
           const effectiveWH = resolveEffectiveWeeklyHours(weeklyHours, objective, ambition);
           const usedFallback = !userWHValid && effectiveWH != null;
+          // Déclassement d'ambition en amont (une seule mutation) — la source de vérité
+          // ici et dans planConfigBuilder doit rester alignée.
+          const ambRes = computeAmbitionEffective({
+            ambitionSaisie: ambition,
+            trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
+            tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+          });
           const d = deriveRaceTargets({
             vmaKmh: athleteContext?.data?.vma ?? null,
             thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
             objective,
-            ambition,
+            ambition: ambRes.ambitionEffective,
             weeklyHours: effectiveWH,
           });
           applyTaperVolumeOverride(plan, d.volumeCible);
@@ -634,7 +641,8 @@ export default function AITrainingPlanPage() {
           // eslint-disable-next-line no-console
           console.log(
             `📦 SUMMARY: ${plan.weeks.length}/11 semaines, ${applied} applied, ${skipped} skipped, fallback: ${usedFallback ? "oui" : "non"}` +
-            ` (userWH=${userWHValid ? userWH + "h" : "vide"}, effectiveWH=${effectiveWH ?? "null"}h, volumeCible=${d.volumeCible ?? "null"}h)`
+            ` (userWH=${userWHValid ? userWH + "h" : "vide"}, effectiveWH=${effectiveWH ?? "null"}h, volumeCible=${d.volumeCible ?? "null"}h,` +
+            ` ambitionSaisie=${ambRes.ambitionSaisie}, ambitionEffective=${ambRes.ambitionEffective}${ambRes.downgraded ? " ⬇️" : ""})`
           );
         } catch (e) {
           console.warn("📦 postProcess FAILED", e);
@@ -643,7 +651,7 @@ export default function AITrainingPlanPage() {
       return plan;
     } catch { return null; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, isLoading, objective, ambition, weeklyHours]);
+  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, athleteContext]);
 
 
   // ═══════════════════════════════════════════════════════════════════════════
