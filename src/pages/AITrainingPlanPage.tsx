@@ -2447,7 +2447,7 @@ export default function AITrainingPlanPage() {
                           });
                           return {
                             ambition, // saisie — gap calculé vers l'objectif visé par l'utilisateur
-                            ambitionEffective: ambRes.downgraded ? ambRes.ambitionEffective : undefined,
+                            ambitionEffective: ambRes.ambitionEffective, // toujours propagée : titre/PDF/Récap consomment l'effective
                             objective,
                             weeklyHours: parseFloat(weeklyHours) || null,
                             vmaKmh: athleteContext?.data?.vma ?? null,

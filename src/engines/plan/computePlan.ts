@@ -221,6 +221,56 @@ function buildPacingHint(objective: string): string {
 }
 
 /**
+ * Déduplication jour J : si une même semaine contient plusieurs séances "course objectif"
+ * sur le même jour, on garde une seule (préférence à celle préfixée "🏁") et on log.
+ * Corrige aussi les incohérences d'allure (ex: "allure marathon cible" pour un semi)
+ * en réalignant sur `buildPacingHint(objective)` de l'objectif rattaché.
+ */
+function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
+  const goals = config.raceGoals ?? [];
+  for (const week of plan.weeks) {
+    const byDay = new Map<number, ParsedSession[]>();
+    for (const s of week.sessions) {
+      const text = `${s.sport} ${s.title} ${s.details}`;
+      if (RACE_DAY_PATTERNS.test(text)) {
+        const arr = byDay.get(s.dayIndex) ?? [];
+        arr.push(s);
+        byDay.set(s.dayIndex, arr);
+      }
+    }
+    for (const [, sessions] of byDay) {
+      if (sessions.length <= 1) continue;
+      const keeper = sessions.find(s => s.title.trim().startsWith("🏁")) ?? sessions[0];
+      const dropped = sessions.filter(s => s !== keeper);
+      week.sessions = week.sessions.filter(s => !dropped.includes(s));
+      // eslint-disable-next-line no-console
+      console.log(`🏁 course unique vérifiée — S${week.weekNumber} ${keeper.dayName} : ${dropped.length} doublon(s) supprimé(s) (gardé : "${keeper.title.slice(0, 60)}")`);
+    }
+    // Correction micro-cohérence : si l'objectif n'est pas marathon mais les détails
+    // parlent d'allure marathon (résidu de prompt example), on substitue le pacing hint canonique.
+    if (goals.length) {
+      for (const s of week.sessions) {
+        const text = `${s.sport} ${s.title} ${s.details}`;
+        if (!RACE_DAY_PATTERNS.test(text)) continue;
+        const goal = goals.find(g => {
+          if (!g.raceDate || !config.planStartDate) return false;
+          return getRaceWeekNumber(g.raceDate, config.planStartDate, plan.weeks.length) === week.weekNumber;
+        }) ?? goals[0];
+        const obj = (goal?.objective ?? "").toLowerCase();
+        if (obj && !obj.includes("marathon") && /allure\s+marathon/i.test(s.details)) {
+          const hint = buildPacingHint(goal.objective);
+          const before = s.details;
+          s.details = s.details.replace(/allure\s+marathon\s+cible[^.]*\./gi, "").trim();
+          if (!s.details.includes(hint)) s.details = `${s.details} ${hint}`.trim();
+          // eslint-disable-next-line no-console
+          console.log(`🏁 pacing corrigé — S${week.weekNumber} ${s.dayName} : objectif="${goal.objective}" (avant: "${before.slice(0, 80)}…")`);
+        }
+      }
+    }
+  }
+}
+
+/**
  * Applique les post-traitements déterministes au plan parsé.
  * Utile côté UI pour garder la même cohérence que le pipeline moteur.
  *
@@ -233,6 +283,7 @@ export function postProcessParsedPlan(
   athleteData?: PlanAthleteData
 ): { plan: ParsedPlan; wbalStats?: WbalRecalcStats } {
   anchorRaceDays(plan, config);
+  dedupRaceDays(plan, config);
 
   let wbalStats: WbalRecalcStats | undefined;
   if (athleteData) {

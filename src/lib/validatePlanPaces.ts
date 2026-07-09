@@ -48,7 +48,8 @@ export interface PaceValidationReport {
   summary: string;
 }
 
-const PACE_RX = /(\d{1,2}):(\d{2})\s*\/\s*km/gi;
+// Accepte ':', "'", "′", "’" comme séparateur min/sec (l'IA écrit parfois 4'15/km).
+const PACE_RX = /(\d{1,2})[:'′’](\d{2})\s*\/\s*km/gi;
 const TOL_SEC = 8;
 
 function fmt(sec: number): string {

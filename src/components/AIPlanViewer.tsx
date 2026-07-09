@@ -1095,16 +1095,18 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
       || (raceGoals || []).find((g) => typeof g.distanceKm === "number" && (g.distanceKm as number) > 0);
     const km = primary?.distanceKm;
     // Nouveau format canonique si on a le contexte (ambition + objectif + snapshot)
+    // Le titre reflète l'ambition EFFECTIVE (structure réellement appliquée), pas la saisie.
     if (gapContext?.ambition && gapContext?.objective) {
+      const ambForTitle = gapContext.ambitionEffective || gapContext.ambition;
       const derivedTitle = deriveRaceTargets({
         vmaKmh: gapContext.vmaKmh ?? null,
         thresholdPaceSecPerKm: gapContext.thresholdPaceSecPerKm ?? null,
         objective: gapContext.objective,
-        ambition: gapContext.ambition,
+        ambition: ambForTitle,
         weeklyHours: gapContext.weeklyHours ?? null,
       });
       const tempsStr = derivedTitle.raceTimeSec ? formatRaceTime(derivedTitle.raceTimeSec) : "n/a";
-      const ambLabel = gapContext.ambition.charAt(0).toUpperCase() + gapContext.ambition.slice(1).toLowerCase();
+      const ambLabel = ambForTitle.charAt(0).toUpperCase() + ambForTitle.slice(1).toLowerCase();
       return `${gapContext.objective} — Structure ${ambLabel} — Objectif ${tempsStr}`;
     }
     if (!km) return t;
