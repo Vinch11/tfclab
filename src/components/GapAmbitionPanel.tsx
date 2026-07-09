@@ -68,11 +68,13 @@ export interface GapAmbitionPanelProps {
   vmaKmh?: number | null;
   thresholdPaceSecPerKm?: number | null;
   ambition?: string | null;
+  /** Ambition effective (après déclassement niveau d'entraînement). Si différent de `ambition`, une note est affichée. */
+  ambitionEffective?: string | null;
   objective?: string | null;
   weeklyHours?: number | null;
 }
 
-export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, objective, weeklyHours }: GapAmbitionPanelProps) {
+export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, ambitionEffective, objective, weeklyHours }: GapAmbitionPanelProps) {
   const objKey = objective ? normObjective(objective) : null;
   const ambKey = normAmbition(ambition || "perf");
   const distanceKm = objKey ? OBJ_KM[objKey] : null;
