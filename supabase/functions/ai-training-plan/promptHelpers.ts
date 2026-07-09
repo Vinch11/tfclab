@@ -816,6 +816,26 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push(`- **🎯 Temps cible (standard populationnel — SNAPSHOT INDISPONIBLE) :** ${timeTarget}`);
     lines.push(`  → ⚠️ VMA / allure seuil non renseignée : la cible est populationnelle, pas individualisée. À traiter comme indicative.`);
   }
+
+  // === PACE TARGETS — SOURCE UNIQUE D'ALLURES (Chantier 1) ===
+  // Toutes les allures des séances DOIVENT être tirées de ces valeurs. Aucune allure inventée.
+  if (derived.paceTargets) {
+    const pt = derived.paceTargets;
+    const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`;
+    lines.push(``);
+    lines.push(`### 🎯 ALLURES CANONIQUES — SOURCE UNIQUE (NON NÉGOCIABLE)`);
+    lines.push(`Ces allures sont calculées à partir de l'objectif snapshot (${derived.humanSummary}). **Toutes les allures des séances DOIVENT être tirées de ces valeurs — aucune allure inventée.**`);
+    lines.push(`- **Allure course cible (objectif)** : ${fmt(pt.allureSemiCible)}`);
+    lines.push(`- **Seuil bas (Z4b)** : ${fmt(pt.seuilBas)}`);
+    lines.push(`- **Seuil haut (Z5)** : ${fmt(pt.seuilHaut)}`);
+    if (pt.allureVO2max) lines.push(`- **Allure VO2max (~97% VMA)** : ${fmt(pt.allureVO2max)}`);
+    if (pt.allureZ2) lines.push(`- **Endurance Z2 (65-75% VMA)** : ${fmt(pt.allureZ2.hi)} → ${fmt(pt.allureZ2.lo)}`);
+    lines.push(`→ Toute séance "Allure Semi / Race-pace / Juge de Paix" DOIT être à **${fmt(pt.allureSemiCible)} ±5s**.`);
+    lines.push(`→ Toute consigne coach "si ça brûle, ralentis à X" DOIT proposer une allure PLUS LENTE (ex: ${fmt(pt.allureSemiCible + 8)}), jamais plus rapide que l'allure cible.`);
+    lines.push(`→ Le Jour J DOIT afficher "Objectif ${derived.raceTimeSec ? Math.floor(derived.raceTimeSec/3600) : "?"}h${derived.raceTimeSec ? String(Math.floor((derived.raceTimeSec%3600)/60)).padStart(2,"0") : "??"} (${fmt(pt.allureSemiCible)})".`);
+    lines.push(``);
+  }
+
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) {
     lines.push(`- **Heures dispo/semaine (saisie athlète) :** ${config.weeklyHours}h`);
