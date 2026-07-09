@@ -1,0 +1,197 @@
+// =============================================
+// DERIVE RACE TARGETS — SOURCE UNIQUE (snapshot-based) — browser mirror
+// =============================================
+// Miroir navigateur du helper Deno `supabase/functions/_shared/deriveRaceTargets.ts`.
+// Toute modification doit rester synchrone entre les deux fichiers.
+
+import { AMBITIONS, computeRaceScenarios, type Ambition } from "./raceAnalysis";
+
+const AMBITION_MAP: Record<string, Ambition> = {
+  finisher: "finish",
+  finish: "finish",
+  age_group: "perf",
+  perf: "perf",
+  competitor: "sub",
+  sub: "sub",
+  elite: "elite",
+  world_class: "world_class",
+};
+
+const OBJECTIVE_DIST_KM: Record<string, number> = {
+  "5K": 5,
+  "10K": 10,
+  Semi: 21.0975,
+  Marathon: 42.195,
+};
+
+function normalizeObj(obj: string): string | null {
+  const s = obj.trim().toLowerCase();
+  if (/^5\s*k/.test(s) || s === "5k") return "5K";
+  if (/^10\s*k/.test(s) || s === "10k") return "10K";
+  if (/semi|half/.test(s)) return "Semi";
+  if (/marathon/.test(s) && !/semi|half/.test(s)) return "Marathon";
+  return null;
+}
+
+function normalizeAmb(amb: string): Ambition {
+  const s = amb.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (AMBITION_MAP[s]) return AMBITION_MAP[s];
+  if (s.includes("world") || s.includes("mond")) return "world_class";
+  if (s.includes("elite") || s.includes("pro")) return "elite";
+  if (s.includes("compet")) return "sub";
+  if (s.includes("age") || s.includes("group") || s.includes("confirm")) return "perf";
+  if (s.includes("finish") || s.includes("decouv")) return "finish";
+  return "perf";
+}
+
+export function parseLiteratureHint(hint: string): { loSec: number; hiSec: number } | null {
+  if (!hint) return null;
+  const cleaned = hint.replace(/\s/g, "").replace(/–/g, "-").toLowerCase();
+  const toSec = (tok: string): number | null => {
+    let m = tok.match(/^(?:sub)?(\d+)h(\d+)?$/);
+    if (m) return parseInt(m[1], 10) * 3600 + (m[2] ? parseInt(m[2], 10) * 60 : 0);
+    m = tok.match(/^(?:sub)?(\d+)'?$/);
+    if (m) return parseInt(m[1], 10) * 60;
+    return null;
+  };
+  if (cleaned.startsWith("sub")) {
+    const s = toSec(cleaned);
+    if (s == null) return null;
+    return { loSec: Math.round(s * 0.95), hiSec: s };
+  }
+  const parts = cleaned.split("-");
+  if (parts.length !== 2) {
+    const s = toSec(cleaned);
+    return s ? { loSec: s, hiSec: s } : null;
+  }
+  const lo = toSec(parts[0]);
+  const hi = toSec(parts[1]);
+  if (lo == null || hi == null) return null;
+  return { loSec: Math.min(lo, hi), hiSec: Math.max(lo, hi) };
+}
+
+export function formatSecToTime(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.round(sec % 60);
+  if (h > 0) return `${h}h${String(m).padStart(2, "0")}`;
+  return `${m}'${String(s).padStart(2, "0")}"`;
+}
+
+export function formatSecPerKm(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${m}:${String(s).padStart(2, "0")}/km`;
+}
+
+export interface DeriveRaceTargetsInput {
+  vmaKmh?: number | null;
+  thresholdPaceSecPerKm?: number | null;
+  objective: string;
+  ambition: string;
+  literatureHintText?: string | null;
+}
+
+export interface DeriveRaceTargetsResult {
+  source: "snapshot" | "insufficient_data";
+  distanceKm: number | null;
+  ambition: Ambition;
+  pctVMAUsed: number | null;
+  racePaceSecPerKm: number | null;
+  raceTimeSec: number | null;
+  paceRange: { lo: number; hi: number } | null;
+  timeRange: { lo: number; hi: number } | null;
+  literatureRangeSec: { loSec: number; hiSec: number } | null;
+  divergencePct: number | null;
+  vmaRequiredForLiterature: number | null;
+  warning: string | null;
+  humanSummary: string;
+}
+
+export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTargetsResult {
+  const objKey = normalizeObj(input.objective || "");
+  const amb = normalizeAmb(input.ambition || "");
+  const ambDef = AMBITIONS.find(a => a.key === amb) ?? AMBITIONS[1];
+  const distanceKm = objKey ? OBJECTIVE_DIST_KM[objKey] : null;
+  const literatureRangeSec = input.literatureHintText ? parseLiteratureHint(input.literatureHintText) : null;
+
+  const vma = typeof input.vmaKmh === "number" && input.vmaKmh > 0 ? input.vmaKmh : null;
+  const thr = typeof input.thresholdPaceSecPerKm === "number" && input.thresholdPaceSecPerKm > 0
+    ? input.thresholdPaceSecPerKm : null;
+
+  if (!distanceKm || (!vma && !thr)) {
+    return {
+      source: "insufficient_data",
+      distanceKm,
+      ambition: amb,
+      pctVMAUsed: ambDef.pctVMA,
+      racePaceSecPerKm: null,
+      raceTimeSec: null,
+      paceRange: null,
+      timeRange: null,
+      literatureRangeSec,
+      divergencePct: null,
+      vmaRequiredForLiterature: null,
+      warning: null,
+      humanSummary: "Cible course non calculée (VMA/seuil ou distance manquants).",
+    };
+  }
+
+  const scenarios = computeRaceScenarios(
+    { vmaKmh: vma, thresholdPaceSecPerKm: thr },
+    distanceKm,
+  );
+  if ("error" in scenarios) {
+    return {
+      source: "insufficient_data",
+      distanceKm,
+      ambition: amb,
+      pctVMAUsed: ambDef.pctVMA,
+      racePaceSecPerKm: null,
+      raceTimeSec: null,
+      paceRange: null,
+      timeRange: null,
+      literatureRangeSec,
+      divergencePct: null,
+      vmaRequiredForLiterature: null,
+      warning: null,
+      humanSummary: `Cible course non calculée : ${scenarios.error}.`,
+    };
+  }
+
+  const row = scenarios.find(s => s.ambition === amb) ?? scenarios[1];
+  const pace = row.paceSecPerKm;
+  const time = row.timeSec;
+
+  let divergencePct: number | null = null;
+  let vmaRequired: number | null = null;
+  let warning: string | null = null;
+
+  if (literatureRangeSec) {
+    const litMid = (literatureRangeSec.loSec + literatureRangeSec.hiSec) / 2;
+    divergencePct = ((time - litMid) / litMid) * 100;
+    const speedNeededKmh = (distanceKm / (litMid / 3600));
+    vmaRequired = speedNeededKmh / ambDef.pctVMA;
+    if (Math.abs(divergencePct) > 8) {
+      warning = `Ambition "${amb}" (littérature ${input.literatureHintText}) incompatible avec la physiologie actuelle : nécessite VMA ≈ ${vmaRequired.toFixed(1)} km/h, snapshot = ${vma?.toFixed(1) ?? "?"} km/h. Écart temps : ${divergencePct > 0 ? "+" : ""}${divergencePct.toFixed(1)}%.`;
+    }
+  }
+
+  const humanSummary = `${formatSecToTime(time)} · allure ${formatSecPerKm(pace)} (source snapshot : VMA ${vma?.toFixed(1) ?? "?"} km/h × ${(ambDef.pctVMA * 100).toFixed(0)}%)`;
+
+  return {
+    source: "snapshot",
+    distanceKm,
+    ambition: amb,
+    pctVMAUsed: ambDef.pctVMA,
+    racePaceSecPerKm: pace,
+    raceTimeSec: time,
+    paceRange: { lo: pace - 5, hi: pace + 5 },
+    timeRange: { lo: time - 90, hi: time + 90 },
+    literatureRangeSec,
+    divergencePct: divergencePct != null ? Number(divergencePct.toFixed(1)) : null,
+    vmaRequiredForLiterature: vmaRequired != null ? Number(vmaRequired.toFixed(2)) : null,
+    warning,
+    humanSummary,
+  };
+}

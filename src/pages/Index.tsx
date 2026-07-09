@@ -231,6 +231,7 @@ import {
   getRunningTimeHint,
   normalizeAmbitionLevel,
 } from "@/types/ambitionLevel";
+import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -1493,6 +1494,15 @@ const Index = () => {
               const raceWeek = daysToRace !== null && daysToRace <= 7;
               const ambitionDef = getAmbitionDefinition(currentAmbition);
               const timeHint = getRunningTimeHint(currentAthlete.goal || "IM", currentAmbition, currentAthlete.sex === "F" ? "F" : "M");
+              const derivedTarget = deriveRaceTargets({
+                vmaKmh: effectiveRefs.vma,
+                thresholdPaceSecPerKm: null,
+                objective: currentAthlete.goal || "",
+                ambition: currentAmbition,
+                literatureHintText: timeHint,
+              });
+              const derivedOk = derivedTarget.source === "snapshot" && derivedTarget.raceTimeSec != null;
+              const derivedIncompatible = derivedOk && !!derivedTarget.warning;
               return (
                 <div className="md:hidden space-y-4 pt-2">
                   {/* Section 1 — Objectif & Ambition (tonalité primary) */}
@@ -1525,7 +1535,9 @@ const Index = () => {
                             <span aria-hidden className="text-base leading-none shrink-0">{ambitionDef.icon}</span>
                             <span className="font-medium leading-none truncate">{ambitionDef.label}</span>
                             {timeHint && (
-                              <span className="text-muted-foreground text-xs leading-none shrink-0 tabular-nums">· {timeHint}</span>
+                              <span className={`text-xs leading-none shrink-0 tabular-nums ${derivedIncompatible ? "text-warning" : "text-muted-foreground"}`}>
+                                · {timeHint}{derivedIncompatible ? " ⚠️" : ""}
+                              </span>
                             )}
                           </span>
                         </SelectTrigger>
@@ -1541,8 +1553,22 @@ const Index = () => {
                           })}
                         </SelectContent>
                       </Select>
+                      {derivedOk && (
+                        <div className="px-3 py-2 space-y-1 bg-background/40">
+                          <div className="flex items-center justify-between gap-2 text-xs">
+                            <span className="text-muted-foreground">🎯 Cible snapshot</span>
+                            <span className="font-semibold tabular-nums">{derivedTarget.humanSummary.split(" (source")[0]}</span>
+                          </div>
+                          {derivedIncompatible && (
+                            <div className="text-[11px] leading-snug text-warning bg-warning/10 border border-warning/30 rounded px-2 py-1.5">
+                              ⚠️ Ambition « {ambitionDef.label} » incompatible : nécessite VMA ≈ {derivedTarget.vmaRequiredForLiterature?.toFixed(1)} km/h ; snapshot {effectiveRefs.vma?.toFixed(1) ?? "?"} km/h. Écart temps {derivedTarget.divergencePct != null && derivedTarget.divergencePct > 0 ? "+" : ""}{derivedTarget.divergencePct}%.
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
+
 
                   {/* Section 2 — Actions (tonalité accent/warning pour CTA) */}
                   <div className="space-y-2">

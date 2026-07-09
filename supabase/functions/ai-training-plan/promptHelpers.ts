@@ -4,6 +4,7 @@
 
 import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, type CatalogDurationStats } from "./sportRatioMatrix.ts";
 import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
+import { deriveRaceTargets } from "../_shared/deriveRaceTargets.ts";
 
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
 // Builds a compact structured block from planConfig for re-injection in chunks
@@ -64,7 +65,21 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   lines.push(`🎯 Objectif: ${config?.objective || "N/A"} (normalisé: ${objKey})`);
   lines.push(`🏅 Ambition: ${config?.ambition || "N/A"} (normalisé: ${ambKey})`);
   const diagTimeTarget = getTimeTargetHint(config?.objective || "", config?.ambition || "", config?._athleteSex);
-  if (diagTimeTarget) lines.push(`🎯 Temps cible: ${diagTimeTarget}`);
+  // Snapshot-based target (source unique). Fallback silencieux si VMA absente.
+  const diagDerived = deriveRaceTargets({
+    vmaKmh: typeof config?._athleteVma === "number" ? config._athleteVma : null,
+    thresholdPaceSecPerKm: typeof config?._athletePaceThresholdSecPerKm === "number" ? config._athletePaceThresholdSecPerKm : null,
+    objective: config?.objective || "",
+    ambition: config?.ambition || "",
+    literatureHintText: diagTimeTarget,
+  });
+  if (diagDerived.source === "snapshot" && diagDerived.raceTimeSec != null) {
+    lines.push(`🎯 Cible course (snapshot) : ${diagDerived.humanSummary}`);
+    if (diagTimeTarget) lines.push(`   Fourchette littérature (secondaire) : ${diagTimeTarget}`);
+    if (diagDerived.warning) lines.push(`⚠️ ${diagDerived.warning}`);
+  } else if (diagTimeTarget) {
+    lines.push(`🎯 Temps cible (littérature, snapshot indisponible) : ${diagTimeTarget}`);
+  }
   
   // Limiters (structured, ranked) — utilise la liste RAW légère (noms de métriques)
   // pour rester compact (chunks 2..N réinjectent ce bloc).
@@ -759,22 +774,46 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     if (config.raceDate) lines.push(`- **Date de course :** ${config.raceDate}`);
   }
 
-  // Inject time target hint based on objective × ambition × sex
+  // Inject time target — SOURCE UNIQUE : deriveRaceTargets (snapshot-based).
+  // La fourchette littérature (getTimeTargetHint) est utilisée uniquement comme
+  // référence populationnelle + détection d'incompatibilité ambition ↔ physiologie.
   // F-26: si le coach a saisi un targetTimeMinutes explicite, le temps statistique devient secondaire.
   const athleteSex = data?.sex || data?.sexe || null;
   const timeTarget = getTimeTargetHint(config.objective || "", config.ambition || "", athleteSex);
   const coachTimeProvided = Array.isArray(config.raceGoals)
     && config.raceGoals.some((g: any) => g?.targetTimeMinutes && g.targetTimeMinutes > 0);
-  if (timeTarget) {
-    const label = coachTimeProvided ? "🎯 Fourchette littérature (RÉFÉRENCE secondaire)" : "🎯 Temps cible estimé";
-    lines.push(`- **${label} :** ${timeTarget}`);
-    if (coachTimeProvided) {
-      lines.push(`  → ⚠️ Un **temps cible coach** a été saisi pour au moins un objectif ci-dessus. Cette fourchette littérature ne sert qu'à vérifier la plausibilité — c'est le temps cible coach qui pilote l'allure spécifique.`);
-    } else {
-      lines.push(`  → Ce temps cible sert UNIQUEMENT à guider la progression du plan (volume de travail à allure spécifique, distribution des séances clés, stratégie de course J-J).`);
+
+  const vmaForDerive = typeof data?.vma === "number" ? Number(data.vma) : null;
+  const paceThrForDerive = typeof data?.paceThresholdSecPerKm === "number" ? Number(data.paceThresholdSecPerKm) : null;
+  const derived = deriveRaceTargets({
+    vmaKmh: vmaForDerive,
+    thresholdPaceSecPerKm: paceThrForDerive,
+    objective: config.objective || "",
+    ambition: config.ambition || "",
+    literatureHintText: timeTarget,
+  });
+
+  console.log(`🎯 deriveRaceTargets : VMA snapshot ${vmaForDerive ?? "n/a"} km/h · seuil ${paceThrForDerive ?? "n/a"} s/km · objectif "${config.objective}" · ambition "${config.ambition}" → source=${derived.source} · time=${derived.raceTimeSec ?? "n/a"}s · pace=${derived.racePaceSecPerKm ?? "n/a"}s/km · divLittérature=${derived.divergencePct ?? "n/a"}%`);
+
+  if (derived.source === "snapshot" && derived.raceTimeSec != null && derived.paceRange && derived.timeRange) {
+    lines.push(`- **🎯 CIBLE COURSE (snapshot — source unique) :** ${derived.humanSummary}`);
+    lines.push(`  → Fourchette temps ±90s : ${Math.floor(derived.timeRange.lo / 60)}min${String(derived.timeRange.lo % 60).padStart(2, "0")}s → ${Math.floor(derived.timeRange.hi / 60)}min${String(derived.timeRange.hi % 60).padStart(2, "0")}s. Fourchette allure ±5s : ${Math.floor(derived.paceRange.lo / 60)}:${String(derived.paceRange.lo % 60).padStart(2, "0")}-${Math.floor(derived.paceRange.hi / 60)}:${String(derived.paceRange.hi % 60).padStart(2, "0")}/km.`);
+    lines.push(`  → **La ligne "Jour de Course" DOIT afficher cet objectif temps.** Les séances Simulation/Race-pace/Juge de Paix DOIVENT être prescrites dans cette fourchette d'allure.`);
+    if (timeTarget) {
+      lines.push(`  → Fourchette littérature (RÉFÉRENCE populationnelle uniquement, ne pas utiliser pour prescrire) : ${timeTarget}.`);
     }
-    lines.push(`  → Les ZONES D'ENTRAÎNEMENT (Z1-Z7) restent 100% individualisées à partir des valeurs physiologiques de l'athlète (VMA, FTP, FCmax). Ne JAMAIS recalculer ou modifier les zones à partir du temps cible.`);
-    lines.push(`  → En résumé : le temps cible = objectif de performance final. Les zones = outils d'entraînement individualisés. Les deux sont indépendants.`);
+    if (derived.warning) {
+      lines.push(`  → 🚨 **INCOHÉRENCE AMBITION vs PHYSIOLOGIE** : ${derived.warning}`);
+      lines.push(`     Utilise la cible SNAPSHOT ci-dessus. N'utilise AUCUNE allure/temps issue de la fourchette littérature dans les séances.`);
+    }
+    if (coachTimeProvided) {
+      lines.push(`  → ⚠️ Un **temps cible coach** a été saisi pour au moins un objectif ci-dessus. Il prime sur la cible snapshot pour l'allure spécifique, mais reste comparé à la cible snapshot par le coach.`);
+    }
+    lines.push(`  → Les ZONES D'ENTRAÎNEMENT (Z1-Z7) restent 100% individualisées à partir des valeurs physiologiques (VMA, FTP, FCmax) — ne JAMAIS les recalculer depuis le temps cible.`);
+  } else if (timeTarget) {
+    // Fallback : pas de VMA snapshot → on retombe sur la fourchette littérature avec avertissement.
+    lines.push(`- **🎯 Temps cible (fourchette littérature — SNAPSHOT INDISPONIBLE) :** ${timeTarget}`);
+    lines.push(`  → ⚠️ VMA / allure seuil non renseignée : la cible est populationnelle, pas individualisée. À traiter comme indicative.`);
   }
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) {
