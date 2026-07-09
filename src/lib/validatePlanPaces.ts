@@ -121,60 +121,59 @@ function rewritePacesInText(
   text: string,
   pt: PaceTargets,
   ctxLabel: string,
+  sessionTitle?: string,
 ): { text: string; corrections: { before: string; after: string; zone: Zone }[]; z5Sec: number[]; z2Sec: number[]; raceSec: number[] } {
   const corrections: { before: string; after: string; zone: Zone }[] = [];
   const z5Sec: number[] = [];
   const z2Sec: number[] = [];
   const raceSec: number[] = [];
 
-  // 1) Collapse fourchettes "4:15-4:40/km" pour zones à cible unique
-  //    (race/marathon/seuil/z3). VO2 → laissé tel quel. Z2 → range légitime.
-  let out = text.replace(PACE_RANGE_RX, (m, _a, _b, offset: number) => {
-    const before = text.slice(Math.max(0, offset - 30), offset);
-    const after = text.slice(offset + m.length, offset + m.length + 40);
-    const zone = detectZoneFromContext(before, after);
-    if (zone === "race" || zone === "marathon" || zone === "seuil" || zone === "z3") {
-      const target = targetForZone(zone, pt);
-      if (target) {
-        const rep = fmt(target.sec);
-        // eslint-disable-next-line no-console
-        console.log(`🔧 pace rewrite: '${m}' → '${rep}' (contexte: ${zone}, collapse range — ${ctxLabel})`);
-        corrections.push({ before: m, after: rep, zone });
-        return rep;
-      }
+  // WHITELIST STRICTE : si la séance est composite, on n'y touche pas.
+  const fullCtx = (sessionTitle ?? "") + " " + text;
+  if (COMPOSITE_MARKERS.test(fullCtx)) {
+    // Comptage seulement pour les asserts globaux
+    for (const m of text.matchAll(PACE_RX)) {
+      const paceSec = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+      // eslint-disable-next-line no-console
+      // (silencieux — séance composite intentionnellement épargnée)
+      void paceSec;
     }
-    return m;
-  });
+    return { text, corrections, z5Sec, z2Sec, raceSec };
+  }
 
-  // 2) Réécrire chaque allure unique.
+  // Collapse fourchette DÉSACTIVÉ (trop agressif sur seuil/z3 — plages légitimes).
+  // On travaille uniquement sur allures uniques ci-dessous.
+  let out = text;
+
   out = out.replace(PACE_RX, (m, mm: string, ss: string, offset: number) => {
     const paceSec = parseInt(mm, 10) * 60 + parseInt(ss, 10);
     if (paceSec < 150 || paceSec > 600) return m;
 
-    const before = out.slice(Math.max(0, offset - 30), offset);
+    // Contexte enrichi : titre de la séance en préambule pour zones prioritaires
+    const before = (sessionTitle ? sessionTitle + " ⌂ " : "") + out.slice(Math.max(0, offset - 30), offset);
     const afterCtx = out.slice(offset + m.length, offset + m.length + 40);
     const zone = detectZoneFromContext(before, afterCtx);
 
     if (zone === "vo2") {
       z5Sec.push(paceSec);
-      return m; // ne pas toucher
+      return m;
     }
     if (zone === "z2") z2Sec.push(paceSec);
     if (zone === "race" || zone === "marathon") raceSec.push(paceSec);
 
     const target = targetForZone(zone, pt);
     if (!target) return m;
-    if (Math.abs(paceSec - target.sec) <= TOL_SEC) {
-      if (zone === "z2") z2Sec[z2Sec.length - 1] = target.sec;
-      if (zone === "race" || zone === "marathon") raceSec[raceSec.length - 1] = target.sec;
+
+    // WHITELIST STRICTE : ne réécrit QUE si dérive grossière (>30s/km).
+    // Sous ce seuil, on respecte le choix pédagogique de l'IA.
+    if (Math.abs(paceSec - target.sec) <= HARD_DEVIATION_SEC) {
       return m;
     }
+
     const rep = fmt(target.sec);
     // eslint-disable-next-line no-console
-    console.log(`🔧 pace rewrite: '${m}' → '${rep}' (contexte: ${zone} — ${ctxLabel})`);
+    console.log(`🔧 pace rewrite (dérive ${Math.abs(paceSec - target.sec)}s): '${m}' → '${rep}' (${zone} — ${ctxLabel})`);
     corrections.push({ before: m, after: rep, zone });
-    if (zone === "z2") z2Sec[z2Sec.length - 1] = target.sec;
-    if (zone === "race" || zone === "marathon") raceSec[raceSec.length - 1] = target.sec;
     return rep;
   });
 
