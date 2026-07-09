@@ -1,4 +1,4 @@
-// ⚠️ DUPLIQUÉ dans supabase/functions/_shared/deriveRaceTargets.ts — toute modif doit être appliquée aux deux
+// ⚠️ DUPLIQUÉ dans src/lib/deriveRaceTargets.ts — toute modif doit être appliquée aux deux
 // =============================================
 // DERIVE RACE TARGETS — SOURCE UNIQUE (snapshot-based) — browser mirror
 // =============================================
