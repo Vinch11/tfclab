@@ -65,7 +65,21 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   lines.push(`🎯 Objectif: ${config?.objective || "N/A"} (normalisé: ${objKey})`);
   lines.push(`🏅 Ambition: ${config?.ambition || "N/A"} (normalisé: ${ambKey})`);
   const diagTimeTarget = getTimeTargetHint(config?.objective || "", config?.ambition || "", config?._athleteSex);
-  if (diagTimeTarget) lines.push(`🎯 Temps cible: ${diagTimeTarget}`);
+  // Snapshot-based target (source unique). Fallback silencieux si VMA absente.
+  const diagDerived = deriveRaceTargets({
+    vmaKmh: typeof config?._athleteVma === "number" ? config._athleteVma : null,
+    thresholdPaceSecPerKm: typeof config?._athletePaceThresholdSecPerKm === "number" ? config._athletePaceThresholdSecPerKm : null,
+    objective: config?.objective || "",
+    ambition: config?.ambition || "",
+    literatureHintText: diagTimeTarget,
+  });
+  if (diagDerived.source === "snapshot" && diagDerived.raceTimeSec != null) {
+    lines.push(`🎯 Cible course (snapshot) : ${diagDerived.humanSummary}`);
+    if (diagTimeTarget) lines.push(`   Fourchette littérature (secondaire) : ${diagTimeTarget}`);
+    if (diagDerived.warning) lines.push(`⚠️ ${diagDerived.warning}`);
+  } else if (diagTimeTarget) {
+    lines.push(`🎯 Temps cible (littérature, snapshot indisponible) : ${diagTimeTarget}`);
+  }
   
   // Limiters (structured, ranked) — utilise la liste RAW légère (noms de métriques)
   // pour rester compact (chunks 2..N réinjectent ce bloc).
