@@ -16,7 +16,7 @@ import { format, addDays, startOfWeek, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
-import { getFicheForSession } from "@/lib/aiPlanWorkoutEnricher";
+import { getFicheForSession, maybeDowngradeBikeSession } from "@/lib/aiPlanWorkoutEnricher";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
