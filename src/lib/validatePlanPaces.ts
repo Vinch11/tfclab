@@ -205,7 +205,7 @@ export function validatePlanPaces(
       // J-day fix : la séance course du jour J (semi) ne doit pas parler d'allure
       // marathon. Restreint à la séance "Jour J / Race Day / Course semi" —
       // pas aux séances d'entraînement (les inserts marathon en SL restent légitimes).
-      const isRaceDaySession = /jour\s*j|race\s*day|course\s*objectif|course\s*semi|semi[-\s]?marathon|comp[eé]tition/i.test(s.title);
+      const isRaceDaySession = /jour\s*j|race\s*day|course\s*objectif|course\s*semi|comp[eé]tition/i.test(s.title);
       if (semiObjective && isRaceDaySession) {
         if (/allure\s+marathon/i.test(s.title)) {
           const old = s.title;
