@@ -106,17 +106,27 @@ export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, obje
     ? ((vmaRequiredKmh - vmaKmh) / vmaKmh) * 100
     : null;
 
-  const volumeCible = derived.volumeCible;
-  const gapVolumePct = (volumeCible != null && typeof weeklyHours === "number" && weeklyHours > 0)
-    ? ((weeklyHours - volumeCible) / volumeCible) * 100
+  // Volume requis = fourchette standard populationnelle (REFERENCE_VOLUMES_FRONT).
+  const volumeRefRange = objKey ? REFERENCE_VOLUMES_FRONT[objKey]?.[ambKey] ?? null : null;
+  const volumeRefMid = volumeRefRange ? (volumeRefRange[0] + volumeRefRange[1]) / 2 : null;
+  const gapVolumePct = (volumeRefMid != null && typeof weeklyHours === "number" && weeklyHours > 0)
+    ? ((weeklyHours - volumeRefMid) / volumeRefMid) * 100
     : null;
 
-  // Logs traçables
+  // Logs traçables (Chantier 2)
   if (typeof window !== "undefined") {
-    console.log(
-      `📊 GapAmbitionPanel : VMA ${vmaKmh ?? "n/a"} vs requise ${vmaRequiredKmh?.toFixed(1) ?? "n/a"} (${gapVmaPct != null ? (gapVmaPct >= 0 ? "+" : "") + gapVmaPct.toFixed(1) + "%" : "n/a"})`
-    );
+    console.log("📊 GapAmbitionPanel", {
+      vma: vmaKmh ?? null,
+      vmaRequise: vmaRequiredKmh?.toFixed(1) ?? null,
+      allureRequise: paceRequiredSecPerKm ?? null,
+      temps: derived.raceTimeSec ?? null,
+      volumeActuel: weeklyHours ?? null,
+      volumeRef: volumeRefRange,
+      gapVmaPct: gapVmaPct?.toFixed(1) ?? null,
+      gapVolumePct: gapVolumePct?.toFixed(1) ?? null,
+    });
   }
+
 
   if (!vmaKmh && !thresholdPaceSecPerKm) {
     return (
