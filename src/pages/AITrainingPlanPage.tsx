@@ -41,6 +41,7 @@ import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanPa
 import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
+import { resolveEffectiveWeeklyHours } from "@/lib/defaultWeeklyHours";
 
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
@@ -607,12 +608,13 @@ export default function AITrainingPlanPage() {
         // eslint-disable-next-line no-console
         console.log(`📦 postProcess START — plan assemblé (${plan.weeks.length} semaines, ${response.length} chars)`);
         try {
+          const effectiveWH = resolveEffectiveWeeklyHours(weeklyHours, objective, ambition);
           const d = deriveRaceTargets({
             vmaKmh: athleteContext?.data?.vma ?? null,
             thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
             objective,
             ambition,
-            weeklyHours: parseFloat(weeklyHours) || null,
+            weeklyHours: effectiveWH,
           });
           applyTaperVolumeOverride(plan, d.volumeCible);
           validatePlanPaces(plan, d.paceTargets);
@@ -2349,7 +2351,7 @@ export default function AITrainingPlanPage() {
                         gapContext={{
                           ambition,
                           objective,
-                          weeklyHours: parseFloat(weeklyHours) || null,
+                          weeklyHours: resolveEffectiveWeeklyHours(weeklyHours, objective, ambition),
                           vmaKmh: athleteContext?.data?.vma ?? null,
                           thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
                         }}
