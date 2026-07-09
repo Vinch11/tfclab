@@ -303,7 +303,9 @@ function buildPlanHTML(
   const weekRows = plan.weeks.map((week, weekIdx) => {
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
 
-    const sessionRows = week.sessions.map((s, sessionIdx) => {
+    const sessionRows = week.sessions.map((rawS, sessionIdx) => {
+      const s = maybeDowngradeBikeSession(rawS, gapContext?.objective);
+
       const dateStr = weekStart && s.dayIndex >= 0 ? formatSessionDate(weekStart, s.dayIndex) : "";
       const trailAlts = s.isRest
         ? []
