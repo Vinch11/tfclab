@@ -316,8 +316,13 @@ interface SessionCardProps {
   objectifEffectif?: string | null;
 }
 
-function SessionCard({ session, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif }: SessionCardProps) {
+function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
+
+  const session = useMemo(
+    () => maybeDowngradeBikeSession(rawSession, objectifEffectif),
+    [rawSession, objectifEffectif]
+  );
 
   const trailAlts = useMemo(
     () => getTrailSessionAlternatives({
@@ -332,6 +337,7 @@ function SessionCard({ session, date, nolioCtx, onReplaceClick, sessionIndex = 0
     () => session.isRest ? null : getFicheForSession({ title: session.title, details: session.details }, objectifEffectif),
     [session.isRest, session.title, session.details, objectifEffectif]
   );
+
 
   if (session.isRest) {
     return (
