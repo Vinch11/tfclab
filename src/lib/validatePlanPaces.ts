@@ -1,12 +1,19 @@
 /**
  * Post-parse validation + correction déterministe des allures.
  *
- * - Séances SIMPLES (EF/Z2 pur, seuil continu, tempo semi, jour J, VMA) :
- *   si l'allure est hors plage → substitution automatique par l'allure canonique.
- * - Séances COMPOSITES (SL negative split, fartlek, pyramide, brick, finish fast) :
- *   set d'allures autorisées (Z2 + seuilBas + allureSemi) → warn seulement si AUCUNE ne matche.
+ * Priorités classification (sur le TITRE d'abord) :
+ *  1. Composite (Fartlek / Negative Split / SL avec inserts / Pyramide / Brick / Finish Fast /
+ *     Progressif / Hérisson / Billat / 30-30 / Intermittent) → PAS d'allure unique attendue,
+ *     exemption loggée "⏭️ composite, non validé".
+ *  2. Seuil / Double Seuil → cible seuil_bas (priorité stricte sur EF).
+ *  3. VO2/VMA pur → vo2max.
+ *  4. Tempo semi / Race pace / Juge de paix / Simulation race / Jour J → race_pace.
+ *  5. EF / Footing / Endurance / Z2 pur / Récup / Easy / Z1 → z2.
+ *  6. Sinon : composite (exemption loggée).
  *
- * Mute plan.weeks[i].sessions[j].details lors des corrections.
+ * Corrections déterministes : recherche du pattern d'allure dans TITLE puis DETAILS.
+ * Si `.split(before).join(after)` ne modifie NI le title NI le details → log MISS obligatoire
+ * "🔧 MISS — cherché: [X] — contenu réel: [Y]" avec session ID.
  */
 
 import type { ParsedPlan, ParsedSession } from "@/lib/aiPlanParser";
@@ -37,6 +44,7 @@ export interface PaceValidationReport {
   totalPacesFound: number;
   corrections: PaceCorrection[];
   issues: PaceCalibrationIssue[];
+  exempted: number;
   summary: string;
 }
 
@@ -52,16 +60,21 @@ type Target = { label: string; sec: number };
 interface Classification {
   simpleType: "z2" | "seuil_bas" | "seuil_haut" | "vo2max" | "race_pace" | null;
   composite: boolean;
-  allowed: Target[]; // set d'allures autorisées (composite)
-  canonical: Target | null; // allure canonique (simple)
+  canonical: Target | null;
+  reason: string;
 }
 
-const COMPOSITE_RX = /negative\s*split|pyramide|fartlek|navette|brick|finish\s*fast|progressi(f|ve)|hérisson|herisson|split|intermitt|billat|30\/30|30-30|puma/i;
+// Composite : jamais une allure unique attendue.
+const COMPOSITE_TITLE_RX =
+  /fartlek|negative\s*split|neg\s*split|sl\s*avec\s*inserts|inserts|pyramide|brick|finish\s*fast|progressi(f|ve)|h[eé]risson|billat|30\/30|30-30|intermitt|puma|navette|kenyan/i;
+const SEUIL_TITLE_RX = /\b(double\s*seuil|seuil)\b/i;
+const RACE_TITLE_RX = /tempo\s*semi|allure\s*semi|race[- ]pace|juge\s*de\s*paix|simulation\s*race|jour\s*j|race\s*day/i;
+const VO2_TITLE_RX = /\bvo2\b|\bvma\b/i;
+const EF_TITLE_RX = /\bef\b|footing|endurance|\bz2\b|r[eé]cup|easy(?!\s*run)|\bz1\b/i;
 
 function classify(session: ParsedSession, pt: PaceTargets): Classification {
-  const text = `${session.title} ${session.details}`.toLowerCase();
+  const title = session.title.toLowerCase();
   const z2Mid = pt.allureZ2 ? Math.round((pt.allureZ2.lo + pt.allureZ2.hi) / 2) : null;
-
   const targets = {
     z2: z2Mid ? { label: "Z2", sec: z2Mid } : null,
     seuilBas: { label: "Seuil bas", sec: pt.seuilBas },
@@ -70,60 +83,62 @@ function classify(session: ParsedSession, pt: PaceTargets): Classification {
     race: { label: "Allure course", sec: pt.allureSemiCible },
   };
 
-  const composite = COMPOSITE_RX.test(text);
-
-  // Detect simple type FIRST
-  let simpleType: Classification["simpleType"] = null;
-  let canonical: Target | null = null;
-
-  if (/jour\s*j|race\s*day|course\s*[:—-]/.test(text)) {
-    simpleType = "race_pace";
-    canonical = targets.race;
-  } else if (/^ef\b|^footing|endurance\s*fond|z2\s*pur|ef\s*pur|récup|recup|easy(?!\s*run)|z1/.test(text)) {
-    simpleType = "z2";
-    canonical = targets.z2;
-  } else if (/vo2|vma\b/.test(text) && !composite) {
-    simpleType = "vo2max";
-    canonical = targets.vo2;
-  } else if (/tempo\s*semi|allure\s*semi|race[- ]pace|juge\s*de\s*paix|simulation\s*race/.test(text) && !composite) {
-    simpleType = "race_pace";
-    canonical = targets.race;
-  } else if (/seuil\s*continu|seuil\s*bas|z4b/.test(text) && !composite) {
-    simpleType = "seuil_bas";
-    canonical = targets.seuilBas;
-  } else if (/seuil\s*haut|z5\b/.test(text) && !composite) {
-    simpleType = "seuil_haut";
-    canonical = targets.seuilHaut;
+  // 1. Composite priorité absolue
+  if (COMPOSITE_TITLE_RX.test(title)) {
+    return { simpleType: null, composite: true, canonical: null, reason: "composite (titre)" };
   }
-
-  // Allowed set for composites: Z2 + seuilBas + race + (seuilHaut if intense keyword)
-  const allowed: Target[] = [];
-  if (targets.z2) allowed.push(targets.z2);
-  allowed.push(targets.seuilBas);
-  allowed.push(targets.race);
-  if (/seuil\s*haut|z5|pyramide|billat|intermitt|vo2|vma/.test(text) && targets.seuilHaut) allowed.push(targets.seuilHaut);
-  if (targets.vo2 && /vma|vo2|billat|30\/30|30-30|intermitt/.test(text)) allowed.push(targets.vo2);
-
-  return { simpleType, composite: composite || !simpleType, allowed, canonical };
+  // 2. Seuil (incl. Double Seuil) priorité sur EF
+  if (SEUIL_TITLE_RX.test(title)) {
+    return { simpleType: "seuil_bas", composite: false, canonical: targets.seuilBas, reason: "seuil (titre)" };
+  }
+  // 3. VO2 / VMA pur
+  if (VO2_TITLE_RX.test(title) && targets.vo2) {
+    return { simpleType: "vo2max", composite: false, canonical: targets.vo2, reason: "vo2/vma (titre)" };
+  }
+  // 4. Race pace
+  if (RACE_TITLE_RX.test(title)) {
+    return { simpleType: "race_pace", composite: false, canonical: targets.race, reason: "race pace (titre)" };
+  }
+  // 5. EF / Z2
+  if (EF_TITLE_RX.test(title) && targets.z2) {
+    return { simpleType: "z2", composite: false, canonical: targets.z2, reason: "z2 (titre)" };
+  }
+  // 6. Fallback : exemption composite
+  return { simpleType: null, composite: true, canonical: null, reason: "non-classé → exempté" };
 }
 
-function nearest(paceSec: number, targets: Target[]): Target {
-  return targets.reduce((b, c) => Math.abs(c.sec - paceSec) < Math.abs(b.sec - paceSec) ? c : b);
+function sessionId(week: number, s: ParsedSession): string {
+  return `S${week}-${s.dayName}-${s.title.slice(0, 40)}`;
 }
 
 export function validatePlanPaces(plan: ParsedPlan, paceTargets: PaceTargets | null): PaceValidationReport {
   const issues: PaceCalibrationIssue[] = [];
   const corrections: PaceCorrection[] = [];
   let total = 0;
+  let exempted = 0;
 
   if (!paceTargets) {
-    return { totalPacesFound: 0, corrections: [], issues: [], summary: "Aucun paceTargets fourni — validation ignorée." };
+    return { totalPacesFound: 0, corrections: [], issues: [], exempted: 0, summary: "Aucun paceTargets fourni — validation ignorée." };
   }
 
   for (const week of plan.weeks) {
     for (const s of week.sessions) {
       if (s.isRest) continue;
       const cls = classify(s, paceTargets);
+      const id = sessionId(week.weekNumber, s);
+
+      if (cls.composite) {
+        // eslint-disable-next-line no-console
+        console.log(`⏭️ composite, non validé — ${id} (${cls.reason})`);
+        // Compte quand même les allures pour le total
+        const text = `${s.title} ${s.details}`;
+        const matches = [...text.matchAll(PACE_RX)];
+        total += matches.length;
+        exempted += matches.length;
+        continue;
+      }
+
+      if (!cls.canonical) continue;
       const text = `${s.title} ${s.details}`;
       const matches = [...text.matchAll(PACE_RX)];
 
@@ -132,75 +147,61 @@ export function validatePlanPaces(plan: ParsedPlan, paceTargets: PaceTargets | n
         const paceSec = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
         if (paceSec < 150 || paceSec > 600) continue;
 
-        if (cls.composite) {
-          // Composite : accepter si matche AU MOINS une allure du set ±TOL
-          const okSet = cls.allowed.some(t => Math.abs(paceSec - t.sec) <= TOL_SEC);
-          if (!okSet) {
-            const near = nearest(paceSec, cls.allowed);
-            issues.push({
-              week: week.weekNumber,
-              day: s.dayName,
-              sessionTitle: s.title,
-              paceText: m[0],
-              paceSec,
-              expectedLabel: `composite {${cls.allowed.map(t => t.label).join(", ")}}`,
-              expectedSec: near.sec,
-              deviationSec: paceSec - near.sec,
-              composite: true,
-            });
-          }
-          continue;
+        const dev = paceSec - cls.canonical.sec;
+        if (Math.abs(dev) <= TOL_SEC) continue;
+
+        const before = m[0];
+        const after = fmt(cls.canonical.sec);
+
+        // Chercher dans title PUIS details
+        let applied = false;
+        if (s.title.includes(before)) {
+          s.title = s.title.split(before).join(after);
+          applied = true;
+        }
+        if (s.details.includes(before)) {
+          s.details = s.details.split(before).join(after);
+          applied = true;
         }
 
-        // Simple : correction déterministe si hors plage
-        if (!cls.canonical) continue;
-        const dev = paceSec - cls.canonical.sec;
-        if (Math.abs(dev) > TOL_SEC) {
-          const before = m[0];
-          const after = fmt(cls.canonical.sec);
-          // Remplacement dans details (title rarely holds a pace)
-          const newDetails = s.details.split(before).join(after);
-          if (newDetails !== s.details) {
-            s.details = newDetails;
-            corrections.push({
-              week: week.weekNumber,
-              day: s.dayName,
-              sessionTitle: s.title,
-              type: cls.simpleType ?? "?",
-              before,
-              after,
-            });
-            // eslint-disable-next-line no-console
-            console.log("🔧 Allure corrigée", { semaine: week.weekNumber, séance: s.title, avant: before, après: after, type: cls.simpleType });
-          } else {
-            issues.push({
-              week: week.weekNumber,
-              day: s.dayName,
-              sessionTitle: s.title,
-              paceText: before,
-              paceSec,
-              expectedLabel: cls.canonical.label,
-              expectedSec: cls.canonical.sec,
-              deviationSec: dev,
-              composite: false,
-            });
-          }
+        if (applied) {
+          corrections.push({
+            week: week.weekNumber,
+            day: s.dayName,
+            sessionTitle: s.title,
+            type: cls.simpleType ?? "?",
+            before,
+            after,
+          });
+          // eslint-disable-next-line no-console
+          console.log(`🔧 Allure corrigée — ${id} : ${before} → ${after} (${cls.simpleType})`);
+        } else {
+          // MISS obligatoire : la regex a matché mais split n'a rien remplacé
+          // eslint-disable-next-line no-console
+          console.warn(`🔧 MISS — cherché: [${before}] — contenu réel title: [${s.title}] — details: [${s.details.slice(0, 200)}] — session: ${id}`);
+          issues.push({
+            week: week.weekNumber,
+            day: s.dayName,
+            sessionTitle: s.title,
+            paceText: before,
+            paceSec,
+            expectedLabel: cls.canonical.label,
+            expectedSec: cls.canonical.sec,
+            deviationSec: dev,
+            composite: false,
+          });
         }
       }
     }
   }
 
-  const summary = `${corrections.length} correction(s) auto, ${issues.length}/${total} restant(s) hors calibration (±${TOL_SEC}s).`;
+  const summary = `${corrections.length} correction(s) auto, ${exempted} exempté(s) composite, ${issues.length}/${total} MISS/résiduel(s) (±${TOL_SEC}s).`;
   // eslint-disable-next-line no-console
   console.log(`🎯 validatePlanPaces : ${summary}`);
-  if (corrections.length) {
-    // eslint-disable-next-line no-console
-    console.log("🔧 Corrections déterministes :", corrections);
-  }
   if (issues.length) {
     // eslint-disable-next-line no-console
-    console.warn("⚠️ Allures composites/hors calibration résiduelles :", issues.slice(0, 20));
+    console.warn("⚠️ Résiduels après correction :", issues.slice(0, 20));
   }
 
-  return { totalPacesFound: total, corrections, issues, summary };
+  return { totalPacesFound: total, corrections, issues, exempted, summary };
 }
