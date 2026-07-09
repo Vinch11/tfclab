@@ -824,6 +824,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`;
     lines.push(``);
     lines.push(`### 🎯 ALLURES CANONIQUES — SOURCE UNIQUE (NON NÉGOCIABLE)`);
+    lines.push(`⛔ **INTERDIT de calculer des allures via %VMA, de mémoire, ou par déduction.** Utiliser UNIQUEMENT les valeurs du bloc PACE_TARGETS ci-dessous. Toute allure absente de ce bloc est INTERDITE dans le plan.`);
     lines.push(`Ces allures sont calculées à partir de l'objectif snapshot (${derived.humanSummary}). **Toutes les allures des séances DOIVENT être tirées de ces valeurs — aucune allure inventée.**`);
     lines.push(`- **Allure course cible (objectif)** : ${fmt(pt.allureSemiCible)}`);
     lines.push(`- **Seuil bas (Z4b)** : ${fmt(pt.seuilBas)}`);
