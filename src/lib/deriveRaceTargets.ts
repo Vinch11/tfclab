@@ -96,6 +96,9 @@ export interface DeriveRaceTargetsInput {
 export interface PaceTargets {
   /** Allure objectif course (sec/km) — = racePaceSecPerKm */
   allureSemiCible: number;
+  /** Allure marathon (sec/km) — semi + ~15s (≈+5.5%), utilisée pour les inserts
+   *  "@ allure marathon" des sorties longues. Toujours plus LENTE que allureSemiCible. */
+  allureMarathon: number;
   /** Z4b — bas du seuil (sec/km) : allure course + 10s */
   seuilBas: number;
   /** Z5 — haut du seuil (sec/km) : allure course − 5s */
@@ -137,15 +140,19 @@ export function buildPaceTargets(racePaceSecPerKm: number, vmaKmh: number | null
   const allureZ2 = vma
     ? { lo: Math.round(3600 / (0.75 * vma)), hi: Math.round(3600 / (0.65 * vma)) }
     : null;
+  const semi = Math.round(racePaceSecPerKm);
   return {
-    allureSemiCible: Math.round(racePaceSecPerKm),
-    seuilBas: Math.round(racePaceSecPerKm) + 10,
-    seuilHaut: Math.max(Math.round(racePaceSecPerKm) - 5, 120),
+    allureSemiCible: semi,
+    // Marathon ≈ +5.5% (semi × 1.055). Garanti plus lent que semi.
+    allureMarathon: Math.max(semi + 15, Math.round(semi * 1.055)),
+    seuilBas: semi + 10,
+    seuilHaut: Math.max(semi - 5, 120),
     allureVO2max,
     allureZ2,
     vmaKmh: vma,
   };
 }
+
 
 const VOLUME_CIBLE_MIN_H = 3;
 const VOLUME_CIBLE_MAX_H = 15;
