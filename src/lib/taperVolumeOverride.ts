@@ -32,7 +32,24 @@ function formatHours(h: number): string {
  * Mute directement plan.weeks[i].volumeTarget.
  */
 export function applyTaperVolumeOverride(plan: ParsedPlan, baseVolumeCibleH: number | null): void {
-  if (!baseVolumeCibleH || baseVolumeCibleH <= 0) return;
+  // Log d'entrée systématique pour toutes les semaines (diagnostic pipeline).
+  for (const week of plan.weeks) {
+    const kind = isTaperWeek(week);
+    // eslint-disable-next-line no-console
+    console.log("📦 taperOverride ENTRY", {
+      semaine: week.weekNumber,
+      titre: week.theme,
+      phase: week.phase,
+      baseVolumeCibleH,
+      detectedKind: kind,
+    });
+  }
+
+  if (!baseVolumeCibleH || baseVolumeCibleH <= 0) {
+    // eslint-disable-next-line no-console
+    console.warn("📦 taperOverride SKIP : baseVolumeCibleH null/0 (weeklyHours manquant côté athlète). Aucune substitution appliquée.");
+    return;
+  }
 
   for (const week of plan.weeks) {
     const kind = isTaperWeek(week);
@@ -41,7 +58,7 @@ export function applyTaperVolumeOverride(plan: ParsedPlan, baseVolumeCibleH: num
     const target = baseVolumeCibleH * factor;
     const overridden = `${formatHours(target * 0.85)}-${formatHours(target * 1.15)} (taper ×${factor})`;
     // eslint-disable-next-line no-console
-    console.log("📦 volumeCible", {
+    console.log("📦 volumeCible APPLIED", {
       semaine: week.weekNumber,
       type: kind,
       volumeBloc: baseVolumeCibleH,
