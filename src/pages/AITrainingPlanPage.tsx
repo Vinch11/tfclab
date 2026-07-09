@@ -592,25 +592,35 @@ export default function AITrainingPlanPage() {
   }, [raceDate, raceGoals, planStartDate]);
 
   // Parse AI response into structured plan + apply taper volume override + validate paces.
+  // Chantier 3 — taper/validation appliqués UNE SEULE FOIS après assemblage complet de tous les chunks
+  // (garde par ref sur la longueur du markdown final ; jamais par chunk).
+  const postProcessKeyRef = useRef<string | null>(null);
   const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!response || isLoading) return null;
     try {
       const plan = parseAIPlan(response);
       if (plan.weeks.length === 0) return null;
-      // Chantier 1 & 3 — validation post-parse des allures + override taper
-      try {
-        const d = deriveRaceTargets({
-          vmaKmh: athleteContext?.data?.vma ?? null,
-          thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
-          objective,
-          ambition,
-          weeklyHours: parseFloat(weeklyHours) || null,
-        });
-        applyTaperVolumeOverride(plan, d.volumeCible);
-        validatePlanPaces(plan, d.paceTargets);
-      } catch (e) { console.warn("paces/taper post-process failed", e); }
-      return plan;
 
+      const key = `${response.length}:${plan.weeks.length}`;
+      if (postProcessKeyRef.current !== key) {
+        postProcessKeyRef.current = key;
+        // eslint-disable-next-line no-console
+        console.log(`📦 postProcess START — plan assemblé (${plan.weeks.length} semaines, ${response.length} chars)`);
+        try {
+          const d = deriveRaceTargets({
+            vmaKmh: athleteContext?.data?.vma ?? null,
+            thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
+            objective,
+            ambition,
+            weeklyHours: parseFloat(weeklyHours) || null,
+          });
+          applyTaperVolumeOverride(plan, d.volumeCible);
+          validatePlanPaces(plan, d.paceTargets);
+        } catch (e) {
+          console.warn("📦 postProcess FAILED", e);
+        }
+      }
+      return plan;
     } catch { return null; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response, isLoading, objective, ambition, weeklyHours]);
