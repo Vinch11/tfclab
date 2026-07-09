@@ -42,6 +42,7 @@ import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
 import { resolveEffectiveWeeklyHours } from "@/lib/defaultWeeklyHours";
+import { AMBITIONS as RACE_AMBITIONS } from "@/lib/raceAnalysis";
 
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
@@ -608,7 +609,10 @@ export default function AITrainingPlanPage() {
         // eslint-disable-next-line no-console
         console.log(`📦 postProcess START — plan assemblé (${plan.weeks.length} semaines, ${response.length} chars)`);
         try {
+          const userWH = parseFloat(weeklyHours);
+          const userWHValid = Number.isFinite(userWH) && userWH > 0;
           const effectiveWH = resolveEffectiveWeeklyHours(weeklyHours, objective, ambition);
+          const usedFallback = !userWHValid && effectiveWH != null;
           const d = deriveRaceTargets({
             vmaKmh: athleteContext?.data?.vma ?? null,
             thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
@@ -618,6 +622,20 @@ export default function AITrainingPlanPage() {
           });
           applyTaperVolumeOverride(plan, d.volumeCible);
           validatePlanPaces(plan, d.paceTargets);
+
+          // (d) — Récapitulatif post-process : ENTRY / APPLIED / SKIPPED / fallback
+          const isTaper = (w: typeof plan.weeks[0]) =>
+            /taper|aff[uû]t|volume\s*cut|course|race\s*week|jour\s*j|semaine\s*de\s*course/i.test(
+              `${w.theme} ${w.phase} ${w.coachNotes || ""}`
+            );
+          const taperWeeks = plan.weeks.filter(isTaper);
+          const applied = taperWeeks.filter(w => / \(taper ×/.test(w.volumeTarget || "")).length;
+          const skipped = taperWeeks.length - applied;
+          // eslint-disable-next-line no-console
+          console.log(
+            `📦 SUMMARY: ${plan.weeks.length}/11 semaines, ${applied} applied, ${skipped} skipped, fallback: ${usedFallback ? "oui" : "non"}` +
+            ` (userWH=${userWHValid ? userWH + "h" : "vide"}, effectiveWH=${effectiveWH ?? "null"}h, volumeCible=${d.volumeCible ?? "null"}h)`
+          );
         } catch (e) {
           console.warn("📦 postProcess FAILED", e);
         }
@@ -701,7 +719,23 @@ export default function AITrainingPlanPage() {
       planStartDate: format(planStartDate, "yyyy-MM-dd"),
       weeksAvailable: weeksAvailable ?? undefined,
       weeklyHours: parseFloat(weeklyHours) || undefined,
-      sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
+      sessionsPerWeek: (() => {
+        const n = parseInt(sessionsPerWeek);
+        if (!Number.isFinite(n) || n <= 0) return undefined;
+        // (a) — Conflit sessionsPerWeek utilisateur vs recommandation ambition (qualitesParSemaine = proxy min).
+        // Règle : le formulaire PRIME. On log une alerte si l'utilisateur descend en dessous du minimum
+        // requis pour placer les séances de qualité de son ambition.
+        try {
+          const ambKey = (amb || "").toLowerCase();
+          const ambDef = RACE_AMBITIONS.find((a: any) => a.key === ambKey || a.label?.toLowerCase() === ambKey);
+          const minRec = ambDef?.qualitesParSemaine;
+          if (typeof minRec === "number" && n < minRec) {
+            // eslint-disable-next-line no-console
+            console.warn(`⚠️ sessionsPerWeek user (${n}) < recommandé ambition (${minRec}) — le formulaire prime, l'IA sera forcée à ${n} séances/sem.`);
+          }
+        } catch { /* noop */ }
+        return n;
+      })(),
       maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
       strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
       ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
@@ -2351,7 +2385,7 @@ export default function AITrainingPlanPage() {
                         gapContext={{
                           ambition,
                           objective,
-                          weeklyHours: resolveEffectiveWeeklyHours(weeklyHours, objective, ambition),
+                          weeklyHours: parseFloat(weeklyHours) || null,
                           vmaKmh: athleteContext?.data?.vma ?? null,
                           thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
                         }}
