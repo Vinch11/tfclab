@@ -42,6 +42,7 @@ import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
 import { resolveEffectiveWeeklyHours } from "@/lib/defaultWeeklyHours";
+import { AMBITIONS as RACE_AMBITIONS } from "@/lib/raceAnalysis";
 
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
