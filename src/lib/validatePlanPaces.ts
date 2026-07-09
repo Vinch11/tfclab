@@ -202,8 +202,11 @@ export function validatePlanPaces(
       if (s.isRest) continue;
       const id = sessionId(week.weekNumber, s);
 
-      // J-day fix : semi → remplacer "allure marathon" par "allure semi" dans le texte
-      if (semiObjective) {
+      // J-day fix : la séance course du jour J (semi) ne doit pas parler d'allure
+      // marathon. Restreint à la séance "Jour J / Race Day / Course semi" —
+      // pas aux séances d'entraînement (les inserts marathon en SL restent légitimes).
+      const isRaceDaySession = /jour\s*j|race\s*day|course\s*semi|comp[eé]tition/i.test(s.title);
+      if (semiObjective && isRaceDaySession) {
         if (/allure\s+marathon/i.test(s.title)) {
           const old = s.title;
           s.title = s.title.replace(/allure\s+marathon/gi, "allure semi");
@@ -216,6 +219,7 @@ export function validatePlanPaces(
           console.log(`🔧 J-day details: 'allure marathon' → 'allure semi' — ${id}`);
         }
       }
+
 
       const titleRes = rewritePacesInText(s.title, paceTargets, id);
       if (titleRes.corrections.length) {
