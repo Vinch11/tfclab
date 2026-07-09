@@ -587,14 +587,34 @@ export default function AITrainingPlanPage() {
     } catch { return null; }
   }, [raceDate, raceGoals, planStartDate]);
 
-  // Parse AI response into structured plan
+  // Parse AI response into structured plan + apply taper volume override + validate paces.
   const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!response || isLoading) return null;
     try {
       const plan = parseAIPlan(response);
-      return plan.weeks.length > 0 ? plan : null;
+      if (plan.weeks.length === 0) return null;
+      // Chantier 1 — validation post-parse des allures
+      try {
+        // Lazy imports to avoid circular deps in tests
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { deriveRaceTargets } = require("@/lib/deriveRaceTargets");
+        const { validatePlanPaces } = require("@/lib/validatePlanPaces");
+        const { applyTaperVolumeOverride } = require("@/lib/taperVolumeOverride");
+        const d = deriveRaceTargets({
+          vmaKmh: athleteContext?.data?.vma ?? null,
+          thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
+          objective,
+          ambition,
+          weeklyHours: parseFloat(weeklyHours) || null,
+        });
+        applyTaperVolumeOverride(plan, d.volumeCible);
+        validatePlanPaces(plan, d.paceTargets);
+      } catch (e) { console.warn("paces/taper post-process failed", e); }
+      return plan;
     } catch { return null; }
-  }, [response, isLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [response, isLoading, objective, ambition, weeklyHours]);
+
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD PLAN CONFIG — Delegates to Plan Engine
