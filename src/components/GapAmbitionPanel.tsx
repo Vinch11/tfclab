@@ -19,6 +19,16 @@ const REFERENCE_STANDARDS_FRONT: Record<string, Record<string, string>> = {
   "Marathon": { finish: "4h30-5h00", perf: "3h30-4h15", sub: "3h00-3h30", elite: "2h45-3h00", world_class: "sub2h35" },
 };
 
+// Chantier 2 — Volume standard populationnel (heures/semaine) par objectif × ambition.
+// Utilisé UNIQUEMENT pour la ligne "Volume hebdo" du GapAmbitionPanel.
+const REFERENCE_VOLUMES_FRONT: Record<string, Partial<Record<string, [number, number]>>> = {
+  "5K":       { finish: [3, 5],  perf: [5, 7],  sub: [6, 9],   elite: [8, 12],  world_class: [10, 14] },
+  "10K":      { finish: [3, 5],  perf: [5, 7],  sub: [7, 10],  elite: [9, 13],  world_class: [11, 15] },
+  "Semi":     { finish: [4, 6],  perf: [6, 8],  sub: [8, 11],  elite: [10, 14], world_class: [12, 16] },
+  "Marathon": { finish: [5, 7],  perf: [7, 9],  sub: [9, 12],  elite: [11, 15], world_class: [13, 17] },
+};
+
+
 const OBJ_KM: Record<string, number> = { "5K": 5, "10K": 10, "Semi": 21.0975, "Marathon": 42.195 };
 const AMB_ORDER: readonly ("finish" | "perf" | "sub" | "elite" | "world_class")[] = ["finish", "perf", "sub", "elite", "world_class"];
 
