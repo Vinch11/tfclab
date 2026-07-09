@@ -162,3 +162,29 @@ export function getFicheForSession(
   const w = findLibraryWorkoutForSession(session, objectifEffectif);
   return w ? toFiche(w) : null;
 }
+
+/**
+ * Garde-fou aval : en objectif running pur, si une séance vélo générée
+ * contient une intensité Z3+ (ou watts au-dessus du seuil), on dégrade
+ * verbalement en Z2 dans le texte affiché et on logge l'événement.
+ * Ne modifie pas la structure sous-jacente de la bibliothèque.
+ */
+export function maybeDowngradeBikeSession<T extends { sport?: string; title?: string; details?: string }>(
+  session: T,
+  objectifEffectif?: string | null,
+): T {
+  if (!isRunOnlyObjective(objectifEffectif)) return session;
+  const sport = (session.sport || "").toLowerCase();
+  const title = session.title || "";
+  const details = session.details || "";
+  const isBike = /bike|v[ée]lo|cycl/.test(sport) || /BIKE|VÉLO|VELO/i.test(title);
+  if (!isBike) return session;
+  const hasHighZone = /Z[3-7]\b/i.test(details) || /Z[3-7]\b/i.test(title);
+  if (!hasHighZone) return session;
+  // eslint-disable-next-line no-console
+  console.log(`⚠️ séance vélo dégradée en Z2 (${title || "sans titre"})`);
+  const patched = details.replace(/Z[3-7][a-b]?/gi, "Z2") +
+    "\n\n> ⚠️ Cross-training vélo dégradé en Z2 (plan running pur — qualité vélo interdite).";
+  return { ...session, details: patched };
+}
+
