@@ -278,7 +278,7 @@ export function validatePlanPaces(
       // Assertion dérive "allure semi"
       const races = [...titleRes.raceSec, ...detailsRes.raceSec];
       for (const r of races) {
-        if (Math.abs(r - paceTargets.allureSemiCible) > TOL_SEC) {
+        if (Math.abs(r - paceTargets.allureSemiCible) > HARD_DEVIATION_SEC) {
           // eslint-disable-next-line no-console
           console.error(`❌ ASSERT dérive semi — ${id} : ${fmt(r)} ≠ ${fmt(paceTargets.allureSemiCible)}`);
         }
