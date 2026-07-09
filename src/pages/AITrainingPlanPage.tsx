@@ -2308,6 +2308,9 @@ export default function AITrainingPlanPage() {
                         plan={parsedPlan}
                         objective={objective}
                         ambition={ambition}
+                        ambitionEffective={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.ambitionMeta?.effective : undefined}
+                        ambitionEffectiveLabel={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.ambitionMeta?.effectiveLabel : undefined}
+                        ambitionSaisieLabel={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.ambitionMeta?.saisieLabel : undefined}
                         athleteName={currentAthlete?.nom}
                         limiterResult={athleteContext?.diagnostic.limiter ?? null}
                         prohibitions={athleteContext ? buildConfigFromDiag(athleteContext.diagnostic)?.prohibitions : undefined}
