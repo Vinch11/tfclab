@@ -165,12 +165,43 @@ export function buildPaceTargets(racePaceSecPerKm: number, vmaKmh: number | null
 
 
 const VOLUME_CIBLE_MIN_H = 3;
-const VOLUME_CIBLE_MAX_H = 15;
 
-function computeVolumeCible(weeklyHours: number | null | undefined, multiplicateur: number): number | null {
+/**
+ * Cap volumeCible par ambition (h/sem).
+ * Levée du plafond historique 15h : les profils élite / world-class doivent
+ * pouvoir atteindre les volumes réels observés en littérature (Seiler,
+ * Stöggl, Rønnestad) pour marathon élite (20-25h), IM elite (25-32h).
+ */
+const VOLUME_CIBLE_MAX_BY_AMBITION: Record<Ambition, number> = {
+  finish: 12,
+  perf: 14,
+  sub: 18,
+  elite: 25,
+  world_class: 32,
+};
+
+/**
+ * Facteur expérience appliqué à la cible de volume.
+ * Un `sub` avec 2 ans de pratique ne doit pas cibler le même volume qu'un
+ * `sub` avec 10 ans (capacité d'absorption ≠). Neutre (1.00) si non renseigné.
+ * Références : Foster (charge relative), Seiler (adaptation cumulative).
+ */
+const EXPERIENCE_FACTOR: Record<NonNullable<DeriveRaceTargetsInput["trainingLevel"]>, number> = {
+  untrained: 0.85,
+  light: 0.92,
+  trained: 1.00,
+  highly_trained: 1.08,
+};
+
+function computeVolumeCible(
+  weeklyHours: number | null | undefined,
+  multiplicateur: number,
+  experienceFactor: number,
+  capH: number,
+): number | null {
   if (typeof weeklyHours !== "number" || !Number.isFinite(weeklyHours) || weeklyHours <= 0) return null;
-  const raw = weeklyHours * multiplicateur;
-  const bounded = Math.min(VOLUME_CIBLE_MAX_H, Math.max(VOLUME_CIBLE_MIN_H, raw));
+  const raw = weeklyHours * multiplicateur * experienceFactor;
+  const bounded = Math.min(capH, Math.max(VOLUME_CIBLE_MIN_H, raw));
   return Number(bounded.toFixed(2));
 }
 
@@ -180,11 +211,14 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
   const ambDef = AMBITIONS.find(a => a.key === amb) ?? AMBITIONS[1];
   const distanceKm = objKey ? OBJECTIVE_DIST_KM[objKey] : null;
   const literatureRangeSec = input.literatureHintText ? parseLiteratureHint(input.literatureHintText) : null;
-  const volumeCible = computeVolumeCible(input.weeklyHours, ambDef.multiplicateurVolume);
+  const experienceFactor = input.trainingLevel ? EXPERIENCE_FACTOR[input.trainingLevel] : 1.0;
+  const volumeCibleMaxH = VOLUME_CIBLE_MAX_BY_AMBITION[amb] ?? 15;
+  const volumeCible = computeVolumeCible(input.weeklyHours, ambDef.multiplicateurVolume, experienceFactor, volumeCibleMaxH);
   if (input.weeklyHours != null) {
-    // Log traçable : "📦 volumeCible : {weeklyHours}h × {mult} = {v}h"
     // eslint-disable-next-line no-console
-    console.log(`📦 volumeCible : ${input.weeklyHours}h × ${ambDef.multiplicateurVolume} = ${volumeCible ?? "n/a"}h (ambition ${amb})`);
+    console.log(
+      `📦 volumeCible : ${input.weeklyHours}h × ${ambDef.multiplicateurVolume} (amb ${amb}) × ${experienceFactor} (exp ${input.trainingLevel ?? "n/a"}) = ${volumeCible ?? "n/a"}h [cap ${volumeCibleMaxH}h]`
+    );
   }
 
   const structural = {
@@ -192,6 +226,8 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
     multiplicateurVolume: ambDef.multiplicateurVolume,
     complexiteSeances: ambDef.complexiteSeances,
     volumeCible,
+    experienceFactor,
+    volumeCibleMaxH,
     paceTargets: null as PaceTargets | null,
   };
 
