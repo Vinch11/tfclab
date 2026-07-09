@@ -231,6 +231,7 @@ import {
   getRunningTimeHint,
   normalizeAmbitionLevel,
 } from "@/types/ambitionLevel";
+import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 
 const Index = () => {
   const { user, signOut } = useAuth();
