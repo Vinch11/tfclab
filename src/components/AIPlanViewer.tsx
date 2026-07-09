@@ -689,6 +689,8 @@ interface AIPlanViewerProps {
   /** Contexte pour GapAmbitionPanel (100% frontend, déterministe). */
   gapContext?: {
     ambition?: string | null;
+    /** Ambition effective si déclassement appliqué (min(saisie, max(niveau))). */
+    ambitionEffective?: string | null;
     objective?: string | null;
     weeklyHours?: number | null;
     vmaKmh?: number | null;
