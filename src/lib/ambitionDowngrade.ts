@@ -125,9 +125,6 @@ export function computeAmbitionEffective(params: {
       `[niveau=${trainingLevelLabelsFull[effectiveTrainingLevel]} (${effectiveTrainingLevel})` +
       `${trainingLevelSource === "auto-tss" ? " · auto-TSS" : trainingLevelSource === "fallback-prudent" ? " · fallback prudent" : ""}]`
     );
-      `⬇️ Ambition déclassée : ${ambitionSaisie} → ${ambitionEffective} ` +
-      `(niveau=${effectiveTrainingLevel}${trainingLevelSource === "auto-tss" ? " · auto-TSS" : ""})`
-    );
   }
 
   return {
