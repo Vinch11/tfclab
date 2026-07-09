@@ -221,6 +221,25 @@ export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, ambi
           </p>
         </div>
 
+        {(() => {
+          if (!ambitionEffective) return null;
+          const effKey = normAmbition(ambitionEffective);
+          if (effKey === ambKey) return null;
+          const effDef = AMBITIONS.find(a => a.key === effKey) ?? AMBITIONS[1];
+          return (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs leading-relaxed">
+              <p>
+                <strong>Plan dimensionné pour : {effDef.label}</strong>
+                <span className="text-muted-foreground">
+                  {" "}— Ambition ajustée <strong>{ambDef.label} → {effDef.label}</strong> en cohérence
+                  avec le niveau d'entraînement déclaré. La physiologie commande, l'ambition module la structure.
+                  Le gap ci-dessus reste calculé vers votre ambition visée ({ambDef.label}).
+                </span>
+              </p>
+            </div>
+          );
+        })()}
+
         <p className="text-[10px] text-muted-foreground italic">
           Panneau calculé côté frontend — 100% déterministe, aucune donnée générée par l'IA. Standards populationnels : usage comparatif uniquement.
         </p>
