@@ -147,22 +147,6 @@ export function buildPaceTargets(racePaceSecPerKm: number, vmaKmh: number | null
 }
 
 const VOLUME_CIBLE_MIN_H = 3;
-const VOLUME_CIBLE_MAX_H = 15;
-
-function computeVolumeCible(weeklyHours: number | null | undefined, multiplicateur: number): number | null {
-  if (typeof weeklyHours !== "number" || !Number.isFinite(weeklyHours) || weeklyHours <= 0) return null;
-  const raw = weeklyHours * multiplicateur;
-  const bounded = Math.min(VOLUME_CIBLE_MAX_H, Math.max(VOLUME_CIBLE_MIN_H, raw));
-  return Number(bounded.toFixed(2));
-}
-
-export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTargetsResult {
-  const objKey = normalizeObj(input.objective || "");
-  const amb = normalizeAmb(input.ambition || "");
-  const ambDef = AMBITIONS.find(a => a.key === amb) ?? AMBITIONS[1];
-  const distanceKm = objKey ? OBJECTIVE_DIST_KM[objKey] : null;
-  const literatureRangeSec = input.literatureHintText ? parseLiteratureHint(input.literatureHintText) : null;
-const VOLUME_CIBLE_MIN_H = 3;
 
 const VOLUME_CIBLE_MAX_BY_AMBITION: Record<Ambition, number> = {
   finish: 12,
