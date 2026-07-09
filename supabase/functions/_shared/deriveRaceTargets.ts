@@ -239,6 +239,9 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
   const fam = distanceFamilyFromKm(distanceKm);
   const humanSummary = `${formatSecToTime(time)} · allure ${formatSecPerKm(pace)} (source snapshot : VMA ${vma?.toFixed(1) ?? "?"} km/h × ${(fracUsed * 100).toFixed(0)}% [famille ${fam}])`;
 
+  const paceTargets = buildPaceTargets(pace, vma);
+  console.log("🎯 deriveRaceTargets paceTargets", paceTargets);
+
   return {
     source: "snapshot",
     distanceKm,
@@ -254,6 +257,8 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
     warning,
     humanSummary,
     ...structural,
+    paceTargets,
   };
 }
+
 
