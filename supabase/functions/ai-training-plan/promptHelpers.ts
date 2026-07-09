@@ -870,6 +870,16 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push(`- **⚠️ Anti-contradiction :** Si un jour a une séance d'entraînement, NE PAS ajouter de ligne "Repos" pour ce même jour. Le Repos est UNIQUEMENT pour les jours sans aucune séance.`);
   }
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
+  if (derived) {
+    const complexRule = derived.complexiteSeances === "simple"
+      ? "INTERDIT : doubles seuils, train-low, plyométrie avancée, doubles séances quotidiennes systématiques."
+      : derived.complexiteSeances === "intermediaire"
+        ? "AUTORISÉ : progressions classiques, tempo, seuils simples, intervalles VMA. INTERDIT : doubles seuils, train-low avancé, plyo pliométrique avancée."
+        : "AUTORISÉ : doubles seuils, train-low, plyo avancée, back-to-back, séances complexes multi-blocs.";
+    lines.push(`- **🧩 STRUCTURE AMBITION (non négociable) :** ${derived.qualitesParSemaine} qualité(s)/semaine · complexité "${derived.complexiteSeances}".`);
+    lines.push(`  → ${complexRule}`);
+  }
+
 
   // === CONTRAINTE EXPLICITE : RATIOS DE RÉPARTITION SPORTIVE PAR NIVEAU D'AMBITION ===
   const sportRatios = getSportDistributionConstraint((config.objective || "").toUpperCase(), (config.ambition || "").toLowerCase(), config.identifiedLimitersRaw ?? config.identifiedLimiters, catalogDurationStats);
