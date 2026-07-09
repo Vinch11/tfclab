@@ -19,6 +19,16 @@ const REFERENCE_STANDARDS_FRONT: Record<string, Record<string, string>> = {
   "Marathon": { finish: "4h30-5h00", perf: "3h30-4h15", sub: "3h00-3h30", elite: "2h45-3h00", world_class: "sub2h35" },
 };
 
+// Chantier 2 — Volume standard populationnel (heures/semaine) par objectif × ambition.
+// Utilisé UNIQUEMENT pour la ligne "Volume hebdo" du GapAmbitionPanel.
+const REFERENCE_VOLUMES_FRONT: Record<string, Partial<Record<string, [number, number]>>> = {
+  "5K":       { finish: [3, 5],  perf: [5, 7],  sub: [6, 9],   elite: [8, 12],  world_class: [10, 14] },
+  "10K":      { finish: [3, 5],  perf: [5, 7],  sub: [7, 10],  elite: [9, 13],  world_class: [11, 15] },
+  "Semi":     { finish: [4, 6],  perf: [6, 8],  sub: [8, 11],  elite: [10, 14], world_class: [12, 16] },
+  "Marathon": { finish: [5, 7],  perf: [7, 9],  sub: [9, 12],  elite: [11, 15], world_class: [13, 17] },
+};
+
+
 const OBJ_KM: Record<string, number> = { "5K": 5, "10K": 10, "Semi": 21.0975, "Marathon": 42.195 };
 const AMB_ORDER: readonly ("finish" | "perf" | "sub" | "elite" | "world_class")[] = ["finish", "perf", "sub", "elite", "world_class"];
 
@@ -96,17 +106,27 @@ export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, obje
     ? ((vmaRequiredKmh - vmaKmh) / vmaKmh) * 100
     : null;
 
-  const volumeCible = derived.volumeCible;
-  const gapVolumePct = (volumeCible != null && typeof weeklyHours === "number" && weeklyHours > 0)
-    ? ((weeklyHours - volumeCible) / volumeCible) * 100
+  // Volume requis = fourchette standard populationnelle (REFERENCE_VOLUMES_FRONT).
+  const volumeRefRange = objKey ? REFERENCE_VOLUMES_FRONT[objKey]?.[ambKey] ?? null : null;
+  const volumeRefMid = volumeRefRange ? (volumeRefRange[0] + volumeRefRange[1]) / 2 : null;
+  const gapVolumePct = (volumeRefMid != null && typeof weeklyHours === "number" && weeklyHours > 0)
+    ? ((weeklyHours - volumeRefMid) / volumeRefMid) * 100
     : null;
 
-  // Logs traçables
+  // Logs traçables (Chantier 2)
   if (typeof window !== "undefined") {
-    console.log(
-      `📊 GapAmbitionPanel : VMA ${vmaKmh ?? "n/a"} vs requise ${vmaRequiredKmh?.toFixed(1) ?? "n/a"} (${gapVmaPct != null ? (gapVmaPct >= 0 ? "+" : "") + gapVmaPct.toFixed(1) + "%" : "n/a"})`
-    );
+    console.log("📊 GapAmbitionPanel", {
+      vma: vmaKmh ?? null,
+      vmaRequise: vmaRequiredKmh?.toFixed(1) ?? null,
+      allureRequise: paceRequiredSecPerKm ?? null,
+      temps: derived.raceTimeSec ?? null,
+      volumeActuel: weeklyHours ?? null,
+      volumeRef: volumeRefRange,
+      gapVmaPct: gapVmaPct?.toFixed(1) ?? null,
+      gapVolumePct: gapVolumePct?.toFixed(1) ?? null,
+    });
   }
+
 
   if (!vmaKmh && !thresholdPaceSecPerKm) {
     return (
@@ -175,7 +195,7 @@ export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, obje
               <tr>
                 <td className="py-2 pr-2">Volume hebdo</td>
                 <td className="py-2 pr-2">{typeof weeklyHours === "number" ? `${weeklyHours}h` : "—"}</td>
-                <td className="py-2 pr-2">{volumeCible != null ? `${volumeCible}h (×${derived.multiplicateurVolume})` : "—"}</td>
+                <td className="py-2 pr-2">{volumeRefRange ? `${volumeRefRange[0]}-${volumeRefRange[1]}h/sem` : "—"}</td>
                 <td className="py-2 pr-2">{gapBadge(gapVolumePct)}</td>
               </tr>
             </tbody>

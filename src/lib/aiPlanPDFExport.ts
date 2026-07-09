@@ -7,6 +7,106 @@ import type { AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
+import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+
+const REFERENCE_VOLUMES_PDF: Record<string, Partial<Record<string, [number, number]>>> = {
+  "5K":       { finish: [3, 5],  perf: [5, 7],  sub: [6, 9],   elite: [8, 12],  world_class: [10, 14] },
+  "10K":      { finish: [3, 5],  perf: [5, 7],  sub: [7, 10],  elite: [9, 13],  world_class: [11, 15] },
+  "Semi":     { finish: [4, 6],  perf: [6, 8],  sub: [8, 11],  elite: [10, 14], world_class: [12, 16] },
+  "Marathon": { finish: [5, 7],  perf: [7, 9],  sub: [9, 12],  elite: [11, 15], world_class: [13, 17] },
+};
+const REFERENCE_STANDARDS_PDF: Record<string, Record<string, string>> = {
+  "5K":       { finish: "28-35", perf: "22-26", sub: "18-21", elite: "16-18", world_class: "sub15" },
+  "10K":      { finish: "55-1h10", perf: "45-52", sub: "38-44", elite: "33-37", world_class: "sub31" },
+  "Semi":     { finish: "2h00-2h30", perf: "1h35-1h55", sub: "1h20-1h35", elite: "1h12-1h20", world_class: "sub1h08" },
+  "Marathon": { finish: "4h30-5h00", perf: "3h30-4h15", sub: "3h00-3h30", elite: "2h45-3h00", world_class: "sub2h35" },
+};
+
+function normObjPdf(o: string): string | null {
+  const s = (o || "").trim().toLowerCase();
+  if (/^5\s*k/.test(s)) return "5K";
+  if (/^10\s*k/.test(s)) return "10K";
+  if (/semi|half/.test(s)) return "Semi";
+  if (/marathon/.test(s) && !/semi/.test(s)) return "Marathon";
+  return null;
+}
+function normAmbPdf(a: string): string {
+  const s = (a || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (s.includes("world")) return "world_class";
+  if (s.includes("elite") || s.includes("pro")) return "elite";
+  if (s.includes("compet") || s.includes("sub")) return "sub";
+  if (s.includes("age") || s.includes("perf")) return "perf";
+  return "finish";
+}
+function fmtSecPace(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${m}:${String(s).padStart(2, "0")}/km`;
+}
+function fmtSecTime(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return h > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${m}min`;
+}
+
+function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
+  if (!ctx || (!ctx.vmaKmh && !ctx.thresholdPaceSecPerKm)) return "";
+  const objKey = normObjPdf(ctx.objective || "");
+  const ambKey = normAmbPdf(ctx.ambition || "");
+  if (!objKey) return "";
+  const derived = deriveRaceTargets({
+    vmaKmh: ctx.vmaKmh ?? null,
+    thresholdPaceSecPerKm: ctx.thresholdPaceSecPerKm ?? null,
+    objective: ctx.objective || "",
+    ambition: ctx.ambition || "",
+    weeklyHours: ctx.weeklyHours ?? null,
+  });
+  const stdTime = REFERENCE_STANDARDS_PDF[objKey]?.[ambKey] ?? "—";
+  const volRange = REFERENCE_VOLUMES_PDF[objKey]?.[ambKey] ?? null;
+  const volReqStr = volRange ? `${volRange[0]}-${volRange[1]}h/sem` : "—";
+  const volMid = volRange ? (volRange[0] + volRange[1]) / 2 : null;
+  const gapVol = (volMid && ctx.weeklyHours) ? ((ctx.weeklyHours - volMid) / volMid) * 100 : null;
+
+  const paceAct = derived.racePaceSecPerKm ? fmtSecPace(derived.racePaceSecPerKm) : "—";
+  const timeAct = derived.raceTimeSec ? fmtSecTime(derived.raceTimeSec) : "—";
+  const vmaAct = ctx.vmaKmh ? ctx.vmaKmh.toFixed(1) : "—";
+  const vmaReq = derived.vmaRequiredForLiterature ? derived.vmaRequiredForLiterature.toFixed(1) : "—";
+  const gapBadge = (pct: number | null) => {
+    if (pct == null) return `<span style="color:#888;">—</span>`;
+    const sign = pct >= 0 ? "+" : "";
+    const color = Math.abs(pct) > 8 ? "#c62828" : Math.abs(pct) > 3 ? "#ef6c00" : "#2e7d32";
+    return `<span style="color:${color};font-weight:600;">${sign}${pct.toFixed(1)}%</span>`;
+  };
+  const gapVma = derived.vmaRequiredForLiterature && ctx.vmaKmh
+    ? ((derived.vmaRequiredForLiterature - ctx.vmaKmh) / ctx.vmaKmh) * 100
+    : null;
+
+  return `
+  <div style="background:#fff7ed;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #ea580c;">
+    <strong>⚠️ Gap Ambition — Physiologie actuelle vs standard "${ambKey}"</strong>
+    <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:11px;">
+      <thead>
+        <tr style="background:#fed7aa;">
+          <th style="padding:4px 6px;text-align:left;">Métrique</th>
+          <th style="padding:4px 6px;text-align:left;">Actuel (snapshot)</th>
+          <th style="padding:4px 6px;text-align:left;">Requis (${ambKey})</th>
+          <th style="padding:4px 6px;text-align:left;">Gap</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:4px 6px;">VMA (km/h)</td><td style="padding:4px 6px;">${vmaAct}</td><td style="padding:4px 6px;">${vmaReq}</td><td style="padding:4px 6px;">${gapBadge(gapVma)}</td></tr>
+        <tr><td style="padding:4px 6px;">Allure course soutenable</td><td style="padding:4px 6px;">${paceAct}</td><td style="padding:4px 6px;">${stdTime}</td><td style="padding:4px 6px;">${gapBadge(derived.divergencePct)}</td></tr>
+        <tr><td style="padding:4px 6px;">Temps projeté</td><td style="padding:4px 6px;">${timeAct}</td><td style="padding:4px 6px;">${stdTime}</td><td style="padding:4px 6px;">${gapBadge(derived.divergencePct)}</td></tr>
+        <tr><td style="padding:4px 6px;">Volume hebdo</td><td style="padding:4px 6px;">${ctx.weeklyHours ? ctx.weeklyHours + "h" : "—"}</td><td style="padding:4px 6px;">${volReqStr}</td><td style="padding:4px 6px;">${gapBadge(gapVol)}</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:8px 0 0 0;font-size:10.5px;color:#78350f;line-height:1.5;">
+      <strong>Structure ${ambKey}</strong> appliquée (${derived.qualitesParSemaine} qualité(s)/sem, complexité "${derived.complexiteSeances}"). Objectif du plan : <strong>${timeAct}</strong> (physiologie actuelle).
+    </p>
+  </div>`;
+}
+
+
 
 function getSportEmoji(sport: string): string {
   const s = sport.toLowerCase();
@@ -147,6 +247,14 @@ function getSportBadge(sport: string): string {
 export type PlanPDFOrientation = "landscape" | "portrait";
 export type PlanPDFDetailLevel = "full" | "compact";
 
+export interface PDFGapContext {
+  ambition?: string | null;
+  objective?: string | null;
+  weeklyHours?: number | null;
+  vmaKmh?: number | null;
+  thresholdPaceSecPerKm?: number | null;
+}
+
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
   athleteName?: string,
@@ -154,8 +262,9 @@ export function exportAIPlanToPDF(
   adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
   detailLevel: PlanPDFDetailLevel = "full",
+  gapContext?: PDFGapContext,
 ) {
-  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel);
+  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel, gapContext);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, "_blank");
@@ -171,7 +280,9 @@ function buildPlanHTML(
   adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
   detailLevel: PlanPDFDetailLevel = "full",
+  gapContext?: PDFGapContext,
 ): string {
+
   const hasDate = !!startDate;
   const isPortrait = orientation === "portrait";
   const isCompact = detailLevel === "compact";
@@ -354,6 +465,8 @@ function buildPlanHTML(
   <p style="color:#888;font-size:12px;margin:0 0 12px 0;">${plan.totalWeeks} semaines • ${plan.phases.length} phases</p>
   <div style="margin-bottom:16px;">${phasesSummary}</div>
   ${plan.diagnostic ? `<div style="background:#f9f9f9;padding:10px 14px;border-radius:6px;font-size:12px;color:#555;margin-bottom:20px;border-left:3px solid #1967d2;"><strong>Diagnostic TFCL™</strong><br/>${plan.diagnostic.replace(/\n/g, "<br/>")}</div>` : ""}
+  ${buildGapAmbitionHTML(gapContext)}
+
   ${plan.strategicRecap && plan.strategicRecap.limiters.length > 0 ? `
   <div style="background:#f0f7ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #e67e22;">
     <strong>🎯 Récapitulatif Stratégique</strong>

@@ -93,6 +93,15 @@ export interface DeriveRaceTargetsInput {
   weeklyHours?: number | null;
 }
 
+export interface PaceTargets {
+  allureSemiCible: number;
+  seuilBas: number;
+  seuilHaut: number;
+  allureVO2max: number | null;
+  allureZ2: { lo: number; hi: number } | null;
+  vmaKmh: number | null;
+}
+
 export interface DeriveRaceTargetsResult {
   source: "snapshot" | "insufficient_data";
   distanceKm: number | null;
@@ -107,12 +116,27 @@ export interface DeriveRaceTargetsResult {
   vmaRequiredForLiterature: number | null;
   warning: string | null;
   humanSummary: string;
-  // Structure de plan (dérivée de AMBITIONS)
   qualitesParSemaine: number;
   multiplicateurVolume: number;
   complexiteSeances: ComplexiteSeances;
-  /** Volume cible hebdo (heures) = weeklyHours × multiplicateurVolume, borné [3, 15]. Null si weeklyHours absent. */
   volumeCible: number | null;
+  paceTargets: PaceTargets | null;
+}
+
+export function buildPaceTargets(racePaceSecPerKm: number, vmaKmh: number | null): PaceTargets {
+  const vma = typeof vmaKmh === "number" && vmaKmh > 0 ? vmaKmh : null;
+  const allureVO2max = vma ? Math.round(3600 / (0.97 * vma)) : null;
+  const allureZ2 = vma
+    ? { lo: Math.round(3600 / (0.75 * vma)), hi: Math.round(3600 / (0.65 * vma)) }
+    : null;
+  return {
+    allureSemiCible: Math.round(racePaceSecPerKm),
+    seuilBas: Math.round(racePaceSecPerKm) + 10,
+    seuilHaut: Math.max(Math.round(racePaceSecPerKm) - 5, 120),
+    allureVO2max,
+    allureZ2,
+    vmaKmh: vma,
+  };
 }
 
 const VOLUME_CIBLE_MIN_H = 3;
@@ -143,7 +167,9 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
     multiplicateurVolume: ambDef.multiplicateurVolume,
     complexiteSeances: ambDef.complexiteSeances,
     volumeCible,
+    paceTargets: null as PaceTargets | null,
   };
+
 
   const vma = typeof input.vmaKmh === "number" && input.vmaKmh > 0 ? input.vmaKmh : null;
   const thr = typeof input.thresholdPaceSecPerKm === "number" && input.thresholdPaceSecPerKm > 0
@@ -213,6 +239,9 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
   const fam = distanceFamilyFromKm(distanceKm);
   const humanSummary = `${formatSecToTime(time)} · allure ${formatSecPerKm(pace)} (source snapshot : VMA ${vma?.toFixed(1) ?? "?"} km/h × ${(fracUsed * 100).toFixed(0)}% [famille ${fam}])`;
 
+  const paceTargets = buildPaceTargets(pace, vma);
+  console.log("🎯 deriveRaceTargets paceTargets", paceTargets);
+
   return {
     source: "snapshot",
     distanceKm,
@@ -228,6 +257,8 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
     warning,
     humanSummary,
     ...structural,
+    paceTargets,
   };
 }
+
 

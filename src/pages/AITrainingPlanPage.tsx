@@ -38,6 +38,10 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
+import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { validatePlanPaces } from "@/lib/validatePlanPaces";
+import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
+
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
@@ -587,14 +591,30 @@ export default function AITrainingPlanPage() {
     } catch { return null; }
   }, [raceDate, raceGoals, planStartDate]);
 
-  // Parse AI response into structured plan
+  // Parse AI response into structured plan + apply taper volume override + validate paces.
   const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!response || isLoading) return null;
     try {
       const plan = parseAIPlan(response);
-      return plan.weeks.length > 0 ? plan : null;
+      if (plan.weeks.length === 0) return null;
+      // Chantier 1 & 3 — validation post-parse des allures + override taper
+      try {
+        const d = deriveRaceTargets({
+          vmaKmh: athleteContext?.data?.vma ?? null,
+          thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
+          objective,
+          ambition,
+          weeklyHours: parseFloat(weeklyHours) || null,
+        });
+        applyTaperVolumeOverride(plan, d.volumeCible);
+        validatePlanPaces(plan, d.paceTargets);
+      } catch (e) { console.warn("paces/taper post-process failed", e); }
+      return plan;
+
     } catch { return null; }
-  }, [response, isLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [response, isLoading, objective, ambition, weeklyHours]);
+
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD PLAN CONFIG — Delegates to Plan Engine
