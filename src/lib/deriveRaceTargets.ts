@@ -1,10 +1,9 @@
+// ⚠️ DUPLIQUÉ dans supabase/functions/_shared/deriveRaceTargets.ts — toute modif doit être appliquée aux deux
 // =============================================
 // DERIVE RACE TARGETS — SOURCE UNIQUE (snapshot-based) — browser mirror
 // =============================================
-// Miroir navigateur du helper Deno `supabase/functions/_shared/deriveRaceTargets.ts`.
-// Toute modification doit rester synchrone entre les deux fichiers.
 
-import { AMBITIONS, computeRaceScenarios, type Ambition } from "./raceAnalysis";
+import { AMBITIONS, computeRaceScenarios, distanceFamilyFromKm, fractionVMAForAmbition, type Ambition, type ComplexiteSeances } from "./raceAnalysis";
 
 const AMBITION_MAP: Record<string, Ambition> = {
   finisher: "finish",
