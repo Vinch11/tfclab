@@ -31,17 +31,34 @@ function formatHours(h: number): string {
  * `baseVolumeCibleH` = volumeCible hebdo standard du plan (heures) issu de deriveRaceTargets.
  * Mute directement plan.weeks[i].volumeTarget.
  */
-export function applyTaperVolumeOverride(plan: ParsedPlan, baseVolumeCibleH: number | null): void {
+export function applyTaperVolumeOverride(
+  plan: ParsedPlan,
+  baseVolumeCibleH: number | null,
+  opts: { raceWeekNumber?: number | null } = {},
+): void {
+  const raceWeek = opts.raceWeekNumber && opts.raceWeekNumber > 0 ? opts.raceWeekNumber : null;
+
+  const detect = (week: ParsedWeek): "race" | "taper" | null => {
+    if (raceWeek) {
+      // Index-based prioritaire quand raceDate connu : évite les faux positifs
+      // provoqués par des noms de bloc/phase contenant "course" (ex: "Spécificité Course").
+      if (week.weekNumber === raceWeek) return "race";
+      if (week.weekNumber === raceWeek - 1) return "taper";
+      return null;
+    }
+    return isTaperWeek(week);
+  };
+
   // Log d'entrée systématique pour toutes les semaines (diagnostic pipeline).
   for (const week of plan.weeks) {
-    const kind = isTaperWeek(week);
     // eslint-disable-next-line no-console
     console.log("📦 taperOverride ENTRY", {
       semaine: week.weekNumber,
       titre: week.theme,
       phase: week.phase,
       baseVolumeCibleH,
-      detectedKind: kind,
+      detectedKind: detect(week),
+      raceWeek,
     });
   }
 
@@ -52,7 +69,7 @@ export function applyTaperVolumeOverride(plan: ParsedPlan, baseVolumeCibleH: num
   }
 
   for (const week of plan.weeks) {
-    const kind = isTaperWeek(week);
+    const kind = detect(week);
     if (!kind) continue;
     const factor = kind === "race" ? 0.35 : 0.6;
     const target = baseVolumeCibleH * factor;
