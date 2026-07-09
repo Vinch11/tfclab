@@ -29,7 +29,14 @@ import { validatePlan, type LimiterCoverageItem } from "@/engines/plan/planValid
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
   objective: string;
+  /** Ambition saisie par l'utilisateur (affichée à titre indicatif). */
   ambition: string;
+  /** Ambition effective (après déclassement niveau). Utilisée pour choisir les standards. */
+  ambitionEffective?: string | null;
+  /** Label affichable de l'ambition effective (ex: "Confirmé"). */
+  ambitionEffectiveLabel?: string | null;
+  /** Label affichable de l'ambition saisie (ex: "Qualifiable"). Affiché en note si différent de l'effective. */
+  ambitionSaisieLabel?: string | null;
   athleteName?: string;
   limiterResult?: UnifiedLimiterResult | null;
   prohibitions?: string[];
