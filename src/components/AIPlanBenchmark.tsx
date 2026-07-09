@@ -454,9 +454,12 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
   );
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder }: AIPlanBenchmarkProps) {
+export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, ambitionEffectiveLabel, ambitionSaisieLabel, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
-  const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
+  // Ambition utilisée pour les standards : effective si déclassement, sinon saisie.
+  const ambitionForRef = ambitionEffective || ambition;
+  const isDowngraded = !!(ambitionEffective && ambitionEffective !== ambition);
+  const ref = useMemo(() => getEliteReference(objective, ambitionForRef), [objective, ambitionForRef]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
   const validationResult = useMemo(
     () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder),
