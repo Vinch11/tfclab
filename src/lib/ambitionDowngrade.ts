@@ -114,9 +114,16 @@ export function computeAmbitionEffective(params: {
       `Ambition ajustée ${saisieLabel} → ${effLabel} en cohérence avec le ` +
       `niveau d'entraînement déclaré (${lvlLabel}). ` +
       `La physiologie commande, l'ambition module la structure.`;
+    const trainingLevelLabelsFull: Record<CoachTrainingLevel, string> = {
+      untrained:      "Pas du tout entraîné",
+      light:          "Un peu entraîné",
+      trained:        "Bien entraîné",
+      highly_trained: "Très chargé",
+    };
     console.log(
-      `⬇️ Ambition déclassée : ${ambitionSaisie} → ${ambitionEffective} ` +
-      `(niveau=${effectiveTrainingLevel}${trainingLevelSource === "auto-tss" ? " · auto-TSS" : ""})`
+      `⬇️ Ambition déclassée : ${saisieLabel} (${ambitionSaisie}) → ${effLabel} (${ambitionEffective}) ` +
+      `[niveau=${trainingLevelLabelsFull[effectiveTrainingLevel]} (${effectiveTrainingLevel})` +
+      `${trainingLevelSource === "auto-tss" ? " · auto-TSS" : trainingLevelSource === "fallback-prudent" ? " · fallback prudent" : ""}]`
     );
   }
 

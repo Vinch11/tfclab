@@ -29,7 +29,14 @@ import { validatePlan, type LimiterCoverageItem } from "@/engines/plan/planValid
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
   objective: string;
+  /** Ambition saisie par l'utilisateur (affichée à titre indicatif). */
   ambition: string;
+  /** Ambition effective (après déclassement niveau). Utilisée pour choisir les standards. */
+  ambitionEffective?: string | null;
+  /** Label affichable de l'ambition effective (ex: "Confirmé"). */
+  ambitionEffectiveLabel?: string | null;
+  /** Label affichable de l'ambition saisie (ex: "Qualifiable"). Affiché en note si différent de l'effective. */
+  ambitionSaisieLabel?: string | null;
   athleteName?: string;
   limiterResult?: UnifiedLimiterResult | null;
   prohibitions?: string[];
@@ -447,9 +454,12 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
   );
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder }: AIPlanBenchmarkProps) {
+export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, ambitionEffectiveLabel, ambitionSaisieLabel, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
-  const ref = useMemo(() => getEliteReference(objective, ambition), [objective, ambition]);
+  // Ambition utilisée pour les standards : effective si déclassement, sinon saisie.
+  const ambitionForRef = ambitionEffective || ambition;
+  const isDowngraded = !!(ambitionEffective && ambitionEffective !== ambition);
+  const ref = useMemo(() => getEliteReference(objective, ambitionForRef), [objective, ambitionForRef]);
   const eliteRef = useMemo(() => getEliteCeilingReference(objective), [objective]);
   const validationResult = useMemo(
     () => validatePlan(plan, objective, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder),
@@ -515,7 +525,13 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
       defaultOpen={false}
       storageKey="ai_plan_benchmark"
       icon={<Trophy className="h-4 w-4 text-primary" />}
-      title={<>Benchmark vs Référence {athleteName ? `— ${athleteName}` : ""}</>}
+      title={
+        <>
+          Benchmark vs Référence
+          {ambitionEffectiveLabel ? <> — {ambitionEffectiveLabel}</> : null}
+          {athleteName ? ` — ${athleteName}` : ""}
+        </>
+      }
       rightSlot={
         <Badge
           variant="outline"
@@ -532,6 +548,11 @@ export function AIPlanBenchmark({ plan, objective, ambition, athleteName, limite
           {ref.longRunMax && <> · SL max: {ref.longRunMax}</>}
           {" · "}Charge: {ref.loadPattern}
         </p>
+        {isDowngraded && ambitionSaisieLabel && (
+          <p className="text-[11px] text-amber-700 dark:text-amber-300 -mt-1 mb-2 italic">
+            Ambition visée : <strong>{ambitionSaisieLabel}</strong> (plan ajusté au niveau déclaré).
+          </p>
+        )}
         {/* Main gauges */}
         {gauges.map(g => (
           <GaugeRow key={g.label} {...g} />
