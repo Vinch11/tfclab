@@ -21,24 +21,56 @@ const byId: Map<string, LibraryWorkout> = (() => {
 
 /**
  * Sports incompatibles avec un objectif running pur (semi, marathon, 10K, 5K, trail).
- * Rejette tout template dont l'ID ou les tags contiennent ces marqueurs.
+ * - SWIM / BRICK / AERO / T1 / T2 → exclusion totale.
+ * - BIKE → autorisé UNIQUEMENT en cross-training Z1-Z2 (récup active, durabilité).
+ *   La qualité vélo (Z3+, seuil, VO2, lactate shuttle) est exclue.
  */
 const RUN_ONLY_OBJECTIVE_RX = /^(semi|semi.?marathon|marathon|10\s*k|10km|5\s*k|5km|trail|starttorun)/i;
-const INCOMPATIBLE_TOKENS = ["BIKE", "SWIM", "BRICK", "AERO", "T1", "T2"];
+const HARD_INCOMPATIBLE_TOKENS = ["SWIM", "BRICK", "AERO", "T1", "T2"];
+const BIKE_QUALITY_TAG_RX = /(LACTATE|THRESHOLD|SWEETSPOT|SWEET.?SPOT|VO2|TEMPO|SEUIL|SHUTTLE|FTP|RACE)/;
 
 function isRunOnlyObjective(obj?: string | null): boolean {
   if (!obj) return false;
   const s = obj.trim().toLowerCase();
-  // Objectifs triathlon → pas de filtre (IM, 70.3, tri, etc.)
   if (/ironman|70\.?3|half.?iron|olymp|sprint\b|tri\b|triathlon/.test(s)) return false;
   return RUN_ONLY_OBJECTIVE_RX.test(s);
 }
 
-function isTemplateIncompatibleWithObjective(w: LibraryWorkout, objectifEffectif?: string | null): boolean {
-  if (!isRunOnlyObjective(objectifEffectif)) return false;
+/** Un template BIKE est "qualité" (interdit) si Main contient Z3+ ou tag qualité. */
+function isBikeQualityTemplate(w: LibraryWorkout): boolean {
   const id = (w.id || "").toUpperCase();
   const tags = (w.tags || []).map(t => (t || "").toUpperCase());
-  return INCOMPATIBLE_TOKENS.some(tok => id.includes(tok) || tags.some(t => t.includes(tok)));
+  if (BIKE_QUALITY_TAG_RX.test(id)) return true;
+  if (tags.some(t => BIKE_QUALITY_TAG_RX.test(t))) return true;
+  const mainParts = (w.structure || []).filter(p => /main/i.test(p.part || ""));
+  for (const p of mainParts) {
+    const zones = (p.zones || []).map(z => (z || "").toUpperCase());
+    if (zones.some(z => /Z[3-7]/.test(z))) return true;
+  }
+  return false;
+}
+
+function isTemplateIncompatibleWithObjective(
+  w: LibraryWorkout,
+  objectifEffectif?: string | null,
+): { rejected: boolean; reason?: string } {
+  if (!isRunOnlyObjective(objectifEffectif)) return { rejected: false };
+  const id = (w.id || "").toUpperCase();
+  const tags = (w.tags || []).map(t => (t || "").toUpperCase());
+  const isBike = id.includes("BIKE") || w.sport === "bike" || w.sport === "cyclisme";
+
+  if (HARD_INCOMPATIBLE_TOKENS.some(tok => id.includes(tok) || tags.some(t => t.includes(tok)))) {
+    return { rejected: true, reason: `sport incompatible avec ${objectifEffectif}` };
+  }
+  if (isBike) {
+    if (isBikeQualityTemplate(w)) {
+      return { rejected: true, reason: "qualité vélo interdite en plan running" };
+    }
+    // eslint-disable-next-line no-console
+    console.log(`✅ template ${w.id} autorisé (cross-training Z1-Z2)`);
+    return { rejected: false };
+  }
+  return { rejected: false };
 }
 
 /** Trouve la fiche bibliothèque correspondant à une séance du plan IA. */
@@ -50,13 +82,15 @@ export function findLibraryWorkoutForSession(
   if (!id) return null;
   const w = byId.get(id.toUpperCase()) || null;
   if (!w) return null;
-  if (isTemplateIncompatibleWithObjective(w, objectifEffectif)) {
+  const check = isTemplateIncompatibleWithObjective(w, objectifEffectif);
+  if (check.rejected) {
     // eslint-disable-next-line no-console
-    console.log(`🚫 template ${w.id} exclu (sport incompatible avec ${objectifEffectif})`);
+    console.log(`🚫 template ${w.id} exclu (${check.reason})`);
     return null;
   }
   return w;
 }
+
 
 export interface EnrichedSessionFiche {
   id: string;
@@ -128,3 +162,29 @@ export function getFicheForSession(
   const w = findLibraryWorkoutForSession(session, objectifEffectif);
   return w ? toFiche(w) : null;
 }
+
+/**
+ * Garde-fou aval : en objectif running pur, si une séance vélo générée
+ * contient une intensité Z3+ (ou watts au-dessus du seuil), on dégrade
+ * verbalement en Z2 dans le texte affiché et on logge l'événement.
+ * Ne modifie pas la structure sous-jacente de la bibliothèque.
+ */
+export function maybeDowngradeBikeSession<T extends { sport?: string; title?: string; details?: string }>(
+  session: T,
+  objectifEffectif?: string | null,
+): T {
+  if (!isRunOnlyObjective(objectifEffectif)) return session;
+  const sport = (session.sport || "").toLowerCase();
+  const title = session.title || "";
+  const details = session.details || "";
+  const isBike = /bike|v[ée]lo|cycl/.test(sport) || /BIKE|VÉLO|VELO/i.test(title);
+  if (!isBike) return session;
+  const hasHighZone = /Z[3-7]\b/i.test(details) || /Z[3-7]\b/i.test(title);
+  if (!hasHighZone) return session;
+  // eslint-disable-next-line no-console
+  console.log(`⚠️ séance vélo dégradée en Z2 (${title || "sans titre"})`);
+  const patched = details.replace(/Z[3-7][a-b]?/gi, "Z2") +
+    "\n\n> ⚠️ Cross-training vélo dégradé en Z2 (plan running pur — qualité vélo interdite).";
+  return { ...session, details: patched };
+}
+

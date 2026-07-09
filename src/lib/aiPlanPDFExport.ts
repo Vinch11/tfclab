@@ -5,7 +5,7 @@
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
-import { getFicheForSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
+import { getFicheForSession, maybeDowngradeBikeSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 
@@ -303,7 +303,9 @@ function buildPlanHTML(
   const weekRows = plan.weeks.map((week, weekIdx) => {
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
 
-    const sessionRows = week.sessions.map((s, sessionIdx) => {
+    const sessionRows = week.sessions.map((rawS, sessionIdx) => {
+      const s = maybeDowngradeBikeSession(rawS, gapContext?.objective);
+
       const dateStr = weekStart && s.dayIndex >= 0 ? formatSessionDate(weekStart, s.dayIndex) : "";
       const trailAlts = s.isRest
         ? []
