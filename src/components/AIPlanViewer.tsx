@@ -1340,6 +1340,18 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         </CardContent>
       </Card>
 
+      {/* Gap Ambition Panel — DÉTERMINISTE, calculé côté frontend */}
+      {gapContext && (gapContext.ambition || gapContext.objective) && (
+        <GapAmbitionPanel
+          vmaKmh={gapContext.vmaKmh}
+          thresholdPaceSecPerKm={gapContext.thresholdPaceSecPerKm}
+          ambition={gapContext.ambition}
+          objective={gapContext.objective}
+          weeklyHours={gapContext.weeklyHours}
+        />
+      )}
+
+
       {/* Strategic Recap */}
       {plan.strategicRecap && (
         <StrategicRecapView recap={plan.strategicRecap} phases={plan.phases} totalWeeks={plan.totalWeeks} />
