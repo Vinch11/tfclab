@@ -89,6 +89,11 @@ export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, ambi
   }), [vmaKmh, thresholdPaceSecPerKm, ambition, objective, weeklyHours, objKey, ambKey]);
 
   const ambDef = AMBITIONS.find(a => a.key === ambKey) ?? AMBITIONS[1];
+  // Structure APPLIQUÉE = ambition EFFECTIVE (post-déclassement). L'ambition saisie
+  // reste utilisée pour le calcul du gap (cible visée) mais l'étiquette "Structure X
+  // appliquée" doit refléter ce que le plan a réellement construit.
+  const ambKeyEff = normAmbition(ambitionEffective || ambition || "perf");
+  const ambDefEff = AMBITIONS.find(a => a.key === ambKeyEff) ?? ambDef;
 
   // Ligne 3 : temps projeté (snapshot) — déjà dans `derived`.
   // "Requis" temps = milieu du standard populationnel.
@@ -206,7 +211,7 @@ export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, ambi
 
         <div className="rounded-md bg-muted/60 p-3 text-xs leading-relaxed">
           <p>
-            <strong>Structure {ambDef.label}</strong> appliquée
+            <strong>Structure {ambDefEff.label}</strong> appliquée
             ({derived.qualitesParSemaine} qualité(s)/semaine, complexité "{derived.complexiteSeances}").
             {" "}Objectif du plan :{" "}
             <strong>{derived.raceTimeSec ? formatTime(derived.raceTimeSec) : "—"}</strong>

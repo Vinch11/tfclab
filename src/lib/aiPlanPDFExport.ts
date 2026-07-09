@@ -32,12 +32,20 @@ function normObjPdf(o: string): string | null {
 }
 function normAmbPdf(a: string): string {
   const s = (a || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  if (s.includes("world")) return "world_class";
-  if (s.includes("elite") || s.includes("pro")) return "elite";
+  if (s.includes("world") || s.includes("mond")) return "world_class";
+  if (s.includes("elite") || s.includes("pro") || s.includes("qualif")) return "elite";
   if (s.includes("compet") || s.includes("sub")) return "sub";
-  if (s.includes("age") || s.includes("perf")) return "perf";
+  if (s.includes("age") || s.includes("perf") || s.includes("confirm")) return "perf";
   return "finish";
 }
+/** Libellé humain (jamais l'enum brut) pour l'affichage PDF. */
+const AMB_KEY_LABELS: Record<string, string> = {
+  finish: "Découverte",
+  perf: "Confirmé",
+  sub: "Compétiteur",
+  elite: "Qualifiable",
+  world_class: "Elite",
+};
 function fmtSecPace(sec: number): string {
   const m = Math.floor(sec / 60);
   const s = Math.round(sec % 60);
@@ -55,6 +63,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
   // Structure appliquée = ambition EFFECTIVE (après déclassement niveau d'entraînement).
   const ambSource = ctx.ambitionEffective || ctx.ambition || "";
   const ambKey = normAmbPdf(ambSource);
+  const ambLabel = AMB_KEY_LABELS[ambKey] ?? ambKey;
   if (!objKey) return "";
   const derived = deriveRaceTargets({
     vmaKmh: ctx.vmaKmh ?? null,
@@ -85,13 +94,13 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
 
   return `
   <div style="background:#fff7ed;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #ea580c;">
-    <strong>⚠️ Gap Ambition — Physiologie actuelle vs standard "${ambKey}"</strong>
+    <strong>⚠️ Gap Ambition — Physiologie actuelle vs standard "${ambLabel}"</strong>
     <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:11px;">
       <thead>
         <tr style="background:#fed7aa;">
           <th style="padding:4px 6px;text-align:left;">Métrique</th>
           <th style="padding:4px 6px;text-align:left;">Actuel (snapshot)</th>
-          <th style="padding:4px 6px;text-align:left;">Requis (${ambKey})</th>
+          <th style="padding:4px 6px;text-align:left;">Requis (${ambLabel})</th>
           <th style="padding:4px 6px;text-align:left;">Gap</th>
         </tr>
       </thead>
@@ -103,7 +112,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
       </tbody>
     </table>
     <p style="margin:8px 0 0 0;font-size:10.5px;color:#78350f;line-height:1.5;">
-      <strong>Structure ${ambKey}</strong> appliquée (${derived.qualitesParSemaine} qualité(s)/sem, complexité "${derived.complexiteSeances}"). Objectif du plan : <strong>${timeAct}</strong> (physiologie actuelle).
+      <strong>Structure ${ambLabel}</strong> appliquée (${derived.qualitesParSemaine} qualité(s)/sem, complexité "${derived.complexiteSeances}"). Objectif du plan : <strong>${timeAct}</strong> (physiologie actuelle).
     </p>
   </div>`;
 }
@@ -305,7 +314,7 @@ function buildPlanHTML(
             ${trailAlts.map(a => `<div style="margin-top:2px;"><span>${a.icon}</span> <strong>${a.label}</strong> — <span style="color:#777;">${a.hint}</span></div>`).join("")}
           </div>`
         : "";
-      const fiche = (isCompact || s.isRest) ? null : getFicheForSession({ title: s.title, details: s.details });
+      const fiche = (isCompact || s.isRest) ? null : getFicheForSession({ title: s.title, details: s.details }, gapContext?.objective);
 
       if (isPortrait) {
         // Stacked card layout — clearer in A4 portrait

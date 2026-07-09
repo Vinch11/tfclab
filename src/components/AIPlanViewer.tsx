@@ -25,6 +25,7 @@ import { GapAmbitionPanel } from "@/components/GapAmbitionPanel";
 import { formatTime as formatRaceTime } from "@/lib/raceAnalysis";
 import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 import type { RaceGoal } from "@/hooks/useAITrainingPlan";
+import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
 import { supabase } from "@/integrations/supabase/client";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
@@ -281,15 +282,41 @@ function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRec
   );
 }
 
+// ─── Résolution unique ambition + objectif (source de vérité affichage) ───
+function resolveAmbitionLabel(amb?: string | null): string {
+  if (!amb) return "—";
+  const raw = amb.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  const map: Record<string, AmbitionLevel> = {
+    finisher: "finisher", decouverte: "finisher", finish: "finisher",
+    age_group: "age_group", "age-group": "age_group", ageGroup: "age_group" as any,
+    perf: "age_group", confirme: "age_group", confirmé: "age_group" as any,
+    competitor: "competitor", compet: "competitor", competiteur: "competitor",
+    elite: "elite", qualifiable: "elite", pro: "elite",
+    world_class: "world_class", worldclass: "world_class", world: "world_class", mondial: "world_class",
+  };
+  const key = map[raw] ?? (raw in AMBITION_DEFINITIONS ? (raw as AmbitionLevel) : null);
+  if (key) return AMBITION_DEFINITIONS[key].label;
+  // fallback : capitalise sans exposer d'enum brut
+  return raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+/** Format temps sans les secondes : "1h38" ou "45min" */
+function formatRaceTimeHM(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return h > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${m}min`;
+}
+
 interface SessionCardProps {
   session: ParsedSession;
   date?: Date;
   nolioCtx?: NolioCtx | null;
   onReplaceClick?: (session: ParsedSession) => void;
   sessionIndex?: number;
+  objectifEffectif?: string | null;
 }
 
-function SessionCard({ session, date, nolioCtx, onReplaceClick, sessionIndex = 0 }: SessionCardProps) {
+function SessionCard({ session, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const trailAlts = useMemo(
@@ -302,8 +329,8 @@ function SessionCard({ session, date, nolioCtx, onReplaceClick, sessionIndex = 0
   );
 
   const fiche = useMemo(
-    () => session.isRest ? null : getFicheForSession({ title: session.title, details: session.details }),
-    [session.isRest, session.title, session.details]
+    () => session.isRest ? null : getFicheForSession({ title: session.title, details: session.details }, objectifEffectif),
+    [session.isRest, session.title, session.details, objectifEffectif]
   );
 
   if (session.isRest) {
@@ -569,9 +596,10 @@ interface WeekViewProps {
   startDate?: Date;
   nolioCtx?: NolioCtx | null;
   onReplaceClick?: (session: ParsedSession) => void;
+  objectifEffectif?: string | null;
 }
 
-function WeekView({ week, startDate, nolioCtx, onReplaceClick }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif }: WeekViewProps) {
 
   const weekDates = useMemo(() => {
     if (!startDate) return null;
@@ -655,7 +683,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick }: WeekViewProps) 
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
           const slot = slotMap.get(session) ?? 0;
-          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} />;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} objectifEffectif={objectifEffectif} />;
         })}
 
         {week.coachNotes && (
@@ -1105,8 +1133,8 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         ambition: ambForTitle,
         weeklyHours: gapContext.weeklyHours ?? null,
       });
-      const tempsStr = derivedTitle.raceTimeSec ? formatRaceTime(derivedTitle.raceTimeSec) : "n/a";
-      const ambLabel = ambForTitle.charAt(0).toUpperCase() + ambForTitle.slice(1).toLowerCase();
+      const tempsStr = derivedTitle.raceTimeSec ? formatRaceTimeHM(derivedTitle.raceTimeSec) : "n/a";
+      const ambLabel = resolveAmbitionLabel(ambForTitle);
       return `${gapContext.objective} — Structure ${ambLabel} — Objectif ${tempsStr}`;
     }
     if (!km) return t;
@@ -1411,12 +1439,12 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} />
+          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} />
+            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} />
           ))}
         </div>
       )}

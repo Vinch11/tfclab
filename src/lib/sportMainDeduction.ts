@@ -90,8 +90,10 @@ export function resolveSportMain(
 
   if (explicit) {
     if (deduced && deduced !== explicit && typeof console !== "undefined") {
-      console.warn(
-        `[sport_main] Incohérence : snapshot=${snapshot?.sport_main} / goal=${goal} (attendu=${deduced}). On garde la valeur explicite du snapshot.`
+      // Cas légitime (ex: athlète triathlète avec plan running pur) — info, pas warning.
+      // eslint-disable-next-line no-console
+      console.log(
+        `[sport_main] snapshot goal=${goal}, plan sport=${explicit} → utilisation ${explicit}`
       );
     }
     return explicit;
