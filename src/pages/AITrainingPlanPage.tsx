@@ -718,7 +718,25 @@ export default function AITrainingPlanPage() {
       planStartDate: format(planStartDate, "yyyy-MM-dd"),
       weeksAvailable: weeksAvailable ?? undefined,
       weeklyHours: parseFloat(weeklyHours) || undefined,
-      sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
+      sessionsPerWeek: (() => {
+        const n = parseInt(sessionsPerWeek);
+        if (!Number.isFinite(n) || n <= 0) return undefined;
+        // (a) — Conflit sessionsPerWeek utilisateur vs recommandation ambition (qualitesParSemaine = proxy min).
+        // Règle : le formulaire PRIME. On log une alerte si l'utilisateur descend en dessous du minimum
+        // requis pour placer les séances de qualité de son ambition.
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const { AMBITIONS } = require("@/lib/raceAnalysis");
+          const ambKey = (amb || "").toLowerCase();
+          const ambDef = AMBITIONS?.find((a: any) => a.key === ambKey || a.label?.toLowerCase() === ambKey);
+          const minRec = ambDef?.qualitesParSemaine;
+          if (typeof minRec === "number" && n < minRec) {
+            // eslint-disable-next-line no-console
+            console.warn(`⚠️ sessionsPerWeek user (${n}) < recommandé ambition (${minRec}) — le formulaire prime, l'IA sera forcée à ${n} séances/sem.`);
+          }
+        } catch { /* noop */ }
+        return n;
+      })(),
       maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
       strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
       ambition: AMBITION_OPTIONS.find(a => a.value === amb)?.label || amb,
