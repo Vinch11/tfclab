@@ -365,6 +365,8 @@ function buildPlanHTML(
   <p style="color:#888;font-size:12px;margin:0 0 12px 0;">${plan.totalWeeks} semaines • ${plan.phases.length} phases</p>
   <div style="margin-bottom:16px;">${phasesSummary}</div>
   ${plan.diagnostic ? `<div style="background:#f9f9f9;padding:10px 14px;border-radius:6px;font-size:12px;color:#555;margin-bottom:20px;border-left:3px solid #1967d2;"><strong>Diagnostic TFCL™</strong><br/>${plan.diagnostic.replace(/\n/g, "<br/>")}</div>` : ""}
+  ${buildGapAmbitionHTML(gapContext)}
+
   ${plan.strategicRecap && plan.strategicRecap.limiters.length > 0 ? `
   <div style="background:#f0f7ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #e67e22;">
     <strong>🎯 Récapitulatif Stratégique</strong>
