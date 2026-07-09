@@ -135,6 +135,10 @@ export interface DeriveRaceTargetsResult {
   multiplicateurVolume: number;
   complexiteSeances: ComplexiteSeances;
   volumeCible: number | null;
+  /** Facteur expérience appliqué (1.00 si trainingLevel absent). */
+  experienceFactor: number;
+  /** Cap volumeCible retenu (dépend de l'ambition). Ex : elite=25h, world_class=32h. */
+  volumeCibleMaxH: number;
   /** Allures dérivées — SOURCE UNIQUE pour toutes les allures du plan. */
   paceTargets: PaceTargets | null;
 }
