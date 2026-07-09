@@ -101,6 +101,21 @@ export interface PlanConfig {
   maxSessionsPerDay?: number;
   strengthSessionsPerWeek?: number;
   ambition?: string;
+  /**
+   * Métadonnées de résolution d'ambition (déclassement en amont).
+   * `ambition` ci-dessus = ambition EFFECTIVE (utilisée pour tous les calculs dérivés).
+   * `ambitionMeta.saisie` = ambition originale du formulaire (affichée à l'utilisateur).
+   */
+  ambitionMeta?: {
+    saisie: string;
+    effective: string;
+    saisieLabel: string;
+    effectiveLabel: string;
+    downgraded: boolean;
+    trainingLevel: "untrained" | "light" | "trained" | "highly_trained";
+    trainingLevelSource: "manual" | "auto-tss" | "fallback-prudent";
+    diagnosticNote: string | null;
+  };
   constraints?: string;
   identifiedLimiters?: string[];
   /**
