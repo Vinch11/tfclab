@@ -5,7 +5,7 @@
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
-import { getFicheForSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
+import { getFicheForSession, maybeDowngradeBikeSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 
