@@ -175,7 +175,9 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
     multiplicateurVolume: ambDef.multiplicateurVolume,
     complexiteSeances: ambDef.complexiteSeances,
     volumeCible,
+    paceTargets: null as PaceTargets | null,
   };
+
 
   const vma = typeof input.vmaKmh === "number" && input.vmaKmh > 0 ? input.vmaKmh : null;
   const thr = typeof input.thresholdPaceSecPerKm === "number" && input.thresholdPaceSecPerKm > 0
