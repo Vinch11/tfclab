@@ -2391,13 +2391,21 @@ export default function AITrainingPlanPage() {
                             ? buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections
                             : undefined
                         }
-                        gapContext={{
-                          ambition,
-                          objective,
-                          weeklyHours: parseFloat(weeklyHours) || null,
-                          vmaKmh: athleteContext?.data?.vma ?? null,
-                          thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
-                        }}
+                        gapContext={(() => {
+                          const ambRes = computeAmbitionEffective({
+                            ambitionSaisie: ambition,
+                            trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
+                            tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+                          });
+                          return {
+                            ambition, // saisie — gap calculé vers l'objectif visé par l'utilisateur
+                            ambitionEffective: ambRes.downgraded ? ambRes.ambitionEffective : undefined,
+                            objective,
+                            weeklyHours: parseFloat(weeklyHours) || null,
+                            vmaKmh: athleteContext?.data?.vma ?? null,
+                            thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
+                          };
+                        })()}
                       />
 
                     </>
