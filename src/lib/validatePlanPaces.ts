@@ -63,32 +63,33 @@ function fmt(sec: number): string {
   return `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}/km`;
 }
 
-type Zone = "vo2" | "seuil" | "marathon" | "race" | "z2" | "z3" | "none";
+type Zone = "vo2" | "race" | "marathon" | "seuil" | "z3" | "z2" | "none";
 
-function detectZoneFromContext(ctx: string): Zone {
-  const c = ctx.toLowerCase();
-  // Ordre priorité : VO2/Z5-6 > seuil/Z4 > marathon > allure course/semi > Z3 > Z2/Z1
-  if (/\b(z5|z6|z7|vma|vo2)\b/.test(c)) return "vo2";
-  if (/\b(z4[ab]?|seuil)\b/.test(c)) return "seuil";
+function detectZoneFromContext(before: string, after: string): Zone {
+  const c = (before + " ⌂ " + after).toLowerCase();
+  // Ordre priorité (revu) :
+  //   VO2/Z5-6/%VMA > allure course/semi (Z4b) > marathon > seuil/Z4/Z4a/%seuil > Z3/tempo > Z2/Z1/aisance
+  if (/\b(z5|z6|z7|vma|vo2)\b|\d+\s*%\s*vma/.test(c)) return "vo2";
+  if (/allure\s*(semi|course|cible|objectif)|race[- ]?pace|juge\s*de\s*paix|\bz4b\b/.test(c)) return "race";
   if (/\bmarathon\b/.test(c)) return "marathon";
-  if (/allure\s*(semi|course|cible|objectif)|race[- ]?pace|juge\s*de\s*paix/.test(c)) return "race";
+  if (/\b(z4a?|seuil)\b|\d+\s*%\s*seuil/.test(c)) return "seuil";
   if (/\bz3\b|tempo/.test(c)) return "z3";
-  if (/\bz[12]\b|\bef\b|footing|endurance|r[eé]cup|easy/.test(c)) return "z2";
+  if (/\bz[12]\b|\bef\b|footing|endurance|r[eé]cup|easy|aisance/.test(c)) return "z2";
   return "none";
 }
 
 function targetForZone(zone: Zone, pt: PaceTargets): { sec: number; label: string } | null {
   switch (zone) {
-    case "vo2": return null; // ne pas réécrire
-    case "seuil": return { sec: pt.seuilBas, label: "seuil (Z4)" };
+    case "vo2": return null; // ne pas réécrire (allures rapides légitimes)
+    case "seuil": return { sec: pt.seuilBas, label: "seuil (Z4/Z4a)" };
     case "marathon": return { sec: pt.allureMarathon, label: "allure marathon" };
-    case "race": return { sec: pt.allureSemiCible, label: "allure course" };
+    case "race": return { sec: pt.allureSemiCible, label: "allure course/semi (Z4b)" };
     case "z3": {
       if (!pt.allureZ2) return { sec: pt.seuilBas + 20, label: "Z3" };
       return { sec: Math.round((pt.allureZ2.lo + pt.seuilBas) / 2), label: "Z3" };
     }
-    case "z2": return pt.allureZ2 ? { sec: pt.allureZ2.hi, label: "Z2" } : null;
-    case "none": return { sec: pt.allureSemiCible, label: "allure course (défaut)" };
+    case "z2": return pt.allureZ2 ? { sec: pt.allureZ2.hi, label: "Z2 (borne lente)" } : null;
+    case "none": return null; // pas de marqueur → ne pas réécrire (évite écrasement d'allures neutres)
   }
 }
 
