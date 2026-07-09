@@ -147,6 +147,14 @@ function getSportBadge(sport: string): string {
 export type PlanPDFOrientation = "landscape" | "portrait";
 export type PlanPDFDetailLevel = "full" | "compact";
 
+export interface PDFGapContext {
+  ambition?: string | null;
+  objective?: string | null;
+  weeklyHours?: number | null;
+  vmaKmh?: number | null;
+  thresholdPaceSecPerKm?: number | null;
+}
+
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
   athleteName?: string,
@@ -154,8 +162,9 @@ export function exportAIPlanToPDF(
   adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
   detailLevel: PlanPDFDetailLevel = "full",
+  gapContext?: PDFGapContext,
 ) {
-  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel);
+  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel, gapContext);
   const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, "_blank");
@@ -171,7 +180,9 @@ function buildPlanHTML(
   adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
   detailLevel: PlanPDFDetailLevel = "full",
+  gapContext?: PDFGapContext,
 ): string {
+
   const hasDate = !!startDate;
   const isPortrait = orientation === "portrait";
   const isCompact = detailLevel === "compact";
