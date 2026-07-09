@@ -608,12 +608,13 @@ export default function AITrainingPlanPage() {
         // eslint-disable-next-line no-console
         console.log(`📦 postProcess START — plan assemblé (${plan.weeks.length} semaines, ${response.length} chars)`);
         try {
+          const effectiveWH = resolveEffectiveWeeklyHours(weeklyHours, objective, ambition);
           const d = deriveRaceTargets({
             vmaKmh: athleteContext?.data?.vma ?? null,
             thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
             objective,
             ambition,
-            weeklyHours: parseFloat(weeklyHours) || null,
+            weeklyHours: effectiveWH,
           });
           applyTaperVolumeOverride(plan, d.volumeCible);
           validatePlanPaces(plan, d.paceTargets);
