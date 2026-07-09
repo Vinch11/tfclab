@@ -81,7 +81,7 @@ function targetForZone(zone: Zone, pt: PaceTargets): { sec: number; label: strin
   switch (zone) {
     case "vo2": return null; // ne pas réécrire
     case "seuil": return { sec: pt.seuilBas, label: "seuil (Z4)" };
-    case "marathon":
+    case "marathon": return { sec: pt.allureMarathon, label: "allure marathon" };
     case "race": return { sec: pt.allureSemiCible, label: "allure course" };
     case "z3": {
       if (!pt.allureZ2) return { sec: pt.seuilBas + 20, label: "Z3" };
@@ -91,6 +91,7 @@ function targetForZone(zone: Zone, pt: PaceTargets): { sec: number; label: strin
     case "none": return { sec: pt.allureSemiCible, label: "allure course (défaut)" };
   }
 }
+
 
 function sessionId(week: number, s: ParsedSession): string {
   return `S${week}-${s.dayName}-${s.title.slice(0, 40)}`;
@@ -201,8 +202,11 @@ export function validatePlanPaces(
       if (s.isRest) continue;
       const id = sessionId(week.weekNumber, s);
 
-      // J-day fix : semi → remplacer "allure marathon" par "allure semi" dans le texte
-      if (semiObjective) {
+      // J-day fix : la séance course du jour J (semi) ne doit pas parler d'allure
+      // marathon. Restreint à la séance "Jour J / Race Day / Course semi" —
+      // pas aux séances d'entraînement (les inserts marathon en SL restent légitimes).
+      const isRaceDaySession = /jour\s*j|race\s*day|course\s*semi|comp[eé]tition/i.test(s.title);
+      if (semiObjective && isRaceDaySession) {
         if (/allure\s+marathon/i.test(s.title)) {
           const old = s.title;
           s.title = s.title.replace(/allure\s+marathon/gi, "allure semi");
@@ -215,6 +219,7 @@ export function validatePlanPaces(
           console.log(`🔧 J-day details: 'allure marathon' → 'allure semi' — ${id}`);
         }
       }
+
 
       const titleRes = rewritePacesInText(s.title, paceTargets, id);
       if (titleRes.corrections.length) {
@@ -257,9 +262,12 @@ export function validatePlanPaces(
     }
   }
 
-  // Assertion marathon <= semi : nous n'avons qu'une seule cible race (allureSemiCible).
-  // Si l'objectif est marathon, allureSemiCible EST l'allure marathon → pas de comparaison.
-  // Sinon (semi/10k), il ne devrait pas y avoir de "marathon" dans le plan corrigé.
+  // Assertion marathon <= semi
+  if (paceTargets.allureMarathon <= paceTargets.allureSemiCible) {
+    // eslint-disable-next-line no-console
+    console.error(`❌ ASSERT marathon — allureMarathon ${fmt(paceTargets.allureMarathon)} <= allureSemi ${fmt(paceTargets.allureSemiCible)}`);
+  }
+
 
   const summary = `${corrections.length} correction(s) zone-aware, ${total} allure(s) totale(s).`;
   // eslint-disable-next-line no-console
