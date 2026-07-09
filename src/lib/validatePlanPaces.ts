@@ -122,18 +122,20 @@ function rewritePacesInText(
   const z2Sec: number[] = [];
   const raceSec: number[] = [];
 
-  // 1) Collapse fourchettes "4:15-4:40/km" si contexte race/marathon.
+  // 1) Collapse fourchettes "4:15-4:40/km" pour zones à cible unique
+  //    (race/marathon/seuil/z3). VO2 → laissé tel quel. Z2 → range légitime.
   let out = text.replace(PACE_RANGE_RX, (m, _a, _b, offset: number) => {
     const before = text.slice(Math.max(0, offset - 30), offset);
-    const zone = detectZoneFromContext(before);
-    if (zone === "race" || zone === "marathon") {
+    const after = text.slice(offset + m.length, offset + m.length + 40);
+    const zone = detectZoneFromContext(before, after);
+    if (zone === "race" || zone === "marathon" || zone === "seuil" || zone === "z3") {
       const target = targetForZone(zone, pt);
       if (target) {
-        const after = fmt(target.sec);
+        const rep = fmt(target.sec);
         // eslint-disable-next-line no-console
-        console.log(`🔧 pace rewrite: '${m}' → '${after}' (contexte: allure ${zone}, collapse range)`);
-        corrections.push({ before: m, after, zone });
-        return after;
+        console.log(`🔧 pace rewrite: '${m}' → '${rep}' (contexte: ${zone}, collapse range — ${ctxLabel})`);
+        corrections.push({ before: m, after: rep, zone });
+        return rep;
       }
     }
     return m;
@@ -145,7 +147,8 @@ function rewritePacesInText(
     if (paceSec < 150 || paceSec > 600) return m;
 
     const before = out.slice(Math.max(0, offset - 30), offset);
-    const zone = detectZoneFromContext(before);
+    const afterCtx = out.slice(offset + m.length, offset + m.length + 40);
+    const zone = detectZoneFromContext(before, afterCtx);
 
     if (zone === "vo2") {
       z5Sec.push(paceSec);
@@ -161,13 +164,13 @@ function rewritePacesInText(
       if (zone === "race" || zone === "marathon") raceSec[raceSec.length - 1] = target.sec;
       return m;
     }
-    const after = fmt(target.sec);
+    const rep = fmt(target.sec);
     // eslint-disable-next-line no-console
-    console.log(`🔧 pace rewrite: '${m}' → '${after}' (contexte: ${zone} — ${ctxLabel})`);
-    corrections.push({ before: m, after, zone });
+    console.log(`🔧 pace rewrite: '${m}' → '${rep}' (contexte: ${zone} — ${ctxLabel})`);
+    corrections.push({ before: m, after: rep, zone });
     if (zone === "z2") z2Sec[z2Sec.length - 1] = target.sec;
     if (zone === "race" || zone === "marathon") raceSec[raceSec.length - 1] = target.sec;
-    return after;
+    return rep;
   });
 
   return { text: out, corrections, z5Sec, z2Sec, raceSec };
