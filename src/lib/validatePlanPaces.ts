@@ -189,7 +189,22 @@ export function validatePlanPaces(
     return { totalPacesFound: 0, corrections: [], issues: [], exempted: 0, summary: "Aucun paceTargets fourni — validation ignorée." };
   }
 
-  if (!isRunOnlyObjective(objectifEffectif)) {
+  // Table de mapping (traçabilité) — toutes valeurs issues de deriveRaceTargets()
+  const z2Str = paceTargets.allureZ2 ? `${fmt(paceTargets.allureZ2.lo)}–${fmt(paceTargets.allureZ2.hi)}` : "n/a";
+  const vo2Str = paceTargets.allureVO2max ? fmt(paceTargets.allureVO2max) : "n/a";
+  // eslint-disable-next-line no-console
+  console.log(
+    `🗺️ validatePlanPaces mapping (objectif=${objectifEffectif ?? "?"}):\n` +
+    `   • vo2/%VMA → (non réécrit)  target=${vo2Str}\n` +
+    `   • race/allure semi/course/Z4b → allureSemiCible = ${fmt(paceTargets.allureSemiCible)}\n` +
+    `   • marathon → allureMarathon = ${fmt(paceTargets.allureMarathon)}\n` +
+    `   • seuil/Z4/Z4a/%seuil → seuilBas = ${fmt(paceTargets.seuilBas)}\n` +
+    `   • z3/tempo → ${paceTargets.allureZ2 ? fmt(Math.round((paceTargets.allureZ2.lo + paceTargets.seuilBas) / 2)) : fmt(paceTargets.seuilBas + 20)}\n` +
+    `   • z2/z1/ef/endurance/aisance → borne lente Z2 = ${paceTargets.allureZ2 ? fmt(paceTargets.allureZ2.hi) : "n/a"} (range ${z2Str})\n` +
+    `   • none (aucun marqueur) → NON réécrit`
+  );
+
+
     // Legacy behaviour préservé : rien à corriger si l'objectif n'est pas run-only.
     // Comptage minimal.
     for (const week of plan.weeks) for (const s of week.sessions) {
