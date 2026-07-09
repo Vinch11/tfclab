@@ -1349,6 +1349,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           vmaKmh={gapContext.vmaKmh}
           thresholdPaceSecPerKm={gapContext.thresholdPaceSecPerKm}
           ambition={gapContext.ambition}
+          ambitionEffective={gapContext.ambitionEffective}
           objective={gapContext.objective}
           weeklyHours={gapContext.weeklyHours}
         />
