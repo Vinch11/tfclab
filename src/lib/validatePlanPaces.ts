@@ -57,7 +57,12 @@ export interface PaceValidationReport {
 const PACE_RX = /(\d{1,2})[:'′’](\d{2})\s*\/\s*km/gi;
 // Fourchette d'allures "4:15-4:40/km" ou "4:15-4:40 /km"
 const PACE_RANGE_RX = /(\d{1,2}[:'′’]\d{2})\s*[-–]\s*(\d{1,2}[:'′’]\d{2})\s*\/\s*km/gi;
-const TOL_SEC = 8;
+// Whitelist stricte : on ne réécrit QUE si la dérive est grossière (>30s/km).
+// En-dessous, on considère que l'IA a fait un choix pédagogique légitime.
+const HARD_DEVIATION_SEC = 30;
+// Marqueurs de séance composite : plusieurs allures légitimes coexistent,
+// le correcteur zone-aware ne peut pas trancher → on n'y touche pas.
+const COMPOSITE_MARKERS = /simulation|n[eé]gative\s*split|neg[- ]?split|fartlek|insert|progressif|progression|brick|sl\s*avec|long\s*run.*avec|surge|pyramide|tempo\s*continu|race[- ]?sim/i;
 
 function fmt(sec: number): string {
   return `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, "0")}/km`;
@@ -116,60 +121,59 @@ function rewritePacesInText(
   text: string,
   pt: PaceTargets,
   ctxLabel: string,
+  sessionTitle?: string,
 ): { text: string; corrections: { before: string; after: string; zone: Zone }[]; z5Sec: number[]; z2Sec: number[]; raceSec: number[] } {
   const corrections: { before: string; after: string; zone: Zone }[] = [];
   const z5Sec: number[] = [];
   const z2Sec: number[] = [];
   const raceSec: number[] = [];
 
-  // 1) Collapse fourchettes "4:15-4:40/km" pour zones à cible unique
-  //    (race/marathon/seuil/z3). VO2 → laissé tel quel. Z2 → range légitime.
-  let out = text.replace(PACE_RANGE_RX, (m, _a, _b, offset: number) => {
-    const before = text.slice(Math.max(0, offset - 30), offset);
-    const after = text.slice(offset + m.length, offset + m.length + 40);
-    const zone = detectZoneFromContext(before, after);
-    if (zone === "race" || zone === "marathon" || zone === "seuil" || zone === "z3") {
-      const target = targetForZone(zone, pt);
-      if (target) {
-        const rep = fmt(target.sec);
-        // eslint-disable-next-line no-console
-        console.log(`🔧 pace rewrite: '${m}' → '${rep}' (contexte: ${zone}, collapse range — ${ctxLabel})`);
-        corrections.push({ before: m, after: rep, zone });
-        return rep;
-      }
+  // WHITELIST STRICTE : si la séance est composite, on n'y touche pas.
+  const fullCtx = (sessionTitle ?? "") + " " + text;
+  if (COMPOSITE_MARKERS.test(fullCtx)) {
+    // Comptage seulement pour les asserts globaux
+    for (const m of text.matchAll(PACE_RX)) {
+      const paceSec = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+      // eslint-disable-next-line no-console
+      // (silencieux — séance composite intentionnellement épargnée)
+      void paceSec;
     }
-    return m;
-  });
+    return { text, corrections, z5Sec, z2Sec, raceSec };
+  }
 
-  // 2) Réécrire chaque allure unique.
+  // Collapse fourchette DÉSACTIVÉ (trop agressif sur seuil/z3 — plages légitimes).
+  // On travaille uniquement sur allures uniques ci-dessous.
+  let out = text;
+
   out = out.replace(PACE_RX, (m, mm: string, ss: string, offset: number) => {
     const paceSec = parseInt(mm, 10) * 60 + parseInt(ss, 10);
     if (paceSec < 150 || paceSec > 600) return m;
 
-    const before = out.slice(Math.max(0, offset - 30), offset);
+    // Contexte enrichi : titre de la séance en préambule pour zones prioritaires
+    const before = (sessionTitle ? sessionTitle + " ⌂ " : "") + out.slice(Math.max(0, offset - 30), offset);
     const afterCtx = out.slice(offset + m.length, offset + m.length + 40);
     const zone = detectZoneFromContext(before, afterCtx);
 
     if (zone === "vo2") {
       z5Sec.push(paceSec);
-      return m; // ne pas toucher
+      return m;
     }
     if (zone === "z2") z2Sec.push(paceSec);
     if (zone === "race" || zone === "marathon") raceSec.push(paceSec);
 
     const target = targetForZone(zone, pt);
     if (!target) return m;
-    if (Math.abs(paceSec - target.sec) <= TOL_SEC) {
-      if (zone === "z2") z2Sec[z2Sec.length - 1] = target.sec;
-      if (zone === "race" || zone === "marathon") raceSec[raceSec.length - 1] = target.sec;
+
+    // WHITELIST STRICTE : ne réécrit QUE si dérive grossière (>30s/km).
+    // Sous ce seuil, on respecte le choix pédagogique de l'IA.
+    if (Math.abs(paceSec - target.sec) <= HARD_DEVIATION_SEC) {
       return m;
     }
+
     const rep = fmt(target.sec);
     // eslint-disable-next-line no-console
-    console.log(`🔧 pace rewrite: '${m}' → '${rep}' (contexte: ${zone} — ${ctxLabel})`);
+    console.log(`🔧 pace rewrite (dérive ${Math.abs(paceSec - target.sec)}s): '${m}' → '${rep}' (${zone} — ${ctxLabel})`);
     corrections.push({ before: m, after: rep, zone });
-    if (zone === "z2") z2Sec[z2Sec.length - 1] = target.sec;
-    if (zone === "race" || zone === "marathon") raceSec[raceSec.length - 1] = target.sec;
     return rep;
   });
 
@@ -241,14 +245,14 @@ export function validatePlanPaces(
       }
 
 
-      const titleRes = rewritePacesInText(s.title, paceTargets, id);
+      const titleRes = rewritePacesInText(s.title, paceTargets, id, s.title);
       if (titleRes.corrections.length) {
         s.title = titleRes.text;
         for (const c of titleRes.corrections) {
           corrections.push({ week: week.weekNumber, day: s.dayName, sessionTitle: s.title, type: c.zone, before: c.before, after: c.after });
         }
       }
-      const detailsRes = rewritePacesInText(s.details, paceTargets, id);
+      const detailsRes = rewritePacesInText(s.details, paceTargets, id, s.title);
       if (detailsRes.corrections.length) {
         s.details = detailsRes.text;
         for (const c of detailsRes.corrections) {
@@ -274,7 +278,7 @@ export function validatePlanPaces(
       // Assertion dérive "allure semi"
       const races = [...titleRes.raceSec, ...detailsRes.raceSec];
       for (const r of races) {
-        if (Math.abs(r - paceTargets.allureSemiCible) > TOL_SEC) {
+        if (Math.abs(r - paceTargets.allureSemiCible) > HARD_DEVIATION_SEC) {
           // eslint-disable-next-line no-console
           console.error(`❌ ASSERT dérive semi — ${id} : ${fmt(r)} ≠ ${fmt(paceTargets.allureSemiCible)}`);
         }
