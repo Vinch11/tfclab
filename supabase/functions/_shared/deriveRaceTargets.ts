@@ -1,20 +1,10 @@
+// ⚠️ DUPLIQUÉ dans supabase/functions/_shared/deriveRaceTargets.ts — toute modif doit être appliquée aux deux
 // =============================================
-// DERIVE RACE TARGETS — SOURCE UNIQUE (snapshot-based)
+// DERIVE RACE TARGETS — SOURCE UNIQUE (snapshot-based) — browser mirror
 // =============================================
-// Produit l'allure course + temps cible à partir de la VMA/seuil du snapshot
-// athlète × fraction d'utilisation par ambition. Compare (optionnellement) à
-// la fourchette littérature statique pour signaler une incompatibilité.
-//
-// Consommé par :
-//   - Prompt IA (chunk 1) : temps cible individualisé
-//   - UI carte ambition   : ligne "Snapshot" + badge divergence
-//   - Garde-fou moteur    : warning si coach fixe un temps > 8% du snapshot
-//
-// Aucune valeur inventée : si VMA/seuil absents → source="insufficient_data".
 
-import { AMBITIONS, computeRaceScenarios, type Ambition } from "./raceAnalysis.ts";
+import { AMBITIONS, computeRaceScenarios, distanceFamilyFromKm, fractionVMAForAmbition, type Ambition, type ComplexiteSeances } from "./raceAnalysis";
 
-// Mapping UI AmbitionLevel → Ambition scénario running
 const AMBITION_MAP: Record<string, Ambition> = {
   finisher: "finish",
   finish: "finish",
@@ -26,7 +16,6 @@ const AMBITION_MAP: Record<string, Ambition> = {
   world_class: "world_class",
 };
 
-// Distance canonique par objectif normalisé
 const OBJECTIVE_DIST_KM: Record<string, number> = {
   "5K": 5,
   "10K": 10,
@@ -54,29 +43,21 @@ function normalizeAmb(amb: string): Ambition {
   return "perf";
 }
 
-/**
- * Parse "1h12 – 1h20", "Sub 1h08", "45' – 52'", "16' – 18'" → {loSec, hiSec}
- */
 export function parseLiteratureHint(hint: string): { loSec: number; hiSec: number } | null {
   if (!hint) return null;
   const cleaned = hint.replace(/\s/g, "").replace(/–/g, "-").toLowerCase();
-
   const toSec = (tok: string): number | null => {
-    // "1h12" | "1h" | "2h45" | "sub1h08"
     let m = tok.match(/^(?:sub)?(\d+)h(\d+)?$/);
     if (m) return parseInt(m[1], 10) * 3600 + (m[2] ? parseInt(m[2], 10) * 60 : 0);
-    // "45'" | "52'" | "sub31'"
     m = tok.match(/^(?:sub)?(\d+)'?$/);
     if (m) return parseInt(m[1], 10) * 60;
     return null;
   };
-
   if (cleaned.startsWith("sub")) {
     const s = toSec(cleaned);
     if (s == null) return null;
     return { loSec: Math.round(s * 0.95), hiSec: s };
   }
-
   const parts = cleaned.split("-");
   if (parts.length !== 2) {
     const s = toSec(cleaned);
@@ -108,6 +89,8 @@ export interface DeriveRaceTargetsInput {
   objective: string;
   ambition: string;
   literatureHintText?: string | null;
+  /** Volume hebdo brut saisi par l'athlète (en heures). Utilisé pour calculer volumeCible. */
+  weeklyHours?: number | null;
 }
 
 export interface DeriveRaceTargetsResult {
@@ -117,13 +100,29 @@ export interface DeriveRaceTargetsResult {
   pctVMAUsed: number | null;
   racePaceSecPerKm: number | null;
   raceTimeSec: number | null;
-  paceRange: { lo: number; hi: number } | null;   // ±5 s/km
-  timeRange: { lo: number; hi: number } | null;   // ±90 s
+  paceRange: { lo: number; hi: number } | null;
+  timeRange: { lo: number; hi: number } | null;
   literatureRangeSec: { loSec: number; hiSec: number } | null;
-  divergencePct: number | null;   // signé : snapshot vs milieu littérature
+  divergencePct: number | null;
   vmaRequiredForLiterature: number | null;
   warning: string | null;
-  humanSummary: string;            // 1 ligne prête à injecter dans le prompt
+  humanSummary: string;
+  // Structure de plan (dérivée de AMBITIONS)
+  qualitesParSemaine: number;
+  multiplicateurVolume: number;
+  complexiteSeances: ComplexiteSeances;
+  /** Volume cible hebdo (heures) = weeklyHours × multiplicateurVolume, borné [3, 15]. Null si weeklyHours absent. */
+  volumeCible: number | null;
+}
+
+const VOLUME_CIBLE_MIN_H = 3;
+const VOLUME_CIBLE_MAX_H = 15;
+
+function computeVolumeCible(weeklyHours: number | null | undefined, multiplicateur: number): number | null {
+  if (typeof weeklyHours !== "number" || !Number.isFinite(weeklyHours) || weeklyHours <= 0) return null;
+  const raw = weeklyHours * multiplicateur;
+  const bounded = Math.min(VOLUME_CIBLE_MAX_H, Math.max(VOLUME_CIBLE_MIN_H, raw));
+  return Number(bounded.toFixed(2));
 }
 
 export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTargetsResult {
@@ -132,6 +131,19 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
   const ambDef = AMBITIONS.find(a => a.key === amb) ?? AMBITIONS[1];
   const distanceKm = objKey ? OBJECTIVE_DIST_KM[objKey] : null;
   const literatureRangeSec = input.literatureHintText ? parseLiteratureHint(input.literatureHintText) : null;
+  const volumeCible = computeVolumeCible(input.weeklyHours, ambDef.multiplicateurVolume);
+  if (input.weeklyHours != null) {
+    // Log traçable : "📦 volumeCible : {weeklyHours}h × {mult} = {v}h"
+    // eslint-disable-next-line no-console
+    console.log(`📦 volumeCible : ${input.weeklyHours}h × ${ambDef.multiplicateurVolume} = ${volumeCible ?? "n/a"}h (ambition ${amb})`);
+  }
+
+  const structural = {
+    qualitesParSemaine: ambDef.qualitesParSemaine,
+    multiplicateurVolume: ambDef.multiplicateurVolume,
+    complexiteSeances: ambDef.complexiteSeances,
+    volumeCible,
+  };
 
   const vma = typeof input.vmaKmh === "number" && input.vmaKmh > 0 ? input.vmaKmh : null;
   const thr = typeof input.thresholdPaceSecPerKm === "number" && input.thresholdPaceSecPerKm > 0
@@ -152,6 +164,7 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
       vmaRequiredForLiterature: null,
       warning: null,
       humanSummary: "Cible course non calculée (VMA/seuil ou distance manquants).",
+      ...structural,
     };
   }
 
@@ -174,14 +187,15 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
       vmaRequiredForLiterature: null,
       warning: null,
       humanSummary: `Cible course non calculée : ${scenarios.error}.`,
+      ...structural,
     };
   }
 
   const row = scenarios.find(s => s.ambition === amb) ?? scenarios[1];
   const pace = row.paceSecPerKm;
   const time = row.timeSec;
+  const fracUsed = fractionVMAForAmbition(ambDef, distanceKm);
 
-  // Divergence vs littérature (milieu de fourchette)
   let divergencePct: number | null = null;
   let vmaRequired: number | null = null;
   let warning: string | null = null;
@@ -189,22 +203,21 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
   if (literatureRangeSec) {
     const litMid = (literatureRangeSec.loSec + literatureRangeSec.hiSec) / 2;
     divergencePct = ((time - litMid) / litMid) * 100;
-    // VMA "théorique" nécessaire pour atteindre le temps littérature (approx, sans Riegel inverse)
-    // v_needed = distanceKm / (litMid/3600) ; puis VMA_needed = v_needed / pctVMA
     const speedNeededKmh = (distanceKm / (litMid / 3600));
-    vmaRequired = speedNeededKmh / ambDef.pctVMA;
+    vmaRequired = speedNeededKmh / fracUsed;
     if (Math.abs(divergencePct) > 8) {
       warning = `Ambition "${amb}" (littérature ${input.literatureHintText}) incompatible avec la physiologie actuelle : nécessite VMA ≈ ${vmaRequired.toFixed(1)} km/h, snapshot = ${vma?.toFixed(1) ?? "?"} km/h. Écart temps : ${divergencePct > 0 ? "+" : ""}${divergencePct.toFixed(1)}%.`;
     }
   }
 
-  const humanSummary = `${formatSecToTime(time)} · allure ${formatSecPerKm(pace)} (source snapshot : VMA ${vma?.toFixed(1) ?? "?"} km/h × ${(ambDef.pctVMA * 100).toFixed(0)}%)`;
+  const fam = distanceFamilyFromKm(distanceKm);
+  const humanSummary = `${formatSecToTime(time)} · allure ${formatSecPerKm(pace)} (source snapshot : VMA ${vma?.toFixed(1) ?? "?"} km/h × ${(fracUsed * 100).toFixed(0)}% [famille ${fam}])`;
 
   return {
     source: "snapshot",
     distanceKm,
     ambition: amb,
-    pctVMAUsed: ambDef.pctVMA,
+    pctVMAUsed: Number(fracUsed.toFixed(3)),
     racePaceSecPerKm: pace,
     raceTimeSec: time,
     paceRange: { lo: pace - 5, hi: pace + 5 },
@@ -214,5 +227,7 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
     vmaRequiredForLiterature: vmaRequired != null ? Number(vmaRequired.toFixed(2)) : null,
     warning,
     humanSummary,
+    ...structural,
   };
 }
+
