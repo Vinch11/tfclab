@@ -608,7 +608,10 @@ export default function AITrainingPlanPage() {
         // eslint-disable-next-line no-console
         console.log(`📦 postProcess START — plan assemblé (${plan.weeks.length} semaines, ${response.length} chars)`);
         try {
+          const userWH = parseFloat(weeklyHours);
+          const userWHValid = Number.isFinite(userWH) && userWH > 0;
           const effectiveWH = resolveEffectiveWeeklyHours(weeklyHours, objective, ambition);
+          const usedFallback = !userWHValid && effectiveWH != null;
           const d = deriveRaceTargets({
             vmaKmh: athleteContext?.data?.vma ?? null,
             thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
@@ -618,6 +621,20 @@ export default function AITrainingPlanPage() {
           });
           applyTaperVolumeOverride(plan, d.volumeCible);
           validatePlanPaces(plan, d.paceTargets);
+
+          // (d) — Récapitulatif post-process : ENTRY / APPLIED / SKIPPED / fallback
+          const isTaper = (w: typeof plan.weeks[0]) =>
+            /taper|aff[uû]t|volume\s*cut|course|race\s*week|jour\s*j|semaine\s*de\s*course/i.test(
+              `${w.theme} ${w.phase} ${w.coachNotes || ""}`
+            );
+          const taperWeeks = plan.weeks.filter(isTaper);
+          const applied = taperWeeks.filter(w => / \(taper ×/.test(w.volumeTarget || "")).length;
+          const skipped = taperWeeks.length - applied;
+          // eslint-disable-next-line no-console
+          console.log(
+            `📦 SUMMARY: ${plan.weeks.length}/11 semaines, ${applied} applied, ${skipped} skipped, fallback: ${usedFallback ? "oui" : "non"}` +
+            ` (userWH=${userWHValid ? userWH + "h" : "vide"}, effectiveWH=${effectiveWH ?? "null"}h, volumeCible=${d.volumeCible ?? "null"}h)`
+          );
         } catch (e) {
           console.warn("📦 postProcess FAILED", e);
         }
