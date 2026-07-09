@@ -91,6 +91,11 @@ export interface DeriveRaceTargetsInput {
   literatureHintText?: string | null;
   /** Volume hebdo brut saisi par l'athlète (en heures). Utilisé pour calculer volumeCible. */
   weeklyHours?: number | null;
+  /**
+   * Niveau d'entraînement actuel (coach) — module volumeCible via facteur expérience.
+   * "untrained" 0.85 · "light" 0.92 · "trained" 1.00 · "highly_trained" 1.08.
+   */
+  trainingLevel?: "untrained" | "light" | "trained" | "highly_trained" | null;
 }
 
 export interface PaceTargets {
