@@ -1,3 +1,4 @@
+// ⚠️ DUPLIQUÉ dans src/lib/raceAnalysis.ts — toute modif doit être appliquée aux deux
 // =============================================
 // RACE ANALYSIS — pure functions (Deno + browser)
 // Scenarios Finish→World-class + Riegel projection
@@ -6,21 +7,77 @@
 
 export type Ambition = "finish" | "perf" | "sub" | "elite" | "world_class";
 
+export type ComplexiteSeances = "simple" | "intermediaire" | "avance";
+
+/**
+ * Fourchette de fraction VMA (course à pied) par famille de distance.
+ * Consommé par computeRaceScenarios / deriveRaceTargets (milieu de fourchette par défaut).
+ * Familles :
+ *  - short  : 5K → ≤10K
+ *  - middle : ~10K → semi
+ *  - long   : marathon+
+ */
+export type DistanceFamily = "short" | "middle" | "long";
+
+export interface FractionVMARange { lo: number; hi: number }
+
 export interface AmbitionDef {
   key: Ambition;
   label: string;
-  pctVMA: number;        // percentage of VMA (run) — anchor reference
-  pctThreshold: number;  // percentage of threshold speed
+  /** ⚠️ Legacy scalaire — conservé pour compat. Utiliser fractionVMA[family] en priorité. */
+  pctVMA: number;
+  pctThreshold: number;
+  /** Fourchette bornée par famille de distance. Le milieu est utilisé par défaut. */
+  fractionVMA: Record<DistanceFamily, FractionVMARange>;
+  /** Qualités (séances clés) par semaine attendues pour l'ambition. */
+  qualitesParSemaine: number;
+  /** Multiplicateur appliqué à weeklyHours pour dériver volumeCible. */
+  multiplicateurVolume: number;
+  /** Complexité maximale des séances autorisée (filtre bibliothèque). */
+  complexiteSeances: ComplexiteSeances;
 }
 
 // Anchor scenarios (running). Calibrated on TFCL méthod.
 export const AMBITIONS: AmbitionDef[] = [
-  { key: "finish",     label: "Finish",            pctVMA: 0.72, pctThreshold: 0.80 },
-  { key: "perf",       label: "Perf / age-group",  pctVMA: 0.78, pctThreshold: 0.87 },
-  { key: "sub",        label: "Sub / competitor",  pctVMA: 0.84, pctThreshold: 0.93 },
-  { key: "elite",      label: "Elite",             pctVMA: 0.88, pctThreshold: 0.98 },
-  { key: "world_class",label: "World-class",       pctVMA: 0.92, pctThreshold: 1.02 },
+  {
+    key: "finish", label: "Finish", pctVMA: 0.72, pctThreshold: 0.80,
+    fractionVMA: { short: { lo: 0.74, hi: 0.78 }, middle: { lo: 0.70, hi: 0.74 }, long: { lo: 0.66, hi: 0.70 } },
+    qualitesParSemaine: 1, multiplicateurVolume: 0.8, complexiteSeances: "simple",
+  },
+  {
+    key: "perf", label: "Perf / age-group", pctVMA: 0.78, pctThreshold: 0.87,
+    fractionVMA: { short: { lo: 0.82, hi: 0.86 }, middle: { lo: 0.76, hi: 0.80 }, long: { lo: 0.72, hi: 0.76 } },
+    qualitesParSemaine: 2, multiplicateurVolume: 0.9, complexiteSeances: "intermediaire",
+  },
+  {
+    key: "sub", label: "Sub / competitor", pctVMA: 0.84, pctThreshold: 0.93,
+    fractionVMA: { short: { lo: 0.88, hi: 0.92 }, middle: { lo: 0.82, hi: 0.86 }, long: { lo: 0.76, hi: 0.80 } },
+    qualitesParSemaine: 3, multiplicateurVolume: 1.0, complexiteSeances: "intermediaire",
+  },
+  {
+    key: "elite", label: "Elite", pctVMA: 0.88, pctThreshold: 0.98,
+    fractionVMA: { short: { lo: 0.92, hi: 0.96 }, middle: { lo: 0.86, hi: 0.90 }, long: { lo: 0.80, hi: 0.84 } },
+    qualitesParSemaine: 3, multiplicateurVolume: 1.1, complexiteSeances: "avance",
+  },
+  {
+    key: "world_class", label: "World-class", pctVMA: 0.92, pctThreshold: 1.02,
+    fractionVMA: { short: { lo: 0.96, hi: 1.00 }, middle: { lo: 0.90, hi: 0.94 }, long: { lo: 0.84, hi: 0.88 } },
+    qualitesParSemaine: 4, multiplicateurVolume: 1.2, complexiteSeances: "avance",
+  },
 ];
+
+export function distanceFamilyFromKm(distanceKm: number): DistanceFamily {
+  if (distanceKm <= 10) return "short";
+  if (distanceKm <= 25) return "middle";
+  return "long";
+}
+
+/** Milieu de fourchette pour la fraction VMA (source unique dans computeRaceScenarios). */
+export function fractionVMAForAmbition(amb: AmbitionDef, distanceKm: number): number {
+  const fam = distanceFamilyFromKm(distanceKm);
+  const range = amb.fractionVMA[fam];
+  return (range.lo + range.hi) / 2;
+}
 
 export interface RaceSnapshotInput {
   vmaKmh?: number | null;            // VMA in km/h
@@ -41,6 +98,7 @@ export interface ScenarioRow {
  * Compute the 5 race scenarios for a given distance.
  * Priority: use VMA when available, fallback to threshold pace.
  * For distance >25km, apply Riegel correction from a 21.1km anchor.
+ * Depuis v2 : consomme le MILIEU de fourchette `fractionVMA[family]` (remplace pctVMA scalaire).
  */
 export function computeRaceScenarios(
   snapshot: RaceSnapshotInput,
@@ -53,28 +111,22 @@ export function computeRaceScenarios(
     return { error: `Distance invalide : ${distanceKm}km` };
   }
 
-  // Derive both VMA and threshold if only one is available
   let vmaKmh = snapshot.vmaKmh;
   let thrPace = snapshot.thresholdPaceSecPerKm;
   if (vmaKmh && !thrPace) {
-    // Assume threshold ≈ 90% VMA (Daniels classic)
     thrPace = 3600 / (vmaKmh * 0.90);
   } else if (thrPace && !vmaKmh) {
-    // Assume VMA ≈ threshold_speed / 0.90
     vmaKmh = (3600 / thrPace) / 0.90;
   }
   if (!vmaKmh || !thrPace) return { error: "Données insuffisantes" };
 
-  // Riegel exponent applied if distance > anchor
-  const ANCHOR_KM = 21.1; // semi-marathon anchor
+  const ANCHOR_KM = 21.1;
   const RIEGEL_EXP = 1.06;
 
   return AMBITIONS.map(amb => {
-    // Direct pace at pct VMA (valid up to ~25km)
-    const speedKmh = vmaKmh! * amb.pctVMA;
+    const frac = fractionVMAForAmbition(amb, distanceKm);
+    const speedKmh = vmaKmh! * frac;
     let paceSecPerKm = 3600 / speedKmh;
-
-    // For long distances, apply Riegel from anchor
     let timeSec = paceSecPerKm * distanceKm;
     if (distanceKm > ANCHOR_KM) {
       const anchorTime = paceSecPerKm * ANCHOR_KM;
@@ -85,7 +137,7 @@ export function computeRaceScenarios(
     return {
       ambition: amb.key,
       label: amb.label,
-      pctVMA: amb.pctVMA,
+      pctVMA: Number(frac.toFixed(3)),
       pctThreshold: amb.pctThreshold,
       paceSecPerKm: Math.round(paceSecPerKm),
       timeSec: Math.round(timeSec),
@@ -113,12 +165,12 @@ export interface PerformanceAnalysis {
   closestAmbition: Ambition;
   closestLabel: string;
   closestPredictedTimeSec: number;
-  errorPct: number;          // (observed - predicted) / predicted × 100, signed
-  errorSec: number;          // signed
-  pctVMA: number | null;     // observed pct of VMA
-  pctThreshold: number | null; // observed pct of threshold
+  errorPct: number;
+  errorSec: number;
+  pctVMA: number | null;
+  pctThreshold: number | null;
   scenarios: ScenarioRow[];
-  recalibrationSignal: string | null; // human hint
+  recalibrationSignal: string | null;
 }
 
 export function analyzeRacePerformance(
@@ -129,7 +181,6 @@ export function analyzeRacePerformance(
   const scenarios = computeRaceScenarios(snapshot, distanceKm);
   if ("error" in scenarios) return scenarios;
 
-  // Find closest scenario by time
   let closest = scenarios[0];
   let minDiff = Math.abs(timeSec - closest.timeSec);
   for (const s of scenarios) {
@@ -146,7 +197,6 @@ export function analyzeRacePerformance(
   const errorSec = timeSec - closest.timeSec;
   const errorPct = (errorSec / closest.timeSec) * 100;
 
-  // Recalibration heuristics
   let recalibrationSignal: string | null = null;
   if (pctThreshold !== null && pctThreshold > 0.97 && distanceKm >= 18) {
     const sustainedMin = Math.round(timeSec / 60);
@@ -193,17 +243,12 @@ export function formatTime(sec: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/**
- * Parse time strings like "1h33", "1:33:00", "1h33:00", "93:00", "5580"(sec).
- * Returns seconds, or null.
- */
 export function parseTimeToSec(input: string): number | null {
   const s = input.trim().toLowerCase().replace(/\s/g, "");
   if (/^\d+$/.test(s)) {
     const n = parseInt(s, 10);
     return n > 0 ? n : null;
   }
-  // 1h33, 1h33m, 1h33:00
   const hm = s.match(/^(\d+)h(\d+)(?::(\d+))?$/);
   if (hm) {
     const h = parseInt(hm[1], 10);
@@ -211,16 +256,13 @@ export function parseTimeToSec(input: string): number | null {
     const sec = hm[3] ? parseInt(hm[3], 10) : 0;
     return h * 3600 + m * 60 + sec;
   }
-  // 1:33:00 or 93:00 or 5:30
   const colon = s.match(/^(\d+):(\d+)(?::(\d+))?$/);
   if (colon) {
     if (colon[3]) {
       return parseInt(colon[1], 10) * 3600 + parseInt(colon[2], 10) * 60 + parseInt(colon[3], 10);
     }
-    // mm:ss or hh:mm? Assume mm:ss when first <60 and we infer from value range later
     const a = parseInt(colon[1], 10);
     const b = parseInt(colon[2], 10);
-    // If first > 10, more likely mm:ss for a race
     return a * 60 + b;
   }
   return null;

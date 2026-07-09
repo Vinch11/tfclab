@@ -198,8 +198,13 @@ export function normalizeObjKey(obj: string): string {
   return obj;
 }
 
-// === TIME TARGET HINTS BY OBJECTIVE × AMBITION × SEX ===
-export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: string }>> = {
+// === REFERENCE STANDARDS BY OBJECTIVE × AMBITION × SEX ===
+// ⚠️ Standards populationnels (littérature / cohortes AG). Usage EXCLUSIF :
+//    • GapAmbitionPanel (comparaison snapshot vs standard populationnel).
+//    • Détection d'incohérence ambition↔physiologie (via deriveRaceTargets).
+// NE JAMAIS consommer pour prescrire allures/chronos aux athlètes/séances :
+// la source de vérité pour cela est deriveRaceTargets(snapshot).
+export const REFERENCE_STANDARDS: Record<string, Record<string, { M: string; F: string }>> = {
   IM: {
     finisher:    { M: "14h – 17h",       F: "14h30 – 17h30" },
     age_group:   { M: "10h30 – 13h",     F: "11h – 14h" },
@@ -207,14 +212,12 @@ export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: st
     elite:       { M: "Sub 8h45",        F: "Sub 9h30" },
     world_class: { M: "Sub 8h00",        F: "Sub 8h45" },
   },
-  // 70.3 — calibration AG réaliste (réf. Challenge/IM 70.3 finisher data Coach Cox, 2022-2024)
-  // elite = "Qualifiable" Worlds AG (top 5-10% AG), pas pro podium.
   "703": {
     finisher:    { M: "6h30 – 8h00",     F: "7h00 – 8h30" },
     age_group:   { M: "5h15 – 6h15",     F: "5h45 – 6h45" },
     competitor:  { M: "4h40 – 5h15",     F: "5h05 – 5h45" },
-    elite:       { M: "4h15 – 4h40",     F: "4h40 – 5h05" },  // Qualifiable AG Worlds
-    world_class: { M: "Sub 3h55",        F: "Sub 4h20" },     // Pro podium
+    elite:       { M: "4h15 – 4h40",     F: "4h40 – 5h05" },
+    world_class: { M: "Sub 3h55",        F: "Sub 4h20" },
   },
   Marathon: {
     finisher:    { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
@@ -251,7 +254,6 @@ export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: st
     elite:       { M: "2h50 – 3h15",    F: "3h10 – 3h35" },
     world_class: { M: "Sub 2h45",       F: "Sub 3h05" },
   },
-  // TrailShort = 20-35 km, 600-1500m D+. Temps de référence beaucoup plus rapides que Trail long.
   TrailShort: {
     finisher:    { M: "3h00 – 4h15",    F: "3h20 – 4h45" },
     age_group:   { M: "2h15 – 2h55",    F: "2h30 – 3h15" },
@@ -275,13 +277,24 @@ export const TIME_TARGET_HINTS: Record<string, Record<string, { M: string; F: st
   },
 };
 
-export function getTimeTargetHint(objective: string, ambition: string, sex?: string): string | null {
+/** @deprecated alias historique. Utiliser REFERENCE_STANDARDS. */
+export const TIME_TARGET_HINTS = REFERENCE_STANDARDS;
+
+/**
+ * ⚠️ Lecture des standards populationnels UNIQUEMENT.
+ * NE PAS utiliser pour prescrire des allures/temps de course : passer par deriveRaceTargets.
+ */
+export function getReferenceStandard(objective: string, ambition: string, sex?: string): string | null {
   const objKey = normalizeObjKey(objective);
   const ambKey = normalizeAmbKey(ambition);
-  const entry = TIME_TARGET_HINTS[objKey]?.[ambKey];
+  const entry = REFERENCE_STANDARDS[objKey]?.[ambKey];
   if (!entry) return null;
   return entry[sex === "F" ? "F" : "M"];
 }
+
+/** @deprecated alias historique — préférer getReferenceStandard. */
+export const getTimeTargetHint = getReferenceStandard;
+
 
 // FIX #2-amb: Normalize accented chars (é→e, è→e) before matching
 // world_class = NOUVEAU palier "Elite" UI (top 3% AG). Doit être détecté AVANT `elite`

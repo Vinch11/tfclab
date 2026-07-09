@@ -785,42 +785,50 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
   const vmaForDerive = typeof data?.vma === "number" ? Number(data.vma) : null;
   const paceThrForDerive = typeof data?.paceThresholdSecPerKm === "number" ? Number(data.paceThresholdSecPerKm) : null;
+  const weeklyHoursForDerive = typeof config?.weeklyHours === "number" && config.weeklyHours > 0 ? Number(config.weeklyHours) : null;
   const derived = deriveRaceTargets({
     vmaKmh: vmaForDerive,
     thresholdPaceSecPerKm: paceThrForDerive,
     objective: config.objective || "",
     ambition: config.ambition || "",
     literatureHintText: timeTarget,
+    weeklyHours: weeklyHoursForDerive,
   });
 
-  console.log(`🎯 deriveRaceTargets : VMA snapshot ${vmaForDerive ?? "n/a"} km/h · seuil ${paceThrForDerive ?? "n/a"} s/km · objectif "${config.objective}" · ambition "${config.ambition}" → source=${derived.source} · time=${derived.raceTimeSec ?? "n/a"}s · pace=${derived.racePaceSecPerKm ?? "n/a"}s/km · divLittérature=${derived.divergencePct ?? "n/a"}%`);
+  console.log(`🎯 deriveRaceTargets : VMA snapshot ${vmaForDerive ?? "n/a"} km/h · seuil ${paceThrForDerive ?? "n/a"} s/km · objectif "${config.objective}" · ambition "${config.ambition}" → source=${derived.source} · time=${derived.raceTimeSec ?? "n/a"}s · pace=${derived.racePaceSecPerKm ?? "n/a"}s/km · divLittérature=${derived.divergencePct ?? "n/a"}% · volumeCible=${derived.volumeCible ?? "n/a"}h · qualites=${derived.qualitesParSemaine}/sem · complexite=${derived.complexiteSeances}`);
 
   if (derived.source === "snapshot" && derived.raceTimeSec != null && derived.paceRange && derived.timeRange) {
     lines.push(`- **🎯 CIBLE COURSE (snapshot — source unique) :** ${derived.humanSummary}`);
     lines.push(`  → Fourchette temps ±90s : ${Math.floor(derived.timeRange.lo / 60)}min${String(derived.timeRange.lo % 60).padStart(2, "0")}s → ${Math.floor(derived.timeRange.hi / 60)}min${String(derived.timeRange.hi % 60).padStart(2, "0")}s. Fourchette allure ±5s : ${Math.floor(derived.paceRange.lo / 60)}:${String(derived.paceRange.lo % 60).padStart(2, "0")}-${Math.floor(derived.paceRange.hi / 60)}:${String(derived.paceRange.hi % 60).padStart(2, "0")}/km.`);
     lines.push(`  → **La ligne "Jour de Course" DOIT afficher cet objectif temps.** Les séances Simulation/Race-pace/Juge de Paix DOIVENT être prescrites dans cette fourchette d'allure.`);
     if (timeTarget) {
-      lines.push(`  → Fourchette littérature (RÉFÉRENCE populationnelle uniquement, ne pas utiliser pour prescrire) : ${timeTarget}.`);
+      lines.push(`  → Standard populationnel (référence, ne pas prescrire) : ${timeTarget}.`);
     }
     if (derived.warning) {
       lines.push(`  → 🚨 **INCOHÉRENCE AMBITION vs PHYSIOLOGIE** : ${derived.warning}`);
-      lines.push(`     Utilise la cible SNAPSHOT ci-dessus. N'utilise AUCUNE allure/temps issue de la fourchette littérature dans les séances.`);
+      lines.push(`     Utilise la cible SNAPSHOT ci-dessus. N'utilise AUCUN allure/temps issu du standard populationnel dans les séances.`);
     }
     if (coachTimeProvided) {
       lines.push(`  → ⚠️ Un **temps cible coach** a été saisi pour au moins un objectif ci-dessus. Il prime sur la cible snapshot pour l'allure spécifique, mais reste comparé à la cible snapshot par le coach.`);
     }
     lines.push(`  → Les ZONES D'ENTRAÎNEMENT (Z1-Z7) restent 100% individualisées à partir des valeurs physiologiques (VMA, FTP, FCmax) — ne JAMAIS les recalculer depuis le temps cible.`);
   } else if (timeTarget) {
-    // Fallback : pas de VMA snapshot → on retombe sur la fourchette littérature avec avertissement.
-    lines.push(`- **🎯 Temps cible (fourchette littérature — SNAPSHOT INDISPONIBLE) :** ${timeTarget}`);
+    lines.push(`- **🎯 Temps cible (standard populationnel — SNAPSHOT INDISPONIBLE) :** ${timeTarget}`);
     lines.push(`  → ⚠️ VMA / allure seuil non renseignée : la cible est populationnelle, pas individualisée. À traiter comme indicative.`);
   }
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   if (config.weeklyHours) {
-    lines.push(`- **Heures dispo/semaine :** ${config.weeklyHours}h`);
+    lines.push(`- **Heures dispo/semaine (saisie athlète) :** ${config.weeklyHours}h`);
+    if (derived.volumeCible != null) {
+      lines.push(`- **📦 VOLUME CIBLE HEBDO (SOURCE UNIQUE, NON NÉGOCIABLE) :** ${derived.volumeCible}h`);
+      lines.push(`  → Formule : ${config.weeklyHours}h × ${derived.multiplicateurVolume} (ambition ${config.ambition}) — borné [3h, 15h].`);
+      lines.push(`  → **Les en-têtes de volume hebdomadaire DOIVENT afficher exactement cette valeur** (modulée par la phase : Base 100%, Build 100%, Peak 100%, Décharge ×0.7, Taper voir courbe existante).`);
+      lines.push(`  → INTERDICTION d'inventer une fourchette de volume alternative. La somme réelle des durées de séances de chaque semaine DOIT converger vers cette cible (±15%).`);
+    }
   } else {
     lines.push(`- **Heures/semaine :** Non spécifié — utilise le volume OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
   }
+
   if (config.sessionsPerWeek) {
     lines.push(`- **Séances/semaine max :** ${config.sessionsPerWeek}`);
   } else {
@@ -862,6 +870,16 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push(`- **⚠️ Anti-contradiction :** Si un jour a une séance d'entraînement, NE PAS ajouter de ligne "Repos" pour ce même jour. Le Repos est UNIQUEMENT pour les jours sans aucune séance.`);
   }
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
+  if (derived) {
+    const complexRule = derived.complexiteSeances === "simple"
+      ? "INTERDIT : doubles seuils, train-low, plyométrie avancée, doubles séances quotidiennes systématiques."
+      : derived.complexiteSeances === "intermediaire"
+        ? "AUTORISÉ : progressions classiques, tempo, seuils simples, intervalles VMA. INTERDIT : doubles seuils, train-low avancé, plyo pliométrique avancée."
+        : "AUTORISÉ : doubles seuils, train-low, plyo avancée, back-to-back, séances complexes multi-blocs.";
+    lines.push(`- **🧩 STRUCTURE AMBITION (non négociable) :** ${derived.qualitesParSemaine} qualité(s)/semaine · complexité "${derived.complexiteSeances}".`);
+    lines.push(`  → ${complexRule}`);
+  }
+
 
   // === CONTRAINTE EXPLICITE : RATIOS DE RÉPARTITION SPORTIVE PAR NIVEAU D'AMBITION ===
   const sportRatios = getSportDistributionConstraint((config.objective || "").toUpperCase(), (config.ambition || "").toLowerCase(), config.identifiedLimitersRaw ?? config.identifiedLimiters, catalogDurationStats);

@@ -21,6 +21,9 @@ import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
+import { GapAmbitionPanel } from "@/components/GapAmbitionPanel";
+import { formatTime as formatRaceTime } from "@/lib/raceAnalysis";
+import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 import type { RaceGoal } from "@/hooks/useAITrainingPlan";
 import { supabase } from "@/integrations/supabase/client";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
@@ -683,9 +686,17 @@ interface AIPlanViewerProps {
   currentWeekNumber?: number;
   loadedFromCacheAt?: string | null;
   adaptationProjections?: import("@/hooks/useAITrainingPlan").AdaptationProjection[];
+  /** Contexte pour GapAmbitionPanel (100% frontend, déterministe). */
+  gapContext?: {
+    ambition?: string | null;
+    objective?: string | null;
+    weeklyHours?: number | null;
+    vmaKmh?: number | null;
+    thresholdPaceSecPerKm?: number | null;
+  };
 }
 
-export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext }: AIPlanViewerProps) {
   // Persist selected week per athlete (restored on mount/athlete change)
   const weekStorageKey = athleteId ? `plan_current_week_${athleteId}` : null;
   const [selectedWeek, setSelectedWeek] = useState<number>(() => {
@@ -1074,17 +1085,31 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     [raceGoals]
   );
 
-  // Corrige une distance hallucinée dans le titre IA en utilisant la distance réelle de l'objectif trail
+  // Corrige une distance hallucinée dans le titre IA + applique le nouveau format canonique
+  // "{Objectif} — Structure {Ambition} — Objectif {tempsSnapshot}"
   const correctedTitle = useMemo(() => {
     const t = plan.title || "";
     const primary = (raceGoals || []).find((g) => g.priority === "A" && typeof g.distanceKm === "number" && (g.distanceKm as number) > 0)
       || (raceGoals || []).find((g) => typeof g.distanceKm === "number" && (g.distanceKm as number) > 0);
     const km = primary?.distanceKm;
+    // Nouveau format canonique si on a le contexte (ambition + objectif + snapshot)
+    if (gapContext?.ambition && gapContext?.objective) {
+      const derivedTitle = deriveRaceTargets({
+        vmaKmh: gapContext.vmaKmh ?? null,
+        thresholdPaceSecPerKm: gapContext.thresholdPaceSecPerKm ?? null,
+        objective: gapContext.objective,
+        ambition: gapContext.ambition,
+        weeklyHours: gapContext.weeklyHours ?? null,
+      });
+      const tempsStr = derivedTitle.raceTimeSec ? formatRaceTime(derivedTitle.raceTimeSec) : "n/a";
+      const ambLabel = gapContext.ambition.charAt(0).toUpperCase() + gapContext.ambition.slice(1).toLowerCase();
+      return `${gapContext.objective} — Structure ${ambLabel} — Objectif ${tempsStr}`;
+    }
     if (!km) return t;
     const kmRegex = /\(\s*\d{1,3}\s*km\s*\)/i;
     if (kmRegex.test(t)) return t.replace(kmRegex, `(${km}km)`);
     return t.replace(/—\s*([^—]+?)(\s+—|$)/, (_m, name, tail) => `— ${name.trim()} (${km}km)${tail}`);
-  }, [plan.title, raceGoals]);
+  }, [plan.title, raceGoals, gapContext]);
 
   const handleExportPDF = () => {
     exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape", "full");
@@ -1314,6 +1339,18 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           )}
         </CardContent>
       </Card>
+
+      {/* Gap Ambition Panel — DÉTERMINISTE, calculé côté frontend */}
+      {gapContext && (gapContext.ambition || gapContext.objective) && (
+        <GapAmbitionPanel
+          vmaKmh={gapContext.vmaKmh}
+          thresholdPaceSecPerKm={gapContext.thresholdPaceSecPerKm}
+          ambition={gapContext.ambition}
+          objective={gapContext.objective}
+          weeklyHours={gapContext.weeklyHours}
+        />
+      )}
+
 
       {/* Strategic Recap */}
       {plan.strategicRecap && (

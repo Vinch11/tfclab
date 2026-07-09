@@ -2316,6 +2316,13 @@ export default function AITrainingPlanPage() {
                             ? buildConfigFromDiag(athleteContext.diagnostic).adaptationProjections
                             : undefined
                         }
+                        gapContext={{
+                          ambition,
+                          objective,
+                          weeklyHours: parseFloat(weeklyHours) || null,
+                          vmaKmh: athleteContext?.data?.vma ?? null,
+                          thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
+                        }}
                       />
 
                     </>
