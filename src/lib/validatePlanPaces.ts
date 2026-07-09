@@ -205,6 +205,7 @@ export function validatePlanPaces(
   );
 
 
+  if (!isRunOnlyObjective(objectifEffectif)) {
     // Legacy behaviour préservé : rien à corriger si l'objectif n'est pas run-only.
     // Comptage minimal.
     for (const week of plan.weeks) for (const s of week.sessions) {
