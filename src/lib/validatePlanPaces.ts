@@ -245,14 +245,14 @@ export function validatePlanPaces(
       }
 
 
-      const titleRes = rewritePacesInText(s.title, paceTargets, id);
+      const titleRes = rewritePacesInText(s.title, paceTargets, id, s.title);
       if (titleRes.corrections.length) {
         s.title = titleRes.text;
         for (const c of titleRes.corrections) {
           corrections.push({ week: week.weekNumber, day: s.dayName, sessionTitle: s.title, type: c.zone, before: c.before, after: c.after });
         }
       }
-      const detailsRes = rewritePacesInText(s.details, paceTargets, id);
+      const detailsRes = rewritePacesInText(s.details, paceTargets, id, s.title);
       if (detailsRes.corrections.length) {
         s.details = detailsRes.text;
         for (const c of detailsRes.corrections) {
