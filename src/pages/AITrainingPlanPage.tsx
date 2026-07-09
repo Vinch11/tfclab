@@ -41,6 +41,7 @@ import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanPa
 import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
+import { resolveEffectiveWeeklyHours } from "@/lib/defaultWeeklyHours";
 
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
 import { AIPlanViewer } from "@/components/AIPlanViewer";
