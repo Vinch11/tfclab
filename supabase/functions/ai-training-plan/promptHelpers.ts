@@ -851,7 +851,11 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   }
 
   if (config.sessionsPerWeek) {
-    lines.push(`- **Séances/semaine max :** ${config.sessionsPerWeek}`);
+    lines.push(`- **⛔ SÉANCES/SEMAINE — CONTRAINTE DURE (SAISIE UTILISATEUR) :** EXACTEMENT ${config.sessionsPerWeek} séances/semaine.`);
+    lines.push(`  → Comptent : swim, bike, run, brick, test, race-sim (toute séance cardio prescrite).`);
+    lines.push(`  → NE COMPTENT PAS : renforcement musculaire / PPG / musculation / mobilité / yoga / étirements (ces séances s'ajoutent au quota et sont gérées par le paramètre "strengthSessionsPerWeek").`);
+    lines.push(`  → Cette valeur PRIME sur toute recommandation d'ambition ou de littérature. Si la matrice ambition suggère plus/moins, respecter ${config.sessionsPerWeek}.`);
+    lines.push(`  → Chaque semaine du plan DOIT contenir exactement ${config.sessionsPerWeek} séances cardio (hors renfo). Une semaine avec un nombre différent est une erreur bloquante.`);
   } else {
     lines.push(`- **Séances/semaine :** Non spécifié — utilise le nombre de séances OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);
   }
