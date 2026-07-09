@@ -2368,7 +2368,7 @@ export default function AITrainingPlanPage() {
                         gapContext={{
                           ambition,
                           objective,
-                          weeklyHours: resolveEffectiveWeeklyHours(weeklyHours, objective, ambition),
+                          weeklyHours: parseFloat(weeklyHours) || null,
                           vmaKmh: athleteContext?.data?.vma ?? null,
                           thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
                         }}
