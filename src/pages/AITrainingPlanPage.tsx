@@ -726,10 +726,8 @@ export default function AITrainingPlanPage() {
         // Règle : le formulaire PRIME. On log une alerte si l'utilisateur descend en dessous du minimum
         // requis pour placer les séances de qualité de son ambition.
         try {
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          const { AMBITIONS } = require("@/lib/raceAnalysis");
           const ambKey = (amb || "").toLowerCase();
-          const ambDef = AMBITIONS?.find((a: any) => a.key === ambKey || a.label?.toLowerCase() === ambKey);
+          const ambDef = RACE_AMBITIONS.find((a: any) => a.key === ambKey || a.label?.toLowerCase() === ambKey);
           const minRec = ambDef?.qualitesParSemaine;
           if (typeof minRec === "number" && n < minRec) {
             // eslint-disable-next-line no-console
