@@ -195,7 +195,7 @@ export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, obje
               <tr>
                 <td className="py-2 pr-2">Volume hebdo</td>
                 <td className="py-2 pr-2">{typeof weeklyHours === "number" ? `${weeklyHours}h` : "—"}</td>
-                <td className="py-2 pr-2">{volumeCible != null ? `${volumeCible}h (×${derived.multiplicateurVolume})` : "—"}</td>
+                <td className="py-2 pr-2">{volumeRefRange ? `${volumeRefRange[0]}-${volumeRefRange[1]}h/sem` : "—"}</td>
                 <td className="py-2 pr-2">{gapBadge(gapVolumePct)}</td>
               </tr>
             </tbody>
