@@ -597,13 +597,8 @@ export default function AITrainingPlanPage() {
     try {
       const plan = parseAIPlan(response);
       if (plan.weeks.length === 0) return null;
-      // Chantier 1 — validation post-parse des allures
+      // Chantier 1 & 3 — validation post-parse des allures + override taper
       try {
-        // Lazy imports to avoid circular deps in tests
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { deriveRaceTargets } = require("@/lib/deriveRaceTargets");
-        const { validatePlanPaces } = require("@/lib/validatePlanPaces");
-        const { applyTaperVolumeOverride } = require("@/lib/taperVolumeOverride");
         const d = deriveRaceTargets({
           vmaKmh: athleteContext?.data?.vma ?? null,
           thresholdPaceSecPerKm: athleteContext?.data?.paceThresholdSecPerKm ?? null,
@@ -615,6 +610,7 @@ export default function AITrainingPlanPage() {
         validatePlanPaces(plan, d.paceTargets);
       } catch (e) { console.warn("paces/taper post-process failed", e); }
       return plan;
+
     } catch { return null; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response, isLoading, objective, ambition, weeklyHours]);
