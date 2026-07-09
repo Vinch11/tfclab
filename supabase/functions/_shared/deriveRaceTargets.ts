@@ -125,6 +125,8 @@ export interface DeriveRaceTargetsResult {
   multiplicateurVolume: number;
   complexiteSeances: ComplexiteSeances;
   volumeCible: number | null;
+  experienceFactor: number;
+  volumeCibleMaxH: number;
   paceTargets: PaceTargets | null;
 }
 
