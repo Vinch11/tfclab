@@ -683,9 +683,17 @@ interface AIPlanViewerProps {
   currentWeekNumber?: number;
   loadedFromCacheAt?: string | null;
   adaptationProjections?: import("@/hooks/useAITrainingPlan").AdaptationProjection[];
+  /** Contexte pour GapAmbitionPanel (100% frontend, déterministe). */
+  gapContext?: {
+    ambition?: string | null;
+    objective?: string | null;
+    weeklyHours?: number | null;
+    vmaKmh?: number | null;
+    thresholdPaceSecPerKm?: number | null;
+  };
 }
 
-export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext }: AIPlanViewerProps) {
   // Persist selected week per athlete (restored on mount/athlete change)
   const weekStorageKey = athleteId ? `plan_current_week_${athleteId}` : null;
   const [selectedWeek, setSelectedWeek] = useState<number>(() => {
