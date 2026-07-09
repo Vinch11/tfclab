@@ -81,7 +81,7 @@ function targetForZone(zone: Zone, pt: PaceTargets): { sec: number; label: strin
   switch (zone) {
     case "vo2": return null; // ne pas réécrire
     case "seuil": return { sec: pt.seuilBas, label: "seuil (Z4)" };
-    case "marathon":
+    case "marathon": return { sec: pt.allureMarathon, label: "allure marathon" };
     case "race": return { sec: pt.allureSemiCible, label: "allure course" };
     case "z3": {
       if (!pt.allureZ2) return { sec: pt.seuilBas + 20, label: "Z3" };
@@ -91,6 +91,7 @@ function targetForZone(zone: Zone, pt: PaceTargets): { sec: number; label: strin
     case "none": return { sec: pt.allureSemiCible, label: "allure course (défaut)" };
   }
 }
+
 
 function sessionId(week: number, s: ParsedSession): string {
   return `S${week}-${s.dayName}-${s.title.slice(0, 40)}`;
