@@ -262,9 +262,12 @@ export function validatePlanPaces(
     }
   }
 
-  // Assertion marathon <= semi : nous n'avons qu'une seule cible race (allureSemiCible).
-  // Si l'objectif est marathon, allureSemiCible EST l'allure marathon → pas de comparaison.
-  // Sinon (semi/10k), il ne devrait pas y avoir de "marathon" dans le plan corrigé.
+  // Assertion marathon <= semi
+  if (paceTargets.allureMarathon <= paceTargets.allureSemiCible) {
+    // eslint-disable-next-line no-console
+    console.error(`❌ ASSERT marathon — allureMarathon ${fmt(paceTargets.allureMarathon)} <= allureSemi ${fmt(paceTargets.allureSemiCible)}`);
+  }
+
 
   const summary = `${corrections.length} correction(s) zone-aware, ${total} allure(s) totale(s).`;
   // eslint-disable-next-line no-console
