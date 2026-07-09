@@ -667,13 +667,12 @@ export default function AITrainingPlanPage() {
 
           // Instrumentation : semaines observées + headers ### Semaine détectés dans le markdown
           const weekNums = plan.weeks.map(w => w.weekNumber).join(",");
-          const headerNums = Array.from(
-            (response.match(/###?\s*\*{0,2}\s*Semaine\s*(\d+)/gi) || []).reduce((acc, m) => {
-              const n = parseInt(m.replace(/\D/g, ""), 10);
-              if (Number.isFinite(n)) acc.add(n);
-              return acc;
-            }, new Set<number>())
-          ).sort((a, b) => a - b).join(",");
+          const headerSet = new Set<number>();
+          for (const m of response.match(/###?\s*\*{0,2}\s*Semaine\s*(\d+)/gi) || []) {
+            const n = parseInt(m.replace(/\D/g, ""), 10);
+            if (Number.isFinite(n)) headerSet.add(n);
+          }
+          const headerNums = Array.from(headerSet).sort((a, b) => a - b).join(",");
           const expected = weeksAvailable ?? plan.weeks.length;
           const parity = plan.weeks.length === expected ? "OK" : "MISMATCH";
 
