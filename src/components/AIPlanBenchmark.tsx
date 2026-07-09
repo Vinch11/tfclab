@@ -525,7 +525,13 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
       defaultOpen={false}
       storageKey="ai_plan_benchmark"
       icon={<Trophy className="h-4 w-4 text-primary" />}
-      title={<>Benchmark vs Référence {athleteName ? `— ${athleteName}` : ""}</>}
+      title={
+        <>
+          Benchmark vs Référence
+          {ambitionEffectiveLabel ? <> — {ambitionEffectiveLabel}</> : null}
+          {athleteName ? ` — ${athleteName}` : ""}
+        </>
+      }
       rightSlot={
         <Badge
           variant="outline"
@@ -542,6 +548,11 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
           {ref.longRunMax && <> · SL max: {ref.longRunMax}</>}
           {" · "}Charge: {ref.loadPattern}
         </p>
+        {isDowngraded && ambitionSaisieLabel && (
+          <p className="text-[11px] text-amber-700 dark:text-amber-300 -mt-1 mb-2 italic">
+            Ambition visée : <strong>{ambitionSaisieLabel}</strong> (plan ajusté au niveau déclaré).
+          </p>
+        )}
         {/* Main gauges */}
         {gauges.map(g => (
           <GaugeRow key={g.label} {...g} />
