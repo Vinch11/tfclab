@@ -1500,6 +1500,7 @@ const Index = () => {
                 objective: currentAthlete.goal || "",
                 ambition: currentAmbition,
                 literatureHintText: timeHint,
+                sport: mapObjectiveToSport(currentAthlete.goal || ""),
               });
               const derivedOk = derivedTarget.source === "snapshot" && derivedTarget.raceTimeSec != null;
               const derivedIncompatible = derivedOk && !!derivedTarget.warning;
