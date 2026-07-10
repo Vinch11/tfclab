@@ -86,6 +86,7 @@ export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, ambi
     ambition: ambition || "",
     weeklyHours: weeklyHours ?? null,
     literatureHintText: objKey ? REFERENCE_STANDARDS_FRONT[objKey]?.[ambKey] ?? null : null,
+    sport: mapObjectiveToSport(objective || ""),
   }), [vmaKmh, thresholdPaceSecPerKm, ambition, objective, weeklyHours, objKey, ambKey]);
 
   const ambDef = AMBITIONS.find(a => a.key === ambKey) ?? AMBITIONS[1];
