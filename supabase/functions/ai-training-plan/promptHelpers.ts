@@ -946,7 +946,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         lines.push(`    Dimanche : CAP EF + strides OU jour repos complet`);
         lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum renfo/core, mobilité ou footing Z1 récup.`);
         if (sportForDoubles === "run_route") {
-          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation, AUCUNE séance de vélo/cyclisme/home-trainer, AUCUNE brique. Doubles/triples = CAP + renfo/mobilité uniquement.`);
+          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation, AUCUN vélo en qualité (Z3+/seuil/VO2/intervalles/SFR), AUCUNE brique triathlon. ✅ Vélo Z1-Z2 récupération autorisé max 1–2×/sem (45–75min, lendemain SL/qualité). Doubles/triples = CAP + renfo/mobilité principalement.`);
         } else {
           lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation dans ce plan. Vélo UNIQUEMENT en récupération Z1-Z2, max 1×/sem, 40-60min, jamais en séance qualité. Toute brique ou séance vélo qualité = erreur bloquante.`);
         }
