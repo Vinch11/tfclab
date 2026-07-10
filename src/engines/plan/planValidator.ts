@@ -1817,6 +1817,7 @@ export function validatePlan(
     weekMetrics,
     limiterCoverage: limiterCoherence.coverage,
     catalogStats: catalogRatio.catalogStats,
+    lorangCategories: lorang_.distribution,
     summary: {
       polarizationScore: polarization.score,
       loadPatternScore: loadPattern.score,
@@ -1830,10 +1831,12 @@ export function validatePlan(
       limiterCoherenceScore: limiterCoherence.score,
       wbalFeasibilityScore: wbalFeasibility.score,
       sessionDensityScore: sessionDensity_.score,
+      lorangCategoriesScore: lorang_.score,
       overallComment,
     },
   };
 }
+
 
 /**
  * Format validation result as a human-readable markdown string
