@@ -522,30 +522,35 @@ function computeSegmentFuelRisk(
 ): number {
   let risk = 0;
   
-  // Appliquer le décalage FatMax si modificateurs présents
+  // F38-bis: FatMax manquant → skip la contribution FatMax (pas de valeur fantôme 70).
   const fatmaxShift = readinessModifiers?.fatmaxShiftPct ?? 0;
-  const fatmax = (fatmaxMax ?? fatmaxCenter ?? 70) + fatmaxShift;
-  const intensityDelta = intensityPct - fatmax;
-  
+  const fatmaxRaw = fatmaxMax ?? fatmaxCenter;
+  const fatmax = fatmaxRaw != null ? fatmaxRaw + fatmaxShift : null;
+
   // Facteur scénario pour le risque
   const scenarioRiskFactor = scenarioType === 'conservative' ? 0.6 
     : scenarioType === 'aggressive' ? 1.5 
     : 1.0;
-  
-  if (intensityDelta > 0) {
-    // Au-dessus de FatMax → dépendance glucidique - impact plus fort
-    risk += (25 + Math.min(40, intensityDelta * 3)) * scenarioRiskFactor;
-  } else {
-    // En dessous de FatMax → faible risque (encore plus faible en conservateur)
-    risk += Math.max(0, 10 + intensityDelta) * scenarioRiskFactor;
+
+  if (fatmax != null) {
+    const intensityDelta = intensityPct - fatmax;
+    if (intensityDelta > 0) {
+      // Au-dessus de FatMax → dépendance glucidique - impact plus fort
+      risk += (25 + Math.min(40, intensityDelta * 3)) * scenarioRiskFactor;
+    } else {
+      // En dessous de FatMax → faible risque (encore plus faible en conservateur)
+      risk += Math.max(0, 10 + intensityDelta) * scenarioRiskFactor;
+    }
   }
-  
-  // VLamax adjustment - impact plus prononcé
-  const vlamax = vlamaxEffectif ?? 0.45;
-  if (vlamax > 0.5) {
-    risk += (20 + (vlamax - 0.5) * 80) * scenarioRiskFactor;
-  } else if (vlamax < 0.35) {
-    risk -= 15; // Bonus métabolisme aérobie plus fort
+
+  // VLamax adjustment - impact plus prononcé (F38-bis: skip si manquant)
+  if (vlamaxEffectif != null && vlamaxEffectif > 0) {
+    const vlamax = vlamaxEffectif;
+    if (vlamax > 0.5) {
+      risk += (20 + (vlamax - 0.5) * 80) * scenarioRiskFactor;
+    } else if (vlamax < 0.35) {
+      risk -= 15; // Bonus métabolisme aérobie plus fort
+    }
   }
   
   // TTE adjustment - appliquer multiplicateur si présent
