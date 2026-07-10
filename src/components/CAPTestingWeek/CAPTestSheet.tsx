@@ -288,8 +288,8 @@ export function CAPTestSheet({ dayKey, athlete, snapshot, onClose, onSave }: CAP
             confidence_evidence: confidence,
             validity: "OK",
             notes: notes || null,
-            used_in_calibration: false,
-            calibration_weight: 0,
+            used_in_calibration: true,
+            calibration_weight: confidence,
           });
         }
         
