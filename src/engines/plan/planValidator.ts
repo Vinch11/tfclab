@@ -101,8 +101,16 @@ export interface PlanValidationResult {
     raceDayScore: number;
     limiterCoherenceScore: number;
     wbalFeasibilityScore: number;
+    /** Lot 3 : conformité activeSessions/jour et sessions/semaine vs config coach */
+    sessionDensityScore: number;
     overallComment: string;
   };
+}
+
+/** Lot 3 — config coach à respecter (sessions/semaine + max/jour) */
+export interface SessionDensityConfig {
+  sessionsPerWeek?: number;    // cible coach
+  maxSessionsPerDay?: number;  // plafond coach (défaut 2)
 }
 
 export type LimiterGapLike = {
@@ -1426,6 +1434,81 @@ function validateWbalFeasibility(
   return { issues, score };
 }
 
+/**
+ * Lot 3 — Rule 12: Session density (sessions/semaine + max sessions/jour).
+ * Vérifie que le plan respecte la config coach envoyée à l'IA :
+ *  • activeSessions par semaine ∈ [target−1 ; target+1] (deload/race semaine exclus)
+ *  • aucun jour ne dépasse `maxSessionsPerDay` (défaut 2)
+ */
+function validateSessionDensity(
+  plan: ParsedPlan,
+  cfg?: SessionDensityConfig,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  const maxPerDay = cfg?.maxSessionsPerDay ?? 2;
+  const target = cfg?.sessionsPerWeek;
+  let compliant = 0;
+  let scanned = 0;
+
+  for (const w of plan.weeks) {
+    const active = w.sessions.filter((s) => !s.isRest);
+
+    // Density par jour
+    const byDay = new Map<number, number>();
+    for (const s of active) {
+      if (s.dayIndex == null || s.dayIndex < 0) continue;
+      byDay.set(s.dayIndex, (byDay.get(s.dayIndex) ?? 0) + 1);
+    }
+    for (const [day, count] of byDay) {
+      if (count > maxPerDay) {
+        issues.push({
+          rule: "session_density",
+          severity: "error",
+          week: w.weekNumber,
+          message: `S${w.weekNumber}: ${count} séances le jour ${day + 1} (max autorisé ${maxPerDay})`,
+        });
+      }
+    }
+
+    // Sessions/semaine vs cible coach
+    if (target && target > 0) {
+      scanned++;
+      const isDeload = DELOAD_PATTERNS.test(`${w.theme} ${w.phase}`.toLowerCase());
+      const isRaceWeek = w.sessions.some((s) => RACE_PATTERNS.test(`${s.title} ${s.details}`));
+      if (isDeload || isRaceWeek) {
+        compliant++;
+        continue;
+      }
+      const delta = active.length - target;
+      if (Math.abs(delta) <= 1) {
+        compliant++;
+      } else if (Math.abs(delta) === 2) {
+        issues.push({
+          rule: "session_density",
+          severity: "warning",
+          week: w.weekNumber,
+          message: `S${w.weekNumber}: ${active.length} séances vs cible coach ${target} (Δ${delta > 0 ? "+" : ""}${delta})`,
+        });
+        compliant += 0.5;
+      } else {
+        issues.push({
+          rule: "session_density",
+          severity: "error",
+          week: w.weekNumber,
+          message: `S${w.weekNumber}: ${active.length} séances vs cible coach ${target} (Δ${delta > 0 ? "+" : ""}${delta}) — hors tolérance ±1`,
+        });
+      }
+    }
+  }
+
+  const score = scanned > 0
+    ? Math.round((compliant / scanned) * 100) - Math.min(30, issues.filter((i) => i.severity === "error" && /jour/.test(i.message)).length * 10)
+    : Math.max(0, 100 - issues.length * 20);
+  return { issues, score: Math.max(0, Math.min(100, score)) };
+}
+
+
+
 export function validatePlan(
   plan: ParsedPlan,
   objective?: string,
@@ -1434,7 +1517,8 @@ export function validatePlan(
   identifiedLimiters?: string[],
   identifiedLimiterKeys?: string[],
   athleteData?: PlanAthleteData,
-  coachLimiterOrder?: string[]
+  coachLimiterOrder?: string[],
+  sessionDensity?: SessionDensityConfig,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -1469,6 +1553,7 @@ export function validatePlan(
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, effectiveLimiterKeys);
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
+  const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
 
   // Combine all issues
   const allIssues = [
@@ -1483,21 +1568,23 @@ export function validatePlan(
     ...raceDayPresence.issues,
     ...limiterCoherence.issues,
     ...wbalFeasibility.issues,
+    ...sessionDensity_.issues,
   ];
 
-  // Weighted score (11 rules)
+  // Weighted score (12 rules)
   const weights = {
-    polarization: 0.13,
-    loadPattern: 0.09,
-    keySessions: 0.09,
-    progression: 0.07,
-    sportRatio: 0.07,
+    polarization: 0.12,
+    loadPattern: 0.08,
+    keySessions: 0.08,
+    progression: 0.06,
+    sportRatio: 0.06,
     catalogRatio: 0.05,
     prohibitionCompliance: 0.14,
     phaseCoherence: 0.09,
     raceDayPresence: 0.07,
     limiterCoherence: 0.10,
     wbalFeasibility: 0.10,
+    sessionDensity: 0.05,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -1510,7 +1597,8 @@ export function validatePlan(
     phaseCoherence.score * weights.phaseCoherence +
     raceDayPresence.score * weights.raceDayPresence +
     limiterCoherence.score * weights.limiterCoherence +
-    wbalFeasibility.score * weights.wbalFeasibility
+    wbalFeasibility.score * weights.wbalFeasibility +
+    sessionDensity_.score * weights.sessionDensity
   );
 
   // Grade
@@ -1559,6 +1647,7 @@ export function validatePlan(
       raceDayScore: raceDayPresence.score,
       limiterCoherenceScore: limiterCoherence.score,
       wbalFeasibilityScore: wbalFeasibility.score,
+      sessionDensityScore: sessionDensity_.score,
       overallComment,
     },
   };

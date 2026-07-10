@@ -1204,6 +1204,10 @@ export default function AITrainingPlanPage() {
             limiterKeys,
             athleteContext.data,
             coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
+            {
+              sessionsPerWeek: (() => { const n = parseInt(sessionsPerWeek); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
+              maxSessionsPerDay: (() => { const n = parseInt(maxSessionsPerDay); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
+            },
           );
           validatorScore = vr.score;
           validatorGrade = vr.grade;

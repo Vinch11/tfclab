@@ -125,6 +125,49 @@ const PROFILES: Profile[] = [
     tte_observed_min: null,
     fatigue_state: "ok",
   },
+  // Lot 3 — 3 profils supplémentaires (audit qualité IA plan)
+  {
+    // Master 55 ans × world_class IM → guard santé + TTE age-adjusted
+    name: "master_worldclass_im",
+    age: 55,
+    weightKg: 74,
+    sport: "tri",
+    objectif: "IM",
+    snapshot: { vlamax: 0.33, vlamax_run: 0.40, sport_main: "bike" },
+    vo2max: 62,
+    ftp: 310,
+    tss_7d: 780,
+    tte_observed_min: 65,
+    fatigue_state: "ok",
+  },
+  {
+    // Ultra-trail élite avec préparation ≤6 semaines → guard "phases écrasées"
+    name: "ultra_short_prep",
+    age: 38,
+    weightKg: 66,
+    sport: "run",
+    objectif: "ultra",
+    snapshot: { vlamax: 0.42, vlamax_run: 0.32, sport_main: "run" },
+    vo2max: 68,
+    ftp: 320,
+    tss_7d: 900,
+    tte_observed_min: 90,
+    fatigue_state: "fresh",
+  },
+  {
+    // Tri Sprint débutant → intensité tolérée, plancher CHO 0 g/h (durée <1h)
+    name: "sprint_tri_debutant",
+    age: 34,
+    weightKg: 80,
+    sport: "tri",
+    objectif: "sprint",
+    snapshot: { vlamax: 0.62, vlamax_run: 0.70, sport_main: "bike" },
+    vo2max: 48,
+    ftp: 210,
+    tss_7d: 250,
+    tte_observed_min: 32,
+    fatigue_state: "ok",
+  },
 ];
 
 const byName = (n: string) => PROFILES.find((p) => p.name === n)!;
@@ -294,5 +337,50 @@ describe("PASSE 3 — Nutrition Mader-Heck canonical", () => {
     const cool = computeBaseRateMader(72, "velo", 65, 0.38, 70, 5, false);
     const hot = computeBaseRateMader(72, "velo", 65, 0.38, 70, 5, true);
     expect(hot.baseRate).toBeGreaterThanOrEqual(cool.baseRate);
+  });
+});
+
+// ─── 7. LOT 3 — Profils étendus (audit qualité IA) ──────────────────────────
+
+describe("PASSE 3 — LOT 3 profils étendus", () => {
+  it("master_worldclass_im (55 ans, IM) → TTE target ajustée masters (< junior 25 ans)", () => {
+    const p = byName("master_worldclass_im");
+    const masters = computeTTEEffectif({
+      ftp: p.ftp, tss_7d: p.tss_7d, tte_mode: "OBSERVED",
+      tte_observed_min: p.tte_observed_min, objectif: p.objectif, age: p.age,
+    });
+    const junior = computeTTEEffectif({
+      ftp: p.ftp, tss_7d: p.tss_7d, tte_mode: "OBSERVED",
+      tte_observed_min: p.tte_observed_min, objectif: p.objectif, age: 25,
+    });
+    expect(masters.target).not.toBe(junior.target);
+    // Resolver bike (IM) → snapshot.vlamax
+    const r = resolveVlamaxForGoal(p.snapshot, { goal: p.objectif });
+    expect(r.source).toBe("bike");
+    expect(r.value).toBe(0.33);
+  });
+
+  it("ultra_short_prep → FatMax ancre calculable + resolver run", () => {
+    const p = byName("ultra_short_prep");
+    // Sport=run → vlamax_run (0.32)
+    const r = resolveVlamaxForGoal(p.snapshot, { goal: p.objectif });
+    expect(r.source).toBe("run");
+    expect(r.value).toBe(0.32);
+    // FatMax cohérent (VLa basse + VO2 élevé → anchor haute)
+    const fatmax = computeFatMaxAnchorPctFTP(r.value, p.vo2max)!;
+    expect(fatmax).toBeGreaterThanOrEqual(70);
+    expect(fatmax).toBeLessThanOrEqual(82);
+  });
+
+  it("sprint_tri_debutant (<1h) → CHO plancher = 0 (F31, pas de bypass)", () => {
+    const p = byName("sprint_tri_debutant");
+    // Sprint tri ≈ 1h de course, on teste sub-1h pour valider plancher 0
+    const r = computeBaseRateMader(p.weightKg, "velo", p.vo2max!, p.snapshot.vlamax!, 80, 0.9, false);
+    expect(r.baseRate).toBeGreaterThanOrEqual(0);
+    expect(r.baseRate).toBeLessThanOrEqual(90);
+    // Resolver tri/bike → snapshot.vlamax (0.62)
+    const vr = resolveVlamaxForGoal(p.snapshot, { goal: p.objectif });
+    expect(vr.source).toBe("bike");
+    expect(vr.value).toBe(0.62);
   });
 });
