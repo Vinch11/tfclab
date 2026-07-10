@@ -183,15 +183,19 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
 
 
   // 🏙️ ATHLÈTE URBAIN — substitutions montagne obligatoires
-  // Injecté chunk 1 quand le coach déclare terrain=plat/vallonné/mixte sur un objectif trail.
+  // Injecté chunk 1 quand le coach déclare terrain=plat/vallonné/mixte sur un objectif trail/montagne/ultra.
   // Sans cela, l'IA prescrit des séances montagne irréalisables (frustration + non-adhérence).
-  if (config?.terrainAvailability && config.terrainAvailability !== "montagne" && config?.trailProfile) {
+  // Fonctionne MÊME SANS fiche course renseignée : on utilise des fourchettes par défaut conservatrices.
+  if (config?.terrainAvailability && config.terrainAvailability !== "montagne") {
     const ta = config.terrainAvailability as "plat" | "vallonne" | "mixte";
-    const tp = config.trailProfile;
-    const dPlusWeekly = tp.weeklyDPlusPeakM;
+    const objRaw = String(config?.objective ?? "").toLowerCase();
+    const isUltra = objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("hardrock") || objRaw.includes("tor des") || objRaw.includes("western states");
+    // Valeur par défaut si pas de fiche course : ultra 4500m, trail montagne 2250m (fourchettes du garde-fou #1)
+    const dPlusWeekly = config?.trailProfile?.weeklyDPlusPeakM ?? (isUltra ? 4500 : 2250);
+    const profileNote = config?.trailProfile ? "" : " (estimation par défaut car fiche course non renseignée)";
     const labelMap = { plat: "PLAT (urbain, aucun dénivelé semaine)", vallonne: "VALLONNÉ (collines 50-200m)", mixte: "MIXTE (urbain semaine + montagne weekend)" };
     lines.push(`\n🏙️ ATHLÈTE URBAIN — TERRAIN DÉCLARÉ : ${labelMap[ta]}`);
-    lines.push(`  ⚠️ Le profil course exige ${dPlusWeekly}m D+/sem en peak, mais l'athlète vit en terrain ${ta === "plat" ? "plat" : ta === "vallonne" ? "vallonné" : "mixte"}.`);
+    lines.push(`  ⚠️ Le profil course exige ~${dPlusWeekly}m D+/sem en peak${profileNote}, mais l'athlète vit en terrain ${ta === "plat" ? "plat" : ta === "vallonne" ? "vallonné" : "mixte"}.`);
     lines.push(`  RÈGLES DE SUBSTITUTION OBLIGATOIRES (à appliquer pour CHAQUE semaine du plan) :`);
     if (ta === "plat") {
       lines.push(`  • Remplacer toute "séance montagne / D+ long" semaine par : (1) tapis roulant incliné 8-15% [60-120min], (2) répétitions escaliers building/parking [25-45min], ou (3) côtes urbaines courtes répétées (passerelles, ponts) [40-70min].`);
@@ -213,6 +217,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     }
     lines.push(`  • Catalogue séances à PRIVILÉGIER : "V2_STR_ESCALIERS_TRAIL", "URBAN_TAPIS_INCLINE_SEUIL", "URBAN_COTES_URBAINES_VMA", "URBAN_ESCALIERS_PYRAMIDE", "URBAN_EXCENTRIQUE_DESCENTE_SALLE".`);
     lines.push(`  • Chaque séance "compensation urbaine" DOIT être annotée [URBAIN] dans le titre pour traçabilité.`);
+    lines.push(`  • Chaque week-end hors-ville DOIT être annoté [EXPÉ HORS-VILLE] dans le titre.`);
     lines.push(`  • Si bloc d'acclimatation altitude requis (course >2000m) : recommander stage 7-14j sur place J-21 à J-7 (intégrer dans constraints du plan).`);
   }
 
