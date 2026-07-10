@@ -1386,17 +1386,23 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         </CardContent>
       </Card>
 
-      {/* Gap Ambition Panel — DÉTERMINISTE, calculé côté frontend */}
-      {gapContext && (gapContext.ambition || gapContext.objective) && (
-        <GapAmbitionPanel
-          vmaKmh={gapContext.vmaKmh}
-          thresholdPaceSecPerKm={gapContext.thresholdPaceSecPerKm}
-          ambition={gapContext.ambition}
-          ambitionEffective={gapContext.ambitionEffective}
-          objective={gapContext.objective}
-          weeklyHours={gapContext.weeklyHours}
-        />
-      )}
+      {/* Gap Ambition Panel — DÉTERMINISTE, calculé côté frontend.
+          Réservé aux objectifs course à pied (5K/10K/Semi/Marathon/Trail).
+          Non pertinent pour triathlon (swim+bike+run non projetable depuis VMA seule). */}
+      {gapContext && (gapContext.ambition || gapContext.objective) && (() => {
+        const sport = mapObjectiveToSport(gapContext.objective || "");
+        if (sport === "tri_70_3" || sport === "ironman") return null;
+        return (
+          <GapAmbitionPanel
+            vmaKmh={gapContext.vmaKmh}
+            thresholdPaceSecPerKm={gapContext.thresholdPaceSecPerKm}
+            ambition={gapContext.ambition}
+            ambitionEffective={gapContext.ambitionEffective}
+            objective={gapContext.objective}
+            weeklyHours={gapContext.weeklyHours}
+          />
+        );
+      })()}
 
 
       {/* Strategic Recap */}
