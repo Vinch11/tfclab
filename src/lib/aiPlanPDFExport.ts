@@ -71,6 +71,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
     objective: ctx.objective || "",
     ambition: ambSource,
     weeklyHours: ctx.weeklyHours ?? null,
+    sport: mapObjectiveToSport(ctx.objective || ""),
   });
   const stdTime = REFERENCE_STANDARDS_PDF[objKey]?.[ambKey] ?? "—";
   const volRange = REFERENCE_VOLUMES_PDF[objKey]?.[ambKey] ?? null;
