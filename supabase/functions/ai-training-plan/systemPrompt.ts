@@ -125,11 +125,12 @@ function buildObjectiveSportLock(profile?: SystemPromptProfile): string {
     return `
 ## 🚨 VERROU SPORT OBJECTIF — COURSE ROUTE
 Objectif reçu: ${rawObj || "N/A"}. Ce n'est PAS un objectif triathlon.
-- Générer exclusivement : CAP/Course, Renfo/PPG/Mobilité, Repos, Course objectif.
+- Générer principalement : CAP/Course, Renfo/PPG/Mobilité, Repos, Course objectif.
 - NATATION INTERDITE : aucune séance piscine, CSS, crawl, OWS, swim.
-- VÉLO INTERDIT : aucune séance vélo, cyclisme, home-trainer, FTP, SFR, brick.
-- BRIQUES INTERDITES : aucun enchaînement vélo→CAP, aucune transition T1/T2.
-- La section "Répartition sport" doit indiquer Natation 0% et Vélo 0%.
+- VÉLO AUTORISÉ UNIQUEMENT en récupération active Z1-Z2 (≤75% FTP), 45–75 min, max 1–2×/semaine, lendemain de sortie longue ou de séance CAP qualité. Objectif = flush circulatoire et épargne articulaire.
+- VÉLO QUALITÉ INTERDIT : aucun vélo en Z3+, seuil, VO2, SFR, intervalles, FTP test, sortie longue vélo.
+- BRIQUES INTERDITES : aucun enchaînement vélo→CAP en séance clé, aucune transition T1/T2.
+- La section "Répartition sport" : Natation 0%, Vélo 0-5% max (récup uniquement).
 - Tous les exemples ou règles génériques triathlon présents ailleurs dans ce prompt sont inapplicables pour cet objectif.`;
   }
 
