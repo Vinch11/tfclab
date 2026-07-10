@@ -1729,6 +1729,7 @@ export function validatePlan(
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, effectiveLimiterKeys);
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
   const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
+  const lorang_ = validateLorangCategories(plan);
 
   // Combine all issues
   const allIssues = [
@@ -1744,11 +1745,14 @@ export function validatePlan(
     ...limiterCoherence.issues,
     ...wbalFeasibility.issues,
     ...sessionDensity_.issues,
+    ...lorang_.issues,
   ];
 
-  // Weighted score (12 rules)
+  // Weighted score (13 rules) — Lot 4 introduit lorangCategories (5%),
+  // rééquilibré depuis polarization (12→10) et sessionDensity (5→3) pour éviter double comptage
+  // (polarization approximative sur classification texte vs Lorang tag-based).
   const weights = {
-    polarization: 0.12,
+    polarization: 0.10,
     loadPattern: 0.08,
     keySessions: 0.08,
     progression: 0.06,
@@ -1759,7 +1763,8 @@ export function validatePlan(
     raceDayPresence: 0.07,
     limiterCoherence: 0.10,
     wbalFeasibility: 0.10,
-    sessionDensity: 0.05,
+    sessionDensity: 0.03,
+    lorangCategories: 0.04,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -1773,8 +1778,10 @@ export function validatePlan(
     raceDayPresence.score * weights.raceDayPresence +
     limiterCoherence.score * weights.limiterCoherence +
     wbalFeasibility.score * weights.wbalFeasibility +
-    sessionDensity_.score * weights.sessionDensity
+    sessionDensity_.score * weights.sessionDensity +
+    lorang_.score * weights.lorangCategories
   );
+
 
   // Grade
   const grade = weightedScore >= 85 ? "A" : weightedScore >= 70 ? "B" : weightedScore >= 55 ? "C" : weightedScore >= 40 ? "D" : "F";
