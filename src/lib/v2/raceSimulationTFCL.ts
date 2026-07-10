@@ -252,7 +252,8 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
     vlamax_run_v2,
     vo2max_run,
     durability_index,
-    fatmax_intensity,
+    // fatmax_intensity: deprecated — non consommé par le moteur
+
     race_readiness_state,
     race_readiness_score,
     threshold_pace_sec_km,
