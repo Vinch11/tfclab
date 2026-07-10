@@ -103,8 +103,13 @@ export interface PlanValidationResult {
     wbalFeasibilityScore: number;
     /** Lot 3 : conformité activeSessions/jour et sessions/semaine vs config coach */
     sessionDensityScore: number;
+    /** Lot 4 : conformité tags Lorang A-D vs polarisation Seiler (source: systemPrompt L528-536) */
+    lorangCategoriesScore: number;
     overallComment: string;
   };
+  /** Lot 4 : distribution A/B/C/D par semaine + par plan */
+  lorangCategories: LorangCategoryDistribution;
+
 }
 
 /** Lot 3 — config coach à respecter (sessions/semaine + max/jour) */
