@@ -635,6 +635,7 @@ export default function AITrainingPlanPage() {
             ambition: ambRes.ambitionEffective,
             weeklyHours: effectiveWH,
             trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
+            sport: mapObjectiveToSport(objective),
           });
 
           // (3) Race week index — dérivé de raceDate + planStartDate quand dispo,
