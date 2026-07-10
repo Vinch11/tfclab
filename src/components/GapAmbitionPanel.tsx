@@ -7,7 +7,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Info } from "lucide-react";
-import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { AMBITIONS, formatPace, formatTime, parseTimeToSec, fractionVMAForAmbition } from "@/lib/raceAnalysis";
 
 // Table locale des standards populationnels (miroir READ-ONLY de REFERENCE_STANDARDS côté edge).
@@ -86,6 +86,7 @@ export function GapAmbitionPanel({ vmaKmh, thresholdPaceSecPerKm, ambition, ambi
     ambition: ambition || "",
     weeklyHours: weeklyHours ?? null,
     literatureHintText: objKey ? REFERENCE_STANDARDS_FRONT[objKey]?.[ambKey] ?? null : null,
+    sport: mapObjectiveToSport(objective || ""),
   }), [vmaKmh, thresholdPaceSecPerKm, ambition, objective, weeklyHours, objKey, ambKey]);
 
   const ambDef = AMBITIONS.find(a => a.key === ambKey) ?? AMBITIONS[1];

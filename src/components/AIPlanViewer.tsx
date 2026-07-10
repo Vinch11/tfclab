@@ -23,7 +23,7 @@ import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
 import { GapAmbitionPanel } from "@/components/GapAmbitionPanel";
 import { formatTime as formatRaceTime } from "@/lib/raceAnalysis";
-import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import type { RaceGoal } from "@/hooks/useAITrainingPlan";
 import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
 import { supabase } from "@/integrations/supabase/client";
@@ -1138,6 +1138,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         objective: gapContext.objective,
         ambition: ambForTitle,
         weeklyHours: gapContext.weeklyHours ?? null,
+        sport: mapObjectiveToSport(gapContext.objective),
       });
       const tempsStr = derivedTitle.raceTimeSec ? formatRaceTimeHM(derivedTitle.raceTimeSec) : "n/a";
       const ambLabel = resolveAmbitionLabel(ambForTitle);

@@ -231,7 +231,7 @@ import {
   getRunningTimeHint,
   normalizeAmbitionLevel,
 } from "@/types/ambitionLevel";
-import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -1500,6 +1500,7 @@ const Index = () => {
                 objective: currentAthlete.goal || "",
                 ambition: currentAmbition,
                 literatureHintText: timeHint,
+                sport: mapObjectiveToSport(currentAthlete.goal || ""),
               });
               const derivedOk = derivedTarget.source === "snapshot" && derivedTarget.raceTimeSec != null;
               const derivedIncompatible = derivedOk && !!derivedTarget.warning;

@@ -38,7 +38,7 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
-import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
@@ -635,6 +635,7 @@ export default function AITrainingPlanPage() {
             ambition: ambRes.ambitionEffective,
             weeklyHours: effectiveWH,
             trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
+            sport: mapObjectiveToSport(objective),
           });
 
           // (3) Race week index — dérivé de raceDate + planStartDate quand dispo,

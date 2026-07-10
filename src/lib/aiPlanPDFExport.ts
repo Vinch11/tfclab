@@ -7,7 +7,7 @@ import type { AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, maybeDowngradeBikeSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
-import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 
 const REFERENCE_VOLUMES_PDF: Record<string, Partial<Record<string, [number, number]>>> = {
   "5K":       { finish: [3, 5],  perf: [5, 7],  sub: [6, 9],   elite: [8, 12],  world_class: [10, 14] },
@@ -71,6 +71,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
     objective: ctx.objective || "",
     ambition: ambSource,
     weeklyHours: ctx.weeklyHours ?? null,
+    sport: mapObjectiveToSport(ctx.objective || ""),
   });
   const stdTime = REFERENCE_STANDARDS_PDF[objKey]?.[ambKey] ?? "—";
   const volRange = REFERENCE_VOLUMES_PDF[objKey]?.[ambKey] ?? null;

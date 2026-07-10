@@ -4,7 +4,7 @@
 
 import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, type CatalogDurationStats } from "./sportRatioMatrix.ts";
 import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
-import { deriveRaceTargets } from "../_shared/deriveRaceTargets.ts";
+import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
 
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
 // Builds a compact structured block from planConfig for re-injection in chunks
@@ -72,6 +72,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     objective: config?.objective || "",
     ambition: config?.ambition || "",
     literatureHintText: diagTimeTarget,
+    sport: mapObjectiveToSport(config?.objective || ""),
   });
   if (diagDerived.source === "snapshot" && diagDerived.raceTimeSec != null) {
     lines.push(`🎯 Cible course (snapshot) : ${diagDerived.humanSummary}`);
@@ -794,6 +795,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     literatureHintText: timeTarget,
     weeklyHours: weeklyHoursForDerive,
     trainingLevel: (config as any)?.ambitionMeta?.trainingLevel ?? null,
+    sport: mapObjectiveToSport(config.objective || ""),
   });
 
   console.log(`🎯 deriveRaceTargets : VMA snapshot ${vmaForDerive ?? "n/a"} km/h · seuil ${paceThrForDerive ?? "n/a"} s/km · objectif "${config.objective}" · ambition "${config.ambition}" → source=${derived.source} · time=${derived.raceTimeSec ?? "n/a"}s · pace=${derived.racePaceSecPerKm ?? "n/a"}s/km · divLittérature=${derived.divergencePct ?? "n/a"}% · volumeCible=${derived.volumeCible ?? "n/a"}h · qualites=${derived.qualitesParSemaine}/sem · complexite=${derived.complexiteSeances}`);
@@ -843,7 +845,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push(`- **Heures dispo/semaine (saisie athlète) :** ${config.weeklyHours}h`);
     if (derived.volumeCible != null) {
       lines.push(`- **📦 VOLUME CIBLE HEBDO (SOURCE UNIQUE, NON NÉGOCIABLE) :** ${derived.volumeCible}h`);
-      lines.push(`  → Formule : ${config.weeklyHours}h × ${derived.multiplicateurVolume} (ambition ${config.ambition}) × ${derived.experienceFactor} (facteur expérience) — borné [3h, ${derived.volumeCibleMaxH}h].`);
+      lines.push(`  → Formule : ${config.weeklyHours}h × ${derived.multiplicateurVolume} (ambition ${config.ambition}) — borné [3h, ${derived.volumeCibleMaxH}h] (cap sport/ambition).`);
       lines.push(`  → **Les en-têtes de volume hebdomadaire DOIVENT afficher exactement cette valeur** (modulée par la phase : Base 100%, Build 100%, Peak 100%, Décharge ×0.7, Taper voir courbe existante).`);
       lines.push(`  → INTERDICTION d'inventer une fourchette de volume alternative. La somme réelle des durées de séances de chaque semaine DOIT converger vers cette cible (±15%).`);
     }
