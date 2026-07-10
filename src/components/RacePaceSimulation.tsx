@@ -330,15 +330,15 @@ export function RacePaceSimulation({
     : segments;
 
   return (
-    <Card>
+    <Card className="w-full max-w-full overflow-hidden">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Timer className="h-4 w-4 text-primary" />
-            Simulation Pacing — {normalizedObj}
-            {athleteName && <span className="text-muted-foreground font-normal text-sm">· {athleteName}</span>}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <CardTitle className="text-base flex items-center gap-2 min-w-0 flex-1">
+            <Timer className="h-4 w-4 text-primary flex-shrink-0" />
+            <span className="truncate">Simulation Pacing — {normalizedObj}</span>
+            {athleteName && <span className="text-muted-foreground font-normal text-sm truncate">· {athleteName}</span>}
           </CardTitle>
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-xs flex-shrink-0">
             Seuil: {formatPace(thresholdPace)}/km
           </Badge>
         </div>
@@ -410,8 +410,8 @@ export function RacePaceSimulation({
         </div>
 
         {/* Pacing table */}
-        <ScrollArea className="w-full">
-          <div className="min-w-[500px]">
+        <ScrollArea className="w-full max-w-full whitespace-nowrap">
+          <div className="min-w-[720px]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-muted-foreground">
