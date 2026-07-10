@@ -486,7 +486,11 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
   let depletionPointWithNutri: number | null = null;
   
   const baseDepletion = GLYCOGEN_PARAMS.base_depletion_per_pct_distance[distance];
-  const vlamaxAmp = GLYCOGEN_PARAMS.vlamax_amplifier(vlamax ?? 0.35);
+  // F38-bis: VLamax manquante → amplificateur neutre (1.0), pas de valeur fantôme.
+  // La donnée manquante est déjà trackée dans missingData/sourcesUsed en amont.
+  const vlamaxAmp = vlamax != null && vlamax > 0
+    ? GLYCOGEN_PARAMS.vlamax_amplifier(vlamax)
+    : 1.0;
   
   // Generate nutrition cues
   const nutritionCues: NutritionCue[] = [];
