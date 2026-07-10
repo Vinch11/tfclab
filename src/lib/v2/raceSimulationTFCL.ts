@@ -616,8 +616,8 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
   // ─────────────────────────────────────────────────────────────────────────────
   let failureProbability = baseFailureProbability;
   
-  // Amplifier si VLamax élevée
-  if ((vlamax ?? 0.35) > 0.45) {
+  // Amplifier si VLamax élevée (F38-bis: ne pas amplifier si donnée manquante)
+  if (vlamax != null && vlamax > 0.45) {
     failureProbability += 15;
   }
   
