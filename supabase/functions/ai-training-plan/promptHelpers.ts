@@ -4,6 +4,7 @@
 
 import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, SPORT_RATIO_REFS, type CatalogDurationStats } from "./sportRatioMatrix.ts";
 import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
+import { buildNutritionAndSafetyBlock } from "./nutritionAndSafetyGuardrails.ts";
 import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
 
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
