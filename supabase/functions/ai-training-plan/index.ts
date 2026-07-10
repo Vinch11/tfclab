@@ -514,6 +514,8 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             };
 
             console.log(`🧩 Chunking activé : ${chunks.length} bloc(s) × ${CHUNK_SIZE} sem (total ${totalWeeks} sem) — ${chunks.map(c => `S${c.start}-S${c.end}`).join(", ")}`);
+            // Accumulateur texte plan complet — utilisé par les assertions post-génération.
+            let fullPlanText = "";
             for (let ci = 0; ci < chunks.length; ci++) {
               const chunk = chunks[ci];
               const isFirst = ci === 0;
