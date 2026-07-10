@@ -172,6 +172,49 @@ export const SPORT_RATIO_REFS: Record<string, Record<string, SportRatioRef>> = {
     finisher:   { weeklyHours: [5,9],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3],
       durations: { longRunMin: [120,180], weeklyKmRun: [25,50] } },
   },
+  // ═══ TRIATHLON SPRINT ═══ (750m Swim + 20km Bike + 5K Run — 1h à 1h30)
+  // Bevegård/Millet 2011, ITU pathway 2020 : intensité haute, volume modéré
+  TriSprint: {
+    world_class:{ weeklyHours: [16,22], sessionsPerWeek: [11,15], keySessions: [3,4], progressionPct: [5,8], swimPct: [22,28], bikePct: [40,48], runPct: [28,34],
+      durations: { longBikeMin: [120,180], longRunMin: [70,90], longSwimM: [3500,4500], weeklyKmRun: [55,90], weeklyKmBike: [180,280] } },
+    elite:      { weeklyHours: [12,18], sessionsPerWeek: [9,13],  keySessions: [3,3], progressionPct: [5,7], swimPct: [22,28], bikePct: [40,48], runPct: [28,34],
+      durations: { longBikeMin: [105,150], longRunMin: [60,80], longSwimM: [3000,4000], weeklyKmRun: [45,75], weeklyKmBike: [150,240] } },
+    competitor: { weeklyHours: [8,12],  sessionsPerWeek: [6,9],   keySessions: [2,3], progressionPct: [5,7], swimPct: [20,26], bikePct: [42,50], runPct: [28,34],
+      durations: { longBikeMin: [90,120], longRunMin: [50,70], longSwimM: [2500,3500], weeklyKmRun: [30,55], weeklyKmBike: [100,180] } },
+    age_group:  { weeklyHours: [6,9],   sessionsPerWeek: [5,7],   keySessions: [2,2], progressionPct: [3,5], swimPct: [20,26], bikePct: [42,50], runPct: [28,34],
+      durations: { longBikeMin: [75,105], longRunMin: [40,60], longSwimM: [2000,3000], weeklyKmRun: [20,40], weeklyKmBike: [70,140] } },
+    finisher:   { weeklyHours: [4,7],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3], swimPct: [18,25], bikePct: [42,50], runPct: [28,34],
+      durations: { longBikeMin: [60,90], longRunMin: [30,50], longSwimM: [1500,2500], weeklyKmRun: [12,25], weeklyKmBike: [50,100] } },
+  },
+  // ═══ TRIATHLON OLYMPIQUE ═══ (1.5km Swim + 40km Bike + 10K Run — 2h à 3h)
+  // Millet 2011, Etxebarria 2019 : volume intermédiaire, ratio bike-dominant
+  TriOlympique: {
+    world_class:{ weeklyHours: [18,26], sessionsPerWeek: [12,17], keySessions: [3,4], progressionPct: [5,8], swimPct: [18,24], bikePct: [45,52], runPct: [28,34],
+      durations: { longBikeMin: [150,240], longRunMin: [80,110], longSwimM: [4000,5000], weeklyKmRun: [65,100], weeklyKmBike: [250,400] } },
+    elite:      { weeklyHours: [14,20], sessionsPerWeek: [10,14], keySessions: [3,3], progressionPct: [5,7], swimPct: [18,24], bikePct: [45,52], runPct: [28,34],
+      durations: { longBikeMin: [135,210], longRunMin: [70,100], longSwimM: [3500,4500], weeklyKmRun: [50,85], weeklyKmBike: [200,340] } },
+    competitor: { weeklyHours: [9,14],  sessionsPerWeek: [7,10],  keySessions: [2,3], progressionPct: [5,7], swimPct: [18,24], bikePct: [45,52], runPct: [28,34],
+      durations: { longBikeMin: [120,180], longRunMin: [60,90], longSwimM: [3000,4000], weeklyKmRun: [30,55], weeklyKmBike: [140,240] } },
+    age_group:  { weeklyHours: [7,11],  sessionsPerWeek: [5,8],   keySessions: [2,2], progressionPct: [3,5], swimPct: [16,22], bikePct: [45,52], runPct: [28,34],
+      durations: { longBikeMin: [105,150], longRunMin: [50,80], longSwimM: [2500,3500], weeklyKmRun: [22,42], weeklyKmBike: [100,180] } },
+    finisher:   { weeklyHours: [5,8],   sessionsPerWeek: [4,6],   keySessions: [1,2], progressionPct: [3,3], swimPct: [15,22], bikePct: [45,52], runPct: [28,34],
+      durations: { longBikeMin: [90,135], longRunMin: [45,65], longSwimM: [2000,3000], weeklyKmRun: [15,30], weeklyKmBike: [70,130] } },
+  },
+  // ═══ START TO RUN ═══ (débutant absolu, marche-course alternée, 8-12 sem)
+  // Bredeweg 2010, Videbaek 2015 : progression prudente, ≤10% volume/sem, 3 séances max
+  // Ambitions "elite/world_class/competitor" volontairement plafonnées : StartToRun = objectif débutant
+  StartToRun: {
+    world_class:{ weeklyHours: [3,5], sessionsPerWeek: [3,4], keySessions: [1,1], progressionPct: [5,10],
+      durations: { longRunMin: [30,50], weeklyKmRun: [15,30] } },
+    elite:      { weeklyHours: [3,5], sessionsPerWeek: [3,4], keySessions: [1,1], progressionPct: [5,10],
+      durations: { longRunMin: [30,45], weeklyKmRun: [12,25] } },
+    competitor: { weeklyHours: [2.5,4], sessionsPerWeek: [3,4], keySessions: [1,1], progressionPct: [5,10],
+      durations: { longRunMin: [25,40], weeklyKmRun: [10,20] } },
+    age_group:  { weeklyHours: [2,3.5], sessionsPerWeek: [3,3], keySessions: [1,1], progressionPct: [5,10],
+      durations: { longRunMin: [20,35], weeklyKmRun: [8,15] } },
+    finisher:   { weeklyHours: [1.5,3], sessionsPerWeek: [3,3], keySessions: [0,1], progressionPct: [5,10],
+      durations: { longRunMin: [15,30], weeklyKmRun: [5,12] } },
+  },
 };
 
 // FIX #2-obj: Order matters — check "70.3" BEFORE "ironman" to avoid "Ironman 70.3" → "IM"
