@@ -146,6 +146,26 @@ Objectif reçu: ${rawObj || "N/A"}. Ce n'est PAS un objectif triathlon.
 - Vélo seulement en récupération active Z1-Z2 si nécessaire, jamais séance qualité ni pilier du plan.`;
   }
 
+  if (isTriSprint) {
+    return `
+## 🚨 VERROU SPORT OBJECTIF — TRIATHLON SPRINT (750m / 20km / 5K)
+Objectif reçu: ${rawObj || "N/A"}. Format court, intensité haute, volume modéré (5-8h/sem AG).
+- 3 disciplines OBLIGATOIRES : Natation ~22-28%, Vélo ~40-48%, Course ~28-34% (sur le volume total).
+- Séances clés Sprint : CSS 50/100m, VO2 30/30 course, seuil vélo court, brique bike→run rapide.
+- Long ride ≤ 2h30 (superflu Sprint), long run 45-70min max, long swim 2-3.5km.
+- Renfo/Force : Rønnestad 2-3×/sem indispensable (intensité haute Sprint = risque blessure).`;
+  }
+
+  if (isTriOlympique) {
+    return `
+## 🚨 VERROU SPORT OBJECTIF — TRIATHLON OLYMPIQUE (1.5km / 40km / 10K)
+Objectif reçu: ${rawObj || "N/A"}. Format olympique, seuil/tempo dominant, 7-14h/sem AG.
+- 3 disciplines OBLIGATOIRES : Natation ~18-24%, Vélo ~45-52%, Course ~28-34% (sur le volume total).
+- Séances clés : CSS + endurance natation, seuil vélo 2×20min, tempo 10K, brique bike→run tempo.
+- Long ride 1h45-4h selon niveau, long run 60-110min, long swim 2.5-5km.
+- Renfo/Force + gainage 2×/sem, gut training (25-45g/h) sur SL vélo et briques.`;
+  }
+
   return "";
 }
 
