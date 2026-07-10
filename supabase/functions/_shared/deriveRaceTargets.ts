@@ -83,6 +83,21 @@ export function formatSecPerKm(sec: number): string {
   return `${m}:${String(s).padStart(2, "0")}/km`;
 }
 
+export type RaceSport = "run_route" | "trail" | "tri_70_3" | "ironman";
+
+/**
+ * Helper canonique : mappe un objectif texte vers un RaceSport.
+ * ⚠️ MIROIR EXACT dans src/lib/deriveRaceTargets.ts.
+ */
+export function mapObjectiveToSport(objective: string | null | undefined): RaceSport {
+  const s = (objective ?? "").trim().toLowerCase();
+  if (!s) return "run_route";
+  if (/^ironman$|^im$|\bironman\b/.test(s) && !/70\.?3|half/.test(s)) return "ironman";
+  if (/70\.?3|half.?iron/.test(s) || s === "703") return "tri_70_3";
+  if (/trail|ultra/.test(s)) return "trail";
+  return "run_route";
+}
+
 export interface DeriveRaceTargetsInput {
   vmaKmh?: number | null;
   thresholdPaceSecPerKm?: number | null;
@@ -92,10 +107,12 @@ export interface DeriveRaceTargetsInput {
   /** Volume hebdo brut saisi par l'athlète (en heures). Utilisé pour calculer volumeCible. */
   weeklyHours?: number | null;
   /**
-   * Niveau d'entraînement actuel (coach) — module volumeCible via facteur expérience.
-   * "untrained" 0.85 · "light" 0.92 · "trained" 1.00 · "highly_trained" 1.08.
+   * Niveau d'entraînement (coach) — utilisé UNIQUEMENT par le downgrade
+   * ambition (`AMBITION_MAX_BY_LEVEL`). Aucun effet multiplicatif sur volumeCible.
    */
   trainingLevel?: "untrained" | "light" | "trained" | "highly_trained" | null;
+  /** Type d'épreuve (source des plafonds). Fallback "run_route" + console.warn. */
+  sport?: RaceSport | null;
 }
 
 export interface PaceTargets {
@@ -125,8 +142,8 @@ export interface DeriveRaceTargetsResult {
   multiplicateurVolume: number;
   complexiteSeances: ComplexiteSeances;
   volumeCible: number | null;
-  experienceFactor: number;
   volumeCibleMaxH: number;
+  sportResolved: RaceSport;
   paceTargets: PaceTargets | null;
 }
 
@@ -148,29 +165,35 @@ export function buildPaceTargets(racePaceSecPerKm: number, vmaKmh: number | null
 
 const VOLUME_CIBLE_MIN_H = 3;
 
-const VOLUME_CIBLE_MAX_BY_AMBITION: Record<Ambition, number> = {
-  finish: 12,
-  perf: 14,
-  sub: 18,
-  elite: 25,
-  world_class: 32,
+/**
+ * ⚠️ MIROIR EXACT dans src/lib/deriveRaceTargets.ts — toute modif doit être appliquée aux deux.
+ * Matrice sport × ambition (h/sem) : plafonds de volumeCible.
+ */
+const VOLUME_CAP_MATRIX: Record<RaceSport, Record<Ambition, number>> = {
+  run_route: { finish: 8,  perf: 10, sub: 12, elite: 14, world_class: 16 },
+  trail:     { finish: 8,  perf: 10, sub: 12, elite: 14, world_class: 16 },
+  tri_70_3:  { finish: 10, perf: 12, sub: 14, elite: 18, world_class: 22 },
+  ironman:   { finish: 12, perf: 14, sub: 18, elite: 25, world_class: 32 },
 };
 
-const EXPERIENCE_FACTOR: Record<NonNullable<DeriveRaceTargetsInput["trainingLevel"]>, number> = {
-  untrained: 0.85,
-  light: 0.92,
-  trained: 1.00,
-  highly_trained: 1.08,
-};
+function resolveSport(sport: RaceSport | null | undefined): RaceSport {
+  const allowed: RaceSport[] = ["run_route", "trail", "tri_70_3", "ironman"];
+  if (sport && allowed.includes(sport)) return sport;
+  console.warn(`⚠️ deriveRaceTargets: sport inconnu ou absent (reçu: ${JSON.stringify(sport)}) → fallback "run_route"`);
+  return "run_route";
+}
 
+/**
+ * volumeCible = min(cap_matriciel, max(plancher, weeklyHours × multiplicateurAmbition)).
+ * EXPERIENCE_FACTOR retiré : l'expérience module l'ambition via ambitionDowngrade.
+ */
 function computeVolumeCible(
   weeklyHours: number | null | undefined,
   multiplicateur: number,
-  experienceFactor: number,
   capH: number,
 ): number | null {
   if (typeof weeklyHours !== "number" || !Number.isFinite(weeklyHours) || weeklyHours <= 0) return null;
-  const raw = weeklyHours * multiplicateur * experienceFactor;
+  const raw = weeklyHours * multiplicateur;
   const bounded = Math.min(capH, Math.max(VOLUME_CIBLE_MIN_H, raw));
   return Number(bounded.toFixed(2));
 }
@@ -181,13 +204,12 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
   const ambDef = AMBITIONS.find(a => a.key === amb) ?? AMBITIONS[1];
   const distanceKm = objKey ? OBJECTIVE_DIST_KM[objKey] : null;
   const literatureRangeSec = input.literatureHintText ? parseLiteratureHint(input.literatureHintText) : null;
-  const experienceFactor = input.trainingLevel ? EXPERIENCE_FACTOR[input.trainingLevel] : 1.0;
-  const volumeCibleMaxH = VOLUME_CIBLE_MAX_BY_AMBITION[amb] ?? 15;
-  const volumeCible = computeVolumeCible(input.weeklyHours, ambDef.multiplicateurVolume, experienceFactor, volumeCibleMaxH);
+  const sportResolved = resolveSport(input.sport ?? null);
+  const volumeCibleMaxH = VOLUME_CAP_MATRIX[sportResolved][amb] ?? 15;
+  const volumeCible = computeVolumeCible(input.weeklyHours, ambDef.multiplicateurVolume, volumeCibleMaxH);
   if (input.weeklyHours != null) {
-    // eslint-disable-next-line no-console
     console.log(
-      `📦 volumeCible : ${input.weeklyHours}h × ${ambDef.multiplicateurVolume} (amb ${amb}) × ${experienceFactor} (exp ${input.trainingLevel ?? "n/a"}) = ${volumeCible ?? "n/a"}h [cap ${volumeCibleMaxH}h]`
+      `📦 volumeCible : ${input.weeklyHours}h × ${ambDef.multiplicateurVolume} (amb ${amb}) = ${volumeCible ?? "n/a"}h [cap ${sportResolved}/${amb}=${volumeCibleMaxH}h]`
     );
   }
 
@@ -196,8 +218,8 @@ export function deriveRaceTargets(input: DeriveRaceTargetsInput): DeriveRaceTarg
     multiplicateurVolume: ambDef.multiplicateurVolume,
     complexiteSeances: ambDef.complexiteSeances,
     volumeCible,
-    experienceFactor,
     volumeCibleMaxH,
+    sportResolved,
     paceTargets: null as PaceTargets | null,
   };
 
