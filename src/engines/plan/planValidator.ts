@@ -112,6 +112,33 @@ export interface PlanValidationResult {
 
 }
 
+/** Lot 4 — catégorisation Lorang A/B/C/D d'une séance (source: systemPrompt L528-536). */
+export type LorangCategory = "A" | "B" | "C" | "D" | "unknown";
+
+export interface LorangWeekBreakdown {
+  weekNumber: number;
+  isDeload: boolean;
+  A: number;
+  B: number;
+  C: number;
+  D: number;
+  unknown: number;
+  active: number;
+  hasHighOrThreshold: boolean; // ≥1 A OU B (obligatoire hors décharge)
+}
+
+export interface LorangCategoryDistribution {
+  totalActive: number;
+  tagged: number;
+  taggedPct: number;
+  A: number; APct: number;
+  B: number; BPct: number;
+  C: number; CPct: number;
+  D: number; DPct: number;
+  weeks: LorangWeekBreakdown[];
+}
+
+
 /** Lot 3 — config coach à respecter (sessions/semaine + max/jour) */
 export interface SessionDensityConfig {
   sessionsPerWeek?: number;    // cible coach
