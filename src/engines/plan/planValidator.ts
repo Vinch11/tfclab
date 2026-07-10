@@ -1442,7 +1442,8 @@ export function validatePlan(
   identifiedLimiters?: string[],
   identifiedLimiterKeys?: string[],
   athleteData?: PlanAthleteData,
-  coachLimiterOrder?: string[]
+  coachLimiterOrder?: string[],
+  sessionDensity?: SessionDensityConfig,
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
