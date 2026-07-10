@@ -94,7 +94,7 @@ export interface TrailSimulationResult {
 // ─────────────────────────────────────────────────────────────────────────────
 const MINETTI_C0 = 3.6;
 
-function minettiCost(gradeFrac: number): number {
+export function minettiCost(gradeFrac: number): number {
   const i = Math.max(-0.45, Math.min(0.45, gradeFrac));
   return 155.4 * Math.pow(i, 5)
        - 30.4 * Math.pow(i, 4)
@@ -104,7 +104,7 @@ function minettiCost(gradeFrac: number): number {
        + 3.6;
 }
 
-function minettiFactor(gradePct: number): number {
+export function minettiFactor(gradePct: number): number {
   return minettiCost(gradePct / 100) / MINETTI_C0;
 }
 
