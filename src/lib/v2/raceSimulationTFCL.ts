@@ -25,7 +25,8 @@ export interface SimulationInputs {
   vlamax_run_v2: number | null;
   vo2max_run: number | null;
   durability_index: number | null;       // TTE en minutes
-  fatmax_intensity: number | null;       // % du seuil
+  /** @deprecated Champ conservé pour compat callers — jamais consommé par le moteur. */
+  fatmax_intensity: number | null;       // % du seuil (dead field)
   race_readiness_state: ReadinessState;
   race_readiness_score: number;          // 0-100
   threshold_pace_sec_km: number | null;  // Seuil en sec/km
