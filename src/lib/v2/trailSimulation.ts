@@ -87,29 +87,25 @@ export interface TrailSimulationResult {
 
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Minetti 2002 — coût énergétique relatif vs plat
+// Minetti et al. 2002 — coût énergétique de la locomotion sur pente
+// C(i) = 155.4·i⁵ − 30.4·i⁴ − 43.3·i³ + 46.3·i² + 19.5·i + 3.6   [J/kg/m]
+// Domaine validé: i ∈ [-0.45, +0.45]. C(0) = 3.6 J/kg/m (référence plat).
+// Ref: Minetti AE et al., J Appl Physiol 93:1039-1046 (2002).
 // ─────────────────────────────────────────────────────────────────────────────
-const MINETTI_TABLE: Array<[number, number]> = [
-  [-30, 1.8],
-  [-20, 1.4],
-  [-10, 1.1],
-  [0, 1.0],
-  [10, 1.8],
-  [20, 2.8],
-  [30, 4.0],
-];
+const MINETTI_C0 = 3.6;
+
+function minettiCost(gradeFrac: number): number {
+  const i = Math.max(-0.45, Math.min(0.45, gradeFrac));
+  return 155.4 * Math.pow(i, 5)
+       - 30.4 * Math.pow(i, 4)
+       - 43.3 * Math.pow(i, 3)
+       + 46.3 * Math.pow(i, 2)
+       + 19.5 * i
+       + 3.6;
+}
 
 function minettiFactor(gradePct: number): number {
-  const g = Math.max(-30, Math.min(30, gradePct));
-  for (let i = 0; i < MINETTI_TABLE.length - 1; i++) {
-    const [g1, f1] = MINETTI_TABLE[i];
-    const [g2, f2] = MINETTI_TABLE[i + 1];
-    if (g >= g1 && g <= g2) {
-      const t = (g - g1) / (g2 - g1);
-      return f1 + t * (f2 - f1);
-    }
-  }
-  return 1.0;
+  return minettiCost(gradePct / 100) / MINETTI_C0;
 }
 
 /**
