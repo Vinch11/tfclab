@@ -1572,6 +1572,7 @@ export function validatePlan(
       raceDayScore: raceDayPresence.score,
       limiterCoherenceScore: limiterCoherence.score,
       wbalFeasibilityScore: wbalFeasibility.score,
+      sessionDensityScore: sessionDensity_.score,
       overallComment,
     },
   };
