@@ -1138,6 +1138,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         objective: gapContext.objective,
         ambition: ambForTitle,
         weeklyHours: gapContext.weeklyHours ?? null,
+        sport: mapObjectiveToSport(gapContext.objective),
       });
       const tempsStr = derivedTitle.raceTimeSec ? formatRaceTimeHM(derivedTitle.raceTimeSec) : "n/a";
       const ambLabel = resolveAmbitionLabel(ambForTitle);
