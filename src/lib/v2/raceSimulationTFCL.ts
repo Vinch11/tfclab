@@ -25,7 +25,8 @@ export interface SimulationInputs {
   vlamax_run_v2: number | null;
   vo2max_run: number | null;
   durability_index: number | null;       // TTE en minutes
-  fatmax_intensity: number | null;       // % du seuil
+  /** @deprecated Champ conservé pour compat callers — jamais consommé par le moteur. */
+  fatmax_intensity: number | null;       // % du seuil (dead field)
   race_readiness_state: ReadinessState;
   race_readiness_score: number;          // 0-100
   threshold_pace_sec_km: number | null;  // Seuil en sec/km
@@ -251,7 +252,8 @@ export function computeRaceSimulation(inputs: SimulationInputs): SimulationResul
     vlamax_run_v2,
     vo2max_run,
     durability_index,
-    fatmax_intensity,
+    // fatmax_intensity: deprecated — non consommé par le moteur
+
     race_readiness_state,
     race_readiness_score,
     threshold_pace_sec_km,
@@ -484,7 +486,11 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
   let depletionPointWithNutri: number | null = null;
   
   const baseDepletion = GLYCOGEN_PARAMS.base_depletion_per_pct_distance[distance];
-  const vlamaxAmp = GLYCOGEN_PARAMS.vlamax_amplifier(vlamax ?? 0.35);
+  // F38-bis: VLamax manquante → amplificateur neutre (1.0), pas de valeur fantôme.
+  // La donnée manquante est déjà trackée dans missingData/sourcesUsed en amont.
+  const vlamaxAmp = vlamax != null && vlamax > 0
+    ? GLYCOGEN_PARAMS.vlamax_amplifier(vlamax)
+    : 1.0;
   
   // Generate nutrition cues
   const nutritionCues: NutritionCue[] = [];
@@ -610,8 +616,8 @@ function generateScenario(type: SimulationScenarioType, params: ScenarioParams):
   // ─────────────────────────────────────────────────────────────────────────────
   let failureProbability = baseFailureProbability;
   
-  // Amplifier si VLamax élevée
-  if ((vlamax ?? 0.35) > 0.45) {
+  // Amplifier si VLamax élevée (F38-bis: ne pas amplifier si donnée manquante)
+  if (vlamax != null && vlamax > 0.45) {
     failureProbability += 15;
   }
   

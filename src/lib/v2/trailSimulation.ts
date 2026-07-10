@@ -87,29 +87,25 @@ export interface TrailSimulationResult {
 
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Minetti 2002 — coût énergétique relatif vs plat
+// Minetti et al. 2002 — coût énergétique de la locomotion sur pente
+// C(i) = 155.4·i⁵ − 30.4·i⁴ − 43.3·i³ + 46.3·i² + 19.5·i + 3.6   [J/kg/m]
+// Domaine validé: i ∈ [-0.45, +0.45]. C(0) = 3.6 J/kg/m (référence plat).
+// Ref: Minetti AE et al., J Appl Physiol 93:1039-1046 (2002).
 // ─────────────────────────────────────────────────────────────────────────────
-const MINETTI_TABLE: Array<[number, number]> = [
-  [-30, 1.8],
-  [-20, 1.4],
-  [-10, 1.1],
-  [0, 1.0],
-  [10, 1.8],
-  [20, 2.8],
-  [30, 4.0],
-];
+const MINETTI_C0 = 3.6;
+
+function minettiCost(gradeFrac: number): number {
+  const i = Math.max(-0.45, Math.min(0.45, gradeFrac));
+  return 155.4 * Math.pow(i, 5)
+       - 30.4 * Math.pow(i, 4)
+       - 43.3 * Math.pow(i, 3)
+       + 46.3 * Math.pow(i, 2)
+       + 19.5 * i
+       + 3.6;
+}
 
 function minettiFactor(gradePct: number): number {
-  const g = Math.max(-30, Math.min(30, gradePct));
-  for (let i = 0; i < MINETTI_TABLE.length - 1; i++) {
-    const [g1, f1] = MINETTI_TABLE[i];
-    const [g2, f2] = MINETTI_TABLE[i + 1];
-    if (g >= g1 && g <= g2) {
-      const t = (g - g1) / (g2 - g1);
-      return f1 + t * (f2 - f1);
-    }
-  }
-  return 1.0;
+  return minettiCost(gradePct / 100) / MINETTI_C0;
 }
 
 /**
@@ -236,10 +232,16 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
   if (input.tempC >= 28) warnings.push("Chaleur >28°C : majoration besoins hydriques +30%, sodium +50%.");
   if (input.tempC <= 5) warnings.push("Froid <5°C : prévoir couches techniques, glycogène mobilisé +10%.");
 
+  // F38-bis: VLamax manquante → contribution glycolytique nulle (aerobic pur),
+  // et on prévient l'utilisateur car c'est la variable la plus impactante sur la déplétion trail.
+  if (athlete.vlamaxEffectif == null || athlete.vlamaxEffectif <= 0) {
+    warnings.push("VLamax non renseignée — l'estimation de déplétion est calculée sur base aérobie pure et peut sous-estimer les besoins glucidiques.");
+  }
+  const vlamaxSafe = athlete.vlamaxEffectif != null && athlete.vlamaxEffectif > 0 ? athlete.vlamaxEffectif : 0;
+
   // Calcul segments avec déplétion glycogène
   const glycogenInitialG = initialGlycogenG(athlete.weightKg);
   let glycogenG = glycogenInitialG;
-  const vlamax = athlete.vlamaxEffectif ?? 0.45;
   // Coût glycogène ~ g/min : base ~1.5 g/min @ FatMax, scale par intensité²
   const segments: TrailSegment[] = [];
   let cumulativeMin = 0;
@@ -269,9 +271,9 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
     const durationMin = (s.distanceKm / speed) * 60;
 
     // Déplétion : coût relatif × durée × (1 + vlamax)
-    // ~1.4 g/min plat @ 70%VMA, scale par f et vlamax
+    // ~1.4 g/min plat @ 70%VMA, scale par f et vlamax (0 si inconnu)
     const baseGperMin = 1.4 * (intensityPctVMA / 70);
-    const usedGTotal = baseGperMin * durationMin * f * (1 + 0.6 * vlamax);
+    const usedGTotal = baseGperMin * durationMin * f * (1 + 0.6 * vlamaxSafe);
     // Apport
     const intakeG = input.plannedCarbsGH * (durationMin / 60);
     const netUsed = Math.max(0, usedGTotal - intakeG);
@@ -313,10 +315,15 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
   else if (risk === "HIGH") warnings.push("Glycogène bas (<20%) — risque hypoglycémie en fin de course.");
 
   // ── Modèle dual-pool (muscle + foie + glycémie) ───────────────────────────
-  // Estime vo2max depuis VMA (Léger): vo2max ≈ vma × 3.5
+  // Source: maderMetabolicModel.calculateGlycogenDepletion — pilote bonkRiskKm/hypoglycemiaRisk.
+  // NB: le calcul segment-par-segment ci-dessus fournit la déplétion progressive UI ;
+  // ce dual-pool est la référence pour les warnings fringale/hypoglycémie exposés au coach.
+  // F38-bis: alignement des inputs avec la boucle segmentaire (mêmes fallbacks explicites + warnings).
+  if (athlete.vma == null) warnings.push("VMA non renseignée — estimation dual-pool basée sur VMA=14 km/h (moyenne populationnelle).");
+  if (athlete.weightKg == null) warnings.push("Poids non renseigné — stocks glycogéniques estimés sur 70 kg (moyenne populationnelle).");
   const vmaForMader = athlete.vma ?? 14;
   const vo2maxMader = vmaForMader * 3.5;
-  const vlamaxMader = athlete.vlamaxEffectif ?? 0.45;
+  const vlamaxMader = vlamaxSafe; // même source que la boucle segmentaire
   const weightMader = athlete.weightKg ?? 70;
   const avgIntensityPct = Math.max(40, Math.min(95, baseIntensity * 100 * 0.78)); // %VMA → ~ %VO2max
   const avgSpeedKmh = totalKm / Math.max(0.1, cumulativeMin / 60);
