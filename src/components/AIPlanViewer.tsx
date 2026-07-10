@@ -1132,17 +1132,23 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     // Le titre reflète l'ambition EFFECTIVE (structure réellement appliquée), pas la saisie.
     if (gapContext?.ambition && gapContext?.objective) {
       const ambForTitle = gapContext.ambitionEffective || gapContext.ambition;
+      const sportForTitle = mapObjectiveToSport(gapContext.objective);
       const derivedTitle = deriveRaceTargets({
         vmaKmh: gapContext.vmaKmh ?? null,
         thresholdPaceSecPerKm: gapContext.thresholdPaceSecPerKm ?? null,
         objective: gapContext.objective,
         ambition: ambForTitle,
         weeklyHours: gapContext.weeklyHours ?? null,
-        sport: mapObjectiveToSport(gapContext.objective),
+        sport: sportForTitle,
       });
-      const tempsStr = derivedTitle.raceTimeSec ? formatRaceTimeHM(derivedTitle.raceTimeSec) : "n/a";
       const ambLabel = resolveAmbitionLabel(ambForTitle);
-      return `${gapContext.objective} — Structure ${ambLabel} — Objectif ${tempsStr}`;
+      // Pour les objectifs triathlon (tri_70_3, ironman), la projection temps course
+      // à partir de la VMA seule n'est pas pertinente (swim+bike+run). On omet le suffixe.
+      if (derivedTitle.raceTimeSec) {
+        const tempsStr = formatRaceTimeHM(derivedTitle.raceTimeSec);
+        return `${gapContext.objective} — Structure ${ambLabel} — Objectif ${tempsStr}`;
+      }
+      return `${gapContext.objective} — Structure ${ambLabel}`;
     }
     if (!km) return t;
     const kmRegex = /\(\s*\d{1,3}\s*km\s*\)/i;
