@@ -23,7 +23,7 @@ import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
 import { GapAmbitionPanel } from "@/components/GapAmbitionPanel";
 import { formatTime as formatRaceTime } from "@/lib/raceAnalysis";
-import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import type { RaceGoal } from "@/hooks/useAITrainingPlan";
 import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
 import { supabase } from "@/integrations/supabase/client";
