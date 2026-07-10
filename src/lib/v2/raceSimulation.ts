@@ -652,37 +652,40 @@ function computeGlycogenRemaining(
     : 450;
   
   // Appliquer le décalage FatMax si modificateurs présents
+  // F38-bis: si fatmaxCenter manquant → skip contribution FatMax (pas de valeur fantôme 70).
   const fatmaxShift = readinessModifiers?.fatmaxShiftPct ?? 0;
-  const fatmax = (fatmaxCenter ?? 70) + fatmaxShift;
-  const intensityDelta = intensityPct - fatmax;
-  
+  const fatmax = fatmaxCenter != null ? fatmaxCenter + fatmaxShift : null;
+  const intensityDelta = fatmax != null ? intensityPct - fatmax : 0;
+
   // ─────────────────────────────────────────────────────────────────
   // FIX P1: Courbe glucidique NON-LINÉAIRE au-dessus de FatMax
   // Référence: Romijn 1993, Frandsen 2017, Maunder 2018
-  // Au-dessus de FatMax la dépendance glucidique suit une croissance
-  // exponentielle douce (saturation ~3.5-4.5 g/min selon profil).
   // ─────────────────────────────────────────────────────────────────
   let carbBurnGPerMin: number;
-  if (intensityDelta > 0) {
+  if (fatmax == null) {
+    // FatMax inconnu → baseline neutre (moyenne populationnelle) sans amplification
+    carbBurnGPerMin = 1.5;
+  } else if (intensityDelta > 0) {
     // Modèle exponentiel saturé: y = a + (max-a) * (1 - exp(-k*Δ))
-    const baseAt0 = 1.2;          // g/min à FatMax
-    const ceiling = 4.2;          // g/min plafond physiologique
-    const k = 0.06;               // pente de croissance
+    const baseAt0 = 1.2;
+    const ceiling = 4.2;
+    const k = 0.06;
     carbBurnGPerMin = baseAt0 + (ceiling - baseAt0) * (1 - Math.exp(-k * intensityDelta));
   } else {
     // En dessous FatMax: dépendance lipidique dominante, faible burn glucidique
     carbBurnGPerMin = Math.max(0.4, 1.0 + intensityDelta * 0.025);
   }
-  
+
   // ─────────────────────────────────────────────────────────────────
   // FIX P1: VLamax — relation NON-LINÉAIRE (Mader-Heck, Quittmann 2025)
   // Exposant 0.85 (audit littérature 2024-2025): saturation de l'impact
   // glycolytique aux VLamax très élevées (au-delà de 0.7 mmol/L/s).
-  // VLamax 0.35 → ×1.0 ; 0.55 → ×1.40 ; 0.75 → ×1.83
+  // F38-bis: si VLamax inconnue → multiplicateur neutre (1.0), pas de valeur fantôme.
   // ─────────────────────────────────────────────────────────────────
-  const vlamax = vlamaxEffectif ?? 0.45;
-  const vlamaxMultiplier = Math.pow(vlamax / 0.35, 0.85);
-  carbBurnGPerMin *= clamp(vlamaxMultiplier, 0.7, 2.2);
+  if (vlamaxEffectif != null && vlamaxEffectif > 0) {
+    const vlamaxMultiplier = Math.pow(vlamaxEffectif / 0.35, 0.85);
+    carbBurnGPerMin *= clamp(vlamaxMultiplier, 0.7, 2.2);
+  }
   
   // Facteur scénario
   let scenarioFactor = 1.0;
