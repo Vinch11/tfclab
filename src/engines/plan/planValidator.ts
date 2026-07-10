@@ -1478,6 +1478,7 @@ export function validatePlan(
   const raceDayPresence = validateRaceDayPresence(plan, raceWeekNumbers);
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, effectiveLimiterKeys);
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
+  const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
 
   // Combine all issues
   const allIssues = [
@@ -1492,21 +1493,23 @@ export function validatePlan(
     ...raceDayPresence.issues,
     ...limiterCoherence.issues,
     ...wbalFeasibility.issues,
+    ...sessionDensity_.issues,
   ];
 
-  // Weighted score (11 rules)
+  // Weighted score (12 rules)
   const weights = {
-    polarization: 0.13,
-    loadPattern: 0.09,
-    keySessions: 0.09,
-    progression: 0.07,
-    sportRatio: 0.07,
+    polarization: 0.12,
+    loadPattern: 0.08,
+    keySessions: 0.08,
+    progression: 0.06,
+    sportRatio: 0.06,
     catalogRatio: 0.05,
     prohibitionCompliance: 0.14,
     phaseCoherence: 0.09,
     raceDayPresence: 0.07,
     limiterCoherence: 0.10,
     wbalFeasibility: 0.10,
+    sessionDensity: 0.05,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -1519,7 +1522,8 @@ export function validatePlan(
     phaseCoherence.score * weights.phaseCoherence +
     raceDayPresence.score * weights.raceDayPresence +
     limiterCoherence.score * weights.limiterCoherence +
-    wbalFeasibility.score * weights.wbalFeasibility
+    wbalFeasibility.score * weights.wbalFeasibility +
+    sessionDensity_.score * weights.sessionDensity
   );
 
   // Grade
