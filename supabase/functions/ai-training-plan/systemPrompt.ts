@@ -117,7 +117,9 @@ function buildObjectiveSportLock(profile?: SystemPromptProfile): string {
   const obj = rawObj.toUpperCase();
   const isIM = /\bIM\b|IRONMAN/.test(obj) && !/70\.?3|HALF ?IRONMAN/.test(obj);
   const is703 = /70\.?3|HALF ?IRONMAN/.test(obj);
-  const isTri = isIM || is703 || /TRIATH/.test(obj);
+  const isTriSprint = /TRIATH.*SPRINT|^SPRINT( TRI)?$/.test(obj.trim());
+  const isTriOlympique = /TRIATH.*(OLYMP|STANDARD|DISTANCE ?M)|^(OLYMP|DISTANCE ?M|STANDARD)( TRI)?$/.test(obj.trim());
+  const isTri = isIM || is703 || isTriSprint || isTriOlympique || /TRIATH/.test(obj);
   const isTrail = /TRAIL|UTMB|CCC|OCC|ULTRA/.test(obj);
   const isRouteRun = !isTri && !isTrail && /MARATHON|SEMI|\b10 ?K\b|\b5 ?K\b|START.?TO.?RUN/.test(obj);
 
