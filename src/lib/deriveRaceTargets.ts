@@ -90,16 +90,57 @@ export function formatSecPerKm(sec: number): string {
 export type RaceSport = "run_route" | "trail" | "tri_70_3" | "ironman";
 
 /**
+ * Table exhaustive objectif → RaceSport.
+ * ⚠️ MIROIR EXACT dans supabase/functions/_shared/deriveRaceTargets.ts.
+ * Sources :
+ *   - Enums ObjectifType (src/types/athlete.ts L8)
+ *   - Labels OBJECTIVE_OPTIONS (src/pages/AITrainingPlanPage.tsx L79-89)
+ *   - Labels getObjectifLabel (src/types/athlete.ts L67-93)
+ * Clés normalisées (trim + lowercase). Toute valeur absente → warning + fallback "run_route".
+ */
+const OBJECTIVE_TO_SPORT: Record<string, RaceSport> = {
+  // Enums ObjectifType
+  "im": "ironman",
+  "703": "tri_70_3",
+  "marathon": "run_route",
+  "semi": "run_route",
+  "5k": "run_route",
+  "10k": "run_route",
+  "starttorun": "run_route",
+  "trail": "trail",
+  "trailshort": "trail",
+  "trailmountain": "trail",
+  "trailultra": "trail",
+  // Labels OBJECTIVE_OPTIONS (AITrainingPlanPage.tsx L79-89)
+  "ironman": "ironman",
+  "ironman 70.3": "tri_70_3",
+  "semi-marathon": "run_route",
+  "10 km": "run_route",
+  "start to run (5-10 km)": "run_route",
+  "trail court (20-40 km)": "trail",
+  "trail montagne (40-80 km)": "trail",
+  "ultra trail (80 km+)": "trail",
+  // Labels getObjectifLabel (athlete.ts L67-93)
+  "70.3 / half ironman": "tri_70_3",
+  "5 km": "run_route",
+  "start to run": "run_route",
+  "trail (général)": "trail",
+  "trail court (20–40km)": "trail",
+  "trail montagne (40–80km)": "trail",
+  "ultra trail (80km+)": "trail",
+};
+
+/**
  * Helper canonique : mappe un objectif texte (OBJECTIVE_OPTIONS ou libellé)
- * vers un RaceSport. Utilisé aux call-sites pour alimenter `sport` en une ligne.
- * Fallback silencieux → "run_route".
+ * vers un RaceSport via lookup exact dans OBJECTIVE_TO_SPORT.
+ * Toute valeur non vide inconnue → console.warn + fallback "run_route".
  */
 export function mapObjectiveToSport(objective: string | null | undefined): RaceSport {
   const s = (objective ?? "").trim().toLowerCase();
   if (!s) return "run_route";
-  if (/^ironman$|^im$|\bironman\b/.test(s) && !/70\.?3|half/.test(s)) return "ironman";
-  if (/70\.?3|half.?iron/.test(s) || s === "703") return "tri_70_3";
-  if (/trail|ultra/.test(s)) return "trail";
+  const hit = OBJECTIVE_TO_SPORT[s];
+  if (hit) return hit;
+  console.warn(`mapObjectiveToSport: objectif inconnu '${objective}' → fallback run_route`);
   return "run_route";
 }
 
