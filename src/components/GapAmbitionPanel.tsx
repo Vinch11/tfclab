@@ -7,7 +7,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Info } from "lucide-react";
-import { deriveRaceTargets } from "@/lib/deriveRaceTargets";
+import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { AMBITIONS, formatPace, formatTime, parseTimeToSec, fractionVMAForAmbition } from "@/lib/raceAnalysis";
 
 // Table locale des standards populationnels (miroir READ-ONLY de REFERENCE_STANDARDS côté edge).
