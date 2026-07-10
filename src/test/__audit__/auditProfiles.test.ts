@@ -125,6 +125,49 @@ const PROFILES: Profile[] = [
     tte_observed_min: null,
     fatigue_state: "ok",
   },
+  // Lot 3 — 3 profils supplémentaires (audit qualité IA plan)
+  {
+    // Master 55 ans × world_class IM → guard santé + TTE age-adjusted
+    name: "master_worldclass_im",
+    age: 55,
+    weightKg: 74,
+    sport: "tri",
+    objectif: "IM",
+    snapshot: { vlamax: 0.33, vlamax_run: 0.40, sport_main: "bike" },
+    vo2max: 62,
+    ftp: 310,
+    tss_7d: 780,
+    tte_observed_min: 65,
+    fatigue_state: "ok",
+  },
+  {
+    // Ultra-trail élite avec préparation ≤6 semaines → guard "phases écrasées"
+    name: "ultra_short_prep",
+    age: 38,
+    weightKg: 66,
+    sport: "run",
+    objectif: "ultra",
+    snapshot: { vlamax: 0.42, vlamax_run: 0.32, sport_main: "run" },
+    vo2max: 68,
+    ftp: 320,
+    tss_7d: 900,
+    tte_observed_min: 90,
+    fatigue_state: "fresh",
+  },
+  {
+    // Tri Sprint débutant → intensité tolérée, plancher CHO 0 g/h (durée <1h)
+    name: "sprint_tri_debutant",
+    age: 34,
+    weightKg: 80,
+    sport: "tri",
+    objectif: "sprint",
+    snapshot: { vlamax: 0.62, vlamax_run: 0.70, sport_main: "bike" },
+    vo2max: 48,
+    ftp: 210,
+    tss_7d: 250,
+    tte_observed_min: 32,
+    fatigue_state: "ok",
+  },
 ];
 
 const byName = (n: string) => PROFILES.find((p) => p.name === n)!;
