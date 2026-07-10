@@ -72,6 +72,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     objective: config?.objective || "",
     ambition: config?.ambition || "",
     literatureHintText: diagTimeTarget,
+    sport: mapObjectiveToSport(config?.objective || ""),
   });
   if (diagDerived.source === "snapshot" && diagDerived.raceTimeSec != null) {
     lines.push(`🎯 Cible course (snapshot) : ${diagDerived.humanSummary}`);
