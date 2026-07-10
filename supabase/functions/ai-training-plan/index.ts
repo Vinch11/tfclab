@@ -53,6 +53,27 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // ─── DÉFENSE EN PROFONDEUR : cap serveur de l'ambition vs trainingLevel ───
+    // Le client applique déjà `computeAmbitionEffective`, mais si un caller bypasse
+    // le downgrade (test, script, régénération programmée), on cappe ici.
+    try {
+      const { enforceAmbitionCap } = await import("./ambitionDefense.ts");
+      const tl = planConfig?.ambitionMeta?.trainingLevel ?? planConfig?.trainingLevel ?? null;
+      const defense = enforceAmbitionCap(planConfig?.ambition, tl);
+      if (defense.serverDowngraded && planConfig) {
+        planConfig.ambition = defense.ambitionEffective;
+        planConfig._serverAmbitionDefense = {
+          saisie: defense.ambitionSaisie,
+          effective: defense.ambitionEffective,
+          trainingLevel: defense.trainingLevel,
+          reason: defense.reason,
+        };
+      }
+    } catch (defErr) {
+      console.warn("[ambitionDefense] skipped:", defErr);
+    }
+
+
     // F-21 — Réinjection dynamique des sections spécialisées (Master >=50, Féminin/RED-S, Trail)
     const baseSystemPrompt = getSystemPrompt({
       sex: athleteData?.sex ?? planConfig?._athleteSex ?? null,
@@ -493,6 +514,8 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             };
 
             console.log(`🧩 Chunking activé : ${chunks.length} bloc(s) × ${CHUNK_SIZE} sem (total ${totalWeeks} sem) — ${chunks.map(c => `S${c.start}-S${c.end}`).join(", ")}`);
+            // Accumulateur texte plan complet — utilisé par les assertions post-génération.
+            let fullPlanText = "";
             for (let ci = 0; ci < chunks.length; ci++) {
               const chunk = chunks[ci];
               const isFirst = ci === 0;
@@ -1018,6 +1041,8 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
               } else {
                 console.log(`✅ Chunk ${ci + 1}/${chunks.length} S${chunk.start}-S${chunk.end} : généré, validé (${finalWeeks.length}/${expectedWeeks.length} sem), streamé.`);
               }
+              // Accumule pour les assertions plan-complet post-génération
+              fullPlanText += `\n${combinedChunkText}`;
             }
 
             // ─── ASSERTION POST-GÉNÉRATION : contamination triathlon dans plan running ───
@@ -1044,6 +1069,73 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
             } catch (assertErr) {
               console.warn("Assertion post-génération failed:", assertErr);
             }
+
+            // ─── COMPLIANCE POST-GÉNÉRATION : sessionsPerWeek + maxSessionsPerDay ───
+            // Détecte les écarts entre la config utilisateur (contrainte dure) et le plan produit.
+            // Non-bloquant : warning injecté en tête pour visibilité coach + log serveur.
+            try {
+              const targetSessions: number | null = Number.isFinite(planConfig?.sessionsPerWeek)
+                ? Number(planConfig.sessionsPerWeek) : null;
+              const maxPerDay: number | null = Number.isFinite(planConfig?.maxSessionsPerDay)
+                ? Number(planConfig.maxSessionsPerDay) : null;
+
+              const weekBlocks = fullPlanText.match(
+                /(?:^|\n)(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*(\d+)\b[\s\S]*?(?=(?:\n(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+\b)|$)/gi,
+              ) || [];
+
+              const violations: string[] = [];
+              const isSessionRow = (line: string): boolean => {
+                if (!/^\s*\|/.test(line)) return false;
+                if (/^\s*\|\s*[-:]+/.test(line)) return false;
+                if (/^\s*\|\s*(Jour|Sport|Séance|Détails|Zone|Charge)\s*\|/i.test(line)) return false;
+                return /\d+\s*(?:h\s*\d{0,2}|min|'|′)/.test(line)
+                       && !/repos|rest\s*(day|complet)|off\b/i.test(line);
+              };
+              const isDayRepos = (line: string): boolean =>
+                /^\s*\|/.test(line) && /repos|rest\s*(day|complet)|off\b/i.test(line);
+
+              const DAYS = /^\s*\|\s*(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)/i;
+              for (const wb of weekBlocks) {
+                const weekNumMatch = wb.match(/Semaine\s*(\d+)/i);
+                const weekNum = weekNumMatch ? weekNumMatch[1] : "?";
+                const rows = wb.split("\n");
+                let sessionCount = 0;
+                const perDay: Record<string, number> = {};
+                let currentDay = "?";
+                for (const r of rows) {
+                  const dayMatch = r.match(DAYS);
+                  if (dayMatch) currentDay = dayMatch[1].toLowerCase();
+                  if (isDayRepos(r)) continue;
+                  if (isSessionRow(r)) {
+                    sessionCount++;
+                    perDay[currentDay] = (perDay[currentDay] || 0) + 1;
+                  }
+                }
+                if (targetSessions !== null && sessionCount > 0 && Math.abs(sessionCount - targetSessions) > 1) {
+                  violations.push(`S${weekNum} : ${sessionCount} séances (cible ${targetSessions})`);
+                }
+                if (maxPerDay !== null) {
+                  for (const [day, n] of Object.entries(perDay)) {
+                    if (n > maxPerDay) violations.push(`S${weekNum} ${day} : ${n} séances (max/jour ${maxPerDay})`);
+                  }
+                }
+              }
+
+              if (violations.length > 0) {
+                const msg = `COMPLIANCE : ${violations.length} écart(s) config détecté(s) — ${violations.slice(0, 5).join(" | ")}${violations.length > 5 ? ` (+${violations.length - 5} autres)` : ""}`;
+                console.warn(`⚠️ ${msg}`);
+                const banner = `\n\n> ⚠️ **COMPLIANCE CONFIG** : ${violations.length} écart(s) détecté(s) entre la config saisie et le plan produit :\n${violations.slice(0, 8).map(v => `> - ${v}`).join("\n")}${violations.length > 8 ? `\n> - _(+${violations.length - 8} autres, voir logs)_` : ""}\n> _Ajuster manuellement ou régénérer._\n\n`;
+                controller.enqueue(
+                  encoder.encode(`data: {"choices":[{"delta":{"content":${JSON.stringify(banner)}}}]}\n\n`),
+                );
+              } else if (targetSessions !== null || maxPerDay !== null) {
+                console.log(`✅ Compliance config OK sur ${weekBlocks.length} semaine(s) analysée(s).`);
+              }
+            } catch (complianceErr) {
+              console.warn("Compliance check failed:", complianceErr);
+            }
+
+
 
             // Send final [DONE]
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));

@@ -117,7 +117,9 @@ function buildObjectiveSportLock(profile?: SystemPromptProfile): string {
   const obj = rawObj.toUpperCase();
   const isIM = /\bIM\b|IRONMAN/.test(obj) && !/70\.?3|HALF ?IRONMAN/.test(obj);
   const is703 = /70\.?3|HALF ?IRONMAN/.test(obj);
-  const isTri = isIM || is703 || /TRIATH/.test(obj);
+  const isTriSprint = /TRIATH.*SPRINT|^SPRINT( TRI)?$/.test(obj.trim());
+  const isTriOlympique = /TRIATH.*(OLYMP|STANDARD|DISTANCE ?M)|^(OLYMP|DISTANCE ?M|STANDARD)( TRI)?$/.test(obj.trim());
+  const isTri = isIM || is703 || isTriSprint || isTriOlympique || /TRIATH/.test(obj);
   const isTrail = /TRAIL|UTMB|CCC|OCC|ULTRA/.test(obj);
   const isRouteRun = !isTri && !isTrail && /MARATHON|SEMI|\b10 ?K\b|\b5 ?K\b|START.?TO.?RUN/.test(obj);
 
@@ -142,6 +144,26 @@ Objectif reçu: ${rawObj || "N/A"}. Ce n'est PAS un objectif triathlon.
 - NATATION INTERDITE : aucune séance piscine, CSS, crawl, OWS, swim.
 - BRIQUES TRIATHLON INTERDITES : aucun enchaînement vélo→CAP comme séance spécifique.
 - Vélo seulement en récupération active Z1-Z2 si nécessaire, jamais séance qualité ni pilier du plan.`;
+  }
+
+  if (isTriSprint) {
+    return `
+## 🚨 VERROU SPORT OBJECTIF — TRIATHLON SPRINT (750m / 20km / 5K)
+Objectif reçu: ${rawObj || "N/A"}. Format court, intensité haute, volume modéré (5-8h/sem AG).
+- 3 disciplines OBLIGATOIRES : Natation ~22-28%, Vélo ~40-48%, Course ~28-34% (sur le volume total).
+- Séances clés Sprint : CSS 50/100m, VO2 30/30 course, seuil vélo court, brique bike→run rapide.
+- Long ride ≤ 2h30 (superflu Sprint), long run 45-70min max, long swim 2-3.5km.
+- Renfo/Force : Rønnestad 2-3×/sem indispensable (intensité haute Sprint = risque blessure).`;
+  }
+
+  if (isTriOlympique) {
+    return `
+## 🚨 VERROU SPORT OBJECTIF — TRIATHLON OLYMPIQUE (1.5km / 40km / 10K)
+Objectif reçu: ${rawObj || "N/A"}. Format olympique, seuil/tempo dominant, 7-14h/sem AG.
+- 3 disciplines OBLIGATOIRES : Natation ~18-24%, Vélo ~45-52%, Course ~28-34% (sur le volume total).
+- Séances clés : CSS + endurance natation, seuil vélo 2×20min, tempo 10K, brique bike→run tempo.
+- Long ride 1h45-4h selon niveau, long run 60-110min, long swim 2.5-5km.
+- Renfo/Force + gainage 2×/sem, gut training (25-45g/h) sur SL vélo et briques.`;
   }
 
   return "";
@@ -301,7 +323,9 @@ function buildFewShotExamples(profile?: SystemPromptProfile): string {
   const obj = (profile?.objective ?? "").toUpperCase();
   const isIM = /\bIM\b|IRONMAN/.test(obj);
   const is703 = /70\.?3|HALF ?IRONMAN/.test(obj);
-  const isTri = isIM || is703 || /TRIATH/.test(obj);
+  const isTriSprint = /TRIATH.*SPRINT|^SPRINT( TRI)?$/.test(obj.trim());
+  const isTriOlympique = /TRIATH.*(OLYMP|STANDARD|DISTANCE ?M)|^(OLYMP|DISTANCE ?M|STANDARD)( TRI)?$/.test(obj.trim());
+  const isTri = isIM || is703 || isTriSprint || isTriOlympique || /TRIATH/.test(obj);
   const isTrail = /TRAIL|UTMB|CCC|OCC|UT4M/.test(obj);
   const isSemi = /SEMI|HALF(?!.?IRONMAN)/.test(obj);
   const isMarathon = /MARATHON/.test(obj) && !isSemi;
@@ -312,8 +336,15 @@ function buildFewShotExamples(profile?: SystemPromptProfile): string {
 
   if (isTri) {
     if (isIM) parts.push(FEWSHOT_FRODENO_IM);
-    if (is703) parts.push(FEWSHOT_LUCY_703);
-    if (!isIM && !is703) { parts.push(FEWSHOT_FRODENO_IM); parts.push(FEWSHOT_LUCY_703); }
+    else if (is703) parts.push(FEWSHOT_LUCY_703);
+    else if (isTriSprint || isTriOlympique) {
+      // Sprint/Olympique = format court/intermédiaire : Lucy (70.3) est le référentiel structurel
+      // le plus proche (3 sports, ratio bike-dominant, seuil/tempo). Frodeno (IM) écarté :
+      // volumes 22h/sem irréalistes et durabilité longue distance non pertinente.
+      parts.push(FEWSHOT_LUCY_703);
+    } else {
+      parts.push(FEWSHOT_FRODENO_IM); parts.push(FEWSHOT_LUCY_703);
+    }
   } else if (isTrail) {
     parts.push(FEWSHOT_KILIAN_TRAIL_ULTRA);
     parts.push(FEWSHOT_DHAENE_TRAIL_MONTAGNE);
