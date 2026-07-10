@@ -1041,6 +1041,8 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
               } else {
                 console.log(`✅ Chunk ${ci + 1}/${chunks.length} S${chunk.start}-S${chunk.end} : généré, validé (${finalWeeks.length}/${expectedWeeks.length} sem), streamé.`);
               }
+              // Accumule pour les assertions plan-complet post-génération
+              fullPlanText += `\n${combinedChunkText}`;
             }
 
             // ─── ASSERTION POST-GÉNÉRATION : contamination triathlon dans plan running ───
