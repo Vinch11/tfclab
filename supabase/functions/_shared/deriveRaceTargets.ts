@@ -3,7 +3,7 @@
 // DERIVE RACE TARGETS — SOURCE UNIQUE (snapshot-based) — browser mirror
 // =============================================
 
-import { AMBITIONS, computeRaceScenarios, distanceFamilyFromKm, fractionVMAForAmbition, type Ambition, type ComplexiteSeances } from "./raceAnalysis";
+import { AMBITIONS, computeRaceScenarios, distanceFamilyFromKm, fractionVMAForAmbition, type Ambition, type ComplexiteSeances } from "./raceAnalysis.ts";
 
 const AMBITION_MAP: Record<string, Ambition> = {
   finisher: "finish",

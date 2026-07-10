@@ -5,9 +5,19 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
+import type { TrainingSport } from "@/types/workoutLibrary";
 import { supabase } from "@/integrations/supabase/client";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
+
+const getCatalogSportFilter = (objective: string): TrainingSport[] | undefined => {
+  const lower = objective.trim().toLowerCase();
+  const isTriathlon = lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
+  if (isTriathlon) return undefined;
+  const isTrail = lower.includes("trail") || lower.includes("utmb") || lower.includes("ccc") || lower.includes("occ") || lower.includes("ultra");
+  if (isTrail) return ["course", "run", "trail", "strength", "renforcement"];
+  return ["course", "run", "strength", "renforcement"];
+};
 
 export interface PlanAthleteData {
   nom?: string;
@@ -232,6 +242,7 @@ export function useAITrainingPlan() {
         { phase: "peak", start: Math.ceil(totalWeeks * 0.55), end: Math.ceil(totalWeeks * 0.85) },
         { phase: "taper", start: Math.ceil(totalWeeks * 0.80), end: totalWeeks },
       ];
+      const catalogSportFilter = getCatalogSportFilter(planConfig.objective || "");
 
       // Compute catalog duration stats from all phases combined
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
@@ -250,7 +261,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           totalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         catalog.forEach(e => { allCatalogEntries.push(e); usedIds.add(e.id); });
@@ -272,7 +283,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions }
+            { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity

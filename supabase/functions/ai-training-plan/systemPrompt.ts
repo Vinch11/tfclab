@@ -112,6 +112,40 @@ ${age >= 60 ? "- **>=60 ans**: ajouter équilibre proprioceptif 2x/sem (chutes).
   return "\n\n" + blocks.join("\n\n");
 }
 
+function buildObjectiveSportLock(profile?: SystemPromptProfile): string {
+  const rawObj = profile?.objective ?? "";
+  const obj = rawObj.toUpperCase();
+  const isIM = /\bIM\b|IRONMAN/.test(obj) && !/70\.?3|HALF ?IRONMAN/.test(obj);
+  const is703 = /70\.?3|HALF ?IRONMAN/.test(obj);
+  const isTri = isIM || is703 || /TRIATH/.test(obj);
+  const isTrail = /TRAIL|UTMB|CCC|OCC|ULTRA/.test(obj);
+  const isRouteRun = !isTri && !isTrail && /MARATHON|SEMI|\b10 ?K\b|\b5 ?K\b|START.?TO.?RUN/.test(obj);
+
+  if (isRouteRun) {
+    return `
+## 🚨 VERROU SPORT OBJECTIF — COURSE ROUTE
+Objectif reçu: ${rawObj || "N/A"}. Ce n'est PAS un objectif triathlon.
+- Générer exclusivement : CAP/Course, Renfo/PPG/Mobilité, Repos, Course objectif.
+- NATATION INTERDITE : aucune séance piscine, CSS, crawl, OWS, swim.
+- VÉLO INTERDIT : aucune séance vélo, cyclisme, home-trainer, FTP, SFR, brick.
+- BRIQUES INTERDITES : aucun enchaînement vélo→CAP, aucune transition T1/T2.
+- La section "Répartition sport" doit indiquer Natation 0% et Vélo 0%.
+- Tous les exemples ou règles génériques triathlon présents ailleurs dans ce prompt sont inapplicables pour cet objectif.`;
+  }
+
+  if (isTrail) {
+    return `
+## 🚨 VERROU SPORT OBJECTIF — TRAIL
+Objectif reçu: ${rawObj || "N/A"}. Ce n'est PAS un objectif triathlon.
+- Générer prioritairement : CAP/Trail, Renfo/PPG/Mobilité, Repos, Course objectif.
+- NATATION INTERDITE : aucune séance piscine, CSS, crawl, OWS, swim.
+- BRIQUES TRIATHLON INTERDITES : aucun enchaînement vélo→CAP comme séance spécifique.
+- Vélo seulement en récupération active Z1-Z2 si nécessaire, jamais séance qualité ni pilier du plan.`;
+  }
+
+  return "";
+}
+
 // ─── FEW-SHOT EXAMPLES — sport-aware pour éviter contamination triathlon ────
 // Cause historique du bug : Frodeno + Lucy Charles-Barclay étaient affichés
 // pour TOUS les objectifs, poussant les plans running vers une structure tri.
@@ -316,6 +350,7 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL, semaine par semaine, sé
 - Le profil physiologique de l'athlète (limiteurs TFCL).
 - L'objectif course et le temps restant.
 - La méthodologie TFCL™ / Dan Lorang.
+${buildObjectiveSportLock(profile)}
 
 ## RÈGLE CRITIQUE : PLAN COMPLET OBLIGATOIRE
 ⚠️ Tu DOIS générer TOUTES les semaines du plan. NE JAMAIS résumer, abréger, ou t'arrêter avant la fin. Chaque semaine DOIT avoir un tableau complet de 7 jours.
