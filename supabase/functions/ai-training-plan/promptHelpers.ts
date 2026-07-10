@@ -129,6 +129,59 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(`  • 📝 TITRE DU PLAN — OBLIGATOIRE : le titre "# Plan TFCL™ — ..." DOIT mentionner exactement "${tp.distanceKm}km" (et non une autre distance inventée). Format imposé : "# Plan TFCL™ — [Nom course] (${tp.distanceKm}km) — N semaines".`);
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUDIT LOT #2 — GARDE-FOUS TRAIL / ULTRA / MASTER × WORLD_CLASS
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    const objRaw = String(config?.objective ?? "").toLowerCase();
+    const isTrail = objRaw.includes("trail") || objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("ccc") || objRaw.includes("occ") || objRaw.includes("skyrun") || objRaw.includes("hardrock") || objRaw.includes("western states") || objRaw.includes("tor des");
+    const isUltra = objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("hardrock") || objRaw.includes("tor des") || objRaw.includes("western states");
+    const isMountain = objRaw.includes("montagne") || objRaw.includes("mountain") || objRaw.includes("utmb") || objRaw.includes("ccc") || objRaw.includes("skyrun") || objRaw.includes("hardrock");
+
+    // Garde-fou #1 : Trail Montagne/Ultra sans trailProfile → prompt bloquant informatif
+    if (isTrail && !config?.trailProfile && (isMountain || isUltra)) {
+      lines.push(`\n🚨 TRAIL ${isUltra ? "ULTRA" : "MONTAGNE"} SANS PROFIL COURSE — RÈGLE DÉFENSIVE OBLIGATOIRE`);
+      lines.push(`  • Aucune fiche course (km/D+/altitude) n'a été renseignée → tu NE PEUX PAS inventer un profil précis.`);
+      lines.push(`  • Prescris un plan **générique ${isUltra ? "ultra-trail" : "trail montagne"}** basé sur les fourchettes suivantes UNIQUEMENT :`);
+      if (isUltra) {
+        lines.push(`    - Distance cible : 80-170 km · D+ cible : 4000-10000 m · Durée : 15-30h`);
+        lines.push(`    - D+ hebdo peak : 3000-6000 m · SL max : 5-8h · Back-to-back 2j obligatoire dès Build`);
+      } else {
+        lines.push(`    - Distance cible : 25-50 km · D+ cible : 1500-3500 m · Durée : 4-8h`);
+        lines.push(`    - D+ hebdo peak : 1500-3000 m · SL max : 3-4h`);
+      }
+      lines.push(`  • **Le titre du plan DOIT signaler explicitement "(profil course non renseigné)"** pour prévenir le coach.`);
+      lines.push(`  • Recommander en Phase 1 : "compléter la fiche course dans l'app pour affiner D+ hebdo cible, gut training, simulation nocturne".`);
+    }
+
+    // Garde-fou #2 : Trail Ultra ≤6 semaines → warning "phases écrasées"
+    const weeks = (config?.weeksAvailable as number | undefined) ?? (totalWeeks ?? null);
+    if (isUltra && weeks && weeks <= 6) {
+      lines.push(`\n⚠️ ULTRA-TRAIL EN ${weeks} SEMAINES — DÉLAI SOUS-CRITIQUE`);
+      lines.push(`  • La préparation ultra recommandée est ≥16 sem (Millet 2018, Hoffman 2016). En ${weeks} sem, tu NE PEUX PAS construire une base aérobie ni progresser le D+ hebdo à +30%/sem sans risque tendino-articulaire.`);
+      lines.push(`  • Objectif ajusté OBLIGATOIRE : **"finir sans blessure"** (pas de chrono cible). Aucun bloc VMA/seuil dur — priorité 100% Z1-Z2 volume + D+ progressif.`);
+      lines.push(`  • Phases compressées : Fondation 2 sem · Build 2 sem · Peak 1 sem · Taper 1 sem. Aucune phase Race-Specific longue.`);
+      lines.push(`  • Le diagnostic TFCL du plan DOIT mentionner explicitement "délai sous-critique — objectif finish uniquement".`);
+    }
+
+    // Garde-fou #3 : Master 50+ × world_class (tous objectifs, pas seulement CAP)
+    const age = (config?.age as number | undefined) ?? null;
+    const amb = String(config?.ambition ?? "").toLowerCase();
+    if (age && age >= 50 && (amb === "world_class" || amb.includes("world"))) {
+      lines.push(`\n🚨 MASTER 50+ × WORLD_CLASS — GARDE-FOU SANTÉ (tous objectifs)`);
+      lines.push(`  • Combinaison à très haut risque cardio-vasculaire et musculo-squelettique.`);
+      lines.push(`  • RÈGLES OBLIGATOIRES à intégrer explicitement dans le plan :`);
+      lines.push(`    - Semaine décharge tous les **3 semaines** (pas 4) — volume −40%, intensité −20%.`);
+      lines.push(`    - Récupération ≥ **48h** après toute séance dure (VMA, seuil long, SL >2h30).`);
+      lines.push(`    - Bilan cardiologique récent (<12 mois) recommandé — mentionner dans les prérequis santé.`);
+      lines.push(`    - Monitoring HRV matinal quotidien ; toute chute >15% vs baseline = journée récup imposée.`);
+      lines.push(`    - Pas de doubles séances quotidiennes au-delà de 2×/sem (récupération centrale limitée).`);
+      lines.push(`  • Le diagnostic TFCL du plan DOIT titrer une section "🩺 Précautions Master 50+ world_class".`);
+    }
+  }
+
+
+
   // 🏙️ ATHLÈTE URBAIN — substitutions montagne obligatoires
   // Injecté chunk 1 quand le coach déclare terrain=plat/vallonné/mixte sur un objectif trail.
   // Sans cela, l'IA prescrit des séances montagne irréalisables (frustration + non-adhérence).
