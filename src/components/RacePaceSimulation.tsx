@@ -410,8 +410,8 @@ export function RacePaceSimulation({
         </div>
 
         {/* Pacing table */}
-        <ScrollArea className="w-full">
-          <div className="min-w-[500px]">
+        <ScrollArea className="w-full max-w-full whitespace-nowrap">
+          <div className="min-w-[720px]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-muted-foreground">
