@@ -223,6 +223,12 @@ export function normalizeObjKey(obj: string): string {
   // Order matters: "70.3" before "ironman" to avoid "Ironman 70.3" → "IM"
   if (lower.includes("70.3") || lower === "703") return "703";
   if (lower.includes("ironman") || lower === "im") return "IM";
+  // Triathlon formats courts — DOIVENT être testés avant "triathlon" générique
+  if (/triath/.test(lower) && /sprint/.test(lower)) return "TriSprint";
+  if (/triath/.test(lower) && /(olymp|standard|distance ?m)/.test(lower)) return "TriOlympique";
+  // Sprint/Olympique nus (sans "triathlon" explicite) — fréquent dans les formulaires tri
+  if (/^sprint( tri)?$/.test(lower.trim())) return "TriSprint";
+  if (/^(olymp|distance ?m|standard)( tri)?$/.test(lower.trim())) return "TriOlympique";
   if (lower.includes("semi")) return "Semi";
   if (lower.includes("marathon")) return "Marathon";
   // Famous trail races → map to canonical sub-classes (must come before generic trail/ultra checks)
@@ -262,6 +268,20 @@ export const REFERENCE_STANDARDS: Record<string, Record<string, { M: string; F: 
     elite:       { M: "4h15 – 4h40",     F: "4h40 – 5h05" },
     world_class: { M: "Sub 3h55",        F: "Sub 4h20" },
   },
+  TriSprint: {
+    finisher:    { M: "1h30 – 1h50",     F: "1h35 – 2h00" },
+    age_group:   { M: "1h15 – 1h30",     F: "1h22 – 1h38" },
+    competitor:  { M: "1h05 – 1h15",     F: "1h12 – 1h22" },
+    elite:       { M: "0h58 – 1h05",     F: "1h05 – 1h12" },
+    world_class: { M: "Sub 0h55",        F: "Sub 1h02" },
+  },
+  TriOlympique: {
+    finisher:    { M: "3h00 – 3h45",     F: "3h15 – 4h00" },
+    age_group:   { M: "2h30 – 3h00",     F: "2h45 – 3h20" },
+    competitor:  { M: "2h10 – 2h30",     F: "2h22 – 2h45" },
+    elite:       { M: "1h55 – 2h10",     F: "2h08 – 2h22" },
+    world_class: { M: "Sub 1h50",        F: "Sub 2h00" },
+  },
   Marathon: {
     finisher:    { M: "4h30 – 5h+",    F: "4h55 – 5h30+" },
     age_group:   { M: "3h30 – 4h15",   F: "3h50 – 4h40" },
@@ -289,6 +309,14 @@ export const REFERENCE_STANDARDS: Record<string, Record<string, { M: string; F: 
     competitor:  { M: "18' – 21'",      F: "20' – 23'" },
     elite:       { M: "16' – 18'",      F: "18' – 20'" },
     world_class: { M: "Sub 15'",        F: "Sub 17'" },
+  },
+  // StartToRun : objectif = finir 5K en marche-course. Pas de chrono élite.
+  StartToRun: {
+    finisher:    { M: "Finir 5K (course continue)",  F: "Finir 5K (course continue)" },
+    age_group:   { M: "5K en 35–40'",                F: "5K en 38–45'" },
+    competitor:  { M: "5K en 28–33'",                F: "5K en 32–37'" },
+    elite:       { M: "5K en 25–28'",                F: "5K en 28–32'" },
+    world_class: { M: "5K en 22–25'",                F: "5K en 25–28'" },
   },
   Trail: {
     finisher:    { M: "5h30 – 7h",      F: "6h00 – 7h45" },
