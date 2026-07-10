@@ -232,10 +232,16 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
   if (input.tempC >= 28) warnings.push("Chaleur >28°C : majoration besoins hydriques +30%, sodium +50%.");
   if (input.tempC <= 5) warnings.push("Froid <5°C : prévoir couches techniques, glycogène mobilisé +10%.");
 
+  // F38-bis: VLamax manquante → contribution glycolytique nulle (aerobic pur),
+  // et on prévient l'utilisateur car c'est la variable la plus impactante sur la déplétion trail.
+  if (athlete.vlamaxEffectif == null || athlete.vlamaxEffectif <= 0) {
+    warnings.push("VLamax non renseignée — l'estimation de déplétion est calculée sur base aérobie pure et peut sous-estimer les besoins glucidiques.");
+  }
+  const vlamaxSafe = athlete.vlamaxEffectif != null && athlete.vlamaxEffectif > 0 ? athlete.vlamaxEffectif : 0;
+
   // Calcul segments avec déplétion glycogène
   const glycogenInitialG = initialGlycogenG(athlete.weightKg);
   let glycogenG = glycogenInitialG;
-  const vlamax = athlete.vlamaxEffectif ?? 0.45;
   // Coût glycogène ~ g/min : base ~1.5 g/min @ FatMax, scale par intensité²
   const segments: TrailSegment[] = [];
   let cumulativeMin = 0;
@@ -265,9 +271,9 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
     const durationMin = (s.distanceKm / speed) * 60;
 
     // Déplétion : coût relatif × durée × (1 + vlamax)
-    // ~1.4 g/min plat @ 70%VMA, scale par f et vlamax
+    // ~1.4 g/min plat @ 70%VMA, scale par f et vlamax (0 si inconnu)
     const baseGperMin = 1.4 * (intensityPctVMA / 70);
-    const usedGTotal = baseGperMin * durationMin * f * (1 + 0.6 * vlamax);
+    const usedGTotal = baseGperMin * durationMin * f * (1 + 0.6 * vlamaxSafe);
     // Apport
     const intakeG = input.plannedCarbsGH * (durationMin / 60);
     const netUsed = Math.max(0, usedGTotal - intakeG);
