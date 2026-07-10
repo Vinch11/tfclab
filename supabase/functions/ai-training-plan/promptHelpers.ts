@@ -795,6 +795,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     literatureHintText: timeTarget,
     weeklyHours: weeklyHoursForDerive,
     trainingLevel: (config as any)?.ambitionMeta?.trainingLevel ?? null,
+    sport: mapObjectiveToSport(config.objective || ""),
   });
 
   console.log(`🎯 deriveRaceTargets : VMA snapshot ${vmaForDerive ?? "n/a"} km/h · seuil ${paceThrForDerive ?? "n/a"} s/km · objectif "${config.objective}" · ambition "${config.ambition}" → source=${derived.source} · time=${derived.raceTimeSec ?? "n/a"}s · pace=${derived.racePaceSecPerKm ?? "n/a"}s/km · divLittérature=${derived.divergencePct ?? "n/a"}% · volumeCible=${derived.volumeCible ?? "n/a"}h · qualites=${derived.qualitesParSemaine}/sem · complexite=${derived.complexiteSeances}`);
