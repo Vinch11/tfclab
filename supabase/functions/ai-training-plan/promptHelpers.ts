@@ -2,7 +2,7 @@
 // PROMPT HELPERS — User prompt builder, CP/W' model, diagnostics
 // ═══════════════════════════════════════════════════════════════
 
-import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, type CatalogDurationStats } from "./sportRatioMatrix.ts";
+import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, SPORT_RATIO_REFS, type CatalogDurationStats } from "./sportRatioMatrix.ts";
 import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
 import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
 
@@ -879,20 +879,49 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     } else if (config.maxSessionsPerDay === 2) {
       lines.push(`  → RÈGLE STRICTE : Maximum 2 séances par jour. Pas de triples. Chaque jour a 1 ou 2 lignes max dans le tableau.`);
     } else if (config.maxSessionsPerDay === 3) {
-      // Calculate minimum sessions: 6 training days × 2 min sessions = 12, with some at 3
-      const minSessions = 14;
-      const maxSessions = 18;
+      // CHANTIER doubles/triples — sport-aware pour éviter contamination triathlon
+      // dans les plans running/trail. Cause historique du bug (Marathon world_class
+      // recevant un exemple codé en dur en triathlon).
+      const sportForDoubles = mapObjectiveToSport(config.objective || "");
+      const isRunningPlan = sportForDoubles === "run_route" || sportForDoubles === "trail";
+      const isTriPlan = sportForDoubles === "tri_70_3" || sportForDoubles === "ironman";
+
+      // Fourchette de séances issue du référentiel (fallback : pas de minimum chiffré)
+      const objKeyForDoubles = normalizeObjKey(config.objective || "");
+      const ambKeyForDoubles = normalizeAmbKey(config.ambition || "");
+      const spwRef = SPORT_RATIO_REFS[objKeyForDoubles]?.[ambKeyForDoubles]?.sessionsPerWeek;
+      const spwMin = spwRef ? spwRef[0] : null;
+      const spwMax = spwRef ? spwRef[1] : null;
+
       lines.push(`  → RÈGLE STRICTE : Doubles et triples séances OBLIGATOIRES pour un athlète élite.`);
-      lines.push(`  → **MINIMUM ${minSessions} séances par semaine, idéalement ${minSessions}-${maxSessions}.**`);
+      if (spwMin && spwMax) {
+        lines.push(`  → **MINIMUM ${spwMin} séances par semaine, idéalement ${spwMin}-${spwMax}** (référentiel ${objKeyForDoubles}/${ambKeyForDoubles}).`);
+      }
       lines.push(`  → Chaque jour d'entraînement (hors repos) DOIT avoir 2 ou 3 lignes dans le tableau.`);
       lines.push(`  → Utilise "Lundi matin", "Lundi midi", "Lundi soir" pour séparer les séances.`);
-      lines.push(`  → Exemple de structure semaine type avec 1 jour repos :`);
-      lines.push(`    Lundi matin : Natation technique | Lundi midi : Renfo/Core | Lundi soir : Vélo Z2`);
-      lines.push(`    Mardi matin : Natation seuil | Mardi soir : CAP intervalles`);
-      lines.push(`    Mercredi matin : Vélo intensité | Mercredi midi : Renfo | Mercredi soir : CAP récup`);
-      lines.push(`    etc.`);
-      lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum natation technique, renfo/core ou Z1 récup.`);
-      lines.push(`  → VÉRIFIE que le total de séances par semaine est ≥ ${minSessions} avant de soumettre.`);
+
+      if (isRunningPlan) {
+        lines.push(`  → Exemple de structure semaine type RUNNING élite (1 jour repos) :`);
+        lines.push(`    Lundi matin : CAP EF Z1-Z2 45-60min | Lundi soir : Renfo/Core 30-40min`);
+        lines.push(`    Mardi matin : CAP qualité (VMA/Seuil) | Mardi soir : CAP Z1 récup courte 30-40min`);
+        lines.push(`    Mercredi matin : CAP EF vallonnée + strides | Mercredi soir : Mobilité 20-30min`);
+        lines.push(`    Jeudi matin : CAP tempo/seuil | Jeudi soir : Renfo léger ou repos`);
+        lines.push(`    Vendredi matin : CAP EF récup Z1 | Vendredi soir : Mobilité/Foam roller`);
+        lines.push(`    Samedi : Sortie longue CAP (Z2 + progressif)`);
+        lines.push(`    Dimanche : CAP EF + strides OU jour repos complet`);
+        lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum renfo/core, mobilité ou footing Z1 récup.`);
+        lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation dans ce plan. Vélo UNIQUEMENT en récupération Z1-Z2, max 1-2×/sem, 40-60min, jamais en séance qualité. Toute séance natation ou vélo qualité = erreur bloquante, le plan sera rejeté.`);
+      } else if (isTriPlan) {
+        lines.push(`  → Exemple de structure semaine type TRIATHLON avec 1 jour repos :`);
+        lines.push(`    Lundi matin : Natation technique | Lundi midi : Renfo/Core | Lundi soir : Vélo Z2`);
+        lines.push(`    Mardi matin : Natation seuil | Mardi soir : CAP intervalles`);
+        lines.push(`    Mercredi matin : Vélo intensité | Mercredi midi : Renfo | Mercredi soir : CAP récup`);
+        lines.push(`    etc.`);
+        lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum natation technique, renfo/core ou Z1 récup.`);
+      } else {
+        lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum renfo/core, mobilité ou récup active.`);
+      }
+      if (spwMin) lines.push(`  → VÉRIFIE que le total de séances par semaine est ≥ ${spwMin} avant de soumettre.`);
     }
     // Anti-contradiction: never mix rest + real session on same day
     lines.push(`- **⚠️ Anti-contradiction :** Si un jour a une séance d'entraînement, NE PAS ajouter de ligne "Repos" pour ce même jour. Le Repos est UNIQUEMENT pour les jours sans aucune séance.`);
