@@ -276,4 +276,55 @@ describe("planValidator", () => {
     expect(result.limiterCoverage[0]?.key).toBe("tte");
     expect(result.limiterCoverage[1]?.key).toBe("vo2max");
   });
+
+  // Lot 4 — Lorang A/B/C/D distribution
+  it("Lot 4: detects a week without any A or B (HIT/seuil) session as an error", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 60min", details: "Endurance" },
+        { sport: "Vélo", title: "Z2 90min", details: "Endurance" },
+        { sport: "Course", title: "Sortie longue 20km Z2", details: "Long run" },
+      ], "Chantier VO2max"), // pas de décharge
+    ]);
+    const result = validatePlan(plan);
+    const errs = result.issues.filter(i => i.rule === "lorang_categories" && i.severity === "error");
+    expect(errs.length).toBeGreaterThan(0);
+    expect(result.lorangCategories.weeks[0].hasHighOrThreshold).toBe(false);
+  });
+
+  it("Lot 4: classifies explicit [A]/[B]/[C]/[D] tags and catalog prefixes", () => {
+    const plan = makePlan([
+      makeWeek(1, [
+        { sport: "Course", title: "[A] VO2max 5x3min", details: "Z6" },
+        { sport: "Vélo", title: "B_BIKE_SST_3x20", details: "Sweet spot" },
+        { sport: "Course", title: "[C] EF Z2 60min", details: "Endurance" },
+        { sport: "Course", title: "[D] Récup 30min", details: "Spin facile" },
+      ]),
+    ]);
+    const result = validatePlan(plan);
+    const d = result.lorangCategories;
+    expect(d.A).toBe(1);
+    expect(d.B).toBe(1);
+    expect(d.C).toBe(1);
+    expect(d.D).toBe(1);
+    expect(d.taggedPct).toBeGreaterThanOrEqual(75);
+  });
+
+  it("Lot 4: flags plans with excessive A+B intensity vs polarization target", () => {
+    const plan = makePlan(Array.from({ length: 4 }, (_, i) =>
+      makeWeek(i + 1, [
+        { sport: "Course", title: "[A] VMA 30/30", details: "Z6" },
+        { sport: "Course", title: "[A] VO2max 5x4min", details: "Z6" },
+        { sport: "Course", title: "[B] Seuil 3x12min", details: "Z4" },
+        { sport: "Course", title: "[B] SST 4x8min", details: "Sweet spot" },
+        { sport: "Course", title: "[C] EF Z2 45min", details: "Endurance" },
+      ])
+    ));
+    const result = validatePlan(plan);
+    const warns = result.issues.filter(i => i.rule === "lorang_categories" && i.severity === "warning");
+    expect(warns.length).toBeGreaterThan(0);
+    expect(result.summary.lorangCategoriesScore).toBeLessThan(90);
+  });
 });
+

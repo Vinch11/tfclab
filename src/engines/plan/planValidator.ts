@@ -103,9 +103,41 @@ export interface PlanValidationResult {
     wbalFeasibilityScore: number;
     /** Lot 3 : conformité activeSessions/jour et sessions/semaine vs config coach */
     sessionDensityScore: number;
+    /** Lot 4 : conformité tags Lorang A-D vs polarisation Seiler (source: systemPrompt L528-536) */
+    lorangCategoriesScore: number;
     overallComment: string;
   };
+  /** Lot 4 : distribution A/B/C/D par semaine + par plan */
+  lorangCategories: LorangCategoryDistribution;
+
 }
+
+/** Lot 4 — catégorisation Lorang A/B/C/D d'une séance (source: systemPrompt L528-536). */
+export type LorangCategory = "A" | "B" | "C" | "D" | "unknown";
+
+export interface LorangWeekBreakdown {
+  weekNumber: number;
+  isDeload: boolean;
+  A: number;
+  B: number;
+  C: number;
+  D: number;
+  unknown: number;
+  active: number;
+  hasHighOrThreshold: boolean; // ≥1 A OU B (obligatoire hors décharge)
+}
+
+export interface LorangCategoryDistribution {
+  totalActive: number;
+  tagged: number;
+  taggedPct: number;
+  A: number; APct: number;
+  B: number; BPct: number;
+  C: number; CPct: number;
+  D: number; DPct: number;
+  weeks: LorangWeekBreakdown[];
+}
+
 
 /** Lot 3 — config coach à respecter (sessions/semaine + max/jour) */
 export interface SessionDensityConfig {
@@ -1507,6 +1539,149 @@ function validateSessionDensity(
   return { issues, score: Math.max(0, Math.min(100, score)) };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// LOT 4 — Rule 13 : Lorang A/B/C/D categories (systemPrompt L528-536)
+// A = HIT (Z5/Z6, VO2/VMA)        cible 15-20% vol
+// B = Seuil / Sweet Spot (Z4)      cible ≤ ~15% vol (Z3 >30' compte B)
+// C = Endurance fondamentale (Z1-Z2) cible 75-85% vol
+// D = Récupération stricte
+// Règle : hors décharge, chaque semaine ≥ 1 séance A OU B.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const LORANG_EXPLICIT_TAG_RX = /\[\s*([ABCD])\s*\]/i;
+const LORANG_CATALOG_PREFIX_RX = /\b([ABCD])_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY|10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE)/;
+const LORANG_A_RX = /vo2|vma|billat|30[\/_ -]?30|15[\/_ -]?15|pma|tabata|z\s*[56]|zone\s*[56]|hiit|sprint\s*(?:max|all.?out)|neuro\s*muscul/i;
+const LORANG_B_RX = /seuil|threshold|mlss|sweet[\s_-]*spot|\bsst\b|over.?under|ftp|cruise|norvégi|norwegian|double[\s_-]*threshold|race[\s_-]*pace|allure\s*(?:course|semi|marathon|10k|5k|70\.?3|im\b|ironman|spécifiq)|tempo\s*(?:long|\d{2,3}\s*min|\d+\s*x\s*\d+)|z\s*4/i;
+const LORANG_D_RX = /décharge|recovery\s*ride|spin\s*facile|yoga|marche|mobilit|souplesse|activation\s*courte|régénér/i;
+
+function classifyLorang(session: ParsedSession): LorangCategory {
+  if (session.isRest) return "D";
+  const text = `${session.title} ${session.details}`;
+  // 1) explicit tag [A]/[B]/[C]/[D]
+  const explicit = text.match(LORANG_EXPLICIT_TAG_RX);
+  if (explicit) return explicit[1].toUpperCase() as LorangCategory;
+  // 2) catalog ID prefix
+  const catalog = text.match(LORANG_CATALOG_PREFIX_RX);
+  if (catalog) return catalog[1].toUpperCase() as LorangCategory;
+  // 3) keyword fallback (A > B > D > C)
+  if (LORANG_A_RX.test(text)) return "A";
+  if (LORANG_B_RX.test(text)) return "B";
+  if (LORANG_D_RX.test(text)) return "D";
+  // 4) low-intensity endurance = C by default when we can identify at least a sport session
+  if (LOW_INTENSITY_PATTERNS.test(text)) return "C";
+  return "unknown";
+}
+
+function validateLorangCategories(
+  plan: ParsedPlan,
+): { issues: ValidationIssue[]; score: number; distribution: LorangCategoryDistribution } {
+  const issues: ValidationIssue[] = [];
+  const weeks: LorangWeekBreakdown[] = [];
+  let A = 0, B = 0, C = 0, D = 0, unknown = 0, totalActive = 0, tagged = 0;
+
+  for (const w of plan.weeks) {
+    const active = w.sessions.filter((s) => !s.isRest);
+    const isDeload = DELOAD_PATTERNS.test(`${w.theme} ${w.phase}`.toLowerCase()) || active.length <= 3;
+    const bd: LorangWeekBreakdown = {
+      weekNumber: w.weekNumber, isDeload,
+      A: 0, B: 0, C: 0, D: 0, unknown: 0,
+      active: active.length, hasHighOrThreshold: false,
+    };
+    for (const s of active) {
+      const cat = classifyLorang(s);
+      bd[cat === "unknown" ? "unknown" : cat]++;
+      totalActive++;
+      // consider "tagged" any session with explicit tag OR catalog ID
+      const text = `${s.title} ${s.details}`;
+      if (LORANG_EXPLICIT_TAG_RX.test(text) || LORANG_CATALOG_PREFIX_RX.test(text)) tagged++;
+    }
+    bd.hasHighOrThreshold = bd.A > 0 || bd.B > 0;
+    A += bd.A; B += bd.B; C += bd.C; D += bd.D; unknown += bd.unknown;
+    weeks.push(bd);
+
+    // Règle 1 : hors décharge/race, ≥1 A ou B
+    const isRaceWeek = w.sessions.some((s) => RACE_PATTERNS.test(`${s.title} ${s.details}`));
+    if (!isDeload && !isRaceWeek && !bd.hasHighOrThreshold && bd.active >= 3) {
+      issues.push({
+        rule: "lorang_categories",
+        severity: "error",
+        week: w.weekNumber,
+        message: `S${w.weekNumber} : aucune séance Lorang A (HIT) ni B (seuil) — chaque semaine hors décharge doit en contenir au moins 1`,
+      });
+    }
+
+    // Règle 2 : polarisation intra-semaine (hors décharge)
+    if (!isDeload && bd.active >= 4) {
+      const hiPct = ((bd.A + bd.B) / bd.active) * 100;
+      if (hiPct > 35) {
+        issues.push({
+          rule: "lorang_categories",
+          severity: "warning",
+          week: w.weekNumber,
+          message: `S${w.weekNumber} : ${Math.round(hiPct)}% A+B (cible ≤ 30-35%) — polarisation Seiler compromise`,
+        });
+      }
+      const cPct = (bd.C / bd.active) * 100;
+      if (cPct < 55) {
+        issues.push({
+          rule: "lorang_categories",
+          severity: "warning",
+          week: w.weekNumber,
+          message: `S${w.weekNumber} : ${Math.round(cPct)}% C (endurance fondamentale) — cible 75-85%`,
+        });
+      }
+    }
+  }
+
+  const pct = (n: number) => (totalActive > 0 ? Math.round((n / totalActive) * 100) : 0);
+  const taggedPct = totalActive > 0 ? Math.round((tagged / totalActive) * 100) : 0;
+
+  // Règle 3 : taux d'étiquetage explicite (tag [A-D] ou ID catalogue A_/B_/...)
+  if (totalActive >= 10 && taggedPct < 50) {
+    issues.push({
+      rule: "lorang_categories",
+      severity: "warning",
+      message: `Seulement ${taggedPct}% des séances portent un tag Lorang [A/B/C/D] ou ID catalogue — traçabilité méthodologique réduite (cible ≥70%)`,
+    });
+  }
+
+  // Règle 4 : distribution globale polarisée
+  const APct = pct(A), BPct = pct(B), CPct = pct(C);
+  if (totalActive >= 12) {
+    if (APct + BPct > 30) {
+      issues.push({
+        rule: "lorang_categories",
+        severity: "warning",
+        message: `Distribution globale ${APct + BPct}% A+B / ${CPct}% C — dépasse la cible polarisée Seiler 20/80`,
+      });
+    }
+    if (CPct < 60) {
+      issues.push({
+        rule: "lorang_categories",
+        severity: "warning",
+        message: `Seulement ${CPct}% de séances C (endurance fondamentale) sur l'ensemble du plan — cible ≥ 70%`,
+      });
+    }
+  }
+
+  // Score : pondère erreurs (semaine sans A|B) et distributions hors cible
+  const errs = issues.filter((i) => i.severity === "error").length;
+  const warns = issues.filter((i) => i.severity === "warning").length;
+  let score = 100 - errs * 20 - warns * 6;
+  // bonus si tagged ≥ 70%
+  if (taggedPct >= 70) score = Math.min(100, score + 5);
+  score = Math.max(0, Math.min(100, score));
+
+  const distribution: LorangCategoryDistribution = {
+    totalActive, tagged, taggedPct,
+    A, APct, B, BPct, C, CPct, D, DPct: pct(D),
+    weeks,
+  };
+  return { issues, score, distribution };
+}
+
+
+
 
 
 export function validatePlan(
@@ -1554,6 +1729,7 @@ export function validatePlan(
   const limiterCoherence = validateLimiterCoherence(plan, identifiedLimiters, effectiveLimiterKeys);
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
   const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
+  const lorang_ = validateLorangCategories(plan);
 
   // Combine all issues
   const allIssues = [
@@ -1569,11 +1745,14 @@ export function validatePlan(
     ...limiterCoherence.issues,
     ...wbalFeasibility.issues,
     ...sessionDensity_.issues,
+    ...lorang_.issues,
   ];
 
-  // Weighted score (12 rules)
+  // Weighted score (13 rules) — Lot 4 introduit lorangCategories (5%),
+  // rééquilibré depuis polarization (12→10) et sessionDensity (5→3) pour éviter double comptage
+  // (polarization approximative sur classification texte vs Lorang tag-based).
   const weights = {
-    polarization: 0.12,
+    polarization: 0.10,
     loadPattern: 0.08,
     keySessions: 0.08,
     progression: 0.06,
@@ -1584,7 +1763,8 @@ export function validatePlan(
     raceDayPresence: 0.07,
     limiterCoherence: 0.10,
     wbalFeasibility: 0.10,
-    sessionDensity: 0.05,
+    sessionDensity: 0.03,
+    lorangCategories: 0.04,
   };
   const weightedScore = Math.round(
     polarization.score * weights.polarization +
@@ -1598,8 +1778,10 @@ export function validatePlan(
     raceDayPresence.score * weights.raceDayPresence +
     limiterCoherence.score * weights.limiterCoherence +
     wbalFeasibility.score * weights.wbalFeasibility +
-    sessionDensity_.score * weights.sessionDensity
+    sessionDensity_.score * weights.sessionDensity +
+    lorang_.score * weights.lorangCategories
   );
+
 
   // Grade
   const grade = weightedScore >= 85 ? "A" : weightedScore >= 70 ? "B" : weightedScore >= 55 ? "C" : weightedScore >= 40 ? "D" : "F";
@@ -1635,6 +1817,7 @@ export function validatePlan(
     weekMetrics,
     limiterCoverage: limiterCoherence.coverage,
     catalogStats: catalogRatio.catalogStats,
+    lorangCategories: lorang_.distribution,
     summary: {
       polarizationScore: polarization.score,
       loadPatternScore: loadPattern.score,
@@ -1648,10 +1831,12 @@ export function validatePlan(
       limiterCoherenceScore: limiterCoherence.score,
       wbalFeasibilityScore: wbalFeasibility.score,
       sessionDensityScore: sessionDensity_.score,
+      lorangCategoriesScore: lorang_.score,
       overallComment,
     },
   };
 }
+
 
 /**
  * Format validation result as a human-readable markdown string
@@ -1674,8 +1859,15 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| 🏁 Jour de course | ${result.summary.raceDayScore}/100 | ${result.summary.raceDayScore >= 100 ? "✅" : "❌"} |`);
   lines.push(`| 🎯 Cohérence limiteurs↔séances | ${result.summary.limiterCoherenceScore}/100 | ${result.summary.limiterCoherenceScore >= 75 ? "✅" : result.summary.limiterCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| ⚡ Faisabilité W'bal | ${result.summary.wbalFeasibilityScore}/100 | ${result.summary.wbalFeasibilityScore >= 90 ? "✅" : result.summary.wbalFeasibilityScore >= 70 ? "⚠️" : "❌"} |`);
+  lines.push(`| 🎨 Catégories Lorang A-D | ${result.summary.lorangCategoriesScore}/100 | ${result.summary.lorangCategoriesScore >= 75 ? "✅" : result.summary.lorangCategoriesScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push("");
+  {
+    const d = result.lorangCategories;
+    lines.push(`**Distribution Lorang** — A ${d.APct}% · B ${d.BPct}% · C ${d.CPct}% · D ${d.DPct}% (tags explicites : ${d.taggedPct}%)`);
+  }
   lines.push("");
   lines.push(`**${result.summary.overallComment}**`);
+
 
   if (result.issues.length > 0) {
     lines.push("");
