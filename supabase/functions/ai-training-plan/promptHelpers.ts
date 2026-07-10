@@ -62,8 +62,10 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   // Objective & Ambition
   const objKey = normalizeObjKey(config?.objective || "");
   const ambKey = normalizeAmbKey(config?.ambition || "");
+  const resolvedSport = mapObjectiveToSport(config?.objective || "");
   lines.push(`🎯 Objectif: ${config?.objective || "N/A"} (normalisé: ${objKey})`);
   lines.push(`🏅 Ambition: ${config?.ambition || "N/A"} (normalisé: ${ambKey})`);
+  lines.push(`🏷️ Sport cible résolu: ${resolvedSport}`);
   const diagTimeTarget = getTimeTargetHint(config?.objective || "", config?.ambition || "", config?._athleteSex);
   // Snapshot-based target (source unique). Fallback silencieux si VMA absente.
   const diagDerived = deriveRaceTargets({
@@ -271,6 +273,38 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   }
   
   return lines.join("\n");
+}
+
+function buildObjectiveSportLockLines(config: any): string[] {
+  const objective = String(config?.objective || "");
+  const objectiveKey = normalizeObjKey(objective);
+  const sport = mapObjectiveToSport(objective);
+
+  if (sport === "run_route") {
+    return [
+      `\n### 🚨 VERROU SPORT OBJECTIF — RUNNING ROUTE (${objectiveKey})`,
+      `Objectif résolu: ${objective || "N/A"} → ${sport}. Ce plan est un plan **100% course à pied + renforcement/mobilité**.`,
+      `- ⛔ NATATION INTERDITE : aucune ligne Sport="Natation", "Swim", "Piscine", "CSS", "crawl".`,
+      `- ⛔ VÉLO INTERDIT : aucune ligne Sport="Vélo", "Cyclisme", "Bike", "Home-trainer", "FTP", "SFR".`,
+      `- ⛔ BRIQUES INTERDITES : aucun enchaînement vélo→CAP, swim→bike, triathlon, transition T1/T2.`,
+      `- ✅ SPORTS AUTORISÉS dans les tableaux : CAP/Course, Renfo/PPG/Mobilité, Repos, Course objectif.`,
+      `- La ligne "Répartition sport" DOIT afficher : CAP 85-90% | Renfo/Mobilité 10-15% | Natation 0% | Vélo 0%.`,
+      `- Si un exemple générique du system prompt parle de triathlon/natation/vélo, tu DOIS l'ignorer pour cet objectif.`,
+    ];
+  }
+
+  if (sport === "trail") {
+    return [
+      `\n### 🚨 VERROU SPORT OBJECTIF — TRAIL (${objectiveKey})`,
+      `Objectif résolu: ${objective || "N/A"} → ${sport}. Ce plan est un plan trail/CAP + renforcement.`,
+      `- ⛔ NATATION INTERDITE : aucune séance piscine/CSS/crawl.`,
+      `- ⛔ BRIQUES TRIATHLON INTERDITES : aucun enchaînement vélo→CAP comme séance spécifique.`,
+      `- Vélo seulement si récupération active Z1-Z2, max 1×/sem, jamais séance qualité ni pilier du plan.`,
+      `- ✅ SPORTS AUTORISÉS : CAP/Trail, Renfo/PPG/Mobilité, Repos, Course objectif.`,
+    ];
+  }
+
+  return [];
 }
 
 // === EXTRACT STRATEGIC RECAP from chunk 1 text ===
@@ -910,7 +944,11 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         lines.push(`    Samedi : Sortie longue CAP (Z2 + progressif)`);
         lines.push(`    Dimanche : CAP EF + strides OU jour repos complet`);
         lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum renfo/core, mobilité ou footing Z1 récup.`);
-        lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation dans ce plan. Vélo UNIQUEMENT en récupération Z1-Z2, max 1-2×/sem, 40-60min, jamais en séance qualité. Toute séance natation ou vélo qualité = erreur bloquante, le plan sera rejeté.`);
+        if (sportForDoubles === "run_route") {
+          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation, AUCUNE séance de vélo/cyclisme/home-trainer, AUCUNE brique. Doubles/triples = CAP + renfo/mobilité uniquement.`);
+        } else {
+          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation dans ce plan. Vélo UNIQUEMENT en récupération Z1-Z2, max 1×/sem, 40-60min, jamais en séance qualité. Toute brique ou séance vélo qualité = erreur bloquante.`);
+        }
       } else if (isTriPlan) {
         lines.push(`  → Exemple de structure semaine type TRIATHLON avec 1 jour repos :`);
         lines.push(`    Lundi matin : Natation technique | Lundi midi : Renfo/Core | Lundi soir : Vélo Z2`);
@@ -943,6 +981,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (sportRatios) {
     lines.push(sportRatios);
   }
+  lines.push(...buildObjectiveSportLockLines(config));
 
   // === PISTE 2 : CAPS DE DURÉE PROGRESSIFS (dérivés du catalogue réel) ===
   // Empêche l'IA de prescrire des séances irréalistes (ex: 4h vélo en S1 pour finisher)
@@ -1357,7 +1396,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
     lines.push("- Minimum 5 séances CAP/sem : EF, tempo, seuil, SL, fartlek/côtes");
-    lines.push("- Vélo optionnel : max 1-2x/sem, 45-60min Z1-Z2 uniquement (récupération active, cross-training)");
+    lines.push("- Natation 0% et vélo 0% : plan marathon = CAP + renfo/mobilité uniquement");
   } else if (objKeyForRappel === "Semi") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI-MARATHON");
     lines.push("- CAP 85-90% | Renfo 10-15%");
