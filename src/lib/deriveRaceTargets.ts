@@ -83,6 +83,26 @@ export function formatSecPerKm(sec: number): string {
   return `${m}:${String(s).padStart(2, "0")}/km`;
 }
 
+/**
+ * Type d'épreuve utilisé pour indexer la matrice sport × ambition
+ * des plafonds de volume hebdomadaire.
+ */
+export type RaceSport = "run_route" | "trail" | "tri_70_3" | "ironman";
+
+/**
+ * Helper canonique : mappe un objectif texte (OBJECTIVE_OPTIONS ou libellé)
+ * vers un RaceSport. Utilisé aux call-sites pour alimenter `sport` en une ligne.
+ * Fallback silencieux → "run_route".
+ */
+export function mapObjectiveToSport(objective: string | null | undefined): RaceSport {
+  const s = (objective ?? "").trim().toLowerCase();
+  if (!s) return "run_route";
+  if (/^ironman$|^im$|\bironman\b/.test(s) && !/70\.?3|half/.test(s)) return "ironman";
+  if (/70\.?3|half.?iron/.test(s) || s === "703") return "tri_70_3";
+  if (/trail|ultra/.test(s)) return "trail";
+  return "run_route";
+}
+
 export interface DeriveRaceTargetsInput {
   vmaKmh?: number | null;
   thresholdPaceSecPerKm?: number | null;
@@ -92,11 +112,16 @@ export interface DeriveRaceTargetsInput {
   /** Volume hebdo brut saisi par l'athlète (en heures). Utilisé pour calculer volumeCible. */
   weeklyHours?: number | null;
   /**
-   * Niveau d'entraînement actuel (coach) — module volumeCible via facteur expérience.
-   * "untrained" 0.85 · "light" 0.92 · "trained" 1.00 · "highly_trained" 1.08.
-   * Absent / null → 1.00 (neutre).
+   * Niveau d'entraînement actuel (coach) — utilisé UNIQUEMENT par le downgrade
+   * ambition (`AMBITION_MAX_BY_LEVEL` dans ambitionDowngrade.ts). Aucun effet
+   * multiplicatif sur volumeCible.
    */
   trainingLevel?: "untrained" | "light" | "trained" | "highly_trained" | null;
+  /**
+   * Type d'épreuve (source des plafonds de volume). Si absent ou inconnu →
+   * fallback "run_route" + console.warn.
+   */
+  sport?: RaceSport | null;
 }
 
 export interface PaceTargets {
