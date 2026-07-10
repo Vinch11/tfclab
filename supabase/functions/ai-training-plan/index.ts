@@ -1020,6 +1020,31 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
               }
             }
 
+            // ─── ASSERTION POST-GÉNÉRATION : contamination triathlon dans plan running ───
+            // Chantier "doubles/triples" — rend visible toute violation, sans bloquer la publication.
+            try {
+              const finalSport = mapObjectiveToSport(planConfig?.objective || "");
+              if (finalSport === "run_route" || finalSport === "trail") {
+                const totalSwim = chunkMetricsHistory.reduce((s, m) => s + (m.sportDist?.swim || 0), 0);
+                const totalBike = chunkMetricsHistory.reduce((s, m) => s + (m.sportDist?.bike || 0), 0);
+                if (totalSwim > 0) {
+                  const msg = `ASSERTION VIOLÉE : natation détectée dans un plan running (${finalSport}, obj="${planConfig?.objective}") — ${totalSwim} min cumulées sur ${chunkMetricsHistory.length} chunk(s). Le plan est publié avec un warning.`;
+                  console.error(`🚨 ${msg}`);
+                  // Warning visible côté client via un delta SSE — l'AIPlanViewer affiche déjà le contenu brut ;
+                  // le bandeau est injecté au tout début du plan pour être vu par le coach.
+                  const warning = `\n\n> ⚠️ **WARNING GÉNÉRATION** : natation détectée (${totalSwim} min) dans un plan running/trail. Contamination à corriger manuellement avant envoi à l'athlète.\n\n`;
+                  controller.enqueue(
+                    encoder.encode(`data: {"choices":[{"delta":{"content":${JSON.stringify(warning)}}}]}\n\n`)
+                  );
+                }
+                if (totalBike > 0) {
+                  console.log(`ℹ️ Plan ${finalSport} : ${totalBike} min vélo cumulées (attendu ≤ récupération Z1-Z2).`);
+                }
+              }
+            } catch (assertErr) {
+              console.warn("Assertion post-génération failed:", assertErr);
+            }
+
             // Send final [DONE]
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
