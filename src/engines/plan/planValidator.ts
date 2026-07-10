@@ -101,8 +101,16 @@ export interface PlanValidationResult {
     raceDayScore: number;
     limiterCoherenceScore: number;
     wbalFeasibilityScore: number;
+    /** Lot 3 : conformité activeSessions/jour et sessions/semaine vs config coach */
+    sessionDensityScore: number;
     overallComment: string;
   };
+}
+
+/** Lot 3 — config coach à respecter (sessions/semaine + max/jour) */
+export interface SessionDensityConfig {
+  sessionsPerWeek?: number;    // cible coach
+  maxSessionsPerDay?: number;  // plafond coach (défaut 2)
 }
 
 export type LimiterGapLike = {
