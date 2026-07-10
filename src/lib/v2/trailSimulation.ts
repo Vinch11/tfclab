@@ -315,10 +315,15 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
   else if (risk === "HIGH") warnings.push("Glycogène bas (<20%) — risque hypoglycémie en fin de course.");
 
   // ── Modèle dual-pool (muscle + foie + glycémie) ───────────────────────────
-  // Estime vo2max depuis VMA (Léger): vo2max ≈ vma × 3.5
+  // Source: maderMetabolicModel.calculateGlycogenDepletion — pilote bonkRiskKm/hypoglycemiaRisk.
+  // NB: le calcul segment-par-segment ci-dessus fournit la déplétion progressive UI ;
+  // ce dual-pool est la référence pour les warnings fringale/hypoglycémie exposés au coach.
+  // F38-bis: alignement des inputs avec la boucle segmentaire (mêmes fallbacks explicites + warnings).
+  if (athlete.vma == null) warnings.push("VMA non renseignée — estimation dual-pool basée sur VMA=14 km/h (moyenne populationnelle).");
+  if (athlete.weightKg == null) warnings.push("Poids non renseigné — stocks glycogéniques estimés sur 70 kg (moyenne populationnelle).");
   const vmaForMader = athlete.vma ?? 14;
   const vo2maxMader = vmaForMader * 3.5;
-  const vlamaxMader = athlete.vlamaxEffectif ?? 0.45;
+  const vlamaxMader = vlamaxSafe; // même source que la boucle segmentaire
   const weightMader = athlete.weightKg ?? 70;
   const avgIntensityPct = Math.max(40, Math.min(95, baseIntensity * 100 * 0.78)); // %VMA → ~ %VO2max
   const avgSpeedKmh = totalKm / Math.max(0.1, cumulativeMin / 60);
