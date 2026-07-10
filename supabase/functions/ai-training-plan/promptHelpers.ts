@@ -4,6 +4,7 @@
 
 import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributionConstraint, extractLimiterKeywords, SPORT_RATIO_REFS, type CatalogDurationStats } from "./sportRatioMatrix.ts";
 import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
+import { buildNutritionAndSafetyBlock } from "./nutritionAndSafetyGuardrails.ts";
 import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
 
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
@@ -1171,6 +1172,28 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
     lines.push(`\n🚨 HIÉRARCHIE INVIOLABLE (du plus lent au plus rapide) : Z2 > Z4a Marathon > Z4b Semi > Z5 Seuil > Z6 VMA`);
     lines.push(`Si une allure spécifique course est plus rapide que le seuil (Z5), c'est une ERREUR. Allure semi TOUJOURS plus lente que seuil.`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUDIT LOT #1 : Nutrition Mader-Heck + TTE âge + CAP injury risk
+  // Injecté à chaque diagnostic — supplée F26-F31, F33, capInjuryRisk (client-only).
+  // ═══════════════════════════════════════════════════════════════════════════
+  try {
+    const nutriBlock = buildNutritionAndSafetyBlock({
+      objective: config?.objective,
+      ambition: config?.ambition,
+      age: data.age ?? null,
+      weightKg: data.weightKg ?? null,
+      vo2max: data.vo2max ?? null,
+      vlamax: data.vlamax ?? null,
+      vlamaxRun: data.vlamaxRun ?? null,
+      sportMain: data.sport_main || data.sportMain || null,
+      heatCondition: !!config?.heatCondition,
+      raceDurationHours: config?.raceDurationHours ?? null,
+    });
+    lines.push(nutriBlock);
+  } catch (e) {
+    console.warn("⚠️ [nutritionAndSafetyGuardrails] échec injection :", e);
   }
 
   // --- Identified weaknesses (ranked by importance) ---
