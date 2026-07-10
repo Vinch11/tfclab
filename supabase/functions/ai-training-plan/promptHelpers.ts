@@ -1397,7 +1397,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
     lines.push("- Minimum 5 séances CAP/sem : EF, tempo, seuil, SL, fartlek/côtes");
-    lines.push("- Natation 0% et vélo 0% : plan marathon = CAP + renfo/mobilité uniquement");
+    lines.push("- Natation 0% : plan marathon = CAP + renfo/mobilité. Vélo autorisé UNIQUEMENT en récupération active Z1-Z2, max 1–2×/sem (45–75min), jamais en qualité, jamais en brique.");
   } else if (objKeyForRappel === "Semi") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI-MARATHON");
     lines.push("- CAP 85-90% | Renfo 10-15%");
