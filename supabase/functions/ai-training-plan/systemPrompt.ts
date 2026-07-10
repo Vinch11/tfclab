@@ -323,7 +323,9 @@ function buildFewShotExamples(profile?: SystemPromptProfile): string {
   const obj = (profile?.objective ?? "").toUpperCase();
   const isIM = /\bIM\b|IRONMAN/.test(obj);
   const is703 = /70\.?3|HALF ?IRONMAN/.test(obj);
-  const isTri = isIM || is703 || /TRIATH/.test(obj);
+  const isTriSprint = /TRIATH.*SPRINT|^SPRINT( TRI)?$/.test(obj.trim());
+  const isTriOlympique = /TRIATH.*(OLYMP|STANDARD|DISTANCE ?M)|^(OLYMP|DISTANCE ?M|STANDARD)( TRI)?$/.test(obj.trim());
+  const isTri = isIM || is703 || isTriSprint || isTriOlympique || /TRIATH/.test(obj);
   const isTrail = /TRAIL|UTMB|CCC|OCC|UT4M/.test(obj);
   const isSemi = /SEMI|HALF(?!.?IRONMAN)/.test(obj);
   const isMarathon = /MARATHON/.test(obj) && !isSemi;
@@ -334,8 +336,15 @@ function buildFewShotExamples(profile?: SystemPromptProfile): string {
 
   if (isTri) {
     if (isIM) parts.push(FEWSHOT_FRODENO_IM);
-    if (is703) parts.push(FEWSHOT_LUCY_703);
-    if (!isIM && !is703) { parts.push(FEWSHOT_FRODENO_IM); parts.push(FEWSHOT_LUCY_703); }
+    else if (is703) parts.push(FEWSHOT_LUCY_703);
+    else if (isTriSprint || isTriOlympique) {
+      // Sprint/Olympique = format court/intermédiaire : Lucy (70.3) est le référentiel structurel
+      // le plus proche (3 sports, ratio bike-dominant, seuil/tempo). Frodeno (IM) écarté :
+      // volumes 22h/sem irréalistes et durabilité longue distance non pertinente.
+      parts.push(FEWSHOT_LUCY_703);
+    } else {
+      parts.push(FEWSHOT_FRODENO_IM); parts.push(FEWSHOT_LUCY_703);
+    }
   } else if (isTrail) {
     parts.push(FEWSHOT_KILIAN_TRAIL_ULTRA);
     parts.push(FEWSHOT_DHAENE_TRAIL_MONTAGNE);
