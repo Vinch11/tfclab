@@ -285,11 +285,12 @@ function buildObjectiveSportLockLines(config: any): string[] {
       `\n### 🚨 VERROU SPORT OBJECTIF — RUNNING ROUTE (${objectiveKey})`,
       `Objectif résolu: ${objective || "N/A"} → ${sport}. Ce plan est un plan **100% course à pied + renforcement/mobilité**.`,
       `- ⛔ NATATION INTERDITE : aucune ligne Sport="Natation", "Swim", "Piscine", "CSS", "crawl".`,
-      `- ⛔ VÉLO INTERDIT : aucune ligne Sport="Vélo", "Cyclisme", "Bike", "Home-trainer", "FTP", "SFR".`,
-      `- ⛔ BRIQUES INTERDITES : aucun enchaînement vélo→CAP, swim→bike, triathlon, transition T1/T2.`,
-      `- ✅ SPORTS AUTORISÉS dans les tableaux : CAP/Course, Renfo/PPG/Mobilité, Repos, Course objectif.`,
-      `- La ligne "Répartition sport" DOIT afficher : CAP 85-90% | Renfo/Mobilité 10-15% | Natation 0% | Vélo 0%.`,
-      `- Si un exemple générique du system prompt parle de triathlon/natation/vélo, tu DOIS l'ignorer pour cet objectif.`,
+      `- ✅ VÉLO AUTORISÉ EN RÉCUPÉRATION ACTIVE UNIQUEMENT : Z1-Z2 (≤75% FTP), 45–75 min, max 1–2×/semaine, lendemain de sortie longue ou de séance CAP qualité. Objectif = flush circulatoire + épargne articulaire.`,
+      `- ⛔ VÉLO QUALITÉ INTERDIT : aucun vélo en Z3+, seuil, VO2, SFR, intervalles, sortie longue vélo, FTP test.`,
+      `- ⛔ BRIQUES INTERDITES : aucun enchaînement vélo→CAP en séance clé, aucun swim→bike, triathlon, transition T1/T2.`,
+      `- ✅ SPORTS AUTORISÉS dans les tableaux : CAP/Course, Renfo/PPG/Mobilité, Vélo Z1-Z2 récup (optionnel), Repos, Course objectif.`,
+      `- La ligne "Répartition sport" DOIT afficher : CAP 82-90% | Renfo/Mobilité 8-15% | Vélo récup 0-5% | Natation 0%.`,
+      `- Si un exemple générique du system prompt parle de triathlon, natation, ou vélo qualité, tu DOIS l'ignorer pour cet objectif.`,
     ];
   }
 
@@ -945,7 +946,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         lines.push(`    Dimanche : CAP EF + strides OU jour repos complet`);
         lines.push(`  → Un jour d'entraînement avec UNE SEULE séance est une ERREUR GRAVE. Ajoute au minimum renfo/core, mobilité ou footing Z1 récup.`);
         if (sportForDoubles === "run_route") {
-          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation, AUCUNE séance de vélo/cyclisme/home-trainer, AUCUNE brique. Doubles/triples = CAP + renfo/mobilité uniquement.`);
+          lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation, AUCUN vélo en qualité (Z3+/seuil/VO2/intervalles/SFR), AUCUNE brique triathlon. ✅ Vélo Z1-Z2 récupération autorisé max 1–2×/sem (45–75min, lendemain SL/qualité). Doubles/triples = CAP + renfo/mobilité principalement.`);
         } else {
           lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE séance de natation dans ce plan. Vélo UNIQUEMENT en récupération Z1-Z2, max 1×/sem, 40-60min, jamais en séance qualité. Toute brique ou séance vélo qualité = erreur bloquante.`);
         }
@@ -1396,7 +1397,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
     lines.push("- Minimum 5 séances CAP/sem : EF, tempo, seuil, SL, fartlek/côtes");
-    lines.push("- Natation 0% et vélo 0% : plan marathon = CAP + renfo/mobilité uniquement");
+    lines.push("- Natation 0% : plan marathon = CAP + renfo/mobilité. Vélo autorisé UNIQUEMENT en récupération active Z1-Z2, max 1–2×/sem (45–75min), jamais en qualité, jamais en brique.");
   } else if (objKeyForRappel === "Semi") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI-MARATHON");
     lines.push("- CAP 85-90% | Renfo 10-15%");
