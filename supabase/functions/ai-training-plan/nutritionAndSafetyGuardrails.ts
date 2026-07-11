@@ -189,27 +189,41 @@ export function buildNutritionAndSafetyBlock(input: GuardrailsInput): string {
     : 75;
 
   const cho = computeCHO(input, objKey, sport, durationH, intensityPct);
-  const weight = input.weightKg ?? 70;
+  const weightForHydration = input.weightKg;
   const heat = !!input.heatCondition;
-  const [hydLo, hydHi] = hydrationRange(sport, weight, heat);
+  const [hydLo, hydHi] = weightForHydration != null
+    ? hydrationRange(sport, weightForHydration, heat)
+    : [0, 0];
   const [naLo, naHi] = sodiumRange(heat, sport);
   const tteAdj = tteAgeAdjust(input.age);
-  const risk = capRiskLevel(input.age, input.vlamaxRun, sport, ambition);
+  // AUDIT #6 — VLamax sport-résolu prioritaire pour capRisk également.
+  const vlamaxForRunRisk = input.vlamax ?? input.vlamaxRun ?? null;
+  const risk = capRiskLevel(input.age, vlamaxForRunRisk, sport, ambition);
 
   const lines: string[] = [];
   lines.push(`\n### 🥗 NUTRITION MADER-HECK & 🛡️ GARDE-FOUS SANTÉ (Diagnostic auto)`);
   lines.push(`Ces prescriptions sont calculées côté serveur à partir du profil réel (Mader-Heck, F26-F31, F33). Elles PRIMENT sur toute règle générique de nutrition ou de charge.`);
 
   lines.push(`\n**Nutrition course (${objKey}, ${sport}, ~${durationH.toFixed(1)}h @ ${intensityPct}% VO₂max${heat ? ", chaleur >28°C" : ""})**`);
-  lines.push(`- Glucides : **${cho.rate} g/h** (cap physiologique ${cho.capMax} g/h, méthode : ${cho.method})`);
-  lines.push(`- Hydratation : **${hydLo}-${hydHi} ml/h** (${weight}kg${heat ? ", chaleur +25%" : ""})`);
+  if (cho.method === "insufficient") {
+    lines.push(`- Glucides : **Données insuffisantes** (VLamax / VO₂max / poids manquants — aucune prescription Mader-Heck possible).`);
+  } else {
+    lines.push(`- Glucides : **${cho.rate} g/h** (cap physiologique ${cho.capMax} g/h, méthode : ${cho.method})`);
+  }
+  if (weightForHydration != null) {
+    lines.push(`- Hydratation : **${hydLo}-${hydHi} ml/h** (${weightForHydration}kg${heat ? ", chaleur +25%" : ""})`);
+  } else {
+    lines.push(`- Hydratation : **Poids athlète non renseigné** — impossible d'individualiser.`);
+  }
   lines.push(`- Sodium : **${naLo}-${naHi} mg/h**${heat ? " (chaleur : +200 à +300 mg)" : ""}`);
   lines.push(`- ⚠️ Chaleur = **+10% CHO déjà intégré** (F30 : ne jamais double-compter dans les séances tardives).`);
   if (durationH >= 6) lines.push(`- 🕐 Événement >6h : tolérance digestive dégradée (−15%), prévoir gut training progressif dès Phase Build.`);
   if (objKey === "10K" || objKey === "5K" || objKey === "StartToRun") {
     lines.push(`- 🥤 Événement court (<1h) : plancher CHO = 0 (F31), aucune obligation en course. Séances longues (>1h30) suivent le taux ci-dessus.`);
   }
-  lines.push(`- 📚 Séances "nutrition sim" en Race-Specific : reproduire ce taux exact (${cho.rate}g/h + ${hydLo}-${hydHi}ml/h).`);
+  if (cho.method !== "insufficient") {
+    lines.push(`- 📚 Séances "nutrition sim" en Race-Specific : reproduire ce taux exact (${cho.rate}g/h${weightForHydration != null ? ` + ${hydLo}-${hydHi}ml/h` : ""}).`);
+  }
 
   lines.push(`\n**TTE âge-ajusté (F33)**`);
   if (input.age) {
