@@ -39,7 +39,7 @@ export type AmbitionLevel =
   | "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER" | "WORLD_CLASS"
   | "elite" | "competitor" | "age_group" | "finisher" | "world_class";
 
-type AmbitionLevelNormalized = "WORLD_CLASS" | "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER";
+export type AmbitionLevelNormalized = "WORLD_CLASS" | "ELITE" | "COMPETITOR" | "AGE_GROUP" | "FINISHER";
 
 function normalizeAmbition(a: AmbitionLevel | null | undefined): AmbitionLevelNormalized {
   if (!a) return "COMPETITOR";
