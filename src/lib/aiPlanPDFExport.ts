@@ -384,7 +384,7 @@ function buildPlanHTML(
         ${hasDate ? `<td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;font-size:11px;color:#4b5563;vertical-align:top;font-weight:500;">${dateStr}</td>` : ""}
         <td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;vertical-align:top;font-weight:600;color:#374151;">${s.dayName}</td>
         <td style="padding:6px 10px;border:1px solid #d1d5db;vertical-align:top;">${getSportBadge(s.sport)}</td>
-        <td style="padding:6px 10px;border:1px solid #d1d5db;font-weight:600;vertical-align:top;color:#1f2937;">${s.title}</td>
+        <td style="padding:6px 10px;border:1px solid #d1d5db;font-weight:600;vertical-align:top;color:#1f2937;">${renderTitleForPDF(s.title)}</td>
         <td style="padding:6px 10px;border:1px solid #d1d5db;font-size:11px;vertical-align:top;word-wrap:break-word;color:#4b5563;line-height:1.5;">${s.details}</td>
       </tr>
       ${ficheRow}
