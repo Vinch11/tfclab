@@ -79,11 +79,14 @@ function getPhaseColor(phase: RunningPhase): string {
   return colors[phase] || "bg-muted text-muted-foreground";
 }
 
-// Default athlete truth for scoring when no athlete data is available
+// Default athlete truth for scoring when no athlete data is available.
+// Politique projet (insufficient-data-no-fake-defaults) : on N'INVENTE PAS
+// de valeurs physio plausibles. On expose 0/confidence=0 pour que le scoring
+// downstream applique la logique "Données insuffisantes" au lieu d'un choix biaisé.
 function getDefaultAthleteTruth(): AthleteTruthRunning {
   return {
-    vlamax_run: { value: 0.4, confidence: 0.5, source: "default" },
-    tte_run: { value: 50, confidence: 0.5, source: "default" },
+    vlamax_run: { value: 0, confidence: 0, source: "default" },
+    tte_run: { value: 0, confidence: 0, source: "default" },
     fatigueIndex: 40,
     fatigueLevel: "MODERE",
     runInjuryRisk: { score: 30, level: "FAIBLE" },
@@ -93,6 +96,7 @@ function getDefaultAthleteTruth(): AthleteTruthRunning {
     objectif: "marathon",
   };
 }
+
 
 // =============================================
 // WEEK SUGGESTION CARD

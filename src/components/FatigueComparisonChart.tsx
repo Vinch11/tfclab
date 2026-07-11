@@ -94,6 +94,7 @@ export function FatigueComparisonChart({
         tss_7d: snap.tss_7d,
         tte_mode: snap.tte_mode,
         tte_observed_min: snap.tte_observed_min,
+        tte_observed_min_run: (snap as any).tte_observed_min_run ?? null,
         objectif,
       });
 

@@ -192,15 +192,17 @@ export function TwoForCoachingAnalysis({
     fatigue_ok: false
   });
 
-  // ✅ VLamax EFFECTIF - Utilise la prop si fournie, sinon fallback 0.45
-  const vlamaxEffectif = vlamaxEffectifProp ?? { 
-    value: 0.45, 
-    source: "unknown" as const, 
-    confidence: 0.2, 
-    label: "VLamax (fallback)" 
+  // Politique projet (insufficient-data-no-fake-defaults) : pas de 0.45 factice.
+  // Absence de donnée → value=0, confidence=0, l'UI affiche "Données insuffisantes".
+  const vlamaxEffectif = vlamaxEffectifProp ?? {
+    value: 0,
+    source: "unknown" as const,
+    confidence: 0,
+    label: "VLamax (données insuffisantes)"
   };
-  
-  const vlamax = vlamaxEffectif.value ?? 0.45;
+
+  const vlamax = vlamaxEffectif.value ?? 0;
+
 
   // ✅ TTE EFFECTIF - Utilise la prop si fournie
   const tteEffectif = tteEffectifProp ?? {

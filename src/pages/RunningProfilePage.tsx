@@ -182,13 +182,16 @@ export default function RunningProfilePage() {
   // TTE Effectif
   const tteEffectif = useMemo(() => {
     return computeTTEEffectif({
+      sport: "run", // page 100% run
       tte_mode: effectiveCloudSnapshot?.tte_mode ?? null,
       tte_observed_min: effectiveCloudSnapshot?.tte_observed_min ?? null,
+      tte_observed_min_run: (effectiveCloudSnapshot as any)?.tte_observed_min_run ?? null,
       ftp: effectiveRefs.ftp,
       objectif: athleteGoal,
       age: athleteAge, // F33
     });
   }, [effectiveCloudSnapshot, effectiveRefs, athleteGoal, athleteAge]);
+
 
   // Fatigue Effectif — snapshot-centric (fatigue_state → score numérique)
   const fatigueResult = useMemo(() => {

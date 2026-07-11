@@ -288,20 +288,23 @@ export function createRunningPhysioProfile(input: CreateProfileInput): RunningPh
     
     vo2max_run: {
       value: input.vo2max ?? 0,
-      confidence: input.vo2max_confidence ?? 0.5,
+      confidence: input.vo2max != null ? (input.vo2max_confidence ?? 0.5) : 0,
       source: input.vo2max_source ?? "estimation",
     },
     vlamax_run: {
-      value: input.vlamax_cap ?? 0.35,
-      range: { min: (input.vlamax_cap ?? 0.35) * 0.9, max: (input.vlamax_cap ?? 0.35) * 1.1 },
-      confidence: input.vlamax_confidence ?? 0.5,
+      value: input.vlamax_cap ?? 0,
+      range: input.vlamax_cap != null
+        ? { min: input.vlamax_cap * 0.9, max: input.vlamax_cap * 1.1 }
+        : { min: 0, max: 0 },
+      confidence: input.vlamax_cap != null ? (input.vlamax_confidence ?? 0.5) : 0,
       source: input.vlamax_source ?? "estimation",
     },
     durability_run: {
-      value: input.durability_min ?? 45,
-      confidence: input.durability_confidence ?? 0.5,
+      value: input.durability_min ?? 0,
+      confidence: input.durability_min != null ? (input.durability_confidence ?? 0.5) : 0,
       source: "estimation",
     },
+
     economy_run: input.economy_score !== undefined ? {
       value: input.economy_score,
       confidence: 0.6,

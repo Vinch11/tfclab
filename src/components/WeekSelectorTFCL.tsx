@@ -140,6 +140,7 @@ export function WeekSelectorTFCL({ onInsertWeek, defaultRaceType }: WeekSelector
       tss_7d: activeSnapshot.tss_7d,
       tte_mode: activeSnapshot.tte_mode,
       tte_observed_min: activeSnapshot.tte_observed_min,
+      tte_observed_min_run: (activeSnapshot as any).tte_observed_min_run ?? null,
       objectif,
     });
 
