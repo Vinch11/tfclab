@@ -8,6 +8,32 @@ import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, maybeDowngradeBikeSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
+import { parseSessionTitle } from "@/lib/parseSessionTitle";
+
+const SPORT_TAG_TOKENS = new Set([
+  "BIKE", "VÉLO", "VELO", "RUN", "CAP", "COURSE", "SWIM", "NAT", "NATATION",
+  "TRAIL", "BRICK", "TRI", "STRENGTH", "FORCE", "REST",
+]);
+const LORANG_COLORS: Record<string, string> = {
+  A: "#dc2626", B: "#ea580c", C: "#2563eb", D: "#16a34a",
+};
+function renderTitleForPDF(rawTitle: string): string {
+  const parsed = parseSessionTitle(rawTitle);
+  const badges: string[] = [];
+  if (parsed.lorangCategory) {
+    const c = LORANG_COLORS[parsed.lorangCategory] ?? "#6b7280";
+    badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:${c};color:#fff;font-size:9px;font-weight:700;margin-right:4px;">${parsed.lorangCategory}</span>`);
+  }
+  for (const tag of parsed.tags) {
+    if (tag === parsed.lorangCategory) continue;
+    if (tag === parsed.catalogId) continue;
+    if (SPORT_TAG_TOKENS.has(tag.toUpperCase())) continue;
+    badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:#e5e7eb;color:#374151;font-size:9px;font-weight:600;margin-right:4px;">${tag}</span>`);
+  }
+  const clean = parsed.cleanTitle
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `${badges.join("")}<span>${clean}</span>`;
+}
 
 const REFERENCE_VOLUMES_PDF: Record<string, Partial<Record<string, [number, number]>>> = {
   "5K":       { finish: [3, 5],  perf: [5, 7],  sub: [6, 9],   elite: [8, 12],  world_class: [10, 14] },
