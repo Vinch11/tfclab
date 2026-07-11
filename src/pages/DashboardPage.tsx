@@ -494,6 +494,7 @@ export default function DashboardPage() {
   const { 
     vlamaxEffectif, 
     tteEffectif, 
+    tteEffectifRun,
     potentielPhysiologique, 
     nutritionEstimate,
     fatigueEffectif,
