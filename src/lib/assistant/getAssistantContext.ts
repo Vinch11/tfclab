@@ -344,7 +344,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     tss_7d: effectiveSnapshot.tss_7d ?? null,
     tte_mode: effectiveSnapshot.tte_mode ?? "LOAD",
     tte_observed_min: effectiveSnapshot.tte_observed_min ?? null,
-    tte_observed_min_run: (effectiveSnapshot as any).tte_observed_min_run ?? null ?? null,
+    tte_observed_min_run: (effectiveSnapshot as any).tte_observed_min_run ?? null,
     objectif: athlete?.goal || "IM",
     age: athleteAge, // F33
   }) : null;
