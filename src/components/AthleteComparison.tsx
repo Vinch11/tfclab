@@ -29,9 +29,9 @@ export function AthleteComparison({ athletes }: AthleteComparisonProps) {
   // Calculer les données pour chaque athlète
   const athletesData = athletes.map(athlete => {
     const snapshot = getDernierSnapshot(athlete);
-    const vlamax = snapshot 
-      ? calculVLamaxAvecConfiance(snapshot, athlete.objectif).vlamax 
-      : 0;
+    // AUDIT #6 — Résolveur sport-aware (CAP-estimator pour run/trail, vélo sinon)
+    // au lieu du legacy calculVLamaxAvecConfiance qui n'a pas la chaîne CAP.
+    const vlamax = snapshot ? (getVlamaxForGoal(snapshot as any, { goal: athlete.objectif }) ?? 0) : 0;
     const score = calculerScoreGlobal(athlete);
     const badges = genererBadges(athlete).filter(b => b.obtenu);
     
