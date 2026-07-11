@@ -749,6 +749,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     snapshotDate,
     vlamaxEffectif,
     tteEffectif,
+    tteEffectifRun,
     readiness,
     nutritionEstimate,
     runningEconomy,
