@@ -4552,7 +4552,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <td>${tte.tte_min} min</td>
               <td><span class="badge ${tteStatus.cssClass}">${tteStatus.icon} ${tteStatus.label}</span></td>
               <td><span class="badge ${tte.confidence >= 0.7 ? 'badgeSuccess' : tte.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${tte.confidence >= 0.7 ? 'Élevée' : tte.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
-              <td class="muted">${tte.tte_min >= (tte.target ?? 50) ? "Indicateur de durabilité satisfaisant pour l'objectif." : `Indicateur de durabilité insuffisant (cible: ${tte.target ?? 50} min) — axe de travail potentiel.`}</td>
+              <td class="muted">${tte.target == null ? "Cible TTE : données insuffisantes — pas d'évaluation possible." : tte.tte_min >= tte.target ? "Indicateur de durabilité satisfaisant pour l'objectif." : `Indicateur de durabilité insuffisant (cible: ${tte.target} min) — axe de travail potentiel.`}</td>
             </tr>
             ${showTteRun ? `<tr>
               <td><b>TTE CAP</b></td>
