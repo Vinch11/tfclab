@@ -6595,11 +6595,16 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           }
           <br><br>
           ${tte.target == null
-            ? `<b>TTE (${tte.tte_min} min)</b> — cible objectif indisponible (données insuffisantes) → recommandation neutre : maintenir un mix Z2/Z3/Z4a.`
+            ? `<b>TTE${showTteRun ? ' vélo' : ''} (${tte.tte_min} min)</b> — cible objectif indisponible (données insuffisantes) → recommandation neutre : maintenir un mix Z2/Z3/Z4a.`
             : tte.tte_min < tte.target
-            ? `<b style="color:var(--warning)">TTE insuffisant (${tte.tte_min} min vs cible ${tte.target} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
-            : `<b style="color:var(--success)">TTE satisfaisant (${tte.tte_min} min)</b> → Maintenir avec du travail Z2/Z3 de fond.`
+            ? `<b style="color:var(--warning)">TTE${showTteRun ? ' vélo' : ''} insuffisant (${tte.tte_min} min vs cible ${tte.target} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
+            : `<b style="color:var(--success)">TTE${showTteRun ? ' vélo' : ''} satisfaisant (${tte.tte_min} min)</b> → Maintenir avec du travail Z2/Z3 de fond.`
           }
+          ${showTteRun && tteRun.target != null ? `<br><br>${
+            tteRun.tte_min < tteRun.target
+              ? `<b style="color:var(--warning)">TTE run insuffisant (${tteRun.tte_min} min vs cible ${tteRun.target} min)</b> → intégrer des sorties longues à allure marathon + finish rapide.`
+              : `<b style="color:var(--success)">TTE run satisfaisant (${tteRun.tte_min} min)</b> → maintenir avec des sorties longues Z2 dominantes.`
+          }` : ''}
         </p>
       </div>
     </section>
