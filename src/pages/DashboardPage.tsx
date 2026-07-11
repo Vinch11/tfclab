@@ -707,6 +707,11 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-blue-500" />
               <span className="font-semibold">TTE effectif</span>
+              {tteEffectifRun?.source === "observed" && (
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
+                  vélo
+                </span>
+              )}
             </div>
             {getStatusBadge(tteStatus.status, tteStatus.label)}
           </div>
@@ -718,6 +723,21 @@ export default function DashboardPage() {
               (cible: {tteTarget} min)
             </span>
           </div>
+
+          {tteEffectifRun?.source === "observed" && (
+            <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap pt-1 border-t border-dashed">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground mr-1">
+                CAP
+              </span>
+              <span className="text-xl sm:text-2xl font-bold font-mono">{tteEffectifRun.tte_min}</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">min</span>
+              {tteEffectifRun.target != null && (
+                <span className="text-xs sm:text-sm text-muted-foreground ml-1 sm:ml-2">
+                  (cible: {tteEffectifRun.target} min)
+                </span>
+              )}
+            </div>
+          )}
           
           <Progress 
             value={Math.min(100, (tteEffectif.tte_min / tteTarget) * 100)} 
