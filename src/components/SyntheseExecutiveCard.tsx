@@ -184,7 +184,24 @@ export function SyntheseExecutiveCard({
   
   if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") {
     const eval_ = evaluateTTE(tteEffectif.tte_min, objectif, ambition, athleteAge);
-    items.push({ label: "TTE", value: `${tteEffectif.tte_min} min`, status: eval_.status, source: tteEffectif.source, target: eval_.target });
+    const hasRun = tteEffectifRun && tteEffectifRun.source === "observed" && tteEffectifRun.tte_min > 0;
+    items.push({
+      label: hasRun ? "TTE vélo" : "TTE",
+      value: `${tteEffectif.tte_min} min`,
+      status: eval_.status,
+      source: tteEffectif.source,
+      target: eval_.target,
+    });
+    if (hasRun) {
+      const evalRun = evaluateTTE(tteEffectifRun!.tte_min, objectif, ambition, athleteAge);
+      items.push({
+        label: "TTE CAP",
+        value: `${tteEffectifRun!.tte_min} min`,
+        status: evalRun.status,
+        source: tteEffectifRun!.source,
+        target: evalRun.target,
+      });
+    }
   }
   
   if (ftpKgStr) {
