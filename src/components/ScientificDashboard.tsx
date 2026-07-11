@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bike, Footprints, Waves, BookOpen, Zap, Heart, Timer, Target } from "lucide-react";
 import { SnapshotNolio, SportType, estimerTTESport } from "@/types/snapshotNolio";
 import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
+import { getVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { seancesParSport, determinerPriorite, Seance } from "@/types/seances";
 import { ObjectifType } from "@/types/athlete";
 
