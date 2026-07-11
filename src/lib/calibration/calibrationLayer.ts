@@ -430,9 +430,15 @@ export function blendOutputs(
   if (modelled.fatmax) {
     // FatMax dépend de VLamax effective et TTE effective
     // Recalcul simplifié: si VLamax plus basse → FatMax plus haute
-    const vlamaxDelta = (vlamaxEffective.value ?? 0.45) - (modelled.vlamax.value ?? 0.45);
-    const fatmaxAdjustment = -vlamaxDelta * 10; // ~10W de FatMax par 0.1 de VLamax
-    
+    // Politique projet (insufficient-data-no-fake-defaults) : si l'une des VLamax
+    // manque, on court-circuite le recalcul plutôt que faker delta=0.
+    const vlamaxEffValue = vlamaxEffective.value ?? null;
+    const vlamaxModValue = modelled.vlamax.value ?? null;
+    const hasBothVlamax = vlamaxEffValue != null && vlamaxEffValue > 0
+                       && vlamaxModValue != null && vlamaxModValue > 0;
+    const vlamaxDelta = hasBothVlamax ? (vlamaxEffValue! - vlamaxModValue!) : 0;
+    const fatmaxAdjustment = hasBothVlamax ? -vlamaxDelta * 10 : 0; // ~10W par 0.1 de VLamax
+
     fatmaxMetric = {
       modelled: modelled.fatmax,
       tested: null,
@@ -443,6 +449,7 @@ export function blendOutputs(
       },
       weight_test: vlamaxWeightTest * 0.5,
       delta: fatmaxAdjustment,
+
       calibrationImpact: {
         confidenceBoost: vlamaxImpact.confidenceBoost * 0.5,
         precisionBoost: vlamaxImpact.precisionBoost * 0.5,
