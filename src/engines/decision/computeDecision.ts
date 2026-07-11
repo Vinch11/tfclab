@@ -56,17 +56,36 @@ export function computeDecision(input: DecisionInput): TrainingPrescription {
   const raceSimulation = input.raceSimulationInput
     ? (() => {
         try {
+          const normalizedRaceType = normalizeRaceType(input.raceSimulationInput!.raceType);
+          // Race sim doit utiliser le TTE de la discipline dominante de la course.
+          // Pour Marathon / Semi / 10km → run TTE, sinon TTE bike (diagnostic).
+          const isRunOnlyRace = normalizedRaceType === "Marathon"
+            || normalizedRaceType === "Semi"
+            || normalizedRaceType === "10km";
+          const raw = diagnostic._rawInput;
+          const tteForSim = isRunOnlyRace
+            ? computeTTEEffectif({
+                ftp: raw.ftp,
+                tss_7d: raw.tss7d,
+                tte_mode: raw.tteMode,
+                tte_observed_min: raw.tteObservedMin,
+                tte_observed_min_run: raw.tteObservedMinRun ?? null,
+                sport: "run",
+                objectif: raw.objectif,
+                age: raw.age,
+              })
+            : diagnostic.effectifs.tte;
           return computeRaceSimulation({
-            raceType: normalizeRaceType(input.raceSimulationInput!.raceType),
+            raceType: normalizedRaceType,
             heat: input.raceSimulationInput!.heat,
             terrain: input.raceSimulationInput!.terrain,
             plannedCarbsGH: input.raceSimulationInput!.plannedCarbsGH,
             ambition: (diagnostic.ambition as any) ?? "perf",
             vlamaxEffectif: diagnostic.effectifs.vlamax.value,
             vlamaxConfidence: diagnostic.effectifs.vlamax.confidence,
-            vlamaxDiscipline: diagnostic.sportFocus === "run" ? "run" : "bike",
-            tteMin: diagnostic.effectifs.tte.tte_min,
-            tteConfidence: diagnostic.effectifs.tte.confidence,
+            vlamaxDiscipline: isRunOnlyRace || diagnostic.sportFocus === "run" ? "run" : "bike",
+            tteMin: tteForSim.tte_min,
+            tteConfidence: tteForSim.confidence,
             fatmaxCenterPct: diagnostic._rawInput.fatmax,
             fatmaxRange: null,
             disponibiliteScore: diagnostic.readiness.availability.score,
