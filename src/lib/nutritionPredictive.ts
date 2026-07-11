@@ -319,7 +319,7 @@ function computeNutritionalRiskIndex(params: {
   }
 
   // Ajustement si TTE faible
-  if (tteMin !== null && tteMin < tteTarget * 0.7 && level !== 'critical') {
+  if (tteMin !== null && tteTarget !== null && tteMin < tteTarget * 0.7 && level !== 'critical') {
     if (level === 'low') {
       level = 'moderate';
       label = 'Modéré';
