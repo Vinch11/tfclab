@@ -1503,6 +1503,17 @@ function buildExportPayload(
     label: `TTE (${diagnostic.effectifs.tte.source})`,
   } : tteLegacy;
 
+  // TTE CAP (run) séparé — affiché en complément pour triathlètes si observé
+  const tteRun: TTEEffectif = computeTTEEffectif({
+    ftp: effectiveRefs.ftp,
+    tss_7d: effectiveSnapshot?.tss_7d,
+    tte_observed_min_run: (effectiveSnapshot as any)?.tte_observed_min_run ?? null,
+    sport: "run",
+    objectif: athlete.goal || "IM",
+    age: athleteAge,
+  });
+  const showTteRun = tteRun.source === "observed" && tteRun.tte_min > 0;
+
   // ✅ P1 — Score Potentiel Physiologique aligné sur le moteur Diagnostic V2
   // Source unique de vérité : `diagnostic.readiness` + `diagnostic.synthesis` (mêmes valeurs que le Dashboard).
   // Fallback sur le stub legacy uniquement si le diagnostic n'a pas pu être calculé (snapshot manquant).
