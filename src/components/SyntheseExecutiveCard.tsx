@@ -120,7 +120,7 @@ function computeGlobalScore(pillarScores: (number | null)[]): number {
 }
 
 export function SyntheseExecutiveCard({
-  athleteName, objectif, vlamaxEffectif, tteEffectif, limiterResult,
+  athleteName, objectif, vlamaxEffectif, tteEffectif, tteEffectifRun, limiterResult,
   ftp, poids, vo2max, completude, ambition = DEFAULT_AMBITION, athleteAge, sportFocus
 }: SyntheseExecutiveCardProps) {
   const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
