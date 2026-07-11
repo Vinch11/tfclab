@@ -6580,8 +6580,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               : `<b>Profil équilibré</b> → Répartition standard avec focus sur les zones correspondant à votre objectif (${getObjectifLabel(athlete.goal)}).`
           }
           <br><br>
-          ${tte.tte_min < (tte.target ?? 50) 
-            ? `<b style="color:var(--warning)">TTE insuffisant (${tte.tte_min} min vs cible ${tte.target ?? 50} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
+          ${tte.target == null
+            ? `<b>TTE (${tte.tte_min} min)</b> — cible objectif indisponible (données insuffisantes) → recommandation neutre : maintenir un mix Z2/Z3/Z4a.`
+            : tte.tte_min < tte.target
+            ? `<b style="color:var(--warning)">TTE insuffisant (${tte.tte_min} min vs cible ${tte.target} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
             : `<b style="color:var(--success)">TTE satisfaisant (${tte.tte_min} min)</b> → Maintenir avec du travail Z2/Z3 de fond.`
           }
         </p>
