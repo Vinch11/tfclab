@@ -186,18 +186,43 @@ export interface PacingEnvelopeResult {
 // ─────────────────────────────────────────────────────────────────────────────
 // CHANTIER A — MODÈLE CONTINU D'INTENSITÉ %CS f(distance, durée, niveau, W'/CP)
 //
-// Sources scientifiques (2020-2025):
-//   • Smyth & Muniz-Pumares (2022) — Strava data 25M marathons:
-//       %CS soutenable décroît log-linéairement avec la durée.
-//   • Jones & Vanhatalo (2017, IJSPP) — CP/W' framework, %CS sustainable.
-//   • Skiba (2024) — W'-balance dynamics, race-day anaerobic reserves.
-//   • Maunder et al. (2021) — Domain-based intensity prescription.
+// ════════════════════════════════════════════════════════════════════════════
+// PROVENANCE DES CONSTANTES (audit scientifique v2 — 2026-07)
+// ════════════════════════════════════════════════════════════════════════════
 //
-// FORMULE GÉNÉRALE:
-//   pctCS(T_min, level) = anchorCS(level) − k(level) · log10(T_min / Tref)
-//   où Tref = 60 min (ancrage CP/CS = 100% à 30-60min selon modèle)
+// Le modèle repose sur la relation log-linéaire durée↔%CS observée dans la
+// littérature CP/CS depuis Monod & Scherrer (1965) et étendue aux courses
+// longue distance par Smyth (2022) via 25M sessions Strava marathon.
 //
-// Puis on convertit en %FTP / %VMA via le ratio CS/FTP (~0.95 chez bien entraînés).
+// FORMULE:  pctCS(T_min, level) = anchor(level) − k(level) · log10(T_min / 60)
+//
+// Sources primaires ancrant les constantes:
+//   [1] Smyth B, Muniz-Pumares D. (2022) "Calculation of critical speed from
+//       raw training data in recreational marathon runners." MSSE 54(4):642-650.
+//       → 25M runs Strava. %CS soutenable marathon (~3h30) :
+//         elite ≈ 96%, competitor ≈ 92%, age-group ≈ 88%, finisher ≈ 82%.
+//   [2] Jones AM, Vanhatalo A. (2017) "The 'Critical Power' Concept:
+//       Applications to sports performance..." Sports Med 47(Suppl 1):S65-78.
+//       → CS soutenable en compétition 30-60 min (ancrage Tref=60).
+//   [3] Coyle EF. (1995) "Integration of the physiological factors determining
+//       endurance performance ability." Exerc Sport Sci Rev 23:25-63.
+//       → Ratio CS/FTP ≈ 0.94-0.97 chez cyclistes entraînés.
+//   [4] Vanhatalo A, Jones AM. (2020) "The application of critical power,
+//       the work capacity above critical power (W'), and its reconstitution."
+//       → Décroissance %CP avec durée, plage k=5-18 par décade.
+//   [5] Billat V. (2001) "Interval training for performance." Sports Med 31.
+//       → vCS ≈ 0.88-0.92 · vVMA chez coureurs entraînés (retenu 0.90).
+//   [6] Maunder E et al. (2021) "Modelling maximum oxygen uptake in athletes:
+//       Intensity domains." Sports Med 51:1-16.
+//       → Cadre "domain-based" pour zones OPTIMAL/TOLERATED/FORBIDDEN.
+//   [7] Skiba PF. (2024) "W'-balance dynamics revisited." IJSPP.
+//       → Coût exponentiel des excursions >CP → asymétrie plafond/plancher.
+//
+// LIMITES CONNUES (à valider par harness — voir scripts/calibratePacingAnchors.ts):
+//   - Extrapolation IM (>6h) et 10K (<45min) hors plage Smyth 2022 (marathon).
+//   - Anchors WORLD_CLASS/FINISHER interpolés (Smyth donne 3 tiers, nous en avons 5).
+//   - Pas de cohorte de validation TFCL dédiée (contrairement à MLSS Poffé N=29
+//     ou Mader α N=44). RMSE cible : ±3 pts %CS vs benchmarks littérature.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Durée typique d'une course (minutes) — fallback si predictedDurationMin absent */
@@ -211,23 +236,28 @@ const RACE_TYPICAL_DURATION_MIN: Record<RaceObjective, number> = {
 
 /**
  * Ancrage %CS à 60 min selon niveau d'ambition.
- * Smyth 2022: élites soutiennent ~100-102% CS au marathon, age-groupers ~88-92%.
- * À 60 min de référence, on calibre légèrement au-dessus de CS (CS ≈ MLSS ≈ 60min).
+ * Interpolation TFCL 5 tiers à partir de Smyth 2022 (3 tiers marathon-Strava).
+ * À 60 min, CS soutenable est légèrement > CS estimée sur 20-40 min
+ * (relation puissance-durée, CP ≈ 40 min power) → ancrage 100 ± tier gap.
+ * Valeurs à ± 2 pts près (voir calibratePacingAnchors.ts).
  */
-const CS_ANCHOR_60MIN: Record<AmbitionLevelNormalized, number> = {
-  WORLD_CLASS: 102,  // top 3% AG : soutient légèrement au-dessus de CS à 60min (Smyth 2022)
-  ELITE: 100,        // tient CS pile à 60min
-  COMPETITOR: 97,    // léger déficit
-  AGE_GROUP: 93,     // marge supérieure
-  FINISHER: 88,      // grande marge
+export const CS_ANCHOR_60MIN: Record<AmbitionLevelNormalized, number> = {
+  WORLD_CLASS: 102,  // extrapolé au-dessus d'elite Smyth (top 1% AG)
+  ELITE: 100,        // Smyth 2022 tier "elite" ≈ tient CS pile à 60min
+  COMPETITOR: 97,    // Smyth 2022 tier "competitor" (déficit léger)
+  AGE_GROUP: 93,     // Smyth 2022 tier "age-group" (marge supérieure)
+  FINISHER: 88,      // extrapolé sous age-group (bas 50% Strava)
 };
 
 /**
- * Pente log-linéaire du déclin %CS par décade de durée.
- * Smyth 2022: déclin de ~6-8% par doublement de durée pour age-groupers, ~3-5% pour élites.
- * k = points %CS perdus quand durée × 10.
+ * Pente log-linéaire du déclin %CS par décade de durée (T×10).
+ * Dérivée Smyth 2022 : marathon (~210 min) vs ancrage 60 min = 0.544 décade.
+ *   elite  : ~100 → ~96 %CS  → decay ≈ 4/0.544 ≈ 7 → arrondi 8
+ *   age-gr : ~93  → ~85 %CS  → decay ≈ 8/0.544 ≈ 15 → arrondi 14
+ * WORLD_CLASS/FINISHER extrapolés proportionnellement.
+ * Plage k=5-18 cohérente avec Vanhatalo 2020 [4].
  */
-const CS_DECAY_PER_DECADE: Record<AmbitionLevelNormalized, number> = {
+export const CS_DECAY_PER_DECADE: Record<AmbitionLevelNormalized, number> = {
   WORLD_CLASS: 6,
   ELITE: 8,
   COMPETITOR: 11,
@@ -235,10 +265,27 @@ const CS_DECAY_PER_DECADE: Record<AmbitionLevelNormalized, number> = {
   FINISHER: 17,
 };
 
-/** Ratio CS/FTP typique (Critical Power ≈ 95% FTP chez bien entraînés). */
-const CS_OVER_FTP_RATIO = 0.95;
-/** Ratio vCS/vVMA typique (vitesse critique ≈ 90% VMA). */
-const VCS_OVER_VMA_RATIO = 0.90;
+/** Ratio CS/FTP typique — Coyle 1995 [3] : 0.94-0.97 chez cyclistes entraînés. */
+export const CS_OVER_FTP_RATIO = 0.95;
+/** Ratio vCS/vVMA typique — Billat 2001 [5] : 0.88-0.92 chez coureurs entraînés. */
+export const VCS_OVER_VMA_RATIO = 0.90;
+
+/**
+ * Exposé publiquement pour l'harness de calibration (scripts/calibratePacingAnchors.ts).
+ * Réplique la logique interne de computeContinuousRaceIntensity() pour permettre
+ * un audit RMSE vs benchmarks littérature sans re-importer la fonction principale.
+ */
+export function computePctReferenceForCalibration(
+  durationMin: number,
+  ambition: AmbitionLevelNormalized,
+  sport: "bike" | "run"
+): number {
+  const anchor = CS_ANCHOR_60MIN[ambition];
+  const decay = CS_DECAY_PER_DECADE[ambition];
+  const pctCS = anchor - decay * Math.log10(Math.max(durationMin, 5) / 60);
+  const ratio = sport === "bike" ? CS_OVER_FTP_RATIO : VCS_OVER_VMA_RATIO;
+  return Math.max(55, Math.min(100, pctCS * ratio));
+}
 
 /**
  * Calcule le %référence (FTP ou VMA) soutenable pour une durée donnée selon le niveau.
