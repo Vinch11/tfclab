@@ -42,22 +42,24 @@ export interface MetabolicProfile {
 
 // Calcule le profil métabolique à partir de VLamax et VO2max
 export function deriveMetabolicProfile(vlamax: number | null, vo2max: number | null): MetabolicProfile {
-  if (vlamax == null && vo2max == null) {
-    return { profile: "Inconnu", score: null };
+  // F41 — insufficient-data guard: pas de fake defaults (0.38 / 55).
+  // Si une des deux valeurs physio manque, on ne devine pas un profil.
+  if (vlamax == null || vo2max == null) {
+    return { profile: "Données insuffisantes", score: null };
   }
-  
-  const v = vlamax ?? 0.38; // centre par défaut
-  const o = vo2max ?? 55;
-  
+
+  const v = vlamax;
+  const o = vo2max;
+
   // Score: 0-100 (plus haut = aérobie favorable)
   const score = Math.max(0, Math.min(100, 65 + (o - 55) * 1.2 - (v - 0.38) * 120));
-  
+
   let profile = "Mixte";
   if (v >= 0.45) profile = "Glycolytique (VLamax haute)";
   if (v <= 0.30) profile = "Oxydatif (VLamax basse)";
   if (score >= 75) profile = "Aérobie très favorable";
   if (score <= 45) profile = "Aérobie limitée / glycolyse dominante";
-  
+
   return { profile, score: Math.round(score) };
 }
 
