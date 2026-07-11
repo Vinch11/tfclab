@@ -280,7 +280,7 @@ export function computeEssentielsData(args: {
         value: tteEff && tteEff.tte_min > 0 ? tteEff.tte_min : null,
         unit: "min",
         decimals: 0,
-        target: tteEff?.target != null ? [tteEff.target, tteEff.target + 20] : null,
+        target: tteEff?.target != null ? [tteEff.target, tteEff.target + 20] : undefined,
         scale: [10, 90],
         direction: "higher",
       },
