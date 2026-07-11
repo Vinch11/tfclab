@@ -314,7 +314,8 @@ export default function TrackDayPage() {
   }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
   const canCreateSnapshot =
-    !!currentAthlete && calc.vmaConfirmee > 0 && calc.vlamaxEst > 0;
+    !!currentAthlete && calc.vmaConfirmee > 0;
+
 
   const handleCreateSnapshot = async () => {
     if (!currentAthlete) {
