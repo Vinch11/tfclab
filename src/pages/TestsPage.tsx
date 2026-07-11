@@ -131,7 +131,74 @@ export default function TestsPage() {
       enrichedRawData as Json,
       null
     );
-    
+
+    // === Écriture directe au snapshot (parité avec FIT / CAPTestSheet / labo) ===
+    // TTE / FatMax / Économie / VLamax haute confiance -> propager au snapshot actif
+    if (currentSnapshot) {
+      const snapshotUpdates: Record<string, unknown> = {};
+      const isRun = activeTest.sport === "run";
+
+      if (activeTest.category === "TTE" && tteMinutes && tteMinutes > 0) {
+        if (isRun) {
+          snapshotUpdates.tte_observed_min_run = tteMinutes;
+        } else {
+          snapshotUpdates.tte_observed_min = tteMinutes;
+        }
+        snapshotUpdates.tte_mode = "OBSERVED";
+      }
+
+      if (activeTest.category === "ECONOMY" && economyScore && economyScore > 0 && isRun) {
+        snapshotUpdates.run_economy_score = economyScore;
+      }
+
+      // VLamax haute confiance (labo/protocole propre) écrase la valeur snapshot
+      if (activeTest.category === "VLAMAX" && estimatedVlamax && confidence >= 0.75) {
+        if (isRun) {
+          snapshotUpdates.vlamax_run = estimatedVlamax;
+        } else {
+          snapshotUpdates.vlamax = estimatedVlamax;
+        }
+      }
+
+      if (Object.keys(snapshotUpdates).length > 0) {
+        try {
+          await updateSnapshot(currentSnapshot.id, snapshotUpdates);
+        } catch (e) {
+          if (import.meta.env.DEV) console.error("snapshot update from test failed", e);
+        }
+      }
+    }
+
+    // === Persistance dans calibration_evidence (fenêtre glissante 42j) ===
+    try {
+      const evidenceType =
+        activeTest.category === "VLAMAX" ? "SPRINT_15S" :
+        activeTest.category === "TTE" ? "TTE_OBS" :
+        activeTest.category === "FATMAX" ? "FATMAX" :
+        activeTest.category === "ECONOMY" ? "ECONOMY" :
+        "P30";
+
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      if (userId) {
+        await supabase.from("calibration_evidence").insert({
+          athlete_id: selectedAthlete.id,
+          coach_id: userId,
+          date: new Date().toISOString().slice(0, 10),
+          source_type: "MANUAL_TEST",
+          evidence_type: evidenceType,
+          raw_values: enrichedRawData as Json,
+          protocol_quality: Math.max(1, Math.min(5, Math.round(activeTest.reliabilityScore * 5))),
+          validity: "OK",
+          confidence_evidence: confidence,
+          used_in_calibration: true,
+          calibration_weight: confidence,
+          notes: `Test manuel • ${activeTest.name}`,
+        });
+      }
+    } catch (e) {
+      if (import.meta.env.DEV) console.error("calibration_evidence insert failed", e);
+    }
+
     handleCloseTest();
     toast.success("Test enregistré avec succès");
   };
