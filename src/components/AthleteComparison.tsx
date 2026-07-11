@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Zap, Target, Bike, PersonStanding, Waves } from "lucide-react";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
-import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
+import { getVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { calculerScoreGlobal, genererBadges } from "@/lib/iaRecommandations";
 import { cn } from "@/lib/utils";
 
