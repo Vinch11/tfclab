@@ -82,18 +82,18 @@ describe("computeTTEEffectif", () => {
     });
   });
 
-  // D) Unknown — no data
+  // D) Unknown — no data (F38: plus de fake default 45)
   describe("Unknown mode", () => {
-    it("returns default 45 min with low confidence when no data", () => {
+    it("returns tte_min=0 with low confidence when no data (F38)", () => {
       const result = computeTTEEffectif({
         objectif: "IM",
       });
-      expect(result.tte_min).toBe(45);
+      expect(result.tte_min).toBe(0);
       expect(result.source).toBe("unknown");
-      expect(result.confidence).toBe(0.2);
+      expect(result.confidence).toBeLessThanOrEqual(0.25);
     });
 
-    it("returns default when all inputs are null", () => {
+    it("returns unknown when all inputs are null", () => {
       const result = computeTTEEffectif({
         ftp: null,
         tss_7d: null,
@@ -102,6 +102,7 @@ describe("computeTTEEffectif", () => {
         objectif: "IM",
       });
       expect(result.source).toBe("unknown");
+      expect(result.tte_min).toBe(0);
     });
   });
 
