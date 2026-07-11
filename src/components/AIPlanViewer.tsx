@@ -1608,7 +1608,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-muted-foreground whitespace-nowrap">S{s.weekNumber}</span>
-                    <span className="font-medium truncate">{s.title}</span>
+                    <span className="font-medium truncate">{parseSessionTitle(s.title).cleanTitle}</span>
                   </div>
                   <span className="text-muted-foreground whitespace-nowrap">
                     {format(dt, "EEE d MMM", { locale: fr })}
