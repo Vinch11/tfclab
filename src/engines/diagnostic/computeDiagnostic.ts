@@ -199,11 +199,17 @@ function computeVLamaxFromInput(input: DiagnosticInput): VLamaxEffectif {
 }
 
 function computeTTEFromInput(input: DiagnosticInput): TTEEffectif {
+  // Sport-aware : on relaie sportFocus et le champ TTE run dédié pour éviter
+  // qu'un coureur retombe silencieusement sur tte_observed_min (bike).
+  const sport: "bike" | "run" =
+    input.sportFocus === "run" ? "run" : "bike";
   return computeTTEEffectif({
     ftp: input.ftp,
     tss_7d: input.tss7d,
     tte_mode: input.tteMode,
     tte_observed_min: input.tteObservedMin,
+    tte_observed_min_run: input.tteObservedMinRun ?? null,
+    sport,
     objectif: input.objectif,
     age: input.age, // F33: ajustement masters
   });
