@@ -142,7 +142,7 @@ export function SaisonPhasesView({
   const phaseAnalysis = useMemo(() => {
     const vlamax = vlamaxEffectif.value;
     const tte = tteEffectif.tte_min;
-    const tteTarget = tteEffectif.target ?? 45;
+    const tteTarget = tteEffectif.target ?? null;
     const score = readiness.score;
     const vlamaxSource = vlamaxEffectif.source;
     

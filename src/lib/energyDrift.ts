@@ -33,7 +33,7 @@ export interface EnergyDriftResult {
   details: {
     vlamaxValue: number | null;
     tteValue: number | null;
-    tteTarget: number;
+    tteTarget: number | null;
     tteDelta: number | null;
     objectifDuration: string;
   };
@@ -85,8 +85,8 @@ function getVLamaxFactor(vlamax: number | null): "protective" | "neutral" | "ris
   return "risk";
 }
 
-function getTTEFactor(tte: number | null, tteTarget: number): "protective" | "vigilance" | "risk" {
-  if (tte === null) return "vigilance";
+function getTTEFactor(tte: number | null, tteTarget: number | null): "protective" | "vigilance" | "risk" {
+  if (tte === null || tteTarget === null) return "vigilance";
   const delta = tte - tteTarget;
   if (delta >= 0) return "protective";
   if (delta >= -5) return "vigilance";
@@ -152,7 +152,7 @@ export function computeEnergyDrift(params: ComputeEnergyDriftParams): EnergyDrif
   
   const vlamax = vlamaxEffectif.value;
   const tte = tteEffectif.tte_min;
-  const tteTarget = tteEffectif.target ?? 45;
+  const tteTarget = tteEffectif.target ?? null;
   
   // Calcul des facteurs
   const vlamaxFactor = getVLamaxFactor(vlamax);
@@ -162,7 +162,7 @@ export function computeEnergyDrift(params: ComputeEnergyDriftParams): EnergyDrif
   const objectifConfig = OBJECTIF_DURATION[objectif] || OBJECTIF_DURATION["Marathon"];
   
   // Calcul du TTEDelta
-  const tteDelta = tte !== null ? tte - tteTarget : null;
+  const tteDelta = (tte !== null && tteTarget !== null) ? tte - tteTarget : null;
   
   // =============================================
   // LOGIQUE DE SCORING
