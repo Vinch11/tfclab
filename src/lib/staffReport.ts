@@ -1011,7 +1011,9 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     tteEffectif,
     poids,
     objectif,
+    vo2max,
   });
+
   
   const vlamaxCombinedTriathlon = isTriathlonObjectif(objectif) 
     ? generateVLamaxCombinedTriathlonSection({ vlamaxEffectif, objectif })
