@@ -1067,7 +1067,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
       objectif,
       ambition,
       age: athleteAge ?? null,
-      currentVo2max: null,
+      currentVo2max: vo2max ?? null,
     }),
     // ✅ CYCLE INTELLIGENCE ENGINE™
     cycleIntelligence: generateCycleIntelligenceSection(params),
