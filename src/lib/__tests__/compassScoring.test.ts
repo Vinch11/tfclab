@@ -129,10 +129,11 @@ describe("computeProfilMetabolique", () => {
     expect(result.score).toBe(100);
   });
 
-  it("IM — VLamax 0.50 (acceptable) → score 70-100", () => {
+  it("IM — VLamax 0.50 (au-dessus optimal 0.25) → score dégradé mais non nul", () => {
     const result = computeProfilMetabolique(makeVLamax(0.50), "IM");
-    expect(result.score).toBeGreaterThanOrEqual(50);
-    expect(result.score).toBeLessThanOrEqual(100);
+    // 0.50 est au-dessus de la cible endurance IM (~0.25). Score dégradé attendu (20-70).
+    expect(result.score).toBeGreaterThan(20);
+    expect(result.score).toBeLessThan(80);
   });
 
   it("IM — VLamax 0.80 (too high) → low score", () => {
