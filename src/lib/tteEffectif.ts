@@ -69,7 +69,11 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
     const runOnlyObjective =
       /marathon|semi|10\s?k|5\s?k|trail|ultra|start\s?to\s?run|utmb|ccc|occ|skyrun|sky\s?run|vk\s|hardrock|western\s?states/.test(objLower);
     const hasRunOnly = (params.tte_observed_min_run ?? null) != null && (params.tte_observed_min ?? null) == null;
-    if (runOnlyObjective || hasRunOnly) sport = "run";
+    const hasBikeOnly = (params.tte_observed_min ?? null) != null && (params.tte_observed_min_run ?? null) == null;
+    // Priorité aux données présentes : si seul le TTE bike est fourni, on reste bike
+    // même sur un objectif run (caller legacy). Ne bascule run que si donnée run explicite
+    // ou objectif run sans aucun TTE bike concurrent.
+    if (hasRunOnly || (runOnlyObjective && !hasBikeOnly)) sport = "run";
   }
   const observedRaw = sport === "run"
     ? (params.tte_observed_min_run ?? null)
