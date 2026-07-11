@@ -1393,6 +1393,7 @@ function buildExportPayload(
     tss_7d: effectiveSnapshot?.tss_7d,
     tte_mode: effectiveSnapshot?.tte_mode,
     tte_observed_min: effectiveSnapshot?.tte_observed_min,
+    tte_observed_min_run: (effectiveSnapshot as any)?.tte_observed_min_run ?? null,
     objectif: athlete.goal || "IM",
     age: athleteAge,
   });
