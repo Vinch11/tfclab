@@ -861,6 +861,86 @@ export type Database = {
         }
         Relationships: []
       }
+      pacing_envelope_evidence: {
+        Row: {
+          ambition: string | null
+          athlete_id: string | null
+          created_at: string
+          envelope_snapshot: Json | null
+          id: string
+          notes: string | null
+          observed_avg_intensity_pct: number | null
+          observed_duration_min: number | null
+          observed_max_intensity_pct: number | null
+          predicted_center_pct: number
+          predicted_confidence: number | null
+          predicted_duration_min: number | null
+          predicted_high_pct: number
+          predicted_low_pct: number
+          race_date: string
+          race_objective: string
+          reference_base: string | null
+          reference_value: number | null
+          sport: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ambition?: string | null
+          athlete_id?: string | null
+          created_at?: string
+          envelope_snapshot?: Json | null
+          id?: string
+          notes?: string | null
+          observed_avg_intensity_pct?: number | null
+          observed_duration_min?: number | null
+          observed_max_intensity_pct?: number | null
+          predicted_center_pct: number
+          predicted_confidence?: number | null
+          predicted_duration_min?: number | null
+          predicted_high_pct: number
+          predicted_low_pct: number
+          race_date: string
+          race_objective: string
+          reference_base?: string | null
+          reference_value?: number | null
+          sport: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ambition?: string | null
+          athlete_id?: string | null
+          created_at?: string
+          envelope_snapshot?: Json | null
+          id?: string
+          notes?: string | null
+          observed_avg_intensity_pct?: number | null
+          observed_duration_min?: number | null
+          observed_max_intensity_pct?: number | null
+          predicted_center_pct?: number
+          predicted_confidence?: number | null
+          predicted_duration_min?: number | null
+          predicted_high_pct?: number
+          predicted_low_pct?: number
+          race_date?: string
+          race_objective?: string
+          reference_base?: string | null
+          reference_value?: number | null
+          sport?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pacing_envelope_evidence_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_adaptations: {
         Row: {
           adaptation_type: string
