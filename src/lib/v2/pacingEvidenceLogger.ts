@@ -51,7 +51,7 @@ export async function logPacingEvidence(
 
   const { data, error } = await supabase
     .from("pacing_envelope_evidence")
-    .insert({
+    .insert([{
       user_id: userData.user.id,
       athlete_id: athleteId ?? null,
       race_date: raceDate,
