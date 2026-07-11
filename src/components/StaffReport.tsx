@@ -155,6 +155,7 @@ export function StaffReport({
     snapshotDate,
     vlamaxEffectif,
     tteEffectif,
+    tteEffectifRun,
     readiness,
     nutritionEstimate,
     runningEconomy,
