@@ -116,6 +116,7 @@ export function computeEssentielsData(args: {
         tss_7d: effectiveSnapshot.tss_7d ?? null,
         tte_mode: (effectiveSnapshot.tte_mode as any) ?? "LOAD",
         tte_observed_min: effectiveSnapshot.tte_observed_min ?? null,
+        tte_observed_min_run: (effectiveSnapshot as any).tte_observed_min_run ?? null ?? null,
         objectif: athlete.objectif || "IM",
         age,
       })

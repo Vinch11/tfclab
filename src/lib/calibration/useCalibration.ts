@@ -154,6 +154,7 @@ export function useCalibration({
       tss_7d: snapshot?.tss_7d ?? null,
       tte_mode: (snapshot?.tte_mode as "LOAD" | "OBSERVED" | null) ?? null,
       tte_observed_min: snapshot?.tte_observed_min ?? null,
+      tte_observed_min_run: (snapshot? as any).tte_observed_min_run ?? null ?? null,
       objectif,
     });
     

@@ -1310,6 +1310,7 @@ export default function TemplatesPage() {
       tss_7d: selectedSnapshot.tss_7d,
       tte_mode: selectedSnapshot.tte_mode,
       tte_observed_min: selectedSnapshot.tte_observed_min,
+      tte_observed_min_run: (selectedSnapshot as any).tte_observed_min_run ?? null,
       objectif: selectedAthlete.goal || "IM",
     });
 
