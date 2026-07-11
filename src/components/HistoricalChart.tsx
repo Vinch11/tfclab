@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bike, Footprints, Waves, TrendingUp, Calendar } from "lucide-react";
 import { SnapshotNolio, SportType, estimerTTESport } from "@/types/snapshotNolio";
 import { calculVLamaxAvecConfiance, comparerEvolutionSport } from "@/lib/athleteStore";
+import { getVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { ObjectifType, Athlete } from "@/types/athlete";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
