@@ -90,17 +90,23 @@ export function RunningGuidancePage() {
     
     const objective = objectiveMap[raceType] || "Marathon";
     
+    // F41 — insufficient-data guard : plus de fake defaults (vo2 50 / vla 0.38 / tte 60).
+    // Si les valeurs sont absentes → value=0 + confidence=0 pour laisser l'UI/moteur
+    // afficher "Données insuffisantes" au lieu d'un profil déguisé.
+    const vo2Value = activeSnapshot?.vo2max ?? currentAthlete.vo2max ?? null;
+    const vlaValue = vlamaxEffectif?.value ?? null;
+    const tteValue = activeSnapshot?.tte_observed_min ?? null;
     return createRunningPhysioProfile({
       athlete_id: currentAthlete.id,
       objective_distance: objective,
-      vo2max: activeSnapshot?.vo2max ?? currentAthlete.vo2max ?? 50,
-      vo2max_confidence: 0.7,
-      vo2max_source: activeSnapshot?.vo2max ? "snapshot" : "estimation",
-      vlamax_cap: vlamaxEffectif?.value ?? 0.38,
-      vlamax_confidence: vlamaxEffectif?.confidence ?? 0.6,
-      vlamax_source: vlamaxEffectif?.source === "test" ? "field_test" : "estimation",
-      durability_min: activeSnapshot?.tte_observed_min ?? 60,
-      durability_confidence: activeSnapshot?.tte_observed_min ? 0.8 : 0.5,
+      vo2max: vo2Value ?? 0,
+      vo2max_confidence: vo2Value != null ? 0.7 : 0,
+      vo2max_source: activeSnapshot?.vo2max ? "snapshot" : vo2Value != null ? "estimation" : "unknown",
+      vlamax_cap: vlaValue ?? 0,
+      vlamax_confidence: vlaValue != null ? (vlamaxEffectif?.confidence ?? 0.6) : 0,
+      vlamax_source: vlamaxEffectif?.source === "test" ? "field_test" : vlaValue != null ? "estimation" : "unknown",
+      durability_min: tteValue ?? 0,
+      durability_confidence: tteValue != null ? 0.8 : 0,
       economy_score: activeSnapshot?.run_economy_score ?? undefined,
       lock_duration_days: 28,
     });
