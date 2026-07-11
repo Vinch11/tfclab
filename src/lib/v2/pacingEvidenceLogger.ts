@@ -65,7 +65,7 @@ export async function logPacingEvidence(
       predicted_confidence: envelope.confidence,
       reference_base: envelope.boundary.referenceBase,
       reference_value: referenceValue ?? null,
-      envelope_snapshot: envelope as unknown as Record<string, unknown>,
+      envelope_snapshot: JSON.parse(JSON.stringify(envelope)),
       notes: notes ?? null,
     }])
     .select("id")
