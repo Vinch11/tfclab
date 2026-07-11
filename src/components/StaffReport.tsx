@@ -162,7 +162,9 @@ export function StaffReport({
     tss7d,
     snapshotUpdatedAt,
     athleteAge,
+    vo2max,
   });
+
 
   // ✅ DECISION RELIABILITY ENGINE - Calcul pour le rapport
   const decisionReliability: DecisionReliabilityResult = computeFullDRE({

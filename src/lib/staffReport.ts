@@ -10,6 +10,8 @@ import { computeCycleIntelligence, snapshotToEngineData, type CycleIntelligenceR
 import { computeCompassScores, CompassScores, ComputeCompassParams } from "@/lib/compassScoring";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { NutritionEstimate, computeNutritionEstimate } from "@/lib/nutritionPredictive";
+import { computeBaseRateMader } from "@/lib/v2/nutritionUnified";
+
 import { RunningEconomyResult } from "@/lib/runningEconomy";
 import { computeCAPInjuryRisk, CAPInjuryRiskResult, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import { 
@@ -355,6 +357,8 @@ export interface GenerateStaffReportParams {
   tss7d?: number | null;
   snapshotUpdatedAt?: string | null;
   athleteAge?: number | null;
+  vo2max?: number | null;
+
   // TFCL Reference Week data
   tfclData?: {
     p30s_w?: number | null;
@@ -758,7 +762,9 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     tss7d,
     snapshotUpdatedAt,
     athleteAge,
+    vo2max,
   } = params;
+
   
   // Déterminer la limitation principale (utilise désormais le moteur unifié)
   const limitation = determineMainLimitation({
@@ -1005,7 +1011,9 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     tteEffectif,
     poids,
     objectif,
+    vo2max,
   });
+
   
   const vlamaxCombinedTriathlon = isTriathlonObjectif(objectif) 
     ? generateVLamaxCombinedTriathlonSection({ vlamaxEffectif, objectif })
@@ -1059,7 +1067,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
       objectif,
       ambition,
       age: athleteAge ?? null,
-      currentVo2max: null,
+      currentVo2max: vo2max ?? null,
     }),
     // ✅ CYCLE INTELLIGENCE ENGINE™
     cycleIntelligence: generateCycleIntelligenceSection(params),
@@ -1677,8 +1685,9 @@ function generateNutritionV2DetailedSection(params: {
   tteEffectif: TTEEffectif;
   poids: number | null;
   objectif: string;
+  vo2max?: number | null;
 }): NutritionV2DetailedSection {
-  const { vlamaxEffectif, tteEffectif, poids, objectif } = params;
+  const { vlamaxEffectif, tteEffectif, poids, objectif, vo2max } = params;
   
   // Determine sport and duration based on objectif
   const isCAP = ["Marathon", "Semi", "10km", "Trail", "TrailCourt", "TrailLong", "Ultra"].includes(objectif);
@@ -1693,43 +1702,33 @@ function generateNutritionV2DetailedSection(params: {
   };
   const targetDuration = durationMap[objectif] ?? 4;
   
-  // Base calculation
+  // Base calculation — Audit #8 : délégué à la source canonique
+  // `nutritionUnified.computeBaseRateMader` (Mader-Heck) pour éviter tout
+  // bypass. Le taux de base intègre déjà VLamax + intensité + durée + chaleur.
   const weightKg = poids ?? 70;
-  const baseRate = isCAP ? Math.round(weightKg * 1.05) : Math.round(weightKg * 0.9);
+  const targetIntensityPct = isCAP ? 82 : 72;
+  const maderBase = computeBaseRateMader(
+    weightKg,
+    sport,
+    vo2max ?? null,
+    vlamaxEffectif.value,
+    targetIntensityPct,
+    targetDuration,
+  );
+  const baseRate = maderBase.baseRate;
   
-  // Adjustments
+  // Adjustments — Aligné sur nutritionUnified.computeNutritionUnified :
+  // VLamax déjà intégré dans Mader (pas de double-comptage). Seuls TTE + durée
+  // sont ajoutés comme modulateurs coach-facing.
   const contributors: { label: string; adjustment: string; explanation: string }[] = [];
   let totalAdjustment = 0;
   
   contributors.push({
-    label: "Taux de base",
+    label: "Taux de base (Mader)",
     adjustment: `${baseRate} g/h`,
-    explanation: `${sportLabel}: ${isCAP ? "1.05" : "0.9"} × ${weightKg} kg`,
+    explanation: `Oxydation totale : ${maderBase.totalOxidation} g/h → exogène : ${baseRate} g/h (${sportLabel}, ${weightKg} kg, ${targetIntensityPct}% intensité, ${targetDuration}h)`,
   });
-  
-  // VLamax adjustment
-  if (vlamaxEffectif.value !== null) {
-    let adj = 0;
-    let expl = "";
-    if (vlamaxEffectif.value < 0.35) {
-      adj = -10;
-      expl = "VLamax basse (<0.35) → économie glucidique naturelle";
-    } else if (vlamaxEffectif.value > 0.65) {
-      adj = 20;
-      expl = "VLamax très élevée (>0.65) → forte combustion glucidique";
-    } else if (vlamaxEffectif.value > 0.55) {
-      adj = 10;
-      expl = "VLamax élevée (>0.55) → dépendance glucidique accrue";
-    }
-    if (adj !== 0) {
-      totalAdjustment += adj;
-      contributors.push({
-        label: "Modulation VLamax",
-        adjustment: `${adj > 0 ? "+" : ""}${adj} g/h`,
-        explanation: expl,
-      });
-    }
-  }
+
   
   // TTE adjustment
   if (tteEffectif.tte_min !== null) {
