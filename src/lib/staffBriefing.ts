@@ -150,7 +150,7 @@ function determineSport(objectif: string): "velo" | "cap" | "triathlon" {
 function determinePriority(params: {
   vlamax: number | null;
   tteMin: number | null;
-  tteTarget: number;
+  tteTarget: number | null;
   ftpKg: number | null;
   objectif: string;
 }): PriorityLabel {
@@ -164,7 +164,7 @@ function determinePriority(params: {
   }
   
   // TTE insuffisant
-  if (tteMin !== null && tteMin < tteTarget - 5) {
+  if (tteMin !== null && tteTarget !== null && tteMin < tteTarget - 5) {
     return "Augmenter endurance au seuil (TTE)";
   }
   
@@ -181,7 +181,7 @@ function computePacingVelo(params: {
   objectif: string;
   vlamax: number | null;
   tteMin: number | null;
-  tteTarget: number;
+  tteTarget: number | null;
   potentielPhysiologiqueScore: number;
 }): PacingVelo | null {
   const { objectif, vlamax, tteMin, tteTarget, potentielPhysiologiqueScore } = params;
@@ -199,7 +199,7 @@ function computePacingVelo(params: {
     consignes.push("VLamax élevé → réduire IF de 2%");
   }
   
-  if (tteMin !== null && tteMin < tteTarget - 5) {
+  if (tteMin !== null && tteTarget !== null && tteMin < tteTarget - 5) {
     ifMin -= 0.02;
     ifMax -= 0.02;
     consignes.push("TTE faible → éviter longues sections au seuil");
@@ -255,7 +255,7 @@ function computePacingCAP(params: {
 function generateAlerts(params: {
   nutritionRiskBadge: string;
   tteMin: number | null;
-  tteTarget: number;
+  tteTarget: number | null;
   vlamax: number | null;
   economyScore: number | null;
   potentielPhysiologiqueScore: number;
@@ -278,7 +278,7 @@ function generateAlerts(params: {
     });
   }
   
-  if (tteMin !== null && tteMin < tteTarget - 5) {
+  if (tteMin !== null && tteTarget !== null && tteMin < tteTarget - 5) {
     alerts.push({
       severity: "critical",
       icon: "🔴",
@@ -457,7 +457,7 @@ export function computeStaffBriefing(params: ComputeStaffBriefingParams): StaffB
   
   const vlamax = vlamaxEffectif.value;
   const tteMin = tteEffectif.tte_min;
-  const tteTarget = tteEffectif.target ?? 45;
+  const tteTarget = tteEffectif.target ?? null;
   const vlamaxConf = vlamaxEffectif.confidence;
   const tteConf = tteEffectif.confidence;
   

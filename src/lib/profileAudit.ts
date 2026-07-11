@@ -73,13 +73,17 @@ export function auditProfile(
   const p60 = num(snapshot.p60s_w);
   const weight = num(snapshot.weight_kg);
   const vo2 = num(snapshot.vo2max);
-  const vlamax = num(snapshot.vlamax);
   const tte = num(snapshot.tte_observed_min);
   const tss7d = num(snapshot.tss_7d);
   const conf = num(snapshot.confidence);
   const sport = (snapshot.sport_main ?? "bike").toLowerCase();
   const sportNorm = sport === "velo" ? "bike" : sport;
   const isBikeSport = sport === "bike" || sport === "both" || sport === "velo";
+  // Sport-aware: profils CAP purs → vlamax_run prime sur vlamax (bike)
+  const isRunSport = sport === "run" || sport === "cap";
+  const vlamax = isRunSport
+    ? (num(snapshot.vlamax_run) ?? num(snapshot.vlamax))
+    : num(snapshot.vlamax);
 
   // ─── RÈGLE 0: Cohérence sport_main vs objectif athlète ──────────────
   if (athleteGoal) {
