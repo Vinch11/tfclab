@@ -758,6 +758,7 @@ const Index = () => {
       // que dashDiagnostic.effectifs.vlamax === vlamaxEffectif partout.
       vlamaxEffectifPrecomputed: vlamaxEffectif,
       tteObservedMin: effectiveCloudSnapshot.tte_observed_min ?? null,
+      tteObservedMinRun: (effectiveCloudSnapshot as any).tte_observed_min_run ?? null,
       tteMode: effectiveCloudSnapshot.tte_mode ?? null,
       tss7d: effectiveCloudSnapshot.tss_7d ?? null,
       fatigueState: effectiveCloudSnapshot.fatigue_state ?? null,
