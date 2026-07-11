@@ -3939,6 +3939,17 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const targets = buildReportTargetsFromUnifiedLimiter(payload.unifiedLimiter, athlete.goal, ambition.current);
   const weights = getWeightsBySport(athlete.goal || "IM");
 
+  // TTE CAP (run) séparé — affiché si observé (triathlon)
+  const tteRun = computeTTEEffectif({
+    ftp: effectiveRefs.ftp,
+    tss_7d: effectiveSnapshot?.tss_7d,
+    tte_observed_min_run: (effectiveSnapshot as any)?.tte_observed_min_run ?? null,
+    sport: "run",
+    objectif: athlete.goal || "IM",
+    age: ageAdjustment.age,
+  });
+  const showTteRun = tteRun.source === "observed" && tteRun.tte_min > 0;
+
   // =============================================
   // CONSTANTES BRANDING REPOSITIONNÉ (NON DOGMATIQUE)
   // =============================================
