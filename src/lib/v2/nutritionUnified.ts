@@ -192,11 +192,15 @@ export function computeBaseRateMader(
 ): { baseRate: number; totalOxidation: number; method: 'mader' | 'fallback' } {
   const capLike = isCAPLike(sport);
   const ultra = isUltra(sport);
+  // F41 — insufficient-data guard : si vo2max OU vlamax manquent, on ne calcule
+  // PAS un Mader-Heck déguisé avec des valeurs centrales. On flag `method:'fallback'`
+  // pour que le caller/UI puisse afficher "Estimation par défaut — Données insuffisantes".
+  const hasFullPhysio = vo2max != null && vlamaxValue != null;
   const vo2 = vo2max ?? (capLike ? 48 : 50);
   const vlx = vlamaxValue ?? 0.45;
   const intensity = intensityPct ?? 70;
   const duration = durationHours ?? 3;
-  
+
   const carbOxGmin = calculateCarbOxidation(intensity, vo2, vlx, weightKg);
   let totalOxidationGh = carbOxGmin * 60;
   
