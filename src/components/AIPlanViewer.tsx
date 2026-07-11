@@ -19,6 +19,7 @@ import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, maybeDowngradeBikeSession } from "@/lib/aiPlanWorkoutEnricher";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
+import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
 import { GapAmbitionPanel } from "@/components/GapAmbitionPanel";
