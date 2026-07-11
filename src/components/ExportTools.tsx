@@ -1445,6 +1445,7 @@ function buildExportPayload(
       vlamaxProtocol: effectiveSnapshot.vlamax_protocol ?? null,
       vlamaxIsReference: effectiveSnapshot.vlamax_is_reference ?? false,
       tteObservedMin: effectiveSnapshot.tte_observed_min ?? null,
+      tteObservedMinRun: (effectiveSnapshot as any).tte_observed_min_run ?? null,
       tteMode: effectiveSnapshot.tte_mode ?? null,
       tss7d: effectiveSnapshot.tss_7d ?? null,
       fatigueState: effectiveSnapshot.fatigue_state ?? null,
