@@ -1509,6 +1509,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: s.tss_7d ?? null,
       tte_mode: (s.tte_mode as any) ?? "LOAD",
       tte_observed_min: s.tte_observed_min ?? null,
+      tte_observed_min_run: (s as any).tte_observed_min_run ?? null,
       objectif: athleteGoal,
     });
 
@@ -1713,6 +1714,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: A.tss_7d ?? null,
       tte_mode: (A.tte_mode as any) ?? "LOAD",
       tte_observed_min: A.tte_observed_min ?? null,
+      tte_observed_min_run: (A as any).tte_observed_min_run ?? null,
       objectif: athleteGoal,
     });
 
@@ -1721,6 +1723,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: B.tss_7d ?? null,
       tte_mode: (B.tte_mode as any) ?? "LOAD",
       tte_observed_min: B.tte_observed_min ?? null,
+      tte_observed_min_run: (B as any).tte_observed_min_run ?? null,
       objectif: athleteGoal,
     });
 

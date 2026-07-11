@@ -1393,6 +1393,7 @@ function buildExportPayload(
     tss_7d: effectiveSnapshot?.tss_7d,
     tte_mode: effectiveSnapshot?.tte_mode,
     tte_observed_min: effectiveSnapshot?.tte_observed_min,
+    tte_observed_min_run: (effectiveSnapshot as any)?.tte_observed_min_run ?? null,
     objectif: athlete.goal || "IM",
     age: athleteAge,
   });
@@ -1445,6 +1446,7 @@ function buildExportPayload(
       vlamaxProtocol: effectiveSnapshot.vlamax_protocol ?? null,
       vlamaxIsReference: effectiveSnapshot.vlamax_is_reference ?? false,
       tteObservedMin: effectiveSnapshot.tte_observed_min ?? null,
+      tteObservedMinRun: (effectiveSnapshot as any).tte_observed_min_run ?? null,
       tteMode: effectiveSnapshot.tte_mode ?? null,
       tss7d: effectiveSnapshot.tss_7d ?? null,
       fatigueState: effectiveSnapshot.fatigue_state ?? null,

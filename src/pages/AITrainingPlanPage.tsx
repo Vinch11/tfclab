@@ -504,6 +504,7 @@ export default function AITrainingPlanPage() {
       vlamaxIsReference: activeSnap.vlamax_is_reference ?? false,
       vlamaxEffectifPrecomputed,
       tteObservedMin: activeSnap.tte_observed_min,
+      tteObservedMinRun: (activeSnap as any).tte_observed_min_run ?? null,
       tteMode: activeSnap.tte_mode,
       tss7d: activeSnap.tss_7d,
       fatigueState: activeSnap.fatigue_state,
