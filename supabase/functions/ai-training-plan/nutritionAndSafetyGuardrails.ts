@@ -83,12 +83,22 @@ function calculateCarbOxidationGmin(intensity: number, vo2: number, vlx: number,
   return kcal_min / 4;
 }
 
-function computeCHO(input: GuardrailsInput, objKey: string, sport: Sport, durationH: number, intensityPct: number): { rate: number; capMax: number; method: "mader" | "fallback" } {
-  const weight = input.weightKg ?? 70;
-  const vo2 = input.vo2max ?? (sport === "cap" ? 48 : 50);
-  const vlx = (sport === "cap" || sport === "trail" || sport === "ultra")
-    ? (input.vlamaxRun ?? input.vlamax ?? 0.45)
-    : (input.vlamax ?? 0.45);
+function computeCHO(input: GuardrailsInput, objKey: string, sport: Sport, durationH: number, intensityPct: number): { rate: number; capMax: number; method: "mader" | "fallback" | "insufficient" } {
+  // AUDIT #6 — VLamax sport-résolu prioritaire.
+  // `input.vlamax` provient de `diagnostic.effectifs.vlamax.value` (résolveur
+  // sport-aware côté client : CAP-estimator pour run/trail, vlamax vélo sinon).
+  // `input.vlamaxRun` = valeur brute snapshot, utilisée en dernier recours.
+  // ⚠️ Aucun fake default (mémoire `insufficient-data-no-fake-defaults`).
+  const vlx = input.vlamax ?? input.vlamaxRun ?? null;
+  const vo2 = input.vo2max ?? null;
+  const weight = input.weightKg ?? null;
+
+  if (vlx == null || vo2 == null || weight == null) {
+    // Données insuffisantes → pas de prescription Mader, laisser le prompt
+    // système signaler l'absence plutôt que d'inventer 0.45 / 50 / 70 kg.
+    const capMax = sport === "ultra" ? 60 : sport === "trail" ? 70 : (sport === "cap") ? 75 : 90;
+    return { rate: 0, capMax, method: "insufficient" };
+  }
 
   const carbOxGmin = calculateCarbOxidationGmin(intensityPct, vo2, vlx, weight);
   let totalOxGh = carbOxGmin * 60;
@@ -109,8 +119,7 @@ function computeCHO(input: GuardrailsInput, objKey: string, sport: Sport, durati
   const capMax = ultra ? 60 : sport === "trail" ? 70 : capLike ? 75 : 90;
   const minFloor = durationH < 1 ? 0 : 30;
   const rate = Math.max(minFloor, Math.min(capMax, Math.round(exoGh)));
-  const method = (input.vo2max != null && (input.vlamax != null || input.vlamaxRun != null)) ? "mader" : "fallback";
-  return { rate, capMax, method };
+  return { rate, capMax, method: "mader" };
 }
 
 function hydrationRange(sport: Sport, weightKg: number, heat: boolean): [number, number] {
