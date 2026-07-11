@@ -247,7 +247,7 @@ export default function DashboardPage() {
       return age;
     })() : null;
 
-    // TTE Effectif (source unique)
+    // TTE Effectif (source unique) — bike/vélo par défaut
     const tteEffectif = computeTTEEffectif({
       ftp: activeSnapshot.ftp,
       tss_7d: activeSnapshot.tss_7d,
@@ -256,6 +256,15 @@ export default function DashboardPage() {
       tte_observed_min_run: (activeSnapshot as any).tte_observed_min_run ?? null,
       objectif,
       age: athleteAge, // F33
+    });
+    // TTE Effectif CAP (run) — séparé pour affichage triathlon
+    const tteEffectifRun = computeTTEEffectif({
+      ftp: activeSnapshot.ftp,
+      tss_7d: activeSnapshot.tss_7d,
+      tte_observed_min_run: (activeSnapshot as any).tte_observed_min_run ?? null,
+      sport: "run",
+      objectif,
+      age: athleteAge,
     });
     
     // Potentiel Physiologique Effectif (source unique)
