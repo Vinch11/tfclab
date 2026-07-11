@@ -214,6 +214,9 @@ function buildUserPrompt(data: any): string {
   lines.push("\n### Glycolytique");
   if (data.vlamax) lines.push(`- VLamax vélo: ${data.vlamax} mmol/L/s`);
   if (data.vlamaxRun) lines.push(`- VLamax course: ${data.vlamaxRun} mmol/L/s`);
+  if (data.vlamaxEffective != null) {
+    lines.push(`- **VLamax retenue pour l'objectif (résolveur sport-aware): ${Number(data.vlamaxEffective).toFixed(2)} mmol/L/s** — utilise CETTE valeur pour juger la glycolyse pertinente au sport principal.`);
+  }
 
   lines.push("\n### Neuromusculaire");
   if (data.pmax5s) lines.push(`- Pmax 5s: ${data.pmax5s}W`);

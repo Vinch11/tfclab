@@ -1123,7 +1123,10 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // ✅ AUDIT FIX : injection dynamique de la cible VLamax (objectif × ambition × sport)
   const sportForVlamax = (data.sport_main || data.sportMain || (config?.objective?.startsWith?.("Marathon") || config?.objective?.startsWith?.("Semi") || config?.objective === "Trail" ? "run" : null)) ?? null;
   const vlmRange = getVLamaxRangeForPlan(config?.objective, config?.ambition, sportForVlamax);
-  const vlmCurrent = data.vlamaxRun ?? data.vlamax;
+  // AUDIT #6 — `data.vlamax` = `diagnostic.effectifs.vlamax.value` (résolveur
+  // sport-aware : CAP-estimator pour run/trail, vlamax vélo sinon). Prioritaire
+  // sur `data.vlamaxRun` (valeur brute snapshot).
+  const vlmCurrent = data.vlamax ?? data.vlamaxRun ?? null;
   const vlmStatus = vlmCurrent == null
     ? "non renseignée"
     : vlmCurrent < vlmRange.min

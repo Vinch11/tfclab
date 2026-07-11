@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bike, Footprints, Waves, BookOpen, Zap, Heart, Timer, Target } from "lucide-react";
 import { SnapshotNolio, SportType, estimerTTESport } from "@/types/snapshotNolio";
 import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
+import { getVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { seancesParSport, determinerPriorite, Seance } from "@/types/seances";
 import { ObjectifType } from "@/types/athlete";
 
@@ -53,13 +54,15 @@ export function ScientificDashboard({ snapshots, objectif, athleteNom }: Scienti
       if (snapshot) {
         const calc = calculVLamaxAvecConfiance(snapshot, objectif);
         const tte = estimerTTESport(snapshot);
-        const priorite = determinerPriorite(calc.vlamax, tte, objectif);
+        // AUDIT #6 — Résolveur sport-aware pour la valeur VLamax affichée.
+        const resolvedVlamax = getVlamaxForGoal(snapshot as any, { goal: objectif }) ?? calc.vlamax;
+        const priorite = determinerPriorite(resolvedVlamax, tte, objectif);
         const seances = seancesParSport(priorite, sport);
 
         data.push({
           sport,
           snapshot,
-          vlamax: calc.vlamax,
+          vlamax: resolvedVlamax,
           precision: calc.precision,
           confiance: calc.confiance,
           tte,

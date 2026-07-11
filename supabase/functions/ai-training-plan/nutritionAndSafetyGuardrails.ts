@@ -83,12 +83,22 @@ function calculateCarbOxidationGmin(intensity: number, vo2: number, vlx: number,
   return kcal_min / 4;
 }
 
-function computeCHO(input: GuardrailsInput, objKey: string, sport: Sport, durationH: number, intensityPct: number): { rate: number; capMax: number; method: "mader" | "fallback" } {
-  const weight = input.weightKg ?? 70;
-  const vo2 = input.vo2max ?? (sport === "cap" ? 48 : 50);
-  const vlx = (sport === "cap" || sport === "trail" || sport === "ultra")
-    ? (input.vlamaxRun ?? input.vlamax ?? 0.45)
-    : (input.vlamax ?? 0.45);
+function computeCHO(input: GuardrailsInput, objKey: string, sport: Sport, durationH: number, intensityPct: number): { rate: number; capMax: number; method: "mader" | "fallback" | "insufficient" } {
+  // AUDIT #6 — VLamax sport-résolu prioritaire.
+  // `input.vlamax` provient de `diagnostic.effectifs.vlamax.value` (résolveur
+  // sport-aware côté client : CAP-estimator pour run/trail, vlamax vélo sinon).
+  // `input.vlamaxRun` = valeur brute snapshot, utilisée en dernier recours.
+  // ⚠️ Aucun fake default (mémoire `insufficient-data-no-fake-defaults`).
+  const vlx = input.vlamax ?? input.vlamaxRun ?? null;
+  const vo2 = input.vo2max ?? null;
+  const weight = input.weightKg ?? null;
+
+  if (vlx == null || vo2 == null || weight == null) {
+    // Données insuffisantes → pas de prescription Mader, laisser le prompt
+    // système signaler l'absence plutôt que d'inventer 0.45 / 50 / 70 kg.
+    const capMax = sport === "ultra" ? 60 : sport === "trail" ? 70 : (sport === "cap") ? 75 : 90;
+    return { rate: 0, capMax, method: "insufficient" };
+  }
 
   const carbOxGmin = calculateCarbOxidationGmin(intensityPct, vo2, vlx, weight);
   let totalOxGh = carbOxGmin * 60;
@@ -109,8 +119,7 @@ function computeCHO(input: GuardrailsInput, objKey: string, sport: Sport, durati
   const capMax = ultra ? 60 : sport === "trail" ? 70 : capLike ? 75 : 90;
   const minFloor = durationH < 1 ? 0 : 30;
   const rate = Math.max(minFloor, Math.min(capMax, Math.round(exoGh)));
-  const method = (input.vo2max != null && (input.vlamax != null || input.vlamaxRun != null)) ? "mader" : "fallback";
-  return { rate, capMax, method };
+  return { rate, capMax, method: "mader" };
 }
 
 function hydrationRange(sport: Sport, weightKg: number, heat: boolean): [number, number] {
@@ -141,13 +150,13 @@ function tteAgeAdjust(age: number | null | undefined): { delta: number; label: s
 // -----------------------------------------------------------------------------
 // 3) CAP injury risk (compact) + garde-fou master + world_class
 // -----------------------------------------------------------------------------
-function capRiskLevel(age: number | null | undefined, vlamaxRun: number | null | undefined, sport: Sport, ambition: string): { level: "low" | "moderate" | "high" | "very-high"; reasons: string[] } {
+function capRiskLevel(age: number | null | undefined, vlamaxForRun: number | null | undefined, sport: Sport, ambition: string): { level: "low" | "moderate" | "high" | "very-high"; reasons: string[] } {
   const reasons: string[] = [];
   let score = 0;
   if (sport === "cap" || sport === "trail" || sport === "ultra") {
     if (age && age >= 50) { score += 2; reasons.push(`âge ${age} (impact ostéo-tendineux ↑)`); }
     else if (age && age >= 40) { score += 1; reasons.push(`âge ${age} (récupération ralentie)`); }
-    if (vlamaxRun && vlamaxRun > 0.60) { score += 1; reasons.push(`VLamax run ${vlamaxRun.toFixed(2)} élevée (raideur musculaire)`); }
+    if (vlamaxForRun && vlamaxForRun > 0.60) { score += 1; reasons.push(`VLamax run ${vlamaxForRun.toFixed(2)} élevée (raideur musculaire)`); }
     if (ambition === "elite" || ambition === "world_class") { score += 1; reasons.push(`ambition ${ambition} (charge spécifique élevée)`); }
     if (ambition === "world_class" && age && age >= 50) { score += 2; reasons.push(`⚠️ combinaison master 50+ × world_class`); }
   }
@@ -180,27 +189,41 @@ export function buildNutritionAndSafetyBlock(input: GuardrailsInput): string {
     : 75;
 
   const cho = computeCHO(input, objKey, sport, durationH, intensityPct);
-  const weight = input.weightKg ?? 70;
+  const weightForHydration = input.weightKg;
   const heat = !!input.heatCondition;
-  const [hydLo, hydHi] = hydrationRange(sport, weight, heat);
+  const [hydLo, hydHi] = weightForHydration != null
+    ? hydrationRange(sport, weightForHydration, heat)
+    : [0, 0];
   const [naLo, naHi] = sodiumRange(heat, sport);
   const tteAdj = tteAgeAdjust(input.age);
-  const risk = capRiskLevel(input.age, input.vlamaxRun, sport, ambition);
+  // AUDIT #6 — VLamax sport-résolu prioritaire pour capRisk également.
+  const vlamaxForRunRisk = input.vlamax ?? input.vlamaxRun ?? null;
+  const risk = capRiskLevel(input.age, vlamaxForRunRisk, sport, ambition);
 
   const lines: string[] = [];
   lines.push(`\n### 🥗 NUTRITION MADER-HECK & 🛡️ GARDE-FOUS SANTÉ (Diagnostic auto)`);
   lines.push(`Ces prescriptions sont calculées côté serveur à partir du profil réel (Mader-Heck, F26-F31, F33). Elles PRIMENT sur toute règle générique de nutrition ou de charge.`);
 
   lines.push(`\n**Nutrition course (${objKey}, ${sport}, ~${durationH.toFixed(1)}h @ ${intensityPct}% VO₂max${heat ? ", chaleur >28°C" : ""})**`);
-  lines.push(`- Glucides : **${cho.rate} g/h** (cap physiologique ${cho.capMax} g/h, méthode : ${cho.method})`);
-  lines.push(`- Hydratation : **${hydLo}-${hydHi} ml/h** (${weight}kg${heat ? ", chaleur +25%" : ""})`);
+  if (cho.method === "insufficient") {
+    lines.push(`- Glucides : **Données insuffisantes** (VLamax / VO₂max / poids manquants — aucune prescription Mader-Heck possible).`);
+  } else {
+    lines.push(`- Glucides : **${cho.rate} g/h** (cap physiologique ${cho.capMax} g/h, méthode : ${cho.method})`);
+  }
+  if (weightForHydration != null) {
+    lines.push(`- Hydratation : **${hydLo}-${hydHi} ml/h** (${weightForHydration}kg${heat ? ", chaleur +25%" : ""})`);
+  } else {
+    lines.push(`- Hydratation : **Poids athlète non renseigné** — impossible d'individualiser.`);
+  }
   lines.push(`- Sodium : **${naLo}-${naHi} mg/h**${heat ? " (chaleur : +200 à +300 mg)" : ""}`);
   lines.push(`- ⚠️ Chaleur = **+10% CHO déjà intégré** (F30 : ne jamais double-compter dans les séances tardives).`);
   if (durationH >= 6) lines.push(`- 🕐 Événement >6h : tolérance digestive dégradée (−15%), prévoir gut training progressif dès Phase Build.`);
   if (objKey === "10K" || objKey === "5K" || objKey === "StartToRun") {
     lines.push(`- 🥤 Événement court (<1h) : plancher CHO = 0 (F31), aucune obligation en course. Séances longues (>1h30) suivent le taux ci-dessus.`);
   }
-  lines.push(`- 📚 Séances "nutrition sim" en Race-Specific : reproduire ce taux exact (${cho.rate}g/h + ${hydLo}-${hydHi}ml/h).`);
+  if (cho.method !== "insufficient") {
+    lines.push(`- 📚 Séances "nutrition sim" en Race-Specific : reproduire ce taux exact (${cho.rate}g/h${weightForHydration != null ? ` + ${hydLo}-${hydHi}ml/h` : ""}).`);
+  }
 
   lines.push(`\n**TTE âge-ajusté (F33)**`);
   if (input.age) {

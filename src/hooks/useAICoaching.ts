@@ -17,6 +17,8 @@ export interface AICoachingAthleteContext {
   weightKg?: number | null;
   vlamax?: number | null;
   vlamaxRun?: number | null;
+  /** AUDIT #6 — VLamax sport-résolue (résolveur unifié). Prioritaire côté prompt IA. */
+  vlamaxEffective?: number | null;
   vo2max?: number | null;
   vma?: number | null;
   css?: number | null;

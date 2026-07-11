@@ -71,7 +71,9 @@ DONNÉES BRUTES :
 - P30s : ${snapshot.p30s_w ?? "—"} W
 - P60s : ${snapshot.p60s_w ?? "—"} W
 - VO2max : ${snapshot.vo2max ?? "—"} ml/kg/min
-- VLamax : ${snapshot.vlamax ?? "—"} mmol/L/s (source : ${snapshot.vlamax_source ?? "estimée"})
+- VLamax vélo : ${snapshot.vlamax ?? "—"} mmol/L/s (source : ${snapshot.vlamax_source ?? "estimée"})
+- VLamax course (mesure terrain) : ${snapshot.vlamax_run ?? "—"} mmol/L/s
+- Sport principal : ${snapshot.sport_main ?? "—"} ⇒ pour juger la glycolyse pertinente, utilise la VLamax course si sport = run/trail, sinon VLamax vélo
 - TTE : ${snapshot.tte_observed_min ?? "—"} min (${snapshot.tte_mode ?? "?"})
 - TSS 7j : ${snapshot.tss_7d ?? "—"}
 - Confiance globale : ${snapshot.confidence ? Math.round(snapshot.confidence * 100) + "%" : "—"}

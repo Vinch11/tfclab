@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Zap, Target, Bike, PersonStanding, Waves } from "lucide-react";
 import { Athlete, getDernierSnapshot } from "@/types/athlete";
-import { calculVLamaxAvecConfiance } from "@/lib/athleteStore";
+import { getVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { calculerScoreGlobal, genererBadges } from "@/lib/iaRecommandations";
 import { cn } from "@/lib/utils";
 
@@ -29,9 +29,9 @@ export function AthleteComparison({ athletes }: AthleteComparisonProps) {
   // Calculer les données pour chaque athlète
   const athletesData = athletes.map(athlete => {
     const snapshot = getDernierSnapshot(athlete);
-    const vlamax = snapshot 
-      ? calculVLamaxAvecConfiance(snapshot, athlete.objectif).vlamax 
-      : 0;
+    // AUDIT #6 — Résolveur sport-aware (CAP-estimator pour run/trail, vélo sinon)
+    // au lieu du legacy calculVLamaxAvecConfiance qui n'a pas la chaîne CAP.
+    const vlamax = snapshot ? (getVlamaxForGoal(snapshot as any, { goal: athlete.objectif }) ?? 0) : 0;
     const score = calculerScoreGlobal(athlete);
     const badges = genererBadges(athlete).filter(b => b.obtenu);
     

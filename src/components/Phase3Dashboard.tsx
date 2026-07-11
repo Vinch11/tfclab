@@ -24,6 +24,7 @@ import { calculateStreaks, getLevelName, getLevelIcon } from "@/lib/streaksEngin
 import { useAICoaching } from "@/hooks/useAICoaching";
 import type { AICoachingAthleteContext } from "@/hooks/useAICoaching";
 import { computeVLamaxBikeV2Enhanced } from "@/lib/v2/vlamaxBikeV2Enhanced";
+import { getVlamaxForGoal } from "@/lib/vlamaxResolver";
 import type { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 import type { TFCLCoachingCompassResult } from "@/lib/coachingCompass";
@@ -249,6 +250,8 @@ function AICoachingCard({
       weightKg: snapshot?.weight_kg,
       vlamax: snapshot?.vlamax,
       vlamaxRun: snapshot?.vlamax_run,
+      // AUDIT #6 — Valeur sport-résolue (CAP-estimator pour run/trail, vélo sinon).
+      vlamaxEffective: snapshot ? getVlamaxForGoal(snapshot as any, athlete as any) : null,
       vo2max: snapshot?.vo2max,
       vma: snapshot?.vma,
       css: snapshot?.css,
