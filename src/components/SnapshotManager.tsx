@@ -1509,6 +1509,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: s.tss_7d ?? null,
       tte_mode: (s.tte_mode as any) ?? "LOAD",
       tte_observed_min: s.tte_observed_min ?? null,
+      tte_observed_min_run: (s as any).tte_observed_min_run ?? null,
       objectif: athleteGoal,
     });
 
