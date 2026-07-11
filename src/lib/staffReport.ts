@@ -342,6 +342,8 @@ export interface GenerateStaffReportParams {
   snapshotDate: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
+  /** F42 (audit #11) — TTE run pour triathlon (optionnel). Affiché à côté du TTE bike dans les indicateurs clés. */
+  tteEffectifRun?: TTEEffectif | null;
   readiness: PotentielPhysiologiqueEffectif;
   nutritionEstimate: NutritionEstimate | null;
   runningEconomy: RunningEconomyResult | null;
