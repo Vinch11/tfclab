@@ -262,14 +262,17 @@ export default function RunningProfilePage() {
     const profile = {
       athlete_id: currentAthlete.id,
       objective_distance: objectiveDistance as "5K" | "10K" | "Semi" | "Marathon" | "Trail",
-      vo2max_run: {
-        value: effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? 50,
-        confidence: 0.7,
-        source: "snapshot" as const,
-      },
+      vo2max_run: (() => {
+        const v = effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null;
+        return {
+          value: v ?? 0,
+          confidence: v != null ? 0.7 : 0,
+          source: "snapshot" as const,
+        };
+      })(),
       vlamax_run: {
-        value: vlamaxEffectif.value ?? 0.4,
-        confidence: vlamaxEffectif.confidence,
+        value: vlamaxEffectif.value ?? 0,
+        confidence: vlamaxEffectif.value != null ? vlamaxEffectif.confidence : 0,
         source: vlamaxEffectif.source === "test" ? "field_test" as const : "estimation" as const,
       },
       durability_run: {
