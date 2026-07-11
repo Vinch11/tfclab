@@ -109,6 +109,7 @@ export function DecisionAdvancedMode() {
         vlamaxProtocol: activeSnapshot.vlamax_protocol ?? null,
         vlamaxIsReference: activeSnapshot.vlamax_is_reference ?? false,
         tteObservedMin: activeSnapshot.tte_observed_min ?? null,
+        tteObservedMinRun: (activeSnapshot as any).tte_observed_min_run ?? null,
         tteMode: activeSnapshot.tte_mode ?? null,
         tss7d: activeSnapshot.tss_7d ?? null,
         fatigueState: activeSnapshot.fatigue_state ?? null,
