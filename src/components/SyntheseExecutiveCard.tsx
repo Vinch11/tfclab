@@ -27,6 +27,8 @@ interface SyntheseExecutiveCardProps {
   objectif: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
+  /** TTE CAP séparé (triathlon) — affiché en complément si observé */
+  tteEffectifRun?: TTEEffectif | null;
   limiterResult: UnifiedLimiterResult | null;
   ftp: number | null;
   poids: number | null;
