@@ -88,7 +88,7 @@ export function PhysiologicalAnalysis({ athlete, vlamaxEffectif, tteEffectif: tt
       vlamax,
       objectif: athlete.objectif || "IM",
       tteMin: tteEffectifProp?.tte_min ?? null,
-      tteTarget: tteEffectifProp?.target ?? 50,
+      tteTarget: tteEffectifProp?.target ?? null,
     });
   }, [vlamax, athlete.objectif, tteEffectifProp?.tte_min, tteEffectifProp?.target]);
 
