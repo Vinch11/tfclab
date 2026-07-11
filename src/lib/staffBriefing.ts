@@ -150,7 +150,7 @@ function determineSport(objectif: string): "velo" | "cap" | "triathlon" {
 function determinePriority(params: {
   vlamax: number | null;
   tteMin: number | null;
-  tteTarget: number;
+  tteTarget: number | null;
   ftpKg: number | null;
   objectif: string;
 }): PriorityLabel {
@@ -181,7 +181,7 @@ function computePacingVelo(params: {
   objectif: string;
   vlamax: number | null;
   tteMin: number | null;
-  tteTarget: number;
+  tteTarget: number | null;
   potentielPhysiologiqueScore: number;
 }): PacingVelo | null {
   const { objectif, vlamax, tteMin, tteTarget, potentielPhysiologiqueScore } = params;
@@ -255,7 +255,7 @@ function computePacingCAP(params: {
 function generateAlerts(params: {
   nutritionRiskBadge: string;
   tteMin: number | null;
-  tteTarget: number;
+  tteTarget: number | null;
   vlamax: number | null;
   economyScore: number | null;
   potentielPhysiologiqueScore: number;
