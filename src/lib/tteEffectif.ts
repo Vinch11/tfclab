@@ -58,11 +58,23 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
   const { ftp, tte_mode, objectif, age } = params;
 
   // Sport-aware : on choisit le champ TTE observé pertinent (run vs bike).
-  // Par défaut bike pour préserver le comportement historique.
-  const sport = params.sport ?? "bike";
+  // Si `sport` n'est pas passé, on l'infère (dans l'ordre) :
+  //   1. objectif run-only (Marathon/Semi/10K/5K/Trail*/StartToRun) → "run"
+  //   2. présence exclusive de tte_observed_min_run (et pas de bike) → "run"
+  //   3. défaut historique → "bike"
+  // Cela évite qu'un caller "oublié" retombe silencieusement sur bike pour un coureur.
+  let sport: "bike" | "run" = params.sport ?? "bike";
+  if (params.sport == null) {
+    const objLower = (objectif ?? "").toLowerCase();
+    const runOnlyObjective =
+      /marathon|semi|10\s?k|5\s?k|trail|ultra|start\s?to\s?run|utmb|ccc|occ|skyrun|sky\s?run|vk\s|hardrock|western\s?states/.test(objLower);
+    const hasRunOnly = (params.tte_observed_min_run ?? null) != null && (params.tte_observed_min ?? null) == null;
+    if (runOnlyObjective || hasRunOnly) sport = "run";
+  }
   const observedRaw = sport === "run"
     ? (params.tte_observed_min_run ?? null)
     : (params.tte_observed_min ?? null);
+
 
   const target = getTTETargetFromPro(objectif || "", age ?? null);
 
