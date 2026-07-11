@@ -342,6 +342,8 @@ export interface GenerateStaffReportParams {
   snapshotDate: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
+  /** F42 (audit #11) — TTE run pour triathlon (optionnel). Affiché à côté du TTE bike dans les indicateurs clés. */
+  tteEffectifRun?: TTEEffectif | null;
   readiness: PotentielPhysiologiqueEffectif;
   nutritionEstimate: NutritionEstimate | null;
   runningEconomy: RunningEconomyResult | null;
@@ -747,6 +749,7 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     snapshotDate,
     vlamaxEffectif,
     tteEffectif,
+    tteEffectifRun,
     readiness,
     nutritionEstimate,
     runningEconomy,
@@ -810,15 +813,28 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     status: vlamaxEffectif.confidence >= 0.7 ? "good" : vlamaxEffectif.confidence >= 0.4 ? "warning" : "critical",
   });
   
-  // TTE
+  // TTE (bike pour triathlon, sport principal sinon)
+  const isTri = isTriathlonObjectif(objectif);
   keyIndicators.push({
-    name: "TTE effectif",
+    name: isTri ? "TTE effectif — vélo" : "TTE effectif",
     value: tteEffectif.tte_min !== null ? `${tteEffectif.tte_min} min` : "—",
     source: tteEffectif.source === "observed" ? "Observé" : tteEffectif.source === "estimated" ? "Estimé" : "Inconnu",
     confidence: tteEffectif.confidence,
     confidenceLabel: tteEffectif.confidence >= 0.8 ? "Très fiable" : tteEffectif.confidence >= 0.5 ? "Fiable" : "Modéré",
     status: tteEffectif.confidence >= 0.7 ? "good" : tteEffectif.confidence >= 0.4 ? "warning" : "critical",
   });
+
+  // F42 (audit #11) — TTE run séparé pour triathlon
+  if (isTri && tteEffectifRun && tteEffectifRun.tte_min !== null && tteEffectifRun.tte_min > 0) {
+    keyIndicators.push({
+      name: "TTE effectif — run",
+      value: `${tteEffectifRun.tte_min} min`,
+      source: tteEffectifRun.source === "observed" ? "Observé" : tteEffectifRun.source === "estimated" ? "Estimé" : "Inconnu",
+      confidence: tteEffectifRun.confidence,
+      confidenceLabel: tteEffectifRun.confidence >= 0.8 ? "Très fiable" : tteEffectifRun.confidence >= 0.5 ? "Fiable" : "Modéré",
+      status: tteEffectifRun.confidence >= 0.7 ? "good" : tteEffectifRun.confidence >= 0.4 ? "warning" : "critical",
+    });
+  }
   
   // FTP/kg
   const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;

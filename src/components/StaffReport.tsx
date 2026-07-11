@@ -102,6 +102,8 @@ interface StaffReportProps {
   snapshotDate: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
+  /** F42 (audit #11) — TTE run pour triathlon (optionnel). Séparé du TTE bike. */
+  tteEffectifRun?: TTEEffectif | null;
   readiness: PotentielPhysiologiqueEffectif;
   nutritionEstimate: NutritionEstimate | null;
   runningEconomy: RunningEconomyResult | null;
@@ -127,6 +129,7 @@ export function StaffReport({
   snapshotDate,
   vlamaxEffectif,
   tteEffectif,
+  tteEffectifRun,
   readiness,
   nutritionEstimate,
   runningEconomy,
@@ -152,6 +155,7 @@ export function StaffReport({
     snapshotDate,
     vlamaxEffectif,
     tteEffectif,
+    tteEffectifRun,
     readiness,
     nutritionEstimate,
     runningEconomy,

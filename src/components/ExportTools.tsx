@@ -3939,7 +3939,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     objectif: athlete.goal || "IM",
     age: ageAdjustment.age,
   });
-  const showTteRun = tteRun.source === "observed" && tteRun.tte_min > 0;
+  // F42 (audit #11) — Sport-awareness des exports triathlon :
+  // on affiche TTE run dès qu'on a une valeur > 0 ET que l'objectif est un triathlon,
+  // même si estimé (LOAD). Avant on n'affichait que si `source === "observed"`
+  // → TTE run invisible pour la majorité des athlètes tri.
+  const isTriObjectif = /tri|ironman|\bIM\b|70\.?3|olymp|sprint/i.test(athlete.goal || "");
+  const showTteRun = (tteRun.tte_min ?? 0) > 0 && (tteRun.source === "observed" || isTriObjectif);
 
   // =============================================
   // CONSTANTES BRANDING REPOSITIONNÉ (NON DOGMATIQUE)
@@ -5203,7 +5208,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       })()}
 
       <div class="card pagebreakAvoid">
-        <h3>2️⃣ TTE (Time to Exhaustion) ${priorityBadge('tte')}</h3>
+        <h3>2️⃣ TTE (Time to Exhaustion)${showTteRun ? ' — vélo' : ''} ${priorityBadge('tte')}</h3>
         <div class="grid2">
           <div>
             <div class="kv">
@@ -5213,13 +5218,22 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div class="k">Cible (${getObjectifLabel(athlete.goal)})</div><div class="v">≥ ${targets.tteTarget} min</div>
               <div class="k">Statut</div><div class="v"><span class="badge ${tte.tte_min >= targets.tteTarget ? 'badgeSuccess' : tte.tte_min >= targets.tteTarget * 0.85 ? 'badgeWarning' : 'badgeError'}">${tte.status?.toUpperCase() || '—'}</span></div>
             </div>
+            ${showTteRun ? `
+            <div class="kv" style="margin-top:8px;border-top:1px dashed #d1d5db;padding-top:8px;">
+              <div class="k">TTE run</div><div class="v">${tteRun.tte_min} min</div>
+              <div class="k">Mode</div><div class="v">${tteRun.source === "observed" ? "OBSERVED (mesuré)" : "LOAD (estimé TSS)"}</div>
+              ${tteRun.target != null ? `<div class="k">Cible run</div><div class="v">≥ ${tteRun.target} min</div>` : ''}
+              <div class="k">Statut run</div><div class="v"><span class="badge ${tteRun.target != null && tteRun.tte_min >= tteRun.target ? 'badgeSuccess' : tteRun.target != null && tteRun.tte_min >= tteRun.target * 0.85 ? 'badgeWarning' : 'badgeError'}">${tteRun.status?.toUpperCase() || '—'}</span></div>
+            </div>` : ''}
           </div>
           <div>
             <h4>Ce que ça signifie</h4>
-            <p class="muted">${tte.tte_min < targets.tteTarget ? `TTE insuffisant pour ${getObjectifLabel(athlete.goal)} — risque de défaillance en fin d'épreuve.` : "TTE suffisant pour tenir l'objectif."}</p>
+            <p class="muted">${tte.tte_min < targets.tteTarget ? `TTE${showTteRun ? ' vélo' : ''} insuffisant pour ${getObjectifLabel(athlete.goal)} — risque de défaillance en fin d'épreuve.` : `TTE${showTteRun ? ' vélo' : ''} suffisant pour tenir l'objectif.`}</p>
+            ${showTteRun && tteRun.target != null ? `<p class="muted">TTE run : ${tteRun.tte_min >= tteRun.target ? `satisfaisant pour la partie course (${tteRun.tte_min} min ≥ cible ${tteRun.target} min).` : `insuffisant pour la partie course (${tteRun.tte_min} min vs cible ${tteRun.target} min) — axe complémentaire.`}</p>` : ''}
             <h4>Action coach</h4>
             <ul class="muted">
               ${tte.tte_min < targets.tteTarget ? "<li>Séances au seuil prolongées (2x20-30min)</li><li>Intervalles longs 95-105% FTP</li><li>Augmenter le volume Z3-Z4</li>" : "<li>Maintenir le niveau</li><li>Intégrer des séances spécifiques course</li>"}
+              ${showTteRun && tteRun.target != null && tteRun.tte_min < tteRun.target ? "<li>Ajouter des sorties longues à allure marathon (90-120 min)</li><li>Progression + finish rapide en fin de sortie</li>" : ""}
             </ul>
           </div>
         </div>
@@ -6581,11 +6595,16 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           }
           <br><br>
           ${tte.target == null
-            ? `<b>TTE (${tte.tte_min} min)</b> — cible objectif indisponible (données insuffisantes) → recommandation neutre : maintenir un mix Z2/Z3/Z4a.`
+            ? `<b>TTE${showTteRun ? ' vélo' : ''} (${tte.tte_min} min)</b> — cible objectif indisponible (données insuffisantes) → recommandation neutre : maintenir un mix Z2/Z3/Z4a.`
             : tte.tte_min < tte.target
-            ? `<b style="color:var(--warning)">TTE insuffisant (${tte.tte_min} min vs cible ${tte.target} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
-            : `<b style="color:var(--success)">TTE satisfaisant (${tte.tte_min} min)</b> → Maintenir avec du travail Z2/Z3 de fond.`
+            ? `<b style="color:var(--warning)">TTE${showTteRun ? ' vélo' : ''} insuffisant (${tte.tte_min} min vs cible ${tte.target} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
+            : `<b style="color:var(--success)">TTE${showTteRun ? ' vélo' : ''} satisfaisant (${tte.tte_min} min)</b> → Maintenir avec du travail Z2/Z3 de fond.`
           }
+          ${showTteRun && tteRun.target != null ? `<br><br>${
+            tteRun.tte_min < tteRun.target
+              ? `<b style="color:var(--warning)">TTE run insuffisant (${tteRun.tte_min} min vs cible ${tteRun.target} min)</b> → intégrer des sorties longues à allure marathon + finish rapide.`
+              : `<b style="color:var(--success)">TTE run satisfaisant (${tteRun.tte_min} min)</b> → maintenir avec des sorties longues Z2 dominantes.`
+          }` : ''}
         </p>
       </div>
     </section>
