@@ -499,10 +499,6 @@ export default function AITrainingPlanPage() {
       css: refs.css,
       vlamax: activeSnap.vlamax,
       vlamaxRun: activeSnap.vlamax_run,
-      // Valeur VLamax résolue sport-aware (résolveur unifié : vlamax pour bike/tri,
-      // vlamax_run/CAP-estimator pour run/trail). SOURCE À CONSOMMER par toutes
-      // les logiques génériques (nutrition, garde-fous, prompt IA).
-      vlamaxEffective: vlamaxEffectifPrecomputed.value,
       vlamaxSource: activeSnap.vlamax_source,
       vlamaxProtocol: activeSnap.vlamax_protocol,
       vlamaxIsReference: activeSnap.vlamax_is_reference ?? false,
