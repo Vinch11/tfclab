@@ -10,6 +10,8 @@ import { computeCycleIntelligence, snapshotToEngineData, type CycleIntelligenceR
 import { computeCompassScores, CompassScores, ComputeCompassParams } from "@/lib/compassScoring";
 import { computeCRR } from "@/lib/chargeRecenteReference";
 import { NutritionEstimate, computeNutritionEstimate } from "@/lib/nutritionPredictive";
+import { computeBaseRateMader } from "@/lib/v2/nutritionUnified";
+
 import { RunningEconomyResult } from "@/lib/runningEconomy";
 import { computeCAPInjuryRisk, CAPInjuryRiskResult, getCAPRiskIcon } from "@/lib/capInjuryRisk";
 import { 
