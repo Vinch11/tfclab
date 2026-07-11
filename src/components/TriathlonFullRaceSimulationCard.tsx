@@ -138,7 +138,8 @@ function buildScenario(
     injured: 0.15,
   };
   const fatigueAdd = fatigueState ? fatigueMap[fatigueState] : 0.02;
-  const vlamaxHigh = (vlamaxValue ?? 0.4) >= 0.5;
+  // F41 — insufficient-data guard : plus de fake 0.4. Sans VLamax, pas de flag "glyco haute".
+  const vlamaxHigh = vlamaxValue != null && vlamaxValue >= 0.5;
 
   const bikeMod: Record<FullRaceScenarioKey, number> = {
     ROBUST: 1.06,

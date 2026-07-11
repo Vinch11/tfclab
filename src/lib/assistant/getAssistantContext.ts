@@ -385,12 +385,15 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
   let potentielPhysiologiqueSignature: PotentielResult | null = null;
   if (athlete?.goal) {
     // Construire l'input pour le calcul
+    // F41 — insufficient-data guard : plus de valeurs déguisées 0.40 / 30.
+    // Si donnée absente → value=0 + confidence=0 → computePotentielSignature
+    // downgrade sa confiance et l'assistant sait qu'il ne doit pas prescrire.
     const signatureInput: PotentielInput = {
       objectif: athlete.goal || "IM",
-      vlamaxValue: vlamaxEffectif?.value ?? 0.40,
-      vlamaxConfidence: vlamaxEffectif?.confidence ?? 0.5,
-      tteMin: tteEffectif?.tte_min ?? 30,
-      tteConfidence: tteEffectif?.confidence ?? 0.5,
+      vlamaxValue: vlamaxEffectif?.value ?? 0,
+      vlamaxConfidence: vlamaxEffectif?.value != null ? (vlamaxEffectif?.confidence ?? 0.5) : 0,
+      tteMin: tteEffectif?.tte_min ?? 0,
+      tteConfidence: tteEffectif?.tte_min != null && tteEffectif.tte_min > 0 ? (tteEffectif?.confidence ?? 0.5) : 0,
       ftpKg: effectiveRefs?.ftp && effectiveRefs?.weightKg ? effectiveRefs.ftp / effectiveRefs.weightKg : null,
       vo2max: effectiveSnapshot?.vo2max ?? null,
     };

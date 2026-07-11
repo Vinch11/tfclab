@@ -1675,7 +1675,7 @@ function buildExportPayload(
     vlamax: vlamax.value,
     objectif: athlete.goal || "IM",
     tteMin: tte.tte_min,
-    tteTarget: tte.target ?? diagnostic?.targets?.current?.tte_min ?? 50,
+    tteTarget: tte.target ?? diagnostic?.targets?.current?.tte_min ?? null,
     potentielPhysiologique: potentielPhysiologique.score,
     vo2max: effectiveRefs.vo2max,
     weightKg: effectiveRefs.weightKg,
@@ -4260,7 +4260,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 <span class="muted">TTE${showTteRun ? ' vélo' : ''}</span><br>
                 <span class="medium ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</span>
                 <br><span class="badge ${tteStatus.cssClass}" style="font-size:9px;">${tteStatus.icon} ${tteStatus.label}</span>
-                <br><span class="muted" style="font-size:10px;">Cible: ${tte.target ?? 50} min</span>
+                <br><span class="muted" style="font-size:10px;">${tte.target != null ? `Cible: ${tte.target} min` : 'Cible : données insuffisantes'}</span>
                 ${showTteRun ? `<br><span class="muted" style="font-size:10px;margin-top:2px;display:inline-block;">CAP: <b>${tteRun.tte_min} min</b>${tteRun.target != null ? ` (cible ${tteRun.target} min)` : ''}</span>` : ''}
               </div>
               <div>
@@ -4552,7 +4552,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <td>${tte.tte_min} min</td>
               <td><span class="badge ${tteStatus.cssClass}">${tteStatus.icon} ${tteStatus.label}</span></td>
               <td><span class="badge ${tte.confidence >= 0.7 ? 'badgeSuccess' : tte.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${tte.confidence >= 0.7 ? 'Élevée' : tte.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
-              <td class="muted">${tte.tte_min >= (tte.target ?? 50) ? "Indicateur de durabilité satisfaisant pour l'objectif." : `Indicateur de durabilité insuffisant (cible: ${tte.target ?? 50} min) — axe de travail potentiel.`}</td>
+              <td class="muted">${tte.target == null ? "Cible TTE : données insuffisantes — pas d'évaluation possible." : tte.tte_min >= tte.target ? "Indicateur de durabilité satisfaisant pour l'objectif." : `Indicateur de durabilité insuffisant (cible: ${tte.target} min) — axe de travail potentiel.`}</td>
             </tr>
             ${showTteRun ? `<tr>
               <td><b>TTE CAP</b></td>
@@ -6580,8 +6580,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               : `<b>Profil équilibré</b> → Répartition standard avec focus sur les zones correspondant à votre objectif (${getObjectifLabel(athlete.goal)}).`
           }
           <br><br>
-          ${tte.tte_min < (tte.target ?? 50) 
-            ? `<b style="color:var(--warning)">TTE insuffisant (${tte.tte_min} min vs cible ${tte.target ?? 50} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
+          ${tte.target == null
+            ? `<b>TTE (${tte.tte_min} min)</b> — cible objectif indisponible (données insuffisantes) → recommandation neutre : maintenir un mix Z2/Z3/Z4a.`
+            : tte.tte_min < tte.target
+            ? `<b style="color:var(--warning)">TTE insuffisant (${tte.tte_min} min vs cible ${tte.target} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
             : `<b style="color:var(--success)">TTE satisfaisant (${tte.tte_min} min)</b> → Maintenir avec du travail Z2/Z3 de fond.`
           }
         </p>

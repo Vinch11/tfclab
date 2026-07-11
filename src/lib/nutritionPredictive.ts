@@ -239,7 +239,7 @@ function computeNutritionalRiskIndex(params: {
   sport: Sport;
   vlamax: number;
   tteMin: number | null;
-  tteTarget: number;
+  tteTarget: number | null;
   vlamaxCategory: VLamaxCategory;
   potentielPhysiologique?: number | null;
 }): NutritionalRiskIndex {
@@ -261,7 +261,7 @@ function computeNutritionalRiskIndex(params: {
   let mainRiskFactor = 'Profil équilibré';
   if (vlamaxCategory === 'very_high' || vlamaxCategory === 'high') {
     mainRiskFactor = 'VLamax élevé → forte combustion glucidique';
-  } else if (tteMin !== null && tteMin < tteTarget * 0.8) {
+  } else if (tteMin !== null && tteTarget !== null && tteMin < tteTarget * 0.8) {
     mainRiskFactor = 'TTE insuffisant → dérive métabolique probable';
   } else if (carbsRequired > toleranceZone) {
     mainRiskFactor = `Besoins > tolérance ${sportLabel}`;
@@ -319,7 +319,7 @@ function computeNutritionalRiskIndex(params: {
   }
 
   // Ajustement si TTE faible
-  if (tteMin !== null && tteMin < tteTarget * 0.7 && level !== 'critical') {
+  if (tteMin !== null && tteTarget !== null && tteMin < tteTarget * 0.7 && level !== 'critical') {
     if (level === 'low') {
       level = 'moderate';
       label = 'Modéré';
@@ -370,12 +370,12 @@ export function computeNutritionEstimate(params: {
   objectif: string;
   sport?: Sport;
   tteMin?: number | null;
-  tteTarget?: number;
+  tteTarget?: number | null;
   potentielPhysiologique?: number | null;
   vo2max?: number | null;
   weightKg?: number | null;
 }): NutritionEstimate | null {
-  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = 50, potentielPhysiologique, vo2max, weightKg } = params;
+  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = null, potentielPhysiologique, vo2max, weightKg } = params;
 
   if (vlamax === null || vlamax === undefined) {
     return null;
@@ -461,7 +461,7 @@ export function computeNutritionEstimate(params: {
 
   // Ajustement TTE
   let tteAdjustment: string | null = null;
-  if (tteMin !== null && tteMin !== undefined && tteMin < tteTarget) {
+  if (tteMin !== null && tteMin !== undefined && tteTarget !== null && tteTarget !== undefined && tteMin < tteTarget) {
     tteAdjustment = `TTE inférieur à la cible (${tteMin} vs ${tteTarget} min) : dérive métabolique probable. Besoin glucidique potentiellement plus élevé mais tolérance réduite.`;
     if (riskLevel === 'low') riskLevel = 'moderate';
     warnings.push('TTE < cible : ajustement nutritionnel requis');

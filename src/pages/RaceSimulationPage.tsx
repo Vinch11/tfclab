@@ -322,8 +322,10 @@ export default function RaceSimulationPage() {
       ?? raceChronoEstimate?.paceThreshold_sec_km
       ?? null; // sec/km au seuil
     // P1 — Pénalité glycolytique segment course basée sur la VLamax CAP (run), pas la bike.
-    const vlamaxRunVal = vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? 0.4;
-    const vlamaxHigh = vlamaxRunVal >= 0.55;
+    // F41 — insufficient-data guard : pas de fake 0.4. Si VLamax absente,
+    // on n'applique aucune pénalité glyco (on ne devine pas un profil).
+    const vlamaxRunVal = vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null;
+    const vlamaxHigh = vlamaxRunVal != null && vlamaxRunVal >= 0.55;
     const vlamaxVSeuilPenalty = vlamaxHigh ? 0.02 : 0; // -2% vSeuil si glyco
 
     // P2 — Pénalité de durabilité observée chronos (Riegel semi→marathon)
