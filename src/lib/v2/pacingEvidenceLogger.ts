@@ -67,7 +67,7 @@ export async function logPacingEvidence(
       reference_value: referenceValue ?? null,
       envelope_snapshot: envelope as unknown as Record<string, unknown>,
       notes: notes ?? null,
-    })
+    }])
     .select("id")
     .single();
 
