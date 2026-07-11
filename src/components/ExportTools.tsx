@@ -5208,7 +5208,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       })()}
 
       <div class="card pagebreakAvoid">
-        <h3>2️⃣ TTE (Time to Exhaustion) ${priorityBadge('tte')}</h3>
+        <h3>2️⃣ TTE (Time to Exhaustion)${showTteRun ? ' — vélo' : ''} ${priorityBadge('tte')}</h3>
         <div class="grid2">
           <div>
             <div class="kv">
@@ -5218,13 +5218,22 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div class="k">Cible (${getObjectifLabel(athlete.goal)})</div><div class="v">≥ ${targets.tteTarget} min</div>
               <div class="k">Statut</div><div class="v"><span class="badge ${tte.tte_min >= targets.tteTarget ? 'badgeSuccess' : tte.tte_min >= targets.tteTarget * 0.85 ? 'badgeWarning' : 'badgeError'}">${tte.status?.toUpperCase() || '—'}</span></div>
             </div>
+            ${showTteRun ? `
+            <div class="kv" style="margin-top:8px;border-top:1px dashed #d1d5db;padding-top:8px;">
+              <div class="k">TTE run</div><div class="v">${tteRun.tte_min} min</div>
+              <div class="k">Mode</div><div class="v">${tteRun.source === "observed" ? "OBSERVED (mesuré)" : "LOAD (estimé TSS)"}</div>
+              ${tteRun.target != null ? `<div class="k">Cible run</div><div class="v">≥ ${tteRun.target} min</div>` : ''}
+              <div class="k">Statut run</div><div class="v"><span class="badge ${tteRun.target != null && tteRun.tte_min >= tteRun.target ? 'badgeSuccess' : tteRun.target != null && tteRun.tte_min >= tteRun.target * 0.85 ? 'badgeWarning' : 'badgeError'}">${tteRun.status?.toUpperCase() || '—'}</span></div>
+            </div>` : ''}
           </div>
           <div>
             <h4>Ce que ça signifie</h4>
-            <p class="muted">${tte.tte_min < targets.tteTarget ? `TTE insuffisant pour ${getObjectifLabel(athlete.goal)} — risque de défaillance en fin d'épreuve.` : "TTE suffisant pour tenir l'objectif."}</p>
+            <p class="muted">${tte.tte_min < targets.tteTarget ? `TTE${showTteRun ? ' vélo' : ''} insuffisant pour ${getObjectifLabel(athlete.goal)} — risque de défaillance en fin d'épreuve.` : `TTE${showTteRun ? ' vélo' : ''} suffisant pour tenir l'objectif.`}</p>
+            ${showTteRun && tteRun.target != null ? `<p class="muted">TTE run : ${tteRun.tte_min >= tteRun.target ? `satisfaisant pour la partie course (${tteRun.tte_min} min ≥ cible ${tteRun.target} min).` : `insuffisant pour la partie course (${tteRun.tte_min} min vs cible ${tteRun.target} min) — axe complémentaire.`}</p>` : ''}
             <h4>Action coach</h4>
             <ul class="muted">
               ${tte.tte_min < targets.tteTarget ? "<li>Séances au seuil prolongées (2x20-30min)</li><li>Intervalles longs 95-105% FTP</li><li>Augmenter le volume Z3-Z4</li>" : "<li>Maintenir le niveau</li><li>Intégrer des séances spécifiques course</li>"}
+              ${showTteRun && tteRun.target != null && tteRun.tte_min < tteRun.target ? "<li>Ajouter des sorties longues à allure marathon (90-120 min)</li><li>Progression + finish rapide en fin de sortie</li>" : ""}
             </ul>
           </div>
         </div>
