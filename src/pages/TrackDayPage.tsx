@@ -330,7 +330,10 @@ export default function TrackDayPage() {
       fc_max: fcMax > 0 ? fcMax : null,
       vma: calc.vmaConfirmee || null,
       vo2max: calc.vo2maxEst > 0 ? Math.round(calc.vo2maxEst * 10) / 10 : null,
-      vlamax_run: calc.vlamaxEst || null,
+      // ⚠ Ne pas écrire vlamax_run depuis Track Day : la fusion multi-sources (vlamaxCapEstimator)
+      // consomme sprint_15s_distance + vma + ratio seuil/VMA. Écrire vlamax_run ici court-circuite
+      // le pipeline et fige une estimation locale. Voir memoire cap-sprint-15s-no-vlamax-write.
+
       tte_observed_min_run: calc.tteEst || null,
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
       sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
