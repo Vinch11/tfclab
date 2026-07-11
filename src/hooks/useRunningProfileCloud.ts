@@ -213,20 +213,24 @@ export function useRunningProfileCloud(athleteId: string | null) {
 
       try {
         // Create a full RunningPhysioProfile
+        // Politique projet (insufficient-data-no-fake-defaults) : pas de valeurs
+        // physio inventées. On propage `undefined` si la donnée n'est pas connue,
+        // createRunningPhysioProfile gérera l'absence (value=0, confidence=0).
         const newProfile = createRunningPhysioProfile({
           athlete_id: athleteId,
           objective_distance: input.objective_distance,
-          vo2max: input.vo2max_run ?? 50,
-          vo2max_confidence: input.confidence ?? 0.7,
+          vo2max: input.vo2max_run ?? undefined,
+          vo2max_confidence: input.vo2max_run != null ? (input.confidence ?? 0.7) : 0,
           vo2max_source: input.source ?? "snapshot",
-          vlamax_cap: input.vlamax_run ?? 0.45,
-          vlamax_confidence: input.confidence ?? 0.7,
+          vlamax_cap: input.vlamax_run ?? undefined,
+          vlamax_confidence: input.vlamax_run != null ? (input.confidence ?? 0.7) : 0,
           vlamax_source: input.source ?? "snapshot",
-          durability_min: input.durability_run ?? 45,
-          durability_confidence: input.confidence ?? 0.7,
+          durability_min: input.durability_run ?? undefined,
+          durability_confidence: input.durability_run != null ? (input.confidence ?? 0.7) : 0,
           economy_score: input.economy_run ?? undefined,
           lock_duration_days: input.lock_duration_days ?? 28,
         });
+
 
         // Convert to snapshot data
         const snapshotData = runningProfileToSnapshotUpdate(newProfile);
