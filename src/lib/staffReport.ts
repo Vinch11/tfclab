@@ -357,6 +357,8 @@ export interface GenerateStaffReportParams {
   tss7d?: number | null;
   snapshotUpdatedAt?: string | null;
   athleteAge?: number | null;
+  vo2max?: number | null;
+
   // TFCL Reference Week data
   tfclData?: {
     p30s_w?: number | null;
