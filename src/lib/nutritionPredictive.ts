@@ -261,7 +261,7 @@ function computeNutritionalRiskIndex(params: {
   let mainRiskFactor = 'Profil équilibré';
   if (vlamaxCategory === 'very_high' || vlamaxCategory === 'high') {
     mainRiskFactor = 'VLamax élevé → forte combustion glucidique';
-  } else if (tteMin !== null && tteMin < tteTarget * 0.8) {
+  } else if (tteMin !== null && tteTarget !== null && tteMin < tteTarget * 0.8) {
     mainRiskFactor = 'TTE insuffisant → dérive métabolique probable';
   } else if (carbsRequired > toleranceZone) {
     mainRiskFactor = `Besoins > tolérance ${sportLabel}`;
