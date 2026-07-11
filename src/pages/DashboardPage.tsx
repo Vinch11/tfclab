@@ -247,7 +247,7 @@ export default function DashboardPage() {
       return age;
     })() : null;
 
-    // TTE Effectif (source unique)
+    // TTE Effectif (source unique) — bike/vélo par défaut
     const tteEffectif = computeTTEEffectif({
       ftp: activeSnapshot.ftp,
       tss_7d: activeSnapshot.tss_7d,
@@ -256,6 +256,15 @@ export default function DashboardPage() {
       tte_observed_min_run: (activeSnapshot as any).tte_observed_min_run ?? null,
       objectif,
       age: athleteAge, // F33
+    });
+    // TTE Effectif CAP (run) — séparé pour affichage triathlon
+    const tteEffectifRun = computeTTEEffectif({
+      ftp: activeSnapshot.ftp,
+      tss_7d: activeSnapshot.tss_7d,
+      tte_observed_min_run: (activeSnapshot as any).tte_observed_min_run ?? null,
+      sport: "run",
+      objectif,
+      age: athleteAge,
     });
     
     // Potentiel Physiologique Effectif (source unique)
@@ -414,6 +423,7 @@ export default function DashboardPage() {
     return {
       vlamaxEffectif,
       tteEffectif,
+      tteEffectifRun,
       potentielPhysiologique,
       nutritionEstimate,
       fatigueEffectif,
@@ -484,6 +494,7 @@ export default function DashboardPage() {
   const { 
     vlamaxEffectif, 
     tteEffectif, 
+    tteEffectifRun,
     potentielPhysiologique, 
     nutritionEstimate,
     fatigueEffectif,
@@ -696,6 +707,11 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-blue-500" />
               <span className="font-semibold">TTE effectif</span>
+              {tteEffectifRun?.source === "observed" && (
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
+                  vélo
+                </span>
+              )}
             </div>
             {getStatusBadge(tteStatus.status, tteStatus.label)}
           </div>
@@ -707,6 +723,21 @@ export default function DashboardPage() {
               (cible: {tteTarget} min)
             </span>
           </div>
+
+          {tteEffectifRun?.source === "observed" && (
+            <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap pt-1 border-t border-dashed">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground mr-1">
+                CAP
+              </span>
+              <span className="text-xl sm:text-2xl font-bold font-mono">{tteEffectifRun.tte_min}</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">min</span>
+              {tteEffectifRun.target != null && (
+                <span className="text-xs sm:text-sm text-muted-foreground ml-1 sm:ml-2">
+                  (cible: {tteEffectifRun.target} min)
+                </span>
+              )}
+            </div>
+          )}
           
           <Progress 
             value={Math.min(100, (tteEffectif.tte_min / tteTarget) * 100)} 
