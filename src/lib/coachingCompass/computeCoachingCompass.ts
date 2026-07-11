@@ -98,27 +98,23 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Estime FatMax (W) à partir de VLamax + FTP.
- * Heuristique Mader simplifiée : VLamax basse → FatMax% élevé.
- */
-/**
- * Estime la FatMax en **% FTP/seuil** (échelle 0-100), source unique : VLamax.
- * Utilise la formule Mader-Heck du moteur officiel `computeFatMaxTFCL`.
- * 
+ * Estime la FatMax en **% FTP/seuil** (échelle 0-100).
+ * Délègue à l'ancre canonique unifiée `computeFatMaxAnchorPctFTP` (fatmaxTFCL.ts).
+ *
+ * Formule canonique TFCL (source unique — Audit 2D F29, mem `fatmax-unified-formula`):
+ *   FatMax_%FTP = CLAMP(78 − 52·(VLa − 0.25) + 0.15·(VO2 − 50), 48, 82)
+ *
  * ⚠️ IMPORTANT : retourne un % (0-100), PAS des watts. Indépendant du FTP,
  * fonctionne en mode running (pas de FTP vélo nécessaire).
- * 
- * Formule (alignée sur fatmaxTFCL.ts):
- *   FatMax_%FTP = CLAMP(78 - 45 × (VLamax - 0.25), 52, 82)
- * 
- * Exemples:
- *   VLamax 0.30 → 75.75% (profil lipidique)
- *   VLamax 0.40 → 71.25% (équilibré)
- *   VLamax 0.55 → 64.50% (cible IM/Marathon)
- *   VLamax 0.70 → 57.75% (glycolytique dominant)
+ *
+ * Exemples (VO2max=50) :
+ *   VLamax 0.30 → 75.4%  (profil lipidique)
+ *   VLamax 0.40 → 70.2%  (équilibré)
+ *   VLamax 0.55 → 62.4%  (cible IM/Marathon)
+ *   VLamax 0.70 → 54.6%  (glycolytique dominant)
  */
-function estimateFatMaxFromProfile(ftp: number | null, vlamax: number | null, vo2max: number | null = null): number | null {
-  // Audit 2D F29: délègue à l'ancre canonique unifiée
+function estimateFatMaxFromProfile(_ftp: number | null, vlamax: number | null, vo2max: number | null = null): number | null {
+  // Audit #7 : source unique — pas de duplication de formule ici.
   return computeFatMaxAnchorPctFTP(vlamax, vo2max);
 }
 

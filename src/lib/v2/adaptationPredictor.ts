@@ -10,6 +10,7 @@
  */
 
 import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
+import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -316,13 +317,9 @@ function extractPhysioState(
   const weight_kg = (snapshot.weight_kg as number) ?? null;
 
   // Estimate FatMax from VLamax (+ VO2max si dispo)
-  // Audit 2D F23/F25: formule canonique TFCL alignée `fatmaxTFCL.computeFatMaxTFCL`
-  // FatMax_%FTP = clamp(78 − 52·(VLa − 0.25) + 0.15·(VO2 − 50), 48, 82)
-  let fatmax_pct: number | null = null;
-  if (vlamax !== null) {
-    const vo2Term = vo2max && Number.isFinite(vo2max) && vo2max > 0 ? 0.15 * (vo2max - 50) : 0;
-    fatmax_pct = Math.max(48, Math.min(82, 78 - 52 * (vlamax - 0.25) + vo2Term));
-  }
+  // Audit 2D F29 (#7): délègue à l'ancre canonique unifiée `computeFatMaxAnchorPctFTP`
+  // pour éviter toute divergence de formule avec fatmaxTFCL / essentiels / Index.
+  const fatmax_pct: number | null = computeFatMaxAnchorPctFTP(vlamax, vo2max ?? null);
 
   // Estimate LT2 as % VO2max (~78-88% typical)
   // Audit P0 — B4: coefficient Jeukendrup 1997 (VO2 = FTP/kg × 10.8 + 7),
