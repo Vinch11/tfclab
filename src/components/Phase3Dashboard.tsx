@@ -250,6 +250,8 @@ function AICoachingCard({
       weightKg: snapshot?.weight_kg,
       vlamax: snapshot?.vlamax,
       vlamaxRun: snapshot?.vlamax_run,
+      // AUDIT #6 — Valeur sport-résolue (CAP-estimator pour run/trail, vélo sinon).
+      vlamaxEffective: snapshot ? getVlamaxForGoal(snapshot as any, athlete as any) : null,
       vo2max: snapshot?.vo2max,
       vma: snapshot?.vma,
       css: snapshot?.css,
