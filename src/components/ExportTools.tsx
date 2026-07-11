@@ -1675,7 +1675,7 @@ function buildExportPayload(
     vlamax: vlamax.value,
     objectif: athlete.goal || "IM",
     tteMin: tte.tte_min,
-    tteTarget: tte.target ?? diagnostic?.targets?.current?.tte_min ?? 50,
+    tteTarget: tte.target ?? diagnostic?.targets?.current?.tte_min ?? null,
     potentielPhysiologique: potentielPhysiologique.score,
     vo2max: effectiveRefs.vo2max,
     weightKg: effectiveRefs.weightKg,
