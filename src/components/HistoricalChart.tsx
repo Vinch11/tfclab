@@ -45,10 +45,13 @@ export function HistoricalChart({ athlete }: HistoricalChartProps) {
     return snapshots.map((snapshot, idx) => {
       const calc = calculVLamaxAvecConfiance(snapshot, athlete.objectif);
       const tte = estimerTTESport(snapshot);
-      
+      // AUDIT #6 — Résolveur sport-aware pour la valeur (précision/confiance
+      // restent issues du legacy pour préserver la sémantique du graphe).
+      const resolvedVlamax = getVlamaxForGoal(snapshot as any, { goal: athlete.objectif });
+
       return {
         date: snapshot.date,
-        vlamax: calc.vlamax,
+        vlamax: resolvedVlamax ?? calc.vlamax,
         precision: calc.precision,
         tte,
         vo2max: snapshot.vo2max || 0,
