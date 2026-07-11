@@ -164,7 +164,7 @@ function determinePriority(params: {
   }
   
   // TTE insuffisant
-  if (tteMin !== null && tteMin < tteTarget - 5) {
+  if (tteMin !== null && tteTarget !== null && tteMin < tteTarget - 5) {
     return "Augmenter endurance au seuil (TTE)";
   }
   
@@ -199,7 +199,7 @@ function computePacingVelo(params: {
     consignes.push("VLamax élevé → réduire IF de 2%");
   }
   
-  if (tteMin !== null && tteMin < tteTarget - 5) {
+  if (tteMin !== null && tteTarget !== null && tteMin < tteTarget - 5) {
     ifMin -= 0.02;
     ifMax -= 0.02;
     consignes.push("TTE faible → éviter longues sections au seuil");
@@ -278,7 +278,7 @@ function generateAlerts(params: {
     });
   }
   
-  if (tteMin !== null && tteMin < tteTarget - 5) {
+  if (tteMin !== null && tteTarget !== null && tteMin < tteTarget - 5) {
     alerts.push({
       severity: "critical",
       icon: "🔴",
@@ -457,7 +457,7 @@ export function computeStaffBriefing(params: ComputeStaffBriefingParams): StaffB
   
   const vlamax = vlamaxEffectif.value;
   const tteMin = tteEffectif.tte_min;
-  const tteTarget = tteEffectif.target ?? 45;
+  const tteTarget = tteEffectif.target ?? null;
   const vlamaxConf = vlamaxEffectif.confidence;
   const tteConf = tteEffectif.confidence;
   
