@@ -381,8 +381,40 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
           </Badge>
         )}
       </div>
-      <div className="flex items-center gap-2 mt-1">
-        <p className="text-sm font-semibold flex-1">{session.title}</p>
+      <div className="flex items-center gap-2 mt-1 flex-wrap">
+        {(() => {
+          const parsed = parseSessionTitle(session.title);
+          const SPORT_TOKENS = new Set([
+            "BIKE","VÉLO","VELO","RUN","CAP","COURSE","SWIM","NATATION",
+            "TR","TRI","BR","BRICK","STR","RENFO","MIXED",
+          ]);
+          const displayTags = parsed.tags.filter(
+            (t) => !SPORT_TOKENS.has(t.toUpperCase()) && t !== parsed.catalogId
+          );
+          const lorangColor: Record<string,string> = {
+            A: "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30",
+            B: "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30",
+            C: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30",
+            D: "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30",
+          };
+          return (
+            <>
+              {parsed.lorangCategory && (
+                <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${lorangColor[parsed.lorangCategory]}`}>
+                  {parsed.lorangCategory}
+                </Badge>
+              )}
+              {displayTags.filter((t) => !/^[A-D]$/.test(t)).map((t) => (
+                <Badge key={t} variant="outline" className="text-[9px] px-1.5 py-0 text-muted-foreground">
+                  {t}
+                </Badge>
+              ))}
+              <p className="text-sm font-semibold flex-1" title={parsed.catalogId ?? undefined}>
+                {parsed.cleanTitle}
+              </p>
+            </>
+          );
+        })()}
         {onReplaceClick && (
           <Button
             type="button"
