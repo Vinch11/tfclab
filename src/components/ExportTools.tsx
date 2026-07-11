@@ -4548,12 +4548,19 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               </td>
             </tr>
             <tr>
-              <td><b>TTE</b></td>
+              <td><b>TTE${showTteRun ? ' vélo' : ''}</b></td>
               <td>${tte.tte_min} min</td>
               <td><span class="badge ${tteStatus.cssClass}">${tteStatus.icon} ${tteStatus.label}</span></td>
               <td><span class="badge ${tte.confidence >= 0.7 ? 'badgeSuccess' : tte.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${tte.confidence >= 0.7 ? 'Élevée' : tte.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
               <td class="muted">${tte.tte_min >= (tte.target ?? 50) ? "Indicateur de durabilité satisfaisant pour l'objectif." : `Indicateur de durabilité insuffisant (cible: ${tte.target ?? 50} min) — axe de travail potentiel.`}</td>
             </tr>
+            ${showTteRun ? `<tr>
+              <td><b>TTE CAP</b></td>
+              <td>${tteRun.tte_min} min</td>
+              <td><span class="badge">${tteRun.status ?? '—'}</span></td>
+              <td><span class="badge badgeSuccess">Mesuré</span></td>
+              <td class="muted">${tteRun.target != null ? `Cible run ${tteRun.target} min.` : 'TTE CAP observé.'}</td>
+            </tr>` : ''}
             <tr>
               <td><b>Potentiel Physiologique</b></td>
               <td>${potentielPhysiologique.score}%</td>
