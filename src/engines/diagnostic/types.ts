@@ -64,6 +64,8 @@ export interface DiagnosticInput {
   
   // TTE
   tteObservedMin: number | null;
+  /** TTE CAP observé (séparé du TTE vélo). Utilisé quand sportFocus === "run". */
+  tteObservedMinRun?: number | null;
   tteMode: string | null;
   tss7d: number | null;
   
