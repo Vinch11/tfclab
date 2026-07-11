@@ -85,9 +85,14 @@ const computeNutritionCurve = (
   durationMin: number,
   gutLevel: GutTrainingLevel
 ) => {
-  const vlx = vlamax ?? 0.45;
+  // Visualisation-only fallback : la carte affiche déjà un bandeau "VLamax non
+  // disponible – estimation basée sur profil moyen" (voir isDataMissing plus bas).
+  // Cette médiane 0.45 n'est PAS persistée et ne remonte pas dans le diagnostic.
+  const POPULATION_MEDIAN_VLAMAX = 0.45;
+  const vlx = vlamax ?? POPULATION_MEDIAN_VLAMAX;
   const vo2 = vo2max ?? (sport === "cap" ? 48 : 50);
   const weight = weightKg ?? 70;
+
 
   const capMax = getCarbCap(sport, gutLevel);
   const exogenousFraction = getExogenousFraction(durationMin);
