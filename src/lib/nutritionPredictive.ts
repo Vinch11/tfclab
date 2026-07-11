@@ -370,12 +370,12 @@ export function computeNutritionEstimate(params: {
   objectif: string;
   sport?: Sport;
   tteMin?: number | null;
-  tteTarget?: number;
+  tteTarget?: number | null;
   potentielPhysiologique?: number | null;
   vo2max?: number | null;
   weightKg?: number | null;
 }): NutritionEstimate | null {
-  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = 50, potentielPhysiologique, vo2max, weightKg } = params;
+  const { vlamax, objectif, sport: forcedSport, tteMin, tteTarget = null, potentielPhysiologique, vo2max, weightKg } = params;
 
   if (vlamax === null || vlamax === undefined) {
     return null;
