@@ -92,8 +92,9 @@ describe("computeVLamaxEffectif", () => {
         ],
       });
 
-      // Test-derived should have confidence >= 0.7 (terrain test level)
-      expect(fromTest.confidence).toBeGreaterThanOrEqual(0.7);
+      // Test-derived should have confidence >= 0.6 (terrain sprint test level;
+      // 0.7 réservé aux tests labo/lactate).
+      expect(fromTest.confidence).toBeGreaterThanOrEqual(0.6);
     });
 
     it("snapshot with explicit VLamax has high confidence", () => {
