@@ -159,7 +159,7 @@ export function SaisonPhasesView({
     // Objectifs longue distance (IM, 703, Marathon, Trail)
     const isLongDistance = ["IM", "703", "70.3", "Half", "Marathon", "TrailLong", "TrailUltra"].includes(objectif);
 
-    if (vlamax !== null) {
+    if (vlamax !== null && tte !== null && tteTarget !== null) {
       // Phase 1: Potentiel (VLamax élevé, TTE pas critique)
       if (vlamax > 0.5 && tte < tteTarget * 0.7) {
         phaseProposed = 1;
@@ -190,13 +190,15 @@ export function SaisonPhasesView({
       else {
         phaseProposed = 2;
       }
+    } else if (tteTarget === null) {
+      incohérences.push("Cible TTE non définie — phase basée sur VLamax uniquement");
     }
 
     // Détection incohérences spécifiques
     if (phaseProposed === 3 && isLongDistance && vlamax && vlamax > 0.45) {
       incohérences.push("Phase spécifique avec VLamax > 0.45 : risque de dérive métabolique");
     }
-    if (phaseProposed === 3 && tte < tteTarget * 0.8) {
+    if (phaseProposed === 3 && tte !== null && tteTarget !== null && tte < tteTarget * 0.8) {
       incohérences.push("Phase spécifique mais TTE insuffisant : durabilité non acquise");
     }
     if (phaseProposed === 4 && score < 70) {
