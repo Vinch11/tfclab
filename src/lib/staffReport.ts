@@ -762,7 +762,9 @@ export function generateStaffReport(params: GenerateStaffReportParams): StaffRep
     tss7d,
     snapshotUpdatedAt,
     athleteAge,
+    vo2max,
   } = params;
+
   
   // Déterminer la limitation principale (utilise désormais le moteur unifié)
   const limitation = determineMainLimitation({
