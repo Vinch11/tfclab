@@ -150,13 +150,13 @@ function tteAgeAdjust(age: number | null | undefined): { delta: number; label: s
 // -----------------------------------------------------------------------------
 // 3) CAP injury risk (compact) + garde-fou master + world_class
 // -----------------------------------------------------------------------------
-function capRiskLevel(age: number | null | undefined, vlamaxRun: number | null | undefined, sport: Sport, ambition: string): { level: "low" | "moderate" | "high" | "very-high"; reasons: string[] } {
+function capRiskLevel(age: number | null | undefined, vlamaxForRun: number | null | undefined, sport: Sport, ambition: string): { level: "low" | "moderate" | "high" | "very-high"; reasons: string[] } {
   const reasons: string[] = [];
   let score = 0;
   if (sport === "cap" || sport === "trail" || sport === "ultra") {
     if (age && age >= 50) { score += 2; reasons.push(`âge ${age} (impact ostéo-tendineux ↑)`); }
     else if (age && age >= 40) { score += 1; reasons.push(`âge ${age} (récupération ralentie)`); }
-    if (vlamaxRun && vlamaxRun > 0.60) { score += 1; reasons.push(`VLamax run ${vlamaxRun.toFixed(2)} élevée (raideur musculaire)`); }
+    if (vlamaxForRun && vlamaxForRun > 0.60) { score += 1; reasons.push(`VLamax run ${vlamaxForRun.toFixed(2)} élevée (raideur musculaire)`); }
     if (ambition === "elite" || ambition === "world_class") { score += 1; reasons.push(`ambition ${ambition} (charge spécifique élevée)`); }
     if (ambition === "world_class" && age && age >= 50) { score += 2; reasons.push(`⚠️ combinaison master 50+ × world_class`); }
   }
