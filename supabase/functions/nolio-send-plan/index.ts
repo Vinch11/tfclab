@@ -1067,6 +1067,18 @@ function mapSport(sport: string, title?: string, id?: string | null): number {
   return 2; // défaut Course à pied
 }
 
+/**
+ * stripTitleTags — Retire les préfixes `[TAG · TAG · ID]` du titre de séance
+ * pour l'affichage côté Nolio. Le titre brut reste utilisé pour mapSport()
+ * et la debug trace ; seul le `name:` envoyé à Nolio est nettoyé.
+ * Aligné avec src/lib/parseSessionTitle.ts (helper front).
+ */
+function stripTitleTags(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const cleaned = raw.replace(/^\s*(?:\[[^\]]+\]\s*)+/, "").trim();
+  return cleaned || raw;
+}
+
 
 function addDaysYMD(startYMD: string, days: number): string {
   const [y, m, d] = startYMD.split("-").map((v) => parseInt(v, 10));
@@ -1506,7 +1518,7 @@ Deno.serve(async (req) => {
         id_partner: idPartner,
         athlete_id: body.nolio_athlete_id,
         sport_id: sportId,
-        name: s.title ?? "Séance",
+        name: stripTitleTags(s.title) || "Séance",
         date_start: dateStart,
         description: buildDescription(s, sportId),
       };
