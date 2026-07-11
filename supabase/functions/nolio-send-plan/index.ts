@@ -1518,7 +1518,7 @@ Deno.serve(async (req) => {
         id_partner: idPartner,
         athlete_id: body.nolio_athlete_id,
         sport_id: sportId,
-        name: s.title ?? "Séance",
+        name: stripTitleTags(s.title) || "Séance",
         date_start: dateStart,
         description: buildDescription(s, sportId),
       };
