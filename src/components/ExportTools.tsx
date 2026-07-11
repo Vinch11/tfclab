@@ -4255,10 +4255,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 ${ageAdjustment.age !== null && ageAdjustment.age >= 40 ? '<br><span class="muted" style="font-size:9px;font-style:italic;">Seuils ajustés pour ' + ageAdjustment.aai.label + '</span>' : ''}
               </div>
               <div>
-                <span class="muted">TTE</span><br>
+                <span class="muted">TTE${showTteRun ? ' vélo' : ''}</span><br>
                 <span class="medium ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</span>
                 <br><span class="badge ${tteStatus.cssClass}" style="font-size:9px;">${tteStatus.icon} ${tteStatus.label}</span>
                 <br><span class="muted" style="font-size:10px;">Cible: ${tte.target ?? 50} min</span>
+                ${showTteRun ? `<br><span class="muted" style="font-size:10px;margin-top:2px;display:inline-block;">CAP: <b>${tteRun.tte_min} min</b>${tteRun.target != null ? ` (cible ${tteRun.target} min)` : ''}</span>` : ''}
               </div>
               <div>
                 <span class="muted">Potentiel Physiologique</span><br>
