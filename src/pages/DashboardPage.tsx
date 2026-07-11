@@ -423,6 +423,7 @@ export default function DashboardPage() {
     return {
       vlamaxEffectif,
       tteEffectif,
+      tteEffectifRun,
       potentielPhysiologique,
       nutritionEstimate,
       fatigueEffectif,
