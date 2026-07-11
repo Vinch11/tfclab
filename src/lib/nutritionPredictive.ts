@@ -239,7 +239,7 @@ function computeNutritionalRiskIndex(params: {
   sport: Sport;
   vlamax: number;
   tteMin: number | null;
-  tteTarget: number;
+  tteTarget: number | null;
   vlamaxCategory: VLamaxCategory;
   potentielPhysiologique?: number | null;
 }): NutritionalRiskIndex {
