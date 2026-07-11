@@ -27,6 +27,8 @@ interface SyntheseExecutiveCardProps {
   objectif: string;
   vlamaxEffectif: VLamaxEffectif;
   tteEffectif: TTEEffectif;
+  /** TTE CAP séparé (triathlon) — affiché en complément si observé */
+  tteEffectifRun?: TTEEffectif | null;
   limiterResult: UnifiedLimiterResult | null;
   ftp: number | null;
   poids: number | null;
@@ -118,7 +120,7 @@ function computeGlobalScore(pillarScores: (number | null)[]): number {
 }
 
 export function SyntheseExecutiveCard({
-  athleteName, objectif, vlamaxEffectif, tteEffectif, limiterResult,
+  athleteName, objectif, vlamaxEffectif, tteEffectif, tteEffectifRun, limiterResult,
   ftp, poids, vo2max, completude, ambition = DEFAULT_AMBITION, athleteAge, sportFocus
 }: SyntheseExecutiveCardProps) {
   const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
@@ -182,7 +184,24 @@ export function SyntheseExecutiveCard({
   
   if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") {
     const eval_ = evaluateTTE(tteEffectif.tte_min, objectif, ambition, athleteAge);
-    items.push({ label: "TTE", value: `${tteEffectif.tte_min} min`, status: eval_.status, source: tteEffectif.source, target: eval_.target });
+    const hasRun = tteEffectifRun && tteEffectifRun.source === "observed" && tteEffectifRun.tte_min > 0;
+    items.push({
+      label: hasRun ? "TTE vélo" : "TTE",
+      value: `${tteEffectif.tte_min} min`,
+      status: eval_.status,
+      source: tteEffectif.source,
+      target: eval_.target,
+    });
+    if (hasRun) {
+      const evalRun = evaluateTTE(tteEffectifRun!.tte_min, objectif, ambition, athleteAge);
+      items.push({
+        label: "TTE CAP",
+        value: `${tteEffectifRun!.tte_min} min`,
+        status: evalRun.status,
+        source: tteEffectifRun!.source,
+        target: evalRun.target,
+      });
+    }
   }
   
   if (ftpKgStr) {

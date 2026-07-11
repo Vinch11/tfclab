@@ -1503,6 +1503,8 @@ function buildExportPayload(
     label: `TTE (${diagnostic.effectifs.tte.source})`,
   } : tteLegacy;
 
+  // (TTE CAP séparé calculé plus tard dans buildStaffGradeReportHTML pour affichage)
+
   // ✅ P1 — Score Potentiel Physiologique aligné sur le moteur Diagnostic V2
   // Source unique de vérité : `diagnostic.readiness` + `diagnostic.synthesis` (mêmes valeurs que le Dashboard).
   // Fallback sur le stub legacy uniquement si le diagnostic n'a pas pu être calculé (snapshot manquant).
@@ -3928,6 +3930,17 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const targets = buildReportTargetsFromUnifiedLimiter(payload.unifiedLimiter, athlete.goal, ambition.current);
   const weights = getWeightsBySport(athlete.goal || "IM");
 
+  // TTE CAP (run) séparé — affiché si observé (triathlon)
+  const tteRun = computeTTEEffectif({
+    ftp: effectiveRefs.ftp,
+    tss_7d: effectiveSnapshot?.tss_7d,
+    tte_observed_min_run: (effectiveSnapshot as any)?.tte_observed_min_run ?? null,
+    sport: "run",
+    objectif: athlete.goal || "IM",
+    age: ageAdjustment.age,
+  });
+  const showTteRun = tteRun.source === "observed" && tteRun.tte_min > 0;
+
   // =============================================
   // CONSTANTES BRANDING REPOSITIONNÉ (NON DOGMATIQUE)
   // =============================================
@@ -4244,10 +4257,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 ${ageAdjustment.age !== null && ageAdjustment.age >= 40 ? '<br><span class="muted" style="font-size:9px;font-style:italic;">Seuils ajustés pour ' + ageAdjustment.aai.label + '</span>' : ''}
               </div>
               <div>
-                <span class="muted">TTE</span><br>
+                <span class="muted">TTE${showTteRun ? ' vélo' : ''}</span><br>
                 <span class="medium ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</span>
                 <br><span class="badge ${tteStatus.cssClass}" style="font-size:9px;">${tteStatus.icon} ${tteStatus.label}</span>
                 <br><span class="muted" style="font-size:10px;">Cible: ${tte.target ?? 50} min</span>
+                ${showTteRun ? `<br><span class="muted" style="font-size:10px;margin-top:2px;display:inline-block;">CAP: <b>${tteRun.tte_min} min</b>${tteRun.target != null ? ` (cible ${tteRun.target} min)` : ''}</span>` : ''}
               </div>
               <div>
                 <span class="muted">Potentiel Physiologique</span><br>
@@ -4534,12 +4548,19 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               </td>
             </tr>
             <tr>
-              <td><b>TTE</b></td>
+              <td><b>TTE${showTteRun ? ' vélo' : ''}</b></td>
               <td>${tte.tte_min} min</td>
               <td><span class="badge ${tteStatus.cssClass}">${tteStatus.icon} ${tteStatus.label}</span></td>
               <td><span class="badge ${tte.confidence >= 0.7 ? 'badgeSuccess' : tte.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${tte.confidence >= 0.7 ? 'Élevée' : tte.confidence >= 0.4 ? 'Modérée' : 'Faible'}</span></td>
               <td class="muted">${tte.tte_min >= (tte.target ?? 50) ? "Indicateur de durabilité satisfaisant pour l'objectif." : `Indicateur de durabilité insuffisant (cible: ${tte.target ?? 50} min) — axe de travail potentiel.`}</td>
             </tr>
+            ${showTteRun ? `<tr>
+              <td><b>TTE CAP</b></td>
+              <td>${tteRun.tte_min} min</td>
+              <td><span class="badge">${tteRun.status ?? '—'}</span></td>
+              <td><span class="badge badgeSuccess">Mesuré</span></td>
+              <td class="muted">${tteRun.target != null ? `Cible run ${tteRun.target} min.` : 'TTE CAP observé.'}</td>
+            </tr>` : ''}
             <tr>
               <td><b>Potentiel Physiologique</b></td>
               <td>${potentielPhysiologique.score}%</td>

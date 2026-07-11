@@ -1839,6 +1839,7 @@ const Index = () => {
                 objectif={currentAthlete.goal || "IM"}
                 vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={alignedTteEffectif}
+                tteEffectifRun={tteEffectifRun}
                 limiterResult={alignedLimiterResult}
                 ftp={ftp}
                 poids={poids ?? null}
@@ -2222,6 +2223,7 @@ const Index = () => {
                 objectif={currentAthlete.goal || "IM"}
                 vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={alignedTteEffectif}
+                tteEffectifRun={tteEffectifRun}
                 limiterResult={alignedLimiterResult}
                 ftp={ftp}
                 poids={poids ?? null}
