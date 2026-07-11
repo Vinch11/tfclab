@@ -3939,7 +3939,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     objectif: athlete.goal || "IM",
     age: ageAdjustment.age,
   });
-  const showTteRun = tteRun.source === "observed" && tteRun.tte_min > 0;
+  // F42 (audit #11) — Sport-awareness des exports triathlon :
+  // on affiche TTE run dès qu'on a une valeur > 0 ET que l'objectif est un triathlon,
+  // même si estimé (LOAD). Avant on n'affichait que si `source === "observed"`
+  // → TTE run invisible pour la majorité des athlètes tri.
+  const isTriObjectif = /tri|ironman|\bIM\b|70\.?3|olymp|sprint/i.test(athlete.goal || "");
+  const showTteRun = (tteRun.tte_min ?? 0) > 0 && (tteRun.source === "observed" || isTriObjectif);
 
   // =============================================
   // CONSTANTES BRANDING REPOSITIONNÉ (NON DOGMATIQUE)
