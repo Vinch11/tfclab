@@ -461,7 +461,7 @@ export function computeNutritionEstimate(params: {
 
   // Ajustement TTE
   let tteAdjustment: string | null = null;
-  if (tteMin !== null && tteMin !== undefined && tteMin < tteTarget) {
+  if (tteMin !== null && tteMin !== undefined && tteTarget !== null && tteTarget !== undefined && tteMin < tteTarget) {
     tteAdjustment = `TTE inférieur à la cible (${tteMin} vs ${tteTarget} min) : dérive métabolique probable. Besoin glucidique potentiellement plus élevé mais tolérance réduite.`;
     if (riskLevel === 'low') riskLevel = 'moderate';
     warnings.push('TTE < cible : ajustement nutritionnel requis');
