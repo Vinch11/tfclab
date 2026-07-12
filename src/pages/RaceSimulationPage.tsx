@@ -462,6 +462,8 @@ export default function RaceSimulationPage() {
       paceThreshold: activeSnapshot?.pace_threshold_sec_per_km, weight: activeSnapshot?.weight_kg,
       ambition: (selectedAthlete as any)?.ambition ?? null, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.bike,
+      raceChronos: buildRaceChronosFromSnapshot(activeSnapshot as any),
+      vmaKmh: activeSnapshot?.vma ?? null,
     });
   }, [isTriathlon, discipline, envelope, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin]);
 
