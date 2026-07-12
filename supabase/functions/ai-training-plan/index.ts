@@ -12,6 +12,7 @@ import {
   extractStrategicRecap,
   detectActivePhase,
   validateChunk1HasRecap,
+  buildCanonicalRaceCard,
 } from "./promptHelpers.ts";
 
 const corsHeaders = {
@@ -376,9 +377,13 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             let extractedRecap = "";
             // AUDIT FIX #4: Global Plan Memory — ultra-condensed, persists across all chunks
             let globalPlanMemory = "";
-            // F-22: Prescribed paces / power / HR thresholds extracted from chunk 1
-            // Persists across all chunks to anchor intensity prescriptions and prevent drift.
-            let prescribedPaces = "";
+            // F-22 + AUDIT Cath juillet 2026 : Carte de course canonique DÉTERMINISTE
+            // (allure CAP race, IF+Watts vélo bornés TTE, CSS+race-pace nat, HR seuil).
+            // Calculée AVANT chunk 1 à partir du snapshot, injectée à l'identique dans
+            // TOUS les chunks pour éliminer les "trois CSS / trois race-power" observés.
+            const canonicalRaceCard = buildCanonicalRaceCard(athleteData, planConfig);
+            let prescribedPaces = canonicalRaceCard;
+            console.log(`🎯 CARTE COURSE canonique seed (${canonicalRaceCard.length} chars) — inter-chunks anchor.`);
             // AUDIT FIX #5: Anti-redundancy — track key sessions used across all previous chunks
             const usedKeySessions: Set<string> = new Set();
             // FIX C1 (audit): Initialize activePhase from ambition — finisher starts in "Adaptation", not "Fondation"
@@ -610,6 +615,8 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
                 // FIX C2 (audit): Inject structuredDiagnostic in chunk 1 to anchor phase bounds from the start
                 chunkPrompt = `${userPrompt}
 ${chunkPhaseCatalog ? `\n${chunkPhaseCatalog}\n` : ""}
+${canonicalRaceCard}
+
 ⚠️ GÉNÉRATION PAR BLOC : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
 
 📋 DIAGNOSTIC STRUCTURÉ (RÉFÉRENCE pour la cohérence du plan entier) :
@@ -859,13 +866,17 @@ Sans ce récapitulatif structuré, le plan sera rejeté.`;
                   console.warn("⚠️ Failed to extract strategic recap — subsequent chunks will lack periodization context");
                 }
 
-                // F-22: Extract prescribed paces / power / HR from chunk 1 (diagnostic + recap + week 1)
-                prescribedPaces = extractPrescribedPaces(combinedChunkText);
-                if (prescribedPaces) {
-                  console.log(`🎯 F-22: Extracted prescribed paces (${prescribedPaces.length} chars): ${prescribedPaces.slice(0, 120)}…`);
+                // F-22 : la CARTE DE COURSE canonique (déterministe) reste la source
+                // de vérité et n'est PAS écrasée par l'extraction. L'extraction chunk 1
+                // devient un COMPLÉMENT (rappels FC/Zx additionnels), pas un override.
+                const extractedExtras = extractPrescribedPaces(combinedChunkText);
+                if (extractedExtras) {
+                  prescribedPaces = `${canonicalRaceCard}\n\n📎 Ancrages complémentaires détectés bloc 1 (indicatifs) : ${extractedExtras}`;
+                  console.log(`🎯 F-22: Carte canonique + extras chunk 1 (${extractedExtras.length} chars extras).`);
                 } else {
-                  console.warn("⚠️ F-22: No prescribed paces extracted from chunk 1 — subsequent chunks may drift in intensity.");
+                  console.log(`🎯 F-22: Carte canonique conservée (aucun extra extrait chunk 1).`);
                 }
+
               }
 
               // FIX #4 (audit recap): Detect active phase with broader matching
