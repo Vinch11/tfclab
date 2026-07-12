@@ -128,8 +128,10 @@ export function RaceReadinessReportDialog({
       weight: compassInput.poids,
       ambition: ambition as any, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.bike || 180,
+      raceChronos,
+      vmaKmh: vmaKmh ?? compassInput.vma ?? null,
     });
-  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri]);
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, raceChronos, vmaKmh]);
 
   const envelopeRun = useMemo(() => {
     if (!compassInput || !raceObjective || (!isTri && !isRunObj)) return null;
