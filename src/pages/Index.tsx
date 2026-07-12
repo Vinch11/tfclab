@@ -2459,7 +2459,16 @@ const Index = () => {
             ambition={currentAmbition}
             nextRace={next ? { race_name: next.race_name, race_type: next.race_type, race_date: next.race_date } : null}
             compassInput={compassInputMemo}
+            raceChronos={{
+              time_5k_sec: (effectiveCloudSnapshot as any)?.time_5k_sec ?? null,
+              time_10k_sec: (effectiveCloudSnapshot as any)?.time_10k_sec ?? null,
+              time_20k_sec: (effectiveCloudSnapshot as any)?.time_20k_sec ?? null,
+              time_half_sec: (effectiveCloudSnapshot as any)?.time_half_sec ?? null,
+              time_marathon_sec: (effectiveCloudSnapshot as any)?.time_marathon_sec ?? null,
+            }}
+            vmaKmh={(effectiveCloudSnapshot as any)?.vma ?? null}
           />
+
         );
       })()}
 
