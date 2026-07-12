@@ -2128,11 +2128,15 @@ function computePacingEnvelopeForExport(payload: ExportPayload): PacingEnvelopeR
     raceObjective,
     sport,
     ftp: ftp ?? undefined,
+    vma: (effectiveSnapshot as any)?.vma ?? null,
+    paceThreshold: (effectiveSnapshot as any)?.pace_threshold_sec_per_km ?? null,
     weight: weight ?? undefined,
     ambition: ambition?.current ?? null,
     cpWkg,
     wPrimeJkg,
     predictedDurationMin: RACE_DURATION_MIN_E[objectif] ?? 180,
+    raceChronos: buildRaceChronosFromSnapshot(effectiveSnapshot as any),
+    vmaKmh: (effectiveSnapshot as any)?.vma ?? null,
   });
 }
 
