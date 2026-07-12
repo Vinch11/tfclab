@@ -18,6 +18,8 @@
  */
 
 import type { ParsedSession, ParsedWeek } from "./aiPlanParser";
+import { extractCatalogId } from "./catalogIdExtractor";
+import { getLibraryDurationMin } from "./libraryDurationIndex";
 
 const DURATION_HHMM = /(\d{1,2})\s*h\s*(\d{1,2})?/gi;
 const DURATION_MIN = /(\d{1,3})\s*(?:min|['′])/gi;
