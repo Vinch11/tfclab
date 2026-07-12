@@ -20,6 +20,9 @@
 import type { VLamaxEffectif } from "../vlamaxEffectif";
 import type { TTEEffectif } from "../tteEffectif";
 import type { FatMaxTFCLResult } from "./fatmaxTFCL";
+import { predictRaceDurationMin } from "../raceTimePredictor";
+import type { Ambition } from "../raceAnalysis";
+import type { RaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
