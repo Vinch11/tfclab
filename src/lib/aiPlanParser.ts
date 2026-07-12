@@ -93,6 +93,22 @@ function parseDurationExpressionMin(raw: string): number | null {
 function estimateSessionDurationMin(session: ParsedSession): number | null {
   if (session.isRest) return null;
   const text = `${session.details || ""} ${session.title || ""}`;
+  const durationToken = "\\d+(?:[,.]\\d+)?\\s*h\\s*\\d{0,2}|\\d{1,3}\\s*(?:min|mn|'|′|’)";
+
+  const sportBlocks = [...text.matchAll(new RegExp(`\\b(?:bike|v[ée]lo|velo|run|cap|natation|nat|swim)\\b\\s*[:\\-–—]?\\s*(${durationToken}(?:\\s*[-–—àa]\\s*${durationToken})?)`, "gi"))];
+  if (sportBlocks.length >= 2) {
+    const total = sportBlocks.reduce((sum, match) => sum + (parseDurationExpressionMin(match[1]) ?? 0), 0);
+    if (total > 0) return total;
+  }
+
+  const plusSection = (text.split(/[.;]/)[0] || text).slice(0, 180);
+  if (/[+]/.test(plusSection)) {
+    const plusDurations = [...plusSection.matchAll(new RegExp(`(${durationToken}(?:\\s*[-–—àa]\\s*${durationToken})?)`, "gi"))]
+      .map((match) => parseDurationExpressionMin(match[1]))
+      .filter((value): value is number => value != null && value >= 10 && value <= 420);
+    if (plusDurations.length >= 2) return plusDurations.reduce((sum, value) => sum + value, 0);
+  }
+
   const firstSentence = text.split(/[.;]/)[0] || text;
   const leading = firstSentence.trim();
 
@@ -100,32 +116,18 @@ function estimateSessionDurationMin(session: ParsedSession): number | null {
   // This avoids counting interval fragments later in the text, e.g. "3×8min".
   const startsWithDuration = /^\s*(?:[A-ZÉÈÀÇ]{2,}\s+)?\d/.test(leading);
   const searchable = startsWithDuration ? leading : text.slice(0, 140);
-  const matches = [...searchable.matchAll(/\d+(?:[,.]\d+)?\s*h\s*\d{0,2}|\d{1,3}\s*(?:min|mn|'|′|’)/gi)];
+  const matches = [...searchable.matchAll(new RegExp(durationToken, "gi"))];
   if (matches.length === 0) return null;
 
   const firstIndex = matches[0].index ?? 0;
   if (!startsWithDuration && firstIndex > 35) return null;
-
-  let total = 0;
-  let count = 0;
-  for (let i = 0; i < matches.length; i++) {
-    const m = matches[i];
-    const idx = m.index ?? 0;
-    const before = searchable.slice(Math.max(0, idx - 4), idx);
-    if (/[x×]\s*$/i.test(before)) continue;
-    const next = matches[i + 1];
-    const expr = next && /^\s*[-–—àa]\s*$/i.test(searchable.slice(idx + m[0].length, next.index))
-      ? `${m[0]}-${next[0]}`
-      : m[0];
-    const duration = parseDurationExpressionMin(expr);
-    if (duration != null && duration >= 10 && duration <= 420) {
-      total += duration;
-      count++;
-    }
-    if (expr.includes("-") || expr.includes("–") || expr.includes("—")) i++;
-  }
-
-  return count > 0 ? total : null;
+  const first = matches[0];
+  const next = matches[1];
+  const expr = next && /^\s*[-–—àa]\s*$/i.test(searchable.slice(firstIndex + first[0].length, next.index))
+    ? `${first[0]}-${next[0]}`
+    : first[0];
+  const duration = parseDurationExpressionMin(expr);
+  return duration != null && duration >= 10 && duration <= 420 ? duration : null;
 }
 
 function dedupeStrategicLimiters(limiters: StrategicLimiter[]): StrategicLimiter[] {
