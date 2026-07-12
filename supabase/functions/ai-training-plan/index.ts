@@ -204,6 +204,10 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       model: string = PRIMARY_MODEL,
       // OPTIMIZATION #3: Adaptive reasoning — enable on critical chunks (Chunk 1, Race Weeks)
       reasoningEffort?: "minimal" | "low" | "medium" | "high",
+      // RÈGLE #0 — H1 déterministe : quand fourni, la 1re ligne `# …` du flux
+      // est remplacée par ce texte avant d'être émise au client. Streaming buffer
+      // jusqu'au premier `\n` pour capturer la ligne complète.
+      h1Rewrite?: string | null,
     ): Promise<{ text: string; truncated: boolean }> {
       const abortCtrl = new AbortController();
       const timeout = setTimeout(() => abortCtrl.abort(), CHUNK_TIMEOUT_MS);
@@ -253,6 +257,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
         let text = "";
         let buf = "";
         let truncated = false;
+        // H1 rewrite state (RÈGLE #0)
+        let h1Done = !h1Rewrite; // if no rewrite requested, skip logic
+        let h1Buffer = ""; // buffered content (raw text) until first `\n` seen
 
         while (true) {
           const { done, value } = await reader.read();
@@ -280,10 +287,45 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               }
               if (token) {
                 text += token;
-                controller.enqueue(encoder.encode(line + "\n\n"));
+                if (!h1Done) {
+                  // Buffer until we've seen the first full line
+                  h1Buffer += token;
+                  const nlIdx = h1Buffer.indexOf("\n");
+                  if (nlIdx !== -1) {
+                    const firstLine = h1Buffer.slice(0, nlIdx);
+                    const rest = h1Buffer.slice(nlIdx); // includes leading \n
+                    let rewritten: string;
+                    if (/^\s*#\s+/.test(firstLine)) {
+                      rewritten = `# ${h1Rewrite}${rest}`;
+                      console.log(`✏️ RÈGLE #0 : H1 réécrit "${firstLine.trim()}" → "# ${h1Rewrite}"`);
+                    } else {
+                      // AI didn't emit a `#` line first — prepend our H1 to preserve compliance
+                      rewritten = `# ${h1Rewrite}\n\n${h1Buffer}`;
+                      console.log(`✏️ RÈGLE #0 : H1 absent, injecté en tête "# ${h1Rewrite}"`);
+                    }
+                    // Replace the same span in `text` (which already accumulated raw tokens)
+                    text = rewritten + text.slice(h1Buffer.length);
+                    controller.enqueue(
+                      encoder.encode(`data: {"choices":[{"delta":{"content":${JSON.stringify(rewritten)}}}]}\n\n`)
+                    );
+                    h1Done = true;
+                    h1Buffer = "";
+                  }
+                  // else keep buffering, do not emit yet
+                } else {
+                  controller.enqueue(encoder.encode(line + "\n\n"));
+                }
               }
             } catch {}
           }
+        }
+        // Safety flush: if stream ended without newline, emit whatever we buffered
+        if (!h1Done && h1Buffer.length > 0) {
+          const rewritten = `# ${h1Rewrite}\n\n${h1Buffer}`;
+          text = rewritten + text.slice(h1Buffer.length);
+          controller.enqueue(
+            encoder.encode(`data: {"choices":[{"delta":{"content":${JSON.stringify(rewritten)}}}]}\n\n`)
+          );
         }
         return { text, truncated };
       } catch (e) {
@@ -514,6 +556,33 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             };
 
             console.log(`🧩 Chunking activé : ${chunks.length} bloc(s) × ${CHUNK_SIZE} sem (total ${totalWeeks} sem) — ${chunks.map(c => `S${c.start}-S${c.end}`).join(", ")}`);
+
+            // ─── RÈGLE #0 : H1 déterministe (post-processor, ne dépend pas de l'IA) ───
+            const buildDeterministicH1 = (): string => {
+              const rawObj = String(planConfig?.objective || "").toUpperCase();
+              const goals = Array.isArray(planConfig?.raceGoals) ? planConfig.raceGoals : [];
+              const isLCW = goals.some((g: any) => g?.raceFormat === "lcw_3day");
+              const rn = goals.map((g: any) => String(g?.raceName || "")).join(" ");
+              const isLCWName = /LCW|LONG\s*COURSE\s*WEEKEND/i.test(rn);
+              const lcwSuffix = (isLCW || isLCWName) ? " LCW" : "";
+              let format = "Plan";
+              if (/IRONMAN|(^|_)IM(_|$)/.test(rawObj)) format = "Ironman";
+              else if (/70[._ ]?3|HALF[_ ]?IRON|TRIATHLON.*70/.test(rawObj)) format = "70.3";
+              else if (/MARATHON(?!.*SEMI)|(^|_)MAR(_|$)/.test(rawObj) && !/SEMI|HALF/.test(rawObj)) format = "Marathon";
+              else if (/SEMI|HALF[_ ]?MAR/.test(rawObj)) format = "Semi-marathon";
+              else if (/10\s*K|10KM|RUN_10/.test(rawObj)) format = "10 km";
+              else if (/5\s*K|5KM/.test(rawObj)) format = "5 km";
+              else if (/SPRINT/.test(rawObj)) format = "Sprint";
+              else if (/OLYMP|_OLY/.test(rawObj)) format = "Olympique";
+              else if (/TRAIL.*ULTRA|UTMB|CCC/.test(rawObj)) format = "Trail Ultra";
+              else if (/TRAIL/.test(rawObj)) format = "Trail";
+              const athleteName = String(planConfig?._athleteFirstName || planConfig?.athleteName || "").trim();
+              const namePart = athleteName ? ` ${athleteName}` : "";
+              return `Plan TFCL™ — ${format}${lcwSuffix}${namePart} — ${totalWeeks} semaines`;
+            };
+            const deterministicH1 = buildDeterministicH1();
+            console.log(`🎯 RÈGLE #0 : H1 cible = "# ${deterministicH1}"`);
+
             // Accumulateur texte plan complet — utilisé par les assertions post-génération.
             let fullPlanText = "";
             for (let ci = 0; ci < chunks.length; ci++) {
@@ -686,12 +755,15 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
               }
 
               // Generate chunk
+              // RÈGLE #0 : le H1 déterministe est appliqué UNIQUEMENT sur le chunk 1
+              // (les chunks suivants n'émettent pas de H1 au niveau plan).
               const genResult = await generateAndStream(
                 chunkPrompt,
                 controller,
                 encoder,
                 PRIMARY_MODEL,
                 useReasoning ? "medium" : undefined,
+                isFirst ? deterministicH1 : null,
               );
               let chunkText = genResult.text;
               let combinedChunkText = chunkText;
@@ -707,13 +779,13 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
                 console.log(`Retrying full chunk ${ci + 1} after failure...`);
                 streamError = null;
                 await sleep(INTER_CHUNK_DELAY_MS);
-                const retryResult = await generateAndStream(chunkPrompt, controller, encoder);
+                const retryResult = await generateAndStream(chunkPrompt, controller, encoder, PRIMARY_MODEL, undefined, isFirst ? deterministicH1 : null);
                 if (!retryResult.text) {
                   // AUDIT FIX #6: Fallback model — switch to robust Gemini Pro after 2 failures
                   console.warn(`⚠️ Chunk ${ci + 1} primary retry failed. Trying FALLBACK model (${FALLBACK_MODEL})...`);
                   streamError = null;
                   await sleep(INTER_CHUNK_DELAY_MS);
-                  const fallbackResult = await generateAndStream(chunkPrompt, controller, encoder, FALLBACK_MODEL);
+                  const fallbackResult = await generateAndStream(chunkPrompt, controller, encoder, FALLBACK_MODEL, undefined, isFirst ? deterministicH1 : null);
                   if (!fallbackResult.text) {
                     // FIX (2026-07-08) : ne PLUS "skipper" silencieusement — remonter une erreur visible.
                     const msg = `Génération incomplète : bloc semaines S${chunk.start}-S${chunk.end} n'a pas pu être généré (2 retries + fallback modèle échoués). Relancer la génération.`;
