@@ -17,7 +17,7 @@ const SPORT_TAG_TOKENS = new Set([
 const LORANG_COLORS: Record<string, string> = {
   A: "#dc2626", B: "#ea580c", C: "#2563eb", D: "#16a34a",
 };
-function renderTitleForPDF(rawTitle: string): string {
+function renderTitleForPDF(rawTitle: string, fiche?: EnrichedSessionFiche | null): string {
   const parsed = parseSessionTitle(rawTitle);
   const badges: string[] = [];
   if (parsed.lorangCategory) {
@@ -30,10 +30,13 @@ function renderTitleForPDF(rawTitle: string): string {
     if (SPORT_TAG_TOKENS.has(tag.toUpperCase())) continue;
     badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:#e5e7eb;color:#374151;font-size:9px;font-weight:600;margin-right:4px;">${tag}</span>`);
   }
-  const clean = parsed.cleanTitle
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  let clean = parsed.cleanTitle.trim();
+  const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
+  if (looksLikeId && fiche?.objectif) clean = fiche.objectif;
+  clean = clean.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return `${badges.join("")}<span>${clean}</span>`;
 }
+
 
 const REFERENCE_VOLUMES_PDF: Record<string, Partial<Record<string, [number, number]>>> = {
   "5K":       { finish: [3, 5],  perf: [5, 7],  sub: [6, 9],   elite: [8, 12],  world_class: [10, 14] },
