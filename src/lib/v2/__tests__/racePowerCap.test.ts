@@ -11,8 +11,8 @@ describe("capBikeRaceIF — cap logarithmique IF vélo par TTE", () => {
     expect(r!.baselineIF).toBe(0.80);
   });
 
-  it("TTE suffisante (60') pour 703 150' → pas de cap", () => {
-    const r = capBikeRaceIF({ objective: "703", ambition: "age_group", tteMin: 60, raceDurationMin: 150 });
+  it("TTE ≥ race duration → pas de cap (ratio ≤ 1)", () => {
+    const r = capBikeRaceIF({ objective: "703", ambition: "age_group", tteMin: 160, raceDurationMin: 150 });
     expect(r!.wasCapped).toBe(false);
     expect(r!.cappedPctFTP).toBe(80);
   });
