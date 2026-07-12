@@ -162,7 +162,7 @@ function buildCanonicalPlanTitle(rawTitle: string, markdown: string, totalWeeks:
   const isLCW = /\blcw\b|long\s*course\s*weekend/.test(haystack);
   const isHalf = /70\s*[\.,]?\s*3|703|half\s*iron|half\s*distance/.test(haystack);
   if (isLCW && isHalf && totalWeeks > 0) {
-    return `Plan TFCL™ — 70.3 LCW — ${totalWeeks} semaines`;
+    return `Plan TFCL™ — 70.3 LCW — ${totalWeeks} semaine${totalWeeks > 1 ? "s" : ""}`;
   }
   return rawTitle || "Plan TFCL™";
 }
