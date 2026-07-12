@@ -49,9 +49,14 @@ interface AdaptationPredictorCardProps {
   /** Durée du plan (semaines). Module l'amplitude des deltas projetés
    *  — Audit P0 B2. Défaut 6 semaines (référence). */
   weeksAvailable?: number;
+  /** Leviers réellement activés par computeLorangStrategy — restreint la
+   *  simulation aux stratégies effectivement prescrites (propagation Lorang
+   *  → Predictor). Si vide/omis, simule tout le catalogue (fallback). */
+  selectedLeverIds?: TrainingLeverId[];
   staffMode?: boolean;
   className?: string;
 }
+
 
 function DeltaArrow({ direction, significance }: { direction: string; significance: string }) {
   if (significance === "none" || direction === "stable") {
