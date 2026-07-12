@@ -18,6 +18,7 @@ import {
   type PacingEnvelopeRunResult,
   PACING_ZONE_COLORS,
 } from "@/lib/v2/pacingEnvelopeRunning";
+import { PacingConceptCard, PacingGlossaryHint } from "@/components/pacing/PacingPedagogy";
 
 interface PacingBriefingRunCardProps {
   result: PacingEnvelopeRunResult | null;
