@@ -2214,6 +2214,8 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
     ambition: ambition?.current ?? null,
     vma,
     predictedDurationMin: RACE_DURATION_MIN_E[goal] ?? null,
+    raceChronos: buildRaceChronosFromSnapshot(effectiveSnapshot as any),
+    vmaKmh: vma,
   });
 
   const formatPace = (s: number) => `${Math.floor(s/60)}'${(Math.round(s%60)).toString().padStart(2,'0')}"`;
