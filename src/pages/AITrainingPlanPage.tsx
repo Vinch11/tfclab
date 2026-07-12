@@ -623,7 +623,9 @@ export default function AITrainingPlanPage() {
             ambitionSaisie: ambition,
             trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
             tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+            lockAmbition,
           });
+
 
           // (2) weeklyHours — user prime, sinon fallback sur l'ambition EFFECTIVE
           const userWH = parseFloat(weeklyHours);
