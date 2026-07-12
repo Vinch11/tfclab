@@ -149,8 +149,10 @@ export function RaceReadinessReportDialog({
       weight: compassInput.poids,
       ambition: ambition as any, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.run || 180,
+      raceChronos,
+      vmaKmh: vmaKmh ?? compassInput.vma ?? null,
     });
-  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, isRunObj]);
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, isRunObj, raceChronos, vmaKmh]);
 
   const hasBikeEnv = !!envelopeBike && !!compassInput?.ftp;
   const hasRunEnv = !!envelopeRun && !!compassInput?.paceThresholdSecPerKm;
