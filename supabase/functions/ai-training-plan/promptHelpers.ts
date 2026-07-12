@@ -1139,8 +1139,35 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     if (rpcCap.wasCapped) {
       lines.push(`- ⛔ **INTERDICTION** : ne prescris JAMAIS d'intensité race > ${rpcCap.cappedPctFTP + 2}% FTP dans les séances "brick race pace", "simulation course", "long ride @race pace", "T2 race". Toute mention "82-85% FTP" pour un athlète TTE ${data.tte} min est INVALIDE.`);
       lines.push(`- ✅ **PRESCRIPTION CORRECTE** : cible race = ${rpcCap.cappedPctFTP - 2}-${rpcCap.cappedPctFTP + 2}% FTP. Sweet Spot d'entraînement peut aller à 88-92% mais SEULEMENT sur intervalles ≤ TTE.`);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // GARDE-FOU #3 (audit Cath juillet 2026) — Zones triathlon SOURCE UNIQUE
+  // Élimine la dérive Z2 vélo 95→124W d'une séance à l'autre. Injecté seulement
+  // pour objectifs 70.3 / IM. Consomme capBikeRaceIF pour la race power.
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    const objL = (config?.objective ?? "").toString().toLowerCase();
+    const isTri = objL.includes("70.3") || objL === "703" || objL.includes("ironman") || objL === "im";
+    if (isTri) {
+      try {
+        const triAmb = (["finisher", "age_group", "competitor", "elite", "world_class"].includes(rpcAmbition) ? rpcAmbition : "age_group") as RaceBikeAmbition;
+        const zones = deriveTriathlonZones({
+          ftpW: typeof data.ftp === "number" ? data.ftp : (data.ftp ? Number(data.ftp) : null),
+          vmaKmh: typeof data.vma === "number" ? data.vma : (data.vma ? Number(data.vma) : null),
+          objective: rpcObjective,
+          ambition: triAmb,
+          tteMinBike: typeof data.tte === "number" ? data.tte : (data.tte ? Number(data.tte) : null),
+        });
+        lines.push(formatTriathlonZonesForPrompt(zones));
+      } catch (e) {
+        console.warn("⚠️ [triathlonZones] échec injection :", e);
+      }
     }
   }
+
+
+
 
 
 
