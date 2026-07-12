@@ -199,6 +199,7 @@ export function AdaptationPredictorCard({
   objectif,
   sportMain,
   weeksAvailable,
+  selectedLeverIds,
   staffMode = false,
   className,
 }: AdaptationPredictorCardProps) {
@@ -212,8 +213,10 @@ export function AdaptationPredictorCard({
       objectif,
       sportMain,
       weeksAvailable,
+      selectedLevers: selectedLeverIds && selectedLeverIds.length > 0 ? selectedLeverIds : undefined,
     });
-  }, [snapshot, limiterId, limiterLabel, objectif, sportMain, weeksAvailable]);
+  }, [snapshot, limiterId, limiterLabel, objectif, sportMain, weeksAvailable, selectedLeverIds]);
+
 
   const hasData = result.currentState.vo2max !== null || result.currentState.vlamax !== null || result.currentState.ftp !== null;
 
