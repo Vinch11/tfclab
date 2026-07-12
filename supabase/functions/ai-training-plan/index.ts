@@ -12,6 +12,7 @@ import {
   extractStrategicRecap,
   detectActivePhase,
   validateChunk1HasRecap,
+  buildCanonicalRaceCard,
 } from "./promptHelpers.ts";
 
 const corsHeaders = {
