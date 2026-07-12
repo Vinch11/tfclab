@@ -1540,7 +1540,18 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("- Build LCW : minimum **1 weekend Sam+Dim par mois** avec `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
       lines.push("- Peak LCW : **2 weekends Sam+Dim** + **1 fois** `B_LCW_BACK_TO_BACK_PEAK` complet + **3 rappels** `B_LCW_NUTRITION_RECHARGE`.");
       lines.push("");
+      lines.push("**✅ CHECKLIST DE SORTIE LCW (bloquante — vérifie AVANT de finaliser le plan) :**");
+      lines.push("Avant de rendre le plan final, tu DOIS pouvoir cocher chacune de ces cases. Si une case manque, RÉÉCRIS la semaine concernée.");
+      lines.push("- [ ] `B_LCW_BACK_TO_BACK_PEAK` **présent exactement 1 fois** dans le plan, positionné en **Peak, semaine J-3 ou J-4** avant la course (ni plus tôt, ni plus tard, ni en Build). Cette séance-pivot occupe le weekend entier (Ven soir + Sam matin + Dim matin) et NE PEUT PAS être remplacée par la simple juxtaposition de `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` — c'est la SIMULATION COURSE COMPLÈTE avec bilan écrit obligatoire.");
+      lines.push("- [ ] Au moins **2 weekends Peak** contiennent `B_LCW_BIKE_LONG_RACE_SAT` (Sam) + `B_LCW_RUN_OFF_LEGS_SUN` (Dim) consécutifs.");
+      lines.push("- [ ] Au moins **1 weekend Build** contient `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
+      lines.push("- [ ] `B_LCW_NUTRITION_RECHARGE` apparaît **≥3 fois** dans le plan, associé à chaque back-to-back weekend.");
+      lines.push("- [ ] `B_LCW_SWIM_FRI_EVENING` apparaît **≥2 fois** en Build/Peak (timing fin de journée).");
+      lines.push("- [ ] AUCUNE brique T2 immédiate (`B_703_BRICK_RACE_PACE` ou équivalent) n'est prescrite.");
+      lines.push("- [ ] La semaine de course contient 3 entrées 'COURSE OBJECTIF' distinctes (Ven natation / Sam vélo / Dim course).");
+      lines.push("");
       lines.push("**Référence** : LCW Wales (Tenby) et LCW Belgium = format historique à étapes, distinct du 70.3 continu. Sources : organisation LCW, retours coachs élites AG.");
+
     }
 
   } else if (objKeyForRappel === "Marathon") {
