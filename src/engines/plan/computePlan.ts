@@ -24,6 +24,7 @@ import type {
 import type { PlanAthleteData } from "@/hooks/useAITrainingPlan";
 import { applyWbalRecoveryRecalc, type WbalRecalcStats } from "./wbalPostProcessor";
 import { computeWeekVolumeMin, formatMinutesToHm } from "@/lib/weeklyVolumeEstimator";
+import { normalizeWeeksAndPhases } from "./normalizeWeeksPhases";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
@@ -283,6 +284,15 @@ export function postProcessParsedPlan(
   config: PlanGenerationConfig,
   athleteData?: PlanAthleteData
 ): { plan: ParsedPlan; wbalStats?: WbalRecalcStats } {
+  // AUDIT Claude juillet 2026 : normalisation weekNumber + phase AVANT tout autre
+  // post-processing → drop ghost weeks (ex: "S17" en plan 11 sem), ré-assigne
+  // les phases depuis le recap canonique, nettoie les labels hors-range.
+  const normStats = normalizeWeeksAndPhases(plan, config);
+  if (normStats.droppedGhostWeeks.length > 0 || normStats.phaseReassignedCount > 0 || normStats.labelCleanedCount > 0) {
+    // eslint-disable-next-line no-console
+    console.log(`🧭 normalizeWeeksAndPhases — ghosts drop: [${normStats.droppedGhostWeeks.join(",")}] · phases reassignées: ${normStats.phaseReassignedCount} · labels nettoyés: ${normStats.labelCleanedCount}`);
+  }
+
   anchorRaceDays(plan, config);
   dedupRaceDays(plan, config);
 
