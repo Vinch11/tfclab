@@ -54,6 +54,10 @@ export interface PacingInputsRun {
   wPrimeJkg?: number | null;
   /** Durée prédite de la course en minutes — sinon fallback distance */
   predictedDurationMin?: number | null;
+  /** #4 — Chronos course réels (Riegel) pour affiner la durée prédite */
+  raceChronos?: import("@/engines/diagnostic/raceTimeEstimator").RaceChronos | null;
+  /** VMA en km/h — passé au moteur unifié pour prédiction Daniels VDOT */
+  vmaKmh?: number | null;
 }
 
 export interface PacingZoneDefinitionRun {
