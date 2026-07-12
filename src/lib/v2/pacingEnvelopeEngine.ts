@@ -553,13 +553,18 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
   // Remplace l'ancien Record statique RACE_BASE_INTENSITY (trop générique).
   // ─────────────────────────────────────────────────────────────────────────────
   const ambition: AmbitionLevelNormalized = normalizeAmbition(input.ambition);
-  const durationMin = input.predictedDurationMin ?? RACE_TYPICAL_DURATION_MIN[raceObjective];
-  sourcesUsed.push(`Modèle continu %CS (${ambition}, ${Math.round(durationMin)}min)`);
+  const durationResolved = resolvePredictedDurationMin(input, ambition);
+  const durationMin = durationResolved.durationMin;
+  sourcesUsed.push(
+    `Modèle continu %CS (${ambition}, ${Math.round(durationMin)}min · ${durationResolved.source})`,
+  );
 
   let centerPct: number = computeContinuousRaceIntensity(durationMin, ambition, sport);
 
   if (input.ambition == null) missingData.push("Ambition (défaut: COMPETITOR)");
-  if (input.predictedDurationMin == null) missingData.push("Durée prédite (fallback objectif)");
+  if (durationResolved.confidence < 0.5) {
+    missingData.push(`Durée prédite peu fiable (${durationResolved.source})`);
+  }
 
   // Ajustement fin si FatMax disponible (athlètes à haute FatMax peuvent tenir plus haut)
   if (fatmax != null && fatmax.centerPctFTP > 0) {
