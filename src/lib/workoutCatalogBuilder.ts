@@ -242,7 +242,9 @@ export function buildWorkoutCatalog(
       .map(s => `${s.part} ${s.text} ${s.zones.join(" ")}`)
       .join(" ");
     const tagsText = (w.tags || []).join(" ");
-    const text = `${w.objectif} ${structureText} ${tagsText}`;
+    // FIX #3 : inclure l'ID catalogue (ex `A_BIKE_PMAX_01`, `HEDGEHOG_VMA_COURTE_01`)
+    // pour capter les séances sprint/pmax dont le libellé seul n'expose pas le mot.
+    const text = `${w.id ?? ""} ${w.objectif} ${structureText} ${tagsText}`;
     return prohibitionPatterns.some(p => p.test(text));
   };
 

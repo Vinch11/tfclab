@@ -66,7 +66,12 @@ export function resolveLimiterKey(limiterLabel: string | undefined | null): stri
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 export const PROHIBITION_SESSION_PATTERNS: Record<string, RegExp> = {
-  sprints: /sprint|explo|force\s*max|vitesse\s*max|all[\s-]*out|tabata|neuro.*muscul|plyo|pliom[ée]tri/i,
+  // FIX #3 (audit Cath juillet 2026) — élargi pour capter aussi les tags de zone
+  // haute intensité (Z6/Z7, VMA courte, pmax, all-out) et les identifiants de
+  // catalogue signature sprint/neuromusculaire (`_SPRINT_`, `_PMAX_`, `_NM_`,
+  // `_VMA_COURTE_`). Sans cela, le catalog builder laissait passer des séances
+  // "🦔 Hérisson VMA courte" ou "PMAX 6x10s" malgré le Sprint Ban actif.
+  sprints: /sprint|explo|force\s*max|vitesse\s*max|all[\s-]*out|tabata|neuro.*muscul|plyo|pliom[ée]tri|\bz[67]\b|zone\s*[67]|vma[\s_-]*courte|_sprint_|_pmax_|_nm_|_vma[\s_-]*courte_|pmax\b/i,
   micro_intervals: /30[\/_ -]?30|micro.?interval|15[\/_ -]?15|20[\/_ -]?20|10[\/_ -]?20|explo/i,
   erratic_pacing: /erratique|non[\s_-]*structur|random[\s_-]*pace|surge.*random/i,
   vo2_heavy_blocks: LIMITER_SESSION_PATTERNS.vo2max,
