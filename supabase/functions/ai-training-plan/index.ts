@@ -257,6 +257,9 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
         let text = "";
         let buf = "";
         let truncated = false;
+        // H1 rewrite state (RÈGLE #0)
+        let h1Done = !h1Rewrite; // if no rewrite requested, skip logic
+        let h1Buffer = ""; // buffered content (raw text) until first `\n` seen
 
         while (true) {
           const { done, value } = await reader.read();
@@ -284,10 +287,45 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
               }
               if (token) {
                 text += token;
-                controller.enqueue(encoder.encode(line + "\n\n"));
+                if (!h1Done) {
+                  // Buffer until we've seen the first full line
+                  h1Buffer += token;
+                  const nlIdx = h1Buffer.indexOf("\n");
+                  if (nlIdx !== -1) {
+                    const firstLine = h1Buffer.slice(0, nlIdx);
+                    const rest = h1Buffer.slice(nlIdx); // includes leading \n
+                    let rewritten: string;
+                    if (/^\s*#\s+/.test(firstLine)) {
+                      rewritten = `# ${h1Rewrite}${rest}`;
+                      console.log(`✏️ RÈGLE #0 : H1 réécrit "${firstLine.trim()}" → "# ${h1Rewrite}"`);
+                    } else {
+                      // AI didn't emit a `#` line first — prepend our H1 to preserve compliance
+                      rewritten = `# ${h1Rewrite}\n\n${h1Buffer}`;
+                      console.log(`✏️ RÈGLE #0 : H1 absent, injecté en tête "# ${h1Rewrite}"`);
+                    }
+                    // Replace the same span in `text` (which already accumulated raw tokens)
+                    text = rewritten + text.slice(h1Buffer.length);
+                    controller.enqueue(
+                      encoder.encode(`data: {"choices":[{"delta":{"content":${JSON.stringify(rewritten)}}}]}\n\n`)
+                    );
+                    h1Done = true;
+                    h1Buffer = "";
+                  }
+                  // else keep buffering, do not emit yet
+                } else {
+                  controller.enqueue(encoder.encode(line + "\n\n"));
+                }
               }
             } catch {}
           }
+        }
+        // Safety flush: if stream ended without newline, emit whatever we buffered
+        if (!h1Done && h1Buffer.length > 0) {
+          const rewritten = `# ${h1Rewrite}\n\n${h1Buffer}`;
+          text = rewritten + text.slice(h1Buffer.length);
+          controller.enqueue(
+            encoder.encode(`data: {"choices":[{"delta":{"content":${JSON.stringify(rewritten)}}}]}\n\n`)
+          );
         }
         return { text, truncated };
       } catch (e) {
