@@ -102,6 +102,17 @@ export interface PacingEnvelopeInput {
     durabilityIndex?: number | null;
     confidence?: number | null;
   } | null;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // #4 — Externalisation du fallback de durée de course.
+  // Si predictedDurationMin absent, on tente predictRaceDurationMin(...) à partir de:
+  //   - raceChronos (chronos réels → Riegel)
+  //   - vmaKmh / paceThreshold (Daniels VDOT via ambition)
+  // avant de tomber sur RACE_TYPICAL_DURATION_MIN (dernier recours seulement).
+  // Ça évite l'ancrage sur "IM = 10h" pour un finisher 14h.
+  // ─────────────────────────────────────────────────────────────────────────────
+  raceChronos?: RaceChronos | null;
+  vmaKmh?: number | null;
 }
 
 export type IntensityReferenceBase = 
