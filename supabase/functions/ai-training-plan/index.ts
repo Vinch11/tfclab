@@ -1245,6 +1245,19 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
                   lcwViolations.push(`\`B_LCW_SWIM_FRI_EVENING\` mal placé (jour(s) : ${swimBadDays.join(", ")}) — doit être STRICTEMENT le Vendredi`);
                 }
 
+                // Détection substitutions sémantiques interdites en contexte LCW
+                const forbiddenSubs: Array<{ id: string; suggest: string }> = [
+                  { id: "A_IM_RUN_FATIGUED_NEXT_DAY", suggest: "B_LCW_RUN_OFF_LEGS_SUN" },
+                  { id: "B_IM_BRICK_LONG_MARATHON_PACE", suggest: "B_LCW_BIKE_LONG_RACE_SAT + B_LCW_RUN_OFF_LEGS_SUN (séparés 12-18h)" },
+                  { id: "B_703_BRICK_RACE_PACE", suggest: "banni en LCW (voir règle #1)" },
+                ];
+                for (const sub of forbiddenSubs) {
+                  const n = countMatches(sub.id);
+                  if (n > 0) {
+                    lcwViolations.push(`Substitution sémantique interdite : \`${sub.id}\` prescrit ${n}× → utiliser \`${sub.suggest}\``);
+                  }
+                }
+
                 if (lcwViolations.length > 0) {
                   console.warn(`⚠️ COMPLIANCE LCW : ${lcwViolations.length} écart(s) — ${lcwViolations.join(" | ")}`);
                   const lcwBanner = `\n\n> ⚠️ **COMPLIANCE LCW (Long Course Weekend)** : ${lcwViolations.length} écart(s) détecté(s) entre les règles LCW et le plan produit :\n${lcwViolations.map(v => `> - ${v}`).join("\n")}\n> _Régénérer le plan ou corriger manuellement les semaines Build/Peak concernées._\n\n`;
