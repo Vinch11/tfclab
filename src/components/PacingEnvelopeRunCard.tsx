@@ -260,13 +260,52 @@ export function PacingEnvelopeRunCard({ result, isStaffMode = false, className, 
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs defaultValue="chart" className="w-full">
-          <TabsList className={cn("grid w-full h-8", hasSimulation ? "grid-cols-4" : "grid-cols-3")}>
+        <Tabs defaultValue="understand" className="w-full">
+          <TabsList className={cn("grid w-full h-8", hasSimulation ? "grid-cols-5" : "grid-cols-4")}>
+            <TabsTrigger value="understand" className="text-xs">Comprendre</TabsTrigger>
             <TabsTrigger value="chart" className="text-xs">Graphique</TabsTrigger>
             <TabsTrigger value="rules" className="text-xs">Règles</TabsTrigger>
             <TabsTrigger value="scenarios" className="text-xs">Scénarios</TabsTrigger>
             {hasSimulation && <TabsTrigger value="simulation" className="text-xs"><Droplets className="w-3 h-3 mr-1" />Nutri</TabsTrigger>}
           </TabsList>
+
+          <TabsContent value="understand" className="mt-3 space-y-4">
+            <PacingConceptCard />
+            <PacingVisualBar
+              lowPct={result.boundary_pct_threshold.lowPct}
+              centerPct={result.boundary_pct_threshold.centerPct}
+              highPct={result.boundary_pct_threshold.highPct}
+              toleratedPct={result.boundary_pct_threshold.toleratedPct}
+              referenceLabel="seuil"
+              centerConcrete={
+                result.threshold_pace_sec_km
+                  ? fmtPace(Math.round(result.threshold_pace_sec_km * (100 / result.boundary_pct_threshold.centerPct)))
+                  : null
+              }
+            />
+            <PacingWhyBox
+              drivers={buildDriversFromEnvelope({
+                vlamaxValue: simulationInputs?.vlamax_run_v2 ?? null,
+                tteMin: null,
+                ambition: null,
+                raceObjective: result.distance,
+              })}
+              centerPct={result.boundary_pct_threshold.centerPct}
+              referenceLabel="seuil"
+              confidenceLabel={
+                result.discipline_level === "VERY_HIGH"
+                  ? "Discipline maximale"
+                  : result.discipline_level === "HIGH"
+                    ? "Discipline élevée"
+                    : "Discipline normale"
+              }
+            />
+            <PacingRacePlanBox
+              phases={buildRunPhases(result)}
+              keyPhrase={result.briefing.key_phrase}
+            />
+          </TabsContent>
+
           <TabsContent value="chart" className="mt-3">
             <PacingEnvelopeRunChart result={result} showAllScenarios={showAllScenarios} compact />
             <Button variant="ghost" size="sm" className="w-full mt-2 text-xs" onClick={() => setShowAllScenarios(!showAllScenarios)}>
