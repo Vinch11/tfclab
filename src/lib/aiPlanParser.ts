@@ -58,6 +58,117 @@ const DAY_MAP: Record<string, number> = {
   vendredi: 4, samedi: 5, dimanche: 6,
 };
 
+function formatVolumeMin(totalMin: number): string {
+  const rounded = Math.round(totalMin / 5) * 5;
+  const h = Math.floor(rounded / 60);
+  const m = rounded % 60;
+  if (h <= 0) return `${m}min`;
+  return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
+}
+
+function parseOneDurationMin(raw: string): number | null {
+  const s = raw.trim().toLowerCase().replace(/,/g, ".");
+  const hMin = s.match(/(\d+(?:\.\d+)?)\s*h\s*(\d{1,2})?/);
+  if (hMin) {
+    return Number(hMin[1]) * 60 + (hMin[2] ? Number(hMin[2]) : 0);
+  }
+  const min = s.match(/(\d{1,3})\s*(?:min|mn|'|′|’)/);
+  if (min) return Number(min[1]);
+  return null;
+}
+
+function parseDurationExpressionMin(raw: string): number | null {
+  const cleaned = raw.trim();
+  const range = cleaned.match(
+    /(\d+(?:[,.]\d+)?\s*h\s*\d{0,2}|\d{1,3}\s*(?:min|mn|'|′|’))\s*[-–—àa]\s*(\d+(?:[,.]\d+)?\s*h\s*\d{0,2}|\d{1,3}\s*(?:min|mn|'|′|’))/i
+  );
+  if (range) {
+    const a = parseOneDurationMin(range[1]);
+    const b = parseOneDurationMin(range[2]);
+    if (a != null && b != null) return (a + b) / 2;
+  }
+  return parseOneDurationMin(cleaned);
+}
+
+function estimateSessionDurationMin(session: ParsedSession): number | null {
+  if (session.isRest) return null;
+  const text = `${session.details || ""} ${session.title || ""}`;
+  const durationToken = "(?:\\d+(?:[,.]\\d+)?\\s*h\\s*\\d{0,2}|\\d{1,3}\\s*(?:min|mn|'|′|’))";
+
+  const sportBlocks = [...text.matchAll(new RegExp(`\\b(?:bike|v[ée]lo|velo|run|cap|natation|nat|swim)\\b\\s*[:\\-–—]?\\s*(${durationToken}(?:\\s*[-–—àa]\\s*${durationToken})?)`, "gi"))];
+  if (sportBlocks.length >= 2) {
+    const total = sportBlocks.reduce((sum, match) => sum + (parseDurationExpressionMin(match[1]) ?? 0), 0);
+    if (total > 0) return total;
+  }
+
+  const plusSection = (text.split(/[.;]/)[0] || text).slice(0, 180);
+  if (/[+]/.test(plusSection)) {
+    const plusDurations = [...plusSection.matchAll(new RegExp(`(${durationToken}(?:\\s*[-–—àa]\\s*${durationToken})?)`, "gi"))]
+      .map((match) => parseDurationExpressionMin(match[1]))
+      .filter((value): value is number => value != null && value >= 10 && value <= 420);
+    if (plusDurations.length >= 2) return plusDurations.reduce((sum, value) => sum + value, 0);
+  }
+
+  const firstSentence = text.split(/[.;]/)[0] || text;
+  const leading = firstSentence.trim();
+
+  // Prefer explicit top-level durations at the beginning of the prescription.
+  // This avoids counting interval fragments later in the text, e.g. "3×8min".
+  const startsWithDuration = /^\s*(?:[A-ZÉÈÀÇ]{2,}\s+)?\d/.test(leading);
+  const searchable = startsWithDuration ? leading : text.slice(0, 140);
+  const matches = [...searchable.matchAll(new RegExp(durationToken, "gi"))];
+  if (matches.length === 0) return null;
+
+  const firstIndex = matches[0].index ?? 0;
+  if (!startsWithDuration && firstIndex > 35) return null;
+  const first = matches[0];
+  const next = matches[1];
+  const expr = next && /^\s*[-–—àa]\s*$/i.test(searchable.slice(firstIndex + first[0].length, next.index))
+    ? `${first[0]}-${next[0]}`
+    : first[0];
+  const duration = parseDurationExpressionMin(expr);
+  return duration != null && duration >= 10 && duration <= 420 ? duration : null;
+}
+
+function dedupeStrategicLimiters(limiters: StrategicLimiter[]): StrategicLimiter[] {
+  const seenRanks = new Set<number>();
+  const seenRows = new Set<string>();
+  const deduped: StrategicLimiter[] = [];
+  for (const limiter of limiters) {
+    const rowKey = `${limiter.rank}|${limiter.name}|${limiter.block}|${limiter.weeks}`
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (seenRanks.has(limiter.rank) || seenRows.has(rowKey)) continue;
+    seenRanks.add(limiter.rank);
+    seenRows.add(rowKey);
+    deduped.push(limiter);
+  }
+  return deduped.sort((a, b) => a.rank - b.rank);
+}
+
+function dedupeStrings(items: string[]): string[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = item.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function buildCanonicalPlanTitle(rawTitle: string, markdown: string, totalWeeks: number): string {
+  const haystack = `${rawTitle}\n${markdown}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const isLCW = /\blcw\b|long\s*course\s*weekend/.test(haystack);
+  const isHalf = /70\s*[\.,]?\s*3|703|half\s*iron|half\s*distance/.test(haystack);
+  if (isLCW && isHalf && totalWeeks > 0) {
+    return `Plan TFCL™ — 70.3 LCW — ${totalWeeks} semaine${totalWeeks > 1 ? "s" : ""}`;
+  }
+  return rawTitle || "Plan TFCL™";
+}
+
 function normDay(raw: string): { name: string; index: number } {
   // Strip markdown emphasis (**, *, _), emoji and leading punctuation so labels
   // like "**Lundi matin**", "_Mardi_", "🟦 Mercredi" still resolve.
@@ -143,12 +254,18 @@ export function parseAIPlan(markdown: string): ParsedPlan {
 
   const flushWeek = () => {
     if (currentWeekNumber > 0) {
+      const computedVolumeMin = pendingSessions.reduce((sum, session) => {
+        return sum + (estimateSessionDurationMin(session) ?? 0);
+      }, 0);
+      const computedVolumeStr = computedVolumeMin > 0 ? formatVolumeMin(computedVolumeMin) : undefined;
       const newWeek: ParsedWeek = {
         weekNumber: currentWeekNumber,
         theme: currentWeekTheme || `Semaine ${currentWeekNumber}`,
         phase: currentPhase,
         phaseObjective: currentPhaseObjective,
-        volumeTarget: currentVolumeTarget,
+        volumeTarget: computedVolumeStr || currentVolumeTarget,
+        computedVolumeMin: computedVolumeMin > 0 ? computedVolumeMin : undefined,
+        computedVolumeStr,
         coachNotes: currentCoachNotes.trim() || undefined,
         sessions: [...pendingSessions],
       };
@@ -461,13 +578,15 @@ export function parseAIPlan(markdown: string): ParsedPlan {
     weeks.sort((a, b) => a.weekNumber - b.weekNumber);
   }
 
+  const dedupedLimiters = dedupeStrategicLimiters(recapLimiters);
   const strategicRecap: StrategicRecap | undefined =
-    recapLimiters.length > 0
-      ? { limiters: recapLimiters, synergies: recapSynergies }
+    dedupedLimiters.length > 0
+      ? { limiters: dedupedLimiters, synergies: dedupeStrings(recapSynergies) }
       : undefined;
+  const canonicalTitle = buildCanonicalPlanTitle(title, markdown, weeks.length);
 
   return {
-    title: title || "Plan TFCL™",
+    title: canonicalTitle,
     diagnostic: diagnostic || undefined,
     strategicRecap,
     phases,
