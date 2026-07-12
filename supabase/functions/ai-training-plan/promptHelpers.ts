@@ -7,6 +7,7 @@ import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
 import { buildNutritionAndSafetyBlock } from "./nutritionAndSafetyGuardrails.ts";
 import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
 import { capBikeRaceIF, type RaceBikeAmbition } from "../_shared/racePowerCap.ts";
+import { deriveTriathlonZones, formatTriathlonZonesForPrompt } from "../_shared/triathlonZones.ts";
 
 // === STRUCTURED DIAGNOSTIC BLOCK (config-based, always available) ===
 // Builds a compact structured block from planConfig for re-injection in chunks
