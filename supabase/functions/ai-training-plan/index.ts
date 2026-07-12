@@ -755,12 +755,15 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
               }
 
               // Generate chunk
+              // RÈGLE #0 : le H1 déterministe est appliqué UNIQUEMENT sur le chunk 1
+              // (les chunks suivants n'émettent pas de H1 au niveau plan).
               const genResult = await generateAndStream(
                 chunkPrompt,
                 controller,
                 encoder,
                 PRIMARY_MODEL,
                 useReasoning ? "medium" : undefined,
+                isFirst ? deterministicH1 : null,
               );
               let chunkText = genResult.text;
               let combinedChunkText = chunkText;
