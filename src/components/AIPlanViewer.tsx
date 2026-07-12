@@ -410,7 +410,12 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
                 </Badge>
               ))}
               <p className="text-sm font-semibold flex-1" title={parsed.catalogId ?? undefined}>
-                {parsed.cleanTitle}
+                {(() => {
+                  const clean = parsed.cleanTitle.trim();
+                  const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
+                  if (looksLikeId && fiche?.objectif) return fiche.objectif;
+                  return clean || session.title;
+                })()}
               </p>
             </>
           );
