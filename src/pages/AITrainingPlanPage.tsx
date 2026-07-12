@@ -271,6 +271,8 @@ export default function AITrainingPlanPage() {
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
   const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
   const [trainingLevel, setTrainingLevel] = useState<string>("auto");
+  const [lockAmbition, setLockAmbition] = useState<boolean>(false);
+
   const [constraints, setConstraints] = useState("");
   // Trail-only: profil de course (D+, distance, temps cible, altitude max)
   const [trailDistanceKm, setTrailDistanceKm] = useState("");
