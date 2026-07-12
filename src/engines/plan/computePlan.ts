@@ -285,6 +285,14 @@ export function postProcessParsedPlan(
   anchorRaceDays(plan, config);
   dedupRaceDays(plan, config);
 
+  // #7 audit : calcul volume hebdo réel (remplace placeholder textuel identique)
+  const { computeWeekVolumeMin, formatMinutesToHm } = require("@/lib/weeklyVolumeEstimator");
+  for (const w of plan.weeks) {
+    const min = computeWeekVolumeMin(w);
+    w.computedVolumeMin = min;
+    w.computedVolumeStr = formatMinutesToHm(min);
+  }
+
   let wbalStats: WbalRecalcStats | undefined;
   if (athleteData) {
     wbalStats = applyWbalRecoveryRecalc(plan, athleteData);
