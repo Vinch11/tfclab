@@ -75,6 +75,7 @@ const levelStyles = (level: RaceReadinessResult["level"]) => ({
 
 export function RaceReadinessReportDialog({
   open, onOpenChange, athleteName, objectif, ambition, nextRace, compassInput,
+  raceChronos = null, vmaKmh = null,
 }: Props) {
   const [aiMessage, setAiMessage] = useState<string>("");
   const [loadingAI, setLoadingAI] = useState(false);
