@@ -1528,7 +1528,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("");
       lines.push("**ADAPTATIONS NON-NÉGOCIABLES pour LCW (remplacent partiellement les règles 70.3 continu ci-dessus) :**");
       lines.push("1. **Briques T2 immédiates INTERDITES.** Bannis `B_703_BRICK_RACE_PACE` et tout enchaînement vélo→run <30min. Prescris à la place les séances signature LCW du catalogue :");
-      lines.push("   - `B_LCW_SWIM_FRI_EVENING` — Natation continue rythmée vendredi soir (2.5-3.8km, allure race, timing course).");
+      lines.push("   - `B_LCW_SWIM_FRI_EVENING` — Natation continue rythmée **VENDREDI soir OBLIGATOIREMENT** (2.5-3.8km, allure race, timing course). Jamais Jeudi ni Samedi : le suffixe `_FRI_EVENING` de l'ID impose le jour.");
       lines.push("   - `B_LCW_BIKE_LONG_RACE_SAT` — Long ride race-pace samedi 2h30-3h @ IF 0.82-0.85 (SANS run derrière — puissance plus haute autorisée).");
       lines.push("   - `B_LCW_RUN_OFF_LEGS_SUN` — Long run race-pace dimanche 60-90min sur jambes fatiguées vélo veille (angle mort absolu des plans 70.3 continus).");
       lines.push("2. **Répétition générale Peak** : prescris **`B_LCW_BACK_TO_BACK_PEAK`** UNE FOIS, 3-4 sem avant course (SIMULATION complète Ven+Sam+Dim, reproduction exacte du paradigme LCW).");
@@ -1547,7 +1547,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("- [ ] Au moins **2 weekends Peak** contiennent `B_LCW_BIKE_LONG_RACE_SAT` (Sam) + `B_LCW_RUN_OFF_LEGS_SUN` (Dim) consécutifs.");
       lines.push("- [ ] Au moins **1 weekend Build** contient `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
       lines.push("- [ ] `B_LCW_NUTRITION_RECHARGE` apparaît **≥3 fois** dans le plan, associé à chaque back-to-back weekend.");
-      lines.push("- [ ] `B_LCW_SWIM_FRI_EVENING` apparaît **≥2 fois** en Build/Peak (timing fin de journée).");
+      lines.push("- [ ] `B_LCW_SWIM_FRI_EVENING` apparaît **≥2 fois** en Build/Peak, programmée **STRICTEMENT le VENDREDI** (jamais Jeudi/Samedi — le nom même de la séance `..._FRI_EVENING` impose le vendredi soir pour reproduire le timing exact de la course LCW). Si tu l'as placée un autre jour, DÉPLACE-LA au vendredi et réaménage la semaine.");
       lines.push("- [ ] AUCUNE brique T2 immédiate (`B_703_BRICK_RACE_PACE` ou équivalent) n'est prescrite.");
       lines.push("- [ ] La semaine de course contient 3 entrées 'COURSE OBJECTIF' distinctes (Ven natation / Sam vélo / Dim course).");
       lines.push("");
