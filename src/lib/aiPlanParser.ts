@@ -263,7 +263,7 @@ export function parseAIPlan(markdown: string): ParsedPlan {
         theme: currentWeekTheme || `Semaine ${currentWeekNumber}`,
         phase: currentPhase,
         phaseObjective: currentPhaseObjective,
-        volumeTarget: computedVolumeStr || currentVolumeTarget,
+        volumeTarget: currentVolumeTarget || undefined,
         computedVolumeMin: computedVolumeMin > 0 ? computedVolumeMin : undefined,
         computedVolumeStr,
         coachNotes: currentCoachNotes.trim() || undefined,

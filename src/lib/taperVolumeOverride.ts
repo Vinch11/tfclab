@@ -1,18 +1,29 @@
 /**
- * Chantier 3 — Override volumeCible pour semaines de taper/affûtage.
+ * Weekly volume targets — periodized (Lorang) per-week target range.
  *
- * Le champ `week.volumeTarget` produit par l'IA hérite souvent du volume du bloc parent
- * (ex: "12h-14h") même pour les semaines d'affûtage où la charge réelle est ~40-60% inférieure.
- * On applique un facteur taper au volume de base pour recalculer un affichage cohérent.
+ * Historique : cette fonction ne posait un `volumeTarget` que pour les semaines
+ * taper/race. Résultat (audit Claude 07/2026) : sur les autres semaines,
+ * `week.volumeTarget` retombait sur la valeur calculée en aval (= volume RÉEL
+ * des séances), et l'UI affichait « Volume cible : Xh » alors qu'il s'agissait
+ * du volume mesuré. Voir `aiPlanParser.ts` (retiré: `computedVolumeStr` du
+ * champ `volumeTarget`) et `AIPlanViewer` (Cible ≠ Réel désormais lisible).
  *
- *  - S-2 avant course (Volume Cut / Affûtage général) : ×0.60
- *  - S-1 semaine de course (hors J-J1)                 : ×0.35
+ * Règles de périodisation (base = `baseVolumeCibleH`) :
+ *   - Fondation           ×0.85–1.00
+ *   - Build               ×1.00–1.15
+ *   - Spécifique / Peak   ×1.05–1.20
+ *   - Semaine de décharge (thème/coach: "décharge"/"recovery"/"récup")   ×0.65
+ *   - Affûtage (S-2 / phase Affûtage)                                    ×0.60
+ *   - Semaine de course (S-1 vs raceDate)                                ×0.35
+ *
+ * `week.volumeTarget` reçoit un libellé lisible (« 8h30–10h · Build »).
  */
 
 import type { ParsedPlan, ParsedWeek } from "@/lib/aiPlanParser";
 
 const TAPER_RX = /taper|aff[uû]t|volume\s*cut/i;
 const RACE_WEEK_RX = /course|race\s*week|jour\s*j|semaine\s*de\s*course/i;
+const RECOVERY_RX = /d[eé]charge|recovery|r[eé]cup(?:[eé]ration)?|deload/i;
 
 export function isTaperWeek(week: ParsedWeek): "race" | "taper" | null {
   const combined = `${week.theme} ${week.phase} ${week.coachNotes || ""}`;
@@ -22,14 +33,51 @@ export function isTaperWeek(week: ParsedWeek): "race" | "taper" | null {
 }
 
 function formatHours(h: number): string {
-  const rounded = Math.round(h * 2) / 2;
-  return `${rounded}h`;
+  if (h <= 0) return "0h";
+  const totalMin = Math.round(h * 60);
+  const hh = Math.floor(totalMin / 60);
+  const mm = totalMin % 60;
+  if (mm === 0) return `${hh}h`;
+  // arrondi visuel au quart d'heure
+  const rounded = Math.round(mm / 15) * 15;
+  if (rounded === 0) return `${hh}h`;
+  if (rounded === 60) return `${hh + 1}h`;
+  return `${hh}h${String(rounded).padStart(2, "0")}`;
 }
 
+type WeekKind = "race" | "taper" | "recovery" | "peak" | "build" | "foundation" | "generic";
+
+function detectPhaseKind(phase: string): "peak" | "build" | "foundation" | "generic" {
+  const p = phase.toLowerCase();
+  if (/sp[eé]cifique|peak|comp[eé]tition/.test(p)) return "peak";
+  if (/build|d[eé]veloppement|construction|intensification/.test(p)) return "build";
+  if (/fond|base|foundation/.test(p)) return "foundation";
+  return "generic";
+}
+
+const KIND_FACTORS: Record<WeekKind, number> = {
+  race: 0.35,
+  taper: 0.60,
+  recovery: 0.65,
+  peak: 1.125,
+  build: 1.075,
+  foundation: 0.925,
+  generic: 1.00,
+};
+
+const KIND_LABELS: Record<WeekKind, string> = {
+  race: "semaine de course",
+  taper: "affûtage",
+  recovery: "décharge",
+  peak: "Spécifique",
+  build: "Build",
+  foundation: "Fondation",
+  generic: "",
+};
+
 /**
- * Applique l'override de volume aux semaines taper/course.
- * `baseVolumeCibleH` = volumeCible hebdo standard du plan (heures) issu de deriveRaceTargets.
- * Mute directement plan.weeks[i].volumeTarget.
+ * Applique un `volumeTarget` PÉRIODISÉ sur toutes les semaines du plan.
+ * `baseVolumeCibleH` = volume hebdo standard (issu de deriveRaceTargets).
  */
 export function applyTaperVolumeOverride(
   plan: ParsedPlan,
@@ -38,50 +86,41 @@ export function applyTaperVolumeOverride(
 ): void {
   const raceWeek = opts.raceWeekNumber && opts.raceWeekNumber > 0 ? opts.raceWeekNumber : null;
 
-  const detect = (week: ParsedWeek): "race" | "taper" | null => {
-    if (raceWeek) {
-      // Index-based prioritaire quand raceDate connu : évite les faux positifs
-      // provoqués par des noms de bloc/phase contenant "course" (ex: "Spécificité Course").
-      if (week.weekNumber === raceWeek) return "race";
-      if (week.weekNumber === raceWeek - 1) return "taper";
-      return null;
-    }
-    return isTaperWeek(week);
-  };
-
-  // Log d'entrée systématique pour toutes les semaines (diagnostic pipeline).
-  for (const week of plan.weeks) {
-    // eslint-disable-next-line no-console
-    console.log("📦 taperOverride ENTRY", {
-      semaine: week.weekNumber,
-      titre: week.theme,
-      phase: week.phase,
-      baseVolumeCibleH,
-      detectedKind: detect(week),
-      raceWeek,
-    });
-  }
-
   if (!baseVolumeCibleH || baseVolumeCibleH <= 0) {
     // eslint-disable-next-line no-console
-    console.warn("📦 taperOverride SKIP : baseVolumeCibleH null/0 (weeklyHours manquant côté athlète). Aucune substitution appliquée.");
+    console.warn("📦 weeklyTargets SKIP : baseVolumeCibleH null/0 (weeklyHours manquant côté athlète).");
     return;
   }
 
+  const detect = (week: ParsedWeek): WeekKind => {
+    if (raceWeek) {
+      if (week.weekNumber === raceWeek) return "race";
+      if (week.weekNumber === raceWeek - 1) return "taper";
+    } else {
+      const t = isTaperWeek(week);
+      if (t) return t;
+    }
+    const combined = `${week.theme} ${week.coachNotes || ""}`;
+    if (RECOVERY_RX.test(combined)) return "recovery";
+    return detectPhaseKind(week.phase || "");
+  };
+
   for (const week of plan.weeks) {
     const kind = detect(week);
-    if (!kind) continue;
-    const factor = kind === "race" ? 0.35 : 0.6;
+    const factor = KIND_FACTORS[kind];
     const target = baseVolumeCibleH * factor;
-    const overridden = `${formatHours(target * 0.85)}-${formatHours(target * 1.15)} (taper ×${factor})`;
+    const lo = formatHours(target * 0.90);
+    const hi = formatHours(target * 1.10);
+    const label = KIND_LABELS[kind];
+    const suffix = label ? ` · ${label}` : "";
+    week.volumeTarget = `${lo}–${hi}${suffix}`;
     // eslint-disable-next-line no-console
-    console.log("📦 volumeCible APPLIED", {
+    console.log("📦 weeklyTarget", {
       semaine: week.weekNumber,
-      type: kind,
-      volumeBloc: baseVolumeCibleH,
-      facteur: factor,
-      volumeFinal: Number(target.toFixed(2)),
+      kind,
+      factor,
+      target: Number(target.toFixed(2)),
+      base: baseVolumeCibleH,
     });
-    week.volumeTarget = overridden;
   }
 }
