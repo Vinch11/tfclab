@@ -779,13 +779,13 @@ Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semai
                 console.log(`Retrying full chunk ${ci + 1} after failure...`);
                 streamError = null;
                 await sleep(INTER_CHUNK_DELAY_MS);
-                const retryResult = await generateAndStream(chunkPrompt, controller, encoder);
+                const retryResult = await generateAndStream(chunkPrompt, controller, encoder, PRIMARY_MODEL, undefined, isFirst ? deterministicH1 : null);
                 if (!retryResult.text) {
                   // AUDIT FIX #6: Fallback model — switch to robust Gemini Pro after 2 failures
                   console.warn(`⚠️ Chunk ${ci + 1} primary retry failed. Trying FALLBACK model (${FALLBACK_MODEL})...`);
                   streamError = null;
                   await sleep(INTER_CHUNK_DELAY_MS);
-                  const fallbackResult = await generateAndStream(chunkPrompt, controller, encoder, FALLBACK_MODEL);
+                  const fallbackResult = await generateAndStream(chunkPrompt, controller, encoder, FALLBACK_MODEL, undefined, isFirst ? deterministicH1 : null);
                   if (!fallbackResult.text) {
                     // FIX (2026-07-08) : ne PLUS "skipper" silencieusement — remonter une erreur visible.
                     const msg = `Génération incomplète : bloc semaines S${chunk.start}-S${chunk.end} n'a pas pu être généré (2 retries + fallback modèle échoués). Relancer la génération.`;
