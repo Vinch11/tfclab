@@ -701,3 +701,37 @@ export function getImpactScoreBgColor(score: number): string {
   if (score >= 45) return "bg-amber-500/10 border-amber-500/30";
   return "bg-muted/50 border-border";
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LORANG STRATEGY ↔ ADAPTATION PREDICTOR BINDING
+// Audit propagation — le Predictor doit simuler UNIQUEMENT les leviers réellement
+// activés par computeLorangStrategy (source unique de décision), pas les 12
+// leviers du catalogue par défaut.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Mapping des IDs de leviers Lorang (LorangLever) vers les IDs simulés par
+ *  le Predictor (TrainingLeverId). Les leviers non simulables (heat, gut, hrv)
+ *  sont mappés vers un proxy physiologique proche ou omis. */
+const LORANG_TO_TRAINING_LEVER: Record<string, TrainingLeverId | TrainingLeverId[]> = {
+  vo2_intervals: "vo2max_intervals",
+  z2_volume: "volume_z2",
+  threshold_work: "threshold_work",
+  force_max: "max_force",
+  sfr_force_endurance: ["max_force", "running_economy"],
+  train_low: "train_low",
+  gut_training: "train_low",           // proxy oxydatif
+  heat_training: "volume_z2",          // proxy aérobie
+  hrv_adaptation: "reduce_anaerobic",  // proxy décharge
+};
+
+export function mapLorangLeversToTrainingLevers(lorangLeverIds: string[]): TrainingLeverId[] {
+  const out = new Set<TrainingLeverId>();
+  for (const id of lorangLeverIds) {
+    const mapped = LORANG_TO_TRAINING_LEVER[id];
+    if (!mapped) continue;
+    if (Array.isArray(mapped)) mapped.forEach(m => out.add(m));
+    else out.add(mapped);
+  }
+  return Array.from(out);
+}
+
