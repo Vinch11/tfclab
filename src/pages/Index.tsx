@@ -105,6 +105,8 @@ import { CycleIntelligenceCard } from "@/components/CycleIntelligenceCard";
 
 // ✅ Adaptation Predictor™
 import { AdaptationPredictorCard } from "@/components/AdaptationPredictorCard";
+import { mapLorangLeversToTrainingLevers } from "@/lib/v2/adaptationPredictor";
+
 import { computeDecision, type DecisionInput } from "@/engines/decision";
 
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
