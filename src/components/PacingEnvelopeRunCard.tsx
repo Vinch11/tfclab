@@ -39,7 +39,8 @@ function fmtPace(sec: number | null | undefined): string | null {
 
 function buildRunPhases(result: PacingEnvelopeRunResult): [RacePhase, RacePhase, RacePhase] {
   const th = result.threshold_pace_sec_km;
-  const [gLow, gHigh] = result.boundary_pct_threshold.green;
+  const gLow = result.boundary_pct_threshold.lowPct;
+  const gHigh = result.boundary_pct_threshold.highPct;
   const paceAt = (pct: number) => (th ? fmtPace(Math.round(th * (100 / pct))) : null);
   const mid = Math.round((gLow + gHigh) / 2);
   return [
