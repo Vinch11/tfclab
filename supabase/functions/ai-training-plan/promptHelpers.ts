@@ -1657,7 +1657,22 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Format : UNE LIGNE PAR SÉANCE dans le tableau. 'Mardi matin', 'Mardi midi', 'Mardi soir' = 3 lignes séparées.");
     lines.push("- JAMAIS 2 intensités le même jour sauf brique planifiée.");
     lines.push("- Le tableau d'une semaine Elite/World Class IM doit avoir 14-20 lignes (pas 7 !).");
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GARDE-FOU #6 (audit Cath juillet 2026) — Vocabulaire ambition-cohérent
+    // Bannit les mots "élite/podium/pro" dans les descriptions de séances
+    // quand l'athlète est finisher/age_group (contamination catalogue).
+    // ─────────────────────────────────────────────────────────────────────────
+    if (ambition === "finisher" || ambition === "age_group" || ambition === "agegroup") {
+      lines.push("");
+      lines.push("### 🚫 VOCABULAIRE INTERDIT (ambition " + ambition + ")");
+      lines.push(`Tu N'UTILISES JAMAIS les mots suivants dans les intitulés/descriptions de séances : "élite", "elite", "podium", "pro", "signature podium", "top 10%", "world class".`);
+      lines.push("Ces mots créent une dissonance pour l'athlète et suggèrent un niveau de charge inapproprié.");
+      lines.push(`Remplace par : "spécifique", "clé", "objectif", "prioritaire", "de référence".`);
+      lines.push("Cette règle s'applique MÊME quand tu prescris une séance du catalogue dont l'ID contient PODIUM ou ELITE (ex: `A_703_RUN_RACE_PACE_LONG` du pack Podium 70.3) : garde l'ID mais reformule la description.");
+    }
   }
+
 
   const weeks = config.weeksAvailable || 12;
 
