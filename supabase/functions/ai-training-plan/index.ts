@@ -615,6 +615,8 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
                 // FIX C2 (audit): Inject structuredDiagnostic in chunk 1 to anchor phase bounds from the start
                 chunkPrompt = `${userPrompt}
 ${chunkPhaseCatalog ? `\n${chunkPhaseCatalog}\n` : ""}
+${canonicalRaceCard}
+
 ⚠️ GÉNÉRATION PAR BLOC : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
 
 📋 DIAGNOSTIC STRUCTURÉ (RÉFÉRENCE pour la cohérence du plan entier) :
