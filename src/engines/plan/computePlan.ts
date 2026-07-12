@@ -23,6 +23,7 @@ import type {
 } from "./types";
 import type { PlanAthleteData } from "@/hooks/useAITrainingPlan";
 import { applyWbalRecoveryRecalc, type WbalRecalcStats } from "./wbalPostProcessor";
+import { computeWeekVolumeMin, formatMinutesToHm } from "@/lib/weeklyVolumeEstimator";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
