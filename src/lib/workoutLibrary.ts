@@ -8419,9 +8419,19 @@ import { EnrichedWorkouts703PodiumDurability } from "./enrichedWorkouts703Podium
 WorkoutLibrary.push(...EnrichedWorkouts703PodiumDurability);
 
 // =============================================
+// LONG COURSE WEEKEND (LCW) — Format 3 jours éclaté (Wales/Belgium).
+// Séances signature : natation ven soir, long bike sam (SANS brique), long run
+// dim off-legs, back-to-back peak, protocole recharge glycogénique inter-étapes.
+// Prescription forcée quand raceFormat === "lcw_3day" via promptHelpers.ts.
+// =============================================
+import { EnrichedWorkoutsLCW } from "./enrichedWorkoutsLCW";
+WorkoutLibrary.push(...EnrichedWorkoutsLCW);
+
+// =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]
 // =============================================
 import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
 enrichWorkoutGoals(WorkoutLibrary);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | FatMax: ${EnrichedWorkoutsFatMax.length} | Recovery: ${EnrichedWorkoutsRecovery.length} | Swim+: ${EnrichedWorkoutsSwim.length} | SwimV2: ${EnrichedWorkoutsSwimV2.length} | StrengthV2: ${EnrichedWorkoutsStrengthV2.length} | Hedgehog: ${EnrichedWorkoutsHedgehog.length} | IM Run Durability: ${EnrichedWorkoutsIMRunDurability.length} | 70.3 Podium: ${EnrichedWorkouts703PodiumDurability.length} | Total: ${WorkoutLibrary.length}`);
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | FatMax: ${EnrichedWorkoutsFatMax.length} | Recovery: ${EnrichedWorkoutsRecovery.length} | Swim+: ${EnrichedWorkoutsSwim.length} | SwimV2: ${EnrichedWorkoutsSwimV2.length} | StrengthV2: ${EnrichedWorkoutsStrengthV2.length} | Hedgehog: ${EnrichedWorkoutsHedgehog.length} | IM Run Durability: ${EnrichedWorkoutsIMRunDurability.length} | 70.3 Podium: ${EnrichedWorkouts703PodiumDurability.length} | LCW: ${EnrichedWorkoutsLCW.length} | Total: ${WorkoutLibrary.length}`);
+
