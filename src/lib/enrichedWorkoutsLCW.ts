@@ -43,9 +43,9 @@ const LCW_WORKOUTS: LibraryWorkout[] = [
       { part: "Cool-down", text: "300m Z1 + étirements dorsaux/épaules", zones: ["Z1"] }
     ],
     variants: {
-      im: "LCW Wales/Belgium : cibler 3.8 km continu en 2 blocs en Peak. Tester exactement la nutrition et l'horaire (fin de journée) pour éviter surprise. La difficulté n'est pas la distance mais l'enchaînement avec Long Bike samedi matin.",
+      ironman: "LCW Wales/Belgium : cibler 3.8 km continu en 2 blocs en Peak. Tester exactement la nutrition et l'horaire (fin de journée) pour éviter surprise. La difficulté n'est pas la distance mais l'enchaînement avec Long Bike samedi matin.",
     },
-    goals: ["im", "703"],
+    goals: ["ironman", "half"],
     tags: ["lcw", "long-course-weekend", "swim", "race-sim", "stage-race", "endurance"],
     notes: "Signature LCW Étape 1 : la fatigue de fin de journée + digestion + températures fraîches d'eau libre = angle mort des plans 70.3 continus."
   },
@@ -60,7 +60,7 @@ const LCW_WORKOUTS: LibraryWorkout[] = [
     phase: ["build", "peak"],
     avoid: "VMA course la veille, semaine de vraie course",
     durationMin: [150, 200],
-    metricKey: "watts",
+    metricKey: "puissance",
     sportKey: "bike_long_race_lcw",
     structure: [
       { part: "Warm-up", text: "20min Z1→Z2 progressif + 3×2min @ 90% FTP r=2min", zones: ["Z1", "Z2"] },
@@ -68,9 +68,9 @@ const LCW_WORKOUTS: LibraryWorkout[] = [
       { part: "Cool-down", text: "10min Z1 + spin-out cadence 100+ rpm", zones: ["Z1"] }
     ],
     variants: {
-      im: "LCW Peak : monter à 3h à IF 0.85 (85-88% FTP). L'avantage LCW vs 70.3/IM continu : puissance race plus haute autorisée (pas de coût T2). Enchaîner IMMÉDIATEMENT le protocole de recharge glycogénique (B_LCW_NUTRITION_RECHARGE) car le vrai test est dimanche matin.",
+      ironman: "LCW Peak : monter à 3h à IF 0.85 (85-88% FTP). L'avantage LCW vs 70.3/IM continu : puissance race plus haute autorisée (pas de coût T2). Enchaîner IMMÉDIATEMENT le protocole de recharge glycogénique (B_LCW_NUTRITION_RECHARGE) car le vrai test est dimanche matin.",
     },
-    goals: ["im", "703"],
+    goals: ["ironman", "half"],
     tags: ["lcw", "long-course-weekend", "bike", "long-ride", "race-pace", "stage-race", "no-brick"],
     notes: "Différence clé vs B_703_BRICK_RACE_PACE : PAS d'enchaînement run derrière. La puissance vélo peut être plus haute car la course viendra 12-18h plus tard, pas 3 minutes plus tard."
   },
@@ -93,9 +93,9 @@ const LCW_WORKOUTS: LibraryWorkout[] = [
       { part: "Cool-down", text: "10-15min Z1 + mobilité mollets/quadriceps", zones: ["Z1"] }
     ],
     variants: {
-      im: "LCW Peak : 21.1 km à allure semi-marathon race sur jambes vélo veille. Séance de VÉRITÉ absolue LCW — c'est là que se joue le succès (ou l'implosion). Si les jambes ne tiennent pas → réduire l'ambition course d'un cran ou augmenter la recharge glycogénique.",
+      ironman: "LCW Peak : 21.1 km à allure semi-marathon race sur jambes vélo veille. Séance de VÉRITÉ absolue LCW — c'est là que se joue le succès (ou l'implosion). Si les jambes ne tiennent pas → réduire l'ambition course d'un cran ou augmenter la recharge glycogénique.",
     },
-    goals: ["im", "703"],
+    goals: ["ironman", "half"],
     tags: ["lcw", "long-course-weekend", "run", "off-legs", "race-pace", "stage-race", "durability"],
     notes: "Angle mort ABSOLU des plans 70.3 continus. Un brick T2 (3 min post-vélo) N'entraîne PAS la même adaptation qu'un run 12-18h post-vélo (fatigue centrale résiduelle + déplétion glycogène partielle + nuit courte)."
   },
@@ -103,14 +103,14 @@ const LCW_WORKOUTS: LibraryWorkout[] = [
   {
     id: "B_LCW_BACK_TO_BACK_PEAK",
     cat: "A",
-    sport: "multi",
+    sport: "mixed",
     objectif: "Répétition générale weekend LCW — enchaîner Ven soir natation + Sam long bike + Dim long run sur 3 jours consécutifs (SIMULATION COURSE COMPLÈTE)",
     necessite: "Obligatoire",
     when: "Peak LCW uniquement (1×, positionné 3-4 sem avant la course)",
     phase: ["peak"],
     avoid: "Jamais 2× dans le plan, jamais en Build, jamais dans les 2 dernières sem avant course",
     durationMin: [360, 480],
-    metricKey: "multi",
+    metricKey: "puissance",
     sportKey: "lcw_full_sim",
     structure: [
       { part: "Warm-up", text: "Vendredi 18h-20h : B_LCW_SWIM_FRI_EVENING intégral (3-3.8 km continu)", zones: ["Z2", "Z3"] },
@@ -118,9 +118,9 @@ const LCW_WORKOUTS: LibraryWorkout[] = [
       { part: "Cool-down", text: "Dimanche après-midi : mobilité complète + bilan écrit (sensations J1/J2/J3, nutrition, sommeil, points d'échec)", zones: ["Z1"] }
     ],
     variants: {
-      im: "LCW Wales/Belgium Peak : semaine test 3-4 sem avant course. Volume total ~7-8h sur 3 jours. Si l'athlète craque dimanche → ajuster ambition course OU renforcer recharge glycogénique inter-étapes. Cette séance décide de la stratégie course finale.",
+      ironman: "LCW Wales/Belgium Peak : semaine test 3-4 sem avant course. Volume total ~7-8h sur 3 jours. Si l'athlète craque dimanche → ajuster ambition course OU renforcer recharge glycogénique inter-étapes. Cette séance décide de la stratégie course finale.",
     },
-    goals: ["im", "703"],
+    goals: ["ironman", "half"],
     tags: ["lcw", "long-course-weekend", "race-sim", "back-to-back", "stage-race", "peak", "signature"],
     notes: "Séance PIVOT du Peak LCW. Sans cette répétition, l'athlète découvre le paradigme 3 jours le jour J = risque majeur d'implosion étape 3."
   },
@@ -128,14 +128,14 @@ const LCW_WORKOUTS: LibraryWorkout[] = [
   {
     id: "B_LCW_NUTRITION_RECHARGE",
     cat: "C",
-    sport: "nutrition",
+    sport: "mixed",
     objectif: "Protocole recharge glycogénique inter-étapes LCW — recharge agressive vendredi soir + samedi soir pour restaurer glycogène musculaire avant étape suivante",
     necessite: "Obligatoire",
     when: "Build + Peak LCW (associé à chaque back-to-back weekend, prescrire ≥3 simulations)",
     phase: ["build", "peak"],
     avoid: "Ne pas appliquer les jours de repos ou séances courtes < 90min",
     durationMin: [0, 0],
-    metricKey: "cho",
+    metricKey: "puissance",
     sportKey: "nutrition_recharge_lcw",
     structure: [
       { part: "Post-Étape 1 (Ven soir post-natation)", text: "Fenêtre 30min : 1.2 g/kg CHO + 0.4 g/kg protéine (ex: repas riz + poulet + fruit). Puis dîner classique + 1 collation glucidique avant coucher (banane + pain complet). Cible 8-10 g/kg CHO sur 12-16h vers samedi matin.", zones: [] },
@@ -143,9 +143,9 @@ const LCW_WORKOUTS: LibraryWorkout[] = [
       { part: "Pré-Étape 3 (Dim matin pré-run)", text: "Petit-déjeuner 3h avant : 2-2.5 g/kg CHO facilement digestibles (avoine + banane + miel + toast). 30min avant départ : 30g CHO liquide (gel + eau). Café si habitude.", zones: [] }
     ],
     variants: {
-      im: "LCW Wales/Belgium Peak : la nutrition inter-étapes est la vraie discipline #4. Un athlète bien entraîné mais sous-rechargé implose dimanche. Tester ce protocole ≥3× en Peak sur les back-to-back weekends pour identifier tolérance digestive.",
+      ironman: "LCW Wales/Belgium Peak : la nutrition inter-étapes est la vraie discipline #4. Un athlète bien entraîné mais sous-rechargé implose dimanche. Tester ce protocole ≥3× en Peak sur les back-to-back weekends pour identifier tolérance digestive.",
     },
-    goals: ["im", "703"],
+    goals: ["ironman", "half"],
     tags: ["lcw", "long-course-weekend", "nutrition", "glycogen", "recharge", "stage-race", "durability"],
     notes: "Séance NON-PHYSIQUE mais prescriptible. Le glycogène est le facteur limitant #1 du LCW (course à étapes). Sources : Burke 2018, Costa 2019, retours coachs LCW."
   },
