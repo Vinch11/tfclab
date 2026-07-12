@@ -93,18 +93,30 @@ export function computeAmbitionEffective(params: {
   ambitionSaisie: unknown;
   trainingLevel: CoachTrainingLevel | "auto" | null | undefined;
   tss7d: number | null | undefined;
+  /**
+   * Coach override : si `true`, désactive le déclassement automatique.
+   * L'ambition saisie est conservée telle quelle, même si le niveau d'entraînement
+   * est en dessous du seuil. À utiliser quand le coach juge que l'athlète est prêt
+   * malgré une charge récente faible (retour de blessure documenté, pic de forme
+   * planifié, tests physiologiques récents concordants, etc.).
+   */
+  lockAmbition?: boolean;
 }): AmbitionResolution {
   const ambitionSaisie = normalizeAmbitionLevel(params.ambitionSaisie);
   const { level: effectiveTrainingLevel, source: trainingLevelSource } =
     resolveEffectiveTrainingLevel(params.trainingLevel, params.tss7d);
 
   const cap = AMBITION_MAX_BY_LEVEL[effectiveTrainingLevel];
-  const ambitionEffective = cap ? ambitionMin(ambitionSaisie, cap) : ambitionSaisie;
+  // Coach lock : bypass complet du cap.
+  const ambitionEffective = params.lockAmbition
+    ? ambitionSaisie
+    : (cap ? ambitionMin(ambitionSaisie, cap) : ambitionSaisie);
   const downgraded = ambitionEffective !== ambitionSaisie;
 
   let diagnosticNote: string | null = null;
   let downgradeArrow: string | null = null;
 
+  // Cas 1 : ambition déclassée automatiquement
   if (downgraded) {
     const saisieLabel = AMBITION_DEFINITIONS[ambitionSaisie].label;
     const effLabel = AMBITION_DEFINITIONS[ambitionEffective].label;
@@ -126,6 +138,21 @@ export function computeAmbitionEffective(params: {
       `${trainingLevelSource === "auto-tss" ? " · auto-TSS" : trainingLevelSource === "fallback-prudent" ? " · fallback prudent" : ""}]`
     );
   }
+  // Cas 2 : lock coach actif ET l'ambition aurait été déclassée sans le lock
+  else if (params.lockAmbition && cap && ambitionRank(ambitionSaisie) > ambitionRank(cap)) {
+    const saisieLabel = AMBITION_DEFINITIONS[ambitionSaisie].label;
+    const capLabel = AMBITION_DEFINITIONS[cap].label;
+    const lvlLabel = TRAINING_LEVEL_LABELS[effectiveTrainingLevel];
+    diagnosticNote =
+      `🔒 Ambition **${saisieLabel}** verrouillée par le coach malgré un niveau d'entraînement ` +
+      `déclaré (${lvlLabel}) qui plafonnerait à ${capLabel}. Le coach assume que l'athlète ` +
+      `est prêt pour cette ambition (tests physio récents, retour de blessure documenté, ` +
+      `pic de forme planifié). Le plan sera calibré sur ${saisieLabel} sans filet de sécurité.`;
+    console.log(
+      `🔒 Ambition verrouillée coach : ${saisieLabel} (${ambitionSaisie}) — cap ${capLabel} bypassé ` +
+      `[niveau=${lvlLabel} (${effectiveTrainingLevel})]`
+    );
+  }
 
   return {
     ambitionSaisie,
@@ -137,3 +164,4 @@ export function computeAmbitionEffective(params: {
     downgradeArrow,
   };
 }
+
