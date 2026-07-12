@@ -165,8 +165,17 @@ export function buildPlanConfigFromDiagnostic(
     .map(l => LEVER_LABELS[l] || l)
     .filter(Boolean);
 
-  // ── Prohibitions (utilise l'ambition EFFECTIVE) ───────────────────────────
-  const prohibitions = buildProhibitions(limiterResult, diagnostic.objectif, ambitionResolution.ambitionEffective);
+  // ── Prohibitions (utilise l'ambition EFFECTIVE + VLamax effective sport-aware) ─
+  // FIX #3 : passage de la VLamax effective (résolue sport-aware par le diagnostic)
+  // pour appliquer le garde-fou #2 Lorang — pas de Sprint Ban si VLamax reste
+  // dans la range physiologique acceptable de l'objectif. Source unique alignée
+  // avec computeLorangStrategy.
+  const prohibitions = buildProhibitions(
+    limiterResult,
+    diagnostic.objectif,
+    ambitionResolution.ambitionEffective,
+    diagnostic.effectifs.vlamax.value ?? null,
+  );
 
   // ── Adaptation Projections ────────────────────────────────────────────────
   const projections = buildAdaptationProjections(diagnostic, formConfig.weeksAvailable);
