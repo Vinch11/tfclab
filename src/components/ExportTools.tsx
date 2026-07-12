@@ -89,6 +89,7 @@ import { computeCycleIntelligence, snapshotToEngineData } from "@/lib/v2/cycleIn
 // ✅ CHANTIER E — Moteurs Pacing Envelope unifiés (A/B/C/D)
 import { computePacingEnvelope, type PacingEnvelopeResult, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import { computePacingEnvelopeRun, PACING_ZONE_COLORS } from "@/lib/v2/pacingEnvelopeRunning";
+import { buildRaceChronosFromSnapshot } from "@/lib/v2/buildRaceChronosFromSnapshot";
 import { computeLongDistanceEnvelope, LONG_DISTANCE_THRESHOLD_HOURS, type LongDistanceEnvelopeResult } from "@/lib/v2/pacingEnvelopeLongDistance";
 
 // =============================================
