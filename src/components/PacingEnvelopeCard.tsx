@@ -79,6 +79,56 @@ interface PacingEnvelopeCardProps {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Construit un plan de course en 3 phases à partir de l'enveloppe.
+ * Approche "negative split" : conservateur au départ, cible au milieu, courage au finish.
+ */
+function buildPhasesFromEnvelope(envelope: PacingEnvelopeResult): [RacePhase, RacePhase, RacePhase] {
+  const { lowPct, centerPct, highPct } = envelope.boundary;
+  // Départ : bas du couloir (protection W')
+  const startLow = lowPct;
+  const startHigh = Math.max(lowPct + 1, centerPct - 2);
+  // Milieu : autour du centre
+  const midLow = Math.max(lowPct, centerPct - 1);
+  const midHigh = Math.min(highPct, centerPct + 1);
+  // Finish : centre → haut du couloir (voire toléré si tout va bien)
+  const endLow = centerPct;
+  const endHigh = highPct;
+
+  return [
+    {
+      label: "Départ",
+      window: "0 → 33% de la course",
+      targetPct: `${startLow}–${startHigh}% ${envelope.boundary.referenceShortLabel}`,
+      targetPace: null,
+      do: "Rester conservateur, laisser les autres partir vite. Ton W′ se protège ici.",
+      dont: "Attaquer parce que tu te sens bien : c'est le piège classique.",
+    },
+    {
+      label: "Milieu",
+      window: "33 → 66%",
+      targetPct: `${midLow}–${midHigh}% ${envelope.boundary.referenceShortLabel}`,
+      targetPace: null,
+      do: "Installer la cible, verrouiller la respiration, boire/manger comme prévu.",
+      dont: "Suivre une accélération d'un concurrent — c'est SA course, pas la tienne.",
+    },
+    {
+      label: "Finish",
+      window: "66 → 100%",
+      targetPct: `${endLow}–${endHigh}% ${envelope.boundary.referenceShortLabel}`,
+      targetPace: null,
+      do: "Puiser dans la réserve : si tu as tenu la discipline, tu peux monter.",
+      dont: "Attendre les 200 derniers mètres pour tout donner.",
+    },
+  ];
+}
+
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // SOUS-COMPOSANTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
