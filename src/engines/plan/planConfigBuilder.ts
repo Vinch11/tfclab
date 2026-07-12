@@ -18,6 +18,7 @@ import { computeCRR, computeChargeScore, getCRRTargets } from "@/lib/chargeRecen
 import { computeTrailProfile, isTrailObjective } from "@/lib/trailProfile";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
 import { AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
+import { getVlamaxTarget as getVlamaxTargetCanonical } from "@/lib/v2/vlamaxTargets";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATHLETE DATA EXTRACTION
