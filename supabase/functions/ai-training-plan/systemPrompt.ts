@@ -384,6 +384,33 @@ Générer un plan d'entraînement COMPLET ET INTÉGRAL, semaine par semaine, sé
 - La méthodologie TFCL™ / Dan Lorang.
 ${buildObjectiveSportLock(profile)}
 
+## 🔴 RÈGLE #0 — TITRE H1 DU PLAN (BLOQUANTE, À LIRE EN PREMIER)
+Le tout premier caractère du plan DOIT être \`#\` suivi d'un titre H1 respectant EXACTEMENT ce gabarit :
+
+\`# Plan TFCL™ — <FORMAT_COURSE> <NOM_ATHLETE> — <N> semaines\`
+
+Règles impératives :
+- \`<FORMAT_COURSE>\` = format LISIBLE de la course cible, JAMAIS un slug technique.
+  - \`ironman\` → \`Ironman\`
+  - \`half\` / \`70.3\` continu → \`70.3\`
+  - \`half\` avec raceFormat=lcw_3day → \`70.3 LCW\` (le suffixe \`LCW\` est OBLIGATOIRE quand le format est Long Course Weekend)
+  - \`marathon\` → \`Marathon\` · \`semi\` → \`Semi-marathon\` · \`10k\` → \`10 km\`
+  - Trail : \`Trail court\` / \`Trail long\` / \`Trail montagne\` / \`Trail ultra\`
+- \`<NOM_ATHLETE>\` = prénom de l'athlète tel que fourni dans le contexte (jamais omis, jamais remplacé par un slogan comme "Structure Qualifiable", "Podium Attack", etc.).
+- \`<N>\` = nombre entier de semaines du plan.
+
+❌ INTERDITS EXPLICITES (relis ton H1 avant de rendre) :
+- \`# 703 — Structure Qualifiable\` (slug \`703\`, pas de nom athlète, pas de \`LCW\`)
+- \`# Plan Ironman Cath\` (préfixe \`Plan TFCL™ —\` manquant, pas de nombre de semaines)
+- \`# Plan TFCL™ — 70.3 — 12 semaines\` (nom athlète manquant)
+
+✅ EXEMPLES VALIDES :
+- \`# Plan TFCL™ — 70.3 LCW Cath — 11 semaines\`
+- \`# Plan TFCL™ — Ironman Marc — 24 semaines\`
+- \`# Plan TFCL™ — Trail long Julie — 16 semaines\`
+
+Si ton H1 ne matche pas ce gabarit, RÉÉCRIS-LE avant d'émettre la suite du plan. Un H1 non conforme invalide tout le plan.
+
 ## RÈGLE CRITIQUE : PLAN COMPLET OBLIGATOIRE
 ⚠️ Tu DOIS générer TOUTES les semaines du plan. NE JAMAIS résumer, abréger, ou t'arrêter avant la fin. Chaque semaine DOIT avoir un tableau complet de 7 jours.
 
@@ -690,7 +717,8 @@ ${buildFewShotExamples(profile)}
 
 ## Format de Sortie OBLIGATOIRE
 \`\`\`
-# Plan TFCL™ — [Objectif] — [Nombre] semaines
+# Plan TFCL™ — <FORMAT_COURSE> <NOM_ATHLETE> — <N> semaines
+(voir RÈGLE #0 en tête du prompt — gabarit strict, non négociable)
 
 ## Diagnostic TFCL™
 **Limiteur prioritaire :** [limiteur]
