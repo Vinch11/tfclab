@@ -1622,7 +1622,16 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-muted-foreground whitespace-nowrap">S{s.weekNumber}</span>
-                    <span className="font-medium truncate">{parseSessionTitle(s.title).cleanTitle}</span>
+                    <span className="font-medium truncate">{(() => {
+                      const p = parseSessionTitle(s.title);
+                      const c = p.cleanTitle.trim();
+                      const isId = c.length >= 4 && !/\s/.test(c) && /^[A-Z0-9_]+$/.test(c);
+                      if (isId) {
+                        const w = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+                        if (w?.objectif) return w.objectif;
+                      }
+                      return c || s.title;
+                    })()}</span>
                   </div>
                   <span className="text-muted-foreground whitespace-nowrap">
                     {format(dt, "EEE d MMM", { locale: fr })}
