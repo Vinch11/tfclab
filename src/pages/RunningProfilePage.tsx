@@ -332,6 +332,8 @@ export default function RunningProfilePage() {
       // CHANTIER C — pont moteur unifié
       ambition: (currentAthlete as any)?.ambition ?? null,
       vma: effectiveCloudSnapshot?.vma ?? null,
+      raceChronos: buildRaceChronosFromSnapshot(effectiveCloudSnapshot as any),
+      vmaKmh: effectiveCloudSnapshot?.vma ?? null,
     });
   }, [potentielPhysiologique, raceType, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, currentAthlete]);
 
