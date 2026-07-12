@@ -204,6 +204,10 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
       model: string = PRIMARY_MODEL,
       // OPTIMIZATION #3: Adaptive reasoning — enable on critical chunks (Chunk 1, Race Weeks)
       reasoningEffort?: "minimal" | "low" | "medium" | "high",
+      // RÈGLE #0 — H1 déterministe : quand fourni, la 1re ligne `# …` du flux
+      // est remplacée par ce texte avant d'être émise au client. Streaming buffer
+      // jusqu'au premier `\n` pour capturer la ligne complète.
+      h1Rewrite?: string | null,
     ): Promise<{ text: string; truncated: boolean }> {
       const abortCtrl = new AbortController();
       const timeout = setTimeout(() => abortCtrl.abort(), CHUNK_TIMEOUT_MS);
