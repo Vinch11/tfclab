@@ -14,10 +14,11 @@ export const THEME_CONFIG: Record<Theme, { label: string; icon: string; descript
     description: "Fond clair, professionnel",
   },
   emerald: {
-    label: "Prestige",
-    icon: "✨",
-    description: "Mode premium : palette sombre + typographie et bento éditorial",
+    label: "Athletic",
+    icon: "⚡",
+    description: "Style éditorial athlétique : noir profond, Volt & orange signature",
   },
+
 };
 
 export const THEME_ORDER: Theme[] = ["dark", "light", "emerald"];
