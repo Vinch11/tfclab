@@ -1979,7 +1979,26 @@ export default function AITrainingPlanPage() {
                   <p className="text-[10px] text-muted-foreground">
                     Utilisé uniquement si le TSS 7j n'est pas renseigné dans le snapshot. Aide l'IA à calibrer la progression initiale.
                   </p>
+
+                  {/* Coach override : verrou anti-déclassement d'ambition */}
+                  <div className="flex items-start gap-2 mt-2 p-2 rounded-md border border-amber-500/30 bg-amber-500/5">
+                    <Checkbox
+                      id="lockAmbition"
+                      checked={lockAmbition}
+                      onCheckedChange={(v) => setLockAmbition(v === true)}
+                      className="mt-0.5"
+                    />
+                    <div className="space-y-1 flex-1">
+                      <Label htmlFor="lockAmbition" className="text-xs font-medium cursor-pointer flex items-center gap-1">
+                        🔒 Verrouiller l'ambition (bypass déclassement auto)
+                      </Label>
+                      <p className="text-[10px] text-muted-foreground leading-tight">
+                        Coche cette case si tu juges que l'athlète est prêt pour l'ambition saisie malgré une charge récente faible (tests physio récents, retour de blessure documenté, pic de forme planifié). Le plan sera calibré sur l'ambition saisie sans filet de sécurité.
+                      </p>
+                    </div>
+                  </div>
                 </div>
+
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
