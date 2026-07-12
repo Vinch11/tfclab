@@ -1523,12 +1523,19 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         lines.push("Ce N'EST PAS un 70.3 continu. Le paradigme physiologique change : succession d'efforts intenses séparés par **nuits de récupération INCOMPLÈTE** (course à étapes).");
         lines.push("");
         lines.push("**ADAPTATIONS NON-NÉGOCIABLES pour LCW (remplacent partiellement les règles 70.3 continu ci-dessus) :**");
-        lines.push("1. **Briques T2 immédiates → remplacer par BACK-TO-BACK overnight.** Au lieu de `B_703_BRICK_RACE_PACE` (vélo→run enchaîné), prescrire : **gros vélo race-pace samedi après-midi (2h-3h) + long run race-pace dimanche matin** (60-90min). C'est la signature LCW.");
-        lines.push("2. **Répétition générale (Peak)** : ne PAS faire une simulation 4h continue. Étaler : **natation rythmée vendredi soir + vélo long soutenu samedi + run allure cible dimanche matin**. Reproduire l'exact paradigme LCW au moins 1×/Peak.");
+        lines.push("1. **Briques T2 immédiates INTERDITES.** Bannis `B_703_BRICK_RACE_PACE` et tout enchaînement vélo→run <30min. Prescris à la place les séances signature LCW du catalogue :");
+        lines.push("   - `B_LCW_SWIM_FRI_EVENING` — Natation continue rythmée vendredi soir (2.5-3.8km, allure race, timing course).");
+        lines.push("   - `B_LCW_BIKE_LONG_RACE_SAT` — Long ride race-pace samedi 2h30-3h @ IF 0.82-0.85 (SANS run derrière — puissance plus haute autorisée).");
+        lines.push("   - `B_LCW_RUN_OFF_LEGS_SUN` — Long run race-pace dimanche 60-90min sur jambes fatiguées vélo veille (angle mort absolu des plans 70.3 continus).");
+        lines.push("2. **Répétition générale Peak** : prescris **`B_LCW_BACK_TO_BACK_PEAK`** UNE FOIS, 3-4 sem avant course (SIMULATION complète Ven+Sam+Dim, reproduction exacte du paradigme LCW).");
         lines.push("3. **Pacing plus agressif autorisé** : sans contrainte de courir immédiatement après le vélo, la cible vélo peut glisser de 80-85% FTP → **85-88% FTP** (IF ~0.85). La course peut viser allure semi/marathon **proche du vrai potentiel** (pas de pénalité fatigue centrale vélo-fraîche).");
-        lines.push("4. **Nutrition INTER-ÉTAPES = arme absolue** : prescrire répétitions du protocole de **recharge glycogénique agressif** : vendredi soir post-natation (8-10 g/kg CHO sur 12-16h) + samedi après-midi post-vélo (1.2 g/kg CHO + 0.4 g/kg protéine dans les 30min, puis 8 g/kg/24h). Inclure ≥3 simulations recharge en Build/Peak.");
-        lines.push("5. **Fatigue résiduelle ENTRE jours** : conserver les séances 'CAP Z2 Fatigued' / lendemain de grosse charge — elles préparent EXACTEMENT le dimanche LCW (courir sur jambes raides post-vélo veille).");
-        lines.push("6. **Race Week LCW** : la semaine de course occupe 3 jours (Ven/Sam/Dim). Planifier 3 entrées 'COURSE OBJECTIF — Étape Natation/Vélo/Course' aux dates exactes.");
+        lines.push("4. **Nutrition INTER-ÉTAPES = arme absolue** : prescris **`B_LCW_NUTRITION_RECHARGE`** ≥3× dans le plan (associé à chaque back-to-back weekend en Build/Peak). Protocole détaillé Burke 2018 / Costa 2019.");
+        lines.push("5. **Fatigue résiduelle ENTRE jours** : conserve les séances 'CAP Z2 Fatigued' / lendemain de grosse charge — elles préparent EXACTEMENT le dimanche LCW (courir sur jambes raides post-vélo veille).");
+        lines.push("6. **Race Week LCW** : la semaine de course occupe 3 jours (Ven/Sam/Dim). Planifie 3 entrées 'COURSE OBJECTIF — Étape Natation/Vélo/Course' aux dates exactes.");
+        lines.push("");
+        lines.push("**Règle de fréquence LCW (NON-NÉGOCIABLE) :**");
+        lines.push("- Build LCW : minimum **1 weekend Sam+Dim par mois** avec `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
+        lines.push("- Peak LCW : **2 weekends Sam+Dim** + **1 fois** `B_LCW_BACK_TO_BACK_PEAK` complet + **3 rappels** `B_LCW_NUTRITION_RECHARGE`.");
         lines.push("");
         lines.push("**Référence** : LCW Wales (Tenby) et LCW Belgium = format historique à étapes, distinct du 70.3 continu. Sources : organisation LCW, retours coachs élites AG.");
       }
