@@ -1,98 +1,57 @@
+# Refonte cohérence plans IA — 7 correctifs
 
-## Diagnostic (preuves)
+Objectif : que chaque plan généré soit physiologiquement cohérent, sans contradiction interne, avec des zones dérivées d'une source unique. Traitement en **3 phases**, chacune livrable et testable indépendamment.
 
-### 1. Origine de la cible "1h12-1h20"
-La fourchette provient de `TIME_TARGET_HINTS.Semi.elite.M` — table hardcodée dans `supabase/functions/ai-training-plan/sportRatioMatrix.ts` (L226-232). **Aucune consommation de la VMA snapshot**. Doublon identique dans `src/types/ambitionLevel.ts` (RUNNING_TIME_HINTS, L107-113) pour l'UI.
+## Phase 1 — Sécurité & cohérence critique (jour 1)
 
-### 2. VMA consommée par l'estimateur "elite"
-`getTimeTargetHint(objectif, ambition, sex)` → lookup pur table. Zéro VMA en entrée. La table code implicitement une VMA ~19-20 km/h pour "elite semi", incompatible avec un athlète VMA 16,5 km/h.
+### #1 · Race power vélo bornée par TTE
+Aujourd'hui l'IA prescrit 82-85% FTP en race sans consulter la TTE. Avec TTE 35', IF réaliste ≈ 72-78% FTP.
 
-### 3. Consommateurs de la cible temporelle statique
-| Site | Fichier | Ligne | Usage |
-|---|---|---|---|
-| Prompt IA principal | `promptHelpers.ts` | 765 | "🎯 Temps cible estimé" injecté au chunk 1 |
-| Prompt diagnostic | `promptHelpers.ts` | 66 | `diagTimeTarget` dans bloc diag |
-| UI sélecteur ambition | `src/pages/Index.tsx` | 1268 | Badge dans dropdown ambition |
-| UI carte ambition | `src/pages/Index.tsx` | 1495-1535 | Ligne "· 1h12-1h20" détaillée |
+- Créer `src/lib/v2/racePowerCap.ts` : `capBikeRaceIF({ baselineIF, tteMin, raceDurationMin, ambition })` qui applique une pénalité log(raceDur/tte).
+- Consommé par `promptHelpers.ts` (bloc "Cible course vélo") + injecté dans la prescription passée au prompt IA.
+- Fallback texte : « TTE 35' → IF max soutenable ≈ 0.74. Prescrire 72-76% FTP en race, pas 82-85%. »
 
-### 4. Estimateur snapshot-based existant (non consommé pour affichage)
-`raceTimePredictor.predictRaceDurationMin` (branche `daniels_scenario`, L129-146) calcule déjà `computeRaceScenarios(vmaKmh, thresholdPace, distKm)` → temps par ambition depuis la VMA snapshot. Actuellement utilisé uniquement en interne (F-24 durabilité) — **jamais rendu au coach ni au prompt de plan**.
+### #2 · Sprint Ban gated sur la vraie valeur VLamax + discipline
+Bug racine probable : `computeLorangStrategy` reçoit `discipline='bike'` alors que VLamax mesurée est côté run. Cible bike=0.30 → seuil 0.375 → VLamax 0.44 déclenche à tort le ban.
 
-### 5. Conséquence
-Les allures des séances (dérivées zones Z1-Z7 sur VMA snapshot) et le temps cible J affiché (table littérature ambition) sont deux univers déconnectés. Sur cet athlète (VMA 16,5), les séances disent 4:10/km = 1h27, la ligne J dit 1h12-1h20.
+- Auditer les 6 call-sites de `computeLorangStrategy` : garantir passage `discipline` cohérent avec la source de la valeur `physiology.vlamax`.
+- Ajouter garde-fou dans `lorangStrategyEngine.ts` : si `physiology.vlamax <= physiology.vlamaxTarget * 1.0` → jamais de Sprint Ban, même en elite.
+- Test unitaire `sprintBan.gating.test.ts` reproduisant le cas Cath (VLamax 0.44, 703, age_group).
 
----
+### #7 · Volume hebdo calculé, pas placeholder
+Le libellé « 8h30 → 10h45 » est identique semaine 1 à 5 (dont décharge).
 
-## Fix (chirurgical, source de vérité unique)
+- Dans `aiPlanParser.ts` (ou post-processor), calculer `week.totalMinutes = sum(session.estimatedDurationMin)` et remplacer le placeholder dans `week.theme`/UI.
 
-### A. Nouveau helper `deriveRaceTargets` (source unique)
-Fichier : `src/lib/deriveRaceTargets.ts` (+ miroir Deno `supabase/functions/_shared/deriveRaceTargets.ts` si import cross-runtime nécessaire ; sinon appel depuis `raceAnalysis.ts` déjà partagé).
+## Phase 2 — Zones triathlon single-source (jour 2)
 
-Signature :
-```ts
-deriveRaceTargets({
-  vmaKmh, thresholdPaceSecPerKm,   // snapshot
-  objectif,                         // "Semi" | "Marathon" | "10K" | "5K" | ...
-  ambition,                         // finisher..world_class
-  literatureHintRange?              // fourchette table pour comparaison
-}) → {
-  distanceKm,
-  racePaceSecPerKm,        // allure course dérivée snapshot × pctVMA(ambition)
-  raceTimeSec,             // Riegel si dist > 21.1
-  paceRange: {lo, hi},     // ±5s/km
-  timeRange: {lo, hi},     // ±90s
-  source: "snapshot" | "insufficient_data",
-  literatureRange?: {loSec, hiSec},
-  divergencePct?: number,  // (snapshot − milieu_literature) / milieu_literature
-  warning?: string         // si |div| > 8%
-}
-```
-Utilise directement `computeRaceScenarios` (existant, calibré) — ne réimplémente pas Riegel. Bornage `pctVMA` par ambition déjà présent dans `AMBITIONS` de `raceAnalysis.ts`.
+### #3 · Zones vélo/course d'une source unique en triathlon
+Aujourd'hui : Z2 vélo varie de 95W à 124W dans le même plan, Z2 run à 6'05–6'30 quand seuil 4'52.
 
-### B. Remplacement dans le prompt IA
-`supabase/functions/ai-training-plan/promptHelpers.ts` :
-- L765 : remplacer le bloc `getTimeTargetHint` par `deriveRaceTargets(data.vma, data.paceThresholdSecPerKm, objectif, ambition)`. Injecter la ligne :
-  > `🎯 CIBLE COURSE (snapshot-based) : {tempsRange} — allure {paceRange}/km — Source : VMA {vma} × {pctVMA}%. Fourchette littérature "{literatureHint}" affichée en référence uniquement.`
-- Si `divergencePct > 8%` avec fourchette littérature ambition, ajouter :
-  > `⚠️ INCOHÉRENCE AMBITION vs PHYSIOLOGIE : la fourchette littérature "{lit}" nécessite VMA ≈ {vmaRequired} km/h ; snapshot actuel {vmaActual} km/h. Utilise la cible SNAPSHOT pour toutes les prescriptions. Ne prescrit AUCUNE séance à des allures issues de la fourchette littérature.`
-- L66 : idem pour `diagTimeTarget`.
+- Étendre `deriveRaceTargets` : nouvelle fonction `deriveTriathlonZones({ ftp, vmaKmh, paceThresholdSec, objectif, ambition })` produisant un bloc unique `{ bike: {z1..z5}, run: {z1..z5} }` cohérent Coggan/Daniels.
+- Injecter ce bloc figé dans le prompt IA (« Zones à utiliser TEL QUEL, ne pas recalculer »).
+- `planValidator` : nouvelle règle `zonesConsistencyRule` — flag si texte de séance mentionne un intervalle W ou allure hors de ±3% de la zone canonique du label utilisé.
 
-### C. UI (`src/pages/Index.tsx`)
-- L1495 (carte ambition détaillée) : sous la fourchette littérature, ajouter une seconde ligne calculée `deriveRaceTargets(...)` avec badge "Snapshot" et, si divergence >8%, badge "⚠️ Incompatible" cliquable → tooltip explicatif.
-- L1268 (dropdown) : ne pas casser l'UX existante ; garder le hint littérature, ajouter une pastille discrète 🟢/🟠/🔴 selon compatibilité avec VMA snapshot.
-- Ne PAS supprimer `RUNNING_TIME_HINTS` : reste utile comme référence populationnelle.
+## Phase 3 — Structure & catalogue (jour 3)
 
-### D. Garde-fou moteur
-`raceGoals[i].targetTimeMinutes` (coach saisi) : si l'écart avec `deriveRaceTargets.raceTimeSec` > 8%, propager le warning dans le prompt (déjà partiellement fait pour F-24 durabilité ; étendre à un warning générique "objectif temps incompatible physio").
+### #5 · Décharge obligatoire tous les 3 blocs
+`planValidator` : règle `dechargeFrequencyRule` — pour tout plan > 6 semaines, exiger 1 semaine avec volume ≤ 70% de la précédente tous les 3-4 blocs, sinon severity=high + patch auto-inject.
 
-### E. Logs
-`console.log(\`🎯 deriveRaceTargets : VMA snapshot ${vma} km/h → allure ${pace}/km → objectif ${time} (ambition ${amb}, div littérature ${div}%)\`)` dans l'edge function au moment de l'appel.
+### #6 · Anti-contamination élite sur plan Age Group
+Filtre catalogue : quand `ambition ∈ {finisher, age_group, perf}`, stripper des `description`/`details` les mentions `#elite`, `#podium`, `"pour femme élite mondiale"`, `"viser 2×"`. Implémenter dans `aiPlanWorkoutEnricher.ts`.
 
----
+### #4 · Format `raceFormat="lcw_3day"` propagé au sélecteur
+- Ajouter 4 séances au catalogue (`src/lib/enrichedWorkoutsLCW.ts`) : refeed inter-jours, back-to-back sam-vélo/dim-run @ allure semi cible, OWS 1.9km frais, brick léger vs 70.3 classique.
+- Étendre `promptHelpers.ts` : détecter `raceGoals[i].raceFormat === "lcw_3day"` → injecter section prompt dédiée qui force la sélection LCW-sim au lieu de `703_PODIUM_DURABILITY`.
+- Bloquer `B_703_BRICK_RACE_PACE` et briques longues quand format LCW détecté.
 
-## Ce qui ne change PAS
-- Allures des séances (zones Z1-Z7) : déjà correctes, dérivées du snapshot via `zonesConfig` / promptHelpers L943-1020.
-- Chunking, parser, moteurs Diagnostic/Décision.
-- Schéma DB, tables `raceGoals`.
-- `RUNNING_TIME_HINTS` (conservé comme référence secondaire).
+## Aspects techniques
 
----
+- Chaque phase est mergeable indépendamment (feature flag pas nécessaire — additive).
+- Miroir `src/lib/deriveRaceTargets.ts` ↔ `supabase/functions/_shared/deriveRaceTargets.ts` maintenu pour Phase 2.
+- Tests unitaires : au moins 1 test régression par correctif (`sprintBan.gating.test.ts`, `racePowerCap.test.ts`, `dechargeFrequency.test.ts`, `zonesConsistency.test.ts`).
+- Aucun changement DB requis.
 
-## Validation
+## Ordre d'exécution proposé
 
-1. Régénérer un plan semi pour l'athlète VMA 16,5, ambition "elite" :
-   - Ligne jour J doit afficher `~1h27-1h29 · allure 4:08-4:12/km · Source snapshot`.
-   - Warning visible : `⚠️ Ambition "elite" (littérature 1h12-1h20) incompatible avec VMA actuelle`.
-   - Logs edge : `🎯 deriveRaceTargets : VMA snapshot 16.5 km/h → allure 4:08/km → objectif 87min (ambition elite, div littérature +18%)`.
-2. Test unitaire `deriveRaceTargets.test.ts` : couvrir VMA 16.5/18/20 × Semi/10K/Marathon × 3 ambitions.
-3. Régénérer un plan pour un athlète VMA 20 km/h ambition elite : la ligne J doit tomber dans la fourchette littérature (divergence <8%, pas de warning).
-
----
-
-## Estimation
-- 1 nouveau fichier (`deriveRaceTargets.ts`) + tests
-- 2 sites modifiés dans `promptHelpers.ts`
-- 2 sites modifiés dans `Index.tsx`
-- Aucun changement DB, aucune migration
-
-Prêt à implémenter dès validation.
+Je démarre par **Phase 1** (#1 + #2 + #7) dans le prochain tour — ce sont les 3 changements les plus haut ROI/sécurité, testables sur le prochain plan Cath régénéré. Puis on itère phase par phase avec ton retour à chaque livraison.

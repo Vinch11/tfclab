@@ -1135,9 +1135,28 @@ function computeProhibitions(
     Number.isFinite(sprintBanMultiplier) &&
     physiology.vlamax > physiology.vlamaxTarget * sprintBanMultiplier;
 
-  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // GARDE-FOU #2 (audit Cath juillet 2026)
+  // Ne JAMAIS déclencher Sprint Ban si VLamax reste dans la fourchette
+  // physiologique acceptable de l'objectif (range.max de vlamaxTargets).
+  // Corrige le bug où discipline='703' avec target bike=0.30 déclenchait
+  // le ban pour une VLamax_run=0.44 (valeur en réalité DANS la range).
+  // Consulte la SOURCE UNIQUE getVlamaxTarget(objectif, 'run') — le run
+  // est la discipline discriminante en triathlon comme en course pure.
+  // ─────────────────────────────────────────────────────────────────────────────
+  const canonicalRange = _getVlamaxTargetCanonical(discipline, 'run');
+  const withinPhysioRange = physiology.vlamax !== null && physiology.vlamax <= canonicalRange.max;
+  const sprintBanAllowedByGuardrail = !withinPhysioRange;
+  if (physiology.vlamax !== null && withinPhysioRange && shouldCheckSprintBan && vlamaxTooHigh) {
+    // eslint-disable-next-line no-console
+    console.log(
+      `🛡️ Sprint Ban court-circuité (garde-fou #2) — VLamax ${physiology.vlamax.toFixed(2)} ≤ range.max ${canonicalRange.max.toFixed(2)} (${discipline}/run). Valeur physiologiquement acceptable, pas de ban.`
+    );
+  }
+
   // Sprint Ban Mode — only for long distance + non-finisher + VLamax actually too high
-  if (shouldCheckSprintBan && vlamaxTooHigh) {
+  // + gated by canonical range guardrail
+  if (shouldCheckSprintBan && vlamaxTooHigh && sprintBanAllowedByGuardrail) {
     prohibitions.push({
       prohibition: 'sprints',
       label: PROHIBITION_DEFINITIONS.sprints.label,

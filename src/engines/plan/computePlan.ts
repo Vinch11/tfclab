@@ -23,6 +23,7 @@ import type {
 } from "./types";
 import type { PlanAthleteData } from "@/hooks/useAITrainingPlan";
 import { applyWbalRecoveryRecalc, type WbalRecalcStats } from "./wbalPostProcessor";
+import { computeWeekVolumeMin, formatMinutesToHm } from "@/lib/weeklyVolumeEstimator";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
@@ -284,6 +285,13 @@ export function postProcessParsedPlan(
 ): { plan: ParsedPlan; wbalStats?: WbalRecalcStats } {
   anchorRaceDays(plan, config);
   dedupRaceDays(plan, config);
+
+  // #7 audit : calcul volume hebdo réel (remplace placeholder textuel identique)
+  for (const w of plan.weeks) {
+    const min = computeWeekVolumeMin(w);
+    w.computedVolumeMin = min;
+    w.computedVolumeStr = formatMinutesToHm(min);
+  }
 
   let wbalStats: WbalRecalcStats | undefined;
   if (athleteData) {

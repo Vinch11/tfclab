@@ -22,6 +22,10 @@ export interface ParsedWeek {
   phase: string;
   phaseObjective?: string;
   volumeTarget?: string;
+  /** #7 audit : volume RÉEL calculé par sommation des durées de séances. */
+  computedVolumeMin?: number;
+  /** #7 audit : volume formaté "8h30" à partir de computedVolumeMin. */
+  computedVolumeStr?: string;
   coachNotes?: string;
   sessions: ParsedSession[];
 }
