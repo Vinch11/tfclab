@@ -17,7 +17,7 @@ const SPORT_TAG_TOKENS = new Set([
 const LORANG_COLORS: Record<string, string> = {
   A: "#dc2626", B: "#ea580c", C: "#2563eb", D: "#16a34a",
 };
-function renderTitleForPDF(rawTitle: string): string {
+function renderTitleForPDF(rawTitle: string, fiche?: EnrichedSessionFiche | null): string {
   const parsed = parseSessionTitle(rawTitle);
   const badges: string[] = [];
   if (parsed.lorangCategory) {
@@ -30,10 +30,13 @@ function renderTitleForPDF(rawTitle: string): string {
     if (SPORT_TAG_TOKENS.has(tag.toUpperCase())) continue;
     badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:#e5e7eb;color:#374151;font-size:9px;font-weight:600;margin-right:4px;">${tag}</span>`);
   }
-  const clean = parsed.cleanTitle
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  let clean = parsed.cleanTitle.trim();
+  const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
+  if (looksLikeId && fiche?.objectif) clean = fiche.objectif;
+  clean = clean.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return `${badges.join("")}<span>${clean}</span>`;
 }
+
 
 const REFERENCE_VOLUMES_PDF: Record<string, Partial<Record<string, [number, number]>>> = {
   "5K":       { finish: [3, 5],  perf: [5, 7],  sub: [6, 9],   elite: [8, 12],  world_class: [10, 14] },
@@ -352,9 +355,9 @@ function buildPlanHTML(
             <strong style="color:#1f2937;font-size:12px;min-width:90px;">${s.dayName}</strong>
             ${dateStr ? `<span style="font-size:10.5px;color:#6b7280;">${dateStr}</span>` : ""}
             ${getSportBadge(s.sport)}
-            <span style="font-weight:600;color:#1f2937;font-size:12px;flex:1;">${renderTitleForPDF(s.title)}</span>
+            <span style="font-weight:600;color:#1f2937;font-size:12px;flex:1;">${renderTitleForPDF(s.title, fiche)}</span>
           </div>`;
-        const body = `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;${s.isRest ? 'color:#9ca3af;' : ''}">${s.details}</div>`;
+        const body = `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#9ca3af;' : ''}">${formatFicheText(s.details || "")}</div>`;
         const ficheBlock = fiche
           ? `<div style="border-top:1px dashed #cbd5e1;background:#fafbfd;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche)}</div></div>`
           : "";
@@ -384,8 +387,8 @@ function buildPlanHTML(
         ${hasDate ? `<td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;font-size:11px;color:#4b5563;vertical-align:top;font-weight:500;">${dateStr}</td>` : ""}
         <td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;vertical-align:top;font-weight:600;color:#374151;">${s.dayName}</td>
         <td style="padding:6px 10px;border:1px solid #d1d5db;vertical-align:top;">${getSportBadge(s.sport)}</td>
-        <td style="padding:6px 10px;border:1px solid #d1d5db;font-weight:600;vertical-align:top;color:#1f2937;">${renderTitleForPDF(s.title)}</td>
-        <td style="padding:6px 10px;border:1px solid #d1d5db;font-size:11px;vertical-align:top;word-wrap:break-word;color:#4b5563;line-height:1.5;">${s.details}</td>
+        <td style="padding:6px 10px;border:1px solid #d1d5db;font-weight:600;vertical-align:top;color:#1f2937;">${renderTitleForPDF(s.title, fiche)}</td>
+        <td style="padding:6px 10px;border:1px solid #d1d5db;font-size:11px;vertical-align:top;word-wrap:break-word;color:#4b5563;line-height:1.5;white-space:pre-wrap;">${formatFicheText(s.details || "")}</td>
       </tr>
       ${ficheRow}
       ${altsRow}

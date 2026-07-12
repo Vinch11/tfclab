@@ -410,7 +410,12 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
                 </Badge>
               ))}
               <p className="text-sm font-semibold flex-1" title={parsed.catalogId ?? undefined}>
-                {parsed.cleanTitle}
+                {(() => {
+                  const clean = parsed.cleanTitle.trim();
+                  const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
+                  if (looksLikeId && fiche?.objectif) return fiche.objectif;
+                  return clean || session.title;
+                })()}
               </p>
             </>
           );
@@ -431,9 +436,10 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
       </div>
 
       {expanded && session.details && (
-        <p className="text-xs text-muted-foreground mt-2 whitespace-pre-wrap leading-relaxed border-t border-current/10 pt-2">
-          {session.details}
-        </p>
+        <div
+          className="text-xs text-muted-foreground mt-2 leading-relaxed border-t border-current/10 pt-2 fiche-body whitespace-pre-wrap"
+          dangerouslySetInnerHTML={{ __html: formatFicheText(session.details) }}
+        />
       )}
       {expanded && fiche && (
         <div className="mt-2 border-t border-current/10 pt-2 space-y-2">
@@ -1616,7 +1622,16 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-muted-foreground whitespace-nowrap">S{s.weekNumber}</span>
-                    <span className="font-medium truncate">{parseSessionTitle(s.title).cleanTitle}</span>
+                    <span className="font-medium truncate">{(() => {
+                      const p = parseSessionTitle(s.title);
+                      const c = p.cleanTitle.trim();
+                      const isId = c.length >= 4 && !/\s/.test(c) && /^[A-Z0-9_]+$/.test(c);
+                      if (isId) {
+                        const w = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+                        if (w?.objectif) return w.objectif;
+                      }
+                      return c || s.title;
+                    })()}</span>
                   </div>
                   <span className="text-muted-foreground whitespace-nowrap">
                     {format(dt, "EEE d MMM", { locale: fr })}

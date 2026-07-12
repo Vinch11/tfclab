@@ -62,3 +62,30 @@ export function parseSessionTitle(raw: string): ParsedSessionTitle {
     raw,
   };
 }
+
+/**
+ * True when the cleanTitle looks like a raw catalog ID
+ * (all-caps, underscores, no spaces) — meaning the AI dropped the friendly label.
+ */
+export function isRawCatalogIdTitle(title: string): boolean {
+  const t = (title || "").trim();
+  if (!t || t.length < 4 || /\s/.test(t)) return false;
+  return /^[A-Z0-9_]+$/.test(t);
+}
+
+/**
+ * Resolve a user-facing display title for a plan session.
+ * If the AI dumped the raw catalog ID (e.g. "D_TAPER_SWIM_TOUCH") we substitute
+ * the catalog `objectif` when a fiche was found.
+ */
+export function resolveSessionDisplayTitle(
+  rawTitle: string,
+  fiche?: { id?: string; objectif?: string } | null,
+): string {
+  const parsed = parseSessionTitle(rawTitle);
+  const clean = parsed.cleanTitle.trim();
+  if (isRawCatalogIdTitle(clean) && fiche?.objectif) {
+    return fiche.objectif;
+  }
+  return clean || rawTitle;
+}
