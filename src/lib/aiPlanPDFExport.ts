@@ -355,9 +355,9 @@ function buildPlanHTML(
             <strong style="color:#1f2937;font-size:12px;min-width:90px;">${s.dayName}</strong>
             ${dateStr ? `<span style="font-size:10.5px;color:#6b7280;">${dateStr}</span>` : ""}
             ${getSportBadge(s.sport)}
-            <span style="font-weight:600;color:#1f2937;font-size:12px;flex:1;">${renderTitleForPDF(s.title)}</span>
+            <span style="font-weight:600;color:#1f2937;font-size:12px;flex:1;">${renderTitleForPDF(s.title, fiche)}</span>
           </div>`;
-        const body = `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;${s.isRest ? 'color:#9ca3af;' : ''}">${s.details}</div>`;
+        const body = `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#9ca3af;' : ''}">${formatFicheText(s.details || "")}</div>`;
         const ficheBlock = fiche
           ? `<div style="border-top:1px dashed #cbd5e1;background:#fafbfd;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche)}</div></div>`
           : "";
