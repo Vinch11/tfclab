@@ -47,6 +47,15 @@ import {
 } from "@/lib/v2/pacingScenarioSimulator";
 
 import { PacingDisciplineChart } from "@/components/charts/PacingDisciplineChart";
+import {
+  PacingConceptCard,
+  PacingWhyBox,
+  PacingRacePlanBox,
+  PacingVisualBar,
+  PacingGlossaryHint,
+  buildDriversFromEnvelope,
+  type RacePhase,
+} from "@/components/pacing/PacingPedagogy";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
