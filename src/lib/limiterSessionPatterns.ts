@@ -96,7 +96,10 @@ export function resolveProhibitionKeys(prohibitions: string[] | undefined | null
     if (/sprint\s*ban|sprint.*(?:interdit|contre-productif)|neuromuscul|pliom[ée]tri|tabata/i.test(text)) {
       active.add("sprints");
     }
-    if (/micro.?intervall|30[\/_ -]?30|15[\/_ -]?15|explosif/i.test(text)) {
+    // FIX #4 : ne PAS activer micro_intervals sur simple mention "micro-intervalles"
+    // (Sprint Ban message inclut "micro-intervalles explosifs <20s"). Exiger un
+    // marqueur supra-max explicite ou format ≤15s pour ne pas exclure 30/30 VO2max.
+    if (/15[\/_ -]?15|10[\/_ -]?20|10[\/_ -]?10|micro.?interval.*(?:supra|all[- ]out|explosif|<\s*20\s*s)|explosif\s*<\s*20\s*s/i.test(text)) {
       active.add("micro_intervals");
     }
     if (/erratique|non[\s_-]*structur/i.test(text)) {
