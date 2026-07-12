@@ -60,6 +60,10 @@ interface Props {
   ambition: string;
   nextRace: NextRace | null;
   compassInput: CoachingCompassInput | null;
+  /** #4 — chronos course réels (Riegel) pour affiner la durée prédite */
+  raceChronos?: import("@/engines/diagnostic/raceTimeEstimator").RaceChronos | null;
+  /** VMA en km/h — utilisée pour prédiction Daniels VDOT dans le moteur */
+  vmaKmh?: number | null;
 }
 
 const levelStyles = (level: RaceReadinessResult["level"]) => ({
