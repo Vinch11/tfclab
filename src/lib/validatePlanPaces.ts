@@ -13,12 +13,12 @@
  *     `[Zone · intention]` — c'est ce tag qui fait foi, pas l'allure absolue.
  *
  * Zones tagguées (dans l'ordre de priorité) :
- *   VMA/VO2 · 95-100% VMA
+ *   VO2 · métrique sport-spécifique (VMA/FTP/CSS)
  *   Race pace · allure course
  *   Marathon · allure marathon
  *   LT2 · seuil
  *   Tempo · Z3
- *   Z2 · endurance 65-75% VMA
+ *   Z2 · endurance métrique sport-spécifique (VMA/FTP/CSS)
  *
  * Les séances de repos et sans marqueur zone ne sont pas modifiées.
  */
@@ -58,6 +58,20 @@ export interface PaceValidationReport {
 const PACE_RX = /(\d{1,2})[:'′’](\d{2})\s*\/\s*km/gi;
 
 type Zone = "vo2" | "race" | "marathon" | "seuil" | "z3" | "z2" | "none";
+type SportFamily = "run" | "bike" | "swim" | "mixed" | "other";
+
+function detectSportFamily(sport: string, text: string): SportFamily {
+  const s = `${sport} ${text}`.toLowerCase();
+  const hasBike = /\b(v[ée]lo|velo|bike|cycl|ftp|pma|watt|watts)\b/.test(s);
+  const hasRun = /\b(cap|course|run|running|footing|vma|allure|\/km)\b/.test(s);
+  const hasSwim = /\b(natation|nat|swim|css|nage|crawl|\d{3,4}\s*m)\b/.test(s);
+  const count = [hasBike, hasRun, hasSwim].filter(Boolean).length;
+  if (count > 1) return "mixed";
+  if (hasBike) return "bike";
+  if (hasSwim) return "swim";
+  if (hasRun) return "run";
+  return "other";
+}
 
 function detectDominantZone(text: string): Zone {
   const c = text.toLowerCase();
@@ -70,23 +84,67 @@ function detectDominantZone(text: string): Zone {
   return "none";
 }
 
-const ZONE_TAG: Record<Exclude<Zone, "none">, string> = {
-  vo2: "[VO2/VMA · 95-100% VMA]",
-  race: "[Race pace · allure course]",
-  marathon: "[Marathon · allure marathon]",
-  seuil: "[LT2 · seuil]",
-  z3: "[Tempo · Z3]",
-  z2: "[Z2 · endurance 65-75% VMA]",
-};
+function zoneTag(zone: Exclude<Zone, "none">, sport: SportFamily): string {
+  const tags: Record<SportFamily, Record<Exclude<Zone, "none">, string>> = {
+    run: {
+      vo2: "[VO2/VMA · 95-100% VMA]",
+      race: "[Race pace · allure course]",
+      marathon: "[Marathon · allure marathon]",
+      seuil: "[LT2 · seuil CAP]",
+      z3: "[Tempo · Z3 CAP]",
+      z2: "[Z2 · endurance 65-75% VMA]",
+    },
+    bike: {
+      vo2: "[VO2/PMA · puissance haute]",
+      race: "[Race power · puissance course]",
+      marathon: "[Endurance longue · vélo]",
+      seuil: "[LT2 · seuil FTP]",
+      z3: "[Tempo · Z3 FTP]",
+      z2: "[Z2 · endurance 65-75% FTP]",
+    },
+    swim: {
+      vo2: "[VO2/CSS · vitesse haute]",
+      race: "[Race pace · allure natation]",
+      marathon: "[Endurance longue · natation]",
+      seuil: "[Seuil · CSS]",
+      z3: "[Tempo · Z3 CSS]",
+      z2: "[Z2 · endurance aérobie CSS]",
+    },
+    mixed: {
+      vo2: "[VO2 · métriques par discipline]",
+      race: "[Race pace · spécifique course]",
+      marathon: "[Endurance longue · multisport]",
+      seuil: "[LT2 · seuil par discipline]",
+      z3: "[Tempo · Z3 par discipline]",
+      z2: "[Z2 · endurance par discipline]",
+    },
+    other: {
+      vo2: "[VO2 · intensité haute]",
+      race: "[Race pace · spécifique course]",
+      marathon: "[Endurance longue]",
+      seuil: "[LT2 · seuil]",
+      z3: "[Tempo · Z3]",
+      z2: "[Z2 · endurance]",
+    },
+  };
+  return tags[sport][zone];
+}
 
-const TAG_RX = /^\s*\[(VO2\/VMA|Race pace|Marathon|LT2|Tempo|Z2)\b[^\]]*\]\s*/;
+const TAG_RX = /^\s*\[(VO2(?:\/VMA|\/PMA|\/CSS)?|Race pace|Race power|Marathon|Endurance longue|Seuil|LT2|Tempo|Z2)\b[^\]]*\]\s*/;
 
 function tagSession(s: ParsedSession): boolean {
   if (s.isRest) return false;
-  if (TAG_RX.test(s.title)) return false; // déjà taggée
-  const zone = detectDominantZone(`${s.title} ${s.details}`);
+  const fullText = `${s.title} ${s.details}`;
+  const zone = detectDominantZone(fullText);
   if (zone === "none") return false;
-  s.title = `${ZONE_TAG[zone]} ${s.title}`;
+  const tag = zoneTag(zone, detectSportFamily(s.sport, fullText));
+  if (TAG_RX.test(s.title)) {
+    const nextTitle = s.title.replace(TAG_RX, `${tag} `);
+    if (nextTitle === s.title) return false;
+    s.title = nextTitle;
+    return true;
+  }
+  s.title = `${tag} ${s.title}`;
   return true;
 }
 
