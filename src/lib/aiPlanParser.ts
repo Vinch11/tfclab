@@ -93,7 +93,7 @@ function parseDurationExpressionMin(raw: string): number | null {
 function estimateSessionDurationMin(session: ParsedSession): number | null {
   if (session.isRest) return null;
   const text = `${session.details || ""} ${session.title || ""}`;
-  const durationToken = "\\d+(?:[,.]\\d+)?\\s*h\\s*\\d{0,2}|\\d{1,3}\\s*(?:min|mn|'|′|’)";
+  const durationToken = "(?:\\d+(?:[,.]\\d+)?\\s*h\\s*\\d{0,2}|\\d{1,3}\\s*(?:min|mn|'|′|’))";
 
   const sportBlocks = [...text.matchAll(new RegExp(`\\b(?:bike|v[ée]lo|velo|run|cap|natation|nat|swim)\\b\\s*[:\\-–—]?\\s*(${durationToken}(?:\\s*[-–—àa]\\s*${durationToken})?)`, "gi"))];
   if (sportBlocks.length >= 2) {
