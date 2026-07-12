@@ -1135,7 +1135,57 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
               console.warn("Compliance check failed:", complianceErr);
             }
 
+            // ─── COMPLIANCE POST-GÉNÉRATION : LCW (Long Course Weekend) ───
+            // Compte les occurrences des séances signature LCW attendues en Build/Peak.
+            // Non-bloquant : bandeau injecté en tête + logs coach.
+            try {
+              const goalsLCW = Array.isArray(planConfig?.raceGoals) ? planConfig.raceGoals : [];
+              const hasLCWFlag = goalsLCW.some((g: any) => g?.raceFormat === "lcw_3day");
+              const raceNamesLCW = goalsLCW.map((g: any) => String(g?.raceName || "")).join(" ");
+              const isLCW = hasLCWFlag || /long\s*course\s*weekend|\blcw\b/i.test(raceNamesLCW);
 
+              if (isLCW) {
+                const countMatches = (id: string): number => {
+                  const rx = new RegExp(`\\b${id}\\b`, "g");
+                  return (fullPlanText.match(rx) || []).length;
+                };
+                const swimFri = countMatches("B_LCW_SWIM_FRI_EVENING");
+                const bikeSat = countMatches("B_LCW_BIKE_LONG_RACE_SAT");
+                const runSun = countMatches("B_LCW_RUN_OFF_LEGS_SUN");
+                const recharge = countMatches("B_LCW_NUTRITION_RECHARGE");
+                const backToBack = countMatches("B_LCW_BACK_TO_BACK_PEAK");
+
+                // Détection : `B_LCW_SWIM_FRI_EVENING` mal placé (pas un Vendredi)
+                const swimBadDays: string[] = [];
+                const swimLineRx = /(?:^|\n)\*{0,2}(Lundi|Mardi|Mercredi|Jeudi|Samedi|Dimanche)\*{0,2}[^\n]*B_LCW_SWIM_FRI_EVENING/gi;
+                let mSwim: RegExpExecArray | null;
+                while ((mSwim = swimLineRx.exec(fullPlanText)) !== null) {
+                  swimBadDays.push(mSwim[1]);
+                }
+
+                const lcwViolations: string[] = [];
+                if (backToBack < 1) lcwViolations.push("`B_LCW_BACK_TO_BACK_PEAK` absent (attendu 1× en Peak J-3/J-4)");
+                if (bikeSat < 3) lcwViolations.push(`\`B_LCW_BIKE_LONG_RACE_SAT\` prescrit ${bikeSat}× (attendu ≥3 : 1 Build + 2 Peak)`);
+                if (runSun < 3) lcwViolations.push(`\`B_LCW_RUN_OFF_LEGS_SUN\` prescrit ${runSun}× (attendu ≥3 : 1 Build + 2 Peak)`);
+                if (swimFri < 2) lcwViolations.push(`\`B_LCW_SWIM_FRI_EVENING\` prescrit ${swimFri}× (attendu ≥2 en Build/Peak)`);
+                if (recharge < 3) lcwViolations.push(`\`B_LCW_NUTRITION_RECHARGE\` prescrit ${recharge}× (attendu ≥3, associé à chaque back-to-back)`);
+                if (swimBadDays.length > 0) {
+                  lcwViolations.push(`\`B_LCW_SWIM_FRI_EVENING\` mal placé (jour(s) : ${swimBadDays.join(", ")}) — doit être STRICTEMENT le Vendredi`);
+                }
+
+                if (lcwViolations.length > 0) {
+                  console.warn(`⚠️ COMPLIANCE LCW : ${lcwViolations.length} écart(s) — ${lcwViolations.join(" | ")}`);
+                  const lcwBanner = `\n\n> ⚠️ **COMPLIANCE LCW (Long Course Weekend)** : ${lcwViolations.length} écart(s) détecté(s) entre les règles LCW et le plan produit :\n${lcwViolations.map(v => `> - ${v}`).join("\n")}\n> _Régénérer le plan ou corriger manuellement les semaines Build/Peak concernées._\n\n`;
+                  controller.enqueue(
+                    encoder.encode(`data: {"choices":[{"delta":{"content":${JSON.stringify(lcwBanner)}}}]}\n\n`),
+                  );
+                } else {
+                  console.log(`✅ Compliance LCW OK : swimFri=${swimFri} bikeSat=${bikeSat} runSun=${runSun} recharge=${recharge} backToBack=${backToBack}`);
+                }
+              }
+            } catch (lcwErr) {
+              console.warn("LCW compliance check failed:", lcwErr);
+            }
 
             // Send final [DONE]
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
