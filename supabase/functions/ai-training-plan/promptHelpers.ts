@@ -1117,6 +1117,32 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (data.vo2max) lines.push(`- VO₂max : ${data.vo2max} mL/kg/min`);
   if (data.tte) lines.push(`- TTE : ${data.tte} min`);
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // GARDE-FOU #1 (audit Cath juillet 2026) — Race Power Cap par TTE
+  // Cap logarithmique Coggan/Skiba/Karsten : borne l'IF vélo course en fonction
+  // de la TTE observée. Évite qu'un plan 70.3/IM prescrive 82-85% FTP en race
+  // alors que TTE=35' rend l'IF max soutenable ≈ 0.72-0.75.
+  // ─────────────────────────────────────────────────────────────────────────────
+  const rpcObjective = (config?.objective ?? "").toString();
+  const rpcAmbition = (config?.ambition ?? "age_group").toString().toLowerCase() as RaceBikeAmbition;
+  const rpcCap = capBikeRaceIF({
+    objective: rpcObjective,
+    ambition: (["finisher", "age_group", "competitor", "elite", "world_class"].includes(rpcAmbition) ? rpcAmbition : "age_group") as RaceBikeAmbition,
+    tteMin: typeof data.tte === "number" ? data.tte : null,
+  });
+  if (rpcCap) {
+    lines.push(`\n#### 🎯 RACE POWER VÉLO — Bornage TTE (Coggan/Skiba/Karsten)`);
+    lines.push(`- **IF baseline ambition ${rpcAmbition}** : ${(rpcCap.baselineIF * 100).toFixed(0)}% FTP`);
+    lines.push(`- **IF SOUTENABLE en race (borné TTE)** : **${rpcCap.cappedPctFTP}% FTP** ${rpcCap.wasCapped ? "⚠️ (bridé par TTE)" : "✅"}`);
+    lines.push(`- ${rpcCap.rationale}`);
+    if (rpcCap.wasCapped) {
+      lines.push(`- ⛔ **INTERDICTION** : ne prescris JAMAIS d'intensité race > ${rpcCap.cappedPctFTP + 2}% FTP dans les séances "brick race pace", "simulation course", "long ride @race pace", "T2 race". Toute mention "82-85% FTP" pour un athlète TTE ${data.tte} min est INVALIDE.`);
+      lines.push(`- ✅ **PRESCRIPTION CORRECTE** : cible race = ${rpcCap.cappedPctFTP - 2}-${rpcCap.cappedPctFTP + 2}% FTP. Sweet Spot d'entraînement peut aller à 88-92% mais SEULEMENT sur intervalles ≤ TTE.`);
+    }
+  }
+
+
+
   lines.push("\n#### Glycolytique");
   if (data.vlamax) lines.push(`- VLamax vélo : ${data.vlamax} mmol/L/s`);
   if (data.vlamaxRun) lines.push(`- VLamax course : ${data.vlamaxRun} mmol/L/s`);
