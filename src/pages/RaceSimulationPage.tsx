@@ -42,6 +42,7 @@ import { computeUnifiedReadiness } from '@/lib/readinessSource';
 import { computeFatMaxTFCL } from '@/lib/v2/fatmaxTFCL';
 import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibiliteTFCL';
 import { computePacingEnvelope } from '@/lib/v2/pacingEnvelopeEngine';
+import { buildRaceChronosFromSnapshot } from '@/lib/v2/buildRaceChronosFromSnapshot';
 import { generateDisciplineRules } from '@/lib/v2/pacingDisciplineRules';
 import { simulatePacingScenarios } from '@/lib/v2/pacingScenarioSimulator';
 import { SIMULATION_DEFINITIONS } from '@/lib/v2/raceSimulation';
