@@ -2461,7 +2461,9 @@ export default function AITrainingPlanPage() {
                             ambitionSaisie: ambition,
                             trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
                             tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+                            lockAmbition,
                           });
+
                           return {
                             ambition, // saisie — gap calculé vers l'objectif visé par l'utilisateur
                             ambitionEffective: ambRes.ambitionEffective, // toujours propagée : titre/PDF/Récap consomment l'effective
