@@ -1547,7 +1547,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("- [ ] Au moins **2 weekends Peak** contiennent `B_LCW_BIKE_LONG_RACE_SAT` (Sam) + `B_LCW_RUN_OFF_LEGS_SUN` (Dim) consécutifs.");
       lines.push("- [ ] Au moins **1 weekend Build** contient `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
       lines.push("- [ ] `B_LCW_NUTRITION_RECHARGE` apparaît **≥3 fois** dans le plan, associé à chaque back-to-back weekend.");
-      lines.push("- [ ] `B_LCW_SWIM_FRI_EVENING` apparaît **≥2 fois** en Build/Peak (timing fin de journée).");
+      lines.push("- [ ] `B_LCW_SWIM_FRI_EVENING` apparaît **≥2 fois** en Build/Peak, programmée **STRICTEMENT le VENDREDI** (jamais Jeudi/Samedi — le nom même de la séance `..._FRI_EVENING` impose le vendredi soir pour reproduire le timing exact de la course LCW). Si tu l'as placée un autre jour, DÉPLACE-LA au vendredi et réaménage la semaine.");
       lines.push("- [ ] AUCUNE brique T2 immédiate (`B_703_BRICK_RACE_PACE` ou équivalent) n'est prescrite.");
       lines.push("- [ ] La semaine de course contient 3 entrées 'COURSE OBJECTIF' distinctes (Ven natation / Sam vélo / Dim course).");
       lines.push("");
