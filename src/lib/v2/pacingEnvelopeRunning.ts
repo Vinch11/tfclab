@@ -292,6 +292,8 @@ export function computePacingEnvelopeRun(inputs: PacingInputsRun): PacingEnvelop
     cpWkg: inputs.cpWkg ?? null,
     wPrimeJkg: inputs.wPrimeJkg ?? null,
     predictedDurationMin: inputs.predictedDurationMin ?? RACE_DURATION_FALLBACK_MIN[distance],
+    raceChronos: inputs.raceChronos ?? null,
+    vmaKmh: inputs.vmaKmh ?? inputs.vma ?? null,
   });
 
   // Conversion %VMA → %seuil (1/0.90 ≈ 1.111). Bornes physiologiques.
