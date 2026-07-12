@@ -66,13 +66,16 @@ export function resolveLimiterKey(limiterLabel: string | undefined | null): stri
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 export const PROHIBITION_SESSION_PATTERNS: Record<string, RegExp> = {
-  // FIX #3 (audit Cath juillet 2026) — élargi pour capter aussi les tags de zone
-  // haute intensité (Z6/Z7, VMA courte, pmax, all-out) et les identifiants de
-  // catalogue signature sprint/neuromusculaire (`_SPRINT_`, `_PMAX_`, `_NM_`,
-  // `_VMA_COURTE_`). Sans cela, le catalog builder laissait passer des séances
-  // "🦔 Hérisson VMA courte" ou "PMAX 6x10s" malgré le Sprint Ban actif.
-  sprints: /sprint|explo|force\s*max|vitesse\s*max|all[\s-]*out|tabata|neuro.*muscul|plyo|pliom[ée]tri|\bz[67]\b|zone\s*[67]|vma[\s_-]*courte|_sprint_|_pmax_|_nm_|_vma[\s_-]*courte_|pmax\b/i,
-  micro_intervals: /30[\/_ -]?30|micro.?interval|15[\/_ -]?15|20[\/_ -]?20|10[\/_ -]?20|explo/i,
+  // FIX #4 (audit Cath juillet 2026 — clarification physiologique) :
+  //   "Sprint" = effort all-out ≤20s, filière ATP-CP + glycolyse rapide, impact VLamax fort.
+  //   "30/30 Billat" et "VMA courte" (30/30, 40/20) = VO2max intermittent à 100-110% VMA/PMA,
+  //   filière aérobie → PAS un sprint, doivent rester AUTORISÉS sous Sprint Ban.
+  //   Retiré : `vma courte`, `_vma_courte_`, `z6/z7`, `explo` seul (trop large).
+  //   Conservé : true sprint markers, pmax, neuromusculaire, pliométrie, all-out, tabata, force max.
+  sprints: /sprint|force\s*max|vitesse\s*max|all[\s-]*out|tabata|neuro.*muscul|\bplyo\b|pliom[ée]tri|_sprint_|_pmax_|_nm_|pmax\b/i,
+  // FIX #4 : Vrais micro-intervalles supra-max = ≤15s (15/15, 10/20, 10/10).
+  //   30/30 et 20/20 = VO2max Billat légitime, NE PLUS bannir.
+  micro_intervals: /15[\/_ -]?15|10[\/_ -]?20|10[\/_ -]?10|micro.?interval.*(?:supra|all[- ]out|explosif)/i,
   erratic_pacing: /erratique|non[\s_-]*structur|random[\s_-]*pace|surge.*random/i,
   vo2_heavy_blocks: LIMITER_SESSION_PATTERNS.vo2max,
   train_low: /train[\s_-]*low|fasted|[àa]\s*jeun/i,
