@@ -47,6 +47,15 @@ import {
 } from "@/lib/v2/pacingScenarioSimulator";
 
 import { PacingDisciplineChart } from "@/components/charts/PacingDisciplineChart";
+import {
+  PacingConceptCard,
+  PacingWhyBox,
+  PacingRacePlanBox,
+  PacingVisualBar,
+  PacingGlossaryHint,
+  buildDriversFromEnvelope,
+  type RacePhase,
+} from "@/components/pacing/PacingPedagogy";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -68,6 +77,56 @@ interface PacingEnvelopeCardProps {
   
   className?: string;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Construit un plan de course en 3 phases à partir de l'enveloppe.
+ * Approche "negative split" : conservateur au départ, cible au milieu, courage au finish.
+ */
+function buildPhasesFromEnvelope(envelope: PacingEnvelopeResult): [RacePhase, RacePhase, RacePhase] {
+  const { lowPct, centerPct, highPct } = envelope.boundary;
+  // Départ : bas du couloir (protection W')
+  const startLow = lowPct;
+  const startHigh = Math.max(lowPct + 1, centerPct - 2);
+  // Milieu : autour du centre
+  const midLow = Math.max(lowPct, centerPct - 1);
+  const midHigh = Math.min(highPct, centerPct + 1);
+  // Finish : centre → haut du couloir (voire toléré si tout va bien)
+  const endLow = centerPct;
+  const endHigh = highPct;
+
+  return [
+    {
+      label: "Départ",
+      window: "0 → 33% de la course",
+      targetPct: `${startLow}–${startHigh}% ${envelope.boundary.referenceShortLabel}`,
+      targetPace: null,
+      do: "Rester conservateur, laisser les autres partir vite. Ton W′ se protège ici.",
+      dont: "Attaquer parce que tu te sens bien : c'est le piège classique.",
+    },
+    {
+      label: "Milieu",
+      window: "33 → 66%",
+      targetPct: `${midLow}–${midHigh}% ${envelope.boundary.referenceShortLabel}`,
+      targetPace: null,
+      do: "Installer la cible, verrouiller la respiration, boire/manger comme prévu.",
+      dont: "Suivre une accélération d'un concurrent — c'est SA course, pas la tienne.",
+    },
+    {
+      label: "Finish",
+      window: "66 → 100%",
+      targetPct: `${endLow}–${endHigh}% ${envelope.boundary.referenceShortLabel}`,
+      targetPace: null,
+      do: "Puiser dans la réserve : si tu as tenu la discipline, tu peux monter.",
+      dont: "Attendre les 200 derniers mètres pour tout donner.",
+    },
+  ];
+}
+
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SOUS-COMPOSANTS
@@ -503,14 +562,45 @@ export function PacingEnvelopeCard({
           </Alert>
         )}
 
-        {/* Onglets */}
-        <Tabs defaultValue="chart" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-9">
+        {/* Onglets — "Comprendre" en premier (pédagogie) */}
+        <Tabs defaultValue="understand" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 h-9">
+            <TabsTrigger value="understand" className="text-xs">Comprendre</TabsTrigger>
             <TabsTrigger value="chart" className="text-xs">Graphique</TabsTrigger>
             <TabsTrigger value="rules" className="text-xs">Règles</TabsTrigger>
             <TabsTrigger value="scenarios" className="text-xs">Scénarios</TabsTrigger>
           </TabsList>
-          
+
+          {/* --- Onglet "Comprendre" : pédagogie complète --- */}
+          <TabsContent value="understand" className="mt-3 space-y-4">
+            <PacingConceptCard />
+            <PacingVisualBar
+              lowPct={envelope.boundary.lowPct}
+              centerPct={envelope.boundary.centerPct}
+              highPct={envelope.boundary.highPct}
+              toleratedPct={envelope.boundary.toleratedPct}
+              referenceLabel={envelope.boundary.referenceShortLabel}
+            />
+            <PacingWhyBox
+              drivers={buildDriversFromEnvelope({
+                vlamaxValue: input.vlamaxEffectif?.value ?? null,
+                tteMin: input.tteEffectif?.tte_min ?? null,
+                ambition: (input as any).ambition ?? null,
+                raceObjective: input.raceObjective,
+              })}
+              centerPct={envelope.boundary.centerPct}
+              referenceLabel={envelope.boundary.referenceShortLabel}
+              confidenceLabel={envelope.confidenceLabel}
+            />
+            <PacingRacePlanBox
+              phases={buildPhasesFromEnvelope(envelope)}
+              keyPhrase={
+                envelope.readinessMessage ??
+                "Discipline au départ, patience au milieu, courage au finish."
+              }
+            />
+          </TabsContent>
+
           {showChart && (
             <TabsContent value="chart" className="mt-3">
               <PacingDisciplineChart
@@ -522,13 +612,13 @@ export function PacingEnvelopeCard({
               />
             </TabsContent>
           )}
-          
+
           {showRules && rules && (
             <TabsContent value="rules" className="mt-3">
               <RulesSection rules={rules} />
             </TabsContent>
           )}
-          
+
           {showScenarios && scenarios && (
             <TabsContent value="scenarios" className="mt-3">
               <ScenariosSection scenarios={scenarios} />

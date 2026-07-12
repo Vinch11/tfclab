@@ -18,6 +18,7 @@ import {
   type PacingEnvelopeRunResult,
   PACING_ZONE_COLORS,
 } from "@/lib/v2/pacingEnvelopeRunning";
+import { PacingConceptCard, PacingGlossaryHint } from "@/components/pacing/PacingPedagogy";
 
 interface PacingBriefingRunCardProps {
   result: PacingEnvelopeRunResult | null;
@@ -52,6 +53,9 @@ export function PacingBriefingRunCard({
       </CardHeader>
 
       <CardContent className="space-y-5">
+        {/* Mini-fiche pédagogique */}
+        <PacingConceptCard />
+
         {/* Phrase clé */}
         <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
           <div className="flex items-start gap-3">
@@ -60,6 +64,10 @@ export function PacingBriefingRunCard({
               "{briefing.key_phrase}"
             </p>
           </div>
+          <p className="text-[11px] text-muted-foreground mt-2 pl-9">
+            Ta zone verte = fourchette d'intensité tenable sans exploser ton{" "}
+            <PacingGlossaryHint term="wprime">W′</PacingGlossaryHint> avant la ligne.
+          </p>
         </div>
 
         {/* Visualisation couloir simplifié */}
