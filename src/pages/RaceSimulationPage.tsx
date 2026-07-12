@@ -42,6 +42,7 @@ import { computeUnifiedReadiness } from '@/lib/readinessSource';
 import { computeFatMaxTFCL } from '@/lib/v2/fatmaxTFCL';
 import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibiliteTFCL';
 import { computePacingEnvelope } from '@/lib/v2/pacingEnvelopeEngine';
+import { buildRaceChronosFromSnapshot } from '@/lib/v2/buildRaceChronosFromSnapshot';
 import { generateDisciplineRules } from '@/lib/v2/pacingDisciplineRules';
 import { simulatePacingScenarios } from '@/lib/v2/pacingScenarioSimulator';
 import { SIMULATION_DEFINITIONS } from '@/lib/v2/raceSimulation';
@@ -436,6 +437,9 @@ export default function RaceSimulationPage() {
       cpWkg,
       wPrimeJkg: null,
       predictedDurationMin: durationFallback[raceObjective] ?? 180,
+      // #4 — chronos & VMA depuis snapshot pour prédiction Riegel/Daniels
+      raceChronos: buildRaceChronosFromSnapshot(activeSnapshot as any),
+      vmaKmh: activeSnapshot?.vma ?? null,
       raceChrono: raceChronoEstimate ? {
         paceThreshold_sec_km: raceChronoEstimate.paceThreshold_sec_km ?? null,
         durabilityIndex: raceChronoEstimate.durabilityIndex ?? null,
@@ -458,6 +462,8 @@ export default function RaceSimulationPage() {
       paceThreshold: activeSnapshot?.pace_threshold_sec_per_km, weight: activeSnapshot?.weight_kg,
       ambition: (selectedAthlete as any)?.ambition ?? null, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.bike,
+      raceChronos: buildRaceChronosFromSnapshot(activeSnapshot as any),
+      vmaKmh: activeSnapshot?.vma ?? null,
     });
   }, [isTriathlon, discipline, envelope, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin]);
 
@@ -475,6 +481,8 @@ export default function RaceSimulationPage() {
       paceThreshold: paceThr, weight: activeSnapshot?.weight_kg,
       ambition: (selectedAthlete as any)?.ambition ?? null, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.run,
+      raceChronos: buildRaceChronosFromSnapshot(activeSnapshot as any),
+      vmaKmh: activeSnapshot?.vma ?? null,
     });
   }, [isTriathlon, discipline, envelope, vlamaxRunEffectif, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin, raceChronoEstimate, paceThresholdOverrideSecKm]);
 

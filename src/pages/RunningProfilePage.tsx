@@ -60,6 +60,7 @@ import { calculateAge } from "@/lib/ageAdjustment";
 import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
 import { computeFatigueEffectif } from "@/engines/diagnostic";
 import { computePacingEnvelopeRun, type RunningDistance } from "@/lib/v2/pacingEnvelopeRunning";
+import { buildRaceChronosFromSnapshot } from "@/lib/v2/buildRaceChronosFromSnapshot";
 import { getAthleteAmbition } from "@/types/ambitionLevel";
 import { getVLamaxRange } from "@/lib/physiologicalTargets";
 import {
@@ -331,6 +332,8 @@ export default function RunningProfilePage() {
       // CHANTIER C — pont moteur unifié
       ambition: (currentAthlete as any)?.ambition ?? null,
       vma: effectiveCloudSnapshot?.vma ?? null,
+      raceChronos: buildRaceChronosFromSnapshot(effectiveCloudSnapshot as any),
+      vmaKmh: effectiveCloudSnapshot?.vma ?? null,
     });
   }, [potentielPhysiologique, raceType, effectiveCloudSnapshot, vlamaxEffectif, tteEffectif, currentAthlete]);
 

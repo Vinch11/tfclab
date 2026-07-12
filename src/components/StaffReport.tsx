@@ -74,6 +74,7 @@ import { computePotentielSignature, type PotentielInput, type PotentielResult } 
 import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
 import { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "@/components/charts/LongDistanceEnvelopeChart";
 import { computePacingEnvelope, type PacingEnvelopeInput, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
+import { buildRaceChronosFromSnapshot } from "@/lib/v2/buildRaceChronosFromSnapshot";
 import { 
   computeLongDistanceEnvelope, 
   LONG_DISTANCE_THRESHOLD_HOURS,
@@ -251,11 +252,16 @@ export function StaffReport({
     sport: pacingSport,
     ftp: ftp ?? undefined,
     weight: poids ?? undefined,
+    vma: (snapshot as any)?.vma ?? null,
+    paceThreshold: (snapshot as any)?.pace_threshold_sec_per_km ?? null,
     // CHANTIER A — modèle continu Smyth/Skiba
     ambition: ambition ?? null,
     cpWkg: cpForPacing?.cpWkg ?? null,
     wPrimeJkg: cpForPacing?.wprimeJkg ?? null,
     predictedDurationMin: predictedDurationMinForPacing,
+    // #4 — chronos & VMA depuis snapshot pour prédiction Riegel/Daniels
+    raceChronos: buildRaceChronosFromSnapshot(snapshot as any),
+    vmaKmh: (snapshot as any)?.vma ?? null,
   });
 
   // ✅ LONG DISTANCE PACING - Extension pour épreuves > 90min

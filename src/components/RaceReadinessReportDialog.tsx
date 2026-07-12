@@ -60,6 +60,10 @@ interface Props {
   ambition: string;
   nextRace: NextRace | null;
   compassInput: CoachingCompassInput | null;
+  /** #4 — chronos course réels (Riegel) pour affiner la durée prédite */
+  raceChronos?: import("@/engines/diagnostic/raceTimeEstimator").RaceChronos | null;
+  /** VMA en km/h — utilisée pour prédiction Daniels VDOT dans le moteur */
+  vmaKmh?: number | null;
 }
 
 const levelStyles = (level: RaceReadinessResult["level"]) => ({
@@ -71,6 +75,7 @@ const levelStyles = (level: RaceReadinessResult["level"]) => ({
 
 export function RaceReadinessReportDialog({
   open, onOpenChange, athleteName, objectif, ambition, nextRace, compassInput,
+  raceChronos = null, vmaKmh = null,
 }: Props) {
   const [aiMessage, setAiMessage] = useState<string>("");
   const [loadingAI, setLoadingAI] = useState(false);
@@ -123,8 +128,10 @@ export function RaceReadinessReportDialog({
       weight: compassInput.poids,
       ambition: ambition as any, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.bike || 180,
+      raceChronos,
+      vmaKmh: vmaKmh ?? compassInput.vma ?? null,
     });
-  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri]);
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, raceChronos, vmaKmh]);
 
   const envelopeRun = useMemo(() => {
     if (!compassInput || !raceObjective || (!isTri && !isRunObj)) return null;
@@ -142,8 +149,10 @@ export function RaceReadinessReportDialog({
       weight: compassInput.poids,
       ambition: ambition as any, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.run || 180,
+      raceChronos,
+      vmaKmh: vmaKmh ?? compassInput.vma ?? null,
     });
-  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, isRunObj]);
+  }, [compassInput, raceObjective, ambition, segmentDurationMin, isTri, isRunObj, raceChronos, vmaKmh]);
 
   const hasBikeEnv = !!envelopeBike && !!compassInput?.ftp;
   const hasRunEnv = !!envelopeRun && !!compassInput?.paceThresholdSecPerKm;

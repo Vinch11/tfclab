@@ -89,6 +89,7 @@ import { computeCycleIntelligence, snapshotToEngineData } from "@/lib/v2/cycleIn
 // ✅ CHANTIER E — Moteurs Pacing Envelope unifiés (A/B/C/D)
 import { computePacingEnvelope, type PacingEnvelopeResult, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import { computePacingEnvelopeRun, PACING_ZONE_COLORS } from "@/lib/v2/pacingEnvelopeRunning";
+import { buildRaceChronosFromSnapshot } from "@/lib/v2/buildRaceChronosFromSnapshot";
 import { computeLongDistanceEnvelope, LONG_DISTANCE_THRESHOLD_HOURS, type LongDistanceEnvelopeResult } from "@/lib/v2/pacingEnvelopeLongDistance";
 
 // =============================================
@@ -2127,11 +2128,15 @@ function computePacingEnvelopeForExport(payload: ExportPayload): PacingEnvelopeR
     raceObjective,
     sport,
     ftp: ftp ?? undefined,
+    vma: (effectiveSnapshot as any)?.vma ?? null,
+    paceThreshold: (effectiveSnapshot as any)?.pace_threshold_sec_per_km ?? null,
     weight: weight ?? undefined,
     ambition: ambition?.current ?? null,
     cpWkg,
     wPrimeJkg,
     predictedDurationMin: RACE_DURATION_MIN_E[objectif] ?? 180,
+    raceChronos: buildRaceChronosFromSnapshot(effectiveSnapshot as any),
+    vmaKmh: (effectiveSnapshot as any)?.vma ?? null,
   });
 }
 
@@ -2209,6 +2214,8 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
     ambition: ambition?.current ?? null,
     vma,
     predictedDurationMin: RACE_DURATION_MIN_E[goal] ?? null,
+    raceChronos: buildRaceChronosFromSnapshot(effectiveSnapshot as any),
+    vmaKmh: vma,
   });
 
   const formatPace = (s: number) => `${Math.floor(s/60)}'${(Math.round(s%60)).toString().padStart(2,'0')}"`;
