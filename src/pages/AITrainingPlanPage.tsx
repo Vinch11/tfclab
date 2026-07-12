@@ -331,6 +331,8 @@ export default function AITrainingPlanPage() {
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
       if (savedState.trainingLevel) setTrainingLevel(savedState.trainingLevel);
+      if (typeof savedState.lockAmbition === "boolean") setLockAmbition(savedState.lockAmbition);
+
       if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
       if (savedState.trailDistanceKm) setTrailDistanceKm(savedState.trailDistanceKm);
       if (savedState.trailElevationM) setTrailElevationM(savedState.trailElevationM);
