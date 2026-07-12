@@ -437,6 +437,9 @@ export default function RaceSimulationPage() {
       cpWkg,
       wPrimeJkg: null,
       predictedDurationMin: durationFallback[raceObjective] ?? 180,
+      // #4 — chronos & VMA depuis snapshot pour prédiction Riegel/Daniels
+      raceChronos: buildRaceChronosFromSnapshot(activeSnapshot as any),
+      vmaKmh: activeSnapshot?.vma ?? null,
       raceChrono: raceChronoEstimate ? {
         paceThreshold_sec_km: raceChronoEstimate.paceThreshold_sec_km ?? null,
         durabilityIndex: raceChronoEstimate.durabilityIndex ?? null,
