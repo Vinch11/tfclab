@@ -1775,3 +1775,127 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
   return lines.join("\n");
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CARTE DE COURSE CANONIQUE — SOURCE UNIQUE inter-chunks
+//
+// Objectif (audit Claude juillet 2026) : éliminer les dérives entre chunks où
+// le CSS, la race-power vélo et l'allure race-pace CAP réapparaissent avec
+// des valeurs différentes ("trois CSS, trois race powers"). Un seul bloc
+// déterministe est calculé côté serveur à partir du snapshot + rpcCap, puis
+// injecté à l'identique dans CHAQUE chunk (chunk 1, continuations, retries).
+//
+// Consommé par index.ts pour seed `prescribedPaces` AVANT le chunk 1, au lieu
+// de reposer sur une extraction regex du texte du chunk 1 (qui héritait des
+// éventuelles incohérences de la première génération).
+// ═══════════════════════════════════════════════════════════════════════════════
+function fmtPaceCanonical(secPerKm: number): string {
+  const m = Math.floor(secPerKm / 60);
+  const s = Math.round(secPerKm % 60);
+  return `${m}:${String(s).padStart(2, "0")}/km`;
+}
+
+function fmtCssPaceCanonical(secPer100m: number): string {
+  const m = Math.floor(secPer100m / 60);
+  const s = Math.round(secPer100m % 60);
+  return m > 0 ? `${m}:${String(s).padStart(2, "0")}/100m` : `${s}s/100m`;
+}
+
+export function buildCanonicalRaceCard(athleteData: any, config: any): string {
+  const data = athleteData ?? {};
+  const objectiveStr = (config?.objective ?? "").toString();
+  const objL = objectiveStr.toLowerCase();
+  const ambitionStr = (config?.ambition ?? "age_group").toString().toLowerCase();
+
+  // 1) Allures CAP canoniques (deriveRaceTargets)
+  const vmaForDerive = typeof data.vma === "number" ? Number(data.vma) : (data.vma ? Number(data.vma) : null);
+  const paceThrForDerive = typeof data.paceThresholdSecPerKm === "number"
+    ? Number(data.paceThresholdSecPerKm)
+    : (data.paceThresholdSecPerKm ? Number(data.paceThresholdSecPerKm) : null);
+
+  let derived: any = null;
+  try {
+    derived = deriveRaceTargets({
+      vmaKmh: vmaForDerive,
+      thresholdPaceSecPerKm: paceThrForDerive,
+      objective: objectiveStr,
+      ambition: ambitionStr,
+      literatureHintText: null,
+      weeklyHours: typeof config?.weeklyHours === "number" ? config.weeklyHours : null,
+      trainingLevel: config?.ambitionMeta?.trainingLevel ?? null,
+      sport: mapObjectiveToSport(objectiveStr),
+    } as any);
+  } catch (_e) {
+    derived = null;
+  }
+
+  // 2) Race power vélo (rpcCap)
+  const validAmbitions = ["finisher", "age_group", "competitor", "elite", "world_class"];
+  const rpcAmb = (validAmbitions.includes(ambitionStr) ? ambitionStr : "age_group") as RaceBikeAmbition;
+  const rpcCap = capBikeRaceIF({
+    objective: objectiveStr,
+    ambition: rpcAmb,
+    tteMin: typeof data.tte === "number" ? data.tte : (data.tte ? Number(data.tte) : null),
+  });
+
+  const parts: string[] = [];
+  parts.push(`### 🎯 CARTE DE COURSE CANONIQUE (SOURCE UNIQUE inter-chunks, NON NÉGOCIABLE)`);
+  parts.push(`⛔ Ces valeurs sont calculées UNE seule fois pour ce plan. Utilise EXACTEMENT ces chiffres dans TOUS les chunks. Toute autre valeur (CSS différente, race-power différente, allure course différente) = ERREUR BLOQUANTE.`);
+
+  // ─── Race pace CAP ───
+  if (derived?.paceTargets) {
+    const pt = derived.paceTargets;
+    parts.push(``);
+    parts.push(`**🏃 Course à pied — Allures canoniques :**`);
+    parts.push(`- **Allure race objectif (SEULE valeur race-pace autorisée)** : ${fmtPaceCanonical(pt.allureSemiCible)}`);
+    parts.push(`- Seuil bas (Z4b) : ${fmtPaceCanonical(pt.seuilBas)} · Seuil haut (Z5) : ${fmtPaceCanonical(pt.seuilHaut)}`);
+    if (pt.allureVO2max) parts.push(`- Allure VO2max (~97% VMA) : ${fmtPaceCanonical(pt.allureVO2max)}`);
+    if (pt.allureZ2) parts.push(`- Endurance Z2 : ${fmtPaceCanonical(pt.allureZ2.hi)} → ${fmtPaceCanonical(pt.allureZ2.lo)}`);
+  }
+
+  // ─── Race power bike ───
+  const ftpNum = typeof data.ftp === "number" ? data.ftp : (data.ftp ? Number(data.ftp) : null);
+  if (rpcCap) {
+    parts.push(``);
+    parts.push(`**🚴 Vélo — Race power canonique (Coggan/Skiba/Karsten) :**`);
+    const wattsLo = ftpNum ? Math.round(ftpNum * (rpcCap.cappedPctFTP - 2) / 100) : null;
+    const wattsHi = ftpNum ? Math.round(ftpNum * (rpcCap.cappedPctFTP + 2) / 100) : null;
+    const wattsRef = ftpNum ? Math.round(ftpNum * rpcCap.cappedPctFTP / 100) : null;
+    parts.push(`- **IF race (SEULE valeur race-power vélo autorisée)** : **${rpcCap.cappedPctFTP}% FTP** (IF ${rpcCap.cappedIF.toFixed(2)})${wattsRef ? ` = **~${wattsRef}W**` : ""}${wattsLo && wattsHi ? ` · fourchette ${wattsLo}-${wattsHi}W` : ""}${rpcCap.wasCapped ? " ⚠️ (bridé par TTE)" : ""}`);
+    if (rpcCap.wasCapped) {
+      parts.push(`- ⛔ INTERDIT toute race-power >${rpcCap.cappedPctFTP + 2}% FTP dans les séances "brick race-pace", "simulation course", "long ride @race pace".`);
+    }
+  }
+
+  // ─── Race CSS natation (seulement pour 70.3 / IM) ───
+  const isTri = objL.includes("70.3") || objL === "703" || objL.includes("ironman") || objL === "im";
+  if (isTri) {
+    const cssSec = typeof data.css === "number" ? Number(data.css) : (data.css ? Number(data.css) : null);
+    if (cssSec && cssSec > 0) {
+      // Race pace natation : +3-5s/100m au-dessus du CSS (Ironman) ou +1-3s (70.3)
+      const isIM = objL.includes("ironman") || objL === "im";
+      const raceOffset = isIM ? 4 : 2;
+      const racePace = cssSec + raceOffset;
+      parts.push(``);
+      parts.push(`**🏊 Natation — CSS & Race-pace canoniques :**`);
+      parts.push(`- CSS mesuré : **${fmtCssPaceCanonical(cssSec)}** (SEULE valeur CSS autorisée dans tout le plan)`);
+      parts.push(`- Allure race natation ${isIM ? "IM" : "70.3"} (CSS+${raceOffset}s) : **${fmtCssPaceCanonical(racePace)}** (SEULE valeur race-pace nat autorisée)`);
+      parts.push(`- Endurance nat (CSS+8 à +12s) : ${fmtCssPaceCanonical(cssSec + 8)} → ${fmtCssPaceCanonical(cssSec + 12)}`);
+    }
+  }
+
+  // ─── HR seuil ───
+  const fcMaxNum = typeof data.fcMax === "number" ? data.fcMax : (data.fcMax ? Number(data.fcMax) : null);
+  if (fcMaxNum && fcMaxNum > 0) {
+    parts.push(``);
+    parts.push(`**❤️ FC canonique (FCmax ${fcMaxNum} bpm) :**`);
+    parts.push(`- Seuil (Z4) : ${Math.round(fcMaxNum * 0.85)}-${Math.round(fcMaxNum * 0.92)} bpm · Race objectif : ${Math.round(fcMaxNum * 0.82)}-${Math.round(fcMaxNum * 0.88)} bpm`);
+    parts.push(`- Z2 endurance : ${Math.round(fcMaxNum * 0.65)}-${Math.round(fcMaxNum * 0.75)} bpm`);
+  }
+
+  parts.push(``);
+  parts.push(`→ **CHECKLIST bloqueur** : avant toute prescription "race-pace", "simulation course", "brick race-pace", "juge de paix", vérifier que l'allure/puissance/CSS correspond EXACTEMENT à la carte ci-dessus (±5s pour les allures course, ±2% FTP pour le vélo, ±2s/100m pour la nat). Sinon = ERREUR.`);
+
+  return parts.join("\n");
+}
+
