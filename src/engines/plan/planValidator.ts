@@ -956,8 +956,28 @@ function validateProhibitionCompliance(
           severity: "error",
           week: week.weekNumber,
           message: `S${week.weekNumber}: 🚫 VIOLATION SPRINT BAN — "${session.title}" contient des sprints/Tabata/pliométrie explosive interdits`,
-          detail: `Le profil VLamax élevé interdit ce type de séance. Remplacer par Sweet Spot, seuil ou Z2 volume.`,
+          detail: `Le profil VLamax élevé interdit ce type de séance (all-out ≤20s, pmax, neuromusculaire pur). Remplacer par Sweet Spot, seuil ou Z2 volume. Rappel : 30/30 Billat à 100-110% VMA reste AUTORISÉ (VO2max, pas sprint).`,
         });
+      }
+
+      // FIX #4 (audit Cath juillet 2026, Étage B) — Sous Sprint Ban, une séance
+      // custom (sans catalogId TFCL) qui mentionne sprint/pmax/neuro/all-out est
+      // rejetée MÊME si le pattern strict SPRINT_BAN_VIOLATION_PATTERNS ne match pas.
+      // Force l'IA à utiliser des IDs catalogue plutôt qu'inventer des séances sprint.
+      if (hasSprintBan && !SPRINT_BAN_VIOLATION_PATTERNS.test(text)) {
+        const catalogId = extractCatalogId(session.title, session.details);
+        const isCustom = /\[custom\]/i.test(text) || !catalogId;
+        const mentionsSprintFamily = /\b(sprint|pmax|neuromuscul|all[- ]out|explosif|plyo|pliom[ée]tri|force[\s-]*vitesse)\b/i.test(text);
+        if (isCustom && mentionsSprintFamily) {
+          violations++;
+          issues.push({
+            rule: "prohibition_compliance",
+            severity: "error",
+            week: week.weekNumber,
+            message: `S${week.weekNumber}: 🚫 SPRINT BAN — séance CUSTOM "${session.title}" mentionne sprint/pmax/neuromusculaire sans ID catalogue TFCL`,
+            detail: `Sous Sprint Ban, toute séance de la famille sprint/pmax/neuro DOIT provenir du catalogue (avec ID validé). Interdit d'inventer des formats [Custom] sprint. Remplacer par un ID VO2max/seuil/Z2 du catalogue.`,
+          });
+        }
       }
 
       if (hasVO2Restriction && VO2MAX_HEAVY_VIOLATION_PATTERNS.test(text)) {
@@ -967,7 +987,7 @@ function validateProhibitionCompliance(
           severity: "error",
           week: week.weekNumber,
           message: `S${week.weekNumber}: 🚫 VIOLATION VO2max LOURD — "${session.title}" programme des blocs VO2max ≥5min @>110% FTP`,
-          detail: `Seuls les intervalles courts (3-4×3min @105-110% FTP) sont autorisés. Remplacer par sweet spot ou seuil.`,
+          detail: `Seuls les intervalles courts (3-4×3min @105-110% FTP) sont autorisés. Les 30/30 courts (≤10min total) restent OK ; interdits : 30/30 longs ≥20 répétitions. Remplacer par sweet spot ou seuil.`,
         });
       }
     }
