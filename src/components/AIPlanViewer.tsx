@@ -714,8 +714,15 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif 
             )}
           </div>
         )}
-        {week.volumeTarget && (
-          <p className="text-xs text-muted-foreground">Volume cible : {week.volumeTarget}</p>
+        {(week.volumeTarget || week.computedVolumeStr) && (
+          <p className="text-xs text-muted-foreground">
+            {week.volumeTarget && <span>Volume cible : {week.volumeTarget}</span>}
+            {week.computedVolumeStr && week.computedVolumeMin && week.computedVolumeMin > 0 && (
+              <span className={week.volumeTarget ? "ml-2" : ""}>
+                {week.volumeTarget ? "· " : ""}Volume réel calculé : <strong>{week.computedVolumeStr}</strong>
+              </span>
+            )}
+          </p>
         )}
       </CardHeader>
       <CardContent className="space-y-2">
