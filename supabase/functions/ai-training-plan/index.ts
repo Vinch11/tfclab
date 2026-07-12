@@ -377,9 +377,13 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
             let extractedRecap = "";
             // AUDIT FIX #4: Global Plan Memory — ultra-condensed, persists across all chunks
             let globalPlanMemory = "";
-            // F-22: Prescribed paces / power / HR thresholds extracted from chunk 1
-            // Persists across all chunks to anchor intensity prescriptions and prevent drift.
-            let prescribedPaces = "";
+            // F-22 + AUDIT Cath juillet 2026 : Carte de course canonique DÉTERMINISTE
+            // (allure CAP race, IF+Watts vélo bornés TTE, CSS+race-pace nat, HR seuil).
+            // Calculée AVANT chunk 1 à partir du snapshot, injectée à l'identique dans
+            // TOUS les chunks pour éliminer les "trois CSS / trois race-power" observés.
+            const canonicalRaceCard = buildCanonicalRaceCard(athleteData, planConfig);
+            let prescribedPaces = canonicalRaceCard;
+            console.log(`🎯 CARTE COURSE canonique seed (${canonicalRaceCard.length} chars) — inter-chunks anchor.`);
             // AUDIT FIX #5: Anti-redundancy — track key sessions used across all previous chunks
             const usedKeySessions: Set<string> = new Set();
             // FIX C1 (audit): Initialize activePhase from ambition — finisher starts in "Adaptation", not "Fondation"
