@@ -1165,6 +1165,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
   // "{Objectif} — Structure {Ambition} — Objectif {tempsSnapshot}"
   const correctedTitle = useMemo(() => {
     const t = plan.title || "";
+    if (/Plan TFCL™\s*—\s*70\.3\s*LCW\s*—\s*\d+\s*semaines?/i.test(t)) return t;
     const primary = (raceGoals || []).find((g) => g.priority === "A" && typeof g.distanceKm === "number" && (g.distanceKm as number) > 0)
       || (raceGoals || []).find((g) => typeof g.distanceKm === "number" && (g.distanceKm as number) > 0);
     const km = primary?.distanceKm;
