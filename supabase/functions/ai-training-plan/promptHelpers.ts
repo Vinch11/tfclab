@@ -1519,6 +1519,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     if (isLCW) {
       lines.push("");
       lines.push("### 🏴 FORMAT LONG COURSE WEEKEND (LCW) — COURSE À ÉTAPES 3 JOURS");
+      lines.push("⚠️ **TITRE DU PLAN — OBLIGATOIRE POUR LCW** : le H1 DOIT contenir explicitement le sigle **`LCW`** (et non seulement `70.3`). Format imposé : `# Plan TFCL™ — 70.3 LCW [Nom course] — N semaines`. Un titre du type `703 — Structure Qualifiable` sans mention `LCW` est INVALIDE et doit être corrigé avant rendu.");
       lines.push("⚠️ La course objectif est un **Long Course Weekend** (LCW Wales/Belgium) : format **ÉCLATÉ sur 3 jours** :");
       lines.push("- **Vendredi** : Natation (Long Swim, ~3.8 km généralement).");
       lines.push("- **Samedi** : Vélo (Long Bike, ~112 km / 70 mi).");
