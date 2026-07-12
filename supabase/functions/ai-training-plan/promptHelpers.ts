@@ -1551,7 +1551,17 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("- [ ] AUCUNE brique T2 immédiate (`B_703_BRICK_RACE_PACE` ou équivalent) n'est prescrite.");
       lines.push("- [ ] La semaine de course contient 3 entrées 'COURSE OBJECTIF' distinctes (Ven natation / Sam vélo / Dim course).");
       lines.push("");
-      lines.push("**Référence** : LCW Wales (Tenby) et LCW Belgium = format historique à étapes, distinct du 70.3 continu. Sources : organisation LCW, retours coachs élites AG.");
+      lines.push("**🚫 SUBSTITUTIONS SÉMANTIQUES INTERDITES (LCW) — LISTE NOIRE EXPLICITE :**");
+      lines.push("Les IDs suivants sont des cousins sémantiques du LCW mais N'ONT PAS la même signature physiologique (durabilité 3 jours consécutifs + recharge glycogénique inter-étapes + nuit courte). Il est **INTERDIT** de les utiliser en remplacement des IDs `B_LCW_*` :");
+      lines.push("- ❌ `A_IM_RUN_FATIGUED_NEXT_DAY` → utilise `B_LCW_RUN_OFF_LEGS_SUN` (spécificité LCW : run race-pace 12-18h post-long-bike race-pace, PAS post-charge IM générique).");
+      lines.push("- ❌ `B_IM_BRICK_LONG_MARATHON_PACE` → utilise `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` **séparés de 12-18h** (le brick T2 IM masque le vrai stimulus LCW = récup incomplète entre étapes).");
+      lines.push("- ❌ `B_703_BRICK_RACE_PACE` → banni intégralement en LCW (voir règle #1 ci-dessus).");
+      lines.push("- ❌ Long swim matinal du samedi/dimanche → utilise `B_LCW_SWIM_FRI_EVENING` vendredi soir (timing course non-négociable).");
+      lines.push("- ❌ Repas classique post-séance → utilise `B_LCW_NUTRITION_RECHARGE` (protocole recharge agressif Burke 2018 spécifique inter-étapes).");
+      lines.push("");
+      lines.push("**Rappel dose-réponse (Stellingwerff 2018, Areta 2013, Jentjens & Jeukendrup 2003) :** une seule exposition au paradigme LCW en Peak = découverte, pas adaptation. Le minimum ≥3 expositions Build+Peak est le **seuil physiologique** en dessous duquel l'athlète découvre la course à étapes le jour J = risque majeur d'implosion étape 3. Ces quotas ne sont pas des préférences éditoriales : ce sont des **prescriptions physiologiques**.");
+      lines.push("");
+      lines.push("**Référence** : LCW Wales (Tenby) et LCW Belgium = format historique à étapes, distinct du 70.3 continu. Sources : organisation LCW, Burke 2018 (glycogen recovery), Costa 2019 (multi-day nutrition), Areta 2013 (muscle protein synthesis), Stellingwerff 2018 (race-simulation frequency), Doering 2016 (inter-session recovery).");
 
     }
 
