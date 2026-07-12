@@ -439,18 +439,35 @@ function isShortDistanceObjective(objectif: string): boolean {
 function buildProhibitions(
   limiterResult: UnifiedLimiterResult,
   objectif: string,
-  ambition: string
+  ambition: string,
+  vlamaxEffective: number | null = null,
 ): string[] {
   const prohibitions: string[] = [];
   const amb = ambition.toLowerCase();
   const isLD = isLongDistanceObjective(objectif);
   const isFinisher = amb === 'finisher';
-  
+
   const vlamaxGap = limiterResult.gapAnalysis.find(g => g.metric === "VLamax");
   const vlamaxIsLimiting = vlamaxGap && vlamaxGap.status === "limiting";
 
-  // Sprint Ban: long distance + non-finisher + VLamax too high
-  if (isLD && !isFinisher && vlamaxIsLimiting) {
+  // ─── GARDE-FOU #2 Lorang (audit Cath juillet 2026) ─────────────────────────
+  // Ne JAMAIS déclencher Sprint Ban si VLamax reste dans la fourchette
+  // physiologique acceptable de l'objectif (range.max de vlamaxTargets).
+  // Source unique alignée avec computeLorangStrategy → évite le désaccord
+  // "Lorang dit no ban / planConfig dit ban" observé sur Cath (VLamax 0.44,
+  // 70.3 age_group, dans la range).
+  let withinPhysioRange = false;
+  if (vlamaxEffective !== null && isLD) {
+    try {
+      const range = getVlamaxTargetCanonical(objectif, 'run');
+      withinPhysioRange = vlamaxEffective <= range.max;
+    } catch {
+      withinPhysioRange = false;
+    }
+  }
+
+  // Sprint Ban: long distance + non-finisher + VLamax too high + guardrail OK
+  if (isLD && !isFinisher && vlamaxIsLimiting && !withinPhysioRange) {
     prohibitions.push(
       "🚫 SPRINT BAN STRICT — VLamax trop haute pour cet objectif longue distance. " +
       "INTERDITS : sprints all-out, Tabata, micro-intervalles explosifs (<20s), " +
@@ -467,8 +484,15 @@ function buildProhibitions(
       "INTERDIT : 5×5min @115% FTP, Tabata VO2max, 30/30 longs. " +
       "PRIORITÉ : Sweet Spot prolongé (2×20min @88-92% FTP), seuil Norvégien, Z2 volume."
     );
+  } else if (isLD && !isFinisher && vlamaxIsLimiting && withinPhysioRange) {
+    // eslint-disable-next-line no-console
+    console.log(
+      `🛡️ [planConfigBuilder] Sprint Ban court-circuité (garde-fou #2 Lorang) — ` +
+      `VLamax ${vlamaxEffective?.toFixed(2)} ≤ range.max ${getVlamaxTargetCanonical(objectif, 'run').max.toFixed(2)} ` +
+      `(${objectif}/run). Valeur physiologiquement acceptable, pas de ban.`
+    );
   }
-  
+
   // For semi/10K/5K: sprints are BENEFICIAL
   if (isShortDistanceObjective(objectif)) {
     prohibitions.push(
