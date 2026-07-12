@@ -673,7 +673,7 @@ export default function AITrainingPlanPage() {
             (raceWeekNumber !== null && (w.weekNumber === raceWeekNumber || w.weekNumber === raceWeekNumber - 1))
             || /taper|aff[uû]t|volume\s*cut|race\s*week/i.test(`${w.theme} ${w.phase} ${w.coachNotes || ""}`);
           const taperWeeks = plan.weeks.filter(isTaper);
-          const applied = taperWeeks.filter(w => / \(taper ×/.test(w.volumeTarget || "")).length;
+          const applied = taperWeeks.filter(w => /(affûtage|affutage|course)/i.test(w.volumeTarget || "")).length;
           const skipped = taperWeeks.length - applied;
 
           // Instrumentation : semaines observées + headers ### Semaine détectés dans le markdown
