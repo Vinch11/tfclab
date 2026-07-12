@@ -717,7 +717,8 @@ ${buildFewShotExamples(profile)}
 
 ## Format de Sortie OBLIGATOIRE
 \`\`\`
-# Plan TFCL™ — [Objectif] — [Nombre] semaines
+# Plan TFCL™ — <FORMAT_COURSE> <NOM_ATHLETE> — <N> semaines
+(voir RÈGLE #0 en tête du prompt — gabarit strict, non négociable)
 
 ## Diagnostic TFCL™
 **Limiteur prioritaire :** [limiteur]
