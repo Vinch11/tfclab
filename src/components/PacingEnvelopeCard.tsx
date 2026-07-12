@@ -512,14 +512,45 @@ export function PacingEnvelopeCard({
           </Alert>
         )}
 
-        {/* Onglets */}
-        <Tabs defaultValue="chart" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-9">
+        {/* Onglets — "Comprendre" en premier (pédagogie) */}
+        <Tabs defaultValue="understand" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 h-9">
+            <TabsTrigger value="understand" className="text-xs">Comprendre</TabsTrigger>
             <TabsTrigger value="chart" className="text-xs">Graphique</TabsTrigger>
             <TabsTrigger value="rules" className="text-xs">Règles</TabsTrigger>
             <TabsTrigger value="scenarios" className="text-xs">Scénarios</TabsTrigger>
           </TabsList>
-          
+
+          {/* --- Onglet "Comprendre" : pédagogie complète --- */}
+          <TabsContent value="understand" className="mt-3 space-y-4">
+            <PacingConceptCard />
+            <PacingVisualBar
+              lowPct={envelope.boundary.lowPct}
+              centerPct={envelope.boundary.centerPct}
+              highPct={envelope.boundary.highPct}
+              toleratedPct={envelope.boundary.toleratedPct}
+              referenceLabel={envelope.boundary.referenceShortLabel}
+            />
+            <PacingWhyBox
+              drivers={buildDriversFromEnvelope({
+                vlamaxValue: input.vlamaxEffectif?.value ?? null,
+                tteMin: input.tteEffectif?.tte_min ?? null,
+                ambition: (input as any).ambition ?? null,
+                raceObjective: input.raceObjective,
+              })}
+              centerPct={envelope.boundary.centerPct}
+              referenceLabel={envelope.boundary.referenceShortLabel}
+              confidenceLabel={envelope.confidenceLabel}
+            />
+            <PacingRacePlanBox
+              phases={buildPhasesFromEnvelope(envelope)}
+              keyPhrase={
+                envelope.readinessMessage ??
+                "Discipline au départ, patience au milieu, courage au finish."
+              }
+            />
+          </TabsContent>
+
           {showChart && (
             <TabsContent value="chart" className="mt-3">
               <PacingDisciplineChart
@@ -531,13 +562,13 @@ export function PacingEnvelopeCard({
               />
             </TabsContent>
           )}
-          
+
           {showRules && rules && (
             <TabsContent value="rules" className="mt-3">
               <RulesSection rules={rules} />
             </TabsContent>
           )}
-          
+
           {showScenarios && scenarios && (
             <TabsContent value="scenarios" className="mt-3">
               <ScenariosSection scenarios={scenarios} />
