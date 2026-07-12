@@ -251,11 +251,16 @@ export function StaffReport({
     sport: pacingSport,
     ftp: ftp ?? undefined,
     weight: poids ?? undefined,
+    vma: (snapshot as any)?.vma ?? null,
+    paceThreshold: (snapshot as any)?.pace_threshold_sec_per_km ?? null,
     // CHANTIER A — modèle continu Smyth/Skiba
     ambition: ambition ?? null,
     cpWkg: cpForPacing?.cpWkg ?? null,
     wPrimeJkg: cpForPacing?.wprimeJkg ?? null,
     predictedDurationMin: predictedDurationMinForPacing,
+    // #4 — chronos & VMA depuis snapshot pour prédiction Riegel/Daniels
+    raceChronos: buildRaceChronosFromSnapshot(snapshot as any),
+    vmaKmh: (snapshot as any)?.vma ?? null,
   });
 
   // ✅ LONG DISTANCE PACING - Extension pour épreuves > 90min
