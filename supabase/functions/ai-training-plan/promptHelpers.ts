@@ -1139,7 +1139,9 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     if (rpcCap.wasCapped) {
       lines.push(`- ⛔ **INTERDICTION** : ne prescris JAMAIS d'intensité race > ${rpcCap.cappedPctFTP + 2}% FTP dans les séances "brick race pace", "simulation course", "long ride @race pace", "T2 race". Toute mention "82-85% FTP" pour un athlète TTE ${data.tte} min est INVALIDE.`);
       lines.push(`- ✅ **PRESCRIPTION CORRECTE** : cible race = ${rpcCap.cappedPctFTP - 2}-${rpcCap.cappedPctFTP + 2}% FTP. Sweet Spot d'entraînement peut aller à 88-92% mais SEULEMENT sur intervalles ≤ TTE.`);
+    }
   }
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // GARDE-FOU #3 (audit Cath juillet 2026) — Zones triathlon SOURCE UNIQUE
