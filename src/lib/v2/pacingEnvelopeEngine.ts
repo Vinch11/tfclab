@@ -239,7 +239,12 @@ export interface PacingEnvelopeResult {
 //     ou Mader α N=44). RMSE cible : ±3 pts %CS vs benchmarks littérature.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Durée typique d'une course (minutes) — fallback si predictedDurationMin absent */
+/**
+ * Durée typique d'une course (minutes) — DERNIER RECOURS uniquement.
+ * Toujours ancré sur des moyennes larges (IM=10h finish typique) → biaise
+ * significativement le centre de l'enveloppe pour les finishers hors moyenne.
+ * Préférer predictedDurationMin ou resolvePredictedDurationMin() ci-dessous.
+ */
 const RACE_TYPICAL_DURATION_MIN: Record<RaceObjective, number> = {
   IM: 600,        // ~10h moyenne
   "70.3": 300,    // ~5h
@@ -247,6 +252,66 @@ const RACE_TYPICAL_DURATION_MIN: Record<RaceObjective, number> = {
   Semi: 105,      // ~1h45
   "10km": 45,     // ~45min
 };
+
+/**
+ * Mapping AmbitionLevelNormalized (pacing) → Ambition (raceTimePredictor).
+ */
+const AMBITION_TO_PREDICTOR: Record<AmbitionLevelNormalized, Ambition> = {
+  WORLD_CLASS: "world_class",
+  ELITE: "elite",
+  COMPETITOR: "sub",
+  AGE_GROUP: "perf",
+  FINISHER: "finish",
+};
+
+/**
+ * Résolution hiérarchique de la durée prédite pour le calcul du couloir.
+ *
+ * Ordre de priorité (haut = plus fiable) :
+ *   1. input.predictedDurationMin (fourni explicitement par le caller)
+ *   2. predictRaceDurationMin(...) via chronos réels → Riegel
+ *   3. predictRaceDurationMin(...) via VMA/threshold + ambition → Daniels
+ *   4. RACE_TYPICAL_DURATION_MIN[raceObjective] (dernier recours, confiance basse)
+ */
+export function resolvePredictedDurationMin(
+  input: PacingEnvelopeInput,
+  ambition: AmbitionLevelNormalized,
+): { durationMin: number; source: string; confidence: number } {
+  // 1. Explicite
+  if (input.predictedDurationMin != null && input.predictedDurationMin > 0) {
+    return {
+      durationMin: input.predictedDurationMin,
+      source: "predictedDurationMin (fourni)",
+      confidence: 0.95,
+    };
+  }
+
+  // 2 & 3. Via raceTimePredictor
+  const predictor = predictRaceDurationMin({
+    objective: input.raceObjective,
+    ambition: AMBITION_TO_PREDICTOR[ambition],
+    raceChronos: input.raceChronos ?? null,
+    vmaKmh: input.vmaKmh ?? null,
+    thresholdPaceSecPerKm:
+      input.paceThreshold ?? input.raceChrono?.paceThreshold_sec_km ?? null,
+  });
+  if (predictor) {
+    return {
+      durationMin: predictor.targetRaceDurationMin,
+      source: `raceTimePredictor · ${predictor.source} (${predictor.reference ?? ""})`,
+      confidence: predictor.confidence,
+    };
+  }
+
+  // 4. Dernier recours
+  return {
+    durationMin: RACE_TYPICAL_DURATION_MIN[input.raceObjective],
+    source: `Fallback ${input.raceObjective} typique (aucune donnée athlète)`,
+    confidence: 0.3,
+  };
+}
+
+
 
 /**
  * Ancrage %CS à 60 min selon niveau d'ambition.
