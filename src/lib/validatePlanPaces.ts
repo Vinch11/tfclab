@@ -61,7 +61,17 @@ type Zone = "vo2" | "race" | "marathon" | "seuil" | "z3" | "z2" | "none";
 type SportFamily = "run" | "bike" | "swim" | "mixed" | "other";
 
 function detectSportFamily(sport: string, text: string): SportFamily {
-  const s = `${sport} ${text}`.toLowerCase();
+  const sportOnly = sport.toLowerCase();
+  const sportHasBike = /\b(v[ée]lo|velo|bike|cycl)\b/.test(sportOnly);
+  const sportHasRun = /\b(cap|course|run|running)\b/.test(sportOnly);
+  const sportHasSwim = /\b(natation|nat|swim)\b/.test(sportOnly);
+  const sportCount = [sportHasBike, sportHasRun, sportHasSwim].filter(Boolean).length;
+  if (sportCount > 1) return "mixed";
+  if (sportHasBike) return "bike";
+  if (sportHasSwim) return "swim";
+  if (sportHasRun) return "run";
+
+  const s = text.toLowerCase();
   const hasBike = /\b(v[ée]lo|velo|bike|cycl|ftp|pma|watt|watts)\b/.test(s);
   const hasRun = /\b(cap|course|run|running|footing|vma|allure|\/km)\b/.test(s);
   const hasSwim = /\b(natation|nat|swim|css|nage|crawl|\d{3,4}\s*m)\b/.test(s);
