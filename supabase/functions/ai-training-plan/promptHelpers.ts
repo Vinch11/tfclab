@@ -1390,7 +1390,32 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("Tu DOIS les respecter IMPÉRATIVEMENT. Elles PRIMENT sur les recommandations générales de périodisation.");
     lines.push("Toute séance qui viole ces interdictions sera rejetée par le moteur de validation.");
     config.prohibitions.forEach((p: string) => lines.push(`- ${p}`));
+
+    // FIX #4 (audit Cath juillet 2026) — Clarification physiologique nominative
+    // pour éviter que l'IA confonde "VO2max intermittent" avec "sprint neuromusculaire".
+    const hasSprintBan = config.prohibitions.some((p: string) => /sprint\s*ban/i.test(p));
+    if (hasSprintBan) {
+      lines.push("");
+      lines.push("#### 📖 DÉFINITION STRICTE DU SPRINT BAN (à respecter à la lettre)");
+      lines.push("**❌ INTERDIT sous Sprint Ban** (filière ATP-CP + glycolyse rapide, ↑ VLamax) :");
+      lines.push("- Sprints all-out ≤ 20s : `6×10s all-out`, `8×15s max`, `10×20s explosif`");
+      lines.push("- Tabata (20/10 all-out), micro-intervalles supra-max (15/15, 10/20, 10/10)");
+      lines.push("- Pmax / force-vitesse maximale / pliométrie explosive (drop jumps, hurdle rebounds, bounds)");
+      lines.push("- Séances estampillées `[Custom]`, `_SPRINT_`, `_PMAX_`, `_NM_` (neuromusculaire pur)");
+      lines.push("- Efforts erratiques non-structurés, surges aléatoires");
+      lines.push("");
+      lines.push("**✅ AUTORISÉ malgré le Sprint Ban** (filière aérobie, ↑ VO2max sans ↑ VLamax) :");
+      lines.push("- **30/30 Billat, 40/20, 30/15 à 100–110% VMA/PMA** — c'est du VO2max intermittent, PAS un sprint");
+      lines.push("- VO2max classique court et contrôlé : 3-4×3min @105-110% FTP, repos ≥4min");
+      lines.push("- Strides courts (5-8×15-20s) en fin d'EF pour l'économie neuromusculaire aérobie");
+      lines.push("- Force max en salle (renfo, gainage, ppg, mobilité) — pas de plyo explosive");
+      lines.push("");
+      lines.push("**RÈGLE ABSOLUE** : ne JAMAIS inventer de séance `[Custom]` sprint/pmax/neuro sous Sprint Ban. ");
+      lines.push("Utilise UNIQUEMENT les IDs du catalogue TFCL fourni. Si une séance VMA courte type 30/30 est prescrite, ");
+      lines.push("elle DOIT viser 100-110% VMA (pas all-out) et être explicitement taggée `VO2max` (pas `sprint`).");
+    }
   }
+
 
   // --- Adaptation Predictor Projections ---
   if (config.adaptationProjections && config.adaptationProjections.length > 0) {
