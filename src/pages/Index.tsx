@@ -105,6 +105,8 @@ import { CycleIntelligenceCard } from "@/components/CycleIntelligenceCard";
 
 // ✅ Adaptation Predictor™
 import { AdaptationPredictorCard } from "@/components/AdaptationPredictorCard";
+import { mapLorangLeversToTrainingLevers } from "@/lib/v2/adaptationPredictor";
+
 import { computeDecision, type DecisionInput } from "@/engines/decision";
 
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
@@ -2166,8 +2168,16 @@ const Index = () => {
                 limiterLabel={alignedLimiterResult?.limiterLabel ?? null}
                 objectif={currentAthlete.goal || "IM"}
                 sportMain={(effectiveCloudSnapshot as { sport_main?: string | null })?.sport_main ?? null}
+                selectedLeverIds={
+                  lorangStrategyForCompass
+                    ? mapLorangLeversToTrainingLevers(
+                        lorangStrategyForCompass.activatedLevers.map(l => l.lever)
+                      )
+                    : undefined
+                }
                 staffMode={staffMode}
               />
+
             ),
           },
           // ✅ CP/W' Courbe Puissance-Durée (déplacé du dashboard)

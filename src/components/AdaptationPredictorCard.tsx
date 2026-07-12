@@ -49,9 +49,14 @@ interface AdaptationPredictorCardProps {
   /** Durée du plan (semaines). Module l'amplitude des deltas projetés
    *  — Audit P0 B2. Défaut 6 semaines (référence). */
   weeksAvailable?: number;
+  /** Leviers réellement activés par computeLorangStrategy — restreint la
+   *  simulation aux stratégies effectivement prescrites (propagation Lorang
+   *  → Predictor). Si vide/omis, simule tout le catalogue (fallback). */
+  selectedLeverIds?: TrainingLeverId[];
   staffMode?: boolean;
   className?: string;
 }
+
 
 function DeltaArrow({ direction, significance }: { direction: string; significance: string }) {
   if (significance === "none" || direction === "stable") {
@@ -194,6 +199,7 @@ export function AdaptationPredictorCard({
   objectif,
   sportMain,
   weeksAvailable,
+  selectedLeverIds,
   staffMode = false,
   className,
 }: AdaptationPredictorCardProps) {
@@ -207,8 +213,10 @@ export function AdaptationPredictorCard({
       objectif,
       sportMain,
       weeksAvailable,
+      selectedLevers: selectedLeverIds && selectedLeverIds.length > 0 ? selectedLeverIds : undefined,
     });
-  }, [snapshot, limiterId, limiterLabel, objectif, sportMain, weeksAvailable]);
+  }, [snapshot, limiterId, limiterLabel, objectif, sportMain, weeksAvailable, selectedLeverIds]);
+
 
   const hasData = result.currentState.vo2max !== null || result.currentState.vlamax !== null || result.currentState.ftp !== null;
 
