@@ -370,6 +370,8 @@ export default function AITrainingPlanPage() {
       maxSessionsPerDay,
       strengthSessionsPerWeek,
       trainingLevel,
+      lockAmbition,
+
       raceGoals,
       trailDistanceKm,
       trailElevationM,
