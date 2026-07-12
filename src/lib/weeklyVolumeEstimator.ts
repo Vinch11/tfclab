@@ -77,12 +77,21 @@ function fallbackDurationBySport(sport: string, title: string): number {
  */
 export function estimateSessionDurationMin(session: ParsedSession): number {
   if (session.isRest) return 0;
+
+  // 1) Priorité : lookup direct dans la bibliothèque enrichie via l'ID catalogue
+  //    (fixe le bug des séances B_LCW_*, [Custom] et toute séance dont le titre
+  //    n'expose pas de durée explicite — audit Claude 07/2026).
+  const catalogId = extractCatalogId(session.title, session.details);
+  const libDuration = getLibraryDurationMin(catalogId);
+  if (libDuration && libDuration > 0) return libDuration;
+
+  // 2) Fallback : parsing du texte
   const text = `${session.title} ${session.details}`;
   const durations = extractDurationsFromText(text);
   if (durations.length === 0) {
     return fallbackDurationBySport(session.sport, session.title);
   }
-  // Prendre la durée maximale (= durée totale, pas les blocs internes)
+  // Durée maximale (= durée totale, pas les blocs internes)
   return Math.max(...durations);
 }
 
