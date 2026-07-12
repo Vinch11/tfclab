@@ -20,6 +20,56 @@ import {
   computeRaceSimulation, type SimulationResult, type NutritionCue, formatPaceSecKm,
 } from "@/lib/v2/raceSimulationTFCL";
 import type { ReadinessState } from "@/lib/v2/potentielTypes";
+import {
+  PacingConceptCard,
+  PacingWhyBox,
+  PacingRacePlanBox,
+  PacingVisualBar,
+  buildDriversFromEnvelope,
+  type RacePhase,
+} from "@/components/pacing/PacingPedagogy";
+
+// Format sec/km → "4'12/km"
+function fmtPace(sec: number | null | undefined): string | null {
+  if (!sec || sec <= 0) return null;
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${m}'${s.toString().padStart(2, "0")}/km`;
+}
+
+function buildRunPhases(result: PacingEnvelopeRunResult): [RacePhase, RacePhase, RacePhase] {
+  const th = result.threshold_pace_sec_km;
+  const [gLow, gHigh] = result.boundary_pct_threshold.green;
+  const paceAt = (pct: number) => (th ? fmtPace(Math.round(th * (100 / pct))) : null);
+  const mid = Math.round((gLow + gHigh) / 2);
+  return [
+    {
+      label: "Départ",
+      window: `0 → 33% (${result.distance})`,
+      targetPct: `${gLow}–${mid}% seuil`,
+      targetPace: paceAt(mid) ?? paceAt(gLow),
+      do: result.rules.first_third?.rule ?? "Rester conservateur, laisser filer les rapides.",
+      dont: "Suivre le peloton qui explose devant.",
+    },
+    {
+      label: "Milieu",
+      window: "33 → 66%",
+      targetPct: `${mid}–${gHigh}% seuil`,
+      targetPace: paceAt(gHigh),
+      do: result.rules.middle_third?.rule ?? "Installer la cible, verrouiller la mécanique.",
+      dont: "Attaquer une côte comme si c'était le finish.",
+    },
+    {
+      label: "Finish",
+      window: "66 → 100%",
+      targetPct: `${gHigh}% seuil et +`,
+      targetPace: paceAt(gHigh + 3),
+      do: result.rules.last_third?.rule ?? "Si tu as tenu la discipline, monte l'intensité.",
+      dont: "Attendre les 500 derniers mètres pour tout donner.",
+    },
+  ];
+}
+
 
 interface PacingEnvelopeRunCardProps {
   result: PacingEnvelopeRunResult | null;
