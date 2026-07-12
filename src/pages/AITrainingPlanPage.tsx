@@ -271,6 +271,8 @@ export default function AITrainingPlanPage() {
   const [maxSessionsPerDay, setMaxSessionsPerDay] = useState("3");
   const [strengthSessionsPerWeek, setStrengthSessionsPerWeek] = useState("2");
   const [trainingLevel, setTrainingLevel] = useState<string>("auto");
+  const [lockAmbition, setLockAmbition] = useState<boolean>(false);
+
   const [constraints, setConstraints] = useState("");
   // Trail-only: profil de course (D+, distance, temps cible, altitude max)
   const [trailDistanceKm, setTrailDistanceKm] = useState("");
@@ -329,6 +331,8 @@ export default function AITrainingPlanPage() {
       if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
       if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
       if (savedState.trainingLevel) setTrainingLevel(savedState.trainingLevel);
+      if (typeof savedState.lockAmbition === "boolean") setLockAmbition(savedState.lockAmbition);
+
       if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
       if (savedState.trailDistanceKm) setTrailDistanceKm(savedState.trailDistanceKm);
       if (savedState.trailElevationM) setTrailElevationM(savedState.trailElevationM);
@@ -366,6 +370,8 @@ export default function AITrainingPlanPage() {
       maxSessionsPerDay,
       strengthSessionsPerWeek,
       trainingLevel,
+      lockAmbition,
+
       raceGoals,
       trailDistanceKm,
       trailElevationM,
@@ -391,7 +397,7 @@ export default function AITrainingPlanPage() {
         localStorage.setItem(activePlanKey, JSON.stringify(payload));
       }
     }
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -617,7 +623,9 @@ export default function AITrainingPlanPage() {
             ambitionSaisie: ambition,
             trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
             tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+            lockAmbition,
           });
+
 
           // (2) weeklyHours — user prime, sinon fallback sur l'ambition EFFECTIVE
           const userWH = parseFloat(weeklyHours);
@@ -700,7 +708,7 @@ export default function AITrainingPlanPage() {
       return plan;
     } catch { return null; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, athleteContext, raceDate, raceGoals, planStartDate, weeksAvailable]);
+  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, lockAmbition, athleteContext, raceDate, raceGoals, planStartDate, weeksAvailable]);
 
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -799,10 +807,12 @@ export default function AITrainingPlanPage() {
       constraints: constraints || undefined,
       trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
       terrainAvailability: terrainAvailability === "auto" ? undefined : (terrainAvailability as any),
+      lockAmbition,
     };
 
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, terrainAvailability]);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability]);
+
 
   const parsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!rawParsedPlan) return null;
@@ -1969,7 +1979,26 @@ export default function AITrainingPlanPage() {
                   <p className="text-[10px] text-muted-foreground">
                     Utilisé uniquement si le TSS 7j n'est pas renseigné dans le snapshot. Aide l'IA à calibrer la progression initiale.
                   </p>
+
+                  {/* Coach override : verrou anti-déclassement d'ambition */}
+                  <div className="flex items-start gap-2 mt-2 p-2 rounded-md border border-amber-500/30 bg-amber-500/5">
+                    <Checkbox
+                      id="lockAmbition"
+                      checked={lockAmbition}
+                      onCheckedChange={(v) => setLockAmbition(v === true)}
+                      className="mt-0.5"
+                    />
+                    <div className="space-y-1 flex-1">
+                      <Label htmlFor="lockAmbition" className="text-xs font-medium cursor-pointer flex items-center gap-1">
+                        🔒 Verrouiller l'ambition (bypass déclassement auto)
+                      </Label>
+                      <p className="text-[10px] text-muted-foreground leading-tight">
+                        Coche cette case si tu juges que l'athlète est prêt pour l'ambition saisie malgré une charge récente faible (tests physio récents, retour de blessure documenté, pic de forme planifié). Le plan sera calibré sur l'ambition saisie sans filet de sécurité.
+                      </p>
+                    </div>
+                  </div>
                 </div>
+
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
@@ -2451,7 +2480,9 @@ export default function AITrainingPlanPage() {
                             ambitionSaisie: ambition,
                             trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
                             tss7d: athleteContext?.diagnostic?._rawInput?.tss7d ?? null,
+                            lockAmbition,
                           });
+
                           return {
                             ambition, // saisie — gap calculé vers l'objectif visé par l'utilisateur
                             ambitionEffective: ambRes.ambitionEffective, // toujours propagée : titre/PDF/Récap consomment l'effective

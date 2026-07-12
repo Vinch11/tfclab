@@ -104,6 +104,8 @@ export interface PlanFormConfig {
   trainingLevel?: CoachTrainingLevel;
   /** Terrain disponible — critique pour les athlètes urbains préparant un trail montagne */
   terrainAvailability?: "plat" | "vallonne" | "montagne" | "mixte";
+  /** Coach lock : désactive le déclassement automatique d'ambition (voir computeAmbitionEffective). */
+  lockAmbition?: boolean;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -125,11 +127,14 @@ export function buildPlanConfigFromDiagnostic(
   // UNE seule mutation : ambitionEffective = min(saisie, max(niveau d'entraînement)).
   // Tout ce qui dérive de l'ambition (volumes, qualités/sem, catalogues signature,
   // pctVMA, progressionPct, prohibitions) DOIT consommer ambitionEffective.
+  // ⚠️ `lockAmbition` (coach override) bypasse ce cap.
   const ambitionResolution = computeAmbitionEffective({
     ambitionSaisie: formConfig.ambition ?? diagnostic.ambition,
     trainingLevel: formConfig.trainingLevel,
     tss7d: diagnostic._rawInput.tss7d ?? null,
+    lockAmbition: formConfig.lockAmbition,
   });
+
   const effectiveAmbitionLabel = AMBITION_DEFINITIONS[ambitionResolution.ambitionEffective].label;
   // Mutation locale : formConfig.ambition remplacé par le label effectif pour tout le reste du builder.
   const effectiveFormConfig: PlanFormConfig = { ...formConfig, ambition: effectiveAmbitionLabel };
