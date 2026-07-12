@@ -74,6 +74,7 @@ import { computePotentielSignature, type PotentielInput, type PotentielResult } 
 import { PacingEnvelopeBar, PacingEnvelopeBarInline } from "@/components/charts/PacingEnvelopeBar";
 import { LongDistanceEnvelopeChart, LongDistanceEnvelopeInline } from "@/components/charts/LongDistanceEnvelopeChart";
 import { computePacingEnvelope, type PacingEnvelopeInput, type RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
+import { buildRaceChronosFromSnapshot } from "@/lib/v2/buildRaceChronosFromSnapshot";
 import { 
   computeLongDistanceEnvelope, 
   LONG_DISTANCE_THRESHOLD_HOURS,
