@@ -1501,45 +1501,48 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("- Si tu prescris une SL run classique en Build/Peak 70.3, vérifie qu'aucune séance ci-dessus ne couvre mieux le besoin spécifique.");
       lines.push("");
       lines.push("**Pourquoi c'est critique** : Lorang, Haug/Frodeno training logs, Stryd Durability Index, Maunder 2021 — un podium 70.3 ne se construit pas avec du volume Z2 isolé. La signature physiologique (courir vite après 2h-2h30 aéro + gagner le drafting au départ natation) DOIT être entraînée spécifiquement.");
-
-      // ─── LCW (Long Course Weekend) — Format 3 JOURS ÉCLATÉ ───
-      // Détection prioritaire : flag `raceFormat === "lcw_3day"` (champ explicite UI).
-      // Fallback : regex sur raceName ("Long Course Weekend" / "LCW") pour rétrocompatibilité.
-      const goalsLCW = Array.isArray(config.raceGoals) ? config.raceGoals : [];
-      const hasLCWFlag = goalsLCW.some((g: any) => g?.raceFormat === "lcw_3day");
-      const raceNamesLCW: string[] = [
-        ...goalsLCW.map((g: any) => String(g?.raceName || "")),
-        String(config.raceName || ""),
-        String(config.objective || ""),
-      ].filter(Boolean);
-      const isLCW = hasLCWFlag || raceNamesLCW.some((n) => /long\s*course\s*weekend|\blcw\b/i.test(n));
-      if (isLCW) {
-        lines.push("");
-        lines.push("### 🏴 FORMAT LONG COURSE WEEKEND (LCW) — COURSE À ÉTAPES 3 JOURS");
-        lines.push("⚠️ La course objectif est un **Long Course Weekend** (LCW Wales/Belgium) : format **ÉCLATÉ sur 3 jours** :");
-        lines.push("- **Vendredi** : Natation (Long Swim, ~3.8 km généralement).");
-        lines.push("- **Samedi** : Vélo (Long Bike, ~112 km / 70 mi).");
-        lines.push("- **Dimanche** : Course à pied (Marathon ou Half selon édition).");
-        lines.push("Ce N'EST PAS un 70.3 continu. Le paradigme physiologique change : succession d'efforts intenses séparés par **nuits de récupération INCOMPLÈTE** (course à étapes).");
-        lines.push("");
-        lines.push("**ADAPTATIONS NON-NÉGOCIABLES pour LCW (remplacent partiellement les règles 70.3 continu ci-dessus) :**");
-        lines.push("1. **Briques T2 immédiates INTERDITES.** Bannis `B_703_BRICK_RACE_PACE` et tout enchaînement vélo→run <30min. Prescris à la place les séances signature LCW du catalogue :");
-        lines.push("   - `B_LCW_SWIM_FRI_EVENING` — Natation continue rythmée vendredi soir (2.5-3.8km, allure race, timing course).");
-        lines.push("   - `B_LCW_BIKE_LONG_RACE_SAT` — Long ride race-pace samedi 2h30-3h @ IF 0.82-0.85 (SANS run derrière — puissance plus haute autorisée).");
-        lines.push("   - `B_LCW_RUN_OFF_LEGS_SUN` — Long run race-pace dimanche 60-90min sur jambes fatiguées vélo veille (angle mort absolu des plans 70.3 continus).");
-        lines.push("2. **Répétition générale Peak** : prescris **`B_LCW_BACK_TO_BACK_PEAK`** UNE FOIS, 3-4 sem avant course (SIMULATION complète Ven+Sam+Dim, reproduction exacte du paradigme LCW).");
-        lines.push("3. **Pacing plus agressif autorisé** : sans contrainte de courir immédiatement après le vélo, la cible vélo peut glisser de 80-85% FTP → **85-88% FTP** (IF ~0.85). La course peut viser allure semi/marathon **proche du vrai potentiel** (pas de pénalité fatigue centrale vélo-fraîche).");
-        lines.push("4. **Nutrition INTER-ÉTAPES = arme absolue** : prescris **`B_LCW_NUTRITION_RECHARGE`** ≥3× dans le plan (associé à chaque back-to-back weekend en Build/Peak). Protocole détaillé Burke 2018 / Costa 2019.");
-        lines.push("5. **Fatigue résiduelle ENTRE jours** : conserve les séances 'CAP Z2 Fatigued' / lendemain de grosse charge — elles préparent EXACTEMENT le dimanche LCW (courir sur jambes raides post-vélo veille).");
-        lines.push("6. **Race Week LCW** : la semaine de course occupe 3 jours (Ven/Sam/Dim). Planifie 3 entrées 'COURSE OBJECTIF — Étape Natation/Vélo/Course' aux dates exactes.");
-        lines.push("");
-        lines.push("**Règle de fréquence LCW (NON-NÉGOCIABLE) :**");
-        lines.push("- Build LCW : minimum **1 weekend Sam+Dim par mois** avec `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
-        lines.push("- Peak LCW : **2 weekends Sam+Dim** + **1 fois** `B_LCW_BACK_TO_BACK_PEAK` complet + **3 rappels** `B_LCW_NUTRITION_RECHARGE`.");
-        lines.push("");
-        lines.push("**Référence** : LCW Wales (Tenby) et LCW Belgium = format historique à étapes, distinct du 70.3 continu. Sources : organisation LCW, retours coachs élites AG.");
-      }
     }
+
+    // ─── LCW (Long Course Weekend) — Format 3 JOURS ÉCLATÉ ───
+    // ⚠️ HORS filtre ambition podium/elite : le format LCW s'applique à TOUTES
+    // les ambitions dès qu'un athlète s'inscrit à ce type de course (Wales/Belgium).
+    // Détection prioritaire : flag `raceFormat === "lcw_3day"` (champ explicite UI).
+    // Fallback : regex sur raceName ("Long Course Weekend" / "LCW") pour rétrocompat.
+    const goalsLCW = Array.isArray(config.raceGoals) ? config.raceGoals : [];
+    const hasLCWFlag = goalsLCW.some((g: any) => g?.raceFormat === "lcw_3day");
+    const raceNamesLCW: string[] = [
+      ...goalsLCW.map((g: any) => String(g?.raceName || "")),
+      String(config.raceName || ""),
+      String(config.objective || ""),
+    ].filter(Boolean);
+    const isLCW = hasLCWFlag || raceNamesLCW.some((n) => /long\s*course\s*weekend|\blcw\b/i.test(n));
+    if (isLCW) {
+      lines.push("");
+      lines.push("### 🏴 FORMAT LONG COURSE WEEKEND (LCW) — COURSE À ÉTAPES 3 JOURS");
+      lines.push("⚠️ La course objectif est un **Long Course Weekend** (LCW Wales/Belgium) : format **ÉCLATÉ sur 3 jours** :");
+      lines.push("- **Vendredi** : Natation (Long Swim, ~3.8 km généralement).");
+      lines.push("- **Samedi** : Vélo (Long Bike, ~112 km / 70 mi).");
+      lines.push("- **Dimanche** : Course à pied (Marathon ou Half selon édition).");
+      lines.push("Ce N'EST PAS un 70.3 continu. Le paradigme physiologique change : succession d'efforts intenses séparés par **nuits de récupération INCOMPLÈTE** (course à étapes).");
+      lines.push("");
+      lines.push("**ADAPTATIONS NON-NÉGOCIABLES pour LCW (remplacent partiellement les règles 70.3 continu ci-dessus) :**");
+      lines.push("1. **Briques T2 immédiates INTERDITES.** Bannis `B_703_BRICK_RACE_PACE` et tout enchaînement vélo→run <30min. Prescris à la place les séances signature LCW du catalogue :");
+      lines.push("   - `B_LCW_SWIM_FRI_EVENING` — Natation continue rythmée vendredi soir (2.5-3.8km, allure race, timing course).");
+      lines.push("   - `B_LCW_BIKE_LONG_RACE_SAT` — Long ride race-pace samedi 2h30-3h @ IF 0.82-0.85 (SANS run derrière — puissance plus haute autorisée).");
+      lines.push("   - `B_LCW_RUN_OFF_LEGS_SUN` — Long run race-pace dimanche 60-90min sur jambes fatiguées vélo veille (angle mort absolu des plans 70.3 continus).");
+      lines.push("2. **Répétition générale Peak** : prescris **`B_LCW_BACK_TO_BACK_PEAK`** UNE FOIS, 3-4 sem avant course (SIMULATION complète Ven+Sam+Dim, reproduction exacte du paradigme LCW).");
+      lines.push("3. **Pacing plus agressif autorisé** : sans contrainte de courir immédiatement après le vélo, la cible vélo peut glisser de 80-85% FTP → **85-88% FTP** (IF ~0.85). La course peut viser allure semi/marathon **proche du vrai potentiel** (pas de pénalité fatigue centrale vélo-fraîche).");
+      lines.push("4. **Nutrition INTER-ÉTAPES = arme absolue** : prescris **`B_LCW_NUTRITION_RECHARGE`** ≥3× dans le plan (associé à chaque back-to-back weekend en Build/Peak). Protocole détaillé Burke 2018 / Costa 2019.");
+      lines.push("5. **Fatigue résiduelle ENTRE jours** : conserve les séances 'CAP Z2 Fatigued' / lendemain de grosse charge — elles préparent EXACTEMENT le dimanche LCW (courir sur jambes raides post-vélo veille).");
+      lines.push("6. **Race Week LCW** : la semaine de course occupe 3 jours (Ven/Sam/Dim). Planifie 3 entrées 'COURSE OBJECTIF — Étape Natation/Vélo/Course' aux dates exactes.");
+      lines.push("");
+      lines.push("**Règle de fréquence LCW (NON-NÉGOCIABLE) :**");
+      lines.push("- Build LCW : minimum **1 weekend Sam+Dim par mois** avec `B_LCW_BIKE_LONG_RACE_SAT` + `B_LCW_RUN_OFF_LEGS_SUN` consécutifs.");
+      lines.push("- Peak LCW : **2 weekends Sam+Dim** + **1 fois** `B_LCW_BACK_TO_BACK_PEAK` complet + **3 rappels** `B_LCW_NUTRITION_RECHARGE`.");
+      lines.push("");
+      lines.push("**Référence** : LCW Wales (Tenby) et LCW Belgium = format historique à étapes, distinct du 70.3 continu. Sources : organisation LCW, retours coachs élites AG.");
+    }
+
   } else if (objKeyForRappel === "Marathon") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE MARATHON");
     lines.push("- CAP 85-90% | Renfo 10-15%");
