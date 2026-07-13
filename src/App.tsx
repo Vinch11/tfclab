@@ -137,6 +137,7 @@ export default function App() {
                   {/* ═══════════════════════════════════════════ */}
                   <Route path="/planning" element={<ProtectedRoute><PlanningPage /></ProtectedRoute>} />
                   <Route path="/planning/ai-plan" element={<ProtectedRoute><AITrainingPlanPage /></ProtectedRoute>} />
+                  <Route path="/debug/plan-qa" element={<ProtectedRoute><PlanQAPage /></ProtectedRoute>} />
                   <Route path="/planning/templates" element={<ProtectedRoute><TemplatesPage /></ProtectedRoute>} />
                   <Route path="/planning/running-guidance" element={<ProtectedRoute><RunningGuidancePage /></ProtectedRoute>} />
                   <Route path="/planning/library" element={<ProtectedRoute><WorkoutLibraryBrowserPage /></ProtectedRoute>} />
