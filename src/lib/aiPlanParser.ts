@@ -650,16 +650,22 @@ export function sanitizeTrailFromTriathlonPlan(
     obj.includes("ironman") ||
     obj === "im" ||
     obj.includes("triathlon");
-  if (!isTriathlon) return { plan, removed: [] };
+  const isTrailGoal =
+    obj.includes("trail") || obj.includes("utmb") || obj.includes("ccc") || obj.includes("occ") ||
+    (obj.includes("ultra") && !obj.includes("ironman"));
+  const isRoadRunning =
+    !isTriathlon && !isTrailGoal &&
+    (obj.includes("semi") || obj.includes("marathon") ||
+     obj.includes("10k") || obj.includes("10 km") || obj.includes("10km") ||
+     obj.includes("5k") || obj.includes("5 km") || obj.includes("5km") ||
+     obj.includes("start") || obj.includes("débutant") || obj.includes("beginner"));
 
-  // ⚠️ Règle stricte anti-faux-positif : on ne supprime QUE si un marqueur
-  // trail SANS ambiguïté est présent (ID catalogue trail explicite, ou sport
-  // déclaré "trail"). On NE supprime PAS une séance running/bike sous
-  // prétexte qu'elle mentionne "dénivelé", "col", "D+50m", "sentier" — ces
-  // termes sont normaux pour un long run route vallonné ou une sortie vélo
-  // en côte, et une suppression aveugle vide le plan de sa course à pied.
+  if (!isTriathlon && !isRoadRunning) return { plan, removed: [] };
+
+  // Marqueurs trail SANS ambiguïté : ID catalogue trail explicite,
+  // ou sport déclaré "trail", ou titre "séance trail / trail run".
   const TRAIL_ID_RX =
-    /\b(HEDGEHOG_[A-Z0-9_]+|URBAN_[A-Z0-9_]+|TRAIL_[A-Z0-9_]+|[A-Z]+_TRAIL_[A-Z0-9_]+)\b/;
+    /\b(HEDGEHOG_[A-Z0-9_]+|URBAN_[A-Z0-9_]+|TRAIL_[A-Z0-9_]+|[A-Z]+_TRAIL_[A-Z0-9_]+|[A-D]_TR(?:50)?_[A-Z0-9_]+|EXPE_HORS_VILLE_[A-Z0-9_]+|V3_TRAIL_[A-Z0-9_]+)\b/;
   const TRAIL_SPORT_RX = /^\s*trail(\s*running)?\s*$/i;
   const TRAIL_STRONG_TITLE_RX =
     /(s[ée]ance\s+trail|trail\s+run(ning)?|sortie\s+trail|entra[iî]nement\s+trail)/i;
@@ -685,7 +691,7 @@ export function sanitizeTrailFromTriathlonPlan(
         });
         // eslint-disable-next-line no-console
         console.warn(
-          `🚫 [Sanitizer] Séance trail retirée du plan triathlon : S${week.weekNumber} ${s.dayName} — ${title}`,
+          `🚫 [Sanitizer] Séance trail retirée (objectif non-trail) : S${week.weekNumber} ${s.dayName} — ${title}`,
         );
         continue;
       }

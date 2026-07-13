@@ -1044,7 +1044,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     ]),
     variants: { trail_short: "150-180' / 600-900m D+", trail_mountain: "210-270' / 1000-1500m D+", trail_ultra: "240-300' / 1200-1800m D+" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["expé-hors-ville", "week-end", "sortie-longue", "D+", "massif", "obligatoire-urbain"]
+    tags: ["trail", "expé-hors-ville", "week-end", "sortie-longue", "D+", "massif", "obligatoire-urbain"]
   },
   {
     id: "EXPE_HORS_VILLE_BACK_TO_BACK",
@@ -1063,7 +1063,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     ]),
     variants: { trail_short: "Sam 2h / Dim 1h30 (total ~1200m D+)", trail_mountain: "Sam 3h / Dim 2h (total ~2000m D+)", trail_ultra: "Sam 3h30 / Dim 2h30 (total ~2500m D+)" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["expé-hors-ville", "back-to-back", "week-end", "choc-spécifique", "obligatoire-urbain"]
+    tags: ["trail", "expé-hors-ville", "back-to-back", "week-end", "choc-spécifique", "obligatoire-urbain"]
   },
   {
     id: "EXPE_HORS_VILLE_DESCENTE_TECHNIQUE",
@@ -1082,7 +1082,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     ]),
     variants: { trail_short: "5 reps / 90'", trail_mountain: "6-7 reps / 120'", trail_ultra: "7-8 reps / 150'" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["expé-hors-ville", "descente", "technique", "week-end", "spécifique-massif"]
+    tags: ["trail", "expé-hors-ville", "descente", "technique", "week-end", "spécifique-massif"]
   },
   // ============= TAPIS INCLINÉ — extensions =============
   {
@@ -1295,7 +1295,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     ]),
     variants: { trail_short: "Skip", trail_mountain: "120-150'", trail_ultra: "150-180'" },
     goals: TRAIL_GOALS_ULTRA,
-    tags: ["expé-hors-ville", "nocturne", "ultra-spécifique", "frontale", "week-end"]
+    tags: ["trail", "expé-hors-ville", "nocturne", "ultra-spécifique", "frontale", "week-end"]
   },
   {
     id: "EXPE_HORS_VILLE_TRIPLE_JOUR",
@@ -1314,7 +1314,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     ]),
     variants: { trail_short: "Skip", trail_mountain: "Total 7h / 2500m D+", trail_ultra: "Total 9-10h / 3500-4000m D+" },
     goals: TRAIL_GOALS_MTN_ULTRA,
-    tags: ["expé-hors-ville", "stage", "triple-jour", "pic-spécifique", "week-end-prolongé"]
+    tags: ["trail", "expé-hors-ville", "stage", "triple-jour", "pic-spécifique", "week-end-prolongé"]
   },
   {
     id: "EXPE_HORS_VILLE_RACE_SIM_MASSIF",
@@ -1333,7 +1333,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     ]),
     variants: { trail_short: "180' / 600m D+", trail_mountain: "240' / 1200m D+", trail_ultra: "300' / 1800m D+" },
     goals: TRAIL_GOALS_MTN_ULTRA,
-    tags: ["expé-hors-ville", "race-sim", "autonomie", "répétition-générale", "nutrition-test"]
+    tags: ["trail", "expé-hors-ville", "race-sim", "autonomie", "répétition-générale", "nutrition-test"]
   },
   {
     id: "EXPE_HORS_VILLE_VERTICAL_KM",
@@ -1352,7 +1352,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     ]),
     variants: { trail_short: "600m D+", trail_mountain: "1000m D+", trail_ultra: "1000-1200m D+ allure plus modérée" },
     goals: TRAIL_GOALS_MTN_ULTRA,
-    tags: ["expé-hors-ville", "vertical-km", "puissance-verticale", "test-référence", "week-end"]
+    tags: ["trail", "expé-hors-ville", "vertical-km", "puissance-verticale", "test-référence", "week-end"]
   },
   {
     id: "EXPE_HORS_VILLE_FORET_PERIURBAINE",
@@ -1371,7 +1371,7 @@ const TRAIL_URBAN: LibraryWorkout[] = [
     ]),
     variants: { trail_short: "80-100'", trail_mountain: "100-130'", trail_ultra: "120-150'" },
     goals: TRAIL_GOALS_ALL,
-    tags: ["expé-hors-ville", "forêt-périurbaine", "EF", "volume", "week-end", "accessible-transports"]
+    tags: ["trail", "expé-hors-ville", "forêt-périurbaine", "EF", "volume", "week-end", "accessible-transports"]
   }
 ];
 

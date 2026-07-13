@@ -654,6 +654,56 @@ function validateSportRatio(
 const CATALOG_ID_PATTERN = /\b(?:[A-D]_(?:BIKE|RUN|SWIM|TR|STR|BR|RECOVERY|10K|703|IM|MAR|SEMI|HEAT|TAPER|RECUP|RACE|MENTAL|HALF|PAP|ALTITUDE|RESP|PRE)[A-Za-z0-9_]+|(?:BRICK|ENR|V[0-9]|TPL|RS|BR|URBAN|EXPE)_[A-Za-z0-9_]+)/g;
 const CUSTOM_PATTERN = /\[Custom\]/gi;
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// SPORT-OBJECTIVE COHERENCE — bloque trail dans plans triathlon/CAP route
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const OFFSPORT_TRAIL_RX = /\b([A-D]_TR(?:50)?_[A-Z0-9_]+|[A-Z]+_TRAIL_[A-Z0-9_]+|TRAIL_[A-Z0-9_]+|EXPE_HORS_VILLE_[A-Z0-9_]+|URBAN_[A-Z0-9_]+|HEDGEHOG_[A-Z0-9_]+|V3_TRAIL_[A-Z0-9_]+)\b/i;
+
+function isNonTrailObjective(objective?: string): boolean {
+  const o = (objective || "").toLowerCase();
+  if (!o) return false;
+  const isTrail = o.includes("trail") || o.includes("utmb") || o.includes("ccc") || o.includes("occ") ||
+    (o.includes("ultra") && !o.includes("ironman"));
+  if (isTrail) return false;
+  const isTri = o.includes("70.3") || o === "703" || o.includes("ironman") || o === "im" || o.includes("triathlon");
+  const isRoad = o.includes("semi") || o.includes("marathon") ||
+    o.includes("10k") || o.includes("10 km") || o.includes("10km") ||
+    o.includes("5k") || o.includes("5 km") || o.includes("5km") ||
+    o.includes("start") || o.includes("débutant") || o.includes("beginner");
+  return isTri || isRoad;
+}
+
+function validateSportObjectiveCoherence(
+  plan: ParsedPlan,
+  objective?: string,
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+  if (!isNonTrailObjective(objective)) return { issues, score: 100 };
+  let violations = 0;
+  let totalSessions = 0;
+  for (const week of plan.weeks) {
+    for (const s of week.sessions) {
+      if (s.isRest) continue;
+      totalSessions++;
+      const text = `${s.title || ""} ${s.details || ""}`;
+      if (OFFSPORT_TRAIL_RX.test(text)) {
+        violations++;
+        issues.push({
+          rule: "sport_objective_coherence",
+          severity: "error",
+          week: week.weekNumber,
+          message: `S${week.weekNumber} ${s.dayName} — séance trail interdite dans un plan "${objective}"`,
+          detail: s.title || "",
+        });
+      }
+    }
+  }
+  const score = totalSessions === 0 ? 100 : Math.max(0, 100 - Math.round((violations / totalSessions) * 400));
+  return { issues, score };
+}
+
+
 function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; score: number; catalogPct: number; catalogStats: CatalogUsageStats } {
   const issues: ValidationIssue[] = [];
   let catalogSessions = 0;
@@ -1750,6 +1800,7 @@ export function validatePlan(
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
   const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
   const lorang_ = validateLorangCategories(plan);
+  const sportObjective = validateSportObjectiveCoherence(plan, objective);
 
   // Combine all issues
   const allIssues = [
@@ -1766,6 +1817,7 @@ export function validatePlan(
     ...wbalFeasibility.issues,
     ...sessionDensity_.issues,
     ...lorang_.issues,
+    ...sportObjective.issues,
   ];
 
   // Weighted score (13 rules) — Lot 4 introduit lorangCategories (5%),

@@ -27,6 +27,21 @@ const getCatalogSportFilter = (objective: string): TrainingSport[] | undefined =
  *   qui masquent le paradigme LCW (brique T2 immédiate, run-fatigued-next-day
  *   sans long-bike race-pace la veille).
  */
+/**
+ * Patterns d'IDs de séances trail (source de vérité unique).
+ * Utilisés partout pour bannir le trail des plans non-trail.
+ */
+export const TRAIL_ID_PATTERNS: RegExp[] = [
+  /^HEDGEHOG_/i,
+  /_HEDGEHOG_/i,
+  /^URBAN_/i,
+  /^TRAIL_/i,
+  /_TRAIL_/i,
+  /^[A-D]_TR(?:50)?_/i,
+  /^EXPE_HORS_VILLE_/i,
+  /^V3_TRAIL_/i,
+];
+
 const getCatalogExclusions = (
   objective: string,
   raceGoals?: RaceGoal[]
@@ -35,20 +50,36 @@ const getCatalogExclusions = (
   const isTriathlon = lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
   const isHalf = lower.includes("70.3") || lower === "703";
   const isLCW = Array.isArray(raceGoals) && raceGoals.some(g => g?.raceFormat === "lcw_3day");
+  const isTrailGoal = lower.includes("trail") || lower.includes("utmb") || lower.includes("ccc") || lower.includes("occ") || (lower.includes("ultra") && !lower.includes("ironman"));
+  // CAP route : tout objectif course sur route (semi/marathon/10K/5K/start-to-run)
+  // qui n'est ni trail ni triathlon → doit AUSSI bannir le trail.
+  const isRoadRunning =
+    !isTriathlon &&
+    !isTrailGoal &&
+    (
+      lower.includes("semi") ||
+      lower.includes("marathon") ||
+      lower.includes("10k") ||
+      lower.includes("10 km") ||
+      lower.includes("10km") ||
+      lower.includes("5k") ||
+      lower.includes("5 km") ||
+      lower.includes("5km") ||
+      lower.includes("start") ||
+      lower.includes("débutant") ||
+      lower.includes("beginner")
+    );
 
   const excludeIdPatterns: RegExp[] = [];
   const excludeTags: string[] = [];
 
-  if (isTriathlon) {
-    // Bannir tout contenu trail dans un plan triathlon
+  if (isTriathlon || isRoadRunning) {
+    // Bannir tout contenu trail dans un plan triathlon OU CAP route.
     excludeTags.push("trail", "trail-urban");
-    excludeIdPatterns.push(/^HEDGEHOG_/i, /_HEDGEHOG_/i, /^URBAN_/i, /^TRAIL_/i, /_TRAIL_/i);
+    excludeIdPatterns.push(...TRAIL_ID_PATTERNS);
   }
 
   if (isLCW) {
-    // Bannir les briques T2 continues + marathon-split IM (incompatibles avec paradigme 3 jours).
-    // NB : `A_IM_RUN_FATIGUED_NEXT_DAY` reste AUTORISÉE (validée en post-génération : exige
-    // un long bike la veille — voir compliance check `A_IM_RUN_FATIGUED_NEXT_DAY orphan`).
     excludeIdPatterns.push(
       /^B_IM_BRICK_LONG_MARATHON_PACE$/i,
       /^B_IM_RUN_MARATHON_SPLIT/i,
@@ -57,7 +88,6 @@ const getCatalogExclusions = (
   }
 
   if (isHalf && !isLCW) {
-    // Plan 70.3 continu : pas de séance IM ultra-longue (>3h30 vélo, marathon splits IM…)
     excludeIdPatterns.push(/^A_IM_RUN_LONG_DURABILITY/i, /^B_IM_RUN_MARATHON_SPLIT/i);
   }
 
