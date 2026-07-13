@@ -1800,6 +1800,7 @@ export function validatePlan(
   const wbalFeasibility = validateWbalFeasibility(plan, athleteData);
   const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
   const lorang_ = validateLorangCategories(plan);
+  const sportObjective = validateSportObjectiveCoherence(plan, objective);
 
   // Combine all issues
   const allIssues = [
@@ -1816,6 +1817,7 @@ export function validatePlan(
     ...wbalFeasibility.issues,
     ...sessionDensity_.issues,
     ...lorang_.issues,
+    ...sportObjective.issues,
   ];
 
   // Weighted score (13 rules) — Lot 4 introduit lorangCategories (5%),
