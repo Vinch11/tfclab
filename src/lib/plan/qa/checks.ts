@@ -19,7 +19,7 @@ import type { MergedPlan, MergedSession, SportObjectiveIssue } from "@/lib/plan/
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import type { PlanGenerationStat } from "@/lib/plan/planGenerationStats";
-import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX } from "../../../../supabase/functions/ai-training-plan/offSportTrailGuard";
+import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX } from "@/lib/plan/planSchema";
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {

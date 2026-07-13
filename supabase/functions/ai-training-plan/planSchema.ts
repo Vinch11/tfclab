@@ -43,6 +43,11 @@
 
 import { z } from "npm:zod@3.23.8";
 
+// Marqueurs B3 strictement critical : D+ chiffré, trail technique / massif, etc.
+// "vallonné" seul reste warning (terrain vallonné légitime en route/tri).
+export const TRAIL_DETAILS_CRITICAL_RX = /(?:\b\d{2,}\s*m\s*D\+\b|\bD\+\s*\d{2,}\s*m\b|\+\s*\d{2,}\s*m\b|montée\s+sèche|b[âa]tons|power[-\s]?hike|vertical[-\s]?km|\bVK\b|\bmassif\b|\bardennes\b|\bvosges\b|\balpes\b|\bpyr[ée]n[ée]es\b|sentier\s+technique|trail\s+technique)/i;
+export const TRAIL_DETAILS_WARNING_RX = /vallonn[ée]/i;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Enums fermés
 // ─────────────────────────────────────────────────────────────────────────────

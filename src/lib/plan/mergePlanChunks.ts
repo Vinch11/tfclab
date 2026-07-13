@@ -12,9 +12,9 @@
  */
 import {
   DAY_INDEX, DAY_CAPITALIZED,
+  TRAIL_DETAILS_CRITICAL_RX,
   type PlanChunk, type PlanSession, type StrategicRecapJSON, type PhaseSummaryJSON,
 } from "./planSchema";
-import { TRAIL_DETAILS_CRITICAL_RX } from "../../../supabase/functions/ai-training-plan/offSportTrailGuard";
 
 export interface MergedSession {
   weekNumber: number;
