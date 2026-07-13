@@ -19,6 +19,7 @@ import {
   buildPlanChunkSchema,
   collectZodIssues,
   formatZodErrors,
+  zStrategicRecap,
   type BuildPlanChunkSchemaOptions,
   type PlanChunk,
 } from "./planSchema.ts";
