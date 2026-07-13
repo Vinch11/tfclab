@@ -185,7 +185,8 @@ export default function PlanQAPage() {
   const refresh = () => setStats(readPlanStats());
   const wipe = () => { clearPlanStats(); setStats([]); };
   const copyFullReport = async () => {
-    await navigator.clipboard.writeText(buildFullReport(stats, testResults));
+    await navigator.clipboard.writeText(buildFullReport(stats, testResults, qa.lastSession));
+    toast.success("Rapport complet copié.");
   };
 
   const runTests = async () => {
@@ -197,6 +198,24 @@ export default function PlanQAPage() {
       setRunningTests(false);
     }
   };
+
+  // ── Self-test préconditions (auth + supabase) ─────────────────────────────
+  const [selfTest, setSelfTest] = useState<{ ok: boolean; message: string } | null>(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) { setSelfTest({ ok: false, message: `Auth: ${error.message}` }); return; }
+        if (!data.session) { setSelfTest({ ok: false, message: "Pas de session d'authentification active — connectez-vous avant de lancer un run." }); return; }
+        setSelfTest({ ok: true, message: `Runner opérationnel — session utilisateur ${data.session.user.email ?? data.session.user.id}` });
+      } catch (e) {
+        setSelfTest({ ok: false, message: `Self-test exception: ${e instanceof Error ? e.message : String(e)}` });
+      }
+    })();
+  }, []);
+
+  const runnerReady = selfTest?.ok === true;
+
 
   const passed = testResults?.filter(t => t.pass).length ?? 0;
   const failed = testResults?.filter(t => !t.pass).length ?? 0;
