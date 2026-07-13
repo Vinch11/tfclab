@@ -67,9 +67,10 @@ interface GatewayDiagnostic {
 interface ParseDiagnostic {
   parsedJson: unknown | null;
   unwrapped: boolean;
-  unwrapMethod: "none" | "fence" | "balanced-substring" | "fence+balanced-substring";
+  unwrapMethod: "none" | "extractJsonPayload";
   cleanedLength: number;
   parseError?: string;
+  truncatedByExtraction?: boolean;
   repairs: string[];
 }
 
