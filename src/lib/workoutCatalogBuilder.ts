@@ -439,9 +439,22 @@ export function computeCatalogDurationStats(catalog: CatalogEntry[]): CatalogDur
   return stats;
 }
 
+/** Map raw catalog sport to a normalized display sport bucket. */
+function normalizeSportBucket(sport: string): { key: string; label: string; emoji: string; order: number } {
+  const s = (sport || "").toLowerCase();
+  if (s === "cyclisme" || s === "bike" || s === "vélo" || s === "velo") return { key: "bike", label: "VÉLO", emoji: "🚴", order: 1 };
+  if (s === "course" || s === "run") return { key: "run", label: "COURSE À PIED", emoji: "🏃", order: 2 };
+  if (s === "trail") return { key: "trail", label: "TRAIL / CAP MONTAGNE", emoji: "⛰️", order: 3 };
+  if (s === "natation" || s === "swim") return { key: "swim", label: "NATATION", emoji: "🏊", order: 4 };
+  if (s === "brick") return { key: "brick", label: "BRICK (enchaînement)", emoji: "🔁", order: 5 };
+  if (s === "strength" || s === "renforcement") return { key: "strength", label: "RENFO / MOBILITÉ", emoji: "💪", order: 6 };
+  if (s === "mixed") return { key: "mixed", label: "MIXTE", emoji: "🎯", order: 7 };
+  return { key: s || "autre", label: (s || "AUTRE").toUpperCase(), emoji: "•", order: 9 };
+}
+
 /**
  * Serialize the catalog to a markdown table for prompt injection.
- * Compact format to minimize token usage.
+ * Sessions are GROUPED BY SPORT so the AI cannot pick a bike ID for a run slot.
  */
 export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   if (catalog.length === 0) return "";
@@ -450,29 +463,41 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   lines.push("\n### 📚 CATALOGUE DE SÉANCES VALIDÉES TFCL™ (OBLIGATOIRE)");
   lines.push("⚠️ Tu DOIS utiliser les séances ci-dessous comme base pour construire le plan.");
   lines.push("Chaque séance clé 🔑 doit correspondre à une entrée de ce catalogue (utilise l'ID).");
-  lines.push("Tu peux adapter les durées et zones selon la progression, mais le protocole de base doit correspondre.\n");
+  lines.push("Les séances sont **groupées par sport**. Un slot d'un sport donné ne peut JAMAIS recevoir un ID d'un autre sport.\n");
 
   const hasTrailDPlus = catalog.some(e => e.dPlusTargetM);
 
-  if (hasTrailDPlus) {
-    lines.push("| ID | Cat | Sport | Objectif | Phases | Durée (min) | D+ cible (m) | Structure |");
-    lines.push("|-----|-----|-------|----------|--------|-------------|--------------|-----------|");
-  } else {
-    lines.push("| ID | Cat | Sport | Objectif | Phases | Durée (min) | Structure |");
-    lines.push("|-----|-----|-------|----------|--------|-------------|-----------|");
-  }
-
+  const buckets = new Map<string, { info: ReturnType<typeof normalizeSportBucket>; entries: CatalogEntry[] }>();
   for (const e of catalog) {
-    const phases = e.phase.join(",") || "all";
-    const dur = `${e.durationMin[0]}-${e.durationMin[1]}`;
-    const struct = e.structure.length > 120 ? e.structure.slice(0, 117) + "..." : e.structure;
-    const dPlus = e.dPlusTargetM
-      ? (typeof e.dPlusTargetM === "number" ? `${e.dPlusTargetM}` : `${e.dPlusTargetM.min}-${e.dPlusTargetM.max}`)
-      : "—";
-    if (hasTrailDPlus) {
-      lines.push(`| ${e.id} | ${e.cat} | ${e.sport} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${dPlus} | ${struct} |`);
-    } else {
-      lines.push(`| ${e.id} | ${e.cat} | ${e.sport} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${struct} |`);
+    const info = normalizeSportBucket(e.sport);
+    if (!buckets.has(info.key)) buckets.set(info.key, { info, entries: [] });
+    buckets.get(info.key)!.entries.push(e);
+  }
+  const ordered = Array.from(buckets.values()).sort((a, b) => a.info.order - b.info.order);
+
+  const header = hasTrailDPlus
+    ? "| ID | Cat | Objectif | Phases | Durée (min) | D+ cible (m) | Structure |"
+    : "| ID | Cat | Objectif | Phases | Durée (min) | Structure |";
+  const sep = hasTrailDPlus
+    ? "|-----|-----|----------|--------|-------------|--------------|-----------|"
+    : "|-----|-----|----------|--------|-------------|-----------|";
+
+  for (const { info, entries } of ordered) {
+    lines.push(`\n#### ${info.emoji} ${info.label} — ${entries.length} séance(s)`);
+    lines.push(header);
+    lines.push(sep);
+    for (const e of entries) {
+      const phases = e.phase.join(",") || "all";
+      const dur = `${e.durationMin[0]}-${e.durationMin[1]}`;
+      const struct = e.structure.length > 120 ? e.structure.slice(0, 117) + "..." : e.structure;
+      const dPlus = e.dPlusTargetM
+        ? (typeof e.dPlusTargetM === "number" ? `${e.dPlusTargetM}` : `${e.dPlusTargetM.min}-${e.dPlusTargetM.max}`)
+        : "—";
+      if (hasTrailDPlus) {
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${dPlus} | ${struct} |`);
+      } else {
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${struct} |`);
+      }
     }
   }
 
@@ -493,6 +518,8 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   lines.push("3. Adapte la durée selon la semaine (progression) mais garde le protocole.");
   lines.push("4. Si aucune séance du catalogue ne correspond, tu PEUX créer une séance custom (décris le protocole complet, mentionne 'CUSTOM' au lieu de l'ID).");
   lines.push("5. Les séances de récupération et repos ne nécessitent pas d'ID catalogue (mais gardent une description : durée, zone, type).");
+  lines.push("6. 🚫 **NON-CROSS-SPORT** : chaque ID vit dans UN SEUL groupe sport ci-dessus. Un slot vélo ne peut recevoir qu'un ID du groupe 🚴 VÉLO ; un slot course qu'un ID 🏃 COURSE ou ⛰️ TRAIL ; un slot natation qu'un ID 🏊 NATATION ; un slot renfo qu'un ID 💪 RENFO. Les IDs 🔁 BRICK sont réservés aux enchaînements planifiés comme tels. Toute violation = séance rejetée.");
+  lines.push("7. 🚫 **Pas de watts dans une séance course**, pas d'allure /km dans une séance vélo, pas de puissance dans une séance natation. Chaque sport a sa métrique dédiée (Watts vélo, allure/VMA course, CSS/temps 100m natation).");
 
   return lines.join("\n");
 }
