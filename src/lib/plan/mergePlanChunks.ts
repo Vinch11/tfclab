@@ -12,6 +12,7 @@
  */
 import {
   DAY_INDEX, DAY_CAPITALIZED,
+  TRAIL_DETAILS_CRITICAL_RX,
   type PlanChunk, type PlanSession, type StrategicRecapJSON, type PhaseSummaryJSON,
 } from "./planSchema";
 
@@ -163,8 +164,6 @@ export interface SportObjectiveIssue {
  */
 const TRAIL_CATALOG_RX =
   /^[A-D]_TR(?:50)?_|_TRAIL_|^EXPE_HORS_VILLE_|^URBAN_|^HEDGEHOG_/i;
-const TRAIL_CUSTOM_TEXT_RX =
-  /\bD\+|montée\s+sèche|bâtons|power[-\s]?hike|vertical[-\s]?km/i;
 
 export function validateSportObjective(
   plan: MergedPlan,
@@ -191,7 +190,7 @@ export function validateSportObjective(
         });
         continue;
       }
-      if (s.custom && TRAIL_CUSTOM_TEXT_RX.test(`${s.title} ${s.details}`)) {
+      if (s.custom && TRAIL_DETAILS_CRITICAL_RX.test(`${s.title} ${s.details}`)) {
         issues.push({
           severity: "critical",
           weekNumber: w.weekNumber,

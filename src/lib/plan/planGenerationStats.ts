@@ -64,6 +64,8 @@ export interface PlanGenerationStat {
   nonRestSessionCount?: number;
   /** Nombre de sessions custom non-rest (numérateur). */
   customSessionCount?: number;
+  /** Repairs/warnings déterministes non-Zod (ex: B3 substituted_offsport). */
+  semanticRepairs?: string[];
 }
 
 const KEY = "tfcl:plan_gen_stats";
@@ -93,7 +95,8 @@ export function logPlanStat(stat: PlanGenerationStat): void {
   console.info(
     `${tag} [plan-stats] fmt=${stat.format} obj="${stat.objective}" weeks=${stat.totalWeeks} chunks=${stat.totalChunks} dur=${stat.durationMs}ms${ratioStr}` +
     (stat.errorCode ? ` err=${stat.errorCode}` : "") +
-    (stat.sportObjectiveCriticalIssues ? ` issues=${stat.sportObjectiveCriticalIssues}` : ""),
+    (stat.sportObjectiveCriticalIssues ? ` issues=${stat.sportObjectiveCriticalIssues}` : "") +
+    (stat.semanticRepairs?.length ? ` semanticRepairs=${stat.semanticRepairs.length}` : ""),
   );
 }
 

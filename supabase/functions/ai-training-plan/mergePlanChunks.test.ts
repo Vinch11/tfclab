@@ -114,3 +114,4 @@ Deno.test("mergePlanChunks — rest session → isRest=true, dayIndex correct", 
   assertEquals(s.dayName, "Dimanche");
   assertEquals(s.dayIndex, 6);
 });
+

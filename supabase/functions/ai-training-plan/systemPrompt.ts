@@ -201,7 +201,7 @@ const FEWSHOT_FRODENO_IM = `### Exemple : Jan Frodeno — Semaine Build IM (22h)
 | Mercredi soir | Renfo | Force fonctionnelle | Squat 4×6 @75%, fentes bulgares 3×8, deadlift 3×5, core 15min. 45min |
 | Jeudi matin | Natation | Seuil + technique | 300m éch drill. 5×400m @1:20/100m r=25s. 8×50m rattrapé. 200m RC. 4000m |
 | Jeudi soir | Vélo | Endurance Z2 Train Low | 2h à jeun Z2 (195-220W, 68% FTP), cad 88. Aucune intensité |
-| Vendredi matin | CAP | EF vallonnée | 1h Z2 (4:45/km), 180spm, terrain vallonné +200m D+. Sensation aisée |
+| Vendredi matin | CAP | EF vallonnée | 1h Z2 (4:45/km), 180spm, terrain vallonné. Sensation aisée |
 | Vendredi soir | Natation | Pull aérobie + OWS | Pull buoy 2500m Z2 @1:28/100m. 4×200m OWS simulation. 3200m |
 | Samedi | Vélo | Sortie longue + Gut Training | 5h Z2 vallonné (200-230W). Gut training 60g/h glucides. Dernière heure @75% FTP |
 | Dimanche | Brique | Vélo→CAP Race-Pace | Vélo 2h30 @78% FTP (250W) + enchaînement CAP 45min @4:10/km. Gut 50g/h |`;
@@ -218,7 +218,7 @@ const FEWSHOT_LUCY_703 = `### Exemple : Lucy Charles-Barclay — Semaine Spécif
 | Jeudi soir | Vélo | Z2 récupération | 1h30 Z2 léger (175-200W, 65% FTP). Cadence libre. Jambes fraîches |
 | Vendredi | CAP | EF + strides | 55min Z2 (4:30/km) + 8×100m accélérations progressives. 13km |
 | Samedi | Brique | Simulation 70.3 | Vélo 2h @82% FTP (230W) + CAP 30min @3:55/km immédiat. Gut 70g/h. Transition <2min |
-| Dimanche | Vélo | Sortie longue vallonnée | 3h30 Z2 (190-220W) terrain vallonné +800m D+. Ravitaillement solide 40g/h |`;
+| Dimanche | Vélo | Sortie longue vallonnée | 3h30 Z2 (190-220W) terrain vallonné. Ravitaillement solide 40g/h |`;
 
 const FEWSHOT_KIPCHOGE_MARATHON = `### Exemple : Eliud Kipchoge — Semaine Build Marathon (170km, 13h)
 | Jour | Sport | Séance | Détails |
