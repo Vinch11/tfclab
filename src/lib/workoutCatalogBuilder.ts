@@ -219,6 +219,10 @@ export function buildWorkoutCatalog(
     chunkIndex?: number;
     /** IDs already selected in previous chunks — avoid repeats */
     excludeIds?: Set<string>;
+    /** Hard-exclude workouts whose id matches any of these regex (applied pre-scoring). */
+    excludeIdPatterns?: RegExp[];
+    /** Hard-exclude workouts whose tags include any of these values (applied pre-scoring). */
+    excludeTags?: string[];
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
