@@ -22,6 +22,7 @@ import {
   type BuildPlanChunkSchemaOptions,
   type PlanChunk,
 } from "./planSchema.ts";
+import { extractJsonPayload } from "./extractJson.ts";
 
 export class ChunkGenerationError extends Error {
   constructor(
