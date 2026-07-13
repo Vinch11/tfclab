@@ -13,11 +13,56 @@ const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-
 const getCatalogSportFilter = (objective: string): TrainingSport[] | undefined => {
   const lower = objective.trim().toLowerCase();
   const isTriathlon = lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
-  if (isTriathlon) return undefined;
+  // Triathlon: restreindre AUX sports triathlon (jamais de trail dans un plan 70.3/IM).
+  if (isTriathlon) return ["swim", "bike", "run", "brick", "strength", "cyclisme", "course", "natation", "renforcement", "mixed"];
   const isTrail = lower.includes("trail") || lower.includes("utmb") || lower.includes("ccc") || lower.includes("occ") || lower.includes("ultra");
   if (isTrail) return ["course", "run", "trail", "strength", "renforcement"];
   return ["course", "run", "strength", "renforcement"];
 };
+
+/**
+ * Compute id-regex / tag exclusions based on objective + raceFormat.
+ * - Triathlon plans jamais de contenu trail (tags + IDs Hedgehog/Urban/Trail).
+ * - Format LCW (70.3 3 jours éclatés) : bannir séances signature IM 1-jour
+ *   qui masquent le paradigme LCW (brique T2 immédiate, run-fatigued-next-day
+ *   sans long-bike race-pace la veille).
+ */
+const getCatalogExclusions = (
+  objective: string,
+  raceGoals?: RaceGoal[]
+): { excludeIdPatterns: RegExp[]; excludeTags: string[] } => {
+  const lower = objective.trim().toLowerCase();
+  const isTriathlon = lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
+  const isHalf = lower.includes("70.3") || lower === "703";
+  const isLCW = Array.isArray(raceGoals) && raceGoals.some(g => g?.raceFormat === "lcw_3day");
+
+  const excludeIdPatterns: RegExp[] = [];
+  const excludeTags: string[] = [];
+
+  if (isTriathlon) {
+    // Bannir tout contenu trail dans un plan triathlon
+    excludeTags.push("trail", "trail-urban");
+    excludeIdPatterns.push(/^HEDGEHOG_/i, /_HEDGEHOG_/i, /^URBAN_/i, /^TRAIL_/i, /_TRAIL_/i);
+  }
+
+  if (isLCW) {
+    // Bannir les séances IM 1-jour / briques T2 continues incompatibles avec LCW
+    // (leur signature physiologique ≠ course à étapes 3 jours).
+    excludeIdPatterns.push(
+      /^A_IM_/i,
+      /^B_IM_/i,
+      /^B_703_BRICK_RACE_PACE$/i,
+    );
+  }
+
+  if (isHalf && !isLCW) {
+    // Plan 70.3 continu : pas de séance IM ultra-longue (>3h30 vélo, marathon splits IM…)
+    excludeIdPatterns.push(/^A_IM_RUN_LONG_DURABILITY/i, /^B_IM_RUN_MARATHON_SPLIT/i);
+  }
+
+  return { excludeIdPatterns, excludeTags };
+};
+
 
 export interface PlanAthleteData {
   nom?: string;
