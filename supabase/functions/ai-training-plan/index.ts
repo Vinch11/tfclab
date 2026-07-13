@@ -1282,12 +1282,50 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
                   lcwViolations.push(`Vocabulaire TRAIL suspect (${trailVocabHits} occurrences) dans un plan 70.3 LCW — vérifier absence de séances montagne/sentier`);
                 }
 
-                // ─── Détection fuites IM (séances signature Ironman 1-jour) ───
-                const imLeakRx = /\b(A_IM_\w+|B_IM_\w+)\b/gi;
-                const imLeakMatches = Array.from(new Set((full.match(imLeakRx) || []).map(s => s.toUpperCase())));
-                if (imLeakMatches.length > 0) {
-                  lcwViolations.push(`Fuite IM détectée : ID(s) Ironman 1-jour prescrit(s) en contexte LCW → ${imLeakMatches.slice(0, 5).join(", ")}${imLeakMatches.length > 5 ? "…" : ""}`);
+                // ─── Détection ORPHELINE : long run fatigue résiduelle SANS long-bike la veille ───
+                // Autorisée si J-1 = long bike (≥2h30 Z2-Z3 ou race-pace / B_LCW_BIKE_LONG_RACE_SAT / B_IM_BIKE_LONG_*).
+                // Sinon violation : la séance perd sa signature physiologique.
+                const fatigueRunIds = ["A_IM_RUN_FATIGUED_NEXT_DAY", "B_LCW_RUN_OFF_LEGS_SUN"];
+                const jours = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+                // Segmenter le plan par jour : capture chaque bloc `**Jour**` ... jusqu'au prochain jour ou fin de semaine.
+                const dayBlockRx = /\*{0,2}(Lundi|Mardi|Mercredi|Jeudi|Vendredi|Samedi|Dimanche)\*{0,2}([\s\S]*?)(?=\n\s*\*{0,2}(?:Lundi|Mardi|Mercredi|Jeudi|Vendredi|Samedi|Dimanche)\*{0,2}|\n\s*##|\n\s*###|$)/gi;
+                const orphanHits: string[] = [];
+                let m: RegExpExecArray | null;
+                // Reconstruire une timeline linéaire (jour, contenu) dans l'ordre d'apparition.
+                const timeline: Array<{ day: string; body: string }> = [];
+                while ((m = dayBlockRx.exec(full)) !== null) {
+                  timeline.push({ day: m[1], body: m[2] });
                 }
+                const isLongBike = (body: string): boolean => {
+                  if (/B_LCW_BIKE_LONG_RACE_SAT|B_IM_BIKE_LONG|B_703_BIKE_LONG|B_BIKE_LONG_Z2/i.test(body)) return true;
+                  // Vélo + durée ≥ 2h30
+                  const bikeMention = /(v[eé]lo|bike|home\s*trainer|HT|cyclisme)/i.test(body);
+                  const durMatch = body.match(/(\d+)\s*h\s*(\d{0,2})?/);
+                  if (bikeMention && durMatch) {
+                    const h = parseInt(durMatch[1], 10);
+                    const min = durMatch[2] ? parseInt(durMatch[2], 10) : 0;
+                    if (h * 60 + min >= 150) return true;
+                  }
+                  return false;
+                };
+                for (let i = 0; i < timeline.length; i++) {
+                  const { day, body } = timeline[i];
+                  const hasFatigueRun = fatigueRunIds.some(id => body.toUpperCase().includes(id));
+                  if (!hasFatigueRun) continue;
+                  // Jour précédent = i-1 dans la timeline (semaine calendaire réelle).
+                  const prev = i > 0 ? timeline[i - 1] : null;
+                  const dayIdx = jours.indexOf(day);
+                  const expectedPrev = dayIdx > 0 ? jours[dayIdx - 1] : "Dimanche (sem. précédente)";
+                  const prevIsAdjacent = prev && prev.day.toLowerCase() === expectedPrev.toLowerCase();
+                  const prevHasLongBike = prevIsAdjacent && isLongBike(prev.body);
+                  if (!prevHasLongBike) {
+                    orphanHits.push(`${day} (attendu ${expectedPrev} = long-bike ≥2h30)`);
+                  }
+                }
+                if (orphanHits.length > 0) {
+                  lcwViolations.push(`Long run 'fatigue résiduelle' ORPHELINE (pas de long-bike la veille) : ${orphanHits.slice(0, 5).join(" | ")}${orphanHits.length > 5 ? "…" : ""}`);
+                }
+
 
 
 
