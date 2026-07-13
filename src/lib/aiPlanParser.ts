@@ -652,26 +652,40 @@ export function sanitizeTrailFromTriathlonPlan(
     obj.includes("triathlon");
   if (!isTriathlon) return { plan, removed: [] };
 
-  const TRAIL_ID_RX = /\b(HEDGEHOG_\w+|URBAN_\w+|TRAIL_\w+|\w+_TRAIL_\w+)\b/i;
-  const TRAIL_VOCAB_RX =
-    /(montagne|sentier|b[aâ]tons?|sac\s*[aà]\s*dos|d[eé]nivel[eé]|\bD\+\s*\d{2,}|off[- ]road|cairn|massif|col\b|ravito\s*trail)/i;
+  // ⚠️ Règle stricte anti-faux-positif : on ne supprime QUE si un marqueur
+  // trail SANS ambiguïté est présent (ID catalogue trail explicite, ou sport
+  // déclaré "trail"). On NE supprime PAS une séance running/bike sous
+  // prétexte qu'elle mentionne "dénivelé", "col", "D+50m", "sentier" — ces
+  // termes sont normaux pour un long run route vallonné ou une sortie vélo
+  // en côte, et une suppression aveugle vide le plan de sa course à pied.
+  const TRAIL_ID_RX =
+    /\b(HEDGEHOG_[A-Z0-9_]+|URBAN_[A-Z0-9_]+|TRAIL_[A-Z0-9_]+|[A-Z]+_TRAIL_[A-Z0-9_]+)\b/;
+  const TRAIL_SPORT_RX = /^\s*trail(\s*running)?\s*$/i;
+  const TRAIL_STRONG_TITLE_RX =
+    /(s[ée]ance\s+trail|trail\s+run(ning)?|sortie\s+trail|entra[iî]nement\s+trail)/i;
 
   const removed: Array<{ week: number; day: string; title: string }> = [];
 
   const cleanedWeeks: ParsedWeek[] = plan.weeks.map((week) => {
     const kept: ParsedSession[] = [];
     for (const s of week.sessions) {
-      const blob = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
-      const isTrail = TRAIL_ID_RX.test(blob) || TRAIL_VOCAB_RX.test(blob);
+      const title = s.title || "";
+      const details = s.details || "";
+      const sport = s.sport || "";
+      const isTrail =
+        TRAIL_ID_RX.test(title) ||
+        TRAIL_ID_RX.test(details) ||
+        TRAIL_SPORT_RX.test(sport) ||
+        TRAIL_STRONG_TITLE_RX.test(title);
       if (isTrail) {
         removed.push({
           week: week.weekNumber,
           day: s.dayName || `J${s.dayIndex + 1}`,
-          title: s.title || "(séance sans titre)",
+          title: title || "(séance sans titre)",
         });
         // eslint-disable-next-line no-console
         console.warn(
-          `🚫 [Sanitizer] Séance trail retirée du plan triathlon : S${week.weekNumber} ${s.dayName} — ${s.title}`,
+          `🚫 [Sanitizer] Séance trail retirée du plan triathlon : S${week.weekNumber} ${s.dayName} — ${title}`,
         );
         continue;
       }
