@@ -151,6 +151,9 @@ export default function PlanQAPage() {
   const [testResults, setTestResults] = useState<TestResult[] | null>(null);
   const [runningTests, setRunningTests] = useState(false);
   const [selectedSchemaFail, setSelectedSchemaFail] = useState<PlanGenerationStat | null>(null);
+  const [qaN, setQaN] = useState<1 | 3 | 5>(1);
+  const [qaSessions, setQaSessions] = useState<QASession[]>(readQASessions());
+  const qa = useQARunner();
 
   const summary = useMemo(() => {
     const jsonOk = stats.filter(s => s.format === "json" && s.ok).length;
