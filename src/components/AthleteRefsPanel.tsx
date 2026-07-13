@@ -641,7 +641,7 @@ function QuickChronoDialog({
       const fields = CHRONO_FIELDS[distance];
       const { error } = await supabase
         .from("snapshots")
-        .update({ [fields.sec]: parsed, [fields.date]: dateChrono })
+        .update({ [fields.sec]: parsed, [fields.date]: dateChrono } as any)
         .eq("id", snapshotId);
       if (error) {
         toast.error(`Erreur : ${error.message}`);
