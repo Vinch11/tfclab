@@ -492,6 +492,24 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
     }
 
     const extracted = extractJSONText(result.content);
+    if (extracted.truncatedByExtraction) {
+      const snippets = rawSnippet(result.content);
+      console.error(`[TRUNCATED] chunk=${input.chunkIndex} reason=unbalanced-json rawLength=${snippets.rawLength}`);
+      throw new ChunkGenerationError(
+        "TRUNCATED",
+        input.chunkIndex,
+        `Chunk ${input.chunkIndex} : sortie JSON tronquée (délimiteurs non équilibrés).`,
+        {
+          chunkIndex: input.chunkIndex,
+          finishReason: result.finishReason,
+          ...snippets,
+          unwrapped: extracted.unwrapped,
+          unwrapMethod: extracted.unwrapMethod,
+          parseError: extracted.parseError,
+          gateway: result.gatewayDiagnostic,
+        },
+      );
+    }
     const normalized = extracted.parsedJson === null
       ? { value: null, repairs: [] }
       : normalizeModelJsonForSchema(extracted.parsedJson, input.allowedCatalogIds);
