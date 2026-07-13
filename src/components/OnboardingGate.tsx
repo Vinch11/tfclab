@@ -30,7 +30,13 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
   }
 
   // If profile exists but onboarding not completed, redirect to onboarding
-  if (profile && !profile.onboarding_completed) {
+  // E2E/QA bypass: skip onboarding redirect for Playwright runs.
+  const e2eBypass =
+    typeof window !== "undefined" &&
+    typeof window.sessionStorage !== "undefined" &&
+    window.sessionStorage.getItem("e2e_bypass_auth") === "1";
+
+  if (!e2eBypass && profile && !profile.onboarding_completed) {
     return <Navigate to="/onboarding" replace />;
   }
 
