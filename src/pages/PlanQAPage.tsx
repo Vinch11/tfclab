@@ -289,12 +289,21 @@ export default function PlanQAPage() {
               size="sm"
               className="ml-auto"
               onClick={async () => {
-                await qa.runFullSuite(qaN);
-                setStats(readPlanStats());
-                setQaSessions(readQASessions());
-                toast.success("QA terminée — verdict affiché.");
+                try {
+                  const s = await qa.runFullSuite(qaN);
+                  setStats(readPlanStats());
+                  setQaSessions(readQASessions());
+                  if (s.verdict === "🟢") toast.success(`QA terminée — ${s.summary}`);
+                  else if (s.verdict === "🟠") toast.warning(`QA terminée — ${s.summary}`);
+                  else toast.error(`QA terminée — ${s.summary}`);
+                } catch (e) {
+                  const msg = e instanceof Error ? e.message : String(e);
+                  toast.error(`QA interrompue : ${msg}`);
+                  setStats(readPlanStats());
+                  setQaSessions(readQASessions());
+                }
               }}
-              disabled={qa.progress.running}
+              disabled={qa.progress.running || !runnerReady}
             >
               {qa.progress.running ? "En cours…" : `Lancer (${3 * qaN} plans)`}
             </Button>
@@ -306,6 +315,7 @@ export default function PlanQAPage() {
                 {qa.progress.currentProfile && (
                   <> — profil <b>{qa.progress.currentProfile}</b> (itération {qa.progress.currentRunOfProfile}/{qa.progress.N})</>
                 )}
+                {qa.progress.phase && <> · phase <b>{qa.progress.phase}</b></>}
               </div>
               <div className="h-1.5 bg-border/40 rounded overflow-hidden">
                 <div
