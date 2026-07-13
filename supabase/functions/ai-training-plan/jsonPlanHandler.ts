@@ -205,6 +205,8 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               allowedCatalogIds: allowedIds,
               chunkIndex: ci,
               schemaOptions,
+              weekRange: { start: chunk.start, end: chunk.end },
+              maxTokens: 65536,
             });
             collectedChunks.push(planChunk);
 

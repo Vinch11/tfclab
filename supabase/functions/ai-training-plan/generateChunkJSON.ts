@@ -94,7 +94,45 @@ interface AttemptDiagnostic {
   gateway: GatewayDiagnostic;
 }
 
-function normalizeModelJsonForSchema(value: unknown, allowedIds: string[]): { value: unknown; repairs: string[] } {
+const DAY_CANON: Record<string, string> = {
+  lundi: "lundi", mardi: "mardi", mercredi: "mercredi", jeudi: "jeudi",
+  vendredi: "vendredi", samedi: "samedi", dimanche: "dimanche",
+  monday: "lundi", tuesday: "mardi", wednesday: "mercredi", thursday: "jeudi",
+  friday: "vendredi", saturday: "samedi", sunday: "dimanche",
+};
+
+const PHASE_CANON: Record<string, string> = {
+  base: "base", fondation: "base", adaptation: "base",
+  build: "build", chantier: "build", consolidation: "build",
+  "développement": "build", developpement: "build",
+  peak: "peak", "spécifique": "peak", specifique: "peak",
+  "compétition": "peak", competition: "peak", "race-specific": "peak",
+  taper: "taper", "affûtage": "taper", affutage: "taper", "pre-race": "taper",
+};
+
+const SPORT_CANON: Record<string, string> = {
+  swim: "swim", natation: "swim", nat: "swim",
+  bike: "bike", "vélo": "bike", velo: "bike", cyclisme: "bike",
+  run: "run", cap: "run", course: "run", "cap/course": "run", footing: "run",
+  brick: "brick", brique: "brick", "enchaînement": "brick", enchainement: "brick",
+  strength: "strength", renfo: "strength", renforcement: "strength",
+  ppg: "strength", force: "strength", musculation: "strength",
+  recovery: "recovery", "récup": "recovery", recup: "recovery",
+  "récupération": "recovery", recuperation: "recovery",
+  rest: "rest", repos: "rest", off: "rest",
+};
+
+function canonEnum(raw: unknown, table: Record<string, string>): string | null {
+  if (typeof raw !== "string") return null;
+  const key = raw.trim().toLowerCase();
+  return table[key] ?? null;
+}
+
+export function normalizeModelJsonForSchema(
+  value: unknown,
+  allowedIds: string[],
+  weekRange?: { start: number; end: number },
+): { value: unknown; repairs: string[] } {
   const repairs: string[] = [];
   const allowed = new Set(allowedIds);
   const asRecord = (v: unknown): Record<string, unknown> | null =>
@@ -109,11 +147,35 @@ function normalizeModelJsonForSchema(value: unknown, allowedIds: string[]): { va
       w.weekNumber = Number(w.weekNumber);
       repairs.push(`weeks.${wi}.weekNumber string→number`);
     }
+    // Canonicalisation phase
+    const cp = canonEnum(w.phase, PHASE_CANON);
+    if (cp !== null && cp !== w.phase) {
+      repairs.push(`weeks.${wi}.phase canonicalized (${String(w.phase)}→${cp})`);
+      w.phase = cp;
+    }
     if (!Array.isArray(w.sessions)) return;
     w.sessions.forEach((session, si) => {
       const s = asRecord(session);
       if (!s) return;
       const path = `weeks.${wi}.sessions.${si}`;
+      // Canonicalisation day
+      const cd = canonEnum(s.day, DAY_CANON);
+      if (cd !== null && cd !== s.day) {
+        repairs.push(`${path}.day canonicalized (${String(s.day)}→${cd})`);
+        s.day = cd;
+      }
+      // Canonicalisation sport
+      const cs = canonEnum(s.sport, SPORT_CANON);
+      if (cs !== null && cs !== s.sport) {
+        repairs.push(`${path}.sport canonicalized (${String(s.sport)}→${cs})`);
+        s.sport = cs;
+      }
+      // durationMin non entier
+      if (typeof s.durationMin === "number" && !Number.isInteger(s.durationMin)) {
+        const rounded = Math.round(s.durationMin);
+        repairs.push(`${path}.durationMin rounded (${s.durationMin}→${rounded})`);
+        s.durationMin = rounded;
+      }
       for (const key of ["custom", "isKeySession"] as const) {
         if (s[key] === "true" || s[key] === "false") {
           s[key] = s[key] === "true";
@@ -144,8 +206,33 @@ function normalizeModelJsonForSchema(value: unknown, allowedIds: string[]): { va
       }
     });
   });
+
+  // Filtrage week-range + dedup
+  if (weekRange) {
+    const { start, end } = weekRange;
+    const seen = new Set<number>();
+    const kept: unknown[] = [];
+    for (const week of root.weeks) {
+      const w = asRecord(week);
+      const n = w && typeof w.weekNumber === "number" ? w.weekNumber : NaN;
+      if (!Number.isFinite(n)) { kept.push(week); continue; }
+      if (n < start || n > end) {
+        repairs.push(`weeks filtered out-of-range ${n}`);
+        continue;
+      }
+      if (seen.has(n)) {
+        repairs.push(`weeks dedup ${n}`);
+        continue;
+      }
+      seen.add(n);
+      kept.push(week);
+    }
+    root.weeks = kept;
+  }
+
   return { value, repairs };
 }
+
 
 function buildJsonSchemaResponseFormat(allowedIds: string[], opts?: BuildPlanChunkSchemaOptions) {
   const catalogIdSchema = allowedIds.length > 0
@@ -423,6 +510,7 @@ export interface GenerateChunkJSONInput {
   schemaOptions?: BuildPlanChunkSchemaOptions;
   signal?: AbortSignal;
   maxTokens?: number;
+  weekRange?: { start: number; end: number };
 }
 
 /**
@@ -512,7 +600,8 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
     }
     const normalized = extracted.parsedJson === null
       ? { value: null, repairs: [] }
-      : normalizeModelJsonForSchema(extracted.parsedJson, input.allowedCatalogIds);
+      : normalizeModelJsonForSchema(extracted.parsedJson, input.allowedCatalogIds, input.weekRange);
+
     if (normalized.repairs.length > 0) {
       console.info(`[generateChunkJSON] schema-normalized=true repairs=${normalized.repairs.slice(0, 12).join("; ")}`);
     }
