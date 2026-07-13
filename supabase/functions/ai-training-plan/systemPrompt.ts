@@ -421,8 +421,8 @@ Si ton H1 ne matche pas ce gabarit, RÉÉCRIS-LE avant d'émettre la suite du pl
 ⚠️ La colonne **Détails** doit contenir le protocole COMPLET de la séance : échauffement, corps de séance (séries × durée × intensité + récup), retour au calme, durée totale.
 - Utilise des exemples concrets de zones/allures/puissance (W, %FTP, %VMA, allure /km, FC, RPE).
 - Si séance du catalogue TFCL™, recopie/adapte la structure et ajoute \`[ID: <CATALOG_ID>]\` EN FIN de cellule.
-- ❌ INTERDIT : \`| Mardi | CAP | TTE Intro Seuil | ID: B_TR_HILL_TEMPO |\` (Détails = ID seul → INVALIDE).
-- ✅ CORRECT : \`| Mardi | CAP | 🔑 TTE Intro Seuil | 15min éch Z2. 4×6min @seuil (88% VMA, ~4:25/km) r=2min trot. 15min RC. ~1h05. [ID: B_TR_HILL_TEMPO] |\`
+- ❌ INTERDIT : \`| Mardi | CAP | TTE Intro Seuil | ID: B_RUN_TEMPO_PROGRESSIVE |\` (Détails = ID seul → INVALIDE).
+- ✅ CORRECT : \`| Mardi | CAP | 🔑 TTE Intro Seuil | 15min éch Z2. 4×6min @seuil (88% VMA, ~4:25/km) r=2min trot. 15min RC. ~1h05. [ID: B_RUN_TEMPO_PROGRESSIVE] |\`
 - Séances de repos/récup : décris au minimum durée + zone (ex: \`Récup active 30min Z1, mobilité 10min\`).
 
 ## RÈGLE MARQUEUR 🔑 SÉANCES CLÉS (OBLIGATOIRE — NON NÉGOCIABLE)
