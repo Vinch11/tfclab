@@ -1,5 +1,12 @@
 /**
  * Hook for streaming AI training plan generation
+ * ─────────────────────────────────────────────────
+ * Two output paths :
+ *   • Markdown (legacy) — response=string, downstream parser (aiPlanParser).
+ *   • JSON     (Phase 1B) — activated by `planConfig._outputFormat === "json"`.
+ *     SSE events (chunk-json / chunk-progress / plan-complete / error) are
+ *     validated by Zod, merged via mergePlanChunks, and exposed as `parsedPlan`.
+ *     `response` is left empty in this mode; consumers should prefer parsedPlan.
  */
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
@@ -7,6 +14,10 @@ import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationS
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { TrainingSport } from "@/types/workoutLibrary";
 import { supabase } from "@/integrations/supabase/client";
+import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
+import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPlan, type SportObjectiveIssue } from "@/lib/plan/mergePlanChunks";
+import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
+import type { ParsedPlan } from "@/lib/aiPlanParser";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
@@ -281,23 +292,28 @@ export function useAITrainingPlan() {
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [chunkProgress, setChunkProgress] = useState<ChunkProgress | null>(null);
+  // Phase 1B — populated only when server ran the JSON path.
+  const [parsedPlan, setParsedPlan] = useState<ParsedPlan | null>(null);
+  const [mergedPlan, setMergedPlan] = useState<MergedPlan | null>(null);
+  const [sportObjectiveIssues, setSportObjectiveIssues] = useState<SportObjectiveIssue[]>([]);
 
-  const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig) => {
+  const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" }) => {
     // Guard against double-fire
     if (isLoading) {
       console.warn("Plan generation already in progress — ignoring duplicate call");
       return;
     }
-    // ─── Durée du plan : OBLIGATOIRE, pas de défaut caché ────────────────
-    // Un défaut fabriqué invisible (ancien `|| 12`) masquait des générations
-    // 12 sem sur des athlètes sans course ni durée renseignée.
     const totalWeeks = planConfig.weeksAvailable;
     if (!totalWeeks || totalWeeks <= 0) {
       toast.error("Durée du plan manquante. Renseigne une date de course ou une durée libre (formulaire coach).");
       return;
     }
     setResponse("");
+    setParsedPlan(null);
+    setMergedPlan(null);
+    setSportObjectiveIssues([]);
     setIsLoading(true);
+    const jsonMode = planConfig._outputFormat === "json";
     // Match edge function's chunk sizing
     const obj = (planConfig.objective || "").toUpperCase();
     const isTriVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
@@ -387,6 +403,7 @@ export function useAITrainingPlan() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          ...(jsonMode ? { "X-Plan-Output-Format": "json" } : {}),
         },
         body: JSON.stringify({
           athleteData,
@@ -413,6 +430,83 @@ export function useAITrainingPlan() {
       if (!resp.ok || !resp.body) {
         throw new Error("Erreur du service IA");
       }
+
+      // ─────────────────────────────────────────────────────────────────────
+      // Phase 1B — JSON path : consume named SSE events, merge, expose parsedPlan
+      // ─────────────────────────────────────────────────────────────────────
+      if (jsonMode) {
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let sseBuffer = "";
+        const collected: PlanChunk[] = [];
+        let fatalError: { code: string; message: string } | null = null;
+
+        const handleEvent = (event: string, dataStr: string) => {
+          let data: any;
+          try { data = JSON.parse(dataStr); } catch { return; }
+          if (event === "chunk-progress") {
+            const ci = typeof data.chunkIndex === "number" ? data.chunkIndex + 1 : 1;
+            const tc = typeof data.totalChunks === "number" ? data.totalChunks : totalChunks;
+            setChunkProgress({ currentWeek: (data.weekRange?.[1] ?? 0), totalWeeks, currentChunk: ci, totalChunks: tc });
+          } else if (event === "chunk-json") {
+            const parsed = zPlanChunk.safeParse(data.chunk);
+            if (!parsed.success) {
+              console.error("[useAITrainingPlan] chunk failed Zod validation client-side", parsed.error.errors.slice(0, 5));
+              fatalError = { code: "SCHEMA_CLIENT_FAIL", message: "Chunk JSON invalide côté client." };
+              return;
+            }
+            collected.push(parsed.data);
+          } else if (event === "error") {
+            fatalError = { code: data.code ?? "UNKNOWN", message: data.message ?? "Erreur inconnue" };
+          }
+        };
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          sseBuffer += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = sseBuffer.indexOf("\n\n")) !== -1) {
+            const rawEvent = sseBuffer.slice(0, idx);
+            sseBuffer = sseBuffer.slice(idx + 2);
+            let evName = "message";
+            let evData = "";
+            for (const line of rawEvent.split("\n")) {
+              if (line.startsWith("event:")) evName = line.slice(6).trim();
+              else if (line.startsWith("data:")) evData += (evData ? "\n" : "") + line.slice(5).trim();
+            }
+            if (evData) handleEvent(evName, evData);
+          }
+        }
+
+        if (fatalError) {
+          toast.error(`Génération JSON échouée : ${(fatalError as { code: string; message: string }).message}`);
+          throw new Error("__STREAM_ABORT__");
+        }
+        if (collected.length === 0) {
+          throw new Error("Aucun chunk reçu.");
+        }
+        try {
+          const merged = mergePlanChunks(collected, totalWeeks);
+          const parsed = jsonPlanToParsedPlan(merged);
+          const issues = validateSportObjective(merged, planConfig.objective);
+          if (issues.length > 0) {
+            console.warn(`[useAITrainingPlan] sport↔objective issues (${issues.length}) :`, issues.slice(0, 5));
+          }
+          setMergedPlan(merged);
+          setParsedPlan(parsed);
+          setSportObjectiveIssues(issues);
+          setChunkProgress(null);
+        } catch (e) {
+          if (e instanceof MergePlanError) {
+            toast.error(`Merge des chunks échoué : ${e.message}`);
+          }
+          throw e;
+        }
+        setIsLoading(false);
+        return;
+      }
+
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -524,9 +618,16 @@ export function useAITrainingPlan() {
 
   const reset = useCallback(() => {
     setResponse("");
+    setParsedPlan(null);
+    setMergedPlan(null);
+    setSportObjectiveIssues([]);
     setIsLoading(false);
     setChunkProgress(null);
   }, []);
 
-  return { response, isLoading, chunkProgress, generatePlan, reset, setResponse };
+  return {
+    response, isLoading, chunkProgress, generatePlan, reset, setResponse,
+    // Phase 1B — JSON-mode outputs (null when Markdown path was used).
+    parsedPlan, mergedPlan, sportObjectiveIssues,
+  };
 }
