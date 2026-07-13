@@ -30,7 +30,7 @@ export async function parseFitFile(file: File): Promise<FitSession> {
           mode: "list",
         });
 
-        fitParser.parse(arrayBuffer, (error: string | null, data: FitData) => {
+        fitParser.parse(arrayBuffer, ((error: string | null, data: FitData) => {
           if (error) {
             reject(new Error(`Erreur de parsing FIT: ${error}`));
             return;
@@ -42,7 +42,7 @@ export async function parseFitFile(file: File): Promise<FitSession> {
           } catch (e) {
             reject(e);
           }
-        });
+        }) as any);
       } catch (e) {
         reject(new Error(`Erreur de lecture: ${e instanceof Error ? e.message : "Inconnue"}`));
       }

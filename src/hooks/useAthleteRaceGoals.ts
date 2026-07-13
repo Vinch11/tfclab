@@ -251,7 +251,7 @@ export function useAthleteRaceGoals(athleteId: string | null) {
           if (Object.keys(patch).length > 0) {
             await supabase
               .from('athlete_race_goals')
-              .update(patch)
+              .update(patch as any)
               .eq('id', recentSameGoal.id);
             queryClient.invalidateQueries({ queryKey: ['athlete-race-goals', athleteId] });
           }

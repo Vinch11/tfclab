@@ -151,7 +151,7 @@ export function QuickRaceTimeCard({ athleteId }: QuickRaceTimeCardProps) {
       // Bypass schema (les champs time_* ne sont pas dans snapshotSchema)
       const { error } = await supabase
         .from("snapshots")
-        .update(payload)
+        .update(payload as any)
         .eq("id", snapshotId);
 
       if (error) {
