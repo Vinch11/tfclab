@@ -42,7 +42,7 @@ export async function parseFitFile(file: File): Promise<FitSession> {
           } catch (e) {
             reject(e);
           }
-        });
+        }) as any);
       } catch (e) {
         reject(new Error(`Erreur de lecture: ${e instanceof Error ? e.message : "Inconnue"}`));
       }
