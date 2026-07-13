@@ -720,5 +720,7 @@ export function useAITrainingPlan() {
     response, isLoading, chunkProgress, generatePlan, reset, setResponse,
     // Phase 1B — JSON-mode outputs (null when Markdown path was used).
     parsedPlan, mergedPlan, sportObjectiveIssues,
+    // Phase 0 QA — union catalogId injectés au dernier run (pour check B5).
+    lastAllowedCatalogIdsRef,
   };
 }
