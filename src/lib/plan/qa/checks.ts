@@ -30,7 +30,10 @@ export interface CheckResult {
 }
 
 const TRAIL_CATALOG_RX = /^[A-D]_TR(50)?_|_TRAIL_|^EXPE_HORS_VILLE_|^URBAN_|^HEDGEHOG_/i;
-const TRAIL_DETAILS_RX = /\bD\+|montée sèche|bâtons|power.?hike|vertical.?km/i;
+// Marqueurs strictement critical : D+ chiffré, montée sèche, power-hike, bâtons, vertical km.
+const TRAIL_DETAILS_CRITICAL_RX = /\bD\+|montée\s+sèche|b[âa]tons|power[-\s]?hike|vertical[-\s]?km|\bVK\b|\+\s*\d{2,}\s*m\b/i;
+// Marqueurs seulement warning : "vallonné" seul (terrain vallonné = légitime en prépa route).
+const TRAIL_DETAILS_WARNING_RX = /vallonn[ée]/i;
 const Z12_RX = /\bz1\b|\bz2\b|zone\s*1|zone\s*2|zone\s*1-2|z1-2/i;
 
 interface B1Input {
