@@ -608,8 +608,19 @@ export default function AITrainingPlanPage() {
   const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!response || isLoading) return null;
     try {
-      const plan = parseAIPlan(response);
+      const rawPlan = parseAIPlan(response);
+      // 🚫 Filet de sécurité anti-trail pour plans triathlon (IM / 70.3 / LCW)
+      const { plan, removed: removedTrail } = sanitizeTrailFromTriathlonPlan(rawPlan, objective);
+      if (removedTrail.length > 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `🚫 [Plan] ${removedTrail.length} séance(s) trail retirée(s) du plan triathlon "${objective}" : ` +
+          removedTrail.slice(0, 5).map(r => `S${r.week}/${r.day}/${r.title}`).join(" • ") +
+          (removedTrail.length > 5 ? ` … (+${removedTrail.length - 5})` : ""),
+        );
+      }
       if (plan.weeks.length === 0) return null;
+
 
       const key = `${response.length}:${plan.weeks.length}`;
       if (postProcessKeyRef.current !== key) {
