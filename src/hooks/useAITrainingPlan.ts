@@ -8,7 +8,7 @@
  *     validated by Zod, merged via mergePlanChunks, and exposed as `parsedPlan`.
  *     `response` is left empty in this mode; consumers should prefer parsedPlan.
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
