@@ -403,6 +403,7 @@ export function useAITrainingPlan() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          ...(jsonMode ? { "X-Plan-Output-Format": "json" } : {}),
         },
         body: JSON.stringify({
           athleteData,
@@ -429,6 +430,83 @@ export function useAITrainingPlan() {
       if (!resp.ok || !resp.body) {
         throw new Error("Erreur du service IA");
       }
+
+      // ─────────────────────────────────────────────────────────────────────
+      // Phase 1B — JSON path : consume named SSE events, merge, expose parsedPlan
+      // ─────────────────────────────────────────────────────────────────────
+      if (jsonMode) {
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let sseBuffer = "";
+        const collected: PlanChunk[] = [];
+        let fatalError: { code: string; message: string } | null = null;
+
+        const handleEvent = (event: string, dataStr: string) => {
+          let data: any;
+          try { data = JSON.parse(dataStr); } catch { return; }
+          if (event === "chunk-progress") {
+            const ci = typeof data.chunkIndex === "number" ? data.chunkIndex + 1 : 1;
+            const tc = typeof data.totalChunks === "number" ? data.totalChunks : totalChunks;
+            setChunkProgress({ currentWeek: (data.weekRange?.[1] ?? 0), totalWeeks, currentChunk: ci, totalChunks: tc });
+          } else if (event === "chunk-json") {
+            const parsed = zPlanChunk.safeParse(data.chunk);
+            if (!parsed.success) {
+              console.error("[useAITrainingPlan] chunk failed Zod validation client-side", parsed.error.errors.slice(0, 5));
+              fatalError = { code: "SCHEMA_CLIENT_FAIL", message: "Chunk JSON invalide côté client." };
+              return;
+            }
+            collected.push(parsed.data);
+          } else if (event === "error") {
+            fatalError = { code: data.code ?? "UNKNOWN", message: data.message ?? "Erreur inconnue" };
+          }
+        };
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          sseBuffer += decoder.decode(value, { stream: true });
+          let idx: number;
+          while ((idx = sseBuffer.indexOf("\n\n")) !== -1) {
+            const rawEvent = sseBuffer.slice(0, idx);
+            sseBuffer = sseBuffer.slice(idx + 2);
+            let evName = "message";
+            let evData = "";
+            for (const line of rawEvent.split("\n")) {
+              if (line.startsWith("event:")) evName = line.slice(6).trim();
+              else if (line.startsWith("data:")) evData += (evData ? "\n" : "") + line.slice(5).trim();
+            }
+            if (evData) handleEvent(evName, evData);
+          }
+        }
+
+        if (fatalError) {
+          toast.error(`Génération JSON échouée : ${(fatalError as { code: string; message: string }).message}`);
+          throw new Error("__STREAM_ABORT__");
+        }
+        if (collected.length === 0) {
+          throw new Error("Aucun chunk reçu.");
+        }
+        try {
+          const merged = mergePlanChunks(collected, totalWeeks);
+          const parsed = jsonPlanToParsedPlan(merged);
+          const issues = validateSportObjective(merged, planConfig.objective);
+          if (issues.length > 0) {
+            console.warn(`[useAITrainingPlan] sport↔objective issues (${issues.length}) :`, issues.slice(0, 5));
+          }
+          setMergedPlan(merged);
+          setParsedPlan(parsed);
+          setSportObjectiveIssues(issues);
+          setChunkProgress(null);
+        } catch (e) {
+          if (e instanceof MergePlanError) {
+            toast.error(`Merge des chunks échoué : ${e.message}`);
+          }
+          throw e;
+        }
+        setIsLoading(false);
+        return;
+      }
+
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
