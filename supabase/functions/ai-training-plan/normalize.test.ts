@@ -93,3 +93,82 @@ Deno.test("normalize — session déjà canonique ⇒ AUCUN repair", () => {
   const { repairs } = normalizeModelJsonForSchema(input, []);
   assertEquals(repairs.length, 0);
 });
+
+// ─── strategicRecap canonicalisation ──────────────────────────────────────
+
+function mkPlanWithRecap(recap: unknown) {
+  return {
+    weeks: [{ weekNumber: 1, phase: "base", theme: "T", sessions: [
+      { day: "lundi", sport: "bike", title: "T", details: "", isKeySession: false, custom: true, catalogId: null, durationMin: 60, zones: [] },
+    ]}],
+    strategicRecap: recap,
+  };
+}
+
+Deno.test("normalize — strategicRecap: alias 'statue'/'bloc'/'semaines'/'séances' canonicalisés", () => {
+  const input = mkPlanWithRecap({
+    limiters: [
+      { nom: "VO2max", statue: "critique", bloc: "Build", semaines: "S3-S6", "séances": "VMA courte" },
+    ],
+    synergies: ["ok"],
+  });
+  const { value, repairs } = normalizeModelJsonForSchema(input, []);
+  const lim = (value as any).strategicRecap.limiters[0];
+  assertEquals(lim.name, "VO2max");
+  assertEquals(lim.status, "critique");
+  assertEquals(lim.block, "Build");
+  assertEquals(lim.weeks, "S3-S6");
+  assertEquals(lim.keySessions, "VMA courte");
+  assertEquals(lim.rank, 1);
+  assertEquals(repairs.some(r => r.includes('key "statue"→"status"')), true);
+  assertEquals(repairs.some(r => r.includes('key "bloc"→"block"')), true);
+});
+
+Deno.test("normalize — strategicRecap: synergies objets → strings", () => {
+  const input = mkPlanWithRecap({
+    limiters: [{ rank: 1, name: "N", status: "s", block: "b", weeks: "w", keySessions: "k" }],
+    synergies: [{ name: "Sync A", description: "boost VO2" }, "plain"],
+  });
+  const { value, repairs } = normalizeModelJsonForSchema(input, []);
+  const syn = (value as any).strategicRecap.synergies;
+  assertEquals(syn[0], "Sync A");
+  assertEquals(syn[1], "plain");
+  assertEquals(repairs.some(r => r.includes("synergies coerced")), true);
+});
+
+Deno.test("normalize — strategicRecap: keySessions array → join, sans rank → index+1", () => {
+  const input = mkPlanWithRecap({
+    limiters: [
+      { name: "A", status: "s", block: "b", weeks: "w", keySessions: ["Séance1", "Séance2"] },
+      { name: "B", status: "s", block: "b", weeks: "w", keySessions: "k" },
+    ],
+    synergies: [],
+  });
+  const { value } = normalizeModelJsonForSchema(input, []);
+  const lims = (value as any).strategicRecap.limiters;
+  assertEquals(lims[0].keySessions, "Séance1 · Séance2");
+  assertEquals(lims[0].rank, 1);
+  assertEquals(lims[1].rank, 2);
+});
+
+Deno.test("normalize — strategicRecap irrécupérable → droppé, chunk valide, repair loggé", () => {
+  const input = mkPlanWithRecap({
+    limiters: "not-an-array-at-all",
+    synergies: 42,
+  });
+  const { value, repairs } = normalizeModelJsonForSchema(input, []);
+  assertEquals((value as any).strategicRecap, undefined);
+  assertEquals(repairs.some(r => r.includes("strategicRecap dropped")), true);
+  // chunk core still intact
+  assertEquals(Array.isArray((value as any).weeks), true);
+});
+
+Deno.test("normalize — strategicRecap déjà propre ⇒ aucun repair strategicRecap", () => {
+  const input = mkPlanWithRecap({
+    limiters: [{ rank: 1, name: "VO2max", status: "critique", block: "Build", weeks: "S3-S6", keySessions: "VMA" }],
+    synergies: ["A", "B"],
+  });
+  const { repairs } = normalizeModelJsonForSchema(input, []);
+  assertEquals(repairs.filter(r => r.startsWith("strategicRecap")).length, 0);
+});
+
