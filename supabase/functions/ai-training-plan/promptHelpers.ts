@@ -1584,6 +1584,12 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("- ❌ Long swim matinal du samedi/dimanche → utilise `B_LCW_SWIM_FRI_EVENING` vendredi soir (timing course non-négociable).");
       lines.push("- ❌ Repas classique post-séance → utilise `B_LCW_NUTRITION_RECHARGE` (protocole recharge agressif Burke 2018 spécifique inter-étapes).");
       lines.push("");
+      lines.push("**🚫 BANNIS ABSOLUS (LCW = TRIATHLON 70.3, PAS TRAIL, PAS IM) — RÈGLE DURE :**");
+      lines.push("- ❌ AUCUNE séance TRAIL. IDs interdits : tout ID commençant par `HEDGEHOG_`, `URBAN_`, `TRAIL_` ou contenant `_TRAIL_`. AUCUNE mention de D+/dénivelé, sentier, bâtons, sacs à dos, ravito trail. Un plan 70.3 LCW se prépare sur route/piste/piscine/eau libre — JAMAIS en montagne.");
+      lines.push("- ❌ AUCUN ID commençant par `A_IM_` ou `B_IM_` (séances signature Ironman 1-jour). Le paradigme LCW ≠ Ironman continu : une long run 'fatiguée le lendemain' N'A DE SENS QUE si la veille est un long-bike **race-pace** (`B_LCW_BIKE_LONG_RACE_SAT`). Sans ce vélo veille, PAS de long run fatigue résiduelle.");
+      lines.push("- ❌ RÈGLE STRICTE : une long run le dimanche n'est autorisée que via `B_LCW_RUN_OFF_LEGS_SUN` ET UNIQUEMENT si `B_LCW_BIKE_LONG_RACE_SAT` est planifiée la veille (samedi) sur la même semaine. Sinon prescris une long run classique 70.3 (Z2 progressive) sans marqueur 'fatigue résiduelle'.");
+
+      lines.push("");
       lines.push("**Rappel dose-réponse (Stellingwerff 2018, Areta 2013, Jentjens & Jeukendrup 2003) :** une seule exposition au paradigme LCW en Peak = découverte, pas adaptation. Le minimum ≥3 expositions Build+Peak est le **seuil physiologique** en dessous duquel l'athlète découvre la course à étapes le jour J = risque majeur d'implosion étape 3. Ces quotas ne sont pas des préférences éditoriales : ce sont des **prescriptions physiologiques**.");
       lines.push("");
       lines.push("**Référence** : LCW Wales (Tenby) et LCW Belgium = format historique à étapes, distinct du 70.3 continu. Sources : organisation LCW, Burke 2018 (glycogen recovery), Costa 2019 (multi-day nutrition), Areta 2013 (muscle protein synthesis), Stellingwerff 2018 (race-simulation frequency), Doering 2016 (inter-session recovery).");
