@@ -38,6 +38,7 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan } from "@/lib/aiPlanParser";
+import { isJsonBetaEnabled, setJsonBetaEnabled } from "@/lib/plan/planGenerationStats";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
@@ -155,7 +156,7 @@ export default function AITrainingPlanPage() {
   const location = useLocation();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot } = useCloudDataContext();
-  const { response, isLoading, chunkProgress, generatePlan, reset, setResponse } = useAITrainingPlan();
+  const { response, isLoading, chunkProgress, generatePlan, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -606,6 +607,24 @@ export default function AITrainingPlanPage() {
   // (garde par ref sur la longueur du markdown final ; jamais par chunk).
   const postProcessKeyRef = useRef<string | null>(null);
   const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
+    // Phase 1B — JSON path prioritaire. `jsonParsedPlan` est déjà validé Zod,
+    // mergé, et neutralisé des volumes LLM. Le validator sport↔objectif tourne
+    // dans le hook et loggue les issues critiques dans `sportObjectiveIssues`.
+    if (jsonParsedPlan && !isLoading) {
+      if (sportObjectiveIssues && sportObjectiveIssues.length > 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `⚠️ [Plan JSON] ${sportObjectiveIssues.length} issue(s) sport↔objectif :`,
+          sportObjectiveIssues.slice(0, 5),
+        );
+      }
+      if (jsonParsedPlan.weeks.length === 0) return null;
+      const key = `json:${jsonParsedPlan.weeks.length}:${jsonParsedPlan.title}`;
+      if (postProcessKeyRef.current !== key) {
+        postProcessKeyRef.current = key;
+      }
+      return jsonParsedPlan;
+    }
     if (!response || isLoading) return null;
     try {
       const rawPlan = parseAIPlan(response);
@@ -719,7 +738,7 @@ export default function AITrainingPlanPage() {
       return plan;
     } catch { return null; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, lockAmbition, athleteContext, raceDate, raceGoals, planStartDate, weeksAvailable]);
+  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, lockAmbition, athleteContext, raceDate, raceGoals, planStartDate, weeksAvailable, jsonParsedPlan, sportObjectiveIssues]);
 
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -941,6 +960,7 @@ export default function AITrainingPlanPage() {
       config._expressFinisherPromptPrefix = `PROFIL EXPRESS FINISHER — confiance 60%. Pour toutes les prescriptions d’intensité, utiliser UNIQUEMENT les pourcentages de FCmax et le RPE. Format obligatoire : « 65-75% FCmax (RPE 5-6/10 — effort confortable, conversation possible) ». Ne jamais écrire de valeurs absolues en bpm, watts ou min/km. Exemples corrects : « Z2 : 65-75% FCmax (RPE 5-6/10) », « Z3 : 75-83% FCmax (RPE 6-7/10) », « Z4 : 83-90% FCmax (RPE 7-8/10) ». Exemples interdits : « 130 bpm », « 250W », « 4:30/km ». Pour la natation : utiliser uniquement RPE et description sensorielle (« allure où tu peux souffler toutes les 3 foulées »). Pour les durées : toujours en minutes, jamais en km. Objectif unique : que l’athlète termine la course en bonne santé et avec le sourire.`;
     }
     expressFlagRef.current = false;
+    if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
     generatePlan(athleteContext.data, config);
   };
 
@@ -1061,6 +1081,7 @@ export default function AITrainingPlanPage() {
       overriddenByCoach: payload.overriddenByCoach,
     });
     toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
+    if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
     generatePlan(athleteContext.data, config);
   }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlan]);
 
