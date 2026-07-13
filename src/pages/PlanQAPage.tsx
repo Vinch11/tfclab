@@ -10,7 +10,7 @@
  *     tournent en cliquant sur "Run all", sans appel IA ni réseau.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -24,6 +24,7 @@ import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { zDay, zPhase, zSport } from "@/lib/plan/planSchema";
 import { useQARunner } from "@/lib/plan/qa/useQARunner";
 import { buildQAReport, readQASessions, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 function formatDuration(ms: number): string {
