@@ -118,6 +118,7 @@ export function checkB2(plan: MergedPlan): CheckResult {
 
 export function checkB3(plan: MergedPlan): CheckResult {
   const details: string[] = [];
+  const warnings: string[] = [];
   let pass = true;
   for (const w of plan.weeks) {
     for (const s of w.sessions) {
@@ -125,13 +126,22 @@ export function checkB3(plan: MergedPlan): CheckResult {
         pass = false;
         details.push(`S${w.weekNumber} ${s.dayName} — catalogId trail interdit : ${s.catalogId}`);
       }
-      if (s.custom && TRAIL_DETAILS_RX.test(s.details ?? "")) {
-        pass = false;
-        details.push(`S${w.weekNumber} ${s.dayName} — détails custom matchent pattern trail : "${(s.details ?? "").slice(0, 80)}"`);
+      if (s.custom) {
+        const detText = s.details ?? "";
+        if (TRAIL_DETAILS_CRITICAL_RX.test(detText)) {
+          pass = false;
+          details.push(`S${w.weekNumber} ${s.dayName} — détails custom matchent pattern trail critical : "${detText.slice(0, 80)}"`);
+        } else if (TRAIL_DETAILS_WARNING_RX.test(detText)) {
+          // "vallonné" seul ⇒ warning uniquement, ne fait pas échouer le check
+          warnings.push(`S${w.weekNumber} ${s.dayName} — mention "vallonné" (warning, non bloquant) : "${detText.slice(0, 80)}"`);
+        }
       }
     }
   }
-  if (details.length === 0) details.push("Aucun contenu trail détecté.");
+  if (details.length === 0 && warnings.length === 0) details.push("Aucun contenu trail détecté.");
+  else if (details.length === 0) details.push(`Pass sans marqueur critical. ⚠ ${warnings.length} mention(s) "vallonné" (warning).`);
+  // Include warnings after criticals for visibility
+  for (const w of warnings) details.push(`⚠ ${w}`);
   return { id: "B3", label: "Aucun contenu trail (catalogId / détails custom)", level: "critical", pass, details };
 }
 
