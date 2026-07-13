@@ -510,6 +510,7 @@ export interface GenerateChunkJSONInput {
   schemaOptions?: BuildPlanChunkSchemaOptions;
   signal?: AbortSignal;
   maxTokens?: number;
+  weekRange?: { start: number; end: number };
 }
 
 /**
