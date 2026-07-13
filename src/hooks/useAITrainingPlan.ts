@@ -395,6 +395,19 @@ export function useAITrainingPlan() {
       // Derive duration stats from the actual library — sent to edge function
       const catalogDurationStats = computeCatalogDurationStats(allCatalogEntries);
 
+      // Phase 0 QA — expose l'union des catalogId injectés (pour B5)
+      {
+        const union = new Set<string>();
+        allCatalogEntries.forEach(e => union.add(e.id));
+        for (const dump of chunkCatalogs) {
+          for (const line of dump.split("\n")) {
+            const m = line.match(/^\|\s*([A-Za-z0-9_-]{4,})\s*\|/);
+            if (m && m[1] !== "ID") union.add(m[1]);
+          }
+        }
+        lastAllowedCatalogIdsRef.current = [...union];
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
       if (!token) {
