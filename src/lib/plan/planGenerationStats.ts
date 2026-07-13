@@ -58,6 +58,12 @@ export interface PlanGenerationStat {
   errorMessage?: string;
   schemaFailDetails?: PlanSchemaFailDetails;
   sportObjectiveCriticalIssues?: number;
+  /** Ratio de séances custom sur les sessions non-rest (0..1). Cible < 0.20. */
+  customRatio?: number;
+  /** Nombre de sessions non-rest (dénominateur du ratio). */
+  nonRestSessionCount?: number;
+  /** Nombre de sessions custom non-rest (numérateur). */
+  customSessionCount?: number;
 }
 
 const KEY = "tfcl:plan_gen_stats";
