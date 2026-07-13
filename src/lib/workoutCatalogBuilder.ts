@@ -397,6 +397,32 @@ export function buildWorkoutCatalog(
     }
   }
 
+  // ─── Pool-size instrumentation : "course" par phase ───
+  const isTrailGoal = goals.some(g => g.startsWith("trail_"));
+  if (!isTrailGoal) {
+    const courseSelected = selected.filter(w => w.sport === "course");
+    const perPhase: Record<string, number> = { base: 0, build: 0, peak: 0, taper: 0, any: 0 };
+    for (const w of courseSelected) {
+      const ph = (w.phase && w.phase.length > 0) ? w.phase : ["any"];
+      for (const p of ph) perPhase[p] = (perPhase[p] || 0) + 1;
+    }
+    const COURSE_POOL_MIN = 25;
+    const details = Object.entries(perPhase)
+      .filter(([, n]) => n > 0)
+      .map(([p, n]) => `${p}=${n}`)
+      .join(", ");
+    console.log(`[buildWorkoutCatalog] course pool = ${courseSelected.length} (${details || "vide"}) — chunk=${chunkIdx}`);
+    for (const [phase, n] of Object.entries(perPhase)) {
+      if (phase === "any") continue;
+      if (n > 0 && n < COURSE_POOL_MIN) {
+        console.warn(
+          `[buildWorkoutCatalog] ⚠️ Pool COURSE trop restreint en phase="${phase}" : ${n} < ${COURSE_POOL_MIN}. ` +
+          `Risque de répétition de séances. Chunk=${chunkIdx}.`
+        );
+      }
+    }
+  }
+
   // Convert to compact entries
   return selected.map(w => ({
     id: w.id,
