@@ -53,7 +53,7 @@ function sameValues(a: readonly string[], b: readonly string[]) {
   return a.length === b.length && a.every(v => b.includes(v));
 }
 
-function buildFullReport(stats: PlanGenerationStat[], testResults: TestResult[] | null): string {
+function buildFullReport(stats: PlanGenerationStat[], testResults: TestResult[] | null, lastSession: QASession | null): string {
   const enumLines = (Object.keys(EXPECTED_ENUMS) as Array<keyof typeof EXPECTED_ENUMS>).map(key => {
     const expected = EXPECTED_ENUMS[key];
     const prompt = PROMPT_ENUMS[key];
@@ -66,11 +66,14 @@ function buildFullReport(stats: PlanGenerationStat[], testResults: TestResult[] 
     "## Enum audit",
     enumLines,
     "",
-    "## Stats",
-    JSON.stringify(stats, null, 2),
+    "## Dernière session QA",
+    lastSession ? buildQAReport(lastSession) : "_aucune session QA enregistrée_",
     "",
-    "## Merge tests",
-    JSON.stringify(testResults, null, 2),
+    "## Stats",
+    stats.length === 0 ? "_aucune stat enregistrée_" : JSON.stringify(stats, null, 2),
+    "",
+    "## Merge tests (dernier click Run all)",
+    testResults === null ? "_non exécutés dans cet onglet_" : JSON.stringify(testResults, null, 2),
   ].join("\n");
 }
 
