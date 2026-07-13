@@ -337,6 +337,7 @@ export default function PlanQAPage() {
                 <Button
                   size="sm"
                   variant="outline"
+                  disabled={!qa.lastSession}
                   onClick={async () => {
                     await navigator.clipboard.writeText(buildQAReport(qa.lastSession!));
                     toast.success("Rapport QA copié.");
@@ -345,19 +346,45 @@ export default function PlanQAPage() {
                   Copier le rapport QA
                 </Button>
               </div>
+
+              {/* Merge tests bloc — jamais null */}
+              <div className="text-xs">
+                <b>Merge tests</b> :{" "}
+                {qa.lastSession.mergeTests ? (
+                  <span className={qa.lastSession.mergeTests.every(t => t.pass) ? "text-emerald-500" : "text-red-500"}>
+                    {qa.lastSession.mergeTests.filter(t => t.pass).length}/{qa.lastSession.mergeTests.length} passing
+                  </span>
+                ) : (
+                  <span className="text-red-500">
+                    ⚠️ non exécutés — {qa.lastSession.mergeTestsError ?? "raison inconnue"}
+                  </span>
+                )}
+              </div>
+
               <div className="text-xs space-y-1">
                 {qa.lastSession.runs.map((r, i) => {
                   const crit = r.checks.filter(c => c.level === "critical" && !c.pass);
-                  const status = r.errorMessage ? "🔴" : crit.length > 0 ? "🔴" : "🟢";
+                  const isErr = !!r.errorMessage;
+                  const status = isErr ? "🔴" : crit.length > 0 ? "🔴" : "🟢";
                   return (
-                    <div key={i} className="flex items-center gap-2">
-                      <span>{status}</span>
-                      <span className="font-mono">{r.profileId}#{r.runIndex}</span>
-                      <span className="text-muted-foreground">
-                        {r.stat?.format ?? "?"} · {(r.durationMs / 1000).toFixed(1)}s
-                        {crit.length > 0 && ` · ${crit.length} critical`}
-                        {r.errorMessage && ` · ${r.errorMessage.slice(0, 60)}`}
-                      </span>
+                    <div
+                      key={i}
+                      className={`rounded p-2 ${isErr ? "border border-red-500/40 bg-red-500/5" : ""}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{status}</span>
+                        <span className="font-mono">{r.profileId}#{r.runIndex}</span>
+                        <span className="text-muted-foreground">
+                          {r.stat?.format ?? "?"} · {(r.durationMs / 1000).toFixed(1)}s
+                          {crit.length > 0 && ` · ${crit.length} critical`}
+                        </span>
+                      </div>
+                      {isErr && (
+                        <div className="mt-1 text-red-500 font-mono text-[11px] whitespace-pre-wrap">
+                          {r.errorMessage}
+                          {r.errorStack && `\n${r.errorStack}`}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
