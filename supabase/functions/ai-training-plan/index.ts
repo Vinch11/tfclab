@@ -15,6 +15,10 @@ import {
   buildCanonicalRaceCard,
 } from "./promptHelpers.ts";
 
+// Boot marker — bump on refactors qui doivent être visibles en logs
+const BUILD_TAG = "ai-training-plan@2026-07-13.extractJson-helper";
+console.info(`[boot] ${BUILD_TAG} at ${new Date().toISOString()}`);
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
