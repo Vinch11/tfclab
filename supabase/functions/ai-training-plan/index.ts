@@ -54,6 +54,30 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PHASE 1A — Chemin JSON structuré (feature-flag serveur).
+    // Activé quand `planConfig._outputFormat === "json"` OU header
+    // `X-Plan-Output-Format: json`. Par défaut : chemin Markdown historique.
+    // Le client Phase 1B basculera ce flag ; d'ici là, prod inchangée.
+    // ═══════════════════════════════════════════════════════════════════════════
+    const jsonModeRequested = planConfig?._outputFormat === "json"
+      || req.headers.get("X-Plan-Output-Format")?.toLowerCase() === "json";
+    if (jsonModeRequested) {
+      console.log(`🧬 Phase 1A JSON path activé (flag=${planConfig?._outputFormat ?? "header"}).`);
+      const { handleJSONPlanRequest } = await import("./jsonPlanHandler.ts");
+      return handleJSONPlanRequest({
+        apiKey: LOVABLE_API_KEY,
+        athleteData,
+        planConfig,
+        regenerateWeek,
+        workoutCatalog,
+        phaseCatalogs,
+        chunkCatalogs,
+        catalogDurationStats,
+        corsHeaders,
+      });
+    }
+
     // ─── DÉFENSE EN PROFONDEUR : cap serveur de l'ambition vs trainingLevel ───
     // Le client applique déjà `computeAmbitionEffective`, mais si un caller bypasse
     // le downgrade (test, script, régénération programmée), on cappe ici.

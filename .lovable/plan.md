@@ -1,57 +1,164 @@
-# Refonte cohérence plans IA — 7 correctifs
+# Phase 1A — Sortie IA structurée (Markdown → JSON contraint)
 
-Objectif : que chaque plan généré soit physiologiquement cohérent, sans contradiction interne, avec des zones dérivées d'une source unique. Traitement en **3 phases**, chacune livrable et testable indépendamment.
+## Objectif
 
-## Phase 1 — Sécurité & cohérence critique (jour 1)
+Remplacer la sortie Markdown token-par-token de l'edge `ai-training-plan` par une sortie **JSON validée Zod** dont le schéma est le miroir 1:1 de `ParsedPlan` (déjà défini dans `src/lib/aiPlanParser.ts`). Le parser Markdown côté client devient inutile (Phase 1B, hors périmètre).
 
-### #1 · Race power vélo bornée par TTE
-Aujourd'hui l'IA prescrit 82-85% FTP en race sans consulter la TTE. Avec TTE 35', IF réaliste ≈ 72-78% FTP.
+## Point critique à valider AVANT implémentation
 
-- Créer `src/lib/v2/racePowerCap.ts` : `capBikeRaceIF({ baselineIF, tteMin, raceDurationMin, ambition })` qui applique une pénalité log(raceDur/tte).
-- Consommé par `promptHelpers.ts` (bloc "Cible course vélo") + injecté dans la prescription passée au prompt IA.
-- Fallback texte : « TTE 35' → IF max soutenable ≈ 0.74. Prescrire 72-76% FTP en race, pas 82-85%. »
+Le contrat client change forcément : l'edge n'émettra plus de deltas OpenAI-compatibles `{"choices":[{"delta":{"content":"..."}}]}` mais des events SSE `chunk-progress` + `chunk-json`. La contrainte "ne pas toucher au viewer/persistance/patcher" est tenue, MAIS **le consommateur SSE côté client (`useAITrainingPlan`) devra impérativement être adapté** — sinon le plan ne s'affiche plus. Deux options :
 
-### #2 · Sprint Ban gated sur la vraie valeur VLamax + discipline
-Bug racine probable : `computeLorangStrategy` reçoit `discipline='bike'` alors que VLamax mesurée est côté run. Cible bike=0.30 → seuil 0.375 → VLamax 0.44 déclenche à tort le ban.
+1. **Recommandé** : ajouter au périmètre uniquement l'adaptateur `useAITrainingPlan` qui, à la réception des chunks JSON, sérialise en Markdown compatible (fonction inverse minimale) pour que viewer/parser existants continuent à fonctionner à l'identique. Coût : ~150 lignes, aucun changement UI.
+2. **Alternative** : livrer l'edge en Phase 1A avec un flag serveur `outputFormat: "json" | "markdown"` par défaut `markdown` — le JSON n'est activé que par un test dédié. Rien ne casse en prod jusqu'à Phase 1B.
 
-- Auditer les 6 call-sites de `computeLorangStrategy` : garantir passage `discipline` cohérent avec la source de la valeur `physiology.vlamax`.
-- Ajouter garde-fou dans `lorangStrategyEngine.ts` : si `physiology.vlamax <= physiology.vlamaxTarget * 1.0` → jamais de Sprint Ban, même en elite.
-- Test unitaire `sprintBan.gating.test.ts` reproduisant le cas Cath (VLamax 0.44, 703, age_group).
+À défaut de décision, j'irai avec **option 2** (feature flag) : plus sûr, découplage total, tu actives quand la Phase 1B est prête.
 
-### #7 · Volume hebdo calculé, pas placeholder
-Le libellé « 8h30 → 10h45 » est identique semaine 1 à 5 (dont décharge).
+## Architecture cible
 
-- Dans `aiPlanParser.ts` (ou post-processor), calculer `week.totalMinutes = sum(session.estimatedDurationMin)` et remplacer le placeholder dans `week.theme`/UI.
+### 1. `planSchema.ts` (nouveau)
 
-## Phase 2 — Zones triathlon single-source (jour 2)
+Schéma Zod miroir de `ParsedPlan`. Entête = table de correspondance :
 
-### #3 · Zones vélo/course d'une source unique en triathlon
-Aujourd'hui : Z2 vélo varie de 95W à 124W dans le même plan, Z2 run à 6'05–6'30 quand seuil 4'52.
+| ParsedPlan (client)       | zPlan (LLM)                | Origine |
+| ------------------------- | -------------------------- | ------- |
+| `title`                   | `title`                    | LLM     |
+| `diagnostic?`             | `diagnostic?`              | LLM     |
+| `strategicRecap?`         | `strategicRecap?` (miroir) | LLM (chunk 1 uniquement) |
+| `phases[]`                | `phases[]`                 | LLM     |
+| `weeks[].weekNumber`      | id.                        | LLM     |
+| `weeks[].phase`           | `phase` enum `base\|build\|peak\|taper` | LLM |
+| `weeks[].theme`           | id.                        | LLM     |
+| `weeks[].phaseObjective?` | id.                        | LLM     |
+| `weeks[].volumeTarget`    | **supprimé** (recalculé)   | — (contrainte N°4) |
+| `weeks[].computedVolumeMin/Str` | **supprimé du schéma LLM** | computed client |
+| `weeks[].coachNotes?`     | `weeklyNotes?`             | LLM     |
+| `sessions[].dayName`      | `day` enum `lundi..dimanche` | LLM   |
+| `sessions[].dayIndex`     | **supprimé** (dérivé du day) | computed edge |
+| `sessions[].sport`        | `sport` enum `swim\|bike\|run\|brick\|strength\|recovery\|rest` | LLM |
+| `sessions[].title`        | id.                        | LLM     |
+| `sessions[].details`      | id.                        | LLM     |
+| `sessions[].isRest`       | **dérivé** (`sport==="rest"`) | computed edge |
+| —                         | `isKeySession: boolean`    | remplace marqueur 🔑 |
+| —                         | `catalogId: string \| null` | LLM (enum runtime) |
+| —                         | `custom: boolean`          | LLM     |
+| —                         | `durationMin: number`      | LLM (source de volume) |
+| —                         | `zones: string[]`          | LLM     |
 
-- Étendre `deriveRaceTargets` : nouvelle fonction `deriveTriathlonZones({ ftp, vmaKmh, paceThresholdSec, objectif, ambition })` produisant un bloc unique `{ bike: {z1..z5}, run: {z1..z5} }` cohérent Coggan/Daniels.
-- Injecter ce bloc figé dans le prompt IA (« Zones à utiliser TEL QUEL, ne pas recalculer »).
-- `planValidator` : nouvelle règle `zonesConsistencyRule` — flag si texte de séance mentionne un intervalle W ou allure hors de ±3% de la zone canonique du label utilisé.
+Discriminant contrainte N°2 : `zSessionRef` (`custom=false` → `catalogId ∈ enum runtime`), `zSessionCustom` (`custom=true` → `catalogId=null`), `zSessionRest` (`sport=rest`, aucun catalogId, `durationMin=0`), union discriminée sur `custom` + `sport`.
 
-## Phase 3 — Structure & catalogue (jour 3)
+Fabrique `buildPlanChunkSchema(allowedCatalogIds: string[])` : construit `z.enum([...])` à l'appel (contrainte N°2). Extraction des IDs depuis le catalog string du chunk (`chunkCatalogs[i]`) via regex `/^([A-Z0-9_]+)\s+/m` sur les lignes du dump catalogue.
 
-### #5 · Décharge obligatoire tous les 3 blocs
-`planValidator` : règle `dechargeFrequencyRule` — pour tout plan > 6 semaines, exiger 1 semaine avec volume ≤ 70% de la précédente tous les 3-4 blocs, sinon severity=high + patch auto-inject.
+### 2. `mergePlanChunks.ts` (nouveau, contrainte N°4)
 
-### #6 · Anti-contamination élite sur plan Age Group
-Filtre catalogue : quand `ambition ∈ {finisher, age_group, perf}`, stripper des `description`/`details` les mentions `#elite`, `#podium`, `"pour femme élite mondiale"`, `"viser 2×"`. Implémenter dans `aiPlanWorkoutEnricher.ts`.
+- `mergePlanChunks(chunks: PlanChunk[], totalWeeks: number): ParsedPlan`
+- Ordonne par `weekNumber`, vérifie couverture `1..totalWeeks` sans trou ni doublon → erreur explicite `[SCHEMA_FAIL] gap|dup` sinon.
+- Concatène `weeks`, prend `title/phases/diagnostic/strategicRecap` du premier chunk qui les fournit.
+- **N'inclut aucun champ de volume déclaré** — le champ est absent du schéma, donc rien à faire côté merge.
+- Tests unitaires Deno (`mergePlanChunks.test.ts`) : chunks désordonnés, semaine manquante, doublon, chunk unique.
 
-### #4 · Format `raceFormat="lcw_3day"` propagé au sélecteur
-- Ajouter 4 séances au catalogue (`src/lib/enrichedWorkoutsLCW.ts`) : refeed inter-jours, back-to-back sam-vélo/dim-run @ allure semi cible, OWS 1.9km frais, brick léger vs 70.3 classique.
-- Étendre `promptHelpers.ts` : détecter `raceGoals[i].raceFormat === "lcw_3day"` → injecter section prompt dédiée qui force la sélection LCW-sim au lieu de `703_PODIUM_DURABILITY`.
-- Bloquer `B_703_BRICK_RACE_PACE` et briques longues quand format LCW détecté.
+### 3. `index.ts` — refonte de la boucle de génération
 
-## Aspects techniques
+Nouvelle fonction `generateChunkJSON(systemPrompt, userPrompt, allowedIds, chunkIndex)` :
 
-- Chaque phase est mergeable indépendamment (feature flag pas nécessaire — additive).
-- Miroir `src/lib/deriveRaceTargets.ts` ↔ `supabase/functions/_shared/deriveRaceTargets.ts` maintenu pour Phase 2.
-- Tests unitaires : au moins 1 test régression par correctif (`sprintBan.gating.test.ts`, `racePowerCap.test.ts`, `dechargeFrequency.test.ts`, `zonesConsistency.test.ts`).
-- Aucun changement DB requis.
+```
+POST https://ai.gateway.lovable.dev/v1/chat/completions
+body: {
+  model: "google/gemini-3-flash-preview",
+  messages: [{system}, {user}],
+  response_format: { type: "json_schema", json_schema: {
+    name: "plan_chunk",
+    strict: true,
+    schema: zodToJsonSchema(buildPlanChunkSchema(allowedIds))
+  }},
+  stream: false
+}
+```
+- Validation `buildPlanChunkSchema(allowedIds).safeParse(JSON.parse(content))`.
+- Échec → **1 seul retry** avec `user += "\n\nCORRECTION REQUISE (schéma) : " + zodErrorsCompact`.
+- 2ᵉ échec → SSE event `{type:"error",chunkIndex,code:"SCHEMA_FAIL",errors}` + log `[SCHEMA_FAIL]` + fermeture stream. Jamais de 3ᵉ tentative.
 
-## Ordre d'exécution proposé
+Contrat SSE nouveau (contrainte N°3) :
+```
+event: chunk-progress
+data: {"chunkIndex":0,"totalChunks":3,"status":"generating"}
 
-Je démarre par **Phase 1** (#1 + #2 + #7) dans le prochain tour — ce sont les 3 changements les plus haut ROI/sécurité, testables sur le prochain plan Cath régénéré. Puis on itère phase par phase avec ton retour à chaque livraison.
+event: chunk-json
+data: <PlanChunk JSON complet du chunk validé>
+
+event: chunk-progress
+data: {"chunkIndex":0,"totalChunks":3,"status":"done"}
+
+... (chunks suivants) ...
+
+event: plan-complete
+data: {"totalChunks":3}
+
+event: error
+data: {"chunkIndex":1,"code":"SCHEMA_FAIL",...}   // si échec
+```
+
+Feature flag (option 2 recommandée) : header `X-Plan-Output-Format: json` ou champ `planConfig._outputFormat === "json"` active le nouveau chemin ; sinon fallback intégral sur l'existant. Zéro changement de comportement en prod tant que le flag n'est pas activé.
+
+### 4. `systemPrompt.ts` — nettoyage
+
+**Supprimer** (règles obsolètes après passage JSON) :
+- RÈGLE #0 H1 / `h1Rewrite` (schéma impose `title`)
+- Format tableau Markdown + colonne "Détails"
+- Marqueur `🔑` (remplacé par `isKeySession: true`)
+- Buffer de streaming `h1Rewrite` dans `index.ts` (~40 lignes)
+- Toutes les instructions "utilise ce format exact de tableau"
+- Anti-semaine-vide format-driven (le schéma impose ≥1 session ou `sport=rest` explicite)
+
+**Conserver intégralement** (défenses sémantiques) :
+- Verrous sport / cross-sport (rule 6 non-cross-sport)
+- Ratios `sportRatioMatrix`
+- Règles Lorang (A/B/C/D, ratios A%/B%/C%)
+- W'bal recovery reminders
+- Hard-ban trail (déjà en place)
+- `nutritionAndSafetyGuardrails`
+- `ambitionDefense`
+
+Ajouter en tête : "Tu produis un JSON conforme au schéma fourni via `response_format`. Aucun Markdown. Aucun texte hors JSON."
+
+### 5. Chemin `regenerateWeek`
+
+Même schéma, même route, mais `buildPlanChunkSchema` avec `weeks` de longueur exacte = 1 (raffiner via `.length(1)`). Enum IDs autorisés = catalog de la phase de la semaine régénérée.
+
+## Périmètre non-touché (contrainte)
+
+- `src/pages/AITrainingPlanPage.tsx` (viewer)
+- `src/lib/aiPlanParser.ts` (Markdown parser — désactivé Phase 1B)
+- `plan_versions` persistence
+- `planPatcher.ts`
+- `useAITrainingPlan.ts` **si option 2 (flag off en prod)** ; sinon adaptateur JSON→Markdown minimal
+
+## Fichiers créés / modifiés
+
+**Créés** (edge uniquement) :
+- `supabase/functions/ai-training-plan/planSchema.ts` (~200 lignes)
+- `supabase/functions/ai-training-plan/mergePlanChunks.ts` (~80 lignes)
+- `supabase/functions/ai-training-plan/mergePlanChunks.test.ts` (Deno test, ~120 lignes)
+- `supabase/functions/ai-training-plan/generateChunkJSON.ts` (~130 lignes, isole l'appel gateway + retry)
+
+**Modifiés** :
+- `supabase/functions/ai-training-plan/index.ts` : nouveau chemin JSON derrière flag ; nettoyage `h1Rewrite` et logique de format tableau (uniquement dans le nouveau chemin — l'ancien reste intact)
+- `supabase/functions/ai-training-plan/systemPrompt.ts` : nouveau builder `getSystemPromptJSON(...)` en parallèle de l'existant, purge des règles format Markdown
+
+## Ce qui reste EXPLICITEMENT hors Phase 1A
+
+- Adaptateur / migration du client (`useAITrainingPlan`, viewer) → Phase 1B
+- Suppression définitive de `aiPlanParser.ts` → Phase 1B après bascule complète
+- Refonte du chunker (nombre de semaines par chunk) → Phase 2
+- Squelette déterministe (slots pré-calculés hors LLM) → Phase 2
+
+## Risques identifiés
+
+1. **Gemini `json_schema` support** — Le gateway route `google/*` via OpenRouter. `response_format:json_schema` peut être partiellement supporté. Fallback prévu : `response_format:{type:"json_object"}` + validation Zod post-hoc + retry (comportement identique côté validation, seul le "server-side enforcement" est absent).
+2. **Taille du schéma JSON pour catalogues >200 IDs** — Gemini rejette les enums >~500 valeurs. Cap à 150 IDs par chunk (déjà proche de `maxItems:80` actuel).
+3. **Débordement `max_tokens`** — JSON verbeux > Markdown. Passer `max_tokens: 65536` → provider default et vérifier par test.
+
+## Décisions à confirmer avant que je code
+
+1. Option 1 (adaptateur client léger) ou **option 2 (feature flag serveur)** ?
+2. Nom du feature flag : `planConfig._outputFormat` ou header HTTP ?
+3. Faut-il conserver l'émission de `warningBanners` LCW / compliance dans le nouveau chemin JSON (via un champ `weeklyNotes` ou un event SSE dédié `warning`) ?
