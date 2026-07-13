@@ -691,7 +691,7 @@ export function sanitizeTrailFromTriathlonPlan(
         });
         // eslint-disable-next-line no-console
         console.warn(
-          `🚫 [Sanitizer] Séance trail retirée du plan triathlon : S${week.weekNumber} ${s.dayName} — ${title}`,
+          `🚫 [Sanitizer] Séance trail retirée (objectif non-trail) : S${week.weekNumber} ${s.dayName} — ${title}`,
         );
         continue;
       }
