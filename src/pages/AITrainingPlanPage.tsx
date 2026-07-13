@@ -1081,6 +1081,7 @@ export default function AITrainingPlanPage() {
       overriddenByCoach: payload.overriddenByCoach,
     });
     toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
+    if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
     generatePlan(athleteContext.data, config);
   }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlan]);
 
