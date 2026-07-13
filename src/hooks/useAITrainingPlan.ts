@@ -46,11 +46,12 @@ const getCatalogExclusions = (
   }
 
   if (isLCW) {
-    // Bannir les séances IM 1-jour / briques T2 continues incompatibles avec LCW
-    // (leur signature physiologique ≠ course à étapes 3 jours).
+    // Bannir les briques T2 continues + marathon-split IM (incompatibles avec paradigme 3 jours).
+    // NB : `A_IM_RUN_FATIGUED_NEXT_DAY` reste AUTORISÉE (validée en post-génération : exige
+    // un long bike la veille — voir compliance check `A_IM_RUN_FATIGUED_NEXT_DAY orphan`).
     excludeIdPatterns.push(
-      /^A_IM_/i,
-      /^B_IM_/i,
+      /^B_IM_BRICK_LONG_MARATHON_PACE$/i,
+      /^B_IM_RUN_MARATHON_SPLIT/i,
       /^B_703_BRICK_RACE_PACE$/i,
     );
   }
