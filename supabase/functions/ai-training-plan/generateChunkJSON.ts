@@ -428,7 +428,7 @@ function buildJsonSchemaResponseFormat(allowedIds: string[], opts?: BuildPlanChu
                     weeks: { type: "string" },
                     keySessions: { type: "string" },
                   },
-                  required: ["rank", "name", "status", "block", "weeks", "keySessions"],
+                  required: ["name"],
                   additionalProperties: false,
                 },
               },
