@@ -606,6 +606,24 @@ export default function AITrainingPlanPage() {
   // (garde par ref sur la longueur du markdown final ; jamais par chunk).
   const postProcessKeyRef = useRef<string | null>(null);
   const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
+    // Phase 1B — JSON path prioritaire. `jsonParsedPlan` est déjà validé Zod,
+    // mergé, et neutralisé des volumes LLM. Le validator sport↔objectif tourne
+    // dans le hook et loggue les issues critiques dans `sportObjectiveIssues`.
+    if (jsonParsedPlan && !isLoading) {
+      if (sportObjectiveIssues && sportObjectiveIssues.length > 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `⚠️ [Plan JSON] ${sportObjectiveIssues.length} issue(s) sport↔objectif :`,
+          sportObjectiveIssues.slice(0, 5),
+        );
+      }
+      if (jsonParsedPlan.weeks.length === 0) return null;
+      const key = `json:${jsonParsedPlan.weeks.length}:${jsonParsedPlan.title}`;
+      if (postProcessKeyRef.current !== key) {
+        postProcessKeyRef.current = key;
+      }
+      return jsonParsedPlan;
+    }
     if (!response || isLoading) return null;
     try {
       const rawPlan = parseAIPlan(response);
