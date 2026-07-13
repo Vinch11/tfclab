@@ -59,7 +59,7 @@ export function jsonPlanToParsedPlan(merged: MergedPlan): ParsedPlan {
   return {
     title: merged.title,
     diagnostic: merged.diagnostic,
-    strategicRecap: merged.strategicRecap,
+    strategicRecap: merged.strategicRecap as ParsedPlan["strategicRecap"],
     phases: merged.phases.map(p => ({
       name: p.name,
       weeks: p.weeks,
