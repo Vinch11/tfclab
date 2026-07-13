@@ -211,7 +211,7 @@ export function extractCatalogIdsFromDump(dump: string | null | undefined): stri
   const idRx = /^\|\s*([A-Z][A-Z0-9_]+)\s*\|/;
   for (const line of lines) {
     const m = line.match(idRx);
-    if (m) ids.add(m[1]);
+    if (m && m[1] !== "ID") ids.add(m[1]);
   }
   return Array.from(ids);
 }
@@ -220,9 +220,42 @@ export function extractCatalogIdsFromDump(dump: string | null | undefined): stri
 // Formatage compact des erreurs Zod pour le retry
 // ─────────────────────────────────────────────────────────────────────────────
 
+export interface FormattedZodIssue {
+  path: string;
+  message: string;
+  code: string;
+}
+
+export function collectZodIssues(err: z.ZodError, maxItems = Number.POSITIVE_INFINITY): FormattedZodIssue[] {
+  const out: FormattedZodIssue[] = [];
+  const pushIssue = (issue: z.ZodIssue, inheritedPath: (string | number)[] = []) => {
+    if (out.length >= maxItems) return;
+    const ownPath = issue.path.length > 0 ? issue.path : inheritedPath;
+    if (issue.code === "invalid_union") {
+      const unionErrors = (issue as z.ZodInvalidUnionIssue).unionErrors;
+      unionErrors.forEach((unionErr, unionIndex) => {
+        unionErr.errors.forEach(nested => {
+          if (out.length >= maxItems) return;
+          const nestedPath = nested.path.length > 0 ? nested.path : ownPath;
+          out.push({
+            path: nestedPath.join(".") || "(root)",
+            message: `[union#${unionIndex}] ${nested.message}`,
+            code: nested.code,
+          });
+        });
+      });
+      return;
+    }
+    out.push({
+      path: ownPath.join(".") || "(root)",
+      message: issue.message,
+      code: issue.code,
+    });
+  };
+  err.errors.forEach(issue => pushIssue(issue));
+  return out.slice(0, maxItems);
+}
+
 export function formatZodErrors(err: z.ZodError, maxItems = 15): string {
-  return err.errors.slice(0, maxItems).map(e => {
-    const path = e.path.join(".") || "(root)";
-    return `- ${path}: ${e.message}`;
-  }).join("\n");
+  return collectZodIssues(err, maxItems).map(e => `- ${e.path}: ${e.message}`).join("\n");
 }

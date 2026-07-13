@@ -445,7 +445,7 @@ export function useAITrainingPlan() {
         const decoder = new TextDecoder();
         let sseBuffer = "";
         const collected: PlanChunk[] = [];
-        let fatalError: { code: string; message: string } | null = null;
+        let fatalError: { code: string; message: string; details?: any } | null = null;
 
         const handleEvent = (event: string, dataStr: string) => {
           let data: any;
@@ -463,7 +463,7 @@ export function useAITrainingPlan() {
             }
             collected.push(parsed.data);
           } else if (event === "error") {
-            fatalError = { code: data.code ?? "UNKNOWN", message: data.message ?? "Erreur inconnue" };
+            fatalError = { code: data.code ?? "UNKNOWN", message: data.message ?? "Erreur inconnue", details: data.details };
           }
         };
 
@@ -488,7 +488,7 @@ export function useAITrainingPlan() {
         // Attempt merge only if no fatal error and chunks received
         let jsonSuccess = false;
         let sportIssuesCount = 0;
-        let mergeError: { code: string; message: string } | null = fatalError;
+        let mergeError: { code: string; message: string; details?: any } | null = fatalError;
         if (!fatalError && collected.length > 0) {
           try {
             const merged = mergePlanChunks(collected, totalWeeks);
@@ -533,6 +533,7 @@ export function useAITrainingPlan() {
           objective: planConfig.objective ?? null,
           totalWeeks, totalChunks, durationMs: jsonDurMs, ok: false,
           errorCode: failCode, errorMessage: failMsg,
+          schemaFailDetails: mergeError?.details,
         });
         // Fresh Markdown request (identical body, no header)
         const fallbackResp = await fetch(PLAN_URL, {

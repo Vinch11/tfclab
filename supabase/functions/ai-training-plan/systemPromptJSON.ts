@@ -87,6 +87,7 @@ Champs principaux :
    \`durationMin = 0\`. Utilisé pour marquer un jour de repos explicite.
 4. \`sessions[].zones\` est un tableau de labels (Z1..Z5, "RPE 6", "88% FTP"…).
 5. \`sessions[].durationMin\` : entier positif en MINUTES (pas d'heures).
+   Type strict : écrire \`60\`, jamais \`"60"\`.
 6. Chaque semaine \`weeks[i]\` DOIT contenir au moins une session. Un jour off
    se déclare via une session \`sport: "rest"\`, jamais par l'absence de session.
 7. Les \`weekNumber\` demandés dans la requête doivent tous être présents, sans
@@ -95,12 +96,48 @@ Champs principaux :
    \`custom = false\` avec un \`catalogId\` valide.
 9. Verrou sport : la contrainte "un slot d'un sport donné = un ID du même
    sport" reste absolue (voir bloc "règle non-cross-sport" plus haut).
+10. Types JSON stricts : \`custom\` et \`isKeySession\` sont des booléens JSON
+    (\`true\`/\`false\` sans guillemets), \`durationMin\` et \`weekNumber\` sont
+    des nombres entiers JSON (sans guillemets). Interdit : \`"true"\`, \`"false"\`, \`"0"\`, \`"60"\`.
 
 ## EN CAS DE DOUTE SUR UN ID
 
 Si aucun ID du catalogue ne correspond exactement au besoin d'une session,
 préfère \`custom = true\` (+ \`catalogId = null\`) plutôt que d'inventer un ID.
 Un ID invalide fera échouer la validation et provoquera un retry coûteux.
+
+## SCHÉMA EN CLAIR + EXEMPLE MINIMAL VALIDE
+
+Enums exacts attendus par le validateur :
+- day = "lundi" | "mardi" | "mercredi" | "jeudi" | "vendredi" | "samedi" | "dimanche"
+- sport = "swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "rest"
+- phase = "base" | "build" | "peak" | "taper"
+- types = booléens/nombres natifs JSON : true, false, 0, 60 — jamais sous forme string
+
+Exemple minimal valide (chunk 1, une semaine) :
+{
+  "title": "Plan TFCL",
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "phase": "base",
+      "theme": "Fondation",
+      "sessions": [
+        {
+          "day": "lundi",
+          "sport": "rest",
+          "title": "Repos",
+          "details": "Récupération complète.",
+          "isKeySession": false,
+          "custom": true,
+          "catalogId": null,
+          "durationMin": 0,
+          "zones": []
+        }
+      ]
+    }
+  ]
+}
 
 ═══════════════════════════════════════════════════════════════════════════════
 `;
