@@ -429,7 +429,9 @@ export function useAITrainingPlan() {
         return;
       }
       if (!resp.ok || !resp.body) {
-        throw new Error("Erreur du service IA");
+        const bodyText = await resp.text().catch(() => "");
+        console.error(`[useAITrainingPlan] edge fn HTTP ${resp.status} :`, bodyText.slice(0, 500));
+        throw new Error(`Erreur du service IA (HTTP ${resp.status}) : ${bodyText.slice(0, 200) || "réponse vide"}`);
       }
 
       // ─────────────────────────────────────────────────────────────────────
