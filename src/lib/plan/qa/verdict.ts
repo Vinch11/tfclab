@@ -23,6 +23,7 @@ export interface QARunRecord {
   checks: CheckResult[];
   stat?: PlanGenerationStat;
   errorMessage?: string;
+  errorStack?: string;              // tronqué 500 chars
   durationMs: number;
 }
 
@@ -31,6 +32,7 @@ export interface QASession {
   n: number;                        // runs par profil
   runs: QARunRecord[];
   mergeTests: TestResult[] | null;
+  mergeTestsError?: string;         // raison si mergeTests=null
   verdict: Verdict;
   summary: string;                  // ligne-titre du verdict
 }
@@ -121,16 +123,18 @@ export function buildQAReport(session: QASession): string {
   lines.push(`**Runs** : ${session.n} × 3 profils = ${session.runs.length} générations`);
   lines.push("");
 
-  // Merge tests summary
+  // Merge tests summary (always present, never null in the report)
+  lines.push(`## Merge tests`);
   if (session.mergeTests) {
     const ok = session.mergeTests.filter(t => t.pass).length;
-    lines.push(`## Merge tests`);
     lines.push(`${ok}/${session.mergeTests.length} passing`);
     for (const t of session.mergeTests) {
       lines.push(`- ${t.pass ? "✅" : "❌"} ${t.name}${!t.pass ? ` — ${t.error}` : ""}`);
     }
-    lines.push("");
+  } else {
+    lines.push(`⚠️ Merge tests non exécutés — raison : ${session.mergeTestsError ?? "inconnue"}`);
   }
+  lines.push("");
 
   // Per profile / per run
   const byProfile = new Map<string, QARunRecord[]>();
@@ -146,6 +150,7 @@ export function buildQAReport(session: QASession): string {
       lines.push(`\n### Run ${r.runIndex}/${r.totalRuns} — ${status} (${(r.durationMs / 1000).toFixed(1)}s)`);
       if (r.errorMessage) {
         lines.push(`> ⚠️ ${r.errorMessage}`);
+        if (r.errorStack) lines.push("```\n" + r.errorStack + "\n```");
       }
       if (r.stat) {
         lines.push(`- format=${r.stat.format} · chunks=${r.stat.totalChunks ?? "?"} · retries≥1=${retriesOf(r.stat)}`);

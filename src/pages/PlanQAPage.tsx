@@ -10,7 +10,7 @@
  *     tournent en cliquant sur "Run all", sans appel IA ni réseau.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -24,6 +24,7 @@ import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { zDay, zPhase, zSport } from "@/lib/plan/planSchema";
 import { useQARunner } from "@/lib/plan/qa/useQARunner";
 import { buildQAReport, readQASessions, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 function formatDuration(ms: number): string {
@@ -52,7 +53,7 @@ function sameValues(a: readonly string[], b: readonly string[]) {
   return a.length === b.length && a.every(v => b.includes(v));
 }
 
-function buildFullReport(stats: PlanGenerationStat[], testResults: TestResult[] | null): string {
+function buildFullReport(stats: PlanGenerationStat[], testResults: TestResult[] | null, lastSession: QASession | null): string {
   const enumLines = (Object.keys(EXPECTED_ENUMS) as Array<keyof typeof EXPECTED_ENUMS>).map(key => {
     const expected = EXPECTED_ENUMS[key];
     const prompt = PROMPT_ENUMS[key];
@@ -65,11 +66,14 @@ function buildFullReport(stats: PlanGenerationStat[], testResults: TestResult[] 
     "## Enum audit",
     enumLines,
     "",
-    "## Stats",
-    JSON.stringify(stats, null, 2),
+    "## Dernière session QA",
+    lastSession ? buildQAReport(lastSession) : "_aucune session QA enregistrée_",
     "",
-    "## Merge tests",
-    JSON.stringify(testResults, null, 2),
+    "## Stats",
+    stats.length === 0 ? "_aucune stat enregistrée_" : JSON.stringify(stats, null, 2),
+    "",
+    "## Merge tests (dernier click Run all)",
+    testResults === null ? "_non exécutés dans cet onglet_" : JSON.stringify(testResults, null, 2),
   ].join("\n");
 }
 
@@ -181,7 +185,8 @@ export default function PlanQAPage() {
   const refresh = () => setStats(readPlanStats());
   const wipe = () => { clearPlanStats(); setStats([]); };
   const copyFullReport = async () => {
-    await navigator.clipboard.writeText(buildFullReport(stats, testResults));
+    await navigator.clipboard.writeText(buildFullReport(stats, testResults, qa.lastSession));
+    toast.success("Rapport complet copié.");
   };
 
   const runTests = async () => {
@@ -194,6 +199,24 @@ export default function PlanQAPage() {
     }
   };
 
+  // ── Self-test préconditions (auth + supabase) ─────────────────────────────
+  const [selfTest, setSelfTest] = useState<{ ok: boolean; message: string } | null>(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) { setSelfTest({ ok: false, message: `Auth: ${error.message}` }); return; }
+        if (!data.session) { setSelfTest({ ok: false, message: "Pas de session d'authentification active — connectez-vous avant de lancer un run." }); return; }
+        setSelfTest({ ok: true, message: `Runner opérationnel — session utilisateur ${data.session.user.email ?? data.session.user.id}` });
+      } catch (e) {
+        setSelfTest({ ok: false, message: `Self-test exception: ${e instanceof Error ? e.message : String(e)}` });
+      }
+    })();
+  }, []);
+
+  const runnerReady = selfTest?.ok === true;
+
+
   const passed = testResults?.filter(t => t.pass).length ?? 0;
   const failed = testResults?.filter(t => !t.pass).length ?? 0;
 
@@ -205,6 +228,19 @@ export default function PlanQAPage() {
           Console admin : bascule contrôlée sur le chemin JSON, stats de fiabilité, tests locaux du merge.
         </p>
       </div>
+
+      {/* Self-test préconditions */}
+      {selfTest && (
+        <div
+          className={`rounded border p-3 text-sm ${
+            selfTest.ok
+              ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-600"
+              : "border-red-500/40 bg-red-500/5 text-red-600"
+          }`}
+        >
+          <b>{selfTest.ok ? "✅ Runner opérationnel" : "🔴 Runner indisponible"}</b> — {selfTest.message}
+        </div>
+      )}
 
       {/* Feature flag */}
       <Card>
@@ -253,12 +289,21 @@ export default function PlanQAPage() {
               size="sm"
               className="ml-auto"
               onClick={async () => {
-                await qa.runFullSuite(qaN);
-                setStats(readPlanStats());
-                setQaSessions(readQASessions());
-                toast.success("QA terminée — verdict affiché.");
+                try {
+                  const s = await qa.runFullSuite(qaN);
+                  setStats(readPlanStats());
+                  setQaSessions(readQASessions());
+                  if (s.verdict === "🟢") toast.success(`QA terminée — ${s.summary}`);
+                  else if (s.verdict === "🟠") toast.warning(`QA terminée — ${s.summary}`);
+                  else toast.error(`QA terminée — ${s.summary}`);
+                } catch (e) {
+                  const msg = e instanceof Error ? e.message : String(e);
+                  toast.error(`QA interrompue : ${msg}`);
+                  setStats(readPlanStats());
+                  setQaSessions(readQASessions());
+                }
               }}
-              disabled={qa.progress.running}
+              disabled={qa.progress.running || !runnerReady}
             >
               {qa.progress.running ? "En cours…" : `Lancer (${3 * qaN} plans)`}
             </Button>
@@ -270,6 +315,7 @@ export default function PlanQAPage() {
                 {qa.progress.currentProfile && (
                   <> — profil <b>{qa.progress.currentProfile}</b> (itération {qa.progress.currentRunOfProfile}/{qa.progress.N})</>
                 )}
+                {qa.progress.phase && <> · phase <b>{qa.progress.phase}</b></>}
               </div>
               <div className="h-1.5 bg-border/40 rounded overflow-hidden">
                 <div
@@ -291,6 +337,7 @@ export default function PlanQAPage() {
                 <Button
                   size="sm"
                   variant="outline"
+                  disabled={!qa.lastSession}
                   onClick={async () => {
                     await navigator.clipboard.writeText(buildQAReport(qa.lastSession!));
                     toast.success("Rapport QA copié.");
@@ -299,19 +346,45 @@ export default function PlanQAPage() {
                   Copier le rapport QA
                 </Button>
               </div>
+
+              {/* Merge tests bloc — jamais null */}
+              <div className="text-xs">
+                <b>Merge tests</b> :{" "}
+                {qa.lastSession.mergeTests ? (
+                  <span className={qa.lastSession.mergeTests.every(t => t.pass) ? "text-emerald-500" : "text-red-500"}>
+                    {qa.lastSession.mergeTests.filter(t => t.pass).length}/{qa.lastSession.mergeTests.length} passing
+                  </span>
+                ) : (
+                  <span className="text-red-500">
+                    ⚠️ non exécutés — {qa.lastSession.mergeTestsError ?? "raison inconnue"}
+                  </span>
+                )}
+              </div>
+
               <div className="text-xs space-y-1">
                 {qa.lastSession.runs.map((r, i) => {
                   const crit = r.checks.filter(c => c.level === "critical" && !c.pass);
-                  const status = r.errorMessage ? "🔴" : crit.length > 0 ? "🔴" : "🟢";
+                  const isErr = !!r.errorMessage;
+                  const status = isErr ? "🔴" : crit.length > 0 ? "🔴" : "🟢";
                   return (
-                    <div key={i} className="flex items-center gap-2">
-                      <span>{status}</span>
-                      <span className="font-mono">{r.profileId}#{r.runIndex}</span>
-                      <span className="text-muted-foreground">
-                        {r.stat?.format ?? "?"} · {(r.durationMs / 1000).toFixed(1)}s
-                        {crit.length > 0 && ` · ${crit.length} critical`}
-                        {r.errorMessage && ` · ${r.errorMessage.slice(0, 60)}`}
-                      </span>
+                    <div
+                      key={i}
+                      className={`rounded p-2 ${isErr ? "border border-red-500/40 bg-red-500/5" : ""}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{status}</span>
+                        <span className="font-mono">{r.profileId}#{r.runIndex}</span>
+                        <span className="text-muted-foreground">
+                          {r.stat?.format ?? "?"} · {(r.durationMs / 1000).toFixed(1)}s
+                          {crit.length > 0 && ` · ${crit.length} critical`}
+                        </span>
+                      </div>
+                      {isErr && (
+                        <div className="mt-1 text-red-500 font-mono text-[11px] whitespace-pre-wrap">
+                          {r.errorMessage}
+                          {r.errorStack && `\n${r.errorStack}`}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
