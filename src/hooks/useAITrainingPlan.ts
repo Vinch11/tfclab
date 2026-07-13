@@ -8,7 +8,7 @@
  *     validated by Zod, merged via mergePlanChunks, and exposed as `parsedPlan`.
  *     `response` is left empty in this mode; consumers should prefer parsedPlan.
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
@@ -297,6 +297,9 @@ export function useAITrainingPlan() {
   const [parsedPlan, setParsedPlan] = useState<ParsedPlan | null>(null);
   const [mergedPlan, setMergedPlan] = useState<MergedPlan | null>(null);
   const [sportObjectiveIssues, setSportObjectiveIssues] = useState<SportObjectiveIssue[]>([]);
+  // Phase 0 QA — union des catalogId injectés (phase + chunks) pour check B5.
+  // Peuplée dans generatePlan une fois les catalogues bâtis, avant l'appel edge.
+  const lastAllowedCatalogIdsRef = useRef<string[]>([]);
 
   const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" }) => {
     // Guard against double-fire
@@ -391,6 +394,19 @@ export function useAITrainingPlan() {
 
       // Derive duration stats from the actual library — sent to edge function
       const catalogDurationStats = computeCatalogDurationStats(allCatalogEntries);
+
+      // Phase 0 QA — expose l'union des catalogId injectés (pour B5)
+      {
+        const union = new Set<string>();
+        allCatalogEntries.forEach(e => union.add(e.id));
+        for (const dump of chunkCatalogs) {
+          for (const line of dump.split("\n")) {
+            const m = line.match(/^\|\s*([A-Za-z0-9_-]{4,})\s*\|/);
+            if (m && m[1] !== "ID") union.add(m[1]);
+          }
+        }
+        lastAllowedCatalogIdsRef.current = [...union];
+      }
 
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
@@ -704,5 +720,7 @@ export function useAITrainingPlan() {
     response, isLoading, chunkProgress, generatePlan, reset, setResponse,
     // Phase 1B — JSON-mode outputs (null when Markdown path was used).
     parsedPlan, mergedPlan, sportObjectiveIssues,
+    // Phase 0 QA — union catalogId injectés au dernier run (pour check B5).
+    lastAllowedCatalogIdsRef,
   };
 }
