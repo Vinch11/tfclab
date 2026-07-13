@@ -3,12 +3,20 @@
  * PHASE 1B — Identity mapping MergedPlan → ParsedPlan (source unique côté client)
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * Le schéma serveur (planSchema.ts) miroite ParsedPlan. Ce module transforme
- * un `MergedPlan` (chunks JSON validés + fusionnés) en `ParsedPlan` consommable
- * SANS modification par AIPlanViewer, planPatcher, plan_versions.
- *
- * Volume hebdo (contrainte N°4) — recalculé ici depuis `Σ durationMin` par
- * semaine. Aucune valeur ne provient du LLM. Formaté "Nh MMmin" pour la carte.
+ * TODO(Phase-1C) — HACK title-prefix `${catalogId} — ${title}`
+ * ─────────────────────────────────────────────────────────────
+ * Pour éviter de refactorer immédiatement les consommateurs regex historiques,
+ * on préfixe le catalogId dans `title`. À supprimer en Phase 1C UNE FOIS ces
+ * 3 consommateurs rebranchés sur `ParsedSession.catalogId` structuré :
+ *   1) src/lib/catalogIdExtractor.ts       — CATALOG_ID_PATTERN.exec(title)
+ *   2) src/lib/aiPlanWorkoutEnricher.ts    — regex ID sur title+details
+ *   3) src/engines/plan/planValidator.ts   — validateCatalogRatio (L707)
+ * Étapes Phase 1C :
+ *   a) Ajouter `catalogId?: string|null` à ParsedSession (aiPlanParser.ts)
+ *   b) Peupler `catalogId` ici au lieu de préfixer `title`
+ *   c) Rebrancher les 3 consommateurs sur le champ structuré (fallback regex
+ *      conservé pour le chemin Markdown tant que celui-ci coexiste)
+ *   d) Supprimer le préfixe title dans ce fichier
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
