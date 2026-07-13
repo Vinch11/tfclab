@@ -23,6 +23,7 @@ export interface QARunRecord {
   checks: CheckResult[];
   stat?: PlanGenerationStat;
   errorMessage?: string;
+  errorStack?: string;              // tronqué 500 chars
   durationMs: number;
 }
 
@@ -31,6 +32,7 @@ export interface QASession {
   n: number;                        // runs par profil
   runs: QARunRecord[];
   mergeTests: TestResult[] | null;
+  mergeTestsError?: string;         // raison si mergeTests=null
   verdict: Verdict;
   summary: string;                  // ligne-titre du verdict
 }
