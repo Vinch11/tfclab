@@ -261,7 +261,7 @@ export function runAllChecks(args: {
       ? checkB4_semi(args.merged)
       : checkB4_sprint(args.merged);
   return [
-    checkB1({ stat: args.stat }),
+    checkB1({ stat: args.stat, parsedPresent: !!args.parsed }),
     checkB2(args.merged),
     checkB3(args.merged),
     b4,
