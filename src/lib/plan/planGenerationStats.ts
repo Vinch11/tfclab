@@ -7,6 +7,45 @@
  * parser Markdown).
  * ═══════════════════════════════════════════════════════════════════════════════
  */
+export interface PlanGatewayDiagnostic {
+  model?: string;
+  responseFormatType?: string;
+  jsonSchemaName?: string;
+  constrained?: boolean;
+  jsonSchemaAttempted?: boolean;
+  fallbackReason?: string;
+  gatewayIndicatedIgnoredResponseFormat?: boolean;
+}
+
+export interface PlanSchemaFailDetails {
+  chunkIndex?: number;
+  zodIssues?: Array<{ path: string; message: string; code?: string }>;
+  zodErrorText?: string;
+  rawFirst800?: string;
+  rawLast400?: string;
+  rawLength?: number;
+  unwrapped?: boolean;
+  unwrapMethod?: string;
+  parseError?: string;
+  repairs?: string[];
+  finishReason?: string;
+  gateway?: PlanGatewayDiagnostic;
+  attempts?: Array<{
+    attempt?: number;
+    finishReason?: string;
+    rawLength?: number;
+    rawFirst800?: string;
+    rawLast400?: string;
+    unwrapped?: boolean;
+    unwrapMethod?: string;
+    parseError?: string;
+    repairs?: string[];
+    zodIssues?: Array<{ path: string; message: string; code?: string }>;
+    zodErrorText?: string;
+    gateway?: PlanGatewayDiagnostic;
+  }>;
+}
+
 export interface PlanGenerationStat {
   ts: number;                                // epoch ms
   format: "json" | "markdown" | "markdown-fallback-from-json";
@@ -17,6 +56,7 @@ export interface PlanGenerationStat {
   ok: boolean;
   errorCode?: string;
   errorMessage?: string;
+  schemaFailDetails?: PlanSchemaFailDetails;
   sportObjectiveCriticalIssues?: number;
 }
 
