@@ -134,7 +134,6 @@ function scoreWorkout(
   if (w.necessite === "Obligatoire") score += 3;
   if (w.necessite === "Recommandé") score += 1;
 
-  const isTrailGoal = goals.some(g => g.startsWith("trail_"));
   if (isTrailGoal && w.tags?.some(t => t === "trail")) score += 5;
   if (isTrailGoal && w.dPlusTargetM) score += 3;
 
