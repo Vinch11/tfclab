@@ -1258,10 +1258,10 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
 
                 // Détection substitutions sémantiques interdites en contexte LCW
                 const forbiddenSubs: Array<{ id: string; suggest: string }> = [
-                  { id: "A_IM_RUN_FATIGUED_NEXT_DAY", suggest: "B_LCW_RUN_OFF_LEGS_SUN" },
                   { id: "B_IM_BRICK_LONG_MARATHON_PACE", suggest: "B_LCW_BIKE_LONG_RACE_SAT + B_LCW_RUN_OFF_LEGS_SUN (séparés 12-18h)" },
                   { id: "B_703_BRICK_RACE_PACE", suggest: "banni en LCW (voir règle #1)" },
                 ];
+                // NB : `A_IM_RUN_FATIGUED_NEXT_DAY` autorisée si long-bike la veille — check dédié plus bas.
                 for (const sub of forbiddenSubs) {
                   const n = countMatches(sub.id);
                   if (n > 0) {
