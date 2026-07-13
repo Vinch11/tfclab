@@ -1050,8 +1050,11 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
               // dénivelé, IDs HEDGEHOG_/URBAN_/TRAIL_). Si l'IA en invente, on régénère la semaine
               // avec un HARD BAN explicite. Fiabilise le plan sans attendre l'utilisateur.
               if (isTriVerbose) {
-                const trailIdRx = /\b(HEDGEHOG_\w+|URBAN_\w+|TRAIL_\w+|\w+_TRAIL_\w+)\b/i;
-                const trailVocabRx = /(montagne|sentier|b[aâ]tons?|sac\s*[aà]\s*dos|d[eé]nivel[eé]|\bD\+\s*\d{2,})/i;
+                // Anti faux-positif : on ne déclenche la régénération QUE sur
+                // un ID trail explicite ou un titre de séance "trail run".
+                // Vocabulaire "dénivelé/D+50m/col" seul = OK (long run route vallonné).
+                const trailIdRx = /\b(HEDGEHOG_[A-Z0-9_]+|URBAN_[A-Z0-9_]+|TRAIL_[A-Z0-9_]+|[A-Z]+_TRAIL_[A-Z0-9_]+)\b/;
+                const trailVocabRx = /(s[ée]ance\s+trail|trail\s+run(ning)?|sortie\s+trail|entra[iî]nement\s+trail)/i;
                 const contaminatedWeeks: number[] = [];
                 const presentWeeksT = extractGeneratedWeekNumbers(combinedChunkText);
                 for (const wNum of presentWeeksT) {
