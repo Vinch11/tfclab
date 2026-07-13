@@ -155,7 +155,7 @@ export default function AITrainingPlanPage() {
   const location = useLocation();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot } = useCloudDataContext();
-  const { response, isLoading, chunkProgress, generatePlan, reset, setResponse } = useAITrainingPlan();
+  const { response, isLoading, chunkProgress, generatePlan, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues } = useAITrainingPlan();
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
