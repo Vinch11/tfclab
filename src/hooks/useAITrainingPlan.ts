@@ -429,7 +429,9 @@ export function useAITrainingPlan() {
         return;
       }
       if (!resp.ok || !resp.body) {
-        throw new Error("Erreur du service IA");
+        const bodyText = await resp.text().catch(() => "");
+        console.error(`[useAITrainingPlan] edge fn HTTP ${resp.status} :`, bodyText.slice(0, 500));
+        throw new Error(`Erreur du service IA (HTTP ${resp.status}) : ${bodyText.slice(0, 200) || "réponse vide"}`);
       }
 
       // ─────────────────────────────────────────────────────────────────────
@@ -671,7 +673,8 @@ export function useAITrainingPlan() {
     } catch (e) {
       console.error("AI training plan error:", e);
       if (!(e instanceof Error && e.message === "__STREAM_ABORT__")) {
-        toast.error("Impossible de générer le plan d'entraînement");
+        const msg = e instanceof Error ? e.message : String(e);
+        toast.error(`Impossible de générer le plan : ${msg}`);
       }
       logPlanStat({
         ts: Date.now(),
