@@ -1269,6 +1269,28 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
                   }
                 }
 
+                // ─── Détection FUITES TRAIL dans un plan 70.3/LCW ───
+                // Cherche IDs Hedgehog/Urban/Trail ainsi que vocabulaire trail dans le corps.
+                const trailIdRx = /\b(HEDGEHOG_\w+|URBAN_\w+|TRAIL_\w+|\w+_TRAIL_\w+)\b/gi;
+                const trailIdMatches = Array.from(new Set((full.match(trailIdRx) || []).map(s => s.toUpperCase())));
+                if (trailIdMatches.length > 0) {
+                  lcwViolations.push(`Fuite TRAIL détectée : ID(s) interdit(s) dans un plan 70.3 LCW → ${trailIdMatches.slice(0, 5).join(", ")}${trailIdMatches.length > 5 ? "…" : ""}`);
+                }
+                const trailVocabRx = /\b(d[eé]nivel[eé]|D\+\s*\d|sentier|b[aâ]tons?|sac\s*[aà]\s*dos)\b/gi;
+                const trailVocabHits = (full.match(trailVocabRx) || []).length;
+                if (trailVocabHits >= 3) {
+                  lcwViolations.push(`Vocabulaire TRAIL suspect (${trailVocabHits} occurrences) dans un plan 70.3 LCW — vérifier absence de séances montagne/sentier`);
+                }
+
+                // ─── Détection fuites IM (séances signature Ironman 1-jour) ───
+                const imLeakRx = /\b(A_IM_\w+|B_IM_\w+)\b/gi;
+                const imLeakMatches = Array.from(new Set((full.match(imLeakRx) || []).map(s => s.toUpperCase())));
+                if (imLeakMatches.length > 0) {
+                  lcwViolations.push(`Fuite IM détectée : ID(s) Ironman 1-jour prescrit(s) en contexte LCW → ${imLeakMatches.slice(0, 5).join(", ")}${imLeakMatches.length > 5 ? "…" : ""}`);
+                }
+
+
+
                 if (lcwViolations.length > 0) {
                   console.warn(`⚠️ COMPLIANCE LCW : ${lcwViolations.length} écart(s) — ${lcwViolations.join(" | ")}`);
                   const lcwBanner = `\n\n> ⚠️ **COMPLIANCE LCW (Long Course Weekend)** : ${lcwViolations.length} écart(s) détecté(s) entre les règles LCW et le plan produit :\n${lcwViolations.map(v => `> - ${v}`).join("\n")}\n> _Régénérer le plan ou corriger manuellement les semaines Build/Peak concernées._\n\n`;
