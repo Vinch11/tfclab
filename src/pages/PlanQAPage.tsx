@@ -229,6 +229,19 @@ export default function PlanQAPage() {
         </p>
       </div>
 
+      {/* Self-test préconditions */}
+      {selfTest && (
+        <div
+          className={`rounded border p-3 text-sm ${
+            selfTest.ok
+              ? "border-emerald-500/40 bg-emerald-500/5 text-emerald-600"
+              : "border-red-500/40 bg-red-500/5 text-red-600"
+          }`}
+        >
+          <b>{selfTest.ok ? "✅ Runner opérationnel" : "🔴 Runner indisponible"}</b> — {selfTest.message}
+        </div>
+      )}
+
       {/* Feature flag */}
       <Card>
         <CardHeader>
