@@ -93,12 +93,22 @@ function isEliteOrAntiMonotony(w: LibraryWorkout): boolean {
 }
 
 /** Score a workout for relevance to the given goal + phases */
+/** Hard-exclude trail patterns for non-trail objectives */
+const TRAIL_HARD_ID_RX = /^[A-D]_TR(?:50)?_|^EXPE_HORS_VILLE_|^V3_TRAIL_|^HEDGEHOG_|^URBAN_/i;
+
 function scoreWorkout(
   w: LibraryWorkout,
   goals: WorkoutGoal[],
   phases: PhaseTag[],
   limiterKeys?: { primary?: string; secondary?: string }
 ): number {
+  // ─── HARD-BAN TRAIL sur objectifs non-trail ───
+  const isTrailGoal = goals.some(g => g.startsWith("trail_"));
+  if (!isTrailGoal) {
+    const hasTrailTag = w.tags?.some(t => String(t).toLowerCase() === "trail");
+    if (hasTrailTag || TRAIL_HARD_ID_RX.test(w.id)) return -1000;
+  }
+
   let score = 0;
 
   // Goal match — no penalty for unmatched to maximize diversity
