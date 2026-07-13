@@ -22,6 +22,7 @@ import {
   type BuildPlanChunkSchemaOptions,
   type PlanChunk,
 } from "./planSchema.ts";
+import { extractJsonPayload } from "./extractJson.ts";
 
 export class ChunkGenerationError extends Error {
   constructor(
@@ -66,9 +67,10 @@ interface GatewayDiagnostic {
 interface ParseDiagnostic {
   parsedJson: unknown | null;
   unwrapped: boolean;
-  unwrapMethod: "none" | "fence" | "balanced-substring" | "fence+balanced-substring";
+  unwrapMethod: "none" | "extractJsonPayload";
   cleanedLength: number;
   parseError?: string;
+  truncatedByExtraction?: boolean;
   repairs: string[];
 }
 
@@ -81,6 +83,7 @@ interface AttemptDiagnostic {
   unwrapped: boolean;
   unwrapMethod: ParseDiagnostic["unwrapMethod"];
   parseError?: string;
+  truncatedByExtraction?: boolean;
   zodIssues: Array<{
     path: string;
     message: string;
@@ -281,85 +284,52 @@ function rawSnippet(raw: string) {
 }
 
 function extractJSONText(raw: string): ParseDiagnostic {
-  let cleaned = raw.trim();
-  let fenceRemoved = false;
-  const beforeFence = cleaned;
-  cleaned = cleaned
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/```\s*$/i, "")
-    .trim();
-  fenceRemoved = cleaned !== beforeFence;
-
-  const extractBalanced = (text: string): { text: string; extracted: boolean } => {
-    const objStart = text.indexOf("{");
-    const arrStart = text.indexOf("[");
-    const start = arrStart !== -1 && (objStart === -1 || arrStart < objStart) ? arrStart : objStart;
-    if (start >= 0) {
-      const open = text[start];
-      const close = open === "{" ? "}" : "]";
-      let depth = 0;
-      let inString = false;
-      let escaped = false;
-      let end = -1;
-      for (let i = start; i < text.length; i++) {
-        const ch = text[i];
-        if (escaped) { escaped = false; continue; }
-        if (ch === "\\") { escaped = true; continue; }
-        if (ch === '"') { inString = !inString; continue; }
-        if (inString) continue;
-        if (ch === open) depth++;
-        if (ch === close) depth--;
-        if (depth === 0) { end = i; break; }
-      }
-      if (end > start) {
-        return { text: text.slice(start, end + 1).trim(), extracted: true };
-      }
-    }
-    return { text, extracted: false };
-  };
-
-  let unwrapped = fenceRemoved;
-  let method: ParseDiagnostic["unwrapMethod"] = fenceRemoved ? "fence" : "none";
-  const startsJson = cleaned.startsWith("{") || cleaned.startsWith("[");
-  if (!startsJson) {
-    const extracted = extractBalanced(cleaned);
-    if (extracted.extracted) {
-      cleaned = extracted.text;
-      unwrapped = true;
-      method = fenceRemoved ? "fence+balanced-substring" : "balanced-substring";
-    }
-  }
-
-  if (unwrapped) console.info(`[generateChunkJSON] unwrapped=true method=${method}`);
-
+  let payload: string;
+  let unwrapped = false;
   try {
-    return { parsedJson: JSON.parse(cleaned), unwrapped, unwrapMethod: method, cleanedLength: cleaned.length, repairs: [] };
+    const res = extractJsonPayload(raw);
+    payload = res.json;
+    unwrapped = res.unwrapped;
   } catch (e) {
-    if (startsJson) {
-      const extracted = extractBalanced(cleaned);
-      if (extracted.extracted && extracted.text !== cleaned) {
-        try {
-          console.info(`[generateChunkJSON] unwrapped=true method=${fenceRemoved ? "fence+balanced-substring" : "balanced-substring"}`);
-          return {
-            parsedJson: JSON.parse(extracted.text),
-            unwrapped: true,
-            unwrapMethod: fenceRemoved ? "fence+balanced-substring" : "balanced-substring",
-            cleanedLength: extracted.text.length,
-            repairs: [],
-          };
-        } catch { /* preserve original parse error below */ }
-      }
+    const msg = e instanceof Error ? e.message : String(e);
+    const isUnbalanced = /non\s+équilibré/i.test(msg);
+    if (unwrapped || isUnbalanced) {
+      console.info(`[generateChunkJSON] unwrapped=${unwrapped} extraction-failed=${msg}`);
     }
     return {
       parsedJson: null,
       unwrapped,
+      unwrapMethod: unwrapped ? "extractJsonPayload" : "none",
+      cleanedLength: raw.length,
+      parseError: msg,
+      truncatedByExtraction: isUnbalanced,
+      repairs: [],
+    };
+  }
+
+  const method: ParseDiagnostic["unwrapMethod"] = unwrapped ? "extractJsonPayload" : "none";
+  if (unwrapped) console.info(`[generateChunkJSON] unwrapped=true method=${method}`);
+
+  try {
+    return {
+      parsedJson: JSON.parse(payload),
+      unwrapped,
       unwrapMethod: method,
-      cleanedLength: cleaned.length,
+      cleanedLength: payload.length,
+      repairs: [],
+    };
+  } catch (e) {
+    return {
+      parsedJson: null,
+      unwrapped,
+      unwrapMethod: method,
+      cleanedLength: payload.length,
       parseError: e instanceof Error ? e.message : String(e),
       repairs: [],
     };
   }
 }
+
 
 function issuesFromZodError(err: z.ZodError): AttemptDiagnostic["zodIssues"] {
   return collectZodIssues(err).map(e => ({ path: e.path, message: e.message, code: e.code }));
@@ -522,6 +492,24 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
     }
 
     const extracted = extractJSONText(result.content);
+    if (extracted.truncatedByExtraction) {
+      const snippets = rawSnippet(result.content);
+      console.error(`[TRUNCATED] chunk=${input.chunkIndex} reason=unbalanced-json rawLength=${snippets.rawLength}`);
+      throw new ChunkGenerationError(
+        "TRUNCATED",
+        input.chunkIndex,
+        `Chunk ${input.chunkIndex} : sortie JSON tronquée (délimiteurs non équilibrés).`,
+        {
+          chunkIndex: input.chunkIndex,
+          finishReason: result.finishReason,
+          ...snippets,
+          unwrapped: extracted.unwrapped,
+          unwrapMethod: extracted.unwrapMethod,
+          parseError: extracted.parseError,
+          gateway: result.gatewayDiagnostic,
+        },
+      );
+    }
     const normalized = extracted.parsedJson === null
       ? { value: null, repairs: [] }
       : normalizeModelJsonForSchema(extracted.parsedJson, input.allowedCatalogIds);
@@ -551,6 +539,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
         unwrapped: extracted.unwrapped,
         unwrapMethod: extracted.unwrapMethod,
         parseError: extracted.parseError,
+        truncatedByExtraction: extracted.truncatedByExtraction,
         zodIssues: parsed.success ? [] : issuesFromZodError(parsed.error),
         zodErrorText,
         repairs: normalized.repairs,
