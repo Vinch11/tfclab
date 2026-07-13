@@ -297,6 +297,9 @@ export function useAITrainingPlan() {
   const [parsedPlan, setParsedPlan] = useState<ParsedPlan | null>(null);
   const [mergedPlan, setMergedPlan] = useState<MergedPlan | null>(null);
   const [sportObjectiveIssues, setSportObjectiveIssues] = useState<SportObjectiveIssue[]>([]);
+  // Phase 0 QA — union des catalogId injectés (phase + chunks) pour check B5.
+  // Peuplée dans generatePlan une fois les catalogues bâtis, avant l'appel edge.
+  const lastAllowedCatalogIdsRef = useRef<string[]>([]);
 
   const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" }) => {
     // Guard against double-fire
