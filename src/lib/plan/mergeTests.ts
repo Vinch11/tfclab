@@ -10,6 +10,7 @@
 import { mergePlanChunks, MergePlanError, validateSportObjective } from "./mergePlanChunks";
 import { jsonPlanToParsedPlan, computeWeeklyVolumeBySport } from "./jsonPlanToParsedPlan";
 import { zPlanChunk, type PlanChunk } from "./planSchema";
+import { applyOffsportTrailGuardToChunks } from "../../../supabase/functions/ai-training-plan/offSportTrailGuard";
 
 export interface TestResult {
   name: string;
@@ -53,6 +54,12 @@ function mkChunk(weeks: number[], over: any = {}): PlanChunk {
     ...over,
   });
 }
+
+const RUN_CATALOG_DUMP = `
+#### 🏃 COURSE À PIED — 1 séance(s)
+| ID | Cat | Objectif | Phases | Durée (min) | Structure |
+| B_RUN_EASY_45 | B | Endurance route contrôlée | base | 40-50 | Warm-up: 10min Z1 [Z1] | Main: 30min Z2 [Z2] | Cool-down: 5min [Z1] |
+`;
 
 const CASES: Array<{ name: string; fn: () => void }> = [
   {
@@ -157,6 +164,59 @@ const CASES: Array<{ name: string; fn: () => void }> = [
       const issues = validateSportObjective(m, "Semi-marathon");
       assert(issues.length === 1, `expected 1 issue, got ${issues.length}`);
       assert(/marqueur trail/i.test(issues[0].reason), "reason mentions trail");
+    },
+  },
+  {
+    name: "offsport guard — custom 45min avec 600m D+ dans 70.3 substituée par run catalogue ±15min",
+    fn: () => {
+      const chunk = zPlanChunk.parse({ weeks: [{ weekNumber: 1, phase: "base", theme: "", sessions: [{
+        day: "lundi", sport: "run", title: "Custom côte", details: "45min avec 600m D+ en massif", isKeySession: true,
+        durationMin: 45, zones: ["Z2"], custom: true, catalogId: null,
+      }] }] });
+      const res = applyOffsportTrailGuardToChunks([chunk as any], "70.3", [RUN_CATALOG_DUMP]);
+      const s = res.chunks[0].weeks[0].sessions[0] as any;
+      assert(s.custom === false, "custom=false après substitution");
+      assert(s.catalogId === "B_RUN_EASY_45", "catalogId candidat");
+      assert(res.repairs[0]?.code === "substituted_offsport", "repair substituted_offsport");
+    },
+  },
+  {
+    name: "offsport guard — aucune candidate ±15min ⇒ critical unresolved visible",
+    fn: () => {
+      const chunk = zPlanChunk.parse({ weeks: [{ weekNumber: 1, phase: "base", theme: "", sessions: [{
+        day: "lundi", sport: "run", title: "Custom massif", details: "90min avec 600m D+ dans les Vosges", isKeySession: true,
+        durationMin: 90, zones: ["Z2"], custom: true, catalogId: null,
+      }] }] });
+      const res = applyOffsportTrailGuardToChunks([chunk as any], "Semi-marathon", [RUN_CATALOG_DUMP]);
+      const s = res.chunks[0].weeks[0].sessions[0] as any;
+      assert(s.custom === true, "custom reste true sans candidat");
+      assert(res.repairs[0]?.code === "offsport_unresolved", "repair unresolved");
+      assert(res.repairs[0]?.severity === "critical", "critical visible");
+    },
+  },
+  {
+    name: "offsport guard — séance custom propre intacte",
+    fn: () => {
+      const chunk = zPlanChunk.parse({ weeks: [{ weekNumber: 1, phase: "base", theme: "", sessions: [{
+        day: "lundi", sport: "run", title: "EF", details: "45min Z2 sur terrain vallonné", isKeySession: false,
+        durationMin: 45, zones: ["Z2"], custom: true, catalogId: null,
+      }] }] });
+      const res = applyOffsportTrailGuardToChunks([chunk as any], "Semi-marathon", [RUN_CATALOG_DUMP]);
+      const s = res.chunks[0].weeks[0].sessions[0] as any;
+      assert(s.custom === true && s.catalogId === null, "custom propre intact");
+      assert(res.repairs.length === 0, "aucun repair");
+    },
+  },
+  {
+    name: "offsport guard — plan trail non traité",
+    fn: () => {
+      const chunk = zPlanChunk.parse({ weeks: [{ weekNumber: 1, phase: "base", theme: "", sessions: [{
+        day: "lundi", sport: "run", title: "Trail", details: "45min avec 600m D+", isKeySession: true,
+        durationMin: 45, zones: ["Z2"], custom: true, catalogId: null,
+      }] }] });
+      const res = applyOffsportTrailGuardToChunks([chunk as any], "Trail 50km", [RUN_CATALOG_DUMP]);
+      assert(res.repairs.length === 0, "trail bypass");
+      assert((res.chunks[0].weeks[0].sessions[0] as any).custom === true, "session inchangée");
     },
   },
 ];

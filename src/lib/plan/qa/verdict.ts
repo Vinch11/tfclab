@@ -157,6 +157,10 @@ export function buildQAReport(session: QASession): string {
           ? ` · custom=${Math.round(r.stat.customRatio * 100)}%(${r.stat.customSessionCount ?? "?"}/${r.stat.nonRestSessionCount ?? "?"})`
           : "";
         lines.push(`- format=${r.stat.format} · chunks=${r.stat.totalChunks ?? "?"} · retries≥1=${retriesOf(r.stat)}${ratio}`);
+        if (r.stat.semanticRepairs?.length) {
+          lines.push(`- repairs sémantiques: ${r.stat.semanticRepairs.length}`);
+          for (const rep of r.stat.semanticRepairs.slice(0, 8)) lines.push(`  - ${rep}`);
+        }
       }
       for (const c of r.checks) lines.push(fmtCheck(c));
       // If critical fail or format!=json, include Zod issues + raw

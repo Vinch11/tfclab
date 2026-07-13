@@ -37,6 +37,7 @@ import {
   type PlanChunk,
 } from "./planSchema.ts";
 import { mergePlanChunks, MergePlanError } from "./mergePlanChunks.ts";
+import { applyOffsportTrailGuardToChunks } from "./offSportTrailGuard.ts";
 
 const PRIMARY_MODEL = "google/gemini-3-flash-preview";
 
@@ -141,6 +142,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
 
       try {
         const collectedChunks: PlanChunk[] = [];
+        const catalogDumpsByChunk: string[] = [];
         const totalChunks = chunks.length;
 
         for (let ci = 0; ci < chunks.length; ci++) {
@@ -164,6 +166,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             ?? inferPhaseFromWeek(chunk.start, totalWeeks);
           const catalogDump = chunkSpecificCatalog
             ?? resolvePhaseCatalog(activePhase, phaseCatalogs, workoutCatalog);
+          catalogDumpsByChunk[ci] = catalogDump;
 
           const allowedIds = extractCatalogIdsFromDump(catalogDump);
           if (allowedIds.length === 0) {
@@ -216,7 +219,6 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               });
             }
 
-            enqueue("chunk-json", { chunkIndex: ci, chunk: planChunk });
             enqueue("chunk-progress", {
               chunkIndex: ci, totalChunks, status: "done",
               finishReason,
@@ -239,7 +241,30 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         // Merge déterministe côté serveur : validation continuité + dérivations
         const mergedTotal = regenerateWeek ? 1 : totalWeeks;
         try {
-          const merged = mergePlanChunks(collectedChunks, mergedTotal);
+          mergePlanChunks(collectedChunks, mergedTotal);
+
+          const guard = applyOffsportTrailGuardToChunks(
+            collectedChunks,
+            planConfig?.objective ?? null,
+            catalogDumpsByChunk,
+          );
+          for (const repair of guard.repairs) {
+            const msg = repair.code === "substituted_offsport"
+              ? `S${repair.weekNumber} ${repair.day}: custom trail marker substituted by ${repair.after?.catalogId}`
+              : `S${repair.weekNumber} ${repair.day}: custom trail marker unresolved (no same-sport catalogue candidate ±15min)`;
+            console.warn(`[B3 offsport guard] ${repair.code}: ${msg}`, repair);
+            enqueue("warning", {
+              code: repair.code,
+              severity: repair.severity,
+              message: msg,
+              repair,
+            });
+          }
+
+          const merged = mergePlanChunks(guard.chunks, mergedTotal);
+          for (let ci = 0; ci < guard.chunks.length; ci++) {
+            enqueue("chunk-json", { chunkIndex: ci, chunk: guard.chunks[ci] });
+          }
           enqueue("plan-complete", {
             totalChunks,
             totalWeeks: merged.totalWeeks,

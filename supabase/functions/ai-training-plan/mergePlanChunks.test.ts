@@ -1,6 +1,7 @@
 import { assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { mergePlanChunks, MergePlanError } from "./mergePlanChunks.ts";
 import type { PlanChunk } from "./planSchema.ts";
+import { applyOffsportTrailGuardToChunks } from "./offSportTrailGuard.ts";
 
 function makeWeek(n: number, sessionsCount = 1): PlanChunk["weeks"][number] {
   return {
@@ -113,4 +114,53 @@ Deno.test("mergePlanChunks — rest session → isRest=true, dayIndex correct", 
   assertEquals(s.isRest, true);
   assertEquals(s.dayName, "Dimanche");
   assertEquals(s.dayIndex, 6);
+});
+
+const RUN_CATALOG_DUMP = `
+#### 🏃 COURSE À PIED — 1 séance(s)
+| ID | Cat | Objectif | Phases | Durée (min) | Structure |
+| B_RUN_EASY_45 | B | Endurance route contrôlée | base | 40-50 | Warm-up: 10min Z1 [Z1] | Main: 30min Z2 [Z2] | Cool-down: 5min [Z1] |
+`;
+
+Deno.test("offsport guard — 45min avec 600m D+ dans 70.3 → substitution catalogue run ±15min", () => {
+  const chunk: PlanChunk = { weeks: [{ weekNumber: 1, phase: "base", theme: "", sessions: [{
+    day: "lundi", sport: "run", title: "Custom côte", details: "45min avec 600m D+ en massif", isKeySession: true,
+    durationMin: 45, zones: ["Z2"], custom: true, catalogId: null,
+  }] }] };
+  const res = applyOffsportTrailGuardToChunks([chunk], "70.3", [RUN_CATALOG_DUMP]);
+  const s = res.chunks[0].weeks[0].sessions[0];
+  assertEquals(s.custom, false);
+  assertEquals(s.catalogId, "B_RUN_EASY_45");
+  assertEquals(res.repairs[0]?.code, "substituted_offsport");
+});
+
+Deno.test("offsport guard — aucune candidate ±15min → critical unresolved visible", () => {
+  const chunk: PlanChunk = { weeks: [{ weekNumber: 1, phase: "base", theme: "", sessions: [{
+    day: "lundi", sport: "run", title: "Custom massif", details: "90min avec 600m D+ dans les Vosges", isKeySession: true,
+    durationMin: 90, zones: ["Z2"], custom: true, catalogId: null,
+  }] }] };
+  const res = applyOffsportTrailGuardToChunks([chunk], "Semi-marathon", [RUN_CATALOG_DUMP]);
+  assertEquals(res.chunks[0].weeks[0].sessions[0].custom, true);
+  assertEquals(res.repairs[0]?.code, "offsport_unresolved");
+  assertEquals(res.repairs[0]?.severity, "critical");
+});
+
+Deno.test("offsport guard — custom propre intacte", () => {
+  const chunk: PlanChunk = { weeks: [{ weekNumber: 1, phase: "base", theme: "", sessions: [{
+    day: "lundi", sport: "run", title: "EF", details: "45min Z2 sur terrain vallonné", isKeySession: false,
+    durationMin: 45, zones: ["Z2"], custom: true, catalogId: null,
+  }] }] };
+  const res = applyOffsportTrailGuardToChunks([chunk], "Semi-marathon", [RUN_CATALOG_DUMP]);
+  assertEquals(res.repairs.length, 0);
+  assertEquals(res.chunks[0].weeks[0].sessions[0].custom, true);
+});
+
+Deno.test("offsport guard — plan trail non traité", () => {
+  const chunk: PlanChunk = { weeks: [{ weekNumber: 1, phase: "base", theme: "", sessions: [{
+    day: "lundi", sport: "run", title: "Trail", details: "45min avec 600m D+", isKeySession: true,
+    durationMin: 45, zones: ["Z2"], custom: true, catalogId: null,
+  }] }] };
+  const res = applyOffsportTrailGuardToChunks([chunk], "Trail 50km", [RUN_CATALOG_DUMP]);
+  assertEquals(res.repairs.length, 0);
+  assertEquals(res.chunks[0].weeks[0].sessions[0].custom, true);
 });

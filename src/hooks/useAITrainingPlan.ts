@@ -461,6 +461,7 @@ export function useAITrainingPlan() {
         const decoder = new TextDecoder();
         let sseBuffer = "";
         const collected: PlanChunk[] = [];
+        const semanticRepairs: string[] = [];
         let fatalError: { code: string; message: string; details?: any } | null = null;
 
         const handleEvent = (event: string, dataStr: string) => {
@@ -480,6 +481,20 @@ export function useAITrainingPlan() {
             collected.push(parsed.data);
           } else if (event === "error") {
             fatalError = { code: data.code ?? "UNKNOWN", message: data.message ?? "Erreur inconnue", details: data.details };
+          } else if (event === "warning") {
+            const code = data.code ?? "warning";
+            const severity = data.severity ?? "warning";
+            const repair = data.repair;
+            if (repair?.before) {
+              const before = `${repair.before.title ?? "?"} (${repair.before.durationMin ?? "?"}min)`;
+              const after = repair.after
+                ? `${repair.after.title ?? "?"} [${repair.after.catalogId ?? "?"}] (${repair.after.durationMin ?? "?"}min)`
+                : "aucun candidat catalogue ±15min";
+              semanticRepairs.push(`[${severity}] ${code}: ${before} → ${after}`);
+            } else {
+              const msg = data.message ?? JSON.stringify(data);
+              semanticRepairs.push(`[${severity}] ${code}: ${msg}`);
+            }
           }
         };
 
@@ -547,6 +562,7 @@ export function useAITrainingPlan() {
             totalWeeks, totalChunks, durationMs: jsonDurMs, ok: true,
             sportObjectiveCriticalIssues: sportIssuesCount,
             customRatio, customSessionCount: customCount, nonRestSessionCount: nonRest,
+            semanticRepairs,
           });
           setIsLoading(false);
           return;
