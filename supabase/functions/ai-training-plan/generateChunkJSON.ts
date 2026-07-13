@@ -539,6 +539,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
         unwrapped: extracted.unwrapped,
         unwrapMethod: extracted.unwrapMethod,
         parseError: extracted.parseError,
+        truncatedByExtraction: extracted.truncatedByExtraction,
         zodIssues: parsed.success ? [] : issuesFromZodError(parsed.error),
         zodErrorText,
         repairs: normalized.repairs,
