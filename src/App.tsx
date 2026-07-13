@@ -56,6 +56,7 @@ const SwimPoolDayPage = lazy(() => import("./pages/SwimPoolDayPage"));
 const TriTestDayPage = lazy(() => import("./pages/TriTestDayPage"));
 const TrailSimulationPage = lazy(() => import("./pages/TrailSimulationPage"));
 const EvolutionPage = lazy(() => import("./pages/EvolutionPage"));
+const PlanQAPage = lazy(() => import("./pages/PlanQAPage"));
 
 const queryClient = new QueryClient();
 
