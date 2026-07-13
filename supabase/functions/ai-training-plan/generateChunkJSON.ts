@@ -129,6 +129,97 @@ function canonEnum(raw: unknown, table: Record<string, string>): string | null {
   return table[key] ?? null;
 }
 
+const LIMITER_KEY_ALIAS: Record<string, string> = {
+  statue: "status", statut: "status", "état": "status", etat: "status", state: "status",
+  bloc: "block", blocs: "block", phase: "block",
+  weekrange: "weeks", "week_range": "weeks", semaines: "weeks", "semaine": "weeks",
+  sessions: "keySessions", "séances": "keySessions", seances: "keySessions",
+  keysessions: "keySessions",
+  nom: "name",
+};
+
+function coerceLimiterStringField(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (v == null) return "";
+  if (Array.isArray(v)) return v.map(x => coerceLimiterStringField(x)).filter(Boolean).join(" · ");
+  if (typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    if (typeof o.name === "string" && o.name.trim()) return o.name.trim();
+    if (typeof o.description === "string" && o.description.trim()) return o.description.trim();
+    try {
+      const j = JSON.stringify(v);
+      return j.length > 120 ? j.slice(0, 117) + "…" : j;
+    } catch { return String(v); }
+  }
+  return String(v);
+}
+
+function canonicalizeStrategicRecap(
+  raw: unknown,
+  repairs: string[],
+): { value: unknown; dropped: boolean } {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { value: raw, dropped: false };
+  const recap = raw as Record<string, unknown>;
+
+  // Canonicalize limiters
+  if (Array.isArray(recap.limiters)) {
+    recap.limiters = recap.limiters.map((lim, li) => {
+      if (!lim || typeof lim !== "object" || Array.isArray(lim)) return lim;
+      const src = lim as Record<string, unknown>;
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(src)) {
+        const canon = LIMITER_KEY_ALIAS[k.toLowerCase()] ?? k;
+        if (canon !== k) repairs.push(`strategicRecap.limiters.${li} key "${k}"→"${canon}"`);
+        // First occurrence wins if collision (canonical field already set)
+        if (out[canon] === undefined) out[canon] = v;
+      }
+      // rank fallback
+      if (typeof out.rank !== "number" || !Number.isInteger(out.rank) || (out.rank as number) < 1) {
+        out.rank = li + 1;
+        repairs.push(`strategicRecap.limiters.${li}.rank defaulted to ${li + 1}`);
+      }
+      // name required string
+      if (typeof out.name !== "string" || !out.name.trim()) {
+        const coerced = coerceLimiterStringField(out.name);
+        if (coerced) { out.name = coerced; repairs.push(`strategicRecap.limiters.${li}.name coerced`); }
+      }
+      // string fields coercion
+      for (const f of ["status", "block", "weeks", "keySessions"] as const) {
+        if (typeof out[f] !== "string") {
+          const coerced = coerceLimiterStringField(out[f]);
+          if (coerced !== "" || out[f] !== undefined) {
+            out[f] = coerced;
+            repairs.push(`strategicRecap.limiters.${li}.${f} coerced to string`);
+          } else {
+            out[f] = "";
+          }
+        }
+      }
+      return out;
+    });
+  }
+
+  // Canonicalize synergies to array of strings
+  if (Array.isArray(recap.synergies)) {
+    let mutated = false;
+    recap.synergies = recap.synergies.map((s) => {
+      if (typeof s === "string") return s;
+      mutated = true;
+      return coerceLimiterStringField(s);
+    });
+    if (mutated) repairs.push(`strategicRecap.synergies coerced to string[]`);
+  }
+
+  // Safety net: validate against zStrategicRecap; if fail → drop
+  const parsed = zStrategicRecap.safeParse(recap);
+  if (!parsed.success) {
+    console.warn(`[normalize] strategicRecap dropped (invalid after canon): ${formatZodErrors(parsed.error, 5)}`);
+    repairs.push("strategicRecap dropped (invalid after canon)");
+    return { value: undefined, dropped: true };
+  }
+  return { value: parsed.data, dropped: false };
+}
+
 export function normalizeModelJsonForSchema(
   value: unknown,
   allowedIds: string[],
@@ -139,7 +230,16 @@ export function normalizeModelJsonForSchema(
   const asRecord = (v: unknown): Record<string, unknown> | null =>
     v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : null;
   const root = asRecord(value);
-  if (!root || !Array.isArray(root.weeks)) return { value, repairs };
+  if (!root) return { value, repairs };
+
+  // Canonicalize + safety-net strategicRecap (narrative, never should block a chunk)
+  if (root.strategicRecap !== undefined) {
+    const { value: canonRecap, dropped } = canonicalizeStrategicRecap(root.strategicRecap, repairs);
+    if (dropped) delete root.strategicRecap;
+    else root.strategicRecap = canonRecap;
+  }
+
+  if (!Array.isArray(root.weeks)) return { value, repairs };
 
   root.weeks.forEach((week, wi) => {
     const w = asRecord(week);
