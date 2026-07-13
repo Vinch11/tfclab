@@ -558,7 +558,11 @@ export function useAITrainingPlan() {
 
 
 
-      const reader = resp.body.getReader();
+      const markdownStartTs = Date.now();
+      const isFallback = !!(resp as any).__fallback_body_reader;
+      const reader = isFallback
+        ? (resp as any).__fallback_body_reader as ReadableStreamDefaultReader<Uint8Array>
+        : resp.body.getReader();
       const decoder = new TextDecoder();
       let textBuffer = "";
       let fullText = "";
