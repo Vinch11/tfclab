@@ -1150,7 +1150,8 @@ export default function AITrainingPlanPage() {
 
         let parsed: ParsedPlan | null = null;
         try {
-          const plan = parseAIPlan(fullText);
+          const rawPlan = parseAIPlan(fullText);
+          const { plan } = sanitizeTrailFromTriathlonPlan(rawPlan, athleteObj);
           parsed = plan.weeks.length > 0 ? plan : null;
         } catch {}
 
