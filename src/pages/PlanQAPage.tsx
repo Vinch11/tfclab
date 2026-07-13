@@ -22,6 +22,9 @@ import {
 } from "@/lib/plan/planGenerationStats";
 import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { zDay, zPhase, zSport } from "@/lib/plan/planSchema";
+import { useQARunner } from "@/lib/plan/qa/useQARunner";
+import { buildQAReport, readQASessions, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
+import { toast } from "sonner";
 
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
