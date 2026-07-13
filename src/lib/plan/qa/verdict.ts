@@ -123,16 +123,18 @@ export function buildQAReport(session: QASession): string {
   lines.push(`**Runs** : ${session.n} × 3 profils = ${session.runs.length} générations`);
   lines.push("");
 
-  // Merge tests summary
+  // Merge tests summary (always present, never null in the report)
+  lines.push(`## Merge tests`);
   if (session.mergeTests) {
     const ok = session.mergeTests.filter(t => t.pass).length;
-    lines.push(`## Merge tests`);
     lines.push(`${ok}/${session.mergeTests.length} passing`);
     for (const t of session.mergeTests) {
       lines.push(`- ${t.pass ? "✅" : "❌"} ${t.name}${!t.pass ? ` — ${t.error}` : ""}`);
     }
-    lines.push("");
+  } else {
+    lines.push(`⚠️ Merge tests non exécutés — raison : ${session.mergeTestsError ?? "inconnue"}`);
   }
+  lines.push("");
 
   // Per profile / per run
   const byProfile = new Map<string, QARunRecord[]>();
