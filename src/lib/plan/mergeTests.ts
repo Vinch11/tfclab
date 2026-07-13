@@ -54,12 +54,6 @@ function mkChunk(weeks: number[], over: any = {}): PlanChunk {
   });
 }
 
-const RUN_CATALOG_DUMP = `
-#### 🏃 COURSE À PIED — 1 séance(s)
-| ID | Cat | Objectif | Phases | Durée (min) | Structure |
-| B_RUN_EASY_45 | B | Endurance route contrôlée | base | 40-50 | Warm-up: 10min Z1 [Z1] | Main: 30min Z2 [Z2] | Cool-down: 5min [Z1] |
-`;
-
 const CASES: Array<{ name: string; fn: () => void }> = [
   {
     name: "merge — chunks consécutifs (1..8)",
