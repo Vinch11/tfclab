@@ -73,7 +73,7 @@ export type Phase = z.infer<typeof zPhase>;
 // Récap stratégique (miroir ParsedPlan.strategicRecap)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const zStrategicLimiter = z.object({
+export const zStrategicLimiter = z.object({
   rank: z.number().int().positive(),
   name: z.string().min(1),
   status: z.string(),
@@ -82,7 +82,7 @@ const zStrategicLimiter = z.object({
   keySessions: z.string(),
 });
 
-const zStrategicRecap = z.object({
+export const zStrategicRecap = z.object({
   limiters: z.array(zStrategicLimiter),
   synergies: z.array(z.string()),
 });
