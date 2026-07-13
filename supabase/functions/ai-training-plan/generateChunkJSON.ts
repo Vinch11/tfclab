@@ -599,7 +599,8 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
     }
     const normalized = extracted.parsedJson === null
       ? { value: null, repairs: [] }
-      : normalizeModelJsonForSchema(extracted.parsedJson, input.allowedCatalogIds);
+      : normalizeModelJsonForSchema(extracted.parsedJson, input.allowedCatalogIds, input.weekRange);
+
     if (normalized.repairs.length > 0) {
       console.info(`[generateChunkJSON] schema-normalized=true repairs=${normalized.repairs.slice(0, 12).join("; ")}`);
     }
