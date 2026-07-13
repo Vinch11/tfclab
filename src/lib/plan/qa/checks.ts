@@ -15,10 +15,10 @@
  *  B7  validatePlanPaces + sportObjectiveIssues remontent
  * ═══════════════════════════════════════════════════════════════════════════════
  */
-import type { MergedPlan, MergedSession, SportObjectiveIssue } from "./mergePlanChunks";
+import type { MergedPlan, MergedSession, SportObjectiveIssue } from "@/lib/plan/mergePlanChunks";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
-import type { PlanGenerationStat } from "./planGenerationStats";
+import type { PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
