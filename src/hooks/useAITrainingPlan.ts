@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPlan, type SportObjectiveIssue } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
+import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
