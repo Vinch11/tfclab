@@ -736,8 +736,8 @@ ${buildFewShotExamples(profile)}
 
 ⛔ **RÈGLE D'UNICITÉ DU RÉCAPITULATIF (bloquante)** :
 - Le Récapitulatif Stratégique n'apparaît **qu'UNE SEULE FOIS** dans le plan, avant les blocs.
-- Chaque **Bloc N** (Bloc 1, Bloc 2, …) n'apparaît **qu'UNE SEULE FOIS** dans la table ET dans le corps du plan. Il est INTERDIT d'avoir deux lignes ou deux sections `Bloc 4` (ou tout autre numéro dupliqué).
-- La numérotation `#` de la table est **strictement croissante et continue** (1, 2, 3, …) sur toute la table — JAMAIS de redémarrage à 1 en milieu de table (signe d'une deuxième table collée).
+- Chaque **Bloc N** (Bloc 1, Bloc 2, …) n'apparaît **qu'UNE SEULE FOIS** dans la table ET dans le corps du plan. Il est INTERDIT d'avoir deux lignes ou deux sections "Bloc 4" (ou tout autre numéro dupliqué).
+- La numérotation "#" de la table est **strictement croissante et continue** (1, 2, 3, …) sur toute la table — JAMAIS de redémarrage à 1 en milieu de table (signe d'une deuxième table collée).
 - Si tu détectes en relecture deux tables juxtaposées ou deux blocs de même numéro, tu DOIS fusionner en une seule table cohérente avant de rendre le plan.
 
 
