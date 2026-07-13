@@ -93,7 +93,14 @@ Champs principaux :
 7. Les \`weekNumber\` demandés dans la requête doivent tous être présents, sans
    trou ni doublon.
 8. Ratio catalogue ≥ 80 % : au moins 80 % des sessions non-rest doivent avoir
-   \`custom = false\` avec un \`catalogId\` valide.
+   \`custom = false\` avec un \`catalogId\` valide. **\`custom = true\` est un
+   DERNIER RECOURS (cible < 20 % des sessions non-rest).** Avant de créer
+   une séance custom, RE-SCANNE le catalogue injecté ci-dessous et cherche
+   activement un ID qui approche le besoin (même sport, même intention, même
+   durée à ±15 %). Si un ID plausible existe, prends-le et adapte les zones
+   / details plutôt que d'inventer une séance libre. Chaque custom ajouté
+   au-delà du seuil augmente le risque de dérive de vocabulaire (trail dans
+   route, brique dans semi, etc.) et sera flaggé par la QA.
 9. Verrou sport : la contrainte "un slot d'un sport donné = un ID du même
    sport" reste absolue (voir bloc "règle non-cross-sport" plus haut).
 10. Types JSON stricts : \`custom\` et \`isKeySession\` sont des booléens JSON
