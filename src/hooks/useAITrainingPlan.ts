@@ -288,6 +288,10 @@ export function useAITrainingPlan() {
         { phase: "taper", start: Math.ceil(totalWeeks * 0.80), end: totalWeeks },
       ];
       const catalogSportFilter = getCatalogSportFilter(planConfig.objective || "");
+      const { excludeIdPatterns, excludeTags } = getCatalogExclusions(
+        planConfig.objective || "",
+        planConfig.raceGoals
+      );
 
       // Compute catalog duration stats from all phases combined
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
