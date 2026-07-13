@@ -222,7 +222,7 @@ export function checkB7(parsed: ParsedPlan, sportObjectiveIssues: SportObjective
   const critical = sportObjectiveIssues.filter(i => i.severity === "critical");
   if (critical.length > 0) {
     // B7 est une remontée (level=warning), les critical sport↔objectif sont déjà agrégés par verdict.
-    details.push(`sportObjectiveIssues critical (${critical.length}) : ${critical.slice(0, 3).map(i => i.message).join(" | ")}`);
+    details.push(`sportObjectiveIssues critical (${critical.length}) : ${critical.slice(0, 3).map(i => `S${i.weekNumber} ${i.dayName}: ${i.reason}`).join(" | ")}`);
   } else {
     details.push(`sportObjectiveIssues critical=0.`);
   }
