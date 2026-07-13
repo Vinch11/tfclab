@@ -292,23 +292,28 @@ export function useAITrainingPlan() {
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [chunkProgress, setChunkProgress] = useState<ChunkProgress | null>(null);
+  // Phase 1B — populated only when server ran the JSON path.
+  const [parsedPlan, setParsedPlan] = useState<ParsedPlan | null>(null);
+  const [mergedPlan, setMergedPlan] = useState<MergedPlan | null>(null);
+  const [sportObjectiveIssues, setSportObjectiveIssues] = useState<SportObjectiveIssue[]>([]);
 
-  const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig) => {
+  const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" }) => {
     // Guard against double-fire
     if (isLoading) {
       console.warn("Plan generation already in progress — ignoring duplicate call");
       return;
     }
-    // ─── Durée du plan : OBLIGATOIRE, pas de défaut caché ────────────────
-    // Un défaut fabriqué invisible (ancien `|| 12`) masquait des générations
-    // 12 sem sur des athlètes sans course ni durée renseignée.
     const totalWeeks = planConfig.weeksAvailable;
     if (!totalWeeks || totalWeeks <= 0) {
       toast.error("Durée du plan manquante. Renseigne une date de course ou une durée libre (formulaire coach).");
       return;
     }
     setResponse("");
+    setParsedPlan(null);
+    setMergedPlan(null);
+    setSportObjectiveIssues([]);
     setIsLoading(true);
+    const jsonMode = planConfig._outputFormat === "json";
     // Match edge function's chunk sizing
     const obj = (planConfig.objective || "").toUpperCase();
     const isTriVerbose = /IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
