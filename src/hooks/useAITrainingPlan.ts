@@ -433,9 +433,12 @@ export function useAITrainingPlan() {
       }
 
       // ─────────────────────────────────────────────────────────────────────
-      // Phase 1B — JSON path : consume named SSE events, merge, expose parsedPlan
+      // Phase 1B — JSON path : consume named SSE events, merge, expose parsedPlan.
+      // On failure : toast + auto-fallback to Markdown (relance complète), never
+      // white-screen and never a half-merged state.
       // ─────────────────────────────────────────────────────────────────────
       if (jsonMode) {
+        const jsonStartTs = Date.now();
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let sseBuffer = "";
@@ -480,33 +483,79 @@ export function useAITrainingPlan() {
           }
         }
 
-        if (fatalError) {
-          toast.error(`Génération JSON échouée : ${(fatalError as { code: string; message: string }).message}`);
-          throw new Error("__STREAM_ABORT__");
-        }
-        if (collected.length === 0) {
-          throw new Error("Aucun chunk reçu.");
-        }
-        try {
-          const merged = mergePlanChunks(collected, totalWeeks);
-          const parsed = jsonPlanToParsedPlan(merged);
-          const issues = validateSportObjective(merged, planConfig.objective);
-          if (issues.length > 0) {
-            console.warn(`[useAITrainingPlan] sport↔objective issues (${issues.length}) :`, issues.slice(0, 5));
+        // Attempt merge only if no fatal error and chunks received
+        let jsonSuccess = false;
+        let sportIssuesCount = 0;
+        let mergeError: { code: string; message: string } | null = fatalError;
+        if (!fatalError && collected.length > 0) {
+          try {
+            const merged = mergePlanChunks(collected, totalWeeks);
+            const parsed = jsonPlanToParsedPlan(merged);
+            const issues = validateSportObjective(merged, planConfig.objective);
+            sportIssuesCount = issues.filter(i => i.severity === "critical").length;
+            if (issues.length > 0) {
+              console.warn(`[useAITrainingPlan] sport↔objective issues (${issues.length}) :`, issues.slice(0, 5));
+            }
+            setMergedPlan(merged);
+            setParsedPlan(parsed);
+            setSportObjectiveIssues(issues);
+            setChunkProgress(null);
+            jsonSuccess = true;
+          } catch (e) {
+            const code = e instanceof MergePlanError ? e.code : "MERGE_FAIL";
+            const msg = e instanceof Error ? e.message : String(e);
+            mergeError = { code, message: msg };
           }
-          setMergedPlan(merged);
-          setParsedPlan(parsed);
-          setSportObjectiveIssues(issues);
-          setChunkProgress(null);
-        } catch (e) {
-          if (e instanceof MergePlanError) {
-            toast.error(`Merge des chunks échoué : ${e.message}`);
-          }
-          throw e;
+        } else if (!fatalError && collected.length === 0) {
+          mergeError = { code: "NO_CHUNKS", message: "Aucun chunk reçu du serveur." };
         }
-        setIsLoading(false);
-        return;
+
+        const jsonDurMs = Date.now() - jsonStartTs;
+        if (jsonSuccess) {
+          logPlanStat({
+            ts: Date.now(), format: "json", objective: planConfig.objective ?? null,
+            totalWeeks, totalChunks, durationMs: jsonDurMs, ok: true,
+            sportObjectiveCriticalIssues: sportIssuesCount,
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // JSON failed → automatic fallback to Markdown path (full relaunch)
+        const failCode = mergeError?.code ?? "UNKNOWN";
+        const failMsg = mergeError?.message ?? "Erreur inconnue";
+        console.warn(`[useAITrainingPlan] JSON path failed (${failCode}: ${failMsg}) — falling back to Markdown.`);
+        toast.warning("Génération JSON échouée — plan généré en mode compatibilité");
+        logPlanStat({
+          ts: Date.now(), format: "markdown-fallback-from-json",
+          objective: planConfig.objective ?? null,
+          totalWeeks, totalChunks, durationMs: jsonDurMs, ok: false,
+          errorCode: failCode, errorMessage: failMsg,
+        });
+        // Fresh Markdown request (identical body, no header)
+        const fallbackResp = await fetch(PLAN_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            athleteData, planConfig, phaseCatalogs,
+            chunkCatalogs: chunkCatalogs.length > 0 ? chunkCatalogs : undefined,
+            chunkSize: CHUNK_SIZE, catalogDurationStats,
+          }),
+        });
+        if (!fallbackResp.ok || !fallbackResp.body) {
+          throw new Error("Fallback Markdown a échoué (HTTP).");
+        }
+        // Continue in the Markdown streaming code below using this fallback body.
+        // Rebind the reader/response — reassign vars used further down.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (resp as any).__fallback_body_reader = fallbackResp.body.getReader();
+        setChunkProgress(totalChunks > 1 ? { currentWeek: 0, totalWeeks, currentChunk: 1, totalChunks } : null);
+        // fall through to Markdown streaming block
       }
+
 
 
       const reader = resp.body.getReader();
