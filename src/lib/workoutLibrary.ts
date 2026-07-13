@@ -2066,7 +2066,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "2h10–3h Z1–Z2. Marcher les côtes raides. Nutrition/hydratation race.", zones: ["Z1", "Z2"] }
     ],
     variants: { trail_short: "Fondamental", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 600, max: 1200 }
+    dPlusTargetM: { min: 600, max: 1200 },
+    tags: ["trail"]
   },
   {
     id: "A_TR50_PROGRESSIVE_FINISH",
@@ -2084,7 +2085,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "80–120' Z2 + 20–30' Z3 (dernières montées plus soutenues). Nutrition.", zones: ["Z2", "Z3"] }
     ],
     variants: { trail_short: "Clé", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 500, max: 1100 }
+    dPlusTargetM: { min: 500, max: 1100 },
+    tags: ["trail"]
   },
   {
     id: "A_TR50_RACE_SIMU_2H",
@@ -2102,7 +2104,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "100–150' Z2 avec 4–6 montées 'race effort' Z3. Nutrition identique course.", zones: ["Z2", "Z3"] }
     ],
     variants: { trail_short: "Clé", trail_mountain: "—", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 500, max: 1000 }
+    dPlusTargetM: { min: 500, max: 1000 },
+    tags: ["trail"]
   },
   {
     id: "A_TR50_EASY_DPLUS_60",
@@ -2120,7 +2123,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "50–75' Z1–Z2 terrain vallonné. Relâchement descente, régularité montée.", zones: ["Z1", "Z2"] }
     ],
     variants: { trail_short: "top", trail_mountain: "top", trail_ultra: "top", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 200, max: 450 }
+    dPlusTargetM: { min: 200, max: 450 },
+    tags: ["trail"]
   },
 
   // B – QUALITÉ SPÉCIFIQUE TRAIL 20-50KM
@@ -2142,7 +2146,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
     ],
     variants: { trail_short: "Clé", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 350, max: 700 }
+    dPlusTargetM: { min: 350, max: 700 },
+    tags: ["trail"]
   },
   {
     id: "B_TR50_RACE_EFFORT_5x5",
@@ -2162,7 +2167,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
     ],
     variants: { trail_short: "Séance clé", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 300, max: 600 }
+    dPlusTargetM: { min: 300, max: 600 },
+    tags: ["trail"]
   },
   {
     id: "B_TR50_FARTLEK_SENTIER",
@@ -2180,7 +2186,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "15' Z2 + 8–10x(1'30 Z4a / 2'30 Z2) sur sentier + 10' Z1", zones: ["Z2", "Z4a", "Z1"] }
     ],
     variants: { trail_short: "Très utile", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 200, max: 500 }
+    dPlusTargetM: { min: 200, max: 500 },
+    tags: ["trail"]
   },
   {
     id: "B_TR50_DESCENT_SPEED",
@@ -2200,7 +2207,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Cool-down", text: "10' Z1", zones: ["Z1"] }
     ],
     variants: { trail_short: "Excellent", trail_mountain: "excellent", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 250, max: 550 }
+    dPlusTargetM: { min: 250, max: 550 },
+    tags: ["trail"]
   },
 
   // C – FORCE / TECHNIQUE TRAIL 20-50KM
@@ -2219,7 +2227,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     structure: [
       { part: "Main", text: "35–50': jump squat, box jump, fentes sautées, mollets, gainage dynamique. RPE 7.", zones: ["Z1"] }
     ],
-    variants: { trail_short: "Très utile", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" }
+    variants: { trail_short: "Très utile", trail_mountain: "utile", trail_ultra: "—", ironman: "—", half: "—", marathon: "—", semi: "—" },
+    tags: ["trail"]
   },
   {
     id: "C_TR50_TECH_APPUIS",
@@ -2237,7 +2246,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "35–55' Z1–Z2 sentier technique + 10x20s exercices appuis (virages, pierrier, racines)", zones: ["Z1", "Z2"] }
     ],
     variants: { trail_short: "top", trail_mountain: "top", trail_ultra: "top", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 100, max: 300 }
+    dPlusTargetM: { min: 100, max: 300 },
+    tags: ["trail"]
   },
 
   // D – RÉCUP TRAIL 20-50KM
@@ -2257,7 +2267,8 @@ export const WorkoutLibrary: LibraryWorkout[] = [
       { part: "Main", text: "25–40' alternance marche 2'/trot Z1 3'. Très relâché + mobilité 10'", zones: ["Z1"] }
     ],
     variants: { trail_short: "Indispensable", trail_mountain: "ok", trail_ultra: "ok", ironman: "—", half: "—", marathon: "—", semi: "—" },
-    dPlusTargetM: { min: 0, max: 100 }
+    dPlusTargetM: { min: 0, max: 100 },
+    tags: ["trail"]
   },
 
   // =========================================================

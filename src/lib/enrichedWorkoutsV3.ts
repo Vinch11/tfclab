@@ -631,7 +631,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     variants: {},
     goals: ["trail_ultra", "trail_long"],
     dPlusTargetM: { min: 1500, max: 3000 },
-    tags: ["ultra", "back-to-back", "volume", "pré-fatigue"]
+    tags: ["trail", "ultra", "back-to-back", "volume", "pré-fatigue"]
   },
   {
     id: "V3_TRAIL_ULTRA_MARCHE_COURSE",
@@ -651,7 +651,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     variants: { trail_ultra: "Ratio 2:1 course/marche", trail_long: "Ratio 3:1" },
     goals: ["trail_ultra", "trail_long"],
     dPlusTargetM: { min: 1000, max: 2500 },
-    tags: ["ultra", "marche-course", "gestion-effort", "nutrition"]
+    tags: ["trail", "ultra", "marche-course", "gestion-effort", "nutrition"]
   },
   {
     id: "V3_TRAIL_ULTRA_NIGHT",
@@ -670,7 +670,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     ],
     variants: {},
     goals: ["trail_ultra", "trail_long"],
-    tags: ["ultra", "nocturne", "adaptation", "technique"]
+    tags: ["trail", "ultra", "nocturne", "adaptation", "technique"]
   },
   {
     id: "V3_TRAIL_ULTRA_RACE_SIM",
@@ -690,7 +690,7 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     variants: {},
     goals: ["trail_ultra"],
     dPlusTargetM: { min: 2000, max: 4000 },
-    tags: ["race-sim", "ultra", "simulation", "nutrition"]
+    tags: ["trail", "race-sim", "ultra", "simulation", "nutrition"]
   },
 
   // ═══════════════════════════════════════════
