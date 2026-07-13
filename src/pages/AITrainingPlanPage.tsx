@@ -37,7 +37,7 @@ import { validatePlan } from "@/engines/plan/planValidator";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
-import { parseAIPlan, mapSessionsToDates, type ParsedPlan } from "@/lib/aiPlanParser";
+import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan } from "@/lib/aiPlanParser";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
@@ -608,8 +608,19 @@ export default function AITrainingPlanPage() {
   const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
     if (!response || isLoading) return null;
     try {
-      const plan = parseAIPlan(response);
+      const rawPlan = parseAIPlan(response);
+      // 🚫 Filet de sécurité anti-trail pour plans triathlon (IM / 70.3 / LCW)
+      const { plan, removed: removedTrail } = sanitizeTrailFromTriathlonPlan(rawPlan, objective);
+      if (removedTrail.length > 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `🚫 [Plan] ${removedTrail.length} séance(s) trail retirée(s) du plan triathlon "${objective}" : ` +
+          removedTrail.slice(0, 5).map(r => `S${r.week}/${r.day}/${r.title}`).join(" • ") +
+          (removedTrail.length > 5 ? ` … (+${removedTrail.length - 5})` : ""),
+        );
+      }
       if (plan.weeks.length === 0) return null;
+
 
       const key = `${response.length}:${plan.weeks.length}`;
       if (postProcessKeyRef.current !== key) {
@@ -1139,7 +1150,8 @@ export default function AITrainingPlanPage() {
 
         let parsed: ParsedPlan | null = null;
         try {
-          const plan = parseAIPlan(fullText);
+          const rawPlan = parseAIPlan(fullText);
+          const { plan } = sanitizeTrailFromTriathlonPlan(rawPlan, athleteObj);
           parsed = plan.weeks.length > 0 ? plan : null;
         } catch {}
 
@@ -1471,7 +1483,9 @@ export default function AITrainingPlanPage() {
       }
 
       // Parse the new future weeks
-      const futurePlan = parseAIPlan(fullText);
+      const rawFuture = parseAIPlan(fullText);
+      const { plan: futurePlan } = sanitizeTrailFromTriathlonPlan(rawFuture, objective);
+
       if (futurePlan.weeks.length === 0) {
         toast.error("Impossible de parser les semaines futures générées");
         return;

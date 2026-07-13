@@ -1459,7 +1459,26 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // FIX: Use normalizeObjKey for reliable matching (was using strict === on uppercase string,
   // which NEVER matched objectives like "Ironman", "Ironman 70.3", "Semi-marathon", etc.)
   const objKeyForRappel = normalizeObjKey(config.objective || "");
+
+  // ─── HARD BAN TRAIL UNIVERSEL POUR TOUT PLAN TRIATHLON (IM / 70.3 / LCW) ───
+  // Empêche l'IA d'inventer des séances trail/montagne/dénivelé dans un plan triathlon,
+  // quel que soit le format (continuous, LCW) ou la distance. Complément des exclusions
+  // catalogue côté client (voir useAITrainingPlan.getCatalogExclusions).
+  if (objKeyForRappel === "IM" || objKeyForRappel === "703") {
+    lines.push("\n### 🚫 HARD BAN TRAIL — PLAN TRIATHLON (RÈGLE ABSOLUE, NON-NÉGOCIABLE)");
+    lines.push("Un plan triathlon (IM, 70.3, LCW) se prépare EXCLUSIVEMENT sur route / piste / piscine / eau libre / home-trainer. Il est **STRICTEMENT INTERDIT** de prescrire :");
+    lines.push("- Toute séance en terrain trail, sentier, montagne, off-road, chemin, forêt technique.");
+    lines.push("- Tout ID de séance commençant par `HEDGEHOG_`, `URBAN_`, `TRAIL_` ou contenant `_TRAIL_` (ex : `URBAN_TAPIS_INCLINE_SEUIL`, `HEDGEHOG_VMA_COURTE`, `A_TRAIL_SL_MONTAGNE`).");
+    lines.push("- Toute mention de : dénivelé, D+, mètres cumulés positifs, bâtons, sac à dos trail, ravitaillement trail, cairn, sentier, montagne, massif, col.");
+    lines.push("- Toute séance 'côtes' au-delà de 200m D+ cumulés (max autorisé : côtes courtes VMA 6-10×30\"–1' en boucle route).");
+    lines.push("");
+    lines.push("**Substituts autorisés** pour travailler la puissance : `B_BIKE_SST_*`, `B_BIKE_VO2_*`, `B_RUN_TEMPO_*`, `B_RUN_VMA_*`, `B_RUN_SEUIL_*` (route/piste plate).");
+    lines.push("**Si aucun ID catalogue triathlon ne correspond** : crée une séance `[CUSTOM]` route/piste/piscine, JAMAIS une variante trail.");
+    lines.push("");
+  }
+
   if (objKeyForRappel === "IM") {
+
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE IRONMAN");
     lines.push("Objectif IRONMAN → applique les ratios Lorang/Frodeno :");
     lines.push("- Vélo 45-55% | CAP 25-35% | Natation 15-20% | Renfo 5-10%");

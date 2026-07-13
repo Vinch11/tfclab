@@ -625,3 +625,61 @@ export function mapSessionsToDates(
 
   return result;
 }
+
+/**
+ * ─── FILET DE SÉCURITÉ TRIATHLON : suppression des séances trail ───
+ * Un plan triathlon (IM / 70.3 / LCW) ne doit JAMAIS afficher de séance trail,
+ * quel que soit le contenu généré par l'IA. Cette fonction filtre les séances
+ * dont title/details/sport contiennent des marqueurs trail (IDs, vocab).
+ *
+ * Complète les trois autres barrières :
+ *   1) exclusions catalogue (useAITrainingPlan.getCatalogExclusions)
+ *   2) hard-ban prompt (promptHelpers → HARD BAN TRAIL)
+ *   3) surgical regen serveur (index.ts → trail-contaminated weeks)
+ *
+ * Retourne : { plan filtré, séances supprimées } pour affichage d'un warning.
+ */
+export function sanitizeTrailFromTriathlonPlan(
+  plan: ParsedPlan,
+  objective: string | null | undefined,
+): { plan: ParsedPlan; removed: Array<{ week: number; day: string; title: string }> } {
+  const obj = (objective || "").toLowerCase();
+  const isTriathlon =
+    obj.includes("70.3") ||
+    obj === "703" ||
+    obj.includes("ironman") ||
+    obj === "im" ||
+    obj.includes("triathlon");
+  if (!isTriathlon) return { plan, removed: [] };
+
+  const TRAIL_ID_RX = /\b(HEDGEHOG_\w+|URBAN_\w+|TRAIL_\w+|\w+_TRAIL_\w+)\b/i;
+  const TRAIL_VOCAB_RX =
+    /(montagne|sentier|b[aâ]tons?|sac\s*[aà]\s*dos|d[eé]nivel[eé]|\bD\+\s*\d{2,}|off[- ]road|cairn|massif|col\b|ravito\s*trail)/i;
+
+  const removed: Array<{ week: number; day: string; title: string }> = [];
+
+  const cleanedWeeks: ParsedWeek[] = plan.weeks.map((week) => {
+    const kept: ParsedSession[] = [];
+    for (const s of week.sessions) {
+      const blob = `${s.title || ""} ${s.details || ""} ${s.sport || ""}`;
+      const isTrail = TRAIL_ID_RX.test(blob) || TRAIL_VOCAB_RX.test(blob);
+      if (isTrail) {
+        removed.push({
+          week: week.weekNumber,
+          day: s.dayName || `J${s.dayIndex + 1}`,
+          title: s.title || "(séance sans titre)",
+        });
+        // eslint-disable-next-line no-console
+        console.warn(
+          `🚫 [Sanitizer] Séance trail retirée du plan triathlon : S${week.weekNumber} ${s.dayName} — ${s.title}`,
+        );
+        continue;
+      }
+      kept.push(s);
+    }
+    return { ...week, sessions: kept };
+  });
+
+  return { plan: { ...plan, weeks: cleanedWeeks }, removed };
+}
+

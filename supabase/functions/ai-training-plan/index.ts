@@ -1045,6 +1045,75 @@ NE PAS répéter le diagnostic. Génère directement le tableau "### Semaine ${w
                 }
               }
 
+              // ─── OPTIMIZATION #3: Surgical per-week regen for TRAIL CONTAMINATION (triathlon plans) ───
+              // Un plan 70.3/IM/triathlon ne doit JAMAIS contenir de séance trail (montagne, sentier,
+              // dénivelé, IDs HEDGEHOG_/URBAN_/TRAIL_). Si l'IA en invente, on régénère la semaine
+              // avec un HARD BAN explicite. Fiabilise le plan sans attendre l'utilisateur.
+              if (isTriVerbose) {
+                const trailIdRx = /\b(HEDGEHOG_\w+|URBAN_\w+|TRAIL_\w+|\w+_TRAIL_\w+)\b/i;
+                const trailVocabRx = /(montagne|sentier|b[aâ]tons?|sac\s*[aà]\s*dos|d[eé]nivel[eé]|\bD\+\s*\d{2,})/i;
+                const contaminatedWeeks: number[] = [];
+                const presentWeeksT = extractGeneratedWeekNumbers(combinedChunkText);
+                for (const wNum of presentWeeksT) {
+                  const wRe = new RegExp(
+                    `(?:^|\\n)(?:#{2,4}\\s*)?\\*{0,2}\\s*Semaine\\s*${wNum}\\b[\\s\\S]*?(?=(?:\\n(?:#{2,4}\\s*)?\\*{0,2}\\s*Semaine\\s*\\d+\\b)|$)`,
+                    "i",
+                  );
+                  const m = combinedChunkText.match(wRe);
+                  if (!m) continue;
+                  const block = m[0];
+                  if (trailIdRx.test(block) || trailVocabRx.test(block)) {
+                    contaminatedWeeks.push(wNum);
+                    console.warn(`🚫 Trail contamination detected in triathlon plan: S${wNum}`);
+                  }
+                }
+                const weeksToClean = contaminatedWeeks.slice(0, 3);
+                for (const wNum of weeksToClean) {
+                  console.log(`🩹 Surgical regen of trail-contaminated week S${wNum}…`);
+                  const cleanPrompt = `${userPrompt}
+
+⚠️ RÉGÉNÉRATION CHIRURGICALE ANTI-TRAIL — Régénère UNIQUEMENT la Semaine ${wNum}.
+La version précédente contenait des séances TRAIL/MONTAGNE INTERDITES dans un plan triathlon.
+
+🚫 HARD BAN ABSOLU (aucune exception) :
+- AUCUN ID commençant par HEDGEHOG_, URBAN_, TRAIL_ ni contenant _TRAIL_
+- AUCUNE mention de : montagne, sentier, dénivelé, D+, bâtons, sac à dos, ravitaillement trail
+- AUCUNE séance en terrain trail/nature/off-road
+- Sports autorisés UNIQUEMENT : natation, vélo (route/HT), course à pied (route/piste), brique, renforcement
+
+✅ Utilise EXCLUSIVEMENT les séances du catalogue triathlon injecté (préfixes B_LCW_, B_703_, B_IM_, A_IM_, B_BIKE_, B_RUN_, B_SWIM_, etc.).
+
+Génère directement le tableau "### Semaine ${wNum}" au format complet Lundi→Dimanche.${wbalReminder}`;
+
+                  emitChunkBoundary();
+                  await sleep(INTER_CHUNK_DELAY_MS);
+                  const cleanResult = await generateAndStream(
+                    cleanPrompt,
+                    controller,
+                    encoder,
+                    PRIMARY_MODEL,
+                    "medium",
+                  );
+                  if (cleanResult.text) {
+                    // Replace the contaminated week block in combinedChunkText
+                    const wRe = new RegExp(
+                      `((?:^|\\n)(?:#{2,4}\\s*)?\\*{0,2}\\s*Semaine\\s*${wNum}\\b[\\s\\S]*?)(?=(?:\\n(?:#{2,4}\\s*)?\\*{0,2}\\s*Semaine\\s*\\d+\\b)|$)`,
+                      "i",
+                    );
+                    if (wRe.test(combinedChunkText)) {
+                      combinedChunkText = combinedChunkText.replace(wRe, `\n${cleanResult.text.trim()}\n`);
+                    } else {
+                      combinedChunkText += `\n${cleanResult.text}`;
+                    }
+                    console.log(`✅ Week S${wNum} cleaned of trail contamination (${cleanResult.text.length} chars).`);
+                  } else {
+                    console.warn(`⚠️ Trail-clean regen failed for S${wNum} — fallback: sanitize inline.`);
+                  }
+                }
+              }
+
+
+
               // FIX M1 (audit): Build ENRICHED summary with limiter progression tracking
               const weekMatches = combinedChunkText.match(/^(?:#{2,4}\s*)?\*{0,2}\s*Semaine\s*\d+[^#\n]*(?:\n(?!#{1,4}\s*\*{0,2}\s*Semaine\s*\d+).*)*/gim) || [];
               const summaryLines = weekMatches.map(w => {
