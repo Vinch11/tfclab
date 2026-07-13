@@ -1,5 +1,12 @@
 /**
  * Hook for streaming AI training plan generation
+ * ─────────────────────────────────────────────────
+ * Two output paths :
+ *   • Markdown (legacy) — response=string, downstream parser (aiPlanParser).
+ *   • JSON     (Phase 1B) — activated by `planConfig._outputFormat === "json"`.
+ *     SSE events (chunk-json / chunk-progress / plan-complete / error) are
+ *     validated by Zod, merged via mergePlanChunks, and exposed as `parsedPlan`.
+ *     `response` is left empty in this mode; consumers should prefer parsedPlan.
  */
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
@@ -7,6 +14,10 @@ import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationS
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { TrainingSport } from "@/types/workoutLibrary";
 import { supabase } from "@/integrations/supabase/client";
+import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
+import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPlan, type SportObjectiveIssue } from "@/lib/plan/mergePlanChunks";
+import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
+import type { ParsedPlan } from "@/lib/aiPlanParser";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
