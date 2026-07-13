@@ -310,7 +310,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           totalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         catalog.forEach(e => { allCatalogEntries.push(e); usedIds.add(e.id); });
