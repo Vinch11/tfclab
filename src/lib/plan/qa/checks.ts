@@ -35,30 +35,47 @@ const Z12_RX = /\bz1\b|\bz2\b|zone\s*1|zone\s*2|zone\s*1-2|z1-2/i;
 
 interface B1Input {
   stat?: PlanGenerationStat;
+  parsedPresent?: boolean;
 }
+/**
+ * B1 — Le plan final provient du chemin JSON avec validation Zod réussie :
+ *   • stat.format === "json"
+ *   • stat.ok === true
+ *   • parsedPlan présent côté client (merge exposé)
+ * Fail si fallback Markdown, chemin Markdown direct, JSON échoué, ou parsedPlan absent.
+ */
 export function checkB1(input: B1Input): CheckResult {
   const stat = input.stat;
   const details: string[] = [];
+  const LABEL = "Plan issu du chemin JSON validé Zod";
   let pass = true;
 
   if (!stat) {
-    return { id: "B1", label: "Zod planSchema OK sans échec définitif", level: "critical", pass: false, details: ["Stat manquante (génération non tracée)"] };
+    return { id: "B1", label: LABEL, level: "critical", pass: false, details: ["Stat manquante (génération non tracée)"] };
   }
   if (stat.format === "markdown-fallback-from-json") {
     pass = false;
     details.push(`Fallback Markdown déclenché — errorCode=${stat.errorCode ?? "?"} : ${stat.errorMessage ?? ""}`);
   }
+  if (stat.format === "markdown") {
+    pass = false;
+    details.push("Plan produit par le chemin Markdown (JSON non demandé ou route non prise).");
+  }
   if (!stat.ok && stat.format === "json") {
     pass = false;
     details.push(`Échec définitif JSON — errorCode=${stat.errorCode ?? "?"}`);
+  }
+  if (input.parsedPresent === false && stat.format === "json" && stat.ok) {
+    pass = false;
+    details.push("stat=json ok mais parsedPlan absent côté client (merge non exposé).");
   }
   const attempts = stat.schemaFailDetails?.attempts;
   if (attempts && attempts.length > 0) {
     const maxAttempt = Math.max(...attempts.map(a => a.attempt ?? 1));
     if (maxAttempt >= 2) details.push(`Retry Zod déclenché sur au moins un chunk (max attempt=${maxAttempt})`);
   }
-  if (details.length === 0) details.push("Génération JSON validée sans retry définitif.");
-  return { id: "B1", label: "Zod planSchema OK sans échec définitif", level: "critical", pass, details };
+  if (pass && details.length === 0) details.push("Génération JSON validée sans retry définitif.");
+  return { id: "B1", label: LABEL, level: "critical", pass, details };
 }
 
 /** Retourne true si la semaine est la race-week du taper : dernière semaine du plan, phase taper, contient une "race" ou "compétition" dans le thème. */
@@ -244,7 +261,7 @@ export function runAllChecks(args: {
       ? checkB4_semi(args.merged)
       : checkB4_sprint(args.merged);
   return [
-    checkB1({ stat: args.stat }),
+    checkB1({ stat: args.stat, parsedPresent: !!args.parsed }),
     checkB2(args.merged),
     checkB3(args.merged),
     b4,

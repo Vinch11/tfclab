@@ -58,8 +58,16 @@ export function useQARunner() {
   const plan = useAITrainingPlan();
   const [progress, setProgress] = useState<QARunnerProgress>({ running: false, currentRun: 0, totalRuns: 0 });
   const [lastSession, setLastSession] = useState<QASession | null>(null);
+  // Refs updated at every render so async runFullSuite reads live values, not
+  // the state captured by the useCallback closure at click-time.
   const isLoadingRef = useRef(plan.isLoading);
+  const mergedPlanRef = useRef(plan.mergedPlan);
+  const parsedPlanRef = useRef(plan.parsedPlan);
+  const issuesRef = useRef(plan.sportObjectiveIssues);
   isLoadingRef.current = plan.isLoading;
+  mergedPlanRef.current = plan.mergedPlan;
+  parsedPlanRef.current = plan.parsedPlan;
+  issuesRef.current = plan.sportObjectiveIssues;
 
   const runFullSuite = useCallback(async (N: 1 | 3 | 5): Promise<QASession> => {
     if (isLoadingRef.current) throw new Error("Une génération est déjà en cours — attendez la fin.");
@@ -105,14 +113,20 @@ export function useQARunner() {
           errorStack = truncStack(e);
         }
 
+        // Laisser React committer les setState finaux (mergedPlan/parsedPlan/etc)
+        await new Promise(r => setTimeout(r, 100));
+
         const durationMs = Date.now() - t0;
         const allStats = readPlanStats();
-        const newStat: PlanGenerationStat | undefined = allStats.length > beforeStats
-          ? allStats[allStats.length - 1]
-          : undefined;
-        const merged = plan.mergedPlan;
-        const parsed = plan.parsedPlan;
-        const issues = plan.sportObjectiveIssues;
+        const newStats = allStats.slice(beforeStats);
+        // Preuves d'échec > succès de fallback : on privilégie le stat qui
+        // porte schemaFailDetails/errorCode (généré AVANT le fallback markdown
+        // qui écrase sinon en dernier stat).
+        const failStat = newStats.find(s => s.schemaFailDetails || (!s.ok && s.errorCode));
+        const newStat: PlanGenerationStat | undefined = failStat ?? newStats[newStats.length - 1];
+        const merged = mergedPlanRef.current;
+        const parsed = parsedPlanRef.current;
+        const issues = issuesRef.current;
         const allowedIds = plan.lastAllowedCatalogIdsRef.current;
 
         setProgress(p => ({ ...p, phase: "checks" }));
