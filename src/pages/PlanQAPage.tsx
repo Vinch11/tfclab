@@ -223,7 +223,132 @@ export default function PlanQAPage() {
         </CardContent>
       </Card>
 
-      {/* Stats */}
+      {/* Phase 0 — Run complet 3 profils × N */}
+      <Card>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-base">Run complet — 3 profils synthétiques × N</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Génère les plans B-70.3 · B-SEMI · B-SPRINT en mode JSON forcé et applique les checks B1-B7.
+            Chaque itération consomme des crédits IA (~1 génération complète). Séquentiel, pas de parallèle.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-sm">N =</span>
+            {([1, 3, 5] as const).map(n => (
+              <Button
+                key={n}
+                size="sm"
+                variant={qaN === n ? "default" : "outline"}
+                onClick={() => setQaN(n)}
+                disabled={qa.progress.running}
+              >
+                {n} run{n > 1 ? "s" : ""} / profil
+              </Button>
+            ))}
+            <span className="text-xs text-muted-foreground">
+              → {3 * qaN} génération{3 * qaN > 1 ? "s" : ""} totales
+            </span>
+            <Button
+              size="sm"
+              className="ml-auto"
+              onClick={async () => {
+                await qa.runFullSuite(qaN);
+                setStats(readPlanStats());
+                setQaSessions(readQASessions());
+                toast.success("QA terminée — verdict affiché.");
+              }}
+              disabled={qa.progress.running}
+            >
+              {qa.progress.running ? "En cours…" : `Lancer (${3 * qaN} plans)`}
+            </Button>
+          </div>
+          {qa.progress.running && (
+            <div className="rounded border border-border/60 p-3 text-xs space-y-1">
+              <div>
+                Run <b>{qa.progress.currentRun}/{qa.progress.totalRuns}</b>
+                {qa.progress.currentProfile && (
+                  <> — profil <b>{qa.progress.currentProfile}</b> (itération {qa.progress.currentRunOfProfile}/{qa.progress.N})</>
+                )}
+              </div>
+              <div className="h-1.5 bg-border/40 rounded overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${(qa.progress.currentRun / Math.max(qa.progress.totalRuns, 1)) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {qa.lastSession && (
+            <div className="rounded border border-border/60 p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-lg font-semibold">Verdict : {qa.lastSession.summary}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(qa.lastSession.ts).toLocaleString()} — {qa.lastSession.runs.length} runs, N={qa.lastSession.n}
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(buildQAReport(qa.lastSession!));
+                    toast.success("Rapport QA copié.");
+                  }}
+                >
+                  Copier le rapport QA
+                </Button>
+              </div>
+              <div className="text-xs space-y-1">
+                {qa.lastSession.runs.map((r, i) => {
+                  const crit = r.checks.filter(c => c.level === "critical" && !c.pass);
+                  const status = r.errorMessage ? "🔴" : crit.length > 0 ? "🔴" : "🟢";
+                  return (
+                    <div key={i} className="flex items-center gap-2">
+                      <span>{status}</span>
+                      <span className="font-mono">{r.profileId}#{r.runIndex}</span>
+                      <span className="text-muted-foreground">
+                        {r.stat?.format ?? "?"} · {(r.durationMs / 1000).toFixed(1)}s
+                        {crit.length > 0 && ` · ${crit.length} critical`}
+                        {r.errorMessage && ` · ${r.errorMessage.slice(0, 60)}`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {qaSessions.length > 0 && (
+            <details className="text-xs">
+              <summary className="cursor-pointer text-muted-foreground">
+                Historique QA ({qaSessions.length} session{qaSessions.length > 1 ? "s" : ""})
+              </summary>
+              <div className="mt-2 space-y-1">
+                {[...qaSessions].reverse().map((s, i) => (
+                  <div key={i} className="flex items-center gap-2 py-1 border-b border-border/30 last:border-b-0">
+                    <span>{s.verdict}</span>
+                    <span className="text-muted-foreground">{new Date(s.ts).toLocaleString()}</span>
+                    <span>— N={s.n} · {s.runs.length} runs</span>
+                    <button
+                      className="ml-auto text-primary underline underline-offset-2"
+                      onClick={() => qa.setLastSession(s)}
+                    >
+                      afficher
+                    </button>
+                  </div>
+                ))}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => { clearQASessions(); setQaSessions([]); }}
+                >
+                  Effacer l'historique QA
+                </Button>
+              </div>
+            </details>
+          )}
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-base">Stats de génération (last 50)</CardTitle>
