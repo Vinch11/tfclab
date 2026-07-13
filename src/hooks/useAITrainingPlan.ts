@@ -673,7 +673,8 @@ export function useAITrainingPlan() {
     } catch (e) {
       console.error("AI training plan error:", e);
       if (!(e instanceof Error && e.message === "__STREAM_ABORT__")) {
-        toast.error("Impossible de générer le plan d'entraînement");
+        const msg = e instanceof Error ? e.message : String(e);
+        toast.error(`Impossible de générer le plan : ${msg}`);
       }
       logPlanStat({
         ts: Date.now(),
