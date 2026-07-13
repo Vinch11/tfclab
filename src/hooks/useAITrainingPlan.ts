@@ -530,10 +530,23 @@ export function useAITrainingPlan() {
 
         const jsonDurMs = Date.now() - jsonStartTs;
         if (jsonSuccess) {
+          // Compute custom ratio for observability (Invariant 8 target < 20%)
+          let nonRest = 0, customCount = 0;
+          try {
+            for (const w of (mergedPlan?.weeks ?? [])) {
+              for (const s of w.sessions) {
+                if (s.sport === "rest") continue;
+                nonRest++;
+                if (s.custom) customCount++;
+              }
+            }
+          } catch { /* ignore */ }
+          const customRatio = nonRest > 0 ? customCount / nonRest : 0;
           logPlanStat({
             ts: Date.now(), format: "json", objective: planConfig.objective ?? null,
             totalWeeks, totalChunks, durationMs: jsonDurMs, ok: true,
             sportObjectiveCriticalIssues: sportIssuesCount,
+            customRatio, customSessionCount: customCount, nonRestSessionCount: nonRest,
           });
           setIsLoading(false);
           return;
