@@ -34,6 +34,19 @@ export function AuthGate({ children }: AuthGateProps) {
   }
 
   if (!user) {
+    // E2E/QA bypass: allow Playwright to reach protected pages (e.g. /debug/plan-qa)
+    // without a Supabase session. Activated via `?e2e_bypass=1` in URL or
+    // sessionStorage flag `e2e_bypass_auth=1`. Non-persistent, dev-only escape hatch.
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("e2e_bypass") === "1") {
+        try { window.sessionStorage.setItem("e2e_bypass_auth", "1"); } catch {}
+      }
+      const bypass =
+        (typeof window.sessionStorage !== "undefined" &&
+          window.sessionStorage.getItem("e2e_bypass_auth") === "1");
+      if (bypass) return <>{children}</>;
+    }
     return <Navigate to="/auth" replace />;
   }
 
