@@ -123,6 +123,15 @@ function buildObjectiveSportLock(profile?: SystemPromptProfile): string {
   const isTrail = /TRAIL|UTMB|CCC|OCC|ULTRA/.test(obj);
   const isRouteRun = !isTri && !isTrail && /MARATHON|SEMI|\b10 ?K\b|\b5 ?K\b|START.?TO.?RUN/.test(obj);
 
+  const VOCAB_LOCK_ROUTE_TRI = `
+- 🔒 **VERROU VOCABULAIRE — INTERDIT dans \`title\` / \`details\` des séances custom** :
+  D+, dénivelé chiffré (ex "800m D+", "+1200m", "cumul +Xm"), montée sèche,
+  power-hike, bâtons, vertical km, VK, terrain massif, trail technique,
+  descente technique trail. Le travail de côtes se prescrit comme
+  "côtes courtes/longues en % de pente" ou "répétitions en côte 6×2min",
+  jamais en mètres de D+ cumulé. Un plan route/tri qui contient ces marqueurs
+  sera flaggé critical par la QA (sport ↔ objectif).`;
+
   if (isRouteRun) {
     return `
 ## 🚨 VERROU SPORT OBJECTIF — COURSE ROUTE
@@ -133,7 +142,7 @@ Objectif reçu: ${rawObj || "N/A"}. Ce n'est PAS un objectif triathlon.
 - VÉLO QUALITÉ INTERDIT : aucun vélo en Z3+, seuil, VO2, SFR, intervalles, FTP test, sortie longue vélo.
 - BRIQUES INTERDITES : aucun enchaînement vélo→CAP en séance clé, aucune transition T1/T2.
 - La section "Répartition sport" : Natation 0%, Vélo 0-5% max (récup uniquement).
-- Tous les exemples ou règles génériques triathlon présents ailleurs dans ce prompt sont inapplicables pour cet objectif.`;
+- Tous les exemples ou règles génériques triathlon présents ailleurs dans ce prompt sont inapplicables pour cet objectif.${VOCAB_LOCK_ROUTE_TRI}`;
   }
 
   if (isTrail) {
@@ -153,7 +162,7 @@ Objectif reçu: ${rawObj || "N/A"}. Format court, intensité haute, volume modé
 - 3 disciplines OBLIGATOIRES : Natation ~22-28%, Vélo ~40-48%, Course ~28-34% (sur le volume total).
 - Séances clés Sprint : CSS 50/100m, VO2 30/30 course, seuil vélo court, brique bike→run rapide.
 - Long ride ≤ 2h30 (superflu Sprint), long run 45-70min max, long swim 2-3.5km.
-- Renfo/Force : Rønnestad 2-3×/sem indispensable (intensité haute Sprint = risque blessure).`;
+- Renfo/Force : Rønnestad 2-3×/sem indispensable (intensité haute Sprint = risque blessure).${VOCAB_LOCK_ROUTE_TRI}`;
   }
 
   if (isTriOlympique) {
@@ -163,7 +172,17 @@ Objectif reçu: ${rawObj || "N/A"}. Format olympique, seuil/tempo dominant, 7-14
 - 3 disciplines OBLIGATOIRES : Natation ~18-24%, Vélo ~45-52%, Course ~28-34% (sur le volume total).
 - Séances clés : CSS + endurance natation, seuil vélo 2×20min, tempo 10K, brique bike→run tempo.
 - Long ride 1h45-4h selon niveau, long run 60-110min, long swim 2.5-5km.
-- Renfo/Force + gainage 2×/sem, gut training (25-45g/h) sur SL vélo et briques.`;
+- Renfo/Force + gainage 2×/sem, gut training (25-45g/h) sur SL vélo et briques.${VOCAB_LOCK_ROUTE_TRI}`;
+  }
+
+  if (is703 || isIM) {
+    const label = is703 ? "TRIATHLON 70.3 / HALF-IRONMAN" : "TRIATHLON IRONMAN";
+    return `
+## 🚨 VERROU SPORT OBJECTIF — ${label}
+Objectif reçu: ${rawObj || "N/A"}. Format longue distance, aérobie dominante.
+- 3 disciplines OBLIGATOIRES : natation + vélo + CAP chaque semaine active.
+- Briques bike→run OBLIGATOIRES en Build/Peak (spécificité T2).
+- Course sur ROUTE : allures cibles en %VMA/%seuil, pas de vocabulaire trail.${VOCAB_LOCK_ROUTE_TRI}`;
   }
 
   return "";

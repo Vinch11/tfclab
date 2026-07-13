@@ -504,10 +504,12 @@ export function useAITrainingPlan() {
         // Attempt merge only if no fatal error and chunks received
         let jsonSuccess = false;
         let sportIssuesCount = 0;
+        let mergedLocal: ReturnType<typeof mergePlanChunks> | null = null;
         let mergeError: { code: string; message: string; details?: any } | null = fatalError;
         if (!fatalError && collected.length > 0) {
           try {
             const merged = mergePlanChunks(collected, totalWeeks);
+            mergedLocal = merged;
             const parsed = jsonPlanToParsedPlan(merged);
             const issues = validateSportObjective(merged, planConfig.objective);
             sportIssuesCount = issues.filter(i => i.severity === "critical").length;
@@ -530,10 +532,21 @@ export function useAITrainingPlan() {
 
         const jsonDurMs = Date.now() - jsonStartTs;
         if (jsonSuccess) {
+          // Compute custom ratio for observability (Invariant 8 target < 20%)
+          let nonRest = 0, customCount = 0;
+          for (const w of (mergedLocal?.weeks ?? [])) {
+            for (const s of w.sessions) {
+              if (s.sport === "rest") continue;
+              nonRest++;
+              if (s.custom) customCount++;
+            }
+          }
+          const customRatio = nonRest > 0 ? customCount / nonRest : 0;
           logPlanStat({
             ts: Date.now(), format: "json", objective: planConfig.objective ?? null,
             totalWeeks, totalChunks, durationMs: jsonDurMs, ok: true,
             sportObjectiveCriticalIssues: sportIssuesCount,
+            customRatio, customSessionCount: customCount, nonRestSessionCount: nonRest,
           });
           setIsLoading(false);
           return;

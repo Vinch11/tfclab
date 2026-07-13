@@ -30,7 +30,10 @@ export interface CheckResult {
 }
 
 const TRAIL_CATALOG_RX = /^[A-D]_TR(50)?_|_TRAIL_|^EXPE_HORS_VILLE_|^URBAN_|^HEDGEHOG_/i;
-const TRAIL_DETAILS_RX = /\bD\+|montée sèche|bâtons|power.?hike|vertical.?km/i;
+// Marqueurs strictement critical : D+ chiffré, montée sèche, power-hike, bâtons, vertical km.
+const TRAIL_DETAILS_CRITICAL_RX = /\bD\+|montée\s+sèche|b[âa]tons|power[-\s]?hike|vertical[-\s]?km|\bVK\b|\+\s*\d{2,}\s*m\b/i;
+// Marqueurs seulement warning : "vallonné" seul (terrain vallonné = légitime en prépa route).
+const TRAIL_DETAILS_WARNING_RX = /vallonn[ée]/i;
 const Z12_RX = /\bz1\b|\bz2\b|zone\s*1|zone\s*2|zone\s*1-2|z1-2/i;
 
 interface B1Input {
@@ -115,6 +118,7 @@ export function checkB2(plan: MergedPlan): CheckResult {
 
 export function checkB3(plan: MergedPlan): CheckResult {
   const details: string[] = [];
+  const warnings: string[] = [];
   let pass = true;
   for (const w of plan.weeks) {
     for (const s of w.sessions) {
@@ -122,13 +126,22 @@ export function checkB3(plan: MergedPlan): CheckResult {
         pass = false;
         details.push(`S${w.weekNumber} ${s.dayName} — catalogId trail interdit : ${s.catalogId}`);
       }
-      if (s.custom && TRAIL_DETAILS_RX.test(s.details ?? "")) {
-        pass = false;
-        details.push(`S${w.weekNumber} ${s.dayName} — détails custom matchent pattern trail : "${(s.details ?? "").slice(0, 80)}"`);
+      if (s.custom) {
+        const detText = s.details ?? "";
+        if (TRAIL_DETAILS_CRITICAL_RX.test(detText)) {
+          pass = false;
+          details.push(`S${w.weekNumber} ${s.dayName} — détails custom matchent pattern trail critical : "${detText.slice(0, 80)}"`);
+        } else if (TRAIL_DETAILS_WARNING_RX.test(detText)) {
+          // "vallonné" seul ⇒ warning uniquement, ne fait pas échouer le check
+          warnings.push(`S${w.weekNumber} ${s.dayName} — mention "vallonné" (warning, non bloquant) : "${detText.slice(0, 80)}"`);
+        }
       }
     }
   }
-  if (details.length === 0) details.push("Aucun contenu trail détecté.");
+  if (details.length === 0 && warnings.length === 0) details.push("Aucun contenu trail détecté.");
+  else if (details.length === 0) details.push(`Pass sans marqueur critical. ⚠ ${warnings.length} mention(s) "vallonné" (warning).`);
+  // Include warnings after criticals for visibility
+  for (const w of warnings) details.push(`⚠ ${w}`);
   return { id: "B3", label: "Aucun contenu trail (catalogId / détails custom)", level: "critical", pass, details };
 }
 
