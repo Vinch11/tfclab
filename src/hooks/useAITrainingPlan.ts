@@ -618,9 +618,16 @@ export function useAITrainingPlan() {
 
   const reset = useCallback(() => {
     setResponse("");
+    setParsedPlan(null);
+    setMergedPlan(null);
+    setSportObjectiveIssues([]);
     setIsLoading(false);
     setChunkProgress(null);
   }, []);
 
-  return { response, isLoading, chunkProgress, generatePlan, reset, setResponse };
+  return {
+    response, isLoading, chunkProgress, generatePlan, reset, setResponse,
+    // Phase 1B — JSON-mode outputs (null when Markdown path was used).
+    parsedPlan, mergedPlan, sportObjectiveIssues,
+  };
 }
