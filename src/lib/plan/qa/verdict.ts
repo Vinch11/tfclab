@@ -150,6 +150,7 @@ export function buildQAReport(session: QASession): string {
       lines.push(`\n### Run ${r.runIndex}/${r.totalRuns} — ${status} (${(r.durationMs / 1000).toFixed(1)}s)`);
       if (r.errorMessage) {
         lines.push(`> ⚠️ ${r.errorMessage}`);
+        if (r.errorStack) lines.push("```\n" + r.errorStack + "\n```");
       }
       if (r.stat) {
         lines.push(`- format=${r.stat.format} · chunks=${r.stat.totalChunks ?? "?"} · retries≥1=${retriesOf(r.stat)}`);
