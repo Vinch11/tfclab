@@ -1483,7 +1483,9 @@ export default function AITrainingPlanPage() {
       }
 
       // Parse the new future weeks
-      const futurePlan = parseAIPlan(fullText);
+      const rawFuture = parseAIPlan(fullText);
+      const { plan: futurePlan } = sanitizeTrailFromTriathlonPlan(rawFuture, objective);
+
       if (futurePlan.weeks.length === 0) {
         toast.error("Impossible de parser les semaines futures générées");
         return;
