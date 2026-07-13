@@ -83,6 +83,7 @@ interface AttemptDiagnostic {
   unwrapped: boolean;
   unwrapMethod: ParseDiagnostic["unwrapMethod"];
   parseError?: string;
+  truncatedByExtraction?: boolean;
   zodIssues: Array<{
     path: string;
     message: string;
