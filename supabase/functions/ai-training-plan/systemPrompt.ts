@@ -123,6 +123,15 @@ function buildObjectiveSportLock(profile?: SystemPromptProfile): string {
   const isTrail = /TRAIL|UTMB|CCC|OCC|ULTRA/.test(obj);
   const isRouteRun = !isTri && !isTrail && /MARATHON|SEMI|\b10 ?K\b|\b5 ?K\b|START.?TO.?RUN/.test(obj);
 
+  const VOCAB_LOCK_ROUTE_TRI = `
+- 🔒 **VERROU VOCABULAIRE — INTERDIT dans \`title\` / \`details\` des séances custom** :
+  D+, dénivelé chiffré (ex "800m D+", "+1200m", "cumul +Xm"), montée sèche,
+  power-hike, bâtons, vertical km, VK, terrain massif, trail technique,
+  descente technique trail. Le travail de côtes se prescrit comme
+  "côtes courtes/longues en % de pente" ou "répétitions en côte 6×2min",
+  jamais en mètres de D+ cumulé. Un plan route/tri qui contient ces marqueurs
+  sera flaggé critical par la QA (sport ↔ objectif).`;
+
   if (isRouteRun) {
     return `
 ## 🚨 VERROU SPORT OBJECTIF — COURSE ROUTE
@@ -133,7 +142,7 @@ Objectif reçu: ${rawObj || "N/A"}. Ce n'est PAS un objectif triathlon.
 - VÉLO QUALITÉ INTERDIT : aucun vélo en Z3+, seuil, VO2, SFR, intervalles, FTP test, sortie longue vélo.
 - BRIQUES INTERDITES : aucun enchaînement vélo→CAP en séance clé, aucune transition T1/T2.
 - La section "Répartition sport" : Natation 0%, Vélo 0-5% max (récup uniquement).
-- Tous les exemples ou règles génériques triathlon présents ailleurs dans ce prompt sont inapplicables pour cet objectif.`;
+- Tous les exemples ou règles génériques triathlon présents ailleurs dans ce prompt sont inapplicables pour cet objectif.${VOCAB_LOCK_ROUTE_TRI}`;
   }
 
   if (isTrail) {
