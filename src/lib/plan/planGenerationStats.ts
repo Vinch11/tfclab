@@ -86,9 +86,12 @@ export function logPlanStat(stat: PlanGenerationStat): void {
     localStorage.setItem(KEY, JSON.stringify(trimmed));
   } catch { /* ignore */ }
   const tag = stat.ok ? "✅" : "❌";
+  const ratioStr = typeof stat.customRatio === "number"
+    ? ` custom=${Math.round(stat.customRatio * 100)}%(${stat.customSessionCount ?? "?"}/${stat.nonRestSessionCount ?? "?"})`
+    : "";
   // eslint-disable-next-line no-console
   console.info(
-    `${tag} [plan-stats] fmt=${stat.format} obj="${stat.objective}" weeks=${stat.totalWeeks} chunks=${stat.totalChunks} dur=${stat.durationMs}ms` +
+    `${tag} [plan-stats] fmt=${stat.format} obj="${stat.objective}" weeks=${stat.totalWeeks} chunks=${stat.totalChunks} dur=${stat.durationMs}ms${ratioStr}` +
     (stat.errorCode ? ` err=${stat.errorCode}` : "") +
     (stat.sportObjectiveCriticalIssues ? ` issues=${stat.sportObjectiveCriticalIssues}` : ""),
   );
