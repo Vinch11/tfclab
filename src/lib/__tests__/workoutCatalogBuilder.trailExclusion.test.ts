@@ -36,4 +36,17 @@ describe("buildWorkoutCatalog — trail exclusion for non-trail objectives", () 
     const cat = buildWorkoutCatalog("trail ultra 100km", 1, 12, 12, { maxItems: 80 });
     expect(hasTrailIds(cat).length).toBeGreaterThan(0);
   });
+
+  it("70.3 catalog keeps a viable course pool (≥ 25)", () => {
+    const cat = buildWorkoutCatalog("70.3", 1, 12, 12, {
+      maxItems: 80,
+      excludeIdPatterns: [
+        /^HEDGEHOG_/i, /_HEDGEHOG_/i, /^URBAN_/i, /^TRAIL_/i, /_TRAIL_/i,
+        /^[A-D]_TR(?:50)?_/i, /^EXPE_HORS_VILLE_/i, /^V3_TRAIL_/i,
+      ],
+      excludeTags: ["trail", "trail-urban"],
+    });
+    const courseCount = cat.filter(e => e.sport === "course").length;
+    expect(courseCount).toBeGreaterThanOrEqual(15); // pool minimum viable après exclusions
+  });
 });
