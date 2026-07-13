@@ -659,11 +659,28 @@ export function useAITrainingPlan() {
           }
         }
       }
+      // Log Markdown-path success (covers both direct-Markdown and JSON-then-fallback)
+      logPlanStat({
+        ts: Date.now(),
+        format: isFallback ? "markdown-fallback-from-json" : "markdown",
+        objective: planConfig.objective ?? null,
+        totalWeeks, totalChunks,
+        durationMs: Date.now() - markdownStartTs,
+        ok: true,
+      });
     } catch (e) {
       console.error("AI training plan error:", e);
       if (!(e instanceof Error && e.message === "__STREAM_ABORT__")) {
         toast.error("Impossible de générer le plan d'entraînement");
       }
+      logPlanStat({
+        ts: Date.now(),
+        format: jsonMode ? "json" : "markdown",
+        objective: planConfig.objective ?? null,
+        totalWeeks, totalChunks, durationMs: 0, ok: false,
+        errorCode: "EXCEPTION",
+        errorMessage: e instanceof Error ? e.message : String(e),
+      });
     } finally {
       setIsLoading(false);
       setChunkProgress(null);
