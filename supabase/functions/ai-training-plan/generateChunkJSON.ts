@@ -109,6 +109,13 @@ const PHASE_CANON: Record<string, string> = {
   peak: "peak", "spécifique": "peak", specifique: "peak",
   "compétition": "peak", competition: "peak", "race-specific": "peak",
   taper: "taper", "affûtage": "taper", affutage: "taper", "pre-race": "taper",
+  // Semaines de récup/deload : non-canoniques en phase. Fallback contextuel
+  // dans normalizeModelJsonForSchema (voisin le plus proche, sinon "build").
+  recovery: "__deload__", "récupération": "__deload__", recuperation: "__deload__",
+  "récup": "__deload__", recup: "__deload__", deload: "__deload__",
+  regen: "__deload__", "régen": "__deload__", regeneration: "__deload__",
+  "régénération": "__deload__", assimilation: "__deload__", relache: "__deload__",
+  "relâche": "__deload__",
 };
 
 const SPORT_CANON: Record<string, string> = {
@@ -248,11 +255,30 @@ export function normalizeModelJsonForSchema(
       w.weekNumber = Number(w.weekNumber);
       repairs.push(`weeks.${wi}.weekNumber string→number`);
     }
-    // Canonicalisation phase
+    // Canonicalisation phase (avec sentinelle __deload__ pour semaines de récup)
     const cp = canonEnum(w.phase, PHASE_CANON);
     if (cp !== null && cp !== w.phase) {
-      repairs.push(`weeks.${wi}.phase canonicalized (${String(w.phase)}→${cp})`);
-      w.phase = cp;
+      if (cp === "__deload__") {
+        // Inférence contextuelle : voisin le plus proche canonique, sinon "build".
+        const weeksArr = root.weeks as unknown[];
+        const canonical = new Set(["base", "build", "peak", "taper"]);
+        const phaseAt = (i: number): string | null => {
+          const r = asRecord(weeksArr[i]);
+          if (!r) return null;
+          const p = typeof r.phase === "string" ? r.phase.trim().toLowerCase() : null;
+          return p && canonical.has(p) ? p : null;
+        };
+        let inferred: string | null = null;
+        for (let d = 1; d < weeksArr.length && !inferred; d++) {
+          inferred = phaseAt(wi - d) ?? phaseAt(wi + d);
+        }
+        const fallback = inferred ?? "build";
+        repairs.push(`weeks.${wi}.phase deload→${fallback} (LLM=${String(w.phase)})`);
+        w.phase = fallback;
+      } else {
+        repairs.push(`weeks.${wi}.phase canonicalized (${String(w.phase)}→${cp})`);
+        w.phase = cp;
+      }
     }
     if (!Array.isArray(w.sessions)) return;
     w.sessions.forEach((session, si) => {
