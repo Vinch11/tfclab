@@ -1,0 +1,362 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * PHASE 2A — Moteur de dimensionnement déterministe des séances hebdomadaires
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * Le nombre de séances par sport et par semaine est CALCULÉ par le code depuis
+ * une matrice validée par le coach, injecté comme contrainte ferme dans le
+ * prompt de génération, puis vérifié post-merge. Le LLM place et sélectionne
+ * les séances ; il ne décide plus jamais combien.
+ *
+ * Fonction pure : mêmes entrées → mêmes sorties. Aucun accès réseau/random.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+
+export type EvidenceTier = "peer_reviewed" | "practitioner_literature" | "elite_practice";
+
+export interface QuotaRange { min: number; max: number }
+
+export interface WeeklyQuota {
+  swim: QuotaRange; bike: QuotaRange; run: QuotaRange;
+  brick: QuotaRange; strength: QuotaRange;
+  totalSessions: QuotaRange;
+  maxSessionsPerDay: number;
+  minFullRestDays: number;
+  source: { tier: EvidenceTier; ref: string };
+}
+
+export interface SizingFloors {
+  minSwimPerWeek?: number;        // triathlon uniquement
+  longRideWeekly?: boolean;       // 1 SL vélo/sem hors taper
+  longRunWeekly?: boolean;        // 1 SL CAP/sem hors taper
+  minStrengthPerWeek: number;     // jamais 0 (Petersen, effet protecteur)
+}
+
+export type SizingObjectiveKey =
+  | "703" | "IM" | "TRI_SPRINT" | "TRI_OLYMPIQUE"
+  | "SEMI" | "MARATHON" | "10K" | "5K";
+
+export type SizingAmbitionKey = "finisher" | "age_group" | "competitor" | "elite";
+
+export type WeekType = "load" | "recovery" | "taper" | "race";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SOURCES (littérature/pratique) — affichage futur, aligné rapport physio
+// ═══════════════════════════════════════════════════════════════════════════════
+const SRC_703: { tier: EvidenceTier; ref: string } = {
+  tier: "practitioner_literature",
+  ref: "Olbrecht (fréquence nat) ; Friel ; pratique Lorang/école norvégienne (elite_practice)",
+};
+const SRC_IM: { tier: EvidenceTier; ref: string } = {
+  tier: "elite_practice",
+  ref: "Lorang (logs Frodeno/Haug), école norvégienne (Tønnessen case studies)",
+};
+const SRC_TRI_COURT: { tier: EvidenceTier; ref: string } = {
+  tier: "practitioner_literature",
+  ref: "Olbrecht ; Seiler (part polarisée accrue sur formats courts)",
+};
+const SRC_CAP: { tier: EvidenceTier; ref: string } = {
+  tier: "practitioner_literature",
+  ref: "Daniels ; Canova (elite_practice) ; Rønnestad & Mujika 2014 pour strength (peer_reviewed)",
+};
+
+export const FLOORS_SOURCE: { tier: EvidenceTier; ref: string } = {
+  tier: "peer_reviewed",
+  ref: "Petersen 2011 (strength maintien) ; Mujika & Padilla 2003 (taper)",
+};
+
+export const FLOORS_TRI: SizingFloors = {
+  minSwimPerWeek: 2,
+  longRideWeekly: true,
+  longRunWeekly: true,
+  minStrengthPerWeek: 1,
+};
+export const FLOORS_CAP: SizingFloors = {
+  longRunWeekly: true,
+  minStrengthPerWeek: 1,
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MATRICE (valeurs exactes — ne pas modifier sans mise à jour tests + coach)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface AmbitionRow {
+  hoursMin?: number; hoursMax?: number;
+  swim: QuotaRange; bike: QuotaRange; run: QuotaRange;
+  brick: QuotaRange; strength: QuotaRange;
+  totalSessions: QuotaRange;
+  maxSessionsPerDay: number;
+  minFullRestDays: number;
+}
+
+type Matrix = Record<SizingObjectiveKey, Partial<Record<SizingAmbitionKey, AmbitionRow>>>;
+
+const MATRIX: Matrix = {
+  "703": {
+    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 9  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 3, max: 3 }, run: { min: 3, max: 3 }, brick: { min: 1, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 11, max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 1, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 14 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 5 }, bike: { min: 4, max: 5 }, run: { min: 4, max: 5 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 2 }, totalSessions: { min: 15, max: 18 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
+  },
+  IM: {
+    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 9  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 3, max: 3 }, run: { min: 3, max: 3 }, brick: { min: 1, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 11, max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 1, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 14 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 6 }, bike: { min: 4, max: 5 }, run: { min: 4, max: 5 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 2 }, totalSessions: { min: 15, max: 18 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
+  },
+  // TRI court : bike/run = 703 −1 (plancher 2), swim identique 703, brick 0-1, strength idem 703.
+  TRI_SPRINT: {
+    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 8,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 2, max: 3 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 5 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 15 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
+  },
+  TRI_OLYMPIQUE: {
+    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 8,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 2, max: 3 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 5 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 15 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
+  },
+  // CAP route — pas de seuil horaire (matrice v1)
+  SEMI: {
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 6,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
+  },
+  MARATHON: {
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 6,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
+  },
+  "10K": {
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 6,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
+  },
+  "5K": {
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 6,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
+  },
+};
+
+function sourceFor(obj: SizingObjectiveKey): { tier: EvidenceTier; ref: string } {
+  if (obj === "703") return SRC_703;
+  if (obj === "IM") return SRC_IM;
+  if (obj === "TRI_SPRINT" || obj === "TRI_OLYMPIQUE") return SRC_TRI_COURT;
+  return SRC_CAP;
+}
+
+/** Normalise l'objectif utilisateur en clé matrice, ou null si non couvert (trail/autre). */
+export function normalizeSizingObjective(objective: string | null | undefined): SizingObjectiveKey | null {
+  if (!objective) return null;
+  const l = objective.toLowerCase();
+  if (l.includes("trail") || l.includes("ultra") || l.includes("utmb") || l.includes("ccc") || l.includes("occ") || l.includes("hardrock") || l.includes("skyrun")) return null;
+  if (l.includes("70.3") || l.includes("half iron") || l.includes("half-iron") || l === "703" || l.includes("ironman 70")) return "703";
+  if (l.includes("ironman") || l === "im" || l.match(/\bim\b/)) return "IM";
+  if (l.includes("sprint") && (l.includes("tri") || l.includes("triathlon"))) return "TRI_SPRINT";
+  if ((l.includes("olymp") || l.includes("courte distance") || l === "cd") && (l.includes("tri") || l.includes("triathlon"))) return "TRI_OLYMPIQUE";
+  if (l.includes("semi") || l.includes("half marathon") || l.includes("half-marathon")) return "SEMI";
+  if (l.includes("marathon")) return "MARATHON";
+  if (l.includes("10k") || l.includes("10 km")) return "10K";
+  if (l.includes("5k") || l === "5km") return "5K";
+  return null;
+}
+
+/** Normalise l'ambition effective vers la clé matrice 4-tier (world_class → elite). */
+export function normalizeSizingAmbition(ambition: string | null | undefined): SizingAmbitionKey {
+  if (!ambition) return "age_group";
+  const l = ambition.toLowerCase();
+  if (l === "world_class" || l === "worldclass" || l.includes("world-class")) return "elite";
+  if (l === "finisher" || l === "discovery" || l.includes("decouverte") || l.includes("découverte")) return "finisher";
+  if (l === "age_group" || l === "confirmed" || l.includes("confirmé") || l.includes("confirme")) return "age_group";
+  if (l === "competitor" || l.includes("compétit") || l.includes("competit")) return "competitor";
+  if (l === "elite" || l.includes("qualifiable") || l.includes("qualif")) return "elite";
+  return "age_group";
+}
+
+const AMBITION_ORDER: SizingAmbitionKey[] = ["finisher", "age_group", "competitor", "elite"];
+
+function isTri(obj: SizingObjectiveKey): boolean {
+  return obj === "703" || obj === "IM" || obj === "TRI_SPRINT" || obj === "TRI_OLYMPIQUE";
+}
+
+function floorsFor(obj: SizingObjectiveKey): SizingFloors {
+  return isTri(obj) ? FLOORS_TRI : FLOORS_CAP;
+}
+
+/**
+ * Compute deterministic weekly session quota.
+ *
+ * @param objective         Objectif libre (sera normalisé). Retourne null si non couvert (trail, autre).
+ * @param ambitionEffective Ambition effective déjà passée par computeAmbitionEffective (JAMAIS brute).
+ * @param hoursAvailable    Heures/semaine dispo (garde-fou 703/IM uniquement en v1).
+ * @param weekType          "load" | "recovery" | "taper" | "race".
+ */
+export function computeWeeklySessionQuota(
+  objective: string,
+  ambitionEffective: string,
+  hoursAvailable: number,
+  weekType: WeekType,
+): {
+  quota: WeeklyQuota;
+  floors: SizingFloors;
+  downgraded: boolean;
+  downgradeReason?: string;
+} | null {
+  const objKey = normalizeSizingObjective(objective);
+  if (!objKey) return null;
+  const requested = normalizeSizingAmbition(ambitionEffective);
+
+  // Garde-fou heures↔ambition (703/IM/TRI_* qui portent hoursMin)
+  let ambition: SizingAmbitionKey = requested;
+  let downgraded = false;
+  let downgradeReason: string | undefined;
+  const startIdx = AMBITION_ORDER.indexOf(requested);
+  for (let i = startIdx; i >= 0; i--) {
+    const row = MATRIX[objKey]?.[AMBITION_ORDER[i]];
+    if (!row) continue;
+    if (typeof row.hoursMin !== "number" || hoursAvailable >= row.hoursMin) {
+      ambition = AMBITION_ORDER[i];
+      break;
+    }
+  }
+  if (ambition !== requested) {
+    downgraded = true;
+    const askedRow = MATRIX[objKey]?.[requested];
+    downgradeReason = `${hoursAvailable}h déclarées < ${askedRow?.hoursMin ?? "?"}h requises pour ${requested} — quota calculé sur ${ambition}`;
+  }
+
+  const row = MATRIX[objKey]?.[ambition];
+  if (!row) return null;
+
+  const src = sourceFor(objKey);
+  const floors = floorsFor(objKey);
+
+  // Base quota (copie profonde des ranges pour mutation locale)
+  const base: WeeklyQuota = {
+    swim: { ...row.swim },
+    bike: { ...row.bike },
+    run: { ...row.run },
+    brick: { ...row.brick },
+    strength: { ...row.strength },
+    totalSessions: { ...row.totalSessions },
+    maxSessionsPerDay: row.maxSessionsPerDay,
+    minFullRestDays: row.minFullRestDays,
+    source: src,
+  };
+
+  // Modulateurs weekType
+  let quota: WeeklyQuota = base;
+  const localFloors: SizingFloors = { ...floors };
+
+  if (weekType === "recovery") {
+    // Total -30% arrondi inférieur ; retirer 1 qualité bike puis 1 qualité run.
+    const totMinR = Math.floor(base.totalSessions.min * 0.7);
+    const totMaxR = Math.floor(base.totalSessions.max * 0.7);
+    const bikeMin = Math.max(0, base.bike.min - 1);
+    const bikeMax = Math.max(bikeMin, base.bike.max - 1);
+    const runMin = Math.max(0, base.run.min - 1);
+    const runMax = Math.max(runMin, base.run.max - 1);
+    quota = {
+      ...base,
+      bike: { min: bikeMin, max: bikeMax },
+      run: { min: runMin, max: runMax },
+      // swim jamais sous minSwim (floor tri) / sous plancher CAP (0)
+      swim: {
+        min: Math.max(base.swim.min, localFloors.minSwimPerWeek ?? 0),
+        max: base.swim.max,
+      },
+      strength: { min: localFloors.minStrengthPerWeek, max: localFloors.minStrengthPerWeek },
+      totalSessions: { min: Math.max(0, totMinR), max: Math.max(0, totMaxR) },
+      source: { tier: "elite_practice", ref: "pratique standard cycles 3:1" },
+    };
+  } else if (weekType === "taper") {
+    // Fréquence quasi intacte : total -1 à -2 séances max, floors maintenus
+    // sauf longRideWeekly / longRunWeekly désactivés.
+    quota = {
+      ...base,
+      totalSessions: {
+        min: Math.max(0, base.totalSessions.min - 2),
+        max: Math.max(0, base.totalSessions.max - 1),
+      },
+      source: {
+        tier: "peer_reviewed",
+        ref: "Mujika 2003, Bosquet 2007 — réduire volume 40-60%, MAINTENIR fréquence et intensité",
+      },
+    };
+    localFloors.longRideWeekly = false;
+    localFloors.longRunWeekly = false;
+  } else if (weekType === "race") {
+    // Floors uniquement (swim min, strength 0 autorisé), reste libre.
+    quota = {
+      ...base,
+      strength: { min: 0, max: base.strength.max },
+      source: { tier: "elite_practice", ref: "Race week — floors seuls, logique race-week existante prime" },
+    };
+    localFloors.minStrengthPerWeek = 0;
+    localFloors.longRideWeekly = false;
+    localFloors.longRunWeekly = false;
+  }
+
+  return { quota, floors: localFloors, downgraded, downgradeReason };
+}
+
+/**
+ * Mapping simple weekType depuis la position dans le plan.
+ * Aligne l'heuristique de phase serveur (inferPhaseFromWeek).
+ *
+ * - race    : dernière semaine si en zone taper (pct > 0.92)
+ * - taper   : pct > 0.92 (hors race)
+ * - recovery: toutes les 4 semaines (cycle 3:1), hors taper/race
+ * - load    : autrement
+ */
+export function inferWeekType(weekNumber: number, totalWeeks: number): WeekType {
+  const pct = weekNumber / Math.max(totalWeeks, 1);
+  if (pct > 0.92 && weekNumber === totalWeeks) return "race";
+  if (pct > 0.92) return "taper";
+  if (weekNumber % 4 === 0) return "recovery";
+  return "load";
+}
+
+/** Formatte une plage min-max en texte "N" (si min=max) ou "min à max". */
+function fmtRange(r: QuotaRange): string {
+  if (r.min === r.max) return `exactement ${r.min}`;
+  return `${r.min} à ${r.max}`;
+}
+
+/**
+ * Construit le bloc CONTRAINTES injecté dans le userPrompt (chunk-scoped).
+ * `weeksScope` = numéros de semaines du chunk (ex: [1,2,3,4,5]).
+ */
+export function buildQuotaPromptBlock(
+  weeksScope: number[],
+  quotasByWeek: Record<number, { quota: WeeklyQuota; floors: SizingFloors; weekType: WeekType; downgraded: boolean; downgradeReason?: string }>,
+): string {
+  const lines: string[] = [];
+  lines.push("🧮 CONTRAINTES DE DIMENSIONNEMENT (NON NÉGOCIABLES, calculées par le moteur) :");
+  for (const w of weeksScope) {
+    const entry = quotasByWeek[w];
+    if (!entry) continue;
+    const q = entry.quota;
+    const parts = [
+      `natation ${fmtRange(q.swim)}`,
+      `vélo ${fmtRange(q.bike)}`,
+      `CAP ${fmtRange(q.run)}`,
+      `brick ${fmtRange(q.brick)}`,
+      `renfo ${fmtRange(q.strength)}`,
+      `max ${q.maxSessionsPerDay} séances/jour`,
+      q.minFullRestDays > 0 ? `≥${q.minFullRestDays} jour${q.minFullRestDays > 1 ? "s" : ""} repos complet` : "repos ajustable",
+    ];
+    lines.push(`Semaine ${w} (${entry.weekType}) : ${parts.join(" · ")}`);
+    if (entry.downgraded && entry.downgradeReason) {
+      lines.push(`  ↳ ambition ajustée : ${entry.downgradeReason}`);
+    }
+  }
+  lines.push("");
+  lines.push("→ Le nombre de séances par sport ci-dessus est FERME. Tu places et sélectionnes les séances (dans le catalogue prioritairement) ; tu ne modifies JAMAIS ces compteurs.");
+  return lines.join("\n");
+}

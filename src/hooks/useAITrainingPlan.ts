@@ -19,6 +19,8 @@ import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPla
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
+import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock } from "@/engines/plan/sessionSizingMatrix";
+import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
@@ -297,6 +299,9 @@ export function useAITrainingPlan() {
   const [parsedPlan, setParsedPlan] = useState<ParsedPlan | null>(null);
   const [mergedPlan, setMergedPlan] = useState<MergedPlan | null>(null);
   const [sportObjectiveIssues, setSportObjectiveIssues] = useState<SportObjectiveIssue[]>([]);
+  // Phase 2A — issues remontées par la validation post-merge du quota hebdo.
+  const [weeklyQuotaIssues, setWeeklyQuotaIssues] = useState<QuotaIssue[]>([]);
+  const lastWeeklyQuotasRef = useRef<Record<number, WeekQuotaEntry>>({});
   // Phase 0 QA — union des catalogId injectés (phase + chunks) pour check B5.
   // Peuplée dans generatePlan une fois les catalogues bâtis, avant l'appel edge.
   const lastAllowedCatalogIdsRef = useRef<string[]>([]);
@@ -316,6 +321,7 @@ export function useAITrainingPlan() {
     setParsedPlan(null);
     setMergedPlan(null);
     setSportObjectiveIssues([]);
+    setWeeklyQuotaIssues([]);
     setIsLoading(true);
     const jsonMode = planConfig._outputFormat === "json";
     // Match edge function's chunk sizing
@@ -428,6 +434,47 @@ export function useAITrainingPlan() {
         setIsLoading(false);
         return;
       }
+
+      // ─── PHASE 2A : quotas hebdomadaires déterministes ──────────────────
+      // Calculés côté client, injectés dans le userPrompt (via planConfig),
+      // et validés post-merge. Le LLM n'a plus la main sur "combien".
+      const weeklyQuotas: Record<number, WeekQuotaEntry> = {};
+      const quotasByChunkText: string[] = [];
+      const hoursAvail = typeof planConfig.weeklyHours === "number" ? planConfig.weeklyHours : 0;
+      const ambitionForQuota = typeof planConfig.ambition === "string" ? planConfig.ambition : "age_group";
+      const objectiveForQuota = planConfig.objective || "";
+      for (let w = 1; w <= totalWeeks; w++) {
+        const weekType = inferWeekType(w, totalWeeks);
+        const q = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType);
+        if (q) {
+          weeklyQuotas[w] = { quota: q.quota, floors: q.floors, weekType, downgraded: q.downgraded, downgradeReason: q.downgradeReason };
+        }
+      }
+      lastWeeklyQuotasRef.current = weeklyQuotas;
+
+      // Bloc texte par chunk (uniquement les semaines du chunk concerné).
+      const chunksForQuota: Array<{ start: number; end: number }> = [];
+      if (needsChunking) {
+        for (let ci = 0; ci < totalChunks; ci++) {
+          const s = ci * CHUNK_SIZE + 1;
+          chunksForQuota.push({ start: s, end: Math.min(s + CHUNK_SIZE - 1, totalWeeks) });
+        }
+      } else {
+        chunksForQuota.push({ start: 1, end: totalWeeks });
+      }
+      for (const c of chunksForQuota) {
+        const scope: number[] = [];
+        for (let w = c.start; w <= c.end; w++) if (weeklyQuotas[w]) scope.push(w);
+        quotasByChunkText.push(scope.length > 0 ? buildQuotaPromptBlock(scope, weeklyQuotas) : "");
+      }
+
+      // Enrichit planConfig avec les quotas (pour transmission edge + traçabilité)
+      const planConfigWithQuota = {
+        ...planConfig,
+        _weeklyQuotas: weeklyQuotas,
+        _weeklyQuotasPromptByChunk: quotasByChunkText,
+      };
+
       const resp = await fetch(PLAN_URL, {
         method: "POST",
         headers: {
@@ -437,7 +484,7 @@ export function useAITrainingPlan() {
         },
         body: JSON.stringify({
           athleteData,
-          planConfig,
+          planConfig: planConfigWithQuota,
           phaseCatalogs,
           chunkCatalogs: chunkCatalogs.length > 0 ? chunkCatalogs : undefined,
           chunkSize: CHUNK_SIZE,
@@ -556,6 +603,17 @@ export function useAITrainingPlan() {
             setMergedPlan(merged);
             setParsedPlan(parsed);
             setSportObjectiveIssues(issues);
+            // Phase 2A — validation post-merge du quota hebdo (source moteur)
+            try {
+              const qIssues = validateWeeklyQuotas(merged, lastWeeklyQuotasRef.current);
+              setWeeklyQuotaIssues(qIssues);
+              if (qIssues.length > 0) {
+                const crit = qIssues.filter(i => i.severity === "critical").length;
+                console.warn(`[useAITrainingPlan] quota issues: ${crit} critical / ${qIssues.length - crit} warning`, qIssues.slice(0, 6));
+              }
+            } catch (e) {
+              console.error("[useAITrainingPlan] validateWeeklyQuotas failed:", e);
+            }
             setChunkProgress(null);
             jsonSuccess = true;
           } catch (e) {
@@ -766,6 +824,7 @@ export function useAITrainingPlan() {
     setParsedPlan(null);
     setMergedPlan(null);
     setSportObjectiveIssues([]);
+    setWeeklyQuotaIssues([]);
     setIsLoading(false);
     setChunkProgress(null);
   }, []);
@@ -774,6 +833,8 @@ export function useAITrainingPlan() {
     response, isLoading, chunkProgress, generatePlan, reset, setResponse,
     // Phase 1B — JSON-mode outputs (null when Markdown path was used).
     parsedPlan, mergedPlan, sportObjectiveIssues,
+    // Phase 2A — quota hebdo moteur (validation post-merge).
+    weeklyQuotaIssues, lastWeeklyQuotasRef,
     // Phase 0 QA — union catalogId injectés au dernier run (pour check B5).
     lastAllowedCatalogIdsRef,
   };

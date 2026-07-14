@@ -20,10 +20,11 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import type { PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX } from "@/lib/plan/planSchema";
+import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
-  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7";
+  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8";
   label: string;
   level: CheckLevel;
   pass: boolean;
@@ -258,6 +259,48 @@ export function checkB7(parsed: ParsedPlan, sportObjectiveIssues: SportObjective
   return { id: "B7", label: "Validateurs sémantiques (paces + sport/objectif)", level: "warning", pass, details };
 }
 
+/**
+ * B8 — Fréquence par sport vs quota moteur (Phase 2A).
+ * PASS si 0 critical `quota_floor_violation`. Warnings `quota_range_drift`
+ * listés avec préfixe ⚠. Un unique tableau compact quota vs observé par
+ * semaine est ajouté en fin de details pour lecture rapide.
+ */
+export function checkB8(
+  merged: MergedPlan,
+  quotaIssues: QuotaIssue[],
+  quotasByWeek: Record<number, WeekQuotaEntry>,
+): CheckResult {
+  const details: string[] = [];
+  const critical = quotaIssues.filter(i => i.severity === "critical");
+  const warnings = quotaIssues.filter(i => i.severity === "warning");
+  const pass = critical.length === 0;
+
+  for (const c of critical.slice(0, 8)) {
+    details.push(`S${c.weekNumber} — ${c.code}: ${c.reason} (attendu ${c.expected ?? "?"}, observé ${c.observed ?? "?"})`);
+  }
+  for (const w of warnings.slice(0, 6)) {
+    details.push(`⚠ S${w.weekNumber} — ${w.reason}`);
+  }
+
+  // Tableau compact quota vs observé
+  if (Object.keys(quotasByWeek).length > 0) {
+    details.push("");
+    details.push("Quota vs observé (Sem | sw/bk/rn/br/st) :");
+    for (const w of merged.weeks) {
+      const entry = quotasByWeek[w.weekNumber];
+      if (!entry) continue;
+      const cnt = { swim: 0, bike: 0, run: 0, brick: 0, strength: 0 } as Record<string, number>;
+      for (const s of w.sessions) if (!s.isRest && s.sport in cnt) cnt[s.sport]++;
+      const q = entry.quota;
+      const fmt = (obs: number, r: { min: number; max: number }) => r.min === r.max ? `${obs}/${r.min}` : `${obs}/${r.min}-${r.max}`;
+      details.push(`  S${w.weekNumber} [${entry.weekType}] · sw=${fmt(cnt.swim, q.swim)} · bk=${fmt(cnt.bike, q.bike)} · rn=${fmt(cnt.run, q.run)} · br=${fmt(cnt.brick, q.brick)} · st=${fmt(cnt.strength, q.strength)}${entry.downgraded ? " · ⚠downgraded" : ""}`);
+    }
+  }
+
+  if (details.length === 0) details.push("Quota moteur respecté sur toutes les semaines (0 floor violé).");
+  return { id: "B8", label: "Fréquence par sport vs quota moteur", level: "critical", pass, details };
+}
+
 export function runAllChecks(args: {
   profileId: "B-70.3" | "B-SEMI" | "B-SPRINT";
   merged: MergedPlan;
@@ -266,6 +309,8 @@ export function runAllChecks(args: {
   sportObjectiveIssues: SportObjectiveIssue[];
   stat: PlanGenerationStat | undefined;
   objective: string | undefined;
+  quotaIssues?: QuotaIssue[];
+  quotasByWeek?: Record<number, WeekQuotaEntry>;
 }): CheckResult[] {
   const b4 = args.profileId === "B-70.3"
     ? checkB4_703(args.merged)
@@ -280,5 +325,6 @@ export function runAllChecks(args: {
     checkB5(args.merged, args.allowedCatalogIds),
     checkB6(args.merged, args.parsed),
     checkB7(args.parsed, args.sportObjectiveIssues, args.objective),
+    checkB8(args.merged, args.quotaIssues ?? [], args.quotasByWeek ?? {}),
   ];
 }

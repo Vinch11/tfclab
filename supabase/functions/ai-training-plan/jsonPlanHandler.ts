@@ -469,9 +469,18 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               ? `Génère les semaines ${chunk.start}-${chunk.end} sur ${totalWeeks} total. Inclus \`title\`, \`diagnostic\`, \`strategicRecap\` et \`phases\` couvrant l'INTÉGRALITÉ du plan de ${totalWeeks} semaines.`
               : `Génère UNIQUEMENT les semaines ${chunk.start}-${chunk.end} sur ${totalWeeks} total. Omets \`title\`/\`diagnostic\`/\`strategicRecap\`/\`phases\` (déjà produits au chunk 1).`;
 
+          // PHASE 2A — bloc quotas hebdo pré-calculé côté client
+          const quotasBlockByChunk = Array.isArray(planConfig?._weeklyQuotasPromptByChunk)
+            ? planConfig._weeklyQuotasPromptByChunk
+            : [];
+          const quotasBlock = typeof quotasBlockByChunk[ci] === "string" && quotasBlockByChunk[ci].length > 0
+            ? quotasBlockByChunk[ci]
+            : null;
+
           const userPrompt = [
             terrainHardBan || null,
             baseUserPrompt,
+            quotasBlock ? `\n${quotasBlock}\n` : null,
             catalogDump ? `\n${catalogDump}\n` : null,
             canonicalRaceCard,
             `\n📋 DIAGNOSTIC STRUCTURÉ (référence cohérence) :\n${structuredDiagnostic}`,
