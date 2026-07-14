@@ -56,7 +56,26 @@ serve(async (req) => {
       });
     }
 
-    const { athleteData, planConfig, regenerateWeek, workoutCatalog, phaseCatalogs, chunkCatalogs, catalogDurationStats } = await req.json();
+    const rawBody = await req.json();
+
+    // ─── PHASE 2B — validation du payload (contrat client/edge) ───
+    try {
+      const { zEdgePayload } = await import("./payloadSchema.ts");
+      const parsed = zEdgePayload.safeParse(rawBody);
+      if (!parsed.success) {
+        const details = parsed.error.errors.slice(0, 8).map(e => `${e.path.join(".")}: ${e.message}`);
+        console.error("[PAYLOAD_INVALID]", details);
+        return new Response(JSON.stringify({
+          error: "[PAYLOAD_INVALID]",
+          message: "Le payload envoyé ne respecte pas le contrat client/edge.",
+          details,
+        }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    } catch (e) {
+      console.warn("[PAYLOAD_INVALID] validation failed to import/run:", e);
+    }
+
+    const { athleteData, planConfig, regenerateWeek, workoutCatalog, phaseCatalogs, chunkCatalogs, catalogDurationStats } = rawBody;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -64,7 +83,6 @@ serve(async (req) => {
     // PHASE 1A — Chemin JSON structuré (feature-flag serveur).
     // Activé quand `planConfig._outputFormat === "json"` OU header
     // `X-Plan-Output-Format: json`. Par défaut : chemin Markdown historique.
-    // Le client Phase 1B basculera ce flag ; d'ici là, prod inchangée.
     // ═══════════════════════════════════════════════════════════════════════════
     const jsonModeRequested = planConfig?._outputFormat === "json"
       || req.headers.get("X-Plan-Output-Format")?.toLowerCase() === "json";
