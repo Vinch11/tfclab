@@ -161,15 +161,20 @@ function parseCatalogCandidatesFromDump(dump: string | null | undefined): Catalo
   return out;
 }
 
-function findCatalogCandidate(candidates: CatalogCandidate[], sport: string, durationMin: number): CatalogCandidate | null {
+function rankCandidatesBySport(candidates: CatalogCandidate[], sport: string, durationMin: number) {
   const normalizedSport = normalizeSport(sport);
   const target = Number.isFinite(durationMin) && durationMin > 0 ? durationMin : 0;
-  const viable = candidates
-    .filter(c => c.sport === normalizedSport)
+  const sameSport = candidates.filter(c => c.sport === normalizedSport);
+  const ranked = sameSport
     .map(c => ({ c, delta: Math.abs(c.durationMedian - target) }))
-    .filter(x => x.delta <= 15)
     .sort((a, b) => a.delta - b.delta || a.c.durationMedian - b.c.durationMedian);
-  return viable[0]?.c ?? null;
+  return { normalizedSport, target, sameSport, ranked };
+}
+
+function findCatalogCandidate(candidates: CatalogCandidate[], sport: string, durationMin: number): { candidate: CatalogCandidate | null; delta: number } {
+  const { ranked } = rankCandidatesBySport(candidates, sport, durationMin);
+  const viable = ranked.find(x => x.delta <= 15);
+  return viable ? { candidate: viable.c, delta: viable.delta } : { candidate: null, delta: -1 };
 }
 
 function applyOffsportTrailGuardToChunks(
@@ -186,13 +191,24 @@ function applyOffsportTrailGuardToChunks(
       for (const session of week.sessions ?? []) {
         if (session.custom !== true || session.sport === "rest") continue;
         if (!TRAIL_DETAILS_CRITICAL_RX.test(`${session.title ?? ""} ${session.details ?? ""}`)) continue;
+        const targetDur = session.durationMin ?? 0;
+        const { ranked, sameSport } = rankCandidatesBySport(candidates, session.sport, targetDur);
+        const nearest3: OffsportNearestCandidate[] = ranked.slice(0, 3).map(x => ({
+          id: x.c.id,
+          durationMedian: x.c.durationMedian,
+          durationMin: x.c.durationMin,
+          deltaMin: x.delta,
+        }));
         const before = {
           title: session.title ?? "",
-          details: (session.details ?? "").slice(0, 240),
-          durationMin: session.durationMin ?? 0,
+          details: session.details ?? "",
+          durationMin: targetDur,
         };
-        const candidate = findCatalogCandidate(candidates, session.sport, session.durationMin ?? 0);
+        const { candidate, delta } = findCatalogCandidate(candidates, session.sport, targetDur);
         if (!candidate) {
+          const nearestStr = nearest3.length > 0
+            ? nearest3.map(n => `${n.id}(median=${n.durationMedian}min,Δ=${n.deltaMin}min)`).join(", ")
+            : "aucun";
           repairs.push({
             code: "offsport_unresolved",
             severity: "critical",
@@ -201,11 +217,15 @@ function applyOffsportTrailGuardToChunks(
             day: session.day,
             sport: session.sport,
             before,
-            reason: "custom critical trail vocabulary in route/tri plan; no same-sport catalog candidate within ±15 min",
+            reason: `no same-sport catalog candidate within ±15min (sport=${normalizeSport(session.sport)}, target=${targetDur}min, sameSportCandidates=${sameSport.length}/${candidates.length}, nearest=[${nearestStr}])`,
+            sameSportCandidatesInChunk: sameSport.length,
+            totalCandidatesInChunk: candidates.length,
+            nearestCandidates: nearest3,
+            targetDurationMin: targetDur,
           });
           continue;
         }
-        const nextDuration = Math.max(candidate.durationMin[0], Math.min(candidate.durationMin[1], session.durationMin ?? candidate.durationMedian));
+        const nextDuration = Math.max(candidate.durationMin[0], Math.min(candidate.durationMin[1], targetDur || candidate.durationMedian));
         const mutable = session as PlanSession;
         mutable.title = candidate.title;
         mutable.details = `${candidate.structure || candidate.title}. [ID: ${candidate.id}]`;
@@ -221,8 +241,12 @@ function applyOffsportTrailGuardToChunks(
           day: session.day,
           sport: session.sport,
           before,
-          after: { title: mutable.title, catalogId: candidate.id, durationMin: nextDuration },
-          reason: "custom critical trail vocabulary substituted by same-sport catalog session within ±15 min",
+          after: { title: mutable.title, catalogId: candidate.id, durationMin: nextDuration, deltaMin: delta },
+          reason: `custom trail vocabulary → same-sport catalog substitution (sport=${normalizeSport(session.sport)}, target=${targetDur}min, Δ=${delta}min, sameSportCandidates=${sameSport.length}/${candidates.length})`,
+          sameSportCandidatesInChunk: sameSport.length,
+          totalCandidatesInChunk: candidates.length,
+          nearestCandidates: nearest3,
+          targetDurationMin: targetDur,
         });
       }
     }
