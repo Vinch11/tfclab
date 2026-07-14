@@ -418,7 +418,7 @@ export default function PlanQAPage() {
           {qaSessions.length > 0 && (
             <details className="text-xs">
               <summary className="cursor-pointer text-muted-foreground">
-                Historique QA ({qaSessions.length} session{qaSessions.length > 1 ? "s" : ""})
+                Historique QA ({qaSessions.length} session{qaSessions.length > 1 ? "s" : ""}) — persisté cloud
               </summary>
               <div className="mt-2 space-y-1">
                 {[...qaSessions].reverse().map((s, i) => (
@@ -432,12 +432,25 @@ export default function PlanQAPage() {
                     >
                       afficher
                     </button>
+                    <button
+                      className="text-primary underline underline-offset-2"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(buildQAReport(s));
+                        toast.success("Rapport QA copié.");
+                      }}
+                    >
+                      copier
+                    </button>
                   </div>
                 ))}
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => { clearQASessions(); setQaSessions([]); }}
+                  onClick={async () => {
+                    clearQASessions();
+                    setQaSessions([]);
+                    // clearQASessions supprime aussi côté cloud (fire-and-forget).
+                  }}
                 >
                   Effacer l'historique QA
                 </Button>
