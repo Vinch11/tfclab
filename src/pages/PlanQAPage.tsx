@@ -316,7 +316,7 @@ export default function PlanQAPage() {
                 try {
                   const s = await qa.runFullSuite(qaN);
                   setStats(readPlanStats());
-                  setQaSessions(readQASessions());
+                  setQaSessions(await readQASessionsCloud());
                   if (s.verdict === "🟢") toast.success(`QA terminée — ${s.summary}`);
                   else if (s.verdict === "🟠") toast.warning(`QA terminée — ${s.summary}`);
                   else toast.error(`QA terminée — ${s.summary}`);
@@ -324,7 +324,7 @@ export default function PlanQAPage() {
                   const msg = e instanceof Error ? e.message : String(e);
                   toast.error(`QA interrompue : ${msg}`);
                   setStats(readPlanStats());
-                  setQaSessions(readQASessions());
+                  setQaSessions(await readQASessionsCloud());
                 }
               }}
               disabled={qa.progress.running || !runnerReady}
