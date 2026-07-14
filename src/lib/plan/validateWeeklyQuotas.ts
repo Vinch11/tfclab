@@ -57,6 +57,8 @@ export function validateWeeklyQuotas(
     const dayObservedSports = new Map<string, string[]>();
     let hasLongRide = false;
     let hasLongRun = false;
+    // PHASE 2A.4 — un brick de durée ≥ slBikeMin + 20 satisfait le floor SL vélo.
+    const brickSLBikeThreshold = slBikeMin + 20;
     for (const s of w.sessions) {
       if (s.isRest || s.sport === "rest") continue;
       if (s.sport in counts) counts[s.sport]++;
@@ -67,6 +69,7 @@ export function validateWeeklyQuotas(
       list.push(s.sport);
       dayObservedSports.set(dayKey, list);
       if (s.sport === "bike" && (s.durationMin ?? 0) >= slBikeMin) hasLongRide = true;
+      if (s.sport === "brick" && (s.durationMin ?? 0) >= brickSLBikeThreshold) hasLongRide = true;
       if (s.sport === "run" && (s.durationMin ?? 0) >= slRunMin) hasLongRun = true;
     }
     const uniqueTrainingDays = dayCounts.size;
@@ -83,8 +86,8 @@ export function validateWeeklyQuotas(
     if (floors.longRideWeekly && !hasLongRide) {
       out.push({
         severity: "critical", code: "quota_floor_violation", weekNumber: w.weekNumber,
-        reason: `pas de SL vélo (≥${slBikeMin}min) en semaine ${entry.weekType}`,
-        expected: `1 bike ≥${slBikeMin}min`, observed: "aucun",
+        reason: `pas de SL vélo (≥${slBikeMin}min) ni brick long (≥${brickSLBikeThreshold}min) en semaine ${entry.weekType}`,
+        expected: `1 bike ≥${slBikeMin}min OU 1 brick ≥${brickSLBikeThreshold}min`, observed: "aucun",
       });
     }
     if (floors.longRunWeekly && !hasLongRun) {
@@ -119,6 +122,14 @@ export function validateWeeklyQuotas(
     }
 
     // ─── RANGE DRIFT (warnings) ────────────────────────────────────────────
+    // PHASE 2A.4 — brick compte comme sollicitation vélo. La fourchette bike
+    // affichée est décalée de −brickObserved (clampée ≥0) quand un brick est
+    // présent : 3 bike + 0 brick ≡ 2 bike + 1 brick.
+    const bikeShift = counts.brick > 0 ? counts.brick : 0;
+    const bikeEffective = {
+      min: Math.max(0, q.bike.min - bikeShift),
+      max: Math.max(0, q.bike.max - bikeShift),
+    };
     const check = (sport: string, obs: number, r: { min: number; max: number }) => {
       if (obs < r.min || obs > r.max) {
         out.push({
@@ -129,7 +140,7 @@ export function validateWeeklyQuotas(
       }
     };
     check("swim", counts.swim, q.swim);
-    check("bike", counts.bike, q.bike);
+    check("bike", counts.bike, bikeEffective);
     check("run", counts.run, q.run);
     check("brick", counts.brick, q.brick);
     check("strength", counts.strength, q.strength);
