@@ -14,6 +14,10 @@ export interface ParsedSession {
   title: string;
   details: string;
   isRest: boolean;
+  /** Phase 1C — catalogId structuré (populé par jsonPlanToParsedPlan).
+   *  Consommé prioritairement par catalogIdExtractor / enricher / validator.
+   *  Undefined pour le chemin Markdown legacy (fallback regex sur title). */
+  catalogId?: string | null;
 }
 
 export interface ParsedWeek {
