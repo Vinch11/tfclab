@@ -92,6 +92,34 @@ function isEliteOrAntiMonotony(w: LibraryWorkout): boolean {
   return false;
 }
 
+/**
+ * STRUCTURAL SESSION PREDICATE (F-CHUNK-STRUCT)
+ * ---------------------------------------------
+ * Certaines séances sont des piliers hebdomadaires du plan tri
+ * (sortie longue vélo, sortie longue course, brick long, race-sim).
+ * Elles DOIVENT être disponibles dans CHAQUE chunk — leur répétition
+ * d'un chunk à l'autre n'est pas un défaut de variété mais un principe
+ * d'entraînement. On les exempte donc de l'exclusion anti-répétition.
+ *
+ * Règle : durée médiane ≥ 120min OU cat contient "Race-Sim"
+ *         OU tags incluent sortie-longue / SL / long / long-run / race-sim / brick.
+ */
+export function isStructuralSession(w: LibraryWorkout): boolean {
+  const median = (w.durationMin[0] + w.durationMin[1]) / 2;
+  if (median >= 120) return true;
+  const cat = String(w.cat || "").toLowerCase();
+  if (cat.includes("race-sim") || cat.includes("race_sim")) return true;
+  const tags = (w.tags || []).map(t => String(t).toLowerCase());
+  if (tags.some(t => (
+    t === "sortie-longue" || t === "sl" || t === "long" ||
+    t === "long-run" || t === "long-ride" || t === "race-sim" ||
+    t === "brick" || t === "brick-long"
+  ))) return true;
+  const objLower = String(w.objectif || "").toLowerCase();
+  if (/\bsortie\s*longue\b|\blong\s*run\b|\blong\s*ride\b|\brace[-\s]?sim\b/.test(objLower)) return true;
+  return false;
+}
+
 /** Score a workout for relevance to the given goal + phases */
 /** Hard-exclude trail patterns for non-trail objectives */
 const TRAIL_HARD_ID_RX = /^[A-D]_TR(?:50)?_|^EXPE_HORS_VILLE_|^V3_TRAIL_|^HEDGEHOG_|^URBAN_/i;
