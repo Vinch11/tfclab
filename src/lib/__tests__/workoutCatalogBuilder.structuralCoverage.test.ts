@@ -74,7 +74,13 @@ describe("buildWorkoutCatalog — F-CHUNK-STRUCT structural coverage", () => {
     });
 
     // Simule la soft-rotation du hook : exclut moitié des courtes non structurelles
-    const shortInChunk1 = cat1.filter(e => median(e.durationMin) < 120 && !/race[-_\s]?sim/i.test(e.cat));
+    const isStructuralEntry = (e: { cat: string; durationMin: [number, number]; objectif: string }) => {
+      if (median(e.durationMin) >= 120) return true;
+      if (/race[-_\s]?sim/i.test(e.cat)) return true;
+      if (/\bsortie\s*longue\b|\blong\s*run\b|\blong\s*ride\b|\brace[-\s]?sim\b/i.test(e.objectif)) return true;
+      return false;
+    };
+    const shortInChunk1 = cat1.filter(e => !isStructuralEntry(e));
     const excludedShort = shortInChunk1.slice(0, Math.floor(shortInChunk1.length / 2)).map(e => e.id);
     excludedShort.forEach(id => chunkUsedIds.add(id));
 
