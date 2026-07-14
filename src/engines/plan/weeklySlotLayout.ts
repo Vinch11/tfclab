@@ -96,10 +96,13 @@ export function buildWeeklySlotLayout(
     });
     remaining.run--;
   }
-  // 4) Brick — samedi si pas de SL vélo, sinon dimanche
+  // 4) Brick — préférer un jour SANS run existant (jamais brick+run même jour).
+  //    Ordre : samedi puis dimanche.
   if (remaining.brick > 0) {
-    const brickDay: DayName = findDay("samedi").slots.length === 0 ? "samedi" : "dimanche";
-    if (canAdd(brickDay)) {
+    const brickOptions: DayName[] = ["samedi", "dimanche"];
+    const brickDay = brickOptions.find(d => canAdd(d) && !hasSportOn(d, "run"))
+      ?? brickOptions.find(d => canAdd(d));
+    if (brickDay) {
       findDay(brickDay).slots.push({ sport: "brick", isKeySession: true });
       remaining.brick--;
     }
@@ -115,30 +118,34 @@ export function buildWeeklySlotLayout(
     remaining.swim--;
   }
 
-  // 6) Vélo restant (qualité) — mardi, jeudi (48h entre séances qualité)
+  // 6) Vélo restant (qualité) — mardi, jeudi (48h entre séances qualité).
+  //    Jamais bike autonome le même jour qu'un brick (brick contient déjà bike).
   const rrBike: DayName[] = ["mardi", "jeudi", "mercredi", "vendredi"];
   for (const d of rrBike) {
     if (remaining.bike <= 0) break;
-    if (!canAdd(d) || hasSportOn(d, "bike")) continue;
+    if (!canAdd(d) || hasSportOn(d, "bike") || hasSportOn(d, "brick")) continue;
     findDay(d).slots.push({ sport: "bike", isKeySession: !hasSportOn(d, "run") });
     remaining.bike--;
   }
 
-  // 7) CAP restant — mercredi, vendredi puis samedi (si samedi libre)
+  // 7) CAP restant — mercredi, vendredi puis samedi (si samedi libre).
+  //    RÈGLE COACHING PHASE 2A.3 : jamais un run autonome le même jour qu'un brick.
   const rrRun: DayName[] = ["mercredi", "vendredi", "mardi", "jeudi", "samedi"];
   for (const d of rrRun) {
     if (remaining.run <= 0) break;
-    if (!canAdd(d) || hasSportOn(d, "run")) continue;
+    if (!canAdd(d) || hasSportOn(d, "run") || hasSportOn(d, "brick")) continue;
     findDay(d).slots.push({ sport: "run", isKeySession: !hasSportOn(d, "bike") });
     remaining.run--;
   }
 
-  // 8) Renfo — mercredi puis mardi (JAMAIS vendredi, veille SL vélo)
-  const rrStrength: DayName[] = ["mercredi", "mardi", "jeudi", "lundi"];
+  // 8) Renfo — jour à ≤1 séance existante, JAMAIS vendredi (veille SL vélo),
+  //    jamais sur un jour de brick (redondance charge).
+  const rrStrength: DayName[] = ["mercredi", "mardi", "jeudi", "samedi", "dimanche", "lundi"];
   for (const d of rrStrength) {
     if (remaining.strength <= 0) break;
     if (d === "vendredi") continue;
-    if (!canAdd(d) || hasSportOn(d, "strength")) continue;
+    if (!canAdd(d) || hasSportOn(d, "strength") || hasSportOn(d, "brick")) continue;
+    if (findDay(d).slots.length > 1) continue;
     findDay(d).slots.push({ sport: "strength" });
     remaining.strength--;
   }
