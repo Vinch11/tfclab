@@ -98,6 +98,38 @@ export function logPlanStat(stat: PlanGenerationStat): void {
     (stat.sportObjectiveCriticalIssues ? ` issues=${stat.sportObjectiveCriticalIssues}` : "") +
     (stat.semanticRepairs?.length ? ` semanticRepairs=${stat.semanticRepairs.length}` : ""),
   );
+  // Mirror non-PII vers Cloud (sentinelle légère /debug/plan-qa). Fire-and-forget.
+  void persistPlanStatToCloud(stat).catch(() => { /* ignore */ });
+}
+
+async function persistPlanStatToCloud(stat: PlanGenerationStat): Promise<void> {
+  try {
+    // Lazy import pour ne pas alourdir le bundle si non utilisé côté SSR/tests.
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: sess } = await supabase.auth.getSession();
+    const userId = sess.session?.user.id ?? null;
+    if (!userId) return; // pas de session → pas de mirror
+    const repairs = stat.semanticRepairs ?? [];
+    const substituted = repairs.filter(r => r.includes("substituted_offsport")).length;
+    const unresolved = repairs.filter(r => r.includes("offsport_unresolved")).length;
+    const retryCount = stat.schemaFailDetails?.attempts?.length ?? 0;
+    await supabase.from("plan_generation_stats").insert({
+      ts: new Date(stat.ts).toISOString(),
+      user_id: userId,
+      format: stat.format,
+      ok: stat.ok,
+      objective: stat.objective,
+      total_weeks: stat.totalWeeks,
+      total_chunks: stat.totalChunks,
+      duration_ms: stat.durationMs,
+      error_code: stat.errorCode ?? null,
+      custom_ratio: typeof stat.customRatio === "number" ? stat.customRatio : null,
+      substituted_offsport_count: substituted,
+      offsport_unresolved_count: unresolved,
+      retry_count: retryCount,
+      semantic_repairs: repairs.length > 0 ? repairs : null,
+    });
+  } catch { /* ignore */ }
 }
 
 export function clearPlanStats(): void {
