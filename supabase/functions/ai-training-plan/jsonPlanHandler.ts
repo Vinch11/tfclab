@@ -234,15 +234,19 @@ function applyOffsportTrailGuardToChunks(
         const targetDur = session.durationMin ?? 0;
         const sessionSport = normalizeSport(session.sport);
         const tolerance = computeToleranceMin(targetDur);
+        const requiredClass = classifyIntensity(
+          session.zones,
+          `${session.title ?? ""} ${session.details ?? ""}`,
+        );
 
-        // Substitution primaire same-sport
-        let result = findCatalogCandidateForSport(candidates, sessionSport, targetDur);
+        // Substitution primaire same-sport + same intensity class
+        let result = findCatalogCandidateForSport(candidates, sessionSport, targetDur, requiredClass);
         let attemptedSport = sessionSport;
         let brickFallback = false;
 
-        // Brick → fallback bike si aucun candidat brick
+        // Brick → fallback bike si aucun candidat brick (même classe)
         if (!result.candidate && sessionSport === "brick") {
-          result = findCatalogCandidateForSport(candidates, "bike", targetDur);
+          result = findCatalogCandidateForSport(candidates, "bike", targetDur, requiredClass);
           if (result.candidate) {
             attemptedSport = "bike";
             brickFallback = true;
@@ -264,7 +268,13 @@ function applyOffsportTrailGuardToChunks(
 
         if (!result.candidate) {
           const nearestStr = nearest3.length > 0
-            ? nearest3.map(n => `${n.id}(median=${n.durationMedian}min,Δ=${n.deltaMin}min)`).join(", ")
+            ? nearest3.map(n => {
+                const cls = classifyIntensity(
+                  candidates.find(c => c.id === n.id)?.zones,
+                  `${candidates.find(c => c.id === n.id)?.title ?? ""} ${candidates.find(c => c.id === n.id)?.structure ?? ""}`,
+                );
+                return `${n.id}(median=${n.durationMedian}min,Δ=${n.deltaMin}min,class=${cls})`;
+              }).join(", ")
             : "aucun";
           repairs.push({
             code: "offsport_unresolved",
@@ -274,7 +284,7 @@ function applyOffsportTrailGuardToChunks(
             day: session.day,
             sport: session.sport,
             before,
-            reason: `no catalog candidate within ±${tolerance}min (sport=${sessionSport}, target=${targetDur}min, sameSportCandidates=${sameSport.length}/${candidates.length}, nearest=[${nearestStr}])`,
+            reason: `no catalog candidate within ±${tolerance}min AND same intensity class="${requiredClass}" (sport=${sessionSport}, target=${targetDur}min, sameSportCandidates=${sameSport.length}/${candidates.length}, nearest=[${nearestStr}])`,
             sameSportCandidatesInChunk: sameSport.length,
             totalCandidatesInChunk: candidates.length,
             nearestCandidates: nearest3,
