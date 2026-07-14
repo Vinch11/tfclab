@@ -220,7 +220,7 @@ async function persistQASessionToCloud(session: QASession): Promise<void> {
       summary: session.summary,
       n: session.n,
       runs_count: session.runs.length,
-      payload: session as unknown as Record<string, unknown>,
+      payload: JSON.parse(JSON.stringify(session)),
     }]);
   } catch { /* ignore */ }
 }
