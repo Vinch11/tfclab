@@ -432,6 +432,17 @@ function applySLFloorEnforcement(
         }
         const sameSport = (week.sessions ?? []).filter(s => s.sport === spec.sport);
         const longest = sameSport.reduce((m, s) => Math.max(m, s.durationMin ?? 0), 0);
+        // PHASE 2A.4 — un brick ≥ floor+20 satisfait le floor SL vélo.
+        if (spec.sport === "bike") {
+          const brickThreshold = spec.floor + 20;
+          const longestBrick = (week.sessions ?? [])
+            .filter(s => s.sport === "brick")
+            .reduce((m, s) => Math.max(m, s.durationMin ?? 0), 0);
+          if (longestBrick >= brickThreshold) {
+            traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) sport=bike floor=${spec.floor}min brick=${longestBrick}min≥${brickThreshold} action=none_brick_satisfies_SL`);
+            continue;
+          }
+        }
         const alreadyMeetsFloor = longest >= spec.floor;
         if (alreadyMeetsFloor) {
           traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) sport=${spec.sport} floor=${spec.floor}min longest=${longest}min action=none_conforme`);
