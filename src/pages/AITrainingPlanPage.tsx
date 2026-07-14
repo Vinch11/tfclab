@@ -2313,7 +2313,7 @@ export default function AITrainingPlanPage() {
               ) : null
             ) : (
               /* Single athlete results */
-              response ? (
+              (response || parsedPlan) ? (
                 <div className="space-y-4">
                   {/* View Toggle + Actions */}
                   <div className="flex items-center justify-between">
