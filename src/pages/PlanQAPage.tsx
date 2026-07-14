@@ -23,7 +23,7 @@ import {
 import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { zDay, zPhase, zSport } from "@/lib/plan/planSchema";
 import { useQARunner } from "@/lib/plan/qa/useQARunner";
-import { buildQAReport, readQASessions, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
+import { buildQAReport, readQASessions, readQASessionsCloud, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductionSentinelPanel } from "@/components/plan-qa/ProductionSentinelPanel";
 import { toast } from "sonner";
