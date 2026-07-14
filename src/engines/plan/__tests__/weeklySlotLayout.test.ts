@@ -39,6 +39,34 @@ describe("weeklySlotLayout — buildWeeklySlotLayout", () => {
     expect(dimanche.slots.some(s => s.sport === "run" && s.isLongSession && s.minDurationMin === 60)).toBe(true);
   });
 
+  it("PHASE 2A.3 : brick et run JAMAIS le même jour (sprint & 70.3)", () => {
+    for (const l of [
+      build("TRIATHLON SPRINT", "age_group", 8, "load"),
+      build("IRONMAN 70.3", "age_group", 10, "load"),
+      build("IRONMAN 70.3", "competitor", 12, "load"),
+    ]) {
+      for (const d of l.days) {
+        const hasBrick = d.slots.some(s => s.sport === "brick");
+        const hasRun = d.slots.some(s => s.sport === "run");
+        expect(hasBrick && hasRun).toBe(false);
+      }
+    }
+  });
+
+  it("PHASE 2A.3 : renfo jamais sur un jour déjà double", () => {
+    for (const l of [
+      build("IRONMAN 70.3", "age_group", 10, "load"),
+      build("IRONMAN 70.3", "competitor", 12, "load"),
+    ]) {
+      for (const d of l.days) {
+        const strengthHere = d.slots.some(s => s.sport === "strength");
+        if (strengthHere) {
+          expect(d.slots.length).toBeLessThanOrEqual(2);
+        }
+      }
+    }
+  });
+
   it("SEMI age_group : run SL dimanche (min 90min), pas de bike SL", () => {
     const l = build("SEMI-MARATHON", "age_group", 6, "load");
     const dim = l.days.find(d => d.dayName === "dimanche")!;
