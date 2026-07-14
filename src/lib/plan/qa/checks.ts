@@ -124,10 +124,12 @@ export function checkB3(plan: MergedPlan): CheckResult {
         details.push(`S${w.weekNumber} ${s.dayName} — catalogId trail interdit : ${s.catalogId}`);
       }
       if (s.custom) {
-        const detText = `${s.title ?? ""} ${s.details ?? ""}`;
+        const titleText = s.title ?? "";
+        const detailsText = s.details ?? "";
+        const detText = `${titleText} ${detailsText}`;
         if (TRAIL_DETAILS_CRITICAL_RX.test(detText)) {
           pass = false;
-          details.push(`S${w.weekNumber} ${s.dayName} — détails custom matchent pattern trail critical : "${detText.slice(0, 80)}"`);
+          details.push(`S${w.weekNumber} ${s.dayName} — custom trail CRITICAL | sport=${s.sport} dur=${s.durationMin}min | title="${titleText}" | details="${detailsText}"`);
         } else if (TRAIL_DETAILS_WARNING_RX.test(detText)) {
           // "vallonné" seul ⇒ warning uniquement, ne fait pas échouer le check
           warnings.push(`S${w.weekNumber} ${s.dayName} — mention "vallonné" (warning, non bloquant) : "${detText.slice(0, 80)}"`);
