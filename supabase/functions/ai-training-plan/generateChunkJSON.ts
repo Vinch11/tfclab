@@ -255,11 +255,30 @@ export function normalizeModelJsonForSchema(
       w.weekNumber = Number(w.weekNumber);
       repairs.push(`weeks.${wi}.weekNumber string→number`);
     }
-    // Canonicalisation phase
+    // Canonicalisation phase (avec sentinelle __deload__ pour semaines de récup)
     const cp = canonEnum(w.phase, PHASE_CANON);
     if (cp !== null && cp !== w.phase) {
-      repairs.push(`weeks.${wi}.phase canonicalized (${String(w.phase)}→${cp})`);
-      w.phase = cp;
+      if (cp === "__deload__") {
+        // Inférence contextuelle : voisin le plus proche canonique, sinon "build".
+        const weeksArr = root.weeks as unknown[];
+        const canonical = new Set(["base", "build", "peak", "taper"]);
+        const phaseAt = (i: number): string | null => {
+          const r = asRecord(weeksArr[i]);
+          if (!r) return null;
+          const p = typeof r.phase === "string" ? r.phase.trim().toLowerCase() : null;
+          return p && canonical.has(p) ? p : null;
+        };
+        let inferred: string | null = null;
+        for (let d = 1; d < weeksArr.length && !inferred; d++) {
+          inferred = phaseAt(wi - d) ?? phaseAt(wi + d);
+        }
+        const fallback = inferred ?? "build";
+        repairs.push(`weeks.${wi}.phase deload→${fallback} (LLM=${String(w.phase)})`);
+        w.phase = fallback;
+      } else {
+        repairs.push(`weeks.${wi}.phase canonicalized (${String(w.phase)}→${cp})`);
+        w.phase = cp;
+      }
     }
     if (!Array.isArray(w.sessions)) return;
     w.sessions.forEach((session, si) => {
