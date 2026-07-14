@@ -386,8 +386,21 @@ export function useAITrainingPlan() {
             { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
-          // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity
-          const halfIds = chunkCatalog.slice(0, Math.floor(chunkCatalog.length / 2)).map(e => e.id);
+          // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity.
+          // ⚠️ On EXEMPTE les séances structurelles (SL vélo/course, brick long, race-sim) :
+          // buildWorkoutCatalog les réinjecte de toute façon (garantie de couverture),
+          // mais on évite d'encombrer inutilement le set d'exclusion.
+          const isStructuralEntry = (e: { cat: string; durationMin: [number, number]; objectif: string }) => {
+            const median = (e.durationMin[0] + e.durationMin[1]) / 2;
+            if (median >= 120) return true;
+            if (/race[-_\s]?sim/i.test(e.cat)) return true;
+            if (/\bsortie\s*longue\b|\blong\s*run\b|\blong\s*ride\b|\brace[-\s]?sim\b/i.test(e.objectif)) return true;
+            return false;
+          };
+          const halfIds = chunkCatalog
+            .slice(0, Math.floor(chunkCatalog.length / 2))
+            .filter(e => !isStructuralEntry(e))
+            .map(e => e.id);
           halfIds.forEach(id => chunkUsedIds.add(id));
         }
       }

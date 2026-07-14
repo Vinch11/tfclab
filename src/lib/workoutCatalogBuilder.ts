@@ -92,6 +92,34 @@ function isEliteOrAntiMonotony(w: LibraryWorkout): boolean {
   return false;
 }
 
+/**
+ * STRUCTURAL SESSION PREDICATE (F-CHUNK-STRUCT)
+ * ---------------------------------------------
+ * Certaines séances sont des piliers hebdomadaires du plan tri
+ * (sortie longue vélo, sortie longue course, brick long, race-sim).
+ * Elles DOIVENT être disponibles dans CHAQUE chunk — leur répétition
+ * d'un chunk à l'autre n'est pas un défaut de variété mais un principe
+ * d'entraînement. On les exempte donc de l'exclusion anti-répétition.
+ *
+ * Règle : durée médiane ≥ 120min OU cat contient "Race-Sim"
+ *         OU tags incluent sortie-longue / SL / long / long-run / race-sim / brick.
+ */
+export function isStructuralSession(w: LibraryWorkout): boolean {
+  const median = (w.durationMin[0] + w.durationMin[1]) / 2;
+  if (median >= 120) return true;
+  const cat = String(w.cat || "").toLowerCase();
+  if (cat.includes("race-sim") || cat.includes("race_sim")) return true;
+  const tags = (w.tags || []).map(t => String(t).toLowerCase());
+  if (tags.some(t => (
+    t === "sortie-longue" || t === "sl" || t === "long" ||
+    t === "long-run" || t === "long-ride" || t === "race-sim" ||
+    t === "brick" || t === "brick-long"
+  ))) return true;
+  const objLower = String(w.objectif || "").toLowerCase();
+  if (/\bsortie\s*longue\b|\blong\s*run\b|\blong\s*ride\b|\brace[-\s]?sim\b/.test(objLower)) return true;
+  return false;
+}
+
 /** Score a workout for relevance to the given goal + phases */
 /** Hard-exclude trail patterns for non-trail objectives */
 const TRAIL_HARD_ID_RX = /^[A-D]_TR(?:50)?_|^EXPE_HORS_VILLE_|^V3_TRAIL_|^HEDGEHOG_|^URBAN_/i;
@@ -295,7 +323,7 @@ export function buildWorkoutCatalog(
       if (options?.sportFilter && options.sportFilter.length > 0) {
         if (!options.sportFilter.includes(w.sport)) return false;
       }
-      if (options?.excludeIds?.has(w.id)) return false;
+      if (options?.excludeIds?.has(w.id) && !isStructuralSession(w)) return false;
       if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) return false;
       if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) return false;
       if (prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w)) {
@@ -397,7 +425,73 @@ export function buildWorkoutCatalog(
     }
   }
 
-  // ─── Pool-size instrumentation : "course" par phase ───
+  // ─── Pass 5: STRUCTURAL COVERAGE BACKFILL (F-CHUNK-STRUCT) ───
+  // Pour un objectif tri, chaque chunk DOIT contenir les piliers hebdomadaires :
+  //   ≥ 2 séances vélo ≥ 120min (SL vélo)
+  //   ≥ 2 séances course ≥ 90min (SL course)
+  //   ≥ 1 séance brick
+  // Ces séances sont réinjectées même si présentes dans un chunk précédent
+  // (exclusion excludeIds contournée pour les séances structurelles).
+  const isTriGoal = goals.some(g => g === "ironman" || g === "half");
+  if (isTriGoal) {
+    const median = (w: LibraryWorkout) => (w.durationMin[0] + w.durationMin[1]) / 2;
+    const isSportBucket = (w: LibraryWorkout, bucket: "bike" | "run" | "brick") => {
+      const s = String(w.sport || "").toLowerCase();
+      if (bucket === "bike") return s === "cyclisme" || s === "bike" || s === "vélo" || s === "velo";
+      if (bucket === "run") return s === "course" || s === "run";
+      if (bucket === "brick") return s === "brick";
+      return false;
+    };
+    const requirements: Array<{ bucket: "bike" | "run" | "brick"; minDur: number; minCount: number }> = [
+      { bucket: "bike", minDur: 120, minCount: 2 },
+      { bucket: "run", minDur: 90, minCount: 2 },
+      { bucket: "brick", minDur: 0, minCount: 1 },
+    ];
+
+    // Pool des candidats (mêmes exclusions sport/trail/prohibitions/tags,
+    // mais on ignore excludeIds pour permettre la répétition inter-chunks).
+    const backfillPool = WorkoutLibrary
+      .filter(w => {
+        if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) return false;
+        if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) return false;
+        if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) return false;
+        if (prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w)) return false;
+        const hasTrailTag = w.tags?.some(t => String(t).toLowerCase() === "trail");
+        if (hasTrailTag || TRAIL_HARD_ID_RX.test(w.id)) return false;
+        return true;
+      })
+      .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
+      .sort((a, b) => b.score - a.score);
+
+    for (const req of requirements) {
+      const currentCount = selected.filter(w => isSportBucket(w, req.bucket) && median(w) >= req.minDur).length;
+      if (currentCount >= req.minCount) continue;
+
+      const need = req.minCount - currentCount;
+      const candidates = backfillPool
+        .filter(({ workout }) => isSportBucket(workout, req.bucket) && median(workout) >= req.minDur && !selectedIds.has(workout.id))
+        .slice(0, need);
+
+      if (candidates.length === 0) {
+        console.warn(
+          `[chunk-catalog] coverage-backfill sport=${req.bucket} minDur=${req.minDur} count=0 ` +
+          `(aucune candidate disponible — chunk=${options?.chunkIndex ?? 0})`
+        );
+        continue;
+      }
+
+      for (const { workout } of candidates) {
+        selected.push(workout); // Dépasse maxItems si nécessaire (garantie de couverture)
+        selectedIds.add(workout.id);
+      }
+      console.log(
+        `[chunk-catalog] coverage-backfill sport=${req.bucket} count=${candidates.length} ` +
+        `(minDur=${req.minDur}min, chunk=${options?.chunkIndex ?? 0}, ids=${candidates.map(c => c.workout.id).join(",")})`
+      );
+    }
+  }
+
+
   const isTrailGoal = goals.some(g => g.startsWith("trail_"));
   if (!isTrailGoal) {
     const courseSelected = selected.filter(w => w.sport === "course");
