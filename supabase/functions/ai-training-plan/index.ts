@@ -16,7 +16,7 @@ import {
 } from "./promptHelpers.ts";
 
 // Boot marker — bump on refactors qui doivent être visibles en logs
-const BUILD_TAG = "ai-training-plan@2026-07-14.b7-phase2A4-brick-sl-alternance";
+const BUILD_TAG = "ai-training-plan@2026-07-14.b9-phase2B-value-source-unique";
 console.info(`[boot] ${BUILD_TAG} at ${new Date().toISOString()}`);
 
 const corsHeaders = {
