@@ -54,6 +54,12 @@ interface CatalogCandidate {
   zones: string[];
 }
 
+interface OffsportNearestCandidate {
+  id: string;
+  durationMedian: number;
+  durationMin: [number, number];
+  deltaMin: number;
+}
 interface OffsportTrailRepair {
   code: "substituted_offsport" | "offsport_unresolved";
   severity: "warning" | "critical";
@@ -62,8 +68,12 @@ interface OffsportTrailRepair {
   day: string;
   sport: string;
   before: { title: string; details: string; durationMin: number };
-  after?: { title: string; catalogId: string; durationMin: number };
+  after?: { title: string; catalogId: string; durationMin: number; deltaMin: number };
   reason: string;
+  sameSportCandidatesInChunk: number;
+  totalCandidatesInChunk: number;
+  nearestCandidates: OffsportNearestCandidate[];
+  targetDurationMin: number;
 }
 
 function normalizeSport(raw: unknown): NormalizedSport {
