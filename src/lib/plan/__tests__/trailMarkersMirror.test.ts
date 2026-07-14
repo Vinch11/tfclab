@@ -13,9 +13,9 @@ describe("trailMarkers — client ↔ edge mirror equality", () => {
   const edgeSrc = fs.readFileSync(edgePath, "utf-8");
 
   it("edge duplique bien les DEUX patterns exportés (source + flags)", () => {
-    // Extrait littéralement chaque regex depuis le source edge (parse simple).
-    const critMatch = edgeSrc.match(/TRAIL_DETAILS_CRITICAL_RX\s*=\s*(\/.+\/[a-z]*);/s);
-    const warnMatch = edgeSrc.match(/TRAIL_DETAILS_WARNING_RX\s*=\s*(\/.+\/[a-z]*);/);
+    // Chaque regex est sur UNE ligne → matche jusqu'à la fin de ligne uniquement.
+    const critMatch = edgeSrc.match(/TRAIL_DETAILS_CRITICAL_RX\s*=\s*(\/[^\n]+\/[a-z]*);/);
+    const warnMatch = edgeSrc.match(/TRAIL_DETAILS_WARNING_RX\s*=\s*(\/[^\n]+\/[a-z]*);/);
     expect(critMatch, "edge critical rx introuvable").toBeTruthy();
     expect(warnMatch, "edge warning rx introuvable").toBeTruthy();
     expect(critMatch![1]).toBe(clientMirror.TRAIL_DETAILS_CRITICAL_RX.toString());
