@@ -704,8 +704,8 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           }
 
           const merged = mergePlanChunks(slEnforce.chunks, mergedTotal);
-          for (let ci = 0; ci < guard.chunks.length; ci++) {
-            enqueue("chunk-json", { chunkIndex: ci, chunk: guard.chunks[ci] });
+          for (let ci = 0; ci < slEnforce.chunks.length; ci++) {
+            enqueue("chunk-json", { chunkIndex: ci, chunk: slEnforce.chunks[ci] });
           }
           enqueue("plan-complete", {
             totalChunks,
