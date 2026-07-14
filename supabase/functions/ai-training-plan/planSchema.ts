@@ -54,8 +54,8 @@ import { z } from "npm:zod@3.23.8";
 // contenant "+ 200m souple", "+ 400m relâché", etc. (ex: "4x400m à CSS r=30s").
 // La détection D+ reste couverte par `\d+m D+` et `D+\d+m`.
 export const TRAIL_CRITICAL_MARKERS: Array<{ name: string; rx: RegExp }> = [
-  { name: "dplus_m_suffix",     rx: /\b\d{2,}\s*m\s*D\+/i },
-  { name: "dplus_m_prefix",     rx: /\bD\+\s*\d{2,}\s*m\b/i },
+  { name: "dplus_m_suffix",     rx: /\b\d{2,}\s*m\s*(?:de\s+)?D\+/i },
+  { name: "dplus_m_prefix",     rx: /\bD\+\s*\d{2,}\s*m?\b/i },
   { name: "montee_seche",       rx: /montée\s+sèche/i },
   { name: "batons",             rx: /b[âa]tons/i },
   { name: "power_hike",         rx: /power[-\s]?hike/i },

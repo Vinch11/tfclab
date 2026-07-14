@@ -19,11 +19,20 @@ describe("TRAIL_DETAILS_CRITICAL_RX — 'massif' contextuel", () => {
   });
 
   it("garde les autres marqueurs critical", () => {
-    expect(TRAIL_DETAILS_CRITICAL_RX.test("+600m dénivelé")).toBe(true);
+    // PHASE 2A.2 : `\+\d+m` retiré (faux positifs nat/CAP "+ 200m souple").
+    // Le D+ chiffré reste couvert par les deux ordres "800m D+" / "D+ 1200m".
+    expect(TRAIL_DETAILS_CRITICAL_RX.test("800m D+ sur la sortie")).toBe(true);
+    expect(TRAIL_DETAILS_CRITICAL_RX.test("800m de D+ cumulé")).toBe(true);
     expect(TRAIL_DETAILS_CRITICAL_RX.test("D+ 800m sur la sortie")).toBe(true);
     expect(TRAIL_DETAILS_CRITICAL_RX.test("montée sèche 15min")).toBe(true);
     expect(TRAIL_DETAILS_CRITICAL_RX.test("power-hike avec bâtons")).toBe(true);
     expect(TRAIL_DETAILS_CRITICAL_RX.test("sentier technique")).toBe(true);
     expect(TRAIL_DETAILS_CRITICAL_RX.test("sortie dans les Alpes")).toBe(true);
+  });
+
+  it("Régression PHASE 2A.2 — pas de faux positif sur distances nat/CAP", () => {
+    expect(TRAIL_DETAILS_CRITICAL_RX.test("400m facile + 200m éducatifs r=15s")).toBe(false);
+    expect(TRAIL_DETAILS_CRITICAL_RX.test("4x400m à CSS (90s/100m) r=30s")).toBe(false);
+    expect(TRAIL_DETAILS_CRITICAL_RX.test("Retour au calme + 300m souple")).toBe(false);
   });
 });

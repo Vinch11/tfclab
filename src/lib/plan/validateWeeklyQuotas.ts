@@ -61,9 +61,11 @@ export function validateWeeklyQuotas(
       if (s.isRest || s.sport === "rest") continue;
       if (s.sport in counts) counts[s.sport]++;
       dayCounts.set(s.dayName, (dayCounts.get(s.dayName) ?? 0) + 1);
-      const list = dayObservedSports.get(s.dayName) ?? [];
+      // PHASE 2A.2 fix — normaliser la clé pour matcher le layout ("lundi" ≠ "Lundi").
+      const dayKey = s.dayName.toLocaleLowerCase("fr-FR");
+      const list = dayObservedSports.get(dayKey) ?? [];
       list.push(s.sport);
-      dayObservedSports.set(s.dayName, list);
+      dayObservedSports.set(dayKey, list);
       if (s.sport === "bike" && (s.durationMin ?? 0) >= slBikeMin) hasLongRide = true;
       if (s.sport === "run" && (s.durationMin ?? 0) >= slRunMin) hasLongRun = true;
     }

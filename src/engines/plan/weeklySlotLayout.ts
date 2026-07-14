@@ -200,8 +200,14 @@ export function diffLayoutVsWeek(
 ): Array<{ dayName: DayName; expected: string; observed: string }> {
   const drifts: Array<{ dayName: DayName; expected: string; observed: string }> = [];
   for (const d of layout.days) {
+    // PHASE 2A.2 fix 1 — jour "libre" (slots vides, non-repos) : le modèle est
+    // libre d'ajouter ou non une séance → pas de drift possible.
+    if (!d.isRest && d.slots.length === 0) continue;
     const expected = d.isRest ? ["rest"] : d.slots.map(s => s.sport).sort();
-    const raw = observedByDay.get(d.dayName) ?? [];
+    // Normalisation casse (Mardi / mardi) + accents inutile ici (ASCII).
+    const raw = observedByDay.get(d.dayName)
+      ?? observedByDay.get(d.dayName.toLocaleLowerCase("fr-FR"))
+      ?? [];
     const observed = raw.length === 0 ? ["rest"] : [...raw].sort();
     // Comparaison ensembliste multi-slot (autoriser ordre différent)
     const sameSize = expected.length === observed.length;
