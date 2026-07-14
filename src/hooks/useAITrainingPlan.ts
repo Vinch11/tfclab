@@ -22,6 +22,7 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock } from "@/engines/plan/sessionSizingMatrix";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
+import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
