@@ -34,6 +34,7 @@ import {
 import {
   extractCatalogIdsFromDump,
   TRAIL_DETAILS_CRITICAL_RX,
+  firstTrailCriticalMarker,
   type BuildPlanChunkSchemaOptions,
   type PlanChunk,
   type PlanSession,
@@ -70,6 +71,8 @@ interface OffsportTrailRepair {
   before: { title: string; details: string; durationMin: number };
   after?: { title: string; catalogId: string; durationMin: number; deltaMin: number };
   reason: string;
+  /** PHASE 2A.1 (task C) — nom exact du marqueur regex qui a déclenché. */
+  matchedMarker: string | null;
   sameSportCandidatesInChunk: number;
   totalCandidatesInChunk: number;
   nearestCandidates: OffsportNearestCandidate[];
@@ -230,7 +233,9 @@ function applyOffsportTrailGuardToChunks(
     for (const week of chunk.weeks ?? []) {
       for (const session of week.sessions ?? []) {
         if (session.custom !== true || session.sport === "rest") continue;
-        if (!TRAIL_DETAILS_CRITICAL_RX.test(`${session.title ?? ""} ${session.details ?? ""}`)) continue;
+        const scanText = `${session.title ?? ""} ${session.details ?? ""}`;
+        const matchedMarker = firstTrailCriticalMarker(scanText);
+        if (!matchedMarker) continue;
         const targetDur = session.durationMin ?? 0;
         const sessionSport = normalizeSport(session.sport);
         const tolerance = computeToleranceMin(targetDur);

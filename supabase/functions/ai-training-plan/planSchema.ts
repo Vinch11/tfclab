@@ -47,7 +47,40 @@ import { z } from "npm:zod@3.23.8";
 // "vallonné" seul reste warning (terrain vallonné légitime en route/tri).
 // "massif" nu retiré (faux positif : "volume massif", "travail massif", "repas glucidique massif").
 // Conservé uniquement en contexte géographique : "en massif", "massif des/du/central", "moyenne montagne".
-export const TRAIL_DETAILS_CRITICAL_RX = /(?:\b\d{2,}\s*m\s*D\+\b|\bD\+\s*\d{2,}\s*m\b|\+\s*\d{2,}\s*m\b|montée\s+sèche|b[âa]tons|power[-\s]?hike|vertical[-\s]?km|\bVK\b|\ben\s+massif\b|\bmassif\s+(?:des?|du|central)\b|moyenne\s+montagne|\bardennes\b|\bvosges\b|\balpes\b|\bpyr[ée]n[ée]es\b|sentier\s+technique|trail\s+technique)/i;
+//
+// PHASE 2A.1 (task C) — chaque marqueur est nommé pour tracer le déclencheur
+// exact dans les logs de substitution. L'ancienne alternative `\+\s*\d{2,}\s*m\b`
+// a été supprimée : elle générait des FAUX POSITIFS sur les structures nat/CAP
+// contenant "+ 200m souple", "+ 400m relâché", etc. (ex: "4x400m à CSS r=30s").
+// La détection D+ reste couverte par `\d+m D+` et `D+\d+m`.
+export const TRAIL_CRITICAL_MARKERS: Array<{ name: string; rx: RegExp }> = [
+  { name: "dplus_m_suffix",     rx: /\b\d{2,}\s*m\s*D\+/i },
+  { name: "dplus_m_prefix",     rx: /\bD\+\s*\d{2,}\s*m\b/i },
+  { name: "montee_seche",       rx: /montée\s+sèche/i },
+  { name: "batons",             rx: /b[âa]tons/i },
+  { name: "power_hike",         rx: /power[-\s]?hike/i },
+  { name: "vertical_km",        rx: /vertical[-\s]?km|\bVK\b/i },
+  { name: "en_massif",          rx: /\ben\s+massif\b/i },
+  { name: "massif_geo",         rx: /\bmassif\s+(?:des?|du|central)\b/i },
+  { name: "moyenne_montagne",   rx: /moyenne\s+montagne/i },
+  { name: "ardennes",           rx: /\bardennes\b/i },
+  { name: "vosges",             rx: /\bvosges\b/i },
+  { name: "alpes",              rx: /\balpes\b/i },
+  { name: "pyrenees",           rx: /\bpyr[ée]n[ée]es\b/i },
+  { name: "sentier_technique",  rx: /sentier\s+technique/i },
+  { name: "trail_technique",    rx: /trail\s+technique/i },
+];
+// Rétrocompat : union des marqueurs (tests/imports historiques).
+export const TRAIL_DETAILS_CRITICAL_RX = new RegExp(
+  TRAIL_CRITICAL_MARKERS.map(m => `(?:${m.rx.source})`).join("|"),
+  "i",
+);
+export function firstTrailCriticalMarker(text: string): string | null {
+  for (const m of TRAIL_CRITICAL_MARKERS) {
+    if (m.rx.test(text)) return m.name;
+  }
+  return null;
+}
 export const TRAIL_DETAILS_WARNING_RX = /vallonn[ée]/i;
 
 // ─────────────────────────────────────────────────────────────────────────────

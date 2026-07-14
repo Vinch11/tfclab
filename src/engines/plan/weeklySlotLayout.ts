@@ -1,0 +1,218 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * PHASE 2A.1 — Squelette jour-par-jour déterministe (le code assigne, le modèle
+ * remplit). Consommé par le prompt et par la validation post-merge (layout_drift).
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * Fonction pure : (quota, floors, weekType) → 7 jours × 0-2 slots typés.
+ *
+ * Règles principales :
+ *  - Lundi = jour de repos par défaut (si minFullRestDays ≥ 1).
+ *  - Sortie longue vélo → samedi ; sortie longue CAP → dimanche.
+ *  - Brick, si requis, placé weekend (Sam ou Dim selon SL présentes).
+ *  - Le reste est réparti en round-robin Mar/Mer/Jeu/Ven, avec doublons
+ *    autorisés (natation le matin + autre sport) si maxSessionsPerDay ≥ 2.
+ *  - Renfo jamais la veille de la SL vélo (donc jamais vendredi).
+ *  - Deux séances "qualité" du même sport pas à moins de 48h.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+import type { SizingFloors, WeekType, WeeklyQuota } from "./sessionSizingMatrix";
+
+export type LayoutSport = "swim" | "bike" | "run" | "brick" | "strength";
+export type DayName = "lundi" | "mardi" | "mercredi" | "jeudi" | "vendredi" | "samedi" | "dimanche";
+
+export interface DaySlot {
+  sport: LayoutSport;
+  isLongSession?: boolean;
+  isKeySession?: boolean;
+  /** Durée plancher (min) pour SL, propagée depuis floors. */
+  minDurationMin?: number;
+}
+
+export interface DayLayout {
+  dayName: DayName;
+  isRest: boolean;
+  slots: DaySlot[];
+}
+
+export interface WeeklySlotLayout {
+  weekType: WeekType;
+  days: DayLayout[]; // 7 entrées, ordre lundi → dimanche
+  /** Compte cible par sport pour cette semaine (used for prompt & drift). */
+  targetsBySport: Record<LayoutSport, number>;
+}
+
+const DAY_ORDER: DayName[] = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+function midpoint(r: { min: number; max: number }): number {
+  return Math.round((r.min + r.max) / 2);
+}
+
+/** Construit un layout hebdo déterministe à partir du quota et floors. */
+export function buildWeeklySlotLayout(
+  quota: WeeklyQuota,
+  floors: SizingFloors,
+  weekType: WeekType,
+): WeeklySlotLayout {
+  // Cibles par sport (midpoint clampé) — respecte floors nat / strength.
+  const targets: Record<LayoutSport, number> = {
+    swim: Math.max(floors.minSwimPerWeek ?? 0, quota.swim.min, midpoint(quota.swim)),
+    bike: Math.max(quota.bike.min, midpoint(quota.bike)),
+    run: Math.max(quota.run.min, midpoint(quota.run)),
+    brick: Math.max(quota.brick.min, midpoint(quota.brick)),
+    strength: Math.max(floors.minStrengthPerWeek, quota.strength.min, midpoint(quota.strength)),
+  };
+  // Clamp aux max
+  targets.swim = Math.min(targets.swim, quota.swim.max);
+  targets.bike = Math.min(targets.bike, quota.bike.max);
+  targets.run = Math.min(targets.run, quota.run.max);
+  targets.brick = Math.min(targets.brick, quota.brick.max);
+  targets.strength = Math.min(targets.strength, quota.strength.max);
+
+  const days: DayLayout[] = DAY_ORDER.map(d => ({ dayName: d, isRest: false, slots: [] }));
+  const findDay = (d: DayName) => days.find(x => x.dayName === d)!;
+  const canAdd = (d: DayName): boolean => findDay(d).slots.length < quota.maxSessionsPerDay && !findDay(d).isRest;
+  const hasSportOn = (d: DayName, s: LayoutSport) => findDay(d).slots.some(x => x.sport === s);
+  const remaining: Record<LayoutSport, number> = { ...targets };
+
+  // 1) Lundi = repos si minFullRestDays ≥ 1
+  if (quota.minFullRestDays >= 1) {
+    findDay("lundi").isRest = true;
+  }
+
+  // 2) SL vélo samedi
+  if (floors.longRideWeekly && remaining.bike > 0 && canAdd("samedi")) {
+    findDay("samedi").slots.push({
+      sport: "bike", isLongSession: true, isKeySession: true,
+      minDurationMin: floors.slLongRideMin,
+    });
+    remaining.bike--;
+  }
+  // 3) SL CAP dimanche
+  if (floors.longRunWeekly && remaining.run > 0 && canAdd("dimanche")) {
+    findDay("dimanche").slots.push({
+      sport: "run", isLongSession: true, isKeySession: true,
+      minDurationMin: floors.slLongRunMin,
+    });
+    remaining.run--;
+  }
+  // 4) Brick — samedi si pas de SL vélo, sinon dimanche
+  if (remaining.brick > 0) {
+    const brickDay: DayName = findDay("samedi").slots.length === 0 ? "samedi" : "dimanche";
+    if (canAdd(brickDay)) {
+      findDay(brickDay).slots.push({ sport: "brick", isKeySession: true });
+      remaining.brick--;
+    }
+  }
+
+  // 5) Round-robin natation d'abord (souvent doublon matin)
+  const midweek: DayName[] = ["mardi", "mercredi", "jeudi", "vendredi"];
+  const rrSwim: DayName[] = ["mardi", "jeudi", "mercredi", "vendredi", "dimanche"];
+  for (const d of rrSwim) {
+    if (remaining.swim <= 0) break;
+    if (!canAdd(d) || hasSportOn(d, "swim")) continue;
+    findDay(d).slots.push({ sport: "swim" });
+    remaining.swim--;
+  }
+
+  // 6) Vélo restant (qualité) — mardi, jeudi (48h entre séances qualité)
+  const rrBike: DayName[] = ["mardi", "jeudi", "mercredi", "vendredi"];
+  for (const d of rrBike) {
+    if (remaining.bike <= 0) break;
+    if (!canAdd(d) || hasSportOn(d, "bike")) continue;
+    findDay(d).slots.push({ sport: "bike", isKeySession: !hasSportOn(d, "run") });
+    remaining.bike--;
+  }
+
+  // 7) CAP restant — mercredi, vendredi puis samedi (si samedi libre)
+  const rrRun: DayName[] = ["mercredi", "vendredi", "mardi", "jeudi", "samedi"];
+  for (const d of rrRun) {
+    if (remaining.run <= 0) break;
+    if (!canAdd(d) || hasSportOn(d, "run")) continue;
+    findDay(d).slots.push({ sport: "run", isKeySession: !hasSportOn(d, "bike") });
+    remaining.run--;
+  }
+
+  // 8) Renfo — mercredi puis mardi (JAMAIS vendredi, veille SL vélo)
+  const rrStrength: DayName[] = ["mercredi", "mardi", "jeudi", "lundi"];
+  for (const d of rrStrength) {
+    if (remaining.strength <= 0) break;
+    if (d === "vendredi") continue;
+    if (!canAdd(d) || hasSportOn(d, "strength")) continue;
+    findDay(d).slots.push({ sport: "strength" });
+    remaining.strength--;
+  }
+
+  return { weekType, days, targetsBySport: targets };
+}
+
+const DAY_LABEL: Record<DayName, string> = {
+  lundi: "Lun", mardi: "Mar", mercredi: "Mer", jeudi: "Jeu",
+  vendredi: "Ven", samedi: "Sam", dimanche: "Dim",
+};
+const SPORT_LABEL: Record<LayoutSport, string> = {
+  swim: "NAT", bike: "VÉLO", run: "CAP", brick: "BRICK", strength: "RENFO",
+};
+
+/** Sérialise le layout en ligne compacte pour le prompt. */
+export function formatWeeklySlotLayoutLine(weekNumber: number, layout: WeeklySlotLayout): string {
+  const parts = layout.days.map(d => {
+    if (d.isRest) return `${DAY_LABEL[d.dayName]}: repos`;
+    if (d.slots.length === 0) return `${DAY_LABEL[d.dayName]}: libre`;
+    const inner = d.slots.map(s => {
+      const tags: string[] = [SPORT_LABEL[s.sport]];
+      if (s.isLongSession) tags.push(`SL ≥${s.minDurationMin ?? "?"}min`);
+      else if (s.isKeySession) tags.push("(qualité)");
+      return tags.join(" ");
+    }).join(" + ");
+    return `${DAY_LABEL[d.dayName]}: ${inner}`;
+  });
+  return `Semaine ${weekNumber} (${layout.weekType}) — structure IMPOSÉE : ${parts.join(" · ")}`;
+}
+
+/**
+ * Construit le bloc LAYOUT complet pour un chunk (plusieurs semaines).
+ * Formule d'injection : contrainte non-négociable dans le userPrompt.
+ */
+export function buildLayoutPromptBlock(
+  weeksScope: number[],
+  layoutsByWeek: Record<number, WeeklySlotLayout>,
+): string {
+  const lines: string[] = [];
+  lines.push("📅 SQUELETTE JOUR (IMPOSÉ par le moteur — remplis chaque créneau avec une séance du catalogue du bon sport ; ne déplace, n'ajoute et ne retire AUCUN créneau) :");
+  for (const w of weeksScope) {
+    const l = layoutsByWeek[w];
+    if (!l) continue;
+    lines.push(formatWeeklySlotLayoutLine(w, l));
+  }
+  return lines.join("\n");
+}
+
+/**
+ * Compare le layout attendu aux séances réellement générées sur la semaine.
+ * Retourne les jours où le sport dominant diverge du slot attendu.
+ * v1 : sportif seulement (on ne vérifie pas isLongSession ni durée ici — les
+ * floors s'en chargent). Warning "layout_drift".
+ */
+export function diffLayoutVsWeek(
+  layout: WeeklySlotLayout,
+  observedByDay: Map<string, string[]>,
+): Array<{ dayName: DayName; expected: string; observed: string }> {
+  const drifts: Array<{ dayName: DayName; expected: string; observed: string }> = [];
+  for (const d of layout.days) {
+    const expected = d.isRest ? ["rest"] : d.slots.map(s => s.sport).sort();
+    const raw = observedByDay.get(d.dayName) ?? [];
+    const observed = raw.length === 0 ? ["rest"] : [...raw].sort();
+    // Comparaison ensembliste multi-slot (autoriser ordre différent)
+    const sameSize = expected.length === observed.length;
+    const sameSet = sameSize && expected.every((s, i) => s === observed[i]);
+    if (!sameSet) {
+      drifts.push({
+        dayName: d.dayName,
+        expected: expected.join("+"),
+        observed: observed.join("+"),
+      });
+    }
+  }
+  return drifts;
+}
