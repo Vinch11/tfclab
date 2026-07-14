@@ -167,6 +167,23 @@ function computeToleranceMin(targetDur: number): number {
   return Math.max(15, Math.round((targetDur || 0) * 0.20));
 }
 
+// ─── Classification d'intensité (raffinement guard Phase 1C-A) ──────────────
+// Objectif : une séance "90min Z2 endurance" ne peut pas être substituée par
+// un Special Block Canova VO2/lactate. On classifie session + candidat via
+// zones + vocabulaire details, et on filtre par classe identique.
+type IntensityClass = "endurance" | "tempo_threshold" | "vo2_intensity" | "recovery" | "race_sim" | "unknown";
+
+function classifyIntensity(zones: string[] | undefined, text: string): IntensityClass {
+  const t = (text || "").toLowerCase();
+  const zonesU = (zones || []).map(z => (z || "").toUpperCase());
+  if (/race[- ]?sim|simulation.*course|race.?pace|allure.?course|sp[eé]cifique.?course/.test(t)) return "race_sim";
+  if (zonesU.some(z => /Z[567]/.test(z)) || /\bvo2\b|vma\b|30\/30|15\/15|40\/20|special block|canova/.test(t)) return "vo2_intensity";
+  if (zonesU.some(z => /Z[34]/.test(z)) || /seuil|threshold|tempo|sweet.?spot|lactate|shuttle|ftp\b/.test(t)) return "tempo_threshold";
+  if (/r[eé]cup|recovery|regen|regeneration/.test(t) || (zonesU.length > 0 && zonesU.every(z => /Z1\b/.test(z)))) return "recovery";
+  if (zonesU.some(z => /Z2/.test(z)) || /endurance|z1.?z2|fondamental|foncier|\bsl\b|sortie longue|long run|long ride|EF\b|aerobic/.test(t)) return "endurance";
+  return "unknown";
+}
+
 function rankCandidatesBySport(candidates: CatalogCandidate[], sport: NormalizedSport, durationMin: number) {
   const target = Number.isFinite(durationMin) && durationMin > 0 ? durationMin : 0;
   const sameSport = candidates.filter(c => c.sport === sport);
@@ -176,10 +193,22 @@ function rankCandidatesBySport(candidates: CatalogCandidate[], sport: Normalized
   return { sameSport, ranked };
 }
 
-function findCatalogCandidateForSport(candidates: CatalogCandidate[], sport: NormalizedSport, durationMin: number): { candidate: CatalogCandidate | null; delta: number } {
+function findCatalogCandidateForSport(
+  candidates: CatalogCandidate[],
+  sport: NormalizedSport,
+  durationMin: number,
+  requiredClass?: IntensityClass,
+): { candidate: CatalogCandidate | null; delta: number } {
   const { ranked } = rankCandidatesBySport(candidates, sport, durationMin);
   const tolerance = computeToleranceMin(durationMin);
-  const viable = ranked.find(x => x.delta <= tolerance);
+  // Filtre intensité : on n'accepte que même classe. "unknown" = joker (compat).
+  const viable = ranked.find(x => {
+    if (x.delta > tolerance) return false;
+    if (!requiredClass || requiredClass === "unknown") return true;
+    const candClass = classifyIntensity(x.c.zones, `${x.c.title} ${x.c.structure}`);
+    if (candClass === "unknown") return true;
+    return candClass === requiredClass;
+  });
   return viable ? { candidate: viable.c, delta: viable.delta } : { candidate: null, delta: -1 };
 }
 
