@@ -213,7 +213,7 @@ async function persistQASessionToCloud(session: QASession): Promise<void> {
     const { data: sess } = await supabase.auth.getSession();
     const userId = sess.session?.user.id ?? null;
     if (!userId) return;
-    await supabase.from("plan_qa_sessions").insert({
+    await supabase.from("plan_qa_sessions").insert([{
       user_id: userId,
       ts: new Date(session.ts).toISOString(),
       verdict: session.verdict,
@@ -221,7 +221,7 @@ async function persistQASessionToCloud(session: QASession): Promise<void> {
       n: session.n,
       runs_count: session.runs.length,
       payload: session as unknown as Record<string, unknown>,
-    });
+    }]);
   } catch { /* ignore */ }
 }
 
