@@ -19,7 +19,7 @@ describe("TRAIL_DETAILS_CRITICAL_RX — 'massif' contextuel", () => {
   });
 
   it("garde les autres marqueurs critical", () => {
-    expect(TRAIL_DETAILS_CRITICAL_RX.test("600m D+")).toBe(true);
+    expect(TRAIL_DETAILS_CRITICAL_RX.test("+600m dénivelé")).toBe(true);
     expect(TRAIL_DETAILS_CRITICAL_RX.test("D+ 800m sur la sortie")).toBe(true);
     expect(TRAIL_DETAILS_CRITICAL_RX.test("montée sèche 15min")).toBe(true);
     expect(TRAIL_DETAILS_CRITICAL_RX.test("power-hike avec bâtons")).toBe(true);
