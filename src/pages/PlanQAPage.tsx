@@ -159,6 +159,16 @@ export default function PlanQAPage() {
   const [qaSessions, setQaSessions] = useState<QASession[]>(readQASessions());
   const qa = useQARunner();
 
+  // Expose to Playwright/E2E for targeted runs
+  useEffect(() => {
+    (window as any).__tfclQA = {
+      runFullSuite: qa.runFullSuite,
+      buildQAReport,
+      readQASessions,
+    };
+    return () => { try { delete (window as any).__tfclQA; } catch { /* noop */ } };
+  }, [qa.runFullSuite]);
+
   const summary = useMemo(() => {
     const jsonOk = stats.filter(s => s.format === "json" && s.ok).length;
     const jsonFail = stats.filter(s => s.format === "json" && !s.ok).length;

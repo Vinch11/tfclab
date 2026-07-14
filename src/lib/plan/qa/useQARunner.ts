@@ -69,9 +69,12 @@ export function useQARunner() {
   parsedPlanRef.current = plan.parsedPlan;
   issuesRef.current = plan.sportObjectiveIssues;
 
-  const runFullSuite = useCallback(async (N: 1 | 3 | 5): Promise<QASession> => {
+  const runFullSuite = useCallback(async (N: 1 | 3 | 5, profileFilter?: Array<"B-70.3" | "B-SEMI" | "B-SPRINT">): Promise<QASession> => {
     if (isLoadingRef.current) throw new Error("Une génération est déjà en cours — attendez la fin.");
-    const totalRuns = QA_PROFILES.length * N;
+    const activeProfiles = profileFilter && profileFilter.length > 0
+      ? QA_PROFILES.filter(p => profileFilter.includes(p.id))
+      : QA_PROFILES;
+    const totalRuns = activeProfiles.length * N;
     setProgress({ running: true, currentRun: 0, totalRuns, N, phase: "merge-tests" });
     const runs: QARunRecord[] = [];
     const sessionStart = Date.now();
@@ -87,7 +90,7 @@ export function useQARunner() {
     }
 
     // ── Étape 1..N : générations ───────────────────────────────────────────
-    for (const profile of QA_PROFILES) {
+    for (const profile of activeProfiles) {
       for (let ri = 1; ri <= N; ri++) {
         const overallIndex = runs.length + 1;
         setProgress({
