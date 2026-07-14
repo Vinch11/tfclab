@@ -585,6 +585,17 @@ export function useAITrainingPlan() {
             const code = data.code ?? "warning";
             const severity = data.severity ?? "warning";
             const repair = data.repair;
+            if (code === "value_check_summary" && data.summary) {
+              const s = data.summary;
+              semanticRepairs.push(`[info] value_check_summary: tokens=${s.totalTokens} conforme=${s.conformantTokens} corrigés=${s.correctedTokens} unresolved=${s.unresolvedTokens}`);
+              return;
+            }
+            if ((code === "value_corrected" || code === "value_unresolved") && repair) {
+              const beforeStr = repair.before ? ` before="${repair.before}"` : "";
+              const afterStr = repair.after ? ` after="${repair.after}"` : "";
+              semanticRepairs.push(`[${severity}] ${code}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} ${repair.sport ?? "?"} — ${repair.reason}${beforeStr}${afterStr}`);
+              return;
+            }
             if (repair?.before) {
               const sport = repair.sport ?? "?";
               const target = repair.targetDurationMin ?? repair.before?.durationMin ?? "?";
