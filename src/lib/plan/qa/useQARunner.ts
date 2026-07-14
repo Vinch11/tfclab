@@ -90,7 +90,7 @@ export function useQARunner() {
     }
 
     // ── Étape 1..N : générations ───────────────────────────────────────────
-    for (const profile of QA_PROFILES) {
+    for (const profile of activeProfiles) {
       for (let ri = 1; ri <= N; ri++) {
         const overallIndex = runs.length + 1;
         setProgress({
