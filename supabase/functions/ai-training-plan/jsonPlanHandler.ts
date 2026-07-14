@@ -741,6 +741,10 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             planConfig?._weeklyQuotas ?? null,
             catalogDumpsByChunk,
           );
+          for (const line of slEnforce.traces) {
+            console.log(line);
+            enqueue("warning", { code: "sl_floor_trace", severity: "info", message: line });
+          }
           for (const repair of slEnforce.repairs) {
             const msg = repair.code === "sl_upgraded"
               ? `S${repair.weekNumber} ${repair.sport} SL floor ${repair.floorMin}min not met (max ${repair.before.durationMin}min) → ${repair.after?.catalogId} (${repair.after?.durationMin}min)`
@@ -753,6 +757,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               repair,
             });
           }
+
 
           const merged = mergePlanChunks(slEnforce.chunks, mergedTotal);
           for (let ci = 0; ci < slEnforce.chunks.length; ci++) {
