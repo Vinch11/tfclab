@@ -1,19 +1,18 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * PHASE 2B — VALIDATEUR DE VALEURS (post-merge, edge)
+ * PHASE 2B v2 — VALIDATEUR DE VALEURS PAR TOKEN (post-merge, edge)
  * ═══════════════════════════════════════════════════════════════════════════════
- * Extrait tous les tokens numériques du plan (title + details) :
- *   - watts : "220W", "@200-220W", "200-220 W"
- *   - %FTP  : "90% FTP"
- *   - pace  : "3:45/km", "3'45/km"
- *   - CSS   : "1:30/100m", "1'30 / 100 m"
- *   - FC    : "155 bpm"
- * Vérifie chaque token contre `targetTable` en fonction de la zone déclarée
- * de la séance (`session.zones`).
- * Corrections déterministes :
- *   - %FTP présent + watts incohérents → recalcule watts depuis %FTP × FTP
- *   - Valeur hors plage mais zone déclarée univoque → recadre sur borne
- *   - Ambigu → critical "value_unresolved"
+ * Nouvelle logique par TOKEN (pas par zone-de-séance) :
+ *   1) CONFORMITÉ PAR APPARTENANCE GLOBALE — un token est conforme s'il tombe
+ *      dans N'IMPORTE QUELLE plage de la targetTable du bon sport (Z1..Z7,
+ *      SST, racePower/racePace, avec tolérances). On tagge la zone reconnue.
+ *   2) CSS — la plage CSS ne s'applique QUE si le contexte immédiat (±20 chars)
+ *      contient "CSS". Sinon on valide contre l'ensemble des plages natation.
+ *   3) HORS DE TOUTES LES PLAGES → correction seulement si :
+ *        a) un %FTP adjacent permet le recalcul exact, OU
+ *        b) le recadrage va vers le BAS (nw ≤ v) : safe.
+ *      ASYMÉTRIE DE SÉCURITÉ : jamais de correction à la HAUSSE. Une hausse
+ *      nécessaire ⇒ value_unresolved critical (revue coach).
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 import type { PlanChunk, PlanSession } from "./planSchema.ts";
@@ -44,12 +43,12 @@ export interface ValueCheckResult {
 
 const WATTS_RANGE_RX = /@?\s*(\d{2,4})\s*[-–]\s*(\d{2,4})\s*W\b/gi;
 const WATTS_SINGLE_RX = /(?<![-–\d])(\d{2,4})\s*W\b/gi;
-const PCT_FTP_RX = /(\d{2,3})\s*%\s*FTP/gi;
 const PACE_KM_RX = /(\d)[:'](\d{2})\s*\/?\s*km/gi;
 const CSS_RX = /(\d)[:'](\d{2})\s*\/\s*100\s*m/gi;
 const BPM_RX = /(\d{2,3})\s*bpm/gi;
 
 type Range = [number, number];
+interface LabeledRange { label: string; range: Range; }
 
 function inRange(v: number, r: Range, tolPct: number, tolAbs: number): boolean {
   const lo = r[0] - Math.max(r[0] * tolPct, tolAbs);
@@ -75,46 +74,44 @@ function secToPace(sec: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-function normalizeZone(z: string): string {
-  const u = z.trim().toUpperCase().replace(/\s+/g, "");
-  if (/^Z[1-7]/.test(u)) return u.slice(0, u.length >= 3 && (u[2] === "A" || u[2] === "B") ? 3 : 2)
-    .replace("A", "a").replace("B", "b");
-  return u;
+/** Toutes les plages watts vélo pertinentes (zones + SST + racePower). */
+function allBikeRanges(t: TargetTablePayload): LabeledRange[] {
+  const out: LabeledRange[] = [];
+  for (const [z, r] of Object.entries(t.bikeZonesW)) out.push({ label: z, range: r as Range });
+  if (t.sstW) out.push({ label: "SST", range: t.sstW });
+  if (t.racePowerRange) out.push({ label: "racePower", range: t.racePowerRange });
+  return out;
 }
 
-/** Récupère la plage watts pour une séance selon ses zones déclarées. */
-function bikeRangeForZones(zones: string[], t: TargetTablePayload): Range | null {
-  const ranges: Range[] = [];
-  for (const zRaw of zones) {
-    const z = normalizeZone(zRaw);
-    const r = t.bikeZonesW[z] as Range | undefined;
-    if (r) ranges.push(r);
-  }
-  if (ranges.length === 0) return null;
-  return [Math.min(...ranges.map(r => r[0])), Math.max(...ranges.map(r => r[1]))];
+function allRunRanges(t: TargetTablePayload): LabeledRange[] {
+  const out: LabeledRange[] = [];
+  for (const [z, r] of Object.entries(t.runPacesSecPerKm)) out.push({ label: z, range: r as Range });
+  if (t.racePaceRange) out.push({ label: "racePace", range: t.racePaceRange });
+  return out;
 }
 
-function runRangeForZones(zones: string[], t: TargetTablePayload): Range | null {
-  const ranges: Range[] = [];
-  for (const zRaw of zones) {
-    const z = normalizeZone(zRaw);
-    const r = t.runPacesSecPerKm[z] as Range | undefined;
-    if (r) ranges.push(r);
-  }
-  if (ranges.length === 0) return null;
-  // paces: min = plus rapide (petit), max = plus lent (grand)
-  return [Math.min(...ranges.map(r => r[0])), Math.max(...ranges.map(r => r[1]))];
+function allSwimRanges(t: TargetTablePayload): LabeledRange[] {
+  const out: LabeledRange[] = [];
+  for (const [z, r] of Object.entries(t.swimZonesSecPer100m)) out.push({ label: z, range: r as Range });
+  if (t.cssRange) out.push({ label: "CSS", range: t.cssRange });
+  return out;
 }
 
-function fcRangeForZones(zones: string[], t: TargetTablePayload): Range | null {
-  const ranges: Range[] = [];
-  for (const zRaw of zones) {
-    const z = normalizeZone(zRaw);
-    const r = t.fcZonesBpm[z] as Range | undefined;
-    if (r) ranges.push(r);
+/** Cherche la 1re plage qui accepte v (avec tolérance). */
+function findMatch(v: number, ranges: LabeledRange[], tolPct: number, tolAbs: number): LabeledRange | null {
+  for (const lr of ranges) if (inRange(v, lr.range, tolPct, tolAbs)) return lr;
+  return null;
+}
+
+/** Plage la plus proche (distance au bord) pour recadrage. */
+function nearestRange(v: number, ranges: LabeledRange[]): LabeledRange | null {
+  let best: LabeledRange | null = null;
+  let bestD = Infinity;
+  for (const lr of ranges) {
+    const d = v < lr.range[0] ? lr.range[0] - v : v > lr.range[1] ? v - lr.range[1] : 0;
+    if (d < bestD) { bestD = d; best = lr; }
   }
-  if (ranges.length === 0) return null;
-  return [Math.min(...ranges.map(r => r[0])), Math.max(...ranges.map(r => r[1]))];
+  return best;
 }
 
 interface CheckedText {
@@ -135,16 +132,19 @@ function checkSessionText(
   let tokens = 0, conformant = 0, corrected = 0, unresolved = 0;
   const repairs: CheckedText["repairs"] = [];
 
-  const zones = Array.isArray(session.zones) ? session.zones : [];
   const sport = session.sport;
   const isBike = sport === "bike" || sport === "brick";
   const isRun = sport === "run" || sport === "brick" || sport === "trail";
   const isSwim = sport === "swim";
 
-  // ─── %FTP : autoritatif si présent avec watts adjacents ────────────
-  // Passe 1 : recalcul des paires %FTP + watts en priorité
+  const bikeRanges = allBikeRanges(t);
+  const runRanges = allRunRanges(t);
+  const swimRanges = allSwimRanges(t);
+
+  // ─── %FTP + watts adjacents : autoritatif (règle existante) ─────────
   if (isBike && t.ftpW) {
-    const pctFtpPairRx = /(\d{2,3})\s*%\s*FTP[^\d]{0,20}(\d{2,4})\s*W|(\d{2,4})\s*W[^\d]{0,20}(\d{2,3})\s*%\s*FTP/gi;
+    const pctFtpPairRx =
+      /(\d{2,3})\s*%\s*FTP[^\d]{0,20}(\d{2,4})\s*W|(\d{2,4})\s*W[^\d]{0,20}(\d{2,3})\s*%\s*FTP/gi;
     text = text.replace(pctFtpPairRx, (match, p1, p2, p3, p4) => {
       const pct = Number(p1 ?? p4);
       const w = Number(p2 ?? p3);
@@ -163,136 +163,188 @@ function checkSessionText(
     });
   }
 
-  // ─── Watts range "200-220W" ──────────────────────────────────────
-  if (isBike) {
-    const range = bikeRangeForZones(zones, t);
+  // ─── Watts range "200-220W" ─────────────────────────────────────────
+  if (isBike && bikeRanges.length > 0) {
     text = text.replace(WATTS_RANGE_RX, (match, aStr, bStr) => {
-      tokens += 2;
       const a = Number(aStr), b = Number(bStr);
-      if (!range) {
-        // Aucune zone déclarée → ambigu (spec Phase 2B) → critical unresolved
-        unresolved += 2;
-        repairs.push({
-          code: "value_unresolved", severity: "critical",
-          reason: `range ${a}-${b}W sans zone déclarée (ambigu)`,
-          token: match,
-        });
-        return match;
+      tokens += 2;
+      const mA = findMatch(a, bikeRanges, 0.03, 3);
+      const mB = findMatch(b, bikeRanges, 0.03, 3);
+      if (mA && mB) { conformant += 2; return match; }
+
+      // Bornes non conformes globalement → recadrer chaque borne (DOWN only)
+      const fix = (v: number, m: LabeledRange | null): { nv: number; ok: boolean; label: string } => {
+        if (m) return { nv: v, ok: true, label: m.label };
+        const nr = nearestRange(v, bikeRanges);
+        if (!nr) return { nv: v, ok: false, label: "" };
+        const nv = nearestBorder(v, nr.range);
+        return { nv, ok: nv <= v, label: nr.label }; // DOWN only
+      };
+      const fa = fix(a, mA), fb = fix(b, mB);
+      if (fa.ok && fb.ok) {
+        corrected += (mA ? 0 : 1) + (mB ? 0 : 1);
+        conformant += (mA ? 1 : 0) + (mB ? 1 : 0);
+        if (!mA || !mB) {
+          repairs.push({
+            code: "value_corrected", severity: "warning",
+            reason: `range ${a}-${b}W recadré vers plage la plus proche (baisse safe)`,
+            before: `${a}-${b}W`, after: `${fa.nv}-${fb.nv}W`, token: match,
+          });
+        }
+        return `${fa.nv}-${fb.nv}W`;
       }
-      const okA = inRange(a, range, 0.03, 3);
-      const okB = inRange(b, range, 0.03, 3);
-      if (okA && okB) { conformant += 2; return match; }
-      const newA = nearestBorder(a, range);
-      const newB = nearestBorder(b, range);
-      corrected += 2;
+      unresolved += (fa.ok ? 0 : 1) + (fb.ok ? 0 : 1);
+      conformant += (fa.ok ? 1 : 0) + (fb.ok ? 1 : 0);
       repairs.push({
-        code: "value_corrected", severity: "warning",
-        reason: `range ${a}-${b}W hors zone ${zones.join(",")} [${range[0]}-${range[1]}W] → recadré`,
-        before: `${a}-${b}W`, after: `${newA}-${newB}W`, token: match,
+        code: "value_unresolved", severity: "critical",
+        reason: `range ${a}-${b}W hors plages vélo, correction à la hausse interdite (revue coach)`,
+        token: match,
       });
-      return `${newA}-${newB}W`;
+      return match;
     });
   }
 
-  // ─── Watts single "220W" ─────────────────────────────────────────
-  if (isBike) {
-    const range = bikeRangeForZones(zones, t);
+  // ─── Watts single "220W" ────────────────────────────────────────────
+  if (isBike && bikeRanges.length > 0) {
     text = text.replace(WATTS_SINGLE_RX, (match, wStr) => {
       const w = Number(wStr);
       tokens++;
-      if (!range) {
-        unresolved++;
+      const m = findMatch(w, bikeRanges, 0.03, 3);
+      if (m) { conformant++; return match; }
+
+      const nr = nearestRange(w, bikeRanges);
+      if (!nr) { unresolved++; return match; }
+      const nw = nearestBorder(w, nr.range);
+      if (nw <= w) {
+        // DOWN correction — safe
+        corrected++;
         repairs.push({
-          code: "value_unresolved", severity: "critical",
-          reason: `${w}W sans zone déclarée (ambigu)`,
-          token: match,
+          code: "value_corrected", severity: "warning",
+          reason: `${w}W hors plages vélo → recadré ${nw}W (${nr.label}, baisse safe)`,
+          before: `${w}W`, after: `${nw}W`, token: match,
         });
-        return match;
+        return `${nw}W`;
       }
-      if (inRange(w, range, 0.03, 3)) { conformant++; return match; }
-      const nw = nearestBorder(w, range);
-      corrected++;
+      // UP correction — INTERDIT
+      unresolved++;
       repairs.push({
-        code: "value_corrected", severity: "warning",
-        reason: `${w}W hors zone ${zones.join(",")} [${range[0]}-${range[1]}W] → ${nw}W`,
-        before: `${w}W`, after: `${nw}W`, token: match,
+        code: "value_unresolved", severity: "critical",
+        reason: `${w}W en-dessous des plages vélo, correction à la hausse interdite → revue coach`,
+        token: match,
       });
-      return `${nw}W`;
+      return match;
     });
   }
 
-  // ─── Pace /km ─────────────────────────────────────────────────────
-  if (isRun) {
-    const range = runRangeForZones(zones, t);
+  // ─── Pace /km ───────────────────────────────────────────────────────
+  if (isRun && runRanges.length > 0) {
     text = text.replace(PACE_KM_RX, (match, m, s) => {
       const sec = Number(m) * 60 + Number(s);
       tokens++;
-      if (!range) {
-        const all = Object.values(t.runPacesSecPerKm) as Range[];
-        if (all.length === 0) { unresolved++; return match; }
-        const global: Range = [Math.min(...all.map(r => r[0])), Math.max(...all.map(r => r[1]))];
-        if (inRange(sec, global, 0, 10)) { conformant++; return match; }
+      const mm = findMatch(sec, runRanges, 0, 5);
+      if (mm) { conformant++; return match; }
+      const nr = nearestRange(sec, runRanges);
+      if (!nr) { unresolved++; return match; }
+      const ns = nearestBorder(sec, nr.range);
+      // Pace : "hausse" = plus rapide = ns < sec. C'est plus dur → interdit.
+      if (ns >= sec) {
+        corrected++;
+        repairs.push({
+          code: "value_corrected", severity: "warning",
+          reason: `${match} hors plages course → recadré ${secToPace(ns)}/km (${nr.label}, plus lent = safe)`,
+          before: match, after: `${secToPace(ns)}/km`, token: match,
+        });
+        return `${secToPace(ns)}/km`;
+      }
+      unresolved++;
+      repairs.push({
+        code: "value_unresolved", severity: "critical",
+        reason: `${match} plus lent que toutes plages, accélérer serait plus dur → revue coach`,
+        token: match,
+      });
+      return match;
+    });
+  }
+
+  // ─── CSS /100m (contexte-dépendant) ─────────────────────────────────
+  if (isSwim && swimRanges.length > 0) {
+    // On collecte les positions des matches d'abord (String.replace + regex globale)
+    text = text.replace(CSS_RX, (match, m, s, offset: number) => {
+      const sec = Number(m) * 60 + Number(s);
+      tokens++;
+      const from = Math.max(0, offset - 20);
+      const to = Math.min(text.length, offset + match.length + 20);
+      const ctx = text.slice(from, to).toUpperCase();
+      const cssOnly = ctx.includes("CSS");
+
+      const pool: LabeledRange[] = cssOnly && t.cssRange
+        ? [{ label: "CSS", range: t.cssRange }]
+        : swimRanges;
+
+      const mm = findMatch(sec, pool, 0, 3);
+      if (mm) { conformant++; return match; }
+      const nr = nearestRange(sec, pool);
+      if (!nr) { unresolved++; return match; }
+      const ns = nearestBorder(sec, nr.range);
+      if (ns >= sec) {
+        corrected++;
+        repairs.push({
+          code: "value_corrected", severity: "warning",
+          reason: `${match} recadré ${secToPace(ns)}/100m (${nr.label}, plus lent = safe)`,
+          before: match, after: `${secToPace(ns)}/100m`, token: match,
+        });
+        return `${secToPace(ns)}/100m`;
+      }
+      unresolved++;
+      repairs.push({
+        code: "value_unresolved", severity: "critical",
+        reason: `${match} plus lent que ${cssOnly ? "CSS" : "plages nat."}, accélérer interdit → revue coach`,
+        token: match,
+      });
+      return match;
+    });
+  }
+
+  // ─── FC bpm ─────────────────────────────────────────────────────────
+  if (t.fcMax) {
+    const fcRanges: LabeledRange[] = Object.entries(t.fcZonesBpm)
+      .map(([z, r]) => ({ label: z, range: r as Range }));
+    text = text.replace(BPM_RX, (match, bStr) => {
+      const b = Number(bStr);
+      tokens++;
+      if (b <= t.fcMax! + 5) {
+        const inZones = fcRanges.length ? findMatch(b, fcRanges, 0.02, 3) : null;
+        if (inZones || fcRanges.length === 0) { conformant++; return match; }
+        const nr = nearestRange(b, fcRanges);
+        if (!nr) { conformant++; return match; }
+        const nb = nearestBorder(b, nr.range);
+        if (nb <= b) {
+          corrected++;
+          repairs.push({
+            code: "value_corrected", severity: "warning",
+            reason: `${b}bpm hors plages FC → recadré ${nb}bpm (${nr.label}, baisse safe)`,
+            before: `${b}bpm`, after: `${nb}bpm`, token: match,
+          });
+          return `${nb}bpm`;
+        }
         unresolved++;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `pace ${match} hors plage course globale, sans zone`,
+          reason: `${b}bpm sous les plages, hausse interdite → revue coach`,
           token: match,
         });
         return match;
       }
-      if (inRange(sec, range, 0, 5)) { conformant++; return match; }
-      const ns = nearestBorder(sec, range);
-      corrected++;
-      repairs.push({
-        code: "value_corrected", severity: "warning",
-        reason: `${match} hors zone ${zones.join(",")} [${secToPace(range[0])}-${secToPace(range[1])}/km] → ${secToPace(ns)}/km`,
-        before: match, after: `${secToPace(ns)}/km`, token: match,
-      });
-      return `${secToPace(ns)}/km`;
-    });
-  }
-
-  // ─── CSS /100m ────────────────────────────────────────────────────
-  if (isSwim && t.cssSecPer100m && t.cssRange) {
-    text = text.replace(CSS_RX, (match, m, s) => {
-      const sec = Number(m) * 60 + Number(s);
-      tokens++;
-      if (inRange(sec, t.cssRange!, 0, 3)) { conformant++; return match; }
-      const ns = nearestBorder(sec, t.cssRange!);
-      corrected++;
-      repairs.push({
-        code: "value_corrected", severity: "warning",
-        reason: `CSS ${match} hors [${secToPace(t.cssRange![0])}-${secToPace(t.cssRange![1])}/100m] → ${secToPace(ns)}/100m`,
-        before: match, after: `${secToPace(ns)}/100m`, token: match,
-      });
-      return `${secToPace(ns)}/100m`;
-    });
-  }
-
-  // ─── FC bpm ───────────────────────────────────────────────────────
-  const fcRange = fcRangeForZones(zones, t);
-  text = text.replace(BPM_RX, (match, bStr) => {
-    const b = Number(bStr);
-    tokens++;
-    if (!fcRange || !t.fcMax) {
-      // pas d'ancre → si <= FCmax global on tolère
-      if (t.fcMax && b <= t.fcMax + 5) { conformant++; return match; }
+      // > FCmax+5 : impossible, mais on ne "muscle" pas la prescription → unresolved
       unresolved++;
+      repairs.push({
+        code: "value_unresolved", severity: "critical",
+        reason: `${b}bpm > FCmax (${t.fcMax}) → revue coach`,
+        token: match,
+      });
       return match;
-    }
-    if (inRange(b, fcRange, 0.02, 3)) { conformant++; return match; }
-    const nb = nearestBorder(b, fcRange);
-    corrected++;
-    repairs.push({
-      code: "value_corrected", severity: "warning",
-      reason: `${b}bpm hors zone ${zones.join(",")} [${fcRange[0]}-${fcRange[1]}bpm] → ${nb}bpm`,
-      before: `${b}bpm`, after: `${nb}bpm`, token: match,
     });
-    return `${nb}bpm`;
-  });
-
-  // Standalone %FTP not paired to watts → informational (skip token count)
-  text.replace(PCT_FTP_RX, () => ""); // no-op
+  }
 
   return { text, tokens, conformant, corrected, unresolved, repairs };
 }
