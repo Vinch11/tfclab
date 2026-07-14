@@ -17,7 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   readPlanStats, clearPlanStats,
-  isJsonBetaEnabled, setJsonBetaEnabled,
+  isForceMarkdownEnabled, setForceMarkdownEnabled,
   type PlanGenerationStat,
 } from "@/lib/plan/planGenerationStats";
 import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
@@ -150,7 +150,7 @@ function SchemaFailDetails({ stat }: { stat: PlanGenerationStat }) {
 }
 
 export default function PlanQAPage() {
-  const [flag, setFlag] = useState(isJsonBetaEnabled());
+  const [flag, setFlag] = useState(isForceMarkdownEnabled());
   const [stats, setStats] = useState<PlanGenerationStat[]>(readPlanStats());
   const [testResults, setTestResults] = useState<TestResult[] | null>(null);
   const [runningTests, setRunningTests] = useState(false);
@@ -188,7 +188,7 @@ export default function PlanQAPage() {
   }, [stats]);
 
   const toggle = (v: boolean) => {
-    setJsonBetaEnabled(v);
+    setForceMarkdownEnabled(v);
     setFlag(v);
   };
 
@@ -255,14 +255,15 @@ export default function PlanQAPage() {
       {/* Feature flag */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Feature flag — Génération JSON (beta)</CardTitle>
+          <CardTitle className="text-base">Feature flag — Forcer Markdown (debug)</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-between">
           <div>
-            <div className="font-medium">Chemin JSON structuré</div>
+            <div className="font-medium">Chemin Markdown legacy</div>
             <div className="text-xs text-muted-foreground mt-1">
-              Injecte <code className="text-xs">_outputFormat: "json"</code> dans le planConfig. Fallback Markdown
-              automatique si un chunk échoue Zod. Ne concerne que votre navigateur (localStorage).
+              Le chemin JSON est activé par défaut pour tous les utilisateurs.
+              Ce toggle rebranche explicitement le chemin Markdown legacy pour
+              debug/diagnostic. Ne concerne que votre navigateur (localStorage).
             </div>
           </div>
           <Switch checked={flag} onCheckedChange={toggle} />

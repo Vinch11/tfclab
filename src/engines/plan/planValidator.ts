@@ -719,13 +719,20 @@ function validateCatalogRatio(plan: ParsedPlan): { issues: ValidationIssue[]; sc
       if (!isKey) continue;
 
       totalKeySessions++;
-      CATALOG_ID_PATTERN.lastIndex = 0;
+      // Phase 1C-A : préférer session.catalogId (JSON path structuré),
+      // fallback regex title+details pour le chemin Markdown legacy.
+      const structuredId = (session as unknown as { catalogId?: string | null }).catalogId;
       const ids: string[] = [];
-      let m: RegExpExecArray | null;
-      while ((m = CATALOG_ID_PATTERN.exec(text)) !== null) {
-        ids.push(m[0]);
+      if (typeof structuredId === "string" && structuredId.trim().length > 0) {
+        ids.push(structuredId.trim());
+      } else {
+        CATALOG_ID_PATTERN.lastIndex = 0;
+        let m: RegExpExecArray | null;
+        while ((m = CATALOG_ID_PATTERN.exec(text)) !== null) {
+          ids.push(m[0]);
+        }
+        CATALOG_ID_PATTERN.lastIndex = 0;
       }
-      CATALOG_ID_PATTERN.lastIndex = 0;
       const isCustom = CUSTOM_PATTERN.test(text);
       CUSTOM_PATTERN.lastIndex = 0;
 

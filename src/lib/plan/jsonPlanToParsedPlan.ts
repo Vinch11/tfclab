@@ -38,10 +38,9 @@ function toParsedSession(s: MergedSession): ParsedSession {
     dayName: s.dayName,
     dayIndex: s.dayIndex,
     sport: s.sport,
-    // #catalogId — préfixé au titre pour préserver les regex catalog historiques
-    // (aiPlanWorkoutEnricher, planValidator.validateCatalogRatio, etc.) tant que
-    // la Phase 1C n'a pas rebranché ces consommateurs sur `catalogId` structuré.
-    title: s.catalogId ? `${s.catalogId} — ${s.title}` : s.title,
+    // Phase 1C-A : catalogId exposé en champ structuré (plus de préfixe title).
+    title: s.title,
+    catalogId: s.catalogId ?? null,
     details: s.details,
     isRest: s.isRest,
   };

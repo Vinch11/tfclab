@@ -22,6 +22,15 @@ import { deriveTriathlonZones, formatTriathlonZonesForPrompt } from "../_shared/
 export function buildTerrainHardBanBlock(config: any): string {
   const ta = config?.terrainAvailability;
   if (!ta || ta === "montagne") return "";
+  // Phase 1C-A — Le contenu EXPÉ HORS-VILLE / compensations montagne n'a de sens
+  // que pour un objectif trail/ultra/mountain. Injecter ces règles sur un plan
+  // route (semi/marathon/10K) ou triathlon (70.3/IM) pousse le modèle à copier
+  // verbatim l'ID EXPE_HORS_VILLE_SL_DPLUS dans des séances custom, ce que
+  // l'audit sport-objective coherence rejette ensuite (F-21 style gating).
+  const objRaw = String(config?.objective ?? "").toLowerCase();
+  const isTrailObjective = /trail|utmb|ccc|occ|skyrun|hardrock|tor des|western states|mountain|montagne/.test(objRaw)
+    || (objRaw.includes("ultra") && !objRaw.includes("ironman"));
+  if (!isTrailObjective) return "";
   const tp = config?.trailProfile;
   // Fallback when trailProfile is missing : on raisonne sur weeklyHours / défaut.
   const weeklyPeakDPlus = tp?.weeklyDPlusPeakM ?? 2000;
@@ -188,7 +197,16 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   // Injecté chunk 1 quand le coach déclare terrain=plat/vallonné/mixte sur un objectif trail/montagne/ultra.
   // Sans cela, l'IA prescrit des séances montagne irréalisables (frustration + non-adhérence).
   // Fonctionne MÊME SANS fiche course renseignée : on utilise des fourchettes par défaut conservatrices.
-  if (config?.terrainAvailability && config.terrainAvailability !== "montagne") {
+  if (
+    config?.terrainAvailability
+    && config.terrainAvailability !== "montagne"
+    && (
+      // Phase 1C-A — Gating trail-only : ne jamais injecter d'EXPÉ HORS-VILLE
+      // ni de vocabulaire montagne D+ pour objectifs route/triathlon.
+      /trail|utmb|ccc|occ|skyrun|hardrock|tor des|western states|mountain|montagne/i.test(String(config?.objective ?? ""))
+      || (/ultra/i.test(String(config?.objective ?? "")) && !/ironman/i.test(String(config?.objective ?? "")))
+    )
+  ) {
     const ta = config.terrainAvailability as "plat" | "vallonne" | "mixte";
     const objRaw = String(config?.objective ?? "").toLowerCase();
     const isUltra = objRaw.includes("ultra") || objRaw.includes("utmb") || objRaw.includes("hardrock") || objRaw.includes("tor des") || objRaw.includes("western states");

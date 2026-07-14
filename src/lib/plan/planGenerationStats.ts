@@ -104,14 +104,31 @@ export function clearPlanStats(): void {
   try { localStorage.removeItem(KEY); } catch { /* ignore */ }
 }
 
-// ─── Feature flag JSON beta (admin/self opt-in) ──────────────────────────────
-const FLAG_KEY = "tfcl:plan_json_beta";
-export function isJsonBetaEnabled(): boolean {
-  try { return localStorage.getItem(FLAG_KEY) === "1"; } catch { return false; }
+// ─── Feature flags — Phase 1C-A ──────────────────────────────────────────────
+// Le chemin JSON est le DÉFAUT PROD. Le toggle admin "Forcer Markdown" permet
+// de rebrancher explicitement le chemin Markdown legacy pour debug/diagnostic.
+const FORCE_MARKDOWN_KEY = "tfcl:plan_force_markdown";
+const LEGACY_JSON_BETA_KEY = "tfcl:plan_json_beta";
+
+/** Retourne true si l'utilisateur a explicitement forcé le chemin Markdown (debug). */
+export function isForceMarkdownEnabled(): boolean {
+  try { return localStorage.getItem(FORCE_MARKDOWN_KEY) === "1"; } catch { return false; }
 }
-export function setJsonBetaEnabled(v: boolean): void {
+export function setForceMarkdownEnabled(v: boolean): void {
   try {
-    if (v) localStorage.setItem(FLAG_KEY, "1");
-    else localStorage.removeItem(FLAG_KEY);
+    if (v) localStorage.setItem(FORCE_MARKDOWN_KEY, "1");
+    else localStorage.removeItem(FORCE_MARKDOWN_KEY);
   } catch { /* ignore */ }
 }
+
+/** JSON = défaut prod. On ne renvoie false QUE si Force-Markdown est actif. */
+export function isJsonBetaEnabled(): boolean {
+  return !isForceMarkdownEnabled();
+}
+export function setJsonBetaEnabled(v: boolean): void {
+  // Compat rétro : setJsonBetaEnabled(true) désactive le forçage Markdown ;
+  // setJsonBetaEnabled(false) l'active. Nettoie l'ancienne clé legacy.
+  try { localStorage.removeItem(LEGACY_JSON_BETA_KEY); } catch { /* ignore */ }
+  setForceMarkdownEnabled(!v);
+}
+

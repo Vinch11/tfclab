@@ -75,10 +75,10 @@ function isTemplateIncompatibleWithObjective(
 
 /** Trouve la fiche bibliothèque correspondant à une séance du plan IA. */
 export function findLibraryWorkoutForSession(
-  session: Pick<ParsedSession, "title" | "details">,
+  session: Pick<ParsedSession, "title" | "details"> & { catalogId?: string | null },
   objectifEffectif?: string | null,
 ): LibraryWorkout | null {
-  const id = extractCatalogId(session.title || "", session.details || "");
+  const id = extractCatalogId(session.title || "", session.details || "", session.catalogId ?? null);
   if (!id) return null;
   const w = byId.get(id.toUpperCase()) || null;
   if (!w) return null;
@@ -156,7 +156,7 @@ export function toFiche(w: LibraryWorkout): EnrichedSessionFiche {
 }
 
 export function getFicheForSession(
-  session: Pick<ParsedSession, "title" | "details">,
+  session: Pick<ParsedSession, "title" | "details"> & { catalogId?: string | null },
   objectifEffectif?: string | null,
 ): EnrichedSessionFiche | null {
   const w = findLibraryWorkoutForSession(session, objectifEffectif);
