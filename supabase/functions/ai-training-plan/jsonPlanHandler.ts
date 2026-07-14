@@ -334,6 +334,127 @@ function applyOffsportTrailGuardToChunks(
   return { chunks, repairs };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 2A.2 — Enforcement SL déterministe (post-guard, pré-merge final)
+// Si une semaine load/recovery n'a AUCUNE séance du sport concerné ≥ plancher
+// SL, on prend la séance la plus longue de ce sport dans la semaine et on la
+// SUBSTITUE par une séance catalogue même sport, classe endurance, durée
+// ≥ plancher. Aucun candidat → on ne fait rien (le critical quota_floor_violation
+// reste). JAMAIS d'allongement artificiel d'une séance existante.
+// ─────────────────────────────────────────────────────────────────────────────
+interface SLUpgradeRepair {
+  code: "sl_upgraded" | "sl_upgrade_unresolved";
+  severity: "warning" | "critical";
+  chunkIndex: number;
+  weekNumber: number;
+  weekType: string;
+  sport: "bike" | "run";
+  floorMin: number;
+  before: { day: string; title: string; durationMin: number; catalogId: string | null };
+  after?: { day: string; title: string; catalogId: string; durationMin: number };
+  reason: string;
+}
+
+interface SLWeekFloor {
+  weekType: "load" | "recovery" | "taper" | "race";
+  longRideWeekly?: boolean;
+  longRunWeekly?: boolean;
+  slLongRideMin?: number;
+  slLongRunMin?: number;
+}
+
+function applySLFloorEnforcement(
+  chunks: PlanChunk[],
+  weeklyQuotas: Record<number, SLWeekFloor> | undefined | null,
+  catalogDumpsByChunk: Array<string | null | undefined>,
+): { chunks: PlanChunk[]; repairs: SLUpgradeRepair[] } {
+  const repairs: SLUpgradeRepair[] = [];
+  if (!weeklyQuotas || typeof weeklyQuotas !== "object") return { chunks, repairs };
+  const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+
+  chunks.forEach((chunk, ci) => {
+    const candidates = candidatesByChunk[ci] ?? [];
+    for (const week of chunk.weeks ?? []) {
+      const entry = weeklyQuotas[week.weekNumber];
+      if (!entry) continue;
+      if (entry.weekType === "taper" || entry.weekType === "race") continue;
+
+      const specs: Array<{ sport: "bike" | "run"; required: boolean; floor: number }> = [
+        { sport: "bike", required: !!entry.longRideWeekly, floor: entry.slLongRideMin ?? 0 },
+        { sport: "run",  required: !!entry.longRunWeekly,  floor: entry.slLongRunMin  ?? 0 },
+      ];
+
+      for (const spec of specs) {
+        if (!spec.required || spec.floor <= 0) continue;
+        const sameSport = (week.sessions ?? []).filter(s => s.sport === spec.sport);
+        const alreadyMeetsFloor = sameSport.some(s => (s.durationMin ?? 0) >= spec.floor);
+        if (alreadyMeetsFloor) continue;
+        if (sameSport.length === 0) continue; // pas de séance à upgrader → critical restera
+
+        // Séance la plus longue = candidate à substituer
+        const target = sameSport.reduce((a, b) => (a.durationMin ?? 0) >= (b.durationMin ?? 0) ? a : b);
+
+        // Cherche dans le catalogue une séance endurance/SL même sport ≥ plancher
+        const endurance = candidates
+          .filter(c => c.sport === spec.sport)
+          .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
+          .filter(x => x.cls === "endurance" || x.cls === "recovery")
+          .filter(x => x.c.durationMin[1] >= spec.floor || x.c.durationMedian >= spec.floor)
+          .sort((a, b) => a.c.durationMedian - b.c.durationMedian);
+
+        // Prend la première ≥ plancher (durée médiane la plus proche du plancher).
+        const picked = endurance.find(x => x.c.durationMedian >= spec.floor) ?? endurance[0];
+
+        if (!picked) {
+          repairs.push({
+            code: "sl_upgrade_unresolved",
+            severity: "critical",
+            chunkIndex: ci, weekNumber: week.weekNumber, weekType: entry.weekType,
+            sport: spec.sport, floorMin: spec.floor,
+            before: {
+              day: target.day, title: target.title ?? "",
+              durationMin: target.durationMin ?? 0,
+              catalogId: (target as any).catalogId ?? null,
+            },
+            reason: `no endurance/SL ${spec.sport} catalog candidate ≥ ${spec.floor}min (candidates=${candidates.filter(c => c.sport === spec.sport).length})`,
+          });
+          continue;
+        }
+
+        const cand = picked.c;
+        const newDur = Math.max(
+          spec.floor,
+          Math.min(cand.durationMin[1], Math.max(cand.durationMin[0], target.durationMin ?? cand.durationMedian)),
+        );
+        const before = {
+          day: target.day, title: target.title ?? "",
+          durationMin: target.durationMin ?? 0,
+          catalogId: (target as any).catalogId ?? null,
+        };
+        const mut = target as PlanSession;
+        mut.title = cand.title;
+        mut.details = `${cand.structure || cand.title}. [ID: ${cand.id}]`;
+        (mut as any).catalogId = cand.id;
+        (mut as any).custom = false;
+        mut.durationMin = newDur;
+        mut.zones = cand.zones;
+        (mut as any).isKeySession = true;
+
+        repairs.push({
+          code: "sl_upgraded",
+          severity: "warning",
+          chunkIndex: ci, weekNumber: week.weekNumber, weekType: entry.weekType,
+          sport: spec.sport, floorMin: spec.floor,
+          before,
+          after: { day: mut.day, title: mut.title, catalogId: cand.id, durationMin: newDur },
+          reason: `SL ${spec.sport} floor ${spec.floor}min not met (longest ${before.durationMin}min) → substituted by ${cand.id} (${newDur}min)`,
+        });
+      }
+    }
+  });
+  return { chunks, repairs };
+}
+
 interface HandlerInput {
   apiKey: string;
   athleteData: any;
