@@ -323,7 +323,7 @@ export function buildWorkoutCatalog(
       if (options?.sportFilter && options.sportFilter.length > 0) {
         if (!options.sportFilter.includes(w.sport)) return false;
       }
-      if (options?.excludeIds?.has(w.id)) return false;
+      if (options?.excludeIds?.has(w.id) && !isStructuralSession(w)) return false;
       if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) return false;
       if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) return false;
       if (prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w)) {
