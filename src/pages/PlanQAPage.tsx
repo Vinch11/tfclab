@@ -251,7 +251,10 @@ export default function PlanQAPage() {
         >
           <b>{selfTest.ok ? "✅ Runner opérationnel" : "🔴 Runner indisponible"}</b> — {selfTest.message}
         </div>
-      )}
+
+      {/* Sentinelle légère prod */}
+      <ProductionSentinelPanel />
+
 
       {/* Feature flag */}
       <Card>
