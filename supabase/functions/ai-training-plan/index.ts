@@ -639,11 +639,19 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
                 : null;
               const chunkPhaseCatalog = chunkSpecificCatalog || getWorkoutCatalogForPhase(activePhase);
 
+              // PHASE 2A — bloc quotas hebdo pré-calculé côté client (injecté avant catalogue)
+              const _quotasBlockByChunk = Array.isArray(planConfig?._weeklyQuotasPromptByChunk)
+                ? planConfig._weeklyQuotasPromptByChunk
+                : [];
+              const quotasBlockForChunk = typeof _quotasBlockByChunk[ci] === "string" && _quotasBlockByChunk[ci].length > 0
+                ? `\n${_quotasBlockByChunk[ci]}\n`
+                : "";
+
               let chunkPrompt: string;
               if (isFirst) {
                 const allChunksSummary = chunks.map(c => `Semaines ${c.start}-${c.end}`).join(", ");
                 // FIX C2 (audit): Inject structuredDiagnostic in chunk 1 to anchor phase bounds from the start
-                chunkPrompt = `${userPrompt}
+                chunkPrompt = `${userPrompt}${quotasBlockForChunk}
 ${chunkPhaseCatalog ? `\n${chunkPhaseCatalog}\n` : ""}
 ${canonicalRaceCard}
 
@@ -724,7 +732,7 @@ IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${exp
                   }
                 }
 
-                chunkPrompt = `${userPrompt}
+                chunkPrompt = `${userPrompt}${quotasBlockForChunk}
 ${chunkPhaseCatalog ? `\n📚 CATALOGUE SÉANCES FILTRÉES POUR CETTE PHASE (${activePhase}) :\n${chunkPhaseCatalog}\n` : ""}
 ⚠️ GÉNÉRATION PAR BLOC (suite) : Génère UNIQUEMENT les semaines ${chunk.start} à ${chunk.end} (sur ${totalWeeks} total).
 NE PAS répéter le diagnostic ni le récapitulatif stratégique. NE PAS ajouter d'introduction.

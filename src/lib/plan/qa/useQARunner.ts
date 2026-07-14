@@ -64,10 +64,12 @@ export function useQARunner() {
   const mergedPlanRef = useRef(plan.mergedPlan);
   const parsedPlanRef = useRef(plan.parsedPlan);
   const issuesRef = useRef(plan.sportObjectiveIssues);
+  const quotaIssuesRef = useRef(plan.weeklyQuotaIssues);
   isLoadingRef.current = plan.isLoading;
   mergedPlanRef.current = plan.mergedPlan;
   parsedPlanRef.current = plan.parsedPlan;
   issuesRef.current = plan.sportObjectiveIssues;
+  quotaIssuesRef.current = plan.weeklyQuotaIssues;
 
   const runFullSuite = useCallback(async (N: 1 | 3 | 5, profileFilter?: Array<"B-70.3" | "B-SEMI" | "B-SPRINT">): Promise<QASession> => {
     if (isLoadingRef.current) throw new Error("Une génération est déjà en cours — attendez la fin.");
@@ -155,6 +157,8 @@ export function useQARunner() {
               sportObjectiveIssues: issues,
               stat: newStat,
               objective: profile.planConfig.objective,
+              quotaIssues: quotaIssuesRef.current,
+              quotasByWeek: plan.lastWeeklyQuotasRef.current,
             });
           } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
