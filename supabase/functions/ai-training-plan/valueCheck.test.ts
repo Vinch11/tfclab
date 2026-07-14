@@ -45,10 +45,10 @@ Deno.test("value_corrected — 3x12' @90% FTP (149W) → recalculé à 252W", ()
   assert(!r.chunks[0].weeks[0].sessions[0].title.includes("149W"));
 });
 
-Deno.test("conforme — Z2 (200-220W) ne déclenche aucun repair", () => {
+Deno.test("conforme — Z2 (170-200W) ne déclenche aucun repair", () => {
   const chunk = mkChunk([{
     day: "lundi", sport: "bike", zones: ["Z2"],
-    title: "Endurance Z2 (200-220W)", details: "",
+    title: "Endurance Z2 (170-200W)", details: "",
     isKeySession: false, custom: true, catalogId: null, durationMin: 90,
   }]);
   const r = applyValueCheck([chunk], targetTable);
