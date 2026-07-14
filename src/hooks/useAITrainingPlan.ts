@@ -486,11 +486,20 @@ export function useAITrainingPlan() {
             const severity = data.severity ?? "warning";
             const repair = data.repair;
             if (repair?.before) {
-              const before = `${repair.before.title ?? "?"} (${repair.before.durationMin ?? "?"}min)`;
-              const after = repair.after
-                ? `${repair.after.title ?? "?"} [${repair.after.catalogId ?? "?"}] (${repair.after.durationMin ?? "?"}min)`
-                : "aucun candidat catalogue ±15min";
-              semanticRepairs.push(`[${severity}] ${code}: ${before} → ${after}`);
+              const sport = repair.sport ?? "?";
+              const target = repair.targetDurationMin ?? repair.before?.durationMin ?? "?";
+              const sameCount = repair.sameSportCandidatesInChunk ?? "?";
+              const totalCount = repair.totalCandidatesInChunk ?? "?";
+              const nearest = Array.isArray(repair.nearestCandidates) && repair.nearestCandidates.length > 0
+                ? repair.nearestCandidates.map((n: any) => `${n.id}(${n.durationMedian}min,Δ${n.deltaMin}min)`).join(" | ")
+                : "aucun";
+              const beforeTitle = repair.before.title ?? "?";
+              const beforeDetails = (repair.before.details ?? "").slice(0, 240);
+              const beforeStr = `"${beforeTitle}" [${target}min ${sport}] details="${beforeDetails}"`;
+              const afterStr = repair.after
+                ? `"${repair.after.title ?? "?"}" [${repair.after.catalogId ?? "?"}] (${repair.after.durationMin ?? "?"}min, Δ${repair.after.deltaMin ?? "?"}min)`
+                : `UNRESOLVED — sameSportCandidates=${sameCount}/${totalCount}, nearest=[${nearest}]`;
+              semanticRepairs.push(`[${severity}] ${code}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} — ${beforeStr} → ${afterStr}`);
             } else {
               const msg = data.message ?? JSON.stringify(data);
               semanticRepairs.push(`[${severity}] ${code}: ${msg}`);
