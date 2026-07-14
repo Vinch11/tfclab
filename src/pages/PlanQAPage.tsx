@@ -25,6 +25,7 @@ import { zDay, zPhase, zSport } from "@/lib/plan/planSchema";
 import { useQARunner } from "@/lib/plan/qa/useQARunner";
 import { buildQAReport, readQASessions, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
 import { supabase } from "@/integrations/supabase/client";
+import { ProductionSentinelPanel } from "@/components/plan-qa/ProductionSentinelPanel";
 import { toast } from "sonner";
 
 function formatDuration(ms: number): string {
@@ -251,6 +252,10 @@ export default function PlanQAPage() {
           <b>{selfTest.ok ? "✅ Runner opérationnel" : "🔴 Runner indisponible"}</b> — {selfTest.message}
         </div>
       )}
+
+      {/* Sentinelle légère prod */}
+      <ProductionSentinelPanel />
+
 
       {/* Feature flag */}
       <Card>
