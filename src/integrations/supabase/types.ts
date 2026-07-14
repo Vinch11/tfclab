@@ -1040,6 +1040,42 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_qa_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          n: number
+          payload: Json
+          runs_count: number
+          summary: string
+          ts: string
+          user_id: string
+          verdict: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          n: number
+          payload: Json
+          runs_count: number
+          summary: string
+          ts?: string
+          user_id: string
+          verdict: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          n?: number
+          payload?: Json
+          runs_count?: number
+          summary?: string
+          ts?: string
+          user_id?: string
+          verdict?: string
+        }
+        Relationships: []
+      }
       plan_versions: {
         Row: {
           athlete_id: string

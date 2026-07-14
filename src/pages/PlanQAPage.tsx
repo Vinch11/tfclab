@@ -23,7 +23,7 @@ import {
 import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { zDay, zPhase, zSport } from "@/lib/plan/planSchema";
 import { useQARunner } from "@/lib/plan/qa/useQARunner";
-import { buildQAReport, readQASessions, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
+import { buildQAReport, readQASessions, readQASessionsCloud, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductionSentinelPanel } from "@/components/plan-qa/ProductionSentinelPanel";
 import { toast } from "sonner";
@@ -160,12 +160,20 @@ export default function PlanQAPage() {
   const [qaSessions, setQaSessions] = useState<QASession[]>(readQASessions());
   const qa = useQARunner();
 
+  // Charge l'historique QA depuis le cloud (source de vérité cross-onglet).
+  useEffect(() => {
+    void readQASessionsCloud().then(cloud => {
+      if (cloud.length > 0) setQaSessions(cloud);
+    });
+  }, []);
+
   // Expose to Playwright/E2E for targeted runs
   useEffect(() => {
     (window as any).__tfclQA = {
       runFullSuite: qa.runFullSuite,
       buildQAReport,
       readQASessions,
+      readQASessionsCloud,
     };
     return () => { try { delete (window as any).__tfclQA; } catch { /* noop */ } };
   }, [qa.runFullSuite]);
@@ -308,7 +316,7 @@ export default function PlanQAPage() {
                 try {
                   const s = await qa.runFullSuite(qaN);
                   setStats(readPlanStats());
-                  setQaSessions(readQASessions());
+                  setQaSessions(await readQASessionsCloud());
                   if (s.verdict === "🟢") toast.success(`QA terminée — ${s.summary}`);
                   else if (s.verdict === "🟠") toast.warning(`QA terminée — ${s.summary}`);
                   else toast.error(`QA terminée — ${s.summary}`);
@@ -316,7 +324,7 @@ export default function PlanQAPage() {
                   const msg = e instanceof Error ? e.message : String(e);
                   toast.error(`QA interrompue : ${msg}`);
                   setStats(readPlanStats());
-                  setQaSessions(readQASessions());
+                  setQaSessions(await readQASessionsCloud());
                 }
               }}
               disabled={qa.progress.running || !runnerReady}
@@ -410,7 +418,7 @@ export default function PlanQAPage() {
           {qaSessions.length > 0 && (
             <details className="text-xs">
               <summary className="cursor-pointer text-muted-foreground">
-                Historique QA ({qaSessions.length} session{qaSessions.length > 1 ? "s" : ""})
+                Historique QA ({qaSessions.length} session{qaSessions.length > 1 ? "s" : ""}) — persisté cloud
               </summary>
               <div className="mt-2 space-y-1">
                 {[...qaSessions].reverse().map((s, i) => (
@@ -424,12 +432,25 @@ export default function PlanQAPage() {
                     >
                       afficher
                     </button>
+                    <button
+                      className="text-primary underline underline-offset-2"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(buildQAReport(s));
+                        toast.success("Rapport QA copié.");
+                      }}
+                    >
+                      copier
+                    </button>
                   </div>
                 ))}
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => { clearQASessions(); setQaSessions([]); }}
+                  onClick={async () => {
+                    clearQASessions();
+                    setQaSessions([]);
+                    // clearQASessions supprime aussi côté cloud (fire-and-forget).
+                  }}
                 >
                   Effacer l'historique QA
                 </Button>

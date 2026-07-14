@@ -177,7 +177,7 @@ export function buildQAReport(session: QASession): string {
   return lines.join("\n");
 }
 
-// ── LocalStorage persistence ────────────────────────────────────────────────
+// ── Persistence : localStorage (cache) + Supabase (source de vérité) ───────
 
 const QA_KEY = "tfcl:plan_qa_sessions";
 const MAX_SESSIONS = 20;
@@ -198,8 +198,59 @@ export function saveQASession(session: QASession): void {
     const trimmed = cur.slice(-MAX_SESSIONS);
     localStorage.setItem(QA_KEY, JSON.stringify(trimmed));
   } catch { /* ignore */ }
+  // Mirror vers Supabase (source de vérité cross-onglet). Fire-and-forget.
+  void persistQASessionToCloud(session).catch(() => { /* ignore */ });
 }
 
 export function clearQASessions(): void {
   try { localStorage.removeItem(QA_KEY); } catch { /* ignore */ }
+  void clearQASessionsCloud().catch(() => { /* ignore */ });
+}
+
+async function persistQASessionToCloud(session: QASession): Promise<void> {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: sess } = await supabase.auth.getSession();
+    const userId = sess.session?.user.id ?? null;
+    if (!userId) return;
+    await supabase.from("plan_qa_sessions").insert([{
+      user_id: userId,
+      ts: new Date(session.ts).toISOString(),
+      verdict: session.verdict,
+      summary: session.summary,
+      n: session.n,
+      runs_count: session.runs.length,
+      payload: JSON.parse(JSON.stringify(session)),
+    }]);
+  } catch { /* ignore */ }
+}
+
+/** Lit les 50 dernières sessions QA de l'utilisateur depuis Supabase. */
+export async function readQASessionsCloud(): Promise<QASession[]> {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: sess } = await supabase.auth.getSession();
+    const userId = sess.session?.user.id ?? null;
+    if (!userId) return [];
+    const { data, error } = await supabase
+      .from("plan_qa_sessions")
+      .select("payload, ts")
+      .eq("user_id", userId)
+      .order("ts", { ascending: true })
+      .limit(50);
+    if (error || !data) return [];
+    return data
+      .map(r => r.payload as unknown as QASession)
+      .filter(s => s && typeof s === "object" && Array.isArray((s as QASession).runs));
+  } catch { return []; }
+}
+
+async function clearQASessionsCloud(): Promise<void> {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: sess } = await supabase.auth.getSession();
+    const userId = sess.session?.user.id ?? null;
+    if (!userId) return;
+    await supabase.from("plan_qa_sessions").delete().eq("user_id", userId);
+  } catch { /* ignore */ }
 }
