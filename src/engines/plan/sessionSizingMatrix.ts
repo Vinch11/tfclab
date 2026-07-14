@@ -29,6 +29,10 @@ export interface SizingFloors {
   longRideWeekly?: boolean;       // 1 SL vélo/sem hors taper
   longRunWeekly?: boolean;        // 1 SL CAP/sem hors taper
   minStrengthPerWeek: number;     // jamais 0 (Petersen, effet protecteur)
+  /** Durée plancher SL vélo (min). Injectée par format. Recovery ×0.7. */
+  slLongRideMin?: number;
+  /** Durée plancher SL CAP (min). Injectée par format. Recovery ×0.7. */
+  slLongRunMin?: number;
 }
 
 export type SizingObjectiveKey =
@@ -92,55 +96,67 @@ type Matrix = Record<SizingObjectiveKey, Partial<Record<SizingAmbitionKey, Ambit
 
 const MATRIX: Matrix = {
   "703": {
-    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 9  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 3, max: 3 }, run: { min: 3, max: 3 }, brick: { min: 1, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 11, max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
-    competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 1, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 14 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 1, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 5 }, bike: { min: 4, max: 5 }, run: { min: 4, max: 5 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 2 }, totalSessions: { min: 15, max: 18 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
   },
   IM: {
-    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 9  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 3, max: 3 }, run: { min: 3, max: 3 }, brick: { min: 1, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 11, max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
-    competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 1, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 14 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 1, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 6 }, bike: { min: 4, max: 5 }, run: { min: 4, max: 5 }, brick: { min: 1, max: 2 }, strength: { min: 2, max: 2 }, totalSessions: { min: 15, max: 18 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
   },
   // TRI court : bike/run = 703 −1 (plancher 2), swim identique 703, brick 0-1, strength idem 703.
   TRI_SPRINT: {
-    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 8,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 2, max: 3 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 5 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 15 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
   },
   TRI_OLYMPIQUE: {
-    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
+    finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 2 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 8,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 11, hoursMax: 14, swim: { min: 3, max: 4 }, bike: { min: 2, max: 3 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 9,  max: 12 }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { hoursMin: 15, hoursMax: 30, swim: { min: 4, max: 5 }, bike: { min: 3, max: 4 }, run: { min: 3, max: 4 }, brick: { min: 0, max: 1 }, strength: { min: 2, max: 2 }, totalSessions: { min: 12, max: 15 }, maxSessionsPerDay: 3, minFullRestDays: 0 },
   },
   // CAP route — pas de seuil horaire (matrice v1)
   SEMI: {
-    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
-    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
-    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 6,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
   MARATHON: {
-    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
-    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
-    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 6,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
   "10K": {
-    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
-    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
-    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 6,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
   "5K": {
-    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
-    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 1, minFullRestDays: 1 },
-    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 6,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
+};
+
+/** Durées planchers SL par format (min). Consommées par validateWeeklyQuotas. */
+const SL_MIN_BY_OBJECTIVE: Record<SizingObjectiveKey, { bike?: number; run?: number }> = {
+  IM:            { bike: 150, run: 100 },
+  "703":         { bike: 120, run: 90 },
+  TRI_OLYMPIQUE: { bike: 90,  run: 70 },
+  TRI_SPRINT:    { bike: 75,  run: 60 },
+  SEMI:          { run: 90 },
+  MARATHON:      { run: 110 },
+  "10K":         { run: 60 },
+  "5K":          { run: 60 },
 };
 
 function sourceFor(obj: SizingObjectiveKey): { tier: EvidenceTier; ref: string } {
@@ -185,7 +201,11 @@ function isTri(obj: SizingObjectiveKey): boolean {
 }
 
 function floorsFor(obj: SizingObjectiveKey): SizingFloors {
-  return isTri(obj) ? FLOORS_TRI : FLOORS_CAP;
+  const base = isTri(obj) ? { ...FLOORS_TRI } : { ...FLOORS_CAP };
+  const sl = SL_MIN_BY_OBJECTIVE[obj];
+  if (sl?.bike && base.longRideWeekly) base.slLongRideMin = sl.bike;
+  if (sl?.run && base.longRunWeekly) base.slLongRunMin = sl.run;
+  return base;
 }
 
 /**
@@ -274,6 +294,10 @@ export function computeWeeklySessionQuota(
       totalSessions: { min: Math.max(0, totMinR), max: Math.max(0, totMaxR) },
       source: { tier: "elite_practice", ref: "pratique standard cycles 3:1" },
     };
+    // Recovery : SL maintenues mais durée plancher × 0.7 (arrondi 5min)
+    const round5 = (v: number) => Math.round((v * 0.7) / 5) * 5;
+    if (typeof localFloors.slLongRideMin === "number") localFloors.slLongRideMin = round5(localFloors.slLongRideMin);
+    if (typeof localFloors.slLongRunMin === "number") localFloors.slLongRunMin = round5(localFloors.slLongRunMin);
   } else if (weekType === "taper") {
     // Fréquence quasi intacte : total -1 à -2 séances max, floors maintenus
     // sauf longRideWeekly / longRunWeekly désactivés.
@@ -290,6 +314,8 @@ export function computeWeeklySessionQuota(
     };
     localFloors.longRideWeekly = false;
     localFloors.longRunWeekly = false;
+    localFloors.slLongRideMin = undefined;
+    localFloors.slLongRunMin = undefined;
   } else if (weekType === "race") {
     // Floors uniquement (swim min, strength 0 autorisé), reste libre.
     quota = {
@@ -300,6 +326,8 @@ export function computeWeeklySessionQuota(
     localFloors.minStrengthPerWeek = 0;
     localFloors.longRideWeekly = false;
     localFloors.longRunWeekly = false;
+    localFloors.slLongRideMin = undefined;
+    localFloors.slLongRunMin = undefined;
   }
 
   return { quota, floors: localFloors, downgraded, downgradeReason };

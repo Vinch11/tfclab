@@ -34,6 +34,7 @@ import {
 import {
   extractCatalogIdsFromDump,
   TRAIL_DETAILS_CRITICAL_RX,
+  firstTrailCriticalMarker,
   type BuildPlanChunkSchemaOptions,
   type PlanChunk,
   type PlanSession,
@@ -70,6 +71,8 @@ interface OffsportTrailRepair {
   before: { title: string; details: string; durationMin: number };
   after?: { title: string; catalogId: string; durationMin: number; deltaMin: number };
   reason: string;
+  /** PHASE 2A.1 (task C) — nom exact du marqueur regex qui a déclenché. */
+  matchedMarker: string | null;
   sameSportCandidatesInChunk: number;
   totalCandidatesInChunk: number;
   nearestCandidates: OffsportNearestCandidate[];
@@ -230,7 +233,9 @@ function applyOffsportTrailGuardToChunks(
     for (const week of chunk.weeks ?? []) {
       for (const session of week.sessions ?? []) {
         if (session.custom !== true || session.sport === "rest") continue;
-        if (!TRAIL_DETAILS_CRITICAL_RX.test(`${session.title ?? ""} ${session.details ?? ""}`)) continue;
+        const scanText = `${session.title ?? ""} ${session.details ?? ""}`;
+        const matchedMarker = firstTrailCriticalMarker(scanText);
+        if (!matchedMarker) continue;
         const targetDur = session.durationMin ?? 0;
         const sessionSport = normalizeSport(session.sport);
         const tolerance = computeToleranceMin(targetDur);
@@ -284,7 +289,8 @@ function applyOffsportTrailGuardToChunks(
             day: session.day,
             sport: session.sport,
             before,
-            reason: `no catalog candidate within ±${tolerance}min AND same intensity class="${requiredClass}" (sport=${sessionSport}, target=${targetDur}min, sameSportCandidates=${sameSport.length}/${candidates.length}, nearest=[${nearestStr}])`,
+            reason: `no catalog candidate within ±${tolerance}min AND same intensity class="${requiredClass}" (sport=${sessionSport}, target=${targetDur}min, sameSportCandidates=${sameSport.length}/${candidates.length}, nearest=[${nearestStr}], matchedMarker=${matchedMarker})`,
+            matchedMarker,
             sameSportCandidatesInChunk: sameSport.length,
             totalCandidatesInChunk: candidates.length,
             nearestCandidates: nearest3,
@@ -315,7 +321,8 @@ function applyOffsportTrailGuardToChunks(
           sport: session.sport,
           before,
           after: { title: mutable.title, catalogId: candidate.id, durationMin: nextDuration, deltaMin: delta },
-          reason: `custom trail vocabulary → ${brickFallback ? "brick→bike fallback" : "same-sport"} catalog substitution (sport=${sessionSport}${brickFallback ? "→bike" : ""}, target=${targetDur}min, tolerance=±${tolerance}min, Δ=${delta}min, sameSportCandidates=${sameSport.length}/${candidates.length})`,
+          reason: `custom trail vocabulary → ${brickFallback ? "brick→bike fallback" : "same-sport"} catalog substitution (sport=${sessionSport}${brickFallback ? "→bike" : ""}, target=${targetDur}min, tolerance=±${tolerance}min, Δ=${delta}min, sameSportCandidates=${sameSport.length}/${candidates.length}, matchedMarker=${matchedMarker})`,
+          matchedMarker,
           sameSportCandidatesInChunk: sameSport.length,
           totalCandidatesInChunk: candidates.length,
           nearestCandidates: nearest3,
@@ -545,8 +552,8 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           );
           for (const repair of guard.repairs) {
             const msg = repair.code === "substituted_offsport"
-              ? `S${repair.weekNumber} ${repair.day}: custom trail marker substituted by ${repair.after?.catalogId}`
-              : `S${repair.weekNumber} ${repair.day}: custom trail marker unresolved (no same-sport catalogue candidate ±15min)`;
+              ? `S${repair.weekNumber} ${repair.day}: custom trail marker "${repair.matchedMarker}" substituted by ${repair.after?.catalogId}`
+              : `S${repair.weekNumber} ${repair.day}: custom trail marker "${repair.matchedMarker}" unresolved (no same-sport catalogue candidate ±15min)`;
             console.warn(`[B3 offsport guard] ${repair.code}: ${msg}`, repair);
             enqueue("warning", {
               code: repair.code,

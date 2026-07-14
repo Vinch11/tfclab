@@ -13,10 +13,11 @@
  */
 import type { MergedPlan } from "./mergePlanChunks";
 import type { WeeklyQuota, SizingFloors, WeekType } from "@/engines/plan/sessionSizingMatrix";
+import { diffLayoutVsWeek, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 
 export interface QuotaIssue {
   severity: "critical" | "warning";
-  code: "quota_floor_violation" | "quota_range_drift";
+  code: "quota_floor_violation" | "quota_range_drift" | "layout_drift";
   weekNumber: number;
   reason: string;
   expected?: string;
@@ -29,10 +30,13 @@ export interface WeekQuotaEntry {
   weekType: WeekType;
   downgraded: boolean;
   downgradeReason?: string;
+  /** Layout jour-par-jour attendu (Phase 2A.1 — optional). */
+  layout?: WeeklySlotLayout;
 }
 
-const LONG_RIDE_MIN_MIN = 120; // ≥2h = sortie longue vélo
-const LONG_RUN_MIN_MIN = 90;   // ≥1h30 = sortie longue CAP
+// Fallback si le format n'a pas de plancher SL explicite (ex: matrice ancienne).
+const LONG_RIDE_DEFAULT_MIN = 120;
+const LONG_RUN_DEFAULT_MIN = 90;
 
 export function validateWeeklyQuotas(
   merged: MergedPlan,
@@ -44,18 +48,24 @@ export function validateWeeklyQuotas(
     if (!entry) continue;
     const q = entry.quota;
     const floors = entry.floors;
+    const slBikeMin = floors.slLongRideMin ?? LONG_RIDE_DEFAULT_MIN;
+    const slRunMin = floors.slLongRunMin ?? LONG_RUN_DEFAULT_MIN;
 
     // Compte par sport (rest exclu)
     const counts = { swim: 0, bike: 0, run: 0, brick: 0, strength: 0 } as Record<string, number>;
     const dayCounts = new Map<string, number>();
+    const dayObservedSports = new Map<string, string[]>();
     let hasLongRide = false;
     let hasLongRun = false;
     for (const s of w.sessions) {
       if (s.isRest || s.sport === "rest") continue;
       if (s.sport in counts) counts[s.sport]++;
       dayCounts.set(s.dayName, (dayCounts.get(s.dayName) ?? 0) + 1);
-      if (s.sport === "bike" && (s.durationMin ?? 0) >= LONG_RIDE_MIN_MIN) hasLongRide = true;
-      if (s.sport === "run" && (s.durationMin ?? 0) >= LONG_RUN_MIN_MIN) hasLongRun = true;
+      const list = dayObservedSports.get(s.dayName) ?? [];
+      list.push(s.sport);
+      dayObservedSports.set(s.dayName, list);
+      if (s.sport === "bike" && (s.durationMin ?? 0) >= slBikeMin) hasLongRide = true;
+      if (s.sport === "run" && (s.durationMin ?? 0) >= slRunMin) hasLongRun = true;
     }
     const uniqueTrainingDays = dayCounts.size;
     const restDays = Math.max(0, 7 - uniqueTrainingDays);
@@ -71,15 +81,15 @@ export function validateWeeklyQuotas(
     if (floors.longRideWeekly && !hasLongRide) {
       out.push({
         severity: "critical", code: "quota_floor_violation", weekNumber: w.weekNumber,
-        reason: `pas de SL vélo (≥${LONG_RIDE_MIN_MIN}min) en semaine ${entry.weekType}`,
-        expected: `1 bike ≥${LONG_RIDE_MIN_MIN}min`, observed: "aucun",
+        reason: `pas de SL vélo (≥${slBikeMin}min) en semaine ${entry.weekType}`,
+        expected: `1 bike ≥${slBikeMin}min`, observed: "aucun",
       });
     }
     if (floors.longRunWeekly && !hasLongRun) {
       out.push({
         severity: "critical", code: "quota_floor_violation", weekNumber: w.weekNumber,
-        reason: `pas de SL CAP (≥${LONG_RUN_MIN_MIN}min) en semaine ${entry.weekType}`,
-        expected: `1 run ≥${LONG_RUN_MIN_MIN}min`, observed: "aucun",
+        reason: `pas de SL CAP (≥${slRunMin}min) en semaine ${entry.weekType}`,
+        expected: `1 run ≥${slRunMin}min`, observed: "aucun",
       });
     }
     if (counts.strength < floors.minStrengthPerWeek) {
@@ -129,6 +139,18 @@ export function validateWeeklyQuotas(
         reason: `total ${total} hors fourchette [${q.totalSessions.min}, ${q.totalSessions.max}]`,
         expected: `${q.totalSessions.min}-${q.totalSessions.max} séances`, observed: `${total}`,
       });
+    }
+
+    // ─── LAYOUT DRIFT (warnings v1) ────────────────────────────────────────
+    if (entry.layout) {
+      const drifts = diffLayoutVsWeek(entry.layout, dayObservedSports);
+      for (const dr of drifts.slice(0, 5)) {
+        out.push({
+          severity: "warning", code: "layout_drift", weekNumber: w.weekNumber,
+          reason: `${dr.dayName}: attendu ${dr.expected}, observé ${dr.observed}`,
+          expected: dr.expected, observed: dr.observed,
+        });
+      }
     }
   }
   return out;

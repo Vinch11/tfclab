@@ -20,6 +20,7 @@ import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock } from "@/engines/plan/sessionSizingMatrix";
+import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
@@ -447,7 +448,8 @@ export function useAITrainingPlan() {
         const weekType = inferWeekType(w, totalWeeks);
         const q = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType);
         if (q) {
-          weeklyQuotas[w] = { quota: q.quota, floors: q.floors, weekType, downgraded: q.downgraded, downgradeReason: q.downgradeReason };
+          const layout: WeeklySlotLayout = buildWeeklySlotLayout(q.quota, q.floors, weekType);
+          weeklyQuotas[w] = { quota: q.quota, floors: q.floors, weekType, downgraded: q.downgraded, downgradeReason: q.downgradeReason, layout };
         }
       }
       lastWeeklyQuotasRef.current = weeklyQuotas;
@@ -465,7 +467,14 @@ export function useAITrainingPlan() {
       for (const c of chunksForQuota) {
         const scope: number[] = [];
         for (let w = c.start; w <= c.end; w++) if (weeklyQuotas[w]) scope.push(w);
-        quotasByChunkText.push(scope.length > 0 ? buildQuotaPromptBlock(scope, weeklyQuotas) : "");
+        if (scope.length === 0) { quotasByChunkText.push(""); continue; }
+        const quotaBlock = buildQuotaPromptBlock(scope, weeklyQuotas);
+        const layoutMap: Record<number, WeeklySlotLayout> = {};
+        for (const w of scope) if (weeklyQuotas[w].layout) layoutMap[w] = weeklyQuotas[w].layout!;
+        const layoutBlock = Object.keys(layoutMap).length > 0
+          ? buildLayoutPromptBlock(scope, layoutMap)
+          : "";
+        quotasByChunkText.push(layoutBlock ? `${quotaBlock}\n\n${layoutBlock}` : quotaBlock);
       }
 
       // Enrichit planConfig avec les quotas (pour transmission edge + traçabilité)

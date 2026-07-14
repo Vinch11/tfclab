@@ -78,4 +78,58 @@ describe("sessionSizingMatrix — computeWeeklySessionQuota", () => {
     expect(inferWeekType(4, 12)).toBe("recovery");
     expect(inferWeekType(5, 12)).toBe("load");
   });
+
+  // ─── PHASE 2A.1 — Invariant de faisabilité sur TOUTES les cellules ─────────
+  it("invariant faisabilité : totalSessions.max ≤ (7−minRest)×maxPerDay ET totalSessions.min ≥ Σ mins sport", () => {
+    const objectives = ["IRONMAN 70.3", "IRONMAN", "TRIATHLON SPRINT", "TRIATHLON OLYMPIQUE",
+                        "SEMI-MARATHON", "MARATHON", "10K", "5K"];
+    const ambitions = ["finisher", "age_group", "competitor", "elite"];
+    for (const obj of objectives) {
+      for (const amb of ambitions) {
+        const r = computeWeeklySessionQuota(obj, amb, 15, "load");
+        if (!r) continue;
+        const q = r.quota;
+        const capacity = (7 - q.minFullRestDays) * q.maxSessionsPerDay;
+        expect(q.totalSessions.max, `${obj}/${amb}: total.max=${q.totalSessions.max} > capacité=${capacity}`).toBeLessThanOrEqual(capacity);
+        const sumMin = q.swim.min + q.bike.min + q.run.min + q.brick.min + q.strength.min;
+        expect(q.totalSessions.min, `${obj}/${amb}: total.min=${q.totalSessions.min} < ΣminsSport=${sumMin}`).toBeGreaterThanOrEqual(sumMin);
+      }
+    }
+  });
+
+  it("finishers ont tous maxSessionsPerDay=2 (1 doublon nat+renfo autorisé)", () => {
+    const objectives = ["IRONMAN 70.3", "IRONMAN", "TRIATHLON SPRINT", "TRIATHLON OLYMPIQUE",
+                        "SEMI-MARATHON", "MARATHON", "10K", "5K"];
+    for (const obj of objectives) {
+      const r = computeWeeklySessionQuota(obj, "finisher", 6, "load");
+      expect(r).not.toBeNull();
+      expect(r!.quota.maxSessionsPerDay).toBe(2);
+    }
+  });
+
+  it("floors 70.3 exposent slLongRideMin=120, slLongRunMin=90", () => {
+    const r = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "load");
+    expect(r!.floors.slLongRideMin).toBe(120);
+    expect(r!.floors.slLongRunMin).toBe(90);
+  });
+
+  it("floors IM exposent slLongRideMin=150, slLongRunMin=100", () => {
+    const r = computeWeeklySessionQuota("IRONMAN", "age_group", 10, "load");
+    expect(r!.floors.slLongRideMin).toBe(150);
+    expect(r!.floors.slLongRunMin).toBe(100);
+  });
+
+  it("recovery week — planchers SL réduits ×0.7 arrondis 5min", () => {
+    const r = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "recovery");
+    // 120*0.7=84 → arrondi 5 → 85 ; 90*0.7=63 → arrondi 5 → 65
+    expect(r!.floors.slLongRideMin).toBe(85);
+    expect(r!.floors.slLongRunMin).toBe(65);
+  });
+
+  it("taper — planchers SL désactivés (undefined)", () => {
+    const r = computeWeeklySessionQuota("IRONMAN 70.3", "age_group", 10, "taper");
+    expect(r!.floors.slLongRideMin).toBeUndefined();
+    expect(r!.floors.slLongRunMin).toBeUndefined();
+    expect(r!.floors.longRideWeekly).toBe(false);
+  });
 });
