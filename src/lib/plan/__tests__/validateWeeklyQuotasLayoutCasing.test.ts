@@ -2,19 +2,16 @@ import { describe, it, expect } from "vitest";
 import { validateWeeklyQuotas, type WeekQuotaEntry } from "../validateWeeklyQuotas";
 import type { MergedPlan } from "../mergePlanChunks";
 import { buildWeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
-import { getWeeklyQuotaFor } from "@/engines/plan/sessionSizingMatrix";
+import { computeWeeklySessionQuota } from "@/engines/plan/sessionSizingMatrix";
 
 // PHASE 2A.2 fix 1 — layout_drift ne doit plus faux-positiver sur casse jour.
 describe("validateWeeklyQuotas — layout_drift casing insensitive", () => {
   it("sessions Mardi/Jeudi (capitalisées) matchent layout mardi/jeudi (lowercase)", () => {
-    const q = getWeeklyQuotaFor({
-      objectiveKey: "SEMI",
-      ambition: "age_group",
-      weeklyHours: 6,
-    });
-    const layout = buildWeeklySlotLayout(q.quota, q.floors, "load");
+    const q = computeWeeklySessionQuota("Semi-marathon", "age_group", 6, "load");
+    expect(q, "quota introuvable").toBeTruthy();
+    const layout = buildWeeklySlotLayout(q!.quota, q!.floors, "load");
     const entry: WeekQuotaEntry = {
-      quota: q.quota, floors: q.floors, weekType: "load",
+      quota: q!.quota, floors: q!.floors, weekType: "load",
       downgraded: false, layout,
     };
     // On construit une "vraie" semaine avec dayName capitalisés (comme mergePlanChunks)
