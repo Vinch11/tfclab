@@ -1023,9 +1023,34 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           }
 
 
-          const merged = mergePlanChunks(slEnforce.chunks, mergedTotal);
-          for (let ci = 0; ci < slEnforce.chunks.length; ci++) {
-            enqueue("chunk-json", { chunkIndex: ci, chunk: slEnforce.chunks[ci] });
+          // PHASE 2A.3 — Réconciliateur (rebalance day + insert missing sport)
+          const reconciled = applyReconciler(
+            slEnforce.chunks,
+            planConfig?._weeklyQuotas ?? null,
+            catalogDumpsByChunk,
+          );
+          for (const line of reconciled.traces) {
+            console.log(line);
+            enqueue("warning", { code: "reconciler_trace", severity: "info", message: line });
+          }
+          for (const repair of reconciled.repairs) {
+            const msg = repair.code === "day_rebalanced"
+              ? `S${repair.weekNumber} rebalance ${repair.sport} ${repair.fromDay}→${repair.toDay}`
+              : repair.code === "session_inserted"
+                ? `S${repair.weekNumber} insert ${repair.sport} on ${repair.toDay} → ${repair.session?.catalogId}`
+                : `S${repair.weekNumber} insert ${repair.sport} unresolved (${repair.reason})`;
+            console.warn(`[Reconciler] ${repair.code}: ${msg}`, repair);
+            enqueue("warning", {
+              code: repair.code,
+              severity: repair.severity,
+              message: msg,
+              repair,
+            });
+          }
+
+          const merged = mergePlanChunks(reconciled.chunks, mergedTotal);
+          for (let ci = 0; ci < reconciled.chunks.length; ci++) {
+            enqueue("chunk-json", { chunkIndex: ci, chunk: reconciled.chunks[ci] });
           }
           enqueue("plan-complete", {
             totalChunks,
