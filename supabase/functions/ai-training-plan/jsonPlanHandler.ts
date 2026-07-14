@@ -684,7 +684,26 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             });
           }
 
-          const merged = mergePlanChunks(guard.chunks, mergedTotal);
+          // PHASE 2A.2 — Enforcement SL déterministe (post-guard, avant merge final)
+          const slEnforce = applySLFloorEnforcement(
+            guard.chunks,
+            planConfig?._weeklyQuotas ?? null,
+            catalogDumpsByChunk,
+          );
+          for (const repair of slEnforce.repairs) {
+            const msg = repair.code === "sl_upgraded"
+              ? `S${repair.weekNumber} ${repair.sport} SL floor ${repair.floorMin}min not met (max ${repair.before.durationMin}min) → ${repair.after?.catalogId} (${repair.after?.durationMin}min)`
+              : `S${repair.weekNumber} ${repair.sport} SL floor ${repair.floorMin}min unresolved (no endurance catalog candidate)`;
+            console.warn(`[SL floor enforce] ${repair.code}: ${msg}`, repair);
+            enqueue("warning", {
+              code: repair.code,
+              severity: repair.severity,
+              message: msg,
+              repair,
+            });
+          }
+
+          const merged = mergePlanChunks(slEnforce.chunks, mergedTotal);
           for (let ci = 0; ci < guard.chunks.length; ci++) {
             enqueue("chunk-json", { chunkIndex: ci, chunk: guard.chunks[ci] });
           }
