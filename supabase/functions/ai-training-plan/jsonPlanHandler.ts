@@ -356,45 +356,94 @@ interface SLUpgradeRepair {
 }
 
 interface SLWeekFloor {
-  weekType: "load" | "recovery" | "taper" | "race";
+  weekType?: "load" | "recovery" | "taper" | "race" | string;
   longRideWeekly?: boolean;
   longRunWeekly?: boolean;
   slLongRideMin?: number;
   slLongRunMin?: number;
+  // Client transporte les planchers sous .floors ; on tolère les deux formes.
+  floors?: {
+    longRideWeekly?: boolean;
+    longRunWeekly?: boolean;
+    slLongRideMin?: number;
+    slLongRunMin?: number;
+  };
+}
+
+/**
+ * Normalise l'entrée quota client (soit top-level, soit sous .floors) en un
+ * objet plat consommable par l'enforcement. Retourne null si vide.
+ */
+function resolveSLFloor(entry: SLWeekFloor | undefined | null): {
+  weekType: string;
+  longRideWeekly: boolean;
+  longRunWeekly: boolean;
+  slLongRideMin: number;
+  slLongRunMin: number;
+} | null {
+  if (!entry) return null;
+  const f = entry.floors ?? {};
+  return {
+    weekType: String(entry.weekType ?? "load"),
+    longRideWeekly: !!(entry.longRideWeekly ?? f.longRideWeekly),
+    longRunWeekly: !!(entry.longRunWeekly ?? f.longRunWeekly),
+    slLongRideMin: Number(entry.slLongRideMin ?? f.slLongRideMin ?? 0),
+    slLongRunMin: Number(entry.slLongRunMin ?? f.slLongRunMin ?? 0),
+  };
 }
 
 function applySLFloorEnforcement(
   chunks: PlanChunk[],
   weeklyQuotas: Record<number, SLWeekFloor> | undefined | null,
   catalogDumpsByChunk: Array<string | null | undefined>,
-): { chunks: PlanChunk[]; repairs: SLUpgradeRepair[] } {
+): { chunks: PlanChunk[]; repairs: SLUpgradeRepair[]; traces: string[] } {
   const repairs: SLUpgradeRepair[] = [];
-  if (!weeklyQuotas || typeof weeklyQuotas !== "object") return { chunks, repairs };
+  const traces: string[] = [];
+  if (!weeklyQuotas || typeof weeklyQuotas !== "object") {
+    traces.push(`[SL_FLOOR] skipped_reason=no_weekly_quotas_payload`);
+    return { chunks, repairs, traces };
+  }
   const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
 
   chunks.forEach((chunk, ci) => {
     const candidates = candidatesByChunk[ci] ?? [];
     for (const week of chunk.weeks ?? []) {
-      const entry = weeklyQuotas[week.weekNumber];
-      if (!entry) continue;
-      if (entry.weekType === "taper" || entry.weekType === "race") continue;
+      // Lookup PAR weekNumber (pas par index — chunk 2 commence à W6).
+      const rawEntry = weeklyQuotas[week.weekNumber];
+      const entry = resolveSLFloor(rawEntry);
+      if (!entry) {
+        traces.push(`[SL_FLOOR] S${week.weekNumber} action=skipped_reason=no_quota_entry`);
+        continue;
+      }
+      if (entry.weekType === "taper" || entry.weekType === "race") {
+        traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) action=skipped_reason=weekType_${entry.weekType}`);
+        continue;
+      }
 
       const specs: Array<{ sport: "bike" | "run"; required: boolean; floor: number }> = [
-        { sport: "bike", required: !!entry.longRideWeekly, floor: entry.slLongRideMin ?? 0 },
-        { sport: "run",  required: !!entry.longRunWeekly,  floor: entry.slLongRunMin  ?? 0 },
+        { sport: "bike", required: entry.longRideWeekly, floor: entry.slLongRideMin },
+        { sport: "run",  required: entry.longRunWeekly,  floor: entry.slLongRunMin  },
       ];
 
       for (const spec of specs) {
-        if (!spec.required || spec.floor <= 0) continue;
+        if (!spec.required || spec.floor <= 0) {
+          traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) sport=${spec.sport} floor=${spec.floor}min required=${spec.required} action=skipped_reason=floor_disabled`);
+          continue;
+        }
         const sameSport = (week.sessions ?? []).filter(s => s.sport === spec.sport);
-        const alreadyMeetsFloor = sameSport.some(s => (s.durationMin ?? 0) >= spec.floor);
-        if (alreadyMeetsFloor) continue;
-        if (sameSport.length === 0) continue; // pas de séance à upgrader → critical restera
+        const longest = sameSport.reduce((m, s) => Math.max(m, s.durationMin ?? 0), 0);
+        const alreadyMeetsFloor = longest >= spec.floor;
+        if (alreadyMeetsFloor) {
+          traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) sport=${spec.sport} floor=${spec.floor}min longest=${longest}min action=none_conforme`);
+          continue;
+        }
+        if (sameSport.length === 0) {
+          traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) sport=${spec.sport} floor=${spec.floor}min longest=0min action=skipped_reason=no_same_sport_session`);
+          continue;
+        }
 
-        // Séance la plus longue = candidate à substituer
         const target = sameSport.reduce((a, b) => (a.durationMin ?? 0) >= (b.durationMin ?? 0) ? a : b);
 
-        // Cherche dans le catalogue une séance endurance/SL même sport ≥ plancher
         const endurance = candidates
           .filter(c => c.sport === spec.sport)
           .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
@@ -402,10 +451,10 @@ function applySLFloorEnforcement(
           .filter(x => x.c.durationMin[1] >= spec.floor || x.c.durationMedian >= spec.floor)
           .sort((a, b) => a.c.durationMedian - b.c.durationMedian);
 
-        // Prend la première ≥ plancher (durée médiane la plus proche du plancher).
         const picked = endurance.find(x => x.c.durationMedian >= spec.floor) ?? endurance[0];
 
         if (!picked) {
+          traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) sport=${spec.sport} floor=${spec.floor}min longest=${longest}min action=unresolved (no catalog cand)`);
           repairs.push({
             code: "sl_upgrade_unresolved",
             severity: "critical",
@@ -440,6 +489,7 @@ function applySLFloorEnforcement(
         mut.zones = cand.zones;
         (mut as any).isKeySession = true;
 
+        traces.push(`[SL_FLOOR] S${week.weekNumber} (${entry.weekType}) sport=${spec.sport} floor=${spec.floor}min longest=${longest}min action=upgraded → ${cand.id} (${newDur}min)`);
         repairs.push({
           code: "sl_upgraded",
           severity: "warning",
@@ -452,8 +502,9 @@ function applySLFloorEnforcement(
       }
     }
   });
-  return { chunks, repairs };
+  return { chunks, repairs, traces };
 }
+
 
 interface HandlerInput {
   apiKey: string;
