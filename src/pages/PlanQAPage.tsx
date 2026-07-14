@@ -160,12 +160,20 @@ export default function PlanQAPage() {
   const [qaSessions, setQaSessions] = useState<QASession[]>(readQASessions());
   const qa = useQARunner();
 
+  // Charge l'historique QA depuis le cloud (source de vérité cross-onglet).
+  useEffect(() => {
+    void readQASessionsCloud().then(cloud => {
+      if (cloud.length > 0) setQaSessions(cloud);
+    });
+  }, []);
+
   // Expose to Playwright/E2E for targeted runs
   useEffect(() => {
     (window as any).__tfclQA = {
       runFullSuite: qa.runFullSuite,
       buildQAReport,
       readQASessions,
+      readQASessionsCloud,
     };
     return () => { try { delete (window as any).__tfclQA; } catch { /* noop */ } };
   }, [qa.runFullSuite]);
