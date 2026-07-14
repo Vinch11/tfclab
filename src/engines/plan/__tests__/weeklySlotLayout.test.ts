@@ -49,11 +49,12 @@ describe("weeklySlotLayout — buildWeeklySlotLayout", () => {
     }
   });
 
-  it("TRI_SPRINT finisher : SL présentes, layout faisable", () => {
+  it("TRI_SPRINT finisher : brick SL samedi (surrogate ≥95min), SL run dimanche", () => {
     const l = build("TRIATHLON SPRINT", "finisher", 7, "load");
     const samedi = l.days.find(d => d.dayName === "samedi")!;
     const dimanche = l.days.find(d => d.dayName === "dimanche")!;
-    expect(samedi.slots.some(s => s.sport === "bike" && s.isLongSession && s.minDurationMin === 75)).toBe(true);
+    // Sprint finisher : brick midpoint(0,1)=1 → brick tient le rôle SL vélo (75+20=95).
+    expect(samedi.slots.some(s => s.sport === "brick" && s.isLongSession && (s.minDurationMin ?? 0) >= 95)).toBe(true);
     expect(dimanche.slots.some(s => s.sport === "run" && s.isLongSession && s.minDurationMin === 60)).toBe(true);
   });
 
@@ -94,11 +95,12 @@ describe("weeklySlotLayout — buildWeeklySlotLayout", () => {
     expect(hasBikeSL).toBe(false);
   });
 
-  it("recovery week : SL maintenues mais durée plancher réduite (85/65)", () => {
+  it("recovery week 70.3 : brick surrogate SL vélo (≥85+20=105min), SL run 65min", () => {
     const l = build("IRONMAN 70.3", "age_group", 10, "recovery");
     const sam = l.days.find(d => d.dayName === "samedi")!;
     const dim = l.days.find(d => d.dayName === "dimanche")!;
-    expect(sam.slots.find(s => s.isLongSession && s.sport === "bike")?.minDurationMin).toBe(85);
+    // Brick prend samedi (surrogate SL vélo), min durée = 85+20=105.
+    expect(sam.slots.some(s => s.sport === "brick" && s.isLongSession && (s.minDurationMin ?? 0) >= 105)).toBe(true);
     expect(dim.slots.find(s => s.isLongSession && s.sport === "run")?.minDurationMin).toBe(65);
   });
 
@@ -107,7 +109,8 @@ describe("weeklySlotLayout — buildWeeklySlotLayout", () => {
     const line = formatWeeklySlotLayoutLine(3, l);
     expect(line).toContain("Semaine 3");
     expect(line).toContain("Lun: repos");
-    expect(line).toMatch(/Sam.*VÉLO/);
+    // Samedi contient soit VÉLO (SL bike) soit BRICK selon présence de brick au quota.
+    expect(line).toMatch(/Sam.*(VÉLO|BRICK)/);
   });
 });
 
