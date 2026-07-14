@@ -986,6 +986,60 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_generation_stats: {
+        Row: {
+          custom_ratio: number | null
+          duration_ms: number | null
+          error_code: string | null
+          format: string
+          id: string
+          objective: string | null
+          offsport_unresolved_count: number
+          ok: boolean
+          retry_count: number
+          semantic_repairs: Json | null
+          substituted_offsport_count: number
+          total_chunks: number | null
+          total_weeks: number | null
+          ts: string
+          user_id: string | null
+        }
+        Insert: {
+          custom_ratio?: number | null
+          duration_ms?: number | null
+          error_code?: string | null
+          format: string
+          id?: string
+          objective?: string | null
+          offsport_unresolved_count?: number
+          ok: boolean
+          retry_count?: number
+          semantic_repairs?: Json | null
+          substituted_offsport_count?: number
+          total_chunks?: number | null
+          total_weeks?: number | null
+          ts?: string
+          user_id?: string | null
+        }
+        Update: {
+          custom_ratio?: number | null
+          duration_ms?: number | null
+          error_code?: string | null
+          format?: string
+          id?: string
+          objective?: string | null
+          offsport_unresolved_count?: number
+          ok?: boolean
+          retry_count?: number
+          semantic_repairs?: Json | null
+          substituted_offsport_count?: number
+          total_chunks?: number | null
+          total_weeks?: number | null
+          ts?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       plan_versions: {
         Row: {
           athlete_id: string
