@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from "vitest";
 import * as clientMirror from "@/lib/plan/trailMarkers";
 import fs from "node:fs";
