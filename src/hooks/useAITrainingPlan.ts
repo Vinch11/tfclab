@@ -22,6 +22,7 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock } from "@/engines/plan/sessionSizingMatrix";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
+import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
@@ -477,11 +478,41 @@ export function useAITrainingPlan() {
         quotasByChunkText.push(layoutBlock ? `${quotaBlock}\n\n${layoutBlock}` : quotaBlock);
       }
 
-      // Enrichit planConfig avec les quotas (pour transmission edge + traçabilité)
+      // ─── PHASE 2B : Target Table (source unique des valeurs physiologiques) ───
+      let targetTable: TargetTable | null = null;
+      try {
+        targetTable = buildTargetTable({
+          ftp: athleteData.ftp ?? null,
+          vma: athleteData.vma ?? null,
+          css: athleteData.css ?? null,
+          fcMax: athleteData.fcMax ?? null,
+          paceThresholdSecPerKm: athleteData.paceThresholdSecPerKm ?? null,
+          objective: planConfig.objective ?? null,
+          ambition: planConfig.ambition ?? null,
+          weeklyHours: planConfig.weeklyHours ?? null,
+          trainingLevel: planConfig.ambitionMeta?.trainingLevel ?? null,
+        });
+        const tblBlock = formatTargetTableBlock(targetTable);
+        // Injecter dans chaque chunk (rappel de la table à chaque appel LLM)
+        for (let i = 0; i < quotasByChunkText.length; i++) {
+          quotasByChunkText[i] = quotasByChunkText[i]
+            ? `${tblBlock}\n\n${quotasByChunkText[i]}`
+            : tblBlock;
+        }
+        console.log("🔢 targetTable built:", {
+          ftpW: targetTable.ftpW, vmaKmh: targetTable.vmaKmh, css: targetTable.cssSecPer100m,
+          racePowerW: targetTable.racePowerW, racePaceSecPerKm: targetTable.racePaceSecPerKm,
+        });
+      } catch (e) {
+        console.warn("[useAITrainingPlan] targetTable build failed:", e);
+      }
+
+      // Enrichit planConfig avec les quotas + target table (transmission edge)
       const planConfigWithQuota = {
         ...planConfig,
         _weeklyQuotas: weeklyQuotas,
         _weeklyQuotasPromptByChunk: quotasByChunkText,
+        _targetTable: targetTable,
       };
 
       const resp = await fetch(PLAN_URL, {
@@ -554,6 +585,17 @@ export function useAITrainingPlan() {
             const code = data.code ?? "warning";
             const severity = data.severity ?? "warning";
             const repair = data.repair;
+            if (code === "value_check_summary" && data.summary) {
+              const s = data.summary;
+              semanticRepairs.push(`[info] value_check_summary: tokens=${s.totalTokens} conforme=${s.conformantTokens} corrigés=${s.correctedTokens} unresolved=${s.unresolvedTokens}`);
+              return;
+            }
+            if ((code === "value_corrected" || code === "value_unresolved") && repair) {
+              const beforeStr = repair.before ? ` before="${repair.before}"` : "";
+              const afterStr = repair.after ? ` after="${repair.after}"` : "";
+              semanticRepairs.push(`[${severity}] ${code}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} ${repair.sport ?? "?"} — ${repair.reason}${beforeStr}${afterStr}`);
+              return;
+            }
             if (repair?.before) {
               const sport = repair.sport ?? "?";
               const target = repair.targetDurationMin ?? repair.before?.durationMin ?? "?";

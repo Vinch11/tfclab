@@ -40,6 +40,7 @@ import {
   type PlanSession,
 } from "./planSchema.ts";
 import { mergePlanChunks, MergePlanError } from "./mergePlanChunks.ts";
+import { applyValueCheck } from "./valueCheck.ts";
 
 const PRIMARY_MODEL = "google/gemini-3-flash-preview";
 
@@ -1059,9 +1060,41 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             });
           }
 
-          const merged = mergePlanChunks(reconciled.chunks, mergedTotal);
-          for (let ci = 0; ci < reconciled.chunks.length; ci++) {
-            enqueue("chunk-json", { chunkIndex: ci, chunk: reconciled.chunks[ci] });
+          // PHASE 2B — Validateur de valeurs (post-reconciler, avant merge final)
+          const valueChecked = applyValueCheck(
+            reconciled.chunks,
+            planConfig?._targetTable ?? null,
+          );
+          for (const line of valueChecked.traces) {
+            console.log(line);
+          }
+          for (const repair of valueChecked.repairs) {
+            const msg = repair.code === "value_corrected"
+              ? `S${repair.weekNumber} ${repair.day} ${repair.sport}: ${repair.reason} (${repair.before} → ${repair.after})`
+              : `S${repair.weekNumber} ${repair.day} ${repair.sport}: ${repair.reason} [token="${repair.token}"]`;
+            console.warn(`[VALUE_CHECK] ${repair.code}: ${msg}`, repair);
+            enqueue("warning", {
+              code: repair.code,
+              severity: repair.severity,
+              message: msg,
+              repair,
+            });
+          }
+          enqueue("warning", {
+            code: "value_check_summary",
+            severity: "info",
+            message: `[VALUE_CHECK] TOTAL tokens=${valueChecked.totalTokens} conforme=${valueChecked.conformantTokens} corrigés=${valueChecked.correctedTokens} unresolved=${valueChecked.unresolvedTokens}`,
+            summary: {
+              totalTokens: valueChecked.totalTokens,
+              conformantTokens: valueChecked.conformantTokens,
+              correctedTokens: valueChecked.correctedTokens,
+              unresolvedTokens: valueChecked.unresolvedTokens,
+            },
+          });
+
+          const merged = mergePlanChunks(valueChecked.chunks, mergedTotal);
+          for (let ci = 0; ci < valueChecked.chunks.length; ci++) {
+            enqueue("chunk-json", { chunkIndex: ci, chunk: valueChecked.chunks[ci] });
           }
           enqueue("plan-complete", {
             totalChunks,

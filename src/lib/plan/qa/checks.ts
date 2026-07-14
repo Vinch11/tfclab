@@ -24,7 +24,7 @@ import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
-  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8";
+  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9";
   label: string;
   level: CheckLevel;
   pass: boolean;
@@ -301,6 +301,56 @@ export function checkB8(
   return { id: "B8", label: "Fréquence par sport vs quota moteur", level: "critical", pass, details };
 }
 
+/**
+ * B9 — Vérité des valeurs (Phase 2B).
+ * PASS si :
+ *   - 0 value_unresolved dans les semanticRepairs
+ *   - 100% des tokens extraits sont conformes OU corrigés (tolérance zone)
+ * Affiche : total tokens, % conformes, liste des corrections.
+ * Basé sur les repairs SSE `value_corrected` / `value_unresolved` et le
+ * summary `value_check_summary` injectés par l'edge.
+ */
+export function checkB9(semanticRepairs: string[] | undefined): CheckResult {
+  const details: string[] = [];
+  const repairs = semanticRepairs ?? [];
+  const summaryLine = repairs.find(r => r.includes("value_check_summary"));
+  const correctedLines = repairs.filter(r => /\bvalue_corrected\b/.test(r));
+  const unresolvedLines = repairs.filter(r => /\bvalue_unresolved\b/.test(r));
+
+  if (!summaryLine) {
+    return {
+      id: "B9", label: "Vérité des valeurs physiologiques",
+      level: "critical", pass: false,
+      details: ["Résumé value_check_summary absent (validateur non exécuté ou payload sans targetTable)."],
+    };
+  }
+  const m = summaryLine.match(/tokens=(\d+).*?conforme=(\d+).*?corrigés=(\d+).*?unresolved=(\d+)/);
+  if (!m) {
+    return {
+      id: "B9", label: "Vérité des valeurs physiologiques",
+      level: "critical", pass: false,
+      details: [`Résumé mal formé : "${summaryLine}"`],
+    };
+  }
+  const total = Number(m[1]);
+  const ok = Number(m[2]);
+  const corr = Number(m[3]);
+  const unres = Number(m[4]);
+  const pctOk = total > 0 ? Math.round((ok / total) * 100) : 100;
+  const pass = unres === 0;
+
+  details.push(`Total tokens : ${total} · conformes ${ok} (${pctOk}%) · corrigés ${corr} · unresolved ${unres}`);
+  if (correctedLines.length > 0) {
+    details.push(`Corrections (${correctedLines.length}) :`);
+    for (const l of correctedLines.slice(0, 6)) details.push(`  - ${l}`);
+  }
+  if (unresolvedLines.length > 0) {
+    details.push(`Unresolved (${unresolvedLines.length}) :`);
+    for (const l of unresolvedLines.slice(0, 6)) details.push(`  - ${l}`);
+  }
+  return { id: "B9", label: "Vérité des valeurs physiologiques", level: "critical", pass, details };
+}
+
 export function runAllChecks(args: {
   profileId: "B-70.3" | "B-SEMI" | "B-SPRINT";
   merged: MergedPlan;
@@ -326,5 +376,6 @@ export function runAllChecks(args: {
     checkB6(args.merged, args.parsed),
     checkB7(args.parsed, args.sportObjectiveIssues, args.objective),
     checkB8(args.merged, args.quotaIssues ?? [], args.quotasByWeek ?? {}),
+    checkB9(args.stat?.semanticRepairs),
   ];
 }

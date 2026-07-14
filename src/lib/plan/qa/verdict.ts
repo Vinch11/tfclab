@@ -39,7 +39,7 @@ export interface QASession {
 
 // ── Verdict compute ─────────────────────────────────────────────────────────
 
-const CRITICAL_IDS = new Set(["B2", "B3", "B4", "B5", "B6", "B8"]);
+const CRITICAL_IDS = new Set(["B2", "B3", "B4", "B5", "B6", "B8", "B9"]);
 
 /** Compte les retries Zod du run (max attempt observé sur les chunks). */
 function retriesOf(stat?: PlanGenerationStat): number {
