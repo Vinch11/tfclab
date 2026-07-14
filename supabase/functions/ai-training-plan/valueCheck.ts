@@ -170,20 +170,11 @@ function checkSessionText(
       tokens += 2;
       const a = Number(aStr), b = Number(bStr);
       if (!range) {
-        // pas de zone: fallback = plage FTP totale [Z1min..Z6max] si disponible
-        const allZones = Object.values(t.bikeZonesW) as Range[];
-        if (allZones.length === 0) { unresolved += 2; return match; }
-        const global: Range = [
-          Math.min(...allZones.map(r => r[0])),
-          Math.max(...allZones.map(r => r[1])),
-        ];
-        const okA = inRange(a, global, 0.03, 3);
-        const okB = inRange(b, global, 0.03, 3);
-        if (okA && okB) { conformant += 2; return match; }
+        // Aucune zone déclarée → ambigu (spec Phase 2B) → critical unresolved
         unresolved += 2;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `range ${a}-${b}W hors plage vélo globale et aucune zone déclarée`,
+          reason: `range ${a}-${b}W sans zone déclarée (ambigu)`,
           token: match,
         });
         return match;
@@ -210,17 +201,10 @@ function checkSessionText(
       const w = Number(wStr);
       tokens++;
       if (!range) {
-        const allZones = Object.values(t.bikeZonesW) as Range[];
-        if (allZones.length === 0) { unresolved++; return match; }
-        const global: Range = [
-          Math.min(...allZones.map(r => r[0])),
-          Math.max(...allZones.map(r => r[1])),
-        ];
-        if (inRange(w, global, 0.05, 5)) { conformant++; return match; }
         unresolved++;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `${w}W hors plage vélo globale et sans zone déclarée`,
+          reason: `${w}W sans zone déclarée (ambigu)`,
           token: match,
         });
         return match;
