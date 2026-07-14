@@ -40,6 +40,7 @@ import {
   type PlanSession,
 } from "./planSchema.ts";
 import { mergePlanChunks, MergePlanError } from "./mergePlanChunks.ts";
+import { applyValueCheck } from "./valueCheck.ts";
 
 const PRIMARY_MODEL = "google/gemini-3-flash-preview";
 
