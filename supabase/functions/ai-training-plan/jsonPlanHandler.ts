@@ -552,8 +552,8 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           );
           for (const repair of guard.repairs) {
             const msg = repair.code === "substituted_offsport"
-              ? `S${repair.weekNumber} ${repair.day}: custom trail marker substituted by ${repair.after?.catalogId}`
-              : `S${repair.weekNumber} ${repair.day}: custom trail marker unresolved (no same-sport catalogue candidate ±15min)`;
+              ? `S${repair.weekNumber} ${repair.day}: custom trail marker "${repair.matchedMarker}" substituted by ${repair.after?.catalogId}`
+              : `S${repair.weekNumber} ${repair.day}: custom trail marker "${repair.matchedMarker}" unresolved (no same-sport catalogue candidate ±15min)`;
             console.warn(`[B3 offsport guard] ${repair.code}: ${msg}`, repair);
             enqueue("warning", {
               code: repair.code,
