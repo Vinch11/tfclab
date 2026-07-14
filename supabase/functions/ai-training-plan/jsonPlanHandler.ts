@@ -183,6 +183,11 @@ function findCatalogCandidateForSport(candidates: CatalogCandidate[], sport: Nor
   return viable ? { candidate: viable.c, delta: viable.delta } : { candidate: null, delta: -1 };
 }
 
+// TODO Phase 2 — Terrain-aware relaxation
+// Lorsque le profil athlète déclarera `terrainAvailability` (accès D+/massif/etc.),
+// ce guard devra consommer le profil pour relâcher les règles vocabulaire D+ vélo
+// (et éventuellement run/brick) pour ces athlètes : ne pas substituer une séance
+// custom "4h vélo en massif" si l'athlète a un terrain vallonné confirmé.
 function applyOffsportTrailGuardToChunks(
   chunks: PlanChunk[],
   objective: string | null | undefined,
@@ -198,7 +203,24 @@ function applyOffsportTrailGuardToChunks(
         if (session.custom !== true || session.sport === "rest") continue;
         if (!TRAIL_DETAILS_CRITICAL_RX.test(`${session.title ?? ""} ${session.details ?? ""}`)) continue;
         const targetDur = session.durationMin ?? 0;
-        const { ranked, sameSport } = rankCandidatesBySport(candidates, session.sport, targetDur);
+        const sessionSport = normalizeSport(session.sport);
+        const tolerance = computeToleranceMin(targetDur);
+
+        // Substitution primaire same-sport
+        let result = findCatalogCandidateForSport(candidates, sessionSport, targetDur);
+        let attemptedSport = sessionSport;
+        let brickFallback = false;
+
+        // Brick → fallback bike si aucun candidat brick
+        if (!result.candidate && sessionSport === "brick") {
+          result = findCatalogCandidateForSport(candidates, "bike", targetDur);
+          if (result.candidate) {
+            attemptedSport = "bike";
+            brickFallback = true;
+          }
+        }
+
+        const { ranked, sameSport } = rankCandidatesBySport(candidates, attemptedSport, targetDur);
         const nearest3: OffsportNearestCandidate[] = ranked.slice(0, 3).map(x => ({
           id: x.c.id,
           durationMedian: x.c.durationMedian,
@@ -210,8 +232,8 @@ function applyOffsportTrailGuardToChunks(
           details: session.details ?? "",
           durationMin: targetDur,
         };
-        const { candidate, delta } = findCatalogCandidate(candidates, session.sport, targetDur);
-        if (!candidate) {
+
+        if (!result.candidate) {
           const nearestStr = nearest3.length > 0
             ? nearest3.map(n => `${n.id}(median=${n.durationMedian}min,Δ=${n.deltaMin}min)`).join(", ")
             : "aucun";
@@ -223,7 +245,7 @@ function applyOffsportTrailGuardToChunks(
             day: session.day,
             sport: session.sport,
             before,
-            reason: `no same-sport catalog candidate within ±15min (sport=${normalizeSport(session.sport)}, target=${targetDur}min, sameSportCandidates=${sameSport.length}/${candidates.length}, nearest=[${nearestStr}])`,
+            reason: `no catalog candidate within ±${tolerance}min (sport=${sessionSport}, target=${targetDur}min, sameSportCandidates=${sameSport.length}/${candidates.length}, nearest=[${nearestStr}])`,
             sameSportCandidatesInChunk: sameSport.length,
             totalCandidatesInChunk: candidates.length,
             nearestCandidates: nearest3,
@@ -231,12 +253,18 @@ function applyOffsportTrailGuardToChunks(
           });
           continue;
         }
+
+        const candidate = result.candidate;
+        const delta = result.delta;
         const nextDuration = Math.max(candidate.durationMin[0], Math.min(candidate.durationMin[1], targetDur || candidate.durationMedian));
         const mutable = session as PlanSession;
         mutable.title = candidate.title;
         mutable.details = `${candidate.structure || candidate.title}. [ID: ${candidate.id}]`;
         mutable.catalogId = candidate.id;
         mutable.custom = false;
+        if (brickFallback) {
+          (mutable as any).sport = "bike";
+        }
         mutable.durationMin = nextDuration;
         mutable.zones = candidate.zones;
         repairs.push({
@@ -248,7 +276,7 @@ function applyOffsportTrailGuardToChunks(
           sport: session.sport,
           before,
           after: { title: mutable.title, catalogId: candidate.id, durationMin: nextDuration, deltaMin: delta },
-          reason: `custom trail vocabulary → same-sport catalog substitution (sport=${normalizeSport(session.sport)}, target=${targetDur}min, Δ=${delta}min, sameSportCandidates=${sameSport.length}/${candidates.length})`,
+          reason: `custom trail vocabulary → ${brickFallback ? "brick→bike fallback" : "same-sport"} catalog substitution (sport=${sessionSport}${brickFallback ? "→bike" : ""}, target=${targetDur}min, tolerance=±${tolerance}min, Δ=${delta}min, sameSportCandidates=${sameSport.length}/${candidates.length})`,
           sameSportCandidatesInChunk: sameSport.length,
           totalCandidatesInChunk: candidates.length,
           nearestCandidates: nearest3,
