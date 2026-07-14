@@ -109,6 +109,13 @@ const PHASE_CANON: Record<string, string> = {
   peak: "peak", "spécifique": "peak", specifique: "peak",
   "compétition": "peak", competition: "peak", "race-specific": "peak",
   taper: "taper", "affûtage": "taper", affutage: "taper", "pre-race": "taper",
+  // Semaines de récup/deload : non-canoniques en phase. Fallback contextuel
+  // dans normalizeModelJsonForSchema (voisin le plus proche, sinon "build").
+  recovery: "__deload__", "récupération": "__deload__", recuperation: "__deload__",
+  "récup": "__deload__", recup: "__deload__", deload: "__deload__",
+  regen: "__deload__", "régen": "__deload__", regeneration: "__deload__",
+  "régénération": "__deload__", assimilation: "__deload__", relache: "__deload__",
+  "relâche": "__deload__",
 };
 
 const SPORT_CANON: Record<string, string> = {
