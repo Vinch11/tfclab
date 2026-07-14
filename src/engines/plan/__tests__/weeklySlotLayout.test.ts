@@ -8,13 +8,16 @@ function build(objective: string, ambition: string, hours: number, weekType: "lo
 }
 
 describe("weeklySlotLayout — buildWeeklySlotLayout", () => {
-  it("703 age_group load : lundi repos, SL bike samedi, SL run dimanche", () => {
+  it("703 age_group load : lundi repos, brick SL samedi (surrogate SL vélo), SL run dimanche", () => {
     const l = build("IRONMAN 70.3", "age_group", 10, "load");
     const lundi = l.days.find(d => d.dayName === "lundi")!;
     const samedi = l.days.find(d => d.dayName === "samedi")!;
     const dimanche = l.days.find(d => d.dayName === "dimanche")!;
     expect(lundi.isRest).toBe(true);
-    expect(samedi.slots.some(s => s.sport === "bike" && s.isLongSession && s.minDurationMin === 120)).toBe(true);
+    // PHASE 2A.4 : brick occupe samedi comme SL vélo surrogate (≥ 120+20=140min).
+    expect(samedi.slots.some(s => s.sport === "brick" && s.isLongSession && (s.minDurationMin ?? 0) >= 140)).toBe(true);
+    // Pas de SL vélo dédiée cette semaine-là (le brick tient ce rôle).
+    expect(l.days.every(d => !d.slots.some(s => s.sport === "bike" && s.isLongSession))).toBe(true);
     expect(dimanche.slots.some(s => s.sport === "run" && s.isLongSession && s.minDurationMin === 90)).toBe(true);
   });
 
@@ -24,18 +27,34 @@ describe("weeklySlotLayout — buildWeeklySlotLayout", () => {
     expect(ven.slots.some(s => s.sport === "strength")).toBe(false);
   });
 
-  it("703 age_group load : nb total de slots = totalSessions.min (11)", () => {
+  it("703 age_group load : nb total de slots dans la fourchette matrice", () => {
     const l = build("IRONMAN 70.3", "age_group", 10, "load");
     const total = l.days.reduce((n, d) => n + d.slots.length, 0);
-    expect(total).toBeGreaterThanOrEqual(10);
+    expect(total).toBeGreaterThanOrEqual(9);
     expect(total).toBeLessThanOrEqual(12);
   });
 
-  it("TRI_SPRINT finisher : SL présentes, layout faisable", () => {
+  it("PHASE 2A.4 : brick et SL vélo JAMAIS le même jour (aucune semaine tri)", () => {
+    for (const l of [
+      build("IRONMAN 70.3", "age_group", 10, "load"),
+      build("IRONMAN 70.3", "competitor", 12, "load"),
+      build("IRONMAN", "age_group", 10, "load"),
+      build("TRIATHLON SPRINT", "age_group", 8, "load"),
+    ]) {
+      for (const d of l.days) {
+        const hasBrick = d.slots.some(s => s.sport === "brick");
+        const hasBikeSL = d.slots.some(s => s.sport === "bike" && s.isLongSession);
+        expect(hasBrick && hasBikeSL).toBe(false);
+      }
+    }
+  });
+
+  it("TRI_SPRINT finisher : brick SL samedi (surrogate ≥95min), SL run dimanche", () => {
     const l = build("TRIATHLON SPRINT", "finisher", 7, "load");
     const samedi = l.days.find(d => d.dayName === "samedi")!;
     const dimanche = l.days.find(d => d.dayName === "dimanche")!;
-    expect(samedi.slots.some(s => s.sport === "bike" && s.isLongSession && s.minDurationMin === 75)).toBe(true);
+    // Sprint finisher : brick midpoint(0,1)=1 → brick tient le rôle SL vélo (75+20=95).
+    expect(samedi.slots.some(s => s.sport === "brick" && s.isLongSession && (s.minDurationMin ?? 0) >= 95)).toBe(true);
     expect(dimanche.slots.some(s => s.sport === "run" && s.isLongSession && s.minDurationMin === 60)).toBe(true);
   });
 
@@ -76,11 +95,12 @@ describe("weeklySlotLayout — buildWeeklySlotLayout", () => {
     expect(hasBikeSL).toBe(false);
   });
 
-  it("recovery week : SL maintenues mais durée plancher réduite (85/65)", () => {
+  it("recovery week 70.3 : brick surrogate SL vélo (≥85+20=105min), SL run 65min", () => {
     const l = build("IRONMAN 70.3", "age_group", 10, "recovery");
     const sam = l.days.find(d => d.dayName === "samedi")!;
     const dim = l.days.find(d => d.dayName === "dimanche")!;
-    expect(sam.slots.find(s => s.isLongSession && s.sport === "bike")?.minDurationMin).toBe(85);
+    // Brick prend samedi (surrogate SL vélo), min durée = 85+20=105.
+    expect(sam.slots.some(s => s.sport === "brick" && s.isLongSession && (s.minDurationMin ?? 0) >= 105)).toBe(true);
     expect(dim.slots.find(s => s.isLongSession && s.sport === "run")?.minDurationMin).toBe(65);
   });
 
@@ -89,7 +109,8 @@ describe("weeklySlotLayout — buildWeeklySlotLayout", () => {
     const line = formatWeeklySlotLayoutLine(3, l);
     expect(line).toContain("Semaine 3");
     expect(line).toContain("Lun: repos");
-    expect(line).toMatch(/Sam.*VÉLO/);
+    // Samedi contient soit VÉLO (SL bike) soit BRICK selon présence de brick au quota.
+    expect(line).toMatch(/Sam.*(VÉLO|BRICK)/);
   });
 });
 

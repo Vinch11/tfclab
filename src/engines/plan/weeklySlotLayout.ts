@@ -80,8 +80,28 @@ export function buildWeeklySlotLayout(
     findDay("lundi").isRest = true;
   }
 
-  // 2) SL vélo samedi
-  if (floors.longRideWeekly && remaining.bike > 0 && canAdd("samedi")) {
+  // PHASE 2A.4 — RÈGLE D'ALTERNANCE BRICK/SL VÉLO :
+  //   Si un brick est requis ET longRideWeekly, le brick prend le samedi
+  //   AVEC isLongSession=true, minDurationMin = slLongRideMin + 20 (le brick
+  //   contient la sortie longue vélo). On NE programme PAS de SL vélo dédiée
+  //   cette semaine-là, et la cible bike autonome est décrémentée de 1
+  //   (le brick compte comme la sollicitation vélo longue).
+  const brickAsSLBike =
+    remaining.brick > 0 && !!floors.longRideWeekly && canAdd("samedi");
+
+  if (brickAsSLBike) {
+    const slBikeMin = floors.slLongRideMin ?? 0;
+    findDay("samedi").slots.push({
+      sport: "brick",
+      isLongSession: true,
+      isKeySession: true,
+      minDurationMin: slBikeMin > 0 ? slBikeMin + 20 : undefined,
+    });
+    remaining.brick--;
+    // La 3e sollicitation vélo est le brick — retire 1 bike autonome.
+    remaining.bike = Math.max(0, remaining.bike - 1);
+  } else if (floors.longRideWeekly && remaining.bike > 0 && canAdd("samedi")) {
+    // 2) SL vélo samedi (cas sans brick requis)
     findDay("samedi").slots.push({
       sport: "bike", isLongSession: true, isKeySession: true,
       minDurationMin: floors.slLongRideMin,
@@ -96,11 +116,13 @@ export function buildWeeklySlotLayout(
     });
     remaining.run--;
   }
-  // 4) Brick — préférer un jour SANS run existant (jamais brick+run même jour).
-  //    Ordre : samedi puis dimanche.
+  // 4) Brick(s) restant(s) — placer weekend, jamais même jour qu'un run,
+  //    et JAMAIS même jour qu'un SL vélo dédié (règle 2A.4).
   if (remaining.brick > 0) {
     const brickOptions: DayName[] = ["samedi", "dimanche"];
-    const brickDay = brickOptions.find(d => canAdd(d) && !hasSportOn(d, "run"))
+    const brickDay = brickOptions.find(
+      d => canAdd(d) && !hasSportOn(d, "run") && !findDay(d).slots.some(s => s.sport === "bike" && s.isLongSession),
+    ) ?? brickOptions.find(d => canAdd(d) && !hasSportOn(d, "run"))
       ?? brickOptions.find(d => canAdd(d));
     if (brickDay) {
       findDay(brickDay).slots.push({ sport: "brick", isKeySession: true });
