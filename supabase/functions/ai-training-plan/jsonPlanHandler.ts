@@ -161,19 +161,25 @@ function parseCatalogCandidatesFromDump(dump: string | null | undefined): Catalo
   return out;
 }
 
-function rankCandidatesBySport(candidates: CatalogCandidate[], sport: string, durationMin: number) {
-  const normalizedSport = normalizeSport(sport);
+// Tolerance = max(±15min, ±20% target duration). Le +20% est indispensable
+// pour les sorties longues 3-4h où ±15min est structurellement introuvable.
+function computeToleranceMin(targetDur: number): number {
+  return Math.max(15, Math.round((targetDur || 0) * 0.20));
+}
+
+function rankCandidatesBySport(candidates: CatalogCandidate[], sport: NormalizedSport, durationMin: number) {
   const target = Number.isFinite(durationMin) && durationMin > 0 ? durationMin : 0;
-  const sameSport = candidates.filter(c => c.sport === normalizedSport);
+  const sameSport = candidates.filter(c => c.sport === sport);
   const ranked = sameSport
     .map(c => ({ c, delta: Math.abs(c.durationMedian - target) }))
     .sort((a, b) => a.delta - b.delta || a.c.durationMedian - b.c.durationMedian);
-  return { normalizedSport, target, sameSport, ranked };
+  return { sameSport, ranked };
 }
 
-function findCatalogCandidate(candidates: CatalogCandidate[], sport: string, durationMin: number): { candidate: CatalogCandidate | null; delta: number } {
+function findCatalogCandidateForSport(candidates: CatalogCandidate[], sport: NormalizedSport, durationMin: number): { candidate: CatalogCandidate | null; delta: number } {
   const { ranked } = rankCandidatesBySport(candidates, sport, durationMin);
-  const viable = ranked.find(x => x.delta <= 15);
+  const tolerance = computeToleranceMin(durationMin);
+  const viable = ranked.find(x => x.delta <= tolerance);
   return viable ? { candidate: viable.c, delta: viable.delta } : { candidate: null, delta: -1 };
 }
 
