@@ -478,11 +478,41 @@ export function useAITrainingPlan() {
         quotasByChunkText.push(layoutBlock ? `${quotaBlock}\n\n${layoutBlock}` : quotaBlock);
       }
 
-      // Enrichit planConfig avec les quotas (pour transmission edge + traçabilité)
+      // ─── PHASE 2B : Target Table (source unique des valeurs physiologiques) ───
+      let targetTable: TargetTable | null = null;
+      try {
+        targetTable = buildTargetTable({
+          ftp: athleteData.ftp ?? null,
+          vma: athleteData.vma ?? null,
+          css: athleteData.css ?? null,
+          fcMax: athleteData.fcMax ?? null,
+          paceThresholdSecPerKm: athleteData.paceThresholdSecPerKm ?? null,
+          objective: planConfig.objective ?? null,
+          ambition: planConfig.ambition ?? null,
+          weeklyHours: planConfig.weeklyHours ?? null,
+          trainingLevel: planConfig.ambitionMeta?.trainingLevel ?? null,
+        });
+        const tblBlock = formatTargetTableBlock(targetTable);
+        // Injecter dans chaque chunk (rappel de la table à chaque appel LLM)
+        for (let i = 0; i < quotasByChunkText.length; i++) {
+          quotasByChunkText[i] = quotasByChunkText[i]
+            ? `${tblBlock}\n\n${quotasByChunkText[i]}`
+            : tblBlock;
+        }
+        console.log("🔢 targetTable built:", {
+          ftpW: targetTable.ftpW, vmaKmh: targetTable.vmaKmh, css: targetTable.cssSecPer100m,
+          racePowerW: targetTable.racePowerW, racePaceSecPerKm: targetTable.racePaceSecPerKm,
+        });
+      } catch (e) {
+        console.warn("[useAITrainingPlan] targetTable build failed:", e);
+      }
+
+      // Enrichit planConfig avec les quotas + target table (transmission edge)
       const planConfigWithQuota = {
         ...planConfig,
         _weeklyQuotas: weeklyQuotas,
         _weeklyQuotasPromptByChunk: quotasByChunkText,
+        _targetTable: targetTable,
       };
 
       const resp = await fetch(PLAN_URL, {
