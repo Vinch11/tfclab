@@ -509,7 +509,7 @@ export function buildWorkoutCatalog(
   );
 
   // ─── Pass 1: Top scored items with relaxed caps ───
-  // ─── Pass 1: Top scored items with relaxed caps ───
+
   for (const { workout, score } of scored) {
     if (selected.length >= mainSlots) {
       if (TRACKED_IDS.has(workout.id.toUpperCase()) && !selectedIds.has(workout.id)) {
