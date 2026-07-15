@@ -435,13 +435,17 @@ export function buildWorkoutCatalog(
 
   let current: LibraryWorkout[] = WorkoutLibrary.slice();
   const stage0 = current.length;
+  const chunkIdx = options?.chunkIndex ?? 0;
 
   // Stage 1: sport_filter
   {
     const before = current.length;
     current = current.filter(w => {
       const keep = !(options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport));
-      if (!keep && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "sport_filter", `sport=${w.sport} ∉ [${options?.sportFilter?.join(",")}]`);
+      if (!keep) {
+        recordAttribution(w.id, chunkIdx, "sport_filter");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "sport_filter", `sport=${w.sport} ∉ [${options?.sportFilter?.join(",")}]`);
+      }
       return keep;
     });
     logStage("sport_filter", before, current.length);
@@ -451,7 +455,10 @@ export function buildWorkoutCatalog(
     const before = current.length;
     current = current.filter(w => {
       const drop = excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id));
-      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_id_patterns", "id match regex");
+      if (drop) {
+        recordAttribution(w.id, chunkIdx, "exclude_id_patterns");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_id_patterns", "id match regex");
+      }
       return !drop;
     });
     logStage("exclude_id_patterns", before, current.length);
@@ -461,7 +468,10 @@ export function buildWorkoutCatalog(
     const before = current.length;
     current = current.filter(w => {
       const drop = excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()));
-      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_tags", `tag ∈ [${[...excludeTagsSet].join(",")}]`);
+      if (drop) {
+        recordAttribution(w.id, chunkIdx, "exclude_tags");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_tags", `tag ∈ [${[...excludeTagsSet].join(",")}]`);
+      }
       return !drop;
     });
     logStage("exclude_tags", before, current.length);
@@ -471,7 +481,10 @@ export function buildWorkoutCatalog(
     const before = current.length;
     current = current.filter(w => {
       const drop = !!options?.excludeIds?.has(w.id) && !isStructuralSession(w);
-      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_prev_chunk_ids", "in previous chunk & non-structural");
+      if (drop) {
+        recordAttribution(w.id, chunkIdx, "exclude_prev_chunk_ids");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_prev_chunk_ids", "in previous chunk & non-structural");
+      }
       return !drop;
     });
     logStage("exclude_prev_chunk_ids", before, current.length);
@@ -481,8 +494,11 @@ export function buildWorkoutCatalog(
     const before = current.length;
     current = current.filter(w => {
       const drop = prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w);
-      if (drop) excludedCount++;
-      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "prohibitions", "matched prohibition pattern");
+      if (drop) {
+        excludedCount++;
+        recordAttribution(w.id, chunkIdx, "prohibitions");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "prohibitions", "matched prohibition pattern");
+      }
       return !drop;
     });
     logStage("prohibitions", before, current.length);
@@ -500,13 +516,17 @@ export function buildWorkoutCatalog(
       } else {
         keep = ficheCompatibleWithPhases(w, chunkPhaseSet);
       }
-      if (!keep && TRACKED_IDS.has(w.id.toUpperCase())) {
-        logDrop(w.id, "phase_filter", `phaseAllowed=[${[...allowed].join(",")}] ∩ chunk=[${[...chunkPhaseSet].join(",")}] = ∅`);
+      if (!keep) {
+        recordAttribution(w.id, chunkIdx, "phase_filter");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) {
+          logDrop(w.id, "phase_filter", `phaseAllowed=[${[...allowed].join(",")}] ∩ chunk=[${[...chunkPhaseSet].join(",")}] = ∅`);
+        }
       }
       return keep;
     });
     logStage("phase_filter", before, current.length);
   }
+
 
   const scored = current
     .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
