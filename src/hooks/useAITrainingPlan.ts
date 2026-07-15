@@ -542,12 +542,24 @@ export function useAITrainingPlan() {
 
       if (resp.status === 429) {
         toast.error("Rate limit dépassé, réessayez dans quelques instants.");
+        logPlanStat({
+          ts: Date.now(), format: jsonMode ? "json" : "markdown",
+          objective: planConfig.objective ?? null, totalWeeks, totalChunks,
+          durationMs: 0, ok: false, errorCode: "RATE_LIMIT_429",
+          errorMessage: "HTTP 429 — rate limit edge function.",
+        });
         setIsLoading(false);
         setChunkProgress(null);
         return;
       }
       if (resp.status === 402) {
         toast.error("Crédits IA épuisés.");
+        logPlanStat({
+          ts: Date.now(), format: jsonMode ? "json" : "markdown",
+          objective: planConfig.objective ?? null, totalWeeks, totalChunks,
+          durationMs: 0, ok: false, errorCode: "CREDITS_402",
+          errorMessage: "HTTP 402 — crédits IA épuisés.",
+        });
         setIsLoading(false);
         setChunkProgress(null);
         return;
