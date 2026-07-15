@@ -30,6 +30,9 @@ import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel"
 import { supabase } from "@/integrations/supabase/client";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { buildTargetTable } from "@/lib/plan/targetTable";
+import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
+import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTableContext";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
