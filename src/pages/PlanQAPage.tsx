@@ -43,22 +43,19 @@ function formatDate(ts: number): string {
  * (payload > ~1 MB ou perte du geste utilisateur après await). On télécharge
  * TOUJOURS un .md (fallback fiable) et on tente le clipboard en best-effort.
  */
+/**
+ * Export robuste multi-plateformes :
+ *  1) iOS/Android : Web Share API (partage/enregistrement natif, marche dans les iframes).
+ *  2) Desktop : téléchargement blob classique via <a download>.
+ *  3) Fallback ultime (iframe sans allow-downloads, iOS Safari) : ouverture d'un nouvel onglet
+ *     avec le rapport en <pre> — l'utilisateur peut faire "Enregistrer sous" / copier.
+ *  Toujours tenté en parallèle : copie presse-papier (best-effort).
+ */
 async function exportReport(text: string, filename: string): Promise<void> {
   const size = text.length;
-  try {
-    const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } catch (e) {
-    toast.error(`Échec téléchargement : ${e instanceof Error ? e.message : String(e)}`);
-    return;
-  }
+  const sizeKB = (size / 1024).toFixed(1);
+
+  // Copie best-effort (à faire tôt, tant que le user-gesture est frais)
   let clipboardOk = false;
   try {
     if (navigator.clipboard?.writeText) {
@@ -66,9 +63,70 @@ async function exportReport(text: string, filename: string): Promise<void> {
       clipboardOk = true;
     }
   } catch { /* ignore */ }
-  toast.success(
-    `Rapport exporté (${(size / 1024).toFixed(1)} KB) — fichier téléchargé${clipboardOk ? " + copié" : " (presse-papier indispo)"}.`,
-  );
+
+  // 1) Web Share API avec fichier — fonctionne sur iOS/Android même en iframe
+  try {
+    const file = new File([text], filename, { type: "text/markdown;charset=utf-8" });
+    const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+    if (nav.canShare && nav.canShare({ files: [file] }) && typeof navigator.share === "function") {
+      await navigator.share({ files: [file], title: filename });
+      toast.success(`Rapport partagé (${sizeKB} KB)${clipboardOk ? " + copié" : ""}.`);
+      return;
+    }
+  } catch (e) {
+    // AbortError = user cancelled → on ne fallback pas
+    if (e instanceof Error && e.name === "AbortError") {
+      toast.message("Partage annulé.");
+      return;
+    }
+    // sinon on tente le download classique
+  }
+
+  // 2) Téléchargement blob classique
+  let downloadTriggered = false;
+  try {
+    const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.rel = "noopener";
+    a.target = "_self";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    downloadTriggered = true;
+  } catch { /* fallback ci-dessous */ }
+
+  // 3) Fallback : nouvelle fenêtre avec le contenu (iframe sans allow-downloads / iOS in-app browser)
+  try {
+    const win = window.open("", "_blank");
+    if (win) {
+      const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      win.document.write(
+        `<!doctype html><html><head><meta charset="utf-8"><title>${filename}</title>` +
+        `<meta name="viewport" content="width=device-width,initial-scale=1">` +
+        `<style>body{font:13px/1.4 ui-monospace,Menlo,monospace;padding:12px;margin:0;white-space:pre-wrap;word-break:break-word}` +
+        `header{position:sticky;top:0;background:#111;color:#fff;padding:8px 12px;margin:-12px -12px 12px;font-family:system-ui}` +
+        `button{background:#fff;color:#111;border:0;padding:6px 10px;border-radius:6px;font-weight:600}</style></head>` +
+        `<body><header>${filename} — ${sizeKB} KB &nbsp;` +
+        `<button onclick="navigator.clipboard.writeText(document.getElementById('c').innerText)">Copier</button>` +
+        `</header><pre id="c">${escaped}</pre></body></html>`,
+      );
+      win.document.close();
+      toast.success(`Rapport ouvert dans un onglet (${sizeKB} KB)${clipboardOk ? " + copié" : ""}.`);
+      return;
+    }
+  } catch { /* ignore */ }
+
+  if (downloadTriggered) {
+    toast.success(`Téléchargement lancé (${sizeKB} KB)${clipboardOk ? " + copié" : ""}. Vérifiez vos téléchargements.`);
+  } else if (clipboardOk) {
+    toast.success(`Rapport copié dans le presse-papier (${sizeKB} KB).`);
+  } else {
+    toast.error("Impossible d'exporter le rapport (téléchargement/partage/presse-papier bloqués).");
+  }
 }
 
 function sessionFilename(s: QASession): string {
