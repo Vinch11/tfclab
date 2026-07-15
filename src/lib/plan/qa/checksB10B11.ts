@@ -101,6 +101,76 @@ function ficheMainText(w: LibraryWorkout): string {
     .map(p => p.text || "").join(" ");
 }
 
+/** Extrait le motif dominant NxM d'un texte. Renvoie {reps, repSec} ou null. */
+function extractIntervalPattern(text: string): { reps: number; repSec: number } | null {
+  if (!text) return null;
+  // "10x(1' / 2')" → reps=10, repSec=60. "3x12min" → reps=3, repSec=720.
+  // "4-5×4 min" → reps=4 (borne basse), repSec=240.
+  const rx = /(\d{1,2})(?:\s*[-–]\s*\d{1,2})?\s*[x×]\s*\(?\s*(\d{1,3})\s*(min|mn|['’′]|s|sec)?/gi;
+  const found: Array<{ reps: number; repSec: number }> = [];
+  let m: RegExpExecArray | null;
+  while ((m = rx.exec(text)) !== null) {
+    const reps = Number(m[1]);
+    const val = Number(m[2]);
+    const unit = (m[3] || "").toLowerCase();
+    if (!isFinite(reps) || reps < 2 || reps > 50 || !isFinite(val)) continue;
+    let sec: number;
+    if (unit === "s" || unit === "sec") sec = val;
+    else if (unit === "min" || unit === "mn") sec = val * 60;
+    else if (unit === "'" || unit === "’" || unit === "′") sec = val * 60;
+    else {
+      // Sans unité : "12" (avec "min" implicite si >= 4) sinon suppose minutes si contexte "min" absent
+      if (val >= 60) continue; // probablement distance/watts
+      sec = val * 60;
+    }
+    if (sec < 5 || sec > 3600) continue;
+    found.push({ reps, repSec: sec });
+  }
+  if (found.length === 0) return null;
+  // Prend le pattern avec le plus grand volume total (reps * repSec) — Main dominant
+  found.sort((a, b) => b.reps * b.repSec - a.reps * a.repSec);
+  return found[0];
+}
+
+function formatSec(sec: number): string {
+  if (sec < 60) return `${sec}s`;
+  const m = Math.round(sec / 60);
+  return `${m}min`;
+}
+
+/** Détecte "Z5 (allure Z4b)" ou "Z5 = Z4b" : deux zones incompatibles pour le même effort. */
+function detectInternalZoneContradictions(text: string): Array<{ a: string; b: string; snippet: string }> {
+  const out: Array<{ a: string; b: string; snippet: string }> = [];
+  if (!text) return out;
+  // Motif 1 : "Z5 (allure Z4b)" — un token zone suivi d'une parenthèse contenant un autre token zone
+  const parenRx = /(Z\s*[1-7][ab]?)\s*\(([^)]{0,80})\)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = parenRx.exec(text)) !== null) {
+    const outer = m[1];
+    const inner = m[2];
+    const innerZ = inner.match(/Z\s*([1-7])([ab]?)/i);
+    if (!innerZ) continue;
+    const outerNum = Number(outer.match(/([1-7])/)![1]);
+    const innerNum = Number(innerZ[1]);
+    if (Math.abs(outerNum - innerNum) >= 1) {
+      out.push({ a: outer.replace(/\s+/g, ""), b: `Z${innerZ[1]}${innerZ[2]}`, snippet: m[0] });
+    }
+  }
+  // Motif 2 : "Z5 = Z4b" ou "Z5 équivaut Z4b"
+  const eqRx = /(Z\s*[1-7][ab]?)\s*(?:=|équivaut|équivalent|correspond à)\s*(Z\s*[1-7][ab]?)/gi;
+  while ((m = eqRx.exec(text)) !== null) {
+    const a = m[1].replace(/\s+/g, "");
+    const b = m[2].replace(/\s+/g, "");
+    const na = Number(a.match(/([1-7])/)![1]);
+    const nb = Number(b.match(/([1-7])/)![1]);
+    if (Math.abs(na - nb) >= 1) {
+      out.push({ a, b, snippet: m[0] });
+    }
+  }
+  return out;
+}
+
+
 // ── Suggestion IDs candidats (même sport + zone famille + durée compatible) ─
 function suggestCandidateIds(
   sport: NormSport,
@@ -335,14 +405,38 @@ export function checkB10(plan: MergedPlan): CheckResult {
       }
 
 
-      // d. structure intervalles vs continu → WARN — cardio only
+      // d. structure NxM — cardio only. FAIL "structure_mismatch" si écart franc.
       if (!nonCardio && CARDIO_SPORTS.has(fSp)) {
-        const fInt = hasIntervalPattern(ficheMainText(fiche));
-        const iInt = hasIntervalPattern(`${s.title ?? ""} ${s.details ?? ""}`);
+        const fPat = extractIntervalPattern(ficheMainText(fiche));
+        const iPat = extractIntervalPattern(`${s.title ?? ""} ${s.details ?? ""}`);
+        // WARN historique : intervalles vs continu
+        const fInt = fPat != null;
+        const iInt = iPat != null;
         if (fInt !== iInt) {
           warnings.push(`⚠ S${w.weekNumber} ${s.dayName} · ${s.catalogId} — structure ${iInt ? "intervalles" : "continu"} ≠ fiche ${fInt ? "intervalles" : "continu"}`);
         }
+        // FAIL structure_mismatch : deux patterns présents mais ordre de grandeur ≠
+        if (fPat && iPat) {
+          const rRep = Math.max(fPat.reps, iPat.reps) / Math.max(1, Math.min(fPat.reps, iPat.reps));
+          const rDur = Math.max(fPat.repSec, iPat.repSec) / Math.max(1, Math.min(fPat.repSec, iPat.repSec));
+          if (rRep >= 3 && rDur >= 3) {
+            pass = false;
+            details.push(
+              `S${w.weekNumber} ${s.dayName} · ${s.catalogId} — [structure_mismatch] fiche="${fPat.reps}x${formatSec(fPat.repSec)}" vs instance="${iPat.reps}x${formatSec(iPat.repSec)}" (reps ×${rRep.toFixed(1)}, durée ×${rDur.toFixed(1)})`,
+            );
+          }
+        }
+
+        // e. cohérence zone interne : "Z5 (allure Z4b)" / "Z5 = Z4b" → FAIL
+        const contradictions = detectInternalZoneContradictions(`${s.title ?? ""} ${s.details ?? ""}`);
+        for (const c of contradictions) {
+          pass = false;
+          details.push(
+            `S${w.weekNumber} ${s.dayName} · ${s.catalogId} — [internal_zone_contradiction] "${c.a}" et "${c.b}" incompatibles (contexte: "${c.snippet}")`,
+          );
+        }
       }
+
     }
   }
 
