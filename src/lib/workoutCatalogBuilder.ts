@@ -26,6 +26,72 @@ export interface CatalogEntry {
   dPlusTargetM?: number | { min: number; max: number };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// B5 STAGE ATTRIBUTION — trace, par ID, l'étape la plus tardive atteinte à travers
+// tous les appels de buildWorkoutCatalog d'une génération de plan. Consommé par
+// checks.ts B5 pour catégoriser précisément chaque fiche absente de l'union.
+// ═══════════════════════════════════════════════════════════════════════════════
+export type CatalogDropStage =
+  | "selected"
+  | "sport_filter"
+  | "exclude_id_patterns"
+  | "exclude_tags"
+  | "exclude_prev_chunk_ids"
+  | "prohibitions"
+  | "phase_filter"
+  | "score_hard_ban"
+  | "fill_sport_cap"
+  | "fill_cat_cap"
+  | "fill_cap_reached";
+
+export interface CatalogAttribution {
+  bestStage: CatalogDropStage; // la plus "aboutie" (selected > fill_cap > cap > ban > filtres amont)
+  inSocleAnyChunk: boolean;
+  chunksSelected: Set<number>;
+  chunksDropped: Map<number, CatalogDropStage>;
+}
+
+const STAGE_RANK: Record<CatalogDropStage, number> = {
+  sport_filter: 1,
+  exclude_id_patterns: 2,
+  exclude_tags: 3,
+  exclude_prev_chunk_ids: 4,
+  prohibitions: 5,
+  phase_filter: 6,
+  score_hard_ban: 7,
+  fill_sport_cap: 8,
+  fill_cat_cap: 8,
+  fill_cap_reached: 9,
+  selected: 10,
+};
+
+const catalogAttribution = new Map<string, CatalogAttribution>();
+
+export function resetCatalogAttribution(): void {
+  catalogAttribution.clear();
+}
+
+export function getCatalogAttribution(): ReadonlyMap<string, CatalogAttribution> {
+  return catalogAttribution;
+}
+
+function recordAttribution(id: string, chunk: number, stage: CatalogDropStage, inSocle = false): void {
+  const key = id.toUpperCase();
+  let e = catalogAttribution.get(key);
+  if (!e) {
+    e = { bestStage: stage, inSocleAnyChunk: false, chunksSelected: new Set(), chunksDropped: new Map() };
+    catalogAttribution.set(key, e);
+  }
+  if (inSocle) e.inSocleAnyChunk = true;
+  if (stage === "selected") {
+    e.chunksSelected.add(chunk);
+  } else {
+    e.chunksDropped.set(chunk, stage);
+  }
+  if (STAGE_RANK[stage] > STAGE_RANK[e.bestStage]) e.bestStage = stage;
+}
+
+
 /** Map objective strings to WorkoutGoal values */
 function normalizeGoal(objective: string): WorkoutGoal[] {
   const lower = objective.toLowerCase();
@@ -369,13 +435,17 @@ export function buildWorkoutCatalog(
 
   let current: LibraryWorkout[] = WorkoutLibrary.slice();
   const stage0 = current.length;
+  const chunkIdx = options?.chunkIndex ?? 0;
 
   // Stage 1: sport_filter
   {
     const before = current.length;
     current = current.filter(w => {
       const keep = !(options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport));
-      if (!keep && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "sport_filter", `sport=${w.sport} ∉ [${options?.sportFilter?.join(",")}]`);
+      if (!keep) {
+        recordAttribution(w.id, chunkIdx, "sport_filter");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "sport_filter", `sport=${w.sport} ∉ [${options?.sportFilter?.join(",")}]`);
+      }
       return keep;
     });
     logStage("sport_filter", before, current.length);
@@ -385,7 +455,10 @@ export function buildWorkoutCatalog(
     const before = current.length;
     current = current.filter(w => {
       const drop = excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id));
-      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_id_patterns", "id match regex");
+      if (drop) {
+        recordAttribution(w.id, chunkIdx, "exclude_id_patterns");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_id_patterns", "id match regex");
+      }
       return !drop;
     });
     logStage("exclude_id_patterns", before, current.length);
@@ -395,7 +468,10 @@ export function buildWorkoutCatalog(
     const before = current.length;
     current = current.filter(w => {
       const drop = excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()));
-      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_tags", `tag ∈ [${[...excludeTagsSet].join(",")}]`);
+      if (drop) {
+        recordAttribution(w.id, chunkIdx, "exclude_tags");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_tags", `tag ∈ [${[...excludeTagsSet].join(",")}]`);
+      }
       return !drop;
     });
     logStage("exclude_tags", before, current.length);
@@ -405,7 +481,10 @@ export function buildWorkoutCatalog(
     const before = current.length;
     current = current.filter(w => {
       const drop = !!options?.excludeIds?.has(w.id) && !isStructuralSession(w);
-      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_prev_chunk_ids", "in previous chunk & non-structural");
+      if (drop) {
+        recordAttribution(w.id, chunkIdx, "exclude_prev_chunk_ids");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_prev_chunk_ids", "in previous chunk & non-structural");
+      }
       return !drop;
     });
     logStage("exclude_prev_chunk_ids", before, current.length);
@@ -415,8 +494,11 @@ export function buildWorkoutCatalog(
     const before = current.length;
     current = current.filter(w => {
       const drop = prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w);
-      if (drop) excludedCount++;
-      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "prohibitions", "matched prohibition pattern");
+      if (drop) {
+        excludedCount++;
+        recordAttribution(w.id, chunkIdx, "prohibitions");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "prohibitions", "matched prohibition pattern");
+      }
       return !drop;
     });
     logStage("prohibitions", before, current.length);
@@ -434,13 +516,17 @@ export function buildWorkoutCatalog(
       } else {
         keep = ficheCompatibleWithPhases(w, chunkPhaseSet);
       }
-      if (!keep && TRACKED_IDS.has(w.id.toUpperCase())) {
-        logDrop(w.id, "phase_filter", `phaseAllowed=[${[...allowed].join(",")}] ∩ chunk=[${[...chunkPhaseSet].join(",")}] = ∅`);
+      if (!keep) {
+        recordAttribution(w.id, chunkIdx, "phase_filter");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) {
+          logDrop(w.id, "phase_filter", `phaseAllowed=[${[...allowed].join(",")}] ∩ chunk=[${[...chunkPhaseSet].join(",")}] = ∅`);
+        }
       }
       return keep;
     });
     logStage("phase_filter", before, current.length);
   }
+
 
   const scored = current
     .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
@@ -540,7 +626,10 @@ export function buildWorkoutCatalog(
   const groups = new Map<string, Array<{ workout: LibraryWorkout; score: number }>>();
   const familiesPresent = new Set<string>();
   for (const s of scored) {
-    if (s.score <= -1000) continue; // hard-banned
+    if (s.score <= -1000) {
+      recordAttribution(s.workout.id, chunkIdx, "score_hard_ban");
+      continue;
+    }
     const fam = intentFamilyOf(s.workout);
     const key = `${s.workout.sport}::${fam}`;
     familiesPresent.add(fam);
@@ -557,6 +646,8 @@ export function buildWorkoutCatalog(
       socleIds.add(list[i].workout.id);
     }
   }
+  // Marque toutes les fiches du socle (avant insertion → traçabilité socle_evince)
+  for (const id of socleIds) recordAttribution(id, chunkIdx, "selected", /*inSocle*/ true);
 
   // (c) Si le socle dépasse maxItems → relever le cap
   let effectiveCap = maxItems;
@@ -581,19 +672,24 @@ export function buildWorkoutCatalog(
   // (b) Remplissage : caps sport/cat souples appliqués UNIQUEMENT au remplissage
   for (const { workout, score } of scored) {
     if (selected.length >= effectiveCap) {
-      if (TRACKED_IDS.has(workout.id.toUpperCase()) && !selectedIds.has(workout.id)) {
-        logDrop(workout.id, "fill_cap", `effectiveCap=${effectiveCap} atteint (score=${score})`);
+      if (!selectedIds.has(workout.id)) {
+        recordAttribution(workout.id, chunkIdx, "fill_cap_reached");
+        if (TRACKED_IDS.has(workout.id.toUpperCase())) {
+          logDrop(workout.id, "fill_cap", `effectiveCap=${effectiveCap} atteint (score=${score})`);
+        }
       }
-      break;
+      continue; // ne PAS break : on veut attribuer tous les IDs restants
     }
     if (selectedIds.has(workout.id)) continue;
     const sport = workout.sport;
     const cat = workout.cat;
     if ((sportCounts[sport] || 0) >= 25) {
+      recordAttribution(workout.id, chunkIdx, "fill_sport_cap");
       if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "fill_sport_cap", `sport=${sport} count=${sportCounts[sport]} ≥25`);
       continue;
     }
     if ((catCounts[cat] || 0) >= 15) {
+      recordAttribution(workout.id, chunkIdx, "fill_cat_cap");
       if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "fill_cat_cap", `cat=${cat} count=${catCounts[cat]} ≥15`);
       continue;
     }
@@ -601,7 +697,9 @@ export function buildWorkoutCatalog(
     selectedIds.add(workout.id);
     sportCounts[sport] = (sportCounts[sport] || 0) + 1;
     catCounts[cat] = (catCounts[cat] || 0) + 1;
+    recordAttribution(workout.id, chunkIdx, "selected");
   }
+
 
   console.log(
     `[cap_injection_v2] chunk=${options?.chunkIndex ?? 0} cap=${effectiveCap} socle_couverture=${socleFinalSize} ` +
@@ -739,7 +837,12 @@ export function buildWorkoutCatalog(
     }
   }
 
+  // Attribution finale : toute fiche présente dans `selected` est "selected"
+  // (recouvre les insertions tardives des Pass 4/5 backfill).
+  for (const w of selected) recordAttribution(w.id, chunkIdx, "selected");
+
   // Convert to compact entries
+
   return selected.map(w => ({
     id: w.id,
     cat: w.cat,

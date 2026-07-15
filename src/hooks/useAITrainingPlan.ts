@@ -10,7 +10,7 @@
  */
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats } from "@/lib/workoutCatalogBuilder";
+import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats, resetCatalogAttribution } from "@/lib/workoutCatalogBuilder";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { TrainingSport } from "@/types/workoutLibrary";
 import { supabase } from "@/integrations/supabase/client";
@@ -356,6 +356,10 @@ export function useAITrainingPlan() {
       // Compute catalog duration stats from all phases combined
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
       const usedIds = new Set<string>();
+
+      // Reset l'attribution B5 avant les builds (accumule sur tous les chunks du plan)
+      resetCatalogAttribution();
+
 
       // Limiteurs diagnostiqués (clés métriques brutes issues du diagnostic unifié)
       // — utilisés par scoreWorkout pour booster les séances qui adressent le limiteur.
