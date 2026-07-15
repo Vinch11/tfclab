@@ -626,7 +626,10 @@ export function buildWorkoutCatalog(
   const groups = new Map<string, Array<{ workout: LibraryWorkout; score: number }>>();
   const familiesPresent = new Set<string>();
   for (const s of scored) {
-    if (s.score <= -1000) continue; // hard-banned
+    if (s.score <= -1000) {
+      recordAttribution(s.workout.id, chunkIdx, "score_hard_ban");
+      continue;
+    }
     const fam = intentFamilyOf(s.workout);
     const key = `${s.workout.sport}::${fam}`;
     familiesPresent.add(fam);
@@ -643,6 +646,8 @@ export function buildWorkoutCatalog(
       socleIds.add(list[i].workout.id);
     }
   }
+  // Marque toutes les fiches du socle (avant insertion → traçabilité socle_evince)
+  for (const id of socleIds) recordAttribution(id, chunkIdx, "selected", /*inSocle*/ true);
 
   // (c) Si le socle dépasse maxItems → relever le cap
   let effectiveCap = maxItems;
@@ -667,19 +672,24 @@ export function buildWorkoutCatalog(
   // (b) Remplissage : caps sport/cat souples appliqués UNIQUEMENT au remplissage
   for (const { workout, score } of scored) {
     if (selected.length >= effectiveCap) {
-      if (TRACKED_IDS.has(workout.id.toUpperCase()) && !selectedIds.has(workout.id)) {
-        logDrop(workout.id, "fill_cap", `effectiveCap=${effectiveCap} atteint (score=${score})`);
+      if (!selectedIds.has(workout.id)) {
+        recordAttribution(workout.id, chunkIdx, "fill_cap_reached");
+        if (TRACKED_IDS.has(workout.id.toUpperCase())) {
+          logDrop(workout.id, "fill_cap", `effectiveCap=${effectiveCap} atteint (score=${score})`);
+        }
       }
-      break;
+      continue; // ne PAS break : on veut attribuer tous les IDs restants
     }
     if (selectedIds.has(workout.id)) continue;
     const sport = workout.sport;
     const cat = workout.cat;
     if ((sportCounts[sport] || 0) >= 25) {
+      recordAttribution(workout.id, chunkIdx, "fill_sport_cap");
       if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "fill_sport_cap", `sport=${sport} count=${sportCounts[sport]} ≥25`);
       continue;
     }
     if ((catCounts[cat] || 0) >= 15) {
+      recordAttribution(workout.id, chunkIdx, "fill_cat_cap");
       if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "fill_cat_cap", `cat=${cat} count=${catCounts[cat]} ≥15`);
       continue;
     }
@@ -687,7 +697,9 @@ export function buildWorkoutCatalog(
     selectedIds.add(workout.id);
     sportCounts[sport] = (sportCounts[sport] || 0) + 1;
     catCounts[cat] = (catCounts[cat] || 0) + 1;
+    recordAttribution(workout.id, chunkIdx, "selected");
   }
+
 
   console.log(
     `[cap_injection_v2] chunk=${options?.chunkIndex ?? 0} cap=${effectiveCap} socle_couverture=${socleFinalSize} ` +
