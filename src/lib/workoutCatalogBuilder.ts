@@ -321,10 +321,6 @@ export function buildWorkoutCatalog(
   const excludeTagsSet = new Set((options?.excludeTags || []).map(t => t.toLowerCase()));
 
   // ─── PHASE 2C.3 — Pré-filtre PHASE (source: ficheAllowedPhases) ───────────
-  // Élimine les fiches dont AUCUNE phase autorisée n'intersecte les phases du
-  // chunk. Filet non silencieux : par sport, si <5 fiches restent, on
-  // ré-inclut les fiches sans contrainte de phase de ce sport et on log
-  // "catalog_filter_floor_relaxed".
   const chunkPhaseSet = new Set<PlanPhase>(phases.filter(p => p === "base" || p === "build" || p === "peak" || p === "taper") as PlanPhase[]);
   const phaseFilterEnabled = chunkPhaseSet.size > 0;
   const phaseDroppedBySport: Record<string, number> = {};
@@ -358,33 +354,106 @@ export function buildWorkoutCatalog(
     }
   }
 
-  const scored = WorkoutLibrary
-    .filter(w => {
-      if (options?.sportFilter && options.sportFilter.length > 0) {
-        if (!options.sportFilter.includes(w.sport)) return false;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PIPELINE INSTRUMENTATION — trace stage-by-stage reduction
+  // ═══════════════════════════════════════════════════════════════════════════
+  const TRACKED_IDS = new Set(["V3_TEST_HALF_MARATHON_TT", "NORWEGIAN_SWIM_THRESHOLD", "B_SWIM_TRI_RACE_PACE_703"]);
+  const chunkTag = `chunk=${options?.chunkIndex ?? 0}`;
+  const logStage = (stage: string, before: number, after: number) => {
+    console.log(`[catalog_pipeline] ${chunkTag} étape=${stage} avant=${before} après=${after} retirées=${before - after}`);
+  };
+  const logDrop = (id: string, stage: string, reason: string) => {
+    console.log(`[catalog_drop] id=${id} étape=${stage} raison=${reason}`);
+  };
+
+  let current: LibraryWorkout[] = WorkoutLibrary.slice();
+  const stage0 = current.length;
+
+  // Stage 1: sport_filter
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const keep = !(options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport));
+      if (!keep && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "sport_filter", `sport=${w.sport} ∉ [${options?.sportFilter?.join(",")}]`);
+      return keep;
+    });
+    logStage("sport_filter", before, current.length);
+  }
+  // Stage 2: exclude_id_patterns
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const drop = excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id));
+      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_id_patterns", "id match regex");
+      return !drop;
+    });
+    logStage("exclude_id_patterns", before, current.length);
+  }
+  // Stage 3: exclude_tags
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const drop = excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()));
+      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_tags", `tag ∈ [${[...excludeTagsSet].join(",")}]`);
+      return !drop;
+    });
+    logStage("exclude_tags", before, current.length);
+  }
+  // Stage 4: exclude_prev_chunk_ids (structural bypass)
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const drop = !!options?.excludeIds?.has(w.id) && !isStructuralSession(w);
+      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_prev_chunk_ids", "in previous chunk & non-structural");
+      return !drop;
+    });
+    logStage("exclude_prev_chunk_ids", before, current.length);
+  }
+  // Stage 5: prohibitions
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const drop = prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w);
+      if (drop) excludedCount++;
+      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "prohibitions", "matched prohibition pattern");
+      return !drop;
+    });
+    logStage("prohibitions", before, current.length);
+  }
+  // Stage 6: phase_filter
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      if (!phaseFilterEnabled) return true;
+      const allowed = ficheAllowedPhases(w);
+      const isUnconstrained = allowed.size === 0;
+      let keep: boolean;
+      if (relaxedFloorSports.has(w.sport)) {
+        keep = isUnconstrained || ficheCompatibleWithPhases(w, chunkPhaseSet);
+      } else {
+        keep = ficheCompatibleWithPhases(w, chunkPhaseSet);
       }
-      if (options?.excludeIds?.has(w.id) && !isStructuralSession(w)) return false;
-      if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) return false;
-      if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) return false;
-      if (prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w)) {
-        excludedCount++;
-        return false;
+      if (!keep && TRACKED_IDS.has(w.id.toUpperCase())) {
+        logDrop(w.id, "phase_filter", `phaseAllowed=[${[...allowed].join(",")}] ∩ chunk=[${[...chunkPhaseSet].join(",")}] = ∅`);
       }
-      // ─── Filtre phase ────────────────────────────────────────────────────
-      if (phaseFilterEnabled) {
-        const allowed = ficheAllowedPhases(w);
-        const isUnconstrained = allowed.size === 0;
-        if (relaxedFloorSports.has(w.sport)) {
-          // Floor relaxé : on accepte les compatibles + les sans-contrainte
-          if (!isUnconstrained && !ficheCompatibleWithPhases(w, chunkPhaseSet)) return false;
-        } else {
-          if (!ficheCompatibleWithPhases(w, chunkPhaseSet)) return false;
-        }
-      }
-      return true;
-    })
+      return keep;
+    });
+    logStage("phase_filter", before, current.length);
+  }
+
+  const scored = current
     .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
     .sort((a, b) => b.score - a.score);
+
+  // Trace: tracked IDs still present after all filters — record their score/rank
+  for (let i = 0; i < scored.length; i++) {
+    const w = scored[i].workout;
+    if (TRACKED_IDS.has(w.id.toUpperCase())) {
+      console.log(`[catalog_track] id=${w.id} survécu_filtres=oui score=${scored[i].score} rank=${i + 1}/${scored.length} sport=${w.sport} cat=${w.cat}`);
+    }
+  }
+  console.log(`[catalog_pipeline] ${chunkTag} étape=score_filter_hardban avant=${current.length} après=${scored.filter(s => s.score > -1000).length} retirées=${current.length - scored.filter(s => s.score > -1000).length}`);
+
 
   // Log de synthèse "catalog_filtered" par chunk (visible dans rapport QA)
   if (phaseFilterEnabled) {
@@ -434,32 +503,44 @@ export function buildWorkoutCatalog(
   const mainSlots = Math.floor(maxItems * 0.75); // 75% for top-scored
   const diversitySlots = maxItems - mainSlots;    // 25% reserved for V5/V6 + rotation
 
-  // ─── Pass 1: Top scored items with relaxed caps ───
-  for (const { workout, score } of scored) {
-    if (selected.length >= mainSlots) break;
+  console.log(
+    `[catalog_pipeline] ${chunkTag} étape=selection_caps maxItems=${maxItems} mainSlots=${mainSlots} diversitySlots=${diversitySlots} ` +
+    `sport_cap=25 cat_cap=15 candidats=${scored.length} tri=scoreWorkout_desc`,
+  );
 
+  // ─── Pass 1: Top scored items with relaxed caps ───
+
+  for (const { workout, score } of scored) {
+    if (selected.length >= mainSlots) {
+      if (TRACKED_IDS.has(workout.id.toUpperCase()) && !selectedIds.has(workout.id)) {
+        logDrop(workout.id, "pass1_main_slots_cap", `mainSlots=${mainSlots} atteint (score=${score}, rank hors top)`);
+      }
+      continue;
+    }
     const sport = workout.sport;
     const cat = workout.cat;
-    
-    // Relaxed caps: 25/sport, 15/category
-    if ((sportCounts[sport] || 0) >= 25) continue;
-    if ((catCounts[cat] || 0) >= 15) continue;
-
+    if ((sportCounts[sport] || 0) >= 25) {
+      if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "pass1_sport_cap", `sport=${sport} count=${sportCounts[sport]} ≥25`);
+      continue;
+    }
+    if ((catCounts[cat] || 0) >= 15) {
+      if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "pass1_cat_cap", `cat=${cat} count=${catCounts[cat]} ≥15`);
+      continue;
+    }
     selected.push(workout);
     selectedIds.add(workout.id);
     sportCounts[sport] = (sportCounts[sport] || 0) + 1;
     catCounts[cat] = (catCounts[cat] || 0) + 1;
   }
+  logStage("pass1_main_slots", scored.length, selected.length);
 
   // ─── Pass 2: Diversity slots — guarantee V5/V6 representation ───
+  const beforePass2 = selected.length;
   const eliteSessions = scored
     .filter(({ workout }) => isEliteOrAntiMonotony(workout) && !selectedIds.has(workout.id))
     .map(s => s.workout);
-
-  // Rotate which V5/V6 sessions are included per chunk
   const chunkIdx = options?.chunkIndex || 0;
-  const rotationOffset = chunkIdx * 4; // Shift selection window by 4 per chunk
-
+  const rotationOffset = chunkIdx * 4;
   for (let i = 0; i < eliteSessions.length && selected.length < mainSlots + Math.floor(diversitySlots * 0.6); i++) {
     const idx = (i + rotationOffset) % eliteSessions.length;
     const w = eliteSessions[idx];
@@ -467,20 +548,31 @@ export function buildWorkoutCatalog(
     selected.push(w);
     selectedIds.add(w.id);
   }
+  logStage("pass2_diversity_elite", beforePass2, selected.length);
 
   // ─── Pass 3: Fill remaining diversity slots with lowest-exposure sessions ───
-  // These are sessions that score >= 0 but didn't make the top cut
+  const beforePass3 = selected.length;
   const remaining = scored
     .filter(({ workout }) => !selectedIds.has(workout.id) && !isEliteOrAntiMonotony(workout))
     .map(s => s.workout);
-  
-  // Use chunk-based rotation to cycle through remaining sessions
   const rotStart = (chunkIdx * 15) % Math.max(remaining.length, 1);
   for (let i = 0; i < remaining.length && selected.length < maxItems; i++) {
     const idx = (i + rotStart) % remaining.length;
     selected.push(remaining[idx]);
     selectedIds.add(remaining[idx].id);
   }
+  logStage("pass3_remaining_rotation", beforePass3, selected.length);
+  // Tracked IDs qui n'ont pas survécu à la sélection finale (avant pass4/5)
+  for (const id of TRACKED_IDS) {
+    const survived = scored.some(s => s.workout.id.toUpperCase() === id);
+    if (survived && !selectedIds.has(id) && !selectedIds.has([...selectedIds].find(x => x.toUpperCase() === id) || "")) {
+      const sc = scored.find(s => s.workout.id.toUpperCase() === id);
+      if (sc && !selectedIds.has(sc.workout.id)) {
+        logDrop(sc.workout.id, "post_pass3_not_selected", `n'a rempli aucun slot (score=${sc.score}, maxItems=${maxItems})`);
+      }
+    }
+  }
+
 
   // ─── Pass 4: Backfill — ensure minimum 3 sessions per sport present ───
   const finalSportCounts: Record<string, number> = {};

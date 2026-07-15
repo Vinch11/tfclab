@@ -213,12 +213,14 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
   const objLower = (objective ?? "").toLowerCase();
   const isTrailObjective = /trail|utmb|ccc|occ|ultra/.test(objLower);
 
-  type Cat = "retiré_par_filtre_phase" | "existe_autre_objectif" | "pur_hallucination";
+  type Cat = "retiré_par_filtre_phase" | "retiré_aval_filtre" | "existe_autre_objectif" | "pur_hallucination";
   const breakdown: Record<Cat, string[]> = {
     retiré_par_filtre_phase: [],
+    retiré_aval_filtre: [],
     existe_autre_objectif: [],
     pur_hallucination: [],
   };
+
   const neighborLines: string[] = [];
   const exclusionLines: string[] = [];
 
@@ -278,10 +280,18 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
       } else if (TRAIL_CATALOG_RX.test(inLib.id) && !isTrailObjective) {
         cat = "existe_autre_objectif";
       } else {
-        cat = "retiré_par_filtre_phase";
+        // Distinguer vraie exclusion de phase vs coupe en aval (cap/tri/dédup)
+        const allowedPhases = ficheAllowedPhases(inLib as never);
+        if (allowedPhases.size === 0) {
+          cat = "retiré_aval_filtre"; // pas de contrainte phase → coupée ailleurs
+        } else {
+          const intersects = [...allowedPhases].some(p => planPhases.has(p));
+          cat = intersects ? "retiré_aval_filtre" : "retiré_par_filtre_phase";
+        }
       }
       breakdown[cat].push(`S${w.weekNumber} ${s.dayName} — ${s.catalogId}`);
       details.push(`S${w.weekNumber} ${s.dayName} — catalogId hors catalogue : ${s.catalogId} [${cat}]`);
+
 
       // Voisins proches pour cat ≠ pur_hallucination
       if (inLib && cat !== "pur_hallucination") {
@@ -307,15 +317,17 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
         neighborLines.push(`  · ${inLib.id} [${invSp}] tags=[${tagStr}] → voisins: ${top3 || "(aucun même sport)"}`);
       }
 
-      // [b5_exclusion_reason] : pour les fiches réelles retirées du catalogue injecté
-      if (inLib && cat === "retiré_par_filtre_phase") {
+      // [b5_exclusion_reason] : pour toute fiche réelle retirée (phase OU aval)
+      if (inLib && (cat === "retiré_par_filtre_phase" || cat === "retiré_aval_filtre")) {
         const allowedPhases = ficheAllowedPhases(inLib as never);
         const allowedArr = [...allowedPhases];
         const planArr = [...planPhases];
         const intent = tagIntention(inLib as never);
         let reason: string;
-        if (allowedPhases.size === 0) {
-          reason = "sans_contrainte_mais_absente"; // filtrée ailleurs (quota/cap/dedup)
+        if (cat === "retiré_aval_filtre") {
+          reason = allowedPhases.size === 0 ? "aval_sans_contrainte" : "aval_intersect_ok"; // cap/tri/dédup
+        } else if (allowedPhases.size === 0) {
+          reason = "sans_contrainte_mais_absente";
         } else {
           const intersect = allowedArr.some(p => planPhases.has(p));
           if (!intersect) {
@@ -323,11 +335,11 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
           } else if (INTENTION_BROAD_RX.test(intent) && allowedPhases.size < planPhases.size) {
             reason = "contrainte_trop_étroite";
           } else {
-            reason = "autre_cause_intersect"; // intersecte mais absente = quota/cap/dedup
+            reason = "autre_cause_intersect";
           }
         }
         exclusionLines.push(
-          `[b5_exclusion_reason] id=${inLib.id} phaseAllowed=[${allowedArr.join(",")}] chunkPhases=[${planArr.join(",")}] reason=${reason} intention=${intent}`
+          `[b5_exclusion_reason] id=${inLib.id} cat=${cat} phaseAllowed=[${allowedArr.join(",")}] chunkPhases=[${planArr.join(",")}] reason=${reason} intention=${intent}`
         );
       }
 
@@ -336,9 +348,10 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
 
   if (details.length === 0) details.push(`Tous les catalogId (non-custom) ∈ union catalogue (${allowedIds.length} IDs).`);
 
-  const total = breakdown.retiré_par_filtre_phase.length + breakdown.existe_autre_objectif.length + breakdown.pur_hallucination.length;
+  const total = breakdown.retiré_par_filtre_phase.length + breakdown.retiré_aval_filtre.length + breakdown.existe_autre_objectif.length + breakdown.pur_hallucination.length;
   if (total > 0) {
-    const line = `[b5_hallucination_breakdown] objective=${objective ?? "?"} total=${total} · retiré_par_filtre=${breakdown.retiré_par_filtre_phase.length} · existe_autre_objectif=${breakdown.existe_autre_objectif.length} · pur_hallucination=${breakdown.pur_hallucination.length}`;
+    const line = `[b5_hallucination_breakdown] objective=${objective ?? "?"} total=${total} · retiré_par_filtre=${breakdown.retiré_par_filtre_phase.length} · retiré_aval_filtre=${breakdown.retiré_aval_filtre.length} · existe_autre_objectif=${breakdown.existe_autre_objectif.length} · pur_hallucination=${breakdown.pur_hallucination.length}`;
+
     // eslint-disable-next-line no-console
     console.warn(line);
     if (neighborLines.length > 0) {
