@@ -697,7 +697,11 @@ export function useAITrainingPlan() {
               semanticRepairs.push(`[info] reconciler_summary: ${summary}`);
               for (const line of rec.logs) semanticRepairs.push(`[reconciler] ${line}`);
             } catch (rerr) {
-              console.error("[useAITrainingPlan] reconciler failed:", rerr);
+              const rmsg = rerr instanceof Error ? `${rerr.name}: ${rerr.message}` : String(rerr);
+              const rstack = rerr instanceof Error ? (rerr.stack ?? "").slice(0, 500) : "";
+              console.error(`❌ [useAITrainingPlan] reconciler exception — ${rmsg}\n${rstack}`, rerr);
+              semanticRepairs.push(`[error] reconciler_exception: ${rmsg}`);
+              throw rerr; // diagnostic mode: do not swallow, bubble to outer merge catch
             }
             const merged = mergePlanChunks(collected, totalWeeks);
             mergedLocal = merged;

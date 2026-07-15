@@ -171,6 +171,8 @@ function runOnePass(
   logs: string[],
 ): boolean {
   let anyChange = false;
+  const ctx: { week?: number; day?: string; sport?: string; catalogId?: string | null; family?: string } = {};
+  try {
 
   for (const chunk of chunks) {
     for (const week of chunk.weeks ?? []) {
@@ -183,8 +185,10 @@ function runOnePass(
         if (s.custom) continue; // custom = pas de fiche à contrôler
         const fiche = ficheFor(s.catalogId);
         if (!fiche) continue;
+        ctx.week = week.weekNumber; ctx.day = s.day; ctx.sport = s.sport; ctx.catalogId = s.catalogId;
 
         // 1. PHASE
+        ctx.family = "phase";
         const allowed = ficheAllowedPhases(fiche);
         if (allowed.size > 0 && !allowed.has(weekPhase)) {
           const repl = findReplacement({
@@ -211,6 +215,7 @@ function runOnePass(
         if (!fiche2) continue;
 
         // 2. DURÉE
+        ctx.family = "durée";
         const targetDur = s.durationMin ?? 0;
         if (targetDur > 0 && !ficheDurationContains(fiche2, targetDur)) {
           const repl = findReplacement({
@@ -234,6 +239,7 @@ function runOnePass(
         }
 
         // 3. DISCIPLINE
+        ctx.family = "discipline";
         const fiche3 = ficheFor(s.catalogId);
         if (!fiche3) continue;
         const fSp = normSport(fiche3.sport);
@@ -276,6 +282,7 @@ function runOnePass(
       const cnt = (sp: string) => (bySport.get(sp)?.length ?? 0);
 
       // 4a. FLOOR — insertion depuis catalogue
+      ctx.family = "quota-floor"; ctx.week = week.weekNumber; ctx.day = undefined; ctx.sport = undefined; ctx.catalogId = undefined;
       if (!isTaperOrRace) {
         const specs: Array<{ sport: SchemaSport; min: number }> = [
           { sport: "swim", min: q.swim.min },
@@ -333,6 +340,7 @@ function runOnePass(
       }
 
       // 4b. CEILING — trim
+      ctx.family = "quota-ceiling";
       const trimSpecs: Array<{ sport: SchemaSport; max: number }> = [
         { sport: "swim", max: q.swim.max },
         { sport: "bike", max: q.bike.max },
@@ -386,6 +394,15 @@ function runOnePass(
   }
 
   return anyChange;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error(
+      `❌ [reconciler_exception] family=${ctx.family ?? "?"} W${ctx.week ?? "?"}/${ctx.day ?? "?"} sport=${ctx.sport ?? "?"} catalogId=${ctx.catalogId ?? "?"} — ${e instanceof Error ? `${e.name}: ${e.message}` : String(e)}`,
+      e,
+    );
+    logs.push(`[reconciler_exception] family=${ctx.family ?? "?"} W${ctx.week ?? "?"}/${ctx.day ?? "?"} sport=${ctx.sport ?? "?"} catalogId=${ctx.catalogId ?? "?"} — ${e instanceof Error ? e.message : String(e)}`);
+    throw e;
+  }
 }
 
 // ── API publique ───────────────────────────────────────────────────────────

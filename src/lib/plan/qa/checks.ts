@@ -22,6 +22,7 @@ import type { PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX } from "@/lib/plan/trailMarkers";
 import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { checkB10, checkB11 } from "./checksB10B11";
+import { WorkoutLibrary } from "@/lib/workoutLibrary";
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
@@ -192,7 +193,7 @@ export function checkB4_sprint(plan: MergedPlan): CheckResult {
   return { ...res, label: "SPRINT — swim/bike/run chaque semaine active" };
 }
 
-export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined): CheckResult {
+export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, objective?: string): CheckResult {
   const details: string[] = [];
   let pass = true;
   if (!allowedIds || allowedIds.length === 0) {
@@ -204,16 +205,91 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined): Che
       details: ["Union catalogue injectée non capturée (observabilité manquante) — skip."],
     };
   }
-  const allowed = new Set(allowedIds);
+  const allowed = new Set(allowedIds.map(i => i.toUpperCase()));
+  const libIndex = new Map<string, typeof WorkoutLibrary[number]>();
+  for (const w of WorkoutLibrary) libIndex.set(w.id.toUpperCase(), w);
+
+  const objLower = (objective ?? "").toLowerCase();
+  const isTrailObjective = /trail|utmb|ccc|occ|ultra/.test(objLower);
+
+  type Cat = "retiré_par_filtre_phase" | "existe_autre_objectif" | "pur_hallucination";
+  const breakdown: Record<Cat, string[]> = {
+    retiré_par_filtre_phase: [],
+    existe_autre_objectif: [],
+    pur_hallucination: [],
+  };
+  const neighborLines: string[] = [];
+
+  const normSp = (s: string): string => {
+    const x = String(s || "").toLowerCase();
+    if (x === "course" || x === "run") return "run";
+    if (x === "cyclisme" || x === "bike") return "bike";
+    if (x === "natation" || x === "swim") return "swim";
+    if (x === "renforcement" || x === "strength") return "strength";
+    return x;
+  };
+
   for (const w of plan.weeks) {
     for (const s of w.sessions) {
-      if (s.catalogId && !s.custom && !allowed.has(s.catalogId)) {
-        pass = false;
-        details.push(`S${w.weekNumber} ${s.dayName} — catalogId hors catalogue : ${s.catalogId}`);
+      if (!s.catalogId || s.custom) continue;
+      const idU = s.catalogId.toUpperCase();
+      if (allowed.has(idU)) continue;
+      pass = false;
+      const inLib = libIndex.get(idU);
+      let cat: Cat;
+      if (!inLib) {
+        cat = "pur_hallucination";
+      } else if (TRAIL_CATALOG_RX.test(inLib.id) && !isTrailObjective) {
+        cat = "existe_autre_objectif";
+      } else {
+        cat = "retiré_par_filtre_phase";
+      }
+      breakdown[cat].push(`S${w.weekNumber} ${s.dayName} — ${s.catalogId}`);
+      details.push(`S${w.weekNumber} ${s.dayName} — catalogId hors catalogue : ${s.catalogId} [${cat}]`);
+
+      // Voisins proches pour cat ≠ pur_hallucination
+      if (inLib && cat !== "pur_hallucination") {
+        const invSp = normSp(inLib.sport as string);
+        const invTags = new Set<string>([
+          ...((inLib.tags ?? []) as string[]).map(t => t.toLowerCase()),
+          ...((inLib.goals ?? []) as string[]).map(t => t.toLowerCase()),
+        ]);
+        const candidates: Array<{ id: string; score: number; sport: string }> = [];
+        for (const aid of allowed) {
+          const f = libIndex.get(aid);
+          if (!f) continue;
+          const fSp = normSp(f.sport as string);
+          if (fSp !== invSp) continue;
+          let ov = 0;
+          for (const t of ((f.tags ?? []) as string[])) if (invTags.has(t.toLowerCase())) ov++;
+          for (const g of ((f.goals ?? []) as string[])) if (invTags.has(g.toLowerCase())) ov++;
+          candidates.push({ id: f.id, score: ov, sport: fSp });
+        }
+        candidates.sort((a, b) => b.score - a.score);
+        const top3 = candidates.slice(0, 3).map(c => `${c.id}(t=${c.score})`).join(", ");
+        const tagStr = [...invTags].slice(0, 6).join(",");
+        neighborLines.push(`  · ${inLib.id} [${invSp}] tags=[${tagStr}] → voisins: ${top3 || "(aucun même sport)"}`);
       }
     }
   }
+
   if (details.length === 0) details.push(`Tous les catalogId (non-custom) ∈ union catalogue (${allowedIds.length} IDs).`);
+
+  const total = breakdown.retiré_par_filtre_phase.length + breakdown.existe_autre_objectif.length + breakdown.pur_hallucination.length;
+  if (total > 0) {
+    const line = `[b5_hallucination_breakdown] objective=${objective ?? "?"} total=${total} · retiré_par_filtre=${breakdown.retiré_par_filtre_phase.length} · existe_autre_objectif=${breakdown.existe_autre_objectif.length} · pur_hallucination=${breakdown.pur_hallucination.length}`;
+    // eslint-disable-next-line no-console
+    console.warn(line);
+    if (neighborLines.length > 0) {
+      // eslint-disable-next-line no-console
+      console.groupCollapsed(`🔎 B5 voisins proches (${neighborLines.length})`);
+      for (const l of neighborLines) console.log(l);
+      console.groupEnd();
+    }
+    details.unshift(line);
+    for (const l of neighborLines) details.push(l);
+  }
+
   return { id: "B5", label: "catalogId ⊂ catalogue injecté (union chunks)", level: "critical", pass, details };
 }
 
@@ -376,7 +452,7 @@ export function runAllChecks(args: {
     checkB2(args.merged),
     checkB3(args.merged),
     b4,
-    checkB5(args.merged, args.allowedCatalogIds),
+    checkB5(args.merged, args.allowedCatalogIds, args.objective),
     checkB6(args.merged, args.parsed),
     checkB7(args.parsed, args.sportObjectiveIssues, args.objective),
     checkB8(args.merged, args.quotaIssues ?? [], args.quotasByWeek ?? {}),
