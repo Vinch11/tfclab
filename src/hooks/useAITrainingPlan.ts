@@ -357,6 +357,10 @@ export function useAITrainingPlan() {
       let allCatalogEntries: ReturnType<typeof buildWorkoutCatalog> = [];
       const usedIds = new Set<string>();
 
+      // Reset l'attribution B5 avant les builds (accumule sur tous les chunks du plan)
+      resetCatalogAttribution();
+
+
       // Limiteurs diagnostiqués (clés métriques brutes issues du diagnostic unifié)
       // — utilisés par scoreWorkout pour booster les séances qui adressent le limiteur.
       const limiterKeys = planConfig.identifiedLimitersRaw && planConfig.identifiedLimitersRaw.length > 0
