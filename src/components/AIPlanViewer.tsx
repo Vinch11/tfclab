@@ -322,10 +322,21 @@ interface SessionCardProps {
 
 function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const targetTable = useTargetTable();
 
   const session = useMemo(
     () => maybeDowngradeBikeSession(rawSession, objectifEffectif),
     [rawSession, objectifEffectif]
+  );
+
+  // PHASE 2B v2 — annote les intensités relatives (zones/%FTP/%VMA/CSS±s) avec les valeurs absolues athlète.
+  const displayTitle = useMemo(
+    () => enrichWithAbsoluteValues(session.title ?? "", targetTable, session.sport as SportKind),
+    [session.title, session.sport, targetTable]
+  );
+  const displayDetails = useMemo(
+    () => enrichWithAbsoluteValues(session.details ?? "", targetTable, session.sport as SportKind),
+    [session.details, session.sport, targetTable]
   );
 
   const trailAlts = useMemo(
