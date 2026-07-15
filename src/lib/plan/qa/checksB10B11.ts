@@ -435,6 +435,18 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
   if (details.length === 0) details.push(`Contraintes fiches/plan respectées${variantKey ? ` (variante attendue : ${variantKey})` : ""}.`);
   else details.unshift(`Contraintes fiches/plan : ${details.length} FAIL.`);
 
+  // Log de mesure : décompte phase mismatch par catégorie (mesure — pas de correction)
+  const totalPhaseFails = phaseMismatchByCategory.granularite_intra_chunk + phaseMismatchByCategory.fuite_mapping + phaseMismatchByCategory.custom_ou_fallback;
+  if (totalPhaseFails > 0) {
+    // eslint-disable-next-line no-console
+    console.log(
+      `[b11_phase_mismatch_breakdown] objective="${objective ?? "?"}" total=${totalPhaseFails} · granularité_intra_chunk=${phaseMismatchByCategory.granularite_intra_chunk} · fuite_mapping=${phaseMismatchByCategory.fuite_mapping} · custom_ou_fallback=${phaseMismatchByCategory.custom_ou_fallback}`,
+    );
+    details.push(
+      `📊 phase mismatch — granularité_intra_chunk=${phaseMismatchByCategory.granularite_intra_chunk} · fuite_mapping=${phaseMismatchByCategory.fuite_mapping} · custom_ou_fallback=${phaseMismatchByCategory.custom_ou_fallback}`,
+    );
+  }
+
   // Synthèse variantes (INFO, non bloquant) — détail complet en console + base
   if (variantMisses.length > 0) {
     details.push(
