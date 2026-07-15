@@ -318,6 +318,45 @@ export function buildWorkoutCatalog(
   let excludedCount = 0;
   const excludeIdPatterns = options?.excludeIdPatterns || [];
   const excludeTagsSet = new Set((options?.excludeTags || []).map(t => t.toLowerCase()));
+
+  // ─── PHASE 2C.3 — Pré-filtre PHASE (source: ficheAllowedPhases) ───────────
+  // Élimine les fiches dont AUCUNE phase autorisée n'intersecte les phases du
+  // chunk. Filet non silencieux : par sport, si <5 fiches restent, on
+  // ré-inclut les fiches sans contrainte de phase de ce sport et on log
+  // "catalog_filter_floor_relaxed".
+  const chunkPhaseSet = new Set<PlanPhase>(phases.filter(p => p === "base" || p === "build" || p === "peak" || p === "taper") as PlanPhase[]);
+  const phaseFilterEnabled = chunkPhaseSet.size > 0;
+  const phaseDroppedBySport: Record<string, number> = {};
+  const phaseKeptBySport: Record<string, number> = {};
+  const relaxedFloorSports = new Set<string>();
+
+  // 1er passage : compte les kept par sport après filtre phase strict
+  if (phaseFilterEnabled) {
+    for (const w of WorkoutLibrary) {
+      if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) continue;
+      if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) continue;
+      if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) continue;
+      if (prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w)) continue;
+      const sport = w.sport;
+      const compat = ficheCompatibleWithPhases(w, chunkPhaseSet);
+      if (compat) phaseKeptBySport[sport] = (phaseKeptBySport[sport] || 0) + 1;
+      else phaseDroppedBySport[sport] = (phaseDroppedBySport[sport] || 0) + 1;
+    }
+    const FLOOR = 5;
+    const sportsRequired = options?.sportFilter && options.sportFilter.length > 0
+      ? options.sportFilter as unknown as string[]
+      : Object.keys({ ...phaseKeptBySport, ...phaseDroppedBySport });
+    for (const sport of sportsRequired) {
+      const kept = phaseKeptBySport[sport] || 0;
+      if (kept < FLOOR) {
+        relaxedFloorSports.add(sport);
+        console.warn(
+          `[catalog_filter_floor_relaxed] sport=${sport} chunk=${options?.chunkIndex ?? 0} phases=[${[...chunkPhaseSet].join(",")}] kept=${kept} < floor=${FLOOR} → réintègre fiches sans contrainte de phase`,
+        );
+      }
+    }
+  }
+
   const scored = WorkoutLibrary
     .filter(w => {
       if (options?.sportFilter && options.sportFilter.length > 0) {
@@ -330,14 +369,45 @@ export function buildWorkoutCatalog(
         excludedCount++;
         return false;
       }
+      // ─── Filtre phase ────────────────────────────────────────────────────
+      if (phaseFilterEnabled) {
+        const allowed = ficheAllowedPhases(w);
+        const isUnconstrained = allowed.size === 0;
+        if (relaxedFloorSports.has(w.sport)) {
+          // Floor relaxé : on accepte les compatibles + les sans-contrainte
+          if (!isUnconstrained && !ficheCompatibleWithPhases(w, chunkPhaseSet)) return false;
+        } else {
+          if (!ficheCompatibleWithPhases(w, chunkPhaseSet)) return false;
+        }
+      }
       return true;
     })
     .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
     .sort((a, b) => b.score - a.score);
 
+  // Log de synthèse "catalog_filtered" par chunk (visible dans rapport QA)
+  if (phaseFilterEnabled) {
+    const beforeBySport: Record<string, number> = {};
+    for (const w of WorkoutLibrary) {
+      if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) continue;
+      beforeBySport[w.sport] = (beforeBySport[w.sport] || 0) + 1;
+    }
+    const afterBySport: Record<string, number> = {};
+    for (const { workout } of scored) {
+      afterBySport[workout.sport] = (afterBySport[workout.sport] || 0) + 1;
+    }
+    const parts = Object.keys(beforeBySport).sort().map(sp =>
+      `${sp}=${afterBySport[sp] || 0}/${beforeBySport[sp]}`);
+    console.log(
+      `[catalog_filtered] chunk=${options?.chunkIndex ?? 0} phases=[${[...chunkPhaseSet].join(",")}] ` +
+      `bySport=${parts.join(" ")} relaxed=[${[...relaxedFloorSports].join(",")}]`,
+    );
+  }
+
   if (activeProhibitionKeys.length > 0) {
     console.log(
       `[buildWorkoutCatalog] Prohibitions actives: [${activeProhibitionKeys.join(", ")}] → ` +
+
       `${excludedCount} séance(s) exclue(s) du pool` +
       (bypassProhibitionForSport.size > 0 ? ` (bypass: ${Array.from(bypassProhibitionForSport).join(", ")})` : "")
     );
