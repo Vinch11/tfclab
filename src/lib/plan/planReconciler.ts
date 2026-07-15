@@ -185,8 +185,10 @@ function runOnePass(
         if (s.custom) continue; // custom = pas de fiche à contrôler
         const fiche = ficheFor(s.catalogId);
         if (!fiche) continue;
+        ctx.week = week.weekNumber; ctx.day = s.day; ctx.sport = s.sport; ctx.catalogId = s.catalogId;
 
         // 1. PHASE
+        ctx.family = "phase";
         const allowed = ficheAllowedPhases(fiche);
         if (allowed.size > 0 && !allowed.has(weekPhase)) {
           const repl = findReplacement({
