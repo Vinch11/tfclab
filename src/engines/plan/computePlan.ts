@@ -385,7 +385,7 @@ export function postProcessParsedPlan(
     console.log(`🧭 normalizeWeeksAndPhases — ghosts drop: [${normStats.droppedGhostWeeks.join(",")}] · phases reassignées: ${normStats.phaseReassignedCount} · labels nettoyés: ${normStats.labelCleanedCount}`);
   }
 
-  anchorRaceDays(plan, config);
+  anchorRaceDays(plan, config, athleteData);
   dedupRaceDays(plan, config);
 
   // #7 audit : calcul volume hebdo réel (remplace placeholder textuel identique)
