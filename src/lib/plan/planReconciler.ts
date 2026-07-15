@@ -215,6 +215,7 @@ function runOnePass(
         if (!fiche2) continue;
 
         // 2. DURÉE
+        ctx.family = "durée";
         const targetDur = s.durationMin ?? 0;
         if (targetDur > 0 && !ficheDurationContains(fiche2, targetDur)) {
           const repl = findReplacement({
