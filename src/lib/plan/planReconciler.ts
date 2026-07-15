@@ -282,6 +282,7 @@ function runOnePass(
       const cnt = (sp: string) => (bySport.get(sp)?.length ?? 0);
 
       // 4a. FLOOR — insertion depuis catalogue
+      ctx.family = "quota-floor"; ctx.week = week.weekNumber; ctx.day = undefined; ctx.sport = undefined; ctx.catalogId = undefined;
       if (!isTaperOrRace) {
         const specs: Array<{ sport: SchemaSport; min: number }> = [
           { sport: "swim", min: q.swim.min },
