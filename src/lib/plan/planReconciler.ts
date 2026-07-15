@@ -171,6 +171,8 @@ function runOnePass(
   logs: string[],
 ): boolean {
   let anyChange = false;
+  const ctx: { week?: number; day?: string; sport?: string; catalogId?: string | null; family?: string } = {};
+  try {
 
   for (const chunk of chunks) {
     for (const week of chunk.weeks ?? []) {
