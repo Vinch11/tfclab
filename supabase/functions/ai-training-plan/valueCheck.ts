@@ -385,7 +385,45 @@ export function applyValueCheck(
         const hasContent = /\S/.test(combined);
         if (!hasContent) return s;
         const res = checkSessionText(combined, s, targetTable);
-        if (res.tokens === 0) return s;
+
+        // ─── Filet non silencieux : dédup "(X (X))" + plage durée > 30 min ───
+        // Dédup annotations identiques ex "74% FTP (74% FTP)"
+        const DUP_RX = /(\d{1,3}\s*%\s*(?:FTP|VMA|CSS|FCmax|CP\s*Run|CPRun)|\d{2,4}\s*W|CSS\s*[+-]\s*\d{1,2}\s*s)\s*\(\s*(\1)\s*\)/gi;
+        const beforeDedup = res.text;
+        const afterDedup = beforeDedup.replace(DUP_RX, (_m, a) => {
+          repairs.push({
+            code: "value_relativized", severity: "warning",
+            weekNumber: w.weekNumber, day: s.day, sport: s.sport, chunkIndex: ci,
+            reason: `annotation identique dupliquée "${_m}" collapsée → "${a}"`,
+            before: _m, after: a, token: _m,
+          });
+          return a;
+        });
+
+        // Plage durée > 30 min d'amplitude (Xh(mm)?-Yh(mm)?) → warning
+        const RANGE_RX = /(\d{1,2})(?:h(\d{0,2})|min|')-(\d{1,2})(?:h(\d{0,2})|min|')/g;
+        let rangeMatch: RegExpExecArray | null;
+        while ((rangeMatch = RANGE_RX.exec(afterDedup)) !== null) {
+          const raw = rangeMatch[0];
+          const parts = raw.split("-");
+          const toMin = (p: string): number | null => {
+            const mh = p.match(/^(\d{1,2})h(\d{0,2})?$/i);
+            if (mh) return Number(mh[1]) * 60 + (mh[2] ? Number(mh[2]) : 0);
+            const mmin = p.match(/^(\d{1,3})(?:min|')$/i);
+            if (mmin) return Number(mmin[1]);
+            return null;
+          };
+          const a = toMin(parts[0]); const b = toMin(parts[1]);
+          if (a == null || b == null || b - a <= 30) continue;
+          repairs.push({
+            code: "value_unresolved", severity: "warning",
+            weekNumber: w.weekNumber, day: s.day, sport: s.sport, chunkIndex: ci,
+            reason: `plage de durée trop large "${raw}" (Δ=${b - a}min>30) — à résoudre par sessionSizingMatrix [duration_range_ambiguous]`,
+            token: raw,
+          });
+        }
+
+        if (res.tokens === 0 && beforeDedup === afterDedup) return s;
         totalTokens += res.tokens;
         conformantTokens += res.conformant;
         relativizedTokens += res.relativized;
@@ -403,8 +441,9 @@ export function applyValueCheck(
         traces.push(
           `[VALUE_CHECK] S${w.weekNumber} ${s.day} ${s.sport}: tokens=${res.tokens} ok=${res.conformant} relat=${res.relativized} unres=${res.unresolved} residualAbs=${res.residualAbsolute}`,
         );
-        if (res.text !== combined) {
-          const [newTitle, ...rest] = res.text.split("\n");
+        const finalText = afterDedup;
+        if (finalText !== combined) {
+          const [newTitle, ...rest] = finalText.split("\n");
           return { ...s, title: newTitle, details: rest.join("\n") };
         }
         return s;

@@ -27,6 +27,7 @@ import { computeWeekVolumeMin, formatMinutesToHm } from "@/lib/weeklyVolumeEstim
 import { normalizeWeeksAndPhases } from "./normalizeWeeksPhases";
 import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
 import { deriveRaceTargets, formatSecPerKm } from "@/lib/deriveRaceTargets";
+import { postProcessSessionText } from "./sessionTextPostProcessor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
@@ -387,6 +388,27 @@ export function postProcessParsedPlan(
 
   anchorRaceDays(plan, config, athleteData);
   dedupRaceDays(plan, config);
+
+  // PHASE 2C — dédup annotations "(X% FTP)" doublonnées + résolution des plages
+  // de durée > 30 min d'amplitude dans les Main. Filet non silencieux.
+  let totalDupCollapsed = 0, totalDupMismatched = 0, totalRangesResolved = 0;
+  const postLogs: string[] = [];
+  for (const w of plan.weeks) {
+    for (const s of w.sessions) {
+      const st = postProcessSessionText(s, config.ambition);
+      totalDupCollapsed += st.duplicatesCollapsed;
+      totalDupMismatched += st.duplicatesMismatched;
+      totalRangesResolved += st.durationRangesResolved;
+      for (const l of st.logs) postLogs.push(`S${w.weekNumber} ${s.dayName}: ${l}`);
+    }
+  }
+  if (totalDupCollapsed || totalDupMismatched || totalRangesResolved) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `🧹 sessionTextPostProcessor — collapsed=${totalDupCollapsed} mismatched=${totalDupMismatched} rangesResolved=${totalRangesResolved}`,
+      postLogs,
+    );
+  }
 
   // #7 audit : calcul volume hebdo réel (remplace placeholder textuel identique)
   for (const w of plan.weeks) {
