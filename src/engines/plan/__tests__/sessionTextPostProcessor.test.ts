@@ -48,6 +48,19 @@ describe("resolveWideDurationRanges", () => {
     expect(r.text).toBe("40'-50' allure Z3");
     expect(r.resolved).toBe(0);
   });
+  it("résout '90-180 min' (unité partagée) via phase-fallback base", () => {
+    const r = resolveWideDurationRanges("Seiler bike 90-180 min Z1-Z2", { phase: "base" });
+    expect(r.resolved).toBe(1);
+    expect(r.text).not.toMatch(/90-180/);
+    expect(r.logs.some((l) => l.startsWith("freetext_duration_resolved"))).toBe(true);
+  });
+
+  it("résout \"90-140'\" (apostrophe partagée)", () => {
+    const r = resolveWideDurationRanges("Vélo : 90-140' Z2-Z3", { phase: "build" });
+    expect(r.resolved).toBe(1);
+    expect(r.text).not.toMatch(/90-140/);
+  });
+
 
   it("phase peak biaise vers le haut", () => {
     const rBase = resolveWideDurationRanges("1h-4h Z2", { phase: "base" });

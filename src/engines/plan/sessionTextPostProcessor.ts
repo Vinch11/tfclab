@@ -95,30 +95,35 @@ export function collapseDuplicateValueAnnotations(text: string): DedupResult {
 // ═══ 2. RÉSOLUTION PLAGES DE DURÉE > 30 MIN ═════════════════════════════════
 
 /**
- * Détecte "XhYY-AhBB", "XhYY-AhBB'", "X'-Y'", "Xh-Yh", "XXmin-YYmin", etc.
+ * Détecte "XhYY-AhBB", "XhYY-AhBB'", "X'-Y'", "Xh-Yh", "XXmin-YYmin",
+ * "90-180 min", "60-120 min", "90-140'" (unité partagée à droite).
  * Renvoie [minA, minB] en minutes ou null.
  */
 function parseDurationRange(m: string): [number, number] | null {
   // Normalise apostrophes typographiques et espaces
-  const s = m.replace(/[’′]/g, "'").replace(/\s+/g, "");
-  // Pattern accepté : (Nh(mm)? | Nmin | N')-(Nh(mm)? | Nmin | N')
-  const rx = /^(\d{1,2})(?:h(\d{0,2})|min|')-(\d{1,2})(?:h(\d{0,2})|min|')$/i;
+  const raw = m.replace(/[’′]/g, "'");
+  const s = raw.replace(/\s+/g, "");
+  // Chaque borne peut avoir sa propre unité, ou l'unité peut être partagée à droite:
+  // ex: "90-180min", "60-120 min", "90-140'", "2h30-4h30", "1h-4h"
+  const rx = /^(\d{1,3})(h\d{0,2}|min|')?-(\d{1,3})(h\d{0,2}|min|')?$/i;
   const mm = s.match(rx);
   if (!mm) return null;
-  const [, h1, m1, h2, m2] = mm;
-  // Reconstruit lecture : le suffixe capturé est ambigu (h vs min vs ') donc on
-  // reprend depuis la chaîne pour identifier le suffixe de chaque borne.
-  const parts = s.split("-");
-  if (parts.length !== 2) return null;
-  const toMin = (p: string): number | null => {
-    const mh = p.match(/^(\d{1,2})h(\d{0,2})?$/i);
-    if (mh) return Number(mh[1]) * 60 + (mh[2] ? Number(mh[2]) : 0);
-    const mmin = p.match(/^(\d{1,3})(?:min|')$/i);
-    if (mmin) return Number(mmin[1]);
+  const [, n1, u1raw, n2, u2raw] = mm;
+  // Si aucune borne n'a d'unité → skip (non identifiable comme durée)
+  if (!u1raw && !u2raw) return null;
+  // Unité partagée : si une borne n'a pas d'unité, hérite de l'autre (préfère la droite)
+  const u1 = (u1raw || u2raw || "").toLowerCase();
+  const u2 = (u2raw || u1raw || "").toLowerCase();
+  const toMin = (n: string, u: string): number | null => {
+    if (u.startsWith("h")) {
+      const mins = u.length > 1 ? Number(u.slice(1)) : 0;
+      return Number(n) * 60 + (isFinite(mins) ? mins : 0);
+    }
+    if (u === "min" || u === "'") return Number(n);
     return null;
   };
-  const a = toMin(parts[0]);
-  const b = toMin(parts[1]);
+  const a = toMin(n1, u1);
+  const b = toMin(n2, u2);
   if (a == null || b == null || a >= b) return null;
   return [a, b];
 }
@@ -139,7 +144,12 @@ function pickFraction(phase?: string): number {
   return 0.45; // base / défaut
 }
 
-const RANGE_TEXT_RX = /(\d{1,2}(?:h\d{0,2}|min|['’′]))\s*[-–]\s*(\d{1,2}(?:h\d{0,2}|min|['’′]))/g;
+// Formes acceptées :
+//  - "2h30-4h30", "1h-4h", "40'-50'", "40min-90min"
+//  - "90-180 min", "60-120 min", "90-140'" (unité partagée, éventuellement à droite)
+const RANGE_TEXT_RX = /(\d{1,3}(?:\s*(?:h\d{0,2}|min|['’′]))?)\s*[-–]\s*(\d{1,3}\s*(?:h\d{0,2}|min|['’′]))/g;
+
+
 
 export interface DurationResolveResult {
   text: string;
@@ -247,11 +257,11 @@ export function resolveWideDurationRanges(
     if (mx) {
       const resolvedStr = formatMinutes(mx.picked);
       logs.push(
-        `duration_range_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via ${mx.source} inputs=${JSON.stringify(mx.matrixInputs)}`,
+        `freetext_duration_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via ${mx.source} inputs=${JSON.stringify(mx.matrixInputs)}`,
       );
       if (mx.clamped) {
         logs.push(
-          `duration_clamped_to_card_range: matrix=${mx.matrixInputs.matrixFloorMin}min → "${resolvedStr}" (borne fiche [${a},${b}])`,
+          `freetext_duration_clamped: matrix=${mx.matrixInputs.matrixFloorMin}min → "${resolvedStr}" (borne fiche [${a},${b}])`,
         );
       }
       resolved++;
@@ -262,11 +272,12 @@ export function resolveWideDurationRanges(
     const picked = Math.round((a + (b - a) * frac) / 5) * 5;
     const resolvedStr = formatMinutes(picked);
     logs.push(
-      `duration_range_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via phase-fallback (phase=${opts.phase ?? "n/a"}, frac=${frac}, matrix_gap=${describeMatrixGap(opts)})`,
+      `freetext_duration_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via phase-fallback (phase=${opts.phase ?? "n/a"}, frac=${frac}, matrix_gap=${describeMatrixGap(opts)})`,
     );
     resolved++;
     return resolvedStr;
   });
+
   return { text: out, resolved, logs };
 }
 
