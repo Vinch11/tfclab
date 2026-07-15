@@ -21,10 +21,11 @@ import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import type { PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX } from "@/lib/plan/trailMarkers";
 import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
+import { checkB10, checkB11 } from "./checksB10B11";
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
-  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9";
+  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9" | "B10" | "B11";
   label: string;
   level: CheckLevel;
   pass: boolean;
@@ -380,5 +381,7 @@ export function runAllChecks(args: {
     checkB7(args.parsed, args.sportObjectiveIssues, args.objective),
     checkB8(args.merged, args.quotaIssues ?? [], args.quotasByWeek ?? {}),
     checkB9(args.stat?.semanticRepairs),
+    checkB10(args.merged),
+    checkB11(args.merged, args.objective),
   ];
 }
