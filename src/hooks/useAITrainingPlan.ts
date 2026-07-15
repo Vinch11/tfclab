@@ -433,6 +433,14 @@ export function useAITrainingPlan() {
       const token = session?.access_token;
       if (!token) {
         toast.error("Session expirée, reconnectez-vous.");
+        logPlanStat({
+          ts: Date.now(),
+          format: jsonMode ? "json" : "markdown",
+          objective: planConfig.objective ?? null,
+          totalWeeks, totalChunks, durationMs: 0, ok: false,
+          errorCode: "AUTH_MISSING",
+          errorMessage: "Aucune session Supabase active — impossible d'appeler l'edge function.",
+        });
         setIsLoading(false);
         return;
       }
