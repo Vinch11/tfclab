@@ -213,12 +213,14 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
   const objLower = (objective ?? "").toLowerCase();
   const isTrailObjective = /trail|utmb|ccc|occ|ultra/.test(objLower);
 
-  type Cat = "retiré_par_filtre_phase" | "existe_autre_objectif" | "pur_hallucination";
+  type Cat = "retiré_par_filtre_phase" | "retiré_aval_filtre" | "existe_autre_objectif" | "pur_hallucination";
   const breakdown: Record<Cat, string[]> = {
     retiré_par_filtre_phase: [],
+    retiré_aval_filtre: [],
     existe_autre_objectif: [],
     pur_hallucination: [],
   };
+
   const neighborLines: string[] = [];
   const exclusionLines: string[] = [];
 
