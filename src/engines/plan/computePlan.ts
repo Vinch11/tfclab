@@ -341,7 +341,8 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
       console.log(`🏁 course unique vérifiée — S${week.weekNumber} ${keeper.dayName} : ${dropped.length} doublon(s) supprimé(s) (gardé : "${keeper.title.slice(0, 60)}")`);
     }
     // Correction micro-cohérence : si l'objectif n'est pas marathon mais les détails
-    // parlent d'allure marathon (résidu de prompt example), on substitue le pacing hint canonique.
+    // parlent d'allure marathon (résidu de prompt example), on supprime la mention.
+    // La cible correcte est réinjectée par anchorRaceDays via buildRaceStageHints.
     if (goals.length) {
       for (const s of week.sessions) {
         const text = `${s.sport} ${s.title} ${s.details}`;
@@ -352,17 +353,16 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
         }) ?? goals[0];
         const obj = (goal?.objective ?? "").toLowerCase();
         if (obj && !obj.includes("marathon") && /allure\s+marathon/i.test(s.details)) {
-          const hint = buildPacingHint(goal.objective);
           const before = s.details;
           s.details = s.details.replace(/allure\s+marathon\s+cible[^.]*\./gi, "").trim();
-          if (!s.details.includes(hint)) s.details = `${s.details} ${hint}`.trim();
           // eslint-disable-next-line no-console
-          console.log(`🏁 pacing corrigé — S${week.weekNumber} ${s.dayName} : objectif="${goal.objective}" (avant: "${before.slice(0, 80)}…")`);
+          console.warn(`race_block_target_overridden — S${week.weekNumber} ${s.dayName} : mention "allure marathon" retirée (objectif="${goal.objective}", avant: "${before.slice(0, 80)}…")`);
         }
       }
     }
   }
 }
+
 
 /**
  * Applique les post-traitements déterministes au plan parsé.
