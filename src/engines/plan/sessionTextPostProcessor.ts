@@ -31,6 +31,12 @@ const DUP_RX = new RegExp(
   "gi",
 );
 
+// "(TOKEN sep TOKEN)" — séparateurs progression: / , → , -> , - , à
+const SLASH_DUP_RX = new RegExp(
+  `\\(\\s*(${VALUE_TOKEN})\\s*(?:\\/|→|->|-|à)\\s*(${VALUE_TOKEN})\\s*\\)`,
+  "gi",
+);
+
 function normValue(s: string): string {
   return s.replace(/\s+/g, "").toLowerCase();
 }
@@ -39,19 +45,24 @@ export interface DedupResult {
   text: string;
   collapsed: number;   // occurrences collapsed (X (X))
   mismatched: number;  // occurrences X (Y) où X ≠ Y (non modifié, seulement loggé)
+  slashCollapsed?: number; // (X / X) → (X)
+  progressionFlattened?: number; // signal: (Xdiff sep Ydiff) préservé mais X!=Y — non modifié
   logs: string[];
 }
 
 /**
  * Collapse "TOKEN (TOKEN)" en "TOKEN" quand les deux valeurs sont équivalentes.
+ * Collapse aussi "(TOKEN / TOKEN)" (séparateur /, →, ->, -, à) quand identiques.
  * Fonction pure. N'altère jamais le contenu quand les valeurs diffèrent.
  */
 export function collapseDuplicateValueAnnotations(text: string): DedupResult {
-  if (!text) return { text: text ?? "", collapsed: 0, mismatched: 0, logs: [] };
+  if (!text) return { text: text ?? "", collapsed: 0, mismatched: 0, slashCollapsed: 0, progressionFlattened: 0, logs: [] };
   let collapsed = 0;
   let mismatched = 0;
+  let slashCollapsed = 0;
+  let progressionFlattened = 0;
   const logs: string[] = [];
-  const out = text.replace(DUP_RX, (match, a: string, b: string) => {
+  let out = text.replace(DUP_RX, (match, a: string, b: string) => {
     if (normValue(a) === normValue(b)) {
       collapsed++;
       logs.push(`intensity_annotation_collapsed: "${match}" → "${a}"`);
@@ -61,8 +72,25 @@ export function collapseDuplicateValueAnnotations(text: string): DedupResult {
     logs.push(`intensity_value_mismatch: "${a}" annoté "(${b})" — valeurs divergentes, non modifié`);
     return match;
   });
-  return { text: out, collapsed, mismatched, logs };
+  const before = out;
+  out = out.replace(SLASH_DUP_RX, (match, a: string, b: string) => {
+    if (normValue(a) === normValue(b)) {
+      slashCollapsed++;
+      const replaced = `(${a})`;
+      logs.push(`slash_dedup_collapsed: "${match}" → "${replaced}"`);
+      return replaced;
+    }
+    // Bornes distinctes — progression légitime, laissée intacte mais loggée
+    progressionFlattened++;
+    logs.push(`progression_preserved: "${match}" (bornes distinctes ${a} / ${b})`);
+    return match;
+  });
+  if (before !== out) {
+    // no-op marker
+  }
+  return { text: out, collapsed, mismatched, slashCollapsed, progressionFlattened, logs };
 }
+
 
 // ═══ 2. RÉSOLUTION PLAGES DE DURÉE > 30 MIN ═════════════════════════════════
 
@@ -268,6 +296,8 @@ export interface SessionPostProcessStats {
   duplicatesCollapsed: number;
   duplicatesMismatched: number;
   durationRangesResolved: number;
+  slashDedupCollapsed: number;
+  progressionPreserved: number;
   logs: string[];
 }
 
@@ -284,6 +314,8 @@ export function postProcessSessionText(
     duplicatesCollapsed: 0,
     duplicatesMismatched: 0,
     durationRangesResolved: 0,
+    slashDedupCollapsed: 0,
+    progressionPreserved: 0,
     logs: [],
   };
   const ctx: MatrixResolveContext = {
@@ -307,8 +339,16 @@ export function postProcessSessionText(
     stats.duplicatesCollapsed += dedup.collapsed;
     stats.duplicatesMismatched += dedup.mismatched;
     stats.durationRangesResolved += dur.resolved;
+    stats.slashDedupCollapsed += dedup.slashCollapsed ?? 0;
+    stats.progressionPreserved += dedup.progressionFlattened ?? 0;
     stats.logs.push(...dedup.logs, ...dur.logs);
+  }
+  // Filet non silencieux : signaler côté console si collapse slash appliqué
+  if (stats.slashDedupCollapsed > 0) {
+    // eslint-disable-next-line no-console
+    console.warn(`[slash_dedup_collapsed] session="${session.title ?? ""}" count=${stats.slashDedupCollapsed}`);
   }
   return stats;
 }
+
 
