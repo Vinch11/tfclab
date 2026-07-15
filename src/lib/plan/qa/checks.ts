@@ -354,6 +354,29 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
         exclusionLines.push(
           `[b5_exclusion_reason] id=${inLib.id} cat=${cat} phaseAllowed=[${allowedArr.join(",")}] chunkPhases=[${planArr.join(",")}] reason=${reason} intention=${intent}`
         );
+
+        // ─── [b5_stage_attribution] : étape aval précise + socle_evince ──────
+        const attrib = attribMap.get(inLib.id.toUpperCase());
+        const wasInSocle = !!attrib?.inSocleAnyChunk;
+        const wasSelectedSomewhere = !!attrib && attrib.chunksSelected.size > 0;
+        const best = attrib?.bestStage ?? null;
+        const isTrail = TRAIL_CATALOG_RX.test(inLib.id);
+        let etape: keyof typeof stageBreakdown = "autre";
+        if (wasInSocle && !wasSelectedSomewhere) etape = "socle_evince";
+        else if (best === "score_hard_ban" || isTrail) etape = "hard_ban_trail";
+        else if (best === "exclude_prev_chunk_ids") etape = "rotation_prev_chunk";
+        else if (best === "fill_sport_cap") etape = "sport_cap";
+        else if (best === "fill_cat_cap") etape = "cat_cap";
+        else if (best === "fill_cap_reached") etape = "fill_cap_reached";
+        else if (best === "phase_filter") etape = "phase_filter";
+        else if (best === "prohibitions") etape = "prohibitions";
+        else if (best === "sport_filter") etape = "sport_filter";
+        else if (best === "exclude_id_patterns") etape = "exclude_id_patterns";
+        else if (best === "exclude_tags") etape = "exclude_tags";
+        stageBreakdown[etape]++;
+        stageAttribLines.push(
+          `[b5_stage_attribution] id=${inLib.id} etape=${etape} intention=${intent} etait_dans_socle=${wasInSocle ? "oui" : "non"} best_stage=${best ?? "(inconnu)"} chunks_selected=${attrib?.chunksSelected.size ?? 0}`
+        );
       }
 
     }
@@ -364,9 +387,19 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
   const total = breakdown.retiré_par_filtre_phase.length + breakdown.retiré_aval_filtre.length + breakdown.existe_autre_objectif.length + breakdown.pur_hallucination.length;
   if (total > 0) {
     const line = `[b5_hallucination_breakdown] objective=${objective ?? "?"} total=${total} · retiré_par_filtre=${breakdown.retiré_par_filtre_phase.length} · retiré_aval_filtre=${breakdown.retiré_aval_filtre.length} · existe_autre_objectif=${breakdown.existe_autre_objectif.length} · pur_hallucination=${breakdown.pur_hallucination.length}`;
+    const stageLine = `[b5_stage_breakdown] profil=${objective ?? "?"} rotation_prev_chunk=${stageBreakdown.rotation_prev_chunk} hard_ban_trail=${stageBreakdown.hard_ban_trail} sport_cap=${stageBreakdown.sport_cap} cat_cap=${stageBreakdown.cat_cap} socle_evince=${stageBreakdown.socle_evince} phase_filter=${stageBreakdown.phase_filter} prohibitions=${stageBreakdown.prohibitions} fill_cap_reached=${stageBreakdown.fill_cap_reached} autre=${stageBreakdown.autre}`;
 
     // eslint-disable-next-line no-console
     console.warn(line);
+    // eslint-disable-next-line no-console
+    console.warn(stageLine);
+    if (stageBreakdown.socle_evince > 0) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[b5_socle_evince_ALERT] ${stageBreakdown.socle_evince} fiche(s) réservée(s) par le socle absentes de la sélection finale. ` +
+        `Ordre actuel : Stage 1-6 (filtres amont) → score_hard_ban → socle réservé (2/sport×famille) → socle inséré → fill loop (sport_cap 25 / cat_cap 15 / cap_reached). Le fill loop ne retire jamais du socle (append-only sur selected). Si socle_evince>0, cause probable : backfill Pass 4/5 ou incohérence d'attribution.`,
+      );
+    }
     if (neighborLines.length > 0) {
       // eslint-disable-next-line no-console
       console.groupCollapsed(`🔎 B5 voisins proches (${neighborLines.length})`);
@@ -379,10 +412,19 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
       for (const l of exclusionLines) console.log(l);
       console.groupEnd();
     }
+    if (stageAttribLines.length > 0) {
+      // eslint-disable-next-line no-console
+      console.groupCollapsed(`🔎 B5 stage attribution (${stageAttribLines.length}) — objective=${objective ?? "?"}`);
+      for (const l of stageAttribLines) console.log(l);
+      console.groupEnd();
+    }
+    details.unshift(stageLine);
     details.unshift(line);
     for (const l of neighborLines) details.push(l);
     for (const l of exclusionLines) details.push(l);
+    for (const l of stageAttribLines) details.push(l);
   }
+
 
   return { id: "B5", label: "catalogId ⊂ catalogue injecté (union chunks)", level: "critical", pass, details };
 }
