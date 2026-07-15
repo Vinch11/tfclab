@@ -183,37 +183,24 @@ function fmtPace(sec: number): string {
 }
 
 /**
- * Rend un bloc texte compact pour injection dans le userPrompt.
- * Le LLM doit TOUJOURS choisir un nombre dans cette table.
+ * PHASE 2B v2 — Bloc INTENSITÉS (RELATIF UNIQUEMENT) injecté dans le prompt.
+ * Le modèle n'écrit JAMAIS de valeur absolue (W, min/km, s/100m, bpm).
+ * L'app traduit à l'affichage depuis la targetTable (source unique).
  */
-export function formatTargetTableBlock(t: TargetTable): string {
+export function formatTargetTableBlock(_t: TargetTable): string {
   const lines: string[] = [];
-  lines.push("🔢 VALEURS AUTORISÉES (uniques, calculées par le moteur — ne recalcule JAMAIS)");
-  if (t.ftpW) {
-    const zones = Object.entries(t.bikeZonesW)
-      .map(([z, r]) => `${z}=${r![0]}-${r![1]}W`).join(" · ");
-    lines.push(`• Vélo (FTP=${t.ftpW}W) : ${zones}`);
-    if (t.sstW) lines.push(`  SST=${t.sstW[0]}-${t.sstW[1]}W (88-94% FTP)`);
-    if (t.racePowerW && t.racePowerRange) {
-      lines.push(`  racePower=${t.racePowerW}W (±5W → ${t.racePowerRange[0]}-${t.racePowerRange[1]}W)`);
-    }
+  lines.push("🔢 INTENSITÉS — RELATIF UNIQUEMENT (grille TFCL Z1→Z7)");
+  lines.push("Exprime TOUTE intensité en RELATIF : zones (Z1..Z7), %FTP, %VMA, %CSS ou CSS±Xs/100m.");
+  lines.push("INTERDIT d'écrire des watts, min/km, s/100m ou bpm absolus — l'application les calcule pour l'athlète.");
+  lines.push("");
+  lines.push("Zones TFCL (vocabulaire canonique de la bibliothèque) :");
+  for (const z of TRAINING_ZONES) {
+    lines.push(`  • ${z.id.padEnd(3)} ${z.label} — %FTP ${z.ftp.min}-${z.ftp.max} · %VMA ${z.vma.min}-${z.vma.max}${z.fcMax ? ` · %FCmax ${z.fcMax.min}-${z.fcMax.max}` : " · %FCmax N/A"}`);
   }
-  if (t.vmaKmh) {
-    const paces = Object.entries(t.runPacesSecPerKm)
-      .map(([z, r]) => `${z}=${fmtPace(r![0])}-${fmtPace(r![1])}/km`).join(" · ");
-    lines.push(`• Course (VMA=${t.vmaKmh.toFixed(1)}km/h) : ${paces}`);
-    if (t.racePaceSecPerKm && t.racePaceRange) {
-      lines.push(`  racePace=${fmtPace(t.racePaceSecPerKm)}/km (±5s → ${fmtPace(t.racePaceRange[0])}-${fmtPace(t.racePaceRange[1])}/km)`);
-    }
-  }
-  if (t.cssSecPer100m && t.cssRange) {
-    lines.push(`• Nat CSS=${fmtPace(t.cssSecPer100m)}/100m (±3s → ${fmtPace(t.cssRange[0])}-${fmtPace(t.cssRange[1])}/100m)`);
-  }
-  if (t.fcMax) {
-    const fcs = Object.entries(t.fcZonesBpm)
-      .map(([z, r]) => `${z}=${r![0]}-${r![1]}bpm`).join(" · ");
-    lines.push(`• FC (FCmax=${t.fcMax}bpm) : ${fcs}`);
-  }
-  lines.push("RÈGLE ABSOLUE : tout watt, allure ou temps/100m dans tes détails DOIT provenir de cette table.");
+  lines.push('  • Z4 nu = union Z4a+Z4b (préfère toujours préciser "Z4a" ou "Z4b").');
+  lines.push("");
+  lines.push("Choisis la zone par INTENTION (Z4a Marathon/Sweet Spot, Z4b Semi, Z5 Seuil MLSS, Z6 VO2max/VMA, Z7 Neuromusculaire).");
+  lines.push("Pour la natation : CSS ou CSS±Xs (ex : 'CSS+5s', 'CSS-2s'). %CSS ∈ [80,120].");
+  lines.push("RÈGLE ABSOLUE : aucun nombre absolu (W, /km, /100m, bpm) dans title/details.");
   return lines.join("\n");
 }
