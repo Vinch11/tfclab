@@ -338,6 +338,22 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
   const variantKey = objectiveToVariantKey(objective);
   const variantMisses: Array<{ ref: string; excerpt: string }> = [];
 
+  // ── Pré-calcul : pour chaque catalogId, la liste des phases (normalisées)
+  //    des semaines où il apparaît. Sert à catégoriser les phase mismatch.
+  const placementsByCatalogId = new Map<string, Set<"base"|"build"|"peak"|"taper">>();
+  for (const wk of plan.weeks) {
+    const ph = normalizedPhase(wk);
+    if (!ph) continue;
+    for (const s of wk.sessions) {
+      if (!s.catalogId || s.custom) continue;
+      const key = s.catalogId.toUpperCase();
+      if (!placementsByCatalogId.has(key)) placementsByCatalogId.set(key, new Set());
+      placementsByCatalogId.get(key)!.add(ph);
+    }
+  }
+  const phaseMismatchByCategory = { granularite_intra_chunk: 0, fuite_mapping: 0, custom_ou_fallback: 0 };
+
+
   function hasLongBikePrevDay(weekN: number, dayIndex: number): boolean {
     for (const w of plan.weeks) {
       for (const s of w.sessions) {
