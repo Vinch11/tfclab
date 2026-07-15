@@ -296,6 +296,8 @@ export interface SessionPostProcessStats {
   duplicatesCollapsed: number;
   duplicatesMismatched: number;
   durationRangesResolved: number;
+  slashDedupCollapsed: number;
+  progressionPreserved: number;
   logs: string[];
 }
 
@@ -312,6 +314,8 @@ export function postProcessSessionText(
     duplicatesCollapsed: 0,
     duplicatesMismatched: 0,
     durationRangesResolved: 0,
+    slashDedupCollapsed: 0,
+    progressionPreserved: 0,
     logs: [],
   };
   const ctx: MatrixResolveContext = {
@@ -335,8 +339,16 @@ export function postProcessSessionText(
     stats.duplicatesCollapsed += dedup.collapsed;
     stats.duplicatesMismatched += dedup.mismatched;
     stats.durationRangesResolved += dur.resolved;
+    stats.slashDedupCollapsed += dedup.slashCollapsed ?? 0;
+    stats.progressionPreserved += dedup.progressionFlattened ?? 0;
     stats.logs.push(...dedup.logs, ...dur.logs);
+  }
+  // Filet non silencieux : signaler côté console si collapse slash appliqué
+  if (stats.slashDedupCollapsed > 0) {
+    // eslint-disable-next-line no-console
+    console.warn(`[slash_dedup_collapsed] session="${session.title ?? ""}" count=${stats.slashDedupCollapsed}`);
   }
   return stats;
 }
+
 
