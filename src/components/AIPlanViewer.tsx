@@ -1235,6 +1235,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
 
   return (
+    <TargetTableProvider value={targetTable}>
     <div className="space-y-4">
       {replacementCount > 0 && (
         <Alert>
