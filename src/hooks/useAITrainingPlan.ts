@@ -10,7 +10,7 @@
  */
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats } from "@/lib/workoutCatalogBuilder";
+import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats, resetCatalogAttribution } from "@/lib/workoutCatalogBuilder";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { TrainingSport } from "@/types/workoutLibrary";
 import { supabase } from "@/integrations/supabase/client";
