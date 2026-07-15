@@ -514,6 +514,23 @@ export function buildWorkoutCatalog(
   // ═══════════════════════════════════════════════════════════════════════════
   // intentFamilyOf imported at module top
 
+  // ─── DIAGNOSTIC ─── état du cap AVANT application (socle + tri + total)
+  {
+    const totalAvant = scored.filter(s => s.score > -1000).length;
+    console.log(
+      `[cap_state] chunk=${options?.chunkIndex ?? 0} cap=${maxItems} socle_couverture=présent(2/sport×famille) ` +
+      `tri=priorityScore_desc total_avant=${totalAvant}`,
+    );
+    // Approx sérialisation : ~220 chars/fiche → estimation à cap_actuel et cap+40
+    const approxChar = 220;
+    console.log(
+      `[cap_default] value=${maxItems} raison="~${((maxItems * approxChar) / 1000).toFixed(1)}k chars sérialisés · ` +
+      `+40=~${(((maxItems + 40) * approxChar) / 1000).toFixed(1)}k chars · marge large sous 64k tokens edge"`,
+    );
+  }
+
+
+
   const selected: LibraryWorkout[] = [];
   const selectedIds = new Set<string>();
   const sportCounts: Record<string, number> = {};
