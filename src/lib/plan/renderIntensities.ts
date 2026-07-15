@@ -64,12 +64,11 @@ const CSS_BARE_RX = /(?<![A-Z%\d])CSS(?![A-Z\d+\-])/g;
 
 /** Vrai si le token à `offset` est déjà suivi d'une annotation "(...)" pertinente. */
 function alreadyAnnotated(text: string, endOffset: number, kind: "W" | "km" | "100m"): boolean {
-  // On accepte espaces optionnels avant "("
   const rest = text.slice(endOffset, endOffset + 40);
   const m = rest.match(/^\s*\(([^)]+)\)/);
   if (!m) return false;
   const inner = m[1];
-  if (kind === "W") return /\bW\b/.test(inner);
+  if (kind === "W") return /\d\s*W/.test(inner);
   if (kind === "km") return /\/\s*km/.test(inner);
   if (kind === "100m") return /\/\s*100\s*m/.test(inner);
   return false;
