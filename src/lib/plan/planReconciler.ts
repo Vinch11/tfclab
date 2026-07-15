@@ -239,6 +239,7 @@ function runOnePass(
         }
 
         // 3. DISCIPLINE
+        ctx.family = "discipline";
         const fiche3 = ficheFor(s.catalogId);
         if (!fiche3) continue;
         const fSp = normSport(fiche3.sport);
