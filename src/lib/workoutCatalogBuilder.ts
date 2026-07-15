@@ -11,6 +11,7 @@ import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport } from "@/typ
 import { WorkoutLibrary } from "./workoutLibrary";
 import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
+import { intentFamilyOf } from "./plan/intentFamily";
 
 /** Compact session representation for the AI prompt */
 export interface CatalogEntry {
