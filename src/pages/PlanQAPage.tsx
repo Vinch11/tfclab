@@ -471,12 +471,9 @@ export default function PlanQAPage() {
                     </button>
                     <button
                       className="text-primary underline underline-offset-2"
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(buildQAReport(s));
-                        toast.success("Rapport QA copié.");
-                      }}
+                      onClick={() => exportReport(buildQAReport(s), sessionFilename(s))}
                     >
-                      copier
+                      télécharger
                     </button>
                   </div>
                 ))}
