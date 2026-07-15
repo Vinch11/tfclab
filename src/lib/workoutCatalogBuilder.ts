@@ -321,10 +321,6 @@ export function buildWorkoutCatalog(
   const excludeTagsSet = new Set((options?.excludeTags || []).map(t => t.toLowerCase()));
 
   // ─── PHASE 2C.3 — Pré-filtre PHASE (source: ficheAllowedPhases) ───────────
-  // Élimine les fiches dont AUCUNE phase autorisée n'intersecte les phases du
-  // chunk. Filet non silencieux : par sport, si <5 fiches restent, on
-  // ré-inclut les fiches sans contrainte de phase de ce sport et on log
-  // "catalog_filter_floor_relaxed".
   const chunkPhaseSet = new Set<PlanPhase>(phases.filter(p => p === "base" || p === "build" || p === "peak" || p === "taper") as PlanPhase[]);
   const phaseFilterEnabled = chunkPhaseSet.size > 0;
   const phaseDroppedBySport: Record<string, number> = {};
@@ -358,33 +354,106 @@ export function buildWorkoutCatalog(
     }
   }
 
-  const scored = WorkoutLibrary
-    .filter(w => {
-      if (options?.sportFilter && options.sportFilter.length > 0) {
-        if (!options.sportFilter.includes(w.sport)) return false;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PIPELINE INSTRUMENTATION — trace stage-by-stage reduction
+  // ═══════════════════════════════════════════════════════════════════════════
+  const TRACKED_IDS = new Set(["V3_TEST_HALF_MARATHON_TT", "NORWEGIAN_SWIM_THRESHOLD", "B_SWIM_TRI_RACE_PACE_703"]);
+  const chunkTag = `chunk=${options?.chunkIndex ?? 0}`;
+  const logStage = (stage: string, before: number, after: number) => {
+    console.log(`[catalog_pipeline] ${chunkTag} étape=${stage} avant=${before} après=${after} retirées=${before - after}`);
+  };
+  const logDrop = (id: string, stage: string, reason: string) => {
+    console.log(`[catalog_drop] id=${id} étape=${stage} raison=${reason}`);
+  };
+
+  let current: LibraryWorkout[] = WorkoutLibrary.slice();
+  const stage0 = current.length;
+
+  // Stage 1: sport_filter
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const keep = !(options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport));
+      if (!keep && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "sport_filter", `sport=${w.sport} ∉ [${options?.sportFilter?.join(",")}]`);
+      return keep;
+    });
+    logStage("sport_filter", before, current.length);
+  }
+  // Stage 2: exclude_id_patterns
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const drop = excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id));
+      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_id_patterns", "id match regex");
+      return !drop;
+    });
+    logStage("exclude_id_patterns", before, current.length);
+  }
+  // Stage 3: exclude_tags
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const drop = excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()));
+      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_tags", `tag ∈ [${[...excludeTagsSet].join(",")}]`);
+      return !drop;
+    });
+    logStage("exclude_tags", before, current.length);
+  }
+  // Stage 4: exclude_prev_chunk_ids (structural bypass)
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const drop = !!options?.excludeIds?.has(w.id) && !isStructuralSession(w);
+      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_prev_chunk_ids", "in previous chunk & non-structural");
+      return !drop;
+    });
+    logStage("exclude_prev_chunk_ids", before, current.length);
+  }
+  // Stage 5: prohibitions
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      const drop = prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w);
+      if (drop) excludedCount++;
+      if (drop && TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "prohibitions", "matched prohibition pattern");
+      return !drop;
+    });
+    logStage("prohibitions", before, current.length);
+  }
+  // Stage 6: phase_filter
+  {
+    const before = current.length;
+    current = current.filter(w => {
+      if (!phaseFilterEnabled) return true;
+      const allowed = ficheAllowedPhases(w);
+      const isUnconstrained = allowed.size === 0;
+      let keep: boolean;
+      if (relaxedFloorSports.has(w.sport)) {
+        keep = isUnconstrained || ficheCompatibleWithPhases(w, chunkPhaseSet);
+      } else {
+        keep = ficheCompatibleWithPhases(w, chunkPhaseSet);
       }
-      if (options?.excludeIds?.has(w.id) && !isStructuralSession(w)) return false;
-      if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) return false;
-      if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) return false;
-      if (prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w)) {
-        excludedCount++;
-        return false;
+      if (!keep && TRACKED_IDS.has(w.id.toUpperCase())) {
+        logDrop(w.id, "phase_filter", `phaseAllowed=[${[...allowed].join(",")}] ∩ chunk=[${[...chunkPhaseSet].join(",")}] = ∅`);
       }
-      // ─── Filtre phase ────────────────────────────────────────────────────
-      if (phaseFilterEnabled) {
-        const allowed = ficheAllowedPhases(w);
-        const isUnconstrained = allowed.size === 0;
-        if (relaxedFloorSports.has(w.sport)) {
-          // Floor relaxé : on accepte les compatibles + les sans-contrainte
-          if (!isUnconstrained && !ficheCompatibleWithPhases(w, chunkPhaseSet)) return false;
-        } else {
-          if (!ficheCompatibleWithPhases(w, chunkPhaseSet)) return false;
-        }
-      }
-      return true;
-    })
+      return keep;
+    });
+    logStage("phase_filter", before, current.length);
+  }
+
+  const scored = current
     .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
     .sort((a, b) => b.score - a.score);
+
+  // Trace: tracked IDs still present after all filters — record their score/rank
+  for (let i = 0; i < scored.length; i++) {
+    const w = scored[i].workout;
+    if (TRACKED_IDS.has(w.id.toUpperCase())) {
+      console.log(`[catalog_track] id=${w.id} survécu_filtres=oui score=${scored[i].score} rank=${i + 1}/${scored.length} sport=${w.sport} cat=${w.cat}`);
+    }
+  }
+  console.log(`[catalog_pipeline] ${chunkTag} étape=score_filter_hardban avant=${current.length} après=${scored.filter(s => s.score > -1000).length} retirées=${current.length - scored.filter(s => s.score > -1000).length}`);
+
 
   // Log de synthèse "catalog_filtered" par chunk (visible dans rapport QA)
   if (phaseFilterEnabled) {
