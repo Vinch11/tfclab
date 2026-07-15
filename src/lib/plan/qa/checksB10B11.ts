@@ -335,14 +335,38 @@ export function checkB10(plan: MergedPlan): CheckResult {
       }
 
 
-      // d. structure intervalles vs continu → WARN — cardio only
+      // d. structure NxM — cardio only. FAIL "structure_mismatch" si écart franc.
       if (!nonCardio && CARDIO_SPORTS.has(fSp)) {
-        const fInt = hasIntervalPattern(ficheMainText(fiche));
-        const iInt = hasIntervalPattern(`${s.title ?? ""} ${s.details ?? ""}`);
+        const fPat = extractIntervalPattern(ficheMainText(fiche));
+        const iPat = extractIntervalPattern(`${s.title ?? ""} ${s.details ?? ""}`);
+        // WARN historique : intervalles vs continu
+        const fInt = fPat != null;
+        const iInt = iPat != null;
         if (fInt !== iInt) {
           warnings.push(`⚠ S${w.weekNumber} ${s.dayName} · ${s.catalogId} — structure ${iInt ? "intervalles" : "continu"} ≠ fiche ${fInt ? "intervalles" : "continu"}`);
         }
+        // FAIL structure_mismatch : deux patterns présents mais ordre de grandeur ≠
+        if (fPat && iPat) {
+          const rRep = Math.max(fPat.reps, iPat.reps) / Math.max(1, Math.min(fPat.reps, iPat.reps));
+          const rDur = Math.max(fPat.repSec, iPat.repSec) / Math.max(1, Math.min(fPat.repSec, iPat.repSec));
+          if (rRep >= 3 && rDur >= 3) {
+            pass = false;
+            details.push(
+              `S${w.weekNumber} ${s.dayName} · ${s.catalogId} — [structure_mismatch] fiche="${fPat.reps}x${formatSec(fPat.repSec)}" vs instance="${iPat.reps}x${formatSec(iPat.repSec)}" (reps ×${rRep.toFixed(1)}, durée ×${rDur.toFixed(1)})`,
+            );
+          }
+        }
+
+        // e. cohérence zone interne : "Z5 (allure Z4b)" / "Z5 = Z4b" → FAIL
+        const contradictions = detectInternalZoneContradictions(`${s.title ?? ""} ${s.details ?? ""}`);
+        for (const c of contradictions) {
+          pass = false;
+          details.push(
+            `S${w.weekNumber} ${s.dayName} · ${s.catalogId} — [internal_zone_contradiction] "${c.a}" et "${c.b}" incompatibles (contexte: "${c.snippet}")`,
+          );
+        }
       }
+
     }
   }
 
