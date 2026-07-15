@@ -21,6 +21,7 @@ import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import type { PlanGenerationStat } from "@/lib/plan/planGenerationStats";
 import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX } from "@/lib/plan/trailMarkers";
 import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
+import { checkB10, checkB11 } from "./checksB10B11";
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
