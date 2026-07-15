@@ -59,7 +59,8 @@ const PCT_FTP_RX = /\b(\d{2,3})\s*%\s*FTP\b/gi;
 const PCT_VMA_RX = /\b(\d{2,3})\s*%\s*VMA\b/gi;
 const PCT_CSS_RX = /\b(\d{2,3})\s*%\s*CSS\b/gi;
 const CSS_DELTA_RX = /\bCSS\s*([+-])\s*(\d{1,2})\s*s\b/gi;
-const CSS_BARE_RX = /(?<![A-Z%\d])CSS(?![A-Z\d])/g;
+// CSS nu : pas suivi de "+/- N" (déjà géré par CSS_DELTA_RX)
+const CSS_BARE_RX = /(?<![A-Z%\d])CSS(?![A-Z\d+\-])/g;
 
 /** Vrai si le token à `offset` est déjà suivi d'une annotation "(...)" pertinente. */
 function alreadyAnnotated(text: string, endOffset: number, kind: "W" | "km" | "100m"): boolean {
