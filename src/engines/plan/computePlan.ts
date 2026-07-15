@@ -393,9 +393,16 @@ export function postProcessParsedPlan(
   // de durée > 30 min d'amplitude dans les Main. Filet non silencieux.
   let totalDupCollapsed = 0, totalDupMismatched = 0, totalRangesResolved = 0;
   const postLogs: string[] = [];
+  const totalWeeks = plan.weeks.length;
+  const matrixCtx = {
+    objective: config.objective,
+    ambitionEffective: config.ambition,
+    weeklyHours: typeof config.weeklyHours === "number" ? config.weeklyHours : undefined,
+    totalWeeks,
+  };
   for (const w of plan.weeks) {
     for (const s of w.sessions) {
-      const st = postProcessSessionText(s, config.ambition);
+      const st = postProcessSessionText(s, config.ambition, matrixCtx);
       totalDupCollapsed += st.duplicatesCollapsed;
       totalDupMismatched += st.duplicatesMismatched;
       totalRangesResolved += st.durationRangesResolved;
