@@ -322,7 +322,11 @@ export function checkB9(semanticRepairs: string[] | undefined): CheckResult {
       details: ["Résumé value_check_summary absent (validateur non exécuté ou payload sans targetTable)."],
     };
   }
-  const m = summaryLine.match(/tokens=(\d+).*?conforme=(\d+).*?relativisés=(\d+).*?unresolved=(\d+).*?residualAbs=(\d+)/);
+  // Contrat v2 canonique : tokens/conforme/relativized/unresolved/residualAbs
+  // Accepte aussi l'ancien libellé "relativisés" (rétro-compat).
+  const m = summaryLine.match(
+    /tokens=(\d+).*?conforme=(\d+).*?(?:relativized|relativisés)=(\d+).*?unresolved=(\d+).*?residualAbs=(\d+)/,
+  );
   if (!m) {
     return {
       id: "B9", label: "Prescriptions relatives (zones/%)",
@@ -341,11 +345,11 @@ export function checkB9(semanticRepairs: string[] | undefined): CheckResult {
   details.push(`Total tokens : ${total} · relatifs conformes ${ok} (${pctOk}%) · relativisés ${relat} · unresolved ${unres} · absolus résiduels ${residual}`);
   if (relativizedLines.length > 0) {
     details.push(`Traductions relatives (${relativizedLines.length}) :`);
-    for (const l of relativizedLines.slice(0, 6)) details.push(`  - ${l}`);
+    for (const l of relativizedLines) details.push(`  - ${l}`);
   }
   if (unresolvedLines.length > 0) {
-    details.push(`Unresolved (${unresolvedLines.length}) :`);
-    for (const l of unresolvedLines.slice(0, 6)) details.push(`  - ${l}`);
+    details.push(`Unresolved (${unresolvedLines.length}) — à revoir par le coach :`);
+    for (const l of unresolvedLines) details.push(`  - ${l}`);
   }
   return { id: "B9", label: "Prescriptions relatives (zones/%)", level: "critical", pass, details };
 }
