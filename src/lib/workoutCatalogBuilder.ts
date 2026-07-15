@@ -503,32 +503,44 @@ export function buildWorkoutCatalog(
   const mainSlots = Math.floor(maxItems * 0.75); // 75% for top-scored
   const diversitySlots = maxItems - mainSlots;    // 25% reserved for V5/V6 + rotation
 
-  // ─── Pass 1: Top scored items with relaxed caps ───
-  for (const { workout, score } of scored) {
-    if (selected.length >= mainSlots) break;
+  console.log(
+    `[catalog_pipeline] ${chunkTag} étape=selection_caps maxItems=${maxItems} mainSlots=${mainSlots} diversitySlots=${diversitySlots} ` +
+    `sport_cap=25 cat_cap=15 candidats=${scored.length} tri=scoreWorkout_desc`,
+  );
 
+  // ─── Pass 1: Top scored items with relaxed caps ───
+  const beforePass1 = selected.length;
+  for (const { workout, score } of scored) {
+    if (selected.length >= mainSlots) {
+      if (TRACKED_IDS.has(workout.id.toUpperCase()) && !selectedIds.has(workout.id)) {
+        logDrop(workout.id, "pass1_main_slots_cap", `mainSlots=${mainSlots} atteint (score=${score}, rank hors top)`);
+      }
+      continue;
+    }
     const sport = workout.sport;
     const cat = workout.cat;
-    
-    // Relaxed caps: 25/sport, 15/category
-    if ((sportCounts[sport] || 0) >= 25) continue;
-    if ((catCounts[cat] || 0) >= 15) continue;
-
+    if ((sportCounts[sport] || 0) >= 25) {
+      if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "pass1_sport_cap", `sport=${sport} count=${sportCounts[sport]} ≥25`);
+      continue;
+    }
+    if ((catCounts[cat] || 0) >= 15) {
+      if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "pass1_cat_cap", `cat=${cat} count=${catCounts[cat]} ≥15`);
+      continue;
+    }
     selected.push(workout);
     selectedIds.add(workout.id);
     sportCounts[sport] = (sportCounts[sport] || 0) + 1;
     catCounts[cat] = (catCounts[cat] || 0) + 1;
   }
+  logStage("pass1_main_slots", scored.length, selected.length);
 
   // ─── Pass 2: Diversity slots — guarantee V5/V6 representation ───
+  const beforePass2 = selected.length;
   const eliteSessions = scored
     .filter(({ workout }) => isEliteOrAntiMonotony(workout) && !selectedIds.has(workout.id))
     .map(s => s.workout);
-
-  // Rotate which V5/V6 sessions are included per chunk
   const chunkIdx = options?.chunkIndex || 0;
-  const rotationOffset = chunkIdx * 4; // Shift selection window by 4 per chunk
-
+  const rotationOffset = chunkIdx * 4;
   for (let i = 0; i < eliteSessions.length && selected.length < mainSlots + Math.floor(diversitySlots * 0.6); i++) {
     const idx = (i + rotationOffset) % eliteSessions.length;
     const w = eliteSessions[idx];
@@ -536,20 +548,31 @@ export function buildWorkoutCatalog(
     selected.push(w);
     selectedIds.add(w.id);
   }
+  logStage("pass2_diversity_elite", beforePass2, selected.length);
 
   // ─── Pass 3: Fill remaining diversity slots with lowest-exposure sessions ───
-  // These are sessions that score >= 0 but didn't make the top cut
+  const beforePass3 = selected.length;
   const remaining = scored
     .filter(({ workout }) => !selectedIds.has(workout.id) && !isEliteOrAntiMonotony(workout))
     .map(s => s.workout);
-  
-  // Use chunk-based rotation to cycle through remaining sessions
   const rotStart = (chunkIdx * 15) % Math.max(remaining.length, 1);
   for (let i = 0; i < remaining.length && selected.length < maxItems; i++) {
     const idx = (i + rotStart) % remaining.length;
     selected.push(remaining[idx]);
     selectedIds.add(remaining[idx].id);
   }
+  logStage("pass3_remaining_rotation", beforePass3, selected.length);
+  // Tracked IDs qui n'ont pas survécu à la sélection finale (avant pass4/5)
+  for (const id of TRACKED_IDS) {
+    const survived = scored.some(s => s.workout.id.toUpperCase() === id);
+    if (survived && !selectedIds.has(id) && !selectedIds.has([...selectedIds].find(x => x.toUpperCase() === id) || "")) {
+      const sc = scored.find(s => s.workout.id.toUpperCase() === id);
+      if (sc && !selectedIds.has(sc.workout.id)) {
+        logDrop(sc.workout.id, "post_pass3_not_selected", `n'a rempli aucun slot (score=${sc.score}, maxItems=${maxItems})`);
+      }
+    }
+  }
+
 
   // ─── Pass 4: Backfill — ensure minimum 3 sessions per sport present ───
   const finalSportCounts: Record<string, number> = {};
