@@ -23,6 +23,7 @@ import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX } from "@/lib/plan/
 import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { checkB10, checkB11 } from "./checksB10B11";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
+import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
@@ -219,6 +220,41 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
     pur_hallucination: [],
   };
   const neighborLines: string[] = [];
+  const exclusionLines: string[] = [];
+
+  // Phases plan (union des phases de chaque semaine, normalisées)
+  const normPlanPhase = (raw: string): PlanPhase | null => {
+    const p = String(raw || "").toLowerCase();
+    if (/taper|aff[uû]t|race[- ]?week/.test(p)) return "taper";
+    if (/peak|sp[eé]cifique/.test(p)) return "peak";
+    if (/build|d[eé]veloppement/.test(p)) return "build";
+    if (/base|fondation|g[eé]n[eé]ral/.test(p)) return "base";
+    return null;
+  };
+  const planPhases = new Set<PlanPhase>();
+  for (const w of plan.weeks) {
+    const p = normPlanPhase(w.phase || "");
+    if (p) planPhases.add(p);
+  }
+
+  const INTENTION_BROAD_RX = /endurance|fondamental|fatmax|technique|drill|z2|aerobic|foncier|base/i;
+  const tagIntention = (f: { tags?: readonly string[]; goals?: readonly string[]; when?: string | null }): string => {
+    const bag = [
+      ...((f.tags ?? []) as string[]),
+      ...((f.goals ?? []) as string[]),
+      f.when ?? "",
+    ].join(" ").toLowerCase();
+    const hits: string[] = [];
+    if (/endurance|foncier|aerobic|z2/.test(bag)) hits.push("endurance");
+    if (/fatmax/.test(bag)) hits.push("fatmax");
+    if (/technique|drill|forme/.test(bag)) hits.push("technique");
+    if (/fondamental|base/.test(bag)) hits.push("fondamental");
+    if (/seuil|threshold|lt/.test(bag)) hits.push("seuil");
+    if (/vo2|vma/.test(bag)) hits.push("vo2");
+    if (/sprint|explosif/.test(bag)) hits.push("sprint");
+    return hits.join(",") || "(none)";
+  };
+
 
   const normSp = (s: string): string => {
     const x = String(s || "").toLowerCase();
@@ -270,6 +306,31 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
         const tagStr = [...invTags].slice(0, 6).join(",");
         neighborLines.push(`  · ${inLib.id} [${invSp}] tags=[${tagStr}] → voisins: ${top3 || "(aucun même sport)"}`);
       }
+
+      // [b5_exclusion_reason] : pour les fiches réelles retirées du catalogue injecté
+      if (inLib && cat === "retiré_par_filtre_phase") {
+        const allowedPhases = ficheAllowedPhases(inLib as never);
+        const allowedArr = [...allowedPhases];
+        const planArr = [...planPhases];
+        const intent = tagIntention(inLib as never);
+        let reason: string;
+        if (allowedPhases.size === 0) {
+          reason = "sans_contrainte_mais_absente"; // filtrée ailleurs (quota/cap/dedup)
+        } else {
+          const intersect = allowedArr.some(p => planPhases.has(p));
+          if (!intersect) {
+            reason = "contrainte_correcte";
+          } else if (INTENTION_BROAD_RX.test(intent) && allowedPhases.size < planPhases.size) {
+            reason = "contrainte_trop_étroite";
+          } else {
+            reason = "autre_cause_intersect"; // intersecte mais absente = quota/cap/dedup
+          }
+        }
+        exclusionLines.push(
+          `[b5_exclusion_reason] id=${inLib.id} phaseAllowed=[${allowedArr.join(",")}] chunkPhases=[${planArr.join(",")}] reason=${reason} intention=${intent}`
+        );
+      }
+
     }
   }
 
@@ -286,8 +347,15 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
       for (const l of neighborLines) console.log(l);
       console.groupEnd();
     }
+    if (exclusionLines.length > 0) {
+      // eslint-disable-next-line no-console
+      console.groupCollapsed(`🔎 B5 exclusion reasons (${exclusionLines.length}) — objective=${objective ?? "?"}`);
+      for (const l of exclusionLines) console.log(l);
+      console.groupEnd();
+    }
     details.unshift(line);
     for (const l of neighborLines) details.push(l);
+    for (const l of exclusionLines) details.push(l);
   }
 
   return { id: "B5", label: "catalogId ⊂ catalogue injecté (union chunks)", level: "critical", pass, details };
