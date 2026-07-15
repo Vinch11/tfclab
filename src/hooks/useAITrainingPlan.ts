@@ -386,13 +386,15 @@ export function useAITrainingPlan() {
         for (let ci = 0; ci < totalChunks; ci++) {
           const cStart = ci * CHUNK_SIZE + 1;
           const cEnd = Math.min(cStart + CHUNK_SIZE - 1, totalWeeks);
-          // 45 sessions/chunk: enough variety, much less noise than 80 (≈45% reduction)
+          // Cap relevé à 130 (v2 coverage-first) : garantit un socle par
+          // (sport × famille d'intention) avant tri par score. Marge large
+          // sous la limite de contexte edge (~33k chars ≪ 64k tokens).
           const chunkCatalog = buildWorkoutCatalog(
             planConfig.objective || "",
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
+            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity.
