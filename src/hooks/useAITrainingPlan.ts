@@ -587,13 +587,33 @@ export function useAITrainingPlan() {
             const repair = data.repair;
             if (code === "value_check_summary" && data.summary) {
               const s = data.summary;
-              semanticRepairs.push(`[info] value_check_summary: tokens=${s.totalTokens} conforme=${s.conformantTokens} corrigés=${s.correctedTokens} unresolved=${s.unresolvedTokens}`);
+              // Contrat v2 : { tokens, conforme, relativized, unresolved, residualAbsolute }
+              // Fallback aux alias legacy si l'edge n'a pas encore été redéployée.
+              const tokens = s.tokens ?? s.totalTokens ?? 0;
+              const conforme = s.conforme ?? s.conformantTokens ?? 0;
+              const relativized = s.relativized ?? s.relativizedTokens ?? 0;
+              const unresolved = s.unresolved ?? s.unresolvedTokens ?? 0;
+              const residualAbs = s.residualAbsolute ?? s.residualAbsoluteTokens ?? 0;
+              semanticRepairs.push(
+                `[info] value_check_summary: tokens=${tokens} conforme=${conforme} relativized=${relativized} unresolved=${unresolved} residualAbs=${residualAbs}`,
+              );
               return;
             }
-            if ((code === "value_corrected" || code === "value_unresolved") && repair) {
+            if ((code === "value_relativized" || code === "value_unresolved") && repair) {
               const beforeStr = repair.before ? ` before="${repair.before}"` : "";
               const afterStr = repair.after ? ` after="${repair.after}"` : "";
-              semanticRepairs.push(`[${severity}] ${code}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} ${repair.sport ?? "?"} — ${repair.reason}${beforeStr}${afterStr}`);
+              const tokenStr = repair.token ? ` token="${repair.token}"` : "";
+              // Classifier la raison pour un unresolved actionnable
+              let category = "";
+              if (code === "value_unresolved") {
+                const r = String(repair.reason ?? "");
+                if (/inconnue/i.test(r)) category = " [zone_inconnue]";
+                else if (/hors\s*(bornes|grille)/i.test(r)) category = " [pourcent_hors_grille]";
+                else category = " [absolu_ambigu]";
+              }
+              semanticRepairs.push(
+                `[${severity}] ${code}${category}: W${repair.weekNumber ?? "?"} ${repair.day ?? "?"} ${repair.sport ?? "?"} — ${repair.reason}${tokenStr}${beforeStr}${afterStr}`,
+              );
               return;
             }
             if (repair?.before) {
