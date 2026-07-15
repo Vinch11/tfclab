@@ -452,7 +452,7 @@ export function runAllChecks(args: {
     checkB2(args.merged),
     checkB3(args.merged),
     b4,
-    checkB5(args.merged, args.allowedCatalogIds),
+    checkB5(args.merged, args.allowedCatalogIds, args.objective),
     checkB6(args.merged, args.parsed),
     checkB7(args.parsed, args.sportObjectiveIssues, args.objective),
     checkB8(args.merged, args.quotaIssues ?? [], args.quotasByWeek ?? {}),
