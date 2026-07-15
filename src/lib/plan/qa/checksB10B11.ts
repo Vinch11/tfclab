@@ -404,8 +404,17 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
       }
       if (flags.phaseAllowed && phase && !flags.phaseAllowed.includes(phase)) {
         pass = false;
-        details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — phase ${phase} ∉ [${flags.phaseAllowed.join(", ")}] (Quand="${(fiche.when || "").slice(0, 60)}")`);
+        // Catégorisation : granularité intra-chunk vs fuite mapping
+        const placements = placementsByCatalogId.get(s.catalogId.toUpperCase());
+        const hasCompatiblePlacement = placements
+          ? [...placements].some(p => flags.phaseAllowed!.includes(p))
+          : false;
+        const cat = hasCompatiblePlacement ? "granularité_intra_chunk" : "fuite_mapping";
+        if (hasCompatiblePlacement) phaseMismatchByCategory.granularite_intra_chunk++;
+        else phaseMismatchByCategory.fuite_mapping++;
+        details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — [${cat}] phase ${phase} ∉ [${flags.phaseAllowed.join(", ")}] (Quand="${(fiche.when || "").slice(0, 60)}")`);
       }
+
 
       // d. variante non appliquée → INFO agrégé (Phase 2C : application auto à venir)
       if (variantKey && fiche.variants && fiche.variants[variantKey]) {
