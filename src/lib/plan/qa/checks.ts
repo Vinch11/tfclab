@@ -306,6 +306,31 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
         const tagStr = [...invTags].slice(0, 6).join(",");
         neighborLines.push(`  · ${inLib.id} [${invSp}] tags=[${tagStr}] → voisins: ${top3 || "(aucun même sport)"}`);
       }
+
+      // [b5_exclusion_reason] : pour les fiches réelles retirées du catalogue injecté
+      if (inLib && cat === "retiré_par_filtre_phase") {
+        const allowedPhases = ficheAllowedPhases(inLib as never);
+        const allowedArr = [...allowedPhases];
+        const planArr = [...planPhases];
+        const intent = tagIntention(inLib as never);
+        let reason: string;
+        if (allowedPhases.size === 0) {
+          reason = "sans_contrainte_mais_absente"; // filtrée ailleurs (quota/cap/dedup)
+        } else {
+          const intersect = allowedArr.some(p => planPhases.has(p));
+          if (!intersect) {
+            reason = "contrainte_correcte";
+          } else if (INTENTION_BROAD_RX.test(intent) && allowedPhases.size < planPhases.size) {
+            reason = "contrainte_trop_étroite";
+          } else {
+            reason = "autre_cause_intersect"; // intersecte mais absente = quota/cap/dedup
+          }
+        }
+        exclusionLines.push(
+          `[b5_exclusion_reason] id=${inLib.id} phaseAllowed=[${allowedArr.join(",")}] chunkPhases=[${planArr.join(",")}] reason=${reason} intention=${intent}`
+        );
+      }
+
     }
   }
 
