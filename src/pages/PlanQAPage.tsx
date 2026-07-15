@@ -244,8 +244,8 @@ export default function PlanQAPage() {
   const refresh = () => setStats(readPlanStats());
   const wipe = () => { clearPlanStats(); setStats([]); };
   const copyFullReport = async () => {
-    await navigator.clipboard.writeText(buildFullReport(stats, testResults, qa.lastSession));
-    toast.success("Rapport complet copié.");
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 16);
+    await exportReport(buildFullReport(stats, testResults, qa.lastSession), `qa_full_report_${stamp}.md`);
   };
 
   const runTests = async () => {
