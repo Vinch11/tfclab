@@ -135,6 +135,10 @@ function suggestCandidateIds(
 }
 
 // ── Parsing structuré Quand/Éviter (memoisé) ────────────────────────────────
+// PHASE 2C.3 : phaseAllowed = SOURCE UNIQUE via ficheAllowedPhases
+// (mêmes règles utilisées par workoutCatalogBuilder pour pré-filtrer).
+import { ficheAllowedPhases } from "@/lib/plan/phaseNormalization";
+
 interface FicheFlags {
   excludeTaperDays: number | null;
   excludeRecoveryWeek: boolean;
@@ -157,12 +161,8 @@ function flagsFor(w: LibraryWorkout): FicheFlags {
   const mJ = avoid.match(/j\s*-\s*(\d+)/i);
   if (mJ) flags.excludeTaperDays = Number(mJ[1]);
   else if (/taper|affûtage|affutage|tapering|semaine de course/i.test(avoid)) flags.excludeTaperDays = 7;
-  const phases: Array<"base" | "build" | "peak" | "taper"> = [];
-  if (/\bbase\b|\bfondation\b/i.test(when)) phases.push("base");
-  if (/\bbuild\b|\bd[ée]veloppement\b/i.test(when)) phases.push("build");
-  if (/\bpeak\b|\bsp[ée]cifique\b/i.test(when)) phases.push("peak");
-  if (/\btaper\b|\baffût\b/i.test(when)) phases.push("taper");
-  if (phases.length > 0) flags.phaseAllowed = phases;
+  const allowed = ficheAllowedPhases(w);
+  flags.phaseAllowed = allowed.size > 0 ? [...allowed] : null;
   FLAGS_CACHE.set(key, flags);
   return flags;
 }
