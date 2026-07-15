@@ -710,13 +710,13 @@ export function buildWorkoutCatalog(
       .filter(([, n]) => n > 0)
       .map(([p, n]) => `${p}=${n}`)
       .join(", ");
-    console.log(`[buildWorkoutCatalog] course pool = ${courseSelected.length} (${details || "vide"}) — chunk=${chunkIdx}`);
+    console.log(`[buildWorkoutCatalog] course pool = ${courseSelected.length} (${details || "vide"}) — chunk=${options?.chunkIndex ?? 0}`);
     for (const [phase, n] of Object.entries(perPhase)) {
       if (phase === "any") continue;
       if (n > 0 && n < COURSE_POOL_MIN) {
         console.warn(
           `[buildWorkoutCatalog] ⚠️ Pool COURSE trop restreint en phase="${phase}" : ${n} < ${COURSE_POOL_MIN}. ` +
-          `Risque de répétition de séances. Chunk=${chunkIdx}.`
+          `Risque de répétition de séances. Chunk=${options?.chunkIndex ?? 0}.`
         );
       }
     }
