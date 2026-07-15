@@ -280,10 +280,18 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
       } else if (TRAIL_CATALOG_RX.test(inLib.id) && !isTrailObjective) {
         cat = "existe_autre_objectif";
       } else {
-        cat = "retiré_par_filtre_phase";
+        // Distinguer vraie exclusion de phase vs coupe en aval (cap/tri/dédup)
+        const allowedPhases = ficheAllowedPhases(inLib as never);
+        if (allowedPhases.size === 0) {
+          cat = "retiré_aval_filtre"; // pas de contrainte phase → coupée ailleurs
+        } else {
+          const intersects = [...allowedPhases].some(p => planPhases.has(p));
+          cat = intersects ? "retiré_aval_filtre" : "retiré_par_filtre_phase";
+        }
       }
       breakdown[cat].push(`S${w.weekNumber} ${s.dayName} — ${s.catalogId}`);
       details.push(`S${w.weekNumber} ${s.dayName} — catalogId hors catalogue : ${s.catalogId} [${cat}]`);
+
 
       // Voisins proches pour cat ≠ pur_hallucination
       if (inLib && cat !== "pur_hallucination") {
