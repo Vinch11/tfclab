@@ -177,5 +177,11 @@ export function enrichWithAbsoluteValues(
     }
   }
 
+  // Filet défensif : collapse "X% FTP (X% FTP)" ou "252W (252W)" si un enricher
+  // en amont a déjà injecté une annotation identique. Comparaison tolérante
+  // (espaces/casse). Ne modifie pas quand les valeurs diffèrent.
+  const DUP_RX_RENDER = /(\d{1,3}\s*%\s*(?:FTP|VMA|CSS|FCmax|CP\s*Run|CPRun)|\d{2,4}\s*W|CSS\s*[+-]\s*\d{1,2}\s*s|\d{1,2}[:'](?:\d{2})\s*\/\s*(?:km|100\s*m))\s*\(\s*(\1)\s*\)/gi;
+  out = out.replace(DUP_RX_RENDER, "$1");
+
   return out;
 }
