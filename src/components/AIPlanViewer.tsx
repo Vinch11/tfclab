@@ -428,7 +428,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
                   const clean = parsed.cleanTitle.trim();
                   const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
                   if (looksLikeId && fiche?.objectif) return fiche.objectif;
-                  return clean || session.title;
+                  return displayTitle || clean || session.title;
                 })()}
               </p>
             </>
