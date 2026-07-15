@@ -302,53 +302,52 @@ export function checkB8(
 }
 
 /**
- * B9 — Vérité des valeurs (Phase 2B).
+ * B9 — Prescriptions RELATIVES uniquement (Phase 2B v2).
  * PASS si :
- *   - 0 value_unresolved dans les semanticRepairs
- *   - 100% des tokens extraits sont conformes OU corrigés (tolérance zone)
- * Affiche : total tokens, % conformes, liste des corrections.
- * Basé sur les repairs SSE `value_corrected` / `value_unresolved` et le
- * summary `value_check_summary` injectés par l'edge.
+ *   - 0 value_unresolved
+ *   - 0 token absolu résiduel (residualAbsoluteTokens=0)
+ * Le validateur ne CORRIGE plus l'intensité : il RELATIVE ou flagge.
  */
 export function checkB9(semanticRepairs: string[] | undefined): CheckResult {
   const details: string[] = [];
   const repairs = semanticRepairs ?? [];
   const summaryLine = repairs.find(r => r.includes("value_check_summary"));
-  const correctedLines = repairs.filter(r => /\bvalue_corrected\b/.test(r));
+  const relativizedLines = repairs.filter(r => /\bvalue_relativized\b/.test(r));
   const unresolvedLines = repairs.filter(r => /\bvalue_unresolved\b/.test(r));
 
   if (!summaryLine) {
     return {
-      id: "B9", label: "Vérité des valeurs physiologiques",
+      id: "B9", label: "Prescriptions relatives (zones/%)",
       level: "critical", pass: false,
       details: ["Résumé value_check_summary absent (validateur non exécuté ou payload sans targetTable)."],
     };
   }
-  const m = summaryLine.match(/tokens=(\d+).*?conforme=(\d+).*?corrigés=(\d+).*?unresolved=(\d+)/);
+  const m = summaryLine.match(/tokens=(\d+).*?conforme=(\d+).*?relativisés=(\d+).*?unresolved=(\d+).*?residualAbs=(\d+)/);
   if (!m) {
     return {
-      id: "B9", label: "Vérité des valeurs physiologiques",
+      id: "B9", label: "Prescriptions relatives (zones/%)",
       level: "critical", pass: false,
       details: [`Résumé mal formé : "${summaryLine}"`],
     };
   }
   const total = Number(m[1]);
   const ok = Number(m[2]);
-  const corr = Number(m[3]);
+  const relat = Number(m[3]);
   const unres = Number(m[4]);
+  const residual = Number(m[5]);
   const pctOk = total > 0 ? Math.round((ok / total) * 100) : 100;
-  const pass = unres === 0;
+  const pass = unres === 0 && residual === 0;
 
-  details.push(`Total tokens : ${total} · conformes ${ok} (${pctOk}%) · corrigés ${corr} · unresolved ${unres}`);
-  if (correctedLines.length > 0) {
-    details.push(`Corrections (${correctedLines.length}) :`);
-    for (const l of correctedLines.slice(0, 6)) details.push(`  - ${l}`);
+  details.push(`Total tokens : ${total} · relatifs conformes ${ok} (${pctOk}%) · relativisés ${relat} · unresolved ${unres} · absolus résiduels ${residual}`);
+  if (relativizedLines.length > 0) {
+    details.push(`Traductions relatives (${relativizedLines.length}) :`);
+    for (const l of relativizedLines.slice(0, 6)) details.push(`  - ${l}`);
   }
   if (unresolvedLines.length > 0) {
     details.push(`Unresolved (${unresolvedLines.length}) :`);
     for (const l of unresolvedLines.slice(0, 6)) details.push(`  - ${l}`);
   }
-  return { id: "B9", label: "Vérité des valeurs physiologiques", level: "critical", pass, details };
+  return { id: "B9", label: "Prescriptions relatives (zones/%)", level: "critical", pass, details };
 }
 
 export function runAllChecks(args: {

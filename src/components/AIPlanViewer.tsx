@@ -30,6 +30,9 @@ import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel"
 import { supabase } from "@/integrations/supabase/client";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { buildTargetTable } from "@/lib/plan/targetTable";
+import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
+import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTableContext";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -319,10 +322,21 @@ interface SessionCardProps {
 
 function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif }: SessionCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const targetTable = useTargetTable();
 
   const session = useMemo(
     () => maybeDowngradeBikeSession(rawSession, objectifEffectif),
     [rawSession, objectifEffectif]
+  );
+
+  // PHASE 2B v2 — annote les intensités relatives (zones/%FTP/%VMA/CSS±s) avec les valeurs absolues athlète.
+  const displayTitle = useMemo(
+    () => enrichWithAbsoluteValues(session.title ?? "", targetTable, session.sport as SportKind),
+    [session.title, session.sport, targetTable]
+  );
+  const displayDetails = useMemo(
+    () => enrichWithAbsoluteValues(session.details ?? "", targetTable, session.sport as SportKind),
+    [session.details, session.sport, targetTable]
   );
 
   const trailAlts = useMemo(
@@ -414,7 +428,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
                   const clean = parsed.cleanTitle.trim();
                   const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
                   if (looksLikeId && fiche?.objectif) return fiche.objectif;
-                  return clean || session.title;
+                  return displayTitle || clean || session.title;
                 })()}
               </p>
             </>
@@ -438,7 +452,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
       {expanded && session.details && (
         <div
           className="text-xs text-muted-foreground mt-2 leading-relaxed border-t border-current/10 pt-2 fiche-body whitespace-pre-wrap"
-          dangerouslySetInnerHTML={{ __html: formatFicheText(session.details) }}
+          dangerouslySetInnerHTML={{ __html: formatFicheText(displayDetails) }}
         />
       )}
       {expanded && fiche && (
@@ -892,6 +906,23 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     return { ftp: r.ftp, vma: r.vma, css: r.css, fcMax: r.fcMax };
   }, [athletes, snapshots, athleteId]);
 
+  // PHASE 2B v2 — TargetTable pour annoter les intensités relatives à l'affichage
+  const targetTable = useMemo(() => {
+    if (!nolioRefs.ftp && !nolioRefs.vma && !nolioRefs.css) return null;
+    try {
+      return buildTargetTable({
+        ftp: nolioRefs.ftp,
+        vma: nolioRefs.vma,
+        css: nolioRefs.css,
+        fcMax: nolioRefs.fcMax,
+        objective: gapContext?.objective ?? null,
+        ambition: gapContext?.ambition ?? null,
+      });
+    } catch {
+      return null;
+    }
+  }, [nolioRefs, gapContext?.objective, gapContext?.ambition]);
+
   const markSent = useCallback((key: string) => {
     setSentKeys((prev) => {
       const next = new Set(prev);
@@ -1215,6 +1246,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
 
   return (
+    <TargetTableProvider value={targetTable}>
     <div className="space-y-4">
       {replacementCount > 0 && (
         <Alert>
@@ -1674,7 +1706,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         onChoose={applyReplacement}
       />
     </div>
-
+    </TargetTableProvider>
   );
 }
 
