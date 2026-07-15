@@ -512,7 +512,7 @@ export function buildWorkoutCatalog(
   //       socle et logger `cap_raised_for_coverage`. Une famille ne doit
   //       JAMAIS être sacrifiée pour tenir sous le cap.
   // ═══════════════════════════════════════════════════════════════════════════
-  const { intentFamilyOf } = require("./plan/intentFamily") as typeof import("./plan/intentFamily");
+  // intentFamilyOf imported at module top
 
   const selected: LibraryWorkout[] = [];
   const selectedIds = new Set<string>();
