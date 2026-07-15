@@ -29,6 +29,7 @@ import type { LibraryWorkout } from "@/types/workoutLibrary";
 import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
+import { intentFamilyOf } from "@/lib/plan/intentFamily";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 type SchemaSport = "swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "rest";
@@ -45,12 +46,15 @@ export interface ReconcilerCounters {
   quota_floor_unresolved: number;
   quota_ceiling_trimmed: number;
   reconcile_conflict: number;
+  id_remapped_to_neighbor: number;
+  id_remap_no_intent_match_fallback_custom: number;
 }
 
 export interface ReconcilerResult {
   counters: ReconcilerCounters;
   logs: string[];
 }
+
 
 // ── Index fiches ────────────────────────────────────────────────────────────
 const FICHES_BY_ID: Map<string, LibraryWorkout> = (() => {
