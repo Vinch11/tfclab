@@ -27,6 +27,7 @@ import { computeWeekVolumeMin, formatMinutesToHm } from "@/lib/weeklyVolumeEstim
 import { normalizeWeeksAndPhases } from "./normalizeWeeksPhases";
 import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
 import { deriveRaceTargets, formatSecPerKm } from "@/lib/deriveRaceTargets";
+import { postProcessSessionText } from "./sessionTextPostProcessor";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
