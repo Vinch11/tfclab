@@ -35,6 +35,8 @@ import {
   canonicalizeZoneLabel,
   z4Union,
   getZoneMirror,
+  zonesContainingHalfOpen,
+  nearestZoneForMetric,
   type ZoneId,
 } from "../_shared/trainingZonesDefinition.ts";
 
@@ -75,6 +77,10 @@ const PCT_CPRUN_RX = /\b(\d{1,3})\s*%\s*CP\s*Run\b/gi;
 const PCT_CSS_RX = /\b(\d{1,3})\s*%\s*CSS\b/gi;
 const ZONE_RX = /\bZ(?:1|2|3|4a|4b|4|5|6|7)\b/gi;
 
+// Tolérances "allure course reconnue" (règle 3)
+const RACE_PACE_TOL_SEC = 3; // ±3s/km
+const RACE_POWER_TOL_W = 3;  // ±3W
+
 function paceStrToSec(m: string, s: string): number {
   return Number(m) * 60 + Number(s);
 }
@@ -84,22 +90,25 @@ function secToPace(sec: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** Trouve TOUTES les zones du mirror dont l'intervalle contient v (métrique). */
-function zonesContaining(v: number, metric: "vma" | "ftp" | "cpRun" | "fcMax"): ZoneId[] {
-  const out: ZoneId[] = [];
-  for (const z of TRAINING_ZONES_MIRROR) {
-    const r = z[metric];
-    if (!r) continue;
-    if (v >= r.min && v <= r.max) out.push(z.id);
+/**
+ * Résout une valeur relative (%) vers une zone selon convention semi-ouverte
+ * [min,max[. Si aucune zone ne matche (trou de grille), rattache à la zone la
+ * plus proche et renvoie {zone, gap:distance}. Renvoie null si aucune zone
+ * n'est définie pour cette métrique.
+ */
+function resolveZone(
+  v: number,
+  metric: "vma" | "ftp" | "cpRun" | "fcMax",
+): { zone: ZoneId; gap: number } | null {
+  const hits = zonesContainingHalfOpen(v, metric);
+  if (hits.length === 1) return { zone: hits[0], gap: 0 };
+  if (hits.length > 1) {
+    // Ne devrait pas arriver avec semi-ouvert + grille TFCL. Prend la plus haute.
+    return { zone: hits[hits.length - 1], gap: 0 };
   }
-  return out;
-}
-
-/** Retourne l'unique zone contenant v pour métrique, sinon null (ambigu ou aucun). */
-function uniqueZoneFor(v: number, metric: "vma" | "ftp" | "cpRun" | "fcMax"): ZoneId | null {
-  const hits = zonesContaining(v, metric);
-  if (hits.length === 1) return hits[0];
-  return null;
+  const near = nearestZoneForMetric(v, metric);
+  if (!near) return null;
+  return { zone: near.zone, gap: near.distance };
 }
 
 interface CheckedText {
