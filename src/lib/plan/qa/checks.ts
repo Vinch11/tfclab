@@ -24,7 +24,7 @@ import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
-  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9";
+  id: "B1" | "B2" | "B3" | "B4" | "B5" | "B6" | "B7" | "B8" | "B9" | "B10" | "B11";
   label: string;
   level: CheckLevel;
   pass: boolean;
