@@ -1,25 +1,45 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * PHASE 2B v2 — VALIDATEUR DE VALEURS PAR TOKEN (post-merge, edge)
+ * PHASE 2B v2 — VALIDATEUR RELATIF UNIQUEMENT (post-merge, edge)
  * ═══════════════════════════════════════════════════════════════════════════════
- * Nouvelle logique par TOKEN (pas par zone-de-séance) :
- *   1) CONFORMITÉ PAR APPARTENANCE GLOBALE — un token est conforme s'il tombe
- *      dans N'IMPORTE QUELLE plage de la targetTable du bon sport (Z1..Z7,
- *      SST, racePower/racePace, avec tolérances). On tagge la zone reconnue.
- *   2) CSS — la plage CSS ne s'applique QUE si le contexte immédiat (±20 chars)
- *      contient "CSS". Sinon on valide contre l'ensemble des plages natation.
- *   3) HORS DE TOUTES LES PLAGES → correction seulement si :
- *        a) un %FTP adjacent permet le recalcul exact, OU
- *        b) le recadrage va vers le BAS (nw ≤ v) : safe.
- *      ASYMÉTRIE DE SÉCURITÉ : jamais de correction à la HAUSSE. Une hausse
- *      nécessaire ⇒ value_unresolved critical (revue coach).
+ * Nouveau principe (remplace la logique de correction B9) :
+ *   Le modèle ne doit PLUS écrire de valeur absolue (W, min/km, s/100m, bpm).
+ *   Uniquement du RELATIF : zones (Z1..Z7 vélo + Z1..Z7 CAP), %FTP, %VMA,
+ *   %CSS, CSS±Xs.
+ *
+ *   1) Token ABSOLU (W/…/km/…/100m/…bpm) :
+ *      a) TRADUCTION relative si univoque :
+ *         - N W → "P% FTP" (arrondi au %FTP, s'il existe une zone contenant N).
+ *         - M:SS/km → "Zx" si dans exactement une zone run (VMA%).
+ *         - M:SS/100m → "CSS±Xs" si contexte CSS (±20 chars), sinon zone swim.
+ *         - N bpm → "Zx" si dans exactement une zone FC.
+ *         Repair `value_relativized` (avant/après).
+ *      b) Ambigu (aucune ou plusieurs zones plausibles) → `value_unresolved`
+ *         critical. AUCUNE correction d'intensité (ni hausse ni baisse).
+ *
+ *   2) Token RELATIF (Zx, N%FTP, N%VMA, N%CSS, CSS±Xs) :
+ *      - Canonicaliser la casse (Z4A/z4a → Z4a). Zone "Z4" nu = union Z4a+Z4b.
+ *      - Bornes plausibilité (grille TFCL):
+ *          %FTP ∈ [0,300]     %VMA ∈ [0,200]
+ *          %CPRun ∈ [0,200]   %CSS ∈ [80,120]
+ *      - Zone (canonicalisée) doit être connue (Z1..Z7 + Z4).
+ *      - Hors bornes → `value_unresolved`.
+ *
+ *   B9 pass = 0 unresolved ET 0 token absolu résiduel.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 import type { PlanChunk, PlanSession } from "./planSchema.ts";
 import type { TargetTablePayload } from "./payloadSchema.ts";
+import {
+  TRAINING_ZONES_MIRROR,
+  canonicalizeZoneLabel,
+  z4Union,
+  getZoneMirror,
+  type ZoneId,
+} from "../_shared/trainingZonesDefinition.ts";
 
 export interface ValueRepair {
-  code: "value_corrected" | "value_unresolved";
+  code: "value_relativized" | "value_unresolved";
   severity: "warning" | "critical";
   weekNumber: number;
   day: string;
@@ -37,89 +57,58 @@ export interface ValueCheckResult {
   traces: string[];
   totalTokens: number;
   conformantTokens: number;
-  correctedTokens: number;
+  relativizedTokens: number;
   unresolvedTokens: number;
+  residualAbsoluteTokens: number;
 }
 
-const WATTS_RANGE_RX = /@?\s*(\d{2,4})\s*[-–]\s*(\d{2,4})\s*W\b/gi;
-const WATTS_SINGLE_RX = /(?<![-–\d])(\d{2,4})\s*W\b/gi;
-const PACE_KM_RX = /(\d)[:'](\d{2})\s*\/?\s*km/gi;
+// ═══ REGEX ═══════════════════════════════════════════════════════════════════
+const WATTS_RX = /(?<![\d.-])(\d{2,4})\s*W\b/gi;
+const WATTS_RANGE_RX = /(?<![\d.-])(\d{2,4})\s*[-–]\s*(\d{2,4})\s*W\b/gi;
+const PACE_KM_RX = /(\d)[:'](\d{2})\s*\/?\s*km\b/gi;
 const CSS_RX = /(\d)[:'](\d{2})\s*\/\s*100\s*m/gi;
-const BPM_RX = /(\d{2,3})\s*bpm/gi;
+const BPM_RX = /(\d{2,3})\s*bpm\b/gi;
 
-type Range = [number, number];
-interface LabeledRange { label: string; range: Range; }
+const PCT_FTP_RX = /\b(\d{1,3})\s*%\s*FTP\b/gi;
+const PCT_VMA_RX = /\b(\d{1,3})\s*%\s*VMA\b/gi;
+const PCT_CPRUN_RX = /\b(\d{1,3})\s*%\s*CP\s*Run\b/gi;
+const PCT_CSS_RX = /\b(\d{1,3})\s*%\s*CSS\b/gi;
+const ZONE_RX = /\bZ(?:1|2|3|4a|4b|4|5|6|7)\b/gi;
 
-function inRange(v: number, r: Range, tolPct: number, tolAbs: number): boolean {
-  const lo = r[0] - Math.max(r[0] * tolPct, tolAbs);
-  const hi = r[1] + Math.max(r[1] * tolPct, tolAbs);
-  return v >= lo && v <= hi;
+function paceStrToSec(m: string, s: string): number {
+  return Number(m) * 60 + Number(s);
 }
-
-function nearestBorder(v: number, r: Range): number {
-  if (v < r[0]) return r[0];
-  if (v > r[1]) return r[1];
-  return v;
-}
-
-function paceStrToSec(mmss: string): number | null {
-  const m = mmss.match(/^(\d+)[:'](\d{2})$/);
-  if (!m) return null;
-  return Number(m[1]) * 60 + Number(m[2]);
-}
-
 function secToPace(sec: number): string {
   const m = Math.floor(sec / 60);
-  const s = Math.round(sec % 60);
+  const s = Math.round(sec - m * 60);
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** Toutes les plages watts vélo pertinentes (zones + SST + racePower). */
-function allBikeRanges(t: TargetTablePayload): LabeledRange[] {
-  const out: LabeledRange[] = [];
-  for (const [z, r] of Object.entries(t.bikeZonesW)) out.push({ label: z, range: r as Range });
-  if (t.sstW) out.push({ label: "SST", range: t.sstW });
-  if (t.racePowerRange) out.push({ label: "racePower", range: t.racePowerRange });
-  return out;
-}
-
-function allRunRanges(t: TargetTablePayload): LabeledRange[] {
-  const out: LabeledRange[] = [];
-  for (const [z, r] of Object.entries(t.runPacesSecPerKm)) out.push({ label: z, range: r as Range });
-  if (t.racePaceRange) out.push({ label: "racePace", range: t.racePaceRange });
-  return out;
-}
-
-function allSwimRanges(t: TargetTablePayload): LabeledRange[] {
-  const out: LabeledRange[] = [];
-  for (const [z, r] of Object.entries(t.swimZonesSecPer100m)) out.push({ label: z, range: r as Range });
-  if (t.cssRange) out.push({ label: "CSS", range: t.cssRange });
-  return out;
-}
-
-/** Cherche la 1re plage qui accepte v (avec tolérance). */
-function findMatch(v: number, ranges: LabeledRange[], tolPct: number, tolAbs: number): LabeledRange | null {
-  for (const lr of ranges) if (inRange(v, lr.range, tolPct, tolAbs)) return lr;
-  return null;
-}
-
-/** Plage la plus proche (distance au bord) pour recadrage. */
-function nearestRange(v: number, ranges: LabeledRange[]): LabeledRange | null {
-  let best: LabeledRange | null = null;
-  let bestD = Infinity;
-  for (const lr of ranges) {
-    const d = v < lr.range[0] ? lr.range[0] - v : v > lr.range[1] ? v - lr.range[1] : 0;
-    if (d < bestD) { bestD = d; best = lr; }
+/** Trouve TOUTES les zones du mirror dont l'intervalle contient v (métrique). */
+function zonesContaining(v: number, metric: "vma" | "ftp" | "cpRun" | "fcMax"): ZoneId[] {
+  const out: ZoneId[] = [];
+  for (const z of TRAINING_ZONES_MIRROR) {
+    const r = z[metric];
+    if (!r) continue;
+    if (v >= r.min && v <= r.max) out.push(z.id);
   }
-  return best;
+  return out;
+}
+
+/** Retourne l'unique zone contenant v pour métrique, sinon null (ambigu ou aucun). */
+function uniqueZoneFor(v: number, metric: "vma" | "ftp" | "cpRun" | "fcMax"): ZoneId | null {
+  const hits = zonesContaining(v, metric);
+  if (hits.length === 1) return hits[0];
+  return null;
 }
 
 interface CheckedText {
   text: string;
   tokens: number;
   conformant: number;
-  corrected: number;
+  relativized: number;
   unresolved: number;
+  residualAbsolute: number;
   repairs: Omit<ValueRepair, "chunkIndex" | "weekNumber" | "day" | "sport">[];
 }
 
@@ -129,7 +118,7 @@ function checkSessionText(
   t: TargetTablePayload,
 ): CheckedText {
   let text = original;
-  let tokens = 0, conformant = 0, corrected = 0, unresolved = 0;
+  let tokens = 0, conformant = 0, relativized = 0, unresolved = 0, residualAbsolute = 0;
   const repairs: CheckedText["repairs"] = [];
 
   const sport = session.sport;
@@ -137,216 +126,214 @@ function checkSessionText(
   const isRun = sport === "run" || sport === "brick" || sport === "trail";
   const isSwim = sport === "swim";
 
-  const bikeRanges = allBikeRanges(t);
-  const runRanges = allRunRanges(t);
-  const swimRanges = allSwimRanges(t);
-
-  // ─── %FTP + watts adjacents : autoritatif (règle existante) ─────────
-  if (isBike && t.ftpW) {
-    const pctFtpPairRx =
-      /(\d{2,3})\s*%\s*FTP[^\d]{0,20}(\d{2,4})\s*W|(\d{2,4})\s*W[^\d]{0,20}(\d{2,3})\s*%\s*FTP/gi;
-    text = text.replace(pctFtpPairRx, (match, p1, p2, p3, p4) => {
-      const pct = Number(p1 ?? p4);
-      const w = Number(p2 ?? p3);
-      const expectedW = Math.round((pct / 100) * t.ftpW!);
-      if (Math.abs(w - expectedW) > Math.max(0.03 * expectedW, 5)) {
-        tokens++; corrected++;
-        repairs.push({
-          code: "value_corrected", severity: "warning",
-          reason: `%FTP=${pct}% × FTP=${t.ftpW}W → ${expectedW}W (observé ${w}W incohérent)`,
-          before: `${w}W`, after: `${expectedW}W`, token: match,
-        });
-        return match.replace(`${w}W`, `${expectedW}W`);
-      }
-      tokens++; conformant++;
-      return match;
-    });
-  }
-
-  // ─── Watts range "200-220W" ─────────────────────────────────────────
-  if (isBike && bikeRanges.length > 0) {
-    text = text.replace(WATTS_RANGE_RX, (match, aStr, bStr) => {
-      const a = Number(aStr), b = Number(bStr);
+  // ─── 1a) WATTS RANGE "200-220W" → "P1-P2% FTP" ──────────────────────
+  if (isBike) {
+    text = text.replace(WATTS_RANGE_RX, (match, a, b) => {
       tokens += 2;
-      const mA = findMatch(a, bikeRanges, 0.03, 3);
-      const mB = findMatch(b, bikeRanges, 0.03, 3);
-      if (mA && mB) { conformant += 2; return match; }
-
-      // Bornes non conformes globalement → recadrer chaque borne (DOWN only)
-      const fix = (v: number, m: LabeledRange | null): { nv: number; ok: boolean; label: string } => {
-        if (m) return { nv: v, ok: true, label: m.label };
-        const nr = nearestRange(v, bikeRanges);
-        if (!nr) return { nv: v, ok: false, label: "" };
-        const nv = nearestBorder(v, nr.range);
-        return { nv, ok: nv <= v, label: nr.label }; // DOWN only
-      };
-      const fa = fix(a, mA), fb = fix(b, mB);
-      if (fa.ok && fb.ok) {
-        corrected += (mA ? 0 : 1) + (mB ? 0 : 1);
-        conformant += (mA ? 1 : 0) + (mB ? 1 : 0);
-        if (!mA || !mB) {
-          repairs.push({
-            code: "value_corrected", severity: "warning",
-            reason: `range ${a}-${b}W recadré vers plage la plus proche (baisse safe)`,
-            before: `${a}-${b}W`, after: `${fa.nv}-${fb.nv}W`, token: match,
-          });
-        }
-        return `${fa.nv}-${fb.nv}W`;
-      }
-      unresolved += (fa.ok ? 0 : 1) + (fb.ok ? 0 : 1);
-      conformant += (fa.ok ? 1 : 0) + (fb.ok ? 1 : 0);
-      repairs.push({
-        code: "value_unresolved", severity: "critical",
-        reason: `range ${a}-${b}W hors plages vélo, correction à la hausse interdite (revue coach)`,
-        token: match,
-      });
-      return match;
-    });
-  }
-
-  // ─── Watts single "220W" ────────────────────────────────────────────
-  if (isBike && bikeRanges.length > 0) {
-    text = text.replace(WATTS_SINGLE_RX, (match, wStr) => {
-      const w = Number(wStr);
-      tokens++;
-      const m = findMatch(w, bikeRanges, 0.03, 3);
-      if (m) { conformant++; return match; }
-
-      const nr = nearestRange(w, bikeRanges);
-      if (!nr) { unresolved++; return match; }
-      const nw = nearestBorder(w, nr.range);
-      if (nw <= w) {
-        // DOWN correction — safe
-        corrected++;
-        repairs.push({
-          code: "value_corrected", severity: "warning",
-          reason: `${w}W hors plages vélo → recadré ${nw}W (${nr.label}, baisse safe)`,
-          before: `${w}W`, after: `${nw}W`, token: match,
-        });
-        return `${nw}W`;
-      }
-      // UP correction — INTERDIT
-      unresolved++;
-      repairs.push({
-        code: "value_unresolved", severity: "critical",
-        reason: `${w}W en-dessous des plages vélo, correction à la hausse interdite → revue coach`,
-        token: match,
-      });
-      return match;
-    });
-  }
-
-  // ─── Pace /km ───────────────────────────────────────────────────────
-  if (isRun && runRanges.length > 0) {
-    text = text.replace(PACE_KM_RX, (match, m, s) => {
-      const sec = Number(m) * 60 + Number(s);
-      tokens++;
-      const mm = findMatch(sec, runRanges, 0, 5);
-      if (mm) { conformant++; return match; }
-      const nr = nearestRange(sec, runRanges);
-      if (!nr) { unresolved++; return match; }
-      const ns = nearestBorder(sec, nr.range);
-      // Pace : "hausse" = plus rapide = ns < sec. C'est plus dur → interdit.
-      if (ns >= sec) {
-        corrected++;
-        repairs.push({
-          code: "value_corrected", severity: "warning",
-          reason: `${match} hors plages course → recadré ${secToPace(ns)}/km (${nr.label}, plus lent = safe)`,
-          before: match, after: `${secToPace(ns)}/km`, token: match,
-        });
-        return `${secToPace(ns)}/km`;
-      }
-      unresolved++;
-      repairs.push({
-        code: "value_unresolved", severity: "critical",
-        reason: `${match} plus lent que toutes plages, accélérer serait plus dur → revue coach`,
-        token: match,
-      });
-      return match;
-    });
-  }
-
-  // ─── CSS /100m (contexte-dépendant) ─────────────────────────────────
-  if (isSwim && swimRanges.length > 0) {
-    // On collecte les positions des matches d'abord (String.replace + regex globale)
-    text = text.replace(CSS_RX, (match, m, s, offset: number) => {
-      const sec = Number(m) * 60 + Number(s);
-      tokens++;
-      const from = Math.max(0, offset - 20);
-      const to = Math.min(text.length, offset + match.length + 20);
-      const ctx = text.slice(from, to).toUpperCase();
-      const cssOnly = ctx.includes("CSS");
-
-      const pool: LabeledRange[] = cssOnly && t.cssRange
-        ? [{ label: "CSS", range: t.cssRange }]
-        : swimRanges;
-
-      const mm = findMatch(sec, pool, 0, 3);
-      if (mm) { conformant++; return match; }
-      const nr = nearestRange(sec, pool);
-      if (!nr) { unresolved++; return match; }
-      const ns = nearestBorder(sec, nr.range);
-      if (ns >= sec) {
-        corrected++;
-        repairs.push({
-          code: "value_corrected", severity: "warning",
-          reason: `${match} recadré ${secToPace(ns)}/100m (${nr.label}, plus lent = safe)`,
-          before: match, after: `${secToPace(ns)}/100m`, token: match,
-        });
-        return `${secToPace(ns)}/100m`;
-      }
-      unresolved++;
-      repairs.push({
-        code: "value_unresolved", severity: "critical",
-        reason: `${match} plus lent que ${cssOnly ? "CSS" : "plages nat."}, accélérer interdit → revue coach`,
-        token: match,
-      });
-      return match;
-    });
-  }
-
-  // ─── FC bpm ─────────────────────────────────────────────────────────
-  if (t.fcMax) {
-    const fcRanges: LabeledRange[] = Object.entries(t.fcZonesBpm)
-      .map(([z, r]) => ({ label: z, range: r as Range }));
-    text = text.replace(BPM_RX, (match, bStr) => {
-      const b = Number(bStr);
-      tokens++;
-      if (b <= t.fcMax! + 5) {
-        const inZones = fcRanges.length ? findMatch(b, fcRanges, 0.02, 3) : null;
-        if (inZones || fcRanges.length === 0) { conformant++; return match; }
-        const nr = nearestRange(b, fcRanges);
-        if (!nr) { conformant++; return match; }
-        const nb = nearestBorder(b, nr.range);
-        if (nb <= b) {
-          corrected++;
-          repairs.push({
-            code: "value_corrected", severity: "warning",
-            reason: `${b}bpm hors plages FC → recadré ${nb}bpm (${nr.label}, baisse safe)`,
-            before: `${b}bpm`, after: `${nb}bpm`, token: match,
-          });
-          return `${nb}bpm`;
-        }
-        unresolved++;
+      if (!t.ftpW) {
+        unresolved += 2; residualAbsolute += 2;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `${b}bpm sous les plages, hausse interdite → revue coach`,
+          reason: `${match} : FTP athlète absent, impossible de relativiser`,
           token: match,
         });
         return match;
       }
-      // > FCmax+5 : impossible, mais on ne "muscle" pas la prescription → unresolved
-      unresolved++;
+      const wa = Number(a), wb = Number(b);
+      const pa = Math.round((wa / t.ftpW) * 100);
+      const pb = Math.round((wb / t.ftpW) * 100);
+      // Doit tomber dans une zone connue (au moins une) pour chaque borne
+      const za = zonesContaining(pa, "ftp"), zb = zonesContaining(pb, "ftp");
+      if (za.length === 0 || zb.length === 0) {
+        unresolved += 2; residualAbsolute += 2;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} → ${pa}-${pb}% FTP hors grille (aucune zone) → revue coach`,
+          token: match,
+        });
+        return match;
+      }
+      relativized += 2;
+      const after = `${pa}-${pb}% FTP`;
+      repairs.push({
+        code: "value_relativized", severity: "warning",
+        reason: `${match} traduit en ${after} (FTP=${t.ftpW}W)`,
+        before: match, after, token: match,
+      });
+      return after;
+    });
+  }
+
+  // ─── 1b) WATTS SINGLE "220W" → "P% FTP" ─────────────────────────────
+  if (isBike) {
+    text = text.replace(WATTS_RX, (match, wStr) => {
+      tokens++;
+      if (!t.ftpW) {
+        unresolved++; residualAbsolute++;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} : FTP athlète absent, impossible de relativiser`,
+          token: match,
+        });
+        return match;
+      }
+      const w = Number(wStr);
+      const pct = Math.round((w / t.ftpW) * 100);
+      const hits = zonesContaining(pct, "ftp");
+      if (hits.length === 0) {
+        unresolved++; residualAbsolute++;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} → ${pct}% FTP hors grille (aucune zone) → revue coach`,
+          token: match,
+        });
+        return match;
+      }
+      relativized++;
+      const after = `${pct}% FTP`;
+      repairs.push({
+        code: "value_relativized", severity: "warning",
+        reason: `${match} traduit en ${after} (FTP=${t.ftpW}W)`,
+        before: match, after, token: match,
+      });
+      return after;
+    });
+  }
+
+  // ─── 1c) PACE /km → Zone (si univoque) ───────────────────────────────
+  if (isRun) {
+    text = text.replace(PACE_KM_RX, (match, mm, ss) => {
+      tokens++;
+      if (!t.vmaKmh) {
+        unresolved++; residualAbsolute++;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} : VMA absente → impossible de relativiser`,
+          token: match,
+        });
+        return match;
+      }
+      const sec = paceStrToSec(mm, ss);
+      const kmh = 3600 / sec;
+      const pct = Math.round((kmh / t.vmaKmh) * 100);
+      const z = uniqueZoneFor(pct, "vma");
+      if (!z) {
+        unresolved++; residualAbsolute++;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} → ${pct}% VMA ambigu (0 ou >1 zone) → revue coach`,
+          token: match,
+        });
+        return match;
+      }
+      relativized++;
+      repairs.push({
+        code: "value_relativized", severity: "warning",
+        reason: `${match} traduit en ${z} (${pct}% VMA)`,
+        before: match, after: z, token: match,
+      });
+      return z;
+    });
+  }
+
+  // ─── 1d) /100m → CSS±Xs (si contexte CSS) sinon zone swim (VMA fallback impossible) ──
+  if (isSwim) {
+    text = text.replace(CSS_RX, (match, mm, ss, offset: number) => {
+      tokens++;
+      const sec = paceStrToSec(mm, ss);
+      const from = Math.max(0, offset - 20);
+      const to = Math.min(text.length, offset + match.length + 20);
+      const ctx = text.slice(from, to).toUpperCase();
+      const cssCtx = ctx.includes("CSS");
+      if (t.cssSecPer100m && cssCtx) {
+        const delta = sec - t.cssSecPer100m;
+        const after = delta === 0 ? "CSS" : `CSS${delta > 0 ? "+" : ""}${delta}s`;
+        relativized++;
+        repairs.push({
+          code: "value_relativized", severity: "warning",
+          reason: `${match} traduit en ${after} (CSS=${secToPace(t.cssSecPer100m)}/100m)`,
+          before: match, after, token: match,
+        });
+        return after;
+      }
+      // pas de contexte CSS explicite : plus difficile à réattribuer sans zones swim canoniques
+      unresolved++; residualAbsolute++;
       repairs.push({
         code: "value_unresolved", severity: "critical",
-        reason: `${b}bpm > FCmax (${t.fcMax}) → revue coach`,
+        reason: `${match} : absolu /100m sans contexte CSS → revue coach`,
         token: match,
       });
       return match;
     });
   }
 
-  return { text, tokens, conformant, corrected, unresolved, repairs };
+  // ─── 1e) FC bpm → Zone (si univoque) ────────────────────────────────
+  if (t.fcMax) {
+    text = text.replace(BPM_RX, (match, bStr) => {
+      tokens++;
+      const b = Number(bStr);
+      const pct = Math.round((b / t.fcMax!) * 100);
+      const z = uniqueZoneFor(pct, "fcMax");
+      if (!z) {
+        unresolved++; residualAbsolute++;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} → ${pct}% FCmax ambigu → revue coach`,
+          token: match,
+        });
+        return match;
+      }
+      relativized++;
+      repairs.push({
+        code: "value_relativized", severity: "warning",
+        reason: `${match} traduit en ${z} (${pct}% FCmax)`,
+        before: match, after: z, token: match,
+      });
+      return z;
+    });
+  }
+
+  // ─── 2) TOKENS RELATIFS : plausibilité ──────────────────────────────
+  // Canonicalise les zones (Z4A → Z4a) en place et vérifie appartenance
+  text = text.replace(ZONE_RX, (m) => {
+    tokens++;
+    const canon = canonicalizeZoneLabel(m);
+    if (!canon) {
+      unresolved++;
+      repairs.push({
+        code: "value_unresolved", severity: "critical",
+        reason: `Zone "${m}" inconnue`,
+        token: m,
+      });
+      return m;
+    }
+    conformant++;
+    return canon; // corrige la casse
+  });
+
+  const checkPct = (rx: RegExp, label: string, lo: number, hi: number) => {
+    text = text.replace(rx, (match, pStr) => {
+      tokens++;
+      const p = Number(pStr);
+      if (p < lo || p > hi) {
+        unresolved++;
+        repairs.push({
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} hors bornes plausibilité ${label} [${lo},${hi}]`,
+          token: match,
+        });
+        return match;
+      }
+      conformant++;
+      return match;
+    });
+  };
+  checkPct(PCT_FTP_RX, "%FTP", 0, 300);
+  checkPct(PCT_VMA_RX, "%VMA", 0, 200);
+  checkPct(PCT_CPRUN_RX, "%CPRun", 0, 200);
+  checkPct(PCT_CSS_RX, "%CSS", 80, 120);
+
+  return { text, tokens, conformant, relativized, unresolved, residualAbsolute, repairs };
 }
 
 export function applyValueCheck(
@@ -355,25 +342,26 @@ export function applyValueCheck(
 ): ValueCheckResult {
   const repairs: ValueRepair[] = [];
   const traces: string[] = [];
-  let totalTokens = 0, conformantTokens = 0, correctedTokens = 0, unresolvedTokens = 0;
+  let totalTokens = 0, conformantTokens = 0, relativizedTokens = 0, unresolvedTokens = 0, residualAbsoluteTokens = 0;
 
   if (!targetTable) {
     traces.push("[VALUE_CHECK] SKIP — targetTable absent du payload");
-    return { chunks, repairs, traces, totalTokens: 0, conformantTokens: 0, correctedTokens: 0, unresolvedTokens: 0 };
+    return { chunks, repairs, traces, totalTokens: 0, conformantTokens: 0, relativizedTokens: 0, unresolvedTokens: 0, residualAbsoluteTokens: 0 };
   }
 
   const outChunks = chunks.map((ck, ci) => {
-    const weeks = ck.weeks.map(w => {
-      const sessions = w.sessions.map(s => {
+    const weeks = ck.weeks.map((w) => {
+      const sessions = w.sessions.map((s) => {
         const combined = `${s.title ?? ""}\n${s.details ?? ""}`;
-        const hasNumbers = /\d/.test(combined);
-        if (!hasNumbers) return s;
+        const hasContent = /\S/.test(combined);
+        if (!hasContent) return s;
         const res = checkSessionText(combined, s, targetTable);
         if (res.tokens === 0) return s;
         totalTokens += res.tokens;
         conformantTokens += res.conformant;
-        correctedTokens += res.corrected;
+        relativizedTokens += res.relativized;
         unresolvedTokens += res.unresolved;
+        residualAbsoluteTokens += res.residualAbsolute;
         for (const r of res.repairs) {
           repairs.push({
             ...r,
@@ -384,7 +372,7 @@ export function applyValueCheck(
           });
         }
         traces.push(
-          `[VALUE_CHECK] S${w.weekNumber} ${s.day} ${s.sport}: tokens=${res.tokens} ok=${res.conformant} corr=${res.corrected} unres=${res.unresolved}`,
+          `[VALUE_CHECK] S${w.weekNumber} ${s.day} ${s.sport}: tokens=${res.tokens} ok=${res.conformant} relat=${res.relativized} unres=${res.unresolved} residualAbs=${res.residualAbsolute}`,
         );
         if (res.text !== combined) {
           const [newTitle, ...rest] = res.text.split("\n");
@@ -398,11 +386,11 @@ export function applyValueCheck(
   });
 
   traces.push(
-    `[VALUE_CHECK] TOTAL tokens=${totalTokens} conforme=${conformantTokens} corr=${correctedTokens} unresolved=${unresolvedTokens}`,
+    `[VALUE_CHECK] TOTAL tokens=${totalTokens} conforme=${conformantTokens} relat=${relativizedTokens} unresolved=${unresolvedTokens} residualAbs=${residualAbsoluteTokens}`,
   );
   return {
     chunks: outChunks,
     repairs, traces,
-    totalTokens, conformantTokens, correctedTokens, unresolvedTokens,
+    totalTokens, conformantTokens, relativizedTokens, unresolvedTokens, residualAbsoluteTokens,
   };
 }
