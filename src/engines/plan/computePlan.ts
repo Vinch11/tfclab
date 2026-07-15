@@ -25,6 +25,8 @@ import type { PlanAthleteData } from "@/hooks/useAITrainingPlan";
 import { applyWbalRecoveryRecalc, type WbalRecalcStats } from "./wbalPostProcessor";
 import { computeWeekVolumeMin, formatMinutesToHm } from "@/lib/weeklyVolumeEstimator";
 import { normalizeWeeksAndPhases } from "./normalizeWeeksPhases";
+import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
+import { deriveRaceTargets, formatSecPerKm } from "@/lib/deriveRaceTargets";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
