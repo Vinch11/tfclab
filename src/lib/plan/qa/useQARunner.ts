@@ -138,6 +138,12 @@ export function useQARunner() {
 
         let checks: CheckResult[];
         if (!merged || !parsed) {
+          // Surface stat.errorCode + errorMessage when generatePlan bailed via
+          // a silent guard (auth missing, 402/429, HTTP error) — otherwise the
+          // report only shows "Aucun mergedPlan récupéré" without a root cause.
+          const statErr = newStat && newStat.ok === false
+            ? `stat: errorCode=${newStat.errorCode ?? "?"}${newStat.errorMessage ? ` — ${newStat.errorMessage}` : ""} (format=${newStat.format}, durationMs=${newStat.durationMs})`
+            : "";
           checks = [{
             id: "B1",
             label: "Zod planSchema OK sans échec définitif",
@@ -145,6 +151,7 @@ export function useQARunner() {
             pass: false,
             details: [
               errorMessage ?? "Aucun mergedPlan/parsedPlan récupéré (fallback Markdown ou erreur).",
+              statErr,
               errorStack ? `stack: ${errorStack}` : "",
             ].filter(Boolean),
           }];
