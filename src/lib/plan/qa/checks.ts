@@ -23,6 +23,7 @@ import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX } from "@/lib/plan/
 import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { checkB10, checkB11 } from "./checksB10B11";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
+import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
 
 export type CheckLevel = "critical" | "warning" | "info";
 export interface CheckResult {
