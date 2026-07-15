@@ -402,12 +402,9 @@ export default function PlanQAPage() {
                   size="sm"
                   variant="outline"
                   disabled={!qa.lastSession}
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(buildQAReport(qa.lastSession!));
-                    toast.success("Rapport QA copié.");
-                  }}
+                  onClick={() => exportReport(buildQAReport(qa.lastSession!), sessionFilename(qa.lastSession!))}
                 >
-                  Copier le rapport QA
+                  Télécharger le rapport QA
                 </Button>
               </div>
 
