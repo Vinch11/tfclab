@@ -423,18 +423,33 @@ export function useAITrainingPlan() {
       // Derive duration stats from the actual library — sent to edge function
       const catalogDurationStats = computeCatalogDurationStats(allCatalogEntries);
 
-      // Phase 0 QA — expose l'union des catalogId injectés (pour B5)
+      // Phase 0 QA — expose l'union des catalogId RÉELLEMENT PRÉSENTÉS au modèle.
+      // Source de vérité = tous les dumps sérialisés envoyés au edge (phase-catalogs
+      // ET chunk-catalogs). Ne PAS partir de `allCatalogEntries` : il est amputé par
+      // l'exclusion cumulative `usedIds` entre phases. La soft-rotation entre chunks
+      // amputerait de même. En parsant les strings effectivement envoyées, l'union
+      // reflète ce que le modèle a vu — un ID retiré par rotation reste visible via
+      // le chunk d'origine, donc NE compte PAS comme "hors catalogue".
       {
         const union = new Set<string>();
-        allCatalogEntries.forEach(e => union.add(e.id));
-        for (const dump of chunkCatalogs) {
+        const parseDumpIds = (dump: string) => {
           for (const line of dump.split("\n")) {
             const m = line.match(/^\|\s*([A-Za-z0-9_-]{4,})\s*\|/);
             if (m && m[1] !== "ID") union.add(m[1]);
           }
-        }
+        };
+        for (const dump of Object.values(phaseCatalogs)) parseDumpIds(dump);
+        for (const dump of chunkCatalogs) parseDumpIds(dump);
+        // Filet de sécurité : inclure aussi les IDs de allCatalogEntries au cas où
+        // la sérialisation aurait un edge-case (ex : catalogue vide court-circuité).
+        allCatalogEntries.forEach(e => union.add(e.id));
         lastAllowedCatalogIdsRef.current = [...union];
+        console.log(
+          `[b5_union_source] phase_catalogs=${Object.keys(phaseCatalogs).length} chunk_catalogs=${chunkCatalogs.length} union_size=${union.size}`,
+        );
       }
+
+
 
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
