@@ -394,6 +394,15 @@ function runOnePass(
   }
 
   return anyChange;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error(
+      `❌ [reconciler_exception] family=${ctx.family ?? "?"} W${ctx.week ?? "?"}/${ctx.day ?? "?"} sport=${ctx.sport ?? "?"} catalogId=${ctx.catalogId ?? "?"} — ${e instanceof Error ? `${e.name}: ${e.message}` : String(e)}`,
+      e,
+    );
+    logs.push(`[reconciler_exception] family=${ctx.family ?? "?"} W${ctx.week ?? "?"}/${ctx.day ?? "?"} sport=${ctx.sport ?? "?"} catalogId=${ctx.catalogId ?? "?"} — ${e instanceof Error ? e.message : String(e)}`);
+    throw e;
+  }
 }
 
 // ── API publique ───────────────────────────────────────────────────────────
