@@ -452,7 +452,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
       {expanded && session.details && (
         <div
           className="text-xs text-muted-foreground mt-2 leading-relaxed border-t border-current/10 pt-2 fiche-body whitespace-pre-wrap"
-          dangerouslySetInnerHTML={{ __html: formatFicheText(session.details) }}
+          dangerouslySetInnerHTML={{ __html: formatFicheText(displayDetails) }}
         />
       )}
       {expanded && fiche && (
