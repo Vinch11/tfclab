@@ -256,11 +256,11 @@ export function resolveWideDurationRanges(
     if (mx) {
       const resolvedStr = formatMinutes(mx.picked);
       logs.push(
-        `duration_range_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via ${mx.source} inputs=${JSON.stringify(mx.matrixInputs)}`,
+        `freetext_duration_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via ${mx.source} inputs=${JSON.stringify(mx.matrixInputs)}`,
       );
       if (mx.clamped) {
         logs.push(
-          `duration_clamped_to_card_range: matrix=${mx.matrixInputs.matrixFloorMin}min → "${resolvedStr}" (borne fiche [${a},${b}])`,
+          `freetext_duration_clamped: matrix=${mx.matrixInputs.matrixFloorMin}min → "${resolvedStr}" (borne fiche [${a},${b}])`,
         );
       }
       resolved++;
@@ -271,11 +271,12 @@ export function resolveWideDurationRanges(
     const picked = Math.round((a + (b - a) * frac) / 5) * 5;
     const resolvedStr = formatMinutes(picked);
     logs.push(
-      `duration_range_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via phase-fallback (phase=${opts.phase ?? "n/a"}, frac=${frac}, matrix_gap=${describeMatrixGap(opts)})`,
+      `freetext_duration_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via phase-fallback (phase=${opts.phase ?? "n/a"}, frac=${frac}, matrix_gap=${describeMatrixGap(opts)})`,
     );
     resolved++;
     return resolvedStr;
   });
+
   return { text: out, resolved, logs };
 }
 
