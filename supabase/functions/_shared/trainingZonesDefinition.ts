@@ -36,6 +36,60 @@ export function getZoneMirror(id: ZoneId): TrainingZoneMirror | undefined {
   return TRAINING_ZONES_MIRROR.find(z => z.id === id);
 }
 
+/**
+ * ─── CONVENTION D'INTERVALLES : SEMI-OUVERTS [min, max[ ───
+ * Une valeur exactement égale à une frontière PARTAGÉE entre deux zones
+ * appartient TOUJOURS à la zone SUPÉRIEURE.
+ *   ex : 60% VMA → Z2 (pas Z1) ; 78% VMA → Z4a ; 88% VMA → Z5.
+ * Exception : la borne SUPÉRIEURE de la zone la plus haute (Z7) est inclusive.
+ * Trous de grille (%VMA 92-95, %VMA 105-120, %FTP 120-150) → utiliser
+ * `nearestZoneForMetric` pour rattacher à la zone la plus proche.
+ */
+export function containsZoneHalfOpen(
+  v: number,
+  metric: "vma" | "ftp" | "cpRun" | "fcMax",
+  z: TrainingZoneMirror,
+): boolean {
+  const r = z[metric];
+  if (!r) return false;
+  const isTop = z.id === "Z7";
+  return isTop ? (v >= r.min && v <= r.max) : (v >= r.min && v < r.max);
+}
+
+export function zonesContainingHalfOpen(
+  v: number,
+  metric: "vma" | "ftp" | "cpRun" | "fcMax",
+): ZoneId[] {
+  return TRAINING_ZONES_MIRROR.filter(z => containsZoneHalfOpen(v, metric, z)).map(z => z.id);
+}
+
+/** Distance minimale de v à l'intervalle [min,max] (0 si dedans). */
+export function distanceToZone(
+  v: number,
+  metric: "vma" | "ftp" | "cpRun" | "fcMax",
+  z: TrainingZoneMirror,
+): number | null {
+  const r = z[metric];
+  if (!r) return null;
+  if (v < r.min) return r.min - v;
+  if (v > r.max) return v - r.max;
+  return 0;
+}
+
+/** Zone la plus proche pour une valeur en trou de grille. Renvoie {zone, distance}. */
+export function nearestZoneForMetric(
+  v: number,
+  metric: "vma" | "ftp" | "cpRun" | "fcMax",
+): { zone: ZoneId; distance: number } | null {
+  let best: { zone: ZoneId; distance: number } | null = null;
+  for (const z of TRAINING_ZONES_MIRROR) {
+    const d = distanceToZone(v, metric, z);
+    if (d === null) continue;
+    if (!best || d < best.distance) best = { zone: z.id, distance: d };
+  }
+  return best;
+}
+
 /** Canonicalise Z4A/z4a/Z4 → Z4a. "Z4" nu = alias union Z4a-Z4b (retourne "Z4"). */
 export function canonicalizeZoneLabel(raw: string): ZoneId | "Z4" | null {
   const s = raw.trim().toUpperCase();

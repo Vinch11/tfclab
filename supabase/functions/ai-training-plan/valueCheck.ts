@@ -35,6 +35,8 @@ import {
   canonicalizeZoneLabel,
   z4Union,
   getZoneMirror,
+  zonesContainingHalfOpen,
+  nearestZoneForMetric,
   type ZoneId,
 } from "../_shared/trainingZonesDefinition.ts";
 
@@ -75,6 +77,10 @@ const PCT_CPRUN_RX = /\b(\d{1,3})\s*%\s*CP\s*Run\b/gi;
 const PCT_CSS_RX = /\b(\d{1,3})\s*%\s*CSS\b/gi;
 const ZONE_RX = /\bZ(?:1|2|3|4a|4b|4|5|6|7)\b/gi;
 
+// Tolérances "allure course reconnue" (règle 3)
+const RACE_PACE_TOL_SEC = 3; // ±3s/km
+const RACE_POWER_TOL_W = 3;  // ±3W
+
 function paceStrToSec(m: string, s: string): number {
   return Number(m) * 60 + Number(s);
 }
@@ -84,22 +90,25 @@ function secToPace(sec: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-/** Trouve TOUTES les zones du mirror dont l'intervalle contient v (métrique). */
-function zonesContaining(v: number, metric: "vma" | "ftp" | "cpRun" | "fcMax"): ZoneId[] {
-  const out: ZoneId[] = [];
-  for (const z of TRAINING_ZONES_MIRROR) {
-    const r = z[metric];
-    if (!r) continue;
-    if (v >= r.min && v <= r.max) out.push(z.id);
+/**
+ * Résout une valeur relative (%) vers une zone selon convention semi-ouverte
+ * [min,max[. Si aucune zone ne matche (trou de grille), rattache à la zone la
+ * plus proche et renvoie {zone, gap:distance}. Renvoie null si aucune zone
+ * n'est définie pour cette métrique.
+ */
+function resolveZone(
+  v: number,
+  metric: "vma" | "ftp" | "cpRun" | "fcMax",
+): { zone: ZoneId; gap: number } | null {
+  const hits = zonesContainingHalfOpen(v, metric);
+  if (hits.length === 1) return { zone: hits[0], gap: 0 };
+  if (hits.length > 1) {
+    // Ne devrait pas arriver avec semi-ouvert + grille TFCL. Prend la plus haute.
+    return { zone: hits[hits.length - 1], gap: 0 };
   }
-  return out;
-}
-
-/** Retourne l'unique zone contenant v pour métrique, sinon null (ambigu ou aucun). */
-function uniqueZoneFor(v: number, metric: "vma" | "ftp" | "cpRun" | "fcMax"): ZoneId | null {
-  const hits = zonesContaining(v, metric);
-  if (hits.length === 1) return hits[0];
-  return null;
+  const near = nearestZoneForMetric(v, metric);
+  if (!near) return null;
+  return { zone: near.zone, gap: near.distance };
 }
 
 interface CheckedText {
@@ -126,7 +135,7 @@ function checkSessionText(
   const isRun = sport === "run" || sport === "brick" || sport === "trail";
   const isSwim = sport === "swim";
 
-  // ─── 1a) WATTS RANGE "200-220W" → "P1-P2% FTP" ──────────────────────
+  // ─── 1a) WATTS RANGE "200-220W" → "P1-P2% FTP" (avec fallback gap_mapped) ─
   if (isBike) {
     text = text.replace(WATTS_RANGE_RX, (match, a, b) => {
       tokens += 2;
@@ -134,7 +143,7 @@ function checkSessionText(
         unresolved += 2; residualAbsolute += 2;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `${match} : FTP athlète absent, impossible de relativiser`,
+          reason: `${match} : FTP athlète absent, impossible de relativiser [absolu_ambigu]`,
           token: match,
         });
         return match;
@@ -142,29 +151,29 @@ function checkSessionText(
       const wa = Number(a), wb = Number(b);
       const pa = Math.round((wa / t.ftpW) * 100);
       const pb = Math.round((wb / t.ftpW) * 100);
-      // Doit tomber dans une zone connue (au moins une) pour chaque borne
-      const za = zonesContaining(pa, "ftp"), zb = zonesContaining(pb, "ftp");
-      if (za.length === 0 || zb.length === 0) {
+      const ra = resolveZone(pa, "ftp"); const rb = resolveZone(pb, "ftp");
+      if (!ra || !rb) {
         unresolved += 2; residualAbsolute += 2;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `${match} → ${pa}-${pb}% FTP hors grille (aucune zone) → revue coach`,
+          reason: `${match} → ${pa}-${pb}% FTP hors grille [pourcent_hors_grille]`,
           token: match,
         });
         return match;
       }
       relativized += 2;
       const after = `${pa}-${pb}% FTP`;
+      const gapNote = (ra.gap > 0 || rb.gap > 0) ? ` [gap_mapped Δ=${Math.max(ra.gap, rb.gap)}pts]` : "";
       repairs.push({
         code: "value_relativized", severity: "warning",
-        reason: `${match} traduit en ${after} (FTP=${t.ftpW}W)`,
+        reason: `${match} traduit en ${after} (FTP=${t.ftpW}W)${gapNote}`,
         before: match, after, token: match,
       });
       return after;
     });
   }
 
-  // ─── 1b) WATTS SINGLE "220W" → "P% FTP" ─────────────────────────────
+  // ─── 1b) WATTS SINGLE "220W" → "@ puissance course" ou "P% FTP" ─────
   if (isBike) {
     text = text.replace(WATTS_RX, (match, wStr) => {
       tokens++;
@@ -172,124 +181,144 @@ function checkSessionText(
         unresolved++; residualAbsolute++;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `${match} : FTP athlète absent, impossible de relativiser`,
+          reason: `${match} : FTP athlète absent, impossible de relativiser [absolu_ambigu]`,
           token: match,
         });
         return match;
       }
       const w = Number(wStr);
+      // Règle 3 : priorité racePower
+      if (t.racePowerW && Math.abs(w - t.racePowerW) <= RACE_POWER_TOL_W) {
+        relativized++;
+        const after = "@ puissance course";
+        repairs.push({
+          code: "value_relativized", severity: "warning",
+          reason: `${match} traduit en ${after} (racePower=${t.racePowerW}W, tol ±${RACE_POWER_TOL_W}W)`,
+          before: match, after, token: match,
+        });
+        return after;
+      }
       const pct = Math.round((w / t.ftpW) * 100);
-      const hits = zonesContaining(pct, "ftp");
-      if (hits.length === 0) {
+      const r = resolveZone(pct, "ftp");
+      if (!r) {
         unresolved++; residualAbsolute++;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `${match} → ${pct}% FTP hors grille (aucune zone) → revue coach`,
+          reason: `${match} → ${pct}% FTP hors grille [pourcent_hors_grille]`,
           token: match,
         });
         return match;
       }
       relativized++;
       const after = `${pct}% FTP`;
+      const gapNote = r.gap > 0 ? ` [gap_mapped Δ=${r.gap}pts vers ${r.zone}]` : "";
       repairs.push({
         code: "value_relativized", severity: "warning",
-        reason: `${match} traduit en ${after} (FTP=${t.ftpW}W)`,
+        reason: `${match} traduit en ${after} (FTP=${t.ftpW}W)${gapNote}`,
         before: match, after, token: match,
       });
       return after;
     });
   }
 
-  // ─── 1c) PACE /km → Zone (si univoque) ───────────────────────────────
+  // ─── 1c) PACE /km → "@ allure course" ou Zone (semi-ouvert + gap_mapped) ─
   if (isRun) {
     text = text.replace(PACE_KM_RX, (match, mm, ss) => {
       tokens++;
+      const sec = paceStrToSec(mm, ss);
+      // Règle 3 : priorité racePace
+      if (t.racePaceSecPerKm && Math.abs(sec - t.racePaceSecPerKm) <= RACE_PACE_TOL_SEC) {
+        relativized++;
+        const after = "@ allure course";
+        repairs.push({
+          code: "value_relativized", severity: "warning",
+          reason: `${match} traduit en ${after} (racePace=${secToPace(t.racePaceSecPerKm)}/km, tol ±${RACE_PACE_TOL_SEC}s)`,
+          before: match, after, token: match,
+        });
+        return after;
+      }
       if (!t.vmaKmh) {
         unresolved++; residualAbsolute++;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `${match} : VMA absente → impossible de relativiser`,
+          reason: `${match} : VMA absente → impossible de relativiser [absolu_ambigu]`,
           token: match,
         });
         return match;
       }
-      const sec = paceStrToSec(mm, ss);
       const kmh = 3600 / sec;
       const pct = Math.round((kmh / t.vmaKmh) * 100);
-      const z = uniqueZoneFor(pct, "vma");
-      if (!z) {
+      const r = resolveZone(pct, "vma");
+      if (!r) {
         unresolved++; residualAbsolute++;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `${match} → ${pct}% VMA ambigu (0 ou >1 zone) → revue coach`,
+          reason: `${match} → ${pct}% VMA hors grille [pourcent_hors_grille]`,
           token: match,
         });
         return match;
       }
       relativized++;
+      const gapNote = r.gap > 0 ? ` [gap_mapped Δ=${r.gap}pts]` : "";
       repairs.push({
         code: "value_relativized", severity: "warning",
-        reason: `${match} traduit en ${z} (${pct}% VMA)`,
-        before: match, after: z, token: match,
+        reason: `${match} traduit en ${r.zone} (${pct}% VMA)${gapNote}`,
+        before: match, after: r.zone, token: match,
       });
-      return z;
+      return r.zone;
     });
   }
 
-  // ─── 1d) /100m → CSS±Xs (si contexte CSS) sinon zone swim (VMA fallback impossible) ──
+  // ─── 1d) /100m → CSS±Xs (toujours si CSS dérivé disponible) ─────────
   if (isSwim) {
-    text = text.replace(CSS_RX, (match, mm, ss, offset: number) => {
+    text = text.replace(CSS_RX, (match, mm, ss) => {
       tokens++;
       const sec = paceStrToSec(mm, ss);
-      const from = Math.max(0, offset - 20);
-      const to = Math.min(text.length, offset + match.length + 20);
-      const ctx = text.slice(from, to).toUpperCase();
-      const cssCtx = ctx.includes("CSS");
-      if (t.cssSecPer100m && cssCtx) {
-        const delta = sec - t.cssSecPer100m;
-        const after = delta === 0 ? "CSS" : `CSS${delta > 0 ? "+" : ""}${delta}s`;
-        relativized++;
+      if (!t.cssSecPer100m) {
+        unresolved++; residualAbsolute++;
         repairs.push({
-          code: "value_relativized", severity: "warning",
-          reason: `${match} traduit en ${after} (CSS=${secToPace(t.cssSecPer100m)}/100m)`,
-          before: match, after, token: match,
+          code: "value_unresolved", severity: "critical",
+          reason: `${match} : CSS athlète absent, impossible de relativiser [absolu_ambigu]`,
+          token: match,
         });
-        return after;
+        return match;
       }
-      // pas de contexte CSS explicite : plus difficile à réattribuer sans zones swim canoniques
-      unresolved++; residualAbsolute++;
+      const delta = sec - t.cssSecPer100m;
+      const after = delta === 0 ? "CSS" : `CSS${delta > 0 ? "+" : ""}${delta}s`;
+      relativized++;
       repairs.push({
-        code: "value_unresolved", severity: "critical",
-        reason: `${match} : absolu /100m sans contexte CSS → revue coach`,
-        token: match,
+        code: "value_relativized", severity: "warning",
+        reason: `${match} traduit en ${after} (CSS=${secToPace(t.cssSecPer100m)}/100m)`,
+        before: match, after, token: match,
       });
-      return match;
+      return after;
     });
   }
 
-  // ─── 1e) FC bpm → Zone (si univoque) ────────────────────────────────
+  // ─── 1e) FC bpm → Zone (semi-ouvert + gap_mapped) ───────────────────
   if (t.fcMax) {
     text = text.replace(BPM_RX, (match, bStr) => {
       tokens++;
       const b = Number(bStr);
       const pct = Math.round((b / t.fcMax!) * 100);
-      const z = uniqueZoneFor(pct, "fcMax");
-      if (!z) {
+      const r = resolveZone(pct, "fcMax");
+      if (!r) {
         unresolved++; residualAbsolute++;
         repairs.push({
           code: "value_unresolved", severity: "critical",
-          reason: `${match} → ${pct}% FCmax ambigu → revue coach`,
+          reason: `${match} → ${pct}% FCmax hors grille [pourcent_hors_grille]`,
           token: match,
         });
         return match;
       }
       relativized++;
+      const gapNote = r.gap > 0 ? ` [gap_mapped Δ=${r.gap}pts]` : "";
       repairs.push({
         code: "value_relativized", severity: "warning",
-        reason: `${match} traduit en ${z} (${pct}% FCmax)`,
-        before: match, after: z, token: match,
+        reason: `${match} traduit en ${r.zone} (${pct}% FCmax)${gapNote}`,
+        before: match, after: r.zone, token: match,
       });
-      return z;
+      return r.zone;
     });
   }
 
