@@ -734,7 +734,11 @@ export function useAITrainingPlan() {
           errorCode: failCode, errorMessage: failMsg,
           schemaFailDetails: mergeError?.details,
         });
-        // Fresh Markdown request (identical body, no header)
+        // Fresh Markdown request (identical body, no header, no _outputFormat flag)
+        // ⚠️ Strip `_outputFormat: "json"` from planConfig, sinon l'edge relance
+        // le chemin JSON via le flag body et le fallback échoue en boucle.
+        const { _outputFormat: _dropOutputFormat, ...planConfigMarkdown } = planConfigWithQuota as PlanConfig & { _outputFormat?: string };
+        void _dropOutputFormat;
         const fallbackResp = await fetch(PLAN_URL, {
           method: "POST",
           headers: {
@@ -742,11 +746,12 @@ export function useAITrainingPlan() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            athleteData, planConfig, phaseCatalogs,
+            athleteData, planConfig: planConfigMarkdown, phaseCatalogs,
             chunkCatalogs: chunkCatalogs.length > 0 ? chunkCatalogs : undefined,
             chunkSize: CHUNK_SIZE, catalogDurationStats,
           }),
         });
+
         if (!fallbackResp.ok || !fallbackResp.body) {
           throw new Error("Fallback Markdown a échoué (HTTP).");
         }
