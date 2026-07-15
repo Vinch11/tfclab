@@ -370,6 +370,7 @@ export function runAllChecks(args: {
     : args.profileId === "B-SEMI"
       ? checkB4_semi(args.merged)
       : checkB4_sprint(args.merged);
+  const { checkB10, checkB11 } = require("./checksB10B11") as typeof import("./checksB10B11");
   return [
     checkB1({ stat: args.stat, parsedPresent: !!args.parsed }),
     checkB2(args.merged),
@@ -380,5 +381,7 @@ export function runAllChecks(args: {
     checkB7(args.parsed, args.sportObjectiveIssues, args.objective),
     checkB8(args.merged, args.quotaIssues ?? [], args.quotasByWeek ?? {}),
     checkB9(args.stat?.semanticRepairs),
+    checkB10(args.merged),
+    checkB11(args.merged, args.objective),
   ];
 }
