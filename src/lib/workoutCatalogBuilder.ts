@@ -26,6 +26,72 @@ export interface CatalogEntry {
   dPlusTargetM?: number | { min: number; max: number };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// B5 STAGE ATTRIBUTION — trace, par ID, l'étape la plus tardive atteinte à travers
+// tous les appels de buildWorkoutCatalog d'une génération de plan. Consommé par
+// checks.ts B5 pour catégoriser précisément chaque fiche absente de l'union.
+// ═══════════════════════════════════════════════════════════════════════════════
+export type CatalogDropStage =
+  | "selected"
+  | "sport_filter"
+  | "exclude_id_patterns"
+  | "exclude_tags"
+  | "exclude_prev_chunk_ids"
+  | "prohibitions"
+  | "phase_filter"
+  | "score_hard_ban"
+  | "fill_sport_cap"
+  | "fill_cat_cap"
+  | "fill_cap_reached";
+
+export interface CatalogAttribution {
+  bestStage: CatalogDropStage; // la plus "aboutie" (selected > fill_cap > cap > ban > filtres amont)
+  inSocleAnyChunk: boolean;
+  chunksSelected: Set<number>;
+  chunksDropped: Map<number, CatalogDropStage>;
+}
+
+const STAGE_RANK: Record<CatalogDropStage, number> = {
+  sport_filter: 1,
+  exclude_id_patterns: 2,
+  exclude_tags: 3,
+  exclude_prev_chunk_ids: 4,
+  prohibitions: 5,
+  phase_filter: 6,
+  score_hard_ban: 7,
+  fill_sport_cap: 8,
+  fill_cat_cap: 8,
+  fill_cap_reached: 9,
+  selected: 10,
+};
+
+const catalogAttribution = new Map<string, CatalogAttribution>();
+
+export function resetCatalogAttribution(): void {
+  catalogAttribution.clear();
+}
+
+export function getCatalogAttribution(): ReadonlyMap<string, CatalogAttribution> {
+  return catalogAttribution;
+}
+
+function recordAttribution(id: string, chunk: number, stage: CatalogDropStage, inSocle = false): void {
+  const key = id.toUpperCase();
+  let e = catalogAttribution.get(key);
+  if (!e) {
+    e = { bestStage: stage, inSocleAnyChunk: false, chunksSelected: new Set(), chunksDropped: new Map() };
+    catalogAttribution.set(key, e);
+  }
+  if (inSocle) e.inSocleAnyChunk = true;
+  if (stage === "selected") {
+    e.chunksSelected.add(chunk);
+  } else {
+    e.chunksDropped.set(chunk, stage);
+  }
+  if (STAGE_RANK[stage] > STAGE_RANK[e.bestStage]) e.bestStage = stage;
+}
+
+
 /** Map objective strings to WorkoutGoal values */
 function normalizeGoal(objective: string): WorkoutGoal[] {
   const lower = objective.toLowerCase();
