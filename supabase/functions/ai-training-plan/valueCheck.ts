@@ -400,7 +400,9 @@ export function applyValueCheck(
           return a;
         });
 
-        // Plage durée > 30 min d'amplitude (Xh(mm)?-Yh(mm)?) → warning
+        // Plage durée > 30 min d'amplitude (Xh(mm)?-Yh(mm)?) → info trace
+        // (résolution déterministe déléguée au client via sessionTextPostProcessor
+        //  + sessionSizingMatrix ; ne pas compter comme unresolved côté edge)
         const RANGE_RX = /(\d{1,2})(?:h(\d{0,2})|min|')-(\d{1,2})(?:h(\d{0,2})|min|')/g;
         let rangeMatch: RegExpExecArray | null;
         while ((rangeMatch = RANGE_RX.exec(afterDedup)) !== null) {
@@ -415,13 +417,11 @@ export function applyValueCheck(
           };
           const a = toMin(parts[0]); const b = toMin(parts[1]);
           if (a == null || b == null || b - a <= 30) continue;
-          repairs.push({
-            code: "value_unresolved", severity: "warning",
-            weekNumber: w.weekNumber, day: s.day, sport: s.sport, chunkIndex: ci,
-            reason: `plage de durée trop large "${raw}" (Δ=${b - a}min>30) — à résoudre par sessionSizingMatrix [duration_range_ambiguous]`,
-            token: raw,
-          });
+          traces.push(
+            `[VALUE_CHECK v2C.2] duration_range_deferred_to_client: S${w.weekNumber} ${s.day} ${s.sport} "${raw}" (Δ=${b - a}min>30) — sera résolu par sessionSizingMatrix`,
+          );
         }
+
 
         if (res.tokens === 0 && beforeDedup === afterDedup) return s;
         totalTokens += res.tokens;

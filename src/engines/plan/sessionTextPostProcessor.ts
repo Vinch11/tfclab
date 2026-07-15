@@ -119,14 +119,89 @@ export interface DurationResolveResult {
   logs: string[];
 }
 
+// Import matrix pour résolution par sessionSizingMatrix (déterministe).
+import {
+  computeWeeklySessionQuota,
+  inferWeekType,
+  normalizeSizingObjective,
+  type WeekType,
+} from "./sessionSizingMatrix";
+
+export interface MatrixResolveContext {
+  objective?: string;
+  ambitionEffective?: string;
+  weeklyHours?: number;
+  weekNumber?: number;
+  totalWeeks?: number;
+  weekType?: WeekType;
+  sport?: string; // "bike"|"run"|"swim"|"brick"|"strength"|"recovery"
+}
+
 /**
- * Résout toute plage de durée > 30 min d'amplitude en une valeur unique dérivée
- * de la phase. Log `duration_range_resolved`. Les plages ≤ 30 min sont laissées
- * intactes (une variabilité fine reste une prescription légitime).
+ * Tente une résolution matrice pour une plage bike/run :
+ * - Récupère slLongRideMin / slLongRunMin de sessionSizingMatrix
+ * - Clamp à [rangeMin, rangeMax] de la fiche
+ * - Retourne null si sport hors scope ou matrice indisponible
+ */
+function tryMatrixResolve(
+  rangeMin: number,
+  rangeMax: number,
+  ctx?: MatrixResolveContext,
+): { picked: number; source: string; clamped: boolean; matrixInputs: Record<string, unknown> } | null {
+  if (!ctx) return null;
+  const { objective, ambitionEffective, weeklyHours, weekNumber, totalWeeks, sport } = ctx;
+  if (!objective || !ambitionEffective || typeof weeklyHours !== "number") return null;
+  if (!sport) return null;
+  const sportLc = sport.toLowerCase();
+  if (sportLc !== "bike" && sportLc !== "run") return null;
+  const objKey = normalizeSizingObjective(objective);
+  if (!objKey) return null;
+  const wt: WeekType =
+    ctx.weekType ??
+    (typeof weekNumber === "number" && typeof totalWeeks === "number"
+      ? inferWeekType(weekNumber, totalWeeks)
+      : "load");
+  const q = computeWeeklySessionQuota(objective, ambitionEffective, weeklyHours, wt);
+  if (!q) return null;
+  const floor = sportLc === "bike" ? q.floors.slLongRideMin : q.floors.slLongRunMin;
+  if (typeof floor !== "number") return null;
+  const inputs = {
+    objective,
+    objKey,
+    ambitionEffective,
+    weeklyHours,
+    weekType: wt,
+    weekNumber,
+    totalWeeks,
+    sport: sportLc,
+    matrixFloorMin: floor,
+    cardRange: [rangeMin, rangeMax] as [number, number],
+    downgraded: q.downgraded,
+  };
+  let picked = floor;
+  let clamped = false;
+  if (picked < rangeMin) { picked = rangeMin; clamped = true; }
+  else if (picked > rangeMax) { picked = rangeMax; clamped = true; }
+  picked = Math.round(picked / 5) * 5;
+  return { picked, source: `matrix:${sportLc}${sportLc === "bike" ? "SLRide" : "SLRun"}`, clamped, matrixInputs: inputs };
+}
+
+/**
+ * Résout toute plage de durée > 30 min d'amplitude en une valeur unique.
+ * Priorité :
+ *   1. `sessionSizingMatrix` (déterministe, sport-aware) via `MatrixResolveContext`
+ *      → valeur clampée dans la plage de la fiche.
+ *   2. Fallback heuristique par phase (base/build/peak/taper).
+ * Log `duration_range_resolved` avec inputs matrice quand utilisée,
+ * `duration_clamped_to_card_range` si clamp appliqué.
  */
 export function resolveWideDurationRanges(
   text: string,
-  opts: { phase?: string; dayIndex?: number; ambitionEffective?: string },
+  opts: {
+    phase?: string;
+    dayIndex?: number;
+    ambitionEffective?: string;
+  } & MatrixResolveContext = {},
 ): DurationResolveResult {
   if (!text) return { text: text ?? "", resolved: 0, logs: [] };
   let resolved = 0;
@@ -138,15 +213,44 @@ export function resolveWideDurationRanges(
     const [a, b] = range;
     const amplitude = b - a;
     if (amplitude <= 30) return match; // plage étroite acceptable
+
+    // 1) Résolution matrice (prioritaire)
+    const mx = tryMatrixResolve(a, b, opts);
+    if (mx) {
+      const resolvedStr = formatMinutes(mx.picked);
+      logs.push(
+        `duration_range_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via ${mx.source} inputs=${JSON.stringify(mx.matrixInputs)}`,
+      );
+      if (mx.clamped) {
+        logs.push(
+          `duration_clamped_to_card_range: matrix=${mx.matrixInputs.matrixFloorMin}min → "${resolvedStr}" (borne fiche [${a},${b}])`,
+        );
+      }
+      resolved++;
+      return resolvedStr;
+    }
+
+    // 2) Fallback heuristique par phase (matrice indisponible)
     const picked = Math.round((a + (b - a) * frac) / 5) * 5;
     const resolvedStr = formatMinutes(picked);
     logs.push(
-      `duration_range_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" (phase=${opts.phase ?? "n/a"}, frac=${frac})`,
+      `duration_range_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via phase-fallback (phase=${opts.phase ?? "n/a"}, frac=${frac}, matrix_gap=${describeMatrixGap(opts)})`,
     );
     resolved++;
     return resolvedStr;
   });
   return { text: out, resolved, logs };
+}
+
+function describeMatrixGap(ctx: MatrixResolveContext): string {
+  const missing: string[] = [];
+  if (!ctx.objective) missing.push("objective");
+  if (!ctx.ambitionEffective) missing.push("ambitionEffective");
+  if (typeof ctx.weeklyHours !== "number") missing.push("weeklyHours");
+  if (!ctx.sport) missing.push("sport");
+  if (ctx.sport && !["bike", "run"].includes(ctx.sport.toLowerCase())) missing.push(`sport_out_of_scope:${ctx.sport}`);
+  if (ctx.objective && !normalizeSizingObjective(ctx.objective)) missing.push(`objective_not_matrixed:${ctx.objective}`);
+  return missing.length ? missing.join(",") : "no_sl_floor_for_sport";
 }
 
 // ═══ 3. APPLICATION SUR UNE SESSION ══════════════════════════════════════════
@@ -156,6 +260,8 @@ export interface SessionLike {
   details?: string;
   phase?: string;
   dayIndex?: number;
+  weekNumber?: number;
+  sport?: string;
 }
 
 export interface SessionPostProcessStats {
@@ -172,12 +278,19 @@ export interface SessionPostProcessStats {
 export function postProcessSessionText(
   session: SessionLike,
   ambitionEffective?: string,
+  matrixCtx?: Omit<MatrixResolveContext, "sport" | "weekNumber">,
 ): SessionPostProcessStats {
   const stats: SessionPostProcessStats = {
     duplicatesCollapsed: 0,
     duplicatesMismatched: 0,
     durationRangesResolved: 0,
     logs: [],
+  };
+  const ctx: MatrixResolveContext = {
+    ...(matrixCtx ?? {}),
+    ambitionEffective: matrixCtx?.ambitionEffective ?? ambitionEffective,
+    weekNumber: session.weekNumber,
+    sport: session.sport,
   };
   for (const key of ["title", "details"] as const) {
     const orig = session[key];
@@ -186,7 +299,7 @@ export function postProcessSessionText(
     const dur = resolveWideDurationRanges(dedup.text, {
       phase: session.phase,
       dayIndex: session.dayIndex,
-      ambitionEffective,
+      ...ctx,
     });
     if (dedup.text !== orig || dur.text !== dedup.text) {
       session[key] = dur.text;
@@ -198,3 +311,4 @@ export function postProcessSessionText(
   }
   return stats;
 }
+
