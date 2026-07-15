@@ -146,8 +146,9 @@ function pickFraction(phase?: string): number {
 
 // Formes acceptées :
 //  - "2h30-4h30", "1h-4h", "40'-50'", "40min-90min"
-//  - "90-180 min", "60-120 min", "90-140'" (unité partagée à droite)
-const RANGE_TEXT_RX = /(\d{1,3}(?:h\d{0,2}|min|['’′])?)\s*[-–]\s*(\d{1,3}(?:h\d{0,2}|min|['’′]))/g;
+//  - "90-180 min", "60-120 min", "90-140'" (unité partagée, éventuellement à droite)
+const RANGE_TEXT_RX = /(\d{1,3}(?:\s*(?:h\d{0,2}|min|['’′]))?)\s*[-–]\s*(\d{1,3}\s*(?:h\d{0,2}|min|['’′]))/g;
+
 
 
 export interface DurationResolveResult {
