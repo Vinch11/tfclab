@@ -307,12 +307,33 @@ export function checkB10(plan: MergedPlan): CheckResult {
           if (fMax >= 3 && iMax <= 2) {
             pass = false;
             details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — fiche Main Z${fMax}, instance Z1/Z2 (dilution intensité)`);
+            // Dump ciblé B_703_RUN_NEG_SPLIT : vérifier que le parseur zone
+            // n'accroche PAS le warm-up ("Z1→Z2 progressif") au lieu du Main.
+            if (fiche.id.toUpperCase() === "B_703_RUN_NEG_SPLIT") {
+              const wu = (fiche.structure || []).find(p => /warm.?up|échauff|echauff/i.test(p.part || ""));
+              const mn = (fiche.structure || []).find(p => /main/i.test(p.part || ""));
+              // eslint-disable-next-line no-console
+              console.groupCollapsed(`🔎 B10 dump B_703_RUN_NEG_SPLIT · S${w.weekNumber} ${s.dayName}`);
+              // eslint-disable-next-line no-console
+              console.table([
+                { source: "fiche.warmup.text", text: wu?.text ?? "—", zonesStructured: wu?.zones ?? [] },
+                { source: "fiche.main.text", text: mn?.text ?? "—", zonesStructured: mn?.zones ?? [] },
+                { source: "fiche.main → ficheMainZonesStructured", text: "", zonesStructured: fz },
+                { source: "instance.title", text: s.title ?? "—", zonesStructured: [] },
+                { source: "instance.details", text: (s.details ?? "").slice(0, 200), zonesStructured: [] },
+                { source: "instance.zones (structuré)", text: "", zonesStructured: s.zones ?? [] },
+                { source: "instance → instanceZonesStructured", text: "", zonesStructured: iz },
+              ]);
+              // eslint-disable-next-line no-console
+              console.groupEnd();
+            }
           } else if (fMax <= 2 && iMax >= 3) {
             pass = false;
             details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — fiche Main Z${fMax}, instance Z${iMax} (surcharge non prévue)`);
           }
         }
       }
+
 
       // d. structure intervalles vs continu → WARN — cardio only
       if (!nonCardio && CARDIO_SPORTS.has(fSp)) {
@@ -337,6 +358,22 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
   let pass = true;
   const variantKey = objectiveToVariantKey(objective);
   const variantMisses: Array<{ ref: string; excerpt: string }> = [];
+
+  // ── Pré-calcul : pour chaque catalogId, la liste des phases (normalisées)
+  //    des semaines où il apparaît. Sert à catégoriser les phase mismatch.
+  const placementsByCatalogId = new Map<string, Set<"base"|"build"|"peak"|"taper">>();
+  for (const wk of plan.weeks) {
+    const ph = normalizedPhase(wk);
+    if (!ph) continue;
+    for (const s of wk.sessions) {
+      if (!s.catalogId || s.custom) continue;
+      const key = s.catalogId.toUpperCase();
+      if (!placementsByCatalogId.has(key)) placementsByCatalogId.set(key, new Set());
+      placementsByCatalogId.get(key)!.add(ph);
+    }
+  }
+  const phaseMismatchByCategory = { granularite_intra_chunk: 0, fuite_mapping: 0, custom_ou_fallback: 0 };
+
 
   function hasLongBikePrevDay(weekN: number, dayIndex: number): boolean {
     for (const w of plan.weeks) {
@@ -388,8 +425,17 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
       }
       if (flags.phaseAllowed && phase && !flags.phaseAllowed.includes(phase)) {
         pass = false;
-        details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — phase ${phase} ∉ [${flags.phaseAllowed.join(", ")}] (Quand="${(fiche.when || "").slice(0, 60)}")`);
+        // Catégorisation : granularité intra-chunk vs fuite mapping
+        const placements = placementsByCatalogId.get(s.catalogId.toUpperCase());
+        const hasCompatiblePlacement = placements
+          ? [...placements].some(p => flags.phaseAllowed!.includes(p))
+          : false;
+        const cat = hasCompatiblePlacement ? "granularité_intra_chunk" : "fuite_mapping";
+        if (hasCompatiblePlacement) phaseMismatchByCategory.granularite_intra_chunk++;
+        else phaseMismatchByCategory.fuite_mapping++;
+        details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — [${cat}] phase ${phase} ∉ [${flags.phaseAllowed.join(", ")}] (Quand="${(fiche.when || "").slice(0, 60)}")`);
       }
+
 
       // d. variante non appliquée → INFO agrégé (Phase 2C : application auto à venir)
       if (variantKey && fiche.variants && fiche.variants[variantKey]) {
@@ -409,6 +455,18 @@ export function checkB11(plan: MergedPlan, objective: string | undefined): Check
 
   if (details.length === 0) details.push(`Contraintes fiches/plan respectées${variantKey ? ` (variante attendue : ${variantKey})` : ""}.`);
   else details.unshift(`Contraintes fiches/plan : ${details.length} FAIL.`);
+
+  // Log de mesure : décompte phase mismatch par catégorie (mesure — pas de correction)
+  const totalPhaseFails = phaseMismatchByCategory.granularite_intra_chunk + phaseMismatchByCategory.fuite_mapping + phaseMismatchByCategory.custom_ou_fallback;
+  if (totalPhaseFails > 0) {
+    // eslint-disable-next-line no-console
+    console.log(
+      `[b11_phase_mismatch_breakdown] objective="${objective ?? "?"}" total=${totalPhaseFails} · granularité_intra_chunk=${phaseMismatchByCategory.granularite_intra_chunk} · fuite_mapping=${phaseMismatchByCategory.fuite_mapping} · custom_ou_fallback=${phaseMismatchByCategory.custom_ou_fallback}`,
+    );
+    details.push(
+      `📊 phase mismatch — granularité_intra_chunk=${phaseMismatchByCategory.granularite_intra_chunk} · fuite_mapping=${phaseMismatchByCategory.fuite_mapping} · custom_ou_fallback=${phaseMismatchByCategory.custom_ou_fallback}`,
+    );
+  }
 
   // Synthèse variantes (INFO, non bloquant) — détail complet en console + base
   if (variantMisses.length > 0) {
