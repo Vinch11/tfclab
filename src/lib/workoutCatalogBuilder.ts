@@ -403,7 +403,19 @@ export function buildWorkoutCatalog(
       `[catalog_filtered] chunk=${options?.chunkIndex ?? 0} phases=[${[...chunkPhaseSet].join(",")}] ` +
       `bySport=${parts.join(" ")} relaxed=[${[...relaxedFloorSports].join(",")}]`,
     );
+    // Couverture du mapping : fiches ayant au moins une phase parsée par ficheAllowedPhases
+    let withPhase = 0;
+    let totalScored = 0;
+    for (const { workout } of scored) {
+      totalScored++;
+      if (ficheAllowedPhases(workout).size > 0) withPhase++;
+    }
+    const pct = totalScored > 0 ? Math.round((withPhase / totalScored) * 100) : 0;
+    console.log(
+      `[mapping_coverage] chunk=${options?.chunkIndex ?? 0} fiches_avec_contrainte_parsée=${withPhase} / total=${totalScored} (${pct}%)`,
+    );
   }
+
 
   if (activeProhibitionKeys.length > 0) {
     console.log(
