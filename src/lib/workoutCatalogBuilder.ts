@@ -837,7 +837,12 @@ export function buildWorkoutCatalog(
     }
   }
 
+  // Attribution finale : toute fiche présente dans `selected` est "selected"
+  // (recouvre les insertions tardives des Pass 4/5 backfill).
+  for (const w of selected) recordAttribution(w.id, chunkIdx, "selected");
+
   // Convert to compact entries
+
   return selected.map(w => ({
     id: w.id,
     cat: w.cat,
