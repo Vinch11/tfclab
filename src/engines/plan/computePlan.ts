@@ -80,12 +80,114 @@ function weekHasRaceDay(week: ParsedWeek): boolean {
 }
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * DERIVED RACE STAGE HINTS — Source unique = triathlonZones + deriveRaceTargets
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * P0.1 fix : élimine tout template texte de cibles course en dur (ex:
+ * "80-85% FTP", "60-80g/h") et construit chaque étape à partir du snapshot.
+ * Si l'IA a laissé traîner des valeurs de cibles dans le JSON, elles sont
+ * IGNORÉES et surchargées (log warning "race_block_target_overridden").
+ * Si snapshot manquant → texte "Cibles course : données insuffisantes"
+ * (jamais de valeur par défaut inventée).
+ */
+
+function fmtCssPace(cssSecPer100m: number | null | undefined): string | null {
+  if (!cssSecPer100m || cssSecPer100m <= 0) return null;
+  const m = Math.floor(cssSecPer100m / 60);
+  const s = Math.round(cssSecPer100m - m * 60);
+  return `${m}:${String(s).padStart(2, "0")}/100m`;
+}
+
+/** Nutrition CHO/h dérivée : Ironman 90 g/h, 70.3 80 g/h, run route 60 g/h.
+ *  Valeurs canoniques nutritionUnified (déjà utilisées ailleurs) — pas un template libre. */
+function nutritionCarbsForObjective(obj: string): { bike: number; run: number } | null {
+  const s = obj.toLowerCase();
+  if (s.includes("ironman") && !s.includes("70.3")) return { bike: 90, run: 60 };
+  if (s.includes("70.3") || s.includes("half") || s === "703") return { bike: 80, run: 60 };
+  return null;
+}
+
+interface RaceStageHints {
+  swim?: string;
+  bike?: string;
+  run?: string;
+  /** Fallback single-day (marathon/semi/…) */
+  single?: string;
+}
+
+function buildRaceStageHints(
+  objective: string,
+  ambition: string | undefined,
+  athlete: PlanAthleteData | undefined,
+): RaceStageHints {
+  const amb = ambition || "age_group";
+  const objLower = objective.toLowerCase();
+  const isTri = objLower.includes("ironman") || objLower.includes("70.3") || objLower === "im" || objLower === "703";
+
+  if (isTri) {
+    const zones = deriveTriathlonZones({
+      ftpW: athlete?.ftp ?? null,
+      vmaKmh: athlete?.vma ?? null,
+      objective,
+      ambition: amb,
+      tteMinBike: athlete?.tte ?? null,
+    });
+    const nut = nutritionCarbsForObjective(objective);
+    const hints: RaceStageHints = {};
+
+    const swimPace = fmtCssPace(athlete?.css);
+    hints.swim = swimPace
+      ? `Sighting régulier, allure CSS ~${swimPace}. Sortir frais.`
+      : `Sighting régulier, allure CSS contrôlée. Sortir frais.`;
+
+    if (zones.bike?.racePowerW) {
+      const w = zones.bike.racePowerW;
+      const pct = Math.round(zones.bike.raceIF * 100);
+      const nutBike = nut ? ` Nutrition ${nut.bike} g CHO/h.` : "";
+      const capNote = zones.bike.raceIfWasCapped ? " (bridé par TTE)" : "";
+      hints.bike = `Puissance cible ${w}W (${pct}% FTP)${capNote}.${nutBike}`;
+    } else {
+      const nutBike = nut ? ` Nutrition ${nut.bike} g CHO/h.` : "";
+      hints.bike = `Puissance cible : données FTP insuffisantes — cible à définir avec le coach.${nutBike}`;
+    }
+
+    if (zones.run?.racePaceSecPerKm) {
+      const pace = formatSecPerKm(zones.run.racePaceSecPerKm);
+      const nutRun = nut ? ` Nutrition ${nut.run} g CHO/h.` : "";
+      hints.run = `Allure cible ${pace}.${nutRun} Pacing négatif split.`;
+    } else {
+      const nutRun = nut ? ` Nutrition ${nut.run} g CHO/h.` : "";
+      hints.run = `Allure cible : données VMA insuffisantes.${nutRun} Pacing négatif split.`;
+    }
+    return hints;
+  }
+
+  // Single-day run objectives
+  const tgt = deriveRaceTargets({
+    vmaKmh: athlete?.vma ?? null,
+    thresholdPaceSecPerKm: athlete?.paceThresholdSecPerKm ?? null,
+    objective,
+    ambition: amb,
+  });
+  if (tgt.source === "snapshot" && tgt.racePaceSecPerKm) {
+    const pace = formatSecPerKm(tgt.racePaceSecPerKm);
+    const nut = objLower.includes("marathon") ? 60 : objLower.includes("semi") ? 40 : 30;
+    return { single: `Allure cible ${pace}. Nutrition ${nut} g CHO/h. Négatif split.` };
+  }
+  return { single: "Cibles course : données insuffisantes — exécution selon plan validé coach." };
+}
+
+/**
  * Ancrage automatique des jours de course :
  * 1. Pour chaque objectif (A/B/C), vérifie si la semaine cible contient un jour de course
  * 2. Si absent, injecte une séance "🏁 COURSE OBJECTIF" à la date exacte
  * 3. Si présent mais décalé (±1 semaine), recale vers la bonne semaine
  */
-function anchorRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
+function anchorRaceDays(
+  plan: ParsedPlan,
+  config: PlanGenerationConfig,
+  athlete?: PlanAthleteData,
+): void {
   const goals = config.raceGoals;
   if (!goals?.length || !config.planStartDate) return;
 
@@ -98,15 +200,15 @@ function anchorRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
 
     const priorityLabel = goal.priority === "A" ? "🅰️" : goal.priority === "B" ? "🅱️" : "🅲";
     const raceName = goal.raceName || goal.objective;
-    const pacingHint = buildPacingHint(goal.objective);
+    const stageHints = buildRaceStageHints(goal.objective, config.ambition, athlete);
 
     // ─── LCW (Long Course Weekend) — 3 jours éclatés (Ven nat / Sam vélo / Dim run) ───
     if ((goal as any).raceFormat === "lcw_3day") {
       const raceDate = new Date(goal.raceDate);
       const stages = [
-        { offset: -2, sport: "🏊 Natation", stage: "Étape 1/3 — Natation", hint: "1.9 km. Sighting régulier. Sortir frais." },
-        { offset: -1, sport: "🚴 Vélo", stage: "Étape 2/3 — Vélo", hint: "90 km. Puissance 80-85% FTP. Nutrition 80-90g CHO/h. Refeed agressif post." },
-        { offset: 0, sport: "🏃 Course", stage: "Étape 3/3 — Course", hint: "21.1 km sur jambes pré-fatiguées. Pacing négatif split. Nutrition 60g/h." },
+        { offset: -2, sport: "🏊 Natation", stage: "Étape 1/3 — Natation", hint: `1.9 km. ${stageHints.swim ?? ""}` },
+        { offset: -1, sport: "🚴 Vélo", stage: "Étape 2/3 — Vélo", hint: `90 km. ${stageHints.bike ?? ""} Refeed agressif post.` },
+        { offset: 0, sport: "🏃 Course", stage: "Étape 3/3 — Course", hint: `21.1 km sur jambes pré-fatiguées. ${stageHints.run ?? ""}` },
       ];
 
       // Purge toute session existante sur les 3 jours LCW (récup, autres séances IA)
@@ -115,6 +217,14 @@ function anchorRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
         const d = new Date(raceDate);
         d.setDate(d.getDate() + st.offset);
         lcwDayIndices.add(JS_TO_PLAN_DAY[d.getDay()]);
+      }
+      const purged = targetWeek.sessions.filter(s => lcwDayIndices.has(s.dayIndex));
+      if (purged.length > 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `race_block_target_overridden — S${targetWeekNum} LCW : ${purged.length} séance(s) IA purgée(s), remplacée(s) par cibles dérivées (triathlonZones + snapshot).`,
+          purged.map(p => ({ title: p.title.slice(0, 60), details: p.details.slice(0, 80) }))
+        );
       }
       targetWeek.sessions = targetWeek.sessions.filter(s => !lcwDayIndices.has(s.dayIndex));
 
@@ -133,7 +243,7 @@ function anchorRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
           dayIndex: planDayIndex,
           sport: st.sport,
           title: `🏁 COURSE OBJECTIF ${priorityLabel} — ${raceName} · ${st.stage}`,
-          details: `Jour J${st.offset === 0 ? "" : st.offset} — ${raceName} (${dateStr}, format LCW 3 jours). ${st.hint} ${pacingHint}`,
+          details: `Jour J${st.offset === 0 ? "" : st.offset} — ${raceName} (${dateStr}, format LCW 3 jours). ${st.hint}`.replace(/\s+/g, " ").trim(),
           isRest: false,
         });
       }
@@ -176,6 +286,7 @@ function anchorRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
     const jsDayOfWeek = raceDate.getDay(); // 0=Sun
     const planDayIndex = JS_TO_PLAN_DAY[jsDayOfWeek];
     const dayName = PLAN_DAY_NAMES[planDayIndex];
+    const singleHint = stageHints.single ?? stageHints.run ?? "Exécuter le plan.";
 
     const raceSession: ParsedSession = {
       weekNumber: targetWeekNum,
@@ -185,7 +296,7 @@ function anchorRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
       dayIndex: planDayIndex,
       sport: "🏁 Course",
       title: `🏁 COURSE OBJECTIF ${priorityLabel} — ${raceName}`,
-      details: `Jour J — ${raceName} (${goal.raceDate}). ${pacingHint} Discipline > ambition. Exécuter le plan.`,
+      details: `Jour J — ${raceName} (${goal.raceDate}). ${singleHint} Discipline > ambition.`,
       isRest: false,
     };
 
@@ -201,28 +312,7 @@ function anchorRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
   }
 }
 
-function buildPacingHint(objective: string): string {
-  const obj = objective.toLowerCase();
-  if (obj.includes("ironman") && !obj.includes("70.3")) {
-    return "Pacing conservateur 1er tiers. Nutrition 80-90g/h. Négatif split marathon.";
-  }
-  if (obj.includes("70.3") || obj.includes("half")) {
-    return "Puissance vélo contrôlée (80-85% FTP). Nutrition 60-80g/h. CAP régulière.";
-  }
-  if (obj.includes("marathon")) {
-    return "Allure marathon cible régulière. Nutrition 60g/h. Négatif split.";
-  }
-  if (obj.includes("semi")) {
-    return "Allure semi constante. Hydratation régulière. Finish fort.";
-  }
-  if (obj.includes("10k") || obj.includes("10 km")) {
-    return "Départ contrôlé. Accélération progressive. Finish maximal.";
-  }
-  if (obj.includes("trail")) {
-    return "Gestion effort montées. Nutrition solide + liquide. Bâtons si D+.";
-  }
-  return "Stratégie de pacing validée. Exécuter le plan de course.";
-}
+
 
 /**
  * Déduplication jour J : si une même semaine contient plusieurs séances "course objectif"
