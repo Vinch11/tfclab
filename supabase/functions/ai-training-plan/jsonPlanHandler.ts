@@ -1083,8 +1083,15 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           enqueue("warning", {
             code: "value_check_summary",
             severity: "info",
-            message: `[VALUE_CHECK] TOTAL tokens=${valueChecked.totalTokens} conforme=${valueChecked.conformantTokens} relativisés=${valueChecked.relativizedTokens} unresolved=${valueChecked.unresolvedTokens} residualAbs=${valueChecked.residualAbsoluteTokens}`,
+            message: `[VALUE_CHECK] TOTAL tokens=${valueChecked.totalTokens} conforme=${valueChecked.conformantTokens} relativized=${valueChecked.relativizedTokens} unresolved=${valueChecked.unresolvedTokens} residualAbs=${valueChecked.residualAbsoluteTokens}`,
             summary: {
+              // Contrat v2 (canonique) — nommage aligné avec checkB9
+              tokens: valueChecked.totalTokens,
+              conforme: valueChecked.conformantTokens,
+              relativized: valueChecked.relativizedTokens,
+              unresolved: valueChecked.unresolvedTokens,
+              residualAbsolute: valueChecked.residualAbsoluteTokens,
+              // Alias legacy (compat rétro éventuelle)
               totalTokens: valueChecked.totalTokens,
               conformantTokens: valueChecked.conformantTokens,
               relativizedTokens: valueChecked.relativizedTokens,
