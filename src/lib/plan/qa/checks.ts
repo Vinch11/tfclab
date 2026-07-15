@@ -225,6 +225,17 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
 
   const neighborLines: string[] = [];
   const exclusionLines: string[] = [];
+  const stageAttribLines: string[] = [];
+  const stageBreakdown: Record<
+    "rotation_prev_chunk" | "hard_ban_trail" | "sport_cap" | "cat_cap" | "socle_evince" | "phase_filter" | "prohibitions" | "sport_filter" | "exclude_id_patterns" | "exclude_tags" | "fill_cap_reached" | "autre",
+    number
+  > = {
+    rotation_prev_chunk: 0, hard_ban_trail: 0, sport_cap: 0, cat_cap: 0,
+    socle_evince: 0, phase_filter: 0, prohibitions: 0, sport_filter: 0,
+    exclude_id_patterns: 0, exclude_tags: 0, fill_cap_reached: 0, autre: 0,
+  };
+  const attribMap = getCatalogAttribution();
+
 
   // Phases plan (union des phases de chaque semaine, normalisées)
   const normPlanPhase = (raw: string): PlanPhase | null => {
