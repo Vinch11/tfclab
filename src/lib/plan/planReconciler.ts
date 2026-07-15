@@ -340,6 +340,7 @@ function runOnePass(
       }
 
       // 4b. CEILING — trim
+      ctx.family = "quota-ceiling";
       const trimSpecs: Array<{ sport: SchemaSport; max: number }> = [
         { sport: "swim", max: q.swim.max },
         { sport: "bike", max: q.bike.max },
