@@ -895,6 +895,23 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     return { ftp: r.ftp, vma: r.vma, css: r.css, fcMax: r.fcMax };
   }, [athletes, snapshots, athleteId]);
 
+  // PHASE 2B v2 — TargetTable pour annoter les intensités relatives à l'affichage
+  const targetTable = useMemo(() => {
+    if (!nolioRefs.ftp && !nolioRefs.vma && !nolioRefs.css) return null;
+    try {
+      return buildTargetTable({
+        ftp: nolioRefs.ftp,
+        vma: nolioRefs.vma,
+        css: nolioRefs.css,
+        fcMax: nolioRefs.fcMax,
+        objective: gapContext?.objective ?? null,
+        ambition: gapContext?.ambition ?? null,
+      });
+    } catch {
+      return null;
+    }
+  }, [nolioRefs, gapContext?.objective, gapContext?.ambition]);
+
   const markSent = useCallback((key: string) => {
     setSentKeys((prev) => {
       const next = new Set(prev);
