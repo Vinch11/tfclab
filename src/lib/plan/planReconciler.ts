@@ -29,6 +29,7 @@ import type { LibraryWorkout } from "@/types/workoutLibrary";
 import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
+import { intentFamilyOf } from "@/lib/plan/intentFamily";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 type SchemaSport = "swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "rest";
@@ -45,12 +46,15 @@ export interface ReconcilerCounters {
   quota_floor_unresolved: number;
   quota_ceiling_trimmed: number;
   reconcile_conflict: number;
+  id_remapped_to_neighbor: number;
+  id_remap_no_intent_match_fallback_custom: number;
 }
 
 export interface ReconcilerResult {
   counters: ReconcilerCounters;
   logs: string[];
 }
+
 
 // ── Index fiches ────────────────────────────────────────────────────────────
 const FICHES_BY_ID: Map<string, LibraryWorkout> = (() => {
@@ -410,6 +414,7 @@ export function runReconciler(
   chunks: PlanChunk[],
   quotasByWeek: Record<number, WeekQuotaEntry>,
   maxPasses = 2,
+  injectedCatalogIds?: ReadonlyArray<string> | ReadonlySet<string>,
 ): ReconcilerResult {
   const counters: ReconcilerCounters = {
     phase_substituted: 0,
@@ -422,11 +427,79 @@ export function runReconciler(
     quota_floor_unresolved: 0,
     quota_ceiling_trimmed: 0,
     reconcile_conflict: 0,
+    id_remapped_to_neighbor: 0,
+    id_remap_no_intent_match_fallback_custom: 0,
   };
   const logs: string[] = [];
+
+  // ── Filet de mapping voisin (point 4) — passe préliminaire ──
+  // Si un catalogId référencé par le modèle existe dans WorkoutLibrary mais
+  // est ABSENT du catalogue injecté, tenter de remapper vers un voisin
+  // du catalogue injecté de MÊME sport ET MÊME famille d'intention.
+  if (injectedCatalogIds) {
+    const injected: Set<string> = injectedCatalogIds instanceof Set
+      ? new Set([...injectedCatalogIds].map(x => String(x).toUpperCase()))
+      : new Set(Array.from(injectedCatalogIds as ReadonlyArray<string>).map(x => String(x).toUpperCase()));
+    if (injected.size > 0) {
+      // Pré-indexer les voisins par (sport × famille)
+      const injectedByBucket = new Map<string, LibraryWorkout[]>();
+      for (const w of WorkoutLibrary) {
+        if (!injected.has(w.id.toUpperCase())) continue;
+        const key = `${normSport(w.sport)}::${intentFamilyOf(w)}`;
+        const arr = injectedByBucket.get(key) ?? [];
+        arr.push(w);
+        injectedByBucket.set(key, arr);
+      }
+      for (const chunk of chunks) {
+        for (const week of chunk.weeks ?? []) {
+          for (const s of (week.sessions ?? []) as PlanSession[]) {
+            if ((s as any).isRest || s.sport === "rest") continue;
+            if (s.custom) continue;
+            const cid = s.catalogId;
+            if (!cid) continue;
+            const idUp = cid.toUpperCase();
+            if (injected.has(idUp)) continue; // déjà dans le catalogue injecté
+            const original = FICHES_BY_ID.get(idUp);
+            if (!original) continue; // pas dans la librairie du tout → laisser B5 traiter
+            const sessionSport = normSport(s.sport);
+            const origFamily = intentFamilyOf(original);
+            const bucket = injectedByBucket.get(`${sessionSport}::${origFamily}`) ?? [];
+            // Choisir le voisin le plus proche en durée
+            const targetDur = s.durationMin ?? ficheMedian(original);
+            let best: { w: LibraryWorkout; score: number } | null = null;
+            for (const cand of bucket) {
+              if (cand.id.toUpperCase() === idUp) continue;
+              const durPenalty = Math.abs(ficheMedian(cand) - targetDur) / 10;
+              const intent = intentScore(original, cand);
+              const score = intent * 100 - durPenalty;
+              if (!best || score > best.score) best = { w: cand, score };
+            }
+            if (best) {
+              const before = original.id;
+              assignFiche(s, best.w, s.durationMin);
+              counters.id_remapped_to_neighbor++;
+              logs.push(
+                `[id_remapped_to_neighbor] W${week.weekNumber}/${s.day} ancien=${before} nouveau=${best.w.id} famille=${origFamily} sport=${sessionSport} score=${best.score.toFixed(1)}`,
+              );
+            } else {
+              // Bascule custom (préserve intention textuelle, retire catalogId invalide)
+              (s as any).custom = true;
+              (s as any).catalogId = null;
+              counters.id_remap_no_intent_match_fallback_custom++;
+              logs.push(
+                `[id_remap_no_intent_match_fallback_custom] W${week.weekNumber}/${s.day} id=${cid} sport=${sessionSport} famille=${origFamily}`,
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
   for (let i = 0; i < maxPasses; i++) {
     const changed = runOnePass(chunks, quotasByWeek, counters, logs);
     if (!changed) break;
   }
   return { counters, logs };
 }
+

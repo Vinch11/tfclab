@@ -386,13 +386,15 @@ export function useAITrainingPlan() {
         for (let ci = 0; ci < totalChunks; ci++) {
           const cStart = ci * CHUNK_SIZE + 1;
           const cEnd = Math.min(cStart + CHUNK_SIZE - 1, totalWeeks);
-          // 45 sessions/chunk: enough variety, much less noise than 80 (≈45% reduction)
+          // Cap relevé à 130 (v2 coverage-first) : garantit un socle par
+          // (sport × famille d'intention) avant tri par score. Marge large
+          // sous la limite de contexte edge (~33k chars ≪ 64k tokens).
           const chunkCatalog = buildWorkoutCatalog(
             planConfig.objective || "",
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 45, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
+            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity.
@@ -688,9 +690,9 @@ export function useAITrainingPlan() {
             // Corrige phase/durée/discipline/quota AVANT le merge final, à
             // partir des mêmes règles que B10/B11 (ficheAllowedPhases).
             try {
-              const rec = runReconciler(collected, lastWeeklyQuotasRef.current, 2);
+              const rec = runReconciler(collected, lastWeeklyQuotasRef.current, 2, lastAllowedCatalogIdsRef.current);
               const c = rec.counters;
-              const summary = `phase_substituted=${c.phase_substituted} id_substituted_duration=${c.id_substituted_duration} discipline_substituted=${c.discipline_substituted} quota_floor_inserted=${c.quota_floor_inserted_from_catalog} quota_ceiling_trimmed=${c.quota_ceiling_trimmed} phase_unresolved=${c.phase_unresolved} duration_unresolved=${c.duration_unresolved} discipline_unresolved=${c.discipline_unresolved} floor_unresolved=${c.quota_floor_unresolved} reconcile_conflict=${c.reconcile_conflict}`;
+              const summary = `phase_substituted=${c.phase_substituted} id_substituted_duration=${c.id_substituted_duration} discipline_substituted=${c.discipline_substituted} quota_floor_inserted=${c.quota_floor_inserted_from_catalog} quota_ceiling_trimmed=${c.quota_ceiling_trimmed} id_remapped_to_neighbor=${c.id_remapped_to_neighbor} id_remap_fallback_custom=${c.id_remap_no_intent_match_fallback_custom} phase_unresolved=${c.phase_unresolved} duration_unresolved=${c.duration_unresolved} discipline_unresolved=${c.discipline_unresolved} floor_unresolved=${c.quota_floor_unresolved} reconcile_conflict=${c.reconcile_conflict}`;
               console.groupCollapsed(`🔧 [reconciler] ${summary}`);
               for (const line of rec.logs) console.log(line);
               console.groupEnd();
