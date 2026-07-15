@@ -183,5 +183,19 @@ export function enrichWithAbsoluteValues(
   const DUP_RX_RENDER = /(\d{1,3}\s*%\s*(?:FTP|VMA|CSS|FCmax|CP\s*Run|CPRun)|\d{2,4}\s*W|CSS\s*[+-]\s*\d{1,2}\s*s|\d{1,2}[:'](?:\d{2})\s*\/\s*(?:km|100\s*m))\s*\(\s*(\1)\s*\)/gi;
   out = out.replace(DUP_RX_RENDER, "$1");
 
+  // Filet slash-dédup : "(X / X)" ou "(X → X)" / "(X - X)" / "(X à X)" → "(X)"
+  const VAL = String.raw`\d{1,3}\s*%\s*(?:FTP|VMA|CSS|FCmax|CP\s*Run|CPRun)|\d{2,4}\s*W|CSS\s*[+-]\s*\d{1,2}\s*s|\d{1,2}[:'](?:\d{2})\s*\/\s*(?:km|100\s*m)`;
+  const SLASH_DUP_RENDER = new RegExp(`\\(\\s*(${VAL})\\s*(?:\\/|→|->|-|à)\\s*(${VAL})\\s*\\)`, "gi");
+  out = out.replace(SLASH_DUP_RENDER, (match, a: string, b: string) => {
+    const na = a.replace(/\s+/g, "").toLowerCase();
+    const nb = b.replace(/\s+/g, "").toLowerCase();
+    if (na === nb) {
+      // eslint-disable-next-line no-console
+      console.warn(`[slash_dedup_collapsed] "${match}" → "(${a})"`);
+      return `(${a})`;
+    }
+    return match;
+  });
+
   return out;
 }
