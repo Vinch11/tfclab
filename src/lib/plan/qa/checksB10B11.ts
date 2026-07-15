@@ -307,12 +307,33 @@ export function checkB10(plan: MergedPlan): CheckResult {
           if (fMax >= 3 && iMax <= 2) {
             pass = false;
             details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — fiche Main Z${fMax}, instance Z1/Z2 (dilution intensité)`);
+            // Dump ciblé B_703_RUN_NEG_SPLIT : vérifier que le parseur zone
+            // n'accroche PAS le warm-up ("Z1→Z2 progressif") au lieu du Main.
+            if (fiche.id.toUpperCase() === "B_703_RUN_NEG_SPLIT") {
+              const wu = (fiche.structure || []).find(p => /warm.?up|échauff|echauff/i.test(p.part || ""));
+              const mn = (fiche.structure || []).find(p => /main/i.test(p.part || ""));
+              // eslint-disable-next-line no-console
+              console.groupCollapsed(`🔎 B10 dump B_703_RUN_NEG_SPLIT · S${w.weekNumber} ${s.dayName}`);
+              // eslint-disable-next-line no-console
+              console.table([
+                { source: "fiche.warmup.text", text: wu?.text ?? "—", zonesStructured: wu?.zones ?? [] },
+                { source: "fiche.main.text", text: mn?.text ?? "—", zonesStructured: mn?.zones ?? [] },
+                { source: "fiche.main → ficheMainZonesStructured", text: "", zonesStructured: fz },
+                { source: "instance.title", text: s.title ?? "—", zonesStructured: [] },
+                { source: "instance.details", text: (s.details ?? "").slice(0, 200), zonesStructured: [] },
+                { source: "instance.zones (structuré)", text: "", zonesStructured: s.zones ?? [] },
+                { source: "instance → instanceZonesStructured", text: "", zonesStructured: iz },
+              ]);
+              // eslint-disable-next-line no-console
+              console.groupEnd();
+            }
           } else if (fMax <= 2 && iMax >= 3) {
             pass = false;
             details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — fiche Main Z${fMax}, instance Z${iMax} (surcharge non prévue)`);
           }
         }
       }
+
 
       // d. structure intervalles vs continu → WARN — cardio only
       if (!nonCardio && CARDIO_SPORTS.has(fSp)) {
