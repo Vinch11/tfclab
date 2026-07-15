@@ -1695,7 +1695,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         onChoose={applyReplacement}
       />
     </div>
-
+    </TargetTableProvider>
   );
 }
 
