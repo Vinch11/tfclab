@@ -347,8 +347,15 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
       for (const l of neighborLines) console.log(l);
       console.groupEnd();
     }
+    if (exclusionLines.length > 0) {
+      // eslint-disable-next-line no-console
+      console.groupCollapsed(`🔎 B5 exclusion reasons (${exclusionLines.length}) — objective=${objective ?? "?"}`);
+      for (const l of exclusionLines) console.log(l);
+      console.groupEnd();
+    }
     details.unshift(line);
     for (const l of neighborLines) details.push(l);
+    for (const l of exclusionLines) details.push(l);
   }
 
   return { id: "B5", label: "catalogId ⊂ catalogue injecté (union chunks)", level: "critical", pass, details };
