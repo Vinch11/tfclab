@@ -495,36 +495,88 @@ export function buildWorkoutCatalog(
     );
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COVERAGE-FIRST CAP (v2) — remplace "trier par score puis couper à N"
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Principe : garantir qu'AUCUNE famille d'intention présente dans le pool
+  // filtré ne disparaisse silencieusement du catalogue injecté sous prétexte
+  // que le tri par score favorise les fiches génériques à fort overlap de tags.
+  //
+  // Algorithme :
+  //   (a) Socle : pour chaque combinaison (sport × famille d'intention)
+  //       présente dans `scored`, réserver les 2 meilleures fiches (par score).
+  //   (b) Remplissage : compléter jusqu'à maxItems avec les fiches restantes
+  //       triées par score desc.
+  //   (c) Si le socle dépasse déjà maxItems → RELEVER le cap à la taille du
+  //       socle et logger `cap_raised_for_coverage`. Une famille ne doit
+  //       JAMAIS être sacrifiée pour tenir sous le cap.
+  // ═══════════════════════════════════════════════════════════════════════════
+  const { intentFamilyOf } = require("./plan/intentFamily") as typeof import("./plan/intentFamily");
+
   const selected: LibraryWorkout[] = [];
   const selectedIds = new Set<string>();
   const sportCounts: Record<string, number> = {};
   const catCounts: Record<string, number> = {};
 
-  const mainSlots = Math.floor(maxItems * 0.75); // 75% for top-scored
-  const diversitySlots = maxItems - mainSlots;    // 25% reserved for V5/V6 + rotation
+  // Group scored candidates by (sport × family)
+  const groups = new Map<string, Array<{ workout: LibraryWorkout; score: number }>>();
+  const familiesPresent = new Set<string>();
+  for (const s of scored) {
+    if (s.score <= -1000) continue; // hard-banned
+    const fam = intentFamilyOf(s.workout);
+    const key = `${s.workout.sport}::${fam}`;
+    familiesPresent.add(fam);
+    const arr = groups.get(key) ?? [];
+    arr.push(s);
+    groups.set(key, arr);
+  }
 
-  console.log(
-    `[catalog_pipeline] ${chunkTag} étape=selection_caps maxItems=${maxItems} mainSlots=${mainSlots} diversitySlots=${diversitySlots} ` +
-    `sport_cap=25 cat_cap=15 candidats=${scored.length} tri=scoreWorkout_desc`,
-  );
-
-  // ─── Pass 1: Top scored items with relaxed caps ───
-
-  for (const { workout, score } of scored) {
-    if (selected.length >= mainSlots) {
-      if (TRACKED_IDS.has(workout.id.toUpperCase()) && !selectedIds.has(workout.id)) {
-        logDrop(workout.id, "pass1_main_slots_cap", `mainSlots=${mainSlots} atteint (score=${score}, rank hors top)`);
-      }
-      continue;
+  // (a) Socle : 2 meilleures par (sport × famille)
+  const SOCLE_PER_GROUP = 2;
+  const socleIds = new Set<string>();
+  for (const [, list] of groups) {
+    for (let i = 0; i < Math.min(SOCLE_PER_GROUP, list.length); i++) {
+      socleIds.add(list[i].workout.id);
     }
+  }
+
+  // (c) Si le socle dépasse maxItems → relever le cap
+  let effectiveCap = maxItems;
+  if (socleIds.size > maxItems) {
+    console.warn(
+      `[cap_raised_for_coverage] chunk=${options?.chunkIndex ?? 0} cap=${maxItems} socle=${socleIds.size} → cap relevé à ${socleIds.size}`,
+    );
+    effectiveCap = socleIds.size;
+  }
+
+  // (a) Insérer le socle (dans l'ordre de score global, pour stabilité)
+  for (const { workout } of scored) {
+    if (!socleIds.has(workout.id)) continue;
+    if (selectedIds.has(workout.id)) continue;
+    selected.push(workout);
+    selectedIds.add(workout.id);
+    sportCounts[workout.sport] = (sportCounts[workout.sport] || 0) + 1;
+    catCounts[workout.cat] = (catCounts[workout.cat] || 0) + 1;
+  }
+  const socleFinalSize = selected.length;
+
+  // (b) Remplissage : caps sport/cat souples appliqués UNIQUEMENT au remplissage
+  for (const { workout, score } of scored) {
+    if (selected.length >= effectiveCap) {
+      if (TRACKED_IDS.has(workout.id.toUpperCase()) && !selectedIds.has(workout.id)) {
+        logDrop(workout.id, "fill_cap", `effectiveCap=${effectiveCap} atteint (score=${score})`);
+      }
+      break;
+    }
+    if (selectedIds.has(workout.id)) continue;
     const sport = workout.sport;
     const cat = workout.cat;
     if ((sportCounts[sport] || 0) >= 25) {
-      if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "pass1_sport_cap", `sport=${sport} count=${sportCounts[sport]} ≥25`);
+      if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "fill_sport_cap", `sport=${sport} count=${sportCounts[sport]} ≥25`);
       continue;
     }
     if ((catCounts[cat] || 0) >= 15) {
-      if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "pass1_cat_cap", `cat=${cat} count=${catCounts[cat]} ≥15`);
+      if (TRACKED_IDS.has(workout.id.toUpperCase())) logDrop(workout.id, "fill_cat_cap", `cat=${cat} count=${catCounts[cat]} ≥15`);
       continue;
     }
     selected.push(workout);
@@ -532,46 +584,23 @@ export function buildWorkoutCatalog(
     sportCounts[sport] = (sportCounts[sport] || 0) + 1;
     catCounts[cat] = (catCounts[cat] || 0) + 1;
   }
-  logStage("pass1_main_slots", scored.length, selected.length);
 
-  // ─── Pass 2: Diversity slots — guarantee V5/V6 representation ───
-  const beforePass2 = selected.length;
-  const eliteSessions = scored
-    .filter(({ workout }) => isEliteOrAntiMonotony(workout) && !selectedIds.has(workout.id))
-    .map(s => s.workout);
-  const chunkIdx = options?.chunkIndex || 0;
-  const rotationOffset = chunkIdx * 4;
-  for (let i = 0; i < eliteSessions.length && selected.length < mainSlots + Math.floor(diversitySlots * 0.6); i++) {
-    const idx = (i + rotationOffset) % eliteSessions.length;
-    const w = eliteSessions[idx];
-    if (selectedIds.has(w.id)) continue;
-    selected.push(w);
-    selectedIds.add(w.id);
-  }
-  logStage("pass2_diversity_elite", beforePass2, selected.length);
+  console.log(
+    `[cap_injection_v2] chunk=${options?.chunkIndex ?? 0} cap=${effectiveCap} socle_couverture=${socleFinalSize} ` +
+    `familles=[${[...familiesPresent].sort().join(",")}] remplissage=${selected.length - socleFinalSize} total=${selected.length}`,
+  );
 
-  // ─── Pass 3: Fill remaining diversity slots with lowest-exposure sessions ───
-  const beforePass3 = selected.length;
-  const remaining = scored
-    .filter(({ workout }) => !selectedIds.has(workout.id) && !isEliteOrAntiMonotony(workout))
-    .map(s => s.workout);
-  const rotStart = (chunkIdx * 15) % Math.max(remaining.length, 1);
-  for (let i = 0; i < remaining.length && selected.length < maxItems; i++) {
-    const idx = (i + rotStart) % remaining.length;
-    selected.push(remaining[idx]);
-    selectedIds.add(remaining[idx].id);
+  // Verify serialized size at 90/120/150 for cap tuning (rough estimate)
+  {
+    const approxCharPerEntry = 220; // ~200-250 chars once serialized to markdown
+    const sizes = [90, 120, 150].map(n => ({ n, chars: Math.min(scored.length, n) * approxCharPerEntry }));
+    console.log(
+      `[cap_size_estimate] chunk=${options?.chunkIndex ?? 0} cap_actuel=${effectiveCap} ` +
+      sizes.map(s => `≤${s.n}=${(s.chars / 1000).toFixed(1)}k chars`).join(" · ") +
+      ` (edge context ≥64k tokens ⇒ 150 fiches ~33k chars = large marge)`,
+    );
   }
-  logStage("pass3_remaining_rotation", beforePass3, selected.length);
-  // Tracked IDs qui n'ont pas survécu à la sélection finale (avant pass4/5)
-  for (const id of TRACKED_IDS) {
-    const survived = scored.some(s => s.workout.id.toUpperCase() === id);
-    if (survived && !selectedIds.has(id) && !selectedIds.has([...selectedIds].find(x => x.toUpperCase() === id) || "")) {
-      const sc = scored.find(s => s.workout.id.toUpperCase() === id);
-      if (sc && !selectedIds.has(sc.workout.id)) {
-        logDrop(sc.workout.id, "post_pass3_not_selected", `n'a rempli aucun slot (score=${sc.score}, maxItems=${maxItems})`);
-      }
-    }
-  }
+
 
 
   // ─── Pass 4: Backfill — ensure minimum 3 sessions per sport present ───
