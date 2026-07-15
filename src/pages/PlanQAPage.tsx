@@ -38,6 +38,46 @@ function formatDate(ts: number): string {
   return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
 }
 
+/**
+ * Rapport QA volumineux : le presse-papier mobile échoue silencieusement
+ * (payload > ~1 MB ou perte du geste utilisateur après await). On télécharge
+ * TOUJOURS un .md (fallback fiable) et on tente le clipboard en best-effort.
+ */
+async function exportReport(text: string, filename: string): Promise<void> {
+  const size = text.length;
+  try {
+    const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) {
+    toast.error(`Échec téléchargement : ${e instanceof Error ? e.message : String(e)}`);
+    return;
+  }
+  let clipboardOk = false;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      clipboardOk = true;
+    }
+  } catch { /* ignore */ }
+  toast.success(
+    `Rapport exporté (${(size / 1024).toFixed(1)} KB) — fichier téléchargé${clipboardOk ? " + copié" : " (presse-papier indispo)"}.`,
+  );
+}
+
+function sessionFilename(s: QASession): string {
+  const d = new Date(s.ts);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+  return `qa_report_${stamp}_N${s.n}.md`;
+}
+
 const PROMPT_ENUMS = {
   day: ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"],
   sport: ["swim", "bike", "run", "brick", "strength", "recovery", "rest"],
