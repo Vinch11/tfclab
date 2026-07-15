@@ -1069,7 +1069,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             console.log(line);
           }
           for (const repair of valueChecked.repairs) {
-            const msg = repair.code === "value_corrected"
+            const msg = repair.code === "value_relativized"
               ? `S${repair.weekNumber} ${repair.day} ${repair.sport}: ${repair.reason} (${repair.before} → ${repair.after})`
               : `S${repair.weekNumber} ${repair.day} ${repair.sport}: ${repair.reason} [token="${repair.token}"]`;
             console.warn(`[VALUE_CHECK] ${repair.code}: ${msg}`, repair);
@@ -1083,12 +1083,13 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           enqueue("warning", {
             code: "value_check_summary",
             severity: "info",
-            message: `[VALUE_CHECK] TOTAL tokens=${valueChecked.totalTokens} conforme=${valueChecked.conformantTokens} corrigés=${valueChecked.correctedTokens} unresolved=${valueChecked.unresolvedTokens}`,
+            message: `[VALUE_CHECK] TOTAL tokens=${valueChecked.totalTokens} conforme=${valueChecked.conformantTokens} relativisés=${valueChecked.relativizedTokens} unresolved=${valueChecked.unresolvedTokens} residualAbs=${valueChecked.residualAbsoluteTokens}`,
             summary: {
               totalTokens: valueChecked.totalTokens,
               conformantTokens: valueChecked.conformantTokens,
-              correctedTokens: valueChecked.correctedTokens,
+              relativizedTokens: valueChecked.relativizedTokens,
               unresolvedTokens: valueChecked.unresolvedTokens,
+              residualAbsoluteTokens: valueChecked.residualAbsoluteTokens,
             },
           });
 
