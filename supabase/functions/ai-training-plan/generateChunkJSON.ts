@@ -328,7 +328,6 @@ export function normalizeModelJsonForSchema(
       }
       // ─── SONDE DIAGNOSTIC TRAIL (à retirer) ───
       if (typeof s.catalogId === "string" && s.catalogId.length > 0) {
-      if (typeof s.catalogId === "string" && s.catalogId.length > 0) {
         const inAllowedProbe = allowed.has(s.catalogId);
         const trailIdProbe = isTrailCatalogId(s.catalogId);
         if (trailIdProbe || !inAllowedProbe) {
