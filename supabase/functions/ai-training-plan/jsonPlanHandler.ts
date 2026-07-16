@@ -1050,9 +1050,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               for (const se of sessions) {
                 const cid = (se as { catalogId?: unknown }).catalogId;
                 if (typeof cid === "string" && isTrailCatalogId(cid)) {
-                  console.log(
-                    `[trail_probe_survivor] POST-GUARD week=${(wk as { weekNumber?: unknown }).weekNumber} day=${(se as { day?: unknown }).day} ` +
-                    `catalogId="${cid}" custom=${String((se as { custom?: unknown }).custom)} sport=${String((se as { sport?: unknown }).sport)}`,
+                  __trailDebug.push(
+                    `[survivor] POST-GUARD week=${(wk as { weekNumber?: unknown }).weekNumber} day=${(se as { day?: unknown }).day} ` +
+                    `id="${cid}" custom=${String((se as { custom?: unknown }).custom)} sport=${String((se as { sport?: unknown }).sport)}`,
                   );
                 }
               }
