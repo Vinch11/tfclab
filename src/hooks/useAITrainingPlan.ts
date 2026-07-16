@@ -11,6 +11,7 @@
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats, resetCatalogAttribution } from "@/lib/workoutCatalogBuilder";
+import { isTrailCatalogId } from "@/lib/plan/trailMarkers";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { TrainingSport } from "@/types/workoutLibrary";
 import { supabase } from "@/integrations/supabase/client";
@@ -377,6 +378,14 @@ export function useAITrainingPlan() {
           { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
+        // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
+        {
+          const trailEntries = catalog.filter((e) => isTrailCatalogId(e.id));
+          console.log(
+            `[trail_probe_phase] phase=${pr.phase} entries=${catalog.length} ` +
+            `trail_entries=${trailEntries.length > 0 ? trailEntries.map((e) => e.id).join(",") : "NONE"}`,
+          );
+        }
         catalog.forEach(e => { allCatalogEntries.push(e); usedIds.add(e.id); });
       }
 
@@ -401,6 +410,15 @@ export function useAITrainingPlan() {
             { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
+          // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
+          {
+            const trailEntries = chunkCatalog.filter((e) => isTrailCatalogId(e.id));
+            console.log(
+              `[trail_probe_client] chunk=${ci} entries=${chunkCatalog.length} ` +
+              `trail_entries=${trailEntries.length > 0 ? trailEntries.map((e) => e.id).join(",") : "NONE"} ` +
+              `sportFilter=[${(catalogSportFilter ?? []).join(",")}]`,
+            );
+          }
           // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity.
           // ⚠️ On EXEMPTE les séances structurelles (SL vélo/course, brick long, race-sim) :
           // buildWorkoutCatalog les réinjecte de toute façon (garantie de couverture),

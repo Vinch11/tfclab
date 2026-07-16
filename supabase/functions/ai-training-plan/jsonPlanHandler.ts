@@ -931,6 +931,14 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           catalogDumpsByChunk[ci] = catalogDump;
 
           const allowedIds = extractCatalogIdsFromDump(catalogDump);
+          // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
+          {
+            const trailInAllowed = allowedIds.filter((id) => isTrailCatalogId(id));
+            console.log(
+              `[trail_probe] chunk=${ci} allowedIds_total=${allowedIds.length} ` +
+              `trail_in_allowed=${trailInAllowed.length > 0 ? trailInAllowed.join(",") : "NONE"}`,
+            );
+          }
           if (allowedIds.length === 0) {
             console.warn(`[jsonPlanHandler] chunk=${ci} catalogue vide, custom-only autorisé.`);
           }
