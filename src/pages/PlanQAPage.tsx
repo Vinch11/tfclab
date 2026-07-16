@@ -23,6 +23,7 @@ import {
 import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { zDay, zPhase, zSport } from "@/lib/plan/planSchema";
 import { useQARunner } from "@/lib/plan/qa/useQARunner";
+import { TrailProbePanel } from "@/components/debug/TrailProbePanel";
 import { buildQAReport, readQASessions, readQASessionsCloud, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductionSentinelPanel } from "@/components/plan-qa/ProductionSentinelPanel";
@@ -409,6 +410,23 @@ export default function PlanQAPage() {
             </span>
             <Button
               size="sm"
+              variant="secondary"
+              onClick={async () => {
+                try {
+                  const s = await qa.runFullSuite(1, ["B-70.3"]);
+                  setStats(readPlanStats());
+                  setQaSessions(await readQASessionsCloud());
+                  toast.info(`B-70.3 N=1 terminé — ${s.summary}`);
+                } catch (e) {
+                  toast.error(`B-70.3 interrompu : ${e instanceof Error ? e.message : String(e)}`);
+                }
+              }}
+              disabled={qa.progress.running || !runnerReady}
+            >
+              🐾 B-70.3 N=1 (trail probe)
+            </Button>
+            <Button
+              size="sm"
               className="ml-auto"
               onClick={async () => {
                 try {
@@ -430,6 +448,7 @@ export default function PlanQAPage() {
               {qa.progress.running ? "En cours…" : `Lancer (${3 * qaN} plans)`}
             </Button>
           </div>
+          <TrailProbePanel />
           {qa.progress.running && (
             <div className="rounded border border-border/60 p-3 text-xs space-y-1">
               <div>
