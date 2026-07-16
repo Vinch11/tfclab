@@ -292,6 +292,7 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
         cat = "pur_hallucination";
       } else if (isTrailCatalogId(inLib.id) && !isTrailObjective) {
         cat = "existe_autre_objectif";
+        stageBreakdown.hard_ban_trail++; // observabilité : trail explicitement compté
       } else {
         // Distinguer vraie exclusion de phase vs coupe en aval (cap/tri/dédup)
         const allowedPhases = ficheAllowedPhases(inLib as never);
