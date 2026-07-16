@@ -24,6 +24,7 @@ import {
   type PlanChunk,
 } from "./planSchema.ts";
 import { extractJsonPayload } from "./extractJson.ts";
+import { isTrailCatalogId, TRAIL_DETAILS_CRITICAL_RX } from "./trailMarkers.ts";
 
 export class ChunkGenerationError extends Error {
   constructor(
