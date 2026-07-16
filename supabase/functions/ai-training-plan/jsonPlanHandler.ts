@@ -234,10 +234,30 @@ function applyOffsportTrailGuardToChunks(
     const candidates = candidatesByChunk[ci] ?? [];
     for (const week of chunk.weeks ?? []) {
       for (const session of week.sessions ?? []) {
-        if (session.custom !== true || session.sport === "rest") continue;
+        if (session.sport === "rest") continue;
+        const sess = session as Record<string, unknown>;
         const scanText = `${session.title ?? ""} ${session.details ?? ""}`;
-        const matchedMarker = firstTrailCriticalMarker(scanText);
+        // Déclencheurs trail (union) :
+        //  1. flag posé par la coercion (tâche 4)
+        //  2. catalogId trail survivant (défense en profondeur, source unique)
+        //  3. contenu trail dans une séance custom (comportement historique)
+        const flaggedTrail = sess.__offsportTrail === true;
+        const survivingTrailId =
+          typeof session.catalogId === "string" && isTrailCatalogId(session.catalogId);
+        const contentMarker =
+          session.custom === true ? firstTrailCriticalMarker(scanText) : null;
+        const matchedMarker =
+          flaggedTrail ? "__offsportTrail_flag"
+          : survivingTrailId ? session.catalogId as string
+          : contentMarker;
+        // On retire le flag transitoire quoi qu'il arrive (ne doit pas fuiter).
+        if ("__offsportTrail" in sess) delete sess.__offsportTrail;
         if (!matchedMarker) continue;
+        // Force custom pour la substitution (un catalogId trail survivant devient custom).
+        if (survivingTrailId) {
+          session.custom = true;
+          session.catalogId = null;
+        }
         const targetDur = session.durationMin ?? 0;
         const sessionSport = normalizeSport(session.sport);
         const tolerance = computeToleranceMin(targetDur);
