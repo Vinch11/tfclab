@@ -323,10 +323,32 @@ export function normalizeModelJsonForSchema(
         s.durationMin = 0;
         return;
       }
+      const invalidId =
+        s.catalogId === null ||
+        s.catalogId === undefined ||
+        (typeof s.catalogId === "string" && !allowed.has(s.catalogId));
+
+      // Détection trail : sur l'ID halluciné OU sur le contenu de la séance.
+      const scanText = `${(s as Record<string, unknown>).title ?? ""} ${(s as Record<string, unknown>).details ?? ""}`;
+      const looksTrail =
+        (typeof s.catalogId === "string" && isTrailCatalogId(s.catalogId)) ||
+        TRAIL_DETAILS_CRITICAL_RX.test(scanText);
+
       if (typeof s.catalogId === "string" && allowed.has(s.catalogId)) {
         if (s.custom !== false) repairs.push(`${path}.custom forced false for valid catalogId`);
         s.custom = false;
-      } else if (s.catalogId === null || s.catalogId === undefined || (typeof s.catalogId === "string" && !allowed.has(s.catalogId))) {
+      } else if (invalidId && looksTrail) {
+        // ─── TRAIL sur plan non-trail : PAS de déguisement en custom légitime. ───
+        // On nullifie l'ID (contrainte Zod) MAIS on marque explicitement la séance
+        // pour substitution/échec par le guard offsport en aval. Le flag est retiré
+        // après substitution réussie ; s'il subsiste → offsport_unresolved visible.
+        if (s.catalogId !== null) repairs.push(`${path}.catalogId trail invalid→null (flagged for offsport guard)`);
+        repairs.push(`${path}.__offsportTrail flagged (no silent custom disguise)`);
+        s.custom = true;
+        s.catalogId = null;
+        (s as Record<string, unknown>).__offsportTrail = true;
+      } else if (invalidId) {
+        // Non-trail : comportement inchangé (dette assumée, hors périmètre P0).
         if (s.custom !== true) repairs.push(`${path}.custom forced true for custom/invalid catalogId`);
         if (s.catalogId !== null) repairs.push(`${path}.catalogId invalid→null`);
         s.custom = true;
