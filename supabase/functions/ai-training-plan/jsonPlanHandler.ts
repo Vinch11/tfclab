@@ -30,6 +30,7 @@ import { getSystemPromptJSON } from "./systemPromptJSON.ts";
 import {
   generateChunkJSON,
   ChunkGenerationError,
+  __trailDebug,
 } from "./generateChunkJSON.ts";
 import {
   extractCatalogIdsFromDump,
