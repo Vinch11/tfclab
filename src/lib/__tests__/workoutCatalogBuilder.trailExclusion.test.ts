@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildWorkoutCatalog } from "@/lib/workoutCatalogBuilder";
+import { isTrailWorkout } from "@/lib/plan/trailMarkers";
 
 const TRAIL_ID_RX = /^([A-D]_TR(?:50)?_|EXPE_HORS_VILLE_|V3_TRAIL_|HEDGEHOG_|URBAN_|TRAIL_)/i;
 
@@ -48,5 +49,20 @@ describe("buildWorkoutCatalog — trail exclusion for non-trail objectives", () 
     });
     const courseCount = cat.filter(e => e.sport === "course").length;
     expect(courseCount).toBeGreaterThanOrEqual(15); // pool minimum viable après exclusions
+  });
+
+  it("bannit ECONOMY_TRAIL_DESCENT_TECH d'un catalogue 70.3 (forme _TRAIL_)", () => {
+    const cat = buildWorkoutCatalog("IRONMAN 70.3", 1, 4, 12, {
+      maxItems: 130,
+      sportFilter: ["swim", "bike", "run", "brick", "strength"],
+    });
+    expect(cat.some(e => e.id === "ECONOMY_TRAIL_DESCENT_TECH")).toBe(false);
+  });
+
+  it("isTrailWorkout couvre sport=trail sans tag, ID _TRAIL_, tag Trail casse mixte", () => {
+    expect(isTrailWorkout({ id: "X", sport: "trail", tags: [] })).toBe(true);
+    expect(isTrailWorkout({ id: "ECONOMY_TRAIL_DESCENT_TECH", sport: "run", tags: [] })).toBe(true);
+    expect(isTrailWorkout({ id: "X", sport: "run", tags: ["Trail"] })).toBe(true);
+    expect(isTrailWorkout({ id: "LYDIARD_RUN_TRACK_VMA", sport: "run", tags: ["vma"] })).toBe(false);
   });
 });

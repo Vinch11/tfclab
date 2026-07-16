@@ -12,6 +12,7 @@ import { WorkoutLibrary } from "./workoutLibrary";
 import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
 import { intentFamilyOf } from "./plan/intentFamily";
+import { isTrailWorkout } from "./plan/trailMarkers";
 
 /** Compact session representation for the AI prompt */
 export interface CatalogEntry {
@@ -189,8 +190,10 @@ export function isStructuralSession(w: LibraryWorkout): boolean {
 }
 
 /** Score a workout for relevance to the given goal + phases */
-/** Hard-exclude trail patterns for non-trail objectives */
-const TRAIL_HARD_ID_RX = /^[A-D]_TR(?:50)?_|^EXPE_HORS_VILLE_|^V3_TRAIL_|^HEDGEHOG_|^URBAN_/i;
+/**
+ * Hard-exclude trail patterns for non-trail objectives.
+ * ⚠️ Regex trail = importée de trailMarkers (source unique). NE PAS redéclarer ici.
+ */
 
 function scoreWorkout(
   w: LibraryWorkout,
@@ -198,12 +201,9 @@ function scoreWorkout(
   phases: PhaseTag[],
   limiterKeys?: { primary?: string; secondary?: string }
 ): number {
-  // ─── HARD-BAN TRAIL sur objectifs non-trail ───
+  // ─── HARD-BAN TRAIL sur objectifs non-trail (source unique trailMarkers) ───
   const isTrailGoal = goals.some(g => g.startsWith("trail_"));
-  if (!isTrailGoal) {
-    const hasTrailTag = w.tags?.some(t => String(t).toLowerCase() === "trail");
-    if (hasTrailTag || TRAIL_HARD_ID_RX.test(w.id)) return -1000;
-  }
+  if (!isTrailGoal && isTrailWorkout(w)) return -1000;
 
   let score = 0;
 
@@ -776,8 +776,7 @@ export function buildWorkoutCatalog(
         if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) return false;
         if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) return false;
         if (prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w)) return false;
-        const hasTrailTag = w.tags?.some(t => String(t).toLowerCase() === "trail");
-        if (hasTrailTag || TRAIL_HARD_ID_RX.test(w.id)) return false;
+        if (isTrailWorkout(w)) return false;
         return true;
       })
       .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))

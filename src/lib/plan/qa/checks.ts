@@ -19,7 +19,7 @@ import type { MergedPlan, MergedSession, SportObjectiveIssue } from "@/lib/plan/
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import type { PlanGenerationStat } from "@/lib/plan/planGenerationStats";
-import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX } from "@/lib/plan/trailMarkers";
+import { TRAIL_DETAILS_CRITICAL_RX, TRAIL_DETAILS_WARNING_RX, isTrailCatalogId } from "@/lib/plan/trailMarkers";
 import type { QuotaIssue, WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { checkB10, checkB11 } from "./checksB10B11";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
@@ -36,7 +36,7 @@ export interface CheckResult {
   details: string[];
 }
 
-const TRAIL_CATALOG_RX = /^[A-D]_TR(50)?_|_TRAIL_|^EXPE_HORS_VILLE_|^URBAN_|^HEDGEHOG_/i;
+// TRAIL_CATALOG_RX supprimé — utiliser `isTrailCatalogId` (source unique trailMarkers).
 const Z12_RX = /\bz1\b|\bz2\b|zone\s*1|zone\s*2|zone\s*1-2|z1-2/i;
 
 interface B1Input {
@@ -125,7 +125,7 @@ export function checkB3(plan: MergedPlan): CheckResult {
   let pass = true;
   for (const w of plan.weeks) {
     for (const s of w.sessions) {
-      if (s.catalogId && TRAIL_CATALOG_RX.test(s.catalogId)) {
+      if (s.catalogId && isTrailCatalogId(s.catalogId)) {
         pass = false;
         details.push(`S${w.weekNumber} ${s.dayName} — catalogId trail interdit : ${s.catalogId}`);
       }
@@ -290,8 +290,9 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
       let cat: Cat;
       if (!inLib) {
         cat = "pur_hallucination";
-      } else if (TRAIL_CATALOG_RX.test(inLib.id) && !isTrailObjective) {
+      } else if (isTrailCatalogId(inLib.id) && !isTrailObjective) {
         cat = "existe_autre_objectif";
+        stageBreakdown.hard_ban_trail++; // observabilité : trail explicitement compté
       } else {
         // Distinguer vraie exclusion de phase vs coupe en aval (cap/tri/dédup)
         const allowedPhases = ficheAllowedPhases(inLib as never);
@@ -360,7 +361,7 @@ export function checkB5(plan: MergedPlan, allowedIds: string[] | undefined, obje
         const wasInSocle = !!attrib?.inSocleAnyChunk;
         const wasSelectedSomewhere = !!attrib && attrib.chunksSelected.size > 0;
         const best = attrib?.bestStage ?? null;
-        const isTrail = TRAIL_CATALOG_RX.test(inLib.id);
+        const isTrail = isTrailCatalogId(inLib.id);
         let etape: keyof typeof stageBreakdown = "autre";
         if (wasInSocle && !wasSelectedSomewhere) etape = "socle_evince";
         else if (best === "score_hard_ban" || isTrail) etape = "hard_ban_trail";

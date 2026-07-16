@@ -14,7 +14,7 @@ import {
   DAY_INDEX, DAY_CAPITALIZED,
   type PlanChunk, type PlanSession, type StrategicRecapJSON, type PhaseSummaryJSON,
 } from "./planSchema";
-import { TRAIL_DETAILS_CRITICAL_RX } from "./trailMarkers";
+import { TRAIL_DETAILS_CRITICAL_RX, isTrailCatalogId } from "./trailMarkers";
 
 export interface MergedSession {
   weekNumber: number;
@@ -162,8 +162,7 @@ export interface SportObjectiveIssue {
  *   - custom:true with details matching /\bD\+|montée sèche|bâtons|power.?hike|vertical.?km/i
  * Returns [] when the plan objective IS a trail.
  */
-const TRAIL_CATALOG_RX =
-  /^[A-D]_TR(?:50)?_|_TRAIL_|^EXPE_HORS_VILLE_|^URBAN_|^HEDGEHOG_/i;
+// TRAIL_CATALOG_RX supprimé — utiliser `isTrailCatalogId` (source unique trailMarkers).
 
 export function validateSportObjective(
   plan: MergedPlan,
@@ -179,7 +178,7 @@ export function validateSportObjective(
   for (const w of plan.weeks) {
     for (const s of w.sessions) {
       const catId = s.catalogId ?? "";
-      if (catId && TRAIL_CATALOG_RX.test(catId)) {
+      if (catId && isTrailCatalogId(catId)) {
         issues.push({
           severity: "critical",
           weekNumber: w.weekNumber,
