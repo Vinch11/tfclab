@@ -906,6 +906,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         const collectedChunks: PlanChunk[] = [];
         const catalogDumpsByChunk: string[] = [];
         const totalChunks = chunks.length;
+        console.log(`[trail_probe_path] jsonPlanHandler main loop reached, totalChunks=${totalChunks}, regenerateWeek=${regenerateWeek ? "yes" : "no"}`);
 
         for (let ci = 0; ci < chunks.length; ci++) {
           const chunk = chunks[ci];
@@ -1039,6 +1040,24 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               repair,
             });
           }
+
+          // ─── SONDE DIAGNOSTIC TRAIL (à retirer) ───
+          for (const ch of collectedChunks as Array<Record<string, unknown>>) {
+            const weeks = Array.isArray((ch as { weeks?: unknown }).weeks) ? (ch as { weeks: Array<Record<string, unknown>> }).weeks : [];
+            for (const wk of weeks) {
+              const sessions = Array.isArray((wk as { sessions?: unknown }).sessions) ? (wk as { sessions: Array<Record<string, unknown>> }).sessions : [];
+              for (const se of sessions) {
+                const cid = (se as { catalogId?: unknown }).catalogId;
+                if (typeof cid === "string" && isTrailCatalogId(cid)) {
+                  console.log(
+                    `[trail_probe_survivor] POST-GUARD week=${(wk as { weekNumber?: unknown }).weekNumber} day=${(se as { day?: unknown }).day} ` +
+                    `catalogId="${cid}" custom=${String((se as { custom?: unknown }).custom)} sport=${String((se as { sport?: unknown }).sport)}`,
+                  );
+                }
+              }
+            }
+          }
+
 
           // PHASE 2A.2 — Enforcement SL déterministe (post-guard, avant merge final)
           const slEnforce = applySLFloorEnforcement(
