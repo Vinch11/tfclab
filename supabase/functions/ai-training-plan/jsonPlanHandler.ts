@@ -1042,13 +1042,16 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           }
 
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer) ───
-          for (const ch of collectedChunks) {
-            for (const wk of (ch as { weeks?: Array<{ weekNumber?: number; sessions?: Array<{ day?: string; catalogId?: unknown; custom?: unknown; sport?: unknown }> }>).weeks ?? []) {
-              for (const se of wk.sessions ?? []) {
-                if (typeof se.catalogId === "string" && isTrailCatalogId(se.catalogId)) {
+          for (const ch of collectedChunks as Array<Record<string, unknown>>) {
+            const weeks = Array.isArray((ch as { weeks?: unknown }).weeks) ? (ch as { weeks: Array<Record<string, unknown>> }).weeks : [];
+            for (const wk of weeks) {
+              const sessions = Array.isArray((wk as { sessions?: unknown }).sessions) ? (wk as { sessions: Array<Record<string, unknown>> }).sessions : [];
+              for (const se of sessions) {
+                const cid = (se as { catalogId?: unknown }).catalogId;
+                if (typeof cid === "string" && isTrailCatalogId(cid)) {
                   console.log(
-                    `[trail_probe_survivor] POST-GUARD week=${wk.weekNumber} day=${se.day} ` +
-                    `catalogId="${se.catalogId}" custom=${String(se.custom)} sport=${String(se.sport)}`,
+                    `[trail_probe_survivor] POST-GUARD week=${(wk as { weekNumber?: unknown }).weekNumber} day=${(se as { day?: unknown }).day} ` +
+                    `catalogId="${cid}" custom=${String((se as { custom?: unknown }).custom)} sport=${String((se as { sport?: unknown }).sport)}`,
                   );
                 }
               }
