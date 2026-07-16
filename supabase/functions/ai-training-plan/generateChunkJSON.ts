@@ -26,6 +26,9 @@ import {
 import { extractJsonPayload } from "./extractJson.ts";
 import { isTrailCatalogId, TRAIL_DETAILS_CRITICAL_RX } from "./trailMarkers.ts";
 
+// ─── DIAGNOSTIC TRAIL (à retirer) — collecte remontée au client ───
+export const __trailDebug: string[] = [];
+
 export class ChunkGenerationError extends Error {
   constructor(
     public code: "SCHEMA_FAIL" | "GATEWAY_ERROR" | "PARSE_FAIL" | "RATE_LIMIT" | "CREDITS" | "TRUNCATED",
