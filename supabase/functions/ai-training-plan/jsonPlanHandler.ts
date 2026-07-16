@@ -906,6 +906,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         const collectedChunks: PlanChunk[] = [];
         const catalogDumpsByChunk: string[] = [];
         const totalChunks = chunks.length;
+        console.log(`[trail_probe_path] jsonPlanHandler main loop reached, totalChunks=${totalChunks}, regenerateWeek=${regenerateWeek ? "yes" : "no"}`);
 
         for (let ci = 0; ci < chunks.length; ci++) {
           const chunk = chunks[ci];
@@ -1039,6 +1040,21 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               repair,
             });
           }
+
+          // ─── SONDE DIAGNOSTIC TRAIL (à retirer) ───
+          for (const ch of collectedChunks) {
+            for (const wk of (ch as { weeks?: Array<{ weekNumber?: number; sessions?: Array<{ day?: string; catalogId?: unknown; custom?: unknown; sport?: unknown }> }>).weeks ?? []) {
+              for (const se of wk.sessions ?? []) {
+                if (typeof se.catalogId === "string" && isTrailCatalogId(se.catalogId)) {
+                  console.log(
+                    `[trail_probe_survivor] POST-GUARD week=${wk.weekNumber} day=${se.day} ` +
+                    `catalogId="${se.catalogId}" custom=${String(se.custom)} sport=${String(se.sport)}`,
+                  );
+                }
+              }
+            }
+          }
+
 
           // PHASE 2A.2 — Enforcement SL déterministe (post-guard, avant merge final)
           const slEnforce = applySLFloorEnforcement(
