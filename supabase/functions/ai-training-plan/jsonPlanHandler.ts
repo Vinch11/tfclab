@@ -39,6 +39,7 @@ import {
   type PlanChunk,
   type PlanSession,
 } from "./planSchema.ts";
+import { isTrailCatalogId } from "./trailMarkers.ts";
 import { mergePlanChunks, MergePlanError } from "./mergePlanChunks.ts";
 import { applyValueCheck } from "./valueCheck.ts";
 
