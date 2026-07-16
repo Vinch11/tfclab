@@ -1153,6 +1153,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           for (let ci = 0; ci < valueChecked.chunks.length; ci++) {
             enqueue("chunk-json", { chunkIndex: ci, chunk: valueChecked.chunks[ci] });
           }
+          // ─── DIAGNOSTIC (à retirer) — remonte les sondes trail au client ───
+          enqueue("trail-debug", { lines: [...__trailDebug] });
+          __trailDebug.length = 0;
           enqueue("plan-complete", {
             totalChunks,
             totalWeeks: merged.totalWeeks,
