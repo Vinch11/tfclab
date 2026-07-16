@@ -639,6 +639,16 @@ export function useAITrainingPlan() {
               return;
             }
             collected.push(parsed.data);
+          } else if (event === "trail-debug") {
+            // ─── DIAGNOSTIC (à retirer) ───
+            const lines = Array.isArray(data?.lines) ? (data.lines as string[]) : [];
+            if (lines.length > 0) {
+              console.log("===== [TRAIL DEBUG edge→client] =====");
+              for (const line of lines) console.log(line);
+              console.log("===== [/TRAIL DEBUG] =====");
+            } else {
+              console.log("[TRAIL DEBUG edge→client] (aucune ligne collectée)");
+            }
           } else if (event === "error") {
             fatalError = { code: data.code ?? "UNKNOWN", message: data.message ?? "Erreur inconnue", details: data.details };
           } else if (event === "warning") {

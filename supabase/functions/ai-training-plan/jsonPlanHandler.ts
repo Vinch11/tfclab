@@ -30,6 +30,7 @@ import { getSystemPromptJSON } from "./systemPromptJSON.ts";
 import {
   generateChunkJSON,
   ChunkGenerationError,
+  __trailDebug,
 } from "./generateChunkJSON.ts";
 import {
   extractCatalogIdsFromDump,
@@ -935,9 +936,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
           {
             const trailInAllowed = allowedIds.filter((id) => isTrailCatalogId(id));
-            console.log(
-              `[trail_probe] chunk=${ci} allowedIds_total=${allowedIds.length} ` +
-              `trail_in_allowed=${trailInAllowed.length > 0 ? trailInAllowed.join(",") : "NONE"}`,
+            __trailDebug.push(
+              `[allowedIds] chunk=${ci} total=${allowedIds.length} ` +
+              `trail=${trailInAllowed.length > 0 ? trailInAllowed.join(",") : "NONE"}`,
             );
           }
           if (allowedIds.length === 0) {
@@ -1049,9 +1050,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               for (const se of sessions) {
                 const cid = (se as { catalogId?: unknown }).catalogId;
                 if (typeof cid === "string" && isTrailCatalogId(cid)) {
-                  console.log(
-                    `[trail_probe_survivor] POST-GUARD week=${(wk as { weekNumber?: unknown }).weekNumber} day=${(se as { day?: unknown }).day} ` +
-                    `catalogId="${cid}" custom=${String((se as { custom?: unknown }).custom)} sport=${String((se as { sport?: unknown }).sport)}`,
+                  __trailDebug.push(
+                    `[survivor] POST-GUARD week=${(wk as { weekNumber?: unknown }).weekNumber} day=${(se as { day?: unknown }).day} ` +
+                    `id="${cid}" custom=${String((se as { custom?: unknown }).custom)} sport=${String((se as { sport?: unknown }).sport)}`,
                   );
                 }
               }
@@ -1152,6 +1153,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           for (let ci = 0; ci < valueChecked.chunks.length; ci++) {
             enqueue("chunk-json", { chunkIndex: ci, chunk: valueChecked.chunks[ci] });
           }
+          // ─── DIAGNOSTIC (à retirer) — remonte les sondes trail au client ───
+          enqueue("trail-debug", { lines: [...__trailDebug] });
+          __trailDebug.length = 0;
           enqueue("plan-complete", {
             totalChunks,
             totalWeeks: merged.totalWeeks,
