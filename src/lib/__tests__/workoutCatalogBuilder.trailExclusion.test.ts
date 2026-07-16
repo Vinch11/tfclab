@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildWorkoutCatalog } from "@/lib/workoutCatalogBuilder";
+import { isTrailWorkout } from "@/lib/plan/trailMarkers";
 
 const TRAIL_ID_RX = /^([A-D]_TR(?:50)?_|EXPE_HORS_VILLE_|V3_TRAIL_|HEDGEHOG_|URBAN_|TRAIL_)/i;
 
