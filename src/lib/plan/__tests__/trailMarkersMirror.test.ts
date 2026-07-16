@@ -34,4 +34,13 @@ describe("trailMarkers — client ↔ edge mirror equality", () => {
     expect(clientMirror.TRAIL_DETAILS_CRITICAL_RX.test("D+ 1200m")).toBe(true);
     expect(clientMirror.TRAIL_DETAILS_CRITICAL_RX.test("D+1200")).toBe(true);
   });
+
+  it("edge duplique TRAIL_ID_PATTERNS strictement identique au client (source + flags)", () => {
+    const edgeMatches = [...edgeSrc.matchAll(/(\/[^\n]+\/[a-z]*),/g)]
+      .map(m => m[1]);
+    const clientStrs = clientMirror.TRAIL_ID_PATTERNS.map(r => r.toString());
+    for (const s of clientStrs) {
+      expect(edgeMatches, `pattern manquant côté edge: ${s}`).toContain(s);
+    }
+  });
 });
