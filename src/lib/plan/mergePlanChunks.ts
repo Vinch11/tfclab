@@ -14,7 +14,7 @@ import {
   DAY_INDEX, DAY_CAPITALIZED,
   type PlanChunk, type PlanSession, type StrategicRecapJSON, type PhaseSummaryJSON,
 } from "./planSchema";
-import { TRAIL_DETAILS_CRITICAL_RX } from "./trailMarkers";
+import { TRAIL_DETAILS_CRITICAL_RX, isTrailCatalogId } from "./trailMarkers";
 
 export interface MergedSession {
   weekNumber: number;
