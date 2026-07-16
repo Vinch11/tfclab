@@ -776,8 +776,7 @@ export function buildWorkoutCatalog(
         if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) return false;
         if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) return false;
         if (prohibitionPatterns.length > 0 && !bypassProhibitionForSport.has(w.sport) && matchesProhibition(w)) return false;
-        const hasTrailTag = w.tags?.some(t => String(t).toLowerCase() === "trail");
-        if (hasTrailTag || TRAIL_HARD_ID_RX.test(w.id)) return false;
+        if (isTrailWorkout(w)) return false;
         return true;
       })
       .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
