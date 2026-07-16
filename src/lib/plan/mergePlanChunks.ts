@@ -178,7 +178,7 @@ export function validateSportObjective(
   for (const w of plan.weeks) {
     for (const s of w.sessions) {
       const catId = s.catalogId ?? "";
-      if (catId && TRAIL_CATALOG_RX.test(catId)) {
+      if (catId && isTrailCatalogId(catId)) {
         issues.push({
           severity: "critical",
           weekNumber: w.weekNumber,
