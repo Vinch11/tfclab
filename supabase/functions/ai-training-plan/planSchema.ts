@@ -169,6 +169,9 @@ function buildSessionSchema(allowedIds: string[]) {
     sport: z.enum(["swim", "bike", "run", "brick", "strength", "recovery"]),
     custom: z.literal(true),
     catalogId: z.null(),
+    // Flag transitoire posé par la coercion trail (generateChunkJSON) et consommé
+    // par le guard offsport (jsonPlanHandler). Retiré avant le plan final.
+    __offsportTrail: z.boolean().optional(),
   });
 
   // Séance issue du catalogue → catalogId ∈ enum runtime.
