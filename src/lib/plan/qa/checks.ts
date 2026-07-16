@@ -36,7 +36,7 @@ export interface CheckResult {
   details: string[];
 }
 
-const TRAIL_CATALOG_RX = /^[A-D]_TR(50)?_|_TRAIL_|^EXPE_HORS_VILLE_|^URBAN_|^HEDGEHOG_/i;
+// TRAIL_CATALOG_RX supprimé — utiliser `isTrailCatalogId` (source unique trailMarkers).
 const Z12_RX = /\bz1\b|\bz2\b|zone\s*1|zone\s*2|zone\s*1-2|z1-2/i;
 
 interface B1Input {
