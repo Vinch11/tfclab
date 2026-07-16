@@ -12,6 +12,7 @@ import { WorkoutLibrary } from "./workoutLibrary";
 import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
 import { intentFamilyOf } from "./plan/intentFamily";
+import { isTrailWorkout } from "./plan/trailMarkers";
 
 /** Compact session representation for the AI prompt */
 export interface CatalogEntry {
