@@ -411,7 +411,56 @@ function runOnePass(
   }
 }
 
+// ── Hydratation de zone (filet post-génération) ────────────────────────────
+// Réutilise ficheMainZoneMax (déjà défini plus haut). Ne touche QUE les séances
+// non-custom dont l'instance ne contient PAS la zone-max de la fiche
+// (dilution réelle, même critère que B10). Ajout non-destructif : la zone-max
+// est insérée dans le tableau `zones`, les zones existantes (warm-up, récup)
+// sont conservées.
+const CARDIO_SPORTS_FOR_HYDRATION = new Set<NormSport>(["swim", "bike", "run", "brick"]);
+function instanceMaxZone(s: PlanSession): number {
+  let mx = 0;
+  for (const z of ((s as any).zones ?? [])) {
+    const m = String(z).match(/z\s*([1-7])/i);
+    if (m) mx = Math.max(mx, Number(m[1]));
+  }
+  return mx;
+}
+function hydrateDilutedZones(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+): void {
+  for (const ch of chunks) {
+    for (const wk of ch.weeks ?? []) {
+      for (const s of (wk.sessions ?? []) as PlanSession[]) {
+        if ((s as any).custom === true) continue;
+        const id = (s as any).catalogId as string | null | undefined;
+        if (!id) continue;
+        const fiche = ficheFor(id);
+        if (!fiche) continue;
+        const sp = normSport(fiche.sport);
+        if (!CARDIO_SPORTS_FOR_HYDRATION.has(sp)) continue;
+        const fMax = ficheMainZoneMax(fiche);
+        if (fMax < 3) continue; // fiche facile → pas de bloc intense à garantir
+        const zonesArr: string[] = ((s as any).zones ?? []).map((z: unknown) => String(z));
+        const already = zonesArr.some(z => new RegExp(`z\\s*${fMax}`, "i").test(z));
+        if (already) continue;
+        const iMax = instanceMaxZone(s);
+        const cur = new Set<string>(zonesArr);
+        cur.add(`Z${fMax}`);
+        (s as any).zones = Array.from(cur);
+        counters.zone_hydrated = (counters.zone_hydrated ?? 0) + 1;
+        logs.push(
+          `[zone_hydrated] S${wk.weekNumber} ${(s as any).day ?? ""} · ${id} — bloc intense Z${fMax} restauré (instance était max Z${iMax})`,
+        );
+      }
+    }
+  }
+}
+
 // ── API publique ───────────────────────────────────────────────────────────
+
 export function runReconciler(
   chunks: PlanChunk[],
   quotasByWeek: Record<number, WeekQuotaEntry>,
