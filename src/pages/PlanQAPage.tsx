@@ -363,6 +363,65 @@ export default function PlanQAPage() {
       {/* Sentinelle légère prod */}
       <ProductionSentinelPanel />
 
+      {/* Quick relaunch — B-70.3 N=1 */}
+      <Card className="border-primary/40 bg-primary/5">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-base">🚀 Relance rapide — B-70.3 N=1</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Relance en un clic le profil B-70.3 (trail probe) et affiche le statut de la génération en direct.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button
+            size="lg"
+            className="w-full sm:w-auto"
+            disabled={qa.progress.running || !runnerReady}
+            onClick={async () => {
+              try {
+                const s = await qa.runFullSuite(1, ["B-70.3"]);
+                setStats(readPlanStats());
+                setQaSessions(await readQASessionsCloud());
+                if (s.verdict === "🟢") toast.success(`B-70.3 N=1 — ${s.summary}`);
+                else if (s.verdict === "🟠") toast.warning(`B-70.3 N=1 — ${s.summary}`);
+                else toast.error(`B-70.3 N=1 — ${s.summary}`);
+              } catch (e) {
+                toast.error(`B-70.3 interrompu : ${e instanceof Error ? e.message : String(e)}`);
+              }
+            }}
+          >
+            {qa.progress.running ? "⏳ Génération en cours…" : "🐾 Relancer B-70.3 N=1"}
+          </Button>
+          {qa.progress.running ? (
+            <div className="rounded border border-primary/40 bg-background/60 p-3 text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span>
+                  Run <b>{qa.progress.currentRun}/{qa.progress.totalRuns}</b>
+                  {qa.progress.currentProfile && (
+                    <> — profil <b>{qa.progress.currentProfile}</b> (itération {qa.progress.currentRunOfProfile}/{qa.progress.N})</>
+                  )}
+                </span>
+                {qa.progress.phase && (
+                  <span className="text-muted-foreground">phase <b>{qa.progress.phase}</b></span>
+                )}
+              </div>
+              <div className="h-1.5 bg-border/40 rounded overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${(qa.progress.currentRun / Math.max(qa.progress.totalRuns, 1)) * 100}%` }}
+                />
+              </div>
+            </div>
+          ) : qa.lastSession ? (
+            <div className="text-xs text-muted-foreground">
+              Dernier verdict : <b>{qa.lastSession.summary}</b> · {new Date(qa.lastSession.ts).toLocaleTimeString()}
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground">Prêt. Aucune génération en cours.</div>
+          )}
+        </CardContent>
+      </Card>
+
+
 
       {/* Feature flag */}
       <Card>
