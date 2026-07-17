@@ -48,7 +48,9 @@ export interface ReconcilerCounters {
   reconcile_conflict: number;
   id_remapped_to_neighbor: number;
   id_remap_no_intent_match_fallback_custom: number;
+  zone_hydrated?: number;
 }
+
 
 export interface ReconcilerResult {
   counters: ReconcilerCounters;
