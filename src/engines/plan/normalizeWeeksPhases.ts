@@ -19,6 +19,19 @@
 
 import type { ParsedPlan, ParsedWeek, PlanGenerationConfig } from "./types";
 
+/** Forme minimale commune à ParsedPlan et MergedPlan pour la normalisation de phase. */
+export interface PhaseNormalizable {
+  weeks: Array<{
+    weekNumber: number;
+    phase: string;
+    theme?: string;
+    weekTheme?: string;
+    sessions: Array<{ phase: string; weekTheme?: string }>;
+  }>;
+  phases?: Array<{ name?: string; weeks?: string; objective?: string; volume?: string }>;
+  totalWeeks?: number;
+}
+
 interface PhaseRange {
   name: string;
   start: number;
@@ -52,19 +65,17 @@ function fallbackLorangPhases(totalWeeks: number): PhaseRange[] {
 }
 
 /** Construit les plages de phases depuis `plan.phases` (recap) ou fallback. */
-function buildPhaseRanges(plan: ParsedPlan, totalWeeks: number): PhaseRange[] {
+function buildPhaseRanges(plan: PhaseNormalizable, totalWeeks: number): PhaseRange[] {
   const parsed: PhaseRange[] = [];
   for (const p of plan.phases ?? []) {
-    const r = parseWeekRange(p.weeks);
-    if (r && r.start >= 1 && r.start <= totalWeeks) {
+    const r = parseWeekRange(p.weeks ?? "");
+    if (r && r.start >= 1 && r.start <= totalWeeks && p.name) {
       parsed.push({ name: p.name, start: r.start, end: Math.min(r.end, totalWeeks) });
     }
   }
   parsed.sort((a, b) => a.start - b.start);
   if (parsed.length === 0) return fallbackLorangPhases(totalWeeks);
-  // Fill gaps at start
   if (parsed[0].start > 1) parsed.unshift({ name: parsed[0].name, start: 1, end: parsed[0].start - 1 });
-  // Fill gap at end
   const last = parsed[parsed.length - 1];
   if (last.end < totalWeeks) parsed.push({ name: last.name, start: last.end + 1, end: totalWeeks });
   return parsed;
@@ -101,8 +112,8 @@ export interface NormalizeStats {
  *  - Strip les références "(SN)" hors range dans les thèmes/phases.
  */
 export function normalizeWeeksAndPhases(
-  plan: ParsedPlan,
-  config: PlanGenerationConfig
+  plan: PhaseNormalizable,
+  config: { weeksAvailable?: number },
 ): NormalizeStats {
   const stats: NormalizeStats = {
     droppedGhostWeeks: [],
@@ -115,7 +126,7 @@ export function normalizeWeeksAndPhases(
     : plan.weeks.length;
 
   // 1) Drop weeks whose number is beyond expected total (ghosts).
-  const kept: ParsedWeek[] = [];
+  const kept: PhaseNormalizable["weeks"] = [];
   for (const w of plan.weeks) {
     if (w.weekNumber < 1 || w.weekNumber > totalWeeksExpected) {
       stats.droppedGhostWeeks.push(w.weekNumber);

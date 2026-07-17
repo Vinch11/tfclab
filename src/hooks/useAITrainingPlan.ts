@@ -25,6 +25,7 @@ import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } 
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
 import { runReconciler } from "@/lib/plan/planReconciler";
+import { normalizeWeeksAndPhases } from "@/engines/plan/normalizeWeeksPhases";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
@@ -342,6 +343,8 @@ export function useAITrainingPlan() {
     try {
       // Build phase-specific workout catalogs for AI injection (fallback for non-chunked plans)
       const phaseCatalogs: Record<string, string> = {};
+      // NB : bornes CHEVAUCHANTES volontairement — usage = injection catalogue aux transitions.
+      // La phase canonique des semaines est fixée par normalizeWeeksAndPhases (source unique).
       const phaseRanges: Array<{ phase: string; start: number; end: number }> = [
         { phase: "base", start: 1, end: Math.ceil(totalWeeks * 0.35) },
         { phase: "build", start: Math.ceil(totalWeeks * 0.25), end: Math.ceil(totalWeeks * 0.65) },
@@ -756,6 +759,16 @@ export function useAITrainingPlan() {
             }
             const merged = mergePlanChunks(collected, totalWeeks);
             mergedLocal = merged;
+            // P3 — normalisation déterministe de phase (source unique) sur chemin JSON.
+            try {
+              const phaseStats = normalizeWeeksAndPhases(merged, { weeksAvailable: merged.totalWeeks });
+              console.log(
+                `🧭 [json] normalizeWeeksAndPhases — phases réassignées: ${phaseStats.phaseReassignedCount} · ` +
+                `labels nettoyés: ${phaseStats.labelCleanedCount}`,
+              );
+            } catch (nerr) {
+              console.error("[useAITrainingPlan] normalizeWeeksAndPhases (json) failed:", nerr);
+            }
             const parsed = jsonPlanToParsedPlan(merged);
             const issues = validateSportObjective(merged, planConfig.objective);
             sportIssuesCount = issues.filter(i => i.severity === "critical").length;
