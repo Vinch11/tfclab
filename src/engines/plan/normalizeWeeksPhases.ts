@@ -65,7 +65,7 @@ function fallbackLorangPhases(totalWeeks: number): PhaseRange[] {
 }
 
 /** Construit les plages de phases depuis `plan.phases` (recap) ou fallback. */
-function buildPhaseRanges(plan: ParsedPlan, totalWeeks: number): PhaseRange[] {
+function buildPhaseRanges(plan: PhaseNormalizable, totalWeeks: number): PhaseRange[] {
   const parsed: PhaseRange[] = [];
   for (const p of plan.phases ?? []) {
     const r = parseWeekRange(p.weeks);
@@ -75,9 +75,7 @@ function buildPhaseRanges(plan: ParsedPlan, totalWeeks: number): PhaseRange[] {
   }
   parsed.sort((a, b) => a.start - b.start);
   if (parsed.length === 0) return fallbackLorangPhases(totalWeeks);
-  // Fill gaps at start
   if (parsed[0].start > 1) parsed.unshift({ name: parsed[0].name, start: 1, end: parsed[0].start - 1 });
-  // Fill gap at end
   const last = parsed[parsed.length - 1];
   if (last.end < totalWeeks) parsed.push({ name: last.name, start: last.end + 1, end: totalWeeks });
   return parsed;
