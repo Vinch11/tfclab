@@ -422,6 +422,11 @@ export default function PlanQAPage() {
         </CardContent>
       </Card>
 
+      {/* Live logs viewer — edge (via SSE) + client */}
+      <LiveLogsPanel />
+
+
+
 
 
       {/* Feature flag */}
