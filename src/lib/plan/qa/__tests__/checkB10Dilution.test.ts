@@ -2,38 +2,34 @@ import { describe, it, expect, vi } from "vitest";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import type { MergedPlan, MergedSession } from "@/lib/plan/mergePlanChunks";
 
-// Injecte 4 fiches synthétiques dans WorkoutLibrary (source unique consommée
-// par checksB10B11).
-const SYNTHETIC_FICHES: LibraryWorkout[] = [
-  {
-    id: "TEST_RUN_MIXED_Z2_Z3",
-    cat: "B", sport: "run", objectif: "test", necessite: "Recommandé", when: "",
-    avoid: "", durationMin: [60, 90], metricKey: "pace", sportKey: "run",
-    structure: [
-      { part: "Warm-up", text: "10' Z1", zones: ["Z1"] },
-      { part: "Main", text: "40' progressif Z2 → Z3", zones: ["Z2", "Z3"] },
-      { part: "Cool-down", text: "5' Z1", zones: ["Z1"] },
-    ],
-    variants: {},
-  },
-  {
-    id: "TEST_RUN_BASE_AEROBIC",
-    cat: "C", sport: "run", objectif: "test", necessite: "Recommandé", when: "",
-    avoid: "", durationMin: [60, 90], metricKey: "pace", sportKey: "run",
-    structure: [
-      { part: "Warm-up", text: "10' Z1", zones: ["Z1"] },
-      { part: "Main", text: "60' continu Z2", zones: ["Z1", "Z2"] },
-      { part: "Cool-down", text: "5' Z1", zones: ["Z1"] },
-    ],
-    variants: {},
-  },
-];
+vi.mock("@/lib/workoutLibrary", () => {
+  const fiches: LibraryWorkout[] = [
+    {
+      id: "TEST_RUN_MIXED_Z2_Z3",
+      cat: "B", sport: "run", objectif: "test", necessite: "Recommandé", when: "",
+      avoid: "", durationMin: [60, 90], metricKey: "pace", sportKey: "run",
+      structure: [
+        { part: "Warm-up", text: "10' Z1", zones: ["Z1"] },
+        { part: "Main", text: "40' progressif Z2 → Z3", zones: ["Z2", "Z3"] },
+        { part: "Cool-down", text: "5' Z1", zones: ["Z1"] },
+      ],
+      variants: {},
+    },
+    {
+      id: "TEST_RUN_BASE_AEROBIC",
+      cat: "C", sport: "run", objectif: "test", necessite: "Recommandé", when: "",
+      avoid: "", durationMin: [60, 90], metricKey: "pace", sportKey: "run",
+      structure: [
+        { part: "Warm-up", text: "10' Z1", zones: ["Z1"] },
+        { part: "Main", text: "60' continu Z2", zones: ["Z1", "Z2"] },
+        { part: "Cool-down", text: "5' Z1", zones: ["Z1"] },
+      ],
+      variants: {},
+    },
+  ];
+  return { WorkoutLibrary: fiches };
+});
 
-vi.mock("@/lib/workoutLibrary", () => ({
-  WorkoutLibrary: SYNTHETIC_FICHES,
-}));
-
-// Import AFTER mock so FICHES_BY_ID is built from synthetic set.
 import { checkB10 } from "../checksB10B11";
 
 function makeSession(overrides: Partial<MergedSession>): MergedSession {
