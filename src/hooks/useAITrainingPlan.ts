@@ -342,6 +342,8 @@ export function useAITrainingPlan() {
     try {
       // Build phase-specific workout catalogs for AI injection (fallback for non-chunked plans)
       const phaseCatalogs: Record<string, string> = {};
+      // NB : bornes CHEVAUCHANTES volontairement — usage = injection catalogue aux transitions.
+      // La phase canonique des semaines est fixée par normalizeWeeksAndPhases (source unique).
       const phaseRanges: Array<{ phase: string; start: number; end: number }> = [
         { phase: "base", start: 1, end: Math.ceil(totalWeeks * 0.35) },
         { phase: "build", start: Math.ceil(totalWeeks * 0.25), end: Math.ceil(totalWeeks * 0.65) },
