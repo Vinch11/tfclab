@@ -1154,6 +1154,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             enqueue("chunk-json", { chunkIndex: ci, chunk: valueChecked.chunks[ci] });
           }
           // ─── DIAGNOSTIC (à retirer) — remonte les sondes trail au client ───
+          console.log(`[trail_probe_enqueue] lines=${__trailDebug.length}`);
           enqueue("trail-debug", { lines: [...__trailDebug] });
           __trailDebug.length = 0;
           enqueue("plan-complete", {
