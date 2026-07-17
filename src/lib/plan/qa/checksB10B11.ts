@@ -405,7 +405,17 @@ export function checkB10(plan: MergedPlan): CheckResult {
         const fInt = fPat != null;
         const iInt = iPat != null;
         if (fInt !== iInt) {
-          warnings.push(`⚠ S${w.weekNumber} ${s.dayName} · ${s.catalogId} — structure ${iInt ? "intervalles" : "continu"} ≠ fiche ${fInt ? "intervalles" : "continu"}`);
+          // Exemption : une fiche à Main continu et facile (zone-max ≤ Z2, aucun
+          // motif d'intervalle) est LÉGITIMEMENT continue (base aérobie, sortie
+          // longue Z2, récup). Ne pas la flagger si l'instance est aussi continue.
+          const fzForStruct = ficheMainZonesStructured(fiche);
+          const ficheMaxForStruct = fzForStruct.length > 0 ? Math.max(...fzForStruct) : 2;
+          const ficheContinuLegitime = !fInt && ficheMaxForStruct <= 2;
+          if (!ficheContinuLegitime) {
+            warnings.push(
+              `⚠ S${w.weekNumber} ${s.dayName} · ${s.catalogId} — structure ${iInt ? "intervalles" : "continu"} ≠ fiche ${fInt ? "intervalles" : "continu"}`,
+            );
+          }
         }
         // FAIL structure_mismatch : deux patterns présents mais ordre de grandeur ≠
         if (fPat && iPat) {
