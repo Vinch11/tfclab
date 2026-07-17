@@ -917,6 +917,30 @@ function normalizeSportBucket(sport: string): { key: string; label: string; emoj
  * Serialize the catalog to a markdown table for prompt injection.
  * Sessions are GROUPED BY SPORT so the AI cannot pick a bike ID for a run slot.
  */
+/**
+ * Zone-cible d'une fiche = numéro max de zone Z{1..7} trouvé dans la partie Main.
+ * Lu depuis la structure de la LibraryWorkout (source unique). Retourne "—"
+ * si non applicable (pas cardio / pas de zone Main).
+ */
+const _FICHES_BY_ID_FOR_PROMPT: Map<string, LibraryWorkout> = (() => {
+  const m = new Map<string, LibraryWorkout>();
+  for (const w of WorkoutLibrary) m.set(w.id.toUpperCase(), w);
+  return m;
+})();
+function ficheZoneCibleLabel(id: string): string {
+  const w = _FICHES_BY_ID_FOR_PROMPT.get(id.toUpperCase());
+  if (!w) return "—";
+  let mx = 0;
+  for (const p of (w.structure || [])) {
+    if (!/main/i.test(p.part || "")) continue;
+    for (const z of (p.zones || [])) {
+      const m = String(z).match(/z\s*([1-7])/i);
+      if (m) mx = Math.max(mx, Number(m[1]));
+    }
+  }
+  return mx > 0 ? `Z${mx}` : "—";
+}
+
 export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   if (catalog.length === 0) return "";
 
@@ -937,11 +961,11 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   const ordered = Array.from(buckets.values()).sort((a, b) => a.info.order - b.info.order);
 
   const header = hasTrailDPlus
-    ? "| ID | Cat | Objectif | Phases | Durée (min) | D+ cible (m) | Structure |"
-    : "| ID | Cat | Objectif | Phases | Durée (min) | Structure |";
+    ? "| ID | Cat | Objectif | Phases | Durée (min) | D+ cible (m) | Zone-cible | Structure |"
+    : "| ID | Cat | Objectif | Phases | Durée (min) | Zone-cible | Structure |";
   const sep = hasTrailDPlus
-    ? "|-----|-----|----------|--------|-------------|--------------|-----------|"
-    : "|-----|-----|----------|--------|-------------|-----------|";
+    ? "|-----|-----|----------|--------|-------------|--------------|------------|-----------|"
+    : "|-----|-----|----------|--------|-------------|------------|-----------|";
 
   for (const { info, entries } of ordered) {
     lines.push(`\n#### ${info.emoji} ${info.label} — ${entries.length} séance(s)`);
@@ -951,16 +975,18 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
       const phases = e.phase.join(",") || "all";
       const dur = `${e.durationMin[0]}-${e.durationMin[1]}`;
       const struct = e.structure.length > 120 ? e.structure.slice(0, 117) + "..." : e.structure;
+      const zoneCible = ficheZoneCibleLabel(e.id);
       const dPlus = e.dPlusTargetM
         ? (typeof e.dPlusTargetM === "number" ? `${e.dPlusTargetM}` : `${e.dPlusTargetM.min}-${e.dPlusTargetM.max}`)
         : "—";
       if (hasTrailDPlus) {
-        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${dPlus} | ${struct} |`);
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${dPlus} | ${zoneCible} | ${struct} |`);
       } else {
-        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${struct} |`);
+        lines.push(`| ${e.id} | ${e.cat} | ${e.objectif.slice(0, 50)} | ${phases} | ${dur} | ${zoneCible} | ${struct} |`);
       }
     }
   }
+
 
   if (catalog.some(e => e.variants)) {
     lines.push("\n**Variantes par objectif :**");
