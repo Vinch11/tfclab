@@ -507,7 +507,13 @@ export function checkB8(
       for (const s of w.sessions) if (!s.isRest && s.sport in cnt) cnt[s.sport]++;
       const q = entry.quota;
       const fmt = (obs: number, r: { min: number; max: number }) => r.min === r.max ? `${obs}/${r.min}` : `${obs}/${r.min}-${r.max}`;
-      details.push(`  S${w.weekNumber} [${entry.weekType}] · sw=${fmt(cnt.swim, q.swim)} · bk=${fmt(cnt.bike, q.bike)} · rn=${fmt(cnt.run, q.run)} · br=${fmt(cnt.brick, q.brick)} · st=${fmt(cnt.strength, q.strength)}${entry.downgraded ? " · ⚠downgraded" : ""}`);
+      // Cohérence brick : décale la fourchette bike ET total de −brick pour l'affichage,
+      // exactement comme la validation (un brick satisfait un slot vélo).
+      const shift = cnt.brick > 0 ? cnt.brick : 0;
+      const bikeEff = { min: Math.max(0, q.bike.min - shift), max: Math.max(0, q.bike.max - shift) };
+      const totalObs = cnt.swim + cnt.bike + cnt.run + cnt.brick + cnt.strength;
+      const totalEff = { min: Math.max(0, q.totalSessions.min - shift), max: Math.max(0, q.totalSessions.max - shift) };
+      details.push(`  S${w.weekNumber} [${entry.weekType}] · sw=${fmt(cnt.swim, q.swim)} · bk=${fmt(cnt.bike, bikeEff)} · rn=${fmt(cnt.run, q.run)} · br=${fmt(cnt.brick, q.brick)} · st=${fmt(cnt.strength, q.strength)} · tot=${fmt(totalObs, totalEff)}${entry.downgraded ? " · ⚠downgraded" : ""}`);
     }
   }
 
