@@ -625,6 +625,8 @@ export function useAITrainingPlan() {
         let fatalError: { code: string; message: string; details?: any } | null = null;
 
         const handleEvent = (event: string, dataStr: string) => {
+          // ─── DIAGNOSTIC (à retirer) : log tout event SSE reçu ───
+          console.log(`[SSE evt] ${event} (${dataStr.length} chars)`);
           let data: any;
           try { data = JSON.parse(dataStr); } catch { return; }
           if (event === "chunk-progress") {
