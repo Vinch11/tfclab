@@ -758,6 +758,16 @@ export function useAITrainingPlan() {
             }
             const merged = mergePlanChunks(collected, totalWeeks);
             mergedLocal = merged;
+            // P3 — normalisation déterministe de phase (source unique) sur chemin JSON.
+            try {
+              const phaseStats = normalizeWeeksAndPhases(merged, { weeksAvailable: merged.totalWeeks });
+              console.log(
+                `🧭 [json] normalizeWeeksAndPhases — phases réassignées: ${phaseStats.phaseReassignedCount} · ` +
+                `labels nettoyés: ${phaseStats.labelCleanedCount}`,
+              );
+            } catch (nerr) {
+              console.error("[useAITrainingPlan] normalizeWeeksAndPhases (json) failed:", nerr);
+            }
             const parsed = jsonPlanToParsedPlan(merged);
             const issues = validateSportObjective(merged, planConfig.objective);
             sportIssuesCount = issues.filter(i => i.severity === "critical").length;
