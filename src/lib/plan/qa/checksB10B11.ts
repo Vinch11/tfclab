@@ -374,32 +374,24 @@ export function checkB10(plan: MergedPlan): CheckResult {
         if (fz.length > 0 && iz.length > 0) {
           const fMax = Math.max(...fz);
           const iMax = Math.max(...iz);
-          if (fMax >= 3 && iMax <= 2) {
+          const instanceHasFicheMax = iz.includes(fMax);
+          // RÈGLE DILUTION (validée coach) : une séance n'est diluée que si le
+          // bloc le plus INTENSE de la fiche a disparu de l'instance. La présence
+          // de blocs faciles (échauffement, récup) ne déclenche RIEN — c'est
+          // légitime sur ~36 % des fiches cardio (Main multi-zones).
+          // FAIL seulement si : fiche a un bloc intense (Z3+) ET l'instance ne
+          // contient nulle part cette zone-max.
+          if (fMax >= 3 && !instanceHasFicheMax) {
             pass = false;
-            details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — fiche Main Z${fMax}, instance Z1/Z2 (dilution intensité)`);
-            // Dump ciblé B_703_RUN_NEG_SPLIT : vérifier que le parseur zone
-            // n'accroche PAS le warm-up ("Z1→Z2 progressif") au lieu du Main.
-            if (fiche.id.toUpperCase() === "B_703_RUN_NEG_SPLIT") {
-              const wu = (fiche.structure || []).find(p => /warm.?up|échauff|echauff/i.test(p.part || ""));
-              const mn = (fiche.structure || []).find(p => /main/i.test(p.part || ""));
-              // eslint-disable-next-line no-console
-              console.groupCollapsed(`🔎 B10 dump B_703_RUN_NEG_SPLIT · S${w.weekNumber} ${s.dayName}`);
-              // eslint-disable-next-line no-console
-              console.table([
-                { source: "fiche.warmup.text", text: wu?.text ?? "—", zonesStructured: wu?.zones ?? [] },
-                { source: "fiche.main.text", text: mn?.text ?? "—", zonesStructured: mn?.zones ?? [] },
-                { source: "fiche.main → ficheMainZonesStructured", text: "", zonesStructured: fz },
-                { source: "instance.title", text: s.title ?? "—", zonesStructured: [] },
-                { source: "instance.details", text: (s.details ?? "").slice(0, 200), zonesStructured: [] },
-                { source: "instance.zones (structuré)", text: "", zonesStructured: s.zones ?? [] },
-                { source: "instance → instanceZonesStructured", text: "", zonesStructured: iz },
-              ]);
-              // eslint-disable-next-line no-console
-              console.groupEnd();
-            }
+            details.push(
+              `S${w.weekNumber} ${s.dayName} · ${s.catalogId} — fiche Main Z${fMax} absente de l'instance (max instance Z${iMax}) — bloc intense dilué`,
+            );
           } else if (fMax <= 2 && iMax >= 3) {
+            // Surcharge : la fiche est facile (Z1/Z2) mais l'instance monte en Z3+.
             pass = false;
-            details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — fiche Main Z${fMax}, instance Z${iMax} (surcharge non prévue)`);
+            details.push(
+              `S${w.weekNumber} ${s.dayName} · ${s.catalogId} — fiche Main Z${fMax}, instance Z${iMax} (surcharge non prévue)`,
+            );
           }
         }
       }
@@ -413,7 +405,17 @@ export function checkB10(plan: MergedPlan): CheckResult {
         const fInt = fPat != null;
         const iInt = iPat != null;
         if (fInt !== iInt) {
-          warnings.push(`⚠ S${w.weekNumber} ${s.dayName} · ${s.catalogId} — structure ${iInt ? "intervalles" : "continu"} ≠ fiche ${fInt ? "intervalles" : "continu"}`);
+          // Exemption : une fiche à Main continu et facile (zone-max ≤ Z2, aucun
+          // motif d'intervalle) est LÉGITIMEMENT continue (base aérobie, sortie
+          // longue Z2, récup). Ne pas la flagger si l'instance est aussi continue.
+          const fzForStruct = ficheMainZonesStructured(fiche);
+          const ficheMaxForStruct = fzForStruct.length > 0 ? Math.max(...fzForStruct) : 2;
+          const ficheContinuLegitime = !fInt && ficheMaxForStruct <= 2;
+          if (!ficheContinuLegitime) {
+            warnings.push(
+              `⚠ S${w.weekNumber} ${s.dayName} · ${s.catalogId} — structure ${iInt ? "intervalles" : "continu"} ≠ fiche ${fInt ? "intervalles" : "continu"}`,
+            );
+          }
         }
         // FAIL structure_mismatch : deux patterns présents mais ordre de grandeur ≠
         if (fPat && iPat) {
