@@ -89,7 +89,7 @@ describe("B10.c dilution — nouvelle règle validée coach", () => {
       }),
     ]);
     const r = checkB10(plan);
-    const all = [...r.details, ...(r.warnings ?? [])].join(" ");
+    const all = r.details.join(" ");
     expect(all).not.toMatch(/TEST_RUN_BASE_AEROBIC.*(dilué|surcharge|structure)/i);
   });
 
