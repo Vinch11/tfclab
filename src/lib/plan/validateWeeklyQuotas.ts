@@ -146,11 +146,18 @@ export function validateWeeklyQuotas(
     check("strength", counts.strength, q.strength);
 
     const total = counts.swim + counts.bike + counts.run + counts.brick + counts.strength;
-    if (total < q.totalSessions.min || total > q.totalSessions.max) {
+    // Cohérence brick : la fourchette bike a déjà été décalée de −bikeShift (un brick
+    // satisfait un slot vélo). Le total attendu doit subir le MÊME décalage, sinon on
+    // signale à tort un total trop bas alors que le brick a remplacé un vélo autonome.
+    const totalEffective = {
+      min: Math.max(0, q.totalSessions.min - bikeShift),
+      max: Math.max(0, q.totalSessions.max - bikeShift),
+    };
+    if (total < totalEffective.min || total > totalEffective.max) {
       out.push({
         severity: "warning", code: "quota_range_drift", weekNumber: w.weekNumber,
-        reason: `total ${total} hors fourchette [${q.totalSessions.min}, ${q.totalSessions.max}]`,
-        expected: `${q.totalSessions.min}-${q.totalSessions.max} séances`, observed: `${total}`,
+        reason: `total ${total} hors fourchette [${totalEffective.min}, ${totalEffective.max}]`,
+        expected: `${totalEffective.min}-${totalEffective.max} séances`, observed: `${total}`,
       });
     }
 
