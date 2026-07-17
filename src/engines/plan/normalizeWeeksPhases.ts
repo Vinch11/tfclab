@@ -19,6 +19,19 @@
 
 import type { ParsedPlan, ParsedWeek, PlanGenerationConfig } from "./types";
 
+/** Forme minimale commune à ParsedPlan et MergedPlan pour la normalisation de phase. */
+export interface PhaseNormalizable {
+  weeks: Array<{
+    weekNumber: number;
+    phase: string;
+    theme?: string;
+    weekTheme?: string;
+    sessions: Array<{ phase: string; weekTheme?: string }>;
+  }>;
+  phases?: Array<{ name: string; weeks: string; objective?: string; volume?: string }>;
+  totalWeeks?: number;
+}
+
 interface PhaseRange {
   name: string;
   start: number;
