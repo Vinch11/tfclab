@@ -24,6 +24,7 @@ import { runMergeTests, type TestResult } from "@/lib/plan/mergeTests";
 import { zDay, zPhase, zSport } from "@/lib/plan/planSchema";
 import { useQARunner } from "@/lib/plan/qa/useQARunner";
 import { TrailProbePanel } from "@/components/debug/TrailProbePanel";
+import { LiveLogsPanel } from "@/components/debug/LiveLogsPanel";
 import { buildQAReport, readQASessions, readQASessionsCloud, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductionSentinelPanel } from "@/components/plan-qa/ProductionSentinelPanel";
