@@ -28,7 +28,7 @@ export interface PhaseNormalizable {
     weekTheme?: string;
     sessions: Array<{ phase: string; weekTheme?: string }>;
   }>;
-  phases?: Array<{ name: string; weeks: string; objective?: string; volume?: string }>;
+  phases?: Array<{ name?: string; weeks?: string; objective?: string; volume?: string }>;
   totalWeeks?: number;
 }
 
