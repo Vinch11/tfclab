@@ -97,10 +97,15 @@ Champs principaux :
    DERNIER RECOURS (cible < 20 % des sessions non-rest).** Avant de créer
    une séance custom, RE-SCANNE le catalogue injecté ci-dessous et cherche
    activement un ID qui approche le besoin (même sport, même intention, même
-   durée à ±15 %). Si un ID plausible existe, prends-le et adapte les zones
-   / details plutôt que d'inventer une séance libre. Chaque custom ajouté
-   au-delà du seuil augmente le risque de dérive de vocabulaire (trail dans
-   route, brique dans semi, etc.) et sera flaggé par la QA.
+   durée à ±15 %). Si un ID plausible existe, prends-le. Tu DOIS conserver la
+   Zone-cible indiquée dans le catalogue pour cette séance — c'est le stimulus
+   physiologique prescrit par le coach. Tu ne peux adapter QUE la durée, JAMAIS
+   la zone du bloc principal. Le tableau \`zones\` de la séance DOIT contenir la
+   Zone-cible du catalogue. Diluer une séance de qualité (rendre un bloc Z4/Z5
+   en Z1/Z2) est une ERREUR. Chaque custom ajouté au-delà du seuil augmente
+   le risque de dérive de vocabulaire (trail dans route, brique dans semi, etc.)
+   et sera flaggé par la QA.
+
 9. Verrou sport : la contrainte "un slot d'un sport donné = un ID du même
    sport" reste absolue (voir bloc "règle non-cross-sport" plus haut).
 10. Types JSON stricts : \`custom\` et \`isKeySession\` sont des booléens JSON
