@@ -112,8 +112,8 @@ export interface NormalizeStats {
  *  - Strip les références "(SN)" hors range dans les thèmes/phases.
  */
 export function normalizeWeeksAndPhases(
-  plan: ParsedPlan,
-  config: PlanGenerationConfig
+  plan: PhaseNormalizable,
+  config: { weeksAvailable?: number },
 ): NormalizeStats {
   const stats: NormalizeStats = {
     droppedGhostWeeks: [],
@@ -126,7 +126,7 @@ export function normalizeWeeksAndPhases(
     : plan.weeks.length;
 
   // 1) Drop weeks whose number is beyond expected total (ghosts).
-  const kept: ParsedWeek[] = [];
+  const kept: PhaseNormalizable["weeks"] = [];
   for (const w of plan.weeks) {
     if (w.weekNumber < 1 || w.weekNumber > totalWeeksExpected) {
       stats.droppedGhostWeeks.push(w.weekNumber);
