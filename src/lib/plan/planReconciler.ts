@@ -551,6 +551,8 @@ export function runReconciler(
     const changed = runOnePass(chunks, quotasByWeek, counters, logs);
     if (!changed) break;
   }
+  hydrateDilutedZones(chunks, counters, logs);
   return { counters, logs };
 }
+
 
