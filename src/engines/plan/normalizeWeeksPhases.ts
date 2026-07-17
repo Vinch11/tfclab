@@ -68,8 +68,8 @@ function fallbackLorangPhases(totalWeeks: number): PhaseRange[] {
 function buildPhaseRanges(plan: PhaseNormalizable, totalWeeks: number): PhaseRange[] {
   const parsed: PhaseRange[] = [];
   for (const p of plan.phases ?? []) {
-    const r = parseWeekRange(p.weeks);
-    if (r && r.start >= 1 && r.start <= totalWeeks) {
+    const r = parseWeekRange(p.weeks ?? "");
+    if (r && r.start >= 1 && r.start <= totalWeeks && p.name) {
       parsed.push({ name: p.name, start: r.start, end: Math.min(r.end, totalWeeks) });
     }
   }
