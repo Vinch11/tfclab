@@ -106,9 +106,9 @@ const CASES: RepairTestCase[] = [
     expectValidJson: true,
   },
   {
-    name: "BOM UTF-8 en tête",
+    name: "BOM UTF-8 en tête (strip via extract)",
     input: `\uFEFF{"ok":true}`,
-    expectRepairs: ["bom"],
+    expectRepairs: [], // BOM est retiré par extractJsonPayload avant la passe repair
     expectValidJson: true,
   },
   {
