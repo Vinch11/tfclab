@@ -54,7 +54,37 @@ function runZonePace(zone: ZoneId | "Z4", vmaKmh: number): string | null {
   return `${fmtPace(paceFromVma(vmaKmh, z.vma.max))}-${fmtPace(paceFromVma(vmaKmh, z.vma.min))}/km`;
 }
 
-const ZONE_RX = /\bZ(?:1|2|3|4a|4b|4|5|6|7)\b/gi;
+function zonePctRange(zone: ZoneId | "Z4", metric: "ftp" | "vma"): ZonePctLike | null {
+  if (zone === "Z4") return z4Union(metric);
+  const z = getZoneMirror(zone);
+  return z ? z[metric] : null;
+}
+type ZonePctLike = { min: number; max: number };
+
+function bikeZoneRangeWatts(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", ftpW: number): string | null {
+  const a = zonePctRange(zLow, "ftp");
+  const b = zonePctRange(zHigh, "ftp");
+  if (!a || !b) return null;
+  const min = Math.min(a.min, b.min);
+  const max = Math.max(a.max, b.max);
+  return `${Math.round(min * ftpW / 100)}-${Math.round(max * ftpW / 100)}W`;
+}
+
+function runZoneRangePace(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", vmaKmh: number): string | null {
+  const a = zonePctRange(zLow, "vma");
+  const b = zonePctRange(zHigh, "vma");
+  if (!a || !b) return null;
+  const minPct = Math.min(a.min, b.min);
+  const maxPct = Math.max(a.max, b.max);
+  return `${fmtPace(paceFromVma(vmaKmh, maxPct))}-${fmtPace(paceFromVma(vmaKmh, minPct))}/km`;
+}
+
+const ZONE_CORE = "Z(?:1|2|3|4a|4b|4|5|6|7)";
+// Range de zones ("Z2-Z3", "Z4a-Z4b", "Z1-Z2"). Annoté comme UN bloc pour éviter
+// les rendus contradictoires du type "Z2 (5:33-6:15/km)-Z3 (…)".
+const ZONE_RANGE_RX = new RegExp(`\\b(${ZONE_CORE})\\s*-\\s*(${ZONE_CORE})\\b`, "gi");
+// Zone nue : ni précédée ni suivie d'un `-Z\d` (sinon c'est un range, géré ci-dessus).
+const ZONE_RX = new RegExp(`(?<!${ZONE_CORE}\\s*-\\s*)\\b${ZONE_CORE}\\b(?!\\s*-\\s*Z[1-7])`, "gi");
 const PCT_FTP_RX = /\b(\d{2,3})\s*%\s*FTP\b/gi;
 const PCT_VMA_RX = /\b(\d{2,3})\s*%\s*VMA\b/gi;
 const PCT_CSS_RX = /\b(\d{2,3})\s*%\s*CSS\b/gi;
@@ -116,7 +146,22 @@ export function enrichWithAbsoluteValues(
   const isRun = sport === "run" || sport === "trail" || sport === "brick";
   const isSwim = sport === "swim";
 
-  // Zones nues (Z1..Z7 / Z4)
+  // Ranges de zones ("Z2-Z3", "Z1-Z2", "Z4a-Z4b") — annotés en priorité comme
+  // UN bloc pour éviter les rendus contradictoires "Z2 (5:33-6:15/km)-Z3 (…)".
+  out = replaceWithAnnotation(out, ZONE_RANGE_RX, (m) => {
+    const cLow = canonicalizeZoneLabel(m[1]);
+    const cHigh = canonicalizeZoneLabel(m[2]);
+    if (!cLow || !cHigh) return null;
+    if (isBike && targetTable.ftpW) {
+      return { annotation: bikeZoneRangeWatts(cLow, cHigh, targetTable.ftpW), kind: "W" };
+    }
+    if (isRun && targetTable.vmaKmh) {
+      return { annotation: runZoneRangePace(cLow, cHigh, targetTable.vmaKmh), kind: "km" };
+    }
+    return null;
+  });
+
+  // Zones nues (Z1..Z7 / Z4) — exclut celles absorbées par un range ci-dessus.
   out = replaceWithAnnotation(out, ZONE_RX, (m) => {
     const canon = canonicalizeZoneLabel(m[0]);
     if (!canon) return null;
