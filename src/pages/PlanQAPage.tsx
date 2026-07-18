@@ -426,6 +426,11 @@ export default function PlanQAPage() {
       {/* Live logs viewer — edge (via SSE) + client */}
       <LiveLogsPanel />
 
+      {/* JSON repair self-test — always visible, no credits */}
+      <JsonRepairSelfTestPanel />
+
+
+
 
 
 
