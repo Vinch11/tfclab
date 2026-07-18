@@ -228,9 +228,43 @@ function flagsFor(w: LibraryWorkout): FicheFlags {
     requiresPrevDayLongBike: /gros v[ée]lo la veille|long ride the day before|veille de long|apr[eè]s.*long ride|apr[eè]s.*gros v[ée]lo/i.test(when),
     phaseAllowed: null,
   };
-  const mJ = avoid.match(/j\s*-\s*(\d+)/i);
-  if (mJ) flags.excludeTaperDays = Number(mJ[1]);
-  else if (/taper|affûtage|affutage|tapering|semaine de course/i.test(avoid)) flags.excludeTaperDays = 7;
+
+  // Sémantique du champ `avoid` vis-à-vis de la semaine de course :
+  //
+  //  • "Jamais >J-N"     → NON exclusion : la fiche DOIT être placée en race-week
+  //                        au plus tard à J-N (ex: openers J-2). Ne pas flagger.
+  //  • "J-N avant course" / "Tapering (…J-N)" / "(J-N)" → exclusion effective
+  //                        (fiche interdite à N jours ou moins de la course).
+  //  • "taper|affûtage|tapering|semaine de course" (sans J-N) → toute la
+  //                        race-week est interdite (7 jours).
+  //
+  // Fiche dont `when` désigne explicitement un jour de race-week (ex.
+  // "J-2 avant course", "veille de course") = fiche destinée à la race-week :
+  // aucune exclusion ne s'applique, quel que soit le contenu de `avoid`.
+  const whenTargetsRaceWeek =
+    /j\s*-\s*\d+\s*(?:avant|jours?\s*avant)\s+course/i.test(when) ||
+    /veille\s+de\s+course/i.test(when);
+
+  if (whenTargetsRaceWeek) {
+    flags.excludeTaperDays = null;
+  } else {
+    const isNeverAfter = /jamais\s*>\s*j\s*-\s*\d+/i.test(avoid);
+    if (isNeverAfter) {
+      // "Jamais >J-N" = borne supérieure de placement, pas exclusion → ignorer.
+      flags.excludeTaperDays = null;
+    } else {
+      // Ne matcher que les patterns exclusifs : "J-N avant course",
+      // "Tapering (J-N)", "(J-N)", "pré-compétition (J-N)". On EXCLUT
+      // les mentions incidentes ("Alcool J-1", "Nouveautés J-1").
+      const mExcl =
+        avoid.match(/j\s*-\s*(\d+)\s*(?:avant|jours?\s*avant)\s+course/i) ||
+        avoid.match(/(?:tapering|taper|affûtage|affutage|pr[ée]-?comp[ée]tition)[^.]*?\(?\s*j\s*-\s*(\d+)\s*\)?/i) ||
+        avoid.match(/course\s+a\s*\(\s*j\s*-\s*(\d+)\s*\)/i);
+      if (mExcl) flags.excludeTaperDays = Number(mExcl[1]);
+      else if (/taper|affûtage|affutage|tapering|semaine de course/i.test(avoid)) flags.excludeTaperDays = 7;
+    }
+  }
+
   const allowed = ficheAllowedPhases(w);
   flags.phaseAllowed = allowed.size > 0 ? [...allowed] : null;
   FLAGS_CACHE.set(key, flags);
