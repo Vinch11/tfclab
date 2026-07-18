@@ -54,7 +54,12 @@ function runZonePace(zone: ZoneId | "Z4", vmaKmh: number): string | null {
   return `${fmtPace(paceFromVma(vmaKmh, z.vma.max))}-${fmtPace(paceFromVma(vmaKmh, z.vma.min))}/km`;
 }
 
-const ZONE_RX = /\bZ(?:1|2|3|4a|4b|4|5|6|7)\b/gi;
+const ZONE_CORE = "Z(?:1|2|3|4a|4b|4|5|6|7)";
+// Range de zones ("Z2-Z3", "Z4a-Z4b", "Z1-Z2"). Annoté comme UN bloc pour éviter
+// les rendus contradictoires du type "Z2 (5:33-6:15/km)-Z3 (…)".
+const ZONE_RANGE_RX = new RegExp(`\\b(${ZONE_CORE})\\s*-\\s*(${ZONE_CORE})\\b`, "gi");
+// Zone nue : ni précédée ni suivie d'un `-Z\d` (sinon c'est un range, géré ci-dessus).
+const ZONE_RX = new RegExp(`(?<!${ZONE_CORE}\\s*-\\s*)\\b${ZONE_CORE}\\b(?!\\s*-\\s*Z[1-7])`, "gi");
 const PCT_FTP_RX = /\b(\d{2,3})\s*%\s*FTP\b/gi;
 const PCT_VMA_RX = /\b(\d{2,3})\s*%\s*VMA\b/gi;
 const PCT_CSS_RX = /\b(\d{2,3})\s*%\s*CSS\b/gi;
