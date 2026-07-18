@@ -11,8 +11,28 @@ import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport } from "@/typ
 import { WorkoutLibrary } from "./workoutLibrary";
 import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
-import { intentFamilyOf } from "./plan/intentFamily";
+import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LIMITER → INTENT FAMILIES (F-LIM-COVERAGE)
+// Utilisé pour élargir le socle du coverage-first cap sur les familles d'intention
+// qui correspondent aux limiteurs diagnostiqués de l'athlète. Objectif : garantir
+// que le catalogue injecté couvre MIEUX les besoins physiologiques réels du
+// profil (ex : profil VO2max-limité → 4 fiches VO2 par sport au socle au lieu de 2).
+// Consommé UNIQUEMENT par le socle — ne modifie ni scoring, ni prohibitions.
+// ═══════════════════════════════════════════════════════════════════════════════
+const LIMITER_KEY_TO_FAMILIES: Record<string, IntentFamily[]> = {
+  vo2max: ["vo2"],
+  vlamax: ["endurance_fondamentale", "fatmax"],
+  tte: ["seuil", "race_pace"],
+  fatmax: ["fatmax"],
+  "économie": ["technique", "force"],
+  ftp: ["seuil"],
+  durabilit: ["endurance_fondamentale", "race_pace"],
+  sprint: ["sprint"],
+  pmax: ["sprint"],
+};
 
 /** Compact session representation for the AI prompt */
 export interface CatalogEntry {
