@@ -146,7 +146,22 @@ export function enrichWithAbsoluteValues(
   const isRun = sport === "run" || sport === "trail" || sport === "brick";
   const isSwim = sport === "swim";
 
-  // Zones nues (Z1..Z7 / Z4)
+  // Ranges de zones ("Z2-Z3", "Z1-Z2", "Z4a-Z4b") — annotés en priorité comme
+  // UN bloc pour éviter les rendus contradictoires "Z2 (5:33-6:15/km)-Z3 (…)".
+  out = replaceWithAnnotation(out, ZONE_RANGE_RX, (m) => {
+    const cLow = canonicalizeZoneLabel(m[1]);
+    const cHigh = canonicalizeZoneLabel(m[2]);
+    if (!cLow || !cHigh) return null;
+    if (isBike && targetTable.ftpW) {
+      return { annotation: bikeZoneRangeWatts(cLow, cHigh, targetTable.ftpW), kind: "W" };
+    }
+    if (isRun && targetTable.vmaKmh) {
+      return { annotation: runZoneRangePace(cLow, cHigh, targetTable.vmaKmh), kind: "km" };
+    }
+    return null;
+  });
+
+  // Zones nues (Z1..Z7 / Z4) — exclut celles absorbées par un range ci-dessus.
   out = replaceWithAnnotation(out, ZONE_RX, (m) => {
     const canon = canonicalizeZoneLabel(m[0]);
     if (!canon) return null;
