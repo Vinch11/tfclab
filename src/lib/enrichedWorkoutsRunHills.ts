@@ -104,7 +104,7 @@ const RUN_HILLS: LibraryWorkout[] = [
     sportKey: "run_hill_tempo",
     structure: [
       { part: "Warm-up", text: "15min Z1→Z2 + 3min Z3", zones: ["Z1", "Z2", "Z3"] },
-      { part: "Main", text: "3×8min en côte pente régulière 3-5% SUR ROUTE, effort Z4 (allure seuil ~88-92% VMA équivalent plat, RPE 7-8/10). Redescente 3min Z1 en trottinant. Cadence cible 180-186 spm, foulée courte et fréquente, buste légèrement projeté. Route/asphalte — PAS de sentier technique, PAS de bâtons.", zones: ["Z4"] },
+      { part: "Main", text: "3×8min en côte pente régulière 3-5% SUR ROUTE, effort Z4 (allure seuil ~88-92% VMA équivalent plat, RPE 7-8/10). Redescente 3min Z1 en trottinant. Cadence cible 180-186 spm, foulée courte et fréquente, buste légèrement projeté. Terrain route/asphalte uniquement.", zones: ["Z4"] },
       { part: "Cool-down", text: "10min Z1 sur plat", zones: ["Z1"] }
     ],
     variants: {
