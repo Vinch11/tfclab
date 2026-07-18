@@ -9,18 +9,17 @@ const tt: TargetTable = {
 } as TargetTable;
 
 describe("renderIntensities — ranges de zones", () => {
-  it("annote 'Z2-Z3' (run) comme un seul bloc pace, sans re-annoter Z3", () => {
+  it("annote 'Z2-Z3' (run) comme un seul bloc pace", () => {
     const out = enrichWithAbsoluteValues("Vélo 60' Z2-Z3 endurance", tt, "run");
-    // 1 seule paire de parenthèses immédiate après Z2-Z3
     expect(out).toMatch(/Z2-Z3\s*\([^)]*\/km\)/);
-    // Pas de "Z3 (" résiduel (aurait été le cas avec l'ancien enricher)
-    expect(out).not.toMatch(/-Z3\s*\(/);
+    // exactement une paire de parenthèses
+    expect((out.match(/\(/g) || []).length).toBe(1);
   });
 
   it("annote 'Z2-Z3' (bike) comme un seul bloc watts", () => {
     const out = enrichWithAbsoluteValues("2h Z2-Z3 gut training", tt, "bike");
     expect(out).toMatch(/Z2-Z3\s*\(\d+-\d+W\)/);
-    expect(out).not.toMatch(/-Z3\s*\(/);
+    expect((out.match(/\(/g) || []).length).toBe(1);
   });
 
   it("préserve l'annotation des zones isolées", () => {
