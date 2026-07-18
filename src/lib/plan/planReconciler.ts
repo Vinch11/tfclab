@@ -529,27 +529,33 @@ export function runReconciler(
             const targetDur = s.durationMin ?? origMedian;
             const durBound = Math.max(1, Math.round(0.25 * (targetDur || origMedian || 60)));
             let best: { w: LibraryWorkout; score: number; intent: number; candMedian: number } | null = null;
+            // Compteurs de motifs de rejet — pour calibrer les seuils sans les relâcher à l'aveugle.
+            const rejects = { phase_incompatible: 0, duration_out_of_range: 0, score_too_low: 0 };
+            // Bucket vide = aucun voisin même (sport × famille) dans le catalogue injecté.
+            // On mesure aussi la variante « même sport, famille différente » pour distinguer
+            // family_mismatch (voisins dispo autre famille) de sport_mismatch (rien du tout).
+            let sameSportOtherFamily = 0;
+            if (bucket.length === 0) {
+              for (const [key, arr] of injectedByBucket) {
+                if (key.startsWith(`${sessionSport}::`)) sameSportOtherFamily += arr.length;
+              }
+            }
             for (const cand of bucket) {
               if (cand.id.toUpperCase() === idUp) continue;
-              // Garde 3 — phase compat
               const allowedPhases = ficheAllowedPhases(cand);
-              if (allowedPhases.size > 0 && !allowedPhases.has(weekPhase)) continue;
-              // Garde 4 — écart durée ≤ 25 %
+              if (allowedPhases.size > 0 && !allowedPhases.has(weekPhase)) { rejects.phase_incompatible++; continue; }
               const candMedian = ficheMedian(cand);
-              if (Math.abs(candMedian - (targetDur || origMedian)) > durBound) continue;
-              // Garde 5 — score intent ≥ 2
+              if (Math.abs(candMedian - (targetDur || origMedian)) > durBound) { rejects.duration_out_of_range++; continue; }
               const intent = intentScore(original, cand);
-              if (intent < 2) continue;
+              if (intent < 2) { rejects.score_too_low++; continue; }
               const durPenalty = Math.abs(candMedian - targetDur) / 10;
               const score = intent * 100 - durPenalty;
               if (!best || score > best.score) best = { w: cand, score, intent, candMedian };
             }
             if (best) {
               const before = original.id;
-              // Traçabilité (Reco 3 — observabilité non négociable)
               (s as any).catalogIdOrigin = before;
               (s as any).catalogIdSubstituted = true;
-              // Raison compacte pour audit (phase vs aval — proxy de la classification B5)
               const origAllowedPhases = ficheAllowedPhases(original);
               const reason = origAllowedPhases.size > 0 && !origAllowedPhases.has(weekPhase)
                 ? "retiré_par_filtre_phase"
@@ -563,11 +569,19 @@ export function runReconciler(
                 `[catalog_id_substituted] S${week.weekNumber} ${s.day} ${before} → ${best.w.id} [reason=${reason}, family=${origFamily}, score=${best.intent}, Δdur=${deltaPct}%]`,
               );
             } else {
-              // AUCUN voisin sûr — on NE mute PAS custom, on NE null-ifie PAS catalogId.
-              // B5 remonte le FAIL normalement (signal résiduel visible en rapport).
               counters.id_remap_no_intent_match_fallback_custom++;
+              // Motif dominant : bucket vide ? sinon top rejet parmi les candidats du bucket.
+              let dominant: string;
+              if (bucket.length === 0) {
+                dominant = sameSportOtherFamily > 0
+                  ? `family_mismatch (sameSportOtherFamily=${sameSportOtherFamily})`
+                  : "sport_mismatch (aucun voisin même discipline)";
+              } else {
+                const entries = Object.entries(rejects).sort((a, b) => b[1] - a[1]);
+                dominant = `${entries[0][0]} (${entries.map(([k, v]) => `${k}=${v}`).join(", ")}, bucket=${bucket.length})`;
+              }
               logs.push(
-                `[catalog_id_no_safe_neighbor] S${week.weekNumber} ${s.day} id=${cid} sport=${sessionSport} famille=${origFamily} — B5 flaggera`,
+                `[catalog_id_no_safe_neighbor] S${week.weekNumber} ${s.day} id=${cid} sport=${sessionSport} famille=${origFamily} — dominant=${dominant} — B5 flaggera`,
               );
             }
           }
