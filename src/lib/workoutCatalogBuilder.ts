@@ -658,16 +658,40 @@ export function buildWorkoutCatalog(
     groups.set(key, arr);
   }
 
-  // (a) Socle : 2 meilleures par (sport × famille)
-  const SOCLE_PER_GROUP = 2;
+  // (a) Socle : N meilleures par (sport × famille)
+  //     N = SOCLE_BASE (2) par défaut ; élargi pour les familles ciblées par
+  //     les limiteurs primaire/secondaire (F-LIM-COVERAGE).
+  const SOCLE_BASE = 2;
+  const SOCLE_PRIMARY_LIMITER = 4;
+  const SOCLE_SECONDARY_LIMITER = 3;
+  const primaryFamilies = new Set<IntentFamily>(
+    limiterKeys?.primary ? (LIMITER_KEY_TO_FAMILIES[limiterKeys.primary] || []) : []
+  );
+  const secondaryFamilies = new Set<IntentFamily>(
+    limiterKeys?.secondary ? (LIMITER_KEY_TO_FAMILIES[limiterKeys.secondary] || []) : []
+  );
+  const boostedFamilyCounts: Record<string, number> = {};
   const socleIds = new Set<string>();
-  for (const [, list] of groups) {
-    for (let i = 0; i < Math.min(SOCLE_PER_GROUP, list.length); i++) {
+  for (const [key, list] of groups) {
+    const fam = key.split("::")[1] as IntentFamily;
+    let target = SOCLE_BASE;
+    if (primaryFamilies.has(fam)) target = SOCLE_PRIMARY_LIMITER;
+    else if (secondaryFamilies.has(fam)) target = SOCLE_SECONDARY_LIMITER;
+    const take = Math.min(target, list.length);
+    if (take > SOCLE_BASE) {
+      boostedFamilyCounts[fam] = (boostedFamilyCounts[fam] || 0) + (take - SOCLE_BASE);
+    }
+    for (let i = 0; i < take; i++) {
       socleIds.add(list[i].workout.id);
     }
   }
-  // Marque toutes les fiches du socle (avant insertion → traçabilité socle_evince)
-  for (const id of socleIds) recordAttribution(id, chunkIdx, "selected", /*inSocle*/ true);
+  if (Object.keys(boostedFamilyCounts).length > 0) {
+    console.log(
+      `[socle_limiter_boost] chunk=${options?.chunkIndex ?? 0} ` +
+      `primary=${limiterKeys?.primary ?? "-"} secondary=${limiterKeys?.secondary ?? "-"} ` +
+      `boost=${Object.entries(boostedFamilyCounts).map(([f, n]) => `${f}+${n}`).join(" ")}`,
+    );
+  }
 
   // (c) Si le socle dépasse maxItems → relever le cap
   let effectiveCap = maxItems;
