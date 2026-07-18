@@ -66,21 +66,21 @@ function makePlan(sessions: MergedSession[]): MergedPlan {
 describe("B11 — sémantique des exclusions J-N en race-week", () => {
   it("Openers 'Jamais >J-2' avec when='J-2 avant course' → PASS en race-week", () => {
     const plan = makePlan([makeSession({ catalogId: "OPENER_RUN_J2" })]);
-    const r = checkB11(plan);
+    const r = checkB11(plan, "semi");
     const raceWeekFail = r.details.some(d => /OPENER_RUN_J2.*race-week/i.test(d));
     expect(raceWeekFail).toBe(false);
   });
 
   it("Fiche VO2 avec avoid='J-7 avant course' → FAIL en race-week", () => {
     const plan = makePlan([makeSession({ catalogId: "HARD_INTERVAL_TAPER_BAN" })]);
-    const r = checkB11(plan);
+    const r = checkB11(plan, "semi");
     const flagged = r.details.some(d => /HARD_INTERVAL_TAPER_BAN.*race-week/i.test(d));
     expect(flagged).toBe(true);
   });
 
   it("Mention incidente 'Alcool J-1' dans avoid → NE flagge PAS en race-week", () => {
     const plan = makePlan([makeSession({ catalogId: "NUTRITION_TEST" })]);
-    const r = checkB11(plan);
+    const r = checkB11(plan, "semi");
     const flagged = r.details.some(d => /NUTRITION_TEST.*race-week/i.test(d));
     expect(flagged).toBe(false);
   });
