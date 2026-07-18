@@ -44,7 +44,7 @@ const RUN_HILLS: LibraryWorkout[] = [
     sportKey: "run_hill_sprints",
     structure: [
       { part: "Warm-up", text: "15min footing Z1→Z2 + 4 lignes droites accélérées 60m + 2 montées progressives 15s", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "10×10s en côte à pente modérée (5-8%) SUR ROUTE. Effort maximal contrôlé (Z5), départ arrêté, focus fréquence de foulée haute et projection avant. Récupération : retour en marchant/trottinant vers le point de départ (2-3min, complète). Cadence cible 190+ spm sur l'accélération. Terrain route/asphalte uniquement — PAS de sentier.", zones: ["Z5"] },
+      { part: "Main", text: "10×10s en côte à pente modérée (5-8%) SUR ROUTE. Effort maximal contrôlé (Z5), départ arrêté, focus fréquence de foulée haute et projection avant. Récupération : retour en marchant/trottinant vers le point de départ (2-3min, complète). Cadence cible 190+ spm sur l'accélération. Terrain route/asphalte uniquement.", zones: ["Z5"] },
       { part: "Cool-down", text: "10-15min footing Z1 sur plat + étirements dynamiques mollets/quadriceps", zones: ["Z1"] }
     ],
     variants: {
