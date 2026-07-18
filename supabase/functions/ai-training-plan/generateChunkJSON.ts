@@ -751,11 +751,14 @@ export interface GenerateChunkJSONInput {
 
 /**
  * Génère un chunk JSON validé. 1 seul retry en cas d'échec Zod.
+ * `repairDiag` est présent UNIQUEMENT si un filet conservateur a réparé le
+ * JSON avant validation (chemin succès non silencieux).
  */
 export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<{
   chunk: PlanChunk;
   usedRetry: boolean;
   finishReason?: string;
+  repairDiag?: { attempt: 1 | 2; repairs: string[]; parseError?: string };
 }> {
   const schema = buildPlanChunkSchema(input.allowedCatalogIds, input.schemaOptions);
 
