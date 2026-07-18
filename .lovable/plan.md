@@ -1,164 +1,74 @@
-# Phase 1A — Sortie IA structurée (Markdown → JSON contraint)
+
+# Reco 3 — Substitution automatique des catalogId B5 vers voisin réel
 
 ## Objectif
+Transformer le check B5 d'un simple diagnostic (log "catalogId hors catalogue") en un **filet non silencieux** qui, quand c'est sûr, remplace l'ID fantôme par le voisin le plus proche du catalogue *effectivement injecté* pour ce chunk. Même philosophie que l'hydratation de zone et la réparation JSON : décision loggée, seuils explicites, opt-out possible.
 
-Remplacer la sortie Markdown token-par-token de l'edge `ai-training-plan` par une sortie **JSON validée Zod** dont le schéma est le miroir 1:1 de `ParsedPlan` (déjà défini dans `src/lib/aiPlanParser.ts`). Le parser Markdown côté client devient inutile (Phase 1B, hors périmètre).
+## Portée — ce qu'on substitue, ce qu'on ne substitue jamais
 
-## Point critique à valider AVANT implémentation
+**Éligibles à substitution** (les 3 catégories déjà diagnostiquées) :
+- `retiré_par_filtre_phase` — l'ID existe mais a été retiré du chunk par le filtre de phase.
+- `retiré_aval_filtre` — retiré par cap sport/cat, dédup, prohibitions, etc.
+- `existe_autre_objectif` — ID d'un autre objectif (ex : trail dans un plan semi).
 
-Le contrat client change forcément : l'edge n'émettra plus de deltas OpenAI-compatibles `{"choices":[{"delta":{"content":"..."}}]}` mais des events SSE `chunk-progress` + `chunk-json`. La contrainte "ne pas toucher au viewer/persistance/patcher" est tenue, MAIS **le consommateur SSE côté client (`useAITrainingPlan`) devra impérativement être adapté** — sinon le plan ne s'affiche plus. Deux options :
+**Jamais substitués** :
+- `pur_hallucination` — l'ID n'existe nulle part → on ne peut rien inférer, on laisse le FAIL B5 remonter (visible dans le rapport).
+- Séances `custom: true` — pas d'ID catalogue par définition.
 
-1. **Recommandé** : ajouter au périmètre uniquement l'adaptateur `useAITrainingPlan` qui, à la réception des chunks JSON, sérialise en Markdown compatible (fonction inverse minimale) pour que viewer/parser existants continuent à fonctionner à l'identique. Coût : ~150 lignes, aucun changement UI.
-2. **Alternative** : livrer l'edge en Phase 1A avec un flag serveur `outputFormat: "json" | "markdown"` par défaut `markdown` — le JSON n'est activé que par un test dédié. Rien ne casse en prod jusqu'à Phase 1B.
+## Règles de similarité (garde-fous stricts)
 
-À défaut de décision, j'irai avec **option 2** (feature flag) : plus sûr, découplage total, tu actives quand la Phase 1B est prête.
+Un candidat de substitution DOIT satisfaire **toutes** ces conditions :
+1. **Même discipline normalisée** — swim/bike/run/strength/mobility (via `normSp` existant). Cross-sport interdit.
+2. **Même famille d'intention** — via `intentFamily.ts` déjà présent (endurance / seuil / vo2 / sprint / technique / récup). Un fartlek ≠ une sortie longue.
+3. **Écart de durée ≤ 25 %** — comparaison de la médiane `durationMin` de la fiche fantôme vs candidate.
+4. **Phase compatible** — la fiche candidate doit avoir la phase du chunk dans ses `phase` autorisées (ou aucune contrainte).
+5. **Score de recouvrement tags/goals ≥ 2** — au moins 2 tags communs (déjà calculé dans le neighbor engine actuel).
 
-## Architecture cible
+Si aucun candidat ne satisfait ces 5 conditions → **pas de substitution**, le FAIL B5 remonte tel quel (mieux vaut un check rouge qu'un mauvais mapping).
 
-### 1. `planSchema.ts` (nouveau)
+## Emplacement dans le pipeline
 
-Schéma Zod miroir de `ParsedPlan`. Entête = table de correspondance :
+**Nouvelle passe `substituteHallucinatedCatalogIds`** dans `src/lib/plan/planReconciler.ts`, exécutée **après** `hydrateDilutedZones` et **avant** le retour du plan réconcilié — donc avant les checks QA. La substitution muterait `session.catalogId` uniquement (jamais le texte de la séance : c'est un remapping de référence, pas de contenu).
 
-| ParsedPlan (client)       | zPlan (LLM)                | Origine |
-| ------------------------- | -------------------------- | ------- |
-| `title`                   | `title`                    | LLM     |
-| `diagnostic?`             | `diagnostic?`              | LLM     |
-| `strategicRecap?`         | `strategicRecap?` (miroir) | LLM (chunk 1 uniquement) |
-| `phases[]`                | `phases[]`                 | LLM     |
-| `weeks[].weekNumber`      | id.                        | LLM     |
-| `weeks[].phase`           | `phase` enum `base\|build\|peak\|taper` | LLM |
-| `weeks[].theme`           | id.                        | LLM     |
-| `weeks[].phaseObjective?` | id.                        | LLM     |
-| `weeks[].volumeTarget`    | **supprimé** (recalculé)   | — (contrainte N°4) |
-| `weeks[].computedVolumeMin/Str` | **supprimé du schéma LLM** | computed client |
-| `weeks[].coachNotes?`     | `weeklyNotes?`             | LLM     |
-| `sessions[].dayName`      | `day` enum `lundi..dimanche` | LLM   |
-| `sessions[].dayIndex`     | **supprimé** (dérivé du day) | computed edge |
-| `sessions[].sport`        | `sport` enum `swim\|bike\|run\|brick\|strength\|recovery\|rest` | LLM |
-| `sessions[].title`        | id.                        | LLM     |
-| `sessions[].details`      | id.                        | LLM     |
-| `sessions[].isRest`       | **dérivé** (`sport==="rest"`) | computed edge |
-| —                         | `isKeySession: boolean`    | remplace marqueur 🔑 |
-| —                         | `catalogId: string \| null` | LLM (enum runtime) |
-| —                         | `custom: boolean`          | LLM     |
-| —                         | `durationMin: number`      | LLM (source de volume) |
-| —                         | `zones: string[]`          | LLM     |
+## Observabilité (non négociable)
 
-Discriminant contrainte N°2 : `zSessionRef` (`custom=false` → `catalogId ∈ enum runtime`), `zSessionCustom` (`custom=true` → `catalogId=null`), `zSessionRest` (`sport=rest`, aucun catalogId, `durationMin=0`), union discriminée sur `custom` + `sport`.
+À chaque substitution :
+- `session.catalogIdOrigin = "<ancien>"` — trace conservée sur la session pour audit.
+- `session.catalogIdSubstituted = true`.
+- Ligne `semanticRepairs` : `"catalog_id_substituted: S{w} {day} {oldId} → {newId} [reason={cat}, score={n}, Δdur={x}%]"`.
+- Compteur `catalogSubstitutions=N` ajouté au `[summary]` dans `useAITrainingPlan.ts`, à côté de `jsonRepairs`.
+- Nouveau champ dans `PlanGenerationStat` : `catalogSubstitutions?: number` (mirroré Cloud pour /debug/plan-qa comme le reste).
 
-Fabrique `buildPlanChunkSchema(allowedCatalogIds: string[])` : construit `z.enum([...])` à l'appel (contrainte N°2). Extraction des IDs depuis le catalog string du chunk (`chunkCatalogs[i]`) via regex `/^([A-Z0-9_]+)\s+/m` sur les lignes du dump catalogue.
+## Impact sur les checks QA
 
-### 2. `mergePlanChunks.ts` (nouveau, contrainte N°4)
+- **B5** : les IDs substitués sortent naturellement du "hors catalogue" (leur nouvel ID est dans `allowedIds`). Le check restera FAIL uniquement sur les `pur_hallucination` et les cas où aucun voisin sûr n'a été trouvé.
+- **B10/B11** : la substitution respectant discipline + intention + phase, ces checks ne doivent pas se dégrader. Un test unitaire le vérifiera.
 
-- `mergePlanChunks(chunks: PlanChunk[], totalWeeks: number): ParsedPlan`
-- Ordonne par `weekNumber`, vérifie couverture `1..totalWeeks` sans trou ni doublon → erreur explicite `[SCHEMA_FAIL] gap|dup` sinon.
-- Concatène `weeks`, prend `title/phases/diagnostic/strategicRecap` du premier chunk qui les fournit.
-- **N'inclut aucun champ de volume déclaré** — le champ est absent du schéma, donc rien à faire côté merge.
-- Tests unitaires Deno (`mergePlanChunks.test.ts`) : chunks désordonnés, semaine manquante, doublon, chunk unique.
+## Livrables
 
-### 3. `index.ts` — refonte de la boucle de génération
+1. `src/lib/plan/planReconciler.ts` — nouvelle fonction `substituteHallucinatedCatalogIds(plan, injectedCatalogIds, planPhases)` + intégration dans la passe principale.
+2. `src/lib/plan/__tests__/reconcilerSubstitute.test.ts` — 4 cas :
+   - Substitution réussie (retiré_par_filtre_phase, voisin idéal).
+   - Refus (discipline différente).
+   - Refus (écart durée > 25 %).
+   - Pas de touche sur `pur_hallucination`.
+3. `src/hooks/useAITrainingPlan.ts` — compteur `catalogSubstitutions=N` dans le summary + push des lignes dans `semanticRepairs`.
+4. `src/lib/plan/planGenerationStats.ts` — champ `catalogSubstitutions?: number` + colonne miroir Cloud (best-effort).
 
-Nouvelle fonction `generateChunkJSON(systemPrompt, userPrompt, allowedIds, chunkIndex)` :
+## Non-buts (pour cadrer le scope)
 
-```
-POST https://ai.gateway.lovable.dev/v1/chat/completions
-body: {
-  model: "google/gemini-3-flash-preview",
-  messages: [{system}, {user}],
-  response_format: { type: "json_schema", json_schema: {
-    name: "plan_chunk",
-    strict: true,
-    schema: zodToJsonSchema(buildPlanChunkSchema(allowedIds))
-  }},
-  stream: false
-}
-```
-- Validation `buildPlanChunkSchema(allowedIds).safeParse(JSON.parse(content))`.
-- Échec → **1 seul retry** avec `user += "\n\nCORRECTION REQUISE (schéma) : " + zodErrorsCompact`.
-- 2ᵉ échec → SSE event `{type:"error",chunkIndex,code:"SCHEMA_FAIL",errors}` + log `[SCHEMA_FAIL]` + fermeture stream. Jamais de 3ᵉ tentative.
+- On ne modifie pas le prompt IA (pas de re-génération, pas d'appel supplémentaire).
+- On ne touche pas au moteur de génération de chunks.
+- On ne remappe pas les `pur_hallucination` (les FAIL B5 restants seront le vrai signal résiduel à traiter dans une itération future).
+- On ne mute jamais le texte de la séance — juste l'ID de référence.
 
-Contrat SSE nouveau (contrainte N°3) :
-```
-event: chunk-progress
-data: {"chunkIndex":0,"totalChunks":3,"status":"generating"}
+## Validation
 
-event: chunk-json
-data: <PlanChunk JSON complet du chunk validé>
+- Typecheck vert + 4/4 tests unitaires.
+- Un QA N=3 après merge doit montrer :
+  - `catalogSubstitutions=N` visible dans les 9 summaries.
+  - Baisse nette du taux de FAIL B5, ne laissant que les `pur_hallucination`.
+  - Aucune régression B10/B11.
 
-event: chunk-progress
-data: {"chunkIndex":0,"totalChunks":3,"status":"done"}
-
-... (chunks suivants) ...
-
-event: plan-complete
-data: {"totalChunks":3}
-
-event: error
-data: {"chunkIndex":1,"code":"SCHEMA_FAIL",...}   // si échec
-```
-
-Feature flag (option 2 recommandée) : header `X-Plan-Output-Format: json` ou champ `planConfig._outputFormat === "json"` active le nouveau chemin ; sinon fallback intégral sur l'existant. Zéro changement de comportement en prod tant que le flag n'est pas activé.
-
-### 4. `systemPrompt.ts` — nettoyage
-
-**Supprimer** (règles obsolètes après passage JSON) :
-- RÈGLE #0 H1 / `h1Rewrite` (schéma impose `title`)
-- Format tableau Markdown + colonne "Détails"
-- Marqueur `🔑` (remplacé par `isKeySession: true`)
-- Buffer de streaming `h1Rewrite` dans `index.ts` (~40 lignes)
-- Toutes les instructions "utilise ce format exact de tableau"
-- Anti-semaine-vide format-driven (le schéma impose ≥1 session ou `sport=rest` explicite)
-
-**Conserver intégralement** (défenses sémantiques) :
-- Verrous sport / cross-sport (rule 6 non-cross-sport)
-- Ratios `sportRatioMatrix`
-- Règles Lorang (A/B/C/D, ratios A%/B%/C%)
-- W'bal recovery reminders
-- Hard-ban trail (déjà en place)
-- `nutritionAndSafetyGuardrails`
-- `ambitionDefense`
-
-Ajouter en tête : "Tu produis un JSON conforme au schéma fourni via `response_format`. Aucun Markdown. Aucun texte hors JSON."
-
-### 5. Chemin `regenerateWeek`
-
-Même schéma, même route, mais `buildPlanChunkSchema` avec `weeks` de longueur exacte = 1 (raffiner via `.length(1)`). Enum IDs autorisés = catalog de la phase de la semaine régénérée.
-
-## Périmètre non-touché (contrainte)
-
-- `src/pages/AITrainingPlanPage.tsx` (viewer)
-- `src/lib/aiPlanParser.ts` (Markdown parser — désactivé Phase 1B)
-- `plan_versions` persistence
-- `planPatcher.ts`
-- `useAITrainingPlan.ts` **si option 2 (flag off en prod)** ; sinon adaptateur JSON→Markdown minimal
-
-## Fichiers créés / modifiés
-
-**Créés** (edge uniquement) :
-- `supabase/functions/ai-training-plan/planSchema.ts` (~200 lignes)
-- `supabase/functions/ai-training-plan/mergePlanChunks.ts` (~80 lignes)
-- `supabase/functions/ai-training-plan/mergePlanChunks.test.ts` (Deno test, ~120 lignes)
-- `supabase/functions/ai-training-plan/generateChunkJSON.ts` (~130 lignes, isole l'appel gateway + retry)
-
-**Modifiés** :
-- `supabase/functions/ai-training-plan/index.ts` : nouveau chemin JSON derrière flag ; nettoyage `h1Rewrite` et logique de format tableau (uniquement dans le nouveau chemin — l'ancien reste intact)
-- `supabase/functions/ai-training-plan/systemPrompt.ts` : nouveau builder `getSystemPromptJSON(...)` en parallèle de l'existant, purge des règles format Markdown
-
-## Ce qui reste EXPLICITEMENT hors Phase 1A
-
-- Adaptateur / migration du client (`useAITrainingPlan`, viewer) → Phase 1B
-- Suppression définitive de `aiPlanParser.ts` → Phase 1B après bascule complète
-- Refonte du chunker (nombre de semaines par chunk) → Phase 2
-- Squelette déterministe (slots pré-calculés hors LLM) → Phase 2
-
-## Risques identifiés
-
-1. **Gemini `json_schema` support** — Le gateway route `google/*` via OpenRouter. `response_format:json_schema` peut être partiellement supporté. Fallback prévu : `response_format:{type:"json_object"}` + validation Zod post-hoc + retry (comportement identique côté validation, seul le "server-side enforcement" est absent).
-2. **Taille du schéma JSON pour catalogues >200 IDs** — Gemini rejette les enums >~500 valeurs. Cap à 150 IDs par chunk (déjà proche de `maxItems:80` actuel).
-3. **Débordement `max_tokens`** — JSON verbeux > Markdown. Passer `max_tokens: 65536` → provider default et vérifier par test.
-
-## Décisions à confirmer avant que je code
-
-1. Option 1 (adaptateur client léger) ou **option 2 (feature flag serveur)** ?
-2. Nom du feature flag : `planConfig._outputFormat` ou header HTTP ?
-3. Faut-il conserver l'émission de `warningBanners` LCW / compliance dans le nouveau chemin JSON (via un champ `weeklyNotes` ou un event SSE dédié `warning`) ?
+---
+Si tu valides, j'implémente les 4 fichiers en une passe.
