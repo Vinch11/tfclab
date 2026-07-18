@@ -426,6 +426,11 @@ export default function PlanQAPage() {
       {/* Live logs viewer — edge (via SSE) + client */}
       <LiveLogsPanel />
 
+      {/* JSON repair self-test — always visible, no credits */}
+      <JsonRepairSelfTestPanel />
+
+
+
 
 
 
@@ -515,7 +520,7 @@ export default function PlanQAPage() {
             </Button>
           </div>
           <TrailProbePanel />
-          <JsonRepairSelfTestPanel />
+
           {qa.progress.running && (
             <div className="rounded border border-border/60 p-3 text-xs space-y-1">
               <div>
