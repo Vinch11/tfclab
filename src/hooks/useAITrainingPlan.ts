@@ -822,7 +822,8 @@ export function useAITrainingPlan() {
           const customRatio = nonRest > 0 ? customCount / nonRest : 0;
           const subCount = semanticRepairs.filter(r => r.includes("substituted_offsport")).length;
           const unresolvedCount = semanticRepairs.filter(r => r.includes("offsport_unresolved")).length;
-          semanticRepairs.unshift(`[summary] customRatio=${Math.round(customRatio * 100)}% (${customCount}/${nonRest}), substitutions=${subCount}, unresolved=${unresolvedCount}`);
+          const jsonRepairCount = semanticRepairs.filter(r => r.includes("json_repair:")).length;
+          semanticRepairs.unshift(`[summary] customRatio=${Math.round(customRatio * 100)}% (${customCount}/${nonRest}), substitutions=${subCount}, unresolved=${unresolvedCount}, jsonRepairs=${jsonRepairCount}`);
           logPlanStat({
             ts: Date.now(), format: "json", objective: planConfig.objective ?? null,
             totalWeeks, totalChunks, durationMs: jsonDurMs, ok: true,
