@@ -96,6 +96,8 @@ interface AttemptDiagnostic {
   }>;
   zodErrorText: string;
   repairs: string[];
+  /** JSON-level conservative repairs (trailing_comma / bom / balance_close). */
+  jsonRepairs: string[];
   gateway: GatewayDiagnostic;
 }
 
