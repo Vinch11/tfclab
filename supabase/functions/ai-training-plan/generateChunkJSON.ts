@@ -535,6 +535,45 @@ function rawSnippet(raw: string) {
   };
 }
 
+/** Extrait l'offset numérique d'un message d'erreur JSON.parse (V8/Deno). */
+function extractParseOffset(msg: string): number | null {
+  const mPos = msg.match(/position\s+(\d+)/i);
+  if (mPos) return Number(mPos[1]);
+  const mChar = msg.match(/char\s+(\d+)/i);
+  if (mChar) return Number(mChar[1]);
+  return null;
+}
+
+/**
+ * Réparation JSON CONSERVATRICE — uniquement des corrections sûres qui ne peuvent PAS
+ * inventer de données ni changer le sens.
+ */
+function conservativeJsonRepair(input: string): { text: string; changed: boolean; repairs: string[] } {
+  let text = input;
+  const repairs: string[] = [];
+
+  const before1 = text;
+  text = text.replace(/,(\s*[}\]])/g, "$1");
+  if (text !== before1) repairs.push("trailing_comma");
+
+  const before2 = text;
+  text = text.replace(/^\uFEFF/, "");
+  if (text !== before2) repairs.push("bom");
+
+  const opensCurly = (text.match(/{/g) || []).length;
+  const closesCurly = (text.match(/}/g) || []).length;
+  const opensSquare = (text.match(/\[/g) || []).length;
+  const closesSquare = (text.match(/\]/g) || []).length;
+  const missingCurly = opensCurly - closesCurly;
+  const missingSquare = opensSquare - closesSquare;
+  if (missingCurly >= 0 && missingSquare >= 0 && missingCurly + missingSquare > 0 && missingCurly + missingSquare <= 3) {
+    text = text + "]".repeat(missingSquare) + "}".repeat(missingCurly);
+    repairs.push(`balance_close(sq=${missingSquare},cu=${missingCurly})`);
+  }
+
+  return { text, changed: repairs.length > 0, repairs };
+}
+
 function extractJSONText(raw: string): ParseDiagnostic {
   let payload: string;
   let unwrapped = false;
@@ -571,13 +610,43 @@ function extractJSONText(raw: string): ParseDiagnostic {
       repairs: [],
     };
   } catch (e) {
+    const firstError = e instanceof Error ? e.message : String(e);
+
+    // Filet défensif CONSERVATEUR : réparations minimales et sûres uniquement.
+    const repaired = conservativeJsonRepair(payload);
+    if (repaired.changed) {
+      try {
+        const parsedRepaired = JSON.parse(repaired.text);
+        if (parsedRepaired && typeof parsedRepaired === "object" && !Array.isArray(parsedRepaired)) {
+          console.warn(
+            `[generateChunkJSON] JSON réparé (conservateur) — repairs=${repaired.repairs.join(", ")} · firstError="${firstError}"`,
+          );
+          return {
+            parsedJson: parsedRepaired,
+            unwrapped,
+            unwrapMethod: method,
+            cleanedLength: repaired.text.length,
+            parseError: `recovered_after_repair: ${firstError}`,
+            repairs: repaired.repairs,
+          };
+        }
+      } catch {
+        // réparation insuffisante
+      }
+    }
+
+    const offset = extractParseOffset(firstError);
+    const around = offset != null
+      ? payload.slice(Math.max(0, offset - 120), offset + 120)
+      : payload.slice(0, 240);
+
     return {
       parsedJson: null,
       unwrapped,
       unwrapMethod: method,
       cleanedLength: payload.length,
-      parseError: e instanceof Error ? e.message : String(e),
-      repairs: [],
+      parseError: `${firstError} | near>>>${around}<<<`,
+      repairs: repaired.changed ? repaired.repairs : [],
     };
   }
 }
