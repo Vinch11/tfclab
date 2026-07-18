@@ -981,7 +981,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           };
 
           try {
-            const { chunk: planChunk, usedRetry, finishReason } = await generateChunkJSON({
+            const { chunk: planChunk, usedRetry, finishReason, repairDiag } = await generateChunkJSON({
               apiKey,
               model: PRIMARY_MODEL,
               systemPrompt,
@@ -997,6 +997,22 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             if (usedRetry) {
               enqueue("chunk-progress", {
                 chunkIndex: ci, totalChunks, status: "retry-succeeded",
+              });
+            }
+
+            if (repairDiag) {
+              const msg = `chunk=${ci} attempt=${repairDiag.attempt} repairs=[${repairDiag.repairs.join(",")}] parseError="${(repairDiag.parseError ?? "").slice(0, 200)}"`;
+              console.warn(`[json_repair] ${msg}`);
+              enqueue("warning", {
+                code: "json_repair",
+                severity: "info",
+                message: msg,
+                repair: {
+                  chunkIndex: ci,
+                  attempt: repairDiag.attempt,
+                  repairs: repairDiag.repairs,
+                  parseError: repairDiag.parseError,
+                },
               });
             }
 

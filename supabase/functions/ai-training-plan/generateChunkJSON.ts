@@ -96,6 +96,8 @@ interface AttemptDiagnostic {
   }>;
   zodErrorText: string;
   repairs: string[];
+  /** JSON-level conservative repairs (trailing_comma / bom / balance_close). */
+  jsonRepairs: string[];
   gateway: GatewayDiagnostic;
 }
 
@@ -548,7 +550,7 @@ function extractParseOffset(msg: string): number | null {
  * Réparation JSON CONSERVATRICE — uniquement des corrections sûres qui ne peuvent PAS
  * inventer de données ni changer le sens.
  */
-function conservativeJsonRepair(input: string): { text: string; changed: boolean; repairs: string[] } {
+export function conservativeJsonRepair(input: string): { text: string; changed: boolean; repairs: string[] } {
   let text = input;
   const repairs: string[] = [];
 
@@ -749,11 +751,14 @@ export interface GenerateChunkJSONInput {
 
 /**
  * Génère un chunk JSON validé. 1 seul retry en cas d'échec Zod.
+ * `repairDiag` est présent UNIQUEMENT si un filet conservateur a réparé le
+ * JSON avant validation (chemin succès non silencieux).
  */
 export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<{
   chunk: PlanChunk;
   usedRetry: boolean;
   finishReason?: string;
+  repairDiag?: { attempt: 1 | 2; repairs: string[]; parseError?: string };
 }> {
   const schema = buildPlanChunkSchema(input.allowedCatalogIds, input.schemaOptions);
 
@@ -866,16 +871,31 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
         zodIssues: parsed.success ? [] : issuesFromZodError(parsed.error),
         zodErrorText,
         repairs: normalized.repairs,
+        jsonRepairs: extracted.repairs,
         gateway: gatewayDiagnostic,
       },
     };
+  };
+
+  const buildRepairDiag = (
+    attempt: 1 | 2,
+    diag: AttemptDiagnostic,
+  ): { attempt: 1 | 2; repairs: string[]; parseError?: string } | undefined => {
+    const recovered = typeof diag.parseError === "string" && diag.parseError.startsWith("recovered_after_repair");
+    if (!recovered && diag.jsonRepairs.length === 0) return undefined;
+    return { attempt, repairs: diag.jsonRepairs, parseError: diag.parseError };
   };
 
   // 1ère tentative
   const first = await tryOnce(input.userPrompt);
   first.diagnostic.attempt = 1;
   if (first.parsed.success) {
-    return { chunk: first.parsed.data, usedRetry: false, finishReason: first.finishReason };
+    return {
+      chunk: first.parsed.data,
+      usedRetry: false,
+      finishReason: first.finishReason,
+      repairDiag: buildRepairDiag(1, first.diagnostic),
+    };
   }
 
   // Retry unique avec erreurs Zod injectées.
@@ -898,7 +918,12 @@ Rappels non négociables :
   const second = await tryOnce(retryPrompt);
   second.diagnostic.attempt = 2;
   if (second.parsed.success) {
-    return { chunk: second.parsed.data, usedRetry: true, finishReason: second.finishReason };
+    return {
+      chunk: second.parsed.data,
+      usedRetry: true,
+      finishReason: second.finishReason,
+      repairDiag: buildRepairDiag(2, second.diagnostic),
+    };
   }
 
   const errList2 = formatZodErrors(second.parsed.error);

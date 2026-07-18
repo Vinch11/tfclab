@@ -28,6 +28,7 @@ import { LiveLogsPanel } from "@/components/debug/LiveLogsPanel";
 import { buildQAReport, readQASessions, readQASessionsCloud, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductionSentinelPanel } from "@/components/plan-qa/ProductionSentinelPanel";
+import { JsonRepairSelfTestPanel } from "@/components/plan-qa/JsonRepairSelfTestPanel";
 import { toast } from "sonner";
 
 function formatDuration(ms: number): string {
@@ -514,6 +515,7 @@ export default function PlanQAPage() {
             </Button>
           </div>
           <TrailProbePanel />
+          <JsonRepairSelfTestPanel />
           {qa.progress.running && (
             <div className="rounded border border-border/60 p-3 text-xs space-y-1">
               <div>

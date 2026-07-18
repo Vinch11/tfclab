@@ -660,6 +660,14 @@ export function useAITrainingPlan() {
             const code = data.code ?? "warning";
             const severity = data.severity ?? "warning";
             const repair = data.repair;
+            if (code === "json_repair" && repair) {
+              const rlist = Array.isArray(repair.repairs) ? repair.repairs.join(",") : "";
+              const pe = typeof repair.parseError === "string" ? repair.parseError.slice(0, 200) : "";
+              semanticRepairs.push(
+                `[info] json_repair: chunk=${repair.chunkIndex ?? "?"} attempt=${repair.attempt ?? "?"} repairs=[${rlist}] parseError="${pe}"`,
+              );
+              return;
+            }
             if (code === "value_check_summary" && data.summary) {
               const s = data.summary;
               // Contrat v2 : { tokens, conforme, relativized, unresolved, residualAbsolute }
@@ -814,7 +822,8 @@ export function useAITrainingPlan() {
           const customRatio = nonRest > 0 ? customCount / nonRest : 0;
           const subCount = semanticRepairs.filter(r => r.includes("substituted_offsport")).length;
           const unresolvedCount = semanticRepairs.filter(r => r.includes("offsport_unresolved")).length;
-          semanticRepairs.unshift(`[summary] customRatio=${Math.round(customRatio * 100)}% (${customCount}/${nonRest}), substitutions=${subCount}, unresolved=${unresolvedCount}`);
+          const jsonRepairCount = semanticRepairs.filter(r => r.includes("json_repair:")).length;
+          semanticRepairs.unshift(`[summary] customRatio=${Math.round(customRatio * 100)}% (${customCount}/${nonRest}), substitutions=${subCount}, unresolved=${unresolvedCount}, jsonRepairs=${jsonRepairCount}`);
           logPlanStat({
             ts: Date.now(), format: "json", objective: planConfig.objective ?? null,
             totalWeeks, totalChunks, durationMs: jsonDurMs, ok: true,
