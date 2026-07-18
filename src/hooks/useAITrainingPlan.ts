@@ -831,8 +831,10 @@ export function useAITrainingPlan() {
             totalWeeks, totalChunks, durationMs: jsonDurMs, ok: true,
             sportObjectiveCriticalIssues: sportIssuesCount,
             customRatio, customSessionCount: customCount, nonRestSessionCount: nonRest,
+            catalogSubstitutions,
             semanticRepairs,
           });
+
           setIsLoading(false);
           return;
         }
