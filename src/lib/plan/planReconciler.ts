@@ -501,8 +501,18 @@ export function runReconciler(
         arr.push(w);
         injectedByBucket.set(key, arr);
       }
+      // Garde-fous stricts (Reco 3 — filet non silencieux) :
+      //  1. Même discipline normalisée.
+      //  2. Même famille d'intention (intentFamilyOf).
+      //  3. Phase compatible avec la semaine (ficheAllowedPhases).
+      //  4. Écart de durée ≤ 25 % (médiane candidate vs cible séance / médiane originale).
+      //  5. Score intentScore ≥ 2 (min 1 cat OU 1 goal partagé).
+      // Si aucun candidat ne satisfait TOUS les critères → PAS de substitution :
+      // on laisse `catalogId` intact pour que B5 remonte le FAIL (mieux vaut
+      // un check rouge visible qu'un mauvais mapping silencieux).
       for (const chunk of chunks) {
         for (const week of chunk.weeks ?? []) {
+          const weekPhase = week.phase as PlanPhase;
           for (const s of (week.sessions ?? []) as PlanSession[]) {
             if ((s as any).isRest || s.sport === "rest") continue;
             if (s.custom) continue;
@@ -511,34 +521,53 @@ export function runReconciler(
             const idUp = cid.toUpperCase();
             if (injected.has(idUp)) continue; // déjà dans le catalogue injecté
             const original = FICHES_BY_ID.get(idUp);
-            if (!original) continue; // pas dans la librairie du tout → laisser B5 traiter
+            if (!original) continue; // pur_hallucination → laisser B5 traiter
             const sessionSport = normSport(s.sport);
             const origFamily = intentFamilyOf(original);
             const bucket = injectedByBucket.get(`${sessionSport}::${origFamily}`) ?? [];
-            // Choisir le voisin le plus proche en durée
-            const targetDur = s.durationMin ?? ficheMedian(original);
-            let best: { w: LibraryWorkout; score: number } | null = null;
+            const origMedian = ficheMedian(original);
+            const targetDur = s.durationMin ?? origMedian;
+            const durBound = Math.max(1, Math.round(0.25 * (targetDur || origMedian || 60)));
+            let best: { w: LibraryWorkout; score: number; intent: number; candMedian: number } | null = null;
             for (const cand of bucket) {
               if (cand.id.toUpperCase() === idUp) continue;
-              const durPenalty = Math.abs(ficheMedian(cand) - targetDur) / 10;
+              // Garde 3 — phase compat
+              const allowedPhases = ficheAllowedPhases(cand);
+              if (allowedPhases.size > 0 && !allowedPhases.has(weekPhase)) continue;
+              // Garde 4 — écart durée ≤ 25 %
+              const candMedian = ficheMedian(cand);
+              if (Math.abs(candMedian - (targetDur || origMedian)) > durBound) continue;
+              // Garde 5 — score intent ≥ 2
               const intent = intentScore(original, cand);
+              if (intent < 2) continue;
+              const durPenalty = Math.abs(candMedian - targetDur) / 10;
               const score = intent * 100 - durPenalty;
-              if (!best || score > best.score) best = { w: cand, score };
+              if (!best || score > best.score) best = { w: cand, score, intent, candMedian };
             }
             if (best) {
               const before = original.id;
+              // Traçabilité (Reco 3 — observabilité non négociable)
+              (s as any).catalogIdOrigin = before;
+              (s as any).catalogIdSubstituted = true;
+              // Raison compacte pour audit (phase vs aval — proxy de la classification B5)
+              const origAllowedPhases = ficheAllowedPhases(original);
+              const reason = origAllowedPhases.size > 0 && !origAllowedPhases.has(weekPhase)
+                ? "retiré_par_filtre_phase"
+                : "retiré_aval_filtre";
+              const deltaPct = origMedian > 0
+                ? Math.round((100 * Math.abs(best.candMedian - origMedian)) / origMedian)
+                : 0;
               assignFiche(s, best.w, s.durationMin);
               counters.id_remapped_to_neighbor++;
               logs.push(
-                `[id_remapped_to_neighbor] W${week.weekNumber}/${s.day} ancien=${before} nouveau=${best.w.id} famille=${origFamily} sport=${sessionSport} score=${best.score.toFixed(1)}`,
+                `[catalog_id_substituted] S${week.weekNumber} ${s.day} ${before} → ${best.w.id} [reason=${reason}, family=${origFamily}, score=${best.intent}, Δdur=${deltaPct}%]`,
               );
             } else {
-              // Bascule custom (préserve intention textuelle, retire catalogId invalide)
-              (s as any).custom = true;
-              (s as any).catalogId = null;
+              // AUCUN voisin sûr — on NE mute PAS custom, on NE null-ifie PAS catalogId.
+              // B5 remonte le FAIL normalement (signal résiduel visible en rapport).
               counters.id_remap_no_intent_match_fallback_custom++;
               logs.push(
-                `[id_remap_no_intent_match_fallback_custom] W${week.weekNumber}/${s.day} id=${cid} sport=${sessionSport} famille=${origFamily}`,
+                `[catalog_id_no_safe_neighbor] S${week.weekNumber} ${s.day} id=${cid} sport=${sessionSport} famille=${origFamily} — B5 flaggera`,
               );
             }
           }
@@ -546,6 +575,7 @@ export function runReconciler(
       }
     }
   }
+
 
   for (let i = 0; i < maxPasses; i++) {
     const changed = runOnePass(chunks, quotasByWeek, counters, logs);
