@@ -378,7 +378,14 @@ export function checkB10(plan: MergedPlan): CheckResult {
       const nonCardio = isNonCardio(fiche.sport) || isNonCardio(s.sport) || isNonCardio(fiche.id);
 
       // a. discipline
-      if (fSp !== "other" && iSp !== "other" && fSp !== iSp) {
+      // Non-cardio disciplines (strength/recovery/mobility/breathwork) sont
+      // interchangeables : une fiche yoga/foam-roll taguée `strength` peut
+      // légitimement occuper un slot `recovery` du plan (et inversement).
+      // On ne flagge un mismatch que sur les disciplines cardio structurantes.
+      const bothNonCardio =
+        !CARDIO_SPORTS.has(fSp) && !CARDIO_SPORTS.has(iSp) &&
+        fSp !== "other" && iSp !== "other";
+      if (fSp !== "other" && iSp !== "other" && fSp !== iSp && !bothNonCardio) {
         pass = false;
         details.push(`S${w.weekNumber} ${s.dayName} · ${s.catalogId} — discipline ${iSp} ≠ fiche ${fSp}`);
       }
