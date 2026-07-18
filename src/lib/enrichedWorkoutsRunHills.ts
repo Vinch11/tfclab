@@ -74,7 +74,7 @@ const RUN_HILLS: LibraryWorkout[] = [
     sportKey: "run_hill_vo2",
     structure: [
       { part: "Warm-up", text: "15min Z1→Z2 + 4×20s progressif + 3min Z2 haut", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "8×60-90s en côte pente 4-6% SUR ROUTE, effort Z5 (allure ~95-100% VMA équivalent plat). Redescente en trottinant Z1 (récupération 1:1 à 1:1.5). Focus posture haute, bras actifs, cadence 185-192 spm. Terrain route/piste, PAS de sentier ni de single technique.", zones: ["Z5"] },
+      { part: "Main", text: "8×60-90s en côte pente 4-6% SUR ROUTE, effort Z5 (allure ~95-100% VMA équivalent plat). Redescente en trottinant Z1 (récupération 1:1 à 1:1.5). Focus posture haute, bras actifs, cadence 185-192 spm. Terrain route/piste uniquement.", zones: ["Z5"] },
       { part: "Cool-down", text: "10-15min Z1 sur plat", zones: ["Z1"] }
     ],
     variants: {
