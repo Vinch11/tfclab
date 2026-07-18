@@ -92,9 +92,11 @@ describe("runReconciler — substitution catalogId vers voisin réel (Reco 3)", 
       day: "mardi", sport: "run", title: "Seuil", details: "", isKeySession: true,
       custom: false, catalogId: "GHOST_RUN_SEUIL_PEAK", durationMin: 60, zones: ["Z4"],
     };
-    // Injecte SEULEMENT le voisin bike (sport différent)
+    // Injecte SEULEMENT le voisin bike (sport différent).
+    // Week phase = "peak" pour éviter que runOnePass (phase reconciler générique)
+    // ne substitue depuis la librairie complète : on isole strictement le filet neighbor-remap.
     const injected = new Set(["NEIGHBOR_BIKE_SEUIL_BUILD"]);
-    const rec = runReconciler([makeChunk(s, "build")], {}, 1, injected);
+    const rec = runReconciler([makeChunk(s, "peak")], {}, 1, injected);
     expect(rec.counters.id_remapped_to_neighbor).toBe(0);
     expect(rec.counters.id_remap_no_intent_match_fallback_custom).toBe(1);
     expect(s.catalogId).toBe("GHOST_RUN_SEUIL_PEAK"); // inchangé
@@ -108,11 +110,13 @@ describe("runReconciler — substitution catalogId vers voisin réel (Reco 3)", 
       custom: false, catalogId: "GHOST_RUN_SEUIL_PEAK", durationMin: 60, zones: ["Z4"],
     };
     // Injecte SEULEMENT le voisin trop long (médiane 120 vs cible 60 → Δ=60 > 15).
+    // Week phase = "peak" pour la même raison qu'au cas 2.
     const injected = new Set(["NEIGHBOR_RUN_SEUIL_LONG"]);
-    const rec = runReconciler([makeChunk(s, "build")], {}, 1, injected);
+    const rec = runReconciler([makeChunk(s, "peak")], {}, 1, injected);
     expect(rec.counters.id_remapped_to_neighbor).toBe(0);
     expect(s.catalogId).toBe("GHOST_RUN_SEUIL_PEAK");
   });
+
 
   it("Cas 4 : pur_hallucination (ID absent de la librairie) → aucune touche, laissé pour B5", () => {
     const s: any = {
