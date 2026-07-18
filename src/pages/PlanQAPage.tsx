@@ -28,6 +28,7 @@ import { LiveLogsPanel } from "@/components/debug/LiveLogsPanel";
 import { buildQAReport, readQASessions, readQASessionsCloud, clearQASessions, type QASession } from "@/lib/plan/qa/verdict";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductionSentinelPanel } from "@/components/plan-qa/ProductionSentinelPanel";
+import { JsonRepairSelfTestPanel } from "@/components/plan-qa/JsonRepairSelfTestPanel";
 import { toast } from "sonner";
 
 function formatDuration(ms: number): string {
