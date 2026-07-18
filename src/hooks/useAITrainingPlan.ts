@@ -823,14 +823,18 @@ export function useAITrainingPlan() {
           const subCount = semanticRepairs.filter(r => r.includes("substituted_offsport")).length;
           const unresolvedCount = semanticRepairs.filter(r => r.includes("offsport_unresolved")).length;
           const jsonRepairCount = semanticRepairs.filter(r => r.includes("json_repair:")).length;
-          semanticRepairs.unshift(`[summary] customRatio=${Math.round(customRatio * 100)}% (${customCount}/${nonRest}), substitutions=${subCount}, unresolved=${unresolvedCount}, jsonRepairs=${jsonRepairCount}`);
+          const catalogSubstitutions = semanticRepairs.filter(r => r.includes("[catalog_id_substituted]")).length;
+          semanticRepairs.unshift(`[summary] customRatio=${Math.round(customRatio * 100)}% (${customCount}/${nonRest}), substitutions=${subCount}, unresolved=${unresolvedCount}, jsonRepairs=${jsonRepairCount}, catalogSubstitutions=${catalogSubstitutions}`);
+
           logPlanStat({
             ts: Date.now(), format: "json", objective: planConfig.objective ?? null,
             totalWeeks, totalChunks, durationMs: jsonDurMs, ok: true,
             sportObjectiveCriticalIssues: sportIssuesCount,
             customRatio, customSessionCount: customCount, nonRestSessionCount: nonRest,
+            catalogSubstitutions,
             semanticRepairs,
           });
+
           setIsLoading(false);
           return;
         }

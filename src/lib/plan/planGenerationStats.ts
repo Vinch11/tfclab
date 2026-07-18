@@ -66,6 +66,9 @@ export interface PlanGenerationStat {
   customSessionCount?: number;
   /** Repairs/warnings déterministes non-Zod (ex: B3 substituted_offsport). */
   semanticRepairs?: string[];
+  /** Nombre de catalogId substitués vers un voisin réel du catalogue injecté (Reco 3). */
+  catalogSubstitutions?: number;
+
 }
 
 const KEY = "tfcl:plan_gen_stats";
