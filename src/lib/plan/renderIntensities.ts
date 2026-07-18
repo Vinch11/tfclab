@@ -54,6 +54,31 @@ function runZonePace(zone: ZoneId | "Z4", vmaKmh: number): string | null {
   return `${fmtPace(paceFromVma(vmaKmh, z.vma.max))}-${fmtPace(paceFromVma(vmaKmh, z.vma.min))}/km`;
 }
 
+function zonePctRange(zone: ZoneId | "Z4", metric: "ftp" | "vma"): ZonePctLike | null {
+  if (zone === "Z4") return z4Union(metric);
+  const z = getZoneMirror(zone);
+  return z ? z[metric] : null;
+}
+type ZonePctLike = { min: number; max: number };
+
+function bikeZoneRangeWatts(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", ftpW: number): string | null {
+  const a = zonePctRange(zLow, "ftp");
+  const b = zonePctRange(zHigh, "ftp");
+  if (!a || !b) return null;
+  const min = Math.min(a.min, b.min);
+  const max = Math.max(a.max, b.max);
+  return `${Math.round(min * ftpW / 100)}-${Math.round(max * ftpW / 100)}W`;
+}
+
+function runZoneRangePace(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", vmaKmh: number): string | null {
+  const a = zonePctRange(zLow, "vma");
+  const b = zonePctRange(zHigh, "vma");
+  if (!a || !b) return null;
+  const minPct = Math.min(a.min, b.min);
+  const maxPct = Math.max(a.max, b.max);
+  return `${fmtPace(paceFromVma(vmaKmh, maxPct))}-${fmtPace(paceFromVma(vmaKmh, minPct))}/km`;
+}
+
 const ZONE_CORE = "Z(?:1|2|3|4a|4b|4|5|6|7)";
 // Range de zones ("Z2-Z3", "Z4a-Z4b", "Z1-Z2"). Annoté comme UN bloc pour éviter
 // les rendus contradictoires du type "Z2 (5:33-6:15/km)-Z3 (…)".
