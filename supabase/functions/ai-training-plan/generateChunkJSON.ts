@@ -877,11 +877,25 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
     };
   };
 
+  const buildRepairDiag = (
+    attempt: 1 | 2,
+    diag: AttemptDiagnostic,
+  ): { attempt: 1 | 2; repairs: string[]; parseError?: string } | undefined => {
+    const recovered = typeof diag.parseError === "string" && diag.parseError.startsWith("recovered_after_repair");
+    if (!recovered && diag.jsonRepairs.length === 0) return undefined;
+    return { attempt, repairs: diag.jsonRepairs, parseError: diag.parseError };
+  };
+
   // 1ère tentative
   const first = await tryOnce(input.userPrompt);
   first.diagnostic.attempt = 1;
   if (first.parsed.success) {
-    return { chunk: first.parsed.data, usedRetry: false, finishReason: first.finishReason };
+    return {
+      chunk: first.parsed.data,
+      usedRetry: false,
+      finishReason: first.finishReason,
+      repairDiag: buildRepairDiag(1, first.diagnostic),
+    };
   }
 
   // Retry unique avec erreurs Zod injectées.
@@ -904,7 +918,12 @@ Rappels non négociables :
   const second = await tryOnce(retryPrompt);
   second.diagnostic.attempt = 2;
   if (second.parsed.success) {
-    return { chunk: second.parsed.data, usedRetry: true, finishReason: second.finishReason };
+    return {
+      chunk: second.parsed.data,
+      usedRetry: true,
+      finishReason: second.finishReason,
+      repairDiag: buildRepairDiag(2, second.diagnostic),
+    };
   }
 
   const errList2 = formatZodErrors(second.parsed.error);
