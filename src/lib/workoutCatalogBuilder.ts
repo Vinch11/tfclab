@@ -692,6 +692,8 @@ export function buildWorkoutCatalog(
       `boost=${Object.entries(boostedFamilyCounts).map(([f, n]) => `${f}+${n}`).join(" ")}`,
     );
   }
+  // Marque toutes les fiches du socle (avant insertion → traçabilité socle_evince)
+  for (const id of socleIds) recordAttribution(id, chunkIdx, "selected", /*inSocle*/ true);
 
   // (c) Si le socle dépasse maxItems → relever le cap
   let effectiveCap = maxItems;
