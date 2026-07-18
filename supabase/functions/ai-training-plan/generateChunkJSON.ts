@@ -550,7 +550,7 @@ function extractParseOffset(msg: string): number | null {
  * Réparation JSON CONSERVATRICE — uniquement des corrections sûres qui ne peuvent PAS
  * inventer de données ni changer le sens.
  */
-function conservativeJsonRepair(input: string): { text: string; changed: boolean; repairs: string[] } {
+export function conservativeJsonRepair(input: string): { text: string; changed: boolean; repairs: string[] } {
   let text = input;
   const repairs: string[] = [];
 
