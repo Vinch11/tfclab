@@ -515,6 +515,7 @@ export default function PlanQAPage() {
             </Button>
           </div>
           <TrailProbePanel />
+          <JsonRepairSelfTestPanel />
           {qa.progress.running && (
             <div className="rounded border border-border/60 p-3 text-xs space-y-1">
               <div>
