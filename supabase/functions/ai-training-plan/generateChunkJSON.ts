@@ -868,6 +868,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
         zodIssues: parsed.success ? [] : issuesFromZodError(parsed.error),
         zodErrorText,
         repairs: normalized.repairs,
+        jsonRepairs: extracted.repairs,
         gateway: gatewayDiagnostic,
       },
     };
