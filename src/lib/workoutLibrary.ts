@@ -8439,6 +8439,15 @@ import { EnrichedWorkoutsLCW } from "./enrichedWorkoutsLCW";
 WorkoutLibrary.push(...EnrichedWorkoutsLCW);
 
 // =============================================
+// RUN HILLS (route) — Côtes ROUTE pour plans 10K/semi/marathon/70.3/IM run.
+// Comble le manque qui poussait le modèle à hallucinier des variantes trail
+// (`B_TR_HILL_*`) rejetées par le filtre trail aval. Taxonomie strictement
+// route (préfixe *_RUN_HILL_*, sport=course, aucun tag trail, goals road only).
+// =============================================
+import { EnrichedWorkoutsRunHills } from "./enrichedWorkoutsRunHills";
+WorkoutLibrary.push(...EnrichedWorkoutsRunHills);
+
+// =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]
 // =============================================
 import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
@@ -8446,5 +8455,5 @@ enrichWorkoutGoals(WorkoutLibrary);
 import { widenEndurancePhases } from "./plan/phaseWidener";
 widenEndurancePhases(WorkoutLibrary);
 
-console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | FatMax: ${EnrichedWorkoutsFatMax.length} | Recovery: ${EnrichedWorkoutsRecovery.length} | Swim+: ${EnrichedWorkoutsSwim.length} | SwimV2: ${EnrichedWorkoutsSwimV2.length} | StrengthV2: ${EnrichedWorkoutsStrengthV2.length} | Hedgehog: ${EnrichedWorkoutsHedgehog.length} | IM Run Durability: ${EnrichedWorkoutsIMRunDurability.length} | 70.3 Podium: ${EnrichedWorkouts703PodiumDurability.length} | LCW: ${EnrichedWorkoutsLCW.length} | Total: ${WorkoutLibrary.length}`);
+console.log(`✅ Pro Pack: ${ProPackWorkouts.length} | Templates: ${TemplateDerivedWorkouts.length} | Enriched: ${EnrichedWorkouts.length} | V2: ${EnrichedWorkoutsV2.length} | V3: ${EnrichedWorkoutsV3.length} | Trail: ${EnrichedWorkoutsTrail.length} | V4: ${EnrichedWorkoutsV4.length} | V5: ${EnrichedWorkoutsV5.length} | V6: ${EnrichedWorkoutsV6.length} | FatMax: ${EnrichedWorkoutsFatMax.length} | Recovery: ${EnrichedWorkoutsRecovery.length} | Swim+: ${EnrichedWorkoutsSwim.length} | SwimV2: ${EnrichedWorkoutsSwimV2.length} | StrengthV2: ${EnrichedWorkoutsStrengthV2.length} | Hedgehog: ${EnrichedWorkoutsHedgehog.length} | IM Run Durability: ${EnrichedWorkoutsIMRunDurability.length} | 70.3 Podium: ${EnrichedWorkouts703PodiumDurability.length} | LCW: ${EnrichedWorkoutsLCW.length} | Run Hills: ${EnrichedWorkoutsRunHills.length} | Total: ${WorkoutLibrary.length}`);
 
