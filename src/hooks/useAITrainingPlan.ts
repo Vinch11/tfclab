@@ -660,6 +660,14 @@ export function useAITrainingPlan() {
             const code = data.code ?? "warning";
             const severity = data.severity ?? "warning";
             const repair = data.repair;
+            if (code === "json_repair" && repair) {
+              const rlist = Array.isArray(repair.repairs) ? repair.repairs.join(",") : "";
+              const pe = typeof repair.parseError === "string" ? repair.parseError.slice(0, 200) : "";
+              semanticRepairs.push(
+                `[info] json_repair: chunk=${repair.chunkIndex ?? "?"} attempt=${repair.attempt ?? "?"} repairs=[${rlist}] parseError="${pe}"`,
+              );
+              return;
+            }
             if (code === "value_check_summary" && data.summary) {
               const s = data.summary;
               // Contrat v2 : { tokens, conforme, relativized, unresolved, residualAbsolute }
