@@ -633,14 +633,19 @@ export function runReconciler(
 
   // runOnePass — restreint aux IDs du catalogue injecté quand disponible,
   // pour ne PAS réintroduire d'ID hors-catalogue via phase/durée/discipline.
+  let anyOnePassChange = false;
   for (let i = 0; i < maxPasses; i++) {
     const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected);
+    if (changed) anyOnePassChange = true;
     if (!changed) break;
   }
 
   // Passe POSTÉRIEURE — filet final : nettoie tout ID hors-catalogue qui
   // aurait été introduit malgré tout (ex : insertion FLOOR sans injected).
-  if (injected && injected.size > 0) {
+  // Gated : ne relance que si runOnePass a effectivement muté quelque chose,
+  // sinon rien de nouveau à nettoyer et on éviterait de doubler les compteurs
+  // noSafeNeighbor sur les cas déjà rejetés en pré-passe.
+  if (anyOnePassChange && injected && injected.size > 0) {
     const postStats = neighborRemapPass("post");
     logs.push(
       `[recon_substitute_debug_post] substituted(post)=${postStats.substituted} noSafeNeighbor(post)=${postStats.noSafe}`
