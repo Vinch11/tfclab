@@ -179,11 +179,90 @@ const PODIUM_703: LibraryWorkout[] = [
   }
 ];
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// BRICK GAP-FILLERS (F-BRICK-GAP) — comble les trous audités du catalogue :
+//   - race_pace × peak court (< 3h) pour athlètes competitor sans le budget 4h
+//   - seuil × build (brick sweetspot + short threshold run)
+//   - seuil × build IM (version longue pour Ironman)
+// Ces fiches donnent à l'IA des voisins de substitution B5 pour les brick
+// hallucinés (ex : brick race-pace 2h) et couvrent (sport=brick × famille=seuil)
+// qui était vide en Build.
+// ═══════════════════════════════════════════════════════════════════════════════
+const BRICK_GAP_FILLERS: LibraryWorkout[] = [
+  {
+    id: "B_BRICK_RACE_PACE_SHORT_703",
+    cat: "B",
+    sport: "brick",
+    objectif: "Brick race-pace 70.3 court — 90' vélo race-pace + 30-40' run race-pace (competitor sans budget 4h)",
+    necessite: "Recommandé",
+    when: "Build + Peak 70.3 (competitor, 1×/2 sem en alternance avec brick long)",
+    phase: ["build", "peak"],
+    avoid: "Fatigue accumulée >7/10, taper race",
+    durationMin: [120, 150],
+    metricKey: "puissance",
+    sportKey: "brick_race_pace_short_703",
+    structure: [
+      { part: "Warm-up", text: "10min vélo Z1→Z2 progressif", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "BIKE 90min : 15min Z2 puis 60-75min @ puissance race 70.3 (80-88% FTP, aéro). Nutrition 70-80g CHO/h. T2 rapide. RUN 30-40min : 5min Z2 puis 25-35min @ pace 70.3 (Z3 bas). Cadence ≥180 spm.", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "5min marche + nutrition récup", zones: ["Z1"] },
+    ],
+    variants: { half: "Competitor : 90'+30' en Build, 90'+40' en Peak" },
+    goals: ["half"],
+    tags: ["half", "70.3", "brick", "race-pace", "competitor"],
+    notes: "Substitution naturelle pour brick race-pace hallucinés < 3h.",
+  },
+  {
+    id: "B_BRICK_SST_TEMPO_BUILD_703",
+    cat: "B",
+    sport: "brick",
+    objectif: "Brick seuil Build — vélo sweetspot + run tempo court (durabilité seuil off-bike)",
+    necessite: "Recommandé",
+    when: "Build 70.3 (1×/sem)",
+    phase: ["build"],
+    avoid: "Semaine VMA très chargée, lendemain seuil run",
+    durationMin: [105, 135],
+    metricKey: "puissance",
+    sportKey: "brick_sst_tempo_build",
+    structure: [
+      { part: "Warm-up", text: "10min vélo Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "BIKE 75-90min : 3×15-20min sweetspot (88-93% FTP) r=5' Z2. T2 <3'. RUN 20-30min : 5min Z2 puis 15-25min tempo Z3 (~pace semi+5-10s). Cadence 180+.", zones: ["Z3", "Z4"] },
+      { part: "Cool-down", text: "5min Z1 + étirements", zones: ["Z1"] },
+    ],
+    variants: { half: "Build 70.3 : 3×20' SST + 25' tempo", marathon: "Version course longue : 3×15' SST + 25' tempo" },
+    goals: ["half", "marathon"],
+    tags: ["70.3", "brick", "seuil", "sweetspot", "tempo", "build"],
+    notes: "Couvre (brick × seuil × build) — trou audité du catalogue 70.3.",
+  },
+  {
+    id: "B_BRICK_SEUIL_LONG_BUILD_IM",
+    cat: "B",
+    sport: "brick",
+    objectif: "Brick seuil long IM — vélo tempo/SST + run seuil moyen (durabilité IM Build)",
+    necessite: "Recommandé",
+    when: "Build IM (toutes les 2-3 sem)",
+    phase: ["build"],
+    avoid: "Fatigue >6/10, lendemain SL, taper",
+    durationMin: [180, 240],
+    metricKey: "puissance",
+    sportKey: "brick_seuil_long_build_im",
+    structure: [
+      { part: "Warm-up", text: "15min vélo Z1→Z2", zones: ["Z1", "Z2"] },
+      { part: "Main", text: "BIKE 150-180min : 30' Z2 puis 3×30' tempo (75-82% FTP) r=10' Z2, aéro. Nutrition 80-90g CHO/h. T2 <3'. RUN 30-40min : 10min Z2 puis 20-30min @ pace IM+5-10s (Z3 bas / seuil bas).", zones: ["Z2", "Z3"] },
+      { part: "Cool-down", text: "5min marche + nutrition récup", zones: ["Z1"] },
+    ],
+    variants: { ironman: "Build IM : 3×30' tempo + 30' pace IM" },
+    goals: ["ironman"],
+    tags: ["ironman", "IM", "brick", "seuil", "tempo", "durability", "build"],
+    notes: "Couvre (brick × seuil × build) pour IM — sinon les brick seuil IM tombent en pur_hallucination.",
+  },
+];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // EXPORT CONSOLIDÉ
 // ─────────────────────────────────────────────────────────────────────────────
 export const EnrichedWorkouts703PodiumDurability: LibraryWorkout[] = [
   ...PODIUM_703,
+  ...BRICK_GAP_FILLERS,
 ];
 
 /**
@@ -191,3 +270,4 @@ export const EnrichedWorkouts703PodiumDurability: LibraryWorkout[] = [
  * la rotation de ≥1-2 séances de durabilité/race-sim par semaine en Build/Peak.
  */
 export const PODIUM_703_IDS = PODIUM_703.map(w => w.id);
+export const BRICK_GAP_FILLER_IDS = BRICK_GAP_FILLERS.map(w => w.id);

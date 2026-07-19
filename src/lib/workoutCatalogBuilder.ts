@@ -704,6 +704,15 @@ export function buildWorkoutCatalog(
     effectiveCap = socleIds.size;
   }
 
+  // (c-bis) F-LIM-FILL-BONUS : budget supplémentaire réservé aux fiches dont la
+  // famille appartient aux limiteurs primaire/secondaire. Objectif : laisser plus
+  // de fiches limiteur passer pendant la phase de remplissage sans gonfler le cap
+  // global (qui garderait le catalogue trop chargé). Le bonus est activé UNIQUEMENT
+  // pour ces familles ; les autres restent contraintes par effectiveCap.
+  const LIMITER_FILL_BONUS = 8;
+  const limiterBoostedFamilies = new Set<IntentFamily>([...primaryFamilies, ...secondaryFamilies]);
+  const limiterCap = limiterBoostedFamilies.size > 0 ? effectiveCap + LIMITER_FILL_BONUS : effectiveCap;
+
   // (a) Insérer le socle (dans l'ordre de score global, pour stabilité)
   for (const { workout } of scored) {
     if (!socleIds.has(workout.id)) continue;
@@ -717,11 +726,14 @@ export function buildWorkoutCatalog(
 
   // (b) Remplissage : caps sport/cat souples appliqués UNIQUEMENT au remplissage
   for (const { workout, score } of scored) {
-    if (selected.length >= effectiveCap) {
+    const candFamily = intentFamilyOf(workout);
+    const isLimiterFamily = limiterBoostedFamilies.has(candFamily);
+    const capForThis = isLimiterFamily ? limiterCap : effectiveCap;
+    if (selected.length >= capForThis) {
       if (!selectedIds.has(workout.id)) {
         recordAttribution(workout.id, chunkIdx, "fill_cap_reached");
         if (TRACKED_IDS.has(workout.id.toUpperCase())) {
-          logDrop(workout.id, "fill_cap", `effectiveCap=${effectiveCap} atteint (score=${score})`);
+          logDrop(workout.id, "fill_cap", `capForThis=${capForThis} atteint (score=${score}, limiterFam=${isLimiterFamily})`);
         }
       }
       continue; // ne PAS break : on veut attribuer tous les IDs restants
@@ -749,7 +761,8 @@ export function buildWorkoutCatalog(
 
   console.log(
     `[cap_injection_v2] chunk=${options?.chunkIndex ?? 0} cap=${effectiveCap} socle_couverture=${socleFinalSize} ` +
-    `familles=[${[...familiesPresent].sort().join(",")}] remplissage=${selected.length - socleFinalSize} total=${selected.length}`,
+    `familles=[${[...familiesPresent].sort().join(",")}] remplissage=${selected.length - socleFinalSize} total=${selected.length}` +
+    (limiterBoostedFamilies.size > 0 ? ` limiterCap=${limiterCap} limiterFams=[${[...limiterBoostedFamilies].join(",")}]` : ""),
   );
 
   // Verify serialized size at 90/120/150 for cap tuning (rough estimate)
