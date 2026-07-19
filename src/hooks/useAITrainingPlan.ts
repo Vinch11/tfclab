@@ -824,7 +824,20 @@ export function useAITrainingPlan() {
           const unresolvedCount = semanticRepairs.filter(r => r.includes("offsport_unresolved")).length;
           const jsonRepairCount = semanticRepairs.filter(r => r.includes("json_repair:")).length;
           const catalogSubstitutions = semanticRepairs.filter(r => r.includes("[catalog_id_substituted]")).length;
-          semanticRepairs.unshift(`[summary] customRatio=${Math.round(customRatio * 100)}% (${customCount}/${nonRest}), substitutions=${subCount}, unresolved=${unresolvedCount}, jsonRepairs=${jsonRepairCount}, catalogSubstitutions=${catalogSubstitutions}`);
+          // Motifs de rejet de substitution — pour calibrer les gardes.
+          const noNeighborLines = semanticRepairs.filter(r => r.includes("[catalog_id_no_safe_neighbor]"));
+          const noNeighborCount = noNeighborLines.length;
+          const dominantBreakdown: Record<string, number> = {};
+          for (const line of noNeighborLines) {
+            const m = /dominant=([a-z_]+)/i.exec(line);
+            const key = m ? m[1] : "unknown";
+            dominantBreakdown[key] = (dominantBreakdown[key] ?? 0) + 1;
+          }
+          const dominantStr = Object.entries(dominantBreakdown)
+            .sort((a, b) => b[1] - a[1])
+            .map(([k, v]) => `${k}=${v}`)
+            .join(", ") || "—";
+          semanticRepairs.unshift(`[summary] customRatio=${Math.round(customRatio * 100)}% (${customCount}/${nonRest}), substitutions=${subCount}, unresolved=${unresolvedCount}, jsonRepairs=${jsonRepairCount}, catalogSubstitutions=${catalogSubstitutions}, noSafeNeighbor=${noNeighborCount} [${dominantStr}]`);
 
           logPlanStat({
             ts: Date.now(), format: "json", objective: planConfig.objective ?? null,
