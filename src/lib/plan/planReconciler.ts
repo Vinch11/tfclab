@@ -547,7 +547,11 @@ export function runReconciler(
               const candMedian = ficheMedian(cand);
               if (Math.abs(candMedian - (targetDur || origMedian)) > durBound) { rejects.duration_out_of_range++; continue; }
               const intent = intentScore(original, cand);
-              if (intent < 2) { rejects.score_too_low++; continue; }
+              // Relax (F-SUB-RELAX) : bucket = même sport × même intentFamily déjà garanti
+              // + phase compatible + durée ≤25%. Seuil intent ≥1 (au lieu de ≥2) pour
+              // laisser passer les mappings sûrs sans cat/goal partagés (ex : hill route
+              // → hill route récemment ajoutée). Les 4 gardes précédents restent stricts.
+              if (intent < 1) { rejects.score_too_low++; continue; }
               const durPenalty = Math.abs(candMedian - targetDur) / 10;
               const score = intent * 100 - durPenalty;
               if (!best || score > best.score) best = { w: cand, score, intent, candMedian };
