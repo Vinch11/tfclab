@@ -712,7 +712,6 @@ export function buildWorkoutCatalog(
   const LIMITER_FILL_BONUS = 8;
   const limiterBoostedFamilies = new Set<IntentFamily>([...primaryFamilies, ...secondaryFamilies]);
   const limiterCap = limiterBoostedFamilies.size > 0 ? effectiveCap + LIMITER_FILL_BONUS : effectiveCap;
-  let limiterBonusUsed = 0;
 
   // (a) Insérer le socle (dans l'ordre de score global, pour stabilité)
   for (const { workout } of scored) {
