@@ -209,6 +209,7 @@ function runOnePass(
             weekPhase,
             targetDur: s.durationMin ?? 0,
             original: fiche,
+            restrictToIds,
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
@@ -237,6 +238,7 @@ function runOnePass(
             targetDur,
             original: fiche2,
             requireDurationContains: true,
+            restrictToIds,
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
@@ -263,6 +265,7 @@ function runOnePass(
             weekPhase,
             targetDur: s.durationMin ?? 0,
             original: fiche3,
+            restrictToIds,
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
@@ -316,6 +319,7 @@ function runOnePass(
             targetDur: floor,
             original: null,
             requireDurationContains: true,
+            restrictToIds,
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
