@@ -126,15 +126,21 @@ interface FindOpts {
   original?: LibraryWorkout | null;
   requireDurationContains?: boolean;
   requirePhase?: boolean;
+  /** Si fourni, restreint les candidats aux IDs présents dans cet ensemble
+   *  (catalogue effectivement injecté au LLM). Évite d'introduire par
+   *  substitution phase/durée/discipline un ID absent du catalogue, ce qui
+   *  reproduirait un FAIL B5 après coup. */
+  restrictToIds?: Set<string>;
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   let best: { w: LibraryWorkout; key: number } | null = null;
   for (const w of WorkoutLibrary) {
     if (excludeId && w.id.toUpperCase() === excludeId.toUpperCase()) continue;
+    if (restrictToIds && !restrictToIds.has(w.id.toUpperCase())) continue;
     if (normSport(w.sport) !== sport) continue;
     if (requirePhase) {
       const allowed = ficheAllowedPhases(w);
