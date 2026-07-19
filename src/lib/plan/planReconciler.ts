@@ -126,15 +126,21 @@ interface FindOpts {
   original?: LibraryWorkout | null;
   requireDurationContains?: boolean;
   requirePhase?: boolean;
+  /** Si fourni, restreint les candidats aux IDs présents dans cet ensemble
+   *  (catalogue effectivement injecté au LLM). Évite d'introduire par
+   *  substitution phase/durée/discipline un ID absent du catalogue, ce qui
+   *  reproduirait un FAIL B5 après coup. */
+  restrictToIds?: Set<string>;
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   let best: { w: LibraryWorkout; key: number } | null = null;
   for (const w of WorkoutLibrary) {
     if (excludeId && w.id.toUpperCase() === excludeId.toUpperCase()) continue;
+    if (restrictToIds && !restrictToIds.has(w.id.toUpperCase())) continue;
     if (normSport(w.sport) !== sport) continue;
     if (requirePhase) {
       const allowed = ficheAllowedPhases(w);
@@ -175,6 +181,7 @@ function runOnePass(
   quotasByWeek: Record<number, WeekQuotaEntry>,
   counters: ReconcilerCounters,
   logs: string[],
+  restrictToIds?: Set<string>,
 ): boolean {
   let anyChange = false;
   const ctx: { week?: number; day?: string; sport?: string; catalogId?: string | null; family?: string } = {};
@@ -202,6 +209,7 @@ function runOnePass(
             weekPhase,
             targetDur: s.durationMin ?? 0,
             original: fiche,
+            restrictToIds,
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
@@ -230,6 +238,7 @@ function runOnePass(
             targetDur,
             original: fiche2,
             requireDurationContains: true,
+            restrictToIds,
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
@@ -256,6 +265,7 @@ function runOnePass(
             weekPhase,
             targetDur: s.durationMin ?? 0,
             original: fiche3,
+            restrictToIds,
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
@@ -309,6 +319,7 @@ function runOnePass(
             targetDur: floor,
             original: null,
             requireDurationContains: true,
+            restrictToIds,
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -483,14 +494,15 @@ export function runReconciler(
   };
   const logs: string[] = [];
 
-  // ── Filet de mapping voisin (point 4) — passe préliminaire ──
-  // Si un catalogId référencé par le modèle existe dans WorkoutLibrary mais
-  // est ABSENT du catalogue injecté, tenter de remapper vers un voisin
-  // du catalogue injecté de MÊME sport ET MÊME famille d'intention.
-  // Diagnostic entrée : on veut TOUJOURS savoir pourquoi la substitution ne
-  // touche rien (injected vide ? sessions toutes custom ? tous les IDs déjà
-  // dans l'injecté ?). Sans ce log unconditionnel, l'absence de
-  // [catalog_id_substituted] est ambiguë dans le rapport QA.
+  // ── Filet de mapping voisin (Reco 3 + Reco B) ──
+  // Passe PRÉLIMINAIRE : remap catalogId absent du catalogue injecté vers
+  //   un voisin sûr du catalogue injecté (5 garde-fous stricts).
+  // Passe POSTÉRIEURE : runOnePass (phase/durée/discipline) restreint ses
+  //   candidats à `injected` grâce à `restrictToIds`, mais on relance quand
+  //   même le filet voisin après pour nettoyer tout ID hors-catalogue qui
+  //   aurait été introduit par une insertion FLOOR ou par un chemin non
+  //   couvert. Coût : quelques ms, gain : garantit qu'aucun catalogId final
+  //   n'est absent du catalogue injecté (sauf pur_hallucination irrattrapable).
   const debugStats = {
     injectedCatalogIdsProvided: injectedCatalogIds != null,
     injectedSize: 0,
@@ -500,15 +512,15 @@ export function runReconciler(
     idsAbsentInLibrary: 0,       // pur_hallucination
     idsCandidateForSubstitution: 0,
   };
+  let injected: Set<string> | undefined;
+  let injectedByBucket: Map<string, LibraryWorkout[]> | undefined;
   if (injectedCatalogIds) {
-    const injected: Set<string> = injectedCatalogIds instanceof Set
+    injected = injectedCatalogIds instanceof Set
       ? new Set([...injectedCatalogIds].map(x => String(x).toUpperCase()))
       : new Set(Array.from(injectedCatalogIds as ReadonlyArray<string>).map(x => String(x).toUpperCase()));
     debugStats.injectedSize = injected.size;
     if (injected.size > 0) {
-      // Pré-indexer les voisins par (sport × famille)
-
-      const injectedByBucket = new Map<string, LibraryWorkout[]>();
+      injectedByBucket = new Map<string, LibraryWorkout[]>();
       for (const w of WorkoutLibrary) {
         if (!injected.has(w.id.toUpperCase())) continue;
         const key = `${normSport(w.sport)}::${intentFamilyOf(w)}`;
@@ -516,119 +528,130 @@ export function runReconciler(
         arr.push(w);
         injectedByBucket.set(key, arr);
       }
-      // Garde-fous stricts (Reco 3 — filet non silencieux) :
-      //  1. Même discipline normalisée.
-      //  2. Même famille d'intention (intentFamilyOf).
-      //  3. Phase compatible avec la semaine (ficheAllowedPhases).
-      //  4. Écart de durée ≤ 25 % (médiane candidate vs cible séance / médiane originale).
-      //  5. Score intentScore ≥ 2 (min 1 cat OU 1 goal partagé).
-      // Si aucun candidat ne satisfait TOUS les critères → PAS de substitution :
-      // on laisse `catalogId` intact pour que B5 remonte le FAIL (mieux vaut
-      // un check rouge visible qu'un mauvais mapping silencieux).
-      for (const chunk of chunks) {
-        for (const week of chunk.weeks ?? []) {
-          const weekPhase = week.phase as PlanPhase;
-          for (const s of (week.sessions ?? []) as PlanSession[]) {
-            if ((s as any).isRest || s.sport === "rest") continue;
-            debugStats.sessionsScanned++;
-            if (s.custom) continue;
-            const cid = s.catalogId;
-            if (!cid) continue;
-            debugStats.sessionsWithCatalogId++;
-            const idUp = cid.toUpperCase();
-            if (injected.has(idUp)) { debugStats.idsAlreadyInInjected++; continue; }
-            const original = FICHES_BY_ID.get(idUp);
-            if (!original) { debugStats.idsAbsentInLibrary++; continue; } // pur_hallucination
-            debugStats.idsCandidateForSubstitution++;
-            const sessionSport = normSport(s.sport);
+    }
+  }
 
-            const origFamily = intentFamilyOf(original);
-            const bucket = injectedByBucket.get(`${sessionSport}::${origFamily}`) ?? [];
-            const origMedian = ficheMedian(original);
-            const targetDur = s.durationMin ?? origMedian;
-            const durBound = Math.max(1, Math.round(0.25 * (targetDur || origMedian || 60)));
-            let best: { w: LibraryWorkout; score: number; intent: number; candMedian: number } | null = null;
-            // Compteurs de motifs de rejet — pour calibrer les seuils sans les relâcher à l'aveugle.
-            const rejects = { phase_incompatible: 0, duration_out_of_range: 0, score_too_low: 0 };
-            // Bucket vide = aucun voisin même (sport × famille) dans le catalogue injecté.
-            // On mesure aussi la variante « même sport, famille différente » pour distinguer
-            // family_mismatch (voisins dispo autre famille) de sport_mismatch (rien du tout).
-            let sameSportOtherFamily = 0;
+  function neighborRemapPass(passLabel: "pre" | "post"): { substituted: number; noSafe: number } {
+    if (!injected || !injectedByBucket) return { substituted: 0, noSafe: 0 };
+    let substituted = 0;
+    let noSafe = 0;
+    for (const chunk of chunks) {
+      for (const week of chunk.weeks ?? []) {
+        const weekPhase = week.phase as PlanPhase;
+        for (const s of (week.sessions ?? []) as PlanSession[]) {
+          if ((s as any).isRest || s.sport === "rest") continue;
+          if (passLabel === "pre") debugStats.sessionsScanned++;
+          if (s.custom) continue;
+          const cid = s.catalogId;
+          if (!cid) continue;
+          if (passLabel === "pre") debugStats.sessionsWithCatalogId++;
+          const idUp = cid.toUpperCase();
+          if (injected.has(idUp)) {
+            if (passLabel === "pre") debugStats.idsAlreadyInInjected++;
+            continue;
+          }
+          const original = FICHES_BY_ID.get(idUp);
+          if (!original) {
+            if (passLabel === "pre") debugStats.idsAbsentInLibrary++;
+            continue; // pur_hallucination
+          }
+          if (passLabel === "pre") debugStats.idsCandidateForSubstitution++;
+          const sessionSport = normSport(s.sport);
+          const origFamily = intentFamilyOf(original);
+          const bucket = injectedByBucket.get(`${sessionSport}::${origFamily}`) ?? [];
+          const origMedian = ficheMedian(original);
+          const targetDur = s.durationMin ?? origMedian;
+          const durBound = Math.max(1, Math.round(0.25 * (targetDur || origMedian || 60)));
+          let best: { w: LibraryWorkout; score: number; intent: number; candMedian: number } | null = null;
+          const rejects = { phase_incompatible: 0, duration_out_of_range: 0, score_too_low: 0 };
+          let sameSportOtherFamily = 0;
+          if (bucket.length === 0) {
+            for (const [key, arr] of injectedByBucket) {
+              if (key.startsWith(`${sessionSport}::`)) sameSportOtherFamily += arr.length;
+            }
+          }
+          for (const cand of bucket) {
+            if (cand.id.toUpperCase() === idUp) continue;
+            const allowedPhases = ficheAllowedPhases(cand);
+            if (allowedPhases.size > 0 && !allowedPhases.has(weekPhase)) { rejects.phase_incompatible++; continue; }
+            const candMedian = ficheMedian(cand);
+            if (Math.abs(candMedian - (targetDur || origMedian)) > durBound) { rejects.duration_out_of_range++; continue; }
+            const intent = intentScore(original, cand);
+            if (intent < 1) { rejects.score_too_low++; continue; }
+            const durPenalty = Math.abs(candMedian - targetDur) / 10;
+            const score = intent * 100 - durPenalty;
+            if (!best || score > best.score) best = { w: cand, score, intent, candMedian };
+          }
+          if (best) {
+            const before = original.id;
+            (s as any).catalogIdOrigin = before;
+            (s as any).catalogIdSubstituted = true;
+            const origAllowedPhases = ficheAllowedPhases(original);
+            const reason = origAllowedPhases.size > 0 && !origAllowedPhases.has(weekPhase)
+              ? "retiré_par_filtre_phase"
+              : "retiré_aval_filtre";
+            const deltaPct = origMedian > 0
+              ? Math.round((100 * Math.abs(best.candMedian - origMedian)) / origMedian)
+              : 0;
+            assignFiche(s, best.w, s.durationMin);
+            counters.id_remapped_to_neighbor++;
+            substituted++;
+            logs.push(
+              `[catalog_id_substituted] pass=${passLabel} S${week.weekNumber} ${s.day} ${before} → ${best.w.id} [reason=${reason}, family=${origFamily}, score=${best.intent}, Δdur=${deltaPct}%]`,
+            );
+          } else {
+            counters.id_remap_no_intent_match_fallback_custom++;
+            noSafe++;
+            let dominant: string;
             if (bucket.length === 0) {
-              for (const [key, arr] of injectedByBucket) {
-                if (key.startsWith(`${sessionSport}::`)) sameSportOtherFamily += arr.length;
-              }
-            }
-            for (const cand of bucket) {
-              if (cand.id.toUpperCase() === idUp) continue;
-              const allowedPhases = ficheAllowedPhases(cand);
-              if (allowedPhases.size > 0 && !allowedPhases.has(weekPhase)) { rejects.phase_incompatible++; continue; }
-              const candMedian = ficheMedian(cand);
-              if (Math.abs(candMedian - (targetDur || origMedian)) > durBound) { rejects.duration_out_of_range++; continue; }
-              const intent = intentScore(original, cand);
-              // Relax (F-SUB-RELAX) : bucket = même sport × même intentFamily déjà garanti
-              // + phase compatible + durée ≤25%. Seuil intent ≥1 (au lieu de ≥2) pour
-              // laisser passer les mappings sûrs sans cat/goal partagés (ex : hill route
-              // → hill route récemment ajoutée). Les 4 gardes précédents restent stricts.
-              if (intent < 1) { rejects.score_too_low++; continue; }
-              const durPenalty = Math.abs(candMedian - targetDur) / 10;
-              const score = intent * 100 - durPenalty;
-              if (!best || score > best.score) best = { w: cand, score, intent, candMedian };
-            }
-            if (best) {
-              const before = original.id;
-              (s as any).catalogIdOrigin = before;
-              (s as any).catalogIdSubstituted = true;
-              const origAllowedPhases = ficheAllowedPhases(original);
-              const reason = origAllowedPhases.size > 0 && !origAllowedPhases.has(weekPhase)
-                ? "retiré_par_filtre_phase"
-                : "retiré_aval_filtre";
-              const deltaPct = origMedian > 0
-                ? Math.round((100 * Math.abs(best.candMedian - origMedian)) / origMedian)
-                : 0;
-              assignFiche(s, best.w, s.durationMin);
-              counters.id_remapped_to_neighbor++;
-              logs.push(
-                `[catalog_id_substituted] S${week.weekNumber} ${s.day} ${before} → ${best.w.id} [reason=${reason}, family=${origFamily}, score=${best.intent}, Δdur=${deltaPct}%]`,
-              );
+              dominant = sameSportOtherFamily > 0
+                ? `family_mismatch (sameSportOtherFamily=${sameSportOtherFamily})`
+                : "sport_mismatch (aucun voisin même discipline)";
             } else {
-              counters.id_remap_no_intent_match_fallback_custom++;
-              // Motif dominant : bucket vide ? sinon top rejet parmi les candidats du bucket.
-              let dominant: string;
-              if (bucket.length === 0) {
-                dominant = sameSportOtherFamily > 0
-                  ? `family_mismatch (sameSportOtherFamily=${sameSportOtherFamily})`
-                  : "sport_mismatch (aucun voisin même discipline)";
-              } else {
-                const entries = Object.entries(rejects).sort((a, b) => b[1] - a[1]);
-                dominant = `${entries[0][0]} (${entries.map(([k, v]) => `${k}=${v}`).join(", ")}, bucket=${bucket.length})`;
-              }
-              logs.push(
-                `[catalog_id_no_safe_neighbor] S${week.weekNumber} ${s.day} id=${cid} sport=${sessionSport} famille=${origFamily} — dominant=${dominant} — B5 flaggera`,
-              );
+              const entries = Object.entries(rejects).sort((a, b) => b[1] - a[1]);
+              dominant = `${entries[0][0]} (${entries.map(([k, v]) => `${k}=${v}`).join(", ")}, bucket=${bucket.length})`;
             }
+            logs.push(
+              `[catalog_id_no_safe_neighbor] pass=${passLabel} S${week.weekNumber} ${s.day} id=${cid} sport=${sessionSport} famille=${origFamily} — dominant=${dominant} — B5 flaggera`,
+            );
           }
         }
       }
     }
+    return { substituted, noSafe };
   }
-  // Log unconditionnel de la passe substitution — visible dans le rapport QA
-  // même quand aucune substitution n'a lieu (compréhension du "pourquoi rien").
+
+  // Passe préliminaire (avant runOnePass)
+  const preStats = neighborRemapPass("pre");
   logs.push(
     `[recon_substitute_debug] injectedProvided=${debugStats.injectedCatalogIdsProvided} injectedSize=${debugStats.injectedSize} ` +
     `sessionsScanned=${debugStats.sessionsScanned} sessionsWithCatalogId=${debugStats.sessionsWithCatalogId} ` +
     `alreadyInInjected=${debugStats.idsAlreadyInInjected} absentInLibrary=${debugStats.idsAbsentInLibrary} ` +
     `candidateForSubstitution=${debugStats.idsCandidateForSubstitution} ` +
-    `→ substituted=${counters.id_remapped_to_neighbor} noSafeNeighbor=${counters.id_remap_no_intent_match_fallback_custom}`
+    `→ substituted(pre)=${preStats.substituted} noSafeNeighbor(pre)=${preStats.noSafe}`
   );
 
-
-
-
+  // runOnePass — restreint aux IDs du catalogue injecté quand disponible,
+  // pour ne PAS réintroduire d'ID hors-catalogue via phase/durée/discipline.
+  let anyOnePassChange = false;
   for (let i = 0; i < maxPasses; i++) {
-    const changed = runOnePass(chunks, quotasByWeek, counters, logs);
+    const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected);
+    if (changed) anyOnePassChange = true;
     if (!changed) break;
   }
+
+  // Passe POSTÉRIEURE — filet final : nettoie tout ID hors-catalogue qui
+  // aurait été introduit malgré tout (ex : insertion FLOOR sans injected).
+  // Gated : ne relance que si runOnePass a effectivement muté quelque chose,
+  // sinon rien de nouveau à nettoyer et on éviterait de doubler les compteurs
+  // noSafeNeighbor sur les cas déjà rejetés en pré-passe.
+  if (anyOnePassChange && injected && injected.size > 0) {
+    const postStats = neighborRemapPass("post");
+    logs.push(
+      `[recon_substitute_debug_post] substituted(post)=${postStats.substituted} noSafeNeighbor(post)=${postStats.noSafe}`
+    );
+  }
+
   hydrateDilutedZones(chunks, counters, logs);
   return { counters, logs };
 }
