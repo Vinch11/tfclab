@@ -221,9 +221,12 @@ export function buildScientificAuditHTML(data: ScientificAuditData): string {
 <body>
 
 <div class="header">
-  <div>
-    <h1>Audit scientifique consolidé</h1>
-    <div class="small">Potentiel Physiologique TFCL™ — Rapport signé</div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <img src="${new URL("../../assets/logo-2fc.png", import.meta.url).href}" alt="TFC Lab" style="height:56px;width:auto;" crossorigin="anonymous" />
+    <div>
+      <h1>Audit scientifique consolidé</h1>
+      <div class="small">Potentiel Physiologique TFCL™ — Rapport signé</div>
+    </div>
   </div>
   <div class="meta">
     <div><b>Athlète :</b> ${esc(athlete.name)}</div>
