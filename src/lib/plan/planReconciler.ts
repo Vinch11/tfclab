@@ -181,6 +181,7 @@ function runOnePass(
   quotasByWeek: Record<number, WeekQuotaEntry>,
   counters: ReconcilerCounters,
   logs: string[],
+  restrictToIds?: Set<string>,
 ): boolean {
   let anyChange = false;
   const ctx: { week?: number; day?: string; sport?: string; catalogId?: string | null; family?: string } = {};
