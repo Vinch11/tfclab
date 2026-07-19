@@ -159,8 +159,23 @@ export function buildQAReport(session: QASession): string {
         lines.push(`- format=${r.stat.format} · chunks=${r.stat.totalChunks ?? "?"} · retries≥1=${retriesOf(r.stat)}${ratio}`);
         if (r.stat.semanticRepairs?.length) {
           lines.push(`- repairs sémantiques: ${r.stat.semanticRepairs.length}`);
-          for (const rep of r.stat.semanticRepairs.slice(0, 8)) lines.push(`  - ${rep}`);
+          // Priorité : garantir la visibilité de [summary], reconciler_summary,
+          // recon_substitute_debug, [reconciler] et [catalog_id_*] même quand
+          // le rapport est long. Les autres repairs suivent (cap total 40).
+          const all = r.stat.semanticRepairs;
+          const isPriority = (l: string) =>
+            l.startsWith("[summary]") ||
+            l.includes("reconciler_summary") ||
+            l.includes("recon_substitute_debug") ||
+            l.includes("[reconciler]") ||
+            l.includes("[catalog_id_substituted]") ||
+            l.includes("[catalog_id_no_safe_neighbor]");
+          const priority = all.filter(isPriority);
+          const rest = all.filter(l => !isPriority(l));
+          const shown = [...priority, ...rest].slice(0, 40);
+          for (const rep of shown) lines.push(`  - ${rep}`);
         }
+
       }
       for (const c of r.checks) lines.push(fmtCheck(c));
       // If critical fail or format!=json, include Zod issues + raw

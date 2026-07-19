@@ -487,12 +487,27 @@ export function runReconciler(
   // Si un catalogId référencé par le modèle existe dans WorkoutLibrary mais
   // est ABSENT du catalogue injecté, tenter de remapper vers un voisin
   // du catalogue injecté de MÊME sport ET MÊME famille d'intention.
+  // Diagnostic entrée : on veut TOUJOURS savoir pourquoi la substitution ne
+  // touche rien (injected vide ? sessions toutes custom ? tous les IDs déjà
+  // dans l'injecté ?). Sans ce log unconditionnel, l'absence de
+  // [catalog_id_substituted] est ambiguë dans le rapport QA.
+  const debugStats = {
+    injectedCatalogIdsProvided: injectedCatalogIds != null,
+    injectedSize: 0,
+    sessionsScanned: 0,
+    sessionsWithCatalogId: 0,
+    idsAlreadyInInjected: 0,
+    idsAbsentInLibrary: 0,       // pur_hallucination
+    idsCandidateForSubstitution: 0,
+  };
   if (injectedCatalogIds) {
     const injected: Set<string> = injectedCatalogIds instanceof Set
       ? new Set([...injectedCatalogIds].map(x => String(x).toUpperCase()))
       : new Set(Array.from(injectedCatalogIds as ReadonlyArray<string>).map(x => String(x).toUpperCase()));
+    debugStats.injectedSize = injected.size;
     if (injected.size > 0) {
       // Pré-indexer les voisins par (sport × famille)
+
       const injectedByBucket = new Map<string, LibraryWorkout[]>();
       for (const w of WorkoutLibrary) {
         if (!injected.has(w.id.toUpperCase())) continue;
@@ -515,14 +530,18 @@ export function runReconciler(
           const weekPhase = week.phase as PlanPhase;
           for (const s of (week.sessions ?? []) as PlanSession[]) {
             if ((s as any).isRest || s.sport === "rest") continue;
+            debugStats.sessionsScanned++;
             if (s.custom) continue;
             const cid = s.catalogId;
             if (!cid) continue;
+            debugStats.sessionsWithCatalogId++;
             const idUp = cid.toUpperCase();
-            if (injected.has(idUp)) continue; // déjà dans le catalogue injecté
+            if (injected.has(idUp)) { debugStats.idsAlreadyInInjected++; continue; }
             const original = FICHES_BY_ID.get(idUp);
-            if (!original) continue; // pur_hallucination → laisser B5 traiter
+            if (!original) { debugStats.idsAbsentInLibrary++; continue; } // pur_hallucination
+            debugStats.idsCandidateForSubstitution++;
             const sessionSport = normSport(s.sport);
+
             const origFamily = intentFamilyOf(original);
             const bucket = injectedByBucket.get(`${sessionSport}::${origFamily}`) ?? [];
             const origMedian = ficheMedian(original);
@@ -593,6 +612,17 @@ export function runReconciler(
       }
     }
   }
+  // Log unconditionnel de la passe substitution — visible dans le rapport QA
+  // même quand aucune substitution n'a lieu (compréhension du "pourquoi rien").
+  logs.push(
+    `[recon_substitute_debug] injectedProvided=${debugStats.injectedCatalogIdsProvided} injectedSize=${debugStats.injectedSize} ` +
+    `sessionsScanned=${debugStats.sessionsScanned} sessionsWithCatalogId=${debugStats.sessionsWithCatalogId} ` +
+    `alreadyInInjected=${debugStats.idsAlreadyInInjected} absentInLibrary=${debugStats.idsAbsentInLibrary} ` +
+    `candidateForSubstitution=${debugStats.idsCandidateForSubstitution} ` +
+    `→ substituted=${counters.id_remapped_to_neighbor} noSafeNeighbor=${counters.id_remap_no_intent_match_fallback_custom}`
+  );
+
+
 
 
   for (let i = 0; i < maxPasses; i++) {
