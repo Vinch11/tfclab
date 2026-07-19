@@ -487,12 +487,27 @@ export function runReconciler(
   // Si un catalogId référencé par le modèle existe dans WorkoutLibrary mais
   // est ABSENT du catalogue injecté, tenter de remapper vers un voisin
   // du catalogue injecté de MÊME sport ET MÊME famille d'intention.
+  // Diagnostic entrée : on veut TOUJOURS savoir pourquoi la substitution ne
+  // touche rien (injected vide ? sessions toutes custom ? tous les IDs déjà
+  // dans l'injecté ?). Sans ce log unconditionnel, l'absence de
+  // [catalog_id_substituted] est ambiguë dans le rapport QA.
+  const debugStats = {
+    injectedCatalogIdsProvided: injectedCatalogIds != null,
+    injectedSize: 0,
+    sessionsScanned: 0,
+    sessionsWithCatalogId: 0,
+    idsAlreadyInInjected: 0,
+    idsAbsentInLibrary: 0,       // pur_hallucination
+    idsCandidateForSubstitution: 0,
+  };
   if (injectedCatalogIds) {
     const injected: Set<string> = injectedCatalogIds instanceof Set
       ? new Set([...injectedCatalogIds].map(x => String(x).toUpperCase()))
       : new Set(Array.from(injectedCatalogIds as ReadonlyArray<string>).map(x => String(x).toUpperCase()));
+    debugStats.injectedSize = injected.size;
     if (injected.size > 0) {
       // Pré-indexer les voisins par (sport × famille)
+
       const injectedByBucket = new Map<string, LibraryWorkout[]>();
       for (const w of WorkoutLibrary) {
         if (!injected.has(w.id.toUpperCase())) continue;
