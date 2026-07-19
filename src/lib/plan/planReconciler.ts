@@ -530,14 +530,18 @@ export function runReconciler(
           const weekPhase = week.phase as PlanPhase;
           for (const s of (week.sessions ?? []) as PlanSession[]) {
             if ((s as any).isRest || s.sport === "rest") continue;
+            debugStats.sessionsScanned++;
             if (s.custom) continue;
             const cid = s.catalogId;
             if (!cid) continue;
+            debugStats.sessionsWithCatalogId++;
             const idUp = cid.toUpperCase();
-            if (injected.has(idUp)) continue; // déjà dans le catalogue injecté
+            if (injected.has(idUp)) { debugStats.idsAlreadyInInjected++; continue; }
             const original = FICHES_BY_ID.get(idUp);
-            if (!original) continue; // pur_hallucination → laisser B5 traiter
+            if (!original) { debugStats.idsAbsentInLibrary++; continue; } // pur_hallucination
+            debugStats.idsCandidateForSubstitution++;
             const sessionSport = normSport(s.sport);
+
             const origFamily = intentFamilyOf(original);
             const bucket = injectedByBucket.get(`${sessionSport}::${origFamily}`) ?? [];
             const origMedian = ficheMedian(original);
