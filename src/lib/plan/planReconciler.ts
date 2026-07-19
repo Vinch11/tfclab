@@ -597,7 +597,7 @@ export function runReconciler(
             counters.id_remapped_to_neighbor++;
             substituted++;
             logs.push(
-              `[catalog_id_substituted:${passLabel}] S${week.weekNumber} ${s.day} ${before} → ${best.w.id} [reason=${reason}, family=${origFamily}, score=${best.intent}, Δdur=${deltaPct}%]`,
+              `[catalog_id_substituted] pass=${passLabel} S${week.weekNumber} ${s.day} ${before} → ${best.w.id} [reason=${reason}, family=${origFamily}, score=${best.intent}, Δdur=${deltaPct}%]`,
             );
           } else {
             counters.id_remap_no_intent_match_fallback_custom++;
@@ -612,7 +612,7 @@ export function runReconciler(
               dominant = `${entries[0][0]} (${entries.map(([k, v]) => `${k}=${v}`).join(", ")}, bucket=${bucket.length})`;
             }
             logs.push(
-              `[catalog_id_no_safe_neighbor:${passLabel}] S${week.weekNumber} ${s.day} id=${cid} sport=${sessionSport} famille=${origFamily} — dominant=${dominant} — B5 flaggera`,
+              `[catalog_id_no_safe_neighbor] pass=${passLabel} S${week.weekNumber} ${s.day} id=${cid} sport=${sessionSport} famille=${origFamily} — dominant=${dominant} — B5 flaggera`,
             );
           }
         }
