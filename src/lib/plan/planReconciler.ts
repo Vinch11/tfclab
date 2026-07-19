@@ -612,6 +612,17 @@ export function runReconciler(
       }
     }
   }
+  // Log unconditionnel de la passe substitution — visible dans le rapport QA
+  // même quand aucune substitution n'a lieu (compréhension du "pourquoi rien").
+  logs.push(
+    `[recon_substitute_debug] injectedProvided=${debugStats.injectedCatalogIdsProvided} injectedSize=${debugStats.injectedSize} ` +
+    `sessionsScanned=${debugStats.sessionsScanned} sessionsWithCatalogId=${debugStats.sessionsWithCatalogId} ` +
+    `alreadyInInjected=${debugStats.idsAlreadyInInjected} absentInLibrary=${debugStats.idsAbsentInLibrary} ` +
+    `candidateForSubstitution=${debugStats.idsCandidateForSubstitution} ` +
+    `→ substituted=${counters.id_remapped_to_neighbor} noSafeNeighbor=${counters.id_remap_no_intent_match_fallback_custom}`
+  );
+
+
 
 
   for (let i = 0; i < maxPasses; i++) {
