@@ -762,7 +762,8 @@ export function buildWorkoutCatalog(
 
   console.log(
     `[cap_injection_v2] chunk=${options?.chunkIndex ?? 0} cap=${effectiveCap} socle_couverture=${socleFinalSize} ` +
-    `familles=[${[...familiesPresent].sort().join(",")}] remplissage=${selected.length - socleFinalSize} total=${selected.length}`,
+    `familles=[${[...familiesPresent].sort().join(",")}] remplissage=${selected.length - socleFinalSize} total=${selected.length}` +
+    (limiterBoostedFamilies.size > 0 ? ` limiterCap=${limiterCap} limiterFams=[${[...limiterBoostedFamilies].join(",")}]` : ""),
   );
 
   // Verify serialized size at 90/120/150 for cap tuning (rough estimate)
