@@ -687,6 +687,25 @@ export function buildDiagnosticProtocolHTML(
     )
     .join("");
 
+  // Variantes & adaptations (matériel / terrain / format allégé) — bloc simple pour la version papier.
+  const altSections: Array<{ title: string; icon: string; items?: string[] }> = [
+    { title: "Matériel manquant — substitutions",     icon: "🧰", items: p.alternatives?.material },
+    { title: "Terrain / environnement dégradé",        icon: "🌦️", items: p.alternatives?.terrain },
+    { title: "Format allégé (temps ou profil limité)", icon: "⏱️", items: p.alternatives?.short },
+  ].filter((s) => s.items && s.items.length > 0);
+  const alternativesHtml = altSections
+    .map(
+      (s) => `
+    <div class="alt-block">
+      <div class="alt-title">${s.icon} ${escapeHtml(s.title)}</div>
+      <ul class="alt-list">
+        ${s.items!.map((it) => `<li>${escapeHtml(it)}</li>`).join("")}
+      </ul>
+    </div>`,
+    )
+    .join("");
+
+
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
