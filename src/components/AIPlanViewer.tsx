@@ -1224,9 +1224,9 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
       // à partir de la VMA seule n'est pas pertinente (swim+bike+run). On omet le suffixe.
       if (derivedTitle.raceTimeSec) {
         const tempsStr = formatRaceTimeHM(derivedTitle.raceTimeSec);
-        return `${gapContext.objective} — Structure ${ambLabel} — Objectif ${tempsStr}`;
+        return `Plan TFCL™ — ${gapContext.objective} — Structure ${ambLabel} — Objectif ${tempsStr}`;
       }
-      return `${gapContext.objective} — Structure ${ambLabel}`;
+      return `Plan TFCL™ — ${gapContext.objective} — Structure ${ambLabel}`;
     }
     if (!km) return t;
     const kmRegex = /\(\s*\d{1,3}\s*km\s*\)/i;
