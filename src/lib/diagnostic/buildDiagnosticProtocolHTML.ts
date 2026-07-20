@@ -557,7 +557,27 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
     ],
+    alternatives: {
+      material: [
+        "Pas de capteur puissance vélo : substituer P moy 20' par FC moy stable (dérive < 5 bpm) + RPE 8/10 ; FTP estimée à revalider en labo.",
+        "Pas de GPS running fiable : utiliser piste 400m ou boucle étalonnée (Google Maps sat.) ; chrono manuel double.",
+        "Pas de piscine : natation reportée, garder Vélo + Course, marquer profil « bi-sport » dans la fiche.",
+        "Cardio étanche indispo : reporter FC pic post-effort au bord du bassin dans les 5 s.",
+      ],
+      terrain: [
+        "Home-trainer bruité (glissement) : passer sur route plate 3 km linéaire au lieu du bloc FTP indoor.",
+        "Piste indispo : bloc course sur route plate (correction −2 % VMA) ou tapis calibré (i=1 %).",
+        "Bassin extérieur > 29 °C : reporter la CSS d'un jour (dérive thermique 2-3 s/100m).",
+        "Vent > 15 km/h sur route : reporter le bloc course, garder Vélo + Nage.",
+      ],
+      short: [
+        "Version 4 h (au lieu de 2 jours) : Vélo FTP 8' (au lieu de 20') + Sprint 25m + Test 400m nage + Course 3 km. TTE non exploitable.",
+        "Version « profil rapide » : FTP 8' vélo + 1500m piste + 400m nage — permet MLSS et VMA, VLamax en approximation.",
+        "Si un seul créneau : Vélo 5' MAP + 1500m course + 400m nage (bloc VLamax reporté).",
+      ],
+    },
   },
+
 };
 
 
