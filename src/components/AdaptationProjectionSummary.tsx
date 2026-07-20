@@ -100,6 +100,13 @@ export function AdaptationProjectionSummary({
                 // comme "0.6 → 0.6" (faux "stable" visuel).
                 const isVla = /vlamax/i.test(m.label);
                 const digits = isVla ? 2 : 1;
+                // Gate: si la valeur de base ou projetée est 0/absente
+                // (donnée insuffisante — cf. mem insufficient-data-no-fake-defaults),
+                // le delta % calculé est un fantôme (ex "TTE 0.0 → 0.0 +18.8%").
+                // On masque la ligne plutôt qu'afficher une projection trompeuse.
+                const hasCurrent = typeof m.current === "number" && m.current > 0;
+                const hasProjected = typeof m.projected === "number" && m.projected > 0;
+                if (!hasCurrent || !hasProjected) return null;
                 const deltaSign = m.deltaPct > 0 ? "+" : "";
                 return (
                   <div key={m.label} className="flex flex-col gap-0.5 min-w-0">
@@ -113,11 +120,12 @@ export function AdaptationProjectionSummary({
                       </span>
                     </div>
                     <div className="text-[9px] text-muted-foreground font-mono pl-4">
-                      {m.current?.toFixed(digits) ?? "?"} → {m.projected?.toFixed(digits) ?? "?"}
+                      {m.current!.toFixed(digits)} → {m.projected!.toFixed(digits)}
                     </div>
                   </div>
                 );
               })}
+
             </div>
           </div>
         )}
