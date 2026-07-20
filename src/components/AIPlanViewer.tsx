@@ -762,7 +762,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
           const slot = slotMap.get(session) ?? 0;
-          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} objectifEffectif={objectifEffectif} />;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} objectifEffectif={objectifEffectif} planTotalWeeks={planTotalWeeks} />;
         })}
 
         {week.coachNotes && (
