@@ -176,8 +176,27 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
     ],
-
+    alternatives: {
+      material: [
+        "Pas de GPS fiable : utiliser piste 400m étalonnée + chrono manuel (double chronométreur si possible).",
+        "Pas de cardio thoracique : remplacer par montre optique poignet (précision ±5-8 bpm sur pics) — ne pas retenir la FC pic instantanée.",
+        "Pas de lactate portable : conserver le protocole, la VLamax reste estimée par la distance 15s lancé (RMSE 0.073).",
+        "Pas de cônes : marquer 30m et 100m au sol avec adhésif ou peinture temporaire.",
+      ],
+      terrain: [
+        "Piste 400m indispo : boucle route plate 1500m (variations dénivelé < 1 %) — corriger VMA −2 % vs piste.",
+        "Tapis calibré possible : bloc 1500m à 1 % d'inclinaison (compense l'absence de résistance à l'air), les blocs sprint restent extérieurs.",
+        "Sol mouillé ou vent > 15 km/h : reporter les blocs sprint (biais ±0.3 s), garder VMA + 5 km.",
+        "Piste synthétique très souple ou tartan usé : noter l'état de surface (temps 30m majoré 0.1-0.2 s).",
+      ],
+      short: [
+        "Version 60 min : Échauffement + Sprint 15s lancé + Test 1500m VMA (sprint 30m, 5 km TTE retirés). VLamax + VMA seulement.",
+        "Version « profil rapide » (75 min) : Échauffement + Sprint 30m + 15s lancé + 1500m VMA (5 km TTE reporté à J+3).",
+        "Si athlète débutant / masters : retirer sprint 30m départ arrêté et 5 km tempo ; garder 15s lancé + 1500m.",
+      ],
+    },
   },
+
   "bike-day": {
     name: "TFCL Bike Day™",
     emoji: "🚴",
