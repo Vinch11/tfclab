@@ -17,6 +17,13 @@ type DetailedSection = {
   items: string[];
 };
 
+/** Variantes & adaptations : matériel manquant, terrain dégradé, format allégé. */
+type ProtocolAlternatives = {
+  material?: string[];   // Matériel manquant → substitutions ou mesures dégradées
+  terrain?: string[];    // Terrain / environnement dégradé (météo, piste indispo, bassin…)
+  short?: string[];      // Format allégé (moins de temps, blocs prioritaires)
+};
+
 type ProtocolDef = {
   name: string;
   emoji: string;
@@ -26,7 +33,10 @@ type ProtocolDef = {
   results: Array<{ metric: string; unit: string }>;
   /** Détails scientifiques affichés dans le dossier complet (étapes, formules, validité, sécurité). */
   detailed?: DetailedSection[];
+  /** Variantes terrain / matériel / format allégé — filet de flexibilité pour le coach. */
+  alternatives?: ProtocolAlternatives;
 };
+
 
 
 const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
@@ -166,8 +176,27 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
     ],
-
+    alternatives: {
+      material: [
+        "Pas de GPS fiable : utiliser piste 400m étalonnée + chrono manuel (double chronométreur si possible).",
+        "Pas de cardio thoracique : remplacer par montre optique poignet (précision ±5-8 bpm sur pics) — ne pas retenir la FC pic instantanée.",
+        "Pas de lactate portable : conserver le protocole, la VLamax reste estimée par la distance 15s lancé (RMSE 0.073).",
+        "Pas de cônes : marquer 30m et 100m au sol avec adhésif ou peinture temporaire.",
+      ],
+      terrain: [
+        "Piste 400m indispo : boucle route plate 1500m (variations dénivelé < 1 %) — corriger VMA −2 % vs piste.",
+        "Tapis calibré possible : bloc 1500m à 1 % d'inclinaison (compense l'absence de résistance à l'air), les blocs sprint restent extérieurs.",
+        "Sol mouillé ou vent > 15 km/h : reporter les blocs sprint (biais ±0.3 s), garder VMA + 5 km.",
+        "Piste synthétique très souple ou tartan usé : noter l'état de surface (temps 30m majoré 0.1-0.2 s).",
+      ],
+      short: [
+        "Version 60 min : Échauffement + Sprint 15s lancé + Test 1500m VMA (sprint 30m, 5 km TTE retirés). VLamax + VMA seulement.",
+        "Version « profil rapide » (75 min) : Échauffement + Sprint 30m + 15s lancé + 1500m VMA (5 km TTE reporté à J+3).",
+        "Si athlète débutant / masters : retirer sprint 30m départ arrêté et 5 km tempo ; garder 15s lancé + 1500m.",
+      ],
+    },
   },
+
   "bike-day": {
     name: "TFCL Bike Day™",
     emoji: "🚴",
@@ -294,7 +323,27 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
     ],
+    alternatives: {
+      material: [
+        "Pas de capteur puissance : remplacer FTP 20' par test 5 km course + FC seuil (FTP non estimable, note profil « bike sans puissance »).",
+        "Home-trainer non compatible ERG-off : passer sur route plate 3 km linéaire pour FTP 20'.",
+        "Pas de cadence-mètre : cadence estimée visuellement (85-100 rpm), noter dans la fiche.",
+        "Ventilateur indisponible : réduire durée FTP à 12' (dérive thermique majorée).",
+      ],
+      terrain: [
+        "Route plate indispo : chercher un tronçon de 3 km avec dénivelé < 1 % (variation P moy < 5 %).",
+        "Vent > 15 km/h en extérieur : basculer indoor ou reporter le bloc FTP.",
+        "T° extérieure > 28 °C ou < 5 °C : reporter (P moy biaisée −5 à −10 %).",
+        "Trafic dense : test FTP sur boucle fermée (parking, circuit, vélodrome).",
+      ],
+      short: [
+        "Version 60 min : Échauffement + Sprint 10s ×2 + Wingate 30s + FTP 8' (au lieu de 20'). FTP estimée = 0.90 × P moy 8'.",
+        "Version « profil rapide » (45 min) : Échauffement + Sprint 10s ×2 + Test 5' MAP (Wingate et FTP 20' reportés).",
+        "Si athlète débutant / retour de blessure : retirer Wingate 30s, garder Sprint 10s + MAP 5' + FTP 12'.",
+      ],
+    },
   },
+
 
 
   "pool-day": {
@@ -420,7 +469,26 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
     ],
+    alternatives: {
+      material: [
+        "Pas de cardio étanche : lecture FC au bord du bassin dans les 5 s post-effort (précision ±5 bpm).",
+        "Pas de pull-buoy / plaquettes : garder crawl nu, noter la modification dans la fiche.",
+        "Chronométrage GoPro ou tablette sous-marine indispo : deux chronométreurs manuels bord de bassin (moyenne des deux).",
+      ],
+      terrain: [
+        "Bassin 25m uniquement (au lieu de 50m) : appliquer correction +0.5 s/100m sur CSS (virages).",
+        "Bassin extérieur > 29 °C ou < 24 °C : reporter le test (biais thermique).",
+        "Ligne d'eau partagée (couloir coupé) : reporter le 1500m ou remplacer par 4×400m R:1' à CSS.",
+        "Eau libre (lac, mer) : convertir distances en temps GPS montre, garder 200 + 400 all-out.",
+      ],
+      short: [
+        "Version 45 min : Échauffement 400m + Sprint 25m + Test 400m all-out uniquement (CSS estimée via T400 seul, moins précise).",
+        "Version « profil rapide » : Sprint 25m + 200m + 400m (CSS complète, sans 1500m TTE).",
+        "Si athlète débutant/masters : retirer sprint 25m plongé (départ dans l'eau) et 1500m TTE ; garder 200 + 400.",
+      ],
+    },
   },
+
 
   "tri-day": {
     name: "TFCL Tri Test Day™",
@@ -547,7 +615,27 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
     ],
+    alternatives: {
+      material: [
+        "Pas de capteur puissance vélo : substituer P moy 20' par FC moy stable (dérive < 5 bpm) + RPE 8/10 ; FTP estimée à revalider en labo.",
+        "Pas de GPS running fiable : utiliser piste 400m ou boucle étalonnée (Google Maps sat.) ; chrono manuel double.",
+        "Pas de piscine : natation reportée, garder Vélo + Course, marquer profil « bi-sport » dans la fiche.",
+        "Cardio étanche indispo : reporter FC pic post-effort au bord du bassin dans les 5 s.",
+      ],
+      terrain: [
+        "Home-trainer bruité (glissement) : passer sur route plate 3 km linéaire au lieu du bloc FTP indoor.",
+        "Piste indispo : bloc course sur route plate (correction −2 % VMA) ou tapis calibré (i=1 %).",
+        "Bassin extérieur > 29 °C : reporter la CSS d'un jour (dérive thermique 2-3 s/100m).",
+        "Vent > 15 km/h sur route : reporter le bloc course, garder Vélo + Nage.",
+      ],
+      short: [
+        "Version 4 h (au lieu de 2 jours) : Vélo FTP 8' (au lieu de 20') + Sprint 25m + Test 400m nage + Course 3 km. TTE non exploitable.",
+        "Version « profil rapide » : FTP 8' vélo + 1500m piste + 400m nage — permet MLSS et VMA, VLamax en approximation.",
+        "Si un seul créneau : Vélo 5' MAP + 1500m course + 400m nage (bloc VLamax reporté).",
+      ],
+    },
   },
+
 };
 
 
@@ -599,6 +687,25 @@ export function buildDiagnosticProtocolHTML(
     )
     .join("");
 
+  // Variantes & adaptations (matériel / terrain / format allégé) — bloc simple pour la version papier.
+  const altSections: Array<{ title: string; icon: string; items?: string[] }> = [
+    { title: "Matériel manquant — substitutions",     icon: "🧰", items: p.alternatives?.material },
+    { title: "Terrain / environnement dégradé",        icon: "🌦️", items: p.alternatives?.terrain },
+    { title: "Format allégé (temps ou profil limité)", icon: "⏱️", items: p.alternatives?.short },
+  ].filter((s) => s.items && s.items.length > 0);
+  const alternativesHtml = altSections
+    .map(
+      (s) => `
+    <div class="alt-block">
+      <div class="alt-title">${s.icon} ${escapeHtml(s.title)}</div>
+      <ul class="alt-list">
+        ${s.items!.map((it) => `<li>${escapeHtml(it)}</li>`).join("")}
+      </ul>
+    </div>`,
+    )
+    .join("");
+
+
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -625,6 +732,11 @@ export function buildDiagnosticProtocolHTML(
   .block { page-break-inside: avoid; margin-bottom: 10px; }
   .coach-line { margin-top: 6px; font-size: 10pt; }
   .notes-area { border: 1px solid #bbb; height: 180px; background: repeating-linear-gradient(transparent, transparent 22px, #ccc 22px, #ccc 23px); }
+  .alt-block { background: #f3f0fa; border-left: 4px solid #7c3aed; border-radius: 3px; padding: 6px 10px 6px 12px; margin: 6px 0; page-break-inside: avoid; }
+  .alt-title { font-weight: bold; font-size: 10.5pt; color: #5b21b6; margin-bottom: 3px; }
+  .alt-list { margin: 0 0 0 18px; padding: 0; font-size: 10pt; line-height: 1.45; }
+  .alt-list li { margin-bottom: 2px; }
+
   .footer { margin-top: 18px; padding-top: 6px; border-top: 1px solid #0d9488; font-size: 8.5pt; color: #555; text-align: center; }
   .print-btn { position: fixed; top: 10px; right: 10px; background: #0d9488; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; }
   @media print { .print-btn { display: none; } }
@@ -662,14 +774,17 @@ export function buildDiagnosticProtocolHTML(
   <h2>3 · Protocole détaillé</h2>
   ${blocksHtml}
 
-  <h2>4 · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
+  ${alternativesHtml ? `<h2>4 · Variantes &amp; adaptations <span style="font-size:9pt;font-weight:normal;color:#666;">(si contrainte matériel, terrain ou temps)</span></h2>${alternativesHtml}` : ""}
+
+  <h2>${alternativesHtml ? "5" : "4"} · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
   <table>
     <thead><tr><th style="width:40%">Métrique</th><th style="width:20%">Valeur</th><th style="width:20%">Valeur précédente</th><th style="width:20%">Unité</th></tr></thead>
     <tbody>${resultsHtml}</tbody>
   </table>
 
-  <h2>5 · Notes du coach</h2>
+  <h2>${alternativesHtml ? "6" : "5"} · Notes du coach</h2>
   <div class="notes-area"></div>
+
 
   <div class="footer">
     TFCLab™ — Two For Coaching · Protocole scientifique basé sur Billat 2001, Léger &amp; Bouchard 1980, Coggan 2010, Wakayoshi 1992 · Confidentiel
@@ -788,6 +903,26 @@ function buildProtocolChapter(
     })
     .join("");
 
+  // Variantes & adaptations : matériel manquant / terrain dégradé / format allégé.
+  const altGroups: Array<{ key: "material" | "terrain" | "short"; title: string; icon: string; items?: string[] }> = [
+    { key: "material", title: "Matériel manquant — substitutions",     icon: "🧰", items: p.alternatives?.material },
+    { key: "terrain",  title: "Terrain / environnement dégradé",        icon: "🌦️", items: p.alternatives?.terrain },
+    { key: "short",    title: "Format allégé (temps ou profil limité)", icon: "⏱️", items: p.alternatives?.short },
+  ];
+  const alternativesHtml = altGroups
+    .filter((g) => g.items && g.items.length > 0)
+    .map(
+      (g) => `
+      <div class="callout callout-alt">
+        <div class="callout-head"><span class="callout-icon">${g.icon}</span> ${escapeHtml(g.title)}</div>
+        <ul class="callout-list">
+          ${g.items!.map((it) => `<li>${escapeHtml(it)}</li>`).join("")}
+        </ul>
+      </div>`,
+    )
+    .join("");
+
+
   const resultsHtml = p.results
     .map(
       (r) =>
@@ -826,14 +961,17 @@ function buildProtocolChapter(
 
     ${detailedHtml ? `<h2>${chapterNumber}.B — Cadre scientifique &amp; sécurité</h2>${detailedHtml}` : ""}
 
-    <h2>${chapterNumber}.C — Résultats calculés <span class="h2-hint">(à remplir après le test)</span></h2>
+    ${alternativesHtml ? `<h2>${chapterNumber}.C — Variantes &amp; adaptations <span class="h2-hint">(si contrainte matériel, terrain ou temps)</span></h2>${alternativesHtml}` : ""}
+
+    <h2>${chapterNumber}.D — Résultats calculés <span class="h2-hint">(à remplir après le test)</span></h2>
     <table class="results-table">
       <thead><tr><th style="width:40%">Métrique</th><th style="width:20%">Valeur</th><th style="width:20%">Valeur précédente</th><th style="width:20%">Unité</th></tr></thead>
       <tbody>${resultsHtml}</tbody>
     </table>
 
-    <h2>${chapterNumber}.D — Notes du coach</h2>
+    <h2>${chapterNumber}.E — Notes du coach</h2>
     <div class="lined-notes"></div>
+
   </section>`;
 }
 
@@ -1010,6 +1148,9 @@ export function buildFullDiagnosticDossierHTML(
   .callout-error .callout-head { color: #991b1b; }
   .callout-safety   { background: #f4f4f5; border-color: #374151; }
   .callout-safety .callout-head { color: #1f2937; }
+  .callout-alt      { background: #f3f0fa; border-color: #7c3aed; }
+  .callout-alt .callout-head { color: #5b21b6; }
+
 
   /* ---- Matériel à cocher ---- */
   .material-block { margin: 6px 0 4px; }
