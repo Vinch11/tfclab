@@ -318,9 +318,11 @@ interface SessionCardProps {
   onReplaceClick?: (session: ParsedSession) => void;
   sessionIndex?: number;
   objectifEffectif?: string | null;
+  planTotalWeeks?: number;
 }
 
-function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif }: SessionCardProps) {
+function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif, planTotalWeeks }: SessionCardProps) {
+
   const [expanded, setExpanded] = useState(false);
   const targetTable = useTargetTable();
 
