@@ -9,6 +9,8 @@ import { getFicheForSession, maybeDowngradeBikeSession, type EnrichedSessionFich
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
+import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+
 
 const SPORT_TAG_TOKENS = new Set([
   "BIKE", "VÉLO", "VELO", "RUN", "CAP", "COURSE", "SWIM", "NAT", "NATATION",
