@@ -304,7 +304,27 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
     ],
+    alternatives: {
+      material: [
+        "Pas de capteur puissance : remplacer FTP 20' par test 5 km course + FC seuil (FTP non estimable, note profil « bike sans puissance »).",
+        "Home-trainer non compatible ERG-off : passer sur route plate 3 km linéaire pour FTP 20'.",
+        "Pas de cadence-mètre : cadence estimée visuellement (85-100 rpm), noter dans la fiche.",
+        "Ventilateur indisponible : réduire durée FTP à 12' (dérive thermique majorée).",
+      ],
+      terrain: [
+        "Route plate indispo : chercher un tronçon de 3 km avec dénivelé < 1 % (variation P moy < 5 %).",
+        "Vent > 15 km/h en extérieur : basculer indoor ou reporter le bloc FTP.",
+        "T° extérieure > 28 °C ou < 5 °C : reporter (P moy biaisée −5 à −10 %).",
+        "Trafic dense : test FTP sur boucle fermée (parking, circuit, vélodrome).",
+      ],
+      short: [
+        "Version 60 min : Échauffement + Sprint 10s ×2 + Wingate 30s + FTP 8' (au lieu de 20'). FTP estimée = 0.90 × P moy 8'.",
+        "Version « profil rapide » (45 min) : Échauffement + Sprint 10s ×2 + Test 5' MAP (Wingate et FTP 20' reportés).",
+        "Si athlète débutant / retour de blessure : retirer Wingate 30s, garder Sprint 10s + MAP 5' + FTP 12'.",
+      ],
+    },
   },
+
 
 
   "pool-day": {
