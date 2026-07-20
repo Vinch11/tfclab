@@ -1098,6 +1098,9 @@ export function buildFullDiagnosticDossierHTML(
   .callout-error .callout-head { color: #991b1b; }
   .callout-safety   { background: #f4f4f5; border-color: #374151; }
   .callout-safety .callout-head { color: #1f2937; }
+  .callout-alt      { background: #f3f0fa; border-color: #7c3aed; }
+  .callout-alt .callout-head { color: #5b21b6; }
+
 
   /* ---- Matériel à cocher ---- */
   .material-block { margin: 6px 0 4px; }
