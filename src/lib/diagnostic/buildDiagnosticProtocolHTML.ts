@@ -769,14 +769,17 @@ export function buildDiagnosticProtocolHTML(
   <h2>3 · Protocole détaillé</h2>
   ${blocksHtml}
 
-  <h2>4 · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
+  ${alternativesHtml ? `<h2>4 · Variantes &amp; adaptations <span style="font-size:9pt;font-weight:normal;color:#666;">(si contrainte matériel, terrain ou temps)</span></h2>${alternativesHtml}` : ""}
+
+  <h2>${alternativesHtml ? "5" : "4"} · Résultats calculés <span style="font-size:9pt;font-weight:normal;color:#666;">(à remplir après le test)</span></h2>
   <table>
     <thead><tr><th style="width:40%">Métrique</th><th style="width:20%">Valeur</th><th style="width:20%">Valeur précédente</th><th style="width:20%">Unité</th></tr></thead>
     <tbody>${resultsHtml}</tbody>
   </table>
 
-  <h2>5 · Notes du coach</h2>
+  <h2>${alternativesHtml ? "6" : "5"} · Notes du coach</h2>
   <div class="notes-area"></div>
+
 
   <div class="footer">
     TFCLab™ — Two For Coaching · Protocole scientifique basé sur Billat 2001, Léger &amp; Bouchard 1980, Coggan 2010, Wakayoshi 1992 · Confidentiel
