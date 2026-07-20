@@ -190,7 +190,7 @@ function escapeHTML(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
-function renderFicheHTML(f: EnrichedSessionFiche): string {
+function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999): string {
   const structure = f.structure
     .map((s) => {
       const body = formatFicheText(s.text);
@@ -225,13 +225,15 @@ function renderFicheHTML(f: EnrichedSessionFiche): string {
       }</div>`
     : "";
 
+  const sanitizedWhen = sanitizeWhenField(f.when, planTotalWeeks);
   const whenAvoid =
-    f.when || f.avoid
+    sanitizedWhen || f.avoid
       ? `<div style="margin-top:3px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          ${f.when ? `<div><strong style="color:#2e7d32;">✓ Quand :</strong> ${escapeHTML(f.when)}</div>` : ""}
+          ${sanitizedWhen ? `<div><strong style="color:#2e7d32;">✓ Quand :</strong> ${escapeHTML(sanitizedWhen)}</div>` : ""}
           ${f.avoid ? `<div><strong style="color:#c62828;">⚠ Éviter :</strong> ${escapeHTML(f.avoid)}</div>` : ""}
         </div>`
       : "";
+
 
   const notes = f.notes
     ? `<div style="margin-top:3px;font-style:italic;color:#555;border-left:2px solid #1967d2;padding-left:6px;">💡 ${escapeHTML(
