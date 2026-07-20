@@ -17,6 +17,13 @@ type DetailedSection = {
   items: string[];
 };
 
+/** Variantes & adaptations : matériel manquant, terrain dégradé, format allégé. */
+type ProtocolAlternatives = {
+  material?: string[];   // Matériel manquant → substitutions ou mesures dégradées
+  terrain?: string[];    // Terrain / environnement dégradé (météo, piste indispo, bassin…)
+  short?: string[];      // Format allégé (moins de temps, blocs prioritaires)
+};
+
 type ProtocolDef = {
   name: string;
   emoji: string;
@@ -26,7 +33,10 @@ type ProtocolDef = {
   results: Array<{ metric: string; unit: string }>;
   /** Détails scientifiques affichés dans le dossier complet (étapes, formules, validité, sécurité). */
   detailed?: DetailedSection[];
+  /** Variantes terrain / matériel / format allégé — filet de flexibilité pour le coach. */
+  alternatives?: ProtocolAlternatives;
 };
+
 
 
 const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
