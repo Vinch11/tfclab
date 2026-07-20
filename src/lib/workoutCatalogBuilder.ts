@@ -225,6 +225,28 @@ function scoreWorkout(
   const isTrailGoal = goals.some(g => g.startsWith("trail_"));
   if (!isTrailGoal && isTrailWorkout(w)) return -1000;
 
+  // ─── HARD-BAN CROSS-DISTANCE sur objectifs course courte (semi/10k/5k) ───
+  // Empêche l'IA de piocher des fiches marathon/IM (template-ironman,
+  // template-marathon, marathon-pace, TPL_IM_*) quand le plan cible un semi
+  // ou plus court. Ces fiches diluent la spécificité (allures trop lentes,
+  // volumes/durées inadaptés). Un objectif marathon garde ses fiches marathon.
+  const isLongEnduranceGoal = goals.some(
+    g => g === "marathon" || g === "ironman" || g === "half"
+  );
+  if (!isLongEnduranceGoal && !isTrailGoal) {
+    const idUpper = String(w.id || "").toUpperCase();
+    const tagsLower = (w.tags || []).map(t => String(t).toLowerCase());
+    const isCrossDistanceTemplate =
+      idUpper.startsWith("TPL_IM_") ||
+      tagsLower.includes("template-ironman") ||
+      tagsLower.includes("template-marathon") ||
+      tagsLower.includes("marathon-pace") ||
+      tagsLower.includes("ironman");
+    if (isCrossDistanceTemplate) return -1000;
+  }
+
+
+
   let score = 0;
 
   // Goal match — no penalty for unmatched to maximize diversity

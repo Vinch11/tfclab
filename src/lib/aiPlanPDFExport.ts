@@ -9,6 +9,8 @@ import { getFicheForSession, maybeDowngradeBikeSession, type EnrichedSessionFich
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
+import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+
 
 const SPORT_TAG_TOKENS = new Set([
   "BIKE", "VÉLO", "VELO", "RUN", "CAP", "COURSE", "SWIM", "NAT", "NATATION",
@@ -190,7 +192,7 @@ function escapeHTML(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
-function renderFicheHTML(f: EnrichedSessionFiche): string {
+function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999): string {
   const structure = f.structure
     .map((s) => {
       const body = formatFicheText(s.text);
@@ -225,13 +227,15 @@ function renderFicheHTML(f: EnrichedSessionFiche): string {
       }</div>`
     : "";
 
+  const sanitizedWhen = sanitizeWhenField(f.when, planTotalWeeks);
   const whenAvoid =
-    f.when || f.avoid
+    sanitizedWhen || f.avoid
       ? `<div style="margin-top:3px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          ${f.when ? `<div><strong style="color:#2e7d32;">✓ Quand :</strong> ${escapeHTML(f.when)}</div>` : ""}
+          ${sanitizedWhen ? `<div><strong style="color:#2e7d32;">✓ Quand :</strong> ${escapeHTML(sanitizedWhen)}</div>` : ""}
           ${f.avoid ? `<div><strong style="color:#c62828;">⚠ Éviter :</strong> ${escapeHTML(f.avoid)}</div>` : ""}
         </div>`
       : "";
+
 
   const notes = f.notes
     ? `<div style="margin-top:3px;font-style:italic;color:#555;border-left:2px solid #1967d2;padding-left:6px;">💡 ${escapeHTML(
@@ -359,7 +363,7 @@ function buildPlanHTML(
           </div>`;
         const body = `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#9ca3af;' : ''}">${formatFicheText(s.details || "")}</div>`;
         const ficheBlock = fiche
-          ? `<div style="border-top:1px dashed #cbd5e1;background:#fafbfd;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche)}</div></div>`
+          ? `<div style="border-top:1px dashed #cbd5e1;background:#fafbfd;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks)}</div></div>`
           : "";
         const altsBlock = altsHtml
           ? `<div style="border-top:1px dashed #cbd5e1;background:#fff;padding:6px 10px;">${altsHtml}</div>`
@@ -372,7 +376,7 @@ function buildPlanHTML(
 
       const totalCols = (hasDate ? 1 : 0) + 4;
       const ficheRow = fiche
-        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fafbfd;"><div class="fiche-box">${renderFicheHTML(fiche)}</div></td></tr>`
+        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fafbfd;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks)}</div></td></tr>`
         : "";
       const altsRow = altsHtml
         ? `<tr class="alts-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`

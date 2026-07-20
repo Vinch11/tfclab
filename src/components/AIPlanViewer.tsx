@@ -50,6 +50,8 @@ import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
 import { SessionReplaceDialog, libSportToPlanSport } from "@/components/SessionReplaceDialog";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
+import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+
 
 
 type NolioScope = "selected" | "single" | "range" | "all";
@@ -318,9 +320,11 @@ interface SessionCardProps {
   onReplaceClick?: (session: ParsedSession) => void;
   sessionIndex?: number;
   objectifEffectif?: string | null;
+  planTotalWeeks?: number;
 }
 
-function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif }: SessionCardProps) {
+function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif, planTotalWeeks }: SessionCardProps) {
+
   const [expanded, setExpanded] = useState(false);
   const targetTable = useTargetTable();
 
@@ -534,20 +538,26 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
             </div>
           )}
 
-          {(fiche.when || fiche.avoid) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10.5px]">
-              {fiche.when && (
-                <div className="text-muted-foreground">
-                  <span className="font-semibold text-green-700 dark:text-green-300">✓ Quand :</span> {fiche.when}
-                </div>
-              )}
-              {fiche.avoid && (
-                <div className="text-muted-foreground">
-                  <span className="font-semibold text-red-700 dark:text-red-300">⚠ Éviter :</span> {fiche.avoid}
-                </div>
-              )}
-            </div>
-          )}
+          {(() => {
+            const sanitizedWhen = sanitizeWhenField(fiche.when, planTotalWeeks ?? 999);
+            if (!sanitizedWhen && !fiche.avoid) return null;
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10.5px]">
+                {sanitizedWhen && (
+                  <div className="text-muted-foreground">
+                    <span className="font-semibold text-green-700 dark:text-green-300">✓ Quand :</span> {sanitizedWhen}
+                  </div>
+                )}
+                {fiche.avoid && (
+                  <div className="text-muted-foreground">
+                    <span className="font-semibold text-red-700 dark:text-red-300">⚠ Éviter :</span> {fiche.avoid}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+
 
           {fiche.notes && (
             <p className="text-[10.5px] italic text-muted-foreground border-l-2 border-primary/30 pl-2">
@@ -656,9 +666,12 @@ interface WeekViewProps {
   nolioCtx?: NolioCtx | null;
   onReplaceClick?: (session: ParsedSession) => void;
   objectifEffectif?: string | null;
+  planTotalWeeks?: number;
 }
 
-function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks }: WeekViewProps) {
+
+
 
   const weekDates = useMemo(() => {
     if (!startDate) return null;
@@ -749,7 +762,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif 
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
           const slot = slotMap.get(session) ?? 0;
-          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} objectifEffectif={objectifEffectif} />;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} objectifEffectif={objectifEffectif} planTotalWeeks={planTotalWeeks} />;
         })}
 
         {week.coachNotes && (
@@ -1537,13 +1550,14 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} />
+          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} />
+            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} />
           ))}
+
         </div>
       )}
 
