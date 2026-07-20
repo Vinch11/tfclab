@@ -732,6 +732,11 @@ export function buildDiagnosticProtocolHTML(
   .block { page-break-inside: avoid; margin-bottom: 10px; }
   .coach-line { margin-top: 6px; font-size: 10pt; }
   .notes-area { border: 1px solid #bbb; height: 180px; background: repeating-linear-gradient(transparent, transparent 22px, #ccc 22px, #ccc 23px); }
+  .alt-block { background: #f3f0fa; border-left: 4px solid #7c3aed; border-radius: 3px; padding: 6px 10px 6px 12px; margin: 6px 0; page-break-inside: avoid; }
+  .alt-title { font-weight: bold; font-size: 10.5pt; color: #5b21b6; margin-bottom: 3px; }
+  .alt-list { margin: 0 0 0 18px; padding: 0; font-size: 10pt; line-height: 1.45; }
+  .alt-list li { margin-bottom: 2px; }
+
   .footer { margin-top: 18px; padding-top: 6px; border-top: 1px solid #0d9488; font-size: 8.5pt; color: #555; text-align: center; }
   .print-btn { position: fixed; top: 10px; right: 10px; background: #0d9488; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; }
   @media print { .print-btn { display: none; } }
