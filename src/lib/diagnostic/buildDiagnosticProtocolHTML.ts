@@ -934,14 +934,17 @@ function buildProtocolChapter(
 
     ${detailedHtml ? `<h2>${chapterNumber}.B — Cadre scientifique &amp; sécurité</h2>${detailedHtml}` : ""}
 
-    <h2>${chapterNumber}.C — Résultats calculés <span class="h2-hint">(à remplir après le test)</span></h2>
+    ${alternativesHtml ? `<h2>${chapterNumber}.C — Variantes &amp; adaptations <span class="h2-hint">(si contrainte matériel, terrain ou temps)</span></h2>${alternativesHtml}` : ""}
+
+    <h2>${chapterNumber}.D — Résultats calculés <span class="h2-hint">(à remplir après le test)</span></h2>
     <table class="results-table">
       <thead><tr><th style="width:40%">Métrique</th><th style="width:20%">Valeur</th><th style="width:20%">Valeur précédente</th><th style="width:20%">Unité</th></tr></thead>
       <tbody>${resultsHtml}</tbody>
     </table>
 
-    <h2>${chapterNumber}.D — Notes du coach</h2>
+    <h2>${chapterNumber}.E — Notes du coach</h2>
     <div class="lined-notes"></div>
+
   </section>`;
 }
 
