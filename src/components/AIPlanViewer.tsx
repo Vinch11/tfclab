@@ -555,11 +555,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
             );
           })()}
 
-                  <span className="font-semibold text-red-700 dark:text-red-300">⚠ Éviter :</span> {fiche.avoid}
-                </div>
-              )}
-            </div>
-          )}
+
 
           {fiche.notes && (
             <p className="text-[10.5px] italic text-muted-foreground border-l-2 border-primary/30 pl-2">
