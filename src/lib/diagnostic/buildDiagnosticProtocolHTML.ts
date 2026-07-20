@@ -876,6 +876,26 @@ function buildProtocolChapter(
     })
     .join("");
 
+  // Variantes & adaptations : matériel manquant / terrain dégradé / format allégé.
+  const altGroups: Array<{ key: "material" | "terrain" | "short"; title: string; icon: string; items?: string[] }> = [
+    { key: "material", title: "Matériel manquant — substitutions",     icon: "🧰", items: p.alternatives?.material },
+    { key: "terrain",  title: "Terrain / environnement dégradé",        icon: "🌦️", items: p.alternatives?.terrain },
+    { key: "short",    title: "Format allégé (temps ou profil limité)", icon: "⏱️", items: p.alternatives?.short },
+  ];
+  const alternativesHtml = altGroups
+    .filter((g) => g.items && g.items.length > 0)
+    .map(
+      (g) => `
+      <div class="callout callout-alt">
+        <div class="callout-head"><span class="callout-icon">${g.icon}</span> ${escapeHtml(g.title)}</div>
+        <ul class="callout-list">
+          ${g.items!.map((it) => `<li>${escapeHtml(it)}</li>`).join("")}
+        </ul>
+      </div>`,
+    )
+    .join("");
+
+
   const resultsHtml = p.results
     .map(
       (r) =>
