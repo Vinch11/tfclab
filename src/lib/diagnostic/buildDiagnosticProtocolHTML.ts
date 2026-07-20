@@ -430,7 +430,26 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
     ],
+    alternatives: {
+      material: [
+        "Pas de cardio étanche : lecture FC au bord du bassin dans les 5 s post-effort (précision ±5 bpm).",
+        "Pas de pull-buoy / plaquettes : garder crawl nu, noter la modification dans la fiche.",
+        "Chronométrage GoPro ou tablette sous-marine indispo : deux chronométreurs manuels bord de bassin (moyenne des deux).",
+      ],
+      terrain: [
+        "Bassin 25m uniquement (au lieu de 50m) : appliquer correction +0.5 s/100m sur CSS (virages).",
+        "Bassin extérieur > 29 °C ou < 24 °C : reporter le test (biais thermique).",
+        "Ligne d'eau partagée (couloir coupé) : reporter le 1500m ou remplacer par 4×400m R:1' à CSS.",
+        "Eau libre (lac, mer) : convertir distances en temps GPS montre, garder 200 + 400 all-out.",
+      ],
+      short: [
+        "Version 45 min : Échauffement 400m + Sprint 25m + Test 400m all-out uniquement (CSS estimée via T400 seul, moins précise).",
+        "Version « profil rapide » : Sprint 25m + 200m + 400m (CSS complète, sans 1500m TTE).",
+        "Si athlète débutant/masters : retirer sprint 25m plongé (départ dans l'eau) et 1500m TTE ; garder 200 + 400.",
+      ],
+    },
   },
+
 
   "tri-day": {
     name: "TFCL Tri Test Day™",
