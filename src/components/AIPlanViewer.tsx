@@ -536,15 +536,25 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
             </div>
           )}
 
-          {(fiche.when || fiche.avoid) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10.5px]">
-              {fiche.when && (
-                <div className="text-muted-foreground">
-                  <span className="font-semibold text-green-700 dark:text-green-300">✓ Quand :</span> {fiche.when}
-                </div>
-              )}
-              {fiche.avoid && (
-                <div className="text-muted-foreground">
+          {(() => {
+            const sanitizedWhen = sanitizeWhenField(fiche.when, planTotalWeeks ?? 999);
+            if (!sanitizedWhen && !fiche.avoid) return null;
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[10.5px]">
+                {sanitizedWhen && (
+                  <div className="text-muted-foreground">
+                    <span className="font-semibold text-green-700 dark:text-green-300">✓ Quand :</span> {sanitizedWhen}
+                  </div>
+                )}
+                {fiche.avoid && (
+                  <div className="text-muted-foreground">
+                    <span className="font-semibold text-red-700 dark:text-red-300">⚠ Éviter :</span> {fiche.avoid}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
                   <span className="font-semibold text-red-700 dark:text-red-300">⚠ Éviter :</span> {fiche.avoid}
                 </div>
               )}
