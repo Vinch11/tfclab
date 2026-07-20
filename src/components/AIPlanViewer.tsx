@@ -50,6 +50,8 @@ import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
 import { SessionReplaceDialog, libSportToPlanSport } from "@/components/SessionReplaceDialog";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
+import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+
 
 
 type NolioScope = "selected" | "single" | "range" | "all";
