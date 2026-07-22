@@ -671,7 +671,11 @@ export function useAITrainingPlan() {
           if (event === "chunk-progress") {
             const ci = typeof data.chunkIndex === "number" ? data.chunkIndex + 1 : 1;
             const tc = typeof data.totalChunks === "number" ? data.totalChunks : totalChunks;
-            setChunkProgress({ currentWeek: (data.weekRange?.[1] ?? 0), totalWeeks, currentChunk: ci, totalChunks: tc });
+            const realWeek = data.weekRange?.[1] ?? 0;
+            stopTicker();
+            setChunkProgress({ currentWeek: realWeek, totalWeeks, currentChunk: ci, totalChunks: tc });
+            if (ci < tc) startTicker(realWeek + 1, ci, tc);
+
           } else if (event === "chunk-json") {
             const parsed = zPlanChunk.safeParse(data.chunk);
             if (!parsed.success) {
