@@ -245,6 +245,26 @@ function scoreWorkout(
     if (isCrossDistanceTemplate) return -1000;
   }
 
+  // ─── HARD-BAN CROSS-DISTANCE (half/70.3) EN PEAK + TAPER ───
+  // Empêche l'IA de piocher TPL_MAR_* / TPL_IM_* / templates marathon+ironman
+  // dans les phases finales d'un plan half/70.3 : ces fiches allongent trop
+  // les séances race-specific et polluent la spécificité race-pace 70.3.
+  // Base/Build restent tolérants (brick long IM en base sert la durabilité).
+  const isHalfGoal = goals.includes("half");
+  const isPeakOrTaper = phases.some(p => p === "peak" || p === "taper");
+  if (isHalfGoal && isPeakOrTaper && !isTrailGoal) {
+    const idUpper = String(w.id || "").toUpperCase();
+    const tagsLower = (w.tags || []).map(t => String(t).toLowerCase());
+    const isFullDistanceTemplate =
+      idUpper.startsWith("TPL_IM_") ||
+      idUpper.startsWith("TPL_MAR_") ||
+      tagsLower.includes("template-ironman") ||
+      tagsLower.includes("template-marathon") ||
+      tagsLower.includes("marathon-pace");
+    if (isFullDistanceTemplate) return -1000;
+  }
+
+
 
 
   let score = 0;
