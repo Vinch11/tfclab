@@ -778,6 +778,9 @@ export function useAITrainingPlan() {
             if (evData) handleEvent(evName, evData);
           }
         }
+        stopTicker();
+
+
 
         // Attempt merge only if no fatal error and chunks received
         let jsonSuccess = false;
