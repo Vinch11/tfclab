@@ -627,6 +627,42 @@ export function useAITrainingPlan() {
         const semanticRepairs: string[] = [];
         let fatalError: { code: string; message: string; details?: any } | null = null;
 
+        // ─── Progression fluide semaine-par-semaine (esthétique) ──────────
+        // Les événements `chunk-progress` n'arrivent qu'à la fin de chaque
+        // bloc (jump de CHUNK_SIZE semaines). On lisse visuellement en
+        // incrémentant `currentWeek` d'une unité toutes les ~2.5 s pendant
+        // qu'un bloc est en cours, en réservant la dernière semaine du bloc
+        // au vrai event.
+        let progressTicker: ReturnType<typeof setInterval> | null = null;
+        let tickerWeek = 0;
+        const stopTicker = () => {
+          if (progressTicker !== null) { clearInterval(progressTicker); progressTicker = null; }
+        };
+        const startTicker = (fromWeek: number, chunkIndexZeroBased: number, tcArg: number) => {
+          stopTicker();
+          const chunkEnd = Math.min((chunkIndexZeroBased + 1) * CHUNK_SIZE, totalWeeks);
+          const ceiling = Math.max(fromWeek, chunkEnd - 1);
+          tickerWeek = fromWeek;
+          progressTicker = setInterval(() => {
+            if (tickerWeek >= ceiling) { stopTicker(); return; }
+            tickerWeek += 1;
+            setChunkProgress({
+              currentWeek: tickerWeek,
+              totalWeeks,
+              currentChunk: chunkIndexZeroBased + 1,
+              totalChunks: tcArg,
+            });
+          }, 2500);
+        };
+        if (totalChunks > 1) {
+          setChunkProgress({ currentWeek: 1, totalWeeks, currentChunk: 1, totalChunks });
+          startTicker(1, 0, totalChunks);
+        } else if (totalWeeks > 1) {
+          setChunkProgress({ currentWeek: 1, totalWeeks, currentChunk: 1, totalChunks: 1 });
+          startTicker(1, 0, 1);
+        }
+
+
         const handleEvent = (event: string, dataStr: string) => {
           // ─── DIAGNOSTIC (à retirer) : log tout event SSE reçu ───
           console.log(`[SSE evt] ${event} (${dataStr.length} chars)`);
