@@ -183,6 +183,9 @@ export default function AITrainingPlanPage() {
   // COACH FORM — Saisie manuelle des limiteurs Lorang (remplace Express Finisher).
   const [coachFormOpen, setCoachFormOpen] = useState(false);
 
+  // QUICK-START WIZARD — Questionnaire guidé pour coach/athlète débutant.
+  const [wizardOpen, setWizardOpen] = useState(false);
+
   // Handle navigation from PlanSyncAlert or ProfileChoiceDialog
   useEffect(() => {
     const navState = location.state as {
