@@ -5,7 +5,7 @@
  * L'ancien "Démarrage Express" (qui devinait le profil FC-only) est remplacé
  * par CoachProfileForm : le coach SAIT, on ne devine plus.
  */
-import { UserCog, FlaskConical } from "lucide-react";
+import { UserCog, FlaskConical, Wand2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -34,6 +34,13 @@ export function ProfileChoiceDialog({ open, onOpenChange, athleteId, athleteName
     });
   };
 
+  const handleGuided = () => {
+    onOpenChange(false);
+    navigate("/planning/ai-plan", {
+      state: { openQuickWizard: true, athleteId },
+    });
+  };
+
   const handleFull = () => {
     onOpenChange(false);
     navigate("/diagnostic");
@@ -49,7 +56,29 @@ export function ProfileChoiceDialog({ open, onOpenChange, athleteId, athleteName
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {/* Option 0 — Débutant guidé (wizard) */}
+          <div className="rounded-lg border border-teal-500/40 bg-teal-500/5 p-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400">
+              <Wand2 className="h-5 w-5" />
+              <span className="text-base font-semibold">✨ Débutant guidé</span>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Je ne connais pas le vocabulaire technique</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Questionnaire pas-à-pas · Symptômes simples · Traduction auto en limiteurs
+              </p>
+            </div>
+            <Button
+              onClick={handleGuided}
+              variant="secondary"
+              className="mt-auto gap-2"
+            >
+              <Wand2 className="h-4 w-4" />
+              Démarrage guidé
+            </Button>
+          </div>
+
           {/* Option 1 — Saisie coach (Lorang manuel) */}
           <div className="rounded-lg border border-primary/40 bg-primary/5 p-4 flex flex-col gap-3">
             <div className="flex items-center gap-2 text-primary">

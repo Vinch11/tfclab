@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { FinisherQuickStartDialog, type FinisherExpressPayload } from "@/components/FinisherQuickStartDialog";
 import { CoachProfileForm, type CoachProfileFormPayload, type CoachProfilePrefill, type MetabolicProfile } from "@/components/CoachProfileForm";
+import { QuickStartWizard } from "@/components/QuickStartWizard";
 import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, startOfDay } from "date-fns";
 
 import { useAthletes } from "@/contexts/AthleteContext";
@@ -183,6 +184,9 @@ export default function AITrainingPlanPage() {
   // COACH FORM — Saisie manuelle des limiteurs Lorang (remplace Express Finisher).
   const [coachFormOpen, setCoachFormOpen] = useState(false);
 
+  // QUICK-START WIZARD — Questionnaire guidé pour coach/athlète débutant.
+  const [wizardOpen, setWizardOpen] = useState(false);
+
   // Handle navigation from PlanSyncAlert or ProfileChoiceDialog
   useEffect(() => {
     const navState = location.state as {
@@ -190,6 +194,7 @@ export default function AITrainingPlanPage() {
       autoRegenerate?: boolean;
       openExpress?: boolean;
       openCoachForm?: boolean;
+      openQuickWizard?: boolean;
     } | null;
     if (navState?.athleteId && navState?.autoRegenerate) {
       setSelectedAthleteId(navState.athleteId);
@@ -204,6 +209,11 @@ export default function AITrainingPlanPage() {
     if (navState?.openCoachForm) {
       if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
       setCoachFormOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+    if (navState?.openQuickWizard) {
+      if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
+      setWizardOpen(true);
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setSelectedAthleteId]);
@@ -1090,6 +1100,37 @@ export default function AITrainingPlanPage() {
     console.log("[CoachProfileForm] Profil enregistré (sans génération):", payload);
     toast.success("Profil coach enregistré. Ouvre à nouveau le formulaire pour générer.");
   }, []);
+
+  // ─── QUICK-START WIZARD handlers ──────────────────────────────────────────
+  const handleWizardGenerate = useCallback((result: import("@/components/QuickStartWizard").QuickStartResult) => {
+    setObjective(result.objective);
+    // Enchaîne directement sur la génération (même flux que CoachProfileForm).
+    handleCoachFormGenerate(result.payload);
+  }, [handleCoachFormGenerate]);
+
+  const handleWizardReview = useCallback((result: import("@/components/QuickStartWizard").QuickStartResult) => {
+    setObjective(result.objective);
+    // Pré-remplit CoachProfileForm via localStorage (même clé que le form utilise pour restore).
+    try {
+      const p = result.payload;
+      const key = `tfcl:coachProfileForm:${currentAthlete?.nom ?? "default"}`;
+      const draft = {
+        metabolic: p.metabolicProfile,
+        primary: p.primaryLimiter,
+        secondary: p.secondaryLimiter ?? "unknown",
+        prohibitions: p.prohibitions,
+        sessionsPerWeek: p.sessionsPerWeek != null ? String(p.sessionsPerWeek) : "",
+        durationMode: p.durationMode,
+        raceDate: p.raceDate ?? "",
+        freeWeeks: p.durationMode === "free" ? String(p.weeksAvailable) : "",
+        touchedPrimary: true,
+        touchedSecondary: !!p.secondaryLimiter,
+        optionalOpen: p.prohibitions.length > 0,
+      };
+      window.localStorage.setItem(key, JSON.stringify(draft));
+    } catch { /* ignore */ }
+    setCoachFormOpen(true);
+  }, [currentAthlete?.nom]);
 
   // Multi-athlete batch generation
   const handleBatchGenerate = useCallback(async () => {
@@ -2621,6 +2662,14 @@ export default function AITrainingPlanPage() {
         prefill={coachPrefill}
         onSubmit={handleCoachFormSave}
         onGenerate={handleCoachFormGenerate}
+      />
+      <QuickStartWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        athleteName={currentAthlete?.nom}
+        defaultObjective={currentAthlete?.objectif || objective}
+        onGenerate={handleWizardGenerate}
+        onReview={handleWizardReview}
       />
     </AppLayout>
   );
