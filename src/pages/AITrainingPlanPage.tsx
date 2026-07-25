@@ -1100,6 +1100,37 @@ export default function AITrainingPlanPage() {
     toast.success("Profil coach enregistré. Ouvre à nouveau le formulaire pour générer.");
   }, []);
 
+  // ─── QUICK-START WIZARD handlers ──────────────────────────────────────────
+  const handleWizardGenerate = useCallback((result: import("@/components/QuickStartWizard").QuickStartResult) => {
+    setObjective(result.objective);
+    // Enchaîne directement sur la génération (même flux que CoachProfileForm).
+    handleCoachFormGenerate(result.payload);
+  }, [handleCoachFormGenerate]);
+
+  const handleWizardReview = useCallback((result: import("@/components/QuickStartWizard").QuickStartResult) => {
+    setObjective(result.objective);
+    // Pré-remplit CoachProfileForm via localStorage (même clé que le form utilise pour restore).
+    try {
+      const p = result.payload;
+      const key = `tfcl:coachProfileForm:${currentAthlete?.nom ?? "default"}`;
+      const draft = {
+        metabolic: p.metabolicProfile,
+        primary: p.primaryLimiter,
+        secondary: p.secondaryLimiter ?? "unknown",
+        prohibitions: p.prohibitions,
+        sessionsPerWeek: p.sessionsPerWeek != null ? String(p.sessionsPerWeek) : "",
+        durationMode: p.durationMode,
+        raceDate: p.raceDate ?? "",
+        freeWeeks: p.durationMode === "free" ? String(p.weeksAvailable) : "",
+        touchedPrimary: true,
+        touchedSecondary: !!p.secondaryLimiter,
+        optionalOpen: p.prohibitions.length > 0,
+      };
+      window.localStorage.setItem(key, JSON.stringify(draft));
+    } catch { /* ignore */ }
+    setCoachFormOpen(true);
+  }, [currentAthlete?.nom]);
+
   // Multi-athlete batch generation
   const handleBatchGenerate = useCallback(async () => {
     if (selectedAthleteIds.length === 0) {
