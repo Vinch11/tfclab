@@ -193,6 +193,7 @@ export default function AITrainingPlanPage() {
       autoRegenerate?: boolean;
       openExpress?: boolean;
       openCoachForm?: boolean;
+      openQuickWizard?: boolean;
     } | null;
     if (navState?.athleteId && navState?.autoRegenerate) {
       setSelectedAthleteId(navState.athleteId);
@@ -207,6 +208,11 @@ export default function AITrainingPlanPage() {
     if (navState?.openCoachForm) {
       if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
       setCoachFormOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+    if (navState?.openQuickWizard) {
+      if (navState.athleteId) setSelectedAthleteId(navState.athleteId);
+      setWizardOpen(true);
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setSelectedAthleteId]);
