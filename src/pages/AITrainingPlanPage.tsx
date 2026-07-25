@@ -1633,6 +1633,17 @@ export default function AITrainingPlanPage() {
               Plan d'entraînement personnalisé par IA
             </p>
           </div>
+          {/* WIZARD launcher — questionnaire guidé 8 étapes */}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setWizardOpen(true)}
+            className="flex items-center gap-1.5"
+            title="Questionnaire guidé pour coach/athlète débutant (8 étapes)"
+          >
+            <Sparkles className="h-4 w-4" />
+            Démarrage guidé
+          </Button>
           {/* COACH FORM launcher — saisie manuelle limiteurs Lorang */}
           <Button
             variant="outline"
