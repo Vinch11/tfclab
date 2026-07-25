@@ -2663,6 +2663,14 @@ export default function AITrainingPlanPage() {
         onSubmit={handleCoachFormSave}
         onGenerate={handleCoachFormGenerate}
       />
+      <QuickStartWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        athleteName={currentAthlete?.nom}
+        defaultObjective={currentAthlete?.objectif || objective}
+        onGenerate={handleWizardGenerate}
+        onReview={handleWizardReview}
+      />
     </AppLayout>
   );
 }
