@@ -5,7 +5,7 @@
  * L'ancien "Démarrage Express" (qui devinait le profil FC-only) est remplacé
  * par CoachProfileForm : le coach SAIT, on ne devine plus.
  */
-import { UserCog, FlaskConical } from "lucide-react";
+import { UserCog, FlaskConical, Wand2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
