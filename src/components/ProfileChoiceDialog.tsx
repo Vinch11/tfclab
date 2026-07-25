@@ -34,6 +34,13 @@ export function ProfileChoiceDialog({ open, onOpenChange, athleteId, athleteName
     });
   };
 
+  const handleGuided = () => {
+    onOpenChange(false);
+    navigate("/planning/ai-plan", {
+      state: { openQuickWizard: true, athleteId },
+    });
+  };
+
   const handleFull = () => {
     onOpenChange(false);
     navigate("/diagnostic");
