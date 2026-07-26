@@ -1102,14 +1102,57 @@ export default function AITrainingPlanPage() {
   }, []);
 
   // ─── QUICK-START WIZARD handlers ──────────────────────────────────────────
-  const handleWizardGenerate = useCallback((result: import("@/components/QuickStartWizard").QuickStartResult) => {
-    setObjective(result.objective);
-    // Enchaîne directement sur la génération (même flux que CoachProfileForm).
-    handleCoachFormGenerate(result.payload);
-  }, [handleCoachFormGenerate]);
+  /** Persiste les chronos du wizard dans le snapshot actif (ou crée un minimal). */
+  const persistWizardChronos = useCallback(async (
+    extras: import("@/components/QuickStartWizard").QuickStartExtras,
+  ) => {
+    const entries = Object.entries(extras.chronos || {});
+    if (entries.length === 0 || !currentAthlete?.id) return;
+    const CHRONO_FIELD_MAP: Record<string, { sec: string; date: string }> = {
+      "5k":       { sec: "time_5k_sec",       date: "time_5k_date" },
+      "10k":      { sec: "time_10k_sec",      date: "time_10k_date" },
+      "half":     { sec: "time_half_sec",     date: "time_half_date" },
+      "marathon": { sec: "time_marathon_sec", date: "time_marathon_date" },
+    };
+    try {
+      const athleteSnaps = snapshots
+        .filter((s) => s.athlete_id === currentAthlete.id)
+        .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      let snapshotId = athleteSnaps[0]?.id;
+      if (!snapshotId) {
+        const created = await addSnapshot({
+          athlete_id: currentAthlete.id,
+          coach_id: "",
+          date: new Date().toISOString().split("T")[0],
+          source: "quick_start_wizard",
+        } as any);
+        snapshotId = created?.id;
+      }
+      if (!snapshotId) return;
+      const update: Record<string, unknown> = {};
+      for (const [dist, val] of entries) {
+        const fields = CHRONO_FIELD_MAP[dist];
+        if (!fields || !val) continue;
+        update[fields.sec] = val.sec;
+        update[fields.date] = val.date;
+      }
+      if (Object.keys(update).length > 0) {
+        await supabase.from("snapshots").update(update).eq("id", snapshotId);
+      }
+    } catch (e) {
+      console.warn("[QuickStartWizard] persistWizardChronos failed:", e);
+    }
+  }, [currentAthlete?.id, snapshots, addSnapshot]);
 
-  const handleWizardReview = useCallback((result: import("@/components/QuickStartWizard").QuickStartResult) => {
+  const handleWizardGenerate = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
     setObjective(result.objective);
+    await persistWizardChronos(result.extras);
+    handleCoachFormGenerate(result.payload);
+  }, [handleCoachFormGenerate, persistWizardChronos]);
+
+  const handleWizardReview = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
+    setObjective(result.objective);
+    await persistWizardChronos(result.extras);
     // Pré-remplit CoachProfileForm via localStorage (même clé que le form utilise pour restore).
     try {
       const p = result.payload;
@@ -1130,7 +1173,7 @@ export default function AITrainingPlanPage() {
       window.localStorage.setItem(key, JSON.stringify(draft));
     } catch { /* ignore */ }
     setCoachFormOpen(true);
-  }, [currentAthlete?.nom]);
+  }, [currentAthlete?.nom, persistWizardChronos]);
 
   // Multi-athlete batch generation
   const handleBatchGenerate = useCallback(async () => {
