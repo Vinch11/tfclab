@@ -121,7 +121,10 @@ const CHRONO_LIST: Array<{ value: ChronoDistanceKey; label: string; km: number; 
 
 export interface QuickStartExtras {
   injury: InjuryStatus;
+  /** Terrain principal (premier sélectionné) — conservé pour compat. */
   terrain: Terrain;
+  /** Tous les terrains accessibles (multi-sélection). */
+  terrains: Terrain[];
   hillFeeling: HillFeeling | null;
   recoverySpeed: RecoverySpeed | null;
   /** Chronos saisis (secondes). Une seule distance suffit — les autres sont extrapolées par le moteur (Riegel). */
@@ -187,7 +190,7 @@ export function QuickStartWizard({
 
   // Nouveaux axes
   const [injury, setInjury] = useState<InjuryStatus | null>(null);
-  const [terrain, setTerrain] = useState<Terrain | null>(null);
+  const [terrains, setTerrains] = useState<Terrain[]>([]);
   const [hillFeeling, setHillFeeling] = useState<HillFeeling | null>(null);
   const [recoverySpeed, setRecoverySpeed] = useState<RecoverySpeed | null>(null);
 
@@ -230,7 +233,7 @@ export function QuickStartWizard({
       case "objective":  return !!objective;
       case "duration":   return computedWeeks !== null && computedWeeks > 0;
       case "injury":     return injury !== null;
-      case "terrain":    return terrain !== null;
+      case "terrain":    return terrains.length > 0;
       case "metabolic":  return metabolic !== null;
       case "primary":    return primary !== null;
       case "secondary":  return secondary !== null;
@@ -308,7 +311,8 @@ export function QuickStartWizard({
     if (!payload || !objective) return;
     const extras: QuickStartExtras = {
       injury: injury ?? "none",
-      terrain: terrain ?? "road",
+      terrain: terrains[0] ?? "road",
+      terrains: terrains.length > 0 ? terrains : ["road"],
       hillFeeling,
       recoverySpeed,
       chronos,
@@ -431,12 +435,28 @@ export function QuickStartWizard({
 
           {step === "terrain" && (
             <StepBlock
-              title="Terrain d'entraînement dominant ?"
-              hint="Oriente le choix des séances (côtes, tapis, boucles, trail…)."
+              title="Lieux d'entraînement accessibles ?"
+              hint="Sélection multiple — coche tout ce à quoi tu as accès régulièrement (plat, piste, trail, urbain…)."
             >
-              {TERRAIN_OPTIONS.map((o) => (
-                <CardChoice key={o.value} selected={terrain === o.value} onClick={() => setTerrain(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
-              ))}
+              {TERRAIN_OPTIONS.map((o) => {
+                const selected = terrains.includes(o.value);
+                return (
+                  <CardChoice
+                    key={o.value}
+                    selected={selected}
+                    onClick={() =>
+                      setTerrains((prev) =>
+                        prev.includes(o.value)
+                          ? prev.filter((t) => t !== o.value)
+                          : [...prev, o.value],
+                      )
+                    }
+                    emoji={o.emoji}
+                    title={o.title}
+                    desc={o.desc}
+                  />
+                );
+              })}
             </StepBlock>
           )}
 
@@ -449,7 +469,7 @@ export function QuickStartWizard({
           )}
 
           {step === "primary" && (
-            <StepBlock title={`Qu'est-ce qui limite le plus ${subject} en course ?`} hint="Choisis LE symptôme dominant. C'est ce que l'IA ciblera en priorité.">
+            <StepBlock title={audience === "athlete" ? "Qu'est-ce qui te limite le plus en course ?" : "Qu'est-ce qui limite le plus l'athlète en course ?"} hint="Choisis LE symptôme dominant. C'est ce que l'IA ciblera en priorité.">
               {SYMPTOMS.map((s) => (
                 <CardChoice key={s.key} selected={primary === s.key} onClick={() => setPrimary(s.key)} emoji={s.emoji} title={s.title} desc={s.desc} />
               ))}
@@ -606,7 +626,7 @@ export function QuickStartWizard({
                 <RecapRow label="Objectif" value={OBJECTIVES.find((o) => o.value === objective)?.label ?? objective} />
                 <RecapRow label="Durée" value={durationMode === "date" ? `Course le ${raceDate} (~${computedWeeks} sem)` : `${computedWeeks} semaines`} />
                 <RecapRow label="Blessure" value={INJURY_OPTIONS.find((o) => o.value === injury)?.title ?? "—"} />
-                <RecapRow label="Terrain" value={TERRAIN_OPTIONS.find((o) => o.value === terrain)?.title ?? "—"} />
+                <RecapRow label="Terrain" value={terrains.length > 0 ? terrains.map((t) => TERRAIN_OPTIONS.find((o) => o.value === t)?.title).filter(Boolean).join(", ") : "—"} />
                 <RecapRow label="Profil énergie" value={METABOLIC_QUESTIONS.find((m) => m.value === metabolic)?.label ?? "—"} />
                 <RecapRow label="Limiteur principal" value={primary ? LIMITER_META[primary].label : "—"} />
                 <RecapRow
