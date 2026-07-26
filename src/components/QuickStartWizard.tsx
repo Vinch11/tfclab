@@ -1,15 +1,13 @@
 /**
- * QuickStartWizard — Assistant guidé pour coach/athlète débutant.
+ * QuickStartWizard — Assistant guidé (12 étapes) pour coach/athlète débutant.
  *
- * Traduit un questionnaire "symptômes terrain" (langage non-technique) en
- * CoachProfileFormPayload (Lorang) prêt pour handleCoachFormGenerate.
+ * Traduit un questionnaire "symptômes terrain" en CoachProfileFormPayload
+ * (Lorang) + `extras` (chronos, blessure, terrain, sensations) que le parent
+ * peut persister avant de lancer la génération.
  *
  * Modes de sortie :
  *  - "Vérifier avant génération" : pré-remplit CoachProfileForm via localStorage
  *  - "Générer directement" : appelle onGenerate(payload)
- *
- * Aucune logique métier n'est dupliquée — le wizard construit exactement
- * la même structure que CoachProfileForm.
  */
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Wand2, Sparkles, Rocket, ClipboardCheck } from "lucide-react";
@@ -80,10 +78,61 @@ const OBJECTIVES = [
 
 const SESSIONS_PER_WEEK = [3, 4, 5, 6, 7];
 
+// ─── Nouveaux axes (1 → 5) ──────────────────────────────────────────────────
+export type InjuryStatus = "none" | "old" | "recent" | "chronic";
+export type Terrain = "road" | "trail" | "track" | "urban_mix";
+export type HillFeeling = "easy" | "moderate" | "hard";
+export type RecoverySpeed = "fast" | "moderate" | "slow";
+
+const INJURY_OPTIONS: Array<{ value: InjuryStatus; emoji: string; title: string; desc: string }> = [
+  { value: "none",    emoji: "✅", title: "Aucune",              desc: "Aucun antécédent bloquant récent." },
+  { value: "old",     emoji: "🩹", title: "Ancienne (guérie)",   desc: "Antécédent > 6 mois, sans gêne actuelle." },
+  { value: "recent",  emoji: "⚠️", title: "Récente (< 3 mois)",  desc: "Prudence : on limite les stimuli à risque." },
+  { value: "chronic", emoji: "🔁", title: "Chronique / récurrente", desc: "Réapparaît régulièrement (tendon, dos, genou…)." },
+];
+
+const TERRAIN_OPTIONS: Array<{ value: Terrain; emoji: string; title: string; desc: string }> = [
+  { value: "road",      emoji: "🛣️", title: "Route / plat",       desc: "Bitume dominant, terrain régulier." },
+  { value: "trail",     emoji: "⛰️", title: "Trail / montagne",   desc: "Sentiers, dénivelé, terrain technique." },
+  { value: "track",     emoji: "🏟️", title: "Piste / structurée", desc: "Accès régulier à une piste ou stade." },
+  { value: "urban_mix", emoji: "🏙️", title: "Urbain mixte",       desc: "Parcs, tapis, boucles vallonnées limitées." },
+];
+
+const HILL_OPTIONS: Array<{ value: HillFeeling; emoji: string; title: string; desc: string }> = [
+  { value: "easy",     emoji: "🟢", title: "À l'aise dans les côtes", desc: "Grimpe sans surcoût perceptible." },
+  { value: "moderate", emoji: "🟡", title: "Correct mais coûteux",     desc: "Passe mais paie l'effort ensuite." },
+  { value: "hard",     emoji: "🔴", title: "Vraiment difficile",       desc: "S'essouffle et décroche en côte." },
+];
+
+const RECOVERY_OPTIONS: Array<{ value: RecoverySpeed; emoji: string; title: string; desc: string }> = [
+  { value: "fast",     emoji: "🟢", title: "Rapide",   desc: "Enchaîne facilement, prêt le lendemain." },
+  { value: "moderate", emoji: "🟡", title: "Moyenne",  desc: "Récupère mais à jauger séance après séance." },
+  { value: "slow",     emoji: "🔴", title: "Lente",    desc: "Fatigue résiduelle marquée, besoin de jours faciles." },
+];
+
+// ─── Chronos (axe 3) ────────────────────────────────────────────────────────
+export type ChronoDistanceKey = "5k" | "10k" | "half" | "marathon";
+const CHRONO_LIST: Array<{ value: ChronoDistanceKey; label: string; km: number; snapField: string }> = [
+  { value: "5k",       label: "5 km",             km: 5,        snapField: "time_5k_sec" },
+  { value: "10k",      label: "10 km",            km: 10,       snapField: "time_10k_sec" },
+  { value: "half",     label: "Semi (21,1 km)",   km: 21.0975,  snapField: "time_half_sec" },
+  { value: "marathon", label: "Marathon (42,2)",  km: 42.195,   snapField: "time_marathon_sec" },
+];
+
+export interface QuickStartExtras {
+  injury: InjuryStatus;
+  terrain: Terrain;
+  hillFeeling: HillFeeling | null;
+  recoverySpeed: RecoverySpeed | null;
+  /** Chronos saisis (secondes). Une seule distance suffit — les autres sont extrapolées par le moteur (Riegel). */
+  chronos: Partial<Record<ChronoDistanceKey, { sec: number; date: string }>>;
+}
+
 export interface QuickStartResult {
   payload: CoachProfileFormPayload;
   objective: string;
   action: "generate" | "review";
+  extras: QuickStartExtras;
 }
 
 interface Props {
@@ -91,9 +140,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   athleteName?: string;
   defaultObjective?: string;
-  /** L'utilisateur veut générer directement — le parent enchaîne sur handleCoachFormGenerate. */
   onGenerate: (result: QuickStartResult) => void;
-  /** L'utilisateur veut vérifier — le parent pré-remplit + ouvre CoachProfileForm. */
   onReview: (result: QuickStartResult) => void;
 }
 
@@ -101,13 +148,23 @@ type Step =
   | "audience"
   | "objective"
   | "duration"
+  | "injury"
+  | "terrain"
   | "metabolic"
   | "primary"
   | "secondary"
+  | "chronos"
+  | "sensations"
   | "sessions"
   | "recap";
 
-const STEPS: Step[] = ["audience", "objective", "duration", "metabolic", "primary", "secondary", "sessions", "recap"];
+const STEPS: Step[] = [
+  "audience", "objective", "duration",
+  "injury", "terrain",
+  "metabolic", "primary", "secondary",
+  "chronos", "sensations",
+  "sessions", "recap",
+];
 
 export function QuickStartWizard({
   open,
@@ -128,6 +185,21 @@ export function QuickStartWizard({
   const [secondary, setSecondary] = useState<LorangLimiter | "skip" | null>(null);
   const [sessions, setSessions] = useState<number | "skip" | null>(null);
 
+  // Nouveaux axes
+  const [injury, setInjury] = useState<InjuryStatus | null>(null);
+  const [terrain, setTerrain] = useState<Terrain | null>(null);
+  const [hillFeeling, setHillFeeling] = useState<HillFeeling | null>(null);
+  const [recoverySpeed, setRecoverySpeed] = useState<RecoverySpeed | null>(null);
+
+  // Chronos — saisie libre par distance
+  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const [chronoDist, setChronoDist] = useState<ChronoDistanceKey>("10k");
+  const [chH, setChH] = useState("");
+  const [chM, setChM] = useState("");
+  const [chS, setChS] = useState("");
+  const [chDate, setChDate] = useState(today);
+  const [chronos, setChronos] = useState<QuickStartExtras["chronos"]>({});
+
   const step = STEPS[stepIdx];
   const isFirst = stepIdx === 0;
   const isLast = step === "recap";
@@ -141,9 +213,9 @@ export function QuickStartWizard({
       if (!raceDate) return null;
       try {
         const race = new Date(raceDate + "T00:00:00");
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const days = Math.floor((race.getTime() - today.getTime()) / 86400000);
+        const t = new Date();
+        t.setHours(0, 0, 0, 0);
+        const days = Math.floor((race.getTime() - t.getTime()) / 86400000);
         if (days < 0) return null;
         return Math.max(1, Math.floor(days / 7) + 1);
       } catch { return null; }
@@ -154,30 +226,64 @@ export function QuickStartWizard({
 
   const canNext = (): boolean => {
     switch (step) {
-      case "audience":  return audience !== null;
-      case "objective": return !!objective;
-      case "duration":  return computedWeeks !== null && computedWeeks > 0;
-      case "metabolic": return metabolic !== null;
-      case "primary":   return primary !== null;
-      case "secondary": return secondary !== null; // "skip" is valid
-      case "sessions":  return sessions !== null;  // "skip" is valid
-      case "recap":     return true;
+      case "audience":   return audience !== null;
+      case "objective":  return !!objective;
+      case "duration":   return computedWeeks !== null && computedWeeks > 0;
+      case "injury":     return injury !== null;
+      case "terrain":    return terrain !== null;
+      case "metabolic":  return metabolic !== null;
+      case "primary":    return primary !== null;
+      case "secondary":  return secondary !== null;
+      case "chronos":    return true; // toujours skippable
+      case "sensations": return hillFeeling !== null && recoverySpeed !== null;
+      case "sessions":   return sessions !== null;
+      case "recap":      return true;
     }
   };
 
   const next = () => { if (!isLast && canNext()) setStepIdx((i) => i + 1); };
   const prev = () => { if (!isFirst) setStepIdx((i) => i - 1); };
 
+  const addCurrentChrono = () => {
+    const parsed = (Number(chH || 0) * 3600) + (Number(chM || 0) * 60) + Number(chS || 0);
+    if (!parsed || parsed < 60) return;
+    setChronos((prev) => ({ ...prev, [chronoDist]: { sec: parsed, date: chDate || today } }));
+    setChH(""); setChM(""); setChS("");
+  };
+  const removeChrono = (k: ChronoDistanceKey) => {
+    setChronos((prev) => {
+      const next = { ...prev };
+      delete next[k];
+      return next;
+    });
+  };
+
   const buildPayload = (): CoachProfileFormPayload | null => {
     if (!metabolic || !primary || !computedWeeks) return null;
     const primaryMeta = LIMITER_META[primary];
-    const secondaryLimiter = secondary && secondary !== "skip" ? secondary : null;
+
+    // Auto-inférence du secondaire depuis sensations si non renseigné.
+    let secondaryLimiter: LorangLimiter | null =
+      secondary && secondary !== "skip" ? secondary : null;
+    if (!secondaryLimiter) {
+      if (hillFeeling === "hard" && primary !== "motor") secondaryLimiter = "motor";
+      else if (recoverySpeed === "slow" && primary !== "availability") secondaryLimiter = "availability";
+    }
     const secondaryMeta = secondaryLimiter ? LIMITER_META[secondaryLimiter] : null;
 
-    // Prohibitions implicites pour profil sprinter (identiques à CoachProfileForm).
-    const prohibitions: LorangProhibition[] = [];
+    // Prohibitions cumulatives (metabolic + injury).
+    const prohibitionSet = new Set<LorangProhibition>();
     if (metabolic === "sprinter") {
-      prohibitions.push("sprints", "micro_intervals");
+      prohibitionSet.add("sprints");
+      prohibitionSet.add("micro_intervals");
+    }
+    if (injury === "recent") {
+      prohibitionSet.add("sprints");
+      prohibitionSet.add("micro_intervals");
+      prohibitionSet.add("erratic_pacing");
+    } else if (injury === "chronic") {
+      prohibitionSet.add("sprints");
+      prohibitionSet.add("micro_intervals");
     }
 
     const spw = typeof sessions === "number" ? sessions : null;
@@ -188,7 +294,7 @@ export function QuickStartWizard({
       primaryLimiterMetric: primaryMeta.metric,
       secondaryLimiter,
       secondaryLimiterMetric: secondaryMeta?.metric ?? null,
-      prohibitions,
+      prohibitions: [...prohibitionSet],
       sessionsPerWeek: spw,
       durationMode,
       raceDate: durationMode === "date" && raceDate ? raceDate : null,
@@ -200,13 +306,19 @@ export function QuickStartWizard({
   const handleFinish = (action: "generate" | "review") => {
     const payload = buildPayload();
     if (!payload || !objective) return;
-    const result: QuickStartResult = { payload, objective, action };
+    const extras: QuickStartExtras = {
+      injury: injury ?? "none",
+      terrain: terrain ?? "road",
+      hillFeeling,
+      recoverySpeed,
+      chronos,
+    };
+    const result: QuickStartResult = { payload, objective, action, extras };
     if (action === "generate") onGenerate(result);
     else onReview(result);
     onOpenChange(false);
   };
 
-  // ─── Render helpers ────────────────────────────────────────────────────────
   const stepNumber = stepIdx + 1;
   const totalSteps = STEPS.length;
 
@@ -224,7 +336,6 @@ export function QuickStartWizard({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Progress bar */}
         <div className="flex gap-1 mb-2">
           {STEPS.map((_, i) => (
             <div
@@ -240,20 +351,8 @@ export function QuickStartWizard({
         <div className="min-h-[280px] py-2">
           {step === "audience" && (
             <StepBlock title="Qui remplit ce questionnaire ?" hint="Ça nous aide juste à ajuster le vocabulaire.">
-              <CardChoice
-                selected={audience === "coach"}
-                onClick={() => setAudience("coach")}
-                emoji="🧑‍🏫"
-                title="Je suis coach"
-                desc="Je réponds pour l'athlète que j'accompagne."
-              />
-              <CardChoice
-                selected={audience === "athlete"}
-                onClick={() => setAudience("athlete")}
-                emoji="🏃"
-                title="Je suis l'athlète"
-                desc="Je réponds pour moi-même."
-              />
+              <CardChoice selected={audience === "coach"}   onClick={() => setAudience("coach")}   emoji="🧑‍🏫" title="Je suis coach"    desc="Je réponds pour l'athlète que j'accompagne." />
+              <CardChoice selected={audience === "athlete"} onClick={() => setAudience("athlete")} emoji="🏃"   title="Je suis l'athlète" desc="Je réponds pour moi-même." />
             </StepBlock>
           )}
 
@@ -282,18 +381,8 @@ export function QuickStartWizard({
           {step === "duration" && (
             <StepBlock title="Sur combien de temps ?" hint="Date de course connue, ou durée libre.">
               <div className="grid grid-cols-2 gap-2 mb-3">
-                <ModeCard
-                  active={durationMode === "free"}
-                  onClick={() => setDurationMode("free")}
-                  title="Durée libre"
-                  desc="Progression sur N semaines."
-                />
-                <ModeCard
-                  active={durationMode === "date"}
-                  onClick={() => setDurationMode("date")}
-                  title="Objectif daté"
-                  desc="Compte à rebours course."
-                />
+                <ModeCard active={durationMode === "free"} onClick={() => setDurationMode("free")} title="Durée libre"   desc="Progression sur N semaines." />
+                <ModeCard active={durationMode === "date"} onClick={() => setDurationMode("date")} title="Objectif daté" desc="Compte à rebours course." />
               </div>
               {durationMode === "free" ? (
                 <div>
@@ -314,24 +403,11 @@ export function QuickStartWizard({
                       </button>
                     ))}
                   </div>
-                  <Input
-                    type="number"
-                    min={2}
-                    max={52}
-                    placeholder="Nombre de semaines (2-52)"
-                    value={freeWeeks}
-                    onChange={(e) => setFreeWeeks(e.target.value)}
-                    className="max-w-[220px]"
-                  />
+                  <Input type="number" min={2} max={52} placeholder="Nombre de semaines (2-52)" value={freeWeeks} onChange={(e) => setFreeWeeks(e.target.value)} className="max-w-[220px]" />
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Input
-                    type="date"
-                    value={raceDate}
-                    onChange={(e) => setRaceDate(e.target.value)}
-                    className="max-w-[220px]"
-                  />
+                  <Input type="date" value={raceDate} onChange={(e) => setRaceDate(e.target.value)} className="max-w-[220px]" />
                   {computedWeeks !== null && (
                     <div className="text-xs text-muted-foreground">
                       Soit environ <span className="font-medium">{computedWeeks} semaines</span> de préparation.
@@ -342,72 +418,154 @@ export function QuickStartWizard({
             </StepBlock>
           )}
 
-          {step === "metabolic" && (
+          {step === "injury" && (
             <StepBlock
-              title={`${subjectCapital} — plutôt explosif ou endurant ?`}
-              hint="Choisis le profil qui décrit le mieux le comportement à l'entraînement."
+              title={`Blessures ou gênes actuelles ?`}
+              hint="Détermine les stimuli à éviter (sprints, micro-intervalles…)."
             >
+              {INJURY_OPTIONS.map((o) => (
+                <CardChoice key={o.value} selected={injury === o.value} onClick={() => setInjury(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+              ))}
+            </StepBlock>
+          )}
+
+          {step === "terrain" && (
+            <StepBlock
+              title="Terrain d'entraînement dominant ?"
+              hint="Oriente le choix des séances (côtes, tapis, boucles, trail…)."
+            >
+              {TERRAIN_OPTIONS.map((o) => (
+                <CardChoice key={o.value} selected={terrain === o.value} onClick={() => setTerrain(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+              ))}
+            </StepBlock>
+          )}
+
+          {step === "metabolic" && (
+            <StepBlock title={`${subjectCapital} — plutôt explosif ou endurant ?`} hint="Choisis le profil qui décrit le mieux le comportement à l'entraînement.">
               {METABOLIC_QUESTIONS.map((m) => (
-                <CardChoice
-                  key={m.value}
-                  selected={metabolic === m.value}
-                  onClick={() => setMetabolic(m.value)}
-                  emoji={m.emoji}
-                  title={m.label}
-                  desc={m.desc}
-                />
+                <CardChoice key={m.value} selected={metabolic === m.value} onClick={() => setMetabolic(m.value)} emoji={m.emoji} title={m.label} desc={m.desc} />
               ))}
             </StepBlock>
           )}
 
           {step === "primary" && (
-            <StepBlock
-              title={`Qu'est-ce qui limite le plus ${subject} en course ?`}
-              hint="Choisis LE symptôme dominant. C'est ce que l'IA ciblera en priorité."
-            >
+            <StepBlock title={`Qu'est-ce qui limite le plus ${subject} en course ?`} hint="Choisis LE symptôme dominant. C'est ce que l'IA ciblera en priorité.">
               {SYMPTOMS.map((s) => (
-                <CardChoice
-                  key={s.key}
-                  selected={primary === s.key}
-                  onClick={() => setPrimary(s.key)}
-                  emoji={s.emoji}
-                  title={s.title}
-                  desc={s.desc}
-                />
+                <CardChoice key={s.key} selected={primary === s.key} onClick={() => setPrimary(s.key)} emoji={s.emoji} title={s.title} desc={s.desc} />
               ))}
             </StepBlock>
           )}
 
           {step === "secondary" && (
-            <StepBlock
-              title="Un deuxième point faible ?"
-              hint="Optionnel — si tu hésites, passe cette étape."
-            >
+            <StepBlock title="Un deuxième point faible ?" hint="Optionnel — si tu hésites, passe cette étape (on l'inférera au besoin depuis les sensations).">
               {SYMPTOMS.filter((s) => s.key !== primary).map((s) => (
-                <CardChoice
-                  key={s.key}
-                  selected={secondary === s.key}
-                  onClick={() => setSecondary(s.key)}
-                  emoji={s.emoji}
-                  title={s.title}
-                  desc={s.desc}
-                />
+                <CardChoice key={s.key} selected={secondary === s.key} onClick={() => setSecondary(s.key)} emoji={s.emoji} title={s.title} desc={s.desc} />
               ))}
-              <CardChoice
-                selected={secondary === "skip"}
-                onClick={() => setSecondary("skip")}
-                emoji="🤷"
-                title="Je ne sais pas / je passe"
-                desc="Aucun limiteur secondaire imposé."
-              />
+              <CardChoice selected={secondary === "skip"} onClick={() => setSecondary("skip")} emoji="🤷" title="Je ne sais pas / je passe" desc="Aucun limiteur secondaire imposé." />
+            </StepBlock>
+          )}
+
+          {step === "chronos" && (
+            <StepBlock
+              title="Chronos récents (optionnel)"
+              hint="Une seule distance suffit — les autres seront extrapolées (Riegel). Sans chrono, le plan reste subjectif (~65% fiabilité) et un test de calibration sera injecté."
+            >
+              <div className="space-y-2">
+                <Label className="text-xs">Distance</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {CHRONO_LIST.map((c) => (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setChronoDist(c.value)}
+                      className={cn(
+                        "px-2.5 py-1 rounded-md border text-xs font-medium transition-all",
+                        chronoDist === c.value
+                          ? "border-primary bg-primary/20 ring-2 ring-primary"
+                          : "border-border hover:border-primary/40",
+                      )}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end">
+                  <div>
+                    <Label className="text-xs">h</Label>
+                    <Input inputMode="numeric" value={chH} onChange={(e) => setChH(e.target.value.replace(/\D/g, "").slice(0, 2))} placeholder="0" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">min</Label>
+                    <Input inputMode="numeric" value={chM} onChange={(e) => setChM(e.target.value.replace(/\D/g, "").slice(0, 2))} placeholder="45" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">sec</Label>
+                    <Input inputMode="numeric" value={chS} onChange={(e) => setChS(e.target.value.replace(/\D/g, "").slice(0, 2))} placeholder="30" />
+                  </div>
+                  <Button type="button" size="sm" onClick={addCurrentChrono}>Ajouter</Button>
+                </div>
+                <div>
+                  <Label className="text-xs">Date du chrono</Label>
+                  <Input type="date" value={chDate} onChange={(e) => setChDate(e.target.value)} className="max-w-[220px]" />
+                </div>
+
+                {Object.keys(chronos).length > 0 && (
+                  <div className="mt-3 space-y-1.5">
+                    <div className="text-xs font-medium text-muted-foreground">Chronos saisis :</div>
+                    {CHRONO_LIST.filter((c) => chronos[c.value]).map((c) => {
+                      const v = chronos[c.value]!;
+                      const h = Math.floor(v.sec / 3600);
+                      const m = Math.floor((v.sec % 3600) / 60);
+                      const s = v.sec % 60;
+                      const display = h > 0
+                        ? `${h}h${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+                        : `${m}:${String(s).padStart(2, "0")}`;
+                      return (
+                        <div key={c.value} className="flex items-center justify-between rounded-md border border-border px-2.5 py-1.5 text-xs">
+                          <span><span className="font-medium">{c.label}</span> · {display} <span className="text-muted-foreground">({v.date})</span></span>
+                          <button type="button" onClick={() => removeChrono(c.value)} className="text-muted-foreground hover:text-destructive">Retirer</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {Object.keys(chronos).length === 0 && (
+                  <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 text-[11px] text-amber-700 dark:text-amber-300">
+                    Aucun chrono saisi — le plan sera basé sur tes réponses subjectives. Un test de calibration (CAP-test)
+                    sera automatiquement injecté en semaine 2-3 pour ancrer les allures.
+                  </div>
+                )}
+              </div>
+            </StepBlock>
+          )}
+
+          {step === "sensations" && (
+            <StepBlock
+              title="Deux sensations clés"
+              hint="Elles affinent le limiteur secondaire quand tu ne l'as pas défini."
+            >
+              <div>
+                <Label className="text-xs font-semibold">Comportement en côte</Label>
+                <div className="space-y-1.5 mt-1">
+                  {HILL_OPTIONS.map((o) => (
+                    <CardChoice key={o.value} selected={hillFeeling === o.value} onClick={() => setHillFeeling(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3">
+                <Label className="text-xs font-semibold">Vitesse de récupération</Label>
+                <div className="space-y-1.5 mt-1">
+                  {RECOVERY_OPTIONS.map((o) => (
+                    <CardChoice key={o.value} selected={recoverySpeed === o.value} onClick={() => setRecoverySpeed(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+                  ))}
+                </div>
+              </div>
             </StepBlock>
           )}
 
           {step === "sessions" && (
-            <StepBlock
-              title={`Combien de séances par semaine ${possessive} agenda permet-il ?`}
-              hint="Compte toutes disciplines confondues. Si tu ne sais pas, laisse l'IA décider."
-            >
+            <StepBlock title={`Combien de séances par semaine ${possessive} agenda permet-il ?`} hint="Compte toutes disciplines confondues. Si tu ne sais pas, laisse l'IA décider.">
               <div className="flex flex-wrap gap-2">
                 {SESSIONS_PER_WEEK.map((n) => (
                   <button
@@ -440,45 +598,54 @@ export function QuickStartWizard({
             </StepBlock>
           )}
 
-          {step === "recap" && (
-            <StepBlock title="Récapitulatif" hint="Vérifie avant de continuer.">
-              <RecapRow label="Objectif" value={OBJECTIVES.find((o) => o.value === objective)?.label ?? objective} />
-              <RecapRow
-                label="Durée"
-                value={
-                  durationMode === "date"
-                    ? `Course le ${raceDate} (~${computedWeeks} sem)`
-                    : `${computedWeeks} semaines`
-                }
-              />
-              <RecapRow label="Profil énergie" value={METABOLIC_QUESTIONS.find((m) => m.value === metabolic)?.label ?? "—"} />
-              <RecapRow label="Limiteur principal" value={primary ? LIMITER_META[primary].label : "—"} />
-              <RecapRow
-                label="Limiteur secondaire"
-                value={
-                  secondary && secondary !== "skip"
-                    ? LIMITER_META[secondary].label
-                    : <span className="text-muted-foreground italic">non défini</span>
-                }
-              />
-              <RecapRow
-                label="Séances/semaine"
-                value={
-                  typeof sessions === "number"
-                    ? `${sessions}`
-                    : <span className="text-muted-foreground italic">IA décide</span>
-                }
-              />
-              <div className="mt-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground flex gap-2">
-                <Sparkles className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                <div>
-                  Ces réponses sont traduites en limiteurs Lorang pour l'IA. Tu peux les
-                  <span className="font-medium"> vérifier et affiner</span> dans le formulaire coach,
-                  ou <span className="font-medium">générer directement</span>.
+          {step === "recap" && (() => {
+            const draftPayload = buildPayload();
+            const inferredSecondary = draftPayload?.secondaryLimiter ?? null;
+            return (
+              <StepBlock title="Récapitulatif" hint="Vérifie avant de continuer.">
+                <RecapRow label="Objectif" value={OBJECTIVES.find((o) => o.value === objective)?.label ?? objective} />
+                <RecapRow label="Durée" value={durationMode === "date" ? `Course le ${raceDate} (~${computedWeeks} sem)` : `${computedWeeks} semaines`} />
+                <RecapRow label="Blessure" value={INJURY_OPTIONS.find((o) => o.value === injury)?.title ?? "—"} />
+                <RecapRow label="Terrain" value={TERRAIN_OPTIONS.find((o) => o.value === terrain)?.title ?? "—"} />
+                <RecapRow label="Profil énergie" value={METABOLIC_QUESTIONS.find((m) => m.value === metabolic)?.label ?? "—"} />
+                <RecapRow label="Limiteur principal" value={primary ? LIMITER_META[primary].label : "—"} />
+                <RecapRow
+                  label="Limiteur secondaire"
+                  value={
+                    inferredSecondary
+                      ? <>
+                          {LIMITER_META[inferredSecondary].label}
+                          {(!secondary || secondary === "skip") && (
+                            <span className="ml-1 text-[10px] text-muted-foreground italic">(inféré)</span>
+                          )}
+                        </>
+                      : <span className="text-muted-foreground italic">non défini</span>
+                  }
+                />
+                <RecapRow label="Sensations côte" value={HILL_OPTIONS.find((o) => o.value === hillFeeling)?.title ?? "—"} />
+                <RecapRow label="Récupération" value={RECOVERY_OPTIONS.find((o) => o.value === recoverySpeed)?.title ?? "—"} />
+                <RecapRow
+                  label="Chronos"
+                  value={
+                    Object.keys(chronos).length === 0
+                      ? <span className="text-muted-foreground italic">aucun (fiabilité ~65%)</span>
+                      : CHRONO_LIST.filter((c) => chronos[c.value]).map((c) => c.label).join(", ")
+                  }
+                />
+                <RecapRow label="Séances/semaine" value={typeof sessions === "number" ? `${sessions}` : <span className="text-muted-foreground italic">IA décide</span>} />
+                {(draftPayload?.prohibitions.length ?? 0) > 0 && (
+                  <RecapRow label="Interdits" value={<span className="text-xs">{draftPayload!.prohibitions.join(", ")}</span>} />
+                )}
+                <div className="mt-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground flex gap-2">
+                  <Sparkles className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    Ces réponses sont traduites en limiteurs Lorang + prohibitions. Les chronos saisis sont enregistrés
+                    dans le snapshot actif de l'athlète avant génération.
+                  </div>
                 </div>
-              </div>
-            </StepBlock>
-          )}
+              </StepBlock>
+            );
+          })()}
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2 sm:justify-between">
