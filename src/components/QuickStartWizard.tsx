@@ -121,7 +121,10 @@ const CHRONO_LIST: Array<{ value: ChronoDistanceKey; label: string; km: number; 
 
 export interface QuickStartExtras {
   injury: InjuryStatus;
+  /** Terrain principal (premier sélectionné) — conservé pour compat. */
   terrain: Terrain;
+  /** Tous les terrains accessibles (multi-sélection). */
+  terrains: Terrain[];
   hillFeeling: HillFeeling | null;
   recoverySpeed: RecoverySpeed | null;
   /** Chronos saisis (secondes). Une seule distance suffit — les autres sont extrapolées par le moteur (Riegel). */
