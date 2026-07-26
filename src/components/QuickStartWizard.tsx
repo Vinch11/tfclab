@@ -190,7 +190,7 @@ export function QuickStartWizard({
 
   // Nouveaux axes
   const [injury, setInjury] = useState<InjuryStatus | null>(null);
-  const [terrain, setTerrain] = useState<Terrain | null>(null);
+  const [terrains, setTerrains] = useState<Terrain[]>([]);
   const [hillFeeling, setHillFeeling] = useState<HillFeeling | null>(null);
   const [recoverySpeed, setRecoverySpeed] = useState<RecoverySpeed | null>(null);
 
