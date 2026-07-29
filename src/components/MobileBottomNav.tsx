@@ -50,7 +50,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPress = useRef(false);
   const isRunningOnly = useIsRunningOnly();
-  const { isSimpleMode } = useCoachLevel();
+  const { isSimpleMode, setLevel } = useCoachLevel();
   const visibleTabs = isSimpleMode
     ? tabs.filter((t) => (SIMPLE_NAV_IDS as readonly string[]).includes(t.id))
     : tabs;
@@ -248,7 +248,16 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
                 <SlidersHorizontal className={cn("w-4 h-4", staffMode ? "text-primary" : "text-muted-foreground")} />
                 {staffMode ? "✓ Mode Expert" : "Mode Expert"}
               </button>
+              <div className="h-px bg-border/40" />
+              <button
+                onClick={() => { setLevel(isSimpleMode ? "advanced" : "simple"); setShowMoreMenu(false); }}
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+              >
+                <Sparkles className={cn("w-4 h-4", isSimpleMode ? "text-primary" : "text-muted-foreground")} />
+                {isSimpleMode ? "Passer en interface complète" : "Passer en mode simplifié"}
+              </button>
             </div>
+
           </div>
         </>
       )}
