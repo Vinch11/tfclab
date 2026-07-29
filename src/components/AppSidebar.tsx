@@ -77,7 +77,12 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
   const { state, isMobile } = useSidebar();
   const { user, signOut } = useAuth();
   const isRunningOnly = useIsRunningOnly();
+  const { isSimpleMode } = useCoachLevel();
   const collapsed = isMobile ? false : state === "collapsed";
+  const visibleItems = isSimpleMode
+    ? navigationItems.filter((i) => (SIMPLE_NAV_IDS as readonly string[]).includes(i.id))
+    : navigationItems;
+
 
   const handleNavClick = (item: NavItem) => {
     if (item.route === "/" && location.pathname === "/") {
