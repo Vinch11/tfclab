@@ -117,8 +117,8 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
       </SidebarHeader>
 
       <SidebarContent className="px-2 sm:px-3 py-2 ios-scroll">
-        {/* Staff Mode Toggle */}
-        {!collapsed && (
+        {/* Staff Mode Toggle — masqué en mode simplifié */}
+        {!collapsed && !isSimpleMode && (
           <div className="px-2 py-2.5 mb-3 rounded-xl bg-sidebar-accent/40 border border-sidebar-border/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
