@@ -5,6 +5,7 @@
  */
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useCoachLevel } from "@/hooks/useCoachLevel";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -186,6 +187,7 @@ export default function AITrainingPlanPage() {
 
   // QUICK-START WIZARD — Questionnaire guidé pour coach/athlète débutant.
   const [wizardOpen, setWizardOpen] = useState(false);
+  const { isSimpleMode } = useCoachLevel();
 
   // Handle navigation from PlanSyncAlert or ProfileChoiceDialog
   useEffect(() => {
@@ -1678,7 +1680,7 @@ export default function AITrainingPlanPage() {
           </div>
           {/* WIZARD launcher — questionnaire guidé 8 étapes */}
           <Button
-            variant="secondary"
+            variant={isSimpleMode ? "default" : "secondary"}
             size="sm"
             onClick={() => setWizardOpen(true)}
             className="flex items-center gap-1.5"
@@ -1687,7 +1689,8 @@ export default function AITrainingPlanPage() {
             <Sparkles className="h-4 w-4" />
             Démarrage guidé
           </Button>
-          {/* COACH FORM launcher — saisie manuelle limiteurs Lorang */}
+          {/* COACH FORM launcher — masqué en mode simplifié */}
+          {!isSimpleMode && (
           <Button
             variant="outline"
             size="sm"
@@ -1698,6 +1701,7 @@ export default function AITrainingPlanPage() {
             <User className="h-4 w-4" />
             Profil coach
           </Button>
+          )}
           {/* Multi/Single toggle */}
           <Button
             variant={isMultiMode ? "default" : "outline"}
