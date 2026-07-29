@@ -71,8 +71,7 @@ export function QuickActionsPanel({ onCreateSnapshot, onImportTest }: QuickActio
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</span>
         </div>
         <div className="grid gap-1.5 sm:gap-2" style={{ gridTemplateColumns: `repeat(${visibleActions.length}, minmax(0, 1fr))` }}>
-
-          {actions.map((action) => {
+          {visibleActions.map((action) => {
             const Icon = action.icon;
             return (
               <Button
