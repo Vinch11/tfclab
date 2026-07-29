@@ -23,6 +23,7 @@ import { Footprints } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRef, useCallback, useState } from "react";
 import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
+import { useCoachLevel, SIMPLE_NAV_IDS } from "@/hooks/useCoachLevel";
 
 const tabs = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3, route: "/" },
@@ -49,6 +50,10 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPress = useRef(false);
   const isRunningOnly = useIsRunningOnly();
+  const { isSimpleMode } = useCoachLevel();
+  const visibleTabs = isSimpleMode
+    ? tabs.filter((t) => (SIMPLE_NAV_IDS as readonly string[]).includes(t.id))
+    : tabs;
   const [showToast, setShowToast] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
@@ -112,8 +117,8 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
         {staffMode && (
           <div className="absolute top-0 left-0 right-0 h-px bg-primary/40" />
         )}
-        <div className="grid grid-cols-9 h-14">
-          {tabs.map((tab) => {
+        <div className="grid h-14" style={{ gridTemplateColumns: `repeat(${visibleTabs.length + 1}, minmax(0, 1fr))` }}>
+          {visibleTabs.map((tab) => {
             const Icon = tab.icon;
             const active = isActive(tab);
             return (
@@ -189,7 +194,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
           {/* Menu */}
           <div className="md:hidden fixed bottom-16 right-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-200 safe-area-inset-bottom">
             <div className="bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden min-w-[180px]">
-              {isRunningOnly && (
+              {isRunningOnly && !isSimpleMode && (
                 <>
                   <button
                     onClick={() => { navigate("/running-profile"); setShowMoreMenu(false); }}
