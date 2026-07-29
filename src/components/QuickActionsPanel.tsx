@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Camera, Upload, Sparkles, Play } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useCoachLevel } from "@/hooks/useCoachLevel";
 
 interface QuickActionsPanelProps {
   onCreateSnapshot?: () => void;
@@ -46,6 +47,12 @@ const actions = [
 
 export function QuickActionsPanel({ onCreateSnapshot, onImportTest }: QuickActionsPanelProps) {
   const navigate = useNavigate();
+  const { isSimpleMode } = useCoachLevel();
+
+  // En mode simplifié, on masque les actions qui pointent vers des pages repliées
+  const visibleActions = isSimpleMode
+    ? actions.filter((a) => a.id !== "simulate")
+    : actions;
 
   const handleClick = (action: typeof actions[number]) => {
     if (action.action === "snapshot" && onCreateSnapshot) {
@@ -63,7 +70,8 @@ export function QuickActionsPanel({ onCreateSnapshot, onImportTest }: QuickActio
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions rapides</span>
         </div>
-        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+        <div className="grid gap-1.5 sm:gap-2" style={{ gridTemplateColumns: `repeat(${visibleActions.length}, minmax(0, 1fr))` }}>
+
           {actions.map((action) => {
             const Icon = action.icon;
             return (
