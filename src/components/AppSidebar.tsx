@@ -143,7 +143,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {navigationItems.map((item) => {
+              {visibleItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item);
                 return (
