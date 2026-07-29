@@ -40,7 +40,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
-import { useCoachLevel, SIMPLE_NAV_IDS } from "@/hooks/useCoachLevel";
 import { Footprints, FlaskConical } from "lucide-react";
 
 interface NavItem {
@@ -77,12 +76,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
   const { state, isMobile } = useSidebar();
   const { user, signOut } = useAuth();
   const isRunningOnly = useIsRunningOnly();
-  const { isSimpleMode, setLevel } = useCoachLevel();
   const collapsed = isMobile ? false : state === "collapsed";
-  const visibleItems = isSimpleMode
-    ? navigationItems.filter((i) => (SIMPLE_NAV_IDS as readonly string[]).includes(i.id))
-    : navigationItems;
-
 
   const handleNavClick = (item: NavItem) => {
     if (item.route === "/" && location.pathname === "/") {
@@ -117,8 +111,8 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
       </SidebarHeader>
 
       <SidebarContent className="px-2 sm:px-3 py-2 ios-scroll">
-        {/* Staff Mode Toggle — masqué en mode simplifié */}
-        {!collapsed && !isSimpleMode && (
+        {/* Staff Mode Toggle */}
+        {!collapsed && (
           <div className="px-2 py-2.5 mb-3 rounded-xl bg-sidebar-accent/40 border border-sidebar-border/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -143,7 +137,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {visibleItems.map((item) => {
+              {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item);
                 return (
@@ -178,7 +172,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         </SidebarGroup>
 
         {/* Running Profile link — visible only for running athletes */}
-        {isRunningOnly && !isSimpleMode && (
+        {isRunningOnly && (
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -286,25 +280,6 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                   {!collapsed && <span className="text-sm">Configuration</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
-              {/* Bascule interface simplifiée / complète */}
-              {!collapsed && (
-                <SidebarMenuItem>
-                  <div className="px-2 py-2 mt-1 rounded-lg bg-sidebar-accent/30 border border-sidebar-border/30">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Sparkles className="h-3.5 w-3.5 text-sidebar-foreground/60 shrink-0" />
-                        <span className="text-xs text-sidebar-foreground truncate">Mode simplifié</span>
-                      </div>
-                      <Switch
-                        checked={isSimpleMode}
-                        onCheckedChange={(v) => setLevel(v ? "simple" : "advanced")}
-                        className="data-[state=checked]:bg-sidebar-primary scale-90"
-                      />
-                    </div>
-                  </div>
-                </SidebarMenuItem>
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

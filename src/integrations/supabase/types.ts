@@ -1149,7 +1149,6 @@ export type Database = {
       }
       profiles: {
         Row: {
-          coach_level: string
           created_at: string
           display_name: string | null
           id: string
@@ -1160,7 +1159,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          coach_level?: string
           created_at?: string
           display_name?: string | null
           id?: string
@@ -1171,7 +1169,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          coach_level?: string
           created_at?: string
           display_name?: string | null
           id?: string
