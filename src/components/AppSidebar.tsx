@@ -178,7 +178,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         </SidebarGroup>
 
         {/* Running Profile link — visible only for running athletes */}
-        {isRunningOnly && (
+        {isRunningOnly && !isSimpleMode && (
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
