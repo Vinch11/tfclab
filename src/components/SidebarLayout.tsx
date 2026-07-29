@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { VersionBadge } from "@/components/VersionBadge";
+import { SimpleModeBanner } from "@/components/SimpleModeBanner";
 import logo from "@/assets/logo-2fc.png";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -71,6 +72,8 @@ export function SidebarLayout({
               <ThemeToggle />
             </div>
           </header>
+
+          <SimpleModeBanner />
 
           {/* Main content - mobile optimized padding with bottom nav space */}
           <main className="flex-1 overflow-x-hidden overflow-y-auto ios-scroll w-full max-w-full">
