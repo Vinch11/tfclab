@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NextRaceIndicator } from "@/components/NextRaceIndicator";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { SimpleModeBanner } from "@/components/SimpleModeBanner";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
 
@@ -74,6 +75,7 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
             </div>
           </div>
         </div>
+        <SimpleModeBanner />
       </header>
 
       <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-20 sm:pb-24 relative">{children}</main>
