@@ -40,6 +40,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/logo-2fc.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
+import { useCoachLevel, SIMPLE_NAV_IDS } from "@/hooks/useCoachLevel";
 import { Footprints, FlaskConical } from "lucide-react";
 
 interface NavItem {
