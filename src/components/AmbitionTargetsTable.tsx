@@ -26,6 +26,7 @@ import { Target, Printer, Download, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AMBITION_TARGETS, normalizeObjective } from "@/lib/physiologicalTargets";
 import { 
+import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
   AmbitionLevel, 
   AMBITION_LEVELS_ORDERED, 
   AMBITION_DEFINITIONS,
@@ -172,7 +173,7 @@ export function AmbitionTargetsTable({ className }: AmbitionTargetsTableProps) {
     const html = generatePrintHtml(filteredObjectives, ambitionFilter);
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      printWindow.document.write(html);
+      printWindow.document.write(applyBevelPrintTheme(html));
       printWindow.document.close();
       setTimeout(() => printWindow.print(), 250);
     }

@@ -10,6 +10,7 @@ import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 
 
 const SPORT_TAG_TOKENS = new Set([
@@ -312,7 +313,7 @@ export function exportAIPlanToPDF(
   gapContext?: PDFGapContext,
 ) {
   const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel, gapContext);
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const blob = new Blob([applyBevelPrintTheme(html)], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, "_blank");
   if (w) {

@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer, Download } from "lucide-react";
 import {
+import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
   WAHOO_WORKOUTS,
   getCategoryLabel,
   getRiskLabel,
@@ -94,7 +95,7 @@ export function WahooPrintableList() {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
-    printWindow.document.write(getHtmlContent());
+    printWindow.document.write(applyBevelPrintTheme(getHtmlContent()));
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => {
@@ -114,7 +115,7 @@ export function WahooPrintableList() {
       </p></body>`
     );
 
-    printWindow.document.write(htmlWithPdfInstructions);
+    printWindow.document.write(applyBevelPrintTheme(htmlWithPdfInstructions));
     printWindow.document.close();
     printWindow.focus();
   };

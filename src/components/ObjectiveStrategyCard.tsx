@@ -30,6 +30,7 @@ import { computeNegativeSplitDelta } from "@/lib/v2/pacingDisciplineRules";
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import { useCloudData } from "@/contexts/CloudDataContext";
 import { Save, Check } from "lucide-react";
+import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 
 interface ObjectiveStrategyCardProps {
   raceObjective: RaceObjective;
@@ -1174,7 +1175,7 @@ function downloadStrategyPdf(
     return;
   }
   win.document.open();
-  win.document.write(html);
+  win.document.write(applyBevelPrintTheme(html));
   win.document.close();
 }
 
