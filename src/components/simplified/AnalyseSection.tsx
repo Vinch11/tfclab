@@ -240,7 +240,7 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
 }) {
   const [open, setOpen] = useState(false);
   const isUnknown = gap.status === "unknown" || gap.value == null;
-  const tone: StatusTone = isUnknown ? "unknown" : toneFromGap(gap.gap);
+  const tone: StatusTone = isUnknown ? "unknown" : toneFromGapEntry(gap);
   const style = TONE_STYLES[tone];
 
   const hasValues = gap.value != null && gap.target != null;
@@ -253,7 +253,7 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
 
   const pct = (() => {
     if (isUnknown) return 0;
-    if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + gap.gap));
+    if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + signedGapPct(gap)));
     const val = gap.value as number;
     const tgt = gap.target as number;
     if (isInverse) {
@@ -462,7 +462,7 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const [isReorderMode, setIsReorderMode] = useState(false);
 
   const defaultOrder = useMemo(
-    () => [...gapAnalysis].sort((a, b) => a.gap - b.gap).map(g => g.metric),
+    () => [...gapAnalysis].sort((a, b) => signedGapPct(a) - signedGapPct(b)).map(g => g.metric),
     [gapAnalysis]
   );
 
@@ -507,15 +507,15 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const warningCount = synthesis.alerts.filter(a => a.severity === "warning").length;
   const alertsCount = criticalCount + warningCount;
   const known = orderedGaps.filter(g => g.status !== "unknown" && g.value != null);
-  const priorityCount = known.filter(g => g.gap < -15).length;
-  const onTargetCount = known.filter(g => g.gap >= -5).length;
+  const priorityCount = known.filter(g => signedGapPct(g) < -15).length;
+  const onTargetCount = known.filter(g => signedGapPct(g) >= -5).length;
 
   // Score global : moyenne pondérée douce des gaps → 0-100
   const scoreValue = (() => {
     if (known.length === 0) return null;
     const scores = known.map(g => {
       // Clamp gap dans [-30, +15] et remappe 0..100
-      const clamped = Math.max(-30, Math.min(15, g.gap));
+      const clamped = Math.max(-30, Math.min(15, signedGapPct(g)));
       return ((clamped + 30) / 45) * 100;
     });
     return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
