@@ -717,6 +717,12 @@ export function ConfigurationPage() {
 /** Preview visuel miniature du thème */
 function ThemePreview({ themeKey }: { themeKey: Theme }) {
   const previewStyles: Record<Theme, { bg: string; card: string; primary: string; accent: string }> = {
+    bevel: {
+      bg: "bg-[hsl(40,20%,97%)]",
+      card: "bg-white",
+      primary: "bg-[hsl(146,55%,42%)]",
+      accent: "bg-[hsl(245,62%,62%)]",
+    },
     dark: {
       bg: "bg-[hsl(222,47%,8%)]",
       card: "bg-[hsl(222,47%,11%)]",
