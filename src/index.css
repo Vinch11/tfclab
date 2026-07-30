@@ -1422,7 +1422,6 @@
     font-weight: 700;
   }
   /* Micro-labels: uppercase, widely tracked, muted — Bevel section captions */
-  .bevel .text-\[10px\], .bevel .text-\[11px\], .bevel .text-xs.uppercase,
   .bevel [class*="uppercase"][class*="text-xs"],
   .bevel [class*="uppercase"][class*="text-\[1"] {
     letter-spacing: 0.14em !important;
