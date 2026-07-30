@@ -1494,8 +1494,9 @@
   }
 
   /* ── Badges: mêmes lavis d'angle que les cartes, teinte sémantique ─────── */
-  .bevel [class*="rounded-full"][class*="border"][class*="text-xs"],
-  .bevel [class*="rounded-md"][class*="border"][class*="text-xs"][class*="px-2"] {
+  /* `:not(button)` — sinon les boutons shadcn (rounded-md + text-xs + px-2) sont captés */
+  .bevel [class*="rounded-full"][class*="border"][class*="text-xs"]:not(button):not(a),
+  .bevel [class*="rounded-md"][class*="border"][class*="text-xs"][class*="px-2"]:not(button):not(a) {
     border-radius: 999px !important;
     border: 1px solid color-mix(in srgb, currentColor 16%, transparent) !important;
     font-weight: 700;
@@ -1504,20 +1505,21 @@
     box-shadow: none !important;
   }
   /* Badges "outline"/teintés : lavis d'angle basé sur leur propre couleur */
-  .bevel [class*="rounded-full"][class*="border"][class*="text-xs"]:not([class*="bg-primary"]):not([class*="bg-destructive"]):not([class*="bg-foreground"]),
-  .bevel [class*="rounded-md"][class*="border"][class*="text-xs"][class*="px-2"]:not([class*="bg-primary"]):not([class*="bg-destructive"]):not([class*="bg-foreground"]) {
+  .bevel [class*="rounded-full"][class*="border"][class*="text-xs"]:not(button):not(a):not([class*="bg-primary"]):not([class*="bg-destructive"]):not([class*="bg-foreground"]),
+  .bevel [class*="rounded-md"][class*="border"][class*="text-xs"][class*="px-2"]:not(button):not(a):not([class*="bg-primary"]):not([class*="bg-destructive"]):not([class*="bg-foreground"]) {
     background:
       radial-gradient(ellipse 90% 140% at 100% 0%, color-mix(in srgb, currentColor 22%, transparent) 0%, transparent 70%),
       color-mix(in srgb, currentColor 9%, hsl(var(--card))) !important;
   }
   /* Badges pleins : même dégradé que les cartes, en version saturée */
-  .bevel [class*="rounded-full"][class*="text-xs"][class*="bg-primary"],
-  .bevel [class*="rounded-md"][class*="text-xs"][class*="bg-primary"] {
+  .bevel [class*="rounded-full"][class*="text-xs"][class*="bg-primary"]:not(button):not(a),
+  .bevel [class*="rounded-md"][class*="text-xs"][class*="bg-primary"]:not(button):not(a) {
     background:
       radial-gradient(ellipse 90% 140% at 100% 0%, hsl(0 0% 100% / 0.22) 0%, transparent 70%),
       hsl(var(--primary)) !important;
     border-color: transparent !important;
   }
+
 
 
   /* ── Sidebar: white rail, pill active ──────────────────────────────────── */
