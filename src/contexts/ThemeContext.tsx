@@ -1,8 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-export type Theme = "dark" | "light" | "emerald";
+export type Theme = "dark" | "light" | "emerald" | "bevel";
 
 export const THEME_CONFIG: Record<Theme, { label: string; icon: string; description: string }> = {
+  bevel: {
+    label: "Daylight",
+    icon: "🌤️",
+    description: "Blanc chaud, cartes flottantes, accents pastel (mint / ambre / périwinkle)",
+  },
   dark: {
     label: "Sombre",
     icon: "🌙",
@@ -21,7 +26,7 @@ export const THEME_CONFIG: Record<Theme, { label: string; icon: string; descript
 
 };
 
-export const THEME_ORDER: Theme[] = ["dark", "light", "emerald"];
+export const THEME_ORDER: Theme[] = ["bevel", "dark", "light", "emerald"];
 
 interface ThemeContextType {
   theme: Theme;
@@ -38,8 +43,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const stored = localStorage.getItem("theme") as Theme;
       if (stored && THEME_ORDER.includes(stored)) return stored;
     }
-    return "dark";
+    return "bevel";
   });
+
 
   useEffect(() => {
     const root = document.documentElement;

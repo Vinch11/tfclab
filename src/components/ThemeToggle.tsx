@@ -1,4 +1,4 @@
-import { Moon, Sun, Sparkles } from "lucide-react";
+import { Moon, Sun, Sparkles, CloudSun } from "lucide-react";
 import { useTheme, type Theme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 
 const ThemeIcons: Record<Theme, React.ElementType> = {
+  bevel: CloudSun,
   dark: Moon,
   light: Sun,
   emerald: Sparkles,

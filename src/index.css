@@ -1323,3 +1323,245 @@
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME: BEVEL — Soft daylight health OS.
+   Warm off-white canvas, pure white floating cards, generous radii,
+   pastel spectrum accents (mint / amber / periwinkle), no glass, no glow.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@layer base {
+  .bevel {
+    --background: 40 20% 97%;
+    --foreground: 225 15% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 225 15% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 15% 12%;
+
+    /* Fresh mint-green — Bevel "recovery" ring */
+    --primary: 146 55% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 40 16% 94%;
+    --secondary-foreground: 225 15% 18%;
+
+    --muted: 40 14% 94%;
+    --muted-foreground: 225 8% 46%;
+
+    /* Periwinkle — Bevel "sleep" accent */
+    --accent: 245 62% 62%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 4 72% 56%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 146 55% 42%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warm amber — "strain" accent */
+    --warning: 32 92% 55%;
+    --warning-foreground: 225 15% 12%;
+
+    --border: 40 12% 89%;
+    --input: 40 12% 92%;
+    --ring: 146 55% 42%;
+
+    --radius: 1.25rem;
+
+    --chart-1: 146 55% 45%;
+    --chart-2: 245 62% 62%;
+    --chart-3: 32 92% 58%;
+    --chart-4: 199 78% 52%;
+    --chart-5: 340 62% 62%;
+    --chart-6: 268 45% 62%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(146 55% 46%) 0%, hsl(168 52% 46%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 100%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(245 62% 66%) 0%, hsl(268 60% 68%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(32 70% 96%) 0%, hsl(40 20% 97%) 55%, hsl(245 40% 97%) 100%);
+    --gradient-mesh:
+      radial-gradient(at 12% 0%, hsl(32 90% 88% / 0.55) 0px, transparent 55%),
+      radial-gradient(at 92% 4%, hsl(245 70% 92% / 0.6) 0px, transparent 55%),
+      radial-gradient(at 60% 100%, hsl(146 55% 90% / 0.5) 0px, transparent 55%);
+
+    --shadow-glow: 0 0 0 transparent;
+    --shadow-card: 0 1px 2px hsl(225 20% 40% / 0.05), 0 8px 24px -12px hsl(225 20% 40% / 0.14);
+    --shadow-elevated: 0 2px 6px hsl(225 20% 40% / 0.07), 0 18px 44px -16px hsl(225 20% 40% / 0.2);
+    --shadow-inner: none;
+
+    --font-heading: 'Inter', -apple-system, sans-serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 225 12% 30%;
+    --sidebar-primary: 146 55% 38%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 16% 95%;
+    --sidebar-accent-foreground: 225 15% 14%;
+    --sidebar-border: 40 12% 90%;
+    --sidebar-ring: 146 55% 42%;
+  }
+
+  /* ── Typography: quiet, Apple-like ─────────────────────────────────────── */
+  .bevel body { font-feature-settings: "ss01", "cv11"; }
+  .bevel h1, .bevel h2, .bevel h3, .bevel h4 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  .bevel h1 { letter-spacing: -0.028em; font-weight: 700; }
+  .bevel .text-2xl, .bevel .text-3xl, .bevel .text-4xl,
+  .bevel .text-5xl, .bevel .text-6xl {
+    font-family: var(--font-heading);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+
+  /* ── Canvas: daylight gradient, no aurora glow ─────────────────────────── */
+  .bevel main {
+    background:
+      radial-gradient(ellipse 70% 34% at 12% 0%, hsl(32 92% 90% / 0.45) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 36% at 95% 2%, hsl(245 78% 93% / 0.5) 0%, transparent 60%),
+      hsl(var(--background)) !important;
+  }
+
+  /* ── Header: airy, sentence-case ───────────────────────────────────────── */
+  .bevel header {
+    background: hsl(var(--background) / 0.82) !important;
+    backdrop-filter: blur(18px) saturate(120%);
+    border-bottom: 1px solid hsl(var(--border)) !important;
+  }
+  .bevel header h1 {
+    text-transform: none;
+    font-size: 1.0rem !important;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+  .bevel header p {
+    font-size: 0.75rem !important;
+    text-transform: none;
+    letter-spacing: 0;
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* ── Cards: pure white, pillowy, hairline, no gradient seam ────────────── */
+  .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"],
+  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"] {
+    background: hsl(var(--card)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 1.35rem !important;
+    box-shadow: var(--shadow-card) !important;
+    backdrop-filter: none !important;
+  }
+  .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"]::before,
+  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"]::before {
+    display: none !important;
+  }
+  .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"]:hover,
+  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"]:hover {
+    border-color: hsl(var(--border)) !important;
+    box-shadow: var(--shadow-elevated) !important;
+  }
+
+  /* ── Sidebar: white rail, pill active state ────────────────────────────── */
+  .bevel [data-sidebar="sidebar"] {
+    background: hsl(var(--sidebar-background)) !important;
+    border-right: 1px solid hsl(var(--sidebar-border)) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  .bevel [data-sidebar="menu-button"] { border-radius: 999px; }
+  .bevel [data-sidebar="menu-button"][data-active="true"] {
+    background: hsl(var(--primary) / 0.10) !important;
+    color: hsl(var(--sidebar-primary)) !important;
+  }
+  .bevel [data-sidebar="menu-button"][data-active="true"]::before { display: none; }
+  .bevel .tfcl-sidebar-logo {
+    background: hsl(var(--secondary));
+    border: 1px solid hsl(var(--border));
+    box-shadow: none;
+  }
+
+  /* ── Rings & bars ──────────────────────────────────────────────────────── */
+  .bevel [role="progressbar"] {
+    height: 8px !important;
+    background: hsl(var(--muted)) !important;
+  }
+  .bevel [role="progressbar"] > * {
+    background: linear-gradient(90deg, hsl(var(--warning)) 0%, hsl(var(--primary)) 100%) !important;
+    box-shadow: none !important;
+  }
+
+  /* ── Buttons: flat, soft, no glow ──────────────────────────────────────── */
+  .bevel button[class~="bg-primary"],
+  .bevel a[class~="bg-primary"] {
+    background: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    border-radius: 999px !important;
+    box-shadow: 0 6px 16px -10px hsl(var(--primary) / 0.7) !important;
+    font-weight: 600;
+  }
+  .bevel button[class~="bg-primary"]:hover,
+  .bevel a[class~="bg-primary"]:hover {
+    background: hsl(146 55% 37%) !important;
+    transform: none;
+  }
+  .bevel button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]) {
+    background: hsl(0 0% 100%);
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--foreground));
+    border-radius: 999px;
+    backdrop-filter: none;
+  }
+  .bevel button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]):hover {
+    background: hsl(var(--secondary));
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--foreground));
+  }
+
+  /* ── Tabs: segmented control, iOS-like ─────────────────────────────────── */
+  .bevel [role="tablist"] {
+    background: hsl(var(--secondary)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 999px !important;
+    padding: 3px;
+  }
+  .bevel [role="tab"][data-state="active"] {
+    background: hsl(0 0% 100%) !important;
+    color: hsl(var(--foreground)) !important;
+    border-radius: 999px !important;
+    box-shadow: 0 1px 3px hsl(225 20% 40% / 0.14) !important;
+  }
+
+  /* ── Inputs ────────────────────────────────────────────────────────────── */
+  .bevel input, .bevel textarea, .bevel [role="combobox"] {
+    background: hsl(var(--card)) !important;
+    border-color: hsl(var(--border)) !important;
+    border-radius: 0.9rem !important;
+  }
+  .bevel input:focus, .bevel textarea:focus {
+    border-color: hsl(var(--primary) / 0.6) !important;
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.14) !important;
+  }
+
+  /* ── Dialogs, separators, scrollbar ────────────────────────────────────── */
+  .bevel [role="dialog"] {
+    background: hsl(var(--card)) !important;
+    border-radius: 1.5rem !important;
+    box-shadow: var(--shadow-elevated) !important;
+    backdrop-filter: none !important;
+  }
+  .bevel [role="separator"], .bevel hr {
+    background: hsl(var(--border)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  .bevel *::-webkit-scrollbar-thumb {
+    background: hsl(225 10% 80%) !important;
+    background-clip: padding-box;
+  }
+}
