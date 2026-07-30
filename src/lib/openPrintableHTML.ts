@@ -87,9 +87,11 @@ function escapeHtml(s: string): string {
  * Uses a Blob URL (avoids URL-length limits).
  */
 export function openPrintableHTML(html: string, options: OpenPrintableHTMLOptions = {}): void {
+  // Socle de design Bevel commun à tous les rapports exportés.
+  const themed = applyBevelPrintTheme(html);
   const finalHtml = options.includeInstructions === false
-    ? html
-    : withPrintHelper(html, options.filenameHint);
+    ? themed
+    : withPrintHelper(themed, options.filenameHint);
 
   const blob = new Blob([finalHtml], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
