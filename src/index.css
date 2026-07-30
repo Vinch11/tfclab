@@ -1331,115 +1331,126 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 @layer base {
   .bevel {
-    --background: 40 20% 97%;
-    --foreground: 225 15% 12%;
+    /* Canvas: warm paper #F8F7F2 */
+    --background: 45 24% 96%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 225 15% 12%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 225 15% 12%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Fresh mint-green — Bevel "recovery" ring */
-    --primary: 146 55% 42%;
+    /* Periwinkle — Bevel primary action */
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 16% 94%;
-    --secondary-foreground: 225 15% 18%;
+    --secondary: 45 18% 93%;
+    --secondary-foreground: 0 0% 16%;
 
     --muted: 40 14% 94%;
-    --muted-foreground: 225 8% 46%;
+    --muted-foreground: 240 4% 46%;
 
-    /* Periwinkle — Bevel "sleep" accent */
-    --accent: 245 62% 62%;
+    /* Mint — positive / recovery */
+    --accent: 152 62% 42%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 4 72% 56%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 146 55% 42%;
+    --success: 152 62% 42%;
     --success-foreground: 0 0% 100%;
 
-    /* Warm amber — "strain" accent */
-    --warning: 32 92% 55%;
-    --warning-foreground: 225 15% 12%;
+    /* Warm amber — strain */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 12%;
 
-    --border: 40 12% 89%;
-    --input: 40 12% 92%;
-    --ring: 146 55% 42%;
+    --border: 40 10% 93%;
+    --input: 40 10% 93%;
+    --ring: 239 84% 67%;
 
-    --radius: 1.25rem;
+    --radius: 1.5rem;
 
-    --chart-1: 146 55% 45%;
-    --chart-2: 245 62% 62%;
-    --chart-3: 32 92% 58%;
+    --chart-1: 152 62% 45%;
+    --chart-2: 239 84% 67%;
+    --chart-3: 38 92% 55%;
     --chart-4: 199 78% 52%;
     --chart-5: 340 62% 62%;
     --chart-6: 268 45% 62%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(146 55% 46%) 0%, hsl(168 52% 46%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(239 84% 70%) 0%, hsl(252 72% 68%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 100%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(245 62% 66%) 0%, hsl(268 60% 68%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(32 70% 96%) 0%, hsl(40 20% 97%) 55%, hsl(245 40% 97%) 100%);
-    --gradient-mesh:
-      radial-gradient(at 12% 0%, hsl(32 90% 88% / 0.55) 0px, transparent 55%),
-      radial-gradient(at 92% 4%, hsl(245 70% 92% / 0.6) 0px, transparent 55%),
-      radial-gradient(at 60% 100%, hsl(146 55% 90% / 0.5) 0px, transparent 55%);
+    --gradient-accent: linear-gradient(135deg, hsl(152 62% 46%) 0%, hsl(168 55% 46%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(45 24% 97%) 0%, hsl(45 24% 96%) 100%);
+    --gradient-mesh: none;
 
     --shadow-glow: 0 0 0 transparent;
-    --shadow-card: 0 1px 2px hsl(225 20% 40% / 0.05), 0 8px 24px -12px hsl(225 20% 40% / 0.14);
-    --shadow-elevated: 0 2px 6px hsl(225 20% 40% / 0.07), 0 18px 44px -16px hsl(225 20% 40% / 0.2);
+    --shadow-card: 0 8px 30px hsl(0 0% 0% / 0.04);
+    --shadow-elevated: 0 12px 40px hsl(0 0% 0% / 0.07);
     --shadow-inner: none;
 
-    --font-heading: 'Inter', -apple-system, sans-serif;
-    --font-body: 'Inter', -apple-system, sans-serif;
+    --font-heading: 'Outfit', -apple-system, sans-serif;
+    --font-body: 'Outfit', -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 225 12% 30%;
-    --sidebar-primary: 146 55% 38%;
+    --sidebar-foreground: 240 5% 34%;
+    --sidebar-primary: 239 84% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 16% 95%;
-    --sidebar-accent-foreground: 225 15% 14%;
-    --sidebar-border: 40 12% 90%;
-    --sidebar-ring: 146 55% 42%;
+    --sidebar-accent: 45 18% 95%;
+    --sidebar-accent-foreground: 0 0% 12%;
+    --sidebar-border: 40 10% 93%;
+    --sidebar-ring: 239 84% 67%;
   }
 
-  /* ── Typography: quiet, Apple-like ─────────────────────────────────────── */
-  .bevel body { font-feature-settings: "ss01", "cv11"; }
+  /* ── Typography: Outfit, tight headings, tabular data ──────────────────── */
+  .bevel, .bevel body {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
   .bevel h1, .bevel h2, .bevel h3, .bevel h4 {
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
-    font-weight: 600;
+    font-weight: 700;
   }
-  .bevel h1 { letter-spacing: -0.028em; font-weight: 700; }
+  .bevel h1 { letter-spacing: -0.03em; }
   .bevel .text-2xl, .bevel .text-3xl, .bevel .text-4xl,
   .bevel .text-5xl, .bevel .text-6xl {
     font-family: var(--font-heading);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.035em;
-    font-weight: 600;
+    font-weight: 700;
+  }
+  /* Micro-labels: uppercase, widely tracked, muted — Bevel section captions */
+  .bevel .text-\[10px\], .bevel .text-\[11px\], .bevel .text-xs.uppercase,
+  .bevel [class*="uppercase"][class*="text-xs"],
+  .bevel [class*="uppercase"][class*="text-\[1"] {
+    letter-spacing: 0.14em !important;
+    font-weight: 700;
+  }
+  .bevel [class*="tracking-wider"], .bevel [class*="tracking-widest"] {
+    letter-spacing: 0.16em !important;
   }
 
-  /* ── Canvas: daylight gradient, no aurora glow ─────────────────────────── */
-  .bevel main {
-    background:
-      radial-gradient(ellipse 70% 34% at 12% 0%, hsl(32 92% 90% / 0.45) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 36% at 95% 2%, hsl(245 78% 93% / 0.5) 0%, transparent 60%),
-      hsl(var(--background)) !important;
+  /* ── Canvas: flat warm paper, no aurora, no mesh ───────────────────────── */
+  .bevel main,
+  .bevel [class*="bg-gradient"][class*="hero"] {
+    background: hsl(var(--background)) !important;
   }
+  .bevel main { padding-bottom: 3rem; }
 
-  /* ── Header: airy, sentence-case ───────────────────────────────────────── */
+  /* ── Header: quiet, hairline ───────────────────────────────────────────── */
   .bevel header {
-    background: hsl(var(--background) / 0.82) !important;
-    backdrop-filter: blur(18px) saturate(120%);
+    background: hsl(var(--background) / 0.86) !important;
+    backdrop-filter: blur(20px) saturate(120%);
     border-bottom: 1px solid hsl(var(--border)) !important;
+    box-shadow: none !important;
   }
   .bevel header h1 {
     text-transform: none;
-    font-size: 1.0rem !important;
+    font-size: 1rem !important;
     letter-spacing: -0.02em;
-    font-weight: 600;
+    font-weight: 700;
     color: hsl(var(--foreground));
   }
   .bevel header p {
@@ -1449,26 +1460,45 @@
     color: hsl(var(--muted-foreground)) !important;
   }
 
-  /* ── Cards: pure white, pillowy, hairline, no gradient seam ────────────── */
+  /* ── Cards: floating white, 28px radius, airy padding ──────────────────── */
   .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"],
-  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"] {
+  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"],
+  .bevel [class*="rounded-2xl"][class*="border"][class*="bg-card"] {
     background: hsl(var(--card)) !important;
     border: 1px solid hsl(var(--border)) !important;
-    border-radius: 1.35rem !important;
+    border-radius: 28px !important;
     box-shadow: var(--shadow-card) !important;
     backdrop-filter: none !important;
   }
-  .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"]::before,
-  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"]::before {
-    display: none !important;
-  }
-  .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"]:hover,
-  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"]:hover {
+  .bevel [class*="border"][class*="bg-card"]::before { display: none !important; }
+  .bevel [class*="border"][class*="bg-card"]:hover {
     border-color: hsl(var(--border)) !important;
     box-shadow: var(--shadow-elevated) !important;
+    transform: none !important;
+  }
+  /* Nested cards inside a card become flat tinted panels, not stacked shadows */
+  .bevel [class*="bg-card"] [class*="border"][class*="bg-card"] {
+    box-shadow: none !important;
+    background: hsl(var(--secondary) / 0.6) !important;
+    border-color: transparent !important;
+    border-radius: 20px !important;
+  }
+  /* Card headers: generous breathing room */
+  .bevel [class*="bg-card"] > [class*="flex-col"][class*="space-y-1.5"] {
+    padding: 1.5rem 1.5rem 0.75rem !important;
   }
 
-  /* ── Sidebar: white rail, pill active state ────────────────────────────── */
+  /* ── Badges: soft pastel pills, never saturated ────────────────────────── */
+  .bevel [class*="rounded-full"][class*="border"][class*="text-xs"],
+  .bevel [class*="rounded-md"][class*="border"][class*="text-xs"][class*="px-2"] {
+    border-radius: 999px !important;
+    border-color: transparent !important;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.7rem;
+  }
+
+  /* ── Sidebar: white rail, pill active ──────────────────────────────────── */
   .bevel [data-sidebar="sidebar"] {
     background: hsl(var(--sidebar-background)) !important;
     border-right: 1px solid hsl(var(--sidebar-border)) !important;
@@ -1487,35 +1517,38 @@
     box-shadow: none;
   }
 
-  /* ── Rings & bars ──────────────────────────────────────────────────────── */
+  /* ── Bars: thin periwinkle rails ───────────────────────────────────────── */
   .bevel [role="progressbar"] {
-    height: 8px !important;
-    background: hsl(var(--muted)) !important;
+    height: 6px !important;
+    border-radius: 999px !important;
+    background: hsl(220 14% 96%) !important;
   }
   .bevel [role="progressbar"] > * {
-    background: linear-gradient(90deg, hsl(var(--warning)) 0%, hsl(var(--primary)) 100%) !important;
+    background: hsl(var(--primary) / 0.85) !important;
     box-shadow: none !important;
+    border-radius: 999px !important;
   }
 
-  /* ── Buttons: flat, soft, no glow ──────────────────────────────────────── */
+  /* ── Buttons: soft-tinted, flat, pill ──────────────────────────────────── */
   .bevel button[class~="bg-primary"],
   .bevel a[class~="bg-primary"] {
     background: hsl(var(--primary)) !important;
     color: hsl(var(--primary-foreground)) !important;
-    border-radius: 999px !important;
-    box-shadow: 0 6px 16px -10px hsl(var(--primary) / 0.7) !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
     font-weight: 600;
   }
   .bevel button[class~="bg-primary"]:hover,
   .bevel a[class~="bg-primary"]:hover {
-    background: hsl(146 55% 37%) !important;
+    background: hsl(239 78% 61%) !important;
     transform: none;
   }
   .bevel button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]) {
     background: hsl(0 0% 100%);
     border-color: hsl(var(--border)) !important;
     color: hsl(var(--foreground));
-    border-radius: 999px;
+    border-radius: 16px;
+    box-shadow: 0 1px 2px hsl(0 0% 0% / 0.03);
     backdrop-filter: none;
   }
   .bevel button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]):hover {
@@ -1523,36 +1556,50 @@
     border-color: hsl(var(--border)) !important;
     color: hsl(var(--foreground));
   }
+  .bevel button:active { transform: scale(0.97); }
 
-  /* ── Tabs: segmented control, iOS-like ─────────────────────────────────── */
+  /* ── Tabs: iOS segmented control ───────────────────────────────────────── */
   .bevel [role="tablist"] {
-    background: hsl(var(--secondary)) !important;
-    border: 1px solid hsl(var(--border)) !important;
+    background: hsl(220 14% 96%) !important;
+    border: none !important;
     border-radius: 999px !important;
-    padding: 3px;
+    padding: 4px;
+    gap: 2px;
+  }
+  .bevel [role="tab"] {
+    border-radius: 999px !important;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
   }
   .bevel [role="tab"][data-state="active"] {
     background: hsl(0 0% 100%) !important;
     color: hsl(var(--foreground)) !important;
-    border-radius: 999px !important;
-    box-shadow: 0 1px 3px hsl(225 20% 40% / 0.14) !important;
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.1) !important;
   }
 
   /* ── Inputs ────────────────────────────────────────────────────────────── */
   .bevel input, .bevel textarea, .bevel [role="combobox"] {
     background: hsl(var(--card)) !important;
     border-color: hsl(var(--border)) !important;
-    border-radius: 0.9rem !important;
+    border-radius: 16px !important;
   }
   .bevel input:focus, .bevel textarea:focus {
-    border-color: hsl(var(--primary) / 0.6) !important;
-    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.14) !important;
+    border-color: hsl(var(--primary) / 0.55) !important;
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12) !important;
+  }
+
+  /* ── Bottom mobile nav: floating white bar ─────────────────────────────── */
+  .bevel nav[class*="fixed"][class*="bottom-0"] {
+    background: hsl(0 0% 100% / 0.9) !important;
+    backdrop-filter: blur(20px) saturate(130%);
+    border-top: 1px solid hsl(var(--border)) !important;
+    box-shadow: 0 -6px 24px hsl(0 0% 0% / 0.04) !important;
   }
 
   /* ── Dialogs, separators, scrollbar ────────────────────────────────────── */
   .bevel [role="dialog"] {
     background: hsl(var(--card)) !important;
-    border-radius: 1.5rem !important;
+    border-radius: 28px !important;
     box-shadow: var(--shadow-elevated) !important;
     backdrop-filter: none !important;
   }
@@ -1561,7 +1608,7 @@
     border-color: hsl(var(--border)) !important;
   }
   .bevel *::-webkit-scrollbar-thumb {
-    background: hsl(225 10% 80%) !important;
+    background: hsl(240 5% 85%) !important;
     background-clip: padding-box;
   }
 }
