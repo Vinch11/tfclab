@@ -26,12 +26,12 @@ import { Target, Printer, Download, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AMBITION_TARGETS, normalizeObjective } from "@/lib/physiologicalTargets";
 import { 
-import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
   AmbitionLevel, 
   AMBITION_LEVELS_ORDERED, 
   AMBITION_DEFINITIONS,
   getAmbitionDefinition 
 } from "@/types/ambitionLevel";
+import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 
 // =============================================
 // TYPES

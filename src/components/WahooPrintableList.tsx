@@ -2,13 +2,13 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer, Download } from "lucide-react";
 import {
-import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
   WAHOO_WORKOUTS,
   getCategoryLabel,
   getRiskLabel,
   getAxisLabel,
   WahooCategory,
 } from "@/data/wahooMapping";
+import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 
 const CATEGORY_ORDER: WahooCategory[] = [
   "RECOVERY",
