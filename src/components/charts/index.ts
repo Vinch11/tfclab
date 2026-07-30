@@ -32,7 +32,18 @@ export { PerformancePredictionChart } from "./PerformancePredictionChart";
 export { PowerDurationUnifiedChart } from "./PowerDurationUnifiedChart";
 export { MetabolicZonesINSCYDChart } from "./MetabolicZonesINSCYDChart";
 
+// Thème graphique Bevel (couleurs de séries, props axes/grilles/lignes)
+export {
+  BEVEL_CHART_COLORS,
+  BEVEL_SERIES_PALETTE,
+  bevelSeriesColor,
+  bevelAxisProps,
+  bevelGridProps,
+  bevelLineProps,
+} from "./bevelChartTheme";
+
 // Utilitaires pour graphiques responsives (mobile/touch)
+
 export {
   ResponsiveChartTooltip,
   mobileTooltipProps,
