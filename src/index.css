@@ -1459,11 +1459,14 @@
     color: hsl(var(--muted-foreground)) !important;
   }
 
-  /* ── Cards: floating white, 28px radius, airy padding ──────────────────── */
+  /* ── Cards: floating white, 28px radius, corner gradient wash ──────────── */
   .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"],
   .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"],
   .bevel [class*="rounded-2xl"][class*="border"][class*="bg-card"] {
-    background: hsl(var(--card)) !important;
+    background:
+      radial-gradient(ellipse 78% 62% at 100% 0%, hsl(var(--primary) / 0.16) 0%, transparent 62%),
+      radial-gradient(ellipse 70% 55% at 0% 0%, hsl(var(--accent) / 0.09) 0%, transparent 60%),
+      hsl(var(--card)) !important;
     border: 1px solid hsl(var(--border)) !important;
     border-radius: 28px !important;
     box-shadow: var(--shadow-card) !important;
@@ -1478,10 +1481,13 @@
   /* Nested cards inside a card become flat tinted panels, not stacked shadows */
   .bevel [class*="bg-card"] [class*="border"][class*="bg-card"] {
     box-shadow: none !important;
-    background: hsl(var(--secondary) / 0.6) !important;
+    background:
+      radial-gradient(ellipse 80% 70% at 100% 0%, hsl(var(--primary) / 0.07) 0%, transparent 65%),
+      hsl(var(--secondary) / 0.6) !important;
     border-color: transparent !important;
     border-radius: 20px !important;
   }
+
   /* Card headers: generous breathing room */
   .bevel [class*="bg-card"] > [class*="flex-col"][class*="space-y-1.5"] {
     padding: 1.5rem 1.5rem 0.75rem !important;
