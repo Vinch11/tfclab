@@ -37,14 +37,24 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+/** Bump this when a new default theme must be re-applied to existing users. */
+const THEME_DEFAULT_VERSION = "bevel-v2";
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
+      // One-time migration: force the new default theme once per version bump
+      if (localStorage.getItem("theme_default_version") !== THEME_DEFAULT_VERSION) {
+        localStorage.setItem("theme_default_version", THEME_DEFAULT_VERSION);
+        localStorage.setItem("theme", "bevel");
+        return "bevel";
+      }
       const stored = localStorage.getItem("theme") as Theme;
       if (stored && THEME_ORDER.includes(stored)) return stored;
     }
     return "bevel";
   });
+
 
 
   useEffect(() => {
