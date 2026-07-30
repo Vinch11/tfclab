@@ -69,12 +69,12 @@ export function QuickActionsPanel({ onCreateSnapshot, onImportTest }: QuickActio
             return (
               <Button
                 key={action.id}
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => handleClick(action)}
-                className="h-auto py-2 sm:py-2.5 px-2 sm:px-3 flex flex-col items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium bg-primary/[0.04] border border-primary/10 text-muted-foreground hover:bg-primary/[0.08] hover:border-primary/20 hover:text-primary transition-all shadow-none"
+                className="h-auto py-2 sm:py-2.5 px-2 sm:px-3 flex flex-col items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium !bg-transparent border-border/40 text-muted-foreground hover:!bg-primary/[0.06] hover:border-primary/25 hover:text-primary transition-all shadow-none"
               >
-                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary/60" />
+                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary/70" />
                 <span className="text-center leading-tight truncate w-full">{action.label}</span>
               </Button>
             );
