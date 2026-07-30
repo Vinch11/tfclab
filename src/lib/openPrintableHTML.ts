@@ -1,3 +1,5 @@
+import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
+
 export interface OpenPrintableHTMLOptions {
   /** Shown in the helper banner (not used for downloads). */
   filenameHint?: string;
