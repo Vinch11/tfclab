@@ -158,12 +158,34 @@ const TONE_STYLES: Record<StatusTone, {
   unknown:    { label: "Sans donnée",   ring: "hsl(var(--muted-foreground))", text: "text-muted-foreground", chip: "bg-muted text-muted-foreground", accent: "bg-muted-foreground/40", Icon: Minus },
 };
 
+/**
+ * Écart normalisé en % (positif = meilleur que la cible).
+ * ⚠️ `gap` est un delta en unité brute (0.29 mmol/L/s, -0.5 W/kg…) — il ne peut
+ * pas être comparé à des seuils en points de %. On utilise donc `gapPercent`,
+ * en inversant le signe pour les métriques où « plus bas = mieux » (VLamax) et
+ * en pénalisant les deux côtés pour les métriques bidirectionnelles (W').
+ */
+function signedGapPct(gap: { metric: string; gapPercent?: number | null; gap: number }): number {
+  const pct = Number.isFinite(gap.gapPercent as number) ? (gap.gapPercent as number) : 0;
+  if (gap.metric === "VLamax") return -pct;
+  if (gap.metric.startsWith("W'")) return -Math.abs(pct);
+  return pct;
+}
+
+function toneFromGapEntry(gap: { metric: string; gapPercent?: number | null; gap: number; status?: string }): StatusTone {
+  const pct = signedGapPct(gap);
+  if (gap.status === "limiting") return pct <= -15 ? "priority" : "developing";
+  if (gap.status === "acceptable") return pct >= -5 ? "on_target" : "developing";
+  return toneFromGap(pct);
+}
+
 function toneFromGap(gap: number): StatusTone {
   if (gap >= 5) return "excellent";
   if (gap >= -5) return "on_target";
   if (gap >= -15) return "developing";
   return "priority";
 }
+
 
 // Mini progress ring — SVG stroke, respire, tabular
 function ProgressRing({ pct, color, size = 44, stroke = 3.5, children }: {
@@ -218,7 +240,7 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
 }) {
   const [open, setOpen] = useState(false);
   const isUnknown = gap.status === "unknown" || gap.value == null;
-  const tone: StatusTone = isUnknown ? "unknown" : toneFromGap(gap.gap);
+  const tone: StatusTone = isUnknown ? "unknown" : toneFromGapEntry(gap);
   const style = TONE_STYLES[tone];
 
   const hasValues = gap.value != null && gap.target != null;
@@ -231,7 +253,7 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
 
   const pct = (() => {
     if (isUnknown) return 0;
-    if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + gap.gap));
+    if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + signedGapPct(gap)));
     const val = gap.value as number;
     const tgt = gap.target as number;
     if (isInverse) {
@@ -440,7 +462,7 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const [isReorderMode, setIsReorderMode] = useState(false);
 
   const defaultOrder = useMemo(
-    () => [...gapAnalysis].sort((a, b) => a.gap - b.gap).map(g => g.metric),
+    () => [...gapAnalysis].sort((a, b) => signedGapPct(a) - signedGapPct(b)).map(g => g.metric),
     [gapAnalysis]
   );
 
@@ -485,15 +507,15 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const warningCount = synthesis.alerts.filter(a => a.severity === "warning").length;
   const alertsCount = criticalCount + warningCount;
   const known = orderedGaps.filter(g => g.status !== "unknown" && g.value != null);
-  const priorityCount = known.filter(g => g.gap < -15).length;
-  const onTargetCount = known.filter(g => g.gap >= -5).length;
+  const priorityCount = known.filter(g => signedGapPct(g) < -15).length;
+  const onTargetCount = known.filter(g => signedGapPct(g) >= -5).length;
 
   // Score global : moyenne pondérée douce des gaps → 0-100
   const scoreValue = (() => {
     if (known.length === 0) return null;
     const scores = known.map(g => {
       // Clamp gap dans [-30, +15] et remappe 0..100
-      const clamped = Math.max(-30, Math.min(15, g.gap));
+      const clamped = Math.max(-30, Math.min(15, signedGapPct(g)));
       return ((clamped + 30) / 45) * 100;
     });
     return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
