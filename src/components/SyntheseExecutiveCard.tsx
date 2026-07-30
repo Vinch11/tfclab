@@ -67,6 +67,13 @@ const PILLAR_ADVICE: Record<string, string> = {
   "Puissance Aérobie": "Développer la puissance aérobie via intervalles VO₂max, sweet-spot et travail de force.",
 };
 
+/**
+ * Métriques "inversées" : un gapPercent POSITIF signifie au-dessus de la cible,
+ * donc DÉFAVORABLE (ex. VLamax élevée = profil glycolytique). Il faut inverser
+ * le signe avant de calculer le score, sinon un excès est compté comme un bonus.
+ */
+const INVERSE_METRICS = new Set(["VLamax"]);
+
 function computePillarScore(
   limiter: UnifiedLimiterResult,
   metricNames: readonly string[],
@@ -105,11 +112,16 @@ function computePillarScore(
     if (!availableMetrics.has(gap.metric)) continue;
     if (gap.status === "unknown") continue;
     counted++;
-    totalScore += scoreFromGap(gap.gapPercent, gap.status);
+    // Orientation : pour les métriques inversées, on retourne le signe du gap
+    const oriented = typeof gap.gapPercent === "number" && Number.isFinite(gap.gapPercent)
+      ? (INVERSE_METRICS.has(gap.metric) ? -gap.gapPercent : gap.gapPercent)
+      : gap.gapPercent;
+    totalScore += scoreFromGap(oriented, gap.status);
   }
   if (counted === 0) return null;
   return Math.round((totalScore / counted) * 10) / 10;
 }
+
 
 function computeGlobalScore(pillarScores: (number | null)[]): number {
   const valid = pillarScores.filter((v): v is number => v !== null);
@@ -336,7 +348,7 @@ export function SyntheseExecutiveCard({
               {limiterResult.limiterEmoji} <strong>{limiterLabel}</strong> → {limiterResult.leverEmoji} {leverLabel}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {PILLAR_ADVICE[weakestPillar.key] ?? limiterResult.limiterExplanation}
+              {(weakestPillar && PILLAR_ADVICE[weakestPillar.key]) ?? limiterResult.limiterExplanation}
             </p>
           </div>
         )}
