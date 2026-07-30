@@ -1619,4 +1619,95 @@
     background: hsl(240 5% 85%) !important;
     background-clip: padding-box;
   }
+
+  /* ── Charts (Recharts): Bevel graphic language ─────────────────────────── */
+  /* Grids: hairline, dotted, barely there */
+  .bevel .recharts-cartesian-grid line,
+  .bevel .recharts-polar-grid line,
+  .bevel .recharts-polar-grid path {
+    stroke: hsl(240 6% 88%) !important;
+    stroke-width: 1 !important;
+    stroke-dasharray: 2 6 !important;
+    opacity: 1 !important;
+  }
+  /* Axes: no hard rules, soft ticks */
+  .bevel .recharts-cartesian-axis-line,
+  .bevel .recharts-cartesian-axis-tick-line {
+    stroke: transparent !important;
+  }
+  .bevel .recharts-cartesian-axis-tick text,
+  .bevel .recharts-polar-angle-axis-tick text,
+  .bevel .recharts-polar-radius-axis-tick text,
+  .bevel .recharts-label,
+  .bevel .recharts-legend-item-text {
+    fill: hsl(var(--muted-foreground)) !important;
+    font-family: var(--font-body) !important;
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+  .bevel .recharts-legend-wrapper { padding-top: 2px; }
+
+  /* Curves: rounded, slightly thicker strokes */
+  .bevel .recharts-line-curve,
+  .bevel .recharts-curve.recharts-line-curve {
+    stroke-width: 2.5 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+  }
+  .bevel .recharts-area-area { opacity: 0.16; }
+  .bevel .recharts-area-curve {
+    stroke-width: 2.5 !important;
+    stroke-linecap: round;
+  }
+  .bevel .recharts-dot { stroke-width: 2 !important; }
+  .bevel .recharts-radar-polygon { stroke-width: 2.5 !important; }
+
+  /* Bars: soft top radius + gentle hover */
+  .bevel .recharts-bar-rectangle path { rx: 6; }
+  .bevel .recharts-rectangle.recharts-tooltip-cursor,
+  .bevel .recharts-curve.recharts-tooltip-cursor {
+    fill: hsl(var(--primary) / 0.06) !important;
+    stroke: hsl(var(--primary) / 0.35) !important;
+    stroke-dasharray: 3 4 !important;
+  }
+
+  /* Reference lines: periwinkle / amber accents */
+  .bevel .recharts-reference-line line {
+    stroke-dasharray: 4 5 !important;
+    stroke-width: 1.5 !important;
+  }
+  .bevel .recharts-reference-area rect { opacity: 0.1 !important; }
+
+  /* Tooltips: floating white pill card */
+  .bevel .recharts-tooltip-wrapper { outline: none !important; }
+  .bevel .recharts-default-tooltip,
+  .bevel .recharts-tooltip-wrapper > div {
+    background: hsl(0 0% 100% / 0.92) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 10px 30px hsl(0 0% 0% / 0.10) !important;
+    padding: 10px 12px !important;
+    font-family: var(--font-body) !important;
+    font-size: 12px !important;
+    color: hsl(var(--foreground)) !important;
+    font-variant-numeric: tabular-nums;
+  }
+  .bevel .recharts-tooltip-label {
+    font-weight: 600 !important;
+    color: hsl(var(--foreground)) !important;
+    margin-bottom: 4px !important;
+  }
+  .bevel .recharts-tooltip-item { color: hsl(var(--foreground)) !important; }
+  .bevel .recharts-tooltip-item-separator { opacity: 0.5; }
+
+  /* Active state */
+  .bevel .recharts-active-dot circle {
+    stroke: hsl(0 0% 100%) !important;
+    stroke-width: 3 !important;
+  }
 }
+
