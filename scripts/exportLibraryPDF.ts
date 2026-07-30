@@ -5,6 +5,7 @@
 import { WorkoutLibrary } from "../src/lib/workoutLibrary";
 import type { LibraryWorkout } from "../src/types/workoutLibrary";
 import { writeFileSync } from "node:fs";
+import { applyBevelPrintTheme } from "../src/lib/print/bevelPrintTheme";
 
 const out = process.argv[2] || "/mnt/documents/bibliotheque_seances.html";
 
@@ -176,5 +177,5 @@ const html = `<!DOCTYPE html>
 ${sections.join("\n")}
 </body></html>`;
 
-writeFileSync(out, html);
+writeFileSync(out, applyBevelPrintTheme(html));
 console.log(`✅ Wrote ${out} — ${WorkoutLibrary.length} workouts across ${presentSports.length} sports`);
