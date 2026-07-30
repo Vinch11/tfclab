@@ -348,7 +348,7 @@ export function SyntheseExecutiveCard({
               {limiterResult.limiterEmoji} <strong>{limiterLabel}</strong> → {limiterResult.leverEmoji} {leverLabel}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {PILLAR_ADVICE[weakestPillar.key] ?? limiterResult.limiterExplanation}
+              {(weakestPillar && PILLAR_ADVICE[weakestPillar.key]) ?? limiterResult.limiterExplanation}
             </p>
           </div>
         )}
