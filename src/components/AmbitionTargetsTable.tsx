@@ -74,17 +74,17 @@ function generatePrintHtml(objectives: string[], ambition: AmbitionLevel | "all"
       @page { size: A4 landscape; margin: 10mm; }
       body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 9px; }
       .header { text-align: center; margin-bottom: 15px; }
-      .header h1 { font-size: 16px; margin: 0; color: #1e40af; }
-      .header p { margin: 5px 0 0; color: #6b7280; font-size: 10px; }
+      .header h1 { font-size: 16px; margin: 0; color: #3C3CB8; }
+      .header p { margin: 5px 0 0; color: #6E6B78; font-size: 10px; }
       table { width: 100%; border-collapse: collapse; font-size: 8px; }
-      th, td { border: 1px solid #e5e7eb; padding: 4px 6px; text-align: center; }
-      th { background: #f3f4f6; font-weight: 600; }
+      th, td { border: 1px solid #E7E4DC; padding: 4px 6px; text-align: center; }
+      th { background: #F2F0E9; font-weight: 600; }
       .obj-col { text-align: left; font-weight: 500; }
-      .finisher { background: #f3f4f6; }
-      .age_group { background: #dbeafe; }
-      .competitor { background: #fef3c7; }
-      .elite { background: #ede9fe; }
-      .footer { margin-top: 10px; text-align: center; font-size: 8px; color: #9ca3af; }
+      .finisher { background: #F2F0E9; }
+      .age_group { background: #EDEDFC; }
+      .competitor { background: #FBF0DA; }
+      .elite { background: #EFE9FA; }
+      .footer { margin-top: 10px; text-align: center; font-size: 8px; color: #97949F; }
     </style>
   `;
 

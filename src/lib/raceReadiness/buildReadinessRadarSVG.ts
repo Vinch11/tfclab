@@ -28,9 +28,9 @@ interface Opts {
 }
 
 const barColor = (score: number) =>
-  score >= 85 ? "#10b981" :
-  score >= 70 ? "#0ea5e9" :
-  score >= 55 ? "#f59e0b" :
+  score >= 85 ? "#1F9D6B" :
+  score >= 70 ? "#1C8FC4" :
+  score >= 55 ? "#C8860D" :
                 "#60a5fa";
 
 const barLabel = (score: number, peer?: PeerReference | null) => {
@@ -60,15 +60,15 @@ export function buildReadinessRadarSVG({ axes, size = 320, peerRef = null }: Opt
     const x = trackX + (trackW * g) / 100;
     return `
       <line x1="${x}" y1="${padTop - 6}" x2="${x}" y2="${H - padBottom + 2}"
-            stroke="${g === 100 ? "#10b981" : "#e2e8f0"}"
+            stroke="${g === 100 ? "#1F9D6B" : "#E7E4DC"}"
             stroke-width="${g === 100 ? 1.5 : 1}"
             stroke-dasharray="${g === 100 ? "4 3" : ""}"/>
-      <text x="${x}" y="${padTop - 8}" text-anchor="middle" font-size="8" fill="#94a3b8">${g}</text>
+      <text x="${x}" y="${padTop - 8}" text-anchor="middle" font-size="8" fill="#97949F">${g}</text>
     `;
   }).join("");
 
   const targetLabelX = trackX + trackW;
-  const targetLabel = `<text x="${targetLabelX}" y="${padTop - 8}" text-anchor="middle" font-size="8" fill="#10b981" font-weight="700">Cible</text>`;
+  const targetLabel = `<text x="${targetLabelX}" y="${padTop - 8}" text-anchor="middle" font-size="8" fill="#1F9D6B" font-weight="700">Cible</text>`;
 
   // repères peer (moyenne + au-dessus)
   const peerMarkers = peerRef ? (() => {
@@ -76,9 +76,9 @@ export function buildReadinessRadarSVG({ axes, size = 320, peerRef = null }: Opt
     const xAbove = trackX + (trackW * peerRef.peerAbove) / 100;
     return `
       <line x1="${xAvg}" y1="${padTop - 2}" x2="${xAvg}" y2="${H - padBottom + 2}"
-            stroke="#64748b" stroke-width="1.2" stroke-dasharray="2 2" opacity="0.7"/>
+            stroke="#6E6B78" stroke-width="1.2" stroke-dasharray="2 2" opacity="0.7"/>
       <line x1="${xAbove}" y1="${padTop - 2}" x2="${xAbove}" y2="${H - padBottom + 2}"
-            stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="3 2" opacity="0.85"/>
+            stroke="#7A56C2" stroke-width="1.4" stroke-dasharray="3 2" opacity="0.85"/>
     `;
   })() : "";
 
@@ -97,22 +97,22 @@ export function buildReadinessRadarSVG({ axes, size = 320, peerRef = null }: Opt
       : "";
 
     return `
-      <text x="${labelW}" y="${y + 14}" text-anchor="end" font-size="11" font-weight="600" fill="#1e293b">${escapeXml(a.label)}</text>
-      <rect x="${trackX}" y="${barY}" width="${trackW}" height="${barH}" rx="7" ry="7" fill="#f1f5f9"/>
+      <text x="${labelW}" y="${y + 14}" text-anchor="end" font-size="11" font-weight="600" fill="#2B2933">${escapeXml(a.label)}</text>
+      <rect x="${trackX}" y="${barY}" width="${trackW}" height="${barH}" rx="7" ry="7" fill="#F2F0E9"/>
       <rect x="${trackX}" y="${barY}" width="${w.toFixed(1)}" height="${barH}" rx="7" ry="7" fill="${c}"/>
       ${aboveBadge}
       <text x="${trackX + trackW + 6}" y="${barY + barH - 3}" font-size="11" font-weight="700" fill="${c}">${score}</text>
-      <text x="${labelW}" y="${y + 30}" text-anchor="end" font-size="8" fill="#64748b">${tag}</text>
+      <text x="${labelW}" y="${y + 30}" text-anchor="end" font-size="8" fill="#6E6B78">${tag}</text>
     `;
   }).join("");
 
   const legend = peerRef ? (() => {
     const ly = H - legendH + 6;
     return `
-      <g font-size="8.5" fill="#475569">
-        <line x1="${trackX}" y1="${ly}" x2="${trackX + 14}" y2="${ly}" stroke="#64748b" stroke-width="1.2" stroke-dasharray="2 2"/>
+      <g font-size="8.5" fill="#5C5966">
+        <line x1="${trackX}" y1="${ly}" x2="${trackX + 14}" y2="${ly}" stroke="#6E6B78" stroke-width="1.2" stroke-dasharray="2 2"/>
         <text x="${trackX + 18}" y="${ly + 3}">Moyenne ${escapeXml(peerRef.cohortLabel)} (${peerRef.peerAvg})</text>
-        <line x1="${trackX}" y1="${ly + 14}" x2="${trackX + 14}" y2="${ly + 14}" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="3 2"/>
+        <line x1="${trackX}" y1="${ly + 14}" x2="${trackX + 14}" y2="${ly + 14}" stroke="#7A56C2" stroke-width="1.4" stroke-dasharray="3 2"/>
         <text x="${trackX + 18}" y="${ly + 17}">Au-dessus de la moyenne (${peerRef.peerAbove}+) ★</text>
       </g>
     `;

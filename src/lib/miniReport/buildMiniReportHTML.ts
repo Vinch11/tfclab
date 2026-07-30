@@ -22,7 +22,7 @@ function renderInline(text: string): string {
 
 const PROFILE_COLORS: Record<string, string> = {
   explosif: "#E74C3C",
-  equilibre: "#3498DB",
+  equilibre: "#1C8FC4",
   endurant: "#27AE60",
 };
 
@@ -79,7 +79,7 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
     glossary: false,
   };
 
-  const profileColor = PROFILE_COLORS[profile] || "#3498DB";
+  const profileColor = PROFILE_COLORS[profile] || "#1C8FC4";
   const dateStr = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
   const refRaceLabel = input.referenceRaceType === "semi" ? "Semi-marathon" : "20 km";
@@ -110,7 +110,7 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: #1a1a1a;
+    color: #14131A;
     line-height: 1.45;
     margin: 0;
     padding: 18px;
@@ -118,16 +118,16 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
     margin: 0 auto;
     background: #fff;
   }
-  h1 { font-size: 22px; margin: 0 0 4px 0; color: #1a1a1a; letter-spacing: -0.3px; }
+  h1 { font-size: 22px; margin: 0 0 4px 0; color: #14131A; letter-spacing: -0.3px; }
   .subtitle { font-size: 12px; color: #666; margin: 0 0 18px 0; }
   h2 {
     font-size: 15px; margin: 22px 0 8px 0;
-    padding-bottom: 4px; border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 4px; border-bottom: 2px solid #14131A;
     text-transform: uppercase; letter-spacing: 0.5px;
   }
   .header {
     display: flex; justify-content: space-between; align-items: flex-start;
-    border-bottom: 3px solid #1a1a1a; padding-bottom: 12px; margin-bottom: 12px;
+    border-bottom: 3px solid #14131A; padding-bottom: 12px; margin-bottom: 12px;
   }
   .brand { font-weight: 800; font-size: 13px; letter-spacing: 1px; color: #666; }
   .date { font-size: 11px; color: #888; text-align: right; }
@@ -157,15 +157,15 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
     background: #f5f5f7; border-radius: 6px; padding: 8px 10px; text-align: center;
   }
   .grid .cell .k { font-size: 10px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
-  .grid .cell .v { font-size: 16px; font-weight: 700; color: #1a1a1a; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .grid .cell .v { font-size: 16px; font-weight: 700; color: #14131A; margin-top: 2px; font-variant-numeric: tabular-nums; }
 
   /* Metrics */
   .metrics {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0;
   }
-  .metric { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 6px; padding: 10px; }
+  .metric { background: #fafafa; border: 1px solid #DAD6CC; border-radius: 6px; padding: 10px; }
   .metric .k { font-size: 10px; text-transform: uppercase; color: #888; letter-spacing: 0.5px; }
-  .metric .v { font-size: 20px; font-weight: 700; color: #1a1a1a; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .metric .v { font-size: 20px; font-weight: 700; color: #14131A; margin-top: 4px; font-variant-numeric: tabular-nums; }
   .metric .sub { font-size: 11px; color: #666; margin-top: 2px; }
 
   /* Advice */
@@ -177,7 +177,7 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
   table.zones th, table.zones td {
     padding: 7px 8px; border: 1px solid #ddd; text-align: left; vertical-align: middle;
   }
-  table.zones th { background: #1a1a1a; color: #fff; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table.zones th { background: #14131A; color: #fff; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
 
   /* Caveats */
   .caveats {
@@ -308,8 +308,8 @@ ${L.glossary ? `
   </tbody>
 </table>
 
-<div style="background:#F8F9FA;border:1px solid #E5E5E5;border-radius:6px;padding:12px 14px;margin:10px 0 4px 0;">
-  <p style="margin:0 0 8px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#1a1a1a;">📖 Légende des zones — à quoi sert chaque intensité</p>
+<div style="background:#F8F9FA;border:1px solid #DAD6CC;border-radius:6px;padding:12px 14px;margin:10px 0 4px 0;">
+  <p style="margin:0 0 8px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#14131A;">📖 Légende des zones — à quoi sert chaque intensité</p>
   <ul style="margin:0;padding-left:0;list-style:none;font-size:11.5px;line-height:1.55;color:#333;">
     ${TRAINING_ZONES.map((z) => `
       <li style="margin:4px 0;display:flex;gap:8px;align-items:flex-start;">

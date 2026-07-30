@@ -43,7 +43,7 @@ export function WahooPrintableList() {
       font-size: 10px; 
       line-height: 1.4;
       padding: 20px;
-      color: #1a1a1a;
+      color: #14131A;
       background: white;
     }
     h1 { font-size: 18px; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
@@ -53,16 +53,16 @@ export function WahooPrintableList() {
     td { padding: 5px 8px; border-bottom: 1px solid #ddd; font-size: 9px; vertical-align: top; }
     tr:nth-child(even) { background: #fafafa; }
     .sport { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 8px; font-weight: 600; }
-    .bike { background: #dbeafe; color: #1e40af; }
-    .run { background: #dcfce7; color: #166534; }
-    .risk-0 { color: #16a34a; }
-    .risk-1 { color: #ca8a04; }
-    .risk-2 { color: #ea580c; }
-    .risk-3 { color: #dc2626; }
+    .bike { background: #EDEDFC; color: #3C3CB8; }
+    .run { background: #E4F5EE; color: #157A52; }
+    .risk-0 { color: #1F9D6B; }
+    .risk-1 { color: #C8860D; }
+    .risk-2 { color: #D4711C; }
+    .risk-3 { color: #D0433A; }
     .effect { font-size: 8px; }
-    .effect-down { color: #16a34a; }
-    .effect-up { color: #dc2626; }
-    .effect-neutral { color: #6b7280; }
+    .effect-down { color: #1F9D6B; }
+    .effect-up { color: #D0433A; }
+    .effect-neutral { color: #6E6B78; }
     .annotation { font-style: italic; color: #555; font-size: 8px; max-width: 250px; }
     .duration { white-space: nowrap; }
     .total { text-align: center; margin-top: 20px; font-size: 11px; color: #666; }

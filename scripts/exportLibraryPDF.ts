@@ -13,25 +13,25 @@ function esc(s: any): string {
 }
 
 const sportColors: Record<string, { bg: string; bd: string; tx: string }> = {
-  cyclisme: { bg: "#dbeafe", bd: "#3b82f6", tx: "#1e3a8a" },
-  course: { bg: "#fee2e2", bd: "#ef4444", tx: "#7f1d1d" },
-  natation: { bg: "#cffafe", bd: "#06b6d4", tx: "#164e63" },
-  brick: { bg: "#fef3c7", bd: "#f59e0b", tx: "#78350f" },
-  strength: { bg: "#ede9fe", bd: "#8b5cf6", tx: "#4c1d95" },
-  mixed: { bg: "#f3f4f6", bd: "#6b7280", tx: "#1f2937" },
-  swim: { bg: "#cffafe", bd: "#06b6d4", tx: "#164e63" },
-  bike: { bg: "#dbeafe", bd: "#3b82f6", tx: "#1e3a8a" },
-  run: { bg: "#fee2e2", bd: "#ef4444", tx: "#7f1d1d" },
+  cyclisme: { bg: "#EDEDFC", bd: "#5555E0", tx: "#3C3CB8" },
+  course: { bg: "#FAE6E4", bd: "#D0433A", tx: "#8F2E27" },
+  natation: { bg: "#E2F1F9", bd: "#1C8FC4", tx: "#175E73" },
+  brick: { bg: "#FBF0DA", bd: "#C8860D", tx: "#8A5A08" },
+  strength: { bg: "#EFE9FA", bd: "#7A56C2", tx: "#5A3E93" },
+  mixed: { bg: "#F2F0E9", bd: "#6E6B78", tx: "#14131A" },
+  swim: { bg: "#E2F1F9", bd: "#1C8FC4", tx: "#175E73" },
+  bike: { bg: "#EDEDFC", bd: "#5555E0", tx: "#3C3CB8" },
+  run: { bg: "#FAE6E4", bd: "#D0433A", tx: "#8F2E27" },
 };
 const catColors: Record<string, string> = {
-  A: "#10b981", B: "#ef4444", C: "#f59e0b", D: "#6b7280",
-  REST: "#9ca3af", "Récup": "#6b7280", SV1: "#06b6d4", LT1: "#3b82f6",
-  TT: "#8b5cf6", VO2: "#dc2626", Sprint: "#f97316", Brique: "#f59e0b", "Race-Sim": "#a855f7",
+  A: "#1F9D6B", B: "#D0433A", C: "#C8860D", D: "#6E6B78",
+  REST: "#97949F", "Récup": "#6E6B78", SV1: "#1C8FC4", LT1: "#5555E0",
+  TT: "#7A56C2", VO2: "#D0433A", Sprint: "#D4711C", Brique: "#C8860D", "Race-Sim": "#7A56C2",
 };
 
 function renderWorkout(w: LibraryWorkout): string {
   const sc = sportColors[w.sport] || sportColors.mixed;
-  const cc = catColors[w.cat] || "#6b7280";
+  const cc = catColors[w.cat] || "#6E6B78";
   const dur = `${w.durationMin[0]}–${w.durationMin[1]} min`;
   const phases = (w.phase || []).join(", ") || "—";
   const goals = (w.goals || []).join(", ") || "—";
@@ -39,14 +39,14 @@ function renderWorkout(w: LibraryWorkout): string {
 
   const structureRows = w.structure.map(s => `
     <tr>
-      <td style="padding:4px 8px;font-weight:600;color:#374151;width:90px;vertical-align:top;">${esc(s.part)}</td>
-      <td style="padding:4px 8px;color:#111827;">${esc(s.text)}</td>
-      <td style="padding:4px 8px;color:#6b7280;font-size:10px;width:120px;vertical-align:top;">${esc(s.zones.join(", "))}</td>
+      <td style="padding:4px 8px;font-weight:600;color:#2B2933;width:90px;vertical-align:top;">${esc(s.part)}</td>
+      <td style="padding:4px 8px;color:#14131A;">${esc(s.text)}</td>
+      <td style="padding:4px 8px;color:#6E6B78;font-size:10px;width:120px;vertical-align:top;">${esc(s.zones.join(", "))}</td>
     </tr>`).join("");
 
   const variantRows = w.variants ? Object.entries(w.variants)
     .filter(([, v]) => v && v !== "—")
-    .map(([k, v]) => `<tr><td style="padding:2px 6px;font-weight:600;color:#4b5563;width:90px;">${esc(k)}</td><td style="padding:2px 6px;color:#111827;">${esc(v)}</td></tr>`)
+    .map(([k, v]) => `<tr><td style="padding:2px 6px;font-weight:600;color:#5C5966;width:90px;">${esc(k)}</td><td style="padding:2px 6px;color:#14131A;">${esc(v)}</td></tr>`)
     .join("") : "";
 
   const dPlus = w.dPlusTargetM
@@ -60,9 +60,9 @@ function renderWorkout(w: LibraryWorkout): string {
         <span style="background:${cc};color:white;padding:2px 8px;border-radius:4px;font-weight:700;font-size:11px;">${esc(w.cat)}</span>
         <span style="background:${sc.bd};color:white;padding:2px 8px;border-radius:4px;font-size:10px;text-transform:uppercase;">${esc(w.sport)}</span>
         <span style="font-weight:700;color:${sc.tx};font-size:13px;">${esc(w.id)}</span>
-        <span style="margin-left:auto;color:#6b7280;font-size:11px;">⏱ ${dur}</span>
+        <span style="margin-left:auto;color:#6E6B78;font-size:11px;">⏱ ${dur}</span>
       </div>
-      <div style="margin-top:4px;font-size:12px;color:#111827;font-style:italic;">${esc(w.objectif)}</div>
+      <div style="margin-top:4px;font-size:12px;color:#14131A;font-style:italic;">${esc(w.objectif)}</div>
     </div>
     <div class="card-body">
       <div class="meta">
@@ -132,26 +132,26 @@ const html = `<!DOCTYPE html>
 <style>
   @page { size: A4; margin: 12mm; }
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, system-ui, "Segoe UI", sans-serif; color:#111827; margin:0; padding:0; font-size:12px; line-height:1.45; }
+  body { font-family: -apple-system, system-ui, "Segoe UI", sans-serif; color:#14131A; margin:0; padding:0; font-size:12px; line-height:1.45; }
   .cover { text-align:center; padding:80px 20px; page-break-after:always; }
-  .cover h1 { font-size:32px; margin:0 0 12px; color:#0f172a; }
-  .cover .subtitle { font-size:16px; color:#475569; margin-bottom:24px; }
-  .cover .stats { display:inline-block; background:#f1f5f9; padding:16px 32px; border-radius:8px; font-size:14px; color:#334155; }
-  h1.sport-title { font-size:22px; color:#0f172a; border-bottom:3px solid #0f172a; padding-bottom:6px; margin:24px 0 12px; page-break-before:always; }
+  .cover h1 { font-size:32px; margin:0 0 12px; color:#14131A; }
+  .cover .subtitle { font-size:16px; color:#5C5966; margin-bottom:24px; }
+  .cover .stats { display:inline-block; background:#F2F0E9; padding:16px 32px; border-radius:8px; font-size:14px; color:#5C5966; }
+  h1.sport-title { font-size:22px; color:#14131A; border-bottom:3px solid #14131A; padding-bottom:6px; margin:24px 0 12px; page-break-before:always; }
   h1.sport-title:first-of-type { page-break-before:auto; }
-  h2.cat-title { font-size:15px; color:#1f2937; background:#f1f5f9; padding:6px 12px; border-left:4px solid #475569; margin:16px 0 10px; }
-  .count { font-size:11px; color:#64748b; font-weight:normal; margin-left:8px; }
+  h2.cat-title { font-size:15px; color:#14131A; background:#F2F0E9; padding:6px 12px; border-left:4px solid #5C5966; margin:16px 0 10px; }
+  .count { font-size:11px; color:#6E6B78; font-weight:normal; margin-left:8px; }
   .grid { display:block; }
-  .card { border:1px solid #e5e7eb; border-radius:6px; margin:0 0 10px 0; page-break-inside:avoid; overflow:hidden; }
+  .card { border:1px solid #E7E4DC; border-radius:6px; margin:0 0 10px 0; page-break-inside:avoid; overflow:hidden; }
   .card-header { padding:8px 12px; }
   .card-body { padding:8px 12px; }
-  .meta { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11px; color:#374151; margin-bottom:6px; }
-  .meta b { color:#0f172a; }
-  .avoid { background:#fef2f2; border-left:3px solid #f87171; padding:4px 8px; font-size:11px; color:#7f1d1d; margin:4px 0; border-radius:3px; }
-  .notes { background:#f0fdf4; border-left:3px solid #4ade80; padding:4px 8px; font-size:11px; color:#14532d; margin-top:6px; border-radius:3px; }
-  .section-title { font-size:11px; font-weight:700; text-transform:uppercase; color:#475569; margin:6px 0 3px; letter-spacing:0.5px; }
+  .meta { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11px; color:#2B2933; margin-bottom:6px; }
+  .meta b { color:#14131A; }
+  .avoid { background:#FAE6E4; border-left:3px solid #D0433A; padding:4px 8px; font-size:11px; color:#8F2E27; margin:4px 0; border-radius:3px; }
+  .notes { background:#E4F5EE; border-left:3px solid #A8E3CB; padding:4px 8px; font-size:11px; color:#157A52; margin-top:6px; border-radius:3px; }
+  .section-title { font-size:11px; font-weight:700; text-transform:uppercase; color:#5C5966; margin:6px 0 3px; letter-spacing:0.5px; }
   table.struct { width:100%; border-collapse:collapse; font-size:11px; }
-  table.struct td { border-bottom:1px solid #f1f5f9; }
+  table.struct td { border-bottom:1px solid #F2F0E9; }
   table.struct tr:last-child td { border-bottom:none; }
   .toc { padding:0 8px; font-size:13px; }
   .toc li { margin:4px 0; }
@@ -164,11 +164,11 @@ const html = `<!DOCTYPE html>
     Généré le ${new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
   </div>
   <div class="toc" style="margin-top:32px;text-align:left;max-width:500px;margin-left:auto;margin-right:auto;">
-    <h3 style="font-size:14px;color:#0f172a;border-bottom:1px solid #cbd5e1;padding-bottom:4px;">Sommaire</h3>
+    <h3 style="font-size:14px;color:#14131A;border-bottom:1px solid #DAD6CC;padding-bottom:4px;">Sommaire</h3>
     <ul style="list-style:none;padding:0;">
       ${presentSports.map(s => {
         const n = Object.values(groups[s]).reduce((a, b) => a + b.length, 0);
-        return `<li><b>${sportLabel[s] || s}</b> <span style="color:#64748b;">— ${n} séances</span></li>`;
+        return `<li><b>${sportLabel[s] || s}</b> <span style="color:#6E6B78;">— ${n} séances</span></li>`;
       }).join("")}
     </ul>
   </div>

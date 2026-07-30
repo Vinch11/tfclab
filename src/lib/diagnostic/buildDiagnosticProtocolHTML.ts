@@ -715,30 +715,30 @@ export function buildDiagnosticProtocolHTML(
   @page { size: A4 portrait; margin: 15mm 15mm 20mm; @bottom-right { content: "Page " counter(page) " / " counter(pages); font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } @bottom-left { content: "TFCLab™ · ${escapeHtml(p.name)}"; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #555; } }
   * { box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.4; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0d9488; padding-bottom: 8px; margin-bottom: 12px; }
-  .header .brand { font-size: 16pt; font-weight: bold; color: #0d9488; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #12897E; padding-bottom: 8px; margin-bottom: 12px; }
+  .header .brand { font-size: 16pt; font-weight: bold; color: #12897E; }
   .header .brand small { display: block; font-size: 10pt; color: #555; font-weight: normal; }
   .header .meta { font-size: 10pt; text-align: right; }
-  h1 { font-size: 14pt; color: #0d9488; margin: 4px 0; }
-  h2 { font-size: 12pt; color: #0d9488; border-bottom: 1px solid #0d9488; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px; }
-  h3 { font-size: 11pt; color: #0d9488; margin: 10px 0 4px; }
+  h1 { font-size: 14pt; color: #12897E; margin: 4px 0; }
+  h2 { font-size: 12pt; color: #12897E; border-bottom: 1px solid #12897E; padding-bottom: 3px; margin-top: 14px; margin-bottom: 8px; }
+  h3 { font-size: 11pt; color: #12897E; margin: 10px 0 4px; }
   h3 .duration { color: #666; font-weight: normal; font-size: 10pt; }
   table { width: 100%; border-collapse: collapse; margin-top: 4px; }
   th, td { border: 1px solid #bbb; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
-  th { background: #f1f5f5; color: #0d9488; font-weight: 600; }
+  th { background: #f1f5f5; color: #12897E; font-weight: 600; }
   td.fill { height: 32px; background: repeating-linear-gradient(transparent, transparent 28px, #ccc 28px, #ccc 29px); }
   .instructions { margin: 4px 0 8px 18px; padding: 0; font-size: 10.5pt; }
   .instructions li { margin-bottom: 2px; }
   .block { page-break-inside: avoid; margin-bottom: 10px; }
   .coach-line { margin-top: 6px; font-size: 10pt; }
   .notes-area { border: 1px solid #bbb; height: 180px; background: repeating-linear-gradient(transparent, transparent 22px, #ccc 22px, #ccc 23px); }
-  .alt-block { background: #f3f0fa; border-left: 4px solid #7c3aed; border-radius: 3px; padding: 6px 10px 6px 12px; margin: 6px 0; page-break-inside: avoid; }
-  .alt-title { font-weight: bold; font-size: 10.5pt; color: #5b21b6; margin-bottom: 3px; }
+  .alt-block { background: #EFE9FA; border-left: 4px solid #7A56C2; border-radius: 3px; padding: 6px 10px 6px 12px; margin: 6px 0; page-break-inside: avoid; }
+  .alt-title { font-weight: bold; font-size: 10.5pt; color: #5A3E93; margin-bottom: 3px; }
   .alt-list { margin: 0 0 0 18px; padding: 0; font-size: 10pt; line-height: 1.45; }
   .alt-list li { margin-bottom: 2px; }
 
-  .footer { margin-top: 18px; padding-top: 6px; border-top: 1px solid #0d9488; font-size: 8.5pt; color: #555; text-align: center; }
-  .print-btn { position: fixed; top: 10px; right: 10px; background: #0d9488; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; }
+  .footer { margin-top: 18px; padding-top: 6px; border-top: 1px solid #12897E; font-size: 8.5pt; color: #555; text-align: center; }
+  .print-btn { position: fixed; top: 10px; right: 10px; background: #12897E; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; }
   @media print { .print-btn { display: none; } }
 </style>
 </head>
@@ -1101,28 +1101,28 @@ export function buildFullDiagnosticDossierHTML(
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; margin: 0; line-height: 1.45; }
 
   /* ---- Typographie & hiérarchie commune ---- */
-  h1 { font-size: 18pt; color: #0d9488; margin: 4px 0 8px; }
-  h2 { font-size: 13pt; color: #0d9488; margin: 18px 0 8px; padding: 6px 10px; background: #e6f4f3; border-left: 4px solid #0d9488; border-radius: 2px; page-break-after: avoid; }
+  h1 { font-size: 18pt; color: #12897E; margin: 4px 0 8px; }
+  h2 { font-size: 13pt; color: #12897E; margin: 18px 0 8px; padding: 6px 10px; background: #E2F1F9; border-left: 4px solid #12897E; border-radius: 2px; page-break-after: avoid; }
   h2 .h2-hint { font-size: 9pt; font-weight: normal; color: #666; margin-left: 6px; }
-  h3 { font-size: 11pt; color: #0d9488; margin: 10px 0 4px; }
+  h3 { font-size: 11pt; color: #12897E; margin: 10px 0 4px; }
   .mini-label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; color: #555; font-weight: 600; margin-bottom: 4px; }
 
   /* ---- Tableaux génériques ---- */
   table { width: 100%; border-collapse: collapse; margin-top: 2px; }
-  th, td { border: 1px solid #b9c6c6; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
+  th, td { border: 1px solid #DAD6CC; padding: 8px 10px; font-size: 10.5pt; text-align: left; vertical-align: middle; }
   th { background: #f1f7f6; color: #0d6b65; font-weight: 600; }
   .kv-table th { width: 28%; }
   .results-table th { background: #fdf6e3; color: #8a6d1f; }
   .results-table tbody tr td:first-child { font-weight: 600; }
 
   /* ---- Champs à remplir : cellule haute, fond très clair, baseline nette ---- */
-  td.fill-cell { height: 32px; padding: 8px 10px; background: #fcfdfd; border-bottom: 1.5px solid #0d9488; }
+  td.fill-cell { height: 32px; padding: 8px 10px; background: #fcfdfd; border-bottom: 1.5px solid #12897E; }
   td.unit-cell { padding: 8px 10px; background: #f7faf9; color: #555; font-size: 10pt; text-align: center; }
 
   /* ---- Cards ---- */
-  .block-card { border: 1px solid #c8d4d4; border-radius: 4px; margin: 10px 0 14px; overflow: hidden; page-break-inside: avoid; }
-  .block-head { display: flex; align-items: center; gap: 10px; background: #0d9488; color: white; padding: 6px 10px; }
-  .block-num { background: white; color: #0d9488; font-weight: bold; padding: 2px 8px; border-radius: 3px; font-size: 10.5pt; }
+  .block-card { border: 1px solid #DAD6CC; border-radius: 4px; margin: 10px 0 14px; overflow: hidden; page-break-inside: avoid; }
+  .block-head { display: flex; align-items: center; gap: 10px; background: #12897E; color: white; padding: 6px 10px; }
+  .block-num { background: white; color: #12897E; font-weight: bold; padding: 2px 8px; border-radius: 3px; font-size: 10.5pt; }
   .block-title { flex: 1; font-weight: bold; font-size: 11pt; }
   .block-duration { font-size: 9.5pt; opacity: 0.95; white-space: nowrap; }
   .block-body { padding: 8px 10px 10px; }
@@ -1136,55 +1136,55 @@ export function buildFullDiagnosticDossierHTML(
   .callout-icon { margin-right: 4px; }
   .callout-list { margin: 0 0 0 20px; padding: 0; font-size: 10pt; line-height: 1.5; }
   .callout-list li { margin-bottom: 2px; }
-  .callout-prep     { background: #fff8e6; border-color: #d4a017; }
+  .callout-prep     { background: #FBF0DA; border-color: #C8860D; }
   .callout-prep .callout-head { color: #8a6d14; }
-  .callout-planning { background: #eef4fb; border-color: #2563eb; }
-  .callout-planning .callout-head { color: #1d4ed8; }
-  .callout-validity { background: #ecfaf2; border-color: #16a34a; }
-  .callout-validity .callout-head { color: #166534; }
-  .callout-formula  { background: #f1f5fb; border-color: #4f46e5; }
+  .callout-planning { background: #eef4fb; border-color: #5555E0; }
+  .callout-planning .callout-head { color: #3C3CB8; }
+  .callout-validity { background: #E4F5EE; border-color: #1F9D6B; }
+  .callout-validity .callout-head { color: #157A52; }
+  .callout-formula  { background: #EDEDFC; border-color: #5555E0; }
   .callout-formula .callout-head { color: #3730a3; }
-  .callout-error    { background: #fdecec; border-color: #dc2626; }
-  .callout-error .callout-head { color: #991b1b; }
-  .callout-safety   { background: #f4f4f5; border-color: #374151; }
-  .callout-safety .callout-head { color: #1f2937; }
-  .callout-alt      { background: #f3f0fa; border-color: #7c3aed; }
-  .callout-alt .callout-head { color: #5b21b6; }
+  .callout-error    { background: #FAE6E4; border-color: #D0433A; }
+  .callout-error .callout-head { color: #8F2E27; }
+  .callout-safety   { background: #E7E4DC; border-color: #2B2933; }
+  .callout-safety .callout-head { color: #14131A; }
+  .callout-alt      { background: #EFE9FA; border-color: #7A56C2; }
+  .callout-alt .callout-head { color: #5A3E93; }
 
 
   /* ---- Matériel à cocher ---- */
   .material-block { margin: 6px 0 4px; }
   .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { display: inline-block; padding: 3px 8px; border: 1px solid #b9c6c6; border-radius: 14px; font-size: 9.5pt; background: #fafcfc; }
+  .chip { display: inline-block; padding: 3px 8px; border: 1px solid #DAD6CC; border-radius: 14px; font-size: 9.5pt; background: #FAF9F5; }
 
   /* ---- Méta page chapitre ---- */
-  .page-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 10pt; color: #333; margin: 6px 0 4px; padding: 6px 10px; background: #f7fafa; border: 1px dashed #b9c6c6; border-radius: 3px; }
+  .page-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 10pt; color: #333; margin: 6px 0 4px; padding: 6px 10px; background: #FAF9F5; border: 1px dashed #DAD6CC; border-radius: 3px; }
 
   /* ---- Bandeau chapitre ---- */
-  .chapter-banner { background: linear-gradient(135deg, #0d9488 0%, #115e59 100%); color: white; padding: 14px 18px; border-radius: 4px; margin-bottom: 12px; page-break-after: avoid; }
+  .chapter-banner { background: linear-gradient(135deg, #12897E 0%, #115e59 100%); color: white; padding: 14px 18px; border-radius: 4px; margin-bottom: 12px; page-break-after: avoid; }
   .chapter-num { font-size: 9.5pt; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; margin-bottom: 2px; }
   .chapter-title { font-size: 18pt; font-weight: bold; line-height: 1.15; }
   .chapter-emoji { margin-right: 6px; }
   .chapter-sub { font-size: 10.5pt; opacity: 0.95; margin-top: 4px; }
 
   /* ---- Notes lignées ---- */
-  .lined-notes { border: 1px solid #b9c6c6; height: 150px; background: repeating-linear-gradient(transparent, transparent 23px, #d0d0d0 23px, #d0d0d0 24px); border-radius: 3px; }
+  .lined-notes { border: 1px solid #DAD6CC; height: 150px; background: repeating-linear-gradient(transparent, transparent 23px, #DAD6CC 23px, #DAD6CC 24px); border-radius: 3px; }
 
   /* ---- Sauts de page & impression ---- */
   .page-break { page-break-after: always; }
-  .footer { margin-top: 20px; padding-top: 6px; border-top: 1px solid #0d9488; font-size: 8.5pt; color: #555; text-align: center; }
-  .print-btn { position: fixed; top: 10px; right: 10px; background: #0d9488; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .footer { margin-top: 20px; padding-top: 6px; border-top: 1px solid #12897E; font-size: 8.5pt; color: #555; text-align: center; }
+  .print-btn { position: fixed; top: 10px; right: 10px; background: #12897E; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 11pt; cursor: pointer; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
   @media print { .print-btn { display: none; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 
   /* ---- Couverture ---- */
   .cover { min-height: 95vh; display: flex; flex-direction: column; justify-content: space-between; padding: 30px 10px; }
   .cover-top { text-align: center; }
-  .cover .logo { font-size: 38pt; font-weight: bold; color: #0d9488; letter-spacing: -1px; }
+  .cover .logo { font-size: 38pt; font-weight: bold; color: #12897E; letter-spacing: -1px; }
   .cover .logo small { display: block; font-size: 12pt; color: #555; font-weight: normal; margin-top: 2px; }
-  .cover .doc-tag { display: inline-block; margin-top: 18px; padding: 4px 14px; background: #0d9488; color: white; font-size: 10pt; letter-spacing: 2px; text-transform: uppercase; border-radius: 20px; }
-  .cover .doc-title { font-size: 30pt; color: #0d9488; margin: 60px 0 12px; font-weight: bold; text-align: center; line-height: 1.1; }
+  .cover .doc-tag { display: inline-block; margin-top: 18px; padding: 4px 14px; background: #12897E; color: white; font-size: 10pt; letter-spacing: 2px; text-transform: uppercase; border-radius: 20px; }
+  .cover .doc-title { font-size: 30pt; color: #12897E; margin: 60px 0 12px; font-weight: bold; text-align: center; line-height: 1.1; }
   .cover .doc-sub { font-size: 13pt; color: #555; text-align: center; margin-bottom: 40px; }
-  .cover .info-card { border: 2px solid #0d9488; border-radius: 6px; padding: 20px 28px; margin: 0 auto; max-width: 480px; background: #f7fafa; }
+  .cover .info-card { border: 2px solid #12897E; border-radius: 6px; padding: 20px 28px; margin: 0 auto; max-width: 480px; background: #FAF9F5; }
   .cover .info-card .info-line { display: flex; align-items: baseline; margin: 12px 0; font-size: 12pt; }
   .cover .info-card .info-line .lbl { width: 130px; color: #555; font-weight: 600; }
   .cover .info-card .info-line .val { flex: 1; border-bottom: 1px solid #777; min-height: 18px; padding-left: 6px; }
@@ -1193,22 +1193,22 @@ export function buildFullDiagnosticDossierHTML(
   /* ---- Sommaire ---- */
   .toc-table { border: none; }
   .toc-table td, .toc-table th { border: none; padding: 7px 0; }
-  .toc-num { width: 50px; font-weight: bold; color: #0d9488; font-size: 11pt; }
+  .toc-num { width: 50px; font-weight: bold; color: #12897E; font-size: 11pt; }
   .toc-title { font-size: 11pt; }
   .toc-dots { border-bottom: 2px dotted #999; height: 1px; }
   .toc-page { width: 50px; text-align: right; color: #555; font-weight: 600; }
 
   /* ---- Mode d'emploi ---- */
   .howto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
-  .howto-card { border: 1px solid #c8d4d4; border-radius: 4px; padding: 10px 12px; background: #fafcfc; }
-  .howto-card .htc-title { font-weight: bold; color: #0d9488; font-size: 11pt; margin-bottom: 4px; }
+  .howto-card { border: 1px solid #DAD6CC; border-radius: 4px; padding: 10px 12px; background: #FAF9F5; }
+  .howto-card .htc-title { font-weight: bold; color: #12897E; font-size: 11pt; margin-bottom: 4px; }
   .howto-card .htc-body { font-size: 10pt; color: #333; line-height: 1.45; }
   .legend-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 10pt; }
   .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.15); }
 
   /* ---- Synthèse ---- */
-  .synth-group-title { margin: 14px 0 4px; color: #0d9488; font-size: 11.5pt; }
-  .synthesis-table th { background: #e6f4f3; }
+  .synth-group-title { margin: 14px 0 4px; color: #12897E; font-size: 11.5pt; }
+  .synthesis-table th { background: #E2F1F9; }
   .synthesis-table tbody tr td:first-child { font-weight: 600; }
   .conclusion-line { border-bottom: 1px solid #aaa; height: 26px; margin: 0; }
 </style>
@@ -1272,11 +1272,11 @@ export function buildFullDiagnosticDossierHTML(
     </div>
 
     <h2>Légende des encadrés</h2>
-    <div class="legend-row"><span class="legend-swatch" style="background:#fff8e6;border-color:#d4a017;"></span><strong>Préparation</strong> — à lire 48h avant le test</div>
-    <div class="legend-row"><span class="legend-swatch" style="background:#ecfaf2;border-color:#16a34a;"></span><strong>Conditions de validité</strong> — sinon le test est à refaire</div>
-    <div class="legend-row"><span class="legend-swatch" style="background:#f1f5fb;border-color:#4f46e5;"></span><strong>Formules</strong> — calculs appliqués automatiquement par l'app</div>
-    <div class="legend-row"><span class="legend-swatch" style="background:#fdecec;border-color:#dc2626;"></span><strong>Erreurs fréquentes</strong> — à anticiper avant le départ</div>
-    <div class="legend-row"><span class="legend-swatch" style="background:#f4f4f5;border-color:#374151;"></span><strong>Sécurité</strong> — critères d'arrêt et précautions</div>
+    <div class="legend-row"><span class="legend-swatch" style="background:#FBF0DA;border-color:#C8860D;"></span><strong>Préparation</strong> — à lire 48h avant le test</div>
+    <div class="legend-row"><span class="legend-swatch" style="background:#E4F5EE;border-color:#1F9D6B;"></span><strong>Conditions de validité</strong> — sinon le test est à refaire</div>
+    <div class="legend-row"><span class="legend-swatch" style="background:#EDEDFC;border-color:#5555E0;"></span><strong>Formules</strong> — calculs appliqués automatiquement par l'app</div>
+    <div class="legend-row"><span class="legend-swatch" style="background:#FAE6E4;border-color:#D0433A;"></span><strong>Erreurs fréquentes</strong> — à anticiper avant le départ</div>
+    <div class="legend-row"><span class="legend-swatch" style="background:#E7E4DC;border-color:#2B2933;"></span><strong>Sécurité</strong> — critères d'arrêt et précautions</div>
 
     <h2>Conseils d'utilisation terrain</h2>
     <ul style="margin:4px 0 0 22px;font-size:10.5pt;line-height:1.55;">
