@@ -1529,11 +1529,14 @@
   }
 
   /* ── Buttons: soft-tinted, flat, pill ──────────────────────────────────── */
+  .bevel button[class~="bg-primary"]:not([class*="rounded-full"]),
+  .bevel a[class~="bg-primary"]:not([class*="rounded-full"]) {
+    border-radius: 16px !important;
+  }
   .bevel button[class~="bg-primary"],
   .bevel a[class~="bg-primary"] {
     background: hsl(var(--primary)) !important;
     color: hsl(var(--primary-foreground)) !important;
-    border-radius: 16px !important;
     box-shadow: none !important;
     font-weight: 600;
   }
