@@ -1493,15 +1493,32 @@
     padding: 1.5rem 1.5rem 0.75rem !important;
   }
 
-  /* ── Badges: soft pastel pills, never saturated ────────────────────────── */
+  /* ── Badges: mêmes lavis d'angle que les cartes, teinte sémantique ─────── */
   .bevel [class*="rounded-full"][class*="border"][class*="text-xs"],
   .bevel [class*="rounded-md"][class*="border"][class*="text-xs"][class*="px-2"] {
     border-radius: 999px !important;
-    border-color: transparent !important;
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent) !important;
     font-weight: 700;
     letter-spacing: 0.04em;
     padding: 0.2rem 0.7rem;
+    box-shadow: none !important;
   }
+  /* Badges "outline"/teintés : lavis d'angle basé sur leur propre couleur */
+  .bevel [class*="rounded-full"][class*="border"][class*="text-xs"]:not([class*="bg-primary"]):not([class*="bg-destructive"]):not([class*="bg-foreground"]),
+  .bevel [class*="rounded-md"][class*="border"][class*="text-xs"][class*="px-2"]:not([class*="bg-primary"]):not([class*="bg-destructive"]):not([class*="bg-foreground"]) {
+    background:
+      radial-gradient(ellipse 90% 140% at 100% 0%, color-mix(in srgb, currentColor 22%, transparent) 0%, transparent 70%),
+      color-mix(in srgb, currentColor 9%, hsl(var(--card))) !important;
+  }
+  /* Badges pleins : même dégradé que les cartes, en version saturée */
+  .bevel [class*="rounded-full"][class*="text-xs"][class*="bg-primary"],
+  .bevel [class*="rounded-md"][class*="text-xs"][class*="bg-primary"] {
+    background:
+      radial-gradient(ellipse 90% 140% at 100% 0%, hsl(0 0% 100% / 0.22) 0%, transparent 70%),
+      hsl(var(--primary)) !important;
+    border-color: transparent !important;
+  }
+
 
   /* ── Sidebar: white rail, pill active ──────────────────────────────────── */
   .bevel [data-sidebar="sidebar"] {
@@ -1522,17 +1539,52 @@
     box-shadow: none;
   }
 
-  /* ── Bars: thin periwinkle rails ───────────────────────────────────────── */
+  /* ── Jauges & barres : rails fins, remplissage dégradé ─────────────────── */
   .bevel [role="progressbar"] {
     height: 6px !important;
     border-radius: 999px !important;
     background: hsl(220 14% 96%) !important;
+    overflow: hidden;
   }
   .bevel [role="progressbar"] > * {
-    background: hsl(var(--primary) / 0.85) !important;
+    background: linear-gradient(90deg, hsl(var(--primary) / 0.75) 0%, hsl(var(--primary)) 100%) !important;
     box-shadow: none !important;
     border-radius: 999px !important;
   }
+  /* Jauges sémantiques : conservent leur teinte, même traitement dégradé */
+  .bevel [role="progressbar"] > [class*="bg-success"],
+  .bevel [role="progressbar"] > [class*="bg-accent"] {
+    background: linear-gradient(90deg, hsl(var(--accent) / 0.75) 0%, hsl(var(--accent)) 100%) !important;
+  }
+  .bevel [role="progressbar"] > [class*="bg-warning"] {
+    background: linear-gradient(90deg, hsl(var(--warning) / 0.75) 0%, hsl(var(--warning)) 100%) !important;
+  }
+  .bevel [role="progressbar"] > [class*="bg-destructive"] {
+    background: linear-gradient(90deg, hsl(var(--destructive) / 0.75) 0%, hsl(var(--destructive)) 100%) !important;
+  }
+
+  /* Barres/jauges custom (div rails sans role=progressbar) */
+  .bevel [class*="h-1"][class*="rounded-full"] > [class*="rounded-full"],
+  .bevel [class*="h-2"][class*="rounded-full"] > [class*="rounded-full"],
+  .bevel [class*="h-3"][class*="rounded-full"] > [class*="rounded-full"] {
+    background-image: linear-gradient(90deg, color-mix(in srgb, currentColor 0%, transparent) 0%, hsl(0 0% 100% / 0.18) 100%);
+    border-radius: 999px !important;
+  }
+
+  /* Indicateurs de statut (pastilles) : halo doux comme les cartes */
+  .bevel [class*="rounded-full"][class*="w-2"][class*="h-2"],
+  .bevel [class*="rounded-full"][class*="w-2.5"][class*="h-2.5"],
+  .bevel [class*="rounded-full"][class*="w-3"][class*="h-3"]:not([class*="border"]) {
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent) !important;
+  }
+
+  /* Anneaux/jauges SVG : extrémités arrondies et piste neutre */
+  .bevel svg circle[stroke-linecap="round"] { stroke-linecap: round; }
+  .bevel svg circle[class*="text-muted"],
+  .bevel svg circle[class*="stroke-muted"] {
+    stroke: hsl(220 14% 94%) !important;
+  }
+
 
   /* ── Buttons: soft-tinted, flat, pill ──────────────────────────────────── */
   .bevel button[class~="bg-primary"]:not([class*="rounded-full"]),
