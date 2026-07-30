@@ -1161,7 +1161,7 @@ export function buildFullDiagnosticDossierHTML(
   .page-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 10pt; color: #333; margin: 6px 0 4px; padding: 6px 10px; background: #FAF9F5; border: 1px dashed #DAD6CC; border-radius: 3px; }
 
   /* ---- Bandeau chapitre ---- */
-  .chapter-banner { background: linear-gradient(135deg, #12897E 0%, #115e59 100%); color: white; padding: 14px 18px; border-radius: 4px; margin-bottom: 12px; page-break-after: avoid; }
+  .chapter-banner { background: linear-gradient(135deg, #5555E0 0%, #3C3CB8 100%); color: white; padding: 14px 18px; border-radius: 4px; margin-bottom: 12px; page-break-after: avoid; }
   .chapter-num { font-size: 9.5pt; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; margin-bottom: 2px; }
   .chapter-title { font-size: 18pt; font-weight: bold; line-height: 1.15; }
   .chapter-emoji { margin-right: 6px; }

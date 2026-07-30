@@ -131,7 +131,7 @@ export function buildEssentielsHTML(b: EssentielsBundle): string {
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #14131A; background: #FAF9F5; margin: 0; padding: 16px; }
   h1 { font-size: 22px; margin: 0 0 4px 0; }
   .subtitle { color: #6E6B78; font-size: 12px; margin-bottom: 18px; }
-  .header { background: linear-gradient(135deg, #2B2933, #14131A); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
+  .header { background: linear-gradient(135deg, #5555E0 0%, #3C3CB8 100%); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
   .header h1 { color: white; }
   .header .subtitle { color: #DAD6CC; }
   .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }

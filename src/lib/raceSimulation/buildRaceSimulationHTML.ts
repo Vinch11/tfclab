@@ -267,7 +267,7 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #14131A; background: #FAF9F5; margin: 0; padding: 16px; font-size: 12.5px; line-height: 1.5; }
   h1 { font-size: 22px; margin: 0; color: white; }
   h2 { font-size: 15px; margin: 22px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #12897E; }
-  .header { background: linear-gradient(135deg, #12897E, #0f766e); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
+  .header { background: linear-gradient(135deg, #5555E0 0%, #3C3CB8 100%); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
   .header .subtitle { color: #CBEDE6; font-size: 12px; margin: 4px 0 12px; }
   .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .meta-grid .cell { background: rgba(255,255,255,0.12); padding: 8px 10px; border-radius: 6px; }
@@ -425,7 +425,7 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
   h2 { font-size: 15px; margin: 22px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #14131A; }
   .brand { display:flex; align-items:center; gap:10px; }
   .brand .logo { width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,#1C8FC4,#5555E0); color:white; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:14px; letter-spacing:0.5px; }
-  .header { background: linear-gradient(135deg, #2B2933, #14131A); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
+  .header { background: linear-gradient(135deg, #5555E0 0%, #3C3CB8 100%); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
   .header h1, .header .subtitle { color: white; }
   .header .subtitle { color: #DAD6CC; font-size: 12px; margin: 2px 0 12px; }
   .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
