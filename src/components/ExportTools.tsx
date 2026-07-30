@@ -667,24 +667,24 @@ export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
           <svg width="100%" height="80" viewBox="0 0 400 80" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="fatmaxGradPdf" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#16a34a"/>
-                <stop offset="40%" style="stop-color:#22c55e"/>
-                <stop offset="60%" style="stop-color:#eab308"/>
-                <stop offset="100%" style="stop-color:#ef4444"/>
+                <stop offset="0%" style="stop-color:#1F9D6B"/>
+                <stop offset="40%" style="stop-color:#1F9D6B"/>
+                <stop offset="60%" style="stop-color:#C8860D"/>
+                <stop offset="100%" style="stop-color:#D0433A"/>
               </linearGradient>
             </defs>
             <rect x="10" y="25" width="380" height="25" rx="4" fill="url(#fatmaxGradPdf)"/>
-            <rect x="${svgMinX}" y="20" width="${svgWidth}" height="35" rx="4" fill="rgba(34, 197, 94, 0.3)" stroke="#16a34a" stroke-width="2"/>
+            <rect x="${svgMinX}" y="20" width="${svgWidth}" height="35" rx="4" fill="rgba(34, 197, 94, 0.3)" stroke="#1F9D6B" stroke-width="2"/>
             <line x1="${svgCenterX}" y1="15" x2="${svgCenterX}" y2="60" stroke="#111" stroke-width="3"/>
             <text x="10" y="70" font-size="10" fill="#666">50%</text>
             <text x="105" y="70" font-size="10" fill="#666">60%</text>
             <text x="200" y="70" font-size="10" fill="#666">70%</text>
             <text x="295" y="70" font-size="10" fill="#666">80%</text>
             <text x="380" y="70" font-size="10" fill="#666" text-anchor="end">90%</text>
-            <text x="${svgCenterX}" y="12" font-size="11" fill="#16a34a" text-anchor="middle" font-weight="700">FatMax</text>
+            <text x="${svgCenterX}" y="12" font-size="11" fill="#1F9D6B" text-anchor="middle" font-weight="700">FatMax</text>
           </svg>
           <div style="text-align:center;margin-top:8px;">
-            <span style="display:inline-block;width:20px;height:12px;background:rgba(34, 197, 94, 0.3);border:2px solid #16a34a;border-radius:2px;margin-right:6px;"></span>
+            <span style="display:inline-block;width:20px;height:12px;background:rgba(34, 197, 94, 0.3);border:2px solid #1F9D6B;border-radius:2px;margin-right:6px;"></span>
             <span class="muted" style="font-size:11px;">Zone FatMax (${fatmaxTFCL.minPctFTP}–${fatmaxTFCL.maxPctFTP}% ${refLabelShort})</span>
           </div>
         </div>
@@ -907,7 +907,7 @@ function buildBasicSimulationHTML(
         <b>📋 Philosophie TFCL™ :</b> ${htmlEscape(SIMULATION_DEFINITIONS.philosophy)}
       </div>
       
-      <div style="display:inline-block;margin-bottom:12px;padding:4px 12px;background:#e2e8f0;border-radius:16px;font-size:11px;font-weight:600;">
+      <div style="display:inline-block;margin-bottom:12px;padding:4px 12px;background:#E7E4DC;border-radius:16px;font-size:11px;font-weight:600;">
         MODE BASIC — Décision robuste
       </div>
       
@@ -946,17 +946,17 @@ function buildBasicSimulationHTML(
             <tr><th>Scénario</th><th>Description</th><th>Recommandé</th></tr>
           </thead>
           <tbody>
-            <tr${basicResult.recommendedScenario === 'conservative' ? ' style="background:#dcfce7;"' : ''}>
+            <tr${basicResult.recommendedScenario === 'conservative' ? ' style="background:#E4F5EE;"' : ''}>
               <td><b>🛡️ Conservateur</b></td>
               <td>${htmlEscape(basicResult.scenarioLabels.conservative)}</td>
               <td>${basicResult.recommendedScenario === 'conservative' ? '✅ Oui' : ''}</td>
             </tr>
-            <tr${basicResult.recommendedScenario === 'optimal' ? ' style="background:#fef9c3;"' : ''}>
+            <tr${basicResult.recommendedScenario === 'optimal' ? ' style="background:#FBF0DA;"' : ''}>
               <td><b>⚡ Optimal</b></td>
               <td>${htmlEscape(basicResult.scenarioLabels.optimal)}</td>
               <td>${basicResult.recommendedScenario === 'optimal' ? '✅ Oui' : ''}</td>
             </tr>
-            <tr${basicResult.recommendedScenario === 'aggressive' ? ' style="background:#fee2e2;"' : ''}>
+            <tr${basicResult.recommendedScenario === 'aggressive' ? ' style="background:#FAE6E4;"' : ''}>
               <td><b>🚀 Agressif</b></td>
               <td>${htmlEscape(basicResult.scenarioLabels.aggressive)}</td>
               <td>${basicResult.recommendedScenario === 'aggressive' ? '✅ Oui' : ''}</td>
@@ -1028,7 +1028,7 @@ function buildProSimulationHTML(
           </thead>
           <tbody>
             ${proResult.failureRisks.map(r => {
-              const probColor = r.probability === 'high' ? '#dc2626' : r.probability === 'moderate' ? '#f59e0b' : '#16a34a';
+              const probColor = r.probability === 'high' ? '#D0433A' : r.probability === 'moderate' ? '#C8860D' : '#1F9D6B';
               const probLabel = r.probability === 'high' ? 'Élevée' : r.probability === 'moderate' ? 'Modérée' : 'Faible';
               return `<tr>
                 <td><b>${htmlEscape(r.label)}</b></td>
@@ -1043,16 +1043,16 @@ function buildProSimulationHTML(
     : '';
 
   const scenariosHTML = proResult.scenarios.map(scenario => {
-    const scenarioColor = scenario.type === 'conservative' ? '#16a34a' 
-      : scenario.type === 'optimal' ? '#f59e0b' : '#dc2626';
+    const scenarioColor = scenario.type === 'conservative' ? '#1F9D6B' 
+      : scenario.type === 'optimal' ? '#C8860D' : '#D0433A';
     const scenarioIcon = scenario.type === 'conservative' ? '🛡️' 
       : scenario.type === 'optimal' ? '⚡' : '🚀';
     const isRecommended = scenario.type === proResult.recommendedScenario;
     
     const segmentsTableHTML = scenario.segments.slice(0, 5).map(seg => {
-      const riskColor = seg.depletionRisk === 'LOW' ? '#16a34a' 
-        : seg.depletionRisk === 'MEDIUM' ? '#f59e0b' 
-        : seg.depletionRisk === 'HIGH' ? '#dc2626' : '#7c3aed';
+      const riskColor = seg.depletionRisk === 'LOW' ? '#1F9D6B' 
+        : seg.depletionRisk === 'MEDIUM' ? '#C8860D' 
+        : seg.depletionRisk === 'HIGH' ? '#D0433A' : '#7A56C2';
       return `<tr>
         <td>${seg.segmentIndex + 1}</td>
         <td>${seg.distanceKm.toFixed(1)} km</td>
@@ -1067,7 +1067,7 @@ function buildProSimulationHTML(
       : '';
 
     const strengthsHTML = scenario.strengths.length > 0 
-      ? `<div style="margin-top:8px;font-size:11px;color:#16a34a;">✅ ${scenario.strengths.join(' | ')}</div>` 
+      ? `<div style="margin-top:8px;font-size:11px;color:#1F9D6B;">✅ ${scenario.strengths.join(' | ')}</div>` 
       : '';
 
     return `
@@ -1128,7 +1128,7 @@ function buildProSimulationHTML(
         <b>📋 Philosophie TFCL™ :</b> ${htmlEscape(SIMULATION_DEFINITIONS.philosophy)}
       </div>
       
-      <div style="display:inline-block;margin-bottom:12px;padding:4px 12px;background:#8b5cf6;color:white;border-radius:16px;font-size:11px;font-weight:600;">
+      <div style="display:inline-block;margin-bottom:12px;padding:4px 12px;background:#7A56C2;color:white;border-radius:16px;font-size:11px;font-weight:600;">
         MODE PRO — Analyse complète
       </div>
       
@@ -1182,8 +1182,8 @@ function buildProSimulationHTML(
           <div>
             <div class="muted" style="font-size:10px;">Données manquantes</div>
             ${proResult.missingData.length > 0 
-              ? `<ul style="margin:4px 0;padding-left:16px;font-size:11px;color:#f59e0b;">${proResult.missingData.map(m => `<li>${htmlEscape(m)}</li>`).join('')}</ul>`
-              : `<p style="font-size:11px;color:#16a34a;">Aucune donnée manquante</p>`
+              ? `<ul style="margin:4px 0;padding-left:16px;font-size:11px;color:#C8860D;">${proResult.missingData.map(m => `<li>${htmlEscape(m)}</li>`).join('')}</ul>`
+              : `<p style="font-size:11px;color:#1F9D6B;">Aucune donnée manquante</p>`
             }
           </div>
           <div>
@@ -1197,7 +1197,7 @@ function buildProSimulationHTML(
         <b>📋 Disclaimer :</b> ${htmlEscape(proResult.disclaimer)}
       </div>
       
-      <div class="alert mt" style="font-size:11px;background:#f1f5f9;">
+      <div class="alert mt" style="font-size:11px;background:#F2F0E9;">
         <b>🔬 Méthodologie :</b> ${htmlEscape(proResult.methodology)}
       </div>
     </section>
@@ -1231,7 +1231,7 @@ function buildGlycogenChartSVG(segments: { segmentIndex: number; glycogenRemaini
   const areaD = pathD + ` L ${points[points.length - 1].x} ${height - 15} L ${points[0].x} ${height - 15} Z`;
   
   const circles = points.map(p => {
-    const color = p.risk === 'LOW' ? '#16a34a' : p.risk === 'MEDIUM' ? '#f59e0b' : p.risk === 'HIGH' ? '#dc2626' : '#7c3aed';
+    const color = p.risk === 'LOW' ? '#1F9D6B' : p.risk === 'MEDIUM' ? '#C8860D' : p.risk === 'HIGH' ? '#D0433A' : '#7A56C2';
     return `<circle cx="${p.x}" cy="${p.y}" r="5" fill="${color}" stroke="#fff" stroke-width="2"/>`;
   }).join('');
   
@@ -1239,8 +1239,8 @@ function buildGlycogenChartSVG(segments: { segmentIndex: number; glycogenRemaini
   const refLines = [100, 75, 50, 25, 0].map(pct => {
     const y = 15 + ((100 - pct) / 100) * chartHeight;
     return `
-      <line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4 2"/>
-      <text x="${padding - 5}" y="${y + 3}" font-size="8" fill="#64748b" text-anchor="end">${pct}%</text>
+      <line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="#E7E4DC" stroke-width="1" stroke-dasharray="4 2"/>
+      <text x="${padding - 5}" y="${y + 3}" font-size="8" fill="#6E6B78" text-anchor="end">${pct}%</text>
     `;
   }).join('');
   
@@ -1251,15 +1251,15 @@ function buildGlycogenChartSVG(segments: { segmentIndex: number; glycogenRemaini
     <svg width="100%" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">
       <defs>
         <linearGradient id="glycogenGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stop-color="#16a34a" stop-opacity="0.3"/>
-          <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.2"/>
-          <stop offset="100%" stop-color="#dc2626" stop-opacity="0.3"/>
+          <stop offset="0%" stop-color="#1F9D6B" stop-opacity="0.3"/>
+          <stop offset="50%" stop-color="#C8860D" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#D0433A" stop-opacity="0.3"/>
         </linearGradient>
       </defs>
       
       <!-- Danger zone -->
-      <rect x="${padding}" y="${dangerY}" width="${chartWidth}" height="${height - 15 - dangerY}" fill="#fef2f2" rx="4"/>
-      <text x="${width - padding - 5}" y="${dangerY + 12}" font-size="8" fill="#dc2626" text-anchor="end">Zone critique</text>
+      <rect x="${padding}" y="${dangerY}" width="${chartWidth}" height="${height - 15 - dangerY}" fill="#FAE6E4" rx="4"/>
+      <text x="${width - padding - 5}" y="${dangerY + 12}" font-size="8" fill="#D0433A" text-anchor="end">Zone critique</text>
       
       ${refLines}
       
@@ -1267,14 +1267,14 @@ function buildGlycogenChartSVG(segments: { segmentIndex: number; glycogenRemaini
       <path d="${areaD}" fill="url(#glycogenGradient)"/>
       
       <!-- Line -->
-      <path d="${pathD}" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${pathD}" fill="none" stroke="#5555E0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
       
       <!-- Points -->
       ${circles}
       
       <!-- Labels -->
-      <text x="${width / 2}" y="${height - 2}" font-size="9" fill="#64748b" text-anchor="middle">Progression course (segments)</text>
-      <text x="12" y="${height / 2}" font-size="9" fill="#64748b" text-anchor="middle" transform="rotate(-90 12 ${height / 2})">Glycogène %</text>
+      <text x="${width / 2}" y="${height - 2}" font-size="9" fill="#6E6B78" text-anchor="middle">Progression course (segments)</text>
+      <text x="12" y="${height / 2}" font-size="9" fill="#6E6B78" text-anchor="middle" transform="rotate(-90 12 ${height / 2})">Glycogène %</text>
     </svg>
   `;
 }
@@ -1994,9 +1994,9 @@ function buildPotentielPhysiologiqueRunningHTML(payload: ExportPayload): string 
   const potentielScore = potentielPhysiologique.score;
   
   const getStateColor = (score: number) => {
-    if (score >= 80) return { color: "#16a34a", bg: "rgba(22,163,74,0.1)", label: "GREEN", message: "Conditions optimales" };
-    if (score >= 60) return { color: "#d97706", bg: "rgba(217,119,6,0.1)", label: "ORANGE", message: "Prudence recommandée" };
-    return { color: "#dc2626", bg: "rgba(220,38,38,0.1)", label: "RED", message: "Risque élevé" };
+    if (score >= 80) return { color: "#1F9D6B", bg: "rgba(22,163,74,0.1)", label: "GREEN", message: "Conditions optimales" };
+    if (score >= 60) return { color: "#C8860D", bg: "rgba(217,119,6,0.1)", label: "ORANGE", message: "Prudence recommandée" };
+    return { color: "#D0433A", bg: "rgba(220,38,38,0.1)", label: "RED", message: "Risque élevé" };
   };
   
   const state = getStateColor(potentielScore);
@@ -2238,7 +2238,7 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
   }).join("");
 
   const scenarioCards = result.scenarios.map(s => {
-    const color = s.type === "DISCIPLINED" ? "#16a34a" : s.type === "OPTIMISTIC" ? "#d97706" : "#dc2626";
+    const color = s.type === "DISCIPLINED" ? "#1F9D6B" : s.type === "OPTIMISTIC" ? "#C8860D" : "#D0433A";
     return `
       <div style="padding:12px;border-radius:8px;border:1px solid ${color};background:${color}10;">
         <div style="font-size:14px;font-weight:700;color:${color};">${htmlEscape(s.label)}</div>
@@ -2257,9 +2257,9 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
   }).join("");
 
   const disciplineColor =
-    result.discipline_level === "VERY_HIGH" ? "#dc2626" :
-    result.discipline_level === "HIGH" ? "#ea580c" :
-    result.discipline_level === "MODERATE" ? "#d97706" : "#16a34a";
+    result.discipline_level === "VERY_HIGH" ? "#D0433A" :
+    result.discipline_level === "HIGH" ? "#D4711C" :
+    result.discipline_level === "MODERATE" ? "#C8860D" : "#1F9D6B";
 
   return `
     <section id="pacing-envelope-running" class="section pagebreak">
@@ -2304,7 +2304,7 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
 
       <div class="card mt">
         <h3>🎯 Briefing athlète</h3>
-        <div style="font-size:14px;font-weight:600;color:#1e40af;">${htmlEscape(result.briefing.key_phrase)}</div>
+        <div style="font-size:14px;font-weight:600;color:#3C3CB8;">${htmlEscape(result.briefing.key_phrase)}</div>
         <ul style="font-size:12px;margin-top:8px;">
           ${result.briefing.rules_max_3.map(r => `<li>${htmlEscape(r)}</li>`).join("")}
         </ul>
@@ -2359,7 +2359,7 @@ function buildPacingEnvelopeHTML(payload: ExportPayload): string {
     : b.asymmetryRatio > 1.15
       ? `Plafond ouvert (W' confortable)`
       : `Symétrique`;
-  const asymmetryColor = b.asymmetryRatio < 0.85 ? "#dc2626" : b.asymmetryRatio > 1.15 ? "#16a34a" : "#d97706";
+  const asymmetryColor = b.asymmetryRatio < 0.85 ? "#D0433A" : b.asymmetryRatio > 1.15 ? "#1F9D6B" : "#C8860D";
 
   return `
     <section id="pacing-envelope" class="section pagebreak">
@@ -2393,17 +2393,17 @@ function buildPacingEnvelopeHTML(payload: ExportPayload): string {
         <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:12px;text-align:center;">
           <div>
             <div class="muted" style="font-size:11px;">Plancher (low)</div>
-            <div style="font-size:22px;font-weight:700;color:#16a34a;">${b.lowPct}%</div>
+            <div style="font-size:22px;font-weight:700;color:#1F9D6B;">${b.lowPct}%</div>
             ${ftp ? `<div class="muted" style="font-size:11px;">${wattRange(b.lowPct)}W</div>` : ""}
           </div>
           <div>
             <div class="muted" style="font-size:11px;">Centre</div>
-            <div style="font-size:28px;font-weight:800;color:#1e40af;">${b.centerPct}%</div>
+            <div style="font-size:28px;font-weight:800;color:#3C3CB8;">${b.centerPct}%</div>
             ${ftp ? `<div class="muted" style="font-size:11px;">${wattRange(b.centerPct)}W</div>` : ""}
           </div>
           <div>
             <div class="muted" style="font-size:11px;">Plafond (high)</div>
-            <div style="font-size:22px;font-weight:700;color:#d97706;">${b.highPct}%</div>
+            <div style="font-size:22px;font-weight:700;color:#C8860D;">${b.highPct}%</div>
             ${ftp ? `<div class="muted" style="font-size:11px;">${wattRange(b.highPct)}W</div>` : ""}
           </div>
         </div>
@@ -2467,11 +2467,11 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
       </section>`;
   }
 
-  const ldriColor = ld.ldri.level === "critical" ? "#dc2626" : ld.ldri.level === "high" ? "#dc2626" : ld.ldri.level === "moderate" ? "#d97706" : "#16a34a";
+  const ldriColor = ld.ldri.level === "critical" ? "#D0433A" : ld.ldri.level === "high" ? "#D0433A" : ld.ldri.level === "moderate" ? "#C8860D" : "#1F9D6B";
 
   // Glycogen Budget (Rapoport 2010)
   const gb = ld.glycogenBudget;
-  const gbColor = gb?.status === "critical" ? "#dc2626" : gb?.status === "deficit" ? "#dc2626" : gb?.status === "tight" ? "#d97706" : "#16a34a";
+  const gbColor = gb?.status === "critical" ? "#D0433A" : gb?.status === "deficit" ? "#D0433A" : gb?.status === "tight" ? "#C8860D" : "#1F9D6B";
   const glycogenSection = gb ? `
     <div class="card mt">
       <h3>🍞 Budget Glycogène — Rapoport 2010</h3>
@@ -2490,7 +2490,7 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
 
   // Carb Strategy (Jeukendrup 2014)
   const cs = ld.carbStrategy;
-  const csColor = cs?.giRiskLevel === "high" ? "#dc2626" : cs?.giRiskLevel === "moderate" ? "#d97706" : "#16a34a";
+  const csColor = cs?.giRiskLevel === "high" ? "#D0433A" : cs?.giRiskLevel === "moderate" ? "#C8860D" : "#1F9D6B";
   const carbSection = cs ? `
     <div class="card mt">
       <h3>🥤 Stratégie Glucidique — Jeukendrup 2014 / King 2022</h3>
@@ -2508,7 +2508,7 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
 
   // Thermal Stress (Périard 2021)
   const ts = ld.thermalStress;
-  const tsColor = ts?.stressLevel === "extreme" ? "#dc2626" : ts?.stressLevel === "high" ? "#dc2626" : ts?.stressLevel === "moderate" ? "#d97706" : "#16a34a";
+  const tsColor = ts?.stressLevel === "extreme" ? "#D0433A" : ts?.stressLevel === "high" ? "#D0433A" : ts?.stressLevel === "moderate" ? "#C8860D" : "#1F9D6B";
   const thermalSection = ts ? `
     <div class="card mt">
       <h3>🌡️ Stress Thermique — Périard 2021 / Stull 2011</h3>
@@ -2525,7 +2525,7 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
 
   // Scénarios long distance
   const scenarioCards = ld.scenarios.map(s => {
-    const sColor = s.color === "red" ? "#dc2626" : s.color === "orange" ? "#d97706" : "#16a34a";
+    const sColor = s.color === "red" ? "#D0433A" : s.color === "orange" ? "#C8860D" : "#1F9D6B";
     return `
       <div style="padding:12px;border-radius:8px;border:1px solid ${sColor};background:${sColor}10;">
         <div style="font-size:14px;font-weight:700;color:${sColor};">${htmlEscape(s.label)}</div>
@@ -2565,13 +2565,13 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
       <div class="grid2 mt">
         <div class="card">
           <h3>🚨 Seuil Glycogen Collapse</h3>
-          <div style="font-size:28px;font-weight:700;color:#dc2626;">${ld.glycogenThreshold.thresholdPct}% ${baseEnv.boundary.referenceShortLabel}</div>
+          <div style="font-size:28px;font-weight:700;color:#D0433A;">${ld.glycogenThreshold.thresholdPct}% ${baseEnv.boundary.referenceShortLabel}</div>
           <p class="muted" style="font-size:11px;margin-top:4px;">Max ${ld.glycogenThreshold.maxDurationMinutes}min au-dessus</p>
           <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(ld.glycogenThreshold.explanation)}</p>
         </div>
         <div class="card">
           <h3>🎯 Cible Discipline</h3>
-          <div style="font-size:28px;font-weight:700;color:#16a34a;">${ld.disciplineBuffer.disciplineTargetPct}% ${baseEnv.boundary.referenceShortLabel}</div>
+          <div style="font-size:28px;font-weight:700;color:#1F9D6B;">${ld.disciplineBuffer.disciplineTargetPct}% ${baseEnv.boundary.referenceShortLabel}</div>
           <p class="muted" style="font-size:11px;margin-top:4px;">Marge: ${ld.disciplineBuffer.bufferMarginPct} pts sous le plafond</p>
           <p class="muted" style="font-size:11px;margin-top:8px;">${htmlEscape(ld.disciplineBuffer.message)}</p>
         </div>
@@ -2593,7 +2593,7 @@ function buildLongDistancePacingHTML(payload: ExportPayload): string {
           <tr><td>Pénalité glycogène</td><td><b>−${p.glycogenPenaltyPct}%</b></td></tr>
           <tr><td>Pénalité thermique</td><td><b>−${p.thermalPenaltyPct}%</b></td></tr>
           <tr><td>Pénalité déficit CHO</td><td><b>−${p.carbDeficitPenaltyPct}%</b></td></tr>
-          <tr style="background:#fef3c7;font-weight:700;"><td>Total réduction plafond</td><td>−${p.totalReductionPct}%</td></tr>
+          <tr style="background:#FBF0DA;font-weight:700;"><td>Total réduction plafond</td><td>−${p.totalReductionPct}%</td></tr>
         </table>
       </div>
 
@@ -2646,7 +2646,7 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
     label: ul.leverLabel || "Maintien Profil",
   };
   const potentielScore = potentielPhysiologique.score;
-  const potentielColor = potentielScore >= 80 ? "#16a34a" : potentielScore >= 60 ? "#d97706" : "#dc2626";
+  const potentielColor = potentielScore >= 80 ? "#1F9D6B" : potentielScore >= 60 ? "#C8860D" : "#D0433A";
   const potentielLabel = potentielScore >= 80 ? "Bonne" : potentielScore >= 60 ? "Modérée" : "Faible";
   
   // Confiance simulée
@@ -2688,7 +2688,7 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
               <span style="font-size:20px;">${lever.emoji}</span>
               <div>
                 <div style="font-size:12px;font-weight:600;color:var(--primary);">${lever.label}</div>
-                <div style="font-size:10px;color:#64748b;">Levier prioritaire du bloc</div>
+                <div style="font-size:10px;color:#6E6B78;">Levier prioritaire du bloc</div>
               </div>
             </div>
           </div>
@@ -2706,7 +2706,7 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
           </h3>
           
           <div style="padding:16px;background:${potentielColor}15;border-radius:8px;text-align:center;margin-top:12px;">
-            <div style="font-size:11px;color:#64748b;text-transform:uppercase;">Disponibilité</div>
+            <div style="font-size:11px;color:#6E6B78;text-transform:uppercase;">Disponibilité</div>
             <div style="font-size:28px;font-weight:700;color:${potentielColor};">${potentielLabel}</div>
             <div style="font-size:12px;color:${potentielColor};">Score: ${potentielScore}%</div>
           </div>
@@ -2728,7 +2728,7 @@ function buildDoubleBoucleCAPHTML(payload: ExportPayload): string {
       </div>
       
       <div class="card mt" style="background:rgba(0,0,0,0.02);">
-        <p style="font-size:11px;color:#64748b;">
+        <p style="font-size:11px;color:#6E6B78;">
           <b>💡 Double Boucle TFCL™ :</b> La boucle lente verrouille le profil physiologique 
           pendant 4-6 semaines (pas de recalibration permanente). La boucle rapide ajuste les décisions 
           hebdomadaires sans modifier les seuils physiologiques. 
@@ -2752,7 +2752,7 @@ function buildFacteursLimitantsHTML(payload: ExportPayload): string {
   const ul = payload.unifiedLimiter;
   const gaps = ul.gapAnalysis;
   
-  const statusColor = (s: string) => s === "limiting" ? "#dc2626" : s === "acceptable" ? "#ca8a04" : s === "optimal" ? "#16a34a" : "#6b7280";
+  const statusColor = (s: string) => s === "limiting" ? "#D0433A" : s === "acceptable" ? "#C8860D" : s === "optimal" ? "#1F9D6B" : "#6E6B78";
   const statusLabel = (s: string) => s === "limiting" ? "Limitant" : s === "acceptable" ? "Acceptable" : s === "optimal" ? "Optimal" : "Inconnu";
   
   const fmtV = (v: number | null) => v === null ? "—" : v < 10 ? v.toFixed(2) : v.toFixed(1);
@@ -2774,11 +2774,11 @@ function buildFacteursLimitantsHTML(payload: ExportPayload): string {
           <div>
             <div style="display:flex;gap:16px;margin-top:8px;">
               <div style="text-align:center;">
-                <div style="font-size:28px;font-weight:700;color:${ul.confidence > 0.7 ? '#16a34a' : ul.confidence > 0.4 ? '#ca8a04' : '#dc2626'};">${Math.round(ul.confidence * 100)}%</div>
+                <div style="font-size:28px;font-weight:700;color:${ul.confidence > 0.7 ? '#1F9D6B' : ul.confidence > 0.4 ? '#C8860D' : '#D0433A'};">${Math.round(ul.confidence * 100)}%</div>
                 <div class="muted" style="font-size:11px;">Confiance</div>
               </div>
               <div style="text-align:center;">
-                <div style="font-size:28px;font-weight:700;color:${ul.robustnessScore > 60 ? '#16a34a' : '#ca8a04'};">${ul.robustnessScore}</div>
+                <div style="font-size:28px;font-weight:700;color:${ul.robustnessScore > 60 ? '#1F9D6B' : '#C8860D'};">${ul.robustnessScore}</div>
                 <div class="muted" style="font-size:11px;">Robustesse</div>
               </div>
             </div>
@@ -2821,9 +2821,9 @@ function buildFacteursLimitantsHTML(payload: ExportPayload): string {
                 <td><b>${htmlEscape(g.metric)}</b></td>
                 <td>${fmtV(g.value)}</td>
                 <td>${fmtV(g.target)}</td>
-                <td style="font-weight:600;color:${gapPct < -15 ? '#dc2626' : gapPct < -5 ? '#ca8a04' : '#16a34a'};">${gapPct.toFixed(0)}%</td>
+                <td style="font-weight:600;color:${gapPct < -15 ? '#D0433A' : gapPct < -5 ? '#C8860D' : '#1F9D6B'};">${gapPct.toFixed(0)}%</td>
                 <td>
-                  <div style="background:#e5e7eb;border-radius:4px;height:8px;width:60px;position:relative;">
+                  <div style="background:#E7E4DC;border-radius:4px;height:8px;width:60px;position:relative;">
                     <div style="background:${statusColor(g.status)};border-radius:4px;height:8px;width:${Math.min(100, Math.abs(g.weightedImpact) * 10)}%;"></div>
                   </div>
                 </td>
@@ -2854,10 +2854,10 @@ function buildLeviersActionHTML(payload: ExportPayload): string {
   const templateSuggestion = lr?.templateSuggestion;
 
   const priorityBadge = (p: number) => p === 1 
-    ? '<span class="badge" style="background:#3b82f620;color:#3b82f6;font-size:10px;">P1 — Prioritaire</span>'
+    ? '<span class="badge" style="background:#3b82f620;color:#5555E0;font-size:10px;">P1 — Prioritaire</span>'
     : p === 2 
-      ? '<span class="badge" style="background:#f59e0b20;color:#f59e0b;font-size:10px;">P2 — Secondaire</span>'
-      : '<span class="badge" style="background:#6b728020;color:#6b7280;font-size:10px;">P3 — Tertiaire</span>';
+      ? '<span class="badge" style="background:#f59e0b20;color:#C8860D;font-size:10px;">P2 — Secondaire</span>'
+      : '<span class="badge" style="background:#6b728020;color:#6E6B78;font-size:10px;">P3 — Tertiaire</span>';
 
   return `
     <section id="leviers-action" class="section pagebreakAvoid">
@@ -2878,12 +2878,12 @@ function buildLeviersActionHTML(payload: ExportPayload): string {
             </div>
           </div>
           ${templateSuggestion ? `
-            <div style="margin-top:12px;padding:8px 12px;background:var(--muted-bg, #f1f5f9);border-radius:6px;">
+            <div style="margin-top:12px;padding:8px 12px;background:var(--muted-bg, #F2F0E9);border-radius:6px;">
               <span style="font-size:11px;color:var(--muted);">💡 Type de semaine suggéré : <b>${htmlEscape(templateSuggestion.weekLabel)}</b> — ${htmlEscape(templateSuggestion.reasoning)}</span>
             </div>
           ` : ""}
           <div style="margin-top:8px;">
-            <span class="badge" style="background:${lr.confidence === 'high' ? '#16a34a' : lr.confidence === 'moderate' ? '#f59e0b' : '#dc2626'}20;color:${lr.confidence === 'high' ? '#16a34a' : lr.confidence === 'moderate' ? '#f59e0b' : '#dc2626'};font-size:10px;">
+            <span class="badge" style="background:${lr.confidence === 'high' ? '#1F9D6B' : lr.confidence === 'moderate' ? '#C8860D' : '#D0433A'}20;color:${lr.confidence === 'high' ? '#1F9D6B' : lr.confidence === 'moderate' ? '#C8860D' : '#D0433A'};font-size:10px;">
               Confiance : ${htmlEscape(lr.confidenceLabel)}
             </span>
           </div>
@@ -2894,27 +2894,27 @@ function buildLeviersActionHTML(payload: ExportPayload): string {
           <div class="card mt">
             <h3>⚡ Leviers Activés (${levers.length})</h3>
             ${levers.map(lever => `
-              <div style="padding:12px;margin:8px 0;border-radius:8px;border:1px solid ${lever.priority === 1 ? 'var(--primary, #3b82f6)' : '#e5e7eb'};background:${lever.priority === 1 ? 'rgba(59,130,246,0.05)' : '#fafafa'};">
+              <div style="padding:12px;margin:8px 0;border-radius:8px;border:1px solid ${lever.priority === 1 ? 'var(--primary, #5555E0)' : '#E7E4DC'};background:${lever.priority === 1 ? 'rgba(59,130,246,0.05)' : '#fafafa'};">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                   <span style="font-size:20px;">${lever.icon}</span>
                   <span style="font-size:14px;font-weight:600;">${htmlEscape(lever.label)}</span>
                   ${priorityBadge(lever.priority)}
-                  ${lever.isStaffOnly ? '<span class="badge" style="background:#6b728020;color:#6b7280;font-size:9px;">🛡️ Staff</span>' : ''}
+                  ${lever.isStaffOnly ? '<span class="badge" style="background:#6b728020;color:#6E6B78;font-size:9px;">🛡️ Staff</span>' : ''}
                 </div>
                 <p class="muted" style="font-size:12px;margin-top:4px;">${htmlEscape(lever.reason)}</p>
                 ${lever.prescription.length > 0 ? `
                   <div style="margin-top:8px;">
-                    <p style="font-size:11px;font-weight:600;color:#16a34a;">Prescription :</p>
+                    <p style="font-size:11px;font-weight:600;color:#1F9D6B;">Prescription :</p>
                     <ul style="margin:4px 0 0 16px;font-size:12px;">
-                      ${lever.prescription.map(p => `<li style="color:#16a34a;">• ${htmlEscape(p)}</li>`).join("")}
+                      ${lever.prescription.map(p => `<li style="color:#1F9D6B;">• ${htmlEscape(p)}</li>`).join("")}
                     </ul>
                   </div>
                 ` : ""}
                 ${lever.warnings.length > 0 ? `
                   <div style="margin-top:6px;">
-                    <p style="font-size:11px;font-weight:600;color:#f59e0b;">⚠️ Précautions :</p>
+                    <p style="font-size:11px;font-weight:600;color:#C8860D;">⚠️ Précautions :</p>
                     <ul style="margin:4px 0 0 16px;font-size:12px;">
-                      ${lever.warnings.map(w => `<li style="color:#f59e0b;">• ${htmlEscape(w)}</li>`).join("")}
+                      ${lever.warnings.map(w => `<li style="color:#C8860D;">• ${htmlEscape(w)}</li>`).join("")}
                     </ul>
                   </div>
                 ` : ""}
@@ -3010,13 +3010,13 @@ function buildCpWprimeWbalHTML(payload: ExportPayload): string {
   const recoveryTable = generateRecoveryTable(cpResult.effectiveCP, cpResult.wprime, poids ?? undefined);
   const wprimeEff = effectiveWprime(cpResult.wprime);
 
-  const qualityColor = cpResult.dataQuality === "good" ? "#16a34a" : cpResult.dataQuality === "suspect" ? "#f59e0b" : "#dc2626";
+  const qualityColor = cpResult.dataQuality === "good" ? "#1F9D6B" : cpResult.dataQuality === "suspect" ? "#C8860D" : "#D0433A";
   const qualityLabel = cpResult.dataQuality === "good" ? "✓ Bonne" : cpResult.dataQuality === "suspect" ? "⚠ Suspecte" : "✗ Implausible";
 
   // Diagnostics HTML
   const diagnosticsHTML = cpResult.diagnostics.length > 0
     ? cpResult.diagnostics.map(d => {
-        const color = d.severity === "critical" ? "#dc2626" : d.severity === "warning" ? "#f59e0b" : "#3b82f6";
+        const color = d.severity === "critical" ? "#D0433A" : d.severity === "warning" ? "#C8860D" : "#5555E0";
         const icon = d.severity === "critical" ? "🔴" : d.severity === "warning" ? "🟡" : "ℹ️";
         return `<div style="display:flex;gap:6px;align-items:flex-start;padding:6px 8px;border-radius:6px;background:${color}10;border:1px solid ${color}30;font-size:11px;">
           <span>${icon}</span>
@@ -3029,18 +3029,18 @@ function buildCpWprimeWbalHTML(payload: ExportPayload): string {
   const pointsBadges = cpResult.points.map(pt => {
     const isOverlay = 'regressionPoint' in pt ? !(pt as any).regressionPoint : false;
     const style = isOverlay
-      ? "background:#f1f5f9;color:#64748b;border:1px dashed #94a3b8;"
-      : "background:#eff6ff;color:#2563eb;border:1px solid #93c5fd;";
+      ? "background:#F2F0E9;color:#6E6B78;border:1px dashed #97949F;"
+      : "background:#EDEDFC;color:#5555E0;border:1px solid #B9B9F2;";
     return `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-family:monospace;${style}">${htmlEscape(pt.label || pt.durationSec + 's')}: ${pt.powerWatts}W${isOverlay ? ' (overlay)' : ''}</span>`;
   }).join(" ");
 
   // Recovery table rows
   const recoveryRows = recoveryTable && recoveryTable.length > 0
     ? recoveryTable.map(row => {
-        const repColor = row.maxReps >= 8 ? "#16a34a" : row.maxReps >= 4 ? "#f59e0b" : "#dc2626";
+        const repColor = row.maxReps >= 8 ? "#1F9D6B" : row.maxReps >= 4 ? "#C8860D" : "#D0433A";
         return `<tr>
           <td style="padding:6px 8px;font-weight:500;">${htmlEscape(row.format)}</td>
-          <td style="padding:6px 8px;font-family:monospace;color:#2563eb;">${htmlEscape(row.intervalPower)}</td>
+          <td style="padding:6px 8px;font-family:monospace;color:#5555E0;">${htmlEscape(row.intervalPower)}</td>
           <td style="padding:6px 8px;font-family:monospace;">${htmlEscape(row.optimalRest)}</td>
           <td style="padding:6px 8px;text-align:right;"><span style="display:inline-block;padding:1px 8px;border-radius:9999px;font-size:10px;font-weight:600;color:white;background:${repColor};">×${row.maxReps}</span></td>
         </tr>`;
@@ -3061,32 +3061,32 @@ function buildCpWprimeWbalHTML(payload: ExportPayload): string {
 
         <!-- Main metrics -->
         <div class="grid2" style="gap:12px;margin-bottom:16px;">
-          <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center;">
-            <div style="font-size:11px;color:#64748b;">Critical Power</div>
-            <div style="font-size:24px;font-weight:700;color:#2563eb;font-family:monospace;">${cpResult.effectiveCP}W</div>
-            ${cpResult.cpBounded ? `<div style="font-size:10px;color:#f59e0b;">Borné FTP (${cpResult.cp}W brut)</div>` : ""}
-            ${cpResult.cpWkg ? `<div style="font-size:10px;color:#64748b;font-family:monospace;">${cpResult.effectiveCPWkg ?? cpResult.cpWkg} W/kg</div>` : ""}
+          <div style="background:#FAF9F5;border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#6E6B78;">Critical Power</div>
+            <div style="font-size:24px;font-weight:700;color:#5555E0;font-family:monospace;">${cpResult.effectiveCP}W</div>
+            ${cpResult.cpBounded ? `<div style="font-size:10px;color:#C8860D;">Borné FTP (${cpResult.cp}W brut)</div>` : ""}
+            ${cpResult.cpWkg ? `<div style="font-size:10px;color:#6E6B78;font-family:monospace;">${cpResult.effectiveCPWkg ?? cpResult.cpWkg} W/kg</div>` : ""}
           </div>
-          <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center;">
-            <div style="font-size:11px;color:#64748b;">W' (Cap. Anaérobie)</div>
-            <div style="font-size:24px;font-weight:700;color:#dc2626;font-family:monospace;">${cpResult.wprimeKJ} kJ</div>
-            ${cpResult.wprimeJkg ? `<div style="font-size:10px;color:#64748b;font-family:monospace;">${cpResult.wprimeJkg} J/kg</div>` : ""}
-            ${wprimeEff > cpResult.wprime ? `<div style="font-size:10px;color:#f59e0b;">Plancher 10kJ appliqué</div>` : ""}
+          <div style="background:#FAF9F5;border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#6E6B78;">W' (Cap. Anaérobie)</div>
+            <div style="font-size:24px;font-weight:700;color:#D0433A;font-family:monospace;">${cpResult.wprimeKJ} kJ</div>
+            ${cpResult.wprimeJkg ? `<div style="font-size:10px;color:#6E6B78;font-family:monospace;">${cpResult.wprimeJkg} J/kg</div>` : ""}
+            ${wprimeEff > cpResult.wprime ? `<div style="font-size:10px;color:#C8860D;">Plancher 10kJ appliqué</div>` : ""}
           </div>
         </div>
 
         <!-- Secondary metrics -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
-          <div style="background:#f8fafc;border-radius:6px;padding:8px;text-align:center;">
-            <div style="font-size:10px;color:#64748b;">R² Modèle</div>
-            <div style="font-size:14px;font-weight:700;font-family:monospace;color:${cpResult.r2 > 0.95 ? '#16a34a' : cpResult.r2 > 0.9 ? '#f59e0b' : '#dc2626'};">${cpResult.r2.toFixed(3)}</div>
+          <div style="background:#FAF9F5;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:10px;color:#6E6B78;">R² Modèle</div>
+            <div style="font-size:14px;font-weight:700;font-family:monospace;color:${cpResult.r2 > 0.95 ? '#1F9D6B' : cpResult.r2 > 0.9 ? '#C8860D' : '#D0433A'};">${cpResult.r2.toFixed(3)}</div>
           </div>
-          <div style="background:#f8fafc;border-radius:6px;padding:8px;text-align:center;">
-            <div style="font-size:10px;color:#64748b;">Points</div>
+          <div style="background:#FAF9F5;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:10px;color:#6E6B78;">Points</div>
             <div style="font-size:14px;font-weight:700;font-family:monospace;">${cpResult.points.length}</div>
           </div>
-          <div style="background:#f8fafc;border-radius:6px;padding:8px;text-align:center;">
-            <div style="font-size:10px;color:#64748b;">FTP/CP</div>
+          <div style="background:#FAF9F5;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:10px;color:#6E6B78;">FTP/CP</div>
             <div style="font-size:14px;font-weight:700;font-family:monospace;">${cpResult.ftpCpRatio ? cpResult.ftpCpRatio.toFixed(2) : '—'}</div>
           </div>
         </div>
@@ -3096,21 +3096,21 @@ function buildCpWprimeWbalHTML(payload: ExportPayload): string {
 
         <!-- Data points -->
         <div style="margin-bottom:16px;">
-          <div style="font-size:10px;color:#64748b;margin-bottom:4px;font-weight:600;">Points de données</div>
+          <div style="font-size:10px;color:#6E6B78;margin-bottom:4px;font-weight:600;">Points de données</div>
           <div style="display:flex;flex-wrap:wrap;gap:4px;">${pointsBadges}</div>
         </div>
 
         <!-- Recovery table -->
         ${recoveryRows ? `
         <div style="margin-top:16px;">
-          <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;">🔄 Repos Optimaux W'bal (Skiba 2012)</div>
+          <div style="font-size:12px;font-weight:600;color:#6E6B78;margin-bottom:8px;">🔄 Repos Optimaux W'bal (Skiba 2012)</div>
           <table style="width:100%;border-collapse:collapse;font-size:11px;">
             <thead>
-              <tr style="border-bottom:2px solid #e2e8f0;">
-                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Format</th>
-                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Puissance</th>
-                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Repos optimal</th>
-                <th style="text-align:right;padding:6px 8px;color:#64748b;font-weight:500;">Reps max</th>
+              <tr style="border-bottom:2px solid #E7E4DC;">
+                <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Format</th>
+                <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Puissance</th>
+                <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Repos optimal</th>
+                <th style="text-align:right;padding:6px 8px;color:#6E6B78;font-weight:500;">Reps max</th>
               </tr>
             </thead>
             <tbody>${recoveryRows}</tbody>
@@ -3119,7 +3119,7 @@ function buildCpWprimeWbalHTML(payload: ExportPayload): string {
         ` : ""}
 
         <!-- Footer note -->
-        <div style="margin-top:12px;font-size:10px;color:#94a3b8;font-style:italic;">
+        <div style="margin-top:12px;font-size:10px;color:#97949F;font-style:italic;">
           Durées calibrées sur W' individuel (${cpResult.wprimeKJ} kJ) et CP effectif (${cpResult.effectiveCP}W).
           Modèle : reconstitution exponentielle W'bal — Skiba et al. (2012).
         </div>
@@ -3158,7 +3158,7 @@ function buildLactateCorrespondenceHTML(payload: ExportPayload): string {
     `;
   }
 
-  const confColor = (c: number) => c >= 0.75 ? "#16a34a" : c >= 0.55 ? "#f59e0b" : "#dc2626";
+  const confColor = (c: number) => c >= 0.75 ? "#1F9D6B" : c >= 0.55 ? "#C8860D" : "#D0433A";
 
   const lt1Watts = thresholds.lt1.watts ? `${thresholds.lt1.watts}W` : "—";
   const lt2Watts = thresholds.lt2.watts ? `${thresholds.lt2.watts}W` : "—";
@@ -3168,9 +3168,9 @@ function buildLactateCorrespondenceHTML(payload: ExportPayload): string {
   const correspondenceRows = TFCL_LACTATE_TABLE.map(row => `
     <tr>
       <td style="padding:6px 8px;font-weight:500;">${htmlEscape(row.element)}</td>
-      <td style="padding:6px 8px;font-family:monospace;color:#2563eb;">${htmlEscape(row.correspondence)}</td>
-      <td style="padding:6px 8px;font-size:10px;color:#64748b;">${htmlEscape(row.dataSource)}</td>
-      <td style="padding:6px 8px;font-size:10px;color:#64748b;">${htmlEscape(row.staffWhy)}</td>
+      <td style="padding:6px 8px;font-family:monospace;color:#5555E0;">${htmlEscape(row.correspondence)}</td>
+      <td style="padding:6px 8px;font-size:10px;color:#6E6B78;">${htmlEscape(row.dataSource)}</td>
+      <td style="padding:6px 8px;font-size:10px;color:#6E6B78;">${htmlEscape(row.staffWhy)}</td>
     </tr>
   `).join("");
 
@@ -3181,18 +3181,18 @@ function buildLactateCorrespondenceHTML(payload: ExportPayload): string {
       <div class="card" style="padding:16px;">
         <!-- LT1 / LT2 Summary -->
         <div class="grid2" style="gap:12px;margin-bottom:16px;">
-          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;text-align:center;">
-            <div style="font-size:11px;color:#16a34a;font-weight:600;">LT1 — Seuil Aérobie</div>
-            <div style="font-size:22px;font-weight:700;font-family:monospace;color:#16a34a;">${lt1Watts}</div>
-            ${lt1Pct ? `<div style="font-size:10px;color:#64748b;">${lt1Pct}</div>` : ""}
+          <div style="background:#E4F5EE;border:1px solid #A8E3CB;border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#1F9D6B;font-weight:600;">LT1 — Seuil Aérobie</div>
+            <div style="font-size:22px;font-weight:700;font-family:monospace;color:#1F9D6B;">${lt1Watts}</div>
+            ${lt1Pct ? `<div style="font-size:10px;color:#6E6B78;">${lt1Pct}</div>` : ""}
             <div style="font-size:10px;margin-top:4px;">
               <span style="color:${confColor(thresholds.lt1.confidence)};">Confiance: ${Math.round(thresholds.lt1.confidence * 100)}%</span>
             </div>
           </div>
-          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;text-align:center;">
-            <div style="font-size:11px;color:#dc2626;font-weight:600;">LT2 — Seuil Anaérobie (MLSS)</div>
-            <div style="font-size:22px;font-weight:700;font-family:monospace;color:#dc2626;">${lt2Watts}</div>
-            ${lt2Pct ? `<div style="font-size:10px;color:#64748b;">${lt2Pct}</div>` : ""}
+          <div style="background:#FAE6E4;border:1px solid #F2B7B2;border-radius:8px;padding:12px;text-align:center;">
+            <div style="font-size:11px;color:#D0433A;font-weight:600;">LT2 — Seuil Anaérobie (MLSS)</div>
+            <div style="font-size:22px;font-weight:700;font-family:monospace;color:#D0433A;">${lt2Watts}</div>
+            ${lt2Pct ? `<div style="font-size:10px;color:#6E6B78;">${lt2Pct}</div>` : ""}
             <div style="font-size:10px;margin-top:4px;">
               <span style="color:${confColor(thresholds.lt2.confidence)};">Confiance: ${Math.round(thresholds.lt2.confidence * 100)}%</span>
             </div>
@@ -3201,14 +3201,14 @@ function buildLactateCorrespondenceHTML(payload: ExportPayload): string {
 
         <!-- Correspondence Table -->
         <div style="margin-top:12px;">
-          <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;">Table de Correspondance TFCL ↔ Seuils Lactiques</div>
+          <div style="font-size:12px;font-weight:600;color:#6E6B78;margin-bottom:8px;">Table de Correspondance TFCL ↔ Seuils Lactiques</div>
           <table style="width:100%;border-collapse:collapse;font-size:11px;">
             <thead>
-              <tr style="border-bottom:2px solid #e2e8f0;">
-                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Élément TFCL</th>
-                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">↔ Seuil</th>
-                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Source</th>
-                <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Justification</th>
+              <tr style="border-bottom:2px solid #E7E4DC;">
+                <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Élément TFCL</th>
+                <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">↔ Seuil</th>
+                <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Source</th>
+                <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Justification</th>
               </tr>
             </thead>
             <tbody>${correspondenceRows}</tbody>
@@ -3216,7 +3216,7 @@ function buildLactateCorrespondenceHTML(payload: ExportPayload): string {
         </div>
 
         ${thresholds.notes.length > 0 ? `
-        <div style="margin-top:12px;font-size:10px;color:#94a3b8;font-style:italic;">
+        <div style="margin-top:12px;font-size:10px;color:#97949F;font-style:italic;">
           ${thresholds.notes.map(n => htmlEscape(n)).join("<br/>")}
         </div>
         ` : ""}
@@ -3257,12 +3257,12 @@ function buildCycleIntelligenceHTML(payload: ExportPayload): string {
     objectif: payload.athlete.goal || "IM",
   });
 
-  const scoreColor = result.adaptationScore >= 70 ? "#16a34a" : result.adaptationScore >= 55 ? "#3b82f6" : result.adaptationScore >= 40 ? "#f59e0b" : "#dc2626";
+  const scoreColor = result.adaptationScore >= 70 ? "#1F9D6B" : result.adaptationScore >= 55 ? "#5555E0" : result.adaptationScore >= 40 ? "#C8860D" : "#D0433A";
 
   const metricsRows = result.metrics
     .filter(m => m.available)
     .map(m => {
-      const changeColor = m.evolution === "positive" ? "#16a34a" : m.evolution === "negative" ? "#dc2626" : "#64748b";
+      const changeColor = m.evolution === "positive" ? "#1F9D6B" : m.evolution === "negative" ? "#D0433A" : "#6E6B78";
       const changeIcon = m.evolution === "positive" ? "↑" : m.evolution === "negative" ? "↓" : "→";
       const isVlamax = m.label.toLowerCase().includes("vlamax");
       const prevVal = m.previousValue != null ? (isVlamax ? m.previousValue.toFixed(2) : m.previousValue.toFixed(1)) : "—";
@@ -3289,7 +3289,7 @@ function buildCycleIntelligenceHTML(payload: ExportPayload): string {
           </div>
           <div>
             <div style="font-size:14px;font-weight:700;">${result.verdictEmoji} ${htmlEscape(result.verdictLabel)}</div>
-            <div style="font-size:11px;color:#64748b;">
+            <div style="font-size:11px;color:#6E6B78;">
               ${htmlEscape(dtStr(prev.date))} → ${htmlEscape(dtStr(curr.date))} (${result.daysBetween} jours)
             </div>
           </div>
@@ -3299,12 +3299,12 @@ function buildCycleIntelligenceHTML(payload: ExportPayload): string {
         ${metricsRows ? `
         <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;">
           <thead>
-            <tr style="border-bottom:2px solid #e2e8f0;">
-              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Métrique</th>
-              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Avant</th>
-              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Après</th>
-              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Δ</th>
-              <th style="text-align:left;padding:6px 8px;color:#64748b;font-weight:500;">Statut</th>
+            <tr style="border-bottom:2px solid #E7E4DC;">
+              <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Métrique</th>
+              <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Avant</th>
+              <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Après</th>
+              <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Δ</th>
+              <th style="text-align:left;padding:6px 8px;color:#6E6B78;font-weight:500;">Statut</th>
             </tr>
           </thead>
           <tbody>${metricsRows}</tbody>
@@ -3312,12 +3312,12 @@ function buildCycleIntelligenceHTML(payload: ExportPayload): string {
         ` : ""}
 
         <!-- Recommendation -->
-        <div style="background:#f8fafc;border-radius:8px;padding:12px;margin-top:8px;">
+        <div style="background:#FAF9F5;border-radius:8px;padding:12px;margin-top:8px;">
           <div style="font-size:12px;font-weight:600;margin-bottom:4px;">💡 ${htmlEscape(result.recommendationLabel)}</div>
-          <div style="font-size:11px;color:#64748b;">${htmlEscape(result.recommendationDetail)}</div>
+          <div style="font-size:11px;color:#6E6B78;">${htmlEscape(result.recommendationDetail)}</div>
         </div>
 
-        <div style="margin-top:12px;font-size:10px;color:#94a3b8;font-style:italic;">
+        <div style="margin-top:12px;font-size:10px;color:#97949F;font-style:italic;">
           ${htmlEscape(result.staffNote)}
         </div>
       </div>
@@ -3344,43 +3344,43 @@ function buildRoadmapHTML(payload: ExportPayload): string {
     .filter(w => w % step === 1 || step === 1)
     .map(w => {
       const x = marginLeft + (w - 0.5) * weekWidth;
-      return `<text x="${x}" y="${chartBottom + 30}" text-anchor="end" transform="rotate(-45 ${x} ${chartBottom + 30})" font-size="10" fill="#374151">S${w}</text>`;
+      return `<text x="${x}" y="${chartBottom + 30}" text-anchor="end" transform="rotate(-45 ${x} ${chartBottom + 30})" font-size="10" fill="#2B2933">S${w}</text>`;
     }).join('\n');
 
-  const axisLine = `<line x1="${marginLeft}" y1="${chartTop}" x2="${marginLeft}" y2="${chartBottom}" stroke="#9ca3af" stroke-width="1"/>`;
-  const baseLine = `<line x1="${marginLeft}" y1="${chartBottom}" x2="${W - marginRight}" y2="${chartBottom}" stroke="#9ca3af" stroke-width="1"/>`;
+  const axisLine = `<line x1="${marginLeft}" y1="${chartTop}" x2="${marginLeft}" y2="${chartBottom}" stroke="#97949F" stroke-width="1"/>`;
+  const baseLine = `<line x1="${marginLeft}" y1="${chartBottom}" x2="${W - marginRight}" y2="${chartBottom}" stroke="#97949F" stroke-width="1"/>`;
 
   const barHeight = 32;
   const phaseBars = phases.map((phase, idx) => {
     const x = marginLeft + (phase.startWeek - 1) * weekWidth;
     const width = (phase.endWeek - phase.startWeek + 1) * weekWidth;
     const yOffset = chartTop + 20 + idx * 50;
-    const isDark = phase.color === '#1e3a5f';
-    const isGreen = phase.color === '#86efac';
-    const textColor = isDark ? '#ffffff' : (isGreen ? '#1e3a5f' : '#1e293b');
+    const isDark = phase.color === '#2B2933';
+    const isGreen = phase.color === '#A8E3CB';
+    const textColor = isDark ? '#ffffff' : (isGreen ? '#2B2933' : '#2B2933');
     return `
-      <text x="${x + width / 2}" y="${yOffset - 6}" text-anchor="middle" font-size="11" font-weight="600" fill="#1e293b">${phase.name}</text>
+      <text x="${x + width / 2}" y="${yOffset - 6}" text-anchor="middle" font-size="11" font-weight="600" fill="#2B2933">${phase.name}</text>
       <rect x="${x}" y="${yOffset}" width="${width}" height="${barHeight}" rx="6" fill="${phase.color}" />
       <text x="${x + width / 2}" y="${yOffset + barHeight / 2 + 4}" text-anchor="middle" font-size="10" font-weight="500" fill="${textColor}">${phase.subtitle}</text>
     `;
   }).join('\n');
 
   const phaseDetailsHTML = phases.map(phase => `
-    <div style="padding:12px;border:1px solid #e2e8f0;border-radius:8px;background:#ffffff;">
+    <div style="padding:12px;border:1px solid #E7E4DC;border-radius:8px;background:#ffffff;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
         <div style="width:12px;height:12px;border-radius:3px;background:${phase.color};"></div>
-        <span style="font-weight:600;font-size:13px;color:#1e293b;">${phase.name}</span>
-        <span style="font-size:11px;color:#64748b;">S${phase.startWeek}\u2013S${phase.endWeek}</span>
+        <span style="font-weight:600;font-size:13px;color:#2B2933;">${phase.name}</span>
+        <span style="font-size:11px;color:#6E6B78;">S${phase.startWeek}\u2013S${phase.endWeek}</span>
       </div>
-      <p style="font-size:11px;color:#475569;margin-bottom:6px;">${phase.focus}</p>
+      <p style="font-size:11px;color:#5C5966;margin-bottom:6px;">${phase.focus}</p>
       ${phase.levers.length > 0 ? `
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;">
-          ${phase.levers.map(l => `<span style="font-size:10px;padding:2px 6px;background:#f1f5f9;border-radius:4px;color:#334155;">${l}</span>`).join('')}
+          ${phase.levers.map(l => `<span style="font-size:10px;padding:2px 6px;background:#F2F0E9;border-radius:4px;color:#5C5966;">${l}</span>`).join('')}
         </div>
       ` : ''}
       ${phase.targets.length > 0 ? `
         <div style="margin-top:4px;">
-          ${phase.targets.map(t => `<div style="font-size:10px;color:#0369a1;">\u{1F3AF} ${t}</div>`).join('')}
+          ${phase.targets.map(t => `<div style="font-size:10px;color:#3C3CB8;">\u{1F3AF} ${t}</div>`).join('')}
         </div>
       ` : ''}
     </div>
@@ -3389,10 +3389,10 @@ function buildRoadmapHTML(payload: ExportPayload): string {
   return `
     <section class="page-break" style="margin-top:36px;">
       <div class="card" style="padding:28px;">
-        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;color:#1e293b;">\u{1F4CB} ${title}</h2>
-        <p style="font-size:12px;color:#64748b;margin-bottom:4px;">Périodisation stratégique — Two For Coaching Lab\u2122</p>
-        ${roadmap.personalized ? `<p style="font-size:11px;color:#0369a1;margin-bottom:16px;padding:6px 10px;background:#f0f9ff;border-radius:6px;border:1px solid #bae6fd;">${roadmap.limiterSummary}</p>` : '<div style="margin-bottom:16px;"></div>'}
-        <div style="background:#ffffff;border-radius:8px;padding:12px;border:1px solid #e2e8f0;">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;color:#2B2933;">\u{1F4CB} ${title}</h2>
+        <p style="font-size:12px;color:#6E6B78;margin-bottom:4px;">Périodisation stratégique — Two For Coaching Lab\u2122</p>
+        ${roadmap.personalized ? `<p style="font-size:11px;color:#3C3CB8;margin-bottom:16px;padding:6px 10px;background:#EDEDFC;border-radius:6px;border:1px solid #bae6fd;">${roadmap.limiterSummary}</p>` : '<div style="margin-bottom:16px;"></div>'}
+        <div style="background:#ffffff;border-radius:8px;padding:12px;border:1px solid #E7E4DC;">
           <svg width="100%" viewBox="0 0 ${W} ${H}" style="background:#ffffff;" xmlns="http://www.w3.org/2000/svg">
             <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>
             ${axisLine}
@@ -3434,11 +3434,11 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 
   // Zones physiologiques
   const zones = [
-    { id: "diesel",    label: "Diesel",    min: 0.20, max: 0.30, color: "rgba(59,130,246,0.15)",  textColor: "#1d4ed8" },
-    { id: "endurance", label: "Endurance", min: 0.30, max: 0.40, color: "rgba(34,197,94,0.15)",   textColor: "#15803d" },
-    { id: "allround",  label: "All-round", min: 0.40, max: 0.55, color: "rgba(234,179,8,0.15)",   textColor: "#92400e" },
-    { id: "puncheur",  label: "Puncheur",  min: 0.55, max: 0.70, color: "rgba(249,115,22,0.15)",  textColor: "#9a3412" },
-    { id: "sprinter",  label: "Sprinter",  min: 0.70, max: 1.10, color: "rgba(239,68,68,0.15)",   textColor: "#b91c1c" },
+    { id: "diesel",    label: "Diesel",    min: 0.20, max: 0.30, color: "rgba(59,130,246,0.15)",  textColor: "#3C3CB8" },
+    { id: "endurance", label: "Endurance", min: 0.30, max: 0.40, color: "rgba(34,197,94,0.15)",   textColor: "#157A52" },
+    { id: "allround",  label: "All-round", min: 0.40, max: 0.55, color: "rgba(234,179,8,0.15)",   textColor: "#8A5A08" },
+    { id: "puncheur",  label: "Puncheur",  min: 0.55, max: 0.70, color: "rgba(249,115,22,0.15)",  textColor: "#94430F" },
+    { id: "sprinter",  label: "Sprinter",  min: 0.70, max: 1.10, color: "rgba(239,68,68,0.15)",   textColor: "#8F2E27" },
   ].filter(z => z.min < xMax && z.max > xMin).map(z => ({
     ...z,
     min: Math.max(z.min, xMin),
@@ -3508,13 +3508,13 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
           ${zones.map(z => `<rect x="${toX(z.min)}" y="${pad.top}" width="${toX(z.max) - toX(z.min)}" height="${plotH}" fill="${z.color}" />`).join('\n          ')}
           
           <!-- Grid lines -->
-          ${[0.2, 0.4, 0.6, 0.8, 1.0].map(c => `<line x1="${pad.left}" y1="${toY(c)}" x2="${W - pad.right}" y2="${toY(c)}" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="4 4"/>`).join('\n          ')}
+          ${[0.2, 0.4, 0.6, 0.8, 1.0].map(c => `<line x1="${pad.left}" y1="${toY(c)}" x2="${W - pad.right}" y2="${toY(c)}" stroke="#E7E4DC" stroke-width="0.5" stroke-dasharray="4 4"/>`).join('\n          ')}
           
           <!-- Confidence threshold lines -->
-          ${[0.4, 0.6, 0.8].map(c => `<line x1="${pad.left}" y1="${toY(c)}" x2="${W - pad.right}" y2="${toY(c)}" stroke="#94a3b8" stroke-width="1" stroke-dasharray="6 3"/>`).join('\n          ')}
+          ${[0.4, 0.6, 0.8].map(c => `<line x1="${pad.left}" y1="${toY(c)}" x2="${W - pad.right}" y2="${toY(c)}" stroke="#97949F" stroke-width="1" stroke-dasharray="6 3"/>`).join('\n          ')}
           
           <!-- Confidence level labels -->
-          ${confLevels.map(cl => `<text x="${W - pad.right + 3}" y="${toY(cl.y) + 4}" font-size="7" fill="#64748b" text-anchor="start">${cl.label}</text>`).join('\n          ')}
+          ${confLevels.map(cl => `<text x="${W - pad.right + 3}" y="${toY(cl.y) + 4}" font-size="7" fill="#6E6B78" text-anchor="start">${cl.label}</text>`).join('\n          ')}
           
           <!-- Zone labels at top -->
           ${zones.map(z => {
@@ -3523,24 +3523,24 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
           }).join('\n          ')}
           
           <!-- Axes -->
-          <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${H - pad.bottom}" stroke="#334155" stroke-width="1.5"/>
-          <line x1="${pad.left}" y1="${H - pad.bottom}" x2="${W - pad.right}" y2="${H - pad.bottom}" stroke="#334155" stroke-width="1.5"/>
+          <line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${H - pad.bottom}" stroke="#5C5966" stroke-width="1.5"/>
+          <line x1="${pad.left}" y1="${H - pad.bottom}" x2="${W - pad.right}" y2="${H - pad.bottom}" stroke="#5C5966" stroke-width="1.5"/>
           
           <!-- X axis ticks -->
           ${Array.from({ length: Math.round(xRange / 0.1) + 1 }, (_, i) => xMin + i * 0.1).filter(v => v <= xMax + 0.001).map(v => `
-            <line x1="${toX(v)}" y1="${H - pad.bottom}" x2="${toX(v)}" y2="${H - pad.bottom + 5}" stroke="#334155" stroke-width="1"/>
-            <text x="${toX(v)}" y="${H - pad.bottom + 16}" font-size="9" fill="#334155" text-anchor="middle">${v.toFixed(1)}</text>
+            <line x1="${toX(v)}" y1="${H - pad.bottom}" x2="${toX(v)}" y2="${H - pad.bottom + 5}" stroke="#5C5966" stroke-width="1"/>
+            <text x="${toX(v)}" y="${H - pad.bottom + 16}" font-size="9" fill="#5C5966" text-anchor="middle">${v.toFixed(1)}</text>
           `).join('')}
           
           <!-- Y axis ticks -->
           ${[0, 0.2, 0.4, 0.6, 0.8, 1.0].map(c => `
-            <line x1="${pad.left - 5}" y1="${toY(c)}" x2="${pad.left}" y2="${toY(c)}" stroke="#334155" stroke-width="1"/>
-            <text x="${pad.left - 8}" y="${toY(c) + 3}" font-size="9" fill="#334155" text-anchor="end">${c.toFixed(1)}</text>
+            <line x1="${pad.left - 5}" y1="${toY(c)}" x2="${pad.left}" y2="${toY(c)}" stroke="#5C5966" stroke-width="1"/>
+            <text x="${pad.left - 8}" y="${toY(c) + 3}" font-size="9" fill="#5C5966" text-anchor="end">${c.toFixed(1)}</text>
           `).join('')}
           
           <!-- Axis labels -->
-          <text x="${(pad.left + W - pad.right) / 2}" y="${H - 5}" font-size="10" fill="#334155" text-anchor="middle">VLamax (mmol/L/s)</text>
-          <text x="12" y="${(pad.top + H - pad.bottom) / 2}" font-size="10" fill="#334155" text-anchor="middle" transform="rotate(-90, 12, ${(pad.top + H - pad.bottom) / 2})">Fiabilité</text>
+          <text x="${(pad.left + W - pad.right) / 2}" y="${H - 5}" font-size="10" fill="#5C5966" text-anchor="middle">VLamax (mmol/L/s)</text>
+          <text x="12" y="${(pad.top + H - pad.bottom) / 2}" font-size="10" fill="#5C5966" text-anchor="middle" transform="rotate(-90, 12, ${(pad.top + H - pad.bottom) / 2})">Fiabilité</text>
           
           <!-- Error bar -->
           <line x1="${errLeft}" y1="${ay}" x2="${errRight}" y2="${ay}" stroke="${athleteZone.textColor}" stroke-width="2.5" stroke-opacity="0.5"/>
@@ -3552,12 +3552,12 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
         </svg>
 
         <!-- Summary row -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:12px;background:#f8fafc;border-radius:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:12px;background:#FAF9F5;border-radius:10px;">
           <div style="display:flex;align-items:center;gap:12px;">
             <div style="width:14px;height:14px;border-radius:50%;background:${athleteZone.textColor};opacity:${opacity};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
             <div>
               <span style="font-size:18px;font-weight:800;font-family:ui-monospace,monospace;">≈ ${v2.effective!.toFixed(2)}</span>
-              <span style="font-size:12px;color:#64748b;margin-left:6px;">± ${v2.errorMargin.toFixed(2)}</span>
+              <span style="font-size:12px;color:#6E6B78;margin-left:6px;">± ${v2.errorMargin.toFixed(2)}</span>
             </div>
           </div>
           <div style="text-align:right;">
@@ -3570,15 +3570,15 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
         <!-- Details -->
         <div class="grid3 mt">
           <div class="card" style="padding:10px;">
-            <div style="font-size:10px;color:#64748b;">Zone</div>
+            <div style="font-size:10px;color:#6E6B78;">Zone</div>
             <div style="font-size:14px;font-weight:700;color:${athleteZone.textColor};">${athleteZone.label}</div>
           </div>
           <div class="card" style="padding:10px;">
-            <div style="font-size:10px;color:#64748b;">Source</div>
+            <div style="font-size:10px;color:#6E6B78;">Source</div>
             <div style="font-size:12px;font-weight:600;">${sourceLabel}</div>
           </div>
           <div class="card" style="padding:10px;">
-            <div style="font-size:10px;color:#64748b;">Plage</div>
+            <div style="font-size:10px;color:#6E6B78;">Plage</div>
             <div style="font-size:12px;font-weight:600;font-family:ui-monospace,monospace;">${v2.range ? `${v2.range.low.toFixed(2)} – ${v2.range.high.toFixed(2)}` : '—'}</div>
           </div>
         </div>
@@ -3614,7 +3614,7 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
     return `
       <section id="run-mlss-coherence" class="section pagebreakAvoid">
         <h2>🎯 Run MLSS — Cohérence Modèle C</h2>
-        <div class="card" style="font-size:11px;color:#64748b;">
+        <div class="card" style="font-size:11px;color:#6E6B78;">
           Section non pertinente pour cet objectif (cycliste/triathlon non-run-focus).
         </div>
       </section>`;
@@ -3653,24 +3653,24 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
 
   const predBlock = prediction ? `
     <div class="card" style="padding:10px;">
-      <div style="font-size:10px;color:#64748b;">Prédit Modèle C</div>
+      <div style="font-size:10px;color:#6E6B78;">Prédit Modèle C</div>
       <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${prediction.mlssPct.toFixed(1)}% VMA</div>
-      <div style="font-size:10px;color:#64748b;margin-top:2px;">RMSE ±${prediction.trace.rmseExpected.toFixed(2)}%</div>
+      <div style="font-size:10px;color:#6E6B78;margin-top:2px;">RMSE ±${prediction.trace.rmseExpected.toFixed(2)}%</div>
     </div>` : `
     <div class="card" style="padding:10px;">
-      <div style="font-size:10px;color:#64748b;">Prédit Modèle C</div>
-      <div style="font-size:12px;color:#94a3b8;">VLamax run ou CE manquant</div>
+      <div style="font-size:10px;color:#6E6B78;">Prédit Modèle C</div>
+      <div style="font-size:12px;color:#97949F;">VLamax run ou CE manquant</div>
     </div>`;
 
   const obsBlock = observedPct != null ? `
     <div class="card" style="padding:10px;">
-      <div style="font-size:10px;color:#64748b;">Observé terrain</div>
+      <div style="font-size:10px;color:#6E6B78;">Observé terrain</div>
       <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${observedPct.toFixed(1)}% VMA</div>
-      <div style="font-size:10px;color:#64748b;margin-top:2px;">Pace seuil / VMA</div>
+      <div style="font-size:10px;color:#6E6B78;margin-top:2px;">Pace seuil / VMA</div>
     </div>` : `
     <div class="card" style="padding:10px;">
-      <div style="font-size:10px;color:#64748b;">Observé terrain</div>
-      <div style="font-size:12px;color:#94a3b8;">Pas de test seuil</div>
+      <div style="font-size:10px;color:#6E6B78;">Observé terrain</div>
+      <div style="font-size:12px;color:#97949F;">Pas de test seuil</div>
     </div>`;
 
   const xvBlock = crossValidation && observedPct != null && prediction ? `
@@ -3681,12 +3681,12 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
 
   return `
     <section id="run-mlss-coherence" class="section pagebreakAvoid">
-      <h2>🎯 Run MLSS — Cohérence Modèle C <span style="font-size:11px;font-weight:400;color:#64748b;">(RMSE 2.64% sur N=14 run)</span></h2>
+      <h2>🎯 Run MLSS — Cohérence Modèle C <span style="font-size:11px;font-weight:400;color:#6E6B78;">(RMSE 2.64% sur N=14 run)</span></h2>
 
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <div>
-            <div style="font-size:10px;color:#64748b;">% MLSS effectif (utilisé pour ancrage Z5)</div>
+            <div style="font-size:10px;color:#6E6B78;">% MLSS effectif (utilisé pour ancrage Z5)</div>
             <div style="font-size:24px;font-weight:800;font-family:ui-monospace,monospace;">
               ${effectivePct != null ? `${effectivePct.toFixed(1)}% VMA` : "—"}
             </div>
@@ -3856,22 +3856,22 @@ function buildExecutiveSummaryHTML(payload: ExportPayload): string {
     <section class="section execSummary pagebreak">
       <style>
         .execSummary { padding: 28px 8px 12px; }
-        .execHeader { border-bottom: 2px solid #1e3a5f; padding-bottom: 14px; margin-bottom: 22px; }
-        .execEyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: #64748b; font-weight: 700; }
-        .execTitle { font-size: 28px; font-weight: 800; margin: 6px 0 0; color: #0f172a; letter-spacing: -0.01em; }
-        .execSubtitle { font-size: 13px; color: #475569; margin-top: 4px; }
-        .execProfileBlock { border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); margin-bottom: 16px; break-inside: avoid; }
+        .execHeader { border-bottom: 2px solid #2B2933; padding-bottom: 14px; margin-bottom: 22px; }
+        .execEyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: #6E6B78; font-weight: 700; }
+        .execTitle { font-size: 28px; font-weight: 800; margin: 6px 0 0; color: #14131A; letter-spacing: -0.01em; }
+        .execSubtitle { font-size: 13px; color: #5C5966; margin-top: 4px; }
+        .execProfileBlock { border: 1px solid #E7E4DC; border-radius: 12px; padding: 18px 20px; background: linear-gradient(180deg, #FAF9F5 0%, #ffffff 100%); margin-bottom: 16px; break-inside: avoid; }
         .execGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .execBlock { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px; background: #ffffff; break-inside: avoid; }
-        .execLabel { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: #64748b; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-        .execValue { font-size: 22px; font-weight: 700; color: #0f172a; line-height: 1.25; }
-        .execValue.riskHigh { color: #b91c1c; }
-        .execValue.riskLow { color: #15803d; }
-        .execMeta { font-size: 12px; color: #475569; margin-top: 6px; line-height: 1.5; }
-        .execProfile { font-size: 16px; line-height: 1.5; color: #0f172a; font-weight: 500; }
+        .execBlock { border: 1px solid #E7E4DC; border-radius: 12px; padding: 16px 18px; background: #ffffff; break-inside: avoid; }
+        .execLabel { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: #6E6B78; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .execValue { font-size: 22px; font-weight: 700; color: #14131A; line-height: 1.25; }
+        .execValue.riskHigh { color: #8F2E27; }
+        .execValue.riskLow { color: #157A52; }
+        .execMeta { font-size: 12px; color: #5C5966; margin-top: 6px; line-height: 1.5; }
+        .execProfile { font-size: 16px; line-height: 1.5; color: #14131A; font-weight: 500; }
         .execLeviers { margin: 4px 0 0; padding-left: 20px; }
-        .execLeviers li { font-size: 13px; line-height: 1.55; color: #1e293b; margin-bottom: 4px; }
-        .execFooter { margin-top: 18px; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 10px; color: #94a3b8; text-align: center; letter-spacing: 0.05em; }
+        .execLeviers li { font-size: 13px; line-height: 1.55; color: #2B2933; margin-bottom: 4px; }
+        .execFooter { margin-top: 18px; padding-top: 10px; border-top: 1px dashed #DAD6CC; font-size: 10px; color: #97949F; text-align: center; letter-spacing: 0.05em; }
         @media print {
           .execSummary { page-break-after: always; break-after: page; }
         }
@@ -3979,12 +3979,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // Helper pour couleur profil
   const getProfilColor = (profil: VLamaxProfil): string => {
     switch (profil) {
-      case "diesel": return "#0891b2"; // cyan
-      case "endurant": return "#06b6d4"; // cyan lighter
-      case "equilibre": return "#16a34a"; // green
-      case "explosif": return "#ea580c"; // orange
-      case "sprinter": return "#dc2626"; // red
-      default: return "#64748b";
+      case "diesel": return "#1C8FC4"; // cyan
+      case "endurant": return "#1C8FC4"; // cyan lighter
+      case "equilibre": return "#1F9D6B"; // green
+      case "explosif": return "#D4711C"; // orange
+      case "sprinter": return "#D0433A"; // red
+      default: return "#6E6B78";
     }
   };
   
@@ -3995,7 +3995,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       case "equilibre": return "rgba(22,163,74,0.1)";
       case "explosif": return "rgba(234,88,12,0.1)";
       case "sprinter": return "rgba(220,38,38,0.1)";
-      default: return "#f1f5f9";
+      default: return "#F2F0E9";
     }
   };
   
@@ -4007,7 +4007,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   const css = `
     <style>
-      :root { --fg:#111; --muted:#555; --border:#ddd; --bg:#ffffff; --soft:#f7f7f7; --success:#16a34a; --warning:#d97706; --error:#dc2626; --primary:#2563eb; }
+      :root { --fg:#111; --muted:#555; --border:#ddd; --bg:#ffffff; --soft:#f7f7f7; --success:#1F9D6B; --warning:#C8860D; --error:#D0433A; --primary:#5555E0; }
       * { box-sizing: border-box; }
       html, body { background: #ffffff !important; }
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color: var(--fg); margin: 0; padding: 24px; line-height: 1.5; font-size: 13px; }
@@ -4063,7 +4063,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       .alertInfo { background: rgba(37,99,235,0.1); border-left: 4px solid var(--primary); }
       .footer { margin-top: 30px; font-size: 11px; color: var(--muted); border-top: 2px solid var(--border); padding-top: 15px; }
       .cover { min-height: 90vh; display:flex; flex-direction:column; justify-content:space-between; position: relative; overflow:hidden; margin-bottom: 24px; background: var(--bg); }
-      .coverBanner { background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 50%, #1e3a5f 100%); padding: 40px 32px; border-radius: 18px; margin-bottom: 24px; position: relative; overflow: hidden; }
+      .coverBanner { background: linear-gradient(135deg, #2B2933 0%, #2c5282 50%, #2B2933 100%); padding: 40px 32px; border-radius: 18px; margin-bottom: 24px; position: relative; overflow: hidden; }
       .coverBanner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat; opacity: 0.3; }
       .coverBannerContent { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; }
       .coverBrandBlock { display: flex; align-items: center; gap: 20px; }
@@ -4083,7 +4083,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       .coverBottom { display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; margin-top: 24px; }
       .watermark { position:absolute; right:-60px; bottom:-40px; font-size: 100px; font-weight: 900; letter-spacing: 2px; color: rgba(17,17,17,0.04); transform: rotate(-12deg); user-select: none; pointer-events:none; }
       .scoreCircle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; border: 4px solid; }
-      .noPrint { margin: 12px 0; padding: 12px; background: #f0f9ff; border-radius: 8px; }
+      .noPrint { margin: 12px 0; padding: 12px; background: #EDEDFC; border-radius: 8px; }
       @media print {
         html, body { background: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
         body { margin: 10mm; padding: 0; font-size: 11px; }
@@ -4657,7 +4657,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const coachInterpretation = generateCoachInterpretation();
   
   // Build compass HTML with proper template literals
-  const crrCardColor = crr.isValid ? '#22c55e' : '#f59e0b';
+  const crrCardColor = crr.isValid ? '#1F9D6B' : '#C8860D';
   const crrValue = crr.value !== null ? crr.value : "—";
   const crrSourceClass = crr.source === 'NOLIO' ? 'tagSuccess' : crr.source === 'SNAPSHOT' ? 'tagInfo' : 'tagWarning';
   const chargeStatusClass = chargeScore.status === 'optimal' ? 'badgeSuccess' : chargeScore.status === 'overload' ? 'badgeError' : 'badgeWarning';
@@ -4686,13 +4686,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const grids = [25, 50, 75, 100].map(pct => {
     const r = (pct / 100) * maxR;
     const pts = Array.from({ length: nAxes }, (_, i) => getXY(i, r).join(",")).join(" ");
-    return `<polygon points="${pts}" fill="none" stroke="#cbd5e1" stroke-width="${pct === 100 ? 1.5 : 0.8}"/>`;
+    return `<polygon points="${pts}" fill="none" stroke="#DAD6CC" stroke-width="${pct === 100 ? 1.5 : 0.8}"/>`;
   }).join("\n");
   
   // Lignes d'axes
   const axisLines = Array.from({ length: nAxes }, (_, i) => {
     const [x, y] = getXY(i, maxR);
-    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#E7E4DC" stroke-width="1"/>`;
   }).join("\n");
   
   // Polygone des scores
@@ -4704,14 +4704,14 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const [lx, ly] = getXY(i, maxR + 30);
     const anchor = lx < cx - 10 ? "end" : lx > cx + 10 ? "start" : "middle";
     return `
-      <circle cx="${px}" cy="${py}" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>
-      <text x="${lx}" y="${ly - 5}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="#1e40af">${a.icon} ${a.shortLabel}</text>
-      <text x="${lx}" y="${ly + 10}" text-anchor="${anchor}" font-size="13" font-weight="800" fill="#2563eb">${a.score}/100</text>
+      <circle cx="${px}" cy="${py}" r="6" fill="#5555E0" stroke="#fff" stroke-width="2"/>
+      <text x="${lx}" y="${ly - 5}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="#3C3CB8">${a.icon} ${a.shortLabel}</text>
+      <text x="${lx}" y="${ly + 10}" text-anchor="${anchor}" font-size="13" font-weight="800" fill="#5555E0">${a.score}/100</text>
     `;
   }).join("\n");
 
   const globalScore = Math.round(axes.reduce((s, a) => s + a.score, 0) / nAxes);
-  const globalColor = globalScore >= 75 ? "#16a34a" : globalScore >= 50 ? "#ca8a04" : "#dc2626";
+  const globalColor = globalScore >= 75 ? "#1F9D6B" : globalScore >= 50 ? "#C8860D" : "#D0433A";
   const globalBadgeClass2 = globalScore >= 75 ? "badgeSuccess" : globalScore >= 50 ? "badgeWarning" : "badgeError";
   
   // ✅ Économie = modulateur secondaire (badge séparé)
@@ -4749,7 +4749,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <rect x="0" y="0" width="340" height="340" fill="#ffffff"/>
             ${grids}
             ${axisLines}
-            <polygon points="${scorePts}" fill="rgba(37,99,235,0.2)" stroke="#2563eb" stroke-width="2.5"/>
+            <polygon points="${scorePts}" fill="rgba(37,99,235,0.2)" stroke="#5555E0" stroke-width="2.5"/>
             ${axisElements}
           </svg>
         </div>
@@ -4762,10 +4762,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </div>
 
         ${ecoMod ? `
-          <div style="margin-top:18px;padding:12px;border:1px dashed #94a3b8;border-radius:8px;background:#f8fafc;">
+          <div style="margin-top:18px;padding:12px;border:1px dashed #97949F;border-radius:8px;background:#FAF9F5;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
               <div>
-                <div style="font-size:12px;font-weight:700;color:#0f172a;">🦶 ${htmlEscape(ecoMod.label)} — Modulateur d'efficience</div>
+                <div style="font-size:12px;font-weight:700;color:#14131A;">🦶 ${htmlEscape(ecoMod.label)} — Modulateur d'efficience</div>
                 <div class="muted" style="font-size:11px;margin-top:2px;">Coût énergétique du mouvement. Multiplicateur secondaire des 4 piliers (n'augmente pas le plafond physiologique).</div>
               </div>
               <span class="badge ${ecoBadgeClass}" style="font-size:13px;padding:6px 12px;white-space:nowrap;">${ecoMod.score}/100 — ${ecoStatus}</span>
@@ -4790,17 +4790,17 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <tbody>
             ${axes.map(a => {
               const delta = a.score >= 100 ? "✓" : `-${100 - a.score}%`;
-              const deltaColor = a.score >= 100 ? "#16a34a" : a.score >= 70 ? "#ca8a04" : "#dc2626";
+              const deltaColor = a.score >= 100 ? "#1F9D6B" : a.score >= 70 ? "#C8860D" : "#D0433A";
               const fmtVal = (v: number | null, u: string) => v === null ? "—" : v < 10 ? `${v.toFixed(2)} ${u}` : `${v.toFixed(1)} ${u}`;
               return `<tr>
                 <td><b>${a.icon} ${htmlEscape(a.label)}</b></td>
-                <td><span class="badge" style="background:${a.score >= 75 ? '#dcfce7' : a.score >= 50 ? '#fef9c3' : '#fee2e2'};color:${a.score >= 75 ? '#16a34a' : a.score >= 50 ? '#a16207' : '#dc2626'};font-weight:700;">${a.score}/100</span></td>
+                <td><span class="badge" style="background:${a.score >= 75 ? '#E4F5EE' : a.score >= 50 ? '#FBF0DA' : '#FAE6E4'};color:${a.score >= 75 ? '#1F9D6B' : a.score >= 50 ? '#a16207' : '#D0433A'};font-weight:700;">${a.score}/100</span></td>
                 <td>${fmtVal(a.value, a.unit)}</td>
                 <td>${a.target !== null ? fmtVal(a.target, a.unit) : "—"}</td>
                 <td style="font-weight:700;color:${deltaColor};">${delta}</td>
               </tr>`;
             }).join("")}
-            ${ecoMod ? `<tr style="background:#f8fafc;">
+            ${ecoMod ? `<tr style="background:#FAF9F5;">
               <td><b>${ecoMod.icon} ${htmlEscape(ecoMod.label)}</b> <span class="muted" style="font-size:10px;">(modulateur)</span></td>
               <td><span class="badge ${ecoBadgeClass}" style="font-weight:700;">${ecoMod.score}/100</span></td>
               <td>${ecoMod.value !== null ? (ecoMod.value < 10 ? ecoMod.value.toFixed(2) : ecoMod.value.toFixed(1)) + ' ' + ecoMod.unit : '—'}</td>
@@ -4812,7 +4812,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       </div>
 
       <!-- DÉCISION COACHING -->
-      <div class="card mt" style="border-left: 4px solid #2563eb;">
+      <div class="card mt" style="border-left: 4px solid #5555E0;">
         <h3>🧭 Flux Décisionnel TFCL</h3>
         <div class="grid3 mt">
           <div class="alert alertWarning">
@@ -4896,9 +4896,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   
   // Déterminer les couleurs des écarts
   const getGapColor = (gap: number): string => {
-    if (gap <= 5) return "#16a34a"; // vert
-    if (gap <= 15) return "#d97706"; // orange
-    return "#dc2626"; // rouge
+    if (gap <= 5) return "#1F9D6B"; // vert
+    if (gap <= 15) return "#C8860D"; // orange
+    return "#D0433A"; // rouge
   };
   
   const getGapBg = (gap: number): string => {
@@ -4925,57 +4925,57 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <rect x="0" y="0" width="300" height="280" fill="#ffffff"/>
               <defs>
                 <linearGradient id="radarFillCurrent" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#0891b2" stop-opacity="0.4"/>
+                  <stop offset="0%" stop-color="#1C8FC4" stop-opacity="0.4"/>
                   <stop offset="100%" stop-color="#0e7490" stop-opacity="0.25"/>
                 </linearGradient>
                 <linearGradient id="radarFillTarget" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#2563eb" stop-opacity="0.15"/>
-                  <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.08"/>
+                  <stop offset="0%" stop-color="#5555E0" stop-opacity="0.15"/>
+                  <stop offset="100%" stop-color="#3C3CB8" stop-opacity="0.08"/>
                 </linearGradient>
               </defs>
               
               <!-- Centre: 150, 130 | Rayon max: 100 -->
               <!-- Grilles de fond (triangles concentriques) -->
-              <polygon points="150,30 237,180 63,180" fill="none" stroke="#e2e8f0" stroke-width="1"/>
-              <polygon points="150,55 212,155 88,155" fill="none" stroke="#e2e8f0" stroke-width="1"/>
-              <polygon points="150,80 187,130 113,130" fill="none" stroke="#e2e8f0" stroke-width="1"/>
-              <polygon points="150,105 162,130 138,130" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
+              <polygon points="150,30 237,180 63,180" fill="none" stroke="#E7E4DC" stroke-width="1"/>
+              <polygon points="150,55 212,155 88,155" fill="none" stroke="#E7E4DC" stroke-width="1"/>
+              <polygon points="150,80 187,130 113,130" fill="none" stroke="#E7E4DC" stroke-width="1"/>
+              <polygon points="150,105 162,130 138,130" fill="none" stroke="#E7E4DC" stroke-width="0.5"/>
               
               <!-- Axes -->
-              <line x1="150" y1="130" x2="150" y2="30" stroke="#cbd5e1" stroke-width="1"/>
-              <line x1="150" y1="130" x2="237" y2="180" stroke="#cbd5e1" stroke-width="1"/>
-              <line x1="150" y1="130" x2="63" y2="180" stroke="#cbd5e1" stroke-width="1"/>
+              <line x1="150" y1="130" x2="150" y2="30" stroke="#DAD6CC" stroke-width="1"/>
+              <line x1="150" y1="130" x2="237" y2="180" stroke="#DAD6CC" stroke-width="1"/>
+              <line x1="150" y1="130" x2="63" y2="180" stroke="#DAD6CC" stroke-width="1"/>
               
               <!-- Polygone CIBLE (idéal) - fond -->
-              <polygon points="150,30 237,180 63,180" fill="url(#radarFillTarget)" stroke="#2563eb" stroke-width="2" stroke-dasharray="6 3"/>
+              <polygon points="150,30 237,180 63,180" fill="url(#radarFillTarget)" stroke="#5555E0" stroke-width="2" stroke-dasharray="6 3"/>
               
               <!-- Polygone ACTUEL - calculé dynamiquement -->
               <!-- VLamax = haut (y diminue), TTE = bas droite, FTP/kg = bas gauche -->
               <!-- Formule: score/100 * rayon_max (100) depuis le centre -->
               <polygon points="${150},${130 - (currentVlamaxScore / 100) * 100} ${150 + (currentTTEScore / 100) * 87},${130 + (currentTTEScore / 100) * 50} ${150 - (currentFtpKgScore / 100) * 87},${130 + (currentFtpKgScore / 100) * 50}" 
-                fill="url(#radarFillCurrent)" stroke="#0891b2" stroke-width="2.5"/>
+                fill="url(#radarFillCurrent)" stroke="#1C8FC4" stroke-width="2.5"/>
               
               <!-- Points sur chaque axe (profil actuel) -->
-              <circle cx="150" cy="${130 - (currentVlamaxScore / 100) * 100}" r="6" fill="#0891b2" stroke="#fff" stroke-width="2"/>
-              <circle cx="${150 + (currentTTEScore / 100) * 87}" cy="${130 + (currentTTEScore / 100) * 50}" r="6" fill="#0891b2" stroke="#fff" stroke-width="2"/>
-              <circle cx="${150 - (currentFtpKgScore / 100) * 87}" cy="${130 + (currentFtpKgScore / 100) * 50}" r="6" fill="#0891b2" stroke="#fff" stroke-width="2"/>
+              <circle cx="150" cy="${130 - (currentVlamaxScore / 100) * 100}" r="6" fill="#1C8FC4" stroke="#fff" stroke-width="2"/>
+              <circle cx="${150 + (currentTTEScore / 100) * 87}" cy="${130 + (currentTTEScore / 100) * 50}" r="6" fill="#1C8FC4" stroke="#fff" stroke-width="2"/>
+              <circle cx="${150 - (currentFtpKgScore / 100) * 87}" cy="${130 + (currentFtpKgScore / 100) * 50}" r="6" fill="#1C8FC4" stroke="#fff" stroke-width="2"/>
               
               <!-- Labels des axes -->
-              <text x="150" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#0891b2">VLamax</text>
-              <text x="150" y="28" text-anchor="middle" font-size="9" fill="#64748b">${currentVlamaxScore}%</text>
+              <text x="150" y="18" text-anchor="middle" font-size="11" font-weight="700" fill="#1C8FC4">VLamax</text>
+              <text x="150" y="28" text-anchor="middle" font-size="9" fill="#6E6B78">${currentVlamaxScore}%</text>
               
-              <text x="250" y="190" text-anchor="start" font-size="11" font-weight="700" fill="#ea580c">TTE</text>
-              <text x="250" y="202" text-anchor="start" font-size="9" fill="#64748b">${currentTTEScore}%</text>
+              <text x="250" y="190" text-anchor="start" font-size="11" font-weight="700" fill="#D4711C">TTE</text>
+              <text x="250" y="202" text-anchor="start" font-size="9" fill="#6E6B78">${currentTTEScore}%</text>
               
-              <text x="50" y="190" text-anchor="end" font-size="11" font-weight="700" fill="#16a34a">FTP/kg</text>
-              <text x="50" y="202" text-anchor="end" font-size="9" fill="#64748b">${currentFtpKgScore}%</text>
+              <text x="50" y="190" text-anchor="end" font-size="11" font-weight="700" fill="#1F9D6B">FTP/kg</text>
+              <text x="50" y="202" text-anchor="end" font-size="9" fill="#6E6B78">${currentFtpKgScore}%</text>
               
               <!-- Légende -->
-              <rect x="80" y="245" width="12" height="12" rx="2" fill="#0891b2" fill-opacity="0.4" stroke="#0891b2" stroke-width="1.5"/>
-              <text x="96" y="255" font-size="10" fill="#334155">Profil actuel</text>
+              <rect x="80" y="245" width="12" height="12" rx="2" fill="#1C8FC4" fill-opacity="0.4" stroke="#1C8FC4" stroke-width="1.5"/>
+              <text x="96" y="255" font-size="10" fill="#5C5966">Profil actuel</text>
               
-              <rect x="170" y="245" width="12" height="12" rx="2" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="3 2"/>
-              <text x="186" y="255" font-size="10" fill="#334155">Cible idéale</text>
+              <rect x="170" y="245" width="12" height="12" rx="2" fill="none" stroke="#5555E0" stroke-width="1.5" stroke-dasharray="3 2"/>
+              <text x="186" y="255" font-size="10" fill="#5C5966">Cible idéale</text>
             </svg>
           </div>
           
@@ -4984,9 +4984,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div style="margin-bottom:16px;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                 <span style="font-size:14px;font-weight:700;color:#111;">Écart moyen à combler</span>
-                <span style="font-size:24px;font-weight:800;color:${gapPercent <= 10 ? '#16a34a' : gapPercent <= 25 ? '#d97706' : '#dc2626'};">${gapPercent > 0 ? gapPercent : 0}%</span>
+                <span style="font-size:24px;font-weight:800;color:${gapPercent <= 10 ? '#1F9D6B' : gapPercent <= 25 ? '#C8860D' : '#D0433A'};">${gapPercent > 0 ? gapPercent : 0}%</span>
               </div>
-              ${gapPercent <= 0 ? '<div style="background:#dcfce7;color:#16a34a;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:center;">✓ Profil aligné avec la cible</div>' : ''}
+              ${gapPercent <= 0 ? '<div style="background:#E4F5EE;color:#1F9D6B;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:center;">✓ Profil aligné avec la cible</div>' : ''}
             </div>
             
             <!-- Détail par métrique -->
@@ -4994,8 +4994,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div style="padding:10px 12px;border-radius:8px;background:${getGapBg(vlamaxGap)};">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                   <div>
-                    <div style="font-size:12px;font-weight:600;color:#0891b2;">VLamax</div>
-                    <div style="font-size:11px;color:#64748b;">${vlamax.value !== null ? fmt(vlamax.value, 2) + ' mmol/L/s' : '—'}</div>
+                    <div style="font-size:12px;font-weight:600;color:#1C8FC4;">VLamax</div>
+                    <div style="font-size:11px;color:#6E6B78;">${vlamax.value !== null ? fmt(vlamax.value, 2) + ' mmol/L/s' : '—'}</div>
                   </div>
                   <div style="text-align:right;">
                     <div style="font-size:14px;font-weight:700;">${currentVlamaxScore}%</div>
@@ -5007,8 +5007,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div style="padding:10px 12px;border-radius:8px;background:${getGapBg(tteGap)};">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                   <div>
-                    <div style="font-size:12px;font-weight:600;color:#ea580c;">TTE</div>
-                    <div style="font-size:11px;color:#64748b;">${tte.tte_min} min (cible: ${targets.tteTarget} min)</div>
+                    <div style="font-size:12px;font-weight:600;color:#D4711C;">TTE</div>
+                    <div style="font-size:11px;color:#6E6B78;">${tte.tte_min} min (cible: ${targets.tteTarget} min)</div>
                   </div>
                   <div style="text-align:right;">
                     <div style="font-size:14px;font-weight:700;">${currentTTEScore}%</div>
@@ -5020,8 +5020,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div style="padding:10px 12px;border-radius:8px;background:${getGapBg(ftpKgGap)};">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                   <div>
-                    <div style="font-size:12px;font-weight:600;color:#16a34a;">FTP/kg</div>
-                    <div style="font-size:11px;color:#64748b;">${ftpKg ? fmt(ftpKg, 2) : '—'} W/kg (cible: ${fmt(targets.ftpKgTarget, 1)} W/kg)</div>
+                    <div style="font-size:12px;font-weight:600;color:#1F9D6B;">FTP/kg</div>
+                    <div style="font-size:11px;color:#6E6B78;">${ftpKg ? fmt(ftpKg, 2) : '—'} W/kg (cible: ${fmt(targets.ftpKgTarget, 1)} W/kg)</div>
                   </div>
                   <div style="text-align:right;">
                     <div style="font-size:14px;font-weight:700;">${currentFtpKgScore}%</div>
@@ -5034,16 +5034,16 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </div>
         
         <!-- PRIORITÉS D'AMÉLIORATION -->
-        <div class="mt" style="border-top:1px solid #e2e8f0;padding-top:16px;">
+        <div class="mt" style="border-top:1px solid #E7E4DC;padding-top:16px;">
           <h4 style="margin:0 0 12px 0;font-size:13px;">📋 Priorités d'amélioration</h4>
           <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            ${vlamaxGap > 15 ? '<div style="background:#fee2e2;color:#b91c1c;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🔴 VLamax :</b> Travail prioritaire — séances Z2 longues, éviter les sprints</div>' : ''}
-            ${tteGap > 15 ? '<div style="background:#fee2e2;color:#b91c1c;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🔴 TTE :</b> Développer l\'endurance au seuil — intervalles longs 95-105% FTP</div>' : ''}
-            ${ftpKgGap > 15 ? '<div style="background:#fee2e2;color:#b91c1c;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🔴 FTP/kg :</b> Améliorer la puissance — sweet spot et travail VO2max</div>' : ''}
-            ${vlamaxGap > 5 && vlamaxGap <= 15 ? '<div style="background:#fef3c7;color:#92400e;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🟡 VLamax :</b> Optimisation en cours — maintenir le volume Z2</div>' : ''}
-            ${tteGap > 5 && tteGap <= 15 ? '<div style="background:#fef3c7;color:#92400e;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🟡 TTE :</b> Progression — augmenter la durée des séances au seuil</div>' : ''}
-            ${ftpKgGap > 5 && ftpKgGap <= 15 ? '<div style="background:#fef3c7;color:#92400e;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🟡 FTP/kg :</b> Affûtage — blocs de travail spécifique</div>' : ''}
-            ${gapPercent <= 10 ? '<div style="background:#dcfce7;color:#166534;padding:6px 12px;border-radius:6px;font-size:11px;"><b>✅ Profil optimisé :</b> Maintenir l\'équilibre et affûter pour la compétition</div>' : ''}
+            ${vlamaxGap > 15 ? '<div style="background:#FAE6E4;color:#8F2E27;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🔴 VLamax :</b> Travail prioritaire — séances Z2 longues, éviter les sprints</div>' : ''}
+            ${tteGap > 15 ? '<div style="background:#FAE6E4;color:#8F2E27;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🔴 TTE :</b> Développer l\'endurance au seuil — intervalles longs 95-105% FTP</div>' : ''}
+            ${ftpKgGap > 15 ? '<div style="background:#FAE6E4;color:#8F2E27;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🔴 FTP/kg :</b> Améliorer la puissance — sweet spot et travail VO2max</div>' : ''}
+            ${vlamaxGap > 5 && vlamaxGap <= 15 ? '<div style="background:#FBF0DA;color:#8A5A08;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🟡 VLamax :</b> Optimisation en cours — maintenir le volume Z2</div>' : ''}
+            ${tteGap > 5 && tteGap <= 15 ? '<div style="background:#FBF0DA;color:#8A5A08;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🟡 TTE :</b> Progression — augmenter la durée des séances au seuil</div>' : ''}
+            ${ftpKgGap > 5 && ftpKgGap <= 15 ? '<div style="background:#FBF0DA;color:#8A5A08;padding:6px 12px;border-radius:6px;font-size:11px;"><b>🟡 FTP/kg :</b> Affûtage — blocs de travail spécifique</div>' : ''}
+            ${gapPercent <= 10 ? '<div style="background:#E4F5EE;color:#157A52;padding:6px 12px;border-radius:6px;font-size:11px;"><b>✅ Profil optimisé :</b> Maintenir l\'équilibre et affûter pour la compétition</div>' : ''}
           </div>
         </div>
       </div>
@@ -5053,15 +5053,15 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <h4 style="margin:0 0 8px 0;">📖 Comment lire ce graphique ?</h4>
         <div class="grid3" style="gap:16px;">
           <div>
-            <div style="font-weight:600;color:#0891b2;font-size:12px;">VLamax (haut)</div>
+            <div style="font-weight:600;color:#1C8FC4;font-size:12px;">VLamax (haut)</div>
             <p class="muted" style="font-size:11px;margin:4px 0 0 0;">Mesure la capacité glycolytique. Pour la longue distance, une VLamax basse (proche de 0.25-0.30) est idéale.</p>
           </div>
           <div>
-            <div style="font-weight:600;color:#ea580c;font-size:12px;">TTE (droite)</div>
+            <div style="font-weight:600;color:#D4711C;font-size:12px;">TTE (droite)</div>
             <p class="muted" style="font-size:11px;margin:4px 0 0 0;">Durée de maintien à FTP. Plus le TTE est élevé, meilleure est l'endurance au seuil.</p>
           </div>
           <div>
-            <div style="font-weight:600;color:#16a34a;font-size:12px;">FTP/kg (gauche)</div>
+            <div style="font-weight:600;color:#1F9D6B;font-size:12px;">FTP/kg (gauche)</div>
             <p class="muted" style="font-size:11px;margin:4px 0 0 0;">Puissance relative au poids. Indicateur clé de performance en montée et sur le plat.</p>
           </div>
         </div>
@@ -5226,7 +5226,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div class="k">Statut</div><div class="v"><span class="badge ${tte.tte_min >= targets.tteTarget ? 'badgeSuccess' : tte.tte_min >= targets.tteTarget * 0.85 ? 'badgeWarning' : 'badgeError'}">${tte.status?.toUpperCase() || '—'}</span></div>
             </div>
             ${showTteRun ? `
-            <div class="kv" style="margin-top:8px;border-top:1px dashed #d1d5db;padding-top:8px;">
+            <div class="kv" style="margin-top:8px;border-top:1px dashed #DAD6CC;padding-top:8px;">
               <div class="k">TTE run</div><div class="v">${tteRun.tte_min} min</div>
               <div class="k">Mode</div><div class="v">${tteRun.source === "observed" ? "OBSERVED (mesuré)" : "LOAD (estimé TSS)"}</div>
               ${tteRun.target != null ? `<div class="k">Cible run</div><div class="v">≥ ${tteRun.target} min</div>` : ''}
@@ -5618,91 +5618,91 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const vlamaxCircles = chartSnapshotsSorted.map((s, i) => {
       const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
       const y = s.vlamax !== null ? 20 + ((0.60 - s.vlamax) / 0.40) * 160 : null;
-      return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#0891b2" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
+      return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#1C8FC4" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
     }).join('');
     
     // Generate data points circles for TTE
     const tteCircles = chartSnapshotsSorted.map((s, i) => {
       const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
       const y = s.tte_observed_min !== null ? 20 + ((80 - s.tte_observed_min) / 60) * 160 : null;
-      return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#ea580c" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
+      return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#D4711C" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
     }).join('');
     
     // Grid lines
-    const gridLines = [0, 40, 80, 120, 160].map(y => '<line x1="70" y1="' + (20 + y) + '" x2="490" y2="' + (20 + y) + '" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="' + (y === 80 ? '0' : '4,4') + '"/>').join('');
+    const gridLines = [0, 40, 80, 120, 160].map(y => '<line x1="70" y1="' + (20 + y) + '" x2="490" y2="' + (20 + y) + '" stroke="#E7E4DC" stroke-width="1" stroke-dasharray="' + (y === 80 ? '0' : '4,4') + '"/>').join('');
     
-    const vlamaxTrendBg = vlamaxTrend !== null ? (vlamaxTrend < 0 ? 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)' : vlamaxTrend > 0 ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : '#f1f5f9') : '';
-    const vlamaxTrendBorder = vlamaxTrend !== null ? (vlamaxTrend < 0 ? '#86efac' : vlamaxTrend > 0 ? '#fcd34d' : '#e2e8f0') : '';
-    const vlamaxTrendColor = vlamaxTrend !== null ? (vlamaxTrend < 0 ? '#16a34a' : vlamaxTrend > 0 ? '#d97706' : '#475569') : '';
+    const vlamaxTrendBg = vlamaxTrend !== null ? (vlamaxTrend < 0 ? 'linear-gradient(135deg, #E4F5EE 0%, #A8E3CB 100%)' : vlamaxTrend > 0 ? 'linear-gradient(135deg, #FBF0DA 0%, #F0D79A 100%)' : '#F2F0E9') : '';
+    const vlamaxTrendBorder = vlamaxTrend !== null ? (vlamaxTrend < 0 ? '#A8E3CB' : vlamaxTrend > 0 ? '#F0D79A' : '#E7E4DC') : '';
+    const vlamaxTrendColor = vlamaxTrend !== null ? (vlamaxTrend < 0 ? '#1F9D6B' : vlamaxTrend > 0 ? '#C8860D' : '#5C5966') : '';
     const vlamaxTrendIcon = vlamaxTrend !== null ? (vlamaxTrend < 0 ? '📉' : vlamaxTrend > 0 ? '📈' : '➡️') : '';
     
-    const tteTrendBg = tteTrend !== null ? (tteTrend > 0 ? 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)' : tteTrend < 0 ? 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)' : '#f1f5f9') : '';
-    const tteTrendBorder = tteTrend !== null ? (tteTrend > 0 ? '#86efac' : tteTrend < 0 ? '#fcd34d' : '#e2e8f0') : '';
-    const tteTrendColor = tteTrend !== null ? (tteTrend > 0 ? '#16a34a' : tteTrend < 0 ? '#d97706' : '#475569') : '';
+    const tteTrendBg = tteTrend !== null ? (tteTrend > 0 ? 'linear-gradient(135deg, #E4F5EE 0%, #A8E3CB 100%)' : tteTrend < 0 ? 'linear-gradient(135deg, #FBF0DA 0%, #F0D79A 100%)' : '#F2F0E9') : '';
+    const tteTrendBorder = tteTrend !== null ? (tteTrend > 0 ? '#A8E3CB' : tteTrend < 0 ? '#F0D79A' : '#E7E4DC') : '';
+    const tteTrendColor = tteTrend !== null ? (tteTrend > 0 ? '#1F9D6B' : tteTrend < 0 ? '#C8860D' : '#5C5966') : '';
     const tteTrendIcon = tteTrend !== null ? (tteTrend > 0 ? '📈' : tteTrend < 0 ? '📉' : '➡️') : '';
     
     const vlamaxTargetY = 20 + ((0.60 - (targets.vlamaxMax || 0.40)) / 0.40) * 160;
     const vlamaxTargetHeight = ((targets.vlamaxMax || 0.40) - (targets.vlamaxMin || 0.25)) / 0.40 * 160;
     
-    return '<div class="card mb" style="background: linear-gradient(135deg, #fafbfc 0%, #f0f4f8 100%); border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">' +
+    return '<div class="card mb" style="background: linear-gradient(135deg, #fafbfc 0%, #f0f4f8 100%); border: 1px solid #E7E4DC; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">' +
       '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
-        '<span style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">⚡</span>' +
+        '<span style="background: linear-gradient(135deg, #1C8FC4 0%, #1C8FC4 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">⚡</span>' +
         'Évolution VLamax & TTE' +
       '</h3>' +
       '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">' +
         (vlamaxTrend !== null ? '<div style="display:flex;align-items:center;gap:8px;background:' + vlamaxTrendBg + ';padding:8px 14px;border-radius:10px;border:1px solid ' + vlamaxTrendBorder + ';">' +
           '<span style="font-size:18px;">' + vlamaxTrendIcon + '</span>' +
-          '<div><div style="font-size:10px;color:#64748b;text-transform:uppercase;">VLamax</div>' +
+          '<div><div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">VLamax</div>' +
           '<div style="font-weight:700;color:' + vlamaxTrendColor + ';">' + (vlamaxTrend > 0 ? '+' : '') + vlamaxTrend.toFixed(3) + '</div></div>' +
         '</div>' : '') +
         (tteTrend !== null ? '<div style="display:flex;align-items:center;gap:8px;background:' + tteTrendBg + ';padding:8px 14px;border-radius:10px;border:1px solid ' + tteTrendBorder + ';">' +
           '<span style="font-size:18px;">' + tteTrendIcon + '</span>' +
-          '<div><div style="font-size:10px;color:#64748b;text-transform:uppercase;">TTE</div>' +
+          '<div><div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">TTE</div>' +
           '<div style="font-weight:700;color:' + tteTrendColor + ';">' + (tteTrend > 0 ? '+' : '') + tteTrend + ' min</div></div>' +
         '</div>' : '') +
       '</div>' +
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">' +
         '<div style="text-align:center;background:linear-gradient(180deg, rgba(6,182,212,0.1) 0%, rgba(6,182,212,0.02) 100%);padding:16px;border-radius:12px;border:1px solid rgba(6,182,212,0.2);">' +
-          '<div style="font-size:11px;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">VLamax Actuelle</div>' +
-          '<div style="font-size:28px;font-weight:800;color:#0891b2;">' + (vlamaxDataChart.length > 0 ? (vlamaxDataChart[vlamaxDataChart.length - 1].vlamax?.toFixed(2) || '—') : '—') + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;">mmol/L/s</div>' +
+          '<div style="font-size:11px;color:#6E6B78;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">VLamax Actuelle</div>' +
+          '<div style="font-size:28px;font-weight:800;color:#1C8FC4;">' + (vlamaxDataChart.length > 0 ? (vlamaxDataChart[vlamaxDataChart.length - 1].vlamax?.toFixed(2) || '—') : '—') + '</div>' +
+          '<div style="font-size:10px;color:#97949F;">mmol/L/s</div>' +
         '</div>' +
         '<div style="text-align:center;background:linear-gradient(180deg, rgba(249,115,22,0.1) 0%, rgba(249,115,22,0.02) 100%);padding:16px;border-radius:12px;border:1px solid rgba(249,115,22,0.2);">' +
-          '<div style="font-size:11px;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">TTE Actuel</div>' +
-          '<div style="font-size:28px;font-weight:800;color:#ea580c;">' + (tteDataChart.length > 0 ? tteDataChart[tteDataChart.length - 1].tte_observed_min || '—' : '—') + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;">minutes</div>' +
+          '<div style="font-size:11px;color:#6E6B78;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">TTE Actuel</div>' +
+          '<div style="font-size:28px;font-weight:800;color:#D4711C;">' + (tteDataChart.length > 0 ? tteDataChart[tteDataChart.length - 1].tte_observed_min || '—' : '—') + '</div>' +
+          '<div style="font-size:10px;color:#97949F;">minutes</div>' +
         '</div>' +
         '<div style="text-align:center;background:linear-gradient(180deg, rgba(100,116,139,0.1) 0%, rgba(100,116,139,0.02) 100%);padding:16px;border-radius:12px;border:1px solid rgba(100,116,139,0.2);">' +
-          '<div style="font-size:11px;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Période</div>' +
-          '<div style="font-size:14px;font-weight:600;color:#475569;">' + dtStr(chartSnapshotsSorted[0].date) + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;">→ ' + dtStr(chartSnapshotsSorted[chartSnapshotsSorted.length - 1].date) + '</div>' +
+          '<div style="font-size:11px;color:#6E6B78;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;">Période</div>' +
+          '<div style="font-size:14px;font-weight:600;color:#5C5966;">' + dtStr(chartSnapshotsSorted[0].date) + '</div>' +
+          '<div style="font-size:10px;color:#97949F;">→ ' + dtStr(chartSnapshotsSorted[chartSnapshotsSorted.length - 1].date) + '</div>' +
         '</div>' +
       '</div>' +
       '<svg width="100%" viewBox="0 0 560 220" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
         '<defs>' +
-          '<linearGradient id="chartBg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#f1f5f9"/></linearGradient>' +
-          '<linearGradient id="vlamaxGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3"/><stop offset="100%" stop-color="#06b6d4" stop-opacity="0.02"/></linearGradient>' +
-          '<linearGradient id="tteGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f97316" stop-opacity="0.3"/><stop offset="100%" stop-color="#f97316" stop-opacity="0.02"/></linearGradient>' +
+          '<linearGradient id="chartBg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FAF9F5"/><stop offset="100%" stop-color="#F2F0E9"/></linearGradient>' +
+          '<linearGradient id="vlamaxGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1C8FC4" stop-opacity="0.3"/><stop offset="100%" stop-color="#1C8FC4" stop-opacity="0.02"/></linearGradient>' +
+          '<linearGradient id="tteGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#D4711C" stop-opacity="0.3"/><stop offset="100%" stop-color="#D4711C" stop-opacity="0.02"/></linearGradient>' +
           '<filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.1"/></filter>' +
         '</defs>' +
-        '<rect x="70" y="20" width="420" height="160" rx="8" fill="url(#chartBg)" stroke="#e2e8f0" stroke-width="1"/>' +
+        '<rect x="70" y="20" width="420" height="160" rx="8" fill="url(#chartBg)" stroke="#E7E4DC" stroke-width="1"/>' +
         gridLines +
-        '<text x="60" y="28" font-size="9" fill="#0891b2" text-anchor="end" font-weight="600">0.60</text>' +
-        '<text x="60" y="108" font-size="9" fill="#0891b2" text-anchor="end" font-weight="600">0.40</text>' +
-        '<text x="60" y="178" font-size="9" fill="#0891b2" text-anchor="end" font-weight="600">0.20</text>' +
-        '<text x="500" y="28" font-size="9" fill="#ea580c" text-anchor="start" font-weight="600">80</text>' +
-        '<text x="500" y="108" font-size="9" fill="#ea580c" text-anchor="start" font-weight="600">50</text>' +
-        '<text x="500" y="178" font-size="9" fill="#ea580c" text-anchor="start" font-weight="600">20</text>' +
+        '<text x="60" y="28" font-size="9" fill="#1C8FC4" text-anchor="end" font-weight="600">0.60</text>' +
+        '<text x="60" y="108" font-size="9" fill="#1C8FC4" text-anchor="end" font-weight="600">0.40</text>' +
+        '<text x="60" y="178" font-size="9" fill="#1C8FC4" text-anchor="end" font-weight="600">0.20</text>' +
+        '<text x="500" y="28" font-size="9" fill="#D4711C" text-anchor="start" font-weight="600">80</text>' +
+        '<text x="500" y="108" font-size="9" fill="#D4711C" text-anchor="start" font-weight="600">50</text>' +
+        '<text x="500" y="178" font-size="9" fill="#D4711C" text-anchor="start" font-weight="600">20</text>' +
         '<rect x="70" y="' + vlamaxTargetY + '" width="420" height="' + vlamaxTargetHeight + '" fill="rgba(34,197,94,0.08)" rx="4"/>' +
         (vlamaxAreaD ? '<path d="' + vlamaxAreaD + '" fill="url(#vlamaxGradient)"/>' : '') +
-        (vlamaxPathD ? '<path d="' + vlamaxPathD + '" fill="none" stroke="#0891b2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#dropShadow)"/>' : '') +
+        (vlamaxPathD ? '<path d="' + vlamaxPathD + '" fill="none" stroke="#1C8FC4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#dropShadow)"/>' : '') +
         (tteAreaD ? '<path d="' + tteAreaD + '" fill="url(#tteGradient)"/>' : '') +
-        (ttePathD ? '<path d="' + ttePathD + '" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#dropShadow)"/>' : '') +
+        (ttePathD ? '<path d="' + ttePathD + '" fill="none" stroke="#D4711C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#dropShadow)"/>' : '') +
         vlamaxCircles + tteCircles +
-        '<rect x="180" y="195" width="12" height="12" rx="3" fill="#0891b2"/>' +
-        '<text x="197" y="205" font-size="10" fill="#475569">VLamax (mmol/L/s)</text>' +
-        '<rect x="320" y="195" width="12" height="12" rx="3" fill="#ea580c"/>' +
-        '<text x="337" y="205" font-size="10" fill="#475569">TTE (min)</text>' +
+        '<rect x="180" y="195" width="12" height="12" rx="3" fill="#1C8FC4"/>' +
+        '<text x="197" y="205" font-size="10" fill="#5C5966">VLamax (mmol/L/s)</text>' +
+        '<rect x="320" y="195" width="12" height="12" rx="3" fill="#D4711C"/>' +
+        '<text x="337" y="205" font-size="10" fill="#5C5966">TTE (min)</text>' +
       '</svg>' +
     '</div>';
   };
@@ -5721,55 +5721,55 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
       const ftpKgVal = s.ftp && s.weight_kg ? s.ftp / s.weight_kg : null;
       const y = ftpKgVal !== null ? 20 + ((5.5 - ftpKgVal) / 3.0) * 140 : null;
-      return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="7" fill="#16a34a" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
+      return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="7" fill="#1F9D6B" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
     }).join('');
     
-    const gridLines = [0, 35, 70, 105, 140].map(y => '<line x1="70" y1="' + (20 + y) + '" x2="490" y2="' + (20 + y) + '" stroke="#bbf7d0" stroke-dasharray="4,4"/>').join('');
+    const gridLines = [0, 35, 70, 105, 140].map(y => '<line x1="70" y1="' + (20 + y) + '" x2="490" y2="' + (20 + y) + '" stroke="#A8E3CB" stroke-dasharray="4,4"/>').join('');
     
     const dateLabels = chartSnapshotsSorted.length <= 6 
       ? chartSnapshotsSorted.map((s, i) => {
           const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
-          return '<text x="' + x + '" y="185" font-size="8" fill="#64748b" text-anchor="middle">' + new Date(s.date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }) + '</text>';
+          return '<text x="' + x + '" y="185" font-size="8" fill="#6E6B78" text-anchor="middle">' + new Date(s.date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' }) + '</text>';
         }).join('')
-      : '<text x="70" y="185" font-size="8" fill="#64748b" text-anchor="start">' + new Date(chartSnapshotsSorted[0].date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }) + '</text>' +
-        '<text x="490" y="185" font-size="8" fill="#64748b" text-anchor="end">' + new Date(chartSnapshotsSorted[chartSnapshotsSorted.length - 1].date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }) + '</text>';
+      : '<text x="70" y="185" font-size="8" fill="#6E6B78" text-anchor="start">' + new Date(chartSnapshotsSorted[0].date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }) + '</text>' +
+        '<text x="490" y="185" font-size="8" fill="#6E6B78" text-anchor="end">' + new Date(chartSnapshotsSorted[chartSnapshotsSorted.length - 1].date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }) + '</text>';
     
-    const trendColor = ftpKgTrend !== null ? (ftpKgTrend > 0 ? '#16a34a' : ftpKgTrend < 0 ? '#dc2626' : '#64748b') : '#64748b';
+    const trendColor = ftpKgTrend !== null ? (ftpKgTrend > 0 ? '#1F9D6B' : ftpKgTrend < 0 ? '#D0433A' : '#6E6B78') : '#6E6B78';
     const trendIcon = ftpKgTrend !== null ? (ftpKgTrend > 0 ? '🚀' : ftpKgTrend < 0 ? '📉' : '➡️') : '';
     
-    return '<div class="card mb" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1px solid #bbf7d0; box-shadow: 0 4px 12px rgba(34,197,94,0.1);">' +
+    return '<div class="card mb" style="background: linear-gradient(135deg, #E4F5EE 0%, #ecfdf5 100%); border: 1px solid #A8E3CB; box-shadow: 0 4px 12px rgba(34,197,94,0.1);">' +
       '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
-        '<span style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">💪</span>' +
+        '<span style="background: linear-gradient(135deg, #1F9D6B 0%, #1F9D6B 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">💪</span>' +
         'Évolution FTP/kg' +
       '</h3>' +
       '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:20px;">' +
         '<div style="flex:1;min-width:200px;background:white;padding:20px;border-radius:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.05);">' +
-          '<div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">FTP/kg Actuel</div>' +
-          '<div style="font-size:36px;font-weight:800;color:#16a34a;">' + (ftpKgDataChart.length > 0 ? ftpKgDataChart[ftpKgDataChart.length - 1].ftpKg.toFixed(2) : '—') + '</div>' +
-          '<div style="font-size:12px;color:#94a3b8;">W/kg</div>' +
+          '<div style="font-size:11px;color:#6E6B78;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">FTP/kg Actuel</div>' +
+          '<div style="font-size:36px;font-weight:800;color:#1F9D6B;">' + (ftpKgDataChart.length > 0 ? ftpKgDataChart[ftpKgDataChart.length - 1].ftpKg.toFixed(2) : '—') + '</div>' +
+          '<div style="font-size:12px;color:#97949F;">W/kg</div>' +
         '</div>' +
         (ftpKgTrend !== null ? '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">' +
           '<div style="font-size:32px;">' + trendIcon + '</div>' +
           '<div style="font-size:20px;font-weight:700;color:' + trendColor + ';">' + (ftpKgTrend > 0 ? '+' : '') + ftpKgTrend.toFixed(2) + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;">W/kg depuis le début</div>' +
+          '<div style="font-size:10px;color:#97949F;">W/kg depuis le début</div>' +
         '</div>' : '') +
       '</div>' +
       '<svg width="100%" viewBox="0 0 560 200" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
         '<defs>' +
-          '<linearGradient id="ftpBg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f0fdf4"/><stop offset="100%" stop-color="#dcfce7"/></linearGradient>' +
-          '<linearGradient id="ftpFill" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#22c55e" stop-opacity="0.4"/><stop offset="100%" stop-color="#22c55e" stop-opacity="0.05"/></linearGradient>' +
+          '<linearGradient id="ftpBg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#E4F5EE"/><stop offset="100%" stop-color="#E4F5EE"/></linearGradient>' +
+          '<linearGradient id="ftpFill" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1F9D6B" stop-opacity="0.4"/><stop offset="100%" stop-color="#1F9D6B" stop-opacity="0.05"/></linearGradient>' +
         '</defs>' +
-        '<rect x="70" y="20" width="420" height="140" rx="8" fill="url(#ftpBg)" stroke="#bbf7d0"/>' +
+        '<rect x="70" y="20" width="420" height="140" rx="8" fill="url(#ftpBg)" stroke="#A8E3CB"/>' +
         gridLines +
-        '<text x="60" y="28" font-size="9" fill="#16a34a" text-anchor="end" font-weight="600">5.5</text>' +
-        '<text x="60" y="93" font-size="9" fill="#16a34a" text-anchor="end" font-weight="600">4.0</text>' +
-        '<text x="60" y="158" font-size="9" fill="#16a34a" text-anchor="end" font-weight="600">2.5</text>' +
+        '<text x="60" y="28" font-size="9" fill="#1F9D6B" text-anchor="end" font-weight="600">5.5</text>' +
+        '<text x="60" y="93" font-size="9" fill="#1F9D6B" text-anchor="end" font-weight="600">4.0</text>' +
+        '<text x="60" y="158" font-size="9" fill="#1F9D6B" text-anchor="end" font-weight="600">2.5</text>' +
         '<rect x="70" y="' + (20 + ((5.5 - 4.5) / 3.0) * 140) + '" width="420" height="' + (1.0 / 3.0 * 140) + '" fill="rgba(34,197,94,0.15)" rx="4"/>' +
-        '<text x="85" y="' + (28 + ((5.5 - 4.5) / 3.0) * 140) + '" font-size="8" fill="#16a34a" font-weight="600">ZONE CIBLE</text>' +
+        '<text x="85" y="' + (28 + ((5.5 - 4.5) / 3.0) * 140) + '" font-size="8" fill="#1F9D6B" font-weight="600">ZONE CIBLE</text>' +
         (ftpKgAreaD ? '<path d="' + ftpKgAreaD + '" fill="url(#ftpFill)"/>' : '') +
-        (ftpKgPathD ? '<path d="' + ftpKgPathD + '" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#dropShadow)"/>' : '') +
+        (ftpKgPathD ? '<path d="' + ftpKgPathD + '" fill="none" stroke="#1F9D6B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#dropShadow)"/>' : '') +
         ftpKgCircles +
-        '<line x1="70" y1="170" x2="490" y2="170" stroke="#bbf7d0" stroke-width="1"/>' +
+        '<line x1="70" y1="170" x2="490" y2="170" stroke="#A8E3CB" stroke-width="1"/>' +
         dateLabels +
       '</svg>' +
     '</div>';
@@ -5781,7 +5781,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const vo2maxTrend = vo2maxData[vo2maxData.length - 1].vo2max! - vo2maxData[0].vo2max!;
     const currentVo2max = vo2maxData[vo2maxData.length - 1].vo2max!;
     const levelLabel = currentVo2max >= 60 ? '🏆 Elite' : currentVo2max >= 50 ? '⚡ Excellent' : currentVo2max >= 40 ? '✓ Bon' : '📈 À développer';
-    const trendColor = vo2maxTrend > 0 ? '#16a34a' : vo2maxTrend < 0 ? '#dc2626' : '#64748b';
+    const trendColor = vo2maxTrend > 0 ? '#1F9D6B' : vo2maxTrend < 0 ? '#D0433A' : '#6E6B78';
     
     const vo2maxPoints = vo2maxData.map((s, i) => ({
       x: 70 + (chartSnapshotsSorted.indexOf(s) / Math.max(1, chartSnapshotsSorted.length - 1)) * 420,
@@ -5789,39 +5789,39 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     }));
     const pathD = vo2maxPoints.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ');
     const areaD = pathD + ' L ' + vo2maxPoints[vo2maxPoints.length - 1].x + ' 130 L ' + vo2maxPoints[0].x + ' 130 Z';
-    const circles = vo2maxPoints.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#9333ea" stroke="#fff" stroke-width="2"/>').join('');
+    const circles = vo2maxPoints.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#7A56C2" stroke="#fff" stroke-width="2"/>').join('');
     
-    return '<div class="card mb" style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border: 1px solid #d8b4fe; box-shadow: 0 4px 12px rgba(147,51,234,0.1);">' +
+    return '<div class="card mb" style="background: linear-gradient(135deg, #EFE9FA 0%, #f3e8ff 100%); border: 1px solid #d8b4fe; box-shadow: 0 4px 12px rgba(147,51,234,0.1);">' +
       '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
-        '<span style="background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🫁</span>' +
+        '<span style="background: linear-gradient(135deg, #7A56C2 0%, #7A56C2 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🫁</span>' +
         'Évolution VO₂max' +
       '</h3>' +
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">' +
         '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
-          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">VO₂max Actuel</div>' +
-          '<div style="font-size:28px;font-weight:800;color:#9333ea;">' + currentVo2max.toFixed(1) + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;">ml/kg/min</div>' +
+          '<div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">VO₂max Actuel</div>' +
+          '<div style="font-size:28px;font-weight:800;color:#7A56C2;">' + currentVo2max.toFixed(1) + '</div>' +
+          '<div style="font-size:10px;color:#97949F;">ml/kg/min</div>' +
         '</div>' +
         '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
-          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Évolution</div>' +
+          '<div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">Évolution</div>' +
           '<div style="font-size:24px;font-weight:700;color:' + trendColor + ';">' + (vo2maxTrend > 0 ? '+' : '') + vo2maxTrend.toFixed(1) + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;">ml/kg/min</div>' +
+          '<div style="font-size:10px;color:#97949F;">ml/kg/min</div>' +
         '</div>' +
         '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
-          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Niveau</div>' +
-          '<div style="font-size:16px;font-weight:600;color:#7c3aed;">' + levelLabel + '</div>' +
+          '<div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">Niveau</div>' +
+          '<div style="font-size:16px;font-weight:600;color:#7A56C2;">' + levelLabel + '</div>' +
         '</div>' +
       '</div>' +
       '<svg width="100%" viewBox="0 0 560 160" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
-        '<defs><linearGradient id="vo2Gradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#9333ea" stop-opacity="0.3"/><stop offset="100%" stop-color="#9333ea" stop-opacity="0.02"/></linearGradient></defs>' +
-        '<rect x="70" y="20" width="420" height="110" rx="6" fill="#faf5ff" stroke="#e9d5ff"/>' +
+        '<defs><linearGradient id="vo2Gradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#7A56C2" stop-opacity="0.3"/><stop offset="100%" stop-color="#7A56C2" stop-opacity="0.02"/></linearGradient></defs>' +
+        '<rect x="70" y="20" width="420" height="110" rx="6" fill="#EFE9FA" stroke="#e9d5ff"/>' +
         '<path d="' + areaD + '" fill="url(#vo2Gradient)"/>' +
-        '<path d="' + pathD + '" fill="none" stroke="#9333ea" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="#7A56C2" stroke-width="3" stroke-linecap="round"/>' +
         circles +
-        '<text x="60" y="30" font-size="9" fill="#7c3aed" text-anchor="end">80</text>' +
-        '<text x="60" y="75" font-size="9" fill="#7c3aed" text-anchor="end">55</text>' +
-        '<text x="60" y="128" font-size="9" fill="#7c3aed" text-anchor="end">30</text>' +
-        '<text x="280" y="150" font-size="10" fill="#64748b" text-anchor="middle">VO₂max (ml/kg/min)</text>' +
+        '<text x="60" y="30" font-size="9" fill="#7A56C2" text-anchor="end">80</text>' +
+        '<text x="60" y="75" font-size="9" fill="#7A56C2" text-anchor="end">55</text>' +
+        '<text x="60" y="128" font-size="9" fill="#7A56C2" text-anchor="end">30</text>' +
+        '<text x="280" y="150" font-size="10" fill="#6E6B78" text-anchor="middle">VO₂max (ml/kg/min)</text>' +
       '</svg>' +
     '</div>';
   };
@@ -5838,34 +5838,34 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     }));
     const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ');
     const areaD = pathD + ' L ' + points[points.length - 1].x + ' 110 L ' + points[0].x + ' 110 Z';
-    const circles = points.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#ea580c" stroke="#fff" stroke-width="2"/>').join('');
+    const circles = points.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#D4711C" stroke="#fff" stroke-width="2"/>').join('');
     
-    return '<div class="card mb" style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 1px solid #fed7aa; box-shadow: 0 4px 12px rgba(234,88,12,0.1);">' +
+    return '<div class="card mb" style="background: linear-gradient(135deg, #FBEEDF 0%, #FBEEDF 100%); border: 1px solid #F3D2AE; box-shadow: 0 4px 12px rgba(234,88,12,0.1);">' +
       '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
-        '<span style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🏃</span>' +
+        '<span style="background: linear-gradient(135deg, #D4711C 0%, #94430F 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🏃</span>' +
         'Évolution Économie de Course' +
       '</h3>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">' +
         '<div style="text-align:center;background:white;padding:16px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
-          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Score Actuel</div>' +
-          '<div style="font-size:32px;font-weight:800;color:#ea580c;">' + currentScore + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;">/100</div>' +
+          '<div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">Score Actuel</div>' +
+          '<div style="font-size:32px;font-weight:800;color:#D4711C;">' + currentScore + '</div>' +
+          '<div style="font-size:10px;color:#97949F;">/100</div>' +
         '</div>' +
         '<div style="text-align:center;background:white;padding:16px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
-          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Label</div>' +
-          '<div style="font-size:16px;font-weight:700;color:#c2410c;">' + currentLabel + '</div>' +
+          '<div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">Label</div>' +
+          '<div style="font-size:16px;font-weight:700;color:#94430F;">' + currentLabel + '</div>' +
         '</div>' +
       '</div>' +
       '<svg width="100%" viewBox="0 0 560 140" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
-        '<defs><linearGradient id="runEcoGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ea580c" stop-opacity="0.3"/><stop offset="100%" stop-color="#ea580c" stop-opacity="0.02"/></linearGradient></defs>' +
-        '<rect x="70" y="20" width="420" height="90" rx="6" fill="#fff7ed" stroke="#fed7aa"/>' +
+        '<defs><linearGradient id="runEcoGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#D4711C" stop-opacity="0.3"/><stop offset="100%" stop-color="#D4711C" stop-opacity="0.02"/></linearGradient></defs>' +
+        '<rect x="70" y="20" width="420" height="90" rx="6" fill="#FBEEDF" stroke="#F3D2AE"/>' +
         '<path d="' + areaD + '" fill="url(#runEcoGradient)"/>' +
-        '<path d="' + pathD + '" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="#D4711C" stroke-width="3" stroke-linecap="round"/>' +
         circles +
-        '<text x="60" y="28" font-size="9" fill="#c2410c" text-anchor="end">100</text>' +
-        '<text x="60" y="68" font-size="9" fill="#c2410c" text-anchor="end">50</text>' +
-        '<text x="60" y="108" font-size="9" fill="#c2410c" text-anchor="end">0</text>' +
-        '<text x="280" y="130" font-size="10" fill="#64748b" text-anchor="middle">Score Économie de Course</text>' +
+        '<text x="60" y="28" font-size="9" fill="#94430F" text-anchor="end">100</text>' +
+        '<text x="60" y="68" font-size="9" fill="#94430F" text-anchor="end">50</text>' +
+        '<text x="60" y="108" font-size="9" fill="#94430F" text-anchor="end">0</text>' +
+        '<text x="280" y="130" font-size="10" fill="#6E6B78" text-anchor="middle">Score Économie de Course</text>' +
       '</svg>' +
     '</div>';
   };
@@ -5876,7 +5876,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const currentScore = metabolicScoreData[metabolicScoreData.length - 1].metabolic_score!;
     const scoreTrend = currentScore - metabolicScoreData[0].metabolic_score!;
     const currentProfile = metabolicScoreData[metabolicScoreData.length - 1].metabolic_profile || 'N/A';
-    const trendColor = scoreTrend > 0 ? '#16a34a' : scoreTrend < 0 ? '#dc2626' : '#64748b';
+    const trendColor = scoreTrend > 0 ? '#1F9D6B' : scoreTrend < 0 ? '#D0433A' : '#6E6B78';
     
     const points = metabolicScoreData.map((s, i) => ({
       x: 70 + (chartSnapshotsSorted.indexOf(s) / Math.max(1, chartSnapshotsSorted.length - 1)) * 420,
@@ -5884,39 +5884,39 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     }));
     const pathD = points.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ');
     const areaD = pathD + ' L ' + points[points.length - 1].x + ' 110 L ' + points[0].x + ' 110 Z';
-    const circles = points.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#2563eb" stroke="#fff" stroke-width="2"/>').join('');
+    const circles = points.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#5555E0" stroke="#fff" stroke-width="2"/>').join('');
     
-    return '<div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #93c5fd; box-shadow: 0 4px 12px rgba(37,99,235,0.1);">' +
+    return '<div class="card" style="background: linear-gradient(135deg, #EDEDFC 0%, #EDEDFC 100%); border: 1px solid #B9B9F2; box-shadow: 0 4px 12px rgba(37,99,235,0.1);">' +
       '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
-        '<span style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🧬</span>' +
+        '<span style="background: linear-gradient(135deg, #5555E0 0%, #3C3CB8 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🧬</span>' +
         'Évolution Score Métabolique' +
       '</h3>' +
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">' +
         '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
-          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Score Actuel</div>' +
-          '<div style="font-size:28px;font-weight:800;color:#2563eb;">' + currentScore + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;">/100</div>' +
+          '<div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">Score Actuel</div>' +
+          '<div style="font-size:28px;font-weight:800;color:#5555E0;">' + currentScore + '</div>' +
+          '<div style="font-size:10px;color:#97949F;">/100</div>' +
         '</div>' +
         '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
-          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Évolution</div>' +
+          '<div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">Évolution</div>' +
           '<div style="font-size:24px;font-weight:700;color:' + trendColor + ';">' + (scoreTrend > 0 ? '+' : '') + scoreTrend + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;">points</div>' +
+          '<div style="font-size:10px;color:#97949F;">points</div>' +
         '</div>' +
         '<div style="text-align:center;background:white;padding:14px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">' +
-          '<div style="font-size:10px;color:#64748b;text-transform:uppercase;">Profil</div>' +
-          '<div style="font-size:14px;font-weight:600;color:#1d4ed8;">' + currentProfile + '</div>' +
+          '<div style="font-size:10px;color:#6E6B78;text-transform:uppercase;">Profil</div>' +
+          '<div style="font-size:14px;font-weight:600;color:#3C3CB8;">' + currentProfile + '</div>' +
         '</div>' +
       '</div>' +
       '<svg width="100%" viewBox="0 0 560 140" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">' +
-        '<defs><linearGradient id="metaScoreGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#2563eb" stop-opacity="0.3"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0.02"/></linearGradient></defs>' +
-        '<rect x="70" y="20" width="420" height="90" rx="6" fill="#eff6ff" stroke="#93c5fd"/>' +
+        '<defs><linearGradient id="metaScoreGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#5555E0" stop-opacity="0.3"/><stop offset="100%" stop-color="#5555E0" stop-opacity="0.02"/></linearGradient></defs>' +
+        '<rect x="70" y="20" width="420" height="90" rx="6" fill="#EDEDFC" stroke="#B9B9F2"/>' +
         '<path d="' + areaD + '" fill="url(#metaScoreGradient)"/>' +
-        '<path d="' + pathD + '" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="#5555E0" stroke-width="3" stroke-linecap="round"/>' +
         circles +
-        '<text x="60" y="28" font-size="9" fill="#1d4ed8" text-anchor="end">100</text>' +
-        '<text x="60" y="68" font-size="9" fill="#1d4ed8" text-anchor="end">50</text>' +
-        '<text x="60" y="108" font-size="9" fill="#1d4ed8" text-anchor="end">0</text>' +
-        '<text x="280" y="130" font-size="10" fill="#64748b" text-anchor="middle">Score Métabolique Global</text>' +
+        '<text x="60" y="28" font-size="9" fill="#3C3CB8" text-anchor="end">100</text>' +
+        '<text x="60" y="68" font-size="9" fill="#3C3CB8" text-anchor="end">50</text>' +
+        '<text x="60" y="108" font-size="9" fill="#3C3CB8" text-anchor="end">0</text>' +
+        '<text x="280" y="130" font-size="10" fill="#6E6B78" text-anchor="middle">Score Métabolique Global</text>' +
       '</svg>' +
     '</div>';
   };
@@ -5943,10 +5943,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       
       // Ambition colors matching the design system
       const ambitionColors: Record<string, { bg: string; text: string; icon: string }> = {
-        finisher: { bg: '#94a3b8', text: '#475569', icon: '🏁' },
-        age_group: { bg: '#3b82f6', text: '#1d4ed8', icon: '⭐' },
-        competitor: { bg: '#f59e0b', text: '#d97706', icon: '🏆' },
-        elite: { bg: '#a855f7', text: '#7c3aed', icon: '👑' }
+        finisher: { bg: '#97949F', text: '#5C5966', icon: '🏁' },
+        age_group: { bg: '#5555E0', text: '#3C3CB8', icon: '⭐' },
+        competitor: { bg: '#C8860D', text: '#C8860D', icon: '🏆' },
+        elite: { bg: '#7A56C2', text: '#7A56C2', icon: '👑' }
       };
       
       // Calculate positions for each ambition level
@@ -6009,8 +6009,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       const ticks = [0, 13, 26, 39, 52].map(week => {
         const x = timelineStartX + (week / maxWeeks) * timelineWidth;
         return `
-          <line x1="${x}" y1="12" x2="${x}" y2="18" stroke="#94a3b8" stroke-width="1"/>
-          <text x="${x}" y="28" font-size="8" fill="#64748b" text-anchor="middle">${week}s</text>
+          <line x1="${x}" y1="12" x2="${x}" y2="18" stroke="#97949F" stroke-width="1"/>
+          <text x="${x}" y="28" font-size="8" fill="#6E6B78" text-anchor="middle">${week}s</text>
         `;
       }).join('');
       
@@ -6022,12 +6022,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         { week: 52, label: '1 an' }
       ].map(({ week, label }) => {
         const x = timelineStartX + (week / maxWeeks) * timelineWidth;
-        return `<text x="${x}" y="40" font-size="7" fill="#94a3b8" text-anchor="middle">${label}</text>`;
+        return `<text x="${x}" y="40" font-size="7" fill="#97949F" text-anchor="middle">${label}</text>`;
       }).join('');
       
       return `
         <div style="margin-top:24px;">
-          <h4 style="margin:0 0 12px 0;font-size:13px;color:#64748b;display:flex;align-items:center;gap:6px;">
+          <h4 style="margin:0 0 12px 0;font-size:13px;color:#6E6B78;display:flex;align-items:center;gap:6px;">
             <span style="font-size:16px;">📅</span> Timeline prédictive des objectifs
           </h4>
           <svg width="100%" viewBox="0 0 600 140" preserveAspectRatio="xMidYMid meet" style="max-width:100%;height:auto;">
@@ -6040,17 +6040,17 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
               </filter>
               <linearGradient id="timelineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#16a34a"/>
-                <stop offset="33%" stop-color="#3b82f6"/>
-                <stop offset="66%" stop-color="#f59e0b"/>
-                <stop offset="100%" stop-color="#a855f7"/>
+                <stop offset="0%" stop-color="#1F9D6B"/>
+                <stop offset="33%" stop-color="#5555E0"/>
+                <stop offset="66%" stop-color="#C8860D"/>
+                <stop offset="100%" stop-color="#7A56C2"/>
               </linearGradient>
             </defs>
             
             <!-- Main timeline -->
             <g transform="translate(0, 70)">
               <!-- Background track -->
-              <rect x="${timelineStartX}" y="-4" width="${timelineWidth}" height="8" rx="4" fill="#e2e8f0"/>
+              <rect x="${timelineStartX}" y="-4" width="${timelineWidth}" height="8" rx="4" fill="#E7E4DC"/>
               
               <!-- Progress bar (filled portion) -->
               <rect x="${timelineStartX}" y="-4" width="${Math.max(8, (progressGlobal / 100) * timelineWidth * 0.3)}" height="8" rx="4" fill="url(#timelineGradient)"/>
@@ -6071,51 +6071,51 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             
             <!-- Legend -->
             <g transform="translate(80, 130)">
-              <circle cx="0" cy="0" r="4" fill="#16a34a"/>
-              <text x="8" y="3" font-size="7" fill="#64748b">Atteint</text>
-              <circle cx="60" cy="0" r="4" fill="#fff" stroke="#3b82f6" stroke-width="2"/>
-              <text x="68" y="3" font-size="7" fill="#64748b">En cours</text>
-              <rect x="130" y="-4" width="16" height="8" rx="2" fill="#e2e8f0" stroke="#d97706" stroke-width="1"/>
-              <text x="150" y="3" font-size="7" fill="#64748b">Niveau actuel</text>
+              <circle cx="0" cy="0" r="4" fill="#1F9D6B"/>
+              <text x="8" y="3" font-size="7" fill="#6E6B78">Atteint</text>
+              <circle cx="60" cy="0" r="4" fill="#fff" stroke="#5555E0" stroke-width="2"/>
+              <text x="68" y="3" font-size="7" fill="#6E6B78">En cours</text>
+              <rect x="130" y="-4" width="16" height="8" rx="2" fill="#E7E4DC" stroke="#C8860D" stroke-width="1"/>
+              <text x="150" y="3" font-size="7" fill="#6E6B78">Niveau actuel</text>
             </g>
           </svg>
         </div>
       `;
     };
     
-    return '<div class="card mt" style="background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%); border: 1px solid #fde047; box-shadow: 0 4px 12px rgba(234,179,8,0.15);">' +
+    return '<div class="card mt" style="background: linear-gradient(135deg, #FBF0DA 0%, #FBF0DA 100%); border: 1px solid #fde047; box-shadow: 0 4px 12px rgba(234,179,8,0.15);">' +
       '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">' +
-        '<span style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🎯</span>' +
+        '<span style="background: linear-gradient(135deg, #C8860D 0%, #C8860D 100%); color:white; padding:6px 10px; border-radius:8px; font-size:14px;">🎯</span>' +
         'Progression vers l\'Ambition ' + ambitionData.icon + ' ' + ambitionData.label +
       '</h3>' +
       '<div style="display:flex;align-items:center;justify-content:center;gap:24px;margin:24px 0;">' +
         '<svg width="180" height="180" viewBox="0 0 180 180">' +
           '<defs>' +
             '<linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">' +
-              '<stop offset="0%" stop-color="#eab308"/>' +
-              '<stop offset="50%" stop-color="#f59e0b"/>' +
-              '<stop offset="100%" stop-color="#16a34a"/>' +
+              '<stop offset="0%" stop-color="#C8860D"/>' +
+              '<stop offset="50%" stop-color="#C8860D"/>' +
+              '<stop offset="100%" stop-color="#1F9D6B"/>' +
             '</linearGradient>' +
             '<filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
           '</defs>' +
-          '<circle cx="90" cy="90" r="70" fill="none" stroke="#fef3c7" stroke-width="16"/>' +
+          '<circle cx="90" cy="90" r="70" fill="none" stroke="#FBF0DA" stroke-width="16"/>' +
           '<circle cx="90" cy="90" r="70" fill="none" stroke="url(#progressGrad)" stroke-width="16" stroke-dasharray="' + progressArc + ' 440" stroke-linecap="round" transform="rotate(-90 90 90)" filter="url(#glow)"/>' +
-          '<text x="90" y="80" font-size="36" font-weight="800" fill="#ca8a04" text-anchor="middle">' + progressGlobal + '</text>' +
-          '<text x="90" y="100" font-size="14" fill="#64748b" text-anchor="middle">%</text>' +
-          '<text x="90" y="120" font-size="10" fill="#94a3b8" text-anchor="middle">vers ' + ambitionData.label + '</text>' +
+          '<text x="90" y="80" font-size="36" font-weight="800" fill="#C8860D" text-anchor="middle">' + progressGlobal + '</text>' +
+          '<text x="90" y="100" font-size="14" fill="#6E6B78" text-anchor="middle">%</text>' +
+          '<text x="90" y="120" font-size="10" fill="#97949F" text-anchor="middle">vers ' + ambitionData.label + '</text>' +
         '</svg>' +
         '<div style="display:flex;flex-direction:column;gap:8px;">' +
           '<div style="display:flex;align-items:center;gap:12px;background:white;padding:10px 16px;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.05);">' +
-            '<div style="width:12px;height:12px;background:#0891b2;border-radius:50%;"></div>' +
-            '<div style="flex:1;"><div style="font-size:10px;color:#64748b;">VLamax</div><div style="font-weight:700;color:#0891b2;">' + (progressVlamax !== null ? progressVlamax + '%' : '—') + '</div></div>' +
+            '<div style="width:12px;height:12px;background:#1C8FC4;border-radius:50%;"></div>' +
+            '<div style="flex:1;"><div style="font-size:10px;color:#6E6B78;">VLamax</div><div style="font-weight:700;color:#1C8FC4;">' + (progressVlamax !== null ? progressVlamax + '%' : '—') + '</div></div>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:12px;background:white;padding:10px 16px;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.05);">' +
-            '<div style="width:12px;height:12px;background:#ea580c;border-radius:50%;"></div>' +
-            '<div style="flex:1;"><div style="font-size:10px;color:#64748b;">TTE</div><div style="font-weight:700;color:#ea580c;">' + (progressTte !== null ? progressTte + '%' : '—') + '</div></div>' +
+            '<div style="width:12px;height:12px;background:#D4711C;border-radius:50%;"></div>' +
+            '<div style="flex:1;"><div style="font-size:10px;color:#6E6B78;">TTE</div><div style="font-weight:700;color:#D4711C;">' + (progressTte !== null ? progressTte + '%' : '—') + '</div></div>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:12px;background:white;padding:10px 16px;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.05);">' +
-            '<div style="width:12px;height:12px;background:#16a34a;border-radius:50%;"></div>' +
-            '<div style="flex:1;"><div style="font-size:10px;color:#64748b;">FTP/kg</div><div style="font-weight:700;color:#16a34a;">' + (progressFtpKg !== null ? progressFtpKg + '%' : '—') + '</div></div>' +
+            '<div style="width:12px;height:12px;background:#1F9D6B;border-radius:50%;"></div>' +
+            '<div style="flex:1;"><div style="font-size:10px;color:#6E6B78;">FTP/kg</div><div style="font-weight:700;color:#1F9D6B;">' + (progressFtpKg !== null ? progressFtpKg + '%' : '—') + '</div></div>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -6140,7 +6140,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       '</section>'
     : '<section id="evolution-charts" class="section">' +
         '<h2>E-bis. Graphiques d\'Évolution Physiologique</h2>' +
-        '<div class="card" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0;">' +
+        '<div class="card" style="background: linear-gradient(135deg, #FAF9F5 0%, #F2F0E9 100%); border: 1px solid #E7E4DC;">' +
           '<div class="alert alertInfo" style="margin:0;"><b>ℹ️ Données insuffisantes :</b> Au moins 2 snapshots sont nécessaires pour générer les graphiques d\'évolution.</div>' +
           '<p class="muted mt" style="text-align:center;">Créez des snapshots réguliers pour visualiser l\'évolution de vos métriques physiologiques.</p>' +
         '</div>' +
@@ -6177,10 +6177,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="aaiGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color:#16a34a"/>
-                  <stop offset="33%" style="stop-color:#3b82f6"/>
-                  <stop offset="66%" style="stop-color:#d97706"/>
-                  <stop offset="100%" style="stop-color:#dc2626"/>
+                  <stop offset="0%" style="stop-color:#1F9D6B"/>
+                  <stop offset="33%" style="stop-color:#5555E0"/>
+                  <stop offset="66%" style="stop-color:#C8860D"/>
+                  <stop offset="100%" style="stop-color:#D0433A"/>
                 </linearGradient>
               </defs>
               <rect x="10" y="15" width="380" height="20" rx="4" fill="url(#aaiGrad)"/>
@@ -6192,9 +6192,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <text x="263" y="55" font-size="9" fill="#666" text-anchor="middle">40-49</text>
               <line x1="390" y1="40" x2="390" y2="45" stroke="#666" stroke-width="1"/>
               <text x="390" y="55" font-size="9" fill="#666" text-anchor="middle">50+</text>
-              <text x="73" y="10" font-size="8" fill="#16a34a" text-anchor="middle" font-weight="600">YOUNG</text>
-              <text x="200" y="10" font-size="8" fill="#3b82f6" text-anchor="middle" font-weight="600">PRIME</text>
-              <text x="327" y="10" font-size="8" fill="#d97706" text-anchor="middle" font-weight="600">MASTER</text>
+              <text x="73" y="10" font-size="8" fill="#1F9D6B" text-anchor="middle" font-weight="600">YOUNG</text>
+              <text x="200" y="10" font-size="8" fill="#5555E0" text-anchor="middle" font-weight="600">PRIME</text>
+              <text x="327" y="10" font-size="8" fill="#C8860D" text-anchor="middle" font-weight="600">MASTER</text>
               <!-- Indicateur -->
               ${(() => {
                 const pos = ageAdjustment.aai.category === "young" ? 73 
@@ -6360,7 +6360,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 <span style="font-size:12px;color:var(--muted);">${Math.round(t.progress.global || 0)}%</span>
               </div>
               <div class="progressBar">
-                <div class="progressFill" style="width:${Math.min(100, t.progress.global || 0)}%;background:${(t.progress.global || 0) >= 80 ? '#22c55e' : (t.progress.global || 0) >= 50 ? '#eab308' : '#f97316'};"></div>
+                <div class="progressFill" style="width:${Math.min(100, t.progress.global || 0)}%;background:${(t.progress.global || 0) >= 80 ? '#1F9D6B' : (t.progress.global || 0) >= 50 ? '#C8860D' : '#D4711C'};"></div>
               </div>
               ${t.weeksToReach ? '<div style="font-size:10px;color:var(--muted);margin-top:2px;">~' + t.weeksToReach + ' semaines estimées</div>' : ''}
             </div>
@@ -6383,7 +6383,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     // Vue athlète : niveau en mots + couleur + phrase d'action
     const lvl = capInjuryRisk.level;
     const wordLevel = lvl >= 4 ? 'Critique' : lvl >= 3 ? 'Élevé' : lvl >= 2 ? 'Modéré' : 'Faible';
-    const wordColor = lvl >= 4 ? '#dc2626' : lvl >= 3 ? '#ea580c' : lvl >= 2 ? '#d97706' : '#16a34a';
+    const wordColor = lvl >= 4 ? '#D0433A' : lvl >= 3 ? '#D4711C' : lvl >= 2 ? '#C8860D' : '#1F9D6B';
     const cardClass = lvl >= 3 ? 'cardError' : lvl >= 2 ? 'cardWarning' : 'cardSuccess';
     const alertClass = lvl >= 3 ? 'alertError' : lvl >= 2 ? 'alertWarning' : 'alertSuccess';
     const actionPhrase = lvl >= 4
@@ -6400,7 +6400,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
             <div style="font-size:48px;">${capInjuryRisk.icon}</div>
             <div style="flex:1;min-width:200px;">
-              <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Niveau de risque</div>
+              <div style="font-size:12px;color:#6E6B78;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Niveau de risque</div>
               <div style="font-size:28px;font-weight:700;color:${wordColor};">${wordLevel}</div>
             </div>
           </div>
@@ -6839,9 +6839,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         
         <!-- Visual Before/After comparison -->
         <div class="grid2 mt">
-          <div class="card" style="background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);border:1px solid #e2e8f0;">
+          <div class="card" style="background:linear-gradient(135deg, #FAF9F5 0%, #F2F0E9 100%);border:1px solid #E7E4DC;">
             <h4 style="display:flex;align-items:center;gap:8px;">
-              <span style="background:#64748b;color:white;padding:4px 8px;border-radius:6px;font-size:11px;">AVANT</span>
+              <span style="background:#6E6B78;color:white;padding:4px 8px;border-radius:6px;font-size:11px;">AVANT</span>
               Modèle seul
             </h4>
             <div class="muted" style="font-size:12px;margin-top:8px;">
@@ -6857,9 +6857,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </div>
           </div>
           
-          <div class="card" style="background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);border:1px solid #86efac;">
+          <div class="card" style="background:linear-gradient(135deg, #E4F5EE 0%, #E4F5EE 100%);border:1px solid #A8E3CB;">
             <h4 style="display:flex;align-items:center;gap:8px;">
-              <span style="background:#16a34a;color:white;padding:4px 8px;border-radius:6px;font-size:11px;">APRÈS</span>
+              <span style="background:#1F9D6B;color:white;padding:4px 8px;border-radius:6px;font-size:11px;">APRÈS</span>
               Calibré par tests
             </h4>
             <div class="muted" style="font-size:12px;margin-top:8px;">
@@ -7289,7 +7289,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const fatigueStateLabelMap: Record<string, { label: string; emoji: string; color: string }> = {
     fresh:    { label: "Frais — bien récupéré", emoji: "🟢", color: "var(--success)" },
     ok:       { label: "Normal — état standard", emoji: "🟡", color: "var(--warning)" },
-    fatigued: { label: "Fatigué — récupération partielle", emoji: "🟠", color: "#d97706" },
+    fatigued: { label: "Fatigué — récupération partielle", emoji: "🟠", color: "#C8860D" },
     high:     { label: "Très fatigué — surcharge", emoji: "🔴", color: "var(--error)" },
     injured:  { label: "Blessé / indisponible", emoji: "🚑", color: "var(--error)" },
   };
@@ -7332,10 +7332,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <!-- Barre de fond -->
             <defs>
               <linearGradient id="vlamaxGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#16a34a"/>
-                <stop offset="37.5%" style="stop-color:#3b82f6"/>
-                <stop offset="62.5%" style="stop-color:#d97706"/>
-                <stop offset="100%" style="stop-color:#dc2626"/>
+                <stop offset="0%" style="stop-color:#1F9D6B"/>
+                <stop offset="37.5%" style="stop-color:#5555E0"/>
+                <stop offset="62.5%" style="stop-color:#C8860D"/>
+                <stop offset="100%" style="stop-color:#D0433A"/>
               </linearGradient>
             </defs>
             <rect x="10" y="15" width="380" height="20" rx="4" fill="url(#vlamaxGrad)"/>
@@ -7349,9 +7349,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <line x1="390" y1="40" x2="390" y2="45" stroke="#666" stroke-width="1"/>
             <text x="390" y="55" font-size="9" fill="#666" text-anchor="middle">0.50+</text>
             <!-- Labels zones -->
-            <text x="72" y="10" font-size="8" fill="#16a34a" text-anchor="middle" font-weight="600">ENDURANT</text>
-            <text x="197" y="10" font-size="8" fill="#3b82f6" text-anchor="middle" font-weight="600">ÉQUILIBRÉ</text>
-            <text x="325" y="10" font-size="8" fill="#d97706" text-anchor="middle" font-weight="600">GLYCOLYTIQUE</text>
+            <text x="72" y="10" font-size="8" fill="#1F9D6B" text-anchor="middle" font-weight="600">ENDURANT</text>
+            <text x="197" y="10" font-size="8" fill="#5555E0" text-anchor="middle" font-weight="600">ÉQUILIBRÉ</text>
+            <text x="325" y="10" font-size="8" fill="#C8860D" text-anchor="middle" font-weight="600">GLYCOLYTIQUE</text>
             <!-- Indicateur valeur actuelle -->
             ${vlamax.value !== null ? `
               <polygon points="${Math.min(390, Math.max(10, 10 + ((vlamax.value - 0.20) / 0.35) * 380))},12 ${Math.min(390, Math.max(10, 10 + ((vlamax.value - 0.20) / 0.35) * 380)) - 5},2 ${Math.min(390, Math.max(10, 10 + ((vlamax.value - 0.20) / 0.35) * 380)) + 5},2" fill="#111"/>
@@ -7366,7 +7366,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <table style="width:100%">
               <tbody>
                 <tr><td><span class="badge badgeSuccess">&lt; 0.30</span></td><td>Profil très endurant – idéal pour Ironman/Ultra</td></tr>
-                <tr><td><span class="badge" style="background:#3b82f6;color:white">0.30 – 0.40</span></td><td>Équilibré – polyvalent pour 70.3 / Marathon</td></tr>
+                <tr><td><span class="badge" style="background:#5555E0;color:white">0.30 – 0.40</span></td><td>Équilibré – polyvalent pour 70.3 / Marathon</td></tr>
                 <tr><td><span class="badge badgeWarning">0.40 – 0.50</span></td><td>Glycolytique – favorise les efforts courts</td></tr>
                 <tr><td><span class="badge badgeError">&gt; 0.50</span></td><td>Très glycolytique – adapté sprints/explosivité</td></tr>
               </tbody>
@@ -7398,10 +7398,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="tteGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#dc2626"/>
-                <stop offset="33%" style="stop-color:#d97706"/>
-                <stop offset="66%" style="stop-color:#3b82f6"/>
-                <stop offset="100%" style="stop-color:#16a34a"/>
+                <stop offset="0%" style="stop-color:#D0433A"/>
+                <stop offset="33%" style="stop-color:#C8860D"/>
+                <stop offset="66%" style="stop-color:#5555E0"/>
+                <stop offset="100%" style="stop-color:#1F9D6B"/>
               </linearGradient>
             </defs>
             <rect x="10" y="15" width="380" height="20" rx="4" fill="url(#tteGrad)"/>
@@ -7415,9 +7415,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <line x1="390" y1="40" x2="390" y2="45" stroke="#666" stroke-width="1"/>
             <text x="390" y="55" font-size="9" fill="#666" text-anchor="middle">60+</text>
             <!-- Labels -->
-            <text x="73" y="10" font-size="8" fill="#dc2626" text-anchor="middle" font-weight="600">INSUFFISANT</text>
-            <text x="200" y="10" font-size="8" fill="#d97706" text-anchor="middle" font-weight="600">CORRECT</text>
-            <text x="327" y="10" font-size="8" fill="#16a34a" text-anchor="middle" font-weight="600">OPTIMAL</text>
+            <text x="73" y="10" font-size="8" fill="#D0433A" text-anchor="middle" font-weight="600">INSUFFISANT</text>
+            <text x="200" y="10" font-size="8" fill="#C8860D" text-anchor="middle" font-weight="600">CORRECT</text>
+            <text x="327" y="10" font-size="8" fill="#1F9D6B" text-anchor="middle" font-weight="600">OPTIMAL</text>
             <!-- Indicateur -->
             ${tte.tte_min ? `
               <polygon points="${Math.min(390, Math.max(10, 10 + ((tte.tte_min - 20) / 40) * 380))},12 ${Math.min(390, Math.max(10, 10 + ((tte.tte_min - 20) / 40) * 380)) - 5},2 ${Math.min(390, Math.max(10, 10 + ((tte.tte_min - 20) / 40) * 380)) + 5},2" fill="#111"/>
@@ -7433,7 +7433,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <tbody>
                 <tr><td><span class="badge badgeError">&lt; 30 min</span></td><td>Insuffisant pour longue distance</td></tr>
                 <tr><td><span class="badge badgeWarning">30 – 45 min</span></td><td>Correct pour formats courts</td></tr>
-                <tr><td><span class="badge" style="background:#3b82f6;color:white">45 – 60 min</span></td><td>Bon pour 70.3 / Marathon</td></tr>
+                <tr><td><span class="badge" style="background:#5555E0;color:white">45 – 60 min</span></td><td>Bon pour 70.3 / Marathon</td></tr>
                 <tr><td><span class="badge badgeSuccess">&gt; 60 min</span></td><td>Excellent – prêt pour Ironman</td></tr>
               </tbody>
             </table>
@@ -7459,18 +7459,18 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <svg width="100%" height="70" viewBox="0 0 400 70" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="riskGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#16a34a"/>
-                <stop offset="25%" style="stop-color:#16a34a"/>
-                <stop offset="50%" style="stop-color:#3b82f6"/>
-                <stop offset="75%" style="stop-color:#d97706"/>
-                <stop offset="100%" style="stop-color:#dc2626"/>
+                <stop offset="0%" style="stop-color:#1F9D6B"/>
+                <stop offset="25%" style="stop-color:#1F9D6B"/>
+                <stop offset="50%" style="stop-color:#5555E0"/>
+                <stop offset="75%" style="stop-color:#C8860D"/>
+                <stop offset="100%" style="stop-color:#D0433A"/>
               </linearGradient>
             </defs>
             <!-- Barre segmentée -->
-            <rect x="10" y="20" width="95" height="20" rx="0" fill="#16a34a"/>
-            <rect x="105" y="20" width="95" height="20" rx="0" fill="#3b82f6"/>
-            <rect x="200" y="20" width="95" height="20" rx="0" fill="#d97706"/>
-            <rect x="295" y="20" width="95" height="20" rx="0" fill="#dc2626"/>
+            <rect x="10" y="20" width="95" height="20" rx="0" fill="#1F9D6B"/>
+            <rect x="105" y="20" width="95" height="20" rx="0" fill="#5555E0"/>
+            <rect x="200" y="20" width="95" height="20" rx="0" fill="#C8860D"/>
+            <rect x="295" y="20" width="95" height="20" rx="0" fill="#D0433A"/>
             <!-- Labels zones dans barres -->
             <text x="57" y="34" font-size="9" fill="white" text-anchor="middle" font-weight="600">FAIBLE</text>
             <text x="152" y="34" font-size="9" fill="white" text-anchor="middle" font-weight="600">MODÉRÉ</text>
@@ -7516,7 +7516,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <table style="width:100%">
               <tbody>
                 <tr><td><span class="badge badgeSuccess">0 – 25</span></td><td><b>Faible</b> → profil endurant</td></tr>
-                <tr><td><span class="badge" style="background:#3b82f6;color:white">26 – 50</span></td><td><b>Modéré</b> → nutrition stratégique</td></tr>
+                <tr><td><span class="badge" style="background:#5555E0;color:white">26 – 50</span></td><td><b>Modéré</b> → nutrition stratégique</td></tr>
                 <tr><td><span class="badge badgeWarning">51 – 75</span></td><td><b>Élevé</b> → dépendance glucidique</td></tr>
                 <tr><td><span class="badge badgeError">76 – 100</span></td><td><b>Critique</b> → risque défaillance</td></tr>
               </tbody>
@@ -7537,13 +7537,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <circle cx="60" cy="60" r="50" fill="none" stroke="#eee" stroke-width="12"/>
             <!-- Arc coloré selon score -->
             <circle cx="60" cy="60" r="50" fill="none" 
-              stroke="${potentielPhysiologique.score >= 80 ? '#16a34a' : potentielPhysiologique.score >= 60 ? '#d97706' : '#dc2626'}" 
+              stroke="${potentielPhysiologique.score >= 80 ? '#1F9D6B' : potentielPhysiologique.score >= 60 ? '#C8860D' : '#D0433A'}" 
               stroke-width="12"
               stroke-dasharray="${(potentielPhysiologique.score / 100) * 314} 314"
               stroke-linecap="round"
               transform="rotate(-90 60 60)"/>
             <!-- Valeur centrale -->
-            <text x="60" y="55" font-size="28" font-weight="700" fill="${potentielPhysiologique.score >= 80 ? '#16a34a' : potentielPhysiologique.score >= 60 ? '#d97706' : '#dc2626'}" text-anchor="middle">${potentielPhysiologique.score}</text>
+            <text x="60" y="55" font-size="28" font-weight="700" fill="${potentielPhysiologique.score >= 80 ? '#1F9D6B' : potentielPhysiologique.score >= 60 ? '#C8860D' : '#D0433A'}" text-anchor="middle">${potentielPhysiologique.score}</text>
             <text x="60" y="72" font-size="10" fill="#666" text-anchor="middle">%</text>
           </svg>
           <div style="flex:1">
@@ -7552,28 +7552,28 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               <div style="text-align:center">
                 <div style="font-size:10px;color:#666;margin-bottom:4px">VLamax</div>
                 <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
-                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.vlamax * 4}%;background:${potentielPhysiologique.details.vlamax >= 20 ? '#16a34a' : potentielPhysiologique.details.vlamax >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.vlamax * 4}%;background:${potentielPhysiologique.details.vlamax >= 20 ? '#1F9D6B' : potentielPhysiologique.details.vlamax >= 15 ? '#C8860D' : '#D0433A'};border-radius:0 0 4px 4px"></div>
                 </div>
                 <div style="font-size:9px;font-weight:600;margin-top:2px">${potentielPhysiologique.details.vlamax}/25</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:10px;color:#666;margin-bottom:4px">TTE</div>
                 <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
-                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.endurance * 4}%;background:${potentielPhysiologique.details.endurance >= 20 ? '#16a34a' : potentielPhysiologique.details.endurance >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.endurance * 4}%;background:${potentielPhysiologique.details.endurance >= 20 ? '#1F9D6B' : potentielPhysiologique.details.endurance >= 15 ? '#C8860D' : '#D0433A'};border-radius:0 0 4px 4px"></div>
                 </div>
                 <div style="font-size:9px;font-weight:600;margin-top:2px">${potentielPhysiologique.details.endurance}/25</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:10px;color:#666;margin-bottom:4px">FTP/kg</div>
                 <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
-                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.puissance * 4}%;background:${potentielPhysiologique.details.puissance >= 20 ? '#16a34a' : potentielPhysiologique.details.puissance >= 15 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.puissance * 4}%;background:${potentielPhysiologique.details.puissance >= 20 ? '#1F9D6B' : potentielPhysiologique.details.puissance >= 15 ? '#C8860D' : '#D0433A'};border-radius:0 0 4px 4px"></div>
                 </div>
                 <div style="font-size:9px;font-weight:600;margin-top:2px">${potentielPhysiologique.details.puissance}/25</div>
               </div>
               <div style="text-align:center">
                 <div style="font-size:10px;color:#666;margin-bottom:4px">Fraîcheur</div>
                 <div style="height:40px;width:20px;background:#eee;border-radius:4px;margin:0 auto;position:relative;overflow:hidden">
-                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.fraicheur * 4}%;background:${potentielPhysiologique.details.fraicheur >= 18 ? '#16a34a' : potentielPhysiologique.details.fraicheur >= 12 ? '#d97706' : '#dc2626'};border-radius:0 0 4px 4px"></div>
+                  <div style="position:absolute;bottom:0;width:100%;height:${potentielPhysiologique.details.fraicheur * 4}%;background:${potentielPhysiologique.details.fraicheur >= 18 ? '#1F9D6B' : potentielPhysiologique.details.fraicheur >= 12 ? '#C8860D' : '#D0433A'};border-radius:0 0 4px 4px"></div>
                 </div>
                 <div style="font-size:9px;font-weight:600;margin-top:2px">${potentielPhysiologique.details.fraicheur}/25</div>
               </div>
@@ -7802,13 +7802,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     
     // Step markers SVG
     const stepMarkersSVG = stepPoints.map(sp => 
-      `<circle cx="${sp.x.toFixed(1)}" cy="${sp.y.toFixed(1)}" r="3.5" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>`
+      `<circle cx="${sp.x.toFixed(1)}" cy="${sp.y.toFixed(1)}" r="3.5" fill="#D4711C" stroke="#fff" stroke-width="1.5"/>`
     ).join('');
     
     // Step table rows
     const stepTableRows = stepPoints.filter((_, i) => i % 2 === 0).map(sp => {
       const zone = sp.lactate < 2 ? 'Z1-Z2' : sp.lactate < 4 ? 'Z3' : sp.lactate < 6 ? 'Z4' : sp.lactate < 10 ? 'Z5' : 'Z6';
-      const zColor = sp.lactate < 2 ? '#16a34a' : sp.lactate < 4 ? '#d97706' : sp.lactate < 6 ? '#ea580c' : '#dc2626';
+      const zColor = sp.lactate < 2 ? '#1F9D6B' : sp.lactate < 4 ? '#C8860D' : sp.lactate < 6 ? '#D4711C' : '#D0433A';
       return `<tr>
         <td style="text-align:center;">${sp.intensity}%</td>
         <td style="text-align:center;">${sp.watts}W</td>
@@ -7821,63 +7821,63 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <section id="lactate-curve">
         <h2>🧪 Courbe de Lactate — Modèle Mader-Heck</h2>
         <div class="grid3 mb">
-          <div class="card" style="text-align:center;border-color:#22c55e;">
-            <div style="font-size:10px;color:#16a34a;font-weight:600;">FatMax</div>
-            <div class="big" style="color:#16a34a;">${fatMaxResult.fatMaxIntensity}%</div>
+          <div class="card" style="text-align:center;border-color:#1F9D6B;">
+            <div style="font-size:10px;color:#1F9D6B;font-weight:600;">FatMax</div>
+            <div class="big" style="color:#1F9D6B;">${fatMaxResult.fatMaxIntensity}%</div>
             <div class="muted">${fatMaxResult.fatMaxPower}W · ${fatMaxResult.fatMaxGrams} g/min lip</div>
           </div>
-          <div class="card" style="text-align:center;border-color:#22c55e;">
-            <div style="font-size:10px;color:#16a34a;font-weight:600;">LT1 (2 mmol/L)</div>
-            <div class="big" style="color:#16a34a;">${thresholds.lt1Intensity}%</div>
+          <div class="card" style="text-align:center;border-color:#1F9D6B;">
+            <div style="font-size:10px;color:#1F9D6B;font-weight:600;">LT1 (2 mmol/L)</div>
+            <div class="big" style="color:#1F9D6B;">${thresholds.lt1Intensity}%</div>
             <div class="muted">${thresholds.lt1Power}W</div>
           </div>
-          <div class="card" style="text-align:center;border-color:#ea580c;">
-            <div style="font-size:10px;color:#ea580c;font-weight:600;">LT2 / MLSS</div>
-            <div class="big" style="color:#ea580c;">${thresholds.lt2Intensity}%</div>
+          <div class="card" style="text-align:center;border-color:#D4711C;">
+            <div style="font-size:10px;color:#D4711C;font-weight:600;">LT2 / MLSS</div>
+            <div class="big" style="color:#D4711C;">${thresholds.lt2Intensity}%</div>
             <div class="muted">${thresholds.lt2Power}W · ${predictions.mlssPower}W MLSS</div>
           </div>
         </div>
         <div class="card">
           <svg width="100%" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMidYMid meet">
-            <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="#ffffff" stroke="#e5e7eb" rx="4"/>
+            <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="#ffffff" stroke="#E7E4DC" rx="4"/>
             <!-- Zone background fills -->
-            <rect x="${padL}" y="${lt2Y}" width="${plotW}" height="${padT + plotH - lt2Y}" fill="#fff7ed" opacity="0.4"/>
-            <rect x="${padL}" y="${lt1Y}" width="${plotW}" height="${lt2Y - lt1Y}" fill="#fefce8" opacity="0.4"/>
-            <rect x="${padL}" y="${padT}" width="${plotW}" height="${lt1Y - padT}" fill="#f0fdf4" opacity="0.4"/>
+            <rect x="${padL}" y="${lt2Y}" width="${plotW}" height="${padT + plotH - lt2Y}" fill="#FBEEDF" opacity="0.4"/>
+            <rect x="${padL}" y="${lt1Y}" width="${plotW}" height="${lt2Y - lt1Y}" fill="#FBF0DA" opacity="0.4"/>
+            <rect x="${padL}" y="${padT}" width="${plotW}" height="${lt1Y - padT}" fill="#E4F5EE" opacity="0.4"/>
             <!-- Grid lines -->
             ${[0, 2, 4, 6, 8, 10, 12, 14, 16].map(v => {
               const gy = padT + plotH - (v / 16) * plotH;
-              return `<line x1="${padL}" y1="${gy}" x2="${padL + plotW}" y2="${gy}" stroke="#e5e7eb" stroke-dasharray="3 3"/>
-                      <text x="${padL - 5}" y="${gy + 4}" text-anchor="end" font-size="9" fill="#64748b">${v}</text>`;
+              return `<line x1="${padL}" y1="${gy}" x2="${padL + plotW}" y2="${gy}" stroke="#E7E4DC" stroke-dasharray="3 3"/>
+                      <text x="${padL - 5}" y="${gy + 4}" text-anchor="end" font-size="9" fill="#6E6B78">${v}</text>`;
             }).join('')}
             <!-- X axis labels -->
             ${[30, 40, 50, 60, 70, 80, 90, 100].map(v => {
               const gx = padL + ((v - 30) / 70) * plotW;
-              return `<text x="${gx}" y="${padT + plotH + 15}" text-anchor="middle" font-size="9" fill="#64748b">${v}%</text>`;
+              return `<text x="${gx}" y="${padT + plotH + 15}" text-anchor="middle" font-size="9" fill="#6E6B78">${v}%</text>`;
             }).join('')}
             <!-- VO2 overlay (right axis) -->
-            <path d="${vo2PathD}" fill="none" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.6"/>
-            <text x="${padL + plotW + 2}" y="${vo2Points[vo2Points.length - 1].y + 4}" font-size="8" fill="#3b82f6">VO₂</text>
+            <path d="${vo2PathD}" fill="none" stroke="#5555E0" stroke-width="1.2" stroke-dasharray="5 3" opacity="0.6"/>
+            <text x="${padL + plotW + 2}" y="${vo2Points[vo2Points.length - 1].y + 4}" font-size="8" fill="#5555E0">VO₂</text>
             <!-- LT1 line -->
-            <line x1="${padL}" y1="${lt1Y}" x2="${padL + plotW}" y2="${lt1Y}" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="6 3"/>
-            <text x="${padL + plotW + 2}" y="${lt1Y + 4}" font-size="9" fill="#16a34a" font-weight="600">LT1</text>
+            <line x1="${padL}" y1="${lt1Y}" x2="${padL + plotW}" y2="${lt1Y}" stroke="#1F9D6B" stroke-width="1.5" stroke-dasharray="6 3"/>
+            <text x="${padL + plotW + 2}" y="${lt1Y + 4}" font-size="9" fill="#1F9D6B" font-weight="600">LT1</text>
             <!-- LT2 line -->
-            <line x1="${padL}" y1="${lt2Y}" x2="${padL + plotW}" y2="${lt2Y}" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6 3"/>
-            <text x="${padL + plotW + 2}" y="${lt2Y + 4}" font-size="9" fill="#ea580c" font-weight="600">LT2</text>
+            <line x1="${padL}" y1="${lt2Y}" x2="${padL + plotW}" y2="${lt2Y}" stroke="#D4711C" stroke-width="1.5" stroke-dasharray="6 3"/>
+            <text x="${padL + plotW + 2}" y="${lt2Y + 4}" font-size="9" fill="#D4711C" font-weight="600">LT2</text>
             <!-- Curve area gradient -->
-            <defs><linearGradient id="pdfLacGradMader" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#ea580c" stop-opacity="0.25"/><stop offset="95%" stop-color="#ea580c" stop-opacity="0.02"/></linearGradient></defs>
+            <defs><linearGradient id="pdfLacGradMader" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#D4711C" stop-opacity="0.25"/><stop offset="95%" stop-color="#D4711C" stop-opacity="0.02"/></linearGradient></defs>
             <path d="${areaD}" fill="url(#pdfLacGradMader)"/>
-            <path d="${pathD}" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="${pathD}" fill="none" stroke="#D4711C" stroke-width="2.5" stroke-linecap="round"/>
             <!-- Step markers (lab paliers) -->
             ${stepMarkersSVG}
             <!-- Labels -->
-            <text x="${svgW / 2}" y="${svgH - 2}" text-anchor="middle" font-size="10" fill="#64748b">% VO₂max</text>
-            <text x="12" y="${svgH / 2}" text-anchor="middle" font-size="10" fill="#64748b" transform="rotate(-90, 12, ${svgH / 2})">[La] mmol/L</text>
+            <text x="${svgW / 2}" y="${svgH - 2}" text-anchor="middle" font-size="10" fill="#6E6B78">% VO₂max</text>
+            <text x="12" y="${svgH / 2}" text-anchor="middle" font-size="10" fill="#6E6B78" transform="rotate(-90, 12, ${svgH / 2})">[La] mmol/L</text>
             <!-- Legend -->
-            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#ea580c" stroke-width="2"/>
-            <text x="${padL + 35}" y="${padT + 12}" font-size="8" fill="#ea580c">Lactate (Mader)</text>
-            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="5 3"/>
-            <text x="${padL + 165}" y="${padT + 12}" font-size="8" fill="#3b82f6">VO₂ (L/min)</text>
+            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#D4711C" stroke-width="2"/>
+            <text x="${padL + 35}" y="${padT + 12}" font-size="8" fill="#D4711C">Lactate (Mader)</text>
+            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#5555E0" stroke-width="1.2" stroke-dasharray="5 3"/>
+            <text x="${padL + 165}" y="${padT + 12}" font-size="8" fill="#5555E0">VO₂ (L/min)</text>
           </svg>
         </div>
         <!-- Step table (paliers) -->
@@ -7893,8 +7893,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <tbody>${stepTableRows}</tbody>
           </table>
         </div>
-        <div class="card" style="background:#f0fdf4;border-color:#22c55e;margin-top:8px;">
-          <div style="font-size:12px;font-weight:600;color:#16a34a;">💡 Interprétation métabolique</div>
+        <div class="card" style="background:#E4F5EE;border-color:#1F9D6B;margin-top:8px;">
+          <div style="font-size:12px;font-weight:600;color:#1F9D6B;">💡 Interprétation métabolique</div>
           <div class="muted" style="margin-top:4px;">
             ${vla < 0.35
               ? `Profil Endurance — VLamax basse (${vla.toFixed(2)}) → seuils élevés (LT1 ${thresholds.lt1Intensity}%, LT2 ${thresholds.lt2Intensity}%). Excellente efficacité lipidique. FatMax à ${fatMaxResult.fatMaxIntensity}% (${fatMaxResult.fatMaxGrams} g/min).`
@@ -7973,75 +7973,75 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const rightAxisLabels = [0, 1, 2, 3].map(i => {
       const val = Math.round((maxKcalH / 3) * i);
       const gy = padT + plotH - (i / 3) * plotH;
-      return `<text x="${padL + plotW + 5}" y="${gy + 4}" text-anchor="start" font-size="8" fill="#9ca3af">${val}</text>`;
+      return `<text x="${padL + plotW + 5}" y="${gy + 4}" text-anchor="start" font-size="8" fill="#97949F">${val}</text>`;
     }).join('');
     
     return `
       <section id="substrate-curve">
         <h2>🔥 Oxydation Lipides / Glucides — Modèle Mader</h2>
         <div class="grid3 mb">
-          <div class="card" style="text-align:center;border-color:#22c55e;">
-            <div style="font-size:10px;color:#16a34a;font-weight:600;">FatMax</div>
-            <div class="medium" style="color:#16a34a;">${fatMaxResult.fatMaxGrams} g/min</div>
+          <div class="card" style="text-align:center;border-color:#1F9D6B;">
+            <div style="font-size:10px;color:#1F9D6B;font-weight:600;">FatMax</div>
+            <div class="medium" style="color:#1F9D6B;">${fatMaxResult.fatMaxGrams} g/min</div>
             <div class="muted">${fatMaxResult.fatMaxIntensity}% VO₂max · ${fatMaxResult.fatMaxPower}W</div>
           </div>
-          <div class="card" style="text-align:center;border-color:#3b82f6;">
-            <div style="font-size:10px;color:#3b82f6;font-weight:600;">Crossover</div>
-            <div class="medium" style="color:#3b82f6;">${crossoverPct}% VO₂max</div>
+          <div class="card" style="text-align:center;border-color:#5555E0;">
+            <div style="font-size:10px;color:#5555E0;font-weight:600;">Crossover</div>
+            <div class="medium" style="color:#5555E0;">${crossoverPct}% VO₂max</div>
             <div class="muted">${crossoverW}W · 50/50 lip/glu</div>
           </div>
-          <div class="card" style="text-align:center;border-color:#ea580c;">
-            <div style="font-size:10px;color:#ea580c;font-weight:600;">CHO @ FTP</div>
-            <div class="medium" style="color:#ea580c;">${(atFtp.carbGmin * 60).toFixed(0)} g/h</div>
+          <div class="card" style="text-align:center;border-color:#D4711C;">
+            <div style="font-size:10px;color:#D4711C;font-weight:600;">CHO @ FTP</div>
+            <div class="medium" style="color:#D4711C;">${(atFtp.carbGmin * 60).toFixed(0)} g/h</div>
             <div class="muted">${atFtp.carbGmin.toFixed(2)} g/min · ${atFtp.watts}W</div>
           </div>
         </div>
         <div class="card">
           <svg width="100%" viewBox="0 0 ${svgW} ${svgH}" preserveAspectRatio="xMidYMid meet">
-            <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="#ffffff" stroke="#e5e7eb" rx="4"/>
+            <rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="#ffffff" stroke="#E7E4DC" rx="4"/>
             <!-- Crossover transition zone -->
             ${(() => {
               const x1 = padL + ((fatMaxResult.fatMaxIntensity - 25) / 75) * plotW;
               const x2 = padL + ((crossoverPct - 25) / 75) * plotW;
-              return `<rect x="${Math.max(padL, x1)}" y="${padT}" width="${Math.max(0, x2 - x1)}" height="${plotH}" fill="#dbeafe" opacity="0.25"/>
-                      <text x="${(x1 + x2) / 2}" y="${padT + plotH - 5}" text-anchor="middle" font-size="7" fill="#3b82f6" opacity="0.7">Transition</text>`;
+              return `<rect x="${Math.max(padL, x1)}" y="${padT}" width="${Math.max(0, x2 - x1)}" height="${plotH}" fill="#EDEDFC" opacity="0.25"/>
+                      <text x="${(x1 + x2) / 2}" y="${padT + plotH - 5}" text-anchor="middle" font-size="7" fill="#5555E0" opacity="0.7">Transition</text>`;
             })()}
             <!-- Left axis labels (g/min) -->
             ${[0, 1, 2, 3, 4].map(i => {
               const val = (maxGmin / 4 * i).toFixed(1);
               const gy = padT + plotH - (i / 4) * plotH;
-              return `<line x1="${padL}" y1="${gy}" x2="${padL + plotW}" y2="${gy}" stroke="#e5e7eb" stroke-dasharray="3 3"/>
-                      <text x="${padL - 5}" y="${gy + 4}" text-anchor="end" font-size="8" fill="#64748b">${val}</text>`;
+              return `<line x1="${padL}" y1="${gy}" x2="${padL + plotW}" y2="${gy}" stroke="#E7E4DC" stroke-dasharray="3 3"/>
+                      <text x="${padL - 5}" y="${gy + 4}" text-anchor="end" font-size="8" fill="#6E6B78">${val}</text>`;
             }).join('')}
             <!-- Right axis labels (kcal/h) -->
             ${rightAxisLabels}
             <!-- Fat area gradient -->
-            <defs><linearGradient id="pdfFatGradMader" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#16a34a" stop-opacity="0.3"/><stop offset="95%" stop-color="#16a34a" stop-opacity="0.02"/></linearGradient></defs>
+            <defs><linearGradient id="pdfFatGradMader" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#1F9D6B" stop-opacity="0.3"/><stop offset="95%" stop-color="#1F9D6B" stop-opacity="0.02"/></linearGradient></defs>
             <path d="${fatAreaD}" fill="url(#pdfFatGradMader)"/>
-            <path d="${fatPath}" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="${fatPath}" fill="none" stroke="#1F9D6B" stroke-width="2.5" stroke-linecap="round"/>
             <!-- Carb line -->
-            <path d="${carbPath}" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5 2" stroke-linecap="round"/>
+            <path d="${carbPath}" fill="none" stroke="#D4711C" stroke-width="2" stroke-dasharray="5 2" stroke-linecap="round"/>
             <!-- FatMax vertical -->
             ${(() => {
               const x = padL + ((fatMaxResult.fatMaxIntensity - 25) / 75) * plotW;
-              return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#16a34a" stroke-width="1" stroke-dasharray="4 3"/>
-                      <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#16a34a" font-weight="600">FatMax</text>`;
+              return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#1F9D6B" stroke-width="1" stroke-dasharray="4 3"/>
+                      <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#1F9D6B" font-weight="600">FatMax</text>`;
             })()}
             <!-- Crossover vertical -->
             ${(() => {
               const x = padL + ((crossoverPct - 25) / 75) * plotW;
-              return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4 3"/>
-                      <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#3b82f6" font-weight="600">Crossover</text>`;
+              return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#5555E0" stroke-width="1" stroke-dasharray="4 3"/>
+                      <text x="${x}" y="${padT - 3}" text-anchor="middle" font-size="8" fill="#5555E0" font-weight="600">Crossover</text>`;
             })()}
             <!-- Legend -->
-            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#16a34a" stroke-width="2.5"/>
-            <text x="${padL + 35}" y="${padT + 12}" font-size="8" fill="#16a34a">Lipides (g/min)</text>
-            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#ea580c" stroke-width="2" stroke-dasharray="5 2"/>
-            <text x="${padL + 165}" y="${padT + 12}" font-size="8" fill="#ea580c">Glucides (g/min)</text>
+            <line x1="${padL + 10}" y1="${padT + 8}" x2="${padL + 30}" y2="${padT + 8}" stroke="#1F9D6B" stroke-width="2.5"/>
+            <text x="${padL + 35}" y="${padT + 12}" font-size="8" fill="#1F9D6B">Lipides (g/min)</text>
+            <line x1="${padL + 140}" y1="${padT + 8}" x2="${padL + 160}" y2="${padT + 8}" stroke="#D4711C" stroke-width="2" stroke-dasharray="5 2"/>
+            <text x="${padL + 165}" y="${padT + 12}" font-size="8" fill="#D4711C">Glucides (g/min)</text>
             <!-- Axes labels -->
-            <text x="${svgW / 2}" y="${svgH - 2}" text-anchor="middle" font-size="10" fill="#64748b">% VO₂max</text>
-            <text x="12" y="${svgH / 2}" text-anchor="middle" font-size="9" fill="#64748b" transform="rotate(-90, 12, ${svgH / 2})">g/min</text>
-            <text x="${svgW - 8}" y="${svgH / 2}" text-anchor="middle" font-size="8" fill="#9ca3af" transform="rotate(90, ${svgW - 8}, ${svgH / 2})">kcal/h</text>
+            <text x="${svgW / 2}" y="${svgH - 2}" text-anchor="middle" font-size="10" fill="#6E6B78">% VO₂max</text>
+            <text x="12" y="${svgH / 2}" text-anchor="middle" font-size="9" fill="#6E6B78" transform="rotate(-90, 12, ${svgH / 2})">g/min</text>
+            <text x="${svgW - 8}" y="${svgH / 2}" text-anchor="middle" font-size="8" fill="#97949F" transform="rotate(90, ${svgW - 8}, ${svgH / 2})">kcal/h</text>
           </svg>
           <div class="muted" style="text-align:center;margin-top:8px;font-size:9px;">
             Modèle Mader — Oxydation lipidique (Randle cycle) + partitionnement énergétique. Parité Dashboard/Export.
@@ -8082,9 +8082,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     });
     
     const scenarioColors: Record<string, { bg: string; text: string; label: string }> = {
-      conservative: { bg: '#f0fdf4', text: '#16a34a', label: 'Conservateur (95%)' },
-      optimal: { bg: '#eff6ff', text: '#2563eb', label: 'Optimal (80%)' },
-      aggressive: { bg: '#fff7ed', text: '#ea580c', label: 'Agressif (60%)' },
+      conservative: { bg: '#E4F5EE', text: '#1F9D6B', label: 'Conservateur (95%)' },
+      optimal: { bg: '#EDEDFC', text: '#5555E0', label: 'Optimal (80%)' },
+      aggressive: { bg: '#FBEEDF', text: '#D4711C', label: 'Agressif (60%)' },
     };
     
     const races = output.scenarios[0]?.predictions ?? [];
@@ -8100,7 +8100,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </td>`;
       }).join('');
       
-      const riskColor = race.glycogenRisk === 'low' ? '#16a34a' : race.glycogenRisk === 'moderate' ? '#d97706' : '#dc2626';
+      const riskColor = race.glycogenRisk === 'low' ? '#1F9D6B' : race.glycogenRisk === 'moderate' ? '#C8860D' : '#D0433A';
       const riskLabelAthlete = race.glycogenRisk === 'low'
         ? 'Faible'
         : race.glycogenRisk === 'moderate'
@@ -8131,33 +8131,33 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <div class="card mb">
           <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;text-align:center;">
             <div>
-              <div style="font-size:10px;color:#64748b;">VO₂max</div>
-              <div class="medium" style="color:#2563eb;">${v2max}</div>
+              <div style="font-size:10px;color:#6E6B78;">VO₂max</div>
+              <div class="medium" style="color:#5555E0;">${v2max}</div>
               <div class="muted">ml/kg/min</div>
             </div>
             <div>
-              <div style="font-size:10px;color:#64748b;">VLamax</div>
-              <div class="medium" style="color:#ea580c;">${vla.toFixed(2)}</div>
+              <div style="font-size:10px;color:#6E6B78;">VLamax</div>
+              <div class="medium" style="color:#D4711C;">${vla.toFixed(2)}</div>
               <div class="muted">mmol/L/s</div>
             </div>
             <div>
-              <div style="font-size:10px;color:#64748b;">Poids</div>
+              <div style="font-size:10px;color:#6E6B78;">Poids</div>
               <div class="medium">${weightKg}</div>
               <div class="muted">kg</div>
             </div>
             <div>
-              <div style="font-size:10px;color:#64748b;">MLSS (Mader)</div>
-              <div class="medium" style="color:#7c3aed;">${maderPred.mlssPower}W</div>
+              <div style="font-size:10px;color:#6E6B78;">MLSS (Mader)</div>
+              <div class="medium" style="color:#7A56C2;">${maderPred.mlssPower}W</div>
               <div class="muted">${maderPred.mlssWkg} W/kg</div>
             </div>
             <div>
-              <div style="font-size:10px;color:#64748b;">FatMax</div>
-              <div class="medium" style="color:#16a34a;">${fatMaxResult.fatMaxPower}W</div>
+              <div style="font-size:10px;color:#6E6B78;">FatMax</div>
+              <div class="medium" style="color:#1F9D6B;">${fatMaxResult.fatMaxPower}W</div>
               <div class="muted">${fatMaxResult.fatMaxGrams} g/min</div>
             </div>
             <div>
-              <div style="font-size:10px;color:#64748b;">TTE @ MLSS</div>
-              <div class="medium" style="color:#d97706;">${maderPred.tteAtMLSS} min</div>
+              <div style="font-size:10px;color:#6E6B78;">TTE @ MLSS</div>
+              <div class="medium" style="color:#C8860D;">${maderPred.tteAtMLSS} min</div>
               <div class="muted">CHO: ${fatMaxResult.carbAtFatMax} g/h</div>
             </div>
           </div>
@@ -8176,7 +8176,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             </tbody>
           </table>
         </div>
-        ${isAthlete ? '' : `<div class="card" style="background:#f8fafc;">
+        ${isAthlete ? '' : `<div class="card" style="background:#FAF9F5;">
           <div class="muted" style="font-size:10px;">
             <b>Méthodologie :</b> ${output.modelNote}
             Métriques métaboliques (MLSS, FatMax, TTE) calculées par modèle Mader-Heck (2003). Parité Dashboard/Export.
@@ -8226,9 +8226,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       const ld = isLong ? buildLongDistancePacingHTML(payload) : "";
       const refs = `
         <section id="pacing-envelope-references" class="section pagebreakAvoid">
-          <div class="card" style="background:#f8fafc;font-size:10px;">
+          <div class="card" style="background:#FAF9F5;font-size:10px;">
             <h3 style="font-size:12px;margin-bottom:6px;">📚 Références scientifiques — Modèle Pacing Envelope™</h3>
-            <ul style="font-size:10px;line-height:1.5;padding-left:18px;margin:0;color:#475569;">
+            <ul style="font-size:10px;line-height:1.5;padding-left:18px;margin:0;color:#5C5966;">
               <li><b>Smyth & Muniz-Pumares (2022)</b> — %CS soutenable décroît log-linéairement avec la durée (25M marathons Strava).</li>
               <li><b>Jones & Vanhatalo (2017)</b> — Critical Power / W' framework, vCS/vVMA ≈ 0.90.</li>
               <li><b>Skiba et al. (2012, 2024)</b> — W'-balance dynamics, asymétrie ceiling/floor, reconstitution exponentielle.</li>
@@ -8294,8 +8294,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${coverHTML}
         ${buildExecutiveSummaryHTML(payload)}
         
-        <div class="noPrint" style="padding:16px;background:#f0f9ff;border-radius:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-          <button onclick="window.print()" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#2563eb;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
+        <div class="noPrint" style="padding:16px;background:#EDEDFC;border-radius:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <button onclick="window.print()" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#5555E0;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
             🖨️ Imprimer / Enregistrer en PDF
           </button>
           <span class="muted" style="font-size:13px;">💡 <b>Conseil :</b> Dans le dialogue d'impression, sélectionnez <b>"Enregistrer en PDF"</b> comme destination pour créer un fichier PDF.</span>
@@ -8592,31 +8592,31 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
 // SECTIONS ENRICHIES — partagées Athlete & Beginner
 // =============================================
 const STATUS_DOT: Record<string, string> = {
-  ok: "#16a34a", warn: "#ea580c", low: "#dc2626", info: "#3b82f6",
+  ok: "#1F9D6B", warn: "#D4711C", low: "#D0433A", info: "#5555E0",
 };
 
 function buildAthleteEnrichedSectionsHTML(r: AthleteReadinessReport): string {
   const physioRows = r.physioMetrics.length === 0 ? "" : r.physioMetrics.map(m => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9;gap:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F2F0E9;gap:12px;">
       <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-        <span style="width:8px;height:8px;border-radius:50%;background:${STATUS_DOT[m.status] || '#94a3b8'};display:inline-block;flex:none;"></span>
+        <span style="width:8px;height:8px;border-radius:50%;background:${STATUS_DOT[m.status] || '#97949F'};display:inline-block;flex:none;"></span>
         <div style="min-width:0;">
-          <div style="font-weight:600;color:#0f172a;font-size:14px;">${htmlEscape(m.label)}</div>
-          <div style="font-size:12px;color:#64748b;">${htmlEscape(m.context)}</div>
+          <div style="font-weight:600;color:#14131A;font-size:14px;">${htmlEscape(m.label)}</div>
+          <div style="font-size:12px;color:#6E6B78;">${htmlEscape(m.context)}</div>
         </div>
       </div>
-      <div style="font-weight:700;color:#0f172a;font-size:15px;white-space:nowrap;">${htmlEscape(m.value)}</div>
+      <div style="font-weight:700;color:#14131A;font-size:15px;white-space:nowrap;">${htmlEscape(m.value)}</div>
     </div>
   `).join('');
 
   const compassRows = r.compassAxes.length === 0 ? "" : r.compassAxes.map(a => `
     <div style="margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-        <span style="font-size:14px;color:#0f172a;font-weight:600;">${a.emoji} ${htmlEscape(a.label)}</span>
-        <span style="font-size:13px;color:#475569;">${a.score}/100 — ${htmlEscape(a.comment)}</span>
+        <span style="font-size:14px;color:#14131A;font-weight:600;">${a.emoji} ${htmlEscape(a.label)}</span>
+        <span style="font-size:13px;color:#5C5966;">${a.score}/100 — ${htmlEscape(a.comment)}</span>
       </div>
-      <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
-        <div style="width:${a.score}%;height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);"></div>
+      <div style="height:8px;background:#E7E4DC;border-radius:4px;overflow:hidden;">
+        <div style="width:${a.score}%;height:100%;background:linear-gradient(90deg,#5555E0,#7A56C2);"></div>
       </div>
     </div>
   `).join('');
@@ -8624,86 +8624,86 @@ function buildAthleteEnrichedSectionsHTML(r: AthleteReadinessReport): string {
   const ambitionRows = r.ambitionProgress.length === 0 ? "" : r.ambitionProgress.map(a => `
     <div style="margin-bottom:10px;">
       <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px;">
-        <span style="color:#0f172a;font-weight:600;">${a.icon} ${htmlEscape(a.label)}</span>
-        <span style="color:#475569;">${a.isReached ? '✅ Atteint' : `${a.progressPct}%${a.weeksToReach ? ` · ~${a.weeksToReach} sem.` : ''}`}</span>
+        <span style="color:#14131A;font-weight:600;">${a.icon} ${htmlEscape(a.label)}</span>
+        <span style="color:#5C5966;">${a.isReached ? '✅ Atteint' : `${a.progressPct}%${a.weeksToReach ? ` · ~${a.weeksToReach} sem.` : ''}`}</span>
       </div>
-      <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
-        <div style="width:${Math.min(100, a.progressPct)}%;height:100%;background:${a.isReached ? '#16a34a' : '#f59e0b'};"></div>
+      <div style="height:6px;background:#E7E4DC;border-radius:3px;overflow:hidden;">
+        <div style="width:${Math.min(100, a.progressPct)}%;height:100%;background:${a.isReached ? '#1F9D6B' : '#C8860D'};"></div>
       </div>
     </div>
   `).join('');
 
   const actionsHTML = r.nextActions.length === 0 ? "" : r.nextActions.map((n, i) => `
-    <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9;">
-      <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#3b82f6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px;">${i + 1}</div>
+    <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #F2F0E9;">
+      <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#5555E0;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px;">${i + 1}</div>
       <div style="min-width:0;">
-        <div style="font-weight:600;color:#0f172a;font-size:14px;">${htmlEscape(n.label)}</div>
-        ${n.why ? `<div style="font-size:12px;color:#64748b;margin-top:2px;">${htmlEscape(n.why)}</div>` : ''}
+        <div style="font-weight:600;color:#14131A;font-size:14px;">${htmlEscape(n.label)}</div>
+        ${n.why ? `<div style="font-size:12px;color:#6E6B78;margin-top:2px;">${htmlEscape(n.why)}</div>` : ''}
       </div>
     </div>
   `).join('');
 
   const prohibitionsHTML = r.prohibitions.length === 0 ? "" : `
-    <div style="margin-top:12px;padding:12px;background:#fef2f2;border-left:4px solid #dc2626;border-radius:8px;">
-      <div style="font-size:12px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🚫 À éviter cette période</div>
-      <div style="font-size:13px;color:#7f1d1d;">${r.prohibitions.map(htmlEscape).join(' · ')}</div>
+    <div style="margin-top:12px;padding:12px;background:#FAE6E4;border-left:4px solid #D0433A;border-radius:8px;">
+      <div style="font-size:12px;font-weight:700;color:#8F2E27;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🚫 À éviter cette période</div>
+      <div style="font-size:13px;color:#8F2E27;">${r.prohibitions.map(htmlEscape).join(' · ')}</div>
     </div>
   `;
 
-  const tlColor = STATUS_DOT[r.trainingLoad.status] || '#94a3b8';
+  const tlColor = STATUS_DOT[r.trainingLoad.status] || '#97949F';
   const trainingLoadHTML = `
-    <div style="display:flex;align-items:center;gap:14px;padding:14px;background:#f8fafc;border-radius:12px;">
+    <div style="display:flex;align-items:center;gap:14px;padding:14px;background:#FAF9F5;border-radius:12px;">
       <div style="flex:none;width:48px;height:48px;border-radius:50%;background:${tlColor}20;border:2px solid ${tlColor};display:flex;align-items:center;justify-content:center;font-weight:700;color:${tlColor};">
         ${r.trainingLoad.tss7d !== null ? Math.round(r.trainingLoad.tss7d) : '—'}
       </div>
       <div style="min-width:0;">
-        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">TSS 7 jours</div>
-        <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(r.trainingLoad.label)}</div>
-        <div style="font-size:12px;color:#475569;margin-top:2px;">${htmlEscape(r.trainingLoad.detail)}</div>
+        <div style="font-size:11px;color:#6E6B78;text-transform:uppercase;letter-spacing:0.5px;">TSS 7 jours</div>
+        <div style="font-weight:700;color:#14131A;font-size:15px;">${htmlEscape(r.trainingLoad.label)}</div>
+        <div style="font-size:12px;color:#5C5966;margin-top:2px;">${htmlEscape(r.trainingLoad.detail)}</div>
       </div>
     </div>
   `;
 
   const testsHTML = r.recentTests.length === 0 ? "" : `
-    <div style="margin-top:12px;padding:12px;background:#f1f5f9;border-radius:8px;">
-      <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Tests récents</div>
-      ${r.recentTests.map(t => `<div style="font-size:13px;color:#0f172a;">• ${htmlEscape(t.name)} <span style="color:#64748b;">— ${htmlEscape(t.date)}</span></div>`).join('')}
+    <div style="margin-top:12px;padding:12px;background:#F2F0E9;border-radius:8px;">
+      <div style="font-size:11px;font-weight:700;color:#6E6B78;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Tests récents</div>
+      ${r.recentTests.map(t => `<div style="font-size:13px;color:#14131A;">• ${htmlEscape(t.name)} <span style="color:#6E6B78;">— ${htmlEscape(t.date)}</span></div>`).join('')}
     </div>
   `;
 
   return `
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-        <h2 style="font-size:18px;font-weight:700;color:#0f172a;">🎯 Mon objectif & ambition</h2>
-        <span style="font-size:13px;color:#475569;">${htmlEscape(r.ambitionLabel)}</span>
+        <h2 style="font-size:18px;font-weight:700;color:#14131A;">🎯 Mon objectif & ambition</h2>
+        <span style="font-size:13px;color:#5C5966;">${htmlEscape(r.ambitionLabel)}</span>
       </div>
-      <div style="font-size:14px;color:#475569;margin-bottom:14px;">Objectif visé : <b style="color:#0f172a;">${htmlEscape(r.goalLabel)}</b></div>
-      ${ambitionRows || '<div style="color:#94a3b8;font-size:13px;">Pas de progression d\'ambition disponible.</div>'}
+      <div style="font-size:14px;color:#5C5966;margin-bottom:14px;">Objectif visé : <b style="color:#14131A;">${htmlEscape(r.goalLabel)}</b></div>
+      ${ambitionRows || '<div style="color:#97949F;font-size:13px;">Pas de progression d\'ambition disponible.</div>'}
     </div>
 
     ${physioRows ? `
     <div class="card">
-      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:12px;">📊 Mes chiffres physiologiques</h2>
+      <h2 style="font-size:18px;font-weight:700;color:#14131A;margin-bottom:12px;">📊 Mes chiffres physiologiques</h2>
       ${physioRows}
-      <div style="font-size:11px;color:#94a3b8;margin-top:10px;font-style:italic;">Le point coloré indique le statut vs ta cible (vert = OK, orange = à surveiller, rouge = sous-cible).</div>
+      <div style="font-size:11px;color:#97949F;margin-top:10px;font-style:italic;">Le point coloré indique le statut vs ta cible (vert = OK, orange = à surveiller, rouge = sous-cible).</div>
     </div>` : ''}
 
     ${compassRows ? `
     <div class="card">
-      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:14px;">🧭 Mes 4 piliers</h2>
+      <h2 style="font-size:18px;font-weight:700;color:#14131A;margin-bottom:14px;">🧭 Mes 4 piliers</h2>
       ${compassRows}
     </div>` : ''}
 
     <div class="card">
-      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:12px;">🏋️ Charge d'entraînement</h2>
+      <h2 style="font-size:18px;font-weight:700;color:#14131A;margin-bottom:12px;">🏋️ Charge d'entraînement</h2>
       ${trainingLoadHTML}
       ${testsHTML}
     </div>
 
     ${actionsHTML ? `
     <div class="card">
-      <h2 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px;">🚀 Mes prochaines actions</h2>
-      <div style="font-size:13px;color:#64748b;margin-bottom:8px;">Priorités issues de ton limiteur principal.</div>
+      <h2 style="font-size:18px;font-weight:700;color:#14131A;margin-bottom:8px;">🚀 Mes prochaines actions</h2>
+      <div style="font-size:13px;color:#6E6B78;margin-bottom:8px;">Priorités issues de ton limiteur principal.</div>
       ${actionsHTML}
       ${prohibitionsHTML}
     </div>` : ''}
@@ -8758,24 +8758,24 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
   const physioRows = r.physioMetrics.length === 0 ? "" : r.physioMetrics.map(m => {
     const exp = findExplainer(m.label);
     const explainerHTML = exp ? `
-      <div style="margin-top:10px;padding:10px 12px;background:#f0f9ff;border-left:3px solid #3b82f6;border-radius:8px;">
-        <div style="font-size:12px;color:#1e40af;font-weight:700;margin-bottom:4px;">💡 C'est quoi ?</div>
-        <div style="font-size:13px;color:#0f172a;line-height:1.5;">${htmlEscape(exp.what)}</div>
-        <div style="font-size:12px;color:#475569;margin-top:6px;font-style:italic;">${htmlEscape(exp.example)}</div>
-        ${exp.analogy ? `<div style="font-size:12px;color:#64748b;margin-top:4px;">${htmlEscape(exp.analogy)}</div>` : ''}
+      <div style="margin-top:10px;padding:10px 12px;background:#EDEDFC;border-left:3px solid #5555E0;border-radius:8px;">
+        <div style="font-size:12px;color:#3C3CB8;font-weight:700;margin-bottom:4px;">💡 C'est quoi ?</div>
+        <div style="font-size:13px;color:#14131A;line-height:1.5;">${htmlEscape(exp.what)}</div>
+        <div style="font-size:12px;color:#5C5966;margin-top:6px;font-style:italic;">${htmlEscape(exp.example)}</div>
+        ${exp.analogy ? `<div style="font-size:12px;color:#6E6B78;margin-top:4px;">${htmlEscape(exp.analogy)}</div>` : ''}
       </div>
     ` : '';
     return `
-      <li style="padding:14px 0;border-bottom:1px dashed #e5e7eb;">
+      <li style="padding:14px 0;border-bottom:1px dashed #E7E4DC;">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
           <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-            <span style="width:10px;height:10px;border-radius:50%;background:${STATUS_DOT[m.status] || '#94a3b8'};display:inline-block;flex:none;"></span>
+            <span style="width:10px;height:10px;border-radius:50%;background:${STATUS_DOT[m.status] || '#97949F'};display:inline-block;flex:none;"></span>
             <div style="min-width:0;">
-              <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(m.label)}</div>
-              <div style="font-size:13px;color:#64748b;">${htmlEscape(m.context)}</div>
+              <div style="font-weight:700;color:#14131A;font-size:15px;">${htmlEscape(m.label)}</div>
+              <div style="font-size:13px;color:#6E6B78;">${htmlEscape(m.context)}</div>
             </div>
           </div>
-          <div style="font-weight:800;color:#0f172a;font-size:16px;white-space:nowrap;">${htmlEscape(m.value)}</div>
+          <div style="font-weight:800;color:#14131A;font-size:16px;white-space:nowrap;">${htmlEscape(m.value)}</div>
         </div>
         ${explainerHTML}
       </li>
@@ -8799,14 +8799,14 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
     return `
     <div style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-size:15px;color:#0f172a;font-weight:700;">${a.emoji} ${htmlEscape(a.label)}</span>
-        <span style="font-size:13px;color:#475569;font-weight:600;">${a.score}/100</span>
+        <span style="font-size:15px;color:#14131A;font-weight:700;">${a.emoji} ${htmlEscape(a.label)}</span>
+        <span style="font-size:13px;color:#5C5966;font-weight:600;">${a.score}/100</span>
       </div>
-      <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;">
-        <div style="width:${a.score}%;height:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6);"></div>
+      <div style="height:10px;background:#E7E4DC;border-radius:5px;overflow:hidden;">
+        <div style="width:${a.score}%;height:100%;background:linear-gradient(90deg,#5555E0,#7A56C2);"></div>
       </div>
-      <div style="font-size:12px;color:#64748b;margin-top:4px;">${htmlEscape(a.comment)}</div>
-      ${exp ? `<div style="font-size:12px;color:#1e40af;margin-top:6px;padding:8px 10px;background:#eff6ff;border-radius:6px;line-height:1.5;">${htmlEscape(exp)}</div>` : ''}
+      <div style="font-size:12px;color:#6E6B78;margin-top:4px;">${htmlEscape(a.comment)}</div>
+      ${exp ? `<div style="font-size:12px;color:#3C3CB8;margin-top:6px;padding:8px 10px;background:#EDEDFC;border-radius:6px;line-height:1.5;">${htmlEscape(exp)}</div>` : ''}
     </div>
   `;
   }).join('');
@@ -8814,56 +8814,56 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
   const ambitionRows = r.ambitionProgress.length === 0 ? "" : r.ambitionProgress.map(a => `
     <div style="margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
-        <span style="color:#0f172a;font-weight:700;">${a.icon} ${htmlEscape(a.label)}</span>
-        <span style="color:#475569;font-weight:600;">${a.isReached ? '✅ Atteint' : `${a.progressPct}%${a.weeksToReach ? ` · ~${a.weeksToReach} sem.` : ''}`}</span>
+        <span style="color:#14131A;font-weight:700;">${a.icon} ${htmlEscape(a.label)}</span>
+        <span style="color:#5C5966;font-weight:600;">${a.isReached ? '✅ Atteint' : `${a.progressPct}%${a.weeksToReach ? ` · ~${a.weeksToReach} sem.` : ''}`}</span>
       </div>
-      <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
-        <div style="width:${Math.min(100, a.progressPct)}%;height:100%;background:${a.isReached ? '#16a34a' : '#f59e0b'};"></div>
+      <div style="height:8px;background:#E7E4DC;border-radius:4px;overflow:hidden;">
+        <div style="width:${Math.min(100, a.progressPct)}%;height:100%;background:${a.isReached ? '#1F9D6B' : '#C8860D'};"></div>
       </div>
     </div>
   `).join('');
 
   const actionsHTML = r.nextActions.length === 0 ? "" : r.nextActions.map((n, i) => `
-    <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px dashed #e5e7eb;">
-      <div style="flex:none;width:32px;height:32px;border-radius:50%;background:#3b82f6;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px;">${i + 1}</div>
+    <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px dashed #E7E4DC;">
+      <div style="flex:none;width:32px;height:32px;border-radius:50%;background:#5555E0;color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px;">${i + 1}</div>
       <div style="min-width:0;">
-        <div style="font-weight:700;color:#0f172a;font-size:15px;">${htmlEscape(n.label)}</div>
-        ${n.why ? `<div style="font-size:13px;color:#64748b;margin-top:3px;">${htmlEscape(n.why)}</div>` : ''}
+        <div style="font-weight:700;color:#14131A;font-size:15px;">${htmlEscape(n.label)}</div>
+        ${n.why ? `<div style="font-size:13px;color:#6E6B78;margin-top:3px;">${htmlEscape(n.why)}</div>` : ''}
       </div>
     </div>
   `).join('');
 
   const prohibitionsHTML = r.prohibitions.length === 0 ? "" : `
-    <div style="margin-top:14px;padding:14px;background:#fef2f2;border-left:5px solid #dc2626;border-radius:12px;">
-      <div style="font-size:13px;font-weight:800;color:#991b1b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🚫 À éviter cette période</div>
-      <div style="font-size:14px;color:#7f1d1d;">${r.prohibitions.map(htmlEscape).join(' · ')}</div>
+    <div style="margin-top:14px;padding:14px;background:#FAE6E4;border-left:5px solid #D0433A;border-radius:12px;">
+      <div style="font-size:13px;font-weight:800;color:#8F2E27;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🚫 À éviter cette période</div>
+      <div style="font-size:14px;color:#8F2E27;">${r.prohibitions.map(htmlEscape).join(' · ')}</div>
     </div>
   `;
 
-  const tlColor = STATUS_DOT[r.trainingLoad.status] || '#94a3b8';
+  const tlColor = STATUS_DOT[r.trainingLoad.status] || '#97949F';
   const trainingLoadHTML = `
-    <div style="display:flex;align-items:center;gap:16px;padding:16px;background:#f8fafc;border-radius:14px;">
+    <div style="display:flex;align-items:center;gap:16px;padding:16px;background:#FAF9F5;border-radius:14px;">
       <div style="flex:none;width:60px;height:60px;border-radius:50%;background:${tlColor}20;border:3px solid ${tlColor};display:flex;align-items:center;justify-content:center;font-weight:800;color:${tlColor};font-size:18px;">
         ${r.trainingLoad.tss7d !== null ? Math.round(r.trainingLoad.tss7d) : '—'}
       </div>
       <div style="min-width:0;">
-        <div style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Charge cette semaine (TSS 7j)</div>
-        <div style="font-weight:800;color:#0f172a;font-size:17px;">${htmlEscape(r.trainingLoad.label)}</div>
-        <div style="font-size:13px;color:#475569;margin-top:3px;">${htmlEscape(r.trainingLoad.detail)}</div>
+        <div style="font-size:12px;color:#6E6B78;text-transform:uppercase;letter-spacing:0.5px;">Charge cette semaine (TSS 7j)</div>
+        <div style="font-weight:800;color:#14131A;font-size:17px;">${htmlEscape(r.trainingLoad.label)}</div>
+        <div style="font-size:13px;color:#5C5966;margin-top:3px;">${htmlEscape(r.trainingLoad.detail)}</div>
       </div>
     </div>
-    <div style="margin-top:10px;padding:10px 12px;background:#f0f9ff;border-left:3px solid #3b82f6;border-radius:8px;">
-      <div style="font-size:12px;color:#1e40af;font-weight:700;margin-bottom:4px;">💡 C'est quoi le TSS ?</div>
-      <div style="font-size:13px;color:#0f172a;line-height:1.5;">Le TSS (Training Stress Score) mesure la "fatigue" accumulée sur 7 jours.</div>
-      <div style="font-size:12px;color:#475569;margin-top:4px;font-style:italic;">Ex : 1h à fond = 100 TSS · &lt; 300/sem = light · 400-700 = solide · &gt; 800 = lourd, attention récup.</div>
+    <div style="margin-top:10px;padding:10px 12px;background:#EDEDFC;border-left:3px solid #5555E0;border-radius:8px;">
+      <div style="font-size:12px;color:#3C3CB8;font-weight:700;margin-bottom:4px;">💡 C'est quoi le TSS ?</div>
+      <div style="font-size:13px;color:#14131A;line-height:1.5;">Le TSS (Training Stress Score) mesure la "fatigue" accumulée sur 7 jours.</div>
+      <div style="font-size:12px;color:#5C5966;margin-top:4px;font-style:italic;">Ex : 1h à fond = 100 TSS · &lt; 300/sem = light · 400-700 = solide · &gt; 800 = lourd, attention récup.</div>
     </div>
   `;
 
   return `
     <div class="section">
       <div class="section-header"><span class="emoji">🎯</span><h2>Mon objectif</h2></div>
-      <div style="font-size:15px;color:#475569;margin-bottom:12px;">Tu prépares : <b style="color:#0f172a;">${htmlEscape(r.goalLabel)}</b> — ambition <b style="color:#0f172a;">${htmlEscape(r.ambitionLabel)}</b>.</div>
-      ${ambitionRows || '<div style="color:#94a3b8;font-size:13px;">Pas encore de cibles d\'ambition disponibles.</div>'}
+      <div style="font-size:15px;color:#5C5966;margin-bottom:12px;">Tu prépares : <b style="color:#14131A;">${htmlEscape(r.goalLabel)}</b> — ambition <b style="color:#14131A;">${htmlEscape(r.ambitionLabel)}</b>.</div>
+      ${ambitionRows || '<div style="color:#97949F;font-size:13px;">Pas encore de cibles d\'ambition disponibles.</div>'}
       <div class="explain-box" style="margin-top:14px;">
         <span class="label">📚 C'est quoi ?</span>
         <p>Chaque barre montre où tu en es par rapport à un niveau cible. Plus la barre est remplie, plus tu te rapproches.</p>
@@ -8898,7 +8898,7 @@ function buildBeginnerEnrichedSectionsHTML(r: AthleteReadinessReport): string {
     ${actionsHTML ? `
     <div class="section">
       <div class="section-header"><span class="emoji">🚀</span><h2>Mes prochaines actions</h2></div>
-      <div style="font-size:13px;color:#64748b;margin-bottom:8px;">Voici les leviers prioritaires pour avancer :</div>
+      <div style="font-size:13px;color:#6E6B78;margin-bottom:8px;">Voici les leviers prioritaires pour avancer :</div>
       ${actionsHTML}
       ${prohibitionsHTML}
       <div class="explain-box" style="margin-top:14px;">
@@ -8914,23 +8914,23 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
   const athleteReport = buildAthleteReadinessFromPayload(payload);
 
   const scoreColors: Record<string, { bg: string; border: string; text: string }> = {
-    green: { bg: "#dcfce7", border: "#16a34a", text: "#166534" },
-    orange: { bg: "#fed7aa", border: "#ea580c", text: "#9a3412" },
-    red: { bg: "#fecaca", border: "#dc2626", text: "#991b1b" },
+    green: { bg: "#E4F5EE", border: "#1F9D6B", text: "#157A52" },
+    orange: { bg: "#F3D2AE", border: "#D4711C", text: "#94430F" },
+    red: { bg: "#F2B7B2", border: "#D0433A", text: "#8F2E27" },
   };
   
   const colors = scoreColors[athleteReport.scoreColor] || scoreColors.orange;
   
   const wellPreparedHTML = athleteReport.wellPrepared.map(item => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
-      <span style="color:#16a34a;font-size:18px;">✓</span>
+      <span style="color:#1F9D6B;font-size:18px;">✓</span>
       <span>${htmlEscape(item)}</span>
     </div>
   `).join('');
   
   const toWatchHTML = athleteReport.toWatch.length > 0 ? athleteReport.toWatch.map(item => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
-      <span style="color:#ea580c;font-size:18px;">⚠</span>
+      <span style="color:#D4711C;font-size:18px;">⚠</span>
       <span>${htmlEscape(item)}</span>
     </div>
   `).join('') : '<div style="color:#666;padding:8px 0;">Aucun point d\'attention majeur</div>';
@@ -8956,11 +8956,11 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
         
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          background: linear-gradient(135deg, #FAF9F5 0%, #E7E4DC 100%);
           min-height: 100vh;
           padding: 40px 20px;
           line-height: 1.6;
-          color: #1e293b;
+          color: #2B2933;
         }
         
         .container {
@@ -8981,18 +8981,18 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
         .header h1 {
           font-size: 28px;
           font-weight: 700;
-          color: #0f172a;
+          color: #14131A;
           margin-bottom: 4px;
         }
         
         .header .subtitle {
           font-size: 14px;
-          color: #64748b;
+          color: #6E6B78;
         }
         
         .header .athlete-name {
           display: inline-block;
-          background: #f1f5f9;
+          background: #F2F0E9;
           padding: 6px 16px;
           border-radius: 20px;
           font-size: 14px;
@@ -9066,7 +9066,7 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
           font-size: 18px;
           font-weight: 600;
           margin-bottom: 16px;
-          color: #0f172a;
+          color: #14131A;
         }
         
         .section-title .icon {
@@ -9075,12 +9075,12 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
         
         .divider {
           height: 1px;
-          background: #e2e8f0;
+          background: #E7E4DC;
           margin: 24px 0;
         }
         
         .advice-card {
-          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          background: linear-gradient(135deg, #EDEDFC 0%, #EDEDFC 100%);
           border-radius: 12px;
           padding: 20px;
           margin-top: 16px;
@@ -9089,7 +9089,7 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
         .advice-card .label {
           font-size: 12px;
           font-weight: 600;
-          color: #3b82f6;
+          color: #5555E0;
           text-transform: uppercase;
           letter-spacing: 0.5px;
           margin-bottom: 8px;
@@ -9098,11 +9098,11 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
         .advice-card p {
           font-size: 16px;
           font-weight: 500;
-          color: #1e40af;
+          color: #3C3CB8;
         }
         
         .nutrition-card {
-          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          background: linear-gradient(135deg, #FBF0DA 0%, #F0D79A 100%);
           border-radius: 12px;
           padding: 20px;
         }
@@ -9115,7 +9115,7 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
         .nutrition-card .label {
           font-size: 12px;
           font-weight: 600;
-          color: #b45309;
+          color: #8A5A08;
           text-transform: uppercase;
           letter-spacing: 0.5px;
           margin-bottom: 8px;
@@ -9123,11 +9123,11 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
         
         .nutrition-card p {
           font-size: 15px;
-          color: #92400e;
+          color: #8A5A08;
         }
         
         .confidence-section {
-          background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+          background: linear-gradient(135deg, #E4F5EE 0%, #E4F5EE 100%);
           border-radius: 12px;
           padding: 24px;
           text-align: center;
@@ -9141,7 +9141,7 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
         
         .confidence-section p {
           font-size: 16px;
-          color: #166534;
+          color: #157A52;
           font-weight: 500;
         }
         
@@ -9149,13 +9149,13 @@ function buildAthleteReportHTML(payload: ExportPayload, logoBase64: string): str
           text-align: center;
           margin-top: 30px;
           padding: 20px;
-          color: #64748b;
+          color: #6E6B78;
           font-size: 12px;
         }
         
         @media print {
           body { background: white; padding: 20px; }
-          .card { box-shadow: none; border: 1px solid #e2e8f0; }
+          .card { box-shadow: none; border: 1px solid #E7E4DC; }
         }
       </style>
     </head>
@@ -9235,9 +9235,9 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
   const athleteReport = buildAthleteReadinessFromPayload(payload);
 
   const scoreColors: Record<string, { bg: string; border: string; text: string; emoji: string; verdict: string }> = {
-    green: { bg: "#dcfce7", border: "#16a34a", text: "#166534", emoji: "🟢", verdict: "Tout est au vert !" },
-    orange: { bg: "#fed7aa", border: "#ea580c", text: "#9a3412", emoji: "🟠", verdict: "Encore un petit effort" },
-    red: { bg: "#fecaca", border: "#dc2626", text: "#991b1b", emoji: "🔴", verdict: "Il faut lever le pied" },
+    green: { bg: "#E4F5EE", border: "#1F9D6B", text: "#157A52", emoji: "🟢", verdict: "Tout est au vert !" },
+    orange: { bg: "#F3D2AE", border: "#D4711C", text: "#94430F", emoji: "🟠", verdict: "Encore un petit effort" },
+    red: { bg: "#F2B7B2", border: "#D0433A", text: "#8F2E27", emoji: "🔴", verdict: "Il faut lever le pied" },
   };
 
   const colors = scoreColors[athleteReport.scoreColor] || scoreColors.orange;
@@ -9252,18 +9252,18 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
   })();
 
   const wellPreparedHTML = athleteReport.wellPrepared.length > 0 ? athleteReport.wellPrepared.map(item => `
-    <li style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px dashed #e5e7eb;">
+    <li style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px dashed #E7E4DC;">
       <span style="font-size:22px;line-height:1;">👍</span>
       <span style="flex:1;font-size:15px;">${htmlEscape(item)}</span>
     </li>
-  `).join('') : '<li style="color:#9ca3af;padding:10px 0;font-style:italic;">Pas encore de point fort identifié — continue à t\'entraîner régulièrement.</li>';
+  `).join('') : '<li style="color:#97949F;padding:10px 0;font-style:italic;">Pas encore de point fort identifié — continue à t\'entraîner régulièrement.</li>';
 
   const toWatchHTML = athleteReport.toWatch.length > 0 ? athleteReport.toWatch.map(item => `
-    <li style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px dashed #e5e7eb;">
+    <li style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px dashed #E7E4DC;">
       <span style="font-size:22px;line-height:1;">👀</span>
       <span style="flex:1;font-size:15px;">${htmlEscape(item)}</span>
     </li>
-  `).join('') : '<li style="color:#16a34a;padding:10px 0;">🎉 Aucun point d\'attention pour le moment — profite de cette belle forme !</li>';
+  `).join('') : '<li style="color:#1F9D6B;padding:10px 0;">🎉 Aucun point d\'attention pour le moment — profite de cette belle forme !</li>';
 
   const reportDate = new Date().toLocaleDateString("fr-FR", {
     weekday: 'long',
@@ -9284,11 +9284,11 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          background: linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #dbeafe 100%);
+          background: linear-gradient(135deg, #FBF0DA 0%, #fce7f3 50%, #EDEDFC 100%);
           min-height: 100vh;
           padding: 32px 16px;
           line-height: 1.7;
-          color: #1e293b;
+          color: #2B2933;
         }
         .container { max-width: 720px; margin: 0 auto; }
 
@@ -9304,17 +9304,17 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         .hero h1 {
           font-size: 32px;
           font-weight: 800;
-          color: #0f172a;
+          color: #14131A;
           margin-bottom: 6px;
         }
         .hero .welcome {
           font-size: 16px;
-          color: #475569;
+          color: #5C5966;
           margin-bottom: 16px;
         }
         .hero .athlete-chip {
           display: inline-block;
-          background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+          background: linear-gradient(135deg, #fbbf24 0%, #C8860D 100%);
           color: white;
           padding: 8px 20px;
           border-radius: 24px;
@@ -9346,16 +9346,16 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
 
         .explain-box {
           background: white;
-          border-left: 5px solid #6366f1;
+          border-left: 5px solid #5555E0;
           border-radius: 12px;
           padding: 18px 20px;
           margin: 20px 0;
           font-size: 15px;
-          color: #1e293b;
+          color: #2B2933;
         }
         .explain-box .label {
           display: inline-block;
-          background: #6366f1;
+          background: #5555E0;
           color: white;
           font-size: 11px;
           font-weight: 700;
@@ -9388,13 +9388,13 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         .score-circle span { font-size: 42px; font-weight: 800; color: white; }
         .score-label {
           font-size: 14px;
-          color: #64748b;
+          color: #6E6B78;
           text-transform: uppercase;
           letter-spacing: 1px;
           font-weight: 600;
           margin-bottom: 8px;
         }
-        .score-text { font-size: 18px; color: #0f172a; font-weight: 600; }
+        .score-text { font-size: 18px; color: #14131A; font-weight: 600; }
 
         .section {
           background: white;
@@ -9409,13 +9409,13 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
           gap: 12px;
           margin-bottom: 16px;
           padding-bottom: 12px;
-          border-bottom: 2px solid #f1f5f9;
+          border-bottom: 2px solid #F2F0E9;
         }
         .section-header .emoji { font-size: 28px; }
         .section-header h2 {
           font-size: 20px;
           font-weight: 700;
-          color: #0f172a;
+          color: #14131A;
         }
         .section ul { list-style: none; }
 
@@ -9430,7 +9430,7 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         .advice-big .label {
           font-size: 12px;
           font-weight: 700;
-          color: #7c3aed;
+          color: #7A56C2;
           text-transform: uppercase;
           letter-spacing: 1px;
           margin-bottom: 8px;
@@ -9438,12 +9438,12 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         .advice-big p {
           font-size: 18px;
           font-weight: 600;
-          color: #4c1d95;
+          color: #5A3E93;
           line-height: 1.5;
         }
 
         .glossary {
-          background: #f8fafc;
+          background: #FAF9F5;
           border-radius: 16px;
           padding: 24px;
           margin-bottom: 20px;
@@ -9451,7 +9451,7 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         .glossary h3 {
           font-size: 16px;
           font-weight: 700;
-          color: #0f172a;
+          color: #14131A;
           margin-bottom: 14px;
           display: flex;
           align-items: center;
@@ -9459,23 +9459,23 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         }
         .gloss-item {
           padding: 10px 0;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid #E7E4DC;
         }
         .gloss-item:last-child { border-bottom: none; }
         .gloss-term {
           font-weight: 700;
-          color: #0f172a;
+          color: #14131A;
           font-size: 14px;
           margin-bottom: 4px;
         }
         .gloss-def {
           font-size: 13px;
-          color: #475569;
+          color: #5C5966;
           line-height: 1.5;
         }
 
         .nutri-card {
-          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          background: linear-gradient(135deg, #FBF0DA 0%, #F0D79A 100%);
           border-radius: 20px;
           padding: 24px;
           margin-bottom: 20px;
@@ -9485,12 +9485,12 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         .nutri-card .label {
           font-size: 12px;
           font-weight: 700;
-          color: #b45309;
+          color: #8A5A08;
           text-transform: uppercase;
           letter-spacing: 1px;
           margin-bottom: 8px;
         }
-        .nutri-card p { font-size: 16px; color: #78350f; font-weight: 500; }
+        .nutri-card p { font-size: 16px; color: #8A5A08; font-weight: 500; }
 
         .encouragement {
           background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
@@ -9510,7 +9510,7 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
         .footer {
           text-align: center;
           padding: 20px;
-          color: #64748b;
+          color: #6E6B78;
           font-size: 12px;
         }
         .footer .pill {
@@ -9524,7 +9524,7 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
 
         @media print {
           body { background: white; padding: 16px; }
-          .hero, .section, .score-block, .glossary, .nutri-card { box-shadow: none; border: 1px solid #e2e8f0; }
+          .hero, .section, .score-block, .glossary, .nutri-card { box-shadow: none; border: 1px solid #E7E4DC; }
           .verdict-card, .advice-big, .encouragement { box-shadow: none; }
         }
       </style>

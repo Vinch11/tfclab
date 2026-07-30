@@ -188,33 +188,33 @@ export function buildScientificAuditHTML(data: ScientificAuditData): string {
 <title>Audit scientifique — ${esc(athlete.name)}</title>
 <style>
   *{box-sizing:border-box}
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#0f172a;max-width:1100px;margin:24px auto;padding:0 24px;line-height:1.45;font-size:13px}
-  h1{font-size:24px;margin:0 0 4px 0;color:#0f172a}
-  h2{font-size:16px;margin:28px 0 10px 0;padding-bottom:6px;border-bottom:2px solid #0f172a;color:#0f172a}
-  h3{font-size:13px;margin:12px 0 6px 0;color:#475569;text-transform:uppercase;letter-spacing:.05em}
-  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0f172a;padding-bottom:12px;margin-bottom:16px}
-  .meta{font-size:11px;color:#475569;text-align:right}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#14131A;max-width:1100px;margin:24px auto;padding:0 24px;line-height:1.45;font-size:13px}
+  h1{font-size:24px;margin:0 0 4px 0;color:#14131A}
+  h2{font-size:16px;margin:28px 0 10px 0;padding-bottom:6px;border-bottom:2px solid #14131A;color:#14131A}
+  h3{font-size:13px;margin:12px 0 6px 0;color:#5C5966;text-transform:uppercase;letter-spacing:.05em}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #14131A;padding-bottom:12px;margin-bottom:16px}
+  .meta{font-size:11px;color:#5C5966;text-align:right}
   .meta div{margin:2px 0}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .kpi{border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;background:#f8fafc}
-  .kpi .v{font-size:18px;font-weight:700;color:#0f172a}
-  .kpi .l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+  .kpi{border:1px solid #E7E4DC;border-radius:8px;padding:10px 12px;background:#FAF9F5}
+  .kpi .v{font-size:18px;font-weight:700;color:#14131A}
+  .kpi .l{font-size:10px;color:#6E6B78;text-transform:uppercase;letter-spacing:.04em}
   table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px}
-  th,td{border:1px solid #e2e8f0;padding:6px 8px;text-align:left;vertical-align:top}
-  th{background:#f1f5f9;font-weight:600;color:#0f172a}
+  th,td{border:1px solid #E7E4DC;padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:#F2F0E9;font-weight:600;color:#14131A}
   tr:nth-child(even) td{background:#fafafa}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10.5px}
-  .small{font-size:10.5px;color:#475569}
-  .badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#e2e8f0;color:#334155}
-  .badge.ok{background:#dcfce7;color:#166534}
-  .badge.warning{background:#fef3c7;color:#92400e}
-  .badge.critical{background:#fee2e2;color:#991b1b}
-  .sig{margin-top:32px;padding:12px;border:1px dashed #94a3b8;border-radius:8px;background:#f8fafc}
-  .sig .l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-  .sig .h{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10px;word-break:break-all;color:#0f172a}
-  .empty{font-style:italic;color:#94a3b8;padding:8px 0}
-  .legend{font-size:10.5px;color:#475569;margin-top:6px}
+  .small{font-size:10.5px;color:#5C5966}
+  .badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#E7E4DC;color:#5C5966}
+  .badge.ok{background:#E4F5EE;color:#157A52}
+  .badge.warning{background:#FBF0DA;color:#8A5A08}
+  .badge.critical{background:#FAE6E4;color:#8F2E27}
+  .sig{margin-top:32px;padding:12px;border:1px dashed #97949F;border-radius:8px;background:#FAF9F5}
+  .sig .l{font-size:10px;color:#6E6B78;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .sig .h{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10px;word-break:break-all;color:#14131A}
+  .empty{font-style:italic;color:#97949F;padding:8px 0}
+  .legend{font-size:10.5px;color:#5C5966;margin-top:6px}
   @media print{body{margin:0;padding:0 14mm;font-size:11px}h2{page-break-after:avoid}table{page-break-inside:auto}tr{page-break-inside:avoid}}
 </style>
 </head>

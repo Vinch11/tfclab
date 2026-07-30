@@ -30,6 +30,7 @@ import { computeNegativeSplitDelta } from "@/lib/v2/pacingDisciplineRules";
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 import { useCloudData } from "@/contexts/CloudDataContext";
 import { Save, Check } from "lucide-react";
+import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 
 interface ObjectiveStrategyCardProps {
   raceObjective: RaceObjective;
@@ -1007,7 +1008,7 @@ export function buildStrategyHtml(
   const planSection = (plan: PlanConfig) => {
     const planABoost = (plan.key === "A" && raceObjective === "70.3" && (ambition === "competitor" || ambition === "elite" || ambition === "world_class")) ? 1.025 : 1;
     const effIF = plan.intensityFactor * conditionsFactor * planABoost;
-    let html = `<section class="plan"><h2>${plan.label}${conditionsFactor < 1 ? ` <span style="font-size:10px;color:#b45309;">(ajusté conditions ×${conditionsFactor.toFixed(3)})</span>` : ""}${planABoost > 1 ? ` <span style="font-size:10px;color:#047857;">(70.3 ${ambition} : +2 pts FTP)</span>` : ""}</h2><p class="desc">${plan.description}</p>`;
+    let html = `<section class="plan"><h2>${plan.label}${conditionsFactor < 1 ? ` <span style="font-size:10px;color:#8A5A08;">(ajusté conditions ×${conditionsFactor.toFixed(3)})</span>` : ""}${planABoost > 1 ? ` <span style="font-size:10px;color:#047857;">(70.3 ${ambition} : +2 pts FTP)</span>` : ""}</h2><p class="desc">${plan.description}</p>`;
 
     if (hasBike && include.bike) {
       const bw = bikeWatts(bikeEnvelope!, ftp!, effIF);
@@ -1117,7 +1118,7 @@ export function buildStrategyHtml(
   };
 
   const conditionsBanner = conditionsReasons.length > 0
-    ? `<div class="meta" style="background:#fef3c7;border-left:3px solid #d97706;padding:6px 8px;color:#92400e;">Conditions appliquées : ${conditionsReasons.join(" · ")} (dérate IF ×${conditionsFactor.toFixed(3)})</div>`
+    ? `<div class="meta" style="background:#FBF0DA;border-left:3px solid #C8860D;padding:6px 8px;color:#8A5A08;">Conditions appliquées : ${conditionsReasons.join(" · ")} (dérate IF ×${conditionsFactor.toFixed(3)})</div>`
     : "";
 
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"/>
@@ -1126,22 +1127,22 @@ export function buildStrategyHtml(
   @page { size: A4; margin: 14mm; }
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #111; font-size: 11px; line-height: 1.4; }
-  h1 { font-size: 18px; margin: 0 0 4px; color: #0f172a; }
-  h2 { font-size: 14px; margin: 14px 0 6px; padding: 4px 8px; background: #f1f5f9; border-left: 3px solid #2563eb; }
-  h3 { font-size: 12px; margin: 10px 0 4px; color: #1e293b; }
-  .meta { color: #64748b; font-size: 10px; margin-bottom: 12px; }
-  .desc { color: #475569; font-style: italic; margin: 2px 0 8px; }
+  h1 { font-size: 18px; margin: 0 0 4px; color: #14131A; }
+  h2 { font-size: 14px; margin: 14px 0 6px; padding: 4px 8px; background: #F2F0E9; border-left: 3px solid #5555E0; }
+  h3 { font-size: 12px; margin: 10px 0 4px; color: #2B2933; }
+  .meta { color: #6E6B78; font-size: 10px; margin-bottom: 12px; }
+  .desc { color: #5C5966; font-style: italic; margin: 2px 0 8px; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
-  table.kv th { width: 22%; text-align: left; padding: 3px 6px; background: #f8fafc; color: #475569; font-weight: 500; }
-  table.kv td { padding: 3px 6px; border-bottom: 1px solid #e2e8f0; }
-  table.seg th { background: #e2e8f0; padding: 4px 6px; text-align: left; font-size: 10px; }
-  table.seg td { padding: 4px 6px; border-bottom: 1px solid #e2e8f0; font-size: 10px; }
+  table.kv th { width: 22%; text-align: left; padding: 3px 6px; background: #FAF9F5; color: #5C5966; font-weight: 500; }
+  table.kv td { padding: 3px 6px; border-bottom: 1px solid #E7E4DC; }
+  table.seg th { background: #E7E4DC; padding: 4px 6px; text-align: left; font-size: 10px; }
+  table.seg td { padding: 4px 6px; border-bottom: 1px solid #E7E4DC; font-size: 10px; }
   .plan { page-break-inside: avoid; margin-bottom: 16px; }
-  .warn { background: #fef3c7; border-left: 3px solid #d97706; padding: 6px 8px; font-size: 10px; margin-top: 6px; }
-  .footer { margin-top: 16px; font-size: 9px; color: #64748b; text-align: center; font-style: italic; }
+  .warn { background: #FBF0DA; border-left: 3px solid #C8860D; padding: 6px 8px; font-size: 10px; margin-top: 6px; }
+  .footer { margin-top: 16px; font-size: 9px; color: #6E6B78; text-align: center; font-style: italic; }
   @media print { .noprint { display: none; } }
   .noprint { position: fixed; top: 8px; right: 8px; }
-  .noprint button { padding: 6px 12px; background: #2563eb; color: white; border: 0; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .noprint button { padding: 6px 12px; background: #5555E0; color: white; border: 0; border-radius: 4px; cursor: pointer; font-size: 12px; }
 </style></head>
 <body>
 <div class="noprint"><button onclick="window.print()">Imprimer / PDF</button></div>
@@ -1174,7 +1175,7 @@ function downloadStrategyPdf(
     return;
   }
   win.document.open();
-  win.document.write(html);
+  win.document.write(applyBevelPrintTheme(html));
   win.document.close();
 }
 

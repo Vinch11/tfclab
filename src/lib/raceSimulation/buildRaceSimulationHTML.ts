@@ -264,23 +264,23 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
 <style>
   @page { size: A4; margin: 14mm; }
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0f172a; background: #f8fafc; margin: 0; padding: 16px; font-size: 12.5px; line-height: 1.5; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #14131A; background: #FAF9F5; margin: 0; padding: 16px; font-size: 12.5px; line-height: 1.5; }
   h1 { font-size: 22px; margin: 0; color: white; }
-  h2 { font-size: 15px; margin: 22px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #0d9488; }
-  .header { background: linear-gradient(135deg, #0d9488, #0f766e); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
-  .header .subtitle { color: #ccfbf1; font-size: 12px; margin: 4px 0 12px; }
+  h2 { font-size: 15px; margin: 22px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #12897E; }
+  .header { background: linear-gradient(135deg, #5555E0 0%, #3C3CB8 100%); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
+  .header .subtitle { color: #CBEDE6; font-size: 12px; margin: 4px 0 12px; }
   .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .meta-grid .cell { background: rgba(255,255,255,0.12); padding: 8px 10px; border-radius: 6px; }
-  .meta-grid .k { font-size: 9.5px; color: #99f6e4; text-transform: uppercase; letter-spacing: 0.5px; }
+  .meta-grid .k { font-size: 9.5px; color: #CBEDE6; text-transform: uppercase; letter-spacing: 0.5px; }
   .meta-grid .v { font-size: 13px; font-weight: 600; color: white; margin-top: 2px; }
-  .banner { background: #ccfbf1; border: 1px solid #5eead4; color: #134e4a; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 14px; }
+  .banner { background: #CBEDE6; border: 1px solid #5eead4; color: #134e4a; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 14px; }
   table { width:100%; border-collapse: collapse; font-size: 12px; }
-  th, td { padding: 6px 8px; border: 1px solid #e2e8f0; text-align: left; }
-  th { background: #f1f5f9; }
-  .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 10.5px; color: #475569; text-align: center; }
-  .callout { margin-top: 18px; padding: 12px 14px; border-radius: 8px; background: #fef9c3; border: 1px solid #fde68a; color: #713f12; font-size: 11.5px; }
+  th, td { padding: 6px 8px; border: 1px solid #E7E4DC; text-align: left; }
+  th { background: #F2F0E9; }
+  .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #E7E4DC; font-size: 10.5px; color: #5C5966; text-align: center; }
+  .callout { margin-top: 18px; padding: 12px 14px; border-radius: 8px; background: #FBF0DA; border: 1px solid #F0D79A; color: #8A5A08; font-size: 11.5px; }
   .zones { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-  .zone { padding: 6px 10px; border-radius: 6px; background: #f1f5f9; font-size: 11.5px; }
+  .zone { padding: 6px 10px; border-radius: 6px; background: #F2F0E9; font-size: 11.5px; }
 </style>
 </head>
 <body>
@@ -313,19 +313,19 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
       <div class="zones">
         ${hrZones.map(z => `<div class="zone"><strong>${z.id}</strong> · ${z.lab} : ${z.lo}–${z.hi} bpm</div>`).join("")}
       </div>
-    ` : `<p style="font-style:italic;color:#64748b;margin-top:10px">Renseigne ta FC max pour générer les zones cardio.</p>`}
+    ` : `<p style="font-style:italic;color:#6E6B78;margin-top:10px">Renseigne ta FC max pour générer les zones cardio.</p>`}
   </section>
 
   <section>
     <h2>2. Plan nutrition simplifié</h2>
     <table>
-      <tr><th style="width:40%">Glucides / heure</th><td>${esc(choPerHour)}${dur != null ? ` <span style="color:#64748b">(durée estimée ${fmtDuration(dur)})</span>` : ""}</td></tr>
+      <tr><th style="width:40%">Glucides / heure</th><td>${esc(choPerHour)}${dur != null ? ` <span style="color:#6E6B78">(durée estimée ${fmtDuration(dur)})</span>` : ""}</td></tr>
       <tr><th>Hydratation</th><td>${esc(hydration)}</td></tr>
       <tr><th>Sodium</th><td>${esc(sodium)} (plus si chaleur ou "salty sweater")</td></tr>
       <tr><th>Démarrage nutrition</th><td>Dès la 20ème minute — ne pas attendre la soif/faim.</td></tr>
       <tr><th>Caféine (optionnel)</th><td>1–3 mg/kg, 30–45 min avant le départ.</td></tr>
     </table>
-    <p style="margin-top:8px;font-size:11px;color:#64748b">
+    <p style="margin-top:8px;font-size:11px;color:#6E6B78">
       Paliers : <strong>60 g/h</strong> si &lt; 4h · <strong>75 g/h</strong> si 4–6h · <strong>90 g/h</strong> si &gt; 6h.
     </p>
   </section>
@@ -338,7 +338,7 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
         ${rpeRows.map(r => `<tr><td><strong>${esc(r.discipline)}</strong></td><td>${esc(r.rpe)}</td><td>${esc(r.cue)}</td></tr>`).join("")}
       </tbody>
     </table>
-    <p style="margin-top:10px;font-size:11.5px;color:#475569">
+    <p style="margin-top:10px;font-size:11.5px;color:#5C5966">
       Les allures sont volontairement exprimées en <strong>RPE (échelle d'effort 1–10)</strong> et non en watts ou min/km :
       sans test physiologique, ces valeurs seraient trompeuses. Concentre-toi sur la <strong>gestion de l'effort</strong>
       et la <strong>nutrition</strong> — c'est ce qui fait la différence entre finir et abandonner.
@@ -420,58 +420,58 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
 <style>
   @page { size: A4; margin: 14mm; }
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0f172a; background: #f8fafc; margin: 0; padding: 16px; font-size: 12px; line-height: 1.45; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #14131A; background: #FAF9F5; margin: 0; padding: 16px; font-size: 12px; line-height: 1.45; }
   h1 { font-size: 22px; margin: 0 0 4px 0; }
-  h2 { font-size: 15px; margin: 22px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #0f172a; }
+  h2 { font-size: 15px; margin: 22px 0 8px 0; padding-bottom: 4px; border-bottom: 2px solid #14131A; }
   .brand { display:flex; align-items:center; gap:10px; }
-  .brand .logo { width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#6366f1); color:white; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:14px; letter-spacing:0.5px; }
-  .header { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
+  .brand .logo { width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,#1C8FC4,#5555E0); color:white; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:14px; letter-spacing:0.5px; }
+  .header { background: linear-gradient(135deg, #5555E0 0%, #3C3CB8 100%); color: white; padding: 20px 24px; border-radius: 12px; margin-bottom: 18px; }
   .header h1, .header .subtitle { color: white; }
-  .header .subtitle { color: #cbd5e1; font-size: 12px; margin: 2px 0 12px; }
+  .header .subtitle { color: #DAD6CC; font-size: 12px; margin: 2px 0 12px; }
   .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
   .meta-grid .cell { background: rgba(255,255,255,0.08); padding: 8px 10px; border-radius: 6px; }
-  .meta-grid .k { font-size: 9.5px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .meta-grid .k { font-size: 9.5px; color: #97949F; text-transform: uppercase; letter-spacing: 0.5px; }
   .meta-grid .v { font-size: 13px; font-weight: 600; color: white; margin-top: 2px; }
-  .why { margin: 8px 0 14px; background:#fffbe6; border:1px solid #fde68a; border-radius:8px; padding:10px 12px; font-size:11.5px; color:#713f12; }
+  .why { margin: 8px 0 14px; background:#FBF0DA; border:1px solid #F0D79A; border-radius:8px; padding:10px 12px; font-size:11.5px; color:#8A5A08; }
   .why-title { font-weight:700; margin-bottom:3px; }
   .kv-grid { width:100%; border-collapse: collapse; font-size: 12px; }
-  .kv-grid td { padding: 5px 8px; border-bottom: 1px dashed #e2e8f0; }
-  .kv-grid td:nth-child(odd) { color:#64748b; width:18%; }
+  .kv-grid td { padding: 5px 8px; border-bottom: 1px dashed #E7E4DC; }
+  .kv-grid td:nth-child(odd) { color:#6E6B78; width:18%; }
   .kv-grid td:nth-child(even) { font-weight:600; width:32%; }
   .env-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-  .env-card { background:white; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; }
+  .env-card { background:white; border:1px solid #E7E4DC; border-radius:10px; padding:10px 12px; }
   .env-title { font-weight:700; font-size:12.5px; margin-bottom:6px; }
-  .env-sub { font-weight:400; color:#64748b; font-size:11px; }
+  .env-sub { font-weight:400; color:#6E6B78; font-size:11px; }
   .env-card table.kv { width:100%; border-collapse:collapse; font-size:11.5px; }
   .env-card table.kv td { padding:3px 0; }
-  .env-card table.kv td:first-child { color:#64748b; }
+  .env-card table.kv td:first-child { color:#6E6B78; }
   .env-card table.kv td:last-child { text-align:right; }
-  .note { margin-top:6px; font-size:10.5px; color:#92400e; background:#fef3c7; padding:5px 7px; border-radius:6px; }
+  .note { margin-top:6px; font-size:10.5px; color:#8A5A08; background:#FBF0DA; padding:5px 7px; border-radius:6px; }
   .nutrition-table { width:100%; border-collapse:collapse; font-size:11.5px; }
-  .nutrition-table th, .nutrition-table td { padding:6px 8px; border:1px solid #e2e8f0; text-align:left; }
-  .nutrition-table th { background:#f1f5f9; font-weight:600; }
+  .nutrition-table th, .nutrition-table td { padding:6px 8px; border:1px solid #E7E4DC; text-align:left; }
+  .nutrition-table th { background:#F2F0E9; font-weight:600; }
   .scenarios { display:grid; grid-template-columns: 1fr; gap:8px; }
-  .scenario { border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; background:white; page-break-inside: avoid; }
+  .scenario { border:1px solid #E7E4DC; border-radius:8px; padding:10px 12px; background:white; page-break-inside: avoid; }
   .scenario-head { display:flex; gap:8px; align-items:center; margin-bottom:5px; }
   .scenario-title { font-weight:700; font-size:12.5px; flex:1; }
-  .badge { font-size:10px; padding:2px 6px; border-radius:10px; background:#e2e8f0; text-transform:uppercase; letter-spacing:0.5px; }
-  .scenario.sev-critical { border-color:#dc2626; }
-  .scenario.sev-critical .badge { background:#fee2e2; color:#991b1b; }
-  .scenario.sev-major { border-color:#ea580c; }
-  .scenario.sev-major .badge { background:#ffedd5; color:#9a3412; }
-  .scenario.sev-moderate { border-color:#ca8a04; }
-  .scenario.sev-moderate .badge { background:#fef3c7; color:#854d0e; }
-  .scenario.sev-minor .badge { background:#dcfce7; color:#166534; }
+  .badge { font-size:10px; padding:2px 6px; border-radius:10px; background:#E7E4DC; text-transform:uppercase; letter-spacing:0.5px; }
+  .scenario.sev-critical { border-color:#D0433A; }
+  .scenario.sev-critical .badge { background:#FAE6E4; color:#8F2E27; }
+  .scenario.sev-major { border-color:#D4711C; }
+  .scenario.sev-major .badge { background:#FBEEDF; color:#94430F; }
+  .scenario.sev-moderate { border-color:#C8860D; }
+  .scenario.sev-moderate .badge { background:#FBF0DA; color:#854d0e; }
+  .scenario.sev-minor .badge { background:#E4F5EE; color:#157A52; }
   .scenario-row { margin: 2px 0; font-size: 11.5px; }
-  .scenario-msg { margin-top:6px; font-style: italic; color:#334155; }
-  .scenario-action { margin-top:4px; color:#0f172a; }
+  .scenario-msg { margin-top:6px; font-style: italic; color:#5C5966; }
+  .scenario-action { margin-top:4px; color:#14131A; }
   .golden { list-style: none; padding-left: 0; }
-  .golden li { margin: 6px 0; padding: 8px 10px; background:#ecfeff; border-left:3px solid #0891b2; border-radius:6px; font-size:11.5px; }
-  .muted { color:#94a3b8; font-style: italic; }
+  .golden li { margin: 6px 0; padding: 8px 10px; background:#E2F1F9; border-left:3px solid #1C8FC4; border-radius:6px; font-size:11.5px; }
+  .muted { color:#97949F; font-style: italic; }
   .risk-line { font-size:12.5px; margin-bottom:4px; }
-  .risk-warn { background:#fef2f2; color:#991b1b; padding:8px 10px; border-radius:6px; border:1px solid #fecaca; margin-bottom:10px; font-size:11.5px; }
-  .disclaimer { margin-top:10px; font-size:10px; color:#94a3b8; font-style: italic; }
-  .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; text-align: center; }
+  .risk-warn { background:#FAE6E4; color:#8F2E27; padding:8px 10px; border-radius:6px; border:1px solid #F2B7B2; margin-bottom:10px; font-size:11.5px; }
+  .disclaimer { margin-top:10px; font-size:10px; color:#97949F; font-style: italic; }
+  .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #E7E4DC; font-size: 10px; color: #97949F; text-align: center; }
   section { page-break-inside: avoid; }
 </style>
 </head>

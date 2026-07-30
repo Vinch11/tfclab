@@ -10,6 +10,7 @@ import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 
 
 const SPORT_TAG_TOKENS = new Set([
@@ -17,20 +18,20 @@ const SPORT_TAG_TOKENS = new Set([
   "TRAIL", "BRICK", "TRI", "STRENGTH", "FORCE", "REST",
 ]);
 const LORANG_COLORS: Record<string, string> = {
-  A: "#dc2626", B: "#ea580c", C: "#2563eb", D: "#16a34a",
+  A: "#D0433A", B: "#D4711C", C: "#5555E0", D: "#1F9D6B",
 };
 function renderTitleForPDF(rawTitle: string, fiche?: EnrichedSessionFiche | null): string {
   const parsed = parseSessionTitle(rawTitle);
   const badges: string[] = [];
   if (parsed.lorangCategory) {
-    const c = LORANG_COLORS[parsed.lorangCategory] ?? "#6b7280";
+    const c = LORANG_COLORS[parsed.lorangCategory] ?? "#6E6B78";
     badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:${c};color:#fff;font-size:9px;font-weight:700;margin-right:4px;">${parsed.lorangCategory}</span>`);
   }
   for (const tag of parsed.tags) {
     if (tag === parsed.lorangCategory) continue;
     if (tag === parsed.catalogId) continue;
     if (SPORT_TAG_TOKENS.has(tag.toUpperCase())) continue;
-    badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:#e5e7eb;color:#374151;font-size:9px;font-weight:600;margin-right:4px;">${tag}</span>`);
+    badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:#E7E4DC;color:#2B2933;font-size:9px;font-weight:600;margin-right:4px;">${tag}</span>`);
   }
   let clean = parsed.cleanTitle.trim();
   const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
@@ -117,7 +118,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
   const gapBadge = (pct: number | null) => {
     if (pct == null) return `<span style="color:#888;">—</span>`;
     const sign = pct >= 0 ? "+" : "";
-    const color = Math.abs(pct) > 8 ? "#c62828" : Math.abs(pct) > 3 ? "#ef6c00" : "#2e7d32";
+    const color = Math.abs(pct) > 8 ? "#D0433A" : Math.abs(pct) > 3 ? "#ef6c00" : "#1F9D6B";
     return `<span style="color:${color};font-weight:600;">${sign}${pct.toFixed(1)}%</span>`;
   };
   const gapVma = derived.vmaRequiredForLiterature && ctx.vmaKmh
@@ -125,11 +126,11 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
     : null;
 
   return `
-  <div style="background:#fff7ed;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #ea580c;">
+  <div style="background:#FBEEDF;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #D4711C;">
     <strong>⚠️ Gap Ambition — Physiologie actuelle vs standard "${ambLabel}"</strong>
     <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:11px;">
       <thead>
-        <tr style="background:#fed7aa;">
+        <tr style="background:#F3D2AE;">
           <th style="padding:4px 6px;text-align:left;">Métrique</th>
           <th style="padding:4px 6px;text-align:left;">Actuel (snapshot)</th>
           <th style="padding:4px 6px;text-align:left;">Requis (${ambLabel})</th>
@@ -143,7 +144,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
         <tr><td style="padding:4px 6px;">Volume hebdo</td><td style="padding:4px 6px;">${ctx.weeklyHours ? ctx.weeklyHours + "h" : "—"}</td><td style="padding:4px 6px;">${volReqStr}</td><td style="padding:4px 6px;">${gapBadge(gapVol)}</td></tr>
       </tbody>
     </table>
-    <p style="margin:8px 0 0 0;font-size:10.5px;color:#78350f;line-height:1.5;">
+    <p style="margin:8px 0 0 0;font-size:10.5px;color:#8A5A08;line-height:1.5;">
       <strong>Structure ${ambLabel}</strong> appliquée (${derived.qualitesParSemaine} qualité(s)/sem, complexité "${derived.complexiteSeances}"). Objectif du plan : <strong>${timeAct}</strong> (physiologie actuelle).
     </p>
   </div>`;
@@ -208,7 +209,7 @@ function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999):
     .join("");
 
   const variants = f.variants.length
-    ? `<div style="margin-top:4px;"><strong style="color:#1967d2;">🎯 Variantes :</strong><ul style="margin:2px 0 0 16px;padding:0;">${f.variants
+    ? `<div style="margin-top:4px;"><strong style="color:#5555E0;">🎯 Variantes :</strong><ul style="margin:2px 0 0 16px;padding:0;">${f.variants
         .map((v) => `<li><strong>${escapeHTML(v.goal)}</strong> — ${escapeHTML(v.text)}</li>`)
         .join("")}</ul></div>`
     : "";
@@ -231,14 +232,14 @@ function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999):
   const whenAvoid =
     sanitizedWhen || f.avoid
       ? `<div style="margin-top:3px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          ${sanitizedWhen ? `<div><strong style="color:#2e7d32;">✓ Quand :</strong> ${escapeHTML(sanitizedWhen)}</div>` : ""}
-          ${f.avoid ? `<div><strong style="color:#c62828;">⚠ Éviter :</strong> ${escapeHTML(f.avoid)}</div>` : ""}
+          ${sanitizedWhen ? `<div><strong style="color:#1F9D6B;">✓ Quand :</strong> ${escapeHTML(sanitizedWhen)}</div>` : ""}
+          ${f.avoid ? `<div><strong style="color:#D0433A;">⚠ Éviter :</strong> ${escapeHTML(f.avoid)}</div>` : ""}
         </div>`
       : "";
 
 
   const notes = f.notes
-    ? `<div style="margin-top:3px;font-style:italic;color:#555;border-left:2px solid #1967d2;padding-left:6px;">💡 ${escapeHTML(
+    ? `<div style="margin-top:3px;font-style:italic;color:#555;border-left:2px solid #5555E0;padding-left:6px;">💡 ${escapeHTML(
         f.notes
       )}</div>`
     : "";
@@ -247,19 +248,19 @@ function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999):
     ? `<div style="margin-top:4px;">${f.tags
         .map(
           (t) =>
-            `<span style="display:inline-block;background:#eef2f6;color:#555;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:3px;">#${escapeHTML(
+            `<span style="display:inline-block;background:#F2F0E9;color:#555;font-size:9px;padding:1px 5px;border-radius:3px;margin-right:3px;">#${escapeHTML(
               t
             )}</span>`
         )
         .join("")}</div>`
     : "";
 
-  return `<div style="margin-top:6px;padding:6px 8px;border-top:1px dashed #ccc;background:#fafbfd;border-radius:4px;font-size:10.5px;color:#333;line-height:1.4;">
+  return `<div style="margin-top:6px;padding:6px 8px;border-top:1px dashed #ccc;background:#FAF9F5;border-radius:4px;font-size:10.5px;color:#333;line-height:1.4;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
-      <strong style="color:#1967d2;text-transform:uppercase;font-size:9.5px;letter-spacing:0.4px;">Fiche complète bibliothèque</strong>
+      <strong style="color:#5555E0;text-transform:uppercase;font-size:9.5px;letter-spacing:0.4px;">Fiche complète bibliothèque</strong>
       <span style="font-size:9px;color:#777;">
         Cat ${escapeHTML(f.cat)} · ${escapeHTML(f.necessite)} · ${f.durationMin[0]}-${f.durationMin[1]} min ·
-        <code style="background:#eef2f6;padding:1px 4px;border-radius:3px;">${escapeHTML(f.id)}</code>
+        <code style="background:#F2F0E9;padding:1px 4px;border-radius:3px;">${escapeHTML(f.id)}</code>
       </span>
     </div>
     <div style="font-style:italic;color:#444;margin-bottom:3px;">🎯 ${escapeHTML(f.objectif)}</div>
@@ -275,13 +276,13 @@ function renderFicheHTML(f: EnrichedSessionFiche, planTotalWeeks: number = 999):
 
 function getSportBadgeStyle(sport: string): { bg: string; color: string; border: string } {
   const s = sport.toLowerCase();
-  if (s.includes("repos") || s.includes("rest")) return { bg: "#f3f4f6", color: "#6b7280", border: "#e5e7eb" };
-  if (s.includes("natation") || s.includes("swim")) return { bg: "#dbeafe", color: "#1e40af", border: "#bfdbfe" };
-  if (s.includes("vélo") || s.includes("velo") || s.includes("bike")) return { bg: "#dbeafe", color: "#1e3a8a", border: "#93c5fd" };
-  if (s.includes("brick")) return { bg: "#ede9fe", color: "#5b21b6", border: "#c4b5fd" };
+  if (s.includes("repos") || s.includes("rest")) return { bg: "#F2F0E9", color: "#6E6B78", border: "#E7E4DC" };
+  if (s.includes("natation") || s.includes("swim")) return { bg: "#EDEDFC", color: "#3C3CB8", border: "#bfdbfe" };
+  if (s.includes("vélo") || s.includes("velo") || s.includes("bike")) return { bg: "#EDEDFC", color: "#3C3CB8", border: "#B9B9F2" };
+  if (s.includes("brick")) return { bg: "#EFE9FA", color: "#5A3E93", border: "#c4b5fd" };
   if (s.includes("muscu") || s.includes("force")) return { bg: "#fce7f3", color: "#9d174d", border: "#f9a8d4" };
-  if (s.includes("cap") || s.includes("course") || s.includes("run")) return { bg: "#dcfce7", color: "#166534", border: "#86efac" };
-  return { bg: "#f3f4f6", color: "#374151", border: "#d1d5db" };
+  if (s.includes("cap") || s.includes("course") || s.includes("run")) return { bg: "#E4F5EE", color: "#157A52", border: "#A8E3CB" };
+  return { bg: "#F2F0E9", color: "#2B2933", border: "#DAD6CC" };
 }
 
 function getSportBadge(sport: string): string {
@@ -312,7 +313,7 @@ export function exportAIPlanToPDF(
   gapContext?: PDFGapContext,
 ) {
   const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel, gapContext);
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const blob = new Blob([applyBevelPrintTheme(html)], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, "_blank");
   if (w) {
@@ -346,7 +347,7 @@ function buildPlanHTML(
         : getTrailSessionAlternatives({ sport: s.sport, title: s.title, details: s.details });
       const altsHtml = !isCompact && trailAlts.length > 0
         ? `<div style="font-size:10px;color:#555;">
-            <strong style="color:#1967d2;">Alternatives terrain :</strong>
+            <strong style="color:#5555E0;">Alternatives terrain :</strong>
             ${trailAlts.map(a => `<div style="margin-top:2px;"><span>${a.icon}</span> <strong>${a.label}</strong> — <span style="color:#777;">${a.hint}</span></div>`).join("")}
           </div>`
         : "";
@@ -355,58 +356,58 @@ function buildPlanHTML(
       if (isPortrait) {
         // Stacked card layout — clearer in A4 portrait
         const header = `
-          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:6px 10px;background:#f1f5f9;border-bottom:1px solid #cbd5e1;">
-            <strong style="color:#1f2937;font-size:12px;min-width:90px;">${s.dayName}</strong>
-            ${dateStr ? `<span style="font-size:10.5px;color:#6b7280;">${dateStr}</span>` : ""}
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:6px 10px;background:#F2F0E9;border-bottom:1px solid #DAD6CC;">
+            <strong style="color:#14131A;font-size:12px;min-width:90px;">${s.dayName}</strong>
+            ${dateStr ? `<span style="font-size:10.5px;color:#6E6B78;">${dateStr}</span>` : ""}
             ${getSportBadge(s.sport)}
-            <span style="font-weight:600;color:#1f2937;font-size:12px;flex:1;">${renderTitleForPDF(s.title, fiche)}</span>
+            <span style="font-weight:600;color:#14131A;font-size:12px;flex:1;">${renderTitleForPDF(s.title, fiche)}</span>
           </div>`;
-        const body = `<div style="padding:8px 12px;font-size:11px;color:#374151;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#9ca3af;' : ''}">${formatFicheText(s.details || "")}</div>`;
+        const body = `<div style="padding:8px 12px;font-size:11px;color:#2B2933;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#97949F;' : ''}">${formatFicheText(s.details || "")}</div>`;
         const ficheBlock = fiche
-          ? `<div style="border-top:1px dashed #cbd5e1;background:#fafbfd;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks)}</div></div>`
+          ? `<div style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:6px 10px;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks)}</div></div>`
           : "";
         const altsBlock = altsHtml
-          ? `<div style="border-top:1px dashed #cbd5e1;background:#fff;padding:6px 10px;">${altsHtml}</div>`
+          ? `<div style="border-top:1px dashed #DAD6CC;background:#fff;padding:6px 10px;">${altsHtml}</div>`
           : "";
         return `
-          <div class="session-card" style="border:1px solid #d1d5db;border-radius:6px;margin-bottom:8px;overflow:hidden;background:#fff;">
+          <div class="session-card" style="border:1px solid #DAD6CC;border-radius:6px;margin-bottom:8px;overflow:hidden;background:#fff;">
             ${header}${body}${ficheBlock}${altsBlock}
           </div>`;
       }
 
       const totalCols = (hasDate ? 1 : 0) + 4;
       const ficheRow = fiche
-        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fafbfd;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks)}</div></td></tr>`
+        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#FAF9F5;"><div class="fiche-box">${renderFicheHTML(fiche, plan.totalWeeks)}</div></td></tr>`
         : "";
       const altsRow = altsHtml
         ? `<tr class="alts-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`
         : "";
       
       // Alternating row colors + stronger separator between days
-      const rowBg = sessionIdx % 2 === 0 ? "#ffffff" : "#f8fafc";
-      const daySeparator = sessionIdx > 0 ? "border-top:2px solid #e2e8f0;" : "";
+      const rowBg = sessionIdx % 2 === 0 ? "#ffffff" : "#FAF9F5";
+      const daySeparator = sessionIdx > 0 ? "border-top:2px solid #E7E4DC;" : "";
       
       return `
-      <tr class="session-row" style="background:${rowBg};${daySeparator}${s.isRest ? 'color:#9ca3af;' : ''}">
-        ${hasDate ? `<td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;font-size:11px;color:#4b5563;vertical-align:top;font-weight:500;">${dateStr}</td>` : ""}
-        <td style="padding:6px 10px;border:1px solid #d1d5db;white-space:nowrap;vertical-align:top;font-weight:600;color:#374151;">${s.dayName}</td>
-        <td style="padding:6px 10px;border:1px solid #d1d5db;vertical-align:top;">${getSportBadge(s.sport)}</td>
-        <td style="padding:6px 10px;border:1px solid #d1d5db;font-weight:600;vertical-align:top;color:#1f2937;">${renderTitleForPDF(s.title, fiche)}</td>
-        <td style="padding:6px 10px;border:1px solid #d1d5db;font-size:11px;vertical-align:top;word-wrap:break-word;color:#4b5563;line-height:1.5;white-space:pre-wrap;">${formatFicheText(s.details || "")}</td>
+      <tr class="session-row" style="background:${rowBg};${daySeparator}${s.isRest ? 'color:#97949F;' : ''}">
+        ${hasDate ? `<td style="padding:6px 10px;border:1px solid #DAD6CC;white-space:nowrap;font-size:11px;color:#5C5966;vertical-align:top;font-weight:500;">${dateStr}</td>` : ""}
+        <td style="padding:6px 10px;border:1px solid #DAD6CC;white-space:nowrap;vertical-align:top;font-weight:600;color:#2B2933;">${s.dayName}</td>
+        <td style="padding:6px 10px;border:1px solid #DAD6CC;vertical-align:top;">${getSportBadge(s.sport)}</td>
+        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-weight:600;vertical-align:top;color:#14131A;">${renderTitleForPDF(s.title, fiche)}</td>
+        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-size:11px;vertical-align:top;word-wrap:break-word;color:#5C5966;line-height:1.5;white-space:pre-wrap;">${formatFicheText(s.details || "")}</td>
       </tr>
       ${ficheRow}
       ${altsRow}
     `;
     }).join("");
 
-    const weekRangeStr = weekStart ? ` <span style="font-weight:normal;font-size:10px;color:#1967d2;margin-left:6px;">(${formatWeekRange(weekStart)})</span>` : "";
+    const weekRangeStr = weekStart ? ` <span style="font-weight:normal;font-size:10px;color:#5555E0;margin-left:6px;">(${formatWeekRange(weekStart)})</span>` : "";
     // Add a visual separator stripe between weeks
-    const weekSeparator = weekIdx > 0 ? "margin-top:32px;padding-top:16px;border-top:3px double #cbd5e1;" : "";
+    const weekSeparator = weekIdx > 0 ? "margin-top:32px;padding-top:16px;border-top:3px double #DAD6CC;" : "";
 
     const sessionsBlock = isPortrait
       ? `<div class="sessions-stack">${sessionRows}</div>`
       : `
-        <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid #d1d5db;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;border:1px solid #DAD6CC;">
           <colgroup>
             ${hasDate ? `<col style="width:8%;">` : ""}
             <col style="width:6%;">
@@ -415,12 +416,12 @@ function buildPlanHTML(
             <col style="width:${hasDate ? "56%" : "64%"};">
           </colgroup>
           <thead>
-            <tr style="background:#f1f5f9;">
-              ${hasDate ? `<th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Date</th>` : ""}
-              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Jour</th>
-              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Sport</th>
-              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Séance</th>
-              <th style="padding:6px 10px;border:1px solid #d1d5db;text-align:left;font-size:11px;font-weight:700;color:#374151;letter-spacing:0.3px;">Détails</th>
+            <tr style="background:#F2F0E9;">
+              ${hasDate ? `<th style="padding:6px 10px;border:1px solid #DAD6CC;text-align:left;font-size:11px;font-weight:700;color:#2B2933;letter-spacing:0.3px;">Date</th>` : ""}
+              <th style="padding:6px 10px;border:1px solid #DAD6CC;text-align:left;font-size:11px;font-weight:700;color:#2B2933;letter-spacing:0.3px;">Jour</th>
+              <th style="padding:6px 10px;border:1px solid #DAD6CC;text-align:left;font-size:11px;font-weight:700;color:#2B2933;letter-spacing:0.3px;">Sport</th>
+              <th style="padding:6px 10px;border:1px solid #DAD6CC;text-align:left;font-size:11px;font-weight:700;color:#2B2933;letter-spacing:0.3px;">Séance</th>
+              <th style="padding:6px 10px;border:1px solid #DAD6CC;text-align:left;font-size:11px;font-weight:700;color:#2B2933;letter-spacing:0.3px;">Détails</th>
             </tr>
           </thead>
           <tbody>${sessionRows}</tbody>
@@ -428,19 +429,19 @@ function buildPlanHTML(
 
     return `
       <div class="week-block" style="margin-bottom:28px;${weekSeparator}">
-        <h3 style="margin:0 0 6px 0;font-size:15px;color:#1f2937;background:#eff6ff;padding:8px 12px;border-radius:6px;border-left:4px solid #1967d2;">
+        <h3 style="margin:0 0 6px 0;font-size:15px;color:#14131A;background:#EDEDFC;padding:8px 12px;border-radius:6px;border-left:4px solid #5555E0;">
           Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
-          <span style="font-weight:normal;font-size:11px;color:#6b7280;margin-left:8px;">${week.phase}</span>
+          <span style="font-weight:normal;font-size:11px;color:#6E6B78;margin-left:8px;">${week.phase}</span>
         </h3>
-        ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#4b5563;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
+        ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#5C5966;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
         ${sessionsBlock}
-        ${week.coachNotes ? `<p style="margin:10px 0 0 0;font-size:11px;color:#4b5563;background:#fffbeb;padding:8px 12px;border-radius:6px;border-left:3px solid #f59e0b;">⚡ ${week.coachNotes}</p>` : ""}
+        ${week.coachNotes ? `<p style="margin:10px 0 0 0;font-size:11px;color:#5C5966;background:#fffbeb;padding:8px 12px;border-radius:6px;border-left:3px solid #C8860D;">⚡ ${week.coachNotes}</p>` : ""}
       </div>
     `;
   }).join("");
 
   const phasesSummary = plan.phases.map(p =>
-    `<span style="display:inline-block;background:#e8f0fe;color:#1967d2;padding:2px 8px;border-radius:12px;font-size:11px;margin-right:6px;">${p.name} ${p.weeks ? `(S${p.weeks})` : ""}</span>`
+    `<span style="display:inline-block;background:#e8f0fe;color:#5555E0;padding:2px 8px;border-radius:12px;font-size:11px;margin-right:6px;">${p.name} ${p.weeks ? `(S${p.weeks})` : ""}</span>`
   ).join("");
 
   return `<!DOCTYPE html>
@@ -451,7 +452,7 @@ function buildPlanHTML(
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: ${isPortrait ? "820px" : "1200px"}; margin: 0 auto; padding: 20px; color: #222; background: #fff; }
     h1 { font-size: 20px; margin-bottom: 4px; }
-    h2 { font-size: 16px; color: #444; margin-top: 24px; border-bottom: 2px solid #1967d2; padding-bottom: 4px; }
+    h2 { font-size: 16px; color: #444; margin-top: 24px; border-bottom: 2px solid #5555E0; padding-bottom: 4px; }
     table { word-wrap: break-word; overflow-wrap: break-word; }
     td, th { word-wrap: break-word; overflow-wrap: break-word; }
     .session-card { page-break-inside: avoid; break-inside: avoid; }
@@ -492,7 +493,7 @@ function buildPlanHTML(
       th { background: #eef2f7 !important; }
 
       /* Séparation visuelle plus marquée entre les jours */
-      tr.session-row { border-top: 1.5pt solid #94a3b8 !important; }
+      tr.session-row { border-top: 1.5pt solid #97949F !important; }
       tr.session-row:first-child { border-top: none !important; }
 
       /* Récap stratégique / projections : pas de coupure au milieu */
@@ -513,7 +514,7 @@ function buildPlanHTML(
   ${athleteName ? `<p style="color:#666;margin:0 0 8px 0;">Athlète : ${athleteName}</p>` : ""}
   <p style="color:#888;font-size:12px;margin:0 0 12px 0;">${plan.totalWeeks} semaines • ${plan.phases.length} phases</p>
   <div style="margin-bottom:16px;">${phasesSummary}</div>
-  ${plan.diagnostic ? `<div style="background:#f9f9f9;padding:10px 14px;border-radius:6px;font-size:12px;color:#555;margin-bottom:20px;border-left:3px solid #1967d2;"><strong>Diagnostic TFCL™</strong><br/>${plan.diagnostic.replace(/\n/g, "<br/>")}</div>` : ""}
+  ${plan.diagnostic ? `<div style="background:#f9f9f9;padding:10px 14px;border-radius:6px;font-size:12px;color:#555;margin-bottom:20px;border-left:3px solid #5555E0;"><strong>Diagnostic TFCL™</strong><br/>${plan.diagnostic.replace(/\n/g, "<br/>")}</div>` : ""}
   ${buildGapAmbitionHTML(gapContext)}
 
   ${plan.strategicRecap && plan.strategicRecap.limiters.length > 0 ? `
@@ -526,7 +527,7 @@ function buildPlanHTML(
     ${plan.strategicRecap.synergies.length > 0 ? `<div style="margin-top:8px;font-size:10px;color:#555;"><strong>Synergies :</strong> ${plan.strategicRecap.synergies.map(s => `→ ${s}`).join(" | ")}</div>` : ""}
   </div>` : ""}
   ${!isCompact && adaptationProjections && adaptationProjections.length > 0 ? `
-  <div style="background:#f3f8ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #1967d2;page-break-inside:avoid;">
+  <div style="background:#f3f8ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #5555E0;page-break-inside:avoid;">
     <strong>🔮 Projections Adaptation Predictor™</strong>
     <p style="margin:4px 0 8px 0;font-size:10px;color:#666;">Estimations modèle (fourchettes physiologiques typiques, non garanties).</p>
     ${adaptationProjections.map((p, i) => `
@@ -541,7 +542,7 @@ function buildPlanHTML(
           ${p.metrics.map(m => {
             const digits = /vlamax/i.test(m.label) ? 2 : 1;
             const arrow = m.direction === "up" ? "↑" : m.direction === "down" ? "↓" : "→";
-            const color = m.direction === "up" ? "#2e7d32" : m.direction === "down" ? "#0277bd" : "#888";
+            const color = m.direction === "up" ? "#1F9D6B" : m.direction === "down" ? "#0277bd" : "#888";
             const sign = m.deltaPct > 0 ? "+" : "";
             return `<tr>
               <td style="padding:2px 6px;color:${color};width:18px;">${arrow}</td>
@@ -554,7 +555,7 @@ function buildPlanHTML(
           }).join("")}
         </table>` : ""}
         ${p.performanceImpacts.filter(pi => pi.improvementPct > 0).length > 0 ? `
-        <div style="margin-top:6px;font-size:10px;color:#2e7d32;">
+        <div style="margin-top:6px;font-size:10px;color:#1F9D6B;">
           ${p.performanceImpacts.filter(pi => pi.improvementPct > 0).map(pi => `<span style="display:inline-block;background:#e8f5e9;padding:1px 6px;border-radius:8px;margin-right:4px;">${pi.distance} +${pi.improvementPct.toFixed(1)}%</span>`).join("")}
         </div>` : ""}
       </div>
