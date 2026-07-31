@@ -335,6 +335,9 @@ function buildPlanHTML(
   const isPortrait = orientation === "portrait";
   const isCompact = detailLevel === "compact";
 
+  // Libellés de phase orientés limiteur (couche affichage uniquement)
+  const phaseLabelMap = buildPhaseLabelMap(plan.phases, plan.strategicRecap?.limiters);
+
   const weekRows = plan.weeks.map((week, weekIdx) => {
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
 
