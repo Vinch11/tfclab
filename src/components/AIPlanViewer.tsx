@@ -724,7 +724,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
           </CardTitle>
           <div className="flex items-center gap-2">
             <WeekQualityBadge week={week} />
-            <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{week.phase}</Badge>
+            <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
           </div>
         </div>
