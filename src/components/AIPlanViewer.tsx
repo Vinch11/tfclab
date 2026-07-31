@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { buildTargetTable } from "@/lib/plan/targetTable";
+import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
 import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTableContext";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
@@ -667,9 +668,10 @@ interface WeekViewProps {
   onReplaceClick?: (session: ParsedSession) => void;
   objectifEffectif?: string | null;
   planTotalWeeks?: number;
+  phaseLabelMap?: Record<string, string>;
 }
 
-function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {} }: WeekViewProps) {
 
 
 
@@ -723,7 +725,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
           </CardTitle>
           <div className="flex items-center gap-2">
             <WeekQualityBadge week={week} />
-            <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{week.phase}</Badge>
+            <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
           </div>
         </div>
@@ -838,6 +840,12 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
   const [plan, setPlan] = useState<ParsedPlan>(planProp);
   const [replacementCount, setReplacementCount] = useState(0);
   useEffect(() => { setPlan(planProp); setReplacementCount(0); }, [planProp]);
+
+  // Libellés de phase orientés limiteur (couche affichage uniquement)
+  const phaseLabelMap = useMemo(
+    () => buildPhaseLabelMap(plan.phases, plan.strategicRecap?.limiters),
+    [plan.phases, plan.strategicRecap],
+  );
 
   // --- Replace dialog state ---
   const [replaceTarget, setReplaceTarget] = useState<ParsedSession | null>(null);
@@ -1435,7 +1443,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           <div className="flex flex-wrap gap-2">
             {plan.phases.map((phase, i) => (
               <Badge key={i} className={`text-[10px] ${getPhaseColor(phase.name)}`}>
-                {phase.name} {phase.weeks && `(S${phase.weeks})`}
+                {displayPhase(phase.name, phaseLabelMap)} {phase.weeks && `(S${phase.weeks})`}
               </Badge>
             ))}
           </div>
@@ -1550,12 +1558,12 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} />
+          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} />
+            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
           ))}
 
         </div>
