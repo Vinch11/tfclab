@@ -435,7 +435,7 @@ function buildPlanHTML(
       <div class="week-block" style="margin-bottom:28px;${weekSeparator}">
         <h3 style="margin:0 0 6px 0;font-size:15px;color:#14131A;background:#EDEDFC;padding:8px 12px;border-radius:6px;border-left:4px solid #5555E0;">
           Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
-          <span style="font-weight:normal;font-size:11px;color:#6E6B78;margin-left:8px;">${week.phase}</span>
+          <span style="font-weight:normal;font-size:11px;color:#6E6B78;margin-left:8px;">${displayPhase(week.phase, phaseLabelMap)}</span>
         </h3>
         ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#5C5966;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
         ${sessionsBlock}
@@ -445,7 +445,7 @@ function buildPlanHTML(
   }).join("");
 
   const phasesSummary = plan.phases.map(p =>
-    `<span style="display:inline-block;background:#e8f0fe;color:#5555E0;padding:2px 8px;border-radius:12px;font-size:11px;margin-right:6px;">${p.name} ${p.weeks ? `(S${p.weeks})` : ""}</span>`
+    `<span style="display:inline-block;background:#e8f0fe;color:#5555E0;padding:2px 8px;border-radius:12px;font-size:11px;margin-right:6px;">${displayPhase(p.name, phaseLabelMap)} ${p.weeks ? `(S${p.weeks})` : ""}</span>`
   ).join("");
 
   return `<!DOCTYPE html>
