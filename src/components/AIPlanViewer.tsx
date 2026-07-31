@@ -841,6 +841,12 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
   const [replacementCount, setReplacementCount] = useState(0);
   useEffect(() => { setPlan(planProp); setReplacementCount(0); }, [planProp]);
 
+  // Libellés de phase orientés limiteur (couche affichage uniquement)
+  const phaseLabelMap = useMemo(
+    () => buildPhaseLabelMap(plan.phases, plan.strategicRecap?.limiters),
+    [plan.phases, plan.strategicRecap],
+  );
+
   // --- Replace dialog state ---
   const [replaceTarget, setReplaceTarget] = useState<ParsedSession | null>(null);
 
