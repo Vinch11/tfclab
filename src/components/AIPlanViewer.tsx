@@ -667,9 +667,10 @@ interface WeekViewProps {
   onReplaceClick?: (session: ParsedSession) => void;
   objectifEffectif?: string | null;
   planTotalWeeks?: number;
+  phaseLabelMap?: Record<string, string>;
 }
 
-function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {} }: WeekViewProps) {
 
 
 
