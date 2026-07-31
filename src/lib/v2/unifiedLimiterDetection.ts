@@ -128,6 +128,7 @@ export const METRIC_TO_CATEGORY: Record<string, LimiterCategory> = {
   "FatMax": "metabolic_endurance",
   "Robustesse": "durability",
   "Durabilité": "durability",
+  "Durabilité (découplage)": "durability",
   "Économie": "neuromuscular",
   "W'": "neuromuscular",
   "W' (kJ)": "neuromuscular",
