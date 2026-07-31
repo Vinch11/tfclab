@@ -1282,6 +1282,12 @@ export const TFCL_REFERENCE_WEEK: {
 // BIBLIOTHÈQUE COMPLÈTE
 // ========================================
 
+import { BIKE_DURABILITY_SUBMAX, RUN_DURABILITY_SUBMAX } from "./testProtocolsDurability";
+
+export { BIKE_DURABILITY_SUBMAX, RUN_DURABILITY_SUBMAX };
+
+
+
 export const INTEGRATED_TESTS_LIBRARY: IntegratedTestProtocol[] = [
   BIKE_VLAMAX_SPRINT_15S,
   BIKE_TTE_FTP,
