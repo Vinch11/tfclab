@@ -14,6 +14,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { interpretDecoupling, DECOUPLING_THRESHOLDS } from "@/lib/durabilityDecoupling";
 import { 
   getTargetsForAmbition, 
   getVLamaxRange,
