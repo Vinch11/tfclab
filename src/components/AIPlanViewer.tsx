@@ -1437,7 +1437,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           <div className="flex flex-wrap gap-2">
             {plan.phases.map((phase, i) => (
               <Badge key={i} className={`text-[10px] ${getPhaseColor(phase.name)}`}>
-                {phase.name} {phase.weeks && `(S${phase.weeks})`}
+                {displayPhase(phase.name, phaseLabelMap)} {phase.weeks && `(S${phase.weeks})`}
               </Badge>
             ))}
           </div>
