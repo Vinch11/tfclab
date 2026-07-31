@@ -77,6 +77,14 @@ export interface UnifiedLimiterInput {
   ambition: AmbitionLevel;
   age: number | null;               // Âge pour ajustement des cibles
   targetRaceDurationMin?: number | null; // F-24 : durée cible course (coach) pour évaluer la durabilité
+  /**
+   * Durabilité sous-maximale : découplage aérobie (%) issu du test Z2 60-75 min
+   * (Pw:HR vélo / Pa:HR course). Entrée QUALITATIVE — n'est jamais convertie en
+   * minutes de TTE et ne remplace pas `tte`.
+   */
+  durabilityDecouplingPct?: number | null;
+  /** Durée du test de découplage (min), module la confiance de la lecture. */
+  durabilityDecouplingDurationMin?: number | null;
 }
 
 export interface UnifiedGapAnalysis {
