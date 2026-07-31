@@ -14,6 +14,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { interpretDecoupling, DECOUPLING_THRESHOLDS } from "@/lib/durabilityDecoupling";
 import { 
   getTargetsForAmbition, 
   getVLamaxRange,
@@ -77,6 +78,14 @@ export interface UnifiedLimiterInput {
   ambition: AmbitionLevel;
   age: number | null;               // Âge pour ajustement des cibles
   targetRaceDurationMin?: number | null; // F-24 : durée cible course (coach) pour évaluer la durabilité
+  /**
+   * Durabilité sous-maximale : découplage aérobie (%) issu du test Z2 60-75 min
+   * (Pw:HR vélo / Pa:HR course). Entrée QUALITATIVE — n'est jamais convertie en
+   * minutes de TTE et ne remplace pas `tte`.
+   */
+  durabilityDecouplingPct?: number | null;
+  /** Durée du test de découplage (min), module la confiance de la lecture. */
+  durabilityDecouplingDurationMin?: number | null;
 }
 
 export interface UnifiedGapAnalysis {
@@ -128,6 +137,7 @@ export const METRIC_TO_CATEGORY: Record<string, LimiterCategory> = {
   "FatMax": "metabolic_endurance",
   "Robustesse": "durability",
   "Durabilité": "durability",
+  "Durabilité (découplage)": "durability",
   "Économie": "neuromuscular",
   "W'": "neuromuscular",
   "W' (kJ)": "neuromuscular",
@@ -764,6 +774,42 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       weightedImpact: impact,
     });
   }
+
+  // Durabilité sous-maximale (test de découplage Z2) — entrée QUALITATIVE.
+  // Répond à « la durabilité est-elle un verrou ? » sans test jusqu'à l'épuisement.
+  // Seuils : <5% couplage stable | 5-8% à surveiller | >8% limitant.
+  // Le poids est volontairement réduit (0.6 × poids TTE) car il s'agit d'un proxy,
+  // et la métrique n'est pushée que si aucun TTE mesuré n'est déjà exploité.
+  if (
+    input.durabilityDecouplingPct != null &&
+    Number.isFinite(input.durabilityDecouplingPct)
+  ) {
+    const d = input.durabilityDecouplingPct;
+    const interpretation = interpretDecoupling(d, input.durabilityDecouplingDurationMin ?? null);
+    const proxyWeight = weights.tte * 0.6;
+    const excess = Math.max(0, d - DECOUPLING_THRESHOLDS.stable);
+    const status: UnifiedGapAnalysis["status"] =
+      interpretation.verdict === "non_limiting" ? "optimal"
+      : interpretation.verdict === "watch" ? "acceptable"
+      : interpretation.verdict === "limiting" ? "limiting"
+      : "unknown";
+    gapAnalysis.push({
+      metric: "Durabilité (découplage)",
+      value: Math.round(d * 10) / 10,
+      target: DECOUPLING_THRESHOLDS.stable,
+      // Gap orienté "manque" : négatif = découplage au-dessus du seuil stable
+      gap: -excess,
+      gapPercent: -(excess / DECOUPLING_THRESHOLDS.stable) * 100,
+      status,
+      weight: proxyWeight,
+      weightedImpact:
+        excess > 0
+          ? (excess / DECOUPLING_THRESHOLDS.stable) * proxyWeight * 100 * interpretation.confidence
+          : 0,
+    });
+  }
+
+
 
   
   // 4. Analyse FatMax (Metabolic Efficiency)
