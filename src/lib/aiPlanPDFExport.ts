@@ -10,6 +10,7 @@ import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 
 
