@@ -129,16 +129,19 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (athletes.length === 0) return; // Attendre le chargement
     
-    const persistedId = localStorage.getItem(LS_SELECTED);
+    // Lecture robuste (localStorage + backup sessionStorage pour iOS/PWA)
+    const persistedId = getPersistedAthleteId();
+    
     
     const persistedIdExists = persistedId && athletes.some((a) => a.id === persistedId);
     
     // Si l'ID persisté existe dans la liste des athlètes
     if (persistedIdExists && persistedId) {
-      // Seulement mettre à jour si différent de l'état actuel
+      // Réécrit les deux stockages (restaure localStorage si purgé par iOS)
       if (selectedAthleteId !== persistedId) {
         setSelectedAthleteIdState(persistedId);
       }
+      persistAthleteId(persistedId);
       return;
     }
     
