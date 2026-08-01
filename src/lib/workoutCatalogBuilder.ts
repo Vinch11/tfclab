@@ -129,8 +129,9 @@ function normalizeGoal(objective: string): WorkoutGoal[] {
   if (lower.includes("marathon")) return ["marathon", "semi"];
   if (lower.includes("10k") || lower.includes("10km") || lower.includes("10 km")) return ["10k", "semi"];
   if (lower.includes("5k") || lower.includes("5km") || lower.includes("5 km")) return ["10k"];
-  // Start to run / débutant
-  if (lower.includes("start") || lower.includes("débutant") || lower.includes("beginner")) return ["10k"];
+  // Start to run / débutant → catalogue dédié UNIQUEMENT (plus de repli sur 10k :
+  // les fiches 10k supposent un athlète capable de courir 30-45min en continu).
+  if (lower.includes("start") || lower.includes("débutant") || lower.includes("beginner")) return ["start_to_run"];
   // Triathlon generic
   if (lower.includes("triathlon") || lower.includes("tri")) return ["ironman", "half"];
   return [];
@@ -221,6 +222,15 @@ function scoreWorkout(
   phases: PhaseTag[],
   limiterKeys?: { primary?: string; secondary?: string }
 ): number {
+  // ─── HARD-BAN RÉCIPROQUE START TO RUN ───
+  // Un plan débutant ne prend QUE des fiches `start_to_run` (marche-course,
+  // renforcement fondation, mobilité) : les fiches performance supposent une
+  // capacité à courir 30-45min en continu que l'athlète n'a pas encore.
+  // Réciproquement, ces fiches ne peuvent pas fuiter dans un plan 5K/10K+.
+  const isStartToRunGoal = goals.includes("start_to_run");
+  const isStartToRunWorkout = (w.goals || []).includes("start_to_run");
+  if (isStartToRunGoal !== isStartToRunWorkout) return -1000;
+
   // ─── HARD-BAN TRAIL sur objectifs non-trail (source unique trailMarkers) ───
   const isTrailGoal = goals.some(g => g.startsWith("trail_"));
   if (!isTrailGoal && isTrailWorkout(w)) return -1000;
@@ -396,6 +406,14 @@ export function buildWorkoutCatalog(
   const phases = phasesForWeekRange(weekStart, weekEnd, totalWeeks);
   const maxItems = options?.maxItems || 80;
 
+  // ─── Isolation Start to Run ───────────────────────────────────────────────
+  // Un plan débutant ne pioche QUE dans les fiches `start_to_run` ; réciproquement
+  // ces fiches n'existent pas pour les autres objectifs (pool source inchangé).
+  const s2rGoal = goals.includes("start_to_run");
+  const SourceLibrary = WorkoutLibrary.filter(
+    w => s2rGoal === (w.goals || []).includes("start_to_run"),
+  );
+
   // Résolution des limiteurs (labels bruts → clés de patterns)
   const primaryKey = resolveLimiterKey(options?.limiters?.[0]);
   const secondaryKey = resolveLimiterKey(options?.limiters?.[1]);
@@ -425,7 +443,7 @@ export function buildWorkoutCatalog(
   const bypassProhibitionForSport = new Set<string>();
   if (prohibitionPatterns.length > 0) {
     const bySport: Record<string, { total: number; kept: number }> = {};
-    for (const w of WorkoutLibrary) {
+    for (const w of SourceLibrary) {
       if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) continue;
       const s = w.sport;
       bySport[s] = bySport[s] || { total: 0, kept: 0 };
@@ -458,7 +476,7 @@ export function buildWorkoutCatalog(
 
   // 1er passage : compte les kept par sport après filtre phase strict
   if (phaseFilterEnabled) {
-    for (const w of WorkoutLibrary) {
+    for (const w of SourceLibrary) {
       if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) continue;
       if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) continue;
       if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) continue;
@@ -495,7 +513,7 @@ export function buildWorkoutCatalog(
     console.log(`[catalog_drop] id=${id} étape=${stage} raison=${reason}`);
   };
 
-  let current: LibraryWorkout[] = WorkoutLibrary.slice();
+  let current: LibraryWorkout[] = SourceLibrary.slice();
   const stage0 = current.length;
   const chunkIdx = options?.chunkIndex ?? 0;
 
@@ -607,7 +625,7 @@ export function buildWorkoutCatalog(
   // Log de synthèse "catalog_filtered" par chunk (visible dans rapport QA)
   if (phaseFilterEnabled) {
     const beforeBySport: Record<string, number> = {};
-    for (const w of WorkoutLibrary) {
+    for (const w of SourceLibrary) {
       if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) continue;
       beforeBySport[w.sport] = (beforeBySport[w.sport] || 0) + 1;
     }
@@ -768,6 +786,12 @@ export function buildWorkoutCatalog(
 
   // (b) Remplissage : caps sport/cat souples appliqués UNIQUEMENT au remplissage
   for (const { workout, score } of scored) {
+    // Hard-ban Start to Run : le remplissage ne doit jamais réintroduire de
+    // fiche performance dans un plan débutant (ni l'inverse).
+    if (s2rGoal !== (workout.goals || []).includes("start_to_run")) {
+      recordAttribution(workout.id, chunkIdx, "score_hard_ban");
+      continue;
+    }
     const candFamily = intentFamilyOf(workout);
     const isLimiterFamily = limiterBoostedFamilies.has(candFamily);
     const capForThis = isLimiterFamily ? limiterCap : effectiveCap;
@@ -837,7 +861,8 @@ export function buildWorkoutCatalog(
 
   for (const sport of underrepresentedSports) {
     const candidates = scored
-      .filter(({ workout }) => workout.sport === sport && !selectedIds.has(workout.id))
+      .filter(({ workout }) => workout.sport === sport && !selectedIds.has(workout.id)
+        && s2rGoal === (workout.goals || []).includes("start_to_run"))
       .slice(0, 3 - (finalSportCounts[sport] || 0));
     for (const { workout } of candidates) {
       if (selected.length >= maxItems + 5) break; // Allow slight overflow for minimum coverage
@@ -871,7 +896,7 @@ export function buildWorkoutCatalog(
 
     // Pool des candidats (mêmes exclusions sport/trail/prohibitions/tags,
     // mais on ignore excludeIds pour permettre la répétition inter-chunks).
-    const backfillPool = WorkoutLibrary
+    const backfillPool = SourceLibrary
       .filter(w => {
         if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) return false;
         if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) return false;
