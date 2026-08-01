@@ -129,8 +129,9 @@ function normalizeGoal(objective: string): WorkoutGoal[] {
   if (lower.includes("marathon")) return ["marathon", "semi"];
   if (lower.includes("10k") || lower.includes("10km") || lower.includes("10 km")) return ["10k", "semi"];
   if (lower.includes("5k") || lower.includes("5km") || lower.includes("5 km")) return ["10k"];
-  // Start to run / débutant
-  if (lower.includes("start") || lower.includes("débutant") || lower.includes("beginner")) return ["10k"];
+  // Start to run / débutant → catalogue dédié UNIQUEMENT (plus de repli sur 10k :
+  // les fiches 10k supposent un athlète capable de courir 30-45min en continu).
+  if (lower.includes("start") || lower.includes("débutant") || lower.includes("beginner")) return ["start_to_run"];
   // Triathlon generic
   if (lower.includes("triathlon") || lower.includes("tri")) return ["ironman", "half"];
   return [];
