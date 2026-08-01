@@ -507,14 +507,35 @@ function normalizeStructuredWorkoutForNolio(
   input: unknown,
   refs?: AthleteRefs,
   sportId?: number,
+  rpeMode = false,
 ): unknown {
   if (Array.isArray(input)) {
     return input
-      .map((v) => normalizeStructuredWorkoutForNolio(v, refs, sportId))
+      .map((v) => normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode))
       .filter((v) => v !== null && v !== undefined);
   }
   if (input && typeof input === "object") {
     const src = input as Record<string, unknown>;
+
+    // 🟢 START TO RUN : pilotage 100 % RPE (aucune cible FC/allure/puissance).
+    // Le débutant n'a ni FTP, ni VMA, ni FCmax fiable : on retire toute cible
+    // métrique et on inscrit le RPE cible dans le nom du step.
+    if (rpeMode && src.type === "step") {
+      const intensity = String(src.intensity_type ?? "");
+      const rpe = intensity === "rest" || intensity === "cooldown" || intensity === "warmup"
+        ? "RPE 2-3 · marche/footing très facile, conversation aisée"
+        : "RPE 4-5 · confortable, phrases complètes possibles";
+      src.target_type = "no_target";
+      delete src.target_value;
+      delete src.target_value_min;
+      delete src.target_value_max;
+      delete src.target_unit;
+      delete src.manual_values;
+      delete src.step_percent_low;
+      delete src.step_percent_high;
+      const baseName = typeof src.name === "string" ? src.name.trim() : "";
+      src.name = baseName && !/RPE/i.test(baseName) ? `${baseName} — ${rpe}` : (baseName || rpe);
+    }
 
     // Rest + no_target → cible Z1 sport-aware (bike: power + step_percent_*, run: HR)
     if (
