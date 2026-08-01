@@ -222,6 +222,15 @@ function scoreWorkout(
   phases: PhaseTag[],
   limiterKeys?: { primary?: string; secondary?: string }
 ): number {
+  // ─── HARD-BAN RÉCIPROQUE START TO RUN ───
+  // Un plan débutant ne prend QUE des fiches `start_to_run` (marche-course,
+  // renforcement fondation, mobilité) : les fiches performance supposent une
+  // capacité à courir 30-45min en continu que l'athlète n'a pas encore.
+  // Réciproquement, ces fiches ne peuvent pas fuiter dans un plan 5K/10K+.
+  const isStartToRunGoal = goals.includes("start_to_run");
+  const isStartToRunWorkout = (w.goals || []).includes("start_to_run");
+  if (isStartToRunGoal !== isStartToRunWorkout) return -1000;
+
   // ─── HARD-BAN TRAIL sur objectifs non-trail (source unique trailMarkers) ───
   const isTrailGoal = goals.some(g => g.startsWith("trail_"));
   if (!isTrailGoal && isTrailWorkout(w)) return -1000;
