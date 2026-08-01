@@ -929,6 +929,11 @@ function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): 
     const parts: string[] = [];
     const intent = cleanedObjectif || cleanedDetails;
     if (intent) parts.push(`🎯 ${intent}`);
+    if (rpeMode) {
+      parts.push(
+        "🗣️ Intensité au ressenti (RPE) — marche RPE 1-2, course RPE 4-5 (phrases complètes possibles). Aucune allure ni FC imposée.",
+      );
+    }
     let desc = parts.join("\n\n");
     if (desc.length > MAX_LEN) {
       const cut = desc.slice(0, MAX_LEN);
