@@ -397,6 +397,7 @@ function buildFewShotExamples(profile?: SystemPromptProfile): string {
     parts.push(FEWSHOT_WALMSLEY_TRAIL_COURT);
   } else if (isStartToRun) {
     parts.push(FEWSHOT_STARTTORUN);
+    parts.push(S2R_STRENGTH_PROGRESSION);
     parts.push(FEWSHOT_MARATHON_AGEGROUP);
   } else if (isMarathon) {
     parts.push(FEWSHOT_KIPCHOGE_MARATHON);
