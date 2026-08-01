@@ -498,13 +498,16 @@ export interface RunningTargets {
 
 // ⚠️  VLamax : injectée depuis la SOURCE UNIQUE `vlamaxTargets.ts` (jamais en dur ici).
 export const RUNNING_TARGETS_BY_RACE: Record<RunningRaceType, RunningTargets> = {
+  // Start to Run : plage VLamax élargie (non-limitante) — un débutant n'est
+  // jamais évalué sur les cibles métaboliques d'un coureur 5K/10K.
   "StartToRun": {
     vo2max: { min: 30, optimal: 40, elite: 50 },
-    vlamax: _vlamaxRunTarget("10k"),
+    vlamax: _vlamaxBeginnerTarget(),
     economyScore: { min: 40, optimal: 55 },
     durabilityMin: 30,
     pctVO2maxRace: 70,
   },
+
   "5K": {
     vo2max: { min: 50, optimal: 58, elite: 72 },
     vlamax: _vlamaxRunTarget("5k"),
