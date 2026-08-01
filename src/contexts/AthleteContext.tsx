@@ -137,10 +137,11 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
     
     // Si l'ID persisté existe dans la liste des athlètes
     if (persistedIdExists && persistedId) {
-      // Seulement mettre à jour si différent de l'état actuel
+      // Réécrit les deux stockages (restaure localStorage si purgé par iOS)
       if (selectedAthleteId !== persistedId) {
         setSelectedAthleteIdState(persistedId);
       }
+      persistAthleteId(persistedId);
       return;
     }
     
