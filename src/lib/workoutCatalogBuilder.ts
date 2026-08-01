@@ -854,7 +854,8 @@ export function buildWorkoutCatalog(
 
   for (const sport of underrepresentedSports) {
     const candidates = scored
-      .filter(({ workout }) => workout.sport === sport && !selectedIds.has(workout.id))
+      .filter(({ workout }) => workout.sport === sport && !selectedIds.has(workout.id)
+        && s2rGoal === (workout.goals || []).includes("start_to_run"))
       .slice(0, 3 - (finalSportCounts[sport] || 0));
     for (const { workout } of candidates) {
       if (selected.length >= maxItems + 5) break; // Allow slight overflow for minimum coverage
