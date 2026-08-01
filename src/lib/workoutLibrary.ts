@@ -8448,6 +8448,16 @@ import { EnrichedWorkoutsRunHills } from "./enrichedWorkoutsRunHills";
 WorkoutLibrary.push(...EnrichedWorkoutsRunHills);
 
 // =============================================
+// START TO RUN — catalogue débutant absolu (marche-course 12 semaines).
+// Avant : l'objectif StartToRun était redirigé sur le pool 10k → un débutant
+// recevait des fiches VMA/seuil/tempo conçues pour un coureur constructible.
+// Ces fiches sont `goals: ["start_to_run"]` uniquement et le catalog builder
+// applique un hard-ban réciproque (aucune fiche performance dans un plan S2R).
+// =============================================
+import { EnrichedWorkoutsStartToRun } from "./enrichedWorkoutsStartToRun";
+WorkoutLibrary.push(...EnrichedWorkoutsStartToRun);
+
+// =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]
 // =============================================
 import { enrichWorkoutGoals } from "./workoutGoalsEnricher";
