@@ -492,6 +492,45 @@ const AMBITION_TARGETS: Record<string, AmbitionTargets> = {
     },
   },
 
+  // =============================================
+  // START TO RUN (débutant — marche/course)
+  // =============================================
+  // Cibles VOLONTAIREMENT dissociées de 5K/10K : le limiteur d'un débutant est
+  // structurel (tendons, os, tolérance à l'impact), pas métabolique.
+  // VLamax et TTE sont informatifs, jamais prioritaires. VMA non exigée.
+  "StartToRun": {
+    finisher: {
+      vlamax: { min: 0.40, max: 1.10, optimal: 0.75 },
+      tte_min: 12,
+      ftp_kg_min: 1.8,
+      charge_optimale: 60,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+    age_group: {
+      vlamax: { min: 0.40, max: 1.05, optimal: 0.72 },
+      tte_min: 16,
+      ftp_kg_min: 2.0,
+      charge_optimale: 80,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+    competitor: {
+      vlamax: { min: 0.40, max: 1.00, optimal: 0.70 },
+      tte_min: 20,
+      ftp_kg_min: 2.2,
+      charge_optimale: 100,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+    elite: {
+      vlamax: { min: 0.40, max: 1.00, optimal: 0.70 },
+      tte_min: 22,
+      ftp_kg_min: 2.4,
+      charge_optimale: 110,
+      nutrition_bike_gph: { min: 0, max: 0 },
+    },
+  },
+
+
+
   Sprint: {
     finisher: {
       vlamax: { min: 0.65, max: 0.95, optimal: 0.80 },
@@ -605,8 +644,12 @@ const OBJECTIVE_ALIASES: Record<string, string> = {
   "10k": "10km",
   "5K": "5K",
   "5k": "5K",
-  "StartToRun": "5K",
-  "starttorun": "5K",
+  // ⚠️ Start to Run N'EST PLUS aliasé sur 5K/10K : un débutant n'est pas jugé
+  // sur des cibles de coureur confirmé (VMA, VLamax, TTE). Bloc dédié ci-dessus.
+  "StartToRun": "StartToRun",
+  "starttorun": "StartToRun",
+  "Start to Run": "StartToRun",
+
 };
 
 // =============================================

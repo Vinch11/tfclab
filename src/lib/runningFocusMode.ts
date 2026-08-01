@@ -22,6 +22,17 @@ function _vlamaxRunTarget(key: string): { min: number; optimal: number; max: num
   return { min: t.min, optimal: t.ideal, max: t.max };
 }
 
+/**
+ * Start to Run : plage VLamax dérivée de la source unique mais volontairement
+ * élargie (×1.35 sur le max) pour rester NON-limitante chez un débutant, dont
+ * le limiteur est structurel (tendons/os) et non métabolique.
+ */
+function _vlamaxBeginnerTarget(): { min: number; optimal: number; max: number } {
+  const t = getVlamaxTarget('10k', 'run');
+  return { min: t.min, optimal: t.ideal, max: +(t.max * 1.35).toFixed(2) };
+}
+
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -498,13 +509,16 @@ export interface RunningTargets {
 
 // ⚠️  VLamax : injectée depuis la SOURCE UNIQUE `vlamaxTargets.ts` (jamais en dur ici).
 export const RUNNING_TARGETS_BY_RACE: Record<RunningRaceType, RunningTargets> = {
+  // Start to Run : plage VLamax élargie (non-limitante) — un débutant n'est
+  // jamais évalué sur les cibles métaboliques d'un coureur 5K/10K.
   "StartToRun": {
     vo2max: { min: 30, optimal: 40, elite: 50 },
-    vlamax: _vlamaxRunTarget("10k"),
+    vlamax: _vlamaxBeginnerTarget(),
     economyScore: { min: 40, optimal: 55 },
     durabilityMin: 30,
     pctVO2maxRace: 70,
   },
+
   "5K": {
     vo2max: { min: 50, optimal: 58, elite: 72 },
     vlamax: _vlamaxRunTarget("5k"),
