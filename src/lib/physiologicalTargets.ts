@@ -605,8 +605,12 @@ const OBJECTIVE_ALIASES: Record<string, string> = {
   "10k": "10km",
   "5K": "5K",
   "5k": "5K",
-  "StartToRun": "5K",
-  "starttorun": "5K",
+  // ⚠️ Start to Run N'EST PLUS aliasé sur 5K/10K : un débutant n'est pas jugé
+  // sur des cibles de coureur confirmé (VMA, VLamax, TTE). Bloc dédié ci-dessus.
+  "StartToRun": "StartToRun",
+  "starttorun": "StartToRun",
+  "Start to Run": "StartToRun",
+
 };
 
 // =============================================
