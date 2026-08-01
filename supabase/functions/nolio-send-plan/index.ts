@@ -971,6 +971,9 @@ function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): 
     if (items) blocks.push(`<b>🏔️ Alternatives</b><ul>${items}</ul>`);
   }
 
+  // 4) Start to Run : légende RPE (aucune cible métrique envoyée)
+  if (rpeMode) blocks.push(S2R_RPE_LEGEND);
+
   let desc = blocks.join("<br><br>");
   // Espace d'aération en fin de fiche (une seule ligne vide).
   if (desc) desc += "<br>";
