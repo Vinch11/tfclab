@@ -539,6 +539,7 @@ function normalizeStructuredWorkoutForNolio(
 
     // Rest + no_target → cible Z1 sport-aware (bike: power + step_percent_*, run: HR)
     if (
+      !rpeMode &&
       src.type === "step" &&
       src.intensity_type === "rest" &&
       src.target_type === "no_target"
