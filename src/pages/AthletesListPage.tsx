@@ -39,7 +39,8 @@ export default function AthletesListPage() {
   };
 
   const handleNewAthlete = () => {
-    setSelectedAthleteId(null);
+    // Ne pas effacer la sélection persistée : la route "/athlete/new"
+    // gère déjà le mode création. Sinon on perd l'athlète en cours au retour.
     navigate("/athlete/new");
   };
 
