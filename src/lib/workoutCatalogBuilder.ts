@@ -406,6 +406,14 @@ export function buildWorkoutCatalog(
   const phases = phasesForWeekRange(weekStart, weekEnd, totalWeeks);
   const maxItems = options?.maxItems || 80;
 
+  // ─── Isolation Start to Run ───────────────────────────────────────────────
+  // Un plan débutant ne pioche QUE dans les fiches `start_to_run` ; réciproquement
+  // ces fiches n'existent pas pour les autres objectifs (pool source inchangé).
+  const s2rGoal = goals.includes("start_to_run");
+  const SourceLibrary = WorkoutLibrary.filter(
+    w => s2rGoal === (w.goals || []).includes("start_to_run"),
+  );
+
   // Résolution des limiteurs (labels bruts → clés de patterns)
   const primaryKey = resolveLimiterKey(options?.limiters?.[0]);
   const secondaryKey = resolveLimiterKey(options?.limiters?.[1]);
@@ -435,7 +443,7 @@ export function buildWorkoutCatalog(
   const bypassProhibitionForSport = new Set<string>();
   if (prohibitionPatterns.length > 0) {
     const bySport: Record<string, { total: number; kept: number }> = {};
-    for (const w of WorkoutLibrary) {
+    for (const w of SourceLibrary) {
       if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) continue;
       const s = w.sport;
       bySport[s] = bySport[s] || { total: 0, kept: 0 };
@@ -468,7 +476,7 @@ export function buildWorkoutCatalog(
 
   // 1er passage : compte les kept par sport après filtre phase strict
   if (phaseFilterEnabled) {
-    for (const w of WorkoutLibrary) {
+    for (const w of SourceLibrary) {
       if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) continue;
       if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) continue;
       if (excludeTagsSet.size > 0 && (w.tags || []).some(t => excludeTagsSet.has(String(t).toLowerCase()))) continue;
@@ -505,7 +513,7 @@ export function buildWorkoutCatalog(
     console.log(`[catalog_drop] id=${id} étape=${stage} raison=${reason}`);
   };
 
-  let current: LibraryWorkout[] = WorkoutLibrary.slice();
+  let current: LibraryWorkout[] = SourceLibrary.slice();
   const stage0 = current.length;
   const chunkIdx = options?.chunkIndex ?? 0;
 
@@ -617,7 +625,7 @@ export function buildWorkoutCatalog(
   // Log de synthèse "catalog_filtered" par chunk (visible dans rapport QA)
   if (phaseFilterEnabled) {
     const beforeBySport: Record<string, number> = {};
-    for (const w of WorkoutLibrary) {
+    for (const w of SourceLibrary) {
       if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) continue;
       beforeBySport[w.sport] = (beforeBySport[w.sport] || 0) + 1;
     }
@@ -777,7 +785,6 @@ export function buildWorkoutCatalog(
   const socleFinalSize = selected.length;
 
   // (b) Remplissage : caps sport/cat souples appliqués UNIQUEMENT au remplissage
-  const s2rGoal = goals.includes("start_to_run");
   for (const { workout, score } of scored) {
     // Hard-ban Start to Run : le remplissage ne doit jamais réintroduire de
     // fiche performance dans un plan débutant (ni l'inverse).
@@ -889,7 +896,7 @@ export function buildWorkoutCatalog(
 
     // Pool des candidats (mêmes exclusions sport/trail/prohibitions/tags,
     // mais on ignore excludeIds pour permettre la répétition inter-chunks).
-    const backfillPool = WorkoutLibrary
+    const backfillPool = SourceLibrary
       .filter(w => {
         if (options?.sportFilter && options.sportFilter.length > 0 && !options.sportFilter.includes(w.sport)) return false;
         if (excludeIdPatterns.length > 0 && excludeIdPatterns.some(rx => rx.test(w.id))) return false;
