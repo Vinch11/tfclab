@@ -1542,7 +1542,7 @@ Deno.serve(async (req) => {
         sport_id: sportId,
         name: stripTitleTags(s.title) || "Séance",
         date_start: dateStart,
-        description: buildDescription(s, sportId),
+        description: buildDescription(s, sportId, isStartToRunSession(s)),
       };
       if (structured_workout) {
         // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
@@ -1550,7 +1550,12 @@ Deno.serve(async (req) => {
         // par IA récupérée depuis `nolio_structures_generated`, ou parsing automatique).
         // C'est ici qu'on applique : conversion pace → m/s, distance run/trail → durée s,
         // remap rest/no_target → cible Z1, suppression des clés null/undefined, etc.
-        const normalized = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
+        const normalized = normalizeStructuredWorkoutForNolio(
+          structured_workout,
+          body.refs ?? {},
+          sportId,
+          isStartToRunSession(s),
+        );
         const summary = summarizeStructuredWorkout(normalized);
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
         // Strength (sport_id 20) : si tous les steps ont target_type="no_target",
