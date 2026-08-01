@@ -862,7 +862,25 @@ function extractNutritionNote(text?: string): string | null {
  * Volontairement OMIS : "Quand"/phase/contexte, "⚠️ Éviter", tags (#...).
  * Ces infos servent à la sélection, pas à l'exécution.
  */
-function buildDescription(s: ParsedSession, sportId?: number): string {
+/**
+ * Détecte une séance Start to Run (catalogue isolé `S2R_*`).
+ * Ces athlètes débutants n'ont ni FTP, ni VMA, ni FCmax fiable :
+ * l'intensité est pilotée exclusivement au RPE (échelle 1-10).
+ */
+function isStartToRunSession(s: ParsedSession): boolean {
+  const haystack = `${s.id ?? ""} ${s.title ?? ""} ${s.details ?? ""}`;
+  return /\bS2R_/i.test(haystack);
+}
+
+const S2R_RPE_LEGEND =
+  "<b>🗣️ Intensité au ressenti (RPE)</b><ul>" +
+  "<li>RPE 1-2 — marche très facile, respiration nasale</li>" +
+  "<li>RPE 3 — footing très léger, tu chantes presque</li>" +
+  "<li>RPE 4-5 — confortable, phrases complètes possibles (cible des blocs course)</li>" +
+  "<li>RPE 6+ — trop dur pour cette phase : ralentis ou repasse en marche</li>" +
+  "</ul><i>Aucune allure ni FC imposée : le ressenti prime.</i>";
+
+function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): string {
   const MAX_LEN = 4000;
 
   // Nettoyage transversal : retire [ID:...] et tags #xxx isolés, compresse espaces.
