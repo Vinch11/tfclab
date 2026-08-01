@@ -27,7 +27,7 @@ export type NecessityLevel = "Obligatoire" | "Recommandé" | "Optionnel";
 export type DPlusTarget = number | { min: number; max: number };
 
 // Goals pour filtrage
-export type WorkoutGoal = "ironman" | "half" | "marathon" | "semi" | "10k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long";
+export type WorkoutGoal = "ironman" | "half" | "marathon" | "semi" | "10k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long" | "start_to_run";
 
 // =============================================
 // PROFIL W'bal — Recalcul automatique des temps de repos
