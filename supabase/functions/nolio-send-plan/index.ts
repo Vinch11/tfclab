@@ -507,17 +507,39 @@ function normalizeStructuredWorkoutForNolio(
   input: unknown,
   refs?: AthleteRefs,
   sportId?: number,
+  rpeMode = false,
 ): unknown {
   if (Array.isArray(input)) {
     return input
-      .map((v) => normalizeStructuredWorkoutForNolio(v, refs, sportId))
+      .map((v) => normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode))
       .filter((v) => v !== null && v !== undefined);
   }
   if (input && typeof input === "object") {
     const src = input as Record<string, unknown>;
 
+    // 🟢 START TO RUN : pilotage 100 % RPE (aucune cible FC/allure/puissance).
+    // Le débutant n'a ni FTP, ni VMA, ni FCmax fiable : on retire toute cible
+    // métrique et on inscrit le RPE cible dans le nom du step.
+    if (rpeMode && src.type === "step") {
+      const intensity = String(src.intensity_type ?? "");
+      const rpe = intensity === "rest" || intensity === "cooldown" || intensity === "warmup"
+        ? "RPE 2-3 · marche/footing très facile, conversation aisée"
+        : "RPE 4-5 · confortable, phrases complètes possibles";
+      src.target_type = "no_target";
+      delete src.target_value;
+      delete src.target_value_min;
+      delete src.target_value_max;
+      delete src.target_unit;
+      delete src.manual_values;
+      delete src.step_percent_low;
+      delete src.step_percent_high;
+      const baseName = typeof src.name === "string" ? src.name.trim() : "";
+      src.name = baseName && !/RPE/i.test(baseName) ? `${baseName} — ${rpe}` : (baseName || rpe);
+    }
+
     // Rest + no_target → cible Z1 sport-aware (bike: power + step_percent_*, run: HR)
     if (
+      !rpeMode &&
       src.type === "step" &&
       src.intensity_type === "rest" &&
       src.target_type === "no_target"
@@ -793,7 +815,7 @@ function normalizeStructuredWorkoutForNolio(
         out.value = typeof v === "number" ? v : Number(v);
         continue;
       }
-      out[k] = normalizeStructuredWorkoutForNolio(v, refs, sportId);
+      out[k] = normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode);
     }
     return out;
   }
@@ -840,7 +862,25 @@ function extractNutritionNote(text?: string): string | null {
  * Volontairement OMIS : "Quand"/phase/contexte, "⚠️ Éviter", tags (#...).
  * Ces infos servent à la sélection, pas à l'exécution.
  */
-function buildDescription(s: ParsedSession, sportId?: number): string {
+/**
+ * Détecte une séance Start to Run (catalogue isolé `S2R_*`).
+ * Ces athlètes débutants n'ont ni FTP, ni VMA, ni FCmax fiable :
+ * l'intensité est pilotée exclusivement au RPE (échelle 1-10).
+ */
+function isStartToRunSession(s: ParsedSession): boolean {
+  const haystack = `${s.id ?? ""} ${s.title ?? ""} ${s.details ?? ""}`;
+  return /\bS2R_/i.test(haystack);
+}
+
+const S2R_RPE_LEGEND =
+  "<b>🗣️ Intensité au ressenti (RPE)</b><ul>" +
+  "<li>RPE 1-2 — marche très facile, respiration nasale</li>" +
+  "<li>RPE 3 — footing très léger, tu chantes presque</li>" +
+  "<li>RPE 4-5 — confortable, phrases complètes possibles (cible des blocs course)</li>" +
+  "<li>RPE 6+ — trop dur pour cette phase : ralentis ou repasse en marche</li>" +
+  "</ul><i>Aucune allure ni FC imposée : le ressenti prime.</i>";
+
+function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): string {
   const MAX_LEN = 4000;
 
   // Nettoyage transversal : retire [ID:...] et tags #xxx isolés, compresse espaces.
@@ -889,6 +929,11 @@ function buildDescription(s: ParsedSession, sportId?: number): string {
     const parts: string[] = [];
     const intent = cleanedObjectif || cleanedDetails;
     if (intent) parts.push(`🎯 ${intent}`);
+    if (rpeMode) {
+      parts.push(
+        "🗣️ Intensité au ressenti (RPE) — marche RPE 1-2, course RPE 4-5 (phrases complètes possibles). Aucune allure ni FC imposée.",
+      );
+    }
     let desc = parts.join("\n\n");
     if (desc.length > MAX_LEN) {
       const cut = desc.slice(0, MAX_LEN);
@@ -930,6 +975,9 @@ function buildDescription(s: ParsedSession, sportId?: number): string {
     }).join("");
     if (items) blocks.push(`<b>🏔️ Alternatives</b><ul>${items}</ul>`);
   }
+
+  // 4) Start to Run : légende RPE (aucune cible métrique envoyée)
+  if (rpeMode) blocks.push(S2R_RPE_LEGEND);
 
   let desc = blocks.join("<br><br>");
   // Espace d'aération en fin de fiche (une seule ligne vide).
@@ -1520,7 +1568,7 @@ Deno.serve(async (req) => {
         sport_id: sportId,
         name: stripTitleTags(s.title) || "Séance",
         date_start: dateStart,
-        description: buildDescription(s, sportId),
+        description: buildDescription(s, sportId, isStartToRunSession(s)),
       };
       if (structured_workout) {
         // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
@@ -1528,7 +1576,12 @@ Deno.serve(async (req) => {
         // par IA récupérée depuis `nolio_structures_generated`, ou parsing automatique).
         // C'est ici qu'on applique : conversion pace → m/s, distance run/trail → durée s,
         // remap rest/no_target → cible Z1, suppression des clés null/undefined, etc.
-        const normalized = normalizeStructuredWorkoutForNolio(structured_workout, body.refs ?? {}, sportId);
+        const normalized = normalizeStructuredWorkoutForNolio(
+          structured_workout,
+          body.refs ?? {},
+          sportId,
+          isStartToRunSession(s),
+        );
         const summary = summarizeStructuredWorkout(normalized);
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
         // Strength (sport_id 20) : si tous les steps ont target_type="no_target",
