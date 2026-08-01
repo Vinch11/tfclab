@@ -777,7 +777,14 @@ export function buildWorkoutCatalog(
   const socleFinalSize = selected.length;
 
   // (b) Remplissage : caps sport/cat souples appliqués UNIQUEMENT au remplissage
+  const s2rGoal = goals.includes("start_to_run");
   for (const { workout, score } of scored) {
+    // Hard-ban Start to Run : le remplissage ne doit jamais réintroduire de
+    // fiche performance dans un plan débutant (ni l'inverse).
+    if (s2rGoal !== (workout.goals || []).includes("start_to_run")) {
+      recordAttribution(workout.id, chunkIdx, "score_hard_ban");
+      continue;
+    }
     const candFamily = intentFamilyOf(workout);
     const isLimiterFamily = limiterBoostedFamilies.has(candFamily);
     const capForThis = isLimiterFamily ? limiterCap : effectiveCap;
