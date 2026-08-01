@@ -286,6 +286,33 @@ const FEWSHOT_STARTTORUN = `### Exemple : Start to Run — Semaine Type Débutan
 | Samedi | Mobilité | Mobilité + étirements | Foam roller 15min, mobilité hanches/chevilles, étirements. 25min. |
 | Dimanche | CAP | Sortie longue douce | 35min marche/course: 3×(3min marche + 5min course Z1 6:30/km). |`;
 
+/**
+ * Progression force déterministe Start to Run (12 semaines).
+ * Source unique côté catalogue : fiches S2R_STR_FOUNDATION_BEGINNER (S1-S4),
+ * S2R_STR_FOUNDATION_BLOC2 (S5-S8), S2R_STR_FOUNDATION_BLOC3 (S9-S12).
+ * Le limiteur d'un débutant est musculo-squelettique : ce bloc est OBLIGATOIRE
+ * dans CHAQUE semaine du plan, jamais remplacé par du volume de course.
+ */
+const S2R_STRENGTH_PROGRESSION = `### RENFORCEMENT FONDATION — OBLIGATOIRE CHAQUE SEMAINE (Start to Run)
+Chaque semaine DOIT contenir 2 séances "Renforcement fondation" (1 seule en S12),
+placées sur des jours SANS course ou après la course, jamais la veille d'une sortie longue.
+Utiliser la fiche catalogue du bloc correspondant et reprendre exactement le volume ci-dessous.
+
+| Sem | Fiche catalogue | Séances | Tours | Mollets (montées pointes) | Fessiers (pont) | Fentes | Gainage ventral | Gainage latéral |
+|-----|-----------------|---------|-------|---------------------------|-----------------|--------|-----------------|-----------------|
+| 1-2 | S2R_STR_FOUNDATION_BEGINNER | 2 | 2 | 2×15 bipodal | 2×12 | 2×8/jambe | 2×20s | 2×15s/côté |
+| 3-4 | S2R_STR_FOUNDATION_BEGINNER | 2 | 3 | 3×15 bipodal | 3×12 | 3×8/jambe | 3×25s | 3×20s/côté |
+| 5-6 | S2R_STR_FOUNDATION_BLOC2 | 2 | 3 | 3×10/jambe unipodal (descente 3s) | 3×10/jambe | 3×10/jambe | 3×30s | 3×25s/côté |
+| 7-8 | S2R_STR_FOUNDATION_BLOC2 | 2 | 3 | 3×12/jambe unipodal | 3×10/jambe | 3×10/jambe + sac 3-5kg | 3×40s | 3×25s/côté |
+| 9-10 | S2R_STR_FOUNDATION_BLOC3 | 2 | 3 | 3×15/jambe unipodal | 3×12/jambe pied surélevé | 3×12/jambe marchée | 3×45s | 3×30s/côté |
+| 11 | S2R_STR_FOUNDATION_BLOC3 | 2 | 3 | 3×15/jambe + rebonds 3×20s | 3×12/jambe | 3×12/jambe | 3×45s | 3×30s/côté |
+| 12 | S2R_STR_FOUNDATION_BLOC3 | 1 (allégée) | 2 | 2×12/jambe, sans rebonds | 2×10/jambe | 2×10/jambe | 2×30s | 2×20s/côté |
+
+Règles : poids de corps (sauf sac à dos S7-S8), exécution lente, 2-3 répétitions en réserve,
+jamais à l'échec. Step-up sur marche 3×8/jambe ajouté à partir de S5. Récupération 60s (blocs 1-2),
+75s (bloc 3). Toute douleur tendineuse ⇒ revenir au volume du bloc précédent.
+Dans la colonne "Détails" de chaque séance renfo, écrire les exercices et le volume exact de la ligne du tableau.`;
+
 const FEWSHOT_NORVEGIENNE_SEMI = `### Exemple : Méthode Norvégienne — Semaine Double Seuil Semi-Marathon Élite (100km, 10h)
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
