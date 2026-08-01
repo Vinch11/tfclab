@@ -22,6 +22,17 @@ function _vlamaxRunTarget(key: string): { min: number; optimal: number; max: num
   return { min: t.min, optimal: t.ideal, max: t.max };
 }
 
+/**
+ * Start to Run : plage VLamax dérivée de la source unique mais volontairement
+ * élargie (×1.35 sur le max) pour rester NON-limitante chez un débutant, dont
+ * le limiteur est structurel (tendons/os) et non métabolique.
+ */
+function _vlamaxBeginnerTarget(): { min: number; optimal: number; max: number } {
+  const t = getVlamaxTarget('10k', 'run');
+  return { min: t.min, optimal: t.ideal, max: +(t.max * 1.35).toFixed(2) };
+}
+
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
