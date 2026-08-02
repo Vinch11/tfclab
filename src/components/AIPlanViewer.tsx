@@ -669,9 +669,10 @@ interface WeekViewProps {
   objectifEffectif?: string | null;
   planTotalWeeks?: number;
   phaseLabelMap?: Record<string, string>;
+  raceGoals?: RaceGoal[];
 }
 
-function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {} }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {}, raceGoals }: WeekViewProps) {
 
 
 
@@ -681,6 +682,29 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
     const base = addDays(start, (week.weekNumber - 1) * 7);
     return Array.from({ length: 7 }, (_, i) => addDays(base, i));
   }, [startDate, week.weekNumber]);
+
+  // Plage calendaire de la semaine ("12 – 18 mai") — ancrage visuel du plan.
+  const weekRangeLabel = useMemo(() => {
+    if (!weekDates) return null;
+    const a = weekDates[0];
+    const b = weekDates[6];
+    const sameMonth = a.getMonth() === b.getMonth();
+    return sameMonth
+      ? `${format(a, "d", { locale: fr })} – ${format(b, "d MMM", { locale: fr })}`
+      : `${format(a, "d MMM", { locale: fr })} – ${format(b, "d MMM", { locale: fr })}`;
+  }, [weekDates]);
+
+  // Course(s) tombant dans cette semaine → badge « 🏁 Course A · 12 juil. »
+  const racesThisWeek = useMemo(() => {
+    if (!weekDates || !raceGoals?.length) return [];
+    const a = weekDates[0];
+    const b = weekDates[6];
+    return raceGoals
+      .filter(g => !!g.raceDate)
+      .map(g => ({ g, d: parseISO(g.raceDate as string) }))
+      .filter(({ d }) => !isNaN(d.getTime()) && d >= a && d <= addDays(b, 1));
+  }, [weekDates, raceGoals]);
+
 
   const activeSessions = week.sessions.filter(s => !s.isRest).length;
 
