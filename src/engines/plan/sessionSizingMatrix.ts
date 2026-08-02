@@ -200,6 +200,8 @@ export function normalizeSizingObjective(objective: string | null | undefined): 
   if (!objective) return null;
   const l = objective.toLowerCase();
   if (l.includes("trail") || l.includes("ultra") || l.includes("utmb") || l.includes("ccc") || l.includes("occ") || l.includes("hardrock") || l.includes("skyrun")) return null;
+  // Avant tout le reste : Start to Run ne doit jamais tomber sur 5K/10K.
+  if (l.includes("start to run") || l.includes("start-to-run") || l.includes("starttorun") || l.includes("s2r") || l.includes("débutant") || l.includes("debutant")) return "STARTTORUN";
   if (l.includes("70.3") || l.includes("half iron") || l.includes("half-iron") || l === "703" || l.includes("ironman 70")) return "703";
   if (l.includes("ironman") || l === "im" || l.match(/\bim\b/)) return "IM";
   if (l.includes("sprint") && (l.includes("tri") || l.includes("triathlon"))) return "TRI_SPRINT";
