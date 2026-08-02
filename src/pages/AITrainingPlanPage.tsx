@@ -628,6 +628,9 @@ export default function AITrainingPlanPage() {
   // (garde par ref sur la longueur du markdown final ; jamais par chunk).
   const postProcessKeyRef = useRef<string | null>(null);
   const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
+    // Régénération ciblée en cours de session : le plan fusionné prime.
+    if (planOverride && !isLoading) return planOverride;
+
     // Phase 1B — JSON path prioritaire. `jsonParsedPlan` est déjà validé Zod,
     // mergé, et neutralisé des volumes LLM. Le validator sport↔objectif tourne
     // dans le hook et loggue les issues critiques dans `sportObjectiveIssues`.
