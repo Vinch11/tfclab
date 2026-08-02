@@ -851,10 +851,35 @@ function getPhaseIndex(phaseName: string): number | null {
   return null;
 }
 
+/**
+ * Reconstruit la structure de phases à partir du champ `phase` des semaines
+ * lorsque le plan n'expose pas de bloc "Phases" (chemin JSON / plans legacy).
+ * Purement dérivé : aucune invention de contenu.
+ */
+export function derivePhasesFromWeeks(plan: ParsedPlan): ParsedPlan["phases"] {
+  const derived: ParsedPlan["phases"] = [];
+  let current: { name: string; start: number; end: number } | null = null;
+  for (const w of plan.weeks) {
+    const name = (w.phase || "").trim();
+    if (!name) continue;
+    if (current && current.name.toLowerCase() === name.toLowerCase()) {
+      current.end = w.weekNumber;
+    } else {
+      if (current) derived.push({ name: current.name, weeks: `S${current.start}-S${current.end}` });
+      current = { name, start: w.weekNumber, end: w.weekNumber };
+    }
+  }
+  if (current) derived.push({ name: current.name, weeks: `S${current.start}-S${current.end}` });
+  return derived;
+}
+
 function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
 
-  if (!plan.phases || plan.phases.length < 2) {
+  // Source unique : bloc "Phases" déclaré, sinon reconstruction depuis les semaines.
+  const phases = plan.phases && plan.phases.length >= 2 ? plan.phases : derivePhasesFromWeeks(plan);
+
+  if (phases.length < 2) {
     // Can't validate if no phases parsed
     if (plan.weeks.length >= 6) {
       issues.push({
@@ -871,7 +896,8 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
 
   // 1. Phase ordering — no regression
   let lastPhaseIdx = 0;
-  for (const phase of plan.phases) {
+  for (const phase of phases) {
+
     const idx = getPhaseIndex(phase.name);
     if (idx === null) continue;
     if (idx < lastPhaseIdx) {
