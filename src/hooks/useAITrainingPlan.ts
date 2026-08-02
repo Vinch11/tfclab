@@ -312,6 +312,10 @@ export function useAITrainingPlan() {
   // Phase 0 QA — union des catalogId injectés (phase + chunks) pour check B5.
   // Peuplée dans generatePlan une fois les catalogues bâtis, avant l'appel edge.
   const lastAllowedCatalogIdsRef = useRef<string[]>([]);
+  // Résultat brut du dernier run — lisible IMMÉDIATEMENT après `await generatePlan`
+  // (les states React ne sont pas encore rafraîchis dans le closure appelant).
+  const lastResponseRef = useRef<string>("");
+  const lastParsedPlanRef = useRef<ParsedPlan | null>(null);
 
   const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" }) => {
     // Guard against double-fire
@@ -325,6 +329,8 @@ export function useAITrainingPlan() {
       return;
     }
     setResponse("");
+    lastResponseRef.current = "";
+    lastParsedPlanRef.current = null;
     setParsedPlan(null);
     setMergedPlan(null);
     setSportObjectiveIssues([]);
@@ -832,6 +838,7 @@ export function useAITrainingPlan() {
               console.warn(`[useAITrainingPlan] sport↔objective issues (${issues.length}) :`, issues.slice(0, 5));
             }
             setMergedPlan(merged);
+            lastParsedPlanRef.current = parsed;
             setParsedPlan(parsed);
             setSportObjectiveIssues(issues);
             // Phase 2A — validation post-merge du quota hebdo (source moteur)
@@ -1001,6 +1008,7 @@ export function useAITrainingPlan() {
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) {
               fullText += content;
+              lastResponseRef.current = fullText;
               setResponse(fullText);
               updateWeekProgress(fullText);
             }
@@ -1036,6 +1044,7 @@ export function useAITrainingPlan() {
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) {
               fullText += content;
+              lastResponseRef.current = fullText;
               setResponse(fullText);
             }
           } catch (err) {
@@ -1075,6 +1084,8 @@ export function useAITrainingPlan() {
 
   const reset = useCallback(() => {
     setResponse("");
+    lastResponseRef.current = "";
+    lastParsedPlanRef.current = null;
     setParsedPlan(null);
     setMergedPlan(null);
     setSportObjectiveIssues([]);
@@ -1091,5 +1102,7 @@ export function useAITrainingPlan() {
     weeklyQuotaIssues, lastWeeklyQuotasRef,
     // Phase 0 QA — union catalogId injectés au dernier run (pour check B5).
     lastAllowedCatalogIdsRef,
+    // Résultat brut immédiat du dernier run (évite les states périmés).
+    lastResponseRef, lastParsedPlanRef,
   };
 }

@@ -183,15 +183,29 @@ export function usePlanAdaptation() {
         aiPlan.reset();
         await aiPlan.generatePlan(athleteData, config);
 
-        // Attendre la fin du stream : aiPlan.response contient le markdown
-        // Note : generatePlan await déjà le stream complet via la boucle reader
-        const generatedMarkdown = aiPlan.response;
-        if (!generatedMarkdown || generatedMarkdown.trim().length < 100) {
-          toast.error("Régénération IA — réponse vide ou tronquée");
+        // ⚠ `aiPlan.response` / `aiPlan.parsedPlan` sont des states React encore
+        // périmés dans ce closure : on lit les refs remplies pendant le stream.
+        const generatedMarkdown = aiPlan.lastResponseRef.current || aiPlan.response;
+        const streamedParsed = aiPlan.lastParsedPlanRef.current;
+
+        let windowPlan: ParsedPlan | null = streamedParsed;
+        if (!windowPlan) {
+          if (!generatedMarkdown || generatedMarkdown.trim().length < 100) {
+            console.error("[usePlanAdaptation] regen — réponse vide", {
+              markdownLength: generatedMarkdown?.length ?? 0,
+            });
+            toast.error("Régénération IA — réponse vide ou tronquée");
+            return null;
+          }
+          windowPlan = parseAIPlan(generatedMarkdown);
+        }
+
+        if (!windowPlan.weeks || windowPlan.weeks.length === 0) {
+          console.error("[usePlanAdaptation] regen — aucune semaine parsée");
+          toast.error("Régénération IA — aucune semaine exploitable dans la réponse");
           return null;
         }
 
-        const windowPlan = parseAIPlan(generatedMarkdown);
         const merged = mergeWindowIntoPlan(req.currentPlan, windowPlan, req.fromWeek, req.toWeek);
 
         await archive(req.athleteId, req.coachId, req.currentPlan, `Window regen S${req.fromWeek}-${req.toWeek}`);
