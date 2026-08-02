@@ -883,8 +883,17 @@ export default function AITrainingPlanPage() {
       },
       athleteContext.data
     );
+
+    // Mise à niveau des plans ANCIENS : affûtage minimal déterministe.
+    // Idempotent — no-op si le plan respecte déjà la règle.
+    const taperFix = upgradeLegacyTaper(plan, objective || null);
+    if (taperFix) {
+      // eslint-disable-next-line no-console
+      console.log("🩹 [legacy] taper corrigé", taperFix);
+    }
     return plan;
-  }, [rawParsedPlan, athleteContext, buildConfigFromDiag]);
+  }, [rawParsedPlan, athleteContext, buildConfigFromDiag, objective]);
+
 
   const { archiveCurrentPlan } = usePlanSnapshotSync();
 
