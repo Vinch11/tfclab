@@ -955,6 +955,9 @@ export default function AITrainingPlanPage() {
   };
 
   const handleGenerate = async () => {
+    // Une génération complète invalide toute régénération ciblée précédente.
+    setPlanOverride(null);
+
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
       return;
