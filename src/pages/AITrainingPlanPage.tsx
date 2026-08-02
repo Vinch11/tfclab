@@ -414,6 +414,8 @@ export default function AITrainingPlanPage() {
       trailTargetTimeH,
       trailMaxAltitudeM,
       terrainAvailability,
+      // Ancrage calendaire du plan (sinon dates ré-ancrées au lundi courant après refresh)
+      planStartDate: format(planStartDate, "yyyy-MM-dd"),
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
 
@@ -423,16 +425,20 @@ export default function AITrainingPlanPage() {
     if (activePlanKey && !loadedFromCacheAt) {
       try {
         const existing = localStorage.getItem(activePlanKey);
-        const existingResp = existing ? (JSON.parse(existing)?.response ?? null) : null;
-        if (existingResp !== response) {
-          const payload = { response, generatedAt: new Date().toISOString() };
+        const existingParsed = existing ? JSON.parse(existing) : null;
+        const existingResp = existingParsed?.response ?? null;
+        const existingStart = existingParsed?.planStartDate ?? null;
+        const nextStart = format(planStartDate, "yyyy-MM-dd");
+        if (existingResp !== response || existingStart !== nextStart) {
+          const payload = { response, generatedAt: existingResp === response ? (existingParsed?.generatedAt ?? new Date().toISOString()) : new Date().toISOString(), planStartDate: nextStart };
           localStorage.setItem(activePlanKey, JSON.stringify(payload));
         }
       } catch {
-        const payload = { response, generatedAt: new Date().toISOString() };
+        const payload = { response, generatedAt: new Date().toISOString(), planStartDate: format(planStartDate, "yyyy-MM-dd") };
         localStorage.setItem(activePlanKey, JSON.stringify(payload));
       }
     }
+
   }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
 
   // ═══════════════════════════════════════════════════════════════════════════
