@@ -32,7 +32,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { buildTargetTable } from "@/lib/plan/targetTable";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
-import { n as derivePhasesFromWeeks } from "@/engines/plan/planValidator";
+import { derivePhasesFromWeeks } from "@/engines/plan/planValidator";
 import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
 import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTableContext";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
