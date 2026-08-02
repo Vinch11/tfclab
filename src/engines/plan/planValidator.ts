@@ -463,7 +463,7 @@ function validateKeySessions(metrics: WeekMetrics[]): { issues: ValidationIssue[
   }
 
   const total = metrics.filter(m => !m.isDeload && !m.isRaceWeek).length || 1;
-  return { issues, score: Math.round((compliant / total) * 100) };
+  return { issues, score: Math.max(0, Math.min(100, Math.round((compliant / total) * 100))) };
 }
 
 /** Rule 4: Volume progression — F-23: uses real durations when ≥60% of sessions have one */
