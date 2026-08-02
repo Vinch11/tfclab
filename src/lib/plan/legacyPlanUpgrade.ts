@@ -101,3 +101,34 @@ export function inferLegacyPlanStartDate(
   // La course tombe dans la DERNIÈRE semaine du plan.
   return addWeeks(startOfWeek(race, { weekStartsOn: 1 }), -(totalWeeks - 1));
 }
+
+/**
+ * Détection NON MUTANTE du déficit d'affûtage, à appeler AVANT le post-traitement.
+ *
+ * ⚠ Nécessaire car `postProcessParsedPlan` (réconciliateur) reclasse déjà les
+ * semaines terminales en taper : après lui, `upgradeLegacyTaper` ne voit plus
+ * rien à corriger et le bandeau ne s'affichait jamais. On mesure donc l'état
+ * BRUT du plan stocké et on renvoie les semaines qui seront reclassées.
+ */
+export function detectLegacyTaperGap(
+  plan: ParsedPlan,
+  objective: string | null | undefined,
+): LegacyTaperUpgradeReport | null {
+  objective = objective || inferObjectiveFromPlan(plan);
+  if (!objective) return null;
+  const weeks = [...plan.weeks].sort((a, b) => a.weekNumber - b.weekNumber);
+  if (weeks.length < 4) return null;
+
+  const key = normalizeObjectiveKey(objective);
+  const required = minTaperWeeksFor(key, weeks.length);
+  const isTaper = (w: (typeof weeks)[number]) => TAPER_RX.test(`${w.phase} ${w.theme}`);
+  const before = weeks.filter(isTaper).length;
+  if (before >= required) return null;
+
+  const fixedWeeks = weeks
+    .slice(Math.max(0, weeks.length - required))
+    .filter((w) => !isTaper(w))
+    .map((w) => w.weekNumber);
+  if (fixedWeeks.length === 0) return null;
+  return { required, before, fixedWeeks };
+}

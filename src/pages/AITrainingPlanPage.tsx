@@ -39,7 +39,7 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan } from "@/lib/aiPlanParser";
-import { upgradeLegacyTaper, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
+import { upgradeLegacyTaper, detectLegacyTaperGap, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
 import { LegacyTaperBanner } from "@/components/plan/LegacyTaperBanner";
 
 
@@ -889,6 +889,13 @@ export default function AITrainingPlanPage() {
     };
 
     const config = buildConfigFromDiag(athleteContext.diagnostic);
+
+    // ⚠ Mesure AVANT post-traitement : le réconciliateur reclasse déjà les
+    // semaines terminales en affûtage (silencieusement). Sans cette sonde
+    // préalable, `upgradeLegacyTaper` ne voit plus rien et le bandeau n'apparaît
+    // jamais sur les plans anciens.
+    const preTaperGap = detectLegacyTaperGap(clonedPlan, objective || null);
+
     const { plan } = postProcessParsedPlan(
       clonedPlan,
       {
@@ -900,8 +907,9 @@ export default function AITrainingPlanPage() {
     );
 
     // Mise à niveau des plans ANCIENS : affûtage minimal déterministe.
-    // Idempotent — no-op si le plan respecte déjà la règle.
-    const taperFix = upgradeLegacyTaper(plan, objective || null);
+    // Idempotent — no-op si le plan respecte déjà la règle (cas normal après
+    // le réconciliateur).
+    const taperFix = upgradeLegacyTaper(plan, objective || null) ?? preTaperGap;
     if (taperFix) {
       // eslint-disable-next-line no-console
       console.log("🩹 [legacy] taper corrigé", taperFix);
