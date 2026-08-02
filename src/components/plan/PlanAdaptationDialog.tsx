@@ -129,6 +129,21 @@ export function PlanAdaptationDialog({
   const weeksOptions = currentPlan.weeks.map((w) => w.weekNumber);
   const dayLabels = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
+  // Regroupe les semaines consécutives partageant la même phase → "blocs"
+  const blocks = currentPlan.weeks.reduce<
+    { key: string; label: string; fromWeek: number; toWeek: number }[]
+  >((acc, w) => {
+    const label = (w.phase || w.theme || "Bloc").trim();
+    const last = acc[acc.length - 1];
+    if (last && last.label === label && w.weekNumber === last.toWeek + 1) {
+      last.toWeek = w.weekNumber;
+    } else {
+      acc.push({ key: `${label}-${w.weekNumber}`, label, fromWeek: w.weekNumber, toWeek: w.weekNumber });
+    }
+    return acc;
+  }, []);
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -257,6 +272,33 @@ export function PlanAdaptationDialog({
               Régénère une fenêtre de {windowSize} semaines via IA. Les semaines précédentes et suivantes restent intactes.
             </p>
 
+            {blocks.length > 0 && (
+              <div>
+                <Label>Bloc entier (cohérence de phase)</Label>
+                <Select
+                  value=""
+                  onValueChange={(v) => {
+                    const b = blocks.find((x) => x.key === v);
+                    if (!b) return;
+                    setFromWeek(b.fromWeek);
+                    setWindowSize(b.toWeek - b.fromWeek + 1);
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Sélectionner un bloc à régénérer…" /></SelectTrigger>
+                  <SelectContent>
+                    {blocks.map((b) => (
+                      <SelectItem key={b.key} value={b.key}>
+                        {b.label} — S{b.fromWeek}→S{b.toWeek} ({b.toWeek - b.fromWeek + 1} sem)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Régénérer un bloc complet garantit la progression interne (charge, densité, transition).
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Démarrer à la semaine</Label>
@@ -275,11 +317,12 @@ export function PlanAdaptationDialog({
                   value={[windowSize]}
                   onValueChange={(v) => setWindowSize(v[0])}
                   min={2}
-                  max={5}
+                  max={8}
                   step={1}
                 />
               </div>
             </div>
+
 
             <div>
               <Label>Motif</Label>
