@@ -894,8 +894,12 @@ export default function AITrainingPlanPage() {
       // eslint-disable-next-line no-console
       console.log("🩹 [legacy] taper corrigé", taperFix);
     }
-    return plan;
+    return { plan, taperFix: taperFix ?? null };
   }, [rawParsedPlan, athleteContext, buildConfigFromDiag, objective]);
+
+  const parsedPlan = parsedPlanWithMeta?.plan ?? null;
+  const legacyTaperReport = parsedPlanWithMeta?.taperFix ?? null;
+
 
 
   const { archiveCurrentPlan } = usePlanSnapshotSync();
