@@ -1875,21 +1875,23 @@ export function validatePlan(
     sessionDensity: 0.03,
     lorangCategories: 0.04,
   };
+  const clamp100 = (n: number) => Math.max(0, Math.min(100, Number.isFinite(n) ? n : 0));
   const weightedScore = Math.round(
-    polarization.score * weights.polarization +
-    loadPattern.score * weights.loadPattern +
-    keySessions.score * weights.keySessions +
-    progression.score * weights.progression +
-    sportRatio.score * weights.sportRatio +
-    catalogRatio.score * weights.catalogRatio +
-    prohibitionCompliance.score * weights.prohibitionCompliance +
-    phaseCoherence.score * weights.phaseCoherence +
-    raceDayPresence.score * weights.raceDayPresence +
-    limiterCoherence.score * weights.limiterCoherence +
-    wbalFeasibility.score * weights.wbalFeasibility +
-    sessionDensity_.score * weights.sessionDensity +
-    lorang_.score * weights.lorangCategories
+    clamp100(polarization.score) * weights.polarization +
+    clamp100(loadPattern.score) * weights.loadPattern +
+    clamp100(keySessions.score) * weights.keySessions +
+    clamp100(progression.score) * weights.progression +
+    clamp100(sportRatio.score) * weights.sportRatio +
+    clamp100(catalogRatio.score) * weights.catalogRatio +
+    clamp100(prohibitionCompliance.score) * weights.prohibitionCompliance +
+    clamp100(phaseCoherence.score) * weights.phaseCoherence +
+    clamp100(raceDayPresence.score) * weights.raceDayPresence +
+    clamp100(limiterCoherence.score) * weights.limiterCoherence +
+    clamp100(wbalFeasibility.score) * weights.wbalFeasibility +
+    clamp100(sessionDensity_.score) * weights.sessionDensity +
+    clamp100(lorang_.score) * weights.lorangCategories
   );
+
 
 
   // Grade
