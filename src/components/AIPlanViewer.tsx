@@ -875,10 +875,18 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
   const [replacementCount, setReplacementCount] = useState(0);
   useEffect(() => { setPlan(planProp); setReplacementCount(0); }, [planProp]);
 
-  // Libellés de phase orientés limiteur (couche affichage uniquement)
+  // Libellés de phase orientés limiteur (couche affichage uniquement).
+  // Si le bloc "Phases" du plan est absent/incomplet, on le reconstruit depuis
+  // les semaines — sinon la table reste vide et on retombe sur "Fondation" brut.
+  const effectivePhases = useMemo(() => {
+    if (plan.phases && plan.phases.length >= 2) return plan.phases;
+    const derived = derivePhasesFromWeeks(plan);
+    return derived && derived.length > 0 ? derived : plan.phases;
+  }, [plan]);
+
   const phaseLabelMap = useMemo(
-    () => buildPhaseLabelMap(plan.phases, plan.strategicRecap?.limiters),
-    [plan.phases, plan.strategicRecap],
+    () => buildPhaseLabelMap(effectivePhases, plan.strategicRecap?.limiters),
+    [effectivePhases, plan.strategicRecap],
   );
 
   // --- Replace dialog state ---
