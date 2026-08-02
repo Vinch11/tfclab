@@ -312,6 +312,10 @@ export function useAITrainingPlan() {
   // Phase 0 QA — union des catalogId injectés (phase + chunks) pour check B5.
   // Peuplée dans generatePlan une fois les catalogues bâtis, avant l'appel edge.
   const lastAllowedCatalogIdsRef = useRef<string[]>([]);
+  // Résultat brut du dernier run — lisible IMMÉDIATEMENT après `await generatePlan`
+  // (les states React ne sont pas encore rafraîchis dans le closure appelant).
+  const lastResponseRef = useRef<string>("");
+  const lastParsedPlanRef = useRef<ParsedPlan | null>(null);
 
   const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" }) => {
     // Guard against double-fire
