@@ -50,6 +50,8 @@ export interface ReconcilerCounters {
   id_remap_no_intent_match_fallback_custom: number;
   zone_hydrated?: number;
   early_consolidation_replaced?: number;
+  taper_weeks_enforced?: number;
+
 }
 
 
@@ -512,15 +514,75 @@ function fixEarlyConsolidationSessions(
   }
 }
 
+// ── Affûtage : nombre minimal de semaines `taper` (Mujika & Padilla 2003,
+//    Bosquet 2007 : 2 à 3 semaines de réduction de volume pour les épreuves
+//    longues). Règle déterministe : on reclasse les N dernières semaines du
+//    plan en `taper` si l'IA n'en a pas produit assez.
+export function minTaperWeeksFor(objectiveKey: string, totalWeeks: number): number {
+  const full =
+    ["IM", "TrailUltra"].includes(objectiveKey) ? 3
+    : ["703", "Marathon", "Semi", "Trail", "TrailMountain"].includes(objectiveKey) ? 2
+    : 1;
+  // Plan court : on rogne l'affûtage plutôt que les phases de développement.
+  return Math.max(1, Math.min(full, Math.floor(totalWeeks * 0.2)));
+}
+
+function enforceTaperWeeks(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+  objectiveKey: string | null | undefined,
+): void {
+  if (!objectiveKey) return;
+  const allWeeks = chunks
+    .flatMap(ch => (ch.weeks ?? []))
+    .sort((a, b) => (a.weekNumber ?? 0) - (b.weekNumber ?? 0));
+  const totalWeeks = allWeeks.length;
+  if (totalWeeks < 4) return;
+
+  const required = minTaperWeeksFor(objectiveKey, totalWeeks);
+  const current = allWeeks.filter(w => w.phase === "taper").length;
+  if (current >= required) return;
+
+  // On ne reclasse QUE des semaines terminales (pas de trou au milieu).
+  const missing = required - current;
+  const candidates = allWeeks
+    .slice(Math.max(0, totalWeeks - required))
+    .filter(w => w.phase !== "taper");
+  let done = 0;
+  for (const w of candidates) {
+    if (done >= missing) break;
+    const before = w.phase;
+    w.phase = "taper";
+    done++;
+    counters.taper_weeks_enforced = (counters.taper_weeks_enforced ?? 0) + 1;
+    logs.push(
+      `[taper_weeks_enforced] S${w.weekNumber} ${before} → taper (objectif=${objectiveKey}, requis=${required}, présentes=${current})`,
+    );
+  }
+  if (done < missing) {
+    logs.push(
+      `[taper_weeks_unresolved] objectif=${objectiveKey} requis=${required} obtenues=${current + done}`,
+    );
+  }
+}
+
 
 // ── API publique ───────────────────────────────────────────────────────────
+
+export interface RunReconcilerOptions {
+  /** Clé d'objectif normalisée (normalizeObjectiveKey) — pilote l'affûtage minimal. */
+  objectiveKey?: string | null;
+}
 
 export function runReconciler(
   chunks: PlanChunk[],
   quotasByWeek: Record<number, WeekQuotaEntry>,
   maxPasses = 2,
   injectedCatalogIds?: ReadonlyArray<string> | ReadonlySet<string>,
+  opts: RunReconcilerOptions = {},
 ): ReconcilerResult {
+
   const counters: ReconcilerCounters = {
     phase_substituted: 0,
     phase_unresolved: 0,
@@ -696,6 +758,8 @@ export function runReconciler(
   }
 
   fixEarlyConsolidationSessions(chunks, counters, logs);
+  enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
+
   hydrateDilutedZones(chunks, counters, logs);
   return { counters, logs };
 }

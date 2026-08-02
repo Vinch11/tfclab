@@ -669,9 +669,10 @@ interface WeekViewProps {
   objectifEffectif?: string | null;
   planTotalWeeks?: number;
   phaseLabelMap?: Record<string, string>;
+  raceGoals?: RaceGoal[];
 }
 
-function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {} }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {}, raceGoals }: WeekViewProps) {
 
 
 
@@ -681,6 +682,29 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
     const base = addDays(start, (week.weekNumber - 1) * 7);
     return Array.from({ length: 7 }, (_, i) => addDays(base, i));
   }, [startDate, week.weekNumber]);
+
+  // Plage calendaire de la semaine ("12 – 18 mai") — ancrage visuel du plan.
+  const weekRangeLabel = useMemo(() => {
+    if (!weekDates) return null;
+    const a = weekDates[0];
+    const b = weekDates[6];
+    const sameMonth = a.getMonth() === b.getMonth();
+    return sameMonth
+      ? `${format(a, "d", { locale: fr })} – ${format(b, "d MMM", { locale: fr })}`
+      : `${format(a, "d MMM", { locale: fr })} – ${format(b, "d MMM", { locale: fr })}`;
+  }, [weekDates]);
+
+  // Course(s) tombant dans cette semaine → badge « 🏁 Course A · 12 juil. »
+  const racesThisWeek = useMemo(() => {
+    if (!weekDates || !raceGoals?.length) return [];
+    const a = weekDates[0];
+    const b = weekDates[6];
+    return raceGoals
+      .filter(g => !!g.raceDate)
+      .map(g => ({ g, d: parseISO(g.raceDate as string) }))
+      .filter(({ d }) => !isNaN(d.getTime()) && d >= a && d <= addDays(b, 1));
+  }, [weekDates, raceGoals]);
+
 
   const activeSessions = week.sessions.filter(s => !s.isRest).length;
 
@@ -719,15 +743,24 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-sm flex items-center gap-2">
+          <CardTitle className="text-sm flex items-center gap-2 flex-wrap">
             <Calendar className="h-4 w-4 text-primary" />
             Semaine {week.weekNumber} — {week.theme}
+            {weekRangeLabel && (
+              <span className="text-[11px] font-normal text-muted-foreground">({weekRangeLabel})</span>
+            )}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {racesThisWeek.map(({ g, d }, i) => (
+              <Badge key={i} className="text-[10px] bg-primary text-primary-foreground">
+                🏁 Course {g.priority} · {g.raceName || g.objective} · {format(d, "EEE d MMM", { locale: fr })}
+              </Badge>
+            ))}
             <WeekQualityBadge week={week} />
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
           </div>
+
         </div>
         {nolioCtx && weekSelectableKeys.length > 0 && (
           <div className="flex items-center gap-2 pt-1.5 flex-wrap">
@@ -1558,12 +1591,12 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+          <WeekView week={currentWeek} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+            <WeekView key={i} week={week} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
           ))}
 
         </div>
