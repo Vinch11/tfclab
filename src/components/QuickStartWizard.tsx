@@ -67,6 +67,7 @@ const METABOLIC_QUESTIONS: Array<{ label: string; value: MetabolicProfile; desc:
 ];
 
 const OBJECTIVES = [
+  { value: "StartToRun", label: "Start to Run (débutant · marche-course)" },
   { value: "5K",       label: "5 km" },
   { value: "10K",      label: "10 km" },
   { value: "Semi",     label: "Semi-marathon" },
