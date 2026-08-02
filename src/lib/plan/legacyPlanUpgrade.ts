@@ -41,6 +41,8 @@ export function upgradeLegacyTaper(
   plan: ParsedPlan,
   objective: string | null | undefined,
 ): LegacyTaperUpgradeReport | null {
+  // Les plans très anciens n'ont pas d'`_objective` stocké : on le déduit du titre.
+  objective = objective || inferObjectiveFromPlan(plan);
   if (!objective) return null;
   const weeks = [...plan.weeks].sort((a, b) => a.weekNumber - b.weekNumber);
   if (weeks.length < 4) return null;
