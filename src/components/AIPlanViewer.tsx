@@ -1252,6 +1252,14 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     [raceGoals]
   );
 
+  // Nombre de blocs affiché : si le bloc "Phases" du plan est absent/incomplet,
+  // on le reconstruit depuis les semaines (même logique que la carte Benchmark).
+  const headerPhasesCount = useMemo(() => {
+    if (plan.phases && plan.phases.length >= 2) return plan.phases.length;
+    const derived = derivePhasesFromWeeks(plan);
+    return derived && derived.length > 0 ? derived.length : (plan.phases?.length ?? 0);
+  }, [plan]);
+
   // Corrige une distance hallucinée dans le titre IA + applique le nouveau format canonique
   // "{Objectif} — Structure {Ambition} — Objectif {tempsSnapshot}"
   const correctedTitle = useMemo(() => {
