@@ -129,6 +129,21 @@ export function PlanAdaptationDialog({
   const weeksOptions = currentPlan.weeks.map((w) => w.weekNumber);
   const dayLabels = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
+  // Regroupe les semaines consécutives partageant la même phase → "blocs"
+  const blocks = currentPlan.weeks.reduce<
+    { key: string; label: string; fromWeek: number; toWeek: number }[]
+  >((acc, w) => {
+    const label = (w.phase || w.theme || "Bloc").trim();
+    const last = acc[acc.length - 1];
+    if (last && last.label === label && w.weekNumber === last.toWeek + 1) {
+      last.toWeek = w.weekNumber;
+    } else {
+      acc.push({ key: `${label}-${w.weekNumber}`, label, fromWeek: w.weekNumber, toWeek: w.weekNumber });
+    }
+    return acc;
+  }, []);
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
