@@ -414,6 +414,9 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
 
   if (parsed.length < 2) return null;
 
+  // Garde-fou : si `totalWeeks` est absent/incohérent, on le déduit des phases.
+  const span = Math.max(totalWeeks || 0, ...parsed.map(p => p.end), 1);
+
   return (
     <div className="space-y-2 pt-2 border-t border-border">
       <h4 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
@@ -421,8 +424,8 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
       </h4>
       <div className="space-y-1">
         {parsed.map((phase, i) => {
-          const leftPct = ((phase.start - 1) / totalWeeks) * 100;
-          const widthPct = ((phase.end - phase.start + 1) / totalWeeks) * 100;
+          const leftPct = ((phase.start - 1) / span) * 100;
+          const widthPct = ((phase.end - phase.start + 1) / span) * 100;
           const isDark = phase.colorIdx === 4;
           const isGreen = phase.colorIdx === 5;
           return (
