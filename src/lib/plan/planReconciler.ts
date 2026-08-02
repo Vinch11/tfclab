@@ -49,6 +49,7 @@ export interface ReconcilerCounters {
   id_remapped_to_neighbor: number;
   id_remap_no_intent_match_fallback_custom: number;
   zone_hydrated?: number;
+  early_consolidation_replaced?: number;
 }
 
 
