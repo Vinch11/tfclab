@@ -313,6 +313,40 @@ jamais à l'échec. Step-up sur marche 3×8/jambe ajouté à partir de S5. Récu
 75s (bloc 3). Toute douleur tendineuse ⇒ revenir au volume du bloc précédent.
 Dans la colonne "Détails" de chaque séance renfo, écrire les exercices et le volume exact de la ligne du tableau.`;
 
+/**
+ * Règles STRUCTURELLES non négociables Start to Run.
+ * Public : débutant complet OU reprise après blessure grave.
+ * Le plafond de durée est aussi appliqué de façon déterministe côté client
+ * (startToRunMaxSessionMin / capStartToRunSessions) — le prompt doit être aligné.
+ */
+const S2R_STRUCTURE_RULES = `### STRUCTURE START TO RUN — RÈGLES ABSOLUES (débutant / reprise post-blessure)
+Public : personne qui DÉBUTE la course à pied ou qui REPREND après une blessure grave.
+Ce n'est PAS un plan de performance. Aucune référence marathon/semi/10K ne s'applique.
+
+1. AUCUNE "sortie longue". Le mot "sortie longue" / "SL" est INTERDIT. On écrit
+   "marche-course progressive".
+2. PLAFOND DE DURÉE PAR SÉANCE (échauffement + corps + retour au calme inclus) :
+   | Semaines | Durée max d'UNE séance |
+   |----------|------------------------|
+   | 1-2 | 35 min |
+   | 3-4 | 40 min |
+   | 5-6 | 45 min |
+   | 7-8 | 50 min |
+   | 9-10 | 55 min |
+   | 11+ | 60 min |
+   Dépasser ce plafond est une ERREUR GRAVE (risque de blessure du débutant).
+3. 3 séances marche-course par semaine MAXIMUM, jamais 2 jours de course consécutifs,
+   au moins 2 jours de repos complet par semaine, 1 seule séance par jour.
+4. Intensité : Z1/Z2 uniquement, pilotage RPE 2-4/10 ("je peux parler en phrases").
+   Pas de seuil, pas de VMA, pas de fractionné rapide, pas de côtes avant S9.
+5. Progression : la fraction COURUE augmente, pas la durée totale. Ex : S1 5×(3'marche
+   + 2'course) → S6 4×(1'marche + 6'course) → S12 25-30' de course continue.
+6. Règle des +10 % : le temps de course cumulé hebdo ne progresse jamais de plus de
+   10 % d'une semaine sur l'autre ; toutes les 4 semaines = semaine palier (répétition
+   du volume, jamais d'augmentation).
+7. Toute douleur articulaire/tendineuse ⇒ revenir au format de la semaine précédente.`;
+
+
 const FEWSHOT_NORVEGIENNE_SEMI = `### Exemple : Méthode Norvégienne — Semaine Double Seuil Semi-Marathon Élite (100km, 10h)
 | Jour | Sport | Séance | Détails |
 |------|-------|--------|---------|
