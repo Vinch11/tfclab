@@ -396,9 +396,11 @@ function buildFewShotExamples(profile?: SystemPromptProfile): string {
     parts.push(FEWSHOT_DHAENE_TRAIL_MONTAGNE);
     parts.push(FEWSHOT_WALMSLEY_TRAIL_COURT);
   } else if (isStartToRun) {
+    parts.push(S2R_STRUCTURE_RULES);
     parts.push(FEWSHOT_STARTTORUN);
     parts.push(S2R_STRENGTH_PROGRESSION);
-    parts.push(FEWSHOT_MARATHON_AGEGROUP);
+    // AUCUN few-shot marathon/semi ici : contamination volume (SL 1h50, 65km/sem)
+    // → l'IA proposait des sorties longues de 1h25 dès la S1 à des débutantes.
   } else if (isMarathon) {
     parts.push(FEWSHOT_KIPCHOGE_MARATHON);
     parts.push(FEWSHOT_CANOVA_MARATHON);
