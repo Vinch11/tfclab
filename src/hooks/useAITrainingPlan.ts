@@ -793,9 +793,12 @@ export function useAITrainingPlan() {
             // Corrige phase/durée/discipline/quota AVANT le merge final, à
             // partir des mêmes règles que B10/B11 (ficheAllowedPhases).
             try {
-              const rec = runReconciler(collected, lastWeeklyQuotasRef.current, 2, lastAllowedCatalogIdsRef.current);
+              const rec = runReconciler(collected, lastWeeklyQuotasRef.current, 2, lastAllowedCatalogIdsRef.current, {
+                objectiveKey: planConfig.objective ? normalizeObjectiveKey(planConfig.objective) : null,
+              });
               const c = rec.counters;
-              const summary = `phase_substituted=${c.phase_substituted} id_substituted_duration=${c.id_substituted_duration} discipline_substituted=${c.discipline_substituted} quota_floor_inserted=${c.quota_floor_inserted_from_catalog} quota_ceiling_trimmed=${c.quota_ceiling_trimmed} id_remapped_to_neighbor=${c.id_remapped_to_neighbor} id_remap_fallback_custom=${c.id_remap_no_intent_match_fallback_custom} phase_unresolved=${c.phase_unresolved} duration_unresolved=${c.duration_unresolved} discipline_unresolved=${c.discipline_unresolved} floor_unresolved=${c.quota_floor_unresolved} reconcile_conflict=${c.reconcile_conflict} zone_hydrated=${c.zone_hydrated ?? 0}`;
+              const summary = `phase_substituted=${c.phase_substituted} id_substituted_duration=${c.id_substituted_duration} discipline_substituted=${c.discipline_substituted} quota_floor_inserted=${c.quota_floor_inserted_from_catalog} quota_ceiling_trimmed=${c.quota_ceiling_trimmed} id_remapped_to_neighbor=${c.id_remapped_to_neighbor} id_remap_fallback_custom=${c.id_remap_no_intent_match_fallback_custom} phase_unresolved=${c.phase_unresolved} duration_unresolved=${c.duration_unresolved} discipline_unresolved=${c.discipline_unresolved} floor_unresolved=${c.quota_floor_unresolved} reconcile_conflict=${c.reconcile_conflict} zone_hydrated=${c.zone_hydrated ?? 0} taper_weeks_enforced=${c.taper_weeks_enforced ?? 0}`;
+
               console.groupCollapsed(`🔧 [reconciler] ${summary}`);
               for (const line of rec.logs) console.log(line);
               console.groupEnd();
