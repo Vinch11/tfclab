@@ -174,6 +174,13 @@ export default function AITrainingPlanPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  /**
+   * Plan reconstruit localement après une régénération ciblée (semaine ou fenêtre
+   * d'affûtage). Il prime sur le markdown/JSON d'origine tant qu'une nouvelle
+   * génération complète n'a pas été lancée.
+   */
+  const [planOverride, setPlanOverride] = useState<ParsedPlan | null>(null);
+
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
   const [showSyncBanner, setShowSyncBanner] = useState(false);
