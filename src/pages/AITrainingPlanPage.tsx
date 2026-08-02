@@ -323,6 +323,7 @@ export default function AITrainingPlanPage() {
     if (isMultiMode) return;
     // Try plan_active_<id> first (full plan + timestamp)
     let activeRestored = false;
+    let restoredStart: string | null = null;
     if (activePlanKey) {
       try {
         const rawActive = localStorage.getItem(activePlanKey);
@@ -331,12 +332,14 @@ export default function AITrainingPlanPage() {
           if (parsed?.response) {
             setResponse(parsed.response);
             setLoadedFromCacheAt(parsed.generatedAt || null);
+            if (parsed.planStartDate) restoredStart = parsed.planStartDate;
             activeRestored = true;
           }
         }
       } catch {}
     }
     if (!activeRestored) setLoadedFromCacheAt(null);
+
 
     if (savedState) {
       if (!activeRestored && savedState.response) setResponse(savedState.response);
