@@ -39,7 +39,7 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan } from "@/lib/aiPlanParser";
-import { upgradeLegacyTaper, inferLegacyPlanStartDate } from "@/lib/plan/legacyPlanUpgrade";
+import { upgradeLegacyTaper, inferLegacyPlanStartDate, inferObjectiveFromPlan } from "@/lib/plan/legacyPlanUpgrade";
 
 import { isJsonBetaEnabled, setJsonBetaEnabled } from "@/lib/plan/planGenerationStats";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
@@ -1418,7 +1418,10 @@ export default function AITrainingPlanPage() {
     }
     setResponse(md);
     setPlanStartDate(startOfWeek(startDate, { weekStartsOn: 1 }));
-    if (pj._objective) setObjective(pj._objective);
+    // Objectif : stocké dans les plans récents, déduit du titre pour les anciens
+    // (indispensable pour que la règle d'affûtage déterministe s'applique).
+    const loadedObjective = pj._objective || inferObjectiveFromPlan(pj);
+    if (loadedObjective) setObjective(loadedObjective);
     if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
     if (pj._raceDate !== undefined) setRaceDate(pj._raceDate || "");
     setResultView("interactive");
@@ -1428,12 +1431,15 @@ export default function AITrainingPlanPage() {
 
   const handleLoadVersion = useCallback((version: { plan_json: any }) => {
     // Ancrage calendaire automatique des plans ANCIENS : si la date de début
-    // est absente mais que la date de course est connue, on la reconstruit
-    // (S dernière = semaine de course) sans demander au coach.
+    // est absente mais que la date de course est connue (dans le plan OU via
+    // l'objectif A de l'athlète), on la reconstruit (S dernière = semaine de
+    // course) sans demander au coach.
     const pj = version.plan_json || {};
     const totalWeeks = Array.isArray(pj.weeks) ? pj.weeks.length : (pj._weeksCount ?? 0);
-    if (!pj._planStartDate && pj._raceDate) {
-      const inferred = inferLegacyPlanStartDate(pj, totalWeeks);
+    const fallbackRace =
+      raceDate || raceGoals.find(g => g.priority === "A")?.raceDate || raceGoals[0]?.raceDate || null;
+    if (!pj._planStartDate && (pj._raceDate || fallbackRace)) {
+      const inferred = inferLegacyPlanStartDate(pj, totalWeeks, fallbackRace);
       if (inferred) {
         applyLoadedVersion(version, inferred);
         toast.info("Plan ancré au calendrier depuis la date de course");
@@ -1441,7 +1447,7 @@ export default function AITrainingPlanPage() {
       }
     }
     setPendingVersion(version);
-  }, [applyLoadedVersion]);
+  }, [applyLoadedVersion, raceDate, raceGoals]);
 
 
   // Compute the current week number relative to planStartDate

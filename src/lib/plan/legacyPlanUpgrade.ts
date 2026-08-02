@@ -34,6 +34,18 @@ export interface LegacyTaperUpgradeReport {
 }
 
 /**
+ * Déduit l'objectif d'un plan ancien depuis son titre (ex. « Plan TFCL™ — IRONMAN
+ * Kalmar — 19 semaines » → `IM`). Retourne `null` si aucun mot-clé reconnu.
+ */
+export function inferObjectiveFromPlan(plan: { title?: string | null } | null | undefined): string | null {
+  const title = plan?.title;
+  if (!title) return null;
+  const key = normalizeObjectiveKey(title);
+  // normalizeObjectiveKey renvoie l'entrée telle quelle si rien n'a matché.
+  return key === title ? null : key;
+}
+
+/**
  * Reclasse en `taper` les dernières semaines d'un plan qui n'en compte pas assez.
  * Mute le plan reçu (appelé sur un clone dans la page).
  */
@@ -41,6 +53,8 @@ export function upgradeLegacyTaper(
   plan: ParsedPlan,
   objective: string | null | undefined,
 ): LegacyTaperUpgradeReport | null {
+  // Les plans très anciens n'ont pas d'`_objective` stocké : on le déduit du titre.
+  objective = objective || inferObjectiveFromPlan(plan);
   if (!objective) return null;
   const weeks = [...plan.weeks].sort((a, b) => a.weekNumber - b.weekNumber);
   if (weeks.length < 4) return null;
@@ -65,11 +79,14 @@ export function upgradeLegacyTaper(
 
 /**
  * Déduit la date de début d'un plan ancien non ancré au calendrier.
+ * `fallbackRaceDate` (ISO) permet d'utiliser l'objectif A de l'athlète quand le
+ * plan stocké ne contient aucune date de course.
  * Retourne `null` si aucune inférence fiable n'est possible.
  */
 export function inferLegacyPlanStartDate(
   planJson: Record<string, unknown> | null | undefined,
   totalWeeks: number,
+  fallbackRaceDate?: string | null,
 ): Date | null {
   if (!planJson || totalWeeks <= 0) return null;
   const explicit = planJson._planStartDate as string | undefined;
@@ -77,7 +94,7 @@ export function inferLegacyPlanStartDate(
     const d = parseISO(explicit);
     if (!isNaN(d.getTime())) return startOfWeek(d, { weekStartsOn: 1 });
   }
-  const raceRaw = planJson._raceDate as string | undefined;
+  const raceRaw = (planJson._raceDate as string | undefined) || fallbackRaceDate || undefined;
   if (!raceRaw) return null;
   const race = parseISO(raceRaw);
   if (isNaN(race.getTime())) return null;
