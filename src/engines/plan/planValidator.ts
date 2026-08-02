@@ -319,10 +319,12 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
   let compliant = 0;
 
   for (const wm of metrics) {
+    // Semaines exclues de l'évaluation (décharge / course / <3 séances) :
+    // elles ne comptent NI au numérateur NI au dénominateur (sinon score > 100).
     if (wm.isDeload || wm.isRaceWeek || wm.activeSessions < 3) {
-      compliant++;
       continue;
     }
+
 
     const { lowPct, midPct, highPct } = wm.intensityProfile;
 
