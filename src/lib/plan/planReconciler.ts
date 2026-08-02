@@ -30,6 +30,8 @@ import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
+import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
+
 
 // ── Types ───────────────────────────────────────────────────────────────────
 type SchemaSport = "swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "rest";
