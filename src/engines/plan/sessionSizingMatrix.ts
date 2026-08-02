@@ -37,7 +37,7 @@ export interface SizingFloors {
 
 export type SizingObjectiveKey =
   | "703" | "IM" | "TRI_SPRINT" | "TRI_OLYMPIQUE"
-  | "SEMI" | "MARATHON" | "10K" | "5K";
+  | "SEMI" | "MARATHON" | "10K" | "5K" | "STARTTORUN";
 
 export type SizingAmbitionKey = "finisher" | "age_group" | "competitor" | "elite";
 
