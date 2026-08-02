@@ -34,6 +34,18 @@ export interface LegacyTaperUpgradeReport {
 }
 
 /**
+ * Déduit l'objectif d'un plan ancien depuis son titre (ex. « Plan TFCL™ — IRONMAN
+ * Kalmar — 19 semaines » → `IM`). Retourne `null` si aucun mot-clé reconnu.
+ */
+export function inferObjectiveFromPlan(plan: { title?: string | null } | null | undefined): string | null {
+  const title = plan?.title;
+  if (!title) return null;
+  const key = normalizeObjectiveKey(title);
+  // normalizeObjectiveKey renvoie l'entrée telle quelle si rien n'a matché.
+  return key === title ? null : key;
+}
+
+/**
  * Reclasse en `taper` les dernières semaines d'un plan qui n'en compte pas assez.
  * Mute le plan reçu (appelé sur un clone dans la page).
  */
