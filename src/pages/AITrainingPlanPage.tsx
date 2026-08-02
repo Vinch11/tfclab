@@ -2804,6 +2804,9 @@ export default function AITrainingPlanPage() {
         onOpenChange={setCoachFormOpen}
         athleteName={currentAthlete?.nom}
         objectifLabel={OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective}
+        objectiveValue={objective}
+        objectiveOptions={OBJECTIVE_OPTIONS}
+        onObjectiveChange={setObjective}
         prefill={coachPrefill}
         onSubmit={handleCoachFormSave}
         onGenerate={handleCoachFormGenerate}
