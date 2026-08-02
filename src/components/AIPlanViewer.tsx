@@ -1591,12 +1591,12 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+          <WeekView week={currentWeek} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+            <WeekView key={i} week={week} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
           ))}
 
         </div>
