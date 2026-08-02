@@ -647,18 +647,27 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
         )}
 
         {/* Load pattern */}
-        <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
-          <span className="text-muted-foreground">Pattern de charge détecté</span>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">{loadRatio}</Badge>
-            {loadRatio === ref.loadPattern ? (
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-            ) : (
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-            )}
-            <span className="text-xs text-muted-foreground">Réf: {ref.loadPattern}</span>
-          </div>
-        </div>
+        {(() => {
+          const refNum = parseFloat(String(ref.loadPattern).split(":")[0]) || 3;
+          const obsNum = deloadWeeks > 0 ? loadWeeks / deloadWeeks : Infinity;
+          // Tolérance : un plan est conforme s'il ne dépasse pas la réf de +1 semaine de charge
+          const conform = Number.isFinite(obsNum) && obsNum <= refNum + 1;
+          return (
+            <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
+              <span className="text-muted-foreground">Pattern de charge détecté</span>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">{loadRatio}</Badge>
+                {conform ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                )}
+                <span className="text-xs text-muted-foreground">Réf: {ref.loadPattern}</span>
+              </div>
+            </div>
+          );
+        })()}
+
 
         {/* Catalog usage stats */}
         {validationResult.catalogStats.totalKeySessions > 0 && (() => {
