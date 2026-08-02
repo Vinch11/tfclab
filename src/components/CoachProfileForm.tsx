@@ -330,6 +330,22 @@ export function CoachProfileForm({
         </DialogHeader>
 
         <div className="space-y-6 py-2">
+          {/* Objectif — sélectionnable directement depuis le formulaire */}
+          {objectiveOptions && objectiveOptions.length > 0 && onObjectiveChange && (
+            <section className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <Label className="text-sm font-semibold mb-2 block">Objectif</Label>
+              <select
+                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                value={objectiveValue ?? ""}
+                onChange={(e) => onObjectiveChange(e.target.value)}
+              >
+                {objectiveOptions.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </section>
+          )}
+
           {/* Pre-fill banner */}
           {hasPrefill && (
             <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-200 flex gap-2">
