@@ -743,15 +743,24 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-sm flex items-center gap-2">
+          <CardTitle className="text-sm flex items-center gap-2 flex-wrap">
             <Calendar className="h-4 w-4 text-primary" />
             Semaine {week.weekNumber} — {week.theme}
+            {weekRangeLabel && (
+              <span className="text-[11px] font-normal text-muted-foreground">({weekRangeLabel})</span>
+            )}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {racesThisWeek.map(({ g, d }, i) => (
+              <Badge key={i} className="text-[10px] bg-primary text-primary-foreground">
+                🏁 Course {g.priority} · {g.raceName || g.objective} · {format(d, "EEE d MMM", { locale: fr })}
+              </Badge>
+            ))}
             <WeekQualityBadge week={week} />
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
           </div>
+
         </div>
         {nolioCtx && weekSelectableKeys.length > 0 && (
           <div className="flex items-center gap-2 pt-1.5 flex-wrap">
