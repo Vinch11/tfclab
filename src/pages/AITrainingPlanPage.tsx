@@ -39,7 +39,9 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan } from "@/lib/aiPlanParser";
-import { upgradeLegacyTaper, inferLegacyPlanStartDate, inferObjectiveFromPlan } from "@/lib/plan/legacyPlanUpgrade";
+import { upgradeLegacyTaper, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
+import { LegacyTaperBanner } from "@/components/plan/LegacyTaperBanner";
+
 
 import { isJsonBetaEnabled, setJsonBetaEnabled } from "@/lib/plan/planGenerationStats";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
@@ -856,9 +858,10 @@ export default function AITrainingPlanPage() {
   }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability]);
 
 
-  const parsedPlan = useMemo<ParsedPlan | null>(() => {
+  const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
     if (!rawParsedPlan) return null;
-    if (!athleteContext) return rawParsedPlan;
+    if (!athleteContext) return { plan: rawParsedPlan, taperFix: null };
+
 
     const clonedPlan: ParsedPlan = {
       ...rawParsedPlan,
@@ -893,8 +896,12 @@ export default function AITrainingPlanPage() {
       // eslint-disable-next-line no-console
       console.log("🩹 [legacy] taper corrigé", taperFix);
     }
-    return plan;
+    return { plan, taperFix: taperFix ?? null };
   }, [rawParsedPlan, athleteContext, buildConfigFromDiag, objective]);
+
+  const parsedPlan = parsedPlanWithMeta?.plan ?? null;
+  const legacyTaperReport = parsedPlanWithMeta?.taperFix ?? null;
+
 
 
   const { archiveCurrentPlan } = usePlanSnapshotSync();
@@ -2546,6 +2553,17 @@ export default function AITrainingPlanPage() {
                   {/* Interactive View */}
                   {resultView === "interactive" && parsedPlan ? (
                     <>
+                      {legacyTaperReport && athleteContext && currentAthlete && coachId && (
+                        <LegacyTaperBanner
+                          report={legacyTaperReport}
+                          currentPlan={parsedPlan}
+                          athleteId={currentAthlete.id}
+                          coachId={coachId}
+                          athleteData={athleteContext.data}
+                          baseConfig={buildConfigFromDiag(athleteContext.diagnostic)}
+                        />
+                      )}
+
                       <AIPlanBenchmark
                         plan={parsedPlan}
                         objective={objective}
