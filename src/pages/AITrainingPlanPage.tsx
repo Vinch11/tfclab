@@ -318,11 +318,18 @@ export default function AITrainingPlanPage() {
     setRaceGoals(prev => prev.map((g, i) => i === idx ? { ...g, [field]: value } : g));
   };
 
+  // Plan start date: defaults to Monday of the CURRENT week, but can be
+  // overridden when restoring an archived plan (so dates match the original).
+  const [planStartDate, setPlanStartDate] = useState<Date>(() =>
+    startOfWeek(new Date(), { weekStartsOn: 1 })
+  );
+
   // Restore persisted plan + config on athlete change (single mode only)
   useEffect(() => {
     if (isMultiMode) return;
     // Try plan_active_<id> first (full plan + timestamp)
     let activeRestored = false;
+    let restoredStart: string | null = null;
     if (activePlanKey) {
       try {
         const rawActive = localStorage.getItem(activePlanKey);
@@ -331,12 +338,14 @@ export default function AITrainingPlanPage() {
           if (parsed?.response) {
             setResponse(parsed.response);
             setLoadedFromCacheAt(parsed.generatedAt || null);
+            if (parsed.planStartDate) restoredStart = parsed.planStartDate;
             activeRestored = true;
           }
         }
       } catch {}
     }
     if (!activeRestored) setLoadedFromCacheAt(null);
+
 
     if (savedState) {
       if (!activeRestored && savedState.response) setResponse(savedState.response);
@@ -365,8 +374,19 @@ export default function AITrainingPlanPage() {
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
     }
+
+    // Ancrage calendaire : restaure la date de début du plan persistée, sinon
+    // le plan rechargé serait ré-ancré au lundi de la semaine courante (dates fausses).
+    const startRaw = restoredStart || savedState?.planStartDate || null;
+    if (startRaw) {
+      try {
+        const d = parseISO(startRaw);
+        if (!isNaN(d.getTime())) setPlanStartDate(startOfWeek(d, { weekStartsOn: 1 }));
+      } catch {}
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
+
 
   // Reset saved state when regenerating
   useEffect(() => {
@@ -400,6 +420,8 @@ export default function AITrainingPlanPage() {
       trailTargetTimeH,
       trailMaxAltitudeM,
       terrainAvailability,
+      // Ancrage calendaire du plan (sinon dates ré-ancrées au lundi courant après refresh)
+      planStartDate: format(planStartDate, "yyyy-MM-dd"),
     };
     localStorage.setItem(persistKey, JSON.stringify(state));
 
@@ -409,17 +431,21 @@ export default function AITrainingPlanPage() {
     if (activePlanKey && !loadedFromCacheAt) {
       try {
         const existing = localStorage.getItem(activePlanKey);
-        const existingResp = existing ? (JSON.parse(existing)?.response ?? null) : null;
-        if (existingResp !== response) {
-          const payload = { response, generatedAt: new Date().toISOString() };
+        const existingParsed = existing ? JSON.parse(existing) : null;
+        const existingResp = existingParsed?.response ?? null;
+        const existingStart = existingParsed?.planStartDate ?? null;
+        const nextStart = format(planStartDate, "yyyy-MM-dd");
+        if (existingResp !== response || existingStart !== nextStart) {
+          const payload = { response, generatedAt: existingResp === response ? (existingParsed?.generatedAt ?? new Date().toISOString()) : new Date().toISOString(), planStartDate: nextStart };
           localStorage.setItem(activePlanKey, JSON.stringify(payload));
         }
       } catch {
-        const payload = { response, generatedAt: new Date().toISOString() };
+        const payload = { response, generatedAt: new Date().toISOString(), planStartDate: format(planStartDate, "yyyy-MM-dd") };
         localStorage.setItem(activePlanKey, JSON.stringify(payload));
       }
     }
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability]);
+
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, weeklyHours, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, planStartDate]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -603,12 +629,6 @@ export default function AITrainingPlanPage() {
     void handleGenerate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingExpressGen, snapshots, athleteContext, currentAthlete]);
-
-  // Plan start date: defaults to Monday of the CURRENT week, but can be
-  // overridden when restoring an archived plan (so dates match the original).
-  const [planStartDate, setPlanStartDate] = useState<Date>(() =>
-    startOfWeek(new Date(), { weekStartsOn: 1 })
-  );
 
   const weeksAvailable = useMemo(() => {
     // Use the latest race date across all goals (primary A + additional B/C), relative to plan start week
