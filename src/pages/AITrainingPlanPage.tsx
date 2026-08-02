@@ -1427,8 +1427,22 @@ export default function AITrainingPlanPage() {
   }, [setResponse]);
 
   const handleLoadVersion = useCallback((version: { plan_json: any }) => {
+    // Ancrage calendaire automatique des plans ANCIENS : si la date de début
+    // est absente mais que la date de course est connue, on la reconstruit
+    // (S dernière = semaine de course) sans demander au coach.
+    const pj = version.plan_json || {};
+    const totalWeeks = Array.isArray(pj.weeks) ? pj.weeks.length : (pj._weeksCount ?? 0);
+    if (!pj._planStartDate && pj._raceDate) {
+      const inferred = inferLegacyPlanStartDate(pj, totalWeeks);
+      if (inferred) {
+        applyLoadedVersion(version, inferred);
+        toast.info("Plan ancré au calendrier depuis la date de course");
+        return;
+      }
+    }
     setPendingVersion(version);
-  }, []);
+  }, [applyLoadedVersion]);
+
 
   // Compute the current week number relative to planStartDate
   const currentWeekNumber = useMemo(() => {
