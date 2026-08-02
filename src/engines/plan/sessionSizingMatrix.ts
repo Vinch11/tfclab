@@ -37,7 +37,7 @@ export interface SizingFloors {
 
 export type SizingObjectiveKey =
   | "703" | "IM" | "TRI_SPRINT" | "TRI_OLYMPIQUE"
-  | "SEMI" | "MARATHON" | "10K" | "5K";
+  | "SEMI" | "MARATHON" | "10K" | "5K" | "STARTTORUN";
 
 export type SizingAmbitionKey = "finisher" | "age_group" | "competitor" | "elite";
 
@@ -145,6 +145,16 @@ const MATRIX: Matrix = {
     competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
+  // Start to Run — débuter/reprendre la course (marche-course).
+  // Jamais de "sortie longue" : 3 séances marche-course courtes + renfo fondation.
+  // Fréquence > volume (Nielsen 2013, Videbæk 2015 : risque blessure du débutant
+  // piloté par la progression de charge, pas par la durée d'une séance unique).
+  STARTTORUN: {
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
+    elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
+  },
 };
 
 /** Durées planchers SL par format (min). Consommées par validateWeeklyQuotas. */
@@ -157,7 +167,26 @@ const SL_MIN_BY_OBJECTIVE: Record<SizingObjectiveKey, { bike?: number; run?: num
   MARATHON:      { run: 110 },
   "10K":         { run: 60 },
   "5K":          { run: 60 },
+  // Start to Run : aucune sortie longue (voir STARTTORUN_MAX_SESSION_MIN).
+  STARTTORUN:    {},
 };
+
+/**
+ * Plafond DÉTERMINISTE de durée d'une séance marche-course Start to Run,
+ * par numéro de semaine (1-indexé). Progression ~+5 min / 2 semaines.
+ * Aucune séance ne doit dépasser ces valeurs — un débutant ou une reprise
+ * post-blessure ne fait pas de sortie de 1h+ en début de plan.
+ */
+export function startToRunMaxSessionMin(weekNumber: number): number {
+  const w = Math.max(1, Math.round(weekNumber || 1));
+  if (w <= 2) return 35;
+  if (w <= 4) return 40;
+  if (w <= 6) return 45;
+  if (w <= 8) return 50;
+  if (w <= 10) return 55;
+  return 60;
+}
+
 
 function sourceFor(obj: SizingObjectiveKey): { tier: EvidenceTier; ref: string } {
   if (obj === "703") return SRC_703;
@@ -171,6 +200,8 @@ export function normalizeSizingObjective(objective: string | null | undefined): 
   if (!objective) return null;
   const l = objective.toLowerCase();
   if (l.includes("trail") || l.includes("ultra") || l.includes("utmb") || l.includes("ccc") || l.includes("occ") || l.includes("hardrock") || l.includes("skyrun")) return null;
+  // Avant tout le reste : Start to Run ne doit jamais tomber sur 5K/10K.
+  if (l.includes("start to run") || l.includes("start-to-run") || l.includes("starttorun") || l.includes("s2r") || l.includes("débutant") || l.includes("debutant")) return "STARTTORUN";
   if (l.includes("70.3") || l.includes("half iron") || l.includes("half-iron") || l === "703" || l.includes("ironman 70")) return "703";
   if (l.includes("ironman") || l === "im" || l.match(/\bim\b/)) return "IM";
   if (l.includes("sprint") && (l.includes("tri") || l.includes("triathlon"))) return "TRI_SPRINT";
@@ -201,12 +232,18 @@ function isTri(obj: SizingObjectiveKey): boolean {
 }
 
 function floorsFor(obj: SizingObjectiveKey): SizingFloors {
+  if (obj === "STARTTORUN") {
+    // Pas de sortie longue chez le débutant / la reprise post-blessure :
+    // 3 marche-course de durée plafonnée + 2 renfo fondation.
+    return { longRideWeekly: false, longRunWeekly: false, minStrengthPerWeek: 2 };
+  }
   const base = isTri(obj) ? { ...FLOORS_TRI } : { ...FLOORS_CAP };
   const sl = SL_MIN_BY_OBJECTIVE[obj];
   if (sl?.bike && base.longRideWeekly) base.slLongRideMin = sl.bike;
   if (sl?.run && base.longRunWeekly) base.slLongRunMin = sl.run;
   return base;
 }
+
 
 /**
  * Compute deterministic weekly session quota.

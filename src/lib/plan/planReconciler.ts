@@ -30,6 +30,8 @@ import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
+import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
+
 
 // ── Types ───────────────────────────────────────────────────────────────────
 type SchemaSport = "swim" | "bike" | "run" | "brick" | "strength" | "recovery" | "rest";
@@ -51,6 +53,8 @@ export interface ReconcilerCounters {
   zone_hydrated?: number;
   early_consolidation_replaced?: number;
   taper_weeks_enforced?: number;
+  s2r_duration_capped?: number;
+  s2r_long_run_removed?: number;
 
 }
 
@@ -514,6 +518,53 @@ function fixEarlyConsolidationSessions(
   }
 }
 
+// ── Start to Run : plafond déterministe de durée + interdiction "sortie longue"
+// Un plan Start to Run s'adresse à un débutant ou à une reprise post-blessure
+// grave : aucune séance ne doit dépasser le plafond hebdo (35 min en S1-S2 →
+// 60 min en fin de plan), et le vocabulaire "sortie longue" est banni au profit
+// de "marche-course progressive".
+const S2R_LONG_RUN_RE = /sortie longue|long ?run|SL\b/i;
+
+function capStartToRunSessions(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+): void {
+  for (const ch of chunks) {
+    for (const wk of ch.weeks ?? []) {
+      const weekNumber = wk.weekNumber ?? 1;
+      const cap = startToRunMaxSessionMin(weekNumber);
+      for (const s of (wk.sessions ?? []) as PlanSession[]) {
+        const sport = String((s as any).sport ?? "").toLowerCase();
+        if (sport === "rest") continue;
+        // Renfo fondation : 30 min max quelle que soit la semaine.
+        const localCap = sport === "strength" ? Math.min(30, cap) : cap;
+        const dur = (s as any).durationMin ?? 0;
+        if (dur > localCap) {
+          (s as any).durationMin = localCap;
+          counters.s2r_duration_capped = (counters.s2r_duration_capped ?? 0) + 1;
+          logs.push(
+            `[s2r_duration_capped] S${weekNumber} ${(s as any).day ?? ""} "${(s as any).title ?? ""}" ${dur}min → ${localCap}min (plafond débutant)`,
+          );
+        }
+        const title = String((s as any).title ?? "");
+        if (S2R_LONG_RUN_RE.test(title)) {
+          (s as any).title = title
+            .replace(/sortie longue/gi, "marche-course progressive")
+            .replace(/long ?run/gi, "marche-course progressive")
+            .replace(/\bSL\b/g, "marche-course");
+          (s as any).isLongSession = false;
+          counters.s2r_long_run_removed = (counters.s2r_long_run_removed ?? 0) + 1;
+          logs.push(
+            `[s2r_long_run_removed] S${weekNumber} ${(s as any).day ?? ""} "${title}" → "${(s as any).title}" (pas de sortie longue en Start to Run)`,
+          );
+        }
+      }
+    }
+  }
+}
+
+
 // ── Affûtage : nombre minimal de semaines `taper` (Mujika & Padilla 2003,
 //    Bosquet 2007 : 2 à 3 semaines de réduction de volume pour les épreuves
 //    longues). Règle déterministe : on reclasse les N dernières semaines du
@@ -758,6 +809,9 @@ export function runReconciler(
   }
 
   fixEarlyConsolidationSessions(chunks, counters, logs);
+  if (String(opts.objectiveKey ?? "").toLowerCase().includes("start")) {
+    capStartToRunSessions(chunks, counters, logs);
+  }
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
 
   hydrateDilutedZones(chunks, counters, logs);
