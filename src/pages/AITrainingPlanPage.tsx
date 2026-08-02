@@ -856,9 +856,10 @@ export default function AITrainingPlanPage() {
   }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability]);
 
 
-  const parsedPlan = useMemo<ParsedPlan | null>(() => {
+  const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
     if (!rawParsedPlan) return null;
-    if (!athleteContext) return rawParsedPlan;
+    if (!athleteContext) return { plan: rawParsedPlan, taperFix: null };
+
 
     const clonedPlan: ParsedPlan = {
       ...rawParsedPlan,
