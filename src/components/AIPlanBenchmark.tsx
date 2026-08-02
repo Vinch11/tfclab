@@ -465,13 +465,13 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
       </div>
       {/* Week axis */}
       <div className="relative h-4">
-        {Array.from({ length: totalWeeks }, (_, i) => i + 1)
-          .filter(w => totalWeeks <= 12 || w % 2 === 1)
+        {Array.from({ length: span }, (_, i) => i + 1)
+          .filter(w => span <= 12 || w % 2 === 1)
           .map(w => (
             <span
               key={w}
               className="absolute text-[8px] text-muted-foreground"
-              style={{ left: `${((w - 0.5) / totalWeeks) * 100}%`, transform: "translateX(-50%)" }}
+              style={{ left: `${((w - 0.5) / span) * 100}%`, transform: "translateX(-50%)" }}
             >
               S{w}
             </span>
