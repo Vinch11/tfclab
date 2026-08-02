@@ -318,6 +318,12 @@ export default function AITrainingPlanPage() {
     setRaceGoals(prev => prev.map((g, i) => i === idx ? { ...g, [field]: value } : g));
   };
 
+  // Plan start date: defaults to Monday of the CURRENT week, but can be
+  // overridden when restoring an archived plan (so dates match the original).
+  const [planStartDate, setPlanStartDate] = useState<Date>(() =>
+    startOfWeek(new Date(), { weekStartsOn: 1 })
+  );
+
   // Restore persisted plan + config on athlete change (single mode only)
   useEffect(() => {
     if (isMultiMode) return;
@@ -623,12 +629,6 @@ export default function AITrainingPlanPage() {
     void handleGenerate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingExpressGen, snapshots, athleteContext, currentAthlete]);
-
-  // Plan start date: defaults to Monday of the CURRENT week, but can be
-  // overridden when restoring an archived plan (so dates match the original).
-  const [planStartDate, setPlanStartDate] = useState<Date>(() =>
-    startOfWeek(new Date(), { weekStartsOn: 1 })
-  );
 
   const weeksAvailable = useMemo(() => {
     // Use the latest race date across all goals (primary A + additional B/C), relative to plan start week
