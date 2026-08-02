@@ -2601,6 +2601,8 @@ export default function AITrainingPlanPage() {
                           coachId={coachId}
                           athleteData={athleteContext.data}
                           baseConfig={buildConfigFromDiag(athleteContext.diagnostic)}
+                          onRegenerated={(merged) => { setPlanOverride(merged); setIsSaved(false); }}
+
                         />
                       )}
 
