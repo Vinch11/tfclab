@@ -174,6 +174,13 @@ export default function AITrainingPlanPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  /**
+   * Plan reconstruit localement après une régénération ciblée (semaine ou fenêtre
+   * d'affûtage). Il prime sur le markdown/JSON d'origine tant qu'une nouvelle
+   * génération complète n'a pas été lancée.
+   */
+  const [planOverride, setPlanOverride] = useState<ParsedPlan | null>(null);
+
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
   const [showSyncBanner, setShowSyncBanner] = useState(false);
@@ -621,6 +628,9 @@ export default function AITrainingPlanPage() {
   // (garde par ref sur la longueur du markdown final ; jamais par chunk).
   const postProcessKeyRef = useRef<string | null>(null);
   const rawParsedPlan = useMemo<ParsedPlan | null>(() => {
+    // Régénération ciblée en cours de session : le plan fusionné prime.
+    if (planOverride && !isLoading) return planOverride;
+
     // Phase 1B — JSON path prioritaire. `jsonParsedPlan` est déjà validé Zod,
     // mergé, et neutralisé des volumes LLM. Le validator sport↔objectif tourne
     // dans le hook et loggue les issues critiques dans `sportObjectiveIssues`.
@@ -752,7 +762,7 @@ export default function AITrainingPlanPage() {
       return plan;
     } catch { return null; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, lockAmbition, athleteContext, raceDate, raceGoals, planStartDate, weeksAvailable, jsonParsedPlan, sportObjectiveIssues]);
+  }, [planOverride, response, isLoading, objective, ambition, weeklyHours, trainingLevel, lockAmbition, athleteContext, raceDate, raceGoals, planStartDate, weeksAvailable, jsonParsedPlan, sportObjectiveIssues]);
 
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -945,6 +955,9 @@ export default function AITrainingPlanPage() {
   };
 
   const handleGenerate = async () => {
+    // Une génération complète invalide toute régénération ciblée précédente.
+    setPlanOverride(null);
+
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
       return;
@@ -1525,16 +1538,43 @@ export default function AITrainingPlanPage() {
         }
       }
 
-      if (fullText) {
-        toast.success(`Semaine ${weekNumber} régénérée !`);
-        toast.info("Consultez le Markdown pour le détail de la semaine régénérée.");
+      if (!fullText.trim()) {
+        toast.error("Aucune réponse de l'IA — semaine inchangée");
+        return;
       }
+
+      // Injection réelle dans le plan affiché : on parse la réponse, on prend la
+      // 1re semaine produite, on la renumérote et on remplace la semaine ciblée.
+      const rawRegen = parseAIPlan(fullText);
+      const { plan: regenPlan } = sanitizeTrailFromTriathlonPlan(rawRegen, objective);
+      const newWeek = regenPlan.weeks[0];
+      if (!newWeek) {
+        toast.error("Réponse IA illisible — semaine inchangée");
+        return;
+      }
+
+      const basePlan = planOverride ?? rawParsedPlan ?? parsedPlan;
+      const replaced = {
+        ...newWeek,
+        weekNumber,
+        sessions: newWeek.sessions.map((s) => ({ ...s, weekNumber })),
+      };
+      const mergedPlan: ParsedPlan = {
+        ...basePlan,
+        weeks: basePlan.weeks
+          .map((w) => (w.weekNumber === weekNumber ? replaced : w))
+          .sort((a, b) => a.weekNumber - b.weekNumber),
+      };
+      setPlanOverride(mergedPlan);
+      setIsSaved(false);
+      toast.success(`Semaine ${weekNumber} régénérée — enregistre le plan pour la conserver.`);
     } catch (err: any) {
       toast.error("Erreur régénération : " + (err.message || "Inconnu"));
     } finally {
       setIsRegenerating(false);
     }
-  }, [athleteContext, parsedPlan, objective, weeklyHours, sessionsPerWeek, ambition, constraints]);
+  }, [athleteContext, parsedPlan, rawParsedPlan, planOverride, objective, weeklyHours, sessionsPerWeek, ambition, constraints]);
+
 
   /**
    * Regenerate only future weeks (after today) while preserving past weeks.
@@ -2561,6 +2601,8 @@ export default function AITrainingPlanPage() {
                           coachId={coachId}
                           athleteData={athleteContext.data}
                           baseConfig={buildConfigFromDiag(athleteContext.diagnostic)}
+                          onRegenerated={(merged) => { setPlanOverride(merged); setIsSaved(false); }}
+
                         />
                       )}
 
