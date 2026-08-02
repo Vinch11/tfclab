@@ -32,6 +32,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { buildTargetTable } from "@/lib/plan/targetTable";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
+import { n as derivePhasesFromWeeks } from "@/engines/plan/planValidator";
 import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
 import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTableContext";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
@@ -1252,6 +1253,14 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     [raceGoals]
   );
 
+  // Nombre de blocs affiché : si le bloc "Phases" du plan est absent/incomplet,
+  // on le reconstruit depuis les semaines (même logique que la carte Benchmark).
+  const headerPhasesCount = useMemo(() => {
+    if (plan.phases && plan.phases.length >= 2) return plan.phases.length;
+    const derived = derivePhasesFromWeeks(plan);
+    return derived && derived.length > 0 ? derived.length : (plan.phases?.length ?? 0);
+  }, [plan]);
+
   // Corrige une distance hallucinée dans le titre IA + applique le nouveau format canonique
   // "{Objectif} — Structure {Ambition} — Objectif {tempsSnapshot}"
   const correctedTitle = useMemo(() => {
@@ -1429,7 +1438,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-bold text-base">{correctedTitle}</h3>
-              <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {plan.phases.length} blocs</p>
+              <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {headerPhasesCount} blocs</p>
               {loadedFromCacheAt && (
                 <p className="text-[10px] text-muted-foreground/80 italic mt-0.5">
                   Plan chargé depuis la sauvegarde locale — {(() => {
