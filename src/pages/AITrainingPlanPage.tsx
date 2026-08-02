@@ -1535,16 +1535,43 @@ export default function AITrainingPlanPage() {
         }
       }
 
-      if (fullText) {
-        toast.success(`Semaine ${weekNumber} régénérée !`);
-        toast.info("Consultez le Markdown pour le détail de la semaine régénérée.");
+      if (!fullText.trim()) {
+        toast.error("Aucune réponse de l'IA — semaine inchangée");
+        return;
       }
+
+      // Injection réelle dans le plan affiché : on parse la réponse, on prend la
+      // 1re semaine produite, on la renumérote et on remplace la semaine ciblée.
+      const rawRegen = parseAIPlan(fullText);
+      const { plan: regenPlan } = sanitizeTrailFromTriathlonPlan(rawRegen, objective);
+      const newWeek = regenPlan.weeks[0];
+      if (!newWeek) {
+        toast.error("Réponse IA illisible — semaine inchangée");
+        return;
+      }
+
+      const basePlan = planOverride ?? rawParsedPlan ?? parsedPlan;
+      const replaced = {
+        ...newWeek,
+        weekNumber,
+        sessions: newWeek.sessions.map((s) => ({ ...s, weekNumber })),
+      };
+      const mergedPlan: ParsedPlan = {
+        ...basePlan,
+        weeks: basePlan.weeks
+          .map((w) => (w.weekNumber === weekNumber ? replaced : w))
+          .sort((a, b) => a.weekNumber - b.weekNumber),
+      };
+      setPlanOverride(mergedPlan);
+      setIsSaved(false);
+      toast.success(`Semaine ${weekNumber} régénérée — enregistre le plan pour la conserver.`);
     } catch (err: any) {
       toast.error("Erreur régénération : " + (err.message || "Inconnu"));
     } finally {
       setIsRegenerating(false);
     }
-  }, [athleteContext, parsedPlan, objective, weeklyHours, sessionsPerWeek, ambition, constraints]);
+  }, [athleteContext, parsedPlan, rawParsedPlan, planOverride, objective, weeklyHours, sessionsPerWeek, ambition, constraints]);
+
 
   /**
    * Regenerate only future weeks (after today) while preserving past weeks.
