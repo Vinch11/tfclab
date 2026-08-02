@@ -400,17 +400,22 @@ function getPhaseColorIdx(name: string): number {
 }
 
 function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; weeks: string; objective?: string }[]; totalWeeks: number }) {
-  // Parse week ranges from phase data
+  // Parse week ranges from phase data — tolérant à tous les séparateurs
+  // ("S1-S6", "S1 → S6", "Semaines 1 à 6", "S4"…). On lit simplement les
+  // nombres présents dans la chaîne.
   const parsed = phases.map(p => {
-    const match = p.weeks.match(/(\d+)\s*[-–àto]\s*(\d+)/);
-    const start = match ? parseInt(match[1]) : 1;
-    const end = match ? parseInt(match[2]) : start;
+    const nums = (p.weeks || "").match(/\d+/g)?.map(n => parseInt(n, 10)) ?? [];
+    const start = nums.length > 0 ? nums[0] : 1;
+    const end = nums.length > 1 ? Math.max(nums[1], start) : start;
     const colorIdx = getPhaseColorIdx(p.name);
     const color = PHASE_COLORS[colorIdx] || "#94a3b8";
     return { ...p, start, end, color, colorIdx };
   });
 
   if (parsed.length < 2) return null;
+
+  // Garde-fou : si `totalWeeks` est absent/incohérent, on le déduit des phases.
+  const span = Math.max(totalWeeks || 0, ...parsed.map(p => p.end), 1);
 
   return (
     <div className="space-y-2 pt-2 border-t border-border">
@@ -419,8 +424,8 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
       </h4>
       <div className="space-y-1">
         {parsed.map((phase, i) => {
-          const leftPct = ((phase.start - 1) / totalWeeks) * 100;
-          const widthPct = ((phase.end - phase.start + 1) / totalWeeks) * 100;
+          const leftPct = ((phase.start - 1) / span) * 100;
+          const widthPct = ((phase.end - phase.start + 1) / span) * 100;
           const isDark = phase.colorIdx === 4;
           const isGreen = phase.colorIdx === 5;
           return (
@@ -460,13 +465,13 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
       </div>
       {/* Week axis */}
       <div className="relative h-4">
-        {Array.from({ length: totalWeeks }, (_, i) => i + 1)
-          .filter(w => totalWeeks <= 12 || w % 2 === 1)
+        {Array.from({ length: span }, (_, i) => i + 1)
+          .filter(w => span <= 12 || w % 2 === 1)
           .map(w => (
             <span
               key={w}
               className="absolute text-[8px] text-muted-foreground"
-              style={{ left: `${((w - 0.5) / totalWeeks) * 100}%`, transform: "translateX(-50%)" }}
+              style={{ left: `${((w - 0.5) / span) * 100}%`, transform: "translateX(-50%)" }}
             >
               S{w}
             </span>
