@@ -50,6 +50,8 @@ export interface ReconcilerCounters {
   id_remap_no_intent_match_fallback_custom: number;
   zone_hydrated?: number;
   early_consolidation_replaced?: number;
+  taper_weeks_enforced?: number;
+
 }
 
 
