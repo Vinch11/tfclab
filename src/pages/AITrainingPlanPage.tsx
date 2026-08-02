@@ -2553,6 +2553,17 @@ export default function AITrainingPlanPage() {
                   {/* Interactive View */}
                   {resultView === "interactive" && parsedPlan ? (
                     <>
+                      {legacyTaperReport && athleteContext && currentAthlete && coachId && (
+                        <LegacyTaperBanner
+                          report={legacyTaperReport}
+                          currentPlan={parsedPlan}
+                          athleteId={currentAthlete.id}
+                          coachId={coachId}
+                          athleteData={athleteContext.data}
+                          baseConfig={buildConfigFromDiag(athleteContext.diagnostic)}
+                        />
+                      )}
+
                       <AIPlanBenchmark
                         plan={parsedPlan}
                         objective={objective}
