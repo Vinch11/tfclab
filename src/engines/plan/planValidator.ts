@@ -877,7 +877,7 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   const issues: ValidationIssue[] = [];
 
   // Source unique : bloc "Phases" déclaré, sinon reconstruction depuis les semaines.
-  const phases = plan.phases && plan.phases.length >= 2 ? plan.phases : derivePhasesFromWeeks(plan);
+  const phases = plan.phases && phases.length >= 2 ? plan.phases : derivePhasesFromWeeks(plan);
 
   if (phases.length < 2) {
     // Can't validate if no phases parsed
@@ -913,7 +913,7 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   }
 
   // 2. Phase durations — check each phase's week count
-  for (const phase of plan.phases) {
+  for (const phase of phases) {
     const idx = getPhaseIndex(phase.name);
     if (idx === null) continue;
     const range = PHASE_DURATION_RANGE[idx];
@@ -968,8 +968,8 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   }
 
   // 4. Final phase should be Affûtage/Taper for plans ≥ 8 weeks
-  if (plan.weeks.length >= 8 && plan.phases.length >= 2) {
-    const lastPhase = plan.phases[plan.phases.length - 1];
+  if (plan.weeks.length >= 8 && phases.length >= 2) {
+    const lastPhase = phases[phases.length - 1];
     const lastIdx = getPhaseIndex(lastPhase.name);
     if (lastIdx !== null && lastIdx < 5) {
       issues.push({
@@ -982,8 +982,8 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   }
 
   // 5. Reverse Periodization check — Fondation should contain some intensity
-  if (plan.phases.length >= 2) {
-    const fondationPhase = plan.phases.find(p => getPhaseIndex(p.name) === 1);
+  if (phases.length >= 2) {
+    const fondationPhase = phases.find(p => getPhaseIndex(p.name) === 1);
     if (fondationPhase) {
       const fondationWeeks = plan.weeks.filter(w => getPhaseIndex(w.phase) === 1);
       const hasIntensity = fondationWeeks.some(w =>
