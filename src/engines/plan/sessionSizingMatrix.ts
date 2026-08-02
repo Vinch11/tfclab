@@ -232,12 +232,18 @@ function isTri(obj: SizingObjectiveKey): boolean {
 }
 
 function floorsFor(obj: SizingObjectiveKey): SizingFloors {
+  if (obj === "STARTTORUN") {
+    // Pas de sortie longue chez le débutant / la reprise post-blessure :
+    // 3 marche-course de durée plafonnée + 2 renfo fondation.
+    return { longRideWeekly: false, longRunWeekly: false, minStrengthPerWeek: 2 };
+  }
   const base = isTri(obj) ? { ...FLOORS_TRI } : { ...FLOORS_CAP };
   const sl = SL_MIN_BY_OBJECTIVE[obj];
   if (sl?.bike && base.longRideWeekly) base.slLongRideMin = sl.bike;
   if (sl?.run && base.longRunWeekly) base.slLongRunMin = sl.run;
   return base;
 }
+
 
 /**
  * Compute deterministic weekly session quota.
