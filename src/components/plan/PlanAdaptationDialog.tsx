@@ -257,6 +257,33 @@ export function PlanAdaptationDialog({
               Régénère une fenêtre de {windowSize} semaines via IA. Les semaines précédentes et suivantes restent intactes.
             </p>
 
+            {blocks.length > 0 && (
+              <div>
+                <Label>Bloc entier (cohérence de phase)</Label>
+                <Select
+                  value=""
+                  onValueChange={(v) => {
+                    const b = blocks.find((x) => x.key === v);
+                    if (!b) return;
+                    setFromWeek(b.fromWeek);
+                    setWindowSize(b.toWeek - b.fromWeek + 1);
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Sélectionner un bloc à régénérer…" /></SelectTrigger>
+                  <SelectContent>
+                    {blocks.map((b) => (
+                      <SelectItem key={b.key} value={b.key}>
+                        {b.label} — S{b.fromWeek}→S{b.toWeek} ({b.toWeek - b.fromWeek + 1} sem)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Régénérer un bloc complet garantit la progression interne (charge, densité, transition).
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Démarrer à la semaine</Label>
@@ -275,11 +302,12 @@ export function PlanAdaptationDialog({
                   value={[windowSize]}
                   onValueChange={(v) => setWindowSize(v[0])}
                   min={2}
-                  max={5}
+                  max={8}
                   step={1}
                 />
               </div>
             </div>
+
 
             <div>
               <Label>Motif</Label>
