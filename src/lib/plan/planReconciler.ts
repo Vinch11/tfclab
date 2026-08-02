@@ -758,6 +758,8 @@ export function runReconciler(
   }
 
   fixEarlyConsolidationSessions(chunks, counters, logs);
+  enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
+
   hydrateDilutedZones(chunks, counters, logs);
   return { counters, logs };
 }
