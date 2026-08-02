@@ -619,6 +619,79 @@ function enforceTaperWeeks(
 }
 
 
+// ── Jour de course (Rule 9) : la semaine terminale doit contenir le Jour J.
+//    Certains plans (chemin JSON) s'arrêtent à l'activation pré-course sans
+//    jamais matérialiser l'épreuve. Filet déterministe : on insère une séance
+//    « 🏁 COURSE OBJECTIF — Jour J » le dimanche de la dernière semaine.
+const RACE_DAY_RX = /🏁|jour\s*j\b|course\s*objectif|race\s*day|compétition|épreuve\s*(objectif|cible)|jour\s*de\s*(course|compétition)/i;
+
+const RACE_DAY_SPEC: Record<string, { sport: "run" | "bike" | "brick" | "swim"; durationMin: number; label: string }> = {
+  IM: { sport: "brick", durationMin: 720, label: "Ironman" },
+  "703": { sport: "brick", durationMin: 330, label: "Ironman 70.3" },
+  Olympique: { sport: "brick", durationMin: 165, label: "Triathlon olympique" },
+  Sprint: { sport: "brick", durationMin: 90, label: "Triathlon sprint" },
+  Marathon: { sport: "run", durationMin: 240, label: "Marathon" },
+  Semi: { sport: "run", durationMin: 110, label: "Semi-marathon" },
+  "10K": { sport: "run", durationMin: 50, label: "10 km" },
+  "5K": { sport: "run", durationMin: 25, label: "5 km" },
+  Trail: { sport: "run", durationMin: 300, label: "Trail" },
+  TrailShort: { sport: "run", durationMin: 150, label: "Trail court" },
+  TrailMountain: { sport: "run", durationMin: 420, label: "Trail montagne" },
+  TrailUltra: { sport: "run", durationMin: 900, label: "Ultra-trail" },
+};
+
+function ensureRaceDaySession(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+  objectiveKey: string | null | undefined,
+): void {
+  const allWeeks = chunks
+    .flatMap(ch => (ch.weeks ?? []))
+    .sort((a, b) => (a.weekNumber ?? 0) - (b.weekNumber ?? 0));
+  const last = allWeeks[allWeeks.length - 1];
+  if (!last) return;
+
+  const sessions = (last.sessions ?? []) as PlanSession[];
+  const already = sessions.some(s =>
+    RACE_DAY_RX.test(`${s.title ?? ""} ${s.details ?? ""}`),
+  );
+  if (already) return;
+
+  const spec = RACE_DAY_SPEC[String(objectiveKey ?? "")] ?? {
+    sport: "run" as const,
+    durationMin: 90,
+    label: String(objectiveKey ?? "Course objectif"),
+  };
+
+  const raceSession = {
+    day: "dimanche",
+    title: `🏁 COURSE OBJECTIF — Jour J (${spec.label})`,
+    details:
+      `Jour de course. Échauffement selon protocole, pacing conforme à la stratégie validée ` +
+      `(allure/puissance cible, contrôle des premières minutes), nutrition et hydratation ` +
+      `selon le plan de ravitaillement établi en amont.`,
+    isKeySession: true,
+    durationMin: spec.durationMin,
+    zones: [] as string[],
+    sport: spec.sport,
+    custom: true as const,
+    catalogId: null,
+  } as unknown as PlanSession;
+
+  // Remplace la séance de repos du dimanche si elle existe, sinon on ajoute.
+  const sundayRestIdx = sessions.findIndex(s => s.day === "dimanche" && s.sport === "rest");
+  if (sundayRestIdx >= 0) sessions.splice(sundayRestIdx, 1, raceSession);
+  else sessions.push(raceSession);
+  last.sessions = sessions;
+
+  counters.race_day_inserted = (counters.race_day_inserted ?? 0) + 1;
+  logs.push(
+    `[race_day_inserted] S${last.weekNumber} — Jour J ajouté (objectif=${objectiveKey ?? "?"}, sport=${spec.sport}, ${spec.durationMin} min)`,
+  );
+}
+
+
 // ── API publique ───────────────────────────────────────────────────────────
 
 export interface RunReconcilerOptions {
