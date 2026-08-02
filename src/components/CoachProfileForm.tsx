@@ -125,6 +125,12 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   athleteName?: string;
   objectifLabel?: string;
+  /** Objectif courant (valeur brute) — active le sélecteur d'objectif si fourni. */
+  objectiveValue?: string;
+  /** Liste des objectifs sélectionnables. */
+  objectiveOptions?: Array<{ value: string; label: string }>;
+  /** Changement d'objectif depuis le formulaire. */
+  onObjectiveChange?: (value: string) => void;
   /** Pré-remplissage issu du diagnostic (mode "estimé par le diagnostic"). */
   prefill?: CoachProfilePrefill | null;
   /** Enregistre le profil coach sans lancer la génération. */
@@ -138,6 +144,9 @@ export function CoachProfileForm({
   onOpenChange,
   athleteName,
   objectifLabel,
+  objectiveValue,
+  objectiveOptions,
+  onObjectiveChange,
   prefill,
   onSubmit,
   onGenerate,
