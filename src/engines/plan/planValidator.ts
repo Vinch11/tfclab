@@ -428,10 +428,11 @@ function validateKeySessions(metrics: WeekMetrics[]): { issues: ValidationIssue[
   let compliant = 0;
 
   for (const wm of metrics) {
+    // Décharge / semaine de course : hors périmètre d'évaluation (num. ET dénom.)
     if (wm.isDeload || wm.isRaceWeek) {
-      compliant++;
       continue;
     }
+
 
     if (wm.keySessions === 0) {
       issues.push({
