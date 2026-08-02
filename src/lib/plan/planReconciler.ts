@@ -470,6 +470,48 @@ function hydrateDilutedZones(
   }
 }
 
+// ── Semaine de consolidation impossible avant S4 ───────────────────────────
+// La fiche S2R_CONSOLIDATION_WEEK_SESSION demande de « répéter exactement le
+// format de la semaine précédente » : elle n'a aucun sens en S1-S3 (il n'y a
+// pas encore de volume antérieur à répéter). Filet déterministe : on la
+// remplace par la fiche marche-course de base et on réécrit le texte.
+const CONSOLIDATION_ID = "S2R_CONSOLIDATION_WEEK_SESSION";
+const CONSOLIDATION_MIN_WEEK = 4;
+const CONSOLIDATION_FALLBACK_ID = "S2R_WALK_RUN_1_2";
+
+function ficheToText(f: LibraryWorkout): string {
+  return (f.structure ?? [])
+    .map(p => `${p.part}: ${p.text}`)
+    .join(" | ");
+}
+
+function fixEarlyConsolidationSessions(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+): void {
+  const fallback = ficheFor(CONSOLIDATION_FALLBACK_ID);
+  if (!fallback) return;
+  for (const ch of chunks) {
+    for (const wk of ch.weeks ?? []) {
+      if ((wk.weekNumber ?? 0) >= CONSOLIDATION_MIN_WEEK) continue;
+      for (const s of (wk.sessions ?? []) as PlanSession[]) {
+        if ((s as any).catalogId !== CONSOLIDATION_ID) continue;
+        (s as any).catalogIdOrigin = CONSOLIDATION_ID;
+        (s as any).catalogId = fallback.id;
+        (s as any).title = fallback.objectif;
+        (s as any).details = `${ficheToText(fallback)} [ID: ${fallback.id}]`;
+        counters.early_consolidation_replaced =
+          (counters.early_consolidation_replaced ?? 0) + 1;
+        logs.push(
+          `[early_consolidation_replaced] S${wk.weekNumber} ${(s as any).day ?? ""} ${CONSOLIDATION_ID} → ${fallback.id} (palier impossible avant S${CONSOLIDATION_MIN_WEEK})`,
+        );
+      }
+    }
+  }
+}
+
+
 // ── API publique ───────────────────────────────────────────────────────────
 
 export function runReconciler(
