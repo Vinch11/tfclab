@@ -877,7 +877,7 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   const issues: ValidationIssue[] = [];
 
   // Source unique : bloc "Phases" déclaré, sinon reconstruction depuis les semaines.
-  const phases = plan.phases && phases.length >= 2 ? plan.phases : derivePhasesFromWeeks(plan);
+  const phases = plan.phases && plan.phases.length >= 2 ? plan.phases : derivePhasesFromWeeks(plan);
 
   if (phases.length < 2) {
     // Can't validate if no phases parsed
