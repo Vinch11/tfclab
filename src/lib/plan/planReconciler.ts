@@ -809,6 +809,9 @@ export function runReconciler(
   }
 
   fixEarlyConsolidationSessions(chunks, counters, logs);
+  if (String(opts.objectiveKey ?? "").toLowerCase().includes("start")) {
+    capStartToRunSessions(chunks, counters, logs);
+  }
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
 
   hydrateDilutedZones(chunks, counters, logs);
