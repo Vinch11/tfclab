@@ -762,7 +762,7 @@ export default function AITrainingPlanPage() {
       return plan;
     } catch { return null; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, isLoading, objective, ambition, weeklyHours, trainingLevel, lockAmbition, athleteContext, raceDate, raceGoals, planStartDate, weeksAvailable, jsonParsedPlan, sportObjectiveIssues]);
+  }, [planOverride, response, isLoading, objective, ambition, weeklyHours, trainingLevel, lockAmbition, athleteContext, raceDate, raceGoals, planStartDate, weeksAvailable, jsonParsedPlan, sportObjectiveIssues]);
 
 
   // ═══════════════════════════════════════════════════════════════════════════
