@@ -319,10 +319,12 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
   let compliant = 0;
 
   for (const wm of metrics) {
+    // Semaines exclues de l'évaluation (décharge / course / <3 séances) :
+    // elles ne comptent NI au numérateur NI au dénominateur (sinon score > 100).
     if (wm.isDeload || wm.isRaceWeek || wm.activeSessions < 3) {
-      compliant++;
       continue;
     }
+
 
     const { lowPct, midPct, highPct } = wm.intensityProfile;
 
@@ -358,7 +360,8 @@ function validatePolarization(metrics: WeekMetrics[]): { issues: ValidationIssue
   }
 
   const total = metrics.filter(m => !m.isDeload && !m.isRaceWeek && m.activeSessions >= 3).length || 1;
-  return { issues, score: Math.round((compliant / total) * 100) };
+  return { issues, score: Math.max(0, Math.min(100, Math.round((compliant / total) * 100))) };
+
 }
 
 /** Rule 2: Load/Deload pattern 3:1 or 2:1 */
@@ -425,10 +428,11 @@ function validateKeySessions(metrics: WeekMetrics[]): { issues: ValidationIssue[
   let compliant = 0;
 
   for (const wm of metrics) {
+    // Décharge / semaine de course : hors périmètre d'évaluation (num. ET dénom.)
     if (wm.isDeload || wm.isRaceWeek) {
-      compliant++;
       continue;
     }
+
 
     if (wm.keySessions === 0) {
       issues.push({
@@ -459,7 +463,7 @@ function validateKeySessions(metrics: WeekMetrics[]): { issues: ValidationIssue[
   }
 
   const total = metrics.filter(m => !m.isDeload && !m.isRaceWeek).length || 1;
-  return { issues, score: Math.round((compliant / total) * 100) };
+  return { issues, score: Math.max(0, Math.min(100, Math.round((compliant / total) * 100))) };
 }
 
 /** Rule 4: Volume progression — F-23: uses real durations when ≥60% of sessions have one */
@@ -847,10 +851,35 @@ function getPhaseIndex(phaseName: string): number | null {
   return null;
 }
 
+/**
+ * Reconstruit la structure de phases à partir du champ `phase` des semaines
+ * lorsque le plan n'expose pas de bloc "Phases" (chemin JSON / plans legacy).
+ * Purement dérivé : aucune invention de contenu.
+ */
+export function derivePhasesFromWeeks(plan: ParsedPlan): ParsedPlan["phases"] {
+  const derived: ParsedPlan["phases"] = [];
+  let current: { name: string; start: number; end: number } | null = null;
+  for (const w of plan.weeks) {
+    const name = (w.phase || "").trim();
+    if (!name) continue;
+    if (current && current.name.toLowerCase() === name.toLowerCase()) {
+      current.end = w.weekNumber;
+    } else {
+      if (current) derived.push({ name: current.name, weeks: `S${current.start}-S${current.end}` });
+      current = { name, start: w.weekNumber, end: w.weekNumber };
+    }
+  }
+  if (current) derived.push({ name: current.name, weeks: `S${current.start}-S${current.end}` });
+  return derived;
+}
+
 function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
 
-  if (!plan.phases || plan.phases.length < 2) {
+  // Source unique : bloc "Phases" déclaré, sinon reconstruction depuis les semaines.
+  const phases = plan.phases && plan.phases.length >= 2 ? plan.phases : derivePhasesFromWeeks(plan);
+
+  if (phases.length < 2) {
     // Can't validate if no phases parsed
     if (plan.weeks.length >= 6) {
       issues.push({
@@ -867,7 +896,8 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
 
   // 1. Phase ordering — no regression
   let lastPhaseIdx = 0;
-  for (const phase of plan.phases) {
+  for (const phase of phases) {
+
     const idx = getPhaseIndex(phase.name);
     if (idx === null) continue;
     if (idx < lastPhaseIdx) {
@@ -883,7 +913,7 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   }
 
   // 2. Phase durations — check each phase's week count
-  for (const phase of plan.phases) {
+  for (const phase of phases) {
     const idx = getPhaseIndex(phase.name);
     if (idx === null) continue;
     const range = PHASE_DURATION_RANGE[idx];
@@ -938,8 +968,8 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   }
 
   // 4. Final phase should be Affûtage/Taper for plans ≥ 8 weeks
-  if (plan.weeks.length >= 8 && plan.phases.length >= 2) {
-    const lastPhase = plan.phases[plan.phases.length - 1];
+  if (plan.weeks.length >= 8 && phases.length >= 2) {
+    const lastPhase = phases[phases.length - 1];
     const lastIdx = getPhaseIndex(lastPhase.name);
     if (lastIdx !== null && lastIdx < 5) {
       issues.push({
@@ -952,8 +982,8 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
   }
 
   // 5. Reverse Periodization check — Fondation should contain some intensity
-  if (plan.phases.length >= 2) {
-    const fondationPhase = plan.phases.find(p => getPhaseIndex(p.name) === 1);
+  if (phases.length >= 2) {
+    const fondationPhase = phases.find(p => getPhaseIndex(p.name) === 1);
     if (fondationPhase) {
       const fondationWeeks = plan.weeks.filter(w => getPhaseIndex(w.phase) === 1);
       const hasIntensity = fondationWeeks.some(w =>
@@ -1845,21 +1875,23 @@ export function validatePlan(
     sessionDensity: 0.03,
     lorangCategories: 0.04,
   };
+  const clamp100 = (n: number) => Math.max(0, Math.min(100, Number.isFinite(n) ? n : 0));
   const weightedScore = Math.round(
-    polarization.score * weights.polarization +
-    loadPattern.score * weights.loadPattern +
-    keySessions.score * weights.keySessions +
-    progression.score * weights.progression +
-    sportRatio.score * weights.sportRatio +
-    catalogRatio.score * weights.catalogRatio +
-    prohibitionCompliance.score * weights.prohibitionCompliance +
-    phaseCoherence.score * weights.phaseCoherence +
-    raceDayPresence.score * weights.raceDayPresence +
-    limiterCoherence.score * weights.limiterCoherence +
-    wbalFeasibility.score * weights.wbalFeasibility +
-    sessionDensity_.score * weights.sessionDensity +
-    lorang_.score * weights.lorangCategories
+    clamp100(polarization.score) * weights.polarization +
+    clamp100(loadPattern.score) * weights.loadPattern +
+    clamp100(keySessions.score) * weights.keySessions +
+    clamp100(progression.score) * weights.progression +
+    clamp100(sportRatio.score) * weights.sportRatio +
+    clamp100(catalogRatio.score) * weights.catalogRatio +
+    clamp100(prohibitionCompliance.score) * weights.prohibitionCompliance +
+    clamp100(phaseCoherence.score) * weights.phaseCoherence +
+    clamp100(raceDayPresence.score) * weights.raceDayPresence +
+    clamp100(limiterCoherence.score) * weights.limiterCoherence +
+    clamp100(wbalFeasibility.score) * weights.wbalFeasibility +
+    clamp100(sessionDensity_.score) * weights.sessionDensity +
+    clamp100(lorang_.score) * weights.lorangCategories
   );
+
 
 
   // Grade
@@ -1898,16 +1930,16 @@ export function validatePlan(
     catalogStats: catalogRatio.catalogStats,
     lorangCategories: lorang_.distribution,
     summary: {
-      polarizationScore: polarization.score,
-      loadPatternScore: loadPattern.score,
-      keySessionsScore: keySessions.score,
-      progressionScore: progression.score,
-      sportRatioScore: sportRatio.score,
+      polarizationScore: clamp100(polarization.score),
+      loadPatternScore: clamp100(loadPattern.score),
+      keySessionsScore: clamp100(keySessions.score),
+      progressionScore: clamp100(progression.score),
+      sportRatioScore: clamp100(sportRatio.score),
       catalogRatioScore: catalogRatio.score,
       prohibitionComplianceScore: prohibitionCompliance.score,
-      phaseCoherenceScore: phaseCoherence.score,
+      phaseCoherenceScore: clamp100(phaseCoherence.score),
       raceDayScore: raceDayPresence.score,
-      limiterCoherenceScore: limiterCoherence.score,
+      limiterCoherenceScore: clamp100(limiterCoherence.score),
       wbalFeasibilityScore: wbalFeasibility.score,
       sessionDensityScore: sessionDensity_.score,
       lorangCategoriesScore: lorang_.score,

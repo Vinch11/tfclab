@@ -24,7 +24,7 @@ import {
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { getEliteReference, getEliteCeilingReference, type EliteReference } from "@/lib/eliteReferences";
 import type { UnifiedLimiterResult } from "@/engines/diagnostic";
-import { validatePlan, type LimiterCoverageItem } from "@/engines/plan/planValidator";
+import { validatePlan, derivePhasesFromWeeks, type LimiterCoverageItem } from "@/engines/plan/planValidator";
 
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
@@ -353,6 +353,28 @@ function getDeviationJustification(
 }
 
 // Phase colors mapped by index (1=Fondation → 5=Affûtage)
+/** Libellés lisibles des clés limiteurs (évite les codes tronqués type "DURABILIT"). */
+const LIMITER_KEY_LABELS: Record<string, string> = {
+  aerobic_engine: "Moteur aérobie",
+  vo2max: "VO2max",
+  vlamax: "VLamax",
+  glycolytic: "Glycolytique",
+  metabolic_efficiency: "Efficience métabolique",
+  fatmax: "FatMax",
+  specific_endurance: "Endurance spécifique",
+  tte: "TTE (temps au seuil)",
+  durability: "Durabilité",
+  durabilite: "Durabilité",
+  neuromuscular: "Neuromusculaire",
+  economy: "Économie de course",
+  strength: "Force",
+};
+
+function limiterLabelFromKey(key: string): string {
+  const k = key.toLowerCase().trim();
+  return LIMITER_KEY_LABELS[k] || key.replace(/_/g, " ");
+}
+
 const PHASE_COLORS: Record<number, string> = {
   1: "#3b82f6", // Fondation — blue
   2: "#f97316", // Chantier — orange
@@ -468,6 +490,16 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
 
   if (!metrics || !ref) return null;
   const elite = eliteRef || ref;
+
+  // Source unique avec le validateur : semaines de décharge et pattern de charge
+  // sont dérivés de validationResult.weekMetrics (détection thème + volume),
+  // et non d'un simple comptage de séances (qui sous-détecte les décharges).
+  const deloadWeeks = validationResult.weekMetrics.filter(m => m.isDeload && !m.isRaceWeek).length;
+  const loadWeeks = validationResult.weekMetrics.length - deloadWeeks;
+  const loadRatio = deloadWeeks > 0 && validationResult.weekMetrics.length > 3
+    ? `${Math.round((loadWeeks / deloadWeeks) * 10) / 10}:1`
+    : "N/A";
+  const derivedPhases = plan.phases && plan.phases.length >= 2 ? plan.phases : derivePhasesFromWeeks(plan);
 
   const gauges: MetricGauge[] = [
     {
@@ -615,18 +647,27 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
         )}
 
         {/* Load pattern */}
-        <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
-          <span className="text-muted-foreground">Pattern de charge détecté</span>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">{metrics.loadRatio}</Badge>
-            {metrics.loadRatio === ref.loadPattern ? (
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-            ) : (
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-            )}
-            <span className="text-xs text-muted-foreground">Réf: {ref.loadPattern}</span>
-          </div>
-        </div>
+        {(() => {
+          const refNum = parseFloat(String(ref.loadPattern).split(":")[0]) || 3;
+          const obsNum = deloadWeeks > 0 ? loadWeeks / deloadWeeks : Infinity;
+          // Tolérance : un plan est conforme s'il ne dépasse pas la réf de +1 semaine de charge
+          const conform = Number.isFinite(obsNum) && obsNum <= refNum + 1;
+          return (
+            <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
+              <span className="text-muted-foreground">Pattern de charge détecté</span>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">{loadRatio}</Badge>
+                {conform ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                )}
+                <span className="text-xs text-muted-foreground">Réf: {ref.loadPattern}</span>
+              </div>
+            </div>
+          );
+        })()}
+
 
         {/* Catalog usage stats */}
         {validationResult.catalogStats.totalKeySessions > 0 && (() => {
@@ -791,7 +832,7 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
                   <div key={item.key} className={`rounded p-1.5 ${bgColor}`}>
                     <div className="flex items-center justify-between mb-1">
                       <span className={`text-[10px] font-semibold ${textColor}`}>
-                        {rankLabel} — {item.key.toUpperCase()}
+                        {rankLabel} — {limiterLabelFromKey(item.key)}
                       </span>
                       <span className={`text-[10px] font-bold tabular-nums ${textColor}`}>
                         {item.pct}% ({item.hits}/{item.totalKeySessions})
@@ -821,8 +862,8 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
           </div>
         )}
 
-        {plan.phases && plan.phases.length >= 2 && (
-          <PhaseGanttTimeline phases={plan.phases} totalWeeks={plan.totalWeeks} />
+        {derivedPhases.length >= 2 && (
+          <PhaseGanttTimeline phases={derivedPhases} totalWeeks={plan.totalWeeks} />
         )}
 
         <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
@@ -842,7 +883,7 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
 
         {/* Summary */}
         <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
-          <p><strong>{metrics.totalSessions}</strong> séances sur <strong>{metrics.totalWeeks}</strong> semaines · <strong>{metrics.deloadWeeks}</strong> semaines de décharge</p>
+          <p><strong>{metrics.totalSessions}</strong> séances sur <strong>{metrics.totalWeeks}</strong> semaines · <strong>{deloadWeeks}</strong> semaines de décharge</p>
           {conformityPct < 50 && (
             <p className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />
