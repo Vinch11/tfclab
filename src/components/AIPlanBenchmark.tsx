@@ -400,11 +400,13 @@ function getPhaseColorIdx(name: string): number {
 }
 
 function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; weeks: string; objective?: string }[]; totalWeeks: number }) {
-  // Parse week ranges from phase data
+  // Parse week ranges from phase data — tolérant à tous les séparateurs
+  // ("S1-S6", "S1 → S6", "Semaines 1 à 6", "S4"…). On lit simplement les
+  // nombres présents dans la chaîne.
   const parsed = phases.map(p => {
-    const match = p.weeks.match(/(\d+)\s*[-–àto]\s*(\d+)/);
-    const start = match ? parseInt(match[1]) : 1;
-    const end = match ? parseInt(match[2]) : start;
+    const nums = (p.weeks || "").match(/\d+/g)?.map(n => parseInt(n, 10)) ?? [];
+    const start = nums.length > 0 ? nums[0] : 1;
+    const end = nums.length > 1 ? Math.max(nums[1], start) : start;
     const colorIdx = getPhaseColorIdx(p.name);
     const color = PHASE_COLORS[colorIdx] || "#94a3b8";
     return { ...p, start, end, color, colorIdx };
