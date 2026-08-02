@@ -695,6 +695,7 @@ export function runReconciler(
     );
   }
 
+  fixEarlyConsolidationSessions(chunks, counters, logs);
   hydrateDilutedZones(chunks, counters, logs);
   return { counters, logs };
 }
