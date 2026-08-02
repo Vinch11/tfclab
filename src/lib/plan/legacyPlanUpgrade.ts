@@ -79,11 +79,14 @@ export function upgradeLegacyTaper(
 
 /**
  * Déduit la date de début d'un plan ancien non ancré au calendrier.
+ * `fallbackRaceDate` (ISO) permet d'utiliser l'objectif A de l'athlète quand le
+ * plan stocké ne contient aucune date de course.
  * Retourne `null` si aucune inférence fiable n'est possible.
  */
 export function inferLegacyPlanStartDate(
   planJson: Record<string, unknown> | null | undefined,
   totalWeeks: number,
+  fallbackRaceDate?: string | null,
 ): Date | null {
   if (!planJson || totalWeeks <= 0) return null;
   const explicit = planJson._planStartDate as string | undefined;
@@ -91,7 +94,7 @@ export function inferLegacyPlanStartDate(
     const d = parseISO(explicit);
     if (!isNaN(d.getTime())) return startOfWeek(d, { weekStartsOn: 1 });
   }
-  const raceRaw = planJson._raceDate as string | undefined;
+  const raceRaw = (planJson._raceDate as string | undefined) || fallbackRaceDate || undefined;
   if (!raceRaw) return null;
   const race = parseISO(raceRaw);
   if (isNaN(race.getTime())) return null;
