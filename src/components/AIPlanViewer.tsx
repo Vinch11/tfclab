@@ -1429,7 +1429,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-bold text-base">{correctedTitle}</h3>
-              <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {plan.phases.length} blocs</p>
+              <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {headerPhasesCount} blocs</p>
               {loadedFromCacheAt && (
                 <p className="text-[10px] text-muted-foreground/80 italic mt-0.5">
                   Plan chargé depuis la sauvegarde locale — {(() => {
