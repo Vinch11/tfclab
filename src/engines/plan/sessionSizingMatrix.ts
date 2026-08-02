@@ -145,6 +145,16 @@ const MATRIX: Matrix = {
     competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
+  // Start to Run — débuter/reprendre la course (marche-course).
+  // Jamais de "sortie longue" : 3 séances marche-course courtes + renfo fondation.
+  // Fréquence > volume (Nielsen 2013, Videbæk 2015 : risque blessure du débutant
+  // piloté par la progression de charge, pas par la durée d'une séance unique).
+  STARTTORUN: {
+    finisher:   { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
+    age_group:  { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
+    competitor: { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
+    elite:      { swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 4, max: 5 }, maxSessionsPerDay: 1, minFullRestDays: 2 },
+  },
 };
 
 /** Durées planchers SL par format (min). Consommées par validateWeeklyQuotas. */
@@ -157,7 +167,26 @@ const SL_MIN_BY_OBJECTIVE: Record<SizingObjectiveKey, { bike?: number; run?: num
   MARATHON:      { run: 110 },
   "10K":         { run: 60 },
   "5K":          { run: 60 },
+  // Start to Run : aucune sortie longue (voir STARTTORUN_MAX_SESSION_MIN).
+  STARTTORUN:    {},
 };
+
+/**
+ * Plafond DÉTERMINISTE de durée d'une séance marche-course Start to Run,
+ * par numéro de semaine (1-indexé). Progression ~+5 min / 2 semaines.
+ * Aucune séance ne doit dépasser ces valeurs — un débutant ou une reprise
+ * post-blessure ne fait pas de sortie de 1h+ en début de plan.
+ */
+export function startToRunMaxSessionMin(weekNumber: number): number {
+  const w = Math.max(1, Math.round(weekNumber || 1));
+  if (w <= 2) return 35;
+  if (w <= 4) return 40;
+  if (w <= 6) return 45;
+  if (w <= 8) return 50;
+  if (w <= 10) return 55;
+  return 60;
+}
+
 
 function sourceFor(obj: SizingObjectiveKey): { tier: EvidenceTier; ref: string } {
   if (obj === "703") return SRC_703;
