@@ -25,6 +25,8 @@ import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } 
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
 import { runReconciler } from "@/lib/plan/planReconciler";
+import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
+
 import { normalizeWeeksAndPhases } from "@/engines/plan/normalizeWeeksPhases";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
