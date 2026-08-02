@@ -368,8 +368,19 @@ export default function AITrainingPlanPage() {
       if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
       { const a = getAthleteAmbition(currentAthlete); setAmbition(a); }
     }
+
+    // Ancrage calendaire : restaure la date de début du plan persistée, sinon
+    // le plan rechargé serait ré-ancré au lundi de la semaine courante (dates fausses).
+    const startRaw = restoredStart || savedState?.planStartDate || null;
+    if (startRaw) {
+      try {
+        const d = parseISO(startRaw);
+        if (!isNaN(d.getTime())) setPlanStartDate(startOfWeek(d, { weekStartsOn: 1 }));
+      } catch {}
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
+
 
   // Reset saved state when regenerating
   useEffect(() => {
