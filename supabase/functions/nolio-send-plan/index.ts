@@ -1631,7 +1631,7 @@ Deno.serve(async (req) => {
         // C'est ici qu'on applique : conversion pace → m/s, distance run/trail → durée s,
         // remap rest/no_target → cible Z1, suppression des clés null/undefined, etc.
         const normalized = normalizeStructuredWorkoutForNolio(
-          structured_workout,
+          canonicalizeStructuredShape(structured_workout),
           body.refs ?? {},
           sportId,
           isStartToRunSession(s),
