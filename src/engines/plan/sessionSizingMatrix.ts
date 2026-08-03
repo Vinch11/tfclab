@@ -508,7 +508,8 @@ export function applySessionsPerWeekTarget(
     fracs.push({ s, f: exact - whole });
   }
   let placed = sports.reduce((a, s) => a + alloc[s], 0);
-  fracs.sort((a, b) => b.f - a.f);
+  const TIE_PRIORITY: Record<CardioSport, number> = { run: 0, bike: 1, swim: 2, brick: 3 };
+  fracs.sort((a, b) => (b.f - a.f) || (TIE_PRIORITY[a.s] - TIE_PRIORITY[b.s]));
   let i = 0;
   while (placed < target && fracs.length > 0) {
     alloc[fracs[i % fracs.length].s]++; placed++; i++;
