@@ -20,7 +20,7 @@ import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPla
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
-import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock } from "@/engines/plan/sessionSizingMatrix";
+import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock, applySessionsPerWeekTarget } from "@/engines/plan/sessionSizingMatrix";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
@@ -504,14 +504,23 @@ export function useAITrainingPlan() {
       const hoursAvail = typeof planConfig.weeklyHours === "number" ? planConfig.weeklyHours : 0;
       const ambitionForQuota = typeof planConfig.ambition === "string" ? planConfig.ambition : "age_group";
       const objectiveForQuota = planConfig.objective || "";
+      // Cible séances/semaine saisie (formulaire coach OU démarrage guidé) :
+      // elle PRIME sur la matrice ambition×objectif, sinon le squelette imposé
+      // au modèle ignorait la demande utilisateur.
+      const targetSpw = typeof planConfig.sessionsPerWeek === "number" && planConfig.sessionsPerWeek > 0
+        ? planConfig.sessionsPerWeek : null;
       for (let w = 1; w <= totalWeeks; w++) {
         const weekType = inferWeekType(w, totalWeeks);
-        const q = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType);
-        if (q) {
-          const layout: WeeklySlotLayout = buildWeeklySlotLayout(q.quota, q.floors, weekType);
-          weeklyQuotas[w] = { quota: q.quota, floors: q.floors, weekType, downgraded: q.downgraded, downgradeReason: q.downgradeReason, layout };
+        const q0 = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType);
+        if (q0) {
+          const adj = targetSpw
+            ? applySessionsPerWeekTarget({ quota: q0.quota, floors: q0.floors }, targetSpw, weekType)
+            : { quota: q0.quota, floors: q0.floors };
+          const layout: WeeklySlotLayout = buildWeeklySlotLayout(adj.quota, adj.floors, weekType);
+          weeklyQuotas[w] = { quota: adj.quota, floors: adj.floors, weekType, downgraded: q0.downgraded, downgradeReason: q0.downgradeReason, layout };
         }
       }
+
       lastWeeklyQuotasRef.current = weeklyQuotas;
 
       // Bloc texte par chunk (uniquement les semaines du chunk concerné).

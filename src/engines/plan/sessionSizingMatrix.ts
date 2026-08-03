@@ -425,3 +425,124 @@ export function buildQuotaPromptBlock(
   lines.push("→ Le nombre de séances par sport ci-dessus est FERME. Tu places et sélectionnes les séances (dans le catalogue prioritairement) ; tu ne modifies JAMAIS ces compteurs.");
   return lines.join("\n");
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RECALAGE SUR LA DEMANDE UTILISATEUR (séances/semaine saisies)
+// ═══════════════════════════════════════════════════════════════════════════════
+/**
+ * Réajuste un quota hebdo déterministe pour respecter EXACTEMENT le nombre de
+ * séances cardio/semaine demandé par le coach (formulaire ou démarrage guidé).
+ *
+ * Sans ce recalage, la matrice ambition×objectif imposait son propre total et le
+ * squelette jour-par-jour (buildWeeklySlotLayout) injecté dans le prompt écrasait
+ * la demande utilisateur.
+ *
+ * Règles :
+ *  - Le renfo n'est PAS compté dans la cible (aligné sur le prompt "séances cardio hors renfo").
+ *  - Les floors physiologiques restent prioritaires (nat mini tri, 1 SL vélo, 1 SL CAP)
+ *    tant que la cible le permet ; si la cible est plus basse que la somme des floors,
+ *    les floors non-essentiels sont relâchés dans l'ordre brick → nat → vélo.
+ *  - Modulation weekType conservée : recovery ≈ −30 %, taper −1.
+ */
+export function applySessionsPerWeekTarget(
+  input: { quota: WeeklyQuota; floors: SizingFloors },
+  targetCardioPerWeek: number,
+  weekType: WeekType,
+): { quota: WeeklyQuota; floors: SizingFloors } {
+  const target0 = Math.round(targetCardioPerWeek);
+  if (!Number.isFinite(target0) || target0 <= 0) return input;
+
+  const quota = {
+    ...input.quota,
+    swim: { ...input.quota.swim }, bike: { ...input.quota.bike },
+    run: { ...input.quota.run }, brick: { ...input.quota.brick },
+    strength: { ...input.quota.strength }, totalSessions: { ...input.quota.totalSessions },
+  };
+  const floors: SizingFloors = { ...input.floors };
+
+  // Modulation weekType sur la cible utilisateur.
+  let target = target0;
+  if (weekType === "recovery") target = Math.max(2, Math.round(target0 * 0.7));
+  else if (weekType === "taper") target = Math.max(2, target0 - 1);
+
+  type CardioSport = "swim" | "bike" | "run" | "brick";
+  const sports: CardioSport[] = ["swim", "bike", "run", "brick"];
+  const mid = (r: QuotaRange) => (r.min + r.max) / 2;
+  const allowed: Record<CardioSport, boolean> = {
+    swim: quota.swim.max > 0, bike: quota.bike.max > 0,
+    run: quota.run.max > 0, brick: quota.brick.max > 0,
+  };
+
+  // Planchers physiologiques (relâchés si la cible est trop basse).
+  const mins: Record<CardioSport, number> = {
+    swim: allowed.swim ? Math.min(floors.minSwimPerWeek ?? 0, quota.swim.max) : 0,
+    bike: allowed.bike && floors.longRideWeekly ? 1 : 0,
+    run: allowed.run && floors.longRunWeekly ? 1 : 0,
+    brick: 0,
+  };
+  const relaxOrder: CardioSport[] = ["brick", "swim", "bike"];
+  let sumMins = sports.reduce((a, s) => a + mins[s], 0);
+  for (const s of relaxOrder) {
+    while (sumMins > target && mins[s] > 0) { mins[s]--; sumMins--; }
+  }
+  if (sumMins > target) target = sumMins; // jamais sous les floors essentiels (SL CAP)
+  if (mins.swim < (floors.minSwimPerWeek ?? 0)) floors.minSwimPerWeek = mins.swim;
+  if (mins.bike === 0) floors.longRideWeekly = false;
+
+  // Répartition du reliquat au prorata des poids de la matrice (plus grand reste).
+  const weights: Record<CardioSport, number> = {
+    swim: allowed.swim ? Math.max(mid(quota.swim), 0.01) : 0,
+    bike: allowed.bike ? Math.max(mid(quota.bike), 0.01) : 0,
+    run: allowed.run ? Math.max(mid(quota.run), 0.01) : 0,
+    brick: allowed.brick ? Math.max(mid(quota.brick), 0.01) : 0,
+  };
+  const totalWeight = sports.reduce((a, s) => a + weights[s], 0) || 1;
+  let rest = target - sumMins;
+  const alloc: Record<CardioSport, number> = { ...mins };
+  const fracs: Array<{ s: CardioSport; f: number }> = [];
+  for (const s of sports) {
+    if (weights[s] === 0) continue;
+    const exact = (rest * weights[s]) / totalWeight;
+    const whole = Math.floor(exact);
+    alloc[s] += whole;
+    fracs.push({ s, f: exact - whole });
+  }
+  let placed = sports.reduce((a, s) => a + alloc[s], 0);
+  const TIE_PRIORITY: Record<CardioSport, number> = { run: 0, bike: 1, swim: 2, brick: 3 };
+  fracs.sort((a, b) => (b.f - a.f) || (TIE_PRIORITY[a.s] - TIE_PRIORITY[b.s]));
+  let i = 0;
+  while (placed < target && fracs.length > 0) {
+    alloc[fracs[i % fracs.length].s]++; placed++; i++;
+  }
+  while (placed > target) {
+    // Retire d'abord sur le sport le plus dosé au-dessus de son plancher.
+    const s = sports
+      .filter(x => alloc[x] > mins[x])
+      .sort((a, b) => (alloc[b] - mins[b]) - (alloc[a] - mins[a]))[0];
+    if (!s) break;
+    alloc[s]--; placed--;
+  }
+
+  for (const s of sports) quota[s] = { min: alloc[s], max: alloc[s] };
+
+  const strengthTotal = quota.strength;
+  quota.totalSessions = {
+    min: target + strengthTotal.min,
+    max: target + strengthTotal.max,
+  };
+
+  // Capacité calendaire : autoriser assez de séances/jour pour loger la demande.
+  const restDays = quota.minFullRestDays;
+  const trainingDays = Math.max(1, 7 - restDays);
+  const needPerDay = Math.ceil(quota.totalSessions.max / trainingDays);
+  if (needPerDay > quota.maxSessionsPerDay) {
+    quota.maxSessionsPerDay = Math.min(3, needPerDay);
+    if (needPerDay > 3 && quota.minFullRestDays > 0) quota.minFullRestDays = 0;
+  }
+
+  quota.source = {
+    ...quota.source,
+    ref: `${quota.source.ref} — recalé sur ${target0} séances/sem (saisie coach)`,
+  };
+  return { quota, floors };
+}
