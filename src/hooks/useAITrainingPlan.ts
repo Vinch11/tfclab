@@ -1065,9 +1065,15 @@ export function useAITrainingPlan() {
     } catch (e) {
       console.error("AI training plan error:", e);
       if (!(e instanceof Error && e.message === "__STREAM_ABORT__")) {
-        const msg = e instanceof Error ? e.message : String(e);
+        const rawMsg = e instanceof Error ? e.message : String(e);
+        const isNetwork = e instanceof TypeError
+          || /load failed|failed to fetch|network|networkerror/i.test(rawMsg);
+        const msg = isNetwork
+          ? "connexion interrompue avec le service IA (réseau ou délai dépassé). Réessayez — si le Wi-Fi est instable, restez sur la page pendant la génération."
+          : rawMsg;
         toast.error(`Impossible de générer le plan : ${msg}`);
       }
+
       logPlanStat({
         ts: Date.now(),
         format: jsonMode ? "json" : "markdown",
