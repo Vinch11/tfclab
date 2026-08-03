@@ -1201,6 +1201,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           }
         }
 
+        stopHeartbeat();
         controller.close();
       } catch (e) {
         console.error("[jsonPlanHandler] fatal:", e);
@@ -1210,8 +1211,10 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             message: e instanceof Error ? e.message : "Unknown error",
           }));
         } catch { /* ignore */ }
+        stopHeartbeat();
         controller.close();
       }
+
     },
   });
 
