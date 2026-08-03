@@ -41,8 +41,9 @@ window.addEventListener("error", (e) => {
 window.addEventListener("unhandledrejection", (e) => {
   if (isChunkError((e.reason as Error)?.message)) void recoverFromStaleChunk();
 });
-// Successful load -> clear the guard so a future stale deploy can recover too.
-window.addEventListener("load", () => sessionStorage.removeItem(RELOAD_FLAG));
+// After a stable period, clear the guard so a future stale deploy can recover.
+window.setTimeout(() => sessionStorage.removeItem(RELOAD_FLAG), 20000);
+
 
 
 // Hide splash screen when React is ready
