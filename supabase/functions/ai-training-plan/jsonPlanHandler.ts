@@ -903,7 +903,19 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
     async start(controller) {
       const enqueue = (event: string, data: unknown) => controller.enqueue(sseEvent(event, data));
 
+      // Keep-alive : sans octet pendant un appel LLM long (>30-60s), Safari/iOS et
+      // certains proxies coupent la connexion → "TypeError: Load failed" côté client.
+      // On émet un commentaire SSE (ignoré par le parseur) toutes les 10s.
+      const heartbeatEncoder = new TextEncoder();
+      let heartbeatStopped = false;
+      const heartbeat = setInterval(() => {
+        if (heartbeatStopped) return;
+        try { controller.enqueue(heartbeatEncoder.encode(": hb\n\n")); } catch { heartbeatStopped = true; }
+      }, 10_000);
+      const stopHeartbeat = () => { heartbeatStopped = true; clearInterval(heartbeat); };
+
       try {
+
         const collectedChunks: PlanChunk[] = [];
         const catalogDumpsByChunk: string[] = [];
         const totalChunks = chunks.length;
@@ -1189,6 +1201,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
           }
         }
 
+        stopHeartbeat();
         controller.close();
       } catch (e) {
         console.error("[jsonPlanHandler] fatal:", e);
@@ -1198,8 +1211,10 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             message: e instanceof Error ? e.message : "Unknown error",
           }));
         } catch { /* ignore */ }
+        stopHeartbeat();
         controller.close();
       }
+
     },
   });
 
