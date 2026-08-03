@@ -494,6 +494,60 @@ function defaultHrZoneForStep(src: Record<string, unknown>): [number, number] {
 }
 
 /**
+ * 🔧 Canonicalisation du SHAPE d'un structured_workout avant normalisation.
+ *
+ * Certaines structures (notamment celles générées par l'IA et stockées dans
+ * `nolio_structures_generated`) utilisent un schéma interne différent du schéma
+ * officiel Nolio :
+ *     step_type:"active"|"rest"|"repetition"  →  type:"step"|"repetition" + intensity_type
+ *     repetition_count / repeat_count         →  value
+ *     description                             →  notes
+ *
+ * Sans cette conversion, `normalizeStructuredWorkoutForNolio` (qui teste
+ * `src.type === "step"`) ne s'exécute jamais : les champs internes `pct_css_*`
+ * partent tels quels et la cible `pace` reste sur des steps natation →
+ * Nolio répond `400 Structured workout format error`.
+ */
+function canonicalizeStructuredShape(input: unknown): unknown {
+  if (Array.isArray(input)) return input.map(canonicalizeStructuredShape);
+  if (!input || typeof input !== "object") return input;
+  const src = { ...(input as Record<string, unknown>) };
+
+  const stepType = typeof src.step_type === "string" ? src.step_type : null;
+  if (stepType && typeof src.type !== "string") {
+    if (stepType === "repetition" || Array.isArray(src.steps)) {
+      src.type = "repetition";
+      src.intensity_type = "repetition";
+    } else {
+      src.type = "step";
+      if (typeof src.intensity_type !== "string") {
+        src.intensity_type = ["warmup", "active", "rest", "cooldown"].includes(stepType)
+          ? stepType
+          : "active";
+      }
+    }
+  }
+  delete src.step_type;
+
+  if (src.type === "repetition") {
+    const reps = src.value ?? src.repetition_count ?? src.repeat_count ?? src.reps;
+    const n = typeof reps === "number" ? reps : Number(reps);
+    src.value = Number.isFinite(n) && n > 0 ? Math.round(n) : 1;
+    src.intensity_type = "repetition";
+  }
+  delete src.repetition_count;
+  delete src.reps;
+
+  if (typeof src.description === "string" && typeof src.notes !== "string") {
+    src.notes = src.description;
+  }
+  delete src.description;
+
+  if (Array.isArray(src.steps)) src.steps = src.steps.map(canonicalizeStructuredShape);
+  return src;
+}
+
+/**
  * Normalise un structured_workout avant envoi à Nolio.
  * - Renomme `repeat_count` → `value` sur tous les nœuds `repetition` (spec officielle Nolio).
  * - Supprime récursivement les clés `null`/`undefined` (Nolio rejette `pct_ftp_min: null`, etc.).
@@ -1577,7 +1631,7 @@ Deno.serve(async (req) => {
         // C'est ici qu'on applique : conversion pace → m/s, distance run/trail → durée s,
         // remap rest/no_target → cible Z1, suppression des clés null/undefined, etc.
         const normalized = normalizeStructuredWorkoutForNolio(
-          structured_workout,
+          canonicalizeStructuredShape(structured_workout),
           body.refs ?? {},
           sportId,
           isStartToRunSession(s),
