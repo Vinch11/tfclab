@@ -982,7 +982,7 @@ export function runReconciler(
     capStartToRunSessions(chunks, counters, logs);
   }
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
-  ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey);
+  ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day);
 
   hydrateDilutedZones(chunks, counters, logs);
   return { counters, logs };
