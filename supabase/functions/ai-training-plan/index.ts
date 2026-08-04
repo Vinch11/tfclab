@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { normalizeObjKey, normalizeAmbKey, extractLimiterKeywords } from "./sportRatioMatrix.ts";
 import { mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
 import { getSystemPrompt } from "./systemPrompt.ts";
+import { buildAthleteConstraintsBlock } from "./constraintsBlock.ts";
 import {
   buildUserPrompt,
   buildCPWprimeSection,
@@ -199,6 +200,12 @@ Ces mentions sont OBLIGATOIRES si les données CP/W' sont disponibles dans le pr
     // 🚨 TERRAIN HARD-BAN — prepend en TÊTE du userPrompt pour overrider les exemples
     // "+1200m D+" / "montagne" du systemPrompt quand l'athlète déclare un terrain urbain.
     // S'applique à tous les chemins : mono-bloc, chunked (chunk 1+N), retries, surgical.
+    const _athleteConstraintsTop = buildAthleteConstraintsBlock(planConfig?.constraints);
+    if (_athleteConstraintsTop) {
+      userPrompt = `${_athleteConstraintsTop}\n\n${userPrompt}`;
+      console.log(`🚫 CONTRAINTES ATHLÈTE actives → injectées en tête + queue de chaque chunk.`);
+    }
+
     const _terrainHardBanTop = buildTerrainHardBanBlock(planConfig);
     if (_terrainHardBanTop) {
       userPrompt = `${_terrainHardBanTop}\n\n${userPrompt}`;
@@ -688,7 +695,7 @@ Pour ce premier bloc, inclus :
    - ⚠️ Les bornes de phase estimées ci-dessus servent de GUIDE. Tu peux ajuster ±1 semaine si les limiteurs le justifient.
 
 Génère ensuite les semaines ${chunk.start} à ${chunk.end} avec leurs tableaux complets.
-IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}`;
+IMPORTANT : Tu DOIS générer EXACTEMENT ${expectedWeeks.length} semaines (${expectedWeeks.join(", ")}). Ne t'arrête pas avant.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}${_athleteConstraintsTop ? `\n\n${_athleteConstraintsTop}` : ""}`;
 
               } else {
                 // FIX #2 (audit recap): Re-inject BOTH diagnostic AND strategic recap
@@ -787,7 +794,7 @@ ${slidingSummary || "Premier bloc de continuation."}
 ${usedKeySessions.size > 0 ? Array.from(usedKeySessions).slice(-25).join(" • ") : "(aucune)"}
 → Tu peux REPRENDRE des familles de séances pour la progression, mais évite de copier le titre exact d'une séance déjà programmée. Varie les durées, intensités, ou structures.
 ${pendingGuardrails.length > 0 ? `\n🛟 GARDE-FOUS DYNAMIQUES (signaux objectifs du bloc précédent — tu restes maître, confirme ou ajuste) :\n${pendingGuardrails.map(g => `• ${g}`).join("\n")}\n→ Ces signaux sont INFORMATIFS. Tu peux les justifier (adaptation contextuelle valide) ou les corriger dans ce bloc. Ne les ignore pas silencieusement.\n` : ""}
-Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}`;
+Assure la PROGRESSION LOGIQUE du volume et de l'intensité par rapport aux semaines précédentes.${wbalReminder}${_terrainHardBanTop ? `\n\n${_terrainHardBanTop}` : ""}${_athleteConstraintsTop ? `\n\n${_athleteConstraintsTop}` : ""}`;
                 // Reset pending guardrails — they've been delivered
                 pendingGuardrails = [];
               }

@@ -31,6 +31,14 @@ import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
+import {
+  parseAthleteConstraints,
+  toConstraintSport,
+  constraintSportLabel,
+  WEEK_DAYS,
+  type AthleteConstraintRules,
+  type WeekDay,
+} from "@/lib/plan/constraintRules";
 
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -56,6 +64,9 @@ export interface ReconcilerCounters {
   s2r_duration_capped?: number;
   s2r_long_run_removed?: number;
   race_day_inserted?: number;
+  constraint_day_moved?: number;
+  constraint_day_unresolved?: number;
+  constraint_banned_sport_removed?: number;
 
 }
 
@@ -787,11 +798,104 @@ function ensureRaceDaySession(
 
 // ── API publique ───────────────────────────────────────────────────────────
 
+
+// ── Contraintes athlète (filet déterministe) ───────────────────────────────
+// Le champ libre "Contraintes" est injecté en tête de prompt (edge function),
+// mais le modèle peut encore placer une séance sur un jour interdit. Ce filet
+// DÉPLACE la séance sur le premier jour libre de la même semaine (jamais de
+// suppression silencieuse) et supprime les disciplines totalement interdites.
+function normalizeDayLabel(raw: string | null | undefined): WeekDay | null {
+  const d = String(raw ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+  if (!d) return null;
+  return (
+    WEEK_DAYS.find(
+      (w) => w.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === d,
+    ) ?? null
+  );
+}
+
+function enforceAthleteConstraints(
+  chunks: PlanChunk[],
+  rules: AthleteConstraintRules,
+  counters: ReconcilerCounters,
+  logs: string[],
+): void {
+  if (!rules.hasHardRules) return;
+
+  for (const chunk of chunks) {
+    for (const week of (chunk as any)?.weeks ?? []) {
+      const sessions: PlanSession[] = Array.isArray(week?.sessions) ? week.sessions : [];
+      const weekNum = week?.weekNumber ?? week?.week ?? "?";
+
+      // 1) Disciplines totalement interdites
+      if (rules.bannedSports.length > 0) {
+        for (let i = sessions.length - 1; i >= 0; i--) {
+          const cs = toConstraintSport((sessions[i] as any)?.sport);
+          if (cs !== "any" && rules.bannedSports.includes(cs)) {
+            logs.push(
+              `[constraint_banned_sport] S${weekNum} — suppression "${(sessions[i] as any)?.title ?? (sessions[i] as any)?.catalogId ?? "?"}" (${constraintSportLabel(cs)} interdit par le coach)`,
+            );
+            sessions.splice(i, 1);
+            counters.constraint_banned_sport_removed =
+              (counters.constraint_banned_sport_removed ?? 0) + 1;
+          }
+        }
+      }
+
+      // 2) Jours interdits → déplacement
+      if (rules.dayBans.length === 0) continue;
+      for (const s of sessions) {
+        const day = normalizeDayLabel((s as any)?.day);
+        if (!day) continue;
+        const cs = toConstraintSport((s as any)?.sport);
+        const hit = rules.dayBans.find(
+          (b) => b.day === day && (b.sport === "any" || b.sport === cs),
+        );
+        if (!hit) continue;
+
+        const bannedForThis = new Set(
+          rules.dayBans
+            .filter((b) => b.sport === "any" || b.sport === cs)
+            .map((b) => b.day),
+        );
+        const load: Record<string, number> = {};
+        for (const other of sessions) {
+          const d = normalizeDayLabel((other as any)?.day);
+          if (d) load[d] = (load[d] ?? 0) + 1;
+        }
+        const candidates = WEEK_DAYS.filter((d) => !bannedForThis.has(d)).sort(
+          (a, b) => (load[a] ?? 0) - (load[b] ?? 0),
+        );
+        const target = candidates[0];
+        if (!target || (load[target] ?? 0) >= 2) {
+          counters.constraint_day_unresolved =
+            (counters.constraint_day_unresolved ?? 0) + 1;
+          logs.push(
+            `[constraint_day_unresolved] S${weekNum} — "${(s as any)?.title ?? "?"}" reste sur ${day} (aucun jour libre disponible)`,
+          );
+          continue;
+        }
+        (s as any).day = target;
+        counters.constraint_day_moved = (counters.constraint_day_moved ?? 0) + 1;
+        logs.push(
+          `[constraint_day_moved] S${weekNum} — "${(s as any)?.title ?? (s as any)?.catalogId ?? "?"}" ${day} → ${target} (contrainte : « ${hit.source} »)`,
+        );
+      }
+    }
+  }
+}
+
 export interface RunReconcilerOptions {
   /** Clé d'objectif normalisée (normalizeObjectiveKey) — pilote l'affûtage minimal. */
   objectiveKey?: string | null;
   /** Format Long Course Weekend (3 jours éclatés Ven/Sam/Dim) — 3 étapes de course. */
   isLcw3Day?: boolean;
+  /** Champ libre "Contraintes" saisi par le coach (jours off, sports interdits, blessures). */
+  constraints?: string | null;
 }
 
 
@@ -985,6 +1089,7 @@ export function runReconciler(
   ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day);
 
   hydrateDilutedZones(chunks, counters, logs);
+  enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
   return { counters, logs };
 }
 
