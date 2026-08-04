@@ -873,6 +873,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
 
   const totalWeeks = planConfig?.weeksAvailable || 12;
   const terrainHardBan = buildTerrainHardBanBlock(planConfig);
+  const athleteConstraintsBlock = buildAthleteConstraintsBlock(planConfig?.constraints);
   const canonicalRaceCard = buildCanonicalRaceCard(athleteData, planConfig);
   const structuredDiagnostic = buildStructuredDiagnosticBlock(planConfig, totalWeeks);
   const baseUserPrompt = buildUserPrompt(athleteData, planConfig, catalogDurationStats);
@@ -976,6 +977,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             : null;
 
           const userPrompt = [
+            athleteConstraintsBlock || null,
             terrainHardBan || null,
             baseUserPrompt,
             quotasBlock ? `\n${quotasBlock}\n` : null,
@@ -985,6 +987,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             `\n🎯 CIBLE CHUNK : ${chunkHeader}`,
             `\n📅 weekNumber attendus (obligatoire, sans trou ni doublon) : [${weeksList.join(", ")}]`,
             `\n🚨 PHASE ACTIVE ESTIMÉE : "${activePhase}"`,
+            athleteConstraintsBlock ? `\n${athleteConstraintsBlock}` : null,
           ].filter(Boolean).join("\n");
 
           const schemaOptions: BuildPlanChunkSchemaOptions = {
