@@ -27,6 +27,7 @@ import {
   buildStructuredDiagnosticBlock,
 } from "./promptHelpers.ts";
 import { getSystemPromptJSON } from "./systemPromptJSON.ts";
+import { buildAthleteConstraintsBlock } from "./constraintsBlock.ts";
 import {
   generateChunkJSON,
   ChunkGenerationError,

@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { normalizeObjKey, normalizeAmbKey, extractLimiterKeywords } from "./sportRatioMatrix.ts";
 import { mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
 import { getSystemPrompt } from "./systemPrompt.ts";
+import { buildAthleteConstraintsBlock } from "./constraintsBlock.ts";
 import {
   buildUserPrompt,
   buildCPWprimeSection,
