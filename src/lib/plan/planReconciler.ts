@@ -641,11 +641,72 @@ const RACE_DAY_SPEC: Record<string, { sport: "run" | "bike" | "brick" | "swim"; 
   TrailUltra: { sport: "run", durationMin: 900, label: "Ultra-trail" },
 };
 
+/** Étapes du Long Course Weekend (format 3 jours éclaté). */
+const LCW_STAGES: Array<{
+  day: "vendredi" | "samedi" | "dimanche";
+  sport: "swim" | "bike" | "run";
+  durationMin: number;
+  label: string;
+  details: string;
+}> = [
+  {
+    day: "vendredi",
+    sport: "swim",
+    durationMin: 55,
+    label: "Étape 1 · Natation (1.9 km)",
+    details:
+      "Étape natation du Long Course Weekend, vendredi soir. Échauffement à sec + 400 m progressifs, " +
+      "départ contrôlé (30 premières minutes sous l'allure cible), sighting régulier. " +
+      "Recharge glycogénique immédiate en sortie d'eau (protocole inter-étapes).",
+  },
+  {
+    day: "samedi",
+    sport: "bike",
+    durationMin: 180,
+    label: "Étape 2 · Vélo (90 km)",
+    details:
+      "Étape vélo du Long Course Weekend, samedi. Pacing IF 0.78-0.82 (pas de brique derrière : " +
+      "puissance légèrement plus haute autorisée), nutrition 80-100 g CHO/h. " +
+      "Recharge agressive dès l'arrivée + nuit courte anticipée avant l'étape course.",
+  },
+  {
+    day: "dimanche",
+    sport: "run",
+    durationMin: 110,
+    label: "Étape 3 · Course à pied (semi-marathon)",
+    details:
+      "Étape course du Long Course Weekend, dimanche, sur jambes fatiguées des deux étapes précédentes. " +
+      "Départ 10-15 s/km au-dessus de l'allure semi fraîche, ravitaillement à chaque poste, " +
+      "gestion thermique et relance progressive sur les 7 derniers kilomètres.",
+  },
+];
+
+function makeRaceSession(
+  day: string,
+  title: string,
+  details: string,
+  sport: string,
+  durationMin: number,
+): PlanSession {
+  return {
+    day,
+    title,
+    details,
+    isKeySession: true,
+    durationMin,
+    zones: [] as string[],
+    sport,
+    custom: true as const,
+    catalogId: null,
+  } as unknown as PlanSession;
+}
+
 function ensureRaceDaySession(
   chunks: PlanChunk[],
   counters: ReconcilerCounters,
   logs: string[],
   objectiveKey: string | null | undefined,
+  isLcw3Day = false,
 ): void {
   const allWeeks = chunks
     .flatMap(ch => (ch.weeks ?? []))
@@ -654,6 +715,41 @@ function ensureRaceDaySession(
   if (!last) return;
 
   const sessions = (last.sessions ?? []) as PlanSession[];
+
+  // ── Format Long Course Weekend : 3 étapes (Ven natation / Sam vélo / Dim course).
+  if (isLcw3Day) {
+    for (const stage of LCW_STAGES) {
+      const dayLower = stage.day;
+      const existing = sessions.filter(
+        s => String((s as { day?: string }).day ?? "").toLowerCase() === dayLower,
+      );
+      const hasRace = existing.some(s => RACE_DAY_RX.test(`${s.title ?? ""} ${s.details ?? ""}`));
+      if (hasRace) continue;
+
+      const stageSession = makeRaceSession(
+        stage.day,
+        `🏁 COURSE OBJECTIF — ${stage.label}`,
+        stage.details,
+        stage.sport,
+        stage.durationMin,
+      );
+      const restIdx = sessions.findIndex(
+        s =>
+          String((s as { day?: string }).day ?? "").toLowerCase() === dayLower &&
+          (s.sport === "rest" || s.sport === "recovery"),
+      );
+      if (restIdx >= 0) sessions.splice(restIdx, 1, stageSession);
+      else sessions.push(stageSession);
+
+      counters.race_day_inserted = (counters.race_day_inserted ?? 0) + 1;
+      logs.push(
+        `[race_day_inserted] S${last.weekNumber} — LCW ${stage.day} : ${stage.label} (${stage.sport}, ${stage.durationMin} min)`,
+      );
+    }
+    last.sessions = sessions;
+    return;
+  }
+
   const already = sessions.some(s =>
     RACE_DAY_RX.test(`${s.title ?? ""} ${s.details ?? ""}`),
   );
@@ -665,20 +761,15 @@ function ensureRaceDaySession(
     label: String(objectiveKey ?? "Course objectif"),
   };
 
-  const raceSession = {
-    day: "dimanche",
-    title: `🏁 COURSE OBJECTIF — Jour J (${spec.label})`,
-    details:
-      `Jour de course. Échauffement selon protocole, pacing conforme à la stratégie validée ` +
+  const raceSession = makeRaceSession(
+    "dimanche",
+    `🏁 COURSE OBJECTIF — Jour J (${spec.label})`,
+    `Jour de course. Échauffement selon protocole, pacing conforme à la stratégie validée ` +
       `(allure/puissance cible, contrôle des premières minutes), nutrition et hydratation ` +
       `selon le plan de ravitaillement établi en amont.`,
-    isKeySession: true,
-    durationMin: spec.durationMin,
-    zones: [] as string[],
-    sport: spec.sport,
-    custom: true as const,
-    catalogId: null,
-  } as unknown as PlanSession;
+    spec.sport,
+    spec.durationMin,
+  );
 
   // Remplace la séance de repos du dimanche si elle existe, sinon on ajoute.
   const sundayRestIdx = sessions.findIndex(s => s.day === "dimanche" && s.sport === "rest");
@@ -691,6 +782,7 @@ function ensureRaceDaySession(
     `[race_day_inserted] S${last.weekNumber} — Jour J ajouté (objectif=${objectiveKey ?? "?"}, sport=${spec.sport}, ${spec.durationMin} min)`,
   );
 }
+
 
 
 // ── API publique ───────────────────────────────────────────────────────────
