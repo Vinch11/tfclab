@@ -790,7 +790,10 @@ function ensureRaceDaySession(
 export interface RunReconcilerOptions {
   /** Clé d'objectif normalisée (normalizeObjectiveKey) — pilote l'affûtage minimal. */
   objectiveKey?: string | null;
+  /** Format Long Course Weekend (3 jours éclatés Ven/Sam/Dim) — 3 étapes de course. */
+  isLcw3Day?: boolean;
 }
+
 
 export function runReconciler(
   chunks: PlanChunk[],
