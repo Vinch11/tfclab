@@ -1498,7 +1498,7 @@ function LCWSwimSoloCard({
 function NolioValidationCard({
   athleteId, raceObjective, simulationMin,
 }: { athleteId: string | null; raceObjective: string; simulationMin: number }) {
-  const [records, setRecords] = React.useState<Array<{ item_seconds: number; value: number; date_recorded: string | null }>>([]);
+  const [records, setRecords] = React.useState<Array<{ item_seconds: number; value: number; record_type: string; date_recorded: string | null }>>([]);
 
   React.useEffect(() => {
     if (!athleteId) return;
@@ -1506,12 +1506,12 @@ function NolioValidationCard({
     (async () => {
       const { data } = await supabase
         .from("nolio_records" as any)
-        .select("item_seconds, value, date_recorded, sport_id, cat")
+        .select("item_seconds, value, record_type, date_recorded, sport_id, cat")
         .eq("athlete_id", athleteId)
         .eq("cat", "par")
         .in("sport_id", [2, 52]);
       if (!c && data) setRecords(((data as unknown) as any[]).map(r => ({
-        item_seconds: r.item_seconds, value: r.value, date_recorded: r.date_recorded,
+        item_seconds: r.item_seconds, value: r.value, record_type: r.record_type, date_recorded: r.date_recorded,
       })));
     })();
     return () => { c = true; };
@@ -1525,12 +1525,20 @@ function NolioValidationCard({
     : raceObjective === "10km" ? 10 : null;
   if (!targetKm) return null;
 
-  // best record matching ~targetKm (dist_km ≈ item_seconds / value)
+  // ⚠️ Unités Nolio : value = vitesse (m/s).
+  //   record_type='distance' → item_seconds = distance (m), temps = distance / vitesse
+  //   record_type='time'     → item_seconds = durée (s),    distance = durée × vitesse
+  const normalized = records
+    .filter(r => Number.isFinite(r.value) && r.value > 0 && r.item_seconds > 0)
+    .map(r => r.record_type === "distance"
+      ? { distKm: r.item_seconds / 1000, timeSec: r.item_seconds / r.value, date_recorded: r.date_recorded }
+      : { distKm: (r.item_seconds * r.value) / 1000, timeSec: r.item_seconds, date_recorded: r.date_recorded });
+
   const tol = 0.15;
-  const matches = records.filter(r => r.value > 0 && Math.abs((r.item_seconds / r.value) - targetKm) / targetKm < tol);
+  const matches = normalized.filter(r => Math.abs(r.distKm - targetKm) / targetKm < tol);
   if (matches.length === 0) return null;
-  const best = matches.reduce((a, b) => (a.item_seconds < b.item_seconds ? a : b));
-  const recordMin = best.item_seconds / 60;
+  const best = matches.reduce((a, b) => (a.timeSec < b.timeSec ? a : b));
+  const recordMin = best.timeSec / 60;
   const diffPct = ((simulationMin - recordMin) / recordMin) * 100;
   const fmtT = (m: number) => `${Math.floor(m / 60)}h${String(Math.round(m % 60)).padStart(2, "0")}`;
 

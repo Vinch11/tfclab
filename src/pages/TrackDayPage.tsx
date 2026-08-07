@@ -174,21 +174,22 @@ export default function TrackDayPage() {
       const labelDate = (r: { d: string | null; src: string }) =>
         r.d ? `${r.src === "manual" ? "Manuel ✍️" : "Nolio"} · ${new Date(r.d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : (r.src === "manual" ? "Manuel ✍️" : "Nolio");
       const dates: Record<string, string | null> = {};
+      // ⚠️ Nolio par/time : item_seconds = durée (s), value = vitesse moyenne (m/s)
       const r15 = pick(15);
       if (r15 && r15.v > 0) {
-        const dist = (1000 / r15.v) * 15;
+        const dist = r15.v * 15; // m parcourus en 15 s
         setSprint15sM(String(Math.round(dist * 10) / 10));
         dates.sprint15s = labelDate(r15);
       }
       const r360 = pick(360);
       if (r360 && r360.v > 0) {
-        const dist = (360 / r360.v) * 1000;
+        const dist = r360.v * 360; // m parcourus en 6 min
         setD6min(String(Math.round(dist)));
         dates.d6min = labelDate(r360);
       }
       const r75 = pick(75);
       if (r75 && r75.v > 0) {
-        const t400 = (r75.v * 0.4);
+        const t400 = 400 / r75.v; // temps estimé sur 400 m
         setT400m(String(Math.round(t400 * 10) / 10));
         dates.t400m = labelDate(r75);
       }
