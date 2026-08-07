@@ -215,7 +215,7 @@ Deno.serve(async (req) => {
     // 2) Athlètes liés (optionnellement restreints à athlete_ids)
     let athletesQuery = admin
       .from("athletes")
-      .select("id, name, nolio_id")
+      .select("id, name, nolio_id, refs")
       .eq("coach_id", userId)
       .not("nolio_id", "is", null);
     if (athleteIdsFilter && athleteIdsFilter.length > 0) {
