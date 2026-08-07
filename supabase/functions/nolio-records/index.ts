@@ -442,10 +442,39 @@ Deno.serve(async (req) => {
             .from("nolio_records")
             .select("cat, record_type, item_seconds, value, sport_id, date_recorded")
             .eq("athlete_id", athleteId);
-          const aggregateSource: Array<Record<string, unknown>> = [
+          const rawAggregate: Array<Record<string, unknown>> = [
             ...rowsToUpsert,
             ...((persistedRecords ?? []) as Array<Record<string, unknown>>),
           ];
+
+          // ─── Fenêtre glissante (mois) : évite de mélanger les époques
+          // (ex. PB 5 km 2022 à côté d'un semi 2026). Override par athlète via
+          // refs.snapshotRecordsWindowMonths (ou refs.raceRecordsWindowMonths), null = illimité.
+          const athRefs = ((ath as any)?.refs ?? {}) as Record<string, unknown>;
+          let windowMonths: number | null = snapshotWindowMonths;
+          for (const key of ["snapshotRecordsWindowMonths", "raceRecordsWindowMonths"]) {
+            if (key in athRefs) {
+              const v = athRefs[key];
+              windowMonths = v === null ? null : (typeof v === "number" && v > 0 ? v : windowMonths);
+              break;
+            }
+          }
+          let aggregateSource = rawAggregate;
+          if (windowMonths && windowMonths > 0) {
+            const cutoffDate = new Date();
+            cutoffDate.setMonth(cutoffDate.getMonth() - windowMonths);
+            const cutoff = cutoffDate.toISOString().slice(0, 10);
+            const windowed = rawAggregate.filter((x) => {
+              const d = x.date_recorded as string | null | undefined;
+              return !d || d >= cutoff;
+            });
+            // Sécurité : si la fenêtre vide tout, on retombe sur l'historique complet.
+            aggregateSource = windowed.length > 0 ? windowed : rawAggregate;
+            console.log(
+              `[nolio-records] athlete ${athleteId}: window ${windowMonths}m (cutoff ${cutoff}) → ${aggregateSource.length}/${rawAggregate.length} records`,
+            );
+          }
+
 
           // ─── Helpers d'agrégation ───────────────────────────────────────
           const bestMax = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
