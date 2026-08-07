@@ -362,7 +362,15 @@ export function RecordsTransparencyView({
   onChanged: () => void;
 }) {
   const [recomputing, setRecomputing] = useState(false);
+  // Période par défaut du recalcul snapshot : 18 derniers mois (évite de mélanger les époques)
+  const [snapFrom, setSnapFrom] = useState<string>(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 18);
+    return d.toISOString().slice(0, 10);
+  });
+  const [snapTo, setSnapTo] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [applyingId, setApplyingId] = useState<string | null>(null);
+
 
   const fieldSources: FieldSources = useMemo(() => {
     const raw = (activeSnapshot as any)?.field_sources;
