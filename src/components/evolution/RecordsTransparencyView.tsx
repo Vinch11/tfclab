@@ -566,11 +566,45 @@ export function RecordsTransparencyView({
         <div className="text-xs text-muted-foreground">
           Vue transparente — statut calculé en comparant chaque record brut au snapshot actif.
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md border border-border px-2 py-1">
+            <span className="text-[11px] text-muted-foreground">Période</span>
+            <input
+              type="date"
+              value={snapFrom}
+              max={snapTo}
+              onChange={(e) => setSnapFrom(e.target.value)}
+              className="h-7 rounded bg-background px-1 text-xs"
+              aria-label="Début de la période de recalcul"
+            />
+            <span className="text-[11px] text-muted-foreground">→</span>
+            <input
+              type="date"
+              value={snapTo}
+              min={snapFrom}
+              onChange={(e) => setSnapTo(e.target.value)}
+              className="h-7 rounded bg-background px-1 text-xs"
+              aria-label="Fin de la période de recalcul"
+            />
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-[11px]"
+              onClick={() => {
+                const d = new Date();
+                d.setMonth(d.getMonth() - 18);
+                setSnapFrom(d.toISOString().slice(0, 10));
+                setSnapTo(new Date().toISOString().slice(0, 10));
+              }}
+            >
+              18 mois
+            </Button>
+          </div>
           <Button size="sm" variant="outline" onClick={recompute} disabled={recomputing}>
             <RefreshCw className={`h-3 w-3 mr-1 ${recomputing ? "animate-spin" : ""}`} />
             🔄 Recalculer le profil depuis les records
           </Button>
+
           <Button size="sm" variant="outline" onClick={() => deleteOlderThan(2025)} disabled={bulkDeleting}>
             <Trash2 className="h-3 w-3 mr-1" />
             Supprimer les records &lt; 2025
