@@ -640,17 +640,29 @@ function SportTable({
                     </div>
                   </TableCell>
                   <TableCell className="text-xs">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-[11px]"
-                      disabled={isActive || !canUse || applyingId === row.record.id}
-                      onClick={() => onUse(row)}
-                      title={isActive ? "Déjà actif" : !canUse ? "Record rejeté ou non calculable" : "Appliquer cette valeur exacte au snapshot"}
-                    >
-                      → Utiliser
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-[11px]"
+                        disabled={isActive || !canUse || applyingId === row.record.id}
+                        onClick={() => onUse(row)}
+                        title={isActive ? "Déjà actif" : !canUse ? "Record rejeté ou non calculable" : "Appliquer cette valeur exacte au snapshot"}
+                      >
+                        → Utiliser
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0 text-destructive"
+                        onClick={() => onDelete(row)}
+                        title="Supprimer ce record (erreur d'import, donnée fausse)"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </TableCell>
+
                 </TableRow>
               );
             })}
