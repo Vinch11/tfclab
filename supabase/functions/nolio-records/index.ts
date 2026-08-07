@@ -460,7 +460,20 @@ Deno.serve(async (req) => {
             }
           }
           let aggregateSource = rawAggregate;
-          if (windowMonths && windowMonths > 0) {
+          if (snapshotDateFrom || snapshotDateTo) {
+            // Période explicite choisie par le coach → prioritaire sur la fenêtre glissante.
+            const windowed = rawAggregate.filter((x) => {
+              const d = x.date_recorded as string | null | undefined;
+              if (!d) return true;
+              if (snapshotDateFrom && d < snapshotDateFrom) return false;
+              if (snapshotDateTo && d > snapshotDateTo) return false;
+              return true;
+            });
+            aggregateSource = windowed.length > 0 ? windowed : rawAggregate;
+            console.log(
+              `[nolio-records] athlete ${athleteId}: period ${snapshotDateFrom ?? "—"} → ${snapshotDateTo ?? "—"} : ${aggregateSource.length}/${rawAggregate.length} records`,
+            );
+          } else if (windowMonths && windowMonths > 0) {
             const cutoffDate = new Date();
             cutoffDate.setMonth(cutoffDate.getMonth() - windowMonths);
             const cutoff = cutoffDate.toISOString().slice(0, 10);
@@ -474,6 +487,7 @@ Deno.serve(async (req) => {
               `[nolio-records] athlete ${athleteId}: window ${windowMonths}m (cutoff ${cutoff}) → ${aggregateSource.length}/${rawAggregate.length} records`,
             );
           }
+
 
 
           // ─── Helpers d'agrégation ───────────────────────────────────────
