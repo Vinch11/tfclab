@@ -171,8 +171,10 @@ Deno.serve(async (req) => {
     let athleteIdsFilter: string[] | null = null;
     let forceOverwrite = false;
     let remapOnly = false;
+    // Fenêtre glissante appliquée à l'agrégation snapshot (mois). 0/null = illimité.
+    let snapshotWindowMonths: number | null = 18;
     try {
-      const body = await req.json().catch(() => null) as { date_from?: string; date_to?: string; athlete_ids?: string[]; force_overwrite?: boolean; remap_only?: boolean } | null;
+      const body = await req.json().catch(() => null) as { date_from?: string; date_to?: string; athlete_ids?: string[]; force_overwrite?: boolean; remap_only?: boolean; snapshot_window_months?: number | null } | null;
       if (body?.date_from && /^\d{4}-\d{2}-\d{2}$/.test(body.date_from)) dateFrom = body.date_from;
       if (body?.date_to && /^\d{4}-\d{2}-\d{2}$/.test(body.date_to)) dateTo = body.date_to;
       if (Array.isArray(body?.athlete_ids) && body!.athlete_ids!.length > 0) {
@@ -180,7 +182,12 @@ Deno.serve(async (req) => {
       }
       if (body?.force_overwrite === true) forceOverwrite = true;
       if (body?.remap_only === true) remapOnly = true;
+      if (body?.snapshot_window_months === null) snapshotWindowMonths = null;
+      else if (typeof body?.snapshot_window_months === "number" && Number.isFinite(body.snapshot_window_months)) {
+        snapshotWindowMonths = body.snapshot_window_months > 0 ? body.snapshot_window_months : null;
+      }
     } catch { /* ignore */ }
+
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -208,7 +215,7 @@ Deno.serve(async (req) => {
     // 2) Athlètes liés (optionnellement restreints à athlete_ids)
     let athletesQuery = admin
       .from("athletes")
-      .select("id, name, nolio_id")
+      .select("id, name, nolio_id, refs")
       .eq("coach_id", userId)
       .not("nolio_id", "is", null);
     if (athleteIdsFilter && athleteIdsFilter.length > 0) {
@@ -435,10 +442,39 @@ Deno.serve(async (req) => {
             .from("nolio_records")
             .select("cat, record_type, item_seconds, value, sport_id, date_recorded")
             .eq("athlete_id", athleteId);
-          const aggregateSource: Array<Record<string, unknown>> = [
+          const rawAggregate: Array<Record<string, unknown>> = [
             ...rowsToUpsert,
             ...((persistedRecords ?? []) as Array<Record<string, unknown>>),
           ];
+
+          // ─── Fenêtre glissante (mois) : évite de mélanger les époques
+          // (ex. PB 5 km 2022 à côté d'un semi 2026). Override par athlète via
+          // refs.snapshotRecordsWindowMonths (ou refs.raceRecordsWindowMonths), null = illimité.
+          const athRefs = ((ath as any)?.refs ?? {}) as Record<string, unknown>;
+          let windowMonths: number | null = snapshotWindowMonths;
+          for (const key of ["snapshotRecordsWindowMonths", "raceRecordsWindowMonths"]) {
+            if (key in athRefs) {
+              const v = athRefs[key];
+              windowMonths = v === null ? null : (typeof v === "number" && v > 0 ? v : windowMonths);
+              break;
+            }
+          }
+          let aggregateSource = rawAggregate;
+          if (windowMonths && windowMonths > 0) {
+            const cutoffDate = new Date();
+            cutoffDate.setMonth(cutoffDate.getMonth() - windowMonths);
+            const cutoff = cutoffDate.toISOString().slice(0, 10);
+            const windowed = rawAggregate.filter((x) => {
+              const d = x.date_recorded as string | null | undefined;
+              return !d || d >= cutoff;
+            });
+            // Sécurité : si la fenêtre vide tout, on retombe sur l'historique complet.
+            aggregateSource = windowed.length > 0 ? windowed : rawAggregate;
+            console.log(
+              `[nolio-records] athlete ${athleteId}: window ${windowMonths}m (cutoff ${cutoff}) → ${aggregateSource.length}/${rawAggregate.length} records`,
+            );
+          }
+
 
           // ─── Helpers d'agrégation ───────────────────────────────────────
           const bestMax = (cat: string, recordType: string, sec: number, sportFilter?: number[]): number | null => {
