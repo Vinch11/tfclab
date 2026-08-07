@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import type { DbSnapshot } from "@/hooks/useCloudData";
@@ -376,6 +376,52 @@ export function RecordsTransparencyView({
 
   const hasManualSelected = Object.values(fieldSources).some(v => v === "manual-selected");
 
+  // ─── Suppression de records ────────────────────────────────────────────
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  const deleteRecord = async (row: EnrichedRow) => {
+    if (!confirm(`Supprimer définitivement ce record ?\n\n${row.slotLabel} — ${row.slot.formatRaw(row.record)} (${fmtDate(row.record.date_recorded)})`)) return;
+    const { error } = await supabase.from("nolio_records").delete().eq("id", row.record.id);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Record supprimé", description: "Pense à recalculer le profil." });
+    onChanged();
+  };
+
+  const deleteAllRecords = async () => {
+    if (!confirm("Supprimer TOUS les records Nolio de cet athlète ?\n\nCette action est irréversible (les records peuvent être réimportés depuis Nolio).")) return;
+    setBulkDeleting(true);
+    const { error } = await supabase.from("nolio_records").delete().eq("athlete_id", athleteId);
+    setBulkDeleting(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Records supprimés" });
+    onChanged();
+  };
+
+  const deleteOlderThan = async (year: number) => {
+    if (!confirm(`Supprimer tous les records antérieurs au 01/01/${year} ?\n\nUtile pour éliminer les PB obsolètes qui faussent le profil.`)) return;
+    setBulkDeleting(true);
+    const { error } = await supabase
+      .from("nolio_records")
+      .delete()
+      .eq("athlete_id", athleteId)
+      .lt("date_recorded", `${year}-01-01`);
+    setBulkDeleting(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: `Records antérieurs à ${year} supprimés`, description: "Pense à recalculer le profil." });
+    onChanged();
+  };
+
+
+
   const useRecord = async (row: EnrichedRow) => {
     if (!activeSnapshot || row.candidate == null) return;
     setApplyingId(row.record.id);
@@ -500,21 +546,32 @@ export function RecordsTransparencyView({
         </Alert>
       )}
 
-      {/* ─── Recompute button ──────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      {/* ─── Actions globales ──────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-xs text-muted-foreground">
           Vue transparente — statut calculé en comparant chaque record brut au snapshot actif.
         </div>
-        <Button size="sm" variant="outline" onClick={recompute} disabled={recomputing}>
-          <RefreshCw className={`h-3 w-3 mr-1 ${recomputing ? "animate-spin" : ""}`} />
-          🔄 Recalculer le profil depuis les records
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={recompute} disabled={recomputing}>
+            <RefreshCw className={`h-3 w-3 mr-1 ${recomputing ? "animate-spin" : ""}`} />
+            🔄 Recalculer le profil depuis les records
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => deleteOlderThan(2025)} disabled={bulkDeleting}>
+            <Trash2 className="h-3 w-3 mr-1" />
+            Supprimer les records &lt; 2025
+          </Button>
+          <Button size="sm" variant="destructive" onClick={deleteAllRecords} disabled={bulkDeleting}>
+            <Trash2 className="h-3 w-3 mr-1" />
+            Tout supprimer
+          </Button>
+        </div>
       </div>
 
       {/* ─── Tableaux par sport ────────────────────────────────────────── */}
-      <SportTable title="🚴 Vélo (puissance)" rows={bikeRows} onUse={useRecord} applyingId={applyingId} />
-      <SportTable title="🏃 Course (allure)" rows={runRows} onUse={useRecord} applyingId={applyingId} />
-      <SportTable title="🏊 Natation (CSS)" rows={swimRows} onUse={useRecord} applyingId={applyingId} />
+      <SportTable title="🚴 Vélo (puissance)" rows={bikeRows} onUse={useRecord} onDelete={deleteRecord} applyingId={applyingId} />
+      <SportTable title="🏃 Course (allure)" rows={runRows} onUse={useRecord} onDelete={deleteRecord} applyingId={applyingId} />
+      <SportTable title="🏊 Natation (CSS)" rows={swimRows} onUse={useRecord} onDelete={deleteRecord} applyingId={applyingId} />
+
 
       {bikeRows.length + runRows.length + swimRows.length === 0 && (
         <div className="text-sm text-muted-foreground text-center py-6">
@@ -529,13 +586,16 @@ function SportTable({
   title,
   rows,
   onUse,
+  onDelete,
   applyingId,
 }: {
   title: string;
   rows: EnrichedRow[];
   onUse: (row: EnrichedRow) => void;
+  onDelete: (row: EnrichedRow) => void;
   applyingId: string | null;
 }) {
+
   if (rows.length === 0) return null;
   return (
     <div>
@@ -580,17 +640,29 @@ function SportTable({
                     </div>
                   </TableCell>
                   <TableCell className="text-xs">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-[11px]"
-                      disabled={isActive || !canUse || applyingId === row.record.id}
-                      onClick={() => onUse(row)}
-                      title={isActive ? "Déjà actif" : !canUse ? "Record rejeté ou non calculable" : "Appliquer cette valeur exacte au snapshot"}
-                    >
-                      → Utiliser
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-[11px]"
+                        disabled={isActive || !canUse || applyingId === row.record.id}
+                        onClick={() => onUse(row)}
+                        title={isActive ? "Déjà actif" : !canUse ? "Record rejeté ou non calculable" : "Appliquer cette valeur exacte au snapshot"}
+                      >
+                        → Utiliser
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0 text-destructive"
+                        onClick={() => onDelete(row)}
+                        title="Supprimer ce record (erreur d'import, donnée fausse)"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </TableCell>
+
                 </TableRow>
               );
             })}
