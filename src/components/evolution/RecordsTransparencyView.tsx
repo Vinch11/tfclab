@@ -498,7 +498,14 @@ export function RecordsTransparencyView({
     setRecomputing(true);
     try {
       const { data, error } = await supabase.functions.invoke("nolio-records", {
-        body: { remap_only: true, athlete_ids: [athleteId], force_overwrite: true },
+        body: {
+          remap_only: true,
+          athlete_ids: [athleteId],
+          force_overwrite: true,
+          snapshot_date_from: snapFrom || null,
+          snapshot_date_to: snapTo || null,
+        },
+
       });
       if (error) throw error;
       const errs = (data?.summary?.[0]?.errors as string[] | undefined) ?? [];
