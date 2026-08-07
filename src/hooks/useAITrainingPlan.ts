@@ -20,7 +20,8 @@ import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPla
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
-import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock, applySessionsPerWeekTarget } from "@/engines/plan/sessionSizingMatrix";
+import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock, applySessionsPerWeekTarget, applyBannedSportsRedistribution } from "@/engines/plan/sessionSizingMatrix";
+import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
