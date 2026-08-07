@@ -586,13 +586,16 @@ function SportTable({
   title,
   rows,
   onUse,
+  onDelete,
   applyingId,
 }: {
   title: string;
   rows: EnrichedRow[];
   onUse: (row: EnrichedRow) => void;
+  onDelete: (row: EnrichedRow) => void;
   applyingId: string | null;
 }) {
+
   if (rows.length === 0) return null;
   return (
     <div>
