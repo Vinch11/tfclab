@@ -203,15 +203,11 @@ import type { RaceRecordsInput } from "@/lib/v2/vlamaxRunV2Enhanced";
  * `nolio_records` pour un athlète et renvoie un `RaceRecordsInput` prêt à
  * passer à `calibrateVLamaxFromRaceRecords` / `computeVLamaxRunV2Enhanced`.
  *
- * Mapping :
+ * Mapping (⚠️ unités Nolio) :
  *   - `item_seconds` = distance(m) (400, 1000, 5000, 10000)
- *   - `value`        = temps de référence(s)
+ *   - `value`        = VITESSE MOYENNE (m/s) → temps = distance / vitesse
  *   - `cat`          = 'par'  (Personal Athlete Records côté Nolio)
- *   - `record_type`  = 'time'
- *
- * Priorité aux allures 400m et 1km qui calibrent la VLamax course
- * (sprint anaérobie + tolérance acidose).
- */
+ *   - `record_type`  = 'distance'
 export async function fetchAthleteRaceRecords(
   athleteId: string,
   vma: number | null,
