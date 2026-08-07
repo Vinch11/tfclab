@@ -20,7 +20,8 @@ import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPla
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
-import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock, applySessionsPerWeekTarget } from "@/engines/plan/sessionSizingMatrix";
+import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock, applySessionsPerWeekTarget, applyBannedSportsRedistribution } from "@/engines/plan/sessionSizingMatrix";
+import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { buildWeeklySlotLayout, buildLayoutPromptBlock, type WeeklySlotLayout } from "@/engines/plan/weeklySlotLayout";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
@@ -509,17 +510,27 @@ export function useAITrainingPlan() {
       // au modèle ignorait la demande utilisateur.
       const targetSpw = typeof planConfig.sessionsPerWeek === "number" && planConfig.sessionsPerWeek > 0
         ? planConfig.sessionsPerWeek : null;
+      // Disciplines interdites (champ libre "Contraintes") : le quota de la
+      // discipline bannie est libéré et RÉAFFECTÉ aux sports autorisés.
+      const bannedSportsForQuota = parseAthleteConstraints(
+        (planConfig as any)?.constraints ?? null,
+      ).bannedSports;
       for (let w = 1; w <= totalWeeks; w++) {
         const weekType = inferWeekType(w, totalWeeks);
         const q0 = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType);
         if (q0) {
-          const adj = targetSpw
+          let adj = targetSpw
             ? applySessionsPerWeekTarget({ quota: q0.quota, floors: q0.floors }, targetSpw, weekType)
             : { quota: q0.quota, floors: q0.floors };
+          if (bannedSportsForQuota.length > 0) {
+            const red = applyBannedSportsRedistribution(adj, bannedSportsForQuota);
+            adj = { quota: red.quota, floors: red.floors };
+          }
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(adj.quota, adj.floors, weekType);
           weeklyQuotas[w] = { quota: adj.quota, floors: adj.floors, weekType, downgraded: q0.downgraded, downgradeReason: q0.downgradeReason, layout };
         }
       }
+
 
       lastWeeklyQuotasRef.current = weeklyQuotas;
 

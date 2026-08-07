@@ -546,3 +546,92 @@ export function applySessionsPerWeekTarget(
   };
   return { quota, floors };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// REDISTRIBUTION APRÈS DISCIPLINE INTERDITE (contraintes athlète)
+// ═══════════════════════════════════════════════════════════════════════════════
+/**
+ * Si le coach interdit une discipline (ex. « pas de natation »), le quota de
+ * cette discipline tombe à 0 — mais le volume hebdo total ne doit PAS chuter :
+ * les séances libérées sont réaffectées aux disciplines autorisées (priorité
+ * CAP > vélo > natation > brick), dans la limite du max matriciel +2.
+ *
+ * Le brick est automatiquement banni si vélo OU CAP est banni.
+ * Le renfo interdit n'est pas redistribué sur le cardio (stimulus différent).
+ */
+export function applyBannedSportsRedistribution(
+  input: { quota: WeeklyQuota; floors: SizingFloors },
+  bannedSports: Array<"swim" | "bike" | "run" | "strength" | "any">,
+): { quota: WeeklyQuota; floors: SizingFloors; redistributed: number } {
+  const banned = new Set(bannedSports.filter(s => s !== "any"));
+  if (banned.size === 0) return { ...input, redistributed: 0 };
+
+  const quota: WeeklyQuota = {
+    ...input.quota,
+    swim: { ...input.quota.swim }, bike: { ...input.quota.bike },
+    run: { ...input.quota.run }, brick: { ...input.quota.brick },
+    strength: { ...input.quota.strength }, totalSessions: { ...input.quota.totalSessions },
+  };
+  const floors: SizingFloors = { ...input.floors };
+
+  type CardioSport = "swim" | "bike" | "run" | "brick";
+  const cardio: CardioSport[] = ["swim", "bike", "run", "brick"];
+  const brickBanned = banned.has("bike") || banned.has("run");
+
+  // 1) Libération des créneaux
+  let freed = 0;
+  for (const s of cardio) {
+    const isBanned = s === "brick" ? brickBanned : banned.has(s as "swim" | "bike" | "run");
+    if (!isBanned) continue;
+    freed += Math.round((quota[s].min + quota[s].max) / 2);
+    quota[s] = { min: 0, max: 0 };
+  }
+  if (banned.has("swim")) floors.minSwimPerWeek = 0;
+  if (banned.has("bike")) floors.longRideWeekly = false;
+  if (banned.has("run")) floors.longRunWeekly = false;
+  if (banned.has("strength")) {
+    quota.strength = { min: 0, max: 0 };
+    floors.minStrengthPerWeek = 0;
+  }
+
+  // 2) Réaffectation aux disciplines autorisées
+  const receivers: CardioSport[] = (["run", "bike", "swim", "brick"] as CardioSport[])
+    .filter(s => (s === "brick" ? !brickBanned : !banned.has(s as "swim" | "bike" | "run")) && quota[s].max > 0);
+
+  let redistributed = 0;
+  if (freed > 0 && receivers.length > 0) {
+    const capFor = (s: CardioSport) => input.quota[s].max + 2;
+    let i = 0;
+    let guard = 0;
+    while (redistributed < freed && guard++ < 50) {
+      const s = receivers[i % receivers.length];
+      i++;
+      if (quota[s].max >= capFor(s)) {
+        if (receivers.every(r => quota[r].max >= capFor(r))) break;
+        continue;
+      }
+      quota[s] = { min: quota[s].min + 1, max: quota[s].max + 1 };
+      redistributed++;
+    }
+  }
+
+  // 3) Recalcul du total + capacité calendaire
+  const cardioMin = cardio.reduce((a, s) => a + quota[s].min, 0);
+  const cardioMax = cardio.reduce((a, s) => a + quota[s].max, 0);
+  quota.totalSessions = {
+    min: cardioMin + quota.strength.min,
+    max: cardioMax + quota.strength.max,
+  };
+  const trainingDays = Math.max(1, 7 - quota.minFullRestDays);
+  const needPerDay = Math.ceil(quota.totalSessions.max / trainingDays);
+  if (needPerDay > quota.maxSessionsPerDay) {
+    quota.maxSessionsPerDay = Math.min(3, needPerDay);
+    if (needPerDay > 3 && quota.minFullRestDays > 0) quota.minFullRestDays = 0;
+  }
+  quota.source = {
+    ...quota.source,
+    ref: `${quota.source.ref} — ${[...banned].join("/")} interdit(s), ${redistributed} séance(s) réaffectée(s)`,
+  };
+
+  return { quota, floors, redistributed };
+}
