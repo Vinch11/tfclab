@@ -376,6 +376,52 @@ export function RecordsTransparencyView({
 
   const hasManualSelected = Object.values(fieldSources).some(v => v === "manual-selected");
 
+  // ─── Suppression de records ────────────────────────────────────────────
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  const deleteRecord = async (row: EnrichedRow) => {
+    if (!confirm(`Supprimer définitivement ce record ?\n\n${row.slotLabel} — ${row.slot.formatRaw(row.record)} (${fmtDate(row.record.date_recorded)})`)) return;
+    const { error } = await supabase.from("nolio_records").delete().eq("id", row.record.id);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Record supprimé", description: "Pense à recalculer le profil." });
+    onChanged();
+  };
+
+  const deleteAllRecords = async () => {
+    if (!confirm("Supprimer TOUS les records Nolio de cet athlète ?\n\nCette action est irréversible (les records peuvent être réimportés depuis Nolio).")) return;
+    setBulkDeleting(true);
+    const { error } = await supabase.from("nolio_records").delete().eq("athlete_id", athleteId);
+    setBulkDeleting(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Records supprimés" });
+    onChanged();
+  };
+
+  const deleteOlderThan = async (year: number) => {
+    if (!confirm(`Supprimer tous les records antérieurs au 01/01/${year} ?\n\nUtile pour éliminer les PB obsolètes qui faussent le profil.`)) return;
+    setBulkDeleting(true);
+    const { error } = await supabase
+      .from("nolio_records")
+      .delete()
+      .eq("athlete_id", athleteId)
+      .lt("date_recorded", `${year}-01-01`);
+    setBulkDeleting(false);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: `Records antérieurs à ${year} supprimés`, description: "Pense à recalculer le profil." });
+    onChanged();
+  };
+
+
+
   const useRecord = async (row: EnrichedRow) => {
     if (!activeSnapshot || row.candidate == null) return;
     setApplyingId(row.record.id);
