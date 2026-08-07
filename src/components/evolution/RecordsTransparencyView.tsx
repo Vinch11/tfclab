@@ -500,21 +500,32 @@ export function RecordsTransparencyView({
         </Alert>
       )}
 
-      {/* ─── Recompute button ──────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      {/* ─── Actions globales ──────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-xs text-muted-foreground">
           Vue transparente — statut calculé en comparant chaque record brut au snapshot actif.
         </div>
-        <Button size="sm" variant="outline" onClick={recompute} disabled={recomputing}>
-          <RefreshCw className={`h-3 w-3 mr-1 ${recomputing ? "animate-spin" : ""}`} />
-          🔄 Recalculer le profil depuis les records
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={recompute} disabled={recomputing}>
+            <RefreshCw className={`h-3 w-3 mr-1 ${recomputing ? "animate-spin" : ""}`} />
+            🔄 Recalculer le profil depuis les records
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => deleteOlderThan(2025)} disabled={bulkDeleting}>
+            <Trash2 className="h-3 w-3 mr-1" />
+            Supprimer les records &lt; 2025
+          </Button>
+          <Button size="sm" variant="destructive" onClick={deleteAllRecords} disabled={bulkDeleting}>
+            <Trash2 className="h-3 w-3 mr-1" />
+            Tout supprimer
+          </Button>
+        </div>
       </div>
 
       {/* ─── Tableaux par sport ────────────────────────────────────────── */}
-      <SportTable title="🚴 Vélo (puissance)" rows={bikeRows} onUse={useRecord} applyingId={applyingId} />
-      <SportTable title="🏃 Course (allure)" rows={runRows} onUse={useRecord} applyingId={applyingId} />
-      <SportTable title="🏊 Natation (CSS)" rows={swimRows} onUse={useRecord} applyingId={applyingId} />
+      <SportTable title="🚴 Vélo (puissance)" rows={bikeRows} onUse={useRecord} onDelete={deleteRecord} applyingId={applyingId} />
+      <SportTable title="🏃 Course (allure)" rows={runRows} onUse={useRecord} onDelete={deleteRecord} applyingId={applyingId} />
+      <SportTable title="🏊 Natation (CSS)" rows={swimRows} onUse={useRecord} onDelete={deleteRecord} applyingId={applyingId} />
+
 
       {bikeRows.length + runRows.length + swimRows.length === 0 && (
         <div className="text-sm text-muted-foreground text-center py-6">
