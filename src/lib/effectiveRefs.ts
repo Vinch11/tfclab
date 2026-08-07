@@ -208,6 +208,10 @@ import type { RaceRecordsInput } from "@/lib/v2/vlamaxRunV2Enhanced";
  *   - `value`        = VITESSE MOYENNE (m/s) → temps = distance / vitesse
  *   - `cat`          = 'par'  (Personal Athlete Records côté Nolio)
  *   - `record_type`  = 'distance'
+ *
+ * Priorité aux allures 400m et 1km qui calibrent la VLamax course
+ * (sprint anaérobie + tolérance acidose).
+ */
 export async function fetchAthleteRaceRecords(
   athleteId: string,
   vma: number | null,
@@ -221,7 +225,7 @@ export async function fetchAthleteRaceRecords(
     .eq("athlete_id", athleteId)
     .eq("sport_id", 2)
     .eq("cat", "par")
-    .eq("record_type", "distance") // Nolio par/distance : item_seconds=distance(m), value=temps(s)
+    .eq("record_type", "distance") // Nolio par/distance : item_seconds=distance(m), value=vitesse(m/s)
     .in("item_seconds", [400, 1000, 5000, 10000]);
 
   // Filtre fenêtre temporelle (12 mois par défaut pour refléter le niveau actuel)
@@ -234,15 +238,18 @@ export async function fetchAthleteRaceRecords(
   const { data, error } = await q;
   if (error || !data || data.length === 0) return null;
 
-  // Si plusieurs records pour une même distance, on garde le meilleur (temps le plus court)
+  // value = vitesse (m/s) → temps total = distance / vitesse.
+  // Si plusieurs records pour une même distance, on garde le meilleur (temps le plus court).
+  const PLAUSIBLE_MPS: [number, number] = [1.5, 12]; // 1,5–12 m/s (garde-fou anti-données aberrantes)
   const byDist = new Map<number, number>();
   for (const r of data) {
     const d = Number((r as { item_seconds: number }).item_seconds);
-    const v = Number((r as { value: number | string }).value);
-    if (Number.isFinite(d) && Number.isFinite(v) && v > 0) {
-      const prev = byDist.get(d);
-      if (prev === undefined || v < prev) byDist.set(d, v);
-    }
+    const mps = Number((r as { value: number | string }).value);
+    if (!Number.isFinite(d) || d <= 0) continue;
+    if (!Number.isFinite(mps) || mps < PLAUSIBLE_MPS[0] || mps > PLAUSIBLE_MPS[1]) continue;
+    const timeSec = d / mps;
+    const prev = byDist.get(d);
+    if (prev === undefined || timeSec < prev) byDist.set(d, timeSec);
   }
 
   if (byDist.size === 0) return null;
