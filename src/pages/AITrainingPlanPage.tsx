@@ -1126,7 +1126,10 @@ export default function AITrainingPlanPage() {
     };
   }, [athleteContext]);
 
-  const handleCoachFormGenerate = useCallback((payload: CoachProfileFormPayload) => {
+  const handleCoachFormGenerate = useCallback((
+    payload: CoachProfileFormPayload,
+    objectiveOverride?: string,
+  ) => {
     if (!athleteContext) {
       toast.error("Aucun contexte athlète — sélectionne un athlète d'abord.");
       return;
@@ -1135,8 +1138,9 @@ export default function AITrainingPlanPage() {
       toast.error("Durée du plan manquante — renseigne une date de course ou une durée libre.");
       return;
     }
-    const baseConfig = buildConfigFromDiag(athleteContext.diagnostic);
+    const baseConfig = buildConfigFromDiag(athleteContext.diagnostic, undefined, objectiveOverride);
     const config = buildCoachOverrides(payload, baseConfig);
+
 
     // ─── Durée pilotée par le coach form (mode date OU durée libre) ───
     config.weeksAvailable = payload.weeksAvailable;
