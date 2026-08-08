@@ -120,6 +120,42 @@ const CHRONO_LIST: Array<{ value: ChronoDistanceKey; label: string; km: number; 
   { value: "marathon", label: "Marathon (42,2)",  km: 42.195,   snapField: "time_marathon_sec" },
 ];
 
+// ─── Branche Start to Run (débutant) ────────────────────────────────────────
+// Pour un vrai débutant, les questions "limiteurs" n'ont pas de référentiel :
+// l'athlète n'a jamais couru assez longtemps pour y répondre. La prescription
+// dépend de la tolérance mécanique et du point de départ, pas du profil métabolique.
+export type S2RExperience = "none" | "walk_only" | "under10" | "10to20" | "20plus";
+export type S2RActivity = "sedentary" | "light" | "active";
+export type S2RJoint = "none" | "occasional" | "frequent";
+
+const S2R_EXPERIENCE_OPTIONS: Array<{ value: S2RExperience; emoji: string; title: string; desc: string; startMin: number }> = [
+  { value: "none",      emoji: "🌱", title: "Jamais couru",              desc: "Aucune pratique de course à pied.",                 startMin: 1 },
+  { value: "walk_only", emoji: "🚶", title: "Je marche uniquement",      desc: "Marche régulière, pas de course.",                  startMin: 1 },
+  { value: "under10",   emoji: "🏃", title: "Moins de 10 min en continu", desc: "Quelques minutes de course avant de devoir marcher.", startMin: 5 },
+  { value: "10to20",    emoji: "🏃‍♂️", title: "10 à 20 min en continu",   desc: "Je tiens un petit footing sans m'arrêter.",         startMin: 12 },
+  { value: "20plus",    emoji: "✅", title: "Plus de 20 min en continu",  desc: "Base déjà installée — progression accélérée.",      startMin: 20 },
+];
+
+const S2R_ACTIVITY_OPTIONS: Array<{ value: S2RActivity; emoji: string; title: string; desc: string }> = [
+  { value: "sedentary", emoji: "🪑", title: "Peu ou pas d'activité", desc: "Moins d'1h de sport par semaine." },
+  { value: "light",     emoji: "🚲", title: "Activité légère",        desc: "1 à 3h par semaine (marche, vélo, salle…)." },
+  { value: "active",    emoji: "💪", title: "Déjà actif",             desc: "Plus de 3h par semaine d'un autre sport." },
+];
+
+const S2R_JOINT_OPTIONS: Array<{ value: S2RJoint; emoji: string; title: string; desc: string }> = [
+  { value: "none",       emoji: "✅", title: "Aucune gêne",            desc: "Genoux, tendons, dos : rien à signaler." },
+  { value: "occasional", emoji: "🟡", title: "Gêne occasionnelle",     desc: "Quelques douleurs après un effort inhabituel." },
+  { value: "frequent",   emoji: "🔴", title: "Gêne fréquente",         desc: "Douleurs récurrentes — progression très prudente." },
+];
+
+export interface QuickStartS2RExtras {
+  experience: S2RExperience;
+  activity: S2RActivity;
+  joint: S2RJoint;
+  /** Minutes de course continue estimées au départ — sert de palier initial marche-course. */
+  startRunMinutes: number;
+}
+
 export interface QuickStartExtras {
   injury: InjuryStatus;
   /** Terrain principal (premier sélectionné) — conservé pour compat. */
@@ -130,7 +166,10 @@ export interface QuickStartExtras {
   recoverySpeed: RecoverySpeed | null;
   /** Chronos saisis (secondes). Une seule distance suffit — les autres sont extrapolées par le moteur (Riegel). */
   chronos: Partial<Record<ChronoDistanceKey, { sec: number; date: string }>>;
+  /** Renseigné uniquement sur la branche Start to Run. */
+  s2r?: QuickStartS2RExtras;
 }
+
 
 export interface QuickStartResult {
   payload: CoachProfileFormPayload;
@@ -159,6 +198,9 @@ type Step =
   | "secondary"
   | "chronos"
   | "sensations"
+  | "s2r_experience"
+  | "s2r_activity"
+  | "s2r_joint"
   | "sessions"
   | "recap";
 
@@ -169,6 +211,14 @@ const STEPS: Step[] = [
   "chronos", "sensations",
   "sessions", "recap",
 ];
+
+/** Parcours débutant : pas de limiteurs, on mesure le point de départ réel. */
+const STEPS_S2R: Step[] = [
+  "audience", "objective", "duration",
+  "s2r_experience", "s2r_activity", "s2r_joint",
+  "sessions", "recap",
+];
+
 
 export function QuickStartWizard({
   open,
@@ -195,6 +245,11 @@ export function QuickStartWizard({
   const [hillFeeling, setHillFeeling] = useState<HillFeeling | null>(null);
   const [recoverySpeed, setRecoverySpeed] = useState<RecoverySpeed | null>(null);
 
+  // Branche Start to Run
+  const [s2rExperience, setS2rExperience] = useState<S2RExperience | null>(null);
+  const [s2rActivity, setS2rActivity] = useState<S2RActivity | null>(null);
+  const [s2rJoint, setS2rJoint] = useState<S2RJoint | null>(null);
+
   // Chronos — saisie libre par distance
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
   const [chronoDist, setChronoDist] = useState<ChronoDistanceKey>("10k");
@@ -204,9 +259,12 @@ export function QuickStartWizard({
   const [chDate, setChDate] = useState(today);
   const [chronos, setChronos] = useState<QuickStartExtras["chronos"]>({});
 
-  const step = STEPS[stepIdx];
+  const isS2R = objective === "StartToRun";
+  const activeSteps = isS2R ? STEPS_S2R : STEPS;
+  const step = activeSteps[Math.min(stepIdx, activeSteps.length - 1)];
   const isFirst = stepIdx === 0;
   const isLast = step === "recap";
+
 
   const subject = audience === "athlete" ? "toi" : "l'athlète";
   const subjectCapital = audience === "athlete" ? "Toi" : "L'athlète";
@@ -240,10 +298,14 @@ export function QuickStartWizard({
       case "secondary":  return secondary !== null;
       case "chronos":    return true; // toujours skippable
       case "sensations": return hillFeeling !== null && recoverySpeed !== null;
+      case "s2r_experience": return s2rExperience !== null;
+      case "s2r_activity":   return s2rActivity !== null;
+      case "s2r_joint":      return s2rJoint !== null;
       case "sessions":   return sessions !== null;
       case "recap":      return true;
     }
   };
+
 
   const next = () => { if (!isLast && canNext()) setStepIdx((i) => i + 1); };
   const prev = () => { if (!isFirst) setStepIdx((i) => i - 1); };
@@ -262,9 +324,42 @@ export function QuickStartWizard({
     });
   };
 
+  const s2rStartMinutes =
+    S2R_EXPERIENCE_OPTIONS.find((o) => o.value === s2rExperience)?.startMin ?? 1;
+
+  /**
+   * Branche débutant : le limiteur n'est pas métabolique mais mécanique.
+   * - gêne articulaire → tolérance tissulaire (neuromusculaire / économie)
+   * - sinon → capacité à tenir dans la durée (durabilité)
+   * Le secondaire reflète la disponibilité si l'athlète est sédentaire.
+   */
+  const buildS2RPayload = (): CoachProfileFormPayload | null => {
+    if (!computedWeeks || !s2rExperience || !s2rActivity || !s2rJoint) return null;
+    const primaryLimiter: LorangLimiter = s2rJoint === "none" ? "durability" : "neuromuscular";
+    const secondaryLimiter: LorangLimiter | null =
+      s2rActivity === "sedentary" ? "availability" : null;
+
+    return {
+      metabolicProfile: "balanced",
+      primaryLimiter,
+      primaryLimiterMetric: LIMITER_META[primaryLimiter].metric,
+      secondaryLimiter,
+      secondaryLimiterMetric: secondaryLimiter ? LIMITER_META[secondaryLimiter].metric : null,
+      // Débutant : jamais de sprints ni de micro-intervalles, allure régulière.
+      prohibitions: ["sprints", "micro_intervals", "erratic_pacing"],
+      sessionsPerWeek: typeof sessions === "number" ? sessions : null,
+      durationMode,
+      raceDate: durationMode === "date" && raceDate ? raceDate : null,
+      weeksAvailable: computedWeeks,
+      overriddenByCoach: { primary: true, secondary: !!secondaryLimiter },
+    };
+  };
+
   const buildPayload = (): CoachProfileFormPayload | null => {
+    if (isS2R) return buildS2RPayload();
     if (!metabolic || !primary || !computedWeeks) return null;
     const primaryMeta = LIMITER_META[primary];
+
 
     // Auto-inférence du secondaire depuis sensations si non renseigné.
     let secondaryLimiter: LorangLimiter | null =
@@ -310,13 +405,26 @@ export function QuickStartWizard({
   const handleFinish = (action: "generate" | "review") => {
     const payload = buildPayload();
     if (!payload || !objective) return;
+    const inferredInjury: InjuryStatus = isS2R
+      ? (s2rJoint === "frequent" ? "chronic" : s2rJoint === "occasional" ? "old" : "none")
+      : (injury ?? "none");
     const extras: QuickStartExtras = {
-      injury: injury ?? "none",
+      injury: inferredInjury,
       terrain: terrains[0] ?? "road",
       terrains: terrains.length > 0 ? terrains : ["road"],
       hillFeeling,
       recoverySpeed,
       chronos,
+      ...(isS2R && s2rExperience && s2rActivity && s2rJoint
+        ? {
+            s2r: {
+              experience: s2rExperience,
+              activity: s2rActivity,
+              joint: s2rJoint,
+              startRunMinutes: s2rStartMinutes,
+            },
+          }
+        : {}),
     };
     const result: QuickStartResult = { payload, objective, action, extras };
     if (action === "generate") onGenerate(result);
@@ -325,7 +433,8 @@ export function QuickStartWizard({
   };
 
   const stepNumber = stepIdx + 1;
-  const totalSteps = STEPS.length;
+  const totalSteps = activeSteps.length;
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -337,12 +446,15 @@ export function QuickStartWizard({
             {athleteName ? <Badge variant="outline" className="ml-2">{athleteName}</Badge> : null}
           </DialogTitle>
           <DialogDescription>
-            {stepNumber} / {totalSteps} — Quelques questions simples pour générer un plan cohérent.
+            {stepNumber} / {totalSteps} — {isS2R
+              ? "Parcours débutant : on part de ton point de départ réel, pas de jargon."
+              : "Quelques questions simples pour générer un plan cohérent."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex gap-1 mb-2">
-          {STEPS.map((_, i) => (
+          {activeSteps.map((_, i) => (
+
             <div
               key={i}
               className={cn(
@@ -585,7 +697,41 @@ export function QuickStartWizard({
             </StepBlock>
           )}
 
+          {step === "s2r_experience" && (
+            <StepBlock
+              title={audience === "athlete" ? "Aujourd'hui, combien de temps peux-tu courir sans t'arrêter ?" : "Combien de temps l'athlète peut-il courir sans s'arrêter ?"}
+              hint="C'est LA donnée qui fixe le palier de départ marche-course. Aucune estimation, réponds au plus juste."
+            >
+              {S2R_EXPERIENCE_OPTIONS.map((o) => (
+                <CardChoice key={o.value} selected={s2rExperience === o.value} onClick={() => setS2rExperience(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+              ))}
+            </StepBlock>
+          )}
+
+          {step === "s2r_activity" && (
+            <StepBlock
+              title="Quelle est l'activité physique actuelle ?"
+              hint="Détermine la vitesse de progression du volume hebdomadaire."
+            >
+              {S2R_ACTIVITY_OPTIONS.map((o) => (
+                <CardChoice key={o.value} selected={s2rActivity === o.value} onClick={() => setS2rActivity(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+              ))}
+            </StepBlock>
+          )}
+
+          {step === "s2r_joint" && (
+            <StepBlock
+              title="Des gênes articulaires ou tendineuses ?"
+              hint="Chez le débutant, le facteur limitant est mécanique avant d'être métabolique."
+            >
+              {S2R_JOINT_OPTIONS.map((o) => (
+                <CardChoice key={o.value} selected={s2rJoint === o.value} onClick={() => setS2rJoint(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+              ))}
+            </StepBlock>
+          )}
+
           {step === "sessions" && (
+
             <StepBlock title={`Combien de séances par semaine ${possessive} agenda permet-il ?`} hint="Compte toutes disciplines confondues. Si tu ne sais pas, laisse l'IA décider.">
               <div className="flex flex-wrap gap-2">
                 {SESSIONS_PER_WEEK.map((n) => (
@@ -626,33 +772,46 @@ export function QuickStartWizard({
               <StepBlock title="Récapitulatif" hint="Vérifie avant de continuer.">
                 <RecapRow label="Objectif" value={OBJECTIVES.find((o) => o.value === objective)?.label ?? objective} />
                 <RecapRow label="Durée" value={durationMode === "date" ? `Course le ${raceDate} (~${computedWeeks} sem)` : `${computedWeeks} semaines`} />
-                <RecapRow label="Blessure" value={INJURY_OPTIONS.find((o) => o.value === injury)?.title ?? "—"} />
-                <RecapRow label="Terrain" value={terrains.length > 0 ? terrains.map((t) => TERRAIN_OPTIONS.find((o) => o.value === t)?.title).filter(Boolean).join(", ") : "—"} />
-                <RecapRow label="Profil énergie" value={METABOLIC_QUESTIONS.find((m) => m.value === metabolic)?.label ?? "—"} />
-                <RecapRow label="Limiteur principal" value={primary ? LIMITER_META[primary].label : "—"} />
-                <RecapRow
-                  label="Limiteur secondaire"
-                  value={
-                    inferredSecondary
-                      ? <>
-                          {LIMITER_META[inferredSecondary].label}
-                          {(!secondary || secondary === "skip") && (
-                            <span className="ml-1 text-[10px] text-muted-foreground italic">(inféré)</span>
-                          )}
-                        </>
-                      : <span className="text-muted-foreground italic">non défini</span>
-                  }
-                />
-                <RecapRow label="Sensations côte" value={HILL_OPTIONS.find((o) => o.value === hillFeeling)?.title ?? "—"} />
-                <RecapRow label="Récupération" value={RECOVERY_OPTIONS.find((o) => o.value === recoverySpeed)?.title ?? "—"} />
-                <RecapRow
-                  label="Chronos"
-                  value={
-                    Object.keys(chronos).length === 0
-                      ? <span className="text-muted-foreground italic">aucun (fiabilité ~65%)</span>
-                      : CHRONO_LIST.filter((c) => chronos[c.value]).map((c) => c.label).join(", ")
-                  }
-                />
+                {isS2R ? (
+                  <>
+                    <RecapRow label="Expérience course" value={S2R_EXPERIENCE_OPTIONS.find((o) => o.value === s2rExperience)?.title ?? "—"} />
+                    <RecapRow label="Activité actuelle" value={S2R_ACTIVITY_OPTIONS.find((o) => o.value === s2rActivity)?.title ?? "—"} />
+                    <RecapRow label="Gêne articulaire" value={S2R_JOINT_OPTIONS.find((o) => o.value === s2rJoint)?.title ?? "—"} />
+                    <RecapRow label="Palier de départ" value={`${s2rStartMinutes} min de course en continu`} />
+                    <RecapRow label="Focus du plan" value={draftPayload ? LIMITER_META[draftPayload.primaryLimiter].label : "—"} />
+                  </>
+                ) : (
+                  <>
+                    <RecapRow label="Blessure" value={INJURY_OPTIONS.find((o) => o.value === injury)?.title ?? "—"} />
+                    <RecapRow label="Terrain" value={terrains.length > 0 ? terrains.map((t) => TERRAIN_OPTIONS.find((o) => o.value === t)?.title).filter(Boolean).join(", ") : "—"} />
+                    <RecapRow label="Profil énergie" value={METABOLIC_QUESTIONS.find((m) => m.value === metabolic)?.label ?? "—"} />
+                    <RecapRow label="Limiteur principal" value={primary ? LIMITER_META[primary].label : "—"} />
+                    <RecapRow
+                      label="Limiteur secondaire"
+                      value={
+                        inferredSecondary
+                          ? <>
+                              {LIMITER_META[inferredSecondary].label}
+                              {(!secondary || secondary === "skip") && (
+                                <span className="ml-1 text-[10px] text-muted-foreground italic">(inféré)</span>
+                              )}
+                            </>
+                          : <span className="text-muted-foreground italic">non défini</span>
+                      }
+                    />
+                    <RecapRow label="Sensations côte" value={HILL_OPTIONS.find((o) => o.value === hillFeeling)?.title ?? "—"} />
+                    <RecapRow label="Récupération" value={RECOVERY_OPTIONS.find((o) => o.value === recoverySpeed)?.title ?? "—"} />
+                    <RecapRow
+                      label="Chronos"
+                      value={
+                        Object.keys(chronos).length === 0
+                          ? <span className="text-muted-foreground italic">aucun (fiabilité ~65%)</span>
+                          : CHRONO_LIST.filter((c) => chronos[c.value]).map((c) => c.label).join(", ")
+                      }
+                    />
+                  </>
+                )}
+
                 <RecapRow label="Séances/semaine" value={typeof sessions === "number" ? `${sessions}` : <span className="text-muted-foreground italic">IA décide</span>} />
                 {(draftPayload?.prohibitions.length ?? 0) > 0 && (
                   <RecapRow label="Interdits" value={<span className="text-xs">{draftPayload!.prohibitions.join(", ")}</span>} />
