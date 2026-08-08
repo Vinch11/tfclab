@@ -209,6 +209,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { useAthleteRaceRecords } from "@/hooks/useAthleteRaceRecords";
+import { useRunDurabilityProxy } from "@/hooks/useRunDurabilityProxy";
 import { FeedbackNolio } from "@/types/feedbackNolio";
 import { toast } from "sonner";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
