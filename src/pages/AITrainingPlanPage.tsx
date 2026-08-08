@@ -1219,8 +1219,10 @@ export default function AITrainingPlanPage() {
   const handleWizardGenerate = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
     setObjective(result.objective);
     await persistWizardChronos(result.extras);
-    handleCoachFormGenerate(result.payload);
+    // On passe l'objectif explicitement : setObjective n'est pas encore appliqué ici.
+    handleCoachFormGenerate(result.payload, result.objective);
   }, [handleCoachFormGenerate, persistWizardChronos]);
+
 
   const handleWizardReview = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
     setObjective(result.objective);
