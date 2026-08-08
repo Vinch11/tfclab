@@ -130,6 +130,7 @@ serve(async (req) => {
       age: athleteData?.age ?? null,
       objective: planConfig?.objective ?? null,
       expressFinisher: planConfig?._expressFinisher === true,
+      s2rStrength: planConfig?._s2rStrength ?? null,
     });
     const expressPrefix = typeof planConfig?._expressFinisherPromptPrefix === "string" && planConfig._expressFinisherPromptPrefix.trim().length > 0
       ? `${planConfig._expressFinisherPromptPrefix.trim()}\n\n`
