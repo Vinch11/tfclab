@@ -697,7 +697,41 @@ export function QuickStartWizard({
             </StepBlock>
           )}
 
+          {step === "s2r_experience" && (
+            <StepBlock
+              title={audience === "athlete" ? "Aujourd'hui, combien de temps peux-tu courir sans t'arrêter ?" : "Combien de temps l'athlète peut-il courir sans s'arrêter ?"}
+              hint="C'est LA donnée qui fixe le palier de départ marche-course. Aucune estimation, réponds au plus juste."
+            >
+              {S2R_EXPERIENCE_OPTIONS.map((o) => (
+                <CardChoice key={o.value} selected={s2rExperience === o.value} onClick={() => setS2rExperience(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+              ))}
+            </StepBlock>
+          )}
+
+          {step === "s2r_activity" && (
+            <StepBlock
+              title="Quelle est l'activité physique actuelle ?"
+              hint="Détermine la vitesse de progression du volume hebdomadaire."
+            >
+              {S2R_ACTIVITY_OPTIONS.map((o) => (
+                <CardChoice key={o.value} selected={s2rActivity === o.value} onClick={() => setS2rActivity(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+              ))}
+            </StepBlock>
+          )}
+
+          {step === "s2r_joint" && (
+            <StepBlock
+              title="Des gênes articulaires ou tendineuses ?"
+              hint="Chez le débutant, le facteur limitant est mécanique avant d'être métabolique."
+            >
+              {S2R_JOINT_OPTIONS.map((o) => (
+                <CardChoice key={o.value} selected={s2rJoint === o.value} onClick={() => setS2rJoint(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+              ))}
+            </StepBlock>
+          )}
+
           {step === "sessions" && (
+
             <StepBlock title={`Combien de séances par semaine ${possessive} agenda permet-il ?`} hint="Compte toutes disciplines confondues. Si tu ne sais pas, laisse l'IA décider.">
               <div className="flex flex-wrap gap-2">
                 {SESSIONS_PER_WEEK.map((n) => (
