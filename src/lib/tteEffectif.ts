@@ -12,7 +12,7 @@ export const getTTETarget = getTTETargetFromPro;
 // TYPES
 // =============================================
 
-export type TTESource = "observed" | "estimated" | "unknown";
+export type TTESource = "observed" | "records" | "estimated" | "unknown";
 
 export interface TTEEffectif {
   tte_min: number;
@@ -37,7 +37,16 @@ interface ComputeTTEEffectifParams {
   objectif?: string;
   /** F33: Age en années pour ajuster la cible TTE (masters athletes) */
   age?: number | null;
+  /**
+   * Proxy durabilité course dérivé des chronos longs (loi de Riegel).
+   * Priorité A-bis : après le TTE mesuré, avant l'estimation par charge.
+   * Voir `src/lib/durability/runDurabilityFromRecords.ts`.
+   */
+  tte_proxy_min_run?: number | null;
+  tte_proxy_confidence?: number | null;
+  tte_proxy_label?: string | null;
 }
+
 
 // =============================================
 // FONCTION PRINCIPALE
@@ -102,7 +111,29 @@ export function computeTTEEffectif(params: ComputeTTEEffectifParams): TTEEffecti
     };
   }
 
+  // A-bis) RECORDS — proxy durabilité course dérivé des chronos longs (Riegel).
+  // Uniquement en course : la loi de puissance est calibrée sur des chronos CAP.
+  const proxyRun = params.tte_proxy_min_run ?? null;
+  if (sport === "run" && proxyRun != null && proxyRun > 0) {
+    const confidence = Math.max(0.3, Math.min(0.85, params.tte_proxy_confidence ?? 0.6));
+    const evaluation = evaluerTTE(
+      { tte_min: proxyRun, tteMin: proxyRun, source: "estimated", confidence, label: "" },
+      objectif || "",
+      age ?? null,
+    );
+    return {
+      tte_min: proxyRun,
+      source: "records",
+      confidence,
+      label: params.tte_proxy_label || `~${proxyRun} min (chronos)`,
+      target,
+      status: evaluation.status,
+      status_message: evaluation.message,
+    };
+  }
+
   // B) LOAD - Estimation via TSS_7d
+
   if (tss_7d != null && tss_7d > 0) {
     const tteResult = calculTTE({
       ftp: ftp ?? null,
@@ -287,6 +318,7 @@ export function toTTEEnvelope(
   // Mapper les sources TTE -> ScoreSource
   const sourceMap: Record<TTESource, ScoreSource> = {
     observed: "MEASURED",
+    records: "ESTIMATED",
     estimated: "ESTIMATED",
     unknown: "UNKNOWN",
   };

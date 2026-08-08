@@ -209,6 +209,9 @@ function computeTTEFromInput(input: DiagnosticInput): TTEEffectif {
     tte_mode: input.tteMode,
     tte_observed_min: input.tteObservedMin,
     tte_observed_min_run: input.tteObservedMinRun ?? null,
+    tte_proxy_min_run: input.tteProxyMinRun ?? null,
+    tte_proxy_confidence: input.tteProxyConfidence ?? null,
+    tte_proxy_label: input.tteProxyLabel ?? null,
     sport,
     objectif: input.objectif,
     age: input.age, // F33: ajustement masters

@@ -209,6 +209,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
 import { useAthleteRaceRecords } from "@/hooks/useAthleteRaceRecords";
+import { useRunDurabilityProxy } from "@/hooks/useRunDurabilityProxy";
 import { FeedbackNolio } from "@/types/feedbackNolio";
 import { toast } from "sonner";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
@@ -505,6 +506,12 @@ const Index = () => {
     return 12;
   }, [currentAthlete]);
   const raceRecordsForVlamax = useAthleteRaceRecords(currentAthlete?.id, activeSnapshotVma, raceRecordsWindowMonths);
+  // Proxy durabilité course (TTE) dérivé des chronos longs — loi de Riegel
+  const runDurabilityProxy = useRunDurabilityProxy(
+    currentAthlete?.id,
+    (effectiveCloudSnapshot as any)?.pace_threshold_sec_per_km ?? null,
+    activeSnapshotVma,
+  );
 
   // ✅ VLamax EFFECTIF - Source unique de vérité (utilise données Cloud)
   const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
@@ -761,6 +768,9 @@ const Index = () => {
       vlamaxEffectifPrecomputed: vlamaxEffectif,
       tteObservedMin: effectiveCloudSnapshot.tte_observed_min ?? null,
       tteObservedMinRun: (effectiveCloudSnapshot as any).tte_observed_min_run ?? null,
+      tteProxyMinRun: runDurabilityProxy?.tteMin ?? null,
+      tteProxyConfidence: runDurabilityProxy?.confidence ?? null,
+      tteProxyLabel: runDurabilityProxy?.label ?? null,
       tteMode: effectiveCloudSnapshot.tte_mode ?? null,
       tss7d: effectiveCloudSnapshot.tss_7d ?? null,
       fatigueState: effectiveCloudSnapshot.fatigue_state ?? null,
@@ -824,7 +834,7 @@ const Index = () => {
     });
 
     return { dashDiagnostic: diagnostic, dashPrescription: prescription };
-  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, targetRaceDurationMin]);
+  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, targetRaceDurationMin, runDurabilityProxy]);
 
   // ✅ VLamax & TTE alignés sur le diagnostic unifié.
   // Avec vlamaxEffectifPrecomputed injecté plus haut, la valeur retournée par
