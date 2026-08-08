@@ -296,6 +296,7 @@ export function toTTEEnvelope(
   // Mapper les sources TTE -> ScoreSource
   const sourceMap: Record<TTESource, ScoreSource> = {
     observed: "MEASURED",
+    records: "ESTIMATED",
     estimated: "ESTIMATED",
     unknown: "UNKNOWN",
   };
