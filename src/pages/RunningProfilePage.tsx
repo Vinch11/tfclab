@@ -180,6 +180,13 @@ export default function RunningProfilePage() {
     });
   }, [currentAthlete, tests, snapshots, athleteGoal]);
 
+  // Proxy durabilité course (chronos longs → loi de Riegel)
+  const runDurabilityProxy = useRunDurabilityProxy(
+    currentAthlete?.id,
+    (effectiveCloudSnapshot as any)?.pace_threshold_sec_per_km ?? null,
+    (effectiveCloudSnapshot as any)?.vma ?? null,
+  );
+
   // TTE Effectif
   const tteEffectif = useMemo(() => {
     return computeTTEEffectif({
@@ -187,11 +194,14 @@ export default function RunningProfilePage() {
       tte_mode: effectiveCloudSnapshot?.tte_mode ?? null,
       tte_observed_min: effectiveCloudSnapshot?.tte_observed_min ?? null,
       tte_observed_min_run: (effectiveCloudSnapshot as any)?.tte_observed_min_run ?? null,
+      tte_proxy_min_run: runDurabilityProxy?.tteMin ?? null,
+      tte_proxy_confidence: runDurabilityProxy?.confidence ?? null,
+      tte_proxy_label: runDurabilityProxy?.label ?? null,
       ftp: effectiveRefs.ftp,
       objectif: athleteGoal,
       age: athleteAge, // F33
     });
-  }, [effectiveCloudSnapshot, effectiveRefs, athleteGoal, athleteAge]);
+  }, [effectiveCloudSnapshot, effectiveRefs, athleteGoal, athleteAge, runDurabilityProxy]);
 
 
   // Fatigue Effectif — snapshot-centric (fatigue_state → score numérique)
