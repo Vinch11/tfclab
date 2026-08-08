@@ -405,13 +405,26 @@ export function QuickStartWizard({
   const handleFinish = (action: "generate" | "review") => {
     const payload = buildPayload();
     if (!payload || !objective) return;
+    const inferredInjury: InjuryStatus = isS2R
+      ? (s2rJoint === "frequent" ? "chronic" : s2rJoint === "occasional" ? "old" : "none")
+      : (injury ?? "none");
     const extras: QuickStartExtras = {
-      injury: injury ?? "none",
+      injury: inferredInjury,
       terrain: terrains[0] ?? "road",
       terrains: terrains.length > 0 ? terrains : ["road"],
       hillFeeling,
       recoverySpeed,
       chronos,
+      ...(isS2R && s2rExperience && s2rActivity && s2rJoint
+        ? {
+            s2r: {
+              experience: s2rExperience,
+              activity: s2rActivity,
+              joint: s2rJoint,
+              startRunMinutes: s2rStartMinutes,
+            },
+          }
+        : {}),
     };
     const result: QuickStartResult = { payload, objective, action, extras };
     if (action === "generate") onGenerate(result);
@@ -420,7 +433,8 @@ export function QuickStartWizard({
   };
 
   const stepNumber = stepIdx + 1;
-  const totalSteps = STEPS.length;
+  const totalSteps = activeSteps.length;
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
