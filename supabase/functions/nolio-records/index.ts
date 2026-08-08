@@ -298,6 +298,8 @@ Deno.serve(async (req) => {
             const value = Number(r.value);
             const sport_id = Number(r.sport_id ?? r.sport ?? q.defaultSportIds[0]);
             if (!Number.isFinite(item_seconds) || !Number.isFinite(value) || !Number.isFinite(sport_id)) continue;
+            // Aucun record natation tant que IMPORT_SWIM_RECORDS est false (inclut phrr/FC natation)
+            if (!IMPORT_SWIM_RECORDS && sport_id === SWIM_SPORT) continue;
             const date_recorded = (r.date_recorded ?? r.date ?? null) as string | null;
             // Filtre par fenêtre temporelle (si fournie) — on n'importe que les records datés dans la période
             if (dateFrom || dateTo) {
