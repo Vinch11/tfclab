@@ -801,10 +801,10 @@ export default function AITrainingPlanPage() {
     // ⚠️ setObjective() est asynchrone : le wizard doit pouvoir imposer son
     // objectif immédiatement, sinon la config part sur l'objectif précédent
     // (ex. plan "Semi-Marathon" généré alors que le coach a choisi Start to Run).
-    const objective = objectiveOverride || objectiveState;
+    const objEff = objectiveOverride || objective;
 
 
-    // Build raceGoals array for multi-objective
+    // Build raceGoals array for multi-objEff
     const computeWeeksUntilRace = (date?: string) => {
       if (!date) return undefined;
       try {
@@ -830,19 +830,19 @@ export default function AITrainingPlanPage() {
     // formulaire uniquement. Pour tout objectif standard (semi/marathon/10K/IM/…),
     // la distance est CANONIQUE (dérivée de l'objectif côté promptHelpers) — on ne
     // laisse PAS un `trailDistanceKm` résiduel écraser cette valeur.
-    const isTrailPrimary = (objective || "").toLowerCase().startsWith("trail");
+    const isTrailPrimary = (objEff || "").toLowerCase().startsWith("trail");
     const trailDistKm = isTrailPrimary ? (parseFloat(trailDistanceKm) || null) : null;
     const trailDPlus = isTrailPrimary ? (parseInt(trailElevationM, 10) || null) : null;
     const trailTargetMin = isTrailPrimary ? parseTargetTimeMin(trailTargetTimeH) : null;
     const trailMaxAlt = isTrailPrimary ? (parseInt(trailMaxAltitudeM, 10) || null) : null;
-    // Primary objective = A
+    // Primary objEff = A
     allRaceGoals.push({
-      objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
+      objective: OBJECTIVE_OPTIONS.find(o => o.value === objEff)?.label || objEff,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
       weeksUntilRace: computeWeeksUntilRace(raceDate),
       priority: "A",
-      raceFormat: (objective === "703" || objective === "70.3") ? raceFormat : "continuous",
+      raceFormat: (objEff === "703" || objEff === "70.3") ? raceFormat : "continuous",
       distanceKm: trailDistKm,
       elevationGainM: trailDPlus,
       targetTimeMinutes: trailTargetMin,
@@ -860,7 +860,7 @@ export default function AITrainingPlanPage() {
     }
 
     const formConfig: PlanFormConfig = {
-      objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
+      objective: OBJECTIVE_OPTIONS.find(o => o.value === objEff)?.label || objEff,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
       raceGoals: allRaceGoals,
@@ -894,7 +894,7 @@ export default function AITrainingPlanPage() {
     };
 
     return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability]);
+  }, [objEff, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability]);
 
 
   const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
