@@ -120,6 +120,42 @@ const CHRONO_LIST: Array<{ value: ChronoDistanceKey; label: string; km: number; 
   { value: "marathon", label: "Marathon (42,2)",  km: 42.195,   snapField: "time_marathon_sec" },
 ];
 
+// ─── Branche Start to Run (débutant) ────────────────────────────────────────
+// Pour un vrai débutant, les questions "limiteurs" n'ont pas de référentiel :
+// l'athlète n'a jamais couru assez longtemps pour y répondre. La prescription
+// dépend de la tolérance mécanique et du point de départ, pas du profil métabolique.
+export type S2RExperience = "none" | "walk_only" | "under10" | "10to20" | "20plus";
+export type S2RActivity = "sedentary" | "light" | "active";
+export type S2RJoint = "none" | "occasional" | "frequent";
+
+const S2R_EXPERIENCE_OPTIONS: Array<{ value: S2RExperience; emoji: string; title: string; desc: string; startMin: number }> = [
+  { value: "none",      emoji: "🌱", title: "Jamais couru",              desc: "Aucune pratique de course à pied.",                 startMin: 1 },
+  { value: "walk_only", emoji: "🚶", title: "Je marche uniquement",      desc: "Marche régulière, pas de course.",                  startMin: 1 },
+  { value: "under10",   emoji: "🏃", title: "Moins de 10 min en continu", desc: "Quelques minutes de course avant de devoir marcher.", startMin: 5 },
+  { value: "10to20",    emoji: "🏃‍♂️", title: "10 à 20 min en continu",   desc: "Je tiens un petit footing sans m'arrêter.",         startMin: 12 },
+  { value: "20plus",    emoji: "✅", title: "Plus de 20 min en continu",  desc: "Base déjà installée — progression accélérée.",      startMin: 20 },
+];
+
+const S2R_ACTIVITY_OPTIONS: Array<{ value: S2RActivity; emoji: string; title: string; desc: string }> = [
+  { value: "sedentary", emoji: "🪑", title: "Peu ou pas d'activité", desc: "Moins d'1h de sport par semaine." },
+  { value: "light",     emoji: "🚲", title: "Activité légère",        desc: "1 à 3h par semaine (marche, vélo, salle…)." },
+  { value: "active",    emoji: "💪", title: "Déjà actif",             desc: "Plus de 3h par semaine d'un autre sport." },
+];
+
+const S2R_JOINT_OPTIONS: Array<{ value: S2RJoint; emoji: string; title: string; desc: string }> = [
+  { value: "none",       emoji: "✅", title: "Aucune gêne",            desc: "Genoux, tendons, dos : rien à signaler." },
+  { value: "occasional", emoji: "🟡", title: "Gêne occasionnelle",     desc: "Quelques douleurs après un effort inhabituel." },
+  { value: "frequent",   emoji: "🔴", title: "Gêne fréquente",         desc: "Douleurs récurrentes — progression très prudente." },
+];
+
+export interface QuickStartS2RExtras {
+  experience: S2RExperience;
+  activity: S2RActivity;
+  joint: S2RJoint;
+  /** Minutes de course continue estimées au départ — sert de palier initial marche-course. */
+  startRunMinutes: number;
+}
+
 export interface QuickStartExtras {
   injury: InjuryStatus;
   /** Terrain principal (premier sélectionné) — conservé pour compat. */
@@ -130,7 +166,10 @@ export interface QuickStartExtras {
   recoverySpeed: RecoverySpeed | null;
   /** Chronos saisis (secondes). Une seule distance suffit — les autres sont extrapolées par le moteur (Riegel). */
   chronos: Partial<Record<ChronoDistanceKey, { sec: number; date: string }>>;
+  /** Renseigné uniquement sur la branche Start to Run. */
+  s2r?: QuickStartS2RExtras;
 }
+
 
 export interface QuickStartResult {
   payload: CoachProfileFormPayload;
