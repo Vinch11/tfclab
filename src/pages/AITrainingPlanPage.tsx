@@ -792,8 +792,17 @@ export default function AITrainingPlanPage() {
   // Compute plan start date: Monday of the CURRENT week (not next week)
   // (weeksAvailable already computed above)
 
-  const buildConfigFromDiag = useCallback((diagnostic: AthleteDiagnostic, athleteAmbition?: string): PlanConfig => {
+  const buildConfigFromDiag = useCallback((
+    diagnostic: AthleteDiagnostic,
+    athleteAmbition?: string,
+    objectiveOverride?: string,
+  ): PlanConfig => {
     const amb = athleteAmbition || ambition;
+    // ⚠️ setObjective() est asynchrone : le wizard doit pouvoir imposer son
+    // objectif immédiatement, sinon la config part sur l'objectif précédent
+    // (ex. plan "Semi-Marathon" généré alors que le coach a choisi Start to Run).
+    const objective = objectiveOverride || objectiveState;
+
 
     // Build raceGoals array for multi-objective
     const computeWeeksUntilRace = (date?: string) => {
