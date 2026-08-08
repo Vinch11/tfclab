@@ -6,7 +6,7 @@ describe("run durability proxy", () => {
       { distanceM: 5000, timeSec: 1080 },
       { distanceM: 10000, timeSec: 2250 },
       { distanceM: 21097, timeSec: 4920 },
-    ], 1000 / 205);
+    ], 1000 / 235);
     expect(r).not.toBeNull();
     console.log(r);
   });
