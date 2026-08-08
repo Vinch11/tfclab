@@ -55,6 +55,7 @@ import { RunMLSSDriftDetectionCard } from "@/components/RunMLSSDriftDetectionCar
 
 // Logique et calculs
 import { computeVLamaxEffectif, computeTTEEffectif } from "@/engines/diagnostic";
+import { useRunDurabilityProxy } from "@/hooks/useRunDurabilityProxy";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { calculateAge } from "@/lib/ageAdjustment";
 import { computeCAPInjuryRisk } from "@/lib/v2/injuryRiskUnified";
