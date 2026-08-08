@@ -1095,6 +1095,11 @@ export default function AITrainingPlanPage() {
       cfg.prohibitions = [...(cfg.prohibitions || []), ...prohibText];
     }
 
+    // Start to Run — dose de renforcement choisie (prompt edge function).
+    if (payload.s2rStrength) {
+      (cfg as any)._s2rStrength = payload.s2rStrength;
+    }
+
     if (payload.sessionsPerWeek && payload.sessionsPerWeek > 0) {
       cfg.sessionsPerWeek = payload.sessionsPerWeek;
     }

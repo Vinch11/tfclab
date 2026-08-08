@@ -127,6 +127,8 @@ const CHRONO_LIST: Array<{ value: ChronoDistanceKey; label: string; km: number; 
 export type S2RExperience = "none" | "walk_only" | "under10" | "10to20" | "20plus";
 export type S2RActivity = "sedentary" | "light" | "active";
 export type S2RJoint = "none" | "occasional" | "frequent";
+/** Dose de renforcement musculaire souhaitée sur un plan Start to Run. */
+export type S2RStrength = "full" | "light" | "none";
 
 const S2R_EXPERIENCE_OPTIONS: Array<{ value: S2RExperience; emoji: string; title: string; desc: string; startMin: number }> = [
   { value: "none",      emoji: "🌱", title: "Jamais couru",              desc: "Aucune pratique de course à pied.",                 startMin: 1 },
@@ -142,6 +144,12 @@ const S2R_ACTIVITY_OPTIONS: Array<{ value: S2RActivity; emoji: string; title: st
   { value: "active",    emoji: "💪", title: "Déjà actif",             desc: "Plus de 3h par semaine d'un autre sport." },
 ];
 
+const S2R_STRENGTH_OPTIONS: Array<{ value: S2RStrength; emoji: string; title: string; desc: string }> = [
+  { value: "full",  emoji: "💪", title: "Oui — 2 séances/semaine", desc: "Recommandé : le limiteur du débutant est musculo-squelettique." },
+  { value: "light", emoji: "🟡", title: "Version allégée — 1/semaine", desc: "Agenda serré : on garde l'essentiel (mollets, fessiers, gainage)." },
+  { value: "none",  emoji: "🚫", title: "Non — course uniquement",  desc: "Aucune séance de renfo dans le plan (risque de blessure plus élevé)." },
+];
+
 const S2R_JOINT_OPTIONS: Array<{ value: S2RJoint; emoji: string; title: string; desc: string }> = [
   { value: "none",       emoji: "✅", title: "Aucune gêne",            desc: "Genoux, tendons, dos : rien à signaler." },
   { value: "occasional", emoji: "🟡", title: "Gêne occasionnelle",     desc: "Quelques douleurs après un effort inhabituel." },
@@ -152,6 +160,8 @@ export interface QuickStartS2RExtras {
   experience: S2RExperience;
   activity: S2RActivity;
   joint: S2RJoint;
+  /** Dose de renforcement retenue par le coach/l'athlète. */
+  strength: S2RStrength;
   /** Minutes de course continue estimées au départ — sert de palier initial marche-course. */
   startRunMinutes: number;
 }
@@ -201,6 +211,7 @@ type Step =
   | "s2r_experience"
   | "s2r_activity"
   | "s2r_joint"
+  | "s2r_strength"
   | "sessions"
   | "recap";
 
@@ -215,7 +226,7 @@ const STEPS: Step[] = [
 /** Parcours débutant : pas de limiteurs, on mesure le point de départ réel. */
 const STEPS_S2R: Step[] = [
   "audience", "objective", "duration",
-  "s2r_experience", "s2r_activity", "s2r_joint",
+  "s2r_experience", "s2r_activity", "s2r_joint", "s2r_strength",
   "sessions", "recap",
 ];
 
@@ -249,6 +260,7 @@ export function QuickStartWizard({
   const [s2rExperience, setS2rExperience] = useState<S2RExperience | null>(null);
   const [s2rActivity, setS2rActivity] = useState<S2RActivity | null>(null);
   const [s2rJoint, setS2rJoint] = useState<S2RJoint | null>(null);
+  const [s2rStrength, setS2rStrength] = useState<S2RStrength | null>(null);
 
   // Chronos — saisie libre par distance
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
@@ -301,6 +313,7 @@ export function QuickStartWizard({
       case "s2r_experience": return s2rExperience !== null;
       case "s2r_activity":   return s2rActivity !== null;
       case "s2r_joint":      return s2rJoint !== null;
+      case "s2r_strength":   return s2rStrength !== null;
       case "sessions":   return sessions !== null;
       case "recap":      return true;
     }
@@ -334,7 +347,7 @@ export function QuickStartWizard({
    * Le secondaire reflète la disponibilité si l'athlète est sédentaire.
    */
   const buildS2RPayload = (): CoachProfileFormPayload | null => {
-    if (!computedWeeks || !s2rExperience || !s2rActivity || !s2rJoint) return null;
+    if (!computedWeeks || !s2rExperience || !s2rActivity || !s2rJoint || !s2rStrength) return null;
     const primaryLimiter: LorangLimiter = s2rJoint === "none" ? "durability" : "neuromuscular";
     const secondaryLimiter: LorangLimiter | null =
       s2rActivity === "sedentary" ? "availability" : null;
@@ -347,6 +360,7 @@ export function QuickStartWizard({
       secondaryLimiterMetric: secondaryLimiter ? LIMITER_META[secondaryLimiter].metric : null,
       // Débutant : jamais de sprints ni de micro-intervalles, allure régulière.
       prohibitions: ["sprints", "micro_intervals", "erratic_pacing"],
+      s2rStrength,
       sessionsPerWeek: typeof sessions === "number" ? sessions : null,
       durationMode,
       raceDate: durationMode === "date" && raceDate ? raceDate : null,
@@ -415,12 +429,13 @@ export function QuickStartWizard({
       hillFeeling,
       recoverySpeed,
       chronos,
-      ...(isS2R && s2rExperience && s2rActivity && s2rJoint
+      ...(isS2R && s2rExperience && s2rActivity && s2rJoint && s2rStrength
         ? {
             s2r: {
               experience: s2rExperience,
               activity: s2rActivity,
               joint: s2rJoint,
+              strength: s2rStrength ?? "full",
               startRunMinutes: s2rStartMinutes,
             },
           }
@@ -730,6 +745,17 @@ export function QuickStartWizard({
             </StepBlock>
           )}
 
+          {step === "s2r_strength" && (
+            <StepBlock
+              title="Faut-il du renforcement musculaire dans le plan ?"
+              hint="Chez un débutant, le renfo (mollets, fessiers, gainage) réduit fortement le risque de blessure. À n'écarter que si c'est impossible à tenir."
+            >
+              {S2R_STRENGTH_OPTIONS.map((o) => (
+                <CardChoice key={o.value} selected={s2rStrength === o.value} onClick={() => setS2rStrength(o.value)} emoji={o.emoji} title={o.title} desc={o.desc} />
+              ))}
+            </StepBlock>
+          )}
+
           {step === "sessions" && (
 
             <StepBlock title={`Combien de séances par semaine ${possessive} agenda permet-il ?`} hint="Compte toutes disciplines confondues. Si tu ne sais pas, laisse l'IA décider.">
@@ -777,6 +803,7 @@ export function QuickStartWizard({
                     <RecapRow label="Expérience course" value={S2R_EXPERIENCE_OPTIONS.find((o) => o.value === s2rExperience)?.title ?? "—"} />
                     <RecapRow label="Activité actuelle" value={S2R_ACTIVITY_OPTIONS.find((o) => o.value === s2rActivity)?.title ?? "—"} />
                     <RecapRow label="Gêne articulaire" value={S2R_JOINT_OPTIONS.find((o) => o.value === s2rJoint)?.title ?? "—"} />
+                    <RecapRow label="Renforcement" value={S2R_STRENGTH_OPTIONS.find((o) => o.value === s2rStrength)?.title ?? "—"} />
                     <RecapRow label="Palier de départ" value={`${s2rStartMinutes} min de course en continu`} />
                     <RecapRow label="Focus du plan" value={draftPayload ? LIMITER_META[draftPayload.primaryLimiter].label : "—"} />
                   </>

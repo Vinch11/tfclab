@@ -7,6 +7,8 @@ export interface SystemPromptProfile {
   age?: number | null;
   objective?: string | null;
   expressFinisher?: boolean;
+  /** Start to Run — dose de renforcement choisie par le coach ("full" par défaut). */
+  s2rStrength?: "full" | "light" | "none" | null;
 }
 
 /**
@@ -432,7 +434,21 @@ function buildFewShotExamples(profile?: SystemPromptProfile): string {
   } else if (isStartToRun) {
     parts.push(S2R_STRUCTURE_RULES);
     parts.push(FEWSHOT_STARTTORUN);
-    parts.push(S2R_STRENGTH_PROGRESSION);
+    const strengthDose = profile?.s2rStrength ?? "full";
+    if (strengthDose === "none") {
+      parts.push(`### RENFORCEMENT — DÉSACTIVÉ PAR LE COACH (Start to Run)
+Le coach a explicitement choisi un plan SANS renforcement musculaire.
+- N'inscrire AUCUNE séance de renforcement / PPG / gainage dans le plan.
+- Compenser par une progression de volume de course encore plus prudente (+5%/sem max) et un jour de repos supplémentaire si besoin.
+- Mentionner une fois, en note de plan : "Renforcement non inclus à la demande du coach — surveiller les gênes tendineuses."`);
+    } else if (strengthDose === "light") {
+      parts.push(S2R_STRENGTH_PROGRESSION.replace(
+        "Chaque semaine DOIT contenir 2 séances \"Renforcement fondation\" (1 seule en S12),",
+        "VERSION ALLÉGÉE demandée par le coach : chaque semaine contient 1 SEULE séance \"Renforcement fondation\" (aucune en S12).\nLe tableau ci-dessous indique 2 séances : n'en retenir qu'UNE par semaine, volume identique.",
+      ));
+    } else {
+      parts.push(S2R_STRENGTH_PROGRESSION);
+    }
     // AUCUN few-shot marathon/semi ici : contamination volume (SL 1h50, 65km/sem)
     // → l'IA proposait des sorties longues de 1h25 dès la S1 à des débutantes.
   } else if (isMarathon) {

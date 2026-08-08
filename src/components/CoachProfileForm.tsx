@@ -97,6 +97,8 @@ export interface CoachProfileFormPayload {
   secondaryLimiter: LorangLimiter | null;   // null = "Je ne sais pas"
   secondaryLimiterMetric: string | null;
   prohibitions: LorangProhibition[];
+  /** Start to Run uniquement — dose de renforcement musculaire souhaitée. */
+  s2rStrength?: "full" | "light" | "none";
   sessionsPerWeek: number | null;
   /** Mode de durée du plan choisi par le coach. */
   durationMode: DurationMode;

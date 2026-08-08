@@ -870,6 +870,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
     age: athleteData?.age ?? null,
     objective: planConfig?.objective ?? null,
     expressFinisher: planConfig?._expressFinisher === true,
+    s2rStrength: planConfig?._s2rStrength ?? null,
   });
 
   const totalWeeks = planConfig?.weeksAvailable || 12;
