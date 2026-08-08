@@ -139,7 +139,8 @@ export function computeRunDurabilityProxy(
   else if (r2 >= 0.97) confidence += 0.04;
   const dates = points.map((p) => p.dateRecorded).filter(Boolean) as string[];
   if (dates.length > 0) {
-    const newest = dates.sort().at(-1)!;
+    const sorted = dates.slice().sort();
+    const newest = sorted[sorted.length - 1];
     const months = (Date.now() - new Date(newest).getTime()) / (1000 * 60 * 60 * 24 * 30.4);
     if (months <= 6) confidence += 0.05;
     else if (months > 18) confidence -= 0.1;
