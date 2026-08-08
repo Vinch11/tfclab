@@ -62,6 +62,8 @@ export interface ReconcilerCounters {
   early_consolidation_replaced?: number;
   taper_weeks_enforced?: number;
   s2r_duration_capped?: number;
+  s2r_week_resequenced?: number;
+  s2r_ladder_smoothed?: number;
   s2r_long_run_removed?: number;
   race_day_inserted?: number;
   constraint_day_moved?: number;
