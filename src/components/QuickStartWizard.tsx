@@ -324,9 +324,42 @@ export function QuickStartWizard({
     });
   };
 
+  const s2rStartMinutes =
+    S2R_EXPERIENCE_OPTIONS.find((o) => o.value === s2rExperience)?.startMin ?? 1;
+
+  /**
+   * Branche débutant : le limiteur n'est pas métabolique mais mécanique.
+   * - gêne articulaire → tolérance tissulaire (neuromusculaire / économie)
+   * - sinon → capacité à tenir dans la durée (durabilité)
+   * Le secondaire reflète la disponibilité si l'athlète est sédentaire.
+   */
+  const buildS2RPayload = (): CoachProfileFormPayload | null => {
+    if (!computedWeeks || !s2rExperience || !s2rActivity || !s2rJoint) return null;
+    const primaryLimiter: LorangLimiter = s2rJoint === "none" ? "durability" : "neuromuscular";
+    const secondaryLimiter: LorangLimiter | null =
+      s2rActivity === "sedentary" ? "availability" : null;
+
+    return {
+      metabolicProfile: "balanced",
+      primaryLimiter,
+      primaryLimiterMetric: LIMITER_META[primaryLimiter].metric,
+      secondaryLimiter,
+      secondaryLimiterMetric: secondaryLimiter ? LIMITER_META[secondaryLimiter].metric : null,
+      // Débutant : jamais de sprints ni de micro-intervalles, allure régulière.
+      prohibitions: ["sprints", "micro_intervals", "erratic_pacing"],
+      sessionsPerWeek: typeof sessions === "number" ? sessions : null,
+      durationMode,
+      raceDate: durationMode === "date" && raceDate ? raceDate : null,
+      weeksAvailable: computedWeeks,
+      overriddenByCoach: { primary: true, secondary: !!secondaryLimiter },
+    };
+  };
+
   const buildPayload = (): CoachProfileFormPayload | null => {
+    if (isS2R) return buildS2RPayload();
     if (!metabolic || !primary || !computedWeeks) return null;
     const primaryMeta = LIMITER_META[primary];
+
 
     // Auto-inférence du secondaire depuis sensations si non renseigné.
     let secondaryLimiter: LorangLimiter | null =
