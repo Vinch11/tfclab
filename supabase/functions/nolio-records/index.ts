@@ -11,6 +11,13 @@ const NOLIO_RECORDS_BASE = "https://www.nolio.io/api/get/records/";
 const BIKE_SPORTS = [14, 18];
 const RUN_SPORTS = [2, 52];
 const SWIM_SPORT = 19;
+/**
+ * ⛔ Import des records natation désactivé (temporaire).
+ * Raison : côté Nolio, sport_id=19 mélange piscine et eau libre → records non
+ * monotones (1000 m plus rapide que 800 m) et CSS calculé peu fiable.
+ * Passer à `true` pour réactiver.
+ */
+const IMPORT_SWIM_RECORDS = false;
 
 type NolioRecord = {
   item_seconds?: number;
