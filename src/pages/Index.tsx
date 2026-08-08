@@ -834,7 +834,7 @@ const Index = () => {
     });
 
     return { dashDiagnostic: diagnostic, dashPrescription: prescription };
-  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, targetRaceDurationMin]);
+  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, targetRaceDurationMin, runDurabilityProxy]);
 
   // ✅ VLamax & TTE alignés sur le diagnostic unifié.
   // Avec vlamaxEffectifPrecomputed injecté plus haut, la valeur retournée par
