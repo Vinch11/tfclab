@@ -1195,6 +1195,8 @@ export function runReconciler(
   fixEarlyConsolidationSessions(chunks, counters, logs);
   if (String(opts.objectiveKey ?? "").toLowerCase().includes("start")) {
     capStartToRunSessions(chunks, counters, logs);
+    enforceStartToRunLadder(chunks, counters, logs);
+    orderStartToRunWeek(chunks, counters, logs);
   }
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
   ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day);
