@@ -505,6 +505,12 @@ const Index = () => {
     return 12;
   }, [currentAthlete]);
   const raceRecordsForVlamax = useAthleteRaceRecords(currentAthlete?.id, activeSnapshotVma, raceRecordsWindowMonths);
+  // Proxy durabilité course (TTE) dérivé des chronos longs — loi de Riegel
+  const runDurabilityProxy = useRunDurabilityProxy(
+    currentAthlete?.id,
+    (effectiveCloudSnapshot as any)?.pace_threshold_sec_per_km ?? null,
+    activeSnapshotVma,
+  );
 
   // ✅ VLamax EFFECTIF - Source unique de vérité (utilise données Cloud)
   const vlamaxEffectif = useMemo<VLamaxEffectif>(() => {
