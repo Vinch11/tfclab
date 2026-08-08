@@ -245,6 +245,11 @@ export function QuickStartWizard({
   const [hillFeeling, setHillFeeling] = useState<HillFeeling | null>(null);
   const [recoverySpeed, setRecoverySpeed] = useState<RecoverySpeed | null>(null);
 
+  // Branche Start to Run
+  const [s2rExperience, setS2rExperience] = useState<S2RExperience | null>(null);
+  const [s2rActivity, setS2rActivity] = useState<S2RActivity | null>(null);
+  const [s2rJoint, setS2rJoint] = useState<S2RJoint | null>(null);
+
   // Chronos — saisie libre par distance
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
   const [chronoDist, setChronoDist] = useState<ChronoDistanceKey>("10k");
@@ -254,9 +259,12 @@ export function QuickStartWizard({
   const [chDate, setChDate] = useState(today);
   const [chronos, setChronos] = useState<QuickStartExtras["chronos"]>({});
 
-  const step = STEPS[stepIdx];
+  const isS2R = objective === "StartToRun";
+  const activeSteps = isS2R ? STEPS_S2R : STEPS;
+  const step = activeSteps[Math.min(stepIdx, activeSteps.length - 1)];
   const isFirst = stepIdx === 0;
   const isLast = step === "recap";
+
 
   const subject = audience === "athlete" ? "toi" : "l'athlète";
   const subjectCapital = audience === "athlete" ? "Toi" : "L'athlète";
