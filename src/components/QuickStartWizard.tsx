@@ -738,33 +738,46 @@ export function QuickStartWizard({
               <StepBlock title="Récapitulatif" hint="Vérifie avant de continuer.">
                 <RecapRow label="Objectif" value={OBJECTIVES.find((o) => o.value === objective)?.label ?? objective} />
                 <RecapRow label="Durée" value={durationMode === "date" ? `Course le ${raceDate} (~${computedWeeks} sem)` : `${computedWeeks} semaines`} />
-                <RecapRow label="Blessure" value={INJURY_OPTIONS.find((o) => o.value === injury)?.title ?? "—"} />
-                <RecapRow label="Terrain" value={terrains.length > 0 ? terrains.map((t) => TERRAIN_OPTIONS.find((o) => o.value === t)?.title).filter(Boolean).join(", ") : "—"} />
-                <RecapRow label="Profil énergie" value={METABOLIC_QUESTIONS.find((m) => m.value === metabolic)?.label ?? "—"} />
-                <RecapRow label="Limiteur principal" value={primary ? LIMITER_META[primary].label : "—"} />
-                <RecapRow
-                  label="Limiteur secondaire"
-                  value={
-                    inferredSecondary
-                      ? <>
-                          {LIMITER_META[inferredSecondary].label}
-                          {(!secondary || secondary === "skip") && (
-                            <span className="ml-1 text-[10px] text-muted-foreground italic">(inféré)</span>
-                          )}
-                        </>
-                      : <span className="text-muted-foreground italic">non défini</span>
-                  }
-                />
-                <RecapRow label="Sensations côte" value={HILL_OPTIONS.find((o) => o.value === hillFeeling)?.title ?? "—"} />
-                <RecapRow label="Récupération" value={RECOVERY_OPTIONS.find((o) => o.value === recoverySpeed)?.title ?? "—"} />
-                <RecapRow
-                  label="Chronos"
-                  value={
-                    Object.keys(chronos).length === 0
-                      ? <span className="text-muted-foreground italic">aucun (fiabilité ~65%)</span>
-                      : CHRONO_LIST.filter((c) => chronos[c.value]).map((c) => c.label).join(", ")
-                  }
-                />
+                {isS2R ? (
+                  <>
+                    <RecapRow label="Expérience course" value={S2R_EXPERIENCE_OPTIONS.find((o) => o.value === s2rExperience)?.title ?? "—"} />
+                    <RecapRow label="Activité actuelle" value={S2R_ACTIVITY_OPTIONS.find((o) => o.value === s2rActivity)?.title ?? "—"} />
+                    <RecapRow label="Gêne articulaire" value={S2R_JOINT_OPTIONS.find((o) => o.value === s2rJoint)?.title ?? "—"} />
+                    <RecapRow label="Palier de départ" value={`${s2rStartMinutes} min de course en continu`} />
+                    <RecapRow label="Focus du plan" value={draftPayload ? LIMITER_META[draftPayload.primaryLimiter].label : "—"} />
+                  </>
+                ) : (
+                  <>
+                    <RecapRow label="Blessure" value={INJURY_OPTIONS.find((o) => o.value === injury)?.title ?? "—"} />
+                    <RecapRow label="Terrain" value={terrains.length > 0 ? terrains.map((t) => TERRAIN_OPTIONS.find((o) => o.value === t)?.title).filter(Boolean).join(", ") : "—"} />
+                    <RecapRow label="Profil énergie" value={METABOLIC_QUESTIONS.find((m) => m.value === metabolic)?.label ?? "—"} />
+                    <RecapRow label="Limiteur principal" value={primary ? LIMITER_META[primary].label : "—"} />
+                    <RecapRow
+                      label="Limiteur secondaire"
+                      value={
+                        inferredSecondary
+                          ? <>
+                              {LIMITER_META[inferredSecondary].label}
+                              {(!secondary || secondary === "skip") && (
+                                <span className="ml-1 text-[10px] text-muted-foreground italic">(inféré)</span>
+                              )}
+                            </>
+                          : <span className="text-muted-foreground italic">non défini</span>
+                      }
+                    />
+                    <RecapRow label="Sensations côte" value={HILL_OPTIONS.find((o) => o.value === hillFeeling)?.title ?? "—"} />
+                    <RecapRow label="Récupération" value={RECOVERY_OPTIONS.find((o) => o.value === recoverySpeed)?.title ?? "—"} />
+                    <RecapRow
+                      label="Chronos"
+                      value={
+                        Object.keys(chronos).length === 0
+                          ? <span className="text-muted-foreground italic">aucun (fiabilité ~65%)</span>
+                          : CHRONO_LIST.filter((c) => chronos[c.value]).map((c) => c.label).join(", ")
+                      }
+                    />
+                  </>
+                )}
+
                 <RecapRow label="Séances/semaine" value={typeof sessions === "number" ? `${sessions}` : <span className="text-muted-foreground italic">IA décide</span>} />
                 {(draftPayload?.prohibitions.length ?? 0) > 0 && (
                   <RecapRow label="Interdits" value={<span className="text-xs">{draftPayload!.prohibitions.join(", ")}</span>} />
