@@ -198,6 +198,9 @@ type Step =
   | "secondary"
   | "chronos"
   | "sensations"
+  | "s2r_experience"
+  | "s2r_activity"
+  | "s2r_joint"
   | "sessions"
   | "recap";
 
@@ -208,6 +211,14 @@ const STEPS: Step[] = [
   "chronos", "sensations",
   "sessions", "recap",
 ];
+
+/** Parcours débutant : pas de limiteurs, on mesure le point de départ réel. */
+const STEPS_S2R: Step[] = [
+  "audience", "objective", "duration",
+  "s2r_experience", "s2r_activity", "s2r_joint",
+  "sessions", "recap",
+];
+
 
 export function QuickStartWizard({
   open,
