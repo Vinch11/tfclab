@@ -66,6 +66,10 @@ export interface DiagnosticInput {
   tteObservedMin: number | null;
   /** TTE CAP observé (séparé du TTE vélo). Utilisé quand sportFocus === "run". */
   tteObservedMinRun?: number | null;
+  /** Proxy durabilité course dérivé des chronos longs (Riegel) — voir runDurabilityFromRecords */
+  tteProxyMinRun?: number | null;
+  tteProxyConfidence?: number | null;
+  tteProxyLabel?: string | null;
   tteMode: string | null;
   tss7d: number | null;
   
