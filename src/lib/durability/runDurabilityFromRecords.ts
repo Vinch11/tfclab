@@ -55,7 +55,7 @@ export interface RunDurabilityProxy {
 const MIN_DISTANCE_M = 3000;
 const PLAUSIBLE_MPS: [number, number] = [1.5, 8];
 const TTE_CLAMP_MIN = 15;
-const TTE_CLAMP_MAX = 180;
+const TTE_CLAMP_MAX = 120; // garde-fou : au-delà, l'extrapolation Riegel dépasse le domaine seuil
 
 /**
  * Régression log-log ln(t) = ln(a) + b·ln(d)
