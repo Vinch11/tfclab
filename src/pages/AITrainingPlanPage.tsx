@@ -792,10 +792,19 @@ export default function AITrainingPlanPage() {
   // Compute plan start date: Monday of the CURRENT week (not next week)
   // (weeksAvailable already computed above)
 
-  const buildConfigFromDiag = useCallback((diagnostic: AthleteDiagnostic, athleteAmbition?: string): PlanConfig => {
+  const buildConfigFromDiag = useCallback((
+    diagnostic: AthleteDiagnostic,
+    athleteAmbition?: string,
+    objectiveOverride?: string,
+  ): PlanConfig => {
     const amb = athleteAmbition || ambition;
+    // ⚠️ setObjective() est asynchrone : le wizard doit pouvoir imposer son
+    // objectif immédiatement, sinon la config part sur l'objectif précédent
+    // (ex. plan "Semi-Marathon" généré alors que le coach a choisi Start to Run).
+    const objEff = objectiveOverride || objective;
 
-    // Build raceGoals array for multi-objective
+
+    // Build raceGoals array for multi-objEff
     const computeWeeksUntilRace = (date?: string) => {
       if (!date) return undefined;
       try {
@@ -821,19 +830,19 @@ export default function AITrainingPlanPage() {
     // formulaire uniquement. Pour tout objectif standard (semi/marathon/10K/IM/…),
     // la distance est CANONIQUE (dérivée de l'objectif côté promptHelpers) — on ne
     // laisse PAS un `trailDistanceKm` résiduel écraser cette valeur.
-    const isTrailPrimary = (objective || "").toLowerCase().startsWith("trail");
+    const isTrailPrimary = (objEff || "").toLowerCase().startsWith("trail");
     const trailDistKm = isTrailPrimary ? (parseFloat(trailDistanceKm) || null) : null;
     const trailDPlus = isTrailPrimary ? (parseInt(trailElevationM, 10) || null) : null;
     const trailTargetMin = isTrailPrimary ? parseTargetTimeMin(trailTargetTimeH) : null;
     const trailMaxAlt = isTrailPrimary ? (parseInt(trailMaxAltitudeM, 10) || null) : null;
-    // Primary objective = A
+    // Primary objEff = A
     allRaceGoals.push({
-      objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
+      objective: OBJECTIVE_OPTIONS.find(o => o.value === objEff)?.label || objEff,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
       weeksUntilRace: computeWeeksUntilRace(raceDate),
       priority: "A",
-      raceFormat: (objective === "703" || objective === "70.3") ? raceFormat : "continuous",
+      raceFormat: (objEff === "703" || objEff === "70.3") ? raceFormat : "continuous",
       distanceKm: trailDistKm,
       elevationGainM: trailDPlus,
       targetTimeMinutes: trailTargetMin,
@@ -851,7 +860,7 @@ export default function AITrainingPlanPage() {
     }
 
     const formConfig: PlanFormConfig = {
-      objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
+      objective: OBJECTIVE_OPTIONS.find(o => o.value === objEff)?.label || objEff,
       raceName: raceName || undefined,
       raceDate: raceDate || undefined,
       raceGoals: allRaceGoals,
@@ -1117,7 +1126,10 @@ export default function AITrainingPlanPage() {
     };
   }, [athleteContext]);
 
-  const handleCoachFormGenerate = useCallback((payload: CoachProfileFormPayload) => {
+  const handleCoachFormGenerate = useCallback((
+    payload: CoachProfileFormPayload,
+    objectiveOverride?: string,
+  ) => {
     if (!athleteContext) {
       toast.error("Aucun contexte athlète — sélectionne un athlète d'abord.");
       return;
@@ -1126,8 +1138,9 @@ export default function AITrainingPlanPage() {
       toast.error("Durée du plan manquante — renseigne une date de course ou une durée libre.");
       return;
     }
-    const baseConfig = buildConfigFromDiag(athleteContext.diagnostic);
+    const baseConfig = buildConfigFromDiag(athleteContext.diagnostic, undefined, objectiveOverride);
     const config = buildCoachOverrides(payload, baseConfig);
+
 
     // ─── Durée pilotée par le coach form (mode date OU durée libre) ───
     config.weeksAvailable = payload.weeksAvailable;
@@ -1206,8 +1219,10 @@ export default function AITrainingPlanPage() {
   const handleWizardGenerate = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
     setObjective(result.objective);
     await persistWizardChronos(result.extras);
-    handleCoachFormGenerate(result.payload);
+    // On passe l'objectif explicitement : setObjective n'est pas encore appliqué ici.
+    handleCoachFormGenerate(result.payload, result.objective);
   }, [handleCoachFormGenerate, persistWizardChronos]);
+
 
   const handleWizardReview = useCallback(async (result: import("@/components/QuickStartWizard").QuickStartResult) => {
     setObjective(result.objective);
