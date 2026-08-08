@@ -266,15 +266,20 @@ Deno.serve(async (req) => {
         { cat: "par", recordType: "time", sports: RUN_SPORTS, defaultSportIds: RUN_SPORTS },
         // PAR course — allure par distance (400m, 1km, 5km, 10km, semi, marathon)
         { cat: "par", recordType: "distance", sports: RUN_SPORTS, defaultSportIds: RUN_SPORTS },
-        // PAR natation — allure par durée (CSS, endurance)
-        { cat: "par", recordType: "time", sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
-        // PAR natation — allure par distance (50m, 100m, 200m, 400m, 1500m, 3800m)
-        { cat: "par", recordType: "distance", sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
+        // ⛔ PAR natation désactivé pour l'instant (sport_id=19 mélange piscine
+        // et eau libre → CSS non fiable). Réactivable via IMPORT_SWIM_RECORDS.
+        ...(IMPORT_SWIM_RECORDS
+          ? [
+              { cat: "par" as const, recordType: "time" as const, sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
+              { cat: "par" as const, recordType: "distance" as const, sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
+            ]
+          : []),
         // PHRR FC — par durée, tous sports confondus
         { cat: "phrr", recordType: "time", defaultSportIds: [...BIKE_SPORTS, ...RUN_SPORTS, SWIM_SPORT] },
         // PHRR FC — par distance, tous sports confondus
         { cat: "phrr", recordType: "distance", defaultSportIds: [...BIKE_SPORTS, ...RUN_SPORTS, SWIM_SPORT] },
       ];
+
 
       for (const q of queries) {
         if (remapOnly) break;
