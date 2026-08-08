@@ -227,6 +227,7 @@ const STEPS: Step[] = [
 const STEPS_S2R: Step[] = [
   "audience", "objective", "duration",
   "s2r_experience", "s2r_activity", "s2r_joint", "s2r_strength",
+  "terrain",
   "sessions", "recap",
 ];
 
