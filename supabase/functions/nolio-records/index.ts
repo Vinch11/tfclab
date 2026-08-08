@@ -11,6 +11,13 @@ const NOLIO_RECORDS_BASE = "https://www.nolio.io/api/get/records/";
 const BIKE_SPORTS = [14, 18];
 const RUN_SPORTS = [2, 52];
 const SWIM_SPORT = 19;
+/**
+ * ⛔ Import des records natation désactivé (temporaire).
+ * Raison : côté Nolio, sport_id=19 mélange piscine et eau libre → records non
+ * monotones (1000 m plus rapide que 800 m) et CSS calculé peu fiable.
+ * Passer à `true` pour réactiver.
+ */
+const IMPORT_SWIM_RECORDS = false;
 
 type NolioRecord = {
   item_seconds?: number;
@@ -266,15 +273,20 @@ Deno.serve(async (req) => {
         { cat: "par", recordType: "time", sports: RUN_SPORTS, defaultSportIds: RUN_SPORTS },
         // PAR course — allure par distance (400m, 1km, 5km, 10km, semi, marathon)
         { cat: "par", recordType: "distance", sports: RUN_SPORTS, defaultSportIds: RUN_SPORTS },
-        // PAR natation — allure par durée (CSS, endurance)
-        { cat: "par", recordType: "time", sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
-        // PAR natation — allure par distance (50m, 100m, 200m, 400m, 1500m, 3800m)
-        { cat: "par", recordType: "distance", sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
+        // ⛔ PAR natation désactivé pour l'instant (sport_id=19 mélange piscine
+        // et eau libre → CSS non fiable). Réactivable via IMPORT_SWIM_RECORDS.
+        ...(IMPORT_SWIM_RECORDS
+          ? [
+              { cat: "par" as const, recordType: "time" as const, sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
+              { cat: "par" as const, recordType: "distance" as const, sports: [SWIM_SPORT], defaultSportIds: [SWIM_SPORT] },
+            ]
+          : []),
         // PHRR FC — par durée, tous sports confondus
         { cat: "phrr", recordType: "time", defaultSportIds: [...BIKE_SPORTS, ...RUN_SPORTS, SWIM_SPORT] },
         // PHRR FC — par distance, tous sports confondus
         { cat: "phrr", recordType: "distance", defaultSportIds: [...BIKE_SPORTS, ...RUN_SPORTS, SWIM_SPORT] },
       ];
+
 
       for (const q of queries) {
         if (remapOnly) break;
@@ -286,6 +298,8 @@ Deno.serve(async (req) => {
             const value = Number(r.value);
             const sport_id = Number(r.sport_id ?? r.sport ?? q.defaultSportIds[0]);
             if (!Number.isFinite(item_seconds) || !Number.isFinite(value) || !Number.isFinite(sport_id)) continue;
+            // Aucun record natation tant que IMPORT_SWIM_RECORDS est false (inclut phrr/FC natation)
+            if (!IMPORT_SWIM_RECORDS && sport_id === SWIM_SPORT) continue;
             const date_recorded = (r.date_recorded ?? r.date ?? null) as string | null;
             // Filtre par fenêtre temporelle (si fournie) — on n'importe que les records datés dans la période
             if (dateFrom || dateTo) {
