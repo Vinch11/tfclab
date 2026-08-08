@@ -12,7 +12,7 @@ export const getTTETarget = getTTETargetFromPro;
 // TYPES
 // =============================================
 
-export type TTESource = "observed" | "estimated" | "unknown";
+export type TTESource = "observed" | "records" | "estimated" | "unknown";
 
 export interface TTEEffectif {
   tte_min: number;
@@ -37,7 +37,16 @@ interface ComputeTTEEffectifParams {
   objectif?: string;
   /** F33: Age en années pour ajuster la cible TTE (masters athletes) */
   age?: number | null;
+  /**
+   * Proxy durabilité course dérivé des chronos longs (loi de Riegel).
+   * Priorité A-bis : après le TTE mesuré, avant l'estimation par charge.
+   * Voir `src/lib/durability/runDurabilityFromRecords.ts`.
+   */
+  tte_proxy_min_run?: number | null;
+  tte_proxy_confidence?: number | null;
+  tte_proxy_label?: string | null;
 }
+
 
 // =============================================
 // FONCTION PRINCIPALE
