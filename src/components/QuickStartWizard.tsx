@@ -806,6 +806,7 @@ export function QuickStartWizard({
                     <RecapRow label="Gêne articulaire" value={S2R_JOINT_OPTIONS.find((o) => o.value === s2rJoint)?.title ?? "—"} />
                     <RecapRow label="Renforcement" value={S2R_STRENGTH_OPTIONS.find((o) => o.value === s2rStrength)?.title ?? "—"} />
                     <RecapRow label="Palier de départ" value={`${s2rStartMinutes} min de course en continu`} />
+                    <RecapRow label="Terrain" value={terrains.length > 0 ? terrains.map((t) => TERRAIN_OPTIONS.find((o) => o.value === t)?.title).filter(Boolean).join(", ") : "—"} />
                     <RecapRow label="Focus du plan" value={draftPayload ? LIMITER_META[draftPayload.primaryLimiter].label : "—"} />
                   </>
                 ) : (
