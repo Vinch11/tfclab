@@ -1095,9 +1095,21 @@ export default function AITrainingPlanPage() {
       cfg.prohibitions = [...(cfg.prohibitions || []), ...prohibText];
     }
 
-    // Start to Run — dose de renforcement choisie (prompt edge function).
+    // Start to Run — dose de renforcement choisie (prompt edge function)
+    // + application DÉTERMINISTE : quota hebdo + contrainte dure si "none".
     if (payload.s2rStrength) {
       (cfg as any)._s2rStrength = payload.s2rStrength;
+      const strengthQuota =
+        payload.s2rStrength === "none" ? 0 : payload.s2rStrength === "light" ? 1 : 2;
+      cfg.strengthSessionsPerWeek = strengthQuota;
+      if (payload.s2rStrength === "none") {
+        const banText = "Pas de renforcement musculaire (choix athlète)";
+        cfg.constraints = [cfg.constraints || "", banText].filter(Boolean).join("\n");
+        cfg.prohibitions = [
+          ...(cfg.prohibitions || []),
+          "🚫 Aucune séance de renforcement / PPG / gainage dans le plan (choix explicite de l'athlète).",
+        ];
+      }
     }
 
     if (payload.sessionsPerWeek && payload.sessionsPerWeek > 0) {
