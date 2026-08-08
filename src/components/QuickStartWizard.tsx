@@ -298,10 +298,14 @@ export function QuickStartWizard({
       case "secondary":  return secondary !== null;
       case "chronos":    return true; // toujours skippable
       case "sensations": return hillFeeling !== null && recoverySpeed !== null;
+      case "s2r_experience": return s2rExperience !== null;
+      case "s2r_activity":   return s2rActivity !== null;
+      case "s2r_joint":      return s2rJoint !== null;
       case "sessions":   return sessions !== null;
       case "recap":      return true;
     }
   };
+
 
   const next = () => { if (!isLast && canNext()) setStepIdx((i) => i + 1); };
   const prev = () => { if (!isFirst) setStepIdx((i) => i - 1); };
