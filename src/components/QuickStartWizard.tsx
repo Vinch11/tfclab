@@ -446,12 +446,15 @@ export function QuickStartWizard({
             {athleteName ? <Badge variant="outline" className="ml-2">{athleteName}</Badge> : null}
           </DialogTitle>
           <DialogDescription>
-            {stepNumber} / {totalSteps} — Quelques questions simples pour générer un plan cohérent.
+            {stepNumber} / {totalSteps} — {isS2R
+              ? "Parcours débutant : on part de ton point de départ réel, pas de jargon."
+              : "Quelques questions simples pour générer un plan cohérent."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex gap-1 mb-2">
-          {STEPS.map((_, i) => (
+          {activeSteps.map((_, i) => (
+
             <div
               key={i}
               className={cn(
