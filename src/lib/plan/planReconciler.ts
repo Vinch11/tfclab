@@ -576,6 +576,115 @@ function capStartToRunSessions(
   }
 }
 
+// ── Start to Run : échelle de progression marche-course ────────────────────
+// Rang croissant = exposition à l'impact croissante (ratio course/marche puis
+// course continue). Deux filets déterministes en découlent :
+//  (1) intra-semaine : la première séance de la semaine doit être la plus
+//      douce (première exposition), la dernière la plus exigeante ;
+//  (2) inter-semaines : pas de saut de plus d'un palier d'une semaine à
+//      l'autre (progression graduelle — pas de S7 → S9 sans marche
+//      intermédiaire).
+const S2R_LADDER: Record<string, number> = {
+  S2R_WALK_RUN_1_2: 1,
+  S2R_WALK_RUN_2_2: 2,
+  S2R_WALK_RUN_3_1: 3,
+  S2R_WALK_RUN_5_1: 4,
+  S2R_CONTINUOUS_15: 5,
+  S2R_CONTINUOUS_20_25: 6,
+  S2R_CONTINUOUS_30_LONG: 7,
+  S2R_FIRST_5K_WALK_RUN: 8,
+};
+const S2R_BY_RANK = new Map<number, string>(
+  Object.entries(S2R_LADDER).map(([id, r]) => [r, id]),
+);
+
+const DAY_RANK: Record<string, number> = {
+  lundi: 0, mardi: 1, mercredi: 2, jeudi: 3, vendredi: 4, samedi: 5, dimanche: 6,
+};
+
+/** Réécrit une séance sur la fiche cible (titre + détails + catalogId). */
+function applyFiche(s: PlanSession, fiche: LibraryWorkout): void {
+  (s as any).catalogIdOrigin = (s as any).catalogIdOrigin ?? (s as any).catalogId;
+  (s as any).catalogId = fiche.id;
+  (s as any).title = fiche.objectif;
+  (s as any).details = `${ficheToText(fiche)} [ID: ${fiche.id}]`;
+}
+
+function orderStartToRunWeek(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+): void {
+  for (const ch of chunks) {
+    for (const wk of ch.weeks ?? []) {
+      const slots = ((wk.sessions ?? []) as PlanSession[])
+        .filter(s => S2R_LADDER[String((s as any).catalogId ?? "")] !== undefined)
+        .sort(
+          (a, b) =>
+            (DAY_RANK[String((a as any).day ?? "").toLowerCase()] ?? 9) -
+            (DAY_RANK[String((b as any).day ?? "").toLowerCase()] ?? 9),
+        );
+      if (slots.length < 2) continue;
+      const ranks = slots
+        .map(s => S2R_LADDER[String((s as any).catalogId)])
+        .sort((a, b) => a - b);
+      const already = slots.every(
+        (s, i) => S2R_LADDER[String((s as any).catalogId)] === ranks[i],
+      );
+      if (already) continue;
+      slots.forEach((s, i) => {
+        const wanted = S2R_BY_RANK.get(ranks[i]);
+        if (!wanted || wanted === (s as any).catalogId) return;
+        const before = String((s as any).catalogId);
+        const fiche = ficheFor(wanted);
+        if (!fiche) return;
+        applyFiche(s, fiche);
+        counters.s2r_week_resequenced = (counters.s2r_week_resequenced ?? 0) + 1;
+        logs.push(
+          `[s2r_week_resequenced] S${wk.weekNumber} ${(s as any).day ?? ""} ${before} → ${wanted} (première exposition = format le plus doux)`,
+        );
+      });
+    }
+  }
+}
+
+function enforceStartToRunLadder(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+): void {
+  const allWeeks = chunks
+    .flatMap(ch => ch.weeks ?? [])
+    .sort((a, b) => (a.weekNumber ?? 0) - (b.weekNumber ?? 0));
+  let prevMax = 0;
+  for (const wk of allWeeks) {
+    const slots = ((wk.sessions ?? []) as PlanSession[]).filter(
+      s => S2R_LADDER[String((s as any).catalogId ?? "")] !== undefined,
+    );
+    if (!slots.length) continue;
+    const allowedMax = prevMax === 0 ? 2 : prevMax + 1;
+    for (const s of slots) {
+      const rank = S2R_LADDER[String((s as any).catalogId)];
+      if (rank <= allowedMax) continue;
+      const wanted = S2R_BY_RANK.get(allowedMax);
+      const fiche = wanted ? ficheFor(wanted) : null;
+      if (!fiche) continue;
+      const before = String((s as any).catalogId);
+      applyFiche(s, fiche);
+      counters.s2r_ladder_smoothed = (counters.s2r_ladder_smoothed ?? 0) + 1;
+      logs.push(
+        `[s2r_ladder_smoothed] S${wk.weekNumber} ${(s as any).day ?? ""} ${before}(rang ${rank}) → ${fiche.id}(rang ${allowedMax}) — palier manquant, progression graduelle imposée`,
+      );
+    }
+    prevMax = Math.max(
+      prevMax,
+      ...slots.map(s => S2R_LADDER[String((s as any).catalogId)] ?? 0),
+    );
+  }
+}
+
+
+
 
 // ── Affûtage : nombre minimal de semaines `taper` (Mujika & Padilla 2003,
 //    Bosquet 2007 : 2 à 3 semaines de réduction de volume pour les épreuves
