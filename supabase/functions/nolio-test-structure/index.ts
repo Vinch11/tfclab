@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
       paginate?: boolean;
       order?: string;
       extra_params?: Record<string, string>;
+      raw_all?: boolean;
     };
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -166,6 +167,7 @@ Deno.serve(async (req) => {
       all_ids_sample: arr.slice(0, 40).map((t) => ({ id: t.id ?? t.pk, name: t.name, sport_id: t.sport_id, date: t.date ?? t.planned_date })),
       swim_count: swim.length,
       swim_trainings_raw: swim,
+      raw_all: body.raw_all ? arr : undefined,
     }, null, 2), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
