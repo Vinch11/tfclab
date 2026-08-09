@@ -831,6 +831,7 @@ interface AIPlanViewerProps {
   isSaved?: boolean;
   onRegenerateWeek?: (weekNumber: number) => void;
   onRegenerateFutureWeeks?: () => void;
+  onRegenerateAll?: () => void;
   isRegenerating?: boolean;
   athleteName?: string;
   athleteId?: string;
