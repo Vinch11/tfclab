@@ -600,22 +600,28 @@ function normalizeStructuredWorkoutForNolio(
       delete src.step_percent_low;
       delete src.step_percent_high;
       if (rpeTarget) {
-        // Cible RPE explicite (échelle 1-10) : évite la pastille "empty_unit"
-        // et affiche l'intensité au ressenti directement sur le bloc Nolio.
+        // Cible RPE explicite (échelle 1-10) si l'API l'accepte réellement.
         src.target_type = "rpe";
         src.target_value_min = easy ? 2 : 4;
         src.target_value_max = easy ? 3 : 5;
         src.target_value = easy ? 2 : 4;
       } else {
+        // ⚠️ Nolio coerce tout target_type inconnu en cardiaque (affiché "bpm").
+        // Sans type RPE natif confirmé, on n'envoie AUCUNE cible métrique :
+        // le RPE vit dans le nom du bloc (visible dans le constructeur).
         src.target_type = "no_target";
+        delete src.target_value;
+        delete src.target_value_min;
+        delete src.target_value_max;
       }
-      const baseName = typeof src.name === "string" ? src.name.trim() : "";
-      src.name = baseName && !/RPE/i.test(baseName) ? `${baseName} — ${rpe}` : (baseName || rpe);
       const shortRpe = easy ? "RPE 2-3" : "RPE 4-5";
+      const baseName = typeof src.name === "string" ? src.name.trim() : "";
+      src.name = baseName && !/RPE/i.test(baseName) ? `${shortRpe} · ${baseName}` : (baseName || rpe);
       const baseNotes = typeof src.notes === "string" ? src.notes.trim() : "";
       src.notes = baseNotes && !/RPE/i.test(baseNotes)
         ? `${shortRpe} — ${baseNotes}`.slice(0, 500)
         : (baseNotes || rpe).slice(0, 500);
+
     }
 
 
