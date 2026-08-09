@@ -1055,7 +1055,17 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
         // Merge déterministe côté serveur : validation continuité + dérivations
         const mergedTotal = regenerateWeek ? 1 : totalWeeks;
         try {
-          mergePlanChunks(collectedChunks, mergedTotal);
+          if (regenerateWeek) {
+            const regeneratedWeeks = collectedChunks.flatMap((chunk) => chunk.weeks);
+            if (regeneratedWeeks.length !== 1 || regeneratedWeeks[0]?.weekNumber !== regenerateWeek.weekNumber) {
+              throw new MergePlanError(
+                "GAP",
+                `[SCHEMA_FAIL] régénération S${regenerateWeek.weekNumber}: une semaine unique portant le bon numéro est requise.`,
+              );
+            }
+          } else {
+            mergePlanChunks(collectedChunks, mergedTotal);
+          }
 
           const guard = applyOffsportTrailGuardToChunks(
             collectedChunks,
@@ -1182,7 +1192,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             },
           });
 
-          const merged = mergePlanChunks(valueChecked.chunks, mergedTotal);
+          const merged = regenerateWeek
+            ? { totalWeeks: 1, weeks: valueChecked.chunks.flatMap((chunk) => chunk.weeks) }
+            : mergePlanChunks(valueChecked.chunks, mergedTotal);
           for (let ci = 0; ci < valueChecked.chunks.length; ci++) {
             enqueue("chunk-json", { chunkIndex: ci, chunk: valueChecked.chunks[ci] });
           }

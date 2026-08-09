@@ -39,6 +39,9 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan } from "@/lib/aiPlanParser";
+import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
+import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
+import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { upgradeLegacyTaper, detectLegacyTaperGap, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
 import { LegacyTaperBanner } from "@/components/plan/LegacyTaperBanner";
 
@@ -1554,6 +1557,7 @@ export default function AITrainingPlanPage() {
     // renforcement, limiteurs, interdictions et quotas). Le payload minimal
     // précédent perdait ces règles et pouvait produire une semaine générique.
     const fullPlanConfig = buildConfigFromDiag(athleteContext.diagnostic);
+    fullPlanConfig._outputFormat = "json";
     const existingTrainingSessions = week.sessions
       .filter(session => !session.isRest)
       .map(session => `${session.dayName || "Jour à définir"} — ${session.sport || "course"} — ${session.title || "Séance"}`)
@@ -1607,7 +1611,9 @@ export default function AITrainingPlanPage() {
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
-      let fullText = "";
+      let currentEvent = "message";
+      let regeneratedChunk: PlanChunk | null = null;
+      let streamError: string | null = null;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -1618,27 +1624,46 @@ export default function AITrainingPlanPage() {
           let line = buf.slice(0, idx);
           buf = buf.slice(idx + 1);
           if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line.startsWith("data: ")) continue;
+           if (line.startsWith("event: ")) {
+             currentEvent = line.slice(7).trim();
+             continue;
+           }
+           if (!line.startsWith("data: ")) continue;
           const json = line.slice(6).trim();
-          if (json === "[DONE]") break;
           try {
             const p = JSON.parse(json);
-            const c = p.choices?.[0]?.delta?.content;
-            if (c) fullText += c;
+             if (currentEvent === "chunk-json") {
+               const parsedChunk = zPlanChunk.safeParse(p.chunk);
+               if (parsedChunk.success) regeneratedChunk = parsedChunk.data;
+               else streamError = "La semaine JSON reçue est invalide.";
+             } else if (currentEvent === "error") {
+               streamError = p.message || "Le service IA a refusé la régénération.";
+             }
           } catch {}
+           currentEvent = "message";
         }
       }
 
-      if (!fullText.trim()) {
-        toast.error("Aucune réponse de l'IA — semaine inchangée");
+       if (streamError) {
+         toast.error(`${streamError} La semaine ${weekNumber} précédente est conservée.`);
         return;
       }
+       if (!regeneratedChunk) {
+         toast.error("Aucune semaine structurée reçue — semaine inchangée");
+         return;
+       }
 
-      // Injection réelle dans le plan affiché : on parse la réponse, on prend la
-      // 1re semaine produite, on la renumérote et on remplace la semaine ciblée.
-      const rawRegen = parseAIPlan(fullText);
-      const { plan: regenPlan } = sanitizeTrailFromTriathlonPlan(rawRegen, objective);
-      const newWeek = regenPlan.weeks[0];
+       // Le mergeur client attend une séquence commençant à S1. On normalise
+       // temporairement l'unique semaine, puis on restaure son numéro réel.
+       const normalizedChunk: PlanChunk = {
+         ...regeneratedChunk,
+         weeks: regeneratedChunk.weeks.map((regeneratedWeek) => ({
+           ...regeneratedWeek,
+           weekNumber: 1,
+         })),
+       };
+       const regenPlan = jsonPlanToParsedPlan(mergePlanChunks([normalizedChunk], 1));
+       const newWeek = regenPlan.weeks[0];
       if (!newWeek) {
         toast.error("Réponse IA illisible — semaine inchangée");
         return;
