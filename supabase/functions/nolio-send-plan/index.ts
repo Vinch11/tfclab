@@ -433,21 +433,31 @@ function parseRepetitionPattern(text: string): {
   restText: string;
 } | null {
   if (!text) return null;
-  // 4x8' or 4×8' or 4 x 8 min
-  const m = text.match(/(\d+)\s*[x×]\s*(\d+)\s*(?:'|’|min)/i);
+  // Formats supportés :
+  //   4x8'  4×8 min  10×30s
+  //   8× (1min trot + 2min marche)   ← format marche-course Start to Run
+  //   6× 3min / 1min récup
+  const m = text.match(/(\d+)\s*[x×]\s*\(?\s*(\d+)\s*(?:(')|(’)|(min)|(s\b|sec\b|"))/i);
   if (!m) return null;
   const reps = parseInt(m[1], 10);
-  const workMin = parseInt(m[2], 10);
-  if (!reps || !workMin) return null;
-  // Récup : segment après "/"
+  const workVal = parseInt(m[2], 10);
+  const isSeconds = /^(s|sec|")$/i.test(m[6] ?? "");
+  const workSec = isSeconds ? workVal : workVal * 60;
+  if (!reps || !workSec) return null;
+  // Récup : segment après "/" OU après "+" (format parenthésé "1min trot + 2min marche")
   let restSec: number | null = null;
   let restText = "";
-  const slashIdx = text.indexOf("/", m.index! + m[0].length);
-  if (slashIdx >= 0) {
-    restText = text.slice(slashIdx + 1).trim();
+  const after = text.slice(m.index! + m[0].length);
+  const sepMatch = after.match(/[\/+]/);
+  if (sepMatch) {
+    // Coupe au niveau de la parenthèse fermante si présente
+    const raw = after.slice(sepMatch.index! + 1);
+    const closeIdx = raw.indexOf(")");
+    restText = (closeIdx >= 0 ? raw.slice(0, closeIdx) : raw.split(/[.;]/)[0]).trim();
     restSec = parseDurationToSec(restText);
   }
-  return { reps, workSec: workMin * 60, restSec, restText };
+  return { reps, workSec, restSec, restText };
+
 }
 
 function cleanTargetFields(src: Record<string, unknown>) {
