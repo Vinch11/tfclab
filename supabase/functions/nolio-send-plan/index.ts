@@ -1670,6 +1670,7 @@ Deno.serve(async (req) => {
           body.refs ?? {},
           sportId,
           rpeSession,
+          false, // pas de target_type "rpe" : Nolio le coerce en bpm
         );
         const summary = summarizeStructuredWorkout(normalized);
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
