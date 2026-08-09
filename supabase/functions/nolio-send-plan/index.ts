@@ -595,27 +595,21 @@ function normalizeStructuredWorkoutForNolio(
         ? src.comment.trim()
         : (easy ? "Marche / trot très facile" : "Trottiner, conversation possible");
 
-      // ✅ Format RPE natif Nolio, vérifié par read-back d'une séance créée
-      // manuellement : UNIQUEMENT { target_type:"rpe", rpe:<1-10> }.
-      // Tout champ supplémentaire (target_value_*, manual_values, notes)
-      // fait retomber l'éditeur sur "empty_unit".
+      // ✅ Format RPE accepté par l'endpoint de création Nolio (HTTP 201).
+      // Le read-back des séances créées manuellement omet parfois `type`, mais
+      // l'endpoint POST exige bien `type:"step"` et `intensity_type` sur chaque
+      // étape. Leur retrait provoque `400 Structured workout format error`.
       const rebuilt: Record<string, unknown> = {
+        type: "step",
+        intensity_type: intensity || "active",
         step_duration_type: src.step_duration_type ?? "duration",
         step_duration_value: src.step_duration_value,
         name: baseName && /RPE/i.test(baseName)
           ? baseName
           : (baseName ? `RPE ${scalarRpe}/10 · ${baseName}` : `RPE ${scalarRpe}/10`),
         comment: baseComment.slice(0, 500),
+        notes: `RPE ${scalarRpe}/10 — ${baseComment}`.slice(0, 500),
       };
-      // Le format natif Nolio ne porte PAS `type:"step"` sur les étapes simples
-      // (seul le conteneur de répétition a un `type`). Il omet également
-      // `intensity_type` sur le corps actif. Ces deux champs forçaient l'UI à
-      // interpréter la cible comme une unité métrique vide (`empty_unit`).
-      if (intensity === "rest" || intensity === "cooldown") {
-        rebuilt.intensity_type = "cooldown";
-      } else if (intensity === "warmup") {
-        rebuilt.intensity_type = "warmup";
-      }
       if (rpeTarget) {
         rebuilt.target_type = "rpe";
         rebuilt.rpe = scalarRpe;
