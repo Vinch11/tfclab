@@ -175,15 +175,17 @@ export function validatePlanPaces(
   plan: ParsedPlan,
   _paceTargets: PaceTargets | null,
   _objectifEffectif?: string | null,
+  raceFormat?: "continuous" | "lcw_3day" | null,
 ): PaceValidationReport {
   let total = 0;
   let tagged = 0;
+  const isLCW = raceFormat === "lcw_3day";
 
   for (const week of plan.weeks) {
     for (const s of week.sessions) {
       if (s.isRest) continue;
       total += [...(`${s.title} ${s.details}`).matchAll(PACE_RX)].length;
-      if (tagSession(s)) tagged++;
+      if (tagSession(s, isLCW)) tagged++;
     }
   }
 
