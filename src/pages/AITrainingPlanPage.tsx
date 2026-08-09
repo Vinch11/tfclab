@@ -2746,6 +2746,13 @@ export default function AITrainingPlanPage() {
                         isSaved={isSaved}
                         onRegenerateWeek={handleRegenerateWeek}
                         onRegenerateFutureWeeks={handleRegenerateFutureWeeks}
+                        onRegenerateAll={() => {
+                          const ok = window.confirm(
+                            `Régénérer TOUT le plan depuis la date de début (${format(planStartDate, "dd/MM/yyyy")}) ?\n\nLe plan actuel sera remplacé, y compris les semaines déjà passées.`
+                          );
+                          if (!ok) return;
+                          void handleGenerate();
+                        }}
                         isRegenerating={isRegenerating}
                         athleteName={currentAthlete?.nom}
                         athleteId={currentAthlete?.id}
