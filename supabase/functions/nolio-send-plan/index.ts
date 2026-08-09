@@ -600,11 +600,15 @@ function normalizeStructuredWorkoutForNolio(
       delete src.step_percent_low;
       delete src.step_percent_high;
       if (rpeTarget) {
-        // ✅ Format RPE natif Nolio (vérifié par sonde read-back) :
-        // { target_type: "rpe", rpe: <entier 1-10>, name: "RPE X/10" }
-        // Pas de target_value_* : Nolio les interprète en bpm.
+        // ✅ Cible RPE scalaire Nolio : le champ `rpe` porte le ressenti et
+        // `target_value_max` est obligatoire pour toute cible non `no_target`
+        // dans le format public. Ne jamais envoyer de min/max : une fourchette
+        // RPE est requalifiée à tort en bpm par l'éditeur Nolio.
+        const scalarRpe = easy ? 3 : 5;
         src.target_type = "rpe";
-        src.rpe = easy ? 3 : 5;
+        src.rpe = scalarRpe;
+        src.target_value_max = scalarRpe;
+        src.manual_values = true;
       } else {
         // Repli : aucune cible métrique, le RPE vit dans le nom/notes.
         src.target_type = "no_target";
@@ -1672,7 +1676,7 @@ Deno.serve(async (req) => {
           body.refs ?? {},
           sportId,
           rpeSession,
-          true, // cible RPE native Nolio ({ target_type:"rpe", rpe:<1-10> })
+          true, // cible RPE native scalaire Nolio
         );
         const summary = summarizeStructuredWorkout(normalized);
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
