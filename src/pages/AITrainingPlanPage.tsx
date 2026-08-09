@@ -1546,12 +1546,18 @@ export default function AITrainingPlanPage() {
     if (!week) { setIsRegenerating(false); return; }
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        toast.error("Votre session a expiré. Reconnectez-vous avant de régénérer le plan.");
+        return;
+      }
       const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
       const resp = await fetch(PLAN_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           athleteData: athleteContext.data,
@@ -1571,7 +1577,10 @@ export default function AITrainingPlanPage() {
         }),
       });
 
-      if (!resp.ok || !resp.body) throw new Error("Erreur régénération");
+      if (!resp.ok || !resp.body) {
+        const errorBody = await resp.text().catch(() => "");
+        throw new Error(`Service IA HTTP ${resp.status}${errorBody ? ` — ${errorBody.slice(0, 180)}` : ""}`);
+      }
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -1680,12 +1689,18 @@ export default function AITrainingPlanPage() {
       ].filter(Boolean).join("\n");
 
       // Generate the future weeks via AI
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        toast.error("Votre session a expiré. Reconnectez-vous avant de régénérer le plan.");
+        return;
+      }
       const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
       const resp = await fetch(PLAN_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           athleteData: athleteContext.data,
@@ -1693,7 +1708,10 @@ export default function AITrainingPlanPage() {
         }),
       });
 
-      if (!resp.ok || !resp.body) throw new Error("Erreur régénération partielle");
+      if (!resp.ok || !resp.body) {
+        const errorBody = await resp.text().catch(() => "");
+        throw new Error(`Service IA HTTP ${resp.status}${errorBody ? ` — ${errorBody.slice(0, 180)}` : ""}`);
+      }
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
