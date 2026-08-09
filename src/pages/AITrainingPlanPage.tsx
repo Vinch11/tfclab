@@ -1550,6 +1550,23 @@ export default function AITrainingPlanPage() {
       ? requestedSessions
       : Math.max(1, week.sessions.filter(session => !session.isRest).length);
 
+    // Conserver tout le contexte de la génération initiale (branche S2R,
+    // renforcement, limiteurs, interdictions et quotas). Le payload minimal
+    // précédent perdait ces règles et pouvait produire une semaine générique.
+    const fullPlanConfig = buildConfigFromDiag(athleteContext.diagnostic);
+    const existingTrainingSessions = week.sessions
+      .filter(session => !session.isRest)
+      .map(session => `${session.dayName || session.day || "Jour à définir"} — ${session.sport || "course"} — ${session.title || "Séance"}`)
+      .join("\n");
+    const regenerationConstraint = [
+      `CONTRAINTE DE RÉGÉNÉRATION S${weekNumber} : produire exactement ${expectedRealSessions} séances d'entraînement réelles sur la semaine.`,
+      "Les autres jours peuvent être du repos, mais une semaine entièrement composée de repos est strictement interdite.",
+      "Conserver le niveau de progression de cette semaine : ne pas revenir à une semaine d'introduction et ne pas sauter de palier.",
+      existingTrainingSessions
+        ? `STRUCTURE ACTUELLE À AMÉLIORER (référence de charge et de répartition, ne pas recopier mot pour mot) :\n${existingTrainingSessions}`
+        : "La semaine actuelle ne contient aucune structure exploitable : reconstruire les séances selon la progression du plan.",
+    ].join("\n");
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
@@ -1567,13 +1584,10 @@ export default function AITrainingPlanPage() {
         body: JSON.stringify({
           athleteData: athleteContext.data,
           planConfig: {
-            objective: OBJECTIVE_OPTIONS.find(o => o.value === objective)?.label || objective,
-            weeklyHours: parseFloat(weeklyHours) || undefined,
-            sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
-            ambition: AMBITION_OPTIONS.find(a => a.value === ambition)?.label || ambition,
+            ...fullPlanConfig,
             constraints: [
-              constraints || "",
-              `CONTRAINTE DE RÉGÉNÉRATION S${weekNumber} : produire exactement ${expectedRealSessions} séances d'entraînement réelles sur la semaine. Les autres jours peuvent être du repos. Une semaine entièrement composée de repos est strictement interdite.`,
+              fullPlanConfig.constraints || "",
+              regenerationConstraint,
             ].filter(Boolean).join("\n"),
           },
           regenerateWeek: {
@@ -1664,7 +1678,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsRegenerating(false);
     }
-  }, [athleteContext, parsedPlan, rawParsedPlan, planOverride, objective, weeklyHours, sessionsPerWeek, ambition, constraints]);
+  }, [athleteContext, parsedPlan, rawParsedPlan, planOverride, sessionsPerWeek, buildConfigFromDiag, objective]);
 
 
   /**
