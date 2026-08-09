@@ -1516,7 +1516,9 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {currentWeekNumber && currentWeekNumber < plan.totalWeeks
-                            ? `Les semaines 1 à ${currentWeekNumber} déjà réalisées sont conservées.`
+                            ? (currentWeekNumber === 1
+                                ? "La semaine 1 déjà entamée est conservée."
+                                : `Les semaines 1 à ${currentWeekNumber} déjà réalisées sont conservées.`)
                             : "Indisponible : aucune semaine future par rapport à la date du jour."}
                         </span>
                       </DropdownMenuItem>
