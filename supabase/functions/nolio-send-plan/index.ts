@@ -1671,7 +1671,10 @@ Deno.serve(async (req) => {
           body.refs ?? {},
           sportId,
           rpeSession,
-          true, // cible RPE native scalaire Nolio
+          // ❌ Pas de target_type="rpe" : Nolio l'accepte (201) mais l'affiche en
+          // pastille "empty_unit". On envoie no_target et le RPE reste lisible
+          // dans le nom + le commentaire de chaque bloc.
+          false,
         );
         const summary = summarizeStructuredWorkout(normalized);
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
