@@ -268,5 +268,26 @@ export function enrichWithAbsoluteValues(
     return match;
   });
 
+  // Tag d'intention en tête de titre "[Z2 · endurance 65-75% VMA]" : une SEULE
+  // valeur absolue autorisée dans le tag (la première), sinon rendu contradictoire
+  // du type "[Z2 (5:12-6:04/km) · endurance 65-75% VMA (4:51/km)]".
+  out = collapseTagAnnotations(out);
+
   return out;
+}
+
+/** Ne garde qu'une annotation "(…)" dans le tag `[...]` en tête de titre. */
+function collapseTagAnnotations(text: string): string {
+  const m = text.match(/^\s*\[([^\]]*)\]/);
+  if (!m) return text;
+  const inner = m[1];
+  const ANN = /\s*\((?:[^()]*(?:\/km|\/100\s*m|W))\)/g;
+  const hits = inner.match(ANN);
+  if (!hits || hits.length < 2) return text;
+  let seen = false;
+  const cleaned = inner.replace(ANN, (a) => {
+    if (!seen) { seen = true; return a; }
+    return "";
+  });
+  return text.replace(m[0], m[0].replace(inner, cleaned));
 }
