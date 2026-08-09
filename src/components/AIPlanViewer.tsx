@@ -1661,7 +1661,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                   className="text-xs"
                 >
                   {isRegenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <RefreshCw className="h-3.5 w-3.5 mr-1" />}
-                  Régénérer
+                  Régénérer cette semaine
                 </Button>
               )}
             </div>
