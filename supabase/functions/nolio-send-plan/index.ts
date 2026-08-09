@@ -1652,6 +1652,7 @@ Deno.serve(async (req) => {
         date_start: dateStart,
         description: buildDescription(s, sportId, isStartToRunSession(s)),
       };
+      const rpeSession = isStartToRunSession(s);
       if (structured_workout) {
         // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
         // `structured_workout`, peu importe la source (override manuel, structure générée
@@ -1662,7 +1663,7 @@ Deno.serve(async (req) => {
           canonicalizeStructuredShape(structured_workout),
           body.refs ?? {},
           sportId,
-          isStartToRunSession(s),
+          rpeSession,
         );
         const summary = summarizeStructuredWorkout(normalized);
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
@@ -1675,7 +1676,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      const res = await postSession({
+      let res = await postSession({
         url: NOLIO_CREATE_TRAINING_URL,
         accessTokenRef,
         refreshTokenStr,
@@ -1683,6 +1684,27 @@ Deno.serve(async (req) => {
         userId,
         payload,
       });
+
+      // 🛟 Repli : si Nolio refuse la cible `rpe`, on renvoie la même structure
+      // sans cible métrique (le RPE reste dans le nom/notes de chaque bloc).
+      if (!res.ok && rpeSession && structured_workout) {
+        payload.structured_workout = normalizeStructuredWorkoutForNolio(
+          canonicalizeStructuredShape(structured_workout),
+          body.refs ?? {},
+          sportId,
+          true,
+          false,
+        );
+        res = await postSession({
+          url: NOLIO_CREATE_TRAINING_URL,
+          accessTokenRef,
+          refreshTokenStr,
+          admin,
+          userId,
+          payload,
+        });
+      }
+
 
       debugLog.push({
         week: s.weekNumber,
