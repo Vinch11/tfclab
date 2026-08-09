@@ -586,10 +586,10 @@ function normalizeStructuredWorkoutForNolio(
     // métrique et on inscrit le RPE cible dans le nom du step.
     if (rpeMode && src.type === "step") {
       const intensity = String(src.intensity_type ?? "");
-      const rpe = intensity === "rest" || intensity === "cooldown" || intensity === "warmup"
+      const easy = intensity === "rest" || intensity === "cooldown" || intensity === "warmup";
+      const rpe = easy
         ? "RPE 2-3 · marche/footing très facile, conversation aisée"
         : "RPE 4-5 · confortable, phrases complètes possibles";
-      src.target_type = "no_target";
       delete src.target_value;
       delete src.target_value_min;
       delete src.target_value_max;
@@ -597,9 +597,25 @@ function normalizeStructuredWorkoutForNolio(
       delete src.manual_values;
       delete src.step_percent_low;
       delete src.step_percent_high;
+      if (rpeTarget) {
+        // Cible RPE explicite (échelle 1-10) : évite la pastille "empty_unit"
+        // et affiche l'intensité au ressenti directement sur le bloc Nolio.
+        src.target_type = "rpe";
+        src.target_value_min = easy ? 2 : 4;
+        src.target_value_max = easy ? 3 : 5;
+        src.target_value = easy ? 2 : 4;
+      } else {
+        src.target_type = "no_target";
+      }
       const baseName = typeof src.name === "string" ? src.name.trim() : "";
       src.name = baseName && !/RPE/i.test(baseName) ? `${baseName} — ${rpe}` : (baseName || rpe);
+      const shortRpe = easy ? "RPE 2-3" : "RPE 4-5";
+      const baseNotes = typeof src.notes === "string" ? src.notes.trim() : "";
+      src.notes = baseNotes && !/RPE/i.test(baseNotes)
+        ? `${shortRpe} — ${baseNotes}`.slice(0, 500)
+        : (baseNotes || rpe).slice(0, 500);
     }
+
 
     // Rest + no_target → cible Z1 sport-aware (bike: power + step_percent_*, run: HR)
     if (
