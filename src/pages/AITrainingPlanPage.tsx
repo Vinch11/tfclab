@@ -1556,7 +1556,7 @@ export default function AITrainingPlanPage() {
     const fullPlanConfig = buildConfigFromDiag(athleteContext.diagnostic);
     const existingTrainingSessions = week.sessions
       .filter(session => !session.isRest)
-      .map(session => `${session.dayName || session.day || "Jour à définir"} — ${session.sport || "course"} — ${session.title || "Séance"}`)
+      .map(session => `${session.dayName || "Jour à définir"} — ${session.sport || "course"} — ${session.title || "Séance"}`)
       .join("\n");
     const regenerationConstraint = [
       `CONTRAINTE DE RÉGÉNÉRATION S${weekNumber} : produire exactement ${expectedRealSessions} séances d'entraînement réelles sur la semaine.`,
