@@ -600,9 +600,6 @@ function normalizeStructuredWorkoutForNolio(
       // Tout champ supplémentaire (target_value_*, manual_values, notes)
       // fait retomber l'éditeur sur "empty_unit".
       const rebuilt: Record<string, unknown> = {
-        type: "step",
-        // Nolio n'expose pas "rest" : la récup marchée est un bloc cooldown.
-        intensity_type: intensity === "rest" ? "cooldown" : (intensity || "active"),
         step_duration_type: src.step_duration_type ?? "duration",
         step_duration_value: src.step_duration_value,
         name: baseName && /RPE/i.test(baseName)
@@ -610,6 +607,15 @@ function normalizeStructuredWorkoutForNolio(
           : (baseName ? `RPE ${scalarRpe}/10 · ${baseName}` : `RPE ${scalarRpe}/10`),
         comment: baseComment.slice(0, 500),
       };
+      // Le format natif Nolio ne porte PAS `type:"step"` sur les étapes simples
+      // (seul le conteneur de répétition a un `type`). Il omet également
+      // `intensity_type` sur le corps actif. Ces deux champs forçaient l'UI à
+      // interpréter la cible comme une unité métrique vide (`empty_unit`).
+      if (intensity === "rest" || intensity === "cooldown") {
+        rebuilt.intensity_type = "cooldown";
+      } else if (intensity === "warmup") {
+        rebuilt.intensity_type = "warmup";
+      }
       if (rpeTarget) {
         rebuilt.target_type = "rpe";
         rebuilt.rpe = scalarRpe;

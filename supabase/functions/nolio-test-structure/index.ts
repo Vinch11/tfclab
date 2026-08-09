@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
           for (const t of arr) {
             const sid = t.sport_id ?? t.sport ?? null;
             const name = String(t.name ?? "").toLowerCase();
-            if (sid === 19 || name.includes("nat") || name.includes("css") || name.includes("[test]") || name.includes("[probe]")) {
+            if (sid === 19 || name.includes("nat") || name.includes("css") || name.includes("s2r") || name.includes("start to run") || name.includes("[test]") || name.includes("[probe]")) {
               allSwim.push(t);
             }
           }
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
       const byId = new Map<unknown, Record<string, unknown>>();
       for (const t of allSwim) byId.set(t.id ?? t.pk ?? JSON.stringify(t), t);
       const uniqueSwim = Array.from(byId.values());
-      return new Response(JSON.stringify({ mode: "paginate", pages, swim_count: uniqueSwim.length, swim_trainings_raw: uniqueSwim }, null, 2),
+      return new Response(JSON.stringify({ mode: "paginate", matched_count: uniqueSwim.length, matched_trainings_raw: uniqueSwim }, null, 2),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
