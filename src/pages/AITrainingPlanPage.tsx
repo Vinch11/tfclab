@@ -1545,6 +1545,11 @@ export default function AITrainingPlanPage() {
     const week = parsedPlan.weeks.find(w => w.weekNumber === weekNumber);
     if (!week) { setIsRegenerating(false); return; }
 
+    const requestedSessions = parseInt(sessionsPerWeek, 10);
+    const expectedRealSessions = Number.isFinite(requestedSessions) && requestedSessions > 0
+      ? requestedSessions
+      : Math.max(1, week.sessions.filter(session => !session.isRest).length);
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
@@ -1566,7 +1571,10 @@ export default function AITrainingPlanPage() {
             weeklyHours: parseFloat(weeklyHours) || undefined,
             sessionsPerWeek: parseInt(sessionsPerWeek) || undefined,
             ambition: AMBITION_OPTIONS.find(a => a.value === ambition)?.label || ambition,
-            constraints: constraints || undefined,
+            constraints: [
+              constraints || "",
+              `CONTRAINTE DE RÉGÉNÉRATION S${weekNumber} : produire exactement ${expectedRealSessions} séances d'entraînement réelles sur la semaine. Les autres jours peuvent être du repos. Une semaine entièrement composée de repos est strictement interdite.`,
+            ].filter(Boolean).join("\n"),
           },
           regenerateWeek: {
             weekNumber,
@@ -1619,6 +1627,20 @@ export default function AITrainingPlanPage() {
       const newWeek = regenPlan.weeks[0];
       if (!newWeek) {
         toast.error("Réponse IA illisible — semaine inchangée");
+        return;
+      }
+
+      const realSessions = newWeek.sessions.filter(session => !session.isRest);
+      if (realSessions.length !== expectedRealSessions) {
+        console.error("[week-regeneration] rejected invalid session count", {
+          weekNumber,
+          expectedRealSessions,
+          receivedRealSessions: realSessions.length,
+          receivedSessions: newWeek.sessions.length,
+        });
+        toast.error(
+          `Régénération refusée : l’IA a produit ${realSessions.length} séance(s) réelle(s) au lieu de ${expectedRealSessions}. La semaine ${weekNumber} précédente est conservée.`
+        );
         return;
       }
 
