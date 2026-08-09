@@ -87,6 +87,10 @@ const ZONE_RANGE_RX = new RegExp(`\\b(${ZONE_CORE})\\s*-\\s*(${ZONE_CORE})\\b`, 
 const ZONE_RX = new RegExp(`(?<!${ZONE_CORE}\\s*-\\s*)\\b${ZONE_CORE}\\b(?!\\s*-\\s*Z[1-7])`, "gi");
 const PCT_FTP_RX = /\b(\d{2,3})\s*%\s*FTP\b/gi;
 const PCT_VMA_RX = /\b(\d{2,3})\s*%\s*VMA\b/gi;
+// Plages de pourcentage ("65-75% VMA", "88-94% FTP") — annotées comme UN bloc
+// pour éviter le rendu trompeur "65-75% VMA (4:51/km)" (borne haute seule).
+const PCT_RANGE_FTP_RX = /\b(\d{2,3})\s*-\s*(\d{2,3})\s*%\s*FTP\b/gi;
+const PCT_RANGE_VMA_RX = /\b(\d{2,3})\s*-\s*(\d{2,3})\s*%\s*VMA\b/gi;
 const PCT_CSS_RX = /\b(\d{2,3})\s*%\s*CSS\b/gi;
 const CSS_DELTA_RX = /\bCSS\s*([+-])\s*(\d{1,2})\s*s\b/gi;
 // CSS nu : pas suivi de "+/- N" (déjà géré par CSS_DELTA_RX)
