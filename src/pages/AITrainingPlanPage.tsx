@@ -1556,8 +1556,10 @@ export default function AITrainingPlanPage() {
     // Conserver tout le contexte de la génération initiale (branche S2R,
     // renforcement, limiteurs, interdictions et quotas). Le payload minimal
     // précédent perdait ces règles et pouvait produire une semaine générique.
-    const fullPlanConfig = buildConfigFromDiag(athleteContext.diagnostic);
-    fullPlanConfig._outputFormat = "json";
+    const fullPlanConfig: PlanConfig & { _outputFormat?: "json" | "markdown" } = {
+      ...buildConfigFromDiag(athleteContext.diagnostic),
+      _outputFormat: "json",
+    };
     const existingTrainingSessions = week.sessions
       .filter(session => !session.isRest)
       .map(session => `${session.dayName || "Jour à définir"} — ${session.sport || "course"} — ${session.title || "Séance"}`)
