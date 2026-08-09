@@ -142,12 +142,25 @@ function zoneTag(zone: Exclude<Zone, "none">, sport: SportFamily): string {
 
 const TAG_RX = /^\s*\[(VO2(?:\/VMA|\/PMA|\/CSS)?|Race pace|Race power|Marathon|Endurance longue|Seuil|LT2|Tempo|Z2)\b[^\]]*\]\s*/;
 
-function tagSession(s: ParsedSession): boolean {
+function tagSession(s: ParsedSession, isLCW: boolean): boolean {
   if (s.isRest) return false;
   const fullText = `${s.title} ${s.details}`;
   const zone = detectDominantZone(fullText);
   if (zone === "none") return false;
-  const tag = zoneTag(zone, detectSportFamily(s.sport, fullText));
+  const family = detectSportFamily(s.sport, fullText);
+  // Long Course Weekend : l'épreuve est une course à étapes (Ven nat / Sam vélo /
+  // Dim run). Parler d'« allure marathon » ou d'« allure course » générique est
+  // trompeur — on nomme l'allure de l'étape LCW.
+  let tag: string;
+  if (isLCW && (zone === "marathon" || zone === "race")) {
+    tag = family === "bike"
+      ? "[Race power LCW · étape vélo (samedi)]"
+      : family === "swim"
+        ? "[Race pace LCW · étape natation (vendredi)]"
+        : "[Race pace LCW · étape course (dimanche)]";
+  } else {
+    tag = zoneTag(zone, family);
+  }
   if (TAG_RX.test(s.title)) {
     const nextTitle = s.title.replace(TAG_RX, `${tag} `);
     if (nextTitle === s.title) return false;
@@ -162,15 +175,17 @@ export function validatePlanPaces(
   plan: ParsedPlan,
   _paceTargets: PaceTargets | null,
   _objectifEffectif?: string | null,
+  raceFormat?: "continuous" | "lcw_3day" | null,
 ): PaceValidationReport {
   let total = 0;
   let tagged = 0;
+  const isLCW = raceFormat === "lcw_3day";
 
   for (const week of plan.weeks) {
     for (const s of week.sessions) {
       if (s.isRest) continue;
       total += [...(`${s.title} ${s.details}`).matchAll(PACE_RX)].length;
-      if (tagSession(s)) tagged++;
+      if (tagSession(s, isLCW)) tagged++;
     }
   }
 

@@ -87,6 +87,10 @@ const ZONE_RANGE_RX = new RegExp(`\\b(${ZONE_CORE})\\s*-\\s*(${ZONE_CORE})\\b`, 
 const ZONE_RX = new RegExp(`(?<!${ZONE_CORE}\\s*-\\s*)\\b${ZONE_CORE}\\b(?!\\s*-\\s*Z[1-7])`, "gi");
 const PCT_FTP_RX = /\b(\d{2,3})\s*%\s*FTP\b/gi;
 const PCT_VMA_RX = /\b(\d{2,3})\s*%\s*VMA\b/gi;
+// Plages de pourcentage ("65-75% VMA", "88-94% FTP") — annotées comme UN bloc
+// pour éviter le rendu trompeur "65-75% VMA (4:51/km)" (borne haute seule).
+const PCT_RANGE_FTP_RX = /\b(\d{2,3})\s*-\s*(\d{2,3})\s*%\s*FTP\b/gi;
+const PCT_RANGE_VMA_RX = /\b(\d{2,3})\s*-\s*(\d{2,3})\s*%\s*VMA\b/gi;
 const PCT_CSS_RX = /\b(\d{2,3})\s*%\s*CSS\b/gi;
 const CSS_DELTA_RX = /\bCSS\s*([+-])\s*(\d{1,2})\s*s\b/gi;
 // CSS nu : pas suivi de "+/- N" (déjà géré par CSS_DELTA_RX)
@@ -175,6 +179,28 @@ export function enrichWithAbsoluteValues(
     return null;
   });
 
+  // Plages "%FTP" / "%VMA" (avant les tokens simples)
+  if (targetTable.ftpW) {
+    out = replaceWithAnnotation(out, PCT_RANGE_FTP_RX, (m) => {
+      const lo = Number(m[1]);
+      const hi = Number(m[2]);
+      if (!isFinite(lo) || !isFinite(hi)) return null;
+      const a = Math.round((Math.min(lo, hi) / 100) * targetTable.ftpW!);
+      const b = Math.round((Math.max(lo, hi) / 100) * targetTable.ftpW!);
+      return { annotation: `${a}-${b}W`, kind: "W" };
+    });
+  }
+  if (targetTable.vmaKmh) {
+    out = replaceWithAnnotation(out, PCT_RANGE_VMA_RX, (m) => {
+      const lo = Number(m[1]);
+      const hi = Number(m[2]);
+      if (!isFinite(lo) || !isFinite(hi)) return null;
+      const slow = paceFromVma(targetTable.vmaKmh!, Math.min(lo, hi));
+      const fast = paceFromVma(targetTable.vmaKmh!, Math.max(lo, hi));
+      return { annotation: `${fmtPace(fast)}-${fmtPace(slow)}/km`, kind: "km" };
+    });
+  }
+
   // %FTP
   if (targetTable.ftpW) {
     out = replaceWithAnnotation(out, PCT_FTP_RX, (m) => {
@@ -242,5 +268,26 @@ export function enrichWithAbsoluteValues(
     return match;
   });
 
+  // Tag d'intention en tête de titre "[Z2 · endurance 65-75% VMA]" : une SEULE
+  // valeur absolue autorisée dans le tag (la première), sinon rendu contradictoire
+  // du type "[Z2 (5:12-6:04/km) · endurance 65-75% VMA (4:51/km)]".
+  out = collapseTagAnnotations(out);
+
   return out;
+}
+
+/** Ne garde qu'une annotation "(…)" dans le tag `[...]` en tête de titre. */
+function collapseTagAnnotations(text: string): string {
+  const m = text.match(/^\s*\[([^\]]*)\]/);
+  if (!m) return text;
+  const inner = m[1];
+  const ANN = /\s*\((?:[^()]*(?:\/km|\/100\s*m|W))\)/g;
+  const hits = inner.match(ANN);
+  if (!hits || hits.length < 2) return text;
+  let seen = false;
+  const cleaned = inner.replace(ANN, (a) => {
+    if (!seen) { seen = true; return a; }
+    return "";
+  });
+  return text.replace(m[0], m[0].replace(inner, cleaned));
 }
