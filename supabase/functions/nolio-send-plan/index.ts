@@ -897,7 +897,7 @@ function normalizeStructuredWorkoutForNolio(
         out.value = typeof v === "number" ? v : Number(v);
         continue;
       }
-      out[k] = normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode);
+      out[k] = normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode, rpeTarget);
     }
     return out;
   }
