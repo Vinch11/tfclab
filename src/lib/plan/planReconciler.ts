@@ -63,6 +63,8 @@ export interface ReconcilerCounters {
   taper_weeks_enforced?: number;
   s2r_duration_capped?: number;
   s2r_week_resequenced?: number;
+  post_bike_run_moved?: number;
+  post_bike_claim_neutralized?: number;
   s2r_ladder_smoothed?: number;
   s2r_long_run_removed?: number;
   race_day_inserted?: number;
@@ -603,6 +605,76 @@ const S2R_BY_RANK = new Map<number, string>(
 const DAY_RANK: Record<string, number> = {
   lundi: 0, mardi: 1, mercredi: 2, jeudi: 3, vendredi: 4, samedi: 5, dimanche: 6,
 };
+
+/**
+ * Cohérence "run sur jambes fatiguées" : certaines fiches (durabilité IM, LCW,
+ * off-legs) affirment explicitement un gros vélo la veille. Si le placement réel
+ * ne le vérifie pas, l'énoncé devient faux pour l'athlète.
+ * Stratégie : 1) déplacer la séance au lendemain du plus gros vélo de la semaine
+ * si le créneau est libre ; 2) sinon neutraliser l'affirmation dans le texte.
+ */
+const PREV_DAY_BIKE_CLAIM_RX =
+  /\(?\s*lendemain\s+(?:d'un\s+|d'une\s+|du\s+|de\s+la\s+)?(?:gros|grosse|longue?|long)\s+(?:v[ée]lo|sortie\s+v[ée]lo|SST[^).,;]*)[^).,;]*\)?|sur\s+jambes\s+(?:fatigu[ée]es\s+)?(?:v[ée]lo\s+)?(?:de\s+la\s+)?veille|jambes\s+lourdes\s+veille/gi;
+const NEUTRAL_CLAIM = "en fatigue accumulée de fin de bloc";
+const LONG_BIKE_MIN = 90;
+
+function alignPostBikeRunClaims(
+  chunks: PlanChunk[],
+  counters: ReconcilerCounters,
+  logs: string[],
+): void {
+  for (const ch of chunks) {
+    for (const wk of ch.weeks ?? []) {
+      const sessions = (wk.sessions ?? []) as PlanSession[];
+      const rankOf = (s: PlanSession) => DAY_RANK[String((s as any).day ?? "").toLowerCase()] ?? -1;
+      const bikes = sessions.filter(
+        s => ["bike", "brick"].includes(String((s as any).sport)) && Number((s as any).durationMin ?? 0) >= LONG_BIKE_MIN,
+      );
+      const occupied = new Set(sessions.map(rankOf));
+
+      for (const s of sessions) {
+        if (String((s as any).sport) !== "run") continue;
+        const text = `${(s as any).title ?? ""} ${(s as any).details ?? ""}`;
+        if (!PREV_DAY_BIKE_CLAIM_RX.test(text)) continue;
+        PREV_DAY_BIKE_CLAIM_RX.lastIndex = 0;
+
+        const r = rankOf(s);
+        const satisfied = bikes.some(b => rankOf(b) === r - 1);
+        if (satisfied) continue;
+
+        // 1) tentative de replacement au lendemain du plus gros vélo
+        const biggest = bikes
+          .slice()
+          .sort((a, b) => Number((b as any).durationMin ?? 0) - Number((a as any).durationMin ?? 0))[0];
+        const targetRank = biggest ? rankOf(biggest) + 1 : -1;
+        const targetDay = Object.keys(DAY_RANK).find(d => DAY_RANK[d] === targetRank);
+        if (targetDay && targetRank <= 6 && !occupied.has(targetRank)) {
+          occupied.delete(r);
+          (s as any).day = targetDay;
+          occupied.add(targetRank);
+          counters.post_bike_run_moved = (counters.post_bike_run_moved ?? 0) + 1;
+          logs.push(
+            `[post_bike_run_moved] S${wk.weekNumber} "${String((s as any).title).slice(0, 60)}" → ${targetDay} (lendemain du long vélo)`,
+          );
+          continue;
+        }
+
+        // 2) sinon : neutraliser l'affirmation trompeuse
+        const strip = (v: string) =>
+          v
+            .replace(PREV_DAY_BIKE_CLAIM_RX, NEUTRAL_CLAIM)
+            .replace(/\(\s*(?:ou\s+)?fin de bloc[^)]*\)/gi, "(fin de bloc)")
+            .replace(/\s{2,}/g, " ");
+        (s as any).title = strip(String((s as any).title ?? ""));
+        (s as any).details = strip(String((s as any).details ?? ""));
+        counters.post_bike_claim_neutralized = (counters.post_bike_claim_neutralized ?? 0) + 1;
+        logs.push(
+          `[post_bike_claim_neutralized] S${wk.weekNumber} ${(s as any).day} — aucun long vélo la veille, énoncé corrigé`,
+        );
+      }
+    }
+  }
+}
 
 /** Réécrit une séance sur la fiche cible (titre + détails + catalogId). */
 function applyFiche(s: PlanSession, fiche: LibraryWorkout): void {
@@ -1200,6 +1272,7 @@ export function runReconciler(
   }
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
   ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day);
+  alignPostBikeRunClaims(chunks, counters, logs);
 
   hydrateDilutedZones(chunks, counters, logs);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
