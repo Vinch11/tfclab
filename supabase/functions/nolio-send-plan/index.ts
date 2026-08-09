@@ -589,46 +589,41 @@ function normalizeStructuredWorkoutForNolio(
     if (rpeMode && src.type === "step") {
       const intensity = String(src.intensity_type ?? "");
       const easy = intensity === "rest" || intensity === "cooldown" || intensity === "warmup";
-      const rpe = easy
-        ? "RPE 2-3 · marche/footing très facile, conversation aisée"
-        : "RPE 4-5 · confortable, phrases complètes possibles";
-      delete src.target_value;
-      delete src.target_value_min;
-      delete src.target_value_max;
-      delete src.target_unit;
-      delete src.manual_values;
-      delete src.step_percent_low;
-      delete src.step_percent_high;
-      if (rpeTarget) {
-        // ✅ Cible RPE scalaire Nolio : le champ `rpe` porte le ressenti et
-        // `target_value_max` est obligatoire pour toute cible non `no_target`
-        // dans le format public. Ne jamais envoyer de min/max : une fourchette
-        // RPE est requalifiée à tort en bpm par l'éditeur Nolio.
-        const scalarRpe = easy ? 3 : 5;
-        src.target_type = "rpe";
-        src.rpe = scalarRpe;
-        src.target_value_max = scalarRpe;
-        src.manual_values = true;
-      } else {
-        // Repli : aucune cible métrique, le RPE vit dans le nom/notes.
-        src.target_type = "no_target";
-        delete src.rpe;
-      }
-      const shortRpe = rpeTarget
-        ? `RPE ${easy ? 3 : 5}/10`
-        : (easy ? "RPE 2-3" : "RPE 4-5");
+      const scalarRpe = easy ? 3 : 5;
       const baseName = typeof src.name === "string" ? src.name.trim() : "";
-      src.name = baseName && !/RPE/i.test(baseName) ? `${shortRpe} · ${baseName}` : (baseName || rpe);
-      const baseNotes = typeof src.notes === "string" ? src.notes.trim() : "";
-      src.notes = baseNotes && !/RPE/i.test(baseNotes)
-        ? `${shortRpe} — ${baseNotes}`.slice(0, 500)
-        : (baseNotes || rpe).slice(0, 500);
-      if (typeof src.comment !== "string" || !src.comment.trim()) {
-        src.comment = easy ? "Marche / trot très facile" : "Trottiner, conversation possible";
+      const baseComment = typeof src.comment === "string" && src.comment.trim()
+        ? src.comment.trim()
+        : (easy ? "Marche / trot très facile" : "Trottiner, conversation possible");
+
+      // ✅ Format RPE natif Nolio, vérifié par read-back d'une séance créée
+      // manuellement : UNIQUEMENT { target_type:"rpe", rpe:<1-10> }.
+      // Tout champ supplémentaire (target_value_*, manual_values, notes)
+      // fait retomber l'éditeur sur "empty_unit".
+      const rebuilt: Record<string, unknown> = {
+        type: "step",
+        // Nolio n'expose pas "rest" : la récup marchée est un bloc cooldown.
+        intensity_type: intensity === "rest" ? "cooldown" : (intensity || "active"),
+        step_duration_type: src.step_duration_type ?? "duration",
+        step_duration_value: src.step_duration_value,
+        name: baseName && /RPE/i.test(baseName)
+          ? baseName
+          : (baseName ? `RPE ${scalarRpe}/10 · ${baseName}` : `RPE ${scalarRpe}/10`),
+        comment: baseComment.slice(0, 500),
+      };
+      if (rpeTarget) {
+        rebuilt.target_type = "rpe";
+        rebuilt.rpe = scalarRpe;
+      } else {
+        rebuilt.target_type = "no_target";
       }
-
-
+      if (src.step_duration_type === "distance" && src.step_duration_value == null) {
+        rebuilt.step_duration_type = "duration";
+      }
+      for (const k of Object.keys(src)) delete src[k];
+      Object.assign(src, rebuilt);
+      return src;
     }
+
 
 
     // Rest + no_target → cible Z1 sport-aware (bike: power + step_percent_*, run: HR)
