@@ -74,7 +74,7 @@ type NolioStep = {
   step_duration_type: "duration";
   step_duration_value: number;
   intensity_type: "warmup" | "active" | "rest" | "cooldown" | "repetition";
-  target_type: "no_target" | "power" | "pace" | "min/100m" | "heartrate" | "duration";
+  target_type: "no_target" | "power" | "pace" | "min/100m" | "heartrate" | "duration" | "rpe";
   target_unit?: "W" | "%ftp" | "min/km" | "bpm";
 
   target_value_min?: number;
@@ -572,10 +572,12 @@ function normalizeStructuredWorkoutForNolio(
   refs?: AthleteRefs,
   sportId?: number,
   rpeMode = false,
+  rpeTarget = true,
 ): unknown {
   if (Array.isArray(input)) {
     return input
-      .map((v) => normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode))
+      .map((v) => normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode, rpeTarget))
+
       .filter((v) => v !== null && v !== undefined);
   }
   if (input && typeof input === "object") {
@@ -586,10 +588,10 @@ function normalizeStructuredWorkoutForNolio(
     // métrique et on inscrit le RPE cible dans le nom du step.
     if (rpeMode && src.type === "step") {
       const intensity = String(src.intensity_type ?? "");
-      const rpe = intensity === "rest" || intensity === "cooldown" || intensity === "warmup"
+      const easy = intensity === "rest" || intensity === "cooldown" || intensity === "warmup";
+      const rpe = easy
         ? "RPE 2-3 · marche/footing très facile, conversation aisée"
         : "RPE 4-5 · confortable, phrases complètes possibles";
-      src.target_type = "no_target";
       delete src.target_value;
       delete src.target_value_min;
       delete src.target_value_max;
@@ -597,9 +599,25 @@ function normalizeStructuredWorkoutForNolio(
       delete src.manual_values;
       delete src.step_percent_low;
       delete src.step_percent_high;
+      if (rpeTarget) {
+        // Cible RPE explicite (échelle 1-10) : évite la pastille "empty_unit"
+        // et affiche l'intensité au ressenti directement sur le bloc Nolio.
+        src.target_type = "rpe";
+        src.target_value_min = easy ? 2 : 4;
+        src.target_value_max = easy ? 3 : 5;
+        src.target_value = easy ? 2 : 4;
+      } else {
+        src.target_type = "no_target";
+      }
       const baseName = typeof src.name === "string" ? src.name.trim() : "";
       src.name = baseName && !/RPE/i.test(baseName) ? `${baseName} — ${rpe}` : (baseName || rpe);
+      const shortRpe = easy ? "RPE 2-3" : "RPE 4-5";
+      const baseNotes = typeof src.notes === "string" ? src.notes.trim() : "";
+      src.notes = baseNotes && !/RPE/i.test(baseNotes)
+        ? `${shortRpe} — ${baseNotes}`.slice(0, 500)
+        : (baseNotes || rpe).slice(0, 500);
     }
+
 
     // Rest + no_target → cible Z1 sport-aware (bike: power + step_percent_*, run: HR)
     if (
@@ -879,7 +897,7 @@ function normalizeStructuredWorkoutForNolio(
         out.value = typeof v === "number" ? v : Number(v);
         continue;
       }
-      out[k] = normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode);
+      out[k] = normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode, rpeTarget);
     }
     return out;
   }
@@ -1634,6 +1652,7 @@ Deno.serve(async (req) => {
         date_start: dateStart,
         description: buildDescription(s, sportId, isStartToRunSession(s)),
       };
+      const rpeSession = isStartToRunSession(s);
       if (structured_workout) {
         // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
         // `structured_workout`, peu importe la source (override manuel, structure générée
@@ -1644,7 +1663,7 @@ Deno.serve(async (req) => {
           canonicalizeStructuredShape(structured_workout),
           body.refs ?? {},
           sportId,
-          isStartToRunSession(s),
+          rpeSession,
         );
         const summary = summarizeStructuredWorkout(normalized);
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
@@ -1657,7 +1676,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      const res = await postSession({
+      let res = await postSession({
         url: NOLIO_CREATE_TRAINING_URL,
         accessTokenRef,
         refreshTokenStr,
@@ -1665,6 +1684,27 @@ Deno.serve(async (req) => {
         userId,
         payload,
       });
+
+      // 🛟 Repli : si Nolio refuse la cible `rpe`, on renvoie la même structure
+      // sans cible métrique (le RPE reste dans le nom/notes de chaque bloc).
+      if (!res.ok && rpeSession && structured_workout) {
+        payload.structured_workout = normalizeStructuredWorkoutForNolio(
+          canonicalizeStructuredShape(structured_workout),
+          body.refs ?? {},
+          sportId,
+          true,
+          false,
+        );
+        res = await postSession({
+          url: NOLIO_CREATE_TRAINING_URL,
+          accessTokenRef,
+          refreshTokenStr,
+          admin,
+          userId,
+          payload,
+        });
+      }
+
 
       debugLog.push({
         week: s.weekNumber,
