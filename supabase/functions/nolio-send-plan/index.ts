@@ -572,10 +572,12 @@ function normalizeStructuredWorkoutForNolio(
   refs?: AthleteRefs,
   sportId?: number,
   rpeMode = false,
+  rpeTarget = true,
 ): unknown {
   if (Array.isArray(input)) {
     return input
-      .map((v) => normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode))
+      .map((v) => normalizeStructuredWorkoutForNolio(v, refs, sportId, rpeMode, rpeTarget))
+
       .filter((v) => v !== null && v !== undefined);
   }
   if (input && typeof input === "object") {
