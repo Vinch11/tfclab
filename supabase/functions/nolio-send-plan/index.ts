@@ -1672,7 +1672,7 @@ Deno.serve(async (req) => {
           body.refs ?? {},
           sportId,
           rpeSession,
-          false, // pas de target_type "rpe" : Nolio le coerce en bpm
+          true, // cible RPE native Nolio ({ target_type:"rpe", rpe:<1-10> })
         );
         const summary = summarizeStructuredWorkout(normalized);
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
