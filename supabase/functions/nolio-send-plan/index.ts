@@ -591,25 +591,43 @@ function normalizeStructuredWorkoutForNolio(
       const easy = intensity === "rest" || intensity === "cooldown" || intensity === "warmup";
       const scalarRpe = easy ? 3 : 5;
       const baseName = typeof src.name === "string" ? src.name.trim() : "";
-      const baseComment = typeof src.comment === "string" && src.comment.trim()
-        ? src.comment.trim()
-        : (easy ? "Marche / trot très facile" : "Trottiner, conversation possible");
+      const rawComment = typeof src.comment === "string" ? src.comment.trim() : "";
+
+      // 🚶/🏃 Marche vs Course : déduit du libellé, sinon du type d'intensité.
+      const hay = `${baseName} ${rawComment}`.toLowerCase();
+      const saysWalk = /\bmarche\b|marcher/.test(hay);
+      const saysRun = /\btrot\b|trotti|\bcourse\b|courir|\bcours\b/.test(hay);
+      const isWalk = saysWalk && !saysRun ? true : saysRun ? false : easy;
+      const modeLabel = isWalk ? "Marche" : "Course";
+      const modeIcon = isWalk ? "🚶" : "🏃";
+
+      const baseComment = rawComment
+        ? rawComment
+        : (isWalk
+          ? "Marche active, respiration libre"
+          : "Trottiner lentement, conversation possible");
 
       // ✅ Format RPE accepté par l'endpoint de création Nolio (HTTP 201).
       // Le read-back des séances créées manuellement omet parfois `type`, mais
       // l'endpoint POST exige bien `type:"step"` et `intensity_type` sur chaque
       // étape. Leur retrait provoque `400 Structured workout format error`.
+      const cleanedName = baseName
+        .replace(/^(?:🚶|🏃)\s*/u, "")
+        .replace(/^(marche|course)\s*[·:-]\s*/i, "")
+        .trim();
+      const namePrefix = `${modeIcon} ${modeLabel} · RPE ${scalarRpe}/10`;
       const rebuilt: Record<string, unknown> = {
         type: "step",
         intensity_type: intensity || "active",
         step_duration_type: src.step_duration_type ?? "duration",
         step_duration_value: src.step_duration_value,
-        name: baseName && /RPE/i.test(baseName)
-          ? baseName
-          : (baseName ? `RPE ${scalarRpe}/10 · ${baseName}` : `RPE ${scalarRpe}/10`),
-        comment: baseComment.slice(0, 500),
-        notes: `RPE ${scalarRpe}/10 — ${baseComment}`.slice(0, 500),
+        name: cleanedName && cleanedName.toLowerCase() !== modeLabel.toLowerCase()
+          ? `${namePrefix} · ${cleanedName}`
+          : namePrefix,
+        comment: `${modeLabel} — ${baseComment}`.slice(0, 500),
+        notes: `${modeLabel} · RPE ${scalarRpe}/10 — ${baseComment}`.slice(0, 500),
       };
+
       if (rpeTarget) {
         rebuilt.target_type = "rpe";
         rebuilt.rpe = scalarRpe;
