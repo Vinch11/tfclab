@@ -1272,6 +1272,7 @@ export function runReconciler(
   }
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
   ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day);
+  alignPostBikeRunClaims(chunks, counters, logs);
 
   hydrateDilutedZones(chunks, counters, logs);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
