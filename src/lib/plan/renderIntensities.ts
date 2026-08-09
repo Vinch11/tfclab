@@ -179,6 +179,28 @@ export function enrichWithAbsoluteValues(
     return null;
   });
 
+  // Plages "%FTP" / "%VMA" (avant les tokens simples)
+  if (targetTable.ftpW) {
+    out = replaceWithAnnotation(out, PCT_RANGE_FTP_RX, (m) => {
+      const lo = Number(m[1]);
+      const hi = Number(m[2]);
+      if (!isFinite(lo) || !isFinite(hi)) return null;
+      const a = Math.round((Math.min(lo, hi) / 100) * targetTable.ftpW!);
+      const b = Math.round((Math.max(lo, hi) / 100) * targetTable.ftpW!);
+      return { annotation: `${a}-${b}W`, kind: "W" };
+    });
+  }
+  if (targetTable.vmaKmh) {
+    out = replaceWithAnnotation(out, PCT_RANGE_VMA_RX, (m) => {
+      const lo = Number(m[1]);
+      const hi = Number(m[2]);
+      if (!isFinite(lo) || !isFinite(hi)) return null;
+      const slow = paceFromVma(targetTable.vmaKmh!, Math.min(lo, hi));
+      const fast = paceFromVma(targetTable.vmaKmh!, Math.max(lo, hi));
+      return { annotation: `${fmtPace(fast)}-${fmtPace(slow)}/km`, kind: "km" };
+    });
+  }
+
   // %FTP
   if (targetTable.ftpW) {
     out = replaceWithAnnotation(out, PCT_FTP_RX, (m) => {
