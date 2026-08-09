@@ -63,6 +63,8 @@ export interface ReconcilerCounters {
   taper_weeks_enforced?: number;
   s2r_duration_capped?: number;
   s2r_week_resequenced?: number;
+  post_bike_run_moved?: number;
+  post_bike_claim_neutralized?: number;
   s2r_ladder_smoothed?: number;
   s2r_long_run_removed?: number;
   race_day_inserted?: number;
