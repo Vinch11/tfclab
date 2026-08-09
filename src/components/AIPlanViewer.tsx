@@ -1474,14 +1474,70 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
               <Button variant="secondary" size="sm" onClick={handleExportPDFCompact}>
                 <List className="h-4 w-4 mr-1" /> PDF condensé
               </Button>
-              {onRegenerateFutureWeeks && currentWeekNumber && currentWeekNumber < plan.totalWeeks && (
-                <Button variant="outline" size="sm" onClick={onRegenerateFutureWeeks} disabled={isRegenerating}>
-                  {isRegenerating ? (
-                    <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Régénération...</>
-                  ) : (
-                    <><RefreshCw className="h-4 w-4 mr-1" /> Régénérer S{currentWeekNumber + 1}+</>
-                  )}
-                </Button>
+              {(onRegenerateWeek || onRegenerateFutureWeeks || onRegenerateAll) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={isRegenerating}>
+                      {isRegenerating ? (
+                        <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Régénération...</>
+                      ) : (
+                        <><RefreshCw className="h-4 w-4 mr-1" /> Régénérer…</>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[340px]">
+                    <DropdownMenuLabel>Que voulez-vous régénérer ?</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {onRegenerateWeek && (
+                      <DropdownMenuItem
+                        className="flex-col items-start gap-0.5 py-2"
+                        onSelect={() => onRegenerateWeek(currentWeek.weekNumber)}
+                      >
+                        <span className="font-medium">
+                          Uniquement la semaine affichée (S{currentWeek.weekNumber})
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Rapide. Le reste du plan reste identique.
+                        </span>
+                      </DropdownMenuItem>
+                    )}
+                    {onRegenerateFutureWeeks && (
+                      <DropdownMenuItem
+                        className="flex-col items-start gap-0.5 py-2"
+                        disabled={!currentWeekNumber || currentWeekNumber >= plan.totalWeeks}
+                        onSelect={() => onRegenerateFutureWeeks()}
+                      >
+                        <span className="font-medium">
+                          À partir d'aujourd'hui
+                          {currentWeekNumber && currentWeekNumber < plan.totalWeeks
+                            ? ` (S${currentWeekNumber + 1} → S${plan.totalWeeks})`
+                            : ""}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {currentWeekNumber && currentWeekNumber < plan.totalWeeks
+                            ? `Les semaines 1 à ${currentWeekNumber} déjà réalisées sont conservées.`
+                            : "Indisponible : aucune semaine future par rapport à la date du jour."}
+                        </span>
+                      </DropdownMenuItem>
+                    )}
+                    {onRegenerateAll && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="flex-col items-start gap-0.5 py-2"
+                          onSelect={() => onRegenerateAll()}
+                        >
+                          <span className="font-medium">
+                            Tout le plan (S1 → S{plan.totalWeeks})
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Repart de zéro depuis la date de début. Remplace le plan actuel.
+                          </span>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {onSaveToPlan && (
                 <Button size="sm" onClick={onSaveToPlan} disabled={isSaving || isSaved}>
