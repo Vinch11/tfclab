@@ -1613,7 +1613,7 @@ export default function AITrainingPlanPage() {
       existingTrainingSessions
         ? `STRUCTURE ACTUELLE À AMÉLIORER (référence de charge et de répartition, ne pas recopier mot pour mot) :\n${existingTrainingSessions}`
         : "La semaine actuelle ne contient aucune structure exploitable : reconstruire les séances selon la progression du plan.",
-    ].join("\n");
+    ].filter(Boolean).join("\n");
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
