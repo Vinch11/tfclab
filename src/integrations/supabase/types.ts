@@ -1661,7 +1661,10 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          duration_by_phase: Json
           duration_min: number
+          duration_min_high: number | null
+          duration_min_low: number | null
           id: string
           intensity_tag: string | null
           phase_tag: string
@@ -1672,7 +1675,10 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          duration_by_phase?: Json
           duration_min?: number
+          duration_min_high?: number | null
+          duration_min_low?: number | null
           id: string
           intensity_tag?: string | null
           phase_tag: string
@@ -1683,7 +1689,10 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          duration_by_phase?: Json
           duration_min?: number
+          duration_min_high?: number | null
+          duration_min_low?: number | null
           id?: string
           intensity_tag?: string | null
           phase_tag?: string

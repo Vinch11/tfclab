@@ -57,9 +57,10 @@ Deno.serve(async (req) => {
       sport: w.sport || w.sportKey || "mixed",
       phase_tag: Array.isArray(w.phase) ? w.phase.join(",") : w.phase || "base",
       intensity_tag: extractIntensity(w),
-      duration_min: Array.isArray(w.durationMin) 
-        ? Math.round((w.durationMin[0] + w.durationMin[1]) / 2) 
-        : w.durationMin || 60,
+      duration_min: resolveCanonicalDuration(w, "build") || 60,
+      duration_min_low: durationBounds(w)[0],
+      duration_min_high: durationBounds(w)[1],
+      duration_by_phase: buildDurationByPhase(w),
       description: buildDescription(w),
     }));
 
@@ -113,6 +114,53 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+/* ── Durées canoniques par phase (miroir de src/lib/plan/workoutDurationResolver.ts) ── */
+const PHASES = ["base", "build", "peak", "taper"] as const;
+type Phase = typeof PHASES[number];
+const PHASE_DURATION_WEIGHT: Record<Phase, number> = {
+  base: 0.25,
+  build: 0.55,
+  peak: 0.85,
+  taper: 0.1,
+};
+
+function durationBounds(w: any): [number, number] {
+  const d = w?.durationMin;
+  if (Array.isArray(d)) {
+    const lo = Number(d[0]) || 0;
+    const hi = Number(d[1]) || lo;
+    return [lo, hi];
+  }
+  const v = Number(d) || 0;
+  return [v, v];
+}
+
+function roundDuration(min: number): number {
+  const step = min >= 120 ? 10 : 5;
+  return Math.round(min / step) * step;
+}
+
+function resolveCanonicalDuration(w: any, phase: Phase): number {
+  const [lo, hi] = durationBounds(w);
+  const explicit = w?.durationByPhase?.[phase];
+  if (typeof explicit === "number" && Number.isFinite(explicit) && explicit > 0) {
+    return Math.min(Math.max(explicit, lo), hi || explicit);
+  }
+  if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= 0) return 0;
+  if (hi <= lo) return roundDuration(lo);
+  const raw = lo + (hi - lo) * PHASE_DURATION_WEIGHT[phase];
+  return Math.min(hi, Math.max(lo, roundDuration(raw)));
+}
+
+function buildDurationByPhase(w: any): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const p of PHASES) {
+    const v = resolveCanonicalDuration(w, p);
+    if (v > 0) out[p] = v;
+  }
+  return out;
+}
 
 function extractIntensity(w: any): string | null {
   if (!w.structure || !Array.isArray(w.structure)) return w.metricKey || null;
