@@ -138,3 +138,25 @@ describe("weeklySlotLayout — diffLayoutVsWeek", () => {
     expect(drifts.some(d => d.dayName === "samedi")).toBe(true);
   });
 });
+
+describe("plancher fréquence course taper/race", () => {
+  const quota = {
+    swim: { min: 1, max: 2 }, bike: { min: 1, max: 2 }, run: { min: 0, max: 1 },
+    brick: { min: 0, max: 0 }, strength: { min: 0, max: 0 },
+    maxSessionsPerDay: 2, minFullRestDays: 1,
+  } as any;
+  const floors = { minSwimPerWeek: 1, minStrengthPerWeek: 0, longRideWeekly: false, longRunWeekly: false } as any;
+
+  it("garantit ≥2 créneaux course en semaine de course", () => {
+    const l = buildWeeklySlotLayout(quota, floors, "race", { finalStageSport: "run" });
+    const runs = l.days.flatMap(d => d.slots).filter(s => s.sport === "run");
+    expect(runs.length).toBeGreaterThanOrEqual(2);
+    expect(runs.every(s => s.isActivation)).toBe(true);
+  });
+
+  it("ne change rien en semaine de charge", () => {
+    const l = buildWeeklySlotLayout(quota, floors, "load");
+    const runs = l.days.flatMap(d => d.slots).filter(s => s.sport === "run");
+    expect(runs.every(s => !s.isActivation)).toBe(true);
+  });
+});
