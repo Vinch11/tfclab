@@ -1865,6 +1865,15 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         currentTitle={replaceTarget?.title ?? ""}
         onChoose={applyReplacement}
       />
+
+      {/* Régénération avec contraintes ponctuelles */}
+      <RegenerationConstraintsDialog
+        open={!!regenDialog}
+        onOpenChange={(o) => { if (!o) setRegenDialog(null); }}
+        scope={regenDialog?.scope ?? "week"}
+        scopeLabel={regenDialog?.label ?? ""}
+        onConfirm={(extra) => { const d = regenDialog; setRegenDialog(null); d?.run(extra); }}
+      />
     </div>
     </TargetTableProvider>
   );
