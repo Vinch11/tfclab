@@ -337,6 +337,8 @@ export default function AITrainingPlanPage() {
   // Restore persisted plan + config on athlete change (single mode only)
   useEffect(() => {
     if (isMultiMode) return;
+    let cancelled = false;
+
     // Try plan_active_<id> first (full plan + timestamp)
     let activeRestored = false;
     let restoredStart: string | null = null;
