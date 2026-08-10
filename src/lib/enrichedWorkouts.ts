@@ -796,8 +796,8 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [65, 80],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["AM", "40' Z2 fondamentale", ["Z2"]],
-      ["PM", "30' avec 3x5' Z4 (Allure Semi) R:2'. Qualité sur jambes pré-fatiguées", ["Z2", "Z4"]]
+      ["Main", "AM — 40' Z2 fondamentale (allure conversationnelle, cadence 175-180 ppm)", ["Z2"]],
+      ["Main", "PM (≥6h après) — 15' échauffement Z1-Z2 + 3×5' Z4 (Allure Semi) R:2' trot Z1 + 5' retour au calme. Qualité sur jambes pré-fatiguées", ["Z2", "Z4"]]
     ]),
     variants: { marathon: "AM 50' Z2 + PM 25' (2x8' Z4)", semi: "AM 40' + PM 30' (3x5' Z4)" },
     goals: GOALS_RUN,
@@ -876,8 +876,10 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
       ["Warm-up", "10' mobilité dynamique: mobilité hanches, activation fessiers bande élastique, squats progressifs légers", []],
-      ["AM", "Force (30-35'): Back Squat 4×5 @80-85% 1RM + Deadlift 4×5 @80-85% 1RM + Fentes marchées 3×8/côté + Hip thrust 3×10 + Mollets debout 3×12. R:2-3' entre séries lourdes", []],
-      ["Note", "PM: Séance endurance Z2 après ≥6h de récup. 30g protéines + 50g glucides dans les 30' post-AM obligatoire", []]
+      ["Main", "AM — Force max (30-35'): Back Squat 4×5 @80-85% 1RM · Deadlift 4×5 @80-85% 1RM · Fentes marchées 3×8/côté · Hip thrust 3×10 · Mollets debout 3×12. R:2-3' entre séries lourdes, exécution concentrique explosive / excentrique contrôlée 2-3\"", []],
+      ["Main", "PM (≥6h après) — Endurance Z2 45-60' (vélo ou course, allure conversationnelle). Ne jamais enchaîner force → endurance dans la même fenêtre de 6h (interférence AMPK/mTOR)", ["Z2"]],
+      ["Cool-down", "5-8' mobilité hanches/chevilles + étirements dynamiques légers (pas d'étirement statique long post-force)", []],
+      ["Note", "Ravitaillement obligatoire dans les 30' post-AM : 30g protéines + 50g glucides. Max 2×/semaine, jamais en affûtage.", []]
     ]),
     variants: { ironman: "2x/semaine en Build", marathon: "1-2x/semaine en Build" },
     goals: GOALS_ALL,
