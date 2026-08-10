@@ -132,3 +132,31 @@ export function detectLegacyTaperGap(
   if (fixedWeeks.length === 0) return null;
   return { required, before, fixedWeeks };
 }
+
+/**
+ * Le bandeau « Affûtage recalculé » ne doit s'afficher que si le CONTENU des
+ * semaines terminales est réellement resté à un volume de bloc de développement.
+ * Sur un plan fraîchement généré ou régénéré, le réconciliateur produit déjà un
+ * vrai affûtage : seule l'étiquette manquait dans le markdown brut, ce qui
+ * déclenchait un faux positif permanent.
+ *
+ * Retourne `true` si le volume des semaines visées est déjà réduit (≤ 70 % du
+ * pic de volume du plan) — auquel cas il n'y a rien à signaler.
+ */
+export function taperVolumeAlreadyReduced(
+  plan: ParsedPlan,
+  weekNumbers: number[],
+): boolean {
+  const volumeOf = (w: ParsedPlan["weeks"][number]) =>
+    typeof w.computedVolumeMin === "number" && w.computedVolumeMin > 0 ? w.computedVolumeMin : null;
+
+  const targets = plan.weeks.filter((w) => weekNumbers.includes(w.weekNumber));
+  const others = plan.weeks.filter((w) => !weekNumbers.includes(w.weekNumber));
+  const targetVols = targets.map(volumeOf).filter((v): v is number => v !== null);
+  const peak = Math.max(0, ...others.map(volumeOf).filter((v): v is number => v !== null));
+  if (targetVols.length === 0 || peak <= 0) return false; // volumes inconnus → on ne masque pas
+
+  const maxTaper = Math.max(...targetVols);
+  return maxTaper <= peak * 0.7;
+}
+
