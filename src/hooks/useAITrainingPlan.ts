@@ -526,7 +526,14 @@ export function useAITrainingPlan() {
             const red = applyBannedSportsRedistribution(adj, bannedSportsForQuota);
             adj = { quota: red.quota, floors: red.floors };
           }
-          const layout: WeeklySlotLayout = buildWeeklySlotLayout(adj.quota, adj.floors, weekType);
+          // Format LCW 3 jours : l'étape décisive est le run du dimanche →
+          // la CAP est servie en premier dans le layout de la semaine de course.
+          const isLCWFormat = Array.isArray((planConfig as any)?.raceGoals)
+            && (planConfig as any).raceGoals.some((g: any) => g?.raceFormat === "lcw_3day");
+          const layout: WeeklySlotLayout = buildWeeklySlotLayout(adj.quota, adj.floors, weekType, {
+            finalStageSport: isLCWFormat ? "run" : undefined,
+          });
+
           weeklyQuotas[w] = { quota: adj.quota, floors: adj.floors, weekType, downgraded: q0.downgraded, downgradeReason: q0.downgradeReason, layout };
         }
       }
