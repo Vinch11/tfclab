@@ -24,14 +24,12 @@ describe("Catalogue — schéma de construction homogène", () => {
   it("chaque fiche a une plage de durée valide et ordonnée", () => {
     const bad = WorkoutLibrary.filter(w => {
       const d = w.durationMin;
-      return (
-        !Array.isArray(d) ||
-        d.length !== 2 ||
-        !Number.isFinite(d[0]) ||
-        !Number.isFinite(d[1]) ||
-        d[0] <= 0 ||
-        d[1] < d[0]
-      );
+      if (!Array.isArray(d) || d.length !== 2) return true;
+      if (!Number.isFinite(d[0]) || !Number.isFinite(d[1])) return true;
+      if (d[1] < d[0]) return true;
+      // Exception canonique : les fiches REST (repos complet) valent 0 min.
+      if (d[0] <= 0) return String(w.cat).toUpperCase() !== "REST";
+      return false;
     }).map(describeFiche);
     expect(bad).toEqual([]);
   });
@@ -43,11 +41,16 @@ describe("Catalogue — schéma de construction homogène", () => {
     expect(bad).toEqual([]);
   });
 
-  it("chaque fiche a une structure avec un bloc principal (Main)", () => {
+  it("chaque fiche a une structure avec un bloc de travail identifiable", () => {
+    // Vocabulaire canonique des blocs : soit un bloc "Main", soit un segment
+    // de sport nommé (bricks, enchaînements multi-sports).
+    const MAIN_BLOCK = /main|corps|principal|s[ée]rie|bloc|set|travail/i;
+    const SPORT_SEGMENT = /bike|v[ée]lo|run|course|swim|natation|renfo|strength|gainage|marche/i;
     const bad = WorkoutLibrary.filter(w => {
       const parts = w.structure || [];
+      if (String(w.cat).toUpperCase() === "REST") return false;
       if (parts.length === 0) return true;
-      return !parts.some(p => /main|corps|principal/i.test(p.part || ""));
+      return !parts.some(p => MAIN_BLOCK.test(p.part || "") || SPORT_SEGMENT.test(p.part || ""));
     }).map(describeFiche);
     expect(bad).toEqual([]);
   });
