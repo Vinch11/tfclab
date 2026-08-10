@@ -394,8 +394,39 @@ export default function AITrainingPlanPage() {
         if (!isNaN(d.getTime())) setPlanStartDate(startOfWeek(d, { weekStartsOn: 1 }));
       } catch {}
     }
+
+    // Brouillon non sauvegardé (régénérations ciblées) — restauré tel quel.
+    if (draftKey) {
+      try {
+        const rawDraft = localStorage.getItem(draftKey);
+        if (rawDraft) {
+          const draft = JSON.parse(rawDraft);
+          if (draft?.planOverride) {
+            setPlanOverride(draft.planOverride as ParsedPlan);
+            setIsSaved(false);
+            toast.info("Brouillon de plan non sauvegardé restauré");
+          }
+        } else {
+          setPlanOverride(null);
+        }
+      } catch { setPlanOverride(null); }
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
+
+  // Persiste le brouillon non sauvegardé (régénérations ciblées) à chaque
+  // modification, y compris avant que l'onglet ne soit déchargé.
+  useEffect(() => {
+    if (isMultiMode || !draftKey) return;
+    try {
+      if (planOverride && !isSaved) {
+        localStorage.setItem(draftKey, JSON.stringify({ planOverride, savedAt: new Date().toISOString() }));
+      } else {
+        localStorage.removeItem(draftKey);
+      }
+    } catch {}
+  }, [draftKey, isMultiMode, planOverride, isSaved]);
+
 
 
   // Reset saved state when regenerating
