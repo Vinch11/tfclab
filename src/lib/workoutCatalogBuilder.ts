@@ -42,6 +42,8 @@ export interface CatalogEntry {
   objectif: string;
   phase: string[];
   durationMin: [number, number];
+  /** Durée cible résolue déterministiquement pour la phase dominante du chunk. */
+  canonicalDurationMin?: number;
   structure: string; // Condensed single-line
   variants?: string;
   dPlusTargetM?: number | { min: number; max: number };
