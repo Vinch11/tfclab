@@ -1032,7 +1032,7 @@ export default function AITrainingPlanPage() {
     }
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (extraConstraints?: string) => {
     // Une génération complète invalide toute régénération ciblée précédente.
     setPlanOverride(null);
 
@@ -1079,6 +1079,9 @@ export default function AITrainingPlanPage() {
       config._expressFinisherPromptPrefix = `PROFIL EXPRESS FINISHER — confiance 60%. Pour toutes les prescriptions d’intensité, utiliser UNIQUEMENT les pourcentages de FCmax et le RPE. Format obligatoire : « 65-75% FCmax (RPE 5-6/10 — effort confortable, conversation possible) ». Ne jamais écrire de valeurs absolues en bpm, watts ou min/km. Exemples corrects : « Z2 : 65-75% FCmax (RPE 5-6/10) », « Z3 : 75-83% FCmax (RPE 6-7/10) », « Z4 : 83-90% FCmax (RPE 7-8/10) ». Exemples interdits : « 130 bpm », « 250W », « 4:30/km ». Pour la natation : utiliser uniquement RPE et description sensorielle (« allure où tu peux souffler toutes les 3 foulées »). Pour les durées : toujours en minutes, jamais en km. Objectif unique : que l’athlète termine la course en bonne santé et avec le sourire.`;
     }
     expressFlagRef.current = false;
+    if (extraConstraints && extraConstraints.trim()) {
+      config.constraints = [config.constraints || "", extraConstraints.trim()].filter(Boolean).join("\n");
+    }
     if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
     generatePlan(athleteContext.data, config);
   };
@@ -1579,7 +1582,7 @@ export default function AITrainingPlanPage() {
     return Math.floor(days / 7) + 1;
   }, [planStartDate]);
 
-  const handleRegenerateWeek = useCallback(async (weekNumber: number) => {
+  const handleRegenerateWeek = useCallback(async (weekNumber: number, extraConstraints?: string) => {
     if (!athleteContext || !parsedPlan) return;
     setIsRegenerating(true);
 
@@ -1606,10 +1609,11 @@ export default function AITrainingPlanPage() {
       `CONTRAINTE DE RÉGÉNÉRATION S${weekNumber} : produire exactement ${expectedRealSessions} séances d'entraînement réelles sur la semaine.`,
       "Les autres jours peuvent être du repos, mais une semaine entièrement composée de repos est strictement interdite.",
       "Conserver le niveau de progression de cette semaine : ne pas revenir à une semaine d'introduction et ne pas sauter de palier.",
+      extraConstraints?.trim() || "",
       existingTrainingSessions
         ? `STRUCTURE ACTUELLE À AMÉLIORER (référence de charge et de répartition, ne pas recopier mot pour mot) :\n${existingTrainingSessions}`
         : "La semaine actuelle ne contient aucune structure exploitable : reconstruire les séances selon la progression du plan.",
-    ].join("\n");
+    ].filter(Boolean).join("\n");
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -1750,7 +1754,7 @@ export default function AITrainingPlanPage() {
    * Regenerate only future weeks (after today) while preserving past weeks.
    * Archives current plan, generates a new plan for remaining weeks, then merges.
    */
-  const handleRegenerateFutureWeeks = useCallback(async () => {
+  const handleRegenerateFutureWeeks = useCallback(async (extraConstraints?: string) => {
     if (!athleteContext || !parsedPlan || !currentAthlete) return;
     
     const futureStartWeek = currentWeekNumber + 1;
@@ -1786,6 +1790,7 @@ export default function AITrainingPlanPage() {
         : "";
       config.constraints = [
         config.constraints || "",
+        extraConstraints?.trim() || "",
         `CONTEXTE IMPORTANT: Ce plan est une CONTINUATION. Les semaines 1 à ${currentWeekNumber} sont déjà réalisées. Génère UNIQUEMENT les semaines ${futureStartWeek} à ${totalWeeks}. Numérote-les de S${futureStartWeek} à S${totalWeeks}. Phase déjà couverte : ${pastPhaseSummary}`,
       ].filter(Boolean).join("\n");
 
@@ -2865,12 +2870,12 @@ export default function AITrainingPlanPage() {
                         isSaved={isSaved}
                         onRegenerateWeek={handleRegenerateWeek}
                         onRegenerateFutureWeeks={handleRegenerateFutureWeeks}
-                        onRegenerateAll={() => {
+                        onRegenerateAll={(extraConstraints) => {
                           const ok = window.confirm(
                             `Régénérer TOUT le plan depuis la date de début (${format(planStartDate, "dd/MM/yyyy")}) ?\n\nLe plan actuel sera remplacé, y compris les semaines déjà passées.`
                           );
                           if (!ok) return;
-                          void handleGenerate();
+                          void handleGenerate(extraConstraints);
                         }}
                         isRegenerating={isRegenerating}
                         athleteName={currentAthlete?.nom}

@@ -61,6 +61,7 @@ import { SessionReplaceDialog, libSportToPlanSport } from "@/components/SessionR
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+import { RegenerationConstraintsDialog, type RegenerationScope } from "@/components/plan/RegenerationConstraintsDialog";
 
 
 
@@ -829,9 +830,9 @@ interface AIPlanViewerProps {
   onSaveToPlan?: () => void;
   isSaving?: boolean;
   isSaved?: boolean;
-  onRegenerateWeek?: (weekNumber: number) => void;
-  onRegenerateFutureWeeks?: () => void;
-  onRegenerateAll?: () => void;
+  onRegenerateWeek?: (weekNumber: number, extraConstraints?: string) => void;
+  onRegenerateFutureWeeks?: (extraConstraints?: string) => void;
+  onRegenerateAll?: (extraConstraints?: string) => void;
   isRegenerating?: boolean;
   athleteName?: string;
   athleteId?: string;
@@ -851,6 +852,8 @@ interface AIPlanViewerProps {
 }
 
 export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext }: AIPlanViewerProps) {
+  // Régénération avec contraintes ponctuelles (imprévus : piscine fermée, etc.)
+  const [regenDialog, setRegenDialog] = useState<null | { scope: RegenerationScope; label: string; run: (extra: string) => void }>(null);
   // Persist selected week per athlete (restored on mount/athlete change)
   const weekStorageKey = athleteId ? `plan_current_week_${athleteId}` : null;
   const [selectedWeek, setSelectedWeek] = useState<number>(() => {
@@ -1492,7 +1495,11 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                     {onRegenerateWeek && (
                       <DropdownMenuItem
                         className="flex-col items-start gap-0.5 py-2"
-                        onSelect={() => onRegenerateWeek(currentWeek.weekNumber)}
+                        onSelect={() => setRegenDialog({
+                          scope: "week",
+                          label: `Semaine ${currentWeek.weekNumber} uniquement — le reste du plan est conservé.`,
+                          run: (extra) => onRegenerateWeek(currentWeek.weekNumber, extra || undefined),
+                        })}
                       >
                         <span className="font-medium">
                           Uniquement la semaine affichée (S{currentWeek.weekNumber})
@@ -1506,7 +1513,11 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                       <DropdownMenuItem
                         className="flex-col items-start gap-0.5 py-2"
                         disabled={!currentWeekNumber || currentWeekNumber >= plan.totalWeeks}
-                        onSelect={() => onRegenerateFutureWeeks()}
+                        onSelect={() => setRegenDialog({
+                          scope: "future",
+                          label: `Semaines S${(currentWeekNumber ?? 0) + 1} → S${plan.totalWeeks}. Les semaines passées sont conservées.`,
+                          run: (extra) => onRegenerateFutureWeeks(extra || undefined),
+                        })}
                       >
                         <span className="font-medium">
                           À partir d'aujourd'hui
@@ -1528,7 +1539,11 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="flex-col items-start gap-0.5 py-2"
-                          onSelect={() => onRegenerateAll()}
+                          onSelect={() => setRegenDialog({
+                            scope: "all",
+                            label: `Tout le plan (S1 → S${plan.totalWeeks}). Le plan actuel sera remplacé.`,
+                            run: (extra) => onRegenerateAll(extra || undefined),
+                          })}
                         >
                           <span className="font-medium">
                             Tout le plan (S1 → S{plan.totalWeeks})
@@ -1539,8 +1554,14 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
                         </DropdownMenuItem>
                       </>
                     )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                      Chaque option permet d'ajouter des contraintes ponctuelles
+                      (ex. pas de natation, volume réduit).
+                    </DropdownMenuLabel>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
               )}
               {onSaveToPlan && (
                 <Button size="sm" onClick={onSaveToPlan} disabled={isSaving || isSaved}>
@@ -1843,6 +1864,15 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         currentSport={replaceTarget?.sport ?? ""}
         currentTitle={replaceTarget?.title ?? ""}
         onChoose={applyReplacement}
+      />
+
+      {/* Régénération avec contraintes ponctuelles */}
+      <RegenerationConstraintsDialog
+        open={!!regenDialog}
+        onOpenChange={(o) => { if (!o) setRegenDialog(null); }}
+        scope={regenDialog?.scope ?? "week"}
+        scopeLabel={regenDialog?.label ?? ""}
+        onConfirm={(extra) => { const d = regenDialog; setRegenDialog(null); d?.run(extra); }}
       />
     </div>
     </TargetTableProvider>
