@@ -2743,7 +2743,7 @@ export default function AITrainingPlanPage() {
                       <Button variant="ghost" size="sm" onClick={handleCopy}>
                         {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => { if (!window.confirm("Supprimer le plan sauvegardé pour cet athlète ? Cette action est irréversible.")) return; reset(); setIsSaved(false); setLoadedFromCacheAt(null); if (persistKey) localStorage.removeItem(persistKey); if (activePlanKey) localStorage.removeItem(activePlanKey); }}>
+                      <Button variant="ghost" size="sm" onClick={() => { if (!window.confirm("Supprimer le plan sauvegardé pour cet athlète ? Cette action est irréversible.")) return; reset(); setIsSaved(false); setLoadedFromCacheAt(null); if (persistKey) localStorage.removeItem(persistKey); if (activePlanKey) localStorage.removeItem(activePlanKey); if (draftKey) localStorage.removeItem(draftKey); setPlanOverride(null); }}>
                         <RotateCcw className="h-4 w-4" />
                       </Button>
                     </div>
