@@ -25,6 +25,7 @@ export async function syncWorkoutsToCloud(): Promise<SyncResult> {
     phase: w.phase,
     avoid: w.avoid,
     durationMin: w.durationMin,
+    durationByPhase: w.durationByPhase,
     metricKey: w.metricKey,
     structure: w.structure,
     variants: w.variants,
