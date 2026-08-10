@@ -1709,6 +1709,7 @@ export type Database = {
     Functions: {
       _read_nolio_cron_secret: { Args: never; Returns: string }
       _trigger_nolio_daily_cron: { Args: never; Returns: number }
+      is_staff_coach: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
