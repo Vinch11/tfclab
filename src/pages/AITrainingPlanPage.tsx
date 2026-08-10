@@ -1591,7 +1591,22 @@ export default function AITrainingPlanPage() {
       return;
     }
     setResponse(md);
-    setPlanStartDate(startOfWeek(startDate, { weekStartsOn: 1 }));
+    const startAnchored = startOfWeek(startDate, { weekStartsOn: 1 });
+    setPlanStartDate(startAnchored);
+    // Persiste immédiatement la version ouverte comme "plan actif" de l'athlète :
+    // au retour sur la page (ou après refresh), c'est bien CE plan qui est rechargé.
+    if (activePlanKey) {
+      try {
+        localStorage.setItem(
+          activePlanKey,
+          JSON.stringify({
+            response: md,
+            generatedAt: (version as { created_at?: string }).created_at || new Date().toISOString(),
+            planStartDate: format(startAnchored, "yyyy-MM-dd"),
+          }),
+        );
+      } catch { /* quota */ }
+    }
     // Objectif : stocké dans les plans récents, déduit du titre pour les anciens
     // (indispensable pour que la règle d'affûtage déterministe s'applique).
     const loadedObjective = pj._objective || inferObjectiveFromPlan(pj);
@@ -1601,7 +1616,7 @@ export default function AITrainingPlanPage() {
     setResultView("interactive");
     setIsSaved(true);
     toast.success("Version chargée");
-  }, [setResponse]);
+  }, [setResponse, activePlanKey]);
 
   const handleLoadVersion = useCallback((version: { plan_json: any }) => {
     // Ancrage calendaire automatique des plans ANCIENS : si la date de début
