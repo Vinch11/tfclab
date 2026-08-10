@@ -1099,7 +1099,13 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
     lines.push(sep);
     for (const e of entries) {
       const phases = e.phase.join(",") || "all";
-      const dur = `${e.durationMin[0]}-${e.durationMin[1]}`;
+      // Durée CIBLE canonique (déterministe) plutôt qu'une plage large que
+      // l'IA devrait deviner. La plage d'origine reste indiquée si étroite.
+      const dur = e.canonicalDurationMin
+        ? (e.durationMin[1] - e.durationMin[0] > 60
+            ? `${e.canonicalDurationMin}`
+            : `${e.canonicalDurationMin} (${e.durationMin[0]}-${e.durationMin[1]})`)
+        : `${e.durationMin[0]}-${e.durationMin[1]}`;
       const struct = e.structure.length > 120 ? e.structure.slice(0, 117) + "..." : e.structure;
       const zoneCible = ficheZoneCibleLabel(e.id);
       const dPlus = e.dPlusTargetM
