@@ -42,7 +42,7 @@ import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type P
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
-import { upgradeLegacyTaper, detectLegacyTaperGap, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
+import { upgradeLegacyTaper, detectLegacyTaperGap, taperVolumeAlreadyReduced, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
 import { LegacyTaperBanner } from "@/components/plan/LegacyTaperBanner";
 
 
@@ -1022,12 +1022,19 @@ export default function AITrainingPlanPage() {
     // Mise à niveau des plans ANCIENS : affûtage minimal déterministe.
     // Idempotent — no-op si le plan respecte déjà la règle (cas normal après
     // le réconciliateur).
-    const taperFix = upgradeLegacyTaper(plan, objective || null) ?? preTaperGap;
+    const taperCandidate = upgradeLegacyTaper(plan, objective || null) ?? preTaperGap;
+    // Anti faux positif : si le volume des semaines terminales est déjà réduit
+    // (plan frais ou régénéré), il n'y a rien à corriger → pas de bandeau.
+    const taperFix =
+      taperCandidate && taperVolumeAlreadyReduced(plan, taperCandidate.fixedWeeks)
+        ? null
+        : taperCandidate;
     if (taperFix) {
       // eslint-disable-next-line no-console
       console.log("🩹 [legacy] taper corrigé", taperFix);
     }
     return { plan, taperFix: taperFix ?? null };
+
   }, [rawParsedPlan, athleteContext, buildConfigFromDiag, objective]);
 
   const parsedPlan = parsedPlanWithMeta?.plan ?? null;
