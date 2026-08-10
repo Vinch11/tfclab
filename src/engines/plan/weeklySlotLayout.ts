@@ -257,9 +257,11 @@ export function formatWeeklySlotLayoutLine(weekNumber: number, layout: WeeklySlo
     const inner = d.slots.map(s => {
       const tags: string[] = [SPORT_LABEL[s.sport]];
       if (s.isLongSession) tags.push(`SL ≥${s.minDurationMin ?? "?"}min`);
+      else if (s.isActivation) tags.push(`(activation ${s.minDurationMin ?? 20}-${s.maxDurationMin ?? 30}min : Z1 + 4-5×30" allure course)`);
       else if (s.isKeySession) tags.push("(qualité)");
       return tags.join(" ");
     }).join(" + ");
+
     return `${DAY_LABEL[d.dayName]}: ${inner}`;
   });
   return `Semaine ${weekNumber} (${layout.weekType}) — structure IMPOSÉE : ${parts.join(" · ")}`;
