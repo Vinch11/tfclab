@@ -13,6 +13,7 @@ import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, resolveLimiterK
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
 import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
+import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LIMITER → INTENT FAMILIES (F-LIM-COVERAGE)
@@ -42,6 +43,8 @@ export interface CatalogEntry {
   objectif: string;
   phase: string[];
   durationMin: [number, number];
+  /** Durée cible résolue déterministiquement pour la phase dominante du chunk. */
+  canonicalDurationMin?: number;
   structure: string; // Condensed single-line
   variants?: string;
   dPlusTargetM?: number | { min: number; max: number };
@@ -968,6 +971,8 @@ export function buildWorkoutCatalog(
 
   // Convert to compact entries
 
+  const chunkPhase = dominantPhase(phases as PhaseTag[]);
+
   return selected.map(w => ({
     id: w.id,
     cat: w.cat,
@@ -975,6 +980,7 @@ export function buildWorkoutCatalog(
     objectif: w.objectif,
     phase: w.phase || [],
     durationMin: w.durationMin,
+    canonicalDurationMin: resolveCanonicalDuration(w, chunkPhase),
     structure: condenseStructure(w),
     variants: pickVariant(w, goals),
     ...(w.dPlusTargetM ? { dPlusTargetM: w.dPlusTargetM } : {}),
@@ -1087,8 +1093,8 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   const ordered = Array.from(buckets.values()).sort((a, b) => a.info.order - b.info.order);
 
   const header = hasTrailDPlus
-    ? "| ID | Cat | Objectif | Phases | Durée (min) | D+ cible (m) | Zone-cible | Structure |"
-    : "| ID | Cat | Objectif | Phases | Durée (min) | Zone-cible | Structure |";
+    ? "| ID | Cat | Objectif | Phases | Durée cible (min) | D+ cible (m) | Zone-cible | Structure |"
+    : "| ID | Cat | Objectif | Phases | Durée cible (min) | Zone-cible | Structure |";
   const sep = hasTrailDPlus
     ? "|-----|-----|----------|--------|-------------|--------------|------------|-----------|"
     : "|-----|-----|----------|--------|-------------|------------|-----------|";
@@ -1099,7 +1105,13 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
     lines.push(sep);
     for (const e of entries) {
       const phases = e.phase.join(",") || "all";
-      const dur = `${e.durationMin[0]}-${e.durationMin[1]}`;
+      // Durée CIBLE canonique (déterministe) plutôt qu'une plage large que
+      // l'IA devrait deviner. La plage d'origine reste indiquée si étroite.
+      const dur = e.canonicalDurationMin
+        ? (e.durationMin[1] - e.durationMin[0] > 60
+            ? `${e.canonicalDurationMin}`
+            : `${e.canonicalDurationMin} (${e.durationMin[0]}-${e.durationMin[1]})`)
+        : `${e.durationMin[0]}-${e.durationMin[1]}`;
       const struct = e.structure.length > 120 ? e.structure.slice(0, 117) + "..." : e.structure;
       const zoneCible = ficheZoneCibleLabel(e.id);
       const dPlus = e.dPlusTargetM
@@ -1128,7 +1140,7 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   lines.push("2. Format Détails OBLIGATOIRE : `<protocole complet en 1-3 phrases avec chiffres précis>. [ID: <CATALOG_ID>]` — l'ID en fin entre crochets, JAMAIS seul.");
   lines.push("   ❌ INTERDIT : `| Mardi | CAP | TTE Intro Seuil | ID: B_RUN_TEMPO_PROGRESSIVE |`");
   lines.push("   ✅ CORRECT : `| Mardi | CAP | 🔑 TTE Intro Seuil | 15min éch Z2. 4×6min @seuil (88% VMA) r=2min trot. 15min RC. 1h05 total. [ID: B_RUN_TEMPO_PROGRESSIVE] |`");
-  lines.push("3. Adapte la durée selon la semaine (progression) mais garde le protocole.");
+  lines.push("3. ⏱️ **Durée cible = valeur unique déjà résolue pour la phase en cours.** Prescris cette durée (tolérance ±15% pour la progression hebdomadaire). N'écris JAMAIS une plage large du type `2h-3h50` dans une séance : une séance = une durée précise.");
   lines.push("4. Si aucune séance du catalogue ne correspond, tu PEUX créer une séance custom (décris le protocole complet, mentionne 'CUSTOM' au lieu de l'ID).");
   lines.push("5. Les séances de récupération et repos ne nécessitent pas d'ID catalogue (mais gardent une description : durée, zone, type).");
   lines.push("6. 🚫 **NON-CROSS-SPORT** : chaque ID vit dans UN SEUL groupe sport ci-dessus. Un slot vélo ne peut recevoir qu'un ID du groupe 🚴 VÉLO ; un slot course qu'un ID 🏃 COURSE (⛰️ TRAIL uniquement si l'objectif du plan est un trail) ; un slot natation qu'un ID 🏊 NATATION ; un slot renfo qu'un ID 💪 RENFO. Les IDs 🔁 BRICK sont réservés aux enchaînements planifiés comme tels. Toute violation = séance rejetée.");

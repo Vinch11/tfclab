@@ -89,6 +89,12 @@ export interface LibraryWorkout {
   phase?: PhaseTag[];
   avoid: string;
   durationMin: [number, number];
+  /**
+   * Durée canonique (minutes) prescrite par phase. Optionnel : quand absent,
+   * `resolveCanonicalDuration` interpole déterministiquement dans `durationMin`.
+   * Évite de dupliquer une fiche en plusieurs variantes de durée.
+   */
+  durationByPhase?: Partial<Record<PhaseTag, number>>;
   metricKey: TrainingMetric;
   sportKey: string;
   structure: WorkoutStructurePart[];
