@@ -59,10 +59,9 @@ export function SidebarLayout({
             {/* Staff mode indicator badge - refined */}
             {staffMode && (
               <Badge
-                variant="secondary"
-                className="bg-primary/8 text-primary border-primary/15 text-[10px] sm:text-xs py-0.5 px-1.5 sm:py-0.5 sm:px-2 md:ml-0"
+                className="staff-expert-badge bg-primary text-primary-foreground border-transparent text-[10px] sm:text-xs py-0.5 px-1.5 sm:py-0.5 sm:px-2 md:ml-0 font-semibold shadow-sm"
               >
-                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-1 sm:mr-1.5 animate-pulse" />
+                <span className="w-1.5 h-1.5 bg-primary-foreground/80 rounded-full mr-1 sm:mr-1.5 animate-pulse" />
                 Expert
               </Badge>
             )}
