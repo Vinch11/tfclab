@@ -57,12 +57,27 @@ function midpoint(r: { min: number; max: number }): number {
   return Math.round((r.min + r.max) / 2);
 }
 
+export interface SlotLayoutOptions {
+  /**
+   * Sport de l'épreuve décisive (dernière étape en LCW 3 jours).
+   * En semaine de course, ce sport est servi EN PREMIER dans le round-robin.
+   */
+  finalStageSport?: LayoutSport;
+  /**
+   * Plancher de fréquence course en semaine taper/race (défaut 2).
+   * Mettre 0 pour désactiver.
+   */
+  taperRunFrequencyFloor?: number;
+}
+
 /** Construit un layout hebdo déterministe à partir du quota et floors. */
 export function buildWeeklySlotLayout(
   quota: WeeklyQuota,
   floors: SizingFloors,
   weekType: WeekType,
+  opts: SlotLayoutOptions = {},
 ): WeeklySlotLayout {
+
   // Cibles par sport (midpoint clampé) — respecte floors nat / strength.
   const targets: Record<LayoutSport, number> = {
     swim: Math.max(floors.minSwimPerWeek ?? 0, quota.swim.min, midpoint(quota.swim)),
