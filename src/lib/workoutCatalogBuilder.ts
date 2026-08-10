@@ -1093,8 +1093,8 @@ export function serializeCatalogForPrompt(catalog: CatalogEntry[]): string {
   const ordered = Array.from(buckets.values()).sort((a, b) => a.info.order - b.info.order);
 
   const header = hasTrailDPlus
-    ? "| ID | Cat | Objectif | Phases | Durée (min) | D+ cible (m) | Zone-cible | Structure |"
-    : "| ID | Cat | Objectif | Phases | Durée (min) | Zone-cible | Structure |";
+    ? "| ID | Cat | Objectif | Phases | Durée cible (min) | D+ cible (m) | Zone-cible | Structure |"
+    : "| ID | Cat | Objectif | Phases | Durée cible (min) | Zone-cible | Structure |";
   const sep = hasTrailDPlus
     ? "|-----|-----|----------|--------|-------------|--------------|------------|-----------|"
     : "|-----|-----|----------|--------|-------------|------------|-----------|";
