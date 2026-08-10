@@ -25,9 +25,18 @@ export interface DaySlot {
   sport: LayoutSport;
   isLongSession?: boolean;
   isKeySession?: boolean;
+  /**
+   * Créneau "activation" (taper / semaine de course) : volume minimal,
+   * fréquence préservée (Mujika & Padilla 2003 : on coupe le volume, pas la
+   * fréquence ni l'intensité).
+   */
+  isActivation?: boolean;
   /** Durée plancher (min) pour SL, propagée depuis floors. */
   minDurationMin?: number;
+  /** Durée plafond indicative (min) — utilisée pour les créneaux activation. */
+  maxDurationMin?: number;
 }
+
 
 export interface DayLayout {
   dayName: DayName;
