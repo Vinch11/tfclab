@@ -2534,7 +2534,7 @@ export default function AITrainingPlanPage() {
             {/* Generate Button */}
             {!isMultiMode ? (
               <Button
-                onClick={handleGenerate}
+                onClick={() => { void handleGenerate(); }}
                 disabled={isLoading || !hasData}
                 className="w-full"
                 size="lg"
