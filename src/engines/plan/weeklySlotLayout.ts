@@ -25,9 +25,18 @@ export interface DaySlot {
   sport: LayoutSport;
   isLongSession?: boolean;
   isKeySession?: boolean;
+  /**
+   * Créneau "activation" (taper / semaine de course) : volume minimal,
+   * fréquence préservée (Mujika & Padilla 2003 : on coupe le volume, pas la
+   * fréquence ni l'intensité).
+   */
+  isActivation?: boolean;
   /** Durée plancher (min) pour SL, propagée depuis floors. */
   minDurationMin?: number;
+  /** Durée plafond indicative (min) — utilisée pour les créneaux activation. */
+  maxDurationMin?: number;
 }
+
 
 export interface DayLayout {
   dayName: DayName;
@@ -48,12 +57,27 @@ function midpoint(r: { min: number; max: number }): number {
   return Math.round((r.min + r.max) / 2);
 }
 
+export interface SlotLayoutOptions {
+  /**
+   * Sport de l'épreuve décisive (dernière étape en LCW 3 jours).
+   * En semaine de course, ce sport est servi EN PREMIER dans le round-robin.
+   */
+  finalStageSport?: LayoutSport;
+  /**
+   * Plancher de fréquence course en semaine taper/race (défaut 2).
+   * Mettre 0 pour désactiver.
+   */
+  taperRunFrequencyFloor?: number;
+}
+
 /** Construit un layout hebdo déterministe à partir du quota et floors. */
 export function buildWeeklySlotLayout(
   quota: WeeklyQuota,
   floors: SizingFloors,
   weekType: WeekType,
+  opts: SlotLayoutOptions = {},
 ): WeeklySlotLayout {
+
   // Cibles par sport (midpoint clampé) — respecte floors nat / strength.
   const targets: Record<LayoutSport, number> = {
     swim: Math.max(floors.minSwimPerWeek ?? 0, quota.swim.min, midpoint(quota.swim)),
@@ -130,35 +154,77 @@ export function buildWeeklySlotLayout(
     }
   }
 
-  // 5) Round-robin natation d'abord (souvent doublon matin)
+  // ─── 4bis) PLANCHER FRÉQUENCE COURSE en semaine taper / course ─────────────
+  // Mujika & Padilla 2003 / Bosquet 2007 : lors de l'affûtage on réduit le
+  // VOLUME (−40 à −60 %) mais on PRÉSERVE la fréquence et l'intensité.
+  // Or, en semaine comprimée, la CAP était servie en dernier dans le
+  // round-robin et tombait souvent à 0 créneau → jambes "éteintes" le jour J.
+  // On garantit ici un minimum de créneaux course courts (activation).
+  const isTaperish = weekType === "taper" || weekType === "race";
+  const runFloor = opts.taperRunFrequencyFloor ?? 2;
+  if (isTaperish && runFloor > 0) {
+    const placedRun = days.reduce((n, d) => n + d.slots.filter(s => s.sport === "run").length, 0);
+    const need = runFloor - (placedRun + remaining.run);
+    if (need > 0) {
+      remaining.run += need;
+      targets.run += need;
+    }
+  }
+
+  // ─── 5) Round-robin de remplissage ────────────────────────────────────────
+  // Ordre de service : en semaine de course, le sport de l'épreuve décisive
+  // passe EN PREMIER (sinon il est confisqué par les autres disciplines).
+  // En taper/race, la CAP passe systématiquement devant le vélo.
   const midweek: DayName[] = ["mardi", "mercredi", "jeudi", "vendredi"];
   const rrSwim: DayName[] = ["mardi", "jeudi", "mercredi", "vendredi", "dimanche"];
-  for (const d of rrSwim) {
-    if (remaining.swim <= 0) break;
-    if (!canAdd(d) || hasSportOn(d, "swim")) continue;
-    findDay(d).slots.push({ sport: "swim" });
-    remaining.swim--;
-  }
-
-  // 6) Vélo restant (qualité) — mardi, jeudi (48h entre séances qualité).
-  //    Jamais bike autonome le même jour qu'un brick (brick contient déjà bike).
   const rrBike: DayName[] = ["mardi", "jeudi", "mercredi", "vendredi"];
-  for (const d of rrBike) {
-    if (remaining.bike <= 0) break;
-    if (!canAdd(d) || hasSportOn(d, "bike") || hasSportOn(d, "brick")) continue;
-    findDay(d).slots.push({ sport: "bike", isKeySession: !hasSportOn(d, "run") });
-    remaining.bike--;
-  }
+  const rrRun: DayName[] = isTaperish
+    ? ["mardi", "jeudi", "mercredi", "vendredi", "samedi"]
+    : ["mercredi", "vendredi", "mardi", "jeudi", "samedi"];
 
-  // 7) CAP restant — mercredi, vendredi puis samedi (si samedi libre).
-  //    RÈGLE COACHING PHASE 2A.3 : jamais un run autonome le même jour qu'un brick.
-  const rrRun: DayName[] = ["mercredi", "vendredi", "mardi", "jeudi", "samedi"];
-  for (const d of rrRun) {
-    if (remaining.run <= 0) break;
-    if (!canAdd(d) || hasSportOn(d, "run") || hasSportOn(d, "brick")) continue;
-    findDay(d).slots.push({ sport: "run", isKeySession: !hasSportOn(d, "bike") });
-    remaining.run--;
+  const fillSwim = () => {
+    for (const d of rrSwim) {
+      if (remaining.swim <= 0) break;
+      if (!canAdd(d) || hasSportOn(d, "swim")) continue;
+      findDay(d).slots.push({ sport: "swim" });
+      remaining.swim--;
+    }
+  };
+  // Vélo restant (qualité) — jamais bike autonome le même jour qu'un brick.
+  const fillBike = () => {
+    for (const d of rrBike) {
+      if (remaining.bike <= 0) break;
+      if (!canAdd(d) || hasSportOn(d, "bike") || hasSportOn(d, "brick")) continue;
+      findDay(d).slots.push({ sport: "bike", isKeySession: !hasSportOn(d, "run") });
+      remaining.bike--;
+    }
+  };
+  // CAP restante — RÈGLE 2A.3 : jamais un run autonome le même jour qu'un brick.
+  const fillRun = () => {
+    for (const d of rrRun) {
+      if (remaining.run <= 0) break;
+      if (!canAdd(d) || hasSportOn(d, "run") || hasSportOn(d, "brick")) continue;
+      findDay(d).slots.push(
+        isTaperish
+          ? { sport: "run", isActivation: true, minDurationMin: 20, maxDurationMin: 30 }
+          : { sport: "run", isKeySession: !hasSportOn(d, "bike") },
+      );
+      remaining.run--;
+    }
+  };
+
+  const fillers: Record<"swim" | "bike" | "run", () => void> = {
+    swim: fillSwim, bike: fillBike, run: fillRun,
+  };
+  let order: Array<"swim" | "bike" | "run"> = isTaperish
+    ? ["run", "swim", "bike"]
+    : ["swim", "bike", "run"];
+  const stage = opts.finalStageSport;
+  if (weekType === "race" && stage && (stage === "swim" || stage === "bike" || stage === "run")) {
+    order = [stage, ...order.filter(s => s !== stage)];
   }
+  for (const s of order) fillers[s]();
+
 
   // 8) Renfo — jour à ≤1 séance existante, JAMAIS vendredi (veille SL vélo),
   //    jamais sur un jour de brick (redondance charge).
@@ -191,9 +257,11 @@ export function formatWeeklySlotLayoutLine(weekNumber: number, layout: WeeklySlo
     const inner = d.slots.map(s => {
       const tags: string[] = [SPORT_LABEL[s.sport]];
       if (s.isLongSession) tags.push(`SL ≥${s.minDurationMin ?? "?"}min`);
+      else if (s.isActivation) tags.push(`(activation ${s.minDurationMin ?? 20}-${s.maxDurationMin ?? 30}min : Z1 + 4-5×30" allure course)`);
       else if (s.isKeySession) tags.push("(qualité)");
       return tags.join(" ");
     }).join(" + ");
+
     return `${DAY_LABEL[d.dayName]}: ${inner}`;
   });
   return `Semaine ${weekNumber} (${layout.weekType}) — structure IMPOSÉE : ${parts.join(" · ")}`;
