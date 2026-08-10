@@ -27,8 +27,15 @@ describe("Catalogue — schéma de construction homogène", () => {
       if (!Array.isArray(d) || d.length !== 2) return true;
       if (!Number.isFinite(d[0]) || !Number.isFinite(d[1])) return true;
       if (d[1] < d[0]) return true;
-      // Exception canonique : les fiches REST (repos complet) valent 0 min.
-      if (d[0] <= 0) return String(w.cat).toUpperCase() !== "REST";
+      // Exceptions canoniques à durée nulle : repos complet et protocoles
+      // non chronométrés (nutrition, recharge glycogénique).
+      if (d[0] <= 0) {
+        const isRest = String(w.cat).toUpperCase() === "REST";
+        const isProtocol = /nutrition|recharge|protocole|hydratation/i.test(
+          `${w.sportKey} ${w.objectif} ${(w.tags || []).join(" ")}`
+        );
+        return !isRest && !isProtocol;
+      }
       return false;
     }).map(describeFiche);
     expect(bad).toEqual([]);
@@ -46,11 +53,16 @@ describe("Catalogue — schéma de construction homogène", () => {
     // de sport nommé (bricks, enchaînements multi-sports).
     const MAIN_BLOCK = /main|corps|principal|s[ée]rie|bloc|set|travail/i;
     const SPORT_SEGMENT = /bike|v[ée]lo|run|course|swim|natation|renfo|strength|gainage|marche/i;
+    // Séances fractionnées dans la journée ou protocoles séquencés par étape.
+    const SEQUENCE_SEGMENT = /^\s*(am|pm)\b|[ée]tape|post-|pr[ée]-/i;
     const bad = WorkoutLibrary.filter(w => {
       const parts = w.structure || [];
       if (String(w.cat).toUpperCase() === "REST") return false;
       if (parts.length === 0) return true;
-      return !parts.some(p => MAIN_BLOCK.test(p.part || "") || SPORT_SEGMENT.test(p.part || ""));
+      return !parts.some(p => {
+        const label = p.part || "";
+        return MAIN_BLOCK.test(label) || SPORT_SEGMENT.test(label) || SEQUENCE_SEGMENT.test(label);
+      });
     }).map(describeFiche);
     expect(bad).toEqual([]);
   });
