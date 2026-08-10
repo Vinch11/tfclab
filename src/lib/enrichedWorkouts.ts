@@ -876,8 +876,10 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     metricKey: "cardiaque", sportKey: "tout sport",
     structure: mk([
       ["Warm-up", "10' mobilité dynamique: mobilité hanches, activation fessiers bande élastique, squats progressifs légers", []],
-      ["AM", "Force (30-35'): Back Squat 4×5 @80-85% 1RM + Deadlift 4×5 @80-85% 1RM + Fentes marchées 3×8/côté + Hip thrust 3×10 + Mollets debout 3×12. R:2-3' entre séries lourdes", []],
-      ["Note", "PM: Séance endurance Z2 après ≥6h de récup. 30g protéines + 50g glucides dans les 30' post-AM obligatoire", []]
+      ["Main", "AM — Force max (30-35'): Back Squat 4×5 @80-85% 1RM · Deadlift 4×5 @80-85% 1RM · Fentes marchées 3×8/côté · Hip thrust 3×10 · Mollets debout 3×12. R:2-3' entre séries lourdes, exécution concentrique explosive / excentrique contrôlée 2-3\"", []],
+      ["Main", "PM (≥6h après) — Endurance Z2 45-60' (vélo ou course, allure conversationnelle). Ne jamais enchaîner force → endurance dans la même fenêtre de 6h (interférence AMPK/mTOR)", ["Z2"]],
+      ["Cool-down", "5-8' mobilité hanches/chevilles + étirements dynamiques légers (pas d'étirement statique long post-force)", []],
+      ["Note", "Ravitaillement obligatoire dans les 30' post-AM : 30g protéines + 50g glucides. Max 2×/semaine, jamais en affûtage.", []]
     ]),
     variants: { ironman: "2x/semaine en Build", marathon: "1-2x/semaine en Build" },
     goals: GOALS_ALL,
