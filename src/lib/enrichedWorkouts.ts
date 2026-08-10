@@ -796,8 +796,8 @@ export const EnrichedWorkouts: LibraryWorkout[] = [
     durationMin: [65, 80],
     metricKey: "allure", sportKey: "course",
     structure: mk([
-      ["AM", "40' Z2 fondamentale", ["Z2"]],
-      ["PM", "30' avec 3x5' Z4 (Allure Semi) R:2'. Qualité sur jambes pré-fatiguées", ["Z2", "Z4"]]
+      ["Main", "AM — 40' Z2 fondamentale (allure conversationnelle, cadence 175-180 ppm)", ["Z2"]],
+      ["Main", "PM (≥6h après) — 15' échauffement Z1-Z2 + 3×5' Z4 (Allure Semi) R:2' trot Z1 + 5' retour au calme. Qualité sur jambes pré-fatiguées", ["Z2", "Z4"]]
     ]),
     variants: { marathon: "AM 50' Z2 + PM 25' (2x8' Z4)", semi: "AM 40' + PM 30' (3x5' Z4)" },
     goals: GOALS_RUN,
