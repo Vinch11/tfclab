@@ -1242,6 +1242,56 @@ function addDaysYMD(startYMD: string, days: number): string {
   return dt.toISOString().slice(0, 10);
 }
 
+/**
+ * 🏊 NATATION — pause de 1 min entre les blocs.
+ * Nolio n'insère aucun repos implicite entre deux blocs successifs : une séance
+ * "300m / 400m / 4×500m" s'affiche comme un enchaînement continu. On insère donc
+ * un step `rest` de 60 s entre chaque bloc de premier niveau (sauf si un repos
+ * est déjà présent), ce qui correspond à la pratique bassin réelle :
+ *   300m — 1' — 400m — 1' — 4×500m (r=15") — 1' — retour au calme.
+ */
+const SWIM_BLOCK_REST_SEC = 60;
+
+function isRestNode(node: unknown): boolean {
+  if (!node || typeof node !== "object") return false;
+  const n = node as Record<string, unknown>;
+  return n.type === "step" && String(n.intensity_type ?? "") === "rest";
+}
+
+function makeSwimBlockRest(): Record<string, unknown> {
+  return {
+    type: "step",
+    intensity_type: "rest",
+    step_duration_type: "duration",
+    step_duration_value: SWIM_BLOCK_REST_SEC,
+    target_type: "no_target",
+    name: "Pause 1'",
+    comment: "Récupération entre blocs",
+  };
+}
+
+function insertSwimBlockRests(input: unknown): unknown {
+  const withRests = (steps: unknown[]): unknown[] => {
+    const out: unknown[] = [];
+    steps.forEach((step, i) => {
+      if (i > 0 && !isRestNode(step) && !isRestNode(steps[i - 1])) {
+        out.push(makeSwimBlockRest());
+      }
+      out.push(step);
+    });
+    return out;
+  };
+
+  if (Array.isArray(input)) return withRests(input);
+  if (input && typeof input === "object") {
+    const src = input as Record<string, unknown>;
+    if (Array.isArray(src.steps)) return { ...src, steps: withRests(src.steps) };
+  }
+  return input;
+}
+
+
+
 function summarizeStructuredWorkout(input: unknown): { durationSec: number; distanceMeters: number } {
   const visit = (node: unknown): { durationSec: number; distanceMeters: number } => {
     if (Array.isArray(node)) {
