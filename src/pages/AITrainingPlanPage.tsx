@@ -42,7 +42,7 @@ import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type P
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
-import { upgradeLegacyTaper, detectLegacyTaperGap, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
+import { upgradeLegacyTaper, detectLegacyTaperGap, taperVolumeAlreadyReduced, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
 import { LegacyTaperBanner } from "@/components/plan/LegacyTaperBanner";
 
 
