@@ -970,6 +970,8 @@ export function buildWorkoutCatalog(
 
   // Convert to compact entries
 
+  const chunkPhase = dominantPhase(phases as PhaseTag[]);
+
   return selected.map(w => ({
     id: w.id,
     cat: w.cat,
@@ -977,6 +979,7 @@ export function buildWorkoutCatalog(
     objectif: w.objectif,
     phase: w.phase || [],
     durationMin: w.durationMin,
+    canonicalDurationMin: resolveCanonicalDuration(w, chunkPhase),
     structure: condenseStructure(w),
     variants: pickVariant(w, goals),
     ...(w.dPlusTargetM ? { dPlusTargetM: w.dPlusTargetM } : {}),
