@@ -275,7 +275,14 @@ export default function AITrainingPlanPage() {
   const persistKey = currentAthlete ? `tfcl_ai_plan_${currentAthlete.id}` : null;
   // Active plan key (full plan JSON + generation timestamp, never overwritten without explicit confirmation)
   const activePlanKey = currentAthlete ? `plan_active_${currentAthlete.id}` : null;
+  /**
+   * Brouillon local NON sauvegardé (régénérations ciblées non encore persistées
+   * en base). Sans ça, quitter l'onglet (Safari iOS recharge la page) faisait
+   * perdre tout le travail de régénération.
+   */
+  const draftKey = currentAthlete ? `tfcl_ai_plan_draft_${currentAthlete.id}` : null;
   const [loadedFromCacheAt, setLoadedFromCacheAt] = useState<string | null>(null);
+
 
   // Form state — restore from localStorage if available
   const savedState = useMemo(() => {
@@ -387,8 +394,39 @@ export default function AITrainingPlanPage() {
         if (!isNaN(d.getTime())) setPlanStartDate(startOfWeek(d, { weekStartsOn: 1 }));
       } catch {}
     }
+
+    // Brouillon non sauvegardé (régénérations ciblées) — restauré tel quel.
+    if (draftKey) {
+      try {
+        const rawDraft = localStorage.getItem(draftKey);
+        if (rawDraft) {
+          const draft = JSON.parse(rawDraft);
+          if (draft?.planOverride) {
+            setPlanOverride(draft.planOverride as ParsedPlan);
+            setIsSaved(false);
+            toast.info("Brouillon de plan non sauvegardé restauré");
+          }
+        } else {
+          setPlanOverride(null);
+        }
+      } catch { setPlanOverride(null); }
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
+
+  // Persiste le brouillon non sauvegardé (régénérations ciblées) à chaque
+  // modification, y compris avant que l'onglet ne soit déchargé.
+  useEffect(() => {
+    if (isMultiMode || !draftKey) return;
+    try {
+      if (planOverride && !isSaved) {
+        localStorage.setItem(draftKey, JSON.stringify({ planOverride, savedAt: new Date().toISOString() }));
+      } else {
+        localStorage.removeItem(draftKey);
+      }
+    } catch {}
+  }, [draftKey, isMultiMode, planOverride, isSaved]);
+
 
 
   // Reset saved state when regenerating
@@ -2705,7 +2743,7 @@ export default function AITrainingPlanPage() {
                       <Button variant="ghost" size="sm" onClick={handleCopy}>
                         {copied ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => { if (!window.confirm("Supprimer le plan sauvegardé pour cet athlète ? Cette action est irréversible.")) return; reset(); setIsSaved(false); setLoadedFromCacheAt(null); if (persistKey) localStorage.removeItem(persistKey); if (activePlanKey) localStorage.removeItem(activePlanKey); }}>
+                      <Button variant="ghost" size="sm" onClick={() => { if (!window.confirm("Supprimer le plan sauvegardé pour cet athlète ? Cette action est irréversible.")) return; reset(); setIsSaved(false); setLoadedFromCacheAt(null); if (persistKey) localStorage.removeItem(persistKey); if (activePlanKey) localStorage.removeItem(activePlanKey); if (draftKey) localStorage.removeItem(draftKey); setPlanOverride(null); }}>
                         <RotateCcw className="h-4 w-4" />
                       </Button>
                     </div>
