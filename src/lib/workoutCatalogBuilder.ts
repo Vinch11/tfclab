@@ -13,6 +13,7 @@ import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, resolveLimiterK
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
 import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
+import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LIMITER → INTENT FAMILIES (F-LIM-COVERAGE)
