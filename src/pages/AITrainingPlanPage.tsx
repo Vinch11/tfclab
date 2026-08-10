@@ -275,7 +275,14 @@ export default function AITrainingPlanPage() {
   const persistKey = currentAthlete ? `tfcl_ai_plan_${currentAthlete.id}` : null;
   // Active plan key (full plan JSON + generation timestamp, never overwritten without explicit confirmation)
   const activePlanKey = currentAthlete ? `plan_active_${currentAthlete.id}` : null;
+  /**
+   * Brouillon local NON sauvegardé (régénérations ciblées non encore persistées
+   * en base). Sans ça, quitter l'onglet (Safari iOS recharge la page) faisait
+   * perdre tout le travail de régénération.
+   */
+  const draftKey = currentAthlete ? `tfcl_ai_plan_draft_${currentAthlete.id}` : null;
   const [loadedFromCacheAt, setLoadedFromCacheAt] = useState<string | null>(null);
+
 
   // Form state — restore from localStorage if available
   const savedState = useMemo(() => {
