@@ -1520,6 +1520,16 @@
     border-color: transparent !important;
   }
 
+  /* Staff Expert indicator — solid filled, visible on light Bevel canvas */
+  .staff-expert-badge {
+    background: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    border-color: transparent !important;
+    box-shadow: 0 1px 2px hsl(var(--primary) / 0.3) !important;
+  }
+
+
+
 
 
   /* ── Sidebar: white rail, pill active ──────────────────────────────────── */
