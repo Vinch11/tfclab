@@ -398,6 +398,7 @@ export default function AITrainingPlanPage() {
     }
 
     // Brouillon non sauvegardé (régénérations ciblées) — restauré tel quel.
+    let hasDraft = false;
     if (draftKey) {
       try {
         const rawDraft = localStorage.getItem(draftKey);
@@ -406,6 +407,7 @@ export default function AITrainingPlanPage() {
           if (draft?.planOverride) {
             setPlanOverride(draft.planOverride as ParsedPlan);
             setIsSaved(false);
+            hasDraft = true;
             toast.info("Brouillon de plan non sauvegardé restauré");
           }
         } else {
@@ -413,8 +415,47 @@ export default function AITrainingPlanPage() {
         }
       } catch { setPlanOverride(null); }
     }
+
+    // Aucun plan local pour CET athlète : on efface l'affichage (sinon le plan
+    // de l'athlète précédent restait visible) puis on restaure la dernière
+    // version sauvegardée en base pour cet athlète.
+    const hasLocalPlan = activeRestored || Boolean(savedState?.response);
+    if (!hasLocalPlan) {
+      if (!hasDraft) setPlanOverride(null);
+      reset();
+      setIsSaved(false);
+      setLoadedFromCacheAt(null);
+      setPlanStartDate(startOfWeek(new Date(), { weekStartsOn: 1 }));
+
+      const athleteId = currentAthlete?.id;
+      if (athleteId) {
+        (async () => {
+          const { data } = await supabase
+            .from("plan_versions")
+            .select("plan_json, created_at")
+            .eq("athlete_id", athleteId)
+            .order("created_at", { ascending: false })
+            .limit(1);
+          if (cancelled) return;
+          const version = data?.[0] as { plan_json: any } | undefined;
+          if (!version?.plan_json) return;
+          const pj = version.plan_json || {};
+          const totalWeeks = Array.isArray(pj.weeks) ? pj.weeks.length : (pj._weeksCount ?? 0);
+          let start: Date | null = null;
+          if (pj._planStartDate) {
+            const d = parseISO(pj._planStartDate);
+            if (!isNaN(d.getTime())) start = d;
+          }
+          if (!start && pj._raceDate) start = inferLegacyPlanStartDate(pj, totalWeeks, pj._raceDate);
+          applyLoadedVersion(version, start || startOfWeek(new Date(), { weekStartsOn: 1 }));
+        })();
+      }
+    }
+
+    return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persistKey]);
+
 
   // Persiste le brouillon non sauvegardé (régénérations ciblées) à chaque
   // modification, y compris avant que l'onglet ne soit déchargé.
