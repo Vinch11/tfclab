@@ -61,6 +61,7 @@ import { SessionReplaceDialog, libSportToPlanSport } from "@/components/SessionR
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+import { RegenerationConstraintsDialog, type RegenerationScope } from "@/components/plan/RegenerationConstraintsDialog";
 
 
 
