@@ -368,6 +368,12 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
     [session.isRest, session.title, session.details, objectifEffectif]
   );
 
+  // Rendu hybride : quand la fiche est résolue, on n'affiche que le delta IA.
+  const contextLines = useMemo(
+    () => (fiche ? extractContextLines(displayDetails, fiche) : []),
+    [displayDetails, fiche]
+  );
+
 
   if (session.isRest) {
     return (
