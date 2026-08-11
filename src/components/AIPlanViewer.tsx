@@ -17,6 +17,7 @@ import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, maybeDowngradeBikeSession } from "@/lib/aiPlanWorkoutEnricher";
+import { extractContextLines } from "@/lib/plan/sessionContextDelta";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
@@ -368,6 +369,12 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
     [session.isRest, session.title, session.details, objectifEffectif]
   );
 
+  // Rendu hybride : quand la fiche est résolue, on n'affiche que le delta IA.
+  const contextLines = useMemo(
+    () => (fiche ? extractContextLines(displayDetails, fiche) : []),
+    [displayDetails, fiche]
+  );
+
 
   if (session.isRest) {
     return (
@@ -464,11 +471,23 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
         {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} sessionIndex={sessionIndex} />}
       </div>
 
-      {expanded && session.details && (
+      {expanded && session.details && !fiche && (
         <div
           className="text-xs text-muted-foreground mt-2 leading-relaxed border-t border-current/10 pt-2 fiche-body whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ __html: formatFicheText(displayDetails) }}
         />
+      )}
+      {expanded && session.details && fiche && contextLines.length > 0 && (
+        <div className="mt-2 border-t border-current/10 pt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+            Contexte / adaptation
+          </p>
+          <ul className="text-xs text-muted-foreground leading-relaxed space-y-0.5 list-disc pl-4 fiche-body">
+            {contextLines.map((l, i) => (
+              <li key={i} dangerouslySetInnerHTML={{ __html: formatFicheText(l) }} />
+            ))}
+          </ul>
+        </div>
       )}
       {expanded && fiche && (
         <div className="mt-2 border-t border-current/10 pt-2 space-y-2">
