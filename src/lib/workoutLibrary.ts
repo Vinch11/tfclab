@@ -7271,7 +7271,11 @@ const RUN_B_PRO: LibraryWorkout[] = [
     durationMin: [50, 75],
     metricKey: "allure",
     sportKey: "course",
-    structure: mkStructure([["Main", "10x(1' Z4a / 2' Z2) sur terrain adapté", ["Z4a", "Z2"]]]),
+    structure: mkStructure([
+      ["Warm-up", "15' Z1→Z2 progressif + 4×20\" accélérations r=40\" marche/trot", ["Z1", "Z2"]],
+      ["Main", "10x(1' Z4a / 2' Z2) sur terrain adapté", ["Z4a", "Z2"]],
+      ["Cool-down", "10' Z1 souple + mobilité", ["Z1"]],
+    ]),
     variants: { semi: "excellent", half: "ok", ironman: "ok", trail_short: "parfait", trail_long: "parfait" },
     goals: ["semi", "trail_short", "trail_long", "half", "ironman"],
     tags: ["fartlek", "variety"]
