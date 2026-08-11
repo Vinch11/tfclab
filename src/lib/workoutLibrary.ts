@@ -5573,7 +5573,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Canova", "Fast Continuous Run", "FCR", "spécificité", "allure course", "introductif"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 progressif + 4×80m strides progressifs. Les jambes doivent se sentir vives avant de commencer — si lourdes, réduire l'allure principale de 10s/km.", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "8-10 km continu à allure marathon -10s/km (légèrement plus vite que l'allure cible). Exemple : cible marathon 4:00/km → courir à 3:50/km. RPE : 7-7.5/10. PHILOSOPHIE CANOVA : contrairement à la méthode classique qui progresse de lent vers rapide, Canova introduit immédiatement la spécificité — l'allure course est présente dès la première semaine de build, sur une COURTE distance. Le volume augmentera semaine après semaine, l'allure reste constante. Progression Canova : S1=6km FCR, S2=8km, S3=10km, S4=12km, S5=14km. Observer : FC stable et allure régulière (±3s/km) sur tout le bloc — si dérive, distance trop longue.", zones: ["Z3", "Z4"] },
+      { part: "Main", text: "8-10 km continu à allure course cible −10s/km (allure de l'objectif du plan : semi si semi, marathon si marathon). Exemple : cible 4:00/km → courir à 3:50/km. RPE : 7-7.5/10. PHILOSOPHIE CANOVA : contrairement à la méthode classique qui progresse de lent vers rapide, Canova introduit immédiatement la spécificité — l'allure course est présente dès la première semaine de build, sur une COURTE distance. Le volume augmentera semaine après semaine, l'allure reste constante. Progression Canova : S1=6km FCR, S2=8km, S3=10km, S4=12km, S5=14km. Observer : FC stable et allure régulière (±3s/km) sur tout le bloc — si dérive, distance trop longue.", zones: ["Z3", "Z4"] },
       { part: "Cool-down", text: "10 min Z1 + marche 5 min. Nutrition post-effort dans les 20 min.", zones: ["Z1"] }
     ],
     variants: {
@@ -7271,7 +7271,11 @@ const RUN_B_PRO: LibraryWorkout[] = [
     durationMin: [50, 75],
     metricKey: "allure",
     sportKey: "course",
-    structure: mkStructure([["Main", "10x(1' Z4a / 2' Z2) sur terrain adapté", ["Z4a", "Z2"]]]),
+    structure: mkStructure([
+      ["Warm-up", "15' Z1→Z2 progressif + 4×20\" accélérations r=40\" marche/trot", ["Z1", "Z2"]],
+      ["Main", "10x(1' Z4a / 2' Z2) sur terrain adapté", ["Z4a", "Z2"]],
+      ["Cool-down", "10' Z1 souple + mobilité", ["Z1"]],
+    ]),
     variants: { semi: "excellent", half: "ok", ironman: "ok", trail_short: "parfait", trail_long: "parfait" },
     goals: ["semi", "trail_short", "trail_long", "half", "ironman"],
     tags: ["fartlek", "variety"]
