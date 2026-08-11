@@ -17,6 +17,7 @@ import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, maybeDowngradeBikeSession } from "@/lib/aiPlanWorkoutEnricher";
+import { extractContextLines } from "@/lib/plan/sessionContextDelta";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
