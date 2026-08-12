@@ -70,6 +70,8 @@ interface RaceStrategyPlanCardProps {
   paceThresholdSecKm?: number | null;
   hrThresholdBpm?: number | null;   // LTHR — pour calculer les fourchettes cardio
   disponibiliteScore?: number | null;
+  /** Cible CHO canonique (g/h) issue du moteur nutrition unifié. Null → cue générique. */
+  carbsTargetGH?: number | null;
   className?: string;
 }
 
