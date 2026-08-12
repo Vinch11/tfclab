@@ -836,6 +836,7 @@ export type Database = {
       }
       nolio_workout_overrides: {
         Row: {
+          coach_id: string
           created_at: string
           id: string
           session_id: string
@@ -844,6 +845,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          coach_id?: string
           created_at?: string
           id?: string
           session_id: string
@@ -852,6 +854,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          coach_id?: string
           created_at?: string
           id?: string
           session_id?: string
