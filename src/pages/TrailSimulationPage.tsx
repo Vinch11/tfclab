@@ -156,6 +156,17 @@ export default function TrailSimulationPage() {
 
           <SliderRow label={`Température : ${tempC}°C`} min={0} max={35} step={1} value={tempC} onChange={setTempC} />
           <SliderRow label={`Nutrition planifiée : ${plannedCarbsGH} g/h`} min={30} max={120} step={5} value={plannedCarbsGH} onChange={setPlannedCarbsGH} />
+          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>
+              Cible calculée (Mader-Heck) : <strong className="text-foreground">{result.carbsTargetGH} g/h</strong>
+              {result.nutritionMethod === "fallback" && " — estimation par défaut, données insuffisantes"}
+            </span>
+            {plannedCarbsGH !== result.carbsTargetGH && (
+              <Button size="sm" variant="outline" onClick={() => setPlannedCarbsGH(result.carbsTargetGH)}>
+                Utiliser la cible
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -225,6 +236,9 @@ export default function TrailSimulationPage() {
           {/* Nutrition */}
           <div className="space-y-2">
             <div className="text-sm font-semibold">Plan nutritionnel par phase</div>
+            <div className="text-[11px] text-muted-foreground">
+              Source unique : moteur nutrition TFCL™ (Mader-Heck), identique à la page course.
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {result.nutritionPlanGH.map((p, i) => (
                 <div key={i} className="border rounded p-3 text-xs space-y-1">

@@ -70,6 +70,8 @@ interface RaceStrategyPlanCardProps {
   paceThresholdSecKm?: number | null;
   hrThresholdBpm?: number | null;   // LTHR — pour calculer les fourchettes cardio
   disponibiliteScore?: number | null;
+  /** Cible CHO canonique (g/h) issue du moteur nutrition unifié. Null → cue générique. */
+  carbsTargetGH?: number | null;
   className?: string;
 }
 
@@ -158,8 +160,17 @@ function targetForRange(
 const VCS_OVER_VMA = 0.90;
 
 function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
-  const { envelope, raceObjective, discipline, ftp, paceThresholdSecKm, hrThresholdBpm, raceDurationMin } = props;
+  const { envelope, raceObjective, discipline, ftp, paceThresholdSecKm, hrThresholdBpm, raceDurationMin, carbsTargetGH } = props;
   const raw = envelope.boundary;
+
+  // P0 — fueling non figé : la cible vient du moteur nutrition unifié (Mader-Heck).
+  const fuelTarget = carbsTargetGH && carbsTargetGH > 0 ? Math.round(carbsTargetGH) : null;
+  const fuelCue = fuelTarget
+    ? `Fueling ${fuelTarget} g/h (ta cible calculée).`
+    : "Fueling selon ta cible nutrition (étape 4).";
+  const fuelRedFlag = fuelTarget
+    ? `Fueling < ${Math.max(20, Math.round(fuelTarget * 0.75))} g/h sur > 90 min → tu finiras en glycogène crisis.`
+    : "Fueling sous ta cible calculée sur > 90 min → tu finiras en glycogène crisis.";
 
   // Conversion %VMA → %seuil pour le run, no-op pour le bike (déjà en %FTP/%seuil).
   const toSeuil = (pct: number) =>
@@ -235,7 +246,7 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       { segment: "0–20%", zone: "GREEN", intensityPct: `${ambitiousCenter - 2}% seuil`, target: T(Math.max(ambitiousCenter - 2, 60), ambitiousCenter),
         cue: "Allure cible -2 sec/km. Verrou installé dès le km 3." },
       { segment: "20–80%", zone: "GREEN", intensityPct: `${ambitiousCenter}% seuil`, target: T(ambitiousCenter, ambitiousCenter),
-        cue: "Even split au centre du couloir. FC stable. Fueling 60–90 g/h." },
+        cue: `Even split au centre du couloir. FC stable. ${fuelCue}` },
       { segment: "80–100%", zone: "ORANGE", intensityPct: `${ambitiousCenter}–${ambitiousHigh}% seuil`, target: T(ambitiousCenter, ambitiousHigh),
         cue: "Finish autorisé si FC < 95 % FCmax au check de référence." },
     ];
@@ -293,7 +304,7 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       forWho: "Disponibilité ≥ 75, nutrition rodée, parcours connu, conditions clémentes.",
       redFlags: [
         "Drift FC > 8 bpm dans le 2e tiers → repli sur Robuste immédiat.",
-        "Fueling < 60 g/h sur > 90 min → tu finiras en glycogène crisis.",
+        fuelRedFlag,
       ],
       failureProbPct: 22,
       metabolicCost: 72,
