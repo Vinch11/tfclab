@@ -764,14 +764,14 @@ export default function RaceSimulationPage() {
             <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             <AlertDescription className="space-y-2">
               <div className="text-[11px] sm:text-sm leading-relaxed">
-                <strong>Format LCW détecté</strong> — {lcwGoal?.race_name ?? '70.3 Long Course Weekend'} ({lcwGoal?.race_date}).
+                <strong>Format LCW détecté</strong> — {lcwGoal?.race_name ?? `${lcwIsFullDistance ? 'Ironman' : '70.3'} Long Course Weekend`} ({lcwGoal?.race_date}).
                 Chaque épreuve est simulée comme un <strong>effort solo, jambes fraîches</strong> (pas d'enchaînement, pas de carry-over fatigue / glycogène).
               </div>
               <div className="inline-flex rounded-md border border-border overflow-hidden bg-background">
                 {([
-                  { key: 'swim', label: '🏊 Natation 1.9 km', day: 'Vendredi (J-2)' },
-                  { key: 'bike', label: '🚴 Vélo 90 km', day: 'Samedi (J-1)' },
-                  { key: 'run', label: '🏃 Course 21.1 km', day: 'Dimanche (J)' },
+                  { key: 'swim', label: lcwIsFullDistance ? '🏊 Natation 3.8 km' : '🏊 Natation 1.9 km', day: 'Vendredi (J-2)' },
+                  { key: 'bike', label: lcwIsFullDistance ? '🚴 Vélo 180 km' : '🚴 Vélo 90 km', day: 'Samedi (J-1)' },
+                  { key: 'run', label: lcwIsFullDistance ? '🏃 Course 42.2 km' : '🏃 Course 21.1 km', day: 'Dimanche (J)' },
                 ] as const).map(seg => (
                   <button
                     key={seg.key}
@@ -786,6 +786,9 @@ export default function RaceSimulationPage() {
                   </button>
                 ))}
               </div>
+            </AlertDescription>
+          </Alert>
+
             </AlertDescription>
           </Alert>
         )}
