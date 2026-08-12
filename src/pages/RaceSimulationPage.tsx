@@ -1265,6 +1265,8 @@ export default function RaceSimulationPage() {
                   const goalLabel = String((raceGoals?.[0]?.race_type) || (activeSnapshot as any)?.objectif || objectif || 'IM');
                   const vlaRun = vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null;
                   const vlaBike = vlamaxEffectif?.value ?? null;
+                  const bikeMin = (isTriathlon || lcwActive || discipline === 'bike') ? (isTriathlon || lcwActive ? segmentDurationMin.bike : raceDurationMin) : segmentDurationMin.bike;
+                  const runMin = (isTriathlon || lcwActive) ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : segmentDurationMin.run);
                   const bikeCard = (
                     <NutritionUnifiedCard
                       vlamaxValue={vlaBike}
@@ -1273,7 +1275,7 @@ export default function RaceSimulationPage() {
                       tteMin={tteEffectif?.tte_min ?? null}
                       sport="velo"
                       objectif={goalLabel}
-                      targetDurationHours={segmentDurationMin.bike / 60}
+                      targetDurationHours={bikeMin / 60}
                       weightKg={activeSnapshot?.weight_kg ?? null}
                       heatCondition={heatLevel === 'high'}
                       staffMode={staffMode}
@@ -1287,7 +1289,7 @@ export default function RaceSimulationPage() {
                       tteMin={tteEffectifRun?.tte_min ?? null}
                       sport="cap"
                       objectif={goalLabel}
-                      targetDurationHours={segmentDurationMin.run / 60}
+                      targetDurationHours={runMin / 60}
                       weightKg={activeSnapshot?.weight_kg ?? null}
                       heatCondition={heatLevel === 'high'}
                       staffMode={staffMode}
@@ -1311,13 +1313,13 @@ export default function RaceSimulationPage() {
                         </Alert>
                         {(!lcwActive || lcwSegment !== 'run') && (
                           <div className="space-y-2">
-                            <div className="text-sm font-semibold">🚴 Segment vélo · {Math.round(segmentDurationMin.bike)} min</div>
+                            <div className="text-sm font-semibold">🚴 Segment vélo · {Math.round(bikeMin)} min</div>
                             {bikeCard}
                           </div>
                         )}
                         {(!lcwActive || lcwSegment === 'run') && (
                           <div className="space-y-2">
-                            <div className="text-sm font-semibold">🏃 Segment course à pied · {Math.round(segmentDurationMin.run)} min</div>
+                            <div className="text-sm font-semibold">🏃 Segment course à pied · {Math.round(runMin)} min</div>
                             {runCard}
                           </div>
                         )}
