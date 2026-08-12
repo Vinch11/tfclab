@@ -263,17 +263,22 @@ export default function RaceSimulationPage() {
     else window.localStorage.removeItem(lcwManualKey);
   }, [lcwManualEnabled, lcwManualKey]);
 
-  const lcwActive = raceObjectiveRaw === '70.3' && (lcwGoal !== null || lcwManualEnabled);
+  // LCW existe en distance 70.3 (1.9 / 90 / 21.1) ET en distance Ironman
+  // (3.8 / 180 / 42.2, ex. Long Course Weekend Wales full).
+  const lcwEligible = raceObjectiveRaw === '70.3' || raceObjectiveRaw === 'IM';
+  const lcwIsFullDistance = raceObjectiveRaw === 'IM';
+  const lcwActive = lcwEligible && (lcwGoal !== null || lcwManualEnabled);
   const [lcwSegment, setLcwSegment] = useState<'swim' | 'bike' | 'run'>('bike');
 
   const handleEnableLcwAndPersist = React.useCallback(async () => {
     setLcwManualEnabled(true);
     if (lcwGoal || !athleteId) return;
     const today = new Date().toISOString().slice(0, 10);
-    // 1) Si un objectif 70.3 à venir existe déjà (ex. remis en "continuous"),
-    //    on le repasse simplement en LCW au lieu de créer un doublon.
+    const raceType = lcwIsFullDistance ? 'IM' : '703';
+    // 1) Si un objectif de même distance à venir existe déjà (ex. remis en
+    //    "continuous"), on le repasse simplement en LCW au lieu de créer un doublon.
     const existing = (raceGoals ?? []).find(
-      g => String(g.race_type).replace('.', '') === '703' && g.race_date >= today,
+      g => String(g.race_type).replace('.', '').toUpperCase() === raceType && g.race_date >= today,
     );
     if (existing) {
       try { await updateRaceGoalFormat(existing.id, 'lcw_3day'); } catch { /* toast déjà émis */ }
@@ -284,13 +289,14 @@ export default function RaceSimulationPage() {
     defaultDate.setMonth(defaultDate.getMonth() + 3);
     await addRaceGoal({
       athlete_id: athleteId,
-      race_type: '703',
-      race_name: '70.3 Long Course Weekend',
+      race_type: raceType,
+      race_name: `${lcwIsFullDistance ? 'Ironman' : '70.3'} Long Course Weekend`,
       race_date: defaultDate.toISOString().slice(0, 10),
       race_format: 'lcw_3day',
       plan_start_date: today,
     });
-  }, [lcwGoal, athleteId, addRaceGoal, raceGoals, updateRaceGoalFormat]);
+  }, [lcwGoal, athleteId, addRaceGoal, raceGoals, updateRaceGoalFormat, lcwIsFullDistance]);
+
 
 
   // Désactivation réversible : coupe l'override local ET repasse l'objectif
@@ -303,11 +309,12 @@ export default function RaceSimulationPage() {
   }, [lcwGoal, updateRaceGoalFormat]);
 
 
-  // raceObjective effectif : si LCW + segment run → Semi solo ; sinon inchangé.
+  // raceObjective effectif : si LCW + segment run → course solo (semi ou marathon
+  // selon la distance du LCW) ; sinon inchangé.
   const raceObjective: RaceObjective = React.useMemo(() => {
-    if (lcwActive && lcwSegment === 'run') return 'Semi';
+    if (lcwActive && lcwSegment === 'run') return lcwIsFullDistance ? 'Marathon' : 'Semi';
     return raceObjectiveRaw;
-  }, [lcwActive, lcwSegment, raceObjectiveRaw]);
+  }, [lcwActive, lcwSegment, raceObjectiveRaw, lcwIsFullDistance]);
 
   // Triathlon → afficher pacing vélo ET course (segments séparés)
   // En mode LCW, chaque segment est une épreuve SOLO → isTriathlon=false.
@@ -407,17 +414,17 @@ export default function RaceSimulationPage() {
     // Bike 90km TT solo : ~2h15-2h30 selon athlète ; on garde la baseline 150 min
     // (équivalente à la baseline 70.3, légèrement optimiste pour solo).
     // Run 21.1km SOLO fresh-start : on utilise le calcul Semi standard.
-    // Swim 1.9km : ~30 min baseline (très athlète-dépendant).
+    // Swim : ~30 min (1.9 km) / ~70 min (3.8 km) baseline (très athlète-dépendant).
     if (lcwActive) {
-      if (lcwSegment === 'swim') return 30;
-      if (lcwSegment === 'bike') return segmentDurationMin.bike; // 150 min baseline 70.3
-      if (lcwSegment === 'run') return segmentDurationMin.run;   // Semi solo fresh calculé
+      if (lcwSegment === 'swim') return lcwIsFullDistance ? 70 : 30;
+      if (lcwSegment === 'bike') return segmentDurationMin.bike; // baseline 90 km / 180 km
+      if (lcwSegment === 'run') return segmentDurationMin.run;   // semi / marathon solo fresh
     }
     if (isTriathlon) return segmentDurationMin[discipline];
     // Courses pures : la durée provient du même calcul que les segments → cohérence
     // garantie entre fiche route, nutrition et enveloppe de pacing.
     return segmentDurationMin.run;
-  }, [lcwActive, lcwSegment, isTriathlon, segmentDurationMin, discipline]);
+  }, [lcwActive, lcwSegment, isTriathlon, segmentDurationMin, discipline, lcwIsFullDistance]);
 
 
   // P0 — cible CHO canonique (Mader-Heck) par SEGMENT (vélo vs course à pied).
@@ -723,7 +730,7 @@ export default function RaceSimulationPage() {
         ) : (
           <>
         {/* Toggle manuel LCW (visible si objectif 70.3 mais pas encore activé) */}
-        {raceObjectiveRaw === '70.3' && !lcwActive && (
+        {lcwEligible && !lcwActive && (
           <Alert className="text-xs sm:text-sm py-2 sm:py-3 border-dashed">
             <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
@@ -764,14 +771,14 @@ export default function RaceSimulationPage() {
             <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             <AlertDescription className="space-y-2">
               <div className="text-[11px] sm:text-sm leading-relaxed">
-                <strong>Format LCW détecté</strong> — {lcwGoal?.race_name ?? '70.3 Long Course Weekend'} ({lcwGoal?.race_date}).
+                <strong>Format LCW détecté</strong> — {lcwGoal?.race_name ?? `${lcwIsFullDistance ? 'Ironman' : '70.3'} Long Course Weekend`} ({lcwGoal?.race_date}).
                 Chaque épreuve est simulée comme un <strong>effort solo, jambes fraîches</strong> (pas d'enchaînement, pas de carry-over fatigue / glycogène).
               </div>
               <div className="inline-flex rounded-md border border-border overflow-hidden bg-background">
                 {([
-                  { key: 'swim', label: '🏊 Natation 1.9 km', day: 'Vendredi (J-2)' },
-                  { key: 'bike', label: '🚴 Vélo 90 km', day: 'Samedi (J-1)' },
-                  { key: 'run', label: '🏃 Course 21.1 km', day: 'Dimanche (J)' },
+                  { key: 'swim', label: lcwIsFullDistance ? '🏊 Natation 3.8 km' : '🏊 Natation 1.9 km', day: 'Vendredi (J-2)' },
+                  { key: 'bike', label: lcwIsFullDistance ? '🚴 Vélo 180 km' : '🚴 Vélo 90 km', day: 'Samedi (J-1)' },
+                  { key: 'run', label: lcwIsFullDistance ? '🏃 Course 42.2 km' : '🏃 Course 21.1 km', day: 'Dimanche (J)' },
                 ] as const).map(seg => (
                   <button
                     key={seg.key}
@@ -788,6 +795,7 @@ export default function RaceSimulationPage() {
               </div>
             </AlertDescription>
           </Alert>
+
         )}
 
         {/* Info banner - compact */}
