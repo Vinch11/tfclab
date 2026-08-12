@@ -50,6 +50,7 @@ import type { RaceObjective } from '@/lib/v2/pacingEnvelopeEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { openPrintableHTML } from '@/lib/openPrintableHTML';
 import { buildRaceSimulationHTML } from '@/lib/raceSimulation/buildRaceSimulationHTML';
+import { computeBaseRateMader } from '@/lib/v2/nutritionUnified';
 
 
 export default function RaceSimulationPage() {
@@ -389,6 +390,27 @@ export default function RaceSimulationPage() {
       default: return 180;
     }
   }, [lcwActive, lcwSegment, raceObjective, isTriathlon, segmentDurationMin, discipline]);
+
+  // P0 — cible CHO canonique (Mader-Heck) partagée par le plan de course et l'étape 4.
+  const carbsTargetGH = React.useMemo(() => {
+    const weight = activeSnapshot?.weight_kg ?? null;
+    if (!weight) return null;
+    const objStr = String((activeSnapshot as any)?.objectif || objectif || '').toLowerCase();
+    const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
+    const vla = sport === 'cap'
+      ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null)
+      : (vlamaxEffectif?.value ?? null);
+    const { baseRate } = computeBaseRateMader(
+      weight,
+      sport,
+      activeSnapshot?.vo2max ?? null,
+      vla,
+      null,
+      raceDurationMin / 60,
+      heatLevel === 'high',
+    );
+    return baseRate;
+  }, [activeSnapshot, objectif, vlamaxEffectif, vlamaxRunEffectif, raceDurationMin, heatLevel]);
   
   // Source de vérité unifiée — voir src/lib/readinessSource.ts
   const readiness = React.useMemo(() => computeUnifiedReadiness({
@@ -1114,6 +1136,16 @@ export default function RaceSimulationPage() {
                   )}
                 </div>
               )}
+              {/* Hiérarchie explicite des deux cartes de plan de course (P0) */}
+              <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
+                <Info className="h-3.5 w-3.5" />
+                <AlertDescription>
+                  <strong>1. Plan A / Plan B</strong> = ton choix stratégique global (objectif et repli).{' '}
+                  <strong>2. Robuste / Ambitieux / Agressif</strong> = l'exécution détaillée, segment par segment.
+                  En cas d'écart entre les deux, <strong>ce sont les scénarios détaillés qui font foi le jour J</strong>,
+                  et la nutrition affichée partout vient du même moteur (étape 4).
+                </AlertDescription>
+              </Alert>
               {/* Stratégie Plan A & Plan B — toujours visible (mode athlète ET mode staff) */}
               <ObjectiveStrategyCard
                 raceObjective={raceObjective}
@@ -1141,6 +1173,7 @@ export default function RaceSimulationPage() {
                   ftp={activeSnapshot?.ftp}
                   paceThresholdSecKm={discipline === 'run' ? (paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km) : activeSnapshot?.pace_threshold_sec_per_km}
                   disponibiliteScore={disponibilite?.score}
+                  carbsTargetGH={carbsTargetGH}
                 />
               ) : null}
               {(discipline === 'run' || isTriathlon) && envelopeRun && (paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km) && (
