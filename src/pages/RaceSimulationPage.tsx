@@ -789,8 +789,6 @@ export default function RaceSimulationPage() {
             </AlertDescription>
           </Alert>
 
-            </AlertDescription>
-          </Alert>
         )}
 
         {/* Info banner - compact */}
