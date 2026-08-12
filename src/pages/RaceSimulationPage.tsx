@@ -414,17 +414,17 @@ export default function RaceSimulationPage() {
     // Bike 90km TT solo : ~2h15-2h30 selon athlète ; on garde la baseline 150 min
     // (équivalente à la baseline 70.3, légèrement optimiste pour solo).
     // Run 21.1km SOLO fresh-start : on utilise le calcul Semi standard.
-    // Swim 1.9km : ~30 min baseline (très athlète-dépendant).
+    // Swim : ~30 min (1.9 km) / ~70 min (3.8 km) baseline (très athlète-dépendant).
     if (lcwActive) {
-      if (lcwSegment === 'swim') return 30;
-      if (lcwSegment === 'bike') return segmentDurationMin.bike; // 150 min baseline 70.3
-      if (lcwSegment === 'run') return segmentDurationMin.run;   // Semi solo fresh calculé
+      if (lcwSegment === 'swim') return lcwIsFullDistance ? 70 : 30;
+      if (lcwSegment === 'bike') return segmentDurationMin.bike; // baseline 90 km / 180 km
+      if (lcwSegment === 'run') return segmentDurationMin.run;   // semi / marathon solo fresh
     }
     if (isTriathlon) return segmentDurationMin[discipline];
     // Courses pures : la durée provient du même calcul que les segments → cohérence
     // garantie entre fiche route, nutrition et enveloppe de pacing.
     return segmentDurationMin.run;
-  }, [lcwActive, lcwSegment, isTriathlon, segmentDurationMin, discipline]);
+  }, [lcwActive, lcwSegment, isTriathlon, segmentDurationMin, discipline, lcwIsFullDistance]);
 
 
   // P0 — cible CHO canonique (Mader-Heck) par SEGMENT (vélo vs course à pied).
