@@ -179,6 +179,12 @@ export interface PacingEnvelopeResult {
   // Ajustements Potentiel Physiologique
   readinessAdjustment: number; // % points de réduction si faible readiness
   readinessMessage: string | null;
+
+  // Modulation du CENTRE par le profil physiologique (traçabilité)
+  centerBasePct?: number;              // centre avant modulation profil
+  centerProfileAdjustment?: number;    // somme des deltas appliqués (points de %)
+  centerAdjustments?: { label: string; deltaPct: number }[];
+
   
   // Métadonnées
   raceObjective: RaceObjective;
