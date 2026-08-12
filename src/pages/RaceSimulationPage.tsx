@@ -263,17 +263,22 @@ export default function RaceSimulationPage() {
     else window.localStorage.removeItem(lcwManualKey);
   }, [lcwManualEnabled, lcwManualKey]);
 
-  const lcwActive = raceObjectiveRaw === '70.3' && (lcwGoal !== null || lcwManualEnabled);
+  // LCW existe en distance 70.3 (1.9 / 90 / 21.1) ET en distance Ironman
+  // (3.8 / 180 / 42.2, ex. Long Course Weekend Wales full).
+  const lcwEligible = raceObjectiveRaw === '70.3' || raceObjectiveRaw === 'IM';
+  const lcwIsFullDistance = raceObjectiveRaw === 'IM';
+  const lcwActive = lcwEligible && (lcwGoal !== null || lcwManualEnabled);
   const [lcwSegment, setLcwSegment] = useState<'swim' | 'bike' | 'run'>('bike');
 
   const handleEnableLcwAndPersist = React.useCallback(async () => {
     setLcwManualEnabled(true);
     if (lcwGoal || !athleteId) return;
     const today = new Date().toISOString().slice(0, 10);
-    // 1) Si un objectif 70.3 à venir existe déjà (ex. remis en "continuous"),
-    //    on le repasse simplement en LCW au lieu de créer un doublon.
+    const raceType = lcwIsFullDistance ? 'IM' : '703';
+    // 1) Si un objectif de même distance à venir existe déjà (ex. remis en
+    //    "continuous"), on le repasse simplement en LCW au lieu de créer un doublon.
     const existing = (raceGoals ?? []).find(
-      g => String(g.race_type).replace('.', '') === '703' && g.race_date >= today,
+      g => String(g.race_type).replace('.', '').toUpperCase() === raceType && g.race_date >= today,
     );
     if (existing) {
       try { await updateRaceGoalFormat(existing.id, 'lcw_3day'); } catch { /* toast déjà émis */ }
@@ -284,13 +289,14 @@ export default function RaceSimulationPage() {
     defaultDate.setMonth(defaultDate.getMonth() + 3);
     await addRaceGoal({
       athlete_id: athleteId,
-      race_type: '703',
-      race_name: '70.3 Long Course Weekend',
+      race_type: raceType,
+      race_name: `${lcwIsFullDistance ? 'Ironman' : '70.3'} Long Course Weekend`,
       race_date: defaultDate.toISOString().slice(0, 10),
       race_format: 'lcw_3day',
       plan_start_date: today,
     });
-  }, [lcwGoal, athleteId, addRaceGoal, raceGoals, updateRaceGoalFormat]);
+  }, [lcwGoal, athleteId, addRaceGoal, raceGoals, updateRaceGoalFormat, lcwIsFullDistance]);
+
 
 
   // Désactivation réversible : coupe l'override local ET repasse l'objectif
