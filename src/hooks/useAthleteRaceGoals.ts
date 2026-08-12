@@ -374,6 +374,8 @@ export function useAthleteRaceGoals(athleteId: string | null) {
     updateAthleteGoal,
     restoreRaceGoal,
     updateRaceGoalDate,
+    updateRaceGoalFormat,
+
     refetch,
     
     // State
