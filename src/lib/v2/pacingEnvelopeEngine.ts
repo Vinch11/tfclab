@@ -179,6 +179,12 @@ export interface PacingEnvelopeResult {
   // Ajustements Potentiel Physiologique
   readinessAdjustment: number; // % points de réduction si faible readiness
   readinessMessage: string | null;
+
+  // Modulation du CENTRE par le profil physiologique (traçabilité)
+  centerBasePct?: number;              // centre avant modulation profil
+  centerProfileAdjustment?: number;    // somme des deltas appliqués (points de %)
+  centerAdjustments?: { label: string; deltaPct: number }[];
+
   
   // Métadonnées
   raceObjective: RaceObjective;
@@ -566,17 +572,85 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
     missingData.push(`Durée prédite peu fiable (${durationResolved.source})`);
   }
 
+  const centerBasePct = centerPct;
+  const centerAdjustments: { label: string; deltaPct: number }[] = [];
+
   // Ajustement fin si FatMax disponible (athlètes à haute FatMax peuvent tenir plus haut)
   if (fatmax != null && fatmax.centerPctFTP > 0) {
     sourcesUsed.push("FatMax TFCL™");
     if (fatmax.centerPctFTP > 68) {
-      centerPct = Math.min(centerPct + 2, 95);
+      centerAdjustments.push({ label: `FatMax élevée (${Math.round(fatmax.centerPctFTP)}%)`, deltaPct: 2 });
     } else if (fatmax.centerPctFTP < 55) {
-      centerPct = Math.max(centerPct - 2, 55);
+      centerAdjustments.push({ label: `FatMax basse (${Math.round(fatmax.centerPctFTP)}%)`, deltaPct: -2 });
     }
   } else {
     missingData.push("FatMax");
   }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // STEP 1-bis: MODULATION DU CENTRE PAR LE PROFIL PHYSIOLOGIQUE
+  // Le modèle continu %CS ne dépend que de (durée, ambition). Deux athlètes de
+  // même ambition sur le même format obtenaient donc le même centre.
+  // On module ici l'intensité cible par le profil métabolique :
+  //   - VLamax haute → coût glucidique élevé, intensité soutenable plus basse
+  //     (Mader-Heck ; effet croissant avec la durée)
+  //   - TTE / durabilité chronos élevés → capacité à tenir plus haut plus longtemps
+  //     (Jones-Vanhatalo 2017 ; Riegel pour l'index chronos)
+  // Poids croissant avec la durée : négligeable <45 min, plein effet ≥180 min.
+  // ─────────────────────────────────────────────────────────────────────────────
+  const durFactorCenter = clamp((durationMin - 45) / 135, 0, 1);
+  const durWeight = 0.4 + 0.6 * durFactorCenter;
+
+  const vlamaxForCenter = vlamaxEffectif?.value ?? null;
+  if (vlamaxForCenter != null && vlamaxForCenter > 0) {
+    const raw = -(vlamaxForCenter - 0.45) * 14 * durWeight;
+    const delta = Math.round(clamp(raw, -4, 3) * 10) / 10;
+    if (Math.abs(delta) >= 0.3) {
+      centerAdjustments.push({
+        label: `VLamax ${vlamaxForCenter.toFixed(2)} ${delta < 0 ? "(coût glucidique élevé)" : "(profil oxydatif)"}`,
+        deltaPct: delta,
+      });
+    }
+  }
+
+  const tteMinForCenter =
+    tteEffectif && tteEffectif.source !== "unknown" ? tteEffectif.tte_min : null;
+  if (tteMinForCenter != null && tteMinForCenter > 0) {
+    const raw = (tteMinForCenter - 45) * 0.08 * durWeight;
+    const delta = Math.round(clamp(raw, -3, 3) * 10) / 10;
+    if (Math.abs(delta) >= 0.3) {
+      centerAdjustments.push({
+        label: `TTE ${Math.round(tteMinForCenter)} min ${delta < 0 ? "(durabilité limitée)" : "(durabilité élevée)"}`,
+        deltaPct: delta,
+      });
+    }
+  }
+
+  const durIdxCenter = input.raceChrono?.durabilityIndex ?? null;
+  if (durIdxCenter != null) {
+    let delta = 0;
+    if (durIdxCenter > 1.08) delta = -2;
+    else if (durIdxCenter > 1.04) delta = -1;
+    else if (durIdxCenter <= 1.0) delta = 0.5;
+    if (delta !== 0) {
+      centerAdjustments.push({
+        label: `Durabilité chronos (idx ${durIdxCenter.toFixed(2)})`,
+        deltaPct: Math.round(delta * durWeight * 10) / 10,
+      });
+    }
+  }
+
+  const centerProfileAdjustment =
+    Math.round(centerAdjustments.reduce((s, a) => s + a.deltaPct, 0) * 10) / 10;
+  const centerProfileAdjustmentClamped = clamp(centerProfileAdjustment, -6, 4);
+  centerPct = clamp(centerPct + centerProfileAdjustmentClamped, 55, 95);
+
+  if (centerAdjustments.length > 0) {
+    sourcesUsed.push(
+      `Modulation profil du centre (${centerProfileAdjustmentClamped > 0 ? "+" : ""}${centerProfileAdjustmentClamped} pts)`,
+    );
+  }
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 2 (CHANTIER B): Largeur ASYMÉTRIQUE — plafond ≠ plancher
@@ -842,6 +916,10 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
     confidenceLabel,
     readinessAdjustment,
     readinessMessage,
+    centerBasePct: Math.round(centerBasePct),
+    centerProfileAdjustment: centerProfileAdjustmentClamped,
+    centerAdjustments,
+
     raceObjective,
     sport,
     sourcesUsed,
