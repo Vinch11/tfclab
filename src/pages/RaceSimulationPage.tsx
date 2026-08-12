@@ -391,26 +391,35 @@ export default function RaceSimulationPage() {
     }
   }, [lcwActive, lcwSegment, raceObjective, isTriathlon, segmentDurationMin, discipline]);
 
-  // P0 — cible CHO canonique (Mader-Heck) partagée par le plan de course et l'étape 4.
-  const carbsTargetGH = React.useMemo(() => {
+  // P0 — cible CHO canonique (Mader-Heck) par SEGMENT (vélo vs course à pied).
+  // Le triathlon (IM / 70.3) et le Long Course Weekend ont deux cibles distinctes :
+  // le vélo tolère nettement plus de glucides/h que la course à pied.
+  const carbsTargetByLeg = React.useMemo(() => {
     const weight = activeSnapshot?.weight_kg ?? null;
-    if (!weight) return null;
-    const objStr = String((activeSnapshot as any)?.objectif || objectif || '').toLowerCase();
-    const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
-    const vla = sport === 'cap'
-      ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null)
-      : (vlamaxEffectif?.value ?? null);
-    const { baseRate } = computeBaseRateMader(
-      weight,
-      sport,
-      activeSnapshot?.vo2max ?? null,
-      vla,
-      null,
-      raceDurationMin / 60,
-      heatLevel === 'high',
-    );
-    return baseRate;
-  }, [activeSnapshot, objectif, vlamaxEffectif, vlamaxRunEffectif, raceDurationMin, heatLevel]);
+    if (!weight) return { bike: null as number | null, run: null as number | null };
+    const compute = (sport: 'velo' | 'cap', durationMin: number) => {
+      const vla = sport === 'cap'
+        ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null)
+        : (vlamaxEffectif?.value ?? null);
+      const { baseRate } = computeBaseRateMader(
+        weight,
+        sport,
+        activeSnapshot?.vo2max ?? null,
+        vla,
+        null,
+        Math.max(0.25, durationMin / 60),
+        heatLevel === 'high',
+      );
+      return baseRate;
+    };
+    const bikeMin = isTriathlon ? segmentDurationMin.bike : (discipline === 'bike' ? raceDurationMin : segmentDurationMin.bike);
+    const runMin = isTriathlon ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : segmentDurationMin.run);
+    return { bike: compute('velo', bikeMin), run: compute('cap', runMin) };
+  }, [activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceDurationMin, segmentDurationMin, isTriathlon, discipline, heatLevel]);
+
+  // Cible affichée pour le segment courant (plan de course, scénarios).
+  const carbsTargetGH = discipline === 'run' ? carbsTargetByLeg.run : carbsTargetByLeg.bike;
+
   
   // Source de vérité unifiée — voir src/lib/readinessSource.ts
   const readiness = React.useMemo(() => computeUnifiedReadiness({
