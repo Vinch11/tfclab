@@ -365,6 +365,20 @@ export default function RaceSimulationPage() {
       const runMin = computeRunMin(21.1, fractions.half) ?? 105;
       return { bike: 150, run: Math.round(runMin) };
     }
+    // Courses à pied pures — durée cohérente calculée (allure seuil × ambition),
+    // plus de baseline 180/180 arbitraire qui contaminait nutrition & fiche route.
+    if (raceObjective === 'Marathon') {
+      const runMin = Math.round(computeRunMin(42.195, fractions.full) ?? 210);
+      return { bike: runMin, run: runMin };
+    }
+    if (raceObjective === 'Semi') {
+      const runMin = Math.round(computeRunMin(21.0975, fractions.half) ?? 100);
+      return { bike: runMin, run: runMin };
+    }
+    if (raceObjective === '10km') {
+      const runMin = Math.round(computeRunMin(10, Math.min(0.99, fractions.half + 0.05)) ?? 45);
+      return { bike: runMin, run: runMin };
+    }
     return { bike: 180, run: 180 };
   }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm]);
 
@@ -377,19 +391,14 @@ export default function RaceSimulationPage() {
     if (lcwActive) {
       if (lcwSegment === 'swim') return 30;
       if (lcwSegment === 'bike') return segmentDurationMin.bike; // 150 min baseline 70.3
-      if (lcwSegment === 'run') {
-        // Semi solo fresh — calcul standard de la branche Semi
-        return 100;
-      }
+      if (lcwSegment === 'run') return segmentDurationMin.run;   // Semi solo fresh calculé
     }
     if (isTriathlon) return segmentDurationMin[discipline];
-    switch (raceObjective) {
-      case 'Marathon': return 210;
-      case 'Semi': return 100;
-      case '10km': return 45;
-      default: return 180;
-    }
-  }, [lcwActive, lcwSegment, raceObjective, isTriathlon, segmentDurationMin, discipline]);
+    // Courses pures : la durée provient du même calcul que les segments → cohérence
+    // garantie entre fiche route, nutrition et enveloppe de pacing.
+    return segmentDurationMin.run;
+  }, [lcwActive, lcwSegment, isTriathlon, segmentDurationMin, discipline]);
+
 
   // P0 — cible CHO canonique (Mader-Heck) par SEGMENT (vélo vs course à pied).
   // Le triathlon (IM / 70.3) et le Long Course Weekend ont deux cibles distinctes :
