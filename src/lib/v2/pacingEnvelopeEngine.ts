@@ -916,6 +916,10 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
     confidenceLabel,
     readinessAdjustment,
     readinessMessage,
+    centerBasePct: Math.round(centerBasePct),
+    centerProfileAdjustment: centerProfileAdjustmentClamped,
+    centerAdjustments,
+
     raceObjective,
     sport,
     sourcesUsed,
