@@ -1,0 +1,2 @@
+ALTER TABLE public.athlete_race_goals DROP CONSTRAINT IF EXISTS athlete_race_goals_race_type_check;
+ALTER TABLE public.athlete_race_goals ADD CONSTRAINT athlete_race_goals_race_type_check CHECK (race_type = ANY (ARRAY['IM','703','Marathon','Semi','10K','5K','StartToRun','Trail','TrailShort','TrailMountain','TrailUltra','Olympic','Sprint','ironman','70.3','marathon','semi','olympic','10k','autre']));
