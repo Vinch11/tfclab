@@ -730,7 +730,7 @@ export default function RaceSimulationPage() {
         ) : (
           <>
         {/* Toggle manuel LCW (visible si objectif 70.3 mais pas encore activé) */}
-        {raceObjectiveRaw === '70.3' && !lcwActive && (
+        {lcwEligible && !lcwActive && (
           <Alert className="text-xs sm:text-sm py-2 sm:py-3 border-dashed">
             <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
