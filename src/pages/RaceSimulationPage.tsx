@@ -309,11 +309,12 @@ export default function RaceSimulationPage() {
   }, [lcwGoal, updateRaceGoalFormat]);
 
 
-  // raceObjective effectif : si LCW + segment run → Semi solo ; sinon inchangé.
+  // raceObjective effectif : si LCW + segment run → course solo (semi ou marathon
+  // selon la distance du LCW) ; sinon inchangé.
   const raceObjective: RaceObjective = React.useMemo(() => {
-    if (lcwActive && lcwSegment === 'run') return 'Semi';
+    if (lcwActive && lcwSegment === 'run') return lcwIsFullDistance ? 'Marathon' : 'Semi';
     return raceObjectiveRaw;
-  }, [lcwActive, lcwSegment, raceObjectiveRaw]);
+  }, [lcwActive, lcwSegment, raceObjectiveRaw, lcwIsFullDistance]);
 
   // Triathlon → afficher pacing vélo ET course (segments séparés)
   // En mode LCW, chaque segment est une épreuve SOLO → isTriathlon=false.
