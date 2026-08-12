@@ -732,14 +732,15 @@ export default function RaceSimulationPage() {
           </Alert>
         )}
 
-        {/* Bouton désactiver (si LCW actif via toggle local, pas persisté) */}
-        {lcwActive && lcwManualEnabled && !lcwGoal && (
+        {/* Bouton désactiver — toujours disponible quand le mode LCW est actif */}
+        {lcwActive && (
           <div className="flex justify-end">
             <Button
               size="sm"
               variant="ghost"
               className="h-7 text-[11px] text-muted-foreground"
-              onClick={() => setLcwManualEnabled(false)}
+              onClick={handleDisableLcw}
+
             >
               Désactiver le mode LCW
             </Button>
