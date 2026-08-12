@@ -13,6 +13,9 @@
  */
 
 import { calculateGlycogenDepletion, recommendedCarbsToAvoidBonk } from "./maderMetabolicModel";
+// P0 — source CHO canonique unique (mem: nutrition-canonical-base-rate).
+// Le trail ne calcule plus ses g/h avec des bornes en dur : il délègue à Mader-Heck.
+import { computeBaseRateMader, type NutritionSport } from "./nutritionUnified";
 
 export type TrailTechnicite = "facile" | "moyen" | "difficile" | "extreme";
 
@@ -57,7 +60,7 @@ export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 export interface TrailNutritionPlan {
   phase: string;     // ex "0-3h"
-  carbsGH: number;   // recommandé
+  carbsGH: number;   // recommandé (Mader-Heck canonique)
   fluidsMlH: number;
   sodiumMgH: number;
 }
@@ -83,6 +86,10 @@ export interface TrailSimulationResult {
   liverGlycogenFinalG: number;
   bloodGlucoseFinalMmol: number;
   recommendedCarbsGH: number;
+  /** Cible CHO canonique (Mader-Heck) sur la durée totale, g/h. */
+  carbsTargetGH: number;
+  /** 'mader' si VO2max + VLamax disponibles, sinon 'fallback' (données insuffisantes). */
+  nutritionMethod: "mader" | "fallback";
 }
 
 
@@ -349,13 +356,52 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
     );
   }
 
-  // Plan nutrition par phase
+  // ── Plan nutrition par phase — source canonique Mader-Heck ────────────────
+  // P0 : plus aucune borne en dur (60-90 / 70-90 / 80-120). Les g/h viennent de
+  // `nutritionUnified.computeBaseRateMader`, exactement comme la page course.
   const heatBoost = input.tempC >= 28 ? 1.3 : input.tempC >= 22 ? 1.15 : 1.0;
-  const nutritionPlanGH: TrailNutritionPlan[] = [
-    { phase: "0-3h", carbsGH: Math.min(90, Math.max(60, Math.round(input.plannedCarbsGH))), fluidsMlH: Math.round(500 * heatBoost), sodiumMgH: Math.round(500 * heatBoost) },
-    { phase: "3-6h", carbsGH: Math.min(90, Math.max(70, Math.round(input.plannedCarbsGH))), fluidsMlH: Math.round(600 * heatBoost), sodiumMgH: Math.round(700 * heatBoost) },
-    { phase: "6h+", carbsGH: Math.min(120, Math.max(80, Math.round(input.plannedCarbsGH + 10))), fluidsMlH: Math.round(700 * heatBoost), sodiumMgH: Math.round(900 * heatBoost) },
+  const heatCondition = input.tempC >= 28;
+  const totalHours = cumulativeMin / 60;
+  const nutritionSport: NutritionSport = totalHours >= 6 ? "ultra" : "trail";
+
+  const carbsForDuration = (hours: number) =>
+    computeBaseRateMader(
+      weightMader,
+      nutritionSport,
+      athlete.vma != null ? vo2maxMader : null,
+      athlete.vlamaxEffectif,
+      avgIntensityPct,
+      Math.max(0.5, hours),
+      heatCondition,
+    );
+
+  const canonical = carbsForDuration(totalHours);
+  const carbsTargetGH = canonical.baseRate;
+  const nutritionMethod = canonical.method;
+
+  const PHASE_DEFS = [
+    { phase: "0-3h", start: 0, end: 3, fluids: 500, sodium: 500 },
+    { phase: "3-6h", start: 3, end: 6, fluids: 600, sodium: 700 },
+    { phase: "6h+", start: 6, end: Math.max(7, totalHours), fluids: 700, sodium: 900 },
   ];
+
+  const nutritionPlanGH: TrailNutritionPlan[] = PHASE_DEFS
+    .filter(p => p.start < Math.max(0.5, totalHours))
+    .map(p => ({
+      phase: p.phase,
+      carbsGH: carbsForDuration(Math.min(Math.max(totalHours, 0.5), p.end)).baseRate,
+      fluidsMlH: Math.round(p.fluids * heatBoost),
+      sodiumMgH: Math.round(p.sodium * heatBoost),
+    }));
+
+  if (nutritionMethod === "fallback") {
+    warnings.push("Nutrition : VO2max ou VLamax manquante — cible CHO estimée par défaut (données insuffisantes pour un calcul Mader-Heck individualisé).");
+  }
+  if (Math.abs(input.plannedCarbsGH - carbsTargetGH) > 15) {
+    warnings.push(
+      `Nutrition : ton plan manuel (${Math.round(input.plannedCarbsGH)} g/h) s'écarte de plus de 15 g/h de la cible calculée (${carbsTargetGH} g/h).`,
+    );
+  }
 
   return {
     estimatedTimeMin,
@@ -377,6 +423,8 @@ export function simulateTrail(input: TrailRaceInput): TrailSimulationResult {
     liverGlycogenFinalG: depletion.liverGlycogenG,
     bloodGlucoseFinalMmol: depletion.bloodGlucoseMmol,
     recommendedCarbsGH,
+    carbsTargetGH,
+    nutritionMethod,
   };
 
 }
