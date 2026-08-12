@@ -268,20 +268,30 @@ export default function RaceSimulationPage() {
 
   const handleEnableLcwAndPersist = React.useCallback(async () => {
     setLcwManualEnabled(true);
-    // Persiste un race_goal si aucun objectif 70.3 LCW à venir n'est en base
-    if (!lcwGoal && athleteId) {
-      const defaultDate = new Date();
-      defaultDate.setMonth(defaultDate.getMonth() + 3);
-      await addRaceGoal({
-        athlete_id: athleteId,
-        race_type: '703',
-        race_name: '70.3 Long Course Weekend',
-        race_date: defaultDate.toISOString().slice(0, 10),
-        race_format: 'lcw_3day',
-        plan_start_date: new Date().toISOString().slice(0, 10),
-      });
+    if (lcwGoal || !athleteId) return;
+    const today = new Date().toISOString().slice(0, 10);
+    // 1) Si un objectif 70.3 à venir existe déjà (ex. remis en "continuous"),
+    //    on le repasse simplement en LCW au lieu de créer un doublon.
+    const existing = (raceGoals ?? []).find(
+      g => String(g.race_type).replace('.', '') === '703' && g.race_date >= today,
+    );
+    if (existing) {
+      try { await updateRaceGoalFormat(existing.id, 'lcw_3day'); } catch { /* toast déjà émis */ }
+      return;
     }
-  }, [lcwGoal, athleteId, addRaceGoal]);
+    // 2) Sinon on crée un objectif LCW par défaut à +3 mois.
+    const defaultDate = new Date();
+    defaultDate.setMonth(defaultDate.getMonth() + 3);
+    await addRaceGoal({
+      athlete_id: athleteId,
+      race_type: '703',
+      race_name: '70.3 Long Course Weekend',
+      race_date: defaultDate.toISOString().slice(0, 10),
+      race_format: 'lcw_3day',
+      plan_start_date: today,
+    });
+  }, [lcwGoal, athleteId, addRaceGoal, raceGoals, updateRaceGoalFormat]);
+
 
   // Désactivation réversible : coupe l'override local ET repasse l'objectif
   // persisté en format "continuous" (sinon le mode restait bloqué).
