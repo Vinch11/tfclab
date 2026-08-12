@@ -234,7 +234,7 @@ export default function RaceSimulationPage() {
   // Cherche un objectif 70.3 LCW à venir pour l'athlète. Si trouvé, on bascule
   // en "mode 3 épreuves indépendantes" : chaque segment est simulé SOLO,
   // sans enchaînement, sans carry-over de fatigue ni de glycogène.
-  const { raceGoals, addRaceGoal } = useAthleteRaceGoals(athleteId || null);
+  const { raceGoals, addRaceGoal, updateRaceGoalFormat } = useAthleteRaceGoals(athleteId || null);
 
   const isTrailGoal = React.useMemo(() => {
     const obj = String((activeSnapshot as any)?.objectif || '').toLowerCase();
@@ -243,11 +243,11 @@ export default function RaceSimulationPage() {
   const lcwGoal = React.useMemo(() => {
     if (!raceGoals?.length) return null;
     const today = new Date().toISOString().slice(0, 10);
-    return raceGoals.find(g =>
-      g.race_format === 'lcw_3day' &&
-      (g.race_date >= today || raceObjectiveRaw === '70.3')
-    ) ?? null;
-  }, [raceGoals, raceObjectiveRaw]);
+    // Uniquement les objectifs LCW À VENIR : un ancien objectif ne doit jamais
+    // forcer le mode LCW de façon irréversible.
+    return raceGoals.find(g => g.race_format === 'lcw_3day' && g.race_date >= today) ?? null;
+  }, [raceGoals]);
+
 
   // Manual override (fallback) : permet à l'athlète d'activer LCW depuis la page
   // Simulation, même si aucun race_goal LCW n'est persisté en base (cas Cath :
