@@ -234,7 +234,7 @@ export default function RaceSimulationPage() {
   // Cherche un objectif 70.3 LCW à venir pour l'athlète. Si trouvé, on bascule
   // en "mode 3 épreuves indépendantes" : chaque segment est simulé SOLO,
   // sans enchaînement, sans carry-over de fatigue ni de glycogène.
-  const { raceGoals, addRaceGoal } = useAthleteRaceGoals(athleteId || null);
+  const { raceGoals, addRaceGoal, updateRaceGoalFormat } = useAthleteRaceGoals(athleteId || null);
 
   const isTrailGoal = React.useMemo(() => {
     const obj = String((activeSnapshot as any)?.objectif || '').toLowerCase();
@@ -243,11 +243,11 @@ export default function RaceSimulationPage() {
   const lcwGoal = React.useMemo(() => {
     if (!raceGoals?.length) return null;
     const today = new Date().toISOString().slice(0, 10);
-    return raceGoals.find(g =>
-      g.race_format === 'lcw_3day' &&
-      (g.race_date >= today || raceObjectiveRaw === '70.3')
-    ) ?? null;
-  }, [raceGoals, raceObjectiveRaw]);
+    // Uniquement les objectifs LCW À VENIR : un ancien objectif ne doit jamais
+    // forcer le mode LCW de façon irréversible.
+    return raceGoals.find(g => g.race_format === 'lcw_3day' && g.race_date >= today) ?? null;
+  }, [raceGoals]);
+
 
   // Manual override (fallback) : permet à l'athlète d'activer LCW depuis la page
   // Simulation, même si aucun race_goal LCW n'est persisté en base (cas Cath :
@@ -282,6 +282,16 @@ export default function RaceSimulationPage() {
       });
     }
   }, [lcwGoal, athleteId, addRaceGoal]);
+
+  // Désactivation réversible : coupe l'override local ET repasse l'objectif
+  // persisté en format "continuous" (sinon le mode restait bloqué).
+  const handleDisableLcw = React.useCallback(async () => {
+    setLcwManualEnabled(false);
+    if (lcwGoal) {
+      try { await updateRaceGoalFormat(lcwGoal.id, 'continuous'); } catch { /* toast déjà émis */ }
+    }
+  }, [lcwGoal, updateRaceGoalFormat]);
+
 
   // raceObjective effectif : si LCW + segment run → Semi solo ; sinon inchangé.
   const raceObjective: RaceObjective = React.useMemo(() => {
@@ -365,6 +375,20 @@ export default function RaceSimulationPage() {
       const runMin = computeRunMin(21.1, fractions.half) ?? 105;
       return { bike: 150, run: Math.round(runMin) };
     }
+    // Courses à pied pures — durée cohérente calculée (allure seuil × ambition),
+    // plus de baseline 180/180 arbitraire qui contaminait nutrition & fiche route.
+    if (raceObjective === 'Marathon') {
+      const runMin = Math.round(computeRunMin(42.195, fractions.full) ?? 210);
+      return { bike: runMin, run: runMin };
+    }
+    if (raceObjective === 'Semi') {
+      const runMin = Math.round(computeRunMin(21.0975, fractions.half) ?? 100);
+      return { bike: runMin, run: runMin };
+    }
+    if (raceObjective === '10km') {
+      const runMin = Math.round(computeRunMin(10, Math.min(0.99, fractions.half + 0.05)) ?? 45);
+      return { bike: runMin, run: runMin };
+    }
     return { bike: 180, run: 180 };
   }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm]);
 
@@ -377,19 +401,14 @@ export default function RaceSimulationPage() {
     if (lcwActive) {
       if (lcwSegment === 'swim') return 30;
       if (lcwSegment === 'bike') return segmentDurationMin.bike; // 150 min baseline 70.3
-      if (lcwSegment === 'run') {
-        // Semi solo fresh — calcul standard de la branche Semi
-        return 100;
-      }
+      if (lcwSegment === 'run') return segmentDurationMin.run;   // Semi solo fresh calculé
     }
     if (isTriathlon) return segmentDurationMin[discipline];
-    switch (raceObjective) {
-      case 'Marathon': return 210;
-      case 'Semi': return 100;
-      case '10km': return 45;
-      default: return 180;
-    }
-  }, [lcwActive, lcwSegment, raceObjective, isTriathlon, segmentDurationMin, discipline]);
+    // Courses pures : la durée provient du même calcul que les segments → cohérence
+    // garantie entre fiche route, nutrition et enveloppe de pacing.
+    return segmentDurationMin.run;
+  }, [lcwActive, lcwSegment, isTriathlon, segmentDurationMin, discipline]);
+
 
   // P0 — cible CHO canonique (Mader-Heck) par SEGMENT (vélo vs course à pied).
   // Le triathlon (IM / 70.3) et le Long Course Weekend ont deux cibles distinctes :
@@ -713,14 +732,15 @@ export default function RaceSimulationPage() {
           </Alert>
         )}
 
-        {/* Bouton désactiver (si LCW actif via toggle local, pas persisté) */}
-        {lcwActive && lcwManualEnabled && !lcwGoal && (
+        {/* Bouton désactiver — toujours disponible quand le mode LCW est actif */}
+        {lcwActive && (
           <div className="flex justify-end">
             <Button
               size="sm"
               variant="ghost"
               className="h-7 text-[11px] text-muted-foreground"
-              onClick={() => setLcwManualEnabled(false)}
+              onClick={handleDisableLcw}
+
             >
               Désactiver le mode LCW
             </Button>

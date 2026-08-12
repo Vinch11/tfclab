@@ -328,6 +328,30 @@ export function useAthleteRaceGoals(athleteId: string | null) {
   }, [athleteId, queryClient]);
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // UPDATE RACE FORMAT (continuous ↔ lcw_3day) — réversible
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const updateRaceGoalFormat = useCallback(async (goalId: string, format: RaceFormat): Promise<void> => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('athlete_race_goals')
+        .update({ race_format: format })
+        .eq('id', goalId);
+
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['athlete-race-goals', athleteId] });
+    } catch (error) {
+      console.error('Error updating race goal format:', error);
+      toast.error("Erreur lors de la mise à jour du format de course");
+      throw error;
+    } finally {
+      setSaving(false);
+    }
+  }, [athleteId, queryClient]);
+
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // GET HISTORY (unique previous objectives)
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -350,6 +374,8 @@ export function useAthleteRaceGoals(athleteId: string | null) {
     updateAthleteGoal,
     restoreRaceGoal,
     updateRaceGoalDate,
+    updateRaceGoalFormat,
+
     refetch,
     
     // State
