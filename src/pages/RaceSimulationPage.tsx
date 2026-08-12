@@ -391,26 +391,35 @@ export default function RaceSimulationPage() {
     }
   }, [lcwActive, lcwSegment, raceObjective, isTriathlon, segmentDurationMin, discipline]);
 
-  // P0 — cible CHO canonique (Mader-Heck) partagée par le plan de course et l'étape 4.
-  const carbsTargetGH = React.useMemo(() => {
+  // P0 — cible CHO canonique (Mader-Heck) par SEGMENT (vélo vs course à pied).
+  // Le triathlon (IM / 70.3) et le Long Course Weekend ont deux cibles distinctes :
+  // le vélo tolère nettement plus de glucides/h que la course à pied.
+  const carbsTargetByLeg = React.useMemo(() => {
     const weight = activeSnapshot?.weight_kg ?? null;
-    if (!weight) return null;
-    const objStr = String((activeSnapshot as any)?.objectif || objectif || '').toLowerCase();
-    const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
-    const vla = sport === 'cap'
-      ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null)
-      : (vlamaxEffectif?.value ?? null);
-    const { baseRate } = computeBaseRateMader(
-      weight,
-      sport,
-      activeSnapshot?.vo2max ?? null,
-      vla,
-      null,
-      raceDurationMin / 60,
-      heatLevel === 'high',
-    );
-    return baseRate;
-  }, [activeSnapshot, objectif, vlamaxEffectif, vlamaxRunEffectif, raceDurationMin, heatLevel]);
+    if (!weight) return { bike: null as number | null, run: null as number | null };
+    const compute = (sport: 'velo' | 'cap', durationMin: number) => {
+      const vla = sport === 'cap'
+        ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null)
+        : (vlamaxEffectif?.value ?? null);
+      const { baseRate } = computeBaseRateMader(
+        weight,
+        sport,
+        activeSnapshot?.vo2max ?? null,
+        vla,
+        null,
+        Math.max(0.25, durationMin / 60),
+        heatLevel === 'high',
+      );
+      return baseRate;
+    };
+    const bikeMin = isTriathlon ? segmentDurationMin.bike : (discipline === 'bike' ? raceDurationMin : segmentDurationMin.bike);
+    const runMin = isTriathlon ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : segmentDurationMin.run);
+    return { bike: compute('velo', bikeMin), run: compute('cap', runMin) };
+  }, [activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceDurationMin, segmentDurationMin, isTriathlon, discipline, heatLevel]);
+
+  // Cible affichée pour le segment courant (plan de course, scénarios).
+  const carbsTargetGH = discipline === 'run' ? carbsTargetByLeg.run : carbsTargetByLeg.bike;
+
   
   // Source de vérité unifiée — voir src/lib/readinessSource.ts
   const readiness = React.useMemo(() => computeUnifiedReadiness({
@@ -1253,25 +1262,74 @@ export default function RaceSimulationPage() {
                 <div className="text-center py-6 text-sm text-muted-foreground">Poids athlète manquant — protocoles indisponibles</div>
               ) : (
                 (() => {
-                  const objStr = String((activeSnapshot as any)?.objectif || objectif || '').toLowerCase();
-                  const sport: 'velo' | 'cap' = /velo|bike|v[ée]lo/.test(objStr) ? 'velo' : 'cap';
-                  const goalLabel = (raceGoals?.[0]?.race_type) || (activeSnapshot as any)?.objectif || objectif || 'IM';
-                  const vlamaxForNut = sport === 'cap' ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null) : (vlamaxEffectif?.value ?? null);
-                  return (
+                  const goalLabel = String((raceGoals?.[0]?.race_type) || (activeSnapshot as any)?.objectif || objectif || 'IM');
+                  const vlaRun = vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null;
+                  const vlaBike = vlamaxEffectif?.value ?? null;
+                  const bikeMin = (isTriathlon || lcwActive || discipline === 'bike') ? (isTriathlon || lcwActive ? segmentDurationMin.bike : raceDurationMin) : segmentDurationMin.bike;
+                  const runMin = (isTriathlon || lcwActive) ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : segmentDurationMin.run);
+                  const bikeCard = (
                     <NutritionUnifiedCard
-                      vlamaxValue={vlamaxForNut}
-                      vlamaxConfidence={(sport === 'cap' ? vlamaxRunEffectif?.confidence : vlamaxEffectif?.confidence) ?? 0.7}
+                      vlamaxValue={vlaBike}
+                      vlamaxConfidence={vlamaxEffectif?.confidence ?? 0.7}
                       vo2max={activeSnapshot?.vo2max ?? null}
-                      tteMin={(sport === 'cap' ? tteEffectifRun?.tte_min : tteEffectif?.tte_min) ?? null}
-                      sport={sport}
-                      objectif={String(goalLabel)}
+                      tteMin={tteEffectif?.tte_min ?? null}
+                      sport="velo"
+                      objectif={goalLabel}
+                      targetDurationHours={bikeMin / 60}
                       weightKg={activeSnapshot?.weight_kg ?? null}
                       heatCondition={heatLevel === 'high'}
                       staffMode={staffMode}
                     />
                   );
+                  const runCard = (
+                    <NutritionUnifiedCard
+                      vlamaxValue={vlaRun}
+                      vlamaxConfidence={vlamaxRunEffectif?.confidence ?? 0.7}
+                      vo2max={activeSnapshot?.vo2max ?? null}
+                      tteMin={tteEffectifRun?.tte_min ?? null}
+                      sport="cap"
+                      objectif={goalLabel}
+                      targetDurationHours={runMin / 60}
+                      weightKg={activeSnapshot?.weight_kg ?? null}
+                      heatCondition={heatLevel === 'high'}
+                      staffMode={staffMode}
+                    />
+                  );
+
+                  // Triathlon (IM / 70.3) et Long Course Weekend : deux segments,
+                  // deux tolérances digestives → deux protocoles distincts.
+                  if (isTriathlon || lcwActive) {
+                    return (
+                      <div className="space-y-4">
+                        <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
+                          <Info className="h-3.5 w-3.5" />
+                          <AlertDescription>
+                            🚴 <strong>Vélo</strong> et 🏃 <strong>course à pied</strong> n'ont pas la même cible :
+                            l'estomac tolère plus de glucides sur le vélo (position stable, pas d'impact).
+                            Cible vélo <strong>{carbsTargetByLeg.bike ?? '—'} g/h</strong> ·
+                            cible course <strong>{carbsTargetByLeg.run ?? '—'} g/h</strong>.
+                            {' '}Charge donc l'essentiel sur le vélo, puis allège dès T2.
+                          </AlertDescription>
+                        </Alert>
+                        {(!lcwActive || lcwSegment !== 'run') && (
+                          <div className="space-y-2">
+                            <div className="text-sm font-semibold">🚴 Segment vélo · {Math.round(bikeMin)} min</div>
+                            {bikeCard}
+                          </div>
+                        )}
+                        {(!lcwActive || lcwSegment === 'run') && (
+                          <div className="space-y-2">
+                            <div className="text-sm font-semibold">🏃 Segment course à pied · {Math.round(runMin)} min</div>
+                            {runCard}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return discipline === 'run' ? runCard : bikeCard;
                 })()
               )}
+
             </AccordionContent>
           </AccordionItem>
 
