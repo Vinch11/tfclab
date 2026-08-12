@@ -217,7 +217,7 @@ export function AthleteObjectiveManager({
         race_type: newGoalType,
         race_name: newGoalName || null,
         race_date: format(newGoalDate, 'yyyy-MM-dd'),
-        race_format: newGoalType === "70.3" ? newGoalFormat : "continuous",
+        race_format: (newGoalType === "703" || newGoalType === "IM") ? newGoalFormat : "continuous",
         plan_start_date: newPlanStartDate ? format(newPlanStartDate, 'yyyy-MM-dd') : null,
       });
       
@@ -382,7 +382,7 @@ export function AthleteObjectiveManager({
                       />
                     </div>
 
-                    {newGoalType === "70.3" && (
+                    {(newGoalType === "703" || newGoalType === "IM") && (
                       <div className="space-y-2">
                         <Label>Format de course</Label>
                         <Select value={newGoalFormat} onValueChange={(v) => setNewGoalFormat(v as "continuous" | "lcw_3day")}>
@@ -702,7 +702,7 @@ export function AthleteObjectiveManager({
                         />
                       </div>
 
-                      {newGoalType === "70.3" && (
+                      {(newGoalType === "703" || newGoalType === "IM") && (
                         <div className="space-y-2">
                           <Label>Format de course</Label>
                           <Select value={newGoalFormat} onValueChange={(v) => setNewGoalFormat(v as "continuous" | "lcw_3day")}>
