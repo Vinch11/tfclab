@@ -283,6 +283,16 @@ export default function RaceSimulationPage() {
     }
   }, [lcwGoal, athleteId, addRaceGoal]);
 
+  // Désactivation réversible : coupe l'override local ET repasse l'objectif
+  // persisté en format "continuous" (sinon le mode restait bloqué).
+  const handleDisableLcw = React.useCallback(async () => {
+    setLcwManualEnabled(false);
+    if (lcwGoal) {
+      try { await updateRaceGoalFormat(lcwGoal.id, 'continuous'); } catch { /* toast déjà émis */ }
+    }
+  }, [lcwGoal, updateRaceGoalFormat]);
+
+
   // raceObjective effectif : si LCW + segment run → Semi solo ; sinon inchangé.
   const raceObjective: RaceObjective = React.useMemo(() => {
     if (lcwActive && lcwSegment === 'run') return 'Semi';
