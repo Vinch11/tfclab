@@ -30,7 +30,7 @@ import type { RaceGoal } from "@/hooks/useAITrainingPlan";
 import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
 import { supabase } from "@/integrations/supabase/client";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
-import { getEffectiveRefs } from "@/lib/effectiveRefs";
+import { getEffectiveRefs, getEffectiveSnapshot } from "@/lib/effectiveRefs";
 import { buildTargetTable } from "@/lib/plan/targetTable";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { derivePhasesFromWeeks } from "@/engines/plan/planValidator";
