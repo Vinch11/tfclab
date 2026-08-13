@@ -67,6 +67,8 @@ export interface DeriveZonesInput {
   vma?: number | null;
   /** Allure seuil course en secondes/km. */
   paceThresholdSecPerKm?: number | null;
+  /** true si l'allure seuil est estimée (MLSS prédit × VMA) et non mesurée. */
+  paceThresholdEstimated?: boolean;
   /** CSS natation en secondes/100 m. */
   css?: number | null;
   fcMax?: number | null;
