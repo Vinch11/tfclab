@@ -42,9 +42,8 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
     if (!paceThreshold && effective.vma && effective.vma > 0) {
       const ce = resolveRunningEconomyFromSnapshot(snap as any)?.mlKgKm ?? null;
       const mlss = predictRunMLSSPctFromVLaCE(vlamaxRun, ce);
-      const ratio = mlss ? mlss.mlssPct / 100 : 0.9;
-      paceThreshold = 3600 / (effective.vma * ratio);
-      paceEstimated = true;
+      paceThreshold = estimateRunThresholdPaceSecPerKm(effective.vma, mlss?.mlssPct ?? null);
+      paceEstimated = paceThreshold != null;
     }
 
     const run = deriveTrainingZones({
