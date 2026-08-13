@@ -237,10 +237,13 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
       // vVO2max ≈ VMA ; exprimée en % de la vitesse seuil de l'athlète.
       const vVo2maxPct = vma ? clamp((vma / vThrKmh) * 100, 102, 135) : 112;
       pct = deriveRunPct(vla, vVo2maxPct);
-      anchors.push(`Vitesse seuil ${vThrKmh.toFixed(1)} km/h (${fmtPaceFromSec(thr)}/km)`);
+      const estimated = input.paceThresholdEstimated === true;
+      anchors.push(
+        `Vitesse seuil ${vThrKmh.toFixed(1)} km/h (${fmtPaceFromSec(thr)}/km)${estimated ? " — estimée (MLSS prédit)" : " — mesurée"}`,
+      );
       if (vma) anchors.push(`vVO2max ≈ ${Math.round(vVo2maxPct)} % du seuil (VMA ${vma.toFixed(1)} km/h)`);
       if (vla) anchors.push(`FatMax modulée par VLamax ${vla.toFixed(2)}`);
-      confidence = vma && vla ? 0.85 : vma ? 0.7 : 0.55;
+      confidence = (vma && vla ? 0.85 : vma ? 0.7 : 0.55) - (estimated ? 0.15 : 0);
     }
   } else {
     fallbackReason = "Zones natation non dérivables (CSS seul)";
