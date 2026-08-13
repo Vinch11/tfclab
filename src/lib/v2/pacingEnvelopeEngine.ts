@@ -651,6 +651,35 @@ export function computePacingEnvelope(input: PacingEnvelopeInput): PacingEnvelop
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ANCRAGE CHRONOS RÉELS (run) — un chrono mesuré bat toujours un modèle.
+  // On projette le meilleur chrono vers la distance cible (Riegel 1.06), on en
+  // déduit le %CS réellement soutenu, puis on ramène le centre vers cette valeur.
+  // Corrige les profils dont la VMA saisie est incohérente avec les chronos
+  // (centre trop timide ou trop agressif).
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (sport === "run") {
+    const impliedPctRef = computeChronoImpliedCenterPct(
+      input.raceChronos ?? null,
+      input.paceThreshold ?? input.raceChrono?.paceThreshold_sec_km ?? null,
+      input.raceObjective,
+    );
+    if (impliedPctRef != null) {
+      const rawDelta = impliedPctRef - centerPct;
+      const applied = Math.round(clamp(rawDelta * 0.6, -4, 5) * 10) / 10;
+      if (Math.abs(applied) >= 0.3) {
+        centerPct = clamp(centerPct + applied, 55, 95);
+        centerAdjustments.push({
+          label: `Ancrage chronos réels (Riegel → ${Math.round(impliedPctRef / VCS_OVER_VMA_RATIO)}% seuil)`,
+          deltaPct: applied,
+        });
+        sourcesUsed.push(
+          `Ancrage chronos course (${applied > 0 ? "+" : ""}${applied} pts)`,
+        );
+      }
+    }
+  }
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // STEP 2 (CHANTIER B): Largeur ASYMÉTRIQUE — plafond ≠ plancher
