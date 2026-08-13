@@ -1986,13 +1986,14 @@ const Index = () => {
               />
             ),
           },
-          // Zones d'entraînement
+          // Zones d'entraînement (dérivées de la physiologie, repli grille standard)
           {
             id: "training-zones",
             render: () => (
-              <TrainingZonesCard staffMode={staffMode} />
+              <DerivedTrainingZonesCard />
             ),
           },
+
           // Seuils Lactiques TFCL
           {
             id: "lactate-thresholds-profil",
