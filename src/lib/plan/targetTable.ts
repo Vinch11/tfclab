@@ -63,7 +63,13 @@ export interface BuildTargetTableInput {
   ambition?: string | null;
   weeklyHours?: number | null;
   trainingLevel?: "untrained" | "light" | "trained" | "highly_trained" | null;
+  /** Physiologie pour les zones dérivées (repli grille standard si absente). */
+  vlamax?: number | null;
+  vlamaxRun?: number | null;
+  vo2max?: number | null;
+  weightKg?: number | null;
 }
+
 
 /**
  * Construit la table de valeurs autorisées, source UNIQUE pour le plan.
