@@ -34,10 +34,24 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
       weightKg: effective.weightKg,
     });
 
+    // Allure seuil : mesurée si dispo, sinon estimée (MLSS prédit × VMA, repli 0.90 × VMA).
+    const vlamaxRun = snap?.vlamax_run ?? snap?.vlamax ?? null;
+    const measuredPace = snap?.pace_threshold_sec_per_km ?? null;
+    let paceThreshold = measuredPace;
+    let paceEstimated = false;
+    if (!paceThreshold && effective.vma && effective.vma > 0) {
+      const ce = resolveRunningEconomyFromSnapshot(snap as any)?.mlKgKm ?? null;
+      const mlss = predictRunMLSSPctFromVLaCE(vlamaxRun, ce);
+      const ratio = mlss ? mlss.mlssPct / 100 : 0.9;
+      paceThreshold = 3600 / (effective.vma * ratio);
+      paceEstimated = true;
+    }
+
     const run = deriveTrainingZones({
       sport: "run",
       vma: effective.vma,
-      paceThresholdSecPerKm: snap?.pace_threshold_sec_per_km ?? null,
+      paceThresholdSecPerKm: paceThreshold,
+      paceThresholdEstimated: paceEstimated,
       fcMax: effective.fcMax,
       vlamax: snap?.vlamax_run ?? snap?.vlamax ?? null,
       vo2max: effective.vo2max,
