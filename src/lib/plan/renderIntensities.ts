@@ -170,10 +170,10 @@ export function enrichWithAbsoluteValues(
     const cHigh = canonicalizeZoneLabel(m[2]);
     if (!cLow || !cHigh) return null;
     if (isBike && targetTable.ftpW) {
-      return { annotation: bikeZoneRangeWatts(cLow, cHigh, targetTable.ftpW), kind: "W" };
+      return { annotation: bikeZoneRangeWatts(cLow, cHigh, targetTable, targetTable.ftpW), kind: "W" };
     }
     if (isRun && targetTable.vmaKmh) {
-      return { annotation: runZoneRangePace(cLow, cHigh, targetTable.vmaKmh), kind: "km" };
+      return { annotation: runZoneRangePace(cLow, cHigh, targetTable, targetTable.vmaKmh), kind: "km" };
     }
     return null;
   });
@@ -183,10 +183,10 @@ export function enrichWithAbsoluteValues(
     const canon = canonicalizeZoneLabel(m[0]);
     if (!canon) return null;
     if (isBike && targetTable.ftpW) {
-      return { annotation: bikeZoneWatts(canon, targetTable.ftpW), kind: "W" };
+      return { annotation: bikeZoneWatts(canon, targetTable, targetTable.ftpW), kind: "W" };
     }
     if (isRun && targetTable.vmaKmh) {
-      return { annotation: runZonePace(canon, targetTable.vmaKmh), kind: "km" };
+      return { annotation: runZonePace(canon, targetTable, targetTable.vmaKmh), kind: "km" };
     }
     // swim / autres : pas de zone Z1..Z7 canonique → skip
     return null;
