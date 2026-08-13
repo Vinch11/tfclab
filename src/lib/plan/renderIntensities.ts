@@ -38,13 +38,13 @@ function paceFromVma(vmaKmh: number, pct: number): number {
  */
 function bikeRangeFromTable(zone: ZoneId | "Z4", t: TargetTable, ftpW: number): [number, number] | null {
   if (zone === "Z4") {
-    const a = t.bikeZonesW.Z4a;
-    const b = t.bikeZonesW.Z4b;
+    const a = t.bikeZonesW?.Z4a;
+    const b = t.bikeZonesW?.Z4b;
     if (a && b) return [Math.min(a[0], b[0]), Math.max(a[1], b[1])];
     const u = z4Union("ftp");
     return u ? [Math.round(u.min * ftpW / 100), Math.round(u.max * ftpW / 100)] : null;
   }
-  const fromTable = t.bikeZonesW[zone];
+  const fromTable = t.bikeZonesW?.[zone];
   if (fromTable) return fromTable;
   const z = getZoneMirror(zone);
   if (!z) return null;
@@ -54,13 +54,13 @@ function bikeRangeFromTable(zone: ZoneId | "Z4", t: TargetTable, ftpW: number): 
 /** Bornes d'allure (sec/km) : [rapide, lent]. */
 function runRangeFromTable(zone: ZoneId | "Z4", t: TargetTable, vmaKmh: number): [number, number] | null {
   if (zone === "Z4") {
-    const a = t.runPacesSecPerKm.Z4a;
-    const b = t.runPacesSecPerKm.Z4b;
+    const a = t.runPacesSecPerKm?.Z4a;
+    const b = t.runPacesSecPerKm?.Z4b;
     if (a && b) return [Math.min(a[0], b[0]), Math.max(a[1], b[1])];
     const u = z4Union("vma");
     return u ? [paceFromVma(vmaKmh, u.max), paceFromVma(vmaKmh, u.min)] : null;
   }
-  const fromTable = t.runPacesSecPerKm[zone];
+  const fromTable = t.runPacesSecPerKm?.[zone];
   if (fromTable) return fromTable;
   const z = getZoneMirror(zone);
   if (!z) return null;
