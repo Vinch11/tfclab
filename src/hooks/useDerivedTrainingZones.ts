@@ -8,6 +8,8 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs, getEffectiveSnapshot } from "@/lib/effectiveRefs";
 import { deriveTrainingZones, type DerivedZoneSet } from "@/lib/zones/deriveTrainingZones";
+import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
+import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
 
 export interface DerivedZonesBySport {
   bike: DerivedZoneSet;
