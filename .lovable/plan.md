@@ -1,74 +1,65 @@
+# Zones d'entraînement dérivées de la physiologie
 
-# Reco 3 — Substitution automatique des catalogId B5 vers voisin réel
+Objectif : ne plus prescrire à partir d'une grille de pourcentages figée, mais calculer les bornes de zones à partir des seuils physiologiques réels de l'athlète (LT1/FatMax, MLSS/LT2, VO₂max), avec repli automatique sur la grille standard quand la confiance des données est insuffisante.
 
-## Objectif
-Transformer le check B5 d'un simple diagnostic (log "catalogId hors catalogue") en un **filet non silencieux** qui, quand c'est sûr, remplace l'ID fantôme par le voisin le plus proche du catalogue *effectivement injecté* pour ce chunk. Même philosophie que l'hydratation de zone et la réparation JSON : décision loggée, seuils explicites, opt-out possible.
+## Ce qui change pour le coach
 
-## Portée — ce qu'on substitue, ce qu'on ne substitue jamais
+- Chaque zone affiche sa **condition physiologique** ("Zone 2 = autour de FatMax", "Zone 4 = MLSS ±3 %") et pas seulement un pourcentage.
+- Les bornes sont **propres à l'athlète** : un athlète dont le seuil est à 80 % de sa VMA n'a plus les mêmes zones qu'un athlète à 90 %.
+- Un badge indique toujours la source : **« Zones calculées »** ou **« Grille standard (données insuffisantes) »**, avec le niveau de confiance.
+- Passage de 7 zones (Z1…Z7) à **6 zones** lisibles, alignées sur le modèle métabolique.
 
-**Éligibles à substitution** (les 3 catégories déjà diagnostiquées) :
-- `retiré_par_filtre_phase` — l'ID existe mais a été retiré du chunk par le filtre de phase.
-- `retiré_aval_filtre` — retiré par cap sport/cat, dédup, prohibitions, etc.
-- `existe_autre_objectif` — ID d'un autre objectif (ex : trail dans un plan semi).
+## Modèle 6 zones
 
-**Jamais substitués** :
-- `pur_hallucination` — l'ID n'existe nulle part → on ne peut rien inférer, on laisse le FAIL B5 remonter (visible dans le rapport).
-- Séances `custom: true` — pas d'ID catalogue par définition.
+| Zone | Condition physiologique | Ancien équivalent |
+|---|---|---|
+| Z1 Récupération | < LT1 − marge | Z1 |
+| Z2 Endurance / FatMax | LT1 → FatMax haut | Z2 |
+| Z3 Tempo | FatMax haut → MLSS − 5 % | Z3 |
+| Z4 Seuil (MLSS) | MLSS ±3 % | Z4a + Z4b + Z5 |
+| Z5 VO₂max | > MLSS jusqu'à vVO₂max | Z6 |
+| Z6 Neuromusculaire | > vVO₂max | Z7 |
 
-## Règles de similarité (garde-fous stricts)
+La correspondance ancienne→nouvelle est figée dans une table de mapping unique, utilisée partout (UI, PDF, plans IA, Nolio).
 
-Un candidat de substitution DOIT satisfaire **toutes** ces conditions :
-1. **Même discipline normalisée** — swim/bike/run/strength/mobility (via `normSp` existant). Cross-sport interdit.
-2. **Même famille d'intention** — via `intentFamily.ts` déjà présent (endurance / seuil / vo2 / sprint / technique / récup). Un fartlek ≠ une sortie longue.
-3. **Écart de durée ≤ 25 %** — comparaison de la médiane `durationMin` de la fiche fantôme vs candidate.
-4. **Phase compatible** — la fiche candidate doit avoir la phase du chunk dans ses `phase` autorisées (ou aucune contrainte).
-5. **Score de recouvrement tags/goals ≥ 2** — au moins 2 tags communs (déjà calculé dans le neighbor engine actuel).
+## Travail technique
 
-Si aucun candidat ne satisfait ces 5 conditions → **pas de substitution**, le FAIL B5 remonte tel quel (mieux vaut un check rouge qu'un mauvais mapping).
+**1. Moteur de zones (nouveau)** — `src/lib/zones/deriveTrainingZones.ts`
+- Entrées : VMA / seuil course (sec/km), FTP, VLamax, VO₂max, CE, MLSS calibré (`maderMetabolicModel`), FCmax, CSS.
+- Sorties : 6 zones avec bornes en % de référence **et** en valeurs absolues (W, km/h, min/km, bpm, sec/100m), plus `source: "derived" | "standard"`, `confidence`, et la liste des ancrages utilisés.
+- Règle de repli : si le score de confiance (DRE) est sous seuil, ou si seuil/MLSS manquant, on renvoie la grille standard convertie en 6 zones.
+- Garde-fous : monotonie des bornes, largeur minimale par zone, clamps physiologiques.
 
-## Emplacement dans le pipeline
+**2. Mapping et compatibilité** — `src/lib/zones/zoneMapping.ts`
+- Table figée Z1–Z7 ↔ Z1–Z6 dans les deux sens, plus canonicalisation des libellés (`Z4a`, `Z4B`, `Z4`).
+- `trainingZonesDefinition.ts` conservé comme grille de repli, plus comme source de prescription.
 
-**Nouvelle passe `substituteHallucinatedCatalogIds`** dans `src/lib/plan/planReconciler.ts`, exécutée **après** `hydrateDilutedZones` et **avant** le retour du plan réconcilié — donc avant les checks QA. La substitution muterait `session.catalogId` uniquement (jamais le texte de la séance : c'est un remapping de référence, pas de contenu).
+**3. Affichage** — `TrainingZones.tsx`, `TrainingZonesCard.tsx`, mini-rapport, exports PDF
+- Rendu des 6 zones dérivées + condition physiologique + badge de source/confiance.
 
-## Observabilité (non négociable)
+**4. Plans IA** — `src/lib/plan/renderIntensities.ts`, `targetTable.ts`, mirror edge
+- `targetTable` calcule les bornes depuis le moteur de zones au lieu du mirror statique.
+- Le JSON du plan reste relatif (Z1…Z6) ; l'injection des valeurs absolues utilise les zones dérivées.
+- Le mirror edge (`supabase/functions/_shared/trainingZonesDefinition.ts`) est mis à jour en 6 zones et le test d'égalité client/edge est adapté.
+- Le prompt et le validateur acceptent Z1–Z6 et rejettent Z7/Z4a/Z4b en sortie IA.
 
-À chaque substitution :
-- `session.catalogIdOrigin = "<ancien>"` — trace conservée sur la session pour audit.
-- `session.catalogIdSubstituted = true`.
-- Ligne `semanticRepairs` : `"catalog_id_substituted: S{w} {day} {oldId} → {newId} [reason={cat}, score={n}, Δdur={x}%]"`.
-- Compteur `catalogSubstitutions=N` ajouté au `[summary]` dans `useAITrainingPlan.ts`, à côté de `jsonRepairs`.
-- Nouveau champ dans `PlanGenerationStat` : `catalogSubstitutions?: number` (mirroré Cloud pour /debug/plan-qa comme le reste).
+**5. Export Nolio** — `supabase/functions/nolio-send-plan/index.ts`
+- Les cibles envoyées (W, allure, FC) proviennent des zones dérivées, avec mention de la référence dans la description de bloc.
 
-## Impact sur les checks QA
+**6. Tests**
+- Bornes monotones et non chevauchantes sur profils types (débutant ratio 0,78 / élite 0,92 / master).
+- Repli standard quand VLamax ou seuil manquent.
+- Mapping 7↔6 réversible ; mirror client ↔ edge strictement égal.
+- Non-régression du rendu d'intensités dans les plans existants.
 
-- **B5** : les IDs substitués sortent naturellement du "hors catalogue" (leur nouvel ID est dans `allowedIds`). Le check restera FAIL uniquement sur les `pur_hallucination` et les cas où aucun voisin sûr n'a été trouvé.
-- **B10/B11** : la substitution respectant discipline + intention + phase, ces checks ne doivent pas se dégrader. Un test unitaire le vérifiera.
+## Ordre d'exécution
 
-## Livrables
+1. Moteur + mapping + tests unitaires (aucun impact visible).
+2. Affichage zones et badge de source.
+3. Bascule `targetTable` / `renderIntensities` + mirror edge + validateur IA.
+4. Export Nolio.
 
-1. `src/lib/plan/planReconciler.ts` — nouvelle fonction `substituteHallucinatedCatalogIds(plan, injectedCatalogIds, planPhases)` + intégration dans la passe principale.
-2. `src/lib/plan/__tests__/reconcilerSubstitute.test.ts` — 4 cas :
-   - Substitution réussie (retiré_par_filtre_phase, voisin idéal).
-   - Refus (discipline différente).
-   - Refus (écart durée > 25 %).
-   - Pas de touche sur `pur_hallucination`.
-3. `src/hooks/useAITrainingPlan.ts` — compteur `catalogSubstitutions=N` dans le summary + push des lignes dans `semanticRepairs`.
-4. `src/lib/plan/planGenerationStats.ts` — champ `catalogSubstitutions?: number` + colonne miroir Cloud (best-effort).
+## Points à valider
 
-## Non-buts (pour cadrer le scope)
-
-- On ne modifie pas le prompt IA (pas de re-génération, pas d'appel supplémentaire).
-- On ne touche pas au moteur de génération de chunks.
-- On ne remappe pas les `pur_hallucination` (les FAIL B5 restants seront le vrai signal résiduel à traiter dans une itération future).
-- On ne mute jamais le texte de la séance — juste l'ID de référence.
-
-## Validation
-
-- Typecheck vert + 4/4 tests unitaires.
-- Un QA N=3 après merge doit montrer :
-  - `catalogSubstitutions=N` visible dans les 9 summaries.
-  - Baisse nette du taux de FAIL B5, ne laissant que les `pur_hallucination`.
-  - Aucune régression B10/B11.
-
----
-Si tu valides, j'implémente les 4 fichiers en une passe.
+- Les plans **déjà enregistrés** en Z1–Z7 restent lisibles grâce au mapping ; ils ne sont pas réécrits.
+- Le seuil de confiance de bascule est configurable ; départ conservateur (repli fréquent), à durcir ensuite.
