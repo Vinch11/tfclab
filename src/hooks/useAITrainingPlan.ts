@@ -573,6 +573,11 @@ export function useAITrainingPlan() {
           css: athleteData.css ?? null,
           fcMax: athleteData.fcMax ?? null,
           paceThresholdSecPerKm: athleteData.paceThresholdSecPerKm ?? null,
+          vlamax: athleteData.vlamax ?? null,
+          vlamaxRun: athleteData.vlamaxRun ?? null,
+          vo2max: athleteData.vo2max ?? null,
+          weightKg: athleteData.weightKg ?? null,
+
           objective: planConfig.objective ?? null,
           ambition: planConfig.ambition ?? null,
           weeklyHours: planConfig.weeklyHours ?? null,
