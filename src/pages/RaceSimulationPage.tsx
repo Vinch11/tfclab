@@ -583,11 +583,11 @@ export default function RaceSimulationPage() {
       envelope,
       raceObjective,
       vlamaxValue: vlamaxForSport?.value ?? null,
-      tteMin: tteEffectif?.tte_min ?? null,
+      tteMin: (discipline === 'run' ? (tteEffectifRun?.tte_min ?? tteEffectif?.tte_min) : tteEffectif?.tte_min) ?? null,
       raceDistanceKm: 90,
       raceDurationMin,
     });
-  }, [envelope, raceObjective, vlamaxEffectif, vlamaxRunEffectif, discipline, tteEffectif, raceDurationMin]);
+  }, [envelope, raceObjective, vlamaxEffectif, vlamaxRunEffectif, discipline, tteEffectif, tteEffectifRun, raceDurationMin]);
 
   const handleExportReport = React.useCallback(() => {
     const html = buildRaceSimulationHTML({
