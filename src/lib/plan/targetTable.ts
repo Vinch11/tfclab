@@ -45,8 +45,11 @@ export interface TargetTable {
     ambition: string | null;
     sport: string;
     generatedAt: number;
+    /** Provenance des bornes de zones injectées (par sport). */
+    zoneSource: { bike: "derived" | "standard"; run: "derived" | "standard" };
   };
 }
+
 
 function paceSecFromVma(vmaKmh: number, pct: number): number {
   const speedKmh = (pct / 100) * vmaKmh;
