@@ -332,3 +332,77 @@ function formatAbsolute(
 export function getDerivedZone(set: DerivedZoneSet, id: ZoneId6): DerivedZone | undefined {
   return set.zones.find((z) => z.id === id);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PONT AVEC LA GRILLE HÉRITÉE Z1..Z7 (plans IA, catalogue, exports)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Suite monotone des bornes (min,max de chaque zone) pour l'interpolation. */
+function boundsSequence(zones: { pctRef: ZoneBounds }[]): number[] {
+  const seq: number[] = [];
+  zones.forEach((z) => {
+    seq.push(z.pctRef.min, z.pctRef.max);
+  });
+  for (let i = 1; i < seq.length; i++) {
+    if (seq[i] < seq[i - 1]) seq[i] = seq[i - 1];
+  }
+  return seq;
+}
+
+/**
+ * Convertit un pourcentage exprimé dans la GRILLE STANDARD (% FTP vélo,
+ * % VMA course) vers le pourcentage équivalent de la référence DÉRIVÉE
+ * (% FTP recalé sur MLSS, % vitesse seuil), par interpolation linéaire
+ * par morceaux entre les bornes des deux grilles.
+ *
+ * Retourne null si le set est en repli standard (aucune conversion à faire).
+ */
+export function makeStandardPctRemap(
+  set: DerivedZoneSet,
+): ((standardPct: number) => number) | null {
+  if (set.source !== "derived") return null;
+  const standard = boundsSequence(
+    ZONE6_IDS.map((id) => ({ pctRef: standardPctFor(set.sport, id) })),
+  );
+  const derived = boundsSequence(set.zones);
+  if (standard.length !== derived.length) return null;
+
+  return (p: number) => {
+    if (p <= standard[0]) return round1(derived[0] + (p - standard[0]));
+    for (let i = 1; i < standard.length; i++) {
+      if (p <= standard[i]) {
+        const span = standard[i] - standard[i - 1];
+        const t = span > 0 ? (p - standard[i - 1]) / span : 0;
+        return round1(derived[i - 1] + t * (derived[i] - derived[i - 1]));
+      }
+    }
+    const last = standard.length - 1;
+    const ratio = standard[last] > 0 ? derived[last] / standard[last] : 1;
+    return round1(p * ratio);
+  };
+}
+
+/**
+ * Valeur ABSOLUE (W pour le vélo, km/h pour la course) correspondant à un
+ * pourcentage de la grille standard, en passant par les zones dérivées.
+ * Retourne null si non dérivable (repli standard, référence manquante).
+ */
+export function makeStandardPctToAbsolute(
+  set: DerivedZoneSet,
+  input: DeriveZonesInput,
+): ((standardPct: number) => number) | null {
+  const remap = makeStandardPctRemap(set);
+  if (!remap) return null;
+  if (set.sport === "bike") {
+    if (!isPos(input.ftp)) return null;
+    const ftp = input.ftp;
+    return (p: number) => (remap(p) / 100) * ftp;
+  }
+  if (set.sport === "run") {
+    if (!isPos(input.paceThresholdSecPerKm)) return null;
+    const vThr = 3600 / input.paceThresholdSecPerKm;
+    return (p: number) => (remap(p) / 100) * vThr;
+  }
+  return null;
+}
+
