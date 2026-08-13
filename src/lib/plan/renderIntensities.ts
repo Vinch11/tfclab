@@ -31,53 +31,66 @@ function paceFromVma(vmaKmh: number, pct: number): number {
   return speed > 0 ? Math.round(3600 / speed) : 0;
 }
 
-/** Watts range pour une zone donnée (Z1..Z7) — utilise mirror + FTP athlète. */
-function bikeZoneWatts(zone: ZoneId | "Z4", ftpW: number): string | null {
+/**
+ * Bornes absolues d'une zone héritée depuis la targetTable (source unique,
+ * déjà recalée sur la physiologie de l'athlète quand elle est disponible).
+ * Repli sur la grille standard %FTP/%VMA si la zone n'est pas dans la table.
+ */
+function bikeRangeFromTable(zone: ZoneId | "Z4", t: TargetTable, ftpW: number): [number, number] | null {
   if (zone === "Z4") {
+    const a = t.bikeZonesW?.Z4a;
+    const b = t.bikeZonesW?.Z4b;
+    if (a && b) return [Math.min(a[0], b[0]), Math.max(a[1], b[1])];
     const u = z4Union("ftp");
-    if (!u) return null;
-    return `${Math.round(u.min * ftpW / 100)}-${Math.round(u.max * ftpW / 100)}W`;
+    return u ? [Math.round(u.min * ftpW / 100), Math.round(u.max * ftpW / 100)] : null;
   }
+  const fromTable = t.bikeZonesW?.[zone];
+  if (fromTable) return fromTable;
   const z = getZoneMirror(zone);
   if (!z) return null;
-  return `${Math.round(z.ftp.min * ftpW / 100)}-${Math.round(z.ftp.max * ftpW / 100)}W`;
+  return [Math.round(z.ftp.min * ftpW / 100), Math.round(z.ftp.max * ftpW / 100)];
 }
 
-function runZonePace(zone: ZoneId | "Z4", vmaKmh: number): string | null {
+/** Bornes d'allure (sec/km) : [rapide, lent]. */
+function runRangeFromTable(zone: ZoneId | "Z4", t: TargetTable, vmaKmh: number): [number, number] | null {
   if (zone === "Z4") {
+    const a = t.runPacesSecPerKm?.Z4a;
+    const b = t.runPacesSecPerKm?.Z4b;
+    if (a && b) return [Math.min(a[0], b[0]), Math.max(a[1], b[1])];
     const u = z4Union("vma");
-    if (!u) return null;
-    return `${fmtPace(paceFromVma(vmaKmh, u.max))}-${fmtPace(paceFromVma(vmaKmh, u.min))}/km`;
+    return u ? [paceFromVma(vmaKmh, u.max), paceFromVma(vmaKmh, u.min)] : null;
   }
+  const fromTable = t.runPacesSecPerKm?.[zone];
+  if (fromTable) return fromTable;
   const z = getZoneMirror(zone);
   if (!z) return null;
-  return `${fmtPace(paceFromVma(vmaKmh, z.vma.max))}-${fmtPace(paceFromVma(vmaKmh, z.vma.min))}/km`;
+  return [paceFromVma(vmaKmh, z.vma.max), paceFromVma(vmaKmh, z.vma.min)];
 }
 
-function zonePctRange(zone: ZoneId | "Z4", metric: "ftp" | "vma"): ZonePctLike | null {
-  if (zone === "Z4") return z4Union(metric);
-  const z = getZoneMirror(zone);
-  return z ? z[metric] : null;
+function bikeZoneWatts(zone: ZoneId | "Z4", t: TargetTable, ftpW: number): string | null {
+  const r = bikeRangeFromTable(zone, t, ftpW);
+  return r ? `${r[0]}-${r[1]}W` : null;
 }
-type ZonePctLike = { min: number; max: number };
 
-function bikeZoneRangeWatts(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", ftpW: number): string | null {
-  const a = zonePctRange(zLow, "ftp");
-  const b = zonePctRange(zHigh, "ftp");
+function runZonePace(zone: ZoneId | "Z4", t: TargetTable, vmaKmh: number): string | null {
+  const r = runRangeFromTable(zone, t, vmaKmh);
+  return r ? `${fmtPace(r[0])}-${fmtPace(r[1])}/km` : null;
+}
+
+function bikeZoneRangeWatts(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", t: TargetTable, ftpW: number): string | null {
+  const a = bikeRangeFromTable(zLow, t, ftpW);
+  const b = bikeRangeFromTable(zHigh, t, ftpW);
   if (!a || !b) return null;
-  const min = Math.min(a.min, b.min);
-  const max = Math.max(a.max, b.max);
-  return `${Math.round(min * ftpW / 100)}-${Math.round(max * ftpW / 100)}W`;
+  return `${Math.min(a[0], b[0])}-${Math.max(a[1], b[1])}W`;
 }
 
-function runZoneRangePace(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", vmaKmh: number): string | null {
-  const a = zonePctRange(zLow, "vma");
-  const b = zonePctRange(zHigh, "vma");
+function runZoneRangePace(zLow: ZoneId | "Z4", zHigh: ZoneId | "Z4", t: TargetTable, vmaKmh: number): string | null {
+  const a = runRangeFromTable(zLow, t, vmaKmh);
+  const b = runRangeFromTable(zHigh, t, vmaKmh);
   if (!a || !b) return null;
-  const minPct = Math.min(a.min, b.min);
-  const maxPct = Math.max(a.max, b.max);
-  return `${fmtPace(paceFromVma(vmaKmh, maxPct))}-${fmtPace(paceFromVma(vmaKmh, minPct))}/km`;
+  return `${fmtPace(Math.min(a[0], b[0]))}-${fmtPace(Math.max(a[1], b[1]))}/km`;
 }
+
 
 const ZONE_CORE = "Z(?:1|2|3|4a|4b|4|5|6|7)";
 // Range de zones ("Z2-Z3", "Z4a-Z4b", "Z1-Z2"). Annoté comme UN bloc pour éviter
@@ -157,10 +170,10 @@ export function enrichWithAbsoluteValues(
     const cHigh = canonicalizeZoneLabel(m[2]);
     if (!cLow || !cHigh) return null;
     if (isBike && targetTable.ftpW) {
-      return { annotation: bikeZoneRangeWatts(cLow, cHigh, targetTable.ftpW), kind: "W" };
+      return { annotation: bikeZoneRangeWatts(cLow, cHigh, targetTable, targetTable.ftpW), kind: "W" };
     }
     if (isRun && targetTable.vmaKmh) {
-      return { annotation: runZoneRangePace(cLow, cHigh, targetTable.vmaKmh), kind: "km" };
+      return { annotation: runZoneRangePace(cLow, cHigh, targetTable, targetTable.vmaKmh), kind: "km" };
     }
     return null;
   });
@@ -170,10 +183,10 @@ export function enrichWithAbsoluteValues(
     const canon = canonicalizeZoneLabel(m[0]);
     if (!canon) return null;
     if (isBike && targetTable.ftpW) {
-      return { annotation: bikeZoneWatts(canon, targetTable.ftpW), kind: "W" };
+      return { annotation: bikeZoneWatts(canon, targetTable, targetTable.ftpW), kind: "W" };
     }
     if (isRun && targetTable.vmaKmh) {
-      return { annotation: runZonePace(canon, targetTable.vmaKmh), kind: "km" };
+      return { annotation: runZonePace(canon, targetTable, targetTable.vmaKmh), kind: "km" };
     }
     // swim / autres : pas de zone Z1..Z7 canonique → skip
     return null;

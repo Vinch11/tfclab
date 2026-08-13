@@ -16,6 +16,8 @@
  */
 import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
+import { deriveTrainingZones, makeStandardPctToAbsolute } from "@/lib/zones/deriveTrainingZones";
+
 
 export type ZoneKey = "Z1" | "Z2" | "Z3" | "Z4a" | "Z4b" | "Z5" | "Z6" | "Z7";
 export type Range = [number, number];
@@ -45,8 +47,11 @@ export interface TargetTable {
     ambition: string | null;
     sport: string;
     generatedAt: number;
+    /** Provenance des bornes de zones injectées (par sport). */
+    zoneSource: { bike: "derived" | "standard"; run: "derived" | "standard" };
   };
 }
+
 
 function paceSecFromVma(vmaKmh: number, pct: number): number {
   const speedKmh = (pct / 100) * vmaKmh;
@@ -63,7 +68,13 @@ export interface BuildTargetTableInput {
   ambition?: string | null;
   weeklyHours?: number | null;
   trainingLevel?: "untrained" | "light" | "trained" | "highly_trained" | null;
+  /** Physiologie pour les zones dérivées (repli grille standard si absente). */
+  vlamax?: number | null;
+  vlamaxRun?: number | null;
+  vo2max?: number | null;
+  weightKg?: number | null;
 }
+
 
 /**
  * Construit la table de valeurs autorisées, source UNIQUE pour le plan.
@@ -82,18 +93,59 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
   const runPaces: Partial<Record<ZoneKey, Range>> = {};
   const fcZones: Partial<Record<ZoneKey, Range>> = {};
 
+  // Zones dérivées de la physiologie (repli silencieux sur la grille standard).
+  const bikeSet = deriveTrainingZones({
+    sport: "bike",
+    ftp,
+    fcMax,
+    vlamax: input.vlamax ?? null,
+    vo2max: input.vo2max ?? null,
+    weightKg: input.weightKg ?? null,
+  });
+  const runSet = deriveTrainingZones({
+    sport: "run",
+    vma,
+    paceThresholdSecPerKm: input.paceThresholdSecPerKm ?? null,
+    fcMax,
+    vlamax: input.vlamaxRun ?? input.vlamax ?? null,
+    vo2max: input.vo2max ?? null,
+    weightKg: input.weightKg ?? null,
+  });
+  const bikeAbs = makeStandardPctToAbsolute(bikeSet, {
+    sport: "bike",
+    ftp,
+    fcMax,
+    vlamax: input.vlamax ?? null,
+    vo2max: input.vo2max ?? null,
+  });
+  const runAbs = makeStandardPctToAbsolute(runSet, {
+    sport: "run",
+    vma,
+    paceThresholdSecPerKm: input.paceThresholdSecPerKm ?? null,
+    fcMax,
+    vlamax: input.vlamaxRun ?? input.vlamax ?? null,
+    vo2max: input.vo2max ?? null,
+  });
+
   for (const z of TRAINING_ZONES) {
     const zid = z.id as ZoneKey;
     if (ftp) {
-      bikeZonesW[zid] = [
-        Math.round((z.ftp.min / 100) * ftp),
-        Math.round((z.ftp.max / 100) * ftp),
-      ];
+      bikeZonesW[zid] = bikeAbs
+        ? [Math.round(bikeAbs(z.ftp.min)), Math.round(bikeAbs(z.ftp.max))]
+        : [
+            Math.round((z.ftp.min / 100) * ftp),
+            Math.round((z.ftp.max / 100) * ftp),
+          ];
     }
     if (vma) {
-      // pace min = plus vite (borne max VMA%), pace max = plus lent
-      const paceFast = paceSecFromVma(vma, z.vma.max);
-      const paceSlow = paceSecFromVma(vma, z.vma.min || 40);
+      // pace min = plus vite (borne max), pace max = plus lent
+      const minPct = z.vma.min || 40;
+      const paceFast = runAbs
+        ? Math.round(3600 / runAbs(z.vma.max))
+        : paceSecFromVma(vma, z.vma.max);
+      const paceSlow = runAbs
+        ? Math.round(3600 / runAbs(minPct))
+        : paceSecFromVma(vma, minPct);
       runPaces[zid] = [paceFast, paceSlow];
     }
     if (fcMax && z.fcMax) {
@@ -102,6 +154,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
         Math.round((z.fcMax.max / 100) * fcMax),
       ];
     }
+
   }
 
   // Sweet Spot 88-94% FTP
@@ -172,7 +225,12 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
       ambition: input.ambition ?? null,
       sport: mapObjectiveToSport(input.objective),
       generatedAt: Date.now(),
+      zoneSource: {
+        bike: bikeAbs ? "derived" : "standard",
+        run: runAbs ? "derived" : "standard",
+      },
     },
+
   };
 }
 

@@ -4,6 +4,7 @@ import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { MetricCard } from "@/components/MetricCard";
 import { TrainingZonesCard } from "@/components/TrainingZonesCard";
+import { DerivedTrainingZonesCard } from "@/components/DerivedTrainingZonesCard";
 import { TestProtocols } from "@/components/TestProtocols";
 import { VLamaxTestingPage } from "@/components/VLamaxTestingPage";
 import { RaceChecklist } from "@/components/RaceChecklist";
@@ -1986,13 +1987,14 @@ const Index = () => {
               />
             ),
           },
-          // Zones d'entraînement
+          // Zones d'entraînement (dérivées de la physiologie, repli grille standard)
           {
             id: "training-zones",
             render: () => (
-              <TrainingZonesCard staffMode={staffMode} />
+              <DerivedTrainingZonesCard />
             ),
           },
+
           // Seuils Lactiques TFCL
           {
             id: "lactate-thresholds-profil",
