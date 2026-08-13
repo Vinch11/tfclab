@@ -994,10 +994,23 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
 
   const nolioRefs = useMemo(() => {
-    if (!athleteId) return { ftp: null, vma: null, css: null, fcMax: null };
+    if (!athleteId) {
+      return { ftp: null, vma: null, css: null, fcMax: null, paceThresholdSecPerKm: null, vlamax: null, vlamaxRun: null, vo2max: null, weightKg: null };
+    }
     const athlete = athletes.find((a) => a.id === athleteId) ?? null;
     const r = getEffectiveRefs(athlete, snapshots);
-    return { ftp: r.ftp, vma: r.vma, css: r.css, fcMax: r.fcMax };
+    const snap = getEffectiveSnapshot(athlete, snapshots);
+    return {
+      ftp: r.ftp,
+      vma: r.vma,
+      css: r.css,
+      fcMax: r.fcMax,
+      paceThresholdSecPerKm: snap?.pace_threshold_sec_per_km ?? null,
+      vlamax: snap?.vlamax ?? null,
+      vlamaxRun: snap?.vlamax_run ?? null,
+      vo2max: r.vo2max ?? null,
+      weightKg: r.weightKg ?? null,
+    };
   }, [athletes, snapshots, athleteId]);
 
   // PHASE 2B v2 — TargetTable pour annoter les intensités relatives à l'affichage
@@ -1009,6 +1022,11 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         vma: nolioRefs.vma,
         css: nolioRefs.css,
         fcMax: nolioRefs.fcMax,
+        paceThresholdSecPerKm: nolioRefs.paceThresholdSecPerKm,
+        vlamax: nolioRefs.vlamax,
+        vlamaxRun: nolioRefs.vlamaxRun,
+        vo2max: nolioRefs.vo2max,
+        weightKg: nolioRefs.weightKg,
         objective: gapContext?.objective ?? null,
         ambition: gapContext?.ambition ?? null,
       });
@@ -1016,6 +1034,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
       return null;
     }
   }, [nolioRefs, gapContext?.objective, gapContext?.ambition]);
+
 
   const markSent = useCallback((key: string) => {
     setSentKeys((prev) => {
