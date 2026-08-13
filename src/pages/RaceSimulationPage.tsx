@@ -503,7 +503,7 @@ export default function RaceSimulationPage() {
       vma: activeSnapshot?.vma,
       paceThreshold: paceThresholdEffective,
       weight: activeSnapshot?.weight_kg,
-      ambition: (selectedAthlete as any)?.ambition ?? null,
+      ambition: (selectedAthlete as any)?.ambition ?? (selectedAthlete as any)?.refs?.ambition ?? null,
       cpWkg,
       wPrimeJkg: null,
       predictedDurationMin: durationFallback[raceObjective] ?? 180,
@@ -516,7 +516,7 @@ export default function RaceSimulationPage() {
         confidence: raceChronoEstimate.confidence,
       } : null,
     });
-  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete, paceThresholdOverrideSecKm]);
+  }, [vlamaxEffectif, vlamaxRunEffectif, tteEffectif, tteEffectifRun, fatmax, potentielPhysiologiqueScore, raceChronoEstimate, latestCheckin, raceObjective, discipline, activeSnapshot, selectedAthlete, paceThresholdOverrideSecKm]);
 
   // Stratégie objectif — pour les triathlons on calcule aussi l'enveloppe de l'autre segment,
   // de manière à présenter Plan A / Plan B sur les 2 segments en simultané.
@@ -530,7 +530,7 @@ export default function RaceSimulationPage() {
       raceObjective, sport: 'bike',
       ftp: activeSnapshot?.ftp, vma: activeSnapshot?.vma,
       paceThreshold: activeSnapshot?.pace_threshold_sec_per_km, weight: activeSnapshot?.weight_kg,
-      ambition: (selectedAthlete as any)?.ambition ?? null, cpWkg, wPrimeJkg: null,
+      ambition: (selectedAthlete as any)?.ambition ?? (selectedAthlete as any)?.refs?.ambition ?? null, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.bike,
       raceChronos: buildRaceChronosFromSnapshot(activeSnapshot as any),
       vmaKmh: activeSnapshot?.vma ?? null,
@@ -544,17 +544,18 @@ export default function RaceSimulationPage() {
       ? (activeSnapshot.ftp * 0.95) / activeSnapshot.weight_kg : null;
     const paceThr = paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null;
     return computePacingEnvelope({
-      vlamaxEffectif: vlamaxRunEffectif ?? vlamaxEffectif, tteEffectif, fatmax,
+      vlamaxEffectif: vlamaxRunEffectif ?? vlamaxEffectif,
+      tteEffectif: tteEffectifRun ?? tteEffectif, fatmax,
       potentielPhysiologiqueScore, fatigueIndex: null,
       raceObjective, sport: 'run',
       ftp: activeSnapshot?.ftp, vma: activeSnapshot?.vma,
       paceThreshold: paceThr, weight: activeSnapshot?.weight_kg,
-      ambition: (selectedAthlete as any)?.ambition ?? null, cpWkg, wPrimeJkg: null,
+      ambition: (selectedAthlete as any)?.ambition ?? (selectedAthlete as any)?.refs?.ambition ?? null, cpWkg, wPrimeJkg: null,
       predictedDurationMin: segmentDurationMin.run,
       raceChronos: buildRaceChronosFromSnapshot(activeSnapshot as any),
       vmaKmh: activeSnapshot?.vma ?? null,
     });
-  }, [isTriathlon, discipline, envelope, vlamaxRunEffectif, vlamaxEffectif, tteEffectif, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin, raceChronoEstimate, paceThresholdOverrideSecKm]);
+  }, [isTriathlon, discipline, envelope, vlamaxRunEffectif, vlamaxEffectif, tteEffectif, tteEffectifRun, fatmax, potentielPhysiologiqueScore, raceObjective, activeSnapshot, selectedAthlete, segmentDurationMin, raceChronoEstimate, paceThresholdOverrideSecKm]);
 
   
   const rules = React.useMemo(() => {
