@@ -488,9 +488,12 @@ export default function RaceSimulationPage() {
       ?? null;
     // Note: les paliers de risque durabilité sont désormais natifs au moteur
     // (pacingEnvelopeEngine reçoit raceChrono et applique readinessAdjustment).
+    // TTE sport-aware : le segment course doit utiliser le TTE run (tte_observed_min_run),
+    // sinon la durabilité vélo (souvent absente) pénalise le centre de l'enveloppe course.
+    const tteForSport = discipline === 'run' ? (tteEffectifRun ?? tteEffectif) : tteEffectif;
     return computePacingEnvelope({
       vlamaxEffectif: vlamaxForSport,
-      tteEffectif,
+      tteEffectif: tteForSport,
       fatmax,
       potentielPhysiologiqueScore,
       fatigueIndex: null,
