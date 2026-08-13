@@ -91,18 +91,59 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
   const runPaces: Partial<Record<ZoneKey, Range>> = {};
   const fcZones: Partial<Record<ZoneKey, Range>> = {};
 
+  // Zones dérivées de la physiologie (repli silencieux sur la grille standard).
+  const bikeSet = deriveTrainingZones({
+    sport: "bike",
+    ftp,
+    fcMax,
+    vlamax: input.vlamax ?? null,
+    vo2max: input.vo2max ?? null,
+    weightKg: input.weightKg ?? null,
+  });
+  const runSet = deriveTrainingZones({
+    sport: "run",
+    vma,
+    paceThresholdSecPerKm: input.paceThresholdSecPerKm ?? null,
+    fcMax,
+    vlamax: input.vlamaxRun ?? input.vlamax ?? null,
+    vo2max: input.vo2max ?? null,
+    weightKg: input.weightKg ?? null,
+  });
+  const bikeAbs = makeStandardPctToAbsolute(bikeSet, {
+    sport: "bike",
+    ftp,
+    fcMax,
+    vlamax: input.vlamax ?? null,
+    vo2max: input.vo2max ?? null,
+  });
+  const runAbs = makeStandardPctToAbsolute(runSet, {
+    sport: "run",
+    vma,
+    paceThresholdSecPerKm: input.paceThresholdSecPerKm ?? null,
+    fcMax,
+    vlamax: input.vlamaxRun ?? input.vlamax ?? null,
+    vo2max: input.vo2max ?? null,
+  });
+
   for (const z of TRAINING_ZONES) {
     const zid = z.id as ZoneKey;
     if (ftp) {
-      bikeZonesW[zid] = [
-        Math.round((z.ftp.min / 100) * ftp),
-        Math.round((z.ftp.max / 100) * ftp),
-      ];
+      bikeZonesW[zid] = bikeAbs
+        ? [Math.round(bikeAbs(z.ftp.min)), Math.round(bikeAbs(z.ftp.max))]
+        : [
+            Math.round((z.ftp.min / 100) * ftp),
+            Math.round((z.ftp.max / 100) * ftp),
+          ];
     }
     if (vma) {
-      // pace min = plus vite (borne max VMA%), pace max = plus lent
-      const paceFast = paceSecFromVma(vma, z.vma.max);
-      const paceSlow = paceSecFromVma(vma, z.vma.min || 40);
+      // pace min = plus vite (borne max), pace max = plus lent
+      const minPct = z.vma.min || 40;
+      const paceFast = runAbs
+        ? Math.round(3600 / runAbs(z.vma.max))
+        : paceSecFromVma(vma, z.vma.max);
+      const paceSlow = runAbs
+        ? Math.round(3600 / runAbs(minPct))
+        : paceSecFromVma(vma, minPct);
       runPaces[zid] = [paceFast, paceSlow];
     }
     if (fcMax && z.fcMax) {
@@ -111,6 +152,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
         Math.round((z.fcMax.max / 100) * fcMax),
       ];
     }
+
   }
 
   // Sweet Spot 88-94% FTP
