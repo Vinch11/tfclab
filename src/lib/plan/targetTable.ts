@@ -16,6 +16,8 @@
  */
 import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
+import { deriveTrainingZones, makeStandardPctToAbsolute } from "@/lib/zones/deriveTrainingZones";
+
 
 export type ZoneKey = "Z1" | "Z2" | "Z3" | "Z4a" | "Z4b" | "Z5" | "Z6" | "Z7";
 export type Range = [number, number];
