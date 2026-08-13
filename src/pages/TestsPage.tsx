@@ -143,8 +143,10 @@ export default function TestsPage() {
           snapshotUpdates.tte_observed_min_run = tteMinutes;
         } else {
           snapshotUpdates.tte_observed_min = tteMinutes;
+          // `tte_mode` est le drapeau VÉLO : un test course ne doit pas le passer
+          // à OBSERVED (sinon la durabilité vélo s'affiche "mesurée" sans valeur).
+          snapshotUpdates.tte_mode = "OBSERVED";
         }
-        snapshotUpdates.tte_mode = "OBSERVED";
       }
 
       if (activeTest.category === "ECONOMY" && economyScore && economyScore > 0 && isRun) {
