@@ -16,7 +16,7 @@
  */
 import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
-import { deriveTrainingZones, makeStandardPctToAbsolute } from "@/lib/zones/deriveTrainingZones";
+import { deriveTrainingZones, makeStandardPctToAbsolute, estimateRunThresholdPaceSecPerKm } from "@/lib/zones/deriveTrainingZones";
 
 
 export type ZoneKey = "Z1" | "Z2" | "Z3" | "Z4a" | "Z4b" | "Z5" | "Z6" | "Z7";
@@ -102,10 +102,18 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
     vo2max: input.vo2max ?? null,
     weightKg: input.weightKg ?? null,
   });
+  // Allure seuil : mesurée si dispo, sinon estimée depuis la VMA (0.90 × VMA).
+  const runThresholdPace =
+    (typeof input.paceThresholdSecPerKm === "number" && input.paceThresholdSecPerKm > 0
+      ? input.paceThresholdSecPerKm
+      : estimateRunThresholdPaceSecPerKm(vma, null)) ?? null;
   const runSet = deriveTrainingZones({
     sport: "run",
     vma,
-    paceThresholdSecPerKm: input.paceThresholdSecPerKm ?? null,
+    paceThresholdSecPerKm: runThresholdPace,
+    paceThresholdEstimated: !(
+      typeof input.paceThresholdSecPerKm === "number" && input.paceThresholdSecPerKm > 0
+    ),
     fcMax,
     vlamax: input.vlamaxRun ?? input.vlamax ?? null,
     vo2max: input.vo2max ?? null,

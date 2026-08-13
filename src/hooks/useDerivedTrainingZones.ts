@@ -7,7 +7,9 @@ import { useMemo } from "react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs, getEffectiveSnapshot } from "@/lib/effectiveRefs";
-import { deriveTrainingZones, type DerivedZoneSet } from "@/lib/zones/deriveTrainingZones";
+import { deriveTrainingZones, estimateRunThresholdPaceSecPerKm, type DerivedZoneSet } from "@/lib/zones/deriveTrainingZones";
+import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
+import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
 
 export interface DerivedZonesBySport {
   bike: DerivedZoneSet;
@@ -32,10 +34,23 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
       weightKg: effective.weightKg,
     });
 
+    // Allure seuil : mesurée si dispo, sinon estimée (MLSS prédit × VMA, repli 0.90 × VMA).
+    const vlamaxRun = snap?.vlamax_run ?? snap?.vlamax ?? null;
+    const measuredPace = snap?.pace_threshold_sec_per_km ?? null;
+    let paceThreshold = measuredPace;
+    let paceEstimated = false;
+    if (!paceThreshold && effective.vma && effective.vma > 0) {
+      const ce = resolveRunningEconomyFromSnapshot(snap as any)?.mlKgKm ?? null;
+      const mlss = predictRunMLSSPctFromVLaCE(vlamaxRun, ce);
+      paceThreshold = estimateRunThresholdPaceSecPerKm(effective.vma, mlss?.mlssPct ?? null);
+      paceEstimated = paceThreshold != null;
+    }
+
     const run = deriveTrainingZones({
       sport: "run",
       vma: effective.vma,
-      paceThresholdSecPerKm: snap?.pace_threshold_sec_per_km ?? null,
+      paceThresholdSecPerKm: paceThreshold,
+      paceThresholdEstimated: paceEstimated,
       fcMax: effective.fcMax,
       vlamax: snap?.vlamax_run ?? snap?.vlamax ?? null,
       vo2max: effective.vo2max,

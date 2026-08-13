@@ -67,6 +67,8 @@ export interface DeriveZonesInput {
   vma?: number | null;
   /** Allure seuil course en secondes/km. */
   paceThresholdSecPerKm?: number | null;
+  /** true si l'allure seuil est estimée (MLSS prédit × VMA) et non mesurée. */
+  paceThresholdEstimated?: boolean;
   /** CSS natation en secondes/100 m. */
   css?: number | null;
   fcMax?: number | null;
@@ -235,10 +237,13 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
       // vVO2max ≈ VMA ; exprimée en % de la vitesse seuil de l'athlète.
       const vVo2maxPct = vma ? clamp((vma / vThrKmh) * 100, 102, 135) : 112;
       pct = deriveRunPct(vla, vVo2maxPct);
-      anchors.push(`Vitesse seuil ${vThrKmh.toFixed(1)} km/h (${fmtPaceFromSec(thr)}/km)`);
+      const estimated = input.paceThresholdEstimated === true;
+      anchors.push(
+        `Vitesse seuil ${vThrKmh.toFixed(1)} km/h (${fmtPaceFromSec(thr)}/km)${estimated ? " — estimée (MLSS prédit)" : " — mesurée"}`,
+      );
       if (vma) anchors.push(`vVO2max ≈ ${Math.round(vVo2maxPct)} % du seuil (VMA ${vma.toFixed(1)} km/h)`);
       if (vla) anchors.push(`FatMax modulée par VLamax ${vla.toFixed(2)}`);
-      confidence = vma && vla ? 0.85 : vma ? 0.7 : 0.55;
+      confidence = (vma && vla ? 0.85 : vma ? 0.7 : 0.55) - (estimated ? 0.15 : 0);
     }
   } else {
     fallbackReason = "Zones natation non dérivables (CSS seul)";
@@ -406,3 +411,16 @@ export function makeStandardPctToAbsolute(
   return null;
 }
 
+
+/**
+ * Estime l'allure seuil course (sec/km) quand elle n'est pas mesurée :
+ * MLSS prédit (VLamax + CE) × VMA, repli 0.90 × VMA.
+ */
+export function estimateRunThresholdPaceSecPerKm(
+  vmaKmh: number | null | undefined,
+  mlssPct: number | null | undefined,
+): number | null {
+  if (!isPos(vmaKmh)) return null;
+  const ratio = isPos(mlssPct) ? clamp(mlssPct / 100, 0.75, 0.95) : 0.9;
+  return 3600 / (vmaKmh * ratio);
+}
