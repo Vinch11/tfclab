@@ -411,3 +411,16 @@ export function makeStandardPctToAbsolute(
   return null;
 }
 
+
+/**
+ * Estime l'allure seuil course (sec/km) quand elle n'est pas mesurée :
+ * MLSS prédit (VLamax + CE) × VMA, repli 0.90 × VMA.
+ */
+export function estimateRunThresholdPaceSecPerKm(
+  vmaKmh: number | null | undefined,
+  mlssPct: number | null | undefined,
+): number | null {
+  if (!isPos(vmaKmh)) return null;
+  const ratio = isPos(mlssPct) ? clamp(mlssPct / 100, 0.75, 0.95) : 0.9;
+  return 3600 / (vmaKmh * ratio);
+}
