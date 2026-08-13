@@ -372,6 +372,49 @@ export function computePctReferenceForCalibration(
   return Math.max(55, Math.min(100, pctCS * ratio));
 }
 
+/** Distance course (km) du segment CAP par objectif. */
+const RUN_TARGET_KM: Record<string, number> = {
+  "5K": 5, "5km": 5, "10K": 10, "10km": 10,
+  Semi: 21.0975, "70.3": 21.0975,
+  Marathon: 42.195, IM: 42.195,
+};
+
+/**
+ * %référence (unités moteur, = %CS × vCS/VMA) impliqué par les chronos réels.
+ * Projection Riegel (exposant 1.06) du chrono le plus proche vers la distance cible,
+ * puis comparaison de la vitesse projetée à la vitesse au seuil.
+ * Retourne null si aucun chrono ou pas de seuil de référence.
+ */
+export function computeChronoImpliedCenterPct(
+  chronos: RaceChronos | null,
+  paceThresholdSecPerKm: number | null,
+  raceObjective: string,
+): number | null {
+  if (!chronos || !paceThresholdSecPerKm || paceThresholdSecPerKm <= 0) return null;
+  const targetKm = RUN_TARGET_KM[raceObjective];
+  if (!targetKm) return null;
+
+  const entries: { km: number; sec: number }[] = [
+    { km: 5, sec: chronos.time_5k_sec ?? 0 },
+    { km: 10, sec: chronos.time_10k_sec ?? 0 },
+    { km: 20, sec: chronos.time_20k_sec ?? 0 },
+    { km: 21.0975, sec: chronos.time_half_sec ?? 0 },
+    { km: 42.195, sec: chronos.time_marathon_sec ?? 0 },
+  ].filter((e) => e.sec > 0);
+  if (entries.length === 0) return null;
+
+  // Ancre la plus proche en log-distance
+  const anchor = entries.reduce((best, e) =>
+    Math.abs(Math.log(e.km / targetKm)) < Math.abs(Math.log(best.km / targetKm)) ? e : best,
+  );
+  const projectedSec = anchor.sec * Math.pow(targetKm / anchor.km, 1.06);
+  const projectedPace = projectedSec / targetKm;
+  if (!Number.isFinite(projectedPace) || projectedPace <= 0) return null;
+
+  const pctCS = (paceThresholdSecPerKm / projectedPace) * 100;
+  return clampLocal(pctCS * VCS_OVER_VMA_RATIO, 55, 100);
+}
+
 /**
  * Calcule le %référence (FTP ou VMA) soutenable pour une durée donnée selon le niveau.
  * Retourne le centre de l'enveloppe — pure fonction continue.
