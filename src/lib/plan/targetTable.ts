@@ -223,7 +223,12 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
       ambition: input.ambition ?? null,
       sport: mapObjectiveToSport(input.objective),
       generatedAt: Date.now(),
+      zoneSource: {
+        bike: bikeAbs ? "derived" : "standard",
+        run: runAbs ? "derived" : "standard",
+      },
     },
+
   };
 }
 
