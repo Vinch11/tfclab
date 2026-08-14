@@ -41,7 +41,10 @@ export interface DerivedZone {
   pctRef: ZoneBounds;
   /** Libellé de la référence ("% FTP", "% vitesse seuil", "% CSS"). */
   refLabel: string;
-  /** Bornes en % FCmax (grille standard, la FC ne se dérive pas fiablement). */
+  /**
+   * Bornes en % FCmax. DÉRIVÉES (Karvonen ancré sur la FC seuil) quand les zones
+   * elles-mêmes sont dérivées ; grille tabulée seulement en repli.
+   */
   fcMaxPct: ZoneBounds | null;
   /** Valeurs absolues formatées (W, allure, sec/100m) si la référence est connue. */
   absolute: string | null;
