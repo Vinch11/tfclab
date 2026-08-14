@@ -880,6 +880,7 @@ export default function AITrainingPlanPage() {
     diagnostic: AthleteDiagnostic,
     athleteAmbition?: string,
     objectiveOverride?: string,
+    athleteIdOverride?: string,
   ): PlanConfig => {
     const amb = athleteAmbition || ambition;
     // ⚠️ setObjective() est asynchrone : le wizard doit pouvoir imposer son
@@ -977,8 +978,10 @@ export default function AITrainingPlanPage() {
       lockAmbition,
     };
 
-    return buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability]);
+    const built = buildPlanConfigFromDiagnostic(diagnostic, formConfig, coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined);
+    // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
+    return { ...built, athleteId: athleteIdOverride ?? currentAthlete?.id };
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, currentAthlete?.id]);
 
 
   const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
@@ -1393,7 +1396,7 @@ export default function AITrainingPlanPage() {
         continue;
       }
 
-      const config = buildConfigFromDiag(ctx.diagnostic, athleteAmb);
+      const config = buildConfigFromDiag(ctx.diagnostic, athleteAmb, undefined, athleteId);
       // Override objective with athlete's own
       config.objective = OBJECTIVE_OPTIONS.find(o => o.value === athleteObj)?.label || athleteObj;
 

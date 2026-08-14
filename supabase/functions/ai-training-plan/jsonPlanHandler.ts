@@ -983,6 +983,30 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             ? quotasBlockByChunk[ci]
             : null;
 
+          // ─── P3 diversité : mémoire INTER-PLANS (historique athlète) ─────
+          // Fiches déjà servies à cet athlète dans ses derniers plans, pondérées
+          // par récence côté client. On ne bannit pas : on demande d'y recourir
+          // en dernier ressort pour éviter que chaque plan clone le précédent.
+          let historyBlock: string | null = null;
+          {
+            const raw = planConfig?._historyUsedIdCounts;
+            if (raw && typeof raw === "object") {
+              const allowedSet = new Set(allowedIds);
+              const seen = Object.entries(raw as Record<string, number>)
+                .filter(([id, w]) => allowedSet.has(id) && Number(w) > 0)
+                .sort((a, b) => Number(b[1]) - Number(a[1]))
+                .map(([id]) => id);
+              if (seen.length > 0) {
+                const CAP = 60;
+                historyBlock = [
+                  `\n🗂 HISTORIQUE ATHLÈTE — fiches déjà utilisées dans ses PLANS PRÉCÉDENTS`,
+                  `À ÉVITER en priorité (déjà vécues récemment) : ${seen.slice(0, CAP).join(", ")}${seen.length > CAP ? `, … (+${seen.length - CAP})` : ""}`,
+                  `Règle : ne réutilise une de ces fiches que si aucune autre fiche du catalogue ne couvre la même intention (sport × famille). La progression et la couverture priment toujours sur la nouveauté.`,
+                ].join("\n");
+              }
+            }
+          }
+
           // ─── P2 diversité : bloc "fiches déjà consommées" ────────────────
           // On ne liste que les IDs pertinents (présents dans le catalogue de
           // CE chunk) pour ne pas gonfler le prompt inutilement.
@@ -1018,6 +1042,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             baseUserPrompt,
             quotasBlock ? `\n${quotasBlock}\n` : null,
             catalogDump ? `\n${catalogDump}\n` : null,
+            historyBlock,
             diversityBlock,
             canonicalRaceCard,
             `\n📋 DIAGNOSTIC STRUCTURÉ (référence cohérence) :\n${structuredDiagnostic}`,

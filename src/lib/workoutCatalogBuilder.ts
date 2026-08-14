@@ -51,6 +51,14 @@ export interface CatalogEntry {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// P3 DIVERSITÉ — pénalité de récence inter-plans (lib/plan/historicalCatalogUsage)
+// ═══════════════════════════════════════════════════════════════════════════════
+/** Pénalité de score par unité d'usage pondéré dans les plans précédents. */
+export const HISTORY_PENALTY_PER_USE = 6;
+/** Plafond : une fiche « déjà vue » reste sélectionnable si elle est seule de sa famille. */
+export const HISTORY_PENALTY_CAP = 14;
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // B5 STAGE ATTRIBUTION — trace, par ID, l'étape la plus tardive atteinte à travers
 // tous les appels de buildWorkoutCatalog d'une génération de plan. Consommé par
 // checks.ts B5 pour catégoriser précisément chaque fiche absente de l'union.
@@ -403,6 +411,11 @@ export function buildWorkoutCatalog(
     excludeIdPatterns?: RegExp[];
     /** Hard-exclude workouts whose tags include any of these values (applied pre-scoring). */
     excludeTags?: string[];
+    /**
+     * P3 diversité — usage pondéré des fiches dans les DERNIERS PLANS de l'athlète
+     * (id → poids de récence). Appliqué en pénalité de score, jamais en exclusion.
+     */
+    historicalUsage?: Map<string, number>;
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
@@ -638,9 +651,32 @@ export function buildWorkoutCatalog(
   }
 
 
+  // P3 diversité — pénalité de récence inter-plans (jamais un hard-ban :
+  // la couverture par famille d'intention reste prioritaire sur la nouveauté).
+  const historyUsage = options?.historicalUsage;
+  const historyPenalty = (id: string): number => {
+    if (!historyUsage || historyUsage.size === 0) return 0;
+    const w = historyUsage.get(id) ?? 0;
+    if (w <= 0) return 0;
+    return Math.min(HISTORY_PENALTY_CAP, w * HISTORY_PENALTY_PER_USE);
+  };
+
   const scored = current
-    .map(w => ({ workout: w, score: scoreWorkout(w, goals, phases, limiterKeys) }))
+    .map(w => ({
+      workout: w,
+      score: (() => {
+        const base = scoreWorkout(w, goals, phases, limiterKeys);
+        return base <= -1000 ? base : base - historyPenalty(w.id);
+      })(),
+    }))
     .sort((a, b) => b.score - a.score);
+
+  if (historyUsage && historyUsage.size > 0) {
+    const penalized = scored.filter(s => historyPenalty(s.workout.id) > 0).length;
+    console.log(
+      `[diversity_p3] chunk=${options?.chunkIndex ?? 0} fiches pénalisées (déjà servies) = ${penalized}/${scored.length}`,
+    );
+  }
 
   // Trace: tracked IDs still present after all filters — record their score/rank
   for (let i = 0; i < scored.length; i++) {
