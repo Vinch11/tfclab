@@ -68,6 +68,12 @@ export interface PlanGenerationStat {
   semanticRepairs?: string[];
   /** Nombre de catalogId substitués vers un voisin réel du catalogue injecté (Reco 3). */
   catalogSubstitutions?: number;
+  /** Diversité catalogue : fiches distinctes / séances non-repos (0..1). */
+  diversityRatio?: number;
+  /** Nombre de fiches distinctes utilisées dans le plan. */
+  distinctCatalogIds?: number;
+  /** Occurrences de la fiche la plus répétée. */
+  maxFicheRepeat?: number;
 
 }
 
@@ -99,6 +105,9 @@ export function logPlanStat(stat: PlanGenerationStat): void {
     `${tag} [plan-stats] fmt=${stat.format} obj="${stat.objective}" weeks=${stat.totalWeeks} chunks=${stat.totalChunks} dur=${stat.durationMs}ms${ratioStr}` +
     (stat.errorCode ? ` err=${stat.errorCode}` : "") +
     (stat.sportObjectiveCriticalIssues ? ` issues=${stat.sportObjectiveCriticalIssues}` : "") +
+    (typeof stat.diversityRatio === "number"
+      ? ` diversity=${Math.round(stat.diversityRatio * 100)}%(${stat.distinctCatalogIds ?? "?"} fiches, maxRepeat=${stat.maxFicheRepeat ?? "?"})`
+      : "") +
     (stat.semanticRepairs?.length ? ` semanticRepairs=${stat.semanticRepairs.length}` : ""),
   );
   // Mirror non-PII vers Cloud (sentinelle légère /debug/plan-qa). Fire-and-forget.
@@ -131,6 +140,9 @@ async function persistPlanStatToCloud(stat: PlanGenerationStat): Promise<void> {
       offsport_unresolved_count: unresolved,
       retry_count: retryCount,
       semantic_repairs: repairs.length > 0 ? repairs : null,
+      diversity_ratio: typeof stat.diversityRatio === "number" ? stat.diversityRatio : null,
+      distinct_catalog_ids: stat.distinctCatalogIds ?? null,
+      max_fiche_repeat: stat.maxFicheRepeat ?? null,
     });
   } catch { /* ignore */ }
 }

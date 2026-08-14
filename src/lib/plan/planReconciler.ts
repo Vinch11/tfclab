@@ -27,6 +27,7 @@
 import type { PlanChunk, PlanSession } from "@/lib/plan/planSchema";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
+import { computePlanDiversity, formatDiversitySummary } from "./diversityMetrics";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
@@ -71,6 +72,8 @@ export interface ReconcilerCounters {
   constraint_day_moved?: number;
   constraint_day_unresolved?: number;
   constraint_banned_sport_removed?: number;
+  /** Nombre d'occurrences de la fiche la plus répétée dans le plan final. */
+  diversity_max_repeat?: number;
 
 }
 
@@ -79,6 +82,59 @@ export interface ReconcilerResult {
   counters: ReconcilerCounters;
   logs: string[];
 }
+
+// ── Ledger de diversité (P0 anti-répétition) ────────────────────────────────
+// Le réconciliateur choisissait toujours le MÊME « meilleur » remplaçant pour
+// un triplet (sport, phase, durée) donné, faute d'état partagé entre sessions.
+// Résultat : convergence mécanique vers un petit sous-ensemble de fiches sur
+// un plan de 12-16 semaines. Le ledger compte les usages de chaque catalogId
+// dans le plan courant et pénalise (puis exclut) les fiches sur-représentées.
+export type UsageLedger = Map<string, number>;
+
+/** Au-delà de ce nombre d'occurrences, une fiche n'est plus proposée en
+ *  remplacement (sauf si aucun autre candidat n'existe). */
+const MAX_FICHE_REPEATS = 3;
+/** Pénalité de score par occurrence déjà placée. L'échelle d'intention vaut
+ *  100 pts par point : 25 départage à intention égale sans jamais renverser
+ *  une intention supérieure. */
+const DIVERSITY_PENALTY = 25;
+
+function ledgerKey(id: string | null | undefined): string {
+  return String(id ?? "").toUpperCase();
+}
+function ledgerCount(ledger: UsageLedger | undefined, id: string | null | undefined): number {
+  if (!ledger) return 0;
+  return ledger.get(ledgerKey(id)) ?? 0;
+}
+function ledgerInc(ledger: UsageLedger | undefined, id: string | null | undefined): void {
+  if (!ledger) return;
+  const k = ledgerKey(id);
+  if (!k) return;
+  ledger.set(k, (ledger.get(k) ?? 0) + 1);
+}
+function ledgerDec(ledger: UsageLedger | undefined, id: string | null | undefined): void {
+  if (!ledger) return;
+  const k = ledgerKey(id);
+  if (!k) return;
+  const next = (ledger.get(k) ?? 0) - 1;
+  if (next > 0) ledger.set(k, next);
+  else ledger.delete(k);
+}
+/** Construit le ledger à partir de l'état courant du plan. */
+function buildUsageLedger(chunks: PlanChunk[]): UsageLedger {
+  const ledger: UsageLedger = new Map();
+  for (const chunk of chunks) {
+    for (const week of chunk.weeks ?? []) {
+      for (const s of (week.sessions ?? []) as PlanSession[]) {
+        if ((s as any).isRest || s.sport === "rest") continue;
+        if (s.custom) continue;
+        if (s.catalogId) ledgerInc(ledger, s.catalogId);
+      }
+    }
+  }
+  return ledger;
+}
+
 
 
 // ── Index fiches ────────────────────────────────────────────────────────────
@@ -154,13 +210,19 @@ interface FindOpts {
    *  substitution phase/durée/discipline un ID absent du catalogue, ce qui
    *  reproduirait un FAIL B5 après coup. */
   restrictToIds?: Set<string>;
+  /** Ledger d'usage du plan courant : pénalise/exclut les fiches déjà
+   *  sur-représentées pour éviter la convergence vers toujours la même fiche. */
+  ledger?: UsageLedger;
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original, restrictToIds } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds, ledger } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   let best: { w: LibraryWorkout; key: number } | null = null;
+  // Repli si TOUS les candidats valides sont déjà saturés (usage ≥ MAX) :
+  // mieux vaut une répétition qu'une séance non résolue.
+  let saturatedBest: { w: LibraryWorkout; key: number } | null = null;
   for (const w of WorkoutLibrary) {
     if (excludeId && w.id.toUpperCase() === excludeId.toUpperCase()) continue;
     if (restrictToIds && !restrictToIds.has(w.id.toUpperCase())) continue;
@@ -172,15 +234,27 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (requireDur && targetDur > 0 && !ficheDurationContains(w, targetDur)) continue;
     const durPenalty = targetDur > 0 ? Math.abs(ficheMedian(w) - targetDur) / 10 : 0;
     const intent = original ? intentScore(original, w) : 0;
-    const key = intent * 100 - durPenalty; // maximize intent, tiebreak by duration proximity
+    const usage = ledgerCount(ledger, w.id);
+    // maximize intent, tiebreak by duration proximity, penalize repetition
+    const key = intent * 100 - durPenalty - usage * DIVERSITY_PENALTY;
+    if (usage >= MAX_FICHE_REPEATS) {
+      if (!saturatedBest || key > saturatedBest.key) saturatedBest = { w, key };
+      continue;
+    }
     if (!best || key > best.key) best = { w, key };
   }
-  return best?.w ?? null;
+  return (best ?? saturatedBest)?.w ?? null;
 }
 
+
 // ── Mutation session avec fiche ────────────────────────────────────────────
-function assignFiche(session: PlanSession, fiche: LibraryWorkout, keepDuration?: number): void {
+function assignFiche(session: PlanSession, fiche: LibraryWorkout, keepDuration?: number, ledger?: UsageLedger): void {
   const mut = session as any;
+  // Ledger : la fiche sortante libère une occurrence, l'entrante en consomme une.
+  if (ledger) {
+    if (mut.catalogId) ledgerDec(ledger, mut.catalogId);
+    ledgerInc(ledger, fiche.id);
+  }
   const struct = (fiche.structure || []).map(p => `${p.part}: ${p.text}`).join(" | ");
   const zones = new Set<string>();
   for (const p of (fiche.structure || [])) for (const z of (p.zones || [])) zones.add(z);
@@ -205,6 +279,7 @@ function runOnePass(
   counters: ReconcilerCounters,
   logs: string[],
   restrictToIds?: Set<string>,
+  ledger?: UsageLedger,
 ): boolean {
   let anyChange = false;
   const ctx: { week?: number; day?: string; sport?: string; catalogId?: string | null; family?: string } = {};
@@ -233,10 +308,11 @@ function runOnePass(
             targetDur: s.durationMin ?? 0,
             original: fiche,
             restrictToIds,
+            ledger,
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
-            assignFiche(s, repl, s.durationMin);
+            assignFiche(s, repl, s.durationMin, ledger);
             counters.phase_substituted++;
             anyChange = true;
             logs.push(`[phase_substituted] W${week.weekNumber}/${s.day} ${before}(${[...allowed].join(",")}) → ${repl.id} (phase=${weekPhase})`);
@@ -262,10 +338,11 @@ function runOnePass(
             original: fiche2,
             requireDurationContains: true,
             restrictToIds,
+            ledger,
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
-            assignFiche(s, repl, targetDur);
+            assignFiche(s, repl, targetDur, ledger);
             counters.id_substituted_duration++;
             anyChange = true;
             logs.push(`[id_substituted_duration] W${week.weekNumber}/${s.day} ${before}(${fiche2.durationMin[0]}-${fiche2.durationMin[1]}) → ${repl.id} target=${targetDur}min`);
@@ -289,10 +366,11 @@ function runOnePass(
             targetDur: s.durationMin ?? 0,
             original: fiche3,
             restrictToIds,
+            ledger,
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
-            assignFiche(s, repl, s.durationMin);
+            assignFiche(s, repl, s.durationMin, ledger);
             counters.discipline_substituted++;
             anyChange = true;
             logs.push(`[discipline_substituted] W${week.weekNumber}/${s.day} ${before}(${fSp}) → ${repl.id}(${iSp})`);
@@ -343,6 +421,7 @@ function runOnePass(
             original: null,
             requireDurationContains: true,
             restrictToIds,
+            ledger,
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -373,6 +452,7 @@ function runOnePass(
             catalogId: repl.id,
           };
           (week.sessions as any[]).push(newSess);
+          ledgerInc(ledger, repl.id);
           counters.quota_floor_inserted_from_catalog++;
           anyChange = true;
           logs.push(`[quota_floor_inserted_from_catalog] W${week.weekNumber} ${sp.sport} min=${sp.min} inséré ${repl.id} (${dur}min) le ${targetDay}`);
@@ -1235,6 +1315,10 @@ export function runReconciler(
 
   // Passe préliminaire (avant runOnePass)
   const preStats = neighborRemapPass("pre");
+
+  // Ledger de diversité : construit APRÈS la passe préliminaire (les remaps
+  // voisins ont déjà figé leurs IDs) et mis à jour à chaque substitution.
+  const usageLedger = buildUsageLedger(chunks);
   logs.push(
     `[recon_substitute_debug] injectedProvided=${debugStats.injectedCatalogIdsProvided} injectedSize=${debugStats.injectedSize} ` +
     `sessionsScanned=${debugStats.sessionsScanned} sessionsWithCatalogId=${debugStats.sessionsWithCatalogId} ` +
@@ -1247,7 +1331,7 @@ export function runReconciler(
   // pour ne PAS réintroduire d'ID hors-catalogue via phase/durée/discipline.
   let anyOnePassChange = false;
   for (let i = 0; i < maxPasses; i++) {
-    const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected);
+    const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected, usageLedger);
     if (changed) anyOnePassChange = true;
     if (!changed) break;
   }
@@ -1273,6 +1357,13 @@ export function runReconciler(
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
   ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day);
   alignPostBikeRunClaims(chunks, counters, logs);
+
+  // Métrique de diversité finale (observabilité P0).
+  try {
+    const div = computePlanDiversity(chunks as any);
+    counters.diversity_max_repeat = div.maxRepeat;
+    logs.push(`[diversity] ${formatDiversitySummary(div)}`);
+  } catch { /* ignore */ }
 
   hydrateDilutedZones(chunks, counters, logs);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
