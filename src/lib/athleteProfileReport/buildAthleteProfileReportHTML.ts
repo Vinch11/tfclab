@@ -303,6 +303,7 @@ function zoneTable(z: ReportZoneSet): string {
         <td>${esc(r.label)}<div style="font-size:9.5px;color:${C.faint}">${esc(r.condition)}</div></td>
         <td>${esc(r.pctRef)}<div style="font-size:9px;color:${C.faint}">${esc(r.refLabel)}</div></td>
         <td style="font-weight:600">${r.absolute ? esc(r.absolute) : "—"}</td>
+        <td>${r.hrPct ? `<span style="font-weight:600">${esc(r.hrPct)}</span><div style="font-size:9px;color:${C.faint}">de ta FC max</div>` : "—"}</td>
         <td>${r.heartRate ? esc(r.heartRate) : "—"}</td>
       </tr>`,
     )
