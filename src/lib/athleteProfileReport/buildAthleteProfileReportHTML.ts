@@ -266,28 +266,58 @@ function limiterCard(l: ReportLimiter): string {
   </div>`;
 }
 
+/** Texte de repli quand le moteur ne fournit pas de description exploitable. */
+function leverFallbackDescription(title: string): string {
+  const t = (title || "").toLowerCase();
+  if (/vlamax|glycoly/.test(t))
+    return "Réduire ta production de lactate à intensité modérée : moins de sollicitations explosives, plus de travail continu et de sorties longues bien pilotées.";
+  if (/vo2|aérob|puissance max/.test(t))
+    return "Élever ton plafond aérobie : des intervalles courts et intenses qui obligent ton corps à consommer plus d'oxygène par minute.";
+  if (/seuil|mlss|lactate/.test(t))
+    return "Déplacer ton seuil vers le haut : des blocs tenus juste sous la rupture pour améliorer ta capacité à recycler le lactate.";
+  if (/durabil|tte|endurance|fond/.test(t))
+    return "Tenir plus longtemps à intensité utile : volume progressif, sorties longues et fins de séance qualitatives.";
+  if (/économ|efficien|technique|cadence/.test(t))
+    return "Dépenser moins pour la même vitesse : travail technique, cadence, force spécifique et gammes.";
+  if (/force|muscul|renfo/.test(t))
+    return "Renforcer la chaîne musculaire pour mieux encaisser la charge et retarder la perte de rendement.";
+  if (/récup|fatigue|charge/.test(t))
+    return "Rééquilibrer charge et récupération pour que l'entraînement se transforme réellement en progrès.";
+  return "Ce levier est activé par ton diagnostic : ton coach l'a positionné dans le plan pour agir directement sur ton limiteur principal.";
+}
+
 function leverCard(l: ReportLever): string {
+  const desc = (l.description || "").trim() || leverFallbackDescription(l.title);
+  const hasWorkouts = l.workouts.length > 0;
+  const hasAdaptations = l.adaptations.length > 0;
   return `
-  <div class="bp-card bp-card--accent">
+  <div class="bp-card bp-card--accent avoid" style="display:flex;flex-direction:column">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
       <span style="font-size:17px">${esc(l.emoji)}</span>
       <div style="font-size:14px;font-weight:600;color:${C.ink};flex:1">${esc(l.title)}</div>
       <span class="bp-badge bp-badge--info">Priorité ${l.priority}</span>
     </div>
-    <div style="font-size:11.5px;color:${C.muted};line-height:1.5">${rich(l.description)}</div>
+    <div style="font-size:11.5px;color:${C.muted};line-height:1.55">${rich(desc)}</div>
     ${
-      l.workouts.length
-        ? `<div style="margin-top:10px">
+      hasWorkouts
+        ? `<div style="margin-top:10px;background:${C.surface};border-radius:10px;padding:9px 11px">
             <div style="font-size:10px;font-weight:600;color:${C.ink};text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px">Séances types</div>
             <ul style="margin:0;padding-left:16px;font-size:11px;color:${C.inkSoft};line-height:1.55">${l.workouts.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>
           </div>`
         : ""
     }
     ${
-      l.adaptations.length
+      hasAdaptations
         ? `<div style="margin-top:8px">
             <div style="font-size:10px;font-weight:600;color:${C.ink};text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px">Adaptations attendues</div>
             <div style="display:flex;flex-wrap:wrap;gap:5px">${l.adaptations.map((a) => `<span class="bp-badge bp-badge--ok">${esc(a)}</span>`).join("")}</div>
+          </div>`
+        : ""
+    }
+    ${
+      !hasWorkouts && !hasAdaptations
+        ? `<div style="margin-top:10px;font-size:10.5px;color:${C.faint};background:${C.surface};border-radius:10px;padding:8px 10px;line-height:1.5">
+            Les séances concrètes de ce levier sont détaillées semaine par semaine dans ton plan d'entraînement.
           </div>`
         : ""
     }
@@ -303,6 +333,7 @@ function zoneTable(z: ReportZoneSet): string {
         <td>${esc(r.label)}<div style="font-size:9.5px;color:${C.faint}">${esc(r.condition)}</div></td>
         <td>${esc(r.pctRef)}<div style="font-size:9px;color:${C.faint}">${esc(r.refLabel)}</div></td>
         <td style="font-weight:600">${r.absolute ? esc(r.absolute) : "—"}</td>
+        <td>${r.hrPct ? `<span style="font-weight:600">${esc(r.hrPct)}</span><div style="font-size:9px;color:${C.faint}">de ta FC max</div>` : "—"}</td>
         <td>${r.heartRate ? esc(r.heartRate) : "—"}</td>
       </tr>`,
     )
@@ -319,7 +350,7 @@ function zoneTable(z: ReportZoneSet): string {
     ${z.anchors.length ? `<div style="font-size:9.5px;color:${C.faint};margin-bottom:8px">Ancrages : ${z.anchors.map(esc).join(" · ")}</div>` : ""}
     ${z.fallbackReason ? `<div style="font-size:10px;color:${C.amber};margin-bottom:8px">${esc(z.fallbackReason)}</div>` : ""}
     <table style="width:100%;font-size:10.5px">
-      <thead><tr><th style="text-align:left">Zone</th><th style="text-align:left">Intention</th><th style="text-align:left">%</th><th style="text-align:left">Valeur</th><th style="text-align:left">FC</th></tr></thead>
+      <thead><tr><th style="text-align:left">Zone</th><th style="text-align:left">Intention</th><th style="text-align:left">%</th><th style="text-align:left">Valeur</th><th style="text-align:left">% FC max</th><th style="text-align:left">FC (bpm)</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   </div>`;
@@ -356,6 +387,11 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   <div class="bp-header">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px">
       <div style="flex:1">
+        ${
+          d.logoBase64
+            ? `<img src="${d.logoBase64}" alt="TFC Lab" style="height:46px;width:auto;display:block;margin-bottom:12px" />`
+            : ""
+        }
         <h1 style="font-size:26px">Mon profil physiologique</h1>
         <p style="margin:0;font-size:12.5px">Potentiel Physiologique TFCL™ — rapport personnalisé</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">

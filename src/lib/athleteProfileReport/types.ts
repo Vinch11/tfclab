@@ -68,6 +68,8 @@ export interface ReportZoneRow {
   refLabel: string;
   absolute: string | null;
   heartRate: string | null;
+  /** Ex. « 68–78 % » de la FC max. */
+  hrPct: string | null;
 }
 
 export interface ReportZoneSet {
