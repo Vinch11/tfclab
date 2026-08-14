@@ -59,7 +59,32 @@ type AthleteRefs = {
   vma?: number | null;
   css?: number | null;
   fcMax?: number | null;
+  /**
+   * Zones dérivées (miroir du moteur client). Quand elles sont présentes,
+   * tout % de la grille standard est converti via la physiologie de l'athlète.
+   */
+  derivedBikeWatts?: ((standardPctFtp: number) => number) | null;
+  derivedRunSpeedKmh?: ((standardPctVma: number) => number) | null;
 };
+
+/** Watts pour un %FTP de la grille standard — passe par les zones dérivées si dispo. */
+function wattsFromStandardPct(pct: number, refs: AthleteRefs): number | null {
+  if (refs.derivedBikeWatts) return Math.round(refs.derivedBikeWatts(pct));
+  if (!refs.ftp) return null;
+  return Math.round((refs.ftp * pct) / 100);
+}
+
+/** Allure (s/km) pour un %VMA de la grille standard — via zones dérivées si dispo. */
+function paceSecFromStandardPct(pct: number, refs: AthleteRefs): number | null {
+  const kmh = refs.derivedRunSpeedKmh
+    ? refs.derivedRunSpeedKmh(pct)
+    : refs.vma
+      ? (refs.vma * pct) / 100
+      : null;
+  if (!kmh || kmh <= 0) return null;
+  return Math.round(3600 / kmh);
+}
+
 
 type Body = {
   athlete_id: string;
