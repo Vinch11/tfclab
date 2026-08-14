@@ -303,6 +303,9 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
   let pct: Record<ZoneId6, ZoneBounds> | null = null;
   let confidence = 0;
   let fallbackReason: string | null = null;
+  // Intensité (en % de la référence) correspondant au SEUIL/MLSS de l'athlète :
+  // ancre de la dérivation cardiaque. Renseignée uniquement en mode dérivé.
+  let refAtThreshold: number | null = null;
 
   if (sport === "bike") {
     const ftp = isPos(input.ftp) ? input.ftp : null;
@@ -320,6 +323,7 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
         const mlssPctFtp = clamp((mlssW / ftp) * 100, 80, 112);
         const fatMaxPctFtp = computeFatMaxAnchorPctFTP(vla, vo2) ?? 65;
         pct = deriveBikePct(fatMaxPctFtp, mlssPctFtp);
+        refAtThreshold = mlssPctFtp;
         anchors.push(
           `FatMax ≈ ${Math.round(fatMaxPctFtp)} % FTP (VLamax ${vla.toFixed(2)})`,
           `MLSS Mader ≈ ${mlssW} W (${Math.round(mlssPctFtp)} % FTP)`,
@@ -338,6 +342,7 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
       // vVO2max ≈ VMA ; exprimée en % de la vitesse seuil de l'athlète.
       const vVo2maxPct = vma ? clamp((vma / vThrKmh) * 100, 102, 135) : 112;
       pct = deriveRunPct(vla, vVo2maxPct);
+      refAtThreshold = 100; // les bornes course sont déjà exprimées en % de la vitesse seuil
       const estimated = input.paceThresholdEstimated === true;
       anchors.push(
         `Vitesse seuil ${vThrKmh.toFixed(1)} km/h (${fmtPaceFromSec(thr)}/km)${estimated ? " — estimée (MLSS prédit)" : " — mesurée"}`,
@@ -368,6 +373,8 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
 
   const sanitized = sanitizeBounds(ZONE6_IDS.map((id) => pct![id]));
 
+  const fcMax = isPos(input.fcMax) ? input.fcMax : null;
+
   const refLabel =
     sport === "bike"
       ? "% FTP"
@@ -377,11 +384,35 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
           : "% VMA"
         : "% CSS";
 
-  const fcMax = isPos(input.fcMax) ? input.fcMax : null;
+  // FC : dérivée (Karvonen ancré sur la FC seuil) dès que les zones le sont et
+  // que la FCmax est connue ; sinon repli sur la grille tabulée.
+  const boundsById = ZONE6_IDS.reduce((acc, id, i) => {
+    acc[id] = sanitized[i];
+    return acc;
+  }, {} as Record<ZoneId6, ZoneBounds>);
+
+  let hrPctById: Record<ZoneId6, ZoneBounds | null> = FC_MAX_PCT_STANDARD;
+  if (source === "derived" && fcMax && refAtThreshold) {
+    const hr = deriveHrPct(
+      sport,
+      boundsById,
+      refAtThreshold,
+      boundsById.Z5.max,
+      fcMax,
+      isPos(input.fcRest) ? input.fcRest : null,
+      isPos(input.fcThreshold) ? input.fcThreshold : null,
+    );
+    hrPctById = hr.pct;
+    anchors.push(
+      `FC seuil ≈ ${hr.thresholdHrBpm} bpm (${Math.round(hr.thresholdHrPct)} % FCmax)${hr.measured ? " — mesurée" : " — estimée"}, zones FC en réserve cardiaque (repos ${Math.round(hr.restHrPct)} % FCmax)`,
+    );
+  } else if (fcMax) {
+    anchors.push("Zones FC : grille standard (%FCmax tabulé) — FC seuil non dérivable");
+  }
 
   const zones: DerivedZone[] = ZONE6_IDS.map((id, i) => {
     const b = sanitized[i];
-    const fc = FC_MAX_PCT[id];
+    const fc = hrPctById[id];
     return {
       id,
       label: ZONE6_LABELS[id],
