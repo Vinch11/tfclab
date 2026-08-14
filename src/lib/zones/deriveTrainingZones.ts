@@ -193,7 +193,11 @@ function deriveHrPct(
       continue;
     }
     const b = bounds[id];
-    const min = id === "Z1" ? Math.round(restHrPct * 100) : Math.max(prevMax, Math.round(hrAt(b.min)));
+    // Z1 : plancher à la FC de récup active (repos + 8 pts, jamais < 50 % FCmax),
+    // la borne basse « repos pur » n'a pas de sens pour piloter une séance.
+    const min = id === "Z1"
+      ? Math.round(Math.max(restHrPct * 100 + 8, 50))
+      : Math.max(prevMax, Math.round(hrAt(b.min)));
     const max = Math.max(min + 1, Math.min(100, Math.round(hrAt(b.max))));
     pct[id] = { min, max };
     prevMax = max;
