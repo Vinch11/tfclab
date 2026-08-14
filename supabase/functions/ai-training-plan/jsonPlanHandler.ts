@@ -1047,6 +1047,22 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             });
             collectedChunks.push(planChunk);
 
+            // P2 diversité — mémorise les fiches réellement consommées par ce chunk.
+            {
+              let counted = 0;
+              for (const wk of (planChunk as { weeks?: Array<{ sessions?: Array<{ catalogId?: unknown }> }> }).weeks ?? []) {
+                for (const se of wk.sessions ?? []) {
+                  const cid = se.catalogId;
+                  if (typeof cid === "string" && cid.length > 0) {
+                    consumedIdCounts.set(cid, (consumedIdCounts.get(cid) ?? 0) + 1);
+                    counted++;
+                  }
+                }
+              }
+              console.log(`[diversity_memory] chunk=${ci} consumed=${counted} distinct_total=${consumedIdCounts.size}`);
+            }
+
+
             if (usedRetry) {
               enqueue("chunk-progress", {
                 chunkIndex: ci, totalChunks, status: "retry-succeeded",
