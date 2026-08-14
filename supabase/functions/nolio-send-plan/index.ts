@@ -143,13 +143,9 @@ function computeTargetValue(
     case "FTP":
     case "CP":
     case "MAP":
-      if (!refs.ftp) return null;
-      return Math.round(refs.ftp * intensityPct / 100);
+      return wattsFromStandardPct(intensityPct, refs);
     case "VMA": {
-      if (!refs.vma) return null;
-      const speedMs = refs.vma * (intensityPct / 100) * (1000 / 3600);
-      if (speedMs <= 0) return null;
-      return Math.round(1000 / speedMs);
+      return paceSecFromStandardPct(intensityPct, refs);
     }
     case "CSS": {
       if (!refs.css) return null;
@@ -263,9 +259,10 @@ function buildTargetFromZones(
       };
     }
     const pct = parsePctRange(zText);
-    if (pct && refs.ftp) {
-      const lo = Math.round(refs.ftp * pct.min / 100);
-      const hi = Math.round(refs.ftp * pct.max / 100);
+    const pw = pct ? { lo: wattsFromStandardPct(pct.min, refs), hi: wattsFromStandardPct(pct.max, refs) } : null;
+    if (pct && pw && pw.lo != null && pw.hi != null) {
+      const lo = pw.lo;
+      const hi = pw.hi;
       return {
         target_type: "power",
         target_value_min: lo,
@@ -411,16 +408,18 @@ function buildTargetFromText(
   if (ftpRange && refs.ftp) {
     const a = parseInt(ftpRange[1], 10);
     const b = parseInt(ftpRange[2], 10);
-    const lo = Math.round(refs.ftp * Math.min(a, b) / 100);
-    const hi = Math.round(refs.ftp * Math.max(a, b) / 100);
+    const lo = wattsFromStandardPct(Math.min(a, b), refs);
+    const hi = wattsFromStandardPct(Math.max(a, b), refs);
+    if (lo == null || hi == null) return { target_type: "no_target" };
     return { target_type: "power", target_value_min: lo, target_value_max: hi, target_value: Math.round((lo + hi) / 2) };
   }
   // X% FTP
   const ftpSingle = t.match(/(\d+)\s*%\s*ftp/);
   if (ftpSingle && refs.ftp) {
     const a = parseInt(ftpSingle[1], 10);
-    const lo = Math.round(refs.ftp * Math.max(0, a - 3) / 100);
-    const hi = Math.round(refs.ftp * (a + 3) / 100);
+    const lo = wattsFromStandardPct(Math.max(0, a - 3), refs);
+    const hi = wattsFromStandardPct(a + 3, refs);
+    if (lo == null || hi == null) return { target_type: "no_target" };
     return { target_type: "power", target_value_min: lo, target_value_max: hi, target_value: Math.round((lo + hi) / 2) };
   }
   // X-Y% VMA → pace via VMA athlète
@@ -1493,9 +1492,11 @@ function recomputeAbsoluteFromPct(items: unknown, refs: AthleteRefs): unknown {
     if (ttype === "power") {
       const pmin = num(item.pct_ftp_min);
       const pmax = num(item.pct_ftp_max);
-      if (refs.ftp && pmin != null && pmax != null) {
-        const lo = Math.round(refs.ftp * pmin / 100);
-        const hi = Math.round(refs.ftp * pmax / 100);
+      const wLo = pmin != null ? wattsFromStandardPct(pmin, refs) : null;
+      const wHi = pmax != null ? wattsFromStandardPct(pmax, refs) : null;
+      if (wLo != null && wHi != null) {
+        const lo = wLo;
+        const hi = wHi;
         item.target_value_min = lo;
         item.target_value_max = hi;
         item.target_value = Math.round((lo + hi) / 2);
@@ -1505,10 +1506,11 @@ function recomputeAbsoluteFromPct(items: unknown, refs: AthleteRefs): unknown {
     else if (ttype === "pace") {
       const pmin = num(item.pct_vma_min);
       const pmax = num(item.pct_vma_max);
-      if (refs.vma && pmin != null && pmax != null && pmin > 0 && pmax > 0) {
-        const paceFromVma = (pct: number) => Math.round(1000 / (refs.vma! * (pct / 100) * (1000 / 3600)));
-        const lo = paceFromVma(pmax); // % haut = pace courte
-        const hi = paceFromVma(pmin);
+      const pcLo = pmax != null && pmax > 0 ? paceSecFromStandardPct(pmax, refs) : null;
+      const pcHi = pmin != null && pmin > 0 ? paceSecFromStandardPct(pmin, refs) : null;
+      if (pcLo != null && pcHi != null) {
+        const lo = pcLo; // % haut = pace courte
+        const hi = pcHi;
         item.target_value_min = Math.min(lo, hi);
         item.target_value_max = Math.max(lo, hi);
         item.target_value = Math.round((lo + hi) / 2);
