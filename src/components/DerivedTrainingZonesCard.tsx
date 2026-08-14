@@ -108,7 +108,13 @@ function ZoneList({ set }: { set: DerivedZoneSet }) {
                   {zone.absolute && (
                     <p className="font-mono text-xs text-muted-foreground">{zone.absolute}</p>
                   )}
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {zone.fcMaxPct
+                      ? `${zone.fcMaxPct.min}–${zone.fcMaxPct.max} % FCmax${zone.heartRate ? ` · ${zone.heartRate}` : ""}`
+                      : "FC non pilotable"}
+                  </p>
                 </div>
+
               </div>
 
               {open && (

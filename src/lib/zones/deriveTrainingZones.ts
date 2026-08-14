@@ -133,10 +133,15 @@ const DEFAULT_THRESHOLD_HR_FRACTION: Record<ZoneSport, number> = {
 const DEFAULT_REST_HR_FRACTION = 0.5;
 
 /**
- * Convexité de la relation FC / intensité sous le seuil : à 60 % de l'intensité
- * seuil, la FC est déjà bien au-dessus de 60 % de la réserve cardiaque.
+ * Relation FC / intensité sous le seuil, exprimée en réserve cardiaque.
+ * Karvonen/Swain : %HRR ≈ %VO2R, et le VO2 croît un peu plus vite que
+ * linéairement avec la vitesse/puissance sous le seuil. Un exposant ~1.4
+ * place la FC de FatMax (≈86 % de la vitesse seuil) autour de 78-80 % FCmax,
+ * conforme aux mesures labo. Un exposant < 1 (ancien modèle) surestimait
+ * fortement la FC en endurance (Z2 collée au seuil).
  */
-const HR_SUBTHRESHOLD_EXPONENT = 0.72;
+const HR_SUBTHRESHOLD_EXPONENT = 1.4;
+
 
 interface DerivedHrResult {
   pct: Record<ZoneId6, ZoneBounds | null>;
