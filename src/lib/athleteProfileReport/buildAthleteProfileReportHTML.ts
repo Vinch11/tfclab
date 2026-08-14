@@ -320,7 +320,7 @@ function zoneTable(z: ReportZoneSet): string {
     ${z.anchors.length ? `<div style="font-size:9.5px;color:${C.faint};margin-bottom:8px">Ancrages : ${z.anchors.map(esc).join(" · ")}</div>` : ""}
     ${z.fallbackReason ? `<div style="font-size:10px;color:${C.amber};margin-bottom:8px">${esc(z.fallbackReason)}</div>` : ""}
     <table style="width:100%;font-size:10.5px">
-      <thead><tr><th style="text-align:left">Zone</th><th style="text-align:left">Intention</th><th style="text-align:left">%</th><th style="text-align:left">Valeur</th><th style="text-align:left">FC</th></tr></thead>
+      <thead><tr><th style="text-align:left">Zone</th><th style="text-align:left">Intention</th><th style="text-align:left">%</th><th style="text-align:left">Valeur</th><th style="text-align:left">% FC max</th><th style="text-align:left">FC (bpm)</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   </div>`;
