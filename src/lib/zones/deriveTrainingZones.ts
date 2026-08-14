@@ -50,6 +50,9 @@ export interface DerivedZone {
   absolute: string | null;
   /** Plage FC absolue formatée si FCmax connue. */
   heartRate: string | null;
+  /** Référence secondaire (course : % VMA) quand elle est calculable. */
+  secondaryPct?: { min: number; max: number; label: string } | null;
+
 }
 
 export interface DerivedZoneSet {
