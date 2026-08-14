@@ -1042,6 +1042,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             baseUserPrompt,
             quotasBlock ? `\n${quotasBlock}\n` : null,
             catalogDump ? `\n${catalogDump}\n` : null,
+            historyBlock,
             diversityBlock,
             canonicalRaceCard,
             `\n📋 DIAGNOSTIC STRUCTURÉ (référence cohérence) :\n${structuredDiagnostic}`,
