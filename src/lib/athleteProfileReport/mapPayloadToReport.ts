@@ -239,7 +239,9 @@ export function mapExportPayloadToProfileReport(
     : [];
 
   const lorangLevers: any[] = payload.lorangResult?.activatedLevers ?? [];
-  for (const l of lorangLevers.slice(0, 3)) {
+  for (const l of lorangLevers.slice(0, 4)) {
+    const title = l.leverLabel ?? l.label ?? "Levier";
+    if (levers.some((x) => x.title?.trim().toLowerCase() === String(title).trim().toLowerCase())) continue;
     levers.push({
       title: l.leverLabel ?? l.label ?? "Levier",
       emoji: l.emoji ?? "⚙️",
