@@ -880,6 +880,7 @@ export default function AITrainingPlanPage() {
     diagnostic: AthleteDiagnostic,
     athleteAmbition?: string,
     objectiveOverride?: string,
+    athleteIdOverride?: string,
   ): PlanConfig => {
     const amb = athleteAmbition || ambition;
     // ⚠️ setObjective() est asynchrone : le wizard doit pouvoir imposer son
