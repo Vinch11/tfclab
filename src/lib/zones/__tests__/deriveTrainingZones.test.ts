@@ -130,3 +130,36 @@ describe("mapping Z1..Z7 ↔ Z1..Z6", () => {
     expect(canonicalizeToZone6("Z9")).toBeNull();
   });
 });
+
+describe("deriveTrainingZones — zones FC dérivées", () => {
+  const base = { sport: "bike" as const, ftp: 280, vo2max: 62, weightKg: 72, fcMax: 190, fcRest: 50 };
+
+  it("dérive les %FCmax depuis la FC seuil et non depuis une grille figée", () => {
+    const set = deriveTrainingZones({ ...base, vlamax: 0.4 });
+    expect(set.source).toBe("derived");
+    // La FC seuil estimée (~89 % FCmax) doit tomber dans Z4 (autour du MLSS).
+    const z4 = set.zones.find((z) => z.id === "Z4")!;
+    expect(z4.fcMaxPct!.min).toBeLessThanOrEqual(89);
+    expect(z4.fcMaxPct!.max).toBeGreaterThanOrEqual(89);
+    expect(set.anchors.some((a) => a.includes("FC seuil"))).toBe(true);
+  });
+
+  it("déplace les bornes FC quand la FC de repos change (réserve cardiaque)", () => {
+    const lowRest = deriveTrainingZones({ ...base, vlamax: 0.4, fcRest: 40 });
+    const highRest = deriveTrainingZones({ ...base, vlamax: 0.4, fcRest: 70 });
+    const z2Low = lowRest.zones.find((z) => z.id === "Z2")!.fcMaxPct!;
+    const z2High = highRest.zones.find((z) => z.id === "Z2")!.fcMaxPct!;
+    expect(z2High.min).toBeGreaterThan(z2Low.min);
+  });
+
+  it("respecte une FC seuil mesurée", () => {
+    const set = deriveTrainingZones({ ...base, vlamax: 0.4, fcThreshold: 172 });
+    expect(set.anchors.some((a) => a.includes("172 bpm") && a.includes("mesurée"))).toBe(true);
+  });
+
+  it("retombe sur la grille tabulée quand les zones ne sont pas dérivées", () => {
+    const set = deriveTrainingZones({ sport: "bike", ftp: 280, fcMax: 190 });
+    expect(set.source).toBe("standard");
+    expect(set.zones.find((z) => z.id === "Z2")!.fcMaxPct).toEqual({ min: 70, max: 80 });
+  });
+});

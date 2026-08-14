@@ -41,7 +41,10 @@ export interface DerivedZone {
   pctRef: ZoneBounds;
   /** Libellé de la référence ("% FTP", "% vitesse seuil", "% CSS"). */
   refLabel: string;
-  /** Bornes en % FCmax (grille standard, la FC ne se dérive pas fiablement). */
+  /**
+   * Bornes en % FCmax. DÉRIVÉES (Karvonen ancré sur la FC seuil) quand les zones
+   * elles-mêmes sont dérivées ; grille tabulée seulement en repli.
+   */
   fcMaxPct: ZoneBounds | null;
   /** Valeurs absolues formatées (W, allure, sec/100m) si la référence est connue. */
   absolute: string | null;
@@ -72,6 +75,10 @@ export interface DeriveZonesInput {
   /** CSS natation en secondes/100 m. */
   css?: number | null;
   fcMax?: number | null;
+  /** FC de repos (bpm) — ancre basse de la réserve cardiaque (Karvonen). */
+  fcRest?: number | null;
+  /** FC mesurée au seuil / MLSS (bpm) — ancre haute si disponible. */
+  fcThreshold?: number | null;
   vlamax?: number | null;
   vo2max?: number | null;
   weightKg?: number | null;
@@ -97,8 +104,8 @@ function round1(v: number): number {
   return Math.round(v * 10) / 10;
 }
 
-/** %FCmax du modèle 6 zones (grille standard : la FC reste tabulée). */
-const FC_MAX_PCT: Record<ZoneId6, ZoneBounds | null> = {
+/** %FCmax de REPLI (grille tabulée) — utilisée uniquement si les zones ne sont pas dérivées. */
+const FC_MAX_PCT_STANDARD: Record<ZoneId6, ZoneBounds | null> = {
   Z1: { min: 0, max: 70 },
   Z2: { min: 70, max: 80 },
   Z3: { min: 80, max: 87 },
@@ -106,6 +113,104 @@ const FC_MAX_PCT: Record<ZoneId6, ZoneBounds | null> = {
   Z5: { min: 94, max: 100 },
   Z6: null,
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FC DÉRIVÉE — Karvonen ancré sur la FC seuil (MLSS), pas sur une grille figée
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Fraction de FCmax au seuil, par défaut, quand la FC seuil n'est pas mesurée.
+ * Valeurs de consensus labo (Lucía 2000, Coyle 1995) : la FC au MLSS se situe
+ * autour de 88-91 % FCmax, un peu plus haute en course qu'en vélo (masse
+ * musculaire sollicitée + absence d'appui assis).
+ */
+const DEFAULT_THRESHOLD_HR_FRACTION: Record<ZoneSport, number> = {
+  bike: 0.89,
+  run: 0.91,
+  swim: 0.87,
+};
+
+/** Fraction de FCmax au repos par défaut si la FC de repos est inconnue. */
+const DEFAULT_REST_HR_FRACTION = 0.5;
+
+/**
+ * Convexité de la relation FC / intensité sous le seuil : à 60 % de l'intensité
+ * seuil, la FC est déjà bien au-dessus de 60 % de la réserve cardiaque.
+ */
+const HR_SUBTHRESHOLD_EXPONENT = 0.72;
+
+interface DerivedHrResult {
+  pct: Record<ZoneId6, ZoneBounds | null>;
+  thresholdHrPct: number;
+  thresholdHrBpm: number | null;
+  restHrPct: number;
+  measured: boolean;
+}
+
+/**
+ * Traduit les bornes d'intensité DÉRIVÉES (en % de la référence) en % FCmax.
+ *
+ * Modèle : réserve cardiaque (Karvonen) ancrée sur deux points physiologiques
+ * de l'athlète — la FC de repos et la FC au seuil (MLSS) — puis saturation
+ * linéaire entre le seuil et vVO2max/PMA. Résultat : deux athlètes ayant le
+ * même FCmax mais un MLSS différent n'obtiennent PAS les mêmes zones FC.
+ */
+function deriveHrPct(
+  sport: ZoneSport,
+  bounds: Record<ZoneId6, ZoneBounds>,
+  refAtThreshold: number,
+  refAtVo2max: number,
+  fcMax: number,
+  fcRest: number | null,
+  fcThreshold: number | null,
+): DerivedHrResult {
+  const restHrPct = fcRest
+    ? clamp(fcRest / fcMax, 0.28, 0.65)
+    : DEFAULT_REST_HR_FRACTION;
+  const measured = fcThreshold != null && fcThreshold > 0;
+  const thresholdHrPct = measured
+    ? clamp(fcThreshold! / fcMax, restHrPct + 0.15, 0.98)
+    : clamp(DEFAULT_THRESHOLD_HR_FRACTION[sport], restHrPct + 0.15, 0.98);
+
+  const hrrAtThreshold = (thresholdHrPct - restHrPct) / (1 - restHrPct);
+  const rVo2 = Math.max(1.04, refAtVo2max / refAtThreshold);
+
+  const hrAt = (refPct: number): number => {
+    const r = Math.max(0, refPct / refAtThreshold);
+    if (r <= 1) {
+      const hrr = hrrAtThreshold * Math.pow(r, HR_SUBTHRESHOLD_EXPONENT);
+      return clamp((restHrPct + hrr * (1 - restHrPct)) * 100, restHrPct * 100, 100);
+    }
+    const over = clamp((r - 1) / (rVo2 - 1), 0, 1);
+    return clamp((thresholdHrPct + over * (1 - thresholdHrPct)) * 100, 0, 100);
+  };
+
+  const pct = {} as Record<ZoneId6, ZoneBounds | null>;
+  let prevMax = 0;
+  for (const id of ZONE6_IDS) {
+    // Z6 (neuromusculaire/sprint) : la FC n'est pas un pilotage valide.
+    if (id === "Z6") {
+      pct[id] = null;
+      continue;
+    }
+    const b = bounds[id];
+    // Z1 : plancher à la FC de récup active (repos + 8 pts, jamais < 50 % FCmax),
+    // la borne basse « repos pur » n'a pas de sens pour piloter une séance.
+    const min = id === "Z1"
+      ? Math.round(Math.max(restHrPct * 100 + 8, 50))
+      : Math.max(prevMax, Math.round(hrAt(b.min)));
+    const max = Math.max(min + 1, Math.min(100, Math.round(hrAt(b.max))));
+    pct[id] = { min, max };
+    prevMax = max;
+  }
+
+  return {
+    pct,
+    thresholdHrPct: thresholdHrPct * 100,
+    thresholdHrBpm: Math.round(thresholdHrPct * fcMax),
+    restHrPct: restHrPct * 100,
+    measured,
+  };
+}
 
 function fmtPaceFromSec(sec: number): string {
   const m = Math.floor(sec / 60);
@@ -202,6 +307,9 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
   let pct: Record<ZoneId6, ZoneBounds> | null = null;
   let confidence = 0;
   let fallbackReason: string | null = null;
+  // Intensité (en % de la référence) correspondant au SEUIL/MLSS de l'athlète :
+  // ancre de la dérivation cardiaque. Renseignée uniquement en mode dérivé.
+  let refAtThreshold: number | null = null;
 
   if (sport === "bike") {
     const ftp = isPos(input.ftp) ? input.ftp : null;
@@ -219,6 +327,7 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
         const mlssPctFtp = clamp((mlssW / ftp) * 100, 80, 112);
         const fatMaxPctFtp = computeFatMaxAnchorPctFTP(vla, vo2) ?? 65;
         pct = deriveBikePct(fatMaxPctFtp, mlssPctFtp);
+        refAtThreshold = mlssPctFtp;
         anchors.push(
           `FatMax ≈ ${Math.round(fatMaxPctFtp)} % FTP (VLamax ${vla.toFixed(2)})`,
           `MLSS Mader ≈ ${mlssW} W (${Math.round(mlssPctFtp)} % FTP)`,
@@ -237,6 +346,7 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
       // vVO2max ≈ VMA ; exprimée en % de la vitesse seuil de l'athlète.
       const vVo2maxPct = vma ? clamp((vma / vThrKmh) * 100, 102, 135) : 112;
       pct = deriveRunPct(vla, vVo2maxPct);
+      refAtThreshold = 100; // les bornes course sont déjà exprimées en % de la vitesse seuil
       const estimated = input.paceThresholdEstimated === true;
       anchors.push(
         `Vitesse seuil ${vThrKmh.toFixed(1)} km/h (${fmtPaceFromSec(thr)}/km)${estimated ? " — estimée (MLSS prédit)" : " — mesurée"}`,
@@ -267,6 +377,8 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
 
   const sanitized = sanitizeBounds(ZONE6_IDS.map((id) => pct![id]));
 
+  const fcMax = isPos(input.fcMax) ? input.fcMax : null;
+
   const refLabel =
     sport === "bike"
       ? "% FTP"
@@ -276,11 +388,35 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
           : "% VMA"
         : "% CSS";
 
-  const fcMax = isPos(input.fcMax) ? input.fcMax : null;
+  // FC : dérivée (Karvonen ancré sur la FC seuil) dès que les zones le sont et
+  // que la FCmax est connue ; sinon repli sur la grille tabulée.
+  const boundsById = ZONE6_IDS.reduce((acc, id, i) => {
+    acc[id] = sanitized[i];
+    return acc;
+  }, {} as Record<ZoneId6, ZoneBounds>);
+
+  let hrPctById: Record<ZoneId6, ZoneBounds | null> = FC_MAX_PCT_STANDARD;
+  if (source === "derived" && fcMax && refAtThreshold) {
+    const hr = deriveHrPct(
+      sport,
+      boundsById,
+      refAtThreshold,
+      boundsById.Z5.max,
+      fcMax,
+      isPos(input.fcRest) ? input.fcRest : null,
+      isPos(input.fcThreshold) ? input.fcThreshold : null,
+    );
+    hrPctById = hr.pct;
+    anchors.push(
+      `FC seuil ≈ ${hr.thresholdHrBpm} bpm (${Math.round(hr.thresholdHrPct)} % FCmax)${hr.measured ? " — mesurée" : " — estimée"}, zones FC en réserve cardiaque (repos ${Math.round(hr.restHrPct)} % FCmax)`,
+    );
+  } else if (fcMax) {
+    anchors.push("Zones FC : grille standard (%FCmax tabulé) — FC seuil non dérivable");
+  }
 
   const zones: DerivedZone[] = ZONE6_IDS.map((id, i) => {
     const b = sanitized[i];
-    const fc = FC_MAX_PCT[id];
+    const fc = hrPctById[id];
     return {
       id,
       label: ZONE6_LABELS[id],
