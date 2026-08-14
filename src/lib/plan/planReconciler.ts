@@ -209,13 +209,19 @@ interface FindOpts {
    *  substitution phase/durée/discipline un ID absent du catalogue, ce qui
    *  reproduirait un FAIL B5 après coup. */
   restrictToIds?: Set<string>;
+  /** Ledger d'usage du plan courant : pénalise/exclut les fiches déjà
+   *  sur-représentées pour éviter la convergence vers toujours la même fiche. */
+  ledger?: UsageLedger;
 }
 
 function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | null {
-  const { sport, weekPhase, targetDur, original, restrictToIds } = opts;
+  const { sport, weekPhase, targetDur, original, restrictToIds, ledger } = opts;
   const requireDur = opts.requireDurationContains !== false;
   const requirePhase = opts.requirePhase !== false;
   let best: { w: LibraryWorkout; key: number } | null = null;
+  // Repli si TOUS les candidats valides sont déjà saturés (usage ≥ MAX) :
+  // mieux vaut une répétition qu'une séance non résolue.
+  let saturatedBest: { w: LibraryWorkout; key: number } | null = null;
   for (const w of WorkoutLibrary) {
     if (excludeId && w.id.toUpperCase() === excludeId.toUpperCase()) continue;
     if (restrictToIds && !restrictToIds.has(w.id.toUpperCase())) continue;
@@ -227,11 +233,18 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
     if (requireDur && targetDur > 0 && !ficheDurationContains(w, targetDur)) continue;
     const durPenalty = targetDur > 0 ? Math.abs(ficheMedian(w) - targetDur) / 10 : 0;
     const intent = original ? intentScore(original, w) : 0;
-    const key = intent * 100 - durPenalty; // maximize intent, tiebreak by duration proximity
+    const usage = ledgerCount(ledger, w.id);
+    // maximize intent, tiebreak by duration proximity, penalize repetition
+    const key = intent * 100 - durPenalty - usage * DIVERSITY_PENALTY;
+    if (usage >= MAX_FICHE_REPEATS) {
+      if (!saturatedBest || key > saturatedBest.key) saturatedBest = { w, key };
+      continue;
+    }
     if (!best || key > best.key) best = { w, key };
   }
-  return best?.w ?? null;
+  return (best ?? saturatedBest)?.w ?? null;
 }
+
 
 // ── Mutation session avec fiche ────────────────────────────────────────────
 function assignFiche(session: PlanSession, fiche: LibraryWorkout, keepDuration?: number): void {
