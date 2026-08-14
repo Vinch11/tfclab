@@ -69,6 +69,9 @@ function mapZoneSet(set: DerivedZoneSet, sportLabel: string): ReportZoneSet {
       refLabel: z.refLabel,
       absolute: z.absolute,
       heartRate: z.heartRate,
+      hrPct: z.fcMaxPct
+        ? `${Math.round(z.fcMaxPct.min)}–${Math.round(z.fcMaxPct.max)} %`
+        : null,
     })),
   };
 }
