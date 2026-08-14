@@ -72,8 +72,8 @@ export interface ReconcilerCounters {
   constraint_day_moved?: number;
   constraint_day_unresolved?: number;
   constraint_banned_sport_removed?: number;
-  /** Substitutions où la fiche « idéale » a été écartée car déjà sur-utilisée. */
-  diversity_rotated?: number;
+  /** Nombre d'occurrences de la fiche la plus répétée dans le plan final. */
+  diversity_max_repeat?: number;
 
 }
 
@@ -1361,7 +1361,7 @@ export function runReconciler(
   // Métrique de diversité finale (observabilité P0).
   try {
     const div = computePlanDiversity(chunks as any);
-    counters.diversity_rotated = div.maxRepeat;
+    counters.diversity_max_repeat = div.maxRepeat;
     logs.push(`[diversity] ${formatDiversitySummary(div)}`);
   } catch { /* ignore */ }
 
