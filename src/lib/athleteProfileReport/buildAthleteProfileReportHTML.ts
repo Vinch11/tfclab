@@ -141,11 +141,11 @@ function gaugeSVG(m: ReportMetric): string {
       ${band}
       <line x1="${v.toFixed(2)}" y1="0" x2="${v.toFixed(2)}" y2="16" stroke="${C.ink}" stroke-width="0.9" />
     </svg>
-    <div style="display:flex;justify-content:space-between;font-size:8.5px;color:${C.faint};margin-top:2px">
+    <div style="display:flex;justify-content:space-between;align-items:center;font-size:8.5px;color:${C.faint};margin-top:3px;gap:6px">
       <span>${num(sMin, 0)}</span>
+      ${m.target ? `<span style="color:${C.mint};font-weight:600;white-space:nowrap">cible ${num(m.target[0], m.decimals ?? 1)}–${num(m.target[1], m.decimals ?? 1)}</span>` : ""}
       <span>${num(sMax, 0)}</span>
-    </div>
-    ${m.target ? `<div style="font-size:8.5px;color:${C.mint};font-weight:600;text-align:center;margin-top:-1px">cible ${num(m.target[0], m.decimals ?? 1)}–${num(m.target[1], m.decimals ?? 1)}</div>` : ""}`;
+    </div>`;
 }
 
 /** Barre de progression vers la cible d'ambition. */
