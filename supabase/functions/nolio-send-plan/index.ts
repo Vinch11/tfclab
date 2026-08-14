@@ -5,6 +5,12 @@
 // id_partner = clé de déduplication côté Nolio.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import {
+  deriveTrainingZonesEdge,
+  derivedWattsFromStandardPct,
+  derivedRunSpeedFromStandardPct,
+  estimateRunThresholdPaceSecPerKmEdge,
+} from "../_shared/derivedZones.ts";
 
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
@@ -1544,6 +1550,67 @@ function recomputeAbsoluteFromPct(items: unknown, refs: AthleteRefs): unknown {
 }
 
 
+/**
+ * Charge le dernier snapshot de l'athlète et construit les convertisseurs
+ * de zones dérivées (vélo → W, course → allure) utilisés par tout l'export.
+ * Repli silencieux sur la grille standard si la physiologie manque.
+ */
+async function enrichRefsWithDerivedZones(
+  admin: SupabaseAdmin,
+  athleteId: string,
+  base: AthleteRefs,
+): Promise<{ refs: AthleteRefs; trace: Record<string, unknown> }> {
+  const refs: AthleteRefs = { ...base };
+  const trace: Record<string, unknown> = { bike: "standard", run: "standard" };
+  try {
+    const { data } = await admin
+      .from("snapshots")
+      .select("ftp, vma, css, fc_max, vlamax, vlamax_run, vo2max, weight_kg, pace_threshold_sec_per_km")
+      .eq("athlete_id", athleteId)
+      .order("date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!data) return { refs, trace };
+
+    const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null);
+    refs.ftp = refs.ftp ?? num(data.ftp);
+    refs.vma = refs.vma ?? num(data.vma);
+    refs.css = refs.css ?? num(data.css);
+    refs.fcMax = refs.fcMax ?? num(data.fc_max);
+
+    const bikeSet = deriveTrainingZonesEdge({
+      sport: "bike",
+      ftp: refs.ftp,
+      vlamax: num(data.vlamax),
+      vo2max: num(data.vo2max),
+      weightKg: num(data.weight_kg),
+    });
+    const bikeFn = derivedWattsFromStandardPct(bikeSet, refs.ftp);
+    if (bikeFn) {
+      refs.derivedBikeWatts = bikeFn;
+      trace.bike = { source: bikeSet.source, anchors: bikeSet.anchors };
+    }
+
+    const measuredThr = num(data.pace_threshold_sec_per_km);
+    const estimatedThr = measuredThr ?? estimateRunThresholdPaceSecPerKmEdge(refs.vma, null);
+    const runSet = deriveTrainingZonesEdge({
+      sport: "run",
+      vma: refs.vma,
+      paceThresholdSecPerKm: estimatedThr,
+      paceThresholdEstimated: measuredThr == null,
+      vlamax: num(data.vlamax_run) ?? num(data.vlamax),
+    });
+    const runFn = derivedRunSpeedFromStandardPct(runSet, estimatedThr);
+    if (runFn) {
+      refs.derivedRunSpeedKmh = runFn;
+      trace.run = { source: runSet.source, anchors: runSet.anchors, estimated: measuredThr == null };
+    }
+  } catch (_e) {
+    // repli standard
+  }
+  return { refs, trace };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -1607,6 +1674,12 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const { refs: athleteRefs, trace: zonesTrace } = await enrichRefsWithDerivedZones(
+      admin,
+      body.athlete_id,
+      body.refs ?? {},
+    );
+
     const refreshTokenStr = (tokenRow.refresh_token as string | null) ?? null;
     const accessTokenRef = {
       current: await refreshIfNeeded(admin, userId, {
@@ -1704,13 +1777,13 @@ Deno.serve(async (req) => {
         if (gen && Array.isArray(gen.structured_workout) && gen.structured_workout.length > 0) {
           // Strategy C : recalcul depuis pct_* avec refs de l'athlète destinataire,
           // fallback sur target_value_* stocké (valeurs absolues figées au moment du batch).
-          structured_workout = recomputeAbsoluteFromPct(gen.structured_workout, body.refs ?? {});
+          structured_workout = recomputeAbsoluteFromPct(gen.structured_workout, athleteRefs);
           usedGenerated = true;
         }
       }
 
       if (structured_workout == null && sourceStructure.length > 0) {
-        let built = buildStructuredFromParts(sourceStructure, body.refs ?? {}, s.wbalProfile ?? null);
+        let built = buildStructuredFromParts(sourceStructure, athleteRefs, s.wbalProfile ?? null);
         // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
         if (built && built.length === 1 && built[0].type === "repetition") {
           built = (built[0] as NolioRepStep).steps;
@@ -1763,7 +1836,7 @@ Deno.serve(async (req) => {
         // remap rest/no_target → cible Z1, suppression des clés null/undefined, etc.
         let normalized = normalizeStructuredWorkoutForNolio(
           canonicalizeStructuredShape(structured_workout),
-          body.refs ?? {},
+          athleteRefs,
           sportId,
           rpeSession,
           // ❌ Pas de target_type="rpe" : Nolio l'accepte (201) mais l'affiche en
@@ -1799,7 +1872,7 @@ Deno.serve(async (req) => {
       if (!res.ok && rpeSession && structured_workout) {
         payload.structured_workout = normalizeStructuredWorkoutForNolio(
           canonicalizeStructuredShape(structured_workout),
-          body.refs ?? {},
+          athleteRefs,
           sportId,
           true,
           false,
@@ -1883,7 +1956,7 @@ Deno.serve(async (req) => {
 
     // Log debug dans nolio_sync_log (notes = JSON complet pour vérifier ce qui est transmis)
     try {
-      const notesJson = JSON.stringify({ refs_received: body.refs ?? null, sessions: debugLog }).slice(0, 100000);
+      const notesJson = JSON.stringify({ refs_received: body.refs ?? null, derived_zones: zonesTrace, sessions: debugLog }).slice(0, 100000);
       await admin.from("nolio_sync_log").insert({
         user_id: userId,
         athletes_count: sent,
