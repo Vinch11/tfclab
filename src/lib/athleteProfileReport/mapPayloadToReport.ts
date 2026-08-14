@@ -272,8 +272,8 @@ export function mapExportPayloadToProfileReport(
     vo2max: refs?.vo2max ?? null,
     weightKg: refs?.weightKg ?? null,
   });
-  if (refs?.ftp) zoneSets.push(mapZoneSet(bike, "🚴 Vélo"));
-  if (refs?.vma || paceThreshold) zoneSets.push(mapZoneSet(run, "🏃 Course à pied"));
+  if (refs?.ftp) zoneSets.push(mapZoneSet(bike, "Vélo"));
+  if (refs?.vma || paceThreshold) zoneSets.push(mapZoneSet(run, "Course à pied"));
 
   // ── Roadmap ───────────────────────────────────────────────────────────────
   let roadmap = null;

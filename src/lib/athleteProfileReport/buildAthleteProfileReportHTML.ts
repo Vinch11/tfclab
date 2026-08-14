@@ -63,7 +63,8 @@ const STATUS_LABEL: Record<string, string> = {
 function radarSVG(axes: ReportRadarAxis[]): string {
   if (axes.length < 3) return "";
   const size = 340;
-  const cx = size / 2;
+  const padX = 56; // marge pour les libellés latéraux
+  const cx = size / 2 + padX;
   const cy = size / 2 + 6;
   const R = 112;
   const n = axes.length;
@@ -118,7 +119,7 @@ function radarSVG(axes: ReportRadarAxis[]): string {
     .join("");
 
   return `
-  <svg viewBox="0 0 ${size} ${size + 16}" width="100%" style="max-width:360px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+  <svg viewBox="0 0 ${size + padX * 2} ${size + 16}" width="100%" style="max-width:420px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
     ${rings}${spokes}
     <polygon points="${valuePts}" fill="${C.primary}22" stroke="${C.primary}" stroke-width="2" stroke-linejoin="round" />
     ${dots}${labels}
@@ -142,9 +143,9 @@ function gaugeSVG(m: ReportMetric): string {
     </svg>
     <div style="display:flex;justify-content:space-between;font-size:8.5px;color:${C.faint};margin-top:2px">
       <span>${num(sMin, 0)}</span>
-      ${m.target ? `<span style="color:${C.mint};font-weight:600">cible ${num(m.target[0], m.decimals ?? 1)}–${num(m.target[1], m.decimals ?? 1)}</span>` : "<span></span>"}
       <span>${num(sMax, 0)}</span>
-    </div>`;
+    </div>
+    ${m.target ? `<div style="font-size:8.5px;color:${C.mint};font-weight:600;text-align:center;margin-top:-1px">cible ${num(m.target[0], m.decimals ?? 1)}–${num(m.target[1], m.decimals ?? 1)}</div>` : ""}`;
 }
 
 /** Barre de progression vers la cible d'ambition. */
@@ -213,7 +214,7 @@ function metricCard(m: ReportMetric): string {
   <div class="bp-card" style="margin:0;padding:14px 15px">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
       <div style="font-size:11.5px;font-weight:600;color:${C.inkSoft}">${esc(m.label)}</div>
-      <span class="bp-badge" style="background:${color}1a;color:${color};border-color:${color}33">${esc(STATUS_LABEL[m.status])}</span>
+      <span class="bp-badge" style="background:${color}1a;color:${color};border-color:${color}33;white-space:nowrap">${esc(STATUS_LABEL[m.status])}</span>
     </div>
     <div style="margin-top:6px;font-size:24px;font-weight:600;letter-spacing:-0.02em;color:${insufficient ? C.faint : C.ink}">
       ${insufficient ? `<span style="font-size:13px;font-style:italic">Données insuffisantes</span>` : `${num(m.value, m.decimals ?? 1)}<span style="font-size:12px;color:${C.muted};font-weight:500"> ${esc(m.unit)}</span>`}
@@ -470,7 +471,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
                 </div>
                 <div style="font-size:11px;color:${C.muted};margin-top:6px;line-height:1.5">${rich(p.focus)}</div>
                 ${p.levers.length ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">${p.levers.map((l) => `<span class="bp-badge bp-badge--muted">${esc(l)}</span>`).join("")}</div>` : ""}
-                ${p.targets.length ? `<div style="margin-top:8px;font-size:10px;color:${C.primary}">${p.targets.map((t) => `<div>🎯 ${esc(t)}</div>`).join("")}</div>` : ""}
+                ${p.targets.length ? `<div style="margin-top:8px;font-size:10px;color:${C.primary}">${p.targets.map((t) => `<div>→ ${esc(t)}</div>`).join("")}</div>` : ""}
               </div>`,
             )
             .join("")}
