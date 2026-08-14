@@ -23,6 +23,7 @@ import type {
   ReportTargetProgress,
   ReportZoneSet,
 } from "./types";
+import { buildPhasePedagogy } from "./phasePedagogy";
 
 // ── helpers ────────────────────────────────────────────────────────────────
 function esc(s: unknown): string {
@@ -460,22 +461,44 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
           ${d.roadmap.limiterSummary ? `<div style="font-size:11px;color:${C.primary};background:${C.primarySoft};border-radius:8px;padding:8px 10px;margin-bottom:12px">${rich(d.roadmap.limiterSummary)}</div>` : ""}
           ${roadmapSVG(d.roadmap)}
         </div>
-        <div class="grid2">
+        <div>
           ${d.roadmap.phases
-            .map(
-              (p) => `<div class="bp-card avoid" style="margin:0">
+            .map((p, i, arr) => {
+              const ped = buildPhasePedagogy(p, arr.length);
+              return `<div class="bp-card avoid" style="margin-top:12px;border-left:4px solid ${p.color}">
                 <div style="display:flex;align-items:center;gap:8px">
                   <span style="width:12px;height:12px;border-radius:4px;background:${p.color};display:inline-block"></span>
-                  <span style="font-size:13px;font-weight:600;color:${C.ink}">${esc(p.name)}</span>
-                  <span style="font-size:10px;color:${C.faint}">S${p.startWeek}–S${p.endWeek}</span>
+                  <span style="font-size:13.5px;font-weight:700;color:${C.ink}">Bloc ${p.id} · ${esc(p.name)}</span>
+                  <span style="font-size:10px;color:${C.faint}">S${p.startWeek}–S${p.endWeek} · ${Math.max(1, p.endWeek - p.startWeek + 1)} sem.</span>
                 </div>
                 <div style="font-size:11px;color:${C.muted};margin-top:6px;line-height:1.5">${rich(p.focus)}</div>
-                ${p.levers.length ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">${p.levers.map((l) => `<span class="bp-badge bp-badge--muted">${esc(l)}</span>`).join("")}</div>` : ""}
+
+                <div style="margin-top:10px;font-size:11px;color:${C.inkSoft};line-height:1.6">
+                  <div style="font-weight:600;color:${C.ink};margin-bottom:3px">Pourquoi ce bloc ?</div>
+                  ${rich(ped.why)}
+                </div>
+
+                <div style="margin-top:10px;font-size:11px;color:${C.inkSoft};line-height:1.6">
+                  <div style="font-weight:600;color:${C.ink};margin-bottom:3px">Comment on va le travailler</div>
+                  <ul style="margin:0;padding-left:16px">${ped.how.map((h) => `<li style="margin-bottom:4px">${rich(h)}</li>`).join("")}</ul>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+                  <div style="background:${C.primarySoft};border-radius:8px;padding:8px 10px;font-size:10.5px;color:${C.inkSoft};line-height:1.55">
+                    <div style="font-weight:600;color:${C.primary};margin-bottom:2px">Ce que tu dois ressentir</div>${rich(ped.feel)}
+                  </div>
+                  <div style="background:#fef2f2;border-radius:8px;padding:8px 10px;font-size:10.5px;color:${C.inkSoft};line-height:1.55">
+                    <div style="font-weight:600;color:${C.danger};margin-bottom:2px">L'erreur à éviter</div>${rich(ped.pitfall)}
+                  </div>
+                </div>
+
+                ${p.levers.length ? `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:4px">${p.levers.map((l) => `<span class="bp-badge bp-badge--muted">${esc(l)}</span>`).join("")}</div>` : ""}
                 ${p.targets.length ? `<div style="margin-top:8px;font-size:10px;color:${C.primary}">${p.targets.map((t) => `<div>→ ${esc(t)}</div>`).join("")}</div>` : ""}
-              </div>`,
-            )
+              </div>`;
+            })
             .join("")}
         </div>`
+
       : ""
   }
 
