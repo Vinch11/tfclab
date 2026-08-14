@@ -921,8 +921,13 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
 
         const collectedChunks: PlanChunk[] = [];
         const catalogDumpsByChunk: string[] = [];
+        // P2 diversité — mémoire des catalogId déjà consommés par les chunks
+        // précédents. Injectée dans le prompt du chunk suivant avec une règle
+        // de non-réemploi explicite (interdit ≥2 usages, à éviter à 1 usage).
+        const consumedIdCounts = new Map<string, number>();
         const totalChunks = chunks.length;
         console.log(`[trail_probe_path] jsonPlanHandler main loop reached, totalChunks=${totalChunks}, regenerateWeek=${regenerateWeek ? "yes" : "no"}`);
+
 
         for (let ci = 0; ci < chunks.length; ci++) {
           const chunk = chunks[ci];
@@ -978,12 +983,42 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             ? quotasBlockByChunk[ci]
             : null;
 
+          // ─── P2 diversité : bloc "fiches déjà consommées" ────────────────
+          // On ne liste que les IDs pertinents (présents dans le catalogue de
+          // CE chunk) pour ne pas gonfler le prompt inutilement.
+          let diversityBlock: string | null = null;
+          {
+            const allowedSet = new Set(allowedIds);
+            const banned: string[] = [];
+            const avoid: string[] = [];
+            for (const [id, count] of consumedIdCounts) {
+              if (!allowedSet.has(id)) continue;
+              if (count >= 2) banned.push(id);
+              else avoid.push(id);
+            }
+            if (banned.length > 0 || avoid.length > 0) {
+              const CAP = 60;
+              const lines = [
+                `\n♻️ DIVERSITÉ CATALOGUE — fiches déjà utilisées dans les blocs précédents`,
+                banned.length > 0
+                  ? `⛔ INTERDIT de réutiliser (déjà ≥2 fois) : ${banned.slice(0, CAP).join(", ")}${banned.length > CAP ? `, … (+${banned.length - CAP})` : ""}`
+                  : null,
+                avoid.length > 0
+                  ? `⚠️ À ÉVITER (déjà 1 fois) — n'y revenir que si AUCUNE autre fiche du catalogue ne couvre l'intention : ${avoid.slice(0, CAP).join(", ")}${avoid.length > CAP ? `, … (+${avoid.length - CAP})` : ""}`
+                  : null,
+                `Règle : dans ce bloc, une même fiche ne peut pas apparaître 2 semaines consécutives, ni plus de 2 fois au total. Privilégie systématiquement une variante non encore utilisée de la même famille d'intention.`,
+              ].filter(Boolean);
+              diversityBlock = lines.join("\n");
+            }
+          }
+
           const userPrompt = [
             athleteConstraintsBlock || null,
             terrainHardBan || null,
             baseUserPrompt,
             quotasBlock ? `\n${quotasBlock}\n` : null,
             catalogDump ? `\n${catalogDump}\n` : null,
+            diversityBlock,
             canonicalRaceCard,
             `\n📋 DIAGNOSTIC STRUCTURÉ (référence cohérence) :\n${structuredDiagnostic}`,
             `\n🎯 CIBLE CHUNK : ${chunkHeader}`,
@@ -991,6 +1026,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             `\n🚨 PHASE ACTIVE ESTIMÉE : "${activePhase}"`,
             athleteConstraintsBlock ? `\n${athleteConstraintsBlock}` : null,
           ].filter(Boolean).join("\n");
+
 
           const schemaOptions: BuildPlanChunkSchemaOptions = {
             expectedWeekCount,
@@ -1010,6 +1046,22 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               maxTokens: 65536,
             });
             collectedChunks.push(planChunk);
+
+            // P2 diversité — mémorise les fiches réellement consommées par ce chunk.
+            {
+              let counted = 0;
+              for (const wk of (planChunk as { weeks?: Array<{ sessions?: Array<{ catalogId?: unknown }> }> }).weeks ?? []) {
+                for (const se of wk.sessions ?? []) {
+                  const cid = se.catalogId;
+                  if (typeof cid === "string" && cid.length > 0) {
+                    consumedIdCounts.set(cid, (consumedIdCounts.get(cid) ?? 0) + 1);
+                    counted++;
+                  }
+                }
+              }
+              console.log(`[diversity_memory] chunk=${ci} consumed=${counted} distinct_total=${consumedIdCounts.size}`);
+            }
+
 
             if (usedRetry) {
               enqueue("chunk-progress", {
