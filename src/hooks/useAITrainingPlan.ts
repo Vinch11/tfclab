@@ -432,22 +432,16 @@ export function useAITrainingPlan() {
               `sportFilter=[${(catalogSportFilter ?? []).join(",")}]`,
             );
           }
-          // Soft rotation: only exclude ~half the previous chunk's IDs to allow progression continuity.
-          // ⚠️ On EXEMPTE les séances structurelles (SL vélo/course, brick long, race-sim) :
-          // buildWorkoutCatalog les réinjecte de toute façon (garantie de couverture),
-          // mais on évite d'encombrer inutilement le set d'exclusion.
-          const isStructuralEntry = (e: { cat: string; durationMin: [number, number]; objectif: string }) => {
-            const median = (e.durationMin[0] + e.durationMin[1]) / 2;
-            if (median >= 120) return true;
-            if (/race[-_\s]?sim/i.test(e.cat)) return true;
-            if (/\bsortie\s*longue\b|\blong\s*run\b|\blong\s*ride\b|\brace[-\s]?sim\b/i.test(e.objectif)) return true;
-            return false;
-          };
-          const halfIds = chunkCatalog
-            .slice(0, Math.floor(chunkCatalog.length / 2))
-            .filter(e => !isStructuralEntry(e))
+          // Rotation inter-chunk (P1 diversité) : on exclut désormais ~70 % des IDs
+          // du chunk précédent (au lieu de 50 %), séances structurelles INCLUSES.
+          // Le bypass structurel n'est plus appliqué ici : buildWorkoutCatalog
+          // réinjecte lui-même une fiche longue si — et seulement si — la rotation
+          // laisserait sa famille (sport × intention) sans alternative.
+          const ROTATION_SHARE = 0.7;
+          const rotatedIds = chunkCatalog
+            .slice(0, Math.floor(chunkCatalog.length * ROTATION_SHARE))
             .map(e => e.id);
-          halfIds.forEach(id => chunkUsedIds.add(id));
+          rotatedIds.forEach(id => chunkUsedIds.add(id));
         }
       }
 

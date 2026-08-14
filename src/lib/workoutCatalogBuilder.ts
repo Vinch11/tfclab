@@ -559,17 +559,44 @@ export function buildWorkoutCatalog(
     });
     logStage("exclude_tags", before, current.length);
   }
-  // Stage 4: exclude_prev_chunk_ids (structural bypass)
+  // Stage 4: exclude_prev_chunk_ids (bypass structurel CONDITIONNEL — P1 diversité)
+  //
+  // Avant : toute séance « structurelle » (médiane ≥ 120min, SL, brick, race-sim)
+  // était exemptée de la rotation inter-chunk. Comme la majorité des piliers hebdo
+  // tombent dans cette catégorie, le modèle revoyait chunk après chunk exactement
+  // les mêmes fiches longues → répétition mécanique.
+  //
+  // Maintenant : le bypass n'est accordé QUE si la rotation laisserait le couple
+  // (sport × famille d'intention) sans alternative. Autrement dit on préserve la
+  // couverture (il y aura toujours une sortie longue disponible) sans figer
+  // l'identité de la fiche.
   {
     const before = current.length;
-    current = current.filter(w => {
-      const drop = !!options?.excludeIds?.has(w.id) && !isStructuralSession(w);
-      if (drop) {
-        recordAttribution(w.id, chunkIdx, "exclude_prev_chunk_ids");
-        if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "exclude_prev_chunk_ids", "in previous chunk & non-structural");
+    const excl = options?.excludeIds;
+    if (excl && excl.size > 0) {
+      // Alternatives non exclues restant par (sport × famille) après rotation.
+      const survivorsByKey = new Map<string, number>();
+      for (const w of current) {
+        if (excl.has(w.id)) continue;
+        const key = `${w.sport}::${intentFamilyOf(w)}`;
+        survivorsByKey.set(key, (survivorsByKey.get(key) ?? 0) + 1);
       }
-      return !drop;
-    });
+      current = current.filter(w => {
+        if (!excl.has(w.id)) return true;
+        const key = `${w.sport}::${intentFamilyOf(w)}`;
+        const survivors = survivorsByKey.get(key) ?? 0;
+        // Bypass uniquement pour les fiches structurelles orphelines de leur famille.
+        if (isStructuralSession(w) && survivors === 0) {
+          if (TRACKED_IDS.has(w.id.toUpperCase())) logDrop(w.id, "structural_bypass_kept", `aucune alternative ${key}`);
+          return true;
+        }
+        recordAttribution(w.id, chunkIdx, "exclude_prev_chunk_ids");
+        if (TRACKED_IDS.has(w.id.toUpperCase())) {
+          logDrop(w.id, "exclude_prev_chunk_ids", `rotation (survivors ${key}=${survivors})`);
+        }
+        return false;
+      });
+    }
     logStage("exclude_prev_chunk_ids", before, current.length);
   }
   // Stage 5: prohibitions
@@ -724,7 +751,10 @@ export function buildWorkoutCatalog(
   // (a) Socle : N meilleures par (sport × famille)
   //     N = SOCLE_BASE (2) par défaut ; élargi pour les familles ciblées par
   //     les limiteurs primaire/secondaire (F-LIM-COVERAGE).
-  const SOCLE_BASE = 2;
+  // P1 diversité : socle porté de 2 → 3 fiches par (sport × famille). Chaque
+  // chunk propose ainsi au moins 3 variantes par intention, ce qui donne au
+  // modèle ET au réconciliateur de quoi éviter la répétition.
+  const SOCLE_BASE = 3;
   const SOCLE_PRIMARY_LIMITER = 4;
   const SOCLE_SECONDARY_LIMITER = 3;
   const primaryFamilies = new Set<IntentFamily>(
