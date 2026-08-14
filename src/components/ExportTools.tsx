@@ -92,6 +92,10 @@ import { computePacingEnvelopeRun, PACING_ZONE_COLORS } from "@/lib/v2/pacingEnv
 import { buildRaceChronosFromSnapshot } from "@/lib/v2/buildRaceChronosFromSnapshot";
 import { computeLongDistanceEnvelope, LONG_DISTANCE_THRESHOLD_HOURS, type LongDistanceEnvelopeResult } from "@/lib/v2/pacingEnvelopeLongDistance";
 
+// ✅ Rapport Profil Athlète (design Bevel, pédagogique)
+import { buildAthleteProfileReportHTML } from "@/lib/athleteProfileReport/buildAthleteProfileReportHTML";
+import { mapExportPayloadToProfileReport } from "@/lib/athleteProfileReport/mapPayloadToReport";
+
 // =============================================
 // TYPES
 // =============================================
@@ -9711,6 +9715,46 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     }
   };
 
+  const handleExportProfileReportPDF = async () => {
+    if (!exportCheck.ok) {
+      toast.error("Export impossible", { description: exportCheck.reason });
+      return;
+    }
+    if (isExporting) return;
+    setIsExporting(true);
+    const toastId = toast.loading("Préparation du rapport profil...", {
+      description: "Un nouvel onglet va s'ouvrir.",
+    });
+    try {
+      const logoBase64 = await imageToBase64(logoUrl);
+      const input = mapExportPayloadToProfileReport(payload, {
+        ambitionLabel: payload.ambition?.label ?? "—",
+        generatedAt: new Date().toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }),
+        logoBase64,
+      });
+      const html = buildAthleteProfileReportHTML(input);
+      const fileName = `mon-profil-physiologique-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
+      openPrintableHTML(html, { filenameHint: fileName, includeInstructions: true, autoPrint: false });
+      toast.success("Rapport profil ouvert", {
+        id: toastId,
+        description: "Utilise Imprimer → Enregistrer en PDF (ou Ctrl/Cmd+P).",
+        duration: 6000,
+      });
+    } catch (error) {
+      console.error("Erreur export Profil Athlète:", error);
+      toast.error("Erreur d'export", {
+        id: toastId,
+        description: error instanceof Error ? error.message : "Une erreur est survenue.",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleExportBeginnerPDF = async () => {
     if (!exportCheck.ok) {
       toast.error("Export impossible", { description: exportCheck.reason });
@@ -9921,6 +9965,25 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 <ChevronRight className="h-4 w-4 opacity-50" />
               </Button>
               
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleExportProfileReportPDF}
+                disabled={isExporting}
+                className="w-full justify-start gap-3 h-auto py-2.5"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                <div className="text-left flex-1">
+                  <div className="font-medium text-sm">Rapport Profil Athlète</div>
+                  <div className="text-[10px] opacity-80">Complet & pédagogique : profil, limiteurs, plan, zones</div>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-50" />
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"
