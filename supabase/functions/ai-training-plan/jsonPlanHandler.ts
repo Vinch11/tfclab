@@ -921,8 +921,13 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
 
         const collectedChunks: PlanChunk[] = [];
         const catalogDumpsByChunk: string[] = [];
+        // P2 diversité — mémoire des catalogId déjà consommés par les chunks
+        // précédents. Injectée dans le prompt du chunk suivant avec une règle
+        // de non-réemploi explicite (interdit ≥2 usages, à éviter à 1 usage).
+        const consumedIdCounts = new Map<string, number>();
         const totalChunks = chunks.length;
         console.log(`[trail_probe_path] jsonPlanHandler main loop reached, totalChunks=${totalChunks}, regenerateWeek=${regenerateWeek ? "yes" : "no"}`);
+
 
         for (let ci = 0; ci < chunks.length; ci++) {
           const chunk = chunks[ci];
