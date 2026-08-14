@@ -403,6 +403,11 @@ export function buildWorkoutCatalog(
     excludeIdPatterns?: RegExp[];
     /** Hard-exclude workouts whose tags include any of these values (applied pre-scoring). */
     excludeTags?: string[];
+    /**
+     * P3 diversité — usage pondéré des fiches dans les DERNIERS PLANS de l'athlète
+     * (id → poids de récence). Appliqué en pénalité de score, jamais en exclusion.
+     */
+    historicalUsage?: Map<string, number>;
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
