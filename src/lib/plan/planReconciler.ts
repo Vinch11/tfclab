@@ -71,6 +71,8 @@ export interface ReconcilerCounters {
   constraint_day_moved?: number;
   constraint_day_unresolved?: number;
   constraint_banned_sport_removed?: number;
+  /** Substitutions où la fiche « idéale » a été écartée car déjà sur-utilisée. */
+  diversity_rotated?: number;
 
 }
 
@@ -79,6 +81,59 @@ export interface ReconcilerResult {
   counters: ReconcilerCounters;
   logs: string[];
 }
+
+// ── Ledger de diversité (P0 anti-répétition) ────────────────────────────────
+// Le réconciliateur choisissait toujours le MÊME « meilleur » remplaçant pour
+// un triplet (sport, phase, durée) donné, faute d'état partagé entre sessions.
+// Résultat : convergence mécanique vers un petit sous-ensemble de fiches sur
+// un plan de 12-16 semaines. Le ledger compte les usages de chaque catalogId
+// dans le plan courant et pénalise (puis exclut) les fiches sur-représentées.
+export type UsageLedger = Map<string, number>;
+
+/** Au-delà de ce nombre d'occurrences, une fiche n'est plus proposée en
+ *  remplacement (sauf si aucun autre candidat n'existe). */
+const MAX_FICHE_REPEATS = 3;
+/** Pénalité de score par occurrence déjà placée. L'échelle d'intention vaut
+ *  100 pts par point : 25 départage à intention égale sans jamais renverser
+ *  une intention supérieure. */
+const DIVERSITY_PENALTY = 25;
+
+function ledgerKey(id: string | null | undefined): string {
+  return String(id ?? "").toUpperCase();
+}
+function ledgerCount(ledger: UsageLedger | undefined, id: string | null | undefined): number {
+  if (!ledger) return 0;
+  return ledger.get(ledgerKey(id)) ?? 0;
+}
+function ledgerInc(ledger: UsageLedger | undefined, id: string | null | undefined): void {
+  if (!ledger) return;
+  const k = ledgerKey(id);
+  if (!k) return;
+  ledger.set(k, (ledger.get(k) ?? 0) + 1);
+}
+function ledgerDec(ledger: UsageLedger | undefined, id: string | null | undefined): void {
+  if (!ledger) return;
+  const k = ledgerKey(id);
+  if (!k) return;
+  const next = (ledger.get(k) ?? 0) - 1;
+  if (next > 0) ledger.set(k, next);
+  else ledger.delete(k);
+}
+/** Construit le ledger à partir de l'état courant du plan. */
+function buildUsageLedger(chunks: PlanChunk[]): UsageLedger {
+  const ledger: UsageLedger = new Map();
+  for (const chunk of chunks) {
+    for (const week of chunk.weeks ?? []) {
+      for (const s of (week.sessions ?? []) as PlanSession[]) {
+        if ((s as any).isRest || s.sport === "rest") continue;
+        if (s.custom) continue;
+        if (s.catalogId) ledgerInc(ledger, s.catalogId);
+      }
+    }
+  }
+  return ledger;
+}
+
 
 
 // ── Index fiches ────────────────────────────────────────────────────────────
