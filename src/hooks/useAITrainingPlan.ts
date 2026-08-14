@@ -19,6 +19,7 @@ import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPlan, type SportObjectiveIssue } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
+import { computePlanDiversity, formatDiversitySummary } from "@/lib/plan/diversityMetrics";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock, applySessionsPerWeekTarget, applyBannedSportsRedistribution } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
@@ -932,12 +933,19 @@ export function useAITrainingPlan() {
             .join(", ") || "—";
           semanticRepairs.unshift(`[summary] customRatio=${Math.round(customRatio * 100)}% (${customCount}/${nonRest}), substitutions=${subCount}, unresolved=${unresolvedCount}, jsonRepairs=${jsonRepairCount}, catalogSubstitutions=${catalogSubstitutions}, noSafeNeighbor=${noNeighborCount} [${dominantStr}]`);
 
+          // Diversité catalogue (P0) — mesure réelle d'exploitation de la bibliothèque.
+          const diversity = computePlanDiversity(mergedLocal as any);
+          semanticRepairs.unshift(`[diversity] ${formatDiversitySummary(diversity)}`);
+
           logPlanStat({
             ts: Date.now(), format: "json", objective: planConfig.objective ?? null,
             totalWeeks, totalChunks, durationMs: jsonDurMs, ok: true,
             sportObjectiveCriticalIssues: sportIssuesCount,
             customRatio, customSessionCount: customCount, nonRestSessionCount: nonRest,
             catalogSubstitutions,
+            diversityRatio: diversity.distinctRatio,
+            distinctCatalogIds: diversity.distinctCatalogIds,
+            maxFicheRepeat: diversity.maxRepeat,
             semanticRepairs,
           });
 
