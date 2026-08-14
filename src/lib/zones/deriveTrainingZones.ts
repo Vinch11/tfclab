@@ -75,6 +75,10 @@ export interface DeriveZonesInput {
   /** CSS natation en secondes/100 m. */
   css?: number | null;
   fcMax?: number | null;
+  /** FC de repos (bpm) — ancre basse de la réserve cardiaque (Karvonen). */
+  fcRest?: number | null;
+  /** FC mesurée au seuil / MLSS (bpm) — ancre haute si disponible. */
+  fcThreshold?: number | null;
   vlamax?: number | null;
   vo2max?: number | null;
   weightKg?: number | null;
