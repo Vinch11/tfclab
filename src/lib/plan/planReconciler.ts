@@ -27,6 +27,7 @@
 import type { PlanChunk, PlanSession } from "@/lib/plan/planSchema";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import type { WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
+import { computePlanDiversity, formatDiversitySummary } from "./diversityMetrics";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { ficheAllowedPhases, type PlanPhase } from "@/lib/plan/phaseNormalization";
 import { intentFamilyOf } from "@/lib/plan/intentFamily";
@@ -1356,6 +1357,13 @@ export function runReconciler(
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
   ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day);
   alignPostBikeRunClaims(chunks, counters, logs);
+
+  // Métrique de diversité finale (observabilité P0).
+  try {
+    const div = computePlanDiversity(chunks as any);
+    counters.diversity_rotated = div.maxRepeat;
+    logs.push(`[diversity] ${formatDiversitySummary(div)}`);
+  } catch { /* ignore */ }
 
   hydrateDilutedZones(chunks, counters, logs);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
