@@ -381,6 +381,10 @@ export function useAITrainingPlan() {
         ? planConfig.identifiedLimitersRaw
         : undefined;
 
+      // P3 diversité — mémoire inter-plans : fiches déjà servies à cet athlète
+      // dans ses 3 derniers plans (pondérées par récence).
+      const historicalUsage = await fetchHistoricalCatalogUsage(planConfig.athleteId);
+
       for (let i = 0; i < phaseRanges.length; i++) {
         const pr = phaseRanges[i];
         const catalog = buildWorkoutCatalog(
