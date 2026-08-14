@@ -247,8 +247,13 @@ function findReplacement(opts: FindOpts, excludeId?: string): LibraryWorkout | n
 
 
 // ── Mutation session avec fiche ────────────────────────────────────────────
-function assignFiche(session: PlanSession, fiche: LibraryWorkout, keepDuration?: number): void {
+function assignFiche(session: PlanSession, fiche: LibraryWorkout, keepDuration?: number, ledger?: UsageLedger): void {
   const mut = session as any;
+  // Ledger : la fiche sortante libère une occurrence, l'entrante en consomme une.
+  if (ledger) {
+    if (mut.catalogId) ledgerDec(ledger, mut.catalogId);
+    ledgerInc(ledger, fiche.id);
+  }
   const struct = (fiche.structure || []).map(p => `${p.part}: ${p.text}`).join(" | ");
   const zones = new Set<string>();
   for (const p of (fiche.structure || [])) for (const z of (p.zones || [])) zones.add(z);
@@ -273,6 +278,7 @@ function runOnePass(
   counters: ReconcilerCounters,
   logs: string[],
   restrictToIds?: Set<string>,
+  ledger?: UsageLedger,
 ): boolean {
   let anyChange = false;
   const ctx: { week?: number; day?: string; sport?: string; catalogId?: string | null; family?: string } = {};
@@ -301,10 +307,11 @@ function runOnePass(
             targetDur: s.durationMin ?? 0,
             original: fiche,
             restrictToIds,
+            ledger,
           }, fiche.id);
           if (repl) {
             const before = fiche.id;
-            assignFiche(s, repl, s.durationMin);
+            assignFiche(s, repl, s.durationMin, ledger);
             counters.phase_substituted++;
             anyChange = true;
             logs.push(`[phase_substituted] W${week.weekNumber}/${s.day} ${before}(${[...allowed].join(",")}) → ${repl.id} (phase=${weekPhase})`);
@@ -330,10 +337,11 @@ function runOnePass(
             original: fiche2,
             requireDurationContains: true,
             restrictToIds,
+            ledger,
           }, fiche2.id);
           if (repl) {
             const before = fiche2.id;
-            assignFiche(s, repl, targetDur);
+            assignFiche(s, repl, targetDur, ledger);
             counters.id_substituted_duration++;
             anyChange = true;
             logs.push(`[id_substituted_duration] W${week.weekNumber}/${s.day} ${before}(${fiche2.durationMin[0]}-${fiche2.durationMin[1]}) → ${repl.id} target=${targetDur}min`);
@@ -357,10 +365,11 @@ function runOnePass(
             targetDur: s.durationMin ?? 0,
             original: fiche3,
             restrictToIds,
+            ledger,
           }, fiche3.id);
           if (repl) {
             const before = fiche3.id;
-            assignFiche(s, repl, s.durationMin);
+            assignFiche(s, repl, s.durationMin, ledger);
             counters.discipline_substituted++;
             anyChange = true;
             logs.push(`[discipline_substituted] W${week.weekNumber}/${s.day} ${before}(${fSp}) → ${repl.id}(${iSp})`);
@@ -411,6 +420,7 @@ function runOnePass(
             original: null,
             requireDurationContains: true,
             restrictToIds,
+            ledger,
           });
           if (!repl) {
             counters.quota_floor_unresolved++;
@@ -441,6 +451,7 @@ function runOnePass(
             catalogId: repl.id,
           };
           (week.sessions as any[]).push(newSess);
+          ledgerInc(ledger, repl.id);
           counters.quota_floor_inserted_from_catalog++;
           anyChange = true;
           logs.push(`[quota_floor_inserted_from_catalog] W${week.weekNumber} ${sp.sport} min=${sp.min} inséré ${repl.id} (${dur}min) le ${targetDay}`);
@@ -1303,6 +1314,10 @@ export function runReconciler(
 
   // Passe préliminaire (avant runOnePass)
   const preStats = neighborRemapPass("pre");
+
+  // Ledger de diversité : construit APRÈS la passe préliminaire (les remaps
+  // voisins ont déjà figé leurs IDs) et mis à jour à chaque substitution.
+  const usageLedger = buildUsageLedger(chunks);
   logs.push(
     `[recon_substitute_debug] injectedProvided=${debugStats.injectedCatalogIdsProvided} injectedSize=${debugStats.injectedSize} ` +
     `sessionsScanned=${debugStats.sessionsScanned} sessionsWithCatalogId=${debugStats.sessionsWithCatalogId} ` +
@@ -1315,7 +1330,7 @@ export function runReconciler(
   // pour ne PAS réintroduire d'ID hors-catalogue via phase/durée/discipline.
   let anyOnePassChange = false;
   for (let i = 0; i < maxPasses; i++) {
-    const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected);
+    const changed = runOnePass(chunks, quotasByWeek, counters, logs, injected, usageLedger);
     if (changed) anyOnePassChange = true;
     if (!changed) break;
   }
