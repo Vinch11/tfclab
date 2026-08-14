@@ -749,14 +749,16 @@ export function buildWorkoutCatalog(
   }
 
   // (a) Socle : N meilleures par (sport × famille)
-  //     N = SOCLE_BASE (2) par défaut ; élargi pour les familles ciblées par
+  //     N = SOCLE_BASE par défaut ; élargi pour les familles ciblées par
   //     les limiteurs primaire/secondaire (F-LIM-COVERAGE).
-  // P1 diversité : socle porté de 2 → 3 fiches par (sport × famille). Chaque
-  // chunk propose ainsi au moins 3 variantes par intention, ce qui donne au
-  // modèle ET au réconciliateur de quoi éviter la répétition.
-  const SOCLE_BASE = 3;
-  const SOCLE_PRIMARY_LIMITER = 4;
-  const SOCLE_SECONDARY_LIMITER = 3;
+  // P1 diversité : socle porté de 2 → 3 fiches par (sport × famille).
+  // P2 diversité : socle porté à 4 (et 5 pour la famille du limiteur primaire)
+  // afin que chaque chunk présente un vrai éventail par intention, condition
+  // nécessaire pour que l'interdiction de réemploi inter-chunk soit tenable.
+  const SOCLE_BASE = 4;
+  const SOCLE_PRIMARY_LIMITER = 5;
+  const SOCLE_SECONDARY_LIMITER = 4;
+
   const primaryFamilies = new Set<IntentFamily>(
     limiterKeys?.primary ? (LIMITER_KEY_TO_FAMILIES[limiterKeys.primary] || []) : []
   );
