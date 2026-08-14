@@ -20,6 +20,7 @@ import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPla
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import { computePlanDiversity, formatDiversitySummary } from "@/lib/plan/diversityMetrics";
+import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { computeWeeklySessionQuota, inferWeekType, buildQuotaPromptBlock, applySessionsPerWeekTarget, applyBannedSportsRedistribution } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
@@ -200,6 +201,8 @@ export interface AdaptationProjection {
 
 export interface PlanConfig {
   objective: string;
+  /** ID de l'athlète — requis pour la mémoire de diversité inter-plans (P3). */
+  athleteId?: string;
   raceName?: string;
   raceDate?: string;
   raceGoals?: RaceGoal[];
@@ -392,7 +395,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           totalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -424,7 +427,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags }
+            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -603,6 +606,8 @@ export function useAITrainingPlan() {
         _weeklyQuotas: weeklyQuotas,
         _weeklyQuotasPromptByChunk: quotasByChunkText,
         _targetTable: targetTable,
+        // P3 diversité — historique athlète transmis au prompt (bloc anti-réemploi).
+        _historyUsedIdCounts: historicalUsage.size > 0 ? serializeHistoricalUsage(historicalUsage) : undefined,
       };
 
       const resp = await fetch(PLAN_URL, {
