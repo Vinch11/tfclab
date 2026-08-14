@@ -251,11 +251,7 @@ export function mapExportPayloadToProfileReport(
   const vlamaxRun = (snap?.vlamax_run ?? null) as number | null;
   const paceThreshold =
     (snap?.pace_threshold_sec_per_km as number | null) ??
-    estimateRunThresholdPaceSecPerKm({
-      vma: refs?.vma ?? null,
-      vlamaxRun,
-      vo2max: refs?.vo2max ?? null,
-    });
+    estimateRunThresholdPaceSecPerKm(refs?.vma ?? null, payload.runMLSS?.effectivePct ?? null);
 
   const zoneSets: ReportZoneSet[] = [];
   const bike = deriveTrainingZones({
