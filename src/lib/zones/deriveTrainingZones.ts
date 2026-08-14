@@ -104,8 +104,8 @@ function round1(v: number): number {
   return Math.round(v * 10) / 10;
 }
 
-/** %FCmax du modèle 6 zones (grille standard : la FC reste tabulée). */
-const FC_MAX_PCT: Record<ZoneId6, ZoneBounds | null> = {
+/** %FCmax de REPLI (grille tabulée) — utilisée uniquement si les zones ne sont pas dérivées. */
+const FC_MAX_PCT_STANDARD: Record<ZoneId6, ZoneBounds | null> = {
   Z1: { min: 0, max: 70 },
   Z2: { min: 70, max: 80 },
   Z3: { min: 80, max: 87 },
@@ -113,6 +113,100 @@ const FC_MAX_PCT: Record<ZoneId6, ZoneBounds | null> = {
   Z5: { min: 94, max: 100 },
   Z6: null,
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FC DÉRIVÉE — Karvonen ancré sur la FC seuil (MLSS), pas sur une grille figée
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Fraction de FCmax au seuil, par défaut, quand la FC seuil n'est pas mesurée.
+ * Valeurs de consensus labo (Lucía 2000, Coyle 1995) : la FC au MLSS se situe
+ * autour de 88-91 % FCmax, un peu plus haute en course qu'en vélo (masse
+ * musculaire sollicitée + absence d'appui assis).
+ */
+const DEFAULT_THRESHOLD_HR_FRACTION: Record<ZoneSport, number> = {
+  bike: 0.89,
+  run: 0.91,
+  swim: 0.87,
+};
+
+/** Fraction de FCmax au repos par défaut si la FC de repos est inconnue. */
+const DEFAULT_REST_HR_FRACTION = 0.5;
+
+/**
+ * Convexité de la relation FC / intensité sous le seuil : à 60 % de l'intensité
+ * seuil, la FC est déjà bien au-dessus de 60 % de la réserve cardiaque.
+ */
+const HR_SUBTHRESHOLD_EXPONENT = 0.72;
+
+interface DerivedHrResult {
+  pct: Record<ZoneId6, ZoneBounds | null>;
+  thresholdHrPct: number;
+  thresholdHrBpm: number | null;
+  restHrPct: number;
+  measured: boolean;
+}
+
+/**
+ * Traduit les bornes d'intensité DÉRIVÉES (en % de la référence) en % FCmax.
+ *
+ * Modèle : réserve cardiaque (Karvonen) ancrée sur deux points physiologiques
+ * de l'athlète — la FC de repos et la FC au seuil (MLSS) — puis saturation
+ * linéaire entre le seuil et vVO2max/PMA. Résultat : deux athlètes ayant le
+ * même FCmax mais un MLSS différent n'obtiennent PAS les mêmes zones FC.
+ */
+function deriveHrPct(
+  sport: ZoneSport,
+  bounds: Record<ZoneId6, ZoneBounds>,
+  refAtThreshold: number,
+  refAtVo2max: number,
+  fcMax: number,
+  fcRest: number | null,
+  fcThreshold: number | null,
+): DerivedHrResult {
+  const restHrPct = fcRest
+    ? clamp(fcRest / fcMax, 0.28, 0.65)
+    : DEFAULT_REST_HR_FRACTION;
+  const measured = fcThreshold != null && fcThreshold > 0;
+  const thresholdHrPct = measured
+    ? clamp(fcThreshold! / fcMax, restHrPct + 0.15, 0.98)
+    : clamp(DEFAULT_THRESHOLD_HR_FRACTION[sport], restHrPct + 0.15, 0.98);
+
+  const hrrAtThreshold = (thresholdHrPct - restHrPct) / (1 - restHrPct);
+  const rVo2 = Math.max(1.04, refAtVo2max / refAtThreshold);
+
+  const hrAt = (refPct: number): number => {
+    const r = Math.max(0, refPct / refAtThreshold);
+    if (r <= 1) {
+      const hrr = hrrAtThreshold * Math.pow(r, HR_SUBTHRESHOLD_EXPONENT);
+      return clamp((restHrPct + hrr * (1 - restHrPct)) * 100, restHrPct * 100, 100);
+    }
+    const over = clamp((r - 1) / (rVo2 - 1), 0, 1);
+    return clamp((thresholdHrPct + over * (1 - thresholdHrPct)) * 100, 0, 100);
+  };
+
+  const pct = {} as Record<ZoneId6, ZoneBounds | null>;
+  let prevMax = 0;
+  for (const id of ZONE6_IDS) {
+    // Z6 (neuromusculaire/sprint) : la FC n'est pas un pilotage valide.
+    if (id === "Z6") {
+      pct[id] = null;
+      continue;
+    }
+    const b = bounds[id];
+    const min = id === "Z1" ? Math.round(restHrPct * 100) : Math.max(prevMax, Math.round(hrAt(b.min)));
+    const max = Math.max(min + 1, Math.min(100, Math.round(hrAt(b.max))));
+    pct[id] = { min, max };
+    prevMax = max;
+  }
+
+  return {
+    pct,
+    thresholdHrPct: thresholdHrPct * 100,
+    thresholdHrBpm: Math.round(thresholdHrPct * fcMax),
+    restHrPct: restHrPct * 100,
+    measured,
+  };
+}
 
 function fmtPaceFromSec(sec: number): string {
   const m = Math.floor(sec / 60);
