@@ -992,10 +992,13 @@ export type Database = {
       plan_generation_stats: {
         Row: {
           custom_ratio: number | null
+          distinct_catalog_ids: number | null
+          diversity_ratio: number | null
           duration_ms: number | null
           error_code: string | null
           format: string
           id: string
+          max_fiche_repeat: number | null
           objective: string | null
           offsport_unresolved_count: number
           ok: boolean
@@ -1009,10 +1012,13 @@ export type Database = {
         }
         Insert: {
           custom_ratio?: number | null
+          distinct_catalog_ids?: number | null
+          diversity_ratio?: number | null
           duration_ms?: number | null
           error_code?: string | null
           format: string
           id?: string
+          max_fiche_repeat?: number | null
           objective?: string | null
           offsport_unresolved_count?: number
           ok: boolean
@@ -1026,10 +1032,13 @@ export type Database = {
         }
         Update: {
           custom_ratio?: number | null
+          distinct_catalog_ids?: number | null
+          diversity_ratio?: number | null
           duration_ms?: number | null
           error_code?: string | null
           format?: string
           id?: string
+          max_fiche_repeat?: number | null
           objective?: string | null
           offsport_unresolved_count?: number
           ok?: boolean
