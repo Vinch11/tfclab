@@ -23,6 +23,7 @@ import type {
   ReportTargetProgress,
   ReportZoneSet,
 } from "./types";
+import { buildPhasePedagogy } from "./phasePedagogy";
 
 // ── helpers ────────────────────────────────────────────────────────────────
 function esc(s: unknown): string {
