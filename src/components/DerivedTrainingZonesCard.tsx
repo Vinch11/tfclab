@@ -105,9 +105,15 @@ function ZoneList({ set }: { set: DerivedZoneSet }) {
                   <p className="font-mono text-sm text-foreground">
                     {zone.pctRef.min}–{zone.pctRef.max} <span className="text-xs text-muted-foreground">{zone.refLabel}</span>
                   </p>
+                  {zone.secondaryPct && zone.secondaryPct.label !== zone.refLabel && (
+                    <p className="font-mono text-xs text-muted-foreground">
+                      {zone.secondaryPct.min}–{zone.secondaryPct.max} {zone.secondaryPct.label}
+                    </p>
+                  )}
                   {zone.absolute && (
                     <p className="font-mono text-xs text-muted-foreground">{zone.absolute}</p>
                   )}
+
                   <p className="font-mono text-xs text-muted-foreground">
                     {zone.fcMaxPct
                       ? `${zone.fcMaxPct.min}–${zone.fcMaxPct.max} % FCmax${zone.heartRate ? ` · ${zone.heartRate}` : ""}`

@@ -50,6 +50,9 @@ export interface DerivedZone {
   absolute: string | null;
   /** Plage FC absolue formatée si FCmax connue. */
   heartRate: string | null;
+  /** Référence secondaire (course : % VMA) quand elle est calculable. */
+  secondaryPct?: { min: number; max: number; label: string } | null;
+
 }
 
 export interface DerivedZoneSet {
@@ -419,9 +422,24 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
     anchors.push("Zones FC : grille standard (%FCmax tabulé) — FC seuil non dérivable");
   }
 
+  // Course : conversion % vitesse seuil -> % VMA (référence secondaire affichée).
+  const vmaKmhForPct = sport === "run" && isPos(input.vma) ? input.vma : null;
+  const vThrKmhForPct =
+    sport === "run" && isPos(input.paceThresholdSecPerKm) ? 3600 / input.paceThresholdSecPerKm : null;
+  const vmaRatio =
+    vmaKmhForPct && vThrKmhForPct && source === "derived" ? vThrKmhForPct / vmaKmhForPct : null;
+
   const zones: DerivedZone[] = ZONE6_IDS.map((id, i) => {
     const b = sanitized[i];
     const fc = hrPctById[id];
+    const secondaryPct =
+      sport === "run"
+        ? vmaRatio
+          ? { min: Math.round(b.min * vmaRatio), max: Math.round(b.max * vmaRatio), label: "% VMA" }
+          : source === "standard" && vmaKmhForPct
+            ? { min: b.min, max: b.max, label: "% VMA" }
+            : null
+        : null;
     return {
       id,
       label: ZONE6_LABELS[id],
@@ -434,8 +452,10 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
         fc && fcMax
           ? `${Math.round((fc.min / 100) * fcMax)}–${Math.round((fc.max / 100) * fcMax)} bpm`
           : null,
+      secondaryPct,
     };
   });
+
 
   return { sport, source, confidence, anchors, fallbackReason, zones };
 }
