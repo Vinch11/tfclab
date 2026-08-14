@@ -51,6 +51,14 @@ export interface CatalogEntry {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// P3 DIVERSITÉ — pénalité de récence inter-plans (lib/plan/historicalCatalogUsage)
+// ═══════════════════════════════════════════════════════════════════════════════
+/** Pénalité de score par unité d'usage pondéré dans les plans précédents. */
+export const HISTORY_PENALTY_PER_USE = 6;
+/** Plafond : une fiche « déjà vue » reste sélectionnable si elle est seule de sa famille. */
+export const HISTORY_PENALTY_CAP = 14;
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // B5 STAGE ATTRIBUTION — trace, par ID, l'étape la plus tardive atteinte à travers
 // tous les appels de buildWorkoutCatalog d'une génération de plan. Consommé par
 // checks.ts B5 pour catégoriser précisément chaque fiche absente de l'union.
