@@ -387,11 +387,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   <div class="bp-header">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px">
       <div style="flex:1">
-        ${
-          d.logoBase64
-            ? `<img src="${d.logoBase64}" alt="Logo" style="height:130px;width:auto;display:block;margin-bottom:16px" />`
-            : ""
-        }
         <h1 style="font-size:26px">Mon profil physiologique</h1>
         <p style="margin:0;font-size:12.5px">Potentiel Physiologique TFCL™ — rapport personnalisé</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
@@ -411,7 +406,15 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
             .join("")}
         </div>
       </div>
+      ${
+        d.logoBase64
+          ? `<div style="display:flex;align-items:flex-end;justify-content:center;align-self:stretch;padding-bottom:6px">
+              <img src="${d.logoBase64}" alt="Logo" style="height:160px;width:auto;display:block" />
+            </div>`
+          : ""
+      }
       <div style="text-align:center;min-width:120px">
+
         <div style="width:104px;height:104px;border-radius:50%;background:rgba(255,255,255,0.14);border:3px solid rgba(255,255,255,0.55);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto">
           <div style="font-size:30px;font-weight:700;color:#fff;line-height:1">${Math.round(d.readiness.score)}</div>
           <div style="font-size:9px;color:rgba(255,255,255,0.8);letter-spacing:0.05em">/ 100</div>
