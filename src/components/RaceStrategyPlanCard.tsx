@@ -16,7 +16,7 @@ import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Activity, ChevronRight, ShieldCheck, Target, Flame, AlertTriangle, Info, Gauge, HeartPulse, Mountain, TrendingUp } from "lucide-react";
+import { Activity, ChevronRight, ShieldCheck, Target, Flame, AlertTriangle, Info, Gauge, HeartPulse, Mountain, TrendingUp, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 
@@ -570,6 +570,22 @@ function ScenarioCard({ scenario, discipline }: { scenario: ScenarioBlock; disci
           </div>
         </div>
 
+        {/* Fourchette chrono estimée */}
+        {scenario.timeRangeSec && (
+          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+              <Timer className="h-3 w-3 text-emerald-600" /> Fourchette estimée — conditions optimales
+            </div>
+            <div className="text-lg font-bold font-mono mt-1">
+              {fmtDuration(scenario.timeRangeSec.fastSec)} – {fmtDuration(scenario.timeRangeSec.slowSec)}
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-snug mt-1">
+              Repère physiologique déduit de ton couloir d'allure : ce que ton profil actuel permet si tout
+              est parfait. Ne tient pas compte du vent, de la chaleur, du dénivelé ni de la tactique.
+            </p>
+          </div>
+        )}
+
         {/* Repères d'effort — fiche route synthétique */}
         <EffortRefBlock effortRef={scenario.effortRef} discipline={discipline} />
 
@@ -676,6 +692,7 @@ export function RaceStrategyPlanCard(props: RaceStrategyPlanCardProps) {
               <tr className="text-left text-muted-foreground border-b">
                 <th className="py-1.5 pr-2">Scénario</th>
                 <th className="py-1.5 pr-2">Stratégie</th>
+                <th className="py-1.5 pr-2 text-right">Chrono estimé</th>
                 <th className="py-1.5 pr-2 text-right">Échec</th>
                 <th className="py-1.5 pr-2 text-right">Coût</th>
                 <th className="py-1.5 pr-2">Robustesse</th>
@@ -690,6 +707,11 @@ export function RaceStrategyPlanCard(props: RaceStrategyPlanCardProps) {
                       {s.emoji} {s.label}
                     </td>
                     <td className="py-1.5 pr-2 text-muted-foreground">{s.strategyLabel}</td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {s.timeRangeSec
+                        ? `${fmtDuration(s.timeRangeSec.fastSec)}–${fmtDuration(s.timeRangeSec.slowSec)}`
+                        : "—"}
+                    </td>
                     <td className="py-1.5 pr-2 text-right font-mono">{s.failureProbPct}%</td>
                     <td className="py-1.5 pr-2 text-right font-mono">{s.metabolicCost}/100</td>
                     <td className={cn("py-1.5 pr-2 font-medium", rob.cls)}>{rob.label}</td>
