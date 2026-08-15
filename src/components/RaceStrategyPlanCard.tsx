@@ -251,6 +251,13 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
     discipline, raceDurationMin, ftp, paceThresholdSecKm, hrThresholdBpm,
   );
 
+  // ──── Fourchettes chrono (conditions optimales, run uniquement)
+  const distanceKm = props.raceDistanceKm ?? RUN_DISTANCE_BY_OBJECTIVE[String(raceObjective)] ?? null;
+  const timeRobust = estimateScenarioTimeRange(refRobust, discipline, distanceKm);
+  const timeAmbitious = estimateScenarioTimeRange(refAmbitious, discipline, distanceKm);
+  const timeAggressive = estimateScenarioTimeRange(refAggressive, discipline, distanceKm);
+
+
   // ──── Templates de splits par scénario × discipline
   const robustSplits = (): SplitRow[] => {
     if (discipline === "bike") {
