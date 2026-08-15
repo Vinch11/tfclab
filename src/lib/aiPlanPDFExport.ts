@@ -1,3 +1,4 @@
+import { openPrintableHTML } from "@/lib/openPrintableHTML";
 /**
  * AIPlanPDFExport — Generates a printable HTML view of the AI plan for PDF export
  */
@@ -314,12 +315,7 @@ export function exportAIPlanToPDF(
   gapContext?: PDFGapContext,
 ) {
   const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel, gapContext);
-  const blob = new Blob([applyBevelPrintTheme(html)], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const w = window.open(url, "_blank");
-  if (w) {
-    w.onafterprint = () => URL.revokeObjectURL(url);
-  }
+  openPrintableHTML(html, { filenameHint: plan.title ?? "Plan d'entraînement", includeInstructions: false });
 }
 
 function buildPlanHTML(

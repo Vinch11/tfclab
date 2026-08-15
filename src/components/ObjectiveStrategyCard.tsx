@@ -1,3 +1,4 @@
+import { openPrintableHTML } from "@/lib/openPrintableHTML";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * CARTE STRATÉGIE OBJECTIF TFCL™
@@ -1163,20 +1164,7 @@ function downloadStrategyPdf(
   conditionsReasons: string[] = [],
 ) {
   const html = buildStrategyHtml(props, overrides, include, conditionsFactor, conditionsReasons);
-  const win = window.open("", "_blank", "width=900,height=1200");
-  if (!win) {
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `strategie-${props.raceObjective}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-    return;
-  }
-  win.document.open();
-  win.document.write(applyBevelPrintTheme(html));
-  win.document.close();
+  openPrintableHTML(html, { filenameHint: `Stratégie — ${props.raceObjective}`, includeInstructions: false });
 }
 
 // ─── Composant principal ──────────────────────────────────────────────────────
