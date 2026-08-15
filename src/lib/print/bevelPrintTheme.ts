@@ -65,6 +65,7 @@ export const BEVEL_PRINT_CSS = `
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style id="tfcl-bevel-print">
   :root {
+    color-scheme: light only;
     --bp-ink: ${BEVEL_PRINT_COLORS.ink};
     --bp-ink-soft: ${BEVEL_PRINT_COLORS.inkSoft};
     --bp-muted: ${BEVEL_PRINT_COLORS.muted};
@@ -120,11 +121,11 @@ export const BEVEL_PRINT_CSS = `
     padding: 16px 18px;
     margin-bottom: 12px;
     page-break-inside: avoid;
-    background-image: radial-gradient(120% 90% at 100% 0%, rgba(85,85,224,0.055) 0%, rgba(85,85,224,0) 58%);
+    /* Pas de dégradé radial : sur des cartes hautes, Safari/iOS le rend en
+       aplat opaque et rend le texte illisible à l'impression. */
+    background-image: none;
   }
-  .bp-card--accent {
-    background-image: radial-gradient(120% 90% at 100% 0%, rgba(31,157,107,0.06) 0%, rgba(31,157,107,0) 58%);
-  }
+  .bp-card--accent { background-color: #FCFEFD; }
 
   /* ── En-tête de rapport ─────────────────────────────────────────────── */
   .bp-header {
@@ -191,7 +192,14 @@ export const BEVEL_PRINT_CSS = `
 
   @media print {
     body { background: #FFFFFF !important; }
-    .bp-card, .card, .pillar { box-shadow: none !important; }
+    .bp-card, .card, .pillar {
+      box-shadow: none !important;
+      background-color: #FFFFFF !important;
+      background-image: none !important;
+    }
+    /* Verrouille une largeur de page A4 même si le document est imprimé
+       depuis une surcouche mobile étroite. */
+    body, .wrap { width: 100% !important; min-width: 0 !important; }
   }
 </style>
 `;
