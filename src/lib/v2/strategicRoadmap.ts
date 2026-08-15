@@ -69,10 +69,10 @@ function getBasePhases(goal: string): { templates: BasePhaseTemplate[]; totalWee
         title: "Roadmap Stratégique : 24 Semaines vers l'Ironman",
         totalWeeks: 24,
         templates: [
-          { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", baseStartWeek: 1, baseEndWeek: 4, color: "#9ca3af", baseFocus: "Développer le plafond aérobie et la vélocité neuromusculaire", baseLevers: ["VO2max intervals", "Sprints neuromusculaires"] },
-          { name: "Force Endurance K3", subtitle: "Phase 2: Force & Seuil", baseStartWeek: 5, baseEndWeek: 8, color: "#60a5fa", baseFocus: "Convertir la puissance en endurance de force", baseLevers: ["SFR", "Sweet Spot"] },
-          { name: "Spécifique & Big Week", subtitle: "Phase 3: Spécifique", baseStartWeek: 9, baseEndWeek: 18, color: "#1e3a5f", baseFocus: "Volume d'intensité spécifique race-pace", baseLevers: ["Race Pace", "Briques", "Train Low"] },
-          { name: "Fraîcheur & Densité", subtitle: "Phase 4: Affûtage", baseStartWeek: 20, baseEndWeek: 24, color: "#86efac", baseFocus: "Supercompensation et fraîcheur musculaire", baseLevers: ["Taper progressif", "Openers"] },
+          { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", baseStartWeek: 1, baseEndWeek: 4, color: "#D9DDF7", baseFocus: "Développer le plafond aérobie et la vélocité neuromusculaire", baseLevers: ["VO2max intervals", "Sprints neuromusculaires"] },
+          { name: "Force Endurance K3", subtitle: "Phase 2: Force & Seuil", baseStartWeek: 5, baseEndWeek: 8, color: "#9AA6F0", baseFocus: "Convertir la puissance en endurance de force", baseLevers: ["SFR", "Sweet Spot"] },
+          { name: "Spécifique & Big Week", subtitle: "Phase 3: Spécifique", baseStartWeek: 9, baseEndWeek: 18, color: "#5555E0", baseFocus: "Volume d'intensité spécifique race-pace", baseLevers: ["Race Pace", "Briques", "Train Low"] },
+          { name: "Fraîcheur & Densité", subtitle: "Phase 4: Affûtage", baseStartWeek: 20, baseEndWeek: 24, color: "#7FD3AE", baseFocus: "Supercompensation et fraîcheur musculaire", baseLevers: ["Taper progressif", "Openers"] },
         ],
       };
     case "703":
@@ -80,10 +80,10 @@ function getBasePhases(goal: string): { templates: BasePhaseTemplate[]; totalWee
         title: "Roadmap Stratégique : 24 Semaines vers le 70.3",
         totalWeeks: 24,
         templates: [
-          { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", baseStartWeek: 1, baseEndWeek: 5, color: "#9ca3af", baseFocus: "Développer VO2max et rappels de vitesse", baseLevers: ["VO2max intervals", "Sprints"] },
-          { name: "Force Endurance", subtitle: "Phase 2: Force & Seuil", baseStartWeek: 6, baseEndWeek: 10, color: "#60a5fa", baseFocus: "Force spécifique et seuil fonctionnel", baseLevers: ["SFR", "Tempo"] },
-          { name: "Spécifique Race Pace", subtitle: "Phase 3: Spécifique", baseStartWeek: 11, baseEndWeek: 19, color: "#1e3a5f", baseFocus: "Intensité cible 70.3 et briques", baseLevers: ["Race Pace", "Briques"] },
-          { name: "Affûtage", subtitle: "Phase 4: Affûtage", baseStartWeek: 21, baseEndWeek: 24, color: "#86efac", baseFocus: "Fraîcheur et activation", baseLevers: ["Taper", "Openers"] },
+          { name: "Neuro & Vélocité", subtitle: "Phase 1: Vitesse/VO2Max", baseStartWeek: 1, baseEndWeek: 5, color: "#D9DDF7", baseFocus: "Développer VO2max et rappels de vitesse", baseLevers: ["VO2max intervals", "Sprints"] },
+          { name: "Force Endurance", subtitle: "Phase 2: Force & Seuil", baseStartWeek: 6, baseEndWeek: 10, color: "#9AA6F0", baseFocus: "Force spécifique et seuil fonctionnel", baseLevers: ["SFR", "Tempo"] },
+          { name: "Spécifique Race Pace", subtitle: "Phase 3: Spécifique", baseStartWeek: 11, baseEndWeek: 19, color: "#5555E0", baseFocus: "Intensité cible 70.3 et briques", baseLevers: ["Race Pace", "Briques"] },
+          { name: "Affûtage", subtitle: "Phase 4: Affûtage", baseStartWeek: 21, baseEndWeek: 24, color: "#7FD3AE", baseFocus: "Fraîcheur et activation", baseLevers: ["Taper", "Openers"] },
         ],
       };
     case "Marathon":
@@ -91,10 +91,10 @@ function getBasePhases(goal: string): { templates: BasePhaseTemplate[]; totalWee
         title: "Roadmap Stratégique : 24 Semaines vers le Marathon",
         totalWeeks: 24,
         templates: [
-          { name: "Base Aérobie", subtitle: "Phase 1: Endurance", baseStartWeek: 1, baseEndWeek: 6, color: "#9ca3af", baseFocus: "Construire le socle aérobie et l'économie de course", baseLevers: ["Volume Z2", "Cadence drills"] },
-          { name: "Développement", subtitle: "Phase 2: Seuil & Force", baseStartWeek: 7, baseEndWeek: 12, color: "#60a5fa", baseFocus: "Seuil lactique et force endurance", baseLevers: ["Tempo runs", "Hill repeats"] },
-          { name: "Spécifique Marathon", subtitle: "Phase 3: Allure Cible", baseStartWeek: 13, baseEndWeek: 20, color: "#1e3a5f", baseFocus: "Allure marathon et sorties longues spécifiques", baseLevers: ["Marathon Pace", "Long runs progressifs"] },
-          { name: "Affûtage", subtitle: "Phase 4: Affûtage", baseStartWeek: 21, baseEndWeek: 24, color: "#86efac", baseFocus: "Réduction de volume et fraîcheur", baseLevers: ["Taper", "Strides"] },
+          { name: "Base Aérobie", subtitle: "Phase 1: Endurance", baseStartWeek: 1, baseEndWeek: 6, color: "#D9DDF7", baseFocus: "Construire le socle aérobie et l'économie de course", baseLevers: ["Volume Z2", "Cadence drills"] },
+          { name: "Développement", subtitle: "Phase 2: Seuil & Force", baseStartWeek: 7, baseEndWeek: 12, color: "#9AA6F0", baseFocus: "Seuil lactique et force endurance", baseLevers: ["Tempo runs", "Hill repeats"] },
+          { name: "Spécifique Marathon", subtitle: "Phase 3: Allure Cible", baseStartWeek: 13, baseEndWeek: 20, color: "#5555E0", baseFocus: "Allure marathon et sorties longues spécifiques", baseLevers: ["Marathon Pace", "Long runs progressifs"] },
+          { name: "Affûtage", subtitle: "Phase 4: Affûtage", baseStartWeek: 21, baseEndWeek: 24, color: "#7FD3AE", baseFocus: "Réduction de volume et fraîcheur", baseLevers: ["Taper", "Strides"] },
         ],
       };
     case "Semi":
@@ -102,10 +102,10 @@ function getBasePhases(goal: string): { templates: BasePhaseTemplate[]; totalWee
         title: "Roadmap Stratégique : 12 Semaines vers le Semi-Marathon",
         totalWeeks: 12,
         templates: [
-          { name: "Base & Vitesse", subtitle: "Phase 1: VO2Max", baseStartWeek: 1, baseEndWeek: 3, color: "#9ca3af", baseFocus: "VO2max et vitesse de base", baseLevers: ["VO2max intervals", "Fartlek"] },
-          { name: "Développement Seuil", subtitle: "Phase 2: Seuil", baseStartWeek: 4, baseEndWeek: 7, color: "#60a5fa", baseFocus: "Seuil et endurance spécifique", baseLevers: ["Tempo", "Progression runs"] },
-          { name: "Spécifique Semi", subtitle: "Phase 3: Allure Cible", baseStartWeek: 8, baseEndWeek: 10, color: "#1e3a5f", baseFocus: "Allure semi-marathon et confiance", baseLevers: ["Half Marathon Pace", "Dress rehearsal"] },
-          { name: "Affûtage", subtitle: "Phase 4: Affûtage", baseStartWeek: 11, baseEndWeek: 12, color: "#86efac", baseFocus: "Mini-taper et activation", baseLevers: ["Taper", "Openers"] },
+          { name: "Base & Vitesse", subtitle: "Phase 1: VO2Max", baseStartWeek: 1, baseEndWeek: 3, color: "#D9DDF7", baseFocus: "VO2max et vitesse de base", baseLevers: ["VO2max intervals", "Fartlek"] },
+          { name: "Développement Seuil", subtitle: "Phase 2: Seuil", baseStartWeek: 4, baseEndWeek: 7, color: "#9AA6F0", baseFocus: "Seuil et endurance spécifique", baseLevers: ["Tempo", "Progression runs"] },
+          { name: "Spécifique Semi", subtitle: "Phase 3: Allure Cible", baseStartWeek: 8, baseEndWeek: 10, color: "#5555E0", baseFocus: "Allure semi-marathon et confiance", baseLevers: ["Half Marathon Pace", "Dress rehearsal"] },
+          { name: "Affûtage", subtitle: "Phase 4: Affûtage", baseStartWeek: 11, baseEndWeek: 12, color: "#7FD3AE", baseFocus: "Mini-taper et activation", baseLevers: ["Taper", "Openers"] },
         ],
       };
     default:
@@ -113,10 +113,10 @@ function getBasePhases(goal: string): { templates: BasePhaseTemplate[]; totalWee
         title: "Roadmap Stratégique d'Entraînement",
         totalWeeks: 24,
         templates: [
-          { name: "Construction", subtitle: "Phase 1: Base", baseStartWeek: 1, baseEndWeek: 6, color: "#9ca3af", baseFocus: "Fondations aérobies", baseLevers: ["Volume Z2"] },
-          { name: "Développement", subtitle: "Phase 2: Build", baseStartWeek: 7, baseEndWeek: 12, color: "#60a5fa", baseFocus: "Développement des qualités", baseLevers: ["Seuil", "Force"] },
-          { name: "Spécifique", subtitle: "Phase 3: Peak", baseStartWeek: 13, baseEndWeek: 20, color: "#1e3a5f", baseFocus: "Intensité spécifique", baseLevers: ["Race Pace"] },
-          { name: "Affûtage", subtitle: "Phase 4: Taper", baseStartWeek: 21, baseEndWeek: 24, color: "#86efac", baseFocus: "Supercompensation", baseLevers: ["Taper"] },
+          { name: "Construction", subtitle: "Phase 1: Base", baseStartWeek: 1, baseEndWeek: 6, color: "#D9DDF7", baseFocus: "Fondations aérobies", baseLevers: ["Volume Z2"] },
+          { name: "Développement", subtitle: "Phase 2: Build", baseStartWeek: 7, baseEndWeek: 12, color: "#9AA6F0", baseFocus: "Développement des qualités", baseLevers: ["Seuil", "Force"] },
+          { name: "Spécifique", subtitle: "Phase 3: Peak", baseStartWeek: 13, baseEndWeek: 20, color: "#5555E0", baseFocus: "Intensité spécifique", baseLevers: ["Race Pace"] },
+          { name: "Affûtage", subtitle: "Phase 4: Taper", baseStartWeek: 21, baseEndWeek: 24, color: "#7FD3AE", baseFocus: "Supercompensation", baseLevers: ["Taper"] },
         ],
       };
   }
