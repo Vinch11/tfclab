@@ -168,8 +168,9 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   };
 
   bar.append(title, printBtn, closeBtn);
-  scroller.append(frame);
-  overlay.append(bar, scroller);
+  stage.append(frame);
+  scroller.append(stage);
+
   document.body.appendChild(overlay);
   document.body.style.overflow = "hidden";
 
