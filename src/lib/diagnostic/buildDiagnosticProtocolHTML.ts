@@ -802,7 +802,7 @@ export function openDiagnosticProtocolPrint(
   athleteName?: string,
 ): void {
   const html = buildDiagnosticProtocolHTML(protocol, athleteName);
-  openPrintableHTML(html, { filenameHint: protocol.title ?? "Protocole", includeInstructions: false });
+  openPrintableHTML(html, { filenameHint: athleteName ? `Protocole — ${athleteName}` : "Protocole", includeInstructions: false });
 }
 
 // ============================================================================
