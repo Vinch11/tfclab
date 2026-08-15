@@ -212,7 +212,7 @@ function metricCard(m: ReportMetric): string {
   const color = STATUS_COLOR[m.status] ?? C.faint;
   const insufficient = m.value == null || m.value === 0 || m.status === "missing";
   return `
-  <div class="bp-card" style="margin:0;padding:14px 15px">
+  <div class="bp-card avoid" style="margin:0;padding:14px 15px">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
       <div style="flex:1 1 120px;min-width:0;font-size:11.5px;font-weight:600;color:${C.inkSoft};line-height:1.35">${esc(m.label)}</div>
       <span class="bp-badge" style="flex:0 0 auto;background:${color}1a;color:${color};border-color:${color}33;white-space:nowrap">${esc(STATUS_LABEL[m.status])}</span>
@@ -235,7 +235,7 @@ function metricCard(m: ReportMetric): string {
 function limiterCard(l: ReportLimiter): string {
   const color = l.rank === 1 ? C.danger : C.amber;
   return `
-  <div class="bp-card" style="border-left:4px solid ${color}">
+  <div class="bp-card avoid" style="border-left:4px solid ${color}">
     <div style="display:flex;align-items:center;gap:10px">
       <div style="width:30px;height:30px;border-radius:9px;background:${color}1a;color:${color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">${l.rank}</div>
       <div style="flex:1">
