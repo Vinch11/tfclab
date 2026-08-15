@@ -443,7 +443,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
           <div style="font-size:9px;color:rgba(255,255,255,0.8);letter-spacing:0.05em">/ 100</div>
         </div>
         <div style="font-size:11.5px;font-weight:600;color:#fff;margin-top:8px">${esc(d.readiness.label)}</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.75)">fiabilité ${Math.round(d.readiness.confidence * 100)} %</div>
       </div>
     </div>
   </div>
