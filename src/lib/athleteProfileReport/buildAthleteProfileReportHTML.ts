@@ -220,9 +220,7 @@ function metricCard(m: ReportMetric): string {
     <div style="margin-top:8px;font-size:10.5px;color:${C.muted};line-height:1.45">${rich(m.meaning)}</div>
     ${
       m.source
-        ? `<div style="margin-top:6px;font-size:9px;color:${C.faint}">Source : ${esc(m.source)}${
-            m.confidence != null ? ` · fiabilité ${Math.round(m.confidence * 100)} %` : ""
-          }</div>`
+        ? `<div style="margin-top:6px;font-size:9px;color:${C.faint}">Source : ${esc(m.source)}</div>`
         : ""
     }
   </div>`;
@@ -340,7 +338,7 @@ function zoneTable(z: ReportZoneSet): string {
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div style="font-size:14px;font-weight:600;color:${C.ink}">${esc(z.sportLabel)}</div>
       <span class="bp-badge ${z.source === "derived" ? "bp-badge--ok" : "bp-badge--muted"}">
-        ${z.source === "derived" ? `Zones calculées sur ta physiologie · fiabilité ${Math.round(z.confidence * 100)} %` : "Grille standard (données insuffisantes)"}
+        ${z.source === "derived" ? "Zones calculées sur ta physiologie" : "Grille standard (données insuffisantes)"}
       </span>
     </div>
     ${z.anchors.length ? `<div style="font-size:9.5px;color:${C.faint};margin-bottom:8px">Ancrages : ${z.anchors.map(esc).join(" · ")}</div>` : ""}
@@ -445,7 +443,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
           <div style="font-size:9px;color:rgba(255,255,255,0.8);letter-spacing:0.05em">/ 100</div>
         </div>
         <div style="font-size:11.5px;font-weight:600;color:#fff;margin-top:8px">${esc(d.readiness.label)}</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.75)">fiabilité ${Math.round(d.readiness.confidence * 100)} %</div>
       </div>
     </div>
   </div>
