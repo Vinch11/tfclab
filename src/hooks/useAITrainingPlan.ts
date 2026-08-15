@@ -874,6 +874,15 @@ export function useAITrainingPlan() {
               console.error("[useAITrainingPlan] normalizeWeeksAndPhases (json) failed:", nerr);
             }
             const parsed = jsonPlanToParsedPlan(merged);
+            // Physiologie de référence figée à la génération (base du calcul de dérive)
+            parsed.physioRefs = {
+              ftp: athleteData.ftp ?? null,
+              vma: athleteData.vma ?? null,
+              css: athleteData.css ?? null,
+              fcMax: athleteData.fcMax ?? null,
+              paceThresholdSecPerKm: athleteData.paceThresholdSecPerKm ?? null,
+              capturedAt: new Date().toISOString(),
+            };
             const issues = validateSportObjective(merged, planConfig.objective);
             sportIssuesCount = issues.filter(i => i.severity === "critical").length;
             if (issues.length > 0) {
