@@ -55,6 +55,15 @@ export interface ParsedPlan {
   phases: { name: string; weeks: string; objective?: string; volume?: string }[];
   weeks: ParsedWeek[];
   totalWeeks: number;
+  /** Physiologie de référence au moment de la génération (drift / actualisation). */
+  physioRefs?: {
+    ftp?: number | null;
+    vma?: number | null;
+    css?: number | null;
+    fcMax?: number | null;
+    paceThresholdSecPerKm?: number | null;
+    capturedAt?: string;
+  };
 }
 
 const DAY_MAP: Record<string, number> = {

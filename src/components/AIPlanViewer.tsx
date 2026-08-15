@@ -35,6 +35,7 @@ import { buildTargetTable } from "@/lib/plan/targetTable";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { derivePhasesFromWeeks } from "@/engines/plan/planValidator";
 import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
+import { computePhysioDrift, refreshPlanAbsoluteValues, DRIFT_ALERT_PCT } from "@/lib/plan/refreshPlanValues";
 import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTableContext";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1035,6 +1036,33 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     }
   }, [nolioRefs, gapContext?.objective, gapContext?.ambition]);
 
+  // ─── Dérive physiologique : plan généré avec d'anciennes valeurs ? ───
+  const currentPhysioRefs = useMemo(() => ({
+    ftp: nolioRefs.ftp,
+    vma: nolioRefs.vma,
+    css: nolioRefs.css,
+    fcMax: nolioRefs.fcMax,
+    paceThresholdSecPerKm: nolioRefs.paceThresholdSecPerKm,
+  }), [nolioRefs]);
+
+  const physioDrift = useMemo(
+    () => computePhysioDrift(plan.physioRefs, currentPhysioRefs),
+    [plan.physioRefs, currentPhysioRefs],
+  );
+
+  const [valuesRefreshedAt, setValuesRefreshedAt] = useState<string | null>(null);
+
+  const handleRefreshValues = useCallback(() => {
+    const { plan: next, changedSessions } = refreshPlanAbsoluteValues(plan, currentPhysioRefs);
+    setPlan(next);
+    setValuesRefreshedAt(new Date().toISOString());
+    toast.success(
+      changedSessions > 0
+        ? `Valeurs actualisées sur ${changedSessions} séance(s) — pensez à sauvegarder.`
+        : "Valeurs déjà à jour (les intensités sont recalculées à l'affichage).",
+    );
+  }, [plan, currentPhysioRefs]);
+
 
   const markSent = useCallback((key: string) => {
     setSentKeys((prev) => {
@@ -1377,6 +1405,52 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
           </AlertDescription>
         </Alert>
       )}
+
+      {physioDrift.items.length > 0 && (
+        <Alert className={physioDrift.needsRegeneration ? "border-amber-500/50" : "border-primary/40"}>
+          <RefreshCw className="h-4 w-4" />
+          <AlertDescription className="space-y-2">
+            <p className="text-sm font-medium">
+              Ta physiologie a évolué depuis la génération de ce plan
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {physioDrift.items.map((d) => (
+                <Badge key={d.key} variant="secondary" className="text-[10px] font-medium">
+                  {d.label} : {d.oldValue} → {d.newValue} {d.unit} ({d.pct > 0 ? "+" : ""}{d.pct}%)
+                </Badge>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {physioDrift.needsRegeneration
+                ? `Écart ≥ ${DRIFT_ALERT_PCT}% : le recalcul met les watts/allures à jour, mais un changement de palier physiologique justifie une régénération des blocs restants.`
+                : "Les watts, allures et s/100m peuvent être recalculés sans régénérer le plan (structure et pédagogie conservées)."}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleRefreshValues}>
+                <RefreshCw className="h-3 w-3" /> Actualiser mes valeurs
+              </Button>
+              {physioDrift.needsRegeneration && onRegenerateFutureWeeks && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs gap-1"
+                  disabled={isRegenerating}
+                  onClick={() => onRegenerateFutureWeeks()}
+                >
+                  <Sparkles className="h-3 w-3" /> Régénérer les semaines à venir
+                </Button>
+              )}
+              {valuesRefreshedAt && (
+                <span className="text-[10px] text-muted-foreground">
+                  Recalcul appliqué à {format(parseISO(valuesRefreshedAt), "HH:mm")} — pense à sauvegarder.
+                </span>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+
 
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (
