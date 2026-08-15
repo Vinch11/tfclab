@@ -83,8 +83,75 @@ function escapeHtml(s: string): string {
 }
 
 /**
+ * Fallback iOS / popup bloqué : affiche le document dans une surcouche plein écran
+ * (iframe srcdoc) avec une barre d'actions Imprimer / Fermer.
+ * iOS Safari refuse d'ouvrir une URL blob: dans un onglet, d'où cette approche.
+ */
+function openInlineOverlay(html: string, filenameHint?: string): void {
+  const existing = document.getElementById("tfc-print-overlay");
+  if (existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "tfc-print-overlay";
+  overlay.style.cssText =
+    "position:fixed;inset:0;z-index:2147483647;background:#fff;display:flex;flex-direction:column;";
+
+  const bar = document.createElement("div");
+  bar.style.cssText =
+    "flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));border-bottom:1px solid rgba(0,0,0,.12);background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;";
+
+  const title = document.createElement("span");
+  title.textContent = filenameHint ?? "Rapport";
+  title.style.cssText =
+    "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;color:#111;";
+
+  const btnStyle =
+    "flex:0 0 auto;min-height:36px;padding:8px 14px;border-radius:10px;border:1px solid rgba(0,0,0,.15);background:#111;color:#fff;font-size:13px;font-weight:600;";
+
+  const printBtn = document.createElement("button");
+  printBtn.textContent = "Imprimer / PDF";
+  printBtn.style.cssText = btnStyle;
+
+  const closeBtn = document.createElement("button");
+  closeBtn.textContent = "Fermer";
+  closeBtn.style.cssText = btnStyle + "background:#fff;color:#111;";
+
+  const frame = document.createElement("iframe");
+  frame.style.cssText = "flex:1 1 auto;width:100%;border:0;background:#fff;";
+  frame.setAttribute("title", filenameHint ?? "Rapport");
+
+  printBtn.onclick = () => {
+    try {
+      frame.contentWindow?.focus();
+      frame.contentWindow?.print();
+    } catch {
+      window.print();
+    }
+  };
+  closeBtn.onclick = () => {
+    document.body.style.overflow = "";
+    overlay.remove();
+  };
+
+  bar.append(title, printBtn, closeBtn);
+  overlay.append(bar, frame);
+  document.body.appendChild(overlay);
+  document.body.style.overflow = "hidden";
+
+  const doc = frame.contentWindow?.document;
+  if (doc) {
+    doc.open();
+    doc.write(html);
+    doc.close();
+  } else {
+    frame.srcdoc = html;
+  }
+}
+
+/**
  * Opens a printable HTML document in a new tab/window, with a robust fallback for popup blockers.
- * Uses a Blob URL (avoids URL-length limits).
+ * Uses a Blob URL (avoids URL-length limits). Sur iOS (et si le popup est bloqué),
+ * bascule sur une surcouche plein écran interne.
  */
 export function openPrintableHTML(html: string, options: OpenPrintableHTMLOptions = {}): void {
   // Socle de design Bevel commun à tous les rapports exportés.
@@ -93,19 +160,30 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
     ? themed
     : withPrintHelper(themed, options.filenameHint);
 
-  const blob = new Blob([finalHtml], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-
-  const win = window.open(url, "_blank", "noopener,noreferrer");
-
-  // Popup blocked → fall back to same-tab navigation
-  if (!win) {
-    window.location.href = url;
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  // iOS ne sait pas naviguer vers une URL blob: → surcouche interne directement.
+  if (isIOSDevice()) {
+    openInlineOverlay(finalHtml, options.filenameHint);
     return;
   }
 
-  if (options.autoPrint && !isIOSDevice()) {
+  const blob = new Blob([finalHtml], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  let win: Window | null = null;
+  try {
+    win = window.open(url, "_blank", "noopener,noreferrer");
+  } catch {
+    win = null;
+  }
+
+  // Popup bloqué → surcouche interne (fiable partout, aucune navigation requise)
+  if (!win) {
+    URL.revokeObjectURL(url);
+    openInlineOverlay(finalHtml, options.filenameHint);
+    return;
+  }
+
+  if (options.autoPrint) {
     // Give the new tab time to render.
     setTimeout(() => {
       try {
@@ -119,3 +197,4 @@ export function openPrintableHTML(html: string, options: OpenPrintableHTMLOption
 
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
+

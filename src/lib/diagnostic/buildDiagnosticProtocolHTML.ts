@@ -1,3 +1,4 @@
+import { openPrintableHTML } from "@/lib/openPrintableHTML";
 /**
  * buildDiagnosticProtocolHTML — Génère une page HTML imprimable (A4 portrait)
  * pour les protocoles de test TFCLab. Ouvrir dans un nouvel onglet puis Ctrl+P.
@@ -801,11 +802,7 @@ export function openDiagnosticProtocolPrint(
   athleteName?: string,
 ): void {
   const html = buildDiagnosticProtocolHTML(protocol, athleteName);
-  const w = window.open("", "_blank");
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+  openPrintableHTML(html, { filenameHint: athleteName ? `Protocole — ${athleteName}` : "Protocole", includeInstructions: false });
 }
 
 // ============================================================================
@@ -1339,11 +1336,7 @@ export function openFullDiagnosticDossierPrint(
   sport: DossierSport = "triathlon",
 ): void {
   const html = buildFullDiagnosticDossierHTML(athleteName, sport);
-  const w = window.open("", "_blank");
-  if (!w) return;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+  openPrintableHTML(html, { filenameHint: "Dossier diagnostic", includeInstructions: false });
 }
 
 
