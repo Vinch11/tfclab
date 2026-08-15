@@ -1012,6 +1012,13 @@ export default function RaceSimulationPage() {
                 </div>
               )}
 
+              {isTriathlon && triDiscipline === 'bike' && bikeSplitInfo && (
+                <p className="text-[11px] text-muted-foreground">
+                  🚴 Split vélo estimé sur la physiologie : <strong>{bikeSplitInfo.targetNpW} W</strong> ({Math.round(bikeSplitInfo.ftpFraction * 100)} % FTP) → <strong>≈ {bikeSplitInfo.avgSpeedKmh} km/h</strong> · conditions optimales (plat roulant, sans vent, position prolongateur).
+                </p>
+              )}
+
+
               {!staffMode && (
                 <div className="space-y-2">
                   <Alert className="text-[11px] sm:text-xs py-2 bg-primary/5 border-primary/20">
