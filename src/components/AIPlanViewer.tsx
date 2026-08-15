@@ -1036,6 +1036,34 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     }
   }, [nolioRefs, gapContext?.objective, gapContext?.ambition]);
 
+  // ─── Dérive physiologique : plan généré avec d'anciennes valeurs ? ───
+  const currentPhysioRefs = useMemo(() => ({
+    ftp: nolioRefs.ftp,
+    vma: nolioRefs.vma,
+    css: nolioRefs.css,
+    fcMax: nolioRefs.fcMax,
+    paceThresholdSecPerKm: nolioRefs.paceThresholdSecPerKm,
+  }), [nolioRefs]);
+
+  const physioDrift = useMemo(
+    () => computePhysioDrift(plan.physioRefs, currentPhysioRefs),
+    [plan.physioRefs, currentPhysioRefs],
+  );
+
+  const [valuesRefreshedAt, setValuesRefreshedAt] = useState<string | null>(null);
+
+  const handleRefreshValues = useCallback(() => {
+    const { plan: next, changedSessions } = refreshPlanAbsoluteValues(plan, currentPhysioRefs);
+    setPlan(next);
+    setValuesRefreshedAt(new Date().toISOString());
+    setReplacementCount((c) => c + 0); // pas un remplacement de séance
+    toast.success(
+      changedSessions > 0
+        ? `Valeurs actualisées sur ${changedSessions} séance(s) — pensez à sauvegarder.`
+        : "Valeurs déjà à jour (les intensités sont recalculées à l'affichage).",
+    );
+  }, [plan, currentPhysioRefs]);
+
 
   const markSent = useCallback((key: string) => {
     setSentKeys((prev) => {
