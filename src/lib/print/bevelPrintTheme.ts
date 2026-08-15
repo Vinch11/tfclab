@@ -120,10 +120,9 @@ export const BEVEL_PRINT_CSS = `
     border-radius: var(--bp-radius);
     padding: 16px 18px;
     margin-bottom: 12px;
-    /* Par défaut on laisse la carte se scinder entre deux pages : forcer
-       « avoid » sur des cartes hautes crée d'énormes zones vides. Les blocs
-       courts qui doivent rester d'un seul tenant portent la classe .avoid. */
-    page-break-inside: auto;
+    /* Une carte représente une unité de lecture et ne doit pas être coupée. */
+    page-break-inside: avoid;
+    break-inside: avoid;
     /* Pas de dégradé radial : sur des cartes hautes, Safari/iOS le rend en
        aplat opaque et rend le texte illisible à l'impression. */
     background-image: none;
@@ -162,6 +161,8 @@ export const BEVEL_PRINT_CSS = `
 
   /* ── Tableaux : filets hairline, en-tête discret ────────────────────── */
   table { border-collapse: collapse; }
+  thead { display: table-header-group; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
   table th {
     font-weight: 600;
     color: var(--bp-muted);
