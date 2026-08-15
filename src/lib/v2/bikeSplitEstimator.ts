@@ -90,11 +90,12 @@ export function estimateBikeSplit(params: {
   }
   const ambition = params.ambition ?? "age_group";
   const position = params.position ?? "tri";
-  const terrain = params.terrainFactor ?? 0.93; // parcours réel, pas une piste
+  // Parcours réel : relances, virages, ravitos, vent variable, dénivelé léger.
+  const terrain = params.terrainFactor ?? 0.90;
 
   const frac = ftpFraction(distanceKm, ambition);
   const np = ftp * frac;
-  const cda = estimateCdA(weightKg, position);
+  const cda = estimateCdA(weightKg, position, ambition);
   const mass = weightKg + BIKE_KIT_KG;
 
   const v = solveSpeed(np, mass, cda, terrain);
