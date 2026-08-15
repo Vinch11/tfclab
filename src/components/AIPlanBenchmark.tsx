@@ -439,18 +439,18 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
         {parsed.map((phase, i) => {
           const leftPct = ((phase.start - 1) / span) * 100;
           const widthPct = ((phase.end - phase.start + 1) / span) * 100;
-          const isDark = phase.colorIdx === 4;
-          const isGreen = phase.colorIdx === 5;
+          const fg = readableOn(phase.color);
           return (
             <TooltipProvider key={i}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="relative h-7 cursor-help">
+                    <div className="absolute inset-0 rounded-md bg-muted/40" />
                     <div
-                      className="absolute rounded-md transition-all"
+                      className="absolute rounded-md shadow-sm transition-all"
                       style={{
                         marginLeft: `${leftPct}%`,
-                        width: `${widthPct}%`,
+                        width: `${Math.max(widthPct, 6)}%`,
                         backgroundColor: phase.color,
                         height: "100%",
                       }}
@@ -458,7 +458,7 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
                       <div className="flex items-center justify-center h-full px-1.5">
                         <span
                           className="text-[9px] sm:text-[10px] font-semibold truncate"
-                          style={{ color: isDark ? "#ffffff" : isGreen ? "#1e3a5f" : "#1e293b" }}
+                          style={{ color: fg }}
                         >
                           {phase.name}
                         </span>
@@ -466,6 +466,7 @@ function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; we
                     </div>
                   </div>
                 </TooltipTrigger>
+
                 <TooltipContent side="top" className="max-w-xs">
                   <p className="font-semibold text-xs">{phase.name}</p>
                   <p className="text-[10px] text-muted-foreground">Semaines {phase.start}–{phase.end} ({phase.end - phase.start + 1} sem)</p>
