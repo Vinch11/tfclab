@@ -35,6 +35,7 @@ import { buildTargetTable } from "@/lib/plan/targetTable";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { derivePhasesFromWeeks } from "@/engines/plan/planValidator";
 import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
+import { computePhysioDrift, refreshPlanAbsoluteValues, DRIFT_ALERT_PCT } from "@/lib/plan/refreshPlanValues";
 import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTableContext";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
 import { Checkbox } from "@/components/ui/checkbox";
