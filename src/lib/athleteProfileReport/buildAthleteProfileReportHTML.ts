@@ -389,7 +389,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       <div style="flex:1">
         ${
           d.logoBase64
-            ? `<img src="${d.logoBase64}" alt="TFC Lab" style="height:46px;width:auto;display:block;margin-bottom:12px" />`
+            ? `<img src="${d.logoBase64}" alt="Logo" style="height:130px;width:auto;display:block;margin-bottom:16px" />`
             : ""
         }
         <h1 style="font-size:26px">Mon profil physiologique</h1>

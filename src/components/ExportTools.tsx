@@ -42,6 +42,7 @@ import { calculateAge, computeAgeAdjustmentIndex, type AgeAdjustmentIndex, inter
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition, AMBITION_LEVELS_ORDERED, AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getTargetsForAmbition, AMBITION_TARGETS } from "@/lib/physiologicalTargets";
 import logoUrl from "@/assets/logo-2fc.png";
+import profileReportLogoAsset from "@/assets/logo-24c.png.asset.json";
 import { buildChartePageHTML } from "@/data/charteInterpretation";
 // ✅ NEW: Import Compass Scoring et CRR
 import { computeCRR, computeChargeScore, getCRRTargets, type ChargeRecenteReference, type ChargeScore } from "@/lib/chargeRecenteReference";
@@ -9726,7 +9727,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
       description: "Un nouvel onglet va s'ouvrir.",
     });
     try {
-      const logoBase64 = await imageToBase64(logoUrl);
+      const logoBase64 = await imageToBase64(profileReportLogoAsset.url);
       const input = mapExportPayloadToProfileReport(payload, {
         ambitionLabel: payload.ambition?.label ?? "—",
         generatedAt: new Date().toLocaleDateString("fr-FR", {
