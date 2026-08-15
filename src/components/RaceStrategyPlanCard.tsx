@@ -344,6 +344,7 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       effortRef: refRobust,
       centerPct: robustCenter,
       highPct: ambitiousCenter,
+      timeRangeSec: timeRobust,
     },
     {
       key: "AMBITIOUS",
@@ -363,6 +364,7 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       effortRef: refAmbitious,
       centerPct: ambitiousCenter,
       highPct: ambitiousHigh,
+      timeRangeSec: timeAmbitious,
     },
     {
       key: "AGGRESSIVE",
@@ -382,6 +384,7 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       effortRef: refAggressive,
       centerPct: aggressiveHigh,
       highPct: aggressiveOver,
+      timeRangeSec: timeAggressive,
     },
   ];
 }
