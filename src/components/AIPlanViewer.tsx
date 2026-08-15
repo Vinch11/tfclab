@@ -1056,7 +1056,6 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     const { plan: next, changedSessions } = refreshPlanAbsoluteValues(plan, currentPhysioRefs);
     setPlan(next);
     setValuesRefreshedAt(new Date().toISOString());
-    setReplacementCount((c) => c + 0); // pas un remplacement de séance
     toast.success(
       changedSessions > 0
         ? `Valeurs actualisées sur ${changedSessions} séance(s) — pensez à sauvegarder.`
