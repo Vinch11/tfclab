@@ -29,35 +29,51 @@ interface RoadmapStrategiqueProps {
 // PHASE BAR COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/** Couleur de texte lisible (blanc ou encre) selon la luminance du fond. */
+function readableOn(hex: string): string {
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const r = parseInt(full.slice(0, 2), 16) / 255;
+  const g = parseInt(full.slice(2, 4), 16) / 255;
+  const b = parseInt(full.slice(4, 6), 16) / 255;
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  return L > 0.5 ? "#14131A" : "#FFFFFF";
+}
+
 function PhaseBar({ phase, totalWeeks }: { phase: RoadmapPhase; totalWeeks: number }) {
   const leftPct = ((phase.startWeek - 1) / totalWeeks) * 100;
   const widthPct = ((phase.endWeek - phase.startWeek + 1) / totalWeeks) * 100;
-  const isDark = phase.color === "#1e3a5f";
-  const isGreen = phase.color === "#86efac";
+  const fg = readableOn(phase.color);
 
   return (
-    <div className="relative mb-1">
+    <div className="relative mb-1.5">
+      <div className="absolute inset-0 rounded-lg bg-muted/40" />
       <div
-        className="relative rounded-md transition-all"
+        className="relative rounded-lg shadow-sm transition-all"
         style={{
           marginLeft: `${leftPct}%`,
-          width: `${widthPct}%`,
+          width: `${Math.max(widthPct, 6)}%`,
           backgroundColor: phase.color,
-          minHeight: "36px",
+          minHeight: "34px",
         }}
       >
-        <div className="flex items-center justify-center h-9 px-2">
-          <span
-            className="text-[10px] sm:text-xs font-semibold truncate"
-            style={{ color: isDark ? "#ffffff" : isGreen ? "#1e3a5f" : "#1e293b" }}
-          >
+        <div className="flex items-center justify-center h-[34px] px-2 gap-1.5">
+          <span className="text-[10px] sm:text-xs font-semibold truncate" style={{ color: fg }}>
             {phase.subtitle}
+          </span>
+          <span
+            className="hidden sm:inline text-[10px] font-medium opacity-70 shrink-0"
+            style={{ color: fg }}
+          >
+            S{phase.startWeek}–S{phase.endWeek}
           </span>
         </div>
       </div>
     </div>
   );
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PHASE DETAIL CARD
