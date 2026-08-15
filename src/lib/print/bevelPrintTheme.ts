@@ -139,7 +139,9 @@ export const BEVEL_PRINT_CSS = `
     color: #FFFFFF;
     background: linear-gradient(135deg, #5555E0 0%, #6C55D8 55%, #7A56C2 100%);
   }
-  .bp-header h1 { color: #FFFFFF; margin: 0 0 4px 0; }
+  .bp-header h1 { color: #FFFFFF; margin: 0 0 4px 0; font-size: 24px; }
+  .bp-header img { max-height: 84px; width: auto; }
+  .bp-header { page-break-inside: avoid; break-inside: avoid; }
   .bp-header .subtitle, .bp-header p { color: rgba(255,255,255,0.82); }
 
   /* ── Badges / pastilles de statut ───────────────────────────────────── */
