@@ -34,14 +34,23 @@ function ftpFraction(distanceKm: number, ambition: BikeAmbition): number {
 }
 
 /**
- * CdA estimé pour une position triathlon / prolongateur, mise à l'échelle sur la
- * masse corporelle (surface frontale ∝ masse^0.425 approximativement).
+ * CdA estimé selon la position ET le niveau (un age-grouper n'a ni la position ni
+ * le matériel d'un pro : 0.24 m² est un CdA de niveau élite, pas une valeur par défaut).
+ * Mise à l'échelle sur la masse corporelle (surface frontale ∝ masse^0.425).
+ * Réf. : Martin 1998 ; Barry 2015 (mesures terrain age-group 0.28–0.32 en prolongateur).
  */
-function estimateCdA(weightKg: number, position: "tri" | "road"): number {
-  const ref = position === "tri" ? 0.245 : 0.32; // pour 72 kg
+function estimateCdA(weightKg: number, position: "tri" | "road", ambition: BikeAmbition): number {
+  const refTri: Record<BikeAmbition, number> = {
+    finisher: 0.315, age_group: 0.290, competitor: 0.265, elite: 0.240,
+  };
+  const refRoad: Record<BikeAmbition, number> = {
+    finisher: 0.390, age_group: 0.360, competitor: 0.335, elite: 0.310,
+  };
+  const ref = (position === "tri" ? refTri : refRoad)[ambition] ?? (position === "tri" ? 0.29 : 0.36);
   const scaled = ref * Math.pow(weightKg / 72, 0.425);
-  return Math.min(position === "tri" ? 0.34 : 0.42, Math.max(0.19, scaled));
+  return Math.min(position === "tri" ? 0.38 : 0.46, Math.max(0.21, scaled));
 }
+
 
 /** Résout v (m/s) tel que la puissance modèle = puissance cible (bissection). */
 function solveSpeed(powerW: number, massKg: number, cda: number, gradeFactor: number): number {
@@ -81,11 +90,12 @@ export function estimateBikeSplit(params: {
   }
   const ambition = params.ambition ?? "age_group";
   const position = params.position ?? "tri";
-  const terrain = params.terrainFactor ?? 0.93; // parcours réel, pas une piste
+  // Parcours réel : relances, virages, ravitos, vent variable, dénivelé léger.
+  const terrain = params.terrainFactor ?? 0.90;
 
   const frac = ftpFraction(distanceKm, ambition);
   const np = ftp * frac;
-  const cda = estimateCdA(weightKg, position);
+  const cda = estimateCdA(weightKg, position, ambition);
   const mass = weightKg + BIKE_KIT_KG;
 
   const v = solveSpeed(np, mass, cda, terrain);
