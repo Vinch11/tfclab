@@ -122,8 +122,15 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   scroller.style.cssText =
     "flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#fff;";
 
+  // Le document est mis en page pour une largeur A4 : on force cette largeur
+  // dans l'iframe (sinon Safari imprime la mise en page « mobile » écrasée)
+  // et on la réduit visuellement pour l'écran.
+  const DOC_WIDTH = 820;
+  const stage = document.createElement("div");
+  stage.style.cssText = "position:relative;width:100%;overflow:hidden;";
+
   const frame = document.createElement("iframe");
-  frame.style.cssText = "display:block;width:100%;min-height:100%;border:0;background:#fff;";
+  frame.style.cssText = `display:block;width:${DOC_WIDTH}px;border:0;background:#fff;transform-origin:top left;`;
   frame.setAttribute("scrolling", "no");
   frame.setAttribute("title", filenameHint ?? "Rapport");
 
@@ -137,10 +144,15 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
         d.body.offsetHeight,
       );
       if (h > 0) frame.style.height = `${h + 40}px`;
+      const available = stage.clientWidth || scroller.clientWidth || DOC_WIDTH;
+      const scale = Math.min(1, available / DOC_WIDTH);
+      frame.style.transform = `scale(${scale})`;
+      stage.style.height = `${(h + 40) * scale}px`;
     } catch {
       // Ignore
     }
   };
+
 
   printBtn.onclick = () => {
     try {
