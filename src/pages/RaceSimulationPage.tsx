@@ -422,6 +422,20 @@ export default function RaceSimulationPage() {
     return { bike: 180, run: 180 };
   }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm]);
 
+  // Détail de l'estimation vélo (affiché pour transparence : NP, %FTP, vitesse).
+  const bikeSplitInfo = React.useMemo(() => {
+    const distanceKm = raceObjective === 'IM' ? 180.2 : raceObjective === '70.3' ? 90.1 : null;
+    if (!distanceKm) return null;
+    return estimateBikeSplit({
+      distanceKm,
+      ftp: activeSnapshot?.ftp ?? null,
+      weightKg: activeSnapshot?.weight_kg ?? null,
+      ambition: ((selectedAthlete as any)?.ambition ?? 'age_group'),
+      position: 'tri',
+    });
+  }, [raceObjective, activeSnapshot, selectedAthlete]);
+
+
   const raceDurationMin = React.useMemo(() => {
     // LCW : chaque segment simulé SOLO, sans pénalité enchaînement.
     // Bike 90km TT solo : ~2h15-2h30 selon athlète ; on garde la baseline 150 min
