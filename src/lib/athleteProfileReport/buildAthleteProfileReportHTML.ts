@@ -220,9 +220,7 @@ function metricCard(m: ReportMetric): string {
     <div style="margin-top:8px;font-size:10.5px;color:${C.muted};line-height:1.45">${rich(m.meaning)}</div>
     ${
       m.source
-        ? `<div style="margin-top:6px;font-size:9px;color:${C.faint}">Source : ${esc(m.source)}${
-            m.confidence != null ? ` · fiabilité ${Math.round(m.confidence * 100)} %` : ""
-          }</div>`
+        ? `<div style="margin-top:6px;font-size:9px;color:${C.faint}">Source : ${esc(m.source)}</div>`
         : ""
     }
   </div>`;
