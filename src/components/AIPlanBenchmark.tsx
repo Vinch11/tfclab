@@ -376,12 +376,25 @@ function limiterLabelFromKey(key: string): string {
 }
 
 const PHASE_COLORS: Record<number, string> = {
-  1: "#3b82f6", // Fondation — blue
-  2: "#f97316", // Chantier — orange
-  3: "#a855f7", // Consolidation — purple
-  4: "#1e3a5f", // Race-Specific — dark navy
-  5: "#86efac", // Affûtage — green
+  1: "#D9DDF7", // Fondation — périwinkle clair
+  2: "#9AA6F0", // Chantier — périwinkle moyen
+  3: "#7A56C2", // Consolidation — violet
+  4: "#5555E0", // Race-Specific — périwinkle profond
+  5: "#7FD3AE", // Affûtage — mint
 };
+
+/** Couleur de texte lisible (blanc ou encre) selon la luminance du fond. */
+function readableOn(hex: string): string {
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const r = parseInt(full.slice(0, 2), 16) / 255;
+  const g = parseInt(full.slice(2, 4), 16) / 255;
+  const b = parseInt(full.slice(4, 6), 16) / 255;
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  return L > 0.5 ? "#14131A" : "#FFFFFF";
+}
+
 
 const PHASE_INDEX_MAP: Record<string, number> = {
   fondation: 1, adaptation: 1, base: 1,
