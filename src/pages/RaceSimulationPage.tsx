@@ -42,6 +42,8 @@ import { computeUnifiedReadiness } from '@/lib/readinessSource';
 import { computeFatMaxTFCL } from '@/lib/v2/fatmaxTFCL';
 import { computeDisponibiliteTFCL, TFCLReadinessInput } from '@/lib/v2/disponibiliteTFCL';
 import { computePacingEnvelope } from '@/lib/v2/pacingEnvelopeEngine';
+import { estimateBikeSplit } from '@/lib/v2/bikeSplitEstimator';
+
 import { buildRaceChronosFromSnapshot } from '@/lib/v2/buildRaceChronosFromSnapshot';
 import { generateDisciplineRules } from '@/lib/v2/pacingDisciplineRules';
 import { simulatePacingScenarios } from '@/lib/v2/pacingScenarioSimulator';
@@ -384,14 +386,25 @@ export default function RaceSimulationPage() {
 
     const fractions = vSeuilFractionByAmbition[ambition] ?? vSeuilFractionByAmbition.age_group;
 
+    // Vélo — estimation physiologique (FTP × fraction ambition + modèle aéro/roulement)
+    // au lieu des baselines forfaitaires 300/150 min (≈ 36 km/h pour tout le monde).
+    const bikeSplit = (distanceKm: number) => estimateBikeSplit({
+      distanceKm,
+      ftp: activeSnapshot?.ftp ?? null,
+      weightKg: activeSnapshot?.weight_kg ?? null,
+      ambition,
+      position: 'tri',
+    });
+
     if (raceObjective === 'IM') {
       const runMin = computeRunMin(42.2, fractions.full) ?? 240;
-      return { bike: 300, run: Math.round(runMin) };
+      return { bike: bikeSplit(180.2)?.durationMin ?? 330, run: Math.round(runMin) };
     }
     if (raceObjective === '70.3') {
       const runMin = computeRunMin(21.1, fractions.half) ?? 105;
-      return { bike: 150, run: Math.round(runMin) };
+      return { bike: bikeSplit(90.1)?.durationMin ?? 165, run: Math.round(runMin) };
     }
+
     // Courses à pied pures — durée cohérente calculée (allure seuil × ambition),
     // plus de baseline 180/180 arbitraire qui contaminait nutrition & fiche route.
     if (raceObjective === 'Marathon') {
@@ -408,6 +421,20 @@ export default function RaceSimulationPage() {
     }
     return { bike: 180, run: 180 };
   }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm]);
+
+  // Détail de l'estimation vélo (affiché pour transparence : NP, %FTP, vitesse).
+  const bikeSplitInfo = React.useMemo(() => {
+    const distanceKm = raceObjective === 'IM' ? 180.2 : raceObjective === '70.3' ? 90.1 : null;
+    if (!distanceKm) return null;
+    return estimateBikeSplit({
+      distanceKm,
+      ftp: activeSnapshot?.ftp ?? null,
+      weightKg: activeSnapshot?.weight_kg ?? null,
+      ambition: ((selectedAthlete as any)?.ambition ?? 'age_group'),
+      position: 'tri',
+    });
+  }, [raceObjective, activeSnapshot, selectedAthlete]);
+
 
   const raceDurationMin = React.useMemo(() => {
     // LCW : chaque segment simulé SOLO, sans pénalité enchaînement.
@@ -984,6 +1011,13 @@ export default function RaceSimulationPage() {
                   </div>
                 </div>
               )}
+
+              {isTriathlon && triDiscipline === 'bike' && bikeSplitInfo && (
+                <p className="text-[11px] text-muted-foreground">
+                  🚴 Split vélo estimé sur la physiologie : <strong>{bikeSplitInfo.targetNpW} W</strong> ({Math.round(bikeSplitInfo.ftpFraction * 100)} % FTP) → <strong>≈ {bikeSplitInfo.avgSpeedKmh} km/h</strong> · conditions optimales (plat roulant, sans vent, position prolongateur).
+                </p>
+              )}
+
 
               {!staffMode && (
                 <div className="space-y-2">
