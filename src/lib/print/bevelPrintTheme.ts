@@ -120,7 +120,10 @@ export const BEVEL_PRINT_CSS = `
     border-radius: var(--bp-radius);
     padding: 16px 18px;
     margin-bottom: 12px;
-    page-break-inside: avoid;
+    /* Par défaut on laisse la carte se scinder entre deux pages : forcer
+       « avoid » sur des cartes hautes crée d'énormes zones vides. Les blocs
+       courts qui doivent rester d'un seul tenant portent la classe .avoid. */
+    page-break-inside: auto;
     /* Pas de dégradé radial : sur des cartes hautes, Safari/iOS le rend en
        aplat opaque et rend le texte illisible à l'impression. */
     background-image: none;
@@ -190,6 +193,7 @@ export const BEVEL_PRINT_CSS = `
   a { color: var(--bp-primary); }
   code, pre { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
 
+  .avoid, .bp-card.avoid { page-break-inside: avoid; break-inside: avoid; }
   @media print {
     body { background: #FFFFFF !important; }
     .bp-card, .card, .pillar {
