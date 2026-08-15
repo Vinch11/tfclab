@@ -116,9 +116,31 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   closeBtn.textContent = "Fermer";
   closeBtn.style.cssText = btnStyle + "background:#fff;color:#111;";
 
+  // iOS Safari ne scrolle pas à l'intérieur d'une iframe : on l'étire à la
+  // hauteur du contenu et on scrolle le conteneur parent à la place.
+  const scroller = document.createElement("div");
+  scroller.style.cssText =
+    "flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#fff;";
+
   const frame = document.createElement("iframe");
-  frame.style.cssText = "flex:1 1 auto;width:100%;border:0;background:#fff;";
+  frame.style.cssText = "display:block;width:100%;min-height:100%;border:0;background:#fff;";
+  frame.setAttribute("scrolling", "no");
   frame.setAttribute("title", filenameHint ?? "Rapport");
+
+  const syncHeight = () => {
+    try {
+      const d = frame.contentDocument;
+      if (!d?.body) return;
+      const h = Math.max(
+        d.body.scrollHeight,
+        d.documentElement?.scrollHeight ?? 0,
+        d.body.offsetHeight,
+      );
+      if (h > 0) frame.style.height = `${h + 40}px`;
+    } catch {
+      // Ignore
+    }
+  };
 
   printBtn.onclick = () => {
     try {
@@ -134,7 +156,8 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   };
 
   bar.append(title, printBtn, closeBtn);
-  overlay.append(bar, frame);
+  scroller.append(frame);
+  overlay.append(bar, scroller);
   document.body.appendChild(overlay);
   document.body.style.overflow = "hidden";
 
@@ -146,6 +169,20 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   } else {
     frame.srcdoc = html;
   }
+
+  frame.addEventListener("load", syncHeight);
+  // Le contenu (images, polices) peut arriver après le premier rendu.
+  [100, 400, 1000, 2500].forEach((ms) => setTimeout(syncHeight, ms));
+  window.addEventListener("resize", syncHeight);
+  try {
+    const inner = frame.contentDocument;
+    if (inner?.body && typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(syncHeight).observe(inner.body);
+    }
+  } catch {
+    // Ignore
+  }
+
 }
 
 /**
