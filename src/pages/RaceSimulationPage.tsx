@@ -384,14 +384,25 @@ export default function RaceSimulationPage() {
 
     const fractions = vSeuilFractionByAmbition[ambition] ?? vSeuilFractionByAmbition.age_group;
 
+    // Vélo — estimation physiologique (FTP × fraction ambition + modèle aéro/roulement)
+    // au lieu des baselines forfaitaires 300/150 min (≈ 36 km/h pour tout le monde).
+    const bikeSplit = (distanceKm: number) => estimateBikeSplit({
+      distanceKm,
+      ftp: activeSnapshot?.ftp ?? null,
+      weightKg: activeSnapshot?.weight_kg ?? null,
+      ambition,
+      position: 'tri',
+    });
+
     if (raceObjective === 'IM') {
       const runMin = computeRunMin(42.2, fractions.full) ?? 240;
-      return { bike: 300, run: Math.round(runMin) };
+      return { bike: bikeSplit(180.2)?.durationMin ?? 330, run: Math.round(runMin) };
     }
     if (raceObjective === '70.3') {
       const runMin = computeRunMin(21.1, fractions.half) ?? 105;
-      return { bike: 150, run: Math.round(runMin) };
+      return { bike: bikeSplit(90.1)?.durationMin ?? 165, run: Math.round(runMin) };
     }
+
     // Courses à pied pures — durée cohérente calculée (allure seuil × ambition),
     // plus de baseline 180/180 arbitraire qui contaminait nutrition & fiche route.
     if (raceObjective === 'Marathon') {
