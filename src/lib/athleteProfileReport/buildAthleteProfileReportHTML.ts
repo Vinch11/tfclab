@@ -387,11 +387,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   <div class="bp-header">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px">
       <div style="flex:1">
-        ${
-          d.logoBase64
-            ? `<img src="${d.logoBase64}" alt="Logo" style="height:130px;width:auto;display:block;margin-bottom:16px" />`
-            : ""
-        }
         <h1 style="font-size:26px">Mon profil physiologique</h1>
         <p style="margin:0;font-size:12.5px">Potentiel Physiologique TFCL™ — rapport personnalisé</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
