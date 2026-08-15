@@ -213,9 +213,9 @@ function metricCard(m: ReportMetric): string {
   const insufficient = m.value == null || m.value === 0 || m.status === "missing";
   return `
   <div class="bp-card" style="margin:0;padding:14px 15px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-      <div style="font-size:11.5px;font-weight:600;color:${C.inkSoft}">${esc(m.label)}</div>
-      <span class="bp-badge" style="background:${color}1a;color:${color};border-color:${color}33;white-space:nowrap">${esc(STATUS_LABEL[m.status])}</span>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
+      <div style="flex:1 1 120px;min-width:0;font-size:11.5px;font-weight:600;color:${C.inkSoft};line-height:1.35">${esc(m.label)}</div>
+      <span class="bp-badge" style="flex:0 0 auto;background:${color}1a;color:${color};border-color:${color}33;white-space:nowrap">${esc(STATUS_LABEL[m.status])}</span>
     </div>
     <div style="margin-top:6px;font-size:24px;font-weight:600;letter-spacing:-0.02em;color:${insufficient ? C.faint : C.ink}">
       ${insufficient ? `<span style="font-size:13px;font-style:italic">Données insuffisantes</span>` : `${num(m.value, m.decimals ?? 1)}<span style="font-size:12px;color:${C.muted};font-weight:500"> ${esc(m.unit)}</span>`}
@@ -374,8 +374,15 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   .wrap { max-width: 980px; margin: 0 auto; }
   h2.sec { font-size: 19px; margin: 26px 0 4px; }
   p.sub { font-size: 11.5px; color: ${C.muted}; margin: 0 0 12px; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  @media print {
+    .grid2 { grid-template-columns: 1fr 1fr; }
+    .grid3 { grid-template-columns: repeat(3, 1fr); }
+  }
+  .bp-header h1 { font-size: 26px; line-height: 1.15; }
+  table td { padding: 5px 6px; vertical-align: top; }
+  table th { padding: 4px 6px; }
   .page-break { page-break-before: always; }
   .avoid { page-break-inside: avoid; }
 </style>
@@ -385,8 +392,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   <!-- HERO -->
   <div class="bp-header">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px">
-      <div style="flex:1">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap">
+      <div style="flex:1 1 260px;min-width:0">
         <h1 style="font-size:26px">Mon profil physiologique</h1>
         <p style="margin:0;font-size:12.5px">Potentiel Physiologique TFCL™ — rapport personnalisé</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
@@ -408,8 +415,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       </div>
       ${
         d.logoBase64
-          ? `<div style="display:flex;align-items:flex-end;justify-content:center;align-self:stretch;padding-bottom:6px">
-              <img src="${d.logoBase64}" alt="Logo" style="height:160px;width:auto;display:block" />
+          ? `<div style="flex:0 1 auto;display:flex;align-items:flex-end;justify-content:center;align-self:stretch;padding-bottom:6px">
+              <img src="${d.logoBase64}" alt="Logo" style="height:112px;max-width:150px;width:auto;display:block;object-fit:contain" />
             </div>`
           : ""
       }
@@ -434,7 +441,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   <p class="sub">Ce que disent tes tests et tes données : ton moteur, ta capacité à tenir dans la durée, ta façon de produire l'énergie.</p>
 
   <div class="bp-card avoid">
-    <div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:20px;align-items:center">
+    <div class="grid2" style="grid-template-columns:0.9fr 1.1fr;gap:20px;align-items:center">
       <div>
         ${radarSVG(d.radar)}
         <div style="font-size:9.5px;color:${C.faint};text-align:center;margin-top:4px">Chaque axe est noté sur 100 par rapport aux exigences de ton objectif.</div>
