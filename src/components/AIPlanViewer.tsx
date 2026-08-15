@@ -1407,6 +1407,52 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         </Alert>
       )}
 
+      {physioDrift.items.length > 0 && (
+        <Alert className={physioDrift.needsRegeneration ? "border-amber-500/50" : "border-primary/40"}>
+          <RefreshCw className="h-4 w-4" />
+          <AlertDescription className="space-y-2">
+            <p className="text-sm font-medium">
+              Ta physiologie a évolué depuis la génération de ce plan
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {physioDrift.items.map((d) => (
+                <Badge key={d.key} variant="secondary" className="text-[10px] font-medium">
+                  {d.label} : {d.oldValue} → {d.newValue} {d.unit} ({d.pct > 0 ? "+" : ""}{d.pct}%)
+                </Badge>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {physioDrift.needsRegeneration
+                ? `Écart ≥ ${DRIFT_ALERT_PCT}% : le recalcul met les watts/allures à jour, mais un changement de palier physiologique justifie une régénération des blocs restants.`
+                : "Les watts, allures et s/100m peuvent être recalculés sans régénérer le plan (structure et pédagogie conservées)."}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleRefreshValues}>
+                <RefreshCw className="h-3 w-3" /> Actualiser mes valeurs
+              </Button>
+              {physioDrift.needsRegeneration && onRegenerateFutureWeeks && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs gap-1"
+                  disabled={isRegenerating}
+                  onClick={() => onRegenerateFutureWeeks()}
+                >
+                  <Sparkles className="h-3 w-3" /> Régénérer les semaines à venir
+                </Button>
+              )}
+              {valuesRefreshedAt && (
+                <span className="text-[10px] text-muted-foreground">
+                  Recalcul appliqué à {format(parseISO(valuesRefreshedAt), "HH:mm")} — pense à sauvegarder.
+                </span>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+
+
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (
         <CollapsibleCard
