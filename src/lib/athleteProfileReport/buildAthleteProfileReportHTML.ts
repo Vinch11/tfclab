@@ -171,50 +171,35 @@ function progressBar(t: ReportTargetProgress): string {
   </div>`;
 }
 
-/** Couleur de texte lisible (blanc/noir) selon la luminance du fond. */
-function readableOn(hex: string): string {
-  const h = (hex || "").replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-  if (full.length !== 6) return "#111111";
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
-  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-  return L > 0.55 ? "#111111" : "#FFFFFF";
-}
-
-/** Frise de périodisation (Gantt simplifié). */
-function roadmapSVG(r: ReportRoadmap): string {
-  const W = 900;
-  const rowH = 46;
-  const top = 26;
-  const left = 16;
-  const right = 16;
-  const H = top + r.phases.length * rowH + 34;
-  const plot = W - left - right;
-  const wk = plot / Math.max(1, r.totalWeeks);
-
-  const ticks = Array.from({ length: r.totalWeeks }, (_, i) => i + 1)
-    .filter((w) => w === 1 || w % (r.totalWeeks > 16 ? 4 : 2) === 0)
-    .map((w) => {
-      const x = left + (w - 1) * wk;
-      return `<line x1="${x.toFixed(1)}" y1="${top - 8}" x2="${x.toFixed(1)}" y2="${H - 26}" stroke="${C.line}" stroke-width="0.7" stroke-dasharray="2 6" />
-        <text x="${x.toFixed(1)}" y="${H - 12}" font-size="9.5" fill="${C.faint}" text-anchor="middle">S${w}</text>`;
+/** Frise de périodisation responsive : les libellés restent hors des barres. */
+function roadmapChart(r: ReportRoadmap): string {
+  const total = Math.max(1, r.totalWeeks);
+  const tickStep = total > 16 ? 4 : 2;
+  const ticks = Array.from({ length: total }, (_, i) => i + 1)
+    .filter((week) => week === 1 || week === total || week % tickStep === 0)
+    .map((week) => {
+      const left = ((week - 1) / Math.max(1, total - 1)) * 100;
+      return `<span class="roadmap-tick" style="left:${left.toFixed(2)}%">S${week}</span>`;
     })
     .join("");
 
-  const bars = r.phases
-    .map((p, i) => {
-      const x = left + (p.startWeek - 1) * wk;
-      const w = Math.max(12, (p.endWeek - p.startWeek + 1) * wk);
-      const y = top + i * rowH;
-      return `
-        <rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="26" rx="8" fill="${p.color}" />
-        <text x="${(x + 10).toFixed(1)}" y="${y + 17}" font-size="11" font-weight="600" fill="${readableOn(p.color)}">${esc(p.name)}</text>
-        <text x="${(x + 10).toFixed(1)}" y="${y + 38}" font-size="9.5" fill="${C.muted}">${esc(p.subtitle)} · S${p.startWeek}–S${p.endWeek}</text>`;
+  const rows = r.phases
+    .map((phase) => {
+      const left = ((phase.startWeek - 1) / total) * 100;
+      const width = ((phase.endWeek - phase.startWeek + 1) / total) * 100;
+      return `<div class="roadmap-row">
+        <div class="roadmap-label">
+          <strong><span style="background:${phase.color}"></span>Bloc ${phase.id} · ${esc(phase.name)}</strong>
+          <small>${esc(phase.subtitle)} · S${phase.startWeek}–S${phase.endWeek}</small>
+        </div>
+        <div class="roadmap-track" aria-label="Bloc ${phase.id}, semaines ${phase.startWeek} à ${phase.endWeek}">
+          <div class="roadmap-bar" style="left:${left.toFixed(2)}%;width:${Math.max(width, 3).toFixed(2)}%;background:${phase.color}"></div>
+        </div>
+      </div>`;
     })
     .join("");
 
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">${ticks}${bars}</svg>`;
+  return `<div class="roadmap-chart">${rows}<div class="roadmap-axis">${ticks}</div></div>`;
 }
 
 // ── blocs ──────────────────────────────────────────────────────────────────
@@ -387,15 +372,36 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   p.sub { font-size: 11.5px; color: ${C.muted}; margin: 0 0 12px; }
   .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
   .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  h2.sec, h2.sec + p.sub { break-after: avoid; page-break-after: avoid; }
+  .section-start { break-before: page; page-break-before: always; }
+  .roadmap-chart { padding:4px 2px 2px; }
+  .roadmap-row { display:grid;grid-template-columns:minmax(190px, 31%) 1fr;gap:14px;align-items:center;margin:0 0 16px;break-inside:avoid; }
+  .roadmap-label { min-width:0;line-height:1.25; }
+  .roadmap-label strong { display:block;font-size:12px;color:${C.ink}; }
+  .roadmap-label strong span { display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px; }
+  .roadmap-label small { display:block;font-size:9.5px;color:${C.muted};margin:3px 0 0 15px; }
+  .roadmap-track { position:relative;height:24px;border-radius:7px;background:${C.surfaceAlt};overflow:hidden; }
+  .roadmap-track::after { content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(16.666% - 1px),${C.line} calc(16.666% - 1px),${C.line} 16.666%);opacity:.75; }
+  .roadmap-bar { position:absolute;top:4px;bottom:4px;border-radius:5px;z-index:1;min-width:6px; }
+  .roadmap-axis { position:relative;height:18px;margin-left:calc(31% + 14px);border-top:1px solid ${C.line}; }
+  .roadmap-tick { position:absolute;top:3px;transform:translateX(-50%);font-size:9px;color:${C.faint};white-space:nowrap; }
+  .phase-card { padding:13px 15px !important; }
+  .phase-card ul { margin-top:2px !important;margin-bottom:0 !important; }
   @media print {
     .grid2 { grid-template-columns: 1fr 1fr; }
     .grid3 { grid-template-columns: repeat(3, 1fr); }
+    body { padding:0; }
+  }
+  @media (max-width: 620px) {
+    .roadmap-row { grid-template-columns:1fr;gap:6px;margin-bottom:18px; }
+    .roadmap-label small { font-size:10px; }
+    .roadmap-track { height:22px; }
+    .roadmap-axis { margin-left:0; }
   }
   .bp-header h1 { font-size: 24px; line-height: 1.15; }
   .bp-header img { max-height: 84px !important; }
   table td { padding: 5px 6px; vertical-align: top; }
   table th { padding: 4px 6px; }
-  .page-break { page-break-before: always; }
   .avoid { page-break-inside: avoid; }
 </style>
 </head>
@@ -485,8 +491,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   }
 
   <!-- 2. LIMITEURS -->
-  <div class="page-break"></div>
-  <h2 class="sec">2 · Tes limiteurs</h2>
+  <h2 class="sec section-start">2 · Tes limiteurs</h2>
   <p class="sub">Un limiteur, c'est le maillon qui freine ta performance aujourd'hui. Le travailler rapporte plus que d'entretenir ce que tu sais déjà faire.</p>
   ${d.limiters.length ? d.limiters.map(limiterCard).join("") : `<div class="bp-card"><em style="color:${C.muted}">Aucun limiteur dominant détecté : profil équilibré pour cet objectif.</em></div>`}
 
@@ -512,18 +517,17 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   <!-- 4. PLANIFICATION -->
   ${
     d.roadmap
-      ? `<div class="page-break"></div>
-        <h2 class="sec">4 · Le schéma de planification</h2>
+      ? `<h2 class="sec section-start">4 · Le schéma de planification</h2>
         <p class="sub">${esc(d.roadmap.title)} — ${d.roadmap.totalWeeks} semaines. ${d.roadmap.personalized ? "Périodisation adaptée à tes limiteurs." : "Périodisation de référence pour ton objectif."}</p>
         <div class="bp-card avoid">
           ${d.roadmap.limiterSummary ? `<div style="font-size:11px;color:${C.primary};background:${C.primarySoft};border-radius:8px;padding:8px 10px;margin-bottom:12px">${rich(d.roadmap.limiterSummary)}</div>` : ""}
-          ${roadmapSVG(d.roadmap)}
+          ${roadmapChart(d.roadmap)}
         </div>
         <div>
           ${d.roadmap.phases
             .map((p, i, arr) => {
               const ped = buildPhasePedagogy(p, arr.length);
-              return `<div class="bp-card avoid" style="margin-top:12px;border-left:4px solid ${p.color}">
+              return `<div class="bp-card avoid phase-card" style="margin-top:12px;border-left:4px solid ${p.color}">
                 <div style="display:flex;align-items:center;gap:8px">
                   <span style="width:12px;height:12px;border-radius:4px;background:${p.color};display:inline-block"></span>
                   <span style="font-size:13.5px;font-weight:700;color:${C.ink}">Bloc ${p.id} · ${esc(p.name)}</span>
@@ -563,8 +567,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   <!-- 5. ZONES -->
   ${
     d.zoneSets.length
-      ? `<div class="page-break"></div>
-         <h2 class="sec">5 · Tes zones d'entraînement</h2>
+      ? `<h2 class="sec section-start">5 · Tes zones d'entraînement</h2>
          <p class="sub">Ces zones sont ancrées sur ta physiologie (seuil, FatMax, VO₂max) et non sur une grille générique. Ce sont elles qui pilotent tes séances.</p>
          ${d.zoneSets.map(zoneTable).join("")}`
       : ""
