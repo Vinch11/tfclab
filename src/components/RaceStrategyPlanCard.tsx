@@ -16,7 +16,7 @@ import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Activity, ChevronRight, ShieldCheck, Target, Flame, AlertTriangle, Info, Gauge, HeartPulse, Mountain, TrendingUp } from "lucide-react";
+import { Activity, ChevronRight, ShieldCheck, Target, Flame, AlertTriangle, Info, Gauge, HeartPulse, Mountain, TrendingUp, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PacingEnvelopeResult, RaceObjective } from "@/lib/v2/pacingEnvelopeEngine";
 
@@ -59,6 +59,8 @@ interface ScenarioBlock {
   effortRef: EffortRef;
   centerPct: number;
   highPct: number;
+  /** Fourchette chrono estimée en conditions optimales (sec). Null si données insuffisantes. */
+  timeRangeSec: { fastSec: number; slowSec: number } | null;
 }
 
 interface RaceStrategyPlanCardProps {
@@ -72,6 +74,8 @@ interface RaceStrategyPlanCardProps {
   disponibiliteScore?: number | null;
   /** Cible CHO canonique (g/h) issue du moteur nutrition unifié. Null → cue générique. */
   carbsTargetGH?: number | null;
+  /** Distance du segment couru (km). Par défaut déduite de l'objectif. */
+  raceDistanceKm?: number | null;
   className?: string;
 }
 
@@ -152,6 +156,45 @@ function targetForRange(
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Fourchette chrono estimée (conditions optimales)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Distance du segment couru selon l'objectif (km). Null si non déterminable. */
+const RUN_DISTANCE_BY_OBJECTIVE: Record<string, number> = {
+  "10km": 10,
+  Semi: 21.0975,
+  Marathon: 42.195,
+  "70.3": 21.0975,
+  IM: 42.195,
+};
+
+function fmtDuration(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.round((sec % 3600) / 60);
+  if (h > 0) return `${h}h${m.toString().padStart(2, "0")}`;
+  return `${m} min`;
+}
+
+/**
+ * Fourchette chrono d'un scénario, en conditions optimales (pas de vent, chaleur,
+ * bouchon ni dénivelé). Uniquement pour la course à pied : en vélo, le chrono dépend
+ * trop de l'aéro et du parcours pour être annoncé honnêtement.
+ */
+function estimateScenarioTimeRange(
+  ref: EffortRef,
+  discipline: "bike" | "run",
+  distanceKm: number | null,
+): { fastSec: number; slowSec: number } | null {
+  if (discipline !== "run") return null;
+  if (!distanceKm || distanceKm <= 0) return null;
+  if (!ref.npLow || !ref.npHigh || ref.npLow <= 0 || ref.npHigh <= 0) return null;
+  const fastSec = Math.round(ref.npLow * distanceKm);
+  const slowSec = Math.round(ref.npHigh * distanceKm);
+  if (!Number.isFinite(fastSec) || !Number.isFinite(slowSec)) return null;
+  return { fastSec: Math.min(fastSec, slowSec), slowSec: Math.max(fastSec, slowSec) };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Construction des scénarios (à partir du couloir + objectif + discipline)
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -207,6 +250,13 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
     { lowPct: ambitiousHigh, centerPct: aggressiveHigh, highPct: aggressiveOver, toleratedPct: toleratedPct },
     discipline, raceDurationMin, ftp, paceThresholdSecKm, hrThresholdBpm,
   );
+
+  // ──── Fourchettes chrono (conditions optimales, run uniquement)
+  const distanceKm = props.raceDistanceKm ?? RUN_DISTANCE_BY_OBJECTIVE[String(raceObjective)] ?? null;
+  const timeRobust = estimateScenarioTimeRange(refRobust, discipline, distanceKm);
+  const timeAmbitious = estimateScenarioTimeRange(refAmbitious, discipline, distanceKm);
+  const timeAggressive = estimateScenarioTimeRange(refAggressive, discipline, distanceKm);
+
 
   // ──── Templates de splits par scénario × discipline
   const robustSplits = (): SplitRow[] => {
@@ -294,6 +344,7 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       effortRef: refRobust,
       centerPct: robustCenter,
       highPct: ambitiousCenter,
+      timeRangeSec: timeRobust,
     },
     {
       key: "AMBITIOUS",
@@ -313,6 +364,7 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       effortRef: refAmbitious,
       centerPct: ambitiousCenter,
       highPct: ambitiousHigh,
+      timeRangeSec: timeAmbitious,
     },
     {
       key: "AGGRESSIVE",
@@ -332,6 +384,7 @@ function buildScenarios(props: RaceStrategyPlanCardProps): ScenarioBlock[] {
       effortRef: refAggressive,
       centerPct: aggressiveHigh,
       highPct: aggressiveOver,
+      timeRangeSec: timeAggressive,
     },
   ];
 }
@@ -517,6 +570,22 @@ function ScenarioCard({ scenario, discipline }: { scenario: ScenarioBlock; disci
           </div>
         </div>
 
+        {/* Fourchette chrono estimée */}
+        {scenario.timeRangeSec && (
+          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+              <Timer className="h-3 w-3 text-emerald-600" /> Fourchette estimée — conditions optimales
+            </div>
+            <div className="text-lg font-bold font-mono mt-1">
+              {fmtDuration(scenario.timeRangeSec.fastSec)} – {fmtDuration(scenario.timeRangeSec.slowSec)}
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-snug mt-1">
+              Repère physiologique déduit de ton couloir d'allure : ce que ton profil actuel permet si tout
+              est parfait. Ne tient pas compte du vent, de la chaleur, du dénivelé ni de la tactique.
+            </p>
+          </div>
+        )}
+
         {/* Repères d'effort — fiche route synthétique */}
         <EffortRefBlock effortRef={scenario.effortRef} discipline={discipline} />
 
@@ -623,6 +692,7 @@ export function RaceStrategyPlanCard(props: RaceStrategyPlanCardProps) {
               <tr className="text-left text-muted-foreground border-b">
                 <th className="py-1.5 pr-2">Scénario</th>
                 <th className="py-1.5 pr-2">Stratégie</th>
+                <th className="py-1.5 pr-2 text-right">Chrono estimé</th>
                 <th className="py-1.5 pr-2 text-right">Échec</th>
                 <th className="py-1.5 pr-2 text-right">Coût</th>
                 <th className="py-1.5 pr-2">Robustesse</th>
@@ -637,6 +707,11 @@ export function RaceStrategyPlanCard(props: RaceStrategyPlanCardProps) {
                       {s.emoji} {s.label}
                     </td>
                     <td className="py-1.5 pr-2 text-muted-foreground">{s.strategyLabel}</td>
+                    <td className="py-1.5 pr-2 text-right font-mono">
+                      {s.timeRangeSec
+                        ? `${fmtDuration(s.timeRangeSec.fastSec)}–${fmtDuration(s.timeRangeSec.slowSec)}`
+                        : "—"}
+                    </td>
                     <td className="py-1.5 pr-2 text-right font-mono">{s.failureProbPct}%</td>
                     <td className="py-1.5 pr-2 text-right font-mono">{s.metabolicCost}/100</td>
                     <td className={cn("py-1.5 pr-2 font-medium", rob.cls)}>{rob.label}</td>
