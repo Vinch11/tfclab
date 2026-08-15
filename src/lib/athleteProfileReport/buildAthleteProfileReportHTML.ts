@@ -171,6 +171,17 @@ function progressBar(t: ReportTargetProgress): string {
   </div>`;
 }
 
+/** Couleur de texte lisible (blanc/noir) selon la luminance du fond. */
+function readableOn(hex: string): string {
+  const h = (hex || "").replace("#", "");
+  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  if (full.length !== 6) return "#111111";
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  return L > 0.55 ? "#111111" : "#FFFFFF";
+}
+
 /** Frise de périodisation (Gantt simplifié). */
 function roadmapSVG(r: ReportRoadmap): string {
   const W = 900;
@@ -197,8 +208,8 @@ function roadmapSVG(r: ReportRoadmap): string {
       const w = Math.max(12, (p.endWeek - p.startWeek + 1) * wk);
       const y = top + i * rowH;
       return `
-        <rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="26" rx="8" fill="${p.color}" opacity="0.92" />
-        <text x="${(x + 10).toFixed(1)}" y="${y + 17}" font-size="11" font-weight="600" fill="${C.ink}">${esc(p.name)}</text>
+        <rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="26" rx="8" fill="${p.color}" />
+        <text x="${(x + 10).toFixed(1)}" y="${y + 17}" font-size="11" font-weight="600" fill="${readableOn(p.color)}">${esc(p.name)}</text>
         <text x="${(x + 10).toFixed(1)}" y="${y + 38}" font-size="9.5" fill="${C.muted}">${esc(p.subtitle)} · S${p.startWeek}–S${p.endWeek}</text>`;
     })
     .join("");
@@ -380,7 +391,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     .grid2 { grid-template-columns: 1fr 1fr; }
     .grid3 { grid-template-columns: repeat(3, 1fr); }
   }
-  .bp-header h1 { font-size: 26px; line-height: 1.15; }
+  .bp-header h1 { font-size: 24px; line-height: 1.15; }
+  .bp-header img { max-height: 84px !important; }
   table td { padding: 5px 6px; vertical-align: top; }
   table th { padding: 4px 6px; }
   .page-break { page-break-before: always; }
@@ -392,9 +404,9 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   <!-- HERO -->
   <div class="bp-header">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap">
-      <div style="flex:1 1 260px;min-width:0">
-        <h1 style="font-size:26px">Mon profil physiologique</h1>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:nowrap">
+      <div style="flex:1 1 auto;min-width:0">
+        <h1 style="font-size:24px">Mon profil physiologique</h1>
         <p style="margin:0;font-size:12.5px">Potentiel Physiologique TFCL™ — rapport personnalisé</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
           ${[
@@ -415,15 +427,15 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       </div>
       ${
         d.logoBase64
-          ? `<div style="flex:0 1 auto;display:flex;align-items:flex-end;justify-content:center;align-self:stretch;padding-bottom:6px">
-              <img src="${d.logoBase64}" alt="Logo" style="height:112px;max-width:150px;width:auto;display:block;object-fit:contain" />
+          ? `<div style="flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding-top:4px">
+              <img src="${d.logoBase64}" alt="Logo" style="height:84px;max-height:84px;max-width:120px;width:auto;display:block;object-fit:contain" />
             </div>`
           : ""
       }
-      <div style="text-align:center;min-width:120px">
+      <div style="flex:0 0 auto;text-align:center;width:112px">
 
-        <div style="width:104px;height:104px;border-radius:50%;background:rgba(255,255,255,0.14);border:3px solid rgba(255,255,255,0.55);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto">
-          <div style="font-size:30px;font-weight:700;color:#fff;line-height:1">${Math.round(d.readiness.score)}</div>
+        <div style="width:88px;height:88px;border-radius:50%;background:rgba(255,255,255,0.14);border:3px solid rgba(255,255,255,0.55);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto">
+          <div style="font-size:26px;font-weight:700;color:#fff;line-height:1">${Math.round(d.readiness.score)}</div>
           <div style="font-size:9px;color:rgba(255,255,255,0.8);letter-spacing:0.05em">/ 100</div>
         </div>
         <div style="font-size:11.5px;font-weight:600;color:#fff;margin-top:8px">${esc(d.readiness.label)}</div>
