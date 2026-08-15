@@ -1,0 +1,26 @@
+import { buildAthleteProfileReportHTML } from "@/lib/athleteProfileReport/buildAthleteProfileReportHTML";
+import type { AthleteProfileReportInput } from "@/lib/athleteProfileReport/types";
+const m = (key:string,label:string,value:number|null,unit:string,scale:[number,number],target:[number,number],status:any,meaning:string)=>({key,label,value,unit,scale,target,status,meaning,source:"snapshot",confidence:0.6,decimals:key==="vla"?2:1});
+const d: AthleteProfileReportInput = {
+ athleteName:"Vince",objectifLabel:"703",ambitionLabel:"Compétiteur",age:42,generatedAt:"15/08/2026",snapshotDate:"2026-06-30",dataCompleteness:79,
+ readiness:{score:90,label:"Prêt",confidence:0.7,message:"Ton système glycolytique consomme trop vite ton carburant. On va l'optimiser avec du travail d'endurance spécifique."},
+ profileNarrative:"VLamax trop haute : consommation glycogène excessive. On va l'optimiser avec du travail d'endurance spécifique. On évite les sprints pour l'instant.",
+ metrics:[m("vo2","VO₂max — cylindrée du moteur",54,"ml/kg/min",[30,80],[50,70],"ok","La quantité maximale d'oxygène que ton corps peut utiliser."),
+  m("vla","VLamax — vitesse de production de lactate",0.59,"mmol/L/s",[0,1],[0.3,0.48],"bad","À quelle vitesse tu produis du lactate."),
+  m("tte","TTE — endurance au seuil",40,"min",[10,90],[50,70],"bad","Le temps que tu peux tenir à ton seuil."),
+  m("ftp","FTP / kg — puissance relative",3.29,"W/kg",[2,6],[4,4.8],"bad","La puissance que tu peux tenir environ une heure."),
+  m("fm","FatMax — intensité de meilleure combustion des graisses",61,"% FTP",[40,90],[60,78],"ok","L'intensité où tu utilises le plus de graisses."),
+  m("vma","VMA — vitesse maximale aérobie",16.5,"km/h",[10,24],[16,21],"ok","La vitesse à laquelle tu atteins ton VO₂max en course.")],
+ radar:[{label:"VO₂",shortLabel:"VO₂",score:83,value:54,target:60,unit:""},{label:"VLamax",shortLabel:"VLamax",score:64,value:0.59,target:0.4,unit:""},{label:"FTP/kg",shortLabel:"FTP/kg",score:81,value:3.3,target:4,unit:""},{label:"Durabilité",shortLabel:"Durabilité",score:79,value:40,target:50,unit:""}],
+ economyAxis:{label:"Économie de Course",shortLabel:"Éco",score:88,value:null,target:null,unit:""},
+ targetProgress:[{label:"VLamax",current:0.59,target:0.38,unit:"mmol/L/s",decimals:2,progress:64,reached:false},{label:"TTE (endurance au seuil)",current:40,target:50,unit:"min",decimals:0,progress:80,reached:false},{label:"FTP / kg",current:3.29,target:4,unit:"W/kg",decimals:2,progress:82,reached:false}],
+ limiters:[1,2,3].map(r=>({rank:r,title:r===3?"Moteur aérobie":"Système glycolytique",emoji:"🫁",severityLabel:r===1?"dominant":"secondaire",impact:r===1?60:15,fieldFeeling:"Tu plafonnes dès que l'effort dépasse ~20 minutes en zone soutenue : la cadence baisse, la respiration s'emballe.",mechanism:"Ton moteur aérobie ne fournit pas assez d'énergie en continu, donc l'organisme bascule trop tôt sur les sucres.",evidence:["FTP/kg : écart -1 %"]})),
+ levers:[1,2,3,4].map(p=>({title:p%2?"Endurance Métabolique":"Travail au Seuil",emoji:"🔥",description:"TTE 18% sous la cible (40min vs 49min) — développer la durabilité",adaptations:p%2?["VLamax ↓","FatMax ↑","Durabilité ↑"]:[],workouts:p%2?["Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)","2×20-30min au seuil pour augmenter le TTE","Z2 + bloc tempo final 20-30min"]:[],priority:1})),
+ decision:{block:"Semaine Endurance Métabolique",durationWeeks:6,workouts:["Sorties longues Z2"],physiologicalTargets:["VLamax ↓"],prohibitions:["Sprints"],athleteMessage:"On installe la durabilité."},
+ zoneSets:[{sportLabel:"Course à pied",source:"derived",confidence:0.85,anchors:["Vitesse seuil 13.2 km/h (4:32/km) — mesurée","vVO2max ≥ 125 % du seuil"],fallbackReason:null,zones:["Z1","Z2","Z3","Z4","Z5","Z6"].map((id,i)=>({id,label:["Récupération","Endurance / FatMax","Tempo","Seuil (MLSS)","VO2max","Neuromusculaire"][i],condition:"En dessous de LT1 — aucun stress métabolique",pctRef:`${70+i*10}–${80+i*10} %`,refLabel:"% vitesse seuil",absolute:i?"5:29–6:14/km":null,heartRate:i<5?`${110+i*12}–${145+i*10} bpm`:null,hrPct:i<5?`${58+i*8}–${76+i*5} %`:null}))}],
+ roadmap:{title:"Périodisation 703",totalWeeks:24,personalized:true,limiterSummary:"Bloc VLamax prioritaire",phases:[0,1,2,3].map(i=>({id:i+1,name:["Neuro & Vélocité","Chantier VLamax ↓","Spécifique","Affûtage"][i],subtitle:"Développer VO2max et rappels de vitesse",startWeek:1+i*6,endWeek:6+i*6,color:["#2B2933","#5555E0","#A8E3CB","#C8860D"][i],focus:"Développer VO2max et rappels de vitesse",levers:["VO2max intervals","Sprints","Sprint Ban ⛔"],targets:["Maintenir VLamax stable (pas d'augmentation)"]}))},
+ nextSteps:["Enchaîner le bloc **Semaine Endurance Métabolique** pendant 6 semaines.","Refaire un point de contrôle dans 6 à 8 semaines."],
+ glossary:[["VO₂max","Quantité maximale d'oxygène utilisable par minute."],["VLamax","Vitesse maximale de production de lactate."],["Seuil (MLSS)","Intensité la plus haute que tu peux tenir sans accumuler de lactate."],["TTE","Temps que tu peux tenir à ton seuil."]].map(([term,definition])=>({term,definition})),
+ logoBase64:null,
+};
+await Bun.write("/tmp/rep/out.html", buildAthleteProfileReportHTML(d));
