@@ -338,7 +338,7 @@ function zoneTable(z: ReportZoneSet): string {
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div style="font-size:14px;font-weight:600;color:${C.ink}">${esc(z.sportLabel)}</div>
       <span class="bp-badge ${z.source === "derived" ? "bp-badge--ok" : "bp-badge--muted"}">
-        ${z.source === "derived" ? `Zones calculées sur ta physiologie · fiabilité ${Math.round(z.confidence * 100)} %` : "Grille standard (données insuffisantes)"}
+        ${z.source === "derived" ? "Zones calculées sur ta physiologie" : "Grille standard (données insuffisantes)"}
       </span>
     </div>
     ${z.anchors.length ? `<div style="font-size:9.5px;color:${C.faint};margin-bottom:8px">Ancrages : ${z.anchors.map(esc).join(" · ")}</div>` : ""}
