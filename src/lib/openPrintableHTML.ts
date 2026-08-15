@@ -170,8 +170,9 @@ function openInlineOverlay(html: string, filenameHint?: string): void {
   bar.append(title, printBtn, closeBtn);
   stage.append(frame);
   scroller.append(stage);
-
+  overlay.append(bar, scroller);
   document.body.appendChild(overlay);
+
   document.body.style.overflow = "hidden";
 
   const doc = frame.contentWindow?.document;
