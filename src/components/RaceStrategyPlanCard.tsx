@@ -59,6 +59,8 @@ interface ScenarioBlock {
   effortRef: EffortRef;
   centerPct: number;
   highPct: number;
+  /** Fourchette chrono estimée en conditions optimales (sec). Null si données insuffisantes. */
+  timeRangeSec: { fastSec: number; slowSec: number } | null;
 }
 
 interface RaceStrategyPlanCardProps {
@@ -72,6 +74,8 @@ interface RaceStrategyPlanCardProps {
   disponibiliteScore?: number | null;
   /** Cible CHO canonique (g/h) issue du moteur nutrition unifié. Null → cue générique. */
   carbsTargetGH?: number | null;
+  /** Distance du segment couru (km). Par défaut déduite de l'objectif. */
+  raceDistanceKm?: number | null;
   className?: string;
 }
 
