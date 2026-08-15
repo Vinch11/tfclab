@@ -156,6 +156,45 @@ function targetForRange(
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Fourchette chrono estimée (conditions optimales)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Distance du segment couru selon l'objectif (km). Null si non déterminable. */
+const RUN_DISTANCE_BY_OBJECTIVE: Record<string, number> = {
+  "10km": 10,
+  Semi: 21.0975,
+  Marathon: 42.195,
+  "70.3": 21.0975,
+  IM: 42.195,
+};
+
+function fmtDuration(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.round((sec % 3600) / 60);
+  if (h > 0) return `${h}h${m.toString().padStart(2, "0")}`;
+  return `${m} min`;
+}
+
+/**
+ * Fourchette chrono d'un scénario, en conditions optimales (pas de vent, chaleur,
+ * bouchon ni dénivelé). Uniquement pour la course à pied : en vélo, le chrono dépend
+ * trop de l'aéro et du parcours pour être annoncé honnêtement.
+ */
+function estimateScenarioTimeRange(
+  ref: EffortRef,
+  discipline: "bike" | "run",
+  distanceKm: number | null,
+): { fastSec: number; slowSec: number } | null {
+  if (discipline !== "run") return null;
+  if (!distanceKm || distanceKm <= 0) return null;
+  if (!ref.npLow || !ref.npHigh || ref.npLow <= 0 || ref.npHigh <= 0) return null;
+  const fastSec = Math.round(ref.npLow * distanceKm);
+  const slowSec = Math.round(ref.npHigh * distanceKm);
+  if (!Number.isFinite(fastSec) || !Number.isFinite(slowSec)) return null;
+  return { fastSec: Math.min(fastSec, slowSec), slowSec: Math.max(fastSec, slowSec) };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Construction des scénarios (à partir du couloir + objectif + discipline)
 // ──────────────────────────────────────────────────────────────────────────────
 
