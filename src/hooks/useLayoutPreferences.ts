@@ -404,6 +404,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       insertMissing("vlamax-profile-scale", ["vlamax-targets", "fatmax-tfcl", "coaching-compass"]);
       insertMissing("tte-glycogen-insights", ["vlamax-profile-scale", "coaching-compass", "analyse-section"]);
       insertMissing("vlamax-profile-scale-profil", ["vlamax-v2-calibration-profil", "fatmax-tfcl-profil", "lactate-thresholds-profil"]);
+      insertMissing("nolio-analysis", ["two-for-coaching", "athlete-profile", "athlete-refs"]);
       insertMissing("fat-carb-combustion-profil", ["fatmax-tfcl-profil", "vo2max-age-profil"]);
 
       return [...merged, ...missingConfigs];
