@@ -27,6 +27,15 @@
  */
 
 import type { RaceRecordsInput } from "@/lib/v2/vlamaxRunV2Enhanced";
+import { estimateCdA, solveSpeed, BIKE_KIT_KG, type BikeAmbition } from "@/lib/v2/bikeSplitEstimator";
+
+/** Niveau aéro/matériel déduit du rapport poids-puissance (CdA réaliste). */
+function bikeAmbitionFromWkg(wkg: number): BikeAmbition {
+  if (wkg >= 4.5) return "elite";
+  if (wkg >= 3.8) return "competitor";
+  if (wkg >= 3.0) return "age_group";
+  return "finisher";
+}
 
 // =============================================
 // TYPES
@@ -94,15 +103,21 @@ interface RaceDefinition {
   sport: "velo" | "cap" | "triathlon";
   durationFactor: number;     // base factor for time calculation
   intensityRange: [number, number]; // typical %FTP or %VMA range
+  /** Distance réelle en km (vélo) — utilisée par le modèle physique. */
+  distanceKm?: number;
+  /** Position aéro par défaut (vélo). */
+  position?: "tri" | "road";
+  /** Perte parcours (relances, virages, vent, dénivelé). 1 = plat parfait. */
+  terrainFactor?: number;
   segments?: { sport: "swim" | "velo" | "cap"; distanceKm: number }[];
 }
 
 const RACES: RaceDefinition[] = [
   // Cycling
-  { id: "tt20", name: "Chrono 20km", distance: "20km", sport: "velo", durationFactor: 0.45, intensityRange: [95, 105] },
-  { id: "tt40", name: "Chrono 40km", distance: "40km", sport: "velo", durationFactor: 0.92, intensityRange: [90, 100] },
-  { id: "gf100", name: "Gran Fondo 100km", distance: "100km", sport: "velo", durationFactor: 2.8, intensityRange: [75, 85] },
-  { id: "gf160", name: "Gran Fondo 160km", distance: "160km", sport: "velo", durationFactor: 4.8, intensityRange: [68, 78] },
+  { id: "tt20", name: "Chrono 20km", distance: "20km", sport: "velo", durationFactor: 0.45, intensityRange: [95, 105], distanceKm: 20, position: "tri", terrainFactor: 0.96 },
+  { id: "tt40", name: "Chrono 40km", distance: "40km", sport: "velo", durationFactor: 0.92, intensityRange: [90, 100], distanceKm: 40, position: "tri", terrainFactor: 0.95 },
+  { id: "gf100", name: "Gran Fondo 100km", distance: "100km", sport: "velo", durationFactor: 2.8, intensityRange: [75, 85], distanceKm: 100, position: "road", terrainFactor: 0.90 },
+  { id: "gf160", name: "Gran Fondo 160km", distance: "160km", sport: "velo", durationFactor: 4.8, intensityRange: [68, 78], distanceKm: 160, position: "road", terrainFactor: 0.88 },
   // Running
   { id: "10k", name: "10 km", distance: "10km", sport: "cap", durationFactor: 0.65, intensityRange: [90, 98] },
   { id: "semi", name: "Semi-Marathon", distance: "21.1km", sport: "cap", durationFactor: 1.45, intensityRange: [85, 92] },
@@ -319,14 +334,15 @@ function estimateBaseTime(
     : 0.92;
 
   if (race.sport === "velo") {
-    // TODO(perf-v2): passer à une relation puissance-vitesse non-linéaire
-    // (traînée aéro cubique : v ∝ (P/CdA)^(1/3)). Pour l'instant modèle
-    // linéaire ftpWkg — sous-estime les écarts à haute vitesse (>40km/h)
-    // et sur profils vallonnés.
+    // Modèle physique (Martin 1998) : P = ½·ρ·CdA·v³ + Crr·m·g·v
     const effectiveFTP = ftp ?? (vo2max * 0.075 - vlamax * 0.45) * weight;
-    const ftpWkg = effectiveFTP / weight;
-    const baseMin = race.durationFactor * 60 / (ftpWkg * 1.1);
-    return Math.max(race.durationFactor * 15, baseMin);
+    const distKm = race.distanceKm ?? parseFloat(race.distance);
+    const frac = ((race.intensityRange[0] + race.intensityRange[1]) / 2) / 100;
+    const np = effectiveFTP * frac;
+    const cda = estimateCdA(weight, race.position ?? "road", bikeAmbitionFromWkg(effectiveFTP / weight));
+    const v = solveSpeed(np, weight + BIKE_KIT_KG, cda, race.terrainFactor ?? 0.92);
+    const speedKmh = v * 3.6;
+    return (distKm / speedKmh) * 60;
   }
 
   if (race.sport === "cap") {
@@ -346,12 +362,17 @@ function estimateBaseTime(
         const cssSecPer100 = input.css ?? (200 - vo2max * 1.2);
         totalMin += (seg.distanceKm * 1000 / 100) * cssSecPer100 / 60;
       } else if (seg.sport === "velo") {
-        // TODO(perf-v2): idem vélo standalone — modèle non-linéaire à venir.
+        // Modèle physique identique au vélo standalone (position triathlon).
         const effectiveFTP = ftp ?? (vo2max * 0.075 - vlamax * 0.45) * weight;
-        const ftpWkg = effectiveFTP / weight;
-        const bikeFraction = race.durationFactor > 4 ? 0.72 : 0.82;
-        const avgSpeed = 20 + ftpWkg * bikeFraction * 8;
-        totalMin += (seg.distanceKm / avgSpeed) * 60;
+        const bikeFraction = race.durationFactor > 8 ? 0.68
+          : race.durationFactor > 4 ? 0.74
+            : race.durationFactor > 2 ? 0.82
+              : 0.88;
+        const np = effectiveFTP * bikeFraction;
+        const cda = estimateCdA(weight, "tri", bikeAmbitionFromWkg(effectiveFTP / weight));
+        const terrain = race.durationFactor > 4 ? 0.90 : 0.92;
+        const v = solveSpeed(np, weight + BIKE_KIT_KG, cda, terrain);
+        totalMin += (seg.distanceKm / (v * 3.6)) * 60;
       } else {
         // Run off bike : réutilise la fraction soutenable + dégradation
         // (crossover VLamax-dépendant s'applique aussi, on la reflète
@@ -417,8 +438,9 @@ function assessGlycogenRisk(durationMin: number, carbsGH: number): "low" | "mode
 // =============================================
 
 function formatTime(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = Math.round(minutes % 60);
+  const total = Math.round(minutes);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
   if (h === 0) return `${m}min`;
   return `${h}h${m.toString().padStart(2, "0")}`;
 }

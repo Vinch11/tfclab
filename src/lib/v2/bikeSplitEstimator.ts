@@ -22,7 +22,7 @@ const RHO = 1.225;        // kg/m³ — air au niveau de la mer, ~15 °C
 const G = 9.81;
 const CRR = 0.005;        // pneus route corrects sur asphalte
 const DRIVETRAIN = 0.975; // rendement transmission
-const BIKE_KIT_KG = 9;    // vélo + casque + bidons + nutrition
+export const BIKE_KIT_KG = 9;    // vélo + casque + bidons + nutrition
 
 /** Fraction de FTP soutenable (NP) selon la durée du segment et l'ambition. */
 function ftpFraction(distanceKm: number, ambition: BikeAmbition): number {
@@ -39,7 +39,7 @@ function ftpFraction(distanceKm: number, ambition: BikeAmbition): number {
  * Mise à l'échelle sur la masse corporelle (surface frontale ∝ masse^0.425).
  * Réf. : Martin 1998 ; Barry 2015 (mesures terrain age-group 0.28–0.32 en prolongateur).
  */
-function estimateCdA(weightKg: number, position: "tri" | "road", ambition: BikeAmbition): number {
+export function estimateCdA(weightKg: number, position: "tri" | "road", ambition: BikeAmbition): number {
   const refTri: Record<BikeAmbition, number> = {
     finisher: 0.315, age_group: 0.290, competitor: 0.265, elite: 0.240,
   };
@@ -53,7 +53,7 @@ function estimateCdA(weightKg: number, position: "tri" | "road", ambition: BikeA
 
 
 /** Résout v (m/s) tel que la puissance modèle = puissance cible (bissection). */
-function solveSpeed(powerW: number, massKg: number, cda: number, gradeFactor: number): number {
+export function solveSpeed(powerW: number, massKg: number, cda: number, gradeFactor: number): number {
   const target = powerW * DRIVETRAIN;
   const f = (v: number) =>
     0.5 * RHO * cda * v * v * v + CRR * massKg * G * v - target * gradeFactor;
