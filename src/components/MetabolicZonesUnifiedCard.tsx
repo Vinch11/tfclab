@@ -607,12 +607,12 @@ function CrossoverTabContent({
   const raceIntensity = raceIntensityMap[objectif] ?? 75;
   const conflict = isMetabolicConflict(fatmax, raceIntensity);
 
-  // Generate simplified bar data
+  // Libellés alignés sur le modèle canonique Z1–Z6 (cf. carte « Zones d'entraînement »)
   const zones = [
-    { label: "Zone 1", range: "< 55%", pctLipid: 85, color: "bg-emerald-500" },
-    { label: "FatMax", range: `${fatmax.minPctFTP}–${fatmax.maxPctFTP}%`, pctLipid: 65, color: "bg-emerald-400" },
-    { label: "Crossover", range: `${fatmax.crossoverZone[0]}–${fatmax.crossoverZone[1]}%`, pctLipid: 40, color: "bg-amber-400" },
-    { label: "Supra-seuil", range: `> ${fatmax.crossoverZone[1]}%`, pctLipid: 15, color: "bg-red-400" },
+    { label: "Z1 Récup.", range: "< 55%", pctLipid: 85, color: "bg-emerald-500" },
+    { label: "Z2 FatMax", range: `${fatmax.minPctFTP}–${fatmax.maxPctFTP}%`, pctLipid: 65, color: "bg-emerald-400" },
+    { label: "Z3 Crossover", range: `${fatmax.crossoverZone[0]}–${fatmax.crossoverZone[1]}%`, pctLipid: 40, color: "bg-amber-400" },
+    { label: "Z4+ Supra-seuil", range: `> ${fatmax.crossoverZone[1]}%`, pctLipid: 15, color: "bg-red-400" },
   ];
 
   return (
