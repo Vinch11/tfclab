@@ -31,6 +31,7 @@ import {
   calculateCarbOxidation,
   type MaderProfile,
 } from "@/lib/v2/maderMetabolicModel";
+import { deriveTrainingZones } from "@/lib/zones/deriveTrainingZones";
 import {
   mobileTooltipProps,
   responsiveAxisProps,
