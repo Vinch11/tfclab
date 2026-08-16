@@ -39,7 +39,7 @@ function ftpFraction(distanceKm: number, ambition: BikeAmbition): number {
  * Mise à l'échelle sur la masse corporelle (surface frontale ∝ masse^0.425).
  * Réf. : Martin 1998 ; Barry 2015 (mesures terrain age-group 0.28–0.32 en prolongateur).
  */
-function estimateCdA(weightKg: number, position: "tri" | "road", ambition: BikeAmbition): number {
+export function estimateCdA(weightKg: number, position: "tri" | "road", ambition: BikeAmbition): number {
   const refTri: Record<BikeAmbition, number> = {
     finisher: 0.315, age_group: 0.290, competitor: 0.265, elite: 0.240,
   };
