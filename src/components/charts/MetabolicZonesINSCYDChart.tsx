@@ -296,7 +296,7 @@ export function MetabolicZonesINSCYDChart({
         metabolicEffect: z.effect,
       };
     });
-  }, [profile, thresholds]);
+  }, [profile, thresholds, ftp]);
 
   if (!valid || zones.length === 0) {
     return (
