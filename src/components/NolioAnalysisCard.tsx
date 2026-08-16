@@ -415,11 +415,12 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
   );
 }
 
-function IndexPill({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function IndexPill({ label, value, highlight }: { label: string; value?: number | null; highlight?: boolean }) {
+  const display = typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) : "—";
   return (
     <div className={`p-1.5 rounded border text-center ${highlight ? "border-primary/30 bg-primary/10" : "border-border bg-muted/30"}`}>
       <p className="text-[9px] text-muted-foreground">{label}</p>
-      <p className={`text-sm font-mono font-bold ${highlight ? "text-primary" : "text-foreground"}`}>{value.toFixed(2)}</p>
+      <p className={`text-sm font-mono font-bold ${highlight ? "text-primary" : "text-foreground"}`}>{display}</p>
     </div>
   );
 }
