@@ -81,8 +81,8 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "analyse-section", label: "Analyse & Métriques", icon: "BarChart", category: "analyse", defaultVisible: true },
   { id: "limiteurs-section", label: "Facteurs Limitants", icon: "AlertTriangle", category: "analyse", defaultVisible: true },
   { id: "leviers-section", label: "Leviers & Actions", icon: "Target", category: "analyse", defaultVisible: true },
-  { id: "synthese-executive-dashboard", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
-  { id: "vlamax-profile-scale", label: "Profil VLamax — Échelle", icon: "Activity", category: "metriques", defaultVisible: true },
+  { id: "synthese-executive-dashboard", label: "Synthèse Exécutive", icon: "FileText", category: "analyse", defaultVisible: true },
+  { id: "vlamax-profile-scale", label: "Profil VLamax — Échelle des spécialités", icon: "Activity", category: "metriques", defaultVisible: true },
   { id: "tte-glycogen-insights", label: "Mécanisme limitant TTE & Glycogène", icon: "Brain", category: "analyse", defaultVisible: true },
 ];
 
