@@ -621,7 +621,7 @@ function CrossoverTabContent({
       <div className="space-y-2">
         {zones.map((zone) => (
           <div key={zone.label} className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground w-20 text-right">{zone.label}</span>
+            <span className="text-[10px] text-muted-foreground w-24 text-right">{zone.label}</span>
             <div className="flex-1 h-4 bg-muted/30 rounded-full overflow-hidden relative">
               <div
                 className={cn("h-full rounded-full", zone.color)}

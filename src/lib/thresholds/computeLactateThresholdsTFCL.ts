@@ -143,31 +143,31 @@ export interface TFCLLactateRow {
 export const TFCL_LACTATE_TABLE: TFCLLactateRow[] = [
   {
     element: "FatMax zone",
-    correspondence: "Proche LT1",
+    correspondence: "Proche LT1 — Z2",
     dataSource: "VLamax + FTP",
     staffWhy: "L'oxydation lipidique maximale se situe juste sous ou au niveau de LT1.",
   },
   {
     element: "Endurance stricte",
-    correspondence: "Sous LT1",
+    correspondence: "Sous LT1 — Z1/Z2 bas",
     dataSource: "FTP + VLamax",
     staffWhy: "Maintien en zone aérobie pure, lactate stable < 2 mmol/L.",
   },
   {
     element: "Sweet Spot / Tempo",
-    correspondence: "Entre LT1 et LT2",
+    correspondence: "Entre LT1 et LT2 — haut Z3 / bas Z4",
     dataSource: "FTP + TTE + VLamax",
     staffWhy: "Zone de transition : sollicitation mixte aérobie-glycolytique.",
   },
   {
     element: "Seuil durable",
-    correspondence: "LT2",
+    correspondence: "LT2 — Z4 Seuil",
     dataSource: "FTP + TTE",
     staffWhy: "Intensité maximale soutenable sans accumulation nette de lactate (~4 mmol/L).",
   },
   {
     element: "Race Intensity long",
-    correspondence: "Juste sous LT2",
+    correspondence: "Juste sous LT2 — Z3 haut",
     dataSource: "FTP + TTE",
     staffWhy: "Compromis optimal entre puissance et durabilité pour effort >2h.",
   },
