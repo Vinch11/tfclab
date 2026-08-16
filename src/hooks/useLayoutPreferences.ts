@@ -87,10 +87,10 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
 ];
 
 export const STRATEGIE_SECTIONS: SectionDefinition[] = [
-  { id: "synthese-executive", label: "Synthèse Executive", icon: "FileText", category: "analyse", defaultVisible: true },
-  { id: "nutrition-v2", label: "Nutrition V2", icon: "Utensils", category: "analyse", defaultVisible: true },
-  { id: "pacing-envelope", label: "Pacing Envelope", icon: "Target", category: "analyse", defaultVisible: true },
-  { id: "lactate-correspondence", label: "Correspondances Lactiques TFCL", icon: "Droplets", category: "analyse", defaultVisible: true },
+  { id: "synthese-executive", label: "Synthèse Exécutive", icon: "FileText", category: "analyse", defaultVisible: true },
+  { id: "nutrition-v2", label: "Nutrition", icon: "Utensils", category: "analyse", defaultVisible: true },
+  { id: "pacing-envelope", label: "Pacing Envelope™ TFCL", icon: "Target", category: "analyse", defaultVisible: true },
+  { id: "lactate-correspondence", label: "Correspondances lactiques TFCL", icon: "Droplets", category: "analyse", defaultVisible: true },
   { id: "comprendre-scores", label: "Comprendre mes Scores", icon: "HelpCircle", category: "outils", defaultVisible: true },
 ];
 
