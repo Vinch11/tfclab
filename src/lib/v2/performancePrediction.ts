@@ -362,12 +362,17 @@ function estimateBaseTime(
         const cssSecPer100 = input.css ?? (200 - vo2max * 1.2);
         totalMin += (seg.distanceKm * 1000 / 100) * cssSecPer100 / 60;
       } else if (seg.sport === "velo") {
-        // TODO(perf-v2): idem vélo standalone — modèle non-linéaire à venir.
+        // Modèle physique identique au vélo standalone (position triathlon).
         const effectiveFTP = ftp ?? (vo2max * 0.075 - vlamax * 0.45) * weight;
-        const ftpWkg = effectiveFTP / weight;
-        const bikeFraction = race.durationFactor > 4 ? 0.72 : 0.82;
-        const avgSpeed = 20 + ftpWkg * bikeFraction * 8;
-        totalMin += (seg.distanceKm / avgSpeed) * 60;
+        const bikeFraction = race.durationFactor > 8 ? 0.68
+          : race.durationFactor > 4 ? 0.74
+            : race.durationFactor > 2 ? 0.82
+              : 0.88;
+        const np = effectiveFTP * bikeFraction;
+        const cda = estimateCdA(weight, "tri", bikeAmbitionFromWkg(effectiveFTP / weight));
+        const terrain = race.durationFactor > 4 ? 0.90 : 0.92;
+        const v = solveSpeed(np, weight + BIKE_KIT_KG, cda, terrain);
+        totalMin += (seg.distanceKm / (v * 3.6)) * 60;
       } else {
         // Run off bike : réutilise la fraction soutenable + dégradation
         // (crossover VLamax-dépendant s'applique aussi, on la reflète
