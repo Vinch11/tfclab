@@ -143,7 +143,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
   // Jeu de zones utilisé pour la FC : course si l'objectif est un objectif de
   // course à pied, sinon vélo (repli sur celui qui est dérivé).
   const sportForHr = mapObjectiveToSport(input.objective);
-  const preferRun = sportForHr === "run" || sportForHr === "trail";
+  const preferRun = sportForHr === "run_route" || sportForHr === "trail";
   const primaryHr = preferRun ? runSet : bikeSet;
   const secondaryHr = preferRun ? bikeSet : runSet;
   const hrSet = primaryHr.source === "derived" ? primaryHr : (secondaryHr.source === "derived" ? secondaryHr : null);
