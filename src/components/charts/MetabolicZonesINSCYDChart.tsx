@@ -220,7 +220,8 @@ export function MetabolicZonesINSCYDChart({
 
   // Generate Mader-derived zones
   const zones = useMemo<MaderZone[]>(() => {
-    if (!profile || !thresholds) return [];
+    if (!profile || !thresholds || !ftp) return [];
+    const ftpRef = ftp;
     const { vo2max, vlamax, weight } = profile;
     const efficiency = profile.efficiency ?? 0.23;
     const { lt, fm } = thresholds;
