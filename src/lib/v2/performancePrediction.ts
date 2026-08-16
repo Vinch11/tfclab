@@ -325,14 +325,15 @@ function estimateBaseTime(
     : 0.92;
 
   if (race.sport === "velo") {
-    // TODO(perf-v2): passer à une relation puissance-vitesse non-linéaire
-    // (traînée aéro cubique : v ∝ (P/CdA)^(1/3)). Pour l'instant modèle
-    // linéaire ftpWkg — sous-estime les écarts à haute vitesse (>40km/h)
-    // et sur profils vallonnés.
+    // Modèle physique (Martin 1998) : P = ½·ρ·CdA·v³ + Crr·m·g·v
     const effectiveFTP = ftp ?? (vo2max * 0.075 - vlamax * 0.45) * weight;
-    const ftpWkg = effectiveFTP / weight;
-    const baseMin = race.durationFactor * 60 / (ftpWkg * 1.1);
-    return Math.max(race.durationFactor * 15, baseMin);
+    const distKm = race.distanceKm ?? parseFloat(race.distance);
+    const frac = ((race.intensityRange[0] + race.intensityRange[1]) / 2) / 100;
+    const np = effectiveFTP * frac;
+    const cda = estimateCdA(weight, race.position ?? "road", bikeAmbitionFromWkg(effectiveFTP / weight));
+    const v = solveSpeed(np, weight + BIKE_KIT_KG, cda, race.terrainFactor ?? 0.92);
+    const speedKmh = v * 3.6;
+    return (distKm / speedKmh) * 60;
   }
 
   if (race.sport === "cap") {
