@@ -27,6 +27,15 @@
  */
 
 import type { RaceRecordsInput } from "@/lib/v2/vlamaxRunV2Enhanced";
+import { estimateCdA, solveSpeed, BIKE_KIT_KG, type BikeAmbition } from "@/lib/v2/bikeSplitEstimator";
+
+/** Niveau aéro/matériel déduit du rapport poids-puissance (CdA réaliste). */
+function bikeAmbitionFromWkg(wkg: number): BikeAmbition {
+  if (wkg >= 4.5) return "elite";
+  if (wkg >= 3.8) return "competitor";
+  if (wkg >= 3.0) return "age_group";
+  return "finisher";
+}
 
 // =============================================
 // TYPES
