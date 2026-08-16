@@ -59,6 +59,7 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
       vlamax: snap?.vlamax_run ?? snap?.vlamax ?? null,
       vo2max: effective.vo2max,
       weightKg: effective.weightKg,
+      raceObjective,
     });
 
     return { bike, run };
