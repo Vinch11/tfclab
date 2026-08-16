@@ -16,6 +16,7 @@
 import { findMLSSPower } from "@/lib/v2/maderMetabolicModel";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
+import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import {
   ZONE6_IDS,
   ZONE6_LABELS,
