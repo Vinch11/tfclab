@@ -16,7 +16,8 @@
  */
 import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
-import { deriveTrainingZones, makeStandardPctToAbsolute, estimateRunThresholdPaceSecPerKm } from "@/lib/zones/deriveTrainingZones";
+import { deriveTrainingZones, makeStandardPctToAbsolute, estimateRunThresholdPaceSecPerKm, getDerivedZone } from "@/lib/zones/deriveTrainingZones";
+import { legacyToZone6, type LegacyZoneId } from "@/lib/zones/zoneMapping";
 
 
 export type ZoneKey = "Z1" | "Z2" | "Z3" | "Z4a" | "Z4b" | "Z5" | "Z6" | "Z7";
@@ -48,7 +49,7 @@ export interface TargetTable {
     sport: string;
     generatedAt: number;
     /** Provenance des bornes de zones injectées (par sport). */
-    zoneSource: { bike: "derived" | "standard"; run: "derived" | "standard" };
+    zoneSource: { bike: "derived" | "standard"; run: "derived" | "standard"; hr: "derived" | "standard" };
   };
 }
 
@@ -64,6 +65,8 @@ export interface BuildTargetTableInput {
   css?: number | null;
   fcMax?: number | null;
   paceThresholdSecPerKm?: number | null;
+  /** FC de repos — ancre basse de la réserve cardiaque (zones FC dérivées). */
+  fcRest?: number | null;
   objective?: string | null;
   ambition?: string | null;
   weeklyHours?: number | null;
@@ -98,6 +101,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
     sport: "bike",
     ftp,
     fcMax,
+    fcRest: input.fcRest ?? null,
     vlamax: input.vlamax ?? null,
     vo2max: input.vo2max ?? null,
     weightKg: input.weightKg ?? null,
@@ -115,6 +119,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
       typeof input.paceThresholdSecPerKm === "number" && input.paceThresholdSecPerKm > 0
     ),
     fcMax,
+    fcRest: input.fcRest ?? null,
     vlamax: input.vlamaxRun ?? input.vlamax ?? null,
     vo2max: input.vo2max ?? null,
     weightKg: input.weightKg ?? null,
@@ -134,6 +139,14 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
     vlamax: input.vlamaxRun ?? input.vlamax ?? null,
     vo2max: input.vo2max ?? null,
   });
+
+  // Jeu de zones utilisé pour la FC : course si l'objectif est un objectif de
+  // course à pied, sinon vélo (repli sur celui qui est dérivé).
+  const sportForHr = mapObjectiveToSport(input.objective);
+  const preferRun = sportForHr === "run_route" || sportForHr === "trail";
+  const primaryHr = preferRun ? runSet : bikeSet;
+  const secondaryHr = preferRun ? bikeSet : runSet;
+  const hrSet = primaryHr.source === "derived" ? primaryHr : (secondaryHr.source === "derived" ? secondaryHr : null);
 
   for (const z of TRAINING_ZONES) {
     const zid = z.id as ZoneKey;
@@ -156,11 +169,19 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
         : paceSecFromVma(vma, minPct);
       runPaces[zid] = [paceFast, paceSlow];
     }
-    if (fcMax && z.fcMax) {
-      fcZones[zid] = [
-        Math.round((z.fcMax.min / 100) * fcMax),
-        Math.round((z.fcMax.max / 100) * fcMax),
-      ];
+    if (fcMax) {
+      // FC : bornes dérivées (Karvonen ancré seuil) si les zones le sont,
+      // sinon repli sur la grille tabulée %FCmax.
+      const derivedFcPct = hrSet?.source === "derived"
+        ? getDerivedZone(hrSet, legacyToZone6(zid as LegacyZoneId))?.fcMaxPct ?? null
+        : null;
+      const pct = derivedFcPct ?? z.fcMax;
+      if (pct) {
+        fcZones[zid] = [
+          Math.round((pct.min / 100) * fcMax),
+          Math.round((pct.max / 100) * fcMax),
+        ];
+      }
     }
 
   }
@@ -236,6 +257,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
       zoneSource: {
         bike: bikeAbs ? "derived" : "standard",
         run: runAbs ? "derived" : "standard",
+        hr: hrSet ? "derived" : "standard",
       },
     },
 
