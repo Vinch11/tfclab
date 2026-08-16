@@ -53,7 +53,7 @@ export function estimateCdA(weightKg: number, position: "tri" | "road", ambition
 
 
 /** Résout v (m/s) tel que la puissance modèle = puissance cible (bissection). */
-function solveSpeed(powerW: number, massKg: number, cda: number, gradeFactor: number): number {
+export function solveSpeed(powerW: number, massKg: number, cda: number, gradeFactor: number): number {
   const target = powerW * DRIVETRAIN;
   const f = (v: number) =>
     0.5 * RHO * cda * v * v * v + CRR * massKg * G * v - target * gradeFactor;
