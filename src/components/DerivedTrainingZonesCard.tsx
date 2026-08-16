@@ -141,9 +141,34 @@ function ZoneList({ set }: { set: DerivedZoneSet }) {
           );
         })}
       </div>
+
+      {set.markers.length > 0 && (
+        <div className="space-y-2 rounded-xl border border-dashed border-border p-3">
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Repères transversaux (ne sont pas des zones)
+          </p>
+          {set.markers.map((m) => (
+            <div key={m.id} className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">
+                  {m.label} <span className="text-xs text-muted-foreground">· {m.zoneSpan}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">{m.note}</p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="font-mono text-sm text-foreground">
+                  {m.pctRef.min}–{m.pctRef.max} <span className="text-xs text-muted-foreground">{m.refLabel}</span>
+                </p>
+                {m.absolute && <p className="font-mono text-xs text-muted-foreground">{m.absolute}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
+
 
 export function DerivedTrainingZonesCard({ className }: { className?: string }) {
   const { bike, run } = useDerivedTrainingZones();
