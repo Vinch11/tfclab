@@ -996,7 +996,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
   const nolioRefs = useMemo(() => {
     if (!athleteId) {
-      return { ftp: null, vma: null, css: null, fcMax: null, paceThresholdSecPerKm: null, vlamax: null, vlamaxRun: null, vo2max: null, weightKg: null };
+      return { ftp: null, vma: null, css: null, fcMax: null, fcRest: null, paceThresholdSecPerKm: null, vlamax: null, vlamaxRun: null, vo2max: null, weightKg: null };
     }
     const athlete = athletes.find((a) => a.id === athleteId) ?? null;
     const r = getEffectiveRefs(athlete, snapshots);
@@ -1006,6 +1006,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
       vma: r.vma,
       css: r.css,
       fcMax: r.fcMax,
+      fcRest: (snap as any)?.fc_repos ?? null,
       paceThresholdSecPerKm: snap?.pace_threshold_sec_per_km ?? null,
       vlamax: snap?.vlamax ?? null,
       vlamaxRun: snap?.vlamax_run ?? null,
@@ -1023,6 +1024,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         vma: nolioRefs.vma,
         css: nolioRefs.css,
         fcMax: nolioRefs.fcMax,
+        fcRest: nolioRefs.fcRest,
         paceThresholdSecPerKm: nolioRefs.paceThresholdSecPerKm,
         vlamax: nolioRefs.vlamax,
         vlamaxRun: nolioRefs.vlamaxRun,

@@ -49,7 +49,7 @@ export interface TargetTable {
     sport: string;
     generatedAt: number;
     /** Provenance des bornes de zones injectées (par sport). */
-    zoneSource: { bike: "derived" | "standard"; run: "derived" | "standard" };
+    zoneSource: { bike: "derived" | "standard"; run: "derived" | "standard"; hr: "derived" | "standard" };
   };
 }
 
@@ -257,6 +257,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
       zoneSource: {
         bike: bikeAbs ? "derived" : "standard",
         run: runAbs ? "derived" : "standard",
+        hr: hrSet ? "derived" : "standard",
       },
     },
 
