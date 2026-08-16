@@ -259,7 +259,8 @@ export function MetabolicZonesINSCYDChart({
 
 
     return zoneDefs.map(z => {
-      const midPct = Math.round((z.min + z.max) / 2);
+      // Point médian borné à 105 % : au-delà, l'extrapolation Mader n'est plus valide.
+      const midPct = Math.min(105, Math.round((z.min + z.max) / 2));
       const data = getZoneData(midPct);
       return {
         id: z.id,
@@ -308,6 +309,9 @@ export function MetabolicZonesINSCYDChart({
           <div className="flex gap-1">
             <Badge variant="secondary" className="text-[9px] font-mono">LT1 {thresholds!.lt.lt1Intensity}%</Badge>
             <Badge variant="secondary" className="text-[9px] font-mono">LT2 {thresholds!.lt.lt2Intensity}%</Badge>
+            <Badge variant="outline" className="text-[9px] font-mono">
+              Sweet Spot {Math.round(thresholds!.lt.lt2Intensity * 0.88)}–{Math.round(thresholds!.lt.lt2Intensity * 0.94)}%
+            </Badge>
           </div>
         </div>
       </CardHeader>
@@ -398,7 +402,8 @@ export function MetabolicZonesINSCYDChart({
         )}
 
         <p className="text-[9px] text-muted-foreground text-center pt-2 border-t">
-          Zones dérivées du modèle Mader (2003). Limites basées sur LT1/LT2 calculés — non-invasif.
+          Zones dérivées du modèle Mader (2003), alignées sur le modèle canonique TFCL Z1–Z6.
+          Le Sweet Spot (88–94 % du seuil) chevauche haut Z3 / bas Z4 : ce n'est pas une zone métabolique distincte.
         </p>
       </CardContent>
     </Card>
