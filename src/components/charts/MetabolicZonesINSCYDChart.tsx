@@ -31,6 +31,7 @@ import {
   calculateCarbOxidation,
   type MaderProfile,
 } from "@/lib/v2/maderMetabolicModel";
+import { deriveTrainingZones } from "@/lib/zones/deriveTrainingZones";
 import {
   mobileTooltipProps,
   responsiveAxisProps,
@@ -219,7 +220,8 @@ export function MetabolicZonesINSCYDChart({
 
   // Generate Mader-derived zones
   const zones = useMemo<MaderZone[]>(() => {
-    if (!profile || !thresholds) return [];
+    if (!profile || !thresholds || !ftp) return [];
+    const ftpRef = ftp;
     const { vo2max, vlamax, weight } = profile;
     const efficiency = profile.efficiency ?? 0.23;
     const { lt, fm } = thresholds;
@@ -257,18 +259,30 @@ export function MetabolicZonesINSCYDChart({
       { id: "Z6", label: "Neuromusculaire", min: 100, max: 130, desc: "Supra-VO₂max : force, vitesse, capacité anaérobie", effect: "↑ Pmax, ↑ VLamax", colorIdx: 5 },
     ];
 
+    // Les watts affichés proviennent des zones d'entraînement personnalisées
+    // (mêmes bornes % FTP), pour éviter toute divergence entre les deux cartes.
+    // Le %VO₂max Mader reste utilisé pour lactate / substrats.
+    const derivedBike = deriveTrainingZones({
+      sport: "bike",
+      ftp: ftpRef,
+      vlamax,
+      vo2max,
+      weightKg: weight,
+    });
+    const pctByZone = new Map(derivedBike.zones.map((z) => [z.id, z.pctRef]));
 
     return zoneDefs.map(z => {
       // Point médian borné à 105 % : au-delà, l'extrapolation Mader n'est plus valide.
       const midPct = Math.min(105, Math.round((z.min + z.max) / 2));
       const data = getZoneData(midPct);
+      const pct = pctByZone.get(z.id as any);
       return {
         id: z.id,
         label: z.label,
         intensityMin: z.min,
         intensityMax: z.max,
-        wattsMin: intensityToPower(z.min),
-        wattsMax: intensityToPower(z.max),
+        wattsMin: pct ? Math.round((pct.min / 100) * ftpRef) : intensityToPower(z.min),
+        wattsMax: pct ? Math.round((pct.max / 100) * ftpRef) : intensityToPower(z.max),
         midLactate: Math.min(20, data.lactate),
         midFatGmin: data.fatGmin,
         midCarbGmin: data.carbGmin,
@@ -282,7 +296,7 @@ export function MetabolicZonesINSCYDChart({
         metabolicEffect: z.effect,
       };
     });
-  }, [profile, thresholds]);
+  }, [profile, thresholds, ftp]);
 
   if (!valid || zones.length === 0) {
     return (
