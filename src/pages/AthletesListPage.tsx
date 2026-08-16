@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy, Pencil, Eye, EyeOff } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy, Pencil, Eye, EyeOff, Search } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +28,7 @@ export default function AthletesListPage() {
   const { user } = useAuth();
   const [importing, setImporting] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
+  const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const handleSelectAthlete = (athleteId: string) => {
