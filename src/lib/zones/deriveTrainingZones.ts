@@ -55,6 +55,23 @@ export interface DerivedZone {
 
 }
 
+/**
+ * Repère d'intensité transversal (Sweet Spot, allure spécifique course).
+ * Ce ne sont PAS des zones : ce sont des fenêtres de travail qui chevauchent
+ * les zones canoniques, exprimées dans la même référence.
+ */
+export interface ZoneMarker {
+  id: "sweet_spot" | "race_specific";
+  label: string;
+  /** Zone(s) canonique(s) recouverte(s), pour éviter toute confusion. */
+  zoneSpan: string;
+  pctRef: ZoneBounds;
+  refLabel: string;
+  absolute: string | null;
+  /** Justification physiologique courte. */
+  note: string;
+}
+
 export interface DerivedZoneSet {
   sport: ZoneSport;
   source: ZoneSource;
@@ -65,6 +82,8 @@ export interface DerivedZoneSet {
   /** Raison du repli sur la grille standard, si applicable. */
   fallbackReason: string | null;
   zones: DerivedZone[];
+  /** Repères transversaux (Sweet Spot, allure spécifique course). */
+  markers: ZoneMarker[];
 }
 
 export interface DeriveZonesInput {
@@ -87,7 +106,10 @@ export interface DeriveZonesInput {
   weightKg?: number | null;
   /** Score de confiance externe (DRE), 0..1. */
   dreConfidence?: number | null;
+  /** Objectif de course (libellé libre) — sert au repère « allure spécifique ». */
+  raceObjective?: string | null;
 }
+
 
 /** Seuil de bascule : sous cette confiance, on retombe sur la grille standard. */
 export const ZONE_DERIVATION_CONFIDENCE_THRESHOLD = 0.5;
