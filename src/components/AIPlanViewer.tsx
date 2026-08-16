@@ -1408,6 +1408,41 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         </Alert>
       )}
 
+      {/* Aucune référence physiologique enregistrée dans le plan (plans générés
+          avant l'ajout du suivi de dérive) : on propose quand même l'actualisation. */}
+      {physioDrift.items.length === 0 && targetTable && (
+        <Alert className="border-primary/30">
+          <RefreshCw className="h-4 w-4" />
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">
+                {plan.physioRefs
+                  ? "Valeurs à jour avec la physiologie actuelle"
+                  : "Aucune référence physiologique enregistrée pour ce plan"}
+              </p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Badge variant="secondary" className="text-[10px]">
+                  Zones {targetTable.meta.zoneSource.run === "derived" ? "personnalisées" : "standard"} · course
+                </Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  Zones {targetTable.meta.zoneSource.bike === "derived" ? "personnalisées" : "standard"} · vélo
+                </Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  FC {targetTable.meta.zoneSource.hr === "derived" ? "personnalisée" : "grille standard"}
+                </Badge>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                Watts, allures et bpm sont recalculés à l'affichage depuis le snapshot actif —
+                le bouton retire les valeurs figées d'une génération antérieure.
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleRefreshValues}>
+              <RefreshCw className="h-3 w-3" /> Actualiser mes valeurs
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {physioDrift.items.length > 0 && (
         <Alert className={physioDrift.needsRegeneration ? "border-amber-500/50" : "border-primary/40"}>
           <RefreshCw className="h-4 w-4" />
