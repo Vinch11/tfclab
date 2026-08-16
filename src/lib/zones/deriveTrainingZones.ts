@@ -16,6 +16,7 @@
 import { findMLSSPower } from "@/lib/v2/maderMetabolicModel";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
+import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import {
   ZONE6_IDS,
   ZONE6_LABELS,
@@ -55,6 +56,23 @@ export interface DerivedZone {
 
 }
 
+/**
+ * Repère d'intensité transversal (Sweet Spot, allure spécifique course).
+ * Ce ne sont PAS des zones : ce sont des fenêtres de travail qui chevauchent
+ * les zones canoniques, exprimées dans la même référence.
+ */
+export interface ZoneMarker {
+  id: "sweet_spot" | "race_specific";
+  label: string;
+  /** Zone(s) canonique(s) recouverte(s), pour éviter toute confusion. */
+  zoneSpan: string;
+  pctRef: ZoneBounds;
+  refLabel: string;
+  absolute: string | null;
+  /** Justification physiologique courte. */
+  note: string;
+}
+
 export interface DerivedZoneSet {
   sport: ZoneSport;
   source: ZoneSource;
@@ -65,6 +83,8 @@ export interface DerivedZoneSet {
   /** Raison du repli sur la grille standard, si applicable. */
   fallbackReason: string | null;
   zones: DerivedZone[];
+  /** Repères transversaux (Sweet Spot, allure spécifique course). */
+  markers: ZoneMarker[];
 }
 
 export interface DeriveZonesInput {
@@ -87,7 +107,10 @@ export interface DeriveZonesInput {
   weightKg?: number | null;
   /** Score de confiance externe (DRE), 0..1. */
   dreConfidence?: number | null;
+  /** Objectif de course (libellé libre) — sert au repère « allure spécifique ». */
+  raceObjective?: string | null;
 }
+
 
 /** Seuil de bascule : sous cette confiance, on retombe sur la grille standard. */
 export const ZONE_DERIVATION_CONFIDENCE_THRESHOLD = 0.5;
@@ -455,10 +478,104 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
       secondaryPct,
     };
   });
+  const markers = buildMarkers(sport, source, refAtThreshold, refLabel, input);
 
-
-  return { sport, source, confidence, anchors, fallbackReason, zones };
+  return { sport, source, confidence, anchors, fallbackReason, zones, markers };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REPÈRES TRANSVERSAUX — Sweet Spot & intensité spécifique course
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Sweet Spot : 88–94 % de la puissance/vitesse au seuil (MLSS).
+ * Définition d'origine (Coggan & Allen, « Training and Racing with a Power
+ * Meter ») : meilleur rapport stimulus aérobie / coût de récupération. Ce n'est
+ * pas une zone métabolique distincte — elle chevauche le haut de Z3 et le bas
+ * de Z4 — d'où son affichage comme REPÈRE et non comme zone.
+ */
+const SWEET_SPOT_FRACTION: ZoneBounds = { min: 0.88, max: 0.94 };
+
+/**
+ * Intensité spécifique course, en fraction du seuil (MLSS).
+ * Cohérent avec la littérature sur la durée d'effort : plus l'épreuve est
+ * longue, plus la fraction soutenable du seuil baisse (Coyle 1995,
+ * Jones 2017, Smyth 2022).
+ */
+const RACE_FRACTION_RUN: Record<string, ZoneBounds> = {
+  "5K": { min: 1.05, max: 1.10 },
+  "10K": { min: 1.00, max: 1.05 },
+  Semi: { min: 0.95, max: 1.00 },
+  Marathon: { min: 0.88, max: 0.94 },
+  Trail: { min: 0.82, max: 0.90 },
+  TrailShort: { min: 0.88, max: 0.95 },
+  TrailMountain: { min: 0.80, max: 0.88 },
+  TrailUltra: { min: 0.72, max: 0.82 },
+  StartToRun: { min: 0.70, max: 0.80 },
+  IM: { min: 0.78, max: 0.85 },
+  "703": { min: 0.85, max: 0.92 },
+};
+
+const RACE_FRACTION_BIKE: Record<string, ZoneBounds> = {
+  IM: { min: 0.68, max: 0.76 },
+  "703": { min: 0.78, max: 0.85 },
+};
+
+function buildMarkers(
+  sport: ZoneSport,
+  source: ZoneSource,
+  refAtThreshold: number | null,
+  refLabel: string,
+  input: DeriveZonesInput,
+): ZoneMarker[] {
+  if (source !== "derived" || !refAtThreshold || sport === "swim") return [];
+  const out: ZoneMarker[] = [];
+
+  const ss: ZoneBounds = {
+    min: round1(refAtThreshold * SWEET_SPOT_FRACTION.min),
+    max: round1(refAtThreshold * SWEET_SPOT_FRACTION.max),
+  };
+  out.push({
+    id: "sweet_spot",
+    label: "Sweet Spot",
+    zoneSpan: "haut Z3 → bas Z4",
+    pctRef: ss,
+    refLabel,
+    absolute: formatAbsolute(sport, source, ss, input),
+    note: "88–94 % du seuil (Coggan) — meilleur rapport stimulus aérobie / coût de récupération. Chevauche Z3 et Z4, ce n'est pas une zone métabolique distincte.",
+  });
+
+  const key = input.raceObjective ? normalizeObjectiveKey(input.raceObjective) : null;
+  const table = sport === "bike" ? RACE_FRACTION_BIKE : RACE_FRACTION_RUN;
+  const frac = key ? table[key] : undefined;
+  if (frac) {
+    const b: ZoneBounds = {
+      min: round1(refAtThreshold * frac.min),
+      max: round1(refAtThreshold * frac.max),
+    };
+    out.push({
+      id: "race_specific",
+      label: sport === "bike" ? `Intensité course · ${key}` : `Allure spécifique · ${key}`,
+      zoneSpan: describeSpan(b, refAtThreshold),
+      pctRef: b,
+      refLabel,
+      absolute: formatAbsolute(sport, source, b, input),
+      note: `${Math.round(frac.min * 100)}–${Math.round(frac.max * 100)} % du seuil — fraction soutenable estimée pour la durée de l'épreuve.`,
+    });
+  }
+
+  return out;
+}
+
+function describeSpan(b: ZoneBounds, thr: number): string {
+  const mid = ((b.min + b.max) / 2) / thr;
+  if (mid >= 1.03) return "Z5";
+  if (mid >= 0.97) return "Z4 Seuil";
+  if (mid >= 0.88) return "haut Z3 → bas Z4";
+  if (mid >= 0.80) return "Z3 Tempo";
+  return "Z2 Endurance";
+}
+
 
 function formatAbsolute(
   sport: ZoneSport,

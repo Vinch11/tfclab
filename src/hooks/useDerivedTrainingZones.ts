@@ -24,6 +24,7 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
     const dbAthlete = dbAthletes.find((a) => a.id === currentAthlete?.id) ?? null;
     const effective = getEffectiveRefs(dbAthlete, snapshots);
     const snap = getEffectiveSnapshot(dbAthlete, snapshots);
+    const raceObjective = (snap as any)?.objectif ?? (dbAthlete as any)?.goal ?? currentAthlete?.goal ?? null;
 
     const bike = deriveTrainingZones({
       sport: "bike",
@@ -33,6 +34,7 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
       vlamax: snap?.vlamax ?? null,
       vo2max: effective.vo2max,
       weightKg: effective.weightKg,
+      raceObjective,
     });
 
     // Allure seuil : mesurée si dispo, sinon estimée (MLSS prédit × VMA, repli 0.90 × VMA).
@@ -57,6 +59,7 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
       vlamax: snap?.vlamax_run ?? snap?.vlamax ?? null,
       vo2max: effective.vo2max,
       weightKg: effective.weightKg,
+      raceObjective,
     });
 
     return { bike, run };

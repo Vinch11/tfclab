@@ -607,12 +607,12 @@ function CrossoverTabContent({
   const raceIntensity = raceIntensityMap[objectif] ?? 75;
   const conflict = isMetabolicConflict(fatmax, raceIntensity);
 
-  // Generate simplified bar data
+  // Libellés alignés sur le modèle canonique Z1–Z6 (cf. carte « Zones d'entraînement »)
   const zones = [
-    { label: "Zone 1", range: "< 55%", pctLipid: 85, color: "bg-emerald-500" },
-    { label: "FatMax", range: `${fatmax.minPctFTP}–${fatmax.maxPctFTP}%`, pctLipid: 65, color: "bg-emerald-400" },
-    { label: "Crossover", range: `${fatmax.crossoverZone[0]}–${fatmax.crossoverZone[1]}%`, pctLipid: 40, color: "bg-amber-400" },
-    { label: "Supra-seuil", range: `> ${fatmax.crossoverZone[1]}%`, pctLipid: 15, color: "bg-red-400" },
+    { label: "Z1 Récup.", range: "< 55%", pctLipid: 85, color: "bg-emerald-500" },
+    { label: "Z2 FatMax", range: `${fatmax.minPctFTP}–${fatmax.maxPctFTP}%`, pctLipid: 65, color: "bg-emerald-400" },
+    { label: "Z3 Crossover", range: `${fatmax.crossoverZone[0]}–${fatmax.crossoverZone[1]}%`, pctLipid: 40, color: "bg-amber-400" },
+    { label: "Z4+ Supra-seuil", range: `> ${fatmax.crossoverZone[1]}%`, pctLipid: 15, color: "bg-red-400" },
   ];
 
   return (
@@ -621,7 +621,7 @@ function CrossoverTabContent({
       <div className="space-y-2">
         {zones.map((zone) => (
           <div key={zone.label} className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground w-20 text-right">{zone.label}</span>
+            <span className="text-[10px] text-muted-foreground w-24 text-right">{zone.label}</span>
             <div className="flex-1 h-4 bg-muted/30 rounded-full overflow-hidden relative">
               <div
                 className={cn("h-full rounded-full", zone.color)}
