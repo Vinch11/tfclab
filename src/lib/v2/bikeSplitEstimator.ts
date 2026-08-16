@@ -22,7 +22,7 @@ const RHO = 1.225;        // kg/m³ — air au niveau de la mer, ~15 °C
 const G = 9.81;
 const CRR = 0.005;        // pneus route corrects sur asphalte
 const DRIVETRAIN = 0.975; // rendement transmission
-const BIKE_KIT_KG = 9;    // vélo + casque + bidons + nutrition
+export const BIKE_KIT_KG = 9;    // vélo + casque + bidons + nutrition
 
 /** Fraction de FTP soutenable (NP) selon la durée du segment et l'ambition. */
 function ftpFraction(distanceKm: number, ambition: BikeAmbition): number {
