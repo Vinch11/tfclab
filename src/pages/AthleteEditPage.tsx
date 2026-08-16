@@ -158,84 +158,125 @@ export default function AthleteEditPage() {
     if (ok) navigate("/diagnostic");
   };
 
+  const ergoItems: { id: string; label: string; hint: string; checked: boolean; onChange: (v: boolean) => void }[] = [
+    {
+      id: "repeated-efforts",
+      label: "Efforts courts et intenses en course",
+      hint: "Sprints, relances, côtes < 2 min, finish rapide. Si oui → créatine + beta-alanine activées.",
+      checked: hasRepeatedEfforts,
+      onChange: setHasRepeatedEfforts,
+    },
+    {
+      id: "bicarb-tested",
+      label: "Bicarbonate déjà testé à l'entraînement",
+      hint: "NaHCO₃ pris avant une séance sans troubles digestifs. Si non → non recommandé en course.",
+      checked: bicarbTested,
+      onChange: setBicarbTested,
+    },
+    {
+      id: "vegetarian",
+      label: "Régime végétarien ou vegan",
+      hint: "Peu ou pas de viande / poisson. Si oui → gain créatine plus important (+20 %).",
+      checked: vegetarian,
+      onChange: setVegetarian,
+    },
+  ];
+
   return (
     <AppLayout title={isNew ? "Nouvel Athlète" : "Profil Athlète"} showBack>
-      <div className="space-y-6 animate-fade-in max-w-lg mx-auto">
+      <div className="space-y-4 animate-fade-in max-w-3xl mx-auto pb-24">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" />
-              Informations Athlète
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <User className="h-4 w-4 text-primary" />
+              Informations
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="nom">Nom</Label>
-              <Input id="nom" placeholder="Nom de l'athlète" value={nom} onChange={(e) => setNom(e.target.value)} />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Sexe</Label>
-              <Select value={sexe} onValueChange={(v) => setSexe(v as SexeType)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="M">Homme</SelectItem>
-                  <SelectItem value="F">Femme</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Objectif avec historique Cloud */}
-            {!isNew && editingAthlete?.id ? (
-              <AthleteObjectiveManager
-                athleteId={editingAthlete.id}
-                currentGoal={objectif}
-                raceGoals={raceGoals}
-                onGoalChange={handleObjectifChange}
-                onAddRaceGoal={handleAddRaceGoal}
-                onDeleteRaceGoal={deleteRaceGoal}
-                onRestoreRaceGoal={handleRestoreRaceGoal}
-                onUpdateRaceGoalDate={updateRaceGoalDate}
-                loading={goalsLoading}
-              />
-            ) : (
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Objectif
-                </Label>
-                <Select value={objectif} onValueChange={(v) => setObjectif(v as ObjectifType)}>
+          <CardContent className="space-y-3 pb-4">
+            {/* Ligne 1 — identité */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="nom" className="text-xs">Nom</Label>
+                <Input id="nom" placeholder="Nom de l'athlète" value={nom} onChange={(e) => setNom(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Sexe</Label>
+                <Select value={sexe} onValueChange={(v) => setSexe(v as SexeType)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="IM">Ironman</SelectItem>
-                    <SelectItem value="703">70.3</SelectItem>
-                    <SelectItem value="Marathon">Marathon</SelectItem>
-                    <SelectItem value="Semi">Semi-Marathon</SelectItem>
-                    <SelectItem value="10K">10K</SelectItem>
-                    <SelectItem value="5K">5K</SelectItem>
-                    <SelectItem value="TrailShort">Trail court</SelectItem>
-                    <SelectItem value="TrailMountain">Trail montagne</SelectItem>
-                    <SelectItem value="TrailUltra">Ultra trail</SelectItem>
+                    <SelectItem value="M">Homme</SelectItem>
+                    <SelectItem value="F">Femme</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            )}
+            </div>
 
-            {/* Niveau d'ambition */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label className="flex items-center gap-1">
-                  <Target className="h-4 w-4" />
+            {/* Ligne 2 — naissance + masse grasse */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="dateNaissance" className="text-xs flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Date de naissance
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="p-0.5 rounded-full hover:bg-muted transition-colors">
+                        <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80" align="start">
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-sm">{AGE_METHODOLOGY.title}</h4>
+                        <p className="text-xs text-muted-foreground">{AGE_METHODOLOGY.mainText}</p>
+                        <p className="text-xs text-muted-foreground italic">{AGE_METHODOLOGY.staffNote}</p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  {age !== null && (
+                    <Badge
+                      variant={ageIndex.category === "young" ? "default" : ageIndex.category === "prime" ? "secondary" : "outline"}
+                      className="ml-auto text-[10px]"
+                    >
+                      {age} ans · {ageIndex.label}
+                    </Badge>
+                  )}
+                </div>
+                <Input
+                  id="dateNaissance"
+                  type="date"
+                  value={dateNaissance}
+                  onChange={(e) => setDateNaissance(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="masse" className="text-xs">Masse grasse (%)</Label>
+                <Input
+                  id="masse"
+                  type="number"
+                  min="5"
+                  max="40"
+                  value={masseGrasse}
+                  onChange={(e) => setMasseGrasse(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Ambition */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <Label className="text-xs flex items-center gap-1">
+                  <Target className="h-3.5 w-3.5" />
                   Niveau d'ambition
                 </Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="p-1 rounded-full hover:bg-muted transition-colors">
-                      <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                    <button className="p-0.5 rounded-full hover:bg-muted transition-colors">
+                      <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-80" align="start">
@@ -257,6 +298,12 @@ export default function AthleteEditPage() {
                     </div>
                   </PopoverContent>
                 </Popover>
+                <span className="ml-auto text-[11px] text-muted-foreground truncate max-w-[55%]">
+                  {(() => {
+                    const hint = getRunningTimeHint(objectif, ambition, sexe === "F" ? "F" : "M");
+                    return hint ?? ambitionDef.description;
+                  })()}
+                </span>
               </div>
               <Select value={ambition} onValueChange={(v) => setAmbition(v as AmbitionLevel)}>
                 <SelectTrigger>
@@ -271,77 +318,54 @@ export default function AthleteEditPage() {
                         <span className="flex items-center gap-2">
                           <span>{def.icon}</span>
                           <span>{def.label}</span>
-                          {timeHint ? (
-                            <span className="text-xs text-muted-foreground">– {timeHint}</span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">– {def.description}</span>
-                          )}
+                          <span className="text-xs text-muted-foreground">– {timeHint ?? def.description}</span>
                         </span>
                       </SelectItem>
                     );
                   })}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <span className={ambitionDef.color}>{ambitionDef.icon}</span>
-                {(() => {
-                  const hint = getRunningTimeHint(objectif, ambition, sexe === "F" ? "F" : "M");
-                  return hint 
-                    ? <>{ambitionDef.description} — <span className="font-medium">{hint}</span></>
-                    : ambitionDef.description;
-                })()}
-              </p>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="dateNaissance" className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Date de naissance
+            {/* Objectif avec historique Cloud */}
+            {!isNew && editingAthlete?.id ? (
+              <AthleteObjectiveManager
+                athleteId={editingAthlete.id}
+                currentGoal={objectif}
+                raceGoals={raceGoals}
+                onGoalChange={handleObjectifChange}
+                onAddRaceGoal={handleAddRaceGoal}
+                onDeleteRaceGoal={deleteRaceGoal}
+                onRestoreRaceGoal={handleRestoreRaceGoal}
+                onUpdateRaceGoalDate={updateRaceGoalDate}
+                loading={goalsLoading}
+                compact
+                className="border-0 shadow-none px-0"
+              />
+            ) : (
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1">
+                  <Target className="h-3.5 w-3.5" />
+                  Objectif
                 </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="p-1 rounded-full hover:bg-muted transition-colors">
-                      <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80" align="start">
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">{AGE_METHODOLOGY.title}</h4>
-                      <p className="text-xs text-muted-foreground">{AGE_METHODOLOGY.mainText}</p>
-                      <p className="text-xs text-muted-foreground italic">{AGE_METHODOLOGY.staffNote}</p>
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                <Select value={objectif} onValueChange={(v) => setObjectif(v as ObjectifType)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="IM">Ironman</SelectItem>
+                    <SelectItem value="703">70.3</SelectItem>
+                    <SelectItem value="Marathon">Marathon</SelectItem>
+                    <SelectItem value="Semi">Semi-Marathon</SelectItem>
+                    <SelectItem value="10K">10K</SelectItem>
+                    <SelectItem value="5K">5K</SelectItem>
+                    <SelectItem value="TrailShort">Trail court</SelectItem>
+                    <SelectItem value="TrailMountain">Trail montagne</SelectItem>
+                    <SelectItem value="TrailUltra">Ultra trail</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Input
-                id="dateNaissance"
-                type="date"
-                value={dateNaissance}
-                onChange={(e) => setDateNaissance(e.target.value)}
-                max={new Date().toISOString().split("T")[0]}
-              />
-              {age !== null && (
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground">{age} ans</span>
-                  <Badge variant={ageIndex.category === "young" ? "default" : ageIndex.category === "prime" ? "secondary" : "outline"}>
-                    {ageIndex.label}
-                  </Badge>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="masse">Masse grasse (%)</Label>
-              <Input
-                id="masse"
-                type="number"
-                min="5"
-                max="40"
-                value={masseGrasse}
-                onChange={(e) => setMasseGrasse(e.target.value)}
-              />
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -350,82 +374,50 @@ export default function AthleteEditPage() {
           <QuickRaceTimeCard athleteId={editingAthlete.id} />
         )}
 
-        {/* F8 — Profil ergogénique */}
+        {/* F8 — Profil ergogénique — compact */}
         <Card>
-
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FlaskConical className="h-5 w-5 text-primary" />
+          <CardHeader className="py-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FlaskConical className="h-4 w-4 text-primary" />
               Profil ergogénique
             </CardTitle>
-            <CardDescription>
-              3 questions rapides pour personnaliser les recommandations de suppléments (caféine, bicarbonate, créatine, beta-alanine, nitrates).
-              Répondez par <strong>Oui</strong> ou <strong>Non</strong> — en cas de doute, laissez sur Non.
+            <CardDescription className="text-xs">
+              3 réponses rapides pour personnaliser le stack suppléments. En cas de doute, laissez sur Non.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="repeated-efforts" className="text-base">
-                  1. Votre course comporte-t-elle des efforts courts et intenses&nbsp;?
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Exemples&nbsp;: sprints, relances, attaques, côtes raides &lt; 2 min, finish rapide.
-                  <br />
-                  <span className="italic">Si oui → on active créatine + beta-alanine dans le stack.</span>
-                </p>
-              </div>
-              <Switch
-                id="repeated-efforts"
-                checked={hasRepeatedEfforts}
-                onCheckedChange={setHasRepeatedEfforts}
-              />
-            </div>
-
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="bicarb-tested" className="text-base">
-                  2. Avez-vous déjà testé le bicarbonate de sodium à l'entraînement&nbsp;?
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Prise de NaHCO₃ (ex&nbsp;: Maurten Bicarb System, gélules) avant une séance, sans troubles digestifs.
-                  <br />
-                  <span className="italic">Si non → on ne le recommandera pas en course (risque GI inconnu).</span>
-                </p>
-              </div>
-              <Switch
-                id="bicarb-tested"
-                checked={bicarbTested}
-                onCheckedChange={setBicarbTested}
-              />
-            </div>
-
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="vegetarian" className="text-base">
-                  3. Suivez-vous un régime végétarien ou vegan&nbsp;?
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Pas (ou très peu) de viande / poisson au quotidien.
-                  <br />
-                  <span className="italic">Si oui → la créatine apporte un gain plus important (+20 % typiquement).</span>
-                </p>
-              </div>
-              <Switch
-                id="vegetarian"
-                checked={vegetarian}
-                onCheckedChange={setVegetarian}
-              />
+          <CardContent className="pb-4 pt-0">
+            <div className="divide-y rounded-lg border">
+              {ergoItems.map((item) => (
+                <div key={item.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Label htmlFor={item.id} className="text-sm font-normal truncate">
+                      {item.label}
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="p-0.5 rounded-full hover:bg-muted transition-colors shrink-0">
+                          <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72" align="start">
+                        <p className="text-xs text-muted-foreground">{item.hint}</p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <Switch id={item.id} checked={item.checked} onCheckedChange={item.onChange} />
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex flex-col gap-3">
-          <Button onClick={() => handleSave()} variant="outline" className="gap-2">
+        {/* Barre d'actions compacte */}
+        <div className="sticky bottom-0 z-10 -mx-2 px-2 py-3 bg-background/85 backdrop-blur border-t flex flex-col sm:flex-row gap-2">
+          <Button onClick={() => handleSave()} variant="outline" className="gap-2 flex-1">
             <Save className="h-4 w-4" />
             Sauvegarder
           </Button>
-          <Button onClick={handleSaveAndContinue} className="gap-2">
+          <Button onClick={handleSaveAndContinue} className="gap-2 flex-1">
             <ArrowRight className="h-4 w-4" />
             Sauvegarder et ajouter données
           </Button>
