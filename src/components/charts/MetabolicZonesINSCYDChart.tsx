@@ -245,14 +245,18 @@ export function MetabolicZonesINSCYDChart({
     const lt2 = lt.lt2Intensity;
     const fatMaxPct = fm.fatMaxIntensity;
 
+    // Modèle canonique TFCL 6 zones (aligné sur src/lib/zones/deriveTrainingZones.ts) :
+    // Z1 Récup < LT1 − marge · Z2 Endurance/FatMax · Z3 Tempo → MLSS −5 %
+    // Z4 Seuil MLSS ±3 % · Z5 VO₂max · Z6 Neuromusculaire
     const zoneDefs = [
       { id: "Z1", label: "Récupération", min: 30, max: Math.round(lt1 * 0.75), desc: "Récupération active, lactate de base", effect: "↓ stress, récupération", colorIdx: 0 },
-      { id: "Z2", label: "Endurance", min: Math.round(lt1 * 0.75), max: lt1, desc: "Lipolyse, volume mitochondrial", effect: "↓ VLamax, ↑ TTE", colorIdx: 1 },
-      { id: "Z3", label: "Tempo", min: lt1, max: Math.round(lt1 + (lt2 - lt1) * 0.5), desc: "Endurance active, économie", effect: "Stabilise VLamax, ↑ durabilité", colorIdx: 2 },
-      { id: "Z4", label: "Sweet Spot / Seuil bas", min: Math.round(lt1 + (lt2 - lt1) * 0.5), max: lt2, desc: "Montée vers seuil, tolérance lactique", effect: "↑ TTE, ↓ VLamax modéré", colorIdx: 3 },
-      { id: "Z5", label: "Seuil (MLSS)", min: lt2, max: Math.min(100, lt2 + 6), desc: "Puissance critique, seuil anaérobie", effect: "↑ TTE direct, ↓ VLamax si dosé", colorIdx: 4 },
-      { id: "Z6", label: "VO₂max", min: Math.min(100, lt2 + 6), max: 110, desc: "Cylindrée cardiaque, puissance aérobie max", effect: "↑↑ VO₂max, ↑ VLamax", colorIdx: 5 },
+      { id: "Z2", label: "Endurance / FatMax", min: Math.round(lt1 * 0.75), max: lt1, desc: `Lipolyse maximale (FatMax ≈ ${fatMaxPct}% VO₂max), volume mitochondrial`, effect: "↓ VLamax, ↑ TTE", colorIdx: 1 },
+      { id: "Z3", label: "Tempo", min: lt1, max: Math.round(lt2 * 0.95), desc: "Endurance active jusqu'à MLSS −5 %, économie", effect: "Stabilise VLamax, ↑ durabilité", colorIdx: 2 },
+      { id: "Z4", label: "Seuil (MLSS)", min: Math.round(lt2 * 0.97), max: Math.round(lt2 * 1.03), desc: "MLSS ±3 % — puissance critique / seuil anaérobie", effect: "↑ TTE direct, ↓ VLamax si dosé", colorIdx: 3 },
+      { id: "Z5", label: "VO₂max", min: Math.round(lt2 * 1.03), max: 100, desc: "> MLSS jusqu'à la puissance associée à VO₂max", effect: "↑↑ VO₂max, ↑ VLamax", colorIdx: 4 },
+      { id: "Z6", label: "Neuromusculaire", min: 100, max: 130, desc: "Supra-VO₂max : force, vitesse, capacité anaérobie", effect: "↑ Pmax, ↑ VLamax", colorIdx: 5 },
     ];
+
 
     return zoneDefs.map(z => {
       const midPct = Math.round((z.min + z.max) / 2);
