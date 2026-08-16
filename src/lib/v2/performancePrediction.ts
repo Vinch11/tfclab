@@ -94,15 +94,21 @@ interface RaceDefinition {
   sport: "velo" | "cap" | "triathlon";
   durationFactor: number;     // base factor for time calculation
   intensityRange: [number, number]; // typical %FTP or %VMA range
+  /** Distance réelle en km (vélo) — utilisée par le modèle physique. */
+  distanceKm?: number;
+  /** Position aéro par défaut (vélo). */
+  position?: "tri" | "road";
+  /** Perte parcours (relances, virages, vent, dénivelé). 1 = plat parfait. */
+  terrainFactor?: number;
   segments?: { sport: "swim" | "velo" | "cap"; distanceKm: number }[];
 }
 
 const RACES: RaceDefinition[] = [
   // Cycling
-  { id: "tt20", name: "Chrono 20km", distance: "20km", sport: "velo", durationFactor: 0.45, intensityRange: [95, 105] },
-  { id: "tt40", name: "Chrono 40km", distance: "40km", sport: "velo", durationFactor: 0.92, intensityRange: [90, 100] },
-  { id: "gf100", name: "Gran Fondo 100km", distance: "100km", sport: "velo", durationFactor: 2.8, intensityRange: [75, 85] },
-  { id: "gf160", name: "Gran Fondo 160km", distance: "160km", sport: "velo", durationFactor: 4.8, intensityRange: [68, 78] },
+  { id: "tt20", name: "Chrono 20km", distance: "20km", sport: "velo", durationFactor: 0.45, intensityRange: [95, 105], distanceKm: 20, position: "tri", terrainFactor: 0.96 },
+  { id: "tt40", name: "Chrono 40km", distance: "40km", sport: "velo", durationFactor: 0.92, intensityRange: [90, 100], distanceKm: 40, position: "tri", terrainFactor: 0.95 },
+  { id: "gf100", name: "Gran Fondo 100km", distance: "100km", sport: "velo", durationFactor: 2.8, intensityRange: [75, 85], distanceKm: 100, position: "road", terrainFactor: 0.90 },
+  { id: "gf160", name: "Gran Fondo 160km", distance: "160km", sport: "velo", durationFactor: 4.8, intensityRange: [68, 78], distanceKm: 160, position: "road", terrainFactor: 0.88 },
   // Running
   { id: "10k", name: "10 km", distance: "10km", sport: "cap", durationFactor: 0.65, intensityRange: [90, 98] },
   { id: "semi", name: "Semi-Marathon", distance: "21.1km", sport: "cap", durationFactor: 1.45, intensityRange: [85, 92] },
