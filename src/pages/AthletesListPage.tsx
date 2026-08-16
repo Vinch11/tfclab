@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy, Pencil, Eye, EyeOff } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, User, Target, ChevronRight, Trash2, Bike, Footprints, Waves, Download, Copy, Pencil, Eye, EyeOff, Search } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +28,7 @@ export default function AthletesListPage() {
   const { user } = useAuth();
   const [importing, setImporting] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
+  const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const handleSelectAthlete = (athleteId: string) => {
@@ -368,229 +370,195 @@ export default function AthletesListPage() {
     return { imported, errors };
   };
 
+  const query = search.trim().toLowerCase();
+  const filteredAthletes = query
+    ? athletes.filter((a) => (a.nom || "").toLowerCase().includes(query))
+    : athletes;
+
+  const initials = (name: string) =>
+    (name || "?")
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((p) => p[0]?.toUpperCase() ?? "")
+      .join("");
+
   return (
     <AppLayout title="Mes Athlètes">
-      <div className="space-y-4 animate-fade-in">
-        {/* Bouton ajouter */}
-        <Button
-          onClick={handleNewAthlete}
-          className="w-full py-6 text-lg gap-2"
-          size="lg"
-        >
-          <Plus className="h-5 w-5" />
-          Nouvel Athlète
-        </Button>
+      <div className="space-y-3 animate-fade-in">
+        {/* Barre d'actions compacte */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={`Rechercher (${athletes.length})`}
+              className="pl-8 h-9"
+            />
+          </div>
+          {!selectionMode && (
+            <>
+              <Button variant="outline" size="sm" onClick={toggleSelectionMode} className="h-9 shrink-0">
+                <Checkbox className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sélectionner</span>
+              </Button>
+              <AthleteImportExport
+                athletes={dbAthletes}
+                snapshots={snapshots}
+                tests={tests}
+                checkins={checkins}
+                onImport={handleImport}
+                fetchExtras={async (ids) => {
+                  const result: Record<string, { planVersions: any[]; coachOverrides: any[] }> = {};
+                  if (ids.length === 0) return result;
+                  const [{ data: plans }, { data: overrides }] = await Promise.all([
+                    supabase.from("plan_versions").select("*").in("athlete_id", ids),
+                    supabase.from("coach_overrides").select("*").in("athlete_id", ids),
+                  ]);
+                  for (const id of ids) {
+                    result[id] = {
+                      planVersions: (plans ?? []).filter((p: any) => p.athlete_id === id),
+                      coachOverrides: (overrides ?? []).filter((o: any) => o.athlete_id === id),
+                    };
+                  }
+                  return result;
+                }}
+              />
+            </>
+          )}
+          <Button onClick={handleNewAthlete} size="sm" className="h-9 shrink-0 gap-1.5">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Nouvel athlète</span>
+          </Button>
+        </div>
 
         {/* Selection mode toolbar */}
         {selectionMode && (
-          <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium">
-                {selectedIds.size} sur {dbAthletes.length} sélectionné(s)
-              </span>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={selectAll}>
-                  Tout
-                </Button>
-                <Button variant="ghost" size="sm" onClick={deselectAll}>
-                  Aucun
-                </Button>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={toggleSelectionMode}>
-                Annuler
-              </Button>
+          <div className="flex items-center justify-between gap-2 px-3 py-2 bg-primary/10 rounded-lg border border-primary/20 text-sm">
+            <span className="font-medium">
+              {selectedIds.size}/{dbAthletes.length} sélectionné(s)
+            </span>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" onClick={selectAll}>Tout</Button>
+              <Button variant="ghost" size="sm" onClick={deselectAll}>Aucun</Button>
+              <Button variant="outline" size="sm" onClick={toggleSelectionMode}>Annuler</Button>
               <Button size="sm" onClick={exportSelected} disabled={selectedIds.size === 0}>
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="w-4 h-4 mr-1.5" />
                 Exporter ({selectedIds.size})
               </Button>
             </div>
           </div>
         )}
 
-        {/* Import/Export buttons */}
-        {!selectionMode && (
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={toggleSelectionMode} className="gap-2">
-              <Checkbox className="w-4 h-4" />
-              Sélectionner
-            </Button>
-            <AthleteImportExport
-              athletes={dbAthletes}
-              snapshots={snapshots}
-              tests={tests}
-              checkins={checkins}
-              onImport={handleImport}
-              fetchExtras={async (ids) => {
-                const result: Record<string, { planVersions: any[]; coachOverrides: any[] }> = {};
-                if (ids.length === 0) return result;
-                const [{ data: plans }, { data: overrides }] = await Promise.all([
-                  supabase.from("plan_versions").select("*").in("athlete_id", ids),
-                  supabase.from("coach_overrides").select("*").in("athlete_id", ids),
-                ]);
-                for (const id of ids) {
-                  result[id] = {
-                    planVersions: (plans ?? []).filter((p: any) => p.athlete_id === id),
-                    coachOverrides: (overrides ?? []).filter((o: any) => o.athlete_id === id),
-                  };
-                }
-                return result;
-              }}
-            />
+        {/* Liste dense */}
+        <Card className="overflow-hidden">
+          <div className="divide-y divide-border">
+            {filteredAthletes.map((athlete) => {
+              const athleteSnapshots = snapshots.filter((s) => s.athlete_id === athlete.id);
+              const latestSnapshot = athleteSnapshots.length > 0
+                ? athleteSnapshots.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+                : null;
+              const vlamax = latestSnapshot?.vlamax ?? null;
+              const sportsCount = getSportsCountFromSnapshots(athlete.id);
+              const isSelected = selectedIds.has(athlete.id);
+              return (
+                <div
+                  key={athlete.id}
+                  className={`group flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors hover:bg-muted/50 ${
+                    isSelected ? "bg-primary/5" : ""
+                  } ${athlete.is_hidden ? "opacity-60" : ""}`}
+                  onClick={() => handleSelectAthlete(athlete.id)}
+                >
+                  {selectionMode && (
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleSelection(athlete.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0"
+                    />
+                  )}
+                  <div className="w-9 h-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
+                    {initials(athlete.nom)}
+                  </div>
 
-          </div>
-        )}
-
-        {/* Liste des athlètes */}
-        <div className="space-y-3">
-          {athletes.map((athlete) => {
-            // Use cloud snapshots instead of legacy historique
-            const athleteSnapshots = snapshots.filter(s => s.athlete_id === athlete.id);
-            const latestSnapshot = athleteSnapshots.length > 0 
-              ? athleteSnapshots.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
-              : null;
-            const vlamax = latestSnapshot?.vlamax ?? null;
-            const sportsCount = getSportsCountFromSnapshots(athlete.id);
-            const isSelected = selectedIds.has(athlete.id);
-            return (
-              <Card
-                key={athlete.id}
-                className={`cursor-pointer transition-all duration-200 group ${
-                  isSelected 
-                    ? "border-primary bg-primary/5" 
-                    : "hover:border-primary/50"
-                } ${athlete.is_hidden ? "opacity-60" : ""}`}
-                onClick={() => handleSelectAthlete(athlete.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {selectionMode && (
-                        <Checkbox 
-                          checked={isSelected}
-                          onCheckedChange={() => toggleSelection(athlete.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="shrink-0"
-                        />
-                      )}
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">
-                          {athlete.nom}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <Badge variant="secondary" className="text-xs">
-                            <Target className="h-3 w-3 mr-1" />
-                            {getObjectifLabel(athlete.objectif)}
-                          </Badge>
-                          {athlete.is_hidden && (
-                            <Badge variant="outline" className="text-xs gap-1">
-                              <EyeOff className="h-3 w-3" />
-                              Masqué
-                            </Badge>
-                          )}
-                          {vlamax && (
-                            <span className="text-xs text-muted-foreground">
-                              VLamax: {vlamax.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                        {/* Sports icons */}
-                        <div className="flex items-center gap-2 mt-2">
-                          {sportsCount.vélo > 0 && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Bike className="h-3 w-3" />
-                              <span>{sportsCount.vélo}</span>
-                            </div>
-                          )}
-                          {sportsCount.course > 0 && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Footprints className="h-3 w-3" />
-                              <span>{sportsCount.course}</span>
-                            </div>
-                          )}
-                          {sportsCount.natation > 0 && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Waves className="h-3 w-3" />
-                              <span>{sportsCount.natation}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-medium truncate">{athlete.nom}</span>
+                      {athlete.is_hidden && <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
                     </div>
-                    <div className="flex items-center gap-2">
-                      {!selectionMode && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                          title="Éditer le profil"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedAthleteId(athlete.id);
-                            navigate(`/athlete/${athlete.id}`);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {!selectionMode && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                          title={athlete.is_hidden ? "Démasquer ce profil" : "Masquer ce profil"}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleAthleteHidden(athlete.id, !athlete.is_hidden);
-                          }}
-                        >
-                          {athlete.is_hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                        </Button>
-                      )}
-                      {!selectionMode && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Dupliquer ce profil"
-                          onClick={(e) => handleDuplicateAthlete(e, athlete.id)}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      )}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground truncate">
+                      <span className="inline-flex items-center gap-1">
+                        <Target className="h-3 w-3" />
+                        {getObjectifLabel(athlete.objectif)}
+                      </span>
+                      {vlamax && <span>· VLamax {vlamax.toFixed(2)}</span>}
+                      {sportsCount.vélo > 0 && <span className="inline-flex items-center gap-0.5">· <Bike className="h-3 w-3" />{sportsCount.vélo}</span>}
+                      {sportsCount.course > 0 && <span className="inline-flex items-center gap-0.5">· <Footprints className="h-3 w-3" />{sportsCount.course}</span>}
+                      {sportsCount.natation > 0 && <span className="inline-flex items-center gap-0.5">· <Waves className="h-3 w-3" />{sportsCount.natation}</span>}
+                    </div>
+                  </div>
+
+                  {!selectionMode && (
+                    <div className="flex items-center shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                        className="h-8 w-8"
+                        title="Éditer le profil"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAthleteId(athlete.id);
+                          navigate(`/athlete/${athlete.id}`);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title={athlete.is_hidden ? "Démasquer ce profil" : "Masquer ce profil"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleAthleteHidden(athlete.id, !athlete.is_hidden);
+                        }}
+                      >
+                        {athlete.is_hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hidden sm:inline-flex"
+                        title="Dupliquer ce profil"
+                        onClick={(e) => handleDuplicateAthlete(e, athlete.id)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
                         title="Supprimer ce profil"
                         onClick={(e) => handleDeleteAthlete(e, athlete.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                      {!selectionMode && <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+                      <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  )}
+                </div>
+              );
+            })}
 
-          {athletes.length === 0 && (
-            <Card className="border-dashed">
-              <CardContent className="p-8 text-center">
-                <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  Aucun athlète. Créez votre premier profil.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+            {filteredAthletes.length === 0 && (
+              <div className="p-8 text-center text-sm text-muted-foreground">
+                {athletes.length === 0 ? "Aucun athlète. Créez votre premier profil." : "Aucun résultat."}
+              </div>
+            )}
+          </div>
+        </Card>
       </div>
     </AppLayout>
   );
 }
+
