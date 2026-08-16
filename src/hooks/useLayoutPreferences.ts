@@ -48,26 +48,30 @@ export interface MovedSectionConfig {
 }
 
 // Sections disponibles pour chaque onglet
+// ⚠️ Les libellés doivent correspondre EXACTEMENT au titre affiché sur la carte
+// rendue dans src/pages/Index.tsx (case "profil"), sinon l'éditeur de disposition
+// devient illisible.
 export const PROFIL_SECTIONS: SectionDefinition[] = [
   { id: "athlete-refs", label: "Références Athlète", icon: "User", category: "profil", defaultVisible: true },
   { id: "athlete-profile", label: "Profil Athlète", icon: "User", category: "profil", defaultVisible: true },
   { id: "two-for-coaching", label: "Analyse Two For Coaching Lab™", icon: "Brain", category: "analyse", defaultVisible: true },
-  { id: "evolution-chart", label: "Évolution Profils", icon: "TrendingUp", category: "analyse", defaultVisible: true },
+  { id: "nolio-analysis", label: "Analyse Nolio — Données & Moteur V2", icon: "Activity", category: "analyse", defaultVisible: true },
+  { id: "evolution-chart", label: "Évolution VLamax & TTE", icon: "TrendingUp", category: "analyse", defaultVisible: true },
   { id: "training-zones", label: "Zones d'entraînement", icon: "Target", category: "metriques", defaultVisible: true },
-  { id: "lactate-thresholds-profil", label: "Seuils Lactiques TFCL", icon: "Droplets", category: "metriques", defaultVisible: true },
-  { id: "vlamax-v2-calibration-profil", label: "Calibration VLamax V2", icon: "Zap", category: "analyse", defaultVisible: true },
-  { id: "ftp-targets-profil", label: "Cibles FTP/kg ou VMA", icon: "Target", category: "analyse", defaultVisible: true },
+  { id: "lactate-thresholds-profil", label: "Correspondances lactiques TFCL", icon: "Droplets", category: "metriques", defaultVisible: true },
+  { id: "vlamax-v2-calibration-profil", label: "VLamax TFCL™", icon: "Zap", category: "analyse", defaultVisible: true },
+  { id: "vlamax-profile-scale-profil", label: "Profil VLamax — Échelle des spécialités", icon: "Activity", category: "metriques", defaultVisible: true },
+  { id: "ftp-targets-profil", label: "VMA / FTP cible (12–24 mois)", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "fatmax-tfcl-profil", label: "Zones Métaboliques TFCL™", icon: "Flame", category: "analyse", defaultVisible: true },
-  { id: "fat-carb-combustion-profil", label: "Combustion Lipides / Glucides", icon: "Flame", category: "analyse", defaultVisible: true },
-  { id: "vo2max-age-profil", label: "VO₂max — Comparatif âge", icon: "Calendar", category: "analyse", defaultVisible: true },
+  { id: "fat-carb-combustion-profil", label: "Oxydation Lipides / Glucides", icon: "Flame", category: "analyse", defaultVisible: true },
+  { id: "vo2max-age-profil", label: "Comparatif Cibles — Ajustement Âge", icon: "Calendar", category: "analyse", defaultVisible: true },
   { id: "scientific-charts-profil", label: "Graphiques INSCYD (Staff)", icon: "BarChart", category: "analyse", defaultVisible: true },
-  { id: "decision-reliability-profil", label: "Fiabilité Décisionnelle (Staff)", icon: "Shield", category: "analyse", defaultVisible: true },
-  { id: "calibration-evidence-profil", label: "Évidences Calibration (Staff)", icon: "FlaskConical", category: "analyse", defaultVisible: true },
+  { id: "decision-reliability-profil", label: "Decision Reliability Engine™ (Staff)", icon: "Shield", category: "analyse", defaultVisible: true },
+  { id: "calibration-evidence-profil", label: "Historique de Calibration (Staff)", icon: "FlaskConical", category: "analyse", defaultVisible: true },
   { id: "cycle-intelligence-profil", label: "Cycle Intelligence™", icon: "Brain", category: "analyse", defaultVisible: true },
   { id: "adaptation-predictor-profil", label: "Adaptation Predictor™", icon: "Sparkles", category: "analyse", defaultVisible: true },
-  { id: "cp-wprime-curve-profil", label: "Courbe CP/W' (Puissance-Durée)", icon: "TrendingDown", category: "analyse", defaultVisible: true },
-  { id: "wbal-recovery-profil", label: "Repos W'bal Individualisés", icon: "RotateCcw", category: "analyse", defaultVisible: true },
-  { id: "vlamax-profile-scale-profil", label: "Profil VLamax — Échelle", icon: "Activity", category: "metriques", defaultVisible: true },
+  { id: "cp-wprime-curve-profil", label: "Modèle CP/W' — Courbe Puissance-Durée", icon: "TrendingDown", category: "analyse", defaultVisible: true },
+  { id: "wbal-recovery-profil", label: "Repos Optimaux W'bal", icon: "RotateCcw", category: "analyse", defaultVisible: true },
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
