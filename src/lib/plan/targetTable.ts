@@ -156,11 +156,19 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
         : paceSecFromVma(vma, minPct);
       runPaces[zid] = [paceFast, paceSlow];
     }
-    if (fcMax && z.fcMax) {
-      fcZones[zid] = [
-        Math.round((z.fcMax.min / 100) * fcMax),
-        Math.round((z.fcMax.max / 100) * fcMax),
-      ];
+    if (fcMax) {
+      // FC : bornes dérivées (Karvonen ancré seuil) si les zones le sont,
+      // sinon repli sur la grille tabulée %FCmax.
+      const derivedFcPct = hrSet?.source === "derived"
+        ? getDerivedZone(hrSet, legacyToZone6(zid as LegacyZoneId))?.fcMaxPct ?? null
+        : null;
+      const pct = derivedFcPct ?? z.fcMax;
+      if (pct) {
+        fcZones[zid] = [
+          Math.round((pct.min / 100) * fcMax),
+          Math.round((pct.max / 100) * fcMax),
+        ];
+      }
     }
 
   }
