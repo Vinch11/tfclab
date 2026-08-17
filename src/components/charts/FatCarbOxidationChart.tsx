@@ -181,11 +181,12 @@ function makeOxidationTooltip(paceMode: boolean) {
 // KEY METRICS
 // =============================================
 
-function OxidationMetrics({ data, fatMax, refValue, paceMode }: {
+function OxidationMetrics({ data, fatMax, refValue, paceMode, carbMax }: {
   data: OxPoint[];
   fatMax: { fatMaxIntensity: number; fatMaxPower: number; fatMaxGrams: number; carbAtFatMax: number };
   refValue: number; // FTP (W) ou vSeuil (km/h)
   paceMode: boolean;
+  carbMax: { intensityPct: number | null; power: number | null; targetCarbGH: number } | null;
 }) {
   const crossover = data.find((p) => p.fatPct < 50);
   const crossoverPct = crossover?.intensity ?? fatMax.fatMaxIntensity + 10;
