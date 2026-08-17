@@ -226,10 +226,21 @@ function OxidationMetrics({ data, fatMax, refValue, paceMode, carbMax }: {
       css: "bg-orange-500/10 border-orange-500/30 text-orange-600",
       Icon: Flame,
     },
+    {
+      label: `CarbMax ${carbMax?.targetCarbGH ?? 90} g/h`,
+      value: carbMax?.intensityPct != null ? `${carbMax.intensityPct}% VO₂max` : "Jamais atteint",
+      sub: carbMax?.intensityPct != null
+        ? `${paceMode
+            ? kmhToPaceStr((refValue / V_SEUIL_FRACTION) * (carbMax.intensityPct / 100))
+            : `${carbMax.power}W`} · plafond d'apport`
+        : "Épargne glucidique élevée",
+      css: "bg-amber-500/10 border-amber-500/30 text-amber-600",
+      Icon: Zap,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {items.map((it) => (
         <div key={it.label} className={cn("p-2 rounded-lg border text-center", it.css)}>
           <it.Icon className="h-3 w-3 mx-auto mb-0.5 opacity-60" />
