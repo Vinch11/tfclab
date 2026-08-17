@@ -26,6 +26,7 @@ import {
   calculateFatOxidation,
   calculateCarbOxidation,
   findFatMax,
+  findCarbMax,
   type MaderProfile,
 } from "@/lib/v2/maderMetabolicModel";
 import {
@@ -180,11 +181,12 @@ function makeOxidationTooltip(paceMode: boolean) {
 // KEY METRICS
 // =============================================
 
-function OxidationMetrics({ data, fatMax, refValue, paceMode }: {
+function OxidationMetrics({ data, fatMax, refValue, paceMode, carbMax }: {
   data: OxPoint[];
   fatMax: { fatMaxIntensity: number; fatMaxPower: number; fatMaxGrams: number; carbAtFatMax: number };
   refValue: number; // FTP (W) ou vSeuil (km/h)
   paceMode: boolean;
+  carbMax: { intensityPct: number | null; power: number | null; targetCarbGH: number } | null;
 }) {
   const crossover = data.find((p) => p.fatPct < 50);
   const crossoverPct = crossover?.intensity ?? fatMax.fatMaxIntensity + 10;
@@ -224,10 +226,21 @@ function OxidationMetrics({ data, fatMax, refValue, paceMode }: {
       css: "bg-orange-500/10 border-orange-500/30 text-orange-600",
       Icon: Flame,
     },
+    {
+      label: `CarbMax ${carbMax?.targetCarbGH ?? 90} g/h`,
+      value: carbMax?.intensityPct != null ? `${carbMax.intensityPct}% VO₂max` : "Jamais atteint",
+      sub: carbMax?.intensityPct != null
+        ? `${paceMode
+            ? kmhToPaceStr((refValue / V_SEUIL_FRACTION) * (carbMax.intensityPct / 100))
+            : `${carbMax.power}W`} · plafond d'apport`
+        : "Épargne glucidique élevée",
+      css: "bg-amber-500/10 border-amber-500/30 text-amber-600",
+      Icon: Zap,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {items.map((it) => (
         <div key={it.label} className={cn("p-2 rounded-lg border text-center", it.css)}>
           <it.Icon className="h-3 w-3 mx-auto mb-0.5 opacity-60" />
@@ -311,6 +324,12 @@ export function FatCarbOxidationChart({
     return pt?.intensity ?? (fatMax?.fatMaxIntensity ?? 60) + 10;
   }, [data, fatMax]);
 
+  // CarbMax — intensité où l'oxydation CHO atteint 90 g/h (plafond d'ingestion usuel).
+  const carbMax = useMemo(
+    () => (valid ? findCarbMax(profile, 90) : null),
+    [profile, valid],
+  );
+
   const TooltipComp = useMemo(() => makeOxidationTooltip(paceMode), [paceMode]);
 
   if (!valid || !fatMax) {
@@ -348,7 +367,7 @@ export function FatCarbOxidationChart({
 
       <CardContent className="space-y-3 pt-3">
         {/* Key metrics */}
-        <OxidationMetrics data={data} fatMax={fatMax} refValue={refValue} paceMode={paceMode} />
+        <OxidationMetrics data={data} fatMax={fatMax} refValue={refValue} paceMode={paceMode} carbMax={carbMax} />
 
         {/* Chart */}
         <div className="w-full h-64">
@@ -393,6 +412,13 @@ export function FatCarbOxidationChart({
               <ReferenceLine yAxisId="gmin" x={crossoverPct}
                 stroke="hsl(217,91%,60%)" strokeWidth={1} strokeDasharray="4 4"
                 label={{ value: `Crossover ${crossoverPct}%`, fontSize: 8, fill: "hsl(217,91%,60%)", position: "top" }} />
+
+              {/* CarbMax vertical — au-delà, dette glucidique (ox. CHO > apport max ~90 g/h) */}
+              {carbMax?.intensityPct != null && (
+                <ReferenceLine yAxisId="gmin" x={Math.round(carbMax.intensityPct)}
+                  stroke="hsl(38,92%,50%)" strokeWidth={1.5} strokeDasharray="2 3"
+                  label={{ value: `CarbMax ${Math.round(carbMax.intensityPct)}%`, fontSize: 8, fill: "hsl(38,92%,50%)", position: "insideTopRight" }} />
+              )}
 
               {/* Fat oxidation area (g/min) */}
               <Area yAxisId="gmin" type="monotone" dataKey="fatGmin"
@@ -442,6 +468,22 @@ export function FatCarbOxidationChart({
                 : (data.find(p => Math.round(p.watts) >= refValue) ?? data[data.length - 1])
               ).carbGmin * 60)} g/h.
             </div>
+            {carbMax && (
+              <div className="text-[11px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/40">
+                <span className="font-semibold text-amber-600">CarbMax : </span>
+                {carbMax.intensityPct != null ? (
+                  <>
+                    au-delà de <strong>{carbMax.intensityPct}% VO₂max</strong>
+                    {!paceMode && carbMax.power ? ` (~${carbMax.power} W)` : ""}, l'oxydation glucidique
+                    dépasse {carbMax.targetCarbGH} g/h — soit plus que ce que l'athlète peut ingérer :
+                    la réserve de glycogène se creuse, l'allure n'est pas soutenable sur épreuve longue.
+                  </>
+                ) : (
+                  <>l'oxydation glucidique reste sous {carbMax.targetCarbGH} g/h sur toute la plage —
+                  très bonne épargne glucidique, l'apport nutritionnel n'est pas le facteur limitant.</>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

@@ -11,6 +11,7 @@
 
 import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
+import { capDeltaPct, monthsFromWeeks } from "@/lib/v2/trainabilityCaps";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -63,6 +64,10 @@ export interface MetricDelta {
   direction: "up" | "down" | "stable";
   significance: "major" | "moderate" | "minor" | "none";
   available: boolean;
+  /** true si la projection a été plafonnée par les bornes de trainability réelles. */
+  capped?: boolean;
+  /** Explication du plafonnement (affichable dans l'UI). */
+  capNote?: string | null;
 }
 
 export interface PerformancePrediction {
@@ -489,6 +494,7 @@ function buildScenario(
   sportMain: string | null | undefined,
   durationFactor: number,
   limiterId: string | null,
+  months: number,
 ): AdaptationScenario {
   const effects = LEVER_EFFECTS[lever.id];
 
@@ -529,9 +535,16 @@ function buildScenario(
         ? TRAINABILITY_TARGETED_BOOST
         : TRAINABILITY_OFF_TARGET_DAMP;
     }
-    const scaledMin = effect.minPct * durationFactor * trainabilityMult;
-    const scaledMax = effect.maxPct * durationFactor * trainabilityMult;
-    const midPct = (scaledMin + scaledMax) / 2;
+    const rawMin = effect.minPct * durationFactor * trainabilityMult;
+    const rawMax = effect.maxPct * durationFactor * trainabilityMult;
+
+    // Garde-fou de réalisme (INSCYD Performance Report 2025, N=9 468) :
+    // la projection ne peut pas dépasser la vitesse d'adaptation observée
+    // en pratique pour la métrique (voir `trainabilityCaps.ts`).
+    const cap = capDeltaPct(config.id, current, rawMin, rawMax, months);
+    const scaledMin = cap.minPct;
+    const scaledMax = cap.maxPct;
+    const midPct = cap.midPct;
     const projected = current * (1 + midPct / 100);
 
     let direction: "up" | "down" | "stable";
@@ -558,6 +571,8 @@ function buildScenario(
       direction,
       significance,
       available: true,
+      capped: cap.capped,
+      capNote: cap.capNote,
     };
   });
 
@@ -645,13 +660,14 @@ export function computeAdaptationPrediction(input: AdaptationPredictorInput): Ad
 
   const state = extractPhysioState(snapshot, objectif, sportMain);
   const durationFactor = computeDurationFactor(weeksAvailable);
+  const months = monthsFromWeeks(weeksAvailable);
 
   // Determine which levers to simulate
   const leversToSimulate = selectedLevers && selectedLevers.length > 0
     ? TRAINING_LEVERS.filter(l => selectedLevers.includes(l.id))
     : TRAINING_LEVERS;
 
-  const scenarios = leversToSimulate.map(lever => buildScenario(lever, state, objectif, sportMain, durationFactor, limiterId));
+  const scenarios = leversToSimulate.map(lever => buildScenario(lever, state, objectif, sportMain, durationFactor, limiterId, months));
 
   // Find best scenario
   let bestIdx = 0;
