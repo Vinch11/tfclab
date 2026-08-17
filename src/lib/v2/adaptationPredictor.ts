@@ -64,6 +64,10 @@ export interface MetricDelta {
   direction: "up" | "down" | "stable";
   significance: "major" | "moderate" | "minor" | "none";
   available: boolean;
+  /** true si la projection a été plafonnée par les bornes de trainability réelles. */
+  capped?: boolean;
+  /** Explication du plafonnement (affichable dans l'UI). */
+  capNote?: string | null;
 }
 
 export interface PerformancePrediction {
