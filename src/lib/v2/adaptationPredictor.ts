@@ -571,6 +571,8 @@ function buildScenario(
       direction,
       significance,
       available: true,
+      capped: cap.capped,
+      capNote: cap.capNote,
     };
   });
 
