@@ -494,6 +494,7 @@ function buildScenario(
   sportMain: string | null | undefined,
   durationFactor: number,
   limiterId: string | null,
+  months: number,
 ): AdaptationScenario {
   const effects = LEVER_EFFECTS[lever.id];
 
