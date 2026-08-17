@@ -26,6 +26,7 @@ import {
   calculateFatOxidation,
   calculateCarbOxidation,
   findFatMax,
+  findCarbMax,
   type MaderProfile,
 } from "@/lib/v2/maderMetabolicModel";
 import {
