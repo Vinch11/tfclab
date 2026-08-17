@@ -468,6 +468,22 @@ export function FatCarbOxidationChart({
                 : (data.find(p => Math.round(p.watts) >= refValue) ?? data[data.length - 1])
               ).carbGmin * 60)} g/h.
             </div>
+            {carbMax && (
+              <div className="text-[11px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/40">
+                <span className="font-semibold text-amber-600">CarbMax : </span>
+                {carbMax.intensityPct != null ? (
+                  <>
+                    au-delà de <strong>{carbMax.intensityPct}% VO₂max</strong>
+                    {!paceMode && carbMax.power ? ` (~${carbMax.power} W)` : ""}, l'oxydation glucidique
+                    dépasse {carbMax.targetCarbGH} g/h — soit plus que ce que l'athlète peut ingérer :
+                    la réserve de glycogène se creuse, l'allure n'est pas soutenable sur épreuve longue.
+                  </>
+                ) : (
+                  <>l'oxydation glucidique reste sous {carbMax.targetCarbGH} g/h sur toute la plage —
+                  très bonne épargne glucidique, l'apport nutritionnel n'est pas le facteur limitant.</>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
