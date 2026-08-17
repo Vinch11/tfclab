@@ -660,6 +660,7 @@ export function computeAdaptationPrediction(input: AdaptationPredictorInput): Ad
 
   const state = extractPhysioState(snapshot, objectif, sportMain);
   const durationFactor = computeDurationFactor(weeksAvailable);
+  const months = monthsFromWeeks(weeksAvailable);
 
   // Determine which levers to simulate
   const leversToSimulate = selectedLevers && selectedLevers.length > 0
