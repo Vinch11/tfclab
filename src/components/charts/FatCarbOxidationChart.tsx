@@ -413,6 +413,13 @@ export function FatCarbOxidationChart({
                 stroke="hsl(217,91%,60%)" strokeWidth={1} strokeDasharray="4 4"
                 label={{ value: `Crossover ${crossoverPct}%`, fontSize: 8, fill: "hsl(217,91%,60%)", position: "top" }} />
 
+              {/* CarbMax vertical — au-delà, dette glucidique (ox. CHO > apport max ~90 g/h) */}
+              {carbMax?.intensityPct != null && (
+                <ReferenceLine yAxisId="gmin" x={Math.round(carbMax.intensityPct)}
+                  stroke="hsl(38,92%,50%)" strokeWidth={1.5} strokeDasharray="2 3"
+                  label={{ value: `CarbMax ${Math.round(carbMax.intensityPct)}%`, fontSize: 8, fill: "hsl(38,92%,50%)", position: "insideTopRight" }} />
+              )}
+
               {/* Fat oxidation area (g/min) */}
               <Area yAxisId="gmin" type="monotone" dataKey="fatGmin"
                 stroke="hsl(142,71%,45%)" strokeWidth={2} fill="url(#fatOxGradM)"
