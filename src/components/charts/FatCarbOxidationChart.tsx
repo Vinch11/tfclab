@@ -367,7 +367,7 @@ export function FatCarbOxidationChart({
 
       <CardContent className="space-y-3 pt-3">
         {/* Key metrics */}
-        <OxidationMetrics data={data} fatMax={fatMax} refValue={refValue} paceMode={paceMode} />
+        <OxidationMetrics data={data} fatMax={fatMax} refValue={refValue} paceMode={paceMode} carbMax={carbMax} />
 
         {/* Chart */}
         <div className="w-full h-64">
