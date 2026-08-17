@@ -448,6 +448,76 @@ export function findFatMax(profile: MaderProfile): {
   };
 }
 
+/**
+ * CarbMax — intensité à laquelle l'oxydation des glucides atteint un débit cible
+ * (par défaut 90 g/h, le plafond usuel d'ingestion glucidique bien entraînée).
+ *
+ * Lecture coach : au-dessus de CarbMax, l'athlète brûle plus de glucides qu'il ne
+ * peut raisonnablement en ingérer → dette glucidique cumulative, donc plafond
+ * d'allure/puissance soutenable sur épreuve longue. C'est un marqueur d'épargne
+ * glucidique : à VO₂max égal, une VLamax plus basse repousse CarbMax vers le haut.
+ *
+ * Modèle : oxydation CHO Mader (voir `calculateCarbOxidation`), balayage 20→100 %
+ * VO₂max avec interpolation linéaire au franchissement du seuil.
+ * Références : Jeukendrup 2014 (plafond d'ingestion), Mader 2003 / Heck 1985.
+ */
+export function findCarbMax(
+  profile: MaderProfile,
+  targetCarbGH: number = 90,
+): {
+  /** % VO₂max où l'oxydation CHO atteint la cible (null si jamais atteinte). */
+  intensityPct: number | null;
+  /** Puissance estimée correspondante (W), null si non atteinte. */
+  power: number | null;
+  /** Débit CHO cible utilisé (g/h). */
+  targetCarbGH: number;
+  /** % VO₂max où l'oxydation CHO reste sous la cible sur toute la plage. */
+  neverReached: boolean;
+} {
+  const { vo2max, vlamax, weight } = profile;
+  const efficiency = profile.efficiency ?? 0.23;
+  const targetGMin = targetCarbGH / 60;
+
+  if (!vo2max || !vlamax || !weight || vo2max <= 0 || weight <= 0) {
+    return { intensityPct: null, power: null, targetCarbGH, neverReached: true };
+  }
+
+  let prevIntensity = 20;
+  let prevCarb = calculateCarbOxidation(20, vo2max, vlamax, weight);
+  if (prevCarb >= targetGMin) {
+    // Déjà au-dessus dès 20 % VO₂max (profil très glycolytique / gros gabarit)
+    return { intensityPct: 20, power: intensityToPower(20, vo2max, weight, efficiency), targetCarbGH, neverReached: false };
+  }
+
+  for (let intensity = 21; intensity <= 100; intensity += 1) {
+    const carb = calculateCarbOxidation(intensity, vo2max, vlamax, weight);
+    if (carb >= targetGMin) {
+      // Interpolation linéaire entre les deux points encadrants
+      const span = carb - prevCarb;
+      const frac = span > 0 ? (targetGMin - prevCarb) / span : 0;
+      const exact = prevIntensity + frac * (intensity - prevIntensity);
+      return {
+        intensityPct: Number(exact.toFixed(1)),
+        power: intensityToPower(exact, vo2max, weight, efficiency),
+        targetCarbGH,
+        neverReached: false,
+      };
+    }
+    prevIntensity = intensity;
+    prevCarb = carb;
+  }
+
+  return { intensityPct: null, power: null, targetCarbGH, neverReached: true };
+}
+
+/** Conversion %VO₂max → puissance mécanique estimée (W). */
+function intensityToPower(intensityPct: number, vo2max: number, weight: number, efficiency: number): number {
+  const vo2LPerMin = (vo2max * intensityPct / 100) * weight / 1000;
+  const energyKJPerMin = vo2LPerMin * ENERGY_PER_O2;
+  return Math.round((energyKJPerMin * 1000 / 60) * efficiency);
+}
+
+
 // =============================================
 // TIME TO EXHAUSTION (Glycogen Depletion Model)
 // Based on Rapoport (2010)
