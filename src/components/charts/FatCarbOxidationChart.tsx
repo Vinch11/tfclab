@@ -311,6 +311,12 @@ export function FatCarbOxidationChart({
     return pt?.intensity ?? (fatMax?.fatMaxIntensity ?? 60) + 10;
   }, [data, fatMax]);
 
+  // CarbMax — intensité où l'oxydation CHO atteint 90 g/h (plafond d'ingestion usuel).
+  const carbMax = useMemo(
+    () => (valid ? findCarbMax(profile, 90) : null),
+    [profile, valid],
+  );
+
   const TooltipComp = useMemo(() => makeOxidationTooltip(paceMode), [paceMode]);
 
   if (!valid || !fatMax) {
