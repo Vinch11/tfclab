@@ -535,9 +535,16 @@ function buildScenario(
         ? TRAINABILITY_TARGETED_BOOST
         : TRAINABILITY_OFF_TARGET_DAMP;
     }
-    const scaledMin = effect.minPct * durationFactor * trainabilityMult;
-    const scaledMax = effect.maxPct * durationFactor * trainabilityMult;
-    const midPct = (scaledMin + scaledMax) / 2;
+    const rawMin = effect.minPct * durationFactor * trainabilityMult;
+    const rawMax = effect.maxPct * durationFactor * trainabilityMult;
+
+    // Garde-fou de réalisme (INSCYD Performance Report 2025, N=9 468) :
+    // la projection ne peut pas dépasser la vitesse d'adaptation observée
+    // en pratique pour la métrique (voir `trainabilityCaps.ts`).
+    const cap = capDeltaPct(config.id, current, rawMin, rawMax, months);
+    const scaledMin = cap.minPct;
+    const scaledMax = cap.maxPct;
+    const midPct = cap.midPct;
     const projected = current * (1 + midPct / 100);
 
     let direction: "up" | "down" | "stable";
