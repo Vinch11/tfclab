@@ -507,6 +507,7 @@ export function getTTEAgeFactor(age: number | null): number {
   if (age < 40) return 0.99;
   if (age < 50) return 0.97;
   if (age < 60) return 0.94;
+
   return 0.90;
 }
 
