@@ -225,15 +225,89 @@ export const PLAUSIBILITY_BOUNDS: PlausibilityBound[] = [
 ];
 
 // ============================================
+// 4️⃣bis AJUSTEMENTS PAR SEXE
+// ============================================
+// Observation terrain à grande échelle (INSCYD Performance Report 2025,
+// N = 9 468 athlètes) : l'utilisation fractionnelle au MLSS est nettement plus
+// élevée chez les femmes (~85 % VO₂max) que chez les hommes (~75 %), à VLamax
+// plus basse en moyenne. Des bornes unisexes flaggent donc à tort des profils
+// féminins parfaitement plausibles.
+//
+// ⚠️ Statistique DESCRIPTIVE uniquement : sert à élargir/décaler des garde-fous,
+// jamais à calibrer les coefficients Mader (anti-circularité).
+
+export type AthleteSex = 'male' | 'female';
+
+/** Bornes remplaçant PLAUSIBILITY_BOUNDS quand le sexe est connu. */
+export const SEX_ADJUSTED_BOUNDS: Record<AthleteSex, Partial<Record<string, { min: number; max: number; rationale: string }>>> = {
+  female: {
+    run_MLSS_pct_vo2max: {
+      min: 75,
+      max: 95,
+      rationale:
+        "Profil féminin : utilisation fractionnelle au MLSS plus haute (~85 % vs ~75 % chez l'homme) — bornes décalées vers le haut.",
+    },
+    bike_MLSS_pct_vo2max: {
+      min: 68,
+      max: 92,
+      rationale:
+        "Profil féminin : MLSS/VO₂max plus élevé et VLamax plus basse en moyenne — bornes décalées vers le haut.",
+    },
+    run_vlamax: {
+      min: 0.18,
+      max: 0.60,
+      rationale: "Profil féminin : VLamax moyenne plus basse — borne inférieure abaissée.",
+    },
+    bike_vlamax: {
+      min: 0.22,
+      max: 0.80,
+      rationale: "Profil féminin : VLamax moyenne plus basse — bornes décalées vers le bas.",
+    },
+  },
+  male: {},
+};
+
+/** Normalise une saisie de sexe libre ('F', 'femme', 'female'…) vers AthleteSex. */
+export function normalizeSex(sex: string | null | undefined): AthleteSex | null {
+  if (!sex) return null;
+  const s = sex.trim().toLowerCase();
+  if (['f', 'femme', 'female', 'w', 'woman'].includes(s)) return 'female';
+  if (['m', 'h', 'homme', 'male', 'man'].includes(s)) return 'male';
+  return null;
+}
+
+/** Bornes effectives pour une métrique, ajustées au sexe quand il est connu. */
+export function getPlausibilityBound(
+  metric: string,
+  sex?: string | null,
+): PlausibilityBound | null {
+  const base = PLAUSIBILITY_BOUNDS.find((b) => b.metric === metric);
+  if (!base) return null;
+  const s = normalizeSex(sex);
+  const override = s ? SEX_ADJUSTED_BOUNDS[s]?.[metric] : undefined;
+  if (!override) return base;
+  return {
+    ...base,
+    min: override.min,
+    max: override.max,
+    rationale: override.rationale,
+  };
+}
+
+// ============================================
 // 5️⃣ HELPERS
 // ============================================
 
-/** Retourne le flag de plausibilité pour une métrique donnée, ou null si dans les bornes. */
+/**
+ * Retourne le flag de plausibilité pour une métrique donnée, ou null si dans les bornes.
+ * `sex` est optionnel : quand il est fourni, les bornes ajustées au sexe s'appliquent.
+ */
 export function checkPlausibility(
   metric: string,
   value: number,
+  sex?: string | null,
 ): { outOfDomain: boolean; bound: PlausibilityBound; message: string } | null {
-  const bound = PLAUSIBILITY_BOUNDS.find((b) => b.metric === metric);
+  const bound = getPlausibilityBound(metric, sex);
   if (!bound) return null;
   const outOfDomain = value < bound.min || value > bound.max;
   if (!outOfDomain) return null;
@@ -250,3 +324,4 @@ export function checkPlausibility(
 export function getPopulationTarget(metric: string): PopulationTarget | null {
   return POPULATION_TARGETS.find((t) => t.metric === metric) ?? null;
 }
+
