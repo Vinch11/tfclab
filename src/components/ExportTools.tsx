@@ -9756,6 +9756,48 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     }
   };
 
+  const handleExportPerformanceReportPDF = async () => {
+    if (!exportCheck.ok) {
+      toast.error("Export impossible", { description: exportCheck.reason });
+      return;
+    }
+    if (isExporting) return;
+    setIsExporting(true);
+    const toastId = toast.loading("Préparation du rapport de performance...", {
+      description: "Un nouvel onglet va s'ouvrir.",
+    });
+    try {
+      const logoBase64 = await imageToBase64(profileReportLogoAsset.url);
+      const input = computePerformanceReport(payload, {
+        ambitionLabel: payload.ambition?.label ?? "—",
+        generatedAt: new Date().toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }),
+        logoBase64,
+      });
+      const html = buildPerformanceReportHTML(input);
+      const fileName = `rapport-performance-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
+      openPrintableHTML(html, { filenameHint: fileName, includeInstructions: true, autoPrint: false });
+      toast.success("Rapport de performance ouvert", {
+        id: toastId,
+        description: "Utilise Imprimer → Enregistrer en PDF (ou Ctrl/Cmd+P).",
+        duration: 6000,
+      });
+    } catch (error) {
+      console.error("Erreur export Rapport de Performance:", error);
+      toast.error("Erreur d'export", {
+        id: toastId,
+        description: error instanceof Error ? error.message : "Une erreur est survenue.",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+
+
   const handleExportBeginnerPDF = async () => {
     if (!exportCheck.ok) {
       toast.error("Export impossible", { description: exportCheck.reason });
