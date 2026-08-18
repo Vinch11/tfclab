@@ -335,18 +335,28 @@ export function computePerformanceReport(
     Z5: "VO₂max, cinétique O₂",
     Z6: "Puissance glycolytique",
   };
+  // Plafond d'affichage : au-delà de ~2,2 × MLSS la borne haute n'a plus de sens
+  // physiologique (zone neuromusculaire ouverte) → on affiche "x W +".
+  const capAbsolute = (raw: string): string => {
+    if (!mlssW) return raw;
+    const m = raw.match(/^(\d+)\s*[–-]\s*(\d+)\s*(W|w)$/);
+    if (!m) return raw;
+    const hi = Number(m[2]);
+    return hi > mlssW * 2.2 ? `${m[1]} W +` : raw;
+  };
   const zones: PerfZoneRow[] = (zoneSet?.zones ?? []).map((z: any) => {
     const key = String(z.id ?? "").toUpperCase().slice(0, 2);
     return {
       id: z.id,
       label: z.label,
-      absolute: z.absolute ?? "—",
+      absolute: capAbsolute(String(z.absolute ?? "—")),
       heartRate: z.heartRate ?? "—",
       lactate: LACTATE_BY_ZONE[key] ?? "—",
       substrate: SUBSTRATE_BY_ZONE[key] ?? "—",
       adaptation: ADAPTATION_BY_ZONE[key] ?? "—",
     };
   });
+
   const zoneSourceLabel =
     zoneSet?.source === "derived"
       ? `Zones dérivées de la physiologie (${(zoneSet.anchors ?? []).join(", ") || "ancres physiologiques"})`
