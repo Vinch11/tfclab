@@ -9,6 +9,8 @@
 
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
+import { describePeerPosition } from "@/lib/v2/peerDistributionReference";
+
 import {
   deriveTrainingZones,
   estimateRunThresholdPaceSecPerKm,
@@ -91,6 +93,19 @@ export function mapExportPayloadToProfileReport(
     refs?.ftp && refs?.weightKg ? Number((refs.ftp / refs.weightKg).toFixed(2)) : null;
   const ambitionTargets = payload.ambition?.targets;
 
+  const peerVo2 = describePeerPosition(
+    "vo2max",
+    refs?.vo2max ?? null,
+    payload.athlete?.sportMain ?? goal,
+    payload.ambition?.level ?? opts.ambitionLabel,
+  );
+  const peerVla = describePeerPosition(
+    "vlamax",
+    payload.vlamax?.value ?? null,
+    payload.athlete?.sportMain ?? goal,
+    payload.ambition?.level ?? opts.ambitionLabel,
+  );
+
   const metrics: ReportMetric[] = [
     {
       key: "vo2max",
@@ -102,7 +117,8 @@ export function mapExportPayloadToProfileReport(
       target: [50, 70],
       status: statusFromRange(refs?.vo2max ?? null, [50, 70]),
       meaning:
-        "La quantité maximale d'oxygène que ton corps peut utiliser. Plus elle est haute, plus ton plafond de performance est élevé.",
+        "La quantité maximale d'oxygène que ton corps peut utiliser. Plus elle est haute, plus ton plafond de performance est élevé." +
+        (peerVo2 ? ` ${peerVo2}` : ""),
       source: refs?.sources?.vo2max ?? null,
     },
     {
@@ -123,10 +139,12 @@ export function mapExportPayloadToProfileReport(
         true,
       ),
       meaning:
-        "À quelle vitesse tu produis du lactate. Trop haute, tu brûles tes sucres trop vite en endurance ; trop basse, tu manques d'explosivité.",
+        "À quelle vitesse tu produis du lactate. Trop haute, tu brûles tes sucres trop vite en endurance ; trop basse, tu manques d'explosivité." +
+        (peerVla ? ` ${peerVla}` : ""),
       source: payload.vlamax?.source ?? null,
       confidence: payload.vlamax?.confidence ?? null,
     },
+
     {
       key: "tte",
       label: "TTE — endurance au seuil",

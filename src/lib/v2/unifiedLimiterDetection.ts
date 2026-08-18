@@ -507,8 +507,29 @@ export function getTTEAgeFactor(age: number | null): number {
   if (age < 40) return 0.99;
   if (age < 50) return 0.97;
   if (age < 60) return 0.94;
+
   return 0.90;
 }
+
+/**
+ * Priorisation VLamax chez les masters.
+ *
+ * Source : INSCYD "State of Endurance Performance & Optimization 2025"
+ * (N = 9 468, statistique descriptive terrain) — chez les athlètes > 50 ans,
+ * la trainabilité VO₂max reste présente mais la VLamax dérive spontanément à la
+ * hausse. Le levier le plus rentable devient donc la réduction de la VLamax
+ * plutôt que la poussée VO₂max.
+ *
+ * ⚠️ Garde-fou de priorisation uniquement — n'altère ni la valeur mesurée,
+ * ni les cibles physiologiques, ni les coefficients Mader.
+ */
+export function getMastersVlamaxPriorityFactor(age: number | null): number {
+  if (age === null || age < 50) return 1.0;
+  if (age < 60) return 1.15;
+  return 1.25;
+}
+
+
 
 /**
  * Retourne un message explicatif sur l'ajustement par âge
@@ -654,10 +675,14 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     // L'ancienne formule (Δ absolu mmol/L/s × 100) sous-pondérait massivement la VLamax
     // (~0.9 pour gap 0.12) vs VO2max -4% (~3.4) → faisait sortir le VO2max en limiteur #1
     // alors que la VLamax dominait clairement le profil.
+    // ✅ MASTERS (INSCYD 2025, N=9 468) : chez les >50 ans, la trainabilité VO₂max reste
+    // correcte mais la VLamax dérive spontanément à la hausse avec l'âge. Le levier le plus
+    // rentable devient donc la réduction VLamax → on rehausse son poids de classement.
     weightedImpact: input.vlamax !== null && vlamaxGap > 0
-      ? Math.abs(vlamaxGap) * weights.glycolytic * 100
+      ? Math.abs(vlamaxGap) * weights.glycolytic * 100 * getMastersVlamaxPriorityFactor(input.age)
       : 0,
   });
+
   
   // 2b. Analyse W' (Capacité Anaérobie absolue)
   // W' a une cible bidirectionnelle: trop bas = pas assez de punch, trop haut = profil trop glycolytique

@@ -19,12 +19,15 @@ export interface OutOfDomainBadgeProps {
   className?: string;
   /** Texte compact (par défaut "Hors domaine"). */
   label?: string;
+  /** Sexe de l'athlète ('F'/'M'/'female'…) : applique les bornes ajustées. */
+  sex?: string | null;
 }
 
-export function OutOfDomainBadge({ metric, value, className, label = "Hors domaine" }: OutOfDomainBadgeProps) {
+export function OutOfDomainBadge({ metric, value, className, label = "Hors domaine", sex }: OutOfDomainBadgeProps) {
   if (value == null || !Number.isFinite(value)) return null;
-  const flag = checkPlausibility(metric, value);
+  const flag = checkPlausibility(metric, value, sex);
   if (!flag) return null;
+
 
   return (
     <TooltipProvider delayDuration={150}>

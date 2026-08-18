@@ -12,6 +12,8 @@
 import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { capDeltaPct, monthsFromWeeks } from "@/lib/v2/trainabilityCaps";
+import { applyDecorrelationGuard } from "@/lib/v2/decorrelationGuard";
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -506,7 +508,7 @@ function buildScenario(
     : false;
   const targetedMetrics = limiterId ? (LIMITER_TO_METRICS[limiterId] || []) : [];
 
-  const metrics: MetricDelta[] = METRIC_CONFIGS.map(config => {
+  const rawMetrics: MetricDelta[] = METRIC_CONFIGS.map(config => {
     const current = getMetricValue(state, config.id);
     const effect = effects.find(e => e.metric === config.id);
     const available = current !== null && current !== undefined && Number.isFinite(current);
@@ -576,7 +578,14 @@ function buildScenario(
     };
   });
 
+  // Garde-fou décorrélation VO₂max ↔ VLamax (r ≈ 0, INSCYD 2025).
+  const metrics = applyDecorrelationGuard(
+    rawMetrics as unknown as import("@/lib/v2/decorrelationGuard").DecorrelatableMetric[],
+  ) as unknown as MetricDelta[];
+
+
   const performancePredictions = estimatePerformanceImpact(metrics, objectif, sportMain);
+
 
   // Overall impact score: weighted average of positive effects for endurance
   const availableMetrics = metrics.filter(m => m.available);
