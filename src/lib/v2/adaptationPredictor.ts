@@ -12,6 +12,8 @@
 import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { capDeltaPct, monthsFromWeeks } from "@/lib/v2/trainabilityCaps";
+import { applyDecorrelationGuard } from "@/lib/v2/decorrelationGuard";
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
