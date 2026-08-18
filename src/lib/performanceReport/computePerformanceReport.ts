@@ -368,7 +368,7 @@ export function computePerformanceReport(
   const gh = (lo: number, hi: number) => {
     const a = Math.max(0, Math.min(90, Math.round(lo)));
     const b = Math.max(a, Math.min(90, Math.round(hi)));
-    return `${a} – ${b} g/h`;
+    return a === b ? `${a} g/h` : `${a} – ${b} g/h`;
   };
   const fueling: Array<[string, string, string, string]> = need
     ? [
@@ -376,19 +376,19 @@ export function computePerformanceReport(
         [
           "1 – 2 h",
           "Allure spécifique",
-          gh(need * 0.55, need * 0.75),
+          gh(Math.min(need, 60), Math.min(need, 80)),
           "Gels / boisson glucidique",
         ],
         [
           "2 – 4 h",
           "Tempo / seuil bas",
-          gh(need * 0.7, need * 0.9),
+          gh(Math.min(need, 75), Math.min(need, 90)),
           "Mix glucose:fructose 1:0,8",
         ],
         [
           "> 4 h",
           "Endurance longue (FatMax dominant)",
-          gh(need * 0.6, need * 0.85),
+          gh(Math.min(need, 70), Math.min(need, 90)),
           "Solide + liquide, entraînement digestif requis",
         ],
       ]
