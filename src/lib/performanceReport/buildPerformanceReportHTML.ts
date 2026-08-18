@@ -153,8 +153,8 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       </table>
     </div>
     <div class="grid3" style="margin-top:12px">
-      <div class="kpi"><div class="k">LT1 (2 mmol/L)</div><div class="v">${p.lt1W ?? "—"}<span class="u">W</span></div></div>
-      <div class="kpi"><div class="k">LT2 (4 mmol/L)</div><div class="v">${p.lt2W ?? "—"}<span class="u">W</span></div></div>
+      <div class="kpi"><div class="k">LT1 · 2 mmol/L</div><div class="v">${p.lt1W ?? "—"}<span class="u">W</span></div></div>
+      <div class="kpi"><div class="k">LT2 · 4 mmol/L (= MLSS)</div><div class="v">${p.lt2W ?? "—"}<span class="u">W</span></div></div>
       <div class="kpi"><div class="k">Puissance à VO₂max</div><div class="v">${p.vo2W ?? "—"}<span class="u">W</span></div></div>
     </div>
     <div class="note" style="margin-top:12px">
@@ -169,9 +169,10 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   <section class="page">
     <div class="eyebrow">03 — Dynamique du lactate</div>
     <h1>Où se situe ton vrai seuil</h1>
-    <p class="lead">La courbe orange est ta lactatémie stabilisée. Les deux courbes pointillées
-    montrent le duel permanent : production (glycolyse, pilotée par la VLamax) contre capacité
-    d'élimination (oxydation, pilotée par la VO₂max). Leur croisement matérialise le MLSS.</p>
+    <p class="lead">Ta lactatémie stabilisée en fonction de la puissance. Tant que l'élimination
+    (oxydation, pilotée par la VO₂max) suit la production (glycolyse, pilotée par la VLamax), la
+    courbe reste plate. Le décrochage au-delà de 4 mmol/L marque la fin de l'état stable : c'est
+    ton MLSS.</p>
     <div class="card">
       ${hasCurve ? lactateCurveSVG(input.curve, p.mlssW, p.lt1W, p.lt2W) : `<p class="muted">Données insuffisantes pour modéliser la courbe (VO₂max, VLamax et poids requis).</p>`}
     </div>
