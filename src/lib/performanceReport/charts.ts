@@ -276,10 +276,10 @@ export function substratesSVG(
 /** Barres « et si… » : seuil recalculé par levier. */
 export function whatIfBarsSVG(scenarios: PerfScenario[], baseline: number): string {
   const W = 760;
-  const rowH = 46;
+  const rowH = 58;
   const T = 12;
   const H = T + rowH * scenarios.length + 18;
-  const L = 208;
+  const L = 196;
   const R = 150;
   const bw = W - L - R;
   const maxV = Math.max(baseline, ...scenarios.map((s) => s.mlss)) * 1.06;
@@ -291,8 +291,8 @@ export function whatIfBarsSVG(scenarios: PerfScenario[], baseline: number): stri
     const wb = (bw * baseline) / Math.max(1e-6, maxV);
     const isBase = s.deltaW === 0;
     out.push(
-      `<text x="0" y="${(cy - 2).toFixed(0)}" font-size="12.2" font-weight="600" fill="${INK}">${s.label}</text>`,
-      `<text x="0" y="${(cy + 13).toFixed(0)}" font-size="10.2" fill="${FAINT}">${s.detail}</text>`,
+      `<text x="0" y="${(cy + 3).toFixed(0)}" font-size="12.2" font-weight="600" fill="${INK}">${s.label}</text>`,
+      `<text x="0" y="${(cy + 23).toFixed(0)}" font-size="9.8" fill="${FAINT}">${s.detail}</text>`,
       `<rect x="${L}" y="${(cy - 11).toFixed(0)}" width="${w.toFixed(0)}" height="22" rx="6" fill="${isBase ? MUT : PERI}" fill-opacity="${isBase ? 0.35 : 0.85}"/>`,
       `<line x1="${(L + wb).toFixed(0)}" y1="${(cy - 15).toFixed(0)}" x2="${(L + wb).toFixed(0)}" y2="${(cy + 15).toFixed(0)}" stroke="${INK}" stroke-width="1" stroke-dasharray="3 3"/>`,
       `<text x="${W - R + 10}" y="${(cy + 1).toFixed(0)}" font-size="13" font-weight="600" fill="${INK}">${Math.round(s.mlss)} W</text>`,
