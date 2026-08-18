@@ -9,6 +9,8 @@
 
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
+import { describePeerPosition } from "@/lib/v2/peerDistributionReference";
+
 import {
   deriveTrainingZones,
   estimateRunThresholdPaceSecPerKm,
