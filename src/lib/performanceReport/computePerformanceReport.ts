@@ -60,9 +60,8 @@ const num = (v: unknown): number | null => {
 const fr = (v: number | null, d = 0, unit = ""): string =>
   v == null ? "—" : `${v.toFixed(d).replace(".", ",")}${unit ? ` ${unit}` : ""}`;
 
-/** Énergie : 20.9 kJ par litre d'O₂ ; ~0.075 kJ par mmol de lactate produit. */
+/** Énergie : 20.9 kJ par litre d'O₂. */
 const KJ_PER_L_O2 = 20.9;
-const KJ_PER_MMOL_LA = 0.075;
 
 /**
  * Courbe de lactate ancrée sur le MLSS canonique (findMLSSPower, α=1.98).
@@ -74,13 +73,12 @@ const KJ_PER_MMOL_LA = 0.075;
 function anchoredLactate(power: number, mlssW: number): number {
   const k = Math.log(1 / 3) / Math.log(0.85); // ≈ 6.76
   const ratio = Math.max(0.2, power / Math.max(1, mlssW));
-  return Math.min(20, 1 + 3 * Math.pow(ratio, k));
+  return Math.min(12, 1 + 3 * Math.pow(ratio, k));
 }
 
 function buildCurve(profile: MaderProfile, mlssW: number | null): PerfCurvePoint[] {
   const { vo2max, vlamax, weight } = profile;
   const efficiency = profile.efficiency ?? 0.23;
-  const bodyWaterL = weight * 0.55;
   const points: PerfCurvePoint[] = [];
 
   for (let intensity = 35; intensity <= 100; intensity += 2.5) {
@@ -95,12 +93,14 @@ function buildCurve(profile: MaderProfile, mlssW: number | null): PerfCurvePoint
     const clearance = calculateLactateClearance(intensity, vo2max, 4);
     const fatGh = calculateFatOxidation(intensity, vo2max, vlamax, weight) * 60;
     const carbGh = calculateCarbOxidation(intensity, vo2max, vlamax, weight) * 60;
-    const glycolyticKJ = production * bodyWaterL * KJ_PER_MMOL_LA;
-    const aerobicKJ = vo2LMin * KJ_PER_L_O2;
-    const aerobicPct = Math.max(
-      55,
-      Math.min(100, (aerobicKJ / Math.max(1e-6, aerobicKJ + glycolyticKJ)) * 100),
+    // Part glycolytique estimée depuis l'accumulation nette de lactate
+    // (référence : plus la lactatémie s'écarte de la baseline, plus la part
+    // anaérobie de la production d'énergie est élevée — Beneke 2003).
+    const glycolyticPct = Math.max(
+      0,
+      Math.min(60, (100 * Math.max(0, lactate - 1)) / (Math.max(0, lactate - 1) + 12)),
     );
+    const aerobicPct = 100 - glycolyticPct;
     points.push({
       power,
       intensity,
