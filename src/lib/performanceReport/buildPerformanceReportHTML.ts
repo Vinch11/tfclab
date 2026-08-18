@@ -29,37 +29,17 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   const p = input.physio;
   const hasCurve = input.curve.length > 2;
 
-  const cover = `
-  <section class="page cover">
-    <div>
-      ${input.logoBase64 ? `<img class="logo" src="${input.logoBase64}" alt="TFC Lab" />` : ""}
-      <div class="eyebrow" style="margin-top:26px">Rapport de performance métabolique</div>
-      <h1>${esc(input.athleteName)}</h1>
-      <p style="max-width:120mm;font-size:13.5px;line-height:1.6">
-        Analyse complète de ton moteur : puissance aérobie, puissance glycolytique,
-        seuil réel, utilisation des carburants et durabilité. Chaque chiffre est
-        relié à une décision d'entraînement.
-      </p>
-      <div class="idgrid">
-        ${input.identity.map((i) => `<div class="idcell"><div class="k">${esc(i.label)}</div><div class="v">${esc(i.value)}</div></div>`).join("")}
-      </div>
-    </div>
-    <div>
-      <div class="idgrid" style="grid-template-columns:repeat(3,1fr)">
-        ${input.kpis
-          .slice(0, 3)
-          .map(
-            (k) =>
-              `<div class="idcell"><div class="k">${esc(k.label)}</div><div class="v">${esc(k.value)} <span style="font-size:10px;color:#A9A4E6">${esc(k.unit)}</span></div></div>`,
-          )
-          .join("")}
-      </div>
-      <p style="margin-top:22px;font-size:10.4px;color:#A9A4E6">
-        Modèle Mader-Heck calibré (α = 1,98 · N = 44 profils laboratoire) — plafonds de
-        progression Inscyd 2025. Généré le ${esc(input.generatedAt)}${input.snapshotDate ? ` · snapshot du ${esc(input.snapshotDate)}` : ""}.
-      </p>
-    </div>
-  </section>`;
+  const cover = coverPage({
+    eyebrow: "Rapport de performance métabolique",
+    title: input.athleteName,
+    intro:
+      "Analyse complète de ton moteur : puissance aérobie, puissance glycolytique, seuil réel, utilisation des carburants et durabilité. Chaque chiffre est relié à une décision d'entraînement.",
+    identity: input.identity,
+    highlights: input.kpis,
+    footnote: `Modèle Mader-Heck calibré (α = 1,98 · N = 44 profils laboratoire) — plafonds de progression Inscyd 2025. Généré le ${input.generatedAt}${input.snapshotDate ? ` · snapshot du ${input.snapshotDate}` : ""}.`,
+    logoBase64: input.logoBase64,
+  });
+
 
   const page2 = `
   <section class="page">
