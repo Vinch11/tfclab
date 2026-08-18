@@ -96,6 +96,8 @@ import { computeLongDistanceEnvelope, LONG_DISTANCE_THRESHOLD_HOURS, type LongDi
 // ✅ Rapport Profil Athlète (design Bevel, pédagogique)
 import { buildAthleteProfileReportHTML } from "@/lib/athleteProfileReport/buildAthleteProfileReportHTML";
 import { mapExportPayloadToProfileReport } from "@/lib/athleteProfileReport/mapPayloadToReport";
+import { computePerformanceReport } from "@/lib/performanceReport/computePerformanceReport";
+import { buildPerformanceReportHTML } from "@/lib/performanceReport/buildPerformanceReportHTML";
 
 // =============================================
 // TYPES
