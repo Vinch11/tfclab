@@ -258,10 +258,9 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
     ${foot(input, 9)}
   </section>`;
 
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8" />
-<title>Rapport de Performance TFCL — ${esc(input.athleteName)}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
-<style>${CSS}</style></head>
-<body>${cover}${page2}${page3}${page4}${page5}${page6}${page7}${page8}${page9}</body></html>`;
+  return reportDocument({
+    title: `Rapport de Performance TFCL — ${input.athleteName}`,
+    body: `${cover}${page2}${page3}${page4}${page5}${page6}${page7}${page8}${page9}`,
+  });
+
 }
