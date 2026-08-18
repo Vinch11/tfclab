@@ -64,7 +64,20 @@ const fr = (v: number | null, d = 0, unit = ""): string =>
 const KJ_PER_L_O2 = 20.9;
 const KJ_PER_MMOL_LA = 0.075;
 
-function buildCurve(profile: MaderProfile): PerfCurvePoint[] {
+/**
+ * Courbe de lactate ancrée sur le MLSS canonique (findMLSSPower, α=1.98).
+ * Forme exponentielle de Heck : 4 mmol/L au MLSS, 2 mmol/L à ~0,85 × MLSS,
+ * baseline 1 mmol/L. Le solveur itératif de Mader sature sur les profils
+ * économes (production < capacité d'élimination à toutes les intensités) ;
+ * l'ancrage garantit une courbe lisible ET cohérente avec le seuil calculé.
+ */
+function anchoredLactate(power: number, mlssW: number): number {
+  const k = Math.log(1 / 3) / Math.log(0.85); // ≈ 6.76
+  const ratio = Math.max(0.2, power / Math.max(1, mlssW));
+  return Math.min(20, 1 + 3 * Math.pow(ratio, k));
+}
+
+function buildCurve(profile: MaderProfile, mlssW: number | null): PerfCurvePoint[] {
   const { vo2max, vlamax, weight } = profile;
   const efficiency = profile.efficiency ?? 0.23;
   const bodyWaterL = weight * 0.55;
@@ -73,7 +86,9 @@ function buildCurve(profile: MaderProfile): PerfCurvePoint[] {
   for (let intensity = 35; intensity <= 100; intensity += 2.5) {
     const vo2LMin = ((vo2max * intensity) / 100) * weight / 1000;
     const power = Math.round(((vo2LMin * KJ_PER_L_O2 * 1000) / 60) * efficiency);
-    const lactate = findSteadyStateLactate(intensity, vo2max, vlamax);
+    const lactate = mlssW
+      ? anchoredLactate(power, mlssW)
+      : findSteadyStateLactate(intensity, vo2max, vlamax);
     const production = calculateLactateProduction(intensity, vlamax);
     // Capacité d'élimination évaluée à une lactatémie de référence de 4 mmol/L :
     // le croisement production × capacité matérialise l'état stable maximal.
@@ -131,8 +146,8 @@ export function computePerformanceReport(
     ? { vo2max, vlamax, weight: weightKg, efficiency: 0.23 }
     : null;
 
-  const curve = profile ? buildCurve(profile) : [];
   const mlssW = profile ? num(findMLSSPower(profile)) : null;
+  const curve = profile ? buildCurve(profile, mlssW) : [];
   const thresholds = profile ? findLactateThresholds(profile) : null;
   const fatMax = profile ? findFatMax(profile) : null;
   const carbMax = profile ? findCarbMax(profile, 90) : null;
