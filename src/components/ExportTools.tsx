@@ -98,6 +98,7 @@ import { buildAthleteProfileReportHTML } from "@/lib/athleteProfileReport/buildA
 import { mapExportPayloadToProfileReport } from "@/lib/athleteProfileReport/mapPayloadToReport";
 import { computePerformanceReport } from "@/lib/performanceReport/computePerformanceReport";
 import { buildPerformanceReportHTML } from "@/lib/performanceReport/buildPerformanceReportHTML";
+import { REPORT_KIT_FONT_LINK, REPORT_KIT_SKIN_CSS } from "@/lib/reportKit";
 
 // =============================================
 // TYPES
@@ -8296,6 +8297,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title>${htmlEscape(title)}</title>
         ${css}
+        ${REPORT_KIT_FONT_LINK}
+        ${REPORT_KIT_SKIN_CSS}
       </head>
       <body>
         ${coverHTML}
