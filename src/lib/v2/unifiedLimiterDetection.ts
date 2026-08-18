@@ -512,6 +512,26 @@ export function getTTEAgeFactor(age: number | null): number {
 }
 
 /**
+ * Priorisation VLamax chez les masters.
+ *
+ * Source : INSCYD "State of Endurance Performance & Optimization 2025"
+ * (N = 9 468, statistique descriptive terrain) — chez les athlètes > 50 ans,
+ * la trainabilité VO₂max reste présente mais la VLamax dérive spontanément à la
+ * hausse. Le levier le plus rentable devient donc la réduction de la VLamax
+ * plutôt que la poussée VO₂max.
+ *
+ * ⚠️ Garde-fou de priorisation uniquement — n'altère ni la valeur mesurée,
+ * ni les cibles physiologiques, ni les coefficients Mader.
+ */
+export function getMastersVlamaxPriorityFactor(age: number | null): number {
+  if (age === null || age < 50) return 1.0;
+  if (age < 60) return 1.15;
+  return 1.25;
+}
+
+
+
+/**
  * Retourne un message explicatif sur l'ajustement par âge
  */
 export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
