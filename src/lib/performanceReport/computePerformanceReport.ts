@@ -73,7 +73,7 @@ const KJ_PER_L_O2 = 20.9;
 function anchoredLactate(power: number, mlssW: number): number {
   const k = Math.log(1 / 3) / Math.log(0.85); // ≈ 6.76
   const ratio = Math.max(0.2, power / Math.max(1, mlssW));
-  return Math.min(12, 1 + 3 * Math.pow(ratio, k));
+  return Math.min(15, 1 + 3 * Math.pow(ratio, k));
 }
 
 function buildCurve(profile: MaderProfile, mlssW: number | null): PerfCurvePoint[] {

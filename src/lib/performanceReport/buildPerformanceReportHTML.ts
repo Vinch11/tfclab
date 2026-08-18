@@ -180,11 +180,6 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       <div class="card"><h3>Sous le MLSS</h3><p style="margin:0">Le lactate produit est entièrement réutilisé comme carburant. L'effort est stable : la limite devient le stock de glycogène et la fatigue neuromusculaire, pas l'acidose.</p></div>
       <div class="card"><h3>Au-dessus du MLSS</h3><p style="margin:0">L'accumulation devient exponentielle. Chaque watt supplémentaire raccourcit fortement le temps tenable — c'est la zone où une erreur de pacing coûte la course.</p></div>
     </div>
-    <div class="grid3" style="margin-top:12px">
-      <div class="kpi"><div class="k">LT1 · aérobie</div><div class="v">${p.lt1W ?? "—"}<span class="u">W</span></div></div>
-      <div class="kpi"><div class="k">MLSS · 4 mmol/L</div><div class="v">${p.mlssW ?? "—"}<span class="u">W</span></div></div>
-      <div class="kpi"><div class="k">Puissance à VO₂max</div><div class="v">${p.vo2W ?? "—"}<span class="u">W</span></div></div>
-    </div>
     <div class="note" style="margin-top:12px"><strong>Ton point d'équilibre :</strong> ${p.mlssW ?? "—"} W${p.mlssWkg ? ` (${String(p.mlssWkg).replace(".", ",")} W/kg)` : ""}${p.mlssPctVo2 ? `, soit ${p.mlssPctVo2} % de ta VO₂max` : ""}.</div>
     ${foot(input, 4)}
   </section>`;
