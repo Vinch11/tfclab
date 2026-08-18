@@ -506,7 +506,7 @@ function buildScenario(
     : false;
   const targetedMetrics = limiterId ? (LIMITER_TO_METRICS[limiterId] || []) : [];
 
-  const metrics: MetricDelta[] = METRIC_CONFIGS.map(config => {
+  const rawMetrics: MetricDelta[] = METRIC_CONFIGS.map(config => {
     const current = getMetricValue(state, config.id);
     const effect = effects.find(e => e.metric === config.id);
     const available = current !== null && current !== undefined && Number.isFinite(current);
