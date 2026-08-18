@@ -73,7 +73,7 @@ const CSS = `
 `;
 
 function foot(input: PerformanceReportInput, n: number): string {
-  return `<div class="foot"><span>TFC Lab · Potentiel Physiologique TFCL™ — ${esc(input.athleteName)}</span><span>${esc(input.generatedAt)} · page ${n}/8</span></div>`;
+  return `<div class="foot"><span>TFC Lab · Potentiel Physiologique TFCL™ — ${esc(input.athleteName)}</span><span>${esc(input.generatedAt)} · page ${n}/9</span></div>`;
 }
 
 const kpiCell = (k: { label: string; value: string; unit: string }) =>
@@ -328,7 +328,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       Les valeurs modélisées ne remplacent pas un test de laboratoire ; elles servent à orienter
       l'entraînement et le pacing.
     </p>
-    ${foot(input, 8)}
+    ${foot(input, 9)}
   </section>`;
 
   return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8" />
