@@ -70,71 +70,69 @@ export function gaugesSVG(rows: PerfGaugeRow[], caption: string): string {
   return svg(W, H, out);
 }
 
-/** Production vs capacité d'élimination du lactate + lactate net. */
+/** Courbe de lactate ancrée sur le MLSS canonique (Heck : 4 mmol/L au MLSS). */
 export function lactateCurveSVG(
   points: PerfCurvePoint[],
   mlssW: number | null,
   lt1W: number | null,
-  lt2W: number | null,
+  _lt2W: number | null,
 ): string {
   const W = 760;
   const H = 320;
   const L = 56;
-  const R = 138;
+  const R = 128;
   const T = 26;
   const B = 46;
   const pw = W - L - R;
   const ph = H - T - B;
   const pmin = points[0]?.power ?? 0;
   const pmax = points[points.length - 1]?.power ?? 1;
-  const rateMax = Math.max(
-    1,
-    ...points.map((p) => Math.max(p.production, p.clearance)),
-  );
-  const lacMax = Math.max(8, ...points.map((p) => p.lactate));
+  const lacMax = Math.max(8, ...points.map((p) => p.lactate)) * 1.08;
 
   const x = (p: number) => L + (pw * (p - pmin)) / Math.max(1e-6, pmax - pmin);
-  const yR = (v: number) => T + ph * (1 - v / (rateMax * 1.08));
-  const yL = (v: number) => T + ph * (1 - v / (lacMax * 1.08));
+  const y = (v: number) => T + ph * (1 - v / lacMax);
 
   const out: string[] = [];
+
+  // Bandes de lecture : aérobie (<2), transition (2–4), accumulation (>4)
+  out.push(
+    `<rect x="${L}" y="${y(2).toFixed(1)}" width="${pw}" height="${(y(0) - y(2)).toFixed(1)}" fill="${MINT}" fill-opacity=".07"/>`,
+    `<rect x="${L}" y="${y(4).toFixed(1)}" width="${pw}" height="${(y(2) - y(4)).toFixed(1)}" fill="${AMBER}" fill-opacity=".08"/>`,
+    `<rect x="${L}" y="${T}" width="${pw}" height="${(y(4) - T).toFixed(1)}" fill="${ROSE}" fill-opacity=".07"/>`,
+  );
+
   for (let i = 0; i <= 4; i++) {
     const yy = T + (ph * i) / 4;
     out.push(`<line x1="${L}" y1="${yy}" x2="${W - R}" y2="${yy}" stroke="${LINE}"/>`);
     out.push(
-      `<text x="${L - 9}" y="${yy + 4}" font-size="10.2" fill="${FAINT}" text-anchor="end">${nf((lacMax * 1.08 * (4 - i)) / 4, 1)}</text>`,
+      `<text x="${L - 9}" y="${yy + 4}" font-size="10.2" fill="${FAINT}" text-anchor="end">${nf((lacMax * (4 - i)) / 4, 1)}</text>`,
     );
   }
   out.push(
     `<text x="${L - 9}" y="${T - 11}" font-size="9.6" fill="${FAINT}" text-anchor="end">mmol/L</text>`,
   );
+  [2, 4].forEach((v) =>
+    out.push(
+      `<line x1="${L}" y1="${y(v).toFixed(1)}" x2="${W - R}" y2="${y(v).toFixed(1)}" stroke="${v === 4 ? ROSE : MINT}" stroke-width="1" stroke-dasharray="4 4"/>`,
+      `<text x="${W - R + 8}" y="${(y(v) + 4).toFixed(1)}" font-size="10" fill="${v === 4 ? ROSE : MINT}">${v} mmol/L</text>`,
+    ),
+  );
 
-  const poly = (get: (p: PerfCurvePoint) => number, y: (v: number) => number) =>
-    points.map((p) => `${x(p.power).toFixed(1)},${y(get(p)).toFixed(1)}`).join(" ");
-
+  const line = points.map((p) => `${x(p.power).toFixed(1)},${y(p.lactate).toFixed(1)}`).join(" ");
   out.push(
-    `<polyline points="${poly((p) => p.lactate, yL)}" fill="none" stroke="${AMBER}" stroke-width="2.8"/>`,
-    `<polyline points="${poly((p) => p.production, yR)}" fill="none" stroke="${ROSE}" stroke-width="2.1" stroke-dasharray="6 5"/>`,
-    `<polyline points="${poly((p) => p.clearance, yR)}" fill="none" stroke="${MINT}" stroke-width="2.1" stroke-dasharray="6 5"/>`,
+    `<polygon points="${L},${y(0)} ${line} ${W - R},${y(0)}" fill="${AMBER}" fill-opacity=".12"/>`,
+    `<polyline points="${line}" fill="none" stroke="${AMBER}" stroke-width="2.8"/>`,
   );
 
   const marker = (p: number | null, label: string, color: string, dy: number) => {
     if (!p || p < pmin || p > pmax) return;
     out.push(
-      `<line x1="${x(p).toFixed(1)}" y1="${T}" x2="${x(p).toFixed(1)}" y2="${T + ph}" stroke="${color}" stroke-width="1" stroke-dasharray="3 4"/>`,
-      `<text x="${(x(p) - 5).toFixed(1)}" y="${T + dy}" font-size="10.6" font-weight="600" fill="${color}" text-anchor="end">${label}</text>`,
+      `<line x1="${x(p).toFixed(1)}" y1="${T}" x2="${x(p).toFixed(1)}" y2="${T + ph}" stroke="${color}" stroke-width="1.2" stroke-dasharray="3 4"/>`,
+      `<text x="${(x(p) - 6).toFixed(1)}" y="${T + dy}" font-size="10.8" font-weight="600" fill="${color}" text-anchor="end">${label}</text>`,
     );
   };
-  marker(lt1W, `LT1 ${Math.round(lt1W ?? 0)} W`, MUT, 12);
-  marker(lt2W, `LT2 ${Math.round(lt2W ?? 0)} W`, MUT, 26);
-  marker(mlssW, `MLSS ${Math.round(mlssW ?? 0)} W`, INK, 40);
-
-  const last = points[points.length - 1];
-  out.push(
-    `<text x="${W - R + 10}" y="${yR(last.production).toFixed(0)}" font-size="10.4" fill="${ROSE}" font-weight="600">Production (VLamax)</text>`,
-    `<text x="${W - R + 10}" y="${(yR(last.clearance) + 12).toFixed(0)}" font-size="10.4" fill="${MINT}" font-weight="600">Élimination (VO₂max)</text>`,
-    `<text x="${W - R + 10}" y="${(yL(last.lactate) - 8).toFixed(0)}" font-size="10.4" fill="${AMBER}" font-weight="600">Lactate net</text>`,
-  );
+  marker(lt1W, `LT1 ${Math.round(lt1W ?? 0)} W`, MUT, 13);
+  marker(mlssW, `MLSS ${Math.round(mlssW ?? 0)} W`, INK, 30);
 
   for (let i = 0; i <= 6; i++) {
     const p = pmin + ((pmax - pmin) * i) / 6;
