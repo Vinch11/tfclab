@@ -354,29 +354,36 @@ export function computePerformanceReport(
 
   // ── Carburant ──────────────────────────────────────────────────────────────
   const need = raceCarbNeedGH;
+  // Plafond d'ingestion réaliste : 90 g/h (glucose:fructose entraîné).
+  const gh = (lo: number, hi: number) => {
+    const a = Math.max(0, Math.min(90, Math.round(lo)));
+    const b = Math.max(a, Math.min(90, Math.round(hi)));
+    return `${a} – ${b} g/h`;
+  };
   const fueling: Array<[string, string, string, string]> = need
     ? [
         ["< 1 h", "Effort intense, réserves suffisantes", "0 – 30 g/h", "Boisson seule"],
         [
           "1 – 2 h",
           "Allure spécifique",
-          `${Math.round(need * 0.55)} – ${Math.round(need * 0.7)} g/h`,
+          gh(need * 0.55, need * 0.75),
           "Gels / boisson glucidique",
         ],
         [
           "2 – 4 h",
           "Tempo / seuil bas",
-          `${Math.round(need * 0.7)} – ${Math.min(90, Math.round(need * 0.9))} g/h`,
+          gh(need * 0.7, need * 0.9),
           "Mix glucose:fructose 1:0,8",
         ],
         [
           "> 4 h",
           "Endurance longue (FatMax dominant)",
-          `${Math.min(75, Math.round(need * 0.6))} – ${Math.min(90, Math.round(need * 0.8))} g/h`,
+          gh(need * 0.6, need * 0.85),
           "Solide + liquide, entraînement digestif requis",
         ],
       ]
     : [];
+
 
   // ── Simulations bornées par les plafonds Inscyd 2025 ───────────────────────
   const MONTHS = 3;
