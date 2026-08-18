@@ -56,7 +56,7 @@ import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } 
 import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase, computeLorangStrategy, type LorangStrategyResult, type LorangLeverActivation, type LorangProhibitionRule } from "@/engines/decision";
 import { detectUnifiedLimiter, type UnifiedLimiterResult, computeDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
-import { User, Shield, Sparkles } from "lucide-react";
+import { User, Shield, Sparkles, Activity } from "lucide-react";
 import { SECTION_LABELS, getSectionOrder, getSectionVisibility, DEFAULT_SECTION_ORDER, DEFAULT_REPORT_SECTIONS, REPORT_PRESETS, type ReportPreset } from "./ReportSectionOrderEditor";
 // ✅ NEW: Import Disponibilité TFCL™
 import { 
@@ -96,6 +96,8 @@ import { computeLongDistanceEnvelope, LONG_DISTANCE_THRESHOLD_HOURS, type LongDi
 // ✅ Rapport Profil Athlète (design Bevel, pédagogique)
 import { buildAthleteProfileReportHTML } from "@/lib/athleteProfileReport/buildAthleteProfileReportHTML";
 import { mapExportPayloadToProfileReport } from "@/lib/athleteProfileReport/mapPayloadToReport";
+import { computePerformanceReport } from "@/lib/performanceReport/computePerformanceReport";
+import { buildPerformanceReportHTML } from "@/lib/performanceReport/buildPerformanceReportHTML";
 
 // =============================================
 // TYPES
@@ -9756,6 +9758,48 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     }
   };
 
+  const handleExportPerformanceReportPDF = async () => {
+    if (!exportCheck.ok) {
+      toast.error("Export impossible", { description: exportCheck.reason });
+      return;
+    }
+    if (isExporting) return;
+    setIsExporting(true);
+    const toastId = toast.loading("Préparation du rapport de performance...", {
+      description: "Un nouvel onglet va s'ouvrir.",
+    });
+    try {
+      const logoBase64 = await imageToBase64(profileReportLogoAsset.url);
+      const input = computePerformanceReport(payload, {
+        ambitionLabel: payload.ambition?.label ?? "—",
+        generatedAt: new Date().toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }),
+        logoBase64,
+      });
+      const html = buildPerformanceReportHTML(input);
+      const fileName = `rapport-performance-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
+      openPrintableHTML(html, { filenameHint: fileName, includeInstructions: true, autoPrint: false });
+      toast.success("Rapport de performance ouvert", {
+        id: toastId,
+        description: "Utilise Imprimer → Enregistrer en PDF (ou Ctrl/Cmd+P).",
+        duration: 6000,
+      });
+    } catch (error) {
+      console.error("Erreur export Rapport de Performance:", error);
+      toast.error("Erreur d'export", {
+        id: toastId,
+        description: error instanceof Error ? error.message : "Une erreur est survenue.",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+
+
   const handleExportBeginnerPDF = async () => {
     if (!exportCheck.ok) {
       toast.error("Export impossible", { description: exportCheck.reason });
@@ -9984,6 +10028,27 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 </div>
                 <ChevronRight className="h-4 w-4 opacity-50" />
               </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleExportPerformanceReportPDF}
+                disabled={isExporting}
+                className="w-full justify-start gap-3 h-auto py-2.5"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Activity className="h-4 w-4" />
+                )}
+                <div className="text-left flex-1">
+                  <div className="font-medium text-sm">Rapport de Performance</div>
+                  <div className="text-[10px] opacity-80">9 pages : lactate, filières, carburants, zones, simulations</div>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-50" />
+              </Button>
+
+
 
               <Button
                 variant="outline"
