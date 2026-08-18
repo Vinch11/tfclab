@@ -576,7 +576,11 @@ function buildScenario(
     };
   });
 
+  // Garde-fou décorrélation VO₂max ↔ VLamax (r ≈ 0, INSCYD 2025).
+  const metrics = applyDecorrelationGuard(rawMetrics as any) as MetricDelta[];
+
   const performancePredictions = estimatePerformanceImpact(metrics, objectif, sportMain);
+
 
   // Overall impact score: weighted average of positive effects for endurance
   const availableMetrics = metrics.filter(m => m.available);
