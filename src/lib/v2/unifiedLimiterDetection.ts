@@ -654,10 +654,14 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     // L'ancienne formule (Δ absolu mmol/L/s × 100) sous-pondérait massivement la VLamax
     // (~0.9 pour gap 0.12) vs VO2max -4% (~3.4) → faisait sortir le VO2max en limiteur #1
     // alors que la VLamax dominait clairement le profil.
+    // ✅ MASTERS (INSCYD 2025, N=9 468) : chez les >50 ans, la trainabilité VO₂max reste
+    // correcte mais la VLamax dérive spontanément à la hausse avec l'âge. Le levier le plus
+    // rentable devient donc la réduction VLamax → on rehausse son poids de classement.
     weightedImpact: input.vlamax !== null && vlamaxGap > 0
-      ? Math.abs(vlamaxGap) * weights.glycolytic * 100
+      ? Math.abs(vlamaxGap) * weights.glycolytic * 100 * getMastersVlamaxPriorityFactor(input.age)
       : 0,
   });
+
   
   // 2b. Analyse W' (Capacité Anaérobie absolue)
   // W' a une cible bidirectionnelle: trop bas = pas assez de punch, trop haut = profil trop glycolytique
