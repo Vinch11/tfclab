@@ -202,7 +202,7 @@ export function AthleteRefsPanel({
           </Label>
           <div className="flex items-center gap-1 shrink-0">
             {outOfDomainMetric && effectiveValue != null && (
-              <OutOfDomainBadge metric={outOfDomainMetric} value={effectiveValue} />
+              <OutOfDomainBadge metric={outOfDomainMetric} value={effectiveValue} sex={(athlete as any)?.sex ?? null} />
             )}
             <Badge
               variant="outline"
