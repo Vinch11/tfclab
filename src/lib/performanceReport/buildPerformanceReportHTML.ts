@@ -13,71 +13,17 @@ import {
   whatIfBarsSVG,
 } from "./charts";
 import type { PerformanceReportInput } from "./types";
-
-const esc = (s: unknown): string =>
-  String(s ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-
-const CSS = `
-  @page { size: A4; margin: 0; }
-  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { margin:0; background:#EDEAE2; font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color:#14131A; }
-  .page { width:210mm; min-height:297mm; padding:16mm 15mm 14mm; background:#FAF9F5; margin:0 auto 8px; position:relative; page-break-after:always; overflow:hidden; }
-  .page:last-child { page-break-after:auto; }
-  .eyebrow { font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#97949F; font-weight:600; }
-  h1 { font-size:27px; line-height:1.12; margin:6px 0 4px; font-weight:600; letter-spacing:-.02em; }
-  h2 { font-size:20px; margin:2px 0 8px; font-weight:600; letter-spacing:-.01em; }
-  h3 { font-size:13px; margin:0 0 5px; font-weight:600; }
-  p { font-size:11.6px; line-height:1.6; color:#3A3844; margin:0 0 9px; }
-  .lead { font-size:13px; line-height:1.55; color:#2A2833; }
-  .muted { color:#6E6B78; }
-  .rule { height:1px; background:#E7E4DC; margin:10px 0 14px; }
-  .card { background:#fff; border:1px solid #E7E4DC; border-radius:14px; padding:14px 16px; }
-  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-  .kpi { background:#fff; border:1px solid #E7E4DC; border-radius:12px; padding:10px 12px; }
-  .kpi .k { font-size:9.6px; text-transform:uppercase; letter-spacing:.08em; color:#97949F; font-weight:600; }
-  .kpi .v { font-size:21px; font-weight:600; margin-top:3px; letter-spacing:-.02em; }
-  .kpi .u { font-size:10px; color:#6E6B78; margin-left:3px; font-weight:400; }
-  table { width:100%; border-collapse:collapse; font-size:11px; }
-  th { text-align:left; font-size:9.4px; text-transform:uppercase; letter-spacing:.08em; color:#97949F; padding:6px 8px; border-bottom:1px solid #E7E4DC; font-weight:600; }
-  td { padding:7px 8px; border-bottom:1px solid #F0EEE8; vertical-align:top; line-height:1.45; }
-  tr:last-child td { border-bottom:none; }
-  .pill { display:inline-block; font-size:9.4px; font-weight:600; padding:2px 8px; border-radius:999px; }
-  .pill.ok { background:#E4F5EE; color:#177A53; }
-  .pill.mid { background:#FBF1DC; color:#9A6708; }
-  .pill.bad { background:#FBE6EC; color:#A83E62; }
-  .pill.na { background:#EFEDE7; color:#6E6B78; }
-  .note { background:#F3F2FB; border-left:3px solid #5555E0; border-radius:0 8px 8px 0; padding:9px 12px; font-size:11px; line-height:1.55; color:#2A2833; }
-  .warn { background:#FDF4E3; border-left:3px solid #C8860D; }
-  .foot { position:absolute; left:15mm; right:15mm; bottom:8mm; display:flex; justify-content:space-between; font-size:9px; color:#97949F; border-top:1px solid #E7E4DC; padding-top:5px; }
-  /* Cover */
-  .cover { background:linear-gradient(150deg,#14131A 0%,#232049 52%,#3B349B 100%); color:#fff; display:flex; flex-direction:column; justify-content:space-between; }
-  .cover h1 { font-size:40px; color:#fff; letter-spacing:-.03em; }
-  .cover .eyebrow { color:#A9A4E6; }
-  .cover p { color:#D7D4E8; }
-  .cover .logo { height:74px; width:auto; object-fit:contain; }
-  .idgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:16px; }
-  .idcell { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); border-radius:10px; padding:9px 11px; }
-  .idcell .k { font-size:9.2px; text-transform:uppercase; letter-spacing:.1em; color:#A9A4E6; font-weight:600; }
-  .idcell .v { font-size:14px; font-weight:600; margin-top:2px; }
-  .limiter { display:flex; gap:12px; padding:11px 0; border-bottom:1px solid #F0EEE8; }
-  .limiter:last-child { border-bottom:none; }
-  .limiter .badge { width:34px; height:34px; border-radius:10px; background:#F3F2FB; color:#5555E0; display:flex; align-items:center; justify-content:center; font-size:17px; flex:0 0 34px; }
-  .bar { height:6px; background:#EFECE4; border-radius:3px; overflow:hidden; margin-top:5px; }
-  .bar > span { display:block; height:100%; background:#5555E0; border-radius:3px; }
-  @media print { body { background:#fff; } .page { margin:0; } }
-`;
+import { coverPage, esc, kpiCell, reportDocument, reportFoot } from "@/lib/reportKit";
 
 function foot(input: PerformanceReportInput, n: number): string {
-  return `<div class="foot"><span>TFC Lab · Potentiel Physiologique TFCL™ — ${esc(input.athleteName)}</span><span>${esc(input.generatedAt)} · page ${n}/9</span></div>`;
+  return reportFoot({
+    athleteName: input.athleteName,
+    generatedAt: input.generatedAt,
+    page: n,
+    totalPages: 9,
+  });
 }
 
-const kpiCell = (k: { label: string; value: string; unit: string }) =>
-  `<div class="kpi"><div class="k">${esc(k.label)}</div><div class="v">${esc(k.value)}<span class="u">${esc(k.unit)}</span></div></div>`;
 
 export function buildPerformanceReportHTML(input: PerformanceReportInput): string {
   const p = input.physio;
