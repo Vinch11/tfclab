@@ -174,3 +174,109 @@ export function reportDocument(opts: {
 <style>${REPORT_KIT_CSS}${opts.extraCSS ?? ""}</style></head>
 <body>${opts.body}</body></html>`;
 }
+
+/** Lien Google Fonts (Outfit) à injecter dans un <head> existant. */
+export const REPORT_KIT_FONT_LINK = `
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />`;
+
+/**
+ * Peau Bevel pour les rapports HISTORIQUES en flux continu (Rapport Staff),
+ * qui ne sont pas paginés en sections `.page`.
+ *
+ * Elle remappe les classes historiques (.card, .tag, .badge, .alert, .cover…)
+ * sur la charte du reportKit : typographie Outfit, papier off-white,
+ * cartes hairline, pastilles pastel, tableaux sans quadrillage lourd.
+ * À injecter APRÈS la feuille de style d'origine pour la surcharger.
+ */
+export const REPORT_KIT_SKIN_CSS = `
+<style id="tfcl-report-kit-skin">
+  :root {
+    --fg:${RK.ink}; --muted:${RK.muted}; --border:${RK.line}; --bg:${RK.paper};
+    --soft:${RK.surfaceAlt}; --success:${RK.mint}; --warning:${RK.amber};
+    --error:${RK.danger}; --primary:${RK.primary};
+  }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body { background:${RK.paper} !important; }
+  body {
+    font-family:"Outfit",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;
+    color:${RK.ink}; font-size:12px; line-height:1.55; padding:18mm 15mm;
+    max-width:230mm; margin:0 auto;
+  }
+  h1,h2,h3,h4 { font-family:"Outfit",-apple-system,sans-serif !important; letter-spacing:-.02em; }
+  h1 { font-size:30px; font-weight:600; }
+  h2 {
+    font-size:20px; font-weight:600; color:${RK.ink};
+    border-bottom:1px solid ${RK.line}; padding-bottom:6px; margin:26px 0 12px;
+  }
+  h3 { font-size:13.5px; font-weight:600; color:${RK.ink}; }
+  h4 { font-size:12px; font-weight:600; color:${RK.muted}; text-transform:uppercase; letter-spacing:.06em; }
+  p { font-size:11.6px; line-height:1.6; color:${RK.body}; }
+  .muted { color:${RK.muted}; }
+  td, th, .big, .medium, .kv .v, .kpi .v { font-variant-numeric: tabular-nums; }
+
+  /* Cartes */
+  .card { border:1px solid ${RK.line} !important; border-radius:14px !important; background:${RK.surface} !important; box-shadow:none !important; }
+  .cardHighlight { border-color:${RK.primary}33 !important; background:${RK.primarySoft} !important; }
+  .cardSuccess { border-color:${RK.mint}33 !important; background:${RK.mintSoft} !important; }
+  .cardWarning { border-color:${RK.amber}33 !important; background:${RK.amberSoft} !important; }
+  .cardError { border-color:${RK.danger}33 !important; background:${RK.dangerSoft} !important; }
+  .toc { background:${RK.surface}; border-color:${RK.line}; border-radius:14px; }
+  .tocRow { border-bottom:1px solid ${RK.lineSoft}; }
+  .tocRow a { color:${RK.ink}; }
+
+  /* Pastilles */
+  .tag { border-radius:999px; border:1px solid ${RK.line}; background:${RK.surfaceAlt}; color:${RK.inkSoft}; font-size:10.5px; font-weight:500; }
+  .tagPrimary { background:${RK.primarySoft}; border-color:${RK.primary}33; color:${RK.primary}; }
+  .badge { border-radius:999px; padding:2px 9px; font-size:9.4px; letter-spacing:.02em; text-transform:none; font-weight:600; }
+  .badgeSuccess { background:${RK.mintSoft}; color:${RK.mint}; }
+  .badgeWarning { background:${RK.amberSoft}; color:${RK.amber}; }
+  .badgeError { background:${RK.dangerSoft}; color:${RK.danger}; }
+  .badgePrimary { background:${RK.primarySoft}; color:${RK.primary}; }
+  .success { color:${RK.mint}; } .warning { color:${RK.amber}; } .error { color:${RK.danger}; }
+
+  /* Encadrés */
+  .alert { border-radius:0 10px 10px 0; font-size:11px; line-height:1.55; padding:10px 13px; }
+  .alertInfo { background:${RK.primarySoft}; border-left:3px solid ${RK.primary}; }
+  .alertWarning { background:${RK.amberSoft}; border-left:3px solid ${RK.amber}; }
+  .alertError { background:${RK.dangerSoft}; border-left:3px solid ${RK.danger}; }
+  .alertSuccess { background:${RK.mintSoft}; border-left:3px solid ${RK.mint}; }
+
+  /* Tableaux hairline */
+  table { border-collapse:collapse; font-size:11px; }
+  th {
+    background:transparent !important; border:none !important;
+    border-bottom:1px solid ${RK.line} !important;
+    font-size:9.4px; font-weight:600; text-transform:uppercase;
+    letter-spacing:.08em; color:${RK.faint} !important; padding:6px 8px !important;
+  }
+  td { border:none !important; border-bottom:1px solid ${RK.lineSoft} !important; padding:7px 8px !important; }
+
+  /* Jauges */
+  .progressBar { background:${RK.surfaceAlt}; border-radius:999px; height:7px; }
+  .progressFill { border-radius:999px; }
+
+  /* Page de garde : bandeau dégradé Bevel */
+  .coverBanner {
+    background:linear-gradient(150deg,#14131A 0%,#232049 52%,#3B349B 100%) !important;
+    border-radius:16px !important; padding:30px 28px !important;
+  }
+  .coverBanner::before { display:none !important; }
+  .coverLogo { height:84px !important; background:transparent !important; padding:0 !important; filter:none !important; }
+  .coverBrandName { font-weight:600; font-size:24px; text-shadow:none; letter-spacing:-.02em; }
+  .coverBrandTagline { color:#A9A4E6; text-transform:uppercase; letter-spacing:.14em; font-size:10px; }
+  .coverBannerBadge { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); font-weight:500; font-size:11px; }
+  .coverTitle { font-size:38px; font-weight:600; letter-spacing:-.03em; }
+  .watermark { display:none !important; }
+
+  .footer { border-top:1px solid ${RK.line}; color:${RK.faint}; font-size:9.5px; }
+  .noPrint { background:${RK.primarySoft}; border-radius:12px; }
+
+  @media print {
+    @page { size:A4; margin:12mm; }
+    html, body { background:#FFFFFF !important; }
+    body { padding:0; max-width:none; }
+    .card { background:#FFFFFF !important; }
+  }
+</style>`;
