@@ -579,7 +579,10 @@ function buildScenario(
   });
 
   // Garde-fou décorrélation VO₂max ↔ VLamax (r ≈ 0, INSCYD 2025).
-  const metrics = applyDecorrelationGuard(rawMetrics as any) as MetricDelta[];
+  const metrics = applyDecorrelationGuard(
+    rawMetrics as unknown as import("@/lib/v2/decorrelationGuard").DecorrelatableMetric[],
+  ) as unknown as MetricDelta[];
+
 
   const performancePredictions = estimatePerformanceImpact(metrics, objectif, sportMain);
 
