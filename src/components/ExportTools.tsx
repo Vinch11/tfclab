@@ -9986,6 +9986,27 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
               </Button>
 
               <Button
+                variant="default"
+                size="sm"
+                onClick={handleExportPerformanceReportPDF}
+                disabled={isExporting}
+                className="w-full justify-start gap-3 h-auto py-2.5"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Activity className="h-4 w-4" />
+                )}
+                <div className="text-left flex-1">
+                  <div className="font-medium text-sm">Rapport de Performance</div>
+                  <div className="text-[10px] opacity-80">9 pages : lactate, filières, carburants, zones, simulations</div>
+                </div>
+                <ChevronRight className="h-4 w-4 opacity-50" />
+              </Button>
+
+
+
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={handleExportAthletePDF}
