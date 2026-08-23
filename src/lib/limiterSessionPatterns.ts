@@ -18,8 +18,11 @@ export const LIMITER_SESSION_PATTERNS: Record<string, RegExp> = {
   // VLamax (réduction): Z2 long + train low + endurance fondamentale + SST long (co-contributor)
   "vlamax": /train[\s_-]*low|fasted|[àa]\s*jeun|z2.*(?:long|>?\s*[4-9]\d|>?\s*1[0-9]\d\s*min)|z2[\s_-]*long|ef\b.*(?:long|[4-9]\d|1[0-9]\d\s*min)|endurance.*(?:fondament|longue|foncier)|endurance[\s_-]*long|fondament|glycoly|a[ée]robie\s*(?:pur|fondament|base)|ef\s+z2\s+(?:[4-9]\d|1\d{2})\s*min|heat[\s_-]*acclim|altitude[\s_-]*easy/i,
 
-  // TTE: Sustained threshold endurance — seuil, threshold (bare), tempo, allure spécifique, race pace
-  "tte": /seuil|threshold|tempo|allure\s*(?:marathon|semi|course|10k|5k|70\.?3|im\b|ironman|spécifiq|race)|norv[ée]gi|norwegian|mlss|double[\s_-]*threshold|cruise(?:\s*interval)?|race[\s_-]*pace|continu.*z[45]|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|interval.*seuil|marathon[\s_-]*pace|css/i,
+  // TTE: Sustained threshold endurance — seuil/threshold QUALIFIÉS (continu/long/soutenu/durée
+  // ≥20min), jamais bruts : un "seuil 3×5min" est un travail FTP court, pas de la soutenabilité
+  // au seuil (TTE). Restaure la contrainte de l'audit AUDIT_LIMITEURS_SEANCES_V1 (FIX 2),
+  // perdue lors du refactor de juillet 2026 vers ce fichier partagé.
+  "tte": /seuil\s*(?:continu|long|soutenu|[12][×x])|seuil.*(?:[2-5]\d|60)\s*min|threshold\s*(?:continu|long|sustained|steady)|threshold.*(?:[2-5]\d|60)\s*min|tempo\s*(?:long|continu|soutenu)|allure\s*(?:marathon|semi|course|10k|5k|70\.?3|im\b|ironman|spécifiq|race)|norv[ée]gi|norwegian|mlss|double[\s_-]*threshold|cruise(?:\s*interval)?|race[\s_-]*pace|continu.*z[45]|z[45].*(?:continu|soutenu|bloc)|endurance.*seuil|interval.*seuil|marathon[\s_-]*pace|css/i,
 
   // FatMax: Fat oxidation specific — fat max, lipid, oxydation lipidique, glycogène, gut training
   "fatmax": /fat\s*(?:max|ox)|lipid|oxydation|glycogène|gut[\s_-]*training|nutrition.*course/i,

@@ -135,13 +135,24 @@ function formatMinutes(n: number): string {
   return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`;
 }
 
-/** Fraction de la plage à retenir selon phase. Base/récup→bas, build→milieu, peak→haut, taper→bas. */
-function pickFraction(phase?: string): number {
+/**
+ * Fraction de la plage à retenir. `weekType` (load/recovery/taper/race) est
+ * prioritaire sur la macro-phase texte : une semaine de récupération À L'INTÉRIEUR
+ * d'une phase "build" doit rester légère, ce que la seule macro-phase ne peut pas
+ * exprimer (elle vaut pour toute la durée de la phase) — audit qualité plans IA.
+ * Le fallback macro-phase reprend les MÊMES fractions que PHASE_DURATION_WEIGHT
+ * (src/lib/plan/workoutDurationResolver.ts, qui guide l'IA au moment du prompt) :
+ * les deux doctrines divergeaient auparavant (incohérence corrigée).
+ */
+function pickFraction(phase?: string, weekType?: WeekType): number {
+  if (weekType === "race") return 0.15;
+  if (weekType === "taper") return 0.10;
+  if (weekType === "recovery") return 0.20;
   const p = (phase ?? "").toLowerCase();
-  if (/(recovery|récup|recup|taper|décharge|decharge)/.test(p)) return 0.35;
-  if (/(peak|pic|affûtage|affutage)/.test(p)) return 0.75;
+  if (/(recovery|récup|recup|taper|décharge|decharge)/.test(p)) return 0.10;
+  if (/(peak|pic|affûtage|affutage)/.test(p)) return 0.85;
   if (/(build|développement|developpement|specific|spécifique|specifique)/.test(p)) return 0.55;
-  return 0.45; // base / défaut
+  return 0.25; // base / défaut
 }
 
 // Formes acceptées :
@@ -244,7 +255,11 @@ export function resolveWideDurationRanges(
   if (!text) return { text: text ?? "", resolved: 0, logs: [] };
   let resolved = 0;
   const logs: string[] = [];
-  const frac = pickFraction(opts.phase);
+  const wt: WeekType | undefined = opts.weekType ??
+    (typeof opts.weekNumber === "number" && typeof opts.totalWeeks === "number"
+      ? inferWeekType(opts.weekNumber, opts.totalWeeks)
+      : undefined);
+  const frac = pickFraction(opts.phase, wt);
   const out = text.replace(RANGE_TEXT_RX, (match) => {
     const range = parseDurationRange(match);
     if (!range) return match;
@@ -272,7 +287,7 @@ export function resolveWideDurationRanges(
     const picked = Math.round((a + (b - a) * frac) / 5) * 5;
     const resolvedStr = formatMinutes(picked);
     logs.push(
-      `freetext_duration_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via phase-fallback (phase=${opts.phase ?? "n/a"}, frac=${frac}, matrix_gap=${describeMatrixGap(opts)})`,
+      `freetext_duration_resolved: "${match}" (${a}-${b}min, Δ${amplitude}min) → "${resolvedStr}" via phase-fallback (phase=${opts.phase ?? "n/a"}, weekType=${wt ?? "n/a"}, frac=${frac}, matrix_gap=${describeMatrixGap(opts)})`,
     );
     resolved++;
     return resolvedStr;

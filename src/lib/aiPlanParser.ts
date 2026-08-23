@@ -18,6 +18,11 @@ export interface ParsedSession {
    *  Consommé prioritairement par catalogIdExtractor / enricher / validator.
    *  Undefined pour le chemin Markdown legacy (fallback regex sur title). */
   catalogId?: string | null;
+  /** Marqueur structuré posé par l'IA elle-même (booléen JSON `isKeySession`),
+   *  propagé depuis MergedSession — plus fiable que la détection regex
+   *  KEY_SESSION_PATTERNS côté validateur. Undefined pour le chemin Markdown
+   *  legacy (fallback regex uniquement dans ce cas). */
+  isKeySession?: boolean;
 }
 
 export interface ParsedWeek {

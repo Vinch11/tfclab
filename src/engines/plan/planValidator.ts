@@ -179,6 +179,11 @@ function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high
 
 function isKeySession(session: ParsedSession): boolean {
   if (session.isRest) return false;
+  // Signal structuré posé par l'IA elle-même (chemin JSON, défaut prod) : plus fiable
+  // que la détection regex, qui a un historique de faux négatifs (cf. audits
+  // AUDIT_LIMITEURS_SEANCES_V1-V3 — porte d'entrée trop restrictive). Le regex reste
+  // le seul signal disponible sur le chemin Markdown legacy (isKeySession undefined).
+  if (session.isKeySession === true) return true;
   const text = `${session.title} ${session.details}`;
   return KEY_SESSION_PATTERNS.test(text);
 }
@@ -1263,9 +1268,13 @@ function validateLimiterCoherence(
   // Co-contributor patterns: sessions that contribute to VLamax reduction via proven synergies
   // - Seuil long continu (TTE work) → glycolytic depletion → VLamax↓ (Billat, Bosquet 2002)
   // - SFR / Force basse cadence → Type I fiber recruitment → VLamax↓ (Rønnestad 2015)
-  // - Sweet Spot long → forced Type IIa aerobic recruitment + glycogen depletion → VLamax↓
-  //   (especially at low cadence 55-65 RPM: maximal IIa stress in aerobic mode)
-  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)|seuil.*(?:\d+\s*min)|interval.*seuil|\bsst\b|sweet[\s_-]*spot/i;
+  // - Sweet Spot long À BASSE CADENCE (55-65 RPM) → forced Type IIa aerobic recruitment +
+  //   glycogen depletion → VLamax↓. Un Sweet Spot standard (cadence normale) est un travail
+  //   FTP, pas un stimulus VLamax prouvé (cf. promptHelpers.ts L1389 : la matrice ne prescrit
+  //   ce lever QUE qualifié "basse cadence"). D'où l'exigence du même qualificatif ici — retirer
+  //   \bsst\b|sweet[\s_-]*spot bruts gonflait artificiellement la couverture VLamax (double
+  //   comptage sur un simple Sweet Spot FTP classique).
+  const VLAMAX_CO_CONTRIBUTOR_PATTERNS = /seuil\s*(?:continu|long|2[×x]|1[×x])|norv[ée]gi|mlss|tempo\s*(?:long|continu|soutenu)|sfr|r[øo]nnestad|force\s*(?:basse|50|40|60)\s*(?:rpm|cadence)|cadence\s*(?:basse|lente|50|40|60)|(?:basse|lente)\s*cadence|\b(?:4\d|5\d|60)\s*(?:rpm|tr\/?min)\b|seuil.*(?:\d+\s*min)|interval.*seuil/i;
   const TTE_FTP_CROSSOVER_PATTERNS = /\bsst\b|sweet[\s_-]*spot|over.?under|ftp|threshold(?:[\s_-]*(?:power|long|cruise))?|race[\s_-]*(?:pace|power).*(?:2[\sx_/-]*20|3[\sx_/-]*20|20\s*min)|tempo\s*(?:long|continu)|double[\s_-]*threshold|norwegian/i;
 
   const hasVlamaxLimiter = limiterKeys.includes("vlamax");
@@ -1276,7 +1285,9 @@ function validateLimiterCoherence(
     for (const session of week.sessions) {
       if (session.isRest) continue;
       const rawText = `${session.title} ${session.details}`;
-      if (!KEY_SESSION_PATTERNS.test(rawText)) continue;
+      // Porte d'entrée "séance clé" : signal structuré posé par l'IA (chemin JSON, défaut
+      // prod) en priorité, sinon fallback regex (seul signal dispo côté Markdown legacy).
+      if (session.isKeySession !== true && !KEY_SESSION_PATTERNS.test(rawText)) continue;
       const text = buildLimiterMatchText(session);
 
       // Assign to highest-priority matching limiter
