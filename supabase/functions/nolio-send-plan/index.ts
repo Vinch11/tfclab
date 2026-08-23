@@ -105,7 +105,7 @@ type NolioStep = {
   step_duration_type: "duration";
   step_duration_value: number;
   intensity_type: "warmup" | "active" | "rest" | "cooldown" | "repetition";
-  target_type: "no_target" | "power" | "pace" | "min/100m" | "heartrate" | "duration" | "rpe";
+  target_type: "no_target" | "power" | "pace" | "pace_min100" | "min/100m" | "heartrate" | "duration" | "rpe";
   target_unit?: "W" | "%ftp" | "min/km" | "bpm";
 
   target_value_min?: number;
@@ -742,10 +742,10 @@ function normalizeStructuredWorkoutForNolio(
     //   step_percent_low/high = %FTP
     // - Course/Trail (sport 2/52) : target_type="pace", valeurs en m/s (depuis VMA),
     //   comment = "Z2 — 5:15-5:30/km"
-    // - Natation (sport 19) : target_type="min/100m" + manual_values:true + name:"pace_min100"
-    //   sur les steps ACTIFS (format prouvé par comparaison JSON natif Nolio 2026-07-07).
-    //   Repos natation → target_type:"no_target" sans manual_values/name/target_value_*.
-
+    // - Natation (sport 19) : target_type="pace_min100", valeurs en m/s (depuis CSS).
+    //   Valeur officielle confirmée par le wiki Nolio (Structured-Workout : enum target_type
+    //   = pace | pace_min100 | speed | power | heartrate | no_target — "pace_min100" et
+    //   "pace" prennent tous deux une valeur en m/s, seul l'affichage diffère : /100m vs /km).
     // - FC : target_type="heartrate", bpm (depuis FCmax)
     // ⛔ AUCUN target_unit, AUCUN pct_* envoyés à Nolio (champs internes TFCLab).
     if (src.type === "step") {
@@ -757,12 +757,17 @@ function normalizeStructuredWorkoutForNolio(
       // Nolio affiche déjà l'allure lisible à partir de target_value → doublon avec
       // la fiche descriptive (buildDescription). Voir issue "steps redondants".
 
-      // 🏊 NATATION → normalisation en amont : quel que soit le target_type d'entrée
-      // (heartrate, power, pace, min/100m, ...), on force no_target. L'API publique Nolio
-      // ne supporte AUCUNE cible chiffrée fiable pour la natation (filtre serveur
-      // min/100m → empty_unit prouvé 2026-07-07). Le pace /100m vit dans buildDescription.
-      if (isSwim && src.target_type !== "no_target") {
-        src.target_type = "pace"; // fera tomber dans la branche isSwim ci-dessous → no_target
+      // 🏊 NATATION → toute cible mal typée en amont (ex: étiquette de zone "Z2" détectée
+      // comme FC) est redirigée vers "pace" : c'est la seule dimension pertinente en
+      // natation, convertie plus bas en target_type "pace_min100" officiel Nolio.
+      if (
+        isSwim &&
+        src.target_type !== "no_target" &&
+        src.target_type !== "pace" &&
+        src.target_type !== "min/100m" &&
+        src.target_type !== "pace_min100"
+      ) {
+        src.target_type = "pace";
       }
 
 
@@ -834,25 +839,52 @@ function normalizeStructuredWorkoutForNolio(
           delete (src as Record<string, unknown>).target_value_min;
           delete (src as Record<string, unknown>).target_value_max;
         }
-      } else if ((src.target_type === "pace" || src.target_type === "min/100m") && isSwim) {
-        // 🏊 NATATION → target_type:"no_target" DÉFINITIF.
-        // L'API publique Nolio (`create/planned/training/`) applique un filtre serveur qui
-        // normalise systématiquement `min/100m` → `empty_unit` au relu, même avec un payload
-        // byte-à-byte identique à celui d'une séance créée dans l'éditeur natif (prouvé
-        // 2026-07-07 par comparaison JSON GET). Le format `pace` en m/s est relu en `min/km`
-        // sur mobile — cible chiffrée TROMPEUSE pour un nageur. Décision : aucune cible
-        // chiffrée sur les steps natation. Le pace /100m lisible ("6×100m à 1:25-1:30/100m")
-        // vit dans la fiche descriptive (buildDescription) — seul endroit fiable.
-        src.target_type = "no_target";
-        delete (src as Record<string, unknown>).target_value;
-        delete (src as Record<string, unknown>).target_value_min;
-        delete (src as Record<string, unknown>).target_value_max;
+      } else if (
+        (src.target_type === "pace" || src.target_type === "min/100m" || src.target_type === "pace_min100") &&
+        isSwim
+      ) {
+        // 🏊 NATATION → target_type:"pace_min100", valeur en m/s (doc officielle Nolio).
+        // Le code précédent envoyait target_type:"min/100m", une valeur qui N'EXISTE PAS
+        // dans l'enum documenté par Nolio (pace | pace_min100 | speed | power | heartrate |
+        // no_target) : rejetée silencieusement côté serveur ("empty_unit"), d'où la
+        // conclusion erronée que la natation ne supportait aucune cible chiffrée.
+        // Les valeurs internes (buildTargetFromText, %CSS via computeTargetValue/
+        // recomputeAbsoluteFromPct) sont en secondes/100m ; conversion vitesse = 100 / sec.
+        // target_value_max est obligatoire dès que target_type ≠ no_target (doc Nolio) —
+        // toujours renseigné ci-dessous, target_value_min seulement si les deux bornes
+        // texte sont connues.
+        const secPer100mToMps = (sec: number): number | null => (sec > 0 ? 100 / sec : null);
+        const rawMin = typeof src.target_value_min === "number" ? src.target_value_min : null;
+        const rawMax = typeof src.target_value_max === "number" ? src.target_value_max : null;
+        const mpsFromMin = rawMin !== null ? secPer100mToMps(rawMin) : null;
+        const mpsFromMax = rawMax !== null ? secPer100mToMps(rawMax) : null;
+
         delete (src as Record<string, unknown>).target_unit;
         delete (src as Record<string, unknown>).manual_values;
         delete (src as Record<string, unknown>).pct_css_min;
         delete (src as Record<string, unknown>).pct_css_max;
         if ((src as Record<string, unknown>).name === "pace_min100") {
           delete (src as Record<string, unknown>).name;
+        }
+
+        if (mpsFromMin !== null && mpsFromMax !== null) {
+          const lo = Math.min(mpsFromMin, mpsFromMax);
+          const hi = Math.max(mpsFromMin, mpsFromMax);
+          src.target_type = "pace_min100";
+          src.target_value_min = Number(lo.toFixed(3));
+          src.target_value_max = Number(hi.toFixed(3));
+          src.target_value = Number(((lo + hi) / 2).toFixed(3));
+        } else if (mpsFromMin !== null || mpsFromMax !== null) {
+          const single = (mpsFromMin ?? mpsFromMax) as number;
+          src.target_type = "pace_min100";
+          src.target_value = Number(single.toFixed(3));
+          src.target_value_max = Number(single.toFixed(3));
+          delete (src as Record<string, unknown>).target_value_min;
+        } else {
+          src.target_type = "no_target";
+          delete (src as Record<string, unknown>).target_value;
+          delete (src as Record<string, unknown>).target_value_min;
+          delete (src as Record<string, unknown>).target_value_max;
         }
 
 
@@ -1010,38 +1042,38 @@ function isStartToRunSession(s: ParsedSession): boolean {
 }
 
 const S2R_RPE_LEGEND =
-  "<b>🗣️ Intensité au ressenti (RPE)</b><ul>" +
-  "<li>RPE 1-2 — marche très facile, respiration nasale</li>" +
-  "<li>RPE 3 — footing très léger, tu chantes presque</li>" +
-  "<li>RPE 4-5 — confortable, phrases complètes possibles (cible des blocs course)</li>" +
-  "<li>RPE 6+ — trop dur pour cette phase : ralentis ou repasse en marche</li>" +
-  "</ul><i>Aucune allure ni FC imposée : le ressenti prime.</i>";
+  "🗣️ Intensité au ressenti (RPE)\n" +
+  "- RPE 1-2 — marche très facile, respiration nasale\n" +
+  "- RPE 3 — footing très léger, tu chantes presque\n" +
+  "- RPE 4-5 — confortable, phrases complètes possibles (cible des blocs course)\n" +
+  "- RPE 6+ — trop dur pour cette phase : ralentis ou repasse en marche\n" +
+  "Aucune allure ni FC imposée : le ressenti prime.";
 
+// ⚠️ Champ texte brut, PAS de HTML : la doc officielle Nolio (Training-Object /
+// Planned-workout-create) type `description` comme un simple `string` et ne documente
+// aucun rendu HTML/markdown ; le seul champ où un formatage est documenté (`comment`
+// d'un step) précise explicitement "you can add linebreaks with \n" — pas de balises.
+// Des balises <b>/<ul>/<li> envoyées ici s'afficheraient donc telles quelles à l'athlète.
 function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): string {
   const MAX_LEN = 4000;
 
-  // Nettoyage transversal : retire [ID:...] et tags #xxx isolés, compresse espaces.
+  // Nettoyage transversal : retire [ID:...], tags #xxx isolés, markdown **gras** (non
+  // interprété par Nolio → on garde juste le texte), compresse espaces.
   const clean = (t: string | null | undefined): string => {
     if (!t) return "";
     return t
       .replace(/\[ID:[^\]]+\]/g, "")
       .replace(/(?:^|\s)#[\p{L}0-9_-]+/gu, "")
+      .replace(/\*\*(.+?)\*\*/g, "$1")
       .replace(/[ \t]{2,}/g, " ")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
   };
 
-  // Échappement HTML : évite qu'un <, >, & dans le texte de séance casse le rendu Nolio.
-  const esc = (t: string): string =>
-    t.replace(/&/g, "&amp;")
-     .replace(/</g, "&lt;")
-     .replace(/>/g, "&gt;");
-
-  // Convertit un bloc texte multi-lignes en <li>...</li> (une puce par ligne non vide).
-  const toListItems = (text: string): string => {
+  // Convertit un bloc texte multi-lignes en lignes "- item" (une puce par ligne non vide).
+  const toListLines = (text: string): string => {
     const lines = text.split(/\n+/).map((l) => l.replace(/^\s*[•\-*]\s*/, "").trim()).filter(Boolean);
-    if (lines.length === 0) return "";
-    return lines.map((l) => `<li>${esc(l)}</li>`).join("");
+    return lines.map((l) => `- ${l}`).join("\n");
   };
 
   const findPart = (name: string) =>
@@ -1061,7 +1093,16 @@ function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): 
 
   const hasStructure = Boolean(warmup || main || cooldown || alts.length > 0);
 
-  // Fallback : aucune structure exploitable → texte brut existant, sans HTML.
+  // Cap propre : coupe sur la dernière ligne complète, jamais au milieu d'un mot.
+  const truncate = (text: string): string => {
+    if (text.length <= MAX_LEN) return text;
+    const cut = text.slice(0, MAX_LEN);
+    const lastBreak = cut.lastIndexOf("\n");
+    const safe = lastBreak > MAX_LEN * 0.7 ? lastBreak : MAX_LEN;
+    return cut.slice(0, safe).trimEnd() + "…";
+  };
+
+  // Fallback : aucune structure exploitable → texte brut simple.
   if (!hasStructure) {
     const parts: string[] = [];
     const intent = cleanedObjectif || cleanedDetails;
@@ -1071,34 +1112,27 @@ function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): 
         "🗣️ Intensité au ressenti (RPE) — marche RPE 1-2, course RPE 4-5 (phrases complètes possibles). Aucune allure ni FC imposée.",
       );
     }
-    let desc = parts.join("\n\n");
-    if (desc.length > MAX_LEN) {
-      const cut = desc.slice(0, MAX_LEN);
-      const lastBreak = cut.lastIndexOf("\n");
-      const safe = lastBreak > MAX_LEN * 0.7 ? lastBreak : MAX_LEN;
-      desc = cut.slice(0, safe).trimEnd() + "…";
-    }
-    return desc;
+    return truncate(parts.join("\n\n"));
   }
 
   const blocks: string[] = [];
 
   // 1) Objectif
   const intent = cleanedObjectif || cleanedDetails;
-  if (intent) blocks.push(`<b>🎯 ${esc(intent)}</b>`);
+  if (intent) blocks.push(`🎯 ${intent}`);
 
   // 2) Structure de séance
   if (warmup) {
-    const items = toListItems(warmup);
-    if (items) blocks.push(`<b>🔥 ÉCHAUFFEMENT</b><ul>${items}</ul>`);
+    const items = toListLines(warmup);
+    if (items) blocks.push(`🔥 ÉCHAUFFEMENT\n${items}`);
   }
   if (main) {
-    const items = toListItems(main);
-    if (items) blocks.push(`<b>💪 CORPS DE SÉANCE</b><ul>${items}</ul>`);
+    const items = toListLines(main);
+    if (items) blocks.push(`💪 CORPS DE SÉANCE\n${items}`);
   }
   if (cooldown) {
-    const items = toListItems(cooldown);
-    if (items) blocks.push(`<b>🧘 RETOUR AU CALME</b><ul>${items}</ul>`);
+    const items = toListLines(cooldown);
+    if (items) blocks.push(`🧘 RETOUR AU CALME\n${items}`);
   }
 
   // 3) Alternatives terrain
@@ -1108,44 +1142,15 @@ function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): 
       const label = clean(a.label);
       const hint = clean(a.hint);
       const head = icon ? `${icon} ${label}` : label;
-      return `<li>${esc(hint ? `${head} — ${hint}` : head)}</li>`;
-    }).join("");
-    if (items) blocks.push(`<b>🏔️ Alternatives</b><ul>${items}</ul>`);
+      return `- ${hint ? `${head} — ${hint}` : head}`;
+    }).join("\n");
+    if (items) blocks.push(`🏔️ Alternatives\n${items}`);
   }
 
   // 4) Start to Run : légende RPE (aucune cible métrique envoyée)
   if (rpeMode) blocks.push(S2R_RPE_LEGEND);
 
-  let desc = blocks.join("<br><br>");
-  // Espace d'aération en fin de fiche (une seule ligne vide).
-  if (desc) desc += "<br>";
-
-  // Cap propre : coupe sur fin de </li>, </ul> ou <br>, jamais au milieu d'une balise.
-  if (desc.length > MAX_LEN) {
-    const cut = desc.slice(0, MAX_LEN);
-    const candidates = [
-      cut.lastIndexOf("</ul>"),
-      cut.lastIndexOf("</li>"),
-      cut.lastIndexOf("<br>"),
-    ];
-    const idx = Math.max(...candidates);
-    if (idx > MAX_LEN * 0.5) {
-      // Coupe juste après la balise trouvée
-      const tag = idx === cut.lastIndexOf("</ul>") ? "</ul>"
-        : idx === cut.lastIndexOf("</li>") ? "</li>"
-        : "<br>";
-      desc = cut.slice(0, idx + tag.length);
-      // Referme un <ul> resté ouvert si on a coupé sur </li>
-      const openUl = (desc.match(/<ul>/g) ?? []).length;
-      const closeUl = (desc.match(/<\/ul>/g) ?? []).length;
-      if (openUl > closeUl) desc += "</ul>".repeat(openUl - closeUl);
-    } else {
-      desc = cut;
-    }
-    desc += "…";
-  }
-
-  return desc;
+  return truncate(blocks.join("\n\n"));
 }
 
 
