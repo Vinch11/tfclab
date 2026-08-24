@@ -1089,6 +1089,18 @@ export default function AITrainingPlanPage() {
     // Une génération complète invalide toute régénération ciblée précédente.
     setPlanOverride(null);
 
+    // Une génération pleine ("Générer") repart TOUJOURS sur le lundi de la
+    // semaine courante, même si `planStartDate` porte encore la date d'un
+    // plan précédent restaurée automatiquement au chargement (cf. l.390+
+    // "Ancrage calendaire"). Sans ça, générer plusieurs fois de suite pour
+    // le même athlète (tests, ou simple nouvel essai) réutilisait
+    // silencieusement une vieille date de début. `setPlanStartDate` seul ne
+    // suffit pas ici : la mise à jour de state est asynchrone et
+    // `buildConfigFromDiag` ci-dessous lirait encore l'ancienne valeur dans
+    // le même tick — d'où l'override direct de `config.planStartDate`.
+    const freshStartDate = startOfWeek(new Date(), { weekStartsOn: 1 });
+    setPlanStartDate(freshStartDate);
+
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
       return;
@@ -1123,6 +1135,10 @@ export default function AITrainingPlanPage() {
     }
 
     const config = buildConfigFromDiag(athleteContext.diagnostic);
+    // Voir commentaire plus haut : `buildConfigFromDiag` a lu l'ancien
+    // `planStartDate` (closure figée au dernier render) — on force ici la
+    // valeur fraîche calculée en tête de fonction.
+    config.planStartDate = format(freshStartDate, "yyyy-MM-dd");
     // F-EXPRESS — inject flag if active snapshot was created via Démarrage Express
     const activeSnap = currentAthlete ? getSnapshotsForAthlete(currentAthlete.id)
       .slice()
