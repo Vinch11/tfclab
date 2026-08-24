@@ -193,6 +193,126 @@ function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high
   return "low";
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// TEMPS PAR ZONE (Rule 1 — polarisation 80/20, fidèle à Seiler)
+// ═══════════════════════════════════════════════════════════════════════════════
+// Seiler mesure la polarisation en TEMPS passé par zone, pas en nombre de
+// séances. `classifySessionIntensity` classe une séance ENTIÈRE dans un seul
+// bucket dès qu'un pattern matche n'importe où dans le texte — une séance
+// "55min Z2 + 5min seuil" comptait donc 100% "high", pas 92% "low"/8% "high".
+// Le fix des strides (ci-dessus) corrige le cas le plus flagrant, mais le
+// problème de fond restait : on découpe maintenant le texte en clauses et on
+// pondère chaque clause par sa propre durée avant de les agréger.
+
+/** Découpe une séance en clauses (phrases/segments), unité d'analyse pour le
+ *  temps par zone — chaque bloc warm-up/main/cool-down est typiquement sa
+ *  propre clause dans le texte généré. */
+function splitIntoClauses(text: string): string[] {
+  return text
+    .split(/[.;|]|\s+puis\s+|\s+→\s+/i)
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0);
+}
+
+/** Minutes mentionnées dans une clause (heures, minutes, répétitions×durée). */
+function clauseDurationMin(clause: string): number {
+  let total = 0;
+
+  const hRe = /(\d+)\s*h\s*(\d{1,2})?(?!\d)/g;
+  let m: RegExpExecArray | null;
+  while ((m = hRe.exec(clause)) !== null) {
+    const h = parseInt(m[1], 10);
+    const min = m[2] ? parseInt(m[2], 10) : 0;
+    if (h >= 0 && h <= 12 && min < 60) total += h * 60 + min;
+  }
+
+  // "6 x 20min", "2x20'" — répétitions × minutes
+  const repMinRe = /(\d{1,2})\s*x\s*(\d{1,3})\s*(?:min(?:utes?)?|')(?!\d)/gi;
+  while ((m = repMinRe.exec(clause)) !== null) {
+    const reps = parseInt(m[1], 10);
+    const mins = parseInt(m[2], 10);
+    if (reps > 0 && reps <= 30 && mins > 0 && mins <= 60) total += reps * mins;
+  }
+
+  // "6x20s", "10x30"" — répétitions × secondes (strides, 30/30…)
+  const repSecRe = /(\d{1,2})\s*x\s*(\d{1,3})\s*(?:s\b|"|″|sec)/gi;
+  while ((m = repSecRe.exec(clause)) !== null) {
+    const reps = parseInt(m[1], 10);
+    const secs = parseInt(m[2], 10);
+    if (reps > 0 && reps <= 40 && secs > 0 && secs <= 180) total += (reps * secs) / 60;
+  }
+
+  // Minutes nues — seulement si rien de plus spécifique n'a matché dans la
+  // clause (évite de compter deux fois "20min" déjà capté par repMinRe).
+  if (total === 0) {
+    const mRe = /(?<!\d)(\d{1,3})\s*(?:min(?:utes?)?|'|′)(?!\d)/g;
+    while ((m = mRe.exec(clause)) !== null) {
+      const mm = parseInt(m[1], 10);
+      if (mm >= 1 && mm <= 300) total += mm;
+    }
+  }
+
+  return total;
+}
+
+/** Classe une clause (pas la séance entière) — même logique que
+ *  classifySessionIntensity, appliquée à un fragment de texte. */
+function clauseTier(clause: string): "low" | "mid" | "high" {
+  const t = clause.toLowerCase();
+  if (STRIDES_TAIL_PATTERN.test(t) && !GENUINE_INTERVAL_WORK_PATTERN.test(t)) return "low";
+  if (HIGH_INTENSITY_PATTERNS.test(t)) return "high";
+  if (MID_INTENSITY_PATTERNS.test(t)) return "mid";
+  if (/renfo|muscul|strength|ppg|gainage|core|poids/i.test(t)) return "mid";
+  return "low";
+}
+
+interface SessionZoneMinutes { low: number; mid: number; high: number }
+
+/**
+ * Estime la répartition low/mid/high EN MINUTES d'une séance, en pondérant
+ * chaque clause par sa propre durée plutôt que de classer la séance entière
+ * dans un seul bucket. Le temps non capté par une clause reconnaissable
+ * (transitions, WU/CD non zonés explicitement) est crédité à "low" — repli
+ * conservateur et physiologiquement fondé (un WU/CD non précisé est presque
+ * toujours easy). Si aucune clause n'est exploitable du tout, on retombe sur
+ * la classification globale historique (texte non structuré / legacy).
+ */
+function estimateSessionZoneMinutes(
+  session: ParsedSession,
+  totalDurationMin: number | null,
+): SessionZoneMinutes {
+  const acc: SessionZoneMinutes = { low: 0, mid: 0, high: 0 };
+  if (session.isRest || !totalDurationMin || totalDurationMin <= 0) return acc;
+
+  const text = `${session.title} ${session.details}`;
+  const clauses = splitIntoClauses(text);
+  let captured = 0;
+  for (const clause of clauses) {
+    const mins = clauseDurationMin(clause);
+    if (mins <= 0) continue;
+    acc[clauseTier(clause)] += mins;
+    captured += mins;
+  }
+
+  if (captured > totalDurationMin) {
+    const scale = totalDurationMin / captured;
+    acc.low *= scale;
+    acc.mid *= scale;
+    acc.high *= scale;
+    captured = totalDurationMin;
+  }
+
+  const remainder = totalDurationMin - captured;
+  if (remainder > 0) {
+    if (captured === 0) {
+      acc[classifySessionIntensity(session)] += remainder;
+    } else {
+      acc.low += remainder;
+    }
+  }
+  return acc;
+}
+
 function isKeySession(session: ParsedSession): boolean {
   if (session.isRest) return false;
   // Signal structuré posé par l'IA elle-même (chemin JSON, défaut prod) : plus fiable
@@ -265,16 +385,6 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
     sports[sport] = (sports[sport] || 0) + 1;
   }
 
-  // Intensity distribution
-  let low = 0, mid = 0, high = 0;
-  for (const s of activeSessions) {
-    const intensity = classifySessionIntensity(s);
-    if (intensity === "low") low++;
-    else if (intensity === "mid") mid++;
-    else high++;
-  }
-  const total = low + mid + high || 1;
-
   // Deload detection
   const themeText = `${week.theme} ${week.phase}`.toLowerCase();
   const isDeload = DELOAD_PATTERNS.test(themeText) || activeSessions.length <= 3;
@@ -285,10 +395,12 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
   // Key sessions
   const keySessions = activeSessions.filter(isKeySession).length;
 
-  // F-23: Real durations (sum of parseable session durations)
+  // F-23: Real durations (sum of parseable session durations) + intensity
+  // distribution EN TEMPS (pas en nombre de séances — cf. estimateSessionZoneMinutes).
   let totalDurationMin = 0;
   let keyDurationMin = 0;
   let sessionsWithDuration = 0;
+  let low = 0, mid = 0, high = 0;
   for (const s of activeSessions) {
     const d = parseSessionDurationMin(s);
     if (d !== null && d > 0) {
@@ -296,7 +408,12 @@ function extractWeekMetrics(week: ParsedWeek): WeekMetrics {
       sessionsWithDuration++;
       if (isKeySession(s)) keyDurationMin += d;
     }
+    const zoneMinutes = estimateSessionZoneMinutes(s, d);
+    low += zoneMinutes.low;
+    mid += zoneMinutes.mid;
+    high += zoneMinutes.high;
   }
+  const total = low + mid + high || 1;
 
   return {
     weekNumber: week.weekNumber,
