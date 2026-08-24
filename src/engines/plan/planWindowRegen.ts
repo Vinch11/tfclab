@@ -17,6 +17,21 @@
 import type { ParsedPlan, ParsedWeek } from "@/lib/aiPlanParser";
 import { summarizePastWeeks } from "./planPatcher";
 import type { PlanConfig, PlanAthleteData } from "@/hooks/useAITrainingPlan";
+import { inferWeekType } from "./sessionSizingMatrix";
+
+/**
+ * Phase catalogue ("base"|"build"|"peak"|"taper") pour une semaine GLOBALE
+ * donnée, avec les mêmes seuils que `inferPhaseFromWeek` côté edge
+ * (jsonPlanHandler.ts) — utilisé pour garder cohérente la sélection du
+ * catalogue envoyé à l'IA avec la résolution faite côté serveur.
+ */
+function catalogPhaseForGlobalWeek(globalWeek: number, globalTotalWeeks: number): "base" | "build" | "peak" | "taper" {
+  const pct = globalWeek / Math.max(globalTotalWeeks, 1);
+  if (pct <= 0.30) return "base";
+  if (pct <= 0.70) return "build";
+  if (pct <= 0.92) return "peak";
+  return "taper";
+}
 
 export interface WindowRegenRequest {
   fromWeek: number;
@@ -51,11 +66,42 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     ? `Sem ${futureWeeks[0].weekNumber} qui suit = ${futureWeeks[0].phase || futureWeeks[0].theme}.`
     : "Pas de semaines après la fenêtre — la dernière semaine régénérée doit clôturer le bloc.";
 
+  // ─── Position GLOBALE réelle de la fenêtre dans le plan complet ───────────
+  // Sans ça, le pipeline traiterait la fenêtre comme un mini-plan frais de
+  // `windowSize` semaines avec son propre cycle base/build/peak/taper — ex.
+  // la dernière semaine de la fenêtre serait vue comme "taper" (>80% d'un
+  // cycle de 4 sem) alors qu'elle est en plein bloc Build dans le plan réel.
+  const globalTotalWeeks = req.currentPlan.totalWeeks;
+  const globalWeekOffset = req.fromWeek - 1;
+  const perWeekPhase: string[] = [];
+  const phaseCounts: Record<string, number> = {};
+  const periodizationLines: string[] = [];
+  for (let i = 1; i <= windowSize; i++) {
+    const globalWeek = i + globalWeekOffset;
+    const phase = catalogPhaseForGlobalWeek(globalWeek, globalTotalWeeks);
+    const weekType = inferWeekType(globalWeek, globalTotalWeeks, req.baseConfig.objective || "");
+    perWeekPhase.push(phase);
+    phaseCounts[phase] = (phaseCounts[phase] ?? 0) + 1;
+    periodizationLines.push(
+      `  - Sem locale ${i} (= S${globalWeek} globale) : phase "${phase}", type de semaine "${weekType}".`
+    );
+  }
+  // Phase dominante de la fenêtre (majorité ; égalité → dernière semaine),
+  // utilisée pour forcer le bon catalogue de séances côté edge.
+  let dominantPhase = perWeekPhase[perWeekPhase.length - 1];
+  let dominantCount = 0;
+  for (const [phase, count] of Object.entries(phaseCounts)) {
+    if (count > dominantCount) { dominantPhase = phase; dominantCount = count; }
+  }
+
   const constraintsBlock = [
     req.baseConfig.constraints ?? "",
     "",
-    `🔄 RÉGÉNÉRATION PARTIELLE — Fenêtre ${windowSize} semaines (S${req.fromWeek}→S${req.toWeek} dans le plan global).`,
+    `🔄 RÉGÉNÉRATION PARTIELLE — Fenêtre ${windowSize} semaines (S${req.fromWeek}→S${req.toWeek} dans le plan global de ${globalTotalWeeks} semaines).`,
     `Génère ces ${windowSize} semaines numérotées 1 à ${windowSize} (elles seront renumérotées).`,
+    "",
+    `📅 PÉRIODISATION RÉELLE DE CHAQUE SEMAINE DE LA FENÊTRE (position dans le plan GLOBAL, pas un cycle isolé) :`,
+    ...periodizationLines,
     "",
     `📚 CONTEXTE PASSÉ (4 dernières semaines réalisées) :`,
     pastSummary,
@@ -65,6 +111,7 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     `⚠️ Contraintes de continuité :`,
     `- Sem 1 doit raccorder progressivement avec ce qui précède (pas de saut brutal de charge)`,
     `- Dernière sem doit préparer la transition vers le futur`,
+    `- Respecte STRICTEMENT la phase/type indiqués ci-dessus pour chaque semaine locale — ce n'est PAS un mini-plan autonome, c'est un extrait d'un plan de ${globalTotalWeeks} semaines.`,
     req.reason ? `- Motif de la régénération : ${req.reason}` : "",
   ]
     .filter(Boolean)
@@ -76,6 +123,11 @@ export function buildWindowRegenConfig(req: WindowRegenRequest): {
     constraints: constraintsBlock,
     // On désactive la rampe initiale : on n'est PAS en début de prépa
     volumeRamp: undefined,
+    // Position globale pour la périodisation côté client (catalogues, quotas)
+    // et côté edge (sélection du catalogue de phase) — cf. PlanConfig doc.
+    globalTotalWeeks,
+    globalWeekOffset,
+    windowRegenPhase: dominantPhase,
   };
 
   return { config: windowConfig, athleteData: req.athleteData, expectedWeeks: windowSize };

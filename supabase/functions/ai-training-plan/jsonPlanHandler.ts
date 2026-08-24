@@ -1029,7 +1029,15 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             && chunkCatalogs[ci].length > 0
               ? chunkCatalogs[ci]
               : null;
+          // Régénération de fenêtre : `windowRegenPhase` porte la vraie phase
+          // globale pré-calculée côté client (planWindowRegen.ts), car en
+          // génération non-chunkée `chunk.start` vaut toujours 1 → sans cet
+          // override, inferPhaseFromWeek(1, totalWeeks) retombe TOUJOURS sur
+          // "base", quelle que soit la position réelle de la fenêtre dans le plan.
           const activePhase = regenerateWeek?.phase
+            ?? (typeof planConfig?.windowRegenPhase === "string" && planConfig.windowRegenPhase
+              ? planConfig.windowRegenPhase
+              : null)
             ?? inferPhaseFromWeek(chunk.start, totalWeeks);
           const catalogDump = chunkSpecificCatalog
             ?? resolvePhaseCatalog(activePhase, phaseCatalogs, workoutCatalog);
