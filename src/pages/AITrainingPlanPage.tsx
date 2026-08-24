@@ -34,7 +34,7 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
-import { validatePlan } from "@/engines/plan/planValidator";
+import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
@@ -1478,9 +1478,26 @@ export default function AITrainingPlanPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSaveToPlan = useCallback(async () => {
-    if (!parsedPlan || !currentAthlete) return;
+  // Gate qualité (F-16 → gate) : sauvegarde bloquée par une confirmation explicite
+  // quand le validateur détecte au moins une "severity: error" (violation de
+  // prohibition, séance infaisable selon le W'bal, plan ne ciblant pas les
+  // limiteurs, jour de course absent, incohérence de phase...). Le coach garde la
+  // main — il peut avoir une bonne raison — mais ne peut plus sauvegarder un plan
+  // critique sans être explicitement averti (avant : score stocké après coup,
+  // jamais montré au moment décisif, cf. audit qualité plans IA).
+  const [criticalIssuesDialog, setCriticalIssuesDialog] = useState<{
+    issues: ValidationIssue[];
+    overallComment: string;
+  } | null>(null);
+  const pendingSaveRef = useRef<null | (() => Promise<void>)>(null);
 
+  const persistPlanVersion = useCallback(async (
+    validatorScore: number | null,
+    validatorGrade: string | null,
+    validatorSummary: Record<string, unknown> | null,
+    overriddenCriticalIssues: number,
+  ) => {
+    if (!parsedPlan || !currentAthlete) return;
     setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -1490,48 +1507,9 @@ export default function AITrainingPlanPage() {
         .flatMap(w => w.sessions || [])
         .filter(s => !s.isRest).length;
 
-      // F-16: compute validator score at save time and persist alongside the plan
-      // so we can measure AI plan quality drift over time (per athlete/objective).
-      let validatorScore: number | null = null;
-      let validatorGrade: string | null = null;
-      let validatorSummary: Record<string, unknown> | null = null;
-      try {
-        if (athleteContext) {
-          const cfg = buildConfigFromDiag(athleteContext.diagnostic);
-          const limiterKeys = deriveLimiterKeysFromGapAnalysis(
-            athleteContext.diagnostic.limiter.gapAnalysis,
-            coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
-          );
-          const raceNums: number[] = [];
-          const allGoals = [{ raceDate, priority: "A" as const }, ...raceGoals];
-          for (const g of allGoals) {
-            if (!g.raceDate) continue;
-            try {
-              const days = differenceInCalendarDays(parseISO(g.raceDate), planStartDate);
-              if (days >= 0) raceNums.push(Math.floor(days / 7) + 1);
-            } catch { /* ignore */ }
-          }
-          const vr = validatePlan(
-            parsedPlan,
-            objective,
-            cfg?.prohibitions,
-            raceNums.length > 0 ? raceNums : undefined,
-            cfg?.identifiedLimiters,
-            limiterKeys,
-            athleteContext.data,
-            coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
-            {
-              sessionsPerWeek: (() => { const n = parseInt(sessionsPerWeek); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
-              maxSessionsPerDay: (() => { const n = parseInt(maxSessionsPerDay); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
-            },
-          );
-          validatorScore = vr.score;
-          validatorGrade = vr.grade;
-          validatorSummary = vr.summary as unknown as Record<string, unknown>;
-        }
-      } catch (vErr) {
-        console.warn("[F-16] validator failed, persisting plan without score:", vErr);
-      }
+      const summaryWithOverride = validatorSummary
+        ? { ...validatorSummary, overriddenCriticalIssues: overriddenCriticalIssues || undefined }
+        : validatorSummary;
 
       // Archive this plan version (history only — no write to training_plan)
       const { error } = await supabase.from("plan_versions").insert({
@@ -1550,7 +1528,7 @@ export default function AITrainingPlanPage() {
         sessions_count: sessionsCount,
         validator_score: validatorScore,
         validator_grade: validatorGrade,
-        validator_summary: validatorSummary as any,
+        validator_summary: summaryWithOverride as any,
       });
       if (error) throw error;
 
@@ -1563,7 +1541,68 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals]);
+  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate]);
+
+  const handleSaveToPlan = useCallback(async () => {
+    if (!parsedPlan || !currentAthlete) return;
+
+    // F-16: compute validator score at save time and persist alongside the plan
+    // so we can measure AI plan quality drift over time (per athlete/objective).
+    let validatorScore: number | null = null;
+    let validatorGrade: string | null = null;
+    let validatorSummary: Record<string, unknown> | null = null;
+    let criticalIssues: ValidationIssue[] = [];
+    try {
+      if (athleteContext) {
+        const cfg = buildConfigFromDiag(athleteContext.diagnostic);
+        const limiterKeys = deriveLimiterKeysFromGapAnalysis(
+          athleteContext.diagnostic.limiter.gapAnalysis,
+          coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
+        );
+        const raceNums: number[] = [];
+        const allGoals = [{ raceDate, priority: "A" as const }, ...raceGoals];
+        for (const g of allGoals) {
+          if (!g.raceDate) continue;
+          try {
+            const days = differenceInCalendarDays(parseISO(g.raceDate), planStartDate);
+            if (days >= 0) raceNums.push(Math.floor(days / 7) + 1);
+          } catch { /* ignore */ }
+        }
+        const vr = validatePlan(
+          parsedPlan,
+          objective,
+          cfg?.prohibitions,
+          raceNums.length > 0 ? raceNums : undefined,
+          cfg?.identifiedLimiters,
+          limiterKeys,
+          athleteContext.data,
+          coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
+          {
+            sessionsPerWeek: (() => { const n = parseInt(sessionsPerWeek); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
+            maxSessionsPerDay: (() => { const n = parseInt(maxSessionsPerDay); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
+          },
+        );
+        validatorScore = vr.score;
+        validatorGrade = vr.grade;
+        validatorSummary = vr.summary as unknown as Record<string, unknown>;
+        criticalIssues = vr.issues.filter(i => i.severity === "error");
+      }
+    } catch (vErr) {
+      console.warn("[F-16] validator failed, persisting plan without score:", vErr);
+    }
+
+    const doSave = () => persistPlanVersion(validatorScore, validatorGrade, validatorSummary, criticalIssues.length);
+
+    if (criticalIssues.length > 0) {
+      pendingSaveRef.current = doSave;
+      setCriticalIssuesDialog({
+        issues: criticalIssues,
+        overallComment: (validatorSummary?.overallComment as string) ?? `${criticalIssues.length} problème(s) critique(s) détecté(s)`,
+      });
+      return;
+    }
+    await doSave();
+  }, [parsedPlan, currentAthlete, planStartDate, objective, raceDate, athleteContext, buildConfigFromDiag, coachLimiterOrder, raceGoals, persistPlanVersion]);
 
   const [pendingVersion, setPendingVersion] = useState<{ plan_json: any } | null>(null);
 
@@ -3078,6 +3117,45 @@ export default function AITrainingPlanPage() {
         onGenerate={handleWizardGenerate}
         onReview={handleWizardReview}
       />
+      <AlertDialog
+        open={!!criticalIssuesDialog}
+        onOpenChange={(o) => { if (!o) { setCriticalIssuesDialog(null); pendingSaveRef.current = null; } }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>⚠️ Problème(s) critique(s) détecté(s)</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-left">
+                <p className="font-medium text-foreground">{criticalIssuesDialog?.overallComment}</p>
+                <ul className="list-disc pl-5 space-y-1 max-h-64 overflow-y-auto">
+                  {criticalIssuesDialog?.issues.map((issue, i) => (
+                    <li key={i}>
+                      {issue.week != null && <span className="font-mono text-xs mr-1">S{issue.week}</span>}
+                      {issue.message}
+                    </li>
+                  ))}
+                </ul>
+                <p>Vous pouvez sauvegarder quand même, mais nous vous recommandons de régénérer ou de corriger le plan avant de le transmettre à l'athlète.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { pendingSaveRef.current = null; }}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const save = pendingSaveRef.current;
+                setCriticalIssuesDialog(null);
+                pendingSaveRef.current = null;
+                if (save) void save();
+              }}
+            >
+              Sauvegarder quand même
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
