@@ -163,3 +163,32 @@ describe("deriveTrainingZones — zones FC dérivées", () => {
     expect(set.zones.find((z) => z.id === "Z2")!.fcMaxPct).toEqual({ min: 70, max: 80 });
   });
 });
+
+describe("deriveTrainingZones — repères Allure Marathon / Allure Semi (sous-structure de Z4)", () => {
+  const base = { sport: "run" as const, vma: 17, paceThresholdSecPerKm: 220, vlamax: 0.45, vo2max: 60 };
+
+  it("affiche des repères fixes Allure Marathon et Allure Semi même sans objectif de course", () => {
+    const set = deriveTrainingZones(base);
+    expect(set.source).toBe("derived");
+    const marathon = set.markers.find((m) => m.id === "allure_marathon");
+    const semi = set.markers.find((m) => m.id === "allure_semi");
+    expect(marathon).toBeDefined();
+    expect(semi).toBeDefined();
+    // Allure marathon (fraction basse du seuil) doit être plus lente (pctRef plus bas) que l'allure semi.
+    expect(marathon!.pctRef.max).toBeLessThanOrEqual(semi!.pctRef.min + 1);
+  });
+
+  it("n'affiche pas de doublon avec le repère 'race_specific' quand l'objectif est justement Marathon ou Semi", () => {
+    const marathonGoal = deriveTrainingZones({ ...base, raceObjective: "Marathon" });
+    expect(marathonGoal.markers.filter((m) => m.id === "allure_marathon")).toHaveLength(0);
+    expect(marathonGoal.markers.some((m) => m.id === "race_specific")).toBe(true);
+
+    const semiGoal = deriveTrainingZones({ ...base, raceObjective: "Semi" });
+    expect(semiGoal.markers.filter((m) => m.id === "allure_semi")).toHaveLength(0);
+  });
+
+  it("ne calcule pas ces repères pour le vélo (terminologie course uniquement)", () => {
+    const set = deriveTrainingZones({ sport: "bike", ftp: 250, vlamax: 0.4, vo2max: 60, fcMax: 185 });
+    expect(set.markers.some((m) => m.id === "allure_marathon" || m.id === "allure_semi")).toBe(false);
+  });
+});

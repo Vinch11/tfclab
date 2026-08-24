@@ -27,7 +27,7 @@ export const ZONE6_CONDITIONS: Record<ZoneId6, string> = {
   Z1: "En dessous de LT1 — aucun stress métabolique",
   Z2: "De LT1 au haut de la fenêtre FatMax — oxydation lipidique maximale",
   Z3: "Entre FatMax et le seuil — lactate stable mais en hausse",
-  Z4: "Autour du MLSS (± 3 %) — équilibre production / élimination du lactate",
+  Z4: "De l'allure marathon au MLSS (± 3 %) — regroupe allure marathon, allure semi et seuil (détail dans les repères ci-dessous)",
   Z5: "Au-dessus du MLSS jusqu'à vVO2max — sollicitation aérobie maximale",
   Z6: "Au-dessus de vVO2max — anaérobie alactique / neuromusculaire",
 };
