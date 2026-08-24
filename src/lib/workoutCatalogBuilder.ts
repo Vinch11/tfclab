@@ -302,6 +302,22 @@ function scoreWorkout(
     }
   } else {
     score += 2;
+    // ─── Pénalité objectif non documenté dans `variants` (fallback quand `goals`
+    // absent — cas des fiches historiques de workoutLibrary.ts) ───
+    // BUG constaté : BILLAT_RUN_SEMI_PACE (allure semi-marathon Z4 87-92% VMA,
+    // sans champ `goals`) sélectionnée telle quelle dans un plan 10K — ses
+    // `variants` documentent ironman/half/marathon/semi mais AUCUNE entrée "10k"
+    // (contrairement à C_SEMI_HILL_STRENGTH/D_SEMI_RECOVERY_30, dont les auteurs
+    // ont explicitement validé un variant "10k"). Sans ce garde, une fiche dont
+    // l'objectif du plan est absent de `variants` était traitée comme neutre/
+    // universelle. Pénalité (pas exclusion dure) : reste sélectionnable en
+    // dernier recours si le pool est trop mince pour ce créneau, mais ne doit
+    // jamais être préférée à une fiche correctement documentée pour l'objectif.
+    const primaryGoal = goals[0];
+    if (primaryGoal && w.variants && Object.keys(w.variants).length > 0) {
+      const v = (w.variants as Partial<Record<string, string>>)[primaryGoal];
+      if (v === "—" || v === undefined) score -= 25;
+    }
   }
 
   // Phase match

@@ -90,8 +90,14 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   });
   if (diagDerived.source === "snapshot" && diagDerived.raceTimeSec != null) {
     lines.push(`🎯 Cible course (snapshot) : ${diagDerived.humanSummary}`);
-    if (diagTimeTarget) lines.push(`   Fourchette littérature (secondaire) : ${diagTimeTarget}`);
+    if (diagTimeTarget) lines.push(`   Fourchette littérature (secondaire, JAMAIS à citer comme objectif du plan) : ${diagTimeTarget}`);
     if (diagDerived.warning) lines.push(`⚠️ ${diagDerived.warning}`);
+    // BUG constaté sans cette contrainte explicite : le champ `diagnostic` et la
+    // fiche du jour de course citaient un temps/allure DIFFÉRENT de la cible
+    // snapshot ci-dessus (souvent inspiré de la fourchette littérature), créant
+    // une incohérence visible dans le plan (ex: titre "Objectif 38min" mais
+    // fiche du jour de course "Objectif 43'17"). Contrainte dure ci-dessous.
+    lines.push(`⛔ RÈGLE ABSOLUE (diagnostic + fiche jour de course) : tout temps/allure cible mentionné dans \`diagnostic\` ou dans la séance du jour de course DOIT être EXACTEMENT "${diagDerived.humanSummary}" — jamais la fourchette littérature ci-dessus, jamais un autre chiffre. Un seul chiffre cible existe dans tout le plan : celui-ci.`);
   } else if (diagTimeTarget) {
     lines.push(`🎯 Temps cible (littérature, snapshot indisponible) : ${diagTimeTarget}`);
   }
@@ -853,6 +859,22 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
         lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
         lines.push(`→ La DERNIÈRE semaine du plan (S${goalWeek}) DOIT être la SEMAINE DE COURSE avec : mini-taper, activation J-2/J-1, et Jour de Course le jour exact de la compétition.`);
+        // Cartographie explicite J-N → jour calendaire, calculée déterministe.
+        // BUG constaté sans ceci : le modèle place le shakeout "J-1" (catalogue)
+        // sur le mauvais jour (ex: vendredi au lieu de samedi pour une course
+        // dimanche), laissant le vrai J-1 vide. On ne laisse plus le modèle
+        // déduire lui-même quel jour de semaine correspond à J-1/J-2/J-3.
+        const raceUtcUnique = parseIsoDateUtc(goal.raceDate);
+        if (raceUtcUnique !== undefined) {
+          const dayMs = 24 * 3600 * 1000;
+          const jLabels: Array<[number, string]> = [[3, "J-3"], [2, "J-2"], [1, "J-1"], [0, "JOUR J (course)"]];
+          lines.push(`→ Calendrier EXACT des derniers jours (ne pas recalculer, utiliser tel quel) :`);
+          for (const [offset, label] of jLabels) {
+            const dateIso = new Date(raceUtcUnique - offset * dayMs).toISOString().slice(0, 10);
+            lines.push(`   • ${formatIsoDateFr(dateIso)} = ${label}`);
+          }
+          lines.push(`→ La fiche catalogue "Shakeout J-1" DOIT être placée EXACTEMENT sur la date J-1 ci-dessus (pas J-2, pas J-3). Si une activation J-2 existe aussi, elle va sur la date J-2 — ce sont deux jours distincts, aucun des deux ne doit rester vide.`);
+        }
       }
     });
 
@@ -939,6 +961,16 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   if (derived.paceTargets) {
     const pt = derived.paceTargets;
     const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`;
+    // BUG constaté : l'ancien format "Xh YY" (ex: "0h38" pour un 10K en 38min)
+    // était absurde pour toute course < 1h — l'IA ignorait l'instruction et
+    // inventait un autre chiffre (souvent tiré du standard populationnel,
+    // ex: "43'17" au lieu de "38min41" pour un objectif snapshot 10K).
+    const fmtRaceTime = (sec: number) => {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = Math.round(sec % 60);
+      return h > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${m}min${String(s).padStart(2, "0")}`;
+    };
     lines.push(``);
     lines.push(`### 🎯 ALLURES CANONIQUES — SOURCE UNIQUE (NON NÉGOCIABLE)`);
     lines.push(`⛔ **INTERDIT de calculer des allures via %VMA, de mémoire, ou par déduction.** Utiliser UNIQUEMENT les valeurs du bloc PACE_TARGETS ci-dessous. Toute allure absente de ce bloc est INTERDITE dans le plan.`);
@@ -950,7 +982,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     if (pt.allureZ2) lines.push(`- **Endurance Z2 (65-75% VMA)** : ${fmt(pt.allureZ2.hi)} → ${fmt(pt.allureZ2.lo)}`);
     lines.push(`→ Toute séance "Allure Semi / Race-pace / Juge de Paix" DOIT être à **${fmt(pt.allureSemiCible)} ±5s**.`);
     lines.push(`→ Toute consigne coach "si ça brûle, ralentis à X" DOIT proposer une allure PLUS LENTE (ex: ${fmt(pt.allureSemiCible + 8)}), jamais plus rapide que l'allure cible.`);
-    lines.push(`→ Le Jour J DOIT afficher "Objectif ${derived.raceTimeSec ? Math.floor(derived.raceTimeSec/3600) : "?"}h${derived.raceTimeSec ? String(Math.floor((derived.raceTimeSec%3600)/60)).padStart(2,"0") : "??"} (${fmt(pt.allureSemiCible)})".`);
+    lines.push(`→ Le Jour J DOIT afficher "Objectif ${derived.raceTimeSec ? fmtRaceTime(derived.raceTimeSec) : "?"} (${fmt(pt.allureSemiCible)})" — EXACTEMENT ce chiffre, jamais le standard populationnel ni un autre temps.`);
     lines.push(``);
   }
 
