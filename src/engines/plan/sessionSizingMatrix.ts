@@ -137,7 +137,11 @@ const MATRIX: Matrix = {
     finisher:   { hoursMin: 4, hoursMax: 6,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     age_group:  { hoursMin: 5, hoursMax: 7,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 4, max: 4 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 5,  max: 6  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
     competitor: { hoursMin: 7, hoursMax: 9,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 5, max: 5 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 7,  max: 8  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
-    elite:      { hoursMin: 8, hoursMax: 13, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
+    // hoursMax relevé de 13 à 15 (audit qualité plans IA) : à 130-220 km/sem (volumes
+    // élite marathon documentés, cf. AUDIT_PLAN_IA_V6) et une allure moyenne hebdo
+    // ~3:45-4:15/km (mix EF + travail qualité plus rapide), le haut de fourchette
+    // réel avoisine 13-15h — 13h était trop bas pour les coureurs au sommet du spectre.
+    elite:      { hoursMin: 9, hoursMax: 15, swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 6, max: 8 }, brick: { min: 0, max: 0 }, strength: { min: 2, max: 2 }, totalSessions: { min: 8,  max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 0 },
   },
   "10K": {
     finisher:   { hoursMin: 2, hoursMax: 4,  swim: { min: 0, max: 0 }, bike: { min: 0, max: 1 }, run: { min: 3, max: 3 }, brick: { min: 0, max: 0 }, strength: { min: 1, max: 1 }, totalSessions: { min: 4,  max: 5  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
@@ -213,8 +217,14 @@ export function normalizeSizingObjective(objective: string | null | undefined): 
   if (l.includes("start to run") || l.includes("start-to-run") || l.includes("starttorun") || l.includes("s2r") || l.includes("débutant") || l.includes("debutant")) return "STARTTORUN";
   if (l.includes("70.3") || l.includes("half iron") || l.includes("half-iron") || l === "703" || l.includes("ironman 70")) return "703";
   if (l.includes("ironman") || l === "im" || l.match(/\bim\b/)) return "IM";
-  if (l.includes("sprint") && (l.includes("tri") || l.includes("triathlon"))) return "TRI_SPRINT";
-  if ((l.includes("olymp") || l.includes("courte distance") || l === "cd") && (l.includes("tri") || l.includes("triathlon"))) return "TRI_OLYMPIQUE";
+  // ⚠️ Ne PAS exiger "tri"/"triathlon" en plus de "sprint"/"olymp" : l'objectif est
+  // souvent stocké sous forme brute "Sprint"/"Olympic" ailleurs dans l'app (ex.
+  // DashboardPage.tsx capObjectifs/bikeObjectifs) — l'ancienne condition composée
+  // rendait ces deux lignes de la matrice injoignables pour ces athlètes (audit
+  // qualité plans IA). Le vocabulaire d'objectif de l'app ne contient aucune autre
+  // valeur susceptible de matcher "sprint"/"olymp" par erreur.
+  if (l.includes("sprint")) return "TRI_SPRINT";
+  if (l.includes("olymp") || l.includes("courte distance") || l === "cd") return "TRI_OLYMPIQUE";
   if (l.includes("semi") || l.includes("half marathon") || l.includes("half-marathon")) return "SEMI";
   if (l.includes("marathon")) return "MARATHON";
   if (l.includes("10k") || l.includes("10 km")) return "10K";
@@ -387,25 +397,71 @@ export function computeWeeklySessionQuota(
 }
 
 /**
+ * Nombre de semaines d'affûtage recommandées avant la course, par objectif.
+ * Ordres de grandeur usuels (Mujika & Padilla 2003, Bosquet et al. 2007 : réduire le
+ * volume 40-60% en maintenant fréquence/intensité — durée du taper croissante avec le
+ * volume chronique et la durée de l'épreuve). ⚠️ Calibré par cohérence interne avec le
+ * reste de la matrice, pas par une méta-analyse dédiée à chaque format — à ajuster si
+ * l'expérience terrain le justifie.
+ */
+const TAPER_WEEKS_BY_OBJECTIVE: Partial<Record<SizingObjectiveKey, number>> = {
+  IM: 3,
+  "703": 2,
+  TRI_SPRINT: 1,
+  TRI_OLYMPIQUE: 1,
+  SEMI: 1,
+  MARATHON: 2,
+  "10K": 1,
+  "5K": 1,
+  STARTTORUN: 1,
+};
+const DEFAULT_TAPER_WEEKS = 1;
+
+/**
+ * Trail/Ultra sont hors scope de `normalizeSizingObjective` (voir plus haut, non
+ * dimensionnés par la matrice) — table dédiée par mot-clé, même doctrine que ci-dessus :
+ * dommages musculo-squelettiques cumulés → taper plus long à mesure que le format
+ * s'allonge.
+ */
+function taperWeeksForTrail(objectiveLower: string): number | null {
+  if (!objectiveLower.includes("trail") && !objectiveLower.includes("ultra")) return null;
+  if (objectiveLower.includes("ultra")) return 3;
+  if (objectiveLower.includes("mountain") || objectiveLower.includes("long")) return 2;
+  return 1; // TrailShort / trail générique
+}
+
+function taperWeeksForObjective(objective?: string | null): number {
+  if (!objective) return DEFAULT_TAPER_WEEKS;
+  const objKey = normalizeSizingObjective(objective);
+  if (objKey && TAPER_WEEKS_BY_OBJECTIVE[objKey] != null) return TAPER_WEEKS_BY_OBJECTIVE[objKey]!;
+  const fromTrail = taperWeeksForTrail(objective.toLowerCase());
+  if (fromTrail != null) return fromTrail;
+  return DEFAULT_TAPER_WEEKS;
+}
+
+/**
  * Mapping simple weekType depuis la position dans le plan.
  * Aligne l'heuristique de phase serveur (inferPhaseFromWeek).
  *
- * - race    : dernière semaine si en zone taper (pct > 0.92)
- * - taper   : pct > 0.92 (hors race)
+ * - race    : dernière semaine
+ * - taper   : les `taperWeeksForObjective(objective)` semaines avant la course (1 par
+ *             défaut si objectif inconnu — cf. table ci-dessus), OU pct > 0.92 (permet
+ *             d'ajouter des semaines de taper supplémentaires sur les plans très longs,
+ *             au-delà du minimum garanti par objectif)
  * - recovery: toutes les 4 semaines (cycle 3:1), hors taper/race
  * - load    : autrement
  */
-export function inferWeekType(weekNumber: number, totalWeeks: number): WeekType {
+export function inferWeekType(weekNumber: number, totalWeeks: number, objective?: string | null): WeekType {
   const total = Math.max(totalWeeks, 1);
   if (weekNumber === total) return "race";
-  // Toujours au moins 1 semaine d'affûtage juste avant la course, quelle que soit la durée
-  // du plan. Le seul seuil pct>0.92 ci-dessous ne se déclenchait jamais pour totalWeeks≤12
-  // (il faut totalWeeks≥13 pour qu'une semaine non-finale dépasse 92%) : un plan de
-  // 8-12 semaines — préparation 5K/10K/Sprint/Olympique, voire certains 70.3 — enchaînait
-  // une semaine de charge pleine directement suivie de la semaine de course (audit qualité
-  // plans IA). Le seuil pct>0.92 reste actif pour ajouter des semaines de taper
-  // supplémentaires sur les plans longs (ex : 2 semaines de taper sur un plan de 26 sem.).
-  if (weekNumber === total - 1) return "taper";
+  // Garantit un minimum de semaines de taper adapté à l'objectif juste avant la course
+  // (pas seulement 1 semaine pour tout le monde — audit qualité plans IA : un Ironman ou
+  // un Marathon méritent scientifiquement plus qu'un 10K ou un Sprint).
+  const taperWeeks = Math.max(1, taperWeeksForObjective(objective));
+  if (weekNumber >= total - taperWeeks && weekNumber < total) return "taper";
+  // Seuil pct>0.92 : ajoute des semaines de taper supplémentaires sur les plans très longs,
+  // au-delà du minimum ci-dessus (ex : un 5K préparé sur 20 semaines aurait, sans ce
+  // plancher additionnel, un taper trop court relativement à la durée totale du plan).
   const pct = weekNumber / total;
   if (pct > 0.92) return "taper";
   if (weekNumber % 4 === 0) return "recovery";
