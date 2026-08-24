@@ -62,7 +62,7 @@ export interface DerivedZone {
  * les zones canoniques, exprimées dans la même référence.
  */
 export interface ZoneMarker {
-  id: "sweet_spot" | "race_specific";
+  id: "sweet_spot" | "race_specific" | "allure_marathon" | "allure_semi";
   label: string;
   /** Zone(s) canonique(s) recouverte(s), pour éviter toute confusion. */
   zoneSpan: string;
@@ -562,6 +562,36 @@ function buildMarkers(
       absolute: formatAbsolute(sport, source, b, input),
       note: `${Math.round(frac.min * 100)}–${Math.round(frac.max * 100)} % du seuil — fraction soutenable estimée pour la durée de l'épreuve.`,
     });
+  }
+
+  // Repères fixes Allure Marathon / Allure Semi — TOUJOURS affichés (pas
+  // seulement pour l'objectif de course actuel de l'athlète). Le modèle
+  // dérivé à 6 zones fusionne Z4a (allure marathon) + Z4b (allure semi) +
+  // Z5 (seuil) de la grille héritée en une seule zone "Z4" — ces repères
+  // rendent visible la sous-structure interne de cette zone fusionnée,
+  // avec les mêmes fractions du seuil que RACE_FRACTION_RUN ci-dessus.
+  // Pas de doublon si `race_specific` couvre déjà Marathon ou Semi.
+  if (sport === "run" && key !== "Marathon" && key !== "Semi") {
+    const fixedRefs: Array<{ id: "allure_marathon" | "allure_semi"; raceKey: "Marathon" | "Semi"; label: string }> = [
+      { id: "allure_marathon", raceKey: "Marathon", label: "Allure Marathon" },
+      { id: "allure_semi", raceKey: "Semi", label: "Allure Semi" },
+    ];
+    for (const ref of fixedRefs) {
+      const f = RACE_FRACTION_RUN[ref.raceKey];
+      const b: ZoneBounds = {
+        min: round1(refAtThreshold * f.min),
+        max: round1(refAtThreshold * f.max),
+      };
+      out.push({
+        id: ref.id,
+        label: ref.label,
+        zoneSpan: describeSpan(b, refAtThreshold),
+        pctRef: b,
+        refLabel,
+        absolute: formatAbsolute(sport, source, b, input),
+        note: `${Math.round(f.min * 100)}–${Math.round(f.max * 100)} % du seuil. Repère fixe (indépendant de l'objectif de course actuel) — sous-partie de la zone Z4 fusionnée ci-dessus.`,
+      });
+    }
   }
 
   return out;
