@@ -43,6 +43,7 @@ function toParsedSession(s: MergedSession): ParsedSession {
     catalogId: s.catalogId ?? null,
     details: s.details,
     isRest: s.isRest,
+    isKeySession: s.isKeySession,
   };
 }
 

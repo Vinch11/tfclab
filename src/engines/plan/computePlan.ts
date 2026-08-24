@@ -28,6 +28,7 @@ import { normalizeWeeksAndPhases } from "./normalizeWeeksPhases";
 import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
 import { deriveRaceTargets, formatSecPerKm } from "@/lib/deriveRaceTargets";
 import { postProcessSessionText } from "./sessionTextPostProcessor";
+import { parseSessionDurationMin } from "./planValidator";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // POST-TRAITEMENT (extractPlanContext / buildEnrichedPlanConfig / buildPlanOutput
@@ -415,6 +416,27 @@ export function postProcessParsedPlan(
       `🧹 sessionTextPostProcessor — collapsed=${totalDupCollapsed} mismatched=${totalDupMismatched} rangesResolved=${totalRangesResolved}`,
       postLogs,
     );
+  }
+
+  // Recale computedVolumeMin/computedVolumeStr sur le texte APRÈS résolution des
+  // plages de durée (ci-dessus) : sinon le volume affiché (graphiques de charge)
+  // restait basé sur le `durationMin` choisi librement par l'IA à la génération,
+  // potentiellement incohérent avec le texte de séance finalement affiché — deux
+  // sources de vérité non synchronisées (audit qualité plans IA). Ne touche pas aux
+  // semaines où aucune séance n'a de durée extractible du texte (garde la valeur
+  // précédente plutôt que d'écraser par 0).
+  for (const w of plan.weeks) {
+    let sum = 0;
+    let hasAny = false;
+    for (const s of w.sessions) {
+      if (s.isRest) continue;
+      const d = parseSessionDurationMin(s);
+      if (d != null) { sum += d; hasAny = true; }
+    }
+    if (hasAny) {
+      w.computedVolumeMin = sum;
+      w.computedVolumeStr = formatMinutesToHm(sum);
+    }
   }
 
   // #7 audit : calcul volume hebdo réel (remplace placeholder textuel identique)

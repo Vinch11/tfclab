@@ -518,7 +518,7 @@ export function useAITrainingPlan() {
         (planConfig as any)?.constraints ?? null,
       ).bannedSports;
       for (let w = 1; w <= totalWeeks; w++) {
-        const weekType = inferWeekType(w, totalWeeks);
+        const weekType = inferWeekType(w, totalWeeks, objectiveForQuota);
         const q0 = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType);
         if (q0) {
           let adj = targetSpw

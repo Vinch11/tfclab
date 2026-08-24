@@ -27,10 +27,17 @@ export interface VlamaxTargetRange {
 export type VlamaxDiscipline = 'bike' | 'run' | 'swim';
 
 // ── Table canonique COURSE (valeurs universelles par distance) ───────────────
+// sprint_tri/olympic_tri : interpolés entre les paliers voisins par durée d'effort
+// (Sprint ≈ effort proche d'un 10K-15K couru ; Olympique ≈ entre semi et 70.3) —
+// auparavant ABSENTS de cette table, ces objectifs retombaient par défaut sur la
+// cible 703 (mauvais proxy physiologique : 703 est bien plus orienté endurance/moins
+// glycolytique qu'un format court). Corrigé (audit qualité plans IA).
 const RUN_TARGETS: Record<string, VlamaxTargetRange> = {
   '5k':       { ideal: 0.50, min: 0.35, max: 0.70 },
   '10k':      { ideal: 0.45, min: 0.35, max: 0.60 },
+  'sprint_tri': { ideal: 0.43, min: 0.34, max: 0.55 },
   'semi':     { ideal: 0.40, min: 0.35, max: 0.48 },
+  'olympic_tri': { ideal: 0.38, min: 0.31, max: 0.46 },
   'marathon': { ideal: 0.34, min: 0.28, max: 0.42 },
   'trail':    { ideal: 0.38, min: 0.30, max: 0.48 },
   '703':      { ideal: 0.36, min: 0.28, max: 0.44 },
@@ -52,6 +59,12 @@ export function normalizeVlamaxKey(objectif: string | null | undefined): keyof t
 
   if (s === '5k' || s === '5km' || s === '5000m') return '5k';
   if (s === '10k' || s === '10km' || s === '10000m') return '10k';
+  // Triathlon Sprint/Olympique — objectif souvent stocké sous forme brute "Sprint"/
+  // "Olympic" ailleurs dans l'app (pas de "tri" dans la chaîne) : ne pas exiger ce
+  // mot pour matcher, sous peine de retomber sur '703' par défaut, un mauvais proxy
+  // physiologique pour un format court (audit qualité plans IA).
+  if (s.includes('sprint')) return 'sprint_tri';
+  if (s.includes('olymp') || s === 'cd' || s.includes('courtedistance')) return 'olympic_tri';
   if (s.includes('semi') || s.includes('half')) return 'semi';
   if (s.includes('marathon') && !s.includes('semi') && !s.includes('half')) {
     // "marathon", "fullmarathon"
