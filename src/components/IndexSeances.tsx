@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WahooWorkoutLibrary } from "@/components/WahooWorkoutLibrary";
 import { WahooPersonalizedRecommendations } from "@/components/WahooPersonalizedRecommendations";
-import { WorkoutLibrary } from "@/components/WorkoutLibrary";
+import { StaffSessionLibrary } from "@/components/StaffSessionLibrary";
 import { WahooPrintableList } from "@/components/WahooPrintableList";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Library, Dumbbell, Printer, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
@@ -89,7 +89,7 @@ export function IndexSeancesView() {
         </TabsContent>
 
         <TabsContent value="staff" className="mt-4">
-          <WorkoutLibrary />
+          <StaffSessionLibrary />
         </TabsContent>
 
         <TabsContent value="print" className="mt-4">
