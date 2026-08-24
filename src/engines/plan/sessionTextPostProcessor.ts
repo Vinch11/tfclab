@@ -208,7 +208,7 @@ function tryMatrixResolve(
   const wt: WeekType =
     ctx.weekType ??
     (typeof weekNumber === "number" && typeof totalWeeks === "number"
-      ? inferWeekType(weekNumber, totalWeeks)
+      ? inferWeekType(weekNumber, totalWeeks, objective)
       : "load");
   const q = computeWeeklySessionQuota(objective, ambitionEffective, weeklyHours, wt);
   if (!q) return null;
@@ -257,7 +257,7 @@ export function resolveWideDurationRanges(
   const logs: string[] = [];
   const wt: WeekType | undefined = opts.weekType ??
     (typeof opts.weekNumber === "number" && typeof opts.totalWeeks === "number"
-      ? inferWeekType(opts.weekNumber, opts.totalWeeks)
+      ? inferWeekType(opts.weekNumber, opts.totalWeeks, opts.objective)
       : undefined);
   const frac = pickFraction(opts.phase, wt);
   const out = text.replace(RANGE_TEXT_RX, (match) => {

@@ -29,7 +29,9 @@ type VlamaxDiscipline = "bike" | "run" | "swim";
 const RUN_TARGETS: Record<string, VlamaxTargetRange> = {
   "5k":       { ideal: 0.50, min: 0.35, max: 0.70 },
   "10k":      { ideal: 0.45, min: 0.35, max: 0.60 },
+  "sprint_tri": { ideal: 0.43, min: 0.34, max: 0.55 },
   "semi":     { ideal: 0.40, min: 0.35, max: 0.48 },
+  "olympic_tri": { ideal: 0.38, min: 0.31, max: 0.46 },
   "marathon": { ideal: 0.34, min: 0.28, max: 0.42 },
   "trail":    { ideal: 0.38, min: 0.30, max: 0.48 },
   "703":      { ideal: 0.36, min: 0.28, max: 0.44 },
@@ -47,6 +49,8 @@ function normalizeVlamaxKey(objectif: string | null | undefined): keyof typeof R
 
   if (s === "5k" || s === "5km" || s === "5000m") return "5k";
   if (s === "10k" || s === "10km" || s === "10000m") return "10k";
+  if (s.includes("sprint")) return "sprint_tri";
+  if (s.includes("olymp") || s === "cd" || s.includes("courtedistance")) return "olympic_tri";
   if (s.includes("semi") || s.includes("half")) return "semi";
   if (s.includes("marathon") && !s.includes("semi") && !s.includes("half")) {
     if (s.includes("ironman") || s.includes("im")) return "im";
