@@ -27,6 +27,7 @@ import {
   buildStructuredDiagnosticBlock,
 } from "./promptHelpers.ts";
 import { getSystemPromptJSON } from "./systemPromptJSON.ts";
+import { extractLimiterKeywords } from "./sportRatioMatrix.ts";
 import { buildAthleteConstraintsBlock } from "./constraintsBlock.ts";
 import {
   generateChunkJSON,
@@ -544,7 +545,7 @@ function applySLFloorEnforcement(
 // ─────────────────────────────────────────────────────────────────────────────
 // PHASE 2A.3 — Réconciliateur post-merge (rebalance + insert)
 // ─────────────────────────────────────────────────────────────────────────────
-type ReconcilerRepairCode = "day_rebalanced" | "session_inserted" | "insert_unresolved";
+type ReconcilerRepairCode = "day_rebalanced" | "session_inserted" | "insert_unresolved" | "rest_floor_breached";
 interface ReconcilerRepair {
   code: ReconcilerRepairCode;
   severity: "warning" | "critical";
@@ -606,6 +607,17 @@ function movePriority(
 }
 
 /** Cherche jour cible pour un sport donné selon le layout, sinon jour libre le plus proche. */
+/** Nombre de jours (0-7) sans aucune séance dans la semaine courante. */
+function countEmptyDays(week: PlanChunk["weeks"][number]): number {
+  const countsByDay = new Map<DayLower, number>();
+  for (const d of DAY_ORDER_FR) countsByDay.set(d, 0);
+  for (const s of week.sessions ?? []) {
+    const c = canonDay(s.day);
+    if (c) countsByDay.set(c, (countsByDay.get(c) ?? 0) + 1);
+  }
+  return Array.from(countsByDay.values()).filter(n => n === 0).length;
+}
+
 function findTargetDay(
   sport: string,
   fromDay: DayLower,
@@ -613,12 +625,14 @@ function findTargetDay(
   entry: WeeklyQuotaEntry,
 ): DayLower | null {
   const maxPerDay = entry.quota.maxSessionsPerDay;
+  const minRestDays = entry.quota.minFullRestDays ?? 0;
   const countsByDay = new Map<DayLower, number>();
   for (const d of DAY_ORDER_FR) countsByDay.set(d, 0);
   for (const s of week.sessions ?? []) {
     const c = canonDay(s.day);
     if (c) countsByDay.set(c, (countsByDay.get(c) ?? 0) + 1);
   }
+  const emptyDaysCount = Array.from(countsByDay.values()).filter(n => n === 0).length;
   const restDays = new Set<DayLower>();
   const layoutSportDays = new Set<DayLower>();
   for (const d of entry.layout?.days ?? []) {
@@ -627,22 +641,45 @@ function findTargetDay(
     if (d.isRest) restDays.add(c);
     if ((d.slots ?? []).some(sl => sl.sport === sport)) layoutSportDays.add(c);
   }
-  // 1) jour prévu par le layout pour ce sport, avec capacité restante
+  // Jour "de facto" repos (0 séance ce jour, même non explicitement flagué isRest par
+  // le layout) — évite de le consommer si ça ferait passer le nombre de jours de repos
+  // complets sous le plancher `minFullRestDays` de la semaine. Ce champ était déclaré
+  // dans WeeklyQuotaEntry mais jamais lu par le réconciliateur avant ce correctif (audit
+  // qualité plans IA) : rebalance/insertion pouvaient consommer n'importe quel jour vide
+  // sans limite, y compris le dernier jour de repos protégé de la semaine.
+  const wouldBreachRestFloor = (d: DayLower): boolean =>
+    (countsByDay.get(d) ?? 0) === 0 && emptyDaysCount <= minRestDays;
+
+  // 1) jour prévu par le layout pour ce sport, avec capacité restante, sans entamer le
+  // plancher de repos
   for (const d of layoutSportDays) {
     if (d === fromDay) continue;
     if (restDays.has(d)) continue;
+    if (wouldBreachRestFloor(d)) continue;
     if ((countsByDay.get(d) ?? 0) < maxPerDay) return d;
   }
-  // 2) jour libre le plus proche (par distance jour de semaine)
+  // 2) jour libre le plus proche (par distance jour de semaine), même contrainte
   const fromIdx = DAY_ORDER_FR.indexOf(fromDay);
   const candidates: Array<{ d: DayLower; dist: number }> = [];
   for (const d of DAY_ORDER_FR) {
     if (d === fromDay || restDays.has(d)) continue;
     if ((countsByDay.get(d) ?? 0) >= maxPerDay) continue;
+    if (wouldBreachRestFloor(d)) continue;
     candidates.push({ d, dist: Math.abs(DAY_ORDER_FR.indexOf(d) - fromIdx) });
   }
   candidates.sort((a, b) => a.dist - b.dist);
-  return candidates[0]?.d ?? null;
+  if (candidates.length > 0) return candidates[0].d;
+
+  // 3) repli SANS la contrainte de plancher : mieux vaut une semaine dense que perdre
+  // la séance. Le caller détecte la brèche a posteriori (countEmptyDays) et la trace.
+  const fallback: Array<{ d: DayLower; dist: number }> = [];
+  for (const d of DAY_ORDER_FR) {
+    if (d === fromDay || restDays.has(d)) continue;
+    if ((countsByDay.get(d) ?? 0) >= maxPerDay) continue;
+    fallback.push({ d, dist: Math.abs(DAY_ORDER_FR.indexOf(d) - fromIdx) });
+  }
+  fallback.sort((a, b) => a.dist - b.dist);
+  return fallback[0]?.d ?? null;
 }
 
 function findInsertDay(
@@ -657,6 +694,7 @@ function applyReconciler(
   chunks: PlanChunk[],
   weeklyQuotas: Record<number, any> | null | undefined,
   catalogDumpsByChunk: Array<string | null | undefined>,
+  identifiedLimiters?: string[] | null,
 ): { chunks: PlanChunk[]; repairs: ReconcilerRepair[]; traces: string[] } {
   const repairs: ReconcilerRepair[] = [];
   const traces: string[] = [];
@@ -665,6 +703,13 @@ function applyReconciler(
     return { chunks, repairs, traces };
   }
   const candidatesByChunk = catalogDumpsByChunk.map(parseCatalogCandidatesFromDump);
+  // Mots-clés du limiteur prioritaire (L1) — utilisés pour préférer, à l'insertion
+  // d'une séance manquante, une fiche du catalogue qui cible réellement ce limiteur
+  // plutôt qu'une séance générique la plus proche en durée (audit qualité plans IA :
+  // l'insertion ne regardait auparavant que le sport et la durée, jamais le limiteur).
+  const primaryLimiterKeywords = identifiedLimiters && identifiedLimiters.length > 0
+    ? extractLimiterKeywords(identifiedLimiters[0])
+    : [];
 
   chunks.forEach((chunk, ci) => {
     const candidates = candidatesByChunk[ci] ?? [];
@@ -734,13 +779,27 @@ function applyReconciler(
             0;
           const targetDur = floorMin > 0 ? floorMin : (sport === "strength" ? 45 : 60);
           // Recherche catalogue : même sport, endurance/recovery, durée >= targetDur
+          const matchesLimiter = (c: { title: string; structure: string }): boolean => {
+            if (primaryLimiterKeywords.length === 0) return false;
+            const text = `${c.title} ${c.structure}`.toLowerCase();
+            return primaryLimiterKeywords.some(kw => text.includes(kw.toLowerCase()));
+          };
           const pool = candidates
             .filter(c => c.sport === sport)
             .map(c => ({ c, cls: classifyIntensity(c.zones, `${c.title} ${c.structure}`) }))
             .filter(x => x.cls === "endurance" || x.cls === "recovery" || (sport === "strength" && x.cls === "unknown"))
             .filter(x => floorMin === 0 ? true : (x.c.durationMin[1] >= floorMin || x.c.durationMedian >= floorMin))
-            .sort((a, b) => Math.abs(a.c.durationMedian - targetDur) - Math.abs(b.c.durationMedian - targetDur));
+            // Priorité au limiteur L1 (mots-clés extraits de son libellé) avant la
+            // proximité de durée — auparavant seule la durée comptait, l'insertion ne
+            // ciblait jamais le limiteur prioritaire de la semaine (audit qualité plans IA).
+            .sort((a, b) => {
+              const limA = matchesLimiter(a.c) ? 0 : 1;
+              const limB = matchesLimiter(b.c) ? 0 : 1;
+              if (limA !== limB) return limA - limB;
+              return Math.abs(a.c.durationMedian - targetDur) - Math.abs(b.c.durationMedian - targetDur);
+            });
           const picked = pool[0]?.c ?? null;
+          const pickedMatchesLimiter = picked ? matchesLimiter(picked) : false;
           if (!picked) {
             traces.push(`[RECONCILER] S${week.weekNumber} insert sport=${sport} action=unresolved_no_candidate (min=${q.min} present=0 floor=${floorMin})`);
             repairs.push({
@@ -782,7 +841,7 @@ function applyReconciler(
             catalogId: picked.id,
           };
           (week.sessions as any[]).push(newSess);
-          traces.push(`[RECONCILER] S${week.weekNumber} insert sport=${sport} day=${dayTarget} → ${picked.id} (${dur}min)`);
+          traces.push(`[RECONCILER] S${week.weekNumber} insert sport=${sport} day=${dayTarget} → ${picked.id} (${dur}min) limiterMatch=${pickedMatchesLimiter}`);
           repairs.push({
             code: "session_inserted",
             severity: "warning",
@@ -791,7 +850,31 @@ function applyReconciler(
             sport,
             toDay: dayTarget,
             session: { title: picked.title, catalogId: picked.id, durationMin: dur },
-            reason: `quota min=${q.min} for ${sport}, week had 0 sessions → inserted ${picked.id} on ${dayTarget}`,
+            reason: `quota min=${q.min} for ${sport}, week had 0 sessions → inserted ${picked.id} on ${dayTarget}`
+              + (primaryLimiterKeywords.length > 0
+                ? (pickedMatchesLimiter ? " (cible le limiteur L1)" : " (aucune fiche candidate ne cible le limiteur L1)")
+                : ""),
+          });
+        }
+      }
+
+      // ────────── (c) VÉRIFICATION plancher de jours de repos complets ──────────
+      // findTargetDay essaie de respecter minFullRestDays, mais peut devoir l'enfreindre
+      // en dernier recours (case 3, repli). On le détecte ici a posteriori et on le
+      // trace explicitement — avant ce correctif, minFullRestDays n'était lu nulle part
+      // dans le réconciliateur (champ mort), rebalance/insertion pouvaient consommer
+      // n'importe quel jour de repos sans que rien ne le signale (audit qualité plans IA).
+      const minRestDays = entry.quota?.minFullRestDays ?? 0;
+      if (minRestDays > 0) {
+        const finalEmptyDays = countEmptyDays(week);
+        if (finalEmptyDays < minRestDays) {
+          traces.push(`[RECONCILER] S${week.weekNumber} action=rest_floor_breached empty=${finalEmptyDays}<min=${minRestDays}`);
+          repairs.push({
+            code: "rest_floor_breached",
+            severity: "warning",
+            chunkIndex: ci,
+            weekNumber: week.weekNumber,
+            reason: `${finalEmptyDays} jour(s) de repos complet(s) restant(s) après réconciliation, sous le plancher minFullRestDays=${minRestDays}`,
           });
         }
       }
@@ -1209,6 +1292,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             slEnforce.chunks,
             planConfig?._weeklyQuotas ?? null,
             catalogDumpsByChunk,
+            planConfig?.identifiedLimiters ?? null,
           );
           for (const line of reconciled.traces) {
             console.log(line);
@@ -1219,7 +1303,9 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
               ? `S${repair.weekNumber} rebalance ${repair.sport} ${repair.fromDay}→${repair.toDay}`
               : repair.code === "session_inserted"
                 ? `S${repair.weekNumber} insert ${repair.sport} on ${repair.toDay} → ${repair.session?.catalogId}`
-                : `S${repair.weekNumber} insert ${repair.sport} unresolved (${repair.reason})`;
+                : repair.code === "rest_floor_breached"
+                  ? `S${repair.weekNumber} plancher de repos non respecté (${repair.reason})`
+                  : `S${repair.weekNumber} insert ${repair.sport} unresolved (${repair.reason})`;
             console.warn(`[Reconciler] ${repair.code}: ${msg}`, repair);
             enqueue("warning", {
               code: repair.code,
