@@ -139,6 +139,27 @@ describe("planValidator", () => {
     expect(polarError).toBeDefined();
   });
 
+  it("pondère la polarisation en minutes par zone plutôt qu'en nombre de séances entières", () => {
+    // Séance réaliste "EF + fin de séance appuyée" : ~56min Z2 (low) suivies de
+    // ~4min seuil (high). L'ancienne logique classait la séance ENTIÈRE en
+    // "high" dès qu'un pattern seuil matchait n'importe où dans le texte —
+    // 4 séances comme ça auraient donné 0% low / 100% high sur la semaine,
+    // alors qu'en réalité ~93% du temps de la semaine est en Z1-Z2.
+    const week = makeWeek(1, [
+      { sport: "Course", title: "EF + fin appuyée", details: "56min Z2 fondamental. Puis 4min seuil." },
+      { sport: "Course", title: "EF + fin appuyée", details: "50min Z2 fondamental. Puis 5min seuil." },
+      { sport: "Course", title: "EF + fin appuyée", details: "55min Z2 fondamental. Puis 4min seuil." },
+      { sport: "Vélo", title: "EF + fin appuyée", details: "60min Z2 fondamental. Puis 5min seuil." },
+    ]);
+    const result = validatePlan(makePlan([week]));
+
+    // L'ancienne logique (session-count) aurait donné lowPct = 0 (4 séances
+    // "high") et déclenché une erreur "seulement 0% en Z1-Z2".
+    const polarError = result.issues.find(i => i.rule === "polarization" && i.severity === "error");
+    expect(polarError).toBeUndefined();
+    expect(result.weekMetrics[0].intensityProfile.lowPct).toBeGreaterThanOrEqual(85);
+  });
+
   it("detects missing key sessions", () => {
     // All easy, no key sessions
     const easyWeek = makeWeek(1, [
