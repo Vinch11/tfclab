@@ -4541,7 +4541,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Billat", "30/30", "VO2max", "vVO2max", "intervalles", "temps à VO2max"],
     structure: [
       { part: "Warm-up", text: "15 min progressif Z1→Z2 + 4x80m accélérations progressives + 2x30s à vVO2max (pour préparer le système neuromusculaire)", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "2 séries de 8×[30s à vVO2max (100-105% VMA) + 30s récup active Z1 (footing très lent)]. Récup entre séries : 4 min Z1. Total temps à VO2max : ~16 min. Allure 30s : VMA = 18km/h → allure 3:20/km sur les 30s. La récupération active (pas arrêt complet) est ESSENTIELLE — Billat 2000 : la récup active maintient la cinétique VO2 élevée. Arrêter si FC descend > 10% FCmax entre les répétitions (indique fatigue excessive).", zones: ["Z5", "Z6", "Z1"] },
+      { part: "Main", text: "2 séries de 8×[30s à vVO2max (100-105% VMA) + 30s récup active Z1 (footing très lent)]. Récup entre séries : 4 min Z1. Total temps à VO2max : ~16 min. La récupération active (pas arrêt complet) est ESSENTIELLE — Billat 2000 : la récup active maintient la cinétique VO2 élevée. Arrêter si FC descend > 10% FCmax entre les répétitions (indique fatigue excessive).", zones: ["Z5", "Z6", "Z1"] },
       { part: "Cool-down", text: "10 min Z1 footing très lent + marche 5 min. Étirements doux.", zones: ["Z1"] }
     ],
     variants: {
@@ -4627,7 +4627,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Billat", "60/60", "VO2max", "intermédiaire", "vVO2max"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 + 3x60s à allure seuil (Z3-Z4) pour préparer progressivement", zones: ["Z1", "Z2", "Z3"] },
-      { part: "Main", text: "2 séries de 6-8×[60s à 100-105% VMA + 60s récup active footing Z1]. Récup entre séries : 4 min Z1. Le 60/60 accumule moins de temps à VO2max que le 30/30 mais est plus accessible physiologiquement — la montée en VO2 est plus progressive sur 60s. Allure : si VMA = 14 km/h → allure 4:17/km sur les 60s. Surveiller : si FC dépasse 97% FCmax sur la dernière répétition → réduire d'une répétition la semaine suivante.", zones: ["Z5", "Z1"] },
+      { part: "Main", text: "2 séries de 6-8×[60s à 100-105% VMA + 60s récup active footing Z1]. Récup entre séries : 4 min Z1. Le 60/60 accumule moins de temps à VO2max que le 30/30 mais est plus accessible physiologiquement — la montée en VO2 est plus progressive sur 60s. Surveiller : si FC dépasse 97% FCmax sur la dernière répétition → réduire d'une répétition la semaine suivante.", zones: ["Z5", "Z1"] },
       { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
     ],
     variants: {
@@ -4686,7 +4686,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Billat", "3min/3min", "VO2max", "élite", "vVO2max", "avancé"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif + 3×1 min Z4 R:2 min + 2×30s à vVO2max R:90s", zones: ["Z1", "Z2", "Z4", "Z5"] },
-      { part: "Main", text: "5-7×[3 min à 100-105% VMA + 3 min récup active Z1-Z2 (footing)]. Si VMA = 18 km/h : allure 3:20/km pendant 3 min. La récupération DOIT être active (pas d'arrêt) — Billat 2000 : la récup active à 50-60% VMA maintient la cinétique VO2 et réduit le temps nécessaire pour atteindre VO2max à la répétition suivante. Observer : les 2 premières répétitions montent à VO2max, les suivantes y restent. Si allure chute > 5% : arrêter la série.", zones: ["Z5", "Z6", "Z1", "Z2"] },
+      { part: "Main", text: "5-7×[3 min à 100-105% VMA + 3 min récup active Z1-Z2 (footing)]. La récupération DOIT être active (pas d'arrêt) — Billat 2000 : la récup active à 50-60% VMA maintient la cinétique VO2 et réduit le temps nécessaire pour atteindre VO2max à la répétition suivante. Observer : les 2 premières répétitions montent à VO2max, les suivantes y restent. Si allure chute > 5% : arrêter la série.", zones: ["Z5", "Z6", "Z1", "Z2"] },
       { part: "Cool-down", text: "12 min Z1 + 3 min marche + étirements", zones: ["Z1"] }
     ],
     variants: {
@@ -6224,7 +6224,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Seiler", "récupération", "Z1 strict", "active recovery", "polarisé"],
     structure: [
       { part: "Warm-up", text: "Commencer directement à allure très lente", zones: ["Z1"] },
-      { part: "Main", text: "30-45 min en Z1 STRICT (< 70% FCmax). Allure : beaucoup plus lente qu'on ne pense nécessaire. Pour un coureur avec VMA 16 km/h : allure 6:30-7:00/km. Test : capable de chanter une chanson complète en courant (pas juste des mots — une chanson entière). Réf : Seiler 2010 — 'La plupart des athlètes font leurs séances de récupération trop vite et leurs séances intensives trop lentement. Résultat : tout se retrouve en Z3.' Cette séance doit se terminer avec l'impression de ne pas avoir vraiment couru — c'est le signe qu'elle est correcte.", zones: ["Z1"] },
+      { part: "Main", text: "30-45 min en Z1 STRICT (< 70% FCmax). Allure : beaucoup plus lente qu'on ne pense nécessaire. Test : capable de chanter une chanson complète en courant (pas juste des mots — une chanson entière). Réf : Seiler 2010 — 'La plupart des athlètes font leurs séances de récupération trop vite et leurs séances intensives trop lentement. Résultat : tout se retrouve en Z3.' Cette séance doit se terminer avec l'impression de ne pas avoir vraiment couru — c'est le signe qu'elle est correcte.", zones: ["Z1"] },
       { part: "Cool-down", text: "Marche 5 min + mobilité 10 min", zones: ["Z1"] }
     ],
     variants: {

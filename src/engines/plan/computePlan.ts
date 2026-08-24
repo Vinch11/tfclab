@@ -26,7 +26,7 @@ import { applyWbalRecoveryRecalc, type WbalRecalcStats } from "./wbalPostProcess
 import { computeWeekVolumeMin, formatMinutesToHm } from "@/lib/weeklyVolumeEstimator";
 import { normalizeWeeksAndPhases } from "./normalizeWeeksPhases";
 import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
-import { deriveRaceTargets, formatSecPerKm } from "@/lib/deriveRaceTargets";
+import { deriveRaceTargets, formatSecPerKm, formatSecToTime, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { postProcessSessionText } from "./sessionTextPostProcessor";
 import { parseSessionDurationMin } from "./planValidator";
 
@@ -322,7 +322,9 @@ function anchorRaceDays(
  * Corrige aussi les incohérences d'allure (ex: "allure marathon cible" pour un semi)
  * en réalignant sur `buildPacingHint(objective)` de l'objectif rattaché.
  */
-function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
+const RACE_OBJECTIVE_TIME_PATTERN = /Objectif\s*:?\s*(\d{1,2}h\d{2}(?:\d{2})?|\d{1,3}[:'′]\d{2}(?:['′"]\d{2})?)/i;
+
+function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?: PlanAthleteData): void {
   const goals = config.raceGoals ?? [];
   for (const week of plan.weeks) {
     const byDay = new Map<number, ParsedSession[]>();
@@ -360,6 +362,35 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig): void {
           // eslint-disable-next-line no-console
           console.warn(`race_block_target_overridden — S${week.weekNumber} ${s.dayName} : mention "allure marathon" retirée (objectif="${goal.objective}", avant: "${before.slice(0, 80)}…")`);
         }
+
+        // Correction déterministe du temps objectif affiché sur la séance du
+        // jour de course. Bug constaté à deux reprises (audits plans réels) :
+        // l'IA écrit un temps incohérent avec le snapshot physiologique de
+        // l'athlète (ex: "43'17" alors que VMA+allure convergent vers
+        // "38'41"), créant une contradiction visible avec le titre du plan
+        // et le Gap Ambition. Ne s'applique PAS si le coach a saisi un temps
+        // cible explicite pour cet objectif (targetTimeMinutes) — ce chiffre
+        // prime toujours sur le snapshot.
+        if (athlete && goal && !goal.targetTimeMinutes) {
+          const derived = deriveRaceTargets({
+            vmaKmh: athlete.vma ?? null,
+            thresholdPaceSecPerKm: athlete.paceThresholdSecPerKm ?? null,
+            objective: goal.objective || config.objective || "",
+            ambition: config.ambition || "",
+            weeklyHours: config.weeklyHours ?? null,
+            sport: mapObjectiveToSport(goal.objective || config.objective || ""),
+          });
+          if (derived.source === "snapshot" && derived.raceTimeSec != null) {
+            const correctTime = formatSecToTime(derived.raceTimeSec);
+            const match = s.details.match(RACE_OBJECTIVE_TIME_PATTERN);
+            if (match && match[1] !== correctTime) {
+              const before = s.details;
+              s.details = s.details.replace(RACE_OBJECTIVE_TIME_PATTERN, `Objectif ${correctTime}`);
+              // eslint-disable-next-line no-console
+              console.warn(`race_objective_time_corrected — S${week.weekNumber} ${s.dayName} : "${match[1]}" → "${correctTime}" (avant: "${before.slice(0, 80)}…")`);
+            }
+          }
+        }
       }
     }
   }
@@ -388,7 +419,7 @@ export function postProcessParsedPlan(
   }
 
   anchorRaceDays(plan, config, athleteData);
-  dedupRaceDays(plan, config);
+  dedupRaceDays(plan, config, athleteData);
 
   // PHASE 2C — dédup annotations "(X% FTP)" doublonnées + résolution des plages
   // de durée > 30 min d'amplitude dans les Main. Filet non silencieux.
