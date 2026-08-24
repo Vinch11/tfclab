@@ -80,6 +80,30 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // ─── DÉFENSE EN PROFONDEUR : cap serveur de l'ambition vs trainingLevel ───
+    // Le client applique déjà `computeAmbitionEffective`, mais si un caller bypasse
+    // le downgrade (test, script, régénération programmée), on cappe ici.
+    // ⚠️ DOIT s'exécuter AVANT le branchement JSON/Markdown ci-dessous : le mode JSON
+    // est le défaut de production et fait un `return` immédiat — ce garde-fou était
+    // placé après ce `return` et donc totalement mort en prod (audit qualité plans
+    // IA — corrigé en le remontant avant le branchement).
+    try {
+      const { enforceAmbitionCap } = await import("./ambitionDefense.ts");
+      const tl = planConfig?.ambitionMeta?.trainingLevel ?? planConfig?.trainingLevel ?? null;
+      const defense = enforceAmbitionCap(planConfig?.ambition, tl);
+      if (defense.serverDowngraded && planConfig) {
+        planConfig.ambition = defense.ambitionEffective;
+        planConfig._serverAmbitionDefense = {
+          saisie: defense.ambitionSaisie,
+          effective: defense.ambitionEffective,
+          trainingLevel: defense.trainingLevel,
+          reason: defense.reason,
+        };
+      }
+    } catch (defErr) {
+      console.warn("[ambitionDefense] skipped:", defErr);
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // PHASE 1A — Chemin JSON structuré (feature-flag serveur).
     // Activé quand `planConfig._outputFormat === "json"` OU header
@@ -102,27 +126,6 @@ serve(async (req) => {
         corsHeaders,
       });
     }
-
-    // ─── DÉFENSE EN PROFONDEUR : cap serveur de l'ambition vs trainingLevel ───
-    // Le client applique déjà `computeAmbitionEffective`, mais si un caller bypasse
-    // le downgrade (test, script, régénération programmée), on cappe ici.
-    try {
-      const { enforceAmbitionCap } = await import("./ambitionDefense.ts");
-      const tl = planConfig?.ambitionMeta?.trainingLevel ?? planConfig?.trainingLevel ?? null;
-      const defense = enforceAmbitionCap(planConfig?.ambition, tl);
-      if (defense.serverDowngraded && planConfig) {
-        planConfig.ambition = defense.ambitionEffective;
-        planConfig._serverAmbitionDefense = {
-          saisie: defense.ambitionSaisie,
-          effective: defense.ambitionEffective,
-          trainingLevel: defense.trainingLevel,
-          reason: defense.reason,
-        };
-      }
-    } catch (defErr) {
-      console.warn("[ambitionDefense] skipped:", defErr);
-    }
-
 
     // F-21 — Réinjection dynamique des sections spécialisées (Master >=50, Féminin/RED-S, Trail)
     const baseSystemPrompt = getSystemPrompt({
