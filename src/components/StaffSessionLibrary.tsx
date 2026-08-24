@@ -1,11 +1,21 @@
-// src/components/WorkoutLibrary.tsx
+// src/components/StaffSessionLibrary.tsx
 // =============================================
-// VINCE'S LAB — WORKOUT LIBRARY (Staff Ready)
-// Affiche la bibliothèque de séances (30)
+// VINCE'S LAB — STAFF SESSION LIBRARY (Staff Ready)
+// Affiche la bibliothèque de séances de référence coach (30)
 // Source: src/data/staffSessions.ts
+//
+// ⚠️ Ne pas confondre avec `WorkoutLibrary` (src/lib/workoutLibrary.ts) : ce
+// composant affiche un jeu de fiches "pourquoi / quand / structure" curées à
+// la main pour la pédagogie coach. Ce sont les seules 30 séances de ce
+// fichier — le catalogue que le générateur IA sélectionne réellement pour
+// composer les plans est plus riche et vit ailleurs (voir le lien "bibliothèque
+// complète" dans le composant ci-dessous, route /planning/library). Les deux
+// portaient auparavant le même nom `WorkoutLibrary`, ce qui prêtait à
+// confusion — d'où le renommage.
 // =============================================
 
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +34,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { Dumbbell, Bike, PersonStanding, Waves, Search, Sparkles } from "lucide-react";
+import { Dumbbell, Bike, PersonStanding, Waves, Search, Sparkles, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ✅ Import des séances staff
@@ -33,7 +43,7 @@ import { getStaffSessions, SportType, SessionTag, SessionLevel } from "@/data/st
 // (Optionnel) si ton composant reçoit athlete
 import { Athlete } from "@/types/athlete";
 
-interface WorkoutLibraryProps {
+interface StaffSessionLibraryProps {
   athlete?: Athlete; // optionnel
 }
 
@@ -78,7 +88,7 @@ const LEVELS: { value: "all" | SessionLevel; label: string }[] = [
   { value: "elite", label: "Élite" },
 ];
 
-export function WorkoutLibrary({ athlete }: WorkoutLibraryProps) {
+export function StaffSessionLibrary({ athlete }: StaffSessionLibraryProps) {
   const [sport, setSport] = useState<SportType | "all">("all");
   const [tag, setTag] = useState<"all" | SessionTag>("all");
   const [query, setQuery] = useState("");
@@ -119,6 +129,13 @@ export function WorkoutLibrary({ athlete }: WorkoutLibraryProps) {
           <p className="text-sm text-muted-foreground">
             Séances "clé en main" (quoi / pourquoi / quand / structure / indicateurs / risques).
             {athlete?.nom ? ` • Athlète: ${athlete.nom}` : ""}
+          </p>
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1">
+            Fiches de référence coach à titre pédagogique — le générateur IA ne pioche pas dans
+            cette liste pour composer les plans.
+            <Link to="/planning/library" className="inline-flex items-center gap-1 text-primary hover:underline shrink-0">
+              Voir la bibliothèque complète (IA) <ExternalLink className="h-3 w-3" />
+            </Link>
           </p>
         </CardHeader>
 
@@ -324,4 +341,4 @@ export function WorkoutLibrary({ athlete }: WorkoutLibraryProps) {
   );
 }
 
-export default WorkoutLibrary;
+export default StaffSessionLibrary;
