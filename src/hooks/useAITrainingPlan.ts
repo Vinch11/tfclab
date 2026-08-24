@@ -294,6 +294,30 @@ export interface PlanConfig {
     week1HoursMax: number;        // Sem 1 effective max (h)
     weeklyIncreasePctMax: number; // Progression max/sem (ex: 0.10 = +10%/sem)
   };
+  /**
+   * ─── RÉGÉNÉRATION DE FENÊTRE — contexte de position globale ───────────────
+   * Renseigné UNIQUEMENT par `planWindowRegen.ts` lors d'une régénération
+   * partielle. Absent (undefined) en génération complète normale = AUCUN
+   * changement de comportement (fallback sur `weeksAvailable`/`totalWeeks`).
+   *
+   * Sans ce contexte, une fenêtre de N semaines régénérée au milieu d'un plan
+   * de M semaines (N << M) est traitée comme un mini-plan frais de N semaines
+   * avec son propre cycle base/build/peak/taper — donnant par ex. une phase
+   * "taper" à la dernière semaine de la fenêtre alors qu'elle est en plein
+   * bloc Build dans le plan réel. `globalTotalWeeks`/`globalWeekOffset`
+   * permettent de calculer phase/type de semaine/quotas par rapport à la
+   * VRAIE position globale, sans changer le nombre de semaines générées.
+   */
+  globalTotalWeeks?: number;
+  globalWeekOffset?: number;
+  /**
+   * Nom de phase catalogue dominant de la fenêtre ("base"|"build"|"peak"|"taper"),
+   * pré-calculé par `planWindowRegen.ts` à partir de la position globale.
+   * Utilisé côté edge pour forcer la sélection du bon catalogue de séances
+   * (sinon toujours "base", cf. bug confirmé : en génération non-chunkée,
+   * `chunk.start` vaut 1 donc `inferPhaseFromWeek(1, N)` retombe sur "base").
+   */
+  windowRegenPhase?: string;
 }
 
 export interface ChunkProgress {
@@ -333,6 +357,10 @@ export function useAITrainingPlan() {
       toast.error("Durée du plan manquante. Renseigne une date de course ou une durée libre (formulaire coach).");
       return;
     }
+    // Position globale pour la périodisation (cf. PlanConfig.globalTotalWeeks) :
+    // égale à totalWeeks/0 en génération complète normale (aucun changement).
+    const effTotalWeeks = planConfig.globalTotalWeeks ?? totalWeeks;
+    const weekOffset = planConfig.globalWeekOffset ?? 0;
     setResponse("");
     lastResponseRef.current = "";
     lastParsedPlanRef.current = null;
@@ -358,11 +386,15 @@ export function useAITrainingPlan() {
       const phaseCatalogs: Record<string, string> = {};
       // NB : bornes CHEVAUCHANTES volontairement — usage = injection catalogue aux transitions.
       // La phase canonique des semaines est fixée par normalizeWeeksAndPhases (source unique).
+      // Bornes exprimées en position GLOBALE (effTotalWeeks) : en régénération
+      // de fenêtre, ça reflète la vraie place du bloc dans le plan complet
+      // plutôt que de réinventer un cycle base/build/peak/taper sur la seule
+      // fenêtre locale (cf. PlanConfig.globalTotalWeeks).
       const phaseRanges: Array<{ phase: string; start: number; end: number }> = [
-        { phase: "base", start: 1, end: Math.ceil(totalWeeks * 0.35) },
-        { phase: "build", start: Math.ceil(totalWeeks * 0.25), end: Math.ceil(totalWeeks * 0.65) },
-        { phase: "peak", start: Math.ceil(totalWeeks * 0.55), end: Math.ceil(totalWeeks * 0.85) },
-        { phase: "taper", start: Math.ceil(totalWeeks * 0.80), end: totalWeeks },
+        { phase: "base", start: 1, end: Math.ceil(effTotalWeeks * 0.35) },
+        { phase: "build", start: Math.ceil(effTotalWeeks * 0.25), end: Math.ceil(effTotalWeeks * 0.65) },
+        { phase: "peak", start: Math.ceil(effTotalWeeks * 0.55), end: Math.ceil(effTotalWeeks * 0.85) },
+        { phase: "taper", start: Math.ceil(effTotalWeeks * 0.80), end: effTotalWeeks },
       ];
       const catalogSportFilter = getCatalogSportFilter(planConfig.objective || "");
       const { excludeIdPatterns, excludeTags } = getCatalogExclusions(
@@ -394,7 +426,7 @@ export function useAITrainingPlan() {
           planConfig.objective || "",
           pr.start,
           pr.end,
-          totalWeeks,
+          effTotalWeeks,
           { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
@@ -518,7 +550,9 @@ export function useAITrainingPlan() {
         (planConfig as any)?.constraints ?? null,
       ).bannedSports;
       for (let w = 1; w <= totalWeeks; w++) {
-        const weekType = inferWeekType(w, totalWeeks, objectiveForQuota);
+        // Position globale : quota/taper/recovery calculés sur la vraie place
+        // de la semaine dans le plan (cf. PlanConfig.globalTotalWeeks).
+        const weekType = inferWeekType(w + weekOffset, effTotalWeeks, objectiveForQuota);
         const q0 = computeWeeklySessionQuota(objectiveForQuota, ambitionForQuota, hoursAvail, weekType);
         if (q0) {
           let adj = targetSpw

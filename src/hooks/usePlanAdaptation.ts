@@ -8,7 +8,7 @@
  * Toutes les adaptations sont journalisées et soumises au garde-fou anti-cascade.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
@@ -35,7 +35,10 @@ import {
   listRecentAdaptations,
   type AdaptationTrigger,
 } from "@/engines/plan/planAdaptationJournal";
-import { useAITrainingPlan } from "@/hooks/useAITrainingPlan";
+import { useAITrainingPlan, type PlanConfig, type PlanAthleteData } from "@/hooks/useAITrainingPlan";
+import { postProcessParsedPlan } from "@/engines/plan/computePlan";
+import type { PlanGenerationConfig } from "@/engines/plan/types";
+import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
 
 export type PatchKind = "deload" | "missed_session" | "swap_modality" | "shift_race";
 
@@ -50,11 +53,41 @@ export interface ApplyPatchArgs {
     | MissedSessionOptions
     | SwapModalityOptions
     | ShiftRaceDateOptions;
+  /**
+   * Config du plan d'origine (objectif, ambition, contraintes…) — nécessaire
+   * pour appliquer le même post-traitement déterministe (résolution des
+   * plages de durée, W'bal…) et le même garde-fou de validation qu'à la
+   * génération initiale (cf. `postProcessParsedPlan` / `validatePlan`).
+   */
+  planConfig: PlanConfig;
+  athleteData?: PlanAthleteData;
 }
 
 export function usePlanAdaptation() {
   const [isApplying, setIsApplying] = useState(false);
+  const [pendingCriticalIssues, setPendingCriticalIssues] = useState<ValidationIssue[] | null>(null);
+  const pendingConfirmRef = useRef<(() => Promise<PatchResult | ParsedPlan | null>) | null>(null);
   const aiPlan = useAITrainingPlan();
+
+  /** Confirme la sauvegarde malgré les problèmes critiques détectés (override coach). */
+  const confirmPendingSave = useCallback(async (): Promise<PatchResult | ParsedPlan | null> => {
+    const fn = pendingConfirmRef.current;
+    setPendingCriticalIssues(null);
+    pendingConfirmRef.current = null;
+    if (!fn) return null;
+    setIsApplying(true);
+    try {
+      return await fn();
+    } finally {
+      setIsApplying(false);
+    }
+  }, []);
+
+  /** Annule la sauvegarde en attente (le plan adapté n'est PAS persisté). */
+  const cancelPendingSave = useCallback(() => {
+    setPendingCriticalIssues(null);
+    pendingConfirmRef.current = null;
+  }, []);
 
   /** Persiste un ParsedPlan dans `plans.plan_json`. */
   const persistPlan = useCallback(
@@ -132,24 +165,57 @@ export function usePlanAdaptation() {
           return result;
         }
 
-        await archive(args.athleteId, args.coachId, args.currentPlan, `Patch ${args.kind}`);
-        await persistPlan(args.athleteId, args.coachId, result.plan);
+        // Même post-traitement déterministe qu'à la génération initiale
+        // (résolution des plages de durée, W'bal…) — sans ça, un patch pouvait
+        // laisser passer des durées non résolues ("70-120min") jamais vues par
+        // `postProcessParsedPlan`.
+        const genConfig: PlanGenerationConfig = {
+          ...(args.planConfig as unknown as PlanGenerationConfig),
+          weeksAvailable: result.plan.weeks.length,
+          mode: "ai",
+        };
+        const { plan: processedPlan } = postProcessParsedPlan(result.plan, genConfig, args.athleteData);
+        const finalResult: PatchResult = { ...result, plan: processedPlan };
+
+        const vr = validatePlan(
+          processedPlan,
+          args.planConfig.objective,
+          args.planConfig.prohibitions,
+          undefined,
+          args.planConfig.identifiedLimitersRaw,
+          undefined,
+          args.athleteData,
+        );
+        const criticalIssues = vr.issues.filter((i) => i.severity === "error");
 
         const weeksImpacted = Array.from(new Set(result.diff.map((d) => d.weekNumber))).sort();
-        await journalAdaptation({
-          athleteId: args.athleteId,
-          coachId: args.coachId,
-          type: "patch",
-          triggeredBy: args.triggeredBy,
-          reason: `${args.kind}`,
-          fromWeek: weeksImpacted[0],
-          toWeek: weeksImpacted[weeksImpacted.length - 1],
-          diff: result.diff,
-          warnings: result.warnings,
-        });
+        const doPersist = async (): Promise<PatchResult> => {
+          await archive(args.athleteId, args.coachId, args.currentPlan, `Patch ${args.kind}`);
+          await persistPlan(args.athleteId, args.coachId, processedPlan);
 
-        toast.success(`Plan adapté — ${result.diff.length} modification(s)`);
-        return result;
+          await journalAdaptation({
+            athleteId: args.athleteId,
+            coachId: args.coachId,
+            type: "patch",
+            triggeredBy: args.triggeredBy,
+            reason: `${args.kind}`,
+            fromWeek: weeksImpacted[0],
+            toWeek: weeksImpacted[weeksImpacted.length - 1],
+            diff: result.diff,
+            warnings: result.warnings,
+          });
+
+          toast.success(`Plan adapté — ${result.diff.length} modification(s)`);
+          return finalResult;
+        };
+
+        if (criticalIssues.length > 0) {
+          pendingConfirmRef.current = doPersist;
+          setPendingCriticalIssues(criticalIssues);
+          return null;
+        }
+
+        return await doPersist();
       } catch (err) {
         console.error("[usePlanAdaptation] applyPatch error:", err);
         toast.error("Échec de l'adaptation du plan");
@@ -208,22 +274,55 @@ export function usePlanAdaptation() {
 
         const merged = mergeWindowIntoPlan(req.currentPlan, windowPlan, req.fromWeek, req.toWeek);
 
-        await archive(req.athleteId, req.coachId, req.currentPlan, `Window regen S${req.fromWeek}-${req.toWeek}`);
-        await persistPlan(req.athleteId, req.coachId, merged);
+        // Post-traitement déterministe sur le PLAN COMPLET fusionné (pas
+        // seulement la fenêtre) : `normalizeWeeksAndPhases` y réassigne les
+        // phases de la fenêtre depuis le recap GLOBAL (`merged.phases`,
+        // préservé par `mergeWindowIntoPlan`), et la résolution des plages de
+        // durée s'applique enfin aux séances régénérées — jusqu'ici sautée.
+        const genConfig: PlanGenerationConfig = {
+          ...(req.baseConfig as unknown as PlanGenerationConfig),
+          weeksAvailable: merged.weeks.length,
+          mode: "ai",
+        };
+        const { plan: processedPlan } = postProcessParsedPlan(merged, genConfig, req.athleteData);
 
-        await journalAdaptation({
-          athleteId: req.athleteId,
-          coachId: req.coachId,
-          type: "window_regen",
-          triggeredBy: req.triggeredBy,
-          reason: req.reason ?? `Régénération S${req.fromWeek}-S${req.toWeek}`,
-          fromWeek: req.fromWeek,
-          toWeek: req.toWeek,
-          warnings: [],
-        });
+        const vr = validatePlan(
+          processedPlan,
+          req.baseConfig.objective,
+          req.baseConfig.prohibitions,
+          undefined,
+          req.baseConfig.identifiedLimitersRaw,
+          undefined,
+          req.athleteData,
+        );
+        const criticalIssues = vr.issues.filter((i) => i.severity === "error");
 
-        toast.success(`Fenêtre régénérée — S${req.fromWeek} à S${req.toWeek}`);
-        return merged;
+        const doPersist = async (): Promise<ParsedPlan> => {
+          await archive(req.athleteId, req.coachId, req.currentPlan, `Window regen S${req.fromWeek}-${req.toWeek}`);
+          await persistPlan(req.athleteId, req.coachId, processedPlan);
+
+          await journalAdaptation({
+            athleteId: req.athleteId,
+            coachId: req.coachId,
+            type: "window_regen",
+            triggeredBy: req.triggeredBy,
+            reason: req.reason ?? `Régénération S${req.fromWeek}-S${req.toWeek}`,
+            fromWeek: req.fromWeek,
+            toWeek: req.toWeek,
+            warnings: [],
+          });
+
+          toast.success(`Fenêtre régénérée — S${req.fromWeek} à S${req.toWeek}`);
+          return processedPlan;
+        };
+
+        if (criticalIssues.length > 0) {
+          pendingConfirmRef.current = doPersist;
+          setPendingCriticalIssues(criticalIssues);
+          return null;
+        }
+
+        return await doPersist();
       } catch (err) {
         console.error("[usePlanAdaptation] regenerateWindow error:", err);
         toast.error("Échec de la régénération partielle");
@@ -247,5 +346,11 @@ export function usePlanAdaptation() {
     applyPatch,
     regenerateWindow,
     listHistory,
+    /** Problèmes critiques (severity=error) bloquant la sauvegarde en attente d'une confirmation coach. */
+    pendingCriticalIssues,
+    /** Sauvegarde quand même malgré les problèmes critiques (override coach). */
+    confirmPendingSave,
+    /** Annule la sauvegarde en attente — le plan adapté n'est PAS persisté. */
+    cancelPendingSave,
   };
 }

@@ -14,6 +14,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -100,8 +110,18 @@ export function PlanAdaptationDialog({
       triggeredBy: "coach_manual",
       kind: patchKind,
       options: options as never,
+      planConfig: baseConfig,
+      athleteData,
     });
     if (res && res.diff.length > 0) {
+      onAdapted?.();
+      onOpenChange(false);
+    }
+  };
+
+  const handleConfirmPendingSave = async () => {
+    const res = await adapt.confirmPendingSave();
+    if (res) {
       onAdapted?.();
       onOpenChange(false);
     }
@@ -392,6 +412,38 @@ export function PlanAdaptationDialog({
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      <AlertDialog
+        open={!!adapt.pendingCriticalIssues}
+        onOpenChange={(o) => { if (!o) adapt.cancelPendingSave(); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>⚠️ Problème(s) critique(s) détecté(s)</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-left">
+                <ul className="list-disc pl-5 space-y-1 max-h-64 overflow-y-auto">
+                  {adapt.pendingCriticalIssues?.map((issue, i) => (
+                    <li key={i}>
+                      {issue.week != null && <span className="font-mono text-xs mr-1">S{issue.week}</span>}
+                      {issue.message}
+                    </li>
+                  ))}
+                </ul>
+                <p>Vous pouvez sauvegarder quand même, mais nous vous recommandons de corriger ou de régénérer avant de transmettre à l'athlète.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => adapt.cancelPendingSave()}>
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmPendingSave}>
+              Sauvegarder quand même
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
