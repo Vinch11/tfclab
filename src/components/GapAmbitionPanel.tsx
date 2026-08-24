@@ -50,16 +50,33 @@ function normAmbition(a: string): "finish" | "perf" | "sub" | "elite" | "world_c
 }
 
 // Extrait un mid seconds depuis un standard textuel (utilisé pour VMA requise).
+/**
+ * Parse un token de standard ("33", "1h10", "18") en secondes.
+ * BUG historique : `parseTimeToSec` traite un nombre nu ("33") comme des
+ * SECONDES (usage légitime ailleurs pour des allures). Or dans
+ * REFERENCE_STANDARDS_FRONT, un nombre nu représente des MINUTES
+ * (ex: "10K".elite = "33-37" = 33 à 37 MINUTES). Sans ce garde, "33-37"
+ * était lu comme 33-37 secondes → VMA/allure requises aberrantes
+ * (ex: VMA "Elite" calculée à 1094 km/h, allure à 0:04/km).
+ */
+function parseStandardTokenToSec(token: string): number | null {
+  if (/^\d+$/.test(token)) {
+    const n = parseInt(token, 10);
+    return n > 0 ? n * 60 : null;
+  }
+  return parseTimeToSec(token);
+}
+
 function midSecFromStandard(std: string): number | null {
   if (!std) return null;
   const cleaned = std.replace(/\s/g, "").toLowerCase();
   if (cleaned.startsWith("sub")) {
-    const s = parseTimeToSec(cleaned.replace("sub", ""));
+    const s = parseStandardTokenToSec(cleaned.replace("sub", ""));
     return s ? Math.round(s * 0.97) : null;
   }
   const [lo, hi] = cleaned.split("-");
-  const s1 = lo ? parseTimeToSec(lo) : null;
-  const s2 = hi ? parseTimeToSec(hi) : null;
+  const s1 = lo ? parseStandardTokenToSec(lo) : null;
+  const s2 = hi ? parseStandardTokenToSec(hi) : null;
   if (s1 && s2) return Math.round((s1 + s2) / 2);
   return s1 || s2;
 }
