@@ -17,11 +17,11 @@ function makeSession(overrides: Partial<ParsedSession> = {}): ParsedSession {
   };
 }
 
-function makeWeek(weekNumber: number, sessions: Partial<ParsedSession>[], theme = "Standard"): ParsedWeek {
+function makeWeek(weekNumber: number, sessions: Partial<ParsedSession>[], theme = "Standard", phase = "base"): ParsedWeek {
   return {
     weekNumber,
     theme,
-    phase: "base",
+    phase,
     sessions: sessions.map((s, i) => makeSession({
       weekNumber,
       weekTheme: theme,
@@ -158,6 +158,87 @@ describe("planValidator", () => {
     const polarError = result.issues.find(i => i.rule === "polarization" && i.severity === "error");
     expect(polarError).toBeUndefined();
     expect(result.weekMetrics[0].intensityProfile.lowPct).toBeGreaterThanOrEqual(85);
+  });
+
+  it("flags a Race-Specific block with no race-pace/simulation session at all", () => {
+    const weeks = [
+      makeWeek(1, [
+        { sport: "Course", title: "Seuil 2x20min", details: "Chantier seuil" },
+        { sport: "Course", title: "Norvégienne 2x15min", details: "Chantier VO2max" },
+      ], "Chantier", "Chantier"),
+      makeWeek(2, [
+        { sport: "Course", title: "Seuil 2x20min", details: "Chantier seuil" },
+        { sport: "Course", title: "Norvégienne 2x15min", details: "Chantier VO2max" },
+      ], "Chantier", "Chantier"),
+      makeWeek(3, [
+        { sport: "Course", title: "Seuil 2x20min", details: "Rappel seuil" },
+        { sport: "Course", title: "Force max 3x4RM", details: "Rappel force" },
+      ], "Race-Specific", "Race-Specific"),
+      makeWeek(4, [
+        { sport: "Course", title: "Seuil 2x20min", details: "Rappel seuil" },
+        { sport: "Course", title: "Force max 3x4RM", details: "Rappel force" },
+      ], "Race-Specific", "Race-Specific"),
+    ];
+    const result = validatePlan(makePlan(weeks));
+    const raceSpecificIssue = result.issues.find(
+      i => i.rule === "phase_coherence" && /sans aucune séance allure course/i.test(i.message)
+    );
+    expect(raceSpecificIssue).toBeDefined();
+    expect(raceSpecificIssue?.severity).toBe("warning");
+  });
+
+  it("flags a Race-Specific block that isn't more concentrated in allure course than the Chantier block", () => {
+    const weeks = [
+      makeWeek(1, [
+        { sport: "Course", title: "Allure course 3x2km", details: "Chantier allure course" },
+        { sport: "Course", title: "Simulation semi 8km", details: "Chantier simulation" },
+      ], "Chantier", "Chantier"),
+      makeWeek(2, [
+        { sport: "Course", title: "Allure course 3x2km", details: "Chantier allure course" },
+        { sport: "Course", title: "Simulation semi 8km", details: "Chantier simulation" },
+      ], "Chantier", "Chantier"),
+      makeWeek(3, [
+        { sport: "Course", title: "Allure course 2x3km", details: "Rappel allure course" },
+        { sport: "Course", title: "Force max 3x4RM", details: "Rappel force" },
+      ], "Race-Specific", "Race-Specific"),
+      makeWeek(4, [
+        { sport: "Course", title: "Allure course 2x3km", details: "Rappel allure course" },
+        { sport: "Course", title: "Force max 3x4RM", details: "Rappel force" },
+      ], "Race-Specific", "Race-Specific"),
+    ];
+    const result = validatePlan(makePlan(weeks));
+    const rampIssue = result.issues.find(
+      i => i.rule === "phase_coherence" && /ne concentre pas plus de spécificité/i.test(i.message)
+    );
+    expect(rampIssue).toBeDefined();
+    expect(rampIssue?.severity).toBe("info");
+  });
+
+  it("does not flag a Race-Specific block that is more concentrated in allure course than Chantier", () => {
+    const weeks = [
+      makeWeek(1, [
+        { sport: "Course", title: "Seuil 2x20min", details: "Chantier seuil" },
+        { sport: "Course", title: "Norvégienne 2x15min", details: "Chantier VO2max" },
+      ], "Chantier", "Chantier"),
+      makeWeek(2, [
+        { sport: "Course", title: "Seuil 2x20min", details: "Chantier seuil" },
+        { sport: "Course", title: "Norvégienne 2x15min", details: "Chantier VO2max" },
+      ], "Chantier", "Chantier"),
+      makeWeek(3, [
+        { sport: "Course", title: "Allure course 3x2km", details: "Simulation semi" },
+        { sport: "Course", title: "Allure course 2x3km", details: "Simulation semi" },
+      ], "Race-Specific", "Race-Specific"),
+      makeWeek(4, [
+        { sport: "Course", title: "Allure course 3x2km", details: "Simulation semi" },
+        { sport: "Course", title: "Allure course 2x3km", details: "Simulation semi" },
+      ], "Race-Specific", "Race-Specific"),
+    ];
+    const result = validatePlan(makePlan(weeks));
+    const raceSpecificIssues = result.issues.filter(
+      i => i.rule === "phase_coherence" &&
+        (/sans aucune séance allure course/i.test(i.message) || /ne concentre pas plus de spécificité/i.test(i.message))
+    );
+    expect(raceSpecificIssues).toHaveLength(0);
   });
 
   it("detects missing key sessions", () => {

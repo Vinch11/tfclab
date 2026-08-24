@@ -972,6 +972,14 @@ const PHASE_SESSION_SIGNATURES: Record<number, { expected: RegExp; forbidden: Re
   },
 };
 
+/** Contenu "spécificité de course" — race-pace, simulations, allure course, gut
+ *  training, briques orientées course. Sert à vérifier que le bloc Race-Specific
+ *  concentre effectivement plus de ce travail que les blocs antérieurs, comme
+ *  le prescrit le prompt de génération (Lorang/Canova : spécificité concentrée
+ *  près de la course, pas diluée sur tout le plan) — mais que rien ne vérifiait
+ *  jusqu'ici après coup sur le plan généré. */
+const RACE_SPECIFICITY_PATTERN = /race.?pace|race.?sim|simulation\s*(ironman|marathon|70\.3|course|semi)|allure\s*(course|marathon|semi)|gut\s*train|brique.*(race|course)/i;
+
 /** Acceptable phase duration range in weeks */
 const PHASE_DURATION_RANGE: Record<number, [number, number]> = {
   1: [2, 6],   // Fondation
@@ -1134,6 +1142,52 @@ function validatePhaseCoherence(plan: ParsedPlan): { issues: ValidationIssue[]; 
           message: `Bloc Fondation sans intensité détectée — la Reverse Periodization Lorang recommande des blocs VO2max courts dès la phase 1`,
         });
         score -= 5;
+      }
+    }
+  }
+
+  // 6. Race-specificity ramp — le bloc Race-Specific doit concentrer davantage
+  // de travail allure course / simulations / gut training que les blocs
+  // antérieurs (Lorang/Canova : la spécificité de course se construit près de
+  // l'échéance, elle n'est pas répartie uniformément sur tout le plan). Le
+  // prompt de génération le demande déjà explicitement ; rien ne vérifiait
+  // jusqu'ici que le plan produit s'y conforme réellement.
+  if (phases.length >= 2) {
+    const raceSpecificActive = plan.weeks
+      .filter(w => getPhaseIndex(w.phase) === 4)
+      .flatMap(w => w.sessions.filter(s => !s.isRest));
+
+    if (raceSpecificActive.length >= 2) {
+      const raceSpecificFrac =
+        raceSpecificActive.filter(s => RACE_SPECIFICITY_PATTERN.test(`${s.title} ${s.details}`)).length /
+        raceSpecificActive.length;
+
+      if (raceSpecificFrac === 0) {
+        issues.push({
+          rule: "phase_coherence",
+          severity: "warning",
+          message: `Bloc Race-Specific sans aucune séance allure course/race-pace/simulation détectée — la spécificité de course attendue dans ce bloc (Lorang/Canova) est absente`,
+        });
+        score -= 8;
+      } else {
+        const chantierActive = plan.weeks
+          .filter(w => getPhaseIndex(w.phase) === 2)
+          .flatMap(w => w.sessions.filter(s => !s.isRest));
+
+        if (chantierActive.length >= 2) {
+          const chantierFrac =
+            chantierActive.filter(s => RACE_SPECIFICITY_PATTERN.test(`${s.title} ${s.details}`)).length /
+            chantierActive.length;
+
+          if (raceSpecificFrac <= chantierFrac) {
+            issues.push({
+              rule: "phase_coherence",
+              severity: "info",
+              message: `Le bloc Race-Specific (${Math.round(raceSpecificFrac * 100)}% de séances allure course/simulation) ne concentre pas plus de spécificité que le bloc Chantier (${Math.round(chantierFrac * 100)}%) — la logique Lorang/Canova voudrait une densité croissante vers la course`,
+            });
+            score -= 5;
+          }
+        }
       }
     }
   }
