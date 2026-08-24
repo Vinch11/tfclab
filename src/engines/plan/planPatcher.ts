@@ -43,6 +43,11 @@ function isOff(session: ParsedSession): boolean {
   return session.isRest || /off|repos|jour off/i.test(session.sport + " " + session.title);
 }
 
+const INTENSE_RX = /seuil|VO2|sprint|tempo|intervals?|fartlek|HIT|HIIT/i;
+function isIntense(session: ParsedSession): boolean {
+  return !isOff(session) && INTENSE_RX.test(`${session.title} ${session.details}`);
+}
+
 function annotate(session: ParsedSession, tag: string): ParsedSession {
   if (session.details?.includes(tag)) return session;
   return {
@@ -76,15 +81,23 @@ export function applyDeload(plan: ParsedPlan, opts: DeloadOptions): PatchResult 
     return { plan: next, diff, warnings };
   }
 
-  const intenseSessions = week.sessions.filter(
-    (s) => !isOff(s) && /seuil|VO2|sprint|tempo|intervals?|fartlek|HIT|HIIT/i.test(s.title + " " + s.details)
-  );
+  // Convertit en priorité les séances NON marquées "clé" par l'IA (isKeySession) :
+  // épargner autant que possible celle(s) qui ciblent le limiteur prioritaire de la
+  // semaine plutôt que de les alléger au même titre qu'une séance secondaire — avant
+  // ce correctif, l'ordre de conversion suivait l'ordre d'apparition dans la liste
+  // (= ordre des jours), sans aucun rapport avec la priorité physiologique de la
+  // séance (audit qualité plans IA).
+  const intenseSessions = week.sessions
+    .filter((s) => isIntense(s))
+    .sort((a, b) => Number(!!a.isKeySession) - Number(!!b.isKeySession));
 
   // Stratégie : convertir N% des séances intenses en endurance fondamentale (Z2)
   const toConvert = Math.max(1, Math.round(intenseSessions.length * reductionPct * 2));
   let converted = 0;
+  let keySessionConverted = false;
   for (const sess of intenseSessions) {
     if (converted >= toConvert) break;
+    if (sess.isKeySession) keySessionConverted = true;
     const idx = week.sessions.indexOf(sess);
     const before = `${sess.sport} — ${sess.title}`;
     week.sessions[idx] = {
@@ -106,6 +119,11 @@ export function applyDeload(plan: ParsedPlan, opts: DeloadOptions): PatchResult 
 
   if (converted === 0) {
     warnings.push("Aucune séance intense trouvée à alléger");
+  }
+  if (keySessionConverted) {
+    warnings.push(
+      "Le nombre de séances à alléger dépasse les séances secondaires disponibles — au moins une séance clé (ciblant le limiteur prioritaire) a dû être convertie."
+    );
   }
   return { plan: next, diff, warnings };
 }
@@ -162,15 +180,37 @@ export function redistributeMissedSession(
     return { plan: next, diff, warnings };
   }
 
-  // move_next : chercher le prochain jour OFF ou allégé (Z2 courte)
+  // move_next : chercher le prochain jour OFF. Si la séance manquée était intense,
+  // préférer un jour OFF dont les voisins immédiats ne portent pas déjà une séance
+  // intense — avant ce correctif, le premier jour OFF trouvé était pris sans regarder
+  // ce qui l'entoure, pouvant coller 2-3 jours de charge élevée consécutifs (audit
+  // qualité plans IA).
   const candidates = week.sessions
     .filter((s) => s.dayIndex > opts.dayIndex)
     .sort((a, b) => a.dayIndex - b.dayIndex);
 
-  const targetDay = candidates.find((s) => isOff(s));
-  if (!targetDay) {
+  const offCandidates = candidates.filter((s) => isOff(s));
+  if (offCandidates.length === 0) {
     warnings.push("Aucun jour OFF disponible dans la semaine — séance perdue");
     return redistributeMissedSession(plan, { ...opts, strategy: "skip" });
+  }
+
+  const hasIntenseNeighbor = (dayIdx: number): boolean => {
+    const prev = week.sessions.find((s) => s.dayIndex === dayIdx - 1);
+    const nextS = week.sessions.find((s) => s.dayIndex === dayIdx + 1);
+    return (prev != null && isIntense(prev)) || (nextS != null && isIntense(nextS));
+  };
+
+  let targetDay = isIntense(missed)
+    ? offCandidates.find((s) => !hasIntenseNeighbor(s.dayIndex))
+    : undefined;
+  if (!targetDay) {
+    targetDay = offCandidates[0];
+    if (isIntense(missed)) {
+      warnings.push(
+        `Séance intense reportée au ${targetDay.dayName} sans jour de repos adjacent disponible dans la semaine — vérifier l'enchaînement de charge.`
+      );
+    }
   }
 
   const missedIdx = week.sessions.indexOf(missed);
@@ -229,11 +269,20 @@ export function swapModality(plan: ParsedPlan, opts: SwapModalityOptions): Patch
   }
   const idx = week.sessions.indexOf(sess);
   const before = `${sess.sport} — ${sess.title}`;
+  // Le catalogId et les valeurs chiffrées de `details` (watts, allure, %FTP...) sont
+  // propres au sport d'origine — les conserver telles quelles induirait le coach/
+  // l'athlète en erreur (ex: cibles en watts affichées pour une séance devenue
+  // natation, ou catalogId pointant vers une fiche vélo réutilisé en aval par
+  // l'export/le calcul W'bal/la diversité du catalogue). On efface le lien catalogue
+  // (invalide pour le nouveau sport) et on remplace le détail chiffré par une
+  // consigne neutre au ressenti, à préciser par le coach (audit qualité plans IA).
   week.sessions[idx] = annotate(
     {
       ...sess,
       sport: opts.newSport,
+      catalogId: null,
       title: `${sess.title} — modalité ${opts.newSport}`,
+      details: `Séance adaptée en ${opts.newSport} suite à un changement de modalité — intensité au ressenti (RPE), structure à préciser par le coach. Séance d'origine : "${sess.title}".`,
     },
     `[SWAP] ${sess.sport} → ${opts.newSport} — ${opts.reason ?? "adaptation"}`
   );
