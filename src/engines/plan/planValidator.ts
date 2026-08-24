@@ -162,18 +162,34 @@ const KEY_SESSION_PATTERNS = /🔑|clé|key|séance\s*clé|interval|seuil|thresh
 const DELOAD_PATTERNS = /décharge|deload|récup|recovery|repos|allégé|réduit|taper|affûtage|régénér/i;
 const RACE_PATTERNS = /🏁|course\b|race|compétition|épreuve|objectif|marathon|ironman|triathlon|semi|trail|10k/i;
 
+// Strides / accélérations progressives : accroche neuromusculaire courte
+// (10-30s × 4-10 répétitions) greffée en fin de séance EF — Seiler classe
+// ces séances Z1-Z2 (volume négligeable, aucun stress métabolique), c'est
+// le vocabulaire canonique de CETTE bibliothèque pour les distinguer d'un
+// vrai bloc fractionné (30/30, VO2max, seuil, Norvégien...). Sans le garde
+// ci-dessous, la simple mention de zone dans "45' Z2 + 6x20" accélérations
+// progressives (Z2→Z5)" basculait toute la séance "high" — alors que la
+// fiche catalogue correspondante ("EF + Strides", Cat A OBLIGATOIRE) est
+// explicitement conçue pour rester polarisée.
+const STRIDES_TAIL_PATTERN = /\bstrides?\b|acc[ée]l[ée]rations?\s*progressives?/i;
+const GENUINE_INTERVAL_WORK_PATTERN = /seuil|threshold|vo2|vma\b|fractionn[ée]|30\s*\/\s*30|norv[ée]gien|billat|canova|over.under|\bsst\b|sweet\s*spot|pma/i;
+
 function classifySessionIntensity(session: ParsedSession): "low" | "mid" | "high" {
   const text = `${session.sport} ${session.title} ${session.details}`.toLowerCase();
-  
+
   if (session.isRest) return "low";
-  
+
+  if (STRIDES_TAIL_PATTERN.test(text) && !GENUINE_INTERVAL_WORK_PATTERN.test(text)) {
+    return "low";
+  }
+
   // Check high first (most specific patterns)
   if (HIGH_INTENSITY_PATTERNS.test(text)) return "high";
   if (MID_INTENSITY_PATTERNS.test(text)) return "mid";
-  
+
   // Default: strength/renfo sessions count as mid, everything else as low
   if (/renfo|muscul|strength|ppg|gainage|core|poids/i.test(text)) return "mid";
-  
+
   return "low";
 }
 

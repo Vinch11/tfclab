@@ -110,6 +110,35 @@ describe("planValidator", () => {
     expect(polarIssues.length).toBeGreaterThan(0);
   });
 
+  it("ne classe pas une séance EF+strides comme 'high' à cause d'une mention de zone dans l'accroche courte", () => {
+    // Cas réel observé (audit plan 10K) : "EF + Strides" (Cat A OBLIGATOIRE,
+    // séance canoniquement polarisée) faisait basculer S1 à "50% Z1-Z2"
+    // (cible ≥75%) uniquement à cause de "Z2→Z5" dans "6x20" accélérations
+    // progressives" — un tag de zone sur ~2min de strides greffées sur un
+    // run EF de 45min à dominante Z1-Z2.
+    const week = makeWeek(1, [
+      { sport: "Vélo", title: "Vélo Récupération Z1", details: "45min Z1 <55% FTP" },
+      { sport: "Course", title: "EF + Strides", details: "45-60' Z2 fondamental. Dernières 10': 6x20\" accélérations progressives (Z2→Z5) r=1' trot. Neuromusculation dans volume" },
+      { sport: "Course", title: "Lydiard Medium Run", details: "50 min en Z1-Z2" },
+      { sport: "Course", title: "Volume aérobie Lydiard", details: "40-60 min en Z1-Z2" },
+    ]);
+    const result = validatePlan(makePlan([week]));
+    const polarError = result.issues.find(i => i.rule === "polarization" && i.severity === "error");
+    expect(polarError).toBeUndefined();
+  });
+
+  it("le garde strides ne masque pas une semaine réellement non polarisée (VMA/seuil avec mention 'accélérations')", () => {
+    const week = makeWeek(1, [
+      { sport: "Course", title: "VMA piste", details: "20' Z1→Z2 + accélérations progressives en warm-up, puis 6x400m à VMA (100%) fractionné Z6" },
+      { sport: "Course", title: "Seuil 2x20min", details: "Z5 seuil" },
+      { sport: "Course", title: "Over-under 4x8min", details: "Z5 intervalles" },
+      { sport: "Course", title: "Sprint côtes 10x30s", details: "Z7 force" },
+    ]);
+    const result = validatePlan(makePlan([week]));
+    const polarError = result.issues.find(i => i.rule === "polarization" && i.severity === "error");
+    expect(polarError).toBeDefined();
+  });
+
   it("detects missing key sessions", () => {
     // All easy, no key sessions
     const easyWeek = makeWeek(1, [
