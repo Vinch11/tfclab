@@ -344,14 +344,18 @@ function highestZonePct(text?: string): [number, number] | null {
   const norm = normalizeStr(text ?? "");
   const matches = Array.from(norm.matchAll(/\bz\s*([1-6])\s*([ab])?\b/g));
   if (matches.length === 0) return null;
-  const rank = (m: RegExpMatchArray) => {
-    const z = Number(m[1]);
-    const suffix = m[2] ?? "";
-    return z * 10 + (suffix === "b" ? 2 : suffix === "a" ? 1 : 0);
-  };
-  const top = matches.sort((a, b) => rank(b) - rank(a))[0];
-  const key = `${top[1]}${top[2] ?? ""}`;
-  return HR_ZONE_PCT[key] ?? HR_ZONE_PCT[top[1]] ?? null;
+  // Englobe TOUTES les zones mentionnées (ex: "Z3" + "Z4a" pour une séance qui
+  // monte de Z3 à Z4a, ou "Z2"/"Z3"/"Z4" mêlées dans un bloc brick multi-sport)
+  // au lieu de ne garder que la zone la plus haute. Ne garder que le max
+  // écrasait le bas de la fourchette et gonflait artificiellement la cible
+  // envoyée à Nolio — ex: un bloc "Z3 bas" contenant par ailleurs une mention
+  // Z4 ailleurs dans le texte ressortait en Z4/Z5 pur au lieu d'une plage
+  // Z3-Z4 fidèle à ce qui est réellement décrit.
+  const bands = matches
+    .map((m) => HR_ZONE_PCT[`${m[1]}${m[2] ?? ""}`] ?? HR_ZONE_PCT[m[1]] ?? null)
+    .filter((b): b is [number, number] => b !== null);
+  if (bands.length === 0) return null;
+  return [Math.min(...bands.map((b) => b[0])), Math.max(...bands.map((b) => b[1]))];
 }
 
 /** Détecte une cible depuis le texte libre : "100-108% FTP", "85% FTP", "Z2", "5:25/km", "4:30-4:45/km". */
@@ -1156,6 +1160,30 @@ function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): 
 
 
 
+/**
+ * Un signal explicite dans le texte de la séance (%FTP, %VMA, watts, allure
+ * chiffrée) est plus fiable qu'une étiquette de zone générique convertie en
+ * FC via HR_ZONE_PCT : la cible chiffrée provient directement de la fiche,
+ * la zone est une approximation. On ne retombe sur la zone que si aucune des
+ * deux sources n'a de cible power/pace explicite (cas normal des séances
+ * EF/Z2 sans détail chiffré).
+ *
+ * Avant ce correctif, `buildTargetFromZones` gagnait systématiquement dès
+ * qu'une étiquette de zone (quasi toujours présente) était trouvée, empêchant
+ * `buildTargetFromText` d'être ne serait-ce que consulté — un bloc brick du type
+ * "80-88% FTP ... 92% FTP ... pace 70.3 (Z3 bas)" avec zones:["Z2","Z3","Z4"]
+ * partait donc entièrement en cible FC générique, en ignorant les watts et
+ * l'allure précisés dans le texte.
+ */
+function preferExplicitTarget<
+  T extends Pick<NolioStep, "target_type" | "target_value_min" | "target_value_max" | "target_value">,
+>(fromZones: T, fromText: T): T {
+  const isExplicit = (t: T["target_type"]) => t === "power" || t === "pace";
+  if (isExplicit(fromZones.target_type)) return fromZones;
+  if (isExplicit(fromText.target_type)) return fromText;
+  return fromZones.target_type !== "no_target" ? fromZones : fromText;
+}
+
 /** Construit structured_workout depuis le tableau `structure` (warm/main/cool). */
 function buildStructuredFromParts(
   structure: WorkoutStructurePart[],
@@ -1173,7 +1201,7 @@ function buildStructuredFromParts(
       if (rep) {
         const fromZones = buildTargetFromZones(p.zones || [], refs);
         const fromText = buildTargetFromText(text, refs);
-        const target = fromZones.target_type !== "no_target" ? fromZones : fromText;
+        const target = preferExplicitTarget(fromZones, fromText);
         const activeStep: NolioStep = {
           type: "step",
           step_duration_type: "duration",
@@ -1214,9 +1242,8 @@ function buildStructuredFromParts(
     }
 
     const fromZones = buildTargetFromZones(p.zones || [], refs);
-    const target = fromZones.target_type !== "no_target"
-      ? fromZones
-      : buildTargetFromText(text, refs);
+    const fromText = buildTargetFromText(text, refs);
+    const target = preferExplicitTarget(fromZones, fromText);
     items.push({
       type: "step",
       step_duration_type: "duration",
