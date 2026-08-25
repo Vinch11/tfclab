@@ -37,6 +37,7 @@ import { derivePhasesFromWeeks } from "@/engines/plan/planValidator";
 import { enrichWithAbsoluteValues, type SportKind } from "@/lib/plan/renderIntensities";
 import { computePhysioDrift, refreshPlanAbsoluteValues, DRIFT_ALERT_PCT } from "@/lib/plan/refreshPlanValues";
 import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTableContext";
+import { WbalAthleteRefsProvider, useWbalAthleteRefs } from "@/components/plan/WbalAthleteRefsContext";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -340,6 +341,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
 
   const [expanded, setExpanded] = useState(false);
   const targetTable = useTargetTable();
+  const wbalRefs = useWbalAthleteRefs();
 
   const session = useMemo(
     () => maybeDowngradeBikeSession(rawSession, objectifEffectif),
@@ -366,8 +368,8 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
   );
 
   const fiche = useMemo(
-    () => session.isRest ? null : getFicheForSession({ title: session.title, details: session.details }, objectifEffectif),
-    [session.isRest, session.title, session.details, objectifEffectif]
+    () => session.isRest ? null : getFicheForSession({ title: session.title, details: session.details }, objectifEffectif, wbalRefs),
+    [session.isRest, session.title, session.details, objectifEffectif, wbalRefs]
   );
 
   // Rendu hybride : quand la fiche est résolue, on n'affiche que le delta IA.
@@ -996,7 +998,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
 
   const nolioRefs = useMemo(() => {
     if (!athleteId) {
-      return { ftp: null, vma: null, css: null, fcMax: null, fcRest: null, paceThresholdSecPerKm: null, vlamax: null, vlamaxRun: null, vo2max: null, weightKg: null };
+      return { ftp: null, vma: null, css: null, fcMax: null, fcRest: null, paceThresholdSecPerKm: null, vlamax: null, vlamaxRun: null, vo2max: null, weightKg: null, pmax5s: null, p30s: null, p60s: null, map5min: null };
     }
     const athlete = athletes.find((a) => a.id === athleteId) ?? null;
     const r = getEffectiveRefs(athlete, snapshots);
@@ -1012,8 +1014,23 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
       vlamaxRun: snap?.vlamax_run ?? null,
       vo2max: r.vo2max ?? null,
       weightKg: r.weightKg ?? null,
+      pmax5s: snap?.pmax_5s ?? null,
+      p30s: snap?.p30s_w ?? null,
+      p60s: snap?.p60s_w ?? null,
+      map5min: snap?.map5min_w ?? null,
     };
   }, [athletes, snapshots, athleteId]);
+
+  // W'bal — CP/W' réel de l'athlète (Skiba 2012) pour recalculer le repos
+  // des fiches bibliothèque possédant un wbalProfile (cf. toFiche).
+  const wbalAthleteRefs = useMemo(() => ({
+    pmax5s: nolioRefs.pmax5s,
+    p30s: nolioRefs.p30s,
+    p60s: nolioRefs.p60s,
+    map5min: nolioRefs.map5min,
+    ftp: nolioRefs.ftp,
+    weightKg: nolioRefs.weightKg,
+  }), [nolioRefs]);
 
   // PHASE 2B v2 — TargetTable pour annoter les intensités relatives à l'affichage
   const targetTable = useMemo(() => {
@@ -1385,19 +1402,28 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
     return t.replace(/—\s*([^—]+?)(\s+—|$)/, (_m, name, tail) => `— ${name.trim()} (${km}km)${tail}`);
   }, [plan.title, raceGoals, gapContext]);
 
+  // Étend gapContext avec le CP/W' athlète — même donnée que la vue
+  // interactive (WbalAthleteRefsProvider), pour que le PDF affiche aussi un
+  // repos recalculé au CP/W' réel sur les fiches avec wbalProfile.
+  const gapContextWithWbal = useMemo(
+    () => ({ ...gapContext, wbalRefs: wbalAthleteRefs }),
+    [gapContext, wbalAthleteRefs]
+  );
+
   const handleExportPDF = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape", "full", gapContext);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape", "full", gapContextWithWbal);
   };
   const handleExportPDFPortrait = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "full", gapContext);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "full", gapContextWithWbal);
   };
   const handleExportPDFCompact = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "compact", gapContext);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "compact", gapContextWithWbal);
   };
 
 
   return (
     <TargetTableProvider value={targetTable}>
+    <WbalAthleteRefsProvider value={wbalAthleteRefs}>
     <div className="space-y-4">
       {replacementCount > 0 && (
         <Alert>
@@ -2024,6 +2050,7 @@ export function AIPlanViewer({ plan: planProp, startDate, raceGoals, onSaveToPla
         onConfirm={(extra) => { const d = regenDialog; setRegenDialog(null); d?.run(extra); }}
       />
     </div>
+    </WbalAthleteRefsProvider>
     </TargetTableProvider>
   );
 }
