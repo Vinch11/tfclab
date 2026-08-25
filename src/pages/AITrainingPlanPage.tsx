@@ -31,7 +31,9 @@ import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, start
 
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
-import { useAITrainingPlan, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
+import { useAITrainingPlan, getCatalogSportFilter, getCatalogExclusions, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
+import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution } from "@/lib/workoutCatalogBuilder";
+import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
@@ -157,6 +159,110 @@ interface MultiPlanEntry {
   response: string;
   parsedPlan: ParsedPlan | null;
   diagnostic: AthleteDiagnostic | null;
+}
+
+/**
+ * Construit le catalogue de séances (scoring phase/limiteur/objectif +
+ * anti-répétition inter-plans) pour une plage de semaines — même logique que
+ * la génération complète (useAITrainingPlan.generatePlan). Avant ce
+ * correctif, la régénération d'une semaine ou du reste du plan n'envoyait
+ * AUCUN catalogue au serveur : `resolvePhaseCatalog` retombait alors sur une
+ * chaîne vide et l'IA générait hors bibliothèque, sans les bonus phase/
+ * limiteur ni la pénalité anti-répétition — contrairement à la génération
+ * initiale et à la fenêtre d'adaptation, qui passent bien par
+ * buildWorkoutCatalog/serializeCatalogForPrompt.
+ */
+async function buildRegenCatalog(
+  cfg: PlanConfig,
+  startWeek: number,
+  endWeek: number,
+  totalWeeksForPhase: number,
+  athleteId: string,
+): Promise<{ workoutCatalog: string; historyUsedIdCounts?: Record<string, number> }> {
+  const catalogSportFilter = getCatalogSportFilter(cfg.objective || "");
+  const { excludeIdPatterns, excludeTags } = getCatalogExclusions(cfg.objective || "", cfg.raceGoals);
+  const limiterKeys = cfg.identifiedLimitersRaw && cfg.identifiedLimitersRaw.length > 0
+    ? cfg.identifiedLimitersRaw
+    : undefined;
+  const historicalUsage = await fetchHistoricalCatalogUsage(athleteId);
+  resetCatalogAttribution();
+  const catalog = buildWorkoutCatalog(
+    cfg.objective || "",
+    startWeek,
+    endWeek,
+    totalWeeksForPhase,
+    {
+      maxItems: 80,
+      chunkIndex: 0,
+      excludeIds: new Set(),
+      limiters: limiterKeys,
+      prohibitions: cfg.prohibitions,
+      sportFilter: catalogSportFilter,
+      excludeIdPatterns,
+      excludeTags,
+      historicalUsage,
+    },
+  );
+  return {
+    workoutCatalog: serializeCatalogForPrompt(catalog),
+    historyUsedIdCounts: historicalUsage.size > 0 ? serializeHistoricalUsage(historicalUsage) : undefined,
+  };
+}
+
+/**
+ * Variante de buildRegenCatalog pour une régénération multi-semaines
+ * (« reste du plan ») : construit un catalogue par phase (base/build/peak/
+ * taper), exactement comme useAITrainingPlan.generatePlan pour une
+ * génération complète. Le serveur choisit celui à utiliser via
+ * `windowRegenPhase` (cf. handleRegenerateFutureWeeks) plutôt que de deviner
+ * la phase depuis une numérotation de semaines réinitialisée à 1.
+ */
+async function buildRegenPhaseCatalogs(
+  cfg: PlanConfig,
+  weeksAvailable: number,
+  athleteId: string,
+): Promise<{ phaseCatalogs: Record<string, string>; historyUsedIdCounts?: Record<string, number> }> {
+  const catalogSportFilter = getCatalogSportFilter(cfg.objective || "");
+  const { excludeIdPatterns, excludeTags } = getCatalogExclusions(cfg.objective || "", cfg.raceGoals);
+  const limiterKeys = cfg.identifiedLimitersRaw && cfg.identifiedLimitersRaw.length > 0
+    ? cfg.identifiedLimitersRaw
+    : undefined;
+  const historicalUsage = await fetchHistoricalCatalogUsage(athleteId);
+  resetCatalogAttribution();
+
+  const phaseRanges = [
+    { phase: "base", start: 1, end: Math.ceil(weeksAvailable * 0.25) },
+    { phase: "build", start: Math.ceil(weeksAvailable * 0.25), end: Math.ceil(weeksAvailable * 0.65) },
+    { phase: "peak", start: Math.ceil(weeksAvailable * 0.55), end: Math.ceil(weeksAvailable * 0.85) },
+    { phase: "taper", start: Math.ceil(weeksAvailable * 0.80), end: weeksAvailable },
+  ];
+  const phaseCatalogs: Record<string, string> = {};
+  const usedIds = new Set<string>();
+  for (const pr of phaseRanges) {
+    const catalog = buildWorkoutCatalog(
+      cfg.objective || "",
+      pr.start,
+      pr.end,
+      weeksAvailable,
+      {
+        maxItems: 80,
+        chunkIndex: 0,
+        excludeIds: usedIds,
+        limiters: limiterKeys,
+        prohibitions: cfg.prohibitions,
+        sportFilter: catalogSportFilter,
+        excludeIdPatterns,
+        excludeTags,
+        historicalUsage,
+      },
+    );
+    phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
+    catalog.forEach((e) => usedIds.add(e.id));
+  }
+  return {
+    phaseCatalogs,
+    historyUsedIdCounts: historicalUsage.size > 0 ? serializeHistoricalUsage(historicalUsage) : undefined,
+  };
 }
 
 export default function AITrainingPlanPage() {
@@ -1155,6 +1261,14 @@ export default function AITrainingPlanPage() {
     generatePlan(athleteContext.data, config);
   };
 
+  // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
+  // saisis, choix S2R) pour pouvoir le réappliquer lors d'une régénération —
+  // ces choix explicites n'étaient jusqu'ici transmis qu'à la génération
+  // initiale et disparaissaient silencieusement dès qu'on régénérait une
+  // semaine, le reste du plan, ou une fenêtre (tous ces chemins ne font que
+  // `buildConfigFromDiag(...)`, sans jamais repasser par `buildCoachOverrides`).
+  const [lastCoachOverridesPayload, setLastCoachOverridesPayload] = useState<CoachProfileFormPayload | null>(null);
+
   // ─── COACH FORM — Apply Lorang limiter overrides to config ────────────────
   // Le coach saisit ce qu'il SAIT. Ces limiteurs REMPLACENT ceux du diagnostic
   // dans identifiedLimiters/identifiedLimitersRaw/prohibitions transmis à
@@ -1232,6 +1346,23 @@ export default function AITrainingPlanPage() {
     return cfg;
   }, []);
 
+  /**
+   * Comme buildConfigFromDiag, mais réapplique en plus les derniers choix
+   * explicites du formulaire coach (interdictions, limiteurs, S2R) s'ils ont
+   * été saisis pendant cette session. À utiliser à la place de
+   * buildConfigFromDiag pour toute régénération (semaine, reste du plan,
+   * fenêtre) — sinon ces choix sont silencieusement perdus.
+   */
+  const buildConfigWithCoachOverrides = useCallback((
+    diagnostic: AthleteDiagnostic,
+    athleteAmbition?: string,
+    objectiveOverride?: string,
+    athleteIdOverride?: string,
+  ): PlanConfig => {
+    const base = buildConfigFromDiag(diagnostic, athleteAmbition, objectiveOverride, athleteIdOverride);
+    return lastCoachOverridesPayload ? buildCoachOverrides(lastCoachOverridesPayload, base) : base;
+  }, [buildConfigFromDiag, buildCoachOverrides, lastCoachOverridesPayload]);
+
   // Pre-fill from auto diagnostic (metric names → Lorang categories, best-effort).
   const coachPrefill = useMemo<CoachProfilePrefill | null>(() => {
     if (!athleteContext) return null;
@@ -1268,6 +1399,7 @@ export default function AITrainingPlanPage() {
       toast.error("Durée du plan manquante — renseigne une date de course ou une durée libre.");
       return;
     }
+    setLastCoachOverridesPayload(payload);
     const baseConfig = buildConfigFromDiag(athleteContext.diagnostic, undefined, objectiveOverride);
     const config = buildCoachOverrides(payload, baseConfig);
 
@@ -1706,7 +1838,7 @@ export default function AITrainingPlanPage() {
   }, [planStartDate]);
 
   const handleRegenerateWeek = useCallback(async (weekNumber: number, extraConstraints?: string) => {
-    if (!athleteContext || !parsedPlan) return;
+    if (!athleteContext || !parsedPlan || !currentAthlete) return;
     setIsRegenerating(true);
 
     const week = parsedPlan.weeks.find(w => w.weekNumber === weekNumber);
@@ -1721,7 +1853,7 @@ export default function AITrainingPlanPage() {
     // renforcement, limiteurs, interdictions et quotas). Le payload minimal
     // précédent perdait ces règles et pouvait produire une semaine générique.
     const fullPlanConfig: PlanConfig & { _outputFormat?: "json" | "markdown" } = {
-      ...buildConfigFromDiag(athleteContext.diagnostic),
+      ...buildConfigWithCoachOverrides(athleteContext.diagnostic),
       _outputFormat: "json",
     };
     const existingTrainingSessions = week.sessions
@@ -1737,6 +1869,16 @@ export default function AITrainingPlanPage() {
         ? `STRUCTURE ACTUELLE À AMÉLIORER (référence de charge et de répartition, ne pas recopier mot pour mot) :\n${existingTrainingSessions}`
         : "La semaine actuelle ne contient aucune structure exploitable : reconstruire les séances selon la progression du plan.",
     ].filter(Boolean).join("\n");
+
+    // Catalogue scoré (phase/limiteur/objectif + anti-répétition) pour cette
+    // semaine — sans ça, resolvePhaseCatalog retombe côté serveur sur une
+    // chaîne vide et l'IA génère hors bibliothèque (cf. buildRegenCatalog).
+    let catalogResult: { workoutCatalog: string; historyUsedIdCounts?: Record<string, number> } = { workoutCatalog: "" };
+    try {
+      catalogResult = await buildRegenCatalog(fullPlanConfig, weekNumber, weekNumber, parsedPlan.totalWeeks, currentAthlete.id);
+    } catch (catalogErr) {
+      console.warn("[handleRegenerateWeek] échec construction catalogue, régénération sans catalogue:", catalogErr);
+    }
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -1760,6 +1902,7 @@ export default function AITrainingPlanPage() {
               fullPlanConfig.constraints || "",
               regenerationConstraint,
             ].filter(Boolean).join("\n"),
+            _historyUsedIdCounts: catalogResult.historyUsedIdCounts,
           },
           regenerateWeek: {
             weekNumber,
@@ -1767,6 +1910,7 @@ export default function AITrainingPlanPage() {
             theme: week.theme,
             totalWeeks: parsedPlan.totalWeeks,
           },
+          workoutCatalog: catalogResult.workoutCatalog,
         }),
       });
 
@@ -1870,7 +2014,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsRegenerating(false);
     }
-  }, [athleteContext, parsedPlan, rawParsedPlan, planOverride, sessionsPerWeek, buildConfigFromDiag, objective]);
+  }, [athleteContext, parsedPlan, rawParsedPlan, planOverride, sessionsPerWeek, buildConfigWithCoachOverrides, objective, currentAthlete]);
 
 
   /**
@@ -1905,7 +2049,7 @@ export default function AITrainingPlanPage() {
       const futureWeeksCount = totalWeeks - currentWeekNumber;
 
       // Build config for future weeks only
-      const config = buildConfigFromDiag(athleteContext.diagnostic);
+      const config = buildConfigWithCoachOverrides(athleteContext.diagnostic);
       config.weeksAvailable = futureWeeksCount;
       // Add context about past weeks in constraints
       const pastPhaseSummary = pastWeeks.length > 0
@@ -1916,6 +2060,24 @@ export default function AITrainingPlanPage() {
         extraConstraints?.trim() || "",
         `CONTEXTE IMPORTANT: Ce plan est une CONTINUATION. Les semaines 1 à ${currentWeekNumber} sont déjà réalisées. Génère UNIQUEMENT les semaines ${futureStartWeek} à ${totalWeeks}. Numérote-les de S${futureStartWeek} à S${totalWeeks}. Phase déjà couverte : ${pastPhaseSummary}`,
       ].filter(Boolean).join("\n");
+      // Phase réelle de départ (les semaines futures sont renumérotées 1..N
+      // côté serveur pour le calcul de phase — sans cet override, la première
+      // semaine reconstruite retomberait toujours en "base" quelle que soit
+      // sa position réelle dans le plan, cf. buildRegenPhaseCatalogs).
+      config.windowRegenPhase = parsedPlan.weeks.find(w => w.weekNumber === futureStartWeek)?.phase
+        || pastWeeks[pastWeeks.length - 1]?.phase
+        || undefined;
+
+      // Catalogue scoré par phase (mêmes bonus phase/limiteur/objectif et
+      // anti-répétition que la génération initiale) — sans ça, le serveur
+      // n'a aucun catalogue à injecter et l'IA génère hors bibliothèque.
+      let catalogResult: { phaseCatalogs: Record<string, string>; historyUsedIdCounts?: Record<string, number> } = { phaseCatalogs: {} };
+      try {
+        catalogResult = await buildRegenPhaseCatalogs(config, futureWeeksCount, currentAthlete.id);
+      } catch (catalogErr) {
+        console.warn("[handleRegenerateFutureWeeks] échec construction catalogue, régénération sans catalogue:", catalogErr);
+      }
+      (config as any)._historyUsedIdCounts = catalogResult.historyUsedIdCounts;
 
       // Generate the future weeks via AI
       const { data: { session } } = await supabase.auth.getSession();
@@ -1934,6 +2096,7 @@ export default function AITrainingPlanPage() {
         body: JSON.stringify({
           athleteData: athleteContext.data,
           planConfig: config,
+          phaseCatalogs: catalogResult.phaseCatalogs,
         }),
       });
 
@@ -2003,7 +2166,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsRegenerating(false);
     }
-  }, [athleteContext, parsedPlan, currentAthlete, currentWeekNumber, response, buildConfigFromDiag, archiveCurrentPlan, setResponse]);
+  }, [athleteContext, parsedPlan, currentAthlete, currentWeekNumber, response, buildConfigWithCoachOverrides, archiveCurrentPlan, setResponse]);
 
   // Toggle athlete selection (multi mode)
   const toggleAthleteSelection = (id: string) => {
@@ -2907,7 +3070,7 @@ export default function AITrainingPlanPage() {
                           athleteId={currentAthlete.id}
                           coachId={coachId}
                           athleteData={athleteContext.data}
-                          baseConfig={buildConfigFromDiag(athleteContext.diagnostic)}
+                          baseConfig={buildConfigWithCoachOverrides(athleteContext.diagnostic)}
                           onRegenerated={(merged) => { setPlanOverride(merged); setIsSaved(false); }}
 
                         />
@@ -3100,7 +3263,7 @@ export default function AITrainingPlanPage() {
           athleteName={currentAthlete.nom}
           currentPlan={parsedPlan}
           athleteData={athleteContext.data}
-          baseConfig={buildConfigFromDiag(athleteContext.diagnostic)}
+          baseConfig={buildConfigWithCoachOverrides(athleteContext.diagnostic)}
           onAdapted={() => {
             toast.success("Plan adapté — l'historique est mis à jour");
             setHistoryRefreshKey(k => k + 1);
