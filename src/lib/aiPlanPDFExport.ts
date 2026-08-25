@@ -7,6 +7,7 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, maybeDowngradeBikeSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
+import type { WbalAthleteRefs } from "@/lib/wbalLibraryRecalc";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
@@ -303,6 +304,8 @@ export interface PDFGapContext {
   weeklyHours?: number | null;
   vmaKmh?: number | null;
   thresholdPaceSecPerKm?: number | null;
+  /** CP/W' athlète (Skiba 2012) — recalcul du repos sur les fiches avec wbalProfile. */
+  wbalRefs?: WbalAthleteRefs | null;
 }
 
 export function exportAIPlanToPDF(
@@ -351,7 +354,7 @@ function buildPlanHTML(
             ${trailAlts.map(a => `<div style="margin-top:2px;"><span>${a.icon}</span> <strong>${a.label}</strong> — <span style="color:#777;">${a.hint}</span></div>`).join("")}
           </div>`
         : "";
-      const fiche = (isCompact || s.isRest) ? null : getFicheForSession({ title: s.title, details: s.details }, gapContext?.objective);
+      const fiche = (isCompact || s.isRest) ? null : getFicheForSession({ title: s.title, details: s.details }, gapContext?.objective, gapContext?.wbalRefs);
 
       if (isPortrait) {
         // Stacked card layout — clearer in A4 portrait

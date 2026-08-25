@@ -12,6 +12,7 @@ import type { LibraryWorkout } from "@/types/workoutLibrary";
 import type { ParsedSession } from "@/lib/aiPlanParser";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
+import { recalcWorkoutRest, type WbalAthleteRefs } from "@/lib/wbalLibraryRecalc";
 
 const byId: Map<string, LibraryWorkout> = (() => {
   const m = new Map<string, LibraryWorkout>();
@@ -110,26 +111,32 @@ export interface EnrichedSessionFiche {
   wbalSummary?: string;
 }
 
-export function toFiche(w: LibraryWorkout): EnrichedSessionFiche {
+export function toFiche(w: LibraryWorkout, wbalRefs?: WbalAthleteRefs | null): EnrichedSessionFiche {
   const variants = w.variants
     ? Object.entries(w.variants)
         .filter(([, v]) => !!v)
         .map(([goal, text]) => ({ goal, text: String(text) }))
     : [];
 
+  // Repos affiché : recalculé au CP/W' réel de l'athlète (Skiba 2012) si ses
+  // données de puissance (P30s/P60s/MAP5min) sont disponibles, sinon repli
+  // silencieux sur le repos par défaut de la fiche — recalcWorkoutRest gère
+  // déjà les deux cas (voir wbalLibraryRecalc.ts).
   let wbalSummary: string | undefined;
   if (w.wbalProfile?.blocks?.length) {
-    wbalSummary = w.wbalProfile.blocks
+    const recalced = recalcWorkoutRest(w, wbalRefs ?? {});
+    wbalSummary = recalced.blocks
       .map((b) => {
         const dur =
           b.durationSec >= 60
             ? `${Math.round(b.durationSec / 60)}min`
             : `${b.durationSec}s`;
         const rest =
-          b.defaultRestSec >= 60
-            ? `${Math.round(b.defaultRestSec / 60)}min`
-            : `${b.defaultRestSec}s`;
-        return `${b.reps}×${dur} @ ${b.intensity}% ${b.intensityRef} (récup ${rest}${
+          b.recalcRestSec >= 60
+            ? `${Math.round(b.recalcRestSec / 60)}min`
+            : `${b.recalcRestSec}s`;
+        const perso = b.wasRecalculated ? " · perso W'bal" : "";
+        return `${b.reps}×${dur} @ ${b.intensity}% ${b.intensityRef} (récup ${rest}${perso}${
           b.recoveryStrategy ? ` ${b.recoveryStrategy}` : ""
         })${b.label ? ` — ${b.label}` : ""}`;
       })
@@ -158,9 +165,10 @@ export function toFiche(w: LibraryWorkout): EnrichedSessionFiche {
 export function getFicheForSession(
   session: Pick<ParsedSession, "title" | "details"> & { catalogId?: string | null },
   objectifEffectif?: string | null,
+  wbalRefs?: WbalAthleteRefs | null,
 ): EnrichedSessionFiche | null {
   const w = findLibraryWorkoutForSession(session, objectifEffectif);
-  return w ? toFiche(w) : null;
+  return w ? toFiche(w, wbalRefs) : null;
 }
 
 /**
