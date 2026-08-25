@@ -618,21 +618,37 @@ CAP 85-90%, Renfo 10-15%. Accent VO2max (30/30, VMA longue), seuil secondaire.
 - SL précisent D+ et ravitaillement.
 - Back-to-back : D+ cumulé = métrique clé.
 
-## Méthodologie TFCL™ — Hybride Lorang Complet
+## Méthodologie TFCL™ — Modèle Hybride (Issurin / Seiler / interprétation TFCL de Lorang)
 
-### ⚠️ PÉRIODISATION TFCL™ : HYBRIDE LORANG (NON linéaire classique)
-Modèle hybride : Reverse Periodization, Block Periodization, Polarized Training.
+### ⚠️ PÉRIODISATION TFCL™ : HYBRIDE (NON linéaire classique)
+Modèle hybride : 3 principes distincts et de fiabilité de sourcing inégale — à ne
+PAS présenter comme un système unique attribuable à un seul coach. Voir le détail
+de chacun ci-dessous, y compris leur niveau de confiance de citation.
 
-### 1. 🔄 REVERSE PERIODIZATION (Lorang 2018)
+### 1. 🔄 SÉQUENÇAGE INTENSITÉ-PUIS-VOLUME (attribution "Lorang 2018" — NON VÉRIFIÉE)
 Principe : INTENSITÉ courte (VO2max) en Bloc 1, puis VOLUME.
-Justification : stimule adaptations mitochondriales avant que le volume les consolide pour meilleure fat oxidation (Lorang 2018).
+Justification : stimule adaptations mitochondriales avant que le volume les consolide pour meilleure fat oxidation.
 Application : IM, 70.3, Marathon (Competitor+), Trail Ultra. Pas pour débutants/finishers, 5K/10K.
 Concrètement : Bloc Fondation inclut blocs VO2max courts (3-5min) dès sem 1.
+⚠️ ATTRIBUTION CONTESTÉE : contrairement à "Issurin 2008" et "Seiler 2010" ci-dessous
+(citations vérifiables, littérature publiée), "Lorang 2018" ne renvoie à aucune
+publication identifiée — c'est une interprétation TFCL de pratiques rapportées de
+Dan Lorang (coach Frodeno/Haug/Bora-hansgrohe), non confirmée sur source primaire.
+Des informations plus détaillées (recoupant plusieurs interviews) décrivent au
+contraire une base aérobie longue avant l'intensité, une séquence qui se répète en
+cycles de plus en plus spécifiques (pas un unique passage linéaire), et une
+distribution 80/20 explicitement NON dogmatique chez Lorang — à l'opposé de la
+contrainte "INVIOLABLE" du point 3 ci-dessous. Traiter cette section comme une
+heuristique TFCL, pas comme une règle Lorang établie.
 
-### 2. 📦 BLOCK PERIODIZATION (Issurin 2008)
+### 2. 📦 BLOCK PERIODIZATION PAR LIMITEUR (Issurin 2008)
 Principe : BLOCS CONCENTRÉS 2-4 sem ciblant 1-2 qualités max. Supérieur à tradi pour athlètes >2 ans.
 Chaque bloc a un NOM MÉTABOLIQUE : "Bloc VLamax↓", "Bloc VO2max", "Bloc TTE", "Bloc Race-Pace".
 Séquençage des blocs dépend du limiteur #1.
+Note : c'est Issurin, pas Lorang, qui est la source citée ici pour le principe de
+blocs concentrés — même si Lorang applique lui aussi une forme de périodisation par
+bloc en pratique (cf. point 1), ce n'est pas la même source ni nécessairement la
+même mise en œuvre exacte.
 
 ### 3. ⚖️ POLARIZED TRAINING (Seiler 2010) — Contrainte PERMANENTE
 Principe : Dans CHAQUE bloc/semaine, distribution d'intensité polarisée :
@@ -641,15 +657,15 @@ Principe : Dans CHAQUE bloc/semaine, distribution d'intensité polarisée :
 - 15-20% Z4-Z5+ (intensité)
 Contrainte INVIOLABLE (sauf décharge = 100% Z1-Z2).
 
-### Synthèse Hybride Lorang
-| Aspect | Règle |
-|--------|-------|
-| Architecture | Blocs concentrés 2-4 sem (Issurin) |
-| Ordre des blocs | Reverse Perio (Lorang): intensité courte → volume → spécifique |
-| Distribution intra-bloc | Polarisé 80/20 (Seiler) chaque semaine |
-| Séquence blocs | Déterminée par limiteur #1 |
-| Charge intra-bloc | Ondulée 3:1 ou 2:1 (Rhea) |
-| Maintien acquis | 1 rappel/sem des qualités des blocs précédents |
+### Synthèse du modèle hybride
+| Aspect | Règle | Source citée |
+|--------|-------|---------------|
+| Architecture | Blocs concentrés 2-4 sem | Issurin 2008 |
+| Ordre des blocs | Intensité courte → volume → spécifique | "Lorang 2018" — attribution non vérifiée, cf. point 1 |
+| Distribution intra-bloc | Polarisé 80/20 chaque semaine | Seiler 2010 |
+| Séquence blocs | Déterminée par limiteur #1 | Issurin 2008 |
+| Charge intra-bloc | Ondulée 3:1 ou 2:1 | Rhea |
+| Maintien acquis | 1 rappel/sem des qualités des blocs précédents | — |
 
 ### 🎯 CATÉGORIES D'INTENSITÉ LORANG A-D (OBLIGATOIRE)
 Classer chaque séance dans A-D avec tag [A], [B], [C], [D] ou mot-clé.
@@ -661,9 +677,9 @@ Classer chaque séance dans A-D avec tag [A], [B], [C], [D] ou mot-clé.
 | **D** | Récupération | Z1 strict, Recovery | Spin 30min Z1, Yoga, marche | Décharge |
 Règles : Sweet Spot → B. Z3 > 30min → B. Chaque semaine doit contenir 1 séance A OU B (sauf décharge).
 
-### 📦 SÉQUENÇAGE DES BLOCS PAR OBJECTIF × LIMITEUR (Architecture Lorang)
+### 📦 SÉQUENÇAGE DES BLOCS PAR OBJECTIF × LIMITEUR (Architecture Issurin, séquence "intensité précoce" TFCL)
 Noms des blocs : Fondation, Chantier [Limiteur], Consolidation, Race-Specific, Affûtage.
-Séquençage Standard (Reverse Perio Lorang) pour IM/70.3/Marathon Competitor+ :
+Séquençage Standard (intensité précoce, attribution "Lorang" non vérifiée — cf. section précédente) pour IM/70.3/Marathon Competitor+ :
 1. Bloc Fondation + Intensité (3-4 sem) : VO2max courts + Force max + Z2 croissant + Train Low
 2. Bloc Chantier [Limiteur #1] (3-4 sem) : Concentration sur limiteur #1 (2-3 stimuli/sem)
 3. Bloc Consolidation + [Limiteur #2] (3-4 sem) : Limiteur #2 prio + rappels #1
@@ -737,7 +753,7 @@ Fartlek Kényan : 1h20-1h40 vallonné, surges en côte, récup descente.
 | Spécificité marathon | 🇰🇪 Canova (blocs spécifiques) | Volume @allure course progressif |
 | Débutant/Finisher | 🇺🇸 Daniels (VDOT zones) | Zones claires, progression structurée |
 | Force/économie faible | 🇳🇴 Rønnestad (force max) | Gain économie prouvé +4.8% |
-| IM/70.3 triathlon | Lorang (reverse perio) | Intensité précoce + volume tardif |
+| IM/70.3 triathlon | Séquence "intensité précoce" TFCL (attribution Lorang non vérifiée) | Intensité précoce + volume tardif |
 Règle TFCL : Combiner les méthodes par bloc.
 
 ### 5 Limiteurs Primaires (INSCYD/TFCL)
@@ -764,7 +780,7 @@ Format : une ligne PAR SÉANCE, avec "matin", "soir". JAMAIS grouper. Si un jour
 - Sprint Ban : si spécifié, interdire strictement sprints all-out, Tabata, plio explosive.
 - VLamax vélo > 0.50 : limiter intensité courte.
 
-### Périodisation par Blocs Détaillée par Objectif — Hybride Lorang
+### Périodisation par Blocs Détaillée par Objectif — Modèle Hybride TFCL
 Ordre des blocs (Fondation → Chantier → Race-Specific → Affûtage) avec séances clés spécifiques pour chaque objectif (IM, 70.3, Marathon, Semi, 10K, 5K, Trails, StartToRun). La périodisation pour débutants est linéaire.
 
 ${buildFewShotExamples(profile)}
@@ -822,7 +838,7 @@ ${buildFewShotExamples(profile)}
 ## Diagnostic TFCL™
 **Limiteur prioritaire :** [limiteur]
 **Levier activé :** [levier]
-**Modèle de périodisation :** [Hybride Lorang / Linéaire Progressive]
+**Modèle de périodisation :** [Hybride TFCL (Issurin/Seiler) / Linéaire Progressive]
 **Stratégie globale :** [1-2 phrases séquençage blocs]
 **Répartition sport :** [ex: Vélo 48% | CAP 25% | Natation 18% | Renfo 9%]
 
