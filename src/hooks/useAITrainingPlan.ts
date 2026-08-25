@@ -34,7 +34,7 @@ import { normalizeWeeksAndPhases } from "@/engines/plan/normalizeWeeksPhases";
 
 const PLAN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-training-plan`;
 
-const getCatalogSportFilter = (objective: string): TrainingSport[] | undefined => {
+export const getCatalogSportFilter = (objective: string): TrainingSport[] | undefined => {
   const lower = objective.trim().toLowerCase();
   const isTriathlon = lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
   // Triathlon: restreindre AUX sports triathlon (jamais de trail dans un plan 70.3/IM).
@@ -66,7 +66,7 @@ export const TRAIL_ID_PATTERNS: RegExp[] = [
   /^V3_TRAIL_/i,
 ];
 
-const getCatalogExclusions = (
+export const getCatalogExclusions = (
   objective: string,
   raceGoals?: RaceGoal[]
 ): { excludeIdPatterns: RegExp[]; excludeTags: string[] } => {
