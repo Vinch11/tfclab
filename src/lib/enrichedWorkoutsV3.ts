@@ -226,7 +226,24 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     ],
     variants: {},
     goals: ["ironman", "half", "10k"],
-    tags: ["VO2max", "intervalles", "haute-intensité"]
+    tags: ["VO2max", "intervalles", "haute-intensité"],
+    // W'bal — repos recalculable au CP/W' réel de l'athlète (Skiba 2012),
+    // au lieu du repos générique 5' ci-dessus. Extrait fidèlement du texte
+    // Main : 5x5' à 105-115% FTP (110% = milieu de plage) / 5' Z1 (récup active).
+    wbalProfile: {
+      sport: "bike",
+      blocks: [
+        {
+          reps: 5,
+          durationSec: 300,
+          intensity: 110,
+          intensityRef: "FTP",
+          defaultRestSec: 300,
+          recoveryStrategy: "active-light",
+          label: "VO2max 5x5 classique (Billat)",
+        },
+      ],
+    },
   },
   {
     id: "V3_BIKE_VO2_SHORT_30_30",
@@ -264,7 +281,23 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     ],
     variants: {},
     goals: ["ironman", "half"],
-    tags: ["norwegian", "VO2max", "seuil-haut"]
+    tags: ["norwegian", "VO2max", "seuil-haut"],
+    // W'bal — extrait fidèlement du texte Main : 4x8' à 100-108% FTP
+    // (104% = milieu de plage) / 4' Z1 actif.
+    wbalProfile: {
+      sport: "bike",
+      blocks: [
+        {
+          reps: 4,
+          durationSec: 480,
+          intensity: 104,
+          intensityRef: "FTP",
+          defaultRestSec: 240,
+          recoveryStrategy: "active-light",
+          label: "Norwegian 4x8",
+        },
+      ],
+    },
   },
   {
     id: "V3_BIKE_VO2_TABATA",
@@ -363,7 +396,27 @@ export const EnrichedWorkoutsV3: LibraryWorkout[] = [
     ],
     variants: {},
     goals: ["ironman", "half", "marathon", "semi", "10k"],
-    tags: ["seuil", "FTP", "threshold"]
+    tags: ["seuil", "FTP", "threshold"],
+    // W'bal — extrait fidèlement du texte Main : 2x20' à 95-100% FTP
+    // (98% = milieu de plage, arrondi) / 5' Z1. Séance seuil : le repos ne
+    // sera recalculé que si la puissance résolue dépasse le CP effectif de
+    // l'athlète (cas fréquent pour un CP proche ou légèrement sous FTP) —
+    // sinon recalcWorkoutRest conserve le repos par défaut ci-dessus, sans
+    // effet indésirable.
+    wbalProfile: {
+      sport: "bike",
+      blocks: [
+        {
+          reps: 2,
+          durationSec: 1200,
+          intensity: 98,
+          intensityRef: "FTP",
+          defaultRestSec: 300,
+          recoveryStrategy: "active-light",
+          label: "Seuil 2x20 (gold standard FTP)",
+        },
+      ],
+    },
   },
   {
     id: "V3_BIKE_MUSCULAR_ENDURANCE",
