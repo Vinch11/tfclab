@@ -12,7 +12,7 @@
 //   POST https://www.nolio.io/api/token/                (refresh)
 //   GET  https://www.nolio.io/api/get/training/?athlete_id=<id>&limit=200&offset=<n>
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { corsHeaders } from "../_shared/cors.ts";
 
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
