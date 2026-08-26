@@ -7,7 +7,8 @@ import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 // Running Focus Mode™ Integration
 // =============================================
 
-import { useState, useMemo, ReactNode } from "react";
+import { useState, useMemo, useEffect, ReactNode } from "react";
+import { fetchCurrentPlanBlock, type CurrentPlanBlock } from "@/lib/plan/getCurrentPlanBlock";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -106,18 +107,15 @@ const OBJECTIF_LABELS: Record<string, string> = {
   Olympic: "Olympique",
 };
 
+// Valeurs alignées sur l'enum réel du plan généré (systemPromptJSON.ts :
+// phase = "base" | "build" | "peak" | "taper") — "race"/"recovery" n'existent
+// pas dans les plans réels, retirés (n'auraient jamais matché).
 const PHASE_LABELS: Record<string, string> = {
   base: "Développement aérobie",
   build: "Consolidation métabolique",
   peak: "Spécifique",
-  race: "Affûtage",
-  recovery: "Récupération",
+  taper: "Affûtage",
 };
-
-function getPhaseFromObjectif(objectif: string): string {
-  // Simplified - in real app would come from planning module
-  return "build"; 
-}
 
 function generateCoachSummary(
   vlamax: VLamaxEffectif,
@@ -199,6 +197,21 @@ export default function DashboardPage() {
   const { snapshots, tests, checkins } = useCloudDataContext();
   const { isRunningOnly, raceLabel } = useRunningFocusMode();
   const [showScientificDetails, setShowScientificDetails] = useState(false);
+
+  // Bloc réel de la semaine en cours — depuis le dernier plan_versions de
+  // l'athlète (même source que le visualiseur de plan), pas une étiquette
+  // générique recalculée séparément. `undefined` = en cours de chargement,
+  // `null` = aucun plan/date exploitable (état honnête, pas une valeur par défaut).
+  const [currentPlanBlock, setCurrentPlanBlock] = useState<CurrentPlanBlock | null | undefined>(undefined);
+  useEffect(() => {
+    let cancelled = false;
+    setCurrentPlanBlock(undefined);
+    if (!currentAthlete?.id) return;
+    fetchCurrentPlanBlock(currentAthlete.id).then((block) => {
+      if (!cancelled) setCurrentPlanBlock(block);
+    });
+    return () => { cancelled = true; };
+  }, [currentAthlete?.id]);
 
   // =============================================
   // CALCUL DES DONNÉES EFFECTIVES
@@ -360,9 +373,6 @@ export default function DashboardPage() {
     // Générer le résumé coach
     const coachSummary = generateCoachSummary(vlamaxEffectif, tteEffectif, potentielPhysiologique, objectif);
     
-    // Phase actuelle
-    const phase = getPhaseFromObjectif(objectif);
-    
     // Priorités d'entraînement
     const priorities: string[] = [];
     const tteTarget = getTTETarget(objectif);
@@ -447,7 +457,6 @@ export default function DashboardPage() {
       athleteSnapshots,
       athleteTests,
       coachSummary,
-      phase,
       priorities,
       tteTarget,
       dataQualityStats,
@@ -518,7 +527,6 @@ export default function DashboardPage() {
     athleteSnapshots,
     athleteTests,
     coachSummary,
-    phase,
     dataQualityStats,
     priorities,
     tteTarget,
@@ -573,7 +581,13 @@ export default function DashboardPage() {
               </Badge>
               <Badge variant="secondary" className="gap-1 text-[11px] sm:text-xs">
                 <Activity className="h-3 w-3 shrink-0" />
-                {PHASE_LABELS[phase] || phase}
+                {currentPlanBlock === undefined
+                  ? "Chargement…"
+                  : currentPlanBlock?.theme
+                    ? currentPlanBlock.theme
+                    : currentPlanBlock?.phase
+                      ? (PHASE_LABELS[currentPlanBlock.phase] || currentPlanBlock.phase)
+                      : "Pas de plan actif"}
               </Badge>
             </div>
           </div>
