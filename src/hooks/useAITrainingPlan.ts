@@ -10,7 +10,7 @@
  */
 import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats, resetCatalogAttribution } from "@/lib/workoutCatalogBuilder";
+import { buildWorkoutCatalog, serializeCatalogForPrompt, computeCatalogDurationStats, resetCatalogAttribution, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
 import { isTrailCatalogId } from "@/lib/plan/trailMarkers";
 import type { CatalogDurationStats } from "@/lib/workoutCatalogBuilder";
 import type { TrainingSport } from "@/types/workoutLibrary";
@@ -255,6 +255,19 @@ export interface PlanConfig {
    * PHASE_DURATION_RANGE (2-6 sem, planValidator.ts).
    */
   fondationDurationWeeks?: number;
+  /**
+   * Risque blessure RÉEL (Fatigue + VLamax + TTE, cf. computeCAPInjuryRisk /
+   * computeBikeInjuryRisk dans injuryRiskUnified.ts), extrait de
+   * diagnostic.injuryRisk. Jusqu'ici ce score était calculé, affiché au coach
+   * (Dashboard), mais jamais transmis à la génération — ni dans le prompt, ni
+   * dans la sélection du catalogue. Consommé par nutritionAndSafetyGuardrails.ts
+   * (garde-fou texte) et workoutCatalogBuilder.ts (malus séances à impact
+   * élevé). `bike` couvre un trou complet : aucun garde-fou vélo n'existait.
+   */
+  injuryRisk?: {
+    run?: { level: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE"; score: number; why: string; guardrails: string[] };
+    bike?: { level: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE"; score: number; why: string; guardrails: string[] };
+  };
   activeLevers?: string[];
   prohibitions?: string[];
   adaptationProjections?: AdaptationProjection[];
@@ -445,7 +458,7 @@ export function useAITrainingPlan() {
           pr.start,
           pr.end,
           effTotalWeeks,
-          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage }
+          { maxItems: 80, chunkIndex: i, excludeIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk) }
         );
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -477,7 +490,7 @@ export function useAITrainingPlan() {
             cStart,
             cEnd,
             totalWeeks,
-            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage }
+            { maxItems: 130, chunkIndex: ci, excludeIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk) }
           );
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───

@@ -160,6 +160,15 @@ describe("computeDiagnostic", () => {
       const result = computeDiagnostic(BASE_INPUT);
       expect(result.injuryRisk.run).toBeNull();
     });
+
+    it("calcule un injuryRisk.bike pour un cycliste (jusqu'ici toujours null, non implémenté)", () => {
+      const result = computeDiagnostic(BASE_INPUT);
+      expect(result.injuryRisk.bike).not.toBeNull();
+      expect(result.injuryRisk.bike!.sport).toBe("VELO");
+      expect(result.injuryRisk.bike!.score).toBeGreaterThanOrEqual(0);
+      expect(result.injuryRisk.bike!.score).toBeLessThanOrEqual(100);
+      expect(["FAIBLE", "MODERE", "ELEVE", "CRITIQUE"]).toContain(result.injuryRisk.bike!.level);
+    });
   });
 
   describe("profil vide / minimal", () => {
@@ -233,6 +242,19 @@ describe("computeDiagnostic", () => {
 
       expect(result.injuryRisk.run).not.toBeNull();
       expect(result.injuryRisk.run!.score).toBeGreaterThanOrEqual(0);
+    });
+
+    it("n'a pas d'injuryRisk.bike pour sportFocus=run", () => {
+      const runInput: DiagnosticInput = {
+        ...BASE_INPUT,
+        sportFocus: "run",
+        vma: 18.5,
+        css: 240,
+        runEconomyScore: 72,
+        paceThresholdSecPerKm: 255,
+      };
+      const result = computeDiagnostic(runInput);
+      expect(result.injuryRisk.bike).toBeNull();
     });
   });
 

@@ -185,6 +185,9 @@ export function usePlanAdaptation() {
           args.planConfig.identifiedLimitersRaw,
           undefined,
           args.athleteData,
+          undefined,
+          undefined,
+          args.planConfig.injuryRisk,
         );
         const criticalIssues = vr.issues.filter((i) => i.severity === "error");
 
@@ -294,6 +297,9 @@ export function usePlanAdaptation() {
           req.baseConfig.identifiedLimitersRaw,
           undefined,
           req.athleteData,
+          undefined,
+          undefined,
+          req.baseConfig.injuryRisk,
         );
         const criticalIssues = vr.issues.filter((i) => i.severity === "error");
 

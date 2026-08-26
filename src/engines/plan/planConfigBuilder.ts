@@ -174,6 +174,25 @@ export function buildPlanConfigFromDiagnostic(
     formConfig.weeksAvailable,
   );
 
+  // ── Risque blessure (Fatigue + VLamax + TTE, source unique diagnostic.injuryRisk) ─
+  // Jusqu'ici calculé et affiché au coach (Dashboard) mais jamais transmis à
+  // la génération. Extrait ici (pas recalculé) pour rester la même source que
+  // ce que le coach voit déjà — pas de divergence entre les deux.
+  const injuryRisk: PlanConfig["injuryRisk"] = {
+    run: diagnostic.injuryRisk.run ? {
+      level: diagnostic.injuryRisk.run.level,
+      score: diagnostic.injuryRisk.run.score,
+      why: diagnostic.injuryRisk.run.why,
+      guardrails: diagnostic.injuryRisk.run.guardrails,
+    } : undefined,
+    bike: diagnostic.injuryRisk.bike ? {
+      level: diagnostic.injuryRisk.bike.level,
+      score: diagnostic.injuryRisk.bike.score,
+      why: diagnostic.injuryRisk.bike.why,
+      guardrails: diagnostic.injuryRisk.bike.guardrails,
+    } : undefined,
+  };
+
   // ── Leviers (L1 + L2) ──────────────────────────────────────────────────────
   const leverIds: string[] = [limiterResult.primaryLever];
   if (
@@ -321,6 +340,7 @@ export function buildPlanConfigFromDiagnostic(
     identifiedLimitersRaw: limitersRaw.length > 0 ? limitersRaw : undefined,
     chantierDurationWeeks,
     fondationDurationWeeks,
+    injuryRisk: (injuryRisk.run || injuryRisk.bike) ? injuryRisk : undefined,
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     adaptationProjections: projections.length > 0 ? projections : undefined,

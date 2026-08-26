@@ -9,11 +9,29 @@
 
 import type { LibraryWorkout, WorkoutGoal, PhaseTag, TrainingSport } from "@/types/workoutLibrary";
 import { WorkoutLibrary } from "./workoutLibrary";
-import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
+import { LIMITER_SESSION_PATTERNS, PROHIBITION_SESSION_PATTERNS, HIGH_IMPACT_SESSION_PATTERNS, resolveLimiterKey, resolveProhibitionKeys } from "./limiterSessionPatterns";
 import { ficheAllowedPhases, ficheCompatibleWithPhases, type PlanPhase } from "./plan/phaseNormalization";
 import { intentFamilyOf, type IntentFamily } from "./plan/intentFamily";
 import { isTrailWorkout } from "./plan/trailMarkers";
 import { resolveCanonicalDuration, dominantPhase } from "./plan/workoutDurationResolver";
+
+/**
+ * Réduit PlanConfig.injuryRisk (envelope complète {level, score, why, guardrails})
+ * à la forme compacte attendue par `buildWorkoutCatalog`/`scoreWorkout` — ne garde
+ * que les niveaux ÉLEVÉ/CRITIQUE (FAIBLE/MODÉRÉ n'appliquent aucun malus). Typé en
+ * structural (pas d'import de PlanConfig) pour éviter tout risque de cycle avec
+ * useAITrainingPlan.ts.
+ */
+export function toInjuryRiskCatalogOption(
+  injuryRisk: { run?: { level: string }; bike?: { level: string } } | undefined,
+): { run?: "ELEVE" | "CRITIQUE"; bike?: "ELEVE" | "CRITIQUE" } | undefined {
+  if (!injuryRisk) return undefined;
+  const pick = (level: string | undefined): "ELEVE" | "CRITIQUE" | undefined =>
+    level === "ELEVE" || level === "CRITIQUE" ? level : undefined;
+  const run = pick(injuryRisk.run?.level);
+  const bike = pick(injuryRisk.bike?.level);
+  return (run || bike) ? { run, bike } : undefined;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LIMITER → INTENT FAMILIES (F-LIM-COVERAGE)
@@ -227,11 +245,28 @@ export function isStructuralSession(w: LibraryWorkout): boolean {
  * ⚠️ Regex trail = importée de trailMarkers (source unique). NE PAS redéclarer ici.
  */
 
+/** Sport bucket grossier pour l'application du malus risque blessure (bilingue FR/EN). */
+function isBikeSport(sport: string): boolean {
+  return /bike|v[ée]lo|cyclisme/i.test(sport);
+}
+function isRunSport(sport: string): boolean {
+  return /run|course|cap\b|trail/i.test(sport);
+}
+
 function scoreWorkout(
   w: LibraryWorkout,
   goals: WorkoutGoal[],
   phases: PhaseTag[],
-  limiterKeys?: { primary?: string; secondary?: string }
+  limiterKeys?: { primary?: string; secondary?: string },
+  /**
+   * Risque blessure calculé (injuryRiskUnified.ts, via PlanConfig.injuryRisk) —
+   * MALUS de score sur les séances à impact mécanique élevé quand ÉLEVÉ/CRITIQUE,
+   * jamais une exclusion dure (une sortie longue reste nécessaire à un objectif
+   * marathon même à risque élevé ; on la rend juste moins préférentielle face à
+   * des alternatives plus courtes). Le plafonnement explicite (durée, fréquence)
+   * est géré séparément par l'instruction texte injectée dans le prompt.
+   */
+  injuryRisk?: { run?: "ELEVE" | "CRITIQUE"; bike?: "ELEVE" | "CRITIQUE" }
 ): number {
   // ─── HARD-BAN RÉCIPROQUE START TO RUN ───
   // Un plan débutant ne prend QUE des fiches `start_to_run` (marche-course,
@@ -378,6 +413,28 @@ function scoreWorkout(
     }
   }
 
+  // ─── Malus risque blessure (F-INJ) ───
+  // Pénalise (sans exclure) les séances à impact mécanique élevé quand le
+  // risque calculé pour le sport de CETTE séance est ÉLEVÉ/CRITIQUE — pousse
+  // le classement vers des alternatives plus douces sans jamais vider le pool.
+  const injuryLevelForSport = isBikeSport(w.sport)
+    ? injuryRisk?.bike
+    : isRunSport(w.sport)
+      ? injuryRisk?.run
+      : undefined;
+  if (injuryLevelForSport) {
+    const structureText = (w.structure || [])
+      .map(s => `${s.part} ${s.text} ${s.zones.join(" ")}`)
+      .join(" ");
+    const tagsText = (w.tags || []).join(" ");
+    const matchText = `${w.id ?? ""} ${w.objectif} ${structureText} ${tagsText}`;
+    const malus = injuryLevelForSport === "CRITIQUE" ? 35 : 15;
+    const isHighImpact = isBikeSport(w.sport)
+      ? HIGH_IMPACT_SESSION_PATTERNS.bike_force.test(matchText)
+      : HIGH_IMPACT_SESSION_PATTERNS.run_long.test(matchText) || HIGH_IMPACT_SESSION_PATTERNS.run_intensity.test(matchText);
+    if (isHighImpact) score -= malus;
+  }
+
   return score;
 }
 
@@ -432,6 +489,12 @@ export function buildWorkoutCatalog(
      * (id → poids de récence). Appliqué en pénalité de score, jamais en exclusion.
      */
     historicalUsage?: Map<string, number>;
+    /**
+     * Risque blessure calculé (cf. PlanConfig.injuryRisk, injuryRiskUnified.ts) —
+     * applique un malus (jamais une exclusion) aux séances à impact mécanique
+     * élevé du sport concerné quand ÉLEVÉ/CRITIQUE. Voir scoreWorkout (F-INJ).
+     */
+    injuryRisk?: { run?: "ELEVE" | "CRITIQUE"; bike?: "ELEVE" | "CRITIQUE" };
   }
 ): CatalogEntry[] {
   const goals = normalizeGoal(objective);
@@ -681,7 +744,7 @@ export function buildWorkoutCatalog(
     .map(w => ({
       workout: w,
       score: (() => {
-        const base = scoreWorkout(w, goals, phases, limiterKeys);
+        const base = scoreWorkout(w, goals, phases, limiterKeys, options?.injuryRisk);
         return base <= -1000 ? base : base - historyPenalty(w.id);
       })(),
     }))

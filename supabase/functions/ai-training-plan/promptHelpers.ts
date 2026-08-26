@@ -1373,6 +1373,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       sportMain: data.sport_main || data.sportMain || null,
       heatCondition: !!config?.heatCondition,
       raceDurationHours: config?.raceDurationHours ?? null,
+      injuryRiskPrecomputed: config?.injuryRisk,
     });
     lines.push(nutriBlock);
   } catch (e) {
