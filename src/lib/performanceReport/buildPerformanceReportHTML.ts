@@ -153,7 +153,12 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
     </div>`
         : `<div class="note warn" style="margin-top:12px">Ravitaillement non calculable : VO₂max, VLamax et poids sont nécessaires.</div>`
     }
-    <div class="note" style="margin-top:10px">Besoin estimé à allure de course : <strong>${p.raceCarbNeedGH ?? "—"} g/h</strong>${p.carbMaxW ? ` · CarbMax atteint à ${p.carbMaxW} W` : ""}.</div>
+    <div class="grid3" style="margin-top:12px">
+      <div class="kpi"><div class="k">Réserve de glycogène</div><div class="v">${p.glycogenStoreG ?? "—"}<span class="u">g</span></div></div>
+      <div class="kpi"><div class="k">Équivalent énergétique</div><div class="v">${p.glycogenStoreKcal ?? "—"}<span class="u">kcal</span></div></div>
+      <div class="kpi"><div class="k">CarbMax (90 g/h)</div><div class="v">${p.carbMaxW ?? "—"}<span class="u">W</span></div></div>
+    </div>
+    <div class="note" style="margin-top:10px">Besoin estimé à allure de course : <strong>${p.raceCarbNeedGH ?? "—"} g/h</strong>${p.carbMaxW ? ` · CarbMax atteint à ${p.carbMaxW} W` : ""}. Le réservoir (muscle + foie) est une réserve fixe : au-delà de son plafond d'ingestion, l'organisme puise dedans — c'est ce qui définit le « mur » en épreuve longue.</div>
     ${foot(input, 6)}
   </section>`;
 
@@ -198,6 +203,24 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       }
     </div>
     <div class="card" style="margin-top:12px">
+      <h3>Points forts</h3>
+      ${
+        input.strengths.length
+          ? input.strengths
+              .map(
+                (s) => `<div class="limiter" style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px">
+        <div class="badge">${esc(s.emoji)}</div>
+        <div style="flex:1">
+          <strong style="font-size:12.4px">${esc(s.title)}</strong>
+          <p style="margin:4px 0 0;font-size:11px">${esc(s.detail)}</p>
+        </div>
+      </div>`,
+              )
+              .join("")
+          : `<p class="muted">Points forts non déterminables : diagnostic incomplet.</p>`
+      }
+    </div>
+    <div class="card" style="margin-top:12px">
       <h3>Limiteurs identifiés</h3>
       ${
         input.limiters.length
@@ -226,6 +249,23 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   <section class="page">
     <div class="eyebrow">08 — Plan d'action</div>
     <h1>Ce qu'on fait des 12 prochaines semaines</h1>
+    ${
+      input.blockStructure.length
+        ? `<div class="card" style="margin-bottom:10px">
+      <h3>Structure du prochain bloc</h3>
+      <table>
+        <thead><tr><th style="width:16%">Phase</th><th style="width:12%">Durée</th><th style="width:26%">Focus</th><th>Séance clé</th></tr></thead>
+        <tbody>${input.blockStructure
+          .map(
+            (b) =>
+              `<tr><td><strong>${esc(b.phase)}</strong></td><td class="muted">${esc(b.weeksRange)}</td><td>${esc(b.focus)}</td><td class="muted">${esc(b.keySession)}</td></tr>`,
+          )
+          .join("")}</tbody>
+      </table>
+      <p class="muted" style="margin:8px 0 0;font-size:10px">Architecture générique (Fondation → Chantier → Consolidation → Race-Specific → Affûtage), personnalisée par tes limiteurs. Le plan réellement généré affine les durées exactes selon l'ampleur de chaque écart.</p>
+    </div>`
+        : ""
+    }
     ${
       input.actions.length
         ? input.actions

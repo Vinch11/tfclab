@@ -63,8 +63,8 @@ const FAT_ENERGY_DENSITY = 38.9; // kJ per gram fat
 const CARB_ENERGY_DENSITY = 17.2; // kJ per gram carbohydrate
 const O2_PER_FAT_GRAM = 2.01; // liters O2 per gram fat oxidized
 const O2_PER_CARB_GRAM = 0.83; // liters O2 per gram carb oxidized
-const GLYCOGEN_MUSCLE_MAX = 400; // grams (trained athlete)
-const GLYCOGEN_LIVER_MAX = 100; // grams
+export const GLYCOGEN_MUSCLE_MAX = 400; // grams (trained athlete)
+export const GLYCOGEN_LIVER_MAX = 100; // grams
 const LACTATE_BASELINE = 1.0; // mmol/L resting lactate
 
 // Glycogen depletion / glycemic regulation (Coyle 1986 JSCR, Coggan 1987 JAP, Romijn 1993 AJP)
@@ -561,6 +561,18 @@ export function calculateTTE(
   // Cap at realistic values
   // Very low intensity can theoretically go forever, but realistically limited
   return Math.min(480, Math.max(5, Math.round(tteMinutes)));
+}
+
+/**
+ * Réserve totale de glycogène (muscle + foie, athlète entraîné) — mêmes
+ * constantes que `calculateTTE`/`calculateGlycogenDepletion` (source unique).
+ * Énergie convertie via CARB_ENERGY_DENSITY (17.2 kJ/g), pas une valeur
+ * inventée séparément.
+ */
+export function getGlycogenStore(): { totalG: number; kcal: number } {
+  const totalG = GLYCOGEN_MUSCLE_MAX + GLYCOGEN_LIVER_MAX;
+  const kcal = Math.round((totalG * CARB_ENERGY_DENSITY) / 4.184);
+  return { totalG, kcal };
 }
 
 /**
