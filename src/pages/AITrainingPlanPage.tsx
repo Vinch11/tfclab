@@ -35,7 +35,7 @@ import { useAITrainingPlan, getCatalogSportFilter, getCatalogExclusions, type Pl
 import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution } from "@/lib/workoutCatalogBuilder";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
-import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
+import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
 import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
@@ -1284,6 +1284,20 @@ export default function AITrainingPlanPage() {
     if (secondaryMetric && secondaryMetric !== primaryMetric) rawList.push(secondaryMetric);
     cfg.identifiedLimitersRaw = rawList;
 
+    // Durée du bloc Chantier — calculée depuis l'ampleur réelle du gap sur le
+    // limiteur #1 (status "limiting"/"acceptable"/"optimal" du diagnostic),
+    // plutôt que la valeur fixe "3-4 sem" jusqu'ici codée en dur dans le
+    // prompt. Le coach peut avoir choisi un limiteur différent de celui
+    // ressorti en tête du diagnostic auto — on relit le statut du bon
+    // limiteur (primaryMetric), pas juste gapAnalysis[0].
+    const primaryGap = athleteContext?.diagnostic.limiter.gapAnalysis.find(
+      (g) => g.metric === primaryMetric,
+    );
+    cfg.chantierDurationWeeks = computeChantierDurationWeeks(
+      primaryGap?.status,
+      payload.weeksAvailable,
+    );
+
     // identifiedLimiters — markdown injecté chunk 1 (format coach-authored)
     const md: string[] = [];
     md.push(`## ⚙️ LIMITEURS SAISIS PAR LE COACH (source manuelle, prime sur inférence auto)`);
@@ -1344,7 +1358,7 @@ export default function AITrainingPlanPage() {
     }
 
     return cfg;
-  }, []);
+  }, [athleteContext]);
 
   /**
    * Comme buildConfigFromDiag, mais réapplique en plus les derniers choix

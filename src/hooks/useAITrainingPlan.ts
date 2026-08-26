@@ -237,6 +237,15 @@ export interface PlanConfig {
    * pertinent que pour le chunk 1 — section buildAthleteProfile).
    */
   identifiedLimitersRaw?: string[];
+  /**
+   * Durée suggérée (semaines) du bloc Chantier consacré au limiteur #1,
+   * calculée depuis l'ampleur du gap (status "limiting"/"acceptable"/"optimal"
+   * du diagnostic) et bornée par weeksAvailable — cf.
+   * computeChantierDurationWeeks (planConfigBuilder.ts). Remplace la valeur
+   * générique "3-4 sem" codée en dur dans le prompt système. Reste toujours
+   * dans la plage validée par PHASE_DURATION_RANGE (2-6 sem, planValidator.ts).
+   */
+  chantierDurationWeeks?: number;
   activeLevers?: string[];
   prohibitions?: string[];
   adaptationProjections?: AdaptationProjection[];

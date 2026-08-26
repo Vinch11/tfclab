@@ -111,6 +111,12 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
       const tag = i === 0 ? "L1 (PRIORITAIRE)" : i === 1 ? "L2 (SECONDAIRE)" : `L${i + 1}`;
       lines.push(`  ${tag}: ${l}`);
     });
+    // Durée du bloc Chantier calculée depuis l'ampleur réelle du gap sur L1
+    // (cf. computeChantierDurationWeeks) — remplace la valeur générique
+    // "3-4 sem" donnée plus haut dans les instructions méthodologiques.
+    if (typeof config?.chantierDurationWeeks === "number" && config.chantierDurationWeeks > 0) {
+      lines.push(`  📅 Durée du bloc Chantier [L1] pour CET athlète : ${config.chantierDurationWeeks} semaines (calculée selon l'ampleur du gap + la durée totale du plan — utilise CETTE valeur, pas le "3-4 sem" générique indiqué plus haut).`);
+    }
   } else {
     lines.push(`\n⚠️ Aucun limiteur identifié — plan généraliste.`);
   }

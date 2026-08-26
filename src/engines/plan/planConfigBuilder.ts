@@ -437,6 +437,34 @@ function isShortDistanceObjective(objectif: string): boolean {
   );
 }
 
+/**
+ * Durée suggérée (semaines) du bloc Chantier consacré au limiteur #1 —
+ * jusqu'ici une valeur fixe (3-4 sem) identique quel que soit l'ampleur du
+ * gap, alors que le diagnostic calcule déjà un statut par métrique
+ * ("limiting"/"acceptable"/"optimal"). On utilise `status` plutôt que
+ * `weightedImpact` : ce dernier est dans une unité physique propre à chaque
+ * métrique (mL/kg/min pour VO2max, %FTP pour VLamax, etc.) et n'est PAS
+ * comparable en valeur absolue entre limiteurs différents — `status` est
+ * la seule normalisation déjà cross-métrique disponible dans le diagnostic.
+ *
+ * Le résultat reste toujours dans la plage validée par
+ * PHASE_DURATION_RANGE.Chantier = [2, 6] (planValidator.ts) : ceci ne
+ * remet pas en cause cette plage, juste où on se positionne dedans.
+ */
+export function computeChantierDurationWeeks(
+  primaryLimiterStatus: "optimal" | "acceptable" | "limiting" | string | undefined,
+  weeksAvailable: number | null | undefined,
+): number {
+  const base = primaryLimiterStatus === "limiting" ? 5
+    : primaryLimiterStatus === "acceptable" ? 4
+    : 3; // "optimal" ou statut inconnu → repli sur la valeur générique d'origine
+  if (!weeksAvailable || weeksAvailable <= 0) return base;
+  // Un Chantier ne doit pas à lui seul écraser Fondation/Consolidation/
+  // Race-Specific/Affûtage sur un plan court — plafond à ~35% du plan total.
+  const capFromTotal = Math.max(2, Math.round(weeksAvailable * 0.35));
+  return Math.max(2, Math.min(base, capFromTotal, 6));
+}
+
 function buildProhibitions(
   limiterResult: UnifiedLimiterResult,
   objectif: string,

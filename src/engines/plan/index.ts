@@ -19,6 +19,7 @@ export {
 export {
   buildPlanConfigFromDiagnostic,
   buildPlanAthleteDataFromDiagnostic,
+  computeChantierDurationWeeks,
 } from "./planConfigBuilder";
 export type { PlanFormConfig } from "./planConfigBuilder";
 
