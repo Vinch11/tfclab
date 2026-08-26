@@ -61,6 +61,19 @@ export interface PerfLimiter {
   mechanism: string;
 }
 
+export interface PerfStrength {
+  title: string;
+  emoji: string;
+  detail: string;
+}
+
+export interface PerfBlock {
+  phase: string;
+  weeksRange: string;
+  focus: string;
+  keySession: string;
+}
+
 export interface PerfTargetRow {
   marker: string;
   current: string;
@@ -105,6 +118,9 @@ export interface PerformanceReportInput {
     fcRest: number | null;
     fcThreshold: number | null;
     raceCarbNeedGH: number | null;
+    /** Réserve totale de glycogène (muscle + foie) — cf. getGlycogenStore(). */
+    glycogenStoreG: number | null;
+    glycogenStoreKcal: number | null;
   };
 
   /** Tables & courbes */
@@ -120,7 +136,9 @@ export interface PerformanceReportInput {
   zoneSourceLabel: string;
   fueling: Array<[string, string, string, string]>;
   scenarios: PerfScenario[];
+  strengths: PerfStrength[];
   limiters: PerfLimiter[];
+  blockStructure: PerfBlock[];
   actions: Array<{ title: string; body: string }>;
   controls: string[];
   targets: PerfTargetRow[];

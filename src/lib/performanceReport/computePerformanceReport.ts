@@ -21,6 +21,7 @@ import {
   findLactateThresholds,
   findMLSSPower,
   findSteadyStateLactate,
+  getGlycogenStore,
   type MaderProfile,
 } from "@/lib/v2/maderMetabolicModel";
 import { TRAINABILITY_CAPS } from "@/lib/v2/trainabilityCaps";
@@ -29,13 +30,37 @@ import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { deriveTrainingZones } from "@/lib/zones/deriveTrainingZones";
 import { AMBER, MINT, PERI, ROSE, SKY, VIOL } from "./charts";
 import type {
+  PerfBlock,
   PerfCurvePoint,
   PerfGaugeRow,
   PerfLimiter,
   PerfScenario,
+  PerfStrength,
   PerfZoneRow,
   PerformanceReportInput,
 } from "./types";
+
+/** Libellé + phrase courte par métrique — utilisé pour la liste des points forts (gapAnalysis "optimal"). */
+const STRENGTH_COPY: Record<string, { emoji: string; title: string; detail: (v: number | null) => string }> = {
+  VO2max: { emoji: "🫁", title: "Cylindrée aérobie", detail: (v) => `VO₂max ${v ?? "—"} ml/kg/min au-dessus de ta cible — le plafond aérobie n'est pas ton point faible.` },
+  VLamax: { emoji: "🩸", title: "Profil métabolique économe", detail: (v) => `VLamax ${v ?? "—"} mmol/L/s — tu épargnes le glycogène et déplaces peu le seuil vers le bas.` },
+  TTE: { emoji: "⏱️", title: "Durabilité au seuil", detail: () => "Tu tiens ton allure seuil au moins aussi longtemps que ta cible — la fatigue en fin d'épreuve n'est pas le premier risque." },
+  "FTP/kg": { emoji: "⚡", title: "Puissance relative au poids", detail: (v) => `FTP/kg ${v ?? "—"} — un bon rapport puissance/poids pour ton objectif.` },
+  VMA: { emoji: "🏃", title: "Vitesse maximale aérobie", detail: (v) => `VMA ${v ?? "—"} km/h — une bonne base de vitesse pour construire l'allure spécifique.` },
+  "W' (kJ)": { emoji: "🔋", title: "Réserve anaérobie", detail: () => "Ta capacité de travail au-dessus du seuil (W') est dans la cible — de la marge pour les relances et le final." },
+};
+
+function buildStrengths(gapAnalysis: Array<{ metric: string; value: number | null; status: string; weightedImpact: number }> | undefined): PerfStrength[] {
+  if (!Array.isArray(gapAnalysis)) return [];
+  return gapAnalysis
+    .filter((g) => g.status === "optimal" && STRENGTH_COPY[g.metric])
+    .sort((a, b) => a.weightedImpact - b.weightedImpact)
+    .slice(0, 3)
+    .map((g) => {
+      const copy = STRENGTH_COPY[g.metric];
+      return { title: copy.title, emoji: copy.emoji, detail: copy.detail(g.value) };
+    });
+}
 
 const CATEGORY_TO_LIMITER: Record<string, string> = {
   aerobic_power: "aerobic_engine",
@@ -462,6 +487,24 @@ export function computePerformanceReport(
     };
   });
 
+  const strengths = buildStrengths(limiterResult?.gapAnalysis);
+
+  // ── Structure du prochain bloc ──────────────────────────────────────────────
+  // Architecture générique TFCL (Fondation → Chantier[Limiteur #1] →
+  // Consolidation[Limiteur #2] → Race-Specific → Affûtage, cf. systemPrompt de
+  // génération) — pas une copie du plan réellement généré (non disponible dans
+  // ce payload diagnostic), mais personnalisée par les limiteurs propres à
+  // l'athlète, pas un exemple générique interchangeable entre profils.
+  const l1 = limiters[0]?.title ?? "point faible principal";
+  const l2 = limiters[1]?.title ?? "point faible secondaire";
+  const blockStructure: PerfBlock[] = [
+    { phase: "Fondation", weeksRange: "2–6 sem", focus: "Base aérobie + force", keySession: "Volume Z2 croissant, VO₂max courts selon profil" },
+    { phase: "Chantier", weeksRange: "2–6 sem", focus: `Limiteur #1 · ${l1}`, keySession: "2–3 stimuli/sem ciblés sur ce limiteur" },
+    { phase: "Consolidation", weeksRange: "2–6 sem", focus: `Limiteur #2 · ${l2}`, keySession: "Rappels limiteur #1 + travail limiteur #2" },
+    { phase: "Race-Specific", weeksRange: "2–4 sem", focus: "Spécificité course", keySession: "Allure course, simulations, ravitaillement" },
+    { phase: "Affûtage", weeksRange: "1–3 sem", focus: "Fraîcheur", keySession: "Volume réduit, rappels courts d'intensité" },
+  ];
+
   // ── Plan d'action ──────────────────────────────────────────────────────────
   const decision = compass?.decision;
   const actions: Array<{ title: string; body: string }> = [];
@@ -524,6 +567,8 @@ export function computePerformanceReport(
     },
   ];
 
+  const glycogenStore = getGlycogenStore();
+
   const missing: string[] = [];
   if (vo2max == null) missing.push("VO₂max");
   if (vlamax == null) missing.push("VLamax");
@@ -578,6 +623,8 @@ export function computePerformanceReport(
       fcRest,
       fcThreshold,
       raceCarbNeedGH: need,
+      glycogenStoreG: glycogenStore.totalG,
+      glycogenStoreKcal: glycogenStore.kcal,
     },
     parameterRows,
     curve,
@@ -585,7 +632,9 @@ export function computePerformanceReport(
     zoneSourceLabel,
     fueling,
     scenarios,
+    strengths,
     limiters,
+    blockStructure,
     actions,
     controls,
     targets,
