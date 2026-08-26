@@ -237,6 +237,24 @@ export interface PlanConfig {
    * pertinent que pour le chunk 1 — section buildAthleteProfile).
    */
   identifiedLimitersRaw?: string[];
+  /**
+   * Durée suggérée (semaines) du bloc Chantier consacré au limiteur #1,
+   * calculée depuis l'ampleur du gap (status "limiting"/"acceptable"/"optimal"
+   * du diagnostic) et bornée par weeksAvailable — cf.
+   * computeChantierDurationWeeks (planConfigBuilder.ts). Remplace la valeur
+   * générique "3-4 sem" codée en dur dans le prompt système. Reste toujours
+   * dans la plage validée par PHASE_DURATION_RANGE (2-6 sem, planValidator.ts).
+   */
+  chantierDurationWeeks?: number;
+  /**
+   * Durée suggérée (semaines) du bloc Fondation, calculée depuis le niveau
+   * d'entraînement effectif de l'athlète (untrained/light/trained/highly_trained)
+   * et bornée par weeksAvailable — cf. computeFondationDurationWeeks
+   * (planConfigBuilder.ts). Remplace la valeur générique "3-4 sem" codée en
+   * dur dans le prompt système. Reste toujours dans la plage validée par
+   * PHASE_DURATION_RANGE (2-6 sem, planValidator.ts).
+   */
+  fondationDurationWeeks?: number;
   activeLevers?: string[];
   prohibitions?: string[];
   adaptationProjections?: AdaptationProjection[];

@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { computeDiagnostic } from "@/engines/diagnostic/computeDiagnostic";
-import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic } from "../planConfigBuilder";
+import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, computeChantierDurationWeeks, computeFondationDurationWeeks } from "../planConfigBuilder";
 import type { DiagnosticInput } from "@/engines/diagnostic/types";
 import type { PlanFormConfig } from "../planConfigBuilder";
 
@@ -197,5 +197,88 @@ describe("buildPlanAthleteDataFromDiagnostic", () => {
     };
     const diagnostic = computeDiagnostic(emptyInput);
     expect(() => buildPlanAthleteDataFromDiagnostic(diagnostic)).not.toThrow();
+  });
+});
+
+describe("computeChantierDurationWeeks", () => {
+  it("gap sévère (\"limiting\") sur un plan long → durée la plus longue, dans [2,6]", () => {
+    expect(computeChantierDurationWeeks("limiting", 24)).toBe(5);
+  });
+
+  it("gap modéré (\"acceptable\") → durée intermédiaire", () => {
+    expect(computeChantierDurationWeeks("acceptable", 24)).toBe(4);
+  });
+
+  it("gap faible/optimal → repli sur la valeur générique d'origine (3 sem)", () => {
+    expect(computeChantierDurationWeeks("optimal", 24)).toBe(3);
+  });
+
+  it("statut inconnu/absent → repli identique au cas optimal (3 sem)", () => {
+    expect(computeChantierDurationWeeks(undefined, 24)).toBe(3);
+    expect(computeChantierDurationWeeks("unknown", 24)).toBe(3);
+  });
+
+  it("plan court : plafonne pour ne pas écraser les autres blocs (≤ ~35% du plan)", () => {
+    // 10 sem × 35% ≈ 4 → un gap "limiting" (base 5) est ramené à 4
+    expect(computeChantierDurationWeeks("limiting", 10)).toBe(4);
+    // 6 sem × 35% ≈ 2 → plancher de la plage validée
+    expect(computeChantierDurationWeeks("limiting", 6)).toBe(2);
+  });
+
+  it("weeksAvailable absent → pas de plafonnement, juste la base par statut", () => {
+    expect(computeChantierDurationWeeks("limiting", undefined)).toBe(5);
+    expect(computeChantierDurationWeeks("limiting", null)).toBe(5);
+  });
+
+  it("reste toujours dans la plage validée par PHASE_DURATION_RANGE.Chantier = [2,6]", () => {
+    for (const status of ["limiting", "acceptable", "optimal", "unknown", undefined]) {
+      for (const weeks of [4, 8, 12, 16, 20, 24, 30, undefined]) {
+        const d = computeChantierDurationWeeks(status, weeks);
+        expect(d).toBeGreaterThanOrEqual(2);
+        expect(d).toBeLessThanOrEqual(6);
+      }
+    }
+  });
+});
+
+describe("computeFondationDurationWeeks", () => {
+  it("athlète non entraîné sur un plan long → durée la plus longue, dans [2,6]", () => {
+    expect(computeFondationDurationWeeks("untrained", 24)).toBe(6);
+  });
+
+  it("entraînement léger → durée intermédiaire haute", () => {
+    expect(computeFondationDurationWeeks("light", 24)).toBe(5);
+  });
+
+  it("très entraîné → durée la plus courte", () => {
+    expect(computeFondationDurationWeeks("highly_trained", 24)).toBe(3);
+  });
+
+  it("niveau \"trained\" ou inconnu → repli sur la valeur intermédiaire générique (4 sem)", () => {
+    expect(computeFondationDurationWeeks("trained", 24)).toBe(4);
+    expect(computeFondationDurationWeeks(undefined, 24)).toBe(4);
+    expect(computeFondationDurationWeeks("unknown", 24)).toBe(4);
+  });
+
+  it("plan court : plafonne pour ne pas écraser les autres blocs (≤ ~35% du plan)", () => {
+    // 10 sem × 35% ≈ 4 → un athlète "untrained" (base 6) est ramené à 4
+    expect(computeFondationDurationWeeks("untrained", 10)).toBe(4);
+    // 6 sem × 35% ≈ 2 → plancher de la plage validée
+    expect(computeFondationDurationWeeks("untrained", 6)).toBe(2);
+  });
+
+  it("weeksAvailable absent → pas de plafonnement, juste la base par niveau", () => {
+    expect(computeFondationDurationWeeks("untrained", undefined)).toBe(6);
+    expect(computeFondationDurationWeeks("untrained", null)).toBe(6);
+  });
+
+  it("reste toujours dans la plage validée par PHASE_DURATION_RANGE.Fondation = [2,6]", () => {
+    for (const level of ["untrained", "light", "trained", "highly_trained", "unknown", undefined]) {
+      for (const weeks of [4, 8, 12, 16, 20, 24, 30, undefined]) {
+        const d = computeFondationDurationWeeks(level, weeks);
+        expect(d).toBeGreaterThanOrEqual(2);
+        expect(d).toBeLessThanOrEqual(6);
+      }
+    }
   });
 });

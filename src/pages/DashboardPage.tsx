@@ -268,7 +268,17 @@ export default function DashboardPage() {
     });
     
     // Potentiel Physiologique Effectif (source unique)
-    
+    const potentielPhysiologique = computePotentielEffectif({
+      objectif,
+      vlamaxEffectif: { value: vlamaxEffectif.value ?? 0, confidence: vlamaxEffectif.confidence },
+      tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence },
+      ftp: activeSnapshot.ftp,
+      poids: activeSnapshot.weight_kg ?? undefined,
+      athleteAge,
+      ambition: getAthleteAmbition(currentAthlete),
+      tss7d: activeSnapshot.tss_7d ?? null,
+    });
+
     // Nutrition Prédictive
     const nutritionEstimate = computeNutritionEstimate({
       vlamax: vlamaxEffectif.value,

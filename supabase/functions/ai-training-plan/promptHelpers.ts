@@ -111,6 +111,12 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
       const tag = i === 0 ? "L1 (PRIORITAIRE)" : i === 1 ? "L2 (SECONDAIRE)" : `L${i + 1}`;
       lines.push(`  ${tag}: ${l}`);
     });
+    // Durée du bloc Chantier calculée depuis l'ampleur réelle du gap sur L1
+    // (cf. computeChantierDurationWeeks) — remplace la valeur générique
+    // "3-4 sem" donnée plus haut dans les instructions méthodologiques.
+    if (typeof config?.chantierDurationWeeks === "number" && config.chantierDurationWeeks > 0) {
+      lines.push(`  📅 Durée du bloc Chantier [L1] pour CET athlète : ${config.chantierDurationWeeks} semaines (calculée selon l'ampleur du gap + la durée totale du plan — utilise CETTE valeur, pas le "3-4 sem" générique indiqué plus haut).`);
+    }
   } else {
     lines.push(`\n⚠️ Aucun limiteur identifié — plan généraliste.`);
   }
@@ -290,6 +296,15 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(`  • Rampe : atteindre ${vr.weeklyHoursTarget}h en ~${vr.rampWeeks} semaine(s), progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem (règle des 10%, ACWR ≤ 1.3 — Gabbett)`);
     lines.push(`  ⚠️ NE PAS appliquer le volume cible "weeklyHours" dès Sem 1 : c'est la cible APRÈS la rampe, pas le point de départ.`);
     lines.push(`  ⚠️ Une semaine de décharge (deload) DOIT intervenir tous les 3 microcycles de charge même pendant la rampe.`);
+  }
+
+  // Durée du bloc Fondation calculée depuis le niveau d'entraînement effectif
+  // (cf. computeFondationDurationWeeks) — remplace la valeur générique
+  // "3-4 sem" donnée plus haut dans les instructions méthodologiques. Un
+  // athlète moins entraîné a besoin de plus de temps pour reconstruire une
+  // base aérobie avant le travail spécifique.
+  if (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0) {
+    lines.push(`\n📅 Durée du bloc Fondation pour CET athlète : ${config.fondationDurationWeeks} semaines (calculée selon le niveau d'entraînement + la durée totale du plan — utilise CETTE valeur, pas le "3-4 sem" générique indiqué plus haut).`);
   }
 
   // FIX C5 + audit V8: Limiter-aware phase heuristics — works for ANY plan ≥4 semaines.
