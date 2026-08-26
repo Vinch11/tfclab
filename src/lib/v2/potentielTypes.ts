@@ -54,26 +54,137 @@ export type RiskContextRun = {
   limiting_factor: LimitingFactor;
 };
 
-export function computePotentielRun(..._args: unknown[]): PotentielRun {
+/**
+ * Disponibilité du jour → Readiness Running (boucle rapide).
+ *
+ * Contrat d'échelle pour `AvailabilityRun` (voir fatigueStateMapping.ts,
+ * source des valeurs par défaut dérivées de `fatigue_state`) :
+ *   - sleep_quality  1-5, plus haut = meilleur sommeil
+ *   - fatigue_level  1-5, plus haut = plus fatigué
+ *   - muscle_soreness 0-10, plus haut = plus de courbatures
+ *   - mental_stress  1-5, plus haut = plus stressé
+ *   - motivation     1-5, plus haut = plus motivé
+ *
+ * Remplace le stub qui retournait toujours GREEN/70 quelle que soit la
+ * disponibilité réelle de l'athlète (readiness_score toujours "70" et
+ * readiness_state toujours "GREEN") — le pacing de course et la carte
+ * "Décision Semaine" traitaient donc systématiquement l'athlète comme frais.
+ */
+export function computePotentielRun(
+  profile: { athlete_id: string },
+  availability: AvailabilityRun,
+): PotentielRun {
+  const {
+    sleep_quality = 3,
+    fatigue_level = 3,
+    muscle_soreness = 2,
+    pain_flag = false,
+    mental_stress = 3,
+    motivation = 3,
+    hr_drift_flag,
+    recent_load_flag,
+  } = availability;
+
+  let score = 70; // baseline "ok" sur tous les axes
+  score -= (fatigue_level - 2) * 12;
+  score += (sleep_quality - 4) * 6;
+  score -= muscle_soreness * 2;
+  score -= (mental_stress - 3) * 5;
+  score += (motivation - 3) * 4;
+  if (pain_flag) score -= 35;
+  if (hr_drift_flag) score -= 10;
+  if (recent_load_flag) score -= 10;
+  score = Math.max(0, Math.min(100, Math.round(score)));
+
+  const readiness_state: ReadinessState = pain_flag || score < 40 ? "RED" : score < 65 ? "ORANGE" : "GREEN";
+
+  // Facteur limitant dominant — priorité sécurité (douleur) puis plus gros écart au neutre.
+  const deviations: Array<{ factor: LimitingFactor; magnitude: number }> = [
+    { factor: "FATIGUE", magnitude: Math.max(0, fatigue_level - 2) * 12 },
+    { factor: "STRESS", magnitude: Math.max(0, mental_stress - 3) * 5 },
+    { factor: "LOAD", magnitude: (hr_drift_flag ? 10 : 0) + (recent_load_flag ? 10 : 0) },
+    { factor: "ENERGY", magnitude: Math.max(0, 3 - motivation) * 4 + Math.max(0, 4 - sleep_quality) * 6 },
+  ];
+  const worst = deviations.reduce((a, b) => (b.magnitude > a.magnitude ? b : a), deviations[0]);
+  const limiting_factor: LimitingFactor = pain_flag ? "PAIN" : worst.magnitude >= 15 ? worst.factor : "NONE";
+
+  const confidence =
+    0.5 + (hr_drift_flag !== undefined ? 0.15 : 0) + (recent_load_flag !== undefined ? 0.15 : 0);
+
+  const implications: ReadinessImplications =
+    readiness_state === "RED"
+      ? { race_allowed: !pain_flag, intensity_cap: 0.75, pacing_discipline: "VERY_STRICT", recommended_start_pace: "Départ prudent, sous l'allure cible" }
+      : readiness_state === "ORANGE"
+        ? { race_allowed: true, intensity_cap: 0.9, pacing_discipline: "STRICT", recommended_start_pace: "Allure cible basse du couloir" }
+        : { race_allowed: true, intensity_cap: 1.0, pacing_discipline: "NORMAL", recommended_start_pace: "Allure cible" };
+
+  const stateLabel = readiness_state === "GREEN" ? "bonne" : readiness_state === "ORANGE" ? "réduite" : "faible";
+  const explanation = `Disponibilité ${stateLabel} (score ${score}/100)` + (limiting_factor !== "NONE" ? ` — facteur limitant : ${limiting_factor}` : "");
+  const coach_message = pain_flag
+    ? "Douleur signalée — ne pas engager de course/séance clé sans validation."
+    : `Disponibilité ${stateLabel}. ${implications.pacing_discipline === "NORMAL" ? "Plan prévu applicable." : "Approche conservatrice recommandée."}`;
+  const athlete_message = pain_flag
+    ? "Tu as signalé une douleur — priorité à la prudence aujourd'hui."
+    : readiness_state === "GREEN"
+      ? "Tu es prêt·e pour ta séance/course prévue."
+      : readiness_state === "ORANGE"
+        ? "Forme correcte mais pas optimale — reste sur un scénario prudent."
+        : "Fatigue/charge élevée — privilégie un scénario robuste.";
+
   return {
-    athlete_id: "",
+    athlete_id: profile.athlete_id,
     date: new Date().toISOString(),
-    readiness_score: 70,
-    readiness_state: "GREEN",
-    limiting_factor: "NONE",
-    confidence: 0.5,
-    explanation: "Stub — Potentiel Physiologique module removed",
-    coach_message: "",
-    athlete_message: "",
-    implications: { race_allowed: true, intensity_cap: 1.0, pacing_discipline: "NORMAL", recommended_start_pace: "" },
+    readiness_score: score,
+    readiness_state,
+    limiting_factor,
+    confidence: Math.min(0.9, confidence),
+    explanation,
+    coach_message,
+    athlete_message,
+    implications,
     potential_locked: false,
     potential_reference: "",
-    availability_inputs: { sleep_quality: 7, fatigue_level: 3, muscle_soreness: 2, pain_flag: false, mental_stress: 3, motivation: 8 },
+    availability_inputs: availability,
   };
 }
 
-export function applyReadinessToDecision(..._args: unknown[]): unknown {
-  return {};
+/**
+ * Applique le Readiness du jour à la décision hebdo de base
+ * (`computeWeeklyDecision`, calculée sur charge/sommeil/fatigue de la
+ * semaine) : resserre les contraintes d'exécution si la disponibilité DU
+ * JOUR est dégradée, sans jamais assouplir ce que la boucle hebdo a déjà
+ * décidé (le readiness journalier peut aggraver la prudence, jamais la
+ * réduire).
+ *
+ * Remplace le stub qui retournait `{}` — la décision hebdo réelle
+ * (calculée par computeWeeklyDecision) était donc systématiquement
+ * remplacée par un objet vide en aval (badge de date "Invalid Date",
+ * contraintes/garde-fous tous absents).
+ */
+export function applyReadinessToDecision<T extends {
+  strategy_status: string;
+  constraints: { intensity_allowed: "LOW" | "MODERATE" | "HIGH"; longrun_allowed: boolean; speedwork_allowed: boolean; max_key_sessions: number };
+  watchouts: string[];
+}>(decision: T, potentiel: PotentielRun): T {
+  if (potentiel.readiness_state === "GREEN") return decision;
+
+  const tighter = { ...decision.constraints };
+  if (potentiel.readiness_state === "RED") {
+    tighter.intensity_allowed = "LOW";
+    tighter.speedwork_allowed = false;
+    tighter.longrun_allowed = false;
+    tighter.max_key_sessions = 0;
+  } else if (potentiel.readiness_state === "ORANGE") {
+    if (tighter.intensity_allowed === "HIGH") tighter.intensity_allowed = "MODERATE";
+    tighter.speedwork_allowed = false;
+    tighter.max_key_sessions = Math.min(tighter.max_key_sessions, 1);
+  }
+
+  const watchouts = decision.watchouts.includes(potentiel.explanation)
+    ? decision.watchouts
+    : [potentiel.explanation, ...decision.watchouts].slice(0, 3);
+
+  return { ...decision, constraints: tighter, watchouts };
 }
 
 // ═══ From potentielPhysiologiqueSimulationConnector ═══

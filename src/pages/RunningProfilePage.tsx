@@ -1,4 +1,4 @@
-import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
+import { fatigueStateToScoreOrDefault, fatigueStateToAvailability } from "@/lib/fatigueStateMapping";
 import { type AvailabilityRun, computePotentielRun } from "@/lib/v2/potentielTypes";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -239,28 +239,23 @@ export default function RunningProfilePage() {
   const potentielPhysiologique = useMemo(() => {
     if (!currentAthlete) return null;
     
-    // Mapper fatigue_state du snapshot vers les valeurs de disponibilité
-    const fatigueStateMap: Record<string, { fatigue: number; soreness: number; sleep: number; stress: number; motivation: number }> = {
-      fresh:    { fatigue: 1, soreness: 1, sleep: 4, stress: 2, motivation: 5 },
-      ok:       { fatigue: 3, soreness: 2, sleep: 3, stress: 3, motivation: 3 },
-      fatigued: { fatigue: 5, soreness: 3, sleep: 2, stress: 4, motivation: 2 },
-      high:     { fatigue: 7, soreness: 5, sleep: 2, stress: 5, motivation: 2 },
-      injured:  { fatigue: 8, soreness: 8, sleep: 2, stress: 6, motivation: 1 },
-    };
-    const stateValues = fatigueStateMap[effectiveCloudSnapshot?.fatigue_state || "ok"] ?? fatigueStateMap.ok;
-    
+    // Mapper fatigue_state du snapshot vers les valeurs de disponibilité —
+    // source unique fatigueStateToAvailability (fatigueStateMapping.ts),
+    // évite la duplication d'une table locale avec ses propres échelles.
+    const stateValues = fatigueStateToAvailability(effectiveCloudSnapshot?.fatigue_state);
+
     const availability: AvailabilityRun = {
-      sleep_quality: stateValues.sleep,
-      fatigue_level: stateValues.fatigue,
-      muscle_soreness: stateValues.soreness,
-      pain_flag: effectiveCloudSnapshot?.fatigue_state === "injured",
-      mental_stress: stateValues.stress,
+      sleep_quality: stateValues.sleep_quality,
+      fatigue_level: stateValues.fatigue_level,
+      muscle_soreness: stateValues.muscle_soreness,
+      pain_flag: stateValues.pain_flag,
+      mental_stress: stateValues.mental_stress,
       motivation: stateValues.motivation,
-      hr_drift_flag: effectiveCloudSnapshot?.run_hr_drift_pct 
-        ? effectiveCloudSnapshot.run_hr_drift_pct > 8 
+      hr_drift_flag: effectiveCloudSnapshot?.run_hr_drift_pct
+        ? effectiveCloudSnapshot.run_hr_drift_pct > 8
         : undefined,
-      recent_load_flag: effectiveCloudSnapshot?.tss_7d 
-        ? effectiveCloudSnapshot.tss_7d > 500 
+      recent_load_flag: effectiveCloudSnapshot?.tss_7d
+        ? effectiveCloudSnapshot.tss_7d > 500
         : undefined,
     };
     

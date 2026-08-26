@@ -7,7 +7,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,14 +37,16 @@ import {
   type RunningObjectiveDistance,
   type WeeklyInputs,
 } from "@/lib/v2/runningDoubleLoop";
-import { type AvailabilityRun, type PotentielRun, type ReadinessState, type RiskContextRun, computePotentielRun, applyReadinessToDecision } from "@/lib/v2/potentielTypes";
+import { type AvailabilityRun, type PotentielRun, computePotentielRun, applyReadinessToDecision } from "@/lib/v2/potentielTypes";
 import { computeVLamaxEffectif } from "@/engines/diagnostic";
 import { computeDisponibiliteTFCL } from "@/lib/v2/disponibiliteTFCL";
+import { fatigueStateToAvailability } from "@/lib/fatigueStateMapping";
+import { AvailabilityForm } from "./AvailabilityForm";
 
 export function RunningGuidancePage() {
   const navigate = useNavigate();
   const { currentAthlete } = useAthletes();
-  const { snapshots, tests, checkins } = useCloudData();
+  const { snapshots, tests } = useCloudData();
   const { isRunningOnly, raceType, raceLabel } = useRunningFocusMode();
   
   // État local pour simulation (en prod, viendrait de la DB)
@@ -112,66 +114,56 @@ export function RunningGuidancePage() {
     });
   }, [currentAthlete, raceType, activeSnapshot, vlamaxEffectif]);
   
-  // Récupérer les inputs hebdomadaires
+  // Disponibilité du jour dérivée de fatigue_state — sert de valeur initiale
+  // avant toute correction manuelle via le formulaire (cf. `availability` ci-dessous).
+  const snapshotAvailability = useMemo(
+    () => fatigueStateToAvailability(activeSnapshot?.fatigue_state),
+    [activeSnapshot?.fatigue_state],
+  );
+
+  // État pour le Potentiel Physiologique (formulaire) — initialisé depuis
+  // fatigue_state, corrigeable par le coach/l'athlète via AvailabilityForm.
+  const [availability, setAvailability] = useState<AvailabilityRun>(snapshotAvailability);
+  useEffect(() => {
+    setAvailability(snapshotAvailability);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAthlete?.id, activeSnapshot?.fatigue_state]);
+
+  // Récupérer les inputs hebdomadaires — dérivés de la disponibilité éditable
+  // (fatigue_state par défaut, ou correction manuelle du jour) + charge réelle.
   const weeklyInputs = useMemo((): WeeklyInputs => {
     if (!currentAthlete) return {};
-    
-    // Récupérer le dernier checkin
-    const athleteCheckins = checkins
-      .filter(c => c.athlete_id === currentAthlete.id)
-      .sort((a, b) => b.date_iso.localeCompare(a.date_iso));
-    const latestCheckin = athleteCheckins[0];
-    
-    // Calculer disponibilité
-    // Source: fatigue_state du snapshot uniquement (pas de check-in quotidien)
-    const fatigueStateToScore: Record<string, number> = {
-      fresh: 8, ok: 6, fatigued: 4, high: 2, injured: 1
-    };
-    const fatigueScore = fatigueStateToScore[activeSnapshot?.fatigue_state || "ok"] ?? 6;
-    
+
+    // computeDisponibiliteTFCL attend une échelle 0-10 "plus haut = mieux"
+    // (cf. TFCL_READINESS_QUESTIONS), à l'opposé du sens standard
+    // "plus haut = pire" de AvailabilityRun — conversion explicite ici.
     const dispo = computeDisponibiliteTFCL({
-      sleep: null,
-      fatigue: fatigueScore,
-      soreness: null,
-      stress: null,
-      motivation: null,
+      sleep: (availability.sleep_quality - 1) * 2.5,
+      fatigue: (6 - availability.fatigue_level) * 2,
+      soreness: 10 - availability.muscle_soreness,
+      stress: (6 - availability.mental_stress) * 2,
+      motivation: (availability.motivation - 1) * 2.5,
       alerts: {},
       objective: {
         tss7d: activeSnapshot?.tss_7d ?? null,
       },
     });
-    
+
     return {
       availability_score: dispo.score,
-      sleep_quality: undefined,
-      fatigue_level: fatigueScore,
-      stress_level: undefined,
-      motivation: undefined,
-      pain_flag: false,
+      sleep_quality: availability.sleep_quality,
+      fatigue_level: availability.fatigue_level,
+      stress_level: availability.mental_stress,
+      motivation: availability.motivation,
+      pain_flag: availability.pain_flag,
       tss_7d: activeSnapshot?.tss_7d ?? undefined,
       hr_drift_pct: activeSnapshot?.run_hr_drift_pct ?? undefined,
     };
-  }, [currentAthlete, checkins, activeSnapshot]);
-  
-  // État pour le Potentiel Physiologique (formulaire)
-  const [availability, setAvailability] = useState<AvailabilityRun>({
-    sleep_quality: weeklyInputs.sleep_quality ?? 3,
-    fatigue_level: weeklyInputs.fatigue_level ?? 3,
-    muscle_soreness: 0,
-    pain_flag: weeklyInputs.pain_flag ?? false,
-    mental_stress: weeklyInputs.stress_level ?? 3,
-    motivation: weeklyInputs.motivation ?? 3,
-  });
+  }, [currentAthlete, activeSnapshot, availability]);
   
   // Calculer le Potentiel Physiologique
   const potentielPhysiologique = useMemo((): PotentielRun | null => {
     if (!lockedProfile) return null;
-    
-    const riskContext: RiskContextRun = {
-      readiness_state: "GREEN",
-      limiting_factor: "NONE",
-    };
-    
     return computePotentielRun(lockedProfile, availability);
   }, [lockedProfile, availability]);
   
@@ -268,8 +260,9 @@ export function RunningGuidancePage() {
         
         {/* Section Disponibilité CAP */}
         <div className="grid gap-4 md:grid-cols-2">
+          <AvailabilityForm value={availability} onChange={handleAvailabilityUpdate} />
         </div>
-        
+
         <Separator />
         
         {/* Double carte : Profil + Décision */}
@@ -314,16 +307,8 @@ export function RunningGuidancePage() {
         
         {/* Actions rapides */}
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate("/fatigue")}
-          >
-            Mettre à jour disponibilité
-            <ArrowRight className="h-4 w-4 ml-1" />
-          </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => navigate("/tests")}
           >
