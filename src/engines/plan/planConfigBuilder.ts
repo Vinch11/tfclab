@@ -153,6 +153,17 @@ export function buildPlanConfigFromDiagnostic(
   // ── Limiteurs RAW (noms de métriques, ordre prioritaire) — pour chunks 2..N
   const limitersRaw = buildLimitersRawList(limiterResult, coachLimiterOrder);
 
+  // ── Durée du bloc Chantier — calculée depuis l'ampleur réelle du gap sur
+  // le limiteur #1 (cf. computeChantierDurationWeeks plus bas), plutôt que
+  // la valeur fixe "3-4 sem" codée en dur dans le prompt. Câblé ici (et pas
+  // seulement dans buildCoachOverrides côté page) pour s'appliquer aussi au
+  // bouton "Générer" principal, qui ne passe jamais par le formulaire coach.
+  const primaryGapForChantier = limiterResult.gapAnalysis.find(g => g.metric === limitersRaw[0]);
+  const chantierDurationWeeks = computeChantierDurationWeeks(
+    primaryGapForChantier?.status,
+    formConfig.weeksAvailable,
+  );
+
   // ── Leviers (L1 + L2) ──────────────────────────────────────────────────────
   const leverIds: string[] = [limiterResult.primaryLever];
   if (
@@ -298,6 +309,7 @@ export function buildPlanConfigFromDiagnostic(
     constraints: formConfig.constraints,
     identifiedLimiters: limiters.length > 0 ? limiters : undefined,
     identifiedLimitersRaw: limitersRaw.length > 0 ? limitersRaw : undefined,
+    chantierDurationWeeks,
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     adaptationProjections: projections.length > 0 ? projections : undefined,
