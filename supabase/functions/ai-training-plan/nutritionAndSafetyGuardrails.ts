@@ -10,6 +10,13 @@
 
 type Sport = "bike" | "cap" | "trail" | "ultra" | "swim" | "run" | "running";
 
+interface InjuryRiskEnvelopeCompact {
+  level: "FAIBLE" | "MODERE" | "ELEVE" | "CRITIQUE" | string;
+  score: number;
+  why: string;
+  guardrails: string[];
+}
+
 interface GuardrailsInput {
   objective: string | null | undefined;
   ambition: string | null | undefined;
@@ -21,6 +28,17 @@ interface GuardrailsInput {
   sportMain: string | null | undefined;
   heatCondition?: boolean;
   raceDurationHours?: number | null;
+  /**
+   * Risque blessure RÉEL (Fatigue + VLamax + TTE, cf. injuryRiskUnified.ts),
+   * calculé côté client dans buildPlanConfigFromDiagnostic et transmis via
+   * PlanConfig.injuryRisk. Remplace `capRiskLevel` (proxy dégradé âge+VLamax
+   * seul, CAP uniquement) quand disponible — couvre aussi le vélo, absent
+   * jusqu'ici de tout garde-fou de génération.
+   */
+  injuryRiskPrecomputed?: {
+    run?: InjuryRiskEnvelopeCompact;
+    bike?: InjuryRiskEnvelopeCompact;
+  };
 }
 
 // Durées cibles par défaut (heures) par objectif × ambition — cohérence
@@ -233,19 +251,47 @@ export function buildNutritionAndSafetyBlock(input: GuardrailsInput): string {
     lines.push(`- ⚠️ Âge non renseigné → utilise cibles TTE adultes standards SANS ajustement master. Ne pas fabriquer d'ajustement fictif.`);
   }
 
-  lines.push(`\n**Risque blessure CAP (${sport}) — Niveau : ${risk.level.toUpperCase()}**`);
-  if (risk.reasons.length > 0) {
-    for (const r of risk.reasons) lines.push(`- ${r}`);
-    if (risk.level === "high" || risk.level === "very-high") {
-      lines.push(`- 🚨 **Charge cap : plafonner volume run à −15% vs matrice standard**, densifier récup active (Z1-Z2 vélo), interdire fractionné VMA >2×/sem.`);
-      if (input.age && input.age >= 50 && (ambition === "elite" || ambition === "world_class")) {
-        lines.push(`- 🚨 **Master 50+ × ${ambition}** : combinaison à haut risque santé. Le plan DOIT mentionner explicitement les précautions (récup ≥48h post-fractionné, monitoring HRV, semaine décharge tous les 3, pas tous les 4).`);
+  const runRiskReal = input.injuryRiskPrecomputed?.run;
+  const bikeRiskReal = input.injuryRiskPrecomputed?.bike;
+
+  if (runRiskReal || bikeRiskReal) {
+    // Score réel (Fatigue + VLamax + TTE) — remplace le proxy âge+VLamax seul.
+    if (runRiskReal) {
+      lines.push(`\n**Risque blessure CAP — Niveau : ${runRiskReal.level} (${runRiskReal.score}/100)**`);
+      lines.push(`- ${runRiskReal.why}`);
+      for (const g of runRiskReal.guardrails) lines.push(`- ${g}`);
+      if (runRiskReal.level === "ELEVE" || runRiskReal.level === "CRITIQUE") {
+        lines.push(`- 🚨 **CONTRAINTE GÉNÉRATION** : plafonner le volume CAP qualité (fractionné/côtes/VO2max) à ≤2×/sem, réduire la durée des sorties longues, ne pas empiler qualité CAP + sortie longue la même semaine sans jour de récup entre les deux.`);
+        if (input.age && input.age >= 50 && (ambition === "elite" || ambition === "world_class")) {
+          lines.push(`- 🚨 **Master 50+ × ${ambition}** : combinaison à haut risque santé. Le plan DOIT mentionner explicitement les précautions (récup ≥48h post-fractionné, monitoring HRV, semaine décharge tous les 3, pas tous les 4).`);
+        }
       }
-    } else if (risk.level === "moderate") {
-      lines.push(`- 🟡 Risque modéré : respecter progression volume ≤10%/semaine, 1 séance récup active/sem.`);
+    }
+    if (bikeRiskReal) {
+      lines.push(`\n**Risque blessure Vélo — Niveau : ${bikeRiskReal.level} (${bikeRiskReal.score}/100)**`);
+      lines.push(`- ${bikeRiskReal.why}`);
+      for (const g of bikeRiskReal.guardrails) lines.push(`- ${g}`);
+      if (bikeRiskReal.level === "ELEVE" || bikeRiskReal.level === "CRITIQUE") {
+        lines.push(`- 🚨 **CONTRAINTE GÉNÉRATION** : plafonner les sorties vélo longues, éviter le travail force/basse cadence (SFR) tant que le risque reste élevé, densifier la récupération entre séances qualité.`);
+      }
     }
   } else {
-    lines.push(`- ✅ Aucun facteur de risque détecté au-delà du standard.`);
+    // Repli : proxy dégradé (âge + VLamax uniquement, CAP seulement) — utilisé
+    // seulement si le score réel n'a pas pu être transmis (config incomplet).
+    lines.push(`\n**Risque blessure CAP (${sport}) — Niveau : ${risk.level.toUpperCase()}**`);
+    if (risk.reasons.length > 0) {
+      for (const r of risk.reasons) lines.push(`- ${r}`);
+      if (risk.level === "high" || risk.level === "very-high") {
+        lines.push(`- 🚨 **Charge cap : plafonner volume run à −15% vs matrice standard**, densifier récup active (Z1-Z2 vélo), interdire fractionné VMA >2×/sem.`);
+        if (input.age && input.age >= 50 && (ambition === "elite" || ambition === "world_class")) {
+          lines.push(`- 🚨 **Master 50+ × ${ambition}** : combinaison à haut risque santé. Le plan DOIT mentionner explicitement les précautions (récup ≥48h post-fractionné, monitoring HRV, semaine décharge tous les 3, pas tous les 4).`);
+        }
+      } else if (risk.level === "moderate") {
+        lines.push(`- 🟡 Risque modéré : respecter progression volume ≤10%/semaine, 1 séance récup active/sem.`);
+      }
+    } else {
+      lines.push(`- ✅ Aucun facteur de risque détecté au-delà du standard.`);
+    }
   }
 
   return lines.join("\n");

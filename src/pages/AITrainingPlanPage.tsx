@@ -32,7 +32,7 @@ import { differenceInCalendarDays, parseISO, addDays, startOfWeek, format, start
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAITrainingPlan, getCatalogSportFilter, getCatalogExclusions, type PlanAthleteData, type PlanConfig, type RaceGoal } from "@/hooks/useAITrainingPlan";
-import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution } from "@/lib/workoutCatalogBuilder";
+import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { buildPlanConfigFromDiagnostic, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, computeChantierDurationWeeks, type PlanFormConfig } from "@/engines/plan";
@@ -201,6 +201,7 @@ async function buildRegenCatalog(
       excludeIdPatterns,
       excludeTags,
       historicalUsage,
+      injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
     },
   );
   return {
@@ -254,6 +255,7 @@ async function buildRegenPhaseCatalogs(
         excludeIdPatterns,
         excludeTags,
         historicalUsage,
+        injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
       },
     );
     phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
@@ -1743,6 +1745,7 @@ export default function AITrainingPlanPage() {
             sessionsPerWeek: (() => { const n = parseInt(sessionsPerWeek); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
             maxSessionsPerDay: (() => { const n = parseInt(maxSessionsPerDay); return Number.isFinite(n) && n > 0 ? n : undefined; })(),
           },
+          cfg?.injuryRisk,
         );
         validatorScore = vr.score;
         validatorGrade = vr.grade;

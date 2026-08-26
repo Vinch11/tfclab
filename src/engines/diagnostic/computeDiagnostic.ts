@@ -32,6 +32,7 @@ import { computeDecisionTFCL, type PotentielV2Result } from "@/lib/v2/potentielT
 import { getTargetsForAmbition, normalizeObjective, getVLamaxRange } from "@/lib/physiologicalTargets";
 import type { CompassScores, CompassAxisScore } from "@/lib/compassScoring";
 import { computeRunInjuryRisk, type RunInjuryRiskEnvelope } from "@/lib/runInjuryRisk";
+import { computeBikeInjuryRisk, type InjuryRiskEnvelope } from "@/lib/v2/injuryRiskUnified";
 import { fatigueStateToScore } from "@/lib/fatigueStateMapping";
 import {
   predictRunMLSSPctFromVLaCE,
@@ -84,6 +85,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
 
   // ── 5. Risque Blessure ────────────────────────────────────────────────────
   const runInjuryRisk = computeRunInjuryRiskFromInput(input, fatigue, tte, vlamax);
+  const bikeInjuryRisk = computeBikeInjuryRiskFromInput(input, fatigue, tte, vlamax);
 
   // ── 6. DRE (placeholder — enrichi quand données disponibles) ──────────
   const reliability = null;
@@ -125,7 +127,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     },
     injuryRisk: {
       run: runInjuryRisk,
-      bike: null, // NON IMPLÉMENTÉ — à connecter ultérieurement
+      bike: bikeInjuryRisk,
     },
     reliability,
     runMLSS,
@@ -310,6 +312,31 @@ function computeRunInjuryRiskFromInput(
     fatigueEffectif: fatigue,
     vlamaxEffectif: vlamax,
     tteEffectif: tte,
+    tss7d: input.tss7d,
+    age: input.age,
+    objectif: input.objectif,
+  });
+}
+
+function computeBikeInjuryRiskFromInput(
+  input: DiagnosticInput,
+  fatigue: FatigueEffectif,
+  tte: TTEEffectif,
+  vlamax: VLamaxEffectif
+): InjuryRiskEnvelope | null {
+  if (input.sportFocus === "run") return null;
+
+  return computeBikeInjuryRisk({
+    vlamaxValue: vlamax.value,
+    // ifscScore / longRideDurationMin : non disponibles dans le Diagnostic
+    // Engine (IFSC nécessite la cadence spontanée, calculé séparément côté
+    // Dashboard). Traités comme "inconnu" par computeBikeInjuryRisk — même
+    // fallback que le Dashboard leur applique déjà (runLoad7d/longRide
+    // toujours null là-bas aussi, "pas encore disponible").
+    ifscScore: null,
+    longRideDurationMin: null,
+    tteMin: tte.tte_min,
+    fatiguePct: fatigue.score,
     tss7d: input.tss7d,
     age: input.age,
     objectif: input.objectif,

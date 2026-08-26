@@ -85,6 +85,27 @@ export const PROHIBITION_SESSION_PATTERNS: Record<string, RegExp> = {
 };
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * RISQUE BLESSURE → SESSION PATTERNS
+ *
+ * Regex matchant les séances mécaniquement/tendineusement exigeantes, utilisées
+ * pour appliquer un MALUS de score (pas une exclusion dure — contrairement aux
+ * prohibitions) quand le risque blessure calculé (injuryRiskUnified.ts) est
+ * ÉLEVÉ ou CRITIQUE pour le sport concerné. Consommé par `buildWorkoutCatalog`
+ * (scoreWorkout) — jusqu'ici le score de risque n'avait aucun effet sur la
+ * sélection des séances, seulement sur son affichage au coach.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
+export const HIGH_IMPACT_SESSION_PATTERNS: Record<string, RegExp> = {
+  // CAP — sortie longue : charge mécanique cumulée (impact articulaire/tendineux).
+  run_long: /sortie\s*longue|\bsl\b|long\s*run|long\s*trail|endurance\s*(?:fondament|longue)/i,
+  // CAP — fractionné/côtes/VO2max : charge mécanique de haute intensité (impact articulaire).
+  run_intensity: /vo2|vma|billat|fractionn|c[ôo]te|hill\s*repeat|30[\/_ -]?30|interval.*(?:court|rapide)|r[ée]p[ée]t/i,
+  // Vélo — force basse cadence / gros braquet : charge tendineuse genou/hanche.
+  bike_force: /force[\s_-]*low[\s_-]*cadence|basse\s*cadence|big\s*gear|gros\s*braquet|\bsfr\b|r[øo]nnestad/i,
+};
+
+/**
  * Détecte les clés de prohibition actives à partir des messages descriptifs
  * produits par `buildProhibitions` (planConfigBuilder). Cherche les mots-clés
  * SPRINT BAN, micro-intervalles, VO2max lourd, train low, etc.

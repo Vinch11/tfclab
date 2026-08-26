@@ -14,6 +14,7 @@
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 import type { PlanAthleteData } from "./types";
 import { extractCatalogId } from "@/lib/catalogIdExtractor";
+import { HIGH_IMPACT_SESSION_PATTERNS } from "@/lib/limiterSessionPatterns";
 import { detectInterval, detectAllIntervals, isCyclingSession } from "./wbalPostProcessor";
 import {
   analyzeCriticalPower,
@@ -105,6 +106,8 @@ export interface PlanValidationResult {
     sessionDensityScore: number;
     /** Lot 4 : conformité tags Lorang A-D vs polarisation Seiler (source: systemPrompt L528-536) */
     lorangCategoriesScore: number;
+    /** Conformité charge à impact élevé (CAP/vélo) vs risque blessure CRITIQUE (injuryRiskUnified.ts) */
+    injuryRiskComplianceScore: number;
     overallComment: string;
   };
   /** Lot 4 : distribution A/B/C/D par semaine + par plan */
@@ -1279,6 +1282,72 @@ function validateProhibitionCompliance(
   return { issues, score };
 }
 
+/**
+ * Rule: Injury risk compliance — le risque blessure calculé (Fatigue + VLamax +
+ * TTE, injuryRiskUnified.ts) était jusqu'ici affiché au coach mais jamais
+ * vérifié sur le plan généré : `scoreWorkout` applique un malus (pas une
+ * exclusion) sur les séances à impact élevé, donc un plan qui les prescrit
+ * quand même reste possible. Cette règle ferme la boucle : au niveau CRITIQUE,
+ * un plan qui garde une charge à impact élevé "normale" (comme si le risque
+ * n'existait pas) est une vraie violation de sécurité, pas juste sous-optimal
+ * — même tier que le Sprint Ban (bloque la sauvegarde, cf. PR#3).
+ * ÉLEVÉ reste volontairement non bloquant (avertissement ailleurs dans le
+ * plan, mais pas de blocage) : c'est un niveau de vigilance, pas d'alerte.
+ */
+function validateInjuryRiskCompliance(
+  plan: ParsedPlan,
+  injuryRisk?: { run?: { level: string }; bike?: { level: string } },
+): { issues: ValidationIssue[]; score: number } {
+  const issues: ValidationIssue[] = [];
+
+  const runCritique = injuryRisk?.run?.level === "CRITIQUE";
+  const bikeCritique = injuryRisk?.bike?.level === "CRITIQUE";
+  if (!runCritique && !bikeCritique) return { issues: [], score: 100 };
+
+  // Pas zéro : une progression totalement à l'arrêt n'est ni réaliste ni
+  // souhaitable. Le seuil intercepte un plan qui ignore le risque, pas un
+  // plan prudent qui garde un minimum de qualité.
+  const MAX_HIGH_IMPACT_PER_WEEK_CRITIQUE = 2;
+
+  let violationWeeks = 0;
+  let evaluableWeeks = 0;
+
+  for (const week of plan.weeks) {
+    const activeSessions = week.sessions.filter(s => !s.isRest);
+    if (activeSessions.length === 0) continue;
+    evaluableWeeks++;
+
+    let highImpactCount = 0;
+    for (const session of activeSessions) {
+      const sport = normalizeSport(session.sport);
+      const text = `${session.title} ${session.details}`.toLowerCase();
+      if (runCritique && sport === "Course" &&
+          (HIGH_IMPACT_SESSION_PATTERNS.run_long.test(text) || HIGH_IMPACT_SESSION_PATTERNS.run_intensity.test(text))) {
+        highImpactCount++;
+      }
+      if (bikeCritique && sport === "Vélo" && HIGH_IMPACT_SESSION_PATTERNS.bike_force.test(text)) {
+        highImpactCount++;
+      }
+    }
+
+    if (highImpactCount > MAX_HIGH_IMPACT_PER_WEEK_CRITIQUE) {
+      violationWeeks++;
+      issues.push({
+        rule: "injury_risk_compliance",
+        severity: "error",
+        week: week.weekNumber,
+        message: `S${week.weekNumber}: 🚨 Risque blessure CRITIQUE non respecté — ${highImpactCount} séances à impact mécanique élevé (max recommandé ${MAX_HIGH_IMPACT_PER_WEEK_CRITIQUE}/sem)`,
+        detail: `Le diagnostic signale un risque blessure critique (${runCritique ? "CAP" : ""}${runCritique && bikeCritique ? " + " : ""}${bikeCritique ? "Vélo" : ""}). Réduire les sorties longues / fractionné-côtes (CAP) ou le travail force basse cadence (vélo) cette semaine.`,
+      });
+    }
+  }
+
+  const score = evaluableWeeks === 0
+    ? 100
+    : Math.max(0, Math.round(((evaluableWeeks - violationWeeks) / evaluableWeeks) * 100));
+  return { issues, score };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // LIMITER ↔ SESSION COHERENCE VALIDATION (Rule 10)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1999,6 +2068,7 @@ export function validatePlan(
   athleteData?: PlanAthleteData,
   coachLimiterOrder?: string[],
   sessionDensity?: SessionDensityConfig,
+  injuryRisk?: { run?: { level: string }; bike?: { level: string } },
 ): PlanValidationResult {
   // F-14: defensive re-sort of identifiedLimiterKeys by coach override.
   // Upstream callers (deriveLimiterKeysFromGapAnalysis) usually already pass them
@@ -2036,6 +2106,7 @@ export function validatePlan(
   const sessionDensity_ = validateSessionDensity(plan, sessionDensity);
   const lorang_ = validateLorangCategories(plan);
   const sportObjective = validateSportObjectiveCoherence(plan, objective);
+  const injuryRiskCompliance = validateInjuryRiskCompliance(plan, injuryRisk);
 
   // Combine all issues
   const allIssues = [
@@ -2053,6 +2124,7 @@ export function validatePlan(
     ...sessionDensity_.issues,
     ...lorang_.issues,
     ...sportObjective.issues,
+    ...injuryRiskCompliance.issues,
   ];
 
   // Weighted score (13 rules) — Lot 4 introduit lorangCategories (5%),
@@ -2103,8 +2175,11 @@ export function validatePlan(
   const raceDayMissing = raceDayPresence.issues.filter(i => i.severity === "error").length;
   const limiterErrors = limiterCoherence.issues.filter(i => i.severity === "error").length;
   const wbalErrors = wbalFeasibility.issues.filter(i => i.severity === "error").length;
+  const injuryRiskErrors = injuryRiskCompliance.issues.filter(i => i.severity === "error").length;
   const overallComment = prohibitionViolations > 0
     ? `🚫 ${prohibitionViolations} VIOLATION(S) DE PROHIBITION DÉTECTÉE(S) — Plan NON CONFORME au diagnostic physiologique`
+    : injuryRiskErrors > 0
+    ? `🚨 ${injuryRiskErrors} semaine(s) avec charge à impact élevé non réduite malgré un risque blessure CRITIQUE — Plan NON CONFORME au diagnostic physiologique`
     : wbalErrors > 0
     ? `⚡ ${wbalErrors} séance(s) infaisable(s) selon le W'bal de l'athlète — intensité, durée ou repos à revoir`
     : limiterErrors > 0
@@ -2141,6 +2216,7 @@ export function validatePlan(
       wbalFeasibilityScore: wbalFeasibility.score,
       sessionDensityScore: sessionDensity_.score,
       lorangCategoriesScore: lorang_.score,
+      injuryRiskComplianceScore: injuryRiskCompliance.score,
       overallComment,
     },
   };
@@ -2169,6 +2245,7 @@ export function formatValidationReport(result: PlanValidationResult): string {
   lines.push(`| 🎯 Cohérence limiteurs↔séances | ${result.summary.limiterCoherenceScore}/100 | ${result.summary.limiterCoherenceScore >= 75 ? "✅" : result.summary.limiterCoherenceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push(`| ⚡ Faisabilité W'bal | ${result.summary.wbalFeasibilityScore}/100 | ${result.summary.wbalFeasibilityScore >= 90 ? "✅" : result.summary.wbalFeasibilityScore >= 70 ? "⚠️" : "❌"} |`);
   lines.push(`| 🎨 Catégories Lorang A-D | ${result.summary.lorangCategoriesScore}/100 | ${result.summary.lorangCategoriesScore >= 75 ? "✅" : result.summary.lorangCategoriesScore >= 50 ? "⚠️" : "❌"} |`);
+  lines.push(`| 🛡️ Risque blessure (charge impact élevé) | ${result.summary.injuryRiskComplianceScore}/100 | ${result.summary.injuryRiskComplianceScore >= 75 ? "✅" : result.summary.injuryRiskComplianceScore >= 50 ? "⚠️" : "❌"} |`);
   lines.push("");
   {
     const d = result.lorangCategories;

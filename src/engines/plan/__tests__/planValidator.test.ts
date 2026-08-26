@@ -457,5 +457,61 @@ describe("planValidator", () => {
     expect(warns.length).toBeGreaterThan(0);
     expect(result.summary.lorangCategoriesScore).toBeLessThan(90);
   });
+
+  describe("injury_risk_compliance", () => {
+    function highImpactCapWeek(weekNumber: number, count: number): ParsedWeek {
+      const highImpact: Partial<ParsedSession>[] = [
+        { sport: "Course", title: "VO2max 5x4min", details: "Z6 haute intensité" },
+        { sport: "Course", title: "Fractionné côtes", details: "Répétitions côtes" },
+        { sport: "Course", title: "Sortie longue 25km", details: "Endurance longue" },
+      ];
+      const sessions = [
+        ...highImpact.slice(0, count),
+        { sport: "Course", title: "EF Z2 40min", details: "Footing récup" },
+        { sport: "Repos", title: "Repos", details: "", isRest: true },
+      ];
+      return makeWeek(weekNumber, sessions);
+    }
+
+    it("bloque (error) une semaine avec >2 séances CAP à impact élevé quand le risque run est CRITIQUE", () => {
+      const plan = makePlan([highImpactCapWeek(1, 3)]);
+      const result = validatePlan(
+        plan, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+        { run: { level: "CRITIQUE" } },
+      );
+      const errors = result.issues.filter(i => i.rule === "injury_risk_compliance" && i.severity === "error");
+      expect(errors.length).toBe(1);
+      expect(result.summary.injuryRiskComplianceScore).toBeLessThan(100);
+    });
+
+    it("ne bloque pas une semaine avec ≤2 séances CAP à impact élevé même en risque CRITIQUE", () => {
+      const plan = makePlan([highImpactCapWeek(1, 2)]);
+      const result = validatePlan(
+        plan, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+        { run: { level: "CRITIQUE" } },
+      );
+      const errors = result.issues.filter(i => i.rule === "injury_risk_compliance");
+      expect(errors.length).toBe(0);
+      expect(result.summary.injuryRiskComplianceScore).toBe(100);
+    });
+
+    it("ne bloque pas au niveau ÉLEVÉ (avertissement, pas blocage) — seul CRITIQUE bloque", () => {
+      const plan = makePlan([highImpactCapWeek(1, 3)]);
+      const result = validatePlan(
+        plan, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+        { run: { level: "ELEVE" } },
+      );
+      const errors = result.issues.filter(i => i.rule === "injury_risk_compliance");
+      expect(errors.length).toBe(0);
+    });
+
+    it("n'ajoute aucun problème quand aucun risque n'est transmis (rétrocompatibilité)", () => {
+      const plan = makePlan([highImpactCapWeek(1, 3)]);
+      const result = validatePlan(plan);
+      const issues = result.issues.filter(i => i.rule === "injury_risk_compliance");
+      expect(issues.length).toBe(0);
+      expect(result.summary.injuryRiskComplianceScore).toBe(100);
+    });
+  });
 });
 
