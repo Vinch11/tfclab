@@ -4,7 +4,7 @@
 //   POST https://www.nolio.io/api/create/planned/training/    (création séance planifiée)
 // id_partner = clé de déduplication côté Nolio.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { corsHeaders } from "../_shared/cors.ts";
 import {
   deriveTrainingZonesEdge,
   derivedWattsFromStandardPct,

@@ -8,7 +8,7 @@
 // Règle : nouveau snapshot si au moins un champ diffère >0.5% du snapshot le plus récent.
 // Si un snapshot source="nolio" existe déjà pour aujourd’hui → update.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { corsHeaders } from "../_shared/cors.ts";
 
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
