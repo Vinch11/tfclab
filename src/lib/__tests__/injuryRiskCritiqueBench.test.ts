@@ -15,7 +15,7 @@ import type { ParsedPlan, ParsedSession } from "@/lib/aiPlanParser";
 const OBJECTIVES = ["marathon", "semi", "70.3", "ironman", "trail"];
 
 function isRunEntry(e: CatalogEntry) { return /course|run|cap|trail/i.test(e.sport); }
-function isBikeEntry(e: CatalogEntry) { return /v[ée]lo|bike|home ?trainer/i.test(e.sport); }
+function isBikeEntry(e: CatalogEntry) { return /v[ée]lo|bike|cyclisme|home ?trainer/i.test(e.sport); }
 function highImpactCount(catalog: CatalogEntry[]) {
   return catalog.filter(e => {
     const text = `${e.id} ${e.structure} ${e.variants ?? ""}`.toLowerCase();
