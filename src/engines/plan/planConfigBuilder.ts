@@ -164,6 +164,16 @@ export function buildPlanConfigFromDiagnostic(
     formConfig.weeksAvailable,
   );
 
+  // ── Durée du bloc Fondation — calculée depuis le niveau d'entraînement de
+  // l'athlète (cf. computeFondationDurationWeeks plus bas), plutôt que la
+  // valeur fixe "3-4 sem" codée en dur dans le prompt. `effectiveTrainingLevel`
+  // est toujours résolu (coach explicite, auto-TSS, ou fallback prudent), donc
+  // disponible même quand le coach n'a rien saisi.
+  const fondationDurationWeeks = computeFondationDurationWeeks(
+    ambitionResolution.effectiveTrainingLevel,
+    formConfig.weeksAvailable,
+  );
+
   // ── Leviers (L1 + L2) ──────────────────────────────────────────────────────
   const leverIds: string[] = [limiterResult.primaryLever];
   if (
@@ -310,6 +320,7 @@ export function buildPlanConfigFromDiagnostic(
     identifiedLimiters: limiters.length > 0 ? limiters : undefined,
     identifiedLimitersRaw: limitersRaw.length > 0 ? limitersRaw : undefined,
     chantierDurationWeeks,
+    fondationDurationWeeks,
     activeLevers: levers.length > 0 ? levers : undefined,
     prohibitions: prohibitions.length > 0 ? prohibitions : undefined,
     adaptationProjections: projections.length > 0 ? projections : undefined,
@@ -473,6 +484,35 @@ export function computeChantierDurationWeeks(
   if (!weeksAvailable || weeksAvailable <= 0) return base;
   // Un Chantier ne doit pas à lui seul écraser Fondation/Consolidation/
   // Race-Specific/Affûtage sur un plan court — plafond à ~35% du plan total.
+  const capFromTotal = Math.max(2, Math.round(weeksAvailable * 0.35));
+  return Math.max(2, Math.min(base, capFromTotal, 6));
+}
+
+/**
+ * Durée suggérée (semaines) du bloc Fondation — jusqu'ici une valeur fixe
+ * (3-4 sem) identique quel que soit le niveau d'entraînement de l'athlète,
+ * alors qu'un athlète moins entraîné a besoin de plus de temps pour
+ * reconstruire une base aérobie avant d'attaquer le travail spécifique
+ * qu'un athlète déjà entraîné peut aborder plus vite.
+ *
+ * Comme pour `computeChantierDurationWeeks`, on ne remet PAS en cause la
+ * plage déjà validée par PHASE_DURATION_RANGE.Fondation = [2, 6]
+ * (planValidator.ts) : on choisit juste où se positionner dedans, selon
+ * `effectiveTrainingLevel` (déjà résolu par computeAmbitionEffective,
+ * disponible pour tout athlète — pas seulement quand le coach le saisit
+ * explicitement).
+ */
+export function computeFondationDurationWeeks(
+  trainingLevel: CoachTrainingLevel | string | undefined,
+  weeksAvailable: number | null | undefined,
+): number {
+  const base = trainingLevel === "untrained" ? 6
+    : trainingLevel === "light" ? 5
+    : trainingLevel === "highly_trained" ? 3
+    : 4; // "trained" ou niveau inconnu → valeur intermédiaire, proche du "3-4 sem" générique d'origine
+  if (!weeksAvailable || weeksAvailable <= 0) return base;
+  // Comme pour le Chantier : une Fondation ne doit pas à elle seule écraser
+  // les autres blocs sur un plan court — plafond à ~35% du plan total.
   const capFromTotal = Math.max(2, Math.round(weeksAvailable * 0.35));
   return Math.max(2, Math.min(base, capFromTotal, 6));
 }

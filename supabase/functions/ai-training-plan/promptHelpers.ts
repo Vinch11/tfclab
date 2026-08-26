@@ -298,6 +298,15 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(`  ⚠️ Une semaine de décharge (deload) DOIT intervenir tous les 3 microcycles de charge même pendant la rampe.`);
   }
 
+  // Durée du bloc Fondation calculée depuis le niveau d'entraînement effectif
+  // (cf. computeFondationDurationWeeks) — remplace la valeur générique
+  // "3-4 sem" donnée plus haut dans les instructions méthodologiques. Un
+  // athlète moins entraîné a besoin de plus de temps pour reconstruire une
+  // base aérobie avant le travail spécifique.
+  if (typeof config?.fondationDurationWeeks === "number" && config.fondationDurationWeeks > 0) {
+    lines.push(`\n📅 Durée du bloc Fondation pour CET athlète : ${config.fondationDurationWeeks} semaines (calculée selon le niveau d'entraînement + la durée totale du plan — utilise CETTE valeur, pas le "3-4 sem" générique indiqué plus haut).`);
+  }
+
   // FIX C5 + audit V8: Limiter-aware phase heuristics — works for ANY plan ≥4 semaines.
   // Avant: gating à tw>10 laissait l'IA improviser sur 4-10 sem (cas typique trail 6 sem).
   if (totalWeeks && totalWeeks >= 4) {
