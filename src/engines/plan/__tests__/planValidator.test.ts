@@ -656,6 +656,100 @@ describe("planValidator", () => {
     });
   });
 
+  // Audit méthodologique — Niveau 2 : le prompt donne un exemple few-shot
+  // complet (méthode norvégienne double-seuil) qui, suivi à la lettre par
+  // l'IA, viole mécaniquement la règle 80/20 telle qu'appliquée par Rule 1 —
+  // le prompt et le validateur se contredisaient sur ces semaines précises.
+  describe("Niveau 2 — exception bloc seuil concentré (norvégien/sweet spot)", () => {
+    function norwegianDoubleThresholdWeek(weekNumber: number): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Course", title: "🔑 Double Seuil #1 — Bas", details: "5x6min seuil bas 30min" },
+        { sport: "Course", title: "🔑 Double Seuil #1 — Haut", details: "8x1000m seuil haut 25min" },
+        { sport: "Course", title: "EF récupération", details: "40min Z1 récupération" },
+        { sport: "Course", title: "🔑 Double Seuil #2 — Bas", details: "4x2000m seuil bas 27min" },
+        { sport: "Course", title: "🔑 Double Seuil #2 — Haut", details: "6x1200m seuil haut 23min" },
+        { sport: "Repos", title: "Repos", details: "", isRest: true },
+      ], "Chantier TTE↑ — Norvégienne", "Chantier");
+    }
+
+    it("exempte une semaine explicitement nommée bloc norvégien de Rule 1 (polarisation)", () => {
+      const plan = makePlan([norwegianDoubleThresholdWeek(1), norwegianDoubleThresholdWeek(2)]);
+      const result = validatePlan(plan);
+      const polarizationIssues = result.issues.filter(i => i.rule === "polarization" && i.week === 1);
+      expect(polarizationIssues).toHaveLength(0);
+    });
+
+    it("continue de flaguer la même distribution si la semaine n'est pas nommée comme un bloc seuil", () => {
+      const week = makeWeek(1, [
+        { sport: "Course", title: "Seuil #1 — Bas", details: "5x6min seuil bas 30min" },
+        { sport: "Course", title: "Seuil #1 — Haut", details: "8x1000m seuil haut 25min" },
+        { sport: "Course", title: "EF récupération", details: "40min Z1 récupération" },
+        { sport: "Course", title: "Seuil #2 — Bas", details: "4x2000m seuil bas 27min" },
+        { sport: "Course", title: "Seuil #2 — Haut", details: "6x1200m seuil haut 23min" },
+        { sport: "Repos", title: "Repos", details: "", isRest: true },
+      ], "Chantier seuil", "Chantier");
+      const result = validatePlan(makePlan([week, week]));
+      const polarizationIssues = result.issues.filter(i => i.rule === "polarization" && i.week === 1);
+      expect(polarizationIssues.length).toBeGreaterThan(0);
+    });
+  });
+
+  // Audit méthodologique — Niveau 2 : Issurin (Block Periodization) prévoit un
+  // nouveau bloc concentré par limiteur — un plan à 2 limiteurs enchaîne donc
+  // légitimement Chantier→Consolidation→Chantier(#2)→Consolidation(#2). Le
+  // validateur bannissait jusqu'ici tout recul d'indice de phase, sans
+  // distinguer ce cycle voulu d'une vraie régression.
+  describe("Niveau 2 — cycle Chantier↔Consolidation toléré (Issurin)", () => {
+    function phaseWeek(weekNumber: number, phase: string): ParsedWeek {
+      return makeWeek(weekNumber, [
+        { sport: "Course", title: "Seuil 2x20min", details: "Séance clé 🔑" },
+        { sport: "Course", title: "EF Z2 45min", details: "Endurance" },
+        { sport: "Course", title: "EF Z2 50min", details: "Endurance" },
+      ], phase, phase);
+    }
+
+    it("ne flague pas un second cycle Chantier→Consolidation pour un second limiteur", () => {
+      const weeks = [
+        phaseWeek(1, "Chantier"),
+        phaseWeek(2, "Consolidation"),
+        phaseWeek(3, "Chantier 2"),
+        phaseWeek(4, "Consolidation"),
+        phaseWeek(5, "Race-Specific"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues).toHaveLength(0);
+    });
+
+    it("flague toujours un vrai retour à Fondation après le Chantier", () => {
+      const weeks = [
+        phaseWeek(1, "Chantier"),
+        phaseWeek(2, "Consolidation"),
+        phaseWeek(3, "Fondation"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues.length).toBeGreaterThan(0);
+    });
+
+    it("flague toujours un recul depuis Race-Specific vers Chantier", () => {
+      const weeks = [
+        phaseWeek(1, "Chantier"),
+        phaseWeek(2, "Race-Specific"),
+        phaseWeek(3, "Chantier 2"),
+      ];
+      const result = validatePlan(makePlan(weeks));
+      const regressionIssues = result.issues.filter(
+        i => i.rule === "phase_coherence" && /Régression de phase/i.test(i.message)
+      );
+      expect(regressionIssues.length).toBeGreaterThan(0);
+    });
+  });
+
   // Audit méthodologique — phase compressée "Peak" (promptHelpers.ts, garde-fou
   // Ultra-Trail ≤6 sem : "Fondation 2 sem · Build 2 sem · Peak 1 sem · Taper 1
   // sem") ne matchait aucune clé de PHASE_ORDER — getPhaseIndex("Peak") rendait
