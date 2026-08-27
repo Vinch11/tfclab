@@ -1702,8 +1702,13 @@ function validateRaceDayPresence(plan: ParsedPlan, raceWeekNumbers?: number[]): 
       score -= penaltyPerMissing;
     }
 
-    // Race Week completeness: minimum 5 real sessions expected
-    const MIN_RACE_WEEK_SESSIONS = 5;
+    // Race Week completeness: minimum 4 real sessions expected — aligné sur
+    // le prompt (systemPrompt.ts, RÈGLES INVIOLABLES §4) et sur son propre
+    // exemple few-shot (FEWSHOT_RACEWEEK_MARATHON : 4 séances réelles hors
+    // repos). Audit fix — ce garde-fou exigeait 5, le prompt exigeait 6, et
+    // l'exemple donné à l'IA comme référence n'en démontrait que 4 : un plan
+    // fidèle à l'exemple était donc rejeté par ce garde-fou.
+    const MIN_RACE_WEEK_SESSIONS = 4;
     if (realSessions.length < MIN_RACE_WEEK_SESSIONS) {
       issues.push({
         rule: "race_day",

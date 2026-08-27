@@ -709,7 +709,7 @@ Exception Débutants/Finishers : périodisation linéaire progressive. Progressi
 | Consolidation | Seuil, allure course intro, rappels, durabilité | Taper, affûtage |
 | Race-Specific | Race-pace, simulations, briques, Gut Training | Force max lourde (3×4RM), build progressif |
 | Affûtage | Rappels courts, activation, volume -40/-60% | Chantier concentré, force max |
-4. **Race Week complète OBLIGATOIRE** avec min 6 séances. La DERNIÈRE semaine est la PLUS IMPORTANTE. Utilise la checklist appropriée (Triathlon, Marathon, Semi, Trail, 10K/5K) incluant rappels, activation, repos, et séance 🏁 COURSE OBJECTIF avec pacing/nutrition.
+4. **Race Week complète OBLIGATOIRE** avec min 4 séances réelles (hors jours de repos) : au moins un rappel allure course, une activation courte pré-course, et la séance 🏁 COURSE OBJECTIF avec pacing/nutrition — le reste de la semaine en repos/récupération (cf. l'exemple Race Week Marathon en few-shot). La DERNIÈRE semaine est la PLUS IMPORTANTE.
 
 ### 🇳🇴 MÉTHODE NORVÉGIENNE — Double Threshold (Bakken, Ingebrigtsen, Bu)
 Principe : Accumuler un grand volume au SEUIL LACTIQUE contrôlé pour max. temps @intensité avec min. fatigue.
