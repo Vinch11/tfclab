@@ -308,7 +308,7 @@ const Index = () => {
   } = useAthleteRaceGoals(currentAthlete?.id ?? null);
 
   // Tabs valides gérés par cette page
-  const validTabs = ["dashboard", "profil", "strategie", "configuration"];
+  const validTabs = ["dashboard", "profil", "strategie", "outils", "configuration"];
   
   const [activeTab, setActiveTab] = useState(() => {
     // D'abord, vérifier si on a un state de navigation
@@ -2349,6 +2349,33 @@ const Index = () => {
         );
       }
 
+      case "outils": {
+        return (
+          <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
+            {renderAthleteSelector()}
+
+            {dashDiagnostic && dashPrescription && (
+              <CoachDecisionUnifiedCard
+                diagnostic={dashDiagnostic}
+                prescription={dashPrescription}
+                staffMode={staffMode}
+              />
+            )}
+
+            {currentAthlete && (
+              <RoadmapStrategique
+                objectif={currentAthlete.goal ?? null}
+                limiterResult={alignedLimiterResult}
+              />
+            )}
+
+            <RaceChecklist />
+
+            <NolioMapping />
+          </div>
+        );
+      }
+
       case "configuration":
         return <ConfigurationPage />;
 
@@ -2383,6 +2410,7 @@ const Index = () => {
               { id: "dashboard", label: "Dashboard", icon: "📊" },
               { id: "profil", label: "Profil", icon: "👤" },
               { id: "strategie", label: "Stratégie", icon: "🎯" },
+              { id: "outils", label: "Outils", icon: "🧰" },
             ].map(tab => (
               <button
                 key={tab.id}
