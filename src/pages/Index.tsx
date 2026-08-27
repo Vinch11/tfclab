@@ -42,11 +42,6 @@ import { StaffReport } from "@/components/StaffReport";
 import { StaffBriefingCard } from "@/components/StaffBriefingCard";
 import { AssistantDrawer } from "@/components/AssistantDrawer";
 import { ExpressDashboard } from "@/components/ExpressDashboard";
-import { computeNutritionTiming } from "@/lib/nutritionTiming";
-import { computeNutritionEstimate } from "@/lib/nutritionPredictive";
-// Audit 2C F19 — migré V1 → V2 (score 0-100 + O2 cost canonique).
-import { computeRunningEconomyV2 } from "@/lib/v2/runningEconomyV2";
-import { computeEnergyDrift, EnergyDriftResult } from "@/lib/energyDrift";
 import { DashboardGauges } from "@/components/DashboardGauges";
 import { StaffDashboard } from "@/components/StaffDashboard";
 import { ScientificChartsDashboard, MetabolicPerformanceCompass, MetabolicCompassCAP, AmbitionProgressChart, AmbitionProgressMini, CompactMetricsGrid, CarbBurnRateChart, MetabolicPowerCurve } from "@/components/charts";
@@ -604,41 +599,6 @@ const Index = () => {
     });
   }, [currentAthlete, vlamaxEffectif, tteEffectif, ftp, poids, effectiveCloudSnapshot, currentAmbition]);
 
-
-  // ✅ NUTRITION ESTIMATE - Pour rapport staff
-  const nutritionEstimate = useMemo(() => {
-    return computeNutritionEstimate({
-      vlamax: vlamaxEffectif.value,
-      objectif: currentAthlete?.goal || "IM",
-      tteMin: tteEffectif.tte_min,
-      tteTarget: tteEffectif.target,
-      vo2max: effectiveCloudSnapshot?.vo2max ?? currentAthlete?.vo2max ?? null,
-      weightKg: poids ?? null,
-    });
-  }, [vlamaxEffectif, currentAthlete, tteEffectif]);
-
-  // ✅ RUNNING ECONOMY - Pour rapport staff
-  const runningEconomyResult = useMemo(() => {
-    return computeRunningEconomyV2({
-      fcMax: effectiveRefs.fcMax ?? null,
-      // Dérive cardiaque mesurée depuis les sessions FIT
-      hrDriftPct: effectiveCloudSnapshot?.run_hr_drift_pct ?? null,
-      tteMin: tteEffectif.tte_min,
-      weightKg: effectiveRefs.weightKg ?? null,
-      objectif: currentAthlete?.goal || "IM",
-      sport: (currentAthlete as any)?.sport_main ?? undefined,
-    });
-  }, [effectiveRefs, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
-
-  // ✅ ENERGY DRIFT - Source unique de vérité
-  const energyDrift = useMemo<EnergyDriftResult>(() => {
-    return computeEnergyDrift({
-      vlamaxEffectif,
-      tteEffectif,
-      objectif: currentAthlete?.goal || "IM",
-      tss7d: effectiveCloudSnapshot?.tss_7d ?? null,
-    });
-  }, [vlamaxEffectif, tteEffectif, currentAthlete, effectiveCloudSnapshot]);
 
   // ✅ DECISION RELIABILITY ENGINE - Score de confiance décisionnelle
   const decisionReliability = useMemo<DecisionReliabilityResult>(() => {
